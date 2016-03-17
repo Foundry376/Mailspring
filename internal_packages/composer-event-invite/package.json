@@ -1,0 +1,11 @@
+{
+  "name": "composer-event-invite",
+  "version": "0.1.0",
+  "title": "Composer Event Invitations",
+  "description": "Allows new events to be created and sent with drafts in the composer",
+  "main": "lib/main.es6",
+  "engines": {
+    "nylas": "*"
+  },
+  "license": "GPL-3.0"
+}

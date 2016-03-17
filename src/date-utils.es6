@@ -79,6 +79,7 @@ EnforceFutureDate.refine = (text, results)=> {
   return results;
 };
 
+const chronoBasic = new chrono.Chrono(chrono.options.casualOption());
 const chronoFuture = new chrono.Chrono(chrono.options.casualOption());
 chronoFuture.refiners.push(EnforceFutureDate);
 
@@ -157,6 +158,13 @@ const DateUtils = {
     }
     return moment(date)
   },
+  dateFromString(dateLikeString) {
+    const date = chronoBasic.parseDate(dateLikeString)
+    if (!date) {
+      return null
+    }
+    return moment(date)
+  }
 }
 
 export default DateUtils
