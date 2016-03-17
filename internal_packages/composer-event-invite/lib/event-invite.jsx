@@ -55,6 +55,7 @@ export default class EventInviteContainer extends Component {
     const event = events[index].clone();
     _.extend(event, change);
     events.splice(index, 1, event);
+    console.log(events[0].start);
     this._session.changes.add({events}); //triggers draft change
   }
 
@@ -65,11 +66,18 @@ export default class EventInviteContainer extends Component {
   }
 
   render() {
-    console.log("RENDER: Event Invite Container", this.state.events)
     return (<div className="event-invite-container"
                  ref="event_invite_container">
       {this.state.events.map((evt, i) => this._renderEventEditor(evt, i))}
     </div>)
+  }
+}
+
+
+function getDateFormat(type) {
+  switch (type) {
+  case "date": return "YYYY-MM-DD";
+  case "time": return "HH:mm:ss";
   }
 }
 
@@ -116,6 +124,12 @@ class EventInvite extends Component {
     )
   }
 
+  _onDateChange(field, date, time) {
+    const change = {};
+    change[field] = moment.tz(`${date} ${time}`, `${getDateFormat("date")} ${getDateFormat("time")}`, Utils.timeZone).unix();
+    this.props.onChange(change)
+  }
+
   _renderCollapsed() {
     return (<div className="row expand" onClick={()=>{this.setState({expanded: true})}}>
       <RetinaImg name="ic-eventcard-link@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
@@ -124,7 +138,6 @@ class EventInvite extends Component {
   }
 
   render() {
-    console.log("RENDER: Event Invite", this.props.event)
     return (<div className="event-invite">
       <div className="row title">
         <RetinaImg name="ic-eventcard-description@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
@@ -139,12 +152,19 @@ class EventInvite extends Component {
         <RetinaImg name="ic-eventcard-time@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
         <span>
           <EventDatetimeInput name="start-date" type="date"
-                            value={this.props.event.start}
-                            onChange={ date => this.props.onChange({start: date}) } />
+                              ref="startdate"
+                              value={this.props.event.start}
+                              onChange={ datestr => {
+                                this._startDateStr = datestr;
+                                this._onDateChange("start", datestr, this._startTimeStr)
+                              }} />
           at
           <EventDatetimeInput name="start-time" type="time"
+                              ref="starttime"
                             value={this.props.event.start}
-                            onChange={ date => this.props.onChange({start: date}) } />
+                            onChange={ timestr => {
+                            this._startTimeStr = timestr;
+                            this._onDateChange("start", this._startDateStr, timestr)} } />
           -
           <EventDatetimeInput name="end-time" type="time"
                             value={this.props.event.end}
@@ -176,7 +196,6 @@ class EventInvite extends Component {
   }
 }
 
-
 class EventDatetimeInput extends Component {
   static displayName = "EventDatetimeInput";
 
@@ -189,50 +208,13 @@ class EventDatetimeInput extends Component {
 
   _formatDate(date) {
     if (date == null) {return null;}
-    switch (this.props.type) {
-    case "date":
-      return moment(date).tz(Utils.timeZone).format("MMM D, YYYY");
-    case "time":
-      return moment(date).tz(Utils.timeZone).format("h:mm A");
-    }
-  }
-
-  _parseDate(str) {
-    let updated;
-    let existing;
-    switch (this.props.type) {
-    case "date":
-      updated = DateUtils.dateFromString(str);
-      existing = moment(this.props.value || Date.now()).tz(Utils.timeZone);
-      existing.year(updated.year());
-      existing.month(updated.month());
-      existing.date(updated.date());
-      return existing.unix();
-
-    case "time":
-      updated = DateUtils.dateFromString(str);
-      existing = moment(this.props.value || Date.now()).tz(Utils.timeZone);
-      existing.hour(updated.hour());
-      existing.minute(updated.minute());
-      return existing.unix();
-    }
-  }
-
-  _getPlaceholder() {
-    switch (this.props.type) {
-    case "date":
-      return "Mar 1, 2016";
-    case "time":
-      return "8:00 AM";
-    }
+    return moment.unix(date).tz(Utils.timeZone).format(getDateFormat(this.props.type));
   }
 
   render() {
-    console.log("RENDER: Event Datetime Input", this.props.value)
-    return (<input type="text"
+    return (<input type={this.props.type}
                    name={this.props.name}
-                   placeholder={this._getPlaceholder()}
                    value={this._formatDate(this.props.value)}
-                   onChange={e => {this.props.onChange(this._parseDate(e.target.value))}}/>)
+                   onChange={e => {this.props.onChange(e.target.value)}}/>)
   }
 }

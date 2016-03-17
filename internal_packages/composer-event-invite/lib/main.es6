@@ -3,7 +3,6 @@ import EventInviteContainer from './event-invite'
 import EventInviteButton from './event-invite-button';
 
 export function activate() {
-  console.log(EventInviteButton)
   ComponentRegistry.register(EventInviteContainer, {role: 'Composer:Footer'});
   ComponentRegistry.register(EventInviteButton, {role: 'Composer:ActionButton'});
 }
