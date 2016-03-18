@@ -98,30 +98,48 @@ class EventInvite extends Component {
     };
   }
 
-  _renderExpanded() {
-    return (
-      <div className="row description">
-        <RetinaImg name="ic-eventcard-notes@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
+  _renderIcon(name) {
+    return (<span className="field-icon">
+      <RetinaImg name={name} mode={RetinaImg.Mode.ContentIsMask} />
+    </span>)
+  }
 
-        <input type="text"
-               name="description"
-               placeholder="Add notes"
-               value={this.props.event.description || this.props.draft.body}
-               onChange={ e => this.props.onChange({description: e.target.value}) }/>
-      </div>
-      /*
-      <div className="row link">
-      <RetinaImg name="ic-eventcard-link@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
-      <EventTextBox value={this.props.event.link}
-      onChange={ text => this.props.onChange({link: text}) } />
-      </div>
-      <div className="row reminder">
-      <RetinaImg name="ic-eventcard-reminder@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
-      <ReminderContainer value={this.props.event.reminders}
-      onChange={ reminders => this.props.onChange({reminders: reminders}) } />
-      </div>
-      */
-    )
+  _renderExpanded() {
+    let description = this.props.event.description;
+    if (description == null) {
+      description = this.props.draft.body;
+    }
+
+    return (
+      <span>
+        <div className="row description">
+          {this._renderIcon("ic-eventcard-notes@2x.png")}
+
+          <input type="text"
+                 name="description"
+                 placeholder="Add notes"
+                 value={description}
+                 onChange={ e => this.props.onChange({description: e.target.value}) }/>
+        </div>
+        <div className="row link">
+          {this._renderIcon("ic-eventcard-link@2x.png")}
+          <input type="text"
+                 name="description"
+                 placeholder="Add links"
+                 value={this.props.event.link}
+                 onChange={ e => this.props.onChange({link: e.target.value}) }/>
+        </div>
+        <div className="row reminder">
+          {this._renderIcon("ic-eventcard-reminder@2x.png")}
+
+          <input type="text"
+                 name="description"
+                 placeholder="Add reminders"
+                 value={this.props.event.reminders}
+                 onChange={ e => this.props.onChange({reminders: e.target.value}) }/>
+        </div>
+      </span>
+)
   }
 
   _onDateChange(field, date, time) {
@@ -130,60 +148,57 @@ class EventInvite extends Component {
     this.props.onChange(change)
   }
 
+  _renderParticipants() {
+    const to = this.props.draft.to || [];
+    const from = this.props.draft.from || [];
+    return to.concat(from).map(r => r.name).join(", ")
+  }
+
   _renderCollapsed() {
     return (<div className="row expand" onClick={()=>{this.setState({expanded: true})}}>
-      <RetinaImg name="ic-eventcard-link@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
+      {this._renderIcon("ic-eventcard-link@2x.png")}
       Add reminders, notes, links...
     </div>)
   }
 
   render() {
+    let title = this.props.event.title;
+    if (title == null) {
+      title = this.props.draft.subject;
+    }
+
     return (<div className="event-invite">
       <div className="row title">
-        <RetinaImg name="ic-eventcard-description@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
+        {this._renderIcon("ic-eventcard-description@2x.png")}
         <input type="text"
                name="title"
                placeholder="Add an event title"
-               value={this.props.event.title || this.props.draft.subject}
+               value={title}
                onChange={e => this.props.onChange({title: e.target.value}) }/>
       </div>
 
       <div className="row time">
-        <RetinaImg name="ic-eventcard-time@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
+        {this._renderIcon("ic-eventcard-time@2x.png")}
         <span>
-          <EventDatetimeInput name="start-date" type="date"
-                              ref="startdate"
+          <EventDatetimeInput name="start"
                               value={this.props.event.start}
-                              onChange={ datestr => {
-                                this._startDateStr = datestr;
-                                this._onDateChange("start", datestr, this._startTimeStr)
-                              }} />
-          at
-          <EventDatetimeInput name="start-time" type="time"
-                              ref="starttime"
-                            value={this.props.event.start}
-                            onChange={ timestr => {
-                            this._startTimeStr = timestr;
-                            this._onDateChange("start", this._startDateStr, timestr)} } />
+                              onChange={ date => this.props.onChange({start: date}) } />
           -
-          <EventDatetimeInput name="end-time" type="time"
-                            value={this.props.event.end}
-                            onChange={ date => this.props.onChange({end: date}) } />
-          on
-          <EventDatetimeInput name="end-date" type="date"
-                            value={this.props.event.end}
-                            onChange={ date => this.props.onChange({end: date}) } />
-          {moment().tz(Utils.timeZone).format("z")}
+          <EventDatetimeInput name="end"
+                              reversed
+                              value={this.props.event.end}
+                              onChange={ date => this.props.onChange({end: date}) } />
+          <span className="timezone">{moment().tz(Utils.timeZone).format("z")}</span>
         </span>
       </div>
 
       <div className="row recipients">
-        <RetinaImg name="ic-eventcard-people@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
-        <div>{(this.props.event.participants || []).map(r => r.name).join(", ")}</div>
+        {this._renderIcon("ic-eventcard-people@2x.png")}
+        <div>{this._renderParticipants()}</div>
       </div>
 
       <div className="row location">
-        <RetinaImg name="ic-eventcard-location@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
+        {this._renderIcon("ic-eventcard-location@2x.png")}
         <input type="text"
                name="location"
                placeholder="Add a location"
@@ -202,19 +217,46 @@ class EventDatetimeInput extends Component {
   static propTypes = {
     value: PropTypes.number.isRequired,
     onChange: PropTypes.func.isRequired,
-    type: PropTypes.string.isRequired,
+    reversed: PropTypes.bool,
     name: PropTypes.string,
   };
 
-  _formatDate(date) {
-    if (date == null) {return null;}
-    return moment.unix(date).tz(Utils.timeZone).format(getDateFormat(this.props.type));
+  constructor(props) {
+    super(props);
+    this._datePartStrings = {time: "", date: ""};
+  }
+
+  conponentDidMount() {
+    const dateInputNode = React.findDOMNode(this.refs.date);
+    dateInputNode.addEventListener("mousedown", e => {
+      dateInputNode.querySelector("::-webkit-calendar-picker-indicator")
+    });
+  }
+
+  _onDateChange() {
+    const {date, time} = this._datePartStrings;
+    const format = `${getDateFormat("date")} ${getDateFormat("time")}`;
+    const newDate = moment.tz(`${date} ${time}`, format, Utils.timeZone).unix();
+    this.props.onChange(newDate)
+  }
+
+  _renderInput(type) {
+    const unixDate = this.props.value;
+    this._datePartStrings[type] = unixDate != null ? moment.unix(unixDate).tz(Utils.timeZone).format(getDateFormat(type)) : null;
+    return (<input type={type}
+                   ref={type}
+                   name={`${this.props.name}-${type}`}
+                   value={this._datePartStrings[type]}
+                   onChange={e => {
+                     this._datePartStrings[type] = e.target.value;
+                     this._onDateChange()
+                   }} />)
   }
 
   render() {
-    return (<input type={this.props.type}
-                   name={this.props.name}
-                   value={this._formatDate(this.props.value)}
-                   onChange={e => {this.props.onChange(e.target.value)}}/>)
+    if (this.props.reversed) {
+      return <span className="datetime-input-container">{this._renderInput("time")} on {this._renderInput("date")}</span>;
+    }
+    return <span className="datetime-input-container">{this._renderInput("date")} at {this._renderInput("time")}</span>;
   }
 }
