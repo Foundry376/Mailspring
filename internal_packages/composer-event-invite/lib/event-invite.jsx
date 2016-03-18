@@ -38,6 +38,7 @@ export default class EventInviteContainer extends Component {
     const node = React.findDOMNode(this.refs.event_invite_container);
     node.addEventListener("mousedown", e => e.stopPropagation());
     node.addEventListener("mouseup", e => e.stopPropagation());
+    node.addEventListener("keydown", e => e.stopPropagation());
   }
 
   componentWillUnmount() {
@@ -55,14 +56,21 @@ export default class EventInviteContainer extends Component {
     const event = events[index].clone();
     _.extend(event, change);
     events.splice(index, 1, event);
-    console.log(events[0].start);
-    this._session.changes.add({events}); //triggers draft change
+    this._session.changes.add({events});  // triggers draft change
+  }
+
+  _onEventRemove(index) {
+    const events = this.state.events;
+    events.splice(index, 1);
+    this._session.changes.add({events});  // triggers draft change
   }
 
   _renderEventEditor(event, index) {
     return (<EventInvite event={event}
                          draft={this._session.draft()}
-                         onChange={change => this._onEventChange(change, index)} />)
+                         onChange={change => this._onEventChange(change, index)}
+                         onRemove={() => this._onEventRemove(index)}
+                         onParticipantsClick={() => {}} />);  // TODO focus the To: field
   }
 
   render() {
@@ -89,6 +97,8 @@ class EventInvite extends Component {
     event: PropTypes.object.isRequired,
     draft: PropTypes.object.isRequired,
     onChange: PropTypes.func.isRequired,
+    onRemove: PropTypes.func.isRequired,
+    onParticipantsClick: PropTypes.func.isRequired,
   };
 
   constructor(props) {
@@ -100,8 +110,14 @@ class EventInvite extends Component {
 
   _renderIcon(name) {
     return (<span className="field-icon">
-      <RetinaImg name={name} mode={RetinaImg.Mode.ContentIsMask} />
+      <RetinaImg name={name} mode={RetinaImg.Mode.ContentPreserve} />
     </span>)
+  }
+
+  _renderParticipants() {
+    const to = this.props.draft.to || [];
+    const from = this.props.draft.from || [];
+    return to.concat(from).map(r => r.name).join(", ")
   }
 
   _renderExpanded() {
@@ -142,21 +158,9 @@ class EventInvite extends Component {
 )
   }
 
-  _onDateChange(field, date, time) {
-    const change = {};
-    change[field] = moment.tz(`${date} ${time}`, `${getDateFormat("date")} ${getDateFormat("time")}`, Utils.timeZone).unix();
-    this.props.onChange(change)
-  }
-
-  _renderParticipants() {
-    const to = this.props.draft.to || [];
-    const from = this.props.draft.from || [];
-    return to.concat(from).map(r => r.name).join(", ")
-  }
-
   _renderCollapsed() {
     return (<div className="row expand" onClick={()=>{this.setState({expanded: true})}}>
-      {this._renderIcon("ic-eventcard-link@2x.png")}
+      {this._renderIcon("ic-eventcard-disclosure@2x.png")}
       Add reminders, notes, links...
     </div>)
   }
@@ -168,6 +172,7 @@ class EventInvite extends Component {
     }
 
     return (<div className="event-invite">
+      <div className="remove-button" onClick={()=>this.props.onRemove()}>✕</div>
       <div className="row title">
         {this._renderIcon("ic-eventcard-description@2x.png")}
         <input type="text"
@@ -194,7 +199,7 @@ class EventInvite extends Component {
 
       <div className="row recipients">
         {this._renderIcon("ic-eventcard-people@2x.png")}
-        <div>{this._renderParticipants()}</div>
+        <div onClick={this.props.onParticipantsClick()}>{this._renderParticipants()}</div>
       </div>
 
       <div className="row location">

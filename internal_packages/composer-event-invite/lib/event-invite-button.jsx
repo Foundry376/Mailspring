@@ -12,8 +12,10 @@ export default class EventInviteButton extends React.Component {
     DraftStore.sessionForClientId(this.props.draftClientId).then(session => {
       if (this.props.draftClientId === session.draftClientId) {
         const events = [].concat(session.draft().events);
-        events.push(new Event());
-        session.changes.add({events});
+        if (events.length === 0) {  // API can only handle one event invite for now
+          events.push(new Event());
+          session.changes.add({events});
+        }
       }
     });
   }
