@@ -1,5 +1,5 @@
 import React, {Component, PropTypes} from 'react';
-import {DraftStore, Utils, DateUtils} from 'nylas-exports';
+import {DraftStore, Utils, DateUtils, DatabaseStore, Calendar, AccountStore} from 'nylas-exports';
 import {RetinaImg} from 'nylas-component-kit'
 import _ from 'underscore'
 import moment from 'moment'
@@ -48,6 +48,10 @@ export default class EventInviteContainer extends Component {
 
   _onDraftChange() {
     const draft = this._session.draft();
+    const to = draft.to || [];
+    const from = draft.from || [];
+    const participants = to.concat(from);
+    draft.events.forEach(event => event.participants = participants);
     this.setState({events: [].concat(draft.events || [])});
   }
 
@@ -103,9 +107,20 @@ class EventInvite extends Component {
 
   constructor(props) {
     super(props);
+    this._mounted = false;
     this.state = {
       expanded: false,
+      calendars: [],
     };
+  }
+
+  componentDidMount() {
+    this._mounted = true;
+    DatabaseStore.findAll(Calendar).then( (calendars) => {
+      if (this._mounted) {
+        this.setState({calendars: calendars.filter(c => !c.readOnly && c.accountId === this.props.draft.accountId)})
+      }
+    });
   }
 
   _renderIcon(name) {
@@ -165,6 +180,12 @@ class EventInvite extends Component {
     </div>)
   }
 
+  _renderCalendars() {
+    return this.state.calendars.map(cal =>
+      <option value={cal.serverId}>{cal.name}</option>
+    );
+  }
+
   render() {
     let title = this.props.event.title;
     if (title == null) {
@@ -195,6 +216,11 @@ class EventInvite extends Component {
                               onChange={ date => this.props.onChange({end: date}) } />
           <span className="timezone">{moment().tz(Utils.timeZone).format("z")}</span>
         </span>
+      </div>
+
+      <div className="row calendar">
+        {this._renderIcon("ic-eventcard-calendar@2x.png")}
+        <select onChange={e => {this.props.onChange({calendarId: e.target.value})} }>{this._renderCalendars()}</select>
       </div>
 
       <div className="row recipients">
