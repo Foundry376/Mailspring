@@ -1,5 +1,5 @@
 import React, {Component, PropTypes} from 'react';
-import {DraftStore, Utils, DateUtils, DatabaseStore, Calendar, AccountStore} from 'nylas-exports';
+import {DraftStore, Utils, DatabaseStore, Calendar} from 'nylas-exports';
 import {RetinaImg} from 'nylas-component-kit'
 import _ from 'underscore'
 import moment from 'moment'
@@ -90,6 +90,7 @@ function getDateFormat(type) {
   switch (type) {
   case "date": return "YYYY-MM-DD";
   case "time": return "HH:mm:ss";
+  default: return null;
   }
 }
 
@@ -259,7 +260,7 @@ class EventDatetimeInput extends Component {
 
   conponentDidMount() {
     const dateInputNode = React.findDOMNode(this.refs.date);
-    dateInputNode.addEventListener("mousedown", e => {
+    dateInputNode.addEventListener("mousedown", () => {
       dateInputNode.querySelector("::-webkit-calendar-picker-indicator")
     });
   }
