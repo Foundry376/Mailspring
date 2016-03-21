@@ -24,5 +24,7 @@ class Calendar extends Model
       modelKey: 'name'
     'description': Attributes.String
       modelKey: 'description'
+    'readOnly': Attributes.Boolean
+      modelKey: 'read_only'
 
 module.exports = Calendar

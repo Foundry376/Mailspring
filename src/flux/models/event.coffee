@@ -79,16 +79,6 @@ class Event extends Model
       modelKey: 'recurrence'
       jsonKey: 'recurrence'
 
-    'masterEventId': Attributes.String
-      modelKey: 'masterEventId'
-      jsonKey: 'master_event_id'
-
-    'originalStartTime': Attributes.Number
-      queryable: true
-      modelKey: 'originalStartTime'
-      jsonKey: 'original_start_time'
-
-
     ################ EXTRACTED ATTRIBUTES ##############
 
     # The "object" type of the "when" object. Can be either "time",
