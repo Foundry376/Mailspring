@@ -1,5 +1,5 @@
 import {ComponentRegistry} from 'nylas-exports';
-import EventInviteContainer from './event-invite'
+import EventInviteContainer from './event-invite-container'
 import EventInviteButton from './event-invite-button';
 
 export function activate() {

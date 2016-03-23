@@ -60,7 +60,7 @@ export default class SyncbackDraftFilesTask extends BaseDraftTask {
       accountId: this.draft.accountId,
       method: "POST",
       body: this._prepareEventJson(event),
-      returnsModel: false,
+      returnsModel: true,
     }).then(json =>{
       return (new Event()).fromJSON(json);
     });
@@ -89,8 +89,8 @@ export default class SyncbackDraftFilesTask extends BaseDraftTask {
       // Note: We don't actually delete uploaded files until send completes,
       // because it's possible for the app to quit without saving state and
       // need to re-upload the file.
-      this._appliedUploads = uploaded
-      this._appliedFiles = files
+      this._appliedUploads = uploaded;
+      this._appliedFiles = files;
     });
   }
 

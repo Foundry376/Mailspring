@@ -18,20 +18,24 @@ export default class EventInviteButton extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
-    // TODO what if it gets new props??
-    DraftStore.sessionForClientId(this.props.draftClientId).then(session => {
+    this.handleProps()
+  }
+
+  componentWillReceiveProps(newProps) {
+    this.handleProps(newProps);
+  }
+
+  handleProps(newProps = null) {
+    const props = newProps || this.props;
+    DraftStore.sessionForClientId(props.draftClientId).then(session => {
       // Only run if things are still relevant: component is mounted
       // and draftClientIds still match
-      if (this._mounted && this.props.draftClientId === session.draftClientId) {
+      const idIsCurrent = newProps ? true : this.props.draftClientId === session.draftClientId;
+      if (this._mounted && idIsCurrent) {
         this._session = session;
-        const unsub = session.listen( () => { this._onDraftChange(); });
+        const unsub = session.listen(this._onDraftChange.bind(this));
         this._unsubscribes.push(unsub);
         this._onDraftChange();
-      }
-    });
-    DatabaseStore.findAll(Calendar).then( (calendars) => {
-      if (this._mounted) {
-        this.setState({calendars: calendars.filter(c => !c.readOnly && c.accountId === this.state.accountId)})
       }
     });
   }
@@ -39,7 +43,17 @@ export default class EventInviteButton extends React.Component {
   _onDraftChange() {
     const draft = this._session.draft();
     const events = draft.events;
-    this.setState({enabled: events && events.length > 0, accountId: draft.accountId});
+    this.setState({
+      enabled: events && events.length > 0,
+      accountId: draft.accountId,
+    });
+    DatabaseStore.findAll(Calendar, {
+      accountId: draft.accountId,
+    }).then( (calendars) => {
+      if (this._mounted) {
+        this.setState({calendars: calendars && calendars.filter(c => !c.readOnly)})
+      }
+    });
   }
 
   _onClick() {
