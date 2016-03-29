@@ -1,6 +1,7 @@
 _ = require 'underscore'
 React = require 'react'
 
+{DraftSessionContainer} = require('nylas-component-kit');
 {AccountStore,
  DatabaseStore,
  Message,
@@ -29,7 +30,9 @@ class ComposerWithWindowProps extends React.Component
 
   render: ->
     <div className="composer-full-window">
-      <ComposerView draftClientId={@state.draftClientId} />
+      <DraftSessionContainer draftClientId={@state.draftClientId}>
+        <ComposerView />
+      </DraftSessionContainer>
     </div>
 
   _showInitialErrorDialog: (msg) ->

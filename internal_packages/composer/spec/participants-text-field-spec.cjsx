@@ -50,7 +50,6 @@ describe 'ParticipantsTextField', ->
         field={@fieldName}
         tabIndex={@tabIndex}
         visible={true}
-        draftReady={true}
         participants={@participants}
         change={@propChange} />
     )

@@ -82,6 +82,7 @@ class SendActionButton extends React.Component
 
   _renderSingleDefaultButton: =>
     <button
+      tabIndex={-1}
       className={"btn btn-toolbar btn-normal btn-emphasis btn-text btn-send"}
       style={order: -100}
       onClick={@_onPrimaryClick}>

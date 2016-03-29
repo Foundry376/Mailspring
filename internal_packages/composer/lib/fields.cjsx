@@ -5,7 +5,7 @@ Fields =
   From: "fromField"
   Subject: "textFieldSubject"
   Body: "contentBody"
-Fields.ParticipantFields = [Fields.To, Fields.Cc, Fields.Bcc, Fields.From]
+Fields.ParticipantFields = [Fields.To, Fields.Cc, Fields.Bcc]
 
 Fields.Order =
   "textFieldTo": 1

@@ -11,10 +11,6 @@ class CollapsedParticipants extends React.Component
     cc: React.PropTypes.array
     bcc: React.PropTypes.array
 
-    # Notifies parent when the component has been clicked. This is usually
-    # used to expand the participants field
-    onClick: React.PropTypes.func
-
   @defaultProps:
     to: []
     cc: []
@@ -51,9 +47,10 @@ class CollapsedParticipants extends React.Component
     toDisplay = contacts.concat(bcc)
     toDisplay = toDisplay[0...@state.numToDisplay]
     if toDisplay.length is 0 then toDisplay = "Recipients"
-    <div onClick={ => @props.onClick?()}
-         ref="participantsWrap"
-         className="collapsed-composer-participants">
+    <div
+      tabIndex={0}
+      ref="participantsWrap"
+      className="collapsed-composer-participants">
       {@_renderNumRemaining()}
       {toDisplay}
     </div>

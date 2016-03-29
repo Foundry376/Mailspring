@@ -9,30 +9,30 @@ class ComposerHeaderActions extends React.Component
 
   @propTypes:
     draftClientId: React.PropTypes.string.isRequired
-    focusedField: React.PropTypes.string
     enabledFields: React.PropTypes.array.isRequired
-    onAdjustEnabledFields: React.PropTypes.func.isRequired
+    participantsFocused: React.PropTypes.bool
+    onShowField: React.PropTypes.func.isRequired
 
   render: =>
     items = []
 
-    if @props.focusedField in Fields.ParticipantFields
+    if @props.participantsFocused
       if Fields.Cc not in @props.enabledFields
         items.push(
           <span className="action show-cc" key="cc"
-                onClick={ => @props.onAdjustEnabledFields(show: [Fields.Cc]) }>Cc</span>
+                onClick={ => @props.onShowField(Fields.Cc) }>Cc</span>
         )
 
       if Fields.Bcc not in @props.enabledFields
         items.push(
           <span className="action show-bcc" key="bcc"
-                onClick={ => @props.onAdjustEnabledFields(show: [Fields.Bcc]) }>Bcc</span>
+                onClick={ => @props.onShowField(Fields.Bcc) }>Bcc</span>
         )
 
       if Fields.Subject not in @props.enabledFields
         items.push(
           <span className="action show-subject" key="subject"
-                onClick={ => @props.onAdjustEnabledFields(show: [Fields.Subject]) }>Subject</span>
+                onClick={ => @props.onShowField(Fields.Subject) }>Subject</span>
         )
 
     unless NylasEnv.isComposerWindow()

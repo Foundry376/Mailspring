@@ -26,10 +26,8 @@ FileUpload = require './file-upload'
 ImageFileUpload = require './image-file-upload'
 
 ComposerEditor = require './composer-editor'
-ComposerHeaderActions = require './composer-header-actions'
 SendActionButton = require './send-action-button'
-ExpandedParticipants = require './expanded-participants'
-CollapsedParticipants = require './collapsed-participants'
+ComposerHeader = require './composer-header'
 
 Fields = require './fields'
 
@@ -38,15 +36,11 @@ Fields = require './fields'
 # Composer with new props.
 class ComposerView extends React.Component
   @displayName: 'ComposerView'
-
   @containerRequired: false
 
   @propTypes:
-    draftClientId: React.PropTypes.string
-
-    # If this composer is part of an existing thread (like inline
-    # composers) the threadId will be handed down
-    threadId: React.PropTypes.string
+    session: React.PropTypes.object.isRequired
+    draft: React.PropTypes.object.isRequired
 
     # Sometimes when changes in the composer happens it's desirable to
     # have the parent scroll to a certain location. A parent component can
@@ -56,37 +50,10 @@ class ComposerView extends React.Component
 
   constructor: (@props) ->
     @state =
-      draftReady: false
-      to: []
-      cc: []
-      bcc: []
-      from: []
-      body: ""
-      files: []
-      uploads: []
-      subject: ""
-      accounts: []
-      focusedField: Fields.To # Gets updated in @_initiallyFocusedField
-      enabledFields: [] # Gets updated in @_initiallyEnabledFields
       showQuotedText: false
 
-  componentWillMount: =>
-    @_prepareForDraft(@props.draftClientId)
-
-  shouldComponentUpdate: (nextProps, nextState) =>
-    not Utils.isEqualReact(nextProps, @props) or
-    not Utils.isEqualReact(nextState, @state)
-
   componentDidMount: =>
-    @_usubs = []
-    @_usubs.push AccountStore.listen @_onAccountStoreChanged
-    @_applyFieldFocus()
-
-  componentWillUnmount: =>
-    @_unmounted = true # rarf
-    @_teardownForDraft()
-    @_deleteDraftIfEmpty()
-    usub() for usub in @_usubs
+    @_receivedNewSession() if @props.session
 
   componentDidUpdate: (prevProps, prevState) =>
     # We want to use a temporary variable instead of putting this into the
@@ -102,33 +69,14 @@ class ComposerView extends React.Component
     # the editor hasn't actually finished rendering, so we need to wait for that
     # to happen by using the InjectedComponent's `onComponentDidRender` callback.
     # See `_renderEditor`
-    bodyChanged = @state.body isnt prevState.body
+    bodyChanged = @props.body isnt prevProps.body
     return if bodyChanged
-    @_applyFieldFocus()
 
   focus: =>
-    if not @state.focusedField
-      @setState(focusedField: @_initiallyFocusedField(@_proxy.draft()))
-    else
-      @_applyFieldFocus()
+    @focusFieldWithName(@_initiallyFocusedField())
+    # TODO
 
-  _keymapHandlers: ->
-    'composer:send-message': => @_onPrimarySend()
-    'composer:delete-empty-draft': => @_deleteDraftIfEmpty()
-    'composer:show-and-focus-bcc': =>
-      @_onAdjustEnabledFields(show: [Fields.Bcc])
-    'composer:show-and-focus-cc': =>
-      @_onAdjustEnabledFields(show: [Fields.Cc])
-    'composer:focus-to': =>
-      @_onAdjustEnabledFields(show: [Fields.To])
-    "composer:show-and-focus-from": => # TODO
-    "composer:undo": @undo
-    "composer:redo": @redo
-
-  _applyFieldFocus: =>
-    @_applyFieldFocusTo(@state.focusedField)
-
-  _applyFieldFocusTo: (fieldName) =>
+  focusFieldWithName: (fieldName) =>
     return unless @refs[fieldName]
 
     $el = React.findDOMNode(@refs[fieldName])
@@ -139,75 +87,69 @@ class ComposerView extends React.Component
       $el.select()
       $el.focus()
 
+  _keymapHandlers: ->
+    'composer:send-message': => @_onPrimarySend()
+    'composer:delete-empty-draft': =>
+      @_destroyDraft() if @props.draft.pristine
+    'composer:show-and-focus-bcc': =>
+      @refs.header.showField(Fields.Bcc)
+    'composer:show-and-focus-cc': =>
+      @refs.header.showField(Fields.Cc)
+    'composer:focus-to': =>
+      @refs.header.showField(Fields.To)
+    "composer:show-and-focus-from": => # TODO
+    "composer:undo": @undo
+    "composer:redo": @redo
+
   componentWillReceiveProps: (newProps) =>
-    @_ignoreNextTrigger = false
-    if newProps.draftClientId isnt @props.draftClientId
-      # When we're given a new draft draftClientId, we have to stop listening to our
-      # current DraftStoreProxy, create a new one and listen to that. The simplest
-      # way to do this is to just re-call registerListeners.
-      @_teardownForDraft()
-      @_prepareForDraft(newProps.draftClientId)
+    if newProps.session isnt @props.session
+      @_receivedNewSession()
 
-  _prepareForDraft: (draftClientId) =>
-    @unlisteners = []
-    return unless draftClientId
-
-    # UndoManager must be ready before we call _onDraftChanged for the first time
+  _receivedNewSession: =>
     @undoManager = new UndoManager
-    DraftStore.sessionForClientId(draftClientId).then(@_setupSession)
+    @_saveToHistory()
 
-  _setupSession: (proxy) =>
-    return if @_unmounted
-    return unless proxy.draftClientId is @props.draftClientId
-    @_proxy = proxy
-    @_preloadImages(@_proxy.draft()?.files)
-    @unlisteners.push @_proxy.listen(@_onDraftChanged)
-    @_onDraftChanged()
+    @setState({
+      showQuotedText: Utils.isForwardedMessage(@props.draft)
+    })
 
-  _preloadImages: (files=[]) ->
-    files.forEach (file) ->
+    @props.draft.files.forEach (file) ->
       if Utils.shouldDisplayAsImage(file)
         Actions.fetchFile(file)
 
-  _teardownForDraft: =>
-    unlisten() for unlisten in @unlisteners
-    if @_proxy
-      @_proxy.changes.commit()
-
   render: ->
-    classes = "message-item-white-wrap composer-outer-wrap #{@props.className ? ""}"
+    dropCoverDisplay = if @state.isDropping then 'block' else 'none'
 
     <KeyCommandsRegion
       localHandlers={@_keymapHandlers()}
-      className={classes}
-      onFocusIn={@_onFocusIn}
+      className={"message-item-white-wrap composer-outer-wrap #{@props.className ? ""}"}
       tabIndex="-1"
       ref="composerWrap">
-      {@_renderComposer()}
+      <DropZone
+        className="composer-inner-wrap"
+        shouldAcceptDrop={@_shouldAcceptDrop}
+        onDragStateChange={ ({isDropping}) => @setState({isDropping}) }
+        onDrop={@_onDrop}>
+        <div className="composer-drop-cover" style={display: dropCoverDisplay}>
+          <div className="centered">
+            <RetinaImg
+              name="composer-drop-to-attach.png"
+              mode={RetinaImg.Mode.ContentIsMask}/>
+            Drop to attach
+          </div>
+        </div>
+
+        <div className="composer-content-wrap">
+          {@_renderContentScrollRegion()}
+        </div>
+
+        <div className="composer-action-bar-wrap">
+          {@_renderActionsRegion()}
+        </div>
+      </DropZone>
     </KeyCommandsRegion>
 
-  _renderComposer: =>
-    <DropZone className="composer-inner-wrap"
-              shouldAcceptDrop={@_shouldAcceptDrop}
-              onDragStateChange={ ({isDropping}) => @setState({isDropping}) }
-              onDrop={@_onDrop}>
-      <div className="composer-drop-cover" style={display: if @state.isDropping then 'block' else 'none'}>
-        <div className="centered">
-          <RetinaImg name="composer-drop-to-attach.png" mode={RetinaImg.Mode.ContentIsMask}/>
-          Drop to attach
-        </div>
-      </div>
-
-      <div className="composer-content-wrap" onKeyDown={@_onKeyDown}>
-        {@_renderScrollRegion()}
-
-      </div>
-      <div className="composer-action-bar-wrap">
-        {@_renderActionsRegion()}
-      </div>
-    </DropZone>
-
-  _renderScrollRegion: ->
+  _renderContentScrollRegion: ->
     if NylasEnv.isComposerWindow()
       <ScrollRegion className="compose-body-scroll" ref="scrollregion">
         {@_renderContent()}
@@ -217,96 +159,20 @@ class ComposerView extends React.Component
 
   _renderContent: =>
     <div className="composer-centered">
-      <div className="composer-header">
-        {if @state.draftReady
-          <ComposerHeaderActions
-            draftClientId={@props.draftClientId}
-            focusedField={@state.focusedField}
-            enabledFields={@state.enabledFields}
-            onAdjustEnabledFields={@_onAdjustEnabledFields}
-          />
-        }
-        {if @state.focusedField in Fields.ParticipantFields
-          <ExpandedParticipants
-            to={@state.to} cc={@state.cc} bcc={@state.bcc}
-            from={@state.from}
-            ref="expandedParticipants"
-            accounts={@state.accounts}
-            draftReady={@state.draftReady}
-            focusedField={@state.focusedField}
-            enabledFields={@state.enabledFields}
-            onPopoutComposer={@_onPopoutComposer}
-            onChangeParticipants={@_onChangeParticipants}
-            onChangeFocusedField={@_onChangeFocusedField}
-            onAdjustEnabledFields={@_onAdjustEnabledFields} />
-        else
-          <CollapsedParticipants
-            to={@state.to} cc={@state.cc} bcc={@state.bcc}
-            onPopoutComposer={@_onPopoutComposer}
-            onClick={@_onExpandParticipantFields} />
-        }
-
-        {@_renderSubject()}
-      </div>
-      <div className="compose-body"
-           ref="composeBody"
-           onMouseUp={@_onMouseUpComposerBody}
-           onMouseDown={@_onMouseDownComposerBody}>
+      <ComposerHeader
+        ref="header"
+        draft={@props.draft}
+        session={@props.session}
+      />
+      <div
+        className="compose-body"
+        ref="composeBody"
+        onMouseUp={@_onMouseUpComposerBody}
+        onMouseDown={@_onMouseDownComposerBody}>
         {@_renderBodyRegions()}
         {@_renderFooterRegions()}
       </div>
     </div>
-
-  _onKeyDown: (event) =>
-    if event.key is "Tab"
-      @_onTabDown(event)
-    return
-
-  _onTabDown: (event) =>
-    event.preventDefault()
-    event.stopPropagation()
-    @_onShiftFocusedField(if event.shiftKey then -1 else 1)
-
-  _onShiftFocusedField: (dir) =>
-    enabledFields = _.filter @state.enabledFields, (field) ->
-      Fields.Order[field] >= 0
-    enabledFields = _.sortBy enabledFields, (field) ->
-      Fields.Order[field]
-    i = enabledFields.indexOf @state.focusedField
-    newI = Math.min(Math.max(i + dir, 0), enabledFields.length - 1)
-    @_onChangeFocusedField(enabledFields[newI])
-
-  _onChangeFocusedField: (focusedField) =>
-    @setState({focusedField})
-    if focusedField in Fields.ParticipantFields
-      @_lastFocusedParticipantField = focusedField
-
-  _onExpandParticipantFields: =>
-    @_onChangeFocusedField(@_lastFocusedParticipantField ? Fields.To)
-
-  _onAdjustEnabledFields: ({show, hide}={}) =>
-    show = show ? []; hide = hide ? []
-    enabledFields = _.difference(@state.enabledFields.concat(show), hide)
-
-    if hide.length > 0 and enabledFields.indexOf(@state.focusedField) is -1
-      @_onShiftFocusedField(-1)
-
-    @setState({enabledFields})
-
-    if show.length > 0
-      @_onChangeFocusedField(show[0])
-
-  _renderSubject: ->
-    if Fields.Subject in @state.enabledFields
-      <div key="subject-wrap" className="compose-subject-wrap">
-        <input type="text"
-               name="subject"
-               ref={Fields.Subject}
-               placeholder="Subject"
-               value={@state.subject}
-               onFocus={ => @setState(focusedField: Fields.Subject) }
-               onChange={@_onChangeSubject}/>
-      </div>
 
   _renderBodyRegions: =>
     <span ref="composerBodyWrap">
@@ -317,15 +183,13 @@ class ComposerView extends React.Component
 
   _renderEditor: ->
     exposedProps =
-      body: @_removeQuotedText(@state.body)
-      draftClientId: @props.draftClientId
+      body: @_removeQuotedText(@props.draft.body)
+      draftClientId: @props.draft.clientId
       parentActions: {
         getComposerBoundingRect: @_getComposerBoundingRect
         scrollTo: @props.scrollTo
       }
       initialSelectionSnapshot: @_recoveredSelection
-      onFocus: => @setState(focusedField: Fields.Body)
-      onBlur: => @setState(focusedField: null)
       onFilePaste: @_onFilePaste
       onBodyChanged: @_onBodyChanged
 
@@ -347,9 +211,6 @@ class ComposerView extends React.Component
       ]}
       exposedProps={exposedProps} />
 
-  _onEditorBodyDidRender: =>
-    @_applyFieldFocus()
-
   # The contenteditable decides when to request a scroll based on the
   # position of the cursor and its relative distance to this composer
   # component. We provide it our boundingClientRect so it can calculate
@@ -362,26 +223,27 @@ class ComposerView extends React.Component
     else return QuotedHTMLTransformer.removeQuotedHTML(html)
 
   _showQuotedText: (html) =>
-    if @state.showQuotedText then return html
-    else return QuotedHTMLTransformer.appendQuotedHTML(html, @state.body)
+    if @state.showQuotedText
+      return html
+    else
+      return QuotedHTMLTransformer.appendQuotedHTML(html, @props.draft.body)
 
   _renderQuotedTextControl: ->
-    if QuotedHTMLTransformer.hasQuotedHTML(@state.body)
+    if QuotedHTMLTransformer.hasQuotedHTML(@props.draft.body)
       <a className="quoted-text-control" onClick={@_onToggleQuotedText}>
         <span className="dots">&bull;&bull;&bull;</span>
       </a>
-    else return []
+    else
+      []
 
   _onToggleQuotedText: =>
     @setState showQuotedText: not @state.showQuotedText
 
   _renderFooterRegions: =>
-    return <div></div> unless @props.draftClientId
-
     <div className="composer-footer-region">
       <InjectedComponentSet
         matching={role: "Composer:Footer"}
-        exposedProps={draftClientId:@props.draftClientId, threadId: @props.threadId}
+        exposedProps={draftClientId: @props.draft.clientId, threadId: @props.draft.threadId}
         direction="column"/>
     </div>
 
@@ -392,10 +254,10 @@ class ComposerView extends React.Component
     </div>
 
   _renderFileAttachments: ->
-    nonImageFiles = @_nonImageFiles(@state.files).map((file) =>
+    nonImageFiles = @_nonImageFiles(@props.draft.files).map((file) =>
       @_renderFileAttachment(file, "Attachment")
     )
-    imageFiles = @_imageFiles(@state.files).map((file) =>
+    imageFiles = @_imageFiles(@props.draft.files).map((file) =>
       @_renderFileAttachment(file, "Attachment:Image")
     )
     nonImageFiles.concat(imageFiles)
@@ -405,7 +267,7 @@ class ComposerView extends React.Component
       file: file
       removable: true
       targetPath: FileDownloadStore.pathForFile(file)
-      messageClientId: @props.draftClientId
+      messageClientId: @props.draft.clientId
 
     if role is "Attachment"
       className = "file-wrap"
@@ -418,10 +280,10 @@ class ComposerView extends React.Component
                        exposedProps={props} />
 
   _renderUploadAttachments: ->
-    nonImageUploads = @_nonImageFiles(@state.uploads).map((upload) ->
+    nonImageUploads = @_nonImageFiles(@props.draft.uploads).map((upload) ->
       <FileUpload key={upload.id} upload={upload} />
     )
-    imageUploads = @_imageFiles(@state.uploads).map((upload) ->
+    imageUploads = @_imageFiles(@props.draft.uploads).map((upload) ->
       <ImageFileUpload key={upload.id} upload={upload} />
     )
     nonImageUploads.concat(imageUploads)
@@ -433,37 +295,39 @@ class ComposerView extends React.Component
     _.reject(files, Utils.shouldDisplayAsImage)
 
   _renderActionsRegion: =>
-    return <div></div> unless @props.draftClientId
     <div className="composer-action-bar-content">
       <InjectedComponentSet
         className="composer-action-bar-plugins"
         matching={role: "Composer:ActionButton"}
-        exposedProps={draftClientId: @props.draftClientId, threadId: @props.threadId} />
+        exposedProps={draftClientId: @props.draft.clientId, threadId: @props.draft.threadId} />
 
-      <button className="btn btn-toolbar btn-trash" style={order: 100}
-              title="Delete draft"
-              onClick={@_destroyDraft}>
+      <button
+        tabIndex={-1}
+        className="btn btn-toolbar btn-trash"
+        style={order: 100}
+        title="Delete draft"
+        onClick={@_destroyDraft}>
         <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
       </button>
 
-      <button className="btn btn-toolbar btn-attach" style={order: 50}
-              title="Attach file"
-              onClick={@_selectAttachment}>
+      <button
+        tabIndex={-1}
+        className="btn btn-toolbar btn-attach"
+        style={order: 50}
+        title="Attach file"
+        onClick={@_selectAttachment}>
         <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
       </button>
 
       <div style={order: 0, flex: 1} />
 
-      <SendActionButton draft={@_proxy?.draft()}
-                        ref="sendActionButton"
-                        isValidDraft={@_isValidDraft} />
-
+      <SendActionButton
+        tabIndex={-1}
+        draft={@props.draft}
+        ref="sendActionButton"
+        isValidDraft={@_isValidDraft}
+      />
     </div>
-
-  isForwardedMessage: =>
-    return false if not @_proxy
-    draft = @_proxy.draft()
-    Utils.isForwardedMessage(draft)
 
   # This lets us click outside of the `contenteditable`'s `contentBody`
   # and simulate what happens when you click beneath the text *in* the
@@ -486,111 +350,17 @@ class ComposerView extends React.Component
       @refs[Fields.Body].focusAbsoluteEnd()
     @_mouseDownTarget = null
 
-  # When a user focuses the composer, it's possible that no input is
-  # initially focused. If this happens, we focus the contenteditable. If
-  # we didn't focus the contenteditable, the user may start typing and
-  # erroneously trigger keyboard shortcuts.
-  _onFocusIn: (event) =>
-    return unless @_proxy
-    return if DOMUtils.closest(event.target, DOMUtils.inputTypes())
-    @setState(focusedField: @_initiallyFocusedField(@_proxy.draft()))
-
   _onMouseMoveComposeBody: (event) =>
     if @_mouseComposeBody is "down" then @_mouseComposeBody = "move"
 
-  _onDraftChanged: =>
-    return if @_ignoreNextTrigger
-    return unless @_proxy
-    draft = @_proxy.draft()
+  _initiallyFocusedField: ->
+    {pristine, to, subject} = @props.draft
 
-    if not @_initialHistorySave
-      @_saveToHistory()
-      @_initialHistorySave = true
-
-    state =
-      to: draft.to
-      cc: draft.cc
-      bcc: draft.bcc
-      from: draft.from
-      body: draft.body
-      files: draft.files
-      uploads: draft.uploads
-      subject: draft.subject
-      accounts: @_getAccountsForSend()
-
-    if !@state.draftReady
-      _.extend state,
-        draftReady: true
-        focusedField: @_initiallyFocusedField(draft)
-        enabledFields: @_initiallyEnabledFields(draft)
-        showQuotedText: @isForwardedMessage()
-
-    state = @_verifyEnabledFields(draft, state)
-
-    @setState(state)
-
-  _initiallyFocusedField: (draft) ->
-    return Fields.To if draft.to.length is 0
-    return Fields.Subject if (draft.subject ? "").trim().length is 0
-
-    shouldFocusBody = NylasEnv.isComposerWindow() or draft.pristine or
+    return Fields.To if to.length is 0
+    return Fields.Subject if (subject ? "").trim().length is 0
+    return Fields.Body if NylasEnv.isComposerWindow() or pristine or
       (FocusedContentStore.didFocusUsingClick('thread') is true)
-    return Fields.Body if shouldFocusBody
     return null
-
-  _verifyEnabledFields: (draft, state) ->
-    enabledFields = @state.enabledFields.concat(state.enabledFields)
-    updated = false
-    if draft.cc.length > 0
-      updated = true
-      enabledFields.push(Fields.Cc)
-
-    if draft.bcc.length > 0
-      updated = true
-      enabledFields.push(Fields.Bcc)
-
-    if updated
-      state.enabledFields = _.uniq(enabledFields)
-
-    return state
-
-  _initiallyEnabledFields: (draft) ->
-    enabledFields = [Fields.To]
-    enabledFields.push Fields.Cc if not _.isEmpty(draft.cc)
-    enabledFields.push Fields.Bcc if not _.isEmpty(draft.bcc)
-    enabledFields.push Fields.From if @_shouldShowFromField(draft)
-    enabledFields.push Fields.Subject if @_shouldEnableSubject()
-    enabledFields.push Fields.Body
-    return enabledFields
-
-  _getAccountsForSend: =>
-    if @_proxy.draft()?.threadId
-      [AccountStore.accountForId(@_proxy.draft().accountId)]
-    else
-      AccountStore.accounts()
-
-  # When the account store changes, the From field may or may not still
-  # be in scope. We need to make sure to update our enabled fields.
-  _onAccountStoreChanged: =>
-    return unless @_proxy
-    accounts = @_getAccountsForSend()
-    enabledFields = if @_shouldShowFromField(@_proxy?.draft())
-      @state.enabledFields.concat [Fields.From]
-    else
-      _.without(@state.enabledFields, Fields.From)
-    @setState {enabledFields, accounts}
-
-  _shouldShowFromField: (draft) =>
-    return true if draft
-    return false
-
-  _shouldEnableSubject: =>
-    return false unless @_proxy
-    draft = @_proxy.draft()
-    if _.isEmpty(draft.subject ? "") then return true
-    else if @isForwardedMessage() then return true
-    else if draft.replyToMessageId then return false
-    else return true
 
   _shouldAcceptDrop: (event) =>
     # Ensure that you can't pick up a file and drop it on the same draft
@@ -620,76 +390,37 @@ class ComposerView extends React.Component
   _onDrop: (e) =>
     # Accept drops of real files from other applications
     for file in e.dataTransfer.files
-      Actions.addAttachment({filePath: file.path, messageClientId: @props.draftClientId})
+      Actions.addAttachment({filePath: file.path, messageClientId: @props.draft.clientId})
 
     # Accept drops from attachment components / images within the app
     if (uri = @_nonNativeFilePathForDrop(e))
-      Actions.addAttachment({filePath: uri, messageClientId: @props.draftClientId})
+      Actions.addAttachment({filePath: uri, messageClientId: @props.draft.clientId})
 
   _onFilePaste: (path) =>
-    Actions.addAttachment({filePath: path, messageClientId: @props.draftClientId})
-
-  _onChangeParticipants: (changes={}) =>
-    @_addToProxy(changes)
-    Actions.draftParticipantsChanged(@props.draftClientId, changes)
-
-  _onChangeSubject: (event) =>
-    @_addToProxy(subject: event.target.value)
+    Actions.addAttachment({filePath: path, messageClientId: @props.draft.clientId})
 
   _onBodyChanged: (event) =>
-    return unless @_proxy
-
-    newBody = @_showQuotedText(event.target.value)
-
-    # The body changes extremely frequently (on every key stroke). To keep
-    # performance up, we don't want to trigger every single key stroke
-    # since that will cause an entire composer re-render. We, however,
-    # never want to lose any data, so we still add data to the proxy on
-    # every keystroke.
-    #
-    # We want to use debounce instead of throttle because we don't want ot
-    # trigger janky re-renders mid quick-type. Let's just do it at the end
-    # when you're done typing and about to move onto something else.
-    @_addToProxy({body: newBody}, {fromBodyChange: true})
-    @_throttledTrigger ?= _.debounce =>
-      @_ignoreNextTrigger = false
-      @_proxy.trigger()
-    , 100
-
-    @_throttledTrigger()
+    @_addToProxy({body: @_showQuotedText(event.target.value)})
     return
 
   _addToProxy: (changes={}, source={}) =>
-    return unless @_proxy and @_proxy.draft()
-
     selections = @_getSelections()
+    @props.session.changes.add(changes)
 
-    oldDraft = @_proxy.draft()
-    return if _.all changes, (change, key) -> _.isEqual(change, oldDraft[key])
-
-    # Other extensions might want to hear about changes immediately. We
-    # only need to prevent this view from re-rendering until we're done
-    # throttling body changes.
-    if source.fromBodyChange then @_ignoreNextTrigger = true
-
-    @_proxy.changes.add(changes)
-
-    @_saveToHistory(selections) unless source.fromUndoManager
+    if not source.fromUndoManager
+      @_saveToHistory(selections)
 
   _isValidDraft: (options = {}) =>
-    return false unless @_proxy
-
     # We need to check the `DraftStore` because the `DraftStore` is
     # immediately and synchronously updated as soon as this function
     # fires. Since `setState` is asynchronous, if we used that as our only
     # check, then we might get a false reading.
-    return false if DraftStore.isSendingDraft(@props.draftClientId)
+    return false if DraftStore.isSendingDraft(@props.draft.clientId)
 
-    draft = @_proxy.draft()
     {remote} = require('electron')
     dialog = remote.require('dialog')
 
-    allRecipients = [].concat(draft.to, draft.cc, draft.bcc)
+    allRecipients = [].concat(@props.draft.to, @props.draft.cc, @props.draft.bcc)
     for contact in allRecipients
       if not ContactStore.isValidContact(contact)
         dealbreaker = "#{contact.email} is not a valid email address - please remove or edit it before sending."
@@ -705,16 +436,16 @@ class ComposerView extends React.Component
       })
       return false
 
-    bodyIsEmpty = draft.body is @_proxy.draftPristineBody()
-    forwarded = Utils.isForwardedMessage(draft)
-    hasAttachment = (draft.files ? []).length > 0 or (draft.uploads ? []).length > 0
+    bodyIsEmpty = @props.draft.body is @props.session.draftPristineBody()
+    forwarded = Utils.isForwardedMessage(@props.draft)
+    hasAttachment = (@props.draft.files ? []).length > 0 or (@props.draft.uploads ? []).length > 0
 
     warnings = []
 
-    if draft.subject.length is 0
+    if @props.draft.subject.length is 0
       warnings.push('without a subject line')
 
-    if @_mentionsAttachment(draft.body) and not hasAttachment
+    if @_mentionsAttachment(@props.draft.body) and not hasAttachment
       warnings.push('without an attachment')
 
     if bodyIsEmpty and not forwarded and not hasAttachment
@@ -723,7 +454,7 @@ class ComposerView extends React.Component
     # Check third party warnings added via Composer extensions
     for extension in ExtensionRegistry.Composer.extensions()
       continue unless extension.warningsForSending
-      warnings = warnings.concat(extension.warningsForSending({draft}))
+      warnings = warnings.concat(extension.warningsForSending({draft: @props.draft}))
 
     if warnings.length > 0 and not options.force
       response = dialog.showMessageBox(remote.getCurrentWindow(), {
@@ -748,10 +479,10 @@ class ComposerView extends React.Component
     return body.indexOf("attach") >= 0
 
   _destroyDraft: =>
-    Actions.destroyDraft(@props.draftClientId)
+    Actions.destroyDraft(@props.draft.clientId)
 
   _selectAttachment: =>
-    Actions.selectAttachment({messageClientId: @props.draftClientId})
+    Actions.selectAttachment({messageClientId: @props.draft.clientId})
 
   undo: (event) =>
     event.preventDefault()
@@ -760,7 +491,7 @@ class ComposerView extends React.Component
     return unless historyItem.state?
 
     @_recoveredSelection = historyItem.currentSelection
-    @_addToProxy historyItem.state, fromUndoManager: true
+    @_addToProxy(historyItem.state, fromUndoManager: true)
     @_recoveredSelection = null
 
   redo: (event) =>
@@ -770,7 +501,7 @@ class ComposerView extends React.Component
     return unless historyItem.state?
 
     @_recoveredSelection = historyItem.currentSelection
-    @_addToProxy historyItem.state, fromUndoManager: true
+    @_addToProxy(historyItem.state, fromUndoManager: true)
     @_recoveredSelection = null
 
   _getSelections: =>
@@ -778,29 +509,22 @@ class ComposerView extends React.Component
     previousSelection: @refs[Fields.Body]?.getPreviousSelection?()
 
   _saveToHistory: (selections) =>
-    return unless @_proxy
     selections ?= @_getSelections()
-
-    newDraft = @_proxy.draft()
 
     historyItem =
       previousSelection: selections.previousSelection
       currentSelection: selections.currentSelection
       state:
-        body: _.clone newDraft.body
-        subject: _.clone newDraft.subject
-        to: _.clone newDraft.to
-        cc: _.clone newDraft.cc
-        bcc: _.clone newDraft.bcc
+        body: _.clone @props.draft.body
+        subject: _.clone @props.draft.subject
+        to: _.clone @props.draft.to
+        cc: _.clone @props.draft.cc
+        bcc: _.clone @props.draft.bcc
 
     lastState = @undoManager.current()
     if lastState?
       lastState.currentSelection = historyItem.previousSelection
 
     @undoManager.saveToHistory(historyItem)
-
-  _deleteDraftIfEmpty: =>
-    return unless @_proxy
-    if @_proxy.draft().pristine then Actions.destroyDraft(@props.draftClientId)
 
 module.exports = ComposerView

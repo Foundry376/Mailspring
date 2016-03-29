@@ -46,6 +46,7 @@ class NylasComponentKit
   @load "TimeoutTransitionGroup", 'timeout-transition-group'
   @load "MetadataComposerToggleButton", 'metadata-composer-toggle-button'
   @load "ConfigPropContainer", "config-prop-container"
+  @load "DraftSessionContainer", 'draft-session-container'
   @load "DisclosureTriangle", "disclosure-triangle"
   @load "EditableList", "editable-list"
   @load "OutlineViewItem", "outline-view-item"
