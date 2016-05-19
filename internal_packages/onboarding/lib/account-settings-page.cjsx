@@ -386,18 +386,6 @@ class AccountSettingsPage extends React.Component
       provider: @state.provider.name
     })
 
-    if errorMessage is "Invite code required"
-      choice = dialog.showMessageBox(remote.getCurrentWindow(), {
-        type: 'info',
-        buttons: ['Okay'],
-        title: 'Confirm',
-        message: 'Due to a large number of sign-ups this week, you’ll need an invitation code to add another account! Visit http://invite.nylas.com/ to grab one, or hold tight!'
-      })
-      OnboardingActions.moveToPage("token-auth")
-
-    if errorMessage is "Invalid invite code"
-      OnboardingActions.moveToPage("token-auth")
-
     pageNumber = @state.pageNumber
     errorFieldNames = err.body?.missing_fields || err.body?.missing_settings
 

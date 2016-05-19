@@ -1,5 +1,4 @@
 OnboardingActions = require './onboarding-actions'
-TokenAuthAPI = require './token-auth-api'
 {AccountStore, Actions} = require 'nylas-exports'
 {ipcRenderer} = require 'electron'
 NylasStore = require 'nylas-store'
@@ -14,12 +13,10 @@ class PageRouterStore extends NylasStore
     @_pageData = NylasEnv.getWindowProps().pageData ? {}
     @_pageStack = [{page: @_page, pageData: @_pageData}]
 
-    @_checkTokenAuthStatus()
     @listenTo OnboardingActions.moveToPreviousPage, @_onMoveToPreviousPage
     @listenTo OnboardingActions.moveToPage, @_onMoveToPage
     @listenTo OnboardingActions.closeWindow, @_onCloseWindow
     @listenTo OnboardingActions.accountJSONReceived, @_onAccountJSONReceived
-    @listenTo OnboardingActions.retryCheckTokenAuthStatus, @_checkTokenAuthStatus
 
   _onAccountJSONReceived: (json) =>
     isFirstAccount = AccountStore.accounts().length is 0
@@ -58,10 +55,6 @@ class PageRouterStore extends NylasStore
 
   pageData: -> @_pageData
 
-  tokenAuthEnabled: -> @_tokenAuthEnabled
-
-  tokenAuthEnabledError: -> @_tokenAuthEnabledError
-
   connectType: ->
     @_connectType
 
@@ -82,31 +75,5 @@ class PageRouterStore extends NylasStore
       NylasEnv.quit()
     else
       NylasEnv.close()
-
-  _checkTokenAuthStatus: ->
-    @_tokenAuthEnabled = "unknown"
-    @_tokenAuthEnabledError = null
-    @trigger()
-
-    TokenAuthAPI.request
-      path: "/status/"
-      returnsModel: false
-      timeout: 10000
-      success: (json) =>
-        if json.restricted
-          @_tokenAuthEnabled = "yes"
-        else
-          @_tokenAuthEnabled = "no"
-
-        if @_tokenAuthEnabled is "no" and @_page is 'token-auth'
-          @_onMoveToPage("account-choose")
-        else
-          @trigger()
-
-      error: (err) =>
-        if err.statusCode is 404
-          err.message = "Sorry, we could not reach the Nylas API. Please try again."
-        @_tokenAuthEnabledError = err.message
-        @trigger()
 
 module.exports = new PageRouterStore()
