@@ -22,22 +22,8 @@ class PageRouter extends React.Component
 
   componentDidMount: =>
     @unsubscribe = PageRouterStore.listen(@_onStateChanged, @)
-    setTimeout(@_initializeWindowSize, 10)
-
-  componentDidUpdate: =>
-    setTimeout(@_updateWindowSize, 10)
-
-  _initializeWindowSize: =>
-    return if @_unmounted
-    {width, height} = ReactDOM.findDOMNode(@refs.activePage).getBoundingClientRect()
-    NylasEnv.setSize(width, height)
     NylasEnv.center()
     NylasEnv.displayWindow()
-
-  _updateWindowSize: =>
-    return if @_unmounted
-    {width, height} = ReactDOM.findDOMNode(@refs.activePage).getBoundingClientRect()
-    NylasEnv.setSizeAnimated(width, height)
 
   _onStateChanged: =>
     @setState(@_getStateFromStore())
@@ -78,7 +64,7 @@ class PageRouter extends React.Component
     }[@state.page]
 
     <div key={@state.page} className="page-container">
-      <Component pageData={@state.pageData} ref="activePage" onResize={@_updateWindowSize}/>
+      <Component pageData={@state.pageData} ref="activePage" />
     </div>
 
   _renderDragRegion: ->

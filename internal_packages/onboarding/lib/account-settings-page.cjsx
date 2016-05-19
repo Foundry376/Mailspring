@@ -59,10 +59,6 @@ class AccountSettingsPage extends React.Component
       )
       poll(pollAttemptId,5000)
 
-  componentWillUnmount: =>
-    clearTimeout(@_resizeTimer) if @_resizeTimer
-    @_resizeTimer = null
-
   render: ->
     <div className="page account-setup">
       <div className="logo-container">
@@ -181,10 +177,8 @@ class AccountSettingsPage extends React.Component
         @setState
           errorMessage: "This looks like a Gmail account. You should go back and sign in to Gmail instead."
           errorFieldNames: errorFields
-        @_resize()
       else
         @setState({errorMessage: null})
-        @_resize()
 
     @setState({fields})
 
@@ -312,7 +306,6 @@ class AccountSettingsPage extends React.Component
   _onNextButton: (event) =>
     return unless @_noFormErrors() and @_allRequiredFieldsFilled()
     @setState(pageNumber: @state.pageNumber + 1)
-    @_resize()
 
   _onSubmit: (event) =>
     return unless @_noFormErrors() and @_allRequiredFieldsFilled()
@@ -375,7 +368,6 @@ class AccountSettingsPage extends React.Component
       @setState
         tryingToAuthenticate: false
         errorMessage: "Sorry, something went wrong on the Nylas server. Please try again. If you're still having issues, contact us at support@nylas.com."
-      @_resize()
 
   _onNetworkError: (err) =>
     errorMessage = err.message
@@ -392,7 +384,6 @@ class AccountSettingsPage extends React.Component
       @setState
         tryingToAuthenticate: false
         errorMessage: 'The IMAP/SMTP servers for this account do not match our records. Please verify that any server names you entered are correct. If your IMAP/SMTP server has changed, first remove this account from N1, then try logging in again.'
-      @_resize()
       OnboardingActions.moveToPage("account-settings")
       return
 
@@ -406,7 +397,6 @@ class AccountSettingsPage extends React.Component
       errorMessage: errorMessage
       errorFieldNames: errorFieldNames || []
       tryingToAuthenticate: false
-    @_resize()
 
   _stateForMissingFieldNames: (fieldNames) ->
     fieldLabels = []
@@ -441,16 +431,9 @@ class AccountSettingsPage extends React.Component
       error: (err) =>
         callback()
 
-  _resize: =>
-    clearTimeout(@_resizeTimer) if @_resizeTimer
-    @_resizeTimer = setTimeout( =>
-      @props.onResize?()
-    , 10)
-
   _onMoveToPrevPage: =>
     if @state.pageNumber > 0
       @setState(pageNumber: @state.pageNumber - 1)
-      @_resize()
     else
       OnboardingActions.moveToPreviousPage()
 
