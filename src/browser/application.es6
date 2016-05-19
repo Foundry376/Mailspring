@@ -82,8 +82,6 @@ export default class Application extends EventEmitter {
     }
 
     const exampleNewNames = {
-      'N1-Composer-Templates': 'composer-templates',
-      'N1-Composer-Translate': 'composer-translate',
       'N1-Message-View-on-Github': 'message-view-on-github',
       'N1-Personal-Level-Indicators': 'personal-level-indicators',
       'N1-Phishing-Detection': 'phishing-detection',
