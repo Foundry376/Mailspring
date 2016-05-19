@@ -8,7 +8,6 @@ WelcomePage = require './welcome-page'
 AccountChoosePage = require './account-choose-page'
 AccountSettingsPage = require './account-settings-page'
 InitialPreferencesPage = require './initial-preferences-page'
-InitialPackagesPage = require './initial-packages-page'
 
 class PageRouter extends React.Component
   @displayName: 'PageRouter'
@@ -16,7 +15,6 @@ class PageRouter extends React.Component
 
   constructor: (@props) ->
     @state = @_getStateFromStore()
-    window.OnboardingActions = OnboardingActions
 
   _getStateFromStore: =>
     page: PageRouterStore.page()
@@ -77,7 +75,6 @@ class PageRouter extends React.Component
       "account-choose": AccountChoosePage
       "account-settings": AccountSettingsPage
       "initial-preferences": InitialPreferencesPage
-      "initial-packages": InitialPackagesPage
     }[@state.page]
 
     <div key={@state.page} className="page-container">

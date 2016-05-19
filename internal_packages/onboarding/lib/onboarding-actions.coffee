@@ -1,8 +1,6 @@
 Reflux = require 'reflux'
 
 OnboardingActions = Reflux.createActions [
-  "changeAPIEnvironment"
-  "loadExternalAuthPage"
   "closeWindow"
   "moveToPreviousPage"
   "moveToPage"

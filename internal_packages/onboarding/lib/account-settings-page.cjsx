@@ -6,7 +6,6 @@ _ = require 'underscore'
 {RegExpUtils, EdgehillAPI, NylasAPI, APIError, Actions, AccountStore} = require 'nylas-exports'
 
 OnboardingActions = require './onboarding-actions'
-NylasApiEnvironmentStore = require './nylas-api-environment-store'
 Providers = require './account-types'
 
 class AccountSettingsPage extends React.Component

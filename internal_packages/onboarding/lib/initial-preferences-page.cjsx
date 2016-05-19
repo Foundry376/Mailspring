@@ -123,6 +123,6 @@ class InitialPreferencesPage extends React.Component
     </div>
 
   _onNextPage: =>
-    OnboardingActions.moveToPage("initial-packages")
+    require('electron').ipcRenderer.send('account-setup-successful')
 
 module.exports = InitialPreferencesPage

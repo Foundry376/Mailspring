@@ -55,9 +55,6 @@ class PageRouterStore extends NylasStore
 
   pageData: -> @_pageData
 
-  connectType: ->
-    @_connectType
-
   _onMoveToPreviousPage: ->
     current = @_pageStack.pop()
     prev = @_pageStack.pop()
