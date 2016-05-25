@@ -4,7 +4,7 @@ import {RetinaImg} from 'nylas-component-kit';
 import {Actions} from 'nylas-exports';
 
 import OnboardingActions from '../onboarding-actions';
-import {runAuthRequest} from '../account-helpers';
+import {runAuthRequest} from '../onboarding-helpers';
 import FormErrorMessage from '../form-error-message';
 import AccountTypes from '../account-types'
 

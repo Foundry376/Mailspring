@@ -6,7 +6,7 @@ import {
   pollForGmailAccount,
   buildGmailSessionKey,
   buildGmailAuthURL,
-} from './account-helpers';
+} from './onboarding-helpers';
 
 import OnboardingActions from './onboarding-actions';
 import AccountTypes from './account-types';

@@ -3,7 +3,7 @@ import {AccountStore, Actions, NylasAPI} from 'nylas-exports';
 import {shell, ipcRenderer} from 'electron';
 import NylasStore from 'nylas-store';
 import AccountTypes from './account-types';
-import {buildWelcomeURL} from './account-helpers';
+import {buildWelcomeURL} from './onboarding-helpers';
 
 class OnboardingStore extends NylasStore {
   constructor() {

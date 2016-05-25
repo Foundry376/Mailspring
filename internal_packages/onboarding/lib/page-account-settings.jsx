@@ -3,7 +3,7 @@ import {RegExpUtils} from 'nylas-exports';
 
 import OnboardingActions from './onboarding-actions';
 import CreatePageForForm from './decorators/create-page-for-form';
-import {accountInfoWithIMAPAutocompletions} from './account-helpers';
+import {accountInfoWithIMAPAutocompletions} from './onboarding-helpers';
 import FormField from './form-field';
 
 class AccountBasicSettingsForm extends React.Component {

@@ -1,6 +1,6 @@
 import React from 'react';
 import {RegExpUtils} from 'nylas-exports';
-import {isValidHost} from './account-helpers';
+import {isValidHost} from './onboarding-helpers';
 import CreatePageForForm from './decorators/create-page-for-form';
 import FormField from './form-field';
 
