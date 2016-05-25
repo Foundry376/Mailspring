@@ -79,7 +79,7 @@ export default class AuthenticatePage extends React.Component {
 
   componentDidMount() {
     const webview = ReactDOM.findDOMNode(this.refs.webview);
-    webview.src = "http://pro.nylas.toad:5555/onboarding";
+    webview.src = "https://billing-staging.nylas.com/onboarding";
     webview.addEventListener('did-start-loading', this.webviewDidStartLoading);
     webview.addEventListener('did-fail-load', this.webviewDidFailLoad);
     webview.addEventListener('did-finish-load', this.webviewDidFinishLoad);
