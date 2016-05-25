@@ -5,7 +5,7 @@ import {RetinaImg} from 'nylas-component-kit';
 import OnboardingActions from './onboarding-actions';
 import networkErrors from 'chromium-net-errors';
 
-class AuthenticateLoadingCover extends React.Component {
+class InitialLoadingCover extends React.Component {
   static propTypes = {
     ready: React.PropTypes.bool,
     error: React.PropTypes.string,
@@ -40,7 +40,7 @@ class AuthenticateLoadingCover extends React.Component {
     if (this.props.error) {
       message = this.props.error;
     } else if (this.state.slow) {
-      message = "Still trying to reach Nylas.com...";
+      message = "Still trying to reach Nylas…";
     } else {
       message = '&nbsp;'
     }
@@ -79,7 +79,7 @@ export default class AuthenticatePage extends React.Component {
 
   componentDidMount() {
     const webview = ReactDOM.findDOMNode(this.refs.webview);
-    webview.src = "https://billing-staging.nylas.com/onboarding";
+    webview.src = `${IdentityStore.URLRoot}/onboarding`;
     webview.addEventListener('did-start-loading', this.webviewDidStartLoading);
     webview.addEventListener('did-fail-load', this.webviewDidFailLoad);
     webview.addEventListener('did-finish-load', this.webviewDidFinishLoad);
@@ -94,7 +94,7 @@ export default class AuthenticatePage extends React.Component {
   }
 
   webviewDidStartLoading = () => {
-    this.setState({error: null});
+    this.setState({error: null, webviewLoading: true});
   }
 
   webviewDidFailLoad = ({errorCode, errorDescription, validatedURL}) => {
@@ -108,7 +108,7 @@ export default class AuthenticatePage extends React.Component {
       const e = networkErrors.createByCode(errorCode);
       error = `Could not reach ${validatedURL}. ${e ? e.message : errorCode}`;
     }
-    this.setState({ready: false, error: error});
+    this.setState({ready: false, error: error, webviewLoading: false});
   }
 
   webviewDidFinishLoad = () => {
@@ -122,7 +122,7 @@ export default class AuthenticatePage extends React.Component {
 
     const webview = ReactDOM.findDOMNode(this.refs.webview);
     webview.executeJavaScript(js, false, (result) => {
-      this.setState({ready: true});
+      this.setState({ready: true, webviewLoading: false});
       if (result !== null) {
         OnboardingActions.authenticationJSONReceived(JSON.parse(result));
       }
@@ -133,7 +133,14 @@ export default class AuthenticatePage extends React.Component {
     return (
       <div className="page authenticate">
         <webview ref="webview"></webview>
-        <AuthenticateLoadingCover
+        <div className={`webview-loading-spinner loading-${this.state.webviewLoading}`}>
+          <RetinaImg
+            style={{width: 20, height: 20}}
+            name="inline-loading-spinner.gif"
+            mode={RetinaImg.Mode.ContentPreserve}
+          />
+        </div>
+        <InitialLoadingCover
           ready={this.state.ready}
           error={this.state.error}
           onTryAgain={this.onTryAgain}

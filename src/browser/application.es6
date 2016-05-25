@@ -198,26 +198,31 @@ export default class Application extends EventEmitter {
     } else {
       this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
         title: "Welcome to N1",
-        windowProps: {
-          page: "welcome",
-        },
       });
       this.windowManager.ensureWindow(WindowManager.WORK_WINDOW);
     }
   }
 
-  _resetConfigAndRelaunch = () => {
+  _relaunchToInitialWindows = ({resetConfig, resetDatabase} = {}) => {
     this.setDatabasePhase('close');
     this.windowManager.destroyAllWindows();
-    this._deleteDatabase(() => {
-      this.config.set('nylas', null);
-      this.config.set('edgehill', null);
+
+    let fn = (callback) => callback()
+    if (resetDatabase) {
+      fn = this._deleteDatabase;
+    }
+
+    fn(() => {
+      if (resetConfig) {
+        this.config.set('nylas', null);
+        this.config.set('edgehill', null);
+      }
       this.setDatabasePhase('setup');
       this.openWindowsForTokenState();
     });
   }
 
-  _deleteDatabase(callback) {
+  _deleteDatabase = (callback) => {
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db'), callback);
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db-wal'));
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db-shm'));
@@ -293,7 +298,7 @@ export default class Application extends EventEmitter {
       });
     });
 
-    this.on('application:reset-config-and-relaunch', this._resetConfigAndRelaunch);
+    this.on('application:relaunch-to-initial-windows', this._relaunchToInitialWindows);
 
     this.on('application:quit', () => {
       app.quit()
@@ -310,12 +315,10 @@ export default class Application extends EventEmitter {
     this.on('application:add-account', ({existingAccount} = {}) => {
       this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
         title: "Add an Account",
-        windowProps: {
-          page: "account-choose",
-          pageData: {existingAccount},
-        },
+        windowProps: { existingAccount },
       })
     });
+
     this.on('application:new-message', () => {
       this.windowManager.sendToWindow(WindowManager.MAIN_WINDOW, 'new-message');
     });

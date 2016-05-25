@@ -155,6 +155,7 @@
 
   label[for=subscribe-check] {
     color: black;
+    white-space: inherit;
   }
 
   label.checkbox {
@@ -174,7 +175,6 @@
   }
 }
 
-
 .page.authenticate {
   flex: 1;
   display: flex;
@@ -182,6 +182,18 @@
   webview {
     display: flex;
     flex: 1;
+  }
+
+  .webview-loading-spinner {
+    position: absolute;
+    right: 17px;
+    top: 17px;
+    opacity: 0;
+    transition: opacity 200ms ease-in-out;
+    transition-delay: 200ms;
+    &.loading-true {
+      opacity: 1;
+    }
   }
 
   .webview-cover {

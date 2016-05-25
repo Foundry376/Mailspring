@@ -59,12 +59,6 @@ class NylasAPI
     NylasEnv.config.onDidChange('env', @_onConfigChanged)
     @_onConfigChanged()
 
-  N1UserAccount: =>
-    NylasEnv.config.get('nylas.identity')
-
-  setN1UserAccount: (n1Account) =>
-    NylasEnv.config.set('nylas.identity', n1Account)
-
   _onConfigChanged: =>
     prev = {@AppID, @APIRoot, @APITokens}
 

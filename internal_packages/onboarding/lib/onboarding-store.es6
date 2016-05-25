@@ -1,8 +1,8 @@
 import OnboardingActions from './onboarding-actions';
-import {AccountStore, Actions, NylasAPI} from 'nylas-exports';
+import {AccountStore, Actions, IdentityStore} from 'nylas-exports';
 import {shell, ipcRenderer} from 'electron';
 import NylasStore from 'nylas-store';
-import AccountTypes from './account-types';
+import {accountTypeForProvider} from './account-types';
 import {buildWelcomeURL} from './onboarding-helpers';
 
 class OnboardingStore extends NylasStore {
@@ -16,23 +16,22 @@ class OnboardingStore extends NylasStore {
     this.listenTo(OnboardingActions.setAccountInfo, this._onSetAccountInfo);
     this.listenTo(OnboardingActions.setAccountType, this._onSetAccountType);
 
-    const {page, existingAccount} = NylasEnv.getWindowProps();
+    const {existingAccount} = NylasEnv.getWindowProps();
 
     if (existingAccount) {
+      const accountType = accountTypeForProvider(existingAccount.provider);
       this._pageStack = ['account-choose']
       this._accountInfo = {
         name: existingAccount.name,
-        email: existingAccount.email,
+        email: existingAccount.emailAddress,
       };
-
-      const accountType = AccountTypes.accountTypeForProvider(existingAccount.provider);
       this._onSetAccountType(accountType);
     } else {
-      this._pageStack = [page || 'welcome'];
-      const N1Account = NylasAPI.N1UserAccount();
-      if (N1Account) {
+      const identity = IdentityStore.identity();
+      this._pageStack = ['welcome'];
+      if (identity) {
         this._accountInfo = {
-          name: `${N1Account.firstname || ""} ${N1Account.lastname || ""}`,
+          name: `${identity.firstname || ""} ${identity.lastname || ""}`,
         };
       } else {
         this._accountInfo = {};
@@ -81,7 +80,7 @@ class OnboardingStore extends NylasStore {
   _onAuthenticationJSONReceived = (json) => {
     const isFirstAccount = AccountStore.accounts().length === 0;
 
-    NylasAPI.setN1UserAccount(json);
+    Actions.setNylasIdentity(json);
 
     setTimeout(() => {
       if (isFirstAccount) {
