@@ -1,5 +1,3 @@
-import {RegExpUtils} from 'nylas-exports';
-
 class AccountType {
   constructor({type, title, displayName, icon, headerIcon, color, settings}) {
     this.type = type;

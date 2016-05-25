@@ -29,10 +29,30 @@ class AccountIMAPSettingsForm extends React.Component {
 
   static validateAccountInfo = (accountInfo) => {
     let errorMessage = null;
-    let errorFieldNames = [];
-    // const validDomain = (domain) => {
-    //   return RegExpUtils.domainRegex().test(domain) || RegExpUtils.ipAddressRegex().test(domain);
-    // }
+    const errorFieldNames = [];
+
+    const validServer = (value) => {
+      return RegExpUtils.domainRegex().test(value) || RegExpUtils.ipAddressRegex().test(value);
+    }
+
+    for (const type of ['imap', 'smtp']) {
+      if (!accountInfo[`${type}_host`] || !accountInfo[`${type}_username`] || !accountInfo[`${type}_password`]) {
+        return {errorMessage, errorFieldNames, populated: false};
+      }
+      if (!validServer(accountInfo[`${type}_host`])) {
+        errorMessage = "Please provide a valid hostname or IP adddress.";
+        errorFieldNames.push(`${type}_host`);
+      }
+      if (accountInfo[`${type}_host`] === 'imap.gmail.com') {
+        errorMessage = "Please link Gmail accounts by choosing 'Google' on the account type screen.";
+        errorFieldNames.push(`${type}_host`);
+      }
+      if (!Number.isInteger(accountInfo[`${type}_port`])) {
+        errorMessage = "Please provide a valid port number.";
+        errorFieldNames.push(`${type}_port`);
+      }
+    }
+
     return {errorMessage, errorFieldNames, populated: true};
   }
 
@@ -56,7 +76,7 @@ class AccountIMAPSettingsForm extends React.Component {
           onChange={onFieldChange}
         />
 
-        <div>
+        <div style={{textAlign: 'left'}}>
           <label forHtml={`${type}_port`}>Port:</label>
           <input
             type="text"

@@ -20,6 +20,7 @@ SampleTemporaryErrorCode = 504
 
 # This is lazy-loaded
 AccountStore = null
+NylasAPIRequest = null
 
 class NylasAPIChangeLockTracker
   constructor: ->
@@ -44,77 +45,6 @@ class NylasAPIChangeLockTracker
   print: ->
     console.log("The following models are locked:")
     console.log(@_locks)
-
-class NylasAPIRequest
-
-  constructor: (@api, @options) ->
-    @options.method ?= 'GET'
-    @options.url ?= "#{@api.APIRoot}#{@options.path}" if @options.path
-    @options.json ?= true
-
-    @options.timeout ?= 15000
-
-    unless @options.method is 'GET' or @options.formData
-      @options.body ?= {}
-    @
-
-  run: ->
-    if not @options.auth
-      if not @options.accountId
-        err = new APIError(statusCode: 400, body: "Cannot make Nylas request without specifying `auth` or an `accountId`.")
-        return Promise.reject(err)
-
-      token = @api.accessTokenForAccountId(@options.accountId)
-      if not token
-        err = new APIError(statusCode: 400, body: "Cannot make Nylas request for account #{@options.accountId} auth token.")
-        return Promise.reject(err)
-
-      @options.auth =
-        user: token
-        pass: ''
-        sendImmediately: true
-
-    requestId = Utils.generateTempId()
-    new Promise (resolve, reject) =>
-      @options.startTime = Date.now()
-      Actions.willMakeAPIRequest({
-        request: @options,
-        requestId: requestId
-      })
-
-      req = request @options, (error, response, body) =>
-        Actions.didMakeAPIRequest({
-          request: @options,
-          statusCode: response?.statusCode,
-          error: error,
-          requestId: requestId
-        })
-
-        PriorityUICoordinator.settle.then =>
-          if error or response.statusCode > 299
-            # Some errors (like socket errors and some types of offline
-            # errors) return with a valid `error` object but no `response`
-            # object (and therefore no `statusCode`. To normalize all of
-            # this, we inject our own offline status code so people down
-            # the line can have a more consistent interface.
-            if not response?.statusCode
-              response ?= {}
-              response.statusCode = TimeoutErrorCodes[0]
-            apiError = new APIError({error, response, body, requestOptions: @options})
-            NylasEnv.errorLogger.apiDebug(apiError)
-            @options.error?(apiError)
-            reject(apiError)
-          else
-            @options.success?(body)
-            resolve(body)
-      req.on 'abort', ->
-        cancelled = new APIError
-          statusCode: CancelledErrorCode,
-          body: 'Request Aborted'
-        reject(cancelled)
-
-      @options.started?(req)
-
 
 class NylasAPI
 
@@ -210,6 +140,7 @@ class NylasAPI
       handlePromise.finally ->
         Promise.reject(err)
 
+    NylasAPIRequest ?= require('./nylas-api-request').default
     req = new NylasAPIRequest(@, options)
     req.run().then(success, error)
 

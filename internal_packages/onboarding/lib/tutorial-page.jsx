@@ -47,25 +47,36 @@ export default class TutorialPage extends React.Component {
     super(props);
 
     this.state = {
-      seen: [Steps[0]],
+      appeared: false,
+      seen: [],
       current: Steps[0],
     }
+  }
+
+  componentDidMount() {
+    this._timer = setTimeout(() => {
+      this.setState({appeared: true})
+    }, 200);
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._timer);
   }
 
   _onBack = () => {
     const nextItem = this.state.seen.pop();
     if (!nextItem) {
-      OnboardingActions.moveToPage('welcome');
+      OnboardingActions.moveToPreviousPage();
     } else {
       this.setState({current: nextItem});
     }
   }
 
   _onNextUnseen = () => {
-    const nextItem = Steps.find(s => !this.state.seen.includes(s));
+    const nextSeen = [].concat(this.state.seen, [this.state.current]);
+    const nextItem = Steps.find(s => !nextSeen.includes(s));
     if (nextItem) {
-      this.state.seen.push(nextItem);
-      this.setState({current: nextItem});
+      this.setState({current: nextItem, seen: nextSeen});
     } else {
       OnboardingActions.moveToPage('authenticate');
     }
@@ -82,10 +93,10 @@ export default class TutorialPage extends React.Component {
   }
 
   render() {
-    const {current, seen} = this.state;
+    const {current, seen, appeared} = this.state;
 
     return (
-      <div className="page tutorial">
+      <div className={`page tutorial appeared-${appeared}`}>
         <div className="tutorial-container">
           <div className="left">
             <div className="screenshot">

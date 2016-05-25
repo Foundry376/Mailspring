@@ -1,8 +1,8 @@
+/* eslint global-require: 0 */
+
 import crypto from 'crypto';
 import {EdgehillAPI, NylasAPI, AccountStore} from 'nylas-exports';
-import AccountTypes from './account-types';
 import url from 'url';
-import _ from 'underscore';
 
 function base64url(buf) {
   return buf.toString('base64')
@@ -11,7 +11,7 @@ function base64url(buf) {
 }
 
 export function pollForGmailAccount(sessionKey, callback) {
-  EdgehillAPI.request({
+  EdgehillAPI.makeRequest({
     path: `/oauth/google/token?key=${sessionKey}`,
     method: "GET",
     error: callback,
@@ -75,22 +75,24 @@ export function buildWelcomeURL(account) {
 export function runAuthRequest(accountInfo) {
   const {username, type, email, name} = accountInfo;
 
-  const AccountType = AccountTypes.find(a => a.type === type);
-  const account = AccountStore.accountForEmail(accountInfo.email);
-
   // handle special case for exchange/outlook/hotmail username field
-  accountInfo.username = username && username.trim().length ? username : email;
+  accountInfo.username = (username && username.trim().length) ? username : email;
 
   const data = {
     provider: type,
-    fields: {
-      email: email,
-      name: name,
-    },
-    settings: _.pick(accountInfo, AccountType.settings),
+    email: email,
+    name: name,
+    settings: accountInfo,
   };
 
+  if (data.settings.imap_port) {
+    data.settings.imap_port = data.settings.imap_port / 1;
+  }
+  if (data.settings.smtp_port) {
+    data.settings.smtp_port = data.settings.smtp_port / 1;
+  }
   // if there's an account with this email, get the ID for it to notify the backend of re-auth
+  const account = AccountStore.accountForEmail(accountInfo.email);
   const reauthParam = account ? `&reauth=${account.id}` : "";
 
   // Send the form data directly to Nylas to get code
@@ -110,11 +112,44 @@ export function runAuthRequest(accountInfo) {
   })
   .then((json) => {
     json.email = data.email;
-    return EdgehillAPI.request({
+    return EdgehillAPI.makeRequest({
       path: "/connect/nylas",
       method: "POST",
       timeout: 60000,
       body: json,
     })
   })
+}
+
+export function accountInfoWithIMAPAutocompletions(existingAccountInfo) {
+  const CommonProviderSettings = require('./common-provider-settings.json');
+
+  const email = existingAccountInfo.email;
+  const domain = email.split('@').pop().toLowerCase();
+  const template = CommonProviderSettings[domain] || {};
+
+  const usernameWithFormat = (format) => {
+    if (format === 'email') {
+      return email
+    }
+    if (format === 'email-without-domain') {
+      return email.split('@').shift();
+    }
+    return undefined;
+  }
+
+  // always pre-fill SMTP / IMAP username, password and port.
+  const defaults = {
+    imap_host: template.imap_host,
+    imap_port: template.imap_port || 993,
+    imap_username: usernameWithFormat(template.smtp_user_format),
+    imap_password: existingAccountInfo.password,
+    smtp_host: template.imap_host,
+    smtp_port: template.smtp_port || 587,
+    smtp_username: usernameWithFormat(template.smtp_user_format),
+    smtp_password: existingAccountInfo.password,
+    ssl_required: (template.ssl === '1'),
+  }
+
+  return Object.assign({}, existingAccountInfo, defaults);
 }

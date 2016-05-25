@@ -9,7 +9,10 @@ const PageTopBar = (props) => {
   const closeClass = (pageDepth > 1) ? 'back' : 'close';
   const closeIcon = (pageDepth > 1) ? 'onboarding-back.png' : 'onboarding-close.png';
   const closeAction = () => {
-    if (pageDepth > 1) {
+    const webview = document.querySelector('webview');
+    if (webview && webview.canGoBack()) {
+      webview.goBack();
+    } else if (pageDepth > 1) {
       OnboardingActions.moveToPreviousPage();
     } else {
       if (AccountStore.accounts().length === 0) {

@@ -61,7 +61,7 @@
     width: 117px;
     height: 117px;
     display: inline-block;
-    padding-top: 60px;
+    padding-top: 40px;
     box-sizing: content-box;
   }
 
@@ -149,6 +149,10 @@
     padding:3px 0;
   }
 
+  label[for=subscribe-check] {
+    color: black;
+  }
+
   label.checkbox {
     width: inherit;
   }
@@ -177,9 +181,35 @@
     background-color: #F3F3F3;
     opacity: 1;
     transition: opacity 200ms ease-out;
-    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .message {
+      color: #444;
+      opacity: 0;
+      margin-top: 20px;
+      transition: opacity 200ms ease-out;
+    }
+    .try-again {
+      opacity: 0;
+      transition: opacity 200ms ease-out;
+    }
+  }
+  .webview-cover.slow,
+  .webview-cover.error {
+    .message {
+      opacity: 1;
+      max-width: 400px;
+    }
+  }
+  .webview-cover.error {
+    .spinner { visibility: hidden;}
+    .try-again {
+      opacity: 1;
+    }
   }
   .webview-cover.ready {
+    pointer-events: none;
     opacity: 0;
   }
 }
@@ -228,7 +258,7 @@
 
 .page.account-setup.AccountIMAPSettingsForm {
   h2 {
-    padding-top: 30px;
+    padding-top: 36px;
   }
   .twocol {
     display: flex;
@@ -247,6 +277,7 @@
   }
   .col-heading {
     text-align: left;
+    padding-bottom: 15px;
   }
   .logo-container {
     display: none;
@@ -272,6 +303,17 @@
   display: flex;
   flex-direction: column;
 
+  &.appeared-false {
+    .tutorial-container .left {
+      transform: translate3d(-30px, 0, 0);
+      opacity: 0;
+    }
+    .tutorial-container .right {
+      transform: translate3d(30px, 0, 0);
+      opacity: 0;
+    }
+  }
+
   .tutorial-container {
     background-color: #F9F9F9;
     display: flex;
@@ -281,6 +323,10 @@
     .left {
       align-self: center;
       flex: 2;
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      transition: all ease-in-out 400ms;
+
       .screenshot {
         width: 523px;
         height: 385px;
@@ -288,6 +334,7 @@
         background-size: contain;
         margin:auto;
         position: relative;
+
         .overlay {
           position: absolute;
           width:40px;
@@ -295,9 +342,10 @@
           border: 2px solid rgba(0,0,0,0.7);
           border-radius: 20px;
           transform:translate3d(-50%, -50%, 0);
-          transition: all ease-in-out 200ms;
+          transition: all cubic-bezier(0.65, 0.05, 0.36, 1) 260ms;
+
           .overlay-content {
-            transition: all ease-in-out 200ms;
+            transition: all cubic-bezier(0.65, 0.05, 0.36, 1) 260ms;
             transform: translate3d(-67px,-67px,0) scale(0.21);
             background:url(nylas://onboarding/assets/app-screenshot@2x.png) top left no-repeat;
             background-position: 10% 20%;
@@ -332,6 +380,9 @@
       flex: 1;
       padding: 30px;
       padding-left: 0;
+      opacity: 1;
+      transform:translate3d(0, 0, 0);
+      transition: all ease-in-out 400ms;
 
       h2 {
         font-size: 31px;

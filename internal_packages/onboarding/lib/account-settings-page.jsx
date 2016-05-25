@@ -3,6 +3,7 @@ import {RegExpUtils} from 'nylas-exports';
 
 import OnboardingActions from './onboarding-actions';
 import CreatePageForForm from './decorators/create-page-for-form';
+import {accountInfoWithIMAPAutocompletions} from './account-helpers';
 
 class AccountBasicSettingsForm extends React.Component {
   static displayName = 'AccountBasicSettingsForm';
@@ -17,7 +18,7 @@ class AccountBasicSettingsForm extends React.Component {
   };
 
   static submitLabel = (accountInfo) => {
-    return (accountInfo.type === 'imap') ? 'Next' : 'Connect Account';
+    return (accountInfo.type === 'imap') ? 'Continue' : 'Connect Account';
   }
 
   static titleLabel = (AccountType) => {
@@ -55,17 +56,7 @@ class AccountBasicSettingsForm extends React.Component {
 
   submit() {
     if (this.props.accountInfo.type === 'imap') {
-      const accountInfo = Object.assign({}, this.props.accountInfo);
-      accountInfo.smtp_username = accountInfo.smtp_username || accountInfo.email;
-      accountInfo.smtp_password = accountInfo.smtp_password || accountInfo.password;
-      accountInfo.imap_username = accountInfo.imap_username || accountInfo.email;
-      accountInfo.imap_password = accountInfo.imap_password || accountInfo.password;
-      accountInfo.imap_port = accountInfo.imap_port || 993;
-      accountInfo.smtp_port = accountInfo.smtp_port || 587;
-      if (accountInfo.email.endsWith('@fastmail.fm')) {
-        accountInfo.imap_host = 'mail.messagingengine.com';
-        accountInfo.smtp_host = 'mail.messagingengine.com';
-      }
+      const accountInfo = accountInfoWithIMAPAutocompletions(this.props.accountInfo);
       OnboardingActions.setAccountInfo(accountInfo);
       OnboardingActions.moveToPage('account-settings-imap');
     } else {

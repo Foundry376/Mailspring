@@ -36,9 +36,14 @@ const CreatePageForForm = (FormComponent) => {
       this.setState({accountInfo, errorFieldNames, errorMessage, populated});
     }
 
+    onSubmit = () => {
+      OnboardingActions.setAccountInfo(this.state.accountInfo);
+      this.refs.form.submit();
+    }
+
     onFieldKeyPress = (event) => {
       if (['Enter', 'Return'].includes(event.key)) {
-        this.refs.form.submit();
+        this.onSubmit();
       }
     }
 
@@ -48,7 +53,7 @@ const CreatePageForForm = (FormComponent) => {
     }
 
     onConnect = () => {
-      this.setState({subitting: true});
+      this.setState({submitting: true});
 
       runAuthRequest(this.state.accountInfo)
       .then((json) => {
@@ -60,8 +65,8 @@ const CreatePageForForm = (FormComponent) => {
           provider: this.state.accountInfo.type,
         })
 
-        const errorFieldNames = err.body ? (err.body.missing_fields || err.body.missing_settings) : []
-        let errorMessage = null;
+        const errorFieldNames = err.body ? (err.body.missing_fields || err.body.missing_settings || []) : []
+        let errorMessage = err.message;
 
         if (err.errorTitle === "setting_update_error") {
           errorMessage = 'The IMAP/SMTP servers for this account do not match our records. Please verify that any server names you entered are correct. If your IMAP/SMTP server has changed, first remove this account from N1, then try logging in again.';
@@ -70,7 +75,7 @@ const CreatePageForForm = (FormComponent) => {
           errorMessage = "Request timed out. Please try again."
         }
 
-        this.setState({errorMessage, errorFieldNames});
+        this.setState({errorMessage, errorFieldNames, submitting: false});
       });
     }
 
@@ -95,7 +100,7 @@ const CreatePageForForm = (FormComponent) => {
       }
 
       return (
-        <button className="btn btn-large btn-gradient btn-add-account" onClick={() => this.refs.form.submit()}>{buttonLabel}</button>
+        <button className="btn btn-large btn-gradient btn-add-account" onClick={this.onSubmit}>{buttonLabel}</button>
       );
     }
 

@@ -1,5 +1,5 @@
 import OnboardingActions from './onboarding-actions';
-import {AccountStore, Actions} from 'nylas-exports';
+import {AccountStore, Actions, NylasAPI} from 'nylas-exports';
 import {shell, ipcRenderer} from 'electron';
 import NylasStore from 'nylas-store';
 import AccountTypes from './account-types';
@@ -18,16 +18,24 @@ class PageRouterStore extends NylasStore {
     const {page, existingAccount} = NylasEnv.getWindowProps();
 
     if (existingAccount) {
-      const accountType = AccountTypes.accountTypeForProvider(existingAccount.provider);
-
       this._pageStack = ['account-choose']
-      this._onSetAccountType(accountType);
-      this._onSetAccountInfo({
+      this._accountInfo = {
         name: existingAccount.name,
         email: existingAccount.email,
-      });
+      };
+
+      const accountType = AccountTypes.accountTypeForProvider(existingAccount.provider);
+      this._onSetAccountType(accountType);
     } else {
       this._pageStack = [page || 'welcome'];
+      const N1Account = NylasAPI.N1UserAccount();
+      if (N1Account) {
+        this._accountInfo = {
+          name: `${N1Account.firstname || ""} ${N1Account.lastname || ""}`,
+        };
+      } else {
+        this._accountInfo = {};
+      }
     }
   }
 
