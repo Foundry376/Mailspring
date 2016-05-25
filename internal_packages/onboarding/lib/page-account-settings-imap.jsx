@@ -69,7 +69,7 @@ class AccountIMAPSettingsForm extends React.Component {
             id={`ssl_required`}
             className={(accountInfo.imap_host && errorFieldNames.includes(`ssl_required`)) ? 'error' : ''}
             disabled={submitting}
-            value={accountInfo[`ssl_required`] || ''}
+            checked={accountInfo[`ssl_required`] || false}
             onKeyPress={onFieldKeyPress}
             onChange={onFieldChange}
           />

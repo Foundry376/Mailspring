@@ -1,9 +1,9 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {RetinaImg} from 'nylas-component-kit';
 import {Actions} from 'nylas-exports';
 
 import OnboardingActions from '../onboarding-actions';
-import AutofocusContainer from '../autofocus-container';
 import {runAuthRequest} from '../account-helpers';
 import FormErrorMessage from '../form-error-message';
 import AccountTypes from '../account-types'
@@ -24,6 +24,34 @@ const CreatePageForForm = (FormComponent) => {
         errorFieldNames: [],
         errorMessage: null,
       }, FormComponent.validateAccountInfo(this.props.accountInfo));
+    }
+
+    componentDidMount() {
+      this._applyFocus();
+    }
+
+    componentDidUpdate() {
+      this._applyFocus();
+    }
+
+    _applyFocus() {
+      const anyInputFocused = document.activeElement && document.activeElement.nodeName === 'INPUT';
+      if (anyInputFocused) {
+        return;
+      }
+
+      const inputs = Array.from(ReactDOM.findDOMNode(this).querySelectorAll('input'));
+      if (inputs.length === 0) {
+        return;
+      }
+
+      for (const input of inputs) {
+        if (input.value === '') {
+          input.focus();
+          return;
+        }
+      }
+      inputs[0].focus();
     }
 
     onFieldChange = (event) => {
@@ -135,17 +163,15 @@ const CreatePageForForm = (FormComponent) => {
             message={errorMessage}
             empty={FormComponent.subtitleLabel(AccountType)}
           />
-          <AutofocusContainer>
-            <FormComponent
-              ref="form"
-              accountInfo={accountInfo}
-              errorFieldNames={errorFieldNames}
-              submitting={submitting}
-              onFieldChange={this.onFieldChange}
-              onFieldKeyPress={this.onFieldKeyPress}
-              onConnect={this.onConnect}
-            />
-          </AutofocusContainer>
+          <FormComponent
+            ref="form"
+            accountInfo={accountInfo}
+            errorFieldNames={errorFieldNames}
+            submitting={submitting}
+            onFieldChange={this.onFieldChange}
+            onFieldKeyPress={this.onFieldKeyPress}
+            onConnect={this.onConnect}
+          />
           <div>
             <div className="btn btn-large btn-gradient" onClick={this.onBack}>Back</div>
             {this._renderButton()}

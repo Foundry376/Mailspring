@@ -146,9 +146,9 @@ export function accountInfoWithIMAPAutocompletions(existingAccountInfo) {
   const defaults = {
     imap_host: template.imap_host,
     imap_port: template.imap_port || 993,
-    imap_username: usernameWithFormat(template.smtp_user_format),
+    imap_username: usernameWithFormat(template.imap_user_format),
     imap_password: existingAccountInfo.password,
-    smtp_host: template.imap_host,
+    smtp_host: template.smtp_host,
     smtp_port: template.smtp_port || 587,
     smtp_username: usernameWithFormat(template.smtp_user_format),
     smtp_password: existingAccountInfo.password,
