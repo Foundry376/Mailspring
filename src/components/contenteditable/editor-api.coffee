@@ -73,8 +73,13 @@ class EditorAPI
   normalize: -> @rootNode.normalize(); @
 
   insertCustomComponent: (componentKey, props = {}) ->
-    anchorTag = OverlaidComponents.buildAnchorTag(componentKey, props)
+    {anchorId, anchorTag} = OverlaidComponents.buildAnchorTag(componentKey, props)
     @insertHTML(anchorTag)
+    return anchorId
+
+  removeCustomComponent: (id) ->
+    node = @rootNode.querySelector("img[data-overlay-id=\"#{id}\"]")
+    node?.parentNode.removeChild(node)
 
   ########################################################################
   ####################### execCommand Delegation #########################
