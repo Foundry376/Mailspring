@@ -82,7 +82,7 @@ export default class NylasAPIRequest {
             this.options.error(apiError);
             reject(apiError);
           } else {
-            this.options.success(body);
+            this.options.success(body, response);
             resolve(body);
           }
         });
