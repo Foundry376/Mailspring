@@ -313,10 +313,16 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:add-account', ({existingAccount} = {}) => {
-      this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
-        title: "Add an Account",
-        windowProps: { existingAccount },
-      })
+      const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
+      if (onboarding) {
+        onboarding.show();
+        onboarding.focus();
+      } else {
+        this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
+          title: "Add an Account",
+          windowProps: { addingAccount: true, existingAccount },
+        });
+      }
     });
 
     this.on('application:new-message', () => {

@@ -3,6 +3,7 @@ import Utils from './models/utils'
 import Actions from './actions'
 import {APIError} from './errors'
 import PriorityUICoordinator from '../priority-ui-coordinator'
+import IdentityStore from './stores/identity-store'
 import NylasAPI from './nylas-api'
 
 export default class NylasAPIRequest {
@@ -24,30 +25,35 @@ export default class NylasAPIRequest {
     }
   }
 
+  constructAuthHeader() {
+    if (!this.options.accountId) {
+      throw new Error("Cannot make Nylas request without specifying `auth` or an `accountId`.");
+    }
+
+    const identity = IdentityStore.identity();
+    if (!identity || !identity.token) {
+      throw new Error("Identity is missing or identity token is not present.");
+    }
+
+    const accountToken = this.api.accessTokenForAccountId(this.options.accountId);
+    if (!accountToken) {
+      throw new Error(`Cannot make Nylas request for account ${this.options.accountId} auth token.`);
+    }
+
+    return {
+      user: accountToken,
+      pass: identity.token,
+      sendImmediately: true,
+    };
+  }
+
   run() {
     if (!this.options.auth) {
-      if (!this.options.accountId) {
-        const err = new APIError({
-          statusCode: 400,
-          body: "Cannot make Nylas request without specifying `auth` or an `accountId`.",
-        });
-        return Promise.reject(err);
+      try {
+        this.options.auth = this.constructAuthHeader();
+      } catch (err) {
+        return Promise.reject(new APIError({body: err.message, statusCode: 400}));
       }
-
-      const token = this.api.accessTokenForAccountId(this.options.accountId);
-      if (!token) {
-        const err = new APIError({
-          statusCode: 400,
-          body: `Cannot make Nylas request for account ${this.options.accountId} auth token.`,
-        });
-        return Promise.reject(err);
-      }
-
-      this.options.auth = {
-        user: token,
-        pass: '',
-        sendImmediately: true,
-      };
     }
 
     const requestId = Utils.generateTempId();

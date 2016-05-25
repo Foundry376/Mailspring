@@ -16,7 +16,16 @@ class OnboardingStore extends NylasStore {
     this.listenTo(OnboardingActions.setAccountInfo, this._onSetAccountInfo);
     this.listenTo(OnboardingActions.setAccountType, this._onSetAccountType);
 
-    const {existingAccount} = NylasEnv.getWindowProps();
+    const {existingAccount, addingAccount} = NylasEnv.getWindowProps();
+
+    const identity = IdentityStore.identity();
+    if (identity) {
+      this._accountInfo = {
+        name: `${identity.firstname || ""} ${identity.lastname || ""}`,
+      };
+    } else {
+      this._accountInfo = {};
+    }
 
     if (existingAccount) {
       const accountType = accountTypeForProvider(existingAccount.provider);
@@ -26,16 +35,10 @@ class OnboardingStore extends NylasStore {
         email: existingAccount.emailAddress,
       };
       this._onSetAccountType(accountType);
+    } else if (addingAccount) {
+      this._pageStack = ['account-choose'];
     } else {
-      const identity = IdentityStore.identity();
       this._pageStack = ['welcome'];
-      if (identity) {
-        this._accountInfo = {
-          name: `${identity.firstname || ""} ${identity.lastname || ""}`,
-        };
-      } else {
-        this._accountInfo = {};
-      }
     }
   }
 
