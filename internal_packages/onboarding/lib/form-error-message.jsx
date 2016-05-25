@@ -1,7 +1,7 @@
 import React from 'react';
 import {RegExpUtils} from 'nylas-exports';
 
-const ErrorMessage = (props) => {
+const FormErrorMessage = (props) => {
   let {message, empty} = props;
   if (!message) {
     return <div className="message empty">{empty}</div>;
@@ -26,9 +26,9 @@ const ErrorMessage = (props) => {
   );
 }
 
-ErrorMessage.propTypes = {
+FormErrorMessage.propTypes = {
   empty: React.PropTypes.string,
   message: React.PropTypes.string,
 };
 
-export default ErrorMessage;
+export default FormErrorMessage;

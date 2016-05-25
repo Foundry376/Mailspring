@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 
 import crypto from 'crypto';
-import {EdgehillAPI, NylasAPI, AccountStore} from 'nylas-exports';
+import {EdgehillAPI, NylasAPI, AccountStore, RegExpUtils} from 'nylas-exports';
 import url from 'url';
 
 function base64url(buf) {
@@ -75,15 +75,15 @@ export function buildWelcomeURL(account) {
 export function runAuthRequest(accountInfo) {
   const {username, type, email, name} = accountInfo;
 
-  // handle special case for exchange/outlook/hotmail username field
-  accountInfo.username = (username && username.trim().length) ? username : email;
-
   const data = {
     provider: type,
     email: email,
     name: name,
-    settings: accountInfo,
+    settings: Object.assign({}, accountInfo),
   };
+
+  // handle special case for exchange/outlook/hotmail username field
+  data.settings.username = username || email;
 
   if (data.settings.imap_port) {
     data.settings.imap_port = data.settings.imap_port / 1;
@@ -119,6 +119,10 @@ export function runAuthRequest(accountInfo) {
       body: json,
     })
   })
+}
+
+export function isValidHost(value) {
+  return RegExpUtils.domainRegex().test(value) || RegExpUtils.ipAddressRegex().test(value);
 }
 
 export function accountInfoWithIMAPAutocompletions(existingAccountInfo) {

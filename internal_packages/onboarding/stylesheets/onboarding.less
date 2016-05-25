@@ -71,7 +71,6 @@
     transition: width 150ms ease-in-out;
   }
   .btn-add-account.spinning {
-    width: 200px;
     img { vertical-align: middle; margin-right: 5px; margin-bottom: 2px; }
   }
 
@@ -99,8 +98,12 @@
 
   .message {
     margin-bottom:15px;
+    max-width: 600px;
+    margin: auto;
+
     &.error {
       color: #A33;
+      -webkit-user-select: text;
       a {
         color: #A33;
       }
@@ -143,6 +146,7 @@
 
   label {
     display: inline-block;
+    white-space: nowrap;
     width: 100%;
     color: #888;
     text-align: left;
@@ -155,6 +159,14 @@
 
   label.checkbox {
     width: inherit;
+  }
+
+  .toggle-advanced {
+    display: inline-block;
+    width: 100%;
+    font-size: 0.94em;
+    text-align: right;
+    padding: 0;
   }
 
   .btn {
@@ -252,7 +264,51 @@
 .page.account-setup {
   form {
     width: 400px;
+    padding-top: 20px;
     margin: auto;
+  }
+  .twocol {
+    display: flex;
+    flex-direction: row;
+    width: 700px;
+    margin: auto;
+    transition: width 400ms ease-in-out;
+  }
+  .twocol.hide-second-column {
+    width: 400px;
+    .col:nth-child(2) {
+      opacity: 0;
+      flex: 0;
+      padding: 0;
+      flex-shrink: 1;
+    }
+    .col:first-child {
+    }
+  }
+  .col {
+    flex: 1;
+    padding: 0 20px;
+    opacity: 1;
+    border-left: 1px solid #ddd;
+    overflow: hidden;
+    transition: all 400ms ease-in-out;
+  }
+  .col:first-child {
+    border-left: none;
+  }
+  .col-heading {
+    text-align: left;
+    padding-bottom: 15px;
+  }
+}
+
+.page.account-setup.AccountExchangeSettingsForm {
+  .logo-container {
+    padding-top: 36px;
+  }
+  .twocol {
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 }
 
@@ -260,27 +316,12 @@
   h2 {
     padding-top: 36px;
   }
-  .twocol {
-    display: flex;
-    flex-direction: row;
-    width: 700px;
-    margin: auto;
-    padding-top: 10px;
-    padding-bottom: 20px;
-  }
-  .col {
-    flex: 1;
-    padding: 0 20px;
-  }
-  .col:first-child {
-    border-right: 1px solid #ddd;
-  }
-  .col-heading {
-    text-align: left;
-    padding-bottom: 15px;
-  }
   .logo-container {
     display: none;
+  }
+  .twocol {
+    padding-top: 20px;
+    padding-bottom: 10px;
   }
 }
 .page.account-setup.gmail {

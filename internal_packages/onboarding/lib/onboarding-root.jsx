@@ -1,16 +1,17 @@
 import React from 'react';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
-import PageRouterStore from './page-router-store';
+import OnboardingStore from './onboarding-store';
 import PageTopBar from './page-top-bar';
 
-import WelcomePage from './welcome-page';
-import TutorialPage from './tutorial-page';
-import AuthenticatePage from './authenticate-page';
-import AccountChoosePage from './account-choose-page';
-import AccountSettingsPage from './account-settings-page';
-import AccountSettingsPageGmail from './account-settings-page-gmail';
-import AccountSettingsPageIMAP from './account-settings-page-imap';
-import InitialPreferencesPage from './initial-preferences-page';
+import WelcomePage from './page-welcome';
+import TutorialPage from './page-tutorial';
+import AuthenticatePage from './page-authenticate';
+import AccountChoosePage from './page-account-choose';
+import AccountSettingsPage from './page-account-settings';
+import AccountSettingsPageGmail from './page-account-settings-gmail';
+import AccountSettingsPageIMAP from './page-account-settings-imap';
+import AccountSettingsPageExchange from './page-account-settings-exchange';
+import InitialPreferencesPage from './page-initial-preferences';
 
 const PageComponents = {
   "welcome": WelcomePage,
@@ -20,11 +21,12 @@ const PageComponents = {
   "account-settings": AccountSettingsPage,
   "account-settings-gmail": AccountSettingsPageGmail,
   "account-settings-imap": AccountSettingsPageIMAP,
+  "account-settings-exchange": AccountSettingsPageExchange,
   "initial-preferences": InitialPreferencesPage,
 }
 
-export default class PageRouter extends React.Component {
-  static displayName = 'PageRouter';
+export default class OnboardingRoot extends React.Component {
+  static displayName = 'OnboardingRoot';
   static containerRequired = false;
 
   constructor(props) {
@@ -33,7 +35,7 @@ export default class PageRouter extends React.Component {
   }
 
   componentDidMount() {
-    this.unsubscribe = PageRouterStore.listen(this._onStateChanged, this);
+    this.unsubscribe = OnboardingStore.listen(this._onStateChanged, this);
     NylasEnv.center();
     NylasEnv.displayWindow();
   }
@@ -46,9 +48,9 @@ export default class PageRouter extends React.Component {
 
   _getStateFromStore = () => {
     return {
-      page: PageRouterStore.page(),
-      pageDepth: PageRouterStore.pageDepth(),
-      accountInfo: PageRouterStore.accountInfo(),
+      page: OnboardingStore.page(),
+      pageDepth: OnboardingStore.pageDepth(),
+      accountInfo: OnboardingStore.accountInfo(),
     };
   }
 

@@ -5,13 +5,14 @@ import NylasStore from 'nylas-store';
 import AccountTypes from './account-types';
 import {buildWelcomeURL} from './account-helpers';
 
-class PageRouterStore extends NylasStore {
+class OnboardingStore extends NylasStore {
   constructor() {
     super();
 
     this.listenTo(OnboardingActions.moveToPreviousPage, this._onMoveToPreviousPage)
     this.listenTo(OnboardingActions.moveToPage, this._onMoveToPage)
     this.listenTo(OnboardingActions.accountJSONReceived, this._onAccountJSONReceived)
+    this.listenTo(OnboardingActions.authenticationJSONReceived, this._onAuthenticationJSONReceived)
     this.listenTo(OnboardingActions.setAccountInfo, this._onSetAccountInfo);
     this.listenTo(OnboardingActions.setAccountType, this._onSetAccountType);
 
@@ -39,10 +40,25 @@ class PageRouterStore extends NylasStore {
     }
   }
 
-  _onSetAccountType = (type) => {
-    const nextPage = (type === 'gmail') ? "account-settings-gmail" : "account-settings";
-    Actions.recordUserEvent('Auth Flow Started', {type});
+  _onOnboardingComplete = () => {
+    // When account JSON is received, we want to notify external services
+    // that it succeeded. Unfortunately in this case we're likely to
+    // close the window before those requests can be made. We add a short
+    // delay here to ensure that any pending requests have a chance to
+    // clear before the window closes.
+    setTimeout(() => {
+      ipcRenderer.send('account-setup-successful');
+    }, 100);
+  }
 
+  _onSetAccountType = (type) => {
+    let nextPage = "account-settings";
+    if (type === 'gmail') {
+      nextPage = "account-settings-gmail";
+    } else if (type === 'exchange') {
+      nextPage = "account-settings-exchange";
+    }
+    Actions.recordUserEvent('Auth Flow Started', {type});
     this._onSetAccountInfo(Object.assign({}, this._accountInfo, {type}));
     this._onMoveToPage(nextPage);
   }
@@ -60,6 +76,24 @@ class PageRouterStore extends NylasStore {
   _onMoveToPage = (page) => {
     this._pageStack.push(page)
     this.trigger();
+  }
+
+  _onAuthenticationJSONReceived = (json) => {
+    const isFirstAccount = AccountStore.accounts().length === 0;
+
+    NylasAPI.setN1UserAccount(json);
+
+    setTimeout(() => {
+      if (isFirstAccount) {
+        this._onSetAccountInfo(Object.assign({}, this._accountInfo, {
+          name: `${json.firstname || ""} ${json.lastname || ""}`,
+          email: json.email,
+        }));
+        OnboardingActions.moveToPage('account-choose');
+      } else {
+        this._onOnboardingComplete();
+      }
+    }, 1000);
   }
 
   _onAccountJSONReceived = (json) => {
@@ -83,14 +117,7 @@ class PageRouterStore extends NylasStore {
         const url = buildWelcomeURL(this._accountFromAuth);
         shell.openExternal(url, {activate: false});
       } else {
-        // When account JSON is received, we want to notify external services
-        // that it succeeded. Unfortunately in this case we're likely to
-        // close the window before those requests can be made. We add a short
-        // delay here to ensure that any pending requests have a chance to
-        // clear before the window closes.
-        setTimeout(() => {
-          ipcRenderer.send('account-setup-successful');
-        }, 100);
+        this._onOnboardingComplete();
       }
     } catch (e) {
       NylasEnv.reportError(e);
@@ -115,4 +142,4 @@ class PageRouterStore extends NylasStore {
   }
 }
 
-export default new PageRouterStore();
+export default new OnboardingStore();

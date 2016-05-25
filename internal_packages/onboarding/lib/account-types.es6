@@ -21,7 +21,6 @@ const AccountTypes = [
   }),
   new AccountType({
     type: 'exchange',
-    title: 'Add your Exchange account',
     displayName: 'Microsoft Exchange',
     icon: 'ic-settings-account-eas.png',
     headerIcon: 'setup-icon-provider-exchange.png',

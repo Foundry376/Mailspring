@@ -4,6 +4,7 @@ import {RegExpUtils} from 'nylas-exports';
 import OnboardingActions from './onboarding-actions';
 import CreatePageForForm from './decorators/create-page-for-form';
 import {accountInfoWithIMAPAutocompletions} from './account-helpers';
+import FormField from './form-field';
 
 class AccountBasicSettingsForm extends React.Component {
   static displayName = 'AccountBasicSettingsForm';
@@ -65,40 +66,11 @@ class AccountBasicSettingsForm extends React.Component {
   }
 
   render() {
-    const {accountInfo, errorFieldNames, submitting, onFieldKeyPress, onFieldChange} = this.props;
-
     return (
       <form className="settings">
-        <label forHtml="name">Name:</label>
-        <input
-          type="text"
-          id="name"
-          className={(accountInfo.name && errorFieldNames.includes('name')) ? 'error' : ''}
-          disabled={submitting}
-          value={accountInfo.name || ''}
-          onKeyPress={onFieldKeyPress}
-          onChange={onFieldChange}
-        />
-        <label forHtml="email">Email:</label>
-        <input
-          type="text"
-          id="email"
-          className={(accountInfo.email && errorFieldNames.includes('email')) ? 'error' : ''}
-          disabled={submitting}
-          value={accountInfo.email || ''}
-          onKeyPress={onFieldKeyPress}
-          onChange={onFieldChange}
-        />
-        <label forHtml="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          className={(accountInfo.password && errorFieldNames.includes('password')) ? 'error' : ''}
-          disabled={submitting}
-          value={accountInfo.password || ''}
-          onKeyPress={onFieldKeyPress}
-          onChange={onFieldChange}
-        />
+        <FormField field="name" title="Name" {...this.props} />
+        <FormField field="email" title="Email" {...this.props} />
+        <FormField field="password" title="Password" type="password" {...this.props} />
       </form>
     )
   }

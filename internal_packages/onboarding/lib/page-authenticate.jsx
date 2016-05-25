@@ -2,9 +2,7 @@ import React from 'react';
 import classnames from 'classnames';
 import ReactDOM from 'react-dom';
 import {RetinaImg} from 'nylas-component-kit';
-import {NylasAPI} from 'nylas-exports';
 import OnboardingActions from './onboarding-actions';
-import PageRouterStore from './page-router-store';
 import networkErrors from 'chromium-net-errors';
 
 class AuthenticateLoadingCover extends React.Component {
@@ -90,24 +88,6 @@ export default class AuthenticatePage extends React.Component {
     });
   }
 
-  componentWillUnmount() {
-    if (this._nextTimeout) {
-      clearTimeout(this._nextTimeout);
-    }
-  }
-
-  onDidFinishAuth = (json) => {
-    NylasAPI.setN1UserAccount(json);
-    this._nextTimeout = setTimeout(() => {
-      const accountInfo = Object.assign({}, PageRouterStore.accountInfo(), {
-        email: json.email,
-        name: `${json.firstname || ""} ${json.lastname || ""}`,
-      });
-      OnboardingActions.setAccountInfo(accountInfo);
-      OnboardingActions.moveToPage('account-choose');
-    }, 1000);
-  }
-
   onTryAgain = () => {
     const webview = ReactDOM.findDOMNode(this.refs.webview);
     webview.reload();
@@ -144,7 +124,7 @@ export default class AuthenticatePage extends React.Component {
     webview.executeJavaScript(js, false, (result) => {
       this.setState({ready: true});
       if (result !== null) {
-        this.onDidFinishAuth(JSON.parse(result));
+        OnboardingActions.authenticationJSONReceived(JSON.parse(result));
       }
     });
   }

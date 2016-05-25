@@ -5,7 +5,7 @@ import {Actions} from 'nylas-exports';
 import OnboardingActions from '../onboarding-actions';
 import AutofocusContainer from '../autofocus-container';
 import {runAuthRequest} from '../account-helpers';
-import ErrorMessage from '../error-message';
+import FormErrorMessage from '../form-error-message';
 import AccountTypes from '../account-types'
 
 const CreatePageForForm = (FormComponent) => {
@@ -53,16 +53,18 @@ const CreatePageForForm = (FormComponent) => {
     }
 
     onConnect = () => {
+      const {accountInfo} = this.state;
+
       this.setState({submitting: true});
 
-      runAuthRequest(this.state.accountInfo)
+      runAuthRequest(accountInfo)
       .then((json) => {
         OnboardingActions.accountJSONReceived(json)
       })
       .catch((err) => {
         Actions.recordUserEvent('Auth Failed', {
           errorMessage: err.message,
-          provider: this.state.accountInfo.type,
+          provider: accountInfo.type,
         })
 
         const errorFieldNames = err.body ? (err.body.missing_fields || err.body.missing_settings || []) : []
@@ -70,6 +72,10 @@ const CreatePageForForm = (FormComponent) => {
 
         if (err.errorTitle === "setting_update_error") {
           errorMessage = 'The IMAP/SMTP servers for this account do not match our records. Please verify that any server names you entered are correct. If your IMAP/SMTP server has changed, first remove this account from N1, then try logging in again.';
+        }
+        if (err.errorTitle.includes("autodiscover") && (accountInfo.type === 'exchange')) {
+          errorFieldNames.push('eas_server_host')
+          errorFieldNames.push('username');
         }
         if (err.statusCode === -123) { // timeout
           errorMessage = "Request timed out. Please try again."
@@ -125,7 +131,7 @@ const CreatePageForForm = (FormComponent) => {
           <h2>
             {FormComponent.titleLabel(AccountType)}
           </h2>
-          <ErrorMessage
+          <FormErrorMessage
             message={errorMessage}
             empty={FormComponent.subtitleLabel(AccountType)}
           />

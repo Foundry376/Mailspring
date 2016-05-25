@@ -1,10 +1,10 @@
-import {SystemStartService, WorkspaceStore, ComponentRegistry} from 'nylas-exports'
-import PageRouter from './page-router'
+import {SystemStartService, WorkspaceStore, ComponentRegistry} from 'nylas-exports';
+import OnboardingRoot from './onboarding-root';
 
 export function activate() {
   WorkspaceStore.defineSheet('Main', {root: true}, {list: ['Center']});
 
-  ComponentRegistry.register(PageRouter, {
+  ComponentRegistry.register(OnboardingRoot, {
     location: WorkspaceStore.Location.Center,
   });
 
