@@ -6,13 +6,12 @@ import {ipcRenderer} from 'electron';
 const configIdentityKey = "nylas.identity";
 const keytarServiceName = 'Nylas';
 const keytarIdentityKey = 'Nylas Account';
+const URLRoot = "https://billing-staging.nylas.com";
 
 class IdentityStore extends NylasStore {
 
   constructor() {
     super();
-
-    this.URLRoot = "https://billing-staging.nylas.com";
 
     // TODO
     this._trialDaysRemaining = 14
@@ -32,6 +31,10 @@ class IdentityStore extends NylasStore {
     if (this._identity) {
       this._identity.token = keytar.getPassword(keytarServiceName, keytarIdentityKey);
     }
+  }
+
+  get URLRoot() {
+    return URLRoot;
   }
 
   identity() {

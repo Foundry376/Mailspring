@@ -1,8 +1,6 @@
 import React from 'react';
-import {shell} from 'electron';
-import {Actions, IdentityStore} from 'nylas-exports';
+import {Actions, NylasAPI, IdentityStore} from 'nylas-exports';
 import {RetinaImg} from 'nylas-component-kit';
-import request from 'request';
 
 class OpenIdentityPageButton extends React.Component {
   static propTypes = {
@@ -19,35 +17,13 @@ class OpenIdentityPageButton extends React.Component {
   }
 
   _onClick = () => {
-    const identity = IdentityStore.identity();
-    if (!identity) {
-      return;
-    }
-
-    if (!this.props.destination.startsWith('/')) {
-      throw new Error("destination must start with a leading slash.");
-    }
-
     this.setState({loading: true});
-
-    request({
-      method: 'POST',
-      url: `${IdentityStore.URLRoot}/n1/login-link`,
-      json: true,
-      body: {
-        destination: this.props.destination,
-        account_token: identity.token,
-      },
-    }, (error, response = {}, body) => {
-      this.setState({loading: false});
-      if (error || !body.startsWith('http')) {
-        // Single-sign on attempt failed. Rather than churn the user right here,
-        // at least try to open the page directly in the browser.
-        shell.openExternal(`${IdentityStore.URLRoot}${this.props.destination}`);
-      } else {
-        shell.openExternal(body);
-      }
-    });
+    const identity = IdentityStore.identity();
+    if (!identity) { return }
+    NylasAPI.navigateToBillingSite()
+    .then(() => {
+      this.setState({loading: false})
+    })
   }
 
   render() {

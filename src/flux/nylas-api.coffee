@@ -1,10 +1,11 @@
 _ = require 'underscore'
-{remote} = require 'electron'
+{remote, shell} = require 'electron'
 request = require 'request'
 NylasLongConnection = require('./nylas-long-connection').default
 Utils = require './models/utils'
 Account = require('./models/account').default
 Message = require('./models/message').default
+IdentityStore = require('./stores/identity-store').default
 Actions = require './actions'
 {APIError} = require './errors'
 PriorityUICoordinator = require '../priority-ui-coordinator'
@@ -427,5 +428,31 @@ You can review and revoke Offline Access for plugins at any time from Preference
       accountId: accountId,
       path: "/auth/plugin?client_id=#{pluginId}"
     })
+
+  navigateToBillingSite: (identity, destination) =>
+    unless identity
+      throw new Error("must provide an identity object")
+    if (not destination) or (not destination.startsWith('/'))
+      throw new Error("destination must start with a leading slash.")
+
+    return new Promise (resolve) =>
+      request({
+        method: 'POST',
+        url: "#{IdentityStore.URLRoot}/n1/login-link",
+        json: true,
+        body: {
+          destination: destination,
+          account_token: identity.token,
+        },
+      }, (error, response = {}, body) =>
+        if error or !body.startsWith('http')
+          # Single-sign on attempt failed. Rather than churn the user right here,
+          # at least try to open the page directly in the browser.
+          shell.openExternal("#{IdentityStore.URLRoot}#{destination}")
+        else
+          shell.openExternal(body)
+        resolve()
+      )
+
 
 module.exports = new NylasAPI()
