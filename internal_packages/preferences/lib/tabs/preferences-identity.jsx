@@ -1,13 +1,14 @@
 import React from 'react';
 import {shell} from 'electron';
+import {Actions, IdentityStore} from 'nylas-exports';
 import {RetinaImg} from 'nylas-component-kit';
-import {IdentityStore} from 'nylas-exports';
 import request from 'request';
 
 class OpenIdentityPageButton extends React.Component {
   static propTypes = {
     destination: React.PropTypes.string,
     label: React.PropTypes.string,
+    img: React.PropTypes.string,
   }
 
   constructor(props) {
@@ -58,6 +59,14 @@ class OpenIdentityPageButton extends React.Component {
         </div>
       );
     }
+    if (this.props.img) {
+      return (
+        <div className="btn">
+          <RetinaImg name={this.props.img} mode={RetinaImg.Mode.ContentPreserve} />
+          &nbsp;&nbsp;{this.props.label}
+        </div>
+      )
+    }
     return (
       <div className="btn" onClick={this._onClick}>{this.props.label}</div>
     );
@@ -65,7 +74,6 @@ class OpenIdentityPageButton extends React.Component {
 }
 
 class PreferencesIdentity extends React.Component {
-
   static displayName = 'PreferencesIdentity';
 
   constructor() {
@@ -86,20 +94,45 @@ class PreferencesIdentity extends React.Component {
   getStateFromStores() {
     return {
       identity: IdentityStore.identity(),
+      trialDaysRemaining: IdentityStore.trialDaysRemaining(),
     };
   }
 
   render() {
+    const {identity, trialDaysRemaining} = this.state
+    const {firstname, lastname, email} = identity
     return (
       <div className="container-identity">
-        <div className="identity-content">
-          {JSON.stringify(this.state.identity)}
-          <OpenIdentityPageButton label="Go to web" destination="/billing" />
+        <div className="id-header">Nylas ID:</div>
+        <div className="identity-content-box">
+          <div className="row info-row">
+            <div className="logo">
+              <RetinaImg
+                name="prefs-identity-nylas-logo.png"
+                mode={RetinaImg.Mode.ContentPreserve}
+              />
+            </div>
+            <div className="identity-info">
+              <div className="name">{firstname} {lastname}</div>
+              <div className="email">{email}</div>
+              <div className="identity-actions">
+                <OpenIdentityPageButton label="Account Details" destination="/billing" />
+                <div className="btn" onClick={() => Actions.logoutNylasIdentity()}>Sign Out</div>
+              </div>
+            </div>
+          </div>
+          <div className="row trial-row">
+            <div>There are {trialDaysRemaining} days remaining in your trial of Nylas N1</div>
+            <OpenIdentityPageButton
+              img="ic-upgrade.png"
+              label="Upgrade to Nylas Pro"
+              destination="/billing"
+            />
+          </div>
         </div>
       </div>
     );
   }
-
 }
 
 export default PreferencesIdentity;

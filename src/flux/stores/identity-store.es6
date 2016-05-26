@@ -14,6 +14,9 @@ class IdentityStore extends NylasStore {
 
     this.URLRoot = "https://billing-staging.nylas.com";
 
+    // TODO
+    this._trialDaysRemaining = 14
+
     this.listenTo(Actions.setNylasIdentity, this._onSetNylasIdentity);
     this.listenTo(Actions.logoutNylasIdentity, this._onLogoutNylasIdentity);
 
@@ -33,6 +36,10 @@ class IdentityStore extends NylasStore {
 
   identity() {
     return this._identity;
+  }
+
+  trialDaysRemaining() {
+    return this._trialDaysRemaining;
   }
 
   _onLogoutNylasIdentity = () => {
