@@ -31,8 +31,8 @@ export default class NylasAPIRequest {
     }
 
     const identity = IdentityStore.identity();
-    if (!identity || !identity.token) {
-      throw new Error("Identity is missing or identity token is not present.");
+    if (identity && !identity.token) {
+      throw new Error("Identity is present but identity token is missing.");
     }
 
     const accountToken = this.api.accessTokenForAccountId(this.options.accountId);
@@ -42,7 +42,7 @@ export default class NylasAPIRequest {
 
     return {
       user: accountToken,
-      pass: identity.token,
+      pass: identity ? identity.token : '',
       sendImmediately: true,
     };
   }
