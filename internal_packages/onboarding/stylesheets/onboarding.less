@@ -473,12 +473,12 @@
   }
 
   a {
-    color: rgba(255,255,255,0.7);
-    border-bottom: 1px solid rgba(255,255,255,0.7);
+    color: white;
+    border-bottom: 1px solid white;
+    text-decoration: none;
+    font-weight: 300;
     &:hover {
-      cursor: default;
-      color: white;
-      border-bottom: 1px solid white;
+      background-color: rgba(255,255,255,0.1);
     }
   }
 
@@ -493,6 +493,7 @@
     font-size: 34px;
     line-height: 41px;
     font-weight: 200;
+    cursor: default;
     -webkit-font-smoothing: subpixel-antialiased;
   }
 
@@ -501,11 +502,22 @@
     font-weight: 300;
   }
 
-  img.icons.content-mask {
-    background-color: rgba(255,255,255,0.7);
+  img.icons {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    pointer-events: none;
   }
 }
 
+.page.welcome.is-first-account-false {
+  .footer {
+    background-image: linear-gradient(to left, rgba(167,214,134,1) 0%,rgba(122,201,201,1) 100%);
+  }
+  .steps-container {
+    background-image: linear-gradient(to left, rgba(149,205,107,1) 0%,rgba(60,176,176,1) 100%);
+  }
+}
 .page.welcome,
 .page.tutorial {
   .footer {
