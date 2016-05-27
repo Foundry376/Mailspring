@@ -1,22 +1,28 @@
 import NylasStore from 'nylas-store';
-import Actions from '../actions';
 import keytar from 'keytar';
 import {ipcRenderer} from 'electron';
 import request from 'request';
+
+import Actions from '../actions';
+import AccountStore from './account-store';
 
 const configIdentityKey = "nylas.identity";
 const keytarServiceName = 'Nylas';
 const keytarIdentityKey = 'Nylas Account';
 const URLRoot = "https://billing-staging.nylas.com";
 
+const State = {
+  Trialing: 'Trialing',
+  Valid: 'Valid',
+  Lapsed: 'Lapsed',
+};
+
 class IdentityStore extends NylasStore {
 
   constructor() {
     super();
 
-    // TODO
-    this._trialDaysRemaining = 14
-
+    this.listenTo(AccountStore, () => { this.trigger() });
     this.listenTo(Actions.setNylasIdentity, this._onSetNylasIdentity);
     this.listenTo(Actions.logoutNylasIdentity, this._onLogoutNylasIdentity);
 
@@ -24,6 +30,7 @@ class IdentityStore extends NylasStore {
       this._loadIdentity();
       this.trigger();
     });
+
     this._loadIdentity();
 
     if (NylasEnv.isWorkWindow() && ['staging', 'production'].includes(NylasEnv.config.get('env'))) {
@@ -39,6 +46,10 @@ class IdentityStore extends NylasStore {
     }
   }
 
+  get State() {
+    return State;
+  }
+
   get URLRoot() {
     return URLRoot;
   }
@@ -47,8 +58,29 @@ class IdentityStore extends NylasStore {
     return this._identity;
   }
 
+  subscriptionState() {
+    if (!this._identity || (this._identity.valid_until === null)) {
+      return State.Trialing;
+    }
+    if (new Date(this._identity.valid_until) < new Date()) {
+      return State.Lapsed;
+    }
+    return State.Valid;
+  }
+
   trialDaysRemaining() {
-    return 14;
+    const daysToDate = (date) =>
+      Math.max(0, Math.round((date.getTime() - Date.now()) / (1000 * 24 * 60 * 60)))
+
+    if (this.subscriptionState() !== State.Trialing) {
+      return null;
+    }
+
+    // Return the smallest number of days left in any linked account, or null
+    // if no trialExpirationDate is present on any account.
+    return AccountStore.accounts().map((a) =>
+      (a.subscriptionRequiredAfter ? daysToDate(a.subscriptionRequiredAfter) : null)
+    ).sort().shift();
   }
 
   refreshStatus = () => {

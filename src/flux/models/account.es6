@@ -75,9 +75,9 @@ export default class Account extends ModelWithMetadata {
       jsonKey: 'sync_state',
     }),
 
-    trialExpirationDate: Attributes.DateTime({
-      modelKey: 'trialExpirationDate',
-      jsonKey: 'trial_expiration_date',
+    subscriptionRequiredAfter: Attributes.DateTime({
+      modelKey: 'subscriptionRequiredAfter',
+      jsonKey: 'pro_subscription_required_after',
     }),
   });
 
@@ -86,6 +86,9 @@ export default class Account extends ModelWithMetadata {
     this.aliases = this.aliases || [];
     this.label = this.label || this.emailAddress;
     this.syncState = this.syncState || "running";
+
+    // TODO STUB
+    this.subscriptionRequiredAfter = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
   }
 
   fromJSON(json) {

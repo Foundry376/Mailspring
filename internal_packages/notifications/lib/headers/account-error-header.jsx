@@ -13,23 +13,25 @@ export default class AccountErrorHeader extends React.Component {
 
   componentDidMount() {
     this.mounted = true;
-    this.unsubscribe = AccountStore.listen(() => this._onAccountsChanged());
+    this.unsubscribers = [
+      AccountStore.listen(() => this.setState(this.getStateFromStores())),
+      IdentityStore.listen(() => this.setState(this.getStateFromStores())),
+    ];
   }
 
   componentWillUnmount() {
     this.mounted = false;
-    if (this.unsubscribe) {
-      this.unsubscribe();
-      this.unsubscribe = null;
+    for (const unsub of this.unsubscribers) {
+      unsub();
     }
+    this.unsubscribers = null;
   }
 
   getStateFromStores() {
-    return {accounts: AccountStore.accounts()}
-  }
-
-  _onAccountsChanged() {
-    this.setState(this.getStateFromStores())
+    return {
+      accounts: AccountStore.accounts(),
+      subscriptionState: IdentityStore.subscriptionState(),
+    }
   }
 
   _reconnect(existingAccount) {
@@ -43,7 +45,6 @@ export default class AccountErrorHeader extends React.Component {
   }
 
   _contactSupport() {
-    const {shell} = require("electron");
     shell.openExternal("https://support.nylas.com/hc/en-us/requests/new");
   }
 
@@ -106,7 +107,13 @@ export default class AccountErrorHeader extends React.Component {
             mode={RetinaImg.Mode.ContentIsMask}
           />
           <div className="message">
-            Your 30-day trial has expired and we've paused your mailboxes. Upgrade today to continue using N1!
+            {
+              (this.state.subscriptionState === IdentityStore.State.Lapsed) ? (
+                "Your subscription has expired and we've paused your mailboxes. Re-new your subscription to continue using N1!"
+              ) : (
+                "Your 30-day trial has expired and we've paused your mailboxes. Upgrade today to continue using N1!"
+              )
+          }
           </div>
           <a className="action refresh" onClick={this._onCheckAgain}>
             {this.state.refreshing ? "Checking..." : "Check Again"}
@@ -120,13 +127,16 @@ export default class AccountErrorHeader extends React.Component {
   }
 
   render() {
-    const errorAccounts = this.state.accounts.filter(a => a.hasSyncStateError());
-    const trialExpiredAccounts = errorAccounts.filter(a => a.trialExpirationDate && (a.trialExpirationDate < new Date()))
+    const {accounts, subscriptionState} = this.state;
+    const subscriptionNeeded = accounts.find(a =>
+      a.subscriptionRequiredAfter && (a.subscriptionRequiredAfter < new Date())
+    )
 
-    if (trialExpiredAccounts.length > 0 || true) {
-      return this._renderUpgradeHeader(trialExpiredAccounts)
+    if (subscriptionNeeded && (subscriptionState !== IdentityStore.State.Valid)) {
+      return this._renderUpgradeHeader()
     }
 
+    const errorAccounts = accounts.filter(a => a.hasSyncStateError());
     if (errorAccounts.length === 1) {
       const account = errorAccounts[0];
 

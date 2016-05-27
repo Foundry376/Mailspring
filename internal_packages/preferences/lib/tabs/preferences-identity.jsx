@@ -68,12 +68,49 @@ class PreferencesIdentity extends React.Component {
   getStateFromStores() {
     return {
       identity: IdentityStore.identity(),
+      subscriptionState: IdentityStore.subscriptionState(),
       trialDaysRemaining: IdentityStore.trialDaysRemaining(),
     };
   }
 
+  _renderPaymentRow() {
+    const {identity, trialDaysRemaining, subscriptionState} = this.state
+
+    if (subscriptionState === IdentityStore.SubscriptionState.Trialing) {
+      return (
+        <div className="row payment-row">
+          <div>
+            There {(trialDaysRemaining > 1) ? `are ${trialDaysRemaining} days ` : `is one day `}
+            remaining in your 30-day trial of Nylas Pro.
+          </div>
+          <OpenIdentityPageButton img="ic-upgrade.png" label="Upgrade to Nylas Pro" path="/dashboard#subscription" />
+        </div>
+      )
+    }
+
+    if (subscriptionState === IdentityStore.SubscriptionState.Lapsed) {
+      return (
+        <div className="row payment-row">
+          <div>
+            Your subscription has been cancelled or your billing information has expired.
+            We've paused your mailboxes! Re-new your subscription to continue using N1.
+          </div>
+          <OpenIdentityPageButton img="ic-upgrade.png" label="Update Subscription" path="/dashboard#subscription" />
+        </div>
+      )
+    }
+
+    return (
+      <div className="row payment-row">
+        <div>
+          Your subscription will renew on {new Date(identity.valid_until).toLocaleDateString()}. Enjoy N1!
+        </div>
+      </div>
+    )
+  }
+
   render() {
-    const {identity, trialDaysRemaining} = this.state
+    const {identity} = this.state
     const {firstname, lastname, email} = identity
     return (
       <div className="container-identity">
@@ -95,14 +132,7 @@ class PreferencesIdentity extends React.Component {
               </div>
             </div>
           </div>
-          <div className="row trial-row">
-            <div>There are {trialDaysRemaining} days remaining in your trial of Nylas N1</div>
-            <OpenIdentityPageButton
-              img="ic-upgrade.png"
-              label="Upgrade to Nylas Pro"
-              path="/dashboard#subscription"
-            />
-          </div>
+          {this._renderPaymentRow()}
         </div>
       </div>
     );
