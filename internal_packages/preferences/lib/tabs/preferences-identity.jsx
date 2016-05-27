@@ -1,10 +1,11 @@
 import React from 'react';
-import {Actions, NylasAPI, IdentityStore} from 'nylas-exports';
+import {Actions, IdentityStore} from 'nylas-exports';
 import {RetinaImg} from 'nylas-component-kit';
+import {shell} from 'electron';
 
 class OpenIdentityPageButton extends React.Component {
   static propTypes = {
-    destination: React.PropTypes.string,
+    path: React.PropTypes.string,
     label: React.PropTypes.string,
     img: React.PropTypes.string,
   }
@@ -17,13 +18,10 @@ class OpenIdentityPageButton extends React.Component {
   }
 
   _onClick = () => {
-    this.setState({loading: true});
-    const identity = IdentityStore.identity();
-    if (!identity) { return }
-    NylasAPI.navigateToBillingSite()
-    .then(() => {
-      this.setState({loading: false})
-    })
+    IdentityStore.fetchSingleSignOnURL(this.props.path).then((url) => {
+      this.setState({loading: false});
+      shell.openExternal(url);
+    });
   }
 
   render() {
@@ -37,7 +35,7 @@ class OpenIdentityPageButton extends React.Component {
     }
     if (this.props.img) {
       return (
-        <div className="btn">
+        <div className="btn" onClick={this._onClick}>
           <RetinaImg name={this.props.img} mode={RetinaImg.Mode.ContentPreserve} />
           &nbsp;&nbsp;{this.props.label}
         </div>
@@ -92,7 +90,7 @@ class PreferencesIdentity extends React.Component {
               <div className="name">{firstname} {lastname}</div>
               <div className="email">{email}</div>
               <div className="identity-actions">
-                <OpenIdentityPageButton label="Account Details" destination="/billing" />
+                <OpenIdentityPageButton label="Account Details" path="/dashboard" />
                 <div className="btn" onClick={() => Actions.logoutNylasIdentity()}>Sign Out</div>
               </div>
             </div>
@@ -102,7 +100,7 @@ class PreferencesIdentity extends React.Component {
             <OpenIdentityPageButton
               img="ic-upgrade.png"
               label="Upgrade to Nylas Pro"
-              destination="/billing"
+              path="/dashboard#subscription"
             />
           </div>
         </div>

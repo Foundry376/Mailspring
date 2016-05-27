@@ -58,25 +58,26 @@ export default class Account extends ModelWithMetadata {
     }),
 
     label: Attributes.String({
-      queryable: false,
       modelKey: 'label',
     }),
 
     aliases: Attributes.Object({
-      queryable: false,
       modelKey: 'aliases',
     }),
 
     defaultAlias: Attributes.Object({
-      queryable: false,
       modelKey: 'defaultAlias',
       jsonKey: 'default_alias',
     }),
 
     syncState: Attributes.String({
-      queryable: false,
       modelKey: 'syncState',
       jsonKey: 'sync_state',
+    }),
+
+    trialExpirationDate: Attributes.DateTime({
+      modelKey: 'trialExpirationDate',
+      jsonKey: 'trial_expiration_date',
     }),
   });
 

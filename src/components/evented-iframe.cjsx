@@ -1,7 +1,6 @@
 React = require 'react'
 ReactDOM = require 'react-dom'
 {Utils,
- NylasAPI,
  RegExpUtils,
  IdentityStore,
  SearchableComponentMaker,
@@ -163,7 +162,9 @@ class EventedIFrame extends React.Component
       # If this is a link to our billing site, attempt single sign on instead of
       # just following the link directly
       if rawHref.startsWith(IdentityStore.URLRoot)
-        NylasAPI.navigateToBillingSite(IdentityStore.identity(), '/billing')
+        path = rawHref.split(IdentityStore.URLRoot).pop()
+        IdentityStore.fetchSingleSignOnURL(IdentityStore.identity(), path).then (href) =>
+          NylasEnv.windowEventHandler.openLink(href: href, metaKey: e.metaKey)
         return
 
       # It's important to send the raw `href` here instead of the target.

@@ -1,6 +1,7 @@
 /* eslint global-require: 0 */
-import {AccountStore, Account, Actions, React} from 'nylas-exports'
+import {AccountStore, Account, Actions, React, IdentityStore} from 'nylas-exports'
 import {RetinaImg} from 'nylas-component-kit'
+import {shell} from 'electron';
 
 export default class AccountErrorHeader extends React.Component {
   static displayName = 'AccountErrorHeader';
@@ -58,7 +59,15 @@ export default class AccountErrorHeader extends React.Component {
     });
   }
 
-  renderErrorHeader(message, buttonName, actionCallback) {
+  _onUpgrade = () => {
+    this.setState({buildingUpgradeURL: true});
+    IdentityStore.fetchSingleSignOnURL('/dashboard').then((url) => {
+      this.setState({buildingUpgradeURL: false});
+      shell.openExternal(url);
+    });
+  }
+
+  _renderErrorHeader(message, buttonName, actionCallback) {
     return (
       <div className="account-error-header notifications-sticky">
         <div
@@ -84,28 +93,59 @@ export default class AccountErrorHeader extends React.Component {
     )
   }
 
+  _renderUpgradeHeader() {
+    return (
+      <div className="account-error-header notifications-sticky">
+        <div
+          className={"notifications-sticky-item notification-upgrade has-default-action"}
+          onClick={this._onUpgrade}
+        >
+          <RetinaImg
+            className="icon"
+            name="ic-upgrade.png"
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
+          <div className="message">
+            Your 30-day trial has expired and we've paused your mailboxes. Upgrade today to continue using N1!
+          </div>
+          <a className="action refresh" onClick={this._onCheckAgain}>
+            {this.state.refreshing ? "Checking..." : "Check Again"}
+          </a>
+          <a className="action default" onClick={this._onUpgrade}>
+            {this.state.buildingUpgradeURL ? "Please wait..." : "Upgrade to Nylas Pro..."}
+          </a>
+        </div>
+      </div>
+    )
+  }
+
   render() {
     const errorAccounts = this.state.accounts.filter(a => a.hasSyncStateError());
+    const trialExpiredAccounts = errorAccounts.filter(a => a.trialExpirationDate && (a.trialExpirationDate < new Date()))
+
+    if (trialExpiredAccounts.length > 0 || true) {
+      return this._renderUpgradeHeader(trialExpiredAccounts)
+    }
+
     if (errorAccounts.length === 1) {
       const account = errorAccounts[0];
 
       switch (account.syncState) {
-
         case Account.SYNC_STATE_AUTH_FAILED:
-          return this.renderErrorHeader(
+          return this._renderErrorHeader(
             `Nylas N1 can no longer authenticate with ${account.emailAddress}. Click here to reconnect.`,
             "Reconnect",
             () => this._reconnect(account));
 
         case Account.SYNC_STATE_STOPPED:
-          return this.renderErrorHeader(
+          return this._renderErrorHeader(
             `The cloud sync for ${account.emailAddress} has been disabled. You will
             not be able to send or receive mail. Please contact Nylas support.`,
             "Contact support",
             () => this._contactSupport());
 
         default:
-          return this.renderErrorHeader(
+          return this._renderErrorHeader(
             `Nylas encountered an error while syncing mail for ${account.emailAddress} - we're
             looking into it. Contact Nylas support for details.`,
             "Contact support",
@@ -113,7 +153,7 @@ export default class AccountErrorHeader extends React.Component {
       }
     }
     if (errorAccounts.length > 1) {
-      return this.renderErrorHeader("Several of your accounts are having issues. " +
+      return this._renderErrorHeader("Several of your accounts are having issues. " +
         "You will not be able to send or receive mail. Click here to manage your accounts.",
         "Open preferences",
         () => this._openPreferences());

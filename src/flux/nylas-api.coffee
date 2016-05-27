@@ -115,6 +115,9 @@ class NylasAPI
     if NylasEnv.getLoadSettings().isSpec
       return Promise.resolve()
 
+    NylasAPIRequest ?= require('./nylas-api-request').default
+    req = new NylasAPIRequest(@, options)
+
     success = (body) =>
       if options.beforeProcessing
         body = options.beforeProcessing(body)
@@ -124,19 +127,19 @@ class NylasAPI
       Promise.resolve(body)
 
     error = (err) =>
+      {url, auth, returnsModel} = req.options
+
       handlePromise = Promise.resolve()
       if err.response
-        if err.response.statusCode is 404 and options.returnsModel
-          handlePromise = @_handleModel404(options.url)
+        if err.response.statusCode is 404 and returnsModel
+          handlePromise = @_handleModel404(url)
         if err.response.statusCode in [401, 403]
-          handlePromise = @_handleAuthenticationFailure(options.url, options.auth?.user)
+          handlePromise = @_handleAuthenticationFailure(url, auth?.user)
         if err.response.statusCode is 400
           NylasEnv.reportError(err)
       handlePromise.finally ->
         Promise.reject(err)
 
-    NylasAPIRequest ?= require('./nylas-api-request').default
-    req = new NylasAPIRequest(@, options)
     req.run().then(success, error)
 
   longConnection: (opts) ->
