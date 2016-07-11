@@ -153,7 +153,6 @@ class OnboardingStore extends NylasStore {
   _onAccountJSONReceived = (json) => {
     try {
       const isFirstAccount = AccountStore.accounts().length === 0;
-
       AccountStore.addAccountFromJSON(json);
       this._accountFromAuth = AccountStore.accountForEmail(json.email_address);
 

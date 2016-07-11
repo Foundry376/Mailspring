@@ -126,15 +126,6 @@ export function runAuthRequest(accountInfo) {
       sendImmediately: true,
     },
   })
-  .then((json) => {
-    json.email = data.email;
-    return EdgehillAPI.makeRequest({
-      path: "/connect/nylas",
-      method: "POST",
-      timeout: 60000,
-      body: json,
-    })
-  })
 }
 
 export function isValidHost(value) {
