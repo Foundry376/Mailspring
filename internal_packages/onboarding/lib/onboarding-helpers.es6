@@ -1,5 +1,6 @@
 /* eslint global-require: 0 */
 
+import _ from 'underscore';
 import crypto from 'crypto';
 import {EdgehillAPI, NylasAPI, AccountStore, RegExpUtils, IdentityStore} from 'nylas-exports';
 import url from 'url';
@@ -105,6 +106,10 @@ export function runAuthRequest(accountInfo) {
   // if there's an account with this email, get the ID for it to notify the backend of re-auth
   const account = AccountStore.accountForEmail(accountInfo.email);
   const reauthParam = account ? `&reauth=${account.id}` : "";
+
+  if (type === "imap") {
+    data.settings = _.omit(data.settings, "email", "name", "type", "password", "username")
+  }
 
   // Send the form data directly to Nylas to get code
   // If this succeeds, send the received code to N1 server to register the account
