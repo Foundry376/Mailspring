@@ -176,9 +176,6 @@ class AccountStore extends NylasStore
 
     @_loadAccounts()
 
-    # what if there are no accounts? then this._tokens = {}
-    # and now if id is 14, json.auth_token is undefined
-    # and so tokens: {14: undefined}
     token = json.auth_token || json.token
     @_tokens[json.id] = json.token
     keytar.replacePassword(keytarServiceName, json.email_address, json.token)
