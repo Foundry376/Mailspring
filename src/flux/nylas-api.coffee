@@ -190,6 +190,10 @@ class NylasAPI
       Actions.updateAccount(account.id, {syncState: Account.SYNC_STATE_AUTH_FAILED})
     return Promise.resolve()
 
+  _stringifyIds: (jsons) ->
+    jsons.forEach (json) =>
+      json.id = json.id.toString()
+    return jsons
   # Returns a Promise that resolves when any parsed out models (if any)
   # have been created and persisted to the database.
   #
@@ -206,6 +210,7 @@ class NylasAPI
     if not klass
       console.warn("NylasAPI::handleModelResponse: Received unknown API object type: #{type}")
       return Promise.resolve([])
+    jsons = @_stringifyIds(jsons)
 
     # Step 1: Make sure the list of objects contains no duplicates, which cause
     # problems downstream when we try to write to the database.
@@ -226,6 +231,7 @@ class NylasAPI
 
     # Step 3: Retrieve any existing models from the database for the given IDs.
     ids = _.pluck(unlockedJSONs, 'id')
+
     DatabaseStore.findAll(klass).where(klass.attributes.id.in(ids)).then (models) ->
       existingModels = {}
       existingModels[model.id] = model for model in models
