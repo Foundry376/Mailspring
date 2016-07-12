@@ -2,6 +2,8 @@ import _ from 'underscore'
 import Message from './message'
 import Contact from './contact'
 import Category from './category'
+import Folder from './folder'
+import Label from './label'
 import Attributes from '../attributes'
 import DatabaseStore from '../stores/database-store'
 import ModelWithMetadata from './model-with-metadata'
@@ -72,8 +74,20 @@ class Thread extends ModelWithMetadata {
       itemClass: Category,
     }),
 
-    categoriesType: Attributes.String({
-      modelKey: 'categoriesType',
+    folders: Attributes.Collection({
+      queryable: true,
+      modelKey: 'folders',
+      joinOnField: 'id',
+      joinQueryableBy: ['inAllMail', 'lastMessageReceivedTimestamp', 'lastMessageSentTimestamp', 'unread'],
+      itemClass: Folder,
+    }),
+
+    labels: Attributes.Collection({
+      queryable: true,
+      modelKey: 'labels',
+      joinOnField: 'id',
+      joinQueryableBy: ['inAllMail', 'lastMessageReceivedTimestamp', 'lastMessageSentTimestamp', 'unread'],
+      itemClass: Label,
     }),
 
     participants: Attributes.Collection({
@@ -149,29 +163,14 @@ class Thread extends ModelWithMetadata {
     )
   }
 
-  get labels() {
-    return this.categories;
-  }
-
-  set labels(labels) {
-    this.categories = labels;
-  }
-
-  get folders() {
-    return this.categories;
-  }
-
-  set folders(folders) {
-    this.categories = folders;
-  }
 
   get inAllMail() {
-    if (this.categoriesType === 'labels') {
-      const inAllMail = _.any(this.categories, cat => cat.name === 'all')
+    if (this.labels && this.labels.length > 0) {
+      const inAllMail = _.any(this.labels, label => label.name === 'all')
       if (inAllMail) {
         return true;
       }
-      const inTrashOrSpam = _.any(this.categories, cat => cat.name === 'trash' || cat.name === 'spam')
+      const inTrashOrSpam = _.any(this.labels, label => label.name === 'trash' || label.name === 'spam')
       if (!inTrashOrSpam) {
         return true;
       }
@@ -181,19 +180,11 @@ class Thread extends ModelWithMetadata {
   }
 
   fromJSON(json) {
-    super.fromJSON(json)
+    super.fromJSON(json);
+    // this.labels = this.labels || [];
+    // this.folders = this.folders || [];
 
-    if (json.folders) {
-      this.categoriesType = 'folders'
-      this.categories = Thread.attributes.categories.fromJSON(json.folders)
-    }
-
-    if (json.labels) {
-      this.categoriesType = 'labels'
-      this.categories = Thread.attributes.categories.fromJSON(json.labels)
-    }
-
-    ['participants', 'categories'].forEach((attr) => {
+    ['participants', 'labels', 'folders'].forEach((attr) => {
       const value = this[attr]
       if (!(value && value instanceof Array)) {
         return;
@@ -202,7 +193,7 @@ class Thread extends ModelWithMetadata {
         item.accountId = this.accountId
       })
     })
-
+    console.log(this.folders)
     return this
   }
 
@@ -213,11 +204,11 @@ class Thread extends ModelWithMetadata {
   * - `id` A {String} {Category} name
   */
   categoryNamed(name) {
-    return _.findWhere(this.categories, {name})
+    return _.findWhere(this.folders.concat(this.labels), {name})
   }
 
-  sortedCategories() {
-    if (!this.categories) {
+  sortedLabels() {
+    if (!this.labels) {
       return []
     }
     let out = []
@@ -229,17 +220,17 @@ class Thread extends ModelWithMetadata {
       !(l.isHiddenCategory())
     )
 
-    const importantLabel = _.find(this.categories, isImportant)
+    const importantLabel = _.find(this.labels, isImportant)
     if (importantLabel) {
       out = out.concat(importantLabel)
     }
 
-    const standardLabels = _.filter(this.categories, isUnhiddenStandardLabel)
+    const standardLabels = _.filter(this.labels, isUnhiddenStandardLabel)
     if (standardLabels.length > 0) {
       out = out.concat(standardLabels)
     }
 
-    const userLabels = _.filter(this.categories, (l) => (
+    const userLabels = _.filter(this.labels, (l) => (
       !isImportant(l) && !isStandardCategory(l)
     ))
     if (userLabels.length > 0) {
@@ -249,14 +240,5 @@ class Thread extends ModelWithMetadata {
   }
 }
 
-Object.defineProperty(Thread.attributes, "labels", {
-  enumerable: false,
-  get: () => Thread.attributes.categories,
-})
-
-Object.defineProperty(Thread.attributes, "folders", {
-  enumerable: false,
-  get: () => Thread.attributes.categories,
-})
 
 export default Thread

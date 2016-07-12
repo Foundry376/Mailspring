@@ -52,12 +52,12 @@ describe 'Thread', ->
         thread = new Thread(categoriesType: 'labels', categories: [new Category(name: 'inbox')])
         expect(thread.inAllMail).toBe(true)
 
-  describe 'sortedCategories', ->
+  describe 'sortedLabels', ->
     sortedForCategoryNames = (inputs) ->
       categories = _.map inputs, (i) ->
         new Category(name: i, displayName: i)
       thread = new Thread(categories: categories)
-      return thread.sortedCategories()
+      return thread.sortedLabels()
 
     it "puts 'important' label first, if it's present", ->
       inputs = ['alphabetically before important', 'important']
