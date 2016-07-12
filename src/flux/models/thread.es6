@@ -183,14 +183,16 @@ class Thread extends ModelWithMetadata {
   fromJSON(json) {
     super.fromJSON(json)
 
+    if (!this.categories) { this.categories = []; }
+
     if (json.folders) {
       this.categoriesType = 'folders'
-      this.categories = Thread.attributes.categories.fromJSON(json.folders)
+      this.categories = this.categories.concat(Thread.attributes.categories.fromJSON(json.folders))
     }
 
     if (json.labels) {
       this.categoriesType = 'labels'
-      this.categories = Thread.attributes.categories.fromJSON(json.labels)
+      this.categories = this.categories.concat(Thread.attributes.categories.fromJSON(json.labels))
     }
 
     ['participants', 'categories'].forEach((attr) => {
