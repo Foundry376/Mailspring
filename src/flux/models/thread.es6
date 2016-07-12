@@ -193,7 +193,6 @@ class Thread extends ModelWithMetadata {
         item.accountId = this.accountId
       })
     })
-    console.log(this.folders)
     return this
   }
 
