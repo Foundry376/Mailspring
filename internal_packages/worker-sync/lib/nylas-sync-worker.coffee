@@ -30,7 +30,7 @@ class BackoffTimer
     , @_delay
 
   resetDelay: =>
-    @_delay = 2 * 1000
+    @_delay = 1 * 1000
 
   getCurrentDelay: =>
     @_delay
@@ -213,6 +213,7 @@ class NylasSyncWorker
         return if @_terminated
 
         if model in ["labels", "folders"] and @_hasNoInbox(json)
+          @_resumeTimer.resetDelay()
           @_onFetchCollectionPageError(model, params, "No inbox in #{model}")
           return
 
@@ -221,7 +222,6 @@ class NylasSyncWorker
           json.length is params.limit and lastReceivedIndex < options.maxFetchCount
         else
           json.length is params.limit
-
         if moreToFetch
           nextParams = _.extend({}, params, {offset: lastReceivedIndex})
           limit = Math.min(Math.round(params.limit * 1.5), MAX_PAGE_SIZE)
@@ -266,7 +266,8 @@ class NylasSyncWorker
         error(err) if error
 
   _onFetchCollectionPageError: (model, params, err) ->
-    @_backoff()
+    if err.statusCode isnt 404
+      @_backoff()
     @updateTransferState(model, {
       busy: false,
       complete: false,
