@@ -136,6 +136,7 @@ export default class SendActionButton extends React.Component {
   _renderSingleButton() {
     return (
       <button
+        data-tutorial-id="composer-send-button"
         tabIndex={-1}
         className={"btn btn-toolbar btn-normal btn-emphasis btn-text btn-send"}
         style={{order: -100}}

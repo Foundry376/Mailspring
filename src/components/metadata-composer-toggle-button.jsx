@@ -8,17 +8,18 @@ export default class MetadataComposerToggleButton extends React.Component {
   static displayName = 'MetadataComposerToggleButton';
 
   static propTypes = {
-    title: React.PropTypes.func.isRequired,
-    iconUrl: React.PropTypes.string,
-    iconName: React.PropTypes.string,
-    pluginId: React.PropTypes.string.isRequired,
-    pluginName: React.PropTypes.string.isRequired,
-    metadataEnabledValue: React.PropTypes.object.isRequired,
-    stickyToggle: React.PropTypes.bool,
-    errorMessage: React.PropTypes.func.isRequired,
+    "title": React.PropTypes.func.isRequired,
+    "iconUrl": React.PropTypes.string,
+    "iconName": React.PropTypes.string,
+    "pluginId": React.PropTypes.string.isRequired,
+    "pluginName": React.PropTypes.string.isRequired,
+    "metadataEnabledValue": React.PropTypes.object.isRequired,
+    "stickyToggle": React.PropTypes.bool,
+    "errorMessage": React.PropTypes.func.isRequired,
 
-    draft: React.PropTypes.object.isRequired,
-    session: React.PropTypes.object.isRequired,
+    "draft": React.PropTypes.object.isRequired,
+    "session": React.PropTypes.object.isRequired,
+    "data-tutorial-id": React.PropTypes.string,
   };
 
   static defaultProps = {
@@ -116,7 +117,14 @@ export default class MetadataComposerToggleButton extends React.Component {
     }
 
     return (
-      <button className={className} onClick={this._onClick} title={title} tabIndex={-1}>
+      <button
+        className={className}
+        onClick={this._onClick}
+        title={title}
+        tabIndex={-1}
+        data-tutorial-id={this.props["data-tutorial-id"]}
+        data-tutorial-state={enabled}
+      >
         <RetinaImg {...attrs} mode={RetinaImg.Mode.ContentIsMask} />
       </button>
     );

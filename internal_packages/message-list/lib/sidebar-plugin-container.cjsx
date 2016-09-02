@@ -21,7 +21,7 @@ class FocusedContactStorePropsContainer extends React.Component
       classname += " visible"
       inner = React.cloneElement(@props.children, @state)
 
-    <div className={classname}>{inner}</div>
+    <div className={classname} data-tutorial-id='contacts-sidebar'>{inner}</div>
 
   _onChange: =>
     @setState(@_getStateFromStores())

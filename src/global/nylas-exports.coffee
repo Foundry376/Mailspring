@@ -125,6 +125,7 @@ class NylasExports
   @lazyLoadAndRegisterStore "SignatureStore", 'signature-store'
   @lazyLoadAndRegisterStore "MessageStore", 'message-store'
   @lazyLoadAndRegisterStore "ContactStore", 'contact-store'
+  @lazyLoadAndRegisterStore "TutorialStore", 'tutorial-store'
   @lazyLoadAndRegisterStore "IdentityStore", 'identity-store'
   @lazyLoadAndRegisterStore "MetadataStore", 'metadata-store'
   @lazyLoadAndRegisterStore "CategoryStore", 'category-store'
@@ -142,6 +143,8 @@ class NylasExports
   @lazyLoadAndRegisterStore "FocusedPerspectiveStore", 'focused-perspective-store'
   @lazyLoadAndRegisterStore "SearchableComponentStore", 'searchable-component-store'
   @lazyLoad "CustomContenteditableComponents", 'components/overlaid-components/custom-contenteditable-components'
+
+  @lazyLoad "TutorialRegistry", "tutorial-registry"
 
   # Decorators
   @lazyLoad "InflatesDraftClientId", 'decorators/inflates-draft-client-id'
@@ -178,6 +181,7 @@ class NylasExports
   @lazyLoad "DraftHelpers", 'flux/stores/draft-helpers'
   @lazyLoad "MessageUtils", 'flux/models/message-utils'
   @lazyLoad "EditorAPI", 'components/contenteditable/editor-api'
+  @lazyLoad "TutorialUtils", 'tutorial-utils'
 
   # Services
   @lazyLoad "SoundRegistry", 'sound-registry'

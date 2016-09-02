@@ -1,5 +1,6 @@
-{ComponentRegistry, WorkspaceStore} = require 'nylas-exports'
+{TutorialRegistry, ComponentRegistry, WorkspaceStore} = require 'nylas-exports'
 ModeToggle = require './mode-toggle'
+tutorialSegment = require('./tutorial-segment').default
 
 # NOTE: this is a hack to allow ComponentRegistry
 # to register the same component multiple times in
@@ -17,3 +18,5 @@ module.exports =
     ComponentRegistry.register ModeToggle,
       location: WorkspaceStore.Sheet.Threads.Toolbar.Right
       modes: ['split']
+
+      TutorialRegistry.register "open-sidebar", tutorialSegment

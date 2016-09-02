@@ -1,0 +1,107 @@
+nylas-tutorial-container {
+  position: absolute;
+  z-index: 100;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.tutorial-gray-layer {
+  position: absolute;
+  border: solid rgba(0, 0, 0, 0.2) 0px; /* border width will be overwritten */
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+@borderColor: #aaa;
+
+.tutorial-overlay {
+  position: absolute;
+  width: 300px;
+  background: white;
+  color: #777;
+  padding: 15px;
+  border-radius: 7px;
+  border: solid @borderColor 1px;
+  left: 50px;
+  top: 50px;
+  pointer-events: all;
+}
+
+@arrowWidth: 20px;
+@arrowHeight: 20px;
+
+.tutorial-overlay::after {
+  content: '';
+  position: absolute;
+  width: @arrowWidth;
+  height: @arrowHeight;
+  background: linear-gradient(45deg, #ffffff 0%, #ffffff 50%, transparent 50%, transparent 100%);
+  border-left: solid @borderColor 1px;
+  border-bottom: solid @borderColor 1px;
+}
+
+.tutorial-overlay.bottom-arrow::after {
+  bottom: -10px;
+  transform: rotate(-45deg);
+}
+
+.tutorial-overlay.top-arrow::after {
+  top: -10px;
+  transform: rotate(135deg);
+}
+
+.tutorial-overlay.center-aligned::after {
+  left: ~"calc(50% - @{arrowWidth} / 2)";
+}
+
+.tutorial-overlay.left-aligned::after {
+  left: 15px;
+}
+
+.tutorial-overlay.right-aligned::after {
+  right: 15px;
+}
+
+.tutorial-overlay.left-pointing::after {
+  top: 20px;
+  left: -10px;
+  transform: rotate(45deg);
+}
+
+.tutorial-overlay.right-pointing::after {
+  top: 20px;
+  right: -10px;
+  transform: rotate(-135deg);
+}
+
+.tutorial-title {
+  padding: 10px;
+  font-size: 16px;
+  color: #6F8396;
+  text-align: center;
+}
+
+.tutorial-instructions {
+  position: relative;
+
+}
+
+.tutorial-skip {
+  color: #2D92F1;
+  cursor: pointer;
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.5;
+  float: right;
+}
+
+.tutorial-skip:hover {
+  opacity: 1.0;
+}
+
+.tutorial-overlay .btn {
+  position: absolute;
+  left: 0;
+}
