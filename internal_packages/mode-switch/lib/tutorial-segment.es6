@@ -1,5 +1,4 @@
 import {TutorialUtils} from 'nylas-exports';
-const AbortablePromise = TutorialUtils.AbortablePromise;
 
 const steps = [
   { windowType: 'default',
@@ -8,7 +7,7 @@ const steps = [
       let waitForMessageOpen;
       if (messageOpen) {
         // If an email is already open, proceed
-        waitForMessageOpen = AbortablePromise((resolve) => { resolve(); }, () => {});
+        waitForMessageOpen = Promise.resolve();
       } else {
         // Wait for user to open an email
         waitForMessageOpen = TutorialUtils.findElement('message-list')
@@ -27,7 +26,7 @@ const steps = [
           let expanded = sidebarToggle.getAttribute('data-tutorial-state');
           expanded = expanded === 'true';
           if (expanded) {
-            waitForExpand = new AbortablePromise((resolve) => resolve(), () => {});
+            waitForExpand = Promise.resolve();
           } else {
             waitForExpand = TutorialUtils.waitForClick(sidebarToggle);
             const instructions = "Now click this icon to expand our <b>Contextual Sidebar</b>";
@@ -39,7 +38,7 @@ const steps = [
             clear();
             const waitForProceed = TutorialUtils.waitForClick('proceed')
             const instructions = "Great! This is our <b>Contextual Sidebar</b> with enriched contact profiles. These help you understand who you are emailing and makes it easy to see the message history you have with that person. <br/><br/><button class='btn' data-tutorial-id='proceed'>Got it!</button>"
-            render('.column-MessageListSidebar', 'Compose with Context', instructions, {isGenericSelector: true, fromSide: true});
+            render('.column-MessageListSidebar', 'Compose with Context', instructions, {fromSide: true});
             return waitForProceed;
           });
         });

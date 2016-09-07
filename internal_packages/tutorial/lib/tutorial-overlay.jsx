@@ -7,20 +7,18 @@ const arrowOffset = 15; // only applies when the arrow isn't center aligned (off
 export default class TutorialOverlay extends React.Component {
 
   componentDidMount() {
-    window.addEventListener("resize", this.updateDimensions);
-    this._getTarget().addEventListener("resize",
-      this.updateDimensions);
+    window.addEventListener("resize", this._onUpdateDimensions);
+    this.props.target.addEventListener("resize", this._onUpdateDimensions);
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.updateDimensions);
-    this._getTarget().removeEventListener("resize",
-      this.updateDimensions);
+    window.removeEventListener("resize", this._onUpdateDimensions);
+    this.props.target.removeEventListener("resize", this._onUpdateDimensions);
   }
 
   // Calculate the dimensions needed to properly style the overlay elements
-  getNewDimensions() {
-    const target = this._getTarget();
+  getStyleForDimensions() {
+    const target = this.props.target;
     const body = document.body;
     if (target && body) {
       const bounds = target.getBoundingClientRect();
@@ -33,11 +31,11 @@ export default class TutorialOverlay extends React.Component {
       // borders, so that the inner part of the div is still transparent.
       // Calculate the border widths such that the hole is over the target element.
       const dims = {
-        border_top_width: bounds.top,
-        border_left_width: bounds.left,
+        borderTopWidth: bounds.top,
+        borderLeftWidth: bounds.left,
       }
-      dims.border_right_width = body.offsetWidth - boundsWidth - dims.border_left_width;
-      dims.border_bottom_width = body.offsetHeight - boundsHeight - dims.border_top_width;
+      dims.borderRightWidth = body.offsetWidth - boundsWidth - dims.borderLeftWidth;
+      dims.borderBottomWidth = body.offsetHeight - boundsHeight - dims.borderTopWidth;
 
       dims.className = '';
 
@@ -74,8 +72,8 @@ export default class TutorialOverlay extends React.Component {
 
         // Use an arbitrary height to try to guess if there is enough room for the
         // overlay below the target element. Typically, the ones that need an overlay
-        // above instead of below actually have a very small border_bottom_width.
-        if (dims.border_bottom_width > 300) {
+        // above instead of below actually have a very small borderBottomWidth.
+        if (dims.borderBottomWidth > 300) {
           dims.className += ' top-arrow';
           dims.top = bounds.bottom + 20;
           dims.bottom = 'auto';
@@ -92,41 +90,23 @@ export default class TutorialOverlay extends React.Component {
 
   // This sets the state, even though we don't use the data from the state,
   // to make sure the component is updated. (This is only called on resizes.)
-  updateDimensions = () => {
-    this.setState(this.getNewDimensions());
-  }
-
-  // Returns the target element based on this.props.targetIdentifier
-  // this.props.targetIdentifier can be:
-  //   - a normal selector string, this.props.useGenericSelector must be true
-  //   - the string value of a data-tutorial-id attribute, this.props.useGenericSelector must be false
-  //   - an instance of HTMLElement, this.props.useGenericSelector is ignored
-  _getTarget() {
-    if (typeof(this.props.targetIdentifier) === 'string') {
-      if (this.props.useGenericSelector) {
-        return document.querySelector(this.props.targetIdentifier);
-      }
-      return document.querySelector(`[data-tutorial-id='${this.props.targetIdentifier}']`)
-    }
-    if (this.props.targetIdentifier instanceof HTMLElement) {
-      return this.props.targetIdentifier;
-    }
-    throw new Error("Could not parse this.props.targetIdentifier")
+  _onUpdateDimensions = () => {
+    this.setState(this.getStyleForDimensions());
   }
 
   render() {
     // Calculate new dims instead of using the state because the state isn't
     // always up-to-date.
-    const dims = this.getNewDimensions();
+    const dims = this.getStyleForDimensions();
     return (
       <div>
         <div
           className="tutorial-gray-layer"
           style={{
-            borderTopWidth: dims.border_top_width,
-            borderRightWidth: dims.border_right_width,
-            borderBottomWidth: dims.border_bottom_width,
-            borderLeftWidth: dims.border_left_width,
+            borderTopWidth: dims.borderTopWidth,
+            borderRightWidth: dims.borderRightWidth,
+            borderBottomWidth: dims.borderBottomWidth,
+            borderLeftWidth: dims.borderLeftWidth,
           }}
         ></div>
         <div
@@ -143,8 +123,7 @@ export default class TutorialOverlay extends React.Component {
 
 TutorialOverlay.propTypes = {
   title: React.PropTypes.string,
-  targetIdentifier: React.PropTypes.node,
-  useGenericSelector: React.PropTypes.bool,
+  target: React.PropTypes.element,
   fromSide: React.PropTypes.bool,
   circularSpotlight: React.PropTypes.bool,
 }

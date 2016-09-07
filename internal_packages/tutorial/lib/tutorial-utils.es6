@@ -96,74 +96,42 @@ class AbortablePromise {
   }
 }
 
-// Helper functions for accessing the tutorial-specific parts of the config
-const TutorialConfig = {
-  getConfigKey: (name) => `core.tutorial.${name}`,
-  getState: (name) => {
-    return NylasEnv.config.get(`${TutorialConfig.getConfigKey(name)}.state`) || 'new';
-  },
-  setState: (name, state) => {
-    return NylasEnv.config.set(`${TutorialConfig.getConfigKey(name)}.state`, state);
-  },
-  getStepIndex: (name) => {
-    return NylasEnv.config.get(`${TutorialConfig.getConfigKey(name)}.stepIndex`) || 0;
-  },
-  setStepIndex: (name, stepIndex) => {
-    return NylasEnv.config.set(`${TutorialConfig.getConfigKey(name)}.stepIndex`, stepIndex);
-  },
-  observe: (name, key, callback) => {
-    return NylasEnv.config.observe(`${TutorialConfig.getConfigKey(name)}.${key}`, callback);
-  },
-  onDidChange: (name, key, callback) => {
-    return NylasEnv.config.onDidChange(`${TutorialConfig.getConfigKey(name)}.${key}`, callback);
-  },
-}
-
-const utils = {
+const TutorialUtils = {
   AbortablePromise,
   TutorialConfig,
 
-  // Poll for an element until it is found
-  // identifier can be:
-  //   - a normal selector string, generalSelector must be true
-  //   - the string value of a data-tutorial-id attribute, generalSelector must be false
-  findElement: (identifier, generalSelector = false) => {
+  // Poll for an element until it is found, based on it's tutorialId attribute
+  // or a generic HTML query selector.
+  findElement: (identifier) => {
+    if (typeof(identifier) === 'string') {
+      return document.querySelector(`[data-tutorial-id='${identifier}']`) || document.querySelector(identifier);
+    } else if (identifier instanceof HTMLElement) {
+      return identifier;
+    }
+    throw new Error(`Couldn't parse element identifier: ${identifier}`);
+  },
+
+  resolveElement: (identifier) => {
     let timeout;
     const resolver = (resolve) => {
       function pollForElement() {
-        const selector = generalSelector ? identifier : `[data-tutorial-id='${identifier}']`
-        const elem = document.querySelector(selector);
+        const elem = TutorialUtils.findElement(identifier);
         if (elem) {
           resolve(elem);
         } else {
-          timeout = setTimeout(pollForElement, 500);
+          timeout = setTimeout(pollForElement, 250);
         }
       }
       pollForElement();
     }
 
     return new AbortablePromise(resolver, () => { clearTimeout(timeout); });
-  },
-
-  // A wrapper for findElement that doesn't yell if we actually already have the element.
-  // identifier can be:
-  //   - a normal selector string, generalSelector must be true
-  //   - the string value of a data-tutorial-id attribute, generalSelector must be false
-  //   - an instance of HTMLElement, generalSelector is ignored
-  findElementIfNecessary: (identifier, generalSelector = false) => {
-    if (typeof(identifier) === 'string') {
-      return utils.findElement(identifier, generalSelector)
-    } else if (identifier instanceof HTMLElement) {
-      // Resolves immediately, but keeps the return format consistent
-      return new AbortablePromise((resolve) => resolve(identifier), () => {});
-    }
-    throw new Error(`Couldn't parse element identifier: ${identifier}`);
-  },
+  }
 
   // Resolves once the user has clicked the specified element
   // Params follow the same spec as findElementIfNecessary();
   waitForClick: (identifier, generalSelector = false) => {
-    return utils.findElementIfNecessary(identifier, generalSelector)
+    return TutorialUtils.findElementIfNecessary(identifier, generalSelector)
       .then((elem) => {
         let onAbort;
         const resolver = (resolve) => {
@@ -184,4 +152,4 @@ const utils = {
   },
 }
 
-export default utils;
+export default TutorialUtils;

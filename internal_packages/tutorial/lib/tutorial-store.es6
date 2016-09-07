@@ -1,5 +1,5 @@
 /*
-  To add a tutorial segment, you need to register it with the TutorialRegistry
+  To add a tutorial segment, you need to register it with the `tutorial` service
   and update SEGMENT_ORDERS appropriately. The registration takes a name for the
   segment and an array of steps. Each step should be an object with two items:
     windowType: a string that indicates which window this step should be run in,
@@ -36,13 +36,30 @@
 */
 
 
-import React from 'react';
-import ReactDOM from 'react-dom';
 import NylasStore from 'nylas-store';
-import TutorialRegistry from '../../tutorial-registry';
-import {TutorialOverlay} from 'nylas-component-kit';
-import {TutorialUtils} from 'nylas-exports';
-const {AbortablePromise, TutorialConfig} = TutorialUtils;
+
+// Helper functions for accessing the tutorial-specific parts of the config
+const TutorialConfig = {
+  getConfigKey: (name) => `core.tutorial.${name}`,
+  getState: (name) => {
+    return NylasEnv.config.get(`${TutorialConfig.getConfigKey(name)}.state`) || 'new';
+  },
+  setState: (name, state) => {
+    return NylasEnv.config.set(`${TutorialConfig.getConfigKey(name)}.state`, state);
+  },
+  getStepIndex: (name) => {
+    return NylasEnv.config.get(`${TutorialConfig.getConfigKey(name)}.stepIndex`) || 0;
+  },
+  setStepIndex: (name, stepIndex) => {
+    return NylasEnv.config.set(`${TutorialConfig.getConfigKey(name)}.stepIndex`, stepIndex);
+  },
+  observe: (name, key, callback) => {
+    return NylasEnv.config.observe(`${TutorialConfig.getConfigKey(name)}.${key}`, callback);
+  },
+  onDidChange: (name, key, callback) => {
+    return NylasEnv.config.onDidChange(`${TutorialConfig.getConfigKey(name)}.${key}`, callback);
+  },
+}
 
 const SEGMENT_ORDERS = {
   'default': ['open-tracking', 'open-sidebar', 'scheduler'],
@@ -52,17 +69,30 @@ const SEGMENT_ORDERS = {
 class TutorialStore extends NylasStore {
   constructor() {
     super();
-    this.container = document.createElement("nylas-tutorial-container")
-    document.body.appendChild(this.container);
 
     this.currentSegmentName = null;
     this.runningStep = null;
     this.nextStepDisposable = null;
     this.nextSegmentDisposable = null;
+    this.registry = {};
 
     NylasEnv.onWindowPropsReceived(this._checkWindow);
     this._checkWindow(); // In case windowType has already been set
   }
+
+  // Segment Registry - this is exposed as service by the main file
+  addSegment(name, segment) {
+    this.registry[name] = segment;
+    this._onDidAddSegment();
+  }
+
+  removeSegment(name) {
+    delete this.registry[name]
+  }
+
+  getSteps = (name) => this.registry[name];
+  hasSegment = (name) => this.registry[name] != null;
+  getSegmentNames = () => Object.keys(this.registry);
 
   // Figure out what tutorial segments we should expect based on the window type
   _checkWindow = () => {
@@ -72,7 +102,6 @@ class TutorialStore extends NylasStore {
       if (windowType !== 'emptyWindow') {
         if (windowType in SEGMENT_ORDERS) {
           this.segmentOrder = SEGMENT_ORDERS[windowType];
-          TutorialRegistry.listen(this._addSegment);
           this._activateNextSegment();
         }
       }
@@ -92,7 +121,7 @@ class TutorialStore extends NylasStore {
 
     // Find the first registered segment that is still 'new'
     for (const name of this.segmentOrder) {
-      if (TutorialRegistry.hasSegment(name)) {
+      if (this.hasSegment(name)) {
         const state = TutorialConfig.getState(name);
         if (state === 'new') {
           this.currentSegmentName = name;
@@ -114,7 +143,7 @@ class TutorialStore extends NylasStore {
   _nextStep = () => {
     this._clearRender();
     const stepIndex = TutorialConfig.getStepIndex(this.currentSegmentName);
-    const steps = TutorialRegistry.getSteps(this.currentSegmentName);
+    const steps = this.getSteps(this.currentSegmentName);
     if (stepIndex >= steps.length) {
       // No more steps! Go to the next segment
       this._endSegment();
@@ -150,48 +179,8 @@ class TutorialStore extends NylasStore {
     TutorialConfig.setState(this.currentSegmentName, 'done');
   }
 
-  // TThe bounding rectangle of an element can change as its contents load,
-  // and _render() should depend on the final bounding rectangle state.
-  // Resolves after the bounding rectangle is 'stable', that is, the same for
-  // <MIN_STABLE_COUNT> polls at <POLL_INTERVAL>(ms) long intervals.
-  _waitForBoundsStability(elem) {
-    const MIN_STABLE_COUNT = 3;
-    const POLL_INTERVAL = 500;
-    let timeout;
-
-    return new AbortablePromise((resolve) => {
-      let lastBounds = {};
-      let stabilityCount = 0;
-
-      const pollBounds = () => {
-        const bounds = elem.getBoundingClientRect();
-        let same = true;
-        // check the values of each key to see if any are different
-        for (const key of Object.keys(bounds)) {
-          if (bounds[key] !== lastBounds[key]) {
-            same = false;
-            break;
-          }
-        }
-        lastBounds = bounds;
-
-        if (same) {
-          stabilityCount++;
-          if (stabilityCount >= MIN_STABLE_COUNT) {
-            resolve(elem);
-            return;
-          }
-        } else {
-          stabilityCount = 0;
-        }
-        timeout = setTimeout(pollBounds, POLL_INTERVAL);
-      }
-      pollBounds();
-    }, () => { clearTimeout(timeout); });
-  }
-
-  // Called when segments are registered with the TutorialRegistry
-  _addSegment = () => {
+  // Called when segments are registered with the this
+  _onDidAddSegment = () => {
     if (!this.currentSegmentName) {
       // If we don't have a current segment, it's possible we're waiting for
       // this one. Try activating.
@@ -199,34 +188,15 @@ class TutorialStore extends NylasStore {
     }
   }
 
-  // Clear out the tutorial GUI
   _clearRender = () => {
-    const content = <div></div>;
-    ReactDOM.render(content, this.container);
+    this.activeStep = null;
+    this.trigger()
   }
 
-  // Display a TutorialOverlay
-  _render = (identifier, title, instructions, {isGenericSelector = false, fromSide = false} = {}) => {
-    return TutorialUtils.findElementIfNecessary(identifier, isGenericSelector)
-      .then(this._waitForBoundsStability).then(() => {
-        const content = (
-          <TutorialOverlay
-            title={title}
-            targetIdentifier={identifier}
-            useGenericSelector={isGenericSelector}
-            fromSide={fromSide}
-          >
-            <div className="tutorial-instructions" dangerouslySetInnerHTML={{ __html: instructions}} ></div>
-            <div className="tutorial-skip" onClick={this._skip}>
-              Skip
-            </div>
-          </TutorialOverlay>
-        )
-
-        ReactDOM.render(content, this.container);
-      });
+  _render = (targetIdentifier, title, instructions, {fromSide = false} = {}) => {
+    this.activeStep = {targetIdentifier, title, instructions, fromSide};
+    this.trigger()
   }
-
 }
 
 export default new TutorialStore();
