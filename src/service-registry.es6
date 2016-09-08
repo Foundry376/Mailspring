@@ -1,4 +1,4 @@
-export default class ServiceRegistry {
+class ServiceRegistry {
   constructor() {
     this._waitingForServices = {};
     this._services = {};
@@ -27,3 +27,5 @@ export default class ServiceRegistry {
     delete this._services[name];
   }
 }
+
+export default new ServiceRegistry()

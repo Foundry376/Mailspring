@@ -1,4 +1,7 @@
 import React from 'react';
+import _ from 'underscore';
+
+import TutorialUtils from './tutorial-utils';
 
 const width = 300;
 const arrowWidth = 20;
@@ -6,20 +9,43 @@ const arrowOffset = 15; // only applies when the arrow isn't center aligned (off
 
 export default class TutorialOverlay extends React.Component {
 
+  componentWillMount() {
+    this.setState({style: this.getStyleForDimensions()});
+  }
+
   componentDidMount() {
     window.addEventListener("resize", this._onUpdateDimensions);
-    this.props.target.addEventListener("resize", this._onUpdateDimensions);
+
+    let dims = this.state.style;
+    let stableCount = 0;
+
+    const check = () => {
+      const nextDims = this.getStyleForDimensions();
+      if (!_.isEqual(dims, nextDims)) {
+        stableCount = 0;
+        dims = nextDims;
+      }
+
+      if (stableCount < 10) {
+        this._settleTimeout = setTimeout(check, 0);
+        stableCount ++;
+      } else {
+        this.setState({style: nextDims});
+      }
+    };
+    check();
   }
 
   componentWillUnmount() {
     window.removeEventListener("resize", this._onUpdateDimensions);
-    this.props.target.removeEventListener("resize", this._onUpdateDimensions);
+    clearTimeout(this._settleTimeout);
   }
 
   // Calculate the dimensions needed to properly style the overlay elements
   getStyleForDimensions() {
-    const target = this.props.target;
+    const target = TutorialUtils.findElement(this.props.target);
     const body = document.body;
+
     if (target && body) {
       const bounds = target.getBoundingClientRect();
       // Cap the bounds height/width at the height/width of the body, which should be
@@ -91,13 +117,18 @@ export default class TutorialOverlay extends React.Component {
   // This sets the state, even though we don't use the data from the state,
   // to make sure the component is updated. (This is only called on resizes.)
   _onUpdateDimensions = () => {
-    this.setState(this.getStyleForDimensions());
+    this.setState({style: this.getStyleForDimensions()});
   }
 
   render() {
-    // Calculate new dims instead of using the state because the state isn't
-    // always up-to-date.
-    const dims = this.getStyleForDimensions();
+    const dims = this.state.style;
+    console.log(JSON.stringify(dims));
+
+
+    if (!dims) {
+      return <span></span>;
+    }
+
     return (
       <div>
         <div
@@ -123,7 +154,7 @@ export default class TutorialOverlay extends React.Component {
 
 TutorialOverlay.propTypes = {
   title: React.PropTypes.string,
-  target: React.PropTypes.element,
+  target: React.PropTypes.string,
   fromSide: React.PropTypes.bool,
   circularSpotlight: React.PropTypes.bool,
 }

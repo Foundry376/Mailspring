@@ -98,7 +98,6 @@ class AbortablePromise {
 
 const TutorialUtils = {
   AbortablePromise,
-  TutorialConfig,
 
   // Poll for an element until it is found, based on it's tutorialId attribute
   // or a generic HTML query selector.
@@ -126,7 +125,7 @@ const TutorialUtils = {
     }
 
     return new AbortablePromise(resolver, () => { clearTimeout(timeout); });
-  }
+  },
 
   // Resolves once the user has clicked the specified element
   // Params follow the same spec as findElementIfNecessary();

@@ -40,24 +40,21 @@ import NylasStore from 'nylas-store';
 
 // Helper functions for accessing the tutorial-specific parts of the config
 const TutorialConfig = {
-  getConfigKey: (name) => `core.tutorial.${name}`,
-  getState: (name) => {
-    return NylasEnv.config.get(`${TutorialConfig.getConfigKey(name)}.state`) || 'new';
+  hasFinishedSegment: (name) => (NylasEnv.config.get('core.tutorial.seen') || []).includes(name),
+
+  didFinishSegment: (name) => NylasEnv.config.pushAtKeyPath('core.tutorial.seen', name),
+
+  didSkipSegment: (name) => NylasEnv.config.pushAtKeyPath('core.tutorial.seen', name),
+
+  getStepIndex: () => {
+    const [segment, index] = (NylasEnv.config.get('core.tutorial.index') || ':').split(':')
+    return {segment, index};
   },
-  setState: (name, state) => {
-    return NylasEnv.config.set(`${TutorialConfig.getConfigKey(name)}.state`, state);
+  setStepIndex: (segment, index) => {
+    NylasEnv.config.set('core.tutorial.index', `${segment}:${index}`)
   },
-  getStepIndex: (name) => {
-    return NylasEnv.config.get(`${TutorialConfig.getConfigKey(name)}.stepIndex`) || 0;
-  },
-  setStepIndex: (name, stepIndex) => {
-    return NylasEnv.config.set(`${TutorialConfig.getConfigKey(name)}.stepIndex`, stepIndex);
-  },
-  observe: (name, key, callback) => {
-    return NylasEnv.config.observe(`${TutorialConfig.getConfigKey(name)}.${key}`, callback);
-  },
-  onDidChange: (name, key, callback) => {
-    return NylasEnv.config.onDidChange(`${TutorialConfig.getConfigKey(name)}.${key}`, callback);
+  unsetStepIndex: () => {
+    NylasEnv.config.unset('core.tutorial.index')
   },
 }
 
@@ -76,126 +73,105 @@ class TutorialStore extends NylasStore {
     this.nextSegmentDisposable = null;
     this.registry = {};
 
-    NylasEnv.onWindowPropsReceived(this._checkWindow);
-    this._checkWindow(); // In case windowType has already been set
+    // We want to sync across windows when a step or the entire segment has been compeleted
+    NylasEnv.config.onDidChange('core.tutorial.index', this._onStepIndexChanged);
+
+    NylasEnv.onWindowPropsReceived(this.startWhenWindowReady);
+    this.startWhenWindowReady();
+  }
+
+  currentOverlayConfig() {
+    return this._currentOverlayConfig;
   }
 
   // Segment Registry - this is exposed as service by the main file
-  addSegment(name, segment) {
+
+  addSegment = (name, segment) => {
     this.registry[name] = segment;
-    this._onDidAddSegment();
+
+    const active = TutorialConfig.getStepIndex();
+    if (active.segment !== this.findNextUnfinishedSegmentName()) {
+      this.startNextUnfinishedSegment();
+    }
   }
 
-  removeSegment(name) {
+  removeSegment = (name) => {
     delete this.registry[name]
   }
 
-  getSteps = (name) => this.registry[name];
-  hasSegment = (name) => this.registry[name] != null;
-  getSegmentNames = () => Object.keys(this.registry);
+  //
 
-  // Figure out what tutorial segments we should expect based on the window type
-  _checkWindow = () => {
-    // Only need to do this if we haven't already figured out the segment order
-    if (!this.segmentOrder) {
-      const windowType = NylasEnv.getWindowType();
-      if (windowType !== 'emptyWindow') {
-        if (windowType in SEGMENT_ORDERS) {
-          this.segmentOrder = SEGMENT_ORDERS[windowType];
-          this._activateNextSegment();
-        }
-      }
-    }
+  findNextUnfinishedSegmentName() {
+    const windowType = NylasEnv.getWindowType();
+    return Object.keys(this.registry)
+      .sort(name => SEGMENT_ORDERS[windowType].indexOf(name))
+      .find(name => !TutorialConfig.hasFinishedSegment(name))
   }
 
-  _activateNextSegment = () => {
-    // Starting a new segment, don't want to listen to the old segment's disposables
-    if (this.nextStepDisposable) {
-      this.nextStepDisposable.dispose();
-      this.nextStepDisposable = null;
-    }
-    if (this.nextSegmentDisposable) {
-      this.nextSegmentDisposable.dispose();
-      this.nextSegmentDisposable = null;
-    }
-
-    // Find the first registered segment that is still 'new'
-    for (const name of this.segmentOrder) {
-      if (this.hasSegment(name)) {
-        const state = TutorialConfig.getState(name);
-        if (state === 'new') {
-          this.currentSegmentName = name;
-          // Communicate across windows when a step or the entire segment has been compeleted
-          // (The observe one will be fired immediately, so we go straight to the first step)
-          this.nextStepDisposable = TutorialConfig.observe(name, 'stepIndex', this._nextStep);
-          this.nextSegmentDisposable = TutorialConfig.onDidChange(name, 'state', this._activateNextSegment);
-          return;
-        }
-      } else {
-        // An expected segment hasn't been registered. Assume plugins are still
-        // registering and don't proceed.
-        this.currentSegmentName = null;
-        return;
-      }
-    }
-  }
-
-  _nextStep = () => {
-    this._clearRender();
-    const stepIndex = TutorialConfig.getStepIndex(this.currentSegmentName);
-    const steps = this.getSteps(this.currentSegmentName);
-    if (stepIndex >= steps.length) {
-      // No more steps! Go to the next segment
-      this._endSegment();
+  startWhenWindowReady() {
+    const windowType = NylasEnv.getWindowType();
+    if (windowType === 'emptyWindow') {
       return;
     }
-    const step = steps[stepIndex];
-    // Only perform steps in their intended window
-    if (NylasEnv.getWindowType() === step.windowType) {
-      this.runningStep = step.perform(this._render, this._clearRender).then(() => {
-        this.runningStep = null;
-        // triggers _nextStep() in all windows
-        TutorialConfig.setStepIndex(this.currentSegmentName, stepIndex + 1);
-      });
-      // Double check that the step has an abort method for skipping
-      if (!this.runningStep.abort) {
-        throw new Error("Tutorial steps must have abort methods. Step object: ", this.runningStep);
-      }
+    this.startNextUnfinishedSegment();
+  }
+
+  startNextUnfinishedSegment() {
+    TutorialConfig.setStepIndex(this.findNextUnfinishedSegmentName(), 0);
+  }
+
+  _cleanupCurrentStep = () => {
+    if (this._currentOverlayConfig) {
+      this._currentOverlayConfig = null;
+      this.trigger();
     }
+    if (this._currentStepDisposable) {
+      this._currentStepDisposable.dispose();
+      this._currentStepDisposable = null;
+    }
+  }
+
+  _onStepIndexChanged = () => {
+    this._cleanupCurrentStep();
+
+    const {segment, index} = TutorialConfig.getStepIndex();
+    if (!segment || !this.registry[segment]) {
+      return;
+    }
+
+    const step = this.registry[segment][index];
+
+    if (!step) {
+      TutorialConfig.didFinishSegment(segment);
+      return;
+    }
+
+    if (NylasEnv.getWindowType() !== step.windowType) {
+      return;
+    }
+
+    step.runs().then((resp) => {
+      if (resp instanceof Object) {
+        this._currentOverlayConfig = resp;
+        this.trigger();
+      }
+    }).then(() => {
+      const observable = step.waitsFor();
+      if (observable) {
+        this._currentStepDisposable = observable.subscribe(() => {
+          TutorialConfig.setStepIndex(segment, index + 1);
+        });
+      } else {
+        TutorialConfig.setStepIndex(segment, index + 1);
+      }
+    });
   }
 
   _skip = () => {
-    // Halt the current step
-    this.runningStep.abort();
-    this.runningStep = null;
-    this._clearRender();
+    this._cleanupCurrentStep();
 
-    // triggers _activateNextSegment() in all windows
-    TutorialConfig.setState(this.currentSegmentName, 'skipped');
-  }
-
-  _endSegment = () => {
-    // triggers _activateNextSegment() in all windows
-    TutorialConfig.setState(this.currentSegmentName, 'done');
-  }
-
-  // Called when segments are registered with the this
-  _onDidAddSegment = () => {
-    if (!this.currentSegmentName) {
-      // If we don't have a current segment, it's possible we're waiting for
-      // this one. Try activating.
-      this._activateNextSegment();
-    }
-  }
-
-  _clearRender = () => {
-    this.activeStep = null;
-    this.trigger()
-  }
-
-  _render = (targetIdentifier, title, instructions, {fromSide = false} = {}) => {
-    this.activeStep = {targetIdentifier, title, instructions, fromSide};
-    this.trigger()
+    const {segment} = TutorialConfig.getStepIndex();
+    TutorialConfig.didSkipSegment(segment);
   }
 }
 

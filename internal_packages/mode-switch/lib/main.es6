@@ -22,6 +22,6 @@ export default function activate() {
   });
 
   ServiceRegistry.withService('tutorial', (Tutorial) => {
-    Tutorial.addSegment('mode-switch', TutorialSegment);
+    // Tutorial.addSegment('mode-switch', TutorialSegment);
   });
 }
