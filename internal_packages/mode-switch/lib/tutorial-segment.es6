@@ -1,48 +1,52 @@
-import {TutorialUtils} from 'nylas-exports';
+import Rx from 'rx-lite';
 
 const steps = [
-  { windowType: 'default',
-    perform: (render, clear) => {
-      const messageOpen = document.querySelector("[data-tutorial-id='message-list']");
-      let waitForMessageOpen;
-      if (messageOpen) {
-        // If an email is already open, proceed
-        waitForMessageOpen = Promise.resolve();
-      } else {
-        // Wait for user to open an email
-        waitForMessageOpen = TutorialUtils.findElement('message-list')
-        render(
-          'thread-list',
-          'Contact Context',
-          "Let's check out some contact information! First, open an email.",
-          {fromSide: true})
-      }
-      return waitForMessageOpen.then(() => {
-        clear()
-        return TutorialUtils.findElement('sidebar-toggle-button').then((sidebarToggle) => {
-          // wait for the sidebar to be expanded (via click on toggle icon)
-          // resolves immediately if it is already expanded
-          let waitForExpand;
-          let expanded = sidebarToggle.getAttribute('data-tutorial-state');
-          expanded = expanded === 'true';
-          if (expanded) {
-            waitForExpand = Promise.resolve();
-          } else {
-            waitForExpand = TutorialUtils.waitForClick(sidebarToggle);
-            const instructions = "Now click this icon to expand our <b>Contextual Sidebar</b>";
-            render('sidebar-toggle-button', 'Expand Contextual Sidebar', instructions);
-          }
+  {
+    windowType: 'default',
+    run: ({setOverlay}) => {
+      setOverlay({
+        selector: ".column-ThreadList",
+        title: 'Contact Context',
+        instructions: "Let's check out some contact information! First, open an email.",
+        fromSide: true,
+      });
+      return Rx.Observable.fromQuerySelector("[data-tutorial-id='message-list']")
+    },
+  },
+  {
+    windowType: 'default',
+    run: ({setOverlay}) => {
+      const toggleSelector = "[data-tutorial-id='sidebar-toggle-button']";
+      return Rx.Observable.fromQuerySelector(toggleSelector).flatMapLatest((toggleEl) => {
+        const expanded = toggleEl.getAttribute('data-tutorial-state') === 'true';
 
-          // Once the sidebar is expanded, wait for user to click proceed button
-          return waitForExpand.then(() => {
-            clear();
-            const waitForProceed = TutorialUtils.waitForClick('proceed')
-            const instructions = "Great! This is our <b>Contextual Sidebar</b> with enriched contact profiles. These help you understand who you are emailing and makes it easy to see the message history you have with that person. <br/><br/><button class='btn' data-tutorial-id='proceed'>Got it!</button>"
-            render('.column-MessageListSidebar', 'Compose with Context', instructions, {fromSide: true});
-            return waitForProceed;
-          });
+        if (expanded) {
+          return Rx.Observable.of(null);
+        }
+
+        setOverlay({
+          selector: toggleSelector,
+          title: 'Expand Contextual Sidebar',
+          instructions: "Now click this icon to expand our <b>Contextual Sidebar</b>",
         });
+
+        return Rx.Observable.fromEvent(toggleEl, 'click');
+      });
+    },
+  },
+  {
+    windowType: 'default',
+    run: ({setOverlay}) => {
+      setOverlay({
+        selector: '.column-MessageListSidebar',
+        title: 'Compose with Context',
+        instructions: "Great! This is our <b>Contextual Sidebar</b> with enriched contact profiles. These help you understand who you are emailing and makes it easy to see the message history you have with that person. <br/><br/><button class='btn' data-tutorial-id='proceed'>Got it!</button>",
+        fromSide: true,
       })
+      const selector = "[data-tutorial-id='proceed']";
+      return Rx.Observable.fromQuerySelector(selector).flatMapLatest((el) => {
+        return Rx.Observable.fromEvent(el, 'click');
+      });
     },
   },
 ];

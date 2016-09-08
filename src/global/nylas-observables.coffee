@@ -93,6 +93,20 @@ Rx.Observable.fromListSelection = (originStore) =>
     return Rx.Disposable.create(dispose)
   )
 
+Rx.Observable.fromQuerySelector = (selector) =>
+  return Rx.Observable.create (observer) =>
+    timeout = null
+    attempt = () =>
+      el = document.querySelector(selector)
+      if el
+        observer.onNext(el);
+        observer.onCompleted();
+      else
+        timeout = setTimeout(attempt, 50);
+    attempt();
+    return Rx.Disposable.create =>
+      clearTimeout(timeout)
+
 Rx.Observable.fromConfig = (configKey) =>
   return Rx.Observable.create (observer) =>
     disposable = NylasEnv.config.onDidChange configKey, =>

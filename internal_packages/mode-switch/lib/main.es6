@@ -10,7 +10,7 @@ class ModeToggleList extends ModeToggle {
   static displayName = 'ModeToggleList'
 }
 
-export default function activate() {
+export function activate() {
   ComponentRegistry.register(ModeToggleList, {
     location: WorkspaceStore.Sheet.Thread.Toolbar.Right,
     modes: ['list'],
@@ -22,6 +22,6 @@ export default function activate() {
   });
 
   ServiceRegistry.withService('tutorial', (Tutorial) => {
-    // Tutorial.addSegment('mode-switch', TutorialSegment);
+    Tutorial.addSegment('mode-switch', TutorialSegment);
   });
 }

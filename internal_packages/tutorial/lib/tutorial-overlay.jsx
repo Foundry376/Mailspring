@@ -20,6 +20,15 @@ export default class TutorialOverlay extends React.Component {
     let stableCount = 0;
 
     const check = () => {
+      // first, check that the target is in the DOM
+      const target = TutorialUtils.findElement(this.props.target);
+      if (!target) {
+        console.log("Could not find "+this.props.target);
+        this._settleTimeout = setTimeout(check, 100);
+        return;
+      }
+
+      // next, wait for it's dimenstions to stabalize for 10 frames
       const nextDims = this.getStyleForDimensions();
       if (!_.isEqual(dims, nextDims)) {
         stableCount = 0;
@@ -29,9 +38,10 @@ export default class TutorialOverlay extends React.Component {
       if (stableCount < 10) {
         this._settleTimeout = setTimeout(check, 0);
         stableCount ++;
-      } else {
-        this.setState({style: nextDims});
+        return;
       }
+
+      this.setState({style: nextDims});
     };
     check();
   }

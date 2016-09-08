@@ -9,5 +9,10 @@
     "nylas": "*"
   },
   "dependencies": {
+  },
+  "windowTypes": {
+    "default": true,
+    "composer": true,
+    "composer-preload": true
   }
 }

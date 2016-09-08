@@ -37,6 +37,7 @@
 
 
 import NylasStore from 'nylas-store';
+import Rx from 'rx-lite';
 
 // Helper functions for accessing the tutorial-specific parts of the config
 const TutorialConfig = {
@@ -48,7 +49,10 @@ const TutorialConfig = {
 
   getStepIndex: () => {
     const [segment, index] = (NylasEnv.config.get('core.tutorial.index') || ':').split(':')
-    return {segment, index};
+    return {
+      segment: segment,
+      index: index / 1,
+    };
   },
   setStepIndex: (segment, index) => {
     NylasEnv.config.set('core.tutorial.index', `${segment}:${index}`)
@@ -73,11 +77,27 @@ class TutorialStore extends NylasStore {
     this.nextSegmentDisposable = null;
     this.registry = {};
 
-    // We want to sync across windows when a step or the entire segment has been compeleted
-    NylasEnv.config.onDidChange('core.tutorial.index', this._onStepIndexChanged);
+    // Sync across windows when a step or the entire segment has been completed
+    NylasEnv.config.onDidChange('core.tutorial.index', this._runCurrentStep);
 
-    NylasEnv.onWindowPropsReceived(this.startWhenWindowReady);
-    this.startWhenWindowReady();
+    // Start the tutorial once packages have loaded for our final window type
+    NylasEnv.packages.onDidActivateInitialPackages(() => {
+      const windowType = NylasEnv.getWindowType();
+      if ((windowType === 'emptyWindow') || (windowType.includes('preload'))) {
+        return;
+      }
+
+      process.nextTick(() => this.onStart());
+    });
+  }
+
+  onStart() {
+    const {segment} = TutorialConfig.getStepIndex();
+    if (!segment || NylasEnv.isMainWindow()) {
+      this._runFirstUnfinishedSegment();
+    } else {
+      this._runCurrentStep();
+    }
   }
 
   currentOverlayConfig() {
@@ -88,11 +108,6 @@ class TutorialStore extends NylasStore {
 
   addSegment = (name, segment) => {
     this.registry[name] = segment;
-
-    const active = TutorialConfig.getStepIndex();
-    if (active.segment !== this.findNextUnfinishedSegmentName()) {
-      this.startNextUnfinishedSegment();
-    }
   }
 
   removeSegment = (name) => {
@@ -108,18 +123,6 @@ class TutorialStore extends NylasStore {
       .find(name => !TutorialConfig.hasFinishedSegment(name))
   }
 
-  startWhenWindowReady() {
-    const windowType = NylasEnv.getWindowType();
-    if (windowType === 'emptyWindow') {
-      return;
-    }
-    this.startNextUnfinishedSegment();
-  }
-
-  startNextUnfinishedSegment() {
-    TutorialConfig.setStepIndex(this.findNextUnfinishedSegmentName(), 0);
-  }
-
   _cleanupCurrentStep = () => {
     if (this._currentOverlayConfig) {
       this._currentOverlayConfig = null;
@@ -131,40 +134,50 @@ class TutorialStore extends NylasStore {
     }
   }
 
-  _onStepIndexChanged = () => {
+  _runFirstUnfinishedSegment = () => {
+    const segment = this.findNextUnfinishedSegmentName();
+    if (segment) {
+      TutorialConfig.setStepIndex(segment, 0);
+    }
+  }
+
+  _runCurrentStep = () => {
     this._cleanupCurrentStep();
 
     const {segment, index} = TutorialConfig.getStepIndex();
     if (!segment || !this.registry[segment]) {
+      console.log(`Could not find segment: ${segment}`)
       return;
     }
 
     const step = this.registry[segment][index];
 
     if (!step) {
+      console.log(`Could not find step: ${segment} ${index}`)
       TutorialConfig.didFinishSegment(segment);
+      this._runFirstUnfinishedSegment();
       return;
     }
 
     if (NylasEnv.getWindowType() !== step.windowType) {
+      console.log(`Step is not intended for window type.`)
       return;
     }
 
-    step.runs().then((resp) => {
-      if (resp instanceof Object) {
-        this._currentOverlayConfig = resp;
+    const result = step.run({
+      setOverlay: (overlayConfig) => {
+        this._currentOverlayConfig = overlayConfig;
         this.trigger();
-      }
-    }).then(() => {
-      const observable = step.waitsFor();
-      if (observable) {
-        this._currentStepDisposable = observable.subscribe(() => {
-          TutorialConfig.setStepIndex(segment, index + 1);
-        });
-      } else {
-        TutorialConfig.setStepIndex(segment, index + 1);
-      }
+      },
     });
+
+    if (result && (result instanceof Rx.Observable)) {
+      this._currentStepDisposable = result.subscribe(() => {
+        TutorialConfig.setStepIndex(segment, index + 1);
+      });
+    } else {
+      TutorialConfig.setStepIndex(segment, index + 1);
+    }
   }
 
   _skip = () => {
@@ -175,4 +188,6 @@ class TutorialStore extends NylasStore {
   }
 }
 
-export default new TutorialStore();
+const ts = new TutorialStore();
+window.TutorialStore = ts;
+export default ts;
