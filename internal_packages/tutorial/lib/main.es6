@@ -13,8 +13,8 @@ export function activate() {
   ReactDOM.render(<TutorialOverlayContainer />, this.container);
 
   ServiceRegistry.registerService('tutorial', {
-    addSegment: TutorialStore.addSegment,
-    removeSegment: TutorialStore.removeSegment,
+    addTip: TutorialStore.addTip,
+    removeTip: TutorialStore.removeTip,
   })
 }
 

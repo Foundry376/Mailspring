@@ -7,103 +7,51 @@ nylas-tutorial-container {
   pointer-events: none;
 }
 
-.tutorial-gray-layer {
+.tutorial-tip {
+  position: relative;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 2px solid white;
+  y: 451px;
+  cursor: pointer;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(241, 170, 211)), to(rgb(185, 59, 255)));
+}
+
+body {
+  background: #000;
+}
+
+.tutorial-tip:after {
+  pointer-events: none;
   position: absolute;
-  border: solid rgba(0, 0, 0, 0.2) 0px; /* border width will be overwritten */
   width: 100%;
   height: 100%;
-  pointer-events: none;
-}
-
-@borderColor: #aaa;
-
-.tutorial-overlay {
-  position: absolute;
-  width: 300px;
-  background: white;
-  color: #777;
-  padding: 15px;
-  border-radius: 7px;
-  border: solid @borderColor 1px;
-  left: 50px;
-  top: 50px;
-  pointer-events: all;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-@arrowWidth: 20px;
-@arrowHeight: 20px;
-
-.tutorial-overlay::after {
+  border-radius: 50%;
+  border: 2px solid black;
   content: '';
-  position: absolute;
-  width: @arrowWidth;
-  height: @arrowHeight;
-  background: linear-gradient(45deg, #ffffff 0%, #ffffff 50%, transparent 50%, transparent 100%);
-  border-left: solid @borderColor 1px;
-  border-bottom: solid @borderColor 1px;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+
+  box-shadow: 0 0 0 2px rgb(241, 170, 211);
+
+  animation: sonarEffect 1.3s ease-out 75ms;
+  animation-iteration-count: infinite;
 }
 
-.tutorial-overlay.bottom-arrow::after {
-  bottom: -10px;
-  transform: rotate(-45deg);
-}
-
-.tutorial-overlay.top-arrow::after {
-  top: -10px;
-  transform: rotate(135deg);
-}
-
-.tutorial-overlay.center-aligned::after {
-  left: ~"calc(50% - @{arrowWidth} / 2)";
-}
-
-.tutorial-overlay.left-aligned::after {
-  left: 15px;
-}
-
-.tutorial-overlay.right-aligned::after {
-  right: 15px;
-}
-
-.tutorial-overlay.left-pointing::after {
-  top: 20px;
-  left: -10px;
-  transform: rotate(45deg);
-}
-
-.tutorial-overlay.right-pointing::after {
-  top: 20px;
-  right: -10px;
-  transform: rotate(-135deg);
-}
-
-.tutorial-title {
-  padding: 10px;
-  font-size: 16px;
-  color: #6F8396;
-  text-align: center;
-}
-
-.tutorial-instructions {
-  position: relative;
-
-}
-
-.tutorial-skip {
-  color: #2D92F1;
-  cursor: pointer;
-  margin-top: 10px;
-  font-size: 12px;
-  opacity: 0.5;
-  float: right;
-}
-
-.tutorial-skip:hover {
-  opacity: 1.0;
-}
-
-.tutorial-overlay .btn {
-  position: absolute;
-  left: 0;
+@-webkit-keyframes sonarEffect {
+  0% {
+    opacity: 0.3;
+  }
+  40% {
+    opacity: 0.5;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.1), 0 0 10px 10px #fff, 0 0 0 10px rgba(255,255,255,0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.1), 0 0 10px 10px #fff, 0 0 0 10px rgba(255,255,255,0.5);
+    -webkit-transform: scale(1.5);
+    opacity: 0;
+  }
 }

@@ -93,7 +93,7 @@ Rx.Observable.fromListSelection = (originStore) =>
     return Rx.Disposable.create(dispose)
   )
 
-Rx.Observable.fromQuerySelector = (selector) =>
+Rx.Observable.fromDOMQuerySelector = (selector) =>
   return Rx.Observable.create (observer) =>
     timeout = null
     attempt = () =>

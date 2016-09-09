@@ -17,20 +17,20 @@ export default class TutorialOverlayContainer extends React.Component {
 
   getStateFromStores() {
     return {
-      step: TutorialStore.currentOverlayConfig(),
+      tip: TutorialStore.currentTip(),
     };
   }
 
   render() {
-    if (this.state.step) {
-      const {title, fromSide, instructions, selector} = this.state.step;
+    if (this.state.tip) {
+      const {title, fromSide, instructions, selector} = this.state.tip;
       return (
-        <TutorialOverlay title={title} target={selector} fromSide={fromSide}>
-          <div className="tutorial-instructions" dangerouslySetInnerHTML={{ __html: instructions}} ></div>
-          <div className="tutorial-skip" onClick={this._skip}>
-            Skip
-          </div>
-        </TutorialOverlay>
+        <TutorialOverlay
+          title={title}
+          target={selector}
+          fromSide={fromSide}
+          instructions={instructions}
+        />
       );
     }
     return (
