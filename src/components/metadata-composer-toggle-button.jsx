@@ -8,17 +8,17 @@ export default class MetadataComposerToggleButton extends React.Component {
   static displayName = 'MetadataComposerToggleButton';
 
   static propTypes = {
-    "title": React.PropTypes.func.isRequired,
-    "iconUrl": React.PropTypes.string,
-    "iconName": React.PropTypes.string,
-    "pluginId": React.PropTypes.string.isRequired,
-    "pluginName": React.PropTypes.string.isRequired,
-    "metadataEnabledValue": React.PropTypes.object.isRequired,
-    "stickyToggle": React.PropTypes.bool,
-    "errorMessage": React.PropTypes.func.isRequired,
+    title: React.PropTypes.func.isRequired,
+    iconUrl: React.PropTypes.string,
+    iconName: React.PropTypes.string,
+    pluginId: React.PropTypes.string.isRequired,
+    pluginName: React.PropTypes.string.isRequired,
+    metadataEnabledValue: React.PropTypes.object.isRequired,
+    stickyToggle: React.PropTypes.bool,
+    errorMessage: React.PropTypes.func.isRequired,
 
-    "draft": React.PropTypes.object.isRequired,
-    "session": React.PropTypes.object.isRequired,
+    draft: React.PropTypes.object.isRequired,
+    session: React.PropTypes.object.isRequired,
   };
 
   static defaultProps = {
