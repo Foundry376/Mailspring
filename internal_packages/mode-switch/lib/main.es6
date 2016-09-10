@@ -5,7 +5,7 @@ import ModeToggle from './mode-toggle';
 
 const ToggleWithTutorialTip = HasTutorialTip(ModeToggle, {
   title: 'Compose with Context',
-  instructions: "Great! This is our <b>Contextual Sidebar</b> with enriched contact profiles. These help you understand who you are emailing and makes it easy to see the message history you have with that person. <br/><br/><button class='btn' data-tutorial-id='proceed'>Got it!</button>",
+  instructions: "N1 shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.",
 });
 
 // NOTE: this is a hack to allow ComponentRegistry
