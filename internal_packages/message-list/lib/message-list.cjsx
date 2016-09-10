@@ -165,7 +165,7 @@ class MessageList extends React.Component
       globalHandlers={@_globalKeymapHandlers()}
       globalMenuItems={@_globalMenuItems()}>
       <FindInThread ref="findInThread" />
-      <div className={messageListClass} id="message-list" data-tutorial-id="message-list">
+      <div className={messageListClass} id="message-list">
         <ScrollRegion tabIndex="-1"
              className={wrapClass}
              scrollbarTickProvider={SearchableComponentStore}

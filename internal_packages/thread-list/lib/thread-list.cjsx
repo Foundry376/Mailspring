@@ -93,7 +93,6 @@ class ThreadList extends React.Component
       getStateFromStores={ -> dataSource: ThreadListStore.dataSource() }>
       <FocusContainer collection="thread">
         <MultiselectList
-          data-tutorial-id="thread-list"
           ref="list"
           columns={columns}
           itemPropsProvider={@_threadPropsProvider}

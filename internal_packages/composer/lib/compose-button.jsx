@@ -12,7 +12,6 @@ export default class ComposeButton extends React.Component {
   render() {
     return (
       <button
-        data-tutorial-id="compose-button"
         className="btn btn-toolbar item-compose"
         title="Compose new message"
         onClick={this._onNewCompose}

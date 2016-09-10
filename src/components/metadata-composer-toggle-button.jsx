@@ -19,7 +19,6 @@ export default class MetadataComposerToggleButton extends React.Component {
 
     "draft": React.PropTypes.object.isRequired,
     "session": React.PropTypes.object.isRequired,
-    "data-tutorial-id": React.PropTypes.string,
   };
 
   static defaultProps = {
@@ -122,8 +121,6 @@ export default class MetadataComposerToggleButton extends React.Component {
         onClick={this._onClick}
         title={title}
         tabIndex={-1}
-        data-tutorial-id={this.props["data-tutorial-id"]}
-        data-tutorial-state={enabled}
       >
         <RetinaImg {...attrs} mode={RetinaImg.Mode.ContentIsMask} />
       </button>

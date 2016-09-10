@@ -22,8 +22,6 @@ class ModeToggle extends React.Component
 
   render: =>
     <button
-         data-tutorial-id="sidebar-toggle-button"
-         data-tutorial-state={!@state.hidden}
          className="btn btn-toolbar mode-toggle mode-#{@state.hidden}"
          style={order:500}
          title={if @state.hidden then "Show sidebar" else "Hide sidebar"}
