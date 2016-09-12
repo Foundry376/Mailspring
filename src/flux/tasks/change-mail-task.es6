@@ -255,7 +255,7 @@ export default class ChangeMailTask extends Task {
         accountId: model.accountId,
         method: 'PUT',
         body: this.requestBodyForModel(model),
-        returnsModel: true,
+        returnsModel: false,
         beforeProcessing: (body) => {
           this._removeLock(model);
           return body;

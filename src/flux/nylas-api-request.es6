@@ -17,10 +17,12 @@ export default class NylasAPIRequest {
       started: () => {},
       error: () => {},
       success: () => {},
+      headers: {},
     }
 
     this.api = api;
     this.options = Object.assign(defaults, options);
+    this.options.headers['Api-Version'] = '2016-08-09';
 
     const bodyIsRequired = (this.options.method !== 'GET' && !this.options.formData);
     if (bodyIsRequired) {
