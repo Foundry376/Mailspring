@@ -75,6 +75,8 @@ export function appendQuotedTextToDraft(draft) {
   })
 }
 
+// Deprecated: run extensions[].applyTransformsToDraft
+//
 export function applyExtensionTransformsToDraft(draft) {
   let latestTransformed = draft
   const extensions = ExtensionRegistry.Composer.extensions()
@@ -113,9 +115,32 @@ export function applyExtensionTransformsToDraft(draft) {
   .then(() => Promise.resolve(latestTransformed))
 }
 
+export function applyExtensionTransformsToBody(draft) {
+  const range = document.createRange();
+  const fragment = range.createContextualFragment(`<root>${draft.body}</root>`);
+  const extensions = ExtensionRegistry.Composer.extensions();
+
+  return Promise.each(extensions, (ext) => {
+    const extApply = ext.applyTransformsToBody;
+    const extUnapply = ext.unapplyTransformsToBody;
+
+    if (!extApply || !extUnapply) {
+      return Promise.resolve();
+    }
+
+    return Promise.resolve(extUnapply({draft, fragment})).then(() => {
+      return Promise.resolve(extApply({draft, fragment}));
+    });
+  }).then(() => {
+    draft.body = fragment.childNodes[0].innerHTML;
+    return draft;
+  });
+}
+
 export function prepareDraftForSyncback(session) {
   return session.ensureCorrectAccount({noSyncback: true})
   .then(() => applyExtensionTransformsToDraft(session.draft()))
+  .then((transformed) => applyExtensionTransformsToBody(transformed))
   .then((transformed) => {
     if (!transformed.replyToMessageId || !shouldAppendQuotedText(transformed)) {
       return Promise.resolve(transformed)

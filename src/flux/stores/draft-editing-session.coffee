@@ -209,25 +209,35 @@ class DraftEditingSession
     if !draft.body?
       throw new Error("DraftEditingSession._setDraft - new draft has no body!")
 
-    # Reverse draft transformations performed by third-party plugins when the draft
-    # was last saved to disk
-    return Promise.each ExtensionRegistry.Composer.extensions(), (ext) ->
+    extensions = ExtensionRegistry.Composer.extensions()
+
+    # Deprecated: Run `extensions[].unapplyTransformsToDraft`
+    return Promise.each extensions, (ext) ->
       if ext.applyTransformsToDraft and ext.unapplyTransformsToDraft
         Promise.resolve(ext.unapplyTransformsToDraft({draft})).then (untransformed) ->
           unless untransformed is 'unnecessary'
             draft = untransformed
     .then =>
-      @_draft = draft
+      # Preferred: Run `extensions[].unapplyTransformsToDraft`
+      range = document.createRange()
+      fragment = range.createContextualFragment("<root>#{draft.body}</root>")
 
-      # We keep track of the draft's initial body if it's pristine when the editing
-      # session begins. This initial value powers things like "are you sure you want
-      # to send with an empty body?"
-      if draft.pristine
-        @_draftPristineBody = draft.body
-        @_undoStack.save(@_snapshot())
+      return Promise.each extensions, (ext) ->
+        if ext.applyTransformsToBody and ext.unapplyTransformsToBody
+          Promise.resolve(ext.unapplyTransformsToBody({fragment, draft}))
+      .then =>
+        draft.body = fragment.childNodes[0].innerHTML
+        @_draft = draft
 
-      @trigger()
-      Promise.resolve(@)
+        # We keep track of the draft's initial body if it's pristine when the editing
+        # session begins. This initial value powers things like "are you sure you want
+        # to send with an empty body?"
+        if draft.pristine
+          @_draftPristineBody = draft.body
+          @_undoStack.save(@_snapshot())
+
+        @trigger()
+        Promise.resolve(@)
 
   _onDraftChanged: (change) ->
     return if not change?
