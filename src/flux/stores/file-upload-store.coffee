@@ -22,7 +22,7 @@ class Upload
     @messageClientId = messageClientId
     @originPath = filePath
     @id = id ? Utils.generateTempId()
-    @filename = path.basename(@originPath)
+    @filename = path.basename(filePath)
     @targetDir = path.join(@uploadDir, @messageClientId, @id)
     @targetPath = path.join(@targetDir, @filename)
     @size = @stats.size
@@ -53,7 +53,7 @@ class FileUploadStore extends NylasStore
       @_deleteUploadsForClientId(message.clientId)
 
   _onSelectAttachment: ({messageClientId}) ->
-    @_verifyId(messageClientId)
+    @_assertIdPresent(messageClientId)
 
     # When the dialog closes, it triggers `Actions.addAttachment`
     NylasEnv.showOpenDialog {properties: ['openFile', 'multiSelections']}, (pathsToOpen) ->
@@ -67,11 +67,17 @@ class FileUploadStore extends NylasStore
     callback ?= ->
     inline ?= false
 
-    @_verifyId(messageClientId)
-    @_getFileStats({messageClientId, filePath})
+    @_assertIdPresent(messageClientId)
+
+    @_getFileStats(filePath)
     .then (stats) =>
-      return new Upload({messageClientId, filePath, stats, inline})
-    .then(@_verifyUpload)
+      upload = new Upload({messageClientId, filePath, stats, inline})
+      if stats.isDirectory()
+        Promise.reject(new Error("#{upload.filename} is a directory. Try compressing it and attaching it again."))
+      else if stats.size > 25 * 1000000
+        Promise.reject(new Error("#{upload.filename} cannot be attached because it is larger than 25MB."))
+      else
+        Promise.resolve(upload)
     .then(@_prepareTargetDir)
     .then(@_copyUpload)
     .then (upload) =>
@@ -92,22 +98,13 @@ class FileUploadStore extends NylasStore
 
   # Helpers
 
-  _verifyId: (messageClientId) ->
+  _assertIdPresent: (messageClientId) ->
     unless messageClientId
       throw new Error "You need to pass the ID of the message (draft) this Action refers to"
 
-  _getFileStats: ({messageClientId, filePath}) ->
+  _getFileStats: (filePath) ->
     fs.statAsync(filePath).catch (err) ->
       Promise.reject(new Error("#{filePath} could not be found, or has invalid file permissions."))
-
-  _verifyUpload: (upload) ->
-    {filename, stats} = upload
-    if stats.isDirectory()
-      Promise.reject(new Error("#{filename} is a directory. Try compressing it and attaching it again."))
-    else if stats.size > 25 * 1000000
-      Promise.reject(new Error("#{filename} cannot be attached because it is larger than 25MB."))
-    else
-      Promise.resolve(upload)
 
   _prepareTargetDir: (upload) =>
     mkdirpAsync(upload.targetDir).thenReturn(upload)
