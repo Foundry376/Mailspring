@@ -90,13 +90,20 @@ export default class SyncbackDraftFilesTask extends BaseDraftTask {
   applyChangesToDraft = () => {
     return DatabaseStore.inTransaction((t) => {
       return this.refreshDraftReference().then(() => {
-        this.draft.files = this.draft.files.concat(this._appliedFiles);
-        if (this.draft.uploads instanceof Array) {
-          const uploadedPaths = this._appliedUploads.map((upload) => upload.targetPath);
-          this.draft.uploads = this.draft.uploads.filter((upload) =>
-             !uploadedPaths.includes(upload.targetPath)
-          );
-        }
+        this._appliedFiles.forEach((file, idx) => {
+          const upload = this._appliedUploads[idx];
+
+          // update the draft object
+          this.draft.files.push(file);
+          if (this.draft.uploads instanceof Array) {
+            this.draft.uploads = this.draft.uploads.filter(u =>
+              u.targetPath !== upload.targetPath
+            );
+          }
+          // replace references in the body
+          this.draft.body = this.draft.body.replace(`cid:${upload.id}`, `cid:${file.id}`);
+        });
+
         return t.persistModel(this.draft);
       });
     });

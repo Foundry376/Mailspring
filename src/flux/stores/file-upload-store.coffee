@@ -15,9 +15,13 @@ mkdirpAsync = Promise.promisify(mkdirp)
 UPLOAD_DIR = path.join(NylasEnv.getConfigDirPath(), 'uploads')
 
 class Upload
-
-  constructor: (@messageClientId, @originPath, @stats, @id, @uploadDir = UPLOAD_DIR) ->
-    @id ?= Utils.generateTempId()
+  constructor: ({messageClientId, filePath, stats, id, inline, uploadDir}) ->
+    @inline = inline
+    @stats = stats
+    @uploadDir = uploadDir || UPLOAD_DIR
+    @messageClientId = messageClientId
+    @originPath = filePath
+    @id = id ? Utils.generateTempId()
     @filename = path.basename(@originPath)
     @targetDir = path.join(@uploadDir, @messageClientId, @id)
     @targetPath = path.join(@targetDir, @filename)
@@ -59,19 +63,21 @@ class FileUploadStore extends NylasStore
       pathsToOpen.forEach (filePath) ->
         Actions.addAttachment({messageClientId, filePath})
 
-  _onAddAttachment: ({messageClientId, filePath, callback}) ->
+  _onAddAttachment: ({messageClientId, filePath, callback, inline}) ->
     callback ?= ->
+    inline ?= false
 
     @_verifyId(messageClientId)
     @_getFileStats({messageClientId, filePath})
-    .then(@_makeUpload)
+    .then (stats) =>
+      return new Upload({messageClientId, filePath, stats, inline})
     .then(@_verifyUpload)
     .then(@_prepareTargetDir)
     .then(@_copyUpload)
     .then (upload) =>
       @_applySessionChanges upload.messageClientId, (uploads) ->
         uploads.concat([upload])
-    .then(callback)
+      .then( => callback(upload))
     .catch(@_onAttachFileError)
 
   _onRemoveAttachment: (upload) ->
@@ -91,13 +97,8 @@ class FileUploadStore extends NylasStore
       throw new Error "You need to pass the ID of the message (draft) this Action refers to"
 
   _getFileStats: ({messageClientId, filePath}) ->
-    fs.statAsync(filePath).then (stats) =>
-      Promise.resolve({messageClientId, filePath, stats})
-    .catch (err) ->
+    fs.statAsync(filePath).catch (err) ->
       Promise.reject(new Error("#{filePath} could not be found, or has invalid file permissions."))
-
-  _makeUpload: ({messageClientId, filePath, stats}) ->
-    Promise.resolve(new Upload(messageClientId, filePath, stats))
 
   _verifyUpload: (upload) ->
     {filename, stats} = upload
