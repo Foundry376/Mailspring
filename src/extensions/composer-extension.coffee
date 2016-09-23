@@ -142,15 +142,15 @@ class ComposerExtension extends ContenteditableExtension
 
   - `draft`: A {Message} the user is about to finish editing.
   ###
-  @applyTransformsToDraft: ({draft}) ->
-    return draft
+  @applyTransformsToBody: ({draft, fragment}) ->
+    return
 
   ###
   Public: unapplyTransformsToDraft should revert the changes made in
   `applyTransformsToDraft`. See the documentation for that method for more
   information.
   ###
-  @unapplyTransformsToDraft: ({draft}) ->
-    return draft
+  @unapplyTransformsToBody: ({draft, fragment}) ->
+    return
 
 module.exports = ComposerExtension

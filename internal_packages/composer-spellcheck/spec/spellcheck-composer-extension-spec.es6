@@ -8,8 +8,8 @@ import {NylasSpellchecker, Message} from 'nylas-exports';
 
 const initialPath = path.join(__dirname, 'fixtures', 'california-with-misspellings-before.html');
 const initialHTML = fs.readFileSync(initialPath).toString();
-const expectedPath = path.join(__dirname, 'fixtures', 'california-with-misspellings-after.html');
-const expectedHTML = fs.readFileSync(expectedPath).toString();
+const afterPath = path.join(__dirname, 'fixtures', 'california-with-misspellings-after.html');
+const afterHTML = fs.readFileSync(afterPath).toString();
 
 describe('SpellcheckComposerExtension', function spellcheckComposerExtension() {
   beforeEach(() => {
@@ -30,23 +30,17 @@ describe('SpellcheckComposerExtension', function spellcheckComposerExtension() {
       };
 
       SpellcheckComposerExtension.update(editor);
-      expect(node.innerHTML).toEqual(expectedHTML);
+      expect(node.innerHTML).toEqual(afterHTML);
     });
   });
 
-  describe("applyTransformsToDraft", () => {
+  describe("applyTransformsToBody", () => {
     it("removes the spelling annotations it inserted", () => {
-      const draft = new Message({ body: expectedHTML });
-      const out = SpellcheckComposerExtension.applyTransformsToDraft({draft});
-      expect(out.body).toEqual(initialHTML);
-    });
-  });
-
-  describe("unapplyTransformsToDraft", () => {
-    it("returns the magic no-op option", () => {
-      const draft = new Message({ body: expectedHTML });
-      const out = SpellcheckComposerExtension.unapplyTransformsToDraft({draft});
-      expect(out).toEqual('unnecessary');
+      const draft = new Message({ body: afterHTML });
+      const range = document.createRange();
+      const fragment = range.createContextualFragment(`<root>${afterHTML}</root>`);
+      SpellcheckComposerExtension.applyTransformsToBody({fragment, draft});
+      expect(fragment.childNodes[0].innerHTML).toEqual(initialHTML);
     });
   });
 });

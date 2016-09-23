@@ -2,20 +2,18 @@ marked = require 'marked'
 Utils = require './utils'
 {ComposerExtension} = require 'nylas-exports'
 
-
 rawBodies = {}
 
 class MarkdownComposerExtension extends ComposerExtension
 
-  @applyTransformsToDraft: ({draft}) ->
-    nextDraft = draft.clone()
-    rawBodies[draft.clientId] = nextDraft.body
-    nextDraft.body = marked(Utils.getTextFromHtml(draft.body))
-    return nextDraft
+  @applyTransformsToDraft: ({fragment, draft}) ->
+    root = fragment.childNodes[0]
+    rawBodies[draft.clientId] = root.innerHTML
+    root.innerHTML = marked(root.innerText)
 
-  @unapplyTransformsToDraft: ({draft}) ->
-    nextDraft = draft.clone()
-    nextDraft.body = rawBodies[nextDraft.clientId] ? nextDraft.body
-    return nextDraft
+  @unapplyTransformsToDraft: ({fragment, draft}) ->
+    if rawBodies[draft.clientId]
+      root = fragment.childNodes[0]
+      root.innerHTML = rawBodies[draft.clientId]
 
 module.exports = MarkdownComposerExtension

@@ -119,6 +119,9 @@ export function applyExtensionTransformsToBody(draft) {
   const range = document.createRange();
   const fragment = range.createContextualFragment(`<root>${draft.body}</root>`);
   const extensions = ExtensionRegistry.Composer.extensions();
+  console.log('--BEFORE------------------------------');
+  console.log(draft.body);
+  console.log('--------------------------------');
 
   return Promise.each(extensions, (ext) => {
     const extApply = ext.applyTransformsToBody;
@@ -133,23 +136,30 @@ export function applyExtensionTransformsToBody(draft) {
     });
   }).then(() => {
     draft.body = fragment.childNodes[0].innerHTML;
+    console.log('--AFTER------------------------------');
+    console.log(draft.body);
+    console.log('--------------------------------');
     return draft;
   });
 }
 
 export function prepareDraftForSyncback(session) {
   return session.ensureCorrectAccount({noSyncback: true})
-  .then(() => applyExtensionTransformsToDraft(session.draft()))
-  .then((transformed) => applyExtensionTransformsToBody(transformed))
+  .then(() =>
+    applyExtensionTransformsToDraft(session.draft()))
+  .then((transformed) =>
+    applyExtensionTransformsToBody(transformed))
   .then((transformed) => {
     if (!transformed.replyToMessageId || !shouldAppendQuotedText(transformed)) {
-      return Promise.resolve(transformed)
+      return Promise.resolve(transformed);
     }
-    return appendQuotedTextToDraft(transformed)
+    return appendQuotedTextToDraft(transformed);
   })
   .then((draft) => (
-    DatabaseStore.inTransaction((t) => t.persistModel(draft))
-    .then(() => Promise.resolve(queueDraftFileUploads(draft)))
-    .thenReturn(draft)
+    DatabaseStore.inTransaction((t) =>
+      t.persistModel(draft)
+    ).then(() =>
+      Promise.resolve(queueDraftFileUploads(draft))
+    ).thenReturn(draft)
   ))
 }
