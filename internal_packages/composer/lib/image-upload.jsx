@@ -15,9 +15,10 @@ export default class ImageUpload extends FileUpload {
   }
 
   _onLoaded = () => {
-    // on load, modify our DOM just /slightly/. This gives DOM mutation listeners
-    // that might be watching us (for ex: when we're in an overlaid component)
-    // a chance to recompute the image size.
+    // on load, modify our DOM just /slightly/. This causes DOM mutation listeners
+    // watching the DOM to trigger. This is a good thing, because the image may
+    // change dimensions. (We use this to reflow the draft body when this component
+    // is within an OverlaidComponent)
     const el = ReactDOM.findDOMNode(this);
     if (el) {
       el.classList.add('loaded');

@@ -3,13 +3,7 @@ import {
   ComposerExtension,
 } from 'nylas-exports'
 
-/**
- * Inserts the set of Proposed Times into the body of the HTML email.
- *
- */
 export default class ImageUploadComposerExtension extends ComposerExtension {
-
-  static TAG_NAME = "inline-image";
 
   static editingActions() {
     return [{
@@ -32,17 +26,9 @@ export default class ImageUploadComposerExtension extends ComposerExtension {
   static _onInsertAttachmentIntoDraft({editor, actionArg}) {
     if (editor.draftClientId === actionArg.draftClientId) { return }
 
-    editor.insertCustomComponent("ImageUploadInlineContainer", {
+    editor.insertCustomComponent("InlineImageUploadContainer", {
       className: `inline-container-${actionArg.uploadId}`,
       uploadId: actionArg.uploadId,
     })
-  }
-
-  static applyTransformsToDraft({draft}) {
-    return draft;
-  }
-
-  static unapplyTransformsToDraft({draft}) {
-    return draft
   }
 }

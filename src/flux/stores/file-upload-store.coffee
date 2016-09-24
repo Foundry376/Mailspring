@@ -63,8 +63,8 @@ class FileUploadStore extends NylasStore
       pathsToOpen.forEach (filePath) ->
         Actions.addAttachment({messageClientId, filePath})
 
-  _onAddAttachment: ({messageClientId, filePath, callback, inline}) ->
-    callback ?= ->
+  _onAddAttachment: ({messageClientId, filePath, onUploadCreated, inline}) ->
+    onUploadCreated ?= ->
     inline ?= false
 
     @_assertIdPresent(messageClientId)
@@ -81,9 +81,9 @@ class FileUploadStore extends NylasStore
     .then(@_prepareTargetDir)
     .then(@_copyUpload)
     .then (upload) =>
-      @_applySessionChanges upload.messageClientId, (uploads) ->
+      return @_applySessionChanges upload.messageClientId, (uploads) ->
         uploads.concat([upload])
-      .then( => callback(upload))
+      .then( => onUploadCreated(upload))
     .catch(@_onAttachFileError)
 
   _onRemoveAttachment: (upload) ->

@@ -3,14 +3,13 @@ import ReactDOM from 'react-dom';
 import ImageUpload from './image-upload';
 import fs from 'fs';
 
-export default class ImageUploadInlineContainer extends Component {
-  static displayName = 'ImageUploadInlineContainer';
+export default class InlineImageUploadContainer extends Component {
+  static displayName = 'InlineImageUploadContainer';
 
   static propTypes = {
     draft: PropTypes.object.isRequired,
     session: PropTypes.object.isRequired,
     uploadId: PropTypes.string.isRequired,
-    style: PropTypes.object,
     isPreview: PropTypes.bool,
   }
 
@@ -123,8 +122,7 @@ export default class ImageUploadInlineContainer extends Component {
 
     return (
       <div
-        className="image-upload-inline-container"
-        style={this.props.style}
+        className="inline-image-upload-container"
         onDoubleClick={this._onGoEdit}
       >
         <ImageUpload key={uploadId} upload={upload} />

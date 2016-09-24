@@ -518,21 +518,25 @@ export default class ComposerView extends React.Component {
   }
 
   _onFileReceived = (filePath) => {
+    // called from onDrop and onPaste - assume images should be inline
     Actions.addAttachment({
       filePath: filePath,
       messageClientId: this.props.draft.clientId,
-      callback: (upload) => {
+      onUploadCreated: (upload) => {
         if (Utils.shouldDisplayAsImage(upload)) {
           const {draft, session} = this.props;
 
           const uploads = [].concat(draft.uploads);
-          uploads.find(u => u.id === upload.id).inline = true;
-          session.changes.add({uploads})
+          const matchingUpload = uploads.find(u => u.id === upload.id);
+          if (matchingUpload) {
+            matchingUpload.inline = true;
+            session.changes.add({uploads})
 
-          Actions.insertAttachmentIntoDraft({
-            draftClientId: draft.clientId,
-            uploadId: upload.id,
-          })
+            Actions.insertAttachmentIntoDraft({
+              draftClientId: draft.clientId,
+              uploadId: matchingUpload.id,
+            });
+          }
         }
       },
     });
