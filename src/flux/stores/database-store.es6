@@ -2,7 +2,7 @@
 import async from 'async';
 import path from 'path';
 import fs from 'fs';
-import sqlite3 from 'sqlite3';
+import Sqlite3 from 'better-sqlite3';
 import PromiseQueue from 'promise-queue';
 import NylasStore from '../../global/nylas-store';
 import {remote, ipcRenderer} from 'electron';
@@ -156,33 +156,65 @@ class DatabaseStore extends NylasStore {
       return;
     }
 
-    let mode = sqlite3.OPEN_READWRITE;
-    if (NylasEnv.isWorkWindow()) {
-      // Since only the main window calls \`_runDatabaseSetup\`, it's important that
-      // it is also the only window with permission to create the file on disk
-      mode = sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE;
-    }
+    // let mode = sqlite3.OPEN_READWRITE;
+    // if (NylasEnv.isWorkWindow()) {
+    //   // Since only the main window calls \`_runDatabaseSetup\`, it's important that
+    //   // it is also the only window with permission to create the file on disk
+    //   mode = sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE;
+    // }
 
-    this._db = new sqlite3.Database(this._databasePath, mode, (err) => {
-      if (err) {
-        this._handleSetupError(err);
-        return;
+    console.log('this._databasePath')
+    console.log(this._databasePath);
+    this._db = new Sqlite3(this._databasePath, {});
+
+    (['run', 'get', 'all']).forEach((fnname) => {
+      this._db[fnname] = (sql, values, cb) => {
+        values.forEach((val, idx) => {
+          if (val === false) {
+            values[idx] = 0;
+          }
+          if (val === true) {
+            values[idx] = 1;
+          }
+          if (val === undefined) {
+            values[idx] = null;
+          }
+        });
+        console.log(`${fnname} ${sql}`);
+        const statement = this._db.prepare(sql);
+        let error = null
+        let result = null
+        try {
+          result = statement[fnname](...values);
+        } catch (err) {
+          error = err;
+        }
+        process.nextTick(() => {
+          if (cb) { cb(error, result) }
+        });
       }
+    });
+
+    this._db.on('open', () => {
+      // if (err) {
+      //   this._handleSetupError(err);
+      //   return;
+      // }
 
       // https://www.sqlite.org/wal.html
       // WAL provides more concurrency as readers do not block writers and a writer
       // does not block readers. Reading and writing can proceed concurrently.
-      this._db.run(`PRAGMA journal_mode = WAL;`);
+      this._db.pragma(`journal_mode = WAL`);
 
       // Note: These are properties of the connection, so they must be set regardless
       // of whether the database setup queries are run.
 
       // https://www.sqlite.org/intern-v-extern-blob.html
       // A database page size of 8192 or 16384 gives the best performance for large BLOB I/O.
-      this._db.run(`PRAGMA main.page_size = 8192;`);
-      this._db.run(`PRAGMA main.cache_size = 20000;`);
-      this._db.run(`PRAGMA main.synchronous = NORMAL;`);
-      this._db.configure('busyTimeout', 10000);
+      this._db.pragma(`main.page_size = 8192`);
+      this._db.pragma(`main.cache_size = 20000`);
+      this._db.pragma(`main.synchronous = NORMAL`);
+      // this._db.configure('busyTimeout', 10000);
       this._db.on('profile', (query, msec) => {
         if (msec > 100) {
           this._prettyConsoleLog(`${msec}msec: ${query}`);
@@ -195,48 +227,38 @@ class DatabaseStore extends NylasStore {
   }
 
   _checkDatabaseVersion({allowNotSet} = {}, ready) {
-    this._db.get('PRAGMA user_version', (err, result) => {
-      if (err) {
-        return this._handleSetupError(err)
-      }
-      const emptyVersion = (result.user_version === 0);
-      const wrongVersion = (result.user_version / 1 !== DatabaseVersion);
-      if (wrongVersion && !(emptyVersion && allowNotSet)) {
-        return this._handleSetupError(new Error(`Incorrect database schema version: ${result.user_version} not ${DatabaseVersion}`));
-      }
-      return ready();
-    });
+    const result = this._db.pragma('user_version', true);
+    const emptyVersion = (result === 0);
+    const wrongVersion = (result / 1 !== DatabaseVersion);
+    if (wrongVersion && !(emptyVersion && allowNotSet)) {
+      return this._handleSetupError(new Error(`Incorrect database schema version: ${result.user_version} not ${DatabaseVersion}`));
+    }
+    return ready();
   }
 
   _runDatabaseSetup(ready) {
     const builder = new DatabaseSetupQueryBuilder()
 
-    this._db.serialize(() => {
-      async.each(builder.setupQueries(), (query, callback) => {
-        console.debug(DEBUG_TO_LOG, `DatabaseStore: ${query}`);
-        this._db.run(query, [], callback);
-      }, (err) => {
-        if (err) {
-          return this._handleSetupError(err);
-        }
-        return this._db.run(`PRAGMA user_version=${DatabaseVersion}`, (versionErr) => {
-          if (versionErr) {
-            return this._handleSetupError(versionErr);
-          }
+    async.each(builder.setupQueries(), (query, callback) => {
+      console.debug(DEBUG_TO_LOG, `DatabaseStore: ${query}`);
+      this._db.run(query, [], callback);
+    }, (err) => {
+      if (err) {
+        return this._handleSetupError(err);
+      }
+      this._db.pragma(`user_version=${DatabaseVersion}`)
 
-          const exportPath = path.join(NylasEnv.getConfigDirPath(), 'mail-rules-export.json')
-          if (fs.existsSync(exportPath)) {
-            try {
-              const row = JSON.parse(fs.readFileSync(exportPath));
-              this.inTransaction(t => t.persistJSONBlob('MailRules-V2', row.json));
-              fs.unlink(exportPath);
-            } catch (mailRulesError) {
-              console.log(`Could not re-import mail rules: ${mailRulesError}`);
-            }
-          }
-          return ready();
-        });
-      });
+      const exportPath = path.join(NylasEnv.getConfigDirPath(), 'mail-rules-export.json')
+      if (fs.existsSync(exportPath)) {
+        try {
+          const row = JSON.parse(fs.readFileSync(exportPath));
+          this.inTransaction(t => t.persistJSONBlob('MailRules-V2', row.json));
+          fs.unlink(exportPath);
+        } catch (mailRulesError) {
+          console.log(`Could not re-import mail rules: ${mailRulesError}`);
+        }
+      }
+      return ready();
     });
   }
 
@@ -312,7 +334,10 @@ class DatabaseStore extends NylasStore {
         return;
       }
 
-      const fn = (query.indexOf(`SELECT `) === 0) ? 'all' : 'run';
+      let fn = (query.indexOf(`SELECT `) === 0) ? 'all' : 'get';
+      if (query.startsWith('BEGIN') || query.startsWith('COMMIT') || query.startsWith('UPDATE') || query.startsWith('REPLACE') || query.startsWith('INSERT') || query.startsWith('DELETE')) {
+        fn = 'run';
+      }
 
       if (query.indexOf(`SELECT `) === 0) {
         if (DEBUG_QUERY_PLANS) {
@@ -341,9 +366,9 @@ class DatabaseStore extends NylasStore {
       // finished executing.
 
       if (query.indexOf(`BEGIN`) === 0) {
-        if (this._inflightTransactions === 0) {
-          this._db.serialize();
-        }
+        // if (this._inflightTransactions === 0) {
+        //   this._db.serialize();
+        // }
         this._inflightTransactions += 1;
       }
 
@@ -352,12 +377,12 @@ class DatabaseStore extends NylasStore {
           console.error(`DatabaseStore: Query ${query}, ${JSON.stringify(values)} failed ${err.toString()}`);
         }
 
-        if (query === COMMIT) {
-          this._inflightTransactions -= 1;
-          if (this._inflightTransactions === 0) {
-            this._db.parallelize();
-          }
-        }
+        // if (query === COMMIT) {
+        //   this._inflightTransactions -= 1;
+        //   if (this._inflightTransactions === 0) {
+        //     this._db.parallelize();
+        //   }
+        // }
         if (err) {
           reject(err)
         } else {
