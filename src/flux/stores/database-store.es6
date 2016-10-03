@@ -83,6 +83,9 @@ class DatabaseStore extends NylasStore {
     this._open = false;
     this._waiting = [];
 
+    this._totalQueryTime = 0;
+    this._totalQueries = 0;
+
     this.setupEmitter();
     this._emitter.setMaxListeners(100);
 
@@ -163,12 +166,11 @@ class DatabaseStore extends NylasStore {
     //   mode = sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE;
     // }
 
-    console.log('this._databasePath')
-    console.log(this._databasePath);
     this._db = new Sqlite3(this._databasePath, {});
 
     (['run', 'get', 'all']).forEach((fnname) => {
       this._db[fnname] = (sql, values, cb) => {
+        const start = Date.now();
         values.forEach((val, idx) => {
           if (val === false) {
             values[idx] = 0;
@@ -180,16 +182,33 @@ class DatabaseStore extends NylasStore {
             values[idx] = null;
           }
         });
-        console.log(`${fnname} ${sql}`);
-        const statement = this._db.prepare(sql);
-        let error = null
-        let result = null
-        try {
-          result = statement[fnname](...values);
-        } catch (err) {
-          error = err;
+        // console.log(`${fnname} ${sql}`);
+        let trying = true;
+        let error = null;
+        let result = null;
+        while (trying) {
+          const statement = this._db.prepare(sql);
+          try {
+            error = null;
+            result = statement[fnname](...values);
+            trying = false;
+          } catch (err) {
+            trying = false;
+            error = err;
+            if (err.toString().includes('database schema has changed')) {
+              trying = true;
+            }
+          }
         }
         process.nextTick(() => {
+          this._totalQueryTime += Date.now() - start;
+          this._totalQueries += 1;
+          if (this._totalQueries === 5000) {
+            console.log("-----------------------------------")
+            console.log("FIRST 5000 QUERIES TOOK:")
+            console.log(this._totalQueryTime)
+            console.log("-----------------------------------")
+          }
           if (cb) { cb(error, result) }
         });
       }
@@ -228,10 +247,10 @@ class DatabaseStore extends NylasStore {
 
   _checkDatabaseVersion({allowNotSet} = {}, ready) {
     const result = this._db.pragma('user_version', true);
-    const emptyVersion = (result === 0);
+    const emptyVersion = (result / 1 === 0);
     const wrongVersion = (result / 1 !== DatabaseVersion);
     if (wrongVersion && !(emptyVersion && allowNotSet)) {
-      return this._handleSetupError(new Error(`Incorrect database schema version: ${result.user_version} not ${DatabaseVersion}`));
+      return this._handleSetupError(new Error(`Incorrect database schema version: ${result} not ${DatabaseVersion}`));
     }
     return ready();
   }
@@ -335,7 +354,7 @@ class DatabaseStore extends NylasStore {
       }
 
       let fn = (query.indexOf(`SELECT `) === 0) ? 'all' : 'get';
-      if (query.startsWith('BEGIN') || query.startsWith('COMMIT') || query.startsWith('UPDATE') || query.startsWith('REPLACE') || query.startsWith('INSERT') || query.startsWith('DELETE')) {
+      if (query.startsWith('BEGIN') || query.startsWith('COMMIT') || query.startsWith('UPDATE') || query.startsWith('REPLACE') || query.startsWith('INSERT') || query.startsWith('DELETE') || query.startsWith('DROP') || query.startsWith('CREATE')) {
         fn = 'run';
       }
 
