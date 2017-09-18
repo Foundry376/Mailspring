@@ -114,6 +114,7 @@ Great starting points for creating your own plugins!
 - [View on GitHub](https://github.com/Foundry376/Mailspring/tree/master/internal_packages/message-view-on-github)
 - [Personal Level Indicators](https://github.com/Foundry376/Mailspring/tree/master/internal_packages/personal-level-indicators)
 - [Phishing Detection](https://github.com/Foundry376/Mailspring/tree/master/internal_packages/phishing-detection)
+- [Unsubscribe](https://github.com/Foundry376/Mailspring/tree/master/internal_packages/unsubscribe)
 
 ## Configuration
 You can configure Mailspring in a few ways—for instance, pointing it to your self-hosted instance of the sync engine or changing the interface zoom level. [Learn more about how.](https://github.com/Foundry376/Mailspring/blob/master/CONFIGURATION.md)
