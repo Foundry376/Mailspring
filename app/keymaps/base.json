@@ -57,5 +57,6 @@
   "contenteditable:outdent": "mod+[",
   "contenteditable:indent": "mod+]",
   "contenteditable:next-selection": "mod+\"",
-  "contenteditable:open-spelling-suggestions": "mod+m"
+  "contenteditable:open-spelling-suggestions": "mod+m",
+  "contenteditable:insert-attachment": "mod+shift+a"
 }

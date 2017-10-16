@@ -102,6 +102,7 @@ export default class ComposerView extends React.Component {
       'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
       'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
       'composer:show-and-focus-from': () => {},
+      'composer:insert-attachement': () => this._onSelectAttachment(),
       'core:undo': event => {
         event.preventDefault();
         event.stopPropagation();
@@ -111,7 +112,7 @@ export default class ComposerView extends React.Component {
         event.preventDefault();
         event.stopPropagation();
         this.props.session.redo();
-      },
+      }
     };
   }
 
