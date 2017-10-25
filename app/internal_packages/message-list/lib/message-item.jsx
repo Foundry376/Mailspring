@@ -307,7 +307,11 @@ export default class MessageItem extends React.Component {
     return (
       <div className={className} onClick={this._onToggleCollapsed}>
         <div className="message-item-white-wrap">
-          <div className="message-item-area">
+          <div
+            className={`message-item-area  ${AppEnv.config.get('core.reading.restrictMaxWidth')
+              ? 'message-restrict-width'
+              : ''}`}
+          >
             <div className="collapsed-from">
               {from && from[0] && from[0].displayName({ compact: true })}
             </div>
@@ -335,7 +339,11 @@ export default class MessageItem extends React.Component {
     return (
       <div className={this.props.className}>
         <div className="message-item-white-wrap">
-          <div className="message-item-area">
+          <div
+            className={`message-item-area  ${AppEnv.config.get('core.reading.restrictMaxWidth')
+              ? 'message-restrict-width'
+              : ''}`}
+          >
             {this._renderHeader()}
             <MessageItemBody message={this.props.message} downloads={this.state.downloads} />
             {this._renderAttachments()}

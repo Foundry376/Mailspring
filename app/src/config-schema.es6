@@ -109,6 +109,11 @@ export default {
             default: false,
             title: 'Display conversations in descending chronological order',
           },
+          restrictMaxWidth: {
+            type: 'boolean',
+            default: true,
+            title: 'Restrict email content max width',
+          },
         },
       },
       composing: {

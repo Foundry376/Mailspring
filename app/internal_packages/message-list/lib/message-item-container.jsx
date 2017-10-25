@@ -19,12 +19,18 @@ export default class MessageItemContainer extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.state = this._getStateFromStores();
+    this.state.maxWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
   }
 
   componentDidMount() {
     if (this.props.message.draft) {
       this._unlisten = DraftStore.listen(this._onSendingStateChanged);
     }
+
+    this._disposable = [];
+    this._disposable.push(
+      AppEnv.config.onDidChange('core.reading.restrictMaxWidth', this._onMaxWidthChange)
+    );
   }
 
   componentWillReceiveProps(newProps) {
@@ -39,6 +45,10 @@ export default class MessageItemContainer extends React.Component {
     if (this._unlisten) {
       this._unlisten();
     }
+
+    for (const dispose of this._disposable) {
+      dispose.dispose();
+    }
   }
 
   focus = () => {
@@ -51,6 +61,7 @@ export default class MessageItemContainer extends React.Component {
       unread: this.props.message.unread,
       collapsed: this.props.collapsed,
       'message-item-wrap': true,
+      'message-restrict-width': this.state.maxWidth,
       'before-reply-area': this.props.isBeforeReplyArea,
     });
   }
@@ -59,6 +70,12 @@ export default class MessageItemContainer extends React.Component {
     if (headerMessageId === this.props.message.headerMessageId) {
       this.setState(this._getStateFromStores());
     }
+  };
+
+  _onMaxWidthChange = () => {
+    let newState = this._getStateFromStores();
+    newState.maxWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
+    this.setState(newState);
   };
 
   _getStateFromStores(props = this.props) {

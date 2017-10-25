@@ -150,6 +150,10 @@ body.platform-win32 {
     a { float: right; }
   }
 
+  .message-restrict-width {
+    max-width: @message-max-width;
+  }
+
   .message-body-error {
     background-color: @background-secondary;
     border: 1px solid darken(@background-secondary, 8%);
@@ -168,7 +172,6 @@ body.platform-win32 {
   }
 
   .message-subject-wrap {
-    max-width: @message-max-width;
     margin: 5px auto 10px auto;
     -webkit-user-select: text;
     line-height: @font-size-large * 1.8;
@@ -207,7 +210,6 @@ body.platform-win32 {
   .message-list-headers {
     margin: 0 auto;
     width: 100%;
-    max-width: @message-max-width;
     display:block;
 
     .participants {
@@ -239,7 +241,6 @@ body.platform-win32 {
   .message-item-wrap {
     transition: height 0.1s;
     position: relative;
-    max-width: @message-max-width;
     margin: 0 auto;
 
     .message-item-white-wrap {
@@ -344,7 +345,6 @@ body.platform-win32 {
       }
     }
     .msg-lines {
-      max-width: @message-max-width;
       margin: 0 auto;
       width: 100%;
       margin-top: -13px;
@@ -464,7 +464,6 @@ body.platform-win32 {
 
   .message-item-area {
     width: 100%;
-    max-width: @message-max-width;
     margin: 0 auto;
     padding: 0 20px @spacing-standard 20px;
 
@@ -503,7 +502,6 @@ body.platform-win32 {
   .footer-reply-area-wrap {
     overflow: hidden;
 
-    max-width: @message-max-width;
     margin: -3px auto 10px auto;
 
     position: relative;
@@ -524,7 +522,6 @@ body.platform-win32 {
 
     .footer-reply-area {
       width: 100%;
-      max-width: @message-max-width;
       margin: 0 auto;
       padding: 12px @spacing-standard * 1.5;
     }

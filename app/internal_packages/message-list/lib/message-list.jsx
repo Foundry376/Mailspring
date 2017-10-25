@@ -80,6 +80,7 @@ class MessageList extends React.Component {
     super(props);
     this.state = this._getStateFromStores();
     this.state.minified = true;
+    this.state.maxWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
     this._draftScrollInProgress = false;
     this.MINIFY_THRESHOLD = 3;
   }
@@ -96,6 +97,11 @@ class MessageList extends React.Component {
           });
       })
     );
+
+    this._disposable = [];
+    this._disposable.push(
+      AppEnv.config.onDidChange('core.reading.restrictMaxWidth', this._onChange)
+    );
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -109,6 +115,9 @@ class MessageList extends React.Component {
   componentWillUnmount() {
     for (const unsubscribe of this._unsubscribers) {
       unsubscribe();
+    }
+    for (const dispose of this._disposable) {
+      dispose.dispose();
     }
   }
 
@@ -371,6 +380,7 @@ class MessageList extends React.Component {
     if ((this.state.currentThread || {}).id !== (newState.currentThread || {}).id) {
       newState.minified = true;
     }
+    newState.maxWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
     this.setState(newState);
   };
 
@@ -392,7 +402,9 @@ class MessageList extends React.Component {
     }
 
     return (
-      <div className="message-subject-wrap">
+      <div
+        className={`message-subject-wrap ${this.state.maxWidth ? 'message-restrict-width' : ''}`}
+      >
         <MailImportantIcon thread={this.state.currentThread} />
         <div style={{ flex: 1 }}>
           <span className="message-subject">{subject}</span>
@@ -461,8 +473,14 @@ class MessageList extends React.Component {
 
   _renderReplyArea() {
     return (
-      <div className="footer-reply-area-wrap" onClick={this._onClickReplyArea} key="reply-area">
-        <div className="footer-reply-area">
+      <div
+        className={`footer-reply-area-wrap  ${this.state.maxWidth ? 'message-restrict-width' : ''}`}
+        onClick={this._onClickReplyArea}
+        key="reply-area"
+      >
+        <div
+          className={`footer-reply-area  ${this.state.maxWidth ? 'message-restrict-width' : ''}`}
+        >
           <RetinaImg name={`${this._replyType()}-footer.png`} mode={RetinaImg.Mode.ContentIsMask} />
           <span className="reply-text">Write a reply…</span>
         </div>
@@ -482,7 +500,10 @@ class MessageList extends React.Component {
         key={Utils.generateTempId()}
       >
         <div className="num-messages">{bundle.messages.length} older messages</div>
-        <div className="msg-lines" style={{ height: h * lines.length }}>
+        <div
+          className={`msg-lines  ${this.state.maxWidth ? 'message-restrict-width' : ''}`}
+          style={{ height: h * lines.length }}
+        >
           {lines.map((msg, i) => (
             <div key={msg.id} style={{ height: h * 2, top: -h * i }} className="msg-line" />
           ))}
@@ -525,7 +546,9 @@ class MessageList extends React.Component {
             {this._renderSubject()}
             <div className="headers" style={{ position: 'relative' }}>
               <InjectedComponentSet
-                className="message-list-headers"
+                className={`message-list-headers ${this.state.maxWidth
+                  ? 'message-restrict-width'
+                  : ''}`}
                 matching={{ role: 'MessageListHeaders' }}
                 exposedProps={{ thread: this.state.currentThread, messages: this.state.messages }}
                 direction="column"
