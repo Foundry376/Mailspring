@@ -25,10 +25,12 @@ export default class MovePickerPopover extends Component {
     super(props);
     this._standardFolders = [];
     this._userCategories = [];
+    this._isMounted = false;
     this.state = this._recalculateState(this.props, { searchValue: '' });
   }
 
   componentDidMount() {
+    this._isMounted = true;
     this._registerObservables();
   }
 
@@ -39,6 +41,7 @@ export default class MovePickerPopover extends Component {
 
   componentWillUnmount() {
     this._unregisterObservables();
+    this._isMounted = false;
   }
 
   _registerObservables = (props = this.props) => {
@@ -220,7 +223,37 @@ export default class MovePickerPopover extends Component {
     );
   };
 
+  _suppressAndCacheTypedCharacters = () => {
+    this._typeCache = [];
+    document.addEventListener('keypress', this._onKeypressWhileSuppressing, true);
+  };
+
+  _stopSuppressingTypedCharacters = () => {
+    document.removeEventListener('keypress', this._onKeypressWhileSuppressing, true);
+  };
+
+  _getSuppressedTypedCharacters = () => {
+    return this._typeCache.join('');
+  };
+
+  _onKeypressWhileSuppressing = e => {
+    if (!(e.ctrlKey || e.isComposing || e.metaKey)) {
+      this._typeCache.push(e.key);
+      e.stopPropagation();
+    }
+  };
+
+  _onSearchInputFocus = e => {
+    this._stopSuppressingTypedCharacters();
+    this.setState(
+      this._recalculateState(this.props, { searchValue: this._getSuppressedTypedCharacters() })
+    );
+  };
+
   render() {
+    if (!this._isMounted) {
+      this._suppressAndCacheTypedCharacters();
+    }
     const headerComponents = [
       <input
         type="text"
@@ -230,6 +263,7 @@ export default class MovePickerPopover extends Component {
         placeholder={'Move to...'}
         value={this.state.searchValue}
         onChange={this._onSearchValueChange}
+        onFocus={this._onSearchInputFocus}
       />,
     ];
 
