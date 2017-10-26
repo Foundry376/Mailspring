@@ -31,7 +31,7 @@ export default class MovePickerPopover extends Component {
 
   componentDidMount() {
     this._isMounted = true;
-    this._registerObservables();
+    setImmediate(this._registerObservables);
   }
 
   componentWillReceiveProps(nextProps) {
