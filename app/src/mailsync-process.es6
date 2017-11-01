@@ -49,8 +49,9 @@ export const LocalizedErrorStrings = {
 };
 
 export default class MailsyncProcess extends EventEmitter {
-  constructor({ configDirPath, resourcePath }, identity, account) {
+  constructor({ configDirPath, resourcePath, verbose }, identity, account) {
     super();
+    this.verbose = verbose;
     this.configDirPath = configDirPath;
     this.account = account;
     this.identity = identity;
@@ -68,7 +69,11 @@ export default class MailsyncProcess extends EventEmitter {
       env.IDENTITY_SERVER = rootURLForServer('identity');
     }
 
-    this._proc = spawn(this.binaryPath, [`--mode`, mode], { env });
+    const args = [`--mode`, mode];
+    if (this.verbose) {
+      args.push('--verbose');
+    }
+    this._proc = spawn(this.binaryPath, args, { env });
 
     // stdout may not be present if an error occurred. Error handler hasn't been
     // attached yet, but will be by the caller of spawnProcess.
@@ -102,6 +107,15 @@ export default class MailsyncProcess extends EventEmitter {
       });
 
       this._proc.on('close', code => {
+        const stripSecrets = text => {
+          const settings = (this.account && this.account.settings) || {};
+          const { refresh_token, imap_password, smtp_password } = settings;
+          return (text || '')
+            .replace(new RegExp(refresh_token || 'not-present', 'g'), '*********')
+            .replace(new RegExp(imap_password || 'not-present', 'g'), '*********')
+            .replace(new RegExp(smtp_password || 'not-present', 'g'), '*********');
+        };
+
         try {
           const lastLine = buffer
             .toString('UTF-8')
@@ -111,21 +125,18 @@ export default class MailsyncProcess extends EventEmitter {
           if (code === 0) {
             resolve(response);
           } else {
-            const { refresh_token, imap_password, smtp_password } = this.account.settings;
-
             let msg = LocalizedErrorStrings[response.error] || response.error;
             if (response.error_service) {
               msg = `${msg} (${response.error_service.toUpperCase()})`;
             }
             const error = new Error(msg);
-            error.rawLog = (response.log || '')
-              .replace(new RegExp(refresh_token || 'not-present', 'g'), '*********')
-              .replace(new RegExp(imap_password || 'not-present', 'g'), '*********')
-              .replace(new RegExp(smtp_password || 'not-present', 'g'), '*********');
+            error.rawLog = stripSecrets(response.log);
             reject(error);
           }
         } catch (err) {
-          reject(new Error(buffer.toString()));
+          const error = new Error(`An unexpected mailsync error occurred (${code})`);
+          error.rawLog = stripSecrets(buffer.toString());
+          reject(error);
         }
       });
     });

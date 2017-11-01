@@ -2,6 +2,16 @@ export default {
   core: {
     type: 'object',
     properties: {
+      sync: {
+        type: 'object',
+        properties: {
+          verboseUntil: {
+            type: 'number',
+            default: 0,
+            title: 'Enable verbose IMAP / SMTP logging',
+          },
+        },
+      },
       workspace: {
         type: 'object',
         properties: {
@@ -147,6 +157,11 @@ export default {
             type: 'boolean',
             default: true,
             title: 'Play sound when receiving new mail',
+          },
+          unsnoozeToTop: {
+            type: 'boolean',
+            default: true,
+            title: 'Resurface messages to the top of the inbox when unsnoozing',
           },
           countBadge: {
             type: 'string',

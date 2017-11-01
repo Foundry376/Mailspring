@@ -585,7 +585,17 @@ export default class AppEnvConstructor {
 
   // Extended: Move current window to the center of the screen.
   center() {
-    return ipcRenderer.send('call-window-method', 'center');
+    if (process.platform === 'linux') {
+      let dimensions = this.getWindowDimensions();
+      let display =
+        remote.screen.getDisplayMatching(dimensions) || remote.screen.getPrimaryDisplay();
+      let x = display.bounds.x + (display.bounds.width - dimensions.width) / 2;
+      let y = display.bounds.y + (display.bounds.height - dimensions.height) / 2;
+
+      return this.setPosition(x, y);
+    } else {
+      return ipcRenderer.send('call-window-method', 'center');
+    }
   }
 
   // Extended: Focus the current window. Note: this will not open the window
