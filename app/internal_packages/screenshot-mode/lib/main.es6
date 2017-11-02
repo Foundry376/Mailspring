@@ -24,6 +24,3 @@ export function deactivate() {
     return document.body.removeChild(style)
   }
 }
-
-export function serialize() {
-}
