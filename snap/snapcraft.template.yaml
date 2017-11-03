@@ -43,7 +43,7 @@ apps:
       TMPDIR: $XDG_RUNTIME_DIR
     plugs:
      - avahi-observe
-     - browser-support
+     - browser-sandbox
      - cups-control
      - gsettings
      - home
@@ -57,3 +57,8 @@ apps:
      - screen-inhibit-control
      - unity7
      - x11
+
+plugs:
+ browser-sandbox:
+   interface: browser-support
+   allow-sandbox: true
