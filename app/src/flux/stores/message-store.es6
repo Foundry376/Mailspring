@@ -9,6 +9,7 @@ import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import async from 'async';
+import electron from 'electron';
 import _ from 'underscore';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
@@ -193,7 +194,14 @@ class MessageStore extends MailspringStore {
     this._itemsExpanded = {};
     this.trigger();
 
+    this._setWindowTitle();
+
     return this._fetchFromCache();
+  }
+  
+  _setWindowTitle() {
+    let title = 'Mailspring' + (this._thread ? ' · ' + this._thread.subject : '');
+    electron.remote.getCurrentWindow().setTitle(title);
   }
 
   _markAsRead() {
