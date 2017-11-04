@@ -184,7 +184,7 @@ class MessageStore extends MailspringStore {
 
   _onApplyFocusChange() {
     const focused = FocusedContentStore.focused('thread');
-    if ((this._thread ? this._thread.id : undefined) === (focused ? focused.id : undefined)) return;
+    if (this.threadId() === (focused ? focused.id : undefined)) return;
 
     this._thread = focused;
     this._items = [];
@@ -214,7 +214,7 @@ class MessageStore extends MailspringStore {
 
       return setTimeout(
         () => {
-          if ((markAsReadId !== (this._thread ? this._thread.id : undefined)) || !this._thread.unread) return;
+          if ((markAsReadId !== this.threadId()) || !this._thread.unread) return;
           return Actions.queueTask(TaskFactory.taskForInvertingUnread({
             threads: [this._thread],
             source: "Thread Selected",
@@ -281,7 +281,7 @@ class MessageStore extends MailspringStore {
     return query.then(items => {
       // Check to make sure that our thread is still the thread we were
       // loading items for. Necessary because this takes a while.
-      if (loadedThreadId !== (this._thread ? this._thread.id : undefined)) return;
+      if (loadedThreadId !== this.threadId()) return;
 
       this._items = items.filter(m => !m.isHidden());
       this._items = this._sortItemsForDisplay(this._items);
