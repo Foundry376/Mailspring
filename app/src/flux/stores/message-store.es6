@@ -1,17 +1,17 @@
-import MailspringStore from 'mailspring-store'
-import Actions from '../actions'
-import Message from '../models/message'
-import Thread from '../models/thread'
-import Utils from '../models/utils'
-import DatabaseStore from './database-store'
-import TaskFactory from '../tasks/task-factory'
-import FocusedPerspectiveStore from './focused-perspective-store'
-import FocusedContentStore from './focused-content-store'
-import * as ExtensionRegistry from '../../registries/extension-registry'
-import async from 'async'
-import _ from 'underscore'
+import MailspringStore from 'mailspring-store';
+import Actions from '../actions';
+import Message from '../models/message';
+import Thread from '../models/thread';
+import Utils from '../models/utils';
+import DatabaseStore from './database-store';
+import TaskFactory from '../tasks/task-factory';
+import FocusedPerspectiveStore from './focused-perspective-store';
+import FocusedContentStore from './focused-content-store';
+import * as ExtensionRegistry from '../../registries/extension-registry';
+import async from 'async';
+import _ from 'underscore';
 
-const FolderNamesHiddenByDefault = ['spam', 'trash']
+const FolderNamesHiddenByDefault = ['spam', 'trash'];
 
 class MessageStore extends MailspringStore {
 
