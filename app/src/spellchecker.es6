@@ -22,7 +22,10 @@ class Spellchecker {
     const initHandler = () => {
       const { SpellCheckHandler } = require('electron-spellchecker'); //eslint-disable-line
       this.handler = new SpellCheckHandler();
-      this.handler.switchLanguage('en-US'); // Start with US English
+      this.handler.switchLanguage(AppEnv.config.get('core.composing.spellcheckDefaultLanguage')); // Start with the configured language
+      AppEnv.config.onDidChange('core.composing.spellcheckDefaultLanguage', value => {
+        this.handler.switchLanguage(value.newValue);
+      });
       this.handler.attachToInput();
       this._loadCustomDict();
     };

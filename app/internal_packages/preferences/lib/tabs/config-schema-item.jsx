@@ -45,6 +45,10 @@ class ConfigSchemaItem extends React.Component {
     // In the future, we may add an option to reveal "advanced settings"
     if (this.props.configSchema.advanced) return false;
 
+    let note = this.props.configSchema.note ? (
+      <div className="platform-note">{this.props.configSchema.note}</div>
+    ) : null;
+
     if (this.props.configSchema.type === 'object') {
       return (
         <section>
@@ -58,6 +62,7 @@ class ConfigSchemaItem extends React.Component {
               config={this.props.config}
             />
           ))}
+          {note}
         </section>
       );
     } else if (this.props.configSchema.enum) {
@@ -74,6 +79,7 @@ class ConfigSchemaItem extends React.Component {
               </option>
             ))}
           </select>
+          {note}
         </div>
       );
     } else if (this.props.configSchema.type === 'boolean') {
@@ -86,6 +92,7 @@ class ConfigSchemaItem extends React.Component {
             checked={this.props.config.get(this.props.keyPath)}
           />
           <label htmlFor={this.props.keyPath}>{this.props.configSchema.title}</label>
+          {note}
         </div>
       );
     }
