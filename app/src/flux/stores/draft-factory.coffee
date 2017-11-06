@@ -7,7 +7,7 @@ Actions = require('../actions').default
 DatabaseStore = require('./database-store').default
 AccountStore = require('./account-store').default
 ContactStore = require('./contact-store').default
-MessageStore = require './message-store'
+MessageStore = require('./message-store').default
 FocusedPerspectiveStore = require('./focused-perspective-store').default
 
 DraftStore = null

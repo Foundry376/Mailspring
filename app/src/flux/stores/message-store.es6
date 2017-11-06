@@ -2,20 +2,16 @@ import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
 import Message from '../models/message';
 import Thread from '../models/thread';
-import Utils from '../models/utils';
 import DatabaseStore from './database-store';
 import TaskFactory from '../tasks/task-factory';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
-import async from 'async';
 import electron from 'electron';
-import _ from 'underscore';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
 
 class MessageStore extends MailspringStore {
-
   constructor() {
     super();
     this._setStoreDefaults();
@@ -30,36 +26,28 @@ class MessageStore extends MailspringStore {
     const viewing = FocusedPerspectiveStore.current().categoriesSharedRole();
     const viewingHiddenCategory = FolderNamesHiddenByDefault.includes(viewing);
 
-    if (viewingHiddenCategory) {
-      return this._items.filter(function(item) {
-        const inHidden = FolderNamesHiddenByDefault.includes(item.folder.role);
-        return inHidden || (item.draft === true);
-      })
-    } 
-    else {
-      return this._items.filter(function(item) {
-        const inHidden = FolderNamesHiddenByDefault.includes(item.folder.role);
-        return !inHidden;
-      })
-    }
+    return this._items.filter(item => {
+      const inHidden = FolderNamesHiddenByDefault.includes(item.folder.role);
+      return viewingHiddenCategory ? inHidden || item.draft : !inHidden;
+    });
   }
 
-  threadId() { 
+  threadId() {
     return this._thread ? this._thread.id : undefined;
   }
 
-  thread() { 
+  thread() {
     return this._thread;
   }
 
   itemsExpandedState() {
     // ensure that we're always serving up immutable objects.
     // this.state == nextState is always true if we modify objects in place.
-    return _.clone(this._itemsExpanded);
+    return Object.assign({}, this._itemsExpanded);
   }
 
   hasCollapsedItems() {
-    return _.size(this._itemsExpanded) < this._items.length;
+    return Object.keys(this._itemsExpanded).length < this._items.length;
   }
 
   numberOfHiddenItems() {
@@ -67,7 +55,7 @@ class MessageStore extends MailspringStore {
   }
 
   itemIds() {
-    return _.pluck(this._items, "id");
+    return this._items.map(i => i.id);
   }
 
   itemsLoading() {
@@ -85,9 +73,8 @@ class MessageStore extends MailspringStore {
 
   _onExtensionsChanged(role) {
     const MessageBodyProcessor = require('./message-body-processor').default;
-    return MessageBodyProcessor.resetCache();
+    MessageBodyProcessor.resetCache();
   }
-
 
   //########## PRIVATE ####################################################
 
@@ -96,7 +83,7 @@ class MessageStore extends MailspringStore {
     this._itemsExpanded = {};
     this._itemsLoading = false;
     this._showingHiddenItems = false;
-    return this._thread = null;
+    this._thread = null;
   }
 
   _registerListeners() {
@@ -119,12 +106,12 @@ class MessageStore extends MailspringStore {
     if (!this._thread) return;
 
     if (change.objectClass === Message.name) {
-      const inDisplayedThread = _.some(change.objects, obj => obj.threadId === this._thread.id);
+      const inDisplayedThread = change.objects.some(obj => obj.threadId === this._thread.id);
       if (!inDisplayedThread) return;
 
       if (change.objects.length === 1 && change.objects[0].draft === true) {
         const item = change.objects[0];
-        const itemIndex = _.findIndex(this._items, msg => msg.id === item.id);
+        const itemIndex = this._items.findIndex(msg => msg.id === item.id);
 
         if (change.type === 'persist' && itemIndex === -1) {
           this._items = [].concat(this._items, [item]).filter(m => !m.isHidden());
@@ -150,7 +137,7 @@ class MessageStore extends MailspringStore {
       const updatedThread = change.objects.find(t => t.id === this._thread.id);
       if (updatedThread) {
         this._thread = updatedThread;
-        return this._fetchFromCache();
+        this._fetchFromCache();
       }
     }
   }
@@ -169,18 +156,14 @@ class MessageStore extends MailspringStore {
     //
     if (!this._onFocusChangedTimer) {
       this._onApplyFocusChange();
-    } 
-    else {
+    } else {
       clearTimeout(this._onFocusChangedTimer);
     }
 
-    return this._onFocusChangedTimer = setTimeout(
-      () => {
-        this._onFocusChangedTimer = null;
-        return this._onApplyFocusChange();
-      },
-      100
-    );
+    this._onFocusChangedTimer = setTimeout(() => {
+      this._onFocusChangedTimer = null;
+      this._onApplyFocusChange();
+    }, 100);
   }
 
   _onApplyFocusChange() {
@@ -196,9 +179,9 @@ class MessageStore extends MailspringStore {
 
     this._setWindowTitle();
 
-    return this._fetchFromCache();
+    this._fetchFromCache();
   }
-  
+
   _setWindowTitle() {
     let title = 'Mailspring' + (this._thread ? ' · ' + this._thread.subject : '');
     electron.remote.getCurrentWindow().setTitle(title);
@@ -220,60 +203,57 @@ class MessageStore extends MailspringStore {
       const markAsReadId = this._thread.id;
       if (markAsReadDelay < 0) return;
 
-      return setTimeout(
-        () => {
-          if ((markAsReadId !== this.threadId()) || !this._thread.unread) return;
-          return Actions.queueTask(TaskFactory.taskForInvertingUnread({
+      setTimeout(() => {
+        if (markAsReadId !== this.threadId() || !this._thread.unread) return;
+        Actions.queueTask(
+          TaskFactory.taskForInvertingUnread({
             threads: [this._thread],
-            source: "Thread Selected",
+            source: 'Thread Selected',
             canBeUndone: false,
             unread: false,
-          }))
-        },
-        markAsReadDelay
-      );
+          })
+        );
+      }, markAsReadDelay);
     }
   }
 
   _onToggleAllMessagesExpanded() {
     if (this.hasCollapsedItems()) {
-      this._items.forEach(this._expandItem);
-    } 
-    else {
+      this._items.forEach(i => this._expandItem(i));
+    } else {
       // Do not collapse the latest message, i.e. the last one
-      this._items.slice(0, -1).forEach(this._collapseItem);
+      this._items.slice(0, -1).forEach(i => this._collapseItem(i));
     }
-    return this.trigger();
+    this.trigger();
   }
 
   _onToggleHiddenMessages() {
     this._showingHiddenItems = !this._showingHiddenItems;
     this._expandItemsToDefault();
     this._fetchExpandedAttachments(this._items);
-    return this.trigger();
+    this.trigger();
   }
 
   _onToggleMessageIdExpanded(id) {
-    const item = _.findWhere(this._items, {id});
+    const item = this._items.find(i => i.id === id);
     if (!item) return;
 
     if (this._itemsExpanded[id]) {
       this._collapseItem(item);
-    } 
-    else {
+    } else {
       this._expandItem(item);
     }
 
-    return this.trigger();
+    this.trigger();
   }
 
   _expandItem(item) {
-    this._itemsExpanded[item.id] = "explicit";
-    return this._fetchExpandedAttachments([item]);
+    this._itemsExpanded[item.id] = 'explicit';
+    this._fetchExpandedAttachments([item]);
   }
 
   _collapseItem(item) {
-    return delete this._itemsExpanded[item.id];
+    delete this._itemsExpanded[item.id];
   }
 
   _fetchFromCache(options) {
@@ -283,7 +263,7 @@ class MessageStore extends MailspringStore {
     const loadedThreadId = this._thread.id;
 
     const query = DatabaseStore.findAll(Message);
-    query.where({threadId: loadedThreadId});
+    query.where({ threadId: loadedThreadId });
     query.include(Message.attributes.body);
 
     return query.then(items => {
@@ -310,7 +290,7 @@ class MessageStore extends MailspringStore {
       // MessageStore and they'll be stupid and re-render constantly.
       this._itemsLoading = false;
       this._markAsRead();
-      return this.trigger(this);
+      this.trigger(this);
     });
   }
 
@@ -329,7 +309,7 @@ class MessageStore extends MailspringStore {
       const result = [];
       for (let item of items) {
         if (!this._itemsExpanded[item.id]) continue;
-        result.push(item.files.map((file) => Actions.fetchFile(file)));
+        result.push(item.files.map(file => Actions.fetchFile(file)));
       }
       return result;
     })();
@@ -340,23 +320,18 @@ class MessageStore extends MailspringStore {
     const visibleItems = this.items();
     let lastDraftIdx = -1;
 
-    visibleItems.forEach(function(item, idx) {
-      if (item.draft) return lastDraftIdx = idx;
-    });
-    
-    return (() => {
-      const result = [];
-      for (let idx = 0; idx < visibleItems.length; idx++) {
-        const item = visibleItems[idx];
-        if (item.unread || (idx === lastDraftIdx) || (idx === (visibleItems.length - 1))) {
-          result.push(this._itemsExpanded[item.id] = "default");
-        } 
-        else {
-          result.push(undefined);
-        }
+    visibleItems.forEach((item, idx) => {
+      if (item.draft) {
+        lastDraftIdx = idx;
       }
-      return result;
-    })();
+    });
+
+    for (let idx = 0; idx < visibleItems.length; idx++) {
+      const item = visibleItems[idx];
+      if (item.unread || idx === lastDraftIdx || idx === visibleItems.length - 1) {
+        this._itemsExpanded[item.id] = 'default';
+      }
+    }
   }
 
   _sortItemsForDisplay(items) {
@@ -400,14 +375,14 @@ class MessageStore extends MailspringStore {
       windowType: 'thread-popout',
       windowProps: {
         threadId: thread.id,
-        perspectiveJSON: FocusedPerspectiveStore.current().toJSON()
-      }
+        perspectiveJSON: FocusedPerspectiveStore.current().toJSON(),
+      },
     });
   }
 
   _onFocusThreadMainWindow(thread) {
     if (AppEnv.isMainWindow()) {
-      Actions.setFocus({collection: 'thread', item: thread});
+      Actions.setFocus({ collection: 'thread', item: thread });
       return AppEnv.focus();
     }
   }
@@ -415,5 +390,4 @@ class MessageStore extends MailspringStore {
 
 const store = new MessageStore();
 store.FolderNamesHiddenByDefault = FolderNamesHiddenByDefault;
-
-module.exports = store;
+export default store;

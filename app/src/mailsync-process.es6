@@ -111,7 +111,7 @@ export default class MailsyncProcess extends EventEmitter {
           const settings = (this.account && this.account.settings) || {};
           const { refresh_token, imap_password, smtp_password } = settings;
 
-          const escape = string => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+          const escape = string => string.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
           return (text || '')
             .replace(new RegExp(escape(refresh_token || 'not-present'), 'g'), '*********')
             .replace(new RegExp(escape(imap_password || 'not-present'), 'g'), '*********')
