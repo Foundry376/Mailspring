@@ -70,7 +70,7 @@ export default class ChangeLabelsTask extends ChangeMailTask {
     return toAdd.includes('all') || toAdd.includes('archive');
   }
 
-  validate() {
+  willBeQueued() {
     if (this.messageIds.length) {
       throw new Error('ChangeLabelsTask: Changing individual message labels is unsupported');
     }
@@ -87,7 +87,7 @@ export default class ChangeLabelsTask extends ChangeMailTask {
         );
       }
     }
-    super.validate();
+    super.willBeQueued();
   }
 
   createUndoTask() {

@@ -1,24 +1,16 @@
 import { ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
-import UndoRedoThreadListToast from './undo-redo-thread-list-toast';
-import UndoSendStore from './undo-send-store';
-import UndoSendToast from './undo-send-toast';
+import UndoRedoToast from './undo-redo-toast';
 
 export function activate() {
-  UndoSendStore.activate();
-  ComponentRegistry.register(UndoSendToast, {
-    location: WorkspaceStore.Sheet.Global.Footer,
-  });
   if (AppEnv.isMainWindow()) {
-    ComponentRegistry.register(UndoRedoThreadListToast, {
-      location: WorkspaceStore.Location.ThreadList,
+    ComponentRegistry.register(UndoRedoToast, {
+      location: WorkspaceStore.Sheet.Global.Footer,
     });
   }
 }
 
 export function deactivate() {
-  UndoSendStore.deactivate();
-  ComponentRegistry.unregister(UndoSendToast);
   if (AppEnv.isMainWindow()) {
-    ComponentRegistry.unregister(UndoRedoThreadListToast);
+    ComponentRegistry.unregister(UndoRedoToast);
   }
 }

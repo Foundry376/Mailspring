@@ -32,11 +32,11 @@ export default class ChangeStarredTask extends ChangeMailTask {
     return `${verb}`;
   }
 
-  validate() {
+  willBeQueued() {
     if (this.threadIds.length === 0) {
       throw new Error('ChangeStarredTask: You must provide a `threads` Array of models or IDs.');
     }
-    super.validate();
+    super.willBeQueued();
   }
 
   createUndoTask() {

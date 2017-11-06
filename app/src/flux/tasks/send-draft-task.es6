@@ -70,7 +70,7 @@ export default class SendDraftTask extends Task {
     return this.silent ? null : 'Sending message';
   }
 
-  validate() {
+  willBeQueued() {
     const account = AccountStore.accountForEmail(this.draft.from[0].email);
 
     if (!this.draft.from[0]) {

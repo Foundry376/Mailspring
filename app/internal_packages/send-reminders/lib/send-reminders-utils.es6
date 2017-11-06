@@ -66,9 +66,8 @@ export async function updateReminderMetadata(thread, metadataValue) {
     return;
   }
   Actions.queueTask(
-    new SyncbackMetadataTask({
+    SyncbackMetadataTask.forSaving({
       model: thread,
-      accountId: thread.accountId,
       pluginId: PLUGIN_ID,
       value: metadataValue,
     })

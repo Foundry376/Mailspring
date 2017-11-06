@@ -68,9 +68,8 @@ export default class ThreadSharingPopover extends React.Component {
         Actions.recordUserEvent('Thread Sharing Enabled', { accountId, threadId: thread.id });
       }
       Actions.queueTask(
-        new SyncbackMetadataTask({
+        SyncbackMetadataTask.forSaving({
           model: thread,
-          accountId: thread.accountId,
           pluginId: PLUGIN_ID,
           value: { shared: !shared },
         })

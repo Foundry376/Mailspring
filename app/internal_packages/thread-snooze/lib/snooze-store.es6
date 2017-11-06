@@ -63,15 +63,14 @@ class SnoozeStore extends MailspringStore {
 
       // attach metadata to the threads to unsnooze them later
       Actions.queueTasks(
-        threads.map(
-          model =>
-            new SyncbackMetadataTask({
-              model,
-              pluginId: PLUGIN_ID,
-              value: {
-                expiration: snoozeDate,
-              },
-            })
+        threads.map(model =>
+          SyncbackMetadataTask.forSaving({
+            model,
+            pluginId: PLUGIN_ID,
+            value: {
+              expiration: snoozeDate,
+            },
+          })
         )
       );
     } catch (error) {
@@ -105,15 +104,14 @@ class SnoozeStore extends MailspringStore {
       // otherwise we'll receive a notification from the sync worker over and
       // over again.
       Actions.queueTasks(
-        threads.map(
-          model =>
-            new SyncbackMetadataTask({
-              model,
-              pluginId: PLUGIN_ID,
-              value: {
-                expiration: null,
-              },
-            })
+        threads.map(model =>
+          SyncbackMetadataTask.forSaving({
+            model,
+            pluginId: PLUGIN_ID,
+            value: {
+              expiration: null,
+            },
+          })
         )
       );
 

@@ -86,11 +86,17 @@ class Actions {
   */
   static queueTasks = ActionScopeMainWindow;
   /*
-  Public: Dequeue all {Task}s from the {TaskQueue}. Use with care.
+  Public: Cancel a specific {Task} in the {TaskQueue}.
 
   *Scope: Main Window*
   */
   static cancelTask = ActionScopeMainWindow;
+
+  /*
+  Public: Run a block of code and provide it's undo equivalent so it can be undone by the user.
+  *Scope: Main Window*
+  */
+  static queueUndoableBlock = ActionScopeWindow;
 
   /*
   Public: Dequeue a {Task} matching the description provided.
@@ -375,13 +381,10 @@ class Actions {
   *Scope: Window*
 
   ```
-  Actions.sendDraft('123', action)
+  Actions.sendDraft('123', {actionKey})
   ```
   */
   static sendDraft = ActionScopeWindow;
-  static willPerformSendAction = ActionScopeGlobal;
-  static didPerformSendAction = ActionScopeGlobal;
-  static didCancelSendAction = ActionScopeGlobal;
   /*
   Public: Fired when a draft is successfully sent
   *Scope: Global*

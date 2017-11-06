@@ -7,6 +7,7 @@ import DatabaseStore from './database-store';
 import SendActionsStore from './send-actions-store';
 import FocusedContentStore from './focused-content-store';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
+import SyncbackMetadataTask from '../tasks/syncback-metadata-task';
 import SendDraftTask from '../tasks/send-draft-task';
 import DestroyDraftTask from '../tasks/destroy-draft-task';
 import Thread from '../models/thread';
@@ -40,7 +41,6 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.composeNewDraftToRecipient, this._onPopoutNewDraftToRecipient);
     this.listenTo(Actions.draftDeliveryFailed, this._onSendDraftFailed);
     this.listenTo(Actions.draftDeliverySucceeded, this._onSendDraftSuccess);
-    this.listenTo(Actions.didCancelSendAction, this._onDidCancelSendAction);
     this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
 
     if (AppEnv.isMainWindow()) {
@@ -138,10 +138,23 @@ class DraftStore extends MailspringStore {
     if (change.objectClass !== Message.name) {
       return;
     }
-    const containsDraft = change.objects.some(msg => msg.draft);
-    if (!containsDraft) {
+    const drafts = change.objects.filter(msg => msg.draft);
+    if (drafts.length === 0) {
       return;
     }
+
+    // if the user has canceled an undo send, ensure we no longer show "sending..."
+    // this is a fake status!
+    for (const draft of drafts) {
+      if (this._draftsSending[draft.headerMessageId]) {
+        const m = draft.metadataForPluginId('send-later');
+        if (m && m.isUndoSend && !m.expiration) {
+          delete this._draftsSending[draft.headerMessageId];
+        }
+      }
+    }
+
+    // allow draft editing sessions to update
     this.trigger(change);
   };
 
@@ -341,12 +354,17 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onSendDraft = async (headerMessageId, sendActionKey = DefaultSendActionKey) => {
+  _onSendDraft = async (headerMessageId, options = {}) => {
     this._draftsSending[headerMessageId] = true;
 
-    const sendAction = SendActionsStore.sendActionForKey(sendActionKey);
+    const {
+      delay = AppEnv.config.get('core.sending.undoSend'),
+      actionKey = DefaultSendActionKey,
+    } = options;
+
+    const sendAction = SendActionsStore.sendActionForKey(actionKey);
     if (!sendAction) {
-      throw new Error(`Cant find send action ${sendActionKey} `);
+      throw new Error(`Cant find send action ${actionKey} `);
     }
 
     // get the draft session, apply any last-minute edits and get the final draft.
@@ -355,11 +373,7 @@ class DraftStore extends MailspringStore {
     const session = await this.sessionForClientId(headerMessageId);
     await session.ensureCorrectAccount();
     let draft = session.draft();
-    console.log('1:');
-    console.log(JSON.stringify(draft));
     await session.changes.commit();
-    console.log('2:');
-    console.log(JSON.stringify(session.draft()));
     await session.teardown();
 
     draft = await DraftHelpers.applyExtensionTransforms(draft);
@@ -372,24 +386,26 @@ class DraftStore extends MailspringStore {
     // the new message text (and never old draft text or blank text) sending.
     await MessageBodyProcessor.updateCacheForMessage(draft);
 
-    console.log('3:');
-    console.log(JSON.stringify(draft));
-
     // At this point the message UI enters the sending state and the composer is unmounted.
     this.trigger({ headerMessageId });
 
-    // Now do the actual sending!
-    await sendAction.performSendAction({ draft });
-    this._doneWithSession(session);
+    if (delay > 0) {
+      const task = SyncbackMetadataTask.forSaving({
+        pluginId: 'send-later',
+        model: draft,
+        value: { expiration: new Date(Date.now() + delay), isUndoSend: true, actionKey: actionKey },
+        undoValue: { expiration: null, isUndoSend: true },
+      });
+      task.customDescription = `Sending in ${delay / 1000} seconds`;
+      Actions.queueTask(task);
+    } else {
+      await sendAction.performSendAction({ draft });
+      this._doneWithSession(session);
+    }
 
     if (AppEnv.isComposerWindow()) {
       AppEnv.close();
     }
-  };
-
-  _onDidCancelSendAction = ({ headerMessageId }) => {
-    delete this._draftsSending[headerMessageId];
-    this.trigger({ headerMessageId });
   };
 
   _onSendDraftSuccess = ({ headerMessageId }) => {

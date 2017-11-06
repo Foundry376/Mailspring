@@ -111,7 +111,9 @@ describe('SendActionButton', function describeBlock() {
     const button = sendActionButton.find('button').first();
     button.simulate('click');
     expect(this.isValidDraft).toHaveBeenCalled();
-    expect(Actions.sendDraft).toHaveBeenCalledWith(this.draft.headerMessageId, 'send');
+    expect(Actions.sendDraft).toHaveBeenCalledWith(this.draft.headerMessageId, {
+      actionKey: 'send',
+    });
   });
 
   it("doesn't send a draft if the isValidDraft fails", () => {
@@ -130,6 +132,8 @@ describe('SendActionButton', function describeBlock() {
     const button = sendActionButton.find('.primary-item').first();
     button.simulate('click');
     expect(this.isValidDraft).toHaveBeenCalled();
-    expect(Actions.sendDraft).toHaveBeenCalledWith(this.draft.headerMessageId, 'good-send-action');
+    expect(Actions.sendDraft).toHaveBeenCalledWith(this.draft.headerMessageId, {
+      actionKey: 'good-send-action',
+    });
   });
 });

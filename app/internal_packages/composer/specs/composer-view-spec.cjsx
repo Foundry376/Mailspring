@@ -430,7 +430,7 @@ describe "ComposerView", ->
         makeComposer.call(@)
         sendBtn = @composer._els.sendActionButton
         sendBtn.primarySend()
-        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, 'send')
+        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, actionKey: 'send')
         expect(Actions.sendDraft.calls.length).toBe 1
         # Delete the draft from _draftsSending so we can send it in other tests
         delete DraftStore._draftsSending[DRAFT_HEADER_MSG_ID]
@@ -447,7 +447,7 @@ describe "ComposerView", ->
         sendBtn = @composer._els.sendActionButton
         sendBtn.primarySend()
         sendBtn.primarySend()
-        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, 'send')
+        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, actionKey: 'send')
         expect(Actions.sendDraft.calls.length).toBe 1
         # Delete the draft from _draftsSending so we can send it in other tests
         delete DraftStore._draftsSending[DRAFT_HEADER_MSG_ID]
@@ -468,15 +468,15 @@ describe "ComposerView", ->
 
       it "sends the draft on cmd-enter", ->
         ReactDOM.findDOMNode(@$composer).dispatchEvent(new CustomEvent('composer:send-message'))
-        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, 'send')
+        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, actionKey: 'send')
         expect(Actions.sendDraft.calls.length).toBe 1
 
       it "doesn't let you send twice", ->
         ReactDOM.findDOMNode(@$composer).dispatchEvent(new CustomEvent('composer:send-message'))
-        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, 'send')
+        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, actionKey: 'send')
         expect(Actions.sendDraft.calls.length).toBe 1
         ReactDOM.findDOMNode(@$composer).dispatchEvent(new CustomEvent('composer:send-message'))
-        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, 'send')
+        expect(Actions.sendDraft).toHaveBeenCalledWith(DRAFT_HEADER_MSG_ID, actionKey: 'send')
         expect(Actions.sendDraft.calls.length).toBe 1
 
   describe "drag and drop", ->

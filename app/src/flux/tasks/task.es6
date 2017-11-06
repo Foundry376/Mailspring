@@ -49,8 +49,8 @@ export default class Task extends Model {
   }
 
   // Public: Override to raise exceptions if your task is missing required
-  // arguments. This logic used to go in performLocal.
-  validate() {}
+  // arguments or perform client-side business logic.
+  willBeQueued() {}
 
   // Public: Return from `createIdenticalTask` and set a flag so your
   // `performLocal` and `performRemote` methods know that this is an undo

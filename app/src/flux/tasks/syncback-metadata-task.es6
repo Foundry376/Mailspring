@@ -2,6 +2,30 @@ import Task from './task';
 import Attributes from '../attributes';
 
 export default class SyncbackMetadataTask extends Task {
+  static forSaving({ model, pluginId, value, undoValue }) {
+    if (!pluginId) {
+      throw new Error('SyncbackMetadataTask.forSaving: You must specify a pluginId.');
+    }
+    const task = new SyncbackMetadataTask({
+      modelId: model.id,
+      pluginId: pluginId,
+      modelClassName: model.constructor.name.toLowerCase(),
+      modelHeaderMessageId: model.headerMessageId || null,
+      accountId: model.accountId,
+      value,
+      undoValue,
+    });
+
+    if (value && value.expiration / 1 > 1000000000000) {
+      task.value.expiration = Math.round(new Date(value.expiration).getTime() / 1000);
+    }
+    if (undoValue && undoValue.expiration / 1 > 1000000000000) {
+      task.undoValue.expiration = Math.round(new Date(undoValue.expiration).getTime() / 1000);
+    }
+
+    return task;
+  }
+
   static attributes = Object.assign({}, Task.attributes, {
     pluginId: Attributes.String({
       modelKey: 'pluginId',
@@ -15,30 +39,30 @@ export default class SyncbackMetadataTask extends Task {
     modelHeaderMessageId: Attributes.String({
       modelKey: 'modelHeaderMessageId',
     }),
+    customDescription: Attributes.String({
+      modelKey: 'customDescription',
+    }),
     value: Attributes.Object({
       modelKey: 'value',
     }),
+    undoValue: Attributes.Object({
+      modelKey: 'undoValue',
+    }),
   });
 
-  constructor(data = {}) {
-    super(data);
-
-    if (data.value && data.value.expiration) {
-      data.value.expiration = Math.round(new Date(data.value.expiration).getTime() / 1000);
-    }
-
-    if (data.model) {
-      this.modelId = data.model.id;
-      this.modelClassName = data.model.constructor.name.toLowerCase();
-      this.modelHeaderMessageId = data.model.headerMessageId || null;
-      this.accountId = data.model.accountId;
-    }
+  get canBeUndone() {
+    return !!this.undoValue;
   }
 
-  validate() {
-    if (!this.pluginId) {
-      throw new Error('SyncbackMetadataTask: You must specify a pluginId.');
-    }
-    return super.validate();
+  description() {
+    return this.customDescription || null;
+  }
+
+  createUndoTask() {
+    const task = this.createIdenticalTask();
+    const { value, undoValue } = task;
+    task.value = undoValue;
+    task.undoValue = value;
+    return task;
   }
 }

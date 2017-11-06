@@ -43,9 +43,8 @@ export default class SendLaterStatus extends Component {
 
   onCancelSendLater = () => {
     Actions.queueTask(
-      new SyncbackMetadataTask({
+      SyncbackMetadataTask.forSaving({
         model: this.props.draft,
-        accountId: this.props.draft.accountId,
         pluginId: PLUGIN_ID,
         value: { expiration: null },
       })

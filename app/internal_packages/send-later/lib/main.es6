@@ -36,7 +36,7 @@ export function activate() {
 
       // clear the metadata
       Actions.queueTask(
-        new SyncbackMetadataTask({
+        SyncbackMetadataTask.forSaving({
           model: message,
           pluginId: PLUGIN_ID,
           value: {
@@ -50,7 +50,8 @@ export function activate() {
       }
 
       // send the draft
-      Actions.sendDraft(message.headerMessageId, SendActionsStore.DefaultSendActionKey);
+      const actionKey = metadata.actionKey || SendActionsStore.DefaultSendActionKey;
+      Actions.sendDraft(message.headerMessageId, { actionKey, delay: 0 });
     }
   });
 }

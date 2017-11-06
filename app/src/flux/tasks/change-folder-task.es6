@@ -81,7 +81,7 @@ export default class ChangeFolderTask extends ChangeMailTask {
     return `Moved${folderText}`;
   }
 
-  validate() {
+  willBeQueued() {
     if (!this.folder) {
       throw new Error('Must specify a `folder`');
     }
@@ -94,7 +94,7 @@ export default class ChangeFolderTask extends ChangeMailTask {
       );
     }
 
-    super.validate();
+    super.willBeQueued();
   }
 
   _isArchive() {

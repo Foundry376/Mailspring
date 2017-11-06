@@ -23,6 +23,4 @@ export default class DestroyModelTask extends Task {
   getModelConstructor() {
     return require('mailspring-exports')[this.modelName];
   }
-
-  validate() {}
 }

@@ -1,73 +1,86 @@
 import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
 
-const TASK_SOURCE_REDO = 'redo';
-
 class UndoRedoStore extends MailspringStore {
   constructor() {
     super();
     this._undo = [];
     this._redo = [];
 
-    this._mostRecentTasks = [];
+    this._mostRecentBlock = null;
+    this._queueingTasks = false;
 
     this.listenTo(Actions.queueTask, this._onQueue);
     this.listenTo(Actions.queueTasks, this._onQueue);
+    this.listenTo(Actions.queueUndoableBlock, this._onQueueBlock);
 
     AppEnv.commands.add(document.body, { 'core:undo': this.undo });
     AppEnv.commands.add(document.body, { 'core:redo': this.redo });
   }
 
   _onQueue = taskOrTasks => {
+    if (this._queueingTasks) {
+      return;
+    }
+
     const tasks = taskOrTasks instanceof Array ? taskOrTasks : [taskOrTasks];
     if (tasks.length === 0) {
       return;
     }
 
-    const isUndoableAndNotUndo = tasks.every(t => t.canBeUndone && !t.isUndo);
-    const isRedo = tasks.every(t => t.source === TASK_SOURCE_REDO);
-
-    if (isUndoableAndNotUndo) {
-      if (!isRedo) {
-        this._redo = [];
-      }
-      this._undo.push(tasks);
-      this._mostRecentTasks = tasks;
-      this.trigger();
+    if (tasks.every(t => t.canBeUndone)) {
+      const block = {
+        description: tasks.map(t => t.description()).join(', '),
+        do: () => {
+          // no-op, tasks queued separately
+        },
+        undo: () => {
+          this._queueingTasks = true;
+          Actions.queueTasks(tasks.map(t => t.createUndoTask()));
+          this._queueingTasks = false;
+        },
+        redo: () => {
+          this._queueingTasks = true;
+          Actions.queueTasks(tasks.map(t => t.createIdenticalTask()));
+          this._queueingTasks = false;
+        },
+      };
+      this._onQueueBlock(block);
     }
+  };
+
+  _onQueueBlock = block => {
+    this._redo = [];
+    this._mostRecentBlock = block;
+    this._undo.push(block);
+    this.trigger();
   };
 
   undo = () => {
-    const topTasks = this._undo.pop();
-    if (!topTasks) {
+    const block = this._undo.pop();
+    if (!block) {
       return;
     }
+    block.undo();
 
-    this._mostRecentTasks = [];
+    this._mostRecentBlock = null;
+    this._redo.push(block);
     this.trigger();
-
-    for (const task of topTasks) {
-      Actions.queueTask(task.createUndoTask());
-    }
-
-    const redoTasks = topTasks.map(t => {
-      const redoTask = t.createIdenticalTask();
-      redoTask.source = TASK_SOURCE_REDO;
-      return redoTask;
-    });
-    this._redo.push(redoTasks);
   };
 
   redo = () => {
-    const redoTasks = this._redo.pop();
-    if (!redoTasks) {
+    const block = this._redo.pop();
+    if (!block) {
       return;
     }
-    Actions.queueTasks(redoTasks);
+    block.redo ? block.redo() : block.do();
+    this._mostRecentBlock = block;
+    this._undo.push(block);
+    this.trigger();
   };
 
   getMostRecent = () => {
-    return this._mostRecentTasks;
+    return this._mostRecentBlock;
   };
 
   print() {

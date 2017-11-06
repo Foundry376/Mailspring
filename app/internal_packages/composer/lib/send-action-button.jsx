@@ -29,7 +29,7 @@ class SendActionButton extends React.Component {
       if (AppEnv.config.get('core.sending.sounds')) {
         SoundRegistry.playSound('hit-send');
       }
-      Actions.sendDraft(draft.headerMessageId, sendAction.configKey);
+      Actions.sendDraft(draft.headerMessageId, { actionKey: sendAction.configKey });
     }
   };
 

@@ -314,7 +314,8 @@ export default class MailsyncBridge {
       );
     }
 
-    task.validate();
+    task.willBeQueued();
+
     task.status = 'local';
     task.origin = new Error().stack
       .split('\n')
