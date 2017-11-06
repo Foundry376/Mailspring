@@ -110,10 +110,12 @@ export default class MailsyncProcess extends EventEmitter {
         const stripSecrets = text => {
           const settings = (this.account && this.account.settings) || {};
           const { refresh_token, imap_password, smtp_password } = settings;
+
+          const escape = string => string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
           return (text || '')
-            .replace(new RegExp(refresh_token || 'not-present', 'g'), '*********')
-            .replace(new RegExp(imap_password || 'not-present', 'g'), '*********')
-            .replace(new RegExp(smtp_password || 'not-present', 'g'), '*********');
+            .replace(new RegExp(escape(refresh_token || 'not-present'), 'g'), '*********')
+            .replace(new RegExp(escape(imap_password || 'not-present'), 'g'), '*********')
+            .replace(new RegExp(escape(smtp_password || 'not-present'), 'g'), '*********');
         };
 
         try {
