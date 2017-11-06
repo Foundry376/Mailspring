@@ -28,8 +28,16 @@ export default class EmailFrame extends React.Component {
     this._unlisten = EmailFrameStylesStore.listen(this._writeContent);
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
+  shouldComponentUpdate(nextProps) {
+    const { content, showQuotedText, message = {} } = this.props;
+    const nextMessage = nextProps.message || {};
+
+    return (
+      content !== nextProps.content ||
+      showQuotedText !== nextProps.showQuotedText ||
+      message.id !== nextMessage.id ||
+      !Utils.isEqualReact(message.pluginMetadata, nextMessage.pluginMetadata)
+    );
   }
 
   componentDidUpdate() {

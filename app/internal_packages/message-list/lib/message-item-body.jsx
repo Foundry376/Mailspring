@@ -15,6 +15,30 @@ import { encodedAttributeForFile } from './inline-image-listeners';
 const TransparentPixel =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNikAQAACIAHF/uBd8AAAAASUVORK5CYII=';
 
+class ConditionalQuotedTextControl extends React.Component {
+  static displayName = 'ConditionalQuotedTextControl';
+
+  static propTypes = {
+    body: PropTypes.string.isRequired,
+    onClick: PropTypes.func,
+  };
+
+  shouldComponentUpdate(nextProps) {
+    return this.props.body !== nextProps.body;
+  }
+
+  render() {
+    if (!QuotedHTMLTransformer.hasQuotedHTML(this.props.body)) {
+      return null;
+    }
+    return (
+      <a className="quoted-text-control" onClick={this.props.onClick}>
+        <span className="dots">&bull;&bull;&bull;</span>
+      </a>
+    );
+  }
+}
+
 export default class MessageItemBody extends React.Component {
   static displayName = 'MessageItemBody';
   static propTypes = {
@@ -137,17 +161,6 @@ export default class MessageItemBody extends React.Component {
     );
   }
 
-  _renderQuotedTextControl() {
-    if (!QuotedHTMLTransformer.hasQuotedHTML(this.props.message.body)) {
-      return null;
-    }
-    return (
-      <a className="quoted-text-control" onClick={this._onToggleQuotedText}>
-        <span className="dots">&bull;&bull;&bull;</span>
-      </a>
-    );
-  }
-
   render() {
     return (
       <span>
@@ -158,7 +171,10 @@ export default class MessageItemBody extends React.Component {
           style={{ width: '100%' }}
         />
         {this._renderBody()}
-        {this._renderQuotedTextControl()}
+        <ConditionalQuotedTextControl
+          body={this.props.message.body}
+          onClick={this._onToggleQuotedText}
+        />
       </span>
     );
   }

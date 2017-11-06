@@ -17,11 +17,25 @@ class MessageBodyProcessor {
     this._subscriptions = [];
     this.resetCache();
 
+    this._timeouts = {};
+
     DatabaseStore.listen(change => {
       if (change.objectClass === Message.name) {
-        change.objects
-          .filter(m => this._recentlyProcessedD[this._key(m)])
-          .forEach(this.updateCacheForMessage);
+        change.objects.forEach(m => {
+          const key = this._key(m);
+          if (!this._recentlyProcessedD[key]) {
+            return;
+          }
+
+          // Important—we debounce this a bit so that doing basic stuff, like archiving
+          // a message, doesn't trigger a body update immediately.
+          if (this._timeouts[key]) {
+            clearTimeout(this._timeouts[key]);
+          }
+          this._timeouts[key] = setTimeout(() => {
+            this.updateCacheForMessage(m);
+          }, 250);
+        });
       }
     });
   }

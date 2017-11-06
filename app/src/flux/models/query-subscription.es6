@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import DatabaseStore from '../stores/database-store';
 import QueryRange from './query-range';
 import MutableQueryResultSet from './mutable-query-result-set';
@@ -62,7 +61,7 @@ export default class QuerySubscription {
         `QuerySubscription:removeCallback - expects a function, received ${callback}`
       );
     }
-    this._callbacks = _.without(this._callbacks, callback);
+    this._callbacks = this._callbacks.filter(c => c !== callback);
     if (this.callbackCount() === 0) {
       this.onLastCallbackRemoved();
     }
@@ -264,7 +263,11 @@ export default class QuerySubscription {
 
   _createResultAndTrigger = () => {
     const allCompleteModels = this._set.isComplete();
-    const allUniqueIds = _.uniq(this._set.ids()).length === this._set.ids().length;
+
+    const d = {};
+    const a = this._set.ids();
+    for (const ai of a) d[ai] = 1;
+    const allUniqueIds = Object.keys(d).length === a.length;
 
     let error = null;
     if (!allCompleteModels) {
