@@ -121,8 +121,9 @@ export default {
           },
           spellcheckDefaultLanguage: {
             type: 'string',
-            default: 'en-us',
+            default: '',
             enum: [
+              '',
               'bg',
               'br',
               'ca',
@@ -180,6 +181,7 @@ export default {
               'vi',
             ],
             enumLabels: [
+              '(System locale)',
               'Bulgarian',
               'Breton',
               'Catalan',

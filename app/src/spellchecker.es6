@@ -2,6 +2,7 @@ import { remote } from 'electron';
 import fs from 'fs';
 import path from 'path';
 
+const app = remote.app;
 const MenuItem = remote.MenuItem;
 const customDictFilePath = path.join(AppEnv.getConfigDirPath(), 'custom-dict.json');
 
@@ -22,9 +23,9 @@ class Spellchecker {
     const initHandler = () => {
       const { SpellCheckHandler } = require('electron-spellchecker'); //eslint-disable-line
       this.handler = new SpellCheckHandler();
-      this.handler.switchLanguage(AppEnv.config.get('core.composing.spellcheckDefaultLanguage')); // Start with the configured language
+      this._switchToLanguage(AppEnv.config.get('core.composing.spellcheckDefaultLanguage')); // Start with the configured language
       AppEnv.config.onDidChange('core.composing.spellcheckDefaultLanguage', value => {
-        this.handler.switchLanguage(value.newValue);
+        this._switchToLanguage(value.newValue);
       });
       this.handler.attachToInput();
       this._loadCustomDict();
@@ -36,6 +37,13 @@ class Spellchecker {
       setTimeout(initHandler, 5000);
     }
   }
+
+  _switchToLanguage = lang => {
+    if (lang === null || lang === undefined || lang === '') {
+      lang = app.getLocale();
+    }
+    this.handler.switchLanguage(lang);
+  };
 
   _loadCustomDict = () => {
     fs.readFile(customDictFilePath, (err, data) => {
