@@ -121,7 +121,7 @@
 
   .container-general {
     width: 40%;
-    min-width: 400px;
+    min-width: 430px;
     margin: 0 auto;
 
     .local-data {
@@ -283,11 +283,18 @@ body.platform-linux {
 }
 
 @media (max-width: 600px) {
-  .preferences-tabs .item .name {
-    display: none;
-  }
-  .preferences-wrap .preferences-content > .scroll-region-content {
-    padding-left: @padding-large-horizontal * 1;
-    padding-right: @padding-large-horizontal * 1;
+  .preferences-wrap {
+    .container-preference-tabs {
+      .preferences-tabs .item img.tab-icon {
+        margin-bottom: 10px;
+      }
+      .preferences-tabs .item .name {
+        display: none;
+      }
+    }
+    .preferences-content > .scroll-region-content {
+      padding-left: @padding-large-horizontal * 1;
+      padding-right: @padding-large-horizontal * 1;
+    }
   }
 }

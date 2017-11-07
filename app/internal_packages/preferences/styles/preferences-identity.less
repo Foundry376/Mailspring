@@ -79,10 +79,11 @@
 
     .features {
       display: flex;
-      width: 90%;
+      max-width: 470px;
+      margin-top: 20px;
       ul {
         flex: 1;
-        margin-top: 20px;
+        margin: 0;
         line-height: 1.9em;
         list-style-type: none;
         padding: 0;
@@ -128,6 +129,14 @@
           top: 56%;
         }
       }
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .container-identity {
+    .features {
+      flex-direction: column;
     }
   }
 }

@@ -1,9 +1,9 @@
 import Reflux from 'reflux';
 
-const ActivityListActions = Reflux.createActions(['resetSeen']);
+const ActivityActions = Reflux.createActions(['resetSeen']);
 
-for (const key of Object.keys(ActivityListActions)) {
-  ActivityListActions[key].sync = true;
+for (const key of Object.keys(ActivityActions)) {
+  ActivityActions[key].sync = true;
 }
 
-export default ActivityListActions;
+export default ActivityActions;

@@ -73,14 +73,19 @@ class PreferencesIdentity extends React.Component {
     const onLearnMore = () => shell.openExternal('https://getmailspring.com/pro');
     return (
       <div className="row padded">
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <div className="basic-explanation">
             You are using <strong>Mailspring Basic</strong>, which is free! You can link up to four
             email accounts and try pro features like snooze, send later, read receipts and reminders
-            a few times a week.
+            a few times a week.{' '}
+            <span className="platform-linux-only">
+              Mailspring is independent{' '}
+              <a href="https://github.com/Foundry376/Mailspring/">open source</a> software, and
+              subscription revenue allows us spend time maintaining and improving the product.
+            </span>
             <br />
             <br />
-            Upgrade to <a onClick={onLearnMore}>Mailspring Pro</a> to use all these features
+            Upgrade to <a onClick={onLearnMore}>Mailspring Pro</a> to use all these great features
             permanently:
             <div className="features">
               <ul>

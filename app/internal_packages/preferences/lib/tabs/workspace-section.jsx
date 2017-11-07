@@ -163,7 +163,7 @@ const WorkspaceSection = props => {
 
       <div className="platform-note platform-linux-only">
         &quot;Launch on system start&quot; only works in XDG-compliant desktop environments. To
-        enable the Mailspring icon in the system tray, you may need to install libappindicator1.
+        enable the Mailspring icon in the system tray, you may need to install libappindicator.
         (i.e., <code>sudo apt-get install libappindicator1</code>)
       </div>
     </section>
