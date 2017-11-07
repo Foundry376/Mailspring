@@ -38,7 +38,7 @@ RegExpUtils =
 
   mailspringCommandRegex: -> new RegExp(/mailspring:\S+/i)
 
-  # Test cases: https://regex101.com/r/pD7iS5/3
+  # Test cases: https://regex101.com/r/pD7iS5/4
   urlRegex: ({matchEntireString} = {}) ->
     commonTlds = ['com', 'org', 'edu', 'gov', 'uk', 'net', 'ca', 'de', 'jp', 'fr', 'au', 'us', 'ru', 'ch', 'it', 'nl', 'se', 'no', 'es', 'mil', 'ly']
 
@@ -103,7 +103,7 @@ RegExpUtils =
         '('
           # URL components
           # (last character must not be puncation, hence two groups)
-          '(?:[\\+~%\\/\\.\\w\\-_@]*[\\+~%\\/\\w\\-_]+)?'
+          '(?:[\\+=~%\\/\\.\\w\\-_@]*[\\+~%\\/\\w\\-_]+)?'
 
           # optionally followed by: a query string and/or a #location
           # (last character must not be puncation, hence two groups)
