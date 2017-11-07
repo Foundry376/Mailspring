@@ -1,5 +1,4 @@
 import { React, PropTypes, RegExpUtils } from 'mailspring-exports';
-import { isValidHost } from './onboarding-helpers';
 import CreatePageForForm from './decorators/create-page-for-form';
 import FormField from './form-field';
 
@@ -47,10 +46,6 @@ class AccountExchangeSettingsForm extends React.Component {
     if (!account.name) {
       errorFieldNames.push('name');
       errorMessage = 'Please provide your name.';
-    }
-    if (account.settings.eas_server_host && !isValidHost(account.settings.eas_server_host)) {
-      errorFieldNames.push('eas_server_host');
-      errorMessage = 'Please provide a valid host name.';
     }
 
     return { errorMessage, errorFieldNames, populated: true };

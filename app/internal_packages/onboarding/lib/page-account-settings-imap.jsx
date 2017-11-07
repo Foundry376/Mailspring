@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { isValidHost } from './onboarding-helpers';
 import CreatePageForForm from './decorators/create-page-for-form';
 import FormField from './form-field';
 
@@ -45,10 +44,6 @@ class AccountIMAPSettingsForm extends React.Component {
     for (const type of ['imap', 'smtp']) {
       if (!account.settings[`${type}_host`]) {
         return { errorMessage, errorFieldNames, populated: false };
-      }
-      if (!isValidHost(account.settings[`${type}_host`])) {
-        errorMessage = 'Please provide a valid hostname or IP adddress.';
-        errorFieldNames.push(`${type}_host`);
       }
       if (!Number.isInteger(account.settings[`${type}_port`] / 1)) {
         errorMessage = 'Please provide a valid port number.';
