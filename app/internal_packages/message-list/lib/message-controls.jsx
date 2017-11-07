@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import { remote } from 'electron';
-import { React, PropTypes, Actions } from 'mailspring-exports';
+import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 
 export default class MessageControls extends React.Component {
@@ -94,18 +94,22 @@ export default class MessageControls extends React.Component {
     menu.popup(remote.getCurrentWindow());
   };
 
-  _onShowOriginal = () => {
-    // const fs = require('fs');
-    // const path = require('path');
-    // const BrowserWindow = remote.BrowserWindow;
-    // const app = remote.app;
-    // const tmpfile = path.join(app.getPath('temp'), this.props.message.id);
-    // bg todo
-    // .then((body) =>
-    //   fs.writeFile tmpfile, body, =>
-    //     window = new BrowserWindow(width: 800, height: 600, title: "${@props.message.subject} - RFC822")
-    //     window.loadURL('file://'+tmpfile)
-    // )
+  _onShowOriginal = async () => {
+    const { message } = this.props;
+    const filepath = require('path').join(remote.app.getPath('temp'), message.id);
+    const task = new GetMessageRFC2822Task({
+      messageId: message.id,
+      accountId: message.accountId,
+      filepath,
+    });
+    Actions.queueTask(task);
+    await TaskQueue.waitForPerformRemote(task);
+    const win = new remote.BrowserWindow({
+      width: 800,
+      height: 600,
+      title: `${message.subject} - RFC822`,
+    });
+    win.loadURL(`file://${filepath}`);
   };
 
   _onLogData = () => {

@@ -172,7 +172,7 @@ export default class MessageItemBody extends React.Component {
         />
         {this._renderBody()}
         <ConditionalQuotedTextControl
-          body={this.props.message.body}
+          body={this.props.message.body || ''}
           onClick={this._onToggleQuotedText}
         />
       </span>
