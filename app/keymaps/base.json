@@ -27,8 +27,8 @@
   "core:pop-sheet": "escape",
   "core:show-keybindings": "?",
 
-  "core:messages-page-up": "pageup",
-  "core:messages-page-down": "pagedown",
+  "core:messages-page-up": ["pageup", "shift+space"],
+  "core:messages-page-down": ["pagedown", "space"],
   "core:list-page-up": "shift+pageup",
   "core:list-page-down": "shift+pagedown",
 
