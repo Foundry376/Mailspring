@@ -179,7 +179,10 @@ class MessageList extends React.Component {
     if (!this.state.currentThread) {
       return;
     }
-    Actions.composeForward({ thread: this.state.currentThread });
+    Actions.composeForward({
+      thread: this.state.currentThread,
+      message: this._lastMessage(),
+    });
   };
 
   _lastMessage() {

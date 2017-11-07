@@ -209,8 +209,10 @@ class DraftStore extends MailspringStore {
         );
       }
       queries.thread = thread;
-    } else {
+    } else if (threadId != null) {
       queries.thread = DatabaseStore.find(Thread, threadId);
+    } else {
+      throw new Error('newMessageWithContext: `thread` or `threadId` is required.');
     }
 
     if (message) {
@@ -223,10 +225,11 @@ class DraftStore extends MailspringStore {
     } else if (messageId != null) {
       queries.message = DatabaseStore.find(Message, messageId).include(Message.attributes.body);
     } else {
-      queries.message = DatabaseStore.findBy(Message, { threadId: threadId || thread.id })
+      queries.message = DatabaseStore.findAll(Message, { threadId: threadId || thread.id })
         .order(Message.attributes.date.descending())
-        .limit(1)
-        .include(Message.attributes.body);
+        .include(Message.attributes.body)
+        .limit(5)
+        .then(messages => messages.find(m => !m.isHidden()));
     }
 
     return queries;
