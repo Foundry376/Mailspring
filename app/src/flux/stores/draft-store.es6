@@ -107,6 +107,9 @@ class DraftStore extends MailspringStore {
     // window.close() within on onbeforeunload could do weird things.
     Object.values(this._draftSessions).forEach(session => {
       const draft = session.draft();
+      if (!draft.id) {
+        return;
+      }
       if (draft && draft.pristine) {
         Actions.queueTask(
           new DestroyDraftTask({
@@ -228,7 +231,7 @@ class DraftStore extends MailspringStore {
       queries.message = DatabaseStore.findAll(Message, { threadId: threadId || thread.id })
         .order(Message.attributes.date.descending())
         .include(Message.attributes.body)
-        .limit(5)
+        .limit(10)
         .then(messages => messages.find(m => !m.isHidden()));
     }
 

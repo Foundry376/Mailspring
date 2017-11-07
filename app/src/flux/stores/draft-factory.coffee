@@ -206,7 +206,7 @@ class DraftFactory
       else if behavior is 'prefer-existing-if-pristine'
         DraftStore ?= require('./draft-store').default
         return Promise.all(candidateDrafts.map (candidateDraft) =>
-          DraftStore.sessionForId(candidateDraft.id)
+          DraftStore.sessionForClientId(candidateDraft.headerMessageId)
         ).then (sessions) =>
           for session in sessions
             if session.draft().pristine
