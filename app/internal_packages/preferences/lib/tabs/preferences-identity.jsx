@@ -70,25 +70,109 @@ class PreferencesIdentity extends React.Component {
   };
 
   _renderBasic() {
-    const learnMore = () => shell.openExternal('https://getmailspring.com/pro');
+    const onLearnMore = () => shell.openExternal('https://getmailspring.com/pro');
     return (
       <div className="row padded">
-        <div>
-          You are using <strong>Mailspring Basic</strong>. You can link up to four email accounts
-          and try out pro features like snooze, send later, read receipts and reminders. Upgrade to
-          Mailspring Pro to unlock a more powerful email experience.
-        </div>
-        <div className="subscription-actions">
-          <div
-            className="btn btn-emphasis"
-            onClick={this._onUpgrade}
-            style={{ verticalAlign: 'top' }}
-          >
-            <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} /> Get Mailspring
-            Pro
+        <div style={{ display: 'flex' }}>
+          <div className="basic-explanation">
+            You are using <strong>Mailspring Basic</strong>, which is free! You can link up to four
+            email accounts and try pro features like snooze, send later, read receipts and reminders
+            a few times a week.
+            <br />
+            <br />
+            Upgrade to <a onClick={onLearnMore}>Mailspring Pro</a> to use all these features
+            permanently:
+            <div className="features">
+              <ul>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />Rich contact profiles
+                </li>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />Follow-up reminders
+                </li>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />Read receipts
+                </li>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />Link tracking
+                </li>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />Powerful template support
+                </li>
+              </ul>
+              <ul>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />Send later
+                </li>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />Company overviews
+                </li>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />Snooze messages
+                </li>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />Mailbox insights
+                </li>
+                <li>
+                  <RetinaImg
+                    name="pro-feature-checkmark.png"
+                    style={{ paddingRight: 8 }}
+                    mode={RetinaImg.Mode.ContentDark}
+                  />... and much more!
+                </li>
+              </ul>
+            </div>
           </div>
-          <div className="btn minor-width" onClick={learnMore}>
-            Learn More
+          <div className="subscription-actions">
+            <div className="pro-feature-ring">
+              <RetinaImg name="pro-feature-ring.png" mode={RetinaImg.Mode.ContentPreserve} />
+              <div className="price">$8</div>
+              <div className="period">monthly</div>
+            </div>
+            <div
+              className="btn btn-emphasis"
+              onClick={this._onUpgrade}
+              style={{ verticalAlign: 'top' }}
+            >
+              <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} /> Get Mailspring
+              Pro
+            </div>
           </div>
         </div>
       </div>

@@ -50,6 +50,13 @@
       border-top: 1px solid @border-color-primary;
     }
 
+    .basic-explanation {
+      padding-top: 12px;
+      a {
+        text-decoration: underline;
+        color: inherit;
+      }
+    }
     .btn {
       width: 180px;
       &.minor-width {
@@ -62,15 +69,64 @@
     .identity-actions {
       margin-top: @padding-small-vertical + 1;
     }
-    .subscription-actions {
-      margin-top: 20px;
-    }
-
     .identity-info {
       flex: 1;
       line-height: 1.9em;
       .name {
         font-size: 1.2em;
+      }
+    }
+
+    .features {
+      display: flex;
+      width: 90%;
+      ul {
+        flex: 1;
+        margin-top: 20px;
+        line-height: 1.9em;
+        list-style-type: none;
+        padding: 0;
+      }
+    }
+
+    .subscription-actions {
+      text-align: center;
+      padding: 20px;
+      background: @background-primary;
+      margin-left: 50px;
+      border: 1px solid @border-color-divider;
+      .btn.btn-emphasis {
+        margin: 0;
+        line-height: 32px;
+        height: 32px;
+        background: linear-gradient(to bottom, #8e9fff 0%, #696dff 100%);
+        border: 1px solid #7664ff;
+        &:active {
+          background: linear-gradient(to bottom, #748bfe 0%, #484efa 100%);
+          border: 1px solid #6453fe;
+        }
+      }
+      .pro-feature-ring {
+        display: block;
+        width: 205px;
+        height: 205px;
+        position: relative;
+        .price,
+        .period {
+          display: block;
+          z-index: 2;
+          position: absolute;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+        .price {
+          font-size: 50px;
+          line-height: 50px;
+          top: 40%;
+        }
+        .period {
+          top: 56%;
+        }
       }
     }
   }

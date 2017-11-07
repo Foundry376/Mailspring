@@ -2,9 +2,9 @@ import { protocol } from 'electron';
 import fs from 'fs';
 import path from 'path';
 
-// Handles requests with 'nylas' protocol.
+// Handles requests with 'mailspring' protocol.
 //
-// It's created by {N1Application} upon instantiation and is used to create a
+// It's created by {Application} upon instantiation and is used to create a
 // custom resource loader for 'mailspring://' URLs.
 //
 // The following directories are searched in order:
