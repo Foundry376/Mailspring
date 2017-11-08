@@ -5,16 +5,13 @@ import { DateUtils } from 'mailspring-exports';
 import { DatePickerPopover } from 'mailspring-component-kit';
 
 const SendRemindersOptions = {
-  'In 1 hour': DateUtils.in1Hour,
-  'In 2 hours': DateUtils.in2Hours,
-  'In 4 hours': () => DateUtils.minutesFromNow(240),
+  'In 3 hours': () => DateUtils.minutesFromNow(180),
   'Tomorrow morning': DateUtils.tomorrow,
   'Tomorrow evening': DateUtils.tomorrowEvening,
-  'In 2 days': () => DateUtils.hoursFromNow(48),
-  'In 4 days': () => DateUtils.hoursFromNow(96),
+  'In 3 days': () => DateUtils.hoursFromNow(72),
   'In 1 week': () => DateUtils.weeksFromNow(1),
   'In 2 weeks': () => DateUtils.weeksFromNow(2),
-  'In 1 month': () => DateUtils.monthsFromNow(1),
+  'In a month': () => DateUtils.monthsFromNow(1),
 };
 
 function SendRemindersPopover(props) {

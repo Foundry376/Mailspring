@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { RetinaImg, Flexbox } from 'mailspring-component-kit';
-import { makeRequest } from '../flux/mailspring-api-request';
+import { MailspringAPIRequest } from 'mailspring-exports';
 
 export default class NewsletterSignup extends React.Component {
   static displayName = 'NewsletterSignup';
@@ -41,7 +41,7 @@ export default class NewsletterSignup extends React.Component {
   _onGetStatus = async (props = this.props) => {
     this._setState({ status: 'Pending' });
     try {
-      const { status } = await makeRequest({
+      const { status } = await MailspringAPIRequest.makeRequest({
         server: 'identity',
         method: 'GET',
         path: this._path(props),
@@ -59,7 +59,7 @@ export default class NewsletterSignup extends React.Component {
   _onSubscribe = async () => {
     this._setState({ status: 'Pending' });
     try {
-      const { status } = await makeRequest({
+      const { status } = await MailspringAPIRequest.makeRequest({
         server: 'identity',
         method: 'POST',
         path: this._path(),
@@ -73,7 +73,7 @@ export default class NewsletterSignup extends React.Component {
   _onUnsubscribe = () => {
     this._setState({ status: 'Pending' });
     try {
-      const { status } = makeRequest({
+      const { status } = MailspringAPIRequest.makeRequest({
         server: 'identity',
         method: 'DELETE',
         path: this._path(),
@@ -85,7 +85,7 @@ export default class NewsletterSignup extends React.Component {
   };
 
   _path(props = this.props) {
-    return `/api/newsletter-subscription/${encodeURIComponent(
+    return `/api/newsletter/first-account/${encodeURIComponent(
       props.emailAddress
     )}?name=${encodeURIComponent(props.name)}`;
   }

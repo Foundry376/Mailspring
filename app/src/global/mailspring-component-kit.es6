@@ -113,7 +113,6 @@ lazyLoadFrom('GeneratedForm', 'generated-form');
 lazyLoadFrom('GeneratedFieldset', 'generated-form');
 
 lazyLoad('ScenarioEditor', 'scenario-editor');
-lazyLoad('NewsletterSignup', 'newsletter-signup');
 
 lazyLoad('SearchBar', 'search-bar');
 

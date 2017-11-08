@@ -3,9 +3,10 @@ PropTypes = require 'prop-types'
 path = require 'path'
 fs = require 'fs'
 _ = require 'underscore'
-{RetinaImg, Flexbox, ConfigPropContainer, NewsletterSignup} = require 'mailspring-component-kit'
+{RetinaImg, Flexbox, ConfigPropContainer} = require 'mailspring-component-kit'
 {AccountStore} = require 'mailspring-exports'
 OnboardingActions = require('./onboarding-actions').default
+NewsletterSignup = require('./newsletter-signup').default
 
 # NOTE: Temporarily copied from preferences module
 class AppearanceModeOption extends React.Component
