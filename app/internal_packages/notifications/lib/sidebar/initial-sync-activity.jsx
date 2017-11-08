@@ -35,7 +35,7 @@ export default class InitialSyncActivity extends React.Component {
       if (progress < 1) {
         progressLabel = `Scanning (${Math.round(progress * 100)}%)`;
       } else {
-        progressLabel = `Indexing messages...`;
+        progressLabel = `Building index…`;
       }
     }
 
