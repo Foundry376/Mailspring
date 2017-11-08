@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { EditableList, NewsletterSignup } from 'mailspring-component-kit';
+import { EditableList } from 'mailspring-component-kit';
 import { RegExpUtils, Account } from 'mailspring-exports';
 
 class PreferencesAccountDetails extends Component {
@@ -212,10 +212,6 @@ class PreferencesAccountDetails extends Component {
         />
 
         {this._renderDefaultAliasSelector(account)}
-
-        <div className="newsletter">
-          <NewsletterSignup emailAddress={account.emailAddress} name={account.name} />
-        </div>
       </div>
     );
   }
