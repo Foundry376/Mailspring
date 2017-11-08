@@ -77,7 +77,7 @@ export default class DropdownMenu extends React.Component {
     }
 
     let dropdownContainerStyles = { position: 'absolute', left: 0, zIndex: 10 };
-    if (this.props.attachment == Attachment.RightEdge) {
+    if (this.props.attachment === Attachment.RightEdge) {
       dropdownContainerStyles = { position: 'absolute', right: 0, zIndex: 10 };
     }
 

@@ -9,7 +9,7 @@ import {
 
 import ActivityActions from './activity-actions';
 import ActivityDataSource from './activity-data-source';
-import { pluginFor } from './plugin-helpers';
+import { pluginFor, LINK_TRACKING_ID, OPEN_TRACKING_ID } from './plugin-helpers';
 
 class ActivityEventStore extends MailspringStore {
   activate() {
@@ -89,8 +89,6 @@ class ActivityEventStore extends MailspringStore {
     const dataSource = this._dataSource();
     this._subscription = dataSource
       .buildObservable({
-        openTrackingId: AppEnv.packages.pluginIdFor('open-tracking'),
-        linkTrackingId: AppEnv.packages.pluginIdFor('link-tracking'),
         messageLimit: 500,
       })
       .subscribe(messages => {
@@ -111,11 +109,9 @@ class ActivityEventStore extends MailspringStore {
     const sidebarAccountIds = FocusedPerspectiveStore.sidebarAccountIds();
     for (const message of messages) {
       if (sidebarAccountIds.length > 1 || message.accountId === sidebarAccountIds[0]) {
-        const openTrackingId = AppEnv.packages.pluginIdFor('open-tracking');
-        const linkTrackingId = AppEnv.packages.pluginIdFor('link-tracking');
         if (
-          message.metadataForPluginId(openTrackingId) ||
-          message.metadataForPluginId(linkTrackingId)
+          message.metadataForPluginId(OPEN_TRACKING_ID) ||
+          message.metadataForPluginId(LINK_TRACKING_ID)
         ) {
           actions = actions.concat(this._openActionsForMessage(message));
           actions = actions.concat(this._linkActionsForMessage(message));
@@ -143,8 +139,7 @@ class ActivityEventStore extends MailspringStore {
   }
 
   _openActionsForMessage(message) {
-    const openTrackingId = AppEnv.packages.pluginIdFor('open-tracking');
-    const openMetadata = message.metadataForPluginId(openTrackingId);
+    const openMetadata = message.metadataForPluginId(OPEN_TRACKING_ID);
     const recipients = message.to.concat(message.cc, message.bcc);
     const actions = [];
     if (openMetadata) {
@@ -153,7 +148,7 @@ class ActivityEventStore extends MailspringStore {
           const recipient = this.getRecipient(open.recipient, recipients);
           if (open.timestamp > this._lastChecked) {
             this._notifications.push({
-              pluginId: openTrackingId,
+              pluginId: OPEN_TRACKING_ID,
               threadId: message.threadId,
               data: {
                 title: 'New open',
@@ -174,7 +169,7 @@ class ActivityEventStore extends MailspringStore {
             threadId: message.threadId,
             title: message.subject,
             recipient: recipient,
-            pluginId: openTrackingId,
+            pluginId: OPEN_TRACKING_ID,
             timestamp: open.timestamp,
           });
         }
@@ -184,8 +179,7 @@ class ActivityEventStore extends MailspringStore {
   }
 
   _linkActionsForMessage(message) {
-    const linkTrackingId = AppEnv.packages.pluginIdFor('link-tracking');
-    const linkMetadata = message.metadataForPluginId(linkTrackingId);
+    const linkMetadata = message.metadataForPluginId(LINK_TRACKING_ID);
     const recipients = message.to.concat(message.cc, message.bcc);
     const actions = [];
     if (linkMetadata && linkMetadata.links) {
@@ -194,7 +188,7 @@ class ActivityEventStore extends MailspringStore {
           const recipient = this.getRecipient(click.recipient, recipients);
           if (click.timestamp > this._lastChecked) {
             this._notifications.push({
-              pluginId: linkTrackingId,
+              pluginId: LINK_TRACKING_ID,
               threadId: message.threadId,
               data: {
                 title: 'New click',
@@ -215,7 +209,7 @@ class ActivityEventStore extends MailspringStore {
             threadId: message.threadId,
             title: link.url,
             recipient: recipient,
-            pluginId: linkTrackingId,
+            pluginId: LINK_TRACKING_ID,
             timestamp: click.timestamp,
           });
         }

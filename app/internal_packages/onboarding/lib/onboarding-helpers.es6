@@ -2,13 +2,7 @@
 
 import crypto from 'crypto';
 import { CommonProviderSettings } from 'imap-provider-settings';
-import {
-  Account,
-  MailspringAPIRequest,
-  IdentityStore,
-  RegExpUtils,
-  MailsyncProcess,
-} from 'mailspring-exports';
+import { Account, MailspringAPIRequest, IdentityStore, MailsyncProcess } from 'mailspring-exports';
 
 const { makeRequest, rootURLForServer } = MailspringAPIRequest;
 

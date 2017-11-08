@@ -528,9 +528,6 @@ xdescribe('SendDraftTask', function sendDraftTask() {
         let value = { provider: customValues['AccountStore.accountForId'] || 'gmail' };
         spyOn(AccountStore, 'accountForId').andReturn(value);
 
-        value = customValues['AppEnv.packages.pluginIdFor'] || (name => name);
-        spyOn(AppEnv.packages, 'pluginIdFor').andCallFake(value);
-
         value = { length: customValues['draft.participants'] || 5 };
         spyOn(this.task.draft, 'participants').andReturn(value);
       };
@@ -538,22 +535,6 @@ xdescribe('SendDraftTask', function sendDraftTask() {
 
     it('should return false if the provider is eas', () => {
       this.applySpies({ 'AccountStore.accountForId': 'eas' });
-      expect(this.task.hasCustomBodyPerRecipient()).toBe(false);
-    });
-
-    it('should return false if the open-tracking id is null', () => {
-      const fake = name => {
-        return name === 'open-tracking' ? null : name;
-      };
-      this.applySpies({ 'AppEnv.packages.pluginIdFor': fake });
-      expect(this.task.hasCustomBodyPerRecipient()).toBe(false);
-    });
-
-    it('should return false if the link-tracking id is null', () => {
-      const fake = name => {
-        return name === 'link-tracking' ? null : name;
-      };
-      this.applySpies({ 'AppEnv.packages.pluginIdFor': fake });
       expect(this.task.hasCustomBodyPerRecipient()).toBe(false);
     });
 

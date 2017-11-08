@@ -129,15 +129,6 @@ messages[2].directlyAttachMetadata(LINK_TRACKING_ID, pluginValue);
 describe('ActivityList', function activityList() {
   beforeEach(() => {
     this.testSource = new TestDataSource();
-    spyOn(AppEnv.packages, 'pluginIdFor').andCallFake(pluginName => {
-      if (pluginName === 'open-tracking') {
-        return OPEN_TRACKING_ID;
-      }
-      if (pluginName === 'link-tracking') {
-        return LINK_TRACKING_ID;
-      }
-      return null;
-    });
     spyOn(ActivityEventStore, '_dataSource').andReturn(this.testSource);
     spyOn(FocusedPerspectiveStore, 'sidebarAccountIds').andReturn(['0000000000000000000000000']);
     spyOn(DatabaseStore, 'run').andCallFake(query => {

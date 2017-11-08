@@ -1,7 +1,8 @@
+export const OPEN_TRACKING_ID = 'open-tracking';
+export const LINK_TRACKING_ID = 'link-tracking';
+
 export function pluginFor(id) {
-  const openTrackingId = AppEnv.packages.pluginIdFor('open-tracking');
-  const linkTrackingId = AppEnv.packages.pluginIdFor('link-tracking');
-  if (id === openTrackingId) {
+  if (id === OPEN_TRACKING_ID) {
     return {
       name: 'open',
       predicate: 'opened',
@@ -9,7 +10,7 @@ export function pluginFor(id) {
       notificationInterval: 600000, // 10 minutes in ms
     };
   }
-  if (id === linkTrackingId) {
+  if (id === LINK_TRACKING_ID) {
     return {
       name: 'link',
       predicate: 'clicked',

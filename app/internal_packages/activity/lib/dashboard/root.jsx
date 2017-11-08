@@ -19,6 +19,7 @@ import {
 } from './metrics-components';
 
 import ShareButton from './share-button';
+import { LINK_TRACKING_ID, OPEN_TRACKING_ID } from '../plugin-helpers';
 import { DEFAULT_TIMESPAN_ID, getTimespanStartEnd } from './timespan';
 import TimespanSelector from './timespan-selector';
 import LoadingCover from './loading-cover';
@@ -136,7 +137,7 @@ class RootWithTimespan extends React.Component {
         receivedTimeOfDay[hourIdx] += 1;
 
         // Link and Open Tracking Metrics
-        const openM = message.metadataForPluginId('open-tracking');
+        const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
         if (openM) {
           threadStats[message.threadId].tracked = true;
           openTrackingEnabled += 1;
@@ -145,7 +146,7 @@ class RootWithTimespan extends React.Component {
             openTrackingTriggered += 1;
           }
         }
-        const linkM = message.metadataForPluginId('link-tracking');
+        const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
         if (linkM && linkM.tracked && linkM.links instanceof Array) {
           threadStats[message.threadId].tracked = true;
           linkTrackingEnabled += 1;

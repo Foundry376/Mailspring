@@ -29,11 +29,6 @@ export default class PackageManager {
     this.discoverPackages();
   }
 
-  pluginIdFor(packageName) {
-    // Plugin IDs are now package names - the ID concept was complicated and nobody got it.
-    return packageName;
-  }
-
   discoverPackages() {
     for (const dir of this.packageDirectories) {
       let filenames = [];

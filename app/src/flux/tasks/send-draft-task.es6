@@ -45,25 +45,25 @@ export default class SendDraftTask extends Task {
   constructor(...args) {
     super(...args);
 
-    if (this.draft) {
-      const OPEN_TRACKING_ID = AppEnv.packages.pluginIdFor('open-tracking');
-      const LINK_TRACKING_ID = AppEnv.packages.pluginIdFor('link-tracking');
-
-      const pluginsAvailable = OPEN_TRACKING_ID && LINK_TRACKING_ID;
-      const pluginsInUse =
-        pluginsAvailable &&
-        (!!this.draft.metadataForPluginId(OPEN_TRACKING_ID) ||
-          !!this.draft.metadataForPluginId(LINK_TRACKING_ID));
-      if (pluginsInUse) {
-        const bodies = {
-          self: this.draft.body,
-        };
-        this.draft.participants({ includeFrom: false, includeBcc: true }).forEach(recipient => {
-          bodies[recipient.email] = this.personalizeBodyForRecipient(this.draft.body, recipient);
-        });
-        this.perRecipientBodies = bodies;
-      }
+    if (this.draft && (this.isOpenTrackingEnabled() || this.isLinkTrackingEnabled())) {
+      const bodies = {
+        self: this.draft.body,
+      };
+      this.draft.participants({ includeFrom: false, includeBcc: true }).forEach(recipient => {
+        bodies[recipient.email] = this.personalizeBodyForRecipient(this.draft.body, recipient);
+      });
+      this.perRecipientBodies = bodies;
     }
+  }
+
+  isOpenTrackingEnabled() {
+    const metadata = this.draft.metadataForPluginId('open-tracking');
+    return metadata && Object.keys(metadata).length > 0;
+  }
+
+  isLinkTrackingEnabled() {
+    const metadata = this.draft.metadataForPluginId('link-tracking');
+    return metadata && Object.keys(metadata).length > 0;
   }
 
   label() {
@@ -153,21 +153,25 @@ export default class SendDraftTask extends Task {
 
     let body = _body;
 
-    // This adds a `recipient` param to the open tracking src url.
-    body = body.replace(/<img class="mailspring-open".*?src="(.*?)">/g, (match, src) => {
-      const newSrc = addRecipientToUrl(src, recipient.email);
-      return `<img class="mailspring-open" width="0" height="0" style="border:0; width:0; height:0;" src="${newSrc}">`;
-    });
+    if (this.isOpenTrackingEnabled()) {
+      // This adds a `recipient` param to the open tracking src url.
+      body = body.replace(/<img class="mailspring-open".*?src="(.*?)">/g, (match, src) => {
+        const newSrc = addRecipientToUrl(src, recipient.email);
+        return `<img class="mailspring-open" width="0" height="0" style="border:0; width:0; height:0;" src="${newSrc}">`;
+      });
+    }
 
-    // This adds a `recipient` param to the link tracking tracking href url.
-    const trackedLinkRegexp = new RegExp(
-      /(<a.*?href\s*?=\s*?['"])((?!mailto).+?)(['"].*?>)([\s\S]*?)(<\/a>)/gim
-    );
+    if (this.isLinkTrackingEnabled()) {
+      // This adds a `recipient` param to the link tracking tracking href url.
+      const trackedLinkRegexp = new RegExp(
+        /(<a.*?href\s*?=\s*?['"])((?!mailto).+?)(['"].*?>)([\s\S]*?)(<\/a>)/gim
+      );
 
-    body = body.replace(trackedLinkRegexp, (match, prefix, href, suffix, content, closingTag) => {
-      const newHref = addRecipientToUrl(href, recipient.email);
-      return `${prefix}${newHref}${suffix}${content}${closingTag}`;
-    });
+      body = body.replace(trackedLinkRegexp, (match, prefix, href, suffix, content, closingTag) => {
+        const newHref = addRecipientToUrl(href, recipient.email);
+        return `${prefix}${newHref}${suffix}${content}${closingTag}`;
+      });
+    }
 
     body = body.replace('data-open-tracking-src=', 'src=');
 
