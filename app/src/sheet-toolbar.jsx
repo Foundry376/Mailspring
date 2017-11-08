@@ -4,7 +4,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { remote } from 'electron';
-import _str from 'underscore.string';
 import { Actions, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 
 import Flexbox from './components/flexbox';
@@ -83,8 +82,10 @@ class ToolbarBack extends React.Component {
     let title = 'Back';
     if (this.state.categoryName === Category.AllMailName) {
       title = 'All Mail';
-    } else if (this.state.categoryName) {
-      title = _str.titleize(this.state.categoryName);
+    } else if (this.state.categoryName === 'INBOX') {
+      title = 'Inbox';
+    } else {
+      title = this.state.categoryName;
     }
     return (
       <div className="item-back" onClick={this._onClick} title={`Return to ${title}`}>
