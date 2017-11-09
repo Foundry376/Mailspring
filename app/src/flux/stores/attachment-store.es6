@@ -30,6 +30,7 @@ const NonPreviewableExtensions = [
   'ics',
 ];
 
+const PREVIEW_FILE_SIZE_LIMIT = 2000000; // 2mb
 const THUMBNAIL_WIDTH = 320;
 
 class AttachmentStore extends MailspringStore {
@@ -114,6 +115,9 @@ class AttachmentStore extends MailspringStore {
       return Promise.resolve();
     }
     if (NonPreviewableExtensions.includes(file.displayExtension())) {
+      return Promise.resolve();
+    }
+    if (file.size > PREVIEW_FILE_SIZE_LIMIT) {
       return Promise.resolve();
     }
 
