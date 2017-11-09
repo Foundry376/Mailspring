@@ -91,8 +91,6 @@ lazyLoadFrom('SelectableTableRow', 'selectable-table');
 lazyLoadFrom('SelectableTableCell', 'selectable-table');
 lazyLoad('EditableTable', 'editable-table');
 lazyLoadFrom('EditableTableCell', 'editable-table');
-lazyLoad('Toast', 'toast');
-lazyLoad('UndoToast', 'undo-toast');
 lazyLoad('LazyRenderedList', 'lazy-rendered-list');
 lazyLoad('OverlaidComponents', 'overlaid-components/overlaid-components');
 lazyLoad('OverlaidComposerExtension', 'overlaid-components/overlaid-composer-extension');

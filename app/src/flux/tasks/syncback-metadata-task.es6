@@ -16,11 +16,13 @@ export default class SyncbackMetadataTask extends Task {
       undoValue,
     });
 
-    if (value && value.expiration / 1 > 1000000000000) {
-      task.value.expiration = Math.round(new Date(value.expiration).getTime() / 1000);
+    if (value && value.expiration) {
+      const ts = new Date(value.expiration).getTime();
+      task.value.expiration = Math.round(ts > 1000000000000 ? ts / 1000 : ts);
     }
-    if (undoValue && undoValue.expiration / 1 > 1000000000000) {
-      task.undoValue.expiration = Math.round(new Date(undoValue.expiration).getTime() / 1000);
+    if (undoValue && undoValue.expiration) {
+      const ts = new Date(undoValue.expiration).getTime();
+      task.undoValue.expiration = Math.round(ts > 1000000000000 ? ts / 1000 : ts);
     }
 
     return task;
