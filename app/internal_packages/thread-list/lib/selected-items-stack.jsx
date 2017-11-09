@@ -53,7 +53,13 @@ class SelectedItemsStack extends Component {
                 transform,
                 zIndex: 5 - idx,
               };
-              return <div key={`card-${idx}`} style={style} className="card" />;
+              return (
+                <div key={`card-${idx}`} style={style} className="card">
+                  <svg width="100%" height="100%" viewBox="0 0 390 527" version="1.1">
+                    <rect strokeWidth="2.5" x="0" y="0" width="390" height="527" rx="15" />
+                  </svg>
+                </div>
+              );
             })}
           </div>
           <div className="count-info">

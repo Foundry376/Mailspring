@@ -1,5 +1,4 @@
 @import 'ui-variables';
-@img-path: '../internal_packages/thread-list/assets/graphic-stackable-card-filled.svg';
 
 .selected-items-stack {
   display: flex;
@@ -22,8 +21,10 @@
         left: 0;
         width: 198px;
         height: 268px;
-        background: url(@img-path);
-        background-size: 198px 268px;
+        svg {
+          stroke: @border-color-divider;
+          fill: @background-primary;
+        }
       }
     }
 
