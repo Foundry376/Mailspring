@@ -151,7 +151,7 @@ export default class MailsyncProcess extends EventEmitter {
 
   sync() {
     this._spawnProcess('sync');
-    let buffer = '';
+    let outBuffer = '';
     let errBuffer = null;
 
     /* Allow us to buffer up to 1MB on stdin instead of 16k. This is necessary
@@ -164,11 +164,11 @@ export default class MailsyncProcess extends EventEmitter {
     if (this._proc.stdout) {
       this._proc.stdout.on('data', data => {
         const added = data.toString();
-        buffer += added;
+        outBuffer += added;
 
         if (added.indexOf('\n') !== -1) {
-          const msgs = buffer.split('\n');
-          buffer = msgs.pop();
+          const msgs = outBuffer.split('\n');
+          outBuffer = msgs.pop();
           this.emit('deltas', msgs);
         }
       });
@@ -185,20 +185,20 @@ export default class MailsyncProcess extends EventEmitter {
 
     let cleanedUp = false;
     const onStreamCloseOrExit = (code, signal) => {
-      let error = null;
       if (cleanedUp) {
         return;
       }
 
-      if (buffer.length) {
-        let lastJSON = null;
-        try {
-          lastJSON = JSON.parse(buffer);
-        } finally {
-          if (lastJSON && lastJSON.error) {
+      let error = null;
+      let lastJSON = null;
+      try {
+        lastJSON = outBuffer.length && JSON.parse(outBuffer);
+      } finally {
+        if (lastJSON) {
+          if (lastJSON.error) {
             error = new Error(lastJSON.error);
           } else {
-            this.emit('deltas', buffer);
+            this.emit('deltas', [outBuffer]);
           }
         }
       }
@@ -228,7 +228,17 @@ export default class MailsyncProcess extends EventEmitter {
     }
     console.log(`Sending to mailsync ${this.account.id}`, json);
     const msg = `${JSON.stringify(json)}\n`;
-    this._proc.stdin.write(msg, 'UTF8');
+    try {
+      this._proc.stdin.write(msg, 'UTF8');
+    } catch (error) {
+      if (error && error.message.includes('socket has been ended')) {
+        // The process probably already exited and we missed it somehow,
+        // but try to kill it anyway and then force-emit a 'close' to trigger
+        // the bridge to restart us.
+        this._proc.kill();
+        this.emit('close', { code: -2, error, signal: null });
+      }
+    }
   }
 
   migrate() {

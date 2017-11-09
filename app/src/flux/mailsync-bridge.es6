@@ -354,7 +354,15 @@ export default class MailsyncBridge {
         continue;
       }
 
-      const { type, modelJSONs, modelClass } = JSON.parse(msg);
+      let json = null;
+      try {
+        json = JSON.parse(msg);
+      } catch (err) {
+        console.log(`Sync worker sent non-JSON formatted message: ${msg}. ${err}`);
+        continue;
+      }
+
+      const { type, modelJSONs, modelClass } = json;
       if (!modelJSONs || !type || !modelClass) {
         console.log(`Sync worker sent a JSON formatted message with unexpected keys: ${msg}`);
         continue;
