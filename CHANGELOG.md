@@ -1,5 +1,55 @@
 # Mailspring Changelog
 
+### 1.0.8 (11/10/2017)
+
+Features:
+
+- A brand new Activity View (in the sidebar beneath Drafts) provides quick mailbox statistics and analytics for read receipts and link tracking.
+
+Improvements:
+
+- When snoozing, a setting in Preferences > General now allows you to choose whether emails should be moved to the top of your inbox or just returned to the inbox as unread. (Thanks @casuallancelot)
+
+- Space and shift-space now move you up and down in the thread view. (Thanks @victortrac)
+
+- The window title now carries the subject of the currently selected email. (Thanks @agurz)
+
+- The dark theme has been overhauled to improve readability and ensure visual queues are present for important UI. It looks more like Spotify and less "all gray."
+
+Fixes:
+
+- Undo send now works correctly!
+
+- Mailspring no longer pre-processes HTML through `tidy`, which was too strict and causing emails to display incorrectly and links to break.
+
+- The thread list no longer "flickers" when archiving / deleting unread email.
+
+- The spellchecker now handles non-ASCII characters in words correctly. (Thanks @jGleitz)
+
+- Undo toasts no longer re-appear after switching views.
+
+- In single pane mode, the "Back" button title with the folder name is no longer converted to titlecase.
+
+- Disabling read receipts and link tracking now effects the current draft correctly in addition to future drafts.
+
+- You can now provide any IMAP/SMTP hostname (e.g. `mail`)
+
+- Starting and deleting a forwarded message no longer blocks you from creating another one in the same thread for a few seconds.
+
+- The secret "Show Original" feature is back.
+
+- Screenshot mode has been fixed. (Thanks @agurz)
+
+- Mailspring now corrects inconsistencies in it's data as you perform mail actions, so threads can't get "stuck" in the trash, snoozed folder, etc.
+
+- Drag and drop to the `starred` or `unread` views now works properly.
+
+- Snooze dates are properly synced to the Mailspring backend, so they're persisted when you clear your cache or re-install Mailspring.
+
+- On Windows, Mailspring no longer has problems saving attachments with extended UTF-16 characters, (eg Japanese or Polish.)
+
+- Mailsync no longer crashes when messages have more than ~150 references to other messages in their headers.
+
 ### 1.0.7 (10/28/2017)
 
 Fixes:
