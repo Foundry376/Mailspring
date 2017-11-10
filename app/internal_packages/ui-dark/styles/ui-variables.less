@@ -6,22 +6,22 @@
 @gray: darken(@gray-base, 33.5%);
 @gray-light: darken(@gray-base, 46.7%);
 @gray-lighter: darken(@gray-base, 92.5%);
-@white: #0a0b0c;
+@white: #0a0a0a;
 
-@accent-primary: #5e6a77;
-@accent-primary-dark: #5e6a77;
+@accent-primary: #58b660;
+@accent-primary-dark: darken(@accent-primary, 10%);
 
-@background-primary: #333539;
-@background-off-primary: #282828;
-@background-secondary: #333539;
-@background-tertiary: #333539;
+@background-primary: #212121;
+@background-off-primary: #212121;
+@background-secondary: #121212;
+@background-tertiary: #6d7987;
 
-@border-color-primary: darken(@background-primary, 1%);
-@border-color-secondary: darken(@background-secondary, 1%);
-@border-color-tertiary: darken(@background-tertiary, 1%);
+@border-color-primary: lighten(@background-primary, 10%);
+@border-color-secondary: lighten(@background-secondary, 10%);
+@border-color-tertiary: lighten(@background-tertiary, 10%);
 @border-color-divider: @border-color-secondary;
 
-@text-color: #c0c6cb;
+@text-color: #eee;
 @text-color-subtle: fadeout(@text-color, 20%);
 @text-color-very-subtle: fadeout(@text-color, 40%);
 @text-color-inverse: white;
@@ -29,10 +29,14 @@
 @text-color-inverse-very-subtle: fadeout(@text-color-inverse, 50%);
 @text-color-heading: #FFF;
 
+@text-color-link: @accent-primary;
+@text-color-link-hover: @accent-primary-dark;
+@text-color-link-active: @accent-primary-dark;
+
 @btn-default-bg-color: lighten(@background-primary, 5%);
 @dropdown-default-bg-color: #404040;
 
-@input-bg: #242424;
+@input-bg: #2e2e2e;
 @input-border: @border-color-divider;
 
 @list-bg: #333;
@@ -40,13 +44,12 @@
 @list-selected-color: @text-color-inverse;
 @list-focused-color: @text-color;
 
-@toolbar-background-color: @background-secondary;
-@panel-background-color: #282b30;
+@toolbar-background-color: #121212;
+@panel-background-color: #121212;
 
 .sheet-toolbar {
-  border-bottom: none;
-  box-shadow: 0 0 0.5px @border-color-primary, 0 1px 1.5px @border-color-primary,
-    0 0 3px @border-color-primary;
+  border-bottom: 1px solid @border-color-divider;
+  box-shadow: none;
 }
 
 .thread-icon:not(.thread-icon-unread):not(.thread-icon-star) {
@@ -59,19 +62,14 @@ img.content-light {
   -webkit-filter: invert(100%);
 }
 
-.popover {
-  border: 1px solid @border-color-primary;
-}
-
 .mail-label {
   -webkit-filter: contrast(110%) brightness(85%);
 }
 
-.sheet-toolbar .btn-toolbar {
-  box-shadow: 0 0.5px 0.05px rgba(255, 255, 255, 0.4), 0 -0.5px 0 rgba(255, 255, 255, 0.12);
+#message-list .message-item-wrap .message-item-white-wrap {
+  box-shadow: 0 0 0.5px rgba(255, 255, 255, 0.28), 0 1px 1.5px rgba(255, 255, 255, 0.08);
 }
-.btn {
-  box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.15), 0 -0.5px 0 rgba(255, 255, 255, 0.15),
-    0.5px 0 0 rgba(255, 255, 255, 0.15), -0.5px 0 0 rgba(255, 255, 255, 0.15),
-    0 0.5px 1px rgba(255, 255, 255, 0.15);
+
+.thread-list .list-item:not(.unread):not(.selected):not(.focused) {
+  color: #aaa;
 }

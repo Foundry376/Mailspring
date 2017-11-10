@@ -186,8 +186,9 @@ class PreferencesIdentity extends React.Component {
 
   _renderPaidPlan(planName, effectivePlanName) {
     const unpaidNote = effectivePlanName !== planName && (
-      <p
-      >{`Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring ${effectivePlanName}. Click 'Billing' below to correct the issue.`}</p>
+      <p>
+        {`Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring ${effectivePlanName}. Click 'Billing' below to correct the issue.`}
+      </p>
     );
     return (
       <div className="row padded">
@@ -197,7 +198,7 @@ class PreferencesIdentity extends React.Component {
           supporting independent software.
           {unpaidNote}
         </div>
-        <div className="subscription-actions">
+        <div style={{ paddingTop: 15 }}>
           <OpenIdentityPageButton
             label="Manage Billing"
             path="/dashboard#billing"
