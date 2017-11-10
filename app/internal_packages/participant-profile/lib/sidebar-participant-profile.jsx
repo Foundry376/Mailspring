@@ -265,7 +265,7 @@ export default class SidebarParticipantProfile extends React.Component {
     }
 
     return (
-      <div style={{ textAlign: 'center' }}>
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <p>
           The contact sidebar in Mailspring Pro shows information about the people and companies
           you're emailing with.

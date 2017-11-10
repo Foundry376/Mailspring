@@ -515,6 +515,14 @@ Utils =
   # Also emails that are really long are likely computer-generated email
   # strings used for bcc-based automated teasks.
   likelyNonHumanEmail: (email) ->
+    # simple catch for long emails that are almost always autoreplies
+    return true if email.length > 48
+
+    # simple catch for things like hex sequences in prefixes
+    digitCount = email.split('@').shift().split(/[0-9]/g).length - 1
+    return true if digitCount >= 6
+
+    # more advanced scan for common patterns
     at = "[-@+=]"
     terms = [
       "no[-_]?reply"
@@ -554,7 +562,7 @@ Utils =
     ]
     reStr = "(#{terms.join("|")})"
     re = new RegExp(reStr, "gi")
-    return re.test(email) or email.length > 48
+    return re.test(email)
 
   # Does the several tests you need to determine if a test range is within
   # a bounds. Expects both objects to have `start` and `end` keys.
