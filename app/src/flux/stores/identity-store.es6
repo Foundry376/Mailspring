@@ -96,8 +96,9 @@ class IdentityStore extends MailspringStore {
    * cache and set the token from the keychain.
    */
   _onIdentityChanged = async () => {
-    this._identity = AppEnv.config.get('identity') || {};
-    this._identity.token = await KeyManager.getPassword(KEYCHAIN_NAME);
+    const next = Object.assign({}, AppEnv.config.get('identity') || {});
+    next.token = await KeyManager.getPassword(KEYCHAIN_NAME);
+    this._identity = next;
     this.trigger();
   };
 
