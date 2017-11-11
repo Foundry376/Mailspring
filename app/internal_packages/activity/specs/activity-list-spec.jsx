@@ -8,12 +8,10 @@ import {
   DatabaseStore,
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
-import ActivityList from '../lib/activity-list';
+import ActivityList from '../lib/list/activity-list';
 import ActivityEventStore from '../lib/activity-event-store';
 import TestDataSource from '../lib/test-data-source';
-
-const OPEN_TRACKING_ID = 'open-tracking-id';
-const LINK_TRACKING_ID = 'link-tracking-id';
+import { OPEN_TRACKING_ID, LINK_TRACKING_ID } from '../lib/plugin-helpers';
 
 const messages = [
   new Message({
