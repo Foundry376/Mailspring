@@ -1,46 +1,57 @@
-let sanitizeHtml = null;
+/*
+The sanitizer implementation here is loosely based on
+https://www.quaxio.com/html_white_listed_sanitizer/
+*/
+
+const asMap = arr => {
+  const obj = {};
+  arr.forEach(k => (obj[k] = true));
+  return obj;
+};
+
+const sanitizeURL = function(val, rules) {
+  if (!val) {
+    return null;
+  }
+  if (rules.except && rules.except.find(scheme => val.startsWith(scheme))) {
+    return null;
+  }
+
+  return val;
+};
+
+// https://stackoverflow.com/questions/2725156/complete-list-of-html-tag-attributes-which-have-a-url-value
+const AttributesContainingLinks = [
+  'src',
+  'codebase',
+  'cite',
+  'background',
+  'longdesc',
+  'profile',
+  'usemap',
+  'data',
+  'href',
+  'action',
+  'formaction',
+  'icon',
+  'manifest',
+  'poster',
+  'srcdoc',
+  'srcset',
+  'archive',
+  'classid',
+];
 
 const Preset = {
-  Strict: {
-    allowedTags: [
+  PasteFragment: {
+    fragment: true,
+    allowedTags: asMap([
       'p',
       'b',
       'i',
       'em',
       'strong',
-      'a',
-      'br',
-      'img',
-      'ul',
-      'ol',
-      'li',
-      'strike',
-      'table',
-    ],
-    allowedAttributes: {
-      a: ['href', 'name'],
-      img: ['src', 'alt'],
-    },
-    transformTags: {
-      h1: 'p',
-      h2: 'p',
-      h3: 'p',
-      h4: 'p',
-      h5: 'p',
-      h6: 'p',
-      div: 'p',
-      pre: 'p',
-      blockquote: 'p',
-    },
-  },
-
-  Permissive: {
-    allowedTags: [
-      'p',
-      'b',
-      'i',
-      'em',
-      'strong',
+      'center',
       'a',
       'br',
       'img',
@@ -55,142 +66,145 @@ const Preset = {
       'col',
       'colgroup',
       'div',
-    ],
-    allowedSchemesByTag: {
-      img: ['data'],
+      'html',
+      'font',
+    ]),
+    allowedSchemes: {
+      default: { except: ['file:'] },
     },
-    allowedAttributes: [
-      'abbr',
-      'accept',
-      'acceptcharset',
-      'accesskey',
-      'action',
-      'align',
-      'alt',
-      'async',
-      'autocomplete',
-      'axis',
-      'border',
-      'bgcolor',
-      'cellpadding',
-      'cellspacing',
-      'char',
-      'charoff',
-      'charset',
-      'checked',
-      'class',
-      'classid',
-      'classname',
-      'colspan',
-      'cols',
-      'content',
-      'contextmenu',
-      'controls',
-      'coords',
-      'data-overlay-id',
-      'data-component-props',
-      'data-component-key',
-      'data',
-      'datetime',
-      'defer',
-      'dir',
-      'disabled',
-      'download',
-      'draggable',
-      'enctype',
-      'form',
-      'formaction',
-      'formenctype',
-      'formmethod',
-      'formnovalidate',
-      'formtarget',
-      'frame',
-      'frameborder',
-      'headers',
-      'height',
-      'hidden',
-      'high',
-      'href',
-      'hreflang',
-      'htmlfor',
-      'httpequiv',
-      'icon',
-      'id',
-      'label',
-      'lang',
-      'list',
-      'loop',
-      'low',
-      'manifest',
-      'marginheight',
-      'marginwidth',
-      'max',
-      'maxlength',
-      'media',
-      'mediagroup',
-      'method',
-      'min',
-      'multiple',
-      'muted',
-      'name',
-      'novalidate',
-      'nowrap',
-      'open',
-      'optimum',
-      'pattern',
-      'placeholder',
-      'poster',
-      'preload',
-      'radiogroup',
-      'readonly',
-      'rel',
-      'required',
-      'role',
-      'rowspan',
-      'rows',
-      'rules',
-      'sandbox',
-      'scope',
-      'scoped',
-      'scrolling',
-      'seamless',
-      'selected',
-      'shape',
-      'size',
-      'sizes',
-      'sortable',
-      'sorted',
-      'span',
-      'spellcheck',
-      'src',
-      'srcdoc',
-      'srcset',
-      'start',
-      'step',
-      'style',
-      'summary',
-      'tabindex',
-      'target',
-      'title',
-      'translate',
-      'type',
-      'usemap',
-      'valign',
-      'value',
-      'width',
-      'wmode',
-    ],
+    allowedAttributes: {
+      default: asMap([
+        'abbr',
+        'accept',
+        'acceptcharset',
+        'accesskey',
+        'action',
+        'align',
+        'alt',
+        'async',
+        'autocomplete',
+        'axis',
+        'border',
+        'bgcolor',
+        'cellpadding',
+        'cellspacing',
+        'char',
+        'charoff',
+        'charset',
+        'checked',
+        'class',
+        'classid',
+        'classname',
+        'colspan',
+        'cols',
+        'content',
+        'contextmenu',
+        'controls',
+        'coords',
+        'data-overlay-id',
+        'data-component-props',
+        'data-component-key',
+        'data',
+        'datetime',
+        'defer',
+        'dir',
+        'disabled',
+        'download',
+        'draggable',
+        'enctype',
+        'form',
+        'formaction',
+        'formenctype',
+        'formmethod',
+        'formnovalidate',
+        'formtarget',
+        'frame',
+        'frameborder',
+        'headers',
+        'height',
+        'hidden',
+        'high',
+        'href',
+        'hreflang',
+        'htmlfor',
+        'httpequiv',
+        'icon',
+        'id',
+        'label',
+        'lang',
+        'list',
+        'loop',
+        'low',
+        'manifest',
+        'marginheight',
+        'marginwidth',
+        'max',
+        'maxlength',
+        'media',
+        'mediagroup',
+        'method',
+        'min',
+        'multiple',
+        'muted',
+        'name',
+        'novalidate',
+        'nowrap',
+        'open',
+        'optimum',
+        'pattern',
+        'placeholder',
+        'poster',
+        'preload',
+        'radiogroup',
+        'readonly',
+        'rel',
+        'required',
+        'role',
+        'rowspan',
+        'rows',
+        'rules',
+        'sandbox',
+        'scope',
+        'scoped',
+        'scrolling',
+        'seamless',
+        'selected',
+        'shape',
+        'size',
+        'sizes',
+        'sortable',
+        'sorted',
+        'span',
+        'spellcheck',
+        'src',
+        'srcdoc',
+        'srcset',
+        'start',
+        'step',
+        'style',
+        'summary',
+        'tabindex',
+        'target',
+        'title',
+        'translate',
+        'type',
+        'usemap',
+        'valign',
+        'value',
+        'width',
+        'wmode',
+      ]),
+    },
   },
 
   UnsafeOnly: {
-    allowedTags: [
+    allowedTags: asMap([
       'a',
       'abbr',
       'address',
       'area',
       'article',
       'aside',
-      'audio',
       'b',
       'bdi',
       'bdo',
@@ -202,6 +216,7 @@ const Preset = {
       'canvas',
       'caption',
       'cite',
+      'center',
       'code',
       'col',
       'colgroup',
@@ -220,6 +235,7 @@ const Preset = {
       'figcaption',
       'figure',
       'footer',
+      'font',
       'form',
       'h1',
       'h2',
@@ -267,6 +283,7 @@ const Preset = {
       'source',
       'span',
       'strong',
+      'style',
       'sub',
       'summary',
       'sup',
@@ -284,129 +301,130 @@ const Preset = {
       'u',
       'ul',
       'var',
-      'video',
       'wbr',
-    ],
-    allowedAttributes: [
-      'abbr',
-      'accept',
-      'acceptcharset',
-      'accesskey',
-      'action',
-      'align',
-      'alt',
-      'async',
-      'autocomplete',
-      'axis',
-      'border',
-      'bgcolor',
-      'cellpadding',
-      'cellspacing',
-      'char',
-      'charoff',
-      'charset',
-      'checked',
-      'classid',
-      'classname',
-      'colspan',
-      'cols',
-      'content',
-      'contextmenu',
-      'controls',
-      'coords',
-      'data',
-      'datetime',
-      'defer',
-      'dir',
-      'disabled',
-      'download',
-      'draggable',
-      'enctype',
-      'form',
-      'formaction',
-      'formenctype',
-      'formmethod',
-      'formnovalidate',
-      'formtarget',
-      'frame',
-      'frameborder',
-      'headers',
-      'height',
-      'hidden',
-      'high',
-      'href',
-      'hreflang',
-      'htmlfor',
-      'httpequiv',
-      'icon',
-      'id',
-      'label',
-      'lang',
-      'list',
-      'loop',
-      'low',
-      'manifest',
-      'marginheight',
-      'marginwidth',
-      'max',
-      'maxlength',
-      'media',
-      'mediagroup',
-      'method',
-      'min',
-      'multiple',
-      'muted',
-      'name',
-      'novalidate',
-      'nowrap',
-      'open',
-      'optimum',
-      'pattern',
-      'placeholder',
-      'poster',
-      'preload',
-      'radiogroup',
-      'readonly',
-      'rel',
-      'required',
-      'role',
-      'rowspan',
-      'rows',
-      'rules',
-      'sandbox',
-      'scope',
-      'scoped',
-      'scrolling',
-      'seamless',
-      'selected',
-      'shape',
-      'size',
-      'sizes',
-      'sortable',
-      'sorted',
-      'span',
-      'spellcheck',
-      'src',
-      'srcdoc',
-      'srcset',
-      'start',
-      'step',
-      'style',
-      'summary',
-      'tabindex',
-      'target',
-      'title',
-      'translate',
-      'type',
-      'usemap',
-      'valign',
-      'value',
-      'width',
-      'wmode',
-    ],
-    allowedSchemes: ['http', 'https', 'ftp', 'mailto', 'data'],
-    allowedClasses: {
-      pre: ['nylas-plaintext'],
+      'html',
+    ]),
+    allowedAttributes: {
+      default: asMap([
+        'abbr',
+        'accept',
+        'acceptcharset',
+        'accesskey',
+        'action',
+        'align',
+        'alt',
+        'async',
+        'autocomplete',
+        'axis',
+        'border',
+        'bgcolor',
+        'cellpadding',
+        'cellspacing',
+        'char',
+        'charoff',
+        'charset',
+        'checked',
+        'classid',
+        'classname',
+        'colspan',
+        'cols',
+        'content',
+        'contextmenu',
+        'controls',
+        'coords',
+        'data',
+        'datetime',
+        'defer',
+        'dir',
+        'disabled',
+        'download',
+        'draggable',
+        'enctype',
+        'form',
+        'formaction',
+        'formenctype',
+        'formmethod',
+        'formnovalidate',
+        'formtarget',
+        'frame',
+        'frameborder',
+        'headers',
+        'height',
+        'hidden',
+        'high',
+        'href',
+        'hreflang',
+        'htmlfor',
+        'httpequiv',
+        'icon',
+        'id',
+        'label',
+        'lang',
+        'list',
+        'loop',
+        'low',
+        'manifest',
+        'marginheight',
+        'marginwidth',
+        'max',
+        'maxlength',
+        'media',
+        'mediagroup',
+        'method',
+        'min',
+        'multiple',
+        'muted',
+        'name',
+        'novalidate',
+        'nowrap',
+        'open',
+        'optimum',
+        'pattern',
+        'placeholder',
+        'poster',
+        'preload',
+        'radiogroup',
+        'readonly',
+        'rel',
+        'required',
+        'role',
+        'rowspan',
+        'rows',
+        'rules',
+        'sandbox',
+        'scope',
+        'scoped',
+        'scrolling',
+        'seamless',
+        'selected',
+        'shape',
+        'size',
+        'sizes',
+        'sortable',
+        'sorted',
+        'span',
+        'spellcheck',
+        'src',
+        'srcdoc',
+        'srcset',
+        'start',
+        'step',
+        'style',
+        'summary',
+        'tabindex',
+        'target',
+        'title',
+        'translate',
+        'type',
+        'usemap',
+        'valign',
+        'value',
+        'width',
+        'wmode',
+      ]),
+    },
+    allowedSchemes: {
+      default: { except: ['file:'] },
     },
   },
 };
@@ -414,19 +432,77 @@ const Preset = {
 class SanitizeTransformer {
   Preset = Preset;
 
-  run(body, settings = Preset.Strict) {
-    if (settings.allowedAttributes instanceof Array) {
-      const attrMap = {};
-      for (const tag of settings.allowedTags) {
-        attrMap[tag] = settings.allowedAttributes;
-      }
-      settings.allowedAttributes = attrMap;
+  sanitizeNode(node, settings) {
+    let nodeName = node.nodeName.toLowerCase();
+    if (nodeName === '#text') {
+      return true; // text nodes are always safe, don't need to clone them
     }
 
-    if (!sanitizeHtml) {
-      sanitizeHtml = require('sanitize-html'); //eslint-disable-line
+    if (nodeName === '#comment') {
+      return false; // always strip comments
     }
-    return Promise.resolve(sanitizeHtml(body, settings));
+
+    if (!settings.allowedTags.hasOwnProperty(nodeName)) {
+      // this node isn't allowed, replace it with a `span` with the same children.
+      // This allows us to ignore things like tables / table cells and still get their contents.
+      let replacementNode = document.createElement('span');
+      for (const child of Array.from(node.childNodes)) {
+        replacementNode.appendChild(child);
+      }
+      node.parentNode.replaceChild(replacementNode, node);
+      node = replacementNode;
+    }
+
+    // identify the allowed attributes based on our settings
+    let allowedForNodeName = settings.allowedAttributes.default;
+    if (settings.allowedAttributes.hasOwnProperty(nodeName)) {
+      allowedForNodeName = settings.allowedAttributes[nodeName];
+    }
+
+    // remove and sanitize attributes using the whitelist / URL scheme rules
+    for (let i = node.attributes.length - 1; i >= 0; i--) {
+      const attr = node.attributes.item(i).name;
+      if (!allowedForNodeName.hasOwnProperty(attr)) {
+        node.removeAttribute(attr);
+        continue;
+      }
+      if (AttributesContainingLinks.includes(attr)) {
+        let rules = settings.allowedSchemes.default;
+        if (settings.allowedSchemes.hasOwnProperty(nodeName)) {
+          rules = settings.allowedSchemes[nodeName];
+        }
+        const sanitizedValue = sanitizeURL(node.getAttribute(attr), rules);
+        if (sanitizedValue !== null) {
+          node.setAttribute(attr, sanitizedValue);
+        } else {
+          node.removeAttribute(attr);
+        }
+      }
+    }
+
+    // recursively sanitize child nodes
+    for (let i = node.childNodes.length - 1; i >= 0; i--) {
+      if (!this.sanitizeNode(node.childNodes[i], settings)) {
+        node.childNodes[i].remove();
+      }
+    }
+
+    return true;
+  }
+
+  async run(body, settings) {
+    if (settings.fragment) {
+      var doc = document.implementation.createHTMLDocument();
+      var div = doc.createElement('div');
+      div.innerHTML = body;
+      this.sanitizeNode(div, settings);
+      return div.innerHTML;
+    } else {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(body, 'text/html');
+      this.sanitizeNode(doc.documentElement, settings);
+      return doc.documentElement.innerHTML;
+    }
   }
 }
 

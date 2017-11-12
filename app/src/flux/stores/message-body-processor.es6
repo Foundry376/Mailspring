@@ -4,14 +4,6 @@ import MessageStore from './message-store';
 import DatabaseStore from './database-store';
 import SanitizeTransformer from '../../services/sanitize-transformer';
 
-const SanitizeSettings = Object.assign({}, SanitizeTransformer.Preset.UnsafeOnly);
-
-// We do not want to filter any URL schemes except file://. (We may add file URLs,
-// but we do it ourselves after sanitizing the body.)
-SanitizeSettings.allowedSchemes = {
-  indexOf: scheme => scheme !== 'file',
-};
-
 class MessageBodyProcessor {
   constructor() {
     this._subscriptions = [];
@@ -149,7 +141,10 @@ class MessageBodyProcessor {
     // Sanitizing <script> tags, etc. isn't necessary because we use CORS rules
     // to prevent their execution and sandbox content in the iFrame, but we still
     // want to remove contenteditable attributes and other strange things.
-    return SanitizeTransformer.run(message.body, SanitizeSettings).then(sanitized => {
+    return SanitizeTransformer.run(
+      message.body,
+      SanitizeTransformer.Preset.UnsafeOnly
+    ).then(sanitized => {
       let body = sanitized;
       for (const extension of MessageStore.extensions()) {
         if (!extension.formatMessageBody) {

@@ -66,7 +66,6 @@
     "runas": "^3.1",
     "rx-lite": "4.0.8",
     "rx-lite-testing": "^4.0.7",
-    "sanitize-html": "1.9.0",
     "semver": "^4.2",
     "simplemde": "jstejada/simplemde-markdown-editor#input-style-support",
     "source-map-support": "^0.3.2",

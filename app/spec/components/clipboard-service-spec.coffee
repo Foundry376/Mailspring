@@ -79,7 +79,7 @@ describe "ClipboardService", ->
         @clipboardService._sanitizeHTMLInput(input)
         .then =>
           expect(InlineStyleTransformer.run).toHaveBeenCalledWith(input)
-          expect(SanitizeTransformer.run).toHaveBeenCalledWith(input, SanitizeTransformer.Preset.Permissive)
+          expect(SanitizeTransformer.run).toHaveBeenCalledWith(input, SanitizeTransformer.Preset.PasteFragment)
 
     it "should replace two or more <br/>s in a row", ->
       tests = [{
