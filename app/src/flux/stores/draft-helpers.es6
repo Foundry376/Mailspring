@@ -59,7 +59,7 @@ class DraftHelpers {
 
   async pruneRemovedInlineFiles(draft) {
     draft.files = draft.files.filter(f => {
-      return !(f.contentId && !draft.body.includes(`cid:${f.id}`));
+      return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
     });
 
     return draft;

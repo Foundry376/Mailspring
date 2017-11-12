@@ -436,7 +436,7 @@ class AttachmentStore extends MailspringStore {
         size: stats.size,
         contentType: null,
         messageId: null,
-        contentId: inline ? Utils.generateTempId() : null,
+        contentId: inline ? Utils.generateContentId() : null,
       });
 
       await mkdirpAsync(path.dirname(this.pathForFile(file)));

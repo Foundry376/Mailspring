@@ -155,6 +155,11 @@ Utils =
       Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
     'local-' + s4() + s4() + '-' + s4()
 
+  generateContentId: ->
+    s4 = ->
+      Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
+    'mcid-' + s4() + s4() + '-' + s4()
+
   isTempId: (id) ->
     return false unless id and _.isString(id)
     id[0..5] is 'local-'

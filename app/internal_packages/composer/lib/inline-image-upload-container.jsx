@@ -147,12 +147,12 @@ export default class InlineImageUploadContainer extends Component {
       return <span />;
     }
     if (isPreview) {
-      return <img src={`cid:${file.id}`} alt={file.name} />;
+      return <img src={`cid:${file.contentId}`} alt={file.name} />;
     }
 
     return (
       <div
-        data-src={`cid:${file.id}`}
+        data-src={`cid:${file.contentId}`}
         className="inline-image-upload-container"
         onDoubleClick={this._onGoEdit}
       >

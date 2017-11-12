@@ -533,7 +533,7 @@ export default class ComposerView extends React.Component {
             return;
           }
 
-          match.contentId = Utils.generateTempId();
+          match.contentId = Utils.generateContentId();
           session.changes.add({
             files: [].concat(draft.files),
           });
