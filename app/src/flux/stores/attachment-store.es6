@@ -11,6 +11,7 @@ import File from '../models/file';
 import Utils from '../models/utils';
 
 Promise.promisifyAll(fs);
+
 const mkdirpAsync = Promise.promisify(mkdirp);
 
 // TODO make this list more exhaustive
@@ -29,6 +30,7 @@ const NonPreviewableExtensions = [
   'ics',
 ];
 
+const PREVIEW_FILE_SIZE_LIMIT = 2000000; // 2mb
 const THUMBNAIL_WIDTH = 320;
 
 class AttachmentStore extends MailspringStore {
@@ -77,7 +79,6 @@ class AttachmentStore extends MailspringStore {
   }
 
   // Returns a hash of download objects keyed by fileId
-  //
   getDownloadDataForFiles(fileIds = []) {
     const downloadData = {};
     fileIds.forEach(fileId => {
@@ -106,7 +107,7 @@ class AttachmentStore extends MailspringStore {
     return file;
   }
 
-  _generatePreview(file) {
+  async _generatePreview(file) {
     if (process.platform !== 'darwin') {
       return Promise.resolve();
     }
@@ -116,51 +117,61 @@ class AttachmentStore extends MailspringStore {
     if (NonPreviewableExtensions.includes(file.displayExtension())) {
       return Promise.resolve();
     }
+    if (file.size > PREVIEW_FILE_SIZE_LIMIT) {
+      return Promise.resolve();
+    }
 
     const filePath = this.pathForFile(file);
     const previewPath = `${filePath}.png`;
-    return (
-      fs
-        .accessAsync(filePath, fs.F_OK)
-        .then(() => {
-          fs
-            .accessAsync(previewPath, fs.F_OK)
-            .then(() => {
-              // If the preview file already exists, set our state and bail
-              this._filePreviewPaths[file.id] = previewPath;
-              this.trigger();
-            })
-            .catch(() => {
-              // If the preview file doesn't exist yet, generate it
-              const fileDir = `"${path.dirname(filePath)}"`;
-              const escapedPath = `"${filePath}"`;
-              return new Promise(resolve => {
-                const previewSize = THUMBNAIL_WIDTH * (11 / 8.5);
-                exec(
-                  `qlmanage -t -f ${window.devicePixelRatio} -s ${previewSize} -o ${fileDir} ${escapedPath}`,
-                  (error, stdout, stderr) => {
-                    if (error) {
-                      // Ignore errors, we don't really mind if we can't generate a preview
-                      // for a file
-                      AppEnv.reportError(error);
-                      resolve();
-                      return;
-                    }
-                    if (stdout.match(/No thumbnail created/i) || stderr) {
-                      resolve();
-                      return;
-                    }
-                    this._filePreviewPaths[file.id] = previewPath;
-                    this.trigger();
-                    resolve();
-                  }
-                );
-              });
-            });
-        })
-        // If the file doesn't exist, ignore the error.
-        .catch(() => Promise.resolve())
-    );
+
+    if (!await this._hasAccess(filePath)) {
+      // If the file doesn't exist, ignore the error.
+      return Promise.resolve();
+    }
+
+    if (await this._hasAccess(previewPath)) {
+      // If the preview file already exists, set our state and bail
+      this._filePreviewPaths[file.id] = previewPath;
+      this.trigger();
+      return Promise.resolve();
+    }
+    
+    // If the preview file doesn't exist yet, generate it
+    const fileDir = `"${path.dirname(filePath)}"`;
+    const escapedPath = `"${filePath}"`;
+
+    return new Promise(resolve => {
+      const previewSize = THUMBNAIL_WIDTH * (11 / 8.5);
+      exec(
+        `qlmanage -t -f ${window.devicePixelRatio} -s ${previewSize} -o ${fileDir} ${escapedPath}`,
+        (error, stdout, stderr) => {
+          if (error) {
+            // Ignore errors, we don't really mind if we can't generate a preview
+            // for a file
+            AppEnv.reportError(error);
+            resolve();
+            return;
+          }
+          if (stdout.match(/No thumbnail created/i) || stderr) {
+            resolve();
+            return;
+          }
+          this._filePreviewPaths[file.id] = previewPath;
+          this.trigger();
+          resolve();
+        }
+      );
+    });
+  }
+
+  async _hasAccess(filePath) {
+    try {
+      await fs.accessAsync(filePath, fs.F_OK);
+      return true;
+    }
+    catch (ex) {
+      return false;
+    }
   }
 
   // Returns a promise that resolves with true or false. True if the file has
