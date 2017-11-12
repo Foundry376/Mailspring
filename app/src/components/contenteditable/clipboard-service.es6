@@ -5,6 +5,7 @@ import {
   RegExpUtils,
   Utils,
 } from 'mailspring-exports';
+import { clipboard as ElectronClipboard } from 'electron';
 
 import ContenteditableService from './contenteditable-service';
 
@@ -62,6 +63,18 @@ export default class ClipboardService extends ContenteditableService {
       });
       reader.readAsArrayBuffer(blob);
     } else {
+      const macCopiedFile = decodeURI(
+        ElectronClipboard.read('public.file-url').replace('file://', '')
+      );
+      const winCopiedFile = ElectronClipboard.read('FileNameW').replace(
+        new RegExp(String.fromCharCode(0), 'g'),
+        ''
+      );
+      if (this.onFilePaste && (macCopiedFile.length || winCopiedFile.length)) {
+        this.onFilePaste(macCopiedFile || winCopiedFile);
+        return;
+      }
+
       const { input, mimetype } = this._getBestRepresentation(event.clipboardData);
 
       if (mimetype === 'text/plain') {
