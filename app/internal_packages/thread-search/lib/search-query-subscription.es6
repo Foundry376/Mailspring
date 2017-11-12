@@ -41,7 +41,6 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     this._searchStartedAt = Date.now();
 
     this.performLocalSearch();
-    this.performRemoteSearch();
     this.performExtensionSearch();
   }
 
@@ -50,6 +49,7 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     if (this._accountIds.length === 1) {
       dbQuery = dbQuery.where({ accountId: this._accountIds[0] });
     }
+
     try {
       const parsedQuery = SearchQueryParser.parse(this._searchQuery);
       dbQuery = dbQuery.structuredSearch(parsedQuery);
@@ -60,9 +60,8 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     dbQuery = dbQuery.order(Thread.attributes.lastMessageReceivedTimestamp.descending()).limit(100);
 
     dbQuery.then(results => {
-      if (results.length > 0) {
-        this.replaceQuery(dbQuery);
-      }
+      SearchActions.searchCompleted();
+      this.replaceQuery(dbQuery);
     });
   }
 
@@ -87,9 +86,6 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     // search message bodies, so local search is pretty much
     // good enough for v1. Come back and implement this soon!
     //
-    setTimeout(() => {
-      SearchActions.searchCompleted();
-    }, 400);
   }
 
   performExtensionSearch() {

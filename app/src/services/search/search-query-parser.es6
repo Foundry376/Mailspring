@@ -301,10 +301,13 @@ const parseAndQuery = text => {
   if (tok === null) {
     return [lhs, afterLhs];
   }
-  if (tok.s.toUpperCase() !== 'AND') {
+  // Ben Edit: within a search group eg (test is:unread), we assume tokens (eg is:)
+  // are separated by an implicit AND when one is not present. The only things that
+  // break us out of the AND query are a close paren or an explicit OR token.
+  if (tok.s.toUpperCase() === 'OR' || tok.s.toUpperCase() === ')') {
     return [lhs, afterLhs];
   }
-  const [rhs, afterRhs] = parseAndQuery(afterAnd);
+  const [rhs, afterRhs] = parseAndQuery(tok.s.toUpperCase() === 'AND' ? afterAnd : afterLhs);
   return [new AndQueryExpression(lhs, rhs), afterRhs];
 };
 

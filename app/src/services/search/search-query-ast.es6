@@ -85,6 +85,9 @@ class AndQueryExpression extends QueryExpression {
   }
 
   _computeIsMatchCompatible() {
+    if (!this.e1 || !this.e2) {
+      return false;
+    }
     return this.e1.isMatchCompatible() && this.e2.isMatchCompatible();
   }
 
@@ -108,6 +111,9 @@ class OrQueryExpression extends QueryExpression {
   }
 
   _computeIsMatchCompatible() {
+    if (!this.e1 || !this.e2) {
+      return false;
+    }
     return this.e1.isMatchCompatible() && this.e2.isMatchCompatible();
   }
 
