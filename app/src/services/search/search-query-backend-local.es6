@@ -220,8 +220,12 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
 
   visitMatch(node) {
     const searchTable = `${this._className}Search`;
+
+    // in sqlite3, you use '' to escape a '. Weird right?
+    const escaped = node.rawQuery.replace(/'/g, "''");
+
     this._result = `(\`${this
-      ._className}\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '${node.rawQuery}' LIMIT 1000))`;
+      ._className}\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '${escaped}' LIMIT 1000))`;
   }
 }
 

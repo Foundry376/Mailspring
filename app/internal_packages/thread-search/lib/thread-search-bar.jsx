@@ -17,7 +17,7 @@ class ThreadSearchBar extends Component {
 
   _onSelectSuggestion = suggestion => {
     if (suggestion.thread) {
-      SearchActions.querySubmitted(`"${suggestion.thread.subject}"`);
+      SearchActions.querySubmitted(`"${suggestion.thread.subject.replace(/"/g, '')}"`);
     } else {
       SearchActions.querySubmitted(suggestion.value);
     }
