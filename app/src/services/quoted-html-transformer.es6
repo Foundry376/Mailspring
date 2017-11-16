@@ -29,7 +29,9 @@ class QuotedHTMLTransformer {
     const doc = this._parseHTML(html);
 
     for (const el of this._findQuoteElements(doc, options)) {
-      el.remove();
+      if (el) {
+        el.remove();
+      }
     }
 
     // It's possible that the entire body was quoted text anyway and we've
@@ -45,7 +47,9 @@ class QuotedHTMLTransformer {
     }
 
     for (const el of quoteStringDetector(doc)) {
-      el.remove();
+      if (el) {
+        el.remove();
+      }
     }
 
     this._removeImagesStrippedByAnotherClient(doc);

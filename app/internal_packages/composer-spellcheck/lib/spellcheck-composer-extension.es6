@@ -157,6 +157,9 @@ function wrapMisspelledWords(rootNode) {
 
 let currentlyRunningSpellChecker = false;
 const runSpellChecker = _.debounce(rootNode => {
+  if (!Spellchecker.handler) {
+    return;
+  }
   currentlyRunningSpellChecker = true;
   unwrapWords(rootNode);
   Spellchecker.handler.provideHintText(rootNode.textContent).then(() => {
