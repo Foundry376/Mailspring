@@ -19,7 +19,6 @@ import Actions from './actions';
 import Utils from './models/utils';
 
 const MAX_CRASH_HISTORY = 10;
-const REPORTED_CRASH_STACKS = {};
 
 const VERBOSE_UNTIL_KEY = 'core.sync.verboseUntil';
 
@@ -66,44 +65,7 @@ class CrashTracker {
   recordClientCrash(fullAccountJSON, { code, error, signal }) {
     this._appendCrashToHistory(fullAccountJSON);
 
-    let [rawMessage, rawStack] = `${error}`.split('*** Stack trace');
-
-    // On Windows, sometimes addr2line.exe fails and the resulting error
-    // is not worth reporting...
-    if (rawMessage.includes('CREATE PROCESS FAIL')) {
-      return;
-    }
-
-    let stack = '';
-    if (rawStack) {
-      for (const rawLine of rawStack.split('\n').slice(1)) {
-        const line = rawLine
-          .replace(/\*\*\*/g, '')
-          .replace('in mailsync ', '')
-          .trim();
-        if (!line.startsWith('(unknown)')) {
-          stack += line;
-          stack += '\n';
-        }
-      }
-    }
-
-    // because we intentionally retry after exceptions, errors can be reported
-    // to Sentry a zillion times. Only report unique crashes once each time the
-    // app is run.
-    if (!REPORTED_CRASH_STACKS[stack]) {
-      REPORTED_CRASH_STACKS[stack] = true;
-
-      const err = new Error(`SyncWorker crashed with ${signal} (code ${code})`);
-      err.stack = stack;
-
-      AppEnv.errorLogger.reportError(err, {
-        stack: stack,
-        rawMessage: rawMessage,
-        provider: fullAccountJSON.provider,
-        log: this.tailClientLog(fullAccountJSON.id),
-      });
-    }
+    // We now let crashpad do this, because Sentry was losing it's mind.
   }
 
   _keyFor({ id, settings }) {
