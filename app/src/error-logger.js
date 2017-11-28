@@ -15,6 +15,7 @@ if (process.type === 'renderer') {
   app = require('electron').app;
 }
 
+var appVersion = app.getVersion();
 var crashReporter = require('electron').crashReporter;
 var RavenErrorReporter = require('./error-logger-extensions/raven-error-reporter');
 
@@ -127,7 +128,7 @@ module.exports = ErrorLogger = (function() {
     crashReporter.start({
       productName: 'Mailspring',
       companyName: 'Mailspring',
-      submitURL: 'http://mailspring_prod.bugsplat.com/post/bp/crash/postBP.php',
+      submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
       uploadToServer: true,
       autoSubmit: true,
     });
