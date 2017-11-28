@@ -77,6 +77,11 @@ export default {
             enumLabels: ['When Read', 'Manually'],
             title: 'Download attachments for new mail',
           },
+          openFolderAfterDownload: {
+            type: 'boolean',
+            default: false,
+            title: 'Open containing folder after downloading attachment',
+          },
           displayFilePreview: {
             type: 'boolean',
             default: true,

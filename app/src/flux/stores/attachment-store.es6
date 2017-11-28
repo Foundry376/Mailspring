@@ -236,8 +236,15 @@ class AttachmentStore extends MailspringStore {
         .then(download => this._writeToExternalPath(download, actualSavePath))
         .then(() => {
           if (AppEnv.savedState.lastDownloadDirectory !== newDownloadDirectory) {
-            shell.showItemInFolder(actualSavePath);
             AppEnv.savedState.lastDownloadDirectory = newDownloadDirectory;
+
+            if (
+              this._lastDownloadDirectory !== newDownloadDirectory &&
+              AppEnv.config.get('core.attachments.openFolderAfterDownload')
+            ) {
+              this._lastDownloadDirectory = newDownloadDirectory;
+              shell.showItemInFolder(actualSavePath);
+            }
           }
         })
         .catch(this._catchFSErrors)
@@ -265,6 +272,7 @@ class AttachmentStore extends MailspringStore {
         if (!dirPath) {
           return;
         }
+        this._lastDownloadDirectory = dirPath;
         AppEnv.savedState.lastDownloadDirectory = dirPath;
 
         const lastSavePaths = [];
@@ -277,7 +285,10 @@ class AttachmentStore extends MailspringStore {
 
         Promise.all(savePromises)
           .then(() => {
-            if (lastSavePaths.length > 0) {
+            if (
+              lastSavePaths.length > 0 &&
+              AppEnv.config.get('core.attachments.openFolderAfterDownload')
+            ) {
               shell.showItemInFolder(lastSavePaths[0]);
             }
             return resolve(lastSavePaths);
