@@ -131,6 +131,10 @@ module.exports = ErrorLogger = (function() {
       submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
       uploadToServer: true,
       autoSubmit: true,
+      extra: {
+        ver: appVersion,
+        platform: process.platform,
+      },
     });
   };
 

@@ -135,7 +135,7 @@ class AttachmentStore extends MailspringStore {
       this.trigger();
       return Promise.resolve();
     }
-    
+
     // If the preview file doesn't exist yet, generate it
     const fileDir = `"${path.dirname(filePath)}"`;
     const escapedPath = `"${filePath}"`;
@@ -168,8 +168,7 @@ class AttachmentStore extends MailspringStore {
     try {
       await fs.accessAsync(filePath, fs.F_OK);
       return true;
-    }
-    catch (ex) {
+    } catch (ex) {
       return false;
     }
   }

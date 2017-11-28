@@ -41,8 +41,8 @@ describe('DraftFactory', function draftFactory() {
 
     account = AccountStore.accounts()[0];
     const files = [
-      new File({ filename: 'test.jpg', accountId: account.id }),
-      new File({ filename: 'test.pdj', accountId: account.id }),
+      new File({ filename: 'test.jpg', accountId: account.id, id: 'a' }),
+      new File({ filename: 'test.pdj', accountId: account.id, id: 'b' }),
     ];
     files.forEach(file => {
       downloadData[file.id] = {

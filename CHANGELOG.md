@@ -1,5 +1,30 @@
 # Mailspring Changelog
 
+### 1.0.9 (11/29/2017)
+
+Improvements:
+
+- Mailspring only attempts to passively fetch message contents once for each message, so bad messages no longer cause the app to "hang" in an "Syncing your Mailbox" state.
+
+- A new setting allows you to choose the default spellcheck language. (Thanks @oserban!)
+
+- A new setting allows you to choose whether Mailspring opens containing folders after downloading attachments. (Thanks @mattlyons0!)
+
+- You can now copy-paste a file from the Finder or Windows Explorer into the composer.
+
+- Mailspring now correctly sends mail with inline image attachments on all providers.
+
+- Many issues that caused search to "hang" have been resolved.
+
+- Mailspring now correctly linkifies URLs in more scenarios. (Thanks @agurz!)
+
+- Many small email rendering issues have been resolved thanks to a new message sanitizer.
+
+Development:
+
+- Improved error collection will make it much easier to track down and fix remaining sync issues.
+
+
 ### 1.0.8 (11/10/2017)
 
 Features:

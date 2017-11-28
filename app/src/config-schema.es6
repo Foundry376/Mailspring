@@ -186,7 +186,7 @@ export default {
               'vi',
             ],
             enumLabels: [
-              '(System locale)',
+              '(System Default)',
               'Bulgarian',
               'Breton',
               'Catalan',
@@ -243,9 +243,9 @@ export default {
               'Ukrainian',
               'Vietnamese',
             ],
-            title: 'Spellchecker default language',
+            title: 'Default spellcheck language',
             note:
-              'This is just a suggestion for the spellchecker. The e-mail language is determined automatically.',
+              'If you write a draft in another language, Mailspring will auto-detect it and use the correct spelling dictionary after a few sentences.',
           },
         },
       },
