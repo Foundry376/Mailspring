@@ -42,6 +42,8 @@ const AttributesContainingLinks = [
   'classid',
 ];
 
+const NodesWithNonTextContent = asMap(['script', 'style', 'iframe', 'object', 'meta']);
+
 const Preset = {
   PasteFragment: {
     fragment: true,
@@ -443,7 +445,14 @@ class SanitizeTransformer {
     }
 
     if (!settings.allowedTags.hasOwnProperty(nodeName)) {
-      // this node isn't allowed, replace it with a `span` with the same children.
+      // this node isn't allowed - what should we do with it?
+
+      // Nodes with non-text contents: completely remove them
+      if (NodesWithNonTextContent.hasOwnProperty(nodeName)) {
+        return false;
+      }
+
+      // Nodes with text contents / no contents: replace with a `span` with the same children.
       // This allows us to ignore things like tables / table cells and still get their contents.
       let replacementNode = document.createElement('span');
       for (const child of Array.from(node.childNodes)) {
