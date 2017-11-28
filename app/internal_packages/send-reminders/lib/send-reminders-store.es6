@@ -53,6 +53,10 @@ class SendRemindersStore extends MailspringStore {
       return;
     }
 
+    if (!AppEnv.isMainWindow()) {
+      return;
+    }
+
     for (const thread of objects) {
       const metadata = thread.metadataForPluginId(PLUGIN_ID);
       if (!metadata || !metadata.expiration) {
@@ -60,10 +64,8 @@ class SendRemindersStore extends MailspringStore {
       }
 
       // has a new message arrived on the thread? if so, clear the metadata completely
-      if (
-        metadata.lastReplyTimestamp !==
-        new Date(thread.lastMessageReceivedTimestamp).getTime() / 1000
-      ) {
+      const currentReplyTimestamp = new Date(thread.lastMessageReceivedTimestamp).getTime() / 1000;
+      if (metadata.lastReplyTimestamp !== currentReplyTimestamp) {
         updateReminderMetadata(thread, {});
         continue;
       }

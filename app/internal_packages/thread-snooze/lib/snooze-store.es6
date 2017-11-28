@@ -95,6 +95,9 @@ class SnoozeStore extends MailspringStore {
   };
 
   _onMetadataExpired = threads => {
+    if (!AppEnv.isMainWindow()) {
+      return;
+    }
     const unsnooze = threads.filter(thread => {
       const metadata = thread.metadataForPluginId(PLUGIN_ID);
       return metadata && metadata.expiration && metadata.expiration < new Date();
