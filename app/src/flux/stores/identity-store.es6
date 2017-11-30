@@ -80,6 +80,7 @@ class IdentityStore extends MailspringStore {
     if (nextToken && nextToken !== this._identity.token) {
       // Note: We /must/ await this because calling config.set below
       // will try to retrieve the password via getPassword.
+      // If this fails, the app may quit here.
       await KeyManager.replacePassword(KEYCHAIN_NAME, nextToken);
     }
 

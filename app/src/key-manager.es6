@@ -23,7 +23,7 @@ class KeyManager {
       delete keys[`${account.emailAddress}-refresh-token`];
       await this._writeKeyHash(keys);
     } catch (err) {
-      this._handleError(err);
+      this._reportFatalError(err);
     }
   }
 
@@ -35,7 +35,7 @@ class KeyManager {
       keys[`${account.emailAddress}-refresh-token`] = account.settings.refresh_token;
       await this._writeKeyHash(keys);
     } catch (err) {
-      this._handleError(err);
+      this._reportFatalError(err);
     }
     const next = account.clone();
     delete next.settings.imap_password;
@@ -59,7 +59,7 @@ class KeyManager {
       keys[keyName] = newVal;
       await this._writeKeyHash(keys);
     } catch (err) {
-      this._handleError(err);
+      this._reportFatalError(err);
     }
   }
 
@@ -69,7 +69,7 @@ class KeyManager {
       delete keys[keyName];
       await this._writeKeyHash(keys);
     } catch (err) {
-      this._handleError(err);
+      this._reportFatalError(err);
     }
   }
 
@@ -78,7 +78,7 @@ class KeyManager {
       const keys = await this._getKeyHash();
       return keys[keyName];
     } catch (err) {
-      this._handleError(err);
+      this._reportFatalError(err);
     }
   }
 
@@ -95,12 +95,21 @@ class KeyManager {
     await keytar.setPassword(this.SERVICE_NAME, this.KEY_NAME, JSON.stringify(keys));
   }
 
-  _handleError(err) {
-    remote.dialog.showErrorBox(
-      'Password Management Error',
-      "We couldn't store your password securely! For more information, visit http://support.getmailspring.com/hc/en-us/articles/115001875571"
-    );
-    AppEnv.reportError(err);
+  _reportFatalError(err) {
+    let more = '';
+    if (process.platform === 'linux') {
+      more = 'Make sure you have `libsecret` installed and a keyring is present. ';
+    }
+    remote.dialog.showMessageBox({
+      type: 'error',
+      buttons: ['Quit'],
+      message: `Mailspring could not store your password securely. ${more} For more information, visit http://support.getmailspring.com/hc/en-us/articles/115001875571`,
+    });
+
+    // tell the app to exit and rethrow the error to ensure code relying
+    // on the passwords being saved never runs (saving identity for example)
+    remote.app.quit();
+    throw err;
   }
 }
 

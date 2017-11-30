@@ -72,3 +72,4 @@ client_secret.json
 **.so*
 **.bin
 **.tar.gz
+/app/mailsync.dSYM

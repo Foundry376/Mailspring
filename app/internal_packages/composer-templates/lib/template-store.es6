@@ -154,6 +154,7 @@ class TemplateStore extends MailspringStore {
     const dialog = require('electron').remote.dialog;
     dialog.showErrorBox('Template Creation Error', message);
   }
+
   _displayDialog(title, message, buttons) {
     const dialog = require('electron').remote.dialog;
     return (
