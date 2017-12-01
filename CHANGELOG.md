@@ -1,8 +1,10 @@
 # Mailspring Changelog
 
-### 1.0.9 (11/29/2017)
+### 1.0.9 (12/1/2017)
 
 Improvements:
+
+- Sync progress reporting and status messages have been improved.
 
 - Mailspring only attempts to passively fetch message contents once for each message, so bad messages no longer cause the app to "hang" in an "Syncing your Mailbox" state.
 
@@ -20,10 +22,17 @@ Improvements:
 
 - Many small email rendering issues have been resolved thanks to a new message sanitizer.
 
+- Creating and immediately sending a draft with tracking enabled no longer fails in rare cases.
+
+- Undo send no longer causes other open composer windows to close when a message is sent.
+
 Development:
 
 - Improved error collection will make it much easier to track down and fix remaining sync issues.
 
+- Password management errors are now considered fatal, since they break the app during onboarding.
+
+- The analytics package has been removed - we were not using the collected metrics.
 
 ### 1.0.8 (11/10/2017)
 
