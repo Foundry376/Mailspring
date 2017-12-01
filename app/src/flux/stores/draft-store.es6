@@ -378,9 +378,14 @@ class DraftStore extends MailspringStore {
     // completely saved and the user won't see old content briefly.
     const session = await this.sessionForClientId(headerMessageId);
     await session.ensureCorrectAccount();
-    let draft = session.draft();
     await session.changes.commit();
     await session.teardown();
+
+    // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
+    // we need to have the final object with it's final ID.
+    let draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true }).include(
+      Message.attributes.body
+    );
 
     draft = await DraftHelpers.applyExtensionTransforms(draft);
     draft = await DraftHelpers.pruneRemovedInlineFiles(draft);
