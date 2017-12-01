@@ -74,6 +74,9 @@ export default class ModelWithMetadata extends Model {
     if (value.expiration) {
       value.expiration = new Date(value.expiration * 1000);
     }
+    if (Object.keys(value).length === 0) {
+      return null;
+    }
     return value;
   }
 
