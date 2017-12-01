@@ -107,8 +107,6 @@ class FeatureUsageStore extends MailspringStore {
 
   markUsed(feature) {
     const next = JSON.parse(JSON.stringify(IdentityStore.identity()));
-    console.log('Next:');
-    console.log(JSON.stringify(next));
 
     if (next.featureUsage[feature]) {
       next.featureUsage[feature].usedInPeriod += 1;

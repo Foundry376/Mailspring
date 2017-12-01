@@ -4,26 +4,27 @@ import IdentityStore from '../../src/flux/stores/identity-store';
 
 describe('FeatureUsageStore', function featureUsageStoreSpec() {
   beforeEach(() => {
-    this.oldIdent = IdentityStore._identity;
-    IdentityStore._identity = { id: 'foo' };
-    IdentityStore._identity.featureUsage = {
-      'is-usable': {
-        quota: 10,
-        period: 'monthly',
-        usedInPeriod: 8,
-        featureLimitName: 'Usable Group A',
-      },
-      'not-usable': {
-        quota: 10,
-        period: 'monthly',
-        usedInPeriod: 10,
-        featureLimitName: 'Unusable Group A',
+    this.fakeIdentity = {
+      id: 'foo',
+      featureUsage: {
+        'is-usable': {
+          quota: 10,
+          period: 'monthly',
+          usedInPeriod: 8,
+          featureLimitName: 'Usable Group A',
+        },
+        'not-usable': {
+          quota: 10,
+          period: 'monthly',
+          usedInPeriod: 10,
+          featureLimitName: 'Unusable Group A',
+        },
       },
     };
-  });
-
-  afterEach(() => {
-    IdentityStore._identity = this.oldIdent;
+    spyOn(IdentityStore, 'identity').andReturn(this.fakeIdentity);
+    spyOn(IdentityStore, 'saveIdentity').andCallFake(async ident => {
+      this.fakeIdentity = ident;
+    });
   });
 
   describe('isUsable', () => {
@@ -42,12 +43,9 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
     });
   });
 
-  describe('_markFeatureUsed', () => {
+  describe('markUsed', () => {
     beforeEach(() => {
       spyOn(Actions, 'queueTask');
-      spyOn(IdentityStore, 'saveIdentity').andCallFake(ident => {
-        IdentityStore._identity = ident;
-      });
     });
 
     afterEach(() => {
@@ -55,28 +53,28 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
     });
 
     it('immediately increments the identity counter', () => {
-      const before = IdentityStore._identity.featureUsage['is-usable'].usedInPeriod;
-      FeatureUsageStore._markFeatureUsed('is-usable');
-      const after = IdentityStore._identity.featureUsage['is-usable'].usedInPeriod;
+      const before = this.fakeIdentity.featureUsage['is-usable'].usedInPeriod;
+      FeatureUsageStore.markUsed('is-usable');
+      const after = this.fakeIdentity.featureUsage['is-usable'].usedInPeriod;
       expect(after).toEqual(before + 1);
     });
 
     it('queues a task to sync the optimistic changes to the server', () => {
-      FeatureUsageStore._markFeatureUsed('is-usable');
+      FeatureUsageStore.markUsed('is-usable');
       expect(Actions.queueTask).toHaveBeenCalled();
     });
   });
 
-  describe('use feature', () => {
+  describe('markUsedOrUpgrade', () => {
     beforeEach(() => {
-      spyOn(FeatureUsageStore, '_markFeatureUsed').andReturn(Promise.resolve());
+      spyOn(FeatureUsageStore, 'markUsed').andReturn(Promise.resolve());
       spyOn(Actions, 'openModal');
     });
 
     it("marks the feature used if it's usable", async () => {
       await FeatureUsageStore.markUsedOrUpgrade('is-usable');
-      expect(FeatureUsageStore._markFeatureUsed).toHaveBeenCalled();
-      expect(FeatureUsageStore._markFeatureUsed.callCount).toBe(1);
+      expect(FeatureUsageStore.markUsed).toHaveBeenCalled();
+      expect(FeatureUsageStore.markUsed.callCount).toBe(1);
     });
 
     describe('showing modal', () => {
@@ -90,7 +88,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
 
       it('resolves the modal if you upgrade', async () => {
         setImmediate(() => {
-          IdentityStore._identity.featureUsage['not-usable'].quota = 10000;
+          this.fakeIdentity.featureUsage['not-usable'].quota = 10000;
           FeatureUsageStore._onModalClose();
         });
         await FeatureUsageStore.markUsedOrUpgrade('not-usable', this.lexicon);
@@ -100,7 +98,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
 
       it('pops open a modal with the correct text', async () => {
         setImmediate(() => {
-          IdentityStore._identity.featureUsage['not-usable'].quota = 10000;
+          this.fakeIdentity.featureUsage['not-usable'].quota = 10000;
           FeatureUsageStore._onModalClose();
         });
         await FeatureUsageStore.markUsedOrUpgrade('not-usable', this.lexicon);
