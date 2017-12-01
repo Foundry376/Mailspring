@@ -1,105 +1,70 @@
-import classNames from 'classnames';
-import { PropTypes, Actions, React, Utils } from 'mailspring-exports';
-
-import InitialSyncActivity from './initial-sync-activity';
-import SyncbackActivity from './syncback-activity';
+import utf7 from 'utf7';
+import { AccountStore, React, PropTypes } from 'mailspring-exports';
 
 export default class SyncActivity extends React.Component {
+  static displayName = 'ExpandedSyncActivity';
+
   static propTypes = {
-    initialSync: PropTypes.bool,
-    syncbackTasks: PropTypes.array,
+    syncState: PropTypes.object,
   };
 
-  constructor() {
-    super();
-    this.state = {
-      expanded: false,
-      blink: false,
-    };
-    this.mounted = false;
-  }
+  renderFolderProgress(folderPath, { bodyProgress, scanProgress, busy }) {
+    let status = 'complete';
+    let progressLabel = '';
 
-  componentDidMount() {
-    this.mounted = true;
-    this.unsub = Actions.expandInitialSyncState.listen(this.showExpandedState);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
-    this.unsub();
-  }
-
-  showExpandedState = () => {
-    if (!this.state.expanded) {
-      this.setState({ expanded: true });
-    } else {
-      this.setState({ blink: true });
-      setTimeout(() => {
-        if (this.mounted) {
-          this.setState({ blink: false });
-        }
-      }, 1000);
+    if (busy) {
+      status = 'busy';
+      if (scanProgress < 1) {
+        progressLabel = `Scanning (${Math.round(scanProgress * 100)}%)`;
+      } else if (bodyProgress < 1) {
+        progressLabel = `Caching mail (${Math.round(bodyProgress * 100)}%)`;
+      } else {
+        progressLabel = `Scanning...`;
+      }
     }
-  };
 
-  hideExpandedState = () => {
-    this.setState({ expanded: false });
-  };
+    const folderDisplayPath = utf7.imap.decode(folderPath);
 
-  _renderInitialSync() {
-    if (!this.props.initialSync) {
-      return false;
-    }
-    return <InitialSyncActivity />;
-  }
-
-  _renderSyncbackTasks() {
-    return <SyncbackActivity syncbackTasks={this.props.syncbackTasks} />;
-  }
-
-  _renderExpandedDetails() {
     return (
-      <div>
-        <a className="close-expanded" onClick={this.hideExpandedState}>
-          Hide
-        </a>
-        {this._renderSyncbackTasks()}
-        {this._renderInitialSync()}
+      <div className={`folder-progress ${status}`} key={folderPath}>
+        {folderDisplayPath} <span className="progress-label">{progressLabel}</span>
       </div>
     );
   }
 
   render() {
-    const { initialSync, syncbackTasks } = this.props;
-    if (!initialSync && (!syncbackTasks || syncbackTasks.length === 0)) {
-      return false;
-    }
+    let accountComponents = Object.entries(
+      this.props.syncState
+    ).map(([accountId, accountSyncState]) => {
+      const account = AccountStore.accountForId(accountId);
+      if (!account) {
+        return false;
+      }
 
-    const classSet = classNames({
-      item: true,
-      'expanded-sync': this.state.expanded,
-      blink: this.state.blink,
+      let folderComponents = Object.entries(accountSyncState).map(([folderPath, folderState]) => {
+        return this.renderFolderProgress(folderPath, folderState);
+      });
+
+      if (folderComponents.length === 0) {
+        folderComponents = <div>Gathering folders...</div>;
+      }
+
+      return (
+        <div className="account" key={accountId}>
+          <h2>{account.emailAddress}</h2>
+          {folderComponents}
+        </div>
+      );
     });
 
-    const ellipses = [1, 2, 3].map(i => (
-      <span key={`ellipsis${i}`} className={`ellipsis${i}`}>
-        .
-      </span>
-    ));
+    if (accountComponents.length === 0) {
+      accountComponents = (
+        <div>
+          <br />Looking for accounts...
+        </div>
+      );
+    }
 
-    return (
-      <div
-        className={classSet}
-        key="sync-activity"
-        onClick={() => this.setState({ expanded: !this.state.expanded })}
-      >
-        <div className="inner clickable">Syncing your mailbox{ellipses}</div>
-        {this.state.expanded ? this._renderExpandedDetails() : false}
-      </div>
-    );
+    return <div className="sync-activity">{accountComponents}</div>;
   }
 }

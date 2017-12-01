@@ -12,11 +12,13 @@ import Folder from '../models/folder';
  *
  *   {
  *     [Gmail]/Inbox: {
- *       progress: 0.5,
+ *       scanProgress: 0.5,
+ *       bodyProgress: 0,
  *       total: 100,
  *     }
  *     MyFunLabel: {
- *       progress: 0.2,
+ *       scanProgress: 1,
+ *       bodyProgress: 0.2,
  *       total: 600,
  *     },
  *     ...
@@ -27,6 +29,10 @@ class FolderSyncProgressStore extends MailspringStore {
   constructor() {
     super();
     this._statesByAccount = {};
+    this._stateSummary = {
+      phrase: null,
+      percent: 100,
+    };
     this._triggerDebounced = _.debounce(this.trigger, 100);
 
     this.listenTo(AccountStore, () => this._onRefresh());
@@ -36,6 +42,9 @@ class FolderSyncProgressStore extends MailspringStore {
 
   _onRefresh() {
     this._statesByAccount = {};
+
+    let totalProgress = 0;
+    let totalWeight = 0;
 
     for (const accountId of AccountStore.accountIds()) {
       const folders = CategoryStore.categories(accountId).filter(cat => cat instanceof Folder);
@@ -47,21 +56,68 @@ class FolderSyncProgressStore extends MailspringStore {
       implementation changes.
       */
       for (const folder of folders) {
-        const { uidnext, syncedMinUID, busy } = folder.localStatus || {};
+        const { uidnext = 1, busy = true, syncedMinUID, bodiesPresent, bodiesWanted } =
+          folder.localStatus || {};
+
         state[folder.path] = {
-          busy: busy !== undefined ? busy : true,
-          progress: 1.0 - (syncedMinUID - 1) / uidnext,
-          total: uidnext,
+          busy: busy,
+          scanProgress: syncedMinUID > 0 ? 1.0 - (syncedMinUID - 1) / uidnext : 0,
+          bodyProgress: bodiesWanted > 0 ? bodiesPresent / bodiesWanted : 1,
         };
+
+        // assume index will take 40% of time, body sync will take 60%.
+        // weight the "importance" of these percents based on a rough guess
+        // of the size of the folder (via uidnext, which is more a measure
+        // of mailbox activity than size)
+        const weight = uidnext / 10000;
+        const scanPercent = ['spam', 'trash'].includes(folder.role) ? 1 : 0.4;
+        totalProgress += state[folder.path].scanProgress * weight * scanPercent;
+        totalProgress += state[folder.path].bodyProgress * weight * (1 - scanPercent);
+        totalWeight += weight;
       }
 
       this._statesByAccount[accountId] = state;
     }
+
+    this._stateSummary = {
+      progress: totalProgress / (totalWeight || 1),
+      phrase: this._determineSummaryPhrase(),
+    };
+
     this._triggerDebounced();
   }
 
   getSyncState() {
     return this._statesByAccount;
+  }
+
+  getSummary() {
+    return this._stateSummary;
+  }
+
+  _determineSummaryPhrase() {
+    // if any folder scan is in progress we show "Syncing your Mailbox".
+    // if any body scan is in progress we show "Indexing Recent Mail"
+    // if busy we show "Checking for Mail"
+    // else null
+    let result = 0;
+    for (const aid of Object.keys(this._statesByAccount)) {
+      for (const folderState of Object.values(this._statesByAccount[aid])) {
+        if (!folderState.busy) {
+          continue;
+        }
+
+        if (folderState.scanProgress < 1) {
+          result = Math.max(result, 3);
+        } else if (folderState.bodyProgress < 1) {
+          result = Math.max(result, 2);
+        } else {
+          result = Math.max(result, 1);
+        }
+      }
+      if (result > 1) break;
+    }
+    return [null, 'Checking for mail', 'Caching recent mail', 'Scanning messages'][result];
   }
 
   /**
@@ -94,41 +150,32 @@ class FolderSyncProgressStore extends MailspringStore {
     });
   }
 
-  isSyncCompleteForAccount(accountId, folderPath) {
+  isSyncingAccount(accountId, folderPath) {
     const state = this._statesByAccount[accountId];
 
     if (!state || !this.isCategoryListSynced(accountId)) {
-      return false;
+      return true;
     }
 
     if (folderPath) {
-      return !state[folderPath].busy && state[folderPath].progress >= 1;
+      return state[folderPath].busy;
     }
 
     const folderPaths = Object.keys(state);
-    for (const aFolderPath of folderPaths) {
-      const { progress, busy } = state[aFolderPath];
-      if (busy || progress < 1) {
-        return false;
-      }
-    }
-
-    return true;
+    return folderPaths.some(p => state[p].busy);
   }
 
-  isSyncComplete() {
-    return Object.keys(this._statesByAccount).every(accountId =>
-      this.isSyncCompleteForAccount(accountId)
-    );
+  isSyncing() {
+    return Object.keys(this._statesByAccount).some(aid => this.isSyncingAccount(aid));
   }
 
   whenSyncComplete() {
-    if (this.isSyncComplete()) {
+    if (!this.isSyncing()) {
       return Promise.resolve();
     }
     return new Promise(resolve => {
       const unsubscribe = this.listen(() => {
-        if (this.isSyncComplete()) {
+        if (!this.isSyncing()) {
           unsubscribe();
           resolve();
         }

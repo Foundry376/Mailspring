@@ -2,7 +2,7 @@ import { React, Utils, PropTypes } from 'mailspring-exports';
 
 export default class SyncbackActivity extends React.Component {
   static propTypes = {
-    syncbackTasks: PropTypes.array,
+    tasks: PropTypes.array,
   };
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -10,13 +10,13 @@ export default class SyncbackActivity extends React.Component {
   }
 
   render() {
-    const { syncbackTasks } = this.props;
-    if (!syncbackTasks || syncbackTasks.length === 0) {
+    const { tasks } = this.props;
+    if (!tasks || tasks.length === 0) {
       return false;
     }
 
     const counts = {};
-    this.props.syncbackTasks.forEach(task => {
+    this.props.tasks.forEach(task => {
       const label = task.label ? task.label() : null;
       if (!label) {
         return;
@@ -27,19 +27,12 @@ export default class SyncbackActivity extends React.Component {
       counts[label] += +task.numberOfImpactedItems();
     });
 
-    const ellipses = [1, 2, 3].map(i => (
-      <span key={`ellipsis${i}`} className={`ellipsis${i}`}>
-        .
-      </span>
-    ));
-
     const items = Object.entries(counts).map(([label, count]) => {
       return (
         <div className="item" key={label}>
           <div className="inner">
             <span className="count">({count.toLocaleString()})</span>
-            {label}
-            {ellipses}
+            {`${label}...`}
           </div>
         </div>
       );
@@ -48,7 +41,7 @@ export default class SyncbackActivity extends React.Component {
     if (items.length === 0) {
       items.push(
         <div className="item" key="no-labels">
-          <div className="inner">Applying tasks</div>
+          <div className="inner">Applying changes...</div>
         </div>
       );
     }

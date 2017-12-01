@@ -500,9 +500,7 @@ class Actions {
   static selectSignature = ActionScopeWindow;
   static toggleAccount = ActionScopeWindow;
 
-  static notifyPluginsChanged = ActionScopeGlobal;
-
-  static expandInitialSyncState = ActionScopeWindow;
+  static expandSyncState = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above
