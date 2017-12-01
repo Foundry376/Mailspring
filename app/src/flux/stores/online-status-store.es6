@@ -62,6 +62,15 @@ class OnlineStatusStore extends MailspringStore {
         if (this._countdownSeconds === 0) {
           this._checkOnlineStatus();
         } else {
+          // if the countdown is greater than 10 seconds we only update every 5
+          // seconds just for a tiny, tiny offline performance improvement
+          // 45, 30, 15, 10, 9, 8, 7...
+          if (this._countdownSeconds > 30 && this._countdownSeconds % 15 !== 0) {
+            return;
+          }
+          if (this._countdownSeconds > 10 && this._countdownSeconds % 5 !== 0) {
+            return;
+          }
           this.trigger({ onlineDidChange: false, countdownDidChange: true });
         }
       }, 1000);
