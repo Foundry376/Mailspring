@@ -17,11 +17,6 @@ export default class LinkTrackingButton extends React.Component {
     );
   }
 
-  _title(enabled) {
-    const dir = enabled ? 'Disable' : 'Enable';
-    return `${dir} link tracking`;
-  }
-
   _errorMessage(error) {
     if (
       error instanceof APIError &&
@@ -35,12 +30,10 @@ export default class LinkTrackingButton extends React.Component {
   render() {
     return (
       <MetadataComposerToggleButton
-        title={this._title}
         iconName="icon-composer-linktracking.png"
         pluginId={PLUGIN_ID}
         pluginName={PLUGIN_NAME}
         metadataEnabledValue={{ tracked: true }}
-        stickyToggle
         errorMessage={this._errorMessage}
         draft={this.props.draft}
         session={this.props.session}

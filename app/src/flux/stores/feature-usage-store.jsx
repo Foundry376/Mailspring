@@ -68,7 +68,7 @@ class FeatureUsageStore extends MailspringStore {
     this._usub();
   }
 
-  displayUpgradeModal(feature, { lexicon }) {
+  displayUpgradeModal(feature, lexicon) {
     const { headerText, rechargeText } = this._modalText(feature, lexicon);
 
     Actions.openModal({
@@ -83,25 +83,45 @@ class FeatureUsageStore extends MailspringStore {
         />
       ),
     });
-  }
-
-  async asyncUseFeature(feature, lexicon = {}) {
-    if (this._isUsable(feature)) {
-      this._markFeatureUsed(feature);
-      return true;
-    }
-
-    this.displayUpgradeModal(feature, { lexicon });
 
     return new Promise((resolve, reject) => {
       this._waitForModalClose.push({ resolve, reject, feature });
     });
   }
 
+  isUsable(feature) {
+    const { usedInPeriod, quota } = this._dataForFeature(feature);
+    if (!quota) {
+      return true;
+    }
+    return usedInPeriod < quota;
+  }
+
+  async markUsedOrUpgrade(feature, lexicon = {}) {
+    if (!this.isUsable(feature)) {
+      // throws if the user declines
+      await this.displayUpgradeModal(feature, lexicon);
+    }
+    this.markUsed(feature);
+  }
+
+  markUsed(feature) {
+    const next = JSON.parse(JSON.stringify(IdentityStore.identity()));
+    console.log('Next:');
+    console.log(JSON.stringify(next));
+
+    if (next.featureUsage[feature]) {
+      next.featureUsage[feature].usedInPeriod += 1;
+      IdentityStore.saveIdentity(next);
+    }
+    if (!UsageRecordedServerSide.includes(feature)) {
+      Actions.queueTask(new SendFeatureUsageEventTask({ feature }));
+    }
+  }
+
   _onModalClose = async () => {
     for (const { feature, resolve, reject } of this._waitForModalClose) {
-      if (this._isUsable(feature)) {
-        this._markFeatureUsed(feature);
+      if (this.isUsable(feature)) {
         resolve();
       } else {
         reject(new NoProAccessError(feature));
@@ -144,25 +164,6 @@ class FeatureUsageStore extends MailspringStore {
       return {};
     }
     return usage[feature];
-  }
-
-  _isUsable(feature) {
-    const { usedInPeriod, quota } = this._dataForFeature(feature);
-    if (!quota) {
-      return true;
-    }
-    return usedInPeriod < quota;
-  }
-
-  _markFeatureUsed(feature) {
-    const next = JSON.parse(JSON.stringify(IdentityStore.identity()));
-    if (next.featureUsage[feature]) {
-      next.featureUsage[feature].usedInPeriod += 1;
-      IdentityStore.saveIdentity(next);
-    }
-    if (!UsageRecordedServerSide.includes(feature)) {
-      Actions.queueTask(new SendFeatureUsageEventTask({ feature }));
-    }
   }
 }
 

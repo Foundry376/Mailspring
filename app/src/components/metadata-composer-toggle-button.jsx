@@ -1,4 +1,11 @@
-import { React, PropTypes, Actions, MailspringAPIRequest, APIError } from 'mailspring-exports';
+import {
+  React,
+  PropTypes,
+  Actions,
+  MailspringAPIRequest,
+  APIError,
+  FeatureUsageStore,
+} from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import classnames from 'classnames';
 import _ from 'underscore';
@@ -7,21 +14,15 @@ export default class MetadataComposerToggleButton extends React.Component {
   static displayName = 'MetadataComposerToggleButton';
 
   static propTypes = {
-    title: PropTypes.func.isRequired,
     iconUrl: PropTypes.string,
     iconName: PropTypes.string,
     pluginId: PropTypes.string.isRequired,
     pluginName: PropTypes.string.isRequired,
     metadataEnabledValue: PropTypes.object.isRequired,
-    stickyToggle: PropTypes.bool,
     errorMessage: PropTypes.func.isRequired,
 
     draft: PropTypes.object.isRequired,
     session: PropTypes.object.isRequired,
-  };
-
-  static defaultProps = {
-    stickyToggle: false,
   };
 
   constructor(props) {
@@ -29,12 +30,17 @@ export default class MetadataComposerToggleButton extends React.Component {
 
     this.state = {
       pending: false,
+      onByDefaultButUsedUp: false,
     };
   }
 
   componentWillMount() {
     if (this._isEnabledByDefault() && !this._isEnabled()) {
-      this._setEnabled(true);
+      if (FeatureUsageStore.isUsable(this.props.pluginId)) {
+        this._setEnabled(true);
+      } else {
+        this.setState({ onByDefaultButUsedUp: true });
+      }
     }
   }
 
@@ -61,11 +67,9 @@ export default class MetadataComposerToggleButton extends React.Component {
     try {
       session.changes.addPluginMetadata(pluginId, metadataValue);
     } catch (error) {
-      const { stickyToggle, errorMessage } = this.props;
+      const { errorMessage } = this.props;
 
-      if (stickyToggle) {
-        AppEnv.config.set(this._configKey(), false);
-      }
+      AppEnv.config.set(this._configKey(), false);
 
       let title = 'Error';
       if (!(error instanceof APIError)) {
@@ -82,23 +86,41 @@ export default class MetadataComposerToggleButton extends React.Component {
     this.setState({ pending: false });
   }
 
-  _onClick = () => {
+  _onClick = async () => {
+    const { pluginName, pluginId } = this.props;
+    let nextEnabled = !this._isEnabled();
+    const dir = nextEnabled ? 'Enabled' : 'Disabled';
+
     if (this.state.pending) {
       return;
     }
 
-    const enabled = this._isEnabled();
-    const dir = enabled ? 'Disabled' : 'Enabled';
-    Actions.recordUserEvent(`${this.props.pluginName} ${dir}`);
-    if (this.props.stickyToggle) {
-      AppEnv.config.set(this._configKey(), !enabled);
+    // note: we don't actually increment the usage counters until you /send/
+    // the message with link and open tracking, we just display the notice
+
+    if (nextEnabled && !FeatureUsageStore.isUsable(pluginId)) {
+      try {
+        await FeatureUsageStore.displayUpgradeModal(pluginId, {
+          usedUpHeader: `All used up!`,
+          usagePhrase: 'get open and click notifications for',
+          iconUrl: `mailspring://${pluginId}/assets/ic-modal-image@2x.png`,
+        });
+      } catch (err) {
+        // user does not have access to this feature
+        if (this.state.onByDefaultButUsedUp) {
+          this.setState({ onByDefaultButUsedUp: false });
+        }
+        nextEnabled = false;
+      }
     }
-    this._setEnabled(!enabled);
+
+    Actions.recordUserEvent(`${pluginName} ${dir}`);
+    AppEnv.config.set(this._configKey(), nextEnabled);
+    this._setEnabled(nextEnabled);
   };
 
   render() {
     const enabled = this._isEnabled();
-    const title = this.props.title(enabled);
 
     const className = classnames({
       btn: true,
@@ -115,7 +137,17 @@ export default class MetadataComposerToggleButton extends React.Component {
     }
 
     return (
-      <button className={className} onClick={this._onClick} title={title} tabIndex={-1}>
+      <button
+        className={className}
+        onClick={this._onClick}
+        title={`${enabled ? 'Disable' : 'Enable'} ${this.props.pluginName}`}
+        tabIndex={-1}
+      >
+        {this.state.onByDefaultButUsedUp ? (
+          <div style={{ position: 'absolute', zIndex: 2, transform: 'translate(14px, -4px)' }}>
+            <RetinaImg name="tiny-warning-sign.png" mode={RetinaImg.Mode.ContentPreserve} />
+          </div>
+        ) : null}
         <RetinaImg {...attrs} mode={RetinaImg.Mode.ContentIsMask} />
       </button>
     );

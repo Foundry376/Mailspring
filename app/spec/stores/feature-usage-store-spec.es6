@@ -26,18 +26,18 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
     IdentityStore._identity = this.oldIdent;
   });
 
-  describe('_isUsable', () => {
+  describe('isUsable', () => {
     it("returns true if a feature hasn't met it's quota", () => {
-      expect(FeatureUsageStore._isUsable('is-usable')).toBe(true);
+      expect(FeatureUsageStore.isUsable('is-usable')).toBe(true);
     });
 
     it('returns false if a feature is at its quota', () => {
-      expect(FeatureUsageStore._isUsable('not-usable')).toBe(false);
+      expect(FeatureUsageStore.isUsable('not-usable')).toBe(false);
     });
 
     it('returns true if no quota is present for the feature', () => {
       spyOn(AppEnv, 'reportError');
-      expect(FeatureUsageStore._isUsable('unsupported')).toBe(true);
+      expect(FeatureUsageStore.isUsable('unsupported')).toBe(true);
       expect(AppEnv.reportError).toHaveBeenCalled();
     });
   });
@@ -74,7 +74,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
     });
 
     it("marks the feature used if it's usable", async () => {
-      await FeatureUsageStore.asyncUseFeature('is-usable');
+      await FeatureUsageStore.markUsedOrUpgrade('is-usable');
       expect(FeatureUsageStore._markFeatureUsed).toHaveBeenCalled();
       expect(FeatureUsageStore._markFeatureUsed.callCount).toBe(1);
     });
@@ -93,7 +93,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
           IdentityStore._identity.featureUsage['not-usable'].quota = 10000;
           FeatureUsageStore._onModalClose();
         });
-        await FeatureUsageStore.asyncUseFeature('not-usable', this.lexicon);
+        await FeatureUsageStore.markUsedOrUpgrade('not-usable', this.lexicon);
         expect(Actions.openModal).toHaveBeenCalled();
         expect(Actions.openModal.calls.length).toBe(1);
       });
@@ -103,7 +103,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
           IdentityStore._identity.featureUsage['not-usable'].quota = 10000;
           FeatureUsageStore._onModalClose();
         });
-        await FeatureUsageStore.asyncUseFeature('not-usable', this.lexicon);
+        await FeatureUsageStore.markUsedOrUpgrade('not-usable', this.lexicon);
         expect(Actions.openModal).toHaveBeenCalled();
         expect(Actions.openModal.calls.length).toBe(1);
         const component = Actions.openModal.calls[0].args[0].component;
@@ -122,7 +122,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
           FeatureUsageStore._onModalClose();
         });
         try {
-          await FeatureUsageStore.asyncUseFeature('not-usable', this.lexicon);
+          await FeatureUsageStore.markUsedOrUpgrade('not-usable', this.lexicon);
         } catch (err) {
           expect(err instanceof FeatureUsageStore.NoProAccessError).toBe(true);
           caughtError = true;

@@ -24,7 +24,7 @@ async function incrementMetadataUse(model, expiration) {
     return true;
   }
   try {
-    await FeatureUsageStore.asyncUseFeature(PLUGIN_ID, FEATURE_LEXICON);
+    await FeatureUsageStore.markUsedOrUpgrade(PLUGIN_ID, FEATURE_LEXICON);
   } catch (error) {
     if (error instanceof FeatureUsageStore.NoProAccessError) {
       return false;

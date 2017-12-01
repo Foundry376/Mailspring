@@ -46,7 +46,7 @@ class SnoozeStore extends MailspringStore {
   _onSnoozeThreads = async (threads, snoozeDate, label) => {
     try {
       // ensure the user is authorized to use this feature
-      await FeatureUsageStore.asyncUseFeature('snooze', {
+      await FeatureUsageStore.markUsedOrUpgrade('snooze', {
         usedUpHeader: 'All Snoozes Used',
         usagePhrase: 'snooze',
         iconUrl: 'mailspring://thread-snooze/assets/ic-snooze-modal@2x.png',

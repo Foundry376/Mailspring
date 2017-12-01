@@ -63,7 +63,7 @@ class SendLaterButton extends Component {
     // already set to send later.
     if (!currentSendLaterDate) {
       try {
-        await FeatureUsageStore.asyncUseFeature('send-later', {
+        await FeatureUsageStore.markUsedOrUpgrade('send-later', {
           usedUpHeader: 'All Scheduled Sends Used',
           usagePhrase: 'schedule sending of',
           iconUrl: 'mailspring://send-later/assets/ic-send-later-modal@2x.png',

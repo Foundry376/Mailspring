@@ -17,11 +17,6 @@ export default class OpenTrackingButton extends React.Component {
     );
   }
 
-  _title(enabled) {
-    const dir = enabled ? 'Disable' : 'Enable';
-    return `${dir} open tracking`;
-  }
-
   _errorMessage(error) {
     if (
       error instanceof APIError &&
@@ -40,12 +35,10 @@ export default class OpenTrackingButton extends React.Component {
 
     return (
       <MetadataComposerToggleButton
-        title={this._title}
         iconUrl="mailspring://open-tracking/assets/icon-composer-eye@2x.png"
         pluginId={PLUGIN_ID}
         pluginName={PLUGIN_NAME}
         metadataEnabledValue={enabledValue}
-        stickyToggle
         errorMessage={this._errorMessage}
         draft={this.props.draft}
         session={this.props.session}

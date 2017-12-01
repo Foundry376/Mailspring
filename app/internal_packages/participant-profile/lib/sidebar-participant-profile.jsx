@@ -216,7 +216,7 @@ export default class SidebarParticipantProfile extends React.Component {
 
   _onClickedToTry = async () => {
     try {
-      await FeatureUsageStore.asyncUseFeature('contact-profiles', {
+      await FeatureUsageStore.markUsedOrUpgrade('contact-profiles', {
         usedUpHeader: 'All Contact Previews Used',
         usagePhrase: 'view contact profiles for',
         iconUrl: 'mailspring://participant-profile/assets/ic-contact-profile-modal@2x.png',

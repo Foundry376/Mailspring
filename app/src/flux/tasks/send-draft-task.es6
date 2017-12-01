@@ -1,6 +1,7 @@
 /* eslint global-require: 0 */
 import url from 'url';
 import AccountStore from '../stores/account-store';
+import FeatureUsageStore from '../stores/feature-usage-store';
 import Task from './task';
 import Actions from '../actions';
 import Attributes from '../attributes';
@@ -57,13 +58,11 @@ export default class SendDraftTask extends Task {
   }
 
   isOpenTrackingEnabled() {
-    const metadata = this.draft.metadataForPluginId('open-tracking');
-    return metadata && Object.keys(metadata).length > 0;
+    return !!this.draft.metadataForPluginId('open-tracking');
   }
 
   isLinkTrackingEnabled() {
-    const metadata = this.draft.metadataForPluginId('link-tracking');
-    return metadata && Object.keys(metadata).length > 0;
+    return !!this.draft.metadataForPluginId('link-tracking');
   }
 
   label() {
@@ -96,6 +95,14 @@ export default class SendDraftTask extends Task {
     // Play the sending sound
     if (AppEnv.config.get('core.sending.sounds') && !this.silent) {
       SoundRegistry.playSound('send');
+    }
+
+    // Fire off events to record the usage of open and link tracking
+    if (this.isOpenTrackingEnabled()) {
+      FeatureUsageStore.markUsed('open-tracking');
+    }
+    if (this.isLinkTrackingEnabled()) {
+      FeatureUsageStore.markUsed('link-tracking');
     }
   }
 

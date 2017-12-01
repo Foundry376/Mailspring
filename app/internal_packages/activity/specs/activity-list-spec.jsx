@@ -103,10 +103,7 @@ pluginValue = {
   ],
 };
 messages[1].directlyAttachMetadata(OPEN_TRACKING_ID, pluginValue);
-pluginValue = {
-  links: [],
-  tracked: false,
-};
+pluginValue = {};
 messages[1].directlyAttachMetadata(LINK_TRACKING_ID, pluginValue);
 pluginValue = {
   open_count: 0,
