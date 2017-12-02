@@ -26,7 +26,7 @@ Mailspring's UI is entirely open-source and pull requests and contributions are 
 
 ### Building A Plugin
 
-Plugins lie at the heart of Mailspring and give it its powerful features. Building your own plugins allows you to integrate the app with other tools, experiment with new workflows, and more. Follow the [Getting Started guide](https://Foundry376.github.io/Mailspring/) to write your first plugin in five minutes. To create your own theme, go to our [Theme Starter guide](https://github.com/nylas/N1-theme-starter).
+Plugins lie at the heart of Mailspring and give it its powerful features. Building your own plugins allows you to integrate the app with other tools, experiment with new workflows, and more. Follow the [Getting Started guide](https://Foundry376.github.io/Mailspring/) to write your first plugin in five minutes. To create your own theme, go to our [Theme Starter guide](https://github.com/Foundry376/Mailspring-Theme-Starter).
 
 A plugin "store" like the Chrome Web Store is coming soon, and will make it easy for other users to discover plugins you create.
 

@@ -90,7 +90,10 @@ class ThemePicker extends React.Component {
             </Flexbox>
           </ScrollRegion>
           <div className="create-theme">
-            <a href="https://github.com/nylas/N1-theme-starter" style={{ color: '#3187e1' }}>
+            <a
+              href="https://github.com/Foundry376/Mailspring-Theme-Starter"
+              style={{ color: '#3187e1' }}
+            >
               Create a Theme
             </a>
           </div>
