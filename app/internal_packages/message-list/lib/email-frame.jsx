@@ -130,8 +130,9 @@ export default class EmailFrame extends React.Component {
       height = doc.body.scrollHeight;
     }
 
-    // scrollHeight does not include space required by scrollbar
-    return height + 25;
+    // scrollHeight does not include space required by horizontal scrollbar
+    // if it's present.
+    return height + 18;
   };
 
   _setFrameHeight = () => {
