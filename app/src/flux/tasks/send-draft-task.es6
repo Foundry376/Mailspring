@@ -111,13 +111,15 @@ export default class SendDraftTask extends Task {
     let errorDetail = null;
 
     if (key === 'no-sent-folder') {
-      errorMessage = "We couldn't find a Sent folder in your account.";
+      errorMessage =
+        'Your `Sent Mail` folder could not be automatically detected. Visit Preferences > Folders to choose a Sent folder and then try again.';
       errorDetail =
-        'In order to send mail through Mailspring, your email account must have a Sent Mail folder.';
+        'In order to send mail through Mailspring, your email account must have a Sent Mail folder. You can specify a Sent folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.';
     } else if (key === 'no-trash-folder') {
-      errorMessage = "We couldn't find a Sent folder in your account.";
+      errorMessage =
+        'Your `Trash` folder could not be automatically detected. Visit Preferences > Folders to choose a Trash folder and then try again.';
       errorDetail =
-        'In order to send mail through Mailspring, your email account must have a Trash folder.';
+        'In order to send mail through Mailspring, your email account must have a Trash folder. You can specify a Trash folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.';
     } else if (key === 'send-partially-failed') {
       const [smtpError, emails] = debuginfo.split(':::');
       errorMessage =
