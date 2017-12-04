@@ -11,6 +11,6 @@ export default class ExpungeAllInFolderTask extends Task {
   });
 
   label() {
-    return `Deleting all messages in ${this.folder ? this.folder.displayName() : 'unknown'}`;
+    return `Deleting all messages in ${this.folder ? this.folder.displayName : 'unknown'}`;
   }
 }
