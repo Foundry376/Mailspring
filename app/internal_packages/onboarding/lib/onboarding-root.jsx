@@ -13,6 +13,7 @@ import AccountSettingsPageIMAP from './page-account-settings-imap';
 import AccountOnboardingSuccess from './page-account-onboarding-success';
 import AccountSettingsPageExchange from './page-account-settings-exchange';
 import InitialPreferencesPage from './page-initial-preferences';
+import InitialSubscriptionPage from './page-initial-subscription';
 
 const PageComponents = {
   welcome: WelcomePage,
@@ -25,6 +26,7 @@ const PageComponents = {
   'account-settings-exchange': AccountSettingsPageExchange,
   'account-onboarding-success': AccountOnboardingSuccess,
   'initial-preferences': InitialPreferencesPage,
+  'initial-subscription': InitialSubscriptionPage,
 };
 
 export default class OnboardingRoot extends React.Component {

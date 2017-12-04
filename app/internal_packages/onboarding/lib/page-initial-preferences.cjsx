@@ -4,7 +4,7 @@ path = require 'path'
 fs = require 'fs'
 _ = require 'underscore'
 {RetinaImg, Flexbox, ConfigPropContainer} = require 'mailspring-component-kit'
-{AccountStore} = require 'mailspring-exports'
+{AccountStore, IdentityStore} = require 'mailspring-exports'
 OnboardingActions = require('./onboarding-actions').default
 NewsletterSignup = require('./newsletter-signup').default
 
@@ -128,7 +128,7 @@ class InitialPreferencesPage extends React.Component
     return (<div/>) unless @state.account
     <div className="page opaque" style={width:900, height:620}>
       <h1 style={paddingTop: 100}>Welcome to Mailspring</h1>
-      <h4 style={marginBottom: 70}>Let's set things up to your liking.</h4>
+      <h4 style={marginBottom: 60}>Let's set things up to your liking.</h4>
       <ConfigPropContainer>
         <InitialPreferencesOptions account={@state.account} />
       </ConfigPropContainer>
@@ -141,6 +141,9 @@ class InitialPreferencesPage extends React.Component
     </div>
 
   _onFinished: =>
-    require('electron').ipcRenderer.send('account-setup-successful')
+    if IdentityStore.hasProFeatures()
+      require('electron').ipcRenderer.send('account-setup-successful')
+    else
+      OnboardingActions.moveToPage('initial-subscription')
 
 module.exports = InitialPreferencesPage
