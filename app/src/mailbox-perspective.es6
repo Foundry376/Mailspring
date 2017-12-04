@@ -408,7 +408,10 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     return this._categories.some(cat => {
       const representedFolder =
         cat instanceof Folder ? cat : CategoryStore.getAllMailCategory(cat.accountId);
-      return FolderSyncProgressStore.isSyncingAccount(cat.accountId, representedFolder.path);
+      return (
+        representedFolder &&
+        FolderSyncProgressStore.isSyncingAccount(cat.accountId, representedFolder.path)
+      );
     });
   }
 
