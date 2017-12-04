@@ -8,7 +8,6 @@ DatabaseStore = require('../../src/flux/stores/database-store').default
 ChangeFolderTask = require('../../src/flux/tasks/change-folder-task').default
 ChangeMailTask = require('../../src/flux/tasks/change-mail-task').default
 
-{APIError} = require '../../src/flux/errors'
 {Utils} = require '../../src/flux/models/utils'
 
 testFolders = {}

@@ -8,6 +8,7 @@ import { Emitter } from 'event-kit';
 import { convertStackTrace } from 'coffeestack';
 import { mapSourcePosition } from 'source-map-support';
 
+import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
 import Utils from './flux/models/utils';
 
@@ -320,6 +321,12 @@ export default class AppEnvConstructor {
     } catch (err) {
       // can happen when an error is thrown very early
       extra.pluginIds = [];
+    }
+
+    if (error instanceof APIError) {
+      // API Errors are logged by our backend and happen all the time (offline, etc.)
+      // Don't clutter the front-end metrics with these.
+      return;
     }
 
     if (this.inSpecMode()) {

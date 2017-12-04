@@ -1,7 +1,6 @@
 _ = require 'underscore'
 
-{APIError,
- Folder,
+{Folder,
  Thread,
  Message,
  Actions,

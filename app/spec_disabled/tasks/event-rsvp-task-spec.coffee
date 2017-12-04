@@ -2,7 +2,6 @@ _ = require 'underscore'
 
 {Event,
  Actions,
- APIError,
  EventRSVPTask,
  DatabaseStore,
  DatabaseWriter,

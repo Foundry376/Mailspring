@@ -8,7 +8,6 @@ ChangeLabelsTask = require('../../src/flux/tasks/change-labels-task').default
 ChangeMailTask = require('../../src/flux/tasks/change-mail-task').default
 
 {AccountStore, CategoryStore} = require 'mailspring-exports'
-{APIError} = require '../../src/flux/errors'
 {Utils} = require '../../src/flux/models/utils'
 
 testLabels = {}
