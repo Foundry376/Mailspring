@@ -76,8 +76,10 @@ class IdentityStore extends MailspringStore {
 
     // allow someone to call saveIdentity without the token,
     // and only save it if it's been changed (expensive call.)
-    const nextToken = token || this._identity.token;
-    if (nextToken && nextToken !== this._identity.token) {
+    const oldToken = this._identity ? this._identity.token : null;
+    const nextToken = token || oldToken;
+
+    if (nextToken && nextToken !== oldToken) {
       // Note: We /must/ await this because calling config.set below
       // will try to retrieve the password via getPassword.
       // If this fails, the app may quit here.
@@ -176,11 +178,15 @@ class IdentityStore extends MailspringStore {
       method: 'GET',
     });
 
-    if (!json || !json.id || json.id !== this._identity.id) {
-      console.error(json);
-      AppEnv.reportError(new Error('Remote Identity returned invalid json'), json || {});
+    if (!json || !json.id) {
+      AppEnv.reportError(new Error('/api/me returned invalid json'), json || {});
       return this._identity;
     }
+
+    if (json.id !== this._identity.id) {
+      console.log('Note: server returned a different identity object.');
+    }
+
     const nextIdentity = Object.assign({}, this._identity, json);
     await this.saveIdentity(nextIdentity);
     return this._identity;
