@@ -40,10 +40,12 @@ export default class Notification extends React.Component {
   }
 
   _isDismissed() {
-    if (this.props.isPermanentlyDismissable) {
-      return this._numAsks() >= 5;
-    }
-    return false;
+    return this.props.isPermanentlyDismissable && this._numAsks() >= 5;
+  }
+
+  _shiftAsks(incr) {
+    const current = this._numAsks();
+    AppEnv.savedState.dismissedNotificationAsks[this.props.displayName] = current + incr;
   }
 
   _numAsks() {
@@ -87,7 +89,7 @@ export default class Notification extends React.Component {
   _subtitleAction = () => {
     if (this.props.isPermanentlyDismissable && this._numAsks() >= 1) {
       return () => {
-        AppEnv.savedState.dismissedNotificationAsks[this.props.displayName] = 5;
+        this._shiftAsks(5);
         this.setState({ isDismissed: true });
       };
     }
@@ -103,7 +105,7 @@ export default class Notification extends React.Component {
       actions.push({
         label: 'Dismiss',
         fn: () => {
-          AppEnv.savedState.dismissedNotificationAsks[this.props.displayName] = this._numAsks() + 1;
+          this._shiftAsks(1);
           this.setState({ isDismissed: true });
         },
       });
