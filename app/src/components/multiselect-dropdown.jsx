@@ -27,6 +27,7 @@ class MultiselectDropdown extends Component {
     itemKey: PropTypes.func,
     buttonText: PropTypes.string,
     itemContent: PropTypes.func,
+    attachment: PropTypes.string,
   };
 
   static defaultProps = {
@@ -73,12 +74,13 @@ class MultiselectDropdown extends Component {
   };
 
   render() {
-    const { items } = this.props;
+    const { items, attachment } = this.props;
     const menu = this._renderMenu(items);
     return (
       <ButtonDropdown
         className={'btn-multiselect'}
         primaryItem={<span>{this.props.buttonText}</span>}
+        attachment={attachment}
         menu={menu}
       />
     );

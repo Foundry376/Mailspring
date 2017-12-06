@@ -11,9 +11,11 @@ class ButtonDropdown extends React.Component
     menu: PropTypes.element
     style: PropTypes.object
     closeOnMenuClick: PropTypes.bool
+    attachment: PropTypes.string,
 
   @defaultProps:
     style: {}
+    attachment: 'left'
 
   constructor: (@props) ->
     @state = open: false
@@ -47,7 +49,7 @@ class ButtonDropdown extends React.Component
           {@props.primaryItem}
           <RetinaImg name={"icon-thread-disclosure.png"} style={marginLeft:12} mode={RetinaImg.Mode.ContentIsMask}/>
         </div>
-        <div ref="secondaryItems" className="secondary-items left" onMouseDown={@_onMenuClick}>
+        <div ref="secondaryItems" className={"secondary-items #{@props.attachment}"} onMouseDown={@_onMenuClick}>
           {@props.menu}
         </div>
       </div>

@@ -1,6 +1,7 @@
 @import 'ui-variables';
 
 @blurred-primary-color: mix(@background-primary, #ffbb00, 96%);
+
 // Styles for Preferences Signatures
 .preferences-signatures-container {
   max-width: 800px;
@@ -59,67 +60,176 @@
   }
 
   .signature-wrap {
-    position: relative;
-    border: 1px solid @input-border-color;
-    background-color: @white;
-    min-height: 200px;
-    height: 300px;
     display: flex;
+    position: relative;
+    margin-left: @padding-base-horizontal;
     flex-direction: column;
+    overflow: hidden;
+    min-height: 200px;
     width: 100%;
-    border-left: none;
+    
+    &.empty {
+      opacity: 0.5;
+      pointer-events: none;
+    }
 
-    .signature-scroll-region {
-      width: 100%;
-      height: 100%;
-
-      .scroll-region-content-inner {
-        min-height: 100%;
-        height: 100%;
+    .section {
+      background-color: @background-primary;
+      border: 1px solid @border-color-divider;
+    }
+    .section.basic-info {
+      background: none;
+      border: none;
+      display: flex;
+      white-space: nowrap;
+      margin-bottom: @padding-base-horizontal;
+      input {
+        max-width: 300px;
       }
     }
 
-    textarea {
-      width: 100%;
-      height: 100%;
-      padding: 10px;
-      border: 0;
-      flex: 1;
+    .section-header {
+      margin-top: 10px;
+      &:first-child {
+        margin-top:0;
+      }
+    }
+
+    textarea.raw-html {
       font-family: monospace;
       font-size: 0.9em;
+      width: 100%;
+      height: 240px;
+      padding: @padding-base-horizontal;
     }
 
-    .contenteditable {
-      padding: 10px;
+    .signature-template-picker {
+      height: 58px;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      background: mix(@background-secondary, @black, 97%);
+      white-space: nowrap;
+
+      .option {
+        width: 100px;
+        height: 50px;
+        overflow: hidden;
+        display: inline-block;
+        border: 1px solid @border-color-divider;
+        background: @background-primary;
+        position: relative;
+        margin-top: 4px;
+        margin-left: 4px;
+        &:last-child {
+          margin-right: 4px;
+        }
+
+        .centered {
+          align-items: center;
+          justify-content: center;
+          white-space: initial;
+          flex-shrink: 0;
+          top: 0; left: 0; right: 0; bottom: 0;
+          position: absolute;
+          display: flex;
+          
+          .preview {
+            pointer-events: none;
+            transform: scale(0.25);
+          }
+        }
+        &.active {
+          border: 1px solid @component-active-color;
+        }
+      }
     }
 
-    .editable-toolbar {
-      border-top: 1px solid @input-border-color;
-      padding: 6px 10px;
-
-      .render-mode {
+    .section.preview {
+      padding: @padding-base-horizontal;
+      min-height: 180px;
+      .label {
+        font-size: 0.9em;
+        color: @text-color-very-subtle;
         float: right;
+        border-radius: 5px;
+        padding: 0 5px;
+        color: lightgray;
+      }
+    }
+
+    .section.information {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      padding: @padding-base-horizontal 0;
+      
+      .field.photo-picker {
+        display: block;
+        width: 100%;
+
+        .photo-well {
+          width: 60px;
+          height: 60px;
+          background-size: contain;
+          background-position: center;
+          background-repeat: no-repeat;
+          border: 1px solid @input-border-color;
+          margin-right: @padding-base-horizontal;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          &:hover, &.dropping {
+            border: 1px solid @accent-primary-dark;
+          }
+        }
+        .photo-options {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: baseline;
+          justify-content: space-between;
+        }
+
+        select {
+          margin: 0;
+        }
+        .drop-note {
+          font-size: @font-size-smaller;
+          color: @text-color-very-subtle;
+          margin-top: 4px;
+        }
       }
 
-      .account-picker {
-        display: inline-block;
-        color: @text-color-subtle;
+      .field {
+        label {
+          color: @text-color-very-subtle;
+          margin-right: 20px;
+        }
+        padding: @padding-base-vertical @padding-base-horizontal;
+        width: 50%;
+      }
+    }
 
-        .button-dropdown {
-          .secondary-items {
-            .menu {
-              .item {
-                padding: 5px 10px 5px 25px;
-              }
-              .item.checked {
-                background-image: url(images/menu/osx-checkmark@2x.svg);
-                background-position: left;
-                background-position-x: 6%;
-                background-size: 10px;
-                margin: 0;
-                padding: 5px 10px 5px 25px;
-                background-repeat: no-repeat;
-              }
+    .account-picker {
+      display: inline-block;
+      color: @text-color-subtle;
+      margin-left: @padding-base-horizontal;
+      margin-right: 2px;
+
+      .button-dropdown {
+        .secondary-items {
+          .menu {
+            .item {
+              padding: 5px 10px 5px 25px;
+            }
+            .item.checked {
+              background-image: url(images/menu/osx-checkmark@2x.svg);
+              background-position: left;
+              background-position-x: 6%;
+              background-size: 10px;
+              margin: 0;
+              padding: 5px 10px 5px 25px;
+              background-repeat: no-repeat;
             }
           }
         }

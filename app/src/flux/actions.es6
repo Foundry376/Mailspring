@@ -494,9 +494,8 @@ class Actions {
   static previousSearchResult = ActionScopeWindow;
 
   // Actions for the signature preferences and shared with the composer
-  static addSignature = ActionScopeWindow;
+  static upsertSignature = ActionScopeWindow;
   static removeSignature = ActionScopeWindow;
-  static updateSignature = ActionScopeWindow;
   static selectSignature = ActionScopeWindow;
   static toggleAccount = ActionScopeWindow;
 

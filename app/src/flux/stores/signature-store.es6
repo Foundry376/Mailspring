@@ -1,9 +1,6 @@
-import { Utils, Actions } from 'mailspring-exports';
+import { Actions, AccountStore } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 import _ from 'underscore';
-
-const DefaultSignatureText =
-  'Sent from <a href="https://getmailspring.com?ref=client">Mailspring</a>, the best free email app for work';
 
 class SignatureStore extends MailspringStore {
   constructor() {
@@ -14,13 +11,32 @@ class SignatureStore extends MailspringStore {
   activate() {
     this.signatures = AppEnv.config.get(`signatures`) || {};
     this.defaultSignatures = AppEnv.config.get(`defaultSignatures`) || {};
+
+    // If the user has no signatures (after a clean install or upgrade from 1.0.9),
+    // create a default one for them and apply it to all their accounts.
+    if (Object.keys(this.signatures).length === 0) {
+      this.signatures = {
+        initial: {
+          id: 'initial',
+          title: 'Default',
+          body: `<div><div>Sent from Mailspring</div></div>`,
+          data: {
+            title: 'Sent from Mailspring',
+            templateName: 'SignatureB',
+          },
+        },
+      };
+      AccountStore.accounts().forEach(a => {
+        this.defaultSignatures[a.emailAddress] = 'initial';
+      });
+    }
+
     this._autoselectSignatureId();
 
     if (!this.unsubscribers) {
       this.unsubscribers = [
-        Actions.addSignature.listen(this._onAddSignature),
         Actions.removeSignature.listen(this._onRemoveSignature),
-        Actions.updateSignature.listen(this._onEditSignature),
+        Actions.upsertSignature.listen(this._onUpsertSignature),
         Actions.selectSignature.listen(this._onSelectSignature),
         Actions.toggleAccount.listen(this._onToggleAccount),
       ];
@@ -53,13 +69,7 @@ class SignatureStore extends MailspringStore {
   }
 
   signatureForEmail = email => {
-    return (
-      this.signatures[this.defaultSignatures[email]] || {
-        id: 'default',
-        body: DefaultSignatureText,
-        title: 'Default',
-      }
-    );
+    return this.signatures[this.defaultSignatures[email]];
   };
 
   _saveSignatures() {
@@ -88,17 +98,8 @@ class SignatureStore extends MailspringStore {
     this._saveSignatures();
   };
 
-  _onAddSignature = (sigTitle = 'Untitled') => {
-    const newId = Utils.generateTempId();
-    this.signatures[newId] = { id: newId, title: sigTitle, body: DefaultSignatureText };
-    this.selectedSignatureId = newId;
-    this.trigger();
-    this._saveSignatures();
-  };
-
-  _onEditSignature = (editedSig, oldSigId) => {
-    this.signatures[oldSigId].title = editedSig.title;
-    this.signatures[oldSigId].body = editedSig.body;
+  _onUpsertSignature = (signature, id) => {
+    this.signatures[id] = signature;
     this.trigger();
     this._saveSignatures();
   };

@@ -133,7 +133,7 @@ class InitialPreferencesPage extends React.Component
         <InitialPreferencesOptions account={@state.account} />
       </ConfigPropContainer>
       <button
-        className="btn btn-large btn-get-started"
+        className="btn btn-large"
         style={marginBottom:60}
         onClick={@_onFinished}>
         Looks Good!
