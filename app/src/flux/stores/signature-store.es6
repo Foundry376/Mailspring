@@ -9,19 +9,19 @@ class SignatureStore extends MailspringStore {
   }
 
   activate() {
-    this.signatures = AppEnv.config.get(`signatures`) || {};
+    this.signatures = AppEnv.config.get(`signatures`);
     this.defaultSignatures = AppEnv.config.get(`defaultSignatures`) || {};
 
     // If the user has no signatures (after a clean install or upgrade from 1.0.9),
     // create a default one for them and apply it to all their accounts.
-    if (Object.keys(this.signatures).length === 0) {
+    if (!this.signatures) {
       this.signatures = {
         initial: {
           id: 'initial',
           title: 'Default',
-          body: `<div><div>Sent from Mailspring</div></div>`,
+          body: `<div><div>Sent from <a href="https://getmailspring.com/">Mailspring</a>, the best free email app for work</div></div>`,
           data: {
-            title: 'Sent from Mailspring',
+            title: 'Sent from Mailspring, the best free email app for work',
             templateName: 'SignatureB',
           },
         },
