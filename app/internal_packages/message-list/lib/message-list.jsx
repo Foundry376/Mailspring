@@ -343,12 +343,12 @@ class MessageList extends React.Component {
   //
   // If messageId and location are defined, that means we want to scroll
   // smoothly to the top of a particular message.
-  _scrollTo = ({ id, rect, position } = {}) => {
+  _scrollTo = ({ headerMessageId, rect, position } = {}) => {
     if (this._draftScrollInProgress) {
       return;
     }
-    if (id) {
-      const messageElement = this._getMessageContainer(id);
+    if (headerMessageId) {
+      const messageElement = this._getMessageContainer(headerMessageId);
       if (!messageElement) {
         return;
       }
