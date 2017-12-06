@@ -133,7 +133,7 @@ class FolderSyncProgressStore extends MailspringStore {
     if (!state) {
       return false;
     }
-    return Object.values(state).some(i => i.progress > 0);
+    return Object.values(state).some(i => i.scanProgress > 0);
   }
 
   whenCategoryListSynced(accountId) {
