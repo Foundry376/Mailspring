@@ -7,8 +7,8 @@ import TemplateComposerExtension from './template-composer-extension';
 export function activate(state = {}) {
   this.state = state;
   this.preferencesTab = new PreferencesUIStore.TabItem({
-    tabId: 'Quick Replies',
-    displayName: 'Quick Replies',
+    tabId: 'Templates',
+    displayName: 'Templates',
     componentClassFn: () => require('./preferences-templates').default,
   });
   ComponentRegistry.register(TemplatePicker, { role: 'Composer:ActionButton' });
