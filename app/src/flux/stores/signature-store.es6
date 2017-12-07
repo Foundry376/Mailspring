@@ -31,6 +31,9 @@ class SignatureStore extends MailspringStore {
       });
     }
 
+    // migrate signatures that didn't have a `data` property
+    Object.values(this.signatures).forEach(sig => (sig.data = sig.data || {}));
+
     this._autoselectSignatureId();
 
     if (!this.unsubscribers) {
