@@ -1,5 +1,26 @@
 # Mailspring Changelog
 
+### 1.0.10 (12/7/2017)
+
+Features:
+
+- A brand new signature editor makes it easy to create beautiful signatures with images and important contact details.
+
+Performance:
+
+- SQLite schema changes significantly improve Mailspring's sync performance on very large mailboxes.
+
+Fixes:
+
+- A major memory leak on Windows has been fixed which caused Mailspring to slow down your computer, especially when waking from sleep.
+
+- Mailspring no longer reports that it is still "looking for messages" in some cases after sync has completed.
+
+- Search now correctly supports the "in:" syntax for all arbitrary folders and labels as well as built-in ones like "in:inbox".
+
+- Several exceptions thrown in UI edge-cases have been fixed.
+
+
 ### 1.0.9 (12/1/2017)
 
 Improvements:
