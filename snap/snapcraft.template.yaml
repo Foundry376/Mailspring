@@ -47,6 +47,7 @@ apps:
      - cups-control
      - gsettings
      - home
+     - desktop
      - mount-observe
      - network
      - network-bind
