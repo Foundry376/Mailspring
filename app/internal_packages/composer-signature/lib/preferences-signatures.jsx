@@ -92,8 +92,16 @@ class SignatureTemplatePicker extends React.Component {
   }
 
   render() {
-    const { resolvedData } = this.props;
+    let { resolvedData } = this.props;
 
+    const { name, email, title } = resolvedData;
+    if (!name && !email && !title) {
+      resolvedData = Object.assign({}, resolvedData, {
+        name: 'Your Name',
+        email: 'you@domain.com',
+        title: 'Your Job Title',
+      });
+    }
     return (
       <div ref={el => (this._el = el)} className="signature-template-picker">
         {Templates.map((t, idx) => (
@@ -104,7 +112,7 @@ class SignatureTemplatePicker extends React.Component {
             onClick={this._onClickItem}
           >
             <div className="centered">
-              <div className="preview">{t(this.props.resolvedData)}</div>
+              <div className="preview">{t(resolvedData)}</div>
             </div>
           </div>
         ))}
