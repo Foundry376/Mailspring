@@ -444,11 +444,12 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     const currentCat = current.categories().find(c => c.accountId === accountId);
 
     // Don't drag and drop on ourselves
-    if (myCat.id === currentCat.id) {
+    // NOTE: currentCat can be nil in case of SearchPerspective
+    if (currentCat && myCat.id === currentCat.id) {
       return [];
     }
 
-    if (myCat.role === 'all' && currentCat instanceof Label) {
+    if (myCat.role === 'all' && currentCat && currentCat instanceof Label) {
       // dragging from a label into All Mail? Make this an "archive" by removing the
       // label. Otherwise (Since labels are subsets of All Mail) it'd have no effect.
       return [
@@ -471,7 +472,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       ];
     }
 
-    if (myCat instanceof Label && currentCat instanceof Folder) {
+    if (myCat instanceof Label && currentCat && currentCat instanceof Folder) {
       // dragging from trash or spam into a label? We need to both apply the label and
       // move to the "All Mail" folder.
       return [
@@ -494,7 +495,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
         threads,
         source: 'Dragged into list',
         labelsToAdd: [myCat],
-        labelsToRemove: [currentCat],
+        labelsToRemove: currentCat ? [currentCat] : [],
       }),
     ];
   }
