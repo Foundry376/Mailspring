@@ -77,7 +77,7 @@ class TranslateButton extends React.Component {
     queryParams.set('format', 'html');
 
     try {
-      const resp = await fetch(YandexTranslationURL, { body: queryParams });
+      const resp = await fetch(YandexTranslationURL, { method: 'POST', body: queryParams });
       if (!resp.ok) {
         throw new Error('Sorry, we were unable to complete the translation request.');
       }
