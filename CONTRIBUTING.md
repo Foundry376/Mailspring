@@ -74,6 +74,10 @@ From Mailspring, you can open the Developer Tools from the menu: `Menu > Develop
 
 We use `prettier` and `eslint` for linting our sources. You can run both of these by running `npm run lint` on the command line. Always do this before submitting a pull request to ensure the CI servers accept your code.
 
+#### Documentation
+
+Back in 2015 and 2016, the Nylas Mail team made a huge effort to document the codebase. The docs are still [available on GitHub pages](https://foundry376.github.io/Mailspring/), and are still largely relevant to Mailspring development.
+
 #### Discussion Etiquette
 
 In order to keep the conversation clear and transparent, please limit discussion to English and keep things on topic with the issue. Be considerate to others and try to be courteous and professional at all times.

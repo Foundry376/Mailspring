@@ -7,7 +7,7 @@
 
 **Leaving Nylas Mail? Mailspring is a new version by one of the original authors. It's faster, leaner, and shipping today!** Mailspring replaces the JavaScript mailsync code in Nylas Mail with a new C++ sync engine based on [Mailcore2](https://github.com/MailCore/mailcore2). It uses roughly half the RAM and CPU of Nylas Mail and idles with almost zero "CPU Wakes", which translates to great battery life. A major overhaul of the package manager and dependency tree mean it launches faster too. You might not even notice it's an Electron app!
 
-Mailspring is built on the modern web with [Electron](https://github.com/atom/electron), [React](https://facebook.github.io/react/), and [Flux](https://facebook.github.io/flux/). It is designed to be extensible, so it's easy to create new experiences and workflows around email. Want to learn more? Check out the [full documentation](https://Foundry376.github.io/Mailspring/).
+Mailspring is built on the modern web with [Electron](https://github.com/atom/electron), [React](https://facebook.github.io/react/), and [Flux](https://facebook.github.io/flux/). It is designed to be extensible, so it's easy to create new experiences and workflows around email. Want to learn more? Check out [CONTRIBUTING.md](https://github.com/Foundry376/Mailspring/blob/master/CONTRIBUTING.md).
 
 ![Mailspring Screenshot](https://github.com/Foundry376/Mailspring/raw/master/screenshots/hero_graphic_mac%402x.png)
 
@@ -32,7 +32,7 @@ A plugin "store" like the Chrome Web Store is coming soon, and will make it easy
 
 ### Building a Theme
 
-The Mailspring user interface is styled using CSS, which means it's easy to modify and extend. Mailspring comes stock with a few beautiful themes, and there are many more which have been built by community developers. To start creating a theme, [clone the theme starter](https://github.com/nylas/nylas-mail-theme-starter)!
+The Mailspring user interface is styled using CSS, which means it's easy to modify and extend. Mailspring comes stock with a few beautiful themes, and there are many more which have been built by community developers. To start creating a theme, [clone the theme starter](https://github.com/Foundry376/Mailspring-Theme-Starter)!
 
 ### Contributing to Mailspring Core
 
