@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Building a Package · Nylas Mail Plugin SDK</title>
+        <title>Building a Package · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.10" data-path="../classes/NylasEnvConstructor.html">
+        <li class="chapter " data-level="2.1.10" data-path="../classes/AppEnvConstructor.html">
             
-                <a href="../classes/NylasEnvConstructor.html">
+                <a href="../classes/AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1305,7 +1305,7 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="building-a-package"><a name="building-a-package" class="plugin-anchor" href="#building-a-package"><i class="fa fa-link" aria-hidden="true"></i></a>Building a Package</h1>
-<p>Packages lie at the heart of Nylas Mail. Each part of the core experience is a separate package that uses the Nylas Package API to add functionality to the client. Want to make a read-only mail client? Remove the core <code>Composer</code> package and you&apos;ll see reply buttons and composer functionality disappear.</p>
+<p>Packages lie at the heart of Mailspring. Each part of the core experience is a separate package that uses the Mailspring Package API to add functionality to the client. Want to make a read-only mail client? Remove the core <code>Composer</code> package and you&apos;ll see reply buttons and composer functionality disappear.</p>
 <p>Let&apos;s explore the files in a simple package that adds a Translate option to the Composer. When you tap the Translate button, we&apos;ll display a popup menu with a list of languages. When you pick a language, we&apos;ll make a web request and convert your reply into the desired language.</p>
 <h3 id="package-structure"><a name="package-structure" class="plugin-anchor" href="#package-structure"><i class="fa fa-link" aria-hidden="true"></i></a>Package Structure</h3>
 <p>Each package is defined by a <code>package.json</code> file that includes its name, version and dependencies. Packages may also declare dependencies which are loaded from npm - in this case, the <a href="https://github.com/request/request" target="_blank">request</a> library. You&apos;ll need to <code>npm install</code> these dependencies locally when developing the package.</p>
@@ -1313,10 +1313,10 @@
   &quot;name&quot;: &quot;translate&quot;,
   &quot;version&quot;: &quot;0.1.0&quot;,
   &quot;main&quot;: &quot;./lib/main&quot;,
-  &quot;description&quot;: &quot;An example package for Nylas Mail&quot;,
+  &quot;description&quot;: &quot;An example package for Mailspring&quot;,
   &quot;license&quot;: &quot;GPL-3.0&quot;,
   &quot;engines&quot;: {
-    &quot;nylas&quot;: &quot;&gt;=0.3.0 &lt;0.5.0&quot;
+    &quot;mailspring&quot;: &quot;&gt;=0.3.0 &lt;0.5.0&quot;
   },
   &quot;dependencies&quot;: {
     &quot;request&quot;: &quot;^2.53&quot;
@@ -1331,8 +1331,8 @@
    - main-spec.coffee
 - stylesheets/
    - translate.less
-</code></pre><p><code>package.json</code> lists <code>lib/main</code> as the root file of our package. Since Nylas Mail runs NodeJS, we can <code>require</code> other source files, Node packages, etc.</p>
-<p>Nylas Mail can read <code>js</code>, <code>coffee</code>, <code>jsx</code>, and <code>cjsx</code> files automatically.</p>
+</code></pre><p><code>package.json</code> lists <code>lib/main</code> as the root file of our package. Since Mailspring runs NodeJS, we can <code>require</code> other source files, Node packages, etc.</p>
+<p>Mailspring can read <code>js</code>, <code>coffee</code>, <code>jsx</code>, and <code>cjsx</code> files automatically.</p>
 <p>Inside <code>main.coffee</code>, there are three important functions being exported:</p>
 <pre><code class="lang-coffee"><span class="hljs-built_in">require</span> <span class="hljs-string">&apos;./translate-button&apos;</span>
 
@@ -1361,22 +1361,22 @@
     ComponentRegistry.unregister(TranslateButton)
 </code></pre>
 <blockquote>
-<p>Nylas Mail uses CJSX, a CoffeeScript version of JSX, which makes it easy to express Virtual DOM in React <code>render</code> methods! You may want to add the <a href="https://github.com/babel/babel-sublime" target="_blank">Babel</a> plugin to Sublime Text, or the <a href="https://atom.io/packages/language-cjsx" target="_blank">CJSX Language</a> for syntax highlighting.</p>
+<p>Mailspring uses CJSX, a CoffeeScript version of JSX, which makes it easy to express Virtual DOM in React <code>render</code> methods! You may want to add the <a href="https://github.com/babel/babel-sublime" target="_blank">Babel</a> plugin to Sublime Text, or the <a href="https://atom.io/packages/language-cjsx" target="_blank">CJSX Language</a> for syntax highlighting.</p>
 </blockquote>
 <h3 id="package-stylesheets"><a name="package-stylesheets" class="plugin-anchor" href="#package-stylesheets"><i class="fa fa-link" aria-hidden="true"></i></a>Package Stylesheets</h3>
 <p>Style sheets for your package should be placed in the <em>styles</em> directory. Any style sheets in this directory will be loaded and attached to the DOM when your package is activated. Style sheets can be written as CSS or <a href="http://lesscss.org/" target="_blank">Less</a>, but Less is recommended.</p>
-<p>Ideally, you won&apos;t need much in the way of styling. We&apos;ve provided a standard set of components which define both the colors and UI elements for any package that fits into Nylas Mail seamlessly.</p>
+<p>Ideally, you won&apos;t need much in the way of styling. We&apos;ve provided a standard set of components which define both the colors and UI elements for any package that fits into Mailspring seamlessly.</p>
 <p>If you <em>do</em> need special styling, try to keep only structural styles in the package stylesheets. If you <em>must</em> specify colors and sizing, these should be taken from the active theme&apos;s [ui-variables.less][ui-variables]. For more information, see the [theme variables docs][theme-variables]. If you follow this guideline, your package will look good out of the box with any theme!</p>
 <p>An optional <code>stylesheets</code> array in your <code>package.json</code> can list the style sheets by name to specify a loading order; otherwise, all style sheets are loaded.</p>
 <h3 id="package-assets"><a name="package-assets" class="plugin-anchor" href="#package-assets"><i class="fa fa-link" aria-hidden="true"></i></a>Package Assets</h3>
-<p>Many packages need other static files, like images. You can add static files anywhere in your package directory, and reference them at runtime using the <code>nylas://</code> url scheme:</p>
-<pre><code>&lt;img src=&quot;nylas://my-package-name/assets/goofy.png&quot;&gt;
+<p>Many packages need other static files, like images. You can add static files anywhere in your package directory, and reference them at runtime using the <code>mailspring://</code> url scheme:</p>
+<pre><code>&lt;img src=&quot;mailspring://my-package-name/assets/goofy.png&quot;&gt;
 
 a = new Audio()
-a.src = &quot;nylas://my-package-name/sounds/bloop.mp3&quot;
+a.src = &quot;mailspring://my-package-name/sounds/bloop.mp3&quot;
 a.play()
 </code></pre><h3 id="installing-a-package"><a name="installing-a-package" class="plugin-anchor" href="#installing-a-package"><i class="fa fa-link" aria-hidden="true"></i></a>Installing a Package</h3>
-<p>Nylas Mail ships with many packages already bundled with the application. When the application launches, it looks for additional packages in <code>~/.nylas/dev/packages</code>. Each package you create belongs in its own directory inside this folder.</p>
+<p>Mailspring ships with many packages already bundled with the application. When the application launches, it looks for additional packages in <code>~/Library/Application Support/Mailspring/dev/packages</code>. Each package you create belongs in its own directory inside this folder.</p>
 <p>In the future, it will be possible to install packages directly from within the client.</p>
 
                                 
@@ -1421,7 +1421,7 @@ a.play()
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Building a Package","level":"1.5","depth":1,"next":{"title":"Interface Concepts","level":"1.6","depth":1,"path":"guides/InterfaceConcepts.md","ref":"guides/InterfaceConcepts.md","articles":[]},"previous":{"title":"Getting Started Part 2","level":"1.4","depth":1,"path":"guides/GettingStarted-2.md","ref":"guides/GettingStarted-2.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/PackageOverview.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Building a Package","level":"1.5","depth":1,"next":{"title":"Interface Concepts","level":"1.6","depth":1,"path":"guides/InterfaceConcepts.md","ref":"guides/InterfaceConcepts.md","articles":[]},"previous":{"title":"Getting Started Part 2","level":"1.4","depth":1,"path":"guides/GettingStarted-2.md","ref":"guides/GettingStarted-2.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/PackageOverview.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Accessing the Database · Nylas Mail Plugin SDK</title>
+        <title>Accessing the Database · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.10" data-path="../classes/NylasEnvConstructor.html">
+        <li class="chapter " data-level="2.1.10" data-path="../classes/AppEnvConstructor.html">
             
-                <a href="../classes/NylasEnvConstructor.html">
+                <a href="../classes/AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1304,12 +1304,13 @@
     
                                 <section class="normal markdown-section">
                                 
+                                    <div style="padding:20px; background-color:salmon; margin-bottom: 20px;">IMPORTANT! These docs are very out of date. While you can still query data via the DatabaseStore in Mailspring, you cannot define new models or write changes to objects. The mail client makes changes to the local datastore by sending Task objects to the C++ sync engine for processing. All database changes are performed in C++. If your plugin needs to store data, you may find it easier to use the filesystem or the LocalStorage API.</div>
                                 <h1 id="accessing-the-database"><a name="accessing-the-database" class="plugin-anchor" href="#accessing-the-database"><i class="fa fa-link" aria-hidden="true"></i></a>Accessing the Database</h1>
-<p>Nylas Mail is built on top of a custom database layer modeled after ActiveRecord. For many parts of the application, the database is the source of truth. Data is retrieved from the API, written to the database, and changes to the database trigger Stores and components to refresh their contents. The illustration below shows this flow of data:</p>
+<p>Mailspring is built on top of a custom database layer modeled after ActiveRecord. For many parts of the application, the database is the source of truth. Data is retrieved from the API, written to the database, and changes to the database trigger Stores and components to refresh their contents. The illustration below shows this flow of data:</p>
 <p><img src="../img/database-flow.png"></p>
 <p>The Database connection is managed by the {DatabaseStore}, a singleton object that exists in every window. All Database requests are asynchronous. Queries are forwarded to the application&apos;s <code>Browser</code> process via IPC and run in SQLite.</p>
 <h2 id="declaring-models"><a name="declaring-models" class="plugin-anchor" href="#declaring-models"><i class="fa fa-link" aria-hidden="true"></i></a>Declaring Models</h2>
-<p>In Nylas Mail, Models are thin wrappers around data with a particular schema. Each {Model} class declares a set of attributes that define the object&apos;s data. For example:</p>
+<p>In Mailspring, Models are thin wrappers around data with a particular schema. Each {Model} class declares a set of attributes that define the object&apos;s data. For example:</p>
 <pre><code class="lang-coffee"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Example</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Model</span></span>
 
   @attributes:
@@ -1368,7 +1369,7 @@ DatabaseStore.count(Thread).where([Thread.attributes.lastMessageTimestamp.greate
 <p>The {DatabaseStore} exposes two methods for creating and updating models: <code>persistModel</code> and <code>persistModels</code>. When you call <code>persistModel</code>, queries are automatically executed to update the object in the cache and the {DatabaseStore} triggers, broadcasting an update to the rest of the application so that views dependent on these kind of models can refresh.</p>
 <p>When possible, you should accumulate the objects you want to save and call <code>persistModels</code>. The {DatabaseStore} will generate batch insert statements, and a single notification will be broadcast throughout the application. Since saving objects can result in objects being re-fetched by many stores and components, you should be mindful of database insertions.</p>
 <h2 id="saving-drafts"><a name="saving-drafts" class="plugin-anchor" href="#saving-drafts"><i class="fa fa-link" aria-hidden="true"></i></a>Saving Drafts</h2>
-<p>Drafts in Nylas Mail presented us with a unique challenge. The same draft may be edited rapidly by unrelated parts of the application, causing race scenarios. (For example, when the user is typing and attachments finish uploading at the same time.) This problem could be solved by object locking, but we chose to marshall draft changes through a central DraftStore that debounces database queries and adds other helpful features. See the {DraftStore} documentation for more information.</p>
+<p>Drafts in Mailspring presented us with a unique challenge. The same draft may be edited rapidly by unrelated parts of the application, causing race scenarios. (For example, when the user is typing and attachments finish uploading at the same time.) This problem could be solved by object locking, but we chose to marshall draft changes through a central DraftStore that debounces database queries and adds other helpful features. See the {DraftStore} documentation for more information.</p>
 <h2 id="removing-models"><a name="removing-models" class="plugin-anchor" href="#removing-models"><i class="fa fa-link" aria-hidden="true"></i></a>Removing Models</h2>
 <p>The {DatabaseStore} exposes a single method, <code>unpersistModel</code>, that allows you to purge an object from the cache. You cannot remove a model by ID alone - you must load it first.</p>
 <h4 id="advanced-model-attributes"><a name="advanced-model-attributes" class="plugin-anchor" href="#advanced-model-attributes"><i class="fa fa-link" aria-hidden="true"></i></a>Advanced Model Attributes</h4>
@@ -1384,7 +1385,7 @@ DatabaseStore.find(Message, <span class="hljs-string">&apos;123&apos;</span>).in
 <p>When you call <code>persistModel</code>, JoinedData attributes are automatically written to the secondary table.</p>
 <p>JoinedData attributes cannot be <code>queryable</code>.</p>
 <h5 id="attributecollection"><a name="attributecollection" class="plugin-anchor" href="#attributecollection"><i class="fa fa-link" aria-hidden="true"></i></a>Attribute.Collection</h5>
-<p>Collection attributes provide basic support for one-to-many relationships. For example, {Thread}s in Nylas Mail have a collection of {Tag}s.</p>
+<p>Collection attributes provide basic support for one-to-many relationships. For example, {Thread}s in Mailspring have a collection of {Tag}s.</p>
 <p>When Collection attributes are marked as <code>queryable</code>, the {DatabaseStore} automatically creates a join table and maintains it as you create, save, and delete models. When you call <code>persistModel</code>, entries are added to the join table associating the ID of the model with the IDs of models in the collection.</p>
 <p>Collection attributes have an additional clause builder, <code>contains</code>:</p>
 <pre><code class="lang-coffee">DatabaseStore.findAll(Thread).where([Thread.attributes.tags.contains(<span class="hljs-string">&apos;inbox&apos;</span>)])
@@ -1406,7 +1407,7 @@ DatabaseStore.find(Message, <span class="hljs-string">&apos;123&apos;</span>).in
     &quot;objects&quot;: // array: the objects that were persisted or removed
 }
 </code></pre><h2 id="but-why-cant-i"><a name="but-why-cant-i" class="plugin-anchor" href="#but-why-cant-i"><i class="fa fa-link" aria-hidden="true"></i></a>But why can&apos;t I...?</h2>
-<p>Nylas Mail exposes a minimal Database API that exposes high-level methods for saving and retrieving objects. The API was designed with several goals in mind, which will help us create a healthy ecosystem of third-party packages:</p>
+<p>Mailspring exposes a minimal Database API that exposes high-level methods for saving and retrieving objects. The API was designed with several goals in mind, which will help us create a healthy ecosystem of third-party packages:</p>
 <ul>
 <li><p>Package code should not be tightly coupled to SQLite</p>
 </li>
@@ -1442,7 +1443,7 @@ DatabaseStore.find(Message, <span class="hljs-string">&apos;123&apos;</span>).in
 
             
                 
-                <a href="Debugging.html" class="navigation navigation-prev " aria-label="Previous page: Debugging Nylas Mail">
+                <a href="Debugging.html" class="navigation navigation-prev " aria-label="Previous page: Debugging Mailspring">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
@@ -1458,7 +1459,7 @@ DatabaseStore.find(Message, <span class="hljs-string">&apos;123&apos;</span>).in
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Accessing the Database","level":"1.10","depth":1,"next":{"title":"Extending the Composer","level":"1.11","depth":1,"path":"guides/ComposerExtensions.md","ref":"guides/ComposerExtensions.md","articles":[]},"previous":{"title":"Debugging Nylas Mail","level":"1.9","depth":1,"path":"guides/Debugging.md","ref":"guides/Debugging.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/Database.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Accessing the Database","level":"1.10","depth":1,"next":{"title":"Extending the Composer","level":"1.11","depth":1,"path":"guides/ComposerExtensions.md","ref":"guides/ComposerExtensions.md","articles":[]},"previous":{"title":"Debugging Mailspring","level":"1.9","depth":1,"path":"guides/Debugging.md","ref":"guides/Debugging.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/Database.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

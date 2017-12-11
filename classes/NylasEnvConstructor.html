@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>NylasEnvConstructor · Nylas Mail Plugin SDK</title>
+        <title>AppEnvConstructor · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="../guides/Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter active" data-level="2.1.10" data-path="NylasEnvConstructor.html">
+        <li class="chapter active" data-level="2.1.10" data-path="AppEnvConstructor.html">
             
-                <a href="NylasEnvConstructor.html">
+                <a href="AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1289,7 +1289,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >NylasEnvConstructor</a>
+        <a href=".." >AppEnvConstructor</a>
     </h1>
 </div>
 
@@ -1304,15 +1304,15 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="nylasenvconstructor"><a name="nylasenvconstructor" class="plugin-anchor" href="#nylasenvconstructor"><i class="fa fa-link" aria-hidden="true"></i></a>NylasEnvConstructor</h1>
+                                <h1 id="AppEnvconstructor"><a name="AppEnvconstructor" class="plugin-anchor" href="#AppEnvconstructor"><i class="fa fa-link" aria-hidden="true"></i></a>AppEnvConstructor</h1>
 <h2 id="summary"><a name="summary" class="plugin-anchor" href="#summary"><i class="fa fa-link" aria-hidden="true"></i></a>Summary</h2>
-<p>NylasEnv global for dealing with packages, themes, menus, and the window.</p>
-<p>The singleton of this class is always available as the <code>NylasEnv</code> global. </p>
+<p>AppEnv global for dealing with packages, themes, menus, and the window.</p>
+<p>The singleton of this class is always available as the <code>AppEnv</code> global. </p>
 <ul>
     <li><a href="#Properties">Properties</a></li>
     <li><a href="#Construction%20and%20Destruction">Construction and Destruction</a></li>
     <li><a href="#Event%20Subscription">Event Subscription</a></li>
-    <li><a href="#Managing%20The%20Nylas%20Window">Managing The Nylas Window</a></li>
+    <li><a href="#Managing%20The%20Mailspring%20Window">Managing The Mailspring Window</a></li>
     <li><a href="#Messaging%20the%20User">Messaging the User</a></li>
     <li><a href="#Managing%20the%20Dev%20Tools">Managing the Dev Tools</a></li>
 </ul>
@@ -1337,7 +1337,7 @@ registered with `onWillThrowError` calls `preventDefault` on the event
 object it&apos;s given, then no error will be reported.
 
 The difference between this and `ErrorLogger.reportError` is that
-`NylasEnv.reportError` will hook into the event callbacks and handle
+`AppEnv.reportError` will hook into the event callbacks and handle
 test failures and dev tool popups. </p>
 </div>
 
@@ -1484,7 +1484,7 @@ Tools Profiler, but for all processes and threads. </p>
 </h4>
 
 <div class="function-description markdown-from-sourecode">
-  <p>Get the version of N1.</p>
+  <p>Get the version of Mailspring.</p>
 </div>
 
 
@@ -1509,7 +1509,7 @@ Tools Profiler, but for all processes and threads. </p>
 </h4>
 
 <div class="function-description markdown-from-sourecode">
-  <p>Get the directory path to N1&apos;s configuration area. </p>
+  <p>Get the directory path to Mailspring&apos;s configuration area. </p>
 </div>
 
 
@@ -1902,7 +1902,7 @@ components to reflect the new window props.
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"NylasEnvConstructor","level":"2.1.10","depth":2,"next":{"title":"QueryResultSet","level":"2.1.11","depth":2,"path":"classes/QueryResultSet.md","ref":"classes/QueryResultSet.md","articles":[]},"previous":{"title":"KeyCommandsRegion","level":"2.1.9","depth":2,"path":"classes/KeyCommandsRegion.md","ref":"classes/KeyCommandsRegion.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"classes/NylasEnvConstructor.md","mtime":"2017-01-30T21:01:58.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"AppEnvConstructor","level":"2.1.10","depth":2,"next":{"title":"QueryResultSet","level":"2.1.11","depth":2,"path":"classes/QueryResultSet.md","ref":"classes/QueryResultSet.md","articles":[]},"previous":{"title":"KeyCommandsRegion","level":"2.1.9","depth":2,"path":"classes/KeyCommandsRegion.md","ref":"classes/KeyCommandsRegion.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"classes/AppEnvConstructor.md","mtime":"2017-01-30T21:01:58.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

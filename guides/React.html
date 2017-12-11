@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>UI Components · Nylas Mail Plugin SDK</title>
+        <title>UI Components · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.10" data-path="../classes/NylasEnvConstructor.html">
+        <li class="chapter " data-level="2.1.10" data-path="../classes/AppEnvConstructor.html">
             
-                <a href="../classes/NylasEnvConstructor.html">
+                <a href="../classes/AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1305,17 +1305,17 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="interface-components"><a name="interface-components" class="plugin-anchor" href="#interface-components"><i class="fa fa-link" aria-hidden="true"></i></a>Interface Components</h1>
-<p>Nylas Mail uses <a href="https://facebook.github.io/react/" target="_blank">React</a> to create a fast, responsive UI. Packages that want to extend the Nylas Mail interface should use React. Using React&apos;s <a href="https://facebook.github.io/react/jsx-in-depth.html" target="_blank">JSX</a> syntax is optional, but both <a href="https://facebook.github.io/react/jsx-in-depth.html" target="_blank">JSX</a> and <a href="https://github.com/jsdf/coffee-react" target="_blank">CJSX</a> (CoffeeScript) are available.</p>
+<p>Mailspring uses <a href="https://facebook.github.io/react/" target="_blank">React</a> to create a fast, responsive UI. Packages that want to extend the Mailspring interface should use React. Using React&apos;s <a href="https://facebook.github.io/react/jsx-in-depth.html" target="_blank">JSX</a> syntax is optional, but both <a href="https://facebook.github.io/react/jsx-in-depth.html" target="_blank">JSX</a> and <a href="https://github.com/jsdf/coffee-react" target="_blank">CJSX</a> (CoffeeScript) are available.</p>
 <p>For a quick introduction to React, take a look at Facebook&apos;s <a href="http://facebook.github.io/react/docs/getting-started.html" target="_blank">Getting Started with React</a>.</p>
 <h4 id="react-components"><a name="react-components" class="plugin-anchor" href="#react-components"><i class="fa fa-link" aria-hidden="true"></i></a>React Components</h4>
-<p>Nylas Mail provides a set of core React components you can use in your packages. Many of the standard components listen for key events, include considerations for different platforms, and have extensive CSS. Wrapping standard components makes it easy to build rich interfaces that are consistent with the rest of the Nylas Mail platform.</p>
+<p>Mailspring provides a set of core React components you can use in your packages. Many of the standard components listen for key events, include considerations for different platforms, and have extensive CSS. Wrapping standard components makes it easy to build rich interfaces that are consistent with the rest of the Mailspring platform.</p>
 <p>To use a standard component, require it from <code>nylas-component-kit</code> and use it in your component&apos;s <code>render</code> method.</p>
 <p class="well">Keep in mind that React&apos;s Component model is based on composition rather than inheritance. On other platforms, you might subclass {Popover} to create your own custom Popover. In React, you should wrap the standard Popover component in your own component, which provides the Popover with <code>props</code> and children to customize its behavior.</p>
 
 
 <p>Here&apos;s a quick look at standard components you can require from <code>nylas-component-kit</code>:</p>
 <ul>
-<li><p><strong>{Menu}</strong>: Allows you to display a list of items consistent with the rest of the Nylas Mail user experience.</p>
+<li><p><strong>{Menu}</strong>: Allows you to display a list of items consistent with the rest of the Mailspring user experience.</p>
 </li>
 <li><p><strong>{Spinner}</strong>: Displays an indeterminate progress indicator centered within it&apos;s container.</p>
 </li>
@@ -1339,16 +1339,16 @@
 </li>
 </ul>
 <h2 id="react-component-injection"><a name="react-component-injection" class="plugin-anchor" href="#react-component-injection"><i class="fa fa-link" aria-hidden="true"></i></a>React Component Injection</h2>
-<p>The Nylas Mail interface is composed at runtime from components added by different packages. The app&apos;s left sidebar contains components from the composer package, the source list package, the activity package, and more. You can leverage the flexibility of this system to extend almost any part of Nylas Mail&apos;s interface.</p>
+<p>The Mailspring interface is composed at runtime from components added by different packages. The app&apos;s left sidebar contains components from the composer package, the source list package, the activity package, and more. You can leverage the flexibility of this system to extend almost any part of Mailspring&apos;s interface.</p>
 <h3 id="registering-components"><a name="registering-components" class="plugin-anchor" href="#registering-components"><i class="fa fa-link" aria-hidden="true"></i></a>Registering Components</h3>
-<p>After you&apos;ve created React components in your package, you should register them with the {ComponentRegistry}. The Component Registry manages the dynamic injection of components that makes Nylas Mail so extensible. You can request that your components appear in a specific <code>Location</code> defined by the {WorkspaceStore}, or register your component for a <code>Role</code> that another package has declared.</p>
+<p>After you&apos;ve created React components in your package, you should register them with the {ComponentRegistry}. The Component Registry manages the dynamic injection of components that makes Mailspring so extensible. You can request that your components appear in a specific <code>Location</code> defined by the {WorkspaceStore}, or register your component for a <code>Role</code> that another package has declared.</p>
 <blockquote>
 <p>The Component Registry allows you to insert your custom component without hacking up the DOM. Register for a <code>Location</code> or <code>Role</code> and your Component will be rendered into that part of the interface.</p>
 </blockquote>
-<p>It&apos;s easy to see where registered components are displayed in Nylas Mail. Enable the Developer bar at the bottom of the app by opening the Inspector panel, and then click &quot;<strong>Component Regions</strong>&quot;:</p>
+<p>It&apos;s easy to see where registered components are displayed in Mailspring. Enable the Developer bar at the bottom of the app by opening the Inspector panel, and then click &quot;<strong>Component Regions</strong>&quot;:</p>
 <p><img src="../img/injected-components.png"></p>
 <p>Each region outlined in red is filled dynamically by looking up a React component or set of components from the Component Registry. You can see the role or location you&apos;d need to register for, and the <code>props</code> that your component will receive in those locations.</p>
-<p>Here are a few examples of how to use it to extend Nylas Mail. Typically, packages register components in their main <code>activate</code> method, and unregister them in <code>deactivate</code>:</p>
+<p>Here are a few examples of how to use it to extend Mailspring. Typically, packages register components in their main <code>activate</code> method, and unregister them in <code>deactivate</code>:</p>
 <ol>
 <li><p>Add a component to the Thread List column:</p>
 <pre><code class="lang-coffee">     ComponentRegistry.register ThreadList,
@@ -1381,9 +1381,9 @@
     exposedProps={thread:@props.thread, message: @props.message}&gt;
 </code></pre>
 <h3 id="unsafe-components"><a name="unsafe-components" class="plugin-anchor" href="#unsafe-components"><i class="fa fa-link" aria-hidden="true"></i></a>Unsafe Components</h3>
-<p>Nylas Mail considers all injected components &quot;unsafe&quot;. When you render them using {InjectedComponent} or {InjectedComponentSet}, they will be wrapped in a component that prevents exceptions in their React render and lifecycle methods from impacting your component. Instead of your component triggering a React Invariant exception in the application, an exception notice will be rendered in place of the unsafe component.</p>
+<p>Mailspring considers all injected components &quot;unsafe&quot;. When you render them using {InjectedComponent} or {InjectedComponentSet}, they will be wrapped in a component that prevents exceptions in their React render and lifecycle methods from impacting your component. Instead of your component triggering a React Invariant exception in the application, an exception notice will be rendered in place of the unsafe component.</p>
 <p><img src="../img/unsafe-component-exception.png"></p>
-<p>In the future, Nylas Mail may automatically disable packages when their React components throw exceptions.</p>
+<p>In the future, Mailspring may automatically disable packages when their React components throw exceptions.</p>
 
                                 
                                 </section>
@@ -1427,7 +1427,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"UI Components","level":"1.7","depth":1,"next":{"title":"Application Architecture","level":"1.8","depth":1,"path":"guides/Architecture.md","ref":"guides/Architecture.md","articles":[]},"previous":{"title":"Interface Concepts","level":"1.6","depth":1,"path":"guides/InterfaceConcepts.md","ref":"guides/InterfaceConcepts.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/React.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"UI Components","level":"1.7","depth":1,"next":{"title":"Application Architecture","level":"1.8","depth":1,"path":"guides/Architecture.md","ref":"guides/Architecture.md","articles":[]},"previous":{"title":"Interface Concepts","level":"1.6","depth":1,"path":"guides/InterfaceConcepts.md","ref":"guides/InterfaceConcepts.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/React.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

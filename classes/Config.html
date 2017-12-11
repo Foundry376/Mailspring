@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Config · Nylas Mail Plugin SDK</title>
+        <title>Config · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="../guides/Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.10" data-path="NylasEnvConstructor.html">
+        <li class="chapter " data-level="2.1.10" data-path="AppEnvConstructor.html">
             
-                <a href="NylasEnvConstructor.html">
+                <a href="AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1306,23 +1306,23 @@
                                 
                                 <h1 id="config"><a name="config" class="plugin-anchor" href="#config"><i class="fa fa-link" aria-hidden="true"></i></a>Config</h1>
 <h2 id="summary"><a name="summary" class="plugin-anchor" href="#summary"><i class="fa fa-link" aria-hidden="true"></i></a>Summary</h2>
-<p>Used to access all of N1&apos;s configuration details.</p>
-<p>An instance of this class is always available as the <code>NylasEnv.config</code> global.</p>
+<p>Used to access all of Mailspring&apos;s configuration details.</p>
+<p>An instance of this class is always available as the <code>AppEnv.config</code> global.</p>
 <h2 id="getting-and-setting-config-settings"><a name="getting-and-setting-config-settings" class="plugin-anchor" href="#getting-and-setting-config-settings"><i class="fa fa-link" aria-hidden="true"></i></a>Getting and setting config settings.</h2>
 <pre><code class="lang-coffee"><span class="hljs-comment"># Note that with no value set, ::get returns the setting&apos;s default value.</span>
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.myKey&apos;</span>) <span class="hljs-comment"># -&gt; &apos;defaultValue&apos;</span>
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.myKey&apos;</span>) <span class="hljs-comment"># -&gt; &apos;defaultValue&apos;</span>
 
-NylasEnv.config.set(<span class="hljs-string">&apos;my-package.myKey&apos;</span>, <span class="hljs-string">&apos;value&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.myKey&apos;</span>) <span class="hljs-comment"># -&gt; &apos;value&apos;</span>
+AppEnv.config.set(<span class="hljs-string">&apos;my-package.myKey&apos;</span>, <span class="hljs-string">&apos;value&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.myKey&apos;</span>) <span class="hljs-comment"># -&gt; &apos;value&apos;</span>
 </code></pre>
 <p>You may want to watch for changes. Use <a href="#observe">observe</a> to catch changes to the setting.</p>
-<pre><code class="lang-coffee">NylasEnv.config.set(<span class="hljs-string">&apos;my-package.myKey&apos;</span>, <span class="hljs-string">&apos;value&apos;</span>)
-NylasEnv.config.observe <span class="hljs-string">&apos;my-package.myKey&apos;</span>, <span class="hljs-function"><span class="hljs-params">(newValue)</span> -&gt;</span>
+<pre><code class="lang-coffee">AppEnv.config.set(<span class="hljs-string">&apos;my-package.myKey&apos;</span>, <span class="hljs-string">&apos;value&apos;</span>)
+AppEnv.config.observe <span class="hljs-string">&apos;my-package.myKey&apos;</span>, <span class="hljs-function"><span class="hljs-params">(newValue)</span> -&gt;</span>
   <span class="hljs-comment"># `observe` calls immediately and every time the value is changed</span>
   <span class="hljs-built_in">console</span>.log <span class="hljs-string">&apos;My configuration changed:&apos;</span>, newValue
 </code></pre>
 <p>If you want a notification only when the value changes, use <a href="#onDidChange">onDidChange</a>.</p>
-<pre><code class="lang-coffee">NylasEnv.config.onDidChange <span class="hljs-string">&apos;my-package.myKey&apos;</span>, <span class="hljs-function"><span class="hljs-params">({newValue, oldValue})</span> -&gt;</span>
+<pre><code class="lang-coffee">AppEnv.config.onDidChange <span class="hljs-string">&apos;my-package.myKey&apos;</span>, <span class="hljs-function"><span class="hljs-params">({newValue, oldValue})</span> -&gt;</span>
   <span class="hljs-built_in">console</span>.log <span class="hljs-string">&apos;My configuration changed:&apos;</span>, newValue, oldValue
 </code></pre>
 <h3 id="value-coercion"><a name="value-coercion" class="plugin-anchor" href="#value-coercion"><i class="fa fa-link" aria-hidden="true"></i></a>Value Coercion</h3>
@@ -1330,15 +1330,15 @@ NylasEnv.config.observe <span class="hljs-string">&apos;my-package.myKey&apos;</
 <a href="json-schema.org">schema</a>. For example we might an integer setting that only
 allows integers greater than <code>0</code>:</p>
 <pre><code class="lang-coffee"><span class="hljs-comment"># When no value has been set, `::get` returns the setting&apos;s default value</span>
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.anInt&apos;</span>) <span class="hljs-comment"># -&gt; 12</span>
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.anInt&apos;</span>) <span class="hljs-comment"># -&gt; 12</span>
 
 <span class="hljs-comment"># The string will be coerced to the integer 123</span>
-NylasEnv.config.set(<span class="hljs-string">&apos;my-package.anInt&apos;</span>, <span class="hljs-string">&apos;123&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.anInt&apos;</span>) <span class="hljs-comment"># -&gt; 123</span>
+AppEnv.config.set(<span class="hljs-string">&apos;my-package.anInt&apos;</span>, <span class="hljs-string">&apos;123&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.anInt&apos;</span>) <span class="hljs-comment"># -&gt; 123</span>
 
 <span class="hljs-comment"># The string will be coerced to an integer, but it must be greater than 0, so is set to 1</span>
-NylasEnv.config.set(<span class="hljs-string">&apos;my-package.anInt&apos;</span>, <span class="hljs-string">&apos;-20&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.anInt&apos;</span>) <span class="hljs-comment"># -&gt; 1</span>
+AppEnv.config.set(<span class="hljs-string">&apos;my-package.anInt&apos;</span>, <span class="hljs-string">&apos;-20&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.anInt&apos;</span>) <span class="hljs-comment"># -&gt; 1</span>
 </code></pre>
 <h2 id="defining-settings-for-your-package"><a name="defining-settings-for-your-package" class="plugin-anchor" href="#defining-settings-for-your-package"><i class="fa fa-link" aria-hidden="true"></i></a>Defining settings for your package</h2>
 <p>Define a schema under a <code>config</code> key in your package main.</p>
@@ -1369,16 +1369,16 @@ config:
 </code></pre>
 <p>The type keyword allows for type coercion and validation. If a <code>thingVolume</code> is
 set to a string <code>&apos;10&apos;</code>, it will be coerced into an integer.</p>
-<pre><code class="lang-coffee">NylasEnv.config.set(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>, <span class="hljs-string">&apos;10&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>) <span class="hljs-comment"># -&gt; 10</span>
+<pre><code class="lang-coffee">AppEnv.config.set(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>, <span class="hljs-string">&apos;10&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>) <span class="hljs-comment"># -&gt; 10</span>
 
 <span class="hljs-comment"># It respects the min / max</span>
-NylasEnv.config.set(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>, <span class="hljs-string">&apos;400&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>) <span class="hljs-comment"># -&gt; 11</span>
+AppEnv.config.set(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>, <span class="hljs-string">&apos;400&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>) <span class="hljs-comment"># -&gt; 11</span>
 
 <span class="hljs-comment"># If it cannot be coerced, the value will not be set</span>
-NylasEnv.config.set(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>, <span class="hljs-string">&apos;cats&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>) <span class="hljs-comment"># -&gt; 11</span>
+AppEnv.config.set(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>, <span class="hljs-string">&apos;cats&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.thingVolume&apos;</span>) <span class="hljs-comment"># -&gt; 11</span>
 </code></pre>
 <h3 id="supported-types"><a name="supported-types" class="plugin-anchor" href="#supported-types"><i class="fa fa-link" aria-hidden="true"></i></a>Supported Types</h3>
 <p>The <code>type</code> keyword can be a string with any one of the following. You can also
@@ -1389,11 +1389,11 @@ chain them by specifying multiple in an an array. For example</p>
     default: <span class="hljs-number">5</span>
 
 <span class="hljs-comment"># Then</span>
-NylasEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;true&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; true</span>
+AppEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;true&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; true</span>
 
-NylasEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;12&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; 12</span>
+AppEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;12&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; 12</span>
 </code></pre>
 <h4 id="string"><a name="string" class="plugin-anchor" href="#string"><i class="fa fa-link" aria-hidden="true"></i></a>string</h4>
 <p>Values must be a string.</p>
@@ -1477,16 +1477,16 @@ of your specified type. Schema:</p>
     enum: [<span class="hljs-number">2</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6</span>, <span class="hljs-number">8</span>]
 </code></pre>
 <p>Usage:</p>
-<pre><code class="lang-coffee">NylasEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;2&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; 2</span>
+<pre><code class="lang-coffee">AppEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;2&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; 2</span>
 
 <span class="hljs-comment"># will not set values outside of the enum values</span>
-NylasEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;3&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; 2</span>
+AppEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;3&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; 2</span>
 
 <span class="hljs-comment"># If it cannot be coerced, the value will not be set</span>
-NylasEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;4&apos;</span>)
-NylasEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; 4</span>
+AppEnv.config.set(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>, <span class="hljs-string">&apos;4&apos;</span>)
+AppEnv.config.get(<span class="hljs-string">&apos;my-package.someSetting&apos;</span>) <span class="hljs-comment"># -&gt; 4</span>
 </code></pre>
 <h4 id="title-and-description"><a name="title-and-description" class="plugin-anchor" href="#title-and-description"><i class="fa fa-link" aria-hidden="true"></i></a>title and description</h4>
 <p>The settings view will use the <code>title</code> and <code>description</code> keys to display your
@@ -1534,7 +1534,7 @@ You might want to be notified when the themes change. We&apos;ll watch
 `core.themes` for changes
 
 ```coffee
-NylasEnv.config.observe &apos;core.themes&apos;, (value) -&gt;
+AppEnv.config.observe &apos;core.themes&apos;, (value) -&gt;
   # do stuff with value
 ```</p>
 </div>
@@ -1628,7 +1628,7 @@ not specified, your callback will be called on changes to any key.</p>
 You might want to know what themes are enabled, so check `core.themes`
 
 ```coffee
-NylasEnv.config.get(&apos;core.themes&apos;)
+AppEnv.config.get(&apos;core.themes&apos;)
 ```</p>
 </div>
 
@@ -1654,7 +1654,7 @@ NylasEnv.config.get(&apos;core.themes&apos;)
   <tr>
     <th>Return Values</th>
   </tr>
-  <tr><td class="markdown-from-sourecode">Returns the value from N1&apos;s default settings, the user&apos;s configuration
+  <tr><td class="markdown-from-sourecode">Returns the value from Mailspring&apos;s default settings, the user&apos;s configuration
 file in the type specified by the configuration schema.</td></tr>
 </table>
 <h4 id="set" class="function-name"><a name="set" class="plugin-anchor" href="#set"><i class="fa fa-link" aria-hidden="true"></i></a>
@@ -1664,14 +1664,14 @@ file in the type specified by the configuration schema.</td></tr>
 <div class="function-description markdown-from-sourecode">
   <p>Sets the value for a configuration setting.
 
-This value is stored in N1&apos;s internal configuration file.
+This value is stored in Mailspring&apos;s internal configuration file.
 
 ### Examples
 
 You might want to change the themes programmatically:
 
 ```coffee
-NylasEnv.config.set(&apos;core.themes&apos;, [&apos;ui-light&apos;, &apos;my-custom-theme&apos;])
+AppEnv.config.set(&apos;core.themes&apos;, [&apos;ui-light&apos;, &apos;my-custom-theme&apos;])
 ```</p>
 </div>
 
@@ -1851,7 +1851,7 @@ handlers will be called once if the value for their key-path has changed.</p>
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Config","level":"2.1.7","depth":2,"next":{"title":"Contenteditable","level":"2.1.8","depth":2,"path":"classes/Contenteditable.md","ref":"classes/Contenteditable.md","articles":[]},"previous":{"title":"Color","level":"2.1.6","depth":2,"path":"classes/Color.md","ref":"classes/Color.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"classes/Config.md","mtime":"2017-01-30T21:01:58.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Config","level":"2.1.7","depth":2,"next":{"title":"Contenteditable","level":"2.1.8","depth":2,"path":"classes/Contenteditable.md","ref":"classes/Contenteditable.md","articles":[]},"previous":{"title":"Color","level":"2.1.6","depth":2,"path":"classes/Color.md","ref":"classes/Color.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"classes/Config.md","mtime":"2017-01-30T21:01:58.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

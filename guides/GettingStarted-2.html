@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Getting Started Part 2 · Nylas Mail Plugin SDK</title>
+        <title>Getting Started Part 2 · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.10" data-path="../classes/NylasEnvConstructor.html">
+        <li class="chapter " data-level="2.1.10" data-path="../classes/AppEnvConstructor.html">
             
-                <a href="../classes/NylasEnvConstructor.html">
+                <a href="../classes/AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1322,7 +1322,7 @@
   ({@state.contact.email})!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
   <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>
 </code></pre>
-<p>After making changes to the plugin, reload N1 by going to<code>Developer &gt; Reload</code>.</p>
+<p>After making changes to the plugin, reload Mailspring by going to<code>Developer &gt; Reload</code>.</p>
 <h3 id="installing-a-dependency"><a name="installing-a-dependency" class="plugin-anchor" href="#installing-a-dependency"><i class="fa fa-link" aria-hidden="true"></i></a>Installing a dependency </h3>
 <p>Now we&apos;ve figured out how to show the contact&apos;s email address, we can use that to generate the<a href="http://gravatar.com/" target="_blank">Gravatar</a>for the contact. However, as per the<a href="https://en.gravatar.com/site/implement/images/" target="_blank">Gravatar documentation</a>, we need to be able to calculate the MD5 hash for an email address first.</p>
 <p>Let&apos;s install the<code>md5</code>plugin and save it as a dependency in our<code>package.json</code>:</p>
@@ -1348,7 +1348,7 @@ class MyMessageSidebar
 </code></pre><blockquote>
 <p>JSX Tip: The<code>{..}</code>syntax is used for JavaScript expressions inside HTML elements.<a href="https://facebook.github.io/react/docs/jsx-in-depth.html" target="_blank">Learn more</a>.</p>
 </blockquote>
-<p>You should see the MD5 hash appear in the sidebar (after you reload N1):</p>
+<p>You should see the MD5 hash appear in the sidebar (after you reload Mailspring):</p>
 <p><img src="../img/sidebar-md5.png" alt=""></p>
 <h3 id="let-s-render-"><a name="let-s-render-" class="plugin-anchor" href="#let-s-render-"><i class="fa fa-link" aria-hidden="true"></i></a>Let&apos;s Render! </h3>
 <p>Turning the MD5 hash into a Gravatar image is simple. We need to add an<code>&lt;img&gt;</code>tag to the rendered HTML:</p>
@@ -1386,7 +1386,7 @@ _renderContent =&gt;
 </blockquote>
 <p>You&apos;ll see these styles reflected in your sidebar.</p>
 <p><img src="../img/sidebar-style.png" alt=""></p>
-<p>If you&apos;re a fan of using the Chrome Developer Tools to tinker with styles, no fear; they work in N1, too. Open them by going to<code>Developer &gt; Toggle Developer Tools</code>. You&apos;ll also find them helpful for debugging in the event that your plugin isn&apos;t behaving as expected.</p>
+<p>If you&apos;re a fan of using the Chrome Developer Tools to tinker with styles, no fear; they work in Mailspring, too. Open them by going to<code>Developer &gt; Toggle Developer Tools</code>. You&apos;ll also find them helpful for debugging in the event that your plugin isn&apos;t behaving as expected.</p>
 <h1 id="step-3-adding-a-data-store"><a name="step-3-adding-a-data-store" class="plugin-anchor" href="#step-3-adding-a-data-store"><i class="fa fa-link" aria-hidden="true"></i></a>Step 3: Adding a Data Store</h1>
 <p>Now let&apos;s introduce a data store to give our sidebar superpowers.</p>
 <h2 id="stores-and-data-flow"><a name="stores-and-data-flow" class="plugin-anchor" href="#stores-and-data-flow"><i class="fa fa-link" aria-hidden="true"></i></a>Stores and Data Flow </h2>
@@ -1624,7 +1624,7 @@ lback)
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Getting Started Part 2","level":"1.4","depth":1,"next":{"title":"Building a Package","level":"1.5","depth":1,"path":"guides/PackageOverview.md","ref":"guides/PackageOverview.md","articles":[]},"previous":{"title":"Getting Started","level":"1.3","depth":1,"path":"guides/GettingStarted.md","ref":"guides/GettingStarted.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/GettingStarted-2.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Getting Started Part 2","level":"1.4","depth":1,"next":{"title":"Building a Package","level":"1.5","depth":1,"path":"guides/PackageOverview.md","ref":"guides/PackageOverview.md","articles":[]},"previous":{"title":"Getting Started","level":"1.3","depth":1,"path":"guides/GettingStarted.md","ref":"guides/GettingStarted.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/GettingStarted-2.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

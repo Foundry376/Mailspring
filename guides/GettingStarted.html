@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Getting Started · Nylas Mail Plugin SDK</title>
+        <title>Getting Started · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.10" data-path="../classes/NylasEnvConstructor.html">
+        <li class="chapter " data-level="2.1.10" data-path="../classes/AppEnvConstructor.html">
             
-                <a href="../classes/NylasEnvConstructor.html">
+                <a href="../classes/AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1304,11 +1304,11 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="build-an-nylas-mail-plugin"><a name="build-an-nylas-mail-plugin" class="plugin-anchor" href="#build-an-nylas-mail-plugin"><i class="fa fa-link" aria-hidden="true"></i></a>Build an Nylas Mail plugin</h2>
+                                <h2 id="build-an-nylas-mail-plugin"><a name="build-an-nylas-mail-plugin" class="plugin-anchor" href="#build-an-nylas-mail-plugin"><i class="fa fa-link" aria-hidden="true"></i></a>Build an Mailspring plugin</h2>
 <h4 id="extend-your-mail-client-in-five-minutes"><a name="extend-your-mail-client-in-five-minutes" class="plugin-anchor" href="#extend-your-mail-client-in-five-minutes"><i class="fa fa-link" aria-hidden="true"></i></a>Extend your mail client in five minutes</h4>
-<p>Plugins lie at the heart of N1. The thread list, message composer and other core parts are just packages bundled with the app. You can create your own packages in a matter of minutes!</p>
-<h3 id="1-install-nylas-mail"><a name="1-install-nylas-mail" class="plugin-anchor" href="#1-install-nylas-mail"><i class="fa fa-link" aria-hidden="true"></i></a>1. Install Nylas Mail</h3>
-<p>Download and install Nylas for <a href="https://invite.nylas.com/download" target="_blank">Mac OS X</a> (or <a href="https://invite.nylas.com/download" target="_blank">Linux</a>). Open it and sign in to your email account.</p>
+<p>Plugins lie at the heart of Mailspring. The thread list, message composer and other core parts are just packages bundled with the app. You can create your own packages in a matter of minutes!</p>
+<h3 id="1-install-nylas-mail"><a name="1-install-nylas-mail" class="plugin-anchor" href="#1-install-nylas-mail"><i class="fa fa-link" aria-hidden="true"></i></a>1. Install Mailspring</h3>
+<p>Download and install Nylas for <a href="https://updates.getmailspring.com/download" target="_blank">Mac OS X</a> (or <a href="https://updates.getmailspring.com/download" target="_blank">Linux</a>). Open it and sign in to your email account.</p>
 <p><img src="../img/screenshot-select-provider.png" alt=""></p>
 <p><img src="../img/screenshot-create-plugin.png" alt=""></p>
 <h3 id="2-create-a-plugin"><a name="2-create-a-plugin" class="plugin-anchor" href="#2-create-a-plugin"><i class="fa fa-link" aria-hidden="true"></i></a>2. Create a plugin</h3>
@@ -1334,7 +1334,7 @@
   _renderContent: =&gt;
 </code></pre>
 <p><img src="../img/screenshot-base-plugin.png =100x" alt=""></p>
-<p>Try opening a message in N1 - you&apos;ll see the new package&apos;s example text show up on the sidebar. Delete the content of the <code>render</code> method and save - the text should disappear.</p>
+<p>Try opening a message in Mailspring - you&apos;ll see the new package&apos;s example text show up on the sidebar. Delete the content of the <code>render</code> method and save - the text should disappear.</p>
 <p>Now let&apos;s add something - a bar that changes color based on the active contact in the sidebar. Replace the existing <code>render</code> method with the code to the right, then save the file.</p>
 <p><strong>/lib/my-message-sidebar.cjsx</strong></p>
 <pre><code class="lang-javascript">
@@ -1347,9 +1347,9 @@
        color = <span class="hljs-string">&quot;hsl(#{hue}, 62%, 57%)&quot;</span>
        <span class="hljs-keyword">return</span> {background: color, height: <span class="hljs-number">2</span>, <span class="hljs-string">&apos;margin-top&apos;</span>: <span class="hljs-number">5</span>}
 </code></pre>
-<p>Go back to N1, and try opening a message. You should see a horizontal bar that changes color based on the domain of the contact&apos;s email address.</p>
+<p>Go back to Mailspring, and try opening a message. You should see a horizontal bar that changes color based on the domain of the contact&apos;s email address.</p>
 <h3 id="thats-it"><a name="thats-it" class="plugin-anchor" href="#thats-it"><i class="fa fa-link" aria-hidden="true"></i></a>That&apos;s it!</h3>
-<p>Extending the N1 mail client is really that simple. Try making more code changes and seeing how they affect the message sidebar. When you&apos;re ready, follow one of the links below to learn more.</p>
+<p>Extending the Mailspring mail client is really that simple. Try making more code changes and seeing how they affect the message sidebar. When you&apos;re ready, follow one of the links below to learn more.</p>
 <h4 id="keep-building"><a name="keep-building" class="plugin-anchor" href="#keep-building"><i class="fa fa-link" aria-hidden="true"></i></a>Keep building!</h4>
 <p>Build even more functionality into the message sidebar in our extended tutorial that picks up where this one left off.</p>
 
@@ -1395,7 +1395,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Getting Started","level":"1.3","depth":1,"next":{"title":"Getting Started Part 2","level":"1.4","depth":1,"path":"guides/GettingStarted-2.md","ref":"guides/GettingStarted-2.md","articles":[]},"previous":{"title":"Introduction","level":"1.2","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/GettingStarted.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Getting Started","level":"1.3","depth":1,"next":{"title":"Getting Started Part 2","level":"1.4","depth":1,"path":"guides/GettingStarted-2.md","ref":"guides/GettingStarted-2.md","articles":[]},"previous":{"title":"Introduction","level":"1.2","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/GettingStarted.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

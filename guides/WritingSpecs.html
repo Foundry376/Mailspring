@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Writing Tests · Nylas Mail Plugin SDK</title>
+        <title>Writing Tests · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.10" data-path="../classes/NylasEnvConstructor.html">
+        <li class="chapter " data-level="2.1.10" data-path="../classes/AppEnvConstructor.html">
             
-                <a href="../classes/NylasEnvConstructor.html">
+                <a href="../classes/AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1305,8 +1305,8 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="writing-specs"><a name="writing-specs" class="plugin-anchor" href="#writing-specs"><i class="fa fa-link" aria-hidden="true"></i></a>Writing Specs</h1>
-<p>Nylas uses <a href="http://jasmine.github.io/1.3/introduction.html" target="_blank">Jasmine</a> as its spec framework. As a package developer, you can write specs using Jasmine 1.3 and get some quick wins. Jasmine specs can be run in Nylas Mail directly from the Developer menu, and the test environment provides you with helpful stubs. You can also require your own test framework, or use Jasmine for integration tests and your own framework for your existing business logic.</p>
-<p>This documentation describes using <a href="http://jasmine.github.io/1.3/introduction.html" target="_blank">Jasmine 1.3</a> to write specs for a Nylas package.</p>
+<p>Mailspring uses <a href="http://jasmine.github.io/1.3/introduction.html" target="_blank">Jasmine</a> as its spec framework. As a package developer, you can write specs using Jasmine 1.3 and get some quick wins. Jasmine specs can be run in Mailspring directly from the Developer menu, and the test environment provides you with helpful stubs. You can also require your own test framework, or use Jasmine for integration tests and your own framework for your existing business logic.</p>
+<p>This documentation describes using <a href="http://jasmine.github.io/1.3/introduction.html" target="_blank">Jasmine 1.3</a> to write specs for a Mailspring package.</p>
 <h3 id="running-specs"><a name="running-specs" class="plugin-anchor" href="#running-specs"><i class="fa fa-link" aria-hidden="true"></i></a>Running Specs</h3>
 <p>You can run your package specs from <code>Developer &gt; Run Plugin Specs...</code>. Once you&apos;ve opened the spec window, you can see output and re-run your specs by clicking <code>Reload Specs</code>.</p>
 <h3 id="writing-specs"><a name="writing-specs" class="plugin-anchor" href="#writing-specs"><i class="fa fa-link" aria-hidden="true"></i></a>Writing Specs</h3>
@@ -1347,25 +1347,25 @@ describe <span class="hljs-string">&quot;Editor::moveUp&quot;</span>, <span clas
 <pre><code class="lang-coffee">describe <span class="hljs-string">&quot;when we open a file&quot;</span>, <span class="hljs-function">-&gt;</span>
   beforeEach -&gt;
     waitsForPromise -&gt;
-      NylasEnv.workspace.open <span class="hljs-string">&apos;c.coffee&apos;</span>
+      AppEnv.workspace.open <span class="hljs-string">&apos;c.coffee&apos;</span>
 
   it <span class="hljs-string">&quot;should be opened in an editor&quot;</span>, <span class="hljs-function">-&gt;</span>
-    expect(NylasEnv.workspace.getActiveTextEditor().getPath()).toContain <span class="hljs-string">&apos;c.coffee&apos;</span>
+    expect(AppEnv.workspace.getActiveTextEditor().getPath()).toContain <span class="hljs-string">&apos;c.coffee&apos;</span>
 </code></pre>
 <p>If you need to wait for multiple promises use a new <code>waitsForPromise</code> function for each promise. (Caution: Without <code>beforeEach</code> this example will fail!)</p>
 <pre><code class="lang-coffee">describe <span class="hljs-string">&quot;waiting for the packages to load&quot;</span>, <span class="hljs-function">-&gt;</span>
 
   beforeEach -&gt;
     waitsForPromise -&gt;
-      NylasEnv.workspace.open(<span class="hljs-string">&apos;sample.js&apos;</span>)
+      AppEnv.workspace.open(<span class="hljs-string">&apos;sample.js&apos;</span>)
     waitsForPromise -&gt;
-      NylasEnv.packages.activatePackage(<span class="hljs-string">&apos;tabs&apos;</span>)
+      AppEnv.packages.activatePackage(<span class="hljs-string">&apos;tabs&apos;</span>)
     waitsForPromise -&gt;
-      NylasEnv.packages.activatePackage(<span class="hljs-string">&apos;tree-view&apos;</span>)
+      AppEnv.packages.activatePackage(<span class="hljs-string">&apos;tree-view&apos;</span>)
 
   it <span class="hljs-string">&apos;should have waited long enough&apos;</span>, <span class="hljs-function">-&gt;</span>
-    expect(NylasEnv.packages.isPackageActive(<span class="hljs-string">&apos;tabs&apos;</span>)).toBe <span class="hljs-literal">true</span>
-    expect(NylasEnv.packages.isPackageActive(<span class="hljs-string">&apos;tree-view&apos;</span>)).toBe <span class="hljs-literal">true</span>
+    expect(AppEnv.packages.isPackageActive(<span class="hljs-string">&apos;tabs&apos;</span>)).toBe <span class="hljs-literal">true</span>
+    expect(AppEnv.packages.isPackageActive(<span class="hljs-string">&apos;tree-view&apos;</span>)).toBe <span class="hljs-literal">true</span>
 </code></pre>
 <h4 id="asynchronous-functions-with-callbacks"><a name="asynchronous-functions-with-callbacks" class="plugin-anchor" href="#asynchronous-functions-with-callbacks"><i class="fa fa-link" aria-hidden="true"></i></a>Asynchronous functions with callbacks</h4>
 <p>Specs for asynchronous functions can be done using the <code>waitsFor</code> and <code>runs</code> functions. A simple example.</p>
@@ -1432,7 +1432,7 @@ describe <span class="hljs-string">&quot;Editor::moveUp&quot;</span>, <span clas
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Writing Tests","level":"1.12","depth":1,"next":{"title":"Integration Testing","level":"1.13","depth":1,"path":"guides/IntegrationTesting.md","ref":"guides/IntegrationTesting.md","articles":[]},"previous":{"title":"Extending the Composer","level":"1.11","depth":1,"path":"guides/ComposerExtensions.md","ref":"guides/ComposerExtensions.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/WritingSpecs.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Writing Tests","level":"1.12","depth":1,"next":{"title":"Integration Testing","level":"1.13","depth":1,"path":"guides/IntegrationTesting.md","ref":"guides/IntegrationTesting.md","articles":[]},"previous":{"title":"Extending the Composer","level":"1.11","depth":1,"path":"guides/ComposerExtensions.md","ref":"guides/ComposerExtensions.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/WritingSpecs.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

@@ -1,4 +1,5 @@
 ## General
+
 * [Actions](/classes/Actions.md)
 * [BufferedProcess](/classes/BufferedProcess.md)
 * [ChangeFolderTask](/classes/ChangeFolderTask.md)
@@ -8,7 +9,7 @@
 * [Config](/classes/Config.md)
 * [Contenteditable](/classes/Contenteditable.md)
 * [KeyCommandsRegion](/classes/KeyCommandsRegion.md)
-* [NylasEnvConstructor](/classes/NylasEnvConstructor.md)
+* [AppEnvConstructor](/classes/AppEnvConstructor.md)
 * [QueryResultSet](/classes/QueryResultSet.md)
 * [QuerySubscriptionPool](/classes/QuerySubscriptionPool.md)
 * [StyleManager](/classes/StyleManager.md)
@@ -17,6 +18,7 @@
 * [ThemeManager](/classes/ThemeManager.md)
 
 ## Component Kit
+
 * [EventedIFrame](/classes/EventedIFrame.md)
 * [Flexbox](/classes/Flexbox.md)
 * [InjectedComponent](/classes/InjectedComponent.md)
@@ -32,6 +34,7 @@
 * [UnsafeComponent](/classes/UnsafeComponent.md)
 
 ## Extensions
+
 * [ComposerExtension](/classes/ComposerExtension.md)
 * [ContenteditableExtension](/classes/ContenteditableExtension.md)
 * [DraftStoreExtension](/classes/DraftStoreExtension.md)
@@ -39,12 +42,14 @@
 * [MessageViewExtension](/classes/MessageViewExtension.md)
 
 ## Models
+
 * [Contact](/classes/Contact.md)
 * [Message](/classes/Message.md)
 * [Model](/classes/Model.md)
 * [Thread](/classes/Thread.md)
 
 ## Stores
+
 * [AccountStore](/classes/AccountStore.md)
 * [ComponentRegistry](/classes/ComponentRegistry.md)
 * [ContactStore](/classes/ContactStore.md)
@@ -53,6 +58,7 @@
 * [WorkspaceStore](/classes/WorkspaceStore.md)
 
 ## Database
+
 * [Attribute](/classes/Attribute.md)
 * [AttributeBoolean](/classes/AttributeBoolean.md)
 * [AttributeCollection](/classes/AttributeCollection.md)
@@ -68,11 +74,13 @@
 * [SortOrder](/classes/SortOrder.md)
 
 ## Drafts
+
 * [DraftChangeSet](/classes/DraftChangeSet.md)
 * [DraftEditingSession](/classes/DraftEditingSession.md)
 * [DraftStore](/classes/DraftStore.md)
 
-## NylasEnv
+## AppEnv
+
 * [PackageManager](/classes/PackageManager.md)
 
 ## Atom

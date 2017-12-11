@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Developing on Windows · Nylas Mail Plugin SDK</title>
+        <title>Developing on Windows · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.10" data-path="../classes/NylasEnvConstructor.html">
+        <li class="chapter " data-level="2.1.10" data-path="../classes/AppEnvConstructor.html">
             
-                <a href="../classes/NylasEnvConstructor.html">
+                <a href="../classes/AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1304,20 +1304,20 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="getting-started-with-nylas-mail-on-windows"><a name="getting-started-with-nylas-mail-on-windows" class="plugin-anchor" href="#getting-started-with-nylas-mail-on-windows"><i class="fa fa-link" aria-hidden="true"></i></a>Getting Started with Nylas Mail on Windows</h1>
+                                <h1 id="getting-started-with-nylas-mail-on-windows"><a name="getting-started-with-nylas-mail-on-windows" class="plugin-anchor" href="#getting-started-with-nylas-mail-on-windows"><i class="fa fa-link" aria-hidden="true"></i></a>Getting Started with Mailspring on Windows</h1>
 <h2 id="dependencies"><a name="dependencies" class="plugin-anchor" href="#dependencies"><i class="fa fa-link" aria-hidden="true"></i></a>Dependencies</h2>
 <ol>
 <li><strong>Visual Studio 2013</strong>: You must have Visual Studio 2013 installed to build
-Nylas Mail&apos;s native node modules. See the notes about Visual Studio below if you encounter compilation
+Mailspring&apos;s native node modules. See the notes about Visual Studio below if you encounter compilation
 errors. You can install <a href="https://www.visualstudio.com/en-us/news/releasenotes/vs2013-community-vs" target="_blank">Visual Studio 2013 Community Edition</a> for free.</li>
-<li><strong>Node</strong>: You must have Node 6.x to run Nylas Mail&apos;s build script. Run <code>node -v</code> to check which version of NodeJS you are using.</li>
+<li><strong>Node</strong>: You must have Node 6.x to run Mailspring&apos;s build script. Run <code>node -v</code> to check which version of NodeJS you are using.</li>
 <li><strong>Python 2.7</strong>: The <code>python</code> command must be on your <code>PATH</code> and must point to
 Python 2.7 (not 3.x)</li>
 <li><strong>Git</strong>: The <code>git</code> command must be on your <code>PATH</code></li>
 </ol>
 <h2 id="building"><a name="building" class="plugin-anchor" href="#building"><i class="fa fa-link" aria-hidden="true"></i></a>Building</h2>
-<pre><code>    git clone https://github.com/nylas/nylas-mail.git
-    cd nylas-mail
+<pre><code>    git clone https://github.com/Foundry376/Mailspring.git
+    cd mailspring
     npm config set msvs_version 2013 --global
     script\bootstrap.cmd
 </code></pre><h2 id="running"><a name="running" class="plugin-anchor" href="#running"><i class="fa fa-link" aria-hidden="true"></i></a>Running</h2>
@@ -1328,7 +1328,7 @@ compile native extensions with node-gyp. If <code>script\bootstrap.cmd</code> fa
 to a compilation error, it is likely a Visual Studio configuration issue.</p>
 <h2 id="visual-studio"><a name="visual-studio" class="plugin-anchor" href="#visual-studio"><i class="fa fa-link" aria-hidden="true"></i></a>Visual Studio</h2>
 <p>There are several versions of Visual Studio. <code>node-gyp</code> is designed to detect
-the current version installed on your system. Nylas Mail only officially supports
+the current version installed on your system. Mailspring only officially supports
 Visual Studio 2013. If you are using Visual Studio 2015, be sure you chose to
 install the C++ features in the Visual Studio installer.</p>
 <p>To ensure <code>node-gyp</code> uses Visual Studio 2013, run the following commands:</p>
@@ -1340,7 +1340,7 @@ your system&apos;s Node no longer matters and we install remaining packages with
 <p>However, since bootstrapping this requires native extensions to be built, we need
 a version of <code>node</code> and <code>node-gyp</code> that is compatible with your current Visual Studio
 setup.</p>
-<p>There is a small chance that depending on where you setup Nylas Mail, you will get an
+<p>There is a small chance that depending on where you setup Mailspring, you will get an
 error about file paths being too long. If this happens, you will need to manually
 install npm 3.x (npm 2.x comes shipped with most Node installations).</p>
 <p>Instead of running the whole <code>script\bootstrap.cmd</code> script to test this, you can
@@ -1392,7 +1392,7 @@ you may need to ensure the <code>python.exe</code> can be found.</p>
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Developing on Windows","level":"1.14","depth":1,"next":{"title":"FAQ","level":"1.15","depth":1,"path":"guides/FAQ.md","ref":"guides/FAQ.md","articles":[]},"previous":{"title":"Integration Testing","level":"1.13","depth":1,"path":"guides/IntegrationTesting.md","ref":"guides/IntegrationTesting.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/Windows.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Developing on Windows","level":"1.14","depth":1,"next":{"title":"FAQ","level":"1.15","depth":1,"path":"guides/FAQ.md","ref":"guides/FAQ.md","articles":[]},"previous":{"title":"Integration Testing","level":"1.13","depth":1,"path":"guides/IntegrationTesting.md","ref":"guides/IntegrationTesting.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/Windows.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

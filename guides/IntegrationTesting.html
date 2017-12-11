@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Integration Testing · Nylas Mail Plugin SDK</title>
+        <title>Integration Testing · Mailspring Plugin SDK</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.2">
@@ -104,7 +104,7 @@
                 <span>
             
                     
-                    Nylas Mail SDK Guides
+                    Mailspring SDK Guides
             
                 </span>
             
@@ -208,7 +208,7 @@
                 <a href="Debugging.html">
             
                     
-                    Debugging Nylas Mail
+                    Debugging Mailspring
             
                 </a>
             
@@ -432,12 +432,12 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.10" data-path="../classes/NylasEnvConstructor.html">
+        <li class="chapter " data-level="2.1.10" data-path="../classes/AppEnvConstructor.html">
             
-                <a href="../classes/NylasEnvConstructor.html">
+                <a href="../classes/AppEnvConstructor.html">
             
                     
-                    NylasEnvConstructor
+                    AppEnvConstructor
             
                 </a>
             
@@ -1219,7 +1219,7 @@
                 <span>
             
                     
-                    NylasEnv
+                    AppEnv
             
                 </span>
             
@@ -1316,16 +1316,16 @@
 <li>Run <code>npm test</code> in the <code>/spec_integration</code> directory and pass in the
 <code>NYLAS_ROOT_PATH</code></li>
 <li>Boot <code>jasmine</code> and load all files ending in <code>-spec</code></li>
-<li>Most tests in <code>beforeAll</code> will boot N1 via the <code>N1Launcher</code>. See
-<code>spec_integration/helpers/n1-launcher.es6</code></li>
+<li>Most tests in <code>beforeAll</code> will boot Mailspring via the <code>MailspringLauncher</code>. See
+<code>spec_integration/helpers/Mailspring-launcher.es6</code></li>
 <li>This instantiates a new <code>spectron</code> <code>Application</code> which will spawn a
-<code>ChromeDriver</code> process with the appropriate N1 launch args.</li>
+<code>ChromeDriver</code> process with the appropriate Mailspring launch args.</li>
 <li><code>ChromeDriver</code> will then boot a <a href="http://www.seleniumhq.org/" target="_blank">Selenium</a>
 server at <code>http://localhost:9515</code></li>
-<li>The ChromeDriver / Selenium server will boot N1 with testing hooks and
+<li>The ChromeDriver / Selenium server will boot Mailspring with testing hooks and
 expose an controlling API.</li>
 <li>The API is made easily available through the <a href="https://github.com/kevinsawicki/spectron/blob/master/README.md" target="_blank">Spectron API</a></li>
-<li>The <code>N1Launcher</code>&apos;s <code>mainWindowReady</code> or <code>popoutComposerWindowReady</code> or
+<li>The <code>MailspringLauncher</code>&apos;s <code>mainWindowReady</code> or <code>popoutComposerWindowReady</code> or
 <code>onboardingWindowReady</code> methods poll the app until the designated
 window is available and loaded. Then will resolve a Promise once
 everything has booted.</li>
@@ -1333,19 +1333,19 @@ everything has booted.</li>
 <h2 id="writing-tests"><a name="writing-tests" class="plugin-anchor" href="#writing-tests"><i class="fa fa-link" aria-hidden="true"></i></a>Writing Tests</h2>
 <p>The <a href="https://github.com/kevinsawicki/spectron/blob/master/README.md" target="_blank">Spectron API</a> is a pure extension over the <a href="http://webdriver.io/api.html" target="_blank">Webdriver API</a>. Reference both to write tests.</p>
 <p>Most of the methods on <code>app.client</code> object apply to the &quot;currently
-focused&quot; window only. Since N1 has several windows (many of which are
-hidden) the <code>N1Launcher</code> extension will cycle through windows
+focused&quot; window only. Since Mailspring has several windows (many of which are
+hidden) the <code>MailspringLauncher</code> extension will cycle through windows
 automatically until it finds the one you want, and then select it.</p>
 <p>Furthermore, &quot;loaded&quot; in the pure Spectron sense is only once the window
-is booted. N1 windows take much longer to full finish loading packages and
-rendering the UI. The <code>N1Launcher::windowReady</code> method and its derivatives
+is booted. Mailspring windows take much longer to full finish loading packages and
+rendering the UI. The <code>MailspringLauncher::windowReady</code> method and its derivatives
 take this into account.</p>
 <p>You will almost always need the minimal boilerplate for each integration
 test:</p>
 <pre><code class="lang-javascript">describe(<span class="hljs-string">&apos;My test&apos;</span>, () =&gt; {
   beforeAll((done)=&gt;{
     <span class="hljs-comment">// Boot in dev mode with no arguments</span>
-    <span class="hljs-keyword">this</span>.app = <span class="hljs-keyword">new</span> N1Launcher([<span class="hljs-string">&quot;--dev&quot;</span>]);
+    <span class="hljs-keyword">this</span>.app = <span class="hljs-keyword">new</span> MailspringLauncher([<span class="hljs-string">&quot;--dev&quot;</span>]);
     <span class="hljs-keyword">this</span>.app.mainWindowReady().finally(done);
   });
 
@@ -1365,16 +1365,16 @@ test:</p>
   });
 });
 </code></pre>
-<h3 id="executing-code-in-n1s-environment"><a name="executing-code-in-n1s-environment" class="plugin-anchor" href="#executing-code-in-n1s-environment"><i class="fa fa-link" aria-hidden="true"></i></a>Executing Code in N1&apos;s environment</h3>
+<h3 id="executing-code-in-Mailsprings-environment"><a name="executing-code-in-Mailsprings-environment" class="plugin-anchor" href="#executing-code-in-Mailsprings-environment"><i class="fa fa-link" aria-hidden="true"></i></a>Executing Code in Mailspring&apos;s environment</h3>
 <p>The <code>app.client.execute</code> and <code>app.client.executeAsync</code> methods are
-extremely helpful when running code in N1. Those are documented slightly
+extremely helpful when running code in Mailspring. Those are documented slightly
 more on the <a href="http://webdriver.io/api/protocol/execute.html" target="_blank">WebdriveIO API docs page here</a></p>
 <pre><code class="lang-javascript">it(<span class="hljs-string">&quot;is a test you&apos;ll write&quot;</span>, () =&gt; {
   <span class="hljs-keyword">this</span>.app.client.execute((arg1)=&gt;{
     <span class="hljs-comment">// <span class="hljs-doctag">NOTE:</span> `arg1` just got passed in over a JSON api. It can only be a</span>
     <span class="hljs-comment">// primitive data type</span>
 
-    <span class="hljs-comment">// I&apos;M RUNNING IN N1</span>
+    <span class="hljs-comment">// I&apos;M RUNNING IN Mailspring</span>
     <span class="hljs-keyword">return</span> someValue
 
   }, arg1).then(({value})=&gt;{
@@ -1387,7 +1387,7 @@ more on the <a href="http://webdriver.io/api/protocol/execute.html" target="_bla
 <p>Debugging is through lots of <code>console.log</code>ing.</p>
 <p>There is code is <code>spec_integration/jasmine/bootstrap.js</code> that attempts to
 catch unhandled Promises and color them accordingly.</p>
-<p>If you want to access logs from within N1 via the <code>app.client.execute</code>
+<p>If you want to access logs from within Mailspring via the <code>app.client.execute</code>
 blocks, you&apos;ll have to either package it up yourself and return it, or use
 the new <code>app.client.getMainProcessLogs()</code> just added into Spectron.</p>
 
@@ -1433,7 +1433,7 @@ the new <code>app.client.getMainProcessLogs()</code> just added into Spectron.</
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Integration Testing","level":"1.13","depth":1,"next":{"title":"Developing on Windows","level":"1.14","depth":1,"path":"guides/Windows.md","ref":"guides/Windows.md","articles":[]},"previous":{"title":"Writing Tests","level":"1.12","depth":1,"path":"guides/WritingSpecs.md","ref":"guides/WritingSpecs.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/nylas/nylas-mail/tree/master/docs_src"},"github":{"url":"https://github.com/nylas/nylas-mail"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Nylas Mail Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/IntegrationTesting.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Integration Testing","level":"1.13","depth":1,"next":{"title":"Developing on Windows","level":"1.14","depth":1,"path":"guides/Windows.md","ref":"guides/Windows.md","articles":[]},"previous":{"title":"Writing Tests","level":"1.12","depth":1,"path":"guides/WritingSpecs.md","ref":"guides/WritingSpecs.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","lunr","-fontsettings","-sharing","anchors","github","editlink","favicon"],"root":"./docs_src","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"editlink":{"label":"Edit This Page","multilingual":false,"base":"https://github.com/Foundry376/Mailspring/tree/master/docs_src"},"github":{"url":"https://github.com/Foundry376/Mailspring"},"favicon":{"shortcut":"/img/favicon.png"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"anchors":{},"highlight":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Mailspring Plugin SDK","links":{"sharing":{"facebook":false,"twitter":false}},"gitbook":"3.2.2"},"file":{"path":"guides/IntegrationTesting.md","mtime":"2017-01-30T21:01:05.000Z","type":"markdown"},"gitbook":{"version":"3.2.2","time":"2017-01-30T21:02:00.441Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
