@@ -245,6 +245,10 @@ export default class MailsyncProcess extends EventEmitter {
     return this._spawnAndWait('migrate');
   }
 
+  resetCache() {
+    return this._spawnAndWait('reset');
+  }
+
   test() {
     return this._spawnAndWait('test');
   }

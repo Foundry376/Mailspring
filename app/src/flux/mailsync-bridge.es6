@@ -198,19 +198,53 @@ export default class MailsyncBridge {
     this._clients[accountId].sendMessage(json);
   }
 
-  // Private
+  async resetCacheForAccount(account) {
+    // grab the existing client, if there is one
+    const syncingClient = this._clients[account.id];
 
-  async _launchClient(account, { force } = {}) {
-    const fullAccountJSON = (await KeyManager.insertAccountSecrets(account)).toJSON();
-    const identity = IdentityStore.identity();
-    const id = account.id;
+    // create a new client that will perform the reset
+    const { env, fullAccountJSON, identity } = await this._getClientConfiguration(account);
+    const resetClient = new MailsyncProcess(env, identity, fullAccountJSON);
+    this._clients[account.id] = resetClient;
 
-    if (force) {
-      this._crashTracker.forgetCrashes(fullAccountJSON);
-    } else if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
-      return;
+    // kill the old client, ensureClients will be a no-op because the
+    // client has already been replaced in our lookup table.
+    if (syncingClient) {
+      syncingClient.kill();
     }
 
+    AppEnv.showErrorDialog({
+      title: `Cleanup Started`,
+      message: `Mailspring is clearing it's cache for ${account.emailAddress}. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
+    });
+
+    try {
+      const start = Date.now();
+
+      await resetClient.resetCache();
+
+      AppEnv.showErrorDialog({
+        title: `Cleanup Complete`,
+        message: `Mailspring reset the local cache for ${account.emailAddress} in ${Math.ceil(
+          (Date.now() - start) / 1000
+        )} seconds. Your mailbox will now begin to sync again.`,
+      });
+    } catch (error) {
+      AppEnv.showErrorDialog({
+        title: `Cleanup Error`,
+        message: `Mailspring was unable to reset the local cache. ${error}`,
+      });
+    } finally {
+      delete this._clients[account.id];
+      process.nextTick(() => {
+        this.ensureClients();
+      });
+    }
+  }
+
+  // Private
+
+  async _getClientConfiguration(account) {
     const { configDirPath, resourcePath } = AppEnv.getLoadSettings();
     const verboseUntil = AppEnv.config.get(VERBOSE_UNTIL_KEY) || 0;
     const verbose = verboseUntil && verboseUntil / 1 > Date.now();
@@ -218,15 +252,31 @@ export default class MailsyncBridge {
       console.warn(`Verbose mailsync logging is enabled until ${new Date(verboseUntil)}`);
     }
 
-    const client = new MailsyncProcess(
-      { configDirPath, resourcePath, verbose },
-      identity,
-      fullAccountJSON
-    );
+    return {
+      env: { configDirPath, resourcePath, verbose },
+      fullAccountJSON: (await KeyManager.insertAccountSecrets(account)).toJSON(),
+      identity: IdentityStore.identity(),
+    };
+  }
+
+  async _launchClient(account, { force } = {}) {
+    const { env, fullAccountJSON, identity } = await this._getClientConfiguration(account);
+
+    if (force) {
+      this._crashTracker.forgetCrashes(fullAccountJSON);
+    } else if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
+      return;
+    }
+
+    const client = new MailsyncProcess(env, identity, fullAccountJSON);
     client.sync();
     client.on('deltas', this._onIncomingMessages);
     client.on('close', ({ code, error, signal }) => {
-      delete this._clients[id];
+      if (this._clients[account.id] !== client) {
+        return;
+      }
+
+      delete this._clients[account.id];
       if (signal === 'SIGTERM') {
         return;
       }
@@ -238,7 +288,7 @@ export default class MailsyncBridge {
         `${error}`.includes('ErrorAuthentication'); // mailcore
 
       if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
-        Actions.updateAccount(id, {
+        Actions.updateAccount(account.id, {
           syncState: isAuthFailure ? Account.SYNC_STATE_AUTH_FAILED : Account.SYNC_STATE_ERROR,
           syncError: { code, error, signal },
         });
@@ -246,11 +296,11 @@ export default class MailsyncBridge {
         this.ensureClients();
       }
     });
-    this._clients[id] = client;
+    this._clients[account.id] = client;
 
     if (fullAccountJSON.syncState !== Account.SYNC_STATE_OK) {
       // note: This call triggers ensureClients, and must go after this.clients[id] is set
-      Actions.updateAccount(id, {
+      Actions.updateAccount(account.id, {
         syncState: Account.SYNC_STATE_OK,
         syncError: null,
       });

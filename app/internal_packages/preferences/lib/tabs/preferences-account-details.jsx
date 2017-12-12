@@ -111,6 +111,10 @@ class PreferencesAccountDetails extends Component {
     });
   };
 
+  _onResetCache = () => {
+    AppEnv.mailsyncBridge.resetCacheForAccount(this.state.account);
+  };
+
   _onContactSupport = () => {
     const { shell } = require('electron');
     shell.openExternal('https://support.getmailspring.com/hc/en-us/requests/new');
@@ -193,6 +197,10 @@ class PreferencesAccountDetails extends Component {
 
         <div className="btn" onClick={this._onReconnect}>
           {account.provider === 'imap' ? 'Update Connection Settings...' : 'Re-authenticate...'}
+        </div>
+
+        <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
+          Rebuild Cache...
         </div>
 
         <h3>Aliases</h3>
