@@ -46,7 +46,10 @@ deploy:
   bucket: mailspring-builds
   folder: "client/$(commit)"
   set_public: true
- 
+
+# Stop Appveyor from "Discovering Tests" forever 
+test: off
+
 environment:
   matrix:
   - NODE_VERSION: 7.10
