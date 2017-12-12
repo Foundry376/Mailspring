@@ -30,7 +30,7 @@ export default class ConfigPersistenceManager {
     }
 
     let stat = fs.statSync(this.configDirPath);
-    let configDirPathAccessMode = (stat.mode & parseInt('777', 8)).toString(8); 
+    let configDirPathAccessMode = (stat.mode & parseInt('777', 8)).toString(8);
     if (configDirPathAccessMode !== '700') {
       fs.chmodSync(this.configDirPath, '700');
     }

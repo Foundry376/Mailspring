@@ -1,5 +1,5 @@
-import { RetinaImg, Flexbox } from 'mailspring-component-kit';
-import { React, AccountStore } from 'mailspring-exports';
+import { RetinaImg } from 'mailspring-component-kit';
+import { React } from 'mailspring-exports';
 
 export default class InitialPreferencesPage extends React.Component {
   static displayName = 'InitialPreferencesPage';
