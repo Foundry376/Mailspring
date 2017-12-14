@@ -214,7 +214,9 @@ export class AttachmentItem extends Component {
                 mode={RetinaImg.Mode.ContentPreserve}
                 name={fileIconName}
               />
-              <span className="file-name">{displayName}</span>
+              <span className="file-name" title={displayName}>
+                {displayName}
+              </span>
               <span className="file-size">{displaySize ? `(${displaySize})` : ''}</span>
               {this._canPreview() ? (
                 <RetinaImg
@@ -298,7 +300,9 @@ export class ImageAttachmentItem extends Component {
           />
           <div className="file-preview" onDoubleClick={this._onOpenAttachment}>
             <div className="file-name-container">
-              <div className="file-name">{displayName}</div>
+              <div className="file-name" title={displayName}>
+                {displayName}
+              </div>
             </div>
             {this.renderImage()}
           </div>
