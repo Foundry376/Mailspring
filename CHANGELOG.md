@@ -1,5 +1,27 @@
 # Mailspring Changelog
 
+### 1.0.11 (12/12/2017)
+
+Improvements:
+
+- You can now reset the cache for an individual account from Preferences > Accounts
+
+- Mailspring now creates its config directory with more appropriate unix permissions (thanks @agurz!)
+
+Fixes:
+
+- On Windows, Mailspring now sends attachments with non-latin characters correctly.
+
+- Mailspring now moves mail correctly (via archiving, deleting, etc.), even if the provider does not support the IMAP MOVE extension.
+
+- Mailspring now fetches incoming messages correctly (and immediately) for providers that support both CONDSTORE and QRESYNC.
+
+- On Linux, the Mailspring snap no longer complains about missing typefaces on some machines.
+
+- Drang and drop from search results into folders/labels has been fixed.
+
+- The translation plugin has been fixed.
+
 ### 1.0.10 (12/7/2017)
 
 Features:

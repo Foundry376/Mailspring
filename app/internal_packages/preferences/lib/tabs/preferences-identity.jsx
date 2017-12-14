@@ -185,6 +185,8 @@ class PreferencesIdentity extends React.Component {
   }
 
   _renderPaidPlan(planName, effectivePlanName) {
+    const planDisplayName = planName.replace('Annual', ' (Annual)');
+
     const unpaidNote = effectivePlanName !== planName && (
       <p>
         {`Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring ${effectivePlanName}. Click 'Billing' below to correct the issue.`}
@@ -194,8 +196,14 @@ class PreferencesIdentity extends React.Component {
       <div className="row padded">
         <div>
           Thank you for using{' '}
-          <strong style={{ textTransform: 'capitalize' }}>{`Mailspring ${planName}`}</strong> and
-          supporting independent software.
+          <strong
+            style={{ textTransform: 'capitalize' }}
+          >{`Mailspring ${planDisplayName}`}</strong>{' '}
+          and supporting independent software. Get the most out of your subscription: visit the{' '}
+          <a href="https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started">
+            Help Center
+          </a>{' '}
+          to learn more about great features like reminders, templates, and activity insights.
           {unpaidNote}
         </div>
         <div style={{ paddingTop: 15 }}>
