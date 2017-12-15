@@ -1,6 +1,6 @@
 # Mailspring Changelog
 
-### 1.0.11 (12/12/2017)
+### 1.0.11 (12/15/2017)
 
 Improvements:
 
