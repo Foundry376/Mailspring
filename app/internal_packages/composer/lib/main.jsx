@@ -8,12 +8,9 @@ import {
   ComponentRegistry,
   ExtensionRegistry,
   InflatesDraftClientId,
-  CustomContenteditableComponents,
 } from 'mailspring-exports';
-import { OverlaidComposerExtension } from 'mailspring-component-kit';
 import ComposeButton from './compose-button';
 import ComposerView from './composer-view';
-import InlineImageComposerExtension from './inline-image-composer-extension';
 import InlineImageUploadContainer from './inline-image-upload-container';
 
 const ComposerViewForDraftClientId = InflatesDraftClientId(ComposerView);
@@ -97,13 +94,6 @@ export function activate() {
       location: WorkspaceStore.Location.Center,
     });
   }
-
-  ExtensionRegistry.Composer.register(OverlaidComposerExtension, { priority: 1 });
-  ExtensionRegistry.Composer.register(InlineImageComposerExtension);
-  CustomContenteditableComponents.register(
-    'InlineImageUploadContainer',
-    InlineImageUploadContainer
-  );
 }
 
 export function deactivate() {
@@ -113,10 +103,6 @@ export function deactivate() {
   } else {
     ComponentRegistry.unregister(ComposerWithWindowProps);
   }
-
-  ExtensionRegistry.Composer.unregister(OverlaidComposerExtension);
-  ExtensionRegistry.Composer.unregister(InlineImageComposerExtension);
-  CustomContenteditableComponents.unregister('InlineImageUploadContainer');
 }
 
 export function serialize() {

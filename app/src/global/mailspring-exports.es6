@@ -140,10 +140,6 @@ load(`FocusedContactsStore`, 'flux/stores/focused-contacts-store');
 load(`FolderSyncProgressStore`, 'flux/stores/folder-sync-progress-store');
 load(`FocusedPerspectiveStore`, 'flux/stores/focused-perspective-store');
 load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
-lazyLoad(
-  `CustomContenteditableComponents`,
-  'components/overlaid-components/custom-contenteditable-components'
-);
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
 

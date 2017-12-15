@@ -17,11 +17,9 @@ import {
   AttachmentItem,
   InjectedComponent,
   KeyCommandsRegion,
-  OverlaidComponents,
   ImageAttachmentItem,
   InjectedComponentSet,
 } from 'mailspring-component-kit';
-import ComposerEditor from './composer-editor';
 import ComposerHeader from './composer-header';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
@@ -122,23 +120,23 @@ export default class ComposerView extends React.Component {
       showQuotedTextControl: DraftHelpers.shouldAppendQuotedText(draft),
     });
 
-    // TODO: This is a dirty hack to save selection state into the undo/redo
-    // history. Remove it if / when selection is written into the body with
-    // marker tags, or when selection is moved from `contenteditable.innerState`
-    // into a first-order part of the session state.
+    // // TODO: This is a dirty hack to save selection state into the undo/redo
+    // // history. Remove it if / when selection is written into the body with
+    // // marker tags, or when selection is moved from `contenteditable.innerState`
+    // // into a first-order part of the session state.
 
-    session._composerViewSelectionRetrieve = () => {
-      // Selection updates /before/ the contenteditable emits it's change event,
-      // so the selection that goes with the snapshot state is the previous one.
-      if (this._els[Fields.Body].getPreviousSelection) {
-        return this._els[Fields.Body].getPreviousSelection();
-      }
-      return null;
-    };
+    // session._composerViewSelectionRetrieve = () => {
+    //   // Selection updates /before/ the contenteditable emits it's change event,
+    //   // so the selection that goes with the snapshot state is the previous one.
+    //   if (this._els[Fields.Body].getPreviousSelection) {
+    //     return this._els[Fields.Body].getPreviousSelection();
+    //   }
+    //   return null;
+    // };
 
-    session._composerViewSelectionRestore = selection => {
-      this._els[Fields.Body].setSelection(selection);
-    };
+    // session._composerViewSelectionRestore = selection => {
+    //   this._els[Fields.Body].setSelection(selection);
+    // };
 
     draft.files.forEach(file => {
       if (Utils.shouldDisplayAsImage(file)) {
@@ -226,7 +224,7 @@ export default class ComposerView extends React.Component {
         }}
         className="composer-body-wrap"
       >
-        <OverlaidComponents exposedProps={exposedProps}>{this._renderEditor()}</OverlaidComponents>
+        {this._renderEditor()}
         {this._renderQuotedTextControl()}
         {this._renderAttachments()}
       </div>
@@ -246,23 +244,15 @@ export default class ComposerView extends React.Component {
     };
 
     return (
-      <InjectedComponent
+      <textarea
         ref={el => {
           if (el) {
             this._els[Fields.Body] = el;
           }
         }}
         className="body-field"
-        matching={{ role: 'Composer:Editor' }}
-        fallback={ComposerEditor}
-        requiredMethods={[
-          'focus',
-          'focusAbsoluteEnd',
-          'getPreviousSelection',
-          'setSelection',
-          '_onDOMMutated',
-        ]}
-        exposedProps={exposedProps}
+        value={exposedProps.body}
+        onChange={exposedProps.onBodyChanged}
       />
     );
   }
