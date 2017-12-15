@@ -21,6 +21,7 @@ import {
   InjectedComponentSet,
 } from 'mailspring-component-kit';
 import ComposerHeader from './composer-header';
+import ComposerEditor from './composer-editor';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
 import Fields from './fields';
@@ -211,10 +212,6 @@ export default class ComposerView extends React.Component {
   }
 
   _renderBodyRegions() {
-    const exposedProps = {
-      draft: this.props.draft,
-      session: this.props.session,
-    };
     return (
       <div
         ref={el => {
@@ -232,29 +229,29 @@ export default class ComposerView extends React.Component {
   }
 
   _renderEditor() {
-    const exposedProps = {
-      body: this.props.draft.body,
-      headerMessageId: this.props.draft.headerMessageId,
-      parentActions: {
-        getComposerBoundingRect: this._getComposerBoundingRect,
-        scrollTo: this.props.scrollTo,
-      },
-      onFilePaste: this._onFileReceived,
-      onBodyChanged: this._onBodyChanged,
-    };
-
     return (
-      <textarea
+      <ComposerEditor
         ref={el => {
           if (el) {
             this._els[Fields.Body] = el;
           }
         }}
         className="body-field"
-        value={exposedProps.body}
-        onChange={exposedProps.onBodyChanged}
+        editorState={this.props.draft.bodyEditorState}
+        onChange={bodyEditorState => {
+          this.props.session.changes.add({ bodyEditorState });
+        }}
       />
     );
+
+    // const exposedProps = {
+    //   parentActions: {
+    //     getComposerBoundingRect: this._getComposerBoundingRect,
+    //     scrollTo: this.props.scrollTo,
+    //   },
+    //   onFilePaste: this._onFileReceived,
+    //   onBodyChanged: this._onBodyChanged,
+    // };
   }
 
   // The contenteditable decides when to request a scroll based on the
@@ -300,15 +297,15 @@ export default class ComposerView extends React.Component {
   };
 
   _onRemoveQuotedText = event => {
-    event.stopPropagation();
-    const { session, draft } = this.props;
-    session.changes.add({
-      body: `${draft.body}<div id="mailspring-quoted-text-marker" />`,
-    });
-    this.setState({
-      showQuotedText: false,
-      showQuotedTextControl: false,
-    });
+    // event.stopPropagation();
+    // const { session, draft } = this.props;
+    // session.changes.add({
+    //   body: `${draft.body}<div id="mailspring-quoted-text-marker" />`,
+    // });
+    // this.setState({
+    //   showQuotedText: false,
+    //   showQuotedTextControl: false,
+    // });
   };
 
   _renderFooterRegions() {
@@ -445,7 +442,7 @@ export default class ComposerView extends React.Component {
   };
 
   _inFooterRegion(el) {
-    return el.closest && el.closest('.composer-footer-region, .overlaid-components');
+    return el.closest && el.closest('.composer-footer-region');
   }
 
   _onMouseUpComposerBody = event => {
@@ -534,11 +531,6 @@ export default class ComposerView extends React.Component {
         }
       },
     });
-  };
-
-  _onBodyChanged = event => {
-    this.props.session.changes.add({ body: event.target.value });
-    return;
   };
 
   _isValidDraft = (options = {}) => {

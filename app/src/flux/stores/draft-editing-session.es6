@@ -2,6 +2,8 @@ import _ from 'underscore';
 import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
 
+import { convertFromHTML, EditorState, ContentState } from 'draft-js';
+
 import TaskQueue from './task-queue';
 import Message from '../models/message';
 import Utils from '../models/utils';
@@ -172,16 +174,14 @@ export default class DraftEditingSession extends MailspringStore {
       this._draftPromise ||
       DatabaseStore.findBy(Message, { headerMessageId: this.headerMessageId, draft: true })
         .include(Message.attributes.body)
-        .then(draft => {
+        .then(async draft => {
           if (this._destroyed) {
-            return Promise.reject(new Error('Draft has been destroyed.'));
+            throw new Error('Draft has been destroyed.');
           }
           if (!draft) {
-            return Promise.reject(
-              new Error(`Assertion Failure: Draft ${this.headerMessageId} not found.`)
-            );
+            throw new Error(`Assertion Failure: Draft ${this.headerMessageId} not found.`);
           }
-          return this._setDraft(draft);
+          return await this._setDraft(draft);
         });
     return this._draftPromise;
   }
@@ -335,30 +335,36 @@ export default class DraftEditingSession extends MailspringStore {
       throw new Error('DraftEditingSession._setDraft - new draft has no body!');
     }
 
-    const extensions = ComposerExtensionRegistry.extensions();
+    // const extensions = ComposerExtensionRegistry.extensions();
 
-    // Run `extensions[].unapplyTransformsForSending`
-    const fragment = document.createDocumentFragment();
-    const draftBodyRootNode = document.createElement('root');
-    fragment.appendChild(draftBodyRootNode);
-    draftBodyRootNode.innerHTML = draft.body;
+    // // Run `extensions[].unapplyTransformsForSending`
+    // const fragment = document.createDocumentFragment();
+    // const draftBodyRootNode = document.createElement('root');
+    // fragment.appendChild(draftBodyRootNode);
+    // draftBodyRootNode.innerHTML = draft.body;
 
-    for (const ext of extensions) {
-      if (ext.applyTransformsForSending && ext.unapplyTransformsForSending) {
-        await ext.unapplyTransformsForSending({
-          draftBodyRootNode: draftBodyRootNode,
-          draft: draft,
-        });
-      }
-    }
-    draft.body = draftBodyRootNode.innerHTML;
+    // for (const ext of extensions) {
+    //   if (ext.applyTransformsForSending && ext.unapplyTransformsForSending) {
+    //     await ext.unapplyTransformsForSending({
+    //       draftBodyRootNode: draftBodyRootNode,
+    //       draft: draft,
+    //     });
+    //   }
+    // }
+    const blocksFromHTML = convertFromHTML(draft.body);
+    const state = ContentState.createFromBlockArray(
+      blocksFromHTML.contentBlocks,
+      blocksFromHTML.entityMap
+    );
+
+    draft.bodyEditorState = EditorState.createWithContent(state);
     this._draft = draft;
 
     // We keep track of the draft's initial body if it's pristine when the editing
     // session begins. This initial value powers things like "are you sure you want
     // to send with an empty body?"
     if (draft.pristine) {
-      this._draftPristineBody = draft.body;
+      this._draftPristineEditorState = EditorState.createWithContent(state);
       this._undoStack.save(this._snapshot());
     }
 
