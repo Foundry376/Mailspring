@@ -263,7 +263,7 @@ class DraftStore extends MailspringStore {
   }
 
   _createSession(headerMessageId, draft) {
-    this._draftSessions[headerMessageId] = new DraftEditingSession(draft);
+    this._draftSessions[headerMessageId] = new DraftEditingSession(headerMessageId, draft);
     return this._draftSessions[headerMessageId];
   }
 

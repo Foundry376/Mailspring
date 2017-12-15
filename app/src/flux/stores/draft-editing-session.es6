@@ -158,7 +158,7 @@ export default class DraftEditingSession extends MailspringStore {
       return null;
     }
     this.changes.applyToModel(this._draft);
-    return this._draft.clone();
+    return this._draft;
   }
 
   // Public: Returns the initial body of the draft when it was pristine, or null if the
