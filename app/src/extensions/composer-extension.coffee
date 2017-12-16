@@ -1,10 +1,9 @@
-ContenteditableExtension = require('./contenteditable-extension')
 ###
 Public: To create ComposerExtensions that enhance the composer experience,
 you should create objects that implement the interface defined at
 {ComposerExtension}.
 
-{ComposerExtension} extends {ContenteditableExtension}, so you can also
+{ComposerExtension} extends , so you can also
 implement the methods defined there to further enhance the composer
 experience.
 
@@ -35,7 +34,7 @@ API, please let us know.
 
 Section: Extensions
 ###
-class ComposerExtension extends ContenteditableExtension
+class ComposerExtension
 
   ###
   Public: Allows the addition of new types of send actions such as "Send

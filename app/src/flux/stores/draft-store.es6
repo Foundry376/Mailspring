@@ -55,7 +55,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.sendDraft, this._onSendDraft);
     this.listenTo(Actions.destroyDraft, this._onDestroyDraft);
 
-    AppEnv.onBeforeUnload(this._onBeforeUnload);
+    // AppEnv.onBeforeUnload(this._onBeforeUnload);
 
     this._draftSessions = {};
     this._draftsSending = {};
@@ -384,7 +384,6 @@ class DraftStore extends MailspringStore {
       Message.attributes.body
     );
 
-    draft = await DraftHelpers.applyExtensionTransforms(draft);
     draft = await DraftHelpers.pruneRemovedInlineFiles(draft);
     if (draft.replyToHeaderMessageId && DraftHelpers.shouldAppendQuotedText(draft)) {
       draft = await DraftHelpers.appendQuotedTextToDraft(draft);

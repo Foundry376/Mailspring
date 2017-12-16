@@ -426,7 +426,6 @@ class Actions {
   static addAttachment = ActionScopeWindow;
   static selectAttachment = ActionScopeWindow;
   static removeAttachment = ActionScopeWindow;
-  static insertAttachmentIntoDraft = ActionScopeWindow;
 
   static fetchBodies = ActionScopeMainWindow;
   static fetchAndOpenFile = ActionScopeWindow;

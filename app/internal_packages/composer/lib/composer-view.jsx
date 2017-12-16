@@ -237,7 +237,9 @@ export default class ComposerView extends React.Component {
           }
         }}
         className="body-field"
+        atomicBlockProps={{ draft: this.props.draft, session: this.props.session }}
         editorState={this.props.draft.bodyEditorState}
+        onFileReceived={this._onFileReceived}
         onChange={bodyEditorState => {
           this.props.session.changes.add({ bodyEditorState });
         }}
@@ -524,10 +526,8 @@ export default class ComposerView extends React.Component {
           session.changes.add({
             files: [].concat(draft.files),
           });
-          Actions.insertAttachmentIntoDraft({
-            headerMessageId: draft.headerMessageId,
-            fileId: match.id,
-          });
+
+          this._els[Fields.Body].insertInlineAttachment(file);
         }
       },
     });

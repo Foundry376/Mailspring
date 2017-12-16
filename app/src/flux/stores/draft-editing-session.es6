@@ -1,8 +1,15 @@
 import _ from 'underscore';
 import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
+import React from 'react';
 
-import { convertFromHTML, EditorState, ContentState } from 'draft-js';
+import { EditorState } from 'draft-js';
+
+// TODO BEN
+import {
+  convertFromHTML,
+  convertToHTML,
+} from '../../../internal_packages/composer/lib/draftjs-config';
 
 import TaskQueue from './task-queue';
 import Message from '../models/message';
@@ -351,20 +358,15 @@ export default class DraftEditingSession extends MailspringStore {
     //     });
     //   }
     // }
-    const blocksFromHTML = convertFromHTML(draft.body);
-    const state = ContentState.createFromBlockArray(
-      blocksFromHTML.contentBlocks,
-      blocksFromHTML.entityMap
-    );
-
-    draft.bodyEditorState = EditorState.createWithContent(state);
+    const editorState = convertFromHTML(draft.body);
+    draft.bodyEditorState = EditorState.createWithContent(editorState);
     this._draft = draft;
 
     // We keep track of the draft's initial body if it's pristine when the editing
     // session begins. This initial value powers things like "are you sure you want
     // to send with an empty body?"
     if (draft.pristine) {
-      this._draftPristineEditorState = EditorState.createWithContent(state);
+      this._draftPristineEditorState = EditorState.createWithContent(editorState);
       this._undoStack.save(this._snapshot());
     }
 
@@ -432,8 +434,9 @@ export default class DraftEditingSession extends MailspringStore {
     // `SyncbackDraftTask` may then fail due to differing Ids not
     // existing, but if this happens it'll 404 and recover gracefully
     // by creating a new draft
-    const baseDraft = draft || inMemoryDraft;
-    const updatedDraft = this.changes.applyToModel(baseDraft);
+    const updatedDraft = this.changes.applyToModel(draft || inMemoryDraft);
+    updatedDraft.body = convertToHTML(updatedDraft.bodyEditorState.getCurrentContent());
+
     const task = new SyncbackDraftTask({ draft: updatedDraft });
     Actions.queueTask(task);
     await TaskQueue.waitForPerformLocal(task);
