@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import fs from 'fs';
 import path from 'path';
-import { Actions, AttachmentStore } from 'mailspring-exports';
+import { AttachmentStore } from 'mailspring-exports';
 import { ImageAttachmentItem } from 'mailspring-component-kit';
 
 export default class InlineImageUploadContainer extends Component {
@@ -140,7 +140,7 @@ export default class InlineImageUploadContainer extends Component {
   };
 
   render() {
-    const { draft, fileId, isPreview } = this.props;
+    const { draft, fileId, isPreview, onRemove } = this.props;
     const file = draft.files.find(u => fileId === u.id);
 
     if (!file) {
@@ -161,7 +161,7 @@ export default class InlineImageUploadContainer extends Component {
           draggable={false}
           filePath={AttachmentStore.pathForFile(file)}
           displayName={file.filename}
-          onRemoveAttachment={() => Actions.removeAttachment(draft.headerMessageId, file)}
+          onRemoveAttachment={onRemove}
         />
       </div>
     );

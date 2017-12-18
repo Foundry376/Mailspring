@@ -126,19 +126,6 @@ export default class ComposerView extends React.Component {
     // // marker tags, or when selection is moved from `contenteditable.innerState`
     // // into a first-order part of the session state.
 
-    // session._composerViewSelectionRetrieve = () => {
-    //   // Selection updates /before/ the contenteditable emits it's change event,
-    //   // so the selection that goes with the snapshot state is the previous one.
-    //   if (this._els[Fields.Body].getPreviousSelection) {
-    //     return this._els[Fields.Body].getPreviousSelection();
-    //   }
-    //   return null;
-    // };
-
-    // session._composerViewSelectionRestore = selection => {
-    //   this._els[Fields.Body].setSelection(selection);
-    // };
-
     draft.files.forEach(file => {
       if (Utils.shouldDisplayAsImage(file)) {
         Actions.fetchFile(file);
@@ -146,12 +133,7 @@ export default class ComposerView extends React.Component {
     });
   }
 
-  _teardownForProps() {
-    if (this.props.session) {
-      this.props.session._composerViewSelectionRestore = null;
-      this.props.session._composerViewSelectionRetrieve = null;
-    }
-  }
+  _teardownForProps() {}
 
   _setSREl = el => {
     this._els.scrollregion = el;

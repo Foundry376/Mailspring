@@ -6,12 +6,10 @@ import {
   DraftStore,
   WorkspaceStore,
   ComponentRegistry,
-  ExtensionRegistry,
   InflatesDraftClientId,
 } from 'mailspring-exports';
 import ComposeButton from './compose-button';
 import ComposerView from './composer-view';
-import InlineImageUploadContainer from './inline-image-upload-container';
 
 const ComposerViewForDraftClientId = InflatesDraftClientId(ComposerView);
 

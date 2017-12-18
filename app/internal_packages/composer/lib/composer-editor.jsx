@@ -1,5 +1,5 @@
 import React from 'react';
-import { Editor, RichUtils, AtomicBlockUtils, EditorState } from 'draft-js';
+import { Editor, RichUtils, AtomicBlockUtils, EditorState, SelectionState } from 'draft-js';
 
 import ComposerEditorToolbar from './composer-editor-toolbar';
 import InlineImageUploadContainer from './inline-image-upload-container';
@@ -53,16 +53,39 @@ export default class ComposerEditor extends React.Component {
     onChange(RichUtils.onTab(e, editorState, maxDepth));
   };
 
+  onRemoveBlockWithKey = blockKey => {
+    const { onChange, editorState } = this.props;
+
+    var content = editorState.getCurrentContent();
+    var blockBefore = content.getBlockBefore(blockKey);
+
+    const selectionAfter = new SelectionState({
+      anchorOffset: blockBefore.getLength(),
+      anchorKey: blockBefore.getKey(),
+      focusOffset: blockBefore.getLength(),
+      focusKey: blockBefore.getKey(),
+      isBackward: false,
+      hasFocus: true,
+    });
+
+    var blockMap = content.getBlockMap()['delete'](blockKey);
+    var withoutAtomicBlock = content.merge({ blockMap, selectionAfter });
+    if (withoutAtomicBlock !== content) {
+      onChange(EditorState.push(editorState, withoutAtomicBlock, 'remove-range'));
+    }
+  };
+
   blockRenderer = block => {
     const Image = props => {
       const entity = props.contentState.getEntity(props.block.getEntityAt(0));
       const { fileId } = entity.getData();
-      // const type = entity.getType();
+
       return (
         <InlineImageUploadContainer
           {...this.props.atomicBlockProps}
           fileId={fileId}
           isPreview={false}
+          onRemove={() => this.onRemoveBlockWithKey(props.block.getKey())}
         />
       );
     };

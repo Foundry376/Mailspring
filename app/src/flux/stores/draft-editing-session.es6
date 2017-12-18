@@ -448,10 +448,20 @@ export default class DraftEditingSession extends MailspringStore {
     if (this._restoring) {
       return;
     }
-    const hasBeen300ms = Date.now() - this._lastAddTimestamp > 300;
-    const hasChangedFields = !_.isEqual(Object.keys(changes), this._lastChangedFields);
+    const changeKeys = Object.keys(changes);
 
-    this._lastChangedFields = Object.keys(changes);
+    if (changeKeys.length === 1 && changes.bodyEditorState) {
+      const top = this._undoStack.current();
+      const topEditorState = top ? top.draft.bodyEditorState : {};
+      const newEditorState = changes.bodyEditorState;
+      if (topEditorState.contentState === newEditorState.contentState) {
+        return;
+      }
+    }
+    const hasBeen300ms = Date.now() - this._lastAddTimestamp > 300;
+    const hasChangedFields = !_.isEqual(changeKeys, this._lastChangedFields);
+
+    this._lastChangedFields = changeKeys;
     this._lastAddTimestamp = Date.now();
     if (hasBeen300ms || hasChangedFields) {
       this._undoStack.save(this._snapshot());
@@ -475,9 +485,6 @@ export default class DraftEditingSession extends MailspringStore {
     }
     this._restoring = true;
     this.changes.add(snapshot.draft);
-    if (this._composerViewSelectionRestore) {
-      this._composerViewSelectionRestore(snapshot.selection);
-    }
     this._restoring = false;
   }
 
@@ -491,7 +498,6 @@ export default class DraftEditingSession extends MailspringStore {
 
   _snapshot() {
     const snapshot = {
-      selection: this._composerViewSelectionRetrieve && this._composerViewSelectionRetrieve(),
       draft: Object.assign({}, this.draft()),
     };
     for (const { pluginId, value } of snapshot.draft.pluginMetadata) {

@@ -25,7 +25,6 @@ const styleMap = {
   CODE: {
     backgroundColor: 'rgba(0, 0, 0, 0.05)',
     fontFamily: '"Inconsolata", "Menlo", "Consolas", monospace',
-    fontSize: 16,
     padding: 2,
   },
 };
@@ -106,9 +105,25 @@ export function convertFromHTML(html) {
       }
       return nextStyle;
     },
+    htmlToBlock: (nodeName, node) => {
+      if (nodeName === 'img') {
+        return {
+          type: 'atomic',
+          data: {},
+        };
+      }
+    },
     htmlToEntity: (nodeName, node, createEntity) => {
       if (nodeName === 'a') {
         return createEntity('LINK', 'MUTABLE', { url: node.getAttribute('href') });
+      }
+      if (nodeName === 'img') {
+        return createEntity('image', 'IMMUTABLE', {
+          fileId: node
+            .getAttribute('src')
+            .split('cid:')
+            .pop(),
+        });
       }
     },
   })(html);
@@ -117,14 +132,74 @@ export function convertFromHTML(html) {
 export function convertToHTML(contentState) {
   return DraftConvert.convertToHTML({
     styleToHTML: style => {
-      return <span data-msn={style} style={customStyleFn(style)} />;
-    },
-    blockToHTML: block => {},
-    entityToHTML: (entity, originalText) => {
-      if (entity.type === 'LINK') {
-        return <Link data={entity.data}>{originalText}</Link>;
+      switch (style) {
+        case 'BOLD':
+          return <strong />;
+        case 'ITALIC':
+          return <em />;
+        case 'UNDERLINE':
+          return <u />;
+        case 'CODE':
+          return <code />;
+        default:
+          return <span data-msn={style} style={customStyleFn(style)} />;
       }
-      return originalText;
+    },
+    blockToHTML: block => {
+      switch (block.type) {
+        case 'unstyled':
+          return <p />;
+        case 'paragraph':
+          return <p />;
+        case 'header-one':
+          return <h1 />;
+        case 'header-two':
+          return <h2 />;
+        case 'header-three':
+          return <h3 />;
+        case 'header-four':
+          return <h4 />;
+        case 'header-five':
+          return <h5 />;
+        case 'header-six':
+          return <h6 />;
+        case 'blockquote':
+          return <blockquote />;
+        case 'unordered-list-item':
+          return {
+            element: <li />,
+            nest: <ul />,
+          };
+        case 'ordered-list-item':
+          return {
+            element: <li />,
+            nest: <ol />,
+          };
+        case 'media':
+          return <figure />;
+        case 'atomic':
+          return {
+            start: '',
+            end: '',
+          };
+        default:
+          return '';
+      }
+    },
+    entityToHTML: (entity, originalText) => {
+      switch (entity.type) {
+        case 'LINK':
+          return <Link data={entity.data}>{originalText}</Link>;
+        case 'image':
+          return {
+            empty: `<img alt="" src="cid:${entity.data.fileId}" />`,
+            start: `<img alt="" src="cid:${entity.data.fileId}" />`,
+            end: '',
+          };
+        default:
+          debugger;
+          return originalText;
+      }
     },
   })(contentState);
 }

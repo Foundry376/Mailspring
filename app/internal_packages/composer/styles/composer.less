@@ -592,7 +592,7 @@ body.platform-win32 {
 .RichEditor-toolbar {
   font-family: 'Helvetica', sans-serif;
   font-size: 14px;
-  margin-bottom: 7px;
+  margin-bottom: 12px;
   user-select: none;
   display: flex;
   flex-direction: row;
@@ -609,13 +609,13 @@ body.platform-win32 {
 
   button {
     cursor: pointer;
-    color: @text-color;
+    color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 30%);
     padding: 4px 9px;
     border: none;
     background: none;
 
     &:hover {
-      background: @background-off-primary;
+      color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 5%);
     }
     select {
       border: none;
