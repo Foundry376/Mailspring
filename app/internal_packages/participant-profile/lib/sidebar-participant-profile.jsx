@@ -162,7 +162,7 @@ class LocationRow extends React.Component {
             <span>
               {this.props.location}
               {' ['}
-              <a className="plain" href={`https://maps.google.com/?q=${this.props.v}`}>
+              <a className="plain" href={`https://maps.google.com/?q=${this.props.location}`}>
                 View
               </a>
               {']'}
