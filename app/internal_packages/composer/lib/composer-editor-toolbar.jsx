@@ -1,8 +1,9 @@
 import React from 'react';
-import { RichUtils, EditorState, SelectionState } from 'draft-js';
+import { RichUtils } from 'draft-js';
 import { CompactPicker } from 'react-color';
 
 import { styleValueForGroup, COLOR_STYLE_PREFIX, FONTSIZE_STYLE_PREFIX } from './draftjs-config';
+import { getCurrentLink, editorStateSettingExplicitLink } from './linkify-plugin';
 
 const BLOCK_TYPES = [
   { label: 'Blockquote', style: 'blockquote', fa: 'fa fa-quote-left' },
@@ -17,20 +18,6 @@ const INLINE_STYLES = [
   { label: 'Underline', style: 'UNDERLINE', fa: 'fa fa-underline' },
   { label: 'Monospace', style: 'CODE', fa: 'fa fa-code' },
 ];
-
-function getCurrentLink(editorState) {
-  const contentState = editorState.getCurrentContent();
-  const startKey = editorState.getSelection().getStartKey();
-  const startOffset = editorState.getSelection().getStartOffset();
-  const blockWithLinkAtBeginning = contentState.getBlockForKey(startKey);
-  const linkKey = blockWithLinkAtBeginning.getEntityAt(startOffset);
-
-  if (linkKey) {
-    const linkInstance = contentState.getEntity(linkKey);
-    return linkInstance.getData().url;
-  }
-  return null;
-}
 
 class ColorPicker extends React.Component {
   constructor(props) {
@@ -113,11 +100,8 @@ class LinkPicker extends React.Component {
     // attach the URL value to the LINK that was created when we opened the link modal
     const { urlValue } = this.state;
     const { editorState, onChange } = this.props;
-    const contentState = editorState.getCurrentContent();
-    const contentStateWithEntity = contentState.createEntity('LINK', 'MUTABLE', { url: urlValue });
-    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
-    const newEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
-    onChange(RichUtils.toggleLink(newEditorState, newEditorState.getSelection(), entityKey));
+
+    onChange(editorStateSettingExplicitLink(editorState, urlValue));
 
     this.setState({ expanded: false, urlValue: '' }, () => {
       window.requestAnimationFrame(this.props.onFocusComposer);
@@ -127,33 +111,7 @@ class LinkPicker extends React.Component {
   onRemoveLink = e => {
     e.preventDefault();
     const { editorState, onChange } = this.props;
-    let selection = editorState.getSelection();
-
-    if (selection.isCollapsed()) {
-      // expand the selection to include the entire link by finding the range of
-      // characters that have an attached LINK entity.
-      const selectionKey = selection.getAnchorKey();
-      const contentState = editorState.getCurrentContent();
-      const block = contentState.getBlockForKey(selectionKey);
-      block.findEntityRanges(
-        charMetadata => {
-          const entityKey = charMetadata.getEntity();
-          const entity = entityKey && contentState.getEntity(entityKey);
-          return entity && entity.getType() === 'LINK';
-        },
-        (start, end) => {
-          selection = new SelectionState({
-            anchorOffset: start,
-            anchorKey: selectionKey,
-            focusOffset: end,
-            focusKey: selectionKey,
-            isBackward: false,
-            hasFocus: selection.getHasFocus(),
-          });
-        }
-      );
-    }
-    onChange(RichUtils.toggleLink(editorState, selection, null));
+    onChange(editorStateSettingExplicitLink(editorState, null));
   };
 
   onBlur = e => {
@@ -275,7 +233,7 @@ export default class ComposerEditorToolbar extends React.Component {
   };
 
   render() {
-    const { editorState, onChange, onFocusComposer } = this.props;
+    const { editorState, onChange, onFocusComposer, extras } = this.props;
 
     const currentStyle = editorState.getCurrentInlineStyle();
     const selection = editorState.getSelection();
@@ -332,6 +290,8 @@ export default class ComposerEditorToolbar extends React.Component {
           onChange={onChange}
           onFocusComposer={onFocusComposer}
         />
+
+        {extras}
       </div>
     );
   }

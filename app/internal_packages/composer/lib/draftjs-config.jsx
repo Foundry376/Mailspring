@@ -1,5 +1,4 @@
 import React from 'react';
-import { CompositeDecorator } from 'draft-js';
 import * as DraftConvert from 'draft-convert';
 
 // Support for style keys that encode data (color-#ff0000)
@@ -60,33 +59,6 @@ export function blockStyleFn(block) {
       return null;
   }
 }
-
-// Inline Decorators
-
-const Link = props => {
-  const data = props.data || props.contentState.getEntity(props.entityKey).getData();
-  const { url } = data;
-  return (
-    <a href={url} title={url}>
-      {props.children}
-    </a>
-  );
-};
-
-function findLinkEntities(contentBlock, callback, contentState) {
-  contentBlock.findEntityRanges(character => {
-    const entityKey = character.getEntity();
-    return entityKey !== null && contentState.getEntity(entityKey).getType() === 'LINK';
-  }, callback);
-}
-
-export const decorator = new CompositeDecorator([
-  {
-    strategy: findLinkEntities,
-    component: Link,
-  },
-]);
-
 // Conversion to and from HTML
 
 export function convertFromHTML(html) {

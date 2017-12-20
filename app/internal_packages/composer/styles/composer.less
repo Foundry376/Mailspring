@@ -4,6 +4,8 @@
 @import 'buttons';
 
 @import '../node_modules/draft-js/dist/Draft.css';
+@import '../node_modules/draft-js-emoji-plugin/lib/plugin.css';
+@import '../node_modules/draft-js-focus-plugin/lib/plugin.css';
 
 @compose-width: 800px;
 @compose-min-height: 70px;
@@ -80,14 +82,10 @@ body.platform-win32 {
     }
   }
 
-  .inline-image-upload-container {
-    display: inline-block;
-
-    .nylas-attachment-item.image-attachment-item {
-      margin: 0;
-      max-width: calc(100% - 22px); // right margin of composer
-      min-width: 0;
-    }
+  .nylas-attachment-item.image-attachment-item {
+    margin: 0;
+    max-width: calc(100% - 22px); // right margin of composer
+    min-width: 0;
   }
 
   .composer-action-bar-wrap {
@@ -613,9 +611,11 @@ body.platform-win32 {
     padding: 4px 9px;
     border: none;
     background: none;
-
+    width: initial;
+    
     &:hover {
       color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 5%);
+      background: none;
     }
     select {
       border: none;
@@ -627,7 +627,7 @@ body.platform-win32 {
     color: @component-active-color;
   }
   .dropdown {
-    z-index: 1;
+    z-index: 4;
     position: absolute;
     background: @background-primary;
     border-radius: @border-radius-base @border-radius-base 0 @border-radius-base;

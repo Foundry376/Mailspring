@@ -1,14 +1,44 @@
 import React from 'react';
-import { Editor, RichUtils, AtomicBlockUtils, EditorState, SelectionState } from 'draft-js';
+import Editor, { composeDecorators } from 'draft-js-plugins-editor';
+import { RichUtils, AtomicBlockUtils, EditorState, SelectionState } from 'draft-js';
 
 import ComposerEditorToolbar from './composer-editor-toolbar';
-import InlineImageUploadContainer from './inline-image-upload-container';
-import { decorator, blockStyleFn, customStyleFn } from './draftjs-config';
+
+import createInlineAttachmentPlugin from './inline-attachment-plugin';
+import createLinkifyPlugin from './linkify-plugin';
+
+import createFocusPlugin from 'draft-js-focus-plugin';
+import createAutoListPlugin from 'draft-js-autolist-plugin';
+import createEmojiPlugin from 'draft-js-emoji-plugin';
+
+const focusPlugin = createFocusPlugin();
+const emojiPlugin = createEmojiPlugin({
+  useNativeArt: true,
+});
+const { EmojiSuggestions, EmojiSelect } = emojiPlugin;
 
 export default class ComposerEditor extends React.Component {
+  constructor(props) {
+    super(props);
+
+    const inlineAttachmentPlugin = createInlineAttachmentPlugin({
+      decorator: composeDecorators(focusPlugin.decorator),
+      getExposedProps: () => this.props.atomicBlockProps,
+      onRemoveBlockWithKey: this.onRemoveBlockWithKey,
+    });
+
+    this.plugins = [
+      focusPlugin,
+      createLinkifyPlugin(),
+      createAutoListPlugin(),
+      emojiPlugin,
+      inlineAttachmentPlugin,
+    ];
+  }
+
   componentDidMount() {
     // attach the decorators we use to EditorState
-    this.props.onChange(EditorState.set(this.props.editorState, { decorator }));
+    // this.props.onChange(EditorState.set(this.props.editorState, { decorator }));
   }
 
   // Public API
@@ -75,30 +105,6 @@ export default class ComposerEditor extends React.Component {
     }
   };
 
-  blockRenderer = block => {
-    const Image = props => {
-      const entity = props.contentState.getEntity(props.block.getEntityAt(0));
-      const { fileId } = entity.getData();
-
-      return (
-        <InlineImageUploadContainer
-          {...this.props.atomicBlockProps}
-          fileId={fileId}
-          isPreview={false}
-          onRemove={() => this.onRemoveBlockWithKey(props.block.getKey())}
-        />
-      );
-    };
-
-    if (block.getType() === 'atomic') {
-      return {
-        component: Image,
-        editable: false,
-      };
-    }
-    return null;
-  };
-
   onPastedFiles = files => {
     files.forEach(item => {
       const temp = require('temp');
@@ -135,20 +141,23 @@ export default class ComposerEditor extends React.Component {
           editorState={editorState}
           onChange={onChange}
           onFocusComposer={this.focus}
+          extras={[<EmojiSelect key="emoji" />]}
         />
         <div className={className} onClick={this.focus}>
           <Editor
             ref={el => (this._editorComponent = el)}
-            blockRendererFn={this.blockRenderer}
-            blockStyleFn={blockStyleFn}
-            customStyleFn={customStyleFn}
-            handleKeyCommand={this.onHandleKeyCommand}
+            // blockRendererFn={this.blockRenderer}
+            // blockStyleFn={blockStyleFn}
+            // customStyleFn={customStyleFn}
+            // handleKeyCommand={this.onHandleKeyCommand}
             handlePastedFiles={this.onPastedFiles}
             editorState={editorState}
             onChange={onChange}
             onTab={this.onTab}
+            plugins={this.plugins}
             spellCheck
           />
+          <EmojiSuggestions />
         </div>
       </div>
     );

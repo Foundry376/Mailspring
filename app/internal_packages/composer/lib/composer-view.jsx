@@ -331,8 +331,8 @@ export default class ComposerView extends React.Component {
       .map(file => (
         <ImageAttachmentItem
           key={file.id}
-          className="file-upload"
           draggable={false}
+          className="file-upload"
           filePath={AttachmentStore.pathForFile(file)}
           displayName={file.filename}
           onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
