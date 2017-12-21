@@ -130,13 +130,18 @@ export default class WindowEventHandler {
       if (event.target.nodeName === 'INPUT') {
         this.openContextualMenuForInput(event);
       }
+
+      const ces = Array.from(document.querySelectorAll('[contenteditable]'));
+      const withinContenteditable = !!ces.find(c => c.contains(event.target));
+      if (withinContenteditable) {
+        this.openContextualMenuForContenteditable(event);
+      }
     });
 
     // Prevent form submits from changing the current window's URL
     document.addEventListener('submit', event => {
       if (event.target.nodeName === 'FORM') {
         event.preventDefault();
-        this.openContextualMenuForInput(event);
       }
     });
   }
@@ -237,18 +242,27 @@ export default class WindowEventHandler {
     return;
   }
 
+  openContextualMenuForContenteditable(event) {
+    event.preventDefault();
+
+    const sel = window.getSelection();
+    if (sel.rangeCount !== 1) {
+      return;
+    }
+    const text = sel.getRangeAt(0).toString();
+    this.openSpellingMenuFor(text, text.length > 0, correction => {
+      document.execCommand('insertText', false, correction);
+    });
+  }
+
   openContextualMenuForInput(event) {
     event.preventDefault();
 
-    if (
-      !['text', 'password', 'email', 'number', 'range', 'search', 'tel', 'url'].includes(
-        event.target.type
-      )
-    ) {
+    const textualInputs = ['text', 'password', 'email', 'number', 'range', 'search', 'tel', 'url'];
+    if (!textualInputs.includes(event.target.type)) {
       return;
     }
     const hasSelectedText = event.target.selectionStart !== event.target.selectionEnd;
-
     let wordStart = null;
     let wordEnd = null;
 
@@ -267,19 +281,19 @@ export default class WindowEventHandler {
     }
     const word = event.target.value.substr(wordStart, wordEnd - wordStart);
 
+    this.openSpellingMenuFor(word, hasSelectedText, correction => {
+      const insertionPoint = wordStart + correction.length;
+      event.target.value = event.target.value.replace(word, correction);
+      event.target.setSelectionRange(insertionPoint, insertionPoint);
+    });
+  }
+
+  openSpellingMenuFor(word, hasSelectedText, onCorrect) {
     const { Menu, MenuItem } = remote;
     const menu = new Menu();
 
     Spellchecker = Spellchecker || require('./spellchecker').default;
-    Spellchecker.appendSpellingItemsToMenu({
-      menu: menu,
-      word: word,
-      onCorrect: correction => {
-        const insertionPoint = wordStart + correction.length;
-        event.target.value = event.target.value.replace(word, correction);
-        event.target.setSelectionRange(insertionPoint, insertionPoint);
-      },
-    });
+    Spellchecker.appendSpellingItemsToMenu({ menu, word, onCorrect });
 
     menu.append(
       new MenuItem({
