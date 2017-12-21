@@ -3,7 +3,7 @@ import unwrappedSignatureDetector from './unwrapped-signature-detector';
 const { FIRST_ORDERED_NODE_TYPE } = XPathResult;
 
 class QuotedHTMLTransformer {
-  annotationClass = 'nylas-quoted-text-segment';
+  annotationClass = 'mailspring-quoted-text-segment';
 
   hasQuotedHTML(html) {
     const doc = this._parseHTML(html);

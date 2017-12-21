@@ -7,7 +7,6 @@ import {
   Actions,
   DraftStore,
   AttachmentStore,
-  DraftHelpers,
 } from 'mailspring-exports';
 import {
   DropZone,
@@ -47,10 +46,7 @@ export default class ComposerView extends React.Component {
   constructor(props) {
     super(props);
     this._els = {};
-    this.state = {
-      showQuotedText: DraftHelpers.isForwardedMessage(props.draft),
-      showQuotedTextControl: DraftHelpers.shouldAppendQuotedText(props.draft),
-    };
+    this.state = { isDropping: false };
   }
 
   componentDidMount() {
@@ -63,17 +59,6 @@ export default class ComposerView extends React.Component {
     if (nextProps.session !== this.props.session) {
       this._teardownForProps();
       this._setupForProps(nextProps);
-    }
-    if (
-      DraftHelpers.isForwardedMessage(this.props.draft) !==
-        DraftHelpers.isForwardedMessage(nextProps.draft) ||
-      DraftHelpers.shouldAppendQuotedText(this.props.draft) !==
-        DraftHelpers.shouldAppendQuotedText(nextProps.draft)
-    ) {
-      this.setState({
-        showQuotedText: DraftHelpers.isForwardedMessage(nextProps.draft),
-        showQuotedTextControl: DraftHelpers.shouldAppendQuotedText(nextProps.draft),
-      });
     }
   }
 
@@ -116,11 +101,6 @@ export default class ComposerView extends React.Component {
   }
 
   _setupForProps({ draft, session }) {
-    this.setState({
-      showQuotedText: DraftHelpers.isForwardedMessage(draft),
-      showQuotedTextControl: DraftHelpers.shouldAppendQuotedText(draft),
-    });
-
     // // TODO: This is a dirty hack to save selection state into the undo/redo
     // // history. Remove it if / when selection is written into the body with
     // // marker tags, or when selection is moved from `contenteditable.innerState`
@@ -138,6 +118,7 @@ export default class ComposerView extends React.Component {
   _setSREl = el => {
     this._els.scrollregion = el;
   };
+
   _renderContentScrollRegion() {
     if (AppEnv.isComposerWindow()) {
       return (
@@ -204,7 +185,6 @@ export default class ComposerView extends React.Component {
         className="composer-body-wrap"
       >
         {this._renderEditor()}
-        {this._renderQuotedTextControl()}
         {this._renderAttachments()}
       </div>
     );
@@ -244,52 +224,6 @@ export default class ComposerView extends React.Component {
   // this value.
   _getComposerBoundingRect = () => {
     return ReactDOM.findDOMNode(this._els.composerWrap).getBoundingClientRect();
-  };
-
-  _renderQuotedTextControl() {
-    if (this.state.showQuotedTextControl) {
-      return (
-        <a className="quoted-text-control" onClick={this._onExpandQuotedText}>
-          <span className="dots">&bull;&bull;&bull;</span>
-          <span className="remove-quoted-text" onClick={this._onRemoveQuotedText}>
-            <RetinaImg
-              title="Remove quoted text"
-              name="image-cancel-button.png"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
-          </span>
-        </a>
-      );
-    }
-    return false;
-  }
-
-  _onExpandQuotedText = () => {
-    this.setState(
-      {
-        showQuotedText: true,
-        showQuotedTextControl: false,
-      },
-      () => {
-        DraftHelpers.appendQuotedTextToDraft(this.props.draft).then(draftWithQuotedText => {
-          this.props.session.changes.add({
-            body: `${draftWithQuotedText.body}<div id="mailspring-quoted-text-marker" />`,
-          });
-        });
-      }
-    );
-  };
-
-  _onRemoveQuotedText = event => {
-    // event.stopPropagation();
-    // const { session, draft } = this.props;
-    // session.changes.add({
-    //   body: `${draft.body}<div id="mailspring-quoted-text-marker" />`,
-    // });
-    // this.setState({
-    //   showQuotedText: false,
-    //   showQuotedTextControl: false,
-    // });
   };
 
   _renderFooterRegions() {

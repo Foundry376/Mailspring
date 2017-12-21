@@ -13,6 +13,7 @@ import createTextStylePlugin from './text-style-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
 import createAutoListPlugin from 'draft-js-autolist-plugin';
 import createEmojiPlugin from 'draft-js-emoji-plugin';
+import createQuotedTextPlugin from './quoted-text-plugin';
 
 const focusPlugin = createFocusPlugin();
 const emojiPlugin = createEmojiPlugin({
@@ -35,6 +36,7 @@ export default class ComposerEditor extends React.Component {
       createLinkifyPlugin(),
       createAutoListPlugin(),
       createTextStylePlugin(),
+      createQuotedTextPlugin(),
       emojiPlugin,
       inlineAttachmentPlugin,
     ];

@@ -40,7 +40,7 @@ class DraftHelpers {
     return (
       replyToHeaderMessageId &&
       !body.includes('<div id="mailspring-quoted-text-marker">') &&
-      !body.includes(`nylas-quote-id-${replyToHeaderMessageId}`)
+      !body.includes(`mailspring-quote-id-${replyToHeaderMessageId}`)
     );
   }
 
@@ -77,7 +77,7 @@ class DraftHelpers {
       }
       return this.prepareBodyForQuoting(prevMessage.body).then(prevBodySanitized => {
         draft.body = `${draft.body}
-          <div class="gmail_quote nylas-quote nylas-quote-id-${draft.replyToHeaderMessageId}">
+          <div class="gmail_quote mailspring-quote mailspring-quote-id-${draft.replyToHeaderMessageId}">
             <br>
             ${DOMUtils.escapeHTMLCharacters(prevMessage.replyAttributionLine())}
             <br>
@@ -89,30 +89,6 @@ class DraftHelpers {
         return Promise.resolve(draft);
       });
     });
-  }
-
-  async applyExtensionTransforms(draft) {
-    const extensions = ExtensionRegistry.Composer.extensions();
-
-    const fragment = document.createDocumentFragment();
-    const draftBodyRootNode = document.createElement('root');
-    fragment.appendChild(draftBodyRootNode);
-    draftBodyRootNode.innerHTML = draft.body;
-
-    for (const ext of extensions) {
-      const extApply = ext.applyTransformsForSending;
-      const extUnapply = ext.unapplyTransformsForSending;
-
-      if (!extApply || !extUnapply) {
-        continue;
-      }
-
-      await extUnapply({ draft, draftBodyRootNode });
-      await extApply({ draft, draftBodyRootNode });
-    }
-
-    draft.body = draftBodyRootNode.innerHTML;
-    return draft;
   }
 }
 

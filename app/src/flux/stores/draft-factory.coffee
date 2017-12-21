@@ -124,16 +124,25 @@ class DraftFactory
     else if type is 'reply-all'
       {to, cc} = message.participantsForReplyAll()
 
-    @createDraft(
-      subject: subjectWithPrefix(message.subject, 'Re:')
-      to: to,
-      cc: cc,
-      from: [@_fromContactForReply(message)],
-      threadId: thread.id,
-      accountId: message.accountId,
-      replyToHeaderMessageId: message.headerMessageId,
-      body: "" # quoted html is managed by the composer via the replyToHeaderMessageId
-    )
+    DraftHelpers.prepareBodyForQuoting(message.body).then (prevBody) =>
+      @createDraft(
+        subject: subjectWithPrefix(message.subject, 'Re:')
+        to: to,
+        cc: cc,
+        from: [@_fromContactForReply(message)],
+        threadId: thread.id,
+        accountId: message.accountId,
+        replyToHeaderMessageId: message.headerMessageId,
+        body: """
+          <div class="gmail_quote mailspring-quote mailspring-quote-id-#{message.replyToHeaderMessageId}">
+            <div>#{DOMUtils.escapeHTMLCharacters(message.replyAttributionLine())}</div>
+            <div><blockquote class="gmail_quote"
+              style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
+              #{prevBody}
+            </blockquote></div>
+          </div>
+          """
+      )
 
   createDraftForForward: ({thread, message}) =>
     # Start downloading the attachments, if they haven't been already

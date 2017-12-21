@@ -4,8 +4,14 @@ import * as DraftConvert from 'draft-convert';
 import { HTMLConfig as InlineAttachmentHTMLConfig } from './inline-attachment-plugin';
 import { HTMLConfig as LinkifyHTMLConfig } from './linkify-plugin';
 import { HTMLConfig as TextStyleHTMLConfig } from './text-style-plugin';
+import { HTMLConfig as QuotedTextHTMLConfig } from './quoted-text-plugin';
 
-const plugins = [InlineAttachmentHTMLConfig, LinkifyHTMLConfig, TextStyleHTMLConfig];
+const plugins = [
+  InlineAttachmentHTMLConfig,
+  LinkifyHTMLConfig,
+  TextStyleHTMLConfig,
+  QuotedTextHTMLConfig,
+];
 
 // Conversion to and from HTML
 
