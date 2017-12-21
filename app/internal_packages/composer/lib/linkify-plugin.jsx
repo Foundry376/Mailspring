@@ -1,6 +1,8 @@
 import React from 'react';
 import { RichUtils, Modifier, EditorState, SelectionState } from 'draft-js';
 
+const ENTITY_TYPE = 'LINK';
+
 function isURL(text) {
   return text.startsWith('http://'); // insert your favorite library here
 }
@@ -27,7 +29,7 @@ export function editorStateSettingLink(editorState, selection, data) {
   let nextEditorState = editorState;
 
   if (!entityKey) {
-    const contentStateWithEntity = contentState.createEntity('LINK', 'MUTABLE', data);
+    const contentStateWithEntity = contentState.createEntity(ENTITY_TYPE, 'MUTABLE', data);
     const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
     nextEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
     nextEditorState = RichUtils.toggleLink(nextEditorState, selection, entityKey);
@@ -55,7 +57,7 @@ export function getCurrentLinkEntityKey(editorState) {
 
   if (linkKey) {
     const linkInstance = contentState.getEntity(linkKey);
-    if (linkInstance.getType() === 'LINK') {
+    if (linkInstance.getType() === ENTITY_TYPE) {
       return linkKey;
     }
   }
@@ -76,17 +78,34 @@ export function getCurrentLink(editorState) {
   );
 }
 
+export const HTMLConfig = {
+  htmlToEntity(nodeName, node, createEntity) {
+    if (nodeName === 'a') {
+      return createEntity(ENTITY_TYPE, 'MUTABLE', { url: node.getAttribute('href') });
+    }
+  },
+  entityToHTML(entity, originalText) {
+    if (entity.type === ENTITY_TYPE) {
+      return entity.data.url ? (
+        <a href={entity.data.url} title={entity.data.url}>
+          {originalText}
+        </a>
+      ) : (
+        <span>{originalText}</span>
+      );
+    }
+  },
+};
+
 const createLinkifyPlugin = () => {
   const Link = props => {
-    const data = props.data || props.contentState.getEntity(props.entityKey).getData();
-    const { url } = data;
-    if (!url) {
-      return <span>{props.children}</span>;
-    }
-    return (
+    const { url } = props.contentState.getEntity(props.entityKey).getData();
+    return url ? (
       <a href={url} title={url}>
         {props.children}
       </a>
+    ) : (
+      <span>{props.children}</span>
     );
   };
 
@@ -96,7 +115,7 @@ const createLinkifyPlugin = () => {
       if (!entityKey) return;
 
       const entity = contentState.getEntity(entityKey);
-      return entity.getType() === 'LINK' && entity.getData().url;
+      return entity.getType() === ENTITY_TYPE && entity.getData().url;
     }, callback);
   }
 
@@ -121,7 +140,7 @@ const createLinkifyPlugin = () => {
       const cursorOffset = selection.getStartOffset();
       const cursorBlockKey = selection.getStartKey();
       const cursorBlock = contentState.getBlockForKey(cursorBlockKey);
-      if (cursorBlock.type !== 'unstyled') {
+      if (!['unordered-list-item', 'ordered-list-item', 'unstyled'].includes(cursorBlock.type)) {
         return editorState;
       }
 
@@ -138,7 +157,7 @@ const createLinkifyPlugin = () => {
       // Step 2: Find the existing LINK entity beneath the user's cursor
       let currentLinkEntityKey = cursorBlock.getEntityAt(Math.min(text.length - 1, cursorOffset));
       const inst = currentLinkEntityKey && contentState.getEntity(currentLinkEntityKey);
-      if (inst && inst.getType() !== 'LINK') {
+      if (inst && inst.getType() !== ENTITY_TYPE) {
         currentLinkEntityKey = null;
       }
 

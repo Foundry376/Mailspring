@@ -1,11 +1,14 @@
 import React from 'react';
 import Editor, { composeDecorators } from 'draft-js-plugins-editor';
-import { RichUtils, AtomicBlockUtils, EditorState, SelectionState } from 'draft-js';
+import { RichUtils, EditorState, SelectionState } from 'draft-js';
 
 import ComposerEditorToolbar from './composer-editor-toolbar';
 
-import createInlineAttachmentPlugin from './inline-attachment-plugin';
+import createInlineAttachmentPlugin, {
+  editorStateInsertingInlineAttachment,
+} from './inline-attachment-plugin';
 import createLinkifyPlugin from './linkify-plugin';
+import createTextStylePlugin from './text-style-plugin';
 
 import createFocusPlugin from 'draft-js-focus-plugin';
 import createAutoListPlugin from 'draft-js-autolist-plugin';
@@ -31,14 +34,10 @@ export default class ComposerEditor extends React.Component {
       focusPlugin,
       createLinkifyPlugin(),
       createAutoListPlugin(),
+      createTextStylePlugin(),
       emojiPlugin,
       inlineAttachmentPlugin,
     ];
-  }
-
-  componentDidMount() {
-    // attach the decorators we use to EditorState
-    // this.props.onChange(EditorState.set(this.props.editorState, { decorator }));
   }
 
   // Public API
@@ -56,14 +55,7 @@ export default class ComposerEditor extends React.Component {
 
   insertInlineAttachment = file => {
     const { editorState, onChange } = this.props;
-    const contentState = editorState.getCurrentContent();
-    const contentStateWithEntity = contentState.createEntity('image', 'IMMUTABLE', {
-      fileId: file.id,
-    });
-    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
-    const newEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
-
-    onChange(AtomicBlockUtils.insertAtomicBlock(newEditorState, entityKey, ' '));
+    onChange(editorStateInsertingInlineAttachment(editorState, file));
   };
 
   // Event Handlers
@@ -146,10 +138,7 @@ export default class ComposerEditor extends React.Component {
         <div className={className} onClick={this.focus}>
           <Editor
             ref={el => (this._editorComponent = el)}
-            // blockRendererFn={this.blockRenderer}
-            // blockStyleFn={blockStyleFn}
-            // customStyleFn={customStyleFn}
-            // handleKeyCommand={this.onHandleKeyCommand}
+            handleKeyCommand={this.onHandleKeyCommand}
             handlePastedFiles={this.onPastedFiles}
             editorState={editorState}
             onChange={onChange}

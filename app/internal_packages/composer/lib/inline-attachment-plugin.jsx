@@ -1,6 +1,52 @@
 import React from 'react';
+import { AtomicBlockUtils, EditorState } from 'draft-js';
+
 import { AttachmentStore } from 'mailspring-exports';
 import { ImageAttachmentItem } from 'mailspring-component-kit';
+
+const ENTITY_TYPE = 'IMAGE';
+
+export function editorStateInsertingInlineAttachment(editorState, file) {
+  const contentState = editorState.getCurrentContent();
+  const contentStateWithEntity = contentState.createEntity(ENTITY_TYPE, 'IMMUTABLE', {
+    fileId: file.id,
+  });
+  const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+  const newEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
+  return AtomicBlockUtils.insertAtomicBlock(newEditorState, entityKey, ' ');
+}
+
+export const HTMLConfig = {
+  htmlToBlock(nodeName, node) {
+    if (nodeName === 'img') {
+      return {
+        type: 'atomic',
+        data: {},
+      };
+    }
+  },
+
+  htmlToEntity(nodeName, node, createEntity) {
+    if (nodeName === 'img') {
+      return createEntity(ENTITY_TYPE, 'IMMUTABLE', {
+        fileId: node
+          .getAttribute('src')
+          .split('cid:')
+          .pop(),
+      });
+    }
+  },
+
+  entityToHTML(entity, originalText) {
+    if (entity.type === ENTITY_TYPE) {
+      return {
+        empty: `<img alt="" src="cid:${entity.data.fileId}" />`,
+        start: `<img alt="" src="cid:${entity.data.fileId}" />`,
+        end: '',
+      };
+    }
+  },
+};
 
 const createInlineAttachmentPlugin = ({ decorator, getExposedProps, onRemoveBlockWithKey }) => {
   const InlineImageBlock = ({
@@ -45,9 +91,14 @@ const createInlineAttachmentPlugin = ({ decorator, getExposedProps, onRemoveBloc
     blockRendererFn: (block, { getEditorState }) => {
       if (block.getType() === 'atomic') {
         const contentState = getEditorState().getCurrentContent();
-        const entity = contentState.getEntity(block.getEntityAt(0));
+        const entityKey = block.getEntityAt(0);
+        if (!entityKey) return null;
+
+        const entity = contentState.getEntity(entityKey);
+        if (!entity) return null;
+
         const type = entity.getType();
-        if (type === 'image') {
+        if (type === ENTITY_TYPE) {
           return {
             component,
             editable: false,

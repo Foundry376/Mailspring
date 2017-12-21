@@ -2,7 +2,13 @@ import React from 'react';
 import { RichUtils } from 'draft-js';
 import { CompactPicker } from 'react-color';
 
-import { styleValueForGroup, COLOR_STYLE_PREFIX, FONTSIZE_STYLE_PREFIX } from './draftjs-config';
+import {
+  COLOR_STYLE_PREFIX,
+  FONTSIZE_STYLE_PREFIX,
+  styleValueForGroup,
+  editorStateSettingTextStyle,
+} from './text-style-plugin';
+
 import { getCurrentLink, editorStateSettingExplicitLink } from './linkify-plugin';
 
 const BLOCK_TYPES = [
@@ -210,25 +216,8 @@ export default class ComposerEditorToolbar extends React.Component {
     this.props.onFocusComposer();
 
     window.requestAnimationFrame(() => {
-      // TODO: Get all inine styles in selected area, not just at insertion point
-
-      const { editorState, onChange } = this.props;
-      const currentStyle = editorState.getCurrentInlineStyle();
-      const currentGroupKeys = currentStyle.filter(value => value.startsWith(groupPrefix));
-      const nextGroupKey = groupValue ? `${groupPrefix}${groupValue}` : null;
-
-      let nextEditorState = editorState;
-
-      if (currentGroupKeys.count() !== 1 || currentGroupKeys[0] !== nextGroupKey) {
-        for (const key of currentGroupKeys) {
-          nextEditorState = RichUtils.toggleInlineStyle(nextEditorState, key);
-        }
-      }
-      if (nextGroupKey) {
-        nextEditorState = RichUtils.toggleInlineStyle(nextEditorState, nextGroupKey);
-      }
-
-      onChange(nextEditorState);
+      const { onChange, editorState } = this.props;
+      onChange(editorStateSettingTextStyle(editorState, groupPrefix, groupValue));
     });
   };
 
