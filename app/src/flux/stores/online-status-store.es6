@@ -14,6 +14,7 @@ class OnlineStatusStore extends MailspringStore {
 
     this._interval = null;
     this._timeout = null;
+    this._timeoutTargetTime = null;
     this._backoffScheduler = new ExponentialBackoffScheduler({ jitter: false });
 
     if (AppEnv.isMainWindow()) {
@@ -30,49 +31,69 @@ class OnlineStatusStore extends MailspringStore {
     return this._countdownSeconds;
   }
 
-  async _setNextOnlineState() {
+  _checkOnlineStatus = async () => {
     isOnlineModule = isOnlineModule || require('is-online'); //eslint-disable-line
 
-    const nextIsOnline = await isOnlineModule();
-    if (this._online !== nextIsOnline) {
-      this._online = nextIsOnline;
-      this.trigger({ onlineDidChange: true, countdownDidChange: false });
-    }
-  }
-
-  _checkOnlineStatus = async () => {
     clearInterval(this._interval);
     clearTimeout(this._timeout);
 
-    // If we are currently offline, this trigger will show `Retrying now...`
-    this._countdownSeconds = 0;
-    this.trigger({ onlineDidChange: false, countdownDidChange: true });
+    // If we're more than a minute "late", we probably went to sleep
+    // and are now waking.
+    const wakingFromSleep =
+      this._timeoutTargetTime && Date.now() > this._timeoutTargetTime + 1000 * 60;
+    this._timeoutTargetTime = null;
 
-    await this._setNextOnlineState();
+    // If we are currently offline, this trigger will show `Retrying now...`
+    if (this._countdownSeconds > 0) {
+      this._countdownSeconds = 0;
+      this.trigger({
+        onlineDidChange: false,
+        wakingFromSleep: false,
+        countdownDidChange: true,
+      });
+    }
+
+    const nextIsOnline = await isOnlineModule({ timeout: 10000 });
+    const onlineDidChange = this._online !== nextIsOnline;
+    this._online = nextIsOnline;
+
+    if (wakingFromSleep || onlineDidChange) {
+      this.trigger({
+        onlineDidChange,
+        wakingFromSleep,
+        countdownDidChange: false,
+      });
+    }
 
     if (this._online) {
       // just check again later
       this._backoffScheduler.reset();
+      this._timeoutTargetTime = Date.now() + CHECK_ONLINE_INTERVAL;
       this._timeout = setTimeout(this._checkOnlineStatus, CHECK_ONLINE_INTERVAL);
     } else {
       // count down an inreasing delay and check again
       this._countdownSeconds = Math.ceil(this._backoffScheduler.nextDelay() / 1000);
       this._interval = setInterval(() => {
-        this._countdownSeconds = Math.max(0, this._countdownSeconds - 1);
-        if (this._countdownSeconds === 0) {
-          this._checkOnlineStatus();
-        } else {
-          // if the countdown is greater than 10 seconds we only update every 5
-          // seconds just for a tiny, tiny offline performance improvement
-          // 45, 30, 15, 10, 9, 8, 7...
-          if (this._countdownSeconds > 30 && this._countdownSeconds % 15 !== 0) {
-            return;
-          }
-          if (this._countdownSeconds > 10 && this._countdownSeconds % 5 !== 0) {
-            return;
-          }
-          this.trigger({ onlineDidChange: false, countdownDidChange: true });
+        const next = Math.max(0, this._countdownSeconds - 1);
+        if (next === 0) {
+          return this._checkOnlineStatus();
         }
+
+        this._countdownSeconds = next;
+        // if the countdown is greater than 10 seconds we only update every 5
+        // seconds just for a tiny, tiny offline performance improvement
+        // 45, 30, 15, 10, 9, 8, 7...
+        if (this._countdownSeconds > 30 && this._countdownSeconds % 15 !== 0) {
+          return;
+        }
+        if (this._countdownSeconds > 10 && this._countdownSeconds % 5 !== 0) {
+          return;
+        }
+        this.trigger({
+          onlineDidChange: false,
+          wakingFromSleep: false,
+          countdownDidChange: true,
+        });
       }, 1000);
     }
   };

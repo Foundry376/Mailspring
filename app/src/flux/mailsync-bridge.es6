@@ -445,8 +445,8 @@ export default class MailsyncBridge {
     return true;
   };
 
-  _onOnlineStatusChanged = ({ onlineDidChange }) => {
-    if (onlineDidChange && OnlineStatusStore.isOnline()) {
+  _onOnlineStatusChanged = ({ onlineDidChange, wakingFromSleep }) => {
+    if (wakingFromSleep || (onlineDidChange && OnlineStatusStore.isOnline())) {
       this.sendSyncMailNow();
     }
   };
