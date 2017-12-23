@@ -26,7 +26,6 @@ class ActionBridge {
   static TargetWindows = TargetWindows;
 
   constructor(ipc) {
-    this.registerGlobalActions = this.registerGlobalActions.bind(this);
     this.onIPCMessage = this.onIPCMessage.bind(this);
     this.onRebroadcast = this.onRebroadcast.bind(this);
     this.onBeforeUnload = this.onBeforeUnload.bind(this);
@@ -57,27 +56,6 @@ class ActionBridge {
     }
   }
 
-  registerGlobalActions({ pluginName, actions }) {
-    return Object.entries(actions).forEach(([name, actionFn]) => {
-      this.globalActions.push({ name, actionFn, scope: pluginName });
-      const callback = (...args) => {
-        const broadcastName = `${pluginName}::${name}`;
-        return this.onRebroadcast(TargetWindows.ALL, broadcastName, args);
-      };
-      return actionFn.listen(callback, this);
-    });
-  }
-
-  _isExtensionAction(name) {
-    return name.split('::').length === 2;
-  }
-
-  _globalExtensionAction(broadcastName) {
-    const [scope, name] = broadcastName.split('::');
-    const action = this.globalActions.find(a => a.scope === scope && a.name === name);
-    return action ? action.actionFn : null;
-  }
-
   onIPCMessage(event, initiatorId, name, json) {
     if (AppEnv.isEmptyWindow()) {
       throw new Error("Empty windows shouldn't receive IPC messages");
@@ -100,12 +78,6 @@ class ActionBridge {
       if (Actions[name]) {
         Actions[name].firing = true;
         Actions[name](...args);
-      } else if (this._isExtensionAction(name)) {
-        const fn = this._globalExtensionAction(name);
-        if (fn) {
-          fn.firing = true;
-          fn(...args);
-        }
       } else {
         throw new Error(`${this.initiatorId} received unknown action-bridge event: ${name}`);
       }
@@ -115,12 +87,6 @@ class ActionBridge {
   onRebroadcast(target, name, args) {
     if (Actions[name] && Actions[name].firing) {
       Actions[name].firing = false;
-      return;
-    }
-
-    const globalExtAction = this._globalExtensionAction(name);
-    if (globalExtAction && globalExtAction.firing) {
-      globalExtAction.firing = false;
       return;
     }
 

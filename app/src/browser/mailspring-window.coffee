@@ -79,7 +79,6 @@ class MailspringWindow
     @handleEvents()
 
     loadSettings = Object.assign({}, settings)
-    loadSettings.windowState ?= '{}'
     loadSettings.appVersion = global.application.version
     loadSettings.resourcePath = @resourcePath
     loadSettings.devMode ?= false
@@ -124,12 +123,7 @@ class MailspringWindow
     @browserWindow.loadSettingsChangedSinceGetURL = true
     @browserWindow.webContents.send('load-settings-changed', loadSettings)
 
-  getURL: (loadSettingsObj) ->
-    # Ignore the windowState when passing loadSettings via URL, since it could
-    # be quite large.
-    loadSettings = _.clone(loadSettingsObj)
-    delete loadSettings['windowState']
-
+  getURL: (loadSettings) ->
     @browserWindow.loadSettingsChangedSinceGetURL = false
 
     url.format

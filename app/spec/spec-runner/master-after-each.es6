@@ -17,7 +17,7 @@ class MasterAfterEach {
       }
       ReactTestUtils.unmountAll();
 
-      jasmine.unspy(AppEnv, 'saveSync');
+      jasmine.unspy(AppEnv, 'saveWindowState');
       self.ensureNoPathSubscriptions();
 
       AppEnv.styles.restoreSnapshot(styleElementsToRestore);

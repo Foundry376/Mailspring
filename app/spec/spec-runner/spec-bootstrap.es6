@@ -4,10 +4,9 @@
 // do fancy things like handle exceptions inside promise blocks
 import '../../src/promise-extensions';
 
-import AppEnvConstructor from '../../src/app-env';
-window.AppEnv = AppEnvConstructor.loadOrCreate();
+import AppEnvClass from '../../src/app-env';
+window.AppEnv = new AppEnvClass();
 
-AppEnv.initialize();
 const loadSettings = AppEnv.getLoadSettings();
 
 // This must be `required` instead of imported because

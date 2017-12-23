@@ -143,13 +143,6 @@ Utils =
           replace(/</g, '&lt;').
           replace(/>/g, '&gt;')
 
-  modelFreeze: (o) ->
-    Object.freeze(o)
-    Object.getOwnPropertyNames(o).forEach (key) ->
-      val = o[key]
-      if typeof val is 'object' and val isnt null and not Object.isFrozen(val)
-        Utils.modelFreeze(val)
-
   generateTempId: ->
     s4 = ->
       Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
@@ -463,54 +456,6 @@ Utils =
     "prodigy.net.mx": true
     "msn.com": true
 
-  # This method ensures that the provided function `fn` is only executing
-  # once at any given time. `fn` should have the following signature:
-  #
-  # (finished, reinvoked, arg1, arg2, ...)
-  #
-  # During execution, the function can call reinvoked() to see if
-  # it has been called again since it was invoked. When it stops
-  # or finishes execution, it should call finished()
-  #
-  # If the wrapped function is called again while `fn` is still executing,
-  # another invocation of the function is queued up. The paramMerge
-  # function allows you to control the params that are passed to
-  # the next invocation.
-  #
-  # For example,
-  #
-  # fetchFromCache({shallow: true})
-  #
-  # fetchFromCache({shallow: true})
-  #  -- will be executed once the initial call finishes
-  #
-  # fetchFromCache({})
-  #  -- `paramMerge` is called with `[{}]` and `[{shallow:true}]`. At this
-  #     point it should return `[{}]` since calling fetchFromCache with no
-  #     options is a more significant refresh.
-  #
-  ensureSerialExecution: (fn, paramMerge) ->
-    fnRun = null
-    fnReinvoked = ->
-      fn.next
-    fnFinished = ->
-      fn.executing = false
-      if fn.next
-        args = fn.next
-        fn.next = null
-        fnRun(args...)
-    fnRun = ->
-      if fn.executing
-        if fn.next
-          fn.next = paramMerge(fn.next, arguments)
-        else
-          fn.next = arguments
-      else
-        fn.executing = true
-        fn.apply(@, [fnFinished, fnReinvoked, arguments...])
-    fnRun
-
-
   hueForString: (str='') ->
     str.split('').map((c) -> c.charCodeAt()).reduce((n,a) -> n+a) % 360
 
@@ -584,48 +529,3 @@ Utils =
 
     # Spans entire boundary
     (test.end >= bounds.end and test.start <= bounds.start)
-
-  mean: (values = []) ->
-    if values.length is 0 then throw new Error("Can't average zero values")
-    sum = values.reduce(((sum, value) -> sum + value), 0)
-    return sum / values.length
-
-  stdev: (values = []) ->
-    if values.length is 0 then throw new Error("Can't stdev zero values")
-    avg = Utils.mean(values)
-    squareDiffs = values.map((val) -> Math.pow((val - avg), 2))
-    return Math.sqrt(Utils.mean(squareDiffs))
-
-  # Resolves nested paths in objects of the form "key.subKey.subKey".
-  # Null checks along the way.
-  #
-  # If the result is a function, this will call it with no arguments.
-  #
-  # Also supports "key1,key2.subkey,key3". The commas lookup those paths
-  # in order and takes the first non-blank one.
-  #
-  # Also supports "key1+key2". This will attempt to concatenate the
-  # lookup.
-  #
-  # Order of operations is "," then "+", then "."
-  resolvePath: (fullPath="", model) ->
-    commaPaths = fullPath.split(",")
-    for commaPath in commaPaths
-      joinedVals = []
-      paths = commaPath.split("+")
-      for filePath in paths
-        parts = filePath.split(".")
-        curVal = model
-        for part in parts
-          if _.isFunction(curVal[part])
-            curVal = curVal[part]()
-          else
-            curVal = curVal[part]
-          if not curVal or curVal.length is 0
-            curVal = null
-            break
-        joinedVals.push(curVal)
-      joinedVals = _.compact(joinedVals)
-      continue if joinedVals.length is 0
-      return joinedVals.join(" ")
-    return null

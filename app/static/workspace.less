@@ -13,7 +13,7 @@ body {
   touch-action: manipulation;
 }
 
-nylas-workspace {
+mailspring-workspace {
   display: block;
   height: 100%;
   overflow: hidden;
@@ -23,17 +23,6 @@ nylas-workspace {
   // Important: This attribute is used in the theme-manager-specs to check that
   // themes load and override each other correctly. Do not remove!
   background-color: @background-primary;
-
-  nylas-workspace-axis.horizontal {
-    display: -webkit-flex;
-    height: 100%;
-  }
-
-  nylas-workspace-axis.vertical {
-    display: -webkit-flex;
-    -webkit-flex: 1;
-    -webkit-flex-flow: column;
-  }
 }
 
 .sheet-container {
@@ -459,7 +448,7 @@ body.platform-linux {
 body.platform-win32 {
   font-family: system-ui;
 
-  nylas-workspace {
+  mailspring-workspace {
     font-family: system-ui;
   }
 }

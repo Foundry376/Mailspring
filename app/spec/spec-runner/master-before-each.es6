@@ -42,10 +42,8 @@ class MasterBeforeEach {
   }
 
   _resetAppEnv() {
-    AppEnv.workspaceViewParentSelector = '#jasmine-content';
-
     // Don't actually write to disk
-    spyOn(AppEnv, 'saveSync');
+    spyOn(AppEnv, 'saveWindowState');
 
     // prevent specs from modifying N1's menus
     spyOn(AppEnv.menu, 'sendToBrowserProcess');

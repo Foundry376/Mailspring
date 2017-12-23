@@ -14,10 +14,8 @@
 // Extend the standard promise class a bit
 import './promise-extensions';
 
-import AppEnvConstructor from './app-env';
-window.AppEnv = window.atom = AppEnvConstructor.loadOrCreate();
-
-AppEnv.initialize();
+import AppEnvClass from './app-env';
+window.AppEnv = new AppEnvClass();
 AppEnv.startSecondaryWindow();
 
 // Workaround for focus getting cleared upon window creation

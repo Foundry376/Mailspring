@@ -121,7 +121,7 @@ class SpecRunner {
     window.addEventListener('core:close', () => window.close());
     window.addEventListener('beforeunload', () => {
       AppEnv.storeWindowDimensions();
-      return AppEnv.saveSync();
+      AppEnv.saveWindowState();
     });
   }
 

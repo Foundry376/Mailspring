@@ -3,32 +3,6 @@ _s = require 'underscore.string'
 
 DOMUtils =
   Mutating:
-    replaceFirstListItem: (li, replaceWith) ->
-      list = DOMUtils.closest(li, "ul, ol")
-
-      if replaceWith.length is 0
-        replaceWith = replaceWith.replace /\s/g, "&nbsp;"
-        text = document.createElement("div")
-        text.innerHTML = "<br>"
-      else
-        replaceWith = replaceWith.replace /\s/g, "&nbsp;"
-        text = document.createElement("span")
-        text.innerHTML = "#{replaceWith}"
-
-      if list.querySelectorAll('li').length <= 1
-        # Delete the whole list and replace with text
-        list.parentNode.replaceChild(text, list)
-      else
-        # Delete the list item and prepend the text before the rest of the
-        # list
-        li.parentNode.removeChild(li)
-        list.parentNode.insertBefore(text, list)
-
-      child = text.childNodes[0] ? text
-      index = Math.max(replaceWith.length - 1, 0)
-      selection = document.getSelection()
-      selection.setBaseAndExtent(child, index, child, index)
-
     removeEmptyNodes: (node) ->
       Array::slice.call(node.childNodes).forEach (child) ->
         if child.textContent is ''
@@ -111,12 +85,6 @@ DOMUtils =
       node = selection.anchorNode
       selection.setBaseAndExtent(node, index, node, index)
 
-    moveSelectionToEnd: (selection) ->
-      return unless selection.isCollapsed
-      node = DOMUtils.findLastTextNode(selection.anchorNode)
-      index = node.length
-      selection.setBaseAndExtent(node, index, node, index)
-
   getSelectionRectFromDOM: (selection) ->
     selection ?= document.getSelection()
     node = selection.anchorNode
@@ -140,15 +108,6 @@ DOMUtils =
       return selection.anchorNode.textContent[selection.anchorOffset - 1] is "\t"
     else return false
 
-  isAtBeginningOfDocument: (dom, selection) ->
-    selection ?= document.getSelection()
-    return false if not selection.isCollapsed
-    return false if selection.anchorOffset > 0
-    return true if dom.childNodes.length is 0
-    return true if selection.anchorNode is dom
-    firstChild = dom.childNodes[0]
-    return selection.anchorNode is firstChild
-
   atStartOfList: ->
     selection = document.getSelection()
     anchor = selection.anchorNode
@@ -158,9 +117,6 @@ DOMUtils =
     li = DOMUtils.closest(anchor, "li")
     return unless li
     return DOMUtils.isFirstChild(li, anchor)
-
-  # Selectors for input types
-  inputTypes: -> "input, textarea, *[contenteditable]"
 
   # https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
   # Only Elements (not Text nodes) have the `closest` method

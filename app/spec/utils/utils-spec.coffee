@@ -48,20 +48,6 @@ describe 'Utils', ->
       expect(revived.json[0] instanceof Thread).toBe(true)
       expect(revived.json[0].participants[0] instanceof Contact).toBe(true)
 
-  describe "modelFreeze", ->
-    it "should freeze the object", ->
-      o =
-        a: 1
-        b: 2
-      Utils.modelFreeze(o)
-      expect(Object.isFrozen(o)).toBe(true)
-
-    it "should not throw an exception when nulls appear in strange places", ->
-      t = new Thread(participants: [new Contact(email: 'ben@nylas.com'), null], subject: '123')
-      Utils.modelFreeze(t)
-      expect(Object.isFrozen(t)).toBe(true)
-      expect(Object.isFrozen(t.participants[0])).toBe(true)
-
   describe "deepClone", ->
     beforeEach ->
       @v1 = [1,2,3]

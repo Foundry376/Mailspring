@@ -245,7 +245,7 @@ describe "ThemeManager", ->
   describe "base style sheet loading", ->
     workspaceElement = null
     beforeEach ->
-      workspaceElement = document.createElement('nylas-workspace')
+      workspaceElement = document.createElement('mailspring-workspace')
       workspaceElement.appendChild document.createElement('nylas-theme-wrap')
       jasmine.attachToDOM(workspaceElement)
 

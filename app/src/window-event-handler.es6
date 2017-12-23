@@ -47,7 +47,7 @@ export default class WindowEventHandler {
       if (this.runUnloadCallbacks()) {
         // Good to go! Window will be closing...
         AppEnv.storeWindowDimensions();
-        AppEnv.saveStateAndUnloadWindow();
+        AppEnv.saveWindowStateAndUnload();
         return undefined;
       }
       return false;

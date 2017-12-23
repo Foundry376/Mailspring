@@ -1,7 +1,6 @@
 /* eslint global-require: 0 */
 /* eslint import/no-dynamic-require: 0 */
 import _ from 'underscore';
-import fs from 'fs';
 import path from 'path';
 import { ipcRenderer, remote } from 'electron';
 import { Emitter } from 'event-kit';
@@ -10,7 +9,6 @@ import { mapSourcePosition } from 'source-map-support';
 
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
-import Utils from './flux/models/utils';
 
 function ensureInteger(f, fallback) {
   let int = f;
@@ -24,107 +22,12 @@ function ensureInteger(f, fallback) {
 //
 // The singleton of this class is always available as the `AppEnv` global.
 export default class AppEnvConstructor {
-  static initClass() {
-    this.version = 1;
-    this.prototype.workspaceViewParentSelector = 'body';
-
-    /*
-    Section: Properties
-    */
-
-    // Public: A {CommandRegistry} instance
-    this.prototype.commands = null;
-
-    // Public: A {Config} instance
-    this.prototype.config = null;
-
-    // Public: A {MenuManager} instance
-    this.prototype.menu = null;
-
-    // Public: A {KeymapManager} instance
-    this.prototype.keymaps = null;
-
-    // Public: A {PackageManager} instance
-    this.prototype.packages = null;
-
-    // Public: A {ThemeManager} instance
-    this.prototype.themes = null;
-
-    // Public: A {StyleManager} instance
-    this.prototype.styles = null; // Increment this when the serialization format changes
-  }
-
-  // Load or create the application environment
-  // Returns an AppEnv instance, fully initialized
-  static loadOrCreate() {
-    let app;
-
-    const savedState = this._loadSavedState();
-    if (savedState && savedState.version === this.version) {
-      app = new this(savedState);
-    } else {
-      app = new this({ version: this.version });
-    }
-
-    return app;
-  }
-
-  // Loads and returns the serialized state corresponding to this window
-  // if it exists; otherwise returns undefined.
-  static _loadSavedState() {
-    let stateString;
-    const statePath = this.getStatePath();
-
-    if (fs.existsSync(statePath)) {
-      try {
-        stateString = fs.readFileSync(statePath, 'utf8');
-      } catch (error) {
-        console.warn(`Error reading window state: ${statePath}`, error.stack, error);
-      }
-    } else {
-      stateString = this.getLoadSettings().windowState;
-    }
-
-    try {
-      if (stateString != null) {
-        return JSON.parse(stateString);
-      }
-    } catch (error) {
-      console.warn(`Error parsing window state: ${statePath} ${error.stack}`, error);
-    }
-    return null;
-  }
-
-  // Returns the path where the state for the current window will be
-  // located if it exists.
-  static getStatePath() {
-    const { isSpec, mainWindow, configDirPath } = this.getLoadSettings();
-    if (isSpec) {
-      return 'spec-saved-state.json';
-    } else if (mainWindow) {
-      return path.join(configDirPath, 'main-window-state.json');
-    }
-    return null;
-  }
-
   // Returns the load settings hash associated with the current window.
   static getLoadSettings() {
     if (this.loadSettings == null) {
       this.loadSettings = JSON.parse(decodeURIComponent(window.location.search.substr(14)));
     }
-
-    const cloned = Utils.deepClone(this.loadSettings);
-    // The loadSettings.windowState could be large, request it only when needed.
-    Object.defineProperty(cloned, 'windowState', {
-      get: () => {
-        return this.getCurrentWindow().loadSettings.windowState;
-      },
-      set: value => {
-        this.getCurrentWindow().loadSettings.windowState = value;
-        return value;
-      },
-    });
-    return cloned;
+    return this.loadSettings;
   }
 
   static getCurrentWindow() {
@@ -134,22 +37,15 @@ export default class AppEnvConstructor {
   /*
   Section: Construction and Destruction
   */
+  constructor() {
+    // self-assign us to `window` so things called from this function can reference
+    // window.AppEnv early.
+    window.AppEnv = this;
 
-  // Call .loadOrCreate instead
-  constructor(savedState = {}) {
-    this.savedState = savedState;
-    ({ version: this.version } = this.savedState);
     this.emitter = new Emitter();
-  }
-
-  // Sets up the basic services that should be available in all modes
-  // (both spec and application).
-  //
-  // Call after this instance has been assigned to the `AppEnv` global.
-  initialize() {
     this.enhanceEventObject();
-
     this.setupErrorLogger();
+    this.restoreWindowState();
 
     const { devMode, safeMode, resourcePath, configDirPath, windowType } = this.getLoadSettings();
     const specMode = this.inSpecMode();
@@ -207,11 +103,11 @@ export default class AppEnvConstructor {
 
     this.windowEventHandler = new WindowEventHandler();
 
-    // We extend nylas observables with our own methods. This happens on
+    // We extend observables with our own methods. This happens on
     // require of mailspring-observables
     require('mailspring-observables');
 
-    // Nylas exports is designed to provide a lazy-loaded set of globally
+    // Mailspring exports is designed to provide a lazy-loaded set of globally
     // accessible objects to all packages. Upon require, mailspring-exports will
     // fill the StoreRegistry, and DatabaseObjectRegistries
     // with various constructors.
@@ -227,13 +123,12 @@ export default class AppEnvConstructor {
     this.mailsyncBridge = new MailsyncBridge();
 
     process.title = `Mailspring ${this.getWindowType()}`;
-    return this.onWindowPropsReceived(() => {
+    this.onWindowPropsReceived(() => {
       process.title = `Mailspring ${this.getWindowType()}`;
-      return process.title;
     });
   }
 
-  // This ties window.onerror and process.un{caughtException,handledRejection}
+  // This ties window.onerror and process.uncaughtException,handledRejection
   // to the publically callable `reportError` method. This will take care of
   // reporting errors if necessary and hooking into error handling
   // callbacks.
@@ -363,26 +258,6 @@ export default class AppEnvConstructor {
   Section: Event Subscription
   */
 
-  // Extended: Run the Chromium content-tracing module for five seconds, and save
-  // the output to a file which is printed to the command-line output of the app.
-  // You can take the file exported by this function and load it into Chrome's
-  // content trace visualizer (chrome://tracing). It's like Chromium Developer
-  // Tools Profiler, but for all processes and threads.
-  trace() {
-    const tracing = remote.contentTracing;
-    const opts = {
-      categoryFilter: '*',
-      traceOptions: 'record-until-full,enable-sampling,enable-systrace',
-    };
-    return tracing.startRecording(opts, () => {
-      console.log('Tracing started');
-      return setTimeout(
-        () => tracing.stopRecording('', p => console.log(`Tracing data recorded to ${p}`)),
-        5000
-      );
-    });
-  }
-
   isMainWindow() {
     return !!this.getLoadSettings().mainWindow;
   }
@@ -483,74 +358,6 @@ export default class AppEnvConstructor {
   // * `height` The {Number} of pixels.
   setSize(width, height) {
     return this.getCurrentWindow().setSize(ensureInteger(width, 100), ensureInteger(height, 100));
-  }
-
-  // Essential: Transition and set the size of the current window.
-  //
-  // * `width` The {Number} of pixels.
-  // * `height` The {Number} of pixels.
-  // * `duration` The {Number} of pixels.
-  setSizeAnimated(width, height, duration = 400) {
-    // On Windows, the native window resizing code isn't fast enough to "animate"
-    // by resizing over and over again. Just turn off animation for now.
-    let animDuration = duration;
-    if (process.platform === 'win32') {
-      animDuration = 1;
-    }
-
-    // Avoid divide by zero errors below
-    animDuration = Math.max(1, duration);
-
-    // Keep track of the number of times this method has been invoked, and ensure
-    // that we only `tick` for the last invocation. This prevents two resizes from
-    // running at the same time.
-    if (this._setSizeAnimatedCallCount == null) {
-      this._setSizeAnimatedCallCount = 0;
-    }
-    this._setSizeAnimatedCallCount += 1;
-    const call = this._setSizeAnimatedCallCount;
-
-    const cubicInOut = t => {
-      if (t < 0.5) {
-        return 4 * t ** 3;
-      }
-      return (t - 1) * (2 * t - 2) ** 2 + 1;
-    };
-    const win = this.getCurrentWindow();
-    const animWidth = Math.round(width);
-    const animHeight = Math.round(height);
-
-    const startBounds = win.getBounds();
-    const startTime = Date.now() - 1; // - 1 so that if animDuration is 1, t = 1 on the first frame
-
-    const boundsForI = i =>
-      // It's very important this function never return undefined for any of the
-      // keys which blows up setBounds.
-      ({
-        x: ensureInteger(startBounds.x + (animWidth - startBounds.animWidth) * -0.5 * i, 0),
-        y: ensureInteger(startBounds.y + (animHeight - startBounds.animHeight) * -0.5 * i, 0),
-        width: ensureInteger(
-          startBounds.animWidth + (animWidth - startBounds.animWidth) * i,
-          animWidth
-        ),
-        height: ensureInteger(
-          startBounds.animHeight + (animHeight - startBounds.animHeight) * i,
-          animHeight
-        ),
-      });
-
-    const tick = () => {
-      if (call !== this._setSizeAnimatedCallCount) {
-        return;
-      }
-      const t = Math.min(1, (Date.now() - startTime) / animDuration);
-      const i = cubicInOut(t);
-      win.setBounds(boundsForI(i));
-      if (t !== 1) {
-        _.defer(tick);
-      }
-    };
-    tick();
   }
 
   setMinimumWidth(minWidth) {
@@ -873,10 +680,9 @@ export default class AppEnvConstructor {
     return ipcRenderer.send('new-window', options);
   }
 
-  saveStateAndUnloadWindow() {
+  saveWindowStateAndUnload() {
     this.packages.deactivatePackages();
-    this.saveSync();
-    this.windowState = null;
+    this.saveWindowState();
   }
 
   /*
@@ -921,7 +727,7 @@ export default class AppEnvConstructor {
 
   initializeReactRoot() {
     // Put state back into sheet-container? Restore app state here
-    this.item = document.createElement('nylas-workspace');
+    this.item = document.createElement('mailspring-workspace');
     this.item.setAttribute('id', 'sheet-container');
     this.item.setAttribute('class', 'sheet-container');
     this.item.setAttribute('tabIndex', '-1');
@@ -930,7 +736,12 @@ export default class AppEnvConstructor {
     const ReactDOM = require('react-dom');
     const SheetContainer = require('./sheet-container').default;
     ReactDOM.render(React.createElement(SheetContainer), this.item);
-    return document.querySelector(this.workspaceViewParentSelector).appendChild(this.item);
+
+    if (this.inSpecMode()) {
+      document.querySelector('#jasmine-content').appendChild(this.item);
+    } else {
+      document.body.appendChild(this.item);
+    }
   }
 
   loadConfig() {
@@ -938,12 +749,12 @@ export default class AppEnvConstructor {
       type: 'object',
       properties: _.clone(require('./config-schema').default),
     });
-    return this.config.load();
+    this.config.load();
   }
 
   exit(status) {
     remote.app.emit('will-exit');
-    return remote.process.exit(status);
+    remote.process.exit(status);
   }
 
   showOpenDialog(options, callback) {
@@ -1010,22 +821,35 @@ export default class AppEnvConstructor {
     return remote.getGlobal('application').fileListCache;
   }
 
-  saveSync() {
+  getWindowStateKey() {
+    return `window-state-${this.getWindowType()}`;
+  }
+
+  saveWindowState() {
     const stateString = JSON.stringify(this.savedState);
-    const statePath = this.constructor.getStatePath();
-    if (statePath) {
-      return fs.writeFileSync(statePath, stateString, 'utf8');
+    window.localStorage.setItem(this.getWindowStateKey(), stateString);
+  }
+
+  restoreWindowState() {
+    try {
+      let stateString = window.localStorage.getItem(this.getWindowStateKey());
+      if (stateString != null) {
+        this.savedState = JSON.parse(stateString);
+      }
+    } catch (error) {
+      console.warn(`Error parsing window state: ${error.stack}`, error);
     }
-    this.getCurrentWindow().loadSettings.windowState = stateString;
-    return stateString;
+    if (!this.savedState) {
+      this.savedState = {};
+    }
   }
 
   crashMainProcess() {
-    return remote.process.crash();
+    remote.process.crash();
   }
 
   crashRenderProcess() {
-    return process.crash();
+    process.crash();
   }
 
   onUpdateAvailable(callback) {
@@ -1033,7 +857,7 @@ export default class AppEnvConstructor {
   }
 
   updateAvailable(details) {
-    return this.emitter.emit('update-available', details);
+    this.emitter.emit('update-available', details);
   }
 
   // Lets multiple components register beforeUnload callbacks.
@@ -1050,7 +874,7 @@ export default class AppEnvConstructor {
   }
 
   removeUnloadCallback(callback) {
-    return this.windowEventHandler.removeUnloadCallback(callback);
+    this.windowEventHandler.removeUnloadCallback(callback);
   }
 
   enhanceEventObject() {
@@ -1063,13 +887,4 @@ export default class AppEnvConstructor {
       return this.propagationStopped;
     };
   }
-
-  registerGlobalActions(...args) {
-    if (this.inSpecMode()) {
-      return;
-    }
-    this.actionBridge.registerGlobalActions(...args);
-  }
 }
-
-AppEnvConstructor.initClass();
