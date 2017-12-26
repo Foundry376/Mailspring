@@ -1,10 +1,104 @@
-import React from 'react';
+import { React, RegExpUtils } from 'mailspring-exports';
 import { RichUtils, Modifier, EditorState, SelectionState } from 'draft-js';
 
 const ENTITY_TYPE = 'LINK';
 
+// TOOLBAR UI
+
+class ToolbarLinkPicker extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      urlValue: '',
+      expanded: false,
+    };
+  }
+  onPrompt = e => {
+    e.preventDefault();
+    const { editorState } = this.props;
+
+    const selection = editorState.getSelection();
+    if (!selection.isCollapsed()) {
+      this.setState(
+        {
+          expanded: true,
+          urlValue: getCurrentLink(editorState) || '',
+        },
+        () => {
+          setTimeout(() => this._inputEl.focus(), 0);
+        }
+      );
+    }
+  };
+
+  onConfirm = e => {
+    e.preventDefault();
+
+    // attach the URL value to the LINK that was created when we opened the link modal
+    const { urlValue } = this.state;
+    const { editorState, onChange } = this.props;
+
+    onChange(editorStateSettingExplicitLink(editorState, urlValue));
+
+    this.setState({ expanded: false, urlValue: '' }, () => {
+      window.requestAnimationFrame(this.props.onFocusComposer);
+    });
+  };
+
+  onRemove = e => {
+    e.preventDefault();
+    const { editorState, onChange } = this.props;
+    onChange(editorStateSettingExplicitLink(editorState, null));
+  };
+
+  onBlur = e => {
+    if (!this._el.contains(e.relatedTarget)) {
+      this.setState({ expanded: false });
+    }
+  };
+
+  render() {
+    const { expanded } = this.state;
+
+    return (
+      <div className="link-picker" ref={el => (this._el = el)} tabIndex={-1} onBlur={this.onBlur}>
+        {getCurrentLink(this.props.editorState) ? (
+          <button onMouseDown={this.onRemove}>
+            <i className="fa fa-unlink" />
+          </button>
+        ) : (
+          <button onMouseDown={this.onPrompt}>
+            <i className="fa fa-link" />
+          </button>
+        )}
+        {expanded && (
+          <div className="dropdown">
+            <input
+              type="text"
+              placeholder="http://"
+              value={this.state.urlValue}
+              ref={el => (this._inputEl = el)}
+              onBlur={this.onBlur}
+              onChange={e => this.setState({ urlValue: e.target.value })}
+              onKeyDown={e => {
+                if (e.which === 13) {
+                  this.onConfirm(e);
+                }
+              }}
+            />
+            <button onMouseDown={this.onConfirm}>Add</button>
+          </div>
+        )}
+      </div>
+    );
+  }
+}
+
+// DRAFTJS BEHAVIORS
+
 function isURL(text) {
-  return text.startsWith('http://'); // insert your favorite library here
+  return RegExpUtils.urlRegex().test(text);
 }
 /*
 Function you can call from your toolbar or "link button" to manually linkify
@@ -126,6 +220,7 @@ const createLinkifyPlugin = () => {
         component: Link,
       },
     ],
+    toolbarComponents: [ToolbarLinkPicker],
     onChange: editorState => {
       /* This method is called as you edit content in the Editor. We use
       some basic logic to keep the LINK entity in sync with the user's text

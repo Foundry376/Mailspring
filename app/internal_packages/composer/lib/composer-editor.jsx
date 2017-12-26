@@ -14,12 +14,15 @@ import createFocusPlugin from 'draft-js-focus-plugin';
 import createAutoListPlugin from 'draft-js-autolist-plugin';
 import createEmojiPlugin from 'draft-js-emoji-plugin';
 import createQuotedTextPlugin from './quoted-text-plugin';
+import createTemplatesPlugin from './templates-plugin';
 
 const focusPlugin = createFocusPlugin();
 const emojiPlugin = createEmojiPlugin({
   useNativeArt: true,
 });
 const { EmojiSuggestions, EmojiSelect } = emojiPlugin;
+emojiPlugin.toolbarComponents = [EmojiSelect];
+emojiPlugin.topLevelComponents = [EmojiSuggestions];
 
 export default class ComposerEditor extends React.Component {
   constructor(props) {
@@ -37,6 +40,7 @@ export default class ComposerEditor extends React.Component {
       createAutoListPlugin(),
       createTextStylePlugin(),
       createQuotedTextPlugin(),
+      createTemplatesPlugin(),
       emojiPlugin,
       inlineAttachmentPlugin,
     ];
@@ -128,6 +132,7 @@ export default class ComposerEditor extends React.Component {
 
   render() {
     const { className, editorState, onChange } = this.props;
+    const spellCheck = AppEnv.config.get('core.composing.spellcheck');
 
     return (
       <div className="RichEditor-root">
@@ -135,7 +140,7 @@ export default class ComposerEditor extends React.Component {
           editorState={editorState}
           onChange={onChange}
           onFocusComposer={this.focus}
-          extras={[<EmojiSelect key="emoji" />]}
+          plugins={this.plugins}
         />
         <div className={className} onClick={this.focus}>
           <Editor
@@ -146,9 +151,11 @@ export default class ComposerEditor extends React.Component {
             onChange={onChange}
             onTab={this.onTab}
             plugins={this.plugins}
-            spellCheck
+            spellCheck={spellCheck}
           />
-          <EmojiSuggestions />
+          {this.plugins
+            .reduce((arr, p) => (p.topLevelComponents ? arr.concat(p.topLevelComponents) : arr), [])
+            .map((Component, idx) => <Component key={idx} />)}
         </div>
       </div>
     );

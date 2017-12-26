@@ -1,5 +1,6 @@
 import React from 'react';
 import { RichUtils } from 'draft-js';
+import { CompactPicker } from 'react-color';
 
 export const COLOR_STYLE_PREFIX = 'color-';
 export const FONTSIZE_STYLE_PREFIX = 'font-';
@@ -11,6 +12,93 @@ const styleMap = {
     padding: 2,
   },
 };
+
+// TOOLBAR UI
+
+class ToolbarColorPicker extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      expanded: false,
+    };
+  }
+
+  _onToggleExpanded = () => {
+    this.setState({ expanded: !this.state.expanded });
+  };
+
+  _onBlur = e => {
+    if (!this._el.contains(e.relatedTarget)) {
+      this.setState({ expanded: false });
+    }
+  };
+
+  _onChangeComplete = ({ hex }) => {
+    const { onChange, onFocusComposer, editorState } = this.props;
+
+    onFocusComposer();
+    window.requestAnimationFrame(() => {
+      onChange(editorStateSettingTextStyle(editorState, COLOR_STYLE_PREFIX, hex));
+    });
+    this.setState({ expanded: false });
+  };
+
+  render() {
+    const currentStyle = this.props.editorState.getCurrentInlineStyle();
+    const color = styleValueForGroup(currentStyle, COLOR_STYLE_PREFIX) || '#000';
+    const { expanded } = this.state;
+
+    return (
+      <div
+        tabIndex="-1"
+        onBlur={this._onBlur}
+        ref={el => (this._el = el)}
+        style={{ display: 'inline-block', position: 'relative' }}
+      >
+        <div
+          onClick={this._onToggleExpanded}
+          style={{ cursor: 'pointer', width: 20, height: 14, backgroundColor: color }}
+        />
+        {expanded && (
+          <div className="dropdown">
+            <CompactPicker color={color} onChangeComplete={this._onChangeComplete} />
+          </div>
+        )}
+      </div>
+    );
+  }
+}
+
+class ToolbarFontPicker extends React.Component {
+  _onSetFontSize = e => {
+    const { onChange, onFocusComposer, editorState } = this.props;
+    const value = e.target.value;
+    onFocusComposer();
+    window.requestAnimationFrame(() => {
+      onChange(editorStateSettingTextStyle(editorState, FONTSIZE_STYLE_PREFIX, value));
+    });
+  };
+
+  render() {
+    const currentStyle = this.props.editorState.getCurrentInlineStyle();
+    const fontSize = styleValueForGroup(currentStyle, FONTSIZE_STYLE_PREFIX) || '14px';
+
+    return (
+      <button>
+        <i className="fa fa-text-height" />
+        <select value={fontSize} onChange={this._onSetFontSize}>
+          {['10px', '12px', '14px', '16px', '18px', '22px'].map(size => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>
+      </button>
+    );
+  }
+}
+
+// DRAFTJS BEHAVIORS
 
 export function editorStateSettingTextStyle(editorState, groupPrefix, groupValue) {
   // TODO: Get all inine styles in selected area, not just at insertion point
@@ -62,7 +150,10 @@ function customStyleFn(style) {
   if (fontSize) {
     styles.fontSize = fontSize;
   }
-  return styles;
+
+  if (Object.keys(styles).length) {
+    return styles;
+  }
 }
 
 export const HTMLConfig = {
@@ -90,6 +181,7 @@ export const HTMLConfig = {
 
 const createTextSizePlugin = () => {
   return {
+    toolbarComponents: [ToolbarFontPicker, ToolbarColorPicker],
     customStyleFn,
   };
 };

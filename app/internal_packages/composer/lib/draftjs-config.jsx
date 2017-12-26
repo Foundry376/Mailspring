@@ -4,13 +4,15 @@ import * as DraftConvert from 'draft-convert';
 import { HTMLConfig as InlineAttachmentHTMLConfig } from './inline-attachment-plugin';
 import { HTMLConfig as LinkifyHTMLConfig } from './linkify-plugin';
 import { HTMLConfig as TextStyleHTMLConfig } from './text-style-plugin';
-import { HTMLConfig as QuotedTextHTMLConfig } from './quoted-text-plugin';
+import { HTMLConfig as QuotedTextHTMLConfig, quoteDepthForNode } from './quoted-text-plugin';
+import { HTMLConfig as TemplatesHTMLConfig } from './templates-plugin';
 
 const plugins = [
   InlineAttachmentHTMLConfig,
   LinkifyHTMLConfig,
   TextStyleHTMLConfig,
   QuotedTextHTMLConfig,
+  TemplatesHTMLConfig,
 ];
 
 // Conversion to and from HTML
@@ -25,9 +27,26 @@ export function convertFromHTML(html) {
       return nextStyle;
     },
     htmlToBlock: (nodeName, node) => {
+      if (nodeName === 'body') {
+        // remove leading and trailing spaces from text nodes
+        const treeWalker = node.ownerDocument.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+        while (treeWalker.nextNode()) {
+          treeWalker.currentNode.textContent = treeWalker.currentNode.textContent.trim();
+        }
+      }
+
+      // once we're inside a blockquote for quoted text, we don't
+      // create any new blocks, since it'd bump you out of the quoted text.
+      if (quoteDepthForNode(node) > 0) {
+        return;
+      }
+
       for (const p of plugins) {
         const result = p.htmlToBlock && p.htmlToBlock(nodeName, node);
-        if (result) return result;
+        if (result) {
+          console.log('Starting block for', node);
+          return result;
+        }
       }
     },
     htmlToEntity: (nodeName, node, createEntity) => {

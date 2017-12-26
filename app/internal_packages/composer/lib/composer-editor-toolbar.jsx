@@ -1,15 +1,5 @@
 import React from 'react';
 import { RichUtils } from 'draft-js';
-import { CompactPicker } from 'react-color';
-
-import {
-  COLOR_STYLE_PREFIX,
-  FONTSIZE_STYLE_PREFIX,
-  styleValueForGroup,
-  editorStateSettingTextStyle,
-} from './text-style-plugin';
-
-import { getCurrentLink, editorStateSettingExplicitLink } from './linkify-plugin';
 
 const BLOCK_TYPES = [
   { label: 'Blockquote', style: 'blockquote', fa: 'fa fa-quote-left' },
@@ -24,164 +14,6 @@ const INLINE_STYLES = [
   { label: 'Underline', style: 'UNDERLINE', fa: 'fa fa-underline' },
   { label: 'Monospace', style: 'CODE', fa: 'fa fa-code' },
 ];
-
-class ColorPicker extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      expanded: false,
-    };
-  }
-
-  _onToggleExpanded = () => {
-    this.setState({ expanded: !this.state.expanded });
-  };
-
-  _onBlur = e => {
-    if (!this._el.contains(e.relatedTarget)) {
-      this.setState({ expanded: false });
-    }
-  };
-
-  _onChangeComplete = ({ hex }) => {
-    this.props.onSetColor(hex);
-    this.setState({ expanded: false });
-  };
-
-  render() {
-    const { color } = this.props;
-    const { expanded } = this.state;
-
-    return (
-      <div
-        tabIndex="-1"
-        onBlur={this._onBlur}
-        ref={el => (this._el = el)}
-        style={{ display: 'inline-block', position: 'relative' }}
-      >
-        <div
-          onClick={this._onToggleExpanded}
-          style={{ cursor: 'pointer', width: 20, height: 14, backgroundColor: color }}
-        />
-        {expanded && (
-          <div className="dropdown">
-            <CompactPicker color={color} onChangeComplete={this._onChangeComplete} />
-          </div>
-        )}
-      </div>
-    );
-  }
-}
-
-class LinkPicker extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      urlValue: '',
-      expanded: false,
-    };
-  }
-  onPromptForLink = e => {
-    e.preventDefault();
-    const { editorState } = this.props;
-
-    const selection = editorState.getSelection();
-    if (!selection.isCollapsed()) {
-      this.setState(
-        {
-          expanded: true,
-          urlValue: getCurrentLink(editorState) || '',
-        },
-        () => {
-          setTimeout(() => this._linkInputEl.focus(), 0);
-        }
-      );
-    }
-  };
-
-  onConfirmLink = e => {
-    e.preventDefault();
-
-    // attach the URL value to the LINK that was created when we opened the link modal
-    const { urlValue } = this.state;
-    const { editorState, onChange } = this.props;
-
-    onChange(editorStateSettingExplicitLink(editorState, urlValue));
-
-    this.setState({ expanded: false, urlValue: '' }, () => {
-      window.requestAnimationFrame(this.props.onFocusComposer);
-    });
-  };
-
-  onRemoveLink = e => {
-    e.preventDefault();
-    const { editorState, onChange } = this.props;
-    onChange(editorStateSettingExplicitLink(editorState, null));
-  };
-
-  onBlur = e => {
-    if (!this._el.contains(e.relatedTarget)) {
-      this.setState({ expanded: false });
-    }
-  };
-
-  render() {
-    const { expanded } = this.state;
-
-    return (
-      <div className="link-picker" ref={el => (this._el = el)} tabIndex={-1} onBlur={this.onBlur}>
-        {getCurrentLink(this.props.editorState) ? (
-          <button onMouseDown={this.onRemoveLink}>
-            <i className="fa fa-unlink" />
-          </button>
-        ) : (
-          <button onMouseDown={this.onPromptForLink}>
-            <i className="fa fa-link" />
-          </button>
-        )}
-        {expanded && (
-          <div className="dropdown">
-            <input
-              type="text"
-              placeholder="http://"
-              value={this.state.urlValue}
-              ref={el => (this._linkInputEl = el)}
-              onBlur={this.onBlur}
-              onChange={e => this.setState({ urlValue: e.target.value })}
-              onKeyDown={e => {
-                if (e.which === 13) {
-                  this.onConfirmLink(e);
-                }
-              }}
-            />
-            <button onMouseDown={this.onConfirmLink}>Add</button>
-          </div>
-        )}
-      </div>
-    );
-  }
-}
-
-class FontPicker extends React.Component {
-  render() {
-    return (
-      <button>
-        <i className="fa fa-text-height" />
-        <select
-          value={this.props.fontSize}
-          onChange={e => this.props.onSetFontSize(e.target.value)}
-        >
-          {['10px', '12px', '14px', '16px', '18px', '22px'].map(size => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </select>
-      </button>
-    );
-  }
-}
 
 class StyleButton extends React.Component {
   constructor() {
@@ -212,17 +44,8 @@ export default class ComposerEditorToolbar extends React.Component {
     onChange(RichUtils.toggleInlineStyle(editorState, inlineStyle));
   };
 
-  onToggleInlineValueInGroup = (groupPrefix, groupValue) => {
-    this.props.onFocusComposer();
-
-    window.requestAnimationFrame(() => {
-      const { onChange, editorState } = this.props;
-      onChange(editorStateSettingTextStyle(editorState, groupPrefix, groupValue));
-    });
-  };
-
   render() {
-    const { editorState, onChange, onFocusComposer, extras } = this.props;
+    const { editorState, onChange, onFocusComposer, plugins } = this.props;
 
     const currentStyle = editorState.getCurrentInlineStyle();
     const selection = editorState.getSelection();
@@ -230,6 +53,23 @@ export default class ComposerEditorToolbar extends React.Component {
       .getCurrentContent()
       .getBlockForKey(selection.getStartKey())
       .getType();
+
+    const pluginItems = [];
+    plugins.forEach((plugin, idx) => {
+      if (plugin.toolbarComponents) {
+        pluginItems.push(<div key={idx} className="divider" />);
+        plugin.toolbarComponents.forEach((Component, cdx) => {
+          pluginItems.push(
+            <Component
+              key={`${idx}-${cdx}`}
+              editorState={editorState}
+              onChange={onChange}
+              onFocusComposer={onFocusComposer}
+            />
+          );
+        });
+      }
+    });
 
     return (
       <div className="RichEditor-toolbar">
@@ -246,21 +86,6 @@ export default class ComposerEditorToolbar extends React.Component {
 
         <div className="divider" />
 
-        <ColorPicker
-          color={styleValueForGroup(currentStyle, COLOR_STYLE_PREFIX) || '#000'}
-          onSetColor={colorKey => {
-            this.onToggleInlineValueInGroup(COLOR_STYLE_PREFIX, colorKey);
-          }}
-        />
-        <FontPicker
-          fontSize={styleValueForGroup(currentStyle, FONTSIZE_STYLE_PREFIX) || '14px'}
-          onSetFontSize={size => {
-            this.onToggleInlineValueInGroup(FONTSIZE_STYLE_PREFIX, size);
-          }}
-        />
-
-        <div className="divider" />
-
         {BLOCK_TYPES.map(type => (
           <StyleButton
             key={type.label}
@@ -272,15 +97,7 @@ export default class ComposerEditorToolbar extends React.Component {
           />
         ))}
 
-        <div className="divider" />
-
-        <LinkPicker
-          editorState={editorState}
-          onChange={onChange}
-          onFocusComposer={onFocusComposer}
-        />
-
-        {extras}
+        {pluginItems}
       </div>
     );
   }

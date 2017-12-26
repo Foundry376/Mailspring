@@ -134,13 +134,13 @@ class DraftFactory
         accountId: message.accountId,
         replyToHeaderMessageId: message.headerMessageId,
         body: """
-          <div class="gmail_quote mailspring-quote mailspring-quote-id-#{message.replyToHeaderMessageId}">
+          <span class="gmail_quote mailspring-quote mailspring-quote-id-#{message.replyToHeaderMessageId}">
             <div>#{DOMUtils.escapeHTMLCharacters(message.replyAttributionLine())}</div>
-            <div><blockquote class="gmail_quote"
+            <blockquote class="gmail_quote"
               style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
               #{prevBody}
-            </blockquote></div>
-          </div>
+            </blockquote>
+          </span>
           """
       )
 
