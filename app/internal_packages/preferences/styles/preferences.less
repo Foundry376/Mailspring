@@ -138,6 +138,18 @@
     width: 400px;
     margin: 0 auto;
 
+    .appearance-scale-slider {
+      .ruler {
+        display: flex;
+        align-items: bottom;
+        .midpoint {
+          border-right: 1px solid @border-color-divider;
+          width: 1px;
+          flex-grow: 0;
+        }
+      }
+    }
+    
     .appearance-mode-switch {
       max-width: 400px;
       text-align: right;

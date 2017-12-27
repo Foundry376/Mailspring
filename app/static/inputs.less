@@ -9,7 +9,6 @@ input[type='datetime-local'],
 input[type='month'],
 input[type='number'],
 input[type='password'],
-input[type='range'],
 input[type='search'],
 input[type='tel'],
 input[type='time'],
@@ -41,7 +40,6 @@ input[type='datetime-local'],
 input[type='month'],
 input[type='number'],
 input[type='password'],
-input[type='range'],
 input[type='search'],
 input[type='tel'],
 input[type='time'],
@@ -61,7 +59,6 @@ body.platform-win32 {
   input[type='month'],
   input[type='number'],
   input[type='password'],
-  input[type='range'],
   input[type='search'],
   input[type='tel'],
   input[type='time'],
@@ -76,4 +73,10 @@ body.platform-win32 {
       box-shadow: 0 0 0 2px darken(@input-border-color, 20%);
     }
   }
+}
+
+
+input[type='range'] {
+  width: 100%;
+  outline: 0;
 }
