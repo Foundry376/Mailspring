@@ -4,6 +4,7 @@ import MailspringStore from 'mailspring-store';
 
 import TaskQueue from './task-queue';
 import Message from '../models/message';
+import Utils from '../models/utils';
 import Actions from '../actions';
 import AccountStore from './account-store';
 import ContactStore from './contact-store';
@@ -200,7 +201,7 @@ export default class DraftEditingSession extends MailspringStore {
     const forwarded = DraftHelpers.isForwardedMessage(this._draft);
     const hasAttachment = this._draft.files && this._draft.files.length > 0;
 
-    const allNames = [];
+    const allNames = [].concat(Utils.commonlyCapitalizedSalutations);
     let unnamedRecipientPresent = false;
 
     for (const contact of allRecipients) {
@@ -216,6 +217,9 @@ export default class DraftEditingSession extends MailspringStore {
         allNames.push(contact.nameAbbreviation().toLowerCase()); // bg
         allNames.push(name.toLowerCase()[0]); // b
       } else {
+        unnamedRecipientPresent = true;
+      }
+      if (Utils.likelyNonHumanEmail(contact.email)) {
         unnamedRecipientPresent = true;
       }
     }
@@ -244,12 +248,15 @@ export default class DraftEditingSession extends MailspringStore {
 
     if (!unnamedRecipientPresent) {
       // https://www.regexpal.com/?fam=99334
-      const englishSalutations = /(?:[y|Y]o|[h|H]ey|[h|H]i|[M|m]orning|[A|a]fternoon|[E|e]vening|[D|d]ear){1} ([A-Z][A-Za-zÀ-ÿ]+)[!_—,.\n\r< -]/;
-      const match = englishSalutations.exec(cleaned);
+      // note: requires that the name is capitalized, to avoid catching "Hey guys"
+      const englishSalutationPhrases = /(?:[y|Y]o|[h|H]ey|[h|H]i|[M|m]orning|[A|a]fternoon|[E|e]vening|[D|d]ear){1} ([A-Z][A-Za-zÀ-ÿ. ]+)[!_—,.\n\r< -]/;
+      const match = englishSalutationPhrases.exec(cleaned);
       if (match) {
-        const salutationName = match[1];
-        if (salutationName.length && !allNames.includes(salutationName.toLowerCase())) {
-          warnings.push(`addressed to "${salutationName}"`);
+        const salutation = (match[1] || '').toLowerCase();
+        if (!allNames.find(n => n === salutation || (n.length > 1 && salutation.includes(n)))) {
+          warnings.push(
+            `addressed to a name that doesn't appear to be a recipient ("${salutation}")`
+          );
         }
       }
     }

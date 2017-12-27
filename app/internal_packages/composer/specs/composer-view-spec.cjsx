@@ -232,9 +232,9 @@ describe "ComposerView", ->
           expect(dialogArgs.buttons).toEqual ['Send Anyway', 'Cancel']
         )
 
-      noWarn = (contactname, body) ->
+      noWarn = (contactname, body, email = "mark@foundry376.com") ->
         sessionSetupComplete = false
-        useDraft.call(@, subject: "Subject", to: [new Contact(name: contactname, email:"mark@foundry376.com")], body: body).then( =>
+        useDraft.call(@, subject: "Subject", to: [new Contact(name: contactname, email: email)], body: body).then( =>
           sessionSetupComplete = true
         )
         waitsFor(( => sessionSetupComplete), "The session's draft needs to be set", 500)
@@ -245,24 +245,42 @@ describe "ComposerView", ->
           expect(@dialog.showMessageBox).not.toHaveBeenCalled()
         )
 
-      it "warns", -> warn.call(@, "Mark Teller", "Hey Ben, how's it going?")
-      it "warns", -> warn.call(@, "Mark Teller", "Morning Ben—I've got a great opportunity for you.")
-      it "warns", -> warn.call(@, "Mark Teller", "Yo Ben—This is great.")
-      it "warns", -> warn.call(@, "Mark Teller", "Yo MG-This is great.")
-      it "warns", -> warn.call(@, "Mark Teller", "Good afternoon Ben\nThis is great.")
+      it "warns a", -> warn.call(@, "Mark Teller", "Hey Ben, how's it going?")
+      it "warns b", -> warn.call(@, "Mark Teller", "Morning Ben—I've got a great opportunity for you.")
+      it "warns c", -> warn.call(@, "Mark Teller", "Yo Ben—This is great.")
+      it "warns d", -> warn.call(@, "Mark Teller", "Yo MG-This is great.")
+      it "warns e", -> warn.call(@, "Mark Teller", "Good afternoon Ben\nThis is great.")
+      it "warns f", -> warn.call(@, "Mark Teller", "Hey Professor Tellor, check this out.")
 
-      it "doesn't warn", -> noWarn.call(@, "", "Hey Mark, check this out.")
-      it "doesn't warn", -> noWarn.call(@, null, "Hey Mark, check this out.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Morning dude check this out.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Hey man check this out.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Mark! This is great.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Yo Teller. This is great.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Yo MT! This is great.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Good afternoon Teller\nDude this is great.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Hey Mark, just wanted to see how it's going.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Hola. Just wanted to see how it's going.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Sénor—have a great opportunity for you.")
-      it "doesn't warn", -> noWarn.call(@, "Mark Teller", "Hey—just wanted to see how it's going.")
+      it "doesn't warn a", -> noWarn.call(@, "", "Hey Mark, check this out.")
+      it "doesn't warn b", -> noWarn.call(@, null, "Hey Mark, check this out.")
+      it "doesn't warn c", -> noWarn.call(@, "Mark Teller", "Hey Professor Mark, check this out.")
+      it "doesn't warn c", -> noWarn.call(@, "Mark Teller", "Hey Professor Teller, check this out.")
+      it "doesn't warn d", -> noWarn.call(@, "Mark Teller", "Hey Prof. Mark, check this out.")
+      it "doesn't warn d", -> noWarn.call(@, "Mark Teller", "Hey Dr. Teller, check this out.")
+      it "doesn't warn e", -> noWarn.call(@, "Mark Teller", "Morning dude check this out.")
+      it "doesn't warn f", -> noWarn.call(@, "Mark Teller", "Hey man check this out.")
+      it "doesn't warn g", -> noWarn.call(@, "Mark Teller", "Mark! This is great.")
+      it "doesn't warn h", -> noWarn.call(@, "Mark Teller", "Yo Teller. This is great.")
+      it "doesn't warn i", -> noWarn.call(@, "Mark Teller", "Yo MT! This is great.")
+      it "doesn't warn i", -> noWarn.call(@, "Mark Teller", "Yo M! This is great.")
+      it "doesn't warn j", -> noWarn.call(@, "Mark Teller", "Good afternoon Teller\nDude this is great.")
+      it "doesn't warn k", -> noWarn.call(@, "Mark Teller", "Hey Mark, just wanted to see how it's going.")
+      it "doesn't warn l", -> noWarn.call(@, "Mark Teller", "Hola. Just wanted to see how it's going.")
+      it "doesn't warn m", -> noWarn.call(@, "Mark Teller", "Sénor—have a great opportunity for you.")
+      it "doesn't warn n", -> noWarn.call(@, "Mark Teller", "Hey—just wanted to see how it's going.")
+
+      # doesn't warn about lowercase names likely to be relational phrases
+      it "doesn't warn o", -> noWarn.call(@, "Mark Teller", "Hey dad, check this out.")
+      it "doesn't warn p", -> noWarn.call(@, "Mark Teller", "Hey guys, check this out.")
+
+      # doesn't warn about common names / relational phrases even when capitalized
+      it "doesn't warn q", -> noWarn.call(@, "Mark Teller", "Hey Dad, check this out.")
+      it "doesn't warn r", -> noWarn.call(@, "Mark Teller", "Hey Grandpa, check this out.")
+      it "doesn't warn s", -> noWarn.call(@, "Mark Teller", "Hey Ladies, check this out.")
+
+      # doesn't warn when sending to a generic email address likely to have many names
+      it "doesn't warn t", -> noWarn.call(@, "Foundry Support", "Morning Ben—hello world.", "support@foundry376.com")
 
     describe "empty body warning", ->
       it "warns if the body of the email is still the pristine body", ->
