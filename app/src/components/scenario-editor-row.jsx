@@ -174,13 +174,12 @@ export default class ScenarioEditorRow extends React.Component {
     }
     return (
       <Flexbox direction="row" className="well-row">
-        <span>
+        <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap' }}>
           {this._renderTemplateSelect(template)}
           {this._renderComparator(template)}
           <span>{template.valueLabel}</span>
           {this._renderValue(template)}
-        </span>
-        <div style={{ flex: 1 }} />
+        </div>
         {this._renderActions()}
       </Flexbox>
     );
