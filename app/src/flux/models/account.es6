@@ -52,6 +52,10 @@ export default class Account extends ModelWithMetadata {
       modelKey: 'label',
     }),
 
+    autoaddress: Attributes.Object({
+      modelKey: 'autoaddress',
+    }),
+
     aliases: Attributes.Object({
       modelKey: 'aliases',
     }),
@@ -74,6 +78,10 @@ export default class Account extends ModelWithMetadata {
     this.aliases = this.aliases || [];
     this.label = this.label || this.emailAddress;
     this.syncState = this.syncState || Account.SYNC_STATE_OK;
+    this.autoaddress = this.autoaddress || {
+      type: 'bcc',
+      value: '',
+    };
   }
 
   fromJSON(json) {

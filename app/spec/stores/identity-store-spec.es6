@@ -104,16 +104,5 @@ describe('IdentityStore', function identityStoreSpec() {
       expect(AppEnv.reportError).toHaveBeenCalled();
       expect(IdentityStore.saveIdentity).not.toHaveBeenCalled();
     });
-
-    it("errors if the json doesn't match the ID", async () => {
-      const resp = Utils.deepClone(this.identityJSON);
-      resp.id = 'THE WRONG ID';
-      spyOn(MailspringAPIRequest, 'makeRequest').andCallFake(() => {
-        return Promise.resolve(resp);
-      });
-      await IdentityStore.fetchIdentity();
-      expect(AppEnv.reportError).toHaveBeenCalled();
-      expect(IdentityStore.saveIdentity).not.toHaveBeenCalled();
-    });
   });
 });

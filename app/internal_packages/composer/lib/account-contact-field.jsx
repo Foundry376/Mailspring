@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { AccountStore } from 'mailspring-exports';
+import { AccountStore, ContactStore } from 'mailspring-exports';
 import { Menu, ButtonDropdown, InjectedComponentSet } from 'mailspring-component-kit';
 
 export default class AccountContactField extends React.Component {
@@ -15,9 +15,21 @@ export default class AccountContactField extends React.Component {
     onChange: PropTypes.func.isRequired,
   };
 
-  _onChooseContact = contact => {
-    this.props.onChange({ from: [contact] });
-    this.props.session.ensureCorrectAccount();
+  _onChooseContact = async contact => {
+    const { draft, session, onChange } = this.props;
+    const { autoaddress } = AccountStore.accountForEmail(contact.email);
+
+    const existing = [].concat(draft.to, draft.cc, draft.bcc).map(c => c.email);
+    let autocontacts = await ContactStore.parseContactsInString(autoaddress.value);
+    autocontacts = autocontacts.filter(c => !existing.includes(c.email));
+
+    onChange({
+      from: [contact],
+      cc: [].concat(draft.cc).concat(autoaddress.type === 'cc' ? autocontacts : []),
+      bcc: [].concat(draft.bcc).concat(autoaddress.type === 'bcc' ? autocontacts : []),
+    });
+    session.ensureCorrectAccount();
+
     this._dropdownComponent.toggleDropdown();
   };
 

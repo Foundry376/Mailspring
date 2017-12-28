@@ -4,6 +4,35 @@ import PropTypes from 'prop-types';
 import { EditableList } from 'mailspring-component-kit';
 import { RegExpUtils, Account } from 'mailspring-exports';
 
+class AutoaddressControl extends Component {
+  render() {
+    const { autoaddress, onChange, onSaveChanges } = this.props;
+
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
+          When composing, automatically
+          <select
+            style={{ marginTop: 0 }}
+            value={autoaddress.type}
+            onChange={e => onChange(Object.assign({}, autoaddress, { type: e.target.value }))}
+            onBlur={onSaveChanges}
+          >
+            <option value="cc">CC</option>
+            <option value="bcc">BCC</option>
+          </select>:
+        </div>
+        <input
+          type="text"
+          value={autoaddress.value}
+          onChange={e => onChange(Object.assign({}, autoaddress, { value: e.target.value }))}
+          onBlur={onSaveChanges}
+          placeholder="Comma-separated email addresses"
+        />
+      </div>
+    );
+  }
+}
 class PreferencesAccountDetails extends Component {
   static propTypes = {
     account: PropTypes.object,
@@ -66,7 +95,9 @@ class PreferencesAccountDetails extends Component {
   };
 
   // Handlers
-
+  _onAccountAutoaddressUpdated = autoaddress => {
+    this._setState({ autoaddress });
+  };
   _onAccountLabelUpdated = event => {
     this._setState({ label: event.target.value });
   };
@@ -192,24 +223,24 @@ class PreferencesAccountDetails extends Component {
           onBlur={this._saveChanges}
           onChange={this._onAccountLabelUpdated}
         />
-
         <h3>Account Settings</h3>
-
         <div className="btn" onClick={this._onReconnect}>
           {account.provider === 'imap' ? 'Update Connection Settings...' : 'Re-authenticate...'}
         </div>
-
         <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
           Rebuild Cache...
         </div>
-
+        <h3>Automatic CC / BCC</h3>
+        <AutoaddressControl
+          autoaddress={account.autoaddress}
+          onChange={this._onAccountAutoaddressUpdated}
+          onSaveChanges={this._saveChanges}
+        />
         <h3>Aliases</h3>
-
         <div className="platform-note">
           You may need to configure aliases with your mail provider (Outlook, Gmail) before using
           them.
         </div>
-
         <EditableList
           showEditIcon
           items={account.aliases}
@@ -218,7 +249,6 @@ class PreferencesAccountDetails extends Component {
           onItemEdited={this._onAccountAliasUpdated}
           onDeleteItem={this._onAccountAliasRemoved}
         />
-
         {this._renderDefaultAliasSelector(account)}
       </div>
     );

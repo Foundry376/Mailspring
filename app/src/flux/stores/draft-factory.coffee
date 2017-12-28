@@ -24,6 +24,7 @@ DOMUtils = require '../../dom-utils'
 class DraftFactory
   createDraft: (fields = {}) =>
     account = @_accountForNewDraft()
+
     defaults = {
       body: ''
       subject: ''
@@ -37,7 +38,16 @@ class DraftFactory
       pristine: true
       accountId: account.id
     }
-    Promise.resolve(new Message(Object.assign(defaults, fields)))
+
+    merged = Object.assign(defaults, fields)
+
+    ContactStore.parseContactsInString(account.autoaddress.value).then (autoContacts) =>
+      if account.autoaddress.type == 'cc'
+        merged.cc = (merged.cc || []).concat(autoContacts);
+      if account.autoaddress.type == 'bcc'
+        merged.bcc = (merged.bcc || []).concat(autoContacts);
+
+      Promise.resolve(new Message(merged))
 
   createDraftForMailto: (urlString) =>
     account = @_accountForNewDraft()
