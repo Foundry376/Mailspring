@@ -1,5 +1,40 @@
 # Mailspring Changelog
 
+### 1.0.12 (12/28/2017)
+
+Improvements:
+
+- **Automatic CC / BCC**: From Preferences > Accounts, you can now configure automatic CC / BCC on emails sent from an account. (#275)
+
+- The "Are you sure you want to send addressed to 'XXX'" warning is smarter and better phrased. (#381)
+
+- You can now change the interface zoom from Preferences > Appearance. (#176)
+
+Fixes:
+
+- A regression from 1.0.11 has been fixed - Mailspring no longer fails to sync new mail for some accounts that do not support CONDSTORE. Mailspring will no longer give these messages timestamps from "1970". (#475)
+
+- Panel widths are now saved correctly on exit. (#41)
+
+- When waking from sleep, Mailspring checks for new mail immediately. (#468)
+
+- When linking an account, you can now omit the SMTP username for SMTP without authentication. (#469)
+
+- Mailspring allows all deprecated HTML attributes like `<strike>`, improving the rendering of emails. (#260)
+
+- The `View` links in the contact sidebar now open the browser correctly.
+
+- Electron has been bumped to 1.7.10, which fixes:
+
+  + Subpixel font rendering with freetype on Linux.
+
+  + Rendering issues with Nvidia GPU on High Sierra
+
+  + Downloading updates twice on Windows
+
+  + Auto-update for non-admin users on macOS.
+
+
 ### 1.0.11 (12/15/2017)
 
 Improvements:
