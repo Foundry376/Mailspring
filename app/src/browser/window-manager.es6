@@ -5,7 +5,6 @@ import WindowLauncher from './window-launcher';
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
 const ONBOARDING_WINDOW = 'onboarding';
-// const CALENDAR_WINDOW = "calendar"
 
 export default class WindowManager {
   constructor({
@@ -246,5 +245,4 @@ export default class WindowManager {
 
 WindowManager.MAIN_WINDOW = MAIN_WINDOW;
 WindowManager.SPEC_WINDOW = SPEC_WINDOW;
-// WindowManager.CALENDAR_WINDOW = CALENDAR_WINDOW;
 WindowManager.ONBOARDING_WINDOW = ONBOARDING_WINDOW;

@@ -27,7 +27,7 @@ export default class WindowLauncher {
   }) {
     this.defaultWindowOpts = {
       frame: process.platform !== 'darwin',
-      toolbar: process.platform !== 'linux',
+      toolbar: true,
       hidden: false,
       devMode,
       safeMode,
@@ -45,6 +45,17 @@ export default class WindowLauncher {
 
   newWindow(options) {
     const opts = Object.assign({}, this.defaultWindowOpts, options);
+
+    // apply optional Linux properties
+    if (process.platform === 'linux') {
+      const style = this.config.get('core.workspace.menubarStyle');
+      if (style === 'autohide') {
+        opts.autoHideMenuBar = true;
+      }
+      if (style === 'hamburger' && opts.toolbar) {
+        opts.frame = false;
+      }
+    }
 
     let win;
     if (this._mustUseColdWindow(opts)) {

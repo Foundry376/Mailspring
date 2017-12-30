@@ -354,27 +354,71 @@ body.is-blurred {
   }
 }
 
-// WINDOWS
+// WINDOWS / LINUX
+// sToolbar Window Control
 
-body.platform-win32 {
-  &.window-type-default {
-    .toolbar-menu-control {
-      display: inherit;
-      order: 10000;
-      .btn-toolbar {
-        margin-left: 0;
-        padding: 0 17px;
-        line-height: 36px;
-        img.content-mask {
-          vertical-align: middle;
-          background-color: @text-color-heading;
-        }
+body.platform-linux, 
+body.platform-win32.window-type-default {
+  .toolbar-menu-control {
+    display: inherit;
+    order: 10000;
+    .btn-toolbar {
+      margin-left: 0;
+      padding: 0 17px;
+      line-height: 36px;
+      img.content-mask {
+        vertical-align: middle;
+        background-color: @text-color-heading;
       }
     }
   }
+}
 
+// LINUX 
+
+body.platform-linux {
   .item-compose {
     order: -101;
+  }
+
+  // .toolbar-window-controls {
+  //   display: none;
+  // }
+
+  .toolbar-menu-control {
+    .btn-toolbar {
+      padding: 0 12px;
+      line-height: 17px;
+    }
+  }
+  .sheet-toolbar-container {
+    background-image: none;
+    background: @background-primary;
+  }
+
+  // temporary hack until we get new assets:
+  // make the gumdrops (which show when forcing hamburger menu mode) gray
+  .toolbar-window-controls {
+    .minimize {
+      -webkit-filter: saturate(0%);
+    }
+    .maximize {
+      -webkit-filter: saturate(0%) brightness(121%);
+    }
+  }
+}
+
+
+// WINDOWS
+// Make things a bit more square
+
+body.platform-win32 {
+  .item-compose {
+    order: -101;
+  }
+
+  .toolbar-window-controls {
+    display: none;
   }
 
   .btn {
@@ -386,10 +430,6 @@ body.platform-win32 {
   }
   .flexbox-handle-horizontal {
     cursor: ew-resize;
-  }
-
-  .toolbar-window-controls {
-    display: none;
   }
 
   .sheet-toolbar-container {
@@ -409,18 +449,10 @@ body.platform-win32 {
       }
     }
   }
-  .btn-feedback {
-    background: @blue;
-    &:hover {
-      background: lighten(@blue, 5%);
-    }
-    &:active {
-      background: lighten(@blue, 20%);
-    }
-  }
 }
 
-body.platform-win32.is-blurred {
+body.platform-win32.is-blurred,
+body.platform-linux.is-blurred {
   .sheet-toolbar-container {
     background-image: none;
     background: @background-primary;
@@ -430,17 +462,6 @@ body.platform-win32.is-blurred {
   }
 }
 
-// LINUX
-// Move the compose button, hide close / minimize / maximize
-
-body.platform-linux {
-  .toolbar-window-controls {
-    display: none;
-  }
-  .item-compose {
-    order: -101;
-  }
-}
 
 // WINDOWS
 // The custom font looks blurry, system-ui looks better
