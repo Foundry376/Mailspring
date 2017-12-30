@@ -21,6 +21,8 @@ const CONFIG_THEME_KEY = 'core.theme';
  */
 export default class ThemeManager {
   constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
+    this.baseThemeOnly = false;
+
     this.activeThemePackage = null;
     this.packageManager = packageManager;
     this.resourcePath = resourcePath;
@@ -35,20 +37,28 @@ export default class ThemeManager {
       importPaths: this.getImportPaths(),
     });
 
-    AppEnv.config.onDidChange(CONFIG_THEME_KEY, () => {
-      this.activateThemePackage();
+    AppEnv.config.onDidChange(CONFIG_THEME_KEY, this.updateThemePackageAndRecomputeLESS);
+  }
 
-      if (this.lessCache) {
-        this.lessCache.setImportPaths(this.getImportPaths());
+  // Called from the onboarding window to disable any custom theme
+  forceBaseTheme() {
+    this.baseThemeOnly = true;
+    this.updateThemePackageAndRecomputeLESS();
+  }
+
+  updateThemePackageAndRecomputeLESS() {
+    this.activateThemePackage();
+
+    if (this.lessCache) {
+      this.lessCache.setImportPaths(this.getImportPaths());
+    }
+    // reload all stylesheets attached to the dom
+    for (const styleEl of Array.from(document.head.querySelectorAll('[source-path]'))) {
+      if (styleEl.sourcePath.endsWith('.less')) {
+        styleEl.textContent = this.cssContentsOfStylesheet(styleEl.sourcePath);
       }
-      // reload all stylesheets attached to the dom
-      for (const styleEl of Array.from(document.head.querySelectorAll('[source-path]'))) {
-        if (styleEl.sourcePath.endsWith('.less')) {
-          styleEl.textContent = this.cssContentsOfStylesheet(styleEl.sourcePath);
-        }
-      }
-      this.emitter.emit('did-change-active-themes');
-    });
+    }
+    this.emitter.emit('did-change-active-themes');
   }
 
   watchCoreStyles() {
@@ -84,6 +94,9 @@ export default class ThemeManager {
   }
 
   getActiveTheme() {
+    if (this.baseThemeOnly) {
+      return this.getBaseTheme();
+    }
     return (
       this.packageManager.getPackageNamed(AppEnv.config.get(CONFIG_THEME_KEY)) ||
       this.getBaseTheme()
