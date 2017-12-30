@@ -251,7 +251,7 @@ class SignaturePhotoPicker extends React.Component {
     const { isDropping, isUploading } = this.state;
 
     let source = data.photoURL || '';
-    if (!['gravatar', 'company', ''].includes(source)) {
+    if (!['gravatar', 'twitter', 'company', ''].includes(source)) {
       source = 'custom';
     }
 
@@ -297,6 +297,7 @@ class SignaturePhotoPicker extends React.Component {
             >
               <option value="">None</option>
               <option value="gravatar">Gravatar Profile Photo</option>
+              <option value="twitter">Twitter Profile Image</option>
               <option value="company">Company / Domain Logo</option>
               <option disabled>──────────</option>
               <option value="custom">Custom Image</option>

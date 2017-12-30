@@ -39,8 +39,8 @@ export const DataShape = [
     label: 'Facebook URL',
   },
   {
-    key: 'twitterURL',
-    label: 'Twitter URL',
+    key: 'twitterHandle',
+    label: 'Twitter Handle',
   },
   {
     key: 'tintColor',
@@ -52,11 +52,24 @@ export const DataShape = [
 export const ResolveSignatureData = data => {
   data = Object.assign({}, data);
 
-  ['websiteURL', 'twitterURL', 'facebookURL'].forEach(key => {
+  ['websiteURL', 'facebookURL'].forEach(key => {
     if (data[key] && !data[key].includes(':')) {
       data[key] = `http://${data[key]}`;
     }
   });
+
+  // sanitize twitter handle
+  if (data.twitterHandle) {
+    if (data.twitterHandle.includes('/')) {
+      // a url was likely entered, lets grab the user (last portion).
+      const split = data.twitterHandle.split('/');
+      data.twitterHandle = split[split.length - 1];
+    }
+    if (data.twitterHandle[0] === '@') {
+      // an at symbol was added, lets remove it.
+      data.twitterHandle = data.twitterHandle.slice(1);
+    }
+  }
 
   if (data.photoURL === 'gravatar') {
     const hash = crypto
@@ -64,6 +77,10 @@ export const ResolveSignatureData = data => {
       .update((data.email || '').toLowerCase().trim())
       .digest('hex');
     data.photoURL = `https://www.gravatar.com/avatar/${hash}`;
+  }
+
+  if (data.photoURL === 'twitter') {
+    data.photoURL = `https://twitter.com/${data.twitterHandle}/profile_image?size=original`;
   }
 
   if (data.photoURL === 'company') {
