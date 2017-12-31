@@ -9,7 +9,6 @@ import {
   AccountStore,
 } from 'mailspring-exports';
 import {
-  InjectedComponent,
   KeyCommandsRegion,
   ParticipantsTextField,
   ListensToFluxStore,
@@ -38,9 +37,6 @@ export default class ComposerHeader extends React.Component {
     draft: PropTypes.object.isRequired,
     session: PropTypes.object.isRequired,
     initiallyFocused: PropTypes.bool,
-    // Subject text field injected component needs to call this function
-    // when it is rendered with a new header component
-    onNewHeaderComponents: PropTypes.func,
   };
 
   static contextTypes = {
@@ -235,7 +231,6 @@ export default class ComposerHeader extends React.Component {
     if (!this.state.enabledFields.includes(Fields.Subject)) {
       return false;
     }
-    const { draft, session } = this.props;
     return (
       <KeyCommandsRegion
         tabIndex={-1}
@@ -247,24 +242,14 @@ export default class ComposerHeader extends React.Component {
         onFocusIn={this._onFocusInSubject}
         onFocusOut={this._onFocusOutSubject}
       >
-        <InjectedComponent
+        <SubjectTextField
           ref={el => {
             if (el) {
               this._els[Fields.Subject] = el;
             }
           }}
-          key="subject-wrap"
-          matching={{ role: 'Composer:SubjectTextField' }}
-          exposedProps={{
-            draft,
-            session,
-            value: draft.subject,
-            headerMessageId: draft.headerMessageId,
-            onSubjectChange: this._onSubjectChange,
-          }}
-          requiredMethods={['focus']}
-          fallback={SubjectTextField}
-          onComponentDidChange={this.props.onNewHeaderComponents}
+          value={this.props.draft.subject}
+          onSubjectChange={this._onSubjectChange}
         />
       </KeyCommandsRegion>
     );
