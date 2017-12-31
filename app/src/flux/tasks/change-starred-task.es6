@@ -44,17 +44,4 @@ export default class ChangeStarredTask extends ChangeMailTask {
     task.starred = !this.starred;
     return task;
   }
-
-  recordUserEvent() {
-    if (this.source === 'Mail Rules') {
-      return;
-    }
-    const eventName = this.starred ? 'Starred' : 'Unstarred';
-    Actions.recordUserEvent(`Threads ${eventName}`, {
-      source: this.source,
-      numThreads: this.threadIds.length,
-      description: this.description(),
-      isUndo: this.isUndo,
-    });
-  }
 }

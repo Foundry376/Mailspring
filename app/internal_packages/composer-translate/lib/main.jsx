@@ -66,10 +66,6 @@ class TranslateButton extends React.Component {
     const draftHtml = this.props.draft.body;
     const text = QuotedHTMLTransformer.removeQuotedHTML(draftHtml);
 
-    Actions.recordUserEvent('Email Translated', {
-      language: YandexLanguages[lang],
-    });
-
     const queryParams = new URLSearchParams();
     queryParams.set('key', YandexTranslationKey);
     queryParams.set('lang', YandexLanguages[lang]);

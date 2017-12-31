@@ -27,7 +27,7 @@ describe "ActionBridge", ->
 
     it "should not rebroadcast mainWindow actions since it is the main window", ->
       spyOn(@bridge, 'onRebroadcast')
-      testAction = Actions.recordUserEvent
+      testAction = Actions.queueTask
       testAction('bla')
       expect(@bridge.onRebroadcast).not.toHaveBeenCalled()
 
@@ -57,7 +57,7 @@ describe "ActionBridge", ->
 
     it "should rebroadcast mainWindow actions", ->
       spyOn(@bridge, 'onRebroadcast')
-      testAction = Actions.recordUserEvent
+      testAction = Actions.queueTask
       testAction('bla')
       expect(@bridge.onRebroadcast).toHaveBeenCalled()
 

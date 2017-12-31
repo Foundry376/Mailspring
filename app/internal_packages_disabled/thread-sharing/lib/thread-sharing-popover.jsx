@@ -54,7 +54,7 @@ export default class ThreadSharingPopover extends React.Component {
   }
 
   _onToggleShared = async () => {
-    const { thread, accountId } = this.props;
+    const { thread } = this.props;
     const { shared } = this.state;
 
     this.setState({ saving: true });
@@ -64,9 +64,6 @@ export default class ThreadSharingPopover extends React.Component {
         return;
       }
 
-      if (!shared === true) {
-        Actions.recordUserEvent('Thread Sharing Enabled', { accountId, threadId: thread.id });
-      }
       Actions.queueTask(
         SyncbackMetadataTask.forSaving({
           model: thread,

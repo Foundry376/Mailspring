@@ -1,4 +1,4 @@
-import { AccountStore, Account, Actions, IdentityStore } from 'mailspring-exports';
+import { AccountStore, Account, IdentityStore } from 'mailspring-exports';
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 
@@ -136,15 +136,8 @@ class OnboardingStore extends MailspringStore {
 
     AppEnv.displayWindow();
 
-    Actions.recordUserEvent('Email Account Auth Succeeded', {
-      provider: account.provider,
-    });
-
     if (isFirstAccount) {
       this._onMoveToPage('initial-preferences');
-      Actions.recordUserEvent('First Account Linked', {
-        provider: account.provider,
-      });
     } else {
       // let them see the "success" screen for a moment
       // before the window is closed.

@@ -297,7 +297,6 @@ class TemplateStore extends MailspringStore {
             templateBody + signature,
             session.draft().body
           );
-          Actions.recordUserEvent('Email Template Inserted');
           session.changes.add({ body: draftHtml });
         }
       });

@@ -191,7 +191,6 @@ lazyLoad(`SanitizeTransformer`, 'services/sanitize-transformer');
 lazyLoad(`QuotedHTMLTransformer`, 'services/quoted-html-transformer');
 lazyLoad(`InlineStyleTransformer`, 'services/inline-style-transformer');
 lazyLoad(`SearchableComponentMaker`, 'searchable-components/searchable-component-maker');
-lazyLoad(`BatteryStatusManager`, 'services/battery-status-manager');
 
 // Errors
 lazyLoadWithGetter(`APIError`, () => require('../flux/errors').APIError);

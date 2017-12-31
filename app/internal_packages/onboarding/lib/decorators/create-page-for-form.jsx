@@ -1,6 +1,6 @@
 import { shell } from 'electron';
 import { RetinaImg } from 'mailspring-component-kit';
-import { Actions, React, ReactDOM, PropTypes } from 'mailspring-exports';
+import { React, ReactDOM, PropTypes } from 'mailspring-exports';
 
 import OnboardingActions from '../onboarding-actions';
 import { finalizeAndValidateAccount } from '../onboarding-helpers';
@@ -120,11 +120,6 @@ const CreatePageForForm = FormComponent => {
           OnboardingActions.finishAndAddAccount(validated);
         })
         .catch(err => {
-          Actions.recordUserEvent('Email Account Auth Failed', {
-            errorMessage: err.message,
-            provider: account.provider,
-          });
-
           const errorFieldNames = [];
 
           if (err.message.includes('Authentication Error')) {

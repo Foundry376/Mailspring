@@ -1,7 +1,6 @@
 import {
   React,
   PropTypes,
-  Actions,
   MailspringAPIRequest,
   APIError,
   FeatureUsageStore,
@@ -87,10 +86,8 @@ export default class MetadataComposerToggleButton extends React.Component {
   }
 
   _onClick = async () => {
-    const { pluginName, pluginId } = this.props;
+    const { pluginId } = this.props;
     let nextEnabled = !this._isEnabled();
-    const dir = nextEnabled ? 'Enabled' : 'Disabled';
-
     if (this.state.pending) {
       return;
     }
@@ -114,7 +111,6 @@ export default class MetadataComposerToggleButton extends React.Component {
       }
     }
 
-    Actions.recordUserEvent(`${pluginName} ${dir}`);
     AppEnv.config.set(this._configKey(), nextEnabled);
     this._setEnabled(nextEnabled);
   };

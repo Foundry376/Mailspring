@@ -1,5 +1,5 @@
 import { shell } from 'electron';
-import { Actions, React, PropTypes } from 'mailspring-exports';
+import { React, PropTypes } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
 import GithubStore from './github-store';
@@ -140,7 +140,6 @@ export default class ViewOnGithubButton extends React.Component {
   * request.
   */
   _openLink = () => {
-    Actions.recordUserEvent('Github Thread Opened', { pageUrl: this.state.link });
     if (this.state.link) {
       shell.openExternal(this.state.link);
     }

@@ -29,20 +29,6 @@ class SnoozeStore extends MailspringStore {
     this.unsubscribers.forEach(unsub => unsub());
   }
 
-  _recordSnoozeEvent(threads, snoozeDate, label) {
-    try {
-      const timeInSec = Math.round((new Date(snoozeDate).valueOf() - Date.now()) / 1000);
-      Actions.recordUserEvent('Threads Snoozed', {
-        timeInSec: timeInSec,
-        timeInLog10Sec: Math.log10(timeInSec),
-        label: label,
-        numItems: threads.length,
-      });
-    } catch (e) {
-      // Do nothing
-    }
-  }
-
   _onSnoozeThreads = async (threads, snoozeDate, label) => {
     try {
       // ensure the user is authorized to use this feature
@@ -51,9 +37,6 @@ class SnoozeStore extends MailspringStore {
         usagePhrase: 'snooze',
         iconUrl: 'mailspring://thread-snooze/assets/ic-snooze-modal@2x.png',
       });
-
-      // log to analytics
-      this._recordSnoozeEvent(threads, snoozeDate, label);
 
       // move the threads to the snoozed folder
       await moveThreads(threads, {

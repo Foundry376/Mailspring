@@ -468,11 +468,6 @@ class Actions {
   */
   static pushSheet = ActionScopeWindow;
 
-  /*
-  Public: Publish a user event to any analytics services linked to N1.
-  */
-  static recordUserEvent = ActionScopeMainWindow;
-
   static addMailRule = ActionScopeWindow;
   static reorderMailRule = ActionScopeWindow;
   static updateMailRule = ActionScopeWindow;

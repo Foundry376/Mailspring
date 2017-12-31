@@ -1,5 +1,5 @@
 import { ipcRenderer, shell, clipboard } from 'electron';
-import { React, PropTypes, Actions } from 'mailspring-exports';
+import { React, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import FormErrorMessage from './form-error-message';
 
@@ -75,10 +75,6 @@ export default class OAuthSignInPage extends React.Component {
   _handleError(err) {
     this.setState({ authStage: 'error', errorMessage: err.message });
     AppEnv.reportError(err);
-    Actions.recordUserEvent('Email Account Auth Failed', {
-      errorMessage: err.message,
-      provider: 'gmail',
-    });
   }
 
   startPollingForResponse() {

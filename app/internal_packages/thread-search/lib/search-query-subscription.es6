@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import {
-  Actions,
   Thread,
   DatabaseStore,
   SearchQueryParser,
@@ -119,31 +118,8 @@ class SearchQuerySubscription extends MutableQuerySubscription {
       return;
     }
 
-    let timeToFirstServerResults = null;
-    let timeToFirstThreadSelected = null;
-    const timeInsideSearch = Math.round((Date.now() - this._searchStartedAt) / 1000);
-    const numItems = this._focusedThreadCount;
-    const didSelectAnyThreads = numItems > 0;
+    // Not Implemented
 
-    if (this._firstThreadSelectedAt) {
-      timeToFirstThreadSelected = Math.round(
-        (this._firstThreadSelectedAt - this._searchStartedAt) / 1000
-      );
-    }
-    if (this._resultsReceivedAt) {
-      timeToFirstServerResults = Math.round(
-        (this._resultsReceivedAt - this._searchStartedAt) / 1000
-      );
-    }
-
-    const data = {
-      numItems,
-      timeInsideSearch,
-      didSelectAnyThreads,
-      timeToFirstServerResults,
-      timeToFirstThreadSelected,
-    };
-    Actions.recordUserEvent('Search Performed', data);
     this.resetData();
   }
 

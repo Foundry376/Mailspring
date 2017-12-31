@@ -75,12 +75,6 @@ class SendLaterButton extends Component {
       }
 
       this.setState({ saving: true });
-      const sendInSec = Math.round((new Date(sendLaterDate).valueOf() - Date.now()) / 1000);
-      Actions.recordUserEvent('Draft Send Later', {
-        timeInSec: sendInSec,
-        timeInLog10Sec: Math.log10(sendInSec),
-        label: dateLabel,
-      });
     }
 
     this.props.session.changes.addPluginMetadata(PLUGIN_ID, {

@@ -182,7 +182,6 @@ class DraftStore extends MailspringStore {
   };
 
   _onComposeReply = ({ thread, threadId, message, messageId, popout, type, behavior }) => {
-    Actions.recordUserEvent('Draft Created', { type });
     return Promise.props(this._modelifyContext({ thread, threadId, message, messageId }))
       .then(({ message: m, thread: t }) => {
         return DraftFactory.createOrUpdateDraftForReply({ message: m, thread: t, type, behavior });
@@ -193,7 +192,6 @@ class DraftStore extends MailspringStore {
   };
 
   _onComposeForward = async ({ thread, threadId, message, messageId, popout }) => {
-    Actions.recordUserEvent('Draft Created', { type: 'forward' });
     return Promise.props(this._modelifyContext({ thread, threadId, message, messageId }))
       .then(({ thread: t, message: m }) => {
         return DraftFactory.createDraftForForward({ thread: t, message: m });
@@ -275,7 +273,6 @@ class DraftStore extends MailspringStore {
   };
 
   _onPopoutBlankDraft = async () => {
-    Actions.recordUserEvent('Draft Created', { type: 'new' });
     const draft = await DraftFactory.createDraft();
     const { headerMessageId } = await this._finalizeAndPersistNewMessage(draft);
     await this._onPopoutDraft(headerMessageId, { newDraft: true });

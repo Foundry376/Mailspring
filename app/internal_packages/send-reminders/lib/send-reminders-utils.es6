@@ -30,13 +30,6 @@ async function incrementMetadataUse(model, expiration) {
       return false;
     }
   }
-  if (expiration) {
-    const seconds = Math.round((new Date(expiration).getTime() - Date.now()) / 1000);
-    Actions.recordUserEvent('Set Reminder', {
-      seconds: seconds,
-      secondsLog10: Math.log10(seconds),
-    });
-  }
   return true;
 }
 
