@@ -21,7 +21,7 @@
     .sheet-toolbar-container {
       background-image: -webkit-linear-gradient(
         top,
-        @toolbar-background-color,
+        lighten(@toolbar-background-color, 6%),
         darken(@toolbar-background-color, 5%)
       );
       box-shadow: none;
@@ -67,4 +67,16 @@
 
 .btn-icon img.content-mask:hover {
   background-color: @accent-primary;
+}
+
+body.is-blurred .sheet-container {
+  .sheet-toolbar {
+    .sheet-toolbar-container {
+      background-image: -webkit-linear-gradient(
+        top,
+        darken(@toolbar-background-color, 5%),
+        darken(@toolbar-background-color, 5%)
+      );
+    }
+  }
 }

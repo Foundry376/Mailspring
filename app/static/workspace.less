@@ -394,14 +394,55 @@ body.platform-linux {
     background: @background-primary;
   }
 
-  // temporary hack until we get new assets:
-  // make the gumdrops (which show when forcing hamburger menu mode) gray
+  // linux gumdrops are bigger (15px) and hover states are per-button
+  // instead of for the entire set.
   .toolbar-window-controls {
+    &:hover {
+      button {
+        background-position: 0 0;
+      }
+    }
+    button {
+      width: 15px;
+      height: 15px;
+      margin: 4px;
+      background-size: 15px 60px;
+      &:hover {
+        background-position: 0 -15px;
+      }
+      &:active {
+        background-position: 0 -30px;
+      }
+    }
+    .close {
+      background-image: url('images/application-frame/close-linux.png');
+    }
     .minimize {
-      -webkit-filter: saturate(0%);
+      background-image: url('images/application-frame/minimize-linux.png');
     }
     .maximize {
-      -webkit-filter: saturate(0%) brightness(121%);
+      background-image: url('images/application-frame/maximize-linux.png');
+    }
+    &.alt-true {
+      .maximize {
+        background-image: url('images/application-frame/maximize-linux.png');
+      }
+    }
+  }
+
+  &.is-blurred {
+    .toolbar-window-controls {
+      button {
+        background-position: 0 -45px;
+      }
+    }
+  
+    .sheet-toolbar-container {
+      background-image: none;
+      background: @background-primary;
+      .btn-toolbar {
+        box-shadow: none;
+      }
     }
   }
 }
@@ -447,18 +488,18 @@ body.platform-win32 {
       }
     }
   }
-}
 
-body.platform-win32.is-blurred,
-body.platform-linux.is-blurred {
-  .sheet-toolbar-container {
-    background-image: none;
-    background: @background-primary;
-    .btn-toolbar {
-      box-shadow: none;
+  &.is-blurred {
+    .sheet-toolbar-container {
+      background-image: none;
+      background: @background-primary;
+      .btn-toolbar {
+        box-shadow: none;
+      }
     }
   }
 }
+
 
 
 // WINDOWS
