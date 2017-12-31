@@ -248,60 +248,6 @@ abbr[data-original-title] {
   text-transform: uppercase;
 }
 
-// Blockquotes
-blockquote {
-  padding: (@line-height-computed / 2) @line-height-computed;
-  margin: 0 0 @line-height-computed;
-  border-left: 5px solid @gray-lighter;
-
-  p,
-  ul,
-  ol {
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  // Note: Deprecated small and .small as of v3.1.0
-  // Context: https://github.com/twbs/bootstrap/issues/11660
-  footer,
-  small,
-  .small {
-    display: block;
-    font-size: 80%; // back to default font-size
-    line-height: @line-height-base;
-    color: @gray-light;
-
-    &:before {
-      content: '\2014 \00A0'; // em dash, nbsp
-    }
-  }
-}
-
-// Opposite alignment of blockquote
-//
-// Heads up: `blockquote.pull-right` has been deprecated as of v3.1.0.
-.blockquote-reverse,
-blockquote.pull-right {
-  padding-right: 15px;
-  padding-left: 0;
-  border-right: 5px solid @gray-lighter;
-  border-left: 0;
-  text-align: right;
-
-  // Account for citation
-  footer,
-  small,
-  .small {
-    &:before {
-      content: '';
-    }
-    &:after {
-      content: '\00A0 \2014'; // nbsp, em dash
-    }
-  }
-}
-
 // Addresses
 address {
   margin-bottom: @line-height-computed;

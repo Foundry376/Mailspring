@@ -3,7 +3,7 @@ import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
 import React from 'react';
 
-import { EditorState } from 'draft-js';
+import { EditorState, convertToRaw } from 'draft-js';
 
 // TODO BEN
 import {
@@ -360,6 +360,7 @@ export default class DraftEditingSession extends MailspringStore {
     // }
     const editorState = convertFromHTML(draft.body);
     draft.bodyEditorState = EditorState.createWithContent(editorState);
+    console.log(convertToRaw(draft.bodyEditorState.getCurrentContent()));
     this._draft = draft;
 
     // We keep track of the draft's initial body if it's pristine when the editing

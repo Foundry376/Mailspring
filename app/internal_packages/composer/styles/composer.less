@@ -554,6 +554,27 @@ body.platform-win32 {
   font-size: 14px;
 }
 
+.RichEditor-root blockquote {
+  border-left: 3px solid #eee;
+  color: blue;
+  margin: 0;
+  padding: 10px 15px;
+  -webkit-margin-after: initial !important;
+  -webkit-margin-before: initial !important;
+  -webkit-margin-start: initial !important;
+  -webkit-margin-end: initial !important;
+}
+.RichEditor-root .uneditable {
+  color: purple;
+  blockquote {
+    color: purple;
+  }
+  .blockquote-layer {
+    border-left: 3px solid #eee;
+    padding: 10px 15px;
+  }
+}
+
 .RichEditor-editor {
   border-top: 1px solid #ddd;
   cursor: text;
@@ -569,15 +590,6 @@ body.platform-win32 {
 
 .RichEditor-editor .public-DraftEditor-content {
   min-height: 100px;
-}
-
-.RichEditor-editor .RichEditor-blockquote {
-  border-left: 5px solid #eee;
-  color: #666;
-  font-family: 'Hoefler Text', 'Georgia', serif;
-  font-style: italic;
-  margin: 16px 0;
-  padding: 10px 20px;
 }
 
 .RichEditor-editor .public-DraftStyleDefault-pre {

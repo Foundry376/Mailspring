@@ -4,7 +4,10 @@ import * as DraftConvert from 'draft-convert';
 import { HTMLConfig as InlineAttachmentHTMLConfig } from './inline-attachment-plugin';
 import { HTMLConfig as LinkifyHTMLConfig } from './linkify-plugin';
 import { HTMLConfig as TextStyleHTMLConfig } from './text-style-plugin';
-import { HTMLConfig as QuotedTextHTMLConfig, quoteDepthForNode } from './quoted-text-plugin';
+import quotedTextPlugin, {
+  HTMLConfig as QuotedTextHTMLConfig,
+  quoteDepthForNode,
+} from './quoted-text-plugin';
 import { HTMLConfig as TemplatesHTMLConfig } from './templates-plugin';
 
 const plugins = [
@@ -17,6 +20,43 @@ const plugins = [
 
 // Conversion to and from HTML
 
+function DOMBuilder(html) {
+  var parser = new DOMParser();
+  let doc = parser.parseFromString(html, 'text/html');
+  if (doc === null || doc.body === null) {
+    doc = document.implementation.createHTMLDocument('');
+    doc.documentElement.innerHTML = html;
+  }
+  // remove leading and trailing spaces from text nodes
+  const treeWalker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  while (treeWalker.nextNode()) {
+    const cn = treeWalker.currentNode;
+    if (cn.parentNode.nodeName === 'A' || cn.parentNode.parentNode.nodeName === 'A') {
+      continue;
+    }
+    cn.textContent = cn.textContent.trim();
+  }
+
+  // convert <div><br><div> into just <div> </div> to avoid double-newlines
+  const brWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: node => {
+      if (
+        node.nodeName === 'DIV' &&
+        node.childNodes.length === 1 &&
+        node.childNodes[0].nodeName === 'BR'
+      ) {
+        return NodeFilter.FILTER_ACCEPT;
+      }
+      return NodeFilter.FILTER_SKIP;
+    },
+  });
+  while (brWalker.nextNode()) {
+    brWalker.currentNode.innerHTML = ' ';
+  }
+
+  return doc.body;
+}
+
 export function convertFromHTML(html) {
   return DraftConvert.convertFromHTML({
     htmlToStyle: (nodeName, node, currentStyle) => {
@@ -27,18 +67,10 @@ export function convertFromHTML(html) {
       return nextStyle;
     },
     htmlToBlock: (nodeName, node) => {
-      if (nodeName === 'body') {
-        // remove leading and trailing spaces from text nodes
-        const treeWalker = node.ownerDocument.createTreeWalker(node, NodeFilter.SHOW_TEXT);
-        while (treeWalker.nextNode()) {
-          treeWalker.currentNode.textContent = treeWalker.currentNode.textContent.trim();
-        }
-      }
-
       // once we're inside a blockquote for quoted text, we don't
       // create any new blocks, since it'd bump you out of the quoted text.
       if (quoteDepthForNode(node) > 0) {
-        return;
+        return QuotedTextHTMLConfig.htmlToBlock(nodeName, node);
       }
 
       for (const p of plugins) {
@@ -55,7 +87,7 @@ export function convertFromHTML(html) {
         if (result) return result;
       }
     },
-  })(html);
+  })(html, { flat: false }, DOMBuilder);
 }
 
 export function convertToHTML(contentState) {
@@ -113,6 +145,10 @@ export function convertToHTML(contentState) {
         case 'media':
           return <figure />;
         case 'atomic':
+          for (const p of plugins) {
+            const result = p.blockToHTML && p.blockToHTML(block);
+            if (result) return result;
+          }
           return {
             start: '',
             end: '',

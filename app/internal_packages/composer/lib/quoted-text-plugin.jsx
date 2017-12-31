@@ -20,33 +20,83 @@ export function quoteDepthForNode(node) {
 
 export const HTMLConfig = {
   htmlToBlock(nodeName, node) {
-    if (node.nodeName === 'blockquote' && node.classList.contains('gmail_quote')) {
+    const isDeepBlockquote =
+      node.nodeName === 'BLOCKQUOTE' && node.innerText.trim().length && quoteDepthForNode(node) > 1;
+    if (isDeepBlockquote) {
+      const quotedHTML = node.innerHTML;
+      node.innerHTML = '<div>WASHERE</div>';
       return {
-        type: 'BLOCKQUOTE',
-        data: {},
+        type: 'atomic',
+        data: {
+          quotedHTML,
+        },
+      };
+    }
+
+    const isUneditable = node.nodeName === 'TABLE';
+    if (isUneditable) {
+      const outerHTML = node.outerHTML;
+      node.innerHTML = '<div>WASHERE</div>';
+      return {
+        type: 'atomic',
+        data: {
+          outerHTML,
+        },
       };
     }
   },
-  htmlToStyle(nodeName, node, currentStyle) {
-    if (nodeName === 'blockquote') {
-      return currentStyle.add(`QUOTELEVEL:${quoteDepthForNode(node)}`);
+  blockToHTML: block => {
+    const quotedHTML = block.data.quotedHTML;
+    if (quotedHTML) {
+      return {
+        empty: `<blockquote class="gmail_quote">${quotedHTML}</blockquote>`,
+        start: `<blockquote class="gmail_quote">${quotedHTML}</blockquote>`,
+        end: '',
+      };
     }
-    return currentStyle;
+    const outerHTML = block.data.outerHTML;
+    if (outerHTML) {
+      return {
+        empty: outerHTML,
+        start: outerHTML,
+        end: '',
+      };
+    }
   },
 };
 
 const createQuotedTextPlugin = () => {
   return {
-    customStyleFn: style => {
-      const ql = style.filter(k => k.startsWith('QUOTELEVEL')).last();
-      if (ql) {
-        console.log(ql);
-        return {
-          display: 'block',
-          borderLeft: '3px solid red',
-          paddingLeft: ql.split(':').pop() / 1 * 10,
-        };
+    blockRendererFn: (block, { getEditorState }) => {
+      if (block.getType() === 'atomic') {
+        const quotedHTML = block.getData().get('quotedHTML');
+        if (quotedHTML) {
+          return {
+            editable: false,
+            component: props => {
+              return (
+                <blockquote className="uneditable">
+                  <div
+                    className="blockquote-layer"
+                    dangerouslySetInnerHTML={{ __html: quotedHTML }}
+                  />
+                </blockquote>
+              );
+            },
+          };
+        }
+
+        const outerHTML = block.getData().get('outerHTML');
+        if (outerHTML) {
+          return {
+            editable: false,
+            component: props => {
+              return <div className="uneditable" dangerouslySetInnerHTML={{ __html: outerHTML }} />;
+            },
+          };
+        }
       }
+      return null;
     },
   };
 };
