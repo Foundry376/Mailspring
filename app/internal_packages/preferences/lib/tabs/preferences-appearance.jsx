@@ -59,15 +59,19 @@ class MenubarStylePicker extends React.Component {
     const val = this.props.config.get(this.kp) || 'default';
 
     const options = [
-      ['default', 'Default Window Controls and Menubar'],
-      ['autohide', 'Default Window Controls and Auto-hiding Menubar'],
-      ['hamburger', 'Custom Window Frame and Right-hand Menu'],
+      ['default', 'Default Window Controls and Menubar', ''],
+      [
+        'autohide',
+        'Default Window Controls and Auto-hiding Menubar',
+        '(Requires supported window manager. Press `Alt` to show menu.)',
+      ],
+      ['hamburger', 'Custom Window Frame and Right-hand Menu', ''],
     ];
 
     return (
-      <section className="platform-linux-aonly">
+      <section className="platform-linux-only">
         <h6 htmlFor="change-layout">Window Controls and Menus</h6>
-        {options.map(([enumValue, description], idx) => (
+        {options.map(([enumValue, description, comment], idx) => (
           <div key={enumValue}>
             <label htmlFor={`radio${idx}`}>
               <input
@@ -79,6 +83,9 @@ class MenubarStylePicker extends React.Component {
                 onClick={this.onChangeMenubarStyle}
               />
               {` ${description}`}
+              {comment && (
+                <div style={{ paddingLeft: 40, fontSize: '0.9em', opacity: 0.7 }}>{comment}</div>
+              )}
             </label>
           </div>
         ))}

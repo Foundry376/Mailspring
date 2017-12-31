@@ -27,7 +27,7 @@ export default class WindowLauncher {
   }) {
     this.defaultWindowOpts = {
       frame: process.platform !== 'darwin',
-      toolbar: true,
+      toolbar: process.platform !== 'linux',
       hidden: false,
       devMode,
       safeMode,
@@ -52,7 +52,8 @@ export default class WindowLauncher {
       if (style === 'autohide') {
         opts.autoHideMenuBar = true;
       }
-      if (style === 'hamburger' && opts.toolbar) {
+      if (style === 'hamburger' && opts.frame) {
+        opts.toolbar = true;
         opts.frame = false;
       }
     }
