@@ -69,10 +69,6 @@ export default class WindowEventHandler {
       AppEnv.toggleDevTools();
     });
 
-    AppEnv.commands.add(document.body, 'window:open-js-logs', () => {
-      AppEnv.errorLogger.openLogs();
-    });
-
     AppEnv.commands.add(document.body, 'window:open-mailsync-logs', () => {
       AppEnv.mailsyncBridge.openLogs();
     });

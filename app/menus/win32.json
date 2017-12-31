@@ -61,7 +61,6 @@
         { "label": "Toggle Component Regions", "command": "window:toggle-component-regions" },
         { "label": "Toggle Screenshot Mode", "command": "window:toggle-screenshot-mode" },
         { "type": "separator" },
-        { "label": "Open JavaScript Logs", "command": "window:open-js-logs" },
         { "label": "Open Mailsync Logs", "command": "window:open-mailsync-logs" }
       ]
     },

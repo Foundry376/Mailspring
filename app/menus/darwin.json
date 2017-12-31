@@ -99,7 +99,6 @@
       { "label": "Toggle Developer Tools", "command": "window:toggle-dev-tools" },
       { "label": "Toggle Component Regions", "command": "window:toggle-component-regions" },
       { "label": "Toggle Screenshot Mode", "command": "window:toggle-screenshot-mode" },
-      { "label": "Open JavaScript Logs", "command": "window:open-js-logs" },
       { "type": "separator" },
       { "label": "Attach Mailsync to Xcode", "command": "window:attach-to-xcode" },
       { "label": "Open Mailsync Logs", "command": "window:open-mailsync-logs" }

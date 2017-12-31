@@ -2,10 +2,8 @@
 // Coffeescript interpreter. Note that it runs in both browser and
 // renderer processes.
 
-var ErrorLogger, _, fs, path, app, os, remote;
-os = require('os');
-fs = require('fs-plus');
-path = require('path');
+var ErrorLogger, _, app, remote;
+
 let ipcRenderer = null;
 if (process.type === 'renderer') {
   ipcRenderer = require('electron').ipcRenderer;
@@ -58,10 +56,6 @@ module.exports = ErrorLogger = (function() {
     if (this.inSpecMode) {
       return;
     }
-
-    this._cleanOldLogFiles();
-    this._setupNewLogFile();
-    this._hookProcessOutputsToLogFile();
   }
 
   /////////////////////////////////////////////////////////////////////
@@ -74,10 +68,6 @@ module.exports = ErrorLogger = (function() {
     }
     if (!error) {
       error = { stack: '' };
-    }
-    this._appendLog(error.stack);
-    if (extra) {
-      this._appendLog(extra);
     }
     if (process.type === 'renderer') {
       var errorJSON = '{}';
@@ -113,11 +103,6 @@ module.exports = ErrorLogger = (function() {
       this._notifyExtensions('reportError', error, extra);
     }
     console.error(error, extra);
-  };
-
-  ErrorLogger.prototype.openLogs = function() {
-    var shell = require('electron').shell;
-    shell.openItem(this._logPath());
   };
 
   /////////////////////////////////////////////////////////////////////
@@ -166,88 +151,6 @@ module.exports = ErrorLogger = (function() {
     });
   };
 
-  ErrorLogger.prototype._logPath = function() {
-    var tmpPath = app.getPath('temp');
-
-    var logpid = process.pid;
-    if (process.type === 'renderer') {
-      logpid = remote.process.pid + '.' + process.pid;
-    }
-    return path.join(tmpPath, 'Mailspring-' + logpid + '.log');
-  };
-
-  // If we're the browser process, remove log files that are more than
-  // two days old. These log files get pretty big because we're logging
-  // so verbosely.
-  ErrorLogger.prototype._cleanOldLogFiles = function() {
-    if (process.type === 'browser') {
-      var tmpPath = app.getPath('temp');
-      fs.readdir(tmpPath, function(err, files) {
-        if (err) {
-          console.error(err);
-          return;
-        }
-
-        var logFilter = new RegExp('Mailspring-[.0-9]*.log$');
-        files.forEach(function(file) {
-          if (logFilter.test(file) === true) {
-            var filepath = path.join(tmpPath, file);
-            fs.stat(filepath, function(err, stats) {
-              if (!err && stats) {
-                var lastModified = new Date(stats.mtime);
-                var fileAge = Date.now() - lastModified.getTime();
-                if (fileAge > 1000 * 60 * 60 * 24 * 2) {
-                  // two days
-                  fs.unlink(filepath, () => {});
-                }
-              }
-            });
-          }
-        });
-      });
-    }
-  };
-
-  ErrorLogger.prototype._setupNewLogFile = function() {
-    // Open a file write stream to log output from this process
-    console.log('Streaming log data to ' + this._logPath());
-
-    this.loghost = os.hostname();
-    this.logstream = fs.createWriteStream(this._logPath(), {
-      flags: 'a',
-      encoding: 'utf8',
-      fd: null,
-      mode: 666,
-    });
-  };
-
-  ErrorLogger.prototype._hookProcessOutputsToLogFile = function() {
-    var self = this;
-    // Override stdout and stderr to pipe their output to the file
-    // in addition to calling through to the existing implementation
-    function hook_process_output(channel, callback) {
-      var old_write = process[channel].write;
-      process[channel].write = (function(write) {
-        return function(string, encoding, fd) {
-          write.apply(process[channel], arguments);
-          callback(string, encoding, fd);
-        };
-      })(process[channel].write);
-
-      // Return a function that can be used to undo this change
-      return function() {
-        process[channel].write = old_write;
-      };
-    }
-
-    hook_process_output('stdout', function(string, encoding, fd) {
-      self._appendLog.apply(self, [string]);
-    });
-    hook_process_output('stderr', function(string, encoding, fd) {
-      self._appendLog.apply(self, [string]);
-    });
-  };
-
   ErrorLogger.prototype._notifyExtensions = function() {
     var command, args;
     command = arguments[0];
@@ -270,30 +173,6 @@ module.exports = ErrorLogger = (function() {
     }
     if (this.inDevMode === true && showIt === true) {
       console.log.apply(console, args);
-    }
-    this._appendLog.apply(this, [args]);
-  };
-
-  ErrorLogger.prototype._appendLog = function(obj) {
-    if (this.inSpecMode) {
-      return;
-    }
-
-    try {
-      var message =
-        JSON.stringify({
-          host: this.loghost,
-          timestamp: new Date().toISOString(),
-          payload: obj,
-        }) + '\n';
-
-      this.logstream.write(message, 'utf8', function(err) {
-        if (err) {
-          console.error('ErrorLogger: Unable to write to the log stream!' + err.toString());
-        }
-      });
-    } catch (err) {
-      console.error('ErrorLogger: Unable to write to the log stream.' + err.toString());
     }
   };
 
