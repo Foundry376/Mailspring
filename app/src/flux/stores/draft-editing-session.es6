@@ -360,7 +360,6 @@ export default class DraftEditingSession extends MailspringStore {
     // }
     const editorState = convertFromHTML(draft.body);
     draft.bodyEditorState = EditorState.createWithContent(editorState);
-    console.log(convertToRaw(draft.bodyEditorState.getCurrentContent()));
     this._draft = draft;
 
     // We keep track of the draft's initial body if it's pristine when the editing

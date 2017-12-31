@@ -13,91 +13,84 @@ export function quoteDepthForNode(node) {
     }
     n = n.parentNode;
   }
-
-  console.log(depth);
   return depth;
 }
 
 export const HTMLConfig = {
-  htmlToBlock(nodeName, node) {
+  htmlToEntity(nodeName, node, createEntity) {
     const isDeepBlockquote =
       node.nodeName === 'BLOCKQUOTE' && node.innerText.trim().length && quoteDepthForNode(node) > 1;
+
     if (isDeepBlockquote) {
       const quotedHTML = node.innerHTML;
-      node.innerHTML = '<div>WASHERE</div>';
-      return {
-        type: 'atomic',
-        data: {
-          quotedHTML,
-        },
-      };
+      node.innerHTML = ' ';
+      return createEntity(ENTITY_TYPE, 'IMMUTABLE', { quotedHTML });
     }
 
     const isUneditable = node.nodeName === 'TABLE';
     if (isUneditable) {
       const outerHTML = node.outerHTML;
-      node.innerHTML = '<div>WASHERE</div>';
-      return {
-        type: 'atomic',
-        data: {
-          outerHTML,
-        },
-      };
+      node.innerHTML = ' ';
+      return createEntity(ENTITY_TYPE, 'IMMUTABLE', { outerHTML });
     }
   },
-  blockToHTML: block => {
-    const quotedHTML = block.data.quotedHTML;
-    if (quotedHTML) {
-      return {
-        empty: `<blockquote class="gmail_quote">${quotedHTML}</blockquote>`,
-        start: `<blockquote class="gmail_quote">${quotedHTML}</blockquote>`,
-        end: '',
-      };
-    }
-    const outerHTML = block.data.outerHTML;
-    if (outerHTML) {
-      return {
-        empty: outerHTML,
-        start: outerHTML,
-        end: '',
-      };
+
+  entityToHTML(entity, originalText) {
+    if (entity.type === ENTITY_TYPE) {
+      const quotedHTML = entity.data.quotedHTML;
+      if (quotedHTML) {
+        return {
+          empty: `<blockquote class="gmail_quote">${quotedHTML}</blockquote>`,
+          start: `<blockquote class="gmail_quote">${quotedHTML}</blockquote>`,
+          end: '',
+        };
+      }
+      const outerHTML = entity.data.outerHTML;
+      if (outerHTML) {
+        return {
+          empty: outerHTML,
+          start: outerHTML,
+          end: '',
+        };
+      }
     }
   },
 };
 
+function findEntities(contentBlock, callback, contentState) {
+  contentBlock.findEntityRanges(character => {
+    const entityKey = character.getEntity();
+    if (!entityKey) return;
+
+    const entity = contentState.getEntity(entityKey);
+    return entity.getType() === ENTITY_TYPE;
+  }, callback);
+}
+
 const createQuotedTextPlugin = () => {
   return {
-    blockRendererFn: (block, { getEditorState }) => {
-      if (block.getType() === 'atomic') {
-        const quotedHTML = block.getData().get('quotedHTML');
-        if (quotedHTML) {
-          return {
-            editable: false,
-            component: props => {
-              return (
-                <blockquote className="uneditable">
-                  <div
-                    className="blockquote-layer"
-                    dangerouslySetInnerHTML={{ __html: quotedHTML }}
-                  />
-                </blockquote>
-              );
-            },
-          };
-        }
+    decorators: [
+      {
+        strategy: findEntities,
+        component: props => {
+          const { quotedHTML, outerHTML } = props.contentState.getEntity(props.entityKey).getData();
 
-        const outerHTML = block.getData().get('outerHTML');
-        if (outerHTML) {
-          return {
-            editable: false,
-            component: props => {
-              return <div className="uneditable" dangerouslySetInnerHTML={{ __html: outerHTML }} />;
-            },
-          };
-        }
-      }
-      return null;
-    },
+          if (outerHTML) {
+            return {
+              editable: false,
+              component: props => {
+                return (
+                  <div className="uneditable" dangerouslySetInnerHTML={{ __html: outerHTML }} />
+                );
+              },
+            };
+          }
+          return (
+            <blockquote className="uneditable" dangerouslySetInnerHTML={{ __html: quotedHTML }} />
+          );
+        },
+      },
+    ],
   };
 };
 

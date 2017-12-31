@@ -377,12 +377,6 @@ export default class ComposerView extends React.Component {
     this._mouseDownTarget = null;
   };
 
-  _onMouseMoveComposeBody = () => {
-    if (this._mouseComposeBody === 'down') {
-      this._mouseComposeBody = 'move';
-    }
-  };
-
   _shouldAcceptDrop = event => {
     // Ensure that you can't pick up a file and drop it on the same draft
     const nonNativeFilePath = this._nonNativeFilePathForDrop(event);
