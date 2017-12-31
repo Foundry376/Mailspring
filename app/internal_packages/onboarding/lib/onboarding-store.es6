@@ -15,16 +15,7 @@ class OnboardingStore extends MailspringStore {
     this.listenTo(OnboardingActions.finishAndAddAccount, this._onFinishAndAddAccount);
     this.listenTo(OnboardingActions.identityJSONReceived, this._onIdentityJSONReceived);
 
-    ipcRenderer.on('set-account-provider', (e, provider) => {
-      if (provider) {
-        this._onChooseAccountProvider(provider);
-      } else {
-        this._pageStack = ['account-choose'];
-        this.trigger();
-      }
-    });
-
-    const { existingAccount, addingAccount, accountProvider } = AppEnv.getWindowProps();
+    const { existingAccountJSON, addingAccount } = AppEnv.getWindowProps();
 
     const hasAccounts = AccountStore.accounts().length > 0;
     const identity = IdentityStore.identity();
@@ -35,18 +26,20 @@ class OnboardingStore extends MailspringStore {
       settings: {},
     });
 
-    if (existingAccount) {
-      // Used when re-adding an account after re-connecting
-      this._pageStack = ['account-choose'];
-      this._account.name = existingAccount.name;
-      this._account.emailAddress = existingAccount.emailAddress;
-      this._onChooseAccountProvider(existingAccount.provider);
+    if (existingAccountJSON) {
+      // Used when re-adding an account after re-connecting, take the user back
+      // to the best page with the most details
+      this._account = new Account(existingAccountJSON);
+      if (this._account.provider === 'gmail') {
+        this._pageStack = ['account-choose', 'account-settings-gmail'];
+      } else if (this._account.provider === 'imap') {
+        this._pageStack = ['account-choose', 'account-settings', 'account-settings-imap'];
+      } else {
+        this._pageStack = ['account-choose', 'account-settings'];
+      }
     } else if (addingAccount) {
       // Adding a new, unknown account
       this._pageStack = ['account-choose'];
-      if (accountProvider) {
-        this._onChooseAccountProvider(accountProvider);
-      }
     } else if (identity) {
       // Should only happen if config was edited to remove all accounts,
       // but don't want to re-login to Nylas account. Very useful when
@@ -75,16 +68,7 @@ class OnboardingStore extends MailspringStore {
   };
 
   _onChooseAccountProvider = provider => {
-    let nextPage = 'account-settings';
-    if (provider === 'gmail') {
-      nextPage = 'account-settings-gmail';
-    } else if (provider === 'exchange') {
-      nextPage = 'account-settings-exchange';
-    }
-
-    Actions.recordUserEvent('Selected Account Provider', {
-      provider,
-    });
+    const nextPage = provider === 'gmail' ? 'account-settings-gmail' : 'account-settings';
 
     // Don't carry over any type-specific account information
     this._onSetAccount(

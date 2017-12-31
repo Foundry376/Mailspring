@@ -11,7 +11,6 @@ import AccountSettingsPage from './page-account-settings';
 import AccountSettingsPageGmail from './page-account-settings-gmail';
 import AccountSettingsPageIMAP from './page-account-settings-imap';
 import AccountOnboardingSuccess from './page-account-onboarding-success';
-import AccountSettingsPageExchange from './page-account-settings-exchange';
 import InitialPreferencesPage from './page-initial-preferences';
 import InitialSubscriptionPage from './page-initial-subscription';
 
@@ -23,7 +22,6 @@ const PageComponents = {
   'account-settings': AccountSettingsPage,
   'account-settings-gmail': AccountSettingsPageGmail,
   'account-settings-imap': AccountSettingsPageIMAP,
-  'account-settings-exchange': AccountSettingsPageExchange,
   'account-onboarding-success': AccountOnboardingSuccess,
   'initial-preferences': InitialPreferencesPage,
   'initial-subscription': InitialSubscriptionPage,

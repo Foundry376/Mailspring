@@ -28,7 +28,7 @@ class AccountSwitcher extends React.Component
 
   _onAddAccount: =>
     ipc = require('electron').ipcRenderer
-    ipc.send('command', 'application:add-account', {source: 'Sidebar'})
+    ipc.send('command', 'application:add-account')
 
   _onManageAccounts: =>
     Actions.switchPreferencesTab('Accounts')

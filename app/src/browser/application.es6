@@ -353,18 +353,15 @@ export default class Application extends EventEmitter {
       win.browserWindow.inspectElement(x, y);
     });
 
-    this.on('application:add-account', ({ existingAccount, accountProvider } = {}) => {
+    this.on('application:add-account', ({ existingAccountJSON } = {}) => {
       const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
       if (onboarding) {
-        if (onboarding.browserWindow.webContents) {
-          onboarding.browserWindow.webContents.send('set-account-provider', accountProvider);
-        }
         onboarding.show();
         onboarding.focus();
       } else {
         this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
+          windowProps: { addingAccount: true, existingAccountJSON },
           title: 'Add an Account',
-          windowProps: { addingAccount: true, existingAccount, accountProvider },
         });
       }
     });

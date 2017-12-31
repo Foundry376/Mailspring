@@ -1,8 +1,9 @@
 /* eslint global-require: 0 */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { shell, ipcRenderer } from 'electron';
 import { EditableList } from 'mailspring-component-kit';
-import { RegExpUtils, Account } from 'mailspring-exports';
+import { RegExpUtils, KeyManager, Account } from 'mailspring-exports';
 
 class AutoaddressControl extends Component {
   render() {
@@ -134,11 +135,9 @@ class PreferencesAccountDetails extends Component {
     this._setStateAndSave({ defaultAlias });
   };
 
-  _onReconnect = () => {
-    const ipc = require('electron').ipcRenderer;
-    ipc.send('command', 'application:add-account', {
-      existingAccount: this.state.account,
-      source: 'Reconnect from preferences',
+  _onReconnect = async () => {
+    ipcRenderer.send('command', 'application:add-account', {
+      existingAccountJSON: await KeyManager.insertAccountSecrets(this.state.account),
     });
   };
 
@@ -147,7 +146,6 @@ class PreferencesAccountDetails extends Component {
   };
 
   _onContactSupport = () => {
-    const { shell } = require('electron');
     shell.openExternal('https://support.getmailspring.com/hc/en-us/requests/new');
   };
 

@@ -45,7 +45,7 @@ class PreferencesAccounts extends React.Component {
 
   // Update account list actions
   _onAddAccount() {
-    ipcRenderer.send('command', 'application:add-account', { source: 'Preferences' });
+    ipcRenderer.send('command', 'application:add-account');
   }
 
   _onReorderAccount(account, oldIdx, newIdx) {
