@@ -6,6 +6,7 @@ import {
   Utils,
   Actions,
   DraftStore,
+  DraftHelpers,
   AttachmentStore,
 } from 'mailspring-exports';
 import {
@@ -25,6 +26,32 @@ import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
 import Fields from './fields';
 
+function hasNonTrailingBlockquote(editorState) {
+  const blocks = editorState.getCurrentContent().blockMap.toArray();
+  let foundQuote = false;
+  for (const b of blocks) {
+    if (b.type === 'blockquote') {
+      foundQuote = true;
+    } else if (foundQuote) {
+      // the quote is followed by something other than another quote,
+      // which means it's inline
+      return true;
+    }
+  }
+  return false;
+}
+
+function hideQuotedTextByDefault(session) {
+  const draft = session.draft();
+  if (DraftHelpers.isForwardedMessage(draft)) {
+    return false;
+  }
+  if (hasNonTrailingBlockquote(draft.bodyEditorState)) {
+    return false;
+  }
+  return true;
+}
+
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
 // Composer with new props.
@@ -34,36 +61,32 @@ export default class ComposerView extends React.Component {
   static propTypes = {
     session: PropTypes.object.isRequired,
     draft: PropTypes.object.isRequired,
-
-    // Sometimes when changes in the composer happens it's desirable to
-    // have the parent scroll to a certain location. A parent component can
-    // pass a callback that gets called when this composer wants to be
-    // scrolled to.
-    scrollTo: PropTypes.func,
     className: PropTypes.string,
   };
 
   constructor(props) {
     super(props);
     this._els = {};
-    this.state = { isDropping: false };
+    this.state = { isDropping: false, isHidingQuotedText: hideQuotedTextByDefault(props.session) };
   }
 
   componentDidMount() {
-    if (this.props.session) {
-      this._setupForProps(this.props);
-    }
+    this.props.draft.files.forEach(file => {
+      if (Utils.shouldDisplayAsImage(file)) {
+        Actions.fetchFile(file);
+      }
+    });
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.session !== this.props.session) {
-      this._teardownForProps();
-      this._setupForProps(nextProps);
-    }
-  }
+  componentDidUpdate() {
+    const { draft } = this.props;
 
-  componentWillUnmount() {
-    this._teardownForProps();
+    // If the user has added an inline blockquote, show all the quoted text
+    // note: this is necessary because it's hidden with CSS that can't be
+    // made more specific.
+    if (this.state.isHidingQuotedText && hasNonTrailingBlockquote(draft.bodyEditorState)) {
+      this.setState({ isHidingQuotedText: false });
+    }
   }
 
   focus() {
@@ -99,25 +122,6 @@ export default class ComposerView extends React.Component {
       },
     };
   }
-
-  _setupForProps({ draft, session }) {
-    // // TODO: This is a dirty hack to save selection state into the undo/redo
-    // // history. Remove it if / when selection is written into the body with
-    // // marker tags, or when selection is moved from `contenteditable.innerState`
-    // // into a first-order part of the session state.
-
-    draft.files.forEach(file => {
-      if (Utils.shouldDisplayAsImage(file)) {
-        Actions.fetchFile(file);
-      }
-    });
-  }
-
-  _teardownForProps() {}
-
-  _setSREl = el => {
-    this._els.scrollregion = el;
-  };
 
   _renderContentScrollRegion() {
     if (AppEnv.isComposerWindow()) {
@@ -185,9 +189,24 @@ export default class ComposerView extends React.Component {
         className="composer-body-wrap"
       >
         {this._renderEditor()}
+        {this._renderQuotedTextControl()}
         {this._renderAttachments()}
       </div>
     );
+  }
+
+  _renderQuotedTextControl() {
+    if (this.state.isHidingQuotedText) {
+      return (
+        <a
+          className="quoted-text-control"
+          onClick={() => this.setState({ isHidingQuotedText: false })}
+        >
+          <span className="dots">&bull;&bull;&bull;</span>
+        </a>
+      );
+    }
+    return false;
   }
 
   _renderEditor() {
@@ -198,7 +217,7 @@ export default class ComposerView extends React.Component {
             this._els[Fields.Body] = el;
           }
         }}
-        className="body-field"
+        className={`body-field ${this.state.isHidingQuotedText && 'hiding-quoted-text'}`}
         atomicBlockProps={{ draft: this.props.draft, session: this.props.session }}
         editorState={this.props.draft.bodyEditorState}
         onFileReceived={this._onFileReceived}
@@ -207,15 +226,6 @@ export default class ComposerView extends React.Component {
         }}
       />
     );
-
-    // const exposedProps = {
-    //   parentActions: {
-    //     getComposerBoundingRect: this._getComposerBoundingRect,
-    //     scrollTo: this.props.scrollTo,
-    //   },
-    //   onFilePaste: this._onFileReceived,
-    //   onBodyChanged: this._onBodyChanged,
-    // };
   }
 
   // The contenteditable decides when to request a scroll based on the
