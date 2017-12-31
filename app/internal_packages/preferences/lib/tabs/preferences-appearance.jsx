@@ -45,6 +45,61 @@ class AppearanceScaleSlider extends React.Component {
   }
 }
 
+class MenubarStylePicker extends React.Component {
+  constructor(props) {
+    super(props);
+    this.kp = 'core.workspace.menubarStyle';
+  }
+
+  onChangeMenubarStyle = e => {
+    this.props.config.set(this.kp, e.target.value);
+  };
+
+  render() {
+    const val = this.props.config.get(this.kp) || 'default';
+
+    const options = [
+      ['default', 'Default Window Controls and Menubar'],
+      ['autohide', 'Default Window Controls and Auto-hiding Menubar'],
+      ['hamburger', 'Custom Window Frame and Right-hand Menu'],
+    ];
+
+    return (
+      <section className="platform-linux-aonly">
+        <h6 htmlFor="change-layout">Window Controls and Menus</h6>
+        {options.map(([enumValue, description], idx) => (
+          <div key={enumValue}>
+            <label htmlFor={`radio${idx}`}>
+              <input
+                id={`radio${idx}`}
+                type="radio"
+                value={enumValue}
+                name="menubarStyle"
+                checked={val === enumValue}
+                onClick={this.onChangeMenubarStyle}
+              />
+              {` ${description}`}
+            </label>
+          </div>
+        ))}
+        <div className="platform-note" style={{ lineHeight: '23px' }}>
+          <div
+            className="btn btn-small"
+            style={{ float: 'right' }}
+            onClick={() => {
+              require('electron').remote.app.relaunch();
+              require('electron').remote.app.quit();
+            }}
+          >
+            Restart
+          </div>
+          Restart to apply window changes.
+        </div>
+      </section>
+    );
+  }
+}
+
 class AppearanceModeSwitch extends React.Component {
   static displayName = 'AppearanceModeSwitch';
 
@@ -129,28 +184,37 @@ class PreferencesAppearance extends React.Component {
     configSchema: PropTypes.object,
   };
 
-  onClick = () => {
+  onPickTheme = () => {
     AppEnv.commands.dispatch('window:launch-theme-picker');
   };
 
   render() {
     return (
       <div className="container-appearance">
-        <h6 htmlFor="change-layout">Layout</h6>
-        <AppearanceModeSwitch id="change-layout" config={this.props.config} />
-        <h6 htmlFor="change-layout">Theme and Style</h6>
-        <div>
-          <button className="btn btn-large" onClick={this.onClick}>
-            Change theme...
-          </button>
-        </div>
-        <h6 htmlFor="change-scale">Scaling</h6>
-        <AppearanceScaleSlider id="change-scale" config={this.props.config} />
-        <div className="platform-note">
-          Scaling adjusts the entire UI, including icons, dividers, and text. Messages you send will
-          still have the same font size. Decreasing scale significantly may make dividers and icons
-          too small to click.
-        </div>
+        <section>
+          <h6 htmlFor="change-layout">Layout</h6>
+          <AppearanceModeSwitch id="change-layout" config={this.props.config} />
+        </section>
+        <section>
+          <h6 htmlFor="change-layout" style={{ marginTop: 10 }}>
+            Theme and Style
+          </h6>
+          <div>
+            <button className="btn btn-large" onClick={this.onPickTheme}>
+              Change theme...
+            </button>
+          </div>
+        </section>
+        <MenubarStylePicker config={this.props.config} />
+        <section>
+          <h6 htmlFor="change-scale">Scaling</h6>
+          <AppearanceScaleSlider id="change-scale" config={this.props.config} />
+          <div className="platform-note">
+            Scaling adjusts the entire UI, including icons, dividers, and text. Messages you send
+            will still have the same font size. Decreasing scale significantly may make dividers and
+            icons too small to click.
+          </div>
+        </section>
       </div>
     );
   }
