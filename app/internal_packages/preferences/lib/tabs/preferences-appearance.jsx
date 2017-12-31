@@ -98,9 +98,9 @@ class MenubarStylePicker extends React.Component {
               require('electron').remote.app.quit();
             }}
           >
-            Restart
+            Relaunch
           </div>
-          Restart to apply window changes.
+          Relaunch to apply window changes.
         </div>
       </section>
     );
