@@ -12,44 +12,49 @@
 @toolbar-background-color: #41403b;
 @light: rgb(246, 246, 246);
 
-.sheet-toolbar .btn-toolbar img.content-mask {
-  background-color: @light;
-}
+.sheet-container {
+  .sheet-toolbar {
+    .btn-toolbar img.content-mask {
+      background-color: @light;
+    }
 
-.sheet-toolbar-container {
-  background-image: -webkit-linear-gradient(
-    top,
-    @toolbar-background-color,
-    darken(@toolbar-background-color, 5%)
-  );
-  box-shadow: none;
-  .btn {
-    background: lighten(@toolbar-background-color, 4%);
+    .sheet-toolbar-container {
+      background-image: -webkit-linear-gradient(
+        top,
+        lighten(@toolbar-background-color, 6%),
+        darken(@toolbar-background-color, 5%)
+      );
+      box-shadow: none;
+      .btn {
+        background: lighten(@toolbar-background-color, 4%);
+      }
+      .btn.btn-toolbar {
+        color: @light;
+      }
+      .toolbar-activity .activity-toolbar-icon {
+        background: @light;
+      }
+    }
   }
-  .btn.btn-toolbar {
+
+  .sheet-toolbar .item-back img.content-mask,
+  .sheet-toolbar .toolbar-menu-control img.content-mask {
+    background-color: @light;
+  }
+
+  .sheet-toolbar .item-back .item-back-title {
     color: @light;
   }
-  .toolbar-activity .activity-toolbar-icon {
-    background: @light;
-  }
-}
 
-.sheet-toolbar .item-back img.content-mask {
-  background-color: @light;
-}
+  .sheet-toolbar .selection-bar {
+    .absolute {
+      border-color: lighten(@toolbar-background-color, 5%);
+      background-color: darken(@toolbar-background-color, 8%);
 
-.sheet-toolbar .item-back .item-back-title {
-  color: @light;
-}
-
-.sheet-toolbar .selection-bar {
-  .absolute {
-    border-color: lighten(@toolbar-background-color, 5%);
-    background-color: darken(@toolbar-background-color, 8%);
-
-    .inner {
-      .centered {
-        color: @light;
+      .inner {
+        .centered {
+          color: @light;
+        }
       }
     }
   }
@@ -62,4 +67,16 @@
 
 .btn-icon img.content-mask:hover {
   background-color: @accent-primary;
+}
+
+body.is-blurred .sheet-container {
+  .sheet-toolbar {
+    .sheet-toolbar-container {
+      background-image: -webkit-linear-gradient(
+        top,
+        darken(@toolbar-background-color, 5%),
+        darken(@toolbar-background-color, 5%)
+      );
+    }
+  }
 }

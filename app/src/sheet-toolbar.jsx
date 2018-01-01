@@ -133,6 +133,15 @@ class ToolbarWindowControls extends React.Component {
   };
 
   render() {
+    const enabled =
+      process.platform === 'darwin' ||
+      (process.platform === 'linux' &&
+        AppEnv.config.get('core.workspace.menubarStyle') === 'hamburger');
+
+    if (!enabled) {
+      return <span />;
+    }
+
     return (
       <div name="ToolbarWindowControls" className={`toolbar-window-controls alt-${this.state.alt}`}>
         <button tabIndex={-1} className="close" onClick={() => AppEnv.close()} />
@@ -152,6 +161,15 @@ class ToolbarMenuControl extends React.Component {
   };
 
   render() {
+    const enabled =
+      process.platform === 'win32' ||
+      (process.platform === 'linux' &&
+        AppEnv.config.get('core.workspace.menubarStyle') === 'hamburger');
+
+    if (!enabled) {
+      return <span />;
+    }
+
     return (
       <div className="toolbar-menu-control">
         <button tabIndex={-1} className="btn btn-toolbar" onClick={this._onOpenMenu}>

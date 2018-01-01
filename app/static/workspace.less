@@ -354,27 +354,110 @@ body.is-blurred {
   }
 }
 
-// WINDOWS
+// WINDOWS / LINUX
+// Toolbar Window Control
 
-body.platform-win32 {
-  &.window-type-default {
-    .toolbar-menu-control {
-      display: inherit;
-      order: 10000;
-      .btn-toolbar {
-        margin-left: 0;
-        padding: 0 17px;
-        line-height: 36px;
-        img.content-mask {
-          vertical-align: middle;
-          background-color: @text-color-heading;
-        }
+body.platform-linux, 
+body.platform-win32.window-type-default {
+  .toolbar-menu-control {
+    display: inherit;
+    order: 10000;
+    .btn-toolbar {
+      margin-left: 0;
+      padding: 0 17px;
+      line-height: 36px;
+      img.content-mask {
+        vertical-align: middle;
+        background-color: @text-color-heading;
+      }
+    }
+  }
+}
+
+// LINUX 
+
+body.platform-linux {
+  .item-compose {
+    order: -101;
+  }
+
+  .toolbar-menu-control {
+    .btn-toolbar {
+      padding: 0 12px;
+      line-height: 17px;
+    }
+  }
+
+  // make the toolbar white in the standard theme
+  .sheet-toolbar-container {
+    background-image: none;
+    background: @background-primary;
+  }
+
+  // linux gumdrops are bigger (15px) and hover states are per-button
+  // instead of for the entire set.
+  .toolbar-window-controls {
+    &:hover {
+      button {
+        background-position: 0 0;
+      }
+    }
+    button {
+      width: 15px;
+      height: 15px;
+      margin: 4px;
+      background-size: 15px 60px;
+      &:hover {
+        background-position: 0 -15px;
+      }
+      &:active {
+        background-position: 0 -30px;
+      }
+    }
+    .close {
+      background-image: url('images/application-frame/close-linux.png');
+    }
+    .minimize {
+      background-image: url('images/application-frame/minimize-linux.png');
+    }
+    .maximize {
+      background-image: url('images/application-frame/maximize-linux.png');
+    }
+    &.alt-true {
+      .maximize {
+        background-image: url('images/application-frame/maximize-linux.png');
       }
     }
   }
 
+  &.is-blurred {
+    .toolbar-window-controls {
+      button {
+        background-position: 0 -45px;
+      }
+    }
+  
+    .sheet-toolbar-container {
+      background-image: none;
+      background: @background-primary;
+      .btn-toolbar {
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+
+// WINDOWS
+// Make things a bit more square
+
+body.platform-win32 {
   .item-compose {
     order: -101;
+  }
+
+  .toolbar-window-controls {
+    display: none;
   }
 
   .btn {
@@ -386,10 +469,6 @@ body.platform-win32 {
   }
   .flexbox-handle-horizontal {
     cursor: ew-resize;
-  }
-
-  .toolbar-window-controls {
-    display: none;
   }
 
   .sheet-toolbar-container {
@@ -409,38 +488,19 @@ body.platform-win32 {
       }
     }
   }
-  .btn-feedback {
-    background: @blue;
-    &:hover {
-      background: lighten(@blue, 5%);
-    }
-    &:active {
-      background: lighten(@blue, 20%);
-    }
-  }
-}
 
-body.platform-win32.is-blurred {
-  .sheet-toolbar-container {
-    background-image: none;
-    background: @background-primary;
-    .btn-toolbar {
-      box-shadow: none;
+  &.is-blurred {
+    .sheet-toolbar-container {
+      background-image: none;
+      background: @background-primary;
+      .btn-toolbar {
+        box-shadow: none;
+      }
     }
   }
 }
 
-// LINUX
-// Move the compose button, hide close / minimize / maximize
 
-body.platform-linux {
-  .toolbar-window-controls {
-    display: none;
-  }
-  .item-compose {
-    order: -101;
-  }
-}
 
 // WINDOWS
 // The custom font looks blurry, system-ui looks better
