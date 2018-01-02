@@ -128,8 +128,8 @@ export const HTMLConfig = {
     }
     if (entity.type === ATTRIBUTION_LINE) {
       return {
-        start: `<div class="gmail_quote_attribution">`,
-        end: `</div>`,
+        start: `<span class="gmail_quote_attribution">`,
+        end: `</span>`,
       };
     }
   },

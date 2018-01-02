@@ -50,7 +50,6 @@ function DOMBuilder(html) {
   while (brWalker.nextNode()) {
     brWalker.currentNode.innerHTML = ' ';
   }
-
   return doc.body;
 }
 

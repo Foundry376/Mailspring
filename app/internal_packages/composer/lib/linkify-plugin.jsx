@@ -1,6 +1,23 @@
 import { React, RegExpUtils } from 'mailspring-exports';
 import { RichUtils, Modifier, EditorState, SelectionState } from 'draft-js';
 
+function indexOfAny(text, chars, i) {
+  let min = -1;
+  for (const char of chars) {
+    const v = text.indexOf(char, i);
+    if (v !== -1) {
+      min = min === -1 ? v : Math.min(min, v);
+    }
+  }
+  return min;
+}
+
+function lastIndexOfAny(text, chars, i) {
+  let max = -1;
+  for (const char of chars) max = Math.max(max, text.lastIndexOf(char, i));
+  return max;
+}
+
 const ENTITY_TYPE = 'LINK';
 
 // TOOLBAR UI
@@ -241,8 +258,8 @@ const createLinkifyPlugin = () => {
 
       // Step 1: Get the word around the cursor by splitting the current block's text
       const text = cursorBlock.text;
-      const currentWordStart = text.lastIndexOf(' ', cursorOffset) + 1;
-      let currentWordEnd = text.indexOf(' ', cursorOffset);
+      const currentWordStart = lastIndexOfAny(text, [' ', '\n', '\r'], cursorOffset) + 1;
+      let currentWordEnd = indexOfAny(text, [' ', '\n', '\r'], cursorOffset); // -1 to catch user typing a space
       if (currentWordEnd === -1) {
         currentWordEnd = text.length;
       }
