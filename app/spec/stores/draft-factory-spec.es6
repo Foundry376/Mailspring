@@ -140,14 +140,14 @@ describe('DraftFactory', function draftFactory() {
 
   describe('creating drafts', () => {
     describe('createDraftForReply', () => {
-      it('should be empty string', () => {
+      it('should include a quoted text block', () => {
         waitsForPromise(() => {
           return DraftFactory.createDraftForReply({
             thread: fakeThread,
             message: fakeMessage1,
             type: 'reply',
           }).then(draft => {
-            expect(draft.body).toEqual('');
+            expect(draft.body.includes(`span class="gmail_quote mailspring-quote`)).toBe(true);
           });
         });
       });
@@ -513,13 +513,19 @@ describe('DraftFactory', function draftFactory() {
 
   describe('createOrUpdateDraftForReply', () => {
     it('should throw an exception unless you provide `reply` or `reply-all`', () => {
-      expect(() =>
+      waitsForPromise(() =>
         DraftFactory.createOrUpdateDraftForReply({
           thread: fakeThread,
           message: fakeMessage1,
           type: 'wrong',
         })
-      ).toThrow();
+          .then(() => {
+            expect(false).toEqual(true);
+          })
+          .catch(() => {
+            expect(true).toEqual(true);
+          })
+      );
     });
 
     describe('when there is already a draft in reply to the same message the thread', () => {

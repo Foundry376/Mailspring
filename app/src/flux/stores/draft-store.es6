@@ -1,7 +1,6 @@
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 import DraftEditingSession from './draft-editing-session';
-import DraftHelpers from './draft-helpers';
 import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
 import SendActionsStore from './send-actions-store';
@@ -384,10 +383,10 @@ class DraftStore extends MailspringStore {
       Message.attributes.body
     );
 
-    draft = await DraftHelpers.pruneRemovedInlineFiles(draft);
-    if (draft.replyToHeaderMessageId && DraftHelpers.shouldAppendQuotedText(draft)) {
-      draft = await DraftHelpers.appendQuotedTextToDraft(draft);
-    }
+    // remove inline attachments that are no longer inline
+    draft.files = draft.files.filter(f => {
+      return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
+    });
 
     // Directly update the message body cache so the user immediately sees
     // the new message text (and never old draft text or blank text) sending.

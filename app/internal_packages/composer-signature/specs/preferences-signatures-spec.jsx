@@ -66,16 +66,10 @@ describe('PreferencesSignatures', function preferencesSignatures() {
       ReactTestUtils.Simulate.click(this.item);
       expect(Actions.selectSignature).toHaveBeenCalledWith('2');
     });
-    it('should modify the signature body when edited', () => {
-      spyOn(Actions, 'upsertSignature');
-      const newText = 'Changed <strong>NEW 1 HTML</strong><br>';
-      this.component._onEditSignature({ target: { value: newText } });
-      expect(Actions.upsertSignature).toHaveBeenCalled();
-    });
     it('should modify the signature title when edited', () => {
       spyOn(Actions, 'upsertSignature');
       const newTitle = 'Changed';
-      this.component._onEditSignature(newTitle);
+      this.component._onEditSignatureTitle(newTitle);
       expect(Actions.upsertSignature).toHaveBeenCalled();
     });
   });

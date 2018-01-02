@@ -6,7 +6,6 @@ import {
   Utils,
   Actions,
   DraftStore,
-  DraftHelpers,
   AttachmentStore,
 } from 'mailspring-exports';
 import {
@@ -26,6 +25,11 @@ import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
 import Fields from './fields';
 
+function hasBlockquote(editorState) {
+  const blocks = editorState.getCurrentContent().blockMap.toArray();
+  return !!blocks.find(b => b.type === 'blockquote');
+}
+
 function hasNonTrailingBlockquote(editorState) {
   const blocks = editorState.getCurrentContent().blockMap.toArray();
   let foundQuote = false;
@@ -41,9 +45,8 @@ function hasNonTrailingBlockquote(editorState) {
   return false;
 }
 
-function hideQuotedTextByDefault(session) {
-  const draft = session.draft();
-  if (DraftHelpers.isForwardedMessage(draft)) {
+function hideQuotedTextByDefault(draft) {
+  if (draft.isForwarded()) {
     return false;
   }
   if (hasNonTrailingBlockquote(draft.bodyEditorState)) {
@@ -66,8 +69,15 @@ export default class ComposerView extends React.Component {
 
   constructor(props) {
     super(props);
+
+    const draft = props.session.draft();
+
     this._els = {};
-    this.state = { isDropping: false, isHidingQuotedText: hideQuotedTextByDefault(props.session) };
+    this.state = {
+      isDropping: false,
+      quotedTextPresent: hasBlockquote(draft.bodyEditorState),
+      quotedTextHidden: hideQuotedTextByDefault(draft),
+    };
   }
 
   componentDidMount() {
@@ -84,8 +94,8 @@ export default class ComposerView extends React.Component {
     // If the user has added an inline blockquote, show all the quoted text
     // note: this is necessary because it's hidden with CSS that can't be
     // made more specific.
-    if (this.state.isHidingQuotedText && hasNonTrailingBlockquote(draft.bodyEditorState)) {
-      this.setState({ isHidingQuotedText: false });
+    if (this.state.quotedTextHidden && hasNonTrailingBlockquote(draft.bodyEditorState)) {
+      this.setState({ quotedTextHidden: false });
     }
   }
 
@@ -189,17 +199,14 @@ export default class ComposerView extends React.Component {
   }
 
   _renderQuotedTextControl() {
-    if (this.state.isHidingQuotedText) {
-      return (
-        <a
-          className="quoted-text-control"
-          onClick={() => this.setState({ isHidingQuotedText: false })}
-        >
-          <span className="dots">&bull;&bull;&bull;</span>
-        </a>
-      );
+    if (!this.state.quotedTextPresent || !this.state.quotedTextHidden) {
+      return false;
     }
-    return false;
+    return (
+      <a className="quoted-text-control" onClick={() => this.setState({ quotedTextHidden: false })}>
+        <span className="dots">&bull;&bull;&bull;</span>
+      </a>
+    );
   }
 
   _renderEditor() {
@@ -210,7 +217,7 @@ export default class ComposerView extends React.Component {
             this._els[Fields.Body] = el;
           }
         }}
-        className={`body-field ${this.state.isHidingQuotedText && 'hiding-quoted-text'}`}
+        className={`body-field ${this.state.quotedTextHidden && 'hiding-quoted-text'}`}
         atomicBlockProps={{ draft: this.props.draft, session: this.props.session }}
         editorState={this.props.draft.bodyEditorState}
         onFileReceived={this._onFileReceived}

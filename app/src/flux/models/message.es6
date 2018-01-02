@@ -321,6 +321,23 @@ export default class Message extends ModelWithMetadata {
     return this.from[0] ? this.from[0].isMe() : false;
   }
 
+  isForwarded() {
+    if (this.body) {
+      const indexForwarded = this.body.search(/forwarded/i);
+      if (indexForwarded >= 0 && indexForwarded < 250) {
+        return true;
+      }
+      const indexFwd = this.body.search(/fwd/i);
+      if (indexFwd >= 0 && indexFwd < 250) {
+        return true;
+      }
+    }
+    if (this.subject && this.subject.slice(0, 3).toLowerCase() === 'fwd') {
+      return true;
+    }
+    return false;
+  }
+
   fromContact() {
     return (this.from || [])[0] || new Contact({ name: 'Unknown', email: 'Unknown' });
   }

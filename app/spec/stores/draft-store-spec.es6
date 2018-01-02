@@ -5,7 +5,6 @@ import {
   Message,
   Account,
   DraftStore,
-  DraftHelpers,
   DatabaseStore,
   SoundRegistry,
   DestroyDraftTask,

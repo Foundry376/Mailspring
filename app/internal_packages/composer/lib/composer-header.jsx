@@ -1,13 +1,5 @@
 import _ from 'underscore';
-import {
-  React,
-  ReactDOM,
-  PropTypes,
-  Utils,
-  DraftHelpers,
-  Actions,
-  AccountStore,
-} from 'mailspring-exports';
+import { React, ReactDOM, PropTypes, Utils, Actions, AccountStore } from 'mailspring-exports';
 import {
   KeyCommandsRegion,
   ParticipantsTextField,
@@ -84,7 +76,7 @@ export default class ComposerHeader extends React.Component {
       this.context.parentTabGroup.shiftFocus(-1);
     }
 
-    const enabledFields = _.without(this.state.enabledFields, fieldName);
+    const enabledFields = this.state.enabledFields.filter(n => n !== fieldName);
     this.setState({ enabledFields });
   };
 
@@ -122,10 +114,10 @@ export default class ComposerHeader extends React.Component {
   }
 
   _shouldEnableSubject = () => {
-    if (_.isEmpty(this.props.draft.subject)) {
+    if ((this.props.draft.subject || '').trim().length === 0) {
       return true;
     }
-    if (DraftHelpers.isForwardedMessage(this.props.draft)) {
+    if (this.props.draft.isForwarded()) {
       return true;
     }
     if (this.props.draft.replyToHeaderMessageId) {

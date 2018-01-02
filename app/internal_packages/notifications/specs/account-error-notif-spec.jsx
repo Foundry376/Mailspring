@@ -1,7 +1,6 @@
 import { mount } from 'enzyme';
-import { AccountStore, Account, Actions, React } from 'mailspring-exports';
+import { AccountStore, Account, Actions, React, KeyManager } from 'mailspring-exports';
 import { ipcRenderer } from 'electron';
-
 import AccountErrorNotification from '../lib/items/account-error-notif';
 
 describe('AccountErrorNotif', function AccountErrorNotifTests() {
@@ -36,10 +35,17 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
 
     it('allows the user to reconnect the account', () => {
       const notif = mount(<AccountErrorNotification />);
+      spyOn(KeyManager, 'insertAccountSecrets').andCallFake(acct => acct);
       spyOn(ipcRenderer, 'send');
       notif.find('#action-1').simulate('click'); // Expects second action to be the reconnect action
-      expect(ipcRenderer.send).toHaveBeenCalledWith('command', 'application:add-account', {
-        existingAccountJSON: AccountStore.accounts()[0],
+
+      waitsFor(() => {
+        return ipcRenderer.send.callCount > 0;
+      });
+      runs(() => {
+        expect(ipcRenderer.send).toHaveBeenCalledWith('command', 'application:add-account', {
+          existingAccountJSON: AccountStore.accounts()[0],
+        });
       });
     });
   });

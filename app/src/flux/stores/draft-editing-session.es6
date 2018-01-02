@@ -1,9 +1,8 @@
 import _ from 'underscore';
 import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
-import React from 'react';
 
-import { EditorState, convertToRaw } from 'draft-js';
+import { EditorState } from 'draft-js';
 
 // TODO BEN
 import {
@@ -19,7 +18,6 @@ import AccountStore from './account-store';
 import ContactStore from './contact-store';
 import DatabaseStore from './database-store';
 import UndoStack from '../../undo-stack';
-import DraftHelpers from '../stores/draft-helpers';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
@@ -205,7 +203,7 @@ export default class DraftEditingSession extends MailspringStore {
     const allRecipients = [].concat(this._draft.to, this._draft.cc, this._draft.bcc);
     const bodyIsEmpty =
       this._draft.body === this.draftPristineBody() || this._draft.body === '<br>';
-    const forwarded = DraftHelpers.isForwardedMessage(this._draft);
+    const forwarded = this._draft.isForwarded();
     const hasAttachment = this._draft.files && this._draft.files.length > 0;
 
     const allNames = [].concat(Utils.commonlyCapitalizedSalutations);
