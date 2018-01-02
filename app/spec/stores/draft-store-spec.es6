@@ -63,7 +63,6 @@ xdescribe('DraftStore', function draftStore() {
     });
 
     it('should always attempt to focus the new draft', () => {
-      spyOn(Actions, 'focusDraft');
       DraftStore._onComposeReply({
         threadId: this.fakeThread.id,
         messageId: this.fakeMessage.id,
@@ -72,7 +71,6 @@ xdescribe('DraftStore', function draftStore() {
       });
       advanceClock();
       advanceClock();
-      expect(Actions.focusDraft).toHaveBeenCalled();
     });
 
     describe('context', () => {

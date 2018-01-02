@@ -542,7 +542,6 @@ describe('DraftFactory', function draftFactory() {
             add: jasmine.createSpy('add'),
           },
         };
-        spyOn(Actions, 'focusDraft');
         spyOn(DatabaseStore, 'run').andReturn(Promise.resolve([fakeMessage1, this.existingDraft]));
         spyOn(DraftStore, 'sessionForClientId').andReturn(Promise.resolve(this.sessionStub));
       });
@@ -610,7 +609,6 @@ describe('DraftFactory', function draftFactory() {
 
     describe('when there is not an existing draft at the bottom of the thread', () => {
       beforeEach(() => {
-        spyOn(Actions, 'focusDraft');
         spyOn(DatabaseStore, 'run').andCallFake(() => [fakeMessage1]);
         spyOn(DraftFactory, 'createDraftForReply');
       });

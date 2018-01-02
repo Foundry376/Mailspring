@@ -254,8 +254,6 @@ class DraftStore extends MailspringStore {
     return TaskQueue.waitForPerformLocal(task).then(() => {
       if (popout) {
         this._onPopoutDraft(draft.headerMessageId);
-      } else {
-        Actions.focusDraft({ headerMessageId: draft.headerMessageId });
       }
       return { headerMessageId: draft.headerMessageId, draft };
     });

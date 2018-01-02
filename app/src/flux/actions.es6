@@ -348,8 +348,6 @@ class Actions {
   */
   static composePopoutDraft = ActionScopeWindow;
 
-  static focusDraft = ActionScopeWindow;
-
   /*
   Public: Open a new composer window for creating a new draft from scratch.
 
