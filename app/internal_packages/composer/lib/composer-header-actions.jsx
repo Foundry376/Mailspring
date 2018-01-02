@@ -10,7 +10,6 @@ export default class ComposerHeaderActions extends React.Component {
   static propTypes = {
     headerMessageId: PropTypes.string.isRequired,
     enabledFields: PropTypes.array.isRequired,
-    participantsFocused: PropTypes.bool,
     onShowAndFocusField: PropTypes.func.isRequired,
   };
 
@@ -21,30 +20,28 @@ export default class ComposerHeaderActions extends React.Component {
   render() {
     const items = [];
 
-    if (this.props.participantsFocused) {
-      if (!this.props.enabledFields.includes(Fields.Cc)) {
-        items.push(
-          <span
-            className="action show-cc"
-            key="cc"
-            onClick={() => this.props.onShowAndFocusField(Fields.Cc)}
-          >
-            Cc
-          </span>
-        );
-      }
+    if (!this.props.enabledFields.includes(Fields.Cc)) {
+      items.push(
+        <span
+          className="action show-cc"
+          key="cc"
+          onClick={() => this.props.onShowAndFocusField(Fields.Cc)}
+        >
+          Cc
+        </span>
+      );
+    }
 
-      if (!this.props.enabledFields.includes(Fields.Bcc)) {
-        items.push(
-          <span
-            className="action show-bcc"
-            key="bcc"
-            onClick={() => this.props.onShowAndFocusField(Fields.Bcc)}
-          >
-            Bcc
-          </span>
-        );
-      }
+    if (!this.props.enabledFields.includes(Fields.Bcc)) {
+      items.push(
+        <span
+          className="action show-bcc"
+          key="bcc"
+          onClick={() => this.props.onShowAndFocusField(Fields.Bcc)}
+        >
+          Bcc
+        </span>
+      );
     }
 
     if (!this.props.enabledFields.includes(Fields.Subject)) {

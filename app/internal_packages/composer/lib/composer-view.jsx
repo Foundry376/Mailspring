@@ -83,7 +83,7 @@ export default class ComposerView extends React.Component {
   }
 
   focus() {
-    if (this._els.header.isFocused()) {
+    if (this.props.draft.to.length === 0 || this.props.draft.subject.length === 0) {
       this._els.header.focus();
     } else {
       this._els[Fields.Body].focus();

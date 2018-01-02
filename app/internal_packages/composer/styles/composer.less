@@ -246,52 +246,6 @@ body.platform-win32 {
     }
   }
 
-  .collapsed-composer-participants {
-    position: relative;
-    margin: 0 23px;
-    border-bottom: 1px solid @border-color-divider;
-    flex-shrink: 0;
-    color: @text-color-very-subtle;
-    padding: 10px 0 10px 0;
-
-    .collapsed-contact {
-      padding-right: 0.25em;
-      color: @text-color;
-      &:after {
-        content: ',';
-      }
-      &:last-child:after {
-        content: '';
-      }
-    }
-
-    .num-remaining.token {
-      color: @text-color;
-      padding-right: 12px;
-      margin-left: 0;
-      margin-top: 2px;
-    }
-
-    .num-remaining-wrap {
-      position: absolute;
-      right: -3px;
-      z-index: 2;
-      top: 6px;
-      .show-more-fade {
-        position: absolute;
-        width: 190px;
-        height: 32px;
-        right: 0;
-        top: 0;
-        background: linear-gradient(
-          to right,
-          fade(@background-primary, 0%) 0%,
-          fade(@background-primary, 100%) 40%
-        );
-      }
-    }
-  }
-
   .composer-subject {
     position: relative;
     margin: 0;
