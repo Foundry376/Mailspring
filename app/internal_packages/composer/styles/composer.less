@@ -340,7 +340,14 @@ body.platform-win32 {
 
     .hiding-quoted-text {
       blockquote {
-        display: none;
+        height: 0;
+        overflow: hidden;
+        padding: 0;
+      }
+      .gmail_quote_attribution {
+        height: 0;
+        overflow: hidden;
+        padding: 0;
       }
     }
 
@@ -571,6 +578,7 @@ body.platform-win32 {
   -webkit-margin-end: initial !important;
 }
 .RichEditor-root .uneditable {
+  -webkit-user-modify: read-only;
   color: purple;
   blockquote {
     color: purple;

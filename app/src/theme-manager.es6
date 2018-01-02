@@ -37,7 +37,7 @@ export default class ThemeManager {
       importPaths: this.getImportPaths(),
     });
 
-    AppEnv.config.onDidChange(CONFIG_THEME_KEY, this.updateThemePackageAndRecomputeLESS);
+    AppEnv.config.onDidChange(CONFIG_THEME_KEY, () => this.updateThemePackageAndRecomputeLESS());
   }
 
   // Called from the onboarding window to disable any custom theme

@@ -164,13 +164,15 @@ class DraftFactory {
       accountId: message.accountId,
       replyToHeaderMessageId: message.headerMessageId,
       body: `
-        <span class="gmail_quote mailspring-quote">
-          <div>${DOMUtils.escapeHTMLCharacters(message.replyAttributionLine())}</div>
-          <blockquote class="gmail_quote"
-            style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
-            ${prevBody}
-          </blockquote>
-        </span>
+        <div></div>
+        <div></div>
+        <div class="gmail_quote_attribution">${DOMUtils.escapeHTMLCharacters(
+          message.replyAttributionLine()
+        )}</div>
+        <blockquote class="gmail_quote"
+          style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
+          ${prevBody}
+        </blockquote>
         `,
     });
   }

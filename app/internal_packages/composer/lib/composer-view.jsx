@@ -24,36 +24,11 @@ import ComposerEditor from './composer-editor';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
 import Fields from './fields';
-
-function hasBlockquote(editorState) {
-  const blocks = editorState.getCurrentContent().blockMap.toArray();
-  return !!blocks.find(b => b.type === 'blockquote');
-}
-
-function hasNonTrailingBlockquote(editorState) {
-  const blocks = editorState.getCurrentContent().blockMap.toArray();
-  let foundQuote = false;
-  for (const b of blocks) {
-    if (b.type === 'blockquote') {
-      foundQuote = true;
-    } else if (foundQuote) {
-      // the quote is followed by something other than another quote,
-      // which means it's inline
-      return true;
-    }
-  }
-  return false;
-}
-
-function hideQuotedTextByDefault(draft) {
-  if (draft.isForwarded()) {
-    return false;
-  }
-  if (hasNonTrailingBlockquote(draft.bodyEditorState)) {
-    return false;
-  }
-  return true;
-}
+import {
+  hasBlockquote,
+  hasNonTrailingBlockquote,
+  hideQuotedTextByDefault,
+} from './quoted-text-plugin';
 
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
@@ -86,6 +61,14 @@ export default class ComposerView extends React.Component {
         Actions.fetchFile(file);
       }
     });
+
+    const isBrandNew = Date.now() - this.props.draft.date < 3 * 1000;
+    if (isBrandNew) {
+      // Without the tick, quoted text entities aren't rendered (?)
+      window.requestAnimationFrame(() => {
+        this.focus();
+      });
+    }
   }
 
   componentDidUpdate() {
@@ -203,7 +186,7 @@ export default class ComposerView extends React.Component {
       return false;
     }
     return (
-      <a className="quoted-text-control" onClick={() => this.setState({ quotedTextHidden: false })}>
+      <a className="quoted-text-control" onClick={e => this.setState({ quotedTextHidden: false })}>
         <span className="dots">&bull;&bull;&bull;</span>
       </a>
     );
@@ -381,7 +364,11 @@ export default class ComposerView extends React.Component {
       if (event.pageY < bodyRect.top) {
         this._els[Fields.Body].focus();
       } else {
-        this._els[Fields.Body].focusAbsoluteEnd();
+        if (this.state.quotedTextHidden) {
+          this._els[Fields.Body].focusEndReplyText();
+        } else {
+          this._els[Fields.Body].focusEndAbsolute();
+        }
       }
     }
     this._mouseDownTarget = null;

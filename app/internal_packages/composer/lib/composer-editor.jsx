@@ -13,7 +13,7 @@ import createTextStylePlugin from './text-style-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
 import createAutoListPlugin from 'draft-js-autolist-plugin';
 import createEmojiPlugin from 'draft-js-emoji-plugin';
-import createQuotedTextPlugin from './quoted-text-plugin';
+import createQuotedTextPlugin, { selectEndOfReply } from './quoted-text-plugin';
 import createTemplatesPlugin from './templates-plugin';
 
 const focusPlugin = createFocusPlugin();
@@ -52,7 +52,14 @@ export default class ComposerEditor extends React.Component {
     this._editorComponent.focus();
   };
 
-  focusAbsoluteEnd = () => {
+  focusEndReplyText = () => {
+    window.requestAnimationFrame(() => {
+      this.props.onChange(selectEndOfReply(this.props.editorState));
+      this._editorComponent.focus();
+    });
+  };
+
+  focusEndAbsolute = () => {
     window.requestAnimationFrame(() => {
       this.props.onChange(EditorState.moveSelectionToEnd(this.props.editorState));
       this._editorComponent.focus();
@@ -148,7 +155,14 @@ export default class ComposerEditor extends React.Component {
             handleKeyCommand={this.onHandleKeyCommand}
             handlePastedFiles={this.onPastedFiles}
             editorState={editorState}
-            onChange={onChange}
+            onChange={next => {
+              // Don't allow draft-js-plugins to initialize our selection to the end
+              if (!this._hasFixedDraftJSPluginsIssue637) {
+                this._hasFixedDraftJSPluginsIssue637 = true;
+                next = EditorState.acceptSelection(next, editorState.getSelection());
+              }
+              onChange(next);
+            }}
             onTab={this.onTab}
             plugins={this.plugins}
             spellCheck={spellCheck}

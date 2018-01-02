@@ -4,7 +4,7 @@ import * as DraftConvert from 'draft-convert';
 import { HTMLConfig as InlineAttachmentHTMLConfig } from './inline-attachment-plugin';
 import { HTMLConfig as LinkifyHTMLConfig } from './linkify-plugin';
 import { HTMLConfig as TextStyleHTMLConfig } from './text-style-plugin';
-import { HTMLConfig as QuotedTextHTMLConfig, quoteDepthForNode } from './quoted-text-plugin';
+import { HTMLConfig as QuotedTextHTMLConfig, withinQuotedText } from './quoted-text-plugin';
 import { HTMLConfig as TemplatesHTMLConfig } from './templates-plugin';
 
 const plugins = [
@@ -66,20 +66,19 @@ export function convertFromHTML(html) {
     htmlToBlock: (nodeName, node) => {
       // once we're inside a blockquote for quoted text, we don't
       // create any new blocks, since it'd bump you out of the quoted text.
-      if (quoteDepthForNode(node) > 0) {
+      if (withinQuotedText(node)) {
         return;
       }
 
       for (const p of plugins) {
         const result = p.htmlToBlock && p.htmlToBlock(nodeName, node);
         if (result) {
-          console.log('Starting block for', node);
           return result;
         }
       }
     },
     htmlToEntity: (nodeName, node, createEntity) => {
-      if (quoteDepthForNode(node) > 0) {
+      if (withinQuotedText(node)) {
         return QuotedTextHTMLConfig.htmlToEntity(nodeName, node, createEntity);
       }
       for (const p of plugins) {

@@ -87,15 +87,6 @@ class MessageList extends React.Component {
   componentDidMount() {
     this._unsubscribers = [];
     this._unsubscribers.push(MessageStore.listen(this._onChange));
-    this._unsubscribers.push(
-      Actions.focusDraft.listen(async ({ headerMessageId }) => {
-        Utils.waitFor(() => this._getMessageContainer(headerMessageId) !== undefined)
-          .then(() => this._focusDraft(this._getMessageContainer(headerMessageId)))
-          .catch(() => {
-            // may have been a popout composer
-          });
-      })
-    );
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -159,20 +150,6 @@ class MessageList extends React.Component {
 
   _getMessageContainer(headerMessageId) {
     return this.refs[`message-container-${headerMessageId}`];
-  }
-
-  _focusDraft(draftElement) {
-    // Note: We don't want the contenteditable view competing for scroll offset,
-    // so we block incoming childScrollRequests while we scroll to the new draft.
-    this._draftScrollInProgress = true;
-    draftElement.focus();
-    this._messageWrapEl.scrollTo(draftElement, {
-      position: ScrollRegion.ScrollPosition.Top,
-      settle: true,
-      done: () => {
-        this._draftScrollInProgress = false;
-      },
-    });
   }
 
   _onForward = () => {

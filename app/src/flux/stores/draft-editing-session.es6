@@ -10,6 +10,8 @@ import {
   convertToHTML,
 } from '../../../internal_packages/composer/lib/draftjs-config';
 
+import { selectEndOfReply } from '../../../internal_packages/composer/lib/quoted-text-plugin';
+
 import TaskQueue from './task-queue';
 import Message from '../models/message';
 import Utils from '../models/utils';
@@ -356,15 +358,18 @@ export default class DraftEditingSession extends MailspringStore {
     //     });
     //   }
     // }
-    const editorState = convertFromHTML(draft.body);
-    draft.bodyEditorState = EditorState.createWithContent(editorState);
+    const contentState = convertFromHTML(draft.body);
+    let editorState = EditorState.createWithContent(contentState);
+    editorState = selectEndOfReply(editorState, false);
+    draft.bodyEditorState = editorState;
+
     this._draft = draft;
 
     // We keep track of the draft's initial body if it's pristine when the editing
     // session begins. This initial value powers things like "are you sure you want
     // to send with an empty body?"
     if (draft.pristine) {
-      this._draftPristineEditorState = EditorState.createWithContent(editorState);
+      this._draftPristineEditorState = editorState;
       this._undoStack.save(this._snapshot());
     }
 
