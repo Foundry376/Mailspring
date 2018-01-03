@@ -249,6 +249,9 @@ const createLinkifyPlugin = () => {
       const cursorOffset = selection.getStartOffset();
       const cursorBlockKey = selection.getStartKey();
       const cursorBlock = contentState.getBlockForKey(cursorBlockKey);
+      if (!cursorBlock) {
+        return editorState;
+      }
       if (!['unordered-list-item', 'ordered-list-item', 'unstyled'].includes(cursorBlock.type)) {
         return editorState;
       }

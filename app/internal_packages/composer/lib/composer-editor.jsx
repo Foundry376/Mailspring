@@ -49,20 +49,21 @@ export default class ComposerEditor extends React.Component {
   // Public API
 
   focus = () => {
+    if (!this._editorComponent) return;
     this._editorComponent.focus();
   };
 
   focusEndReplyText = () => {
     window.requestAnimationFrame(() => {
       this.props.onChange(selectEndOfReply(this.props.editorState));
-      this._editorComponent.focus();
+      this.focus();
     });
   };
 
   focusEndAbsolute = () => {
     window.requestAnimationFrame(() => {
       this.props.onChange(EditorState.moveSelectionToEnd(this.props.editorState));
-      this._editorComponent.focus();
+      this.focus();
     });
   };
 

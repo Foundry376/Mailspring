@@ -101,7 +101,7 @@ class TranslateButton extends React.Component {
 
   // Helper method that will render the contents of our popover.
   _renderPopover() {
-    const headerComponents = [<span>Translate:</span>];
+    const headerComponents = [<span key="header">Translate:</span>];
     return (
       <Menu
         className="translate-language-picker"

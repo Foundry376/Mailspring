@@ -2,7 +2,7 @@ import _ from 'underscore';
 import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
 
-import { EditorState } from 'draft-js';
+import { EditorState, SelectionState } from 'draft-js';
 
 // TODO BEN
 import {
@@ -272,24 +272,26 @@ export default class DraftEditingSession extends MailspringStore {
       throw new Error('DraftEditingSession._setDraft - new draft has no body!');
     }
 
-    // const extensions = ComposerExtensionRegistry.extensions();
+    const extensions = ComposerExtensionRegistry.extensions();
 
-    // // Run `extensions[].unapplyTransformsForSending`
-    // const fragment = document.createDocumentFragment();
-    // const draftBodyRootNode = document.createElement('root');
-    // fragment.appendChild(draftBodyRootNode);
-    // draftBodyRootNode.innerHTML = draft.body;
+    // Unapply transforms (tracking pixels, links, etc.)
+    const fragment = document.createDocumentFragment();
+    const draftBodyRootNode = document.createElement('root');
+    fragment.appendChild(draftBodyRootNode);
+    draftBodyRootNode.innerHTML = draft.body;
 
-    // for (const ext of extensions) {
-    //   if (ext.applyTransformsForSending && ext.unapplyTransformsForSending) {
-    //     await ext.unapplyTransformsForSending({
-    //       draftBodyRootNode: draftBodyRootNode,
-    //       draft: draft,
-    //     });
-    //   }
-    // }
+    for (const ext of extensions) {
+      if (ext.applyTransformsForSending && ext.unapplyTransformsForSending) {
+        await ext.unapplyTransformsForSending({
+          draftBodyRootNode: draftBodyRootNode,
+          draft: draft,
+        });
+      }
+    }
 
-    let _bodyHTMLCache = draft.body;
+    // Populate the bodyEditorState and override the draft properties
+    // so that they're kept in sync with minimal recomputation
+    let _bodyHTMLCache = draftBodyRootNode.innerHTML;
     let _bodyHTMLCacheContentState = null;
     let _bodyEditorState = null;
 
@@ -304,8 +306,15 @@ export default class DraftEditingSession extends MailspringStore {
       },
       set: function(inHTML) {
         const contentState = convertFromHTML(inHTML);
-        let editorState = EditorState.createWithContent(contentState);
-        editorState = selectEndOfReply(editorState);
+        let editorState = selectEndOfReply(EditorState.createWithContent(contentState));
+
+        if (draft.bodyEditorState) {
+          // preserve undo redo by rebasing the content onto the existing object
+          editorState = EditorState.set(editorState, {
+            undoStack: draft.bodyEditorState.getUndoStack(),
+            redoStack: draft.bodyEditorState.getRedoStack(),
+          });
+        }
         draft.bodyEditorState = editorState;
         _bodyHTMLCacheContentState = contentState;
         _bodyHTMLCache = inHTML;
