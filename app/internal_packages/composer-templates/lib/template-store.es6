@@ -1,40 +1,29 @@
 /* eslint global-require: 0*/
 
 import { DraftStore, Actions, QuotedHTMLTransformer } from 'mailspring-exports';
+import { remote } from 'electron';
 import MailspringStore from 'mailspring-store';
 import path from 'path';
 import fs from 'fs';
 
-class TemplateStore extends MailspringStore {
-  // Support accented characters in template names
-  // https://regex101.com/r/nD3eY8/1
-  static INVALID_TEMPLATE_NAME_REGEX = /[^a-zA-Z\u00C0-\u017F0-9_\- ]+/g;
+import TemplateActions from './template-actions';
 
+// Support accented characters in template names
+// https://regex101.com/r/nD3eY8/1
+const INVALID_TEMPLATE_NAME_REGEX = /[^a-zA-Z\u00C0-\u017F0-9_\- ]+/g;
+
+class TemplateStore extends MailspringStore {
   constructor() {
     super();
-    this._init();
-  }
 
-  _init(templatesDir = path.join(AppEnv.getConfigDirPath(), 'templates')) {
-    this.items = this.items.bind(this);
-    this.templatesDirectory = this.templatesDirectory.bind(this);
-    this._setStoreDefaults = this._setStoreDefaults.bind(this);
-    this._registerListeners = this._registerListeners.bind(this);
-    this._populate = this._populate.bind(this);
-    this._onCreateTemplate = this._onCreateTemplate.bind(this);
-    this._onShowTemplates = this._onShowTemplates.bind(this);
-    this._displayDialog = this._displayDialog.bind(this);
-    this._displayError = this._displayError.bind(this);
-    this.saveNewTemplate = this.saveNewTemplate.bind(this);
-    this.saveTemplate = this.saveTemplate.bind(this);
-    this.deleteTemplate = this.deleteTemplate.bind(this);
-    this.renameTemplate = this.renameTemplate.bind(this);
-    this.getTemplateContents = this.getTemplateContents.bind(this);
-    this._onInsertTemplateId = this._onInsertTemplateId.bind(this);
-    this._setStoreDefaults();
-    this._registerListeners();
+    this.listenTo(TemplateActions.insertTemplateId, this._onInsertTemplateId);
+    this.listenTo(TemplateActions.createTemplate, this._onCreateTemplate);
+    this.listenTo(TemplateActions.showTemplates, this._onShowTemplates);
+    this.listenTo(TemplateActions.deleteTemplate, this._onDeleteTemplate);
+    this.listenTo(TemplateActions.renameTemplate, this._onRenameTemplate);
 
-    this._templatesDir = templatesDir;
+    this._items = [];
+    this._templatesDir = path.join(AppEnv.getConfigDirPath(), 'templates');
     this._welcomeName = 'Welcome to Templates.html';
     this._welcomePath = path.join(__dirname, '..', 'assets', this._welcomeName);
     this._watcher = null;
@@ -62,6 +51,7 @@ class TemplateStore extends MailspringStore {
       this._watcher = fs.watch(this._templatesDir, () => this._populate());
     }
   }
+
   unwatch() {
     if (this._watcher) {
       this._watcher.close();
@@ -71,20 +61,6 @@ class TemplateStore extends MailspringStore {
 
   items() {
     return this._items;
-  }
-
-  templatesDirectory() {
-    return this._templatesDir;
-  }
-
-  _setStoreDefaults() {
-    this._items = [];
-  }
-
-  _registerListeners() {
-    this.listenTo(Actions.insertTemplateId, this._onInsertTemplateId);
-    this.listenTo(Actions.createTemplate, this._onCreateTemplate);
-    this.listenTo(Actions.showTemplates, this._onShowTemplates);
   }
 
   _populate() {
@@ -116,24 +92,7 @@ class TemplateStore extends MailspringStore {
 
   _onCreateTemplate({ headerMessageId, name, contents } = {}) {
     if (headerMessageId) {
-      DraftStore.sessionForClientId(headerMessageId).then(session => {
-        const draft = session.draft();
-        const draftName =
-          name || draft.subject.replace(TemplateStore.INVALID_TEMPLATE_NAME_REGEX, '');
-        let draftContents = contents || QuotedHTMLTransformer.removeQuotedHTML(draft.body);
-
-        const sigIndex = draftContents.indexOf('<signature>');
-        draftContents = sigIndex > -1 ? draftContents.slice(0, sigIndex) : draftContents;
-        if (!draftName || draftName.length === 0) {
-          this._displayError('Give your draft a subject to name your template.');
-        }
-        if (!draftContents || draftContents.length === 0) {
-          this._displayError(
-            'To create a template you need to fill the body of the current draft.'
-          );
-        }
-        this.saveNewTemplate(draftName, draftContents, this._onShowTemplates);
-      });
+      this._onCreateTemplateFromDraft(headerMessageId);
       return;
     }
     if (!name || name.length === 0) {
@@ -145,20 +104,36 @@ class TemplateStore extends MailspringStore {
     this.saveNewTemplate(name, contents, this._onShowTemplates);
   }
 
+  _onCreateTemplateFromDraft(headerMessageId) {
+    DraftStore.sessionForClientId(headerMessageId).then(session => {
+      const draft = session.draft();
+      const draftName = draft.subject.replace(INVALID_TEMPLATE_NAME_REGEX, '');
+      let draftContents = QuotedHTMLTransformer.removeQuotedHTML(draft.body);
+
+      const sigIndex = draftContents.indexOf('<signature>');
+      draftContents = sigIndex > -1 ? draftContents.slice(0, sigIndex) : draftContents;
+      if (!draftName || draftName.length === 0) {
+        this._displayError('Give your draft a subject to name your template.');
+      }
+      if (!draftContents || draftContents.length === 0) {
+        this._displayError('To create a template you need to fill the body of the current draft.');
+      }
+      this.saveNewTemplate(draftName, draftContents, this._onShowTemplates);
+    });
+  }
+
   _onShowTemplates() {
     Actions.switchPreferencesTab('Templates');
     Actions.openPreferences();
   }
 
   _displayError(message) {
-    const dialog = require('electron').remote.dialog;
-    dialog.showErrorBox('Template Creation Error', message);
+    remote.dialog.showErrorBox('Template Creation Error', message);
   }
 
   _displayDialog(title, message, buttons) {
-    const dialog = require('electron').remote.dialog;
     return (
-      dialog.showMessageBox({
+      remote.dialog.showMessageBox({
         title: title,
         message: title,
         detail: message,
@@ -174,14 +149,14 @@ class TemplateStore extends MailspringStore {
       return;
     }
 
-    if (name.match(TemplateStore.INVALID_TEMPLATE_NAME_REGEX)) {
+    if (name.match(INVALID_TEMPLATE_NAME_REGEX)) {
       this._displayError(
         'Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.'
       );
       return;
     }
 
-    const template = this._getTemplate(name);
+    const template = this._items.find(t => t.name === name);
     if (template) {
       this._displayError('A template with that name already exists!');
       return;
@@ -190,20 +165,11 @@ class TemplateStore extends MailspringStore {
     this.trigger(this);
   }
 
-  _getTemplate(name, id) {
-    for (const template of this._items) {
-      if ((template.name === name || name == null) && (template.id === id || id == null)) {
-        return template;
-      }
-    }
-    return null;
-  }
-
   saveTemplate(name, contents, callback) {
     const filename = `${name}.html`;
     const templatePath = path.join(this._templatesDir, filename);
+    let template = this._items.find(t => t.name === name);
 
-    let template = this._getTemplate(name);
     this.unwatch();
     fs.writeFile(templatePath, contents, err => {
       this.watch();
@@ -224,8 +190,8 @@ class TemplateStore extends MailspringStore {
     });
   }
 
-  deleteTemplate(name, callback) {
-    const template = this._getTemplate(name);
+  _onDeleteTemplate(name) {
+    const template = this._items.find(t => t.name === name);
     if (!template) {
       return;
     }
@@ -239,20 +205,17 @@ class TemplateStore extends MailspringStore {
     ) {
       fs.unlink(template.path, () => {
         this._populate();
-        if (callback) {
-          callback();
-        }
       });
     }
   }
 
-  renameTemplate(oldName, newName, callback) {
-    const template = this._getTemplate(oldName);
+  _onRenameTemplate(name, newName) {
+    const template = this._items.find(t => t.name === name);
     if (!template) {
       return;
     }
 
-    if (newName.match(TemplateStore.INVALID_TEMPLATE_NAME_REGEX)) {
+    if (newName.match(INVALID_TEMPLATE_NAME_REGEX)) {
       this._displayError(
         'Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.'
       );
@@ -264,61 +227,47 @@ class TemplateStore extends MailspringStore {
     }
 
     const newFilename = `${newName}.html`;
-    const oldPath = path.join(this._templatesDir, `${oldName}.html`);
+    const oldPath = path.join(this._templatesDir, `${name}.html`);
     const newPath = path.join(this._templatesDir, newFilename);
     fs.rename(oldPath, newPath, () => {
       template.name = newName;
       template.id = newFilename;
       template.path = newPath;
       this.trigger(this);
-      callback(template);
     });
   }
 
   _onInsertTemplateId({ templateId, headerMessageId } = {}) {
-    this.getTemplateContents(templateId, templateBody => {
-      DraftStore.sessionForClientId(headerMessageId).then(session => {
-        let proceed = true;
-        if (!session.draft().pristine && !session.draft().hasEmptyBody()) {
-          proceed = this._displayDialog(
-            'Replace draft contents?',
-            'It looks like your draft already has some content. Loading this template will ' +
-              'overwrite all draft contents.',
-            ['Replace contents', 'Cancel']
-          );
-        }
+    const template = this._items.find(t => t.id === templateId);
+    const templateBody = fs.readFileSync(template.path).toString();
+    DraftStore.sessionForClientId(headerMessageId).then(session => {
+      let proceed = true;
+      if (!session.draft().pristine && !session.draft().hasEmptyBody()) {
+        proceed = this._displayDialog(
+          'Replace draft contents?',
+          'It looks like your draft already has some content. Loading this template will ' +
+            'overwrite all draft contents.',
+          ['Replace contents', 'Cancel']
+        );
+      }
 
-        if (proceed) {
-          const current = session.draft().body;
-          let insertion = current.length;
-          for (const s of [
-            '<p><signature',
-            '<div class="gmail_quote_attribution"',
-            '<blockquote class="gmail_quote"',
-          ]) {
-            const i = current.indexOf(s);
-            if (i !== -1) {
-              insertion = Math.min(insertion, i);
-            }
+      if (proceed) {
+        const current = session.draft().body;
+        let insertion = current.length;
+        for (const s of [
+          '<p><signature',
+          '<div class="gmail_quote_attribution"',
+          '<blockquote class="gmail_quote"',
+        ]) {
+          const i = current.indexOf(s);
+          if (i !== -1) {
+            insertion = Math.min(insertion, i);
           }
-          session.changes.add({ body: `${templateBody}${current.substr(insertion)}` });
         }
-      });
-    });
-  }
-
-  getTemplateContents(templateId, callback) {
-    const template = this._getTemplate(null, templateId);
-    if (!template) {
-      return;
-    }
-
-    fs.readFile(template.path, (err, data) => {
-      const body = data.toString();
-      callback(body);
+        session.changes.add({ body: `${templateBody}${current.substr(insertion)}` });
+      }
     });
   }
 }
 
-const store = new TemplateStore();
-export default store;
+export default new TemplateStore();

@@ -17,17 +17,19 @@ import {
   KeyCommandsRegion,
   ImageAttachmentItem,
   InjectedComponentSet,
+  ComposerEditor,
+  ComposerSupport,
 } from 'mailspring-component-kit';
 import ComposerHeader from './composer-header';
-import ComposerEditor from './composer-editor';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
 import Fields from './fields';
-import {
+
+const {
   hasBlockquote,
   hasNonTrailingBlockquote,
   hideQuotedTextByDefault,
-} from './quoted-text-plugin';
+} = ComposerSupport.QuotedTextPlugin;
 
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the

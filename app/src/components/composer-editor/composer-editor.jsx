@@ -139,7 +139,7 @@ export default class ComposerEditor extends React.Component {
   };
 
   render() {
-    const { className, onChange } = this.props;
+    const { className, onChange, onBlur } = this.props;
     const spellCheck = AppEnv.config.get('core.composing.spellcheck');
 
     let editorState = this.props.editorState;
@@ -161,6 +161,7 @@ export default class ComposerEditor extends React.Component {
             handleKeyCommand={this.onHandleKeyCommand}
             handlePastedFiles={this.onPastedFiles}
             editorState={editorState}
+            onBlur={onBlur}
             onChange={next => {
               // Don't allow draft-js-plugins to initialize our selection to the end
               if (!this._hasFixedDraftJSPluginsIssue637) {

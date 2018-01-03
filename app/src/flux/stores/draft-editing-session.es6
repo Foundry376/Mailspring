@@ -2,15 +2,8 @@ import _ from 'underscore';
 import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
 
-import { EditorState, SelectionState } from 'draft-js';
-
-// TODO BEN
-import {
-  convertFromHTML,
-  convertToHTML,
-} from '../../../internal_packages/composer/lib/draftjs-config';
-
-import { selectEndOfReply } from '../../../internal_packages/composer/lib/quoted-text-plugin';
+import { EditorState } from 'draft-js';
+import { DraftJSConfig, QuotedTextPlugin } from '../../components/composer-editor/composer-support';
 
 import TaskQueue from './task-queue';
 import Message from '../models/message';
@@ -23,6 +16,9 @@ import { Composer as ComposerExtensionRegistry } from '../../registries/extensio
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import DestroyDraftTask from '../tasks/destroy-draft-task';
+
+const { selectEndOfReply } = QuotedTextPlugin;
+const { convertFromHTML, convertToHTML } = DraftJSConfig;
 
 const MetadataChangePrefix = 'metadata.';
 let DraftStore = null;

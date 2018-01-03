@@ -411,11 +411,6 @@ class Actions {
   static getFullContactDetails = ActionScopeWindow;
   static focusContact = ActionScopeWindow;
 
-  // Templates
-  static insertTemplateId = ActionScopeWindow;
-  static createTemplate = ActionScopeWindow;
-  static showTemplates = ActionScopeWindow;
-
   // Account Sidebar
   static setCollapsedSidebarItem = ActionScopeWindow;
 
