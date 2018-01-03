@@ -27,6 +27,8 @@ class ButtonDropdown extends React.Component
       'open open-down': @state.open is 'down'
       'bordered': @props.bordered isnt false
 
+    menu = if @state.open then @props.menu else false
+
     if @props.primaryClick
       <div ref="button" onBlur={@_onBlur} tabIndex={-1} className={"#{classes} #{@props.className ? ''}"} style={@props.style}>
         <div className="primary-item"
@@ -38,7 +40,7 @@ class ButtonDropdown extends React.Component
           <RetinaImg name={"icon-thread-disclosure.png"} mode={RetinaImg.Mode.ContentIsMask}/>
         </div>
         <div ref="secondaryItems" className="secondary-items" onMouseDown={@_onMenuClick}>
-          {@props.menu}
+          {menu}
         </div>
       </div>
     else
@@ -50,7 +52,7 @@ class ButtonDropdown extends React.Component
           <RetinaImg name={"icon-thread-disclosure.png"} style={marginLeft:12} mode={RetinaImg.Mode.ContentIsMask}/>
         </div>
         <div ref="secondaryItems" className={"secondary-items #{@props.attachment}"} onMouseDown={@_onMenuClick}>
-          {@props.menu}
+          {menu}
         </div>
       </div>
 

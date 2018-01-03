@@ -19,7 +19,6 @@ import Actions from '../actions';
 import AccountStore from './account-store';
 import ContactStore from './contact-store';
 import DatabaseStore from './database-store';
-import UndoStack from '../../undo-stack';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
@@ -62,7 +61,6 @@ class DraftChangeSet extends EventEmitter {
   }
 
   add(changes, { doesNotAffectPristine } = {}) {
-    this.callbacks.onWillAddChanges(changes);
     this._pending = Object.assign(this._pending, changes);
     if (!doesNotAffectPristine) {
       this._pending.pristine = false;
@@ -85,16 +83,15 @@ class DraftChangeSet extends EventEmitter {
     if (this._timer) {
       clearTimeout(this._timer);
     }
-    const commitSemaphored = () => {
+    const commitSemaphored = async () => {
       if (Object.keys(this._pending).length === 0) {
-        return Promise.resolve(true);
+        return true;
       }
 
       this._saving = this._pending;
       this._pending = {};
-      return this.callbacks.onCommit().then(() => {
-        this._saving = {};
-      });
+      await this.callbacks.onCommit();
+      this._saving = {};
     };
 
     this._commitChain = this._commitChain.then(commitSemaphored, commitSemaphored);
@@ -141,13 +138,10 @@ export default class DraftEditingSession extends MailspringStore {
 
     this.headerMessageId = headerMessageId;
     this._draft = false;
-    this._draftPristineBody = null;
     this._destroyed = false;
-    this._undoStack = new UndoStack();
 
     this.changes = new DraftChangeSet({
-      onWillAddChanges: this.changeSetWillAddChanges,
-      onDidAddChanges: this.changeSetDidAddChanges,
+      onDidAddChanges: () => this.changeSetDidAddChanges(),
       onCommit: () => this.changeSetCommit(), // for specs
     });
 
@@ -166,14 +160,6 @@ export default class DraftEditingSession extends MailspringStore {
     }
     this.changes.applyToModel(this._draft);
     return this._draft;
-  }
-
-  // Public: Returns the initial body of the draft when it was pristine, or null if the
-  // draft was never pristine in this editing session. Useful for determining if the
-  // body is still in an unchanged / empty state.
-  //
-  draftPristineBody() {
-    return this._draftPristineBody;
   }
 
   prepare() {
@@ -203,9 +189,6 @@ export default class DraftEditingSession extends MailspringStore {
     const warnings = [];
     const errors = [];
     const allRecipients = [].concat(this._draft.to, this._draft.cc, this._draft.bcc);
-    const bodyIsEmpty =
-      this._draft.body === this.draftPristineBody() || this._draft.body === '<br>';
-    const forwarded = this._draft.isForwarded();
     const hasAttachment = this._draft.files && this._draft.files.length > 0;
 
     const allNames = [].concat(Utils.commonlyCapitalizedSalutations);
@@ -266,10 +249,6 @@ export default class DraftEditingSession extends MailspringStore {
           );
         }
       }
-    }
-
-    if (bodyIsEmpty && !forwarded && !hasAttachment) {
-      warnings.push('without a body');
     }
 
     // Check third party warnings added via Composer extensions
@@ -358,20 +337,36 @@ export default class DraftEditingSession extends MailspringStore {
     //     });
     //   }
     // }
-    const contentState = convertFromHTML(draft.body);
-    let editorState = EditorState.createWithContent(contentState);
-    editorState = selectEndOfReply(editorState, false);
-    draft.bodyEditorState = editorState;
 
+    let _bodyHTMLCache = draft.body;
+    let _bodyEditorState = null;
+    Object.defineProperty(draft, 'body', {
+      get: function() {
+        if (!_bodyHTMLCache) {
+          console.log('building HTML body cache');
+          _bodyHTMLCache = convertToHTML(draft.bodyEditorState.getCurrentContent());
+        }
+        return _bodyHTMLCache;
+      },
+      set: function(inHTML) {
+        const contentState = convertFromHTML(inHTML);
+        let editorState = EditorState.createWithContent(contentState);
+        editorState = selectEndOfReply(editorState);
+        draft.bodyEditorState = editorState;
+        _bodyHTMLCache = inHTML;
+      },
+    });
+    Object.defineProperty(draft, 'bodyEditorState', {
+      get: function() {
+        return _bodyEditorState;
+      },
+      set: function(next) {
+        _bodyHTMLCache = null;
+        _bodyEditorState = next;
+      },
+    });
+    draft.body = _bodyHTMLCache;
     this._draft = draft;
-
-    // We keep track of the draft's initial body if it's pristine when the editing
-    // session begins. This initial value powers things like "are you sure you want
-    // to send with an empty body?"
-    if (draft.pristine) {
-      this._draftPristineEditorState = editorState;
-      this._undoStack.save(this._snapshot());
-    }
 
     this.trigger();
     return this;
@@ -402,21 +397,27 @@ export default class DraftEditingSession extends MailspringStore {
       .filter(obj => obj.headerMessageId === this._draft.headerMessageId)
       .pop();
 
-    if (nextDraft) {
-      const nextValues = {};
-      for (const [key] of Object.entries(Message.attributes)) {
-        if (key === 'headerMessageId') {
-          continue;
-        }
-        if (nextDraft[key] === undefined) {
-          continue;
-        }
-        nextValues[key] = nextDraft[key];
+    if (!nextDraft) {
+      return;
+    }
+
+    this._incorporateExternalDraftChanges(nextDraft);
+  };
+
+  _incorporateExternalDraftChanges(nextDraft) {
+    let changed = false;
+    for (const [key] of Object.entries(Message.attributes)) {
+      if (key === 'headerMessageId') continue;
+      if (nextDraft[key] === undefined) continue;
+      if (this._draft[key] !== nextDraft[key]) {
+        this._draft[key] = nextDraft[key];
+        changed = true;
       }
-      this._setDraft(Object.assign(new Message(), this._draft, nextValues));
+    }
+    if (changed) {
       this.trigger();
     }
-  };
+  }
 
   async changeSetCommit() {
     if (this._destroyed || !this._draft) {
@@ -425,9 +426,8 @@ export default class DraftEditingSession extends MailspringStore {
 
     // Set a variable here to protect against this._draft getting set from
     // underneath us
-    const inMemoryDraft = this._draft;
     const draft = await DatabaseStore.findBy(Message, {
-      headerMessageId: inMemoryDraft.headerMessageId,
+      headerMessageId: this._draft.headerMessageId,
     }).include(Message.attributes.body);
 
     // This can happen if we get a "delete" delta, or something else
@@ -438,7 +438,6 @@ export default class DraftEditingSession extends MailspringStore {
     // existing, but if this happens it'll 404 and recover gracefully
     // by creating a new draft
     const updatedDraft = this.changes.applyToModel(draft || inMemoryDraft);
-    updatedDraft.body = convertToHTML(updatedDraft.bodyEditorState.getCurrentContent());
 
     const task = new SyncbackDraftTask({ draft: updatedDraft });
     Actions.queueTask(task);
@@ -446,30 +445,6 @@ export default class DraftEditingSession extends MailspringStore {
   }
 
   // Undo / Redo
-
-  changeSetWillAddChanges = changes => {
-    if (this._restoring) {
-      return;
-    }
-    const changeKeys = Object.keys(changes);
-
-    if (changeKeys.length === 1 && changes.bodyEditorState) {
-      const top = this._undoStack.current();
-      const topEditorState = top ? top.draft.bodyEditorState : {};
-      const newEditorState = changes.bodyEditorState;
-      if (topEditorState.contentState === newEditorState.contentState) {
-        return;
-      }
-    }
-    const hasBeen300ms = Date.now() - this._lastAddTimestamp > 300;
-    const hasChangedFields = !_.isEqual(changeKeys, this._lastChangedFields);
-
-    this._lastChangedFields = changeKeys;
-    this._lastAddTimestamp = Date.now();
-    if (hasBeen300ms || hasChangedFields) {
-      this._undoStack.save(this._snapshot());
-    }
-  };
 
   changeSetDidAddChanges = () => {
     if (this._destroyed) {
@@ -481,32 +456,4 @@ export default class DraftEditingSession extends MailspringStore {
     this.changes.applyToModel(this._draft);
     this.trigger();
   };
-
-  restoreSnapshot(snapshot) {
-    if (!snapshot) {
-      return;
-    }
-    this._restoring = true;
-    this.changes.add(snapshot.draft);
-    this._restoring = false;
-  }
-
-  undo() {
-    this.restoreSnapshot(this._undoStack.saveAndUndo(this._snapshot()));
-  }
-
-  redo() {
-    this.restoreSnapshot(this._undoStack.redo());
-  }
-
-  _snapshot() {
-    const snapshot = {
-      draft: Object.assign({}, this.draft()),
-    };
-    for (const { pluginId, value } of snapshot.draft.pluginMetadata) {
-      snapshot.draft[`${MetadataChangePrefix}${pluginId}`] = value;
-    }
-    delete snapshot.draft.pluginMetadata;
-    return snapshot;
-  }
 }

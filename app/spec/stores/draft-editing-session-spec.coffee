@@ -228,23 +228,3 @@ xdescribe "DraftEditingSession Specs", ->
           @session.changes.add({body: "123"})
           @session.changes.commit().then =>
             expect(DatabaseStore.inTransaction).not.toHaveBeenCalled()
-
-    describe "draft pristine body", ->
-      describe "when the draft given to the session is pristine", ->
-        it "should return the initial body", ->
-          pristineDraft = new Message(draft: true, body: 'Hiya', pristine: true, id: 'client-id')
-          updatedDraft = pristineDraft.clone()
-          updatedDraft.body = '123444'
-          updatedDraft.pristine = false
-
-          @session = new DraftEditingSession('client-id', pristineDraft)
-          waitsForPromise =>
-            @session._draftPromise.then =>
-              @session._onDraftChanged(objectClass: 'message', objects: [updatedDraft])
-              expect(@session.draftPristineBody()).toBe('Hiya')
-
-      describe "when the draft given to the session is not pristine", ->
-        it "should return null", ->
-          dirtyDraft = new Message(draft: true, body: 'Hiya', pristine: false)
-          @session = new DraftEditingSession('client-id', dirtyDraft)
-          expect(@session.draftPristineBody()).toBe(null)

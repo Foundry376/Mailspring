@@ -67,7 +67,7 @@ export default class SignatureComposerDropdown extends React.Component {
     const escapeRegExp = str => {
       return str.replace(/[-[\]/}{)(*+?.\\^$|]/g, '\\$&');
     };
-    const signatureRegex = new RegExp(escapeRegExp(`<signature>${sigObj.body}</signature>`));
+    const signatureRegex = new RegExp(escapeRegExp(`${sigObj.body}`));
     const signatureLocation = signatureRegex.exec(this.props.draft.body);
     if (signatureLocation) return true;
     return false;

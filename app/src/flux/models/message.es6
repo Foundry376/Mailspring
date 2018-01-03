@@ -322,6 +322,12 @@ export default class Message extends ModelWithMetadata {
   }
 
   isForwarded() {
+    if (this.subject.toLowerCase().startsWith('fwd:')) {
+      return true;
+    }
+    if (this.subject.toLowerCase().startsWith('re:')) {
+      return false;
+    }
     if (this.body) {
       const indexForwarded = this.body.search(/forwarded/i);
       if (indexForwarded >= 0 && indexForwarded < 250) {
@@ -331,9 +337,6 @@ export default class Message extends ModelWithMetadata {
       if (indexFwd >= 0 && indexFwd < 250) {
         return true;
       }
-    }
-    if (this.subject && this.subject.slice(0, 3).toLowerCase() === 'fwd') {
-      return true;
     }
     return false;
   }

@@ -14,7 +14,6 @@ import {
   ScrollRegion,
   TabGroupRegion,
   AttachmentItem,
-  InjectedComponent,
   KeyCommandsRegion,
   ImageAttachmentItem,
   InjectedComponentSet,
@@ -103,16 +102,6 @@ export default class ComposerView extends React.Component {
       'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
       'composer:show-and-focus-from': () => {},
       'composer:select-attachment': () => this._onSelectAttachment(),
-      'core:undo': event => {
-        event.preventDefault();
-        event.stopPropagation();
-        this.props.session.undo();
-      },
-      'core:redo': event => {
-        event.preventDefault();
-        event.stopPropagation();
-        this.props.session.redo();
-      },
     };
   }
 
@@ -314,7 +303,7 @@ export default class ComposerView extends React.Component {
 
         <div style={{ order: 0, flex: 1 }} />
 
-        <InjectedComponent
+        <SendActionButton
           ref={el => {
             if (el) {
               this._els.sendActionButton = el;
@@ -322,15 +311,10 @@ export default class ComposerView extends React.Component {
           }}
           tabIndex={-1}
           style={{ order: -100 }}
-          matching={{ role: 'Composer:SendActionButton' }}
-          fallback={SendActionButton}
-          requiredMethods={['primarySend']}
-          exposedProps={{
-            draft: this.props.draft,
-            headerMessageId: this.props.draft.headerMessageId,
-            session: this.props.session,
-            isValidDraft: this._isValidDraft,
-          }}
+          draft={this.props.draft}
+          headerMessageId={this.props.draft.headerMessageId}
+          session={this.props.session}
+          isValidDraft={this._isValidDraft}
         />
       </div>
     );
