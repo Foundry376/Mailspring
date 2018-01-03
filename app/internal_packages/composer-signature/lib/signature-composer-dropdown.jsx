@@ -1,7 +1,7 @@
 import { React, Actions, PropTypes, SignatureStore } from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown } from 'mailspring-component-kit';
 
-import SignatureUtils from './signature-utils';
+import { applySignature, currentSignatureId } from './signature-utils';
 
 export default class SignatureComposerDropdown extends React.Component {
   static displayName = 'SignatureComposerDropdown';
@@ -55,22 +55,15 @@ export default class SignatureComposerDropdown extends React.Component {
   _changeSignature = sig => {
     let body;
     if (sig) {
-      body = SignatureUtils.applySignature(this.props.draft.body, sig.body);
+      body = applySignature(this.props.draft.body, sig);
     } else {
-      body = SignatureUtils.applySignature(this.props.draft.body, '');
+      body = applySignature(this.props.draft.body, null);
     }
     this.props.session.changes.add({ body });
   };
 
   _isSelected = sigObj => {
-    // http://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
-    const escapeRegExp = str => {
-      return str.replace(/[-[\]/}{)(*+?.\\^$|]/g, '\\$&');
-    };
-    const signatureRegex = new RegExp(escapeRegExp(`${sigObj.body}`));
-    const signatureLocation = signatureRegex.exec(this.props.draft.body);
-    if (signatureLocation) return true;
-    return false;
+    return currentSignatureId(this.props.draft.body) === sigObj.id;
   };
 
   _onClickNoSignature = () => {

@@ -25,14 +25,14 @@ function DOMBuilder(html) {
     doc.documentElement.innerHTML = html;
   }
   // remove leading and trailing spaces from text nodes
-  const treeWalker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
-  while (treeWalker.nextNode()) {
-    const cn = treeWalker.currentNode;
-    if (cn.parentNode.nodeName === 'A' || cn.parentNode.parentNode.nodeName === 'A') {
-      continue;
-    }
-    cn.textContent = cn.textContent.trim();
-  }
+  // const treeWalker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  // while (treeWalker.nextNode()) {
+  //   const cn = treeWalker.currentNode;
+  //   if (cn.parentNode.nodeName === 'A' || cn.parentNode.parentNode.nodeName === 'A') {
+  //     continue;
+  //   }
+  //   cn.textContent = cn.textContent.trim();
+  // }
 
   // convert <div><br><div> into just <div> </div> to avoid double-newlines
   const brWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {

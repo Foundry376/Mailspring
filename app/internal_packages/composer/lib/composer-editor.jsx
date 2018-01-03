@@ -138,8 +138,13 @@ export default class ComposerEditor extends React.Component {
   };
 
   render() {
-    const { className, editorState, onChange } = this.props;
+    const { className, onChange } = this.props;
     const spellCheck = AppEnv.config.get('core.composing.spellcheck');
+
+    let editorState = this.props.editorState;
+    if (!this._hasFixedDraftJSPluginsIssue637) {
+      editorState = EditorState.createEmpty();
+    }
 
     return (
       <div className="RichEditor-root">
@@ -159,7 +164,9 @@ export default class ComposerEditor extends React.Component {
               // Don't allow draft-js-plugins to initialize our selection to the end
               if (!this._hasFixedDraftJSPluginsIssue637) {
                 this._hasFixedDraftJSPluginsIssue637 = true;
-                next = EditorState.acceptSelection(next, editorState.getSelection());
+                next = EditorState.set(this.props.editorState, {
+                  decorator: next.getDecorator(),
+                });
               }
               onChange(next);
             }}

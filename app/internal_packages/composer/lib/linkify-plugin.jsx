@@ -197,13 +197,10 @@ export const HTMLConfig = {
   },
   entityToHTML(entity, originalText) {
     if (entity.type === ENTITY_TYPE) {
-      return entity.data.url ? (
-        <a href={entity.data.url} title={entity.data.url}>
-          {originalText}
-        </a>
-      ) : (
-        <span>{originalText}</span>
-      );
+      const escaped = entity.data.url && entity.data.url.replace('"', '&quot;');
+      return escaped
+        ? { start: `<a href="${escaped}" title="${escaped}">`, end: '</a>' }
+        : { start: '<span>', end: '</span>' };
     }
   },
 };

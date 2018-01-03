@@ -29,15 +29,7 @@ let DraftStore = null;
 
 /**
 Public: As the user interacts with the draft, changes are accumulated in the
-DraftChangeSet associated with the store session. The DraftChangeSet does two things:
-
-1. It debounces changes and calls Actions.saveDraft() at a reasonable interval.
-
-2. It exposes `applyToModel`, which allows you to optimistically apply changes
-  to a draft object. When the session vends the draft, it passes it through this
-  function to apply uncommitted changes. This means the Draft provided by the
-  DraftEditingSession will always relfect recent changes, even though they're
-  written to the database intermittently.
+DraftChangeSet associated with the store session.
 
 Section: Drafts
 */
@@ -45,15 +37,10 @@ class DraftChangeSet extends EventEmitter {
   constructor(callbacks) {
     super();
     this.callbacks = callbacks;
-    this._commitChain = Promise.resolve();
-    this._pending = {};
-    this._saving = {};
     this._timer = null;
   }
 
   teardown() {
-    this._pending = {};
-    this._saving = {};
     if (this._timer) {
       clearTimeout(this._timer);
       this._timer = null;
@@ -61,15 +48,12 @@ class DraftChangeSet extends EventEmitter {
   }
 
   add(changes, { doesNotAffectPristine } = {}) {
-    this._pending = Object.assign(this._pending, changes);
     if (!doesNotAffectPristine) {
-      this._pending.pristine = false;
+      changes.pristine = false;
     }
-    this.callbacks.onDidAddChanges(changes);
+    this.callbacks.onAddChanges(changes);
 
-    if (this._timer) {
-      clearTimeout(this._timer);
-    }
+    if (this._timer) clearTimeout(this._timer);
     this._timer = setTimeout(() => this.commit(), 10000);
   }
 
@@ -79,38 +63,9 @@ class DraftChangeSet extends EventEmitter {
     this.add(changes, { doesNotAffectPristine: true });
   }
 
-  commit() {
-    if (this._timer) {
-      clearTimeout(this._timer);
-    }
-    const commitSemaphored = async () => {
-      if (Object.keys(this._pending).length === 0) {
-        return true;
-      }
-
-      this._saving = this._pending;
-      this._pending = {};
-      await this.callbacks.onCommit();
-      this._saving = {};
-    };
-
-    this._commitChain = this._commitChain.then(commitSemaphored, commitSemaphored);
-    return this._commitChain;
-  }
-
-  applyToModel(model) {
-    if (!model) {
-      return null;
-    }
-    const changesToApply = Object.entries(this._saving).concat(Object.entries(this._pending));
-    for (const [key, val] of changesToApply) {
-      if (key.startsWith(MetadataChangePrefix)) {
-        model.directlyAttachMetadata(key.split(MetadataChangePrefix).pop(), val);
-      } else {
-        model[key] = val;
-      }
-    }
-    return model;
+  async commit() {
+    if (this._timer) clearTimeout(this._timer);
+    await this.callbacks.onCommit();
   }
 }
 
@@ -141,7 +96,7 @@ export default class DraftEditingSession extends MailspringStore {
     this._destroyed = false;
 
     this.changes = new DraftChangeSet({
-      onDidAddChanges: () => this.changeSetDidAddChanges(),
+      onAddChanges: changes => this.changeSetApplyChanges(changes),
       onCommit: () => this.changeSetCommit(), // for specs
     });
 
@@ -155,10 +110,6 @@ export default class DraftEditingSession extends MailspringStore {
   // Public: Returns the draft object with the latest changes applied.
   //
   draft() {
-    if (!this._draft) {
-      return null;
-    }
-    this.changes.applyToModel(this._draft);
     return this._draft;
   }
 
@@ -339,12 +290,15 @@ export default class DraftEditingSession extends MailspringStore {
     // }
 
     let _bodyHTMLCache = draft.body;
+    let _bodyHTMLCacheContentState = null;
     let _bodyEditorState = null;
+
     Object.defineProperty(draft, 'body', {
       get: function() {
         if (!_bodyHTMLCache) {
           console.log('building HTML body cache');
-          _bodyHTMLCache = convertToHTML(draft.bodyEditorState.getCurrentContent());
+          _bodyHTMLCacheContentState = _bodyEditorState.getCurrentContent();
+          _bodyHTMLCache = convertToHTML(_bodyHTMLCacheContentState);
         }
         return _bodyHTMLCache;
       },
@@ -353,6 +307,7 @@ export default class DraftEditingSession extends MailspringStore {
         let editorState = EditorState.createWithContent(contentState);
         editorState = selectEndOfReply(editorState);
         draft.bodyEditorState = editorState;
+        _bodyHTMLCacheContentState = contentState;
         _bodyHTMLCache = inHTML;
       },
     });
@@ -361,10 +316,13 @@ export default class DraftEditingSession extends MailspringStore {
         return _bodyEditorState;
       },
       set: function(next) {
-        _bodyHTMLCache = null;
+        if (_bodyHTMLCacheContentState !== next.getCurrentContent()) {
+          _bodyHTMLCache = null;
+        }
         _bodyEditorState = next;
       },
     });
+
     draft.body = _bodyHTMLCache;
     this._draft = draft;
 
@@ -424,36 +382,25 @@ export default class DraftEditingSession extends MailspringStore {
       return;
     }
 
-    // Set a variable here to protect against this._draft getting set from
-    // underneath us
-    const draft = await DatabaseStore.findBy(Message, {
-      headerMessageId: this._draft.headerMessageId,
-    }).include(Message.attributes.body);
-
-    // This can happen if we get a "delete" delta, or something else
-    // strange happens. In this case, we'll use the this._draft we have in
-    // memory to apply the changes to. On the `persistModel` in the
-    // next line it will save the correct changes. The
-    // `SyncbackDraftTask` may then fail due to differing Ids not
-    // existing, but if this happens it'll 404 and recover gracefully
-    // by creating a new draft
-    const updatedDraft = this.changes.applyToModel(draft || inMemoryDraft);
-
-    const task = new SyncbackDraftTask({ draft: updatedDraft });
+    const task = new SyncbackDraftTask({ draft: this._draft });
     Actions.queueTask(task);
     await TaskQueue.waitForPerformLocal(task);
   }
 
-  // Undo / Redo
-
-  changeSetDidAddChanges = () => {
+  changeSetApplyChanges = changes => {
     if (this._destroyed) {
       return;
     }
     if (!this._draft) {
       throw new Error('DraftChangeSet was modified before the draft was prepared.');
     }
-    this.changes.applyToModel(this._draft);
+    for (const [key, val] of Object.entries(changes)) {
+      if (key.startsWith(MetadataChangePrefix)) {
+        this._draft.directlyAttachMetadata(key.split(MetadataChangePrefix).pop(), val);
+      } else {
+        this._draft[key] = val;
+      }
+    }
     this.trigger();
   };
 }

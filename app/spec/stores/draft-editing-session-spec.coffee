@@ -96,15 +96,6 @@ xdescribe "DraftEditingSession Specs", ->
           expect(firstFulfilled).toBe(true)
           expect(secondFulfilled).toBe(true)
 
-    describe "applyToModel", ->
-      it "should apply the saving and then the pending change sets, in that order", ->
-        @changeSet._saving =  {subject: 'A', body: 'Basketb'}
-        @changeSet._pending = {body: 'Basketball'}
-        m = new Message()
-        @changeSet.applyToModel(m)
-        expect(m.subject).toEqual('A')
-        expect(m.body).toEqual('Basketball')
-
   describe "DraftEditingSession", ->
     describe "constructor", ->
       it "should make a query to fetch the draft", ->
