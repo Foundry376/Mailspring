@@ -1,4 +1,5 @@
 import React from 'react';
+import { RetinaImg } from 'mailspring-component-kit';
 import { EditorState, SelectionState, Modifier } from 'draft-js';
 import { genKey, ContentBlock, RichUtils } from 'draft-js';
 
@@ -104,7 +105,7 @@ export const HTMLConfig = {
       return createEntity(UNEDITABLE_HTML, 'IMMUTABLE', { outerHTML });
     }
 
-    const isUneditable = node.nodeName === 'TABLE';
+    const isUneditable = node.nodeName === 'TABLE' || node.nodeName === 'SIGNATURE';
 
     if (isUneditable) {
       const outerHTML = node.outerHTML;
@@ -149,12 +150,56 @@ class QuotedTextEntity extends React.Component {
     return false;
   }
 
+  _onRemove = () => {
+    const { setEditorState, getEditorState, entityKey } = this.props;
+    const editorState = getEditorState();
+    const contentState = editorState.getCurrentContent();
+
+    // Find the entity parent block and range - there must be a better way...
+    let matchRange = null;
+    const matchBlock = contentState.getBlocksAsArray().find(block => {
+      block.findEntityRanges(
+        character => character.getEntity() === entityKey,
+        (start, end) => (matchRange = [start, end])
+      );
+      return matchRange != null;
+    });
+
+    if (!matchBlock) {
+      return;
+    }
+
+    const nextContentState = Modifier.removeRange(
+      editorState.getCurrentContent(),
+      new SelectionState({
+        anchorKey: matchBlock.key,
+        anchorOffset: matchRange[0],
+        focusKey: matchBlock.key,
+        focusOffset: matchRange[1],
+        isBackward: false,
+      }),
+      'forward'
+    );
+    setEditorState(EditorState.push(editorState, nextContentState, 'remove-range'));
+  };
+
   render() {
     const entity = this.props.contentState.getEntity(this.props.entityKey);
     const { outerHTML } = entity.getData();
 
     if (entity.getType() === UNEDITABLE_HTML) {
-      return <div className="uneditable" dangerouslySetInnerHTML={{ __html: outerHTML }} />;
+      return (
+        <div className="uneditable">
+          <a onClick={this._onRemove} className="uneditable-remove">
+            <RetinaImg
+              title="Remove HTML"
+              name="image-cancel-button.png"
+              mode={RetinaImg.Mode.ContentPreserve}
+            />
+          </a>
+          <div dangerouslySetInnerHTML={{ __html: outerHTML }} />
+        </div>
+      );
     }
     if (entity.getType() === ATTRIBUTION_LINE) {
       return <div className="gmail_quote_attribution">{this.props.children}</div>;

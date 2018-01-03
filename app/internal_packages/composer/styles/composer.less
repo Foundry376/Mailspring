@@ -533,9 +533,27 @@ body.platform-win32 {
 }
 .RichEditor-root .uneditable {
   -webkit-user-modify: read-only;
-  color: purple;
+  display: inline-block;
+  border: 1px solid transparent;
+  position: relative;
+  .uneditable-remove {
+    position: absolute;
+    display: none;
+    right: -5px;
+    top: -5px;
+    z-index: 2;
+    &:active {
+      filter: brightness(85%);
+    }
+  }
   blockquote {
     color: purple;
+  }
+  &:hover {
+    border: 1px dashed @border-color-divider;
+    .uneditable-remove {
+      display: initial;
+    }
   }
 }
 

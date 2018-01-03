@@ -23,6 +23,6 @@ export default {
 
     const contentBefore = newBody.slice(0, insertionPoint);
     const contentAfter = newBody.slice(insertionPoint);
-    return `${contentBefore}${paddingBefore}<signature>${signature}</signature>${contentAfter}`;
+    return `${contentBefore}${paddingBefore}<div><signature>${signature}</signature></div>${contentAfter}`;
   },
 };
