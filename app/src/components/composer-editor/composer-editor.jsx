@@ -20,8 +20,8 @@ const focusPlugin = createFocusPlugin();
 const emojiPlugin = createEmojiPlugin({
   useNativeArt: true,
 });
-const { EmojiSuggestions, EmojiSelect } = emojiPlugin;
-emojiPlugin.toolbarComponents = [EmojiSelect];
+const { EmojiSuggestions } = emojiPlugin;
+emojiPlugin.toolbarComponents = [];
 emojiPlugin.topLevelComponents = [EmojiSuggestions];
 
 export default class ComposerEditor extends React.Component {
