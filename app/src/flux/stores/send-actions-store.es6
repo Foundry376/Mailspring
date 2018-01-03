@@ -11,7 +11,7 @@ const DefaultSendAction = {
   iconUrl: null,
   configKey: DefaultSendActionKey,
   isAvailableForDraft: () => true,
-  performSendAction: ({ draft }) => Actions.queueTask(new SendDraftTask({ draft })),
+  performSendAction: ({ draft }) => Actions.queueTask(SendDraftTask.forSending(draft)),
 };
 
 function verifySendAction(sendAction = {}, extension = {}) {

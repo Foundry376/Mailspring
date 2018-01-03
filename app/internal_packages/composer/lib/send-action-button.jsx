@@ -110,6 +110,7 @@ const EnhancedSendActionButton = ListensToFluxStore(SendActionButton, {
     };
   },
 });
+
 // TODO this is a hack so that the send button can still expose
 // the `primarySend` method required by the ComposerView. Ideally, this
 // decorator mechanism should expose whatever instance methods are exposed

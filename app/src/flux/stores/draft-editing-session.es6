@@ -272,26 +272,9 @@ export default class DraftEditingSession extends MailspringStore {
       throw new Error('DraftEditingSession._setDraft - new draft has no body!');
     }
 
-    const extensions = ComposerExtensionRegistry.extensions();
-
-    // Unapply transforms (tracking pixels, links, etc.)
-    const fragment = document.createDocumentFragment();
-    const draftBodyRootNode = document.createElement('root');
-    fragment.appendChild(draftBodyRootNode);
-    draftBodyRootNode.innerHTML = draft.body;
-
-    for (const ext of extensions) {
-      if (ext.applyTransformsForSending && ext.unapplyTransformsForSending) {
-        await ext.unapplyTransformsForSending({
-          draftBodyRootNode: draftBodyRootNode,
-          draft: draft,
-        });
-      }
-    }
-
     // Populate the bodyEditorState and override the draft properties
     // so that they're kept in sync with minimal recomputation
-    let _bodyHTMLCache = draftBodyRootNode.innerHTML;
+    let _bodyHTMLCache = draft.body;
     let _bodyHTMLCacheContentState = null;
     let _bodyEditorState = null;
 

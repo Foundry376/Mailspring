@@ -1,39 +1,4 @@
-###
-Public: To create ComposerExtensions that enhance the composer experience,
-you should create objects that implement the interface defined at
-{ComposerExtension}.
 
-{ComposerExtension} extends , so you can also
-implement the methods defined there to further enhance the composer
-experience.
-
-To register your extension with the ExtensionRegistry, call
-{ExtensionRegistry::Composer::register}.  When your package is being
-unloaded, you *must* call the corresponding
-{ExtensionRegistry::Composer::unregister} to unhook your extension.
-
-```
-coffee activate: -> ExtensionRegistry.Composer.register(MyExtension)
-
-...
-
-deactivate: -> ExtensionRegistry.Composer.unregister(MyExtension)
-```
-
-**Your ComposerExtension should be stateless**. The user may have multiple
-drafts open at any time, and the methods of your ComposerExtension may be
-called for different drafts at any time. You should not expect that the
-session you receive in {::applyTransformsToDraft} is for the same
-draft you previously received in {::warningsForSending}, etc.
-
-The ComposerExtension API does not currently expose any asynchronous or
-{Promise}-based APIs, except for applyTransformsToDraft and unapplyTransformsToDraft,
-which can optionally return a promsie. This will likely change in the future.
-If you have a use-case for a ComposerExtension that is not possible with the current
-API, please let us know.
-
-Section: Extensions
-###
 class ComposerExtension
 
   ###
@@ -147,12 +112,5 @@ class ComposerExtension
   @applyTransformsForSending: ({draft, draftBodyRootNode}) ->
     return
 
-  ###
-  Public: unapplyTransformsToDraft should revert the changes made in
-  `applyTransformsToDraft`. See the documentation for that method for more
-  information.
-  ###
-  @unapplyTransformsForSending: ({draft, draftBodyRootNode}) ->
-    return
 
 module.exports = ComposerExtension

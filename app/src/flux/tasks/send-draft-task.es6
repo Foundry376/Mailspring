@@ -1,15 +1,54 @@
 /* eslint global-require: 0 */
-import url from 'url';
 import AccountStore from '../stores/account-store';
-import FeatureUsageStore from '../stores/feature-usage-store';
 import Task from './task';
 import Actions from '../actions';
 import Attributes from '../attributes';
 import Message from '../models/message';
 import SoundRegistry from '../../registries/sound-registry';
+import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import { LocalizedErrorStrings } from '../../mailsync-process';
 
+function applyExtensionTransforms(draft, recipient) {
+  const extensions = ComposerExtensionRegistry.extensions();
+  const fragment = document.createDocumentFragment();
+  const draftBodyRootNode = document.createElement('root');
+  fragment.appendChild(draftBodyRootNode);
+  draftBodyRootNode.innerHTML = draft.body;
+
+  for (const ext of extensions) {
+    const extApply = ext.applyTransformsForSending;
+    if (extApply) {
+      extApply({ draft, draftBodyRootNode, recipient });
+    }
+  }
+  return draftBodyRootNode.innerHTML;
+}
+
 export default class SendDraftTask extends Task {
+  static forSending(d, { silent } = {}) {
+    const task = new SendDraftTask();
+    task.draft = d.clone();
+    task.headerMessageId = task.draft.headerMessageId;
+    task.silent = silent;
+
+    const separateBodies = ComposerExtensionRegistry.extensions().some(
+      ext => ext.needsPerRecipientBodies && ext.needsPerRecipientBodies(task.draft)
+    );
+
+    if (separateBodies) {
+      task.perRecipientBodies = {
+        self: task.draft.body,
+      };
+      task.draft.participants({ includeFrom: false, includeBcc: true }).forEach(recipient => {
+        task.perRecipientBodies[recipient.email] = applyExtensionTransforms(task.draft, recipient);
+      });
+    } else {
+      task.draft.body = applyExtensionTransforms(task.draft, null);
+    }
+
+    return task;
+  }
+
   static attributes = Object.assign({}, Task.attributes, {
     draft: Attributes.Object({
       modelKey: 'draft',
@@ -41,28 +80,6 @@ export default class SendDraftTask extends Task {
 
   set headerMessageId(h) {
     // no-op
-  }
-
-  constructor(...args) {
-    super(...args);
-
-    if (this.draft && (this.isOpenTrackingEnabled() || this.isLinkTrackingEnabled())) {
-      const bodies = {
-        self: this.draft.body,
-      };
-      this.draft.participants({ includeFrom: false, includeBcc: true }).forEach(recipient => {
-        bodies[recipient.email] = this.personalizeBodyForRecipient(this.draft.body, recipient);
-      });
-      this.perRecipientBodies = bodies;
-    }
-  }
-
-  isOpenTrackingEnabled() {
-    return !!this.draft.metadataForPluginId('open-tracking');
-  }
-
-  isLinkTrackingEnabled() {
-    return !!this.draft.metadataForPluginId('link-tracking');
   }
 
   label() {
@@ -97,11 +114,11 @@ export default class SendDraftTask extends Task {
     }
 
     // Fire off events to record the usage of open and link tracking
-    if (this.isOpenTrackingEnabled()) {
-      FeatureUsageStore.markUsed('open-tracking');
-    }
-    if (this.isLinkTrackingEnabled()) {
-      FeatureUsageStore.markUsed('link-tracking');
+    const extensions = ComposerExtensionRegistry.extensions();
+    for (const ext of extensions) {
+      if (ext.onSendSuccess) {
+        ext.onSendSuccess(this.draft);
+      }
     }
   }
 
@@ -142,44 +159,5 @@ export default class SendDraftTask extends Task {
       errorMessage,
       errorDetail,
     });
-  }
-
-  // note - this code must match what is used for send-later!
-
-  personalizeBodyForRecipient(_body, recipient) {
-    const addRecipientToUrl = (originalUrl, email) => {
-      const parsed = url.parse(originalUrl, true);
-      const query = parsed.query || {};
-      query.recipient = email;
-      parsed.query = query;
-      parsed.search = null; // so the format will use the query. See url docs.
-      return parsed.format();
-    };
-
-    let body = _body;
-
-    if (this.isOpenTrackingEnabled()) {
-      // This adds a `recipient` param to the open tracking src url.
-      body = body.replace(/<img class="mailspring-open".*?src="(.*?)">/g, (match, src) => {
-        const newSrc = addRecipientToUrl(src, recipient.email);
-        return `<img class="mailspring-open" width="0" height="0" style="border:0; width:0; height:0;" src="${newSrc}">`;
-      });
-    }
-
-    if (this.isLinkTrackingEnabled()) {
-      // This adds a `recipient` param to the link tracking tracking href url.
-      const trackedLinkRegexp = new RegExp(
-        /(<a.*?href\s*?=\s*?['"])((?!mailto).+?)(['"].*?>)([\s\S]*?)(<\/a>)/gim
-      );
-
-      body = body.replace(trackedLinkRegexp, (match, prefix, href, suffix, content, closingTag) => {
-        const newHref = addRecipientToUrl(href, recipient.email);
-        return `${prefix}${newHref}${suffix}${content}${closingTag}`;
-      });
-    }
-
-    body = body.replace('data-open-tracking-src=', 'src=');
-
-    return body;
   }
 }

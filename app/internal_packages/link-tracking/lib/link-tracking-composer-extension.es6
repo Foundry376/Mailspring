@@ -1,4 +1,4 @@
-import { ComposerExtension, RegExpUtils } from 'mailspring-exports';
+import { ComposerExtension, RegExpUtils, FeatureUsageStore } from 'mailspring-exports';
 import { PLUGIN_ID, PLUGIN_URL } from './link-tracking-constants';
 
 function forEachATagInBody(draftBodyRootNode, callback) {
@@ -34,7 +34,11 @@ function forEachATagInBody(draftBodyRootNode, callback) {
  * their own link tracks.
  */
 export default class LinkTrackingComposerExtension extends ComposerExtension {
-  static applyTransformsForSending({ draftBodyRootNode, draft }) {
+  static needsPerRecipientBodies(draft) {
+    return !!draft.metadataForPluginId(PLUGIN_ID);
+  }
+
+  static applyTransformsForSending({ draftBodyRootNode, draft, recipient }) {
     const metadata = draft.metadataForPluginId(PLUGIN_ID);
     if (!metadata) {
       return;
@@ -57,7 +61,8 @@ export default class LinkTrackingComposerExtension extends ComposerExtension {
         redirect_url: redirectUrl,
       });
 
-      el.setAttribute('href', redirectUrl);
+      const qr = recipient ? `&recipient=${encodeURIComponent(recipient.email)}` : '';
+      el.setAttribute('href', `${redirectUrl}${qr}`);
     });
 
     // save the link info to draft metadata
@@ -66,13 +71,10 @@ export default class LinkTrackingComposerExtension extends ComposerExtension {
     draft.directlyAttachMetadata(PLUGIN_ID, metadata);
   }
 
-  static unapplyTransformsForSending({ draftBodyRootNode }) {
-    forEachATagInBody(draftBodyRootNode, el => {
-      const url = el.getAttribute('href');
-      if (url.indexOf(PLUGIN_URL) !== -1) {
-        const userURLEncoded = url.split('?redirect=')[1];
-        el.setAttribute('href', decodeURIComponent(userURLEncoded));
-      }
-    });
+  static onSendSuccess(draft) {
+    const metadata = draft.metadataForPluginId(PLUGIN_ID);
+    if (metadata) {
+      FeatureUsageStore.markUsed(PLUGIN_ID);
+    }
   }
 }

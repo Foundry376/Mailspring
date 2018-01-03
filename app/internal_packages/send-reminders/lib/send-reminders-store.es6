@@ -39,7 +39,7 @@ class SendRemindersStore extends MailspringStore {
       <p>--The Mailspring Team</p>`;
 
     const draft = await DraftFactory.createDraftForResurfacing(thread, sentHeaderMessageId, body);
-    Actions.queueTask(new SendDraftTask({ draft, silent: true }));
+    Actions.queueTask(SendDraftTask.forSending(draft, { silent: true }));
   };
 
   _onDraftDeliverySucceeded = ({ headerMessageId, accountId }) => {

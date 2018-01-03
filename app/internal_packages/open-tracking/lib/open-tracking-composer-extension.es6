@@ -1,30 +1,12 @@
-import { ComposerExtension } from 'mailspring-exports';
+import { ComposerExtension, FeatureUsageStore } from 'mailspring-exports';
 import { PLUGIN_ID, PLUGIN_URL } from './open-tracking-constants';
 
 export default class OpenTrackingComposerExtension extends ComposerExtension {
-  /**
-   * This inserts a placeholder image tag to serve as our open tracking
-   * pixel.
-   *
-   * See cloud-api/routes/open-tracking
-   *
-   * This image tag is NOT complete at this stage. It requires substantial
-   * post processing just before send. This happens in iso-core since
-   * sending can happen immediately or later in cloud-workers.
-   *
-   * See isomorphic-core tracking-utils.es6
-   *
-   * We don't add a `src` parameter here since we don't want the tracking
-   * pixel to prematurely load with an incorrect url.
-   *
-   * We also need to add individualized recipients to each tracking pixel
-   * for each message sent to each person.
-   *
-   * We finally need to remove the tracking pixel from the message that
-   * ends up in the users's sent folder. This ensures the sender doesn't
-   * trip their own open track.
-   */
-  static applyTransformsForSending({ draftBodyRootNode, draft }) {
+  static needsPerRecipientBodies(draft) {
+    return !!draft.metadataForPluginId(PLUGIN_ID);
+  }
+
+  static applyTransformsForSending({ draftBodyRootNode, draft, recipient }) {
     // grab message metadata, if any
     const messageUid = draft.clientId;
     const metadata = draft.metadataForPluginId(PLUGIN_ID);
@@ -33,11 +15,12 @@ export default class OpenTrackingComposerExtension extends ComposerExtension {
     }
 
     // insert a tracking pixel <img> into the message
-    const serverUrl = `${PLUGIN_URL}/open/${draft.headerMessageId}`;
+    const q = recipient ? `?recipient=${encodeURIComponent(recipient.email)}` : '';
+    const serverUrl = `${PLUGIN_URL}/open/${draft.headerMessageId}${q}`;
     const imgFragment = document
       .createRange()
       .createContextualFragment(
-        `<img class="mailspring-open" width="0" height="0" style="border:0; width:0; height:0;" data-open-tracking-src="${serverUrl}">`
+        `<img class="mailspring-open" width="0" height="0" style="border:0; width:0; height:0;" src="${serverUrl}">`
       );
     const beforeEl = draftBodyRootNode.querySelector('.gmail_quote');
     if (beforeEl) {
@@ -51,10 +34,10 @@ export default class OpenTrackingComposerExtension extends ComposerExtension {
     draft.directlyAttachMetadata(PLUGIN_ID, metadata);
   }
 
-  static unapplyTransformsForSending({ draftBodyRootNode }) {
-    const imgEl = draftBodyRootNode.querySelector('.mailspring-open');
-    if (imgEl) {
-      imgEl.parentNode.removeChild(imgEl);
+  static onSendSuccess(draft) {
+    const metadata = draft.metadataForPluginId(PLUGIN_ID);
+    if (metadata) {
+      FeatureUsageStore.markUsed(PLUGIN_ID);
     }
   }
 }
