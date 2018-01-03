@@ -29,7 +29,7 @@ export default class SignatureComposerDropdown extends React.Component {
       const nextDefaultSignature = SignatureStore.signatureForEmail(
         this.props.currentAccount.email
       );
-      this._changeSignature(nextDefaultSignature);
+      this._onChangeSignature(nextDefaultSignature);
     }
   }
 
@@ -52,7 +52,7 @@ export default class SignatureComposerDropdown extends React.Component {
     return <span className={`signature-title-${sigItem.title}`}>{sigItem.title}</span>;
   };
 
-  _changeSignature = sig => {
+  _onChangeSignature = sig => {
     let body;
     if (sig) {
       body = applySignature(this.props.draft.body, sig);
@@ -67,7 +67,7 @@ export default class SignatureComposerDropdown extends React.Component {
   };
 
   _onClickNoSignature = () => {
-    this._changeSignature({ body: '' });
+    this._onChangeSignature(null);
   };
 
   _onClickEditSignatures() {
@@ -96,7 +96,7 @@ export default class SignatureComposerDropdown extends React.Component {
         items={sigItems}
         itemKey={sigItem => sigItem.id}
         itemContent={this._renderSigItem}
-        onSelect={this._changeSignature}
+        onSelect={this._onChangeSignature}
         itemChecked={this._isSelected}
       />
     );

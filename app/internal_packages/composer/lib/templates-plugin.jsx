@@ -1,5 +1,5 @@
 import React from 'react';
-import { RichUtils, EditorState } from 'draft-js';
+import { RichUtils, EditorState, Modifier, SelectionState } from 'draft-js';
 
 const ENTITY_TYPE = 'TEMPLATEVAR';
 
@@ -106,24 +106,29 @@ class ToolbarVariablePicker extends React.Component {
 Returns editor state with a link entity created / updated to hold the link @data
 for the range specified by @selection
 */
-export function editorStateSettingTemplateVarName(editorState, selection, name) {
+export function editorStateSettingTemplateVarName(editorState, name) {
   const contentState = editorState.getCurrentContent();
   const entityKey = getCurrentEntityKey(editorState);
 
   let nextEditorState = editorState;
 
   if (!entityKey) {
-    const contentStateWithEntity = contentState.createEntity(ENTITY_TYPE, 'MUTABLE', { name });
-    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
-    nextEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
-    nextEditorState = RichUtils.toggleLink(nextEditorState, selection, entityKey);
+    const nextContent = contentState.createEntity(ENTITY_TYPE, 'SEGMENTED', { name });
+    const entityKey = nextContent.getLastCreatedEntityKey();
+    nextEditorState = EditorState.set(editorState, { currentContent: nextContent });
+    nextEditorState = RichUtils.toggleLink(nextEditorState, editorState.getSelection(), entityKey);
   } else {
-    nextEditorState = EditorState.set(editorState, {
-      currentContent: editorState.getCurrentContent().replaceEntityData(entityKey, { name }),
-    });
-    // this is a hack that forces the editor to update
-    // https://github.com/facebook/draft-js/issues/1047
-    nextEditorState = EditorState.forceSelection(nextEditorState, editorState.getSelection());
+    if (name) {
+      nextEditorState = EditorState.set(editorState, {
+        currentContent: editorState.getCurrentContent().replaceEntityData(entityKey, { name }),
+      });
+      // this is a hack that forces the editor to update
+      // https://github.com/facebook/draft-js/issues/1047
+      nextEditorState = EditorState.forceSelection(nextEditorState, editorState.getSelection());
+    } else {
+      const nextContent = Modifier.applyEntity(contentState, editorState.getSelection(), null);
+      nextEditorState = EditorState.set(editorState, { currentContent: nextContent });
+    }
   }
 
   return nextEditorState;
@@ -165,10 +170,10 @@ export function getCurrentTemplateVarName(editorState) {
 export const HTMLConfig = {
   htmlToEntity(nodeName, node, createEntity) {
     if (nodeName === 'code') {
-      return createEntity(ENTITY_TYPE, 'MUTABLE', { name: node.textContent });
+      return createEntity(ENTITY_TYPE, 'SEGMENTED', { name: node.textContent });
     }
     if (nodeName === 'span' && node.dataset.tvarname) {
-      return createEntity(ENTITY_TYPE, 'MUTABLE', { name: node.dataset.tvar });
+      return createEntity(ENTITY_TYPE, 'SEGMENTED', { name: node.dataset.tvar });
     }
   },
   entityToHTML(entity, originalText) {
@@ -180,16 +185,17 @@ export const HTMLConfig = {
 
 const createTemplatesPlugin = () => {
   const TemplateVar = props => {
-    const { name } = props.contentState.getEntity(props.entityKey).getData();
     return (
       <code
         onClick={e => {
-          document.getSelection().setBaseAndExtent(e.target, 0, e.target, e.textContent.length);
+          const range = document.createRange();
+          range.selectNode(e.target);
+          document.getSelection().removeAllRanges();
+          document.getSelection().addRange(range);
         }}
         className="var empty"
       >
         {props.children}
-        <span contentEditable={false}>{`(${name})`}</span>
       </code>
     );
   };
@@ -204,8 +210,76 @@ const createTemplatesPlugin = () => {
     }, callback);
   }
 
+  function handleTabToNextVariable(e, { getEditorState, setEditorState }) {
+    // collect all the entity ranges
+    const editorState = getEditorState();
+    const contentState = editorState.getCurrentContent();
+
+    // figure out where we are currently
+    const currentKey = editorState.getSelection().getStartKey();
+    const currentStart = editorState.getSelection().getStartOffset();
+    const currentEnd = editorState.getSelection().getEndOffset();
+
+    let hit = false;
+    const forwards = !e.shiftKey;
+
+    for (const block of contentState.getBlocksAsArray()) {
+      if (forwards) {
+        // forward: advance until we hit the current block
+        if (!hit) {
+          if (block.key !== currentKey) continue;
+          hit = true;
+        }
+      } else {
+        // backward: stop when we pass the current block
+        if (!hit) {
+          if (block.key === currentKey) hit = true;
+        } else {
+          break;
+        }
+      }
+
+      // find an entity range
+      let targetRange = null;
+      findTemplateVarEntities(
+        block,
+        (start, end) => {
+          if (forwards && targetRange) {
+            return;
+          }
+          if (block.key === currentKey) {
+            if (forwards && start < currentEnd) return;
+            if (!forwards && end > currentStart) return;
+          }
+          targetRange = [start, end];
+        },
+        contentState
+      );
+      // if we found an entity to select, select it
+      if (targetRange) {
+        setEditorState(
+          EditorState.forceSelection(
+            editorState,
+            new SelectionState({
+              anchorKey: block.key,
+              anchorOffset: targetRange[0],
+              focusKey: block.key,
+              focusOffset: targetRange[1],
+              isBackward: false,
+              hasFocus: editorState.getSelection().getHasFocus(),
+            })
+          )
+        );
+        e.preventDefault();
+        return 'handled';
+      }
+    }
+    return 'not-handled';
+  }
+
   return {
     toolbarComponents: [ToolbarVariablePicker],
+    onTab: handleTabToNextVariable,
     decorators: [
       {
         strategy: findTemplateVarEntities,

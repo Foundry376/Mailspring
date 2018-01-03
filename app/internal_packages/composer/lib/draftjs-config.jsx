@@ -24,15 +24,37 @@ function DOMBuilder(html) {
     doc = document.implementation.createHTMLDocument('');
     doc.documentElement.innerHTML = html;
   }
-  // remove leading and trailing spaces from text nodes
-  // const treeWalker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
-  // while (treeWalker.nextNode()) {
-  //   const cn = treeWalker.currentNode;
-  //   if (cn.parentNode.nodeName === 'A' || cn.parentNode.parentNode.nodeName === 'A') {
-  //     continue;
-  //   }
-  //   cn.textContent = cn.textContent.trim();
-  // }
+
+  // strip tags that cause unwanted whitespace
+  const invisibleNames = ['META'];
+  const invisibleWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: node => {
+      return invisibleNames.includes(node.nodeName)
+        ? NodeFilter.FILTER_ACCEPT
+        : NodeFilter.FILTER_SKIP;
+    },
+  });
+  const results = [];
+  while (invisibleWalker.nextNode()) results.push(invisibleWalker.currentNode);
+  results.forEach(r => r.remove());
+
+  // remove extra leading and trailing spaces from text nodes
+  const treeWalker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  while (treeWalker.nextNode()) {
+    const cn = treeWalker.currentNode;
+    const s = cn.textContent.startsWith(' ') || cn.textContent.startsWith('\n');
+    const e = cn.textContent.endsWith(' ') || cn.textContent.endsWith('\n');
+    const ct = cn.textContent.trim();
+    if (s && e && ct.length > 0) {
+      cn.textContent = ' ' + ct + ' ';
+    } else if (s) {
+      cn.textContent = ' ' + ct;
+    } else if (e) {
+      cn.textContent = ct + ' ';
+    } else {
+      cn.textContent = ct;
+    }
+  }
 
   // convert <div><br><div> into just <div> </div> to avoid double-newlines
   const brWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {

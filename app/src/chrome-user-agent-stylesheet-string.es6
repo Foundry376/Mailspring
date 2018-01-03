@@ -184,7 +184,6 @@ h6 {
 table {
     display: table;
     border-collapse: separate;
-    border-spacing: 2px;
     border-color: gray
 }
 thead {

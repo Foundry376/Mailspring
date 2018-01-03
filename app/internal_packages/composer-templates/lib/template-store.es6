@@ -289,15 +289,19 @@ class TemplateStore extends MailspringStore {
         }
 
         if (proceed) {
-          const draftContents = QuotedHTMLTransformer.removeQuotedHTML(session.draft().body);
-          const sigIndex = draftContents.indexOf('<signature>');
-          const signature = sigIndex > -1 ? draftContents.slice(sigIndex) : '';
-
-          const draftHtml = QuotedHTMLTransformer.appendQuotedHTML(
-            templateBody + signature,
-            session.draft().body
-          );
-          session.changes.add({ body: draftHtml });
+          const current = session.draft().body;
+          let insertion = current.length;
+          for (const s of [
+            '<p><signature',
+            '<div class="gmail_quote_attribution"',
+            '<blockquote class="gmail_quote"',
+          ]) {
+            const i = current.indexOf(s);
+            if (i !== -1) {
+              insertion = Math.min(insertion, i);
+            }
+          }
+          session.changes.add({ body: `${templateBody}${current.substr(insertion)}` });
         }
       });
     });

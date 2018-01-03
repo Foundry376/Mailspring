@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import { React, ReactDOM, PropTypes, Actions, AccountStore } from 'mailspring-exports';
 import {
   KeyCommandsRegion,
@@ -124,14 +123,7 @@ export default class ComposerHeader extends React.Component {
       return false;
     }
     return (
-      <KeyCommandsRegion
-        tabIndex={-1}
-        ref={el => {
-          if (el) {
-            this._els.subjectContainer = el;
-          }
-        }}
-      >
+      <KeyCommandsRegion tabIndex={-1}>
         <SubjectTextField
           ref={el => {
             if (el) {
