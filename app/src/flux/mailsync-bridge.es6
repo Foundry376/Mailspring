@@ -112,7 +112,9 @@ export default class MailsyncBridge {
 
     AccountStore.listen(this.ensureClients, this);
     OnlineStatusStore.listen(this._onOnlineStatusChanged, this);
-    AppEnv.onReadyToUnload(this._onBeforeUnload);
+
+    AppEnv.onBeforeUnload(this._onBeforeUnload);
+    AppEnv.onReadyToUnload(this._onReadyToUnload);
 
     process.nextTick(() => {
       this.ensureClients();
@@ -437,12 +439,26 @@ export default class MailsyncBridge {
     }
   }
 
-  _onBeforeUnload = () => {
+  _onBeforeUnload = readyToUnload => {
+    // If other windows are open, delay the closing of the main window
+    // by 400ms the first time beforeUnload is called so other windows
+    // ave a chance to save drafts before we kill the workers.
+    if (remote.getGlobal('application').windowManager.getOpenWindowCount() <= 1) {
+      return true;
+    }
+    if (this._lastWait && Date.now() - this._lastWait < 2000) {
+      return true;
+    }
+    this._lastWait = Date.now();
+    setTimeout(readyToUnload, 400);
+    return false;
+  };
+
+  _onReadyToUnload = () => {
     for (const client of Object.values(this._clients)) {
       client.kill();
     }
     this._clients = [];
-    return true;
   };
 
   _onOnlineStatusChanged = ({ onlineDidChange, wakingFromSleep }) => {

@@ -107,32 +107,46 @@ class DraftStore extends MailspringStore {
     // window.close() within on onbeforeunload could do weird things.
     Object.values(this._draftSessions).forEach(session => {
       const draft = session.draft();
-      if (!draft.id) {
+      if (!draft || !draft.id) {
         return;
       }
-      if (draft && draft.pristine) {
+
+      // Only delete pristine drafts if we're in popout composers. From the
+      // main window we can't know if the draft session may also be open in
+      // a popout and have content there.
+      if (draft.pristine && !AppEnv.isMainWindow()) {
         Actions.queueTask(
           new DestroyDraftTask({
             messageIds: [draft.id],
             accountId: draft.accountId,
           })
         );
-      } else {
+      } else if (session.changes.isDirty()) {
         promises.push(session.changes.commit());
       }
     });
 
     if (promises.length > 0) {
-      Promise.all(promises).then(() => {
+      let done = () => {
+        done = null;
         this._draftSessions = {};
         // We have to wait for accumulateAndTrigger() in the DatabaseStore to
         // send events to ActionBridge before closing the window.
         setTimeout(readyToUnload, 15);
-      });
+      };
 
-      // Stop and wait before closing
+      // Stop and wait before closing, but never wait for more than 700ms.
+      // We may not be able to save the draft once the main window has closed
+      // and the mailsync bridge is unavailable, don't want to hang forever.
+      setTimeout(() => {
+        if (done) done();
+      }, 700);
+      Promise.all(promises).then(() => {
+        if (done) done();
+      });
       return false;
     }
+
     // Continue closing
     return true;
   };

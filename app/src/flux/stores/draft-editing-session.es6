@@ -40,6 +40,7 @@ class DraftChangeSet extends EventEmitter {
     this.callbacks = callbacks;
     this._timer = null;
     this._timerTime = null;
+    this._changedSinceCommit = false;
   }
 
   cancelCommit() {
@@ -53,12 +54,18 @@ class DraftChangeSet extends EventEmitter {
   add(changes) {
     changes.pristine = false;
     this.callbacks.onAddChanges(changes);
+    this._changedSinceCommit = true;
     this.debounceCommit();
   }
 
   addPluginMetadata(pluginId, metadata) {
     this.callbacks.onAddChanges({ [`${MetadataChangePrefix}${pluginId}`]: metadata });
+    this._changedSinceCommit = true;
     this.debounceCommit();
+  }
+
+  isDirty() {
+    return this._changedSinceCommit;
   }
 
   debounceCommit() {
@@ -76,8 +83,10 @@ class DraftChangeSet extends EventEmitter {
   }
 
   async commit() {
+    if (!this._changedSinceCommit) return;
     if (this._timer) clearTimeout(this._timer);
     await this.callbacks.onCommit();
+    this._changedSinceCommit = false;
   }
 }
 
