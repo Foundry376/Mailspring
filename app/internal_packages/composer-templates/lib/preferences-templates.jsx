@@ -61,6 +61,7 @@ class TemplateEditor extends React.Component {
           <ComposerEditor
             readOnly={readOnly}
             editorState={editorState}
+            propsForPlugins={{ inTemplateEditor: true }}
             onChange={es => this.setState({ editorState: es })}
             onBlur={this._onSave}
           />

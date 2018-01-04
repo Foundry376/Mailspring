@@ -60,6 +60,7 @@ class ToolbarVariablePicker extends React.Component {
 
   render() {
     const { expanded } = this.state;
+    const active = getCurrentTemplateVarName(this.props.editorState);
 
     return (
       <div
@@ -68,20 +69,14 @@ class ToolbarVariablePicker extends React.Component {
         tabIndex={-1}
         onBlur={this.onBlur}
       >
-        {getCurrentTemplateVarName(this.props.editorState) ? (
-          <button onMouseDown={this.onRemove}>
-            <i className="fa fa-unlink" />
-          </button>
-        ) : (
-          <button onMouseDown={this.onPrompt}>
-            <i className="fa fa-link" />
-          </button>
-        )}
+        <button className={active && 'active'} onMouseDown={active ? this.onRemove : this.onPrompt}>
+          <i className="fa fa-tag" />
+        </button>
         {expanded && (
           <div className="dropdown">
             <input
               type="text"
-              placeholder="first_name"
+              placeholder="Ex: first_name"
               value={this.state.name}
               ref={el => (this._inputEl = el)}
               onBlur={this.onBlur}
@@ -178,12 +173,13 @@ export const HTMLConfig = {
   },
   entityToHTML(entity, originalText) {
     if (entity.type === ENTITY_TYPE) {
-      return <span data-tvarname={entity.data.name}>{originalText}</span>;
+      const escaped = (entity.data.name || 'unnamed').replace('"', '&quot;');
+      return { start: `<span data-tvarname="${escaped}">`, end: '</span>' };
     }
   },
 };
 
-const createTemplatesPlugin = () => {
+const createTemplatesPlugin = ({ getExposedProps }) => {
   const TemplateVar = props => {
     return (
       <code
@@ -277,8 +273,10 @@ const createTemplatesPlugin = () => {
     return 'not-handled';
   }
 
+  const { inTemplateEditor } = getExposedProps();
+
   return {
-    toolbarComponents: [ToolbarVariablePicker],
+    toolbarComponents: inTemplateEditor ? [ToolbarVariablePicker] : [],
     onTab: handleTabToNextVariable,
     decorators: [
       {

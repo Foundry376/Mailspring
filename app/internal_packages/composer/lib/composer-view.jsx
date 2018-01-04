@@ -84,6 +84,13 @@ export default class ComposerView extends React.Component {
   }
 
   focus() {
+    // If something within us already has focus, don't change it. Never, ever
+    // want to pull the cursor out from under the user while typing
+    const node = ReactDOM.findDOMNode(this._els.composerWrap);
+    if (node.contains(document.activeElement)) {
+      return;
+    }
+
     if (this.props.draft.to.length === 0 || this.props.draft.subject.length === 0) {
       this._els.header.focus();
     } else {
@@ -157,14 +164,7 @@ export default class ComposerView extends React.Component {
 
   _renderBodyRegions() {
     return (
-      <div
-        ref={el => {
-          if (el) {
-            this._els.composerBodyWrap = el;
-          }
-        }}
-        className="composer-body-wrap"
-      >
+      <div className="composer-body-wrap">
         {this._renderEditor()}
         {this._renderQuotedTextControl()}
         {this._renderAttachments()}
@@ -192,7 +192,7 @@ export default class ComposerView extends React.Component {
           }
         }}
         className={`body-field ${this.state.quotedTextHidden && 'hiding-quoted-text'}`}
-        atomicBlockProps={{ draft: this.props.draft, session: this.props.session }}
+        propsForPlugins={{ draft: this.props.draft, session: this.props.session }}
         editorState={this.props.draft.bodyEditorState}
         onFileReceived={this._onFileReceived}
         onChange={bodyEditorState => {

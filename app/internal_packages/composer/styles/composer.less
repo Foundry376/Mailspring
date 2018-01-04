@@ -577,7 +577,7 @@ body.platform-win32 {
 
 .RichEditor-editor .public-DraftStyleDefault-pre {
   background-color: rgba(0, 0, 0, 0.05);
-  font-family: 'Inconsolata', 'Menlo', 'Consolas', monospace;
+  font-family: monospace;
   font-size: 16px;
   padding: 20px;
 }
@@ -615,6 +615,7 @@ body.platform-win32 {
     select {
       border: none;
       background: none;
+      margin: 0;
     }
   }
 
@@ -636,7 +637,8 @@ body.platform-win32 {
     margin: 0 7px;
   }
 
-  .link-picker {
+  .link-picker,
+  .template-var-picker {
     .dropdown {
       padding: 5px;
       display: flex;

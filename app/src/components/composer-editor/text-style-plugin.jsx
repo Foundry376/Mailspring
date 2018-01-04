@@ -8,7 +8,7 @@ export const FONTSIZE_STYLE_PREFIX = 'font-';
 const styleMap = {
   CODE: {
     backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    fontFamily: '"Inconsolata", "Menlo", "Consolas", monospace',
+    fontFamily: 'monospace',
     padding: 2,
   },
 };
@@ -55,9 +55,18 @@ class ToolbarColorPicker extends React.Component {
         ref={el => (this._el = el)}
         style={{ display: 'inline-block', position: 'relative' }}
       >
-        <div
+        <button
           onClick={this._onToggleExpanded}
-          style={{ cursor: 'pointer', width: 20, height: 14, backgroundColor: color }}
+          style={{
+            cursor: 'pointer',
+            width: 20,
+            height: 14,
+            backgroundColor: color,
+            marginRight: 8,
+            marginLeft: 4,
+            marginBottom: 2,
+            verticalAlign: 'middle',
+          }}
         />
         {expanded && (
           <div className="dropdown">
@@ -84,7 +93,7 @@ class ToolbarFontPicker extends React.Component {
     const fontSize = styleValueForGroup(currentStyle, FONTSIZE_STYLE_PREFIX) || '14px';
 
     return (
-      <button>
+      <button style={{ padding: 0 }}>
         <i className="fa fa-text-height" />
         <select value={fontSize} onChange={this._onSetFontSize}>
           {['10px', '12px', '14px', '16px', '18px', '22px'].map(size => (
@@ -181,7 +190,7 @@ export const HTMLConfig = {
 
 const createTextSizePlugin = () => {
   return {
-    toolbarComponents: [ToolbarFontPicker, ToolbarColorPicker],
+    toolbarComponents: [ToolbarColorPicker, ToolbarFontPicker],
     customStyleFn,
   };
 };

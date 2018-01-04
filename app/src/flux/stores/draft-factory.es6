@@ -34,7 +34,7 @@ class DraftFactory {
   async createDraft(fields = {}) {
     const account = this._accountForNewDraft();
     const defaults = {
-      body: '',
+      body: '<p></p>',
       subject: '',
       version: 0,
       unread: false,
@@ -164,8 +164,8 @@ class DraftFactory {
       accountId: message.accountId,
       replyToHeaderMessageId: message.headerMessageId,
       body: `
-        <div></div>
-        <div></div>
+        <p></p>
+        <p></p>
         <div class="gmail_quote_attribution">${DOMUtils.escapeHTMLCharacters(
           message.replyAttributionLine()
         )}</div>

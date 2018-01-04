@@ -5,7 +5,7 @@ const BLOCK_TYPES = [
   { label: 'Blockquote', style: 'blockquote', fa: 'fa fa-quote-left' },
   { label: 'UL', style: 'unordered-list-item', fa: 'fa fa-list-ul' },
   { label: 'OL', style: 'ordered-list-item', fa: 'fa fa-list-ol' },
-  { label: 'Code Block', style: 'code-block', fa: 'fa fa-code' },
+  { label: 'Code Block', style: 'code-block', fa: 'fa fa-sticky-note-o' },
 ];
 
 const INLINE_STYLES = [
@@ -56,7 +56,7 @@ export default class ComposerEditorToolbar extends React.Component {
 
     const pluginItems = [];
     plugins.forEach((plugin, idx) => {
-      if (plugin.toolbarComponents) {
+      if (plugin.toolbarComponents && plugin.toolbarComponents.length) {
         pluginItems.push(<div key={idx} className="divider" />);
         plugin.toolbarComponents.forEach((Component, cdx) => {
           pluginItems.push(

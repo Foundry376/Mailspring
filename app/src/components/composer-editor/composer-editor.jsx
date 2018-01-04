@@ -28,19 +28,24 @@ export default class ComposerEditor extends React.Component {
   constructor(props) {
     super(props);
 
-    const inlineAttachmentPlugin = createInlineAttachmentPlugin({
-      decorator: composeDecorators(focusPlugin.decorator),
-      getExposedProps: () => this.props.atomicBlockProps,
-      onRemoveBlockWithKey: this.onRemoveBlockWithKey,
-    });
+    const pluginOptions = {
+      getExposedProps: () => this.props.propsForPlugins,
+    };
+
+    const inlineAttachmentPlugin = createInlineAttachmentPlugin(
+      Object.assign({}, pluginOptions, {
+        decorator: composeDecorators(focusPlugin.decorator),
+        onRemoveBlockWithKey: this.onRemoveBlockWithKey,
+      })
+    );
 
     this.plugins = [
       focusPlugin,
-      createLinkifyPlugin(),
-      createAutoListPlugin(),
-      createTextStylePlugin(),
-      createQuotedTextPlugin(),
-      createTemplatesPlugin(),
+      createLinkifyPlugin(pluginOptions),
+      createAutoListPlugin(pluginOptions),
+      createTextStylePlugin(pluginOptions),
+      createQuotedTextPlugin(pluginOptions),
+      createTemplatesPlugin(pluginOptions),
       emojiPlugin,
       inlineAttachmentPlugin,
     ];
