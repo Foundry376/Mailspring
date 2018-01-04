@@ -15,13 +15,35 @@ export default class SignatureComposerDropdown extends React.Component {
     accounts: PropTypes.array,
   };
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = this._getStateFromStores();
+
+    this._staticIcon = (
+      <RetinaImg
+        className="signature-button"
+        name="top-signature-dropdown.png"
+        mode={RetinaImg.Mode.ContentIsMask}
+      />
+    );
+    this._staticHeaderItems = [
+      <div className="item item-none" key="none" onMouseDown={this._onClickNoSignature}>
+        <span>No signature</span>
+      </div>,
+    ];
+    this._staticFooterItems = [
+      <div className="item item-edit" key="edit" onMouseDown={this._onClickEditSignatures}>
+        <span>Edit Signatures...</span>
+      </div>,
+    ];
   }
 
   componentDidMount = () => {
-    this.unsubscribers = [SignatureStore.listen(this._onChange)];
+    this.unsubscribers = [
+      SignatureStore.listen(() => {
+        this.setState(this._getStateFromStores());
+      }),
+    ];
   };
 
   componentDidUpdate(previousProps) {
@@ -37,20 +59,11 @@ export default class SignatureComposerDropdown extends React.Component {
     this.unsubscribers.forEach(unsubscribe => unsubscribe());
   }
 
-  _onChange = () => {
-    this.setState(this._getStateFromStores());
-  };
-
   _getStateFromStores() {
-    const signatures = SignatureStore.getSignatures();
     return {
-      signatures: signatures,
+      signatures: SignatureStore.getSignatures(),
     };
   }
-
-  _renderSigItem = sigItem => {
-    return <span className={`signature-title-${sigItem.title}`}>{sigItem.title}</span>;
-  };
 
   _onChangeSignature = sig => {
     let body;
@@ -60,10 +73,6 @@ export default class SignatureComposerDropdown extends React.Component {
       body = applySignature(this.props.draft.body, null);
     }
     this.props.session.changes.add({ body });
-  };
-
-  _isSelected = sigObj => {
-    return currentSignatureId(this.props.draft.body) === sigObj.id;
   };
 
   _onClickNoSignature = () => {
@@ -77,52 +86,29 @@ export default class SignatureComposerDropdown extends React.Component {
 
   _renderSignatures() {
     // note: these are using onMouseDown to avoid clearing focus in the composer (I think)
-    const header = [
-      <div className="item item-none" key="none" onMouseDown={this._onClickNoSignature}>
-        <span>No signature</span>
-      </div>,
-    ];
-    const footer = [
-      <div className="item item-edit" key="edit" onMouseDown={this._onClickEditSignatures}>
-        <span>Edit Signatures...</span>
-      </div>,
-    ];
 
-    const sigItems = Object.values(this.state.signatures);
     return (
       <Menu
-        headerComponents={header}
-        footerComponents={footer}
-        items={sigItems}
-        itemKey={sigItem => sigItem.id}
-        itemContent={this._renderSigItem}
+        headerComponents={this._staticHeaderItems}
+        footerComponents={this._staticFooterItems}
+        items={Object.values(this.state.signatures)}
+        itemKey={sig => sig.id}
+        itemChecked={sig => currentSignatureId(this.props.draft.body) === sig.id}
+        itemContent={sig => <span className={`signature-title-${sig.title}`}>{sig.title}</span>}
         onSelect={this._onChangeSignature}
-        itemChecked={this._isSelected}
-      />
-    );
-  }
-
-  _renderSignatureIcon() {
-    return (
-      <RetinaImg
-        className="signature-button"
-        name="top-signature-dropdown.png"
-        mode={RetinaImg.Mode.ContentIsMask}
       />
     );
   }
 
   render() {
-    const sigs = this.state.signatures;
-    const icon = this._renderSignatureIcon();
-
-    if (Object.values(sigs).length > 0) {
-      return (
-        <div className="signature-button-dropdown">
-          <ButtonDropdown primaryItem={icon} menu={this._renderSignatures()} bordered={false} />
-        </div>
-      );
-    }
-    return null;
+    return (
+      <div className="signature-button-dropdown">
+        <ButtonDropdown
+          bordered={false}
+          primaryItem={this._staticIcon}
+          menu={this._renderSignatures()}
+        />
+      </div>
+    );
   }
 }

@@ -39,7 +39,7 @@ class ButtonDropdown extends React.Component
         <div className="secondary-picker" onClick={@toggleDropdown}>
           <RetinaImg name={"icon-thread-disclosure.png"} mode={RetinaImg.Mode.ContentIsMask}/>
         </div>
-        <div ref="secondaryItems" className="secondary-items" onMouseDown={@_onMenuClick}>
+        <div className="secondary-items" onMouseDown={@_onMenuClick}>
           {menu}
         </div>
       </div>
@@ -51,7 +51,7 @@ class ButtonDropdown extends React.Component
           {@props.primaryItem}
           <RetinaImg name={"icon-thread-disclosure.png"} style={marginLeft:12} mode={RetinaImg.Mode.ContentIsMask}/>
         </div>
-        <div ref="secondaryItems" className={"secondary-items #{@props.attachment}"} onMouseDown={@_onMenuClick}>
+        <div className={"secondary-items #{@props.attachment}"} onMouseDown={@_onMenuClick}>
           {menu}
         </div>
       </div>
@@ -61,8 +61,7 @@ class ButtonDropdown extends React.Component
       @setState(open: false)
     else
       buttonBottom = ReactDOM.findDOMNode(@).getBoundingClientRect().bottom
-      openHeight = ReactDOM.findDOMNode(@refs.secondaryItems).getBoundingClientRect().height
-      if buttonBottom + openHeight > window.innerHeight
+      if buttonBottom + 200 > window.innerHeight
         @setState(open: 'up')
       else
         @setState(open: 'down')

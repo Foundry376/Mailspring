@@ -54,7 +54,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.sendDraft, this._onSendDraft);
     this.listenTo(Actions.destroyDraft, this._onDestroyDraft);
 
-    // AppEnv.onBeforeUnload(this._onBeforeUnload);
+    AppEnv.onBeforeUnload(this._onBeforeUnload);
 
     this._draftSessions = {};
     this._draftsSending = {};
@@ -70,14 +70,15 @@ class DraftStore extends MailspringStore {
   @param {String} headerMessageId - The headerMessageId of the draft.
   @returns {Promise} - Resolves to an {DraftEditingSession} for the draft once it has been prepared
   */
-  sessionForClientId(headerMessageId) {
+  async sessionForClientId(headerMessageId) {
     if (!headerMessageId) {
       throw new Error('DraftStore::sessionForClientId requires a headerMessageId');
     }
-    if (this._draftSessions[headerMessageId] == null) {
+    if (!this._draftSessions[headerMessageId]) {
       this._draftSessions[headerMessageId] = this._createSession(headerMessageId);
     }
-    return this._draftSessions[headerMessageId].prepare();
+    await this._draftSessions[headerMessageId].prepare();
+    return this._draftSessions[headerMessageId];
   }
 
   // Public: Look up the sending state of the given draft headerMessageId.

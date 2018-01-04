@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
 
@@ -27,42 +26,120 @@ let DraftStore = null;
 Public: As the user interacts with the draft, changes are accumulated in the
 DraftChangeSet associated with the store session.
 
+This class used to be more complex - now it's mostly a holdover from when
+we implemented undo/redo manually and just functions as a pass-through.
+
 Section: Drafts
 */
+const SaveAfterIdleMSec = 10000;
+const SaveAfterIdleSlushMSec = 2000;
+
 class DraftChangeSet extends EventEmitter {
   constructor(callbacks) {
     super();
     this.callbacks = callbacks;
     this._timer = null;
+    this._timerTime = null;
   }
 
-  teardown() {
+  cancelCommit() {
     if (this._timer) {
       clearTimeout(this._timer);
+      this._timerStarted = null;
       this._timer = null;
     }
   }
 
-  add(changes, { doesNotAffectPristine } = {}) {
-    if (!doesNotAffectPristine) {
-      changes.pristine = false;
-    }
+  add(changes) {
+    changes.pristine = false;
     this.callbacks.onAddChanges(changes);
-
-    if (this._timer) clearTimeout(this._timer);
-    this._timer = setTimeout(() => this.commit(), 10000);
+    this.debounceCommit();
   }
 
   addPluginMetadata(pluginId, metadata) {
-    const changes = {};
-    changes[`${MetadataChangePrefix}${pluginId}`] = metadata;
-    this.add(changes, { doesNotAffectPristine: true });
+    this.callbacks.onAddChanges({ [`${MetadataChangePrefix}${pluginId}`]: metadata });
+    this.debounceCommit();
+  }
+
+  debounceCommit() {
+    const now = Date.now();
+
+    // If there's already a timer going and we started it recently,
+    // it means it'll fire a bit early but that's ok. It's actually
+    // pretty expensive to re-create a timer on every keystroke.
+    if (this._timer && now - this._timerStarted < SaveAfterIdleSlushMSec) {
+      return;
+    }
+    this.cancelCommit();
+    this._timerStarted = now;
+    this._timer = setTimeout(() => this.commit(), SaveAfterIdleMSec);
   }
 
   async commit() {
     if (this._timer) clearTimeout(this._timer);
     await this.callbacks.onCommit();
   }
+}
+
+function hotwireDraftBodyState(draft) {
+  // Populate the bodyEditorState and override the draft properties
+  // so that they're kept in sync with minimal recomputation
+  let _bodyHTMLCache = draft.body;
+  let _bodyHTMLCacheContentState = null;
+  let _bodyEditorState = null;
+
+  draft.__bodyPropDescriptor = {
+    get: function() {
+      if (!_bodyHTMLCache) {
+        console.log('building HTML body cache');
+        _bodyHTMLCacheContentState = _bodyEditorState.getCurrentContent();
+        _bodyHTMLCache = convertToHTML(_bodyHTMLCacheContentState);
+      }
+      return _bodyHTMLCache;
+    },
+    set: function(inHTML) {
+      const contentState = convertFromHTML(inHTML);
+      let editorState = selectEndOfReply(EditorState.createWithContent(contentState));
+
+      if (draft.bodyEditorState) {
+        // preserve undo redo by rebasing the content onto the existing object
+        editorState = EditorState.set(editorState, {
+          undoStack: draft.bodyEditorState.getUndoStack(),
+          redoStack: draft.bodyEditorState.getRedoStack(),
+        });
+      }
+      draft.bodyEditorState = editorState;
+      _bodyHTMLCacheContentState = contentState;
+      _bodyHTMLCache = inHTML;
+    },
+  };
+
+  draft.__bodyEditorStatePropDescriptor = {
+    get: function() {
+      return _bodyEditorState;
+    },
+    set: function(next) {
+      if (_bodyHTMLCacheContentState !== next.getCurrentContent()) {
+        _bodyHTMLCache = null;
+      }
+      _bodyEditorState = next;
+    },
+  };
+
+  Object.defineProperty(draft, 'body', draft.__bodyPropDescriptor);
+  Object.defineProperty(draft, 'bodyEditorState', draft.__bodyEditorStatePropDescriptor);
+  draft.body = _bodyHTMLCache;
+}
+
+function fastCloneDraft(draft) {
+  const next = new Message();
+  for (const key of Object.getOwnPropertyNames(draft)) {
+    if (key === 'body' || key === 'bodyEditorState') continue;
+    next[key] = draft[key];
+  }
+  Object.defineProperty(next, 'body', next.__bodyPropDescriptor);
+  Object.defineProperty(next, 'bodyEditorState', next.__bodyEditorStatePropDescriptor);
+  return next;
 }
 
 /**
@@ -84,23 +161,43 @@ export default class DraftEditingSession extends MailspringStore {
   constructor(headerMessageId, draft = null) {
     super();
 
-    DraftStore = DraftStore || require('./draft-store').default; // eslint-disable-line
-    this.listenTo(DraftStore, this._onDraftChanged);
-
-    this.headerMessageId = headerMessageId;
     this._draft = false;
     this._destroyed = false;
 
+    this.headerMessageId = headerMessageId;
     this.changes = new DraftChangeSet({
       onAddChanges: changes => this.changeSetApplyChanges(changes),
       onCommit: () => this.changeSetCommit(), // for specs
     });
 
+    DraftStore = DraftStore || require('./draft-store').default;
+    this.listenTo(DraftStore, this._onDraftChanged);
+
     if (draft) {
-      this._draftPromise = this._setDraft(draft);
+      this._draftPromise = Promise.resolve(draft);
+    } else {
+      this._draftPromise = DatabaseStore.findBy(Message, {
+        headerMessageId: this.headerMessageId,
+        draft: true,
+      }).include(Message.attributes.body);
     }
 
-    this.prepare();
+    this._draftPromise = this._draftPromise.then(draft => {
+      if (this._destroyed) {
+        throw new Error('Draft has been destroyed.');
+      }
+      if (!draft) {
+        throw new Error(`Assertion Failure: Draft ${this.headerMessageId} not found.`);
+      }
+      if (draft.body === undefined) {
+        throw new Error('DraftEditingSession._setDraft - new draft has no body!');
+      }
+
+      hotwireDraftBodyState(draft);
+      this._draft = draft;
+
+      this.trigger();
+    });
   }
 
   // Public: Returns the draft object with the latest changes applied.
@@ -110,25 +207,12 @@ export default class DraftEditingSession extends MailspringStore {
   }
 
   prepare() {
-    this._draftPromise =
-      this._draftPromise ||
-      DatabaseStore.findBy(Message, { headerMessageId: this.headerMessageId, draft: true })
-        .include(Message.attributes.body)
-        .then(async draft => {
-          if (this._destroyed) {
-            throw new Error('Draft has been destroyed.');
-          }
-          if (!draft) {
-            throw new Error(`Assertion Failure: Draft ${this.headerMessageId} not found.`);
-          }
-          return await this._setDraft(draft);
-        });
     return this._draftPromise;
   }
 
   teardown() {
     this.stopListeningToAll();
-    this.changes.teardown();
+    this.changes.cancelCommit();
     this._destroyed = true;
   }
 
@@ -263,68 +347,12 @@ export default class DraftEditingSession extends MailspringStore {
     return this;
   }
 
-  async _setDraft(draft) {
-    if (draft.body === undefined) {
-      throw new Error('DraftEditingSession._setDraft - new draft has no body!');
-    }
-
-    // Populate the bodyEditorState and override the draft properties
-    // so that they're kept in sync with minimal recomputation
-    let _bodyHTMLCache = draft.body;
-    let _bodyHTMLCacheContentState = null;
-    let _bodyEditorState = null;
-
-    Object.defineProperty(draft, 'body', {
-      get: function() {
-        if (!_bodyHTMLCache) {
-          console.log('building HTML body cache');
-          _bodyHTMLCacheContentState = _bodyEditorState.getCurrentContent();
-          _bodyHTMLCache = convertToHTML(_bodyHTMLCacheContentState);
-        }
-        return _bodyHTMLCache;
-      },
-      set: function(inHTML) {
-        const contentState = convertFromHTML(inHTML);
-        let editorState = selectEndOfReply(EditorState.createWithContent(contentState));
-
-        if (draft.bodyEditorState) {
-          // preserve undo redo by rebasing the content onto the existing object
-          editorState = EditorState.set(editorState, {
-            undoStack: draft.bodyEditorState.getUndoStack(),
-            redoStack: draft.bodyEditorState.getRedoStack(),
-          });
-        }
-        draft.bodyEditorState = editorState;
-        _bodyHTMLCacheContentState = contentState;
-        _bodyHTMLCache = inHTML;
-      },
-    });
-    Object.defineProperty(draft, 'bodyEditorState', {
-      get: function() {
-        return _bodyEditorState;
-      },
-      set: function(next) {
-        if (_bodyHTMLCacheContentState !== next.getCurrentContent()) {
-          _bodyHTMLCache = null;
-        }
-        _bodyEditorState = next;
-      },
-    });
-
-    draft.body = _bodyHTMLCache;
-    this._draft = draft;
-
-    this.trigger();
-    return this;
-  }
-
   _onDraftChanged = change => {
     if (change === undefined || change.type !== 'persist') {
       return;
     }
-
-    // We don't accept changes unless our draft object is loaded
     if (!this._draft) {
+      // We don't accept changes unless our draft object is loaded
       return;
     }
 
@@ -337,8 +365,6 @@ export default class DraftEditingSession extends MailspringStore {
       return;
     }
 
-    // If our draft has been changed, only accept values which are present.
-    // If `body` is undefined, assume it's not loaded. Do not overwrite old body.
     const nextDraft = change.objects
       .filter(obj => obj.headerMessageId === this._draft.headerMessageId)
       .pop();
@@ -347,29 +373,27 @@ export default class DraftEditingSession extends MailspringStore {
       return;
     }
 
-    this._incorporateExternalDraftChanges(nextDraft);
-  };
-
-  _incorporateExternalDraftChanges(nextDraft) {
     let changed = false;
     for (const [key] of Object.entries(Message.attributes)) {
       if (key === 'headerMessageId') continue;
       if (nextDraft[key] === undefined) continue;
-      if (this._draft[key] !== nextDraft[key]) {
-        this._draft[key] = nextDraft[key];
+      if (this._draft[key] === nextDraft[key]) continue;
+
+      if (changed === false) {
+        this._draft = fastCloneDraft(this._draft);
         changed = true;
       }
+      this._draft[key] = nextDraft[key];
     }
     if (changed) {
       this.trigger();
     }
-  }
+  };
 
   async changeSetCommit() {
     if (this._destroyed || !this._draft) {
       return;
     }
-
     const task = new SyncbackDraftTask({ draft: this._draft });
     Actions.queueTask(task);
     await TaskQueue.waitForPerformLocal(task);
@@ -382,6 +406,9 @@ export default class DraftEditingSession extends MailspringStore {
     if (!this._draft) {
       throw new Error('DraftChangeSet was modified before the draft was prepared.');
     }
+
+    this._draft = fastCloneDraft(this._draft);
+
     for (const [key, val] of Object.entries(changes)) {
       if (key.startsWith(MetadataChangePrefix)) {
         this._draft.directlyAttachMetadata(key.split(MetadataChangePrefix).pop(), val);

@@ -9,6 +9,7 @@ let Spellchecker = null;
 export default class WindowEventHandler {
   constructor() {
     this.unloadCallbacks = [];
+    this.unloadCompleteCallbacks = [];
 
     setTimeout(() => this.showDevModeMessages(), 1);
 
@@ -146,8 +147,16 @@ export default class WindowEventHandler {
     });
   }
 
+  // Called on beforeUnload, callback return value
+  // can stop / postpone the window from closing
   addUnloadCallback(callback) {
     this.unloadCallbacks.push(callback);
+  }
+
+  // Called when all beforeUnload callbacks have
+  // been called and have returned
+  addReadyToUnloadCallback(callback) {
+    this.unloadCompleteCallbacks.push(callback);
   }
 
   removeUnloadCallback(callback) {
@@ -179,10 +188,19 @@ export default class WindowEventHandler {
 
     // In Electron, returning false cancels the close.
     hasReturned = true;
-    return unloadCallbacksRunning === 0;
+    if (unloadCallbacksRunning === 0) {
+      for (const callback of this.unloadCompleteCallbacks) {
+        callback();
+      }
+      return true;
+    }
+    return false;
   }
 
   runUnloadFinished() {
+    for (const callback of this.unloadCompleteCallbacks) {
+      callback();
+    }
     setTimeout(() => {
       if (remote.getGlobal('application').isQuitting()) {
         remote.app.quit();

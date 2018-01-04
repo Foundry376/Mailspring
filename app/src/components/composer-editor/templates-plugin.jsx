@@ -165,6 +165,7 @@ export function getCurrentTemplateVarName(editorState) {
 export const HTMLConfig = {
   htmlToEntity(nodeName, node, createEntity) {
     if (nodeName === 'code') {
+      // just for migration
       return createEntity(ENTITY_TYPE, 'SEGMENTED', { name: node.textContent });
     }
     if (nodeName === 'span' && node.dataset.tvarname) {
@@ -182,17 +183,17 @@ export const HTMLConfig = {
 const createTemplatesPlugin = ({ getExposedProps }) => {
   const TemplateVar = props => {
     return (
-      <code
+      <span
         onClick={e => {
           const range = document.createRange();
           range.selectNode(e.target);
           document.getSelection().removeAllRanges();
           document.getSelection().addRange(range);
         }}
-        className="var empty"
+        className="template-variable"
       >
         {props.children}
-      </code>
+      </span>
     );
   };
 

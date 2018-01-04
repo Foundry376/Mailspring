@@ -153,26 +153,11 @@ describe('SendActionsStore', function describeBlock() {
     });
   });
 
-  describe('availableSendActionsForDraft', () => {
-    it('excludes not available actions', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([
-        GoodExtension,
-        NotAvailableExtension,
-      ]);
-      SendActionsStore._onComposerExtensionsChanged();
-      const actions = SendActionsStore.availableSendActionsForDraft();
-      expect(actions.map(({ configKey }) => configKey)).toEqual([
-        DefaultSendActionKey,
-        'send-action-1',
-      ]);
-    });
-  });
-
   describe('orderedSendActionsForDraft', () => {
     it('returns default action when no extensions registered', () => {
       spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([]);
       SendActionsStore._onComposerExtensionsChanged();
-      const { preferred, rest } = SendActionsStore.orderedSendActionsForDraft();
+      const [preferred, ...rest] = SendActionsStore.orderedSendActionsForDraft();
       expect(preferred.configKey).toBe(DefaultSendActionKey);
       expect(rest).toEqual([]);
     });
@@ -185,7 +170,7 @@ describe('SendActionsStore', function describeBlock() {
       ]);
       spyOn(AppEnv.config, 'get').andReturn('send-action-1');
       SendActionsStore._onComposerExtensionsChanged();
-      const { preferred, rest } = SendActionsStore.orderedSendActionsForDraft();
+      const [preferred, ...rest] = SendActionsStore.orderedSendActionsForDraft();
       const restKeys = rest.map(({ configKey }) => configKey);
       expect(preferred.configKey).toBe('send-action-1');
       expect(restKeys).toEqual([DefaultSendActionKey, 'send-action-2', 'send-action-3']);
@@ -195,7 +180,7 @@ describe('SendActionsStore', function describeBlock() {
       spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([GoodExtension, OtherExtension]);
       spyOn(AppEnv.config, 'get').andReturn(null);
       SendActionsStore._onComposerExtensionsChanged();
-      const { preferred } = SendActionsStore.orderedSendActionsForDraft();
+      const [preferred] = SendActionsStore.orderedSendActionsForDraft();
       expect(preferred.configKey).toBe(DefaultSendActionKey);
     });
 
@@ -203,7 +188,7 @@ describe('SendActionsStore', function describeBlock() {
       spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([GoodExtension, OtherExtension]);
       spyOn(AppEnv.config, 'get').andReturn('does-not-exist');
       SendActionsStore._onComposerExtensionsChanged();
-      const { preferred } = SendActionsStore.orderedSendActionsForDraft();
+      const [preferred] = SendActionsStore.orderedSendActionsForDraft();
       expect(preferred.configKey).toBe(DefaultSendActionKey);
     });
 
@@ -214,7 +199,7 @@ describe('SendActionsStore', function describeBlock() {
       ]);
       spyOn(AppEnv.config, 'get').andReturn('not-available');
       SendActionsStore._onComposerExtensionsChanged();
-      const { preferred } = SendActionsStore.orderedSendActionsForDraft();
+      const [preferred] = SendActionsStore.orderedSendActionsForDraft();
       expect(preferred.configKey).toBe(DefaultSendActionKey);
     });
   });

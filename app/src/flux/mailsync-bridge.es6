@@ -112,7 +112,7 @@ export default class MailsyncBridge {
 
     AccountStore.listen(this.ensureClients, this);
     OnlineStatusStore.listen(this._onOnlineStatusChanged, this);
-    AppEnv.onBeforeUnload(this._onBeforeUnload);
+    AppEnv.onReadyToUnload(this._onBeforeUnload);
 
     process.nextTick(() => {
       this.ensureClients();

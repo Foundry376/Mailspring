@@ -15,6 +15,11 @@ const styleMap = {
 
 // TOOLBAR UI
 
+function _getColor(props) {
+  const currentStyle = props.editorState.getCurrentInlineStyle();
+  return styleValueForGroup(currentStyle, COLOR_STYLE_PREFIX) || '#000';
+}
+
 class ToolbarColorPicker extends React.Component {
   constructor(props) {
     super(props);
@@ -43,9 +48,12 @@ class ToolbarColorPicker extends React.Component {
     this.setState({ expanded: false });
   };
 
+  shouldComponentUpdate(nProps, nState) {
+    return _getColor(nProps) !== _getColor(this.props) || nState.expanded !== this.state.expanded;
+  }
+
   render() {
-    const currentStyle = this.props.editorState.getCurrentInlineStyle();
-    const color = styleValueForGroup(currentStyle, COLOR_STYLE_PREFIX) || '#000';
+    const color = _getColor(this.props);
     const { expanded } = this.state;
 
     return (
@@ -78,6 +86,11 @@ class ToolbarColorPicker extends React.Component {
   }
 }
 
+function _getFontSize(props) {
+  const currentStyle = props.editorState.getCurrentInlineStyle();
+  return styleValueForGroup(currentStyle, FONTSIZE_STYLE_PREFIX) || '14px';
+}
+
 class ToolbarFontPicker extends React.Component {
   _onSetFontSize = e => {
     const { onChange, onFocusComposer, editorState } = this.props;
@@ -88,9 +101,12 @@ class ToolbarFontPicker extends React.Component {
     });
   };
 
+  shouldComponentUpdate(nextProps) {
+    return _getFontSize(nextProps) !== _getFontSize(this.props);
+  }
+
   render() {
-    const currentStyle = this.props.editorState.getCurrentInlineStyle();
-    const fontSize = styleValueForGroup(currentStyle, FONTSIZE_STYLE_PREFIX) || '14px';
+    const fontSize = _getFontSize(this.props);
 
     return (
       <button style={{ padding: 0 }}>
