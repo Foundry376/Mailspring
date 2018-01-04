@@ -1,7 +1,7 @@
 import {
   ComponentRegistry,
   DatabaseStore,
-  SyncbackMetadataTask,
+  DraftStore,
   Message,
   SendActionsStore,
   Actions,
@@ -24,31 +24,25 @@ function handleMetadataExpiration(change) {
   if (change.type !== 'metadata-expiration' || change.objectClass !== Message.name) {
     return;
   }
-  for (const message of change.objects) {
+
+  change.objects.forEach(async message => {
     const metadata = message.metadataForPluginId(PLUGIN_ID);
     if (!metadata || !metadata.expiration || metadata.expiration > new Date()) {
-      continue;
+      return;
+    }
+    if (!message.draft) {
+      return;
     }
 
     // clear the metadata
-    Actions.queueTask(
-      SyncbackMetadataTask.forSaving({
-        model: message,
-        pluginId: PLUGIN_ID,
-        value: {
-          expiration: null,
-        },
-      })
-    );
-
-    if (!message.draft) {
-      continue;
-    }
+    const session = await DraftStore.sessionForClientId(message.headerMessageId);
+    session.changes.addPluginMetadata(PLUGIN_ID, { expiration: null });
+    session.changes.commit();
 
     // send the draft
     const actionKey = metadata.actionKey || SendActionsStore.DefaultSendActionKey;
     Actions.sendDraft(message.headerMessageId, { actionKey, delay: 0 });
-  }
+  });
 }
 
 export function activate() {
