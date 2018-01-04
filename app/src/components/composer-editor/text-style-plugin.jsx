@@ -189,16 +189,18 @@ export const HTMLConfig = {
   },
 
   htmlToStyle(nodeName, node, currentStyle) {
-    if (node.dataset.msn) {
+    if (node.dataset && node.dataset.msn) {
       return currentStyle.add(node.dataset.msn);
     }
 
     let nextStyle = currentStyle;
-    if (node.style.color) {
-      nextStyle = nextStyle.add(`${COLOR_STYLE_PREFIX}${node.style.color}`);
-    }
-    if (node.style.fontSize) {
-      nextStyle = nextStyle.add(`${FONTSIZE_STYLE_PREFIX}${node.style.fontSize}`);
+    if (node.style) {
+      if (node.style.color) {
+        nextStyle = nextStyle.add(`${COLOR_STYLE_PREFIX}${node.style.color}`);
+      }
+      if (node.style.fontSize) {
+        nextStyle = nextStyle.add(`${FONTSIZE_STYLE_PREFIX}${node.style.fontSize}`);
+      }
     }
     return nextStyle;
   },
