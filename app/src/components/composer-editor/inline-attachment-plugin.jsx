@@ -9,7 +9,7 @@ const ENTITY_TYPE = 'IMAGE';
 export function editorStateInsertingInlineAttachment(editorState, file) {
   const contentState = editorState.getCurrentContent();
   const contentStateWithEntity = contentState.createEntity(ENTITY_TYPE, 'IMMUTABLE', {
-    fileId: file.id,
+    contentId: file.contentId,
   });
   const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
   const newEditorState = EditorState.set(editorState, { currentContent: contentStateWithEntity });
@@ -29,7 +29,7 @@ export const HTMLConfig = {
   htmlToEntity(nodeName, node, createEntity) {
     if (nodeName === 'img') {
       return createEntity(ENTITY_TYPE, 'IMMUTABLE', {
-        fileId: node
+        contentId: node
           .getAttribute('src')
           .split('cid:')
           .pop(),
@@ -40,8 +40,8 @@ export const HTMLConfig = {
   entityToHTML(entity, originalText) {
     if (entity.type === ENTITY_TYPE) {
       return {
-        empty: `<img alt="" src="cid:${entity.data.fileId}" />`,
-        start: `<img alt="" src="cid:${entity.data.fileId}" />`,
+        empty: `<img alt="" src="cid:${entity.data.contentId}" />`,
+        start: `<img alt="" src="cid:${entity.data.contentId}" />`,
         end: '',
       };
     }
@@ -64,9 +64,9 @@ const createInlineAttachmentPlugin = ({ decorator, getExposedProps, onRemoveBloc
     ...elementProps
   }) => {
     const entity = contentState.getEntity(block.getEntityAt(0));
-    const { fileId } = entity.getData();
+    const { contentId } = entity.getData();
     const { draft } = getExposedProps();
-    const file = draft.files.find(u => fileId === u.id);
+    const file = draft.files.find(f => contentId === f.contentId);
 
     if (!file) {
       return <span />;
