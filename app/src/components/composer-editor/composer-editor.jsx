@@ -10,13 +10,13 @@ import createInlineAttachmentPlugin, {
 import createLinkifyPlugin from './linkify-plugin';
 import createTextStylePlugin from './text-style-plugin';
 
-import createFocusPlugin from 'draft-js-focus-plugin';
+// import createFocusPlugin from 'draft-js-focus-plugin';
 import createAutoListPlugin from 'draft-js-autolist-plugin';
 import createEmojiPlugin from 'draft-js-emoji-plugin';
 import createQuotedTextPlugin, { selectEndOfReply } from './quoted-text-plugin';
 import createTemplatesPlugin from './templates-plugin';
 
-const focusPlugin = createFocusPlugin();
+// const focusPlugin = createFocusPlugin();
 const emojiPlugin = createEmojiPlugin({
   useNativeArt: true,
 });
@@ -34,13 +34,13 @@ export default class ComposerEditor extends React.Component {
 
     const inlineAttachmentPlugin = createInlineAttachmentPlugin(
       Object.assign({}, pluginOptions, {
-        decorator: composeDecorators(focusPlugin.decorator),
+        // decorator: composeDecorators(focusPlugin.decorator),
         onRemoveBlockWithKey: this.onRemoveBlockWithKey,
       })
     );
 
     this.plugins = [
-      focusPlugin,
+      // focusPlugin,
       createLinkifyPlugin(pluginOptions),
       createAutoListPlugin(pluginOptions),
       createTextStylePlugin(pluginOptions),

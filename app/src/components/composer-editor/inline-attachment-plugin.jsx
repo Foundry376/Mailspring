@@ -8,7 +8,7 @@ const ENTITY_TYPE = 'IMAGE';
 
 export function editorStateInsertingInlineAttachment(editorState, file) {
   const contentState = editorState.getCurrentContent();
-  const contentStateWithEntity = contentState.createEntity(ENTITY_TYPE, 'IMMUTABLE', {
+  const contentStateWithEntity = contentState.createEntity(ENTITY_TYPE, 'SEGMENTED', {
     contentId: file.contentId,
   });
   const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
@@ -28,7 +28,7 @@ export const HTMLConfig = {
 
   htmlToEntity(nodeName, node, createEntity) {
     if (nodeName === 'img') {
-      return createEntity(ENTITY_TYPE, 'IMMUTABLE', {
+      return createEntity(ENTITY_TYPE, 'SEGMENTED', {
         contentId: node
           .getAttribute('src')
           .split('cid:')
