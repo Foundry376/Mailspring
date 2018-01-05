@@ -133,7 +133,8 @@ export function convertToHTML(contentState) {
     blockToHTML: block => {
       switch (block.type) {
         case 'unstyled':
-          return <p />;
+          if (block.text === ' ' || block.text === '') return <br />;
+          return <div />;
         case 'paragraph':
           return <p />;
         case 'header-one':

@@ -1,12 +1,6 @@
 import fs from 'fs';
-import {
-  Flexbox,
-  EditableList,
-  RetinaImg,
-  ComposerEditor,
-  ComposerSupport,
-} from 'mailspring-component-kit';
-import { React, Actions } from 'mailspring-exports';
+import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
+import { React, ReactDOM } from 'mailspring-exports';
 import { EditorState } from 'draft-js';
 
 import TemplateStore from './template-store';
@@ -41,6 +35,12 @@ class TemplateEditor extends React.Component {
     }
   };
 
+  _onFocusEditor = e => {
+    if (e.target === ReactDOM.findDOMNode(this._composer)) {
+      this._composer.focusEndAbsolute();
+    }
+  };
+
   render() {
     const { onEditTitle, template } = this.props;
     const { readOnly, editorState } = this.state;
@@ -57,8 +57,9 @@ class TemplateEditor extends React.Component {
             onBlur={e => onEditTitle(e.target.value)}
           />
         </div>
-        <div className="section">
+        <div className="section" onClick={this._onFocusEditor}>
           <ComposerEditor
+            ref={c => (this._composer = c)}
             readOnly={readOnly}
             editorState={editorState}
             propsForPlugins={{ inTemplateEditor: true }}
