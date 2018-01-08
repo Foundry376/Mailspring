@@ -50,7 +50,6 @@
     "mousetrap": "^1.5.3",
     "node-emoji": "^1.2.1",
     "node-uuid": "^1.4",
-    "nslog": "^3",
     "optimist": "0.4.0",
     "pathwatcher": "~6.2",
     "pick-react-known-prop": "0.x.x",

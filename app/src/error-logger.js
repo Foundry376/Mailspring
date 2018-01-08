@@ -125,12 +125,6 @@ module.exports = ErrorLogger = (function() {
 
   ErrorLogger.prototype._extendNativeConsole = function(args) {
     console.debug = this._consoleDebug.bind(this);
-
-    if (process.type === 'browser' && process.platform === 'darwin') {
-      var nslog = require('nslog');
-      console.log = nslog;
-      console.error = nslog;
-    }
   };
 
   // globally define Error.toJSON. This allows us to pass errors via IPC
