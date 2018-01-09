@@ -386,20 +386,25 @@ class DraftStore extends MailspringStore {
     // We need to call `changes.commit` here to ensure the body of the draft is
     // completely saved and the user won't see old content briefly.
     const session = await this.sessionForClientId(headerMessageId);
+
+    // remove inline attachments that are no longer inline
+    let draft = session.draft();
+    const files = draft.files.filter(f => {
+      return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
+    });
+    if (files.length !== draft.files.length) {
+      session.changes.add({ files });
+    }
+
     await session.ensureCorrectAccount();
     await session.changes.commit();
     await session.teardown();
 
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
     // we need to have the final object with it's final ID.
-    let draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true }).include(
+    draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true }).include(
       Message.attributes.body
     );
-
-    // remove inline attachments that are no longer inline
-    draft.files = draft.files.filter(f => {
-      return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
-    });
 
     // Directly update the message body cache so the user immediately sees
     // the new message text (and never old draft text or blank text) sending.

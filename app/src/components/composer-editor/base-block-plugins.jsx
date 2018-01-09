@@ -8,14 +8,19 @@ const BLOCK_CONFIG = {
   div: {
     type: 'div',
     tagNames: ['div', 'br'],
-    render: props => (
-      <div
-        {...props.attributes}
-        className={props.node.data.className || props.node.data.get('className')}
-      >
-        {props.children}
-      </div>
-    ),
+    render: props => {
+      if (props.targetIsHTML && props.node.text === '') {
+        return <br {...props.attributes} />;
+      }
+      return (
+        <div
+          {...props.attributes}
+          className={props.node.data.className || props.node.data.get('className')}
+        >
+          {props.children}
+        </div>
+      );
+    },
   },
   paragraph: {
     type: 'paragraph',
