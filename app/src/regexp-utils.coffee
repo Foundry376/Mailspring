@@ -39,7 +39,7 @@ RegExpUtils =
   mailspringCommandRegex: -> new RegExp(/mailspring:\S+/i)
 
   # Test cases: https://regex101.com/r/pD7iS5/4
-  urlRegex: ({matchEntireString} = {}) ->
+  urlRegex: ({matchStartOfString, matchTailOfString} = {}) ->
     commonTlds = ['com', 'org', 'edu', 'gov', 'uk', 'net', 'ca', 'de', 'jp', 'fr', 'au', 'us', 'ru', 'ch', 'it', 'nl', 'se', 'no', 'es', 'mil', 'ly']
 
     parts = [
@@ -111,8 +111,10 @@ RegExpUtils =
         ')?'
       ')'
     ]
-    if matchEntireString
+    if matchStartOfString
       parts.unshift('^')
+    if matchTailOfString
+      parts.push('$')
 
     return new RegExp(parts.join(''), 'gi')
 

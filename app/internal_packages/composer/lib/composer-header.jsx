@@ -6,7 +6,6 @@ import {
 } from 'mailspring-component-kit';
 import AccountContactField from './account-contact-field';
 import ComposerHeaderActions from './composer-header-actions';
-import SubjectTextField from './subject-text-field';
 import Fields from './fields';
 
 const ScopedFromField = ListensToFluxStore(AccountContactField, {
@@ -45,8 +44,8 @@ export default class ComposerHeader extends React.Component {
   focus() {
     if (this.props.draft.to.length === 0) {
       this.showAndFocusField(Fields.To);
-    } else {
-      this._els.subject.focus();
+    } else if (this._els[Fields.Subject]) {
+      this._els[Fields.Subject].focus();
     }
   }
 
@@ -114,8 +113,8 @@ export default class ComposerHeader extends React.Component {
     Actions.draftParticipantsChanged(this.props.draft.id, changes);
   };
 
-  _onSubjectChange = value => {
-    this.props.session.changes.add({ subject: value });
+  _onSubjectChange = event => {
+    this.props.session.changes.add({ subject: event.target.value });
   };
 
   _renderSubject = () => {
@@ -123,15 +122,18 @@ export default class ComposerHeader extends React.Component {
       return false;
     }
     return (
-      <KeyCommandsRegion tabIndex={-1}>
-        <SubjectTextField
+      <KeyCommandsRegion tabIndex={-1} className="composer-subject subject-field">
+        <input
           ref={el => {
             if (el) {
               this._els[Fields.Subject] = el;
             }
           }}
+          type="text"
+          name="subject"
+          placeholder="Subject"
           value={this.props.draft.subject}
-          onSubjectChange={this._onSubjectChange}
+          onChange={this._onSubjectChange}
         />
       </KeyCommandsRegion>
     );

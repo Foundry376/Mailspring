@@ -182,7 +182,6 @@ h6 {
     font-weight: bold
 }
 table {
-    display: table;
     border-collapse: separate;
     border-color: gray
 }

@@ -34,7 +34,7 @@ class DraftFactory {
   async createDraft(fields = {}) {
     const account = this._accountForNewDraft();
     const defaults = {
-      body: '<p></p>',
+      body: '<div></div>',
       subject: '',
       version: 0,
       unread: false,
@@ -164,14 +164,15 @@ class DraftFactory {
       accountId: message.accountId,
       replyToHeaderMessageId: message.headerMessageId,
       body: `
-        <p></p>
-        <p></p>
+        <div></div>
+        <div></div>
         <div class="gmail_quote_attribution">${DOMUtils.escapeHTMLCharacters(
           message.replyAttributionLine()
         )}</div>
         <blockquote class="gmail_quote"
           style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
           ${prevBody}
+          <div></div>
         </blockquote>
         `,
     });
@@ -199,7 +200,7 @@ class DraftFactory {
       accountId: message.accountId,
       forwardedHeaderMessageId: message.headerMessageId,
       body: `
-        <br><br>
+        <div></div>
         <div class="gmail_quote">
           <br>
           ---------- Forwarded message ---------
@@ -207,7 +208,9 @@ class DraftFactory {
           ${fields.join('<br>')}
           <br><br>
           ${body}
-        </div>`,
+          <div></div>
+        </div>
+        `,
     });
   }
 

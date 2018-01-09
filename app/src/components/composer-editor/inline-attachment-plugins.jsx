@@ -1,0 +1,84 @@
+import React from 'react';
+import { ImageAttachmentItem } from 'mailspring-component-kit';
+import { AttachmentStore } from 'mailspring-exports';
+
+const IMAGE_TYPE = 'image';
+
+function ImageNode(props) {
+  const { attributes, node, editor, targetIsHTML, isSelected } = props;
+  const contentId = node.data.get ? node.data.get('contentId') : node.data.contentId;
+
+  if (targetIsHTML) {
+    return <img alt="" src={`cid:${contentId}`} />;
+  }
+
+  const { draft } = editor.props.propsForPlugins;
+  const file = draft.files.find(f => contentId === f.contentId);
+  if (!file) {
+    return <span />;
+  }
+
+  return (
+    <ImageAttachmentItem
+      {...attributes}
+      draggable={false}
+      className={`file-upload ${isSelected && 'custom-block-selected'}`}
+      filePath={AttachmentStore.pathForFile(file)}
+      displayName={file.filename}
+      onRemoveAttachment={() =>
+        editor.change(change => {
+          change.removeNodeByKey(node.key);
+        })}
+    />
+  );
+}
+
+export function renderNode(props) {
+  if (props.node.type === IMAGE_TYPE) {
+    return ImageNode(props);
+  }
+}
+
+const rules = [
+  {
+    deserialize(el, next) {
+      if (el.tagName.toLowerCase() === 'img' && (el.getAttribute('src') || '').startsWith('cid:')) {
+        return {
+          object: 'inline',
+          isVoid: true,
+          type: IMAGE_TYPE,
+          data: {
+            contentId: el
+              .getAttribute('src')
+              .split('cid:')
+              .pop(),
+          },
+        };
+      }
+    },
+    serialize(obj, children) {
+      if (obj.object !== 'inline') return;
+      return renderNode({ node: obj, children, targetIsHTML: true });
+    },
+  },
+];
+
+export const changes = {
+  insert: (change, file) => {
+    return change.insertInline({
+      object: 'inline',
+      isVoid: true,
+      type: IMAGE_TYPE,
+      data: {
+        contentId: file.contentId,
+      },
+    });
+  },
+};
+
+export default [
+  {
+    renderNode,
+    rules,
+  },
+];

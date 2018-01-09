@@ -1,103 +1,65 @@
 import React from 'react';
-import { RichUtils } from 'draft-js';
-
-const BLOCK_TYPES = [
-  { label: 'Blockquote', style: 'blockquote', fa: 'fa fa-quote-left' },
-  { label: 'UL', style: 'unordered-list-item', fa: 'fa fa-list-ul' },
-  { label: 'OL', style: 'ordered-list-item', fa: 'fa fa-list-ol' },
-  { label: 'Code Block', style: 'code-block', fa: 'fa fa-sticky-note-o' },
-];
-
-const INLINE_STYLES = [
-  { label: 'Bold', style: 'BOLD', fa: 'fa fa-bold' },
-  { label: 'Italic', style: 'ITALIC', fa: 'fa fa-italic' },
-  { label: 'Underline', style: 'UNDERLINE', fa: 'fa fa-underline' },
-  { label: 'Monospace', style: 'CODE', fa: 'fa fa-code' },
-];
-
-class StyleButton extends React.Component {
-  constructor() {
-    super();
-    this.onToggle = e => {
-      e.preventDefault();
-      this.props.onToggle(this.props.style);
-    };
-  }
-
-  render() {
-    return (
-      <button onMouseDown={this.onToggle} className={this.props.active ? 'active' : ''}>
-        <i title={this.props.label} className={this.props.fa} />
-      </button>
-    );
-  }
-}
 
 export default class ComposerEditorToolbar extends React.Component {
-  onToggleBlockType = blockType => {
-    const { editorState, onChange } = this.props;
-    onChange(RichUtils.toggleBlockType(editorState, blockType));
-  };
+  componentDidMount() {
+    for (const el of document.querySelectorAll('.scroll-region-content')) {
+      el.addEventListener('scroll', this._onScroll);
+    }
 
-  onToggleInlineStyle = inlineStyle => {
-    const { editorState, onChange } = this.props;
-    onChange(RichUtils.toggleInlineStyle(editorState, inlineStyle));
+    const toolbar = document.querySelector('.sheet-toolbar');
+    if (toolbar) {
+      this._topClip = toolbar.getBoundingClientRect().bottom;
+    } else {
+      this._topClip = 0;
+    }
+
+    this._el.style.height = `${this._innerEl.clientHeight}px`;
+  }
+
+  componentWillUnmount() {
+    for (const el of document.querySelectorAll('.scroll-region-content')) {
+      el.removeEventListener('scroll', this._onScroll);
+    }
+  }
+
+  componentDidUpdate() {
+    this._el.style.height = `${this._innerEl.clientHeight}px`;
+    this._onScroll();
+  }
+
+  _onScroll = () => {
+    if (!this._el) return;
+    let { top } = this._el.getBoundingClientRect();
+
+    if (top < this._topClip) {
+      this._innerEl.style.position = 'absolute';
+      this._innerEl.style.top = `${this._topClip - top}px`;
+    } else {
+      this._innerEl.style.position = 'relative';
+      this._innerEl.style.top = '0px';
+    }
   };
 
   render() {
-    const { editorState, onChange, onFocusComposer, plugins } = this.props;
-
-    const currentStyle = editorState.getCurrentInlineStyle();
-    const selection = editorState.getSelection();
-    const blockType = editorState
-      .getCurrentContent()
-      .getBlockForKey(selection.getStartKey())
-      .getType();
-
+    const { value, onChange, plugins } = this.props;
     const pluginItems = [];
+
     plugins.forEach((plugin, idx) => {
       if (plugin.toolbarComponents && plugin.toolbarComponents.length) {
-        pluginItems.push(<div key={idx} className="divider" />);
+        if (pluginItems.length) {
+          pluginItems.push(<div key={idx} className="divider" />);
+        }
         plugin.toolbarComponents.forEach((Component, cdx) => {
-          pluginItems.push(
-            <Component
-              key={`${idx}-${cdx}`}
-              editorState={editorState}
-              onChange={onChange}
-              onFocusComposer={onFocusComposer}
-            />
-          );
+          pluginItems.push(<Component key={`${idx}-${cdx}`} value={value} onChange={onChange} />);
         });
       }
     });
 
     return (
-      <div className="RichEditor-toolbar">
-        {INLINE_STYLES.map(type => (
-          <StyleButton
-            key={type.label}
-            active={currentStyle.has(type.style)}
-            label={type.label}
-            onToggle={this.onToggleInlineStyle}
-            style={type.style}
-            fa={type.fa}
-          />
-        ))}
-
-        <div className="divider" />
-
-        {BLOCK_TYPES.map(type => (
-          <StyleButton
-            key={type.label}
-            active={type.style === blockType}
-            label={type.label}
-            onToggle={this.onToggleBlockType}
-            style={type.style}
-            fa={type.fa}
-          />
-        ))}
-
-        {pluginItems}
+      <div ref={el => (this._el = el)} className="RichEditor-toolbar">
+        <div ref={el => (this._innerEl = el)} className="inner">
+          {pluginItems}
+        </div>
       </div>
     );
   }

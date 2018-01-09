@@ -1,8 +1,7 @@
 import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
 
-import { EditorState } from 'draft-js';
-import { DraftJSConfig, QuotedTextPlugin } from '../../components/composer-editor/composer-support';
+import { Conversion } from '../../components/composer-editor/composer-support';
 
 import TaskQueue from './task-queue';
 import Message from '../models/message';
@@ -16,9 +15,7 @@ import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import DestroyDraftTask from '../tasks/destroy-draft-task';
 
-const { selectEndOfReply } = QuotedTextPlugin;
-const { convertFromHTML, convertToHTML } = DraftJSConfig;
-
+const { convertFromHTML, convertToHTML } = Conversion;
 const MetadataChangePrefix = 'metadata.';
 let DraftStore = null;
 
@@ -94,31 +91,28 @@ function hotwireDraftBodyState(draft) {
   // Populate the bodyEditorState and override the draft properties
   // so that they're kept in sync with minimal recomputation
   let _bodyHTMLCache = draft.body;
-  let _bodyHTMLCacheContentState = null;
   let _bodyEditorState = null;
 
   draft.__bodyPropDescriptor = {
     get: function() {
       if (!_bodyHTMLCache) {
         console.log('building HTML body cache');
-        _bodyHTMLCacheContentState = _bodyEditorState.getCurrentContent();
-        _bodyHTMLCache = convertToHTML(_bodyHTMLCacheContentState);
+        _bodyHTMLCache = convertToHTML(_bodyEditorState);
       }
       return _bodyHTMLCache;
     },
     set: function(inHTML) {
-      const contentState = convertFromHTML(inHTML);
-      let editorState = selectEndOfReply(EditorState.createWithContent(contentState));
-
+      let nextValue = convertFromHTML(inHTML);
       if (draft.bodyEditorState) {
-        // preserve undo redo by rebasing the content onto the existing object
-        editorState = EditorState.set(editorState, {
-          undoStack: draft.bodyEditorState.getUndoStack(),
-          redoStack: draft.bodyEditorState.getRedoStack(),
-        });
+        nextValue = draft.bodyEditorState
+          .change()
+          .selectAll()
+          .delete()
+          .insertFragment(nextValue.document)
+          .selectAll()
+          .collapseToStart().value;
       }
-      draft.bodyEditorState = editorState;
-      _bodyHTMLCacheContentState = contentState;
+      draft.bodyEditorState = nextValue;
       _bodyHTMLCache = inHTML;
     },
   };
@@ -128,7 +122,7 @@ function hotwireDraftBodyState(draft) {
       return _bodyEditorState;
     },
     set: function(next) {
-      if (_bodyHTMLCacheContentState !== next.getCurrentContent()) {
+      if (_bodyEditorState !== next) {
         _bodyHTMLCache = null;
       }
       _bodyEditorState = next;

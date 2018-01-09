@@ -1,13 +1,11 @@
 import fs from 'fs';
 import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
 import { React, ReactDOM } from 'mailspring-exports';
-import { EditorState } from 'draft-js';
 
 import TemplateStore from './template-store';
 import TemplateActions from './template-actions';
 
-const { DraftJSConfig } = ComposerSupport;
-const { convertFromHTML, convertToHTML } = DraftJSConfig;
+const { Conversion: { convertFromHTML, convertToHTML } } = ComposerSupport;
 
 class TemplateEditor extends React.Component {
   constructor(props) {
@@ -15,14 +13,13 @@ class TemplateEditor extends React.Component {
 
     if (this.props.template) {
       const inHTML = fs.readFileSync(props.template.path).toString();
-      const contentState = convertFromHTML(inHTML);
       this.state = {
-        editorState: EditorState.createWithContent(contentState),
+        editorState: convertFromHTML(inHTML),
         readOnly: false,
       };
     } else {
       this.state = {
-        editorState: EditorState.createEmpty(),
+        editorState: convertFromHTML(''),
         readOnly: true,
       };
     }
@@ -30,7 +27,7 @@ class TemplateEditor extends React.Component {
 
   _onSave = () => {
     if (!this.state.readOnly) {
-      const outHTML = convertToHTML(this.state.editorState.getCurrentContent());
+      const outHTML = convertToHTML(this.state.editorState);
       fs.writeFileSync(this.props.template.path, outHTML);
     }
   };
@@ -61,9 +58,9 @@ class TemplateEditor extends React.Component {
           <ComposerEditor
             ref={c => (this._composer = c)}
             readOnly={readOnly}
-            editorState={editorState}
+            value={editorState}
             propsForPlugins={{ inTemplateEditor: true }}
-            onChange={es => this.setState({ editorState: es })}
+            onChange={change => this.setState({ editorState: change.value })}
             onBlur={this._onSave}
           />
         </div>

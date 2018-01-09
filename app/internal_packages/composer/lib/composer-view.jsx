@@ -29,7 +29,7 @@ const {
   hasBlockquote,
   hasNonTrailingBlockquote,
   hideQuotedTextByDefault,
-} = ComposerSupport.QuotedTextPlugin;
+} = ComposerSupport.BaseBlockPlugins;
 
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
@@ -65,7 +65,7 @@ export default class ComposerView extends React.Component {
 
     const isBrandNew = Date.now() - this.props.draft.date < 3 * 1000;
     if (isBrandNew) {
-      // Without the tick, quoted text entities aren't rendered (?)
+      ReactDOM.findDOMNode(this).scrollIntoView(false);
       window.requestAnimationFrame(() => {
         this.focus();
       });
@@ -177,7 +177,14 @@ export default class ComposerView extends React.Component {
       return false;
     }
     return (
-      <a className="quoted-text-control" onClick={e => this.setState({ quotedTextHidden: false })}>
+      <a
+        className="quoted-text-control"
+        onMouseDown={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.setState({ quotedTextHidden: false });
+        }}
+      >
         <span className="dots">&bull;&bull;&bull;</span>
       </a>
     );
@@ -193,10 +200,11 @@ export default class ComposerView extends React.Component {
         }}
         className={`body-field ${this.state.quotedTextHidden && 'hiding-quoted-text'}`}
         propsForPlugins={{ draft: this.props.draft, session: this.props.session }}
-        editorState={this.props.draft.bodyEditorState}
+        value={this.props.draft.bodyEditorState}
         onFileReceived={this._onFileReceived}
-        onChange={bodyEditorState => {
-          this.props.session.changes.add({ bodyEditorState });
+        onDrop={e => this._dropzone._onDrop(e)}
+        onChange={change => {
+          this.props.session.changes.add({ bodyEditorState: change.value });
         }}
       />
     );
@@ -494,6 +502,7 @@ export default class ComposerView extends React.Component {
         >
           <TabGroupRegion className="composer-inner-wrap">
             <DropZone
+              ref={cm => (this._dropzone = cm)}
               className="composer-inner-wrap"
               shouldAcceptDrop={this._shouldAcceptDrop}
               onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
