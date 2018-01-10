@@ -21,11 +21,6 @@ export const plugins = [
   ...MarkdownPlugins,
 ];
 
-const HtmlSerializer = new Html({
-  defaultBlock: { type: BLOCK_CONFIG.div.type },
-  rules: [].concat(...plugins.filter(p => p.rules).map(p => p.rules)),
-});
-
 const cssValueIsZero = val => {
   return val === '0' || val === '0px' || val === '0em' || val === 0;
 };
@@ -44,9 +39,12 @@ const nodeIsEmpty = node => {
   return false;
 };
 
-const DefaultParse = HtmlSerializer.parseHtml;
-HtmlSerializer.parseHtml = html => {
-  const tree = DefaultParse.apply(HtmlSerializer, [html]);
+function parseHtml(html) {
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+  const tree = parsed.body;
+
+  // whitespace /between/ HTML nodes really confuses the parser because
+  // it doesn't know these `text` elements are meaningless. Strip them all.
   const collapse = require('collapse-whitespace');
   collapse(tree);
 
@@ -56,9 +54,20 @@ HtmlSerializer.parseHtml = html => {
   Array.from(tree.querySelectorAll('title')).forEach(m => m.remove());
 
   // remove any display:none nodes. This is commonly used in HTML email to
-  // send a plaintext header
+  // send a plaintext "summary" sentence
   Array.from(tree.querySelectorAll('[style]')).forEach(m => {
     if (m.style.display === 'none') {
+      m.remove();
+    }
+  });
+
+  // remove any images with an explicit 1px by 1px size - they're often the
+  // last node and tail void nodes break Slate's select-all. Also we
+  // don't want to forward / reply with other people's tracking pixels
+  Array.from(tree.querySelectorAll('img')).forEach(m => {
+    const w = m.getAttribute('width') || m.style.width || '';
+    const h = m.getAttribute('height') || m.style.height || '';
+    if (w.replace('px', '') === '1' && h.replace('px', '') === '1') {
       m.remove();
     }
   });
@@ -100,6 +109,44 @@ HtmlSerializer.parseHtml = html => {
   }
 
   return tree;
+}
+
+const HtmlSerializer = new Html({
+  defaultBlock: { type: BLOCK_CONFIG.div.type },
+  rules: [].concat(...plugins.filter(p => p.rules).map(p => p.rules)),
+  parseHtml: parseHtml,
+});
+
+/* Patch: The HTML Serializer doesn't properly handle nested marks
+because when it discovers another mark it fails to call applyMark
+on the result. */
+HtmlSerializer.deserializeMark = function(mark) {
+  const type = mark.type;
+  const data = mark.data;
+
+  const applyMark = function applyMark(node) {
+    if (node.object === 'mark') {
+      // THIS LINE CONTAINS THE CHANGE. +map
+      return HtmlSerializer.deserializeMark(node).map(applyMark);
+    } else if (node.object === 'text') {
+      node.leaves = node.leaves.map(function(leaf) {
+        leaf.marks = leaf.marks || [];
+        leaf.marks.push({ type: type, data: data });
+        return leaf;
+      });
+    } else {
+      node.nodes = node.nodes.map(applyMark);
+    }
+
+    return node;
+  };
+
+  return mark.nodes.reduce(function(nodes, node) {
+    var ret = applyMark(node);
+    if (Array.isArray(ret)) return nodes.concat(ret);
+    nodes.push(ret);
+    return nodes;
+  }, []);
 };
 
 export function convertFromHTML(html) {
@@ -155,6 +202,31 @@ export function convertFromHTML(html) {
   };
 
   wrapMixedChildren(json.document);
+
+  /* We often end up with bogus whitespace at the bottom of complex emails, either
+  because the input contained whitespace, or because there were elements present
+  that we didn't convert into anything. Prune the trailing empty node(s). */
+  const cleanupTrailingWhitespace = node => {
+    if (!node.nodes || node.isVoid) return;
+
+    while (true) {
+      const last = node.nodes[node.nodes.length - 1];
+      if (!last) {
+        break;
+      }
+      cleanupTrailingWhitespace(last);
+      if (last.object === 'block' && last.type === 'div' && last.nodes.length === 0) {
+        node.nodes.pop();
+        continue;
+      }
+      if (last.object === 'text' && last.leaves.length === 1 && last.leaves[0].text === '') {
+        node.nodes.pop();
+        continue;
+      }
+      break;
+    }
+  };
+  cleanupTrailingWhitespace(json.document);
 
   return Value.fromJSON(json);
 }

@@ -117,49 +117,61 @@ function onKeyDown(event, change, editor) {
 const rules = [
   {
     deserialize(el, next) {
-      const config = Object.values(MARK_CONFIG).find(m =>
-        m.tagNames.includes(el.tagName.toLowerCase())
-      );
+      const marks = [];
+      const tagName = el.tagName.toLowerCase();
+      const config = Object.values(MARK_CONFIG).find(m => m.tagNames.includes(tagName));
+
       if (config) {
         return {
           object: 'mark',
           type: config.type,
           nodes: next(el.childNodes),
         };
-      } else if (el.style && isMeaningfulColor(el.style.color)) {
-        return {
+      }
+      if (el.style && isMeaningfulColor(el.style.color)) {
+        marks.push({
           object: 'mark',
           type: 'color',
-          nodes: next(el.childNodes),
           data: { value: el.style.color },
-        };
-      } else if (el.style && isMeaningfulFontSize(el.style.fontSize)) {
-        return {
+        });
+      }
+      if (el.style && isMeaningfulFontSize(el.style.fontSize)) {
+        marks.push({
           object: 'mark',
           type: 'size',
-          nodes: next(el.childNodes),
           data: { value: sanitizeFontSize(el.style.fontSize) },
-        };
-      } else if (el.tagName === 'FONT') {
-        if (isMeaningfulColor(el.getAttribute('color'))) {
-          return {
+        });
+      }
+      if (
+        ['font', 'p', 'div', 'span'].includes(tagName) &&
+        isMeaningfulColor(el.getAttribute('color'))
+      ) {
+        marks.push({
+          object: 'mark',
+          type: 'color',
+          data: { value: el.getAttribute('color') },
+        });
+      }
+      if (tagName === 'font' && el.getAttribute('size')) {
+        const size = sanitizeFontTagSize(el.getAttribute('size'));
+        if (isMeaningfulFontSize(size)) {
+          marks.push({
             object: 'mark',
-            type: 'color',
-            nodes: next(el.childNodes),
-            data: { value: el.getAttribute('color') },
-          };
+            type: 'size',
+            data: { value: size },
+          });
         }
-        if (el.getAttribute('size')) {
-          const size = sanitizeFontTagSize(el.getAttribute('size'));
-          if (isMeaningfulFontSize(size)) {
-            return {
-              object: 'mark',
-              type: 'size',
-              nodes: next(el.childNodes),
-              data: { value: size },
-            };
-          }
+      }
+
+      if (marks.length) {
+        const root = marks[0];
+        let tail = root;
+        for (let x = 1; x < marks.length; x++) {
+          tail.nodes = [marks[x]];
+          tail = tail.nodes[0];
         }
+        tail.nodes = next(el.childNodes);
+        return root;
       }
     },
     serialize(obj, children) {

@@ -46,6 +46,7 @@ const rules = [
         return {
           object: 'inline',
           isVoid: true,
+          nodes: [],
           type: IMAGE_TYPE,
           data: {
             contentId: el

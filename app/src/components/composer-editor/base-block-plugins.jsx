@@ -158,9 +158,9 @@ const rules = [
       let config = Object.values(BLOCK_CONFIG).find(c => c.tagNames.includes(tagName));
 
       // apply a few special rules:
-      // block elements with monospace font are translated to <code>
+      // block elements with monospace font are translated to <code> blocks
       if (
-        ['code', 'div', 'blockquote'].includes(tagName) &&
+        ['div', 'blockquote'].includes(tagName) &&
         (el.style.fontFamily || el.style.font || '').includes('monospace')
       ) {
         config = BLOCK_CONFIG.code;

@@ -29,11 +29,12 @@ export default class ComposerEditorToolbar extends React.Component {
 
   _onScroll = () => {
     if (!this._el) return;
-    let { top } = this._el.getBoundingClientRect();
+    let { top, height } = this._el.getBoundingClientRect();
+    const max = this._el.parentElement.clientHeight - height;
 
     if (top < this._topClip) {
       this._innerEl.style.position = 'absolute';
-      this._innerEl.style.top = `${this._topClip - top}px`;
+      this._innerEl.style.top = `${Math.min(max, this._topClip - top)}px`;
     } else {
       this._innerEl.style.position = 'relative';
       this._innerEl.style.top = '0px';

@@ -33,7 +33,9 @@
   -webkit-margin-start: initial !important;
   -webkit-margin-end: initial !important;
 }
-.RichEditor-root .custom-block-selected {
+
+.RichEditor-root .custom-block-selected,
+.RichEditor-root .uneditable.custom-block-selected {
   border: 1px dashed @text-color;
 }
 
@@ -43,6 +45,7 @@
   border: 1px solid transparent;
   position: relative;
   white-space: normal;
+  min-width: 30px;
   .uneditable-remove {
     position: absolute;
     display: none;
