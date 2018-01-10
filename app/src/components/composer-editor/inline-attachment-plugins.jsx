@@ -33,7 +33,7 @@ function ImageNode(props) {
   );
 }
 
-export function renderNode(props) {
+function renderNode(props) {
   if (props.node.type === IMAGE_TYPE) {
     return ImageNode(props);
   }

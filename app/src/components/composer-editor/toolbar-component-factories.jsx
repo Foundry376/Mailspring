@@ -302,7 +302,18 @@ export function BuildFontPicker(config) {
             onChange={this._onSetFontSize}
             tabIndex={-1}
           >
-            {['10pt', '11pt', '12pt', '13pt', '14pt', '16pt', '18pt', '22pt', '26pt'].map(size => (
+            {[
+              '10pt',
+              '11pt',
+              '12pt',
+              '13pt',
+              '14pt',
+              '16pt',
+              '18pt',
+              '22pt',
+              '24pt',
+              '26pt',
+            ].map(size => (
               <option key={size} value={size}>
                 {size}
               </option>

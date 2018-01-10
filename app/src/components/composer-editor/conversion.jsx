@@ -4,7 +4,7 @@ import { Value } from 'slate';
 import BaseMarkPlugins from './base-mark-plugins';
 import TemplatePlugins from './template-plugins';
 import UneditablePlugins from './uneditable-plugins';
-import BaseBlockPlugins from './base-block-plugins';
+import BaseBlockPlugins, { BLOCK_CONFIG } from './base-block-plugins';
 import InlineAttachmentPlugins from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
@@ -22,6 +22,7 @@ export const plugins = [
 ];
 
 const HtmlSerializer = new Html({
+  defaultBlock: { type: BLOCK_CONFIG.div.type },
   rules: [].concat(...plugins.filter(p => p.rules).map(p => p.rules)),
 });
 
@@ -132,7 +133,7 @@ export function convertFromHTML(html) {
           // this node will close the wrapper block we've created and trigger a newline!
           // If this node is empty (was just a <br> or <p></p> to begin with) let's skip
           // it to avoid creating a double newline.
-          if (child.type === 'div' && child.nodes && child.nodes.length === 0) {
+          if (child.type === BLOCK_CONFIG.div.type && child.nodes && child.nodes.length === 0) {
             continue;
           }
         }
@@ -140,7 +141,7 @@ export function convertFromHTML(html) {
       } else {
         if (!openWrapperBlock) {
           openWrapperBlock = {
-            type: 'div',
+            type: BLOCK_CONFIG.div.type,
             object: 'block',
             nodes: [],
             data: {},

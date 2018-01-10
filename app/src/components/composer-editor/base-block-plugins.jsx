@@ -3,30 +3,42 @@ import SoftBreak from 'slate-soft-break';
 import EditList from 'slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
 
+import { DEFAULT_FONT_SIZE } from './base-mark-plugins';
 import { BuildToggleButton } from './toolbar-component-factories';
+
+function nodeIsEmpty(node) {
+  if (node.text !== '') {
+    return false;
+  }
+
+  let children = (node.nodes.toArray ? node.nodes.toArray() : node.nodes) || [];
+  if (children.length === 0) {
+    return true;
+  }
+  if (children.length === 1 && children[0].type === 'text') {
+    return true;
+  }
+  return false;
+}
 
 export const BLOCK_CONFIG = {
   div: {
     type: 'div',
-    tagNames: ['div', 'br'],
-    render: props => {
-      if (props.targetIsHTML && props.node.text === '') {
-        return <br {...props.attributes} />;
+    tagNames: ['div', 'br', 'p'],
+    render: ({ node, attributes, children, targetIsHTML }) => {
+      if (targetIsHTML && nodeIsEmpty(node)) {
+        return <br {...attributes} />;
       }
       return (
         <div
-          {...props.attributes}
-          className={props.node.data.className || props.node.data.get('className')}
+          {...attributes}
+          style={{ fontSize: DEFAULT_FONT_SIZE }}
+          className={node.data.className || node.data.get('className')}
         >
-          {props.children}
+          {children}
         </div>
       );
     },
-  },
-  paragraph: {
-    type: 'paragraph',
-    tagNames: ['p'],
-    render: props => <div {...props.attributes}>{props.children}</div>,
   },
   blockquote: {
     type: 'blockquote',
@@ -37,7 +49,7 @@ export const BLOCK_CONFIG = {
       isActive: value => value.focusBlock && value.focusBlock.type === BLOCK_CONFIG.blockquote.type,
       onToggle: (value, active) =>
         active
-          ? value.change().setBlock(BLOCK_CONFIG.paragraph.type)
+          ? value.change().setBlock(BLOCK_CONFIG.div.type)
           : value.change().setBlock(BLOCK_CONFIG.blockquote.type),
     },
   },
@@ -61,7 +73,7 @@ export const BLOCK_CONFIG = {
       iconClass: 'fa fa-sticky-note-o',
       onToggle: (value, active) =>
         active
-          ? value.change().setBlock(BLOCK_CONFIG.paragraph.type)
+          ? value.change().setBlock(BLOCK_CONFIG.div.type)
           : value.change().setBlock(BLOCK_CONFIG.code.type),
     },
   },
@@ -114,27 +126,47 @@ export const BLOCK_CONFIG = {
   },
 };
 
-export const BLOCK_TAGS = [];
-for (const config of Object.values(BLOCK_CONFIG)) {
-  BLOCK_TAGS.push(...config.tagNames);
-}
-
 const EditListPlugin = new EditList({
   types: [BLOCK_CONFIG.ol_list.type, BLOCK_CONFIG.ul_list.type],
   typeItem: BLOCK_CONFIG.list_item.type,
-  typeDefault: BLOCK_CONFIG.paragraph.type,
+  typeDefault: BLOCK_CONFIG.div.type,
 });
 
-export function renderNode(props) {
+function renderNode(props) {
   const config = BLOCK_CONFIG[props.node.type];
   return config && config.render(props);
+}
+
+function onKeyDown(event, change, editor) {
+  const focusBlock = change.value.focusBlock;
+
+  if (process.platform === 'darwin' ? event.metaKey : event.ctrlKey) {
+    // indent / outdent from quoted text
+    if (event.key === ']' && focusBlock && focusBlock.type === BLOCK_CONFIG.div.type) {
+      change.setBlock(BLOCK_CONFIG.blockquote.type);
+    }
+    if (event.key === '[' && focusBlock && focusBlock.type === BLOCK_CONFIG.blockquote.type) {
+      change.setBlock(BLOCK_CONFIG.div.type);
+    }
+  }
 }
 
 const rules = [
   {
     deserialize(el, next) {
       const tagName = el.tagName.toLowerCase();
-      const config = Object.values(BLOCK_CONFIG).find(c => c.tagNames.includes(tagName));
+      let config = Object.values(BLOCK_CONFIG).find(c => c.tagNames.includes(tagName));
+
+      // apply a few special rules:
+      // block elements with monospace font are translated to <code>
+      if (
+        ['code', 'div', 'blockquote'].includes(tagName) &&
+        (el.style.fontFamily || el.style.font || '').includes('monospace')
+      ) {
+        config = BLOCK_CONFIG.code;
+      }
+
+      // return block
       if (config) {
         return {
           object: 'block',
@@ -227,6 +259,7 @@ export default [
       .filter(config => config.button)
       .map(BuildToggleButton),
     renderNode,
+    onKeyDown,
     rules,
   },
   SoftBreak({
@@ -234,7 +267,7 @@ export default [
   }),
   EditListPlugin,
   AutoReplace({
-    onlyIn: [BLOCK_CONFIG.paragraph.type, BLOCK_CONFIG.div.type],
+    onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
     trigger: ' ',
     before: /^([-]{1})$/,
     transform: (transform, e, matches) => {
@@ -242,7 +275,7 @@ export default [
     },
   }),
   AutoReplace({
-    onlyIn: [BLOCK_CONFIG.paragraph.type, BLOCK_CONFIG.div.type],
+    onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
     trigger: ' ',
     before: /^([1]{1}[.]{1})$/,
     transform: (transform, e, matches) => {

@@ -14,19 +14,20 @@
 .RichEditor-root {
   padding: 0 22px 0 22px;
   min-height: @compose-min-height;
-  font-size: 14px;
+  // this sets the baseline for the `pt` sizes used in the editor
+  // must be the same as DEFAULT_FONT_SIZE
+  font-size: 11pt; 
 
   .body-field {
     padding-top: 12px;
-    font-size: 14px; // this sets the baseline for the `pt` sizes used in the editor
   }
 }
 
 .RichEditor-root blockquote {
-  border-left: 3px solid #eee;
-  color: blue;
+  border-left: 2px solid #eee;
+  color: #500050;
   margin: 0;
-  padding: 10px 15px;
+  padding: 0 10px;
   -webkit-margin-after: initial !important;
   -webkit-margin-before: initial !important;
   -webkit-margin-start: initial !important;

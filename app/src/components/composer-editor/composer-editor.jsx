@@ -125,12 +125,7 @@ export default class ComposerEditor extends React.Component {
     const html = event.clipboardData.getData('text/html');
     if (html) {
       const value = convertFromHTML(html);
-      if (value.document.nodes.size === 1) {
-        const only = value.document.nodes.first();
-        only.object === 'block' ? change.insertBlock(only) : change.insertInline(only);
-      } else {
-        change.insertFragment(value.document);
-      }
+      change.insertFragment(value.document);
       return true;
     }
   };

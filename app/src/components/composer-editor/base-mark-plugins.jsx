@@ -7,15 +7,27 @@ import {
   hasMark,
 } from './toolbar-component-factories';
 
-const DEFAULT_FONT_SIZE = '12pt';
+export const DEFAULT_FONT_SIZE = '11pt';
+
+function isMeaningfulColor(color) {
+  const meaningless = ['black', 'rgb(0,0,0)', 'rgba(0,0,0,1)', '#000', '#000000'];
+  return color && !meaningless.includes(color.replace(/ /g, ''));
+}
+
+function isMeaningfulFontSize(size) {
+  return size && sanitizeFontSize(size) !== DEFAULT_FONT_SIZE;
+}
+
+function sanitizeFontTagSize(size) {
+  return ['6pt', '8pt', DEFAULT_FONT_SIZE, '13pt', '14pt', '18pt', '24pt'][size] || '24pt';
+}
 
 function sanitizeFontSize(size) {
   if (size.endsWith('px')) {
     return `${Math.round(size.replace('px', '') / 1 * 0.75)}pt`;
   }
   if (size.endsWith('em')) {
-    const defaultPts = DEFAULT_FONT_SIZE.replace('pt', '') / 1;
-    return `${Math.round(size.replace('em', '') / 1 * defaultPts)}pt`;
+    return `${Math.round(size.replace('em', '') * DEFAULT_FONT_SIZE.replace('pt', ''))}pt`;
   }
   return size;
 }
@@ -114,20 +126,40 @@ const rules = [
           type: config.type,
           nodes: next(el.childNodes),
         };
-      } else if (el.style && el.style.color) {
+      } else if (el.style && isMeaningfulColor(el.style.color)) {
         return {
           object: 'mark',
           type: 'color',
           nodes: next(el.childNodes),
           data: { value: el.style.color },
         };
-      } else if (el.style && el.style.fontSize) {
+      } else if (el.style && isMeaningfulFontSize(el.style.fontSize)) {
         return {
           object: 'mark',
           type: 'size',
           nodes: next(el.childNodes),
           data: { value: sanitizeFontSize(el.style.fontSize) },
         };
+      } else if (el.tagName === 'FONT') {
+        if (isMeaningfulColor(el.getAttribute('color'))) {
+          return {
+            object: 'mark',
+            type: 'color',
+            nodes: next(el.childNodes),
+            data: { value: el.getAttribute('color') },
+          };
+        }
+        if (el.getAttribute('size')) {
+          const size = sanitizeFontTagSize(el.getAttribute('size'));
+          if (isMeaningfulFontSize(size)) {
+            return {
+              object: 'mark',
+              type: 'size',
+              nodes: next(el.childNodes),
+              data: { value: size },
+            };
+          }
+        }
       }
     },
     serialize(obj, children) {

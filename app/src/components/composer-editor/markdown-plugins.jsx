@@ -65,7 +65,7 @@ export default [
 
   // Code Block Creation (```)
   AutoReplace({
-    onlyIn: [BLOCK_CONFIG.paragraph.type, BLOCK_CONFIG.div.type],
+    onlyIn: [BLOCK_CONFIG.div.type],
     trigger: '`',
     before: /^([`]{2})$/,
     transform: (transform, e, matches) => {

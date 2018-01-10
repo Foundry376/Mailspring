@@ -34,7 +34,7 @@ function UneditableNode(props) {
   );
 }
 
-export function renderNode(props) {
+function renderNode(props) {
   if (props.node.type === UNEDITABLE_TYPE) {
     return UneditableNode(props);
   }

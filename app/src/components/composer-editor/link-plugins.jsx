@@ -8,6 +8,20 @@ import { BuildMarkButtonWithValuePicker } from './toolbar-component-factories';
 
 const LINK_TYPE = 'link';
 
+function onPaste(event, change, editor) {
+  const html = event.clipboardData.getData('text/html');
+  const plain = event.clipboardData.getData('text/plain');
+  const regex = RegExpUtils.urlRegex({ matchStartOfString: true, matchTailOfString: true });
+  if (!html && plain && plain.match(regex)) {
+    const mark = Mark.create({ type: LINK_TYPE, data: { href: plain } });
+    change
+      .addMark(mark)
+      .insertText(plain)
+      .removeMark(mark);
+    return true;
+  }
+}
+
 function renderMark({ mark, children }) {
   if (mark.type === LINK_TYPE) {
     const href = mark.data.href || mark.data.get('href');
@@ -57,6 +71,7 @@ export default [
         placeholder: 'http://',
       }),
     ],
+    onPaste,
     renderMark,
     rules,
   },
