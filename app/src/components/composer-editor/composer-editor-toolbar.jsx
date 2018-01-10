@@ -42,23 +42,28 @@ export default class ComposerEditorToolbar extends React.Component {
 
   render() {
     const { value, onChange, plugins } = this.props;
-    const pluginItems = [];
+    const sections = [];
 
-    plugins.forEach((plugin, idx) => {
-      if (plugin.toolbarComponents && plugin.toolbarComponents.length) {
-        if (pluginItems.length) {
-          pluginItems.push(<div key={idx} className="divider" />);
+    plugins.forEach(({ toolbarComponents, toolbarSectionClass }, idx) => {
+      if (toolbarComponents && toolbarComponents.length) {
+        const sectionItems = toolbarComponents.map((Component, cdx) => (
+          <Component key={`${idx}-${cdx}`} value={value} onChange={onChange} />
+        ));
+        if (sections.length) {
+          sectionItems.unshift(<div key={idx} className="divider" />);
         }
-        plugin.toolbarComponents.forEach((Component, cdx) => {
-          pluginItems.push(<Component key={`${idx}-${cdx}`} value={value} onChange={onChange} />);
-        });
+        sections.push(
+          <div key={idx} className={`toolbar-section ${toolbarSectionClass || ''}`}>
+            {sectionItems}
+          </div>
+        );
       }
     });
 
     return (
       <div ref={el => (this._el = el)} className="RichEditor-toolbar">
         <div ref={el => (this._innerEl = el)} className="inner">
-          {pluginItems}
+          {sections}
         </div>
       </div>
     );

@@ -14,8 +14,8 @@ import LinkPlugins from './link-plugins';
 export const plugins = [
   ...InlineAttachmentPlugins,
   ...UneditablePlugins,
-  ...TemplatePlugins,
   ...BaseMarkPlugins,
+  ...TemplatePlugins,
   ...BaseBlockPlugins,
   ...LinkPlugins,
   ...MarkdownPlugins,

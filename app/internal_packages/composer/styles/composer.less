@@ -9,6 +9,138 @@
 @blurred-primary-color: mix(@background-primary, #ffbb00, 96%);
 @blurred-off-primary-color: mix(@background-off-primary, #ffbb00, 96%);
 
+// Basic Rich Editor
+
+.RichEditor-root {
+  padding: 0 22px 0 22px;
+  min-height: @compose-min-height;
+  font-size: 14px;
+
+  .body-field {
+    padding-top: 12px;
+    font-size: 14px; // this sets the baseline for the `pt` sizes used in the editor
+  }
+}
+
+.RichEditor-root blockquote {
+  border-left: 3px solid #eee;
+  color: blue;
+  margin: 0;
+  padding: 10px 15px;
+  -webkit-margin-after: initial !important;
+  -webkit-margin-before: initial !important;
+  -webkit-margin-start: initial !important;
+  -webkit-margin-end: initial !important;
+}
+.RichEditor-root .custom-block-selected {
+  border: 1px dashed @text-color;
+}
+
+.RichEditor-root .uneditable {
+  -webkit-user-modify: read-only;
+  display: inline-block;
+  border: 1px solid transparent;
+  position: relative;
+  white-space: normal;
+  .uneditable-remove {
+    position: absolute;
+    display: none;
+    right: -5px;
+    top: -5px;
+    z-index: 2;
+    &:active {
+      filter: brightness(85%);
+    }
+  }
+  blockquote {
+    color: purple;
+  }
+  &:hover {
+    border: 1px dashed @border-color-divider;
+    .uneditable-remove {
+      display: initial;
+    }
+  }
+}
+
+.RichEditor-toolbar {
+  font-family: 'Helvetica', sans-serif;
+  font-size: 14px;
+  user-select: none;
+  position: relative;
+  .inner {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: @background-primary;
+    border-bottom: 1px solid @border-color-divider;
+    z-index: 2;
+    width: 100%;
+  }
+
+  .toolbar-section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .divider {
+    width: 1px;
+    height: 22px;
+    border-right: 1px solid @border-color-divider;
+    margin-right: 7px;
+    padding-right: 7px;
+  }
+
+  button {
+    cursor: pointer;
+    color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 30%);
+    padding: 4px 9px;
+    border: none;
+    background: none;
+    width: initial;
+    
+    &:hover {
+      color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 5%);
+      background: none;
+    }
+    select {
+      border: none;
+      background: none;
+      margin: 0;
+    }
+  }
+
+  button.active {
+    color: @component-active-color;
+  }
+
+  .dropdown {
+    z-index: 4;
+    position: absolute;
+    background: @background-primary;
+    border-radius: @border-radius-base @border-radius-base 0 @border-radius-base;
+    box-shadow: 0 0.5px 0 @standard-shadow-color, 0 -0.5px 0 @standard-shadow-color,
+      0.5px 0 0 @standard-shadow-color, -0.5px 0 0 @standard-shadow-color,
+      0 -3px 12px @standard-shadow-color;
+    }
+
+  .color-swatch {
+    border: 1px solid @border-color-divider;
+    margin: 0 7px;
+  }
+
+  .link-picker {
+    .dropdown {
+      padding: 5px;
+      display: flex;
+      flex-direction: row;
+    }
+  }
+}
+
+// Composer-Specific
+
 body.platform-win32 {
   .composer-inner-wrap {
     .composer-drop-cover {
@@ -287,6 +419,12 @@ body.platform-win32 {
     position: relative;
     margin: 0;
 
+    .RichEditor-toolbar {
+      .toolbar-section.hide-in-composer {
+        display: none;
+      }
+    }
+
     .hiding-quoted-text {
       blockquote {
         height: 0;
@@ -514,127 +652,4 @@ body.platform-win32 {
 }
 
 
-// Rich Editor
-
-.RichEditor-root {
-  padding: 0 22px 0 22px;
-  min-height: @compose-min-height;
-  font-size: 14px;
-
-  .body-field {
-    padding-top: 12px;
-    font-size: 14px; // this sets the baseline for the `pt` sizes used in the editor
-  }
-}
-
-.RichEditor-root blockquote {
-  border-left: 3px solid #eee;
-  color: blue;
-  margin: 0;
-  padding: 10px 15px;
-  -webkit-margin-after: initial !important;
-  -webkit-margin-before: initial !important;
-  -webkit-margin-start: initial !important;
-  -webkit-margin-end: initial !important;
-}
-.RichEditor-root .custom-block-selected {
-  border: 1px dashed @text-color;
-}
-
-.RichEditor-root .uneditable {
-  -webkit-user-modify: read-only;
-  display: inline-block;
-  border: 1px solid transparent;
-  position: relative;
-  white-space: normal;
-  .uneditable-remove {
-    position: absolute;
-    display: none;
-    right: -5px;
-    top: -5px;
-    z-index: 2;
-    &:active {
-      filter: brightness(85%);
-    }
-  }
-  blockquote {
-    color: purple;
-  }
-  &:hover {
-    border: 1px dashed @border-color-divider;
-    .uneditable-remove {
-      display: initial;
-    }
-  }
-}
-
-.RichEditor-toolbar {
-  font-family: 'Helvetica', sans-serif;
-  font-size: 14px;
-  user-select: none;
-  position: relative;
-  .inner {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    background: @background-primary;
-    border-bottom: 1px solid @border-color-divider;
-    z-index: 2;
-    width: 100%;
-  }
-
-  .divider {
-    width: 1px;
-    height: 22px;
-    border-right: 1px solid @border-color-divider;
-    margin-right: 7px;
-    padding-right: 7px;
-  }
-
-  button {
-    cursor: pointer;
-    color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 30%);
-    padding: 4px 9px;
-    border: none;
-    background: none;
-    width: initial;
-    
-    &:hover {
-      color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 5%);
-      background: none;
-    }
-    select {
-      border: none;
-      background: none;
-      margin: 0;
-    }
-  }
-
-  button.active {
-    color: @component-active-color;
-  }
-  .dropdown {
-    z-index: 4;
-    position: absolute;
-    background: @background-primary;
-    border-radius: @border-radius-base @border-radius-base 0 @border-radius-base;
-    box-shadow: 0 0.5px 0 @standard-shadow-color, 0 -0.5px 0 @standard-shadow-color,
-      0.5px 0 0 @standard-shadow-color, -0.5px 0 0 @standard-shadow-color,
-      0 -3px 12px @standard-shadow-color;
-    }
-
-  .color-swatch {
-    border: 1px solid @border-color-divider;
-    margin: 0 7px;
-  }
-
-  .link-picker,
-  .template-var-picker {
-    .dropdown {
-      padding: 5px;
-      display: flex;
-      flex-direction: row;
-    }
-  }
-}
 

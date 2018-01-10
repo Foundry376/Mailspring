@@ -30,9 +30,13 @@
     padding: 0;
     padding-left: 2px;
     padding-right: 2px;
+    border: 1px solid transparent;
     border-bottom: 1px solid darken(@code-bg-color, 50%);
     background-color: @code-bg-color;
     color: darken(@code-bg-color, 60%);
+    &.selected {
+      border: 1px solid darken(@code-bg-color, 50%);
+    }
   }
 }
 

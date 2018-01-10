@@ -1,34 +1,23 @@
 import React from 'react';
-import { Mark } from 'slate';
+import { Inline } from 'slate';
 import AutoReplace from 'slate-auto-replace';
-
-import { BuildMarkButtonWithValuePicker } from './toolbar-component-factories';
+import { BuildToggleButton } from './toolbar-component-factories';
 
 const VARIABLE_TYPE = 'templatevar';
 
-function renderMark({ mark, children, editor }) {
-  if (mark.type === VARIABLE_TYPE) {
-    const name = mark.data.name || mark.data.get('name');
-    const onClick = e => {
-      if (editor.value.selection.isCollapsed) {
-        e.preventDefault();
-        const sel = document.getSelection();
-        const range = document.createRange();
-        range.selectNode(e.target);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
-    };
+function renderNode({ attributes, node, editor, isSelected }) {
+  if (node.type === VARIABLE_TYPE) {
+    const name = node.data.name || node.data.get('name');
 
     return (
       <span
-        onClick={onClick}
+        {...attributes}
         data-tvar={name}
-        className="template-variable"
+        className={`template-variable ${isSelected && 'selected'}`}
         title={name}
         spellCheck={false}
       >
-        {children}
+        {name}
       </span>
     );
   }
@@ -43,45 +32,106 @@ const rules = [
       }
       if (name) {
         return {
-          object: 'mark',
+          object: 'inline',
           type: VARIABLE_TYPE,
-          nodes: next(el.childNodes),
+          isVoid: true,
           data: { name },
         };
       }
     },
     serialize(obj, children) {
-      if (obj.object !== 'mark') return;
-      return renderMark({ mark: obj, children, targetIsHTML: true });
+      if (obj.object !== 'inline') return;
+      return renderNode({ node: obj, children, targetIsHTML: true });
     },
   },
 ];
 
 function onKeyDown(event, change, editor) {
-  const forwards = !event.shiftKey;
+  // If the user has a template variable selected and types a character,
+  // delete the template variable. By default you just can't type.
+  if (
+    event.key.length === 1 &&
+    change.value.selection.isCollapsed &&
+    change.value.inlines.find(i => i.type === VARIABLE_TYPE)
+  ) {
+    const node = change.value.inlines.find(i => i.type === VARIABLE_TYPE);
+    change.removeNodeByKey(node.key);
+    return;
+  }
+
+  // Tabbing between template variables
   if (event.keyCode === 9) {
-    debugger;
+    if (!change.value.document.getInlinesByType('templatevar').first()) {
+      return;
+    }
+
+    // create another temporary change we'll discard - we need to find the "next"
+    // inline which is easiest to do if we create a new selection, but this will
+    // leave artifacts if we don't find a template node to select.
+    const forwards = !event.shiftKey;
+    const tmp = change.value.change();
+
+    // avoid re-selecting the current node by just removing it from our temp value
+    const current = change.value.inlines.find(i => i.type === VARIABLE_TYPE);
+    if (current) {
+      tmp.removeNodeByKey(current.key);
+    }
+
+    // select the remainder of the document and then find our next template var
+    let next = null;
+    if (forwards) {
+      tmp.collapseToEnd().extendToEndOf(tmp.value.document);
+      next = tmp.value.document.getInlinesAtRange(tmp.value.selection, 'templatevar').first();
+    } else {
+      tmp.collapseToStart().extendToStartOf(tmp.value.document);
+      next = tmp.value.document.getInlinesAtRange(tmp.value.selection, 'templatevar').last();
+    }
+
+    if (next) {
+      change.select({
+        anchorKey: next.key,
+        anchorOffset: 0,
+        focusKey: next.key,
+        focusOffset: 0,
+        isFocused: true,
+        isBackward: false,
+      });
+    }
   }
 }
 
-const TriggerKeyValues = {
-  ' ': ' ',
-  Enter: '\n',
-  Return: '\n',
-};
-
 export default [
   {
+    toolbarSectionClass: 'templates hide-in-composer',
     toolbarComponents: [
-      BuildMarkButtonWithValuePicker({
+      BuildToggleButton({
         type: VARIABLE_TYPE,
-        field: 'name',
-        iconClassOn: 'fa fa-tag',
-        iconClassOff: 'fa fa-tag',
-        placeholder: 'first_name',
+        button: {
+          iconClass: 'fa fa-tag',
+          isActive: value => value.inlines.find(i => i.type === VARIABLE_TYPE),
+          onToggle: (value, active) => {
+            if (active) {
+              const node = value.inlines.find(i => i.type === VARIABLE_TYPE);
+              return value
+                .change()
+                .removeNodeByKey(node.key)
+                .insertText(node.data.get('name'));
+            } else {
+              const node = Inline.create({
+                type: VARIABLE_TYPE,
+                data: { name: value.selection.isCollapsed ? 'variable' : value.fragment.text },
+                isVoid: true,
+              });
+              return value
+                .change()
+                .insertInlineAtRange(value.selection, node)
+                .collapseToEnd();
+            }
+          },
+        },
       }),
     ],
-    renderMark,
+    renderNode,
     rules,
     onKeyDown,
   },
@@ -89,15 +139,13 @@ export default [
     trigger: '}',
     before: /({{)([^}]+)(})/,
     transform: (transform, e, matches) => {
-      if (transform.value.activeMarks.find(m => m.type === VARIABLE_TYPE))
-        return transform.insertText(TriggerKeyValues[e.key]);
-
       const name = matches.before[2];
-      const mark = Mark.create({ type: VARIABLE_TYPE, data: { name } });
-      return transform
-        .addMark(mark)
-        .insertText(name)
-        .removeMark(mark);
+      const node = Inline.create({
+        type: VARIABLE_TYPE,
+        data: { name },
+        isVoid: true,
+      });
+      transform.insertInlineAtRange(transform.value.selection, node).collapseToEnd();
     },
   }),
 ];
