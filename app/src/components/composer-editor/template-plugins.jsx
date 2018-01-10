@@ -57,6 +57,13 @@ const rules = [
   },
 ];
 
+function onKeyDown(event, change, editor) {
+  const forwards = !event.shiftKey;
+  if (event.keyCode === 9) {
+    debugger;
+  }
+}
+
 const TriggerKeyValues = {
   ' ': ' ',
   Enter: '\n',
@@ -76,6 +83,7 @@ export default [
     ],
     renderMark,
     rules,
+    onKeyDown,
   },
   AutoReplace({
     trigger: '}',

@@ -1,10 +1,11 @@
 import React from 'react';
 import SoftBreak from 'slate-soft-break';
 import EditList from 'slate-edit-list';
+import AutoReplace from 'slate-auto-replace';
 
 import { BuildToggleButton } from './toolbar-component-factories';
 
-const BLOCK_CONFIG = {
+export const BLOCK_CONFIG = {
   div: {
     type: 'div',
     tagNames: ['div', 'br'],
@@ -45,7 +46,14 @@ const BLOCK_CONFIG = {
     tagNames: ['pre'],
     render: props => (
       <code {...props.attributes}>
-        <pre>{props.children}</pre>
+        <pre
+          style={{
+            backgroundColor: `rgba(0,0,0,0.05)`,
+            padding: `0.2em 1em`,
+          }}
+        >
+          {props.children}
+        </pre>
       </code>
     ),
     button: {
@@ -225,4 +233,20 @@ export default [
     onlyIn: [BLOCK_CONFIG.code.type],
   }),
   EditListPlugin,
+  AutoReplace({
+    onlyIn: [BLOCK_CONFIG.paragraph.type, BLOCK_CONFIG.div.type],
+    trigger: ' ',
+    before: /^([-]{1})$/,
+    transform: (transform, e, matches) => {
+      EditListPlugin.changes.wrapInList(transform, BLOCK_CONFIG.ul_list.type);
+    },
+  }),
+  AutoReplace({
+    onlyIn: [BLOCK_CONFIG.paragraph.type, BLOCK_CONFIG.div.type],
+    trigger: ' ',
+    before: /^([1]{1}[.]{1})$/,
+    transform: (transform, e, matches) => {
+      EditListPlugin.changes.wrapInList(transform, BLOCK_CONFIG.ol_list.type);
+    },
+  }),
 ];

@@ -7,10 +7,23 @@ import {
   hasMark,
 } from './toolbar-component-factories';
 
-const MARK_CONFIG = {
+const DEFAULT_FONT_SIZE = '12pt';
+
+function sanitizeFontSize(size) {
+  if (size.endsWith('px')) {
+    return `${Math.round(size.replace('px', '') / 1 * 0.75)}pt`;
+  }
+  if (size.endsWith('em')) {
+    const defaultPts = DEFAULT_FONT_SIZE.replace('pt', '') / 1;
+    return `${Math.round(size.replace('em', '') / 1 * defaultPts)}pt`;
+  }
+  return size;
+}
+
+export const MARK_CONFIG = {
   bold: {
     type: 'bold',
-    tagNames: ['strong'],
+    tagNames: ['b', 'strong'],
     hotkey: 'b',
     render: props => <strong>{props.children}</strong>,
     button: {
@@ -52,6 +65,13 @@ const MARK_CONFIG = {
       iconClass: 'fa fa-strikethrough',
     },
   },
+
+  codeInline: {
+    type: 'codeInline',
+    tagNames: ['code'],
+    render: props => <code>{props.children}</code>,
+  },
+
   color: {
     type: 'color',
     tagNames: [],
@@ -106,7 +126,7 @@ const rules = [
           object: 'mark',
           type: 'size',
           nodes: next(el.childNodes),
-          data: { value: el.style.fontSize },
+          data: { value: sanitizeFontSize(el.style.fontSize) },
         };
       }
     },
@@ -122,7 +142,10 @@ export default [
     toolbarComponents: Object.values(MARK_CONFIG)
       .filter(m => m.button)
       .map(BuildToggleButton)
-      .concat([BuildColorPicker({ type: 'color' }), BuildFontPicker({ type: 'size' })]),
+      .concat([
+        BuildColorPicker({ type: 'color', default: '#000000' }),
+        BuildFontPicker({ type: 'size', default: DEFAULT_FONT_SIZE }),
+      ]),
     renderMark,
     onKeyDown,
     rules,

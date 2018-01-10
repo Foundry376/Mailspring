@@ -3,12 +3,14 @@ import { Value } from 'slate';
 
 import BaseMarkPlugins from './base-mark-plugins';
 import TemplatePlugins from './template-plugins';
-import UneditablePlugins, { UNEDITABLE_TAGS } from './uneditable-plugins';
-import BaseBlockPlugins, { BLOCK_TAGS } from './base-block-plugins';
+import UneditablePlugins from './uneditable-plugins';
+import BaseBlockPlugins from './base-block-plugins';
 import InlineAttachmentPlugins from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
 
+// Note: order is important here because we deserialize HTML with rules
+// in this order. <code class="var"> before <code>, etc.
 export const plugins = [
   ...InlineAttachmentPlugins,
   ...UneditablePlugins,
@@ -23,81 +25,40 @@ const HtmlSerializer = new Html({
   rules: [].concat(...plugins.filter(p => p.rules).map(p => p.rules)),
 });
 
+const cssValueIsZero = val => {
+  return val === '0' || val === '0px' || val === '0em' || val === 0;
+};
+
+const nodeIsEmpty = node => {
+  if (!node.childNodes || node.childNodes.length === 0) {
+    return true;
+  }
+  if (
+    node.childNodes.length === 1 &&
+    node.childNodes[0].nodeType === Node.TEXT_NODE &&
+    node.textContent.trim() === ''
+  ) {
+    return true;
+  }
+  return false;
+};
+
 const DefaultParse = HtmlSerializer.parseHtml;
 HtmlSerializer.parseHtml = html => {
   const tree = DefaultParse.apply(HtmlSerializer, [html]);
   const collapse = require('collapse-whitespace');
   collapse(tree);
 
-  // get rid of <meta> and <style> tags since HTML is inlined
+  // get rid of <meta> and <style> tags since styles have been inlined
   Array.from(tree.querySelectorAll('meta')).forEach(m => m.remove());
   Array.from(tree.querySelectorAll('style')).forEach(m => m.remove());
   Array.from(tree.querySelectorAll('title')).forEach(m => m.remove());
 
-  // ensure that no DIVs contain both element children and text node children. This is
-  // not allowed by Slate's core schema: blocks must contain inlines and text OR blocks.
-  // https://docs.slatejs.org/guides/data-model#documents-and-nodes
-  const treeWalker = document.createTreeWalker(tree, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: node => {
-      // If this node is uneditable, (most likely a table in quoted text),
-      // we can safely skip this entire subtree
-      if (UNEDITABLE_TAGS.includes(node.nodeName.toLowerCase())) {
-        return NodeFilter.FILTER_REJECT;
-      }
-      return BLOCK_TAGS.includes(node.nodeName.toLowerCase())
-        ? NodeFilter.FILTER_ACCEPT
-        : NodeFilter.FILTER_SKIP;
-    },
-  });
-
-  const invalidContainers = [];
-  const inlinesToRemove = [];
-  const isSlateBlockNode = n =>
-    BLOCK_TAGS.includes(n.nodeName.toLowerCase()) ||
-    UNEDITABLE_TAGS.includes(n.nodeName.toLowerCase());
-
-  while (treeWalker.nextNode()) {
-    const children = Array.from(treeWalker.currentNode.childNodes);
-    const inlineChildren = children.filter(n => !isSlateBlockNode(n));
-
-    const pointlessInlineChildren = inlineChildren.filter(
-      tn => tn.textContent === '' || tn.textContent === ' '
-    );
-
-    // we found text/inline children, but not ALL of them
-    const hasInlineChildren = inlineChildren.length - pointlessInlineChildren.length > 0;
-    if (hasInlineChildren && inlineChildren.length < children.length) {
-      inlinesToRemove.push(...pointlessInlineChildren);
-      invalidContainers.push(treeWalker.currentNode);
-    }
-  }
-
-  // remove all the pointless inline nodes
-  inlinesToRemove.forEach(tn => tn.remove());
-
-  // iterate through containers that have mixed children and wrap all text/inline
-  // children into new <div> block nodes, so the children are all blocks. Put
-  // sequential text+inline+text together into the same new <div> to avoid inserting
-  // newlines as much as possible.
-  invalidContainers.forEach(tn => {
-    const childNodes = Array.from(tn.childNodes);
-    let newBlockNode = null;
-
-    for (const child of childNodes) {
-      if (isSlateBlockNode(child)) {
-        newBlockNode = null;
-        continue;
-      }
-      if (!newBlockNode) {
-        newBlockNode = document.createElement('div');
-        tn.insertBefore(newBlockNode, child);
-        // Now that we've wrapped the text node into a block, it forces a newline.
-        // If it's preceded by a <br>, that <br> is no longer necessary.
-        if (newBlockNode.previousSibling && newBlockNode.previousSibling.nodeName === 'BR') {
-          newBlockNode.previousSibling.remove();
-        }
-      }
-      newBlockNode.appendChild(child);
+  // remove any display:none nodes. This is commonly used in HTML email to
+  // send a plaintext header
+  Array.from(tree.querySelectorAll('[style]')).forEach(m => {
+    if (m.style.display === 'none') {
+      m.remove();
     }
   });
 
@@ -117,16 +78,21 @@ HtmlSerializer.parseHtml = html => {
     if (
       p.nextSibling &&
       p.nextSibling.nodeName === 'P' &&
-      p.nextSibling.textContent.trim().length === 0 &&
+      nodeIsEmpty(p.nextSibling) &&
       p.nextSibling.nextSibling &&
       p.nextSibling.nextSibling.nodeName === 'P' &&
-      p.nextSibling.nextSibling.textContent.trim().length > 0
+      nodeIsEmpty(p.nextSibling.nextSibling)
     ) {
       p.nextSibling.remove();
     }
 
-    // if the <p> is followed by a non-empty node, insert a <br>
-    if (p.nextSibling && p.textContent.trim().length) {
+    const prHasExplicitZeroMargin =
+      cssValueIsZero(p.style.marginTop) ||
+      cssValueIsZero(p.style.marginBottom) ||
+      cssValueIsZero(p.style.margin);
+
+    // if the <p> is followed by a non-empty node and, insert a <br>
+    if (!prHasExplicitZeroMargin && p.nextSibling && !nodeIsEmpty(p.nextSibling)) {
       const br = document.createElement('BR');
       p.parentNode.insertBefore(br, p.nextSibling);
     }
@@ -136,7 +102,60 @@ HtmlSerializer.parseHtml = html => {
 };
 
 export function convertFromHTML(html) {
-  return HtmlSerializer.deserialize(html);
+  const json = HtmlSerializer.deserialize(html, { toJSON: true });
+
+  /* Slate's default sanitization just obliterates block nodes that contain both
+  inline+text children and block children. This happens very often because we
+  preserve <div> nodes as blocks. Implement better coercion before theirs:
+  
+  - Find nodes with mixed children:
+    + Wrap adjacent inline+text children in a new <div> block
+  */
+  const wrapMixedChildren = node => {
+    if (!node.nodes) return;
+
+    // visit all our children
+    node.nodes.forEach(wrapMixedChildren);
+
+    const blockChildren = node.nodes.filter(n => n.object === 'block');
+    const mixed = blockChildren.length > 0 && blockChildren.length !== node.nodes.length;
+    if (!mixed) {
+      return;
+    }
+
+    const cleanNodes = [];
+    let openWrapperBlock = null;
+    for (const child of node.nodes) {
+      if (child.object === 'block') {
+        if (openWrapperBlock) {
+          openWrapperBlock = null;
+          // this node will close the wrapper block we've created and trigger a newline!
+          // If this node is empty (was just a <br> or <p></p> to begin with) let's skip
+          // it to avoid creating a double newline.
+          if (child.type === 'div' && child.nodes && child.nodes.length === 0) {
+            continue;
+          }
+        }
+        cleanNodes.push(child);
+      } else {
+        if (!openWrapperBlock) {
+          openWrapperBlock = {
+            type: 'div',
+            object: 'block',
+            nodes: [],
+            data: {},
+          };
+          cleanNodes.push(openWrapperBlock);
+        }
+        openWrapperBlock.nodes.push(child);
+      }
+    }
+    node.nodes = cleanNodes;
+  };
+
+  wrapMixedChildren(json.document);
+
+  return Value.fromJSON(json);
 }
 
 export function convertToHTML(value) {

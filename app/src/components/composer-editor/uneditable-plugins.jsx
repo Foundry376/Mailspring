@@ -2,7 +2,7 @@ import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
 
 export const UNEDITABLE_TYPE = 'uneditable';
-export const UNEDITABLE_TAGS = ['table', 'img'];
+export const UNEDITABLE_TAGS = ['table', 'img', 'center'];
 
 function UneditableNode(props) {
   const { attributes, node, editor, targetIsHTML, isSelected } = props;

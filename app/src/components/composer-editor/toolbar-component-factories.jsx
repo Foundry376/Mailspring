@@ -66,10 +66,7 @@ export function applyValueForMark(value, type, markValue) {
       },
     });
   }
-  // bg: does not work without this, cannot figure out why...
-  if (value.selection.isCollapsed) {
-    change.insertText(' ');
-  }
+
   return change;
 }
 
@@ -103,7 +100,7 @@ export function BuildMarkButtonWithValuePicker(config) {
 
     onPrompt = e => {
       e.preventDefault();
-      const active = this.props.value.activeMarks.find(m => m.type === config.type);
+      const active = hasMark(this.props.value, config.type);
       const fieldValue = (active && active.data.get(config.field)) || '';
       this.setState({ expanded: true, fieldValue: fieldValue }, () => {
         setTimeout(() => this._inputEl.focus(), 0);
@@ -147,7 +144,7 @@ export function BuildMarkButtonWithValuePicker(config) {
     onRemove = e => {
       e.preventDefault();
       const { value, onChange } = this.props;
-      const active = this.props.value.activeMarks.find(m => m.type === config.type);
+      const active = hasMark(this.props.value, config.type);
       if (value.selection.isCollapsed) {
         const anchorNode = value.document.getNode(value.selection.anchorKey);
         const expanded = value.selection.moveToRangeOf(anchorNode);
@@ -165,7 +162,7 @@ export function BuildMarkButtonWithValuePicker(config) {
 
     render() {
       const { expanded } = this.state;
-      const active = this.props.value.activeMarks.find(m => m.type === config.type);
+      const active = hasMark(this.props.value, config.type);
 
       return (
         <div
@@ -229,7 +226,7 @@ export function BuildColorPicker(config) {
     _onChangeComplete = ({ hex }) => {
       this.setState({ expanded: false });
       const { value, onChange } = this.props;
-      const markValue = hex !== '#000000' ? hex : null;
+      const markValue = hex !== config.default ? hex : null;
       onChange(applyValueForMark(value, config.type, markValue));
     };
 
@@ -244,7 +241,7 @@ export function BuildColorPicker(config) {
     }
 
     render() {
-      const color = getActiveValueForMark(this.props.value, config.type) || '#000000';
+      const color = getActiveValueForMark(this.props.value, config.type) || config.default;
       const { expanded } = this.state;
 
       return (
@@ -282,14 +279,10 @@ export function BuildFontPicker(config) {
   return class FontPicker extends React.Component {
     _onSetFontSize = e => {
       const { onChange, value } = this.props;
-      const markValue = e.target.value !== '14px' ? e.target.value : null;
-      window.___bla.focus();
+      const markValue = e.target.value !== config.default ? e.target.value : null;
       onChange(applyValueForMark(value, config.type, markValue));
     };
 
-    _onFocus = e => {
-      window.___bla = e.relatedTarget;
-    };
     shouldComponentUpdate(nextProps) {
       return (
         getActiveValueForMark(nextProps.value, config.type) !==
@@ -298,7 +291,7 @@ export function BuildFontPicker(config) {
     }
 
     render() {
-      const fontSize = getActiveValueForMark(this.props.value, config.type) || '14px';
+      const fontSize = getActiveValueForMark(this.props.value, config.type) || config.default;
 
       return (
         <button style={{ padding: 0 }}>
@@ -309,7 +302,7 @@ export function BuildFontPicker(config) {
             onChange={this._onSetFontSize}
             tabIndex={-1}
           >
-            {['10px', '12px', '14px', '16px', '18px', '22px'].map(size => (
+            {['10pt', '11pt', '12pt', '13pt', '14pt', '16pt', '18pt', '22pt', '26pt'].map(size => (
               <option key={size} value={size}>
                 {size}
               </option>
