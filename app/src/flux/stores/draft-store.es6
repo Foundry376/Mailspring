@@ -362,8 +362,11 @@ class DraftStore extends MailspringStore {
     });
 
     // Queue the task to destroy the draft
-    Actions.queueTask(new DestroyDraftTask({ accountId, messageIds: [id] }));
-
+    if (id) {
+      Actions.queueTask(new DestroyDraftTask({ accountId, messageIds: [id] }));
+    } else {
+      console.warn('Tried to delete a draft that had no ID assigned yet.');
+    }
     if (AppEnv.isComposerWindow()) {
       AppEnv.close();
     }

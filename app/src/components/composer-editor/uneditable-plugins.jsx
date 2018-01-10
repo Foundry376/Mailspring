@@ -6,9 +6,10 @@ export const UNEDITABLE_TAGS = ['table', 'img'];
 
 function UneditableNode(props) {
   const { attributes, node, editor, targetIsHTML, isSelected } = props;
+  const __html = node.data.get ? node.data.get('html') : node.data.html;
 
   if (targetIsHTML) {
-    return <div dangerouslySetInnerHTML={{ __html: node.data.get('html') }} />;
+    return <div dangerouslySetInnerHTML={{ __html }} />;
   }
   return (
     <div {...attributes} className={`uneditable ${isSelected && 'custom-block-selected'}`}>
@@ -28,7 +29,7 @@ function UneditableNode(props) {
           mode={RetinaImg.Mode.ContentPreserve}
         />
       </a>
-      <div dangerouslySetInnerHTML={{ __html: node.data.get('html') }} />
+      <div dangerouslySetInnerHTML={{ __html }} />
     </div>
   );
 }
@@ -49,6 +50,7 @@ const rules = [
           object: 'block',
           type: UNEDITABLE_TYPE,
           data: { html: el.outerHTML },
+          nodes: [],
           isVoid: true,
         };
       }

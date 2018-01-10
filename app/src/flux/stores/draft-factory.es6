@@ -25,8 +25,8 @@ async function prepareBodyForQuoting(body = '') {
   body.replace(new RegExp(`<img.*${cidRE}[\\s\\S]*?>`, 'igm'), '');
 
   let transformed = body;
-  transformed = await InlineStyleTransformer.run(transformed);
   transformed = await SanitizeTransformer.run(transformed, SanitizeTransformer.Preset.UnsafeOnly);
+  transformed = await InlineStyleTransformer.run(transformed);
   return transformed;
 }
 

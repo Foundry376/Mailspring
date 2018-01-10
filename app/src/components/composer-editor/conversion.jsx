@@ -50,37 +50,54 @@ HtmlSerializer.parseHtml = html => {
     },
   });
 
-  const needWrapping = [];
+  const invalidContainers = [];
+  const inlinesToRemove = [];
+  const isSlateBlockNode = n =>
+    BLOCK_TAGS.includes(n.nodeName.toLowerCase()) ||
+    UNEDITABLE_TAGS.includes(n.nodeName.toLowerCase());
+
   while (treeWalker.nextNode()) {
     const children = Array.from(treeWalker.currentNode.childNodes);
-    const textOrInlineChildren = children.filter(
-      n =>
-        !BLOCK_TAGS.includes(n.nodeName.toLowerCase()) &&
-        !UNEDITABLE_TAGS.includes(n.nodeName.toLowerCase())
+    const inlineChildren = children.filter(n => !isSlateBlockNode(n));
+
+    const pointlessInlineChildren = inlineChildren.filter(
+      tn => tn.textContent === '' || tn.textContent === ' '
     );
 
     // we found text/inline children, but not ALL of them
-    if (textOrInlineChildren.length && textOrInlineChildren.length < children.length) {
-      needWrapping.push(...textOrInlineChildren);
+    const hasInlineChildren = inlineChildren.length - pointlessInlineChildren.length > 0;
+    if (hasInlineChildren && inlineChildren.length < children.length) {
+      inlinesToRemove.push(...pointlessInlineChildren);
+      invalidContainers.push(treeWalker.currentNode);
     }
   }
 
-  needWrapping.forEach(tn => {
-    // no need to wrap <span></span> or a stray <a></a>, just remove these
-    // pointless inline children
-    if (tn.textContent === '' || tn.textContent === ' ') {
-      tn.remove();
-      return;
-    }
+  // remove all the pointless inline nodes
+  inlinesToRemove.forEach(tn => tn.remove());
 
-    const wrapped = document.createElement('div');
-    tn.parentNode.replaceChild(wrapped, tn);
-    wrapped.appendChild(tn);
+  // iterate through containers that have mixed children and wrap all text/inline
+  // children into new <div> block nodes, so the children are all blocks. Put
+  // sequential text+inline+text together into the same new <div> to avoid inserting
+  // newlines as much as possible.
+  invalidContainers.forEach(tn => {
+    const childNodes = Array.from(tn.childNodes);
+    let newBlockNode = null;
 
-    // Now that we've wrapped the text node into a block, it forces a newline.
-    // If it's preceded by a <br>, that <br> is no longer necessary.
-    if (wrapped.previousSibling && wrapped.previousSibling.nodeName === 'BR') {
-      wrapped.previousSibling.remove();
+    for (const child of childNodes) {
+      if (isSlateBlockNode(child)) {
+        newBlockNode = null;
+        continue;
+      }
+      if (!newBlockNode) {
+        newBlockNode = document.createElement('div');
+        tn.insertBefore(newBlockNode, child);
+        // Now that we've wrapped the text node into a block, it forces a newline.
+        // If it's preceded by a <br>, that <br> is no longer necessary.
+        if (newBlockNode.previousSibling && newBlockNode.previousSibling.nodeName === 'BR') {
+          newBlockNode.previousSibling.remove();
+        }
+      }
+      newBlockNode.appendChild(child);
     }
   });
 
@@ -119,8 +136,7 @@ HtmlSerializer.parseHtml = html => {
 };
 
 export function convertFromHTML(html) {
-  const json = HtmlSerializer.deserialize(html, { toJSON: true });
-  return Value.fromJSON(json, { normalize: false });
+  return HtmlSerializer.deserialize(html);
 }
 
 export function convertToHTML(value) {
