@@ -52,6 +52,10 @@ export default class WindowManager {
     return values.sort((a, b) => score(b) - score(a));
   }
 
+  getOpenWindowCount() {
+    return this.getOpenWindows().length;
+  }
+
   getAllWindowDimensions() {
     const dims = {};
     Object.keys(this._windows).forEach(key => {

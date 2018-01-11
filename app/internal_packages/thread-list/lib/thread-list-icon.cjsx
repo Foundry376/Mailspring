@@ -1,7 +1,6 @@
 _ = require 'underscore'
 {React,
  PropTypes,
- DraftHelpers,
  Actions,
  Thread,
  ChangeStarredTask,
@@ -38,7 +37,7 @@ class ThreadListIcon extends React.Component
     last = msgs[msgs.length - 1]
 
     if msgs.length > 1 and last.from[0]?.isMe()
-      if DraftHelpers.isForwardedMessage(last)
+      if last.isForwarded()
         return 'thread-icon-forwarded thread-icon-star-on-hover'
       else
         return 'thread-icon-replied thread-icon-star-on-hover'

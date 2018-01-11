@@ -53,39 +53,4 @@ xdescribe('Open tracking composer extension', function openTrackingComposerExten
       });
     });
   });
-
-  describe('unapplyTransformsForSending', () => {
-    it('takes no action if the img tag is missing', () => {
-      this.draftBodyRootNode = nodeForHTML(beforeBody);
-      this.draft = new Message({
-        clientId: clientId,
-        accountId: accountId,
-        body: beforeBody,
-      });
-      OpenTrackingComposerExtension.unapplyTransformsForSending({
-        draftBodyRootNode: this.draftBodyRootNode,
-        draft: this.draft,
-      });
-      const actualAfterBody = this.draftBodyRootNode.innerHTML;
-      expect(actualAfterBody).toEqual(beforeBody);
-    });
-
-    it("removes the image from the body and restore the body to it's exact original content", () => {
-      this.metadata = { open_count: 0 };
-      this.draft.directlyAttachMetadata(PLUGIN_ID, this.metadata);
-
-      this.draftBodyRootNode = nodeForHTML(afterBody);
-      this.draft = new Message({
-        clientId: clientId,
-        accountId: accountId,
-        body: afterBody,
-      });
-      OpenTrackingComposerExtension.unapplyTransformsForSending({
-        draftBodyRootNode: this.draftBodyRootNode,
-        draft: this.draft,
-      });
-      const actualAfterBody = this.draftBodyRootNode.innerHTML;
-      expect(actualAfterBody).toEqual(beforeBody);
-    });
-  });
 });

@@ -47,22 +47,6 @@ describe('ComposerHeader', function composerHeader() {
         'textFieldBcc',
       ]);
     });
-
-    it('should ensure participantsFocused is true if necessary', () => {
-      expect(this.component.state.participantsFocused).toEqual(false);
-      this.component.showAndFocusField(Fields.Subject);
-      expect(this.component.state.participantsFocused).toEqual(false);
-      this.component.showAndFocusField(Fields.Bcc);
-      expect(this.component.state.participantsFocused).toEqual(true);
-    });
-
-    it('should wait for the field to become available and then focus it', () => {
-      const $el = ReactDOM.findDOMNode(this.component);
-      expect($el.querySelector('.bcc-field')).toBe(null);
-      this.component.showAndFocusField(Fields.Bcc);
-      advanceClock();
-      expect($el.querySelector('.bcc-field')).not.toBe(null);
-    });
   });
 
   describe('hideField', () => {

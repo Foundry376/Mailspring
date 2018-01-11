@@ -7,7 +7,6 @@ import {
   Actions,
   DraftStore,
   AttachmentStore,
-  DraftHelpers,
 } from 'mailspring-exports';
 import {
   DropZone,
@@ -15,17 +14,22 @@ import {
   ScrollRegion,
   TabGroupRegion,
   AttachmentItem,
-  InjectedComponent,
   KeyCommandsRegion,
-  OverlaidComponents,
   ImageAttachmentItem,
   InjectedComponentSet,
+  ComposerEditor,
+  ComposerSupport,
 } from 'mailspring-component-kit';
-import ComposerEditor from './composer-editor';
 import ComposerHeader from './composer-header';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
 import Fields from './fields';
+
+const {
+  hasBlockquote,
+  hasNonTrailingBlockquote,
+  hideQuotedTextByDefault,
+} = ComposerSupport.BaseBlockPlugins;
 
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
@@ -36,54 +40,58 @@ export default class ComposerView extends React.Component {
   static propTypes = {
     session: PropTypes.object.isRequired,
     draft: PropTypes.object.isRequired,
-
-    // Sometimes when changes in the composer happens it's desirable to
-    // have the parent scroll to a certain location. A parent component can
-    // pass a callback that gets called when this composer wants to be
-    // scrolled to.
-    scrollTo: PropTypes.func,
     className: PropTypes.string,
   };
 
   constructor(props) {
     super(props);
+
+    const draft = props.session.draft();
+
     this._els = {};
     this.state = {
-      showQuotedText: DraftHelpers.isForwardedMessage(props.draft),
-      showQuotedTextControl: DraftHelpers.shouldAppendQuotedText(props.draft),
+      isDropping: false,
+      quotedTextPresent: hasBlockquote(draft.bodyEditorState),
+      quotedTextHidden: hideQuotedTextByDefault(draft),
     };
   }
 
   componentDidMount() {
-    if (this.props.session) {
-      this._setupForProps(this.props);
-    }
-  }
+    this.props.draft.files.forEach(file => {
+      if (Utils.shouldDisplayAsImage(file)) {
+        Actions.fetchFile(file);
+      }
+    });
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.session !== this.props.session) {
-      this._teardownForProps();
-      this._setupForProps(nextProps);
-    }
-    if (
-      DraftHelpers.isForwardedMessage(this.props.draft) !==
-        DraftHelpers.isForwardedMessage(nextProps.draft) ||
-      DraftHelpers.shouldAppendQuotedText(this.props.draft) !==
-        DraftHelpers.shouldAppendQuotedText(nextProps.draft)
-    ) {
-      this.setState({
-        showQuotedText: DraftHelpers.isForwardedMessage(nextProps.draft),
-        showQuotedTextControl: DraftHelpers.shouldAppendQuotedText(nextProps.draft),
+    const isBrandNew = Date.now() - this.props.draft.date < 3 * 1000;
+    if (isBrandNew) {
+      ReactDOM.findDOMNode(this).scrollIntoView(false);
+      window.requestAnimationFrame(() => {
+        this.focus();
       });
     }
   }
 
-  componentWillUnmount() {
-    this._teardownForProps();
+  componentDidUpdate() {
+    const { draft } = this.props;
+
+    // If the user has added an inline blockquote, show all the quoted text
+    // note: this is necessary because it's hidden with CSS that can't be
+    // made more specific.
+    if (this.state.quotedTextHidden && hasNonTrailingBlockquote(draft.bodyEditorState)) {
+      this.setState({ quotedTextHidden: false });
+    }
   }
 
   focus() {
-    if (this._els.header.isFocused()) {
+    // If something within us already has focus, don't change it. Never, ever
+    // want to pull the cursor out from under the user while typing
+    const node = ReactDOM.findDOMNode(this._els.composerWrap);
+    if (node.contains(document.activeElement)) {
+      return;
+    }
+
+    if (this.props.draft.to.length === 0 || this.props.draft.subject.length === 0) {
       this._els.header.focus();
     } else {
       this._els[Fields.Body].focus();
@@ -103,60 +111,9 @@ export default class ComposerView extends React.Component {
       'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
       'composer:show-and-focus-from': () => {},
       'composer:select-attachment': () => this._onSelectAttachment(),
-      'core:undo': event => {
-        event.preventDefault();
-        event.stopPropagation();
-        this.props.session.undo();
-      },
-      'core:redo': event => {
-        event.preventDefault();
-        event.stopPropagation();
-        this.props.session.redo();
-      },
     };
   }
 
-  _setupForProps({ draft, session }) {
-    this.setState({
-      showQuotedText: DraftHelpers.isForwardedMessage(draft),
-      showQuotedTextControl: DraftHelpers.shouldAppendQuotedText(draft),
-    });
-
-    // TODO: This is a dirty hack to save selection state into the undo/redo
-    // history. Remove it if / when selection is written into the body with
-    // marker tags, or when selection is moved from `contenteditable.innerState`
-    // into a first-order part of the session state.
-
-    session._composerViewSelectionRetrieve = () => {
-      // Selection updates /before/ the contenteditable emits it's change event,
-      // so the selection that goes with the snapshot state is the previous one.
-      if (this._els[Fields.Body].getPreviousSelection) {
-        return this._els[Fields.Body].getPreviousSelection();
-      }
-      return null;
-    };
-
-    session._composerViewSelectionRestore = selection => {
-      this._els[Fields.Body].setSelection(selection);
-    };
-
-    draft.files.forEach(file => {
-      if (Utils.shouldDisplayAsImage(file)) {
-        Actions.fetchFile(file);
-      }
-    });
-  }
-
-  _teardownForProps() {
-    if (this.props.session) {
-      this.props.session._composerViewSelectionRestore = null;
-      this.props.session._composerViewSelectionRetrieve = null;
-    }
-  }
-
-  _setSREl = el => {
-    this._els.scrollregion = el;
-  };
   _renderContentScrollRegion() {
     if (AppEnv.isComposerWindow()) {
       return (
@@ -175,12 +132,6 @@ export default class ComposerView extends React.Component {
     return this._renderContent();
   }
 
-  _onNewHeaderComponents = () => {
-    if (this._els.header) {
-      this.focus();
-    }
-  };
-
   _renderContent() {
     return (
       <div className="composer-centered">
@@ -193,7 +144,6 @@ export default class ComposerView extends React.Component {
           draft={this.props.draft}
           session={this.props.session}
           initiallyFocused={this.props.draft.to.length === 0}
-          onNewHeaderComponents={this._onNewHeaderComponents}
         />
         <div
           className="compose-body"
@@ -213,56 +163,49 @@ export default class ComposerView extends React.Component {
   }
 
   _renderBodyRegions() {
-    const exposedProps = {
-      draft: this.props.draft,
-      session: this.props.session,
-    };
     return (
-      <div
-        ref={el => {
-          if (el) {
-            this._els.composerBodyWrap = el;
-          }
-        }}
-        className="composer-body-wrap"
-      >
-        <OverlaidComponents exposedProps={exposedProps}>{this._renderEditor()}</OverlaidComponents>
+      <div className="composer-body-wrap">
+        {this._renderEditor()}
         {this._renderQuotedTextControl()}
         {this._renderAttachments()}
       </div>
     );
   }
 
-  _renderEditor() {
-    const exposedProps = {
-      body: this.props.draft.body,
-      headerMessageId: this.props.draft.headerMessageId,
-      parentActions: {
-        getComposerBoundingRect: this._getComposerBoundingRect,
-        scrollTo: this.props.scrollTo,
-      },
-      onFilePaste: this._onFileReceived,
-      onBodyChanged: this._onBodyChanged,
-    };
-
+  _renderQuotedTextControl() {
+    if (!this.state.quotedTextPresent || !this.state.quotedTextHidden) {
+      return false;
+    }
     return (
-      <InjectedComponent
+      <a
+        className="quoted-text-control"
+        onMouseDown={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.setState({ quotedTextHidden: false });
+        }}
+      >
+        <span className="dots">&bull;&bull;&bull;</span>
+      </a>
+    );
+  }
+
+  _renderEditor() {
+    return (
+      <ComposerEditor
         ref={el => {
           if (el) {
             this._els[Fields.Body] = el;
           }
         }}
-        className="body-field"
-        matching={{ role: 'Composer:Editor' }}
-        fallback={ComposerEditor}
-        requiredMethods={[
-          'focus',
-          'focusAbsoluteEnd',
-          'getPreviousSelection',
-          'setSelection',
-          '_onDOMMutated',
-        ]}
-        exposedProps={exposedProps}
+        className={this.state.quotedTextHidden && 'hiding-quoted-text'}
+        propsForPlugins={{ draft: this.props.draft, session: this.props.session }}
+        value={this.props.draft.bodyEditorState}
+        onFileReceived={this._onFileReceived}
+        onDrop={e => this._dropzone._onDrop(e)}
+        onChange={change => {
+          this.props.session.changes.add({ bodyEditorState: change.value });
+        }}
       />
     );
   }
@@ -273,52 +216,6 @@ export default class ComposerView extends React.Component {
   // this value.
   _getComposerBoundingRect = () => {
     return ReactDOM.findDOMNode(this._els.composerWrap).getBoundingClientRect();
-  };
-
-  _renderQuotedTextControl() {
-    if (this.state.showQuotedTextControl) {
-      return (
-        <a className="quoted-text-control" onClick={this._onExpandQuotedText}>
-          <span className="dots">&bull;&bull;&bull;</span>
-          <span className="remove-quoted-text" onClick={this._onRemoveQuotedText}>
-            <RetinaImg
-              title="Remove quoted text"
-              name="image-cancel-button.png"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
-          </span>
-        </a>
-      );
-    }
-    return false;
-  }
-
-  _onExpandQuotedText = () => {
-    this.setState(
-      {
-        showQuotedText: true,
-        showQuotedTextControl: false,
-      },
-      () => {
-        DraftHelpers.appendQuotedTextToDraft(this.props.draft).then(draftWithQuotedText => {
-          this.props.session.changes.add({
-            body: `${draftWithQuotedText.body}<div id="mailspring-quoted-text-marker" />`,
-          });
-        });
-      }
-    );
-  };
-
-  _onRemoveQuotedText = event => {
-    event.stopPropagation();
-    const { session, draft } = this.props;
-    session.changes.add({
-      body: `${draft.body}<div id="mailspring-quoted-text-marker" />`,
-    });
-    this.setState({
-      showQuotedText: false,
-      showQuotedTextControl: false,
-    });
   };
 
   _renderFooterRegions() {
@@ -360,8 +257,8 @@ export default class ComposerView extends React.Component {
       .map(file => (
         <ImageAttachmentItem
           key={file.id}
-          className="file-upload"
           draggable={false}
+          className="file-upload"
           filePath={AttachmentStore.pathForFile(file)}
           displayName={file.filename}
           onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
@@ -416,7 +313,7 @@ export default class ComposerView extends React.Component {
 
         <div style={{ order: 0, flex: 1 }} />
 
-        <InjectedComponent
+        <SendActionButton
           ref={el => {
             if (el) {
               this._els.sendActionButton = el;
@@ -424,15 +321,10 @@ export default class ComposerView extends React.Component {
           }}
           tabIndex={-1}
           style={{ order: -100 }}
-          matching={{ role: 'Composer:SendActionButton' }}
-          fallback={SendActionButton}
-          requiredMethods={['primarySend']}
-          exposedProps={{
-            draft: this.props.draft,
-            headerMessageId: this.props.draft.headerMessageId,
-            session: this.props.session,
-            isValidDraft: this._isValidDraft,
-          }}
+          draft={this.props.draft}
+          headerMessageId={this.props.draft.headerMessageId}
+          session={this.props.session}
+          isValidDraft={this._isValidDraft}
         />
       </div>
     );
@@ -455,7 +347,7 @@ export default class ComposerView extends React.Component {
   };
 
   _inFooterRegion(el) {
-    return el.closest && el.closest('.composer-footer-region, .overlaid-components');
+    return el.closest && el.closest('.composer-footer-region');
   }
 
   _onMouseUpComposerBody = event => {
@@ -466,16 +358,14 @@ export default class ComposerView extends React.Component {
       if (event.pageY < bodyRect.top) {
         this._els[Fields.Body].focus();
       } else {
-        this._els[Fields.Body].focusAbsoluteEnd();
+        if (this.state.quotedTextHidden) {
+          this._els[Fields.Body].focusEndReplyText();
+        } else {
+          this._els[Fields.Body].focusEndAbsolute();
+        }
       }
     }
     this._mouseDownTarget = null;
-  };
-
-  _onMouseMoveComposeBody = () => {
-    if (this._mouseComposeBody === 'down') {
-      this._mouseComposeBody = 'move';
-    }
   };
 
   _shouldAcceptDrop = event => {
@@ -537,18 +427,11 @@ export default class ComposerView extends React.Component {
           session.changes.add({
             files: [].concat(draft.files),
           });
-          Actions.insertAttachmentIntoDraft({
-            headerMessageId: draft.headerMessageId,
-            fileId: match.id,
-          });
+
+          this._els[Fields.Body].insertInlineAttachment(file);
         }
       },
     });
-  };
-
-  _onBodyChanged = event => {
-    this.props.session.changes.add({ body: event.target.value });
-    return;
   };
 
   _isValidDraft = (options = {}) => {
@@ -619,6 +502,7 @@ export default class ComposerView extends React.Component {
         >
           <TabGroupRegion className="composer-inner-wrap">
             <DropZone
+              ref={cm => (this._dropzone = cm)}
               className="composer-inner-wrap"
               shouldAcceptDrop={this._shouldAcceptDrop}
               onDragStateChange={({ isDropping }) => this.setState({ isDropping })}

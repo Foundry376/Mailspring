@@ -1,7 +1,6 @@
 import {
   React,
   PropTypes,
-  DraftHelpers,
   MessageUtils,
   MessageBodyProcessor,
   QuotedHTMLTransformer,
@@ -50,7 +49,7 @@ export default class MessageItemBody extends React.Component {
     super(props, context);
     this._mounted = false;
     this.state = {
-      showQuotedText: DraftHelpers.isForwardedMessage(this.props.message),
+      showQuotedText: this.props.message.isForwarded(),
       processedBody: MessageBodyProcessor.retrieveCached(this.props.message),
     };
   }

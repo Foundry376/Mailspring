@@ -140,10 +140,6 @@ load(`FocusedContactsStore`, 'flux/stores/focused-contacts-store');
 load(`FolderSyncProgressStore`, 'flux/stores/folder-sync-progress-store');
 load(`FocusedPerspectiveStore`, 'flux/stores/focused-perspective-store');
 load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
-lazyLoad(
-  `CustomContenteditableComponents`,
-  'components/overlaid-components/custom-contenteditable-components'
-);
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
 
@@ -152,9 +148,8 @@ lazyLoad(`InflatesDraftClientId`, 'decorators/inflates-draft-client-id');
 
 // Extensions
 lazyLoad(`ExtensionRegistry`, 'registries/extension-registry');
-lazyLoad(`ComposerExtension`, 'extensions/composer-extension');
 lazyLoad(`MessageViewExtension`, 'extensions/message-view-extension');
-lazyLoad(`ContenteditableExtension`, 'extensions/contenteditable-extension');
+lazyLoad(`ComposerExtension`, 'extensions/composer-extension');
 
 // 3rd party libraries
 lazyLoadWithGetter(`Rx`, () => require('rx-lite'));
@@ -176,9 +171,7 @@ lazyLoad(`RegExpUtils`, 'regexp-utils');
 lazyLoad(`MenuHelpers`, 'menu-helpers');
 lazyLoad(`VirtualDOMUtils`, 'virtual-dom-utils');
 lazyLoad(`Spellchecker`, 'spellchecker');
-lazyLoad(`DraftHelpers`, 'flux/stores/draft-helpers');
 lazyLoad(`MessageUtils`, 'flux/models/message-utils');
-lazyLoad(`EditorAPI`, 'components/contenteditable/editor-api');
 
 // Services
 lazyLoad(`KeyManager`, 'key-manager');

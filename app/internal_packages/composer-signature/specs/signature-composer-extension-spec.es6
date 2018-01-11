@@ -38,34 +38,34 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
 
         SignatureComposerExtension.prepareNewDraft({ draft: a });
         expect(a.body).toEqual(
-          `This is a test! <signature>${TEST_SIGNATURE.body}</signature><div class="gmail_quote">Hello world</div>`
+          `This is a test! <div></div><signature id="1">${TEST_SIGNATURE.body}</signature><div class="gmail_quote">Hello world</div>`
         );
         SignatureComposerExtension.prepareNewDraft({ draft: b });
         expect(b.body).toEqual(
-          `This is a another test.<br><br><signature>${TEST_SIGNATURE.body}</signature>`
+          `This is a another test.<div></div><signature id="1">${TEST_SIGNATURE.body}</signature>`
         );
       });
 
       const scenarios = [
         {
           name: 'With blockquote',
-          body: `This is a test! <signature><div>SIG</div></signature><div class="gmail_quote">Hello world</div>`,
-          expected: `This is a test! <signature>${TEST_SIGNATURE.body}</signature><div class="gmail_quote">Hello world</div>`,
+          body: `This is a test! <signature id="x"><div>SIG</div></signature><div class="gmail_quote">Hello world</div>`,
+          expected: `This is a test! <signature id="1">${TEST_SIGNATURE.body}</signature><div class="gmail_quote">Hello world</div>`,
         },
         {
           name: 'Populated signature div',
-          body: `This is a test! <signature><div>SIG</div></signature>`,
-          expected: `This is a test! <signature>${TEST_SIGNATURE.body}</signature>`,
+          body: `This is a test! <signature id="x"><div>SIG</div></signature>`,
+          expected: `This is a test! <signature id="1">${TEST_SIGNATURE.body}</signature>`,
         },
         {
           name: 'Empty signature div',
-          body: 'This is a test! <signature></signature>',
-          expected: `This is a test! <signature>${TEST_SIGNATURE.body}</signature>`,
+          body: 'This is a test! <signature id="x"></signature>',
+          expected: `This is a test! <signature id="1">${TEST_SIGNATURE.body}</signature>`,
         },
         {
           name: 'With newlines',
-          body: 'This is a test!<br/> <signature>\n<br>\n<div>SIG</div>\n</signature>',
-          expected: `This is a test!<br/> <signature>${TEST_SIGNATURE.body}</signature>`,
+          body: 'This is a test!<br/> <signature id="x">\n<br>\n<div>SIG</div>\n</signature>',
+          expected: `This is a test!<br/> <signature id="1">${TEST_SIGNATURE.body}</signature>`,
         },
       ];
 

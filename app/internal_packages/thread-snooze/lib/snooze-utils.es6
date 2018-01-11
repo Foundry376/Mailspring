@@ -68,7 +68,7 @@ export async function markUnreadOrResurfaceThreads(threads, source) {
 
     for (const thread of threads) {
       const draft = await DraftFactory.createDraftForResurfacing(thread, null, body);
-      Actions.queueTask(new SendDraftTask({ draft, silent: true }));
+      Actions.queueTask(SendDraftTask.forSending(draft, { silent: true }));
     }
   } else {
     // just mark the threads as unread (unless they're all already unread)

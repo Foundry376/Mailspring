@@ -39,7 +39,7 @@ RegExpUtils =
   mailspringCommandRegex: -> new RegExp(/mailspring:\S+/i)
 
   # Test cases: https://regex101.com/r/pD7iS5/4
-  urlRegex: ({matchEntireString} = {}) ->
+  urlRegex: ({matchStartOfString, matchTailOfString} = {}) ->
     commonTlds = ['com', 'org', 'edu', 'gov', 'uk', 'net', 'ca', 'de', 'jp', 'fr', 'au', 'us', 'ru', 'ch', 'it', 'nl', 'se', 'no', 'es', 'mil', 'ly']
 
     parts = [
@@ -111,8 +111,10 @@ RegExpUtils =
         ')?'
       ')'
     ]
-    if matchEntireString
+    if matchStartOfString
       parts.unshift('^')
+    if matchTailOfString
+      parts.push('$')
 
     return new RegExp(parts.join(''), 'gi')
 
@@ -182,14 +184,10 @@ RegExpUtils =
     # Important: Do not modify this without also modifying the C++ codebase.
     /[\\\/:|?*><"#]/g
 
-  # https://regex101.com/r/nC0qL2/2
-  signatureRegex: ->
-    new RegExp(/(<br\/>){0,2}<signature>[^]*<\/signature>/)
-
   # Finds the start of a quoted text region as inserted by N1. This is not
   # a general-purpose quote detection scheme and only works for
   # N1-composed emails.
-  n1QuoteStartRegex: ->
+  nativeQuoteStartRegex: ->
     new RegExp(/<\w+[^>]*gmail_quote/i)
 
   # https://regex101.com/r/jK8cC2/1

@@ -1,23 +1,11 @@
-import _ from 'underscore';
+import { React, ReactDOM, PropTypes, Actions, AccountStore } from 'mailspring-exports';
 import {
-  React,
-  ReactDOM,
-  PropTypes,
-  Utils,
-  DraftHelpers,
-  Actions,
-  AccountStore,
-} from 'mailspring-exports';
-import {
-  InjectedComponent,
   KeyCommandsRegion,
   ParticipantsTextField,
   ListensToFluxStore,
 } from 'mailspring-component-kit';
 import AccountContactField from './account-contact-field';
-import CollapsedParticipants from './collapsed-participants';
 import ComposerHeaderActions from './composer-header-actions';
-import SubjectTextField from './subject-text-field';
 import Fields from './fields';
 
 const ScopedFromField = ListensToFluxStore(AccountContactField, {
@@ -37,10 +25,6 @@ export default class ComposerHeader extends React.Component {
   static propTypes = {
     draft: PropTypes.object.isRequired,
     session: PropTypes.object.isRequired,
-    initiallyFocused: PropTypes.bool,
-    // Subject text field injected component needs to call this function
-    // when it is rendered with a new header component
-    onNewHeaderComponents: PropTypes.func,
   };
 
   static contextTypes = {
@@ -54,33 +38,26 @@ export default class ComposerHeader extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.session !== nextProps.session) {
-      this.setState(this._initialStateForDraft(nextProps.draft, nextProps));
-    } else {
-      this._ensureFilledFieldsEnabled(nextProps.draft);
-    }
+    this._ensureFilledFieldsEnabled(nextProps.draft);
   }
 
   focus() {
-    if (this.state.subjectFocused) {
-      this._els.subject.focus();
-    } else if (this.state.participantsFocused) {
+    if (this.props.draft.to.length === 0) {
       this.showAndFocusField(Fields.To);
+    } else if (this._els[Fields.Subject]) {
+      this._els[Fields.Subject].focus();
     }
-    console.warn("Nothing is marked as focused. This shouldn't happen!");
-    this.showAndFocusField(Fields.To);
   }
 
   showAndFocusField = fieldName => {
-    const enabledFields = _.uniq([].concat(this.state.enabledFields, [fieldName]));
-    const participantsFocused =
-      this.state.participantsFocused || Fields.ParticipantFields.includes(fieldName);
-
-    Utils.waitFor(() => this._els[fieldName])
-      .then(() => this._els[fieldName].focus())
-      .catch(() => {});
-
-    this.setState({ enabledFields, participantsFocused });
+    this.setState(
+      {
+        enabledFields: this.state.enabledFields.filter(f => f !== fieldName).concat([fieldName]),
+      },
+      () => {
+        this._els[fieldName].focus();
+      }
+    );
   };
 
   hideField = fieldName => {
@@ -88,17 +65,17 @@ export default class ComposerHeader extends React.Component {
       this.context.parentTabGroup.shiftFocus(-1);
     }
 
-    const enabledFields = _.without(this.state.enabledFields, fieldName);
+    const enabledFields = this.state.enabledFields.filter(n => n !== fieldName);
     this.setState({ enabledFields });
   };
 
   _ensureFilledFieldsEnabled(draft) {
     let enabledFields = this.state.enabledFields;
-    if (!_.isEmpty(draft.cc)) {
-      enabledFields = enabledFields.concat([Fields.Cc]);
+    if (draft.cc.length && !enabledFields.find(f => f === Fields.Cc)) {
+      enabledFields = [Fields.Cc].concat(enabledFields);
     }
-    if (!_.isEmpty(draft.bcc)) {
-      enabledFields = enabledFields.concat([Fields.Bcc]);
+    if (draft.bcc.length && !enabledFields.find(f => f === Fields.Bcc)) {
+      enabledFields = [Fields.Bcc].concat(enabledFields);
     }
     if (enabledFields !== this.state.enabledFields) {
       this.setState({ enabledFields });
@@ -107,29 +84,22 @@ export default class ComposerHeader extends React.Component {
 
   _initialStateForDraft(draft, props) {
     const enabledFields = [Fields.To];
-    if (!_.isEmpty(draft.cc)) {
-      enabledFields.push(Fields.Cc);
-    }
-    if (!_.isEmpty(draft.bcc)) {
-      enabledFields.push(Fields.Bcc);
-    }
+    if (draft.cc.length > 0) enabledFields.push(Fields.Cc);
+    if (draft.cc.length > 0) enabledFields.push(Fields.Bcc);
     enabledFields.push(Fields.From);
     if (this._shouldEnableSubject()) {
       enabledFields.push(Fields.Subject);
     }
-
     return {
       enabledFields,
-      participantsFocused: props.initiallyFocused,
-      subjectFocused: false,
     };
   }
 
   _shouldEnableSubject = () => {
-    if (_.isEmpty(this.props.draft.subject)) {
+    if ((this.props.draft.subject || '').trim().length === 0) {
       return true;
     }
-    if (DraftHelpers.isForwardedMessage(this.props.draft)) {
+    if (this.props.draft.isForwarded()) {
       return true;
     }
     if (this.props.draft.replyToHeaderMessageId) {
@@ -143,128 +113,27 @@ export default class ComposerHeader extends React.Component {
     Actions.draftParticipantsChanged(this.props.draft.id, changes);
   };
 
-  _onSubjectChange = value => {
-    this.props.session.changes.add({ subject: value });
-  };
-
-  _onFocusInParticipants = () => {
-    const fieldName = this.state.participantsLastActiveField || Fields.To;
-    Utils.waitFor(() => this._els[fieldName])
-      .then(() => this._els[fieldName].focus())
-      .catch(() => {});
-
-    this.setState({
-      participantsFocused: true,
-      participantsLastActiveField: null,
-    });
-  };
-
-  _onFocusOutParticipants = lastFocusedEl => {
-    const active = Fields.ParticipantFields.find(fieldName => {
-      return this._els[fieldName]
-        ? ReactDOM.findDOMNode(this._els[fieldName]).contains(lastFocusedEl)
-        : false;
-    });
-    this.setState({
-      participantsFocused: false,
-      participantsLastActiveField: active,
-    });
-  };
-
-  _onFocusInSubject = () => {
-    this.setState({
-      subjectFocused: true,
-    });
-  };
-
-  _onFocusOutSubject = () => {
-    this.setState({
-      subjectFocused: false,
-    });
-  };
-
-  isFocused() {
-    return this.state.participantsFocused || this.state.subjectFocused;
-  }
-
-  _onDragCollapsedParticipants = ({ isDropping }) => {
-    if (isDropping) {
-      this.setState({
-        participantsFocused: true,
-        enabledFields: [...Fields.ParticipantFields, Fields.From, Fields.Subject],
-      });
-    }
-  };
-
-  _renderParticipants = () => {
-    let content = null;
-    if (this.state.participantsFocused) {
-      content = this._renderFields();
-    } else {
-      content = (
-        <CollapsedParticipants
-          to={this.props.draft.to}
-          cc={this.props.draft.cc}
-          bcc={this.props.draft.bcc}
-          onDragChange={this._onDragCollapsedParticipants}
-        />
-      );
-    }
-
-    // When the participants field collapses, we store the field that was last
-    // focused onto our state, so that we can restore focus to it when the fields
-    // are expanded again.
-    return (
-      <KeyCommandsRegion
-        tabIndex={-1}
-        ref={el => {
-          if (el) {
-            this._els.participantsContainer = el;
-          }
-        }}
-        className="expanded-participants"
-        onFocusIn={this._onFocusInParticipants}
-        onFocusOut={this._onFocusOutParticipants}
-      >
-        {content}
-      </KeyCommandsRegion>
-    );
+  _onSubjectChange = event => {
+    this.props.session.changes.add({ subject: event.target.value });
   };
 
   _renderSubject = () => {
     if (!this.state.enabledFields.includes(Fields.Subject)) {
       return false;
     }
-    const { draft, session } = this.props;
     return (
-      <KeyCommandsRegion
-        tabIndex={-1}
-        ref={el => {
-          if (el) {
-            this._els.subjectContainer = el;
-          }
-        }}
-        onFocusIn={this._onFocusInSubject}
-        onFocusOut={this._onFocusOutSubject}
-      >
-        <InjectedComponent
+      <KeyCommandsRegion tabIndex={-1} className="composer-subject subject-field">
+        <input
           ref={el => {
             if (el) {
               this._els[Fields.Subject] = el;
             }
           }}
-          key="subject-wrap"
-          matching={{ role: 'Composer:SubjectTextField' }}
-          exposedProps={{
-            draft,
-            session,
-            value: draft.subject,
-            headerMessageId: draft.headerMessageId,
-            onSubjectChange: this._onSubjectChange,
-          }}
-          requiredMethods={['focus']}
-          fallback={SubjectTextField}
-          onComponentDidChange={this.props.onNewHeaderComponents}
+          type="text"
+          name="subject"
+          placeholder="Subject"
+          value={this.props.draft.subject}
+          onChange={this._onSubjectChange}
         />
       </KeyCommandsRegion>
     );
@@ -360,10 +229,19 @@ export default class ComposerHeader extends React.Component {
         <ComposerHeaderActions
           headerMessageId={this.props.draft.headerMessageId}
           enabledFields={this.state.enabledFields}
-          participantsFocused={this.state.participantsFocused}
           onShowAndFocusField={this.showAndFocusField}
         />
-        {this._renderParticipants()}
+        <KeyCommandsRegion
+          tabIndex={-1}
+          ref={el => {
+            if (el) {
+              this._els.participantsContainer = el;
+            }
+          }}
+          className="expanded-participants"
+        >
+          {this._renderFields()}
+        </KeyCommandsRegion>
         {this._renderSubject()}
       </div>
     );

@@ -1,5 +1,5 @@
 import { ComposerExtension, SignatureStore } from 'mailspring-exports';
-import SignatureUtils from './signature-utils';
+import { applySignature } from './signature-utils';
 
 export default class SignatureComposerExtension extends ComposerExtension {
   static prepareNewDraft = ({ draft }) => {
@@ -8,6 +8,6 @@ export default class SignatureComposerExtension extends ComposerExtension {
     if (!signatureObj) {
       return;
     }
-    draft.body = SignatureUtils.applySignature(draft.body, signatureObj.body);
+    draft.body = applySignature(draft.body, signatureObj);
   };
 }

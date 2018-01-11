@@ -25,141 +25,91 @@
   margin-bottom: 10px;
 }
 
-.compose-body,
-.container-templates .contenteditable {
-  code.var {
-    font: inherit;
+.RichEditor-root {
+  .template-variable {
     padding: 0;
     padding-left: 2px;
     padding-right: 2px;
-    border-bottom: 1.5px solid darken(@code-bg-color, 10%);
+    border: 1px solid transparent;
+    border-bottom: 1px solid darken(@code-bg-color, 50%);
     background-color: @code-bg-color;
-    &.empty {
-      color: darken(@code-bg-color, 50%);
+    color: darken(@code-bg-color, 60%);
+    &.selected {
+      border: 1px solid darken(@code-bg-color, 50%);
     }
   }
 }
 
-.container-templates {
+// Styles for Preferences Signatures
+.preferences-templates-container {
   max-width: 800px;
   margin: 0 auto;
 
-  .no-templates-message {
-    text-align: center;
-    margin-top: 50px;
+  .template-list {
+    position: relative;
+    height: inherit;
+    width: inherit;
+
+    .items-wrapper {
+      min-width: 200px;
+      height: 262px;
+    }
+    .editable-item {
+      padding: 8px 10px;
+      border-bottom: none;
+    }
+    .btn-editable-list {
+      height: 37px;
+      width: 37px;
+      line-height: 37px;
+      font-size: 1em;
+    }
   }
 
   .template-wrap {
-    position: relative;
-    border: 1px solid @input-border-color;
-    background-color: @white;
-    padding: 10px;
-    margin-top: 20px;
-    min-height: 200px;
     display: flex;
-
-    .contenteditable-container {
-      min-height: 200px;
+    position: relative;
+    margin-left: @padding-base-horizontal;
+    flex-direction: column;
+    min-height: 200px;
+    width: 100%;
+    
+    &.empty {
+      opacity: 0.5;
+      pointer-events: none;
     }
 
-    textarea {
-      border: 0;
-      padding: 0;
-      flex: 1;
+    .section {
+      margin-bottom: 10px;
+      &.editor {
+        display: flex;
+        flex: 1;
+        margin-bottom: 0;
+      }
+      &.note {
+        font-size:0.9em;
+        margin-top: 8px;
+        color: @text-color-very-subtle;
+      }
+    }
+
+    textarea.raw-html {
       font-family: monospace;
       font-size: 0.9em;
+      width: 100%;
+      height: 240px;
+      padding: @padding-base-horizontal;
+      flex: 1;
+      background: @background-primary;;
+      border: 1px solid @border-color-divider;
     }
-  }
 
-  .section-title {
-    display: inline-flex;
-    width: 100%;
-    flex-wrap: wrap;
-    align-items: center;
-
-    span {
-      line-height: 1.7;
+    .RichEditor-root {
+      flex: 1;
+      background: @background-primary;
+      padding: 10px;
+      padding-top: 2px;
+      border: 1px solid @border-color-divider;
     }
-    select {
-      flex-basis: 100px;
-      flex-grow: 1;
-      margin: 0 0 0 8px;
-    }
-    input {
-      flex-grow: 1;
-      margin: 0 0 0 8px;
-    }
-  }
-
-  .section-body {
-    padding: 10px 0 0 0;
-
-    .menu {
-      border: solid thin #ccc;
-      margin-right: 5px;
-      min-height: 200px;
-      .menu-items {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-
-        li {
-          padding: 6px;
-        }
-      }
-    }
-    .menu-horizontal {
-      height: 100%;
-      .menu-items {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        li {
-          text-align: center;
-          width: 40px;
-          display: inline-block;
-          padding: 8px 16px 8px 16px;
-          border-right: solid thin #ccc;
-        }
-      }
-    }
-    .template-area {
-      border: solid thin #ccc;
-      min-height: 200px;
-    }
-    .menu-footer {
-      border: solid thin #ccc;
-      overflow: auto;
-    }
-    .template-footer {
-      border: solid thin #ccc;
-      overflow: auto;
-
-      .edit-html-button {
-        float: right;
-        margin: 6px;
-      }
-    }
-  }
-
-  .template-name-btn {
-    float: right;
-    margin: 0 6px;
-  }
-  .template-name-input {
-    display: inline-block;
-    width: 100px;
-  }
-  .editor-note {
-    color: #aaa;
-    font-size: small;
-    margin-top: 5px;
-  }
-
-  .templates-instructions {
-    color: #333;
-    font-size: small;
-    margin-top: 20px;
   }
 }

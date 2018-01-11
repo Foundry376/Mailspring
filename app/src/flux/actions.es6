@@ -348,8 +348,6 @@ class Actions {
   */
   static composePopoutDraft = ActionScopeWindow;
 
-  static focusDraft = ActionScopeWindow;
-
   /*
   Public: Open a new composer window for creating a new draft from scratch.
 
@@ -413,11 +411,6 @@ class Actions {
   static getFullContactDetails = ActionScopeWindow;
   static focusContact = ActionScopeWindow;
 
-  // Templates
-  static insertTemplateId = ActionScopeWindow;
-  static createTemplate = ActionScopeWindow;
-  static showTemplates = ActionScopeWindow;
-
   // Account Sidebar
   static setCollapsedSidebarItem = ActionScopeWindow;
 
@@ -426,7 +419,6 @@ class Actions {
   static addAttachment = ActionScopeWindow;
   static selectAttachment = ActionScopeWindow;
   static removeAttachment = ActionScopeWindow;
-  static insertAttachmentIntoDraft = ActionScopeWindow;
 
   static fetchBodies = ActionScopeMainWindow;
   static fetchAndOpenFile = ActionScopeWindow;

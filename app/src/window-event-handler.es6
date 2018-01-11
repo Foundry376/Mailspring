@@ -9,6 +9,7 @@ let Spellchecker = null;
 export default class WindowEventHandler {
   constructor() {
     this.unloadCallbacks = [];
+    this.unloadCompleteCallbacks = [];
 
     setTimeout(() => this.showDevModeMessages(), 1);
 
@@ -136,13 +137,20 @@ export default class WindowEventHandler {
     document.addEventListener('submit', event => {
       if (event.target.nodeName === 'FORM') {
         event.preventDefault();
-        this.openContextualMenuForInput(event);
       }
     });
   }
 
+  // Called on beforeUnload, callback return value
+  // can stop / postpone the window from closing
   addUnloadCallback(callback) {
     this.unloadCallbacks.push(callback);
+  }
+
+  // Called when all beforeUnload callbacks have
+  // been called and have returned
+  addReadyToUnloadCallback(callback) {
+    this.unloadCompleteCallbacks.push(callback);
   }
 
   removeUnloadCallback(callback) {
@@ -174,10 +182,19 @@ export default class WindowEventHandler {
 
     // In Electron, returning false cancels the close.
     hasReturned = true;
-    return unloadCallbacksRunning === 0;
+    if (unloadCallbacksRunning === 0) {
+      for (const callback of this.unloadCompleteCallbacks) {
+        callback();
+      }
+      return true;
+    }
+    return false;
   }
 
   runUnloadFinished() {
+    for (const callback of this.unloadCompleteCallbacks) {
+      callback();
+    }
     setTimeout(() => {
       if (remote.getGlobal('application').isQuitting()) {
         remote.app.quit();
@@ -212,7 +229,7 @@ export default class WindowEventHandler {
   }
 
   openLink({ href, target, currentTarget, metaKey }) {
-    const resolved = href || this.resolveHref(target || currentTarget);
+    let resolved = href || this.resolveHref(target || currentTarget);
     if (!resolved) {
       return;
     }
@@ -220,9 +237,10 @@ export default class WindowEventHandler {
       return;
     }
 
-    const { protocol } = url.parse(resolved);
+    let { protocol } = url.parse(resolved);
     if (!protocol) {
-      return;
+      protocol = 'http:';
+      resolved = `http://${resolved}`;
     }
 
     if (['mailto:', 'mailspring:'].includes(protocol)) {
@@ -240,15 +258,11 @@ export default class WindowEventHandler {
   openContextualMenuForInput(event) {
     event.preventDefault();
 
-    if (
-      !['text', 'password', 'email', 'number', 'range', 'search', 'tel', 'url'].includes(
-        event.target.type
-      )
-    ) {
+    const textualInputs = ['text', 'password', 'email', 'number', 'range', 'search', 'tel', 'url'];
+    if (!textualInputs.includes(event.target.type)) {
       return;
     }
     const hasSelectedText = event.target.selectionStart !== event.target.selectionEnd;
-
     let wordStart = null;
     let wordEnd = null;
 
@@ -267,38 +281,43 @@ export default class WindowEventHandler {
     }
     const word = event.target.value.substr(wordStart, wordEnd - wordStart);
 
-    const { Menu, MenuItem } = remote;
-    const menu = new Menu();
-
-    Spellchecker = Spellchecker || require('./spellchecker').default;
-    Spellchecker.appendSpellingItemsToMenu({
-      menu: menu,
-      word: word,
+    this.openSpellingMenuFor(word, hasSelectedText, {
+      onCopy: () => document.execCommand('copy'),
+      onCut: () => document.execCommand('cut'),
+      onPaste: () => document.execCommand('paste'),
       onCorrect: correction => {
         const insertionPoint = wordStart + correction.length;
         event.target.value = event.target.value.replace(word, correction);
         event.target.setSelectionRange(insertionPoint, insertionPoint);
       },
     });
+  }
+
+  openSpellingMenuFor(word, hasSelectedText, { onCorrect, onCut, onPaste, onCopy }) {
+    const { Menu, MenuItem } = remote;
+    const menu = new Menu();
+
+    Spellchecker = Spellchecker || require('./spellchecker').default;
+    Spellchecker.appendSpellingItemsToMenu({ menu, word, onCorrect });
 
     menu.append(
       new MenuItem({
         label: 'Cut',
         enabled: hasSelectedText,
-        click: () => document.execCommand('cut'),
+        click: onCut,
       })
     );
     menu.append(
       new MenuItem({
         label: 'Copy',
         enabled: hasSelectedText,
-        click: () => document.execCommand('copy'),
+        click: onCopy,
       })
     );
     menu.append(
       new MenuItem({
         label: 'Paste',
-        click: () => document.execCommand('paste'),
+        click: onPaste,
       })
     );
     menu.popup(remote.getCurrentWindow());

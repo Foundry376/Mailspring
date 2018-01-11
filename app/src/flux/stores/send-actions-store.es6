@@ -11,7 +11,7 @@ const DefaultSendAction = {
   iconUrl: null,
   configKey: DefaultSendActionKey,
   isAvailableForDraft: () => true,
-  performSendAction: ({ draft }) => Actions.queueTask(new SendDraftTask({ draft })),
+  performSendAction: ({ draft }) => Actions.queueTask(SendDraftTask.forSending(draft)),
 };
 
 function verifySendAction(sendAction = {}, extension = {}) {
@@ -68,10 +68,6 @@ class SendActionsStore extends MailspringStore {
     return this._sendActions.find(a => a.configKey === configKey);
   }
 
-  availableSendActionsForDraft(draft) {
-    return this._sendActions.filter(sendAction => sendAction.isAvailableForDraft({ draft }));
-  }
-
   orderedSendActionsForDraft(draft) {
     const configKeys = this._sendActions.map(({ configKey } = {}) => configKey);
 
@@ -88,7 +84,7 @@ class SendActionsStore extends MailspringStore {
       action => action !== preferred && action.isAvailableForDraft({ draft })
     );
 
-    return { preferred, rest };
+    return [preferred, ...rest];
   }
 
   _onComposerExtensionsChanged = () => {

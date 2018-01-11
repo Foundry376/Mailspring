@@ -54,28 +54,16 @@ describe('PreferencesSignatures', function preferencesSignatures() {
       ReactTestUtils.Simulate.click(this.minus);
       expect(Actions.removeSignature).toHaveBeenCalledWith(SIGNATURES['1']);
     });
-    it('should toggle default status when you click an email on the dropdown', () => {
-      spyOn(Actions, 'toggleAccount');
-      this.account = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'item')[0];
-      ReactTestUtils.Simulate.mouseDown(this.account);
-      expect(Actions.toggleAccount).toHaveBeenCalledWith('tester@nylas.com');
-    });
     it('should set the selected signature when you click on one that is not currently selected', () => {
       spyOn(Actions, 'selectSignature');
       this.item = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'list-item')[1];
       ReactTestUtils.Simulate.click(this.item);
       expect(Actions.selectSignature).toHaveBeenCalledWith('2');
     });
-    it('should modify the signature body when edited', () => {
-      spyOn(Actions, 'upsertSignature');
-      const newText = 'Changed <strong>NEW 1 HTML</strong><br>';
-      this.component._onEditSignature({ target: { value: newText } });
-      expect(Actions.upsertSignature).toHaveBeenCalled();
-    });
     it('should modify the signature title when edited', () => {
       spyOn(Actions, 'upsertSignature');
       const newTitle = 'Changed';
-      this.component._onEditSignature(newTitle);
+      this.component._onEditSignatureTitle(newTitle);
       expect(Actions.upsertSignature).toHaveBeenCalled();
     });
   });

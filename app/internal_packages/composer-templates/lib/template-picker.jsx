@@ -1,7 +1,8 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
-import { Actions, React, ReactDOM, PropTypes } from 'mailspring-exports';
+import { React, ReactDOM, PropTypes, Actions } from 'mailspring-exports';
 import { Menu, RetinaImg } from 'mailspring-component-kit';
 import TemplateStore from './template-store';
+import TemplateActions from './template-actions';
 
 class TemplatePopover extends React.Component {
   static displayName = 'TemplatePopover';
@@ -47,7 +48,7 @@ class TemplatePopover extends React.Component {
   };
 
   _onChooseTemplate = template => {
-    Actions.insertTemplateId({
+    TemplateActions.insertTemplateId({
       templateId: template.id,
       headerMessageId: this.props.headerMessageId,
     });
@@ -55,11 +56,11 @@ class TemplatePopover extends React.Component {
   };
 
   _onManageTemplates = () => {
-    Actions.showTemplates();
+    TemplateActions.showTemplates();
   };
 
   _onNewTemplate = () => {
-    Actions.createTemplate({ headerMessageId: this.props.headerMessageId });
+    TemplateActions.createTemplate({ headerMessageId: this.props.headerMessageId });
   };
 
   _onClickButton = () => {

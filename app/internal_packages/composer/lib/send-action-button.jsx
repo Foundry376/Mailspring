@@ -10,26 +10,31 @@ class SendActionButton extends React.Component {
     draft: PropTypes.object,
     isValidDraft: PropTypes.func,
     sendActions: PropTypes.array,
-    orderedSendActions: PropTypes.object,
   };
+
+  /* This component is re-rendered constantly because `draft` changes in random ways.
+  We only use the draft prop when you click send, so update with more discretion. */
+  shouldComponentUpdate(nextProps) {
+    return (
+      nextProps.sendActions.map(a => a.configKey).join(',') !==
+      this.props.sendActions.map(a => a.configKey).join(',')
+    );
+  }
 
   primarySend() {
     this._onPrimaryClick();
   }
 
   _onPrimaryClick = () => {
-    const { orderedSendActions } = this.props;
-    const { preferred } = orderedSendActions;
-    this._onSendWithAction(preferred);
+    this._onSendWithAction(this.props.sendActions[0]);
   };
 
   _onSendWithAction = sendAction => {
-    const { isValidDraft, draft } = this.props;
-    if (isValidDraft()) {
+    if (this.props.isValidDraft()) {
       if (AppEnv.config.get('core.sending.sounds')) {
         SoundRegistry.playSound('hit-send');
       }
-      Actions.sendDraft(draft.headerMessageId, { actionKey: sendAction.configKey });
+      Actions.sendDraft(this.props.draft.headerMessageId, { actionKey: sendAction.configKey });
     }
   };
 
@@ -52,7 +57,6 @@ class SendActionButton extends React.Component {
   };
 
   _renderSingleButton() {
-    const { sendActions } = this.props;
     return (
       <button
         tabIndex={-1}
@@ -60,18 +64,16 @@ class SendActionButton extends React.Component {
         style={{ order: -100 }}
         onClick={this._onPrimaryClick}
       >
-        {this._renderSendActionItem(sendActions[0])}
+        {this._renderSendActionItem(this.props.sendActions[0])}
       </button>
     );
   }
 
   _renderButtonDropdown() {
-    const { orderedSendActions } = this.props;
-    const { preferred, rest } = orderedSendActions;
-
+    const { sendActions } = this.props;
     const menu = (
       <Menu
-        items={rest}
+        items={sendActions.slice(1)}
         itemKey={actionConfig => actionConfig.configKey}
         itemContent={this._renderSendActionItem}
         onSelect={this._onSendWithAction}
@@ -82,8 +84,8 @@ class SendActionButton extends React.Component {
       <ButtonDropdown
         className={'btn-send btn-emphasis btn-text'}
         style={{ order: -100 }}
-        primaryItem={this._renderSendActionItem(preferred)}
-        primaryTitle={preferred.title}
+        primaryItem={this._renderSendActionItem(sendActions[0])}
+        primaryTitle={sendActions[0].title}
         primaryClick={this._onPrimaryClick}
         closeOnMenuClick
         menu={menu}
@@ -92,24 +94,21 @@ class SendActionButton extends React.Component {
   }
 
   render() {
-    const { sendActions } = this.props;
-    if (sendActions.length === 1) {
-      return this._renderSingleButton();
-    }
-    return this._renderButtonDropdown();
+    return this.props.sendActions.length === 1
+      ? this._renderSingleButton()
+      : this._renderButtonDropdown();
   }
 }
 
 const EnhancedSendActionButton = ListensToFluxStore(SendActionButton, {
   stores: [SendActionsStore],
   getStateFromStores(props) {
-    const { draft } = props;
     return {
-      sendActions: SendActionsStore.availableSendActionsForDraft(draft),
-      orderedSendActions: SendActionsStore.orderedSendActionsForDraft(draft),
+      sendActions: SendActionsStore.orderedSendActionsForDraft(props.draft),
     };
   },
 });
+
 // TODO this is a hack so that the send button can still expose
 // the `primarySend` method required by the ComposerView. Ideally, this
 // decorator mechanism should expose whatever instance methods are exposed

@@ -873,6 +873,10 @@ export default class AppEnvConstructor {
     return this.windowEventHandler.addUnloadCallback(callback);
   }
 
+  onReadyToUnload(callback) {
+    return this.windowEventHandler.addReadyToUnloadCallback(callback);
+  }
+
   removeUnloadCallback(callback) {
     this.windowEventHandler.removeUnloadCallback(callback);
   }

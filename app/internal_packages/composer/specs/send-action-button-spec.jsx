@@ -6,8 +6,6 @@ import SendActionButton from '../lib/send-action-button';
 
 const { UndecoratedSendActionButton } = SendActionButton;
 
-const { DefaultSendAction } = SendActionsStore;
-
 const GoodSendAction = {
   title: 'Good Send Action',
   configKey: 'good-send-action',
@@ -30,7 +28,7 @@ const NoIconUrl = {
   performSendAction() {},
 };
 
-describe('SendActionButton', function describeBlock() {
+fdescribe('SendActionButton', function describeBlock() {
   beforeEach(() => {
     spyOn(Actions, 'sendDraft');
     this.isValidDraft = jasmine.createSpy('isValidDraft');
@@ -38,17 +36,13 @@ describe('SendActionButton', function describeBlock() {
     this.draft = new Message({ id: this.id, draft: true, headerMessageId: 'bla' });
   });
 
-  const render = (draft, { isValid = true, sendActions = [], ordered = {} } = {}) => {
+  const render = (draft, { isValid = true, sendActions } = {}) => {
     this.isValidDraft.andReturn(isValid);
     return mount(
       <UndecoratedSendActionButton
         draft={draft}
         isValidDraft={this.isValidDraft}
-        sendActions={[DefaultSendAction].concat(sendActions)}
-        orderedSendActions={{
-          preferred: ordered.preferred || DefaultSendAction,
-          rest: ordered.rest || [],
-        }}
+        sendActions={sendActions || [SendActionsStore.DefaultSendAction]}
       />
     );
   };
@@ -64,8 +58,8 @@ describe('SendActionButton', function describeBlock() {
     expect(button.text()).toEqual('Send');
   });
 
-  it('is a single button when there are no send actions', () => {
-    const sendActionButton = render(this.draft, { sendActions: [] });
+  it('is a single button when there is only the default actions', () => {
+    const sendActionButton = render(this.draft);
     const dropdowns = sendActionButton.find(ButtonDropdown);
     const buttons = sendActionButton.find('button');
     expect(buttons.length).toBe(1);
@@ -75,7 +69,7 @@ describe('SendActionButton', function describeBlock() {
 
   it("is a dropdown when there's more than one send action", () => {
     const sendActionButton = render(this.draft, {
-      sendActions: [GoodSendAction],
+      sendActions: [SendActionsStore.DefaultSendAction, GoodSendAction],
     });
     const dropdowns = sendActionButton.find(ButtonDropdown);
     const buttons = sendActionButton.find('button');
@@ -86,8 +80,7 @@ describe('SendActionButton', function describeBlock() {
 
   it('has the correct primary item', () => {
     const sendActionButton = render(this.draft, {
-      sendActions: [GoodSendAction, SecondSendAction],
-      ordered: { preferred: SecondSendAction, rest: [DefaultSendAction, GoodSendAction] },
+      sendActions: [SecondSendAction, SendActionsStore.DefaultSendAction, GoodSendAction],
     });
     const dropdown = sendActionButton.find(ButtonDropdown).first();
     expect(dropdown.prop('primaryTitle')).toBe('Second Send Action');
@@ -95,15 +88,14 @@ describe('SendActionButton', function describeBlock() {
 
   it("still renders with a null iconUrl and doesn't show the image", () => {
     const sendActionButton = render(this.draft, {
-      sendActions: [NoIconUrl],
-      ordered: { preferred: NoIconUrl, rest: [DefaultSendAction] },
+      sendActions: [NoIconUrl, SendActionsStore.DefaultSendAction],
     });
     const dropdowns = sendActionButton.find(ButtonDropdown);
     const buttons = sendActionButton.find('button');
     const icons = sendActionButton.find(RetinaImg);
     expect(buttons.length).toBe(0);
     expect(dropdowns.length).toBe(1);
-    expect(icons.length).toBe(3);
+    expect(icons.length).toBe(2);
   });
 
   it('sends a draft by default if no extra actions present', () => {
@@ -126,8 +118,7 @@ describe('SendActionButton', function describeBlock() {
 
   it('does the preferred action when more than one action present', () => {
     const sendActionButton = render(this.draft, {
-      sendActions: [GoodSendAction],
-      ordered: { preferred: GoodSendAction, rest: [DefaultSendAction] },
+      sendActions: [GoodSendAction, SendActionsStore.DefaultSendAction],
     });
     const button = sendActionButton.find('.primary-item').first();
     button.simulate('click');

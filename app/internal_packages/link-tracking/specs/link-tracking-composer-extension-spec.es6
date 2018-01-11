@@ -79,36 +79,4 @@ xdescribe('Link tracking composer extension', function linkTrackingComposerExten
       });
     });
   });
-
-  describe('unapplyTransformsForSending', () => {
-    beforeEach(() => {
-      this.metadata = { tracked: true, uid: '123' };
-      this.draft = new Message({ accountId: 'test' });
-      this.draft.directlyAttachMetadata(PLUGIN_ID, this.metadata);
-    });
-
-    it('takes no action if there are no tracked links in the body', () => {
-      this.draft.body = beforeBody;
-      this.draftBodyRootNode = nodeForHTML(this.draft.body);
-
-      LinkTrackingComposerExtension.unapplyTransformsForSending({
-        draftBodyRootNode: this.draftBodyRootNode,
-        draft: this.draft,
-      });
-      const afterBody = this.draftBodyRootNode.innerHTML;
-      expect(afterBody).toEqual(beforeBody);
-    });
-
-    it('replaces tracked links with the original links, restoring the body exactly', () => {
-      this.draft.body = afterBodyFactory(this.draft.accountId, this.metadata.uid);
-      this.draftBodyRootNode = nodeForHTML(this.draft.body);
-
-      LinkTrackingComposerExtension.unapplyTransformsForSending({
-        draftBodyRootNode: this.draftBodyRootNode,
-        draft: this.draft,
-      });
-      const afterBody = this.draftBodyRootNode.innerHTML;
-      expect(afterBody).toEqual(beforeBody);
-    });
-  });
 });

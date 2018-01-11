@@ -9,6 +9,143 @@
 @blurred-primary-color: mix(@background-primary, #ffbb00, 96%);
 @blurred-off-primary-color: mix(@background-off-primary, #ffbb00, 96%);
 
+// Basic Rich Editor
+
+.RichEditor-root {
+  padding: 0 22px 0 22px;
+  min-height: @compose-min-height;
+  // this sets the baseline for the `pt` sizes used in the editor
+  // must be the same as DEFAULT_FONT_SIZE
+  font-size: 11pt; 
+
+  .RichEditor-content {
+    padding-top: 12px;
+    position: relative; // needed for floating emoji picker
+  }
+}
+
+.RichEditor-root blockquote {
+  border-left: 2px solid #eee;
+  color: #500050;
+  margin: 0;
+  padding: 0 10px;
+  -webkit-margin-after: initial !important;
+  -webkit-margin-before: initial !important;
+  -webkit-margin-start: initial !important;
+  -webkit-margin-end: initial !important;
+}
+
+.RichEditor-root .custom-block-selected,
+.RichEditor-root .uneditable.custom-block-selected {
+  border: 1px dashed @text-color;
+}
+
+.RichEditor-root .uneditable {
+  -webkit-user-modify: read-only;
+  display: inline-block;
+  border: 1px solid transparent;
+  position: relative;
+  white-space: normal;
+  min-width: 30px;
+  .uneditable-remove {
+    position: absolute;
+    display: none;
+    right: -5px;
+    top: -5px;
+    z-index: 2;
+    &:active {
+      filter: brightness(85%);
+    }
+  }
+  blockquote {
+    color: purple;
+  }
+  &:hover {
+    border: 1px dashed @border-color-divider;
+    .uneditable-remove {
+      display: initial;
+    }
+  }
+}
+
+.RichEditor-toolbar {
+  font-family: 'Helvetica', sans-serif;
+  font-size: 14px;
+  user-select: none;
+  position: relative;
+  .inner {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: @background-primary;
+    border-bottom: 1px solid @border-color-divider;
+    z-index: 2;
+    width: 100%;
+  }
+
+  .toolbar-section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .divider {
+    width: 1px;
+    height: 22px;
+    border-right: 1px solid @border-color-divider;
+    margin-right: 7px;
+    padding-right: 7px;
+  }
+
+  button {
+    cursor: pointer;
+    color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 30%);
+    padding: 4px 9px;
+    border: none;
+    background: none;
+    width: initial;
+    
+    &:hover {
+      color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 5%);
+      background: none;
+    }
+    select {
+      border: none;
+      background: none;
+      margin: 0;
+    }
+  }
+
+  button.active {
+    color: @component-active-color;
+  }
+
+  .dropdown {
+    z-index: 4;
+    position: absolute;
+    background: @background-primary;
+    border-radius: @border-radius-base @border-radius-base 0 @border-radius-base;
+    box-shadow: 0 0.5px 0 @standard-shadow-color, 0 -0.5px 0 @standard-shadow-color,
+      0.5px 0 0 @standard-shadow-color, -0.5px 0 0 @standard-shadow-color,
+      0 -3px 12px @standard-shadow-color;
+    }
+
+  .color-swatch {
+    border: 1px solid @border-color-divider;
+    margin: 0 7px;
+  }
+
+  .link-picker {
+    .dropdown {
+      padding: 5px;
+      display: flex;
+      flex-direction: row;
+    }
+  }
+}
+
+// Composer-Specific
+
 body.platform-win32 {
   .composer-inner-wrap {
     .composer-drop-cover {
@@ -78,14 +215,10 @@ body.platform-win32 {
     }
   }
 
-  .inline-image-upload-container {
-    display: inline-block;
-
-    .nylas-attachment-item.image-attachment-item {
-      margin: 0;
-      max-width: calc(100% - 22px); // right margin of composer
-      min-width: 0;
-    }
+  .nylas-attachment-item.image-attachment-item {
+    margin: 0;
+    max-width: calc(100% - 22px); // right margin of composer
+    min-width: 0;
   }
 
   .composer-action-bar-wrap {
@@ -189,12 +322,6 @@ body.platform-win32 {
     margin: 0 auto;
     padding-top: @spacing-standard * 0.7;
   }
-  .text-actions {
-    text-align: right;
-    line-height: 1.4;
-    position: relative;
-    top: -3px;
-  }
 
   .composer-body-wrap {
     padding: 0 0 5px 0;
@@ -252,52 +379,6 @@ body.platform-win32 {
     }
   }
 
-  .collapsed-composer-participants {
-    position: relative;
-    margin: 0 23px;
-    border-bottom: 1px solid @border-color-divider;
-    flex-shrink: 0;
-    color: @text-color-very-subtle;
-    padding: 10px 0 10px 0;
-
-    .collapsed-contact {
-      padding-right: 0.25em;
-      color: @text-color;
-      &:after {
-        content: ',';
-      }
-      &:last-child:after {
-        content: '';
-      }
-    }
-
-    .num-remaining.token {
-      color: @text-color;
-      padding-right: 12px;
-      margin-left: 0;
-      margin-top: 2px;
-    }
-
-    .num-remaining-wrap {
-      position: absolute;
-      right: -3px;
-      z-index: 2;
-      top: 6px;
-      .show-more-fade {
-        position: absolute;
-        width: 190px;
-        height: 32px;
-        right: 0;
-        top: 0;
-        background: linear-gradient(
-          to right,
-          fade(@background-primary, 0%) 0%,
-          fade(@background-primary, 100%) 40%
-        );
-      }
-    }
-  }
-
   .composer-subject {
     position: relative;
     margin: 0;
@@ -340,9 +421,27 @@ body.platform-win32 {
   .compose-body {
     flex: 1;
     cursor: text;
-    overflow-x: auto;
     position: relative;
     margin: 0;
+
+    .RichEditor-toolbar {
+      .toolbar-section.hide-in-composer {
+        display: none;
+      }
+    }
+
+    .hiding-quoted-text {
+      blockquote {
+        height: 0;
+        overflow: hidden;
+        padding: 0;
+      }
+      .gmail_quote_attribution {
+        height: 0;
+        overflow: hidden;
+        padding: 0;
+      }
+    }
 
     .quoted-text-control {
       position: relative;
@@ -374,12 +473,6 @@ body.platform-win32 {
       }
     }
 
-    // All of the padding is placed on the contenteditable itself so
-    // clicks on the margins register within the region.
-    div[contenteditable] {
-      padding: 20px 22px 0 22px;
-      min-height: @compose-min-height;
-    }
   }
 
   .composer-footer-region {
@@ -425,10 +518,8 @@ body.platform-win32 {
     }
   }
 
-  .compose-body {
-    div[contenteditable] {
-      min-height: @line-height-computed;
-    }
+  .RichEditor-root {
+    min-height: @line-height-computed;
   }
 }
 
@@ -453,6 +544,9 @@ body.platform-win32 {
         background: @action-bar-bg;
         .action-bar-cover-gen;
       }
+      .RichEditor-toolbar .inner {
+        background: @blurred-primary-color;
+      }
     }
     .message-item-white-wrap.composer-outer-wrap.focused {
       box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.28), 0 1px 1.5px rgba(0, 0, 0, 0.08),
@@ -469,6 +563,9 @@ body.platform-win32 {
         @action-bar-bg: @background-off-primary;
         background: @action-bar-bg;
         .action-bar-cover-gen;
+      }
+      .RichEditor-toolbar .inner {
+        background: @background-primary;
       }
     }
   }
@@ -559,32 +656,73 @@ body.platform-win32 {
   }
 }
 
-//////////////////////////////////
-//      Overlaid Components     //
-//////////////////////////////////
-.overlaid-components {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 0;
-  line-height: 1.4; // must match contenteditable container
-  overflow: visible;
-  z-index: 1;
+// Emoji Picker
+
+.emoji-picker {
+  z-index: 3;
+  padding: 4px;
+  background: @background-primary;
+  box-shadow: @standard-shadow;
+  min-width: 140px;
+
+  .btn.btn-icon {
+    display: block;
+    font-size: 14px !important;
+    padding: 0 0.5em;
+    text-align: left;
+    word-break: break-all;
+    overflow: hidden;
+
+    &:first-child {
+      padding-left: 0.5em !important;
+    }
+    &.emoji-option,
+    &:hover {
+      background-color: @btn-emphasis-bg-color;
+      color: #ffffff;
+      border-radius: 5px;
+    }
+  }
 }
-img.overlaid-component-anchor-container {
-  border: 0;
-  vertical-align: baseline;
-}
-.toggle-preview {
-  position: absolute;
-  top: 5px;
-  right: 20px;
-  font-size: @font-size-smaller;
-  opacity: 0.3;
-  cursor: pointer;
-  &:hover {
-    cursor: pointer;
-    opacity: 1;
+
+.emoji-button-popover {
+  width: 210px;
+  height: 290px;
+  overflow: hidden;
+  .emoji-tabs {
+    display: flex;
+    flex-direction: row;
+    padding: 5px 5px 5px 10px;
+    border-bottom: 1px solid @border-color-primary;
+    transition: box-shadow 0.5s;
+    &.shadow {
+      box-shadow: @standard-shadow;
+    }
+    .emoji-tab {
+      background-color: @gray-light;
+      &.active {
+        background-color: @component-active-color;
+      }
+    }
+  }
+  .emoji-finder-container {
+    height: 232px;
+    .scrollbar-track {
+      background: transparent;
+      border-left: none;
+      width: 10px;
+    }
+    .emoji-search-container {
+      padding: @padding-base-vertical * 1.5 @padding-base-horizontal 0;
+    }
+  }
+  .emoji-name {
+    height: 25px;
+    width: 192px;
+    margin-top: 2px;
+    margin-left: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: @text-color-very-subtle;
   }
 }

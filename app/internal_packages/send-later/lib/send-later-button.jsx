@@ -44,6 +44,15 @@ class SendLaterButton extends Component {
     return false;
   }
 
+  componentDidUpdate(prevProps) {
+    if (
+      this.state.saving &&
+      sendLaterDateForDraft(prevProps.draft) !== sendLaterDateForDraft(this.props.draft)
+    ) {
+      this.setState({ saving: false });
+    }
+  }
+
   componentWillUnmount() {
     this.mounted = false;
   }

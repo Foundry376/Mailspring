@@ -1,7 +1,6 @@
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 import DraftEditingSession from './draft-editing-session';
-import DraftHelpers from './draft-helpers';
 import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
 import SendActionsStore from './send-actions-store';
@@ -71,14 +70,15 @@ class DraftStore extends MailspringStore {
   @param {String} headerMessageId - The headerMessageId of the draft.
   @returns {Promise} - Resolves to an {DraftEditingSession} for the draft once it has been prepared
   */
-  sessionForClientId(headerMessageId) {
+  async sessionForClientId(headerMessageId) {
     if (!headerMessageId) {
       throw new Error('DraftStore::sessionForClientId requires a headerMessageId');
     }
-    if (this._draftSessions[headerMessageId] == null) {
+    if (!this._draftSessions[headerMessageId]) {
       this._draftSessions[headerMessageId] = this._createSession(headerMessageId);
     }
-    return this._draftSessions[headerMessageId].prepare();
+    await this._draftSessions[headerMessageId].prepare();
+    return this._draftSessions[headerMessageId];
   }
 
   // Public: Look up the sending state of the given draft headerMessageId.
@@ -107,32 +107,46 @@ class DraftStore extends MailspringStore {
     // window.close() within on onbeforeunload could do weird things.
     Object.values(this._draftSessions).forEach(session => {
       const draft = session.draft();
-      if (!draft.id) {
+      if (!draft || !draft.id) {
         return;
       }
-      if (draft && draft.pristine) {
+
+      // Only delete pristine drafts if we're in popout composers. From the
+      // main window we can't know if the draft session may also be open in
+      // a popout and have content there.
+      if (draft.pristine && !AppEnv.isMainWindow()) {
         Actions.queueTask(
           new DestroyDraftTask({
             messageIds: [draft.id],
             accountId: draft.accountId,
           })
         );
-      } else {
+      } else if (session.changes.isDirty()) {
         promises.push(session.changes.commit());
       }
     });
 
     if (promises.length > 0) {
-      Promise.all(promises).then(() => {
+      let done = () => {
+        done = null;
         this._draftSessions = {};
         // We have to wait for accumulateAndTrigger() in the DatabaseStore to
         // send events to ActionBridge before closing the window.
         setTimeout(readyToUnload, 15);
-      });
+      };
 
-      // Stop and wait before closing
+      // Stop and wait before closing, but never wait for more than 700ms.
+      // We may not be able to save the draft once the main window has closed
+      // and the mailsync bridge is unavailable, don't want to hang forever.
+      setTimeout(() => {
+        if (done) done();
+      }, 700);
+      Promise.all(promises).then(() => {
+        if (done) done();
+      });
       return false;
     }
+
     // Continue closing
     return true;
   };
@@ -255,8 +269,6 @@ class DraftStore extends MailspringStore {
     return TaskQueue.waitForPerformLocal(task).then(() => {
       if (popout) {
         this._onPopoutDraft(draft.headerMessageId);
-      } else {
-        Actions.focusDraft({ headerMessageId: draft.headerMessageId });
       }
       return { headerMessageId: draft.headerMessageId, draft };
     });
@@ -350,8 +362,11 @@ class DraftStore extends MailspringStore {
     });
 
     // Queue the task to destroy the draft
-    Actions.queueTask(new DestroyDraftTask({ accountId, messageIds: [id] }));
-
+    if (id) {
+      Actions.queueTask(new DestroyDraftTask({ accountId, messageIds: [id] }));
+    } else {
+      console.warn('Tried to delete a draft that had no ID assigned yet.');
+    }
     if (AppEnv.isComposerWindow()) {
       AppEnv.close();
     }
@@ -374,21 +389,25 @@ class DraftStore extends MailspringStore {
     // We need to call `changes.commit` here to ensure the body of the draft is
     // completely saved and the user won't see old content briefly.
     const session = await this.sessionForClientId(headerMessageId);
+
+    // remove inline attachments that are no longer inline
+    let draft = session.draft();
+    const files = draft.files.filter(f => {
+      return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
+    });
+    if (files.length !== draft.files.length) {
+      session.changes.add({ files });
+    }
+
     await session.ensureCorrectAccount();
     await session.changes.commit();
     await session.teardown();
 
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
     // we need to have the final object with it's final ID.
-    let draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true }).include(
+    draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true }).include(
       Message.attributes.body
     );
-
-    draft = await DraftHelpers.applyExtensionTransforms(draft);
-    draft = await DraftHelpers.pruneRemovedInlineFiles(draft);
-    if (draft.replyToHeaderMessageId && DraftHelpers.shouldAppendQuotedText(draft)) {
-      draft = await DraftHelpers.appendQuotedTextToDraft(draft);
-    }
 
     // Directly update the message body cache so the user immediately sees
     // the new message text (and never old draft text or blank text) sending.

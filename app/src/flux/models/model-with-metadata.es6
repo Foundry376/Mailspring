@@ -87,6 +87,9 @@ export default class ModelWithMetadata extends Model {
    * to commit all the changes at once. It's a bit messy: this code must match the C++ codebase.
    */
   directlyAttachMetadata(pluginId, metadataValue) {
+    // ensure that this function treats metadata objects as immutable
+    this.pluginMetadata = [].concat(this.pluginMetadata.map(p => p.clone()));
+
     let metadata = this.metadataObjectForPluginId(pluginId);
     if (!metadata) {
       metadata = new PluginMetadata({ pluginId, version: 0 });
