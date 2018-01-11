@@ -40,7 +40,7 @@ describe('ModelWithMetadata', function modelWithMetadata() {
 
       // create new metadata object with correct value
       model.directlyAttachMetadata('plugin-id-a', { a: true });
-      const obj = model.metadataObjectForPluginId('plugin-id-a');
+      let obj = model.metadataObjectForPluginId('plugin-id-a');
       expect(model.pluginMetadata.length).toEqual(1);
       expect(obj.pluginId).toBe('plugin-id-a');
       expect(obj.id).toBe('plugin-id-a');
@@ -49,6 +49,7 @@ describe('ModelWithMetadata', function modelWithMetadata() {
 
       // update existing metadata object
       model.directlyAttachMetadata('plugin-id-a', { a: false });
+      obj = model.metadataObjectForPluginId('plugin-id-a');
       expect(obj.version).toBe(2);
       expect(obj.value.a).toBe(false);
     });

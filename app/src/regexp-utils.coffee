@@ -187,7 +187,7 @@ RegExpUtils =
   # Finds the start of a quoted text region as inserted by N1. This is not
   # a general-purpose quote detection scheme and only works for
   # N1-composed emails.
-  n1QuoteStartRegex: ->
+  nativeQuoteStartRegex: ->
     new RegExp(/<\w+[^>]*gmail_quote/i)
 
   # https://regex101.com/r/jK8cC2/1

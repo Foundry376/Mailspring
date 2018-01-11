@@ -54,12 +54,6 @@ describe('PreferencesSignatures', function preferencesSignatures() {
       ReactTestUtils.Simulate.click(this.minus);
       expect(Actions.removeSignature).toHaveBeenCalledWith(SIGNATURES['1']);
     });
-    it('should toggle default status when you click an email on the dropdown', () => {
-      spyOn(Actions, 'toggleAccount');
-      this.account = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'item')[0];
-      ReactTestUtils.Simulate.mouseDown(this.account);
-      expect(Actions.toggleAccount).toHaveBeenCalledWith('tester@nylas.com');
-    });
     it('should set the selected signature when you click on one that is not currently selected', () => {
       spyOn(Actions, 'selectSignature');
       this.item = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'list-item')[1];

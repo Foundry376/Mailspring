@@ -147,7 +147,7 @@ describe('DraftFactory', function draftFactory() {
             message: fakeMessage1,
             type: 'reply',
           }).then(draft => {
-            expect(draft.body.includes(`span class="gmail_quote mailspring-quote`)).toBe(true);
+            expect(draft.body.includes(`div class="gmail_quote`)).toBe(true);
           });
         });
       });

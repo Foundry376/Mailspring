@@ -208,7 +208,7 @@ export function convertFromHTML(html) {
   /* We often end up with bogus whitespace at the bottom of complex emails, either
   because the input contained whitespace, or because there were elements present
   that we didn't convert into anything. Prune the trailing empty node(s). */
-  const cleanupTrailingWhitespace = node => {
+  const cleanupTrailingWhitespace = (node, isTopLevel) => {
     if (!node.nodes || node.isVoid) return;
 
     while (true) {
@@ -216,7 +216,11 @@ export function convertFromHTML(html) {
       if (!last) {
         break;
       }
-      cleanupTrailingWhitespace(last);
+      cleanupTrailingWhitespace(last, false);
+
+      if (isTopLevel && node.nodes.length === 1) {
+        break;
+      }
       if (
         last.object === 'block' &&
         last.type === BLOCK_CONFIG.div.type &&
@@ -232,7 +236,7 @@ export function convertFromHTML(html) {
       break;
     }
   };
-  cleanupTrailingWhitespace(json.document);
+  cleanupTrailingWhitespace(json.document, true);
 
   return Value.fromJSON(json);
 }

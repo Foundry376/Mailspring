@@ -1,5 +1,4 @@
 _ = require 'underscore'
-_s = require 'underscore.string'
 
 DOMUtils =
   findLastTextNode: (node) ->
@@ -23,18 +22,6 @@ DOMUtils =
         return DOMUtils.findFirstTextNode(childNode)
       else continue
     return null
-
-  findCharacter: (context, character) ->
-    node = null
-    index = null
-    treeWalker = document.createTreeWalker(context, NodeFilter.SHOW_TEXT)
-    while currentNode = treeWalker.nextNode()
-      i = currentNode.data.indexOf(character)
-      if i >= 0
-        node = currentNode
-        index = i
-        break
-    return {node, index}
 
   escapeHTMLCharacters: (text) ->
     map =
