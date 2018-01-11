@@ -6,9 +6,9 @@ export default class ComposerEditorToolbar extends React.Component {
       el.addEventListener('scroll', this._onScroll);
     }
 
-    const toolbar = document.querySelector('.sheet-toolbar');
-    if (toolbar) {
-      this._topClip = toolbar.getBoundingClientRect().bottom;
+    const parentScrollRegion = this._el.closest('.scroll-region-content');
+    if (parentScrollRegion) {
+      this._topClip = parentScrollRegion.getBoundingClientRect().top;
     } else {
       this._topClip = 0;
     }
@@ -16,17 +16,16 @@ export default class ComposerEditorToolbar extends React.Component {
     this._el.style.height = `${this._innerEl.clientHeight}px`;
   }
 
-  componentWillUnmount() {
-    for (const el of document.querySelectorAll('.scroll-region-content')) {
-      el.removeEventListener('scroll', this._onScroll);
-    }
-  }
-
   componentDidUpdate() {
     this._el.style.height = `${this._innerEl.clientHeight}px`;
     this._onScroll();
   }
 
+  componentWillUnmount() {
+    for (const el of document.querySelectorAll('.scroll-region-content')) {
+      el.removeEventListener('scroll', this._onScroll);
+    }
+  }
   _onScroll = () => {
     if (!this._el) return;
     let { top, height } = this._el.getBoundingClientRect();

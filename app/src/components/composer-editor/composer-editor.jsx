@@ -137,9 +137,9 @@ export default class ComposerEditor extends React.Component {
     const spellCheck = AppEnv.config.get('core.composing.spellcheck');
 
     return (
-      <div className="RichEditor-root">
+      <div className={`RichEditor-root ${className || ''}`}>
         <ComposerEditorToolbar value={value} onChange={onChange} plugins={plugins} />
-        <div className={className} onClick={this.onFocusIfBlurred}>
+        <div className="RichEditor-content" onClick={this.onFocusIfBlurred}>
           {plugins
             .filter(p => p.topLevelComponent)
             .map((p, idx) => <p.topLevelComponent key={idx} value={value} onChange={onChange} />)}

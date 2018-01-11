@@ -198,7 +198,7 @@ export default class ComposerView extends React.Component {
             this._els[Fields.Body] = el;
           }
         }}
-        className={`body-field ${this.state.quotedTextHidden && 'hiding-quoted-text'}`}
+        className={this.state.quotedTextHidden && 'hiding-quoted-text'}
         propsForPlugins={{ draft: this.props.draft, session: this.props.session }}
         value={this.props.draft.bodyEditorState}
         onFileReceived={this._onFileReceived}

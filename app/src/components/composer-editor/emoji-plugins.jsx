@@ -60,7 +60,7 @@ function FloatingEmojiPicker({ value, onChange }) {
   const target = range.endContainer.parentElement.closest('[data-emoji-typing]');
   if (!target) return false;
 
-  const relativePositionedParent = target.closest('.body-field');
+  const relativePositionedParent = target.closest('.RichEditor-content');
   const intrinsicPos = relativePositionedParent.getBoundingClientRect();
   const targetPos = target.getBoundingClientRect();
 
