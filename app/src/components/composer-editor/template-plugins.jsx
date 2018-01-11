@@ -3,7 +3,7 @@ import { Inline } from 'slate';
 import AutoReplace from 'slate-auto-replace';
 import { BuildToggleButton } from './toolbar-component-factories';
 
-const VARIABLE_TYPE = 'templatevar';
+export const VARIABLE_TYPE = 'templatevar';
 
 function renderNode({ attributes, node, editor, isSelected }) {
   if (node.type === VARIABLE_TYPE) {
@@ -15,7 +15,6 @@ function renderNode({ attributes, node, editor, isSelected }) {
         data-tvar={name}
         className={`template-variable ${isSelected && 'selected'}`}
         title={name}
-        spellCheck={false}
       >
         {name}
       </span>

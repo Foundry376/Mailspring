@@ -131,12 +131,6 @@ export default class WindowEventHandler {
       if (event.target.nodeName === 'INPUT') {
         this.openContextualMenuForInput(event);
       }
-
-      const ces = Array.from(document.querySelectorAll('[contenteditable]'));
-      const withinContenteditable = !!ces.find(c => c.contains(event.target));
-      if (withinContenteditable) {
-        this.openContextualMenuForContenteditable(event);
-      }
     });
 
     // Prevent form submits from changing the current window's URL
@@ -260,19 +254,6 @@ export default class WindowEventHandler {
     return;
   }
 
-  openContextualMenuForContenteditable(event) {
-    event.preventDefault();
-
-    const sel = window.getSelection();
-    if (sel.rangeCount !== 1) {
-      return;
-    }
-    const text = sel.getRangeAt(0).toString();
-    this.openSpellingMenuFor(text, text.length > 0, correction => {
-      document.execCommand('insertText', false, correction);
-    });
-  }
-
   openContextualMenuForInput(event) {
     event.preventDefault();
 
@@ -299,14 +280,19 @@ export default class WindowEventHandler {
     }
     const word = event.target.value.substr(wordStart, wordEnd - wordStart);
 
-    this.openSpellingMenuFor(word, hasSelectedText, correction => {
-      const insertionPoint = wordStart + correction.length;
-      event.target.value = event.target.value.replace(word, correction);
-      event.target.setSelectionRange(insertionPoint, insertionPoint);
+    this.openSpellingMenuFor(word, hasSelectedText, {
+      onCopy: () => document.execCommand('copy'),
+      onCut: () => document.execCommand('cut'),
+      onPaste: () => document.execCommand('paste'),
+      onCorrect: correction => {
+        const insertionPoint = wordStart + correction.length;
+        event.target.value = event.target.value.replace(word, correction);
+        event.target.setSelectionRange(insertionPoint, insertionPoint);
+      },
     });
   }
 
-  openSpellingMenuFor(word, hasSelectedText, onCorrect) {
+  openSpellingMenuFor(word, hasSelectedText, { onCorrect, onCut, onPaste, onCopy }) {
     const { Menu, MenuItem } = remote;
     const menu = new Menu();
 
@@ -317,20 +303,20 @@ export default class WindowEventHandler {
       new MenuItem({
         label: 'Cut',
         enabled: hasSelectedText,
-        click: () => document.execCommand('cut'),
+        click: onCut,
       })
     );
     menu.append(
       new MenuItem({
         label: 'Copy',
         enabled: hasSelectedText,
-        click: () => document.execCommand('copy'),
+        click: onCopy,
       })
     );
     menu.append(
       new MenuItem({
         label: 'Paste',
-        click: () => document.execCommand('paste'),
+        click: onPaste,
       })
     );
     menu.popup(remote.getCurrentWindow());

@@ -6,7 +6,7 @@ import { RegExpUtils } from 'mailspring-exports';
 
 import { BuildMarkButtonWithValuePicker } from './toolbar-component-factories';
 
-const LINK_TYPE = 'link';
+export const LINK_TYPE = 'link';
 
 function onPaste(event, change, editor) {
   const html = event.clipboardData.getData('text/html');
@@ -26,7 +26,7 @@ function renderMark({ mark, children }) {
   if (mark.type === LINK_TYPE) {
     const href = mark.data.href || mark.data.get('href');
     return (
-      <a href={href} title={href} spellCheck={false}>
+      <a href={href} title={href}>
         {children}
       </a>
     );

@@ -94,6 +94,13 @@ class Spellchecker {
     }
   };
 
+  provideHintText = text => {
+    if (!this.handler) {
+      return false;
+    }
+    this.handler.provideHintText(text);
+  };
+
   isMisspelled = word => {
     if (!this.handler) {
       return false;

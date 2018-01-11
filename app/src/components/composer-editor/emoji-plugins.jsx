@@ -4,12 +4,21 @@ import { Actions } from 'mailspring-exports';
 
 import EmojiToolbarPopover from './emoji-toolbar-popover';
 
-let EmojiData = null;
+let EmojiNameToImageTable = null;
 
+// A Mark type used to store data on the `:emoji` characters that
+// cause the floating picker to be displayed.
 const EMOJI_TYPING_TYPE = 'emojitype';
+
+// An Inline type used for actual emoji in the editor, which we
+// display as images rather than text characters for visual consistency
+// across platforms (textual emoji suck on Windows and Linux)
 const EMOJI_TYPE = 'emoji';
+
+// The size of the list of floating emoji options
 const MAX_EMOJI_SUGGESTIONS = 6;
 
+/* Returns the official emoji names matching the provided text. */
 export function getEmojiSuggestions(word) {
   const emojiOptions = [];
   const emojiNames = Object.keys(NodeEmoji.emoji).sort();
@@ -22,14 +31,10 @@ export function getEmojiSuggestions(word) {
 }
 
 export function getEmojiImagePath(emojiname) {
-  EmojiData = EmojiData || require('./emoji-data').emojiData;
-  for (const emoji of EmojiData) {
-    if (emoji.short_names.includes(emojiname)) {
-      return process.platform === 'darwin'
-        ? `images/composer-emoji/apple/${emoji.image}`
-        : `images/composer-emoji/twitter/${emoji.image}`;
-    }
-  }
+  EmojiNameToImageTable = EmojiNameToImageTable || require('./emoji-name-to-image-table');
+  return process.platform === 'darwin'
+    ? `images/composer-emoji/apple/${EmojiNameToImageTable[emojiname]}`
+    : `images/composer-emoji/twitter/${EmojiNameToImageTable[emojiname]}`;
 }
 
 function ImageBasedEmoji(props) {
@@ -45,14 +50,30 @@ function ImageBasedEmoji(props) {
   );
 }
 
+/* React Component that positions itself beneath the [data-emoji-typing] node
+within the RichEditor. Note that this positioning logic fails on first render
+because it assumes the [data-emoji-typing] noe will have already been rendered.
+For the moment, I don't care.
+
+This component doesn't get much in the way of props. It reads /all/ of it's
+state (emoji to display, current selection, etc.) from the EMOJI_TYPING_TYPE
+mark. Storing the state in the document is a bit odd but worked very well in
+the last Mailspring editor.
+*/
 function FloatingEmojiPicker({ value, onChange }) {
   if (!value.selection.isFocused) return false;
   const sel = document.getSelection();
   if (!sel.rangeCount) return false;
   const range = sel.getRangeAt(0);
 
-  const emoji = value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
-  if (!emoji) return false;
+  let emoji = null;
+  try {
+    emoji = value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
+    if (!emoji) return false;
+  } catch (err) {
+    // sometimes fails for some reason
+  }
+
   const picked = emoji.data.get('picked');
   const suggestions = emoji.data.get('suggestions');
   if (!suggestions || !suggestions.length) return false;
@@ -73,6 +94,8 @@ function FloatingEmojiPicker({ value, onChange }) {
     left: targetPos.left - intrinsicPos.left,
   };
 
+  // Don't display all the selections - just display a few before/after the
+  // current selection so the user can "scroll" through them with the arrows
   let start = suggestions.indexOf(picked);
   start = start < 3 ? 0 : start - 2;
   if (start > suggestions.length - MAX_EMOJI_SUGGESTIONS) {

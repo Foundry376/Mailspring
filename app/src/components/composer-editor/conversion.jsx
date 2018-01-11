@@ -3,6 +3,7 @@ import { Value } from 'slate';
 
 import BaseMarkPlugins from './base-mark-plugins';
 import TemplatePlugins from './template-plugins';
+import SpellcheckPlugins from './spellcheck-plugins';
 import UneditablePlugins from './uneditable-plugins';
 import BaseBlockPlugins, { BLOCK_CONFIG } from './base-block-plugins';
 import InlineAttachmentPlugins from './inline-attachment-plugins';
@@ -17,10 +18,11 @@ export const plugins = [
   ...UneditablePlugins,
   ...BaseMarkPlugins,
   ...TemplatePlugins,
-  ...BaseBlockPlugins,
   ...EmojiPlugins,
+  ...BaseBlockPlugins,
   ...LinkPlugins,
   ...MarkdownPlugins,
+  ...SpellcheckPlugins,
 ];
 
 const cssValueIsZero = val => {

@@ -10,6 +10,14 @@ import { changes as InlineAttachmentChanges } from './inline-attachment-plugins'
 export default class ComposerEditor extends React.Component {
   // Public API
 
+  componentDidMount() {
+    this._mounted = true;
+  }
+
+  componentWillUnmount() {
+    this._mounted = false;
+  }
+
   focus = () => {
     const { onChange, value } = this.props;
     onChange(
@@ -131,21 +139,49 @@ export default class ComposerEditor extends React.Component {
     }
   };
 
+  onContextMenu = event => {
+    event.preventDefault();
+
+    const word = this.props.value.fragment.text;
+    const hasSelectedText = !this.props.value.selection.isCollapsed;
+
+    AppEnv.windowEventHandler.openSpellingMenuFor(word, hasSelectedText, {
+      onCopy: () => document.execCommand('copy'),
+      onCut: () => document.execCommand('cut'),
+      onPaste: () => document.execCommand('paste'),
+      onCorrect: correction => {
+        this.onChange(this.props.value.change().insertText(correction));
+      },
+    });
+  };
+
+  onChange = nextValue => {
+    // This needs to be here because some composer plugins defer their calls to onChange
+    // (like spellcheck and the context menu).
+    if (!this._mounted) return;
+    this.props.onChange(nextValue);
+  };
+
   // Event Handlers
   render() {
-    const { className, onChange, onBlur, onDrop, value, propsForPlugins } = this.props;
-    const spellCheck = AppEnv.config.get('core.composing.spellcheck');
+    const { className, onBlur, onDrop, value, propsForPlugins } = this.props;
 
     return (
       <div className={`RichEditor-root ${className || ''}`}>
-        <ComposerEditorToolbar value={value} onChange={onChange} plugins={plugins} />
-        <div className="RichEditor-content" onClick={this.onFocusIfBlurred}>
+        <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} />
+        <div
+          className="RichEditor-content"
+          onClick={this.onFocusIfBlurred}
+          onContextMenu={this.onContextMenu}
+        >
           {plugins
             .filter(p => p.topLevelComponent)
-            .map((p, idx) => <p.topLevelComponent key={idx} value={value} onChange={onChange} />)}
+            .map((p, idx) => (
+              <p.topLevelComponent key={idx} value={value} onChange={this.onChange} />
+            ))}
           <Editor
             value={value}
-            onChange={onChange}
+            onChange={this.onChange}
             onBlur={onBlur}
             onDrop={onDrop}
             onCut={this.onCut}
