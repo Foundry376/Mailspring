@@ -261,7 +261,7 @@ class TemplateStore extends MailspringStore {
         const current = session.draft().body;
         let insertion = current.length;
         for (const s of [
-          '<p><signature',
+          '<signature',
           '<div class="gmail_quote_attribution"',
           '<blockquote class="gmail_quote"',
         ]) {

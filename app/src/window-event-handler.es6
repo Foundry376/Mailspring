@@ -229,7 +229,7 @@ export default class WindowEventHandler {
   }
 
   openLink({ href, target, currentTarget, metaKey }) {
-    const resolved = href || this.resolveHref(target || currentTarget);
+    let resolved = href || this.resolveHref(target || currentTarget);
     if (!resolved) {
       return;
     }
@@ -237,9 +237,10 @@ export default class WindowEventHandler {
       return;
     }
 
-    const { protocol } = url.parse(resolved);
+    let { protocol } = url.parse(resolved);
     if (!protocol) {
-      return;
+      protocol = 'http:';
+      resolved = `http://${resolved}`;
     }
 
     if (['mailto:', 'mailspring:'].includes(protocol)) {
