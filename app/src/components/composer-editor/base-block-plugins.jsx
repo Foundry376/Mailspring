@@ -15,7 +15,7 @@ function nodeIsEmpty(node) {
   if (children.length === 0) {
     return true;
   }
-  if (children.length === 1 && children[0].type === 'text') {
+  if (children.length === 1 && children[0].object === 'text') {
     return true;
   }
   return false;
