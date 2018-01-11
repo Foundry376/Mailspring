@@ -147,7 +147,10 @@ function onSpellcheckFocusedNode(change) {
     }
   });
 
-  change.setValue({ decorations: next });
+  change
+    .setOperationFlag('save', false)
+    .setValue({ decorations: next })
+    .setOperationFlag('save', true);
 }
 
 function onSpellcheckFullDocument(editor) {
@@ -170,8 +173,37 @@ function onSpellcheckFullDocument(editor) {
       break;
     }
   }
-  const change = value.change().setValue({ decorations });
-  editor.onChange(change);
+
+  // compare old decorations to new decorations. If we call call onChange
+  // it pushes on the undo stack, which we don't want to do unnecessarily.
+  let changed = false;
+  const previous = value.get('decorations');
+
+  if (!previous || previous.size !== decorations.length) {
+    changed = true;
+  } else {
+    const table = {};
+    previous.forEach(
+      d => (table[`${d.anchorKey}:${d.anchorOffset}-${d.focusKey}:${d.focusOffset}`] = true)
+    );
+    for (const d of decorations) {
+      if (!table[`${d.anchorKey}:${d.anchorOffset}-${d.focusKey}:${d.focusOffset}`]) {
+        changed = true;
+        break;
+      }
+    }
+  }
+
+  if (changed) {
+    const change = value
+      .change()
+      .setOperationFlag('save', false)
+      .setValue({ decorations })
+      .setOperationFlag('save', true);
+    editor.onChange(change);
+  } else {
+    console.log('skipping pointless decorator update');
+  }
 }
 
 let timer = null;
