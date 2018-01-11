@@ -174,8 +174,8 @@ function onSpellcheckFullDocument(editor) {
     }
   }
 
-  // compare old decorations to new decorations. If we call call onChange
-  // it pushes on the undo stack, which we don't want to do unnecessarily.
+  // compare old decorations to new decorations. We're debounced, so calling
+  // onChange() introduces a re-render we wouldn't be doing otherwise.
   let changed = false;
   const previous = value.get('decorations');
 
@@ -201,8 +201,6 @@ function onSpellcheckFullDocument(editor) {
       .setValue({ decorations })
       .setOperationFlag('save', true);
     editor.onChange(change);
-  } else {
-    console.log('skipping pointless decorator update');
   }
 }
 
