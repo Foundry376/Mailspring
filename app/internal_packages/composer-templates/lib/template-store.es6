@@ -46,6 +46,10 @@ class TemplateStore extends MailspringStore {
     });
   }
 
+  directory() {
+    return this._templatesDir;
+  }
+
   watch() {
     if (!this._watcher) {
       this._watcher = fs.watch(this._templatesDir, () => this._populate());
@@ -156,12 +160,14 @@ class TemplateStore extends MailspringStore {
       return;
     }
 
-    const template = this._items.find(t => t.name === name);
-    if (template) {
-      this._displayError('A template with that name already exists!');
-      return;
+    let number = 1;
+    let resolvedName = name;
+    const sameName = t => t.name === resolvedName;
+    while (this._items.find(sameName)) {
+      resolvedName = `${name} ${number}`;
+      number += 1;
     }
-    this.saveTemplate(name, contents, callback);
+    this.saveTemplate(resolvedName, contents, callback);
     this.trigger(this);
   }
 

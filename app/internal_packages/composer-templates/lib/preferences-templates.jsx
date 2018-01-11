@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
 import { React, ReactDOM } from 'mailspring-exports';
+import { shell } from 'electron';
 
 import TemplateStore from './template-store';
 import TemplateActions from './template-actions';
@@ -54,7 +55,7 @@ class TemplateEditor extends React.Component {
             onBlur={e => onEditTitle(e.target.value)}
           />
         </div>
-        <div className="section" onClick={this._onFocusEditor}>
+        <div className="section editor" onClick={this._onFocusEditor}>
           <ComposerEditor
             ref={c => (this._composer = c)}
             readOnly={readOnly}
@@ -63,6 +64,13 @@ class TemplateEditor extends React.Component {
             onChange={change => this.setState({ editorState: change.value })}
             onBlur={this._onSave}
           />
+        </div>
+        <div className="section note">
+          Changes are saved automatically. View the{' '}
+          <a href="https://foundry376.zendesk.com/hc/en-us/articles/115001875231-Using-quick-reply-templates">
+            Templates Guide
+          </a>{' '}
+          for tips and tricks.
         </div>
       </div>
     );
@@ -107,7 +115,7 @@ export default class PreferencesTemplates extends React.Component {
   }
 
   _onAdd = () => {
-    TemplateActions.createTemplate({ name: 'Untitled', content: '' });
+    TemplateActions.createTemplate({ name: 'Untitled', contents: 'Insert content here!' });
   };
 
   _onDelete = () => {
@@ -129,17 +137,25 @@ export default class PreferencesTemplates extends React.Component {
       <div className="preferences-templates-container">
         <section>
           <Flexbox>
-            <EditableList
-              showEditIcon
-              className="template-list"
-              items={this.state.templates}
-              itemContent={template => template.name}
-              onCreateItem={this._onAdd}
-              onDeleteItem={this._onDelete}
-              onItemEdited={this._onEditTitle}
-              onSelectItem={this._onSelect}
-              selected={this.state.selected}
-            />
+            <div>
+              <EditableList
+                showEditIcon
+                className="template-list"
+                items={this.state.templates}
+                itemContent={template => template.name}
+                onCreateItem={this._onAdd}
+                onDeleteItem={this._onDelete}
+                onItemEdited={this._onEditTitle}
+                onSelectItem={this._onSelect}
+                selected={this.state.selected}
+              />
+              <a
+                style={{ marginTop: 10, display: 'block' }}
+                onClick={() => shell.showItemInFolder(TemplateStore.directory())}
+              >
+                Show Templates Folder...
+              </a>
+            </div>
             <TemplateEditor
               onEditTitle={this._onEditTitle}
               key={selected ? selected.name : 'empty'}

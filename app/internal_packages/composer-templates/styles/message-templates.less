@@ -81,10 +81,15 @@
 
     .section {
       margin-bottom: 10px;
-      &:last-child {
+      &.editor {
         display: flex;
         flex: 1;
         margin-bottom: 0;
+      }
+      &.note {
+        font-size:0.9em;
+        margin-top: 8px;
+        color: @text-color-very-subtle;
       }
     }
 
