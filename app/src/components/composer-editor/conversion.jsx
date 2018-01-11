@@ -8,6 +8,7 @@ import BaseBlockPlugins, { BLOCK_CONFIG } from './base-block-plugins';
 import InlineAttachmentPlugins from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
+import EmojiPlugins from './emoji-plugins';
 
 // Note: order is important here because we deserialize HTML with rules
 // in this order. <code class="var"> before <code>, etc.
@@ -17,6 +18,7 @@ export const plugins = [
   ...BaseMarkPlugins,
   ...TemplatePlugins,
   ...BaseBlockPlugins,
+  ...EmojiPlugins,
   ...LinkPlugins,
   ...MarkdownPlugins,
 ];
@@ -215,7 +217,11 @@ export function convertFromHTML(html) {
         break;
       }
       cleanupTrailingWhitespace(last);
-      if (last.object === 'block' && last.type === 'div' && last.nodes.length === 0) {
+      if (
+        last.object === 'block' &&
+        last.type === BLOCK_CONFIG.div.type &&
+        last.nodes.length === 0
+      ) {
         node.nodes.pop();
         continue;
       }

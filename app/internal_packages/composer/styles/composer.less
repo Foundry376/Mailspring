@@ -20,6 +20,7 @@
 
   .body-field {
     padding-top: 12px;
+    position: relative; // needed for floating emoji picker
   }
 }
 
@@ -655,5 +656,73 @@ body.platform-win32 {
   }
 }
 
+// Emoji Picker
 
+.emoji-picker {
+  z-index: 3;
+  padding: 4px;
+  background: @background-primary;
+  box-shadow: @standard-shadow;
+  min-width: 140px;
 
+  .btn.btn-icon {
+    display: block;
+    font-size: 14px !important;
+    padding: 0 0.5em;
+    text-align: left;
+    word-break: break-all;
+    overflow: hidden;
+
+    &:first-child {
+      padding-left: 0.5em !important;
+    }
+    &.emoji-option,
+    &:hover {
+      background-color: @btn-emphasis-bg-color;
+      color: #ffffff;
+      border-radius: 5px;
+    }
+  }
+}
+
+.emoji-button-popover {
+  width: 210px;
+  height: 290px;
+  overflow: hidden;
+  .emoji-tabs {
+    display: flex;
+    flex-direction: row;
+    padding: 5px 5px 5px 10px;
+    border-bottom: 1px solid @border-color-primary;
+    transition: box-shadow 0.5s;
+    &.shadow {
+      box-shadow: @standard-shadow;
+    }
+    .emoji-tab {
+      background-color: @gray-light;
+      &.active {
+        background-color: @component-active-color;
+      }
+    }
+  }
+  .emoji-finder-container {
+    height: 232px;
+    .scrollbar-track {
+      background: transparent;
+      border-left: none;
+      width: 10px;
+    }
+    .emoji-search-container {
+      padding: @padding-base-vertical * 1.5 @padding-base-horizontal 0;
+    }
+  }
+  .emoji-name {
+    height: 25px;
+    width: 192px;
+    margin-top: 2px;
+    margin-left: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: @text-color-very-subtle;
+  }
+}

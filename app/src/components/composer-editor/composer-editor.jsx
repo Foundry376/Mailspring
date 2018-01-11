@@ -61,6 +61,7 @@ export default class ComposerEditor extends React.Component {
     event.preventDefault();
     const document = editor.value.document.getFragmentAtRange(editor.value.selection);
     event.clipboardData.setData('text/html', convertToHTML({ document }));
+    event.clipboardData.setData('text/plain', editor.value.fragment.text);
     return true;
   };
 
@@ -139,6 +140,9 @@ export default class ComposerEditor extends React.Component {
       <div className="RichEditor-root">
         <ComposerEditorToolbar value={value} onChange={onChange} plugins={plugins} />
         <div className={className} onClick={this.onFocusIfBlurred}>
+          {plugins
+            .filter(p => p.topLevelComponent)
+            .map((p, idx) => <p.topLevelComponent key={idx} value={value} onChange={onChange} />)}
           <Editor
             value={value}
             onChange={onChange}
