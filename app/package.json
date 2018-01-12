@@ -69,7 +69,6 @@
     "rx-lite": "4.0.8",
     "rx-lite-testing": "^4.0.7",
     "semver": "^4.2",
-    "simplemde": "jstejada/simplemde-markdown-editor#input-style-support",
     "slate": "bengotow/slate#77f6337",
     "slate-auto-replace": "^0.9.0",
     "slate-edit-list": "bengotow/slate-edit-list#44701a7",
