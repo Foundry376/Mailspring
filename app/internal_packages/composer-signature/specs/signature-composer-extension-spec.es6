@@ -38,11 +38,11 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
 
         SignatureComposerExtension.prepareNewDraft({ draft: a });
         expect(a.body).toEqual(
-          `This is a test! <div></div><signature id="1">${TEST_SIGNATURE.body}</signature><div class="gmail_quote">Hello world</div>`
+          `This is a test! <br/><signature id="1">${TEST_SIGNATURE.body}</signature><div class="gmail_quote">Hello world</div>`
         );
         SignatureComposerExtension.prepareNewDraft({ draft: b });
         expect(b.body).toEqual(
-          `This is a another test.<div></div><signature id="1">${TEST_SIGNATURE.body}</signature>`
+          `This is a another test.<br/><signature id="1">${TEST_SIGNATURE.body}</signature>`
         );
       });
 

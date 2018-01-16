@@ -7,6 +7,8 @@ import {
   hasMark,
 } from './toolbar-component-factories';
 
+import BaseBlockPlugins from './base-block-plugins';
+
 export const DEFAULT_FONT_SIZE = 2;
 export const DEFAULT_FONT_OPTIONS = [
   { name: 'Small', value: 1 },
@@ -194,13 +196,28 @@ const rules = [
       }
 
       if (marks.length) {
+        // convert array of marks into a tree. If the marks are on a BLOCK
+        // tagname, also nest the marks within the block node that would
+        // have been created, since the block will not be created if we return
+        // a value.
+        let block = null;
+        for (const plugin of BaseBlockPlugins) {
+          if (block) break;
+          if (!plugin.rules) continue;
+          for (const { deserialize } of plugin.rules) {
+            block = deserialize(el, next);
+            if (block) {
+              break;
+            }
+          }
+        }
         const root = marks[0];
         let tail = root;
         for (let x = 1; x < marks.length; x++) {
           tail.nodes = [marks[x]];
           tail = tail.nodes[0];
         }
-        tail.nodes = next(el.childNodes);
+        tail.nodes = block ? [block] : next(el.childNodes);
         return root;
       }
     },

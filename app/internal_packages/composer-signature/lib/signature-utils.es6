@@ -12,7 +12,7 @@ export function currentSignatureId(body) {
 }
 
 export function applySignature(body, signature) {
-  let additionalWhitespace = '<div></div>';
+  let additionalWhitespace = '<br/>';
 
   // Remove any existing signature in the body
   let newBody = body;

@@ -28,7 +28,7 @@ const NoIconUrl = {
   performSendAction() {},
 };
 
-fdescribe('SendActionButton', function describeBlock() {
+describe('SendActionButton', function describeBlock() {
   beforeEach(() => {
     spyOn(Actions, 'sendDraft');
     this.isValidDraft = jasmine.createSpy('isValidDraft');

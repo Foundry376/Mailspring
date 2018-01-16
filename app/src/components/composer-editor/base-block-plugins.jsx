@@ -161,6 +161,14 @@ const rules = [
         config = BLOCK_CONFIG.code;
       }
 
+      // div elements that are entirely empty and have no meaningful-looking styles applied
+      // would probably just add extra whitespace
+      if (tagName === 'div' && !el.hasChildNodes()) {
+        const s = (el.getAttribute('style') || '').toLowerCase();
+        if (!s.includes('background') && !s.includes('margin') && !s.includes('padding')) {
+          return;
+        }
+      }
       // return block
       if (config) {
         return {

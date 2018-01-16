@@ -47,8 +47,7 @@ describe('SignatureComposerDropdown', function signatureComposerDropdown() {
       );
       ReactTestUtils.Simulate.mouseDown(this.signature);
       expect(this.button.props.session.changes.add).toHaveBeenCalledWith({
-        body: `${this.button.props.draft
-          .body}<div></div><signature id="2">${sigToAdd.body}</signature>`,
+        body: `${this.button.props.draft.body}<br/><signature id="2">${sigToAdd.body}</signature>`,
       });
     });
     it('finds and removes the signature when no signature is clicked and there is a current signature', () => {
