@@ -177,30 +177,30 @@ export default class DraftEditingSession extends MailspringStore {
     this.listenTo(DraftStore, this._onDraftChanged);
 
     if (draft) {
+      hotwireDraftBodyState(draft);
+      this._draft = draft;
       this._draftPromise = Promise.resolve(draft);
     } else {
       this._draftPromise = DatabaseStore.findBy(Message, {
         headerMessageId: this.headerMessageId,
         draft: true,
-      }).include(Message.attributes.body);
+      })
+        .include(Message.attributes.body)
+        .then(draft => {
+          if (this._destroyed) {
+            throw new Error('Draft has been destroyed.');
+          }
+          if (!draft) {
+            throw new Error(`Assertion Failure: Draft ${this.headerMessageId} not found.`);
+          }
+          if (draft.body === undefined) {
+            throw new Error('DraftEditingSession._setDraft - new draft has no body!');
+          }
+          hotwireDraftBodyState(draft);
+          this._draft = draft;
+          this.trigger();
+        });
     }
-
-    this._draftPromise = this._draftPromise.then(draft => {
-      if (this._destroyed) {
-        throw new Error('Draft has been destroyed.');
-      }
-      if (!draft) {
-        throw new Error(`Assertion Failure: Draft ${this.headerMessageId} not found.`);
-      }
-      if (draft.body === undefined) {
-        throw new Error('DraftEditingSession._setDraft - new draft has no body!');
-      }
-
-      hotwireDraftBodyState(draft);
-      this._draft = draft;
-
-      this.trigger();
-    });
   }
 
   // Public: Returns the draft object with the latest changes applied.

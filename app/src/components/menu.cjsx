@@ -247,9 +247,8 @@ class Menu extends React.Component
 
       onMouseDown = (event) =>
         event.preventDefault()
-        @setState({selectedIndex: i}, =>
-          @props.onSelect(item) if @props.onSelect
-        )
+        @setState({selectedIndex: i})
+        @props.onSelect(item) if @props.onSelect
 
       key = @props.itemKey(item)
       if not key
