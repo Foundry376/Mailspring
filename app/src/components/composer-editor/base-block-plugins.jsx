@@ -3,7 +3,6 @@ import SoftBreak from 'slate-soft-break';
 import EditList from 'slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
 
-import { DEFAULT_FONT_SIZE } from './base-mark-plugins';
 import { BuildToggleButton } from './toolbar-component-factories';
 
 function nodeIsEmpty(node) {
@@ -30,11 +29,7 @@ export const BLOCK_CONFIG = {
         return <br {...attributes} />;
       }
       return (
-        <div
-          {...attributes}
-          style={{ fontSize: DEFAULT_FONT_SIZE }}
-          className={node.data.className || node.data.get('className')}
-        >
+        <div {...attributes} className={node.data.className || node.data.get('className')}>
           {children}
         </div>
       );

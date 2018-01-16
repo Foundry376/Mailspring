@@ -14,9 +14,6 @@
 .RichEditor-root {
   padding: 0 22px 0 22px;
   min-height: @compose-min-height;
-  // this sets the baseline for the `pt` sizes used in the editor
-  // must be the same as DEFAULT_FONT_SIZE
-  font-size: 11pt; 
 
   .RichEditor-content {
     padding-top: 12px;
@@ -113,6 +110,8 @@
       border: none;
       background: none;
       margin: 0;
+      min-width: 72px;
+      max-width: 92px;
     }
   }
 

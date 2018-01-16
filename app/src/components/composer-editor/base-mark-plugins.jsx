@@ -7,7 +7,28 @@ import {
   hasMark,
 } from './toolbar-component-factories';
 
-export const DEFAULT_FONT_SIZE = '11pt';
+export const DEFAULT_FONT_SIZE = 2;
+export const DEFAULT_FONT_OPTIONS = [
+  { name: 'Small', value: 1 },
+  { name: 'Normal', value: 2 },
+  { name: 'Large', value: 4 },
+  { name: 'Huge', value: 6 },
+];
+
+export const DEFAULT_FONT_FACE = 'sans-serif';
+export const DEFAULT_FONT_FACE_OPTIONS = [
+  { name: 'Sans Serif', value: 'sans-serif' },
+  { name: 'Serif', value: 'serif' },
+  { name: 'Fixed Width', value: 'monospace' },
+  { name: 'Comic Sans MS', value: 'comic sans ms' },
+  { name: 'Garamond', value: 'garamond' },
+  { name: 'Georgia', value: 'georgia' },
+  { name: 'Tahoma', value: 'tahoma' },
+  { name: 'Trebuchet MS', value: 'trebuchet ms' },
+  { name: 'Verdana', value: 'verdana' },
+];
+
+const PT_TO_SIZE = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 3, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 7];
 
 function isMeaningfulColor(color) {
   const meaningless = ['black', 'rgb(0,0,0)', 'rgba(0,0,0,1)', '#000', '#000000'];
@@ -15,21 +36,11 @@ function isMeaningfulColor(color) {
 }
 
 function isMeaningfulFontSize(size) {
-  return size && sanitizeFontSize(size) !== DEFAULT_FONT_SIZE;
+  return size && size / 1 !== DEFAULT_FONT_SIZE;
 }
 
-function sanitizeFontTagSize(size) {
-  return ['6pt', '8pt', DEFAULT_FONT_SIZE, '13pt', '14pt', '18pt', '24pt'][size] || '24pt';
-}
-
-function sanitizeFontSize(size) {
-  if (size.endsWith('px')) {
-    return `${Math.round(size.replace('px', '') / 1 * 0.75)}pt`;
-  }
-  if (size.endsWith('em')) {
-    return `${Math.round(size.replace('em', '') * DEFAULT_FONT_SIZE.replace('pt', ''))}pt`;
-  }
-  return size;
+function isMeaningfulFontStyle(style) {
+  return style && style !== '14px';
 }
 
 export const MARK_CONFIG = {
@@ -94,8 +105,20 @@ export const MARK_CONFIG = {
   size: {
     type: 'size',
     tagNames: [],
+    render: ({ children, mark }) => {
+      const v = mark.data.value || mark.data.get('value');
+      return typeof v === 'string' ? (
+        <font style={{ fontSize: v }}>{children}</font>
+      ) : (
+        <font size={v}>{children}</font>
+      );
+    },
+  },
+  face: {
+    type: 'face',
+    tagNames: [],
     render: ({ children, mark }) => (
-      <span style={{ fontSize: mark.data.value || mark.data.get('value') }}>{children}</span>
+      <font style={{ fontFamily: mark.data.value || mark.data.get('value') }}>{children}</font>
     ),
   },
 };
@@ -135,11 +158,11 @@ const rules = [
           data: { value: el.style.color },
         });
       }
-      if (el.style && isMeaningfulFontSize(el.style.fontSize)) {
+      if (el.style && isMeaningfulFontStyle(el.style.fontSize)) {
         marks.push({
           object: 'mark',
           type: 'size',
-          data: { value: sanitizeFontSize(el.style.fontSize) },
+          data: { value: el.style.fontSize },
         });
       }
       if (
@@ -153,7 +176,7 @@ const rules = [
         });
       }
       if (tagName === 'font' && el.getAttribute('size')) {
-        const size = sanitizeFontTagSize(el.getAttribute('size'));
+        const size = Math.max(1, Math.min(6, el.getAttribute('size') / 1));
         if (isMeaningfulFontSize(size)) {
           marks.push({
             object: 'mark',
@@ -161,6 +184,13 @@ const rules = [
             data: { value: size },
           });
         }
+      }
+      if (tagName === 'font' && el.getAttribute('face')) {
+        marks.push({
+          object: 'mark',
+          type: 'face',
+          data: { value: el.getAttribute('face') },
+        });
       }
 
       if (marks.length) {
@@ -188,7 +218,58 @@ export default [
       .map(BuildToggleButton)
       .concat([
         BuildColorPicker({ type: 'color', default: '#000000' }),
-        BuildFontPicker({ type: 'size', default: DEFAULT_FONT_SIZE }),
+        BuildFontPicker({
+          type: 'face',
+          default: DEFAULT_FONT_FACE,
+          options: DEFAULT_FONT_FACE_OPTIONS,
+          convert: provided => {
+            const opts = provided
+              .toLowerCase()
+              .split(',')
+              .map(t => t.trim());
+
+            let opt = null;
+            if (opts.length <= 1) {
+              opt = DEFAULT_FONT_FACE_OPTIONS.find(({ value }) => opts[0] === value);
+            } else {
+              let score = 100;
+              for (const aopt of DEFAULT_FONT_FACE_OPTIONS) {
+                const i = opts.indexOf(aopt.value);
+                if (i >= 0 && i < score) {
+                  score = i;
+                  opt = aopt;
+                }
+              }
+            }
+            return opt ? opt.value : 'sans-serif';
+          },
+        }),
+        BuildFontPicker({
+          type: 'size',
+          iconClass: 'fa fa-text-height',
+          default: DEFAULT_FONT_SIZE,
+          options: DEFAULT_FONT_OPTIONS,
+          convert: provided => {
+            if (typeof provided === 'string') {
+              let size = 2;
+              if (provided.endsWith('px')) {
+                size = PT_TO_SIZE[Math.round(provided.replace('px', '') / 1 * 0.75)];
+              }
+              if (provided.endsWith('em')) {
+                size =
+                  PT_TO_SIZE[
+                    Math.round(provided.replace('em', '') * DEFAULT_FONT_SIZE.replace('pt', ''))
+                  ];
+              }
+              if (provided.endsWith('pt')) {
+                size = PT_TO_SIZE[Math.round(provided.replace('pt', '') * 1)];
+              }
+              const opt = DEFAULT_FONT_OPTIONS.find(({ value }) => value >= size);
+              return opt ? opt.value : 2;
+            }
+            return provided;
+          },
+        }),
       ]),
     renderMark,
     onKeyDown,

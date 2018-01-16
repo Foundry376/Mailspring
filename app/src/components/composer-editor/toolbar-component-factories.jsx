@@ -258,7 +258,7 @@ export function BuildColorPicker(config) {
               width: 20,
               height: 14,
               backgroundColor: color,
-              marginRight: 8,
+              marginRight: 4,
               marginLeft: 4,
               marginBottom: 2,
               verticalAlign: 'middle',
@@ -277,9 +277,12 @@ export function BuildColorPicker(config) {
 
 export function BuildFontPicker(config) {
   return class FontPicker extends React.Component {
-    _onSetFontSize = e => {
+    _onSetValue = e => {
       const { onChange, value } = this.props;
-      const markValue = e.target.value !== config.default ? e.target.value : null;
+      let markValue = e.target.value !== config.default ? e.target.value : null;
+      if (!(typeof config.options[0].value === 'string')) {
+        markValue = markValue / 1;
+      }
       onChange(applyValueForMark(value, config.type, markValue));
     };
 
@@ -291,31 +294,21 @@ export function BuildFontPicker(config) {
     }
 
     render() {
-      const fontSize = getActiveValueForMark(this.props.value, config.type) || config.default;
+      const value = getActiveValueForMark(this.props.value, config.type) || config.default;
+      const displayed = config.convert(value);
 
       return (
-        <button style={{ padding: 0 }}>
-          <i className="fa fa-text-height" />
+        <button style={{ padding: 0, paddingRight: 6 }}>
+          <i className={config.iconClass} />
           <select
             onFocus={this._onFocus}
-            value={fontSize}
-            onChange={this._onSetFontSize}
+            value={displayed}
+            onChange={this._onSetValue}
             tabIndex={-1}
           >
-            {[
-              '10pt',
-              '11pt',
-              '12pt',
-              '13pt',
-              '14pt',
-              '16pt',
-              '18pt',
-              '22pt',
-              '24pt',
-              '26pt',
-            ].map(size => (
-              <option key={size} value={size}>
-                {size}
+            {config.options.map(({ name, value }) => (
+              <option key={value} value={value}>
+                {name}
               </option>
             ))}
           </select>

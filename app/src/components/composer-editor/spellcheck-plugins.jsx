@@ -95,6 +95,11 @@ function decorationsForNode(node, value) {
       if (value.document.getMarksAtRange(range).find(m => EXCEPT_MARK_TYPES.includes(m.type))) {
         continue;
       }
+
+      // If this word is "isn" of isn't or the "inz" of "y'inz", don't mark it
+      if (text[match[0].length + 1] === "'" || text[match.index - 1] === "'") {
+        continue;
+      }
       decorations.push(range);
       if (decorations.length > MAX_MISPELLINGS) {
         break;
