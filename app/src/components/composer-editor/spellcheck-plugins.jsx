@@ -100,6 +100,12 @@ function decorationsForNode(node, value) {
       if (text[match[0].length + 1] === "'" || text[match.index - 1] === "'") {
         continue;
       }
+
+      // If the word starts with a capital letter (name / acronym), don't mark it
+      if (match[0][0].toLocaleLowerCase() !== match[0][0]) {
+        continue;
+      }
+
       decorations.push(range);
       if (decorations.length > MAX_MISPELLINGS) {
         break;

@@ -1,5 +1,33 @@
 # Mailspring Changelog
 
+### 1.1.0 (1/16/2018)
+
+Features:
+
+- Overhauled composer with a great new editing toolbar and support for fonts, sizes, colors, right-to-left text, markdown shortcuts, and more.
+
+- Brand new template editor in *Preferences > Templates* with a more streamlined UI based on the new composer.
+
+- From the Activity screen, you can now export the raw data in the selected time range to perform custom analysis on your open and link tracking data.
+
+Improvements:
+
+- On Linux, Mailspring now lets you choose to auto-hide the menubar, or use the sleek, Windows-style unified window frame with the menu behind a hamburger button.
+
+Fixes:
+
+- Mailspring no longer cleans up messages you've downloaded recently.
+
+- When you edit an existing account, it's credentials are prepopulated for editing. (#496)
+
+- The signature editor now supports Twitter profile pictures and autoformats your handle. (#493)
+
+- On Windows, Mailspring supports installation in user directories with special characters. (#113)
+
+- Generation of IDs in Mailspring is no longer timezone-sensitive on some machines.
+
+- Drafts no longer fail to sze when you exit the app in some scenarios.
+
 ### 1.0.12 (12/28/2017)
 
 Improvements:
