@@ -1,3 +1,4 @@
+import fs from 'fs';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { shell } from 'electron';
@@ -248,6 +249,65 @@ class RootWithTimespan extends React.Component {
     Actions.showTemplates();
   };
 
+  _onExport = () => {
+    AppEnv.showSaveDialog({ defaultPath: 'report.csv' }, async filepath => {
+      if (!filepath) {
+        return;
+      }
+      const ws = fs.createWriteStream(filepath);
+      const esc = cell => '"' + `${cell}`.replace(/"/g, '""') + '"';
+
+      const { timespan: { startDate, endDate }, accountIds } = this.props;
+      const startUnix = startDate.unix();
+      const endUnix = endDate.unix();
+      let chunkStartUnix = startUnix;
+
+      ws.write('From,To,Cc,Bcc,Date,Subject,Opens,Clicks\n');
+
+      while (true) {
+        const messages = await this._onFetchChunk(accountIds, chunkStartUnix, endUnix);
+        if (!this._mounted) {
+          return;
+        }
+
+        for (const message of messages) {
+          const messageUnix = message.date.getTime() / 1000;
+          chunkStartUnix = Math.max(chunkStartUnix, messageUnix);
+
+          if (message.draft || !message.isFromMe()) {
+            continue;
+          }
+
+          let opens = '-';
+          const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
+          if (openM) {
+            opens = openM.open_count;
+          }
+
+          let clicks = '-';
+          const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
+          if (linkM && linkM.tracked && linkM.links instanceof Array) {
+            clicks = linkM.links.reduce((s, l) => s + l.click_count, 0);
+          }
+
+          ws.write(
+            `${esc(message.from.join(', '))},` +
+              `${esc(message.to.join(', '))},` +
+              `${esc(message.cc.join(', '))},` +
+              `${esc(message.bcc.join(', '))},` +
+              `${esc(message.date)},` +
+              `${esc(message.subject)},` +
+              `${esc(opens)},${esc(clicks)}\n`
+          );
+        }
+        if (messages.length < CHUNK_SIZE) {
+          break;
+        }
+      }
+      ws.close();
+    });
+  };
+
   _onLearnMore = () => {
     shell.openExternal('http://support.getmailspring.com/hc/en-us/articles/115002507891');
   };
@@ -358,6 +418,9 @@ class RootWithTimespan extends React.Component {
               style={{ marginRight: 10, width: 115 }}
             >
               Learn More
+            </div>
+            <div className="btn" onClick={this._onExport} style={{ marginRight: 10, width: 115 }}>
+              Export Raw Data
             </div>
             <ShareButton key={version} />
           </div>
