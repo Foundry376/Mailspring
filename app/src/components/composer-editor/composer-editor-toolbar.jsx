@@ -44,20 +44,22 @@ export default class ComposerEditorToolbar extends React.Component {
     const { value, onChange, plugins } = this.props;
     const sections = [];
 
-    plugins.forEach(({ toolbarComponents, toolbarSectionClass }, idx) => {
-      if (toolbarComponents && toolbarComponents.length) {
-        const sectionItems = toolbarComponents.map((Component, cdx) => (
-          <Component key={`${idx}-${cdx}`} value={value} onChange={onChange} />
-        ));
-        if (sections.length) {
-          sectionItems.unshift(<div key={idx} className="divider" />);
-        }
-        sections.push(
-          <div key={idx} className={`toolbar-section ${toolbarSectionClass || ''}`}>
-            {sectionItems}
-          </div>
-        );
+    const pluginsWithToolbars = plugins.filter(
+      (p, idx) => p.toolbarComponents && p.toolbarComponents.length
+    );
+
+    pluginsWithToolbars.forEach(({ toolbarComponents, toolbarSectionClass }, idx) => {
+      const sectionItems = toolbarComponents.map((Component, cdx) => (
+        <Component key={`${idx}-${cdx}`} value={value} onChange={onChange} />
+      ));
+      if (idx < pluginsWithToolbars.length - 1) {
+        sectionItems.push(<div key="divider" className="divider" />);
       }
+      sections.push(
+        <div key={idx} className={`toolbar-section ${toolbarSectionClass || ''}`}>
+          {sectionItems}
+        </div>
+      );
     });
 
     return (

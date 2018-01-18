@@ -46,6 +46,9 @@ export default class File extends Model {
   // name if one is present, and falls back to appropriate default name based on
   // the contentType. It will always return a non-empty string.
   displayName() {
+    // BG: This logic has been moved to the sync side - all files should always have names
+    // as of the 1.1 release. This is just here still because people's local dbs could
+    // still contain unnammed files.
     const defaultNames = {
       'text/calendar': 'Event.ics',
       'image/png': 'Unnamed Image.png',
