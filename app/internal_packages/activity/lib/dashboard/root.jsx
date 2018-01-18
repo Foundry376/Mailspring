@@ -262,7 +262,7 @@ class RootWithTimespan extends React.Component {
       const endUnix = endDate.unix();
       let chunkStartUnix = startUnix;
 
-      ws.write('From,To,Cc,Bcc,Date,Subject,Opens,Clicks\n');
+      ws.write('Sent,From,To,Cc,Bcc,Date,Subject,Opens,Clicks\n');
 
       while (true) {
         const messages = await this._onFetchChunk(accountIds, chunkStartUnix, endUnix);
@@ -274,24 +274,32 @@ class RootWithTimespan extends React.Component {
           const messageUnix = message.date.getTime() / 1000;
           chunkStartUnix = Math.max(chunkStartUnix, messageUnix);
 
-          if (message.draft || !message.isFromMe()) {
+          if (message.draft) {
             continue;
           }
 
-          let opens = '-';
-          const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
-          if (openM) {
-            opens = openM.open_count;
-          }
+          let sent = 'false';
+          let opens = '';
+          let clicks = '';
 
-          let clicks = '-';
-          const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
-          if (linkM && linkM.tracked && linkM.links instanceof Array) {
-            clicks = linkM.links.reduce((s, l) => s + l.click_count, 0);
+          if (message.isFromMe()) {
+            sent = 'true';
+            opens = 'off';
+            clicks = 'off';
+            const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
+            if (openM) {
+              opens = openM.open_count;
+            }
+
+            const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
+            if (linkM && linkM.tracked && linkM.links instanceof Array) {
+              clicks = linkM.links.reduce((s, l) => s + l.click_count, 0);
+            }
           }
 
           ws.write(
-            `${esc(message.from.join(', '))},` +
+            `${esc(sent)},` +
+              `${esc(message.from.join(', '))},` +
               `${esc(message.to.join(', '))},` +
               `${esc(message.cc.join(', '))},` +
               `${esc(message.bcc.join(', '))},` +
@@ -419,7 +427,7 @@ class RootWithTimespan extends React.Component {
             >
               Learn More
             </div>
-            <div className="btn" onClick={this._onExport} style={{ marginRight: 10, width: 115 }}>
+            <div className="btn" onClick={this._onExport} style={{ marginRight: 10, width: 135 }}>
               Export Raw Data
             </div>
             <ShareButton key={version} />
