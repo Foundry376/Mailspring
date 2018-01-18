@@ -167,6 +167,13 @@ const rules = [
           data: { value: el.style.fontSize },
         });
       }
+      if (el.style && el.style.fontFamily) {
+        marks.push({
+          object: 'mark',
+          type: 'face',
+          data: { value: el.style.fontFamily },
+        });
+      }
       if (
         ['font', 'p', 'div', 'span'].includes(tagName) &&
         isMeaningfulColor(el.getAttribute('color'))
@@ -240,22 +247,13 @@ export default [
           default: DEFAULT_FONT_FACE,
           options: DEFAULT_FONT_FACE_OPTIONS,
           convert: provided => {
-            const opts = provided
-              .toLowerCase()
-              .split(',')
-              .map(t => t.trim());
-
             let opt = null;
-            if (opts.length <= 1) {
-              opt = DEFAULT_FONT_FACE_OPTIONS.find(({ value }) => opts[0] === value);
-            } else {
-              let score = 100;
-              for (const aopt of DEFAULT_FONT_FACE_OPTIONS) {
-                const i = opts.indexOf(aopt.value);
-                if (i >= 0 && i < score) {
-                  score = i;
-                  opt = aopt;
-                }
+            let score = 10000;
+            for (const aopt of DEFAULT_FONT_FACE_OPTIONS) {
+              const i = provided.toLowerCase().indexOf(aopt.value);
+              if (i >= 0 && i < score) {
+                score = i;
+                opt = aopt;
               }
             }
             return opt ? opt.value : 'sans-serif';
