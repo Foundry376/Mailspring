@@ -131,7 +131,11 @@ HtmlSerializer.deserializeMark = function(mark) {
   const applyMark = function applyMark(node) {
     if (node.object === 'mark') {
       // THIS LINE CONTAINS THE CHANGE. +map
-      return HtmlSerializer.deserializeMark(node).map(applyMark);
+      let result = HtmlSerializer.deserializeMark(node);
+      if (result && result instanceof Array) {
+        result = result.map(applyMark);
+      }
+      return result;
     } else if (node.object === 'text') {
       node.leaves = node.leaves.map(function(leaf) {
         leaf.marks = leaf.marks || [];
@@ -139,7 +143,9 @@ HtmlSerializer.deserializeMark = function(mark) {
         return leaf;
       });
     } else {
-      node.nodes = node.nodes.map(applyMark);
+      if (node.nodes && node.nodes instanceof Array) {
+        node.nodes = node.nodes.map(applyMark);
+      }
     }
 
     return node;
