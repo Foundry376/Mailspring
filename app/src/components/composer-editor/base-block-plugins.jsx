@@ -20,6 +20,38 @@ function nodeIsEmpty(node) {
   return false;
 }
 
+function isBlockTypeOrWithinType(value, type) {
+  if (!value.focusBlock) {
+    return false;
+  }
+  const isMe = value.focusBlock.type === type;
+  const isParent = value.document.getAncestors(value.focusBlock.key).find(b => b.type === type);
+
+  return isMe || isParent;
+}
+
+function toggleBlockTypeWithBreakout(value, change, type) {
+  const ancestors = value.document.getAncestors(value.focusBlock.key);
+
+  let idx = ancestors.findIndex(b => b.type === type);
+  if (idx === -1 && value.focusBlock.type === type) {
+    idx = ancestors.size - 1;
+  }
+
+  if (idx !== -1) {
+    const depth = ancestors.size - idx;
+    if (depth > 0) {
+      change.splitBlock(ancestors.size - idx);
+      for (let x = 0; x < depth; x++) change.unwrapBlock();
+    }
+    change.setBlock(BLOCK_CONFIG.div.type);
+  } else {
+    change.setBlock(type);
+  }
+
+  return change;
+}
+
 export const BLOCK_CONFIG = {
   div: {
     type: 'div',
@@ -41,11 +73,12 @@ export const BLOCK_CONFIG = {
     render: props => <blockquote {...props.attributes}>{props.children}</blockquote>,
     button: {
       iconClass: 'fa fa-quote-left',
-      isActive: value => value.focusBlock && value.focusBlock.type === BLOCK_CONFIG.blockquote.type,
-      onToggle: (value, active) =>
-        active
-          ? value.change().setBlock(BLOCK_CONFIG.div.type)
-          : value.change().setBlock(BLOCK_CONFIG.blockquote.type),
+      isActive: value => {
+        return isBlockTypeOrWithinType(value, BLOCK_CONFIG.blockquote.type);
+      },
+      onToggle: (value, active) => {
+        return toggleBlockTypeWithBreakout(value, value.change(), BLOCK_CONFIG.blockquote.type);
+      },
     },
   },
   code: {
@@ -257,6 +290,8 @@ export function hideQuotedTextByDefault(draft) {
 // plugins
 
 export default [
+  // Base implementation of BLOCK_CONFIG block types,
+  // the "block" toolbar section, and serialization
   {
     toolbarComponents: Object.values(BLOCK_CONFIG)
       .filter(config => config.button)
@@ -265,10 +300,34 @@ export default [
     onKeyDown,
     rules,
   },
+
+  // Return creates soft newlines in code blocks
   SoftBreak({
     onlyIn: [BLOCK_CONFIG.code.type],
   }),
+
+  // Return breaks you out of blockquotes completely
+  {
+    onKeyDown: function onKeyDown(event, change) {
+      if (event.shiftKey) {
+        return;
+      }
+      if (event.key !== 'Enter') {
+        return;
+      }
+      if (!isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.blockquote.type)) {
+        return;
+      }
+      toggleBlockTypeWithBreakout(change.value, change, BLOCK_CONFIG.blockquote.type);
+      event.preventDefault(); // since this inserts a newline
+      return change;
+    },
+  },
+
+  // Tabbing in / out in lists, enter to start new list item
   EditListPlugin,
+
+  // "1. " and "- " start new lists
   AutoReplace({
     onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
     trigger: ' ',
