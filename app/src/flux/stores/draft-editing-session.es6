@@ -188,13 +188,12 @@ export default class DraftEditingSession extends MailspringStore {
         .include(Message.attributes.body)
         .then(draft => {
           if (this._destroyed) {
-            throw new Error('Draft has been destroyed.');
+            console.warn(`Draft loaded but session has been torn down.`);
+            return;
           }
           if (!draft) {
-            throw new Error(`Assertion Failure: Draft ${this.headerMessageId} not found.`);
-          }
-          if (draft.body === undefined) {
-            throw new Error('DraftEditingSession._setDraft - new draft has no body!');
+            console.warn(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
+            return;
           }
           hotwireDraftBodyState(draft);
           this._draft = draft;

@@ -19,8 +19,8 @@ export const plugins = [
   ...BaseMarkPlugins,
   ...TemplatePlugins,
   ...EmojiPlugins,
-  ...BaseBlockPlugins,
   ...LinkPlugins,
+  ...BaseBlockPlugins,
   ...MarkdownPlugins,
   ...SpellcheckPlugins,
 ];

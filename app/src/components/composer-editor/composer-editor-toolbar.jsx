@@ -42,30 +42,34 @@ export default class ComposerEditorToolbar extends React.Component {
 
   render() {
     const { value, onChange, plugins } = this.props;
-    const sections = [];
+    let sectionItems = [];
 
     const pluginsWithToolbars = plugins.filter(
       (p, idx) => p.toolbarComponents && p.toolbarComponents.length
     );
 
     pluginsWithToolbars.forEach(({ toolbarComponents, toolbarSectionClass }, idx) => {
-      const sectionItems = toolbarComponents.map((Component, cdx) => (
-        <Component key={`${idx}-${cdx}`} value={value} onChange={onChange} />
-      ));
-      if (idx < pluginsWithToolbars.length - 1) {
-        sectionItems.push(<div key="divider" className="divider" />);
-      }
-      sections.push(
-        <div key={idx} className={`toolbar-section ${toolbarSectionClass || ''}`}>
-          {sectionItems}
-        </div>
+      sectionItems.push(
+        ...toolbarComponents.map((Component, cdx) => (
+          <Component
+            key={`${idx}-${cdx}`}
+            value={value}
+            onChange={onChange}
+            className={toolbarSectionClass}
+          />
+        ))
       );
+      if (idx < pluginsWithToolbars.length - 1) {
+        sectionItems.push(
+          <div key={`${idx}-divider`} className={`divider ${toolbarSectionClass}`} />
+        );
+      }
     });
 
     return (
       <div ref={el => (this._el = el)} className="RichEditor-toolbar">
         <div ref={el => (this._innerEl = el)} className="inner">
-          {sections}
+          {sectionItems}
         </div>
       </div>
     );

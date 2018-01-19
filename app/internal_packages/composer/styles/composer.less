@@ -79,43 +79,41 @@
     border-bottom: 1px solid @border-color-divider;
     z-index: 2;
     width: 100%;
-
-    padding-right: 10px;
-  }
-
-  .toolbar-section {
-    display: flex;
-    flex-direction: row;
-    flex-shrink: 0;
-    align-items: center;
   }
 
   .divider {
     width: 1px;
     height: 22px;
     border-right: 1px solid @border-color-divider;
-    margin-right: 7px;
-    padding-right: 7px;
+    margin-right: 1px;
+    padding-right: 1px;
   }
 
   button {
     cursor: pointer;
     color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 30%);
-    padding: 4px 9px;
+    padding: 4px 5px;
     border: none;
     background: none;
     width: initial;
-    
+    flex: 1;
+    flex-shrink: 0;
+    max-width: 32px;
+
     &:hover {
       color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 5%);
       background: none;
     }
-    select {
-      border: none;
-      background: none;
-      margin: 0;
-      min-width: 72px;
-      max-width: 92px;
+    &.with-select {
+      max-width: 100px;
+      white-space: nowrap;
+      select {
+        border: none;
+        background: none;
+        margin: 0;
+        min-width: 72px;
+        max-width: 92px;
+      }
     }
   }
 
@@ -139,6 +137,10 @@
   }
 
   .link-picker {
+    flex: 1;
+    flex-shrink: 0;
+    max-width: 32px;
+
     .dropdown {
       padding: 5px;
       display: flex;
@@ -428,7 +430,7 @@ body.platform-win32 {
     margin: 0;
 
     .RichEditor-toolbar {
-      .toolbar-section.hide-in-composer {
+      .hide-in-composer {
         display: none;
       }
     }

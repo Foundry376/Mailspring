@@ -73,14 +73,14 @@ export function applyValueForMark(value, type, markValue) {
 // React Component Factories
 
 export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle } }) {
-  return ({ value, onChange }) => {
+  return ({ value, onChange, className }) => {
     const active = isActive(value);
     const onMouseDown = e => {
       onChange(onToggle(value, active));
       e.preventDefault();
     };
     return (
-      <button className={active ? 'active' : ''} onMouseDown={onMouseDown}>
+      <button className={`${className} ${active ? 'active' : ''}`} onMouseDown={onMouseDown}>
         <i title={type} className={iconClass} />
       </button>
     );
@@ -163,10 +163,9 @@ export function BuildMarkButtonWithValuePicker(config) {
     render() {
       const { expanded } = this.state;
       const active = hasMark(this.props.value, config.type);
-
       return (
         <div
-          className={`link-picker`}
+          className={`${this.props.className} link-picker`}
           ref={el => (this._el = el)}
           tabIndex={-1}
           onBlur={this.onBlur}
@@ -249,6 +248,7 @@ export function BuildColorPicker(config) {
           tabIndex="-1"
           onBlur={this._onBlur}
           ref={el => (this._el = el)}
+          className={this.props.className}
           style={{ display: 'inline-block', position: 'relative' }}
         >
           <button
@@ -298,7 +298,10 @@ export function BuildFontPicker(config) {
       const displayed = config.convert(value);
 
       return (
-        <button style={{ padding: 0, paddingRight: 6 }}>
+        <button
+          style={{ padding: 0, paddingRight: 6 }}
+          className={`${this.props.className} with-select`}
+        >
           <i className={config.iconClass} />
           <select
             onFocus={this._onFocus}
