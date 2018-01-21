@@ -113,14 +113,17 @@ if (cacheElectronTarget !== npmElectronTarget) {
 npm('install', { cwd: './app', env: 'electron' }).then(() => {
   // run `npm dedupe` in ./app with Electron NPM config
   npm('dedupe', { cwd: './app', env: 'electron' }).then(() => {
-    // write the marker with the electron version
-    fs.writeFileSync(cacheVersionPath, npmElectronTarget);
+    // run `npm ls` in ./app - detects missing peer dependencies, etc.
+    npm('ls', { cwd: './app', env: 'electron' }).then(() => {
+      // write the marker with the electron version
+      fs.writeFileSync(cacheVersionPath, npmElectronTarget);
 
-    // if the user hasn't cloned the private mailsync module, download
-    // the binary for their operating system that was shipped to S3.
-    if (!fs.existsSync('./mailsync/build.sh')) {
-      console.log(`\n-- Downloading the last released version of Mailspring mailsync --`);
-      downloadMailsync();
-    }
+      // if the user hasn't cloned the private mailsync module, download
+      // the binary for their operating system that was shipped to S3.
+      if (!fs.existsSync('./mailsync/build.sh')) {
+        console.log(`\n-- Downloading the last released version of Mailspring mailsync --`);
+        downloadMailsync();
+      }
+    });
   });
 });
