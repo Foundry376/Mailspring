@@ -51,7 +51,6 @@
     * [ResizableRegion](/classes/ResizableRegion.md)
     * [RetinaImg](/classes/RetinaImg.md)
     * [Spinner](/classes/Spinner.md)
-    * [UnsafeComponent](/classes/UnsafeComponent.md)
 
 * Extensions
     * [ComposerExtension](/classes/ComposerExtension.md)

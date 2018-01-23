@@ -57,9 +57,6 @@ lazyLoad('SyncingListState', 'syncing-list-state');
 lazyLoad('EmptyListState', 'empty-list-state');
 lazyLoad('ListTabular', 'list-tabular');
 lazyLoad('Notification', 'notification');
-lazyLoad('NylasCalendar', 'nylas-calendar/nylas-calendar');
-lazyLoad('MiniMonthView', 'nylas-calendar/mini-month-view');
-lazyLoad('CalendarEventPopover', 'nylas-calendar/calendar-event-popover');
 lazyLoad('EventedIFrame', 'evented-iframe');
 lazyLoad('ButtonDropdown', 'button-dropdown');
 lazyLoad('MultiselectList', 'multiselect-list');
@@ -105,10 +102,6 @@ lazyLoadFrom('MailLabel', 'mail-label');
 lazyLoadFrom('LabelColorizer', 'mail-label');
 lazyLoad('MailLabelSet', 'mail-label-set');
 lazyLoad('MailImportantIcon', 'mail-important-icon');
-
-lazyLoadFrom('FormItem', 'generated-form');
-lazyLoadFrom('GeneratedForm', 'generated-form');
-lazyLoadFrom('GeneratedFieldset', 'generated-form');
 
 lazyLoad('ScenarioEditor', 'scenario-editor');
 

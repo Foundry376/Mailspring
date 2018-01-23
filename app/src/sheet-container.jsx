@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import { CSSTransitionGroup } from 'react-transition-group';
 import { WorkspaceStore } from 'mailspring-exports';
 
 import Sheet from './sheet';
@@ -18,6 +18,10 @@ export default class SheetContainer extends React.Component {
 
   componentDidMount() {
     this.unsubscribe = WorkspaceStore.listen(this._onStoreChange);
+  }
+
+  componentDidCatch(error, info) {
+    AppEnv.reportError(error);
   }
 
   componentWillUnmount() {
@@ -64,13 +68,13 @@ export default class SheetContainer extends React.Component {
     return (
       <div name="Toolbar" style={{ order: 0, zIndex: 3 }} className="sheet-toolbar">
         {components[0]}
-        <ReactCSSTransitionGroup
+        <CSSTransitionGroup
           transitionLeaveTimeout={125}
           transitionEnterTimeout={125}
           transitionName="opacity-125ms"
         >
           {components.slice(1)}
-        </ReactCSSTransitionGroup>
+        </CSSTransitionGroup>
       </div>
     );
   }
@@ -110,13 +114,13 @@ export default class SheetContainer extends React.Component {
 
         <div name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
           {sheetComponents[0]}
-          <ReactCSSTransitionGroup
+          <CSSTransitionGroup
             transitionLeaveTimeout={125}
             transitionEnterTimeout={125}
             transitionName="sheet-stack"
           >
             {sheetComponents.slice(1)}
-          </ReactCSSTransitionGroup>
+          </CSSTransitionGroup>
         </div>
 
         <div name="Footer" style={{ order: 3, zIndex: 4 }}>

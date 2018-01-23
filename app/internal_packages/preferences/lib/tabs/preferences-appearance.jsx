@@ -80,7 +80,7 @@ class MenubarStylePicker extends React.Component {
                 value={enumValue}
                 name="menubarStyle"
                 checked={val === enumValue}
-                onClick={this.onChangeMenubarStyle}
+                onChange={this.onChangeMenubarStyle}
               />
               {` ${description}`}
               {comment && (

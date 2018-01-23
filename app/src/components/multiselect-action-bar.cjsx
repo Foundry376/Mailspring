@@ -1,4 +1,4 @@
-ReactCSSTransitionGroup = require 'react-addons-css-transition-group'
+CSSTransitionGroup = require 'react-transition-group/CSSTransitionGroup'
 _ = require 'underscore'
 
 {React, PropTypes, Utils, Actions} = require "mailspring-exports"
@@ -76,14 +76,14 @@ class MultiselectActionBar extends React.Component
     not Utils.isEqualReact(nextState, @state)
 
   render: =>
-    <ReactCSSTransitionGroup
+    <CSSTransitionGroup
       className={"selection-bar"}
       transitionName="selection-bar-absolute"
       component="div"
       transitionLeaveTimeout={200}
       transitionEnterTimeout={200}>
       { if @state.items.length > 0 then @_renderBar() else [] }
-    </ReactCSSTransitionGroup>
+    </CSSTransitionGroup>
 
   _renderBar: =>
     <div className="absolute" key="absolute">

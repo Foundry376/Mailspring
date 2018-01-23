@@ -1,6 +1,6 @@
 import { React, UndoRedoStore } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import { CSSTransitionGroup } from 'react-transition-group';
 
 const VISIBLE_DURATION = 3000;
 
@@ -72,7 +72,7 @@ export default class UndoRedoToast extends React.Component {
     const { block } = this.state;
 
     return (
-      <ReactCSSTransitionGroup
+      <CSSTransitionGroup
         className="undo-redo-toast"
         transitionLeaveTimeout={150}
         transitionEnterTimeout={150}
@@ -91,7 +91,7 @@ export default class UndoRedoToast extends React.Component {
             </div>
           </div>
         ) : null}
-      </ReactCSSTransitionGroup>
+      </CSSTransitionGroup>
     );
   }
 }

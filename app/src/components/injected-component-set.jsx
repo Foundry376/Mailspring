@@ -1,7 +1,7 @@
 import { React, PropTypes, Utils, ComponentRegistry } from 'mailspring-exports';
 
-import UnsafeComponent from './unsafe-component';
 import Flexbox from './flexbox';
+import InjectedComponentErrorBoundary from './injected-component-error-boundary';
 import InjectedComponentLabel from './injected-component-label';
 
 /**
@@ -19,7 +19,7 @@ an array of buttons, for example, you can use InjectedComponentSet:
 
 InjectedComponentSet will look up components registered for the location you provide,
 render them inside a {Flexbox} and pass them `exposedProps`. By default, all injected
-children are rendered inside {UnsafeComponent} wrappers to prevent third-party code
+children are rendered inside error boundary wrappers to prevent third-party code
 from throwing exceptions that break React renders.
 
 InjectedComponentSet monitors the ComponentRegistry for changes. If a new component
@@ -42,8 +42,6 @@ export default class InjectedComponentSet extends React.Component {
    - `className` (optional) A {String} class name for the containing element.
    - `children` (optional) Any React elements rendered inside the InjectedComponentSet
       will always be displayed.
-   - `onComponentsDidRender` Callback that will be called when the injected component set
-      is successfully rendered onto the DOM.
    - `exposedProps` (optional) An {Object} with props that will be passed to each
       item rendered into the set.
    - `containersRequired` (optional). Pass false to optionally remove the containers
@@ -59,7 +57,6 @@ export default class InjectedComponentSet extends React.Component {
     matchLimit: PropTypes.number,
     exposedProps: PropTypes.object,
     containersRequired: PropTypes.bool,
-    onComponentsDidRender: PropTypes.func,
   };
 
   static defaultProps = {
@@ -67,22 +64,17 @@ export default class InjectedComponentSet extends React.Component {
     className: '',
     exposedProps: {},
     containersRequired: true,
-    onComponentsDidRender: () => {},
   };
 
   constructor(props, context) {
     super(props, context);
     this.state = this._getStateFromStores();
-    this._renderedComponents = new Set();
   }
 
   componentDidMount() {
     this._componentUnlistener = ComponentRegistry.listen(() =>
       this.setState(this._getStateFromStores())
     );
-    if (this.props.containersRequired === false) {
-      this.props.onComponentsDidRender();
-    }
   }
 
   componentWillReceiveProps(newProps) {
@@ -91,24 +83,11 @@ export default class InjectedComponentSet extends React.Component {
     }
   }
 
-  componentDidUpdate() {
-    if (this.props.containersRequired === false) {
-      this.props.onComponentsDidRender();
-    }
-  }
-
   componentWillUnmount() {
     if (this._componentUnlistener) {
       this._componentUnlistener();
     }
   }
-
-  _onComponentDidRender = componentName => {
-    this._renderedComponents.add(componentName);
-    if (this._renderedComponents.size === this.state.components.length) {
-      this.props.onComponentsDidRender();
-    }
-  };
 
   _getStateFromStores = (props = this.props) => {
     return {
@@ -121,38 +100,33 @@ export default class InjectedComponentSet extends React.Component {
   };
 
   render() {
-    const { className, exposedProps, containersRequired, matching, children } = this.props;
+    const { components, visible } = this.state;
+    const { exposedProps, containersRequired, matching, children } = this.props;
+    let { className } = this.props;
 
-    this._renderedComponents = new Set();
     const flexboxProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
-    let flexboxClassName = className;
 
-    const elements = this.state.components.map(Component => {
+    const elements = components.map(Component => {
       if (containersRequired === false || Component.containerRequired === false) {
         return <Component key={Component.displayName} {...exposedProps} />;
       }
       return (
-        <UnsafeComponent
-          key={Component.displayName}
-          component={Component}
-          onComponentDidRender={() => this._onComponentDidRender(Component.displayName)}
-          {...exposedProps}
-        />
+        <InjectedComponentErrorBoundary key={Component.displayName}>
+          <Component {...exposedProps} />
+        </InjectedComponentErrorBoundary>
       );
     });
 
-    if (this.state.visible) {
-      flexboxClassName += ' registered-region-visible';
-      elements.splice(
-        0,
-        0,
+    if (visible) {
+      className += ' registered-region-visible';
+      elements.unshift(
         <InjectedComponentLabel key="_label" matching={matching} {...exposedProps} />
       );
       elements.push(<span key="_clear" style={{ clear: 'both' }} />);
     }
 
     return (
-      <Flexbox className={flexboxClassName} {...flexboxProps}>
+      <Flexbox className={className} {...flexboxProps}>
         {elements}
         {children}
       </Flexbox>

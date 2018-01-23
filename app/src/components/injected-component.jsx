@@ -1,6 +1,6 @@
 import { React, ReactDOM, PropTypes, Utils, ComponentRegistry } from 'mailspring-exports';
 
-import UnsafeComponent from './unsafe-component';
+import InjectedComponentErrorBoundary from './injected-component-error-boundary';
 import InjectedComponentLabel from './injected-component-label';
 
 /**
@@ -32,9 +32,6 @@ export default class InjectedComponent extends React.Component {
       This set of descriptors is provided to {ComponentRegistry::findComponentsForDescriptor}
       to retrieve the component that will be displayed.
 
-   - `onComponentDidRender` (optional) Callback that will be called when the injected component
-      is successfully rendered onto the DOM.
-
    - `className` (optional) A {String} class name for the containing element.
 
    - `exposedProps` (optional) An {Object} with props that will be passed to each
@@ -53,7 +50,6 @@ export default class InjectedComponent extends React.Component {
     className: PropTypes.string,
     exposedProps: PropTypes.object,
     fallback: PropTypes.func,
-    onComponentDidRender: PropTypes.func,
     style: PropTypes.object,
     requiredMethods: PropTypes.arrayOf(PropTypes.string),
     onComponentDidChange: PropTypes.func,
@@ -64,7 +60,6 @@ export default class InjectedComponent extends React.Component {
     className: '',
     exposedProps: {},
     requiredMethods: [],
-    onComponentDidRender: () => {},
     onComponentDidChange: () => {},
   };
 
@@ -80,7 +75,6 @@ export default class InjectedComponent extends React.Component {
       this.setState(this._getStateFromStores());
     });
     if (this.state.component && this.state.component.containerRequired === false) {
-      this.props.onComponentDidRender();
       this.props.onComponentDidChange();
     }
   }
@@ -93,11 +87,8 @@ export default class InjectedComponent extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     this._setRequiredMethods(this.props.requiredMethods);
-    if (this.state.component && this.state.component.containerRequired === false) {
-      this.props.onComponentDidRender();
-      if (this.state.component !== prevState.component) {
-        this.props.onComponentDidChange();
-      }
+    if (this.state.component !== prevState.component) {
+      this.props.onComponentDidChange();
     }
   }
 
@@ -122,9 +113,7 @@ export default class InjectedComponent extends React.Component {
   //
   _runInnerDOMMethod = (method, ...rest) => {
     let target = null;
-    if (this.refs.inner instanceof UnsafeComponent && this.refs.inner.injected[method]) {
-      target = this.refs.inner.injected;
-    } else if (this.refs.inner && this.refs.inner[method]) {
+    if (this.refs.inner && this.refs.inner[method]) {
       target = this.refs.inner;
     } else if (this.refs.inner) {
       target = ReactDOM.findDOMNode(this.refs.inner);
@@ -191,25 +180,23 @@ export default class InjectedComponent extends React.Component {
     const Component = this.state.component;
     let element = null;
 
+    const privateProps = {};
+    if (Object.prototype.isPrototypeOf.call(React.Component, Component)) {
+      privateProps.ref = 'inner';
+    }
+
     if (Component.containerRequired === false) {
-      const privateProps = {
-        key: Component.displayName,
-      };
-      if (Object.prototype.isPrototypeOf.call(React.Component, Component)) {
-        privateProps.ref = 'inner';
-      }
-      element = <Component {...privateProps} {...exposedProps} />;
+      element = <Component {...privateProps} key={Component.displayName} {...exposedProps} />;
     } else {
       element = (
-        <UnsafeComponent
-          ref="inner"
-          style={this.props.style}
-          className={className}
-          key={Component.displayName}
-          component={Component}
-          onComponentDidRender={this.props.onComponentDidRender}
-          {...exposedProps}
-        />
+        <InjectedComponentErrorBoundary key={Component.displayName}>
+          <Component
+            {...privateProps}
+            {...exposedProps}
+            className={className}
+            style={this.props.style}
+          />
+        </InjectedComponentErrorBoundary>
       );
     }
 
@@ -222,10 +209,6 @@ export default class InjectedComponent extends React.Component {
         </div>
       );
     }
-    return (
-      <div className={className} style={this.props.style}>
-        {element}
-      </div>
-    );
+    return element;
   }
 }

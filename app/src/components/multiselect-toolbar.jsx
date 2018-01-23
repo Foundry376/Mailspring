@@ -1,6 +1,6 @@
 import { Utils } from 'mailspring-exports';
 import React, { Component } from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 
 /*
@@ -55,7 +55,7 @@ class MultiselectToolbar extends Component {
   render() {
     const { selectionCount } = this.props;
     return (
-      <ReactCSSTransitionGroup
+      <CSSTransitionGroup
         className={'selection-bar'}
         transitionName="selection-bar-absolute"
         component="div"
@@ -63,7 +63,7 @@ class MultiselectToolbar extends Component {
         transitionEnterTimeout={200}
       >
         {selectionCount > 0 ? this.renderToolbar() : undefined}
-      </ReactCSSTransitionGroup>
+      </CSSTransitionGroup>
     );
   }
 }

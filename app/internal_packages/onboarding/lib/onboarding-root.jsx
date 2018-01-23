@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import { CSSTransitionGroup } from 'react-transition-group';
 import OnboardingStore from './onboarding-store';
 import PageTopBar from './page-top-bar';
 
@@ -72,7 +72,7 @@ export default class OnboardingRoot extends React.Component {
           pageDepth={this.state.pageDepth}
           allowMoveBack={!['initial-preferences', 'account-choose'].includes(this.state.page)}
         />
-        <ReactCSSTransitionGroup
+        <CSSTransitionGroup
           transitionName="alpha-fade"
           transitionLeaveTimeout={150}
           transitionEnterTimeout={150}
@@ -80,7 +80,7 @@ export default class OnboardingRoot extends React.Component {
           <div key={this.state.page} className="page-container">
             <Component account={this.state.account} />
           </div>
-        </ReactCSSTransitionGroup>
+        </CSSTransitionGroup>
       </div>
     );
   }

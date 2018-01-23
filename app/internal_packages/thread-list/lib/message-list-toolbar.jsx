@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+import { CSSTransitionGroup } from 'react-transition-group';
 import { Rx, FocusedContentStore } from 'mailspring-exports';
 import ThreadListStore from './thread-list-store';
 import InjectsToolbarButtons, { ToolbarRole } from './injects-toolbar-buttons';
@@ -24,14 +24,14 @@ const MessageListToolbar = ({ items, injectedButtons }) => {
   const shouldRender = items.length > 0;
 
   return (
-    <ReactCSSTransitionGroup
+    <CSSTransitionGroup
       className="message-toolbar-items"
       transitionLeaveTimeout={125}
       transitionEnterTimeout={125}
       transitionName="opacity-125ms"
     >
       {shouldRender ? injectedButtons : undefined}
-    </ReactCSSTransitionGroup>
+    </CSSTransitionGroup>
   );
 };
 MessageListToolbar.displayName = 'MessageListToolbar';
