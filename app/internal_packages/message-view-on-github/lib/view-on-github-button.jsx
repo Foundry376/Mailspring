@@ -56,9 +56,9 @@ export default class ViewOnGithubButton extends React.Component {
   };
 
   /** ** React methods ****
-  * The following methods are React methods that we override. See {React}
-  * documentation for more info
-  */
+   * The following methods are React methods that we override. See {React}
+   * documentation for more info
+   */
 
   constructor(props) {
     super(props);
@@ -106,10 +106,6 @@ export default class ViewOnGithubButton extends React.Component {
   * from the stores in a more declarative, easy-to-follow way. There are a
   * couple rare exceptions that are only used for performance
   * optimizations.
-
-  * Note that we bind this method to the class instance's `this`. Any
-  * method used as a callback must be bound. In Coffeescript we use the
-  * fat arrow (`=>`)
   */
   _onStoreChanged = () => {
     this.setState(this._getStateFromStores());
@@ -129,7 +125,7 @@ export default class ViewOnGithubButton extends React.Component {
   /** ** Other utility "private" methods ****
   /*
   * This responds to user interaction. Since it's a callback we have to
-  * bind it to the instances's `this` (Coffeescript fat arrow `=>`)
+  * bind it to the instances's `this` (JavaScript fat arrow `=>`)
   *
   * In the case of this component we use the Electron `shell` module to
   * request the computer to open the default browser.

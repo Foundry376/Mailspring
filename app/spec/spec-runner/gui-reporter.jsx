@@ -6,12 +6,10 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 const path = require('path');
-const { convertStackTrace } = require('coffeestack');
 const React = require('react');
 const ReactDOM = require('react-dom');
 const PropTypes = require('prop-types');
 
-const sourceMaps = {};
 const formatStackTrace = function(spec, message, stackTrace, indent) {
   if (message == null) {
     message = '';
@@ -35,7 +33,7 @@ const formatStackTrace = function(spec, message, stackTrace, indent) {
     }
   }
 
-  stackTrace = convertStackTrace(convertedLines.join('\n'), sourceMaps);
+  stackTrace = convertedLines.join('\n');
   let lines = stackTrace.split('\n');
 
   // Remove first line of stack when it is the same as the error message

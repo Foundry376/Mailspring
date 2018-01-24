@@ -11,23 +11,26 @@ When the provided `dataStore` has a selection, it appears over the other items i
 Generally, you wrap {MultiselectActionBar} in your own simple component to provide a dataStore
 and other settings:
 
-```coffee
-class MultiselectActionBar extends React.Component
-  @displayName: 'MultiselectActionBar'
-
-  render: =>
-    <MultiselectActionBar
-      dataStore={ThreadListStore}
-      className="thread-list"
-      collection="thread" />
+```javascript
+class MultiselectActionBar extends React.Component {
+  render() {
+    return (
+      <MultiselectActionBar
+        dataStore={ThreadListStore}
+        className="thread-list"
+        collection="thread" />
+    )
+  }
+}
 ```
 
 The MultiselectActionBar uses the `ComponentRegistry` to find items to display for the given
 collection name. To add an item to the bar created in the example above, register it like this:
 
-```coffee
-ComponentRegistry.register ThreadBulkTrashButton,
+```javascript
+ComponentRegistry.register(ThreadBulkTrashButton, {
   role: 'ThreadActionsToolbarButton'
+});
 ```
 
 Section: Component Kit

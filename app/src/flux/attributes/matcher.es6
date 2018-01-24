@@ -13,7 +13,7 @@ Matchers can evaluate whether or not an object matches them, and also compose
 SQL clauses for the DatabaseStore. Each matcher has a reference to a model
 attribute, a comparator and a value.
 
-```coffee
+```javascript
 
 // Retrieving Matchers
 
@@ -107,8 +107,9 @@ class Matcher {
         return modelValue.search(new RegExp(`.*${matcherValue}.*`, 'gi')) >= 0;
       default:
         throw new Error(
-          `Matcher.evaulate() not sure how to evaluate ${this.attr.modelKey} with comparator ${this
-            .comparator}`
+          `Matcher.evaulate() not sure how to evaluate ${this.attr.modelKey} with comparator ${
+            this.comparator
+          }`
         );
     }
   }
@@ -123,7 +124,9 @@ class Matcher {
       case 'containsAny': {
         const joinTable = this.attr.tableNameForJoinAgainst(klass);
         const joinTableRef = this.joinTableRef();
-        return `INNER JOIN \`${joinTable}\` AS \`${joinTableRef}\` ON \`${joinTableRef}\`.\`id\` = \`${klass.name}\`.\`id\``;
+        return `INNER JOIN \`${joinTable}\` AS \`${joinTableRef}\` ON \`${joinTableRef}\`.\`id\` = \`${
+          klass.name
+        }\`.\`id\``;
       }
       default:
         return false;
@@ -317,8 +320,11 @@ class SearchMatcher extends Matcher {
 
   whereSQL(klass) {
     const searchTable = `${klass.name}Search`;
-    return `\`${klass.name}\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '"${this
-      .searchQuery}"*' LIMIT 1000)`;
+    return `\`${
+      klass.name
+    }\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '"${
+      this.searchQuery
+    }"*' LIMIT 1000)`;
   }
 }
 

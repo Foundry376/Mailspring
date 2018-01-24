@@ -17,20 +17,20 @@ and {DatabaseStore::unpersistModel}.
 
 **Simple Example:** Fetch a thread
 
-```coffee
+```v
 query = DatabaseStore.find(Thread, '123a2sc1ef4131')
-query.then (thread) ->
+query.then((thread) => ...
   // thread or null
 ```
 
 **Advanced Example:** Fetch 50 threads in the inbox, in descending order
 
-```coffee
+```javascript
 query = DatabaseStore.findAll(Thread)
 query.where([Thread.attributes.categories.contains('label-id')])
      .order([Thread.attributes.lastMessageReceivedTimestamp.descending()])
      .limit(100).offset(50)
-     .then (threads) ->
+     .then((threads) =>
   // array of threads
 ```
 
@@ -119,8 +119,9 @@ export default class ModelQuery {
         const value = matchers[key];
         const attr = this._klass.attributes[key];
         if (!attr) {
-          const msg = `Cannot create where clause \`${key}:${value}\`. ${key} is not an attribute of ${this
-            ._klass.name}`;
+          const msg = `Cannot create where clause \`${key}:${value}\`. ${key} is not an attribute of ${
+            this._klass.name
+          }`;
           throw new Error(msg);
         }
 
@@ -377,12 +378,14 @@ export default class ModelQuery {
 
     if (joins.length === 1 && this._canSubselectForJoin(joins[0], allMatchers)) {
       const subSql = this._subselectSQL(joins[0], this._matchers, order, limit);
-      return `SELECT${distinct} ${result} FROM \`${this._klass
-        .name}\` WHERE \`id\` IN (${subSql}) ${order}`;
+      return `SELECT${distinct} ${result} FROM \`${
+        this._klass.name
+      }\` WHERE \`id\` IN (${subSql}) ${order}`;
     }
 
-    return `SELECT${distinct} ${result} FROM \`${this._klass
-      .name}\` ${this._whereClause()} ${order} ${limit}`;
+    return `SELECT${distinct} ${result} FROM \`${
+      this._klass.name
+    }\` ${this._whereClause()} ${order} ${limit}`;
   }
 
   // If one of our matchers requires a join, and the attribute configuration lists

@@ -54,7 +54,7 @@ commands that originate from anywhere and are global in scope.
 
 Example:
 
-In `my-package/lib/my-component.cjsx`:
+In `my-package/lib/my-component.jsx`:
 
 ```js
 class MyComponent extends React.Component {

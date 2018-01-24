@@ -1,7 +1,3 @@
-// This file cannot be Coffeescript because it loads before the
-// Coffeescript interpreter. Note that it runs in both browser and
-// renderer processes.
-
 var ErrorLogger, _, app, remote;
 
 let ipcRenderer = null;
@@ -113,7 +109,9 @@ module.exports = ErrorLogger = (function() {
     crashReporter.start({
       productName: 'Mailspring',
       companyName: 'Mailspring',
-      submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
+      submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${
+        process.platform
+      }`,
       uploadToServer: true,
       autoSubmit: true,
       extra: {

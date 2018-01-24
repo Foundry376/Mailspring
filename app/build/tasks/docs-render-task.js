@@ -111,12 +111,6 @@ module.exports = function(grunt) {
         section = match[1].trim();
       }
 
-      // Replace superClass "React" with "React.Component". The Coffeescript Lexer
-      // is so bad.
-      if (contents.superClass === 'React') {
-        contents.superClass = 'React.Component';
-      }
-
       classes.push({
         name: classname,
         documentation: contents,

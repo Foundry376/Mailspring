@@ -1,4 +1,3 @@
-
 ## Translate
 
 A package for N1 that translates draft text into other languages using the Yandex Translation API.
@@ -10,11 +9,3 @@ A package for N1 that translates draft text into other languages using the Yande
 1. Download and run N1
 
 2. Navigate to Preferences > Plugins and click "Enable" beside the plugin.
-
-#### Build documentation
-
-```
-cjsx-transform lib/main.cjsx > docs/main.coffee
-docco docs/main.coffee
-rm docs/main.coffee
-```

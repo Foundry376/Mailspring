@@ -15,12 +15,14 @@ to call `include` to explicitly load the joined data attribute.
 The query builder will automatically perform a `LEFT OUTER JOIN` with
 the secondary table to retrieve the attribute:
 
-```coffee
-DatabaseStore.find(Message, '123').then (message) ->
+```javascript
+DatabaseStore.find(Message, '123').then((message) => {
   // message.body is undefined
+});
 
-DatabaseStore.find(Message, '123').include(Message.attributes.body).then (message) ->
+DatabaseStore.find(Message, '123').include(Message.attributes.body).then((message) =>
   // message.body is defined
+});
 ```
 
 When you call `persistModel`, JoinedData attributes are automatically
@@ -61,7 +63,8 @@ export default class AttributeJoinedData extends Attribute {
   }
 
   includeSQL(klass) {
-    return `LEFT OUTER JOIN \`${this.modelTable}\` ON \`${this
-      .modelTable}\`.\`id\` = \`${klass.name}\`.\`id\``;
+    return `LEFT OUTER JOIN \`${this.modelTable}\` ON \`${this.modelTable}\`.\`id\` = \`${
+      klass.name
+    }\`.\`id\``;
   }
 }

@@ -165,7 +165,7 @@ export default class ParticipantsTextField extends React.Component {
   };
 
   _onShowContextMenu = participant => {
-    // Warning: Menu is already initialized as Menu.cjsx!
+    // Warning: Menu is already initialized as Menu.es6!
     const MenuClass = remote.Menu;
     const MenuItem = remote.MenuItem;
 

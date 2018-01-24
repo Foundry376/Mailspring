@@ -9,9 +9,9 @@ import {
 
 const tld = require('tld');
 
-// Notice that this file is `main.cjsx` rather than `main.coffee`. We use the
-// `.cjsx` filetype because we use the CJSX DSL to describe markup for React to
-// render. Without the CJSX, we could just name this file `main.coffee` instead.
+// Notice that this file is `main.jsx` rather than `main.es6`. We use the
+// `.jsx` filetype because we use the JSX DSL to describe markup for React to
+// render. Without the JSX, we could just name this file `main.es6` instead.
 class PhishingIndicator extends React.Component {
   // Adding a displayName to a React component helps for debugging.
   static displayName = 'PhishingIndicator';
@@ -39,9 +39,9 @@ class PhishingIndicator extends React.Component {
   };
 
   // A React component's `render` method returns a virtual DOM element described
-  // in CJSX. `render` is deterministic: with the same input, it will always
-  // render the same output. Here, the input is provided by @isPhishingAttempt.
-  // `@state` and `@props` are popular inputs as well.
+  // in JSX. `render` is deterministic: with the same input, it will always
+  // render the same output. Here, the input is provided by this.isPhishingAttempt.
+  // `this.state` and `this.props` are popular inputs as well.
   render() {
     const { message } = this.state;
     if (!message) {

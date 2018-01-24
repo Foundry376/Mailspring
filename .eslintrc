@@ -37,7 +37,7 @@
       "mailspring-observables"
     ],
     "import/resolver": {
-      "node": { "extensions": [".es6", ".jsx", ".coffee", ".json", ".cjsx", ".js"] }
+      "node": { "extensions": [".es6", ".jsx", ".json", ".js"] }
     }
   }
 }

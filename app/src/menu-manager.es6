@@ -22,13 +22,13 @@ export default class MenuManager {
   //
   // ## Examples
   //
-  // ```coffee
-  //   AppEnv.menu.add [
+  // ```javascript
+  //   AppEnv.menu.add([
   //     {
   //       label: 'Hello'
-  //       submenu : [{label: 'World!', command: 'hello:world'}]
-  //     }
-  //   ]
+  //       submenu : [{label: 'World!', command: 'hello:world'}],
+  //     },
+  //   ]);
   // ```
   //
   // * `items` An {Array} of menu item {Object}s containing the keys:

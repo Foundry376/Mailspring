@@ -5,7 +5,6 @@ const path = require('path');
 const util = require('util');
 const tmpdir = path.resolve(require('os').tmpdir(), 'nylas-build');
 const fs = require('fs-plus');
-const coffeereact = require('coffee-react');
 const glob = require('glob');
 const babel = require('babel-core');
 const { execSync } = require('child_process');
@@ -72,32 +71,7 @@ module.exports = grunt => {
   }
 
   function runTranspilers(buildPath, electronVersion, platform, arch, callback) {
-    console.log('---> Running babel and coffeescript transpilers');
-
-    grunt.config('source:coffeescript').forEach(pattern => {
-      glob.sync(pattern, { cwd: buildPath }).forEach(relPath => {
-        const coffeepath = path.join(buildPath, relPath);
-        if (/(node_modules|\.js$)/.test(coffeepath)) return;
-        console.log(`  ---> Compiling ${coffeepath.slice(coffeepath.indexOf('/app') + 4)}`);
-        const outPath = coffeepath.replace(path.extname(coffeepath), '.js');
-        const res = coffeereact.compile(grunt.file.read(coffeepath), {
-          bare: false,
-          join: false,
-          separator: grunt.util.normalizelf(grunt.util.linefeed),
-
-          sourceMap: true,
-          sourceRoot: '/',
-          generatedFile: path.basename(outPath),
-          sourceFiles: [path.relative(buildPath, coffeepath)],
-        });
-        grunt.file.write(
-          outPath,
-          `${res.js}\n//# sourceMappingURL=${path.basename(outPath)}.map\n`
-        );
-        grunt.file.write(`${outPath}.map`, res.v3SourceMap);
-        fs.unlinkSync(coffeepath);
-      });
-    });
+    console.log('---> Running Babel');
 
     grunt.config('source:es6').forEach(pattern => {
       glob.sync(pattern, { cwd: buildPath }).forEach(relPath => {

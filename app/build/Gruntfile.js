@@ -26,15 +26,6 @@ module.exports = grunt => {
     classDocsOutputDir: path.join(buildDir, 'docs_src', 'classes'),
     outputDir: path.join(appDir, 'dist'),
     appJSON: grunt.file.readJSON(path.join(appDir, 'package.json')),
-    'source:coffeescript': [
-      'internal_packages/**/*.cjsx',
-      'internal_packages/**/*.coffee',
-      'dot-nylas/**/*.coffee',
-      'src/**/*.coffee',
-      'src/**/*.cjsx',
-      '!src/**/node_modules/**/*.coffee',
-      '!internal_packages/**/node_modules/**/*.coffee',
-    ],
     'source:es6': [
       'internal_packages/**/*.jsx',
       'internal_packages/**/*.es6',
@@ -61,7 +52,7 @@ module.exports = grunt => {
 
   grunt.registerTask('docs', ['docs-build', 'docs-render']);
 
-  grunt.registerTask('lint', ['eslint', 'lesslint', 'nylaslint', 'coffeelint', 'csslint']);
+  grunt.registerTask('lint', ['eslint', 'lesslint', 'nylaslint', 'csslint']);
 
   if (grunt.option('platform') === 'win32') {
     grunt.registerTask('build-client', [

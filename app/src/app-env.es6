@@ -4,7 +4,6 @@ import _ from 'underscore';
 import path from 'path';
 import { ipcRenderer, remote } from 'electron';
 import { Emitter } from 'event-kit';
-import { convertStackTrace } from 'coffeestack';
 import { mapSourcePosition } from 'source-map-support';
 
 import { APIError } from './flux/errors';
@@ -152,7 +151,6 @@ export default class AppEnvConstructor {
         return this.reportError(originalError, { url, line, column });
       }
       const { line: newLine, column: newColumn } = mapSourcePosition({ source: url, line, column });
-      originalError.stack = convertStackTrace(originalError.stack, sourceMapCache);
       return this.reportError(originalError, { url, line: newLine, column: newColumn });
     };
 
@@ -199,9 +197,6 @@ export default class AppEnvConstructor {
   }
 
   _onUnhandledRejection = (error, sourceMapCache) => {
-    if (this.inDevMode()) {
-      error.stack = convertStackTrace(error.stack, sourceMapCache);
-    }
     this.reportError(error);
   };
 

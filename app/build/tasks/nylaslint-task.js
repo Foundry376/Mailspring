@@ -2,17 +2,10 @@
 const path = require('path');
 const fs = require('fs-plus');
 
-function normalizeRequirePath(requirePath, fPath) {
-  if (requirePath[0] === '.') {
-    return path.normalize(path.join(path.dirname(fPath), requirePath));
-  }
-  return requirePath;
-}
-
 module.exports = grunt => {
   grunt.config.merge({
     nylaslint: {
-      src: grunt.config('source:coffeescript').concat(grunt.config('source:es6')),
+      src: grunt.config('source:es6'),
     },
   });
 
@@ -27,8 +20,6 @@ module.exports = grunt => {
         done();
         return;
       }
-
-      const extensionRegex = /require ['"].*\.(coffee|cjsx|jsx|es6|es)['"]/i;
 
       for (const fileset of this.files) {
         grunt.log.writeln(`Nylinting ${fileset.src.length} files.`);
@@ -83,73 +74,12 @@ module.exports = grunt => {
           }
         }
 
-        // Now look through all coffeescript files
-        // If they require things from ES6 files, ensure they're using the
-        // proper syntax.
-        for (const f of fileset.src) {
-          let result = null;
-          if (esExtensions[path.extname(f)]) {
-            continue;
-          }
-          const content = fs.readFileSync(f, { encoding: 'utf8' });
-          if (extensionRegex.test(content)) {
-            errors.push(`${f}: Remove extensions when requiring files`);
-          }
-
-          const requireRe = /require[ (]['"]([\w_./-]*?)['"]/gim;
-
-          while ((result = requireRe.exec(content))) {
-            for (const requirePath of result.slice(1)) {
-              const lookupPath = normalizeRequirePath(requirePath, f);
-
-              const baseRequirePath = path.basename(requirePath);
-
-              const plainRequireRe = new RegExp(
-                `require[ (]['"].*${baseRequirePath}['"]\\)?$`,
-                'gm'
-              );
-              const defaultRequireRe = new RegExp(
-                `require\\(['"].*${baseRequirePath}['"]\\)\\.default`,
-                'gm'
-              );
-
-              if (esExport[lookupPath]) {
-                if (!plainRequireRe.test(content)) {
-                  errors.push(`${f}: No \`default\` exported ${requirePath}`);
-                }
-              } else if (esNoExport[lookupPath]) {
-                errors.push(`${f}: Nothing exported from ${requirePath}`);
-              } else if (esExportDefault[lookupPath]) {
-                if (!defaultRequireRe.test(content)) {
-                  errors.push(`${f}: Add \`default\` to require ${requirePath}`);
-                }
-              } else {
-                // must be a coffeescript or core file
-                if (defaultRequireRe.test(content)) {
-                  errors.push(`${f}: Don't ask for \`default\` from ${requirePath}`);
-                }
-              }
-            }
-          }
-        }
-
         if (errors.length > 0) {
           for (const err of errors) {
             grunt.log.error(err);
           }
           const error = `
         Please fix the ${errors.length} linter errors above. These are the issues we're looking for:
-
-        ISSUES WITH COFFEESCRIPT FILES:
-
-        1. Remove extensions when requiring files:
-        Since we compile files in production to plain ".js" files it's very important you do NOT include the file extension when "require"ing a file.
-
-        2. Add "default" to require:
-        As of Babel 6, "require" no longer returns whatever the "default" value is. If you are "require"ing an es6 file from a coffeescript file, you must explicitly request the "default" property. For example: do "require('./my-es6-file').default"
-
-        3. Don't ask for "default":
-        If you're requiring a coffeescript file from a coffeescript file, you will almost never need to load a "default" object. This is likely an indication you incorrectly thought you were importing an ES6 file.
 
         ISSUES WITH ES6 FILES:
 

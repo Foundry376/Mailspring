@@ -4,15 +4,12 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 
 const babelCompiler = require('./compile-support/babel');
-const coffeeCompiler = require('./compile-support/coffee-script');
 const typescriptCompiler = require('./compile-support/typescript');
 
 const COMPILERS = {
   '.jsx': babelCompiler,
   '.es6': babelCompiler,
   '.ts': typescriptCompiler,
-  '.coffee': coffeeCompiler,
-  '.cjsx': coffeeCompiler,
 };
 
 const cacheStats = {};

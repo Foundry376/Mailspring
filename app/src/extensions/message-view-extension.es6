@@ -6,14 +6,15 @@ To register your extension with the ExtensionRegistry, call {ExtensionRegistry::
 When your package is being unloaded, you *must* call the corresponding
 {ExtensionRegistry::MessageView::unregisterExtension} to unhook your extension.
 
-```coffee
-activate: ->
+```javascript
+activate() {
   ExtensionRegistry.MessageView.register(MyExtension)
-
+}
 ...
 
-deactivate: ->
+deactivate() {
   ExtensionRegistry.MessageView.unregister(MyExtension)
+}
 ```
 
 The MessageViewExtension API does not currently expose any asynchronous or {Promise}-based APIs.

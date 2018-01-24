@@ -3,10 +3,10 @@ Public: Represents a particular sort direction on a particular column. You shoul
 instantiate SortOrders manually. Instead, call {Attribute::ascending} or
 {Attribute::descending} to obtain a sort order instance:
 
-```coffee
+```javascript
 DatabaseStore.findBy(Message)
   .where({threadId: threadId, draft: false})
-  .order(Message.attributes.date.descending()).then (messages) ->
+  .order(Message.attributes.date.descending()).then((messages) =>
 
 ```
 

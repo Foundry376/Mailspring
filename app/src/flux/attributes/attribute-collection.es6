@@ -12,7 +12,7 @@ join table associating the ID of the model with the IDs of models in the collect
 
 Collection attributes have an additional clause builder, `contains`:
 
-```coffee
+```javascript
 DatabaseStore.findAll(Thread).where([Thread.attributes.categories.contains('inbox')])
 ```
 
@@ -58,8 +58,9 @@ export default class AttributeCollection extends Attribute {
     return vals.map(val => {
       if (this.itemClass && !(val instanceof this.itemClass)) {
         throw new Error(
-          `AttributeCollection::toJSON: Value \`${val}\` in ${this.modelKey} is not an ${this
-            .itemClass.name}`
+          `AttributeCollection::toJSON: Value \`${val}\` in ${this.modelKey} is not an ${
+            this.itemClass.name
+          }`
         );
       }
       return val.toJSON !== undefined ? val.toJSON() : val;

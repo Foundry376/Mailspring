@@ -15,13 +15,11 @@ const stubNotif = priority => {
 };
 
 const checkHighestPriority = (expectedPriority, wrapper) => {
-  const visibleElems = wrapper.find('.highest-priority');
-  expect(visibleElems.exists()).toEqual(true);
-  const titleElem = visibleElems.first().find('.title');
-  expect(titleElem.exists()).toEqual(true);
-  expect(titleElem.text().trim()).toEqual(`Priority ${expectedPriority}`);
-  // Make sure there's only one highest-priority elem
-  expect(visibleElems.get(1)).toEqual(undefined);
+  const visibleElems = wrapper.getDOMNode().querySelectorAll('.highest-priority');
+  expect(visibleElems.length).toEqual(1);
+
+  const titleElem = visibleElems[0].querySelector('.title');
+  expect(titleElem.textContent.trim()).toEqual(`Priority ${expectedPriority}`);
 };
 
 describe('NotifPriority', function notifPriorityTests() {
@@ -29,7 +27,7 @@ describe('NotifPriority', function notifPriorityTests() {
     this.wrapper = mount(<NotifWrapper />);
     this.trigger = () => {
       ComponentRegistry.trigger();
-      this.wrapper.getNode().update();
+      this.wrapper.instance().update();
     };
   });
   describe('When there is only one notification', () => {

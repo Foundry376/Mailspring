@@ -96,7 +96,7 @@ const declareOptions = argv => {
     .string('f')
     .describe(
       'f',
-      'Override the default file regex to determine which tests should run (defaults to "-spec.(coffee|js|jsx|cjsx|es6|es)$" )'
+      'Override the default file regex to determine which tests should run (defaults to "-spec.(js|jsx|es6|es)$" )'
     );
   options
     .alias('v', 'version')

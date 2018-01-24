@@ -27,6 +27,7 @@ export default class NotifWrapper extends React.Component {
     }
 
     const elemsWithPriority = node.querySelectorAll('[data-priority]');
+    console.log(elemsWithPriority);
     if (elemsWithPriority.length === 0) {
       return;
     }

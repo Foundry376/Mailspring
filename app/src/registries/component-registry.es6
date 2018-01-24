@@ -71,7 +71,9 @@ class ComponentRegistry extends MailspringStore {
       this._registry[component.displayName].component !== component
     ) {
       throw new Error(
-        `ComponentRegistry.register(): A different component was already registered with the name ${component.displayName}`
+        `ComponentRegistry.register(): A different component was already registered with the name ${
+          component.displayName
+        }`
       );
     }
 
@@ -109,13 +111,13 @@ class ComponentRegistry extends MailspringStore {
   /**
   Public: Retrieve all of the registry entries matching a given descriptor.
 
-  ```coffee
+  ```javascript
     ComponentRegistry.findComponentsMatching({
-      role: 'Composer:ActionButton'
+      role: 'Composer:ActionButton',
     })
 
     ComponentRegistry.findComponentsMatching({
-      location: WorkspaceStore.Location.RootSidebar.Toolbar
+      location: WorkspaceStore.Location.RootSidebar.Toolbar,
     })
   ```
 

@@ -89,7 +89,7 @@ of the N1 application and offers a near-native experience:
 - Highlighted state
 
 Menus are often, but not always, used in conjunction with {Popover} to display
-a floating "popup" menu. See `template-picker.cjsx` for an example.
+a floating "popup" menu. See `template-picker.jsx` for an example.
 
 The Menu also exposes "header" and "footer" regions you can fill with arbitrary
 components by providing the `headerComponents` and `footerComponents` props.

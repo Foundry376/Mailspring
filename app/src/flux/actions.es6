@@ -31,8 +31,8 @@ how it propogates between windows.
 
 ## Firing Actions
 
-```coffee
-Actions.queueTask(new ChangeStarredTask(threads: [@_thread], starred: true))
+```javascript
+Actions.queueTask(new ChangeStarredTask(threads: [this._thread], starred: true))
 ```
 
 ## Listening for Actions
@@ -41,15 +41,16 @@ If you're using Reflux to create your own Store, you can use the `listenTo`
 convenience method to listen for an Action. If you're creating your own class
 that is not a Store, you can still use the `listen` method provided by Reflux:
 
-```coffee
-setup: ->
-  @unlisten = Actions.queueTask.listen(@onTaskWasQueued, @)
-
-onNewMailReceived: (data) ->
+```javascript
+setup() {
+  this.unlisten = Actions.queueTask.listen(this.onTaskWasQueued, this)
+}
+onNewMailReceived = (data) => {
   console.log("You've got mail!", data)
-
-teardown: ->
-  @unlisten()
+}
+teardown() {
+  this.unlisten();
+}
 ```
 
 Section: General
@@ -449,13 +450,14 @@ class Actions {
 
   *Scope: Window*
 
-  ```
-  WorkspaceStore.defineSheet 'Thread', {},
-      list: ['MessageList', 'MessageListSidebar']
+  ```javascript
+  WorkspaceStore.defineSheet('Thread', {}, {
+    list: ['MessageList', 'MessageListSidebar'],
+  });
 
   ...
 
-  @pushSheet(WorkspaceStore.Sheet.Thread)
+  this.pushSheet(WorkspaceStore.Sheet.Thread)
   ```
   */
   static pushSheet = ActionScopeWindow;

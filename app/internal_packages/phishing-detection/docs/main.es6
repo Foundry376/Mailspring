@@ -14,9 +14,6 @@ const {
   MessageStore,
 } = require('mailspring-exports');
 
-// Notice that this file is `main.cjsx` rather than `main.coffee`. We use the
-// `.cjsx` filetype because we use the CJSX DSL to describe markup for React to
-// render. Without the CJSX, we could just name this file `main.coffee` instead.
 class PhishingIndicator extends React.Component {
   // Adding a @displayName to a React component helps for debugging.
   static displayName = 'PhishingIndicator';

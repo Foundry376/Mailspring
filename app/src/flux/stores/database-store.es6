@@ -95,17 +95,21 @@ rest of the application in sync.
 To listen for changes to the local cache, subscribe to the DatabaseStore and
 inspect the changes that are sent to your listener method.
 
-```coffeescript
-this.unsubscribe = DatabaseStore.listen(this._onDataChanged, this.)
+```javascript
+this.unsubscribe = DatabaseStore.listen(this._onDataChanged, this)
 
 ...
 
-_onDataChanged: (change) ->
-  return unless change.objectClass is Message
-  return unless this._myMessageID in _.map change.objects, (m) -> m.id
+_onDataChanged(change) {
+  if (change.objectClass !== Message) {
+    return;
+  }
+  if (!change.objects.find((m) => m.id === this._myMessageID)) {
+    return;
+  }
 
   // Refresh Data
-
+}
 ```
 
 The local cache changes very frequently, and your stores and components should
@@ -380,9 +384,10 @@ class DatabaseStore extends MailspringStore {
   // - \`id\` The {String} id of the {Model} you're trying to retrieve
   //
   // Example:
-  // ```coffee
-  // DatabaseStore.find(Thread, 'id-123').then (thread) ->
+  // ```javascript
+  // DatabaseStore.find(Thread, 'id-123').then((thread) => {
   //   // thread is a Thread object, or null if no match was found.
+  // }
   // ```
   //
   // Returns a {Query}

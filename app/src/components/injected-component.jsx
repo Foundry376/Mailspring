@@ -8,7 +8,7 @@ Public: InjectedComponent makes it easy to include dynamically registered
 components inside of your React render method. Rather than explicitly render
 a component, such as a `<Composer>`, you can use InjectedComponent:
 
-```coffee
+```javascript
 <InjectedComponent matching={role:"Composer"} exposedProps={headerMessageId:123} />
 ```
 
@@ -141,7 +141,9 @@ export default class InjectedComponent extends React.Component {
       this.props.requiredMethods.forEach(method => {
         if (component.prototype[method] === undefined) {
           throw new Error(
-            `${component.name} must implement method ${method} when registering for ${JSON.stringify(
+            `${
+              component.name
+            } must implement method ${method} when registering for ${JSON.stringify(
               this.props.matching
             )}`
           );

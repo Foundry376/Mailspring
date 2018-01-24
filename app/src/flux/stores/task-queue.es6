@@ -24,18 +24,19 @@ main window via IPC.
 
 ## Queueing a Task
 
-```coffee
-if @_thread && @_thread.unread
-  Actions.queueTask(new ChangeStarredTask(threads: [@_thread], starred: true))
+```javascript
+if (this._thread && this._thread.unread) {
+  Actions.queueTask(new ChangeStarredTask({threads: [this._thread], starred: true}))
+}
 ```
 
 ## Dequeueing a Task
 
-```coffee
+```javascript
 Actions.dequeueMatchingTask({
   type: 'DestroyCategoryTask',
   matching: {
-    categoryId: 'bla'
+    categoryId: 'bla',
   }
 })
 */

@@ -27,8 +27,8 @@ const GithubProfile = function GithubProfile(props) {
     return <GithubRepo key={repo.id} repo={repo} />;
   });
 
-  // Remember - this looks like HTML, but it's actually CJSX, which is converted into
-  // Coffeescript at transpile-time. We're actually creating a nested tree of Javascript
+  // Remember - this looks like HTML, but it's actually JSX, which is converted into
+  // JavaScript at transpile-time. We're actually creating a nested tree of Javascript
   // objects here that *represent* the DOM we want.
   return (
     <div className="profile">

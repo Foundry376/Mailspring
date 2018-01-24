@@ -1,5 +1,4 @@
 const path = require('path');
-const cjsxtransform = require('coffee-react-transform');
 const rimraf = require('rimraf');
 
 const fs = require('fs-plus');
@@ -76,23 +75,6 @@ module.exports = function(grunt) {
         if (in_blacklist(file)) {
           console.log('Skipping ' + file);
           // Skip K2
-        } else if (path.extname(file) === '.cjsx') {
-          // Convert CJSX into coffeescript that can be read by Donna
-          let transformed = cjsxtransform(grunt.file.read(file));
-
-          // Only attempt to parse this file as documentation if it contains
-          // real Coffeescript classes.
-          if (transformed.indexOf('\nclass ') > 0) {
-            grunt.log.writeln('Found class in file: ' + file);
-
-            grunt.file.write(
-              path.join(
-                cjsxOutputDir,
-                path.basename(file).slice(0, -5 + 1 || undefined) + 'coffee'
-              ),
-              transformed
-            );
-          }
         } else if (path.extname(file) === '.jsx') {
           console.log('Transforming ' + file);
 
@@ -107,7 +89,7 @@ module.exports = function(grunt) {
             path.join(cjsxOutputDir, path.basename(file).slice(0, -3 || undefined) + 'js'),
             transformed.code
           );
-        } else if (path.extname(file) == '.es6') {
+        } else if (path.extname(file) === '.es6') {
           console.log(file);
 
           let fileStr = grunt.file.read(file);
@@ -125,7 +107,7 @@ module.exports = function(grunt) {
               transformed.code
             );
           }
-        } else if (path.extname(file) == '.coffee' || path.extname(file) == '.js') {
+        } else if (path.extname(file) === '.js') {
           let dest_path = path.join(cjsxOutputDir, path.basename(file));
           console.log('Copying ' + file + ' to ' + dest_path);
           fs_extra.copySync(file, dest_path);
@@ -136,7 +118,6 @@ module.exports = function(grunt) {
       grunt.log.ok('Done transforming, starting donna extraction');
       grunt.log.writeln('cjsxOutputDir: ' + cjsxOutputDir);
 
-      // Process coffeescript source
       let metadata = donna.generateMetadata([cjsxOutputDir]);
       grunt.log.ok('---- Done with Donna (cjsx metadata)----');
 
@@ -153,7 +134,6 @@ module.exports = function(grunt) {
         }
       });
 
-      var js_files = [];
       fs.traverseTreeSync(cjsxOutputDir, function(file) {
         if (path.extname(file) === '.js') {
           js_files.push(file.toString());
