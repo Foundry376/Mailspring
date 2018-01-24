@@ -107,8 +107,14 @@ export const MARK_CONFIG = {
   size: {
     type: 'size',
     tagNames: [],
-    render: ({ children, mark }) => {
-      const v = mark.data.value || mark.data.get('value');
+    render: ({ children, mark, targetIsHTML }) => {
+      let v = mark.data.value || mark.data.get('value');
+
+      // we don't apply any font size if the font size is the default value,
+      // so other clients also show it in their default size of choice.
+      if (v === DEFAULT_FONT_SIZE) {
+        v = undefined;
+      }
       return typeof v === 'string' ? (
         <font style={{ fontSize: v }}>{children}</font>
       ) : (
@@ -268,13 +274,12 @@ export default [
             if (typeof provided === 'string') {
               let size = 2;
               if (provided.endsWith('px')) {
+                // 16px = 12pt
                 size = PT_TO_SIZE[Math.round(provided.replace('px', '') / 1 * 0.75)];
               }
               if (provided.endsWith('em')) {
-                size =
-                  PT_TO_SIZE[
-                    Math.round(provided.replace('em', '') * DEFAULT_FONT_SIZE.replace('pt', ''))
-                  ];
+                // 1em = 12pt
+                size = PT_TO_SIZE[Math.round(provided.replace('em', '') * 12)];
               }
               if (provided.endsWith('pt')) {
                 size = PT_TO_SIZE[Math.round(provided.replace('pt', '') * 1)];
