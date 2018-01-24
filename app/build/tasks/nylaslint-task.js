@@ -138,7 +138,7 @@ module.exports = grunt => {
             grunt.log.error(err);
           }
           const error = `
-        Please fix the #{errors.length} linter errors above. These are the issues we're looking for:
+        Please fix the ${errors.length} linter errors above. These are the issues we're looking for:
 
         ISSUES WITH COFFEESCRIPT FILES:
 

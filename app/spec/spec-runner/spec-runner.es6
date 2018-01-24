@@ -1,5 +1,7 @@
 /* eslint global-require:0 */
 import _ from 'underscore';
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
 
 import ReactTestUtils from 'react-dom/test-utils';
 import Config from '../../src/config';
@@ -17,6 +19,9 @@ import * as reactTestUtilsExtensions from './react-test-utils-extensions';
 class SpecRunner {
   runSpecs(loadSettings) {
     this.loadSettings = loadSettings;
+
+    Enzyme.configure({ adapter: new Adapter() });
+
     this._extendGlobalWindow();
     this._setupJasmine();
     this._setupAppEnv();

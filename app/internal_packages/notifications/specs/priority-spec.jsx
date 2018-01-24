@@ -29,7 +29,7 @@ describe('NotifPriority', function notifPriorityTests() {
     this.wrapper = mount(<NotifWrapper />);
     this.trigger = () => {
       ComponentRegistry.trigger();
-      this.wrapper.get(0).update();
+      this.wrapper.getNode().update();
     };
   });
   describe('When there is only one notification', () => {

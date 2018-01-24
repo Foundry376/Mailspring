@@ -19,10 +19,10 @@ class DateInput extends Component {
     onDateSubmitted: () => {},
   };
 
-  constructor(props) {
+  constructor(props = {}) {
     super(props);
     this._mounted = false;
-    this.state = {
+    this.state = props.initialTestState || {
       inputDate: null,
       inputValue: '',
     };

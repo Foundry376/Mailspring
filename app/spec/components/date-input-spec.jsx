@@ -1,38 +1,24 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Simulate, findRenderedDOMComponentWithClass } from 'react-dom/test-utils';
+import { mount } from 'enzyme';
 
 import { DateUtils } from 'mailspring-exports';
 import DateInput from '../../src/components/date-input';
-import { renderIntoDocument } from '../mailspring-test-utils';
-
-const { findDOMNode } = ReactDOM;
-
-const makeInput = (props = {}) => {
-  const input = renderIntoDocument(<DateInput {...props} dateFormat="blah" />);
-  if (props.initialState) {
-    input.setState(props.initialState);
-  }
-  return input;
-};
 
 describe('DateInput', function dateInput() {
   describe('onInputKeyDown', () => {
-    it('should submit the input if Enter or Escape pressed', () => {
-      const onDateSubmitted = jasmine.createSpy('onDateSubmitted');
-      const component = makeInput({ onDateSubmitted: onDateSubmitted });
-      const inputNode = ReactDOM.findDOMNode(component).querySelector('input');
-      const stopPropagation = jasmine.createSpy('stopPropagation');
-      const keys = ['Enter', 'Return'];
-      inputNode.value = 'tomorrow';
+    it('should submit the input if Enter or Return pressed', () => {
       spyOn(DateUtils, 'futureDateFromString').andReturn('someday');
 
-      keys.forEach(key => {
-        Simulate.keyDown(inputNode, { key, stopPropagation });
+      ['Enter', 'Return'].forEach(key => {
+        const onDateSubmitted = jasmine.createSpy('onDateSubmitted');
+        const component = mount(<DateInput onDateSubmitted={onDateSubmitted} dateFormat="blah" />);
+        const inputNode = component.find('input');
+        const stopPropagation = jasmine.createSpy('stopPropagation');
+        inputNode.getDOMNode().value = 'tomorrow';
+
+        inputNode.simulate('keyDown', { key, stopPropagation });
         expect(stopPropagation).toHaveBeenCalled();
         expect(onDateSubmitted).toHaveBeenCalledWith('someday', 'tomorrow');
-        stopPropagation.reset();
-        onDateSubmitted.reset();
       });
     });
   });
@@ -43,21 +29,16 @@ describe('DateInput', function dateInput() {
     });
 
     it('should render a date interpretation if a date has been inputted', () => {
-      const component = makeInput({ initialState: { inputDate: 'something!' } });
+      const component = mount(<DateInput initialTestState={{ inputDate: 'something!' }} />);
       spyOn(component, 'setState');
-      const dateInterpretation = findDOMNode(
-        findRenderedDOMComponentWithClass(component, 'date-interpretation')
-      );
-
-      expect(dateInterpretation.textContent).toEqual('formatted');
+      const dateInterpretation = component.find('.date-interpretation');
+      expect(dateInterpretation.text()).toEqual('formatted');
     });
 
     it('should not render a date interpretation if no input date available', () => {
-      const component = makeInput({ initialState: { inputDate: null } });
+      const component = mount(<DateInput initialTestState={{ inputDate: null }} />);
       spyOn(component, 'setState');
-      expect(() => {
-        findRenderedDOMComponentWithClass(component, 'date-interpretation');
-      }).toThrow();
+      expect(component.find('.date-interpretation').isEmpty()).toBe(true);
     });
   });
 });

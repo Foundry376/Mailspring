@@ -1,11 +1,9 @@
 import _ from 'underscore';
-import { Listener, Publisher } from '../flux/modules/reflux-coffee';
-import { includeModule } from '../flux/coffee-helpers';
+import MailspringStore from 'mailspring-store';
 
-export class Registry {
-  static include = includeModule;
-
+export class Registry extends MailspringStore {
   constructor(name) {
+    super();
     this.name = name;
     this.clear();
   }
@@ -44,22 +42,22 @@ export class Registry {
   validateExtension(extension, method) {
     if (!extension || Array.isArray(extension) || !_.isObject(extension)) {
       throw new Error(
-        `ExtensionRegistry.${this
-          .name}.${method} requires a valid extension object that implements one of the functions defined by ${this
-          .name}Extension`
+        `ExtensionRegistry.${
+          this.name
+        }.${method} requires a valid extension object that implements one of the functions defined by ${
+          this.name
+        }Extension`
       );
     }
     if (!extension.name) {
       throw new Error(
-        `ExtensionRegistry.${this
-          .name}.${method} requires a \`name\` property defined on the extension object`
+        `ExtensionRegistry.${
+          this.name
+        }.${method} requires a \`name\` property defined on the extension object`
       );
     }
   }
 }
-
-Registry.include(Publisher);
-Registry.include(Listener);
 
 export const Composer = new Registry('Composer');
 
