@@ -52,7 +52,9 @@ export default class LinkTrackingComposerExtension extends ComposerExtension {
         return;
       }
       const encoded = encodeURIComponent(url);
-      const redirectUrl = `${PLUGIN_URL}/link/${draft.headerMessageId}/${links.length}?redirect=${encoded}`;
+      const redirectUrl = `${PLUGIN_URL}/link/${draft.headerMessageId}/${
+        links.length
+      }?redirect=${encoded}`;
 
       links.push({
         url,

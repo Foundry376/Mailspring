@@ -94,7 +94,9 @@ export default class PackageManager {
     if (!pkg.json.engines.mailspring) {
       // don't use AppEnv.reportError, I don't want to know about these.
       console.error(
-        `This plugin or theme ${pkg.name} does not list "mailspring" in it's package.json's "engines" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: http://support.getmailspring.com/hc/en-us/articles/115001918391`
+        `This plugin or theme ${
+          pkg.name
+        } does not list "mailspring" in it's package.json's "engines" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: http://support.getmailspring.com/hc/en-us/articles/115001918391`
       );
       return;
     }

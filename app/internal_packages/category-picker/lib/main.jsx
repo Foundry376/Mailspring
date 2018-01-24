@@ -4,10 +4,7 @@ const LabelPicker = require('./label-picker');
 const { ComponentRegistry } = require('mailspring-exports');
 
 module.exports = {
-  activate(state) {
-    if (state == null) {
-      state = {};
-    }
+  activate(state = {}) {
     this.state = state;
     ComponentRegistry.register(MovePicker, { role: 'ThreadActionsToolbarButton' });
     ComponentRegistry.register(LabelPicker, { role: 'ThreadActionsToolbarButton' });

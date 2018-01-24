@@ -96,14 +96,13 @@ const onEditItem = function(item, value) {
 };
 
 class SidebarItem {
-  static forPerspective(id, perspective, opts) {
-    let counterStyle, left;
-    if (opts == null) {
-      opts = {};
-    }
+  static forPerspective(id, perspective, opts = {}) {
+    let counterStyle;
     if (perspective.isInbox()) {
       counterStyle = OutlineViewItem.CounterStyles.Alt;
     }
+
+    const collapsed = isItemCollapsed(id);
 
     return Object.assign(
       {
@@ -115,7 +114,7 @@ class SidebarItem {
         children: [],
         perspective,
         selected: isItemSelected(perspective),
-        collapsed: (left = isItemCollapsed(id)) != null ? left : true,
+        collapsed: collapsed != null ? collapsed : true,
         counterStyle,
         onDelete: opts.deletable ? onDeleteItem : undefined,
         onEdited: opts.editable ? onEditItem : undefined,
@@ -160,13 +159,7 @@ class SidebarItem {
     );
   }
 
-  static forCategories(categories, opts) {
-    if (categories == null) {
-      categories = [];
-    }
-    if (opts == null) {
-      opts = {};
-    }
+  static forCategories(categories = [], opts = {}) {
     const id = idForCategories(categories);
     const contextMenuLabel = _str.capitalize(
       categories[0] != null ? categories[0].displayType() : undefined
@@ -183,10 +176,7 @@ class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forStarred(accountIds, opts) {
-    if (opts == null) {
-      opts = {};
-    }
+  static forStarred(accountIds, opts = {}) {
     const perspective = MailboxPerspective.forStarred(accountIds);
     let id = 'Starred';
     if (opts.name) {
@@ -195,10 +185,7 @@ class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forUnread(accountIds, opts) {
-    if (opts == null) {
-      opts = {};
-    }
+  static forUnread(accountIds, opts = {}) {
     let categories = accountIds.map(accId => {
       return CategoryStore.getCategoryByRole(accId, 'inbox');
     });
@@ -218,10 +205,7 @@ class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forDrafts(accountIds, opts) {
-    if (opts == null) {
-      opts = {};
-    }
+  static forDrafts(accountIds, opts = {}) {
     const perspective = MailboxPerspective.forDrafts(accountIds);
     const id = `Drafts-${opts.name}`;
     return this.forPerspective(id, perspective, opts);

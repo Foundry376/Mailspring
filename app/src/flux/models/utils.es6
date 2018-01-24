@@ -14,10 +14,7 @@ const DatabaseObjectRegistry = require('../../registries/database-object-registr
 let imageData = null;
 
 module.exports = Utils = {
-  waitFor(latch, options) {
-    if (options == null) {
-      options = {};
-    }
+  waitFor(latch, options = {}) {
     const timeout = options.timeout || 400;
     const expire = Date.now() + timeout;
     return new Promise(function(resolve, reject) {
@@ -41,10 +38,7 @@ module.exports = Utils = {
     return files.find(f => !f.contentId || f.size > 12 * 1024);
   },
 
-  extractTextFromHtml(html, param) {
-    if (param == null) {
-      param = {};
-    }
+  extractTextFromHtml(html, param = {}) {
     const { maxLength } = param;
     if ((html != null ? html : '').trim().length === 0) {
       return '';
@@ -97,10 +91,7 @@ module.exports = Utils = {
     return str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
   },
 
-  range(left, right, inclusive) {
-    if (inclusive == null) {
-      inclusive = true;
-    }
+  range(left, right, inclusive = true) {
     let range = [];
     let ascending = left < right;
     let end = !inclusive ? right : ascending ? right + 1 : right - 1;
@@ -115,24 +106,15 @@ module.exports = Utils = {
   //
   // See regex explanation and test here:
   // https://regex101.com/r/zG7aW4/2
-  wordSearchRegExp(str) {
-    if (str == null) {
-      str = '';
-    }
+  wordSearchRegExp(str = '') {
     return new RegExp(`((?:^|\\W|$)${Utils.escapeRegExp(str.trim())})`, 'ig');
   },
 
   // Takes an optional customizer. The customizer is passed the key and the
   // new cloned value for that key. The customizer is expected to either
   // modify the value and return it or simply be the identity function.
-  deepClone(object, customizer, stackSeen, stackRefs) {
+  deepClone(object, customizer, stackSeen = [], stackRefs = []) {
     let newObject;
-    if (stackSeen == null) {
-      stackSeen = [];
-    }
-    if (stackRefs == null) {
-      stackRefs = [];
-    }
     if (!_.isObject(object)) {
       return object;
     }
@@ -172,10 +154,7 @@ module.exports = Utils = {
     return newObject;
   },
 
-  toSet(arr) {
-    if (arr == null) {
-      arr = [];
-    }
+  toSet(arr = []) {
     const set = {};
     for (let item of arr) {
       set[item] = true;
@@ -185,19 +164,9 @@ module.exports = Utils = {
 
   // Given a File object or uploadData of an uploading file object,
   // determine if it looks like an image and is in the size range for previews
-  shouldDisplayAsImage(file) {
-    let left, left1, left2;
-    if (file == null) {
-      file = {};
-    }
-    const name =
-      (left =
-        (left1 = file.filename != null ? file.filename : file.fileName) != null
-          ? left1
-          : file.name) != null
-        ? left
-        : '';
-    const size = (left2 = file.size != null ? file.size : file.fileSize) != null ? left2 : 0;
+  shouldDisplayAsImage(file = {}) {
+    const name = file.filename || file.fileName || file.name;
+    const size = file.size || file.fileSize || 0;
     const ext = path.extname(name).toLowerCase();
     const extensions = ['.jpg', '.bmp', '.gif', '.png', '.jpeg'];
 
@@ -263,9 +232,8 @@ module.exports = Utils = {
     }
 
     if (!imageData) {
-      let left, left1;
-      imageData = (left = AppEnv.fileListCache().imageData) != null ? left : '{}';
-      Utils.images = (left1 = JSON.parse(imageData)) != null ? left1 : {};
+      imageData = AppEnv.fileListCache().imageData || '{}';
+      Utils.images = JSON.parse(imageData) || {};
     }
 
     if (!Utils.images || !Utils.images[resourcePath]) {
@@ -341,10 +309,7 @@ module.exports = Utils = {
     if (args.length < 2) {
       return false;
     }
-    const domains = args.map(function(email) {
-      if (email == null) {
-        email = '';
-      }
+    const domains = args.map((email = '') => {
       return _.last(
         email
           .toLowerCase()
@@ -356,10 +321,7 @@ module.exports = Utils = {
     return _.every(domains, domain => domain.length > 0 && toMatch === domain);
   },
 
-  emailHasCommonDomain(email) {
-    if (email == null) {
-      email = '';
-    }
+  emailHasCommonDomain(email = '') {
     const domain = _.last(
       email
         .toLowerCase()
@@ -399,10 +361,7 @@ module.exports = Utils = {
     return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
   },
 
-  isEqualReact(a, b, options) {
-    if (options == null) {
-      options = {};
-    }
+  isEqualReact(a, b, options = {}) {
     options.functionsAreEqual = true;
     options.ignoreKeys = (options.ignoreKeys != null ? options.ignoreKeys : []).push('id');
     return Utils.isEqual(a, b, options);
@@ -413,10 +372,7 @@ module.exports = Utils = {
   //   - functionsAreEqual: if true then all functions are equal
   //   - keysToIgnore: an array of object keys to ignore checks on
   //   - logWhenFalse: logs when isEqual returns false
-  isEqual(a, b, options) {
-    if (options == null) {
-      options = {};
-    }
+  isEqual(a, b, options = {}) {
     const value = Utils._isEqual(a, b, [], [], options);
     if (options.logWhenFalse) {
       if (value === false) {
@@ -428,13 +384,10 @@ module.exports = Utils = {
     return value;
   },
 
-  _isEqual(a, b, aStack, bStack, options) {
+  _isEqual(a, b, aStack, bStack, options = {}) {
     // Identical objects are equal. `0 is -0`, but they aren't identical.
     // See the [Harmony `egal`
     // proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
-    if (options == null) {
-      options = {};
-    }
     if (a === b) {
       return a !== 0 || 1 / a === 1 / b;
     }

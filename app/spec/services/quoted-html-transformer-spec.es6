@@ -8,10 +8,7 @@ describe('QuotedHTMLTransformer', function() {
     return fs.readFileSync(emailPath, 'utf8');
   };
 
-  const removeQuotedHTML = function(fname, opts) {
-    if (opts == null) {
-      opts = {};
-    }
+  const removeQuotedHTML = function(fname, opts = {}) {
     return QuotedHTMLTransformer.removeQuotedHTML(readFile(fname), opts);
   };
 

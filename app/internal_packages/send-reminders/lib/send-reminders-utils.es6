@@ -40,7 +40,9 @@ function assertMetadataShape(value) {
   }
   if (t.lastReplyTimestamp && !(t.lastReplyTimestamp < Date.now() / 100)) {
     throw new Error(
-      `"lastReplyTimestamp" should always be a unix timestamp in seconds. Received ${t.lastReplyTimestamp}`
+      `"lastReplyTimestamp" should always be a unix timestamp in seconds. Received ${
+        t.lastReplyTimestamp
+      }`
     );
   }
   delete t.expiration;

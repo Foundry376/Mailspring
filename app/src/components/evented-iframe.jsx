@@ -9,10 +9,8 @@ const {
   ReactDOM,
   PropTypes,
   Utils,
-  RegExpUtils,
   IdentityStore,
   MailspringAPIRequest,
-  SearchableComponentMaker,
   SearchableComponentStore,
 } = require('mailspring-exports');
 const IFrameSearcher = require('../searchable-components/iframe-searcher').default;

@@ -10,23 +10,20 @@ let idNum = 0;
 module.exports = class MailspringWindow extends EventEmitter {
   static includeShellLoadTime = true;
 
-  constructor(settings) {
+  constructor(settings = {}) {
     super();
 
-    let frame, height, pathToOpen, resizable, title, toolbar, width;
+    let frame, height, pathToOpen, resizable, title, width;
     this.browserWindow = null;
     this.loaded = null;
     this.isSpec = null;
 
-    if (settings == null) {
-      settings = {};
-    }
     ({
       frame,
       title,
       width,
       height,
-      toolbar,
+      // toolbar, present but passed through to client-side
       resizable,
       pathToOpen,
       isSpec: this.isSpec,

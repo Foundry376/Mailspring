@@ -64,9 +64,9 @@ module.exports = class ApplicationMenu {
     }
 
     const focusHandler = () => {
-      let template;
       this.lastFocusedWindow = window;
-      if ((template = this.windowTemplates.get(window))) {
+      const template = this.windowTemplates.get(window);
+      if (template) {
         this.setActiveTemplate(template);
       }
     };
@@ -135,8 +135,8 @@ module.exports = class ApplicationMenu {
 
   // Replaces VERSION with the current version.
   extendTemplateWithVersion(template) {
-    let item;
-    if ((item = this.flattenMenuTemplate(template).find(({ label }) => label === 'VERSION'))) {
+    const item = this.flattenMenuTemplate(template).find(({ label }) => label === 'VERSION');
+    if (item) {
       item.label = `Version ${this.version}`;
     }
   }

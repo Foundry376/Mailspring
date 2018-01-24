@@ -32,7 +32,9 @@ export function applySignature(body, signature) {
   if (signature) {
     const contentBefore = newBody.slice(0, insertionPoint);
     const contentAfter = newBody.slice(insertionPoint);
-    return `${contentBefore}${additionalWhitespace}<signature id="${signature.id}">${signature.body}</signature>${contentAfter}`;
+    return `${contentBefore}${additionalWhitespace}<signature id="${signature.id}">${
+      signature.body
+    }</signature>${contentAfter}`;
   } else {
     return newBody;
   }

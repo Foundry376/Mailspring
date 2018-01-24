@@ -24,7 +24,9 @@ export default class LinkTrackingButton extends React.Component {
     ) {
       return `Link tracking does not work offline. Please re-enable when you come back online.`;
     }
-    return `Unfortunately, link tracking servers are currently not available. Please try again later. Error: ${error.message}`;
+    return `Unfortunately, link tracking servers are currently not available. Please try again later. Error: ${
+      error.message
+    }`;
   }
 
   render() {

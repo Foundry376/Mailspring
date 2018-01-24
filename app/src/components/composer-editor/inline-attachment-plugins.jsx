@@ -28,7 +28,8 @@ function ImageNode(props) {
       onRemoveAttachment={() =>
         editor.change(change => {
           change.removeNodeByKey(node.key);
-        })}
+        })
+      }
     />
   );
 }

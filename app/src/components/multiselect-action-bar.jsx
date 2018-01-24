@@ -145,12 +145,8 @@ class MultiselectActionBar extends React.Component {
     }
   }
 
-  _getStateFromStores(props) {
-    let left;
-    if (props == null) {
-      ({ props } = this);
-    }
-    return { items: (left = props.dataSource.selection.items()) != null ? left : [] };
+  _getStateFromStores(props = this.props) {
+    return { items: props.dataSource.selection.items() || [] };
   }
 
   _onChange = () => {

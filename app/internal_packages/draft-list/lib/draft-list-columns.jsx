@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import { Utils } from 'mailspring-exports';
 import { InjectedComponentSet, ListTabular } from 'mailspring-component-kit';

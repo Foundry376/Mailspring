@@ -93,7 +93,9 @@ export default class WindowManager {
 
     if (this._windows[win.windowKey]) {
       throw new Error(
-        `WindowManager: Attempting to register a new window for an existing windowKey (${win.windowKey}). Use 'get()' to retrieve the existing window instead.`
+        `WindowManager: Attempting to register a new window for an existing windowKey (${
+          win.windowKey
+        }). Use 'get()' to retrieve the existing window instead.`
       );
     }
 

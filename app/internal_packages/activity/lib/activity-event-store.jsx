@@ -152,9 +152,9 @@ class ActivityEventStore extends MailspringStore {
               threadId: message.threadId,
               data: {
                 title: 'New open',
-                subtitle: `${recipient
-                  ? recipient.displayName()
-                  : 'Someone'} just opened ${message.subject}`,
+                subtitle: `${recipient ? recipient.displayName() : 'Someone'} just opened ${
+                  message.subject
+                }`,
                 canReply: false,
                 tag: 'message-open',
                 onActivate: () => {
@@ -192,9 +192,9 @@ class ActivityEventStore extends MailspringStore {
               threadId: message.threadId,
               data: {
                 title: 'New click',
-                subtitle: `${recipient
-                  ? recipient.displayName()
-                  : 'Someone'} just clicked ${link.url}.`,
+                subtitle: `${recipient ? recipient.displayName() : 'Someone'} just clicked ${
+                  link.url
+                }.`,
                 canReply: false,
                 tag: 'link-open',
                 onActivate: () => {

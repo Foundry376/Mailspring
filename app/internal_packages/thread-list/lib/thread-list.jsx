@@ -160,7 +160,6 @@ class ThreadList extends React.Component {
   }
 
   _threadPropsProvider(item) {
-    let left;
     let classes = classnames({
       unread: item.unread,
     });
@@ -206,8 +205,7 @@ class ThreadList extends React.Component {
       callback(true);
     };
 
-    const disabledPackages =
-      (left = AppEnv.config.get('core.disabledPackages')) != null ? left : [];
+    const disabledPackages = AppEnv.config.get('core.disabledPackages') || [];
     if (disabledPackages.includes('thread-snooze')) {
       return props;
     }
@@ -235,14 +233,13 @@ class ThreadList extends React.Component {
   }
 
   _targetItemsForMouseEvent(event) {
-    let needle;
     const itemThreadId = this.refs.list.itemIdAtPoint(event.clientX, event.clientY);
     if (!itemThreadId) {
       return null;
     }
 
     const dataSource = ThreadListStore.dataSource();
-    if (((needle = itemThreadId), dataSource.selection.ids().includes(needle))) {
+    if (itemThreadId && dataSource.selection.ids().includes(itemThreadId)) {
       return {
         threadIds: dataSource.selection.ids(),
         accountIds: _.uniq(_.pluck(dataSource.selection.items(), 'accountId')),
@@ -327,9 +324,7 @@ class ThreadList extends React.Component {
   };
 
   _onSnoozeItem = () => {
-    let left;
-    const disabledPackages =
-      (left = AppEnv.config.get('core.disabledPackages')) != null ? left : [];
+    const disabledPackages = AppEnv.config.get('core.disabledPackages') || [];
     if (disabledPackages.includes('thread-snooze')) {
       return;
     }

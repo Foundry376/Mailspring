@@ -1,7 +1,7 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
 const ReactTestUtils = require('react-dom/test-utils');
-const { Contact, Message } = require('mailspring-exports');
+const { Message } = require('mailspring-exports');
 const MessageParticipants = require('../lib/message-participants').default;
 
 const user_1 = {
@@ -24,10 +24,6 @@ const user_5 = {
   name: 'User Five',
   email: 'user5@nylas.com',
 };
-
-const many_users = __range__(0, 100, true).map(
-  i => new Contact({ name: `User ${i}`, email: `${i}@app.com` })
-);
 
 const test_message = new Message().fromJSON({
   id: '111',
@@ -136,13 +132,3 @@ describe('MessageParticipants', function() {
 //   )
 //   # this should be false because we don't count bccs
 //   expect(p2._isToEveryone()).toBe false
-
-function __range__(left, right, inclusive) {
-  let range = [];
-  let ascending = left < right;
-  let end = !inclusive ? right : ascending ? right + 1 : right - 1;
-  for (let i = left; ascending ? i < end : i > end; ascending ? i++ : i--) {
-    range.push(i);
-  }
-  return range;
-}

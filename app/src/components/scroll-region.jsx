@@ -93,10 +93,7 @@ class Scrollbar extends React.Component {
     );
   }
 
-  recomputeDimensions = options => {
-    if (options == null) {
-      options = {};
-    }
+  recomputeDimensions = (options = {}) => {
     if (this.props.getScrollRegion != null) {
       this.props.getScrollRegion()._recomputeDimensions(options);
     }
@@ -356,10 +353,7 @@ class ScrollRegion extends React.Component {
 
   // Public: Scroll to the DOM Node provided.
   //
-  scrollTo = (node, param) => {
-    if (param == null) {
-      param = {};
-    }
+  scrollTo = (node, param = {}) => {
     const { position, settle, done } = param;
     if (node instanceof React.Component) {
       node = ReactDOM.findDOMNode(node);
@@ -376,10 +370,7 @@ class ScrollRegion extends React.Component {
   // a ClientRect or similar object with top, left, width, height relative to the
   // window, not the scroll region. This is designed to make it easy to use with
   // node.getBoundingClientRect()
-  scrollToRect(rect, param) {
-    if (param == null) {
-      param = {};
-    }
+  scrollToRect(rect, param = {}) {
     const { position, settle, done } = param;
     if (rect instanceof Node) {
       throw new Error('ScrollRegion.scrollToRect: requires a rect. Maybe you meant scrollTo?');
@@ -473,17 +464,8 @@ class ScrollRegion extends React.Component {
     scrollIfSettled();
   };
 
-  recomputeDimensions(options) {
-    let left;
-    if (options == null) {
-      options = {};
-    }
-    const scrollbar =
-      (left =
-        typeof this.props.getScrollbar === 'function' ? this.props.getScrollbar() : undefined) !=
-      null
-        ? left
-        : this.refs.scrollbar;
+  recomputeDimensions(options = {}) {
+    const scrollbar = this.props.getScrollbar ? this.props.getScrollbar() : this.refs.scrollbar;
     if (scrollbar) {
       scrollbar._recomputeDimensions(options);
     }
@@ -509,8 +491,6 @@ class ScrollRegion extends React.Component {
     if (useCachedValues) {
       totalHeight =
         this.state.totalHeight != null ? this.state.totalHeight : contentNode.scrollHeight;
-      const trackHeight =
-        this.state.trackHeight != null ? this.state.trackHeight : contentNode.scrollHeight;
       viewportHeight =
         this.state.viewportHeight != null ? this.state.viewportHeight : contentNode.clientHeight;
     } else {
@@ -528,13 +508,7 @@ class ScrollRegion extends React.Component {
   };
 
   _setSharedState(state) {
-    let left;
-    const scrollbar =
-      (left =
-        typeof this.props.getScrollbar === 'function' ? this.props.getScrollbar() : undefined) !=
-      null
-        ? left
-        : this.refs.scrollbar;
+    const scrollbar = this.props.getScrollbar ? this.props.getScrollbar() : this.refs.scrollbar;
     if (scrollbar) {
       scrollbar.setStateFromScrollRegion(state);
     }

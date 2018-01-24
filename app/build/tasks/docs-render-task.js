@@ -42,8 +42,6 @@ let thirdPartyClasses = {
 };
 
 module.exports = function(grunt) {
-  let { cp, mkdir, rm } = grunt.config('taskHelpers');
-
   let relativePathForClass = classname => classname + '.html';
 
   let outputPathFor = function(relativePath) {
@@ -51,14 +49,8 @@ module.exports = function(grunt) {
     return path.join(classDocsOutputDir, relativePath);
   };
 
-  var processFields = function(json, fields, tasks) {
+  var processFields = function(json, fields = [], tasks = []) {
     let val;
-    if (fields == null) {
-      fields = [];
-    }
-    if (tasks == null) {
-      tasks = [];
-    }
     if (json instanceof Array) {
       return (() => {
         let result = [];
@@ -90,7 +82,7 @@ module.exports = function(grunt) {
   };
 
   return grunt.registerTask('docs-render', 'Builds html from the API docs', function() {
-    let documentation, filename, html, match, meta, name, result, section, val;
+    let documentation, match, name, result, section, val;
     let classDocsOutputDir = grunt.config.get('classDocsOutputDir');
 
     // Parse API reference Markdown

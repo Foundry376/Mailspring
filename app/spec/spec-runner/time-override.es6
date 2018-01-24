@@ -15,10 +15,7 @@ const _ = require('underscore');
 // forward.
 class TimeOverride {
   static initClass() {
-    this.advanceClock = delta => {
-      if (delta == null) {
-        delta = 1;
-      }
+    this.advanceClock = (delta = 1) => {
       this.now += delta;
       const callbacks = [];
 

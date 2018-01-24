@@ -73,7 +73,8 @@ class ThreadSearchBar extends Component {
         suggestions={suggestions}
         isSearching={isSearching}
         suggestionKey={suggestion =>
-          suggestion.label || (suggestion.contact || {}).id || (suggestion.thread || {}).id}
+          suggestion.label || (suggestion.contact || {}).id || (suggestion.thread || {}).id
+        }
         suggestionRenderer={this._renderSuggestion}
         onSelectSuggestion={this._onSelectSuggestion}
         onSubmitSearchQuery={this._onSubmitSearchQuery}

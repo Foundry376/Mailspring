@@ -33,29 +33,29 @@ export default class SyncActivity extends React.Component {
   }
 
   render() {
-    let accountComponents = Object.entries(
-      this.props.syncState
-    ).map(([accountId, accountSyncState]) => {
-      const account = AccountStore.accountForId(accountId);
-      if (!account) {
-        return false;
+    let accountComponents = Object.entries(this.props.syncState).map(
+      ([accountId, accountSyncState]) => {
+        const account = AccountStore.accountForId(accountId);
+        if (!account) {
+          return false;
+        }
+
+        let folderComponents = Object.entries(accountSyncState).map(([folderPath, folderState]) => {
+          return this.renderFolderProgress(folderPath, folderState);
+        });
+
+        if (folderComponents.length === 0) {
+          folderComponents = <div>Gathering folders...</div>;
+        }
+
+        return (
+          <div className="account" key={accountId}>
+            <h2>{account.emailAddress}</h2>
+            {folderComponents}
+          </div>
+        );
       }
-
-      let folderComponents = Object.entries(accountSyncState).map(([folderPath, folderState]) => {
-        return this.renderFolderProgress(folderPath, folderState);
-      });
-
-      if (folderComponents.length === 0) {
-        folderComponents = <div>Gathering folders...</div>;
-      }
-
-      return (
-        <div className="account" key={accountId}>
-          <h2>{account.emailAddress}</h2>
-          {folderComponents}
-        </div>
-      );
-    });
+    );
 
     if (accountComponents.length === 0) {
       accountComponents = (

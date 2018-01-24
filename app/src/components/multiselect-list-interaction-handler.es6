@@ -67,10 +67,7 @@ module.exports = class MultiselectListInteractionHandler {
     this.props.dataSource.selection.toggle(this.props.dataSource.getById(id));
   };
 
-  onShift = (delta, options) => {
-    if (options == null) {
-      options = {};
-    }
+  onShift = (delta, options = {}) => {
     const { id, action } = this._keyboardContext();
 
     const current = this.props.dataSource.getById(id);

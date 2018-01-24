@@ -46,7 +46,8 @@ class DefaultMailClientItem extends React.Component {
             style={{ marginBottom: 12 }}
             className="btn btn-small"
             onClick={() =>
-              shell.openExternal('https://foundry376.zendesk.com/hc/en-us/articles/115002281851')}
+              shell.openExternal('https://foundry376.zendesk.com/hc/en-us/articles/115002281851')
+            }
           >
             Use Mailspring as default mail client
           </div>

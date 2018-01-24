@@ -24,7 +24,9 @@ export default class OpenTrackingButton extends React.Component {
     ) {
       return `Open tracking does not work offline. Please re-enable when you come back online.`;
     }
-    return `Unfortunately, open tracking is currently not available. Please try again later. Error: ${error.message}`;
+    return `Unfortunately, open tracking is currently not available. Please try again later. Error: ${
+      error.message
+    }`;
   }
 
   render() {

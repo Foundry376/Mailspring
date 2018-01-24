@@ -59,11 +59,7 @@ const RegExpUtils = {
   },
 
   // Test cases: https://regex101.com/r/pD7iS5/4
-  urlRegex(param) {
-    if (param == null) {
-      param = {};
-    }
-    const { matchStartOfString, matchTailOfString } = param;
+  urlRegex({ matchStartOfString, matchTailOfString } = {}) {
     const commonTlds = [
       'com',
       'org',
@@ -207,11 +203,7 @@ const RegExpUtils = {
     return /["|']https:\/\/link\.getmailspring\.com\/link\/.*?\?.*?redirect=([^&"']*).*?["|']/g;
   },
 
-  punctuation(param) {
-    if (param == null) {
-      param = {};
-    }
-    let { exclude } = param;
+  punctuation({ exclude } = {}) {
     if (exclude == null) {
       exclude = [];
     }

@@ -24,10 +24,7 @@ class MailImportantIcon extends React.Component {
     this.state = this.getState();
   }
 
-  getState = props => {
-    if (props == null) {
-      ({ props } = this);
-    }
+  getState = (props = this.props) => {
     let category = null;
     let visible = false;
 

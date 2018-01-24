@@ -129,8 +129,9 @@ class Mac {
   }
 
   getLaunchServicesPlistPath(callback) {
-    const secure = `${process.env
-      .HOME}/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist`;
+    const secure = `${
+      process.env.HOME
+    }/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist`;
     const insecure = `${process.env.HOME}/Library/Preferences/com.apple.LaunchServices.plist`;
 
     fs.exists(secure, exists => (exists ? callback(secure) : callback(insecure)));

@@ -51,13 +51,13 @@ const CategoryObservables = {
   },
 
   standard(account) {
-    const observable = Rx.Observable
-      .fromConfig('core.workspace.showImportant')
-      .flatMapLatest(showImportant => {
+    const observable = Rx.Observable.fromConfig('core.workspace.showImportant').flatMapLatest(
+      showImportant => {
         return CategoryObservables.forAccount(account)
           .sort()
           .categoryFilter(cat => cat.isStandardCategory(showImportant));
-      });
+      }
+    );
     Object.assign(observable, CategoryOperators);
     return observable;
   },

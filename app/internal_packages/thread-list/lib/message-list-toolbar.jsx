@@ -6,18 +6,16 @@ import ThreadListStore from './thread-list-store';
 import InjectsToolbarButtons, { ToolbarRole } from './injects-toolbar-buttons';
 
 function getObservable() {
-  return Rx.Observable
-    .combineLatest(
-      Rx.Observable.fromStore(FocusedContentStore),
-      ThreadListStore.selectionObservable(),
-      (store, items) => ({ focusedThread: store.focused('thread'), items })
-    )
-    .map(({ focusedThread, items }) => {
-      if (focusedThread) {
-        return [focusedThread];
-      }
-      return items;
-    });
+  return Rx.Observable.combineLatest(
+    Rx.Observable.fromStore(FocusedContentStore),
+    ThreadListStore.selectionObservable(),
+    (store, items) => ({ focusedThread: store.focused('thread'), items })
+  ).map(({ focusedThread, items }) => {
+    if (focusedThread) {
+      return [focusedThread];
+    }
+    return items;
+  });
 }
 
 const MessageListToolbar = ({ items, injectedButtons }) => {

@@ -50,7 +50,7 @@ class ThreadListStore extends MailspringStore {
     this.createListDataSource();
   };
 
-  _onDataChanged = param => {
+  _onDataChanged = ({ previous, next } = {}) => {
     // This code keeps the focus and keyboard cursor in sync with the thread list.
     // When the thread list changes, it looks to see if the focused thread is gone,
     // or no longer matches the query criteria and advances the focus to the next
@@ -58,11 +58,6 @@ class ThreadListStore extends MailspringStore {
 
     // This means that removing a thread from view in any way causes selection
     // to advance to the adjacent thread. Nice and declarative.
-
-    if (param == null) {
-      param = {};
-    }
-    const { previous, next } = param;
     if (previous && next) {
       const focused = FocusedContentStore.focused('thread');
       const keyboard = FocusedContentStore.keyboardCursor('thread');

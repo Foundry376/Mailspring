@@ -12,10 +12,7 @@ const ActivityListEmptyState = function ActivityListEmptyState() {
       <div className="text">
         Enable read receipts{' '}
         <RetinaImg name="icon-activity-mailopen.png" mode={RetinaImg.Mode.ContentDark} /> or link
-        tracking <RetinaImg
-          name="icon-activity-linkopen.png"
-          mode={RetinaImg.Mode.ContentDark}
-        />{' '}
+        tracking <RetinaImg name="icon-activity-linkopen.png" mode={RetinaImg.Mode.ContentDark} />{' '}
         to see notifications here.
       </div>
     </div>

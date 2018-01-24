@@ -196,9 +196,7 @@ class PreferencesIdentity extends React.Component {
       <div className="row padded">
         <div>
           Thank you for using{' '}
-          <strong
-            style={{ textTransform: 'capitalize' }}
-          >{`Mailspring ${planDisplayName}`}</strong>{' '}
+          <strong style={{ textTransform: 'capitalize' }}>{`Mailspring ${planDisplayName}`}</strong>{' '}
           and supporting independent software. Get the most out of your subscription: visit the{' '}
           <a href="https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started">
             Help Center

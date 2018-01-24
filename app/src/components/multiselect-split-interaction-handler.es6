@@ -64,13 +64,12 @@ module.exports = class MultiselectSplitInteractionHandler {
   };
 
   onShift = (delta, options) => {
-    let action, id, selection;
     if (options.select) {
       this._turnFocusIntoSelection();
     }
 
+    let action, id;
     if (this.props.dataSource.selection.count() > 0) {
-      ({ selection } = this.props.dataSource);
       const keyboardId = this.props.keyboardCursorId;
       id = keyboardId != null ? keyboardId : this.props.dataSource.selection.top().id;
       action = this.onSetCursorPosition;

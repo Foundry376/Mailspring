@@ -173,12 +173,8 @@ class SidebarSection {
     };
   }
 
-  static forUserCategories(account, param) {
+  static forUserCategories(account, { title, collapsible } = {}) {
     let onCollapseToggled;
-    if (param == null) {
-      param = {};
-    }
-    let { title, collapsible } = param;
     if (!account) {
       return;
     }

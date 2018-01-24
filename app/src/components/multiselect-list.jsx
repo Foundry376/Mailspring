@@ -57,10 +57,9 @@ class MultiselectList extends React.Component {
       prevProps.focusedId !== this.props.focusedId ||
       prevProps.keyboardCursorId !== this.props.keyboardCursorId
     ) {
-      let item = ReactDOM.findDOMNode(this).querySelector('.focused');
-      if (item == null) {
-        item = ReactDOM.findDOMNode(this).querySelector('.keyboard-cursor');
-      }
+      const item =
+        ReactDOM.findDOMNode(this).querySelector('.focused') ||
+        ReactDOM.findDOMNode(this).querySelector('.keyboard-cursor');
       if (!(item instanceof Node)) {
         return;
       }

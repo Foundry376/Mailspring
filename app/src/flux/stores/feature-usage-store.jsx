@@ -150,7 +150,9 @@ class FeatureUsageStore extends MailspringStore {
       } else if (featureData.period === 'yearly') {
         time = 'a year';
       }
-      rechargeText = `You can ${lexicon.usagePhrase} ${featureData.quota} emails ${time} with Mailspring Basic. Upgrade to Pro today!`;
+      rechargeText = `You can ${lexicon.usagePhrase} ${
+        featureData.quota
+      } emails ${time} with Mailspring Basic. Upgrade to Pro today!`;
     }
     return { headerText, rechargeText };
   }

@@ -85,8 +85,7 @@ export function ActionTemplatesForAccount(account) {
 
   const templates = [].concat(ActionTemplates);
 
-  const CategoryNamesObservable = MailspringObservables.Categories
-    .forAccount(account)
+  const CategoryNamesObservable = MailspringObservables.Categories.forAccount(account)
     .sort()
     .map(cats => cats.filter(cat => !cat.isLockedCategory()))
     .map(cats =>

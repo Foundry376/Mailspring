@@ -186,37 +186,36 @@ export class Notifier {
 
     // TODO: Use xGMLabels + folder on message to identify which ones
     // are in the inbox to avoid needing threads here.
-    return DatabaseStore.findAll(
-      Thread,
-      Thread.attributes.id.in(Object.keys(threadIds))
-    ).then(threadsArray => {
-      const threads = {};
-      for (const t of threadsArray) {
-        threads[t.id] = t;
-      }
-
-      // Filter new messages to just the ones in the inbox
-      const newMessagesInInbox = newMessages.filter(({ threadId }) => {
-        return threads[threadId] && threads[threadId].categories.find(c => c.role === 'inbox');
-      });
-
-      if (newMessagesInInbox.length === 0) {
-        return;
-      }
-
-      for (const msg of newMessagesInInbox) {
-        this.unnotifiedQueue.push({ message: msg, thread: threads[msg.threadId] });
-      }
-      if (!this.hasScheduledNotify) {
-        if (AppEnv.config.get('core.notifications.sounds')) {
-          this._playNewMailSound =
-            this._playNewMailSound ||
-            _.debounce(() => SoundRegistry.playSound('new-mail'), 5000, true);
-          this._playNewMailSound();
+    return DatabaseStore.findAll(Thread, Thread.attributes.id.in(Object.keys(threadIds))).then(
+      threadsArray => {
+        const threads = {};
+        for (const t of threadsArray) {
+          threads[t.id] = t;
         }
-        this._notifyMessages();
+
+        // Filter new messages to just the ones in the inbox
+        const newMessagesInInbox = newMessages.filter(({ threadId }) => {
+          return threads[threadId] && threads[threadId].categories.find(c => c.role === 'inbox');
+        });
+
+        if (newMessagesInInbox.length === 0) {
+          return;
+        }
+
+        for (const msg of newMessagesInInbox) {
+          this.unnotifiedQueue.push({ message: msg, thread: threads[msg.threadId] });
+        }
+        if (!this.hasScheduledNotify) {
+          if (AppEnv.config.get('core.notifications.sounds')) {
+            this._playNewMailSound =
+              this._playNewMailSound ||
+              _.debounce(() => SoundRegistry.playSound('new-mail'), 5000, true);
+            this._playNewMailSound();
+          }
+          this._notifyMessages();
+        }
       }
-    });
+    );
   }
 }
 

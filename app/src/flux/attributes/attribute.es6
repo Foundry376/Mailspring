@@ -47,8 +47,9 @@ export default class Attribute {
     }
     if (val.length === 0) {
       console.warn(
-        `Attribute::in (${this
-          .modelKey}) called with an empty set. You should avoid this useless query!`
+        `Attribute::in (${
+          this.modelKey
+        }) called with an empty set. You should avoid this useless query!`
       );
     }
     if (val.length === 1) {

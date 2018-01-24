@@ -522,8 +522,7 @@ class Config {
     */
 
   pushAtKeyPath(keyPath, value) {
-    let left;
-    const arrayValue = (left = this.get(keyPath)) != null ? left : [];
+    const arrayValue = this.get(keyPath) || [];
     if (!(arrayValue instanceof Array)) {
       throw new Error(
         `Config.pushAtKeyPath is intended for array values. Value ${JSON.stringify(
@@ -537,8 +536,7 @@ class Config {
   }
 
   unshiftAtKeyPath(keyPath, value) {
-    let left;
-    const arrayValue = (left = this.get(keyPath)) != null ? left : [];
+    const arrayValue = this.get(keyPath) || [];
     if (!(arrayValue instanceof Array)) {
       throw new Error(
         `Config.unshiftAtKeyPath is intended for array values. Value ${JSON.stringify(
@@ -552,8 +550,7 @@ class Config {
   }
 
   removeAtKeyPath(keyPath, value) {
-    let left;
-    const arrayValue = (left = this.get(keyPath)) != null ? left : [];
+    const arrayValue = this.get(keyPath) || [];
     if (!(arrayValue instanceof Array)) {
       throw new Error(
         `Config.removeAtKeyPath is intended for array values. Value ${JSON.stringify(
@@ -703,8 +700,8 @@ class Config {
   }
 
   makeValueConformToSchema(keyPath, value) {
-    let schema;
-    if ((schema = this.getSchema(keyPath))) {
+    let schema = this.getSchema(keyPath);
+    if (schema) {
       value = this.constructor.executeSchemaEnforcers(keyPath, value, schema);
     }
     return value;
@@ -759,7 +756,7 @@ class Config {
 Config.addSchemaEnforcers({
   integer: {
     coerce(keyPath, value, schema) {
-      value = parseInt(value);
+      value = parseInt(value, 10);
       if (isNaN(value) || !isFinite(value)) {
         throw new Error(
           `Validation failed at ${keyPath}, ${JSON.stringify(value)} cannot be coerced into an int`

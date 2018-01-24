@@ -38,7 +38,9 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
 
         SignatureComposerExtension.prepareNewDraft({ draft: a });
         expect(a.body).toEqual(
-          `This is a test! <br/><signature id="1">${TEST_SIGNATURE.body}</signature><div class="gmail_quote">Hello world</div>`
+          `This is a test! <br/><signature id="1">${
+            TEST_SIGNATURE.body
+          }</signature><div class="gmail_quote">Hello world</div>`
         );
         SignatureComposerExtension.prepareNewDraft({ draft: b });
         expect(b.body).toEqual(
@@ -50,7 +52,9 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
         {
           name: 'With blockquote',
           body: `This is a test! <signature id="x"><div>SIG</div></signature><div class="gmail_quote">Hello world</div>`,
-          expected: `This is a test! <signature id="1">${TEST_SIGNATURE.body}</signature><div class="gmail_quote">Hello world</div>`,
+          expected: `This is a test! <signature id="1">${
+            TEST_SIGNATURE.body
+          }</signature><div class="gmail_quote">Hello world</div>`,
         },
         {
           name: 'Populated signature div',
@@ -70,7 +74,9 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
       ];
 
       scenarios.forEach(scenario => {
-        it(`should replace the signature if a signature is already present (${scenario.name})`, () => {
+        it(`should replace the signature if a signature is already present (${
+          scenario.name
+        })`, () => {
           const message = new Message({
             draft: true,
             from: ['one@nylas.com'],

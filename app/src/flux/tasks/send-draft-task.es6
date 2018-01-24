@@ -140,14 +140,14 @@ export default class SendDraftTask extends Task {
       const [smtpError, emails] = debuginfo.split(':::');
       errorMessage =
         "We were unable to deliver this message to some recipients. Click 'See Details' for more information.";
-      errorDetail = `We encountered an SMTP Gateway error that prevented this message from being delivered to all recipients. The message was only sent successfully to these recipients:\n${emails}\n\nError: ${LocalizedErrorStrings[
-        smtpError
-      ]}`;
+      errorDetail = `We encountered an SMTP Gateway error that prevented this message from being delivered to all recipients. The message was only sent successfully to these recipients:\n${emails}\n\nError: ${
+        LocalizedErrorStrings[smtpError]
+      }`;
     } else if (key === 'send-failed') {
       errorMessage = `We were unable to deliver this message. ${LocalizedErrorStrings[debuginfo]}`;
-      errorDetail = `We encountered an SMTP error that prevented this message from being delivered:\n\n${LocalizedErrorStrings[
-        debuginfo
-      ]}`;
+      errorDetail = `We encountered an SMTP error that prevented this message from being delivered:\n\n${
+        LocalizedErrorStrings[debuginfo]
+      }`;
     } else {
       errorMessage = 'We were unable to deliver this message.';
       errorDetail = `An unknown error occurred: ${JSON.stringify({ key, debuginfo })}`;

@@ -237,15 +237,9 @@ class WorkspaceStore extends MailspringStore {
   // *`columns` An {Object} with keys for each layout mode the Sheet
   //      supports. For each key, provide an array of column names.
   //
-  defineSheet(id, options, columns) {
+  defineSheet(id, options = {}, columns = {}) {
     // Make sure all the locations have definitions so that packages
     // can register things into these locations and their toolbars.
-    if (options == null) {
-      options = {};
-    }
-    if (columns == null) {
-      columns = {};
-    }
     for (let layout in columns) {
       const cols = columns[layout];
       for (let idx = 0; idx < cols.length; idx++) {

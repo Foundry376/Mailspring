@@ -1,4 +1,3 @@
-const _ = require('underscore');
 const SwipeContainer = require('./swipe-container').default;
 const { React, PropTypes, Utils } = require('mailspring-exports');
 

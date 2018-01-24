@@ -84,8 +84,9 @@ export async function makeRequest(options) {
   }
   if (!resp.ok) {
     error.statusCode = resp.status;
-    error.message = `${options.method ||
-      'GET'} ${options.url} returned ${resp.status} ${resp.statusText}`;
+    error.message = `${options.method || 'GET'} ${options.url} returned ${resp.status} ${
+      resp.statusText
+    }`;
     throw error;
   }
   return resp.json();

@@ -217,7 +217,9 @@ export default class MailsyncBridge {
 
     AppEnv.showErrorDialog({
       title: `Cleanup Started`,
-      message: `Mailspring is clearing it's cache for ${account.emailAddress}. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
+      message: `Mailspring is clearing it's cache for ${
+        account.emailAddress
+      }. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
     });
 
     try {
