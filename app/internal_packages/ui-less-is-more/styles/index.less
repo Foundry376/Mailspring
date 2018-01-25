@@ -22,13 +22,13 @@
 //  Theme Variables
 //====================================================
 
-@less-background: #FFFFFF; //white
+@less-background: #ffffff; //white
 @less-text: #566c75; //gray
-@less-highlight: #FAFAFA; //lightest-gray
-@less-divider: #DDDDDD; //lighter-gray
-@minimize: #FBD852; //yellow
+@less-highlight: #fafafa; //lightest-gray
+@less-divider: #dddddd; //lighter-gray
+@minimize: #fbd852; //yellow
 @maximize: #8dd07d; //green
-@close: #FF5F56; //red
+@close: #ff5f56; //red
 @swipe-archive: @maximize; //green
 @swipe-snooze: @minimize; //yellow
 @swipe-trash: @close; //red
@@ -51,7 +51,7 @@
 
 // Message List padding
 .column-MessageList {
-  padding: 3em 2em;
+  padding: 4.5em 2em 0em;
 }
 
 // Window Control Button transforms
@@ -344,9 +344,20 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
   .message-item-white-wrap.composer-outer-wrap
   .composer-action-bar-wrap {
   background-color: @less-highlight;
-  border-top: none;
   box-shadow: none;
   border-radius: 0;
+}
+
+#message-list .message-item-wrap .message-item-white-wrap.composer-outer-wrap {
+  border: 1px solid transparent;
+}
+
+#message-list
+  .message-item-wrap
+  .message-item-white-wrap.composer-outer-wrap
+  .RichEditor-toolbar
+  .inner {
+  background-color: @less-highlight;
 }
 
 // Draft message background color on focus
@@ -355,6 +366,13 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
   box-shadow: none;
   border: 1px solid @less-divider;
   border-radius: 0;
+}
+#message-list
+  .message-item-wrap
+  .message-item-white-wrap.composer-outer-wrap.focused
+  .RichEditor-toolbar
+  .inner {
+  background: @less-background;
 }
 
 // Draft message background action bar theme on focus
@@ -486,17 +504,6 @@ input[type='url'] {
   border: none !important;
 }
 
-// Input style overrides on hover
-textarea:focus,
-input[type='text']:focus,
-input[type='email']:focus,
-.search-bar .menu .header-container input:focus {
-  border: none !important;
-  border-radius: 0;
-  border-bottom: 2px solid @less-text !important;
-  box-shadow: none;
-}
-
 // Search bar overrides
 .search-bar {
   background-color: transparent;
@@ -551,11 +558,6 @@ body.is-blurred .sheet-toolbar-container {
   padding-bottom: 0.8em;
 }
 
-// Border at bottom of composer subject field
-.composer-inner-wrap .compose-subject-wrap {
-  border-bottom: 1px solid @sidebar-text;
-}
-
 .tokenizing-field .token.invalid {
   border: 1px solid lighten(@close, 25%);
 }
@@ -575,16 +577,6 @@ body.is-blurred .sheet-toolbar-container {
 .tokenizing-field .tokenizing-field-input input[type='text'],
 .tokenizing-field .tokenizing-field-input input[type='text']:focus {
   border-bottom: none !important;
-}
-
-textarea:focus,
-input[type='text']:focus,
-input[type='email']:focus {
-  border: 1px solid @less-text;
-  box-shadow: none;
-  padding-left: 0;
-  padding-right: 0;
-  min-width: 30px;
 }
 
 .button-dropdown .primary-item,

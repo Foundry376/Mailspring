@@ -16,15 +16,13 @@ import DOMUtils from '../../dom-utils';
 
 let DraftStore = null;
 
-async function prepareBodyForQuoting(body = '') {
+async function prepareBodyForQuoting(body) {
   // TODO: Fix inline images
   const cidRE = MessageUtils.cidRegexString;
 
   // Be sure to match over multiple lines with [\s\S]*
   // Regex explanation here: https://regex101.com/r/vO6eN2/1
-  body.replace(new RegExp(`<img.*${cidRE}[\\s\\S]*?>`, 'igm'), '');
-
-  let transformed = body;
+  let transformed = (body || '').replace(new RegExp(`<img.*${cidRE}[\\s\\S]*?>`, 'igm'), '');
   transformed = await SanitizeTransformer.run(transformed, SanitizeTransformer.Preset.UnsafeOnly);
   transformed = await InlineStyleTransformer.run(transformed);
   return transformed;
