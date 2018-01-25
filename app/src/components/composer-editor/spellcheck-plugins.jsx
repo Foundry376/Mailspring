@@ -64,7 +64,7 @@ function renderMark(props) {
 
 function decorationsForNode(node, value) {
   const { key, text } = node;
-  const regexp = /[\w]+/g;
+  const regexp = /([^\s.,¿?!:()[\]+><"“”|*&^%$#@—-]+)/g;
   const decorations = [];
   let match = null;
 
