@@ -1,10 +1,10 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import _ from 'underscore';
-import uuid from 'node-uuid';
 import classNames from 'classnames';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
+import { Utils } from 'mailspring-exports';
 
 import ScrollRegion from './scroll-region';
 import KeyCommandsRegion from './key-commands-region';
@@ -119,7 +119,7 @@ class EditableList extends Component {
 
   constructor(props) {
     super(props);
-    this.listId = uuid.v4();
+    this.listId = Utils.generateTempId();
     this.state = {
       dropInsertionIndex: -1,
       editingIndex: -1,
