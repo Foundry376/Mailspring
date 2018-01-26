@@ -1,4 +1,3 @@
-/* eslint no-cond-assign: 0 */
 const path = require('path');
 const fs = require('fs');
 const mkdirp = require('mkdirp');

@@ -99,8 +99,6 @@ class TextBlockWithAutolinkedElements extends React.Component {
     let match = null;
     let count = 0;
 
-    /* I thought we were friends. */
-    /* eslint no-cond-assign: 0 */
     while ((match = hashtagOrMentionRegex.exec(remainder))) {
       // the first char of the match is whitespace, match[1] is # or @, match[2] is the tag itself.
       nodes.push(remainder.substr(0, match.index + 1));

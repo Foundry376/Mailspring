@@ -95,7 +95,6 @@ class DraftFactory {
     let openValueStart = null;
     let matched = true;
 
-    // eslint-disable-next-line
     while (matched) {
       const queryMatch = querySplit.exec(queryString);
       matched = queryMatch !== null;

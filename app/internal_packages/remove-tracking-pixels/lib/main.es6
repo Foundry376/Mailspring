@@ -1,5 +1,3 @@
-/* eslint no-cond-assign: 0 */
-
 import {
   ExtensionRegistry,
   MessageViewExtension,

@@ -217,7 +217,6 @@ class QuotedHTMLTransformer {
       const pile = [head];
       let node = null;
 
-      // eslint-disable-next-line
       while ((node = pile.pop())) {
         if (seen.includes(node)) {
           continue;

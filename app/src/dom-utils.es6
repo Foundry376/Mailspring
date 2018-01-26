@@ -104,7 +104,6 @@ var DOMUtils = {
     const getParents = function(node) {
       const parentNodes = [node];
       let depth = 0;
-      // eslint-disable-next-line
       while ((node = node.parentNode)) {
         if (parentFilter) {
           if (parentFilter(node)) {
@@ -186,7 +185,6 @@ var DOMUtils = {
     replacedNodes.unshift(lastChild);
     parent.replaceChild(lastChild, node);
 
-    // eslint-disable-next-line
     while ((child = _.last(node.childNodes))) {
       replacedNodes.unshift(child);
       parent.insertBefore(child, lastChild);

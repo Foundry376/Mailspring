@@ -70,7 +70,6 @@ function decorationsForNode(node, value) {
 
   const isFocused = node.key === value.focusKey;
 
-  // eslint-disable-next-line
   while ((match = regexp.exec(text))) {
     // If this word contains the insertion point don't mark it as misspelled.
     if (

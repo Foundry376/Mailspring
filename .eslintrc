@@ -26,6 +26,7 @@
   },
   "plugins": ["prettier"],
   "rules": {
+    "no-cond-assign": 0,
     "prettier/prettier": "error"
   },
   "settings": {

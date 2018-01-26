@@ -70,7 +70,6 @@ class ContactStore extends MailspringStore {
     let lastMatchEnd = 0;
     let match = null;
 
-    // eslint-disable-next-line
     while ((match = emailRegex.exec(contactString))) {
       let email = match[0];
       let name = null;
