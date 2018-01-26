@@ -19,7 +19,7 @@
   color: darken(@code-bg-color, 70%);
   border: 1.5px solid darken(@code-bg-color, 10%);
   border-radius: @border-radius-small;
-  padding-top: @padding-small-vertical @padding-small-horizontal @padding-small-vertical
+  padding: @padding-small-vertical @padding-small-horizontal @padding-small-vertical
     @padding-small-horizontal;
   font-size: @font-size-small;
   margin-bottom: 10px;
@@ -73,7 +73,7 @@
     flex-direction: column;
     min-height: 200px;
     width: 100%;
-    
+
     &.empty {
       opacity: 0.5;
       pointer-events: none;
@@ -87,7 +87,7 @@
         margin-bottom: 0;
       }
       &.note {
-        font-size:0.9em;
+        font-size: 0.9em;
         margin-top: 8px;
         color: @text-color-very-subtle;
       }
@@ -100,7 +100,7 @@
       height: 240px;
       padding: @padding-base-horizontal;
       flex: 1;
-      background: @background-primary;;
+      background: @background-primary;
       border: 1px solid @border-color-divider;
     }
 

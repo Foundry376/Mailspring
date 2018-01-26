@@ -7,24 +7,24 @@ class TemplateStatusBar extends React.Component {
     draft: PropTypes.object.isRequired,
   };
 
-  shouldComponentUpdate(nextProps) {
-    return this._usingTemplate(nextProps) !== this._usingTemplate(this.props);
-  }
-
   _usingTemplate({ draft }) {
-    return draft && draft.body.search(/<code[^>]*class="var[^>]*>/i) > 0;
+    return (
+      draft &&
+      draft.bodyEditorState &&
+      draft.bodyEditorState.document.getInlinesByType('templatevar').size > 0
+    );
   }
 
   render() {
-    if (this._usingTemplate(this.props)) {
-      return (
-        <div className="template-status-bar">
-          Press &quot;tab&quot; to quickly move between the blanks - highlighting will not be
-          visible to recipients.
-        </div>
-      );
+    if (!this._usingTemplate(this.props)) {
+      return <div />;
     }
-    return <div />;
+    return (
+      <div className="template-status-bar">
+        Press &quot;tab&quot; to quickly move between the blanks - highlighting will not be visible
+        to recipients.
+      </div>
+    );
   }
 }
 
