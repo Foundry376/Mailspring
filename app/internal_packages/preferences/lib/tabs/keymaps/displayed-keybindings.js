@@ -32,6 +32,17 @@ module.exports = [
       ['composer:focus-to', 'Focus the To field'],
       ['composer:show-and-focus-cc', 'Focus the Cc field'],
       ['composer:show-and-focus-bcc', 'Focus the Bcc field'],
+
+      ['contenteditable:insert-link', 'Insert a link'],
+      ['contenteditable:quote', 'Insert a Quote Block'],
+      ['contenteditable:numbered-list', 'Insert a numbered list'],
+      ['contenteditable:bulleted-list', 'Insert a bulleted list'],
+      ['contenteditable:indent', 'Indent Text'],
+      ['contenteditable:outdent', 'Outdent Text'],
+      ['contenteditable:underline', 'Toggle Underline'],
+      ['contenteditable:bold', 'Toggle Bold'],
+      ['contenteditable:italic', 'Toggle Italic'],
+
       ['composer:select-attachment', 'Select file attachment'],
     ],
   },

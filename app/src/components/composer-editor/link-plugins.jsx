@@ -74,6 +74,28 @@ export default [
     onPaste,
     renderMark,
     rules,
+    commands: {
+      'contenteditable:insert-link': event => {
+        // want to see a hack? here you go!
+        // 1: find our container and then find the link toolbar icon - this approach
+        // ensures we get the link button in the /current/ composer.
+        const linkButton = event.target
+          .closest('.RichEditor-root')
+          .querySelector('.fa.fa-link')
+          .closest('button');
+
+        // 2: click it.
+        if (linkButton) {
+          linkButton.dispatchEvent(
+            new MouseEvent('mousedown', {
+              view: window,
+              bubbles: true,
+              cancelable: true,
+            })
+          );
+        }
+      },
+    },
   },
   AutoReplace({
     trigger: e => !!TriggerKeyValues[e.key],

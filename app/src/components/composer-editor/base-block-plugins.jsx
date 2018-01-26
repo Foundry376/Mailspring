@@ -165,20 +165,6 @@ function renderNode(props) {
   return config && config.render(props);
 }
 
-function onKeyDown(event, change, editor) {
-  const focusBlock = change.value.focusBlock;
-
-  if (process.platform === 'darwin' ? event.metaKey : event.ctrlKey) {
-    // indent / outdent from quoted text
-    if (event.key === ']' && focusBlock && focusBlock.type === BLOCK_CONFIG.div.type) {
-      change.setBlock(BLOCK_CONFIG.blockquote.type);
-    }
-    if (event.key === '[' && focusBlock && focusBlock.type === BLOCK_CONFIG.blockquote.type) {
-      change.setBlock(BLOCK_CONFIG.div.type);
-    }
-  }
-}
-
 const rules = [
   {
     deserialize(el, next) {
@@ -297,7 +283,32 @@ export default [
       .filter(config => config.button)
       .map(BuildToggleButton),
     renderNode,
-    onKeyDown,
+    commands: {
+      'contenteditable:quote': (event, value) => {
+        const { isActive, onToggle } = BLOCK_CONFIG.blockquote.button;
+        return onToggle(value, isActive(value));
+      },
+      'contenteditable:numbered-list': (event, value) => {
+        const { isActive, onToggle } = BLOCK_CONFIG.ol_list.button;
+        return onToggle(value, isActive(value));
+      },
+      'contenteditable:bulleted-list': (event, value) => {
+        const { isActive, onToggle } = BLOCK_CONFIG.ul_list.button;
+        return onToggle(value, isActive(value));
+      },
+      'contenteditable:indent': (event, value) => {
+        const focusBlock = value.focusBlock;
+        if (focusBlock && focusBlock.type === BLOCK_CONFIG.div.type) {
+          return value.change().setBlock(BLOCK_CONFIG.blockquote.type);
+        }
+      },
+      'contenteditable:outdent': (event, value) => {
+        const focusBlock = value.focusBlock;
+        if (focusBlock && focusBlock.type === BLOCK_CONFIG.blockquote.type) {
+          return value.change().setBlock(BLOCK_CONFIG.div.type);
+        }
+      },
+    },
     rules,
   },
 

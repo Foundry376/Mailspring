@@ -46,7 +46,6 @@
   "core:find-in-thread-next": "mod+g",
   "core:find-in-thread-previous": "mod+shift+g",
 
-  "contenteditable:set-right-to-left": "mod+,",
   "contenteditable:underline": "mod+u",
   "contenteditable:bold": "mod+b",
   "contenteditable:italic": "mod+i",
@@ -56,8 +55,6 @@
   "contenteditable:quote": "mod+shift+9",
   "contenteditable:outdent": "mod+[",
   "contenteditable:indent": "mod+]",
-  "contenteditable:next-selection": "mod+\"",
-  "contenteditable:open-spelling-suggestions": "mod+m",
 
   "composer:select-attachment": "mod+shift+a"
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { Editor } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
 
+import KeyCommandsRegion from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
 import { plugins, convertFromHTML, convertToHTML } from './conversion';
 import { lastUnquotedNode } from './base-block-plugins';
@@ -9,6 +10,27 @@ import { changes as InlineAttachmentChanges } from './inline-attachment-plugins'
 
 export default class ComposerEditor extends React.Component {
   // Public API
+
+  constructor(props) {
+    super(props);
+
+    // Bind the commands specified by the plugins to the props of this instance.
+    // Note that we cache these between renders so we don't remove and re-add them
+    // every render.
+    this._pluginKeyHandlers = {};
+    plugins.forEach(plugin => {
+      Object.entries(plugin.commands || {}).forEach(([command, handler]) => {
+        this._pluginKeyHandlers[command] = event => {
+          if (!this._mounted) return;
+          const { onChange, value } = this.props;
+          const change = handler(event, value);
+          if (change) {
+            onChange(change);
+          }
+        };
+      });
+    });
+  }
 
   componentDidMount() {
     this._mounted = true;
@@ -167,7 +189,10 @@ export default class ComposerEditor extends React.Component {
     const { className, onBlur, onDrop, value, propsForPlugins } = this.props;
 
     return (
-      <div className={`RichEditor-root ${className || ''}`}>
+      <KeyCommandsRegion
+        className={`RichEditor-root ${className || ''}`}
+        localHandlers={this._pluginKeyHandlers}
+      >
         <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} />
         <div
           className="RichEditor-content"
@@ -195,7 +220,7 @@ export default class ComposerEditor extends React.Component {
             .reduce((arr, p) => (p.topLevelComponents ? arr.concat(p.topLevelComponents) : arr), [])
             .map((Component, idx) => <Component key={idx} />)}
         </div>
-      </div>
+      </KeyCommandsRegion>
     );
   }
 }

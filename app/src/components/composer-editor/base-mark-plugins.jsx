@@ -49,7 +49,6 @@ export const MARK_CONFIG = {
   bold: {
     type: 'bold',
     tagNames: ['b', 'strong'],
-    hotkey: 'b',
     render: props => <strong>{props.children}</strong>,
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.bold.type),
@@ -60,7 +59,6 @@ export const MARK_CONFIG = {
   italic: {
     type: 'italic',
     tagNames: ['em', 'i'],
-    hotkey: 'i',
     render: props => <em>{props.children}</em>,
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.italic.type),
@@ -71,7 +69,6 @@ export const MARK_CONFIG = {
   underline: {
     type: 'underline',
     tagNames: ['u'],
-    hotkey: 'u',
     render: props => <u>{props.children}</u>,
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.underline.type),
@@ -134,15 +131,6 @@ export const MARK_CONFIG = {
 function renderMark(props) {
   const config = MARK_CONFIG[props.mark.type];
   return config && config.render(props);
-}
-
-function onKeyDown(event, change, editor) {
-  if (process.platform === 'darwin' ? event.metaKey : event.ctrlKey) {
-    const config = Object.values(MARK_CONFIG).find(({ hotkey }) => event.key === hotkey);
-    if (config) {
-      change.toggleMark(config.type);
-    }
-  }
 }
 
 const rules = [
@@ -292,7 +280,13 @@ export default [
         }),
       ]),
     renderMark,
-    onKeyDown,
+    commands: {
+      'contenteditable:bold': (event, value) => value.change().toggleMark(MARK_CONFIG.bold.type),
+      'contenteditable:underline': (event, value) =>
+        value.change().toggleMark(MARK_CONFIG.underline.type),
+      'contenteditable:italic': (event, value) =>
+        value.change().toggleMark(MARK_CONFIG.italic.type),
+    },
     rules,
   },
 ];

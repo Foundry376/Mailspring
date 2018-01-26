@@ -119,8 +119,13 @@ export default class KeyCommandsRegion extends React.Component {
   }
 
   componentWillReceiveProps(newProps) {
-    this._unmountListeners();
-    this._setupListeners(newProps);
+    if (
+      newProps.localHandlers !== this.props.localHandlers ||
+      newProps.globalHandlers !== this.props.globalHandlers
+    ) {
+      this._unmountListeners();
+      this._setupListeners(newProps);
+    }
 
     // Updating menus in particular is expensive, so avoid teardown / re-add if identical
     if (!_.isEqual(newProps.globalMenuItems, this.props.globalMenuItems)) {
@@ -149,16 +154,16 @@ export default class KeyCommandsRegion extends React.Component {
   // determine which keymappings can fire a particular command in a
   // particular scope, we simply need to listen at the root window level
   // here for all commands coming in.
-  _setupListeners(props) {
+  _setupListeners({ localHandlers, globalHandlers } = {}) {
     const $el = ReactDOM.findDOMNode(this);
     $el.addEventListener('focusin', this._onFocusIn);
     $el.addEventListener('focusout', this._onFocusOut);
 
-    if (props.globalHandlers) {
-      this._globalDisposable = AppEnv.commands.add(document.body, props.globalHandlers);
+    if (globalHandlers) {
+      this._globalDisposable = AppEnv.commands.add(document.body, globalHandlers);
     }
-    if (props.localHandlers) {
-      this._localDisposable = AppEnv.commands.add($el, props.localHandlers);
+    if (localHandlers) {
+      this._localDisposable = AppEnv.commands.add($el, localHandlers);
     }
 
     window.addEventListener('browser-window-blur', this._onWindowBlur);

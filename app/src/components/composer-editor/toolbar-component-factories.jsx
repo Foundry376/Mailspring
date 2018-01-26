@@ -36,11 +36,15 @@ function removeMarksOfTypeInRange(change, range, type) {
 }
 
 export function hasMark(value, type) {
+  return !!getMarkOfType(value, type);
+}
+
+export function getMarkOfType(value, type) {
   try {
-    return !!value.activeMarks.find(m => m.type === type);
+    return value.activeMarks.find(m => m.type === type);
   } catch (err) {
     // this occasionally throws when selection is undefined
-    return false;
+    return null;
   }
 }
 
@@ -100,7 +104,7 @@ export function BuildMarkButtonWithValuePicker(config) {
 
     onPrompt = e => {
       e.preventDefault();
-      const active = hasMark(this.props.value, config.type);
+      const active = getMarkOfType(this.props.value, config.type);
       const fieldValue = (active && active.data.get(config.field)) || '';
       this.setState({ expanded: true, fieldValue: fieldValue }, () => {
         setTimeout(() => this._inputEl.focus(), 0);
@@ -144,7 +148,7 @@ export function BuildMarkButtonWithValuePicker(config) {
     onRemove = e => {
       e.preventDefault();
       const { value, onChange } = this.props;
-      const active = hasMark(this.props.value, config.type);
+      const active = getMarkOfType(this.props.value, config.type);
       if (value.selection.isCollapsed) {
         const anchorNode = value.document.getNode(value.selection.anchorKey);
         const expanded = value.selection.moveToRangeOf(anchorNode);
@@ -162,7 +166,7 @@ export function BuildMarkButtonWithValuePicker(config) {
 
     render() {
       const { expanded } = this.state;
-      const active = hasMark(this.props.value, config.type);
+      const active = getMarkOfType(this.props.value, config.type);
       return (
         <div
           className={`${this.props.className} link-picker`}
