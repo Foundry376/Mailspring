@@ -13,9 +13,6 @@ class UndoRedoStore extends MailspringStore {
     this.listenTo(Actions.queueTask, this._onQueue);
     this.listenTo(Actions.queueTasks, this._onQueue);
     this.listenTo(Actions.queueUndoableBlock, this._onQueueBlock);
-
-    AppEnv.commands.add(document.body, { 'core:undo': this.undo });
-    AppEnv.commands.add(document.body, { 'core:redo': this.redo });
   }
 
   _onQueue = taskOrTasks => {

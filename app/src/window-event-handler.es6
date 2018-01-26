@@ -5,6 +5,23 @@ import url from 'url';
 let ComponentRegistry = null;
 let Spellchecker = null;
 
+const isTextInput = node => {
+  if (!node) {
+    return false;
+  }
+  if (node.nodeName === 'TEXTAREA') {
+    return true;
+  }
+  const TextInputTypes = ['text', 'email', 'url', '', 'search', 'password', 'number'];
+  if (node.nodeName === 'INPUT' && TextInputTypes.includes(node.type)) {
+    return true;
+  }
+  if (node.closest('[contenteditable]')) {
+    return true;
+  }
+  return false;
+};
+
 // Handles low-level events related to the window.
 export default class WindowEventHandler {
   constructor() {
@@ -98,15 +115,22 @@ export default class WindowEventHandler {
     });
 
     const webContents = AppEnv.getCurrentWindow().webContents;
-    AppEnv.commands.add(document.body, 'core:copy', () => webContents.copy());
-    AppEnv.commands.add(document.body, 'core:cut', () => webContents.cut());
-    AppEnv.commands.add(document.body, 'core:paste', () => webContents.paste());
-    AppEnv.commands.add(document.body, 'core:paste-and-match-style', () =>
-      webContents.pasteAndMatchStyle()
-    );
-    AppEnv.commands.add(document.body, 'core:undo', () => webContents.undo());
-    AppEnv.commands.add(document.body, 'core:redo', () => webContents.redo());
-    AppEnv.commands.add(document.body, 'core:select-all', () => webContents.selectAll());
+
+    let _UndoStore = null;
+    const getUndoStore = () => {
+      if (!_UndoStore) _UndoStore = require('./flux/stores/undo-redo-store').default;
+      return _UndoStore;
+    };
+
+    AppEnv.commands.add(document.body, {
+      'core:copy': () => webContents.copy(),
+      'core:cut': () => webContents.cut(),
+      'core:paste': () => webContents.paste(),
+      'core:paste-and-match-style': () => webContents.pasteAndMatchStyle(),
+      'core:undo': e => (isTextInput(e.target) ? webContents.undo() : getUndoStore().undo()),
+      'core:redo': e => (isTextInput(e.target) ? webContents.redo() : getUndoStore().redo()),
+      'core:select-all': e => (isTextInput(e.target) ? webContents.selectAll() : null),
+    });
 
     // "Pinch to zoom" on the Mac gets translated by the system into a
     // "scroll with ctrl key down". To prevent the page from zooming in,
