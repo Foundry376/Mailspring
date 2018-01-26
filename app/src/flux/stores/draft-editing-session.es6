@@ -37,7 +37,8 @@ class DraftChangeSet extends EventEmitter {
     this.callbacks = callbacks;
     this._timer = null;
     this._timerTime = null;
-    this._changedSinceCommit = false;
+    this._lastModifiedTimes = {};
+    this._lastCommitTime = 0;
   }
 
   cancelCommit() {
@@ -50,19 +51,30 @@ class DraftChangeSet extends EventEmitter {
 
   add(changes) {
     changes.pristine = false;
+
+    // update the per-attribute flags that track our dirty state
+    for (const key of Object.keys(changes)) this._lastModifiedTimes[key] = Date.now();
+    if (changes.bodyEditorState) this._lastModifiedTimes.body = Date.now();
+    if (changes.body) this._lastModifiedTimes.bodyEditorState = Date.now();
+
     this.callbacks.onAddChanges(changes);
-    this._changedSinceCommit = true;
     this.debounceCommit();
   }
 
   addPluginMetadata(pluginId, metadata) {
+    this._lastModifiedTimes.pluginMetadata = Date.now();
     this.callbacks.onAddChanges({ [`${MetadataChangePrefix}${pluginId}`]: metadata });
-    this._changedSinceCommit = true;
     this.debounceCommit();
   }
 
   isDirty() {
-    return this._changedSinceCommit;
+    return this.dirtyFields().length > 0;
+  }
+
+  dirtyFields() {
+    return Object.keys(this._lastModifiedTimes).filter(
+      key => this._lastModifiedTimes[key] > this._lastCommitTime
+    );
   }
 
   debounceCommit() {
@@ -80,10 +92,10 @@ class DraftChangeSet extends EventEmitter {
   }
 
   async commit() {
-    if (!this._changedSinceCommit) return;
+    if (this.dirtyFields().length === 0) return;
     if (this._timer) clearTimeout(this._timer);
     await this.callbacks.onCommit();
-    this._changedSinceCommit = false;
+    this._lastCommitTime = Date.now();
   }
 }
 
@@ -375,11 +387,19 @@ export default class DraftEditingSession extends MailspringStore {
       return;
     }
 
+    // If the session has unsaved changes for a given field (eg: 'to' or 'body'),
+    // we don't accept changes from the database. All changes to the draft should
+    // be made through the editing session and we don't want to overwrite the user's
+    // work under any scenario.
+    const lockedFields = this.changes.dirtyFields();
+    console.log(lockedFields);
+
     let changed = false;
     for (const [key] of Object.entries(Message.attributes)) {
       if (key === 'headerMessageId') continue;
       if (nextDraft[key] === undefined) continue;
       if (this._draft[key] === nextDraft[key]) continue;
+      if (lockedFields.includes(key)) continue;
 
       if (changed === false) {
         this._draft = fastCloneDraft(this._draft);
