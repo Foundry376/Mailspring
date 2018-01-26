@@ -29,6 +29,7 @@ const {
   hasBlockquote,
   hasNonTrailingBlockquote,
   hideQuotedTextByDefault,
+  removeQuotedText,
 } = ComposerSupport.BaseBlockPlugins;
 
 // The ComposerView is a unique React component because it (currently) is a
@@ -180,12 +181,30 @@ export default class ComposerView extends React.Component {
       <a
         className="quoted-text-control"
         onMouseDown={e => {
+          if (e.target.closest('.remove-quoted-text')) return;
           e.preventDefault();
           e.stopPropagation();
           this.setState({ quotedTextHidden: false });
         }}
       >
         <span className="dots">&bull;&bull;&bull;</span>
+        <span
+          className="remove-quoted-text"
+          onMouseUp={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const { draft, session } = this.props;
+            const change = removeQuotedText(draft.bodyEditorState);
+            session.changes.add({ bodyEditorState: change.value });
+            this.setState({ quotedTextHidden: false });
+          }}
+        >
+          <RetinaImg
+            title="Remove quoted text"
+            name="image-cancel-button.png"
+            mode={RetinaImg.Mode.ContentPreserve}
+          />
+        </span>
       </a>
     );
   }

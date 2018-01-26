@@ -249,18 +249,31 @@ export function allNodesInBFSOrder(value) {
   return all;
 }
 
+function isQuoteNode(n) {
+  return (
+    n.type === 'blockquote' ||
+    (n.data && n.data.get('className') && n.data.get('className').includes('gmail_quote'))
+  );
+}
+
 export function lastUnquotedNode(value) {
   const all = allNodesInBFSOrder(value);
   for (let idx = 0; idx < all.length; idx++) {
     const n = all[idx];
-    if (
-      n.type === 'blockquote' ||
-      (n.data && n.data.get('className') && n.data.get('className').includes('gmail_quote'))
-    ) {
+    if (isQuoteNode(n)) {
       return all[Math.max(0, idx - 1)];
     }
   }
   return all[0];
+}
+
+export function removeQuotedText(value) {
+  const change = value.change();
+  let quoteBlock = null;
+  while ((quoteBlock = allNodesInBFSOrder(change.value).find(isQuoteNode))) {
+    change.removeNodeByKey(quoteBlock.key);
+  }
+  return change;
 }
 
 export function hideQuotedTextByDefault(draft) {
