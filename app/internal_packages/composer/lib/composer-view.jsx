@@ -223,7 +223,14 @@ export default class ComposerView extends React.Component {
         onFileReceived={this._onFileReceived}
         onDrop={e => this._dropzone._onDrop(e)}
         onChange={change => {
-          this.props.session.changes.add({ bodyEditorState: change.value });
+          // We minimize thrashing and support editors in multiple windows by ensuring
+          // non-value changes (eg focus) to the editorState don't trigger database saves
+          const skipSaving = change.operations.every(
+            ({ type, properties }) =>
+              type === 'set_selection' ||
+              (type === 'set_value' && Object.keys(properties).every(k => k === 'decorations'))
+          );
+          this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
         }}
       />
     );

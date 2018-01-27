@@ -49,16 +49,18 @@ class DraftChangeSet extends EventEmitter {
     }
   }
 
-  add(changes) {
-    changes.pristine = false;
+  add(changes, { skipSaving = false } = {}) {
+    if (!skipSaving) {
+      changes.pristine = false;
 
-    // update the per-attribute flags that track our dirty state
-    for (const key of Object.keys(changes)) this._lastModifiedTimes[key] = Date.now();
-    if (changes.bodyEditorState) this._lastModifiedTimes.body = Date.now();
-    if (changes.body) this._lastModifiedTimes.bodyEditorState = Date.now();
+      // update the per-attribute flags that track our dirty state
+      for (const key of Object.keys(changes)) this._lastModifiedTimes[key] = Date.now();
+      if (changes.bodyEditorState) this._lastModifiedTimes.body = Date.now();
+      if (changes.body) this._lastModifiedTimes.bodyEditorState = Date.now();
+      this.debounceCommit();
+    }
 
     this.callbacks.onAddChanges(changes);
-    this.debounceCommit();
   }
 
   addPluginMetadata(pluginId, metadata) {
@@ -392,7 +394,6 @@ export default class DraftEditingSession extends MailspringStore {
     // be made through the editing session and we don't want to overwrite the user's
     // work under any scenario.
     const lockedFields = this.changes.dirtyFields();
-    console.log(lockedFields);
 
     let changed = false;
     for (const [key] of Object.entries(Message.attributes)) {
