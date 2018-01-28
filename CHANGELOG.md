@@ -4,7 +4,9 @@
 
 Features:
 
-* The new composer now supports additional Gmail shortcuts, which you can view from Preferences > Shortcuts, including Cmd-K (make link), Cmd-Shift-8 (make bulleted list), etc.
+* The new composer now supports additional Gmail shortcuts, which you can view from Preferences > Shortcuts, including Cmd-K (make link), Cmd-Shift-8 (make bulleted list), etc. (#555)
+
+* Mailspring now supports indicators in Ubuntu Gnome Session (Ubuntu 17+)
 
 Fixes:
 
@@ -16,13 +18,14 @@ Fixes:
 
 * Switching to a different font size and back to "normal" no longer makes text a slightly different size than it was originally.
 
-* Spellcheck now supports words with non-latin characters correctly.
+* Spellcheck now supports words with non-latin characters correctly. (#564)
 
-* The Less-is-More theme no longer contains small visual glitches with the new composer.
+* The Less-is-More theme no longer contains small visual glitches with the new composer. (#547)
 
-* Undo/redo within the composer or any text field no longer trigger both text undo/redo and mail action undo/redo.
+* Undo/redo within the composer or any text field no longer trigger both text undo/redo and mail action undo/redo. (#577)
 
-Development:
+* Mailspring now creates a "Mailspring" folder instead of a "[Mailspring]" folder because some providers do not allow the `[` character. (#551)
+  Development:
 
 * Mailspring no longer contains or supports Coffeescript or CJSX!
 
