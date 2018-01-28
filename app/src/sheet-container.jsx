@@ -21,6 +21,9 @@ export default class SheetContainer extends React.Component {
   }
 
   componentDidCatch(error, info) {
+    // We don't currently display the error, but we need to call setState within
+    // this function or the component does not re-render after being reset.
+    this.setState({ error: error.stack });
     AppEnv.reportError(error);
   }
 

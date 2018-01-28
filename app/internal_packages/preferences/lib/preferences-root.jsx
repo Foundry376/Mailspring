@@ -15,8 +15,6 @@ import PreferencesTabsBar from './preferences-tabs-bar';
 class PreferencesRoot extends React.Component {
   static displayName = 'PreferencesRoot';
 
-  static containerRequired = false;
-
   static propTypes = {
     tab: PropTypes.object,
     tabs: PropTypes.array,

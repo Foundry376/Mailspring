@@ -34,7 +34,6 @@ const ThreadListContextMenu = require('./thread-list-context-menu').default;
 class ThreadList extends React.Component {
   static displayName = 'ThreadList';
 
-  static containerRequired = false;
   static containerStyles = {
     minWidth: 300,
     maxWidth: 3000,
