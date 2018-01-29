@@ -11,7 +11,7 @@ init:
 
 install:
 - ps: Install-Product node $env:NODE_VERSION
-- ps: npm config set msvs_version 2013
+- ps: npm config set msvs_version 2015
 
 # Extract the codesigning certs, encrypted private ssh key
 - ps: |
