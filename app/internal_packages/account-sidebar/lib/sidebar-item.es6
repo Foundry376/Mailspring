@@ -148,7 +148,7 @@ class SidebarItem {
           // type to encode the account IDs of threads currently being dragged.
           const accountsType = event.dataTransfer.types.find(t => t.startsWith('nylas-accounts='));
           const accountIds = (accountsType || '').replace('nylas-accounts=', '').split(',');
-          target.canReceiveThreadsFromAccountIds(accountIds);
+          return target.canReceiveThreadsFromAccountIds(accountIds);
         },
 
         onSelect(item) {
