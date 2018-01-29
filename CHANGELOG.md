@@ -8,6 +8,8 @@ Features:
 
 * Mailspring now supports indicators in Ubuntu Gnome Session (Ubuntu 17+)
 
+* Mailspring now supports Secureserver (GoDaddy), Roundcube, 163.com, and several other providers that did not allow folder names to contain the `[` character.
+
 Fixes:
 
 * The small "X" on the quoted text control is back, allowing you to easily remove the quoted text block when replying.

@@ -1,8 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 const MailspringStore = require('mailspring-store').default;
 const {
   Rx,
@@ -20,6 +15,7 @@ const { ListTabular } = require('mailspring-component-kit');
 class DraftListStore extends MailspringStore {
   constructor() {
     super();
+    this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
     this._createListDataSource();
   }
 
@@ -41,6 +37,11 @@ class DraftListStore extends MailspringStore {
 
   _createListDataSource = () => {
     const mailboxPerspective = FocusedPerspectiveStore.current();
+
+    if (this._dataSource) {
+      this._dataSource.cleanup();
+      this._dataSource = null;
+    }
 
     if (mailboxPerspective.drafts) {
       const query = DatabaseStore.findAll(Message)

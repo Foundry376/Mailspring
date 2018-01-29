@@ -32,12 +32,6 @@ export default class ListDataSource {
 
     return () => {
       this._emitter.removeListener('trigger', eventHandler);
-      setTimeout(() => {
-        if (this._emitter.listenerCount('trigger') === 0) {
-          this._cleanedup = true;
-          this.cleanup();
-        }
-      }, 0);
     };
   }
 
@@ -74,6 +68,7 @@ export default class ListDataSource {
   }
 
   cleanup() {
+    this._cleanedup = true;
     this.selection.cleanup();
   }
 }
