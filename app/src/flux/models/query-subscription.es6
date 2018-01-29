@@ -280,7 +280,7 @@ export default class QuerySubscription {
     }
 
     if (error) {
-      AppEnv.reportError(error);
+      console.warn(error);
       this._set = null;
       this.update();
       return;

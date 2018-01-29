@@ -118,12 +118,15 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
     constructor(props) {
       super(props);
       this._unlisteners = [];
+      this._mounted = false;
       this.state = { visible: false };
     }
 
     componentDidMount() {
+      this._mounted = true;
       TipsStore.mountedTip(TipKey);
 
+      // Note: We use a _mounted flag because of these setTimeout calls
       this._unlisteners = [
         TipsStore.listen(this._onTooltipStateChanged),
         WorkspaceStore.listen(() => {
@@ -160,6 +163,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
     }
 
     componentWillUnmount() {
+      this._mounted = false;
       this._unlisteners.forEach(unlisten => unlisten());
       this._disposables.forEach(disposable => disposable.dispose());
 
@@ -180,6 +184,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
     };
 
     _isVisible = () => {
+      if (!this._mounted) return;
       const el = ReactDOM.findDOMNode(this);
       return (
         TipsStore.isTipVisible(TipKey) &&
@@ -189,6 +194,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
     };
 
     _onTooltipStateChanged = () => {
+      if (!this._mounted) return;
       const visible = this._isVisible();
       if (this.state.visible !== visible) {
         this.setState({ visible });
@@ -202,9 +208,8 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
     };
 
     _onMouseOver = () => {
-      if (!this.state.visible) {
-        return;
-      }
+      if (!this._mounted) return;
+      if (!this.state.visible) return;
 
       const el = ReactDOM.findDOMNode(this);
       el.removeEventListener('mouseover', this._onMouseOver);
@@ -234,6 +239,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
     };
 
     _onRecomputeTooltipPosition = () => {
+      if (!this._mounted) return;
       const el = ReactDOM.findDOMNode(this);
       let settled = 0;
       let last = {};
