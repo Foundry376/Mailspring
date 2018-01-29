@@ -4,7 +4,6 @@ const rimraf = require('rimraf');
 const fs = require('fs-plus');
 var fs_extra = require('fs-extra');
 
-const donna = require('donna');
 const joanna = require('joanna');
 const tello = require('tello');
 
@@ -115,12 +114,6 @@ module.exports = function(grunt) {
         return true;
       });
 
-      grunt.log.ok('Done transforming, starting donna extraction');
-      grunt.log.writeln('cjsxOutputDir: ' + cjsxOutputDir);
-
-      let metadata = donna.generateMetadata([cjsxOutputDir]);
-      grunt.log.ok('---- Done with Donna (cjsx metadata)----');
-
       // DEBUG
       // Use to check individual files
       var js_files = [];
@@ -142,11 +135,8 @@ module.exports = function(grunt) {
 
       console.log(js_files);
       grunt.log.ok('---- Starting Jonna (jsx metadata)----');
-      let jsx_metadata = joanna(js_files);
+      let metadata = joanna(js_files);
       grunt.log.ok('---- Done with Joanna (jsx metadata)----');
-
-      Object.assign(metadata[0].files, jsx_metadata.files);
-      console.log(metadata[0]);
 
       grunt.file.write('/tmp/metadata.json', JSON.stringify(metadata, null, 2));
 
