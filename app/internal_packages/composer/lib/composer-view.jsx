@@ -50,6 +50,17 @@ export default class ComposerView extends React.Component {
     const draft = props.session.draft();
 
     this._els = {};
+
+    this._keymapHandlers = {
+      'composer:send-message': () => this._onPrimarySend(),
+      'composer:delete-empty-draft': () => this.props.draft.pristine && this._onDestroyDraft(),
+      'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
+      'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
+      'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
+      'composer:show-and-focus-from': () => {},
+      'composer:select-attachment': () => this._onSelectAttachment(),
+    };
+
     this.state = {
       isDropping: false,
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
@@ -97,22 +108,6 @@ export default class ComposerView extends React.Component {
     } else {
       this._els[Fields.Body].focus();
     }
-  }
-
-  _keymapHandlers() {
-    return {
-      'composer:send-message': () => this._onPrimarySend(),
-      'composer:delete-empty-draft': () => {
-        if (this.props.draft.pristine) {
-          this._onDestroyDraft();
-        }
-      },
-      'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
-      'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
-      'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
-      'composer:show-and-focus-from': () => {},
-      'composer:select-attachment': () => this._onSelectAttachment(),
-    };
   }
 
   _renderContentScrollRegion() {
@@ -517,7 +512,7 @@ export default class ComposerView extends React.Component {
     return (
       <div className={this.props.className}>
         <KeyCommandsRegion
-          localHandlers={this._keymapHandlers()}
+          localHandlers={this._keymapHandlers}
           className={'message-item-white-wrap composer-outer-wrap'}
           ref={el => {
             if (el) {

@@ -23,14 +23,14 @@ export default class AccountContactField extends React.Component {
     let autocontacts = await ContactStore.parseContactsInString(autoaddress.value);
     autocontacts = autocontacts.filter(c => !existing.includes(c.email));
 
+    this._dropdownComponent.toggleDropdown();
+
     onChange({
       from: [contact],
       cc: [].concat(draft.cc).concat(autoaddress.type === 'cc' ? autocontacts : []),
       bcc: [].concat(draft.bcc).concat(autoaddress.type === 'bcc' ? autocontacts : []),
     });
     session.ensureCorrectAccount();
-
-    this._dropdownComponent.toggleDropdown();
   };
 
   _renderAccountSelector() {

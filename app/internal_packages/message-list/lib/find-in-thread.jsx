@@ -9,6 +9,11 @@ export default class FindInThread extends React.Component {
   constructor(props) {
     super(props);
     this.state = SearchableComponentStore.getCurrentSearchData();
+    this._globalKeymapHandlers = {
+      'core:find-in-thread': this._onFindInThread,
+      'core:find-in-thread-next': this._onNextResult,
+      'core:find-in-thread-previous': this._onPrevResult,
+    };
   }
 
   componentDidMount() {
@@ -17,14 +22,6 @@ export default class FindInThread extends React.Component {
 
   componentWillUnmount() {
     this._usub();
-  }
-
-  _globalKeymapHandlers() {
-    return {
-      'core:find-in-thread': this._onFindInThread,
-      'core:find-in-thread-next': this._onNextResult,
-      'core:find-in-thread-previous': this._onPrevResult,
-    };
   }
 
   _onFindInThread = () => {
@@ -96,7 +93,7 @@ export default class FindInThread extends React.Component {
     const btnCls = 'btn btn-find-in-thread';
     return (
       <div className={rootCls} onClick={this._focusSearch}>
-        <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()}>
+        <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers}>
           <div
             className="controls-wrap"
             ref={el => {

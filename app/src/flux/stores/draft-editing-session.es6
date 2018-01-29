@@ -350,14 +350,16 @@ export default class DraftEditingSession extends MailspringStore {
         }),
       });
 
-      const destroy = new DestroyDraftTask({
-        messageIds: [draft.id],
-        accountId: draft.accountId,
-      });
+      const destroy =
+        draft.id &&
+        new DestroyDraftTask({
+          messageIds: [draft.id],
+          accountId: draft.accountId,
+        });
 
       Actions.queueTask(create);
       await TaskQueue.waitForPerformLocal(create);
-      Actions.queueTask(destroy);
+      if (destroy) Actions.queueTask(destroy);
     }
 
     return this;

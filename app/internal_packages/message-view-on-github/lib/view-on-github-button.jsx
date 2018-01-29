@@ -63,6 +63,9 @@ export default class ViewOnGithubButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = this._getStateFromStores();
+    this._keymapHandlers = {
+      'github:open': this._openLink,
+    };
   }
 
   /*
@@ -84,12 +87,6 @@ export default class ViewOnGithubButton extends React.Component {
 
   componentWillUnmount() {
     this._unlisten();
-  }
-
-  _keymapHandlers() {
-    return {
-      'github:open': this._openLink,
-    };
   }
 
   /** ** Super common Mailspring Component private methods ****
@@ -149,7 +146,7 @@ export default class ViewOnGithubButton extends React.Component {
       return false;
     }
     return (
-      <KeyCommandsRegion globalHandlers={this._keymapHandlers()}>
+      <KeyCommandsRegion globalHandlers={this._keymapHandlers}>
         <button
           className="btn btn-toolbar btn-view-on-github"
           onClick={this._openLink}

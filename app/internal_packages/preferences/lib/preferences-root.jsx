@@ -21,29 +21,19 @@ class PreferencesRoot extends React.Component {
     selection: PropTypes.object,
   };
 
-  componentDidMount() {
-    ReactDOM.findDOMNode(this).focus();
-    this._focusContent();
-  }
+  constructor(props) {
+    super(props);
 
-  componentDidUpdate(oldProps) {
-    if (oldProps.tab !== this.props.tab) {
-      const scrollRegion = document.querySelector('.preferences-content .scroll-region-content');
-      scrollRegion.scrollTop = 0;
-      this._focusContent();
-    }
-  }
-
-  _localHandlers() {
     const stopPropagation = e => {
       e.stopPropagation();
     };
+
     // This prevents some basic commands from propagating to the threads list and
     // producing unexpected results
 
     // TODO This is a partial/temporary solution and should go away when we do the
     // Keymap/Commands/Menu refactor
-    return {
+    this._localHandlers = {
       'core:next-item': stopPropagation,
       'core:previous-item': stopPropagation,
       'core:select-up': stopPropagation,
@@ -63,6 +53,19 @@ class PreferencesRoot extends React.Component {
     };
   }
 
+  componentDidMount() {
+    ReactDOM.findDOMNode(this).focus();
+    this._focusContent();
+  }
+
+  componentDidUpdate(oldProps) {
+    if (oldProps.tab !== this.props.tab) {
+      const scrollRegion = document.querySelector('.preferences-content .scroll-region-content');
+      scrollRegion.scrollTop = 0;
+      this._focusContent();
+    }
+  }
+
   // Focus the first thing with a tabindex when we update.
   // inside the content area. This makes it way easier to interact with prefs.
   _focusContent() {
@@ -80,7 +83,7 @@ class PreferencesRoot extends React.Component {
       <KeyCommandsRegion
         className="preferences-wrap"
         tabIndex="1"
-        localHandlers={this._localHandlers()}
+        localHandlers={this._localHandlers}
       >
         <Flexbox direction="column">
           <PreferencesTabsBar tabs={tabs} selection={selection} />
