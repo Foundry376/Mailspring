@@ -19,7 +19,6 @@
     "babel-preset-electron": "bengotow/babel-preset-electron#00783dfc438f122997993ae597a41ec315ba121b",
     "babel-preset-react": "6.x.x",
     "chalk": "1.x.x",
-    "commander": "^2.9.0",
     "devtron": "^1.4.0",
     "electron": "1.8.2-beta.4",
     "electron-installer-dmg": "0.2.x",
