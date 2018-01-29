@@ -113,14 +113,6 @@ export default class MessageItem extends React.Component {
     Actions.toggleMessageIdExpanded(this.props.message.id);
   };
 
-  _isRealFile = file => {
-    const hasCIDInBody =
-      file.contentId !== undefined &&
-      this.props.message.body &&
-      this.props.message.body.indexOf(file.contentId) > 0;
-    return !hasCIDInBody;
-  };
-
   _onDownloadStoreChange = () => {
     const fileIds = this.props.message.fileIds();
     this.setState({
@@ -146,27 +138,27 @@ export default class MessageItem extends React.Component {
   }
 
   _renderAttachments() {
-    const files = (this.props.message.files || []).filter(f => this._isRealFile(f));
-    const messageId = this.props.message.id;
+    const { files = [], body = '', id } = this.props.message;
     const { filePreviewPaths, downloads } = this.state;
-    if (files.length === 0) {
-      return <div />;
-    }
+    const attachedFiles = files.filter(f => !f.contentId || !body.includes(f.contentId));
+
     return (
       <div>
         {files.length > 1 ? this._renderDownloadAllButton() : null}
-        <div className="attachments-area">
-          <InjectedComponent
-            matching={{ role: 'MessageAttachments' }}
-            exposedProps={{
-              files,
-              downloads,
-              filePreviewPaths,
-              messageId,
-              canRemoveAttachments: false,
-            }}
-          />
-        </div>
+        {attachedFiles.length > 0 && (
+          <div className="attachments-area">
+            <InjectedComponent
+              matching={{ role: 'MessageAttachments' }}
+              exposedProps={{
+                files: attachedFiles,
+                messageId: id,
+                downloads,
+                filePreviewPaths,
+                canRemoveAttachments: false,
+              }}
+            />
+          </div>
+        )}
       </div>
     );
   }
