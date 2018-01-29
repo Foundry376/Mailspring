@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs-plus';
-import { shell, dialog, ipcRenderer } from 'electron';
+import { shell, remote, ipcRenderer } from 'electron';
 
 import Package from './package';
 
@@ -182,7 +182,7 @@ export default class PackageManager {
 
   createPackageManually() {
     if (!AppEnv.inDevMode()) {
-      const btn = dialog.showMessageBox({
+      const btn = remote.dialog.showMessageBox({
         type: 'warning',
         message: 'Run with debug flags?',
         detail: `To develop plugins, you should run Mailspring with debug flags. This gives you better error messages, the debug version of React, and more. You can disable it at any time from the Developer menu.`,
