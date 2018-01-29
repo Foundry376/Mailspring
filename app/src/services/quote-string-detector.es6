@@ -16,7 +16,11 @@ import DOMWalkers from '../dom-walkers';
 export default function quoteStringDetector(doc) {
   const quoteNodesToRemove = [];
   let seenInitialQuoteEnd = false;
+
   for (const node of DOMWalkers.walkBackwards(doc)) {
+    if (node.nodeType === Node.DOCUMENT_NODE) {
+      continue;
+    }
     if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim().length > 0) {
       if (!seenInitialQuoteEnd) {
         if (/wrote:\s*$/gim.test(node.nodeValue)) {
