@@ -53,7 +53,7 @@ class TabGroupRegion extends React.Component {
 
   _shouldSelectEnd = node => {
     return (
-      node.nodeName === 'INPUT' && node.type === 'text' && !node.classList.includes('no-select-end')
+      node.nodeName === 'INPUT' && node.type === 'text' && !node.classList.contains('no-select-end')
     );
   };
 
