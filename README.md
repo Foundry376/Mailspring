@@ -1,5 +1,4 @@
-💌 Mailspring
-====
+# 💌 Mailspring
 
 [![Travis Status](https://travis-ci.org/Foundry376/Mailspring.svg?branch=master)](https://travis-ci.org/Foundry376/Mailspring)
 [![AppVeyor Status](https://ci.appveyor.com/api/projects/status/iuuuy6d65u3x6bj6?svg=true)](https://ci.appveyor.com/project/Foundry376/Mailspring)
@@ -11,14 +10,13 @@ Mailspring is built on the modern web with [Electron](https://github.com/atom/el
 
 ![Mailspring Screenshot](https://github.com/Foundry376/Mailspring/raw/master/screenshots/hero_graphic_mac%402x.png)
 
-
 ## Features
 
 Mailspring comes packed with powerful features like Unified Inbox, Snooze, Send Later, Mail Rules, Templates and more. Mailspring Pro, which you can unlock with a monthly subscription, adds even more features for people who send a ton of email: link tracking, read receipts, mailbox analytics, contact and company profiles. **All of these features run in the client - Mailspring does not send your email credentials to the cloud.** For a full list of features, check out [getmailspring.com](https://getmailspring.com/).
 
 ## Download Mailspring
 
-You can download compiled versions of Mailspring for Windows, Mac OS X, and Linux (Snap coming soon) from [https://getmailspring.com/download](https://getmailspring.com/download).
+You can download compiled versions of Mailspring for Windows, Mac OS X, and Linux (deb, rpm and snap) from [https://getmailspring.com/download](https://getmailspring.com/download).
 
 ## Contributing
 

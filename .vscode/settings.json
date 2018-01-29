@@ -20,6 +20,9 @@
     "array": "cpp",
     "iterator": "cpp",
     "string": "cpp",
-    "vector": "cpp"
+    "vector": "cpp",
+    "__locale": "cpp",
+    "locale": "cpp",
+    "thread": "cpp"
   }
 }
