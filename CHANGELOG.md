@@ -1,6 +1,20 @@
 # Mailspring Changelog
 
-### 1.1.1
+### 1.1.2
+
+Fixes:
+
+* Mailspring creates the folder "Mailspring/Snoozed" on your email provider with the intermediate folder. [#588]
+
+* Switching to drafts, away from drafts, and back to drafts no longer causes a crash. [#590]
+
+* "Create a package manually" now works properly when the app is running without the `dev` flag.
+
+* Drag and drop of emails now works again. [#586]
+
+* When removing quoted text, some emails no longer cause an exception to be thrown. [#589]
+
+### 1.1.1 (1/28/2018)
 
 Features:
 
