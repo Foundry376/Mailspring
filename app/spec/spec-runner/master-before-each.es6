@@ -8,7 +8,6 @@ import {
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 import { clipboard } from 'electron';
-import pathwatcher from 'pathwatcher';
 
 import Config from '../../src/config';
 import configUtils from '../../src/config-utils';
@@ -49,13 +48,6 @@ class MasterBeforeEach {
     spyOn(AppEnv.menu, 'sendToBrowserProcess');
 
     FocusedPerspectiveStore._current = MailboxPerspective.forNothing();
-
-    spyOn(
-      pathwatcher.File.prototype,
-      'detectResurrectionAfterDelay'
-    ).andCallFake(function detectResurrection() {
-      return this.detectResurrection();
-    });
   }
 
   _resetDatabase() {
@@ -93,7 +85,9 @@ class MasterBeforeEach {
         emailAddress: TestConstants.TEST_ACCOUNT_EMAIL,
         id: TestConstants.TEST_ACCOUNT_ID,
         aliases: [
-          `${TestConstants.TEST_ACCOUNT_NAME} Alternate <${TestConstants.TEST_ACCOUNT_ALIAS_EMAIL}>`,
+          `${TestConstants.TEST_ACCOUNT_NAME} Alternate <${
+            TestConstants.TEST_ACCOUNT_ALIAS_EMAIL
+          }>`,
         ],
       }),
 

@@ -61,23 +61,19 @@ export default class ThemeManager {
     this.emitter.emit('did-change-active-themes');
   }
 
-  watchCoreStyles() {
-    console.log('Watching /static and /internal_packages for LESS changes');
-    const watchStylesIn = folder => {
-      const stylePaths = fs.listTreeSync(folder);
-      const PathWatcher = require('pathwatcher'); //eslint-disable-line
-      stylePaths.forEach(stylePath => {
-        if (!stylePath.endsWith('.less')) {
-          return;
-        }
-        PathWatcher.watch(stylePath, () => {
+  reloadCoreStyles() {
+    console.log('Reloading /static and /internal_packages to incorporate LESS changes');
+    const reloadStylesIn = folder => {
+      fs
+        .listTreeSync(folder)
+        .filter(stylePath => stylePath.endsWith('.less'))
+        .forEach(stylePath => {
           const styleEl = document.head.querySelector(`[source-path="${stylePath}"]`);
-          styleEl.textContent = this.cssContentsOfStylesheet(styleEl.sourcePath);
+          if (styleEl) styleEl.textContent = this.cssContentsOfStylesheet(stylePath);
         });
-      });
     };
-    watchStylesIn(`${this.resourcePath}/static`);
-    watchStylesIn(`${this.resourcePath}/internal_packages`);
+    reloadStylesIn(`${this.resourcePath}/static`);
+    reloadStylesIn(`${this.resourcePath}/internal_packages`);
   }
 
   // Essential: Invoke `callback` when style sheet changes associated with

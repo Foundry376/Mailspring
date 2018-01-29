@@ -1,4 +1,3 @@
-import pathwatcher from 'pathwatcher';
 import ReactTestUtils from 'react-dom/test-utils';
 import { TaskQueue } from 'mailspring-exports';
 
@@ -18,7 +17,6 @@ class MasterAfterEach {
       ReactTestUtils.unmountAll();
 
       jasmine.unspy(AppEnv, 'saveWindowState');
-      self.ensureNoPathSubscriptions();
 
       AppEnv.styles.restoreSnapshot(styleElementsToRestore);
 
@@ -30,14 +28,6 @@ class MasterAfterEach {
       }
       waits(0);
     }); // yield to ui thread to make screen update more frequently
-  }
-
-  ensureNoPathSubscriptions() {
-    const watchedPaths = pathwatcher.getWatchedPaths();
-    pathwatcher.closeAllWatchers();
-    if (watchedPaths.length > 0) {
-      throw new Error(`Leaking subscriptions for paths: ${watchedPaths.join(', ')}`);
-    }
   }
 }
 
