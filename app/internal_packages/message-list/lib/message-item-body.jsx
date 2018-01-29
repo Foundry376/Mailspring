@@ -1,4 +1,5 @@
 import {
+  Utils,
   React,
   PropTypes,
   MessageUtils,
@@ -97,13 +98,14 @@ export default class MessageItemBody extends React.Component {
     // Replace cid: references with the paths to downloaded files
     for (const file of this.props.message.files) {
       const download = this.props.downloads[file.id];
+      const safeContentId = Utils.escapeRegExp(file.contentId);
 
       // Note: I don't like doing this with RegExp before the body is inserted into
       // the DOM, but we want to avoid "could not load cid://" in the console.
 
       if (download && download.state !== 'finished') {
         const inlineImgRegexp = new RegExp(
-          `<\\s*img.*src=['"]cid:${file.contentId}['"][^>]*>`,
+          `<\\s*img.*src=['"]cid:${safeContentId}['"][^>]*>`,
           'gi'
         );
         // Render a spinner
@@ -113,17 +115,8 @@ export default class MessageItemBody extends React.Component {
             '<img alt="spinner.gif" src="mailspring://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">'
         );
       } else {
-        // Render the completed download. We include data-nylas-file so that if the image fails
-        // to load, we can parse the file out and call `Actions.fetchFile` to retrieve it.
-        // (Necessary when attachment download mode is set to "manual")
-        const cidRegexp = new RegExp(`cid:${file.contentId}(['"])`, 'gi');
-        merged = merged.replace(
-          cidRegexp,
-          (text, quoteCharacter) =>
-            `file://${AttachmentStore.pathForFile(
-              file
-            )}${quoteCharacter} data-nylas-file="${encodedAttributeForFile(file)}" `
-        );
+        const cidRegexp = new RegExp(`cid:${safeContentId}(@[^'"]+)?`, 'gi');
+        merged = merged.replace(cidRegexp, `file://${AttachmentStore.pathForFile(file)}`);
       }
     }
 
