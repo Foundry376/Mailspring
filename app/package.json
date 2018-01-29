@@ -34,7 +34,7 @@
     "jasmine-reporters": "1.x.x",
     "jasmine-tagged": "^1.1.2",
     "juice": "^1.4",
-    "keytar": "4.0.4",
+    "keytar": "4.1.0",
     "less-cache": "1.1.0",
     "lru-cache": "^4.0.1",
     "mkdirp": "^0.5",
