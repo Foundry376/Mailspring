@@ -96,7 +96,7 @@ export default class MessageItemBody extends React.Component {
     let merged = body;
 
     // Replace cid: references with the paths to downloaded files
-    for (const file of this.props.message.files) {
+    this.props.message.files.filter(f => f.contentId).forEach(file => {
       const download = this.props.downloads[file.id];
       const safeContentId = Utils.escapeRegExp(file.contentId);
 
@@ -118,7 +118,7 @@ export default class MessageItemBody extends React.Component {
         const cidRegexp = new RegExp(`cid:${safeContentId}(@[^'"]+)?`, 'gi');
         merged = merged.replace(cidRegexp, `file://${AttachmentStore.pathForFile(file)}`);
       }
-    }
+    });
 
     // Replace remaining cid: references - we will not display them since they'll
     // throw "unknown ERR_UNKNOWN_URL_SCHEME". Show a transparent pixel so that there's
