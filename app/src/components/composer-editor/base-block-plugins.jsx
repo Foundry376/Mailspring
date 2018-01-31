@@ -5,19 +5,6 @@ import AutoReplace from 'slate-auto-replace';
 
 import { BuildToggleButton } from './toolbar-component-factories';
 
-const ChildrenForEmptyBlock = () => [
-  {
-    object: 'text',
-    leaves: [
-      {
-        object: 'leaf',
-        text: '',
-        marks: [],
-      },
-    ],
-  },
-];
-
 function nodeIsEmpty(node) {
   if (node.text !== '') {
     return false;
@@ -207,14 +194,10 @@ const rules = [
       if (config) {
         const className = el.getAttribute('class');
         const data = className ? { className } : undefined;
-        let nodes = next(el.childNodes);
-        if (!nodes || nodes.length === 0) {
-          nodes = ChildrenForEmptyBlock();
-        }
         return {
           object: 'block',
           type: config.type,
-          nodes: nodes,
+          nodes: next(el.childNodes),
           data: data,
         };
       }

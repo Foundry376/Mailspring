@@ -250,16 +250,21 @@ export function convertFromHTML(html) {
   When we deserialize HTML we convert "Hello <b>World</b> Again" into three adjacent
   text nodes, each with a single leaf with different marks, and Slate has to (very slowly)
   normalize it by merging the nodes into one text node with three leaves.
-  
-  We can do this much faster ourselves.
-  */
-  const joinAdjacentTextNodes = node => {
-    if (!node.nodes) return;
-    node.nodes.forEach(joinAdjacentTextNodes);
 
+  - Convert adjacent text nodes into a single text node with all the leaves.
+  - Ensure `block` elements have an empty text node child.
+  */
+  const optimizeTextNodesForNormalization = node => {
+    if (!node.nodes) return;
+    node.nodes.forEach(optimizeTextNodesForNormalization);
+
+    // Convert adjacent text nodes into a single text node with all the leaves
     const cleanChildren = [];
     let lastChild = null;
     for (const child of node.nodes) {
+      if (child.object === 'block') {
+        return; // because of wrapMixedChildren, block child means no text children
+      }
       if (lastChild && lastChild.object === 'text' && child.object === 'text') {
         lastChild.leaves.push(...child.leaves);
         continue;
@@ -268,9 +273,25 @@ export function convertFromHTML(html) {
       lastChild = child;
     }
     node.nodes = cleanChildren;
+
+    // Ensure `block` elements have an empty text node child
+    if (node.object === 'block' && node.nodes.length === 0) {
+      node.nodes = [
+        {
+          object: 'text',
+          leaves: [
+            {
+              object: 'leaf',
+              text: '',
+              marks: [],
+            },
+          ],
+        },
+      ];
+    }
   };
 
-  joinAdjacentTextNodes(json.document);
+  optimizeTextNodesForNormalization(json.document);
 
   return Value.fromJSON(json);
 }
