@@ -5,6 +5,19 @@ import AutoReplace from 'slate-auto-replace';
 
 import { BuildToggleButton } from './toolbar-component-factories';
 
+const ChildrenForEmptyBlock = () => [
+  {
+    object: 'text',
+    leaves: [
+      {
+        object: 'leaf',
+        text: '',
+        marks: [],
+      },
+    ],
+  },
+];
+
 function nodeIsEmpty(node) {
   if (node.text !== '') {
     return false;
@@ -182,21 +195,27 @@ const rules = [
 
       // div elements that are entirely empty and have no meaningful-looking styles applied
       // would probably just add extra whitespace
-      if (tagName === 'div' && !el.hasChildNodes()) {
+      let empty = !el.hasChildNodes();
+      if (tagName === 'div' && empty) {
         const s = (el.getAttribute('style') || '').toLowerCase();
         if (!s.includes('background') && !s.includes('margin') && !s.includes('padding')) {
           return;
         }
       }
+
       // return block
       if (config) {
+        const className = el.getAttribute('class');
+        const data = className ? { className } : undefined;
+        let nodes = next(el.childNodes);
+        if (!nodes || nodes.length === 0) {
+          nodes = ChildrenForEmptyBlock();
+        }
         return {
           object: 'block',
           type: config.type,
-          nodes: next(el.childNodes),
-          data: {
-            className: el.getAttribute('class'),
-          },
+          nodes: nodes,
+          data: data,
         };
       }
     },
