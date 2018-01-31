@@ -20,6 +20,7 @@ import {
   ComposerEditor,
   ComposerSupport,
 } from 'mailspring-component-kit';
+import { History } from 'slate';
 import ComposerHeader from './composer-header';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
@@ -47,8 +48,6 @@ export default class ComposerView extends React.Component {
   constructor(props) {
     super(props);
 
-    const draft = props.session.draft();
-
     this._els = {};
 
     this._keymapHandlers = {
@@ -61,6 +60,7 @@ export default class ComposerView extends React.Component {
       'composer:select-attachment': () => this._onSelectAttachment(),
     };
 
+    const draft = props.session.draft();
     this.state = {
       isDropping: false,
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
@@ -93,6 +93,14 @@ export default class ComposerView extends React.Component {
     if (this.state.quotedTextHidden && hasNonTrailingBlockquote(draft.bodyEditorState)) {
       this.setState({ quotedTextHidden: false });
     }
+  }
+
+  componentWillUnmount() {
+    // In the future, we should clean up the draft session entirely, or give it
+    // the same lifecycle as the composer view. For now, just make sure we free
+    // up all the memory used for undo/redo.
+    const { draft, session } = this.props;
+    session.changes.add({ bodyEditorState: draft.bodyEditorState.set('history', new History()) });
   }
 
   focus() {

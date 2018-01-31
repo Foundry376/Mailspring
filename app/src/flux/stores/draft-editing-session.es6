@@ -108,6 +108,7 @@ function hotwireDraftBodyState(draft) {
   let _bodyEditorState = null;
 
   draft.__bodyPropDescriptor = {
+    configurable: true,
     get: function() {
       if (!_bodyHTMLCache) {
         console.log('building HTML body cache');
@@ -132,6 +133,7 @@ function hotwireDraftBodyState(draft) {
   };
 
   draft.__bodyEditorStatePropDescriptor = {
+    configurable: true,
     get: function() {
       return _bodyEditorState;
     },
