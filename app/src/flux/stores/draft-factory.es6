@@ -37,7 +37,7 @@ class DraftFactory {
       version: 0,
       unread: false,
       starred: false,
-      headerMessageId: Utils.generateTempId() + '@' + require('os').hostname(),
+      headerMessageId: `${Utils.generateTempId()}-v${AppEnv.getVersion()}@${require('os').hostname()}`,
       from: [account.defaultMe()],
       date: new Date(),
       draft: true,
