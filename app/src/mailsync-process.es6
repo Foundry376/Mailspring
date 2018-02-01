@@ -52,11 +52,48 @@ export default class MailsyncProcess extends EventEmitter {
   constructor({ configDirPath, resourcePath, verbose }, identity, account) {
     super();
     this.verbose = verbose;
+    this.resourcePath = resourcePath;
     this.configDirPath = configDirPath;
     this.account = account;
     this.identity = identity;
     this.binaryPath = path.join(resourcePath, 'mailsync').replace('app.asar', 'app.asar.unpacked');
     this._proc = null;
+    this._win = null;
+  }
+
+  _showStatusWindow(mode) {
+    if (this._win) return;
+    const { BrowserWindow } = require('electron');
+    this._win = new BrowserWindow({
+      width: 350,
+      height: 108,
+      show: false,
+      center: true,
+      resizable: false,
+      minimizable: false,
+      maximizable: false,
+      closable: false,
+      fullscreenable: false,
+      webPreferences: { nodeIntegration: false, javascript: false },
+    });
+    this._win.setContentSize(350, 90);
+    this._win.once('ready-to-show', () => {
+      this._win.show();
+    });
+    this._win.loadURL(`file://${this.resourcePath}/static/db-${mode}.html`);
+  }
+
+  _closeStatusWindow() {
+    if (!this._win) return;
+    this._win.removeAllListeners('ready-to-show');
+    this._win.setClosable(true);
+    this._win.hide();
+    setTimeout(() => {
+      // don't know why this timeout is necessary but the app becomes unable to
+      // load Electron modules in the main process if we close immediately.
+      if (!this._win.isDestroyed()) this._win.close();
+      this._win = null;
+    });
   }
 
   _spawnProcess(mode) {
@@ -86,7 +123,7 @@ export default class MailsyncProcess extends EventEmitter {
     }
   }
 
-  _spawnAndWait(mode) {
+  _spawnAndWait(mode, { onData } = {}) {
     return new Promise((resolve, reject) => {
       this._spawnProcess(mode);
       let buffer = Buffer.from([]);
@@ -94,11 +131,13 @@ export default class MailsyncProcess extends EventEmitter {
       if (this._proc.stdout) {
         this._proc.stdout.on('data', data => {
           buffer += data;
+          if (onData) onData(data);
         });
       }
       if (this._proc.stderr) {
         this._proc.stderr.on('data', data => {
           buffer += data;
+          if (onData) onData(data);
         });
       }
 
@@ -125,7 +164,7 @@ export default class MailsyncProcess extends EventEmitter {
             .pop();
           const response = JSON.parse(lastLine);
           if (code === 0) {
-            resolve(response);
+            resolve({ response, buffer });
           } else {
             let msg = LocalizedErrorStrings[response.error] || response.error;
             if (response.error_service) {
@@ -241,8 +280,22 @@ export default class MailsyncProcess extends EventEmitter {
     }
   }
 
-  migrate() {
-    return this._spawnAndWait('migrate');
+  async migrate() {
+    try {
+      console.log('Running database migrations');
+      const { buffer } = await this._spawnAndWait('migrate', {
+        onData: data => {
+          const str = data.toString().toLowerCase();
+          if (str.includes('running migration')) this._showStatusWindow('migration');
+          if (str.includes('running vacuum')) this._showStatusWindow('vacuum');
+        },
+      });
+      console.log(buffer.toString());
+      this._closeStatusWindow();
+    } catch (err) {
+      this._closeStatusWindow();
+      throw err;
+    }
   }
 
   resetCache() {
