@@ -13,7 +13,7 @@ export default class PrintWindow {
     const stylesPath = path.join(__dirname, '..', 'static', 'print-styles.css');
     const participantsHtml = participants
       .map(part => {
-        return `<li class="participant"><span>${part.name} &lt;${part.email}&gt;</span></li>`;
+        return `<li class="participant"><span>${part.name || ''} &lt;${part.email}&gt;</span></li>`;
       })
       .join('');
 
