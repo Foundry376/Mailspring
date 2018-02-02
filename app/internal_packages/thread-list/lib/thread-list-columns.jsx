@@ -54,8 +54,10 @@ const getSnippet = function(thread) {
   if (messages.length === 0) {
     return thread.snippet;
   }
-
-  return messages[messages.length - 1].snippet;
+  for (let ii = messages.length - 1; ii >= 0; ii--) {
+    if (messages[ii].snippet) return messages[ii].snippet;
+  }
+  return null;
 };
 
 const c1 = new ListTabular.Column({
