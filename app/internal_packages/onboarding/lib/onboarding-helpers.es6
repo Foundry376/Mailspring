@@ -2,24 +2,18 @@
 
 import crypto from 'crypto';
 import { CommonProviderSettings } from 'imap-provider-settings';
-import { Account, MailspringAPIRequest, IdentityStore, MailsyncProcess } from 'mailspring-exports';
+import { Account, IdentityStore, MailsyncProcess } from 'mailspring-exports';
 
-const { makeRequest, rootURLForServer } = MailspringAPIRequest;
-
-function base64URL(inBuffer) {
-  let buffer;
-  if (typeof inBuffer === 'string') {
-    buffer = new Buffer(inBuffer);
-  } else if (inBuffer instanceof Buffer) {
-    buffer = inBuffer;
-  } else {
-    throw new Error(`${inBuffer} must be a string or Buffer`);
-  }
-  return buffer
-    .toString('base64')
-    .replace(/\+/g, '-') // Convert '+' to '-'
-    .replace(/\//g, '_'); // Convert '/' to '_'
-}
+export const LOCAL_SERVER_PORT = 12141;
+export const LOCAL_REDIRECT_URI = `http://127.0.0.1:${LOCAL_SERVER_PORT}`;
+const GMAIL_CLIENT_ID = '662287800555-0a5h4ii0e9hsbpq0mqtul7fja0jhf9uf.apps.googleusercontent.com';
+const GMAIL_SCOPES = [
+  'https://www.googleapis.com/auth/userinfo.email', // email address
+  'https://www.googleapis.com/auth/userinfo.profile', // G+ profile
+  'https://mail.google.com/', // email
+  'https://www.googleapis.com/auth/contacts.readonly', // contacts
+  'https://www.googleapis.com/auth/calendar', // calendar
+];
 
 function idForAccount(emailAddress, connectionSettings) {
   // changing your connection security settings / ports shouldn't blow
@@ -83,30 +77,56 @@ export function expandAccountWithCommonSettings(account) {
   return populated;
 }
 
-export function makeGmailOAuthRequest(sessionKey) {
-  return makeRequest({
-    server: 'identity',
-    path: `/auth/gmail/token?key=${sessionKey}`,
-    method: 'GET',
-    auth: false,
+export async function buildGmailAccountFromAuthResponse(code) {
+  /// Exchange code for an access token
+  const body = [];
+  body.push(`code=${encodeURIComponent(code)}`);
+  body.push(`client_id=${encodeURIComponent(GMAIL_CLIENT_ID)}`);
+  body.push(`redirect_uri=${encodeURIComponent(LOCAL_REDIRECT_URI)}`);
+  body.push(`grant_type=${encodeURIComponent('authorization_code')}`);
+
+  const resp = await fetch('https://www.googleapis.com/oauth2/v4/token', {
+    method: 'POST',
+    body: body.join('&'),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    },
   });
-}
 
-export async function buildGmailAccountFromToken(serverTokenResponse) {
-  const { name, emailAddress, refreshToken } = serverTokenResponse;
+  const json = (await resp.json()) || {};
+  if (!resp.ok) {
+    throw new Error(
+      `Gmail OAuth Code exchange returned ${resp.status} ${resp.statusText}: ${JSON.stringify(
+        json
+      )}`
+    );
+  }
+  const { access_token, refresh_token } = json;
 
+  ///get the user's email address
+  const meResp = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
+  const me = await meResp.json();
+  if (!meResp.ok) {
+    throw new Error(
+      `Gmail profile request returned ${resp.status} ${resp.statusText}: ${JSON.stringify(me)}`
+    );
+  }
   const account = expandAccountWithCommonSettings(
     new Account({
-      name: name,
-      emailAddress: emailAddress,
+      name: me.name,
+      emailAddress: me.email,
       provider: 'gmail',
       settings: {
-        refresh_token: refreshToken,
+        refresh_client_id: GMAIL_CLIENT_ID,
+        refresh_token: refresh_token,
       },
     })
   );
 
-  account.id = idForAccount(emailAddress, account.settings);
+  account.id = idForAccount(me.email, account.settings);
 
   // test the account locally to ensure the All Mail folder is enabled
   // and the refresh token can be exchanged for an account token.
@@ -115,12 +135,12 @@ export async function buildGmailAccountFromToken(serverTokenResponse) {
   return account;
 }
 
-export function buildGmailSessionKey() {
-  return base64URL(crypto.randomBytes(40));
-}
-
 export function buildGmailAuthURL(sessionKey) {
-  return `${rootURLForServer('identity')}/auth/gmail?state=${sessionKey}`;
+  return `https://accounts.google.com/o/oauth2/auth?client_id=${GMAIL_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+    LOCAL_REDIRECT_URI
+  )}&response_type=code&scope=${encodeURIComponent(
+    GMAIL_SCOPES.join(' ')
+  )}&access_type=offline&select_account%20consent`;
 }
 
 export async function finalizeAndValidateAccount(account) {
