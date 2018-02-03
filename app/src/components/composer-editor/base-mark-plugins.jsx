@@ -32,6 +32,8 @@ export const DEFAULT_FONT_FACE_OPTIONS = [
 
 const PT_TO_SIZE = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 3, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 7];
 
+let plugins = null;
+
 function isMeaningfulColor(color) {
   const meaningless = ['black', 'rgb(0,0,0)', 'rgba(0,0,0,1)', '#000', '#000000'];
   return color && !meaningless.includes(color.replace(/ /g, ''));
@@ -197,6 +199,26 @@ const rules = [
       }
 
       if (marks.length) {
+        // we are going to return a value! This means other plugins won't
+        // have a chance to execute on this node in the DOM. But we may want
+        // plugins (eg link-plugin), to add more marks. Manually run them
+        // and collect any additional marks:
+        plugins = plugins || require('./conversion').plugins;
+        const subsequentPlugins = plugins.slice(plugins.findIndex(p => p.rules === rules) + 1);
+        for (const p of subsequentPlugins) {
+          for (const { deserialize } of p.rules || []) {
+            const result = deserialize && deserialize(el, () => []);
+            if (result && result.object === 'mark') {
+              if (result.object.nodes && result.object.nodes.length) {
+                console.warn(
+                  'base-mark-plugin does not look at nested marks from subsequent plugins'
+                );
+              }
+              marks.push(result);
+            }
+          }
+        }
+
         // convert array of marks into a tree. If the marks are on a BLOCK
         // tagname, also nest the marks within the block node that would
         // have been created, since the block will not be created if we return
