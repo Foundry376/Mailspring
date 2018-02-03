@@ -6,7 +6,7 @@ export function currentSignatureId(body) {
     replyEnd = body.length;
   }
 
-  const signatureRegex = /<signature id="([A-Za-z0-9-/\\]+)">/;
+  const signatureRegex = RegExpUtils.mailspringSignatureRegex();
   const signatureMatch = signatureRegex.exec(body.substr(0, replyEnd));
   return signatureMatch && signatureMatch[1];
 }
@@ -17,7 +17,7 @@ export function applySignature(body, signature) {
   // Remove any existing signature in the body
   let newBody = body;
   if (currentSignatureId(body)) {
-    newBody = newBody.replace(/<signature id="[A-Za-z0-9-/\\]+">[^]*<\/signature>/, '');
+    newBody = newBody.replace(RegExpUtils.mailspringSignatureRegex(), '');
     additionalWhitespace = '';
   }
 

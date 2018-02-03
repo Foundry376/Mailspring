@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
-
 import { Conversion } from '../../components/composer-editor/composer-support';
+import RegExpUtils from '../../regexp-utils';
 
 import TaskQueue from './task-queue';
 import Message from '../models/message';
@@ -276,6 +276,9 @@ export default class DraftEditingSession extends MailspringStore {
     }
 
     let cleaned = QuotedHTMLTransformer.removeQuotedHTML(this._draft.body.trim());
+    const sigIndex = cleaned.search(RegExpUtils.mailspringSignatureRegex());
+    cleaned = sigIndex > -1 ? cleaned.substr(0, sigIndex) : cleaned;
+
     const signatureIndex = cleaned.indexOf('<signature>');
     if (signatureIndex !== -1) {
       cleaned = cleaned.substr(0, signatureIndex - 1);

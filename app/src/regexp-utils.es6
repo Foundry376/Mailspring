@@ -188,6 +188,10 @@ const RegExpUtils = {
     return new RegExp(/(<a.*?href\s*?=\s*?['"])((?!mailto).+?)(['"].*?>)([\s\S]*?)(<\/a>)/gim);
   },
 
+  mailspringSignatureRegex() {
+    return /<signature id="([A-Za-z0-9-/\\]+)">[^]*<\/signature>/;
+  },
+
   // https://regex101.com/r/zG7aW4/3
   imageTagRegex() {
     return /<img\s+[^>]*src="([^"]*)"[^>]*>/g;
