@@ -19,4 +19,14 @@ export default class SyncbackDraftTask extends Task {
     this.accountId = (draft || {}).accountId;
     this.headerMessageId = (draft || {}).headerMessageId;
   }
+
+  onError({ key, debuginfo }) {
+    if (key === 'no-drafts-folder') {
+      AppEnv.showErrorDialog({
+        title: 'Drafts folder not found',
+        message:
+          "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.",
+      });
+    }
+  }
 }
