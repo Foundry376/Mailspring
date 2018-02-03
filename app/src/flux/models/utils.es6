@@ -165,7 +165,7 @@ module.exports = Utils = {
   // Given a File object or uploadData of an uploading file object,
   // determine if it looks like an image and is in the size range for previews
   shouldDisplayAsImage(file = {}) {
-    const name = file.filename || file.fileName || file.name;
+    const name = file.filename || file.fileName || file.name || '';
     const size = file.size || file.fileSize || 0;
     const ext = path.extname(name).toLowerCase();
     const extensions = ['.jpg', '.bmp', '.gif', '.png', '.jpeg'];
