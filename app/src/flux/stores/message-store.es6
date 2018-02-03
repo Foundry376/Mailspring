@@ -168,7 +168,12 @@ class MessageStore extends MailspringStore {
 
   _onApplyFocusChange() {
     const focused = FocusedContentStore.focused('thread');
-    if (this.threadId() === (focused ? focused.id : undefined)) return;
+    if (focused === null) {
+      this._lastMarkedAsReadThreadId = null;
+    }
+
+    // if we already match the desired state, no need to trigger
+    if (this.threadId() === (focused || {}).id) return;
 
     this._thread = focused;
     this._items = [];
@@ -195,8 +200,8 @@ class MessageStore extends MailspringStore {
     // prompts (since this is a passive action vs. a user-triggered
     // action.)
     if (!this._thread) return;
-    if (this._lastLoadedThreadId === this._thread.id) return;
-    this._lastLoadedThreadId = this._thread.id;
+    if (this._lastMarkedAsReadThreadId === this._thread.id) return;
+    this._lastMarkedAsReadThreadId = this._thread.id;
 
     if (this._thread.unread) {
       const markAsReadDelay = AppEnv.config.get('core.reading.markAsReadDelay');
