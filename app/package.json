@@ -26,7 +26,6 @@
     "fs-plus": "^2.3.2",
     "getmac": "^1.2.1",
     "graceful-fs": "^4.1.11",
-    "imap-provider-settings": "github:nylas/imap-provider-settings#2fdcd34d59b",
     "immutable": "^3.8.2",
     "is-online": "7.0.0",
     "jasmine-json": "~0.0",

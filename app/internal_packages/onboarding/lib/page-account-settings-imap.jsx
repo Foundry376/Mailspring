@@ -54,20 +54,6 @@ class AccountIMAPSettingsForm extends React.Component {
     return { errorMessage, errorFieldNames, populated: true };
   };
 
-  submit() {
-    const { settings } = this.props.account;
-    if (settings.imap_host && settings.imap_host.includes('imap.gmail.com')) {
-      AppEnv.showErrorDialog({
-        title: 'Are you sure?',
-        message:
-          `This looks like a Gmail account! While it's possible to setup an App ` +
-          `Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go ` +
-          `back and select "Gmail & Google Apps" from the provider screen.`,
-      });
-    }
-    this.props.onConnect();
-  }
-
   renderPortDropdown(protocol) {
     if (!['imap', 'smtp'].includes(protocol)) {
       throw new Error(`Can't render port dropdown for protocol '${protocol}'`);

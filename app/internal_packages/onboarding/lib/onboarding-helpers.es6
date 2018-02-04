@@ -1,8 +1,10 @@
 /* eslint global-require: 0 */
 
 import crypto from 'crypto';
-import { CommonProviderSettings } from 'imap-provider-settings';
 import { Account, IdentityStore, MailsyncProcess } from 'mailspring-exports';
+import MailspringProviderSettings from './mailspring-provider-settings';
+import MailcoreProviderSettings from './mailcore-provider-settings';
+import dns from 'dns';
 
 export const LOCAL_SERVER_PORT = 12141;
 export const LOCAL_REDIRECT_URI = `http://127.0.0.1:${LOCAL_SERVER_PORT}`;
@@ -34,30 +36,80 @@ function idForAccount(emailAddress, connectionSettings) {
     .substr(0, 8);
 }
 
-export function expandAccountWithCommonSettings(account) {
+function mxRecordsForDomain(domain) {
+  return new Promise((resolve, reject) => {
+    dns.resolveMx(domain, (err, addresses) => {
+      if (err) {
+        resolve([]);
+      } else {
+        resolve(addresses.map(a => a.exchange.toLowerCase()));
+      }
+    });
+  });
+}
+
+export async function expandAccountWithCommonSettings(account) {
   const domain = account.emailAddress
     .split('@')
     .pop()
     .toLowerCase();
-  let template = CommonProviderSettings[domain] || CommonProviderSettings[account.provider] || {};
-  if (template.alias) {
-    template = CommonProviderSettings[template.alias];
-  }
+  const mxRecords = await mxRecordsForDomain(domain);
+  const populated = account.clone();
 
   const usernameWithFormat = format => {
-    if (format === 'email') {
-      return account.emailAddress;
-    }
-    if (format === 'email-without-domain') {
-      return account.emailAddress.split('@').shift();
-    }
+    if (format === 'email') return account.emailAddress;
+    if (format === 'email-without-domain') return account.emailAddress.split('@').shift();
     return undefined;
   };
 
-  const populated = account.clone();
+  // find matching template using new Mailcore lookup tables. These match against the
+  // email's domain and the mx records for the domain, which means it will identify that
+  // "foundry376.com" uses Google Apps, for example.
+  let template = Object.values(MailcoreProviderSettings).find(p => {
+    for (const test of p['domain-match'] || []) {
+      if (new RegExp(`^${test}$`).test(domain)) {
+        return true;
+      }
+    }
+    for (const test of p['mx-match'] || []) {
+      const reg = new RegExp(`^${test}$`);
+      if (mxRecords.some(record => reg.test(record))) {
+        return true;
+      }
+    }
+    return false;
+  });
 
-  populated.settings = Object.assign(
-    {
+  if (template) {
+    console.log(`Using Mailcore Template: ${JSON.stringify(template, null, 2)}`);
+    const imap = (template.servers.imap || [])[0] || {};
+    const smtp = (template.servers.smtp || [])[0] || {};
+    const defaults = {
+      imap_host: imap.hostname.replace('{domain}', domain),
+      imap_port: imap.port,
+      imap_username: usernameWithFormat('email'),
+      imap_password: populated.settings.imap_password,
+      imap_security: imap.starttls ? 'STARTTLS' : imap.ssl ? 'SSL / TLS' : 'none',
+      imap_allow_insecure_ssl: false,
+
+      smtp_host: smtp.hostname.replace('{domain}', domain),
+      smtp_port: smtp.port,
+      smtp_username: usernameWithFormat('email'),
+      smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
+      smtp_security: smtp.starttls ? 'STARTTLS' : smtp.ssl ? 'SSL / TLS' : 'none',
+      smtp_allow_insecure_ssl: false,
+    };
+    populated.settings = Object.assign(defaults, populated.settings);
+    return populated;
+  }
+
+  // find matching template by domain or provider in the old lookup tables
+  // this matches the acccount type presets ("yahoo") and common domains against
+  // data derived from Thunderbirds ISPDB.
+  template = MailspringProviderSettings[domain] || MailspringProviderSettings[account.provider];
+  if (template) {
+    console.log(`Using Mailspring Template: ${JSON.stringify(template, null, 2)}`);
+    const defaults = {
       imap_host: template.imap_host,
       imap_port: template.imap_port || 993,
       imap_username: usernameWithFormat(template.imap_user_format),
@@ -70,10 +122,9 @@ export function expandAccountWithCommonSettings(account) {
       smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
       smtp_security: template.smtp_security || 'STARTTLS',
       smtp_allow_insecure_ssl: template.smtp_allow_insecure_ssl || false,
-    },
-    populated.settings
-  );
-
+    };
+    populated.settings = Object.assign(defaults, populated.settings);
+  }
   return populated;
 }
 
@@ -103,7 +154,7 @@ export async function buildGmailAccountFromAuthResponse(code) {
   }
   const { access_token, refresh_token } = json;
 
-  ///get the user's email address
+  // get the user's email address
   const meResp = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
     method: 'GET',
     headers: { Authorization: `Bearer ${access_token}` },
@@ -114,7 +165,7 @@ export async function buildGmailAccountFromAuthResponse(code) {
       `Gmail profile request returned ${resp.status} ${resp.statusText}: ${JSON.stringify(me)}`
     );
   }
-  const account = expandAccountWithCommonSettings(
+  const account = await expandAccountWithCommonSettings(
     new Account({
       name: me.name,
       emailAddress: me.email,
