@@ -95,7 +95,6 @@ export default class ConfigPersistenceManager {
       this.emitChangeEvent();
     } catch (error) {
       error.message = `Failed to load config.json: ${error.message}`;
-      global.errorLogger.reportError(error);
 
       const action = this._showLoadErrorDialog(error);
       if (action === 'quit') {
@@ -147,7 +146,6 @@ export default class ConfigPersistenceManager {
     } catch (error) {
       if (this.saveRetries >= RETRY_SAVES) {
         error.message = `Failed to save config.json: ${error.message}`;
-        global.errorLogger.reportError(error);
         const action = this._showSaveErrorDialog();
         this.saveRetries = 0;
 

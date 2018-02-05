@@ -232,6 +232,10 @@ export default class Application extends EventEmitter {
   }
 
   openWindowsForTokenState() {
+    // user may trigger this using the application menu / by focusing the app
+    // before migration has completed and the config has been loaded.
+    if (!this.config) return;
+
     const accounts = this.config.get('accounts');
     const hasAccount = accounts && accounts.length > 0;
     const hasIdentity = this.config.get('identity.id');

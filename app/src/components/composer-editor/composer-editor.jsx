@@ -54,10 +54,12 @@ export default class ComposerEditor extends React.Component {
   focusEndReplyText = () => {
     window.requestAnimationFrame(() => {
       const { onChange, value } = this.props;
+      const node = lastUnquotedNode(value);
+      if (!node) return;
       onChange(
         value
           .change()
-          .collapseToEndOf(lastUnquotedNode(value))
+          .collapseToEndOf(node)
           .focus()
       );
     });
@@ -156,8 +158,10 @@ export default class ComposerEditor extends React.Component {
     const html = event.clipboardData.getData('text/html');
     if (html) {
       const value = convertFromHTML(html);
-      change.insertFragment(value.document);
-      return true;
+      if (value && value.document) {
+        change.insertFragment(value.document);
+        return true;
+      }
     }
   };
 

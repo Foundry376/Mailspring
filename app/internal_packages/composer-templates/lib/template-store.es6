@@ -52,7 +52,12 @@ class TemplateStore extends MailspringStore {
 
   watch() {
     if (!this._watcher) {
-      this._watcher = fs.watch(this._templatesDir, () => this._populate());
+      try {
+        this._watcher = fs.watch(this._templatesDir, () => this._populate());
+      } catch (err) {
+        // usually an ENOSPC error
+        console.warn(err);
+      }
     }
   }
 
