@@ -80,9 +80,15 @@ export async function updateDraftReminderMetadata(draftSession, metadataValue) {
 }
 
 export async function transferReminderMetadataFromDraftToThread({ accountId, headerMessageId }) {
-  const message = await DatabaseStore.findBy(Message, { accountId, headerMessageId });
+  let message = await DatabaseStore.findBy(Message, { accountId, headerMessageId });
   if (!message) {
-    throw new Error('SendReminders: Could not find message to update');
+    // The task has just completed, wait a moment to see if the message appears. Testing to
+    // see whether this resolves https://sentry.io/foundry-376-llc/mailspring/issues/363208698/
+    await Promise.delay(1500);
+    message = await DatabaseStore.findBy(Message, { accountId, headerMessageId });
+    if (!message) {
+      throw new Error('SendReminders: Could not find message to update');
+    }
   }
 
   const metadata = message.metadataForPluginId(PLUGIN_ID) || {};
@@ -91,6 +97,9 @@ export async function transferReminderMetadataFromDraftToThread({ accountId, hea
   }
 
   const thread = await DatabaseStore.find(Thread, message.threadId);
+  if (!thread) {
+    throw new Error('SendReminders: Could not find thread to update');
+  }
   updateReminderMetadata(thread, {
     expiration: metadata.expiration,
     sentHeaderMessageId: metadata.sentHeaderMessageId,
