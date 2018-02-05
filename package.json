@@ -20,7 +20,7 @@
     "babel-preset-react": "6.x.x",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "1.8.2-beta.4",
+    "electron": "1.8.2-beta.5",
     "electron-installer-dmg": "0.2.x",
     "electron-packager": "8.7.x",
     "electron-winstaller": "2.x.x",
