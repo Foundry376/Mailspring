@@ -205,8 +205,9 @@ export default class MailsyncBridge {
     const syncingClient = this._clients[account.id];
 
     // create a new client that will perform the reset
-    const { env, fullAccountJSON, identity } = await this._getClientConfiguration(account);
-    const resetClient = new MailsyncProcess(env, identity, fullAccountJSON);
+    const resetClient = new MailsyncProcess(this._getClientConfiguration());
+    resetClient.account = (await KeyManager.insertAccountSecrets(account)).toJSON();
+    resetClient.identity = IdentityStore.identity();
     this._clients[account.id] = resetClient;
 
     // kill the old client, ensureClients will be a no-op because the
@@ -248,31 +249,31 @@ export default class MailsyncBridge {
 
   // Private
 
-  async _getClientConfiguration(account) {
+  _getClientConfiguration(account) {
     const { configDirPath, resourcePath } = AppEnv.getLoadSettings();
     const verboseUntil = AppEnv.config.get(VERBOSE_UNTIL_KEY) || 0;
     const verbose = verboseUntil && verboseUntil / 1 > Date.now();
     if (verbose) {
       console.warn(`Verbose mailsync logging is enabled until ${new Date(verboseUntil)}`);
     }
-
-    return {
-      env: { configDirPath, resourcePath, verbose },
-      fullAccountJSON: (await KeyManager.insertAccountSecrets(account)).toJSON(),
-      identity: IdentityStore.identity(),
-    };
+    return { configDirPath, resourcePath, verbose };
   }
 
   async _launchClient(account, { force } = {}) {
-    const { env, fullAccountJSON, identity } = await this._getClientConfiguration(account);
+    const client = new MailsyncProcess(this._getClientConfiguration());
+    this._clients[account.id] = client; // set this synchornously so we never spawn two
+
+    const fullAccountJSON = (await KeyManager.insertAccountSecrets(account)).toJSON();
 
     if (force) {
       this._crashTracker.forgetCrashes(fullAccountJSON);
     } else if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
+      delete this._clients[account.id];
       return;
     }
 
-    const client = new MailsyncProcess(env, identity, fullAccountJSON);
+    client.account = fullAccountJSON;
+    client.identity = IdentityStore.identity();
     client.sync();
     client.on('deltas', this._onIncomingMessages);
     client.on('close', ({ code, error, signal }) => {
@@ -300,7 +301,6 @@ export default class MailsyncBridge {
         this.ensureClients();
       }
     });
-    this._clients[account.id] = client;
 
     if (fullAccountJSON.syncState !== Account.SYNC_STATE_OK) {
       // note: This call triggers ensureClients, and must go after this.clients[id] is set

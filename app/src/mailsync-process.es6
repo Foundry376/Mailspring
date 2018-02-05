@@ -49,16 +49,18 @@ export const LocalizedErrorStrings = {
 };
 
 export default class MailsyncProcess extends EventEmitter {
-  constructor({ configDirPath, resourcePath, verbose }, identity, account) {
+  constructor({ configDirPath, resourcePath, verbose }) {
     super();
     this.verbose = verbose;
     this.resourcePath = resourcePath;
     this.configDirPath = configDirPath;
-    this.account = account;
-    this.identity = identity;
     this.binaryPath = path.join(resourcePath, 'mailsync').replace('app.asar', 'app.asar.unpacked');
     this._proc = null;
     this._win = null;
+
+    // these must be set before you use the process
+    this.account = null;
+    this.identity = null;
   }
 
   _showStatusWindow(mode) {
@@ -109,6 +111,9 @@ export default class MailsyncProcess extends EventEmitter {
     const args = [`--mode`, mode];
     if (this.verbose) {
       args.push('--verbose');
+    }
+    if (this.account) {
+      args.push('--info', this.account.emailAddress);
     }
     this._proc = spawn(this.binaryPath, args, { env });
 

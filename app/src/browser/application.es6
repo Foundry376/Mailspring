@@ -44,7 +44,7 @@ export default class Application extends EventEmitter {
     });
 
     try {
-      const mailsync = new MailsyncProcess(options, null);
+      const mailsync = new MailsyncProcess(options);
       await mailsync.migrate();
     } catch (err) {
       let message = null;
