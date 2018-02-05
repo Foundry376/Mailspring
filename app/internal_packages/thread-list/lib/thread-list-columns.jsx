@@ -19,7 +19,7 @@ const ThreadListTimestamp = function({ thread }) {
   let rawTimestamp = FocusedPerspectiveStore.current().isSent()
     ? thread.lastMessageSentTimestamp
     : thread.lastMessageReceivedTimestamp;
-  const timestamp = DateUtils.shortTimeString(rawTimestamp);
+  const timestamp = rawTimestamp ? DateUtils.shortTimeString(rawTimestamp) : 'No Date';
   return <span className="timestamp">{timestamp}</span>;
 };
 
