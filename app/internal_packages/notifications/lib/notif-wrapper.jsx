@@ -40,13 +40,13 @@ export default class NotifWrapper extends React.Component {
 
   render() {
     return (
-      <div className="notifications">
-        <InjectedComponentSet
-          matching={{ role: ROLE }}
-          direction="column"
-          containersRequired={false}
-        />
-      </div>
+      <InjectedComponentSet
+        className="notifications"
+        height=""
+        matching={{ role: ROLE }}
+        direction="column"
+        containersRequired={false}
+      />
     );
   }
 }
