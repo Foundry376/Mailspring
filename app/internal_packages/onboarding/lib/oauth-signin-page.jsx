@@ -2,6 +2,7 @@ import { shell, clipboard } from 'electron';
 import { React, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import http from 'http';
+import url from 'url';
 
 import FormErrorMessage from './form-error-message';
 import { LOCAL_SERVER_PORT } from './onboarding-helpers';
@@ -49,12 +50,9 @@ export default class OAuthSignInPage extends React.Component {
     // launch a web server
     this._server = http.createServer((request, response) => {
       if (!this._mounted) return;
-      if (request.url.includes('code=')) {
-        let code = request.url.split('code=').pop();
-        if (code.endsWith('#')) {
-          code = code.substring(0, code.length - 1);
-        }
-        this._onReceivedCode(code);
+      const { query } = url.parse(request.url, { querystring: true });
+      if (query.code) {
+        this._onReceivedCode(query.code);
         response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });
         response.end();
       } else {

@@ -12,6 +12,10 @@ Improvements:
 
 Fixes:
 
+* On linux, the system tray icon is smaller (22x22 with 18x18 content vs 32x32)
+
+* In dark themes, quoted text no longer appears a dark purple that is difficult to read.
+
 * Mailspring no longer becomes "blocked" when ingesting a large number of deletions in a mailbox and will no longer attempt to retrieve many, many new messages all at once.
 
 * When changing accounts in the composer the signature correctly updates to the new account's default. #570
