@@ -83,16 +83,13 @@ class SystemTrayManager {
   };
 
   updateTraySettings(iconPath, unreadString, isTemplateImg) {
-    if (this._iconPath === iconPath && this._unreadString === unreadString) return;
-
-    this._iconPath = iconPath;
-    this._unreadString = unreadString;
-
-    if (this._tray) {
-      const icon = _getIcon(this._iconPath, isTemplateImg);
-      const tooltip = _getTooltip(unreadString);
-      this._tray.setImage(icon);
-      this._tray.setToolTip(tooltip);
+    if (this._iconPath !== iconPath) {
+      this._iconPath = iconPath;
+      if (this._tray) this._tray.setImage(_getIcon(this._iconPath, isTemplateImg));
+    }
+    if (this._unreadString !== unreadString) {
+      this._unreadString = unreadString;
+      if (this._tray) this._tray.setToolTip(_getTooltip(unreadString));
     }
   }
 
