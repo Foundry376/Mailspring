@@ -1,5 +1,65 @@
 # Mailspring Changelog
 
+### 1.1.3
+
+Improvements:
+
+* When adding an IMAP account, Mailspring now uses the domain's MX records to identify if it can use settings for a common email service to skip the full, complicated IMAP settings screen.
+
+* When adding a Gmail account, Mailspring now uses two-legged OAuth instead of three-legged OAuth which allows it to renew it's access token more rapidly. (Re-authenticate Gmail accounts for this to take effect.)
+
+* Mailspring `VACUUM`'s the SQLite database every two weeks to prevent fragmentation that can eventually ruin performance. Unfortunately, data cannot be read or written during this process and it can take ~2 minutes for a 3GB database, so it is performed at launch with a new progress screen.
+
+Fixes:
+
+* Mailspring no longer becomes "blocked" when ingesting a large number of deletions in a mailbox and will no longer attempt to retrieve many, many new messages all at once.
+
+* When changing accounts in the composer the signature correctly updates to the new account's default. #570
+
+* In the message viewer, the "Download All Attachments" button appears if the email contains multiple images. #583
+
+* In the message viewer, inline images specified using a "cid:filename.png@RANDOM"-style URL now render correctly in the message body instead of as attachments. #569
+
+* Threads with only sent emails no longer appear as from "1969" in some places. #508, #457
+
+* The "Local Time" shown in the company sidebar is now correct and updates in realtime.
+
+* On Linux, `mailspring.desktop` no longer reports that the app is an editor for `text/plain` #602
+
+* Undo no longer triggers in both the email body and other recently edited text fields at the same time. #613
+
+* Creating a draft no longer clears the conversations's "snippet" in the thread list.
+
+* When printing a thread, Mailspring no longer prints `undefined` beside particicpants with no name.
+
+* When pasting HTML, Mailspring now correctly preserves links that have other styling. #592
+
+* When using "two pane mode", viewing the same conversation repeatedly will mark any new messages as read. #617
+
+* When sending an email, the word "attachments" in your signature will no longer cause the app to complain about missing attachments. #610
+
+* Mailspring no longer attempts to create the folder `Mailspring..Snoozed` on providers that include the path delimiter in the IMAP namespace prefix. #634
+
+* When composing an email, Mailspring will display an alert if you need to choose a Drafts folder to send mail. #634
+
+* Mailspring now uses Electron 1.8.2-beta5, which includes stability and security fixes.
+
+* Exporting raw data from the Activity Dashboard now waits for the filesystem buffer to flush, preventing it from writing only some of the email data on slower hard drives.
+
+* Mailspring no longer briefly spawns duplicate sync processes in some scenarios when you have many accounts linked.
+
+* When your mailbox contains emails with the same subject and participants and no `Date` header, Mailspring now syncs them all instead of syncing them as a single message, which should prevent thrashing
+
+* A subtle multithreading issue has been fixed which could cause your folders to become corrupted and prevent Mailspring from launching.
+
+Memory and Performance:
+
+* Creating a draft is now ~16x faster in scenarios where lots of quoted text is present.
+
+* The undo history of the composer is cleared when you navigate away from a draft, reclaiming memory.
+
+* Completed tasks are purged from the app's task queue more rapidly so performing many, many actions on your mailbox does not cause the application to use more memory.
+
 ### 1.1.2
 
 Fixes:
