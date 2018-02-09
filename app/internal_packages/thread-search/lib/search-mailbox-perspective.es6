@@ -32,11 +32,8 @@ class SearchMailboxPerspective extends MailboxPerspective {
     if (this.sourcePerspective.isInbox()) {
       return '';
     }
-    const folderQuery = this.sourcePerspective
-      .categories()
-      .map(c => c.displayName)
-      .join('" OR in:"');
-    return `AND (in:"${folderQuery}")`;
+    const rolesAndPaths = new Set(this.sourcePerspective.categories().map(c => c.role || c.path));
+    return `AND (in:"${[...rolesAndPaths].join('" OR in:"')}")`;
   }
 
   emptyMessage() {
