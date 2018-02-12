@@ -117,13 +117,23 @@ export default class MailsyncProcess extends EventEmitter {
     }
     this._proc = spawn(this.binaryPath, args, { env });
 
+    /* Allow us to buffer up to 1MB on stdin instead of 16k. This is necessary
+    because some tasks (creating replies to drafts, etc.) can be gigantic amounts
+    of HTML, many tasks can be created at once, etc, and we don't want to kill
+    the channel. */
+    if (this._proc.stdin) {
+      this._proc.stdin.setDefaultEncoding('utf-8');
+      this._proc.stdin.highWaterMark = 1024 * 1024;
+    }
+
     // stdout may not be present if an error occurred. Error handler hasn't been
     // attached yet, but will be by the caller of spawnProcess.
     if (this.account && this._proc.stdout) {
       this._proc.stdout.once('data', () => {
-        this._proc.stdin.write(
-          `${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`
-        );
+        this._proc.stdout.once('data', () => {
+          this._proc.stdin.write(`${JSON.stringify(this.identity)}\n`);
+        });
+        this._proc.stdin.write(`${JSON.stringify(this.account)}\n`);
       });
     }
   }
@@ -198,13 +208,6 @@ export default class MailsyncProcess extends EventEmitter {
     let outBuffer = '';
     let errBuffer = null;
 
-    /* Allow us to buffer up to 1MB on stdin instead of 16k. This is necessary
-    because some tasks (creating replies to drafts, etc.) can be gigantic amounts
-    of HTML, many tasks can be created at once, etc, and we don't want to kill
-    the channel. */
-    if (this._proc.stdin) {
-      this._proc.stdin.highWaterMark = 1024 * 1024;
-    }
     if (this._proc.stdout) {
       this._proc.stdout.on('data', data => {
         const added = data.toString();
