@@ -4,6 +4,7 @@
 Warning! This file is imported from the main process as well as the renderer process
 */
 import { spawn, exec } from 'child_process';
+import { Readable } from 'stream';
 import path from 'path';
 import os from 'os';
 import { EventEmitter } from 'events';
@@ -130,10 +131,10 @@ export default class MailsyncProcess extends EventEmitter {
     // attached yet, but will be by the caller of spawnProcess.
     if (this.account && this._proc.stdout) {
       this._proc.stdout.once('data', () => {
-        this._proc.stdout.once('data', () => {
-          this._proc.stdin.write(`${JSON.stringify(this.identity)}\n`);
-        });
-        this._proc.stdin.write(`${JSON.stringify(this.account)}\n`);
+        var rs = new Readable();
+        rs.push(`${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`);
+        rs.push(null);
+        rs.pipe(this._proc.stdin, { end: false });
       });
     }
   }
