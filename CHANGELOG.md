@@ -6,7 +6,7 @@ Fixes:
 
 * Searching in the `Sent` folder (and other folders assigned mailbox roles) now works reliably.
 
-* Connecting accounts no longer throws `SIGABRT` / `3221225477` errors in scome scenarios. #292
+* Connecting accounts no longer throws `SIGABRT` / `3221225477` errors in some scenarios. #292
 
 * Connecting accounts no longer fails when the email provider returns non-UTF8 characters in IMAP responses.
 
