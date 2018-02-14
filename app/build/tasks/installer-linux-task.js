@@ -94,7 +94,7 @@ module.exports = grunt => {
         productName: grunt.config('appJSON').productName,
         linuxShareDir: '/usr/share/mailspring',
         arch: arch,
-        section: 'devel',
+        section: 'mail',
         maintainer: 'Mailspring Team <support@getmailspring.com>',
         installedSize: installedSize,
       };
