@@ -332,6 +332,21 @@ export default [
     onlyIn: [BLOCK_CONFIG.code.type],
   }),
 
+  // Pressing backspace when you're at the top of the document should not delete down
+  {
+    onKeyDown: function onKeyDown(event, change) {
+      if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
+        return;
+      }
+      const { focusText, focusOffset, document } = change.value;
+      const firstText = document.getFirstText();
+      if (focusOffset === 0 && focusText && firstText && firstText.key === focusText.key) {
+        event.preventDefault();
+        return true;
+      }
+    },
+  },
+
   // Return breaks you out of blockquotes completely
   {
     onKeyDown: function onKeyDown(event, change) {
