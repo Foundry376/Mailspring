@@ -1,6 +1,24 @@
 # Mailspring Changelog
 
-### 1.1.3
+### 1.1.4 (2/14/2018)
+
+Fixes:
+
+* Searching in the `Sent` folder (and other folders assigned mailbox roles) now works reliably.
+
+* Connecting accounts no longer throws `SIGABRT` / `3221225477` errors in scome scenarios. #292
+
+* Connecting accounts no longer fails when the email provider returns non-UTF8 characters in IMAP responses.
+
+* The open tracking pixel now has an `alt` tag that self-identifies it as a tracking pixel, which prevents messages from Mailspring from being flagged as spam by some providers. #668
+
+* Mailspring no longer registers for the Utility and Development application categories and appears in the `mail` package category on Debian systems. #673, #678
+
+* On Linux, the tray assets are larger again (48x48px) in an attempt to make them render properly in more distros.
+
+* In the Taiga theme, the selected item in dropdown menus is visible. #674
+
+### 1.1.3 (2/6/2018)
 
 Improvements:
 
