@@ -36,7 +36,12 @@ function renderMark(props) {
   if (mark.type === MISSPELLED_TYPE) {
     return (
       <span
-        onMouseDown={() => {
+        onMouseDown={event => {
+          if (!event.metaKey && !event.ctrlKey) {
+            return;
+          }
+          event.preventDefault();
+          // select the entire word so that the contextual menu offers spelling suggestions
           const { editor: { onChange, value }, node, offset, text } = props;
           onChange(
             value.change().select(
@@ -45,6 +50,7 @@ function renderMark(props) {
                 anchorOffset: offset,
                 focusKey: node.key,
                 focusOffset: offset + text.length,
+                isFocused: true,
               })
             )
           );
