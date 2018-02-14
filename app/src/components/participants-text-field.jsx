@@ -1,11 +1,6 @@
 import { remote, clipboard } from 'electron';
 import { React, PropTypes, Utils, Contact, ContactStore, RegExpUtils } from 'mailspring-exports';
-import {
-  TokenizingTextField,
-  Menu,
-  InjectedComponent,
-  InjectedComponentSet,
-} from 'mailspring-component-kit';
+import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
 const TokenRenderer = props => {
   const { email, name } = props.token;
@@ -214,35 +209,30 @@ export default class ParticipantsTextField extends React.Component {
     // injected region feels out of place
     return (
       <div className={this.props.className}>
-        <InjectedComponent
+        <TokenizingTextField
           ref={el => {
             this._textfieldEl = el;
           }}
-          matching={{ role: 'Composer:ParticipantsTextField' }}
-          fallback={TokenizingTextField}
-          requiredMethods={['focus']}
-          exposedProps={{
-            tokens: this.props.participants[this.props.field],
-            tokenKey: p => p.email,
-            tokenIsValid: p => ContactStore.isValidContact(p),
-            tokenRenderer: TokenRenderer,
-            onRequestCompletions: input => ContactStore.searchContacts(input),
-            shouldBreakOnKeydown: this._shouldBreakOnKeydown,
-            onInputTrySubmit: this._onInputTrySubmit,
-            completionNode: this._completionNode,
-            onAdd: this._add,
-            onRemove: this._remove,
-            onEdit: this._edit,
-            onEmptied: this.props.onEmptied,
-            onFocus: this.props.onFocus,
-            onTokenAction: this._onShowContextMenu,
-            menuClassSet: classSet,
-            menuPrompt: this.props.field,
-            field: this.props.field,
-            draft: this.props.draft,
-            headerMessageId: headerMessageId,
-            session: this.props.session,
-          }}
+          tokens={this.props.participants[this.props.field]}
+          tokenKey={p => p.email}
+          tokenIsValid={p => ContactStore.isValidContact(p)}
+          tokenRenderer={TokenRenderer}
+          onRequestCompletions={input => ContactStore.searchContacts(input)}
+          shouldBreakOnKeydown={this._shouldBreakOnKeydown}
+          onInputTrySubmit={this._onInputTrySubmit}
+          completionNode={this._completionNode}
+          onAdd={this._add}
+          onRemove={this._remove}
+          onEdit={this._edit}
+          onEmptied={this.props.onEmptied}
+          onFocus={this.props.onFocus}
+          onTokenAction={this._onShowContextMenu}
+          menuClassSet={classSet}
+          menuPrompt={this.props.field}
+          field={this.props.field}
+          draft={this.props.draft}
+          headerMessageId={headerMessageId}
+          session={this.props.session}
         />
       </div>
     );

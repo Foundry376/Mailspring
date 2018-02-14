@@ -62,6 +62,7 @@ export default class ActionBarPlugins extends React.Component {
       <span className={className}>
         <div className="action-bar-cover" />
         <InjectedComponentSet
+          deferred
           className="composer-action-bar-plugins"
           matching={{ role: ROLE }}
           exposedProps={{

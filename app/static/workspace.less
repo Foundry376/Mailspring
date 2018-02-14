@@ -332,7 +332,15 @@ body.is-blurred {
   }
 }
 
-.registered-region-visible {
+.display-deferrable {
+  opacity: 1;
+  transition: opacity 220ms;
+  &.deferred {
+    opacity: 0;
+  }
+}
+
+.injected-region-visible {
   border: 1px dashed rgba(255, 0, 0, 0.5);
   margin: 2px;
   position: relative;

@@ -89,6 +89,7 @@ export default class AccountContactField extends React.Component {
     const { draft, session, accounts } = this.props;
     return (
       <InjectedComponentSet
+        deferred
         className="dropdown-component"
         matching={{ role: 'Composer:FromFieldComponents' }}
         exposedProps={{

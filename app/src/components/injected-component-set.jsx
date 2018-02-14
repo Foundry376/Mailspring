@@ -46,7 +46,9 @@ export default class InjectedComponentSet extends React.Component {
       item rendered into the set.
    - `containersRequired` (optional). Pass false to optionally remove the containers
       placed around injected components to isolate them from the rest of the app.
-
+   - `deferred` (optiona). Pass true to render an empty space and fill in the injected
+      components after a few milliseconds. Useful for avoiding potential slowdowns in
+      getting core (composer) components onscreen.
    -  Any other props you provide, such as `direction`, `data-column`, etc.
       will be applied to the {Flexbox} rendered by the InjectedComponentSet.
   */
@@ -57,6 +59,7 @@ export default class InjectedComponentSet extends React.Component {
     matchLimit: PropTypes.number,
     exposedProps: PropTypes.object,
     containersRequired: PropTypes.bool,
+    deferred: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -68,10 +71,23 @@ export default class InjectedComponentSet extends React.Component {
 
   constructor(props, context) {
     super(props, context);
-    this.state = this._getStateFromStores();
+    this.state = !props.deferred ? this._getStateFromStores() : { components: [], visible: false };
   }
 
   componentDidMount() {
+    this._mounted = true;
+
+    if (!this.props.deferred) {
+      this.listen();
+    } else {
+      setTimeout(() => {
+        this.setState(this._getStateFromStores());
+        this.listen();
+      }, 400);
+    }
+  }
+
+  listen() {
     this._componentUnlistener = ComponentRegistry.listen(() =>
       this.setState(this._getStateFromStores())
     );
@@ -84,6 +100,7 @@ export default class InjectedComponentSet extends React.Component {
   }
 
   componentWillUnmount() {
+    this._mounted = false;
     if (this._componentUnlistener) {
       this._componentUnlistener();
     }
@@ -118,11 +135,18 @@ export default class InjectedComponentSet extends React.Component {
     });
 
     if (visible) {
-      className += ' registered-region-visible';
+      className += ' injected-region-visible';
       elements.unshift(
         <InjectedComponentLabel key="_label" matching={matching} {...exposedProps} />
       );
       elements.push(<span key="_clear" style={{ clear: 'both' }} />);
+    }
+
+    if (this.props.deferred) {
+      className += ' display-deferrable';
+      if (!components.length) {
+        className += ' deferred';
+      }
     }
 
     return (

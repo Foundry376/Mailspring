@@ -249,6 +249,7 @@ export default class ComposerView extends React.Component {
     return (
       <div className="composer-footer-region">
         <InjectedComponentSet
+          deferred
           matching={{ role: 'Composer:Footer' }}
           exposedProps={{
             draft: this.props.draft,
@@ -298,6 +299,7 @@ export default class ComposerView extends React.Component {
   _renderActionsWorkspaceRegion() {
     return (
       <InjectedComponentSet
+        deferred
         matching={{ role: 'Composer:ActionBarWorkspace' }}
         exposedProps={{
           draft: this.props.draft,
