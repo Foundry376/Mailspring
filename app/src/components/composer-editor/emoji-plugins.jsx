@@ -69,10 +69,11 @@ function FloatingEmojiPicker({ value, onChange }) {
   let emoji = null;
   try {
     emoji = value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
-    if (!emoji) return false;
   } catch (err) {
     // sometimes fails for some reason
   }
+
+  if (!emoji) return false;
 
   const picked = emoji.data.get('picked');
   const suggestions = emoji.data.get('suggestions');
