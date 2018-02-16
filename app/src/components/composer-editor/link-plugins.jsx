@@ -22,7 +22,7 @@ function onPaste(event, change, editor) {
   }
 }
 
-function renderMark({ mark, children }) {
+function renderMessageMark({ mark, children }) {
   if (mark.type === LINK_TYPE) {
     const href = mark.data.href || mark.data.get('href');
     return (
@@ -31,6 +31,16 @@ function renderMark({ mark, children }) {
       </a>
     );
   }
+}
+
+function renderMark({ mark, children }) {
+    if (mark.type === LINK_TYPE) {
+        return (
+            <a onClick={(e) => { e.preventDefault(); }}>
+                {children}
+            </a>
+        );
+    }
 }
 
 const rules = [
@@ -49,7 +59,7 @@ const rules = [
     },
     serialize(obj, children) {
       if (obj.object !== 'mark') return;
-      return renderMark({ mark: obj, children, targetIsHTML: true });
+      return renderMessageMark({ mark: obj, children, targetIsHTML: true });
     },
   },
 ];
