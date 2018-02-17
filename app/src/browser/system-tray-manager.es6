@@ -78,7 +78,16 @@ class SystemTrayManager {
 
   _onClick = () => {
     if (this._platform !== 'darwin') {
-      this._application.emit('application:show-main-window');
+	  if(this._application.windowManager.getVisibleWindowCount() == 0) {
+	      this._application.emit('application:show-main-window');
+	  }
+	  else {
+		const visibleWindows = this._application.windowManager.getVisibleWindows();
+		Object.keys(visibleWindows).forEach(key => {
+			const win = visibleWindows[key];
+			win.hide();
+		});
+	  }
     }
   };
 
