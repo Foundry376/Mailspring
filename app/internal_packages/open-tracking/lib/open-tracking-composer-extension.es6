@@ -15,7 +15,7 @@ export default class OpenTrackingComposerExtension extends ComposerExtension {
     }
 
     // insert a tracking pixel <img> into the message
-    const q = recipient ? `?recipient=${encodeURIComponent(recipient.email)}` : '';
+    const q = recipient ? `?recipient=${encodeURIComponent(btoa(recipient.email))}` : '';
     const serverUrl = `${PLUGIN_URL}/open/${draft.headerMessageId}${q}`;
     const imgFragment = document
       .createRange()

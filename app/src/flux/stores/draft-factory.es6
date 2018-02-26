@@ -31,13 +31,14 @@ async function prepareBodyForQuoting(body) {
 class DraftFactory {
   async createDraft(fields = {}) {
     const account = this._accountForNewDraft();
+    const uniqueId = `${Math.floor(Date.now() / 1000)}.${Utils.generateTempId()}`;
     const defaults = {
       body: '<br/>',
       subject: '',
       version: 0,
       unread: false,
       starred: false,
-      headerMessageId: `${Utils.generateTempId()}-v${AppEnv.getVersion()}@${require('os').hostname()}`,
+      headerMessageId: `${uniqueId}-v${AppEnv.getVersion()}@getmailspring.com`,
       from: [account.defaultMe()],
       date: new Date(),
       draft: true,
