@@ -200,7 +200,7 @@ export default class MailsyncBridge {
     this._clients[accountId].sendMessage(json);
   }
 
-  async resetCacheForAccount(account) {
+  async resetCacheForAccount(account, { silent } = {}) {
     // grab the existing client, if there is one
     const syncingClient = this._clients[account.id];
 
@@ -208,6 +208,11 @@ export default class MailsyncBridge {
     const resetClient = new MailsyncProcess(this._getClientConfiguration());
     resetClient.account = (await KeyManager.insertAccountSecrets(account)).toJSON();
     resetClient.identity = IdentityStore.identity();
+
+    // no-op - do not allow us to kill this client - we may be reseting the cache of an
+    // account which does not exist anymore, but we don't want to interrupt this process
+    resetClient.kill = () => {};
+
     this._clients[account.id] = resetClient;
 
     // kill the old client, ensureClients will be a no-op because the
@@ -216,24 +221,28 @@ export default class MailsyncBridge {
       syncingClient.kill();
     }
 
-    AppEnv.showErrorDialog({
-      title: `Cleanup Started`,
-      message: `Mailspring is clearing it's cache for ${
-        account.emailAddress
-      }. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
-    });
+    if (!silent) {
+      AppEnv.showErrorDialog({
+        title: `Cleanup Started`,
+        message: `Mailspring is clearing it's cache for ${
+          account.emailAddress
+        }. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
+      });
+    }
 
     try {
       const start = Date.now();
 
       await resetClient.resetCache();
 
-      AppEnv.showErrorDialog({
-        title: `Cleanup Complete`,
-        message: `Mailspring reset the local cache for ${account.emailAddress} in ${Math.ceil(
-          (Date.now() - start) / 1000
-        )} seconds. Your mailbox will now begin to sync again.`,
-      });
+      if (!silent) {
+        AppEnv.showErrorDialog({
+          title: `Cleanup Complete`,
+          message: `Mailspring reset the local cache for ${account.emailAddress} in ${Math.ceil(
+            (Date.now() - start) / 1000
+          )} seconds. Your mailbox will now begin to sync again.`,
+        });
+      }
     } catch (error) {
       AppEnv.showErrorDialog({
         title: `Cleanup Error`,
