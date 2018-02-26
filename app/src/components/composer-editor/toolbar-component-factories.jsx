@@ -35,6 +35,33 @@ function removeMarksOfTypeInRange(change, range, type) {
   return change;
 }
 
+export function expandSelectionToRangeOfMark(change, type) {
+  const { selection, document } = change.value;
+  const node = document.getNode(selection.anchorKey);
+  let start = selection.anchorOffset;
+  let end = selection.anchorOffset;
+
+  // expand backwards until the mark disappears
+  while (start > 0 && node.getMarksAtIndex(start).find(m => m.type === type)) {
+    start -= 1;
+  }
+  // expand forwards until the mark disappears
+  while (end < node.text.length - 1 && node.getMarksAtIndex(end + 1).find(m => m.type === type)) {
+    end += 1;
+  }
+
+  // expand selection
+  change.select({
+    anchorKey: selection.anchorKey,
+    anchorOffset: start,
+    focusKey: selection.anchorKey,
+    focusOffset: end,
+    isFocused: true,
+    isBackward: false,
+  });
+  return change;
+}
+
 export function hasMark(value, type) {
   return !!getMarkOfType(value, type);
 }
@@ -107,7 +134,10 @@ export function BuildMarkButtonWithValuePicker(config) {
       const active = getMarkOfType(this.props.value, config.type);
       const fieldValue = (active && active.data.get(config.field)) || '';
       this.setState({ expanded: true, fieldValue: fieldValue }, () => {
-        setTimeout(() => this._inputEl.focus(), 0);
+        setTimeout(() => {
+          this._inputEl.focus();
+          this._inputEl.select();
+        }, 0);
       });
     };
 
@@ -117,6 +147,13 @@ export function BuildMarkButtonWithValuePicker(config) {
       // attach the URL value to the LINK that was created when we opened the link modal
       const { value, onChange } = this.props;
       const { fieldValue } = this.state;
+
+      if (fieldValue.trim() === '') {
+        this.onRemove(e);
+        this.setState({ expanded: false, fieldValue: '' });
+        return;
+      }
+
       const newMark = Mark.create({
         type: config.type,
         data: {
@@ -124,7 +161,17 @@ export function BuildMarkButtonWithValuePicker(config) {
         },
       });
 
-      if (value.selection.isCollapsed) {
+      const active = getMarkOfType(this.props.value, config.type);
+      if (active) {
+        // update the active mark
+        const change = value.change();
+        expandSelectionToRangeOfMark(change, config.type);
+        removeMarksOfTypeInRange(change, value.selection, config.type)
+          .addMark(newMark)
+          .focus();
+        onChange(change);
+      } else if (value.selection.isCollapsed) {
+        // apply new mark to new text
         onChange(
           value
             .change()
@@ -135,6 +182,7 @@ export function BuildMarkButtonWithValuePicker(config) {
             .focus()
         );
       } else {
+        // apply new mark to selected text
         onChange(
           removeMarksOfTypeInRange(value.change(), value.selection, config.type)
             .addMark(newMark)
@@ -175,7 +223,7 @@ export function BuildMarkButtonWithValuePicker(config) {
           onBlur={this.onBlur}
         >
           {active ? (
-            <button className="active" onMouseDown={this.onRemove}>
+            <button className="active" onMouseDown={this.onPrompt}>
               <i className={config.iconClassOn} />
             </button>
           ) : (
@@ -198,7 +246,7 @@ export function BuildMarkButtonWithValuePicker(config) {
                   }
                 }}
               />
-              <button onMouseDown={this.onConfirm}>Add</button>
+              <button onMouseDown={this.onConfirm}>{active ? 'Save' : 'Add'}</button>
             </div>
           )}
         </div>

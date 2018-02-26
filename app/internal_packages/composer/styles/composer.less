@@ -33,6 +33,10 @@
   -webkit-margin-end: initial !important;
 }
 
+.RichEditor-root .link {
+  color: @text-color-link;
+  text-decoration: underline;
+}
 .RichEditor-root .custom-block-selected,
 .RichEditor-root .uneditable.custom-block-selected {
   border: 1px dashed @text-color;
@@ -143,11 +147,15 @@
     flex: 1;
     flex-shrink: 0;
     max-width: 32px;
+    text-align: center;
 
     .dropdown {
       padding: 5px;
       display: flex;
       flex-direction: row;
+      button {
+        max-width: 50px;
+      }
     }
   }
 }

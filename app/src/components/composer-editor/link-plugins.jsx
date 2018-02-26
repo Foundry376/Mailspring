@@ -4,7 +4,7 @@ import { Mark } from 'slate';
 import AutoReplace from 'slate-auto-replace';
 import { RegExpUtils } from 'mailspring-exports';
 
-import { BuildMarkButtonWithValuePicker } from './toolbar-component-factories';
+import { BuildMarkButtonWithValuePicker, getMarkOfType } from './toolbar-component-factories';
 
 export const LINK_TYPE = 'link';
 
@@ -22,13 +22,27 @@ function onPaste(event, change, editor) {
   }
 }
 
-function renderMark({ mark, children }) {
-  if (mark.type === LINK_TYPE) {
-    const href = mark.data.href || mark.data.get('href');
+function renderMark({ mark, children, targetIsHTML }) {
+  if (mark.type !== LINK_TYPE) {
+    return;
+  }
+  const href = mark.data.href || mark.data.get('href');
+  if (targetIsHTML) {
     return (
       <a href={href} title={href}>
         {children}
       </a>
+    );
+  } else {
+    const onClick = e => {
+      if (e.ctrlKey || e.metaKey) {
+        AppEnv.windowEventHandler.openLink({ href, metaKey: e.metaKey });
+      }
+    };
+    return (
+      <span className="link" title={href} onClick={onClick}>
+        {children}
+      </span>
     );
   }
 }
@@ -66,12 +80,22 @@ export default [
       BuildMarkButtonWithValuePicker({
         type: LINK_TYPE,
         field: 'href',
-        iconClassOn: 'fa fa-unlink',
+        iconClassOn: 'fa fa-link',
         iconClassOff: 'fa fa-link',
         placeholder: 'http://',
       }),
     ],
     onPaste,
+    onKeyDown: function onKeyDown(event, change) {
+      // ensure space and enter always terminate links
+      if (!['Space', 'Enter', ' ', 'Return'].includes(event.key)) {
+        return;
+      }
+      const mark = getMarkOfType(change.value, LINK_TYPE);
+      if (mark) {
+        change.removeMark(mark);
+      }
+    },
     renderMark,
     rules,
     commands: {
