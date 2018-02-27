@@ -3,7 +3,7 @@ function _getDimension(node, dim) {
   if (!raw) {
     return [null, ''];
   }
-  const valueRegexp = /(\d*)(.*)/;
+  const valueRegexp = /([\d.]*)(.*)/;
   const match = valueRegexp.exec(raw);
   if (!match) {
     return [null, ''];
