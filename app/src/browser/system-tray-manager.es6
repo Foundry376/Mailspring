@@ -83,10 +83,7 @@ class SystemTrayManager {
 	  }
 	  else {
 		const visibleWindows = this._application.windowManager.getVisibleWindows();
-		Object.keys(visibleWindows).forEach(key => {
-			const win = visibleWindows[key];
-			win.hide();
-		});
+		visibleWindows.forEach(window => window.hide());
 	  }
     }
   };
