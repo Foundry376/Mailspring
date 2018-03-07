@@ -1,5 +1,31 @@
 # Mailspring Changelog
 
+### 1.1.5 (3/6/2018)
+
+Fixes:
+
+* Mailspring no longer crashes when trying to connect some IMAP accounts that it cannot resolve to a preset configuration. #739
+
+* Mailspring no longer requires you to manually provide information for IMAP accounts that are aliases of other proivders, like hotmail.it. #736
+
+* An error no longer replaces the composer when an "emoji mark" cannot be found. #685
+
+* When you click a mis-spelled word, Mailspring no longer selects the entire word. #677
+
+* When you send mail, Mailspring no longer puts your hostname in the MIME Message-ID.
+
+* In the composer you can now edit existing links and links don't open by default unless you control-click them. #702, #704, #639
+
+* The colon character (:) no longer breaks automatic link detection. #695
+
+* When you remove an account, Mailspring resets its local cache for that account, removing stored data on disk. #724
+
+* Images with width and height values containing decimals no longer break logic designed to autosize them for display.
+
+Improvements:
+
+* Mailspring now uses Electron 1.8.3, which includes two security improvements.
+
 ### 1.1.4 (2/14/2018)
 
 Fixes:
