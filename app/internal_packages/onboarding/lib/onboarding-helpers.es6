@@ -109,22 +109,26 @@ export async function expandAccountWithCommonSettings(account) {
   template = MailspringProviderSettings[domain] || MailspringProviderSettings[account.provider];
   if (template) {
     console.log(`Using Mailspring Template: ${JSON.stringify(template, null, 2)}`);
-    const defaults = {
-      imap_host: template.imap_host,
-      imap_port: template.imap_port || 993,
-      imap_username: usernameWithFormat(template.imap_user_format),
-      imap_password: populated.settings.imap_password,
-      imap_security: template.imap_security || 'SSL / TLS',
-      imap_allow_insecure_ssl: template.imap_allow_insecure_ssl || false,
-      smtp_host: template.smtp_host,
-      smtp_port: template.smtp_port || 587,
-      smtp_username: usernameWithFormat(template.smtp_user_format),
-      smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
-      smtp_security: template.smtp_security || 'STARTTLS',
-      smtp_allow_insecure_ssl: template.smtp_allow_insecure_ssl || false,
-    };
-    populated.settings = Object.assign(defaults, populated.settings);
+  } else {
+    console.log(`Using Empty Template`);
+    template = {};
   }
+
+  const defaults = {
+    imap_host: template.imap_host,
+    imap_port: template.imap_port || 993,
+    imap_username: usernameWithFormat(template.imap_user_format),
+    imap_password: populated.settings.imap_password,
+    imap_security: template.imap_security || 'SSL / TLS',
+    imap_allow_insecure_ssl: template.imap_allow_insecure_ssl || false,
+    smtp_host: template.smtp_host,
+    smtp_port: template.smtp_port || 587,
+    smtp_username: usernameWithFormat(template.smtp_user_format),
+    smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
+    smtp_security: template.smtp_security || 'STARTTLS',
+    smtp_allow_insecure_ssl: template.smtp_allow_insecure_ssl || false,
+  };
+  populated.settings = Object.assign(defaults, populated.settings);
   return populated;
 }
 
