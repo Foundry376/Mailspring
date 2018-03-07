@@ -108,6 +108,9 @@ export async function expandAccountWithCommonSettings(account) {
   // data derived from Thunderbirds ISPDB.
   template = MailspringProviderSettings[domain] || MailspringProviderSettings[account.provider];
   if (template) {
+    if (template.alias) {
+      template = MailspringProviderSettings[template.alias];
+    }
     console.log(`Using Mailspring Template: ${JSON.stringify(template, null, 2)}`);
   } else {
     console.log(`Using Empty Template`);
