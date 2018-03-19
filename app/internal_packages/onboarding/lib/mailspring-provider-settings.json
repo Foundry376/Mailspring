@@ -1,4 +1,23 @@
 {
+  "startmail.com": {
+    "display_name": "startmail.com",
+    "display_short_name": "startmail.com",
+    "imap_host": "imap.startmail.com",
+    "imap_port": "993",
+    "imap_security": "SSL / TLS",
+    "imap_user_format": "email",
+    "imap_authentication": [
+      "password-cleartext"
+    ],
+    "smtp_host": "smtp.startmail.com",
+    "smtp_port": "587",
+    "smtp_security": "STARTTLS",
+    "smtp_user_format": "email",
+    "smtp_authentication": [
+      "password-cleartext"
+    ],
+    "enable_steps": []
+  },
   "mail.com": {
     "display_name": "mail.com",
     "display_short_name": "mail.com",
