@@ -562,29 +562,14 @@
 		"servers": {
 			"imap": [{
 					"port": 993,
-					"hostname": "mail.messagingengine.com",
+					"hostname": "imap.fastmail.com",
 					"ssl": true
-				},
-				{
-					"port": 143,
-					"hostname": "mail.messagingengine.com",
-					"starttls": true
 				}
 			],
 			"smtp": [{
-					"port": 587,
-					"hostname": "mail.messagingengine.com",
-					"starttls": true
-				},
-				{
 					"port": 465,
-					"hostname": "mail.messagingengine.com",
+					"hostname": "smtp.fastmail.com",
 					"ssl": true
-				},
-				{
-					"port": 25,
-					"hostname - 2": "mail.messagingengine.com",
-					"starttls": true
 				}
 			]
 		},
