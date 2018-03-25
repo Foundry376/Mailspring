@@ -69,19 +69,6 @@ export default class MessageItem extends React.Component {
   };
 
   _onClickHeader = e => {
-    if (this.state.detailedHeaders) {
-      return;
-    }
-    let el = e.target;
-    while (el !== e.currentTarget) {
-      if (
-        el.classList.contains('message-header-right') ||
-        el.classList.contains('collapsed-participants')
-      ) {
-        return;
-      }
-      el = el.parentElement;
-    }
     this._onToggleCollapsed();
   };
 
@@ -179,17 +166,11 @@ export default class MessageItem extends React.Component {
 
   _renderHeader() {
     const { message, thread, messages, pending } = this.props;
-    const classes = classNames({
-      'message-header': true,
-      pending: pending,
-    });
 
     return (
       <header
-        ref={el => {
-          this._headerEl = el;
-        }}
-        className={classes}
+        ref={el => (this._headerEl = el)}
+        className={`message-header ${pending && 'pending'}`}
         onClick={this._onClickHeader}
       >
         <InjectedComponent
