@@ -281,6 +281,11 @@ export default {
             default: true,
             title: 'Show notifications for new unread messages',
           },
+          enabledForRepeatedTrackingEvents: {
+            type: 'boolean',
+            default: true,
+            title: 'Show notifications for repeated opens / clicks',
+          },
           sounds: {
             type: 'boolean',
             default: true,

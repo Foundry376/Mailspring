@@ -9,14 +9,37 @@ import {
 
 import ActivityActions from './activity-actions';
 import ActivityDataSource from './activity-data-source';
-import { pluginFor, LINK_TRACKING_ID, OPEN_TRACKING_ID } from './plugin-helpers';
+import { configForPluginId, LINK_TRACKING_ID, OPEN_TRACKING_ID } from './plugin-helpers';
+
+function pluckByEmail(recipients, email) {
+  if (email) {
+    return recipients.find(r => r.email === email);
+  } else if (recipients.length === 1) {
+    return recipients[0];
+  }
+  return null;
+}
 
 class ActivityEventStore extends MailspringStore {
   activate() {
-    this.listenTo(ActivityActions.resetSeen, this._onResetSeen);
-    this.listenTo(FocusedPerspectiveStore, this._updateActivity);
+    this.listenTo(ActivityActions.markViewed, this._onMarkViewed);
+    this.listenTo(FocusedPerspectiveStore, this._onUpdateActivity);
 
-    const start = () => this._getActivity();
+    this._throttlingTimestamps = {};
+    this._actions = [];
+    this._unreadCount = 0;
+
+    const start = () => {
+      this._subscription = new ActivityDataSource()
+        .buildObservable({
+          messageLimit: 500,
+        })
+        .subscribe(messages => {
+          this._messages = messages;
+          this._onUpdateActivity();
+        });
+    };
+
     if (AppEnv.inSpecMode()) {
       start();
     } else {
@@ -32,6 +55,16 @@ class ActivityEventStore extends MailspringStore {
     return this._actions;
   }
 
+  actionIsUnseen(action) {
+    if (!AppEnv.savedState.activityListViewed) return true;
+    return action.timestamp >= AppEnv.savedState.activityListViewed;
+  }
+
+  actionIsUnnotified(action) {
+    if (!AppEnv.savedState.activityListNotified) return true;
+    return action.timestamp >= AppEnv.savedState.activityListNotified;
+  }
+
   unreadCount() {
     if (this._unreadCount < 1000) {
       return this._unreadCount;
@@ -39,11 +72,6 @@ class ActivityEventStore extends MailspringStore {
       return null;
     }
     return '999+';
-  }
-
-  hasBeenViewed(action) {
-    if (!AppEnv.savedState.activityListViewed) return false;
-    return action.timestamp < AppEnv.savedState.activityListViewed;
   }
 
   focusThread(threadId) {
@@ -62,160 +90,117 @@ class ActivityEventStore extends MailspringStore {
     });
   }
 
-  getRecipient(recipientEmail, recipients) {
-    if (recipientEmail) {
-      for (const recipient of recipients) {
-        if (recipientEmail === recipient.email) {
-          return recipient;
-        }
-      }
-    } else if (recipients.length === 1) {
-      return recipients[0];
-    }
-    return null;
-  }
-
-  _dataSource() {
-    return new ActivityDataSource();
-  }
-
-  _onResetSeen() {
+  _onMarkViewed() {
     AppEnv.savedState.activityListViewed = Date.now() / 1000;
+    AppEnv.saveWindowState();
     this._unreadCount = 0;
     this.trigger();
   }
 
-  _getActivity() {
-    const dataSource = this._dataSource();
-    this._subscription = dataSource
-      .buildObservable({
-        messageLimit: 500,
-      })
-      .subscribe(messages => {
-        this._messages = messages;
-        this._updateActivity();
-      });
+  _onNotificationsPosted() {
+    AppEnv.savedState.activityListNotified = Date.now() / 1000;
+    AppEnv.saveWindowState();
   }
 
-  _updateActivity() {
-    this._actions = this._messages ? this._getActions(this._messages) : [];
-    this.trigger();
-  }
-
-  _getActions(messages) {
-    let actions = [];
-    this._notifications = [];
-    this._unreadCount = 0;
+  _onUpdateActivity() {
     const sidebarAccountIds = FocusedPerspectiveStore.sidebarAccountIds();
-    for (const message of messages) {
-      if (sidebarAccountIds.length > 1 || message.accountId === sidebarAccountIds[0]) {
-        if (
-          message.metadataForPluginId(OPEN_TRACKING_ID) ||
-          message.metadataForPluginId(LINK_TRACKING_ID)
-        ) {
-          actions = actions.concat(this._openActionsForMessage(message));
-          actions = actions.concat(this._linkActionsForMessage(message));
-        }
-      }
-    }
-    if (!this._lastNotified) this._lastNotified = {};
-    for (const notification of this._notifications) {
-      const lastNotified = this._lastNotified[notification.threadId];
-      const { notificationInterval } = pluginFor(notification.pluginId);
-      if (!lastNotified || lastNotified < Date.now() - notificationInterval) {
-        NativeNotifications.displayNotification(notification.data);
-        this._lastNotified[notification.threadId] = Date.now();
-      }
-    }
-    const d = new Date();
-    this._lastChecked = d.getTime() / 1000;
 
-    actions = actions.sort((a, b) => b.timestamp - a.timestamp);
-    // For performance reasons, only display the last 100 actions
-    if (actions.length > 100) {
-      actions.length = 100;
+    this._actions = [];
+    this._unreadCount = 0;
+
+    if (!this._messages) {
+      return;
     }
-    return actions;
+
+    // Build actions and notifications
+
+    this._messages.filter(m => sidebarAccountIds.includes(m.accountId)).forEach(message => {
+      const openMetadata = message.metadataForPluginId(OPEN_TRACKING_ID);
+      const linkMetadata = message.metadataForPluginId(LINK_TRACKING_ID);
+      if (openMetadata && openMetadata.open_count > 0) {
+        this._appendActionsForMessage(message, OPEN_TRACKING_ID, cb => {
+          openMetadata.open_data.forEach(open => cb(open, message.subject));
+        });
+      }
+      if (linkMetadata && linkMetadata.links) {
+        this._appendActionsForMessage(message, LINK_TRACKING_ID, cb => {
+          for (const link of linkMetadata.links) {
+            for (const click of link.click_data) {
+              cb(click, link.title);
+            }
+          }
+        });
+      }
+    });
+
+    this._actions = this._actions.sort((a, b) => b.timestamp - a.timestamp);
+    if (this._actions.length > 100) {
+      this._actions.length = 100;
+    }
+
+    const unnotified = this._actions.filter(
+      a => this.actionIsUnseen(a) && this.actionIsUnnotified(a)
+    );
+
+    unnotified.forEach(action => {
+      const key = `${action.threadId}-${action.pluginId}`;
+      const last = this._throttlingTimestamps[key];
+
+      const config = configForPluginId(action.pluginId);
+      if (last && last > Date.now() - config.notificationInterval) {
+        return;
+      }
+
+      const recipientName = action.recipient ? action.recipient.displayName() : 'Someone';
+      NativeNotifications.displayNotification({
+        title: `New ${config.verb}`,
+        subtitle: `${recipientName} just ${config.predicate} ${action.title}`,
+        onActivate: () => this.focusThread(action.threadId),
+        tag: action.pluginId,
+        canReply: false,
+      });
+      this._throttlingTimestamps[key] = Date.now();
+    });
+
+    this._onNotificationsPosted();
+    this.trigger();
   }
 
-  _openActionsForMessage(message) {
-    const openMetadata = message.metadataForPluginId(OPEN_TRACKING_ID);
+  _appendActionsForMessage(message, pluginId, actionLoopFn) {
     const recipients = message.to.concat(message.cc, message.bcc);
-    const actions = [];
-    if (openMetadata) {
-      if (openMetadata.open_count > 0) {
-        for (const open of openMetadata.open_data) {
-          const recipient = this.getRecipient(open.recipient, recipients);
-          if (open.timestamp > this._lastChecked) {
-            this._notifications.push({
-              pluginId: OPEN_TRACKING_ID,
-              threadId: message.threadId,
-              data: {
-                title: 'New open',
-                subtitle: `${recipient ? recipient.displayName() : 'Someone'} just opened ${
-                  message.subject
-                }`,
-                canReply: false,
-                tag: 'message-open',
-                onActivate: () => {
-                  this.focusThread(message.threadId);
-                },
-              },
-            });
-          }
-          if (!this.hasBeenViewed(open)) this._unreadCount += 1;
-          actions.push({
-            messageId: message.id,
-            threadId: message.threadId,
-            title: message.subject,
-            recipient: recipient,
-            pluginId: OPEN_TRACKING_ID,
-            timestamp: open.timestamp,
-          });
-        }
-      }
-    }
-    return actions;
-  }
 
-  _linkActionsForMessage(message) {
-    const linkMetadata = message.metadataForPluginId(LINK_TRACKING_ID);
-    const recipients = message.to.concat(message.cc, message.bcc);
-    const actions = [];
-    if (linkMetadata && linkMetadata.links) {
-      for (const link of linkMetadata.links) {
-        for (const click of link.click_data) {
-          const recipient = this.getRecipient(click.recipient, recipients);
-          if (click.timestamp > this._lastChecked) {
-            this._notifications.push({
-              pluginId: LINK_TRACKING_ID,
-              threadId: message.threadId,
-              data: {
-                title: 'New click',
-                subtitle: `${recipient ? recipient.displayName() : 'Someone'} just clicked ${
-                  link.url
-                }.`,
-                canReply: false,
-                tag: 'link-open',
-                onActivate: () => {
-                  this.focusThread(message.threadId);
-                },
-              },
-            });
-          }
-          if (!this.hasBeenViewed(click)) this._unreadCount += 1;
-          actions.push({
-            messageId: message.id,
-            threadId: message.threadId,
-            title: link.url,
-            recipient: recipient,
-            pluginId: LINK_TRACKING_ID,
-            timestamp: click.timestamp,
-          });
-        }
-      }
+    let actions = [];
+    actionLoopFn(({ recipient, timestamp }, title) => {
+      actions.push({
+        messageId: message.id,
+        threadId: message.threadId,
+        title: title,
+        recipient: pluckByEmail(recipients, recipient),
+        pluginId: pluginId,
+        timestamp: timestamp,
+      });
+    });
+
+    // If the user oes not want to receive repeated tracking notifications for emails,
+    // only show the first tracking event for each title / recipient pair, so you'd get
+    // - Ben opened link 1
+    // X Ben opened link 1
+    // - Ben opened link 2
+    // X Ben opened link 1
+    // - Mark opened link 1
+    if (!AppEnv.config.get('core.notifications.enabledForRepeatedTrackingEvents')) {
+      const seen = {};
+      actions = actions.sort((a, b) => b.timestamp - a.timestamp);
+      actions = actions.filter(a => {
+        const key = `${a.title}${a.recipient && a.recipient.email}`;
+        if (seen[key]) return false;
+        seen[key] = true;
+        return true;
+      });
     }
-    return actions;
+
+    this._actions.push(...actions);
+    this._unreadCount += actions.filter(a => this.actionIsUnseen(a)).length;
   }
 }
 

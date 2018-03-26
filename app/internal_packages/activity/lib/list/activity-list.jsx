@@ -22,7 +22,7 @@ class ActivityList extends React.Component {
   }
 
   componentWillUnmount() {
-    ActivityActions.resetSeen();
+    ActivityActions.markViewed();
     this._unsub();
   }
 
