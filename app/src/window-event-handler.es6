@@ -22,6 +22,10 @@ const isTextInput = node => {
   return false;
 };
 
+const isSelectionPresent = () => {
+  return document.getSelection().toString().length > 0;
+};
+
 // Handles low-level events related to the window.
 export default class WindowEventHandler {
   constructor() {
@@ -123,8 +127,8 @@ export default class WindowEventHandler {
     };
 
     AppEnv.commands.add(document.body, {
-      'core:copy': () => webContents.copy(),
-      'core:cut': () => webContents.cut(),
+      'core:copy': () => (isSelectionPresent() ? webContents.copy() : null),
+      'core:cut': () => (isSelectionPresent() ? webContents.cut() : null),
       'core:paste': () => webContents.paste(),
       'core:paste-and-match-style': () => webContents.pasteAndMatchStyle(),
       'core:undo': e => (isTextInput(e.target) ? webContents.undo() : getUndoStore().undo()),
