@@ -190,7 +190,7 @@ class ActivityEventStore extends MailspringStore {
     // - Mark opened link 1
     if (!AppEnv.config.get('core.notifications.enabledForRepeatedTrackingEvents')) {
       const seen = {};
-      actions = actions.sort((a, b) => b.timestamp - a.timestamp);
+      actions = actions.sort((a, b) => a.timestamp - b.timestamp); // oldest to newest
       actions = actions.filter(a => {
         const key = `${a.title}${a.recipient && a.recipient.email}`;
         if (seen[key]) return false;
