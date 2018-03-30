@@ -748,31 +748,15 @@ export default class Application extends EventEmitter {
     if (parts.protocol === 'mailto:') {
       main.sendMessage('mailto', urlToOpen);
     } else if (parts.protocol === 'mailspring:') {
-      // if (parts.host === 'calendar') {
-      //   this.openCalendarURL(parts.path);
       if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
       } else {
-        main.sendMessage('openExternalThread', urlToOpen);
+        main.sendMessage('openThreadFromWeb', urlToOpen);
       }
     } else {
       console.log(`Ignoring unknown URL type: ${urlToOpen}`);
     }
   }
-
-  // openCalendarURL(command) {
-  //   if (command === '/open') {
-  //     this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {
-  //       windowKey: WindowManager.CALENDAR_WINDOW,
-  //       windowType: WindowManager.CALENDAR_WINDOW,
-  //       title: "Calendar",
-  //       hidden: false,
-  //     });
-  //   } else if (command === '/close') {
-  //     const win = this.windowManager.get(WindowManager.CALENDAR_WINDOW);
-  //     if (win) { win.hide(); }
-  //   }
-  // }
 
   openComposerWithFiles(pathsToOpen) {
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);

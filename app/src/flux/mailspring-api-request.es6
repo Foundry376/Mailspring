@@ -49,6 +49,35 @@ export function rootURLForServer(server) {
   throw new Error('rootURLForServer: You must provide a valid `server` value');
 }
 
+export async function postStaticAsset({ filename, blob }) {
+  const body = new FormData();
+  body.set('filename', filename);
+  if (typeof blob === 'string') {
+    body.set('file', new Blob([blob], { type: 'text/plain' }), filename);
+  } else {
+    body.set('file', blob, filename);
+  }
+  let resp = await makeRequest({
+    server: 'identity',
+    method: 'POST',
+    path: `/api/save-public-asset`,
+    body: body,
+  });
+  return resp.link;
+}
+
+export async function postStaticPage({ html, key }) {
+  const json = await makeRequest({
+    server: 'identity',
+    method: 'POST',
+    path: '/api/share-static-page',
+    json: true,
+    body: { key, html },
+    timeout: 1500,
+  });
+  return json.link;
+}
+
 export async function makeRequest(options) {
   // for some reason when `fetch` completes, the stack trace has been lost.
   // In case the request failsm capture the stack now.
@@ -99,4 +128,6 @@ export default {
   SampleTemporaryErrorCode,
   rootURLForServer,
   makeRequest,
+  postStaticPage,
+  postStaticAsset,
 };
