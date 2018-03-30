@@ -231,7 +231,9 @@ function onChange(change, editor) {
   if (timer && now - timerStart < 200) {
     return;
   }
-
+  if (editor.state.isComposing) {
+    return;
+  }
   onSpellcheckFocusedNode(change);
 
   timerStart = now;
