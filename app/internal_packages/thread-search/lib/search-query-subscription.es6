@@ -56,7 +56,9 @@ class SearchQuerySubscription extends MutableQuerySubscription {
       console.info('Failed to parse local search query, falling back to generic query', e);
       dbQuery = dbQuery.search(this._searchQuery);
     }
-    dbQuery = dbQuery.order(Thread.attributes.lastMessageReceivedTimestamp.descending()).limit(100);
+    dbQuery = dbQuery
+      .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
+      .limit(1000);
 
     dbQuery.then(results => {
       SearchActions.searchCompleted();
