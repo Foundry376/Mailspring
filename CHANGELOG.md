@@ -1,5 +1,35 @@
 # Mailspring Changelog
 
+### 1.2.0 (4/3/2018)
+
+Features:
+
+* **Thread Sharing** allows you to easily sync an email thread to the cloud and share it using a link. Mailspring automatically syncs new emails that arrive on the thread and anyone with the link can view the thread or download attachments.
+
+Fixes:
+
+* Searching your mailbox using the "in:folder" syntax no longer produces a limited / old set of results when many, many results match.
+
+* The composer cursor no longer gets "stuck" occasionally when typing diatric or multi-key composition characters. #718, #578
+
+* The composer no longer copies an empty string to the clipboard if you have no selected text when you press Ctrl/Cmd+C. #787
+
+* The thread toolbar buttons now have a grouped appearance which makes the UI more compact and usable. #283
+
+* Mailspring now uses the correct presets for Fastmail and Startmail accounts. #759, #756
+
+* Clicking to collapse a message with expanded headers now works as expected. #636
+
+* Mailspring never shows images by default when you're viewing your spam folder. #784
+
+Development:
+
+* The "Download attachments when..." option, which was never implemented in the new sync engine, has been removed from Preferences > General.
+
+* When resetting an account, Mailspring correctly re-fetches open/read receipt and snoozing metadata
+
+* Mailspring now uses Electron 1.8.4.
+
 ### 1.1.5 (3/6/2018)
 
 Fixes:

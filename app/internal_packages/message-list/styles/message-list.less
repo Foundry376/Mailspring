@@ -395,7 +395,7 @@ body.platform-win32 {
     }
 
     .header-row {
-      margin-top: 0.5em;
+      margin-top: 0.2em;
       color: @text-color-very-subtle;
 
       .header-label {
@@ -403,9 +403,6 @@ body.platform-win32 {
         display: block;
         font-weight: @font-weight-normal;
         margin-left: 0;
-      }
-
-      .header-name {
       }
     }
 
@@ -451,7 +448,6 @@ body.platform-win32 {
     }
 
     .message-time {
-      padding-top: 4px;
       z-index: 2;
       position: relative;
       display: inline-block;
@@ -471,11 +467,12 @@ body.platform-win32 {
     .message-header-right {
       z-index: 4;
       position: relative;
-      top: -5px;
+      top: -2px;
       float: right;
       text-align: right;
       display: flex;
-      height: 2em;
+      align-items: baseline;
+      height: 1em;
     }
   }
 
@@ -641,12 +638,19 @@ body.platform-win32 {
     color: @text-color-very-subtle;
   }
 
+  &.from-participants {
+    .expanded-participants {
+      .participant-type {
+        margin-top: 0;
+      }
+    }
+  }
+
   &.to-participants {
     width: 100%;
 
     .collapsed-participants {
       width: 100%;
-      margin-top: -6px;
     }
   }
 
@@ -672,10 +676,7 @@ body.platform-win32 {
     }
 
     .participant-type {
-      margin-top: 0.5em;
-      &:first-child {
-        margin-top: 0;
-      }
+      margin-top: 0.2em;
     }
 
     .from-label,
