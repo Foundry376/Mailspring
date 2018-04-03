@@ -307,17 +307,10 @@ class MessageStore extends MailspringStore {
   }
 
   _fetchExpandedAttachments(items) {
-    const policy = AppEnv.config.get('core.attachments.downloadPolicy');
-    if (policy === 'manually') return;
-
-    return (() => {
-      const result = [];
-      for (let item of items) {
-        if (!this._itemsExpanded[item.id]) continue;
-        result.push(item.files.map(file => Actions.fetchFile(file)));
-      }
-      return result;
-    })();
+    for (let item of items) {
+      if (!this._itemsExpanded[item.id]) continue;
+      item.files.map(file => Actions.fetchFile(file));
+    }
   }
 
   // Expand all unread messages, all drafts, and the last message

@@ -70,13 +70,6 @@ export default {
       attachments: {
         type: 'object',
         properties: {
-          downloadPolicy: {
-            type: 'string',
-            default: 'on-read',
-            enum: ['on-read', 'manually'],
-            enumLabels: ['When Read', 'Manually'],
-            title: 'Download attachments for new mail',
-          },
           openFolderAfterDownload: {
             type: 'boolean',
             default: false,
