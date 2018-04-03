@@ -1,9 +1,17 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
-import { Rx, React, ReactDOM, PropTypes, Thread, DatabaseStore } from 'mailspring-exports';
+import {
+  Rx,
+  React,
+  ReactDOM,
+  PropTypes,
+  Thread,
+  DatabaseStore,
+  FeatureUsageStore,
+} from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
 import CopyButton from './copy-button';
-import { isShared, sharingURLForThread, syncThreadToWeb, unsyncThread } from './main';
+import { sharingURLForThread, syncThreadToWeb, unsyncThread } from './main';
 
 export default class ThreadSharingPopover extends React.Component {
   static propTypes = {
@@ -38,15 +46,30 @@ export default class ThreadSharingPopover extends React.Component {
   }
 
   _onToggleShared = async () => {
-    const { thread } = this.props;
-
     this.setState({ saving: true });
 
+    let nextUrl = null;
+
     try {
-      if (!isShared(thread)) {
-        await syncThreadToWeb(thread);
+      if (!this.state.url) {
+        try {
+          await FeatureUsageStore.markUsedOrUpgrade('thread-sharing', {
+            usedUpHeader: 'All Sharing Links Used',
+            usagePhrase: 'share',
+            iconUrl: 'mailspring://thread-sharing/assets/ic-modal-image@2x.png',
+          });
+        } catch (error) {
+          if (error instanceof FeatureUsageStore.NoProAccessError) {
+            if (this._mounted) this.setState({ saving: false });
+            return;
+          }
+        }
+
+        await syncThreadToWeb(this.props.thread);
+        nextUrl = sharingURLForThread(this.props.thread);
       } else {
-        await unsyncThread(thread);
+        await unsyncThread(this.props.thread);
+        nextUrl = null;
       }
     } catch (error) {
       AppEnv.reportError(error);
@@ -60,7 +83,7 @@ export default class ThreadSharingPopover extends React.Component {
     if (!this._mounted) {
       return;
     }
-    this.setState({ saving: false, url: sharingURLForThread(thread) });
+    this.setState({ saving: false, url: nextUrl });
   };
 
   _onClickInput = event => {
@@ -103,7 +126,9 @@ export default class ThreadSharingPopover extends React.Component {
             </label>
           )}
           <div className="meta">
-            <a href="http://foundry376.zendesk.com">Learn More</a>
+            <a href="https://foundry376.zendesk.com/knowledge/articles/360002360771/en-us?brand_id=114094722632">
+              Learn More
+            </a>
           </div>
         </div>
         <div className="share-input">
