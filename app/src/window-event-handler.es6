@@ -23,11 +23,14 @@ const isTextInput = node => {
 };
 
 const isSelectionPresent = () => {
-  let doc = window.document;
-  if (doc.activeElement && doc.activeElement.nodeName === 'IFRAME') {
-    doc = doc.activeElement.contentDocument;
+  if (
+    document.activeElement &&
+    document.activeElement.closest('[contenteditable]') &&
+    document.getSelection().toString().length === 0
+  ) {
+    return false;
   }
-  return doc.getSelection().toString().length > 0;
+  return true;
 };
 
 // Handles low-level events related to the window.
