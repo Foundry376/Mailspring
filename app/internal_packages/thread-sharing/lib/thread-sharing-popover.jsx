@@ -126,9 +126,7 @@ export default class ThreadSharingPopover extends React.Component {
             </label>
           )}
           <div className="meta">
-            <a href="https://foundry376.zendesk.com/knowledge/articles/360002360771/en-us?brand_id=114094722632">
-              Learn More
-            </a>
+            <a href="https://foundry376.zendesk.com/hc/en-us/articles/360002360771">Learn More</a>
           </div>
         </div>
         <div className="share-input">
