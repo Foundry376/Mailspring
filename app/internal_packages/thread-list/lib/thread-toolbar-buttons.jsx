@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, CreateButtonGroup } from 'mailspring-component-kit';
 import {
   Actions,
   TaskFactory,
@@ -33,17 +33,11 @@ export class ArchiveButton extends React.Component {
   render() {
     const allowed = FocusedPerspectiveStore.current().canArchiveThreads(this.props.items);
     if (!allowed) {
-      return <span />;
+      return false;
     }
 
     return (
-      <button
-        tabIndex={-1}
-        style={{ order: -107 }}
-        className="btn btn-toolbar"
-        title="Archive"
-        onClick={this._onArchive}
-      >
+      <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
         <RetinaImg name="toolbar-archive.png" mode={RetinaImg.Mode.ContentIsMask} />
       </button>
     );
@@ -72,13 +66,12 @@ export class TrashButton extends React.Component {
   render() {
     const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'trash');
     if (!allowed) {
-      return <span />;
+      return false;
     }
 
     return (
       <button
         tabIndex={-1}
-        style={{ order: -106 }}
         className="btn btn-toolbar"
         title="Move to Trash"
         onClick={this._onRemove}
@@ -129,7 +122,6 @@ export class MarkAsSpamButton extends React.Component {
       return (
         <button
           tabIndex={-1}
-          style={{ order: -105 }}
           className="btn btn-toolbar"
           title="Not Spam"
           onClick={this._onNotSpam}
@@ -141,12 +133,11 @@ export class MarkAsSpamButton extends React.Component {
 
     const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'spam');
     if (!allowed) {
-      return <span />;
+      return false;
     }
     return (
       <button
         tabIndex={-1}
-        style={{ order: -105 }}
         className="btn btn-toolbar"
         title="Mark as Spam"
         onClick={this._onMarkAsSpam}
@@ -182,13 +173,7 @@ export class ToggleStarredButton extends React.Component {
     const imageName = postClickStarredState ? 'toolbar-star.png' : 'toolbar-star-selected.png';
 
     return (
-      <button
-        tabIndex={-1}
-        style={{ order: -103 }}
-        className="btn btn-toolbar"
-        title={title}
-        onClick={this._onStar}
-      >
+      <button tabIndex={-1} className="btn btn-toolbar" title={title} onClick={this._onStar}>
         <RetinaImg name={imageName} mode={RetinaImg.Mode.ContentIsMask} />
       </button>
     );
@@ -222,7 +207,6 @@ export class ToggleUnreadButton extends React.Component {
     return (
       <button
         tabIndex={-1}
-        style={{ order: -104 }}
         className="btn btn-toolbar"
         title={`Mark as ${fragment}`}
         onClick={this._onClick}
@@ -283,6 +267,18 @@ class ThreadArrowButton extends React.Component {
     );
   }
 }
+
+export const FlagButtons = CreateButtonGroup(
+  'FlagButtons',
+  [ToggleStarredButton, ToggleUnreadButton],
+  { order: -103 }
+);
+
+export const MoveButtons = CreateButtonGroup(
+  'MoveButtons',
+  [ArchiveButton, MarkAsSpamButton, TrashButton],
+  { order: -107 }
+);
 
 export const DownButton = () => {
   const getStateFromStores = () => {

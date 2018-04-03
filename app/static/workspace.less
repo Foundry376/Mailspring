@@ -269,6 +269,32 @@ body.is-blurred {
   .btn-toolbar:only-of-type {
     margin-right: @spacing-three-quarters;
   }
+
+  .button-group {
+    display: flex;
+    margin-left: @spacing-three-quarters;
+    .btn.btn-toolbar {
+      margin-left: 0;
+      margin-right: 0;
+
+      // Using these (slower) selectors to avoid redeclaring any constants
+      // like default-case border radius that themes might be overriding.
+      &:not(:last-child) {
+        border-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      &:not(:first-child) {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+      &:last-child {
+        border-left: 0;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+    }
+  }
 }
 
 .opacity-125ms-enter {
