@@ -23,7 +23,11 @@ const isTextInput = node => {
 };
 
 const isSelectionPresent = () => {
-  return document.getSelection().toString().length > 0;
+  let doc = window.document;
+  if (doc.activeElement && doc.activeElement.nodeName === 'IFRAME') {
+    doc = doc.activeElement.contentDocument;
+  }
+  return doc.getSelection().toString().length > 0;
 };
 
 // Handles low-level events related to the window.
