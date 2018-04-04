@@ -76,18 +76,20 @@ export const ResolveSignatureData = data => {
       .createHash('md5')
       .update((data.email || '').toLowerCase().trim())
       .digest('hex');
-    data.photoURL = `https://www.gravatar.com/avatar/${hash}`;
+    data.photoURL = `https://www.gravatar.com/avatar/${hash}/?s=160&msw=160&msh=160`;
   }
 
   if (data.photoURL === 'twitter') {
-    data.photoURL = `https://twitter.com/${data.twitterHandle}/profile_image?size=original`;
+    data.photoURL = `https://twitter.com/${
+      data.twitterHandle
+    }/profile_image?size=original&msw=128&msh=128`;
   }
 
   if (data.photoURL === 'company') {
     const domain =
       (data.websiteURL && URL.parse(data.websiteURL).hostname) ||
       (data.email && data.email.split('@').pop());
-    data.photoURL = `https://logo.clearbit.com/${domain}`;
+    data.photoURL = `https://logo.clearbit.com/${domain}?msw=128&msh=128`;
   }
 
   if (data.photoURL === 'custom') {

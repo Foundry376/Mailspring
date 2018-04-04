@@ -119,7 +119,7 @@ export default class SignaturePhotoPicker extends React.Component {
     }
 
     this.props.onChange({
-      target: { value: `${link}?t=${Date.now()}&w=${width}&h=${height}`, id: 'photoURL' },
+      target: { value: `${link}?t=${Date.now()}&msw=${width}&msh=${height}`, id: 'photoURL' },
     });
   };
 

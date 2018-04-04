@@ -26,17 +26,17 @@ function widthAndHeightForPhotoURL(photoURL, { maxWidth, maxHeight } = {}) {
   }
   let q = {};
   try {
-    q = querystring.parse(photoURL);
+    q = querystring.parse(photoURL.split('?').pop());
   } catch (err) {
     return {};
   }
-  if (!q.w || !q.h) {
+  if (!q.msw || !q.msh) {
     return {};
   }
-  const scale = Math.min(1, maxWidth / q.w, maxHeight / q.h);
+  const scale = Math.min(1, maxWidth / q.msw, maxHeight / q.msh);
   return {
-    width: Math.round(q.w * scale),
-    height: Math.round(q.h * scale),
+    width: Math.round(q.msw * scale),
+    height: Math.round(q.msh * scale),
   };
 }
 // Generic components used across templates
