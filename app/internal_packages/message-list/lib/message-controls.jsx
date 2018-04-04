@@ -135,7 +135,7 @@ export default class MessageControls extends React.Component {
   render() {
     const items = this._items();
     return (
-      <div className="message-actions-wrap">
+      <div className="message-actions-wrap" onClick={e => e.stopPropagation()}>
         <ButtonDropdown
           primaryItem={<RetinaImg name={items[0].image} mode={RetinaImg.Mode.ContentIsMask} />}
           primaryTitle={items[0].name}
