@@ -37,7 +37,8 @@ function renderMark(props) {
     return (
       <span
         onMouseDown={event => {
-          if (!event.metaKey && !event.ctrlKey) {
+          // handle only ctrl click or right click (button = 2)
+          if (!event.metaKey && !event.ctrlKey && event.button !== 2) {
             return;
           }
           event.preventDefault();
