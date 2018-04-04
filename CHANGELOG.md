@@ -1,5 +1,23 @@
 # Mailspring Changelog
 
+### 1.2.1 (4/4/2018)
+
+Fixes:
+
+* Copy / paste now works correctly in message contents and draft fields, correcting a regression in 1.2.0.
+
+* Right clicking words in the composer now correctly shows spelling suggestions. #747
+
+* Right clicking in the composer now presents a "Paste and Match Style" option. #655
+
+* The left 50px of "To" field of message headers is now clickable.
+
+* Signatures with images now display correctly in mail clients that don't support CSS. To take advantage of this improvement, remove and re-attach images to existing signatures.
+
+* URLs containing the format `#/xxxx?a=b` are now automatically linked correctly.
+
+* The "learn more" link in the thread sharing modal now links to a public knowledgebase article.
+
 ### 1.2.0 (4/3/2018)
 
 Features:
