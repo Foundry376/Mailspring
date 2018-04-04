@@ -84,15 +84,22 @@ export default class SignaturePhotoPicker extends React.Component {
       // png, gif, svg stay in PNG format, everything else gets converted to
       // a JPG with lossy compression
       if (ext === 'png' || ext === 'gif' || ext === 'svg') {
-        source.toBlob(this._onChooseImageBlob, 'image/png');
+        source.toBlob(
+          blob => this._onChooseImageBlob(blob, source.width, source.height),
+          'image/png'
+        );
       } else {
-        source.toBlob(this._onChooseImageBlob, 'image/jpg', 0.65);
+        source.toBlob(
+          blob => this._onChooseImageBlob(blob, source.width, source.height),
+          'image/jpg',
+          0.65
+        );
       }
     };
     img.src = `file://${filepath}`;
   };
 
-  _onChooseImageBlob = async blob => {
+  _onChooseImageBlob = async (blob, width, height) => {
     this.setState({ isUploading: true });
 
     const ext = { 'image/jpg': 'jpg', 'image/png': 'png' }[blob.type];
@@ -111,7 +118,9 @@ export default class SignaturePhotoPicker extends React.Component {
       this.setState({ isUploading: false });
     }
 
-    this.props.onChange({ target: { value: `${link}?t=${Date.now()}`, id: 'photoURL' } });
+    this.props.onChange({
+      target: { value: `${link}?t=${Date.now()}&w=${width}&h=${height}`, id: 'photoURL' },
+    });
   };
 
   render() {

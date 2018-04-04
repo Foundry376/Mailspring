@@ -1,4 +1,5 @@
 import { React } from 'mailspring-exports';
+import querystring from 'querystring';
 
 // Static components
 
@@ -19,6 +20,25 @@ const TWITTER_SHARE = (
   />
 );
 
+function widthAndHeightForPhotoURL(photoURL, { maxWidth, maxHeight } = {}) {
+  if (!photoURL) {
+    return {};
+  }
+  let q = {};
+  try {
+    q = querystring.parse(photoURL);
+  } catch (err) {
+    return {};
+  }
+  if (!q.w || !q.h) {
+    return {};
+  }
+  const scale = Math.min(1, maxWidth / q.w, maxHeight / q.h);
+  return {
+    width: Math.round(q.w * scale),
+    height: Math.round(q.h * scale),
+  };
+}
 // Generic components used across templates
 
 const PrefixStyles = {
@@ -129,7 +149,8 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
-                  style={{ maxWidth: 60, maxHeight: 60, paddingRight: 10 }}
+                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 60, maxHeight: 60 })}
+                  style={{ maxWidth: 60, maxHeight: 60, marginRight: 10 }}
                 />
               )}
             </td>
@@ -179,6 +200,7 @@ const Templates = [
                     alt=""
                     key={props.photoURL}
                     src={props.photoURL}
+                    {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 200, maxHeight: 60 })}
                     style={{ maxWidth: 200, maxHeight: 60 }}
                   />
                 )}
@@ -214,6 +236,7 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
+                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 200, maxHeight: 130 })}
                   style={{ maxWidth: 200, maxHeight: 130, marginRight: 20 }}
                 />
               )}
@@ -276,6 +299,7 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
+                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 200, maxHeight: 130 })}
                   style={{ maxWidth: 200, maxHeight: 130, marginTop: 12, marginBottom: 12 }}
                 />
               )}
@@ -309,6 +333,7 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
+                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 60, maxHeight: 60 })}
                   style={{ maxWidth: 60, maxHeight: 60, marginRight: 10 }}
                 />
               )}
