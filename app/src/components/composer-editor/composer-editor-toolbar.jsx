@@ -24,14 +24,14 @@ export default class ComposerEditorToolbar extends React.Component {
           this._topClip = 0;
         }
 
-        this._el.style.height = `${this._innerEl.clientHeight}px`;
+        this._el.style.height = `${this._floatingEl.clientHeight}px`;
       });
     }, 400);
   }
 
   componentDidUpdate() {
     if (this._el) {
-      this._el.style.height = `${this._innerEl.clientHeight}px`;
+      this._el.style.height = `${this._floatingEl.clientHeight}px`;
       this._onScroll();
     }
   }
@@ -48,11 +48,11 @@ export default class ComposerEditorToolbar extends React.Component {
     const max = this._el.parentElement.clientHeight - height;
 
     if (top < this._topClip) {
-      this._innerEl.style.position = 'absolute';
-      this._innerEl.style.top = `${Math.min(max, this._topClip - top)}px`;
+      this._floatingEl.style.position = 'absolute';
+      this._floatingEl.style.top = `${Math.min(max, this._topClip - top)}px`;
     } else {
-      this._innerEl.style.position = 'relative';
-      this._innerEl.style.top = '0px';
+      this._floatingEl.style.position = 'relative';
+      this._floatingEl.style.top = '0px';
     }
   };
 
@@ -63,7 +63,9 @@ export default class ComposerEditorToolbar extends React.Component {
     if (!this.state.visible) {
       return (
         <div className="RichEditor-toolbar">
-          <div className="inner display-deferrable deferred" />
+          <div className="floating-container">
+            <div className="inner display-deferrable deferred" />
+          </div>
         </div>
       );
     }
@@ -92,8 +94,8 @@ export default class ComposerEditorToolbar extends React.Component {
 
     return (
       <div ref={el => (this._el = el)} className="RichEditor-toolbar">
-        <div ref={el => (this._innerEl = el)} className="inner display-deferrable">
-          {sectionItems}
+        <div ref={el => (this._floatingEl = el)} className="floating-container">
+          <div className="inner display-deferrable">{sectionItems}</div>
         </div>
       </div>
     );

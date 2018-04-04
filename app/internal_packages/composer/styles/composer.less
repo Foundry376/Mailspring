@@ -76,16 +76,20 @@
   user-select: none;
   position: relative;
 
-  .inner {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    background: @background-primary;
+  .floating-container {
     border-bottom: 1px solid @border-color-divider;
     z-index: 2;
     width: 100%;
     min-height: 29px;
+  }
+
+  .inner {
+    background: @background-primary;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
   }
 
   .divider {

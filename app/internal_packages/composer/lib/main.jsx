@@ -92,6 +92,14 @@ export function activate() {
       location: WorkspaceStore.Location.Center,
     });
   }
+
+  setTimeout(() => {
+    // preload the font awesome icons used in the composer after a short delay.
+    // unfortunately, the icon set takes enough time to load that it introduces jank
+    const i = document.createElement('i');
+    i.className = 'fa fa-list';
+    document.body.appendChild(i);
+  }, 1000);
 }
 
 export function deactivate() {
