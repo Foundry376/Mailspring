@@ -447,8 +447,8 @@ class AttachmentStore extends MailspringStore {
       const stats = await this._getFileStats(filePath);
       if (stats.isDirectory()) {
         throw new Error(`${filename} is a directory. Try compressing it and attaching it again.`);
-      } else if (stats.size > 15 * 1000000) {
-        throw new Error(`${filename} cannot be attached because it is larger than 5MB.`);
+      } else if (stats.size > 25 * 1000000) {
+        throw new Error(`${filename} cannot be attached because it is larger than 25MB.`);
       }
 
       const file = new File({
