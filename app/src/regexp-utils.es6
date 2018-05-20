@@ -163,6 +163,12 @@ const RegExpUtils = {
     return new RegExp(parts.join(''), 'gi');
   },
 
+  // Test cases: https://regex101.com/r/gro8Su/1
+  // Matches if it starts with mailto:
+  mailtoProtocolRegex() {
+    return new RegExp(/^mailto:.+/);
+  },
+
   // Test cases: https://regex101.com/r/jD5zC7/2
   // Returns the following capturing groups:
   // 1. start of the opening a tag to href="

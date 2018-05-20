@@ -51,6 +51,9 @@ export default class LinkTrackingComposerExtension extends ComposerExtension {
       if (!RegExpUtils.urlRegex().test(url)) {
         return;
       }
+      if (RegExpUtils.mailtoProtocolRegex().test(url)) {
+        return; // Ignore mailto links; see #877
+      }
       const encoded = encodeURIComponent(url);
       const redirectUrl = `${PLUGIN_URL}/link/${draft.headerMessageId}/${
         links.length
