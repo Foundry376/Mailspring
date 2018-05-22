@@ -57,11 +57,24 @@ export const BLOCK_CONFIG = {
     type: 'div',
     tagNames: ['div', 'br', 'p'],
     render: ({ node, attributes, children, targetIsHTML }) => {
+      let explicitHTMLAttributes = undefined;
+
+      if (targetIsHTML) {
+        explicitHTMLAttributes = {};
+        if (node.isLeafBlock() && node.getTextDirection() === 'rtl') {
+          explicitHTMLAttributes.dir = 'rtl';
+        }
+      }
+
       if (targetIsHTML && nodeIsEmpty(node)) {
         return <br {...attributes} />;
       }
       return (
-        <div {...attributes} className={node.data.className || node.data.get('className')}>
+        <div
+          {...attributes}
+          {...explicitHTMLAttributes}
+          className={node.data.className || node.data.get('className')}
+        >
           {children}
         </div>
       );
