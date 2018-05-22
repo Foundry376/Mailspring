@@ -202,6 +202,13 @@ export function buildGmailAuthURL(sessionKey) {
 }
 
 export async function finalizeAndValidateAccount(account) {
+  if (account.settings.imap_host) {
+    account.settings.imap_host = account.settings.imap_host.trim();
+  }
+  if (account.settings.smtp_host) {
+    account.settings.smtp_host = account.settings.smtp_host.trim();
+  }
+
   account.id = idForAccount(account.emailAddress, account.settings);
 
   // handle special case for exchange/outlook/hotmail username field
