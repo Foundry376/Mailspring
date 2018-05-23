@@ -17,7 +17,6 @@
     "classnames": "1.2.1",
     "collapse-whitespace": "^1.1.6",
     "debug": "github:emorikawa/debug#nylas",
-    "electron-lets-move": "0.0.5",
     "electron-spellchecker": "1.1.2",
     "emoji-data": "^0.2.0",
     "enzyme": "3.3.0",

@@ -1,7 +1,6 @@
 /* eslint global-require: "off" */
 
 import { BrowserWindow, Menu, app, ipcMain, dialog, powerMonitor } from 'electron';
-import { moveToApplications } from 'electron-lets-move';
 
 import fs from 'fs-plus';
 import url from 'url';
@@ -18,6 +17,7 @@ import SystemTrayManager from './system-tray-manager';
 import DefaultClientHelper from '../default-client-helper';
 import MailspringProtocolHandler from './mailspring-protocol-handler';
 import ConfigPersistenceManager from './config-persistence-manager';
+import moveToApplications from './move-to-applications';
 import MailsyncProcess from '../mailsync-process';
 
 let clipboard = null;
@@ -170,17 +170,8 @@ export default class Application extends EventEmitter {
     if (this.config.get('askedAboutAppMove')) {
       return;
     }
-    try {
-      await moveToApplications();
-      this.config.set('askedAboutAppMove', true);
-    } catch (err) {
-      dialog.showMessageBox({
-        type: 'warning',
-        buttons: ['Okay'],
-        message: `We encountered a problem moving to the Applications folder. Try quitting the application and moving it manually.`,
-        detail: err.toString(),
-      });
-    }
+    this.config.set('askedAboutAppMove', true);
+    moveToApplications();
   }
 
   async oneTimeAddToDock() {
