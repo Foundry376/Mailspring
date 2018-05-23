@@ -69,7 +69,7 @@ export default class WindowManager {
   }
 
   getVisibleWindowCount() {
-	return this.getVisibleWindows().length;
+    return this.getVisibleWindows().length;
   }
 
   getAllWindowDimensions() {
