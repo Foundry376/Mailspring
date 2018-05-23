@@ -10,7 +10,6 @@ import {
 } from 'mailspring-exports';
 import { autolink } from './autolinker';
 import { adjustImages } from './adjust-images';
-import { addInlineImageListeners } from './inline-image-listeners';
 import EmailFrameStylesStore from './email-frame-styles-store';
 
 export default class EmailFrame extends React.Component {
@@ -86,7 +85,6 @@ export default class EmailFrame extends React.Component {
 
     autolink(doc, { async: true });
     adjustImages(doc);
-    addInlineImageListeners(doc);
 
     for (const extension of MessageStore.extensions()) {
       if (!extension.renderedMessageBodyIntoDocument) {
