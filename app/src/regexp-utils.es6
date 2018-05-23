@@ -17,11 +17,22 @@ const RegExpUtils = {
   // See http://tools.ietf.org/html/rfc5322#section-3.4 and
   // https://tools.ietf.org/html/rfc6531 and
   // https://en.wikipedia.org/wiki/Email_address#Local_part
-  emailRegex() {
-    return new RegExp(
-      `([a-z.A-Z${UnicodeEmailChars}0-9!#$%&\\'*+\\-/=?^_\`{|}~]+@[A-Za-z${UnicodeEmailChars}0-9.-]+\\.[A-Za-z]{2,63})`,
-      'g'
-    );
+  emailRegex({ requireStartOrWhitespace, matchTailOfString } = {}) {
+    const parts = [
+      `(`,
+      `[a-z.A-Z${UnicodeEmailChars}0-9!#$%&\\'*+\\-/=?^_\`{|}~]+`,
+      '@',
+      `[A-Za-z${UnicodeEmailChars}0-9.-]+\\.[A-Za-z]{2,63}`,
+      `)`,
+    ];
+    if (requireStartOrWhitespace) {
+      parts.unshift('(?:^|\\s{1})');
+    }
+    if (matchTailOfString) {
+      parts.push('$');
+    }
+
+    return new RegExp(parts.join(''), 'g');
   },
 
   // http://stackoverflow.com/questions/16631571/javascript-regular-expression-detect-all-the-phone-number-from-the-page-source

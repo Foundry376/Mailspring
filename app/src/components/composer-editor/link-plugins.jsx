@@ -22,6 +22,22 @@ function onPaste(event, change, editor) {
   }
 }
 
+function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
+  return function(transform, e, matches) {
+    if (transform.value.activeMarks.find(m => m.type === LINK_TYPE))
+      return transform.insertText(TriggerKeyValues[e.key]);
+
+    const link = matches.before[0];
+    const mark = Mark.create({ type: LINK_TYPE, data: { href: hrefPrefix + matches.before[0] } });
+    return transform
+      .deleteBackward(link.length)
+      .addMark(mark)
+      .insertText(link)
+      .removeMark(mark)
+      .insertText(TriggerKeyValues[e.key]);
+  };
+}
+
 function renderMark({ mark, children, targetIsHTML }) {
   if (mark.type !== LINK_TYPE) {
     return;
@@ -123,19 +139,12 @@ export default [
   },
   AutoReplace({
     trigger: e => !!TriggerKeyValues[e.key],
+    before: RegExpUtils.emailRegex({ requireStartOrWhitespace: true, matchTailOfString: true }),
+    transform: buildAutoReplaceHandler({ hrefPrefix: 'mailto:' }),
+  }),
+  AutoReplace({
+    trigger: e => !!TriggerKeyValues[e.key],
     before: RegExpUtils.urlRegex({ matchTailOfString: true }),
-    transform: (transform, e, matches) => {
-      if (transform.value.activeMarks.find(m => m.type === LINK_TYPE))
-        return transform.insertText(TriggerKeyValues[e.key]);
-
-      const link = matches.before[0];
-      const mark = Mark.create({ type: LINK_TYPE, data: { href: matches.before[0] } });
-      return transform
-        .deleteBackward(link.length)
-        .addMark(mark)
-        .insertText(link)
-        .removeMark(mark)
-        .insertText(TriggerKeyValues[e.key]);
-    },
+    transform: buildAutoReplaceHandler(),
   }),
 ];
