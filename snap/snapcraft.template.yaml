@@ -36,11 +36,15 @@ apps:
   mailspring:
     command: desktop-launch $SNAP/usr/share/mailspring/mailspring
     desktop: usr/share/applications/mailspring.desktop
-    # Correct the TMPDIR path for Chromium Framework/Electron to
-    # ensure libappindicator has readable resources.
     environment:
+      # Correct the TMPDIR path for Chromium Framework/Electron to
+      # ensure libappindicator has readable resources.
       HOME: $SNAP_USER_COMMON
       TMPDIR: $XDG_RUNTIME_DIR
+      # Coerce XDG_CURRENT_DESKTOP to Unity so that App Indicators
+      # are used and do not fall back to Notification Area applets
+      # or disappear completely.
+      XDG_CURRENT_DESKTOP: Unity
     plugs:
      - avahi-observe
      - browser-support
