@@ -1,8 +1,22 @@
 ## Roadmap:
 
-The initial release of Mailspring was in Nov. 2017. The roadmap is largely based on popular GitHub issues, with an emphasis on the following:
+The initial release of Mailspring was in Nov. 2017. The roadmap is largely based on popular GitHub issues, plus the larger projects outlined here:
 
-### Near-term Focus
+### Summer 2018
+
+* **Improved Search UI**
+
+  Goal: Highlight Mailspring's Gmail-style search features by overhauling the search bar. Allow users to save searches to the sidebar and right-click threads to "Search for more like this..."
+
+  Ship Date: July 1
+
+* **Mail Merge**
+
+  Goal: Make it possible to use a Template and a spreadsheet to batch-send emails with open / link tracking. Nylas Mail used to have this feature but the implementation confused users and didn't handle sending errors well. The new version will
+
+  Ship Date: August 1
+
+### Longer-term
 
 * **Sync Issues**
 
@@ -12,10 +26,6 @@ The initial release of Mailspring was in Nov. 2017. The roadmap is largely based
 
   Goal: Make it easier to download and install community themes and plugins from a trusted, centralized "gallery", like the Chrome Web Store. (No immediate plans to allow to enable paid plugins.)
 
-* **Mail Merge**
-
-  Goal: Make it possible to use a Template and a spreadsheet to batch-send emails with open / link tracking. Nylas Mail used to have this feature but the implementation confused users and didn't handle sending errors well.
-
 * **Email Signing**
 
   Goal: Allow users to sign outgoing email with a certificate, and verify the signatures of signed inbound email.
@@ -23,8 +33,6 @@ The initial release of Mailspring was in Nov. 2017. The roadmap is largely based
 * **Performance**
 
   Goal: Users shouldn't notice Mailspring is an Electron app. Need to improve typing / load performance of the composer and continue improving responsiveness of the thread list and message list.
-
-### Long-term
 
 * **Advanced Mail Rules**
 

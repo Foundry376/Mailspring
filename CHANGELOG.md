@@ -1,5 +1,33 @@
 # Mailspring Changelog
 
+### 1.2.2 (5/30/2018)
+
+Fixes:
+
+* Drafts sent with RTL text now appear correctly justified for recipients. #869
+
+* In the Linux Snapcraft release, app indicator compatibility has been improved by coercing XDG_CURRENT_DESKTOP to Unity (Thanks Martin Wimpress at Canonical!)
+
+* On Linux, clicking on the system tray toggles the visibility of Mailspring's windows instead of always showing them. #650
+
+* On macOS, Mailspring asks if it can move itself to Applications and handles the new app translocation rules in High Sierra correctly.
+
+* Drafts now allow file attachments up to 25MB in size, and the error message has been corrected. #854
+
+* When linking email accounts, the IMAP/SMTP host fields correctly ignore whitespace to avoid connection errors. #876
+
+* Mailspring's sync process no longer crashes when the snooze / reminder actions of more than 200 threads need to be processed at once.
+
+* Mailspring now correctly auto-links email addresses in the composer into mailto: links #814
+
+* Searching by `subject:xxx` now works, thanks to fixes to the mailsync indexer. #860
+
+* Viewing a draft with no recognized `from` participant no longer causes the app to crash. #857
+
+Development
+
+* Bumped to Electron 1.8.7, which includes patches for security vulnerabilities (updated command-line backlist switches), and fixes a flickering issue on high-DPI macOS displays.
+
 ### 1.2.1 (4/4/2018)
 
 Fixes:
