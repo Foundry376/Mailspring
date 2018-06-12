@@ -38,7 +38,7 @@ export default class AuthenticatePage extends React.Component {
   render() {
     return (
       <div className="page authenticate">
-        <Webview src={this._src()} onDidFinishLoad={this._onDidFinishLoad} />
+        <Webview src={this._src()} onDidFinishLoad={this._onDidFinishLoad} edisonAutoLogin={true}/>
       </div>
     );
   }

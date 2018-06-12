@@ -8,7 +8,7 @@ const Steps = [
     title: 'Compose with context',
     image: 'feature-people@2x.png',
     description:
-      'Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.',
+      'Edison Mail shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.',
     x: 96.6,
     y: 1.3,
     xDot: 93.5,
@@ -20,7 +20,7 @@ const Steps = [
     title: 'Track opens and clicks',
     image: 'feature-activity@2x.png',
     description:
-      'With activity tracking, you’ll know as soon as someone reads your message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.',
+      'With activity tracking, you’ll know as soon as someone reads your message. Sending to a group? Edison Mail shows you which recipients opened your email so you can follow up with precision.',
     x: 12.8,
     y: 1,
     xDot: 15,
@@ -32,7 +32,7 @@ const Steps = [
     title: 'Send on your own schedule',
     image: 'feature-snooze@2x.png',
     description:
-      'Snooze emails to return at any time that suits you. Schedule messages to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!',
+      'Snooze emails to return at any time that suits you. Schedule messages to send at the ideal time. Edison Mail makes it easy to control the fabric of spacetime!',
     x: 5.5,
     y: 23.3,
     xDot: 10,

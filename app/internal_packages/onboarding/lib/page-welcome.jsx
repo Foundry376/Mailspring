@@ -15,7 +15,7 @@ export default class WelcomePage extends React.Component {
         <div className="steps-container">
           <div>
             <p className="hero-text" style={{ fontSize: 46, marginTop: 257 }}>
-              Welcome to Mailspring
+              Welcome to Edison Mail
             </p>
             <RetinaImg
               className="icons"

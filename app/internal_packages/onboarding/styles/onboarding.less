@@ -194,6 +194,7 @@
   webview {
     display: flex;
     flex: 1;
+    opacity: 0;
   }
 
   .webview-loading-spinner {
@@ -632,47 +633,5 @@ body.platform-win32 {
 
   input {
     margin-top: 0;
-  }
-}
-
-// temporarily copied from prefs-identity
-
-.page.initial-subscription {
-  .features {
-    display: flex;
-    max-width: 470px;
-    margin-top: 20px;
-    ul {
-      flex: 1;
-      margin: 0;
-      line-height: 1.9em;
-      list-style-type: none;
-      padding: 0;
-      li {
-        text-align: left;
-      }
-    }
-  }
-  .pro-feature-ring {
-    display: block;
-    width: 205px;
-    height: 205px;
-    position: relative;
-    .price,
-    .period {
-      display: block;
-      z-index: 2;
-      position: absolute;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-    .price {
-      font-size: 50px;
-      line-height: 50px;
-      top: 40%;
-    }
-    .period {
-      top: 56%;
-    }
   }
 }

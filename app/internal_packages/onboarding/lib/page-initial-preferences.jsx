@@ -5,7 +5,6 @@ const fs = require('fs');
 const { RetinaImg, Flexbox, ConfigPropContainer } = require('mailspring-component-kit');
 const { AccountStore, IdentityStore } = require('mailspring-exports');
 const OnboardingActions = require('./onboarding-actions').default;
-const NewsletterSignup = require('./newsletter-signup').default;
 
 // NOTE: Temporarily copied from preferences module
 class AppearanceModeOption extends React.Component {
@@ -137,12 +136,6 @@ class InitialPreferencesOptions extends React.Component {
               </option>
             ))}
           </select>
-          <div style={{ paddingTop: 20 }}>
-            <NewsletterSignup
-              emailAddress={this.props.account.emailAddress}
-              name={this.props.account.name}
-            />
-          </div>
         </div>
       </div>
     );
@@ -177,24 +170,20 @@ class InitialPreferencesPage extends React.Component {
     }
     return (
       <div className="page opaque" style={{ width: 900, height: 620 }}>
-        <h1 style={{ paddingTop: 100 }}>Welcome to Mailspring</h1>
+        <h1 style={{ paddingTop: 100 }}>Welcome to Edison Mail</h1>
         <h4 style={{ marginBottom: 60 }}>Let's set things up to your liking.</h4>
         <ConfigPropContainer>
           <InitialPreferencesOptions account={this.state.account} />
         </ConfigPropContainer>
         <button className="btn btn-large" style={{ marginBottom: 60 }} onClick={this._onFinished}>
-          Looks Good!
+          Let's get rad!
         </button>
       </div>
     );
   }
 
   _onFinished = () => {
-    if (IdentityStore.hasProFeatures()) {
-      require('electron').ipcRenderer.send('account-setup-successful');
-    } else {
-      OnboardingActions.moveToPage('initial-subscription');
-    }
+    require('electron').ipcRenderer.send('account-setup-successful');
   };
 }
 

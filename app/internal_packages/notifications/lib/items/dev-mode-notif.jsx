@@ -18,7 +18,7 @@ export default class DevModeNotification extends React.Component {
       return <span />;
     }
     return (
-      <Notification priority="0" title="Mailspring is running in dev mode and may be slower!" />
+      <Notification priority="0" title="Edison Mail is running in dev mode and may be slower!" />
     );
   }
 }

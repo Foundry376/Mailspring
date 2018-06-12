@@ -30,7 +30,7 @@ class AccountOnboardingSuccess extends Component {
             Successfully connected to{' '}
             {providerConfig.displayNameShort || providerConfig.displayName}!
           </h2>
-          <h3>Adding your account to Mailspring…</h3>
+          <h3>Adding your account to Edison Mail…</h3>
         </div>
       </div>
     );

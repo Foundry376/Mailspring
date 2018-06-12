@@ -74,10 +74,14 @@ export default class Webview extends React.Component {
   static propTypes = {
     src: PropTypes.string,
     onDidFinishLoad: PropTypes.func,
+    edisonAutoLogin: PropTypes.bool
   };
 
   constructor(props) {
     super(props);
+    this.clickedSignIn = false;
+    this.loadedCredentials = false;
+
     this.state = {
       ready: false,
       error: null,
@@ -109,6 +113,7 @@ export default class Webview extends React.Component {
       'did-get-response-details': this._webviewDidGetResponseDetails,
       'console-message': this._onConsoleMessage,
     };
+
     for (const event of Object.keys(listeners)) {
       webview.removeEventListener(event, listeners[event]);
     }
@@ -172,6 +177,16 @@ export default class Webview extends React.Component {
     const webview = ReactDOM.findDOMNode(this.refs.webview);
     this.props.onDidFinishLoad(webview);
 
+    if (this.props.edisonAutoLogin === true) {
+      if (!this.clickedSignIn) {
+        webview.send('click-signin');
+        this.clickedSignIn = true;
+      } else if (!this.loadedCredentials) {
+        webview.send('load-credentials');
+        this.loadedCredentials = true;
+      }
+    }
+
     // tweak the size of the webview to ensure it's contents have laid out
     webview.style.bottom = '1px';
     window.requestAnimationFrame(() => {
@@ -180,9 +195,10 @@ export default class Webview extends React.Component {
   };
 
   render() {
+    const preloadScript = this.props.edisonAutoLogin === true ? '../internal_packages/onboarding/lib/login-injection.js' : null;
     return (
       <div className="webview-wrap">
-        <webview ref="webview" is partition="in-memory-only" />
+        <webview ref="webview" is partition="in-memory-only" preload={preloadScript} />
         <div className={`webview-loading-spinner loading-${this.state.webviewLoading}`}>
           <RetinaImg
             style={{ width: 20, height: 20 }}
