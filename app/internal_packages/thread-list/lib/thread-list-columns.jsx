@@ -86,16 +86,33 @@ const c2 = new ListTabular.Column({
   name: 'Participants',
   width: 200,
   resolver: thread => {
-    const hasDraft = (thread.__messages || []).find(m => m.draft);
+    const messages = thread.__messages || [];
+
+    let draft = null;
+    const hasDraft = messages.find(m => m.draft);
     if (hasDraft) {
+      draft = (
+        <RetinaImg
+          name="icon-draft-pencil.png"
+          className="draft-icon"
+          mode={RetinaImg.Mode.ContentPreserve}
+        />
+      );
+    }
+
+    let attachment = null;
+    const haveAttachments = 
+      thread.attachmentCount > 0 && messages.find(m => Utils.showIconForAttachments(m.files));
+    if (haveAttachments) {
+      attachment = <div className="thread-icon thread-icon-attachment" />;
+    }
+
+    if (hasDraft || haveAttachments) {
       return (
         <div style={{ display: 'flex' }}>
           <ThreadListParticipants thread={thread} />
-          <RetinaImg
-            name="icon-draft-pencil.png"
-            className="draft-icon"
-            mode={RetinaImg.Mode.ContentPreserve}
-          />
+          {attachment}
+          {draft}
         </div>
       );
     } else {
@@ -108,21 +125,11 @@ const c3 = new ListTabular.Column({
   name: 'Message',
   flex: 4,
   resolver: thread => {
-    let attachment = false;
-    const messages = thread.__messages || [];
-
-    const hasAttachments =
-      thread.attachmentCount > 0 && messages.find(m => Utils.showIconForAttachments(m.files));
-    if (hasAttachments) {
-      attachment = <div className="thread-icon thread-icon-attachment" />;
-    }
-
     return (
       <span className="details">
         <MailLabelSet thread={thread} />
         <span className="subject">{subject(thread.subject)}</span>
         <span className="snippet">{getSnippet(thread)}</span>
-        {attachment}
       </span>
     );
   },
@@ -210,9 +217,9 @@ const cNarrow = new ListTabular.Column({
         <div className="thread-info-column">
           <div className="participants-wrapper">
             <ThreadListParticipants thread={thread} />
+            {attachment}
             {pencil}
             <span style={{ flex: 1 }} />
-            {attachment}
             <InjectedComponent
               key="thread-injected-timestamp"
               className="thread-injected-timestamp"
