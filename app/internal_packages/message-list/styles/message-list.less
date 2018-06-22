@@ -259,8 +259,6 @@ body.platform-win32 {
     .message-item-white-wrap {
       background: @background-primary;
       border: 0;
-      box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.28), 0 1px 1.5px rgba(0, 0, 0, 0.08);
-      border-radius: 4px;
     }
 
     padding-bottom: @message-spacing * 2;
@@ -270,7 +268,7 @@ body.platform-win32 {
 
     &.collapsed {
       .message-item-white-wrap {
-        background-color: darken(@background-primary, 2%);
+        background-color: @background-primary;
         padding-top: 19px;
         padding-bottom: 8px;
         margin-bottom: 0;
@@ -345,8 +343,8 @@ body.platform-win32 {
       left: 50%;
       margin-left: -80px;
       margin-top: -15px;
-      border-radius: 15px;
       border: 1px solid @border-color-divider;
+      border-radius: 5px;
       width: 160px;
       background: @background-primary;
       text-align: center;
@@ -364,12 +362,9 @@ body.platform-win32 {
       margin-top: -13px;
     }
     .msg-line {
-      border-radius: 4px 4px 0 0;
       position: relative;
       border-top: 1px solid @border-color-divider;
-      background-color: darken(@background-primary, 2%);
-      box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.1), 0 -0.5px 0 rgba(0, 0, 0, 0.1),
-        0.5px 0 0 rgba(0, 0, 0, 0.1), -0.5px 0 0 rgba(0, 0, 0, 0.1);
+      background-color: @background-primary;
     }
   }
 
