@@ -128,11 +128,21 @@ class MultiselectList extends React.Component {
           if (props.className == null) {
             props.className = '';
           }
+
+          // sometimes selected is focused too, so we need to check this as well
+          let nextFocused;
+          const focused = this.state.handler.shouldShowFocus() && item.id === this.props.focusedId;
+          if (!focused) {
+            const next = this.props.dataSource.get(idx + 1);
+            const nextId = next && next.id;
+            nextFocused = this.state.handler.shouldShowFocus() && nextId === this.props.focusedId;
+          }
+
           props.className +=
             ' ' +
             classNames({
               selected: selected,
-              'next-is-selected': !selected && nextSelected,
+              'next-is-selected': (!selected && nextSelected) || (!focused && nextFocused),
               focused: this.state.handler.shouldShowFocus() && item.id === this.props.focusedId,
               'keyboard-cursor':
                 this.state.handler.shouldShowKeyboardCursor() &&
