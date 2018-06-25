@@ -74,7 +74,7 @@ input:focus {
 
     &.swipe-trash {
       transition: background-color linear 150ms;
-      background-color: mix(#ed304b, @background-primary, 75%);
+      background-color: mix(#f94040, @background-primary, 75%);
       &::after {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Trash';
@@ -82,7 +82,7 @@ input:focus {
         background-image: url(../static/images/swipe/icon-swipe-trash@2x.png);
       }
       &.confirmed {
-        background-color: #ed304b;
+        background-color: #f94040;
         &::after {
           left: 100%;
           transform: translateX(-100%);
@@ -93,7 +93,7 @@ input:focus {
     &.swipe-archive,
     &.swipe-all {
       transition: background-color linear 150ms;
-      background-color: mix(#6cd420, @background-primary, 75%);
+      background-color: mix(#57d56f, @background-primary, 75%);
       &::after {
         transition: left linear 150ms, transform linear 150ms;
         content: 'Archive';
@@ -101,7 +101,7 @@ input:focus {
         background-image: url(../static/images/swipe/icon-swipe-archive@2x.png);
       }
       &.confirmed {
-        background-color: #6cd420;
+        background-color: #57d56f;
         &::after {
           left: 100%;
           transform: translateX(-100%);
@@ -111,7 +111,7 @@ input:focus {
     }
     &.swipe-snooze {
       transition: background-color linear 150ms;
-      background-color: mix(#8d6be3, @background-primary, 75%);
+      background-color: mix(#fecb2f, @background-primary, 75%);
       &::after {
         transition: right linear 150ms, transform linear 150ms;
         content: 'Snooze';
@@ -119,7 +119,7 @@ input:focus {
         background-image: url(../static/images/swipe/icon-swipe-snooze@2x.png);
       }
       &.confirmed {
-        background-color: #8d6be3;
+        background-color: #fecb2f;
         &::after {
           right: 100%;
           transform: translateX(100%);
