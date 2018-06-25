@@ -116,6 +116,10 @@ class IMAPSearchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
     this._result = ['FROM', text];
   }
 
+  visitDate(node) {
+    throw new Error('Function not implemented!', node);
+  }
+
   visitTo(node) {
     const text = this.visitAndGetResult(node.text);
     this._result = ['TO', text];

@@ -19,6 +19,9 @@ class SearchQueryExpressionVisitor {
   visitFrom(node) {
     throw new Error('Abstract function not implemented!', node);
   }
+  visitDate(node) {
+    throw new Error('Abstract function not implemented!', node);
+  }
   visitTo(node) {
     throw new Error('Abstract function not implemented!', node);
   }
@@ -141,6 +144,29 @@ class FromQueryExpression extends QueryExpression {
 
   equals(other) {
     if (!(other instanceof FromQueryExpression)) {
+      return false;
+    }
+    return this.text.equals(other.text);
+  }
+}
+
+class DateQueryExpression extends QueryExpression {
+  constructor(text, direction = 'before') {
+    super();
+    this.text = text;
+    this.direction = direction;
+  }
+
+  accept(visitor) {
+    visitor.visitDate(this);
+  }
+
+  _computeIsMatchCompatible() {
+    return false;
+  }
+
+  equals(other) {
+    if (!(other instanceof DateQueryExpression)) {
       return false;
     }
     return this.text.equals(other.text);
@@ -368,5 +394,6 @@ module.exports = {
   StarredStatusQueryExpression,
   MatchQueryExpression,
   InQueryExpression,
+  DateQueryExpression,
   HasAttachmentQueryExpression,
 };

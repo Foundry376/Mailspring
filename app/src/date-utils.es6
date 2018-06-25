@@ -47,6 +47,7 @@ function isPastDate(inputDateObj, currentDate) {
   return inputMoment.isBefore(currentMoment);
 }
 
+let _chronoPast = null;
 let _chronoFuture = null;
 let _chrono = null;
 
@@ -91,6 +92,42 @@ function getChronoFuture() {
   _chronoFuture = new chrono.Chrono(chrono.options.casualOption());
   _chronoFuture.refiners.push(EnforceFutureDate);
   return _chronoFuture;
+}
+
+function getChronoPast() {
+  if (_chronoPast) {
+    return _chronoPast;
+  }
+
+  const chrono = getChrono();
+  const EnforcePastDate = new chrono.Refiner();
+  EnforcePastDate.refine = (text, results) => {
+    results.forEach(result => {
+      const current = Object.assign({}, result.start.knownValues, result.start.impliedValues);
+
+      if (result.start.isCertain('weekday') && !result.start.isCertain('day')) {
+        if (!isPastDate(current, result.ref)) {
+          result.start.imply('day', result.start.impliedValues.day - 7);
+        }
+      }
+
+      if (result.start.isCertain('day') && !result.start.isCertain('month')) {
+        if (!isPastDate(current, result.ref)) {
+          result.start.imply('month', result.start.impliedValues.month - 1);
+        }
+      }
+      if (result.start.isCertain('month') && !result.start.isCertain('year')) {
+        if (!isPastDate(current, result.ref)) {
+          result.start.imply('year', result.start.impliedValues.year - 1);
+        }
+      }
+    });
+    return results;
+  };
+
+  _chronoPast = new chrono.Chrono(chrono.options.casualOption());
+  _chronoPast.refiners.push(EnforcePastDate);
+  return _chronoPast;
 }
 
 const DateUtils = {
@@ -186,6 +223,8 @@ const DateUtils = {
   nextMonth(now = moment()) {
     return morning(now.add(1, 'month').date(1));
   },
+
+  getChronoPast,
 
   parseDateString(dateLikeString) {
     const parsed = getChrono().parse(dateLikeString);
