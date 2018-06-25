@@ -133,16 +133,8 @@ body.is-blurred {
     }
   }
   .sheet-toolbar-container {
-    background-image: -webkit-linear-gradient(
-      top,
-      lighten(@toolbar-background-color, 14%),
-      lighten(@toolbar-background-color, 14%)
-    );
 
     .btn.btn-toolbar {
-      background: none;
-      box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
-        0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15);
       img {
         opacity: 0.5;
       }
@@ -249,13 +241,14 @@ body.is-blurred {
   }
 
   .btn-toolbar {
+    background: none;
+    box-shadow: none;
     margin-top: 8px;
     margin-left: @spacing-three-quarters;
     margin-right: 0;
     flex-shrink: 0;
     line-height: 1.75em;
     height: 1.75em;
-    box-shadow: 0 0.5px 0.05px rgba(0, 0, 0, 0.4), 0 -0.5px 0 rgba(0, 0, 0, 0.12);
     img.content-mask {
       background-color: fade(@text-color-heading, 80%);
     }
