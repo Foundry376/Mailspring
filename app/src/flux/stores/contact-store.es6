@@ -60,6 +60,20 @@ class ContactStore extends MailspringStore {
     });
   }
 
+  topContacts({ limit = 5 } = {}) {
+    const accountCount = AccountStore.accounts().length;
+    return DatabaseStore.findAll(Contact)
+      .limit(limit * accountCount)
+      .order(Contact.attributes.refs.descending())
+      .then(async _results => {
+        let results = this._distinctByEmail(_results);
+        if (results.length > limit) {
+          results.length = limit;
+        }
+        return results;
+      });
+  }
+
   isValidContact(contact) {
     return contact instanceof Contact ? contact.isValid() : false;
   }

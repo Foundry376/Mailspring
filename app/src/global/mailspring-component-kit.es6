@@ -123,8 +123,6 @@ lazyLoad('MailImportantIcon', 'mail-important-icon');
 
 lazyLoad('ScenarioEditor', 'scenario-editor');
 
-lazyLoad('SearchBar', 'search-bar');
-
 // Higher order components
 lazyLoad('ListensToObservable', 'decorators/listens-to-observable');
 lazyLoad('ListensToFluxStore', 'decorators/listens-to-flux-store');
