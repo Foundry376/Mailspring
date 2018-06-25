@@ -8,7 +8,7 @@
   order: -100;
   overflow: visible;
   z-index: 100;
-  width: 450px;
+  width: 100%;
   height: 23px;
   font-weight: 400;
   line-height: 23px;
@@ -17,8 +17,6 @@
   margin-top: (38px - 23px) / 2;
   padding-left: @padding-xs-horizontal;
   padding-right: @padding-xs-horizontal;
-  border-radius: @border-radius-base;
-  box-shadow: @shadow-border;
   display: flex;
   align-items: center;
 
@@ -46,12 +44,10 @@
 
   .suggestions {
     left: 0;
-    top: 23px;
+    top: 30px;
     width: 100%;
     position: absolute;
     background: @input-bg;
-    border-bottom-left-radius: @border-radius-base;
-    border-bottom-right-radius: @border-radius-base;
     box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
       0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 4px 7px rgba(0, 0, 0, 0.15);
 
