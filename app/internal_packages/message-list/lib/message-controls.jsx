@@ -91,7 +91,7 @@ export default class MessageControls extends React.Component {
     menu.append(
       new SystemMenuItem({ label: 'Copy Debug Info to Clipboard', click: this._onCopyToClipboard })
     );
-    menu.popup(remote.getCurrentWindow());
+    menu.popup();
   };
 
   _onShowOriginal = async () => {

@@ -733,7 +733,7 @@ export default class TokenizingTextField extends React.Component {
         })
       );
     }
-    menu.popup(remote.getCurrentWindow());
+    menu.popup();
   };
 
   // Copy and Paste

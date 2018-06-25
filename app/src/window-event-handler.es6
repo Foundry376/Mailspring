@@ -364,7 +364,7 @@ export default class WindowEventHandler {
         },
       })
     );
-    menu.popup(remote.getCurrentWindow());
+    menu.popup();
   }
 
   showDevModeMessages() {

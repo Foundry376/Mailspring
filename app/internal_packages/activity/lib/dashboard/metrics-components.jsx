@@ -84,7 +84,7 @@ export class MetricHistogram extends React.Component {
 export class MetricGraph extends React.Component {
   componentDidMount() {
     if (!this.props.loading) {
-      window.requestAnimationFrame(() => this._el && this._el.classList.add('visible'));
+      window.setTimeout(() => this._el && this._el.classList.add('visible'), 50);
     }
   }
 
