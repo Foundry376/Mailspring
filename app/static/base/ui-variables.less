@@ -16,7 +16,7 @@
 
 //=============================== Colors ===============================//
 //== Color Definitions
-@black: #231f20;
+@black: #000000;
 @gray-base: #0a0b0c;
 @gray-darker: lighten(@gray-base, 13.5%); // #222
 @gray-dark: lighten(@gray-base, 20%); // #333
@@ -25,18 +25,18 @@
 @gray-lighter: lighten(@gray-base, 92.5%); // #eee
 @white: #ffffff;
 
-@blue-dark: #3187e1;
-@blue: #419bf9;
-@blue-light: #009ec4;
+@blue: #1293fd;
+@blue-dark: @blue;
+@blue-light: @blue;
 
 //== Color Descriptors
 @accent-primary: @blue;
 @accent-primary-dark: @blue-dark;
 
 @background-primary: @white;
-@background-off-primary: #fdfdfd;
-@background-secondary: #f6f6f6;
-@background-tertiary: #6d7987;
+@background-off-primary: #f5f8fd;
+@background-secondary: @background-off-primary;
+@background-tertiary: @background-off-primary;
 
 @color-info: @blue-dark;
 @color-success: #5cb346;
@@ -53,22 +53,22 @@
   rgba(253, 253, 253, 0.75) 100%
 );
 
-@border-color-primary: darken(@background-primary, 10%);
-@border-color-secondary: darken(@background-secondary, 10%);
-@border-color-tertiary: darken(@background-tertiary, 10%);
-@border-color-divider: @border-color-secondary;
+@border-color-primary: #d6dde2;
+@border-color-secondary: @border-color-primary;
+@border-color-tertiary: @border-color-primary;
+@border-color-divider: @border-color-primary;
 
 //============================= Typography =============================//
 
 // ----- Colors -----
 @text-color: @black;
-@text-color-subtle: fadeout(@text-color, 20%);
+@text-color-subtle: #658096;
 @text-color-very-subtle: fadeout(@text-color, 50%);
 @text-color-inverse: @white;
 @text-color-inverse-subtle: fadeout(@text-color-inverse, 20%);
 @text-color-inverse-very-subtle: fadeout(@text-color-inverse, 50%);
 
-@text-color-heading: #434648;
+@text-color-heading: @black;
 
 @text-color-link: @blue;
 @text-color-link-hover: @blue-dark;
@@ -191,24 +191,24 @@
 //=============================== Components ===========================//
 
 //== Toolbar
-@toolbar-background-color: darken(@white, 17.5%);
+@toolbar-background-color: @white;
 
 //== Account Sidebar
-@panel-background-color: @gray-lighter;
+@panel-background-color: @white;
 @source-list-bg: @panel-background-color;
 @source-list-active-bg: @panel-background-color;
 @source-list-active-color: @component-active-color;
 
 //== Thread List (e.g, `.list-group-item`, `.list-item`)
 @list-bg: @white;
-@list-border: #ddd;
+@list-border: @border-color-divider;
 @list-hover-bg: darken(@list-bg, 4%);
-@list-focused-color: @list-bg;
-@list-focused-bg: @component-active-color;
+@list-focused-color: inherit;
+@list-focused-bg: @background-secondary;
 @list-focused-border: @list-focused-bg;
 @list-selected-color: inherit;
-@list-selected-bg: mix(@component-active-color, @list-bg, 17%);
-@list-selected-border: mix(@component-active-color, @list-bg, 50%);
+@list-selected-bg: @background-secondary;
+@list-selected-border: @background-secondary;
 
 //== Notifications
 @background-color-info: @blue-light;
