@@ -8,13 +8,12 @@ import dns from 'dns';
 
 export const LOCAL_SERVER_PORT = 12141;
 export const LOCAL_REDIRECT_URI = `http://127.0.0.1:${LOCAL_SERVER_PORT}`;
-const GMAIL_CLIENT_ID = '662287800555-0a5h4ii0e9hsbpq0mqtul7fja0jhf9uf.apps.googleusercontent.com';
+const GMAIL_CLIENT_ID = '533632962939-3kp63blvln9j1pjmqrtfsv9pc66nsfqn.apps.googleusercontent.com';
 const GMAIL_SCOPES = [
-  'https://www.googleapis.com/auth/userinfo.email', // email address
-  'https://www.googleapis.com/auth/userinfo.profile', // G+ profile
-  'https://mail.google.com/', // email
-  'https://www.googleapis.com/auth/contacts.readonly', // contacts
-  'https://www.googleapis.com/auth/calendar', // calendar
+  // Edison
+  'https://mail.google.com/',
+  'email',
+  'https://www.google.com/m8/feeds'
 ];
 
 function idForAccount(emailAddress, connectionSettings) {
