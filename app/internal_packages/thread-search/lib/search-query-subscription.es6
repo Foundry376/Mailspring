@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import {
+  Actions,
   Thread,
   DatabaseStore,
   SearchQueryParser,
@@ -7,7 +8,6 @@ import {
   FocusedContentStore,
   MutableQuerySubscription,
 } from 'mailspring-exports';
-import SearchActions from './search-actions';
 
 class SearchQuerySubscription extends MutableQuerySubscription {
   constructor(searchQuery, accountIds) {
@@ -61,7 +61,7 @@ class SearchQuerySubscription extends MutableQuerySubscription {
       .limit(1000);
 
     dbQuery.then(results => {
-      SearchActions.searchCompleted();
+      Actions.searchCompleted();
       this.replaceQuery(dbQuery);
     });
   }

@@ -489,6 +489,10 @@ class Actions {
   static toggleAccount = ActionScopeWindow;
 
   static expandSyncState = ActionScopeWindow;
+
+  static searchQuerySubmitted = ActionScopeWindow;
+  static searchQueryChanged = ActionScopeWindow;
+  static searchCompleted = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above

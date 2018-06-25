@@ -1,7 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import { Actions, AccountStore, FocusedPerspectiveStore } from 'mailspring-exports';
 
-import SearchActions from './search-actions';
 import SearchMailboxPerspective from './search-mailbox-perspective';
 
 // Stores should closely match the needs of a particular part of the front end.
@@ -17,9 +16,9 @@ class SearchStore extends MailspringStore {
     this._isSearching = false;
 
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
-    this.listenTo(SearchActions.querySubmitted, this._onQuerySubmitted);
-    this.listenTo(SearchActions.queryChanged, this._onQueryChanged);
-    this.listenTo(SearchActions.searchCompleted, this._onSearchCompleted);
+    this.listenTo(Actions.searchQuerySubmitted, this._onQuerySubmitted);
+    this.listenTo(Actions.searchQueryChanged, this._onQueryChanged);
+    this.listenTo(Actions.searchCompleted, this._onSearchCompleted);
   }
 
   query() {

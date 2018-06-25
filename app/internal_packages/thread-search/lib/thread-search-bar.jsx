@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
 import { Actions, FocusedPerspectiveStore, WorkspaceStore } from 'mailspring-exports';
 import SearchStore from './search-store';
-import SearchActions from './search-actions';
 import TokenizingContenteditable from './tokenizing-contenteditable';
 
 import {
@@ -174,7 +173,7 @@ class ThreadSearchBar extends Component {
   };
 
   _onSearchQueryChanged = async query => {
-    SearchActions.queryChanged(query);
+    Actions.searchQueryChanged(query);
     if (query === '') {
       this._onClearSearchQuery();
     }
@@ -195,12 +194,12 @@ class ThreadSearchBar extends Component {
   };
 
   _onSubmitSearchQuery = nextQuery => {
-    SearchActions.querySubmitted(nextQuery);
+    Actions.searchQuerySubmitted(nextQuery);
     this._fieldEl.blur();
   };
 
   _onClearSearchQuery = () => {
-    SearchActions.querySubmitted('');
+    Actions.searchQuerySubmitted('');
   };
 
   _placeholder = () => {
