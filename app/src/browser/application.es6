@@ -503,9 +503,24 @@ export default class Application extends EventEmitter {
       }
     });
 
-    ipcMain.on('ensure-worker-window', () => {
-      // TODO BG
-      // this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW)
+    // Theme Error Handling
+
+    let userResetTheme = false;
+
+    ipcMain.on('encountered-theme-error', (event, { message, detail }) => {
+      if (userResetTheme) return;
+
+      const buttonIndex = dialog.showMessageBox({
+        type: 'warning',
+        buttons: ['Reset Theme', 'Continue'],
+        defaultId: 0,
+        message,
+        detail,
+      });
+      if (buttonIndex === 0) {
+        userResetTheme = true;
+        this.config.set('core.theme', '');
+      }
     });
 
     ipcMain.on('inline-style-parse', (event, { html, key }) => {
