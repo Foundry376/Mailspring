@@ -5,7 +5,6 @@ import {
   DatabaseStore,
   SearchQueryParser,
   ComponentRegistry,
-  FocusedContentStore,
   MutableQuerySubscription,
 } from 'mailspring-exports';
 
@@ -15,10 +14,7 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     this._searchQuery = searchQuery;
     this._accountIds = accountIds;
 
-    this.resetData();
-
     this._connections = [];
-    this._unsubscribers = [FocusedContentStore.listen(() => this.onFocusedContentChanged())];
     this._extDisposables = [];
 
     _.defer(() => this.performSearch());
@@ -28,23 +24,13 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     // TODO
   };
 
-  resetData() {
-    this._searchStartedAt = null;
-    this._resultsReceivedAt = null;
-    this._firstThreadSelectedAt = null;
-    this._lastFocusedThread = null;
-    this._focusedThreadCount = 0;
-  }
-
   performSearch() {
-    this._searchStartedAt = Date.now();
-
     this.performLocalSearch();
     this.performExtensionSearch();
   }
 
   performLocalSearch() {
-    let dbQuery = DatabaseStore.findAll(Thread).distinct();
+    let dbQuery = DatabaseStore.findAll(Thread);
     if (this._accountIds.length === 1) {
       dbQuery = dbQuery.where({ accountId: this._accountIds[0] });
     }
@@ -59,6 +45,8 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     dbQuery = dbQuery
       .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
       .limit(1000);
+
+    console.log(dbQuery.sql());
 
     dbQuery.then(results => {
       Actions.searchCompleted();
@@ -103,32 +91,8 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     });
   }
 
-  onFocusedContentChanged() {
-    const thread = FocusedContentStore.focused('thread');
-    const shouldRecordChange = thread && (this._lastFocusedThread || {}).id !== thread.id;
-    if (shouldRecordChange) {
-      if (this._focusedThreadCount === 0) {
-        this._firstThreadSelectedAt = Date.now();
-      }
-      this._focusedThreadCount += 1;
-      this._lastFocusedThread = thread;
-    }
-  }
-
-  reportSearchMetrics() {
-    if (!this._searchStartedAt) {
-      return;
-    }
-
-    // Not Implemented
-
-    this.resetData();
-  }
-
   onLastCallbackRemoved() {
-    this.reportSearchMetrics();
     this._connections.forEach(conn => conn.end());
-    this._unsubscribers.forEach(unsub => unsub());
     this._extDisposables.forEach(disposable => disposable.dispose());
   }
 }

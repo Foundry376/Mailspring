@@ -3,8 +3,8 @@ import { TokenAndTermRegexp } from './search-bar-util';
 
 export default class TokenizingContenteditable extends Component {
   shouldComponentUpdate(nextProps) {
-    if (nextProps.value !== this._textEl.innerText) {
-      this._textEl.innerText = nextProps.value;
+    if (nextProps.value !== this._textEl.innerText.replace(/\s/g, ' ')) {
+      this._textEl.innerHTML = nextProps.value.replace(/\s/g, '&nbsp;');
       this._tokensEl.innerHTML = this.valueToHTML(nextProps.value);
       if (document.activeElement === this._textEl) {
         this.focus();
@@ -28,11 +28,27 @@ export default class TokenizingContenteditable extends Component {
   };
 
   insertionIndex = () => {
-    const range = document.getSelection().getRangeAt(0);
-    if (!range || !this._textEl.contains(range.startContainer)) {
+    const sel = document.getSelection();
+    if (sel.rangeCount === 0) {
       return -1;
     }
-    return range.startOffset;
+    const range = sel.getRangeAt(0);
+
+    if (!range) {
+      return -1;
+    }
+
+    // The selection is in node units
+    if (range.startContainer === this._textEl && range.endContainer === this._textEl) {
+      return range.startOffset === 0 ? 0 : this._textEl.textContent.length;
+    }
+
+    // The selection is in text units
+    if (this._textEl.contains(range.startContainer)) {
+      return range.startOffset;
+    }
+
+    return -1;
   };
 
   valueToHTML = text => {
@@ -40,7 +56,7 @@ export default class TokenizingContenteditable extends Component {
     let m = null;
     let lastIndex = 0;
 
-    text = text.replace(/\s/g, ' ');
+    text = text.replace(/\s/g, ' '); // with all standard space characters
 
     const basicSpan = document.createElement('span');
     const tokenSpan = document.createElement('span');
@@ -53,8 +69,8 @@ export default class TokenizingContenteditable extends Component {
         basicSpan.innerText = before;
         tokens.push(basicSpan.outerHTML);
       }
-      lastIndex = m.index + m[1].length;
-      tokenSpan.innerText = m[1];
+      lastIndex = m.index + m[1].length + m[2].length;
+      tokenSpan.innerText = m[1] + m[2];
       tokens.push(tokenSpan.outerHTML);
     }
     const after = text.substr(lastIndex, text.length - lastIndex);
@@ -66,7 +82,7 @@ export default class TokenizingContenteditable extends Component {
   };
 
   onChange = e => {
-    const value = e.target.innerText;
+    const value = e.target.innerText.replace(/\s/g, ' ');
     this._tokensEl.innerHTML = this.valueToHTML(value);
     this.props.onChange(value);
   };
@@ -79,7 +95,7 @@ export default class TokenizingContenteditable extends Component {
           spellCheck={false}
           className="layer layer-text"
           ref={el => (this._textEl = el)}
-          dangerouslySetInnerHTML={{ __html: this.props.value }}
+          dangerouslySetInnerHTML={{ __html: this.props.value.replace(/\s/g, '&nbsp;') }}
           onKeyDown={this.props.onKeyDown}
           onFocus={this.props.onFocus}
           onBlur={this.props.onBlur}

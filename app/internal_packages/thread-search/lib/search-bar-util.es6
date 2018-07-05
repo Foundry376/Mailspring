@@ -14,7 +14,7 @@ import _ from 'underscore';
 // - end of string
 // - a colon, optional space, and optional word
 export const TokenAndTermRegexp = () =>
-  /(?:^|\s)(i[ns]?|s[iu]?[nb]?[cj]?e?c?t?|fr?o?m?|to?|ha?s?|be?f?o?r?e?|af?t?e?r?)(?::? ?$|: ?("[^"]*"?|[^\s]+))/gi;
+  /(^|\s)(i[ns]?|s[iu]?[nb]?[cj]?e?c?t?|fr?o?m?|to?|ha?s?|be?f?o?r?e?|af?t?e?r?)(?::? ?$|: ?("[^"]*"?|[^\s]+))/gi;
 
 export const LearnMoreURL =
   'https://foundry376.zendesk.com/hc/en-us/articles/115002212931-Search-with-advanced-Gmail-style-queries';
@@ -28,8 +28,7 @@ export const wrapInQuotes = s => `"${s.replace(/"/g, '')}"`;
 
 export const getThreadSuggestions = async (term, accountIds) => {
   let dbQuery = DatabaseStore.findAll(Thread)
-    .structuredSearch(SearchQueryParser.parse(`subject:"${term.replace(/"/g, '""')}"`))
-    .distinct()
+    .structuredSearch(SearchQueryParser.parse(`subject:${wrapInQuotes(term)}`))
     .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
     .limit(10);
 
@@ -111,12 +110,12 @@ export const TokenSuggestions = [
     description: 'an email subject',
     termSuggestions: [],
   },
-  {
-    token: 'has',
-    term: '',
-    description: 'attachment',
-    termSuggestions: ['attachment'],
-  },
+  // {
+  //   token: 'has',
+  //   term: '',
+  //   description: 'attachment',
+  //   termSuggestions: ['attachment'],
+  // },
 ];
 
 export const TokenSuggestionsForEmpty = TokenSuggestions.filter(t => !t.hidden);
@@ -127,14 +126,10 @@ export function getCurrentTokenAndTerm(query, insertionIndex) {
 
   let next = null;
   while ((next = regexp.exec(queryWithSpaces))) {
-    // the user didn't open the term value with a " and has typed a trailing space
-    if (!next[0].includes('"') && /\s/.test(query.substr(next.index + next[0].length))) {
-      continue;
-    }
     if (next.index <= insertionIndex && next.index + next[0].length >= insertionIndex) {
       return {
-        token: next[1],
-        term: (next[2] || '')
+        token: next[2],
+        term: (next[3] || '')
           .replace(/"$/, '')
           .replace(/^"/, '')
           .toLowerCase(),

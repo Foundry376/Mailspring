@@ -41,8 +41,44 @@ class ThreadSearchBar extends Component {
     }
   }
 
+  _initialQueryForPerspective() {
+    const { perspective } = this.props;
+
+    // When the inbox is focused we don't specify a folder scope. If the user
+    // wants to search just the inbox then they have to specify it explicitly.
+    if (perspective.starred) {
+      return 'is:starred ';
+    }
+    if (perspective.unread) {
+      return 'is:unread in:inbox ';
+    }
+    if (perspective.isInbox()) {
+      return '';
+    }
+    const rolesAndPaths = [
+      ...new Set(perspective.categories().map(c => c.role || wrapInQuotes(c.path))),
+    ];
+    if (rolesAndPaths.length > 1) {
+      return `(in:${rolesAndPaths.join(' OR in:')}) `;
+    } else if (rolesAndPaths.length === 1) {
+      return `in:${rolesAndPaths[0]} `;
+    } else {
+      return '';
+    }
+  }
+
   async _generateSuggestionsForQuery(query) {
-    const { token, term } = getCurrentTokenAndTerm(query, this._fieldEl.insertionIndex());
+    let insertionIndex = this._fieldEl.insertionIndex();
+
+    // Treat the initial query (eg: "in:starred AND ") as if it's
+    // not there, so the user sees the empty string case at first, etc.
+    const initialQuery = this._initialQueryForPerspective();
+    if (query.startsWith(initialQuery)) {
+      query = query.substr(initialQuery.length);
+      insertionIndex -= initialQuery.length;
+    }
+
+    const { token, term } = getCurrentTokenAndTerm(query, insertionIndex);
     const accountIds = this.props.perspective.accountIds;
 
     const promises = [];
@@ -115,6 +151,21 @@ class ThreadSearchBar extends Component {
     }
   }
 
+  _onFocus = e => {
+    this.setState({ focused: true });
+    if (this.props.query === '') {
+      this._onSearchQueryChanged(this._initialQueryForPerspective());
+      window.requestAnimationFrame(() => this._fieldEl.focus());
+    }
+  };
+
+  _onBlur = e => {
+    this.setState({ focused: false });
+    if (this.props.query === this._initialQueryForPerspective()) {
+      this._onSearchQueryChanged('');
+    }
+  };
+
   _onKeyDown = e => {
     const { suggestions, selected, selectedIdx } = this.state;
     const delta = { 40: 1, 38: -1 }[e.keyCode];
@@ -142,15 +193,22 @@ class ThreadSearchBar extends Component {
 
   _onChooseSuggestion = suggestion => {
     const { query } = this.props;
-    const { index, length } = getCurrentTokenAndTerm(query, this._fieldEl.insertionIndex());
 
     let nextQuery = null;
 
+    // If the user has the cursor inside an existing token, replace it. If the query ends
+    // in a space, append a new token. Otherwise replace the whole string.
+    let { index, length } = getCurrentTokenAndTerm(query, this._fieldEl.insertionIndex());
+    if (index === -1 && query.endsWith(' ')) {
+      index = query.length;
+      length = 0;
+    }
+
     if (suggestion.token) {
       nextQuery = [
-        query.substr(0, index),
+        query.substr(0, index).trim(),
         `${suggestion.token}:${suggestion.term}`,
-        query.substr(index + length),
+        query.substr(index + length).trim(),
       ]
         .filter(s => s.length)
         .join(' ');
@@ -198,12 +256,16 @@ class ThreadSearchBar extends Component {
     this._fieldEl.blur();
   };
 
-  _onClearSearchQuery = () => {
+  _onClearSearchQuery = e => {
     Actions.searchQuerySubmitted('');
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
   };
 
   _placeholder = () => {
-    if (this.props.perspective.isInbox()) {
+    if (this._initialQueryForPerspective() === '') {
       return 'Search all email';
     }
     return `Search ${this.props.perspective.name || ''}`;
@@ -214,7 +276,7 @@ class ThreadSearchBar extends Component {
     const { suggestions, selectedIdx } = this.state;
 
     const showPlaceholder = !this.state.focused && !query;
-    const showX = !!perspective.searchQuery;
+    const showX = this.state.focused || !!perspective.searchQuery;
 
     return (
       <div className={`thread-search-bar ${showPlaceholder ? 'placeholder' : ''}`}>
@@ -236,8 +298,8 @@ class ThreadSearchBar extends Component {
           ref={el => (this._fieldEl = el)}
           value={showPlaceholder ? this._placeholder() : query}
           onKeyDown={this._onKeyDown}
-          onFocus={() => this.setState({ focused: true })}
-          onBlur={() => this.setState({ focused: false })}
+          onFocus={this._onFocus}
+          onBlur={this._onBlur}
           onChange={this._onSearchQueryChanged}
         />
         {showX && (
@@ -245,7 +307,7 @@ class ThreadSearchBar extends Component {
             name="searchclear.png"
             className="search-accessory clear"
             mode={RetinaImg.Mode.ContentDark}
-            onClick={this._onClearSearchQuery}
+            onMouseDown={this._onClearSearchQuery}
           />
         )}
         {this.state.suggestions.length > 0 &&
