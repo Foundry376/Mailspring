@@ -16,6 +16,7 @@ class SearchQuerySubscription extends MutableQuerySubscription {
 
     this._connections = [];
     this._extDisposables = [];
+    this._searching = false;
 
     _.defer(() => this.performSearch());
   }
@@ -25,6 +26,7 @@ class SearchQuerySubscription extends MutableQuerySubscription {
   };
 
   performSearch() {
+    this._searching = true;
     this.performLocalSearch();
     this.performExtensionSearch();
   }
@@ -43,15 +45,19 @@ class SearchQuerySubscription extends MutableQuerySubscription {
       dbQuery = dbQuery.search(this._searchQuery);
     }
     dbQuery = dbQuery
+      .background()
       .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
       .limit(1000);
 
-    console.log(dbQuery.sql());
+    this.replaceQuery(dbQuery);
+  }
 
-    dbQuery.then(results => {
+  _createResultAndTrigger() {
+    super._createResultAndTrigger();
+    if (this._searching) {
+      this._searching = false;
       Actions.searchCompleted();
-      this.replaceQuery(dbQuery);
-    });
+    }
   }
 
   _addThreadIdsToSearch(ids = []) {

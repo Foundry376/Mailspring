@@ -261,7 +261,7 @@ export default class QuerySubscription {
     return DatabaseStore.findAll(this._query._klass, { id: missingIds });
   }
 
-  _createResultAndTrigger = () => {
+  _createResultAndTrigger() {
     const allCompleteModels = this._set.isComplete();
 
     const d = {};
@@ -300,5 +300,5 @@ export default class QuerySubscription {
       this._updateInFlight = false;
       this._processChangeRecords();
     }
-  };
+  }
 }
