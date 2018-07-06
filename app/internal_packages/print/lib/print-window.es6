@@ -9,6 +9,9 @@ export default class PrintWindow {
     // This script will create the print prompt when loaded. We can also call
     // print directly from this process, but inside print.js we can make sure to
     // call window.print() after we've cleaned up the dom for printing
+    const tmp = app.getPath('temp');
+    const tmpMessagesPath = path.join(tmp, 'print.messages.js');
+
     const scriptPath = path.join(__dirname, '..', 'static', 'print.js');
     const stylesPath = path.join(__dirname, '..', 'static', 'print-styles.css');
     const participantsHtml = participants
@@ -20,6 +23,7 @@ export default class PrintWindow {
     const content = `
       <html>
         <head>
+          <meta http-equiv="Content-Security-Policy" content="default-src * mailspring:; script-src 'self' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:;">
           <meta charset="utf-8">
           ${styleTags}
           <link rel="stylesheet" type="text/css" href="${stylesPath}">
@@ -40,15 +44,13 @@ export default class PrintWindow {
           </div>
           </div>
           ${htmlContent}
-          <script type="text/javascript">
-            window.printMessages = ${printMessages}
-          </script>
+          <script type="text/javascript" src="${tmpMessagesPath}"></script>
           <script type="text/javascript" src="${scriptPath}"></script>
         </body>
       </html>
     `;
 
-    this.tmpFile = path.join(app.getPath('temp'), 'print.html');
+    this.tmpFile = path.join(tmp, 'print.html');
     this.browserWin = new BrowserWindow({
       width: 800,
       height: 600,
@@ -57,6 +59,7 @@ export default class PrintWindow {
         nodeIntegration: false,
       },
     });
+    fs.writeFileSync(tmpMessagesPath, `window.printMessages = ${printMessages}`);
     fs.writeFileSync(this.tmpFile, content);
   }
 
