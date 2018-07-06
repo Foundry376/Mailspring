@@ -329,7 +329,7 @@ class ThreadSearchBar extends Component {
                   className={`suggestion ${selectedIdx === idx ? 'selected' : ''}`}
                   key={`${idx}`}
                 >
-                  {s.token && <span className="token">{s.token}: </span>}
+                  {s.token && <span className="suggestion-token">{s.token}: </span>}
                   {s.description}
                 </div>
               ))}

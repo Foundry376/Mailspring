@@ -60,7 +60,7 @@ export default class TokenizingContenteditable extends Component {
 
     const basicSpan = document.createElement('span');
     const tokenSpan = document.createElement('span');
-    tokenSpan.classList.add('token');
+    tokenSpan.classList.add('layer-token');
 
     const regexp = TokenAndTermRegexp();
     while ((m = regexp.exec(text))) {
@@ -87,9 +87,18 @@ export default class TokenizingContenteditable extends Component {
     this.props.onChange(value);
   };
 
+  onContextMenu = event => {
+    const sel = document.getSelection();
+    AppEnv.windowEventHandler.openSpellingMenuFor(sel.toString(), !sel.isCollapsed, {
+      onCorrect: correction => {
+        document.execCommand('insertText', false, correction);
+      },
+    });
+  };
+
   render() {
     return (
-      <div className="tokenizing-contenteditable">
+      <div className="tokenizing-contenteditable" onContextMenu={this.onContextMenu}>
         <div
           contentEditable
           spellCheck={false}
