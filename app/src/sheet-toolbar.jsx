@@ -157,7 +157,7 @@ class ToolbarMenuControl extends React.Component {
 
   _onOpenMenu = () => {
     const { applicationMenu } = remote.getGlobal('application');
-    applicationMenu.menu.popup();
+    applicationMenu.menu.popup({});
   };
 
   render() {

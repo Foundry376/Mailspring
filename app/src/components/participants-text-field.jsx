@@ -182,7 +182,7 @@ export default class ParticipantsTextField extends React.Component {
         click: () => this._remove([participant]),
       })
     );
-    menu.popup();
+    menu.popup({});
   };
 
   _onInputTrySubmit = (inputValue, completions = [], selectedItem) => {

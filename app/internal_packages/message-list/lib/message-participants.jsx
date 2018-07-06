@@ -63,7 +63,7 @@ export default class MessageParticipants extends React.Component {
         click: () => Actions.composeNewDraftToRecipient(contact),
       })
     );
-    menu.popup();
+    menu.popup({});
   };
 
   _renderFullContacts(contacts = []) {

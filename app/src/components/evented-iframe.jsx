@@ -445,7 +445,7 @@ class EventedIFrame extends React.Component {
     }
     // Services menu appears here automatically
 
-    menu.popup();
+    menu.popup({});
   };
 }
 

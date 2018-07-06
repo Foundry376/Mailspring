@@ -364,7 +364,7 @@ export default class WindowEventHandler {
         },
       })
     );
-    menu.popup();
+    menu.popup({});
   }
 
   showDevModeMessages() {

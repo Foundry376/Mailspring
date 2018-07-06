@@ -279,7 +279,7 @@ class OutlineViewItem extends Component {
         })
       );
     }
-    menu.popup();
+    menu.popup({});
   };
 
   // Renderers
