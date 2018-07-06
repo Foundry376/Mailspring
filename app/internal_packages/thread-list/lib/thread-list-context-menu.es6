@@ -52,7 +52,7 @@ export default class ThreadListContextMenu {
     return {
       label: `Search for ${from.email}`,
       click: () => {
-        Actions.searchQuerySubmitted(`from:"${from.email.replace('"', '""')}"`);
+        Actions.searchQuerySubmitted(`"${from.email.replace('"', '""')}"`);
       },
     };
   }

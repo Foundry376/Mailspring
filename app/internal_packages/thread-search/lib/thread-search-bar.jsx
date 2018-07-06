@@ -231,6 +231,9 @@ class ThreadSearchBar extends Component {
   };
 
   _onSearchQueryChanged = async query => {
+    if (query === this.props.query) {
+      return;
+    }
     Actions.searchQueryChanged(query);
     if (query === '') {
       this._onClearSearchQuery();
@@ -257,7 +260,11 @@ class ThreadSearchBar extends Component {
   };
 
   _onClearSearchQuery = e => {
-    Actions.searchQuerySubmitted('');
+    if (this.props.query !== '') {
+      Actions.searchQuerySubmitted('');
+    } else {
+      this._fieldEl.blur();
+    }
     if (e) {
       e.stopPropagation();
       e.preventDefault();
