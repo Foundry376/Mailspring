@@ -464,8 +464,8 @@ class AttachmentStore extends MailspringStore {
       await this._copyToInternalPath(filePath, this.pathForFile(file));
 
       await this._applySessionChanges(headerMessageId, files => {
-        if (files.reduce((c, f) => c + f.size, 0) >= 15 * 1000000) {
-          throw new Error(`Can't file more than 15MB of attachments`);
+        if (files.reduce((c, f) => c + f.size, 0) >= 25 * 1000000) {
+          throw new Error(`Sorry, you can't attach more than 25MB of attachments`);
         }
         return files.concat([file]);
       });
