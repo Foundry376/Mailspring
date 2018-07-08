@@ -40,5 +40,6 @@
   removeScrollClasses();
   rebuildMessages(messageNodes, window.printMessages);
 
+  document.getElementById('print-button').addEventListener('click', continueAndPrint);
   window.continueAndPrint = continueAndPrint;
 })();

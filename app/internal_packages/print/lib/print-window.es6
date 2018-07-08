@@ -30,7 +30,7 @@ export default class PrintWindow {
         </head>
         <body>
           <div id="print-header">
-            <div onClick="continueAndPrint()" id="print-button">
+            <div id="print-button">
               Print
             </div>
             <div class="logo-wrapper">
@@ -59,6 +59,7 @@ export default class PrintWindow {
         nodeIntegration: false,
       },
     });
+    this.browserWin.setMenu(null);
     fs.writeFileSync(tmpMessagesPath, `window.printMessages = ${printMessages}`);
     fs.writeFileSync(this.tmpFile, content);
   }
