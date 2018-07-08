@@ -14,6 +14,15 @@ Promise.promisifyAll(fs);
 
 const mkdirpAsync = Promise.promisify(mkdirp);
 
+const fileAcessibleAtPath = async filePath => {
+  try {
+    await fs.accessAsync(filePath, fs.F_OK);
+    return true;
+  } catch (ex) {
+    return false;
+  }
+};
+
 // TODO make this list more exhaustive
 const NonPreviewableExtensions = [
   'jpg',
@@ -99,12 +108,23 @@ class AttachmentStore extends MailspringStore {
     return this._filePreviewPaths[fileId];
   }
 
-  // Returns a promise with a Download object, allowing other actions to be
-  // daisy-chained to the end of the download operation.
-  async _ensureFile(file) {
-    // If we ever support downloading files individually again, code goes back here!
-    this._generatePreview(file);
-    return file;
+  async _prepareAndResolveFilePath(file) {
+    let filePath = this.pathForFile(file);
+
+    if (await fileAcessibleAtPath(filePath)) {
+      this._generatePreview(file);
+    } else {
+      // try to find the file in the directory (it should be the only file)
+      // this allows us to handle obscure edge cases where the sync engine
+      // the file with an altered name.
+      const dir = path.dirname(filePath);
+      const items = fs.readdirSync(dir).filter(i => i !== '.DS_Store');
+      if (items.length === 1) {
+        filePath = path.join(dir, items[0]);
+      }
+    }
+
+    return filePath;
   }
 
   async _generatePreview(file) {
@@ -124,12 +144,7 @@ class AttachmentStore extends MailspringStore {
     const filePath = this.pathForFile(file);
     const previewPath = `${filePath}.png`;
 
-    if (!await this._hasAccess(filePath)) {
-      // If the file doesn't exist, ignore the error.
-      return Promise.resolve();
-    }
-
-    if (await this._hasAccess(previewPath)) {
+    if (await fileAcessibleAtPath(previewPath)) {
       // If the preview file already exists, set our state and bail
       this._filePreviewPaths[file.id] = previewPath;
       this.trigger();
@@ -164,32 +179,11 @@ class AttachmentStore extends MailspringStore {
     });
   }
 
-  async _hasAccess(filePath) {
-    try {
-      await fs.accessAsync(filePath, fs.F_OK);
-      return true;
-    } catch (ex) {
-      return false;
-    }
-  }
-
-  // Returns a promise that resolves with true or false. True if the file has
-  // been downloaded, false if it should be downloaded.
-  //
-  async _checkForDownloadedFile(file) {
-    try {
-      const stats = await fs.statAsync(this.pathForFile(file));
-      return stats.size >= file.size;
-    } catch (err) {
-      return false;
-    }
-  }
-
   // Section: Retrieval of Files
 
   _fetch = file => {
     return (
-      this._ensureFile(file)
+      this._prepareAndResolveFilePath(file)
         .catch(this._catchFSErrors)
         // Passively ignore
         .catch(() => {})
@@ -197,17 +191,17 @@ class AttachmentStore extends MailspringStore {
   };
 
   _fetchAndOpen = file => {
-    return this._ensureFile(file)
-      .then(() => shell.openItem(this.pathForFile(file)))
+    return this._prepareAndResolveFilePath(file)
+      .then(filePath => shell.openItem(filePath))
       .catch(this._catchFSErrors)
       .catch(error => {
         return this._presentError({ file, error });
       });
   };
 
-  _writeToExternalPath = (file, savePath) => {
+  _writeToExternalPath = (filePath, savePath) => {
     return new Promise((resolve, reject) => {
-      const stream = fs.createReadStream(this.pathForFile(file));
+      const stream = fs.createReadStream(filePath);
       stream.pipe(fs.createWriteStream(savePath));
       stream.on('error', err => reject(err));
       stream.on('end', () => resolve());
@@ -231,8 +225,8 @@ class AttachmentStore extends MailspringStore {
         actualSavePath += defaultExtension;
       }
 
-      this._ensureFile(file)
-        .then(download => this._writeToExternalPath(download, actualSavePath))
+      this._prepareAndResolveFilePath(file)
+        .then(filePath => this._writeToExternalPath(filePath, actualSavePath))
         .then(() => {
           if (AppEnv.savedState.lastDownloadDirectory !== newDownloadDirectory) {
             AppEnv.savedState.lastDownloadDirectory = newDownloadDirectory;
@@ -277,8 +271,8 @@ class AttachmentStore extends MailspringStore {
         const lastSavePaths = [];
         const savePromises = files.map(file => {
           const savePath = path.join(dirPath, file.safeDisplayName());
-          return this._ensureFile(file)
-            .then(download => this._writeToExternalPath(download, savePath))
+          return this._prepareAndResolveFilePath(file)
+            .then(filePath => this._writeToExternalPath(filePath, savePath))
             .then(() => lastSavePaths.push(savePath));
         });
 
