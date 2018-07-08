@@ -5,7 +5,7 @@ import querystring from 'querystring';
 
 const FB_SHARE = (
   <img
-    src="data:image/gif;base64,R0lGODlhGgAaAJEAAP///8XO31pzqT9bnSH5BAAHAP8ALAAAAAAaABoAAAJOxI6pi8YPo5xSWEuXCKB3kSGb54HhwJHfOZDBG5iZQMos7bEJ3ukiqeOpOoHZ0GU8EpNKW+QivASBvoGwaqX6rtVot/YthVcLxxOsABQAADs="
+    src="https://www.getmailspring.com/signature-assets/fb.gif"
     width="13"
     height="13"
     alt="Facebook"
@@ -13,7 +13,7 @@ const FB_SHARE = (
 );
 const TWITTER_SHARE = (
   <img
-    src="data:image/gif;base64,R0lGODlhGgAaALMAAACr7oDS8iK17cHp+FXC7ZbZ89vy+hKu7Tm77vD5/K3h9YjV8l3H8Mzs+bjl9v///yH5BAEHAA8ALAAAAAAaABoAAASl8MlJq7046/0aQURDJZLBBQKgCstjLIp7OBqj3isgPImixhcHbngoBAY+FYNUIQyfsQauyJQgnrfDYJKaMhSNxBULQFAM3eeBrDJLFAQnm02YSOfzAGWMx24nBmt9QzsVBgyCgwB6FQ4MaX0HVRMJiYMtFw2Wc24YCQEIm4STGAWiNwImGQ0LkE8IqhatkQUbA6CiAgQKpBk9DAgCuguxHMbHyBkRADs="
+    src="https://www.getmailspring.com/signature-assets/twitter.gif"
     width="13"
     height="13"
     alt="Twitter"
