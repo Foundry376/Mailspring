@@ -11,7 +11,7 @@ import ActivityActions from './activity-actions';
 import ActivityDataSource from './activity-data-source';
 import { configForPluginId, LINK_TRACKING_ID, OPEN_TRACKING_ID } from './plugin-helpers';
 
-function pluckByEmail(recipients, email) {
+export function pluckByEmail(recipients, email) {
   if (email) {
     return recipients.find(r => r.email === email);
   } else if (recipients.length === 1) {
@@ -126,7 +126,7 @@ class ActivityEventStore extends MailspringStore {
         this._appendActionsForMessage(message, LINK_TRACKING_ID, cb => {
           for (const link of linkMetadata.links) {
             for (const click of link.click_data) {
-              cb(click, link.title);
+              cb(click, link.title || link.url);
             }
           }
         });
