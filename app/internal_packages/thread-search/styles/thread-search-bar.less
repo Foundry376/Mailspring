@@ -1,11 +1,127 @@
 @import 'ui-variables';
 @import 'ui-mixins';
 
-.nylas-search-bar.thread-search-bar {
+@token-color: @accent-primary;
+
+.thread-search-bar {
   position: relative;
   order: -100;
   overflow: visible;
   z-index: 100;
   width: 450px;
+  height: 23px;
+  font-weight: 400;
+  line-height: 23px;
+  background: @input-bg;
+  color: @text-color;
   margin-top: (38px - 23px) / 2;
+  padding-left: @padding-xs-horizontal;
+  padding-right: @padding-xs-horizontal;
+  border-radius: @border-radius-base;
+  box-shadow: @shadow-border;
+  display: flex;
+  align-items: center;
+
+  &:focus {
+    border: 0;
+    border-radius: 0;
+    box-shadow: 0 0 0 2px darken(@input-border-color, 20%);
+  }
+  &.placeholder {
+    .tokenizing-contenteditable .layer-tokens {
+      color: @text-color-very-subtle;
+    }
+  }
+  .search-accessory {
+    width: 15px;
+    height: 15px;
+    object-fit: contain;
+    zoom: 1 !important;
+    &.clear {
+      color: @text-color-subtle;
+      width: 21px;
+      height: 21px;
+    }
+  }
+
+  .suggestions {
+    left: 0;
+    top: 23px;
+    width: 100%;
+    position: absolute;
+    background: @input-bg;
+    border-bottom-left-radius: @border-radius-base;
+    border-bottom-right-radius: @border-radius-base;
+    box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
+      0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 4px 7px rgba(0, 0, 0, 0.15);
+
+    padding-top: @padding-small-vertical;
+
+    .suggestion {
+      color: @text-color-very-subtle;
+      padding: @padding-small-vertical @padding-small-horizontal;
+
+      &.selected {
+        background-color: @accent-primary;
+        color: @text-color-inverse;
+        .suggestion-token {
+          color: @text-color-inverse;
+        }
+      }
+      &:hover:not(.selected) {
+        background-color: fade(@black, 3%);
+      }
+      .suggestion-token {
+        color: @token-color;
+        font-weight: 500;
+      }
+    }
+
+    .footer {
+      margin-top: @padding-small-vertical;
+      color: @text-color-subtle;
+      line-height: 1.4em;
+      padding: @padding-base-vertical @padding-small-horizontal;
+      background-color: fade(@black, 3%);
+      border-top: 1px solid fade(@black, 6%);
+      font-size: @font-size-small;
+    }
+  }
+
+  .tokenizing-contenteditable {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    overflow-x: scroll;
+    white-space: nowrap;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    .layer {
+      top: 0;
+      left: 0;
+      bottom: 0;
+      min-width: 100%;
+      position: absolute;
+      padding-left: @padding-xs-horizontal;
+      padding-right: @padding-xs-horizontal;
+    }
+
+    .layer-tokens {
+      color: @text-color;
+      user-select: none;
+      pointer-events: none;
+      z-index: 2;
+      .layer-token {
+        color: @token-color;
+        line-height: 1.1em;
+      }
+    }
+    .layer-text {
+      z-index: 1;
+      caret-color: @text-color;
+      color: transparent;
+    }
+  }
 }

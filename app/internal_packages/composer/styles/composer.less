@@ -24,7 +24,7 @@
 
 .RichEditor-root blockquote {
   border-left: 2px solid #eee;
-  color: #500050;
+  color: mix(@text-color, purple, 50%);
   margin: 0;
   padding: 0 0 0 10px;
   -webkit-margin-after: initial !important;
@@ -33,6 +33,10 @@
   -webkit-margin-end: initial !important;
 }
 
+.RichEditor-root .link {
+  color: @text-color-link;
+  text-decoration: underline;
+}
 .RichEditor-root .custom-block-selected,
 .RichEditor-root .uneditable.custom-block-selected {
   border: 1px dashed @text-color;
@@ -56,7 +60,7 @@
     }
   }
   blockquote {
-    color: #500050;
+    color: mix(@text-color, purple, 50%);
   }
   &:hover {
     border: 1px dashed @border-color-divider;
@@ -71,14 +75,20 @@
   font-size: 14px;
   user-select: none;
   position: relative;
+
+  .floating-container {
+    border-bottom: 1px solid @border-color-divider;
+    z-index: 2;
+    width: 100%;
+    min-height: 29px;
+  }
+
   .inner {
+    background: @background-primary;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    background: @background-primary;
-    border-bottom: 1px solid @border-color-divider;
-    z-index: 2;
     width: 100%;
   }
 
@@ -141,11 +151,15 @@
     flex: 1;
     flex-shrink: 0;
     max-width: 32px;
+    text-align: center;
 
     .dropdown {
       padding: 5px;
       display: flex;
       flex-direction: row;
+      button {
+        max-width: 50px;
+      }
     }
   }
 }

@@ -65,6 +65,9 @@ export default class Category extends Model {
         return decoded.substr(prefix.length + 1); // + delimiter
       }
     }
+    if (decoded.startsWith('Mailspring/') || decoded.startsWith('Mailspring.')) {
+      return decoded.substr(11);
+    }
     if (decoded === 'INBOX') {
       return 'Inbox';
     }

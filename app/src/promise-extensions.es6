@@ -112,6 +112,10 @@ async function each(items, fn) {
   return results;
 }
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function props(obj) {
   const awaitables = [];
   const keys = Object.keys(obj);
@@ -149,6 +153,7 @@ global.Promise.prototype.isResolved = isResolved;
 global.Promise.prototype.isRejected = isRejected;
 
 global.Promise.each = each;
+global.Promise.delay = delay;
 global.Promise.props = props;
 global.Promise.promisify = promisify;
 global.Promise.promisifyAll = promisifyAll;

@@ -19,7 +19,7 @@ const ThreadListTimestamp = function({ thread }) {
   let rawTimestamp = FocusedPerspectiveStore.current().isSent()
     ? thread.lastMessageSentTimestamp
     : thread.lastMessageReceivedTimestamp;
-  const timestamp = DateUtils.shortTimeString(rawTimestamp);
+  const timestamp = rawTimestamp ? DateUtils.shortTimeString(rawTimestamp) : 'No Date';
   return <span className="timestamp">{timestamp}</span>;
 };
 
@@ -54,8 +54,10 @@ const getSnippet = function(thread) {
   if (messages.length === 0) {
     return thread.snippet;
   }
-
-  return messages[messages.length - 1].snippet;
+  for (let ii = messages.length - 1; ii >= 0; ii--) {
+    if (messages[ii].snippet) return messages[ii].snippet;
+  }
+  return null;
 };
 
 const c1 = new ListTabular.Column({

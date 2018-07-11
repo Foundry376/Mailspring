@@ -273,6 +273,7 @@ class DraftsMailboxPerspective extends MailboxPerspective {
 class StarredMailboxPerspective extends MailboxPerspective {
   constructor(accountIds) {
     super(accountIds);
+    this.starred = true;
     this.name = 'Starred';
     this.iconName = 'starred.png';
   }
@@ -554,6 +555,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
 class UnreadMailboxPerspective extends CategoryMailboxPerspective {
   constructor(categories) {
     super(categories);
+    this.unread = true;
     this.name = 'Unread';
     this.iconName = 'unread.png';
   }

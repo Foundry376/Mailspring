@@ -217,9 +217,17 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
       const tipRect = this.tipNode.getBoundingClientRect();
       const tipFocusCircleRadius = 64;
       const rect = ReactDOM.findDOMNode(this).getBoundingClientRect();
-      const rectCX = Math.round(rect.left + rect.width / 2 - tipFocusCircleRadius);
-      const rectCY = Math.round(rect.top + rect.height / 2 - tipFocusCircleRadius);
-      TipsBackgroundEl.style.webkitMaskPosition = `0 0, ${rectCX}px ${rectCY}px`;
+      if (rect.width > 250 || rect.height > 250) {
+        // Focus the gradient on the center of the pusling dot because the element is too large
+        const rectCX = Math.round(tipRect.left + tipRect.width / 2 - tipFocusCircleRadius);
+        const rectCY = Math.round(tipRect.top + tipRect.height / 2 - tipFocusCircleRadius);
+        TipsBackgroundEl.style.webkitMaskPosition = `0 0, ${rectCX}px ${rectCY}px`;
+      } else {
+        // Focus the gradient on the center of the element being explained
+        const rectCX = Math.round(rect.left + rect.width / 2 - tipFocusCircleRadius);
+        const rectCY = Math.round(rect.top + rect.height / 2 - tipFocusCircleRadius);
+        TipsBackgroundEl.style.webkitMaskPosition = `0 0, ${rectCX}px ${rectCY}px`;
+      }
 
       Actions.openPopover(
         <TipPopoverContents

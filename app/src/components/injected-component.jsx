@@ -176,7 +176,7 @@ export default class InjectedComponent extends React.Component {
     });
     let className = this.props.className;
     if (this.state.visible) {
-      className += ' registered-region-visible';
+      className += ' injected-region-visible';
     }
 
     const Component = this.state.component;

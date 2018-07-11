@@ -57,11 +57,24 @@ export const BLOCK_CONFIG = {
     type: 'div',
     tagNames: ['div', 'br', 'p'],
     render: ({ node, attributes, children, targetIsHTML }) => {
+      let explicitHTMLAttributes = undefined;
+
+      if (targetIsHTML) {
+        explicitHTMLAttributes = {};
+        if (node.isLeafBlock() && node.getTextDirection() === 'rtl') {
+          explicitHTMLAttributes.dir = 'rtl';
+        }
+      }
+
       if (targetIsHTML && nodeIsEmpty(node)) {
         return <br {...attributes} />;
       }
       return (
-        <div {...attributes} className={node.data.className || node.data.get('className')}>
+        <div
+          {...attributes}
+          {...explicitHTMLAttributes}
+          className={node.data.className || node.data.get('className')}
+        >
           {children}
         </div>
       );
@@ -182,21 +195,23 @@ const rules = [
 
       // div elements that are entirely empty and have no meaningful-looking styles applied
       // would probably just add extra whitespace
-      if (tagName === 'div' && !el.hasChildNodes()) {
+      let empty = !el.hasChildNodes();
+      if (tagName === 'div' && empty) {
         const s = (el.getAttribute('style') || '').toLowerCase();
         if (!s.includes('background') && !s.includes('margin') && !s.includes('padding')) {
           return;
         }
       }
+
       // return block
       if (config) {
+        const className = el.getAttribute('class');
+        const data = className ? { className } : undefined;
         return {
           object: 'block',
           type: config.type,
           nodes: next(el.childNodes),
-          data: {
-            className: el.getAttribute('class'),
-          },
+          data: data,
         };
       }
     },
@@ -329,6 +344,21 @@ export default [
   SoftBreak({
     onlyIn: [BLOCK_CONFIG.code.type],
   }),
+
+  // Pressing backspace when you're at the top of the document should not delete down
+  {
+    onKeyDown: function onKeyDown(event, change) {
+      if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
+        return;
+      }
+      const { focusText, focusOffset, document } = change.value;
+      const firstText = document.getFirstText();
+      if (focusOffset === 0 && focusText && firstText && firstText.key === focusText.key) {
+        event.preventDefault();
+        return true;
+      }
+    },
+  },
 
   // Return breaks you out of blockquotes completely
   {

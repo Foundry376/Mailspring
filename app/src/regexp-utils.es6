@@ -17,11 +17,22 @@ const RegExpUtils = {
   // See http://tools.ietf.org/html/rfc5322#section-3.4 and
   // https://tools.ietf.org/html/rfc6531 and
   // https://en.wikipedia.org/wiki/Email_address#Local_part
-  emailRegex() {
-    return new RegExp(
-      `([a-z.A-Z${UnicodeEmailChars}0-9!#$%&\\'*+\\-/=?^_\`{|}~]+@[A-Za-z${UnicodeEmailChars}0-9.-]+\\.[A-Za-z]{2,63})`,
-      'g'
-    );
+  emailRegex({ requireStartOrWhitespace, matchTailOfString } = {}) {
+    const parts = [
+      `(`,
+      `[a-z.A-Z${UnicodeEmailChars}0-9!#$%&\\'*+\\-/=?^_\`{|}~]+`,
+      '@',
+      `[A-Za-z${UnicodeEmailChars}0-9.-]+\\.[A-Za-z]{2,63}`,
+      `)`,
+    ];
+    if (requireStartOrWhitespace) {
+      parts.unshift('(?:^|\\s{1})');
+    }
+    if (matchTailOfString) {
+      parts.push('$');
+    }
+
+    return new RegExp(parts.join(''), 'g');
   },
 
   // http://stackoverflow.com/questions/16631571/javascript-regular-expression-detect-all-the-phone-number-from-the-page-source
@@ -145,11 +156,11 @@ const RegExpUtils = {
       '(',
       // URL components
       // (last character must not be puncation, hence two groups)
-      '(?:[\\+=~%\\/\\.\\w\\-_@]*[\\+~%\\/\\w\\-_]+)?',
+      '(?:[\\+=~%\\/\\.\\w\\-_@]*[\\+~%\\/\\w\\-:_]+)?',
 
       // optionally followed by: a query string and/or a #location
       // (last character must not be puncation, hence two groups)
-      "(?:(\\?[\\-\\+=&;%@\\.\\w_\\#]*[\\#\\-\\+=&;%@\\w_\\/]+)?#?(?:['\\$\\&\\(\\)\\*\\+,;=\\.\\!\\/\\\\\\w%-]*[\\/\\\\\\w]+)?)?",
+      "(?:(\\?[\\-\\+=&;%@\\.\\w_\\#]*[\\#\\-\\+=&;%@\\w_\\/]+)?#?(?:['\\$\\&\\(\\)\\*\\+,;=\\.\\!\\/\\\\\\w%-?]*[\\/\\\\\\w]+)?)?",
       ')?',
       ')',
     ];
@@ -186,6 +197,10 @@ const RegExpUtils = {
   // 5. the closing tag
   urlLinkTagRegex() {
     return new RegExp(/(<a.*?href\s*?=\s*?['"])((?!mailto).+?)(['"].*?>)([\s\S]*?)(<\/a>)/gim);
+  },
+
+  mailspringSignatureRegex() {
+    return /<signature id="([A-Za-z0-9-/\\]+)">[^]*<\/signature>/;
   },
 
   // https://regex101.com/r/zG7aW4/3

@@ -12,6 +12,37 @@ import moment from 'moment-timezone';
 
 import ParticipantProfileDataSource from './participant-profile-data-source';
 
+class TimeInTimezone extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { tick: 0 };
+  }
+
+  componentDidMount() {
+    this.scheduleTick();
+  }
+
+  componentWillUnmount() {
+    if (this._timer) clearInterval(this._timer);
+  }
+
+  scheduleTick = () => {
+    // schedules for the next minute change each minute
+    this._timer = setTimeout(() => {
+      this.setState({ tick: this.state.tick + 1 }, this.scheduleTick);
+    }, 60000 - Date.now() % 60000);
+  };
+
+  render() {
+    return (
+      <strong>
+        {`Currently ${moment()
+          .tz(this.props.timeZone)
+          .format('h:mma')}`}
+      </strong>
+    );
+  }
+}
 class ProfilePictureOrColorBox extends React.Component {
   static propTypes = {
     loading: PropTypes.bool,
@@ -341,11 +372,7 @@ export default class SidebarParticipantProfile extends React.Component {
               timeZone && (
                 <span>
                   {`${timeZone.replace('_', ' ')} - `}
-                  <strong>
-                    {`Currently ${moment()
-                      .tz(timeZone)
-                      .format('h:MMa')}`}
-                  </strong>
+                  <TimeInTimezone timeZone={timeZone} />
                 </span>
               )
             }

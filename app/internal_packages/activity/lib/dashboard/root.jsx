@@ -71,6 +71,27 @@ class RootWithTimespan extends React.Component {
     this._mounted = false;
   }
 
+  async _forEachMessageIn(accountIds, startUnix, endUnix, callback) {
+    let chunkStartUnix = startUnix;
+    while (true) {
+      const messages = await this._onFetchChunk(accountIds, chunkStartUnix, endUnix);
+      if (!this._mounted) {
+        return;
+      }
+      for (const message of messages) {
+        const messageUnix = message.date.getTime() / 1000;
+        chunkStartUnix = Math.max(chunkStartUnix, messageUnix);
+        if (message.draft) {
+          continue;
+        }
+        await callback(message, messageUnix);
+      }
+      if (messages.length < CHUNK_SIZE) {
+        break;
+      }
+    }
+  }
+
   _onComputeMetrics = async () => {
     const metricsComputeStarted = Date.now();
 
@@ -89,79 +110,63 @@ class RootWithTimespan extends React.Component {
     let linkTrackingTriggered = 0;
     const threadStats = {};
 
-    let chunkStartUnix = startUnix;
-    while (true) {
-      const messages = await this._onFetchChunk(accountIds, chunkStartUnix, endUnix);
-      if (!this._mounted) {
+    await this._forEachMessageIn(accountIds, startUnix, endUnix, (message, messageUnix) => {
+      const dayIdx = Math.floor((messageUnix - startUnix) / dayUnix);
+      if (dayIdx > days - 1) {
         return;
       }
-      for (const message of messages) {
-        if (message.draft) {
-          continue;
+
+      // Received and Sent Metrics
+      if (message.isFromMe()) {
+        sentTotal += 1;
+        sentByDay[dayIdx] += 1;
+
+        if (threadStats[message.threadId] === undefined) {
+          threadStats[message.threadId] = {
+            outbound: true,
+            subject: message.subject,
+            tracked: false,
+            hasReply: false,
+            opened: false,
+            clicked: false,
+          };
         }
-        const messageUnix = message.date.getTime() / 1000;
-        chunkStartUnix = Math.max(chunkStartUnix, messageUnix);
-
-        const dayIdx = Math.floor((messageUnix - startUnix) / dayUnix);
-        if (dayIdx > days - 1) {
-          continue;
-        }
-
-        // Received and Sent Metrics
-        if (message.isFromMe()) {
-          sentTotal += 1;
-          sentByDay[dayIdx] += 1;
-
-          if (threadStats[message.threadId] === undefined) {
-            threadStats[message.threadId] = {
-              outbound: true,
-              subject: message.subject,
-              tracked: false,
-              hasReply: false,
-              opened: false,
-              clicked: false,
-            };
-          }
+      } else {
+        receivedByDay[dayIdx] += 1;
+        if (threadStats[message.threadId]) {
+          threadStats[message.threadId].hasReply = true;
         } else {
-          receivedByDay[dayIdx] += 1;
-          if (threadStats[message.threadId]) {
-            threadStats[message.threadId].hasReply = true;
-          } else {
-            threadStats[message.threadId] = {
-              outbound: false,
-            };
-          }
-        }
-
-        // Time of Day Metrics
-        const hourIdx = message.date.getHours();
-        receivedTimeOfDay[hourIdx] += 1;
-
-        // Link and Open Tracking Metrics
-        const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
-        if (openM) {
-          threadStats[message.threadId].tracked = true;
-          openTrackingEnabled += 1;
-          if (openM.open_count > 0) {
-            threadStats[message.threadId].opened = true;
-            openTrackingTriggered += 1;
-          }
-        }
-        const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
-        if (linkM && linkM.tracked && linkM.links instanceof Array) {
-          threadStats[message.threadId].tracked = true;
-          linkTrackingEnabled += 1;
-          if (linkM.links.some(l => l.click_count > 0)) {
-            threadStats[message.threadId].clicked = true;
-            linkTrackingTriggered += 1;
-          }
+          threadStats[message.threadId] = {
+            outbound: false,
+          };
         }
       }
 
-      if (messages.length < CHUNK_SIZE) {
-        break;
+      // Time of Day Metrics
+      const hourIdx = message.date.getHours();
+      receivedTimeOfDay[hourIdx] += 1;
+
+      // Link and Open Tracking Metrics
+      const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
+      if (openM) {
+        threadStats[message.threadId].tracked = true;
+        openTrackingEnabled += 1;
+        if (openM.open_count > 0) {
+          threadStats[message.threadId].opened = true;
+          openTrackingTriggered += 1;
+        }
       }
-    }
+      const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
+      if (linkM && linkM.tracked && linkM.links instanceof Array) {
+        threadStats[message.threadId].tracked = true;
+        linkTrackingEnabled += 1;
+        if (linkM.links.some(l => l.click_count > 0)) {
+          threadStats[message.threadId].clicked = true;
+          linkTrackingTriggered += 1;
+        }
+      }
+      return;
+    });
 
     const outboundThreadStats = Object.values(threadStats).filter(stats => stats.outbound);
 
@@ -254,64 +259,55 @@ class RootWithTimespan extends React.Component {
       if (!filepath) {
         return;
       }
-      const ws = fs.createWriteStream(filepath);
-      const esc = cell => '"' + `${cell}`.replace(/"/g, '""') + '"';
 
       const { timespan: { startDate, endDate }, accountIds } = this.props;
-      const startUnix = startDate.unix();
-      const endUnix = endDate.unix();
-      let chunkStartUnix = startUnix;
+      const esc = cell => '"' + `${cell}`.replace(/"/g, '""') + '"';
+      const ws = fs.createWriteStream(filepath);
+
+      ws.on('error', err => {
+        AppEnv.showErrorDialog({
+          title: 'Export Failed',
+          message:
+            `Mailspring was unable to write to the file location you specified (${filepath}).` +
+            `Try choosing another location.\n\n${err.toString()}`,
+        });
+        return;
+      });
 
       ws.write('Sent,From,To,Cc,Bcc,Date,Subject,Opens,Clicks\n');
 
-      while (true) {
-        const messages = await this._onFetchChunk(accountIds, chunkStartUnix, endUnix);
-        if (!this._mounted) {
-          return;
-        }
+      await this._forEachMessageIn(accountIds, startDate.unix(), endDate.unix(), message => {
+        let sent = 'false';
+        let opens = '';
+        let clicks = '';
 
-        for (const message of messages) {
-          const messageUnix = message.date.getTime() / 1000;
-          chunkStartUnix = Math.max(chunkStartUnix, messageUnix);
-
-          if (message.draft) {
-            continue;
+        if (message.isFromMe()) {
+          sent = 'true';
+          opens = 'off';
+          clicks = 'off';
+          const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
+          if (openM) {
+            opens = openM.open_count;
           }
 
-          let sent = 'false';
-          let opens = '';
-          let clicks = '';
-
-          if (message.isFromMe()) {
-            sent = 'true';
-            opens = 'off';
-            clicks = 'off';
-            const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
-            if (openM) {
-              opens = openM.open_count;
-            }
-
-            const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
-            if (linkM && linkM.tracked && linkM.links instanceof Array) {
-              clicks = linkM.links.reduce((s, l) => s + l.click_count, 0);
-            }
+          const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
+          if (linkM && linkM.tracked && linkM.links instanceof Array) {
+            clicks = linkM.links.reduce((s, l) => s + l.click_count, 0);
           }
+        }
 
-          ws.write(
-            `${esc(sent)},` +
-              `${esc(message.from.join(', '))},` +
-              `${esc(message.to.join(', '))},` +
-              `${esc(message.cc.join(', '))},` +
-              `${esc(message.bcc.join(', '))},` +
-              `${esc(message.date)},` +
-              `${esc(message.subject)},` +
-              `${esc(opens)},${esc(clicks)}\n`
-          );
-        }
-        if (messages.length < CHUNK_SIZE) {
-          break;
-        }
-      }
+        const line =
+          `${esc(sent)},` +
+          `${esc(message.from.join(', '))},` +
+          `${esc(message.to.join(', '))},` +
+          `${esc(message.cc.join(', '))},` +
+          `${esc(message.bcc.join(', '))},` +
+          `${esc(message.date)},` +
+          `${esc(message.subject)},` +
+          `${esc(opens)},${esc(clicks)}\n`;
+
+        return new Promise(resolve => ws.write(line, resolve));
+      });
       ws.close();
     });
   };

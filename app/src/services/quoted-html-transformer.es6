@@ -47,7 +47,7 @@ class QuotedHTMLTransformer {
     }
 
     for (const el of quoteStringDetector(doc)) {
-      if (el) {
+      if (el && el !== doc.body) {
         el.remove();
       }
     }

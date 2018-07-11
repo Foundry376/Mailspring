@@ -15,12 +15,12 @@ export default class OpenTrackingComposerExtension extends ComposerExtension {
     }
 
     // insert a tracking pixel <img> into the message
-    const q = recipient ? `?recipient=${encodeURIComponent(recipient.email)}` : '';
+    const q = recipient ? `?recipient=${encodeURIComponent(btoa(recipient.email))}` : '';
     const serverUrl = `${PLUGIN_URL}/open/${draft.headerMessageId}${q}`;
     const imgFragment = document
       .createRange()
       .createContextualFragment(
-        `<img class="mailspring-open" width="0" height="0" style="border:0; width:0; height:0;" src="${serverUrl}">`
+        `<img class="mailspring-open" alt="Open Tracking" width="0" height="0" style="border:0; width:0; height:0;" src="${serverUrl}">`
       );
     const beforeEl = draftBodyRootNode.querySelector('.gmail_quote');
     if (beforeEl) {

@@ -23,8 +23,7 @@
     {
       "label": "&View",
       "submenu": [
-        { "type": "separator", "id": "mailbox-navigation"},
-        { "label": "Go to Inbox", "command": "navigation:go-to-inbox" },
+        { "label": "Go to Inbox", "command": "navigation:go-to-inbox", "id": "first" },
         { "label": "Go to Starred", "command": "navigation:go-to-starred" },
         { "label": "Go to Sent", "command": "navigation:go-to-sent" },
         { "label": "Go to Drafts", "command": "navigation:go-to-drafts" },

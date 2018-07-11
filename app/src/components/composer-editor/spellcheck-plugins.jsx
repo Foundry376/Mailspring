@@ -36,7 +36,13 @@ function renderMark(props) {
   if (mark.type === MISSPELLED_TYPE) {
     return (
       <span
-        onMouseDown={() => {
+        onMouseDown={event => {
+          // handle only ctrl click or right click (button = 2)
+          if (!event.metaKey && !event.ctrlKey && event.button !== 2) {
+            return;
+          }
+          event.preventDefault();
+          // select the entire word so that the contextual menu offers spelling suggestions
           const { editor: { onChange, value }, node, offset, text } = props;
           onChange(
             value.change().select(
@@ -45,6 +51,7 @@ function renderMark(props) {
                 anchorOffset: offset,
                 focusKey: node.key,
                 focusOffset: offset + text.length,
+                isFocused: true,
               })
             )
           );
@@ -225,7 +232,9 @@ function onChange(change, editor) {
   if (timer && now - timerStart < 200) {
     return;
   }
-
+  if (editor.state.isComposing) {
+    return;
+  }
   onSpellcheckFocusedNode(change);
 
   timerStart = now;

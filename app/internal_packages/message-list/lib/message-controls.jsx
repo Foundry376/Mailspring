@@ -91,7 +91,7 @@ export default class MessageControls extends React.Component {
     menu.append(
       new SystemMenuItem({ label: 'Copy Debug Info to Clipboard', click: this._onCopyToClipboard })
     );
-    menu.popup(remote.getCurrentWindow());
+    menu.popup({});
   };
 
   _onShowOriginal = async () => {
@@ -135,7 +135,7 @@ export default class MessageControls extends React.Component {
   render() {
     const items = this._items();
     return (
-      <div className="message-actions-wrap">
+      <div className="message-actions-wrap" onClick={e => e.stopPropagation()}>
         <ButtonDropdown
           primaryItem={<RetinaImg name={items[0].image} mode={RetinaImg.Mode.ContentIsMask} />}
           primaryTitle={items[0].name}

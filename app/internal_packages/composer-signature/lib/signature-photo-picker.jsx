@@ -84,30 +84,30 @@ export default class SignaturePhotoPicker extends React.Component {
       // png, gif, svg stay in PNG format, everything else gets converted to
       // a JPG with lossy compression
       if (ext === 'png' || ext === 'gif' || ext === 'svg') {
-        source.toBlob(this._onChooseImageBlob, 'image/png');
+        source.toBlob(
+          blob => this._onChooseImageBlob(blob, source.width, source.height),
+          'image/png'
+        );
       } else {
-        source.toBlob(this._onChooseImageBlob, 'image/jpg', 0.65);
+        source.toBlob(
+          blob => this._onChooseImageBlob(blob, source.width, source.height),
+          'image/jpg',
+          0.65
+        );
       }
     };
     img.src = `file://${filepath}`;
   };
 
-  _onChooseImageBlob = async blob => {
+  _onChooseImageBlob = async (blob, width, height) => {
     this.setState({ isUploading: true });
 
-    const body = new FormData();
     const ext = { 'image/jpg': 'jpg', 'image/png': 'png' }[blob.type];
-    body.set('filename', `sig-${this.props.id}.${ext}`);
-    body.set('file', blob);
+    const filename = `sig-${this.props.id}.${ext}`;
+    let link = null;
 
-    let resp = null;
     try {
-      resp = await MailspringAPIRequest.makeRequest({
-        server: 'identity',
-        method: 'POST',
-        path: `/api/save-public-asset`,
-        body: body,
-      });
+      link = await MailspringAPIRequest.postStaticAsset({ filename, blob });
     } catch (err) {
       AppEnv.showErrorDialog(
         `Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\n\n(${err.toString()})`
@@ -118,7 +118,9 @@ export default class SignaturePhotoPicker extends React.Component {
       this.setState({ isUploading: false });
     }
 
-    this.props.onChange({ target: { value: `${resp.link}?t=${Date.now()}`, id: 'photoURL' } });
+    this.props.onChange({
+      target: { value: `${link}?t=${Date.now()}&msw=${width}&msh=${height}`, id: 'photoURL' },
+    });
   };
 
   render() {

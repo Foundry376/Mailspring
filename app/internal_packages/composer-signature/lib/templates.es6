@@ -1,10 +1,11 @@
 import { React } from 'mailspring-exports';
+import querystring from 'querystring';
 
 // Static components
 
 const FB_SHARE = (
   <img
-    src="data:image/gif;base64,R0lGODlhGgAaAJEAAP///8XO31pzqT9bnSH5BAAHAP8ALAAAAAAaABoAAAJOxI6pi8YPo5xSWEuXCKB3kSGb54HhwJHfOZDBG5iZQMos7bEJ3ukiqeOpOoHZ0GU8EpNKW+QivASBvoGwaqX6rtVot/YthVcLxxOsABQAADs="
+    src="https://www.getmailspring.com/signature-assets/fb.gif"
     width="13"
     height="13"
     alt="Facebook"
@@ -12,13 +13,32 @@ const FB_SHARE = (
 );
 const TWITTER_SHARE = (
   <img
-    src="data:image/gif;base64,R0lGODlhGgAaALMAAACr7oDS8iK17cHp+FXC7ZbZ89vy+hKu7Tm77vD5/K3h9YjV8l3H8Mzs+bjl9v///yH5BAEHAA8ALAAAAAAaABoAAASl8MlJq7046/0aQURDJZLBBQKgCstjLIp7OBqj3isgPImixhcHbngoBAY+FYNUIQyfsQauyJQgnrfDYJKaMhSNxBULQFAM3eeBrDJLFAQnm02YSOfzAGWMx24nBmt9QzsVBgyCgwB6FQ4MaX0HVRMJiYMtFw2Wc24YCQEIm4STGAWiNwImGQ0LkE8IqhatkQUbA6CiAgQKpBk9DAgCuguxHMbHyBkRADs="
+    src="https://www.getmailspring.com/signature-assets/twitter.gif"
     width="13"
     height="13"
     alt="Twitter"
   />
 );
 
+function widthAndHeightForPhotoURL(photoURL, { maxWidth, maxHeight } = {}) {
+  if (!photoURL) {
+    return {};
+  }
+  let q = {};
+  try {
+    q = querystring.parse(photoURL.split('?').pop());
+  } catch (err) {
+    return {};
+  }
+  if (!q.msw || !q.msh) {
+    return {};
+  }
+  const scale = Math.min(1, maxWidth / q.msw, maxHeight / q.msh);
+  return {
+    width: Math.round(q.msw * scale),
+    height: Math.round(q.msh * scale),
+  };
+}
 // Generic components used across templates
 
 const PrefixStyles = {
@@ -129,7 +149,8 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
-                  style={{ maxWidth: 60, maxHeight: 60, paddingRight: 10 }}
+                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 60, maxHeight: 60 })}
+                  style={{ maxWidth: 60, maxHeight: 60, marginRight: 10 }}
                 />
               )}
             </td>
@@ -179,6 +200,7 @@ const Templates = [
                     alt=""
                     key={props.photoURL}
                     src={props.photoURL}
+                    {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 200, maxHeight: 60 })}
                     style={{ maxWidth: 200, maxHeight: 60 }}
                   />
                 )}
@@ -214,6 +236,7 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
+                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 200, maxHeight: 130 })}
                   style={{ maxWidth: 200, maxHeight: 130, marginRight: 20 }}
                 />
               )}
@@ -276,6 +299,7 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
+                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 200, maxHeight: 130 })}
                   style={{ maxWidth: 200, maxHeight: 130, marginTop: 12, marginBottom: 12 }}
                 />
               )}
@@ -309,6 +333,7 @@ const Templates = [
                   alt=""
                   key={props.photoURL}
                   src={props.photoURL}
+                  {...widthAndHeightForPhotoURL(props.photoURL, { maxWidth: 60, maxHeight: 60 })}
                   style={{ maxWidth: 60, maxHeight: 60, marginRight: 10 }}
                 />
               )}

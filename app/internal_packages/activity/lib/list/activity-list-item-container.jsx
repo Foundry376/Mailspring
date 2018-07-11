@@ -4,7 +4,7 @@ import { DisclosureTriangle, Flexbox, RetinaImg } from 'mailspring-component-kit
 import { DateUtils } from 'mailspring-exports';
 
 import ActivityEventStore from '../activity-event-store';
-import { pluginFor } from '../plugin-helpers';
+import { configForPluginId } from '../plugin-helpers';
 
 class ActivityListItemContainer extends React.Component {
   static displayName = 'ActivityListItemContainer';
@@ -90,7 +90,7 @@ class ActivityListItemContainer extends React.Component {
     const text = this._getText();
 
     let className = 'activity-list-item';
-    if (!ActivityEventStore.hasBeenViewed(lastAction)) {
+    if (ActivityEventStore.actionIsUnseen(lastAction)) {
       className += ' unread';
     }
 
@@ -105,7 +105,7 @@ class ActivityListItemContainer extends React.Component {
             <div className="activity-icon-container">
               <RetinaImg
                 className="activity-icon"
-                name={pluginFor(lastAction.pluginId).iconName}
+                name={configForPluginId(lastAction.pluginId).iconName}
                 mode={RetinaImg.Mode.ContentPreserve}
               />
             </div>
@@ -119,7 +119,7 @@ class ActivityListItemContainer extends React.Component {
               <div style={{ width: '7px' }} />
             )}
             <div className="action-message">
-              {text.recipient} {pluginFor(lastAction.pluginId).predicate}:
+              {text.recipient} {configForPluginId(lastAction.pluginId).predicate}:
             </div>
             <div className="spacer" />
             <div className="timestamp">{DateUtils.shortTimeString(text.date)}</div>

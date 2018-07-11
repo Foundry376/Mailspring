@@ -26,19 +26,6 @@ class SearchMailboxPerspective extends MailboxPerspective {
     this.name = `Searching ${this.sourcePerspective.name}`;
   }
 
-  _folderScope() {
-    // When the inbox is focused we don't specify a folder scope. If the user
-    // wants to search just the inbox then they have to specify it explicitly.
-    if (this.sourcePerspective.isInbox()) {
-      return '';
-    }
-    const folderQuery = this.sourcePerspective
-      .categories()
-      .map(c => c.displayName)
-      .join('" OR in:"');
-    return `AND (in:"${folderQuery}")`;
-  }
-
   emptyMessage() {
     return 'No search results available';
   }
@@ -48,10 +35,7 @@ class SearchMailboxPerspective extends MailboxPerspective {
   }
 
   threads() {
-    return new SearchQuerySubscription(
-      `(${this.searchQuery}) ${this._folderScope()}`,
-      this.accountIds
-    );
+    return new SearchQuerySubscription(this.searchQuery, this.accountIds);
   }
 
   canReceiveThreadsFromAccountIds() {

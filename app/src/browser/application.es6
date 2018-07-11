@@ -1,7 +1,6 @@
 /* eslint global-require: "off" */
 
 import { BrowserWindow, Menu, app, ipcMain, dialog, powerMonitor } from 'electron';
-import { moveToApplications } from 'electron-lets-move';
 
 import fs from 'fs-plus';
 import url from 'url';
@@ -18,6 +17,7 @@ import SystemTrayManager from './system-tray-manager';
 import DefaultClientHelper from '../default-client-helper';
 import MailspringProtocolHandler from './mailspring-protocol-handler';
 import ConfigPersistenceManager from './config-persistence-manager';
+import moveToApplications from './move-to-applications';
 import MailsyncProcess from '../mailsync-process';
 
 let clipboard = null;
@@ -44,7 +44,7 @@ export default class Application extends EventEmitter {
     });
 
     try {
-      const mailsync = new MailsyncProcess(options, null);
+      const mailsync = new MailsyncProcess(options);
       await mailsync.migrate();
     } catch (err) {
       let message = null;
@@ -170,17 +170,8 @@ export default class Application extends EventEmitter {
     if (this.config.get('askedAboutAppMove')) {
       return;
     }
-    try {
-      await moveToApplications();
-      this.config.set('askedAboutAppMove', true);
-    } catch (err) {
-      dialog.showMessageBox({
-        type: 'warning',
-        buttons: ['Okay'],
-        message: `We encountered a problem moving to the Applications folder. Try quitting the application and moving it manually.`,
-        detail: err.toString(),
-      });
-    }
+    this.config.set('askedAboutAppMove', true);
+    moveToApplications();
   }
 
   async oneTimeAddToDock() {
@@ -232,6 +223,10 @@ export default class Application extends EventEmitter {
   }
 
   openWindowsForTokenState() {
+    // user may trigger this using the application menu / by focusing the app
+    // before migration has completed and the config has been loaded.
+    if (!this.config) return;
+
     const accounts = this.config.get('accounts');
     const hasAccount = accounts && accounts.length > 0;
     const hasIdentity = this.config.get('identity.id');
@@ -508,9 +503,24 @@ export default class Application extends EventEmitter {
       }
     });
 
-    ipcMain.on('ensure-worker-window', () => {
-      // TODO BG
-      // this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW)
+    // Theme Error Handling
+
+    let userResetTheme = false;
+
+    ipcMain.on('encountered-theme-error', (event, { message, detail }) => {
+      if (userResetTheme) return;
+
+      const buttonIndex = dialog.showMessageBox({
+        type: 'warning',
+        buttons: ['Reset Theme', 'Continue'],
+        defaultId: 0,
+        message,
+        detail,
+      });
+      if (buttonIndex === 0) {
+        userResetTheme = true;
+        this.config.set('core.theme', '');
+      }
     });
 
     ipcMain.on('inline-style-parse', (event, { html, key }) => {
@@ -744,31 +754,15 @@ export default class Application extends EventEmitter {
     if (parts.protocol === 'mailto:') {
       main.sendMessage('mailto', urlToOpen);
     } else if (parts.protocol === 'mailspring:') {
-      // if (parts.host === 'calendar') {
-      //   this.openCalendarURL(parts.path);
       if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
       } else {
-        main.sendMessage('openExternalThread', urlToOpen);
+        main.sendMessage('openThreadFromWeb', urlToOpen);
       }
     } else {
       console.log(`Ignoring unknown URL type: ${urlToOpen}`);
     }
   }
-
-  // openCalendarURL(command) {
-  //   if (command === '/open') {
-  //     this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {
-  //       windowKey: WindowManager.CALENDAR_WINDOW,
-  //       windowType: WindowManager.CALENDAR_WINDOW,
-  //       title: "Calendar",
-  //       hidden: false,
-  //     });
-  //   } else if (command === '/close') {
-  //     const win = this.windowManager.get(WindowManager.CALENDAR_WINDOW);
-  //     if (win) { win.hide(); }
-  //   }
-  // }
 
   openComposerWithFiles(pathsToOpen) {
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);

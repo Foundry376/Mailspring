@@ -9,6 +9,7 @@ import {
   TextQueryExpression,
   UnreadStatusQueryExpression,
   StarredStatusQueryExpression,
+  DateQueryExpression,
   InQueryExpression,
   HasAttachmentQueryExpression,
 } from './search-query-ast';
@@ -66,6 +67,9 @@ const reserved = [
   'in',
   'has',
   'attachment',
+  'before',
+  'since',
+  'after',
 ];
 
 const mightBeReserved = text => {
@@ -270,6 +274,18 @@ const parseSimpleQuery = text => {
     if (result !== null) {
       return result;
     }
+  }
+
+  if (tok.s.toUpperCase() === 'SINCE' || tok.s.toUpperCase() === 'AFTER') {
+    const afterColon = consumeExpectedToken(afterTok, ':');
+    const [txt, afterTxt] = parseText(afterColon);
+    return [new DateQueryExpression(txt, 'after'), afterTxt];
+  }
+
+  if (tok.s.toUpperCase() === 'BEFORE') {
+    const afterColon = consumeExpectedToken(afterTok, ':');
+    const [txt, afterTxt] = parseText(afterColon);
+    return [new DateQueryExpression(txt, 'before'), afterTxt];
   }
 
   if (tok.s.toUpperCase() === 'IN') {

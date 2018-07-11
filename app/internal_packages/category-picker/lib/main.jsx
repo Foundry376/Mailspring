@@ -1,17 +1,12 @@
-const MovePicker = require('./move-picker');
-const LabelPicker = require('./label-picker');
-
+const ToolbarCategoryPicker = require('./toolbar-category-picker');
 const { ComponentRegistry } = require('mailspring-exports');
 
 module.exports = {
-  activate(state = {}) {
-    this.state = state;
-    ComponentRegistry.register(MovePicker, { role: 'ThreadActionsToolbarButton' });
-    ComponentRegistry.register(LabelPicker, { role: 'ThreadActionsToolbarButton' });
+  activate() {
+    ComponentRegistry.register(ToolbarCategoryPicker, { role: 'ThreadActionsToolbarButton' });
   },
 
   deactivate() {
-    ComponentRegistry.unregister(MovePicker);
-    ComponentRegistry.unregister(LabelPicker);
+    ComponentRegistry.unregister(ToolbarCategoryPicker);
   },
 };

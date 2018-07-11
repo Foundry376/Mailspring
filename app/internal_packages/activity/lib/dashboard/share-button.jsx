@@ -61,19 +61,12 @@ export default class ShareButton extends React.Component {
       loading: true,
     });
 
-    const json = await MailspringAPIRequest.makeRequest({
-      server: 'identity',
-      method: 'POST',
-      path: '/api/share-static-page',
-      json: true,
-      body: {
-        key: `activity-${Date.now()}`,
-        html: buildShareHTML(
-          document.querySelector('style[source-path*="activity/styles/index.less"]'),
-          document.querySelector('.activity-dashboard')
-        ),
-      },
-      timeout: 1500,
+    const link = await MailspringAPIRequest.postStaticPage({
+      key: `activity-${Date.now()}`,
+      html: buildShareHTML(
+        document.querySelector('style[source-path*="activity/styles/index.less"]'),
+        document.querySelector('.activity-dashboard')
+      ),
     });
     if (!this._mounted) {
       return;
@@ -81,7 +74,7 @@ export default class ShareButton extends React.Component {
     this.setState(
       {
         loading: false,
-        link: json.link,
+        link: link,
       },
       () => {
         if (this._linkEl) {

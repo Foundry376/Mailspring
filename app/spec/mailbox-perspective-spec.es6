@@ -1,4 +1,10 @@
-import { AccountStore, MailboxPerspective, TaskFactory, Label, CategoryStore } from 'mailspring-exports';
+import {
+  AccountStore,
+  MailboxPerspective,
+  TaskFactory,
+  Label,
+  CategoryStore,
+} from 'mailspring-exports';
 
 describe('MailboxPerspective', function mailboxPerspective() {
   beforeEach(() => {

@@ -53,20 +53,19 @@ class AccountBasicSettingsForm extends React.Component {
     return { errorMessage, errorFieldNames, populated: true };
   };
 
-  submit() {
+  async submit() {
     // create a new account with expanded settings and just the three fields
     const { name, emailAddress, provider, settings: { imap_password } } = this.props.account;
     let account = new Account({ name, emailAddress, provider, settings: { imap_password } });
-    account = expandAccountWithCommonSettings(account);
+    account = await expandAccountWithCommonSettings(account);
     OnboardingActions.setAccount(account);
 
-    if (this.props.account.provider === 'imap') {
-      OnboardingActions.moveToPage('account-settings-imap');
-    } else {
-      // We have to pass in the updated account, because the onConnect()
-      // we're calling exists on a component that won't have had it's state
-      // updated from the OnboardingStore change yet.
+    if (account.settings.imap_host && account.settings.smtp_host) {
+      // expanding the account settings succeeded - try to authenticate
       this.props.onConnect(account);
+    } else {
+      // we need the user to provide IMAP/SMTP credentials manually
+      OnboardingActions.moveToPage('account-settings-imap');
     }
   }
 

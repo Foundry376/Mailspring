@@ -1,4 +1,4 @@
-import { shell } from 'electron';
+import { shell, remote } from 'electron';
 import { RetinaImg } from 'mailspring-component-kit';
 import { React, ReactDOM, PropTypes } from 'mailspring-exports';
 
@@ -6,6 +6,8 @@ import OnboardingActions from '../onboarding-actions';
 import { finalizeAndValidateAccount } from '../onboarding-helpers';
 import FormErrorMessage from '../form-error-message';
 import AccountProviders from '../account-providers';
+
+let didWarnAboutGmailIMAP = false;
 
 const CreatePageForForm = FormComponent => {
   return class Composed extends React.Component {
@@ -92,7 +94,12 @@ const CreatePageForForm = FormComponent => {
 
     onSubmit = () => {
       OnboardingActions.setAccount(this.state.account);
-      this._formEl.submit();
+      if (this._formEl.submit) {
+        this.setState({ submitting: true });
+        this._formEl.submit();
+      } else {
+        this.onConnect();
+      }
     };
 
     onFieldKeyPress = event => {
@@ -112,6 +119,30 @@ const CreatePageForForm = FormComponent => {
     onConnect = updatedAccount => {
       const account = updatedAccount || this.state.account;
 
+      // warn users about authenticating a Gmail or Google Apps account via IMAP
+      // and allow them to go back
+      if (
+        !didWarnAboutGmailIMAP &&
+        account.provider === 'imap' &&
+        account.settings.imap_host &&
+        account.settings.imap_host.includes('imap.gmail.com')
+      ) {
+        didWarnAboutGmailIMAP = true;
+        const buttonIndex = remote.dialog.showMessageBox(null, {
+          type: 'warning',
+          buttons: ['Go Back', 'Continue'],
+          message: 'Are you sure?',
+          detail:
+            `This looks like a Gmail account! While it's possible to setup an App ` +
+            `Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go ` +
+            `back and select "Gmail & Google Apps" from the provider screen.`,
+        });
+        if (buttonIndex === 0) {
+          OnboardingActions.moveToPage('account-choose');
+          return;
+        }
+      }
+
       this.setState({ submitting: true });
 
       finalizeAndValidateAccount(account)
@@ -120,8 +151,16 @@ const CreatePageForForm = FormComponent => {
           OnboardingActions.finishAndAddAccount(validated);
         })
         .catch(err => {
+          // If we're connecting from the `basic` settings page with an IMAP account,
+          // the settings are from a template. If authentication fails, move the user
+          // to the full settings since our guesses may have been wrong.
+          // TODO: Potentially show Authentication Errors on this simple screen?
+          const isBasicForm = FormComponent.displayName === 'AccountBasicSettingsForm';
+          if (account.provider === 'imap' && isBasicForm) {
+            OnboardingActions.moveToPage('account-settings-imap');
+            return;
+          }
           const errorFieldNames = [];
-
           if (err.message.includes('Authentication Error')) {
             if (/smtp/i.test(err.message)) {
               errorFieldNames.push('settings.smtp_username');

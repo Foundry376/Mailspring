@@ -10,7 +10,6 @@ import {
 import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 
 import EmailFrame from './email-frame';
-import { encodedAttributeForFile } from './inline-image-listeners';
 
 const TransparentPixel =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNikAQAACIAHF/uBd8AAAAASUVORK5CYII=';

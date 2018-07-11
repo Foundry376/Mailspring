@@ -2,11 +2,13 @@ import {
   SearchQueryExpressionVisitor,
   OrQueryExpression,
   AndQueryExpression,
+  DateQueryExpression,
   UnreadStatusQueryExpression,
   StarredStatusQueryExpression,
   HasAttachmentQueryExpression,
   MatchQueryExpression,
 } from './search-query-ast';
+import { DateUtils } from 'mailspring-exports';
 
 /*
  * This class visits a match-compatible subtree and condenses it into a single
@@ -36,6 +38,8 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
     const rhs = this.visitAndGetResult(node.e2);
     this._result = `(${lhs} OR ${rhs})`;
   }
+
+  visitDate(node) {}
 
   visitFrom(node) {
     const text = this.visitAndGetResult(node.text);
@@ -144,6 +148,10 @@ class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
     this._result = new UnreadStatusQueryExpression(node.status);
   }
 
+  visitDate(node) {
+    this._result = new DateQueryExpression(node.text, node.direction);
+  }
+
   visitStarred(node) {
     this._result = new StarredStatusQueryExpression(node.status);
   }
@@ -218,6 +226,17 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
     this._result = `(\`${this._className}\`.\`data\` LIKE '%"has_attachments":true%')`;
   }
 
+  visitDate(node) {
+    const comparator = node.direction === 'before' ? '<' : '>';
+    const date = DateUtils.getChronoPast().parseDate(node.text.token.s);
+    if (!date) {
+      this._result = '';
+      return;
+    }
+    const ts = Math.floor(date.getTime() / 1000);
+    this._result = `(\`${this._className}\`.\`lastMessageReceivedTimestamp\` ${comparator} ${ts})`;
+  }
+
   visitMatch(node) {
     const searchTable = `${this._className}Search`;
 
@@ -226,7 +245,7 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
 
     this._result = `(\`${
       this._className
-    }\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '${escaped}' LIMIT 1000))`;
+    }\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '${escaped}'))`;
   }
 }
 

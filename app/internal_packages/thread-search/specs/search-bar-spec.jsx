@@ -18,10 +18,10 @@ describe('ThreadSearchBar', function() {
   });
 
   it('supports search queries with a colon character', function() {
-    spyOn(SearchActions, 'queryChanged');
+    spyOn(SearchActions, 'searchQueryChanged');
     const test = '::Hello: World::';
     ReactTestUtils.Simulate.change(this.input, { target: { value: test } });
-    expect(SearchActions.queryChanged).toHaveBeenCalledWith(test);
+    expect(SearchActions.searchQueryChanged).toHaveBeenCalledWith(test);
   });
 
   it('preserves capitalization on searches', function() {

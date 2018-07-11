@@ -20,6 +20,7 @@ import {
   ComposerEditor,
   ComposerSupport,
 } from 'mailspring-component-kit';
+import { History } from 'slate';
 import ComposerHeader from './composer-header';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
@@ -47,9 +48,8 @@ export default class ComposerView extends React.Component {
   constructor(props) {
     super(props);
 
-    const draft = props.session.draft();
-
     this._els = {};
+    this._mounted = false;
 
     this._keymapHandlers = {
       'composer:send-message': () => this._onPrimarySend(),
@@ -61,6 +61,7 @@ export default class ComposerView extends React.Component {
       'composer:select-attachment': () => this._onSelectAttachment(),
     };
 
+    const draft = props.session.draft();
     this.state = {
       isDropping: false,
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
@@ -69,6 +70,7 @@ export default class ComposerView extends React.Component {
   }
 
   componentDidMount() {
+    this._mounted = true;
     this.props.draft.files.forEach(file => {
       if (Utils.shouldDisplayAsImage(file)) {
         Actions.fetchFile(file);
@@ -95,7 +97,19 @@ export default class ComposerView extends React.Component {
     }
   }
 
+  componentWillUnmount() {
+    this._mounted = false;
+
+    // In the future, we should clean up the draft session entirely, or give it
+    // the same lifecycle as the composer view. For now, just make sure we free
+    // up all the memory used for undo/redo.
+    const { draft, session } = this.props;
+    session.changes.add({ bodyEditorState: draft.bodyEditorState.set('history', new History()) });
+  }
+
   focus() {
+    if (!this._mounted) return;
+
     // If something within us already has focus, don't change it. Never, ever
     // want to pull the cursor out from under the user while typing
     const node = ReactDOM.findDOMNode(this._els.composerWrap);
@@ -231,18 +245,11 @@ export default class ComposerView extends React.Component {
     );
   }
 
-  // The contenteditable decides when to request a scroll based on the
-  // position of the cursor and its relative distance to this composer
-  // component. We provide it our boundingClientRect so it can calculate
-  // this value.
-  _getComposerBoundingRect = () => {
-    return ReactDOM.findDOMNode(this._els.composerWrap).getBoundingClientRect();
-  };
-
   _renderFooterRegions() {
     return (
       <div className="composer-footer-region">
         <InjectedComponentSet
+          deferred
           matching={{ role: 'Composer:Footer' }}
           exposedProps={{
             draft: this.props.draft,
@@ -292,6 +299,7 @@ export default class ComposerView extends React.Component {
   _renderActionsWorkspaceRegion() {
     return (
       <InjectedComponentSet
+        deferred
         matching={{ role: 'Composer:ActionBarWorkspace' }}
         exposedProps={{
           draft: this.props.draft,
@@ -437,6 +445,7 @@ export default class ComposerView extends React.Component {
       filePath: filePath,
       headerMessageId: this.props.draft.headerMessageId,
       onCreated: file => {
+        if (!this._mounted) return;
         if (Utils.shouldDisplayAsImage(file)) {
           const { draft, session } = this.props;
           const match = draft.files.find(f => f.id === file.id);

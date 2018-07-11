@@ -1,5 +1,189 @@
 # Mailspring Changelog
 
+### 1.2.2 (5/30/2018)
+
+Fixes:
+
+* Drafts sent with RTL text now appear correctly justified for recipients. #869
+
+* In the Linux Snapcraft release, app indicator compatibility has been improved by coercing XDG_CURRENT_DESKTOP to Unity (Thanks Martin Wimpress at Canonical!)
+
+* On Linux, clicking on the system tray toggles the visibility of Mailspring's windows instead of always showing them. #650
+
+* On macOS, Mailspring asks if it can move itself to Applications and handles the new app translocation rules in High Sierra correctly.
+
+* Drafts now allow file attachments up to 25MB in size, and the error message has been corrected. #854
+
+* When linking email accounts, the IMAP/SMTP host fields correctly ignore whitespace to avoid connection errors. #876
+
+* Mailspring's sync process no longer crashes when the snooze / reminder actions of more than 200 threads need to be processed at once.
+
+* Mailspring now correctly auto-links email addresses in the composer into mailto: links #814
+
+* Searching by `subject:xxx` now works, thanks to fixes to the mailsync indexer. #860
+
+* Viewing a draft with no recognized `from` participant no longer causes the app to crash. #857
+
+Development
+
+* Bumped to Electron 1.8.7, which includes patches for security vulnerabilities (updated command-line backlist switches), and fixes a flickering issue on high-DPI macOS displays.
+
+### 1.2.1 (4/4/2018)
+
+Fixes:
+
+* Copy / paste now works correctly in message contents and draft fields, correcting a regression in 1.2.0.
+
+* Right clicking words in the composer now correctly shows spelling suggestions. #747
+
+* Right clicking in the composer now presents a "Paste and Match Style" option. #655
+
+* The left 50px of "To" field of message headers is now clickable.
+
+* Signatures with images now display correctly in mail clients that don't support CSS. To take advantage of this improvement, remove and re-attach images to existing signatures.
+
+* URLs containing the format `#/xxxx?a=b` are now automatically linked correctly.
+
+* The "learn more" link in the thread sharing modal now links to a public knowledgebase article.
+
+### 1.2.0 (4/3/2018)
+
+Features:
+
+* **Thread Sharing** allows you to easily sync an email thread to the cloud and share it using a link. Mailspring automatically syncs new emails that arrive on the thread and anyone with the link can view the thread or download attachments.
+
+Fixes:
+
+* Searching your mailbox using the "in:folder" syntax no longer produces a limited / old set of results when many, many results match.
+
+* The composer cursor no longer gets "stuck" occasionally when typing diatric or multi-key composition characters. #718, #578
+
+* The composer no longer copies an empty string to the clipboard if you have no selected text when you press Ctrl/Cmd+C. #787
+
+* The thread toolbar buttons now have a grouped appearance which makes the UI more compact and usable. #283
+
+* Mailspring now uses the correct presets for Fastmail and Startmail accounts. #759, #756
+
+* Clicking to collapse a message with expanded headers now works as expected. #636
+
+* Mailspring never shows images by default when you're viewing your spam folder. #784
+
+Development:
+
+* The "Download attachments when..." option, which was never implemented in the new sync engine, has been removed from Preferences > General.
+
+* When resetting an account, Mailspring correctly re-fetches open/read receipt and snoozing metadata
+
+* Mailspring now uses Electron 1.8.4.
+
+### 1.1.5 (3/6/2018)
+
+Fixes:
+
+* Mailspring no longer crashes when trying to connect some IMAP accounts that it cannot resolve to a preset configuration. #739
+
+* Mailspring no longer requires you to manually provide information for IMAP accounts that are aliases of other proivders, like hotmail.it. #736
+
+* An error no longer replaces the composer when an "emoji mark" cannot be found. #685
+
+* When you click a mis-spelled word, Mailspring no longer selects the entire word. #677
+
+* When you send mail, Mailspring no longer puts your hostname in the MIME Message-ID.
+
+* In the composer you can now edit existing links and links don't open by default unless you control-click them. #702, #704, #639
+
+* The colon character (:) no longer breaks automatic link detection. #695
+
+* When you remove an account, Mailspring resets its local cache for that account, removing stored data on disk. #724
+
+* Images with width and height values containing decimals no longer break logic designed to autosize them for display.
+
+Improvements:
+
+* Mailspring now uses Electron 1.8.3, which includes two security improvements.
+
+### 1.1.4 (2/14/2018)
+
+Fixes:
+
+* Searching in the `Sent` folder (and other folders assigned mailbox roles) now works reliably.
+
+* Connecting accounts no longer throws `SIGABRT` / `3221225477` errors in some scenarios. #292
+
+* Connecting accounts no longer fails when the email provider returns non-UTF8 characters in IMAP responses.
+
+* The open tracking pixel now has an `alt` tag that self-identifies it as a tracking pixel, which prevents messages from Mailspring from being flagged as spam by some providers. #668
+
+* Mailspring no longer registers for the Utility and Development application categories and appears in the `mail` package category on Debian systems. #673, #678
+
+* On Linux, the tray assets are larger again (48x48px) in an attempt to make them render properly in more distros.
+
+* In the Taiga theme, the selected item in dropdown menus is visible. #674
+
+### 1.1.3 (2/6/2018)
+
+Improvements:
+
+* When adding an IMAP account, Mailspring now uses the domain's MX records to identify if it can use settings for a common email service to skip the full, complicated IMAP settings screen.
+
+* When adding a Gmail account, Mailspring now uses two-legged OAuth instead of three-legged OAuth which allows it to renew it's access token more rapidly. (Re-authenticate Gmail accounts for this to take effect.)
+
+* Mailspring `VACUUM`'s the SQLite database every two weeks to prevent fragmentation that can eventually ruin performance. Unfortunately, data cannot be read or written during this process and it can take ~2 minutes for a 3GB database, so it is performed at launch with a new progress screen.
+
+Fixes:
+
+* On linux, the system tray icon is smaller (22x22 with 18x18 content vs 32x32)
+
+* In dark themes, quoted text no longer appears a dark purple that is difficult to read.
+
+* Mailspring no longer becomes "blocked" when ingesting a large number of deletions in a mailbox and will no longer attempt to retrieve many, many new messages all at once.
+
+* When changing accounts in the composer the signature correctly updates to the new account's default. #570
+
+* In the message viewer, the "Download All Attachments" button appears if the email contains multiple images. #583
+
+* In the message viewer, inline images specified using a "cid:filename.png@RANDOM"-style URL now render correctly in the message body instead of as attachments. #569
+
+* Threads with only sent emails no longer appear as from "1969" in some places. #508, #457
+
+* The "Local Time" shown in the company sidebar is now correct and updates in realtime.
+
+* On Linux, `mailspring.desktop` no longer reports that the app is an editor for `text/plain` #602
+
+* Undo no longer triggers in both the email body and other recently edited text fields at the same time. #613
+
+* Creating a draft no longer clears the conversations's "snippet" in the thread list.
+
+* When printing a thread, Mailspring no longer prints `undefined` beside particicpants with no name.
+
+* When pasting HTML, Mailspring now correctly preserves links that have other styling. #592
+
+* When using "two pane mode", viewing the same conversation repeatedly will mark any new messages as read. #617
+
+* When sending an email, the word "attachments" in your signature will no longer cause the app to complain about missing attachments. #610
+
+* Mailspring no longer attempts to create the folder `Mailspring..Snoozed` on providers that include the path delimiter in the IMAP namespace prefix. #634
+
+* When composing an email, Mailspring will display an alert if you need to choose a Drafts folder to send mail. #634
+
+* Mailspring now uses Electron 1.8.2-beta5, which includes stability and security fixes.
+
+* Exporting raw data from the Activity Dashboard now waits for the filesystem buffer to flush, preventing it from writing only some of the email data on slower hard drives.
+
+* Mailspring no longer briefly spawns duplicate sync processes in some scenarios when you have many accounts linked.
+
+* When your mailbox contains emails with the same subject and participants and no `Date` header, Mailspring now syncs them all instead of syncing them as a single message, which should prevent thrashing
+
+* A subtle multithreading issue has been fixed which could cause your folders to become corrupted and prevent Mailspring from launching.
+
+Memory and Performance:
+
+* Creating a draft is now ~16x faster in scenarios where lots of quoted text is present.
+
+* The undo history of the composer is cleared when you navigate away from a draft, reclaiming memory.
+
+* Completed tasks are purged from the app's task queue more rapidly so performing many, many actions on your mailbox does not cause the application to use more memory.
+
 ### 1.1.2
 
 Fixes:

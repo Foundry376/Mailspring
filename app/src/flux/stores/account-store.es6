@@ -174,7 +174,6 @@ class AccountStore extends MailspringStore {
   _onRemoveAccount = id => {
     const account = this._accounts.find(a => a.id === id);
     if (!account) return;
-    KeyManager.deleteAccountSecrets(account);
 
     this._caches = {};
 
@@ -193,9 +192,16 @@ class AccountStore extends MailspringStore {
     this._save();
 
     if (remainingAccounts.length === 0) {
+      // Clear everything and logout
       const ipc = require('electron').ipcRenderer;
       ipc.send('command', 'application:relaunch-to-initial-windows', {
         resetDatabase: true,
+      });
+    } else {
+      // Clear the cached data for the account and reset secrets once that has completed
+      AppEnv.mailsyncBridge.resetCacheForAccount(account, { silent: true }).then(() => {
+        console.log('Account removal complete.');
+        KeyManager.deleteAccountSecrets(account);
       });
     }
   };

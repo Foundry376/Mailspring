@@ -284,7 +284,7 @@ class DatabaseStore extends MailspringStore {
           // We don't want to unnecessarily defer and delay every single query,
           // so we only set the timer when we are actually backing off for a
           // retry.
-          await new Promise(resolve => setTimeout(resolve, scheduler.currentDelay()));
+          await Promise.delay(scheduler.currentDelay());
         }
 
         let stmt = this._preparedStatementCache.get(query);

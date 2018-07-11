@@ -1,6 +1,7 @@
 import { Actions, React, ReactDOM, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import ThreadSharingPopover from './thread-sharing-popover';
+import { isShared } from './main';
 
 export default class ThreadSharingButton extends React.Component {
   static displayName = 'ThreadSharingButton';
@@ -38,10 +39,11 @@ export default class ThreadSharingButton extends React.Component {
     if (this.props.items && this.props.items.length > 1) {
       return <span />;
     }
+    const item = this.props.items[0];
 
     return (
       <button
-        className="btn btn-toolbar thread-sharing-button"
+        className={`btn btn-toolbar thread-sharing-button ${isShared(item) && 'active'}`}
         title="Share"
         style={{ marginRight: 0 }}
         onClick={this._onClick}

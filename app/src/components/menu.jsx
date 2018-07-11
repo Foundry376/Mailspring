@@ -228,6 +228,9 @@ class Menu extends React.Component {
   }
 
   componentDidUpdate() {
+    if ((this.props.items || []).length === 0) {
+      return;
+    }
     const item = ReactDOM.findDOMNode(this).querySelector('.selected');
     const container = ReactDOM.findDOMNode(this).querySelector('.content-container');
     const adjustment = DOMUtils.scrollAdjustmentToMakeNodeVisibleInContainer(item, container);

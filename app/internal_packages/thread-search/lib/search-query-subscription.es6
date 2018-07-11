@@ -1,13 +1,12 @@
 import _ from 'underscore';
 import {
+  Actions,
   Thread,
   DatabaseStore,
   SearchQueryParser,
   ComponentRegistry,
-  FocusedContentStore,
   MutableQuerySubscription,
 } from 'mailspring-exports';
-import SearchActions from './search-actions';
 
 class SearchQuerySubscription extends MutableQuerySubscription {
   constructor(searchQuery, accountIds) {
@@ -15,11 +14,9 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     this._searchQuery = searchQuery;
     this._accountIds = accountIds;
 
-    this.resetData();
-
     this._connections = [];
-    this._unsubscribers = [FocusedContentStore.listen(() => this.onFocusedContentChanged())];
     this._extDisposables = [];
+    this._searching = false;
 
     _.defer(() => this.performSearch());
   }
@@ -28,23 +25,14 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     // TODO
   };
 
-  resetData() {
-    this._searchStartedAt = null;
-    this._resultsReceivedAt = null;
-    this._firstThreadSelectedAt = null;
-    this._lastFocusedThread = null;
-    this._focusedThreadCount = 0;
-  }
-
   performSearch() {
-    this._searchStartedAt = Date.now();
-
+    this._searching = true;
     this.performLocalSearch();
     this.performExtensionSearch();
   }
 
   performLocalSearch() {
-    let dbQuery = DatabaseStore.findAll(Thread).distinct();
+    let dbQuery = DatabaseStore.findAll(Thread);
     if (this._accountIds.length === 1) {
       dbQuery = dbQuery.where({ accountId: this._accountIds[0] });
     }
@@ -56,12 +44,20 @@ class SearchQuerySubscription extends MutableQuerySubscription {
       console.info('Failed to parse local search query, falling back to generic query', e);
       dbQuery = dbQuery.search(this._searchQuery);
     }
-    dbQuery = dbQuery.order(Thread.attributes.lastMessageReceivedTimestamp.descending()).limit(100);
+    dbQuery = dbQuery
+      .background()
+      .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
+      .limit(1000);
 
-    dbQuery.then(results => {
-      SearchActions.searchCompleted();
-      this.replaceQuery(dbQuery);
-    });
+    this.replaceQuery(dbQuery);
+  }
+
+  _createResultAndTrigger() {
+    super._createResultAndTrigger();
+    if (this._searching) {
+      this._searching = false;
+      Actions.searchCompleted();
+    }
   }
 
   _addThreadIdsToSearch(ids = []) {
@@ -101,32 +97,8 @@ class SearchQuerySubscription extends MutableQuerySubscription {
     });
   }
 
-  onFocusedContentChanged() {
-    const thread = FocusedContentStore.focused('thread');
-    const shouldRecordChange = thread && (this._lastFocusedThread || {}).id !== thread.id;
-    if (shouldRecordChange) {
-      if (this._focusedThreadCount === 0) {
-        this._firstThreadSelectedAt = Date.now();
-      }
-      this._focusedThreadCount += 1;
-      this._lastFocusedThread = thread;
-    }
-  }
-
-  reportSearchMetrics() {
-    if (!this._searchStartedAt) {
-      return;
-    }
-
-    // Not Implemented
-
-    this.resetData();
-  }
-
   onLastCallbackRemoved() {
-    this.reportSearchMetrics();
     this._connections.forEach(conn => conn.end());
-    this._unsubscribers.forEach(unsub => unsub());
     this._extDisposables.forEach(disposable => disposable.dispose());
   }
 }

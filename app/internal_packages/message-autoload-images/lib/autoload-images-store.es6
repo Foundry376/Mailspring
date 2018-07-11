@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import fs from 'fs';
 import path from 'path';
-import { Utils, MessageBodyProcessor } from 'mailspring-exports';
+import { Utils, MessageBodyProcessor, CategoryStore } from 'mailspring-exports';
 import AutoloadImagesActions from './autoload-images-actions';
 
 const ImagesRegexp = /((?:src|background|placeholder|icon|background|poster|srcset)\s*=\s*['"]?(?=\w*:\/\/)|:\s*url\()+([^"')]*)/gi;
@@ -29,7 +29,9 @@ class AutoloadImagesStore extends MailspringStore {
   }
 
   shouldBlockImagesIn = message => {
-    if (AppEnv.config.get('core.reading.autoloadImages') === true) {
+    const spamFolderId = (CategoryStore.getSpamCategory(message.accountId) || {}).id;
+
+    if (AppEnv.config.get('core.reading.autoloadImages') && message.folder.id !== spamFolderId) {
       return false;
     }
     if (this._whitelistEmails[Utils.toEquivalentEmailForm(message.fromContact().email)]) {

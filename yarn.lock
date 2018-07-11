@@ -1700,9 +1700,9 @@ electron-winstaller@2.x.x:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
-electron@1.8.2-beta.4:
-  version "1.8.2-beta.4"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.2-beta.4.tgz#1836b204eeace9dc77062ed4820fdbc6cbd9a195"
+electron@1.8.2-beta.5:
+  version "1.8.2-beta.5"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.2-beta.5.tgz#8324c483ed8cb4b052b3e13e514ddc858707fdeb"
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^3.0.1"

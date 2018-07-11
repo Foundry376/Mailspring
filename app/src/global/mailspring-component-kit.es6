@@ -5,6 +5,24 @@
 // `require` files the first time they're called.
 module.exports = exports = {};
 
+// Because requiring files the first time they're used hurts performance, we
+// automatically load components slowly in the background using idle cycles.
+setTimeout(() => {
+  const remaining = Object.keys(module.exports);
+  const fn = deadline => {
+    let key = null;
+    let bogus = 0; // eslint-disable-line
+    while ((key = remaining.pop())) {
+      bogus += module.exports[key] ? 1 : 0;
+      if (deadline.timeRemaining() <= 0) {
+        window.requestIdleCallback(fn, { timeout: 5000 });
+        return;
+      }
+    }
+  };
+  window.requestIdleCallback(fn, { timeout: 5000 });
+}, 500);
+
 const resolveExport = requireValue => {
   return requireValue.default || requireValue;
 };
@@ -105,10 +123,9 @@ lazyLoad('MailImportantIcon', 'mail-important-icon');
 
 lazyLoad('ScenarioEditor', 'scenario-editor');
 
-lazyLoad('SearchBar', 'search-bar');
-
 // Higher order components
 lazyLoad('ListensToObservable', 'decorators/listens-to-observable');
 lazyLoad('ListensToFluxStore', 'decorators/listens-to-flux-store');
 lazyLoad('ListensToMovementKeys', 'decorators/listens-to-movement-keys');
 lazyLoad('HasTutorialTip', 'decorators/has-tutorial-tip');
+lazyLoad('CreateButtonGroup', 'decorators/create-button-group');

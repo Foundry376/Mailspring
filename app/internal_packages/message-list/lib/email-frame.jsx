@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import { EventedIFrame } from 'mailspring-component-kit';
 import {
   React,
@@ -10,7 +9,6 @@ import {
 } from 'mailspring-exports';
 import { autolink } from './autolinker';
 import { adjustImages } from './adjust-images';
-import { addInlineImageListeners } from './inline-image-listeners';
 import EmailFrameStylesStore from './email-frame-styles-store';
 
 export default class EmailFrame extends React.Component {
@@ -84,9 +82,10 @@ export default class EmailFrame extends React.Component {
     );
     doc.close();
 
+    iframeNode.addEventListener('load', this._onLoad);
+
     autolink(doc, { async: true });
     adjustImages(doc);
-    addInlineImageListeners(doc);
 
     for (const extension of MessageStore.extensions()) {
       if (!extension.renderedMessageBodyIntoDocument) {
@@ -109,6 +108,12 @@ export default class EmailFrame extends React.Component {
     this._onMustRecalculateFrameHeight();
   };
 
+  _onLoad = () => {
+    const iframeNode = ReactDOM.findDOMNode(this._iframeComponent);
+    iframeNode.removeEventListener('load', this._onLoad);
+    this._setFrameHeight();
+  };
+
   _onMustRecalculateFrameHeight = () => {
     this._iframeComponent.setHeightQuietly(0);
     this._lastComputedHeight = 0;
@@ -129,10 +134,7 @@ export default class EmailFrame extends React.Component {
       }
       height = doc.body.scrollHeight;
     }
-
-    // scrollHeight does not include space required by horizontal scrollbar
-    // if it's present.
-    return height + 18;
+    return height;
   };
 
   _setFrameHeight = () => {
@@ -148,7 +150,7 @@ export default class EmailFrame extends React.Component {
     // To prevent this, the holderNode holds the last computed height until
     // the new height is computed.
     const iframeNode = ReactDOM.findDOMNode(this._iframeComponent);
-    const height = this._getFrameHeight(iframeNode.contentDocument);
+    let height = this._getFrameHeight(iframeNode.contentDocument);
 
     // Why 5px? Some emails have elements with a height of 100%, and then put
     // tracking pixels beneath that. In these scenarios, the scrollHeight of the
@@ -161,7 +163,9 @@ export default class EmailFrame extends React.Component {
     }
 
     if (iframeNode.contentDocument.readyState !== 'complete') {
-      _.defer(() => this._setFrameHeight());
+      window.requestAnimationFrame(() => {
+        this._setFrameHeight();
+      });
     }
   };
 

@@ -1,12 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {
-  makeGmailOAuthRequest,
-  buildGmailAccountFromToken,
-  buildGmailSessionKey,
-  buildGmailAuthURL,
-} from './onboarding-helpers';
+import { buildGmailAccountFromAuthResponse, buildGmailAuthURL } from './onboarding-helpers';
 
 import OAuthSignInPage from './oauth-signin-page';
 import OnboardingActions from './onboarding-actions';
@@ -21,8 +16,7 @@ export default class AccountSettingsPageGmail extends React.Component {
 
   constructor() {
     super();
-    this._sessionKey = buildGmailSessionKey();
-    this._gmailAuthUrl = buildGmailAuthURL(this._sessionKey);
+    this._gmailAuthUrl = buildGmailAuthURL();
   }
 
   onSuccess(account) {
@@ -38,12 +32,10 @@ export default class AccountSettingsPageGmail extends React.Component {
       <OAuthSignInPage
         serviceName="Google"
         providerAuthPageUrl={this._gmailAuthUrl}
+        buildAccountFromAuthResponse={buildGmailAccountFromAuthResponse}
         iconName={headerIcon}
-        tokenRequestPollFn={makeGmailOAuthRequest}
-        accountFromTokenFn={buildGmailAccountFromToken}
         onSuccess={this.onSuccess}
         onTryAgain={goBack}
-        sessionKey={this._sessionKey}
       />
     );
   }

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html style="background: #fff">
+<head>
+  <title>Preparing Mailspring...</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src * mailspring:; script-src 'self' 'unsafe-eval' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:;">
+  <style>
+    .progress {
+      position: relative;
+      height: 4px;
+      display: block;
+      width: 100%;
+      background-color: #ccc;
+      border-radius: 2px;
+      background-clip: padding-box;
+      margin: 0.5rem 0 1rem 0;
+      overflow: hidden; }
+      .progress .indeterminate {
+        background-color: #666; }
+        .progress .indeterminate:before {
+          content: '';
+          position: absolute;
+          background-color: inherit;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          will-change: left, right;
+          -webkit-animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+                  animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite; }
+        .progress .indeterminate:after {
+          content: '';
+          position: absolute;
+          background-color: inherit;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          will-change: left, right;
+          -webkit-animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+                  animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+          -webkit-animation-delay: 1.15s;
+                  animation-delay: 1.15s; }
+
+    @-webkit-keyframes indeterminate {
+      0% {
+        left: -35%;
+        right: 100%; }
+      60% {
+        left: 100%;
+        right: -90%; }
+      100% {
+        left: 100%;
+        right: -90%; } }
+    @keyframes indeterminate {
+      0% {
+        left: -35%;
+        right: 100%; }
+      60% {
+        left: 100%;
+        right: -90%; }
+      100% {
+        left: 100%;
+        right: -90%; } }
+    @-webkit-keyframes indeterminate-short {
+      0% {
+        left: -200%;
+        right: 100%; }
+      60% {
+        left: 107%;
+        right: -8%; }
+      100% {
+        left: 107%;
+        right: -8%; } }
+    @keyframes indeterminate-short {
+      0% {
+        left: -200%;
+        right: 100%; }
+      60% {
+        left: 107%;
+        right: -8%; }
+      100% {
+        left: 107%;
+        right: -8%; } }
+  </style>
+</head>
+<body style="padding-left: 1em; padding-right: 1em; background-color:#fcfcfc; font-family: sans-serif; font-size: 0.9em; color: #333; line-height: 1.3em;">
+  <div style="padding-top:10px; padding-bottom:7px; font-size:0.95em;">
+    Mailspring is optimizing your email database to save space and will start momentarily...
+  </div>
+  <div class="progress">
+    <div class="indeterminate"></div>
+  </div>
+  </body>
+</html>

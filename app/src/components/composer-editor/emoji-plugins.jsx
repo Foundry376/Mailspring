@@ -69,10 +69,11 @@ function FloatingEmojiPicker({ value, onChange }) {
   let emoji = null;
   try {
     emoji = value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
-    if (!emoji) return false;
   } catch (err) {
     // sometimes fails for some reason
   }
+
+  if (!emoji) return false;
 
   const picked = emoji.data.get('picked');
   const suggestions = emoji.data.get('suggestions');
@@ -183,6 +184,14 @@ export function swapEmojiMarkFor(change, emoji, picked) {
 export function updateEmojiMark(change, emoji, { typed, suggestions, picked }) {
   change.extend(-typed.length);
   change.delete();
+
+  // https://sentry.io/foundry-376-llc/mailspring/issues/445604114/
+  // Sometimes it appears we overdelete and the mark is gone?
+  try {
+    if (!change.value.marks.find(i => i.type === EMOJI_TYPING_TYPE)) return change;
+  } catch (err) {
+    return change;
+  }
   change.removeMark(emoji);
   change.addMark({ type: EMOJI_TYPING_TYPE, data: { typed, suggestions, picked } });
   change.insertText(typed);

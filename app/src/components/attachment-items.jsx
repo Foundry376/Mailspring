@@ -189,19 +189,17 @@ export class AttachmentItem extends Component {
         className={classes}
         tabIndex={tabIndex}
         onKeyDown={focusable ? this._onAttachmentKeyDown : null}
+        draggable={draggable}
+        onDoubleClick={this._onOpenAttachment}
+        onDragStart={this._onDragStart}
         {...pickHTMLProps(extraProps)}
       >
         {filePreviewPath ? (
-          <div className="file-thumbnail-preview">
+          <div className="file-thumbnail-preview" draggable={false}>
             <img alt="" src={`file://${filePreviewPath}`} style={{ zoom: 1 / devicePixelRatio }} />
           </div>
         ) : null}
-        <div
-          className="inner"
-          draggable={draggable}
-          onDoubleClick={this._onOpenAttachment}
-          onDragStart={this._onDragStart}
-        >
+        <div className="inner">
           <ProgressBar download={download} />
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
             <div className="file-info-wrap">

@@ -158,7 +158,11 @@ class FeatureUsageStore extends MailspringStore {
   }
 
   _dataForFeature(feature) {
-    const usage = IdentityStore.identity().featureUsage || {};
+    const identity = IdentityStore.identity();
+    if (!identity) {
+      return {};
+    }
+    const usage = identity.featureUsage || {};
     if (!usage[feature]) {
       AppEnv.reportError(new Error(`Warning: No usage information available for ${feature}`));
       return {};

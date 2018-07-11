@@ -1,7 +1,11 @@
-import { ipcRenderer, shell, clipboard } from 'electron';
+import { shell, clipboard } from 'electron';
 import { React, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
+import http from 'http';
+import url from 'url';
+
 import FormErrorMessage from './form-error-message';
+import { LOCAL_SERVER_PORT } from './onboarding-helpers';
 
 export default class OAuthSignInPage extends React.Component {
   static displayName = 'OAuthSignInPage';
@@ -13,33 +17,8 @@ export default class OAuthSignInPage extends React.Component {
      * url to a Nylas-owned server
      */
     providerAuthPageUrl: PropTypes.string,
-
-    /**
-     * Step 2: Poll a Nylas server with this function looking for the key.
-     * Once users complete the auth successfully, Nylas servers will get
-     * the token and vend it back to us via this url. We need to poll
-     * since we don't know how long it'll take users to log in on their
-     * provider's website.
-     */
-    tokenRequestPollFn: PropTypes.func,
-
-    /**
-     * Once we have the token, we can use that to retrieve the full
-     * account credentials or establish a direct connection ourselves.
-     * Some Nylas backends vend all account credentials along with the
-     * token making this function unnecessary and a no-op. Mailspring
-     * local sync needs to use the returned OAuth token to establish an
-     * IMAP connection directly that may have its own set of failure
-     * cases.
-     */
-    accountFromTokenFn: PropTypes.func,
-
-    /**
-     * Called once we have successfully received the account data from
-     * `accountFromTokenFn`
-     */
+    buildAccountFromAuthResponse: PropTypes.func,
     onSuccess: PropTypes.func,
-
     onTryAgain: PropTypes.func,
     iconName: PropTypes.string,
     sessionKey: PropTypes.string,
@@ -48,6 +27,7 @@ export default class OAuthSignInPage extends React.Component {
 
   constructor() {
     super();
+    this._mounted = false;
     this.state = {
       authStage: 'initial',
       showAlternative: false,
@@ -57,83 +37,84 @@ export default class OAuthSignInPage extends React.Component {
   componentDidMount() {
     // Show the "Sign in to ..." prompt for a moment before bouncing
     // to URL. (400msec animation + 200msec to read)
-    this._pollTimer = null;
+    this._mounted = true;
     this._startTimer = setTimeout(() => {
+      if (!this._mounted) return;
       shell.openExternal(this.props.providerAuthPageUrl);
-      this.startPollingForResponse();
     }, 600);
-    setTimeout(() => {
+    this._warnTimer = setTimeout(() => {
+      if (!this._mounted) return;
       this.setState({ showAlternative: true });
     }, 1500);
+
+    // launch a web server
+    this._server = http.createServer((request, response) => {
+      if (!this._mounted) return;
+      const { query } = url.parse(request.url, { querystring: true });
+      if (query.code) {
+        this._onReceivedCode(query.code);
+        response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });
+        response.end();
+      } else {
+        response.end('Unknown Request');
+      }
+    });
+    this._server.listen(LOCAL_SERVER_PORT, err => {
+      if (err) {
+        AppEnv.showErrorDialog({
+          title: 'Unable to Start Local Server',
+          message: `To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n${err}`,
+        });
+        return;
+      }
+    });
   }
 
   componentWillUnmount() {
+    this._mounted = false;
     if (this._startTimer) clearTimeout(this._startTimer);
-    if (this._pollTimer) clearTimeout(this._pollTimer);
+    if (this._warnTimer) clearTimeout(this._warnTimer);
+    if (this._server) this._server.close();
   }
 
-  _handleError(err) {
+  _onError(err) {
     this.setState({ authStage: 'error', errorMessage: err.message });
     AppEnv.reportError(err);
   }
 
-  startPollingForResponse() {
-    let delay = 1000;
-    let onWindowFocused = null;
-    let poll = null;
-    this.setState({ authStage: 'polling' });
-
-    onWindowFocused = () => {
-      delay = 1000;
-      if (this._pollTimer) {
-        clearTimeout(this._pollTimer);
-        this._pollTimer = setTimeout(poll, delay);
-      }
-    };
-
-    poll = async () => {
-      clearTimeout(this._pollTimer);
-      try {
-        const tokenData = await this.props.tokenRequestPollFn(this.props.sessionKey);
-        ipcRenderer.removeListener('browser-window-focus', onWindowFocused);
-        this.fetchAccountDataWithToken(tokenData);
-      } catch (err) {
-        if (err.statusCode === 404) {
-          delay = Math.min(delay * 1.1, 3000);
-          this._pollTimer = setTimeout(poll, delay);
-        } else {
-          ipcRenderer.removeListener('browser-window-focus', onWindowFocused);
-          this._handleError(err);
-        }
-      }
-    };
-
-    ipcRenderer.on('browser-window-focus', onWindowFocused);
-    this._pollTimer = setTimeout(poll, 3000);
-  }
-
-  async fetchAccountDataWithToken(tokenData) {
+  async _onReceivedCode(code) {
+    if (!this._mounted) return;
+    AppEnv.focus();
+    this.setState({ authStage: 'buildingAccount' });
+    let account = null;
     try {
-      this.setState({ authStage: 'fetchingAccount' });
-      const accountData = await this.props.accountFromTokenFn(tokenData);
-      this.props.onSuccess(accountData);
-      this.setState({ authStage: 'accountSuccess' });
+      account = await this.props.buildAccountFromAuthResponse(code);
     } catch (err) {
-      this._handleError(err);
+      if (!this._mounted) return;
+      this._onError(err);
+      return;
     }
+    if (!this._mounted) return;
+    this.setState({ authStage: 'accountSuccess' });
+    setTimeout(() => {
+      if (!this._mounted) return;
+      this.props.onSuccess(account);
+    }, 400);
   }
 
   _renderHeader() {
     const authStage = this.state.authStage;
-    if (authStage === 'initial' || authStage === 'polling') {
+    if (authStage === 'initial') {
       return (
         <h2>
           Sign in with {this.props.serviceName} in<br />your browser.
         </h2>
       );
-    } else if (authStage === 'fetchingAccount') {
+    }
+    if (authStage === 'buildingAccount') {
       return <h2>Connecting to {this.props.serviceName}…</h2>;
-    } else if (authStage === 'accountSuccess') {
+    }
+    if (authStage === 'accountSuccess') {
       return (
         <div>
           <h2>Successfully connected to {this.props.serviceName}!</h2>
@@ -158,7 +139,7 @@ export default class OAuthSignInPage extends React.Component {
 
   _renderAlternative() {
     let classnames = 'input hidden';
-    if (this.state.authStage === 'polling' && this.state.showAlternative) {
+    if (this.state.showAlternative) {
       classnames += ' fadein';
     }
 

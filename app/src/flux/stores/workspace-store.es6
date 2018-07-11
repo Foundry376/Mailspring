@@ -34,7 +34,7 @@ class WorkspaceStore extends MailspringStore {
 
     const { windowType } = AppEnv.getLoadSettings();
     if (windowType !== 'onboarding') {
-      require('electron').webFrame.setZoomLevelLimits(1, 1);
+      require('electron').webFrame.setVisualZoomLevelLimits(1, 1);
       AppEnv.config.observe('core.workspace.interfaceZoom', z => {
         if (z && _.isNumber(z)) {
           require('electron').webFrame.setZoomFactor(z);
@@ -67,14 +67,19 @@ class WorkspaceStore extends MailspringStore {
             type: 'radio',
             command: 'application:select-list-mode',
             checked: this._preferredLayoutMode === 'list',
-            position: 'before=mailbox-navigation',
+            position: 'before=first',
           },
           {
             label: 'Reading Pane On',
             type: 'radio',
+            id: 'reading-pane-on',
             command: 'application:select-split-mode',
             checked: this._preferredLayoutMode === 'split',
-            position: 'before=mailbox-navigation',
+            position: 'before=first',
+          },
+          {
+            type: 'separator',
+            position: 'before=first',
           },
         ],
       },

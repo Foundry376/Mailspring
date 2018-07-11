@@ -63,7 +63,7 @@ export default class LinkTrackingComposerExtension extends ComposerExtension {
         redirect_url: redirectUrl,
       });
 
-      const qr = recipient ? `&recipient=${encodeURIComponent(recipient.email)}` : '';
+      const qr = recipient ? `&recipient=${encodeURIComponent(btoa(recipient.email))}` : '';
       el.setAttribute('href', `${redirectUrl}${qr}`);
     });
 

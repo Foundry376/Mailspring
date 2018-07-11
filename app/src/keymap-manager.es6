@@ -16,15 +16,26 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
   if (suspended) {
     return true;
   }
+
+  // Slate handles undo/redo itself in slate-react's `after` plugin but doesn't stop
+  // propagation. Because of this, we need to make sure we do not fire core:undo or core:redo.
+  const withinSlateEditor =
+    e.target.isContentEditable &&
+    (e.target.hasAttribute('data-slate-editor') || e.target.closest('[data-slate-editor]'));
+  if (withinSlateEditor && /(mod|command|ctrl)\+(z|y)/.test(combo)) {
+    return true;
+  }
+
+  const withinWebview = element.tagName === 'WEBVIEW';
+  if (withinWebview) {
+    return true;
+  }
+
   const withinTextInput =
     element.tagName === 'INPUT' ||
     element.tagName === 'SELECT' ||
     element.tagName === 'TEXTAREA' ||
     element.isContentEditable;
-  const withinWebview = element.tagName === 'WEBVIEW';
-  if (withinWebview) {
-    return true;
-  }
   if (withinTextInput) {
     const isPlainKey = !/(mod|command|ctrl)/.test(combo);
     const isReservedTextEditingShortcut = /(mod|command|ctrl)\+(a|x|c|v)/.test(combo);

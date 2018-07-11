@@ -70,13 +70,6 @@ export default {
       attachments: {
         type: 'object',
         properties: {
-          downloadPolicy: {
-            type: 'string',
-            default: 'on-read',
-            enum: ['on-read', 'manually'],
-            enumLabels: ['When Read', 'Manually'],
-            title: 'Download attachments for new mail',
-          },
           openFolderAfterDownload: {
             type: 'boolean',
             default: false,
@@ -280,6 +273,11 @@ export default {
             type: 'boolean',
             default: true,
             title: 'Show notifications for new unread messages',
+          },
+          enabledForRepeatedTrackingEvents: {
+            type: 'boolean',
+            default: true,
+            title: 'Show notifications for repeated opens / clicks',
           },
           sounds: {
             type: 'boolean',

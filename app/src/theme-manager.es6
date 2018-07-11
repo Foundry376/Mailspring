@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import { Emitter } from 'event-kit';
 import path from 'path';
 import fs from 'fs-plus';
@@ -202,7 +203,10 @@ export default class ThemeManager {
       }
       console.error(message, { detail, dismissable: true });
       console.error(detail);
-      throw error;
+
+      ipcRenderer.send('encountered-theme-error', { message, detail });
+
+      return '';
     }
   }
 }

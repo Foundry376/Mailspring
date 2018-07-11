@@ -1,6 +1,6 @@
 /* eslint global-require: 0*/
 
-import { DraftStore, Actions, QuotedHTMLTransformer } from 'mailspring-exports';
+import { DraftStore, Actions, QuotedHTMLTransformer, RegExpUtils } from 'mailspring-exports';
 import { remote } from 'electron';
 import MailspringStore from 'mailspring-store';
 import path from 'path';
@@ -52,7 +52,12 @@ class TemplateStore extends MailspringStore {
 
   watch() {
     if (!this._watcher) {
-      this._watcher = fs.watch(this._templatesDir, () => this._populate());
+      try {
+        this._watcher = fs.watch(this._templatesDir, () => this._populate());
+      } catch (err) {
+        // usually an ENOSPC error
+        console.warn(err);
+      }
     }
   }
 
@@ -113,10 +118,11 @@ class TemplateStore extends MailspringStore {
     DraftStore.sessionForClientId(headerMessageId).then(session => {
       const draft = session.draft();
       const draftName = draft.subject.replace(INVALID_TEMPLATE_NAME_REGEX, '');
-      let draftContents = QuotedHTMLTransformer.removeQuotedHTML(draft.body);
 
-      const sigIndex = draftContents.indexOf('<signature>');
-      draftContents = sigIndex > -1 ? draftContents.slice(0, sigIndex) : draftContents;
+      let draftContents = QuotedHTMLTransformer.removeQuotedHTML(draft.body);
+      const sigIndex = draftContents.search(RegExpUtils.mailspringSignatureRegex());
+      draftContents = sigIndex > -1 ? draftContents.substr(0, sigIndex) : draftContents;
+
       if (!draftName || draftName.length === 0) {
         this._displayError('Give your draft a subject to name your template.');
       }
@@ -183,7 +189,7 @@ class TemplateStore extends MailspringStore {
       if (err) {
         this._displayError(err);
       }
-      if (template === null) {
+      if (!template) {
         template = {
           id: filename,
           name: name,

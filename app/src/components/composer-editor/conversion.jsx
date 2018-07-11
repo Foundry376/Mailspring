@@ -246,6 +246,53 @@ export function convertFromHTML(html) {
   };
   cleanupTrailingWhitespace(json.document, true);
 
+  /* In Slate, `text` nodes contains an array of `leaves`, each of which has `marks`.
+  When we deserialize HTML we convert "Hello <b>World</b> Again" into three adjacent
+  text nodes, each with a single leaf with different marks, and Slate has to (very slowly)
+  normalize it by merging the nodes into one text node with three leaves.
+
+  - Convert adjacent text nodes into a single text node with all the leaves.
+  - Ensure `block` elements have an empty text node child.
+  */
+  const optimizeTextNodesForNormalization = node => {
+    if (!node.nodes) return;
+    node.nodes.forEach(optimizeTextNodesForNormalization);
+
+    // Convert adjacent text nodes into a single text node with all the leaves
+    const cleanChildren = [];
+    let lastChild = null;
+    for (const child of node.nodes) {
+      if (child.object === 'block') {
+        return; // because of wrapMixedChildren, block child means no text children
+      }
+      if (lastChild && lastChild.object === 'text' && child.object === 'text') {
+        lastChild.leaves.push(...child.leaves);
+        continue;
+      }
+      cleanChildren.push(child);
+      lastChild = child;
+    }
+    node.nodes = cleanChildren;
+
+    // Ensure `block` elements have an empty text node child
+    if (node.object === 'block' && node.nodes.length === 0) {
+      node.nodes = [
+        {
+          object: 'text',
+          leaves: [
+            {
+              object: 'leaf',
+              text: '',
+              marks: [],
+            },
+          ],
+        },
+      ];
+    }
+  };
+
+  optimizeTextNodesForNormalization(json.document);
+
   return Value.fromJSON(json);
 }
 

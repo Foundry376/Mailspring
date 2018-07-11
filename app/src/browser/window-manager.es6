@@ -56,6 +56,22 @@ export default class WindowManager {
     return this.getOpenWindows().length;
   }
 
+  getVisibleWindows() {
+    const values = [];
+    Object.keys(this._windows).forEach(key => {
+      const win = this._windows[key];
+      if (win.isVisible()) {
+        values.push(win);
+      }
+    });
+
+    return values;
+  }
+
+  getVisibleWindowCount() {
+    return this.getVisibleWindows().length;
+  }
+
   getAllWindowDimensions() {
     const dims = {};
     Object.keys(this._windows).forEach(key => {

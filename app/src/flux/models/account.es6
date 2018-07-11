@@ -84,6 +84,13 @@ export default class Account extends ModelWithMetadata {
     };
   }
 
+  toJSON(...args) {
+    // ensure we deep-copy our settings object into the JSON
+    const json = super.toJSON(...args);
+    json.settings = Object.assign({}, json.settings);
+    return json;
+  }
+
   fromJSON(json) {
     super.fromJSON(json);
     if (!this.label) {

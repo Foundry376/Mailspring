@@ -6,15 +6,7 @@ import ThreadListEmptyFolderBar from './thread-list-empty-folder-bar';
 import MessageListToolbar from './message-list-toolbar';
 import SelectedItemsStack from './selected-items-stack';
 
-import {
-  UpButton,
-  DownButton,
-  TrashButton,
-  ArchiveButton,
-  MarkAsSpamButton,
-  ToggleUnreadButton,
-  ToggleStarredButton,
-} from './thread-toolbar-buttons';
+import { UpButton, DownButton, MoveButtons, FlagButtons } from './thread-toolbar-buttons';
 
 export function activate() {
   ComponentRegistry.register(ThreadListEmptyFolderBar, {
@@ -50,23 +42,11 @@ export function activate() {
     modes: ['list'],
   });
 
-  ComponentRegistry.register(ArchiveButton, {
+  ComponentRegistry.register(MoveButtons, {
     role: 'ThreadActionsToolbarButton',
   });
 
-  ComponentRegistry.register(TrashButton, {
-    role: 'ThreadActionsToolbarButton',
-  });
-
-  ComponentRegistry.register(MarkAsSpamButton, {
-    role: 'ThreadActionsToolbarButton',
-  });
-
-  ComponentRegistry.register(ToggleStarredButton, {
-    role: 'ThreadActionsToolbarButton',
-  });
-
-  ComponentRegistry.register(ToggleUnreadButton, {
+  ComponentRegistry.register(FlagButtons, {
     role: 'ThreadActionsToolbarButton',
   });
 }
@@ -76,11 +56,8 @@ export function deactivate() {
   ComponentRegistry.unregister(SelectedItemsStack);
   ComponentRegistry.unregister(ThreadListToolbar);
   ComponentRegistry.unregister(MessageListToolbar);
-  ComponentRegistry.unregister(ArchiveButton);
-  ComponentRegistry.unregister(TrashButton);
-  ComponentRegistry.unregister(MarkAsSpamButton);
-  ComponentRegistry.unregister(ToggleUnreadButton);
-  ComponentRegistry.unregister(ToggleStarredButton);
+  ComponentRegistry.unregister(MoveButtons);
+  ComponentRegistry.unregister(FlagButtons);
   ComponentRegistry.unregister(UpButton);
   ComponentRegistry.unregister(DownButton);
 }

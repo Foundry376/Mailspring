@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import { Utils, Actions, AttachmentStore } from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
@@ -32,21 +31,15 @@ export default class MessageItem extends React.Component {
       downloads: AttachmentStore.getDownloadDataForFiles(fileIds),
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
       detailedHeaders: false,
-      detailedHeadersTogglePos: { top: 18 },
     };
   }
 
   componentDidMount() {
     this._storeUnlisten = AttachmentStore.listen(this._onDownloadStoreChange);
-    this._setDetailedHeadersTogglePos();
   }
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
-  }
-
-  componentDidUpdate() {
-    this._setDetailedHeadersTogglePos();
   }
 
   componentWillUnmount() {
@@ -69,41 +62,11 @@ export default class MessageItem extends React.Component {
   };
 
   _onClickHeader = e => {
-    if (this.state.detailedHeaders) {
-      return;
-    }
-    let el = e.target;
-    while (el !== e.currentTarget) {
-      if (
-        el.classList.contains('message-header-right') ||
-        el.classList.contains('collapsed-participants')
-      ) {
-        return;
-      }
-      el = el.parentElement;
-    }
     this._onToggleCollapsed();
   };
 
   _onDownloadAll = () => {
     Actions.fetchAndSaveAllFiles(this.props.message.files);
-  };
-
-  _setDetailedHeadersTogglePos = () => {
-    if (!this._headerEl) {
-      return;
-    }
-    const fromNode = this._headerEl.querySelector(
-      '.participant-name.from-contact,.participant-primary'
-    );
-    if (!fromNode) {
-      return;
-    }
-    const fromRect = fromNode.getBoundingClientRect();
-    const topPos = Math.floor(fromNode.offsetTop + fromRect.height / 2 - 10);
-    if (topPos !== this.state.detailedHeadersTogglePos.top) {
-      this.setState({ detailedHeadersTogglePos: { top: topPos } });
-    }
   };
 
   _onToggleCollapsed = () => {
@@ -138,9 +101,11 @@ export default class MessageItem extends React.Component {
   }
 
   _renderAttachments() {
-    const { files = [], body = '', id } = this.props.message;
+    const { files = [], body, id } = this.props.message;
     const { filePreviewPaths, downloads } = this.state;
-    const attachedFiles = files.filter(f => !f.contentId || !body.includes(`cid:${f.contentId}`));
+    const attachedFiles = files.filter(
+      f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`)
+    );
 
     return (
       <div>
@@ -179,17 +144,11 @@ export default class MessageItem extends React.Component {
 
   _renderHeader() {
     const { message, thread, messages, pending } = this.props;
-    const classes = classNames({
-      'message-header': true,
-      pending: pending,
-    });
 
     return (
       <header
-        ref={el => {
-          this._headerEl = el;
-        }}
-        className={classes}
+        ref={el => (this._headerEl = el)}
+        className={`message-header ${pending && 'pending'}`}
         onClick={this._onClickHeader}
       >
         <InjectedComponent
@@ -238,12 +197,11 @@ export default class MessageItem extends React.Component {
     if (this.props.pending) {
       return null;
     }
-    const { top } = this.state.detailedHeadersTogglePos;
     if (this.state.detailedHeaders) {
       return (
         <div
           className="header-toggle-control"
-          style={{ top, left: '-14px' }}
+          style={{ top: 18, left: -14 }}
           onClick={e => {
             this.setState({ detailedHeaders: false });
             e.stopPropagation();
@@ -260,7 +218,7 @@ export default class MessageItem extends React.Component {
     return (
       <div
         className="header-toggle-control inactive"
-        style={{ top }}
+        style={{ top: 18 }}
         onClick={e => {
           this.setState({ detailedHeaders: true });
           e.stopPropagation();

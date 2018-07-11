@@ -22,6 +22,17 @@ const isTextInput = node => {
   return false;
 };
 
+const isSelectionPresent = () => {
+  if (
+    document.activeElement &&
+    document.activeElement.closest('[contenteditable]') &&
+    document.getSelection().toString().length === 0
+  ) {
+    return false;
+  }
+  return true;
+};
+
 // Handles low-level events related to the window.
 export default class WindowEventHandler {
   constructor() {
@@ -123,8 +134,8 @@ export default class WindowEventHandler {
     };
 
     AppEnv.commands.add(document.body, {
-      'core:copy': () => webContents.copy(),
-      'core:cut': () => webContents.cut(),
+      'core:copy': () => (isSelectionPresent() ? webContents.copy() : null),
+      'core:cut': () => (isSelectionPresent() ? webContents.cut() : null),
       'core:paste': () => webContents.paste(),
       'core:paste-and-match-style': () => webContents.pasteAndMatchStyle(),
       'core:undo': e => (isTextInput(e.target) ? webContents.undo() : getUndoStore().undo()),
@@ -306,9 +317,6 @@ export default class WindowEventHandler {
     const word = event.target.value.substr(wordStart, wordEnd - wordStart);
 
     this.openSpellingMenuFor(word, hasSelectedText, {
-      onCopy: () => document.execCommand('copy'),
-      onCut: () => document.execCommand('cut'),
-      onPaste: () => document.execCommand('paste'),
       onCorrect: correction => {
         const insertionPoint = wordStart + correction.length;
         event.target.value = event.target.value.replace(word, correction);
@@ -317,7 +325,7 @@ export default class WindowEventHandler {
     });
   }
 
-  openSpellingMenuFor(word, hasSelectedText, { onCorrect, onCut, onPaste, onCopy }) {
+  openSpellingMenuFor(word, hasSelectedText, { onCorrect, onRestoreSelection = () => {} }) {
     const { Menu, MenuItem } = remote;
     const menu = new Menu();
 
@@ -328,23 +336,35 @@ export default class WindowEventHandler {
       new MenuItem({
         label: 'Cut',
         enabled: hasSelectedText,
-        click: onCut,
+        click: () => AppEnv.commands.dispatch('core:cut'),
       })
     );
     menu.append(
       new MenuItem({
         label: 'Copy',
         enabled: hasSelectedText,
-        click: onCopy,
+        click: () => AppEnv.commands.dispatch('core:copy'),
       })
     );
     menu.append(
       new MenuItem({
         label: 'Paste',
-        click: onPaste,
+        click: () => {
+          onRestoreSelection();
+          AppEnv.commands.dispatch('core:paste');
+        },
       })
     );
-    menu.popup(remote.getCurrentWindow());
+    menu.append(
+      new MenuItem({
+        label: 'Paste and Match Style',
+        click: () => {
+          onRestoreSelection();
+          AppEnv.commands.dispatch('core:paste-and-match-style');
+        },
+      })
+    );
+    menu.popup({});
   }
 
   showDevModeMessages() {

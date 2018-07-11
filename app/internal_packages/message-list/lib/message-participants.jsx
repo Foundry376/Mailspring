@@ -42,6 +42,9 @@ export default class MessageParticipants extends React.Component {
   }
 
   _onSelectText = e => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const textNode = e.currentTarget.childNodes[0];
     const range = document.createRange();
     range.setStart(textNode, 0);
@@ -60,7 +63,7 @@ export default class MessageParticipants extends React.Component {
         click: () => Actions.composeNewDraftToRecipient(contact),
       })
     );
-    menu.popup(AppEnv.getCurrentWindow());
+    menu.popup({});
   };
 
   _renderFullContacts(contacts = []) {

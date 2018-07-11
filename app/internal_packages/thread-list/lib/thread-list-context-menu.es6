@@ -21,6 +21,9 @@ export default class ThreadListContextMenu {
         this.threads = threads;
 
         return Promise.all([
+          this.findWithFrom(),
+          this.findWithSubject(),
+          { type: 'separator' },
           this.replyItem(),
           this.replyAllItem(),
           this.forwardItem(),
@@ -39,6 +42,33 @@ export default class ThreadListContextMenu {
           return true;
         });
       });
+  }
+
+  findWithFrom() {
+    if (this.threadIds.length !== 1) {
+      return null;
+    }
+    const from = this.threads[0].participants.find(p => !p.isMe());
+    return {
+      label: `Search for ${from.email}`,
+      click: () => {
+        Actions.searchQuerySubmitted(`"${from.email.replace('"', '""')}"`);
+      },
+    };
+  }
+
+  findWithSubject() {
+    if (this.threadIds.length !== 1) {
+      return null;
+    }
+    const subject = this.threads[0].subject;
+
+    return {
+      label: `Search for ${subject.length > 35 ? `${subject.substr(0, 35)}...` : subject}`,
+      click: () => {
+        Actions.searchQuerySubmitted(`subject:"${subject}"`);
+      },
+    };
   }
 
   replyItem() {
