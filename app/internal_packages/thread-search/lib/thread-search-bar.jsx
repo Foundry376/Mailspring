@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
+import { ListensToFluxStore, RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 import { Actions, FocusedPerspectiveStore, WorkspaceStore } from 'mailspring-exports';
 import SearchStore from './search-store';
 import TokenizingContenteditable from './tokenizing-contenteditable';
@@ -181,7 +181,13 @@ class ThreadSearchBar extends Component {
       });
     }
 
+    if (e.keyCode === 27) {
+      // escape
+      e.preventDefault();
+      this._onClearSearchQuery(e);
+    }
     if (e.keyCode === 13) {
+      // return
       e.preventDefault();
       if (selected) {
         this._onChooseSuggestion(selected);
@@ -286,7 +292,12 @@ class ThreadSearchBar extends Component {
     const showX = this.state.focused || !!perspective.searchQuery;
 
     return (
-      <div className={`thread-search-bar ${showPlaceholder ? 'placeholder' : ''}`}>
+      <KeyCommandsRegion
+        className={`thread-search-bar ${showPlaceholder ? 'placeholder' : ''}`}
+        globalHandlers={{
+          'core:focus-search': () => this._fieldEl.focus(),
+        }}
+      >
         {isSearching ? (
           <RetinaImg
             className="search-accessory search loading"
@@ -351,7 +362,7 @@ class ThreadSearchBar extends Component {
               )}
             </div>
           )}
-      </div>
+      </KeyCommandsRegion>
     );
   }
 }
