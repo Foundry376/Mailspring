@@ -81,6 +81,7 @@ describe('MessageParticipants', function() {
           to={test_message.to}
           cc={test_message.cc}
           from={test_message.from}
+          replyTo={test_message.replyTo}
           isDetailed={true}
           message_participants={test_message.participants()}
         />

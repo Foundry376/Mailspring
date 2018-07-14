@@ -13,6 +13,7 @@ export default class MessageParticipants extends React.Component {
     to: PropTypes.array,
     cc: PropTypes.array,
     bcc: PropTypes.array,
+    replyTo: PropTypes.array,
     from: PropTypes.array,
     onClick: PropTypes.func,
     isDetailed: PropTypes.bool,
@@ -23,6 +24,7 @@ export default class MessageParticipants extends React.Component {
     cc: [],
     bcc: [],
     from: [],
+    replyTo: [],
   };
 
   // Helpers
@@ -117,22 +119,28 @@ export default class MessageParticipants extends React.Component {
   }
 
   _renderExpanded() {
+    const { from, replyTo, to, cc, bcc } = this.props;
+
     const expanded = [];
 
-    if (this.props.from.length > 0) {
-      expanded.push(this._renderExpandedField('from', this.props.from, { includeLabel: false }));
+    if (from.length > 0) {
+      expanded.push(this._renderExpandedField('from', from, { includeLabel: false }));
     }
 
-    if (this.props.to.length > 0) {
-      expanded.push(this._renderExpandedField('to', this.props.to));
+    if (replyTo.length > 0) {
+      expanded.push(this._renderExpandedField('reply-to', replyTo));
     }
 
-    if (this.props.cc.length > 0) {
-      expanded.push(this._renderExpandedField('cc', this.props.cc));
+    if (to.length > 0) {
+      expanded.push(this._renderExpandedField('to', to));
     }
 
-    if (this.props.bcc.length > 0) {
-      expanded.push(this._renderExpandedField('bcc', this.props.bcc));
+    if (cc.length > 0) {
+      expanded.push(this._renderExpandedField('cc', cc));
+    }
+
+    if (bcc.length > 0) {
+      expanded.push(this._renderExpandedField('bcc', bcc));
     }
 
     return <div className="expanded-participants">{expanded}</div>;

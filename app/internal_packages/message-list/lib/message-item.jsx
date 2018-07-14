@@ -184,6 +184,7 @@ export default class MessageItem extends React.Component {
           to={message.to}
           cc={message.cc}
           bcc={message.bcc}
+          replyTo={message.replyTo.filter(c => !message.from.find(fc => fc.email === c.email))}
           onClick={this._onClickParticipants}
           isDetailed={this.state.detailedHeaders}
         />
