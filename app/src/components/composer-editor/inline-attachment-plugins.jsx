@@ -1,6 +1,7 @@
 import React from 'react';
 import { ImageAttachmentItem } from 'mailspring-component-kit';
 import { AttachmentStore } from 'mailspring-exports';
+import { isQuoteNode } from './base-block-plugins';
 
 const IMAGE_TYPE = 'image';
 
@@ -67,6 +68,14 @@ const rules = [
 
 export const changes = {
   insert: (change, file) => {
+    const canHoldInline = node => !node.isVoid && !isQuoteNode(node) && !!node.getFirstText();
+
+    while (!canHoldInline(change.value.anchorBlock)) {
+      change.collapseToEndOfPreviousText();
+      if (!change.value.anchorBlock) {
+        break;
+      }
+    }
     return change.insertInline({
       object: 'inline',
       isVoid: true,

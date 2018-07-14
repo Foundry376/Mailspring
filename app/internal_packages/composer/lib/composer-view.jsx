@@ -430,12 +430,14 @@ export default class ComposerView extends React.Component {
     // Accept drops of real files from other applications
     for (const file of Array.from(event.dataTransfer.files)) {
       this._onFileReceived(file.path);
+      event.preventDefault();
     }
 
     // Accept drops from attachment components / images within the app
     const uri = this._nonNativeFilePathForDrop(event);
     if (uri) {
       this._onFileReceived(uri);
+      event.preventDefault();
     }
   };
 
@@ -452,7 +454,6 @@ export default class ComposerView extends React.Component {
           if (!match) {
             return;
           }
-
           match.contentId = Utils.generateContentId();
           session.changes.add({
             files: [].concat(draft.files),

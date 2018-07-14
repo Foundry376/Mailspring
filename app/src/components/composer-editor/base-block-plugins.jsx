@@ -264,7 +264,7 @@ export function allNodesInBFSOrder(value) {
   return all;
 }
 
-function isQuoteNode(n) {
+export function isQuoteNode(n) {
   return (
     n.type === 'blockquote' ||
     (n.data && n.data.get('className') && n.data.get('className').includes('gmail_quote'))
