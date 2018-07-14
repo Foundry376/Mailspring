@@ -81,6 +81,27 @@ export default class TokenizingContenteditable extends Component {
     return tokens.join('');
   };
 
+  onPaste = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const text = e.clipboardData
+      .getData('text/plain')
+      .replace(/\n/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    document.execCommand('insertText', false, text);
+
+    if (document.activeElement === this._textEl) {
+      const sel = window.getSelection();
+      const x = sel.getRangeAt(0).getBoundingClientRect().x;
+      const parent = this._textEl.parentNode;
+      const w = parent.getBoundingClientRect().width;
+      if (x > w) {
+        parent.scrollLeft += x - w;
+      }
+    }
+  };
+
   onChange = e => {
     const value = e.target.innerText.replace(/\s/g, ' ');
     this._tokensEl.innerHTML = this.valueToHTML(value);
@@ -106,6 +127,7 @@ export default class TokenizingContenteditable extends Component {
           ref={el => (this._textEl = el)}
           dangerouslySetInnerHTML={{ __html: this.props.value.replace(/\s/g, '&nbsp;') }}
           onKeyDown={this.props.onKeyDown}
+          onPaste={this.onPaste}
           onFocus={this.props.onFocus}
           onBlur={this.props.onBlur}
           onInput={this.onChange}
