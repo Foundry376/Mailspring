@@ -1,5 +1,50 @@
 # Mailspring Changelog
 
+### 1.3.0 (7/14/2018)
+
+* Mailspring 1.3 brings an overhauled search bar with powerful autocomplete that makes it easier to create advanced search queries.
+
+  * In addition to searching for freeform text and using the Gmail query language (`subject:`, `in:`, `is:`, `from:`, `to:`), Mailspring now allows you to search by date using natural language terms like `since: "last week"` and `before: "february 5th"`. Try combining them with other terms to search a specific time window!
+
+  * You can now right-click a thread to search for other threads from that sender or with that subject.
+
+  * You can now focus the search bar and conduct searches entirely with keyboard shortcuts (use Escape to exit the search bar!) #960
+
+* Mailspring now uses Electron 2.0.2, which delibers some [great bug fixes and new features](https://github.com/electron/electron/releases/tag/v2.0.0):
+
+  * Chrome 61, Node 8.9.3, V8 6.1.534.41 with improved performance and lower memory footprints
+  * Better GTK+ theme support, including support for menu styling
+  * Better support for Linux desktop notifications
+  * The app will no longer cancel restart or shutdown
+
+Fixes:
+
+* Mailspring no longer clips some messages containing images incorrectly. #569
+
+* The Reply-To header is now shown when you expand the message headers. #973
+
+* Dropping images onto the composer now reliably inserts them as inline attachments. #822
+
+* Mailspring now correctly opens attachments with filenames containing emoji on Windows.
+
+* You can now drag and attachment out of Mailspring by it's quicklook preview as well as it's title.
+
+* Using Mailspring on Windows in a user account containing accent characters or other special characters no longer prevents attachments from being cached. #810
+
+* Mailspring no longer throws an exception when trying to display a message with attachments but no downloaded body. #804
+
+* The "hamburger" icon in the top right of the main window no longer appears gray-on-gray in the "Ubuntu" theme. #801
+
+* Auto-hiding of the menu bar now works correctly on Linux. #938
+
+* Clicking on the open/link tracking "detail dot" now shows individual tracking events correctly. #945
+
+* The Print window no longer contains an incorrect menu bar on Windows. #958
+
+* Signatures with Facebook and Twitter profiles now display the service favicons reliably when viewed in Gmail and Outlook. #968
+
+* Invalid themes no longer "brick" the app - Mailspring will present an alert with the error and offer to revert to the basic theme. (Mailspring-Theme-Starter/issues/1)
+
 ### 1.2.2 (5/30/2018)
 
 Fixes:
