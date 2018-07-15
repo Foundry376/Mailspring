@@ -164,6 +164,9 @@ export default class Application extends EventEmitter {
   }
 
   async oneTimeMoveToApplications() {
+    if (process.platform !== 'darwin') {
+      return;
+    }
     if (this.devMode || this.specMode) {
       return;
     }
