@@ -467,7 +467,7 @@
   flex-direction: column;
 
   .footer {
-    background-image: linear-gradient(to right, #6061c7 0%, #4782ad 100%)
+    background-image: linear-gradient(to right, #6061c7 0%, #4782ad 100%);
   }
 
   a {
@@ -483,7 +483,7 @@
   .steps-container {
     position: relative;
     flex: 1;
-    background-image: linear-gradient(to right, #696AE8 0%, #4c9ad2 100%);
+    background-image: linear-gradient(to right, #696ae8 0%, #4c9ad2 100%);
     color: white;
     overflow: hidden;
   }
@@ -533,6 +533,17 @@
 }
 
 body.platform-win32 {
+  .page.welcome,
+  .page.tutorial {
+    .footer {
+      .btn-continue {
+        color: white;
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.3);
+        }
+      }
+    }
+  }
   .page-frame {
     .alpha-fade-enter {
       transition: all 0.01s ease-out;
