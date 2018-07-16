@@ -38,8 +38,6 @@ apps:
     command: desktop-launch $SNAP/usr/share/mailspring/mailspring
     desktop: usr/share/applications/mailspring.desktop
     environment:
-      LD_LIBRARY_PATH: $SNAP_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio:$SNAP/usr/lib/x86_64-linux-gnu/mesa-egl:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu
-      PATH: $SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH
       # Correct the TMPDIR path for Chromium Framework/Electron to
       # ensure libappindicator has readable resources.
       HOME: $SNAP_USER_COMMON
@@ -53,6 +51,7 @@ apps:
      - browser-support
      - cups-control
      - gsettings
+     - opengl
      - home
      - desktop
      - desktop-legacy
