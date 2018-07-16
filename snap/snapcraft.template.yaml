@@ -18,6 +18,7 @@ parts:
       - desktop-gtk3
     stage-packages:
       - gir1.2-gnomekeyring-1.0
+      - libcanberra-gtk-module
       - libasound2
       - libcurl3
       - libgconf2-4
