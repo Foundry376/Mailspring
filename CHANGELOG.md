@@ -10,7 +10,7 @@
 
   * You can now focus the search bar and conduct searches entirely with keyboard shortcuts (use Escape to exit the search bar!) #960
 
-* Mailspring now uses Electron 2.0.2, which delibers some [great bug fixes and new features](https://github.com/electron/electron/releases/tag/v2.0.0):
+* Mailspring now uses Electron 2.0.2, which delivers some [great bug fixes and new features](https://github.com/electron/electron/releases/tag/v2.0.0):
 
   * Chrome 61, Node 8.9.3, V8 6.1.534.41 with improved performance and lower memory footprints
   * Better GTK+ theme support, including support for menu styling
