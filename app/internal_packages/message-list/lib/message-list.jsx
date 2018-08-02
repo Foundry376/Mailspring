@@ -102,22 +102,6 @@ class MessageList extends React.Component {
     }
   }
 
-  _globalMenuItems() {
-    const toggleExpandedLabel = this.state.hasCollapsedItems ? 'Expand' : 'Collapse';
-    return [
-      {
-        label: 'Thread',
-        submenu: [
-          {
-            label: `${toggleExpandedLabel} conversation`,
-            command: 'message-list:toggle-expanded',
-            position: 'endof=view-actions',
-          },
-        ],
-      },
-    ];
-  }
-
   _globalKeymapHandlers() {
     const handlers = {
       'core:reply': () =>
@@ -486,10 +470,7 @@ class MessageList extends React.Component {
     });
 
     return (
-      <KeyCommandsRegion
-        globalHandlers={this._globalKeymapHandlers()}
-        globalMenuItems={this._globalMenuItems()}
-      >
+      <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()}>
         <FindInThread />
         <div className={messageListClass} id="message-list">
           <ScrollRegion

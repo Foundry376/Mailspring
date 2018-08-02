@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { Actions, FocusedPerspectiveStore } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 import SnoozePopover from './snooze-popover';
 
 class SnoozeButton extends Component {
@@ -22,7 +22,9 @@ class SnoozeButton extends Component {
   };
 
   onClick = event => {
-    event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+    }
     const { threads, direction, getBoundingClientRect } = this.props;
     const buttonRect = getBoundingClientRect(this);
     Actions.openPopover(<SnoozePopover threads={threads} closePopover={Actions.closePopover} />, {
@@ -32,9 +34,6 @@ class SnoozeButton extends Component {
   };
 
   render() {
-    if (!FocusedPerspectiveStore.current().isInbox()) {
-      return <span />;
-    }
     return (
       <button
         title="Snooze"
@@ -98,6 +97,10 @@ export class ToolbarSnooze extends Component {
     if (!FocusedPerspectiveStore.current().isInbox()) {
       return <span />;
     }
-    return <SnoozeButton threads={this.props.items} />;
+    return (
+      <BindGlobalCommands commands={{ 'core:snooze-item': () => this._btn.onClick() }}>
+        <SnoozeButton threads={this.props.items} ref={b => (this._btn = b)} />
+      </BindGlobalCommands>
+    );
   }
 }

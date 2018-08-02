@@ -81,6 +81,7 @@ lazyLoad('MultiselectList', 'multiselect-list');
 lazyLoad('BoldedSearchResult', 'bolded-search-result');
 lazyLoad('MultiselectDropdown', 'multiselect-dropdown');
 lazyLoad('KeyCommandsRegion', 'key-commands-region');
+lazyLoad('BindGlobalCommands', 'bind-global-commands');
 lazyLoad('TabGroupRegion', 'tab-group-region');
 lazyLoad('InjectedComponent', 'injected-component');
 lazyLoad('TokenizingTextField', 'tokenizing-text-field');

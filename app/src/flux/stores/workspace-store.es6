@@ -43,48 +43,11 @@ class WorkspaceStore extends MailspringStore {
     }
 
     if (AppEnv.isMainWindow()) {
-      this._rebuildMenu();
-      AppEnv.commands.add(document.body, {
-        'core:pop-sheet': () => this.popSheet(),
-        'application:select-list-mode': () => this._onSelectLayoutMode('list'),
-        'application:select-split-mode': () => this._onSelectLayoutMode('split'),
-      });
+      this._rebuildShortcuts();
     }
   }
 
   triggerDebounced = _.debounce(() => this.trigger(this), 1);
-
-  _rebuildMenu() {
-    if (this._menuDisposable != null) {
-      this._menuDisposable.dispose();
-    }
-    this._menuDisposable = AppEnv.menu.add([
-      {
-        label: 'View',
-        submenu: [
-          {
-            label: 'Reading Pane Off',
-            type: 'radio',
-            command: 'application:select-list-mode',
-            checked: this._preferredLayoutMode === 'list',
-            position: 'before=first',
-          },
-          {
-            label: 'Reading Pane On',
-            type: 'radio',
-            id: 'reading-pane-on',
-            command: 'application:select-split-mode',
-            checked: this._preferredLayoutMode === 'split',
-            position: 'before=first',
-          },
-          {
-            type: 'separator',
-            position: 'before=first',
-          },
-        ],
-      },
-    ]);
-  }
 
   _resetInstanceVars() {
     this.Location = Location = {};
@@ -172,10 +135,27 @@ class WorkspaceStore extends MailspringStore {
     }
     this._preferredLayoutMode = mode;
     AppEnv.config.set('core.workspace.mode', this._preferredLayoutMode);
-    this._rebuildMenu();
+    this._rebuildShortcuts();
     this.popToRootSheet();
     this.trigger();
   };
+
+  _rebuildShortcuts() {
+    if (this._shortcuts) {
+      this._shortcuts.dispose();
+    }
+    this._shortcuts = AppEnv.commands.add(
+      document.body,
+      Object.assign(
+        {
+          'core:pop-sheet': () => this.popSheet(),
+        },
+        this._preferredLayoutMode === 'list'
+          ? { 'navigation:select-split-mode': () => this._onSelectLayoutMode('split') }
+          : { 'navigation:select-list-mode': () => this._onSelectLayoutMode('list') }
+      )
+    );
+  }
 
   /*
   Accessing Data

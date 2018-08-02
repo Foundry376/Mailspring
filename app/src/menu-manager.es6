@@ -64,6 +64,7 @@ export default class MenuManager {
     this.pendingUpdateOperation = true;
     window.requestAnimationFrame(() => {
       this.pendingUpdateOperation = false;
+
       MenuHelpers.forEachMenuItem(this.template, item => {
         if (item.command && item.command.startsWith('application:') === false) {
           item.enabled = AppEnv.commands.listenerCountForCommand(item.command) > 0;
@@ -75,7 +76,8 @@ export default class MenuManager {
           item.visible = item.enabled;
         }
       });
-      return this.sendToBrowserProcess(this.template, AppEnv.keymaps.getBindingsForAllCommands());
+
+      this.sendToBrowserProcess(this.template, AppEnv.keymaps.getBindingsForAllCommands());
     });
   };
 
@@ -83,7 +85,7 @@ export default class MenuManager {
     const menusDirPath = path.join(this.resourcePath, 'menus');
     const platformMenuPath = fs.resolve(menusDirPath, process.platform, ['json']);
     const { menu } = require(platformMenuPath);
-    return this.add(menu);
+    this.add(menu);
   }
 
   // Merges an item in a submenu aware way such that new items are always

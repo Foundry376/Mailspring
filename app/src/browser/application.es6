@@ -12,6 +12,7 @@ import WindowManager from './window-manager';
 import FileListCache from './file-list-cache';
 import ConfigMigrator from './config-migrator';
 import ApplicationMenu from './application-menu';
+import ApplicationTouchBar from './application-touch-bar';
 import AutoUpdateManager from './autoupdate-manager';
 import SystemTrayManager from './system-tray-manager';
 import DefaultClientHelper from '../default-client-helper';
@@ -100,6 +101,9 @@ export default class Application extends EventEmitter {
       initializeInBackground: initializeInBackground,
     });
     this.systemTrayManager = new SystemTrayManager(process.platform, this);
+    if (process.platform === 'darwin') {
+      this.touchBar = new ApplicationTouchBar(resourcePath);
+    }
 
     this.setupJavaScriptArguments();
     this.handleEvents();
@@ -548,6 +552,9 @@ export default class Application extends EventEmitter {
     ipcMain.on('update-application-menu', (event, template, keystrokesByCommand) => {
       const win = BrowserWindow.fromWebContents(event.sender);
       this.applicationMenu.update(win, template, keystrokesByCommand);
+      if (win === this.getMainWindow() && process.platform === 'darwin') {
+        this.touchBar.update(template);
+      }
     });
 
     ipcMain.on('command', (event, command, ...args) => {

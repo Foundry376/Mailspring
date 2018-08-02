@@ -129,7 +129,7 @@ class AppearanceModeSwitch extends React.Component {
   }
 
   _onApplyChanges = () => {
-    AppEnv.commands.dispatch(`application:select-${this.state.value}-mode`);
+    AppEnv.commands.dispatch(`navigation:select-${this.state.value}-mode`);
   };
 
   _renderModeOptions() {

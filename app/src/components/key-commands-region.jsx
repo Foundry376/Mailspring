@@ -89,7 +89,6 @@ export default class KeyCommandsRegion extends React.Component {
     className: PropTypes.string,
     localHandlers: PropTypes.object,
     globalHandlers: PropTypes.object,
-    globalMenuItems: PropTypes.array,
     onFocusIn: PropTypes.func,
     onFocusOut: PropTypes.func,
   };
@@ -98,7 +97,6 @@ export default class KeyCommandsRegion extends React.Component {
     className: '',
     localHandlers: null,
     globalHandlers: null,
-    globalMenuItems: null,
     onFocusIn: () => {},
     onFocusOut: () => {},
   };
@@ -113,9 +111,6 @@ export default class KeyCommandsRegion extends React.Component {
 
   componentDidMount() {
     this._setupListeners(this.props);
-    if (this.props.globalMenuItems) {
-      this._menuDisposable = AppEnv.menu.add(this.props.globalMenuItems);
-    }
   }
 
   componentWillReceiveProps(newProps) {
@@ -126,23 +121,11 @@ export default class KeyCommandsRegion extends React.Component {
       this._unmountListeners();
       this._setupListeners(newProps);
     }
-
-    // Updating menus in particular is expensive, so avoid teardown / re-add if identical
-    if (!_.isEqual(newProps.globalMenuItems, this.props.globalMenuItems)) {
-      if (this._menuDisposable) {
-        this._menuDisposable.dispose();
-      }
-      this._menuDisposable = AppEnv.menu.add(newProps.globalMenuItems);
-    }
   }
 
   componentWillUnmount() {
     this._losingFocusToElement = null;
     this._unmountListeners();
-    if (this._menuDisposable) {
-      this._menuDisposable.dispose();
-    }
-    this._menuDisposable = null;
   }
 
   // When the {KeymapManager} finds a valid keymap in a `.cson` file, it

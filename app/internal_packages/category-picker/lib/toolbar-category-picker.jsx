@@ -59,32 +59,15 @@ class MovePicker extends React.Component {
     const handlers = {
       'core:change-folders': this._onOpenMovePopover,
     };
-    const submenu = [
-      {
-        label: 'Move to Folder...',
-        command: 'core:change-folders',
-        position: 'endof=thread-actions',
-      },
-    ];
-
     if (this._account.usesLabels()) {
       Object.assign(handlers, {
         'core:change-labels': this._onOpenLabelsPopover,
-      });
-
-      submenu.push({
-        label: 'Apply Labels...',
-        command: 'core:change-labels',
-        position: 'endof=thread-actions',
       });
     }
 
     return (
       <div className="button-group" style={{ order: -103 }}>
-        <KeyCommandsRegion
-          globalHandlers={handlers}
-          globalMenuItems={[{ label: 'Thread', submenu: submenu }]}
-        >
+        <KeyCommandsRegion globalHandlers={handlers}>
           <button
             tabIndex={-1}
             ref={el => (this._moveEl = el)}

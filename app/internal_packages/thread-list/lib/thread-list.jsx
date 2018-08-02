@@ -15,11 +15,9 @@ const {
   Actions,
   Utils,
   CanvasUtils,
-  TaskFactory,
   ChangeStarredTask,
   ChangeFolderTask,
   ChangeLabelsTask,
-  CategoryStore,
   ExtensionRegistry,
   FocusedContentStore,
   FocusedPerspectiveStore,
@@ -68,48 +66,6 @@ class ThreadList extends React.Component {
     ReactDOM.findDOMNode(this).removeEventListener('contextmenu', this._onShowContextMenu);
   }
 
-  _shift = ({ offset, afterRunning }) => {
-    const dataSource = ThreadListStore.dataSource();
-    const focusedId = FocusedContentStore.focusedId('thread');
-    const focusedIdx = Math.min(
-      dataSource.count() - 1,
-      Math.max(0, dataSource.indexOfId(focusedId) + offset)
-    );
-    const item = dataSource.get(focusedIdx);
-    afterRunning();
-    Actions.setFocus({ collection: 'thread', item });
-  };
-
-  _keymapHandlers() {
-    return {
-      'core:remove-from-view': () => {
-        return this._onRemoveFromView();
-      },
-      'core:gmail-remove-from-view': () => {
-        this._onRemoveFromView();
-      }, // todo bg
-      'core:archive-item': this._onArchiveItem,
-      'core:delete-item': this._onDeleteItem,
-      'core:star-item': this._onStarItem,
-      'core:snooze-item': this._onSnoozeItem,
-      'core:mark-important': () => this._onSetImportant(true),
-      'core:mark-unimportant': () => this._onSetImportant(false),
-      'core:mark-as-unread': () => this._onSetUnread(true),
-      'core:mark-as-read': () => this._onSetUnread(false),
-      'core:report-as-spam': () => this._onMarkAsSpam(false),
-      'core:remove-and-previous': () => {
-        this._shift({ offset: -1, afterRunning: this._onRemoveFromView });
-      },
-      'core:remove-and-next': () => {
-        this._shift({ offset: 1, afterRunning: this._onRemoveFromView });
-      },
-      'thread-list:select-read': this._onSelectRead,
-      'thread-list:select-unread': this._onSelectUnread,
-      'thread-list:select-starred': this._onSelectStarred,
-      'thread-list:select-unstarred': this._onSelectUnstarred,
-    };
-  }
-
   _getFooter() {
     if (!this.state.syncing) {
       return null;
@@ -148,7 +104,13 @@ class ThreadList extends React.Component {
             className={`thread-list thread-list-${this.state.style}`}
             scrollTooltipComponent={ThreadListScrollTooltip}
             EmptyComponent={EmptyListState}
-            keymapHandlers={this._keymapHandlers()}
+            keymapHandlers={{
+              'thread-list:select-read': this._onSelectRead,
+              'thread-list:select-unread': this._onSelectUnread,
+              'thread-list:select-starred': this._onSelectStarred,
+              'thread-list:select-unstarred': this._onSelectUnstarred,
+              
+            }}
             onDoubleClick={thread => Actions.popoutThread(thread)}
             onDragStart={this._onDragStart}
             onDragEnd={this._onDragEnd}
@@ -308,121 +270,6 @@ class ThreadList extends React.Component {
       return null;
     }
   }
-
-  _onStarItem = () => {
-    const threads = this._threadsForKeyboardAction();
-    if (!threads) {
-      return;
-    }
-    Actions.queueTask(
-      TaskFactory.taskForInvertingStarred({
-        threads,
-        source: 'Keyboard Shortcut',
-      })
-    );
-  };
-
-  _onSnoozeItem = () => {
-    const disabledPackages = AppEnv.config.get('core.disabledPackages') || [];
-    if (disabledPackages.includes('thread-snooze')) {
-      return;
-    }
-
-    const threads = this._threadsForKeyboardAction();
-    if (!threads) {
-      return;
-    }
-    // TODO this should be grabbed from elsewhere
-    const SnoozePopover = require('../../thread-snooze/lib/snooze-popover').default;
-
-    const element = document.querySelector('.snooze-button.btn.btn-toolbar');
-    if (!element) {
-      return;
-    }
-    const originRect = element.getBoundingClientRect();
-    Actions.openPopover(<SnoozePopover threads={threads} />, { originRect, direction: 'down' });
-  };
-
-  _onSetImportant = important => {
-    const threads = this._threadsForKeyboardAction();
-    if (!threads) {
-      return;
-    }
-    if (!AppEnv.config.get('core.workspace.showImportant')) {
-      return;
-    }
-
-    Actions.queueTasks(
-      TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-        return new ChangeLabelsTask({
-          threads: accountThreads,
-          source: 'Keyboard Shortcut',
-          labelsToAdd: important ? [CategoryStore.getCategoryByRole(accountId, 'important')] : [],
-          labelsToRemove: important
-            ? []
-            : [CategoryStore.getCategoryByRole(accountId, 'important')],
-        });
-      })
-    );
-  };
-
-  _onSetUnread = unread => {
-    const threads = this._threadsForKeyboardAction();
-    if (!threads) {
-      return;
-    }
-    Actions.queueTask(
-      TaskFactory.taskForInvertingUnread({ threads, unread, source: 'Keyboard Shortcut' })
-    );
-    Actions.popSheet();
-  };
-
-  _onMarkAsSpam = () => {
-    const threads = this._threadsForKeyboardAction();
-    if (!threads) {
-      return;
-    }
-    const tasks = TaskFactory.tasksForMarkingAsSpam({
-      source: 'Keyboard Shortcut',
-      threads,
-    });
-    Actions.queueTasks(tasks);
-  };
-
-  _onRemoveFromView = ruleset => {
-    const threads = this._threadsForKeyboardAction();
-    if (!threads) {
-      return;
-    }
-    const current = FocusedPerspectiveStore.current();
-    const tasks = current.tasksForRemovingItems(threads, 'Keyboard Shortcut');
-    Actions.queueTasks(tasks);
-    Actions.popSheet();
-  };
-
-  _onArchiveItem = () => {
-    const threads = this._threadsForKeyboardAction();
-    if (threads) {
-      const tasks = TaskFactory.tasksForArchiving({
-        source: 'Keyboard Shortcut',
-        threads,
-      });
-      Actions.queueTasks(tasks);
-    }
-    Actions.popSheet();
-  };
-
-  _onDeleteItem = () => {
-    const threads = this._threadsForKeyboardAction();
-    if (threads) {
-      const tasks = TaskFactory.tasksForMovingToTrash({
-        source: 'Keyboard Shortcut',
-        threads,
-      });
-      Actions.queueTasks(tasks);
-    }
-    Actions.popSheet();
-  };
 
   _onSelectRead = () => {
     const dataSource = ThreadListStore.dataSource();

@@ -21,8 +21,8 @@ module.exports = [
       ['core:mark-as-unread', 'Mark as unread'],
       ['core:mark-important', 'Mark as important (Gmail)'],
       ['core:mark-unimportant', 'Mark as unimportant (Gmail)'],
-      ['core:remove-and-previous', 'Remove from view and previous'],
-      ['core:remove-and-next', 'Remove from view and next'],
+      ['core:remove-and-previous', 'Remove and show previous'],
+      ['core:remove-and-next', 'Remove and show next'],
     ],
   },
   {

@@ -24,7 +24,7 @@ export default class CommandRegistry {
 
     if (typeof target === 'string') {
       throw new Error(
-        'Commands can no longer be registered to CSS selectors. Consider using KeyCommandRegion instead.'
+        'Commands can no longer be registered to CSS selectors. Consider using KeyCommandsRegion instead.'
       );
     }
 
