@@ -59,6 +59,10 @@ class QuotedHTMLTransformer {
   }
 
   _removeImagesStrippedByAnotherClient(doc) {
+    if (!doc.body) {
+      return;
+    }
+
     const result = doc.evaluate(
       "//img[contains(@alt,'removed by sender')]",
       doc.body,
@@ -79,6 +83,10 @@ class QuotedHTMLTransformer {
   }
 
   _removeUnnecessaryWhitespace(doc) {
+    if (!doc.body) {
+      return;
+    }
+
     // Find back-to-back <br><br> at the top level and de-duplicate them
     const { children } = doc.body;
     const extraTailBrTags = [];
@@ -163,6 +171,9 @@ class QuotedHTMLTransformer {
   }
 
   _outputHTMLFor(doc, { initialHTML } = {}) {
+    if (!doc.body) {
+      doc = this._parseHTML('');
+    }
     if (/<\s?head\s?>/i.test(initialHTML) || /<\s?body[\s>]/i.test(initialHTML)) {
       return doc.children[0].innerHTML;
     }
