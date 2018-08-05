@@ -118,7 +118,8 @@ export default class Application extends EventEmitter {
   }
 
   getMainWindow() {
-    return this.windowManager.get(WindowManager.MAIN_WINDOW).browserWindow;
+    const win = this.windowManager.get(WindowManager.MAIN_WINDOW);
+    return win ? win.browserWindow : null;
   }
 
   getAllWindowDimensions() {

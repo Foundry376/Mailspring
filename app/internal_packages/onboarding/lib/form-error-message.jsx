@@ -23,17 +23,19 @@ const FormErrorMessage = props => {
     );
   }
 
-  const linkMatch = RegExpUtils.urlRegex({ matchEntireString: false }).exec(message);
-  if (linkMatch) {
-    const link = linkMatch[0];
-    return (
-      <div className="message error">
-        {message.substr(0, linkMatch.index)}
-        <a href={link}>{link}</a>
-        {message.substr(linkMatch.index + link.length)}
-        {rawLogLink}
-      </div>
-    );
+  if (typeof message === 'string') {
+    const linkMatch = RegExpUtils.urlRegex({ matchEntireString: false }).exec(message);
+    if (linkMatch) {
+      const link = linkMatch[0];
+      return (
+        <div className="message error">
+          {message.substr(0, linkMatch.index)}
+          <a href={link}>{link}</a>
+          {message.substr(linkMatch.index + link.length)}
+          {rawLogLink}
+        </div>
+      );
+    }
   }
 
   return (
@@ -45,8 +47,8 @@ const FormErrorMessage = props => {
 };
 
 FormErrorMessage.propTypes = {
-  empty: PropTypes.string,
-  message: PropTypes.string,
+  empty: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+  message: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 };
 
 export default FormErrorMessage;

@@ -22,11 +22,17 @@ class AccountBasicSettingsForm extends React.Component {
   };
 
   static titleLabel = providerConfig => {
-    return providerConfig.title || `Add your ${providerConfig.displayName} account`;
+    return (
+      providerConfig.title ||
+      `Add your ${providerConfig.displayNameShort || providerConfig.displayName} account`
+    );
   };
 
-  static subtitleLabel = () => {
-    return `Enter your email account credentials to get started. Mailspring\nstores your email password securely and it is never sent to our servers.`;
+  static subtitleLabel = providerConfig => {
+    return (
+      providerConfig.note ||
+      `Enter your email account credentials to get started. Mailspring\nstores your email password securely and it is never sent to our servers.`
+    );
   };
 
   static validateAccount = account => {

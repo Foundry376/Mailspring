@@ -142,6 +142,9 @@ export default class ApplicationTouchBar {
     });
 
     flushGroupIfPresent();
-    global.application.getMainWindow().setTouchBar(new TouchBar(final));
+
+    const win = global.application.getMainWindow();
+    if (!win) return;
+    win.setTouchBar(new TouchBar(final));
   }
 }

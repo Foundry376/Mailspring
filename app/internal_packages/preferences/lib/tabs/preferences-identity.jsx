@@ -218,7 +218,13 @@ class PreferencesIdentity extends React.Component {
 
   render() {
     const { identity } = this.state;
-    const { firstName, lastName, emailAddress, stripePlan, stripePlanEffective } = identity;
+    const {
+      firstName,
+      lastName,
+      emailAddress,
+      stripePlan = '',
+      stripePlanEffective = '',
+    } = identity;
 
     const logout = () => Actions.logoutNylasIdentity();
 

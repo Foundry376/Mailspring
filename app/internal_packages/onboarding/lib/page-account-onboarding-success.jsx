@@ -26,7 +26,10 @@ class AccountOnboardingSuccess extends Component {
           />
         </div>
         <div>
-          <h2>Successfully connected to {providerConfig.displayName}!</h2>
+          <h2>
+            Successfully connected to{' '}
+            {providerConfig.displayNameShort || providerConfig.displayName}!
+          </h2>
           <h3>Adding your account to Mailspring…</h3>
         </div>
       </div>
