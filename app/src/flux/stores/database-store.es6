@@ -38,7 +38,10 @@ function handleUnrecoverableDatabaseError(
   if (!app) {
     throw new Error('handleUnrecoverableDatabaseError: `app` is not ready!');
   }
-  app.rebuildDatabase({ detail: err.toString() });
+  const ipc = require('electron').ipcRenderer;
+  ipc.send('command', 'application:reset-database', {
+    errorMessage: err.toString(),
+  });
 }
 
 async function openDatabase(dbPath) {

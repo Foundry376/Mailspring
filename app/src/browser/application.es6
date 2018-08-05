@@ -248,61 +248,31 @@ export default class Application extends EventEmitter {
     }
   }
 
-  _relaunchToInitialWindows = ({ resetConfig, resetDatabase } = {}) => {
-    // This will re-fetch the NylasID to update the feed url
-    this.autoUpdateManager.updateFeedURL();
-    this.windowManager.destroyAllWindows();
+  _resetDatabaseAndRelaunch = ({ errorMessage } = {}) => {
+    if (this._resettingAndRelaunching) return;
+    this._resettingAndRelaunching = true;
 
-    let fn = callback => callback();
-    if (resetDatabase) {
-      fn = this._deleteDatabase;
+    if (errorMessage) {
+      dialog.showMessageBox({
+        type: 'warning',
+        buttons: ['Okay'],
+        message: `We encountered a problem with your local email database. We will now attempt to rebuild it.`,
+        detail: errorMessage,
+      });
     }
 
-    fn(async () => {
-      if (resetDatabase) {
-        // TODO BG Reset Database via helpers
-      }
-      if (resetConfig) {
-        this.config.set('nylas', null);
-        this.config.set('edgehill', null);
-      }
-      this.openWindowsForTokenState();
-    });
+    const done = () => {
+      app.relaunch();
+      app.quit();
+    };
+    this.windowManager.destroyAllWindows();
+    this._deleteDatabase(done);
   };
 
   _deleteDatabase = callback => {
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db'), callback);
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db-wal'));
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edgehill.db-shm'));
-  };
-
-  rebuildDatabase = ({ showErrorDialog = true, detail = '' } = {}) => {
-    if (this._rebuildingDatabase) {
-      return;
-    }
-    this._rebuildingDatabase = true;
-    if (showErrorDialog) {
-      dialog.showMessageBox({
-        type: 'warning',
-        buttons: ['Okay'],
-        message: `We encountered a problem with your local email database. We will now attempt to rebuild it.`,
-        detail,
-      });
-    }
-
-    // We need to set a timeout so `rebuildDatabases` immediately returns.
-    // If we don't immediately return the main window caller wants to wait
-    // for this function to finish so it can get the return value via ipc.
-    // Unfortunately since this function destroys the main window
-    // immediately, an error will be thrown.
-    setTimeout(() => {
-      this.windowManager.destroyAllWindows();
-      this._deleteDatabase(async () => {
-        // TODO BG Invoke db helepr
-        this._rebuildingDatabase = false;
-        this.openWindowsForTokenState();
-      });
-    }, 0);
   };
 
   // Registers basic application commands, non-idempotent.
@@ -342,7 +312,7 @@ export default class Application extends EventEmitter {
       );
     });
 
-    this.on('application:relaunch-to-initial-windows', this._relaunchToInitialWindows);
+    this.on('application:reset-database', this._resetDatabaseAndRelaunch);
 
     this.on('application:quit', () => {
       app.quit();
