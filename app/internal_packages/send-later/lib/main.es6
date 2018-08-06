@@ -3,6 +3,7 @@ import {
   DatabaseStore,
   DraftStore,
   Message,
+  SyncbackMetadataTask,
   SendActionsStore,
   Actions,
 } from 'mailspring-exports';
@@ -30,7 +31,17 @@ function handleMetadataExpiration(change) {
     if (!metadata || !metadata.expiration || metadata.expiration > new Date()) {
       return;
     }
+
     if (!message.draft) {
+      Actions.queueTask(
+        SyncbackMetadataTask.forSaving({
+          model: message,
+          pluginId: PLUGIN_ID,
+          value: {
+            expiration: null,
+          },
+        })
+      );
       return;
     }
 

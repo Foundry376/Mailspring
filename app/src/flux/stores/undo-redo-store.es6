@@ -12,7 +12,7 @@ class UndoRedoStore extends MailspringStore {
 
     this.listenTo(Actions.queueTask, this._onQueue);
     this.listenTo(Actions.queueTasks, this._onQueue);
-    this.listenTo(Actions.queueUndoableBlock, this._onQueueBlock);
+    this.listenTo(Actions.queueUndoOnlyTask, this._onQueue);
   }
 
   _onQueue = taskOrTasks => {
@@ -27,6 +27,7 @@ class UndoRedoStore extends MailspringStore {
 
     if (tasks.every(t => t.canBeUndone)) {
       const block = {
+        tasks: tasks,
         description: tasks.map(t => t.description()).join(', '),
         do: () => {
           // no-op, tasks queued separately

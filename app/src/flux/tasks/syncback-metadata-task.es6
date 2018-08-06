@@ -41,9 +41,6 @@ export default class SyncbackMetadataTask extends Task {
     modelHeaderMessageId: Attributes.String({
       modelKey: 'modelHeaderMessageId',
     }),
-    customDescription: Attributes.String({
-      modelKey: 'customDescription',
-    }),
     value: Attributes.Object({
       modelKey: 'value',
     }),
@@ -57,7 +54,7 @@ export default class SyncbackMetadataTask extends Task {
   }
 
   description() {
-    return this.customDescription || null;
+    return null;
   }
 
   createUndoTask() {

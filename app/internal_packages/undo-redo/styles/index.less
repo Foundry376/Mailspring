@@ -11,7 +11,6 @@
   .content {
     height: 45px;
     display: inline-block;
-    padding-top: 12px;
     opacity: 0.9;
     border-radius: @border-radius-base;
     background: @gray-darker;
@@ -20,6 +19,7 @@
     pointer-events: initial;
     display: inline-flex;
     flex-direction: row;
+    align-items: center;
     max-width: 90%;
   }
 
@@ -36,11 +36,19 @@
 
   .action {
     flex-shrink: 0;
-    margin-right: 15px;
+    margin-right: 8px;
     white-space: nowrap;
+    background: fade(@black, 20%);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid fade(@background-primary, 20%);
 
     img {
       background-color: @background-primary;
+    }
+    &:hover {
+      background: fade(@black, 30%);
+      border: 1px solid fade(@background-primary, 30%);
     }
     .undo-action-text {
       margin-left: 5px;
@@ -75,4 +83,53 @@ body.platform-win32 {
 .undo-redo-toast-fade-leave.undo-redo-toast-fade-leave-active {
   transform: translate3d(0, 10px, 0);
   opacity: 0.01;
+}
+
+.countdown {
+  height: 30px;
+  width: 30px;
+  font-size: 0.9em;
+  margin-left: 5px;
+  text-align: center;
+  position: relative;
+
+  .countdown-number {
+    color: @background-primary;
+    display: inline-block;
+    line-height: 30px;
+  }
+
+  svg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    transform: rotateY(-180deg) rotateZ(-90deg);
+  }
+
+  svg circle {
+    stroke-dasharray: 88px; // circumference at radius 14
+    stroke-dashoffset: 0px;
+    stroke-linecap: round;
+    stroke-width: 1.5px;
+    stroke: @background-primary;
+    fill: none;
+    animation: countdown 10s linear forwards;
+  }
+
+  @keyframes countdown {
+    0% {
+      stroke-dashoffset: 0px;
+      stroke: @background-primary;
+    }
+    65% {
+      stroke-dashoffset: 57.2px;
+      stroke: @background-primary;
+    }
+    100% {
+      stroke-dashoffset: 88px;
+      stroke: @color-warning;
+    }
+  }
 }

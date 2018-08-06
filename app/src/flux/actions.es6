@@ -94,10 +94,10 @@ class Actions {
   static cancelTask = ActionScopeMainWindow;
 
   /*
-  Public: Run a block of code and provide it's undo equivalent so it can be undone by the user.
+  Public: Queue a task that does not require processing, placing it on the undo stack only.
   *Scope: Main Window*
   */
-  static queueUndoableBlock = ActionScopeWindow;
+  static queueUndoOnlyTask = ActionScopeMainWindow;
 
   /*
   Public: Dequeue a {Task} matching the description provided.

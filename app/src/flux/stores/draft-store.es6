@@ -373,24 +373,33 @@ class DraftStore extends MailspringStore {
   };
 
   _onSendDraft = async (headerMessageId, options = {}) => {
-    this._draftsSending[headerMessageId] = true;
-
     const {
       delay = AppEnv.config.get('core.sending.undoSend'),
       actionKey = DefaultSendActionKey,
     } = options;
+
+    this._draftsSending[headerMessageId] = true;
 
     const sendAction = SendActionsStore.sendActionForKey(actionKey);
     if (!sendAction) {
       throw new Error(`Cant find send action ${actionKey} `);
     }
 
+    const sendLaterMetadataValue = delay > 0 && {
+      expiration: new Date(Date.now() + delay),
+      isUndoSend: true,
+      actionKey: actionKey,
+    };
+
     // get the draft session, apply any last-minute edits and get the final draft.
     // We need to call `changes.commit` here to ensure the body of the draft is
     // completely saved and the user won't see old content briefly.
     const session = await this.sessionForClientId(headerMessageId);
 
-    // remove inline attachments that are no longer inline
+    // move the draft to another account if necessary to match the from: field
+    await session.ensureCorrectAccount();
+
+    // remove inline attachments that are no longer in the body
     let draft = session.draft();
     const files = draft.files.filter(f => {
       return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
@@ -399,7 +408,10 @@ class DraftStore extends MailspringStore {
       session.changes.add({ files });
     }
 
-    await session.ensureCorrectAccount();
+    // attach send-later metadata if a send delay is enabled
+    if (sendLaterMetadataValue) {
+      session.changes.addPluginMetadata('send-later', sendLaterMetadataValue);
+    }
     await session.changes.commit();
     await session.teardown();
 
@@ -415,19 +427,24 @@ class DraftStore extends MailspringStore {
 
     // At this point the message UI enters the sending state and the composer is unmounted.
     this.trigger({ headerMessageId });
+    this._doneWithSession(session);
 
-    if (delay > 0) {
-      const task = SyncbackMetadataTask.forSaving({
-        pluginId: 'send-later',
-        model: draft,
-        value: { expiration: new Date(Date.now() + delay), isUndoSend: true, actionKey: actionKey },
-        undoValue: { expiration: null, isUndoSend: true },
-      });
-      task.customDescription = `Sending in ${delay / 1000} seconds`;
-      Actions.queueTask(task);
+    // To be able to undo the send, we need to pretend that we added the send-later
+    // metadata as it's own task so that the undo action is clear. We don't actually
+    // want a separate SyncbackMetadataTask to be queued because a stray SyncbackDraftTask
+    // could overwrite the metadata value back to null.
+    if (sendLaterMetadataValue) {
+      Actions.queueUndoOnlyTask(
+        SyncbackMetadataTask.forSaving({
+          pluginId: 'send-later',
+          model: draft,
+          value: sendLaterMetadataValue,
+          undoValue: { expiration: null, isUndoSend: true },
+        })
+      );
     } else {
+      // Immediately send the draft
       await sendAction.performSendAction({ draft });
-      this._doneWithSession(session);
     }
 
     if (AppEnv.isComposerWindow()) {
