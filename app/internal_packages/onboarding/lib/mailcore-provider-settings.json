@@ -906,12 +906,12 @@
 				"ssl": true
 			}],
 			"smtp": [{
-					"port": 25,
+					"port": 587,
 					"hostname": "smtp-mail.outlook.com",
 					"starttls": true
 				},
 				{
-					"port": 587,
+					"port": 25,
 					"hostname": "smtp-mail.outlook.com",
 					"starttls": true
 				}
