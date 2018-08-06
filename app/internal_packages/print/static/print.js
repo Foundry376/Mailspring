@@ -42,4 +42,12 @@
 
   document.getElementById('print-button').addEventListener('click', continueAndPrint);
   window.continueAndPrint = continueAndPrint;
+
+  if (document.querySelector('.message-item-wrap.collapsed')) {
+    const note = document.createElement('div');
+    note.classList.add('print-note');
+    note.innerText =
+      'One or more messages in this thread were collapsed and will not be printed. To print these messages, expand them in the main window.';
+    document.body.insertBefore(note, document.body.children[0]);
+  }
 })();

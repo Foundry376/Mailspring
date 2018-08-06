@@ -1,9 +1,18 @@
 body {
   overflow: auto !important;
+  -webkit-filter: none !important;
 }
-#message-list {
-  background: transparent;
+
+h1,
+.message-list,
+.message-list * {
+  background: transparent !important;
 }
+h1,
+.message-header * {
+  color: black !important;
+}
+
 #print-button {
   float: right;
   margin-left: 10px;
@@ -73,6 +82,9 @@ body {
 .footer-reply-area-wrap {
   display: none;
 }
+.message-item-white-wrap {
+  box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.28), 0 1px 1.5px rgba(0, 0, 0, 0.08) !important;
+}
 
 @media only print {
   body,
@@ -104,4 +116,19 @@ body {
   .message-item-area > header {
     page-break-after: avoid;
   }
+  .print-note {
+    display: none;
+  }
+}
+
+.print-note {
+  display: block;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  background: antiquewhite;
+  color: #444;
+  text-align: center;
+  font-size: 0.9em;
+  border: 1px solid darkgoldenrod;
+  border-top: 0;
 }
