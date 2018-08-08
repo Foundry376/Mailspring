@@ -8,32 +8,32 @@
 .inverseContent() {
   // Note: these styles are also applied below
   // subpixel antialiasing looks awful against dark background colors
-  -webkit-font-smoothing: antialiased;
+  // -webkit-font-smoothing: antialiased;
 
-  color: @text-color-inverse;
+  // color: @text-color-inverse;
 
-  .participants {
-    .unread-true {
-      font-weight: @font-weight-normal;
-    }
-  }
-  .subject {
-    font-weight: @font-weight-normal;
-  }
+  // .participants {
+  //   .unread-true {
+  //     font-weight: @font-weight-normal;
+  //   }
+  // }
+  // .subject {
+  //   font-weight: @font-weight-normal;
+  // }
 
-  .thread-icon,
-  .draft-icon,
-  .mail-important-icon {
-    -webkit-filter: brightness(600%) grayscale(100%);
-  }
+  // .thread-icon,
+  // .draft-icon,
+  // .mail-important-icon {
+  //   -webkit-filter: brightness(600%) grayscale(100%);
+  // }
 
-  .mail-label {
-    // Note - these !important styles override values set by a style tag
-    // since the color of the label is detemined programatically.
-    background: fade(@text-color-inverse, 20%) !important;
-    box-shadow: none !important;
-    -webkit-filter: brightness(600%) grayscale(100%);
-  }
+  // .mail-label {
+  //   // Note - these !important styles override values set by a style tag
+  //   // since the color of the label is detemined programatically.
+  //   background: fade(@text-color-inverse, 20%) !important;
+  //   box-shadow: none !important;
+  //   -webkit-filter: brightness(600%) grayscale(100%);
+  // }
 }
 
 // STYLES
@@ -130,8 +130,7 @@ input:focus {
   }
 
   .list-item {
-    background-color: darken(@background-primary, 2%);
-    border-bottom: 1px solid fade(@list-border, 60%);
+    background-color: @white;
     line-height: 36px;
   }
 
@@ -218,25 +217,16 @@ input:focus {
     &:hover {
       background: darken(@background-primary, 2%);
     }
-    .snippet {
-      color: @text-color-subtle;
+    .timestamp {
+      color: @blue;
+      opacity: 1;
     }
-  }
-
-  .unread:not(.focused):not(.selected):not(.next-is-selected) {
-    border-bottom: 1px solid @list-border;
   }
 
   .unread:not(.focused) {
     // Never show any unread styles when the thread is focused.
     // It will be marked as read and the delay from focus=>read
     // is noticeable.
-    .subject {
-      font-weight: @font-weight-semi-bold;
-      .emoji {
-        font-weight: @font-weight-normal;
-      }
-    }
     .participants {
       .unread-true {
         font-weight: @font-weight-semi-bold;
@@ -398,7 +388,7 @@ body.platform-win32 {
     @list-focused-bg 100%
   );
   .action {
-    -webkit-filter: invert(100%) brightness(300%);
+    -webkit-filter: brightness(300%);
   }
   .action.action-archive {
     background: url(@archive-img) center no-repeat;
@@ -462,10 +452,27 @@ body.platform-win32 {
   }
   .list-tabular-item {
     line-height: 21px;
+    box-shadow: none;
+    border: none;
   }
+
+  .list-tabular-item:not(.selected):not(.focused):not(.next-is-selected) {
+    :after {
+      content: "";
+      background: @border-color-divider;
+      position: absolute;
+      bottom: 0;
+      left: 8%;
+      height: 1px;
+      width: 88%;
+    }
+  }
+
   .timestamp {
     order: 100;
     min-width: 0;
+    color: #afbec9;
+    opacity: 1;
   }
   .participants {
     font-size: @font-size-base;
@@ -483,6 +490,8 @@ body.platform-win32 {
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: left;
+    color: @black;
+    opacity: 0.7;
     margin-right: @scrollbar-margin;
   }
   .snippet-and-labels {
@@ -500,7 +509,8 @@ body.platform-win32 {
       font-size: @font-size-small;
       overflow: hidden;
       text-overflow: ellipsis;
-      opacity: 0.7;
+      opacity: 1;
+      color: #838e96;
       text-align: left;
       min-height: 21px;
       margin-right: 4px;
@@ -515,6 +525,7 @@ body.platform-win32 {
     &.selected {
       background: @list-focused-bg;
       color: @list-focused-color;
+      border-right: 0;
       .inverseContent;
     }
   }
@@ -526,7 +537,7 @@ body.platform-win32 {
       @list-focused-bg 100%
     );
     .action {
-      -webkit-filter: invert(100%) brightness(300%);
+      -webkit-filter: brightness(300%);
     }
     .action.action-archive {
       background: url(@archive-img) center no-repeat;
@@ -544,7 +555,6 @@ body.is-blurred {
     .list-item {
       &.selected {
         background: fadeout(desaturate(@list-focused-bg, 100%), 65%);
-        border-bottom: 1px solid fadeout(desaturate(@list-focused-border, 100%), 65%);
         color: @text-color;
       }
     }

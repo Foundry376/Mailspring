@@ -6,6 +6,20 @@ import MailspringProviderSettings from './mailspring-provider-settings';
 import MailcoreProviderSettings from './mailcore-provider-settings';
 import dns from 'dns';
 
+const queryStringify = (data, encoded=false) => {
+  const queryString = Object.keys(data).map((key) => {
+    if (encoded === true) {
+      return encodeURIComponent(`${key}`) + '=' + encodeURIComponent(`${data[key]}`);
+    } else {
+      return`${key}=${data[key]}`;
+    }
+  }).join('&');
+  return queryString;
+}
+
+const EDISON_OAUTH_KEYWORD = 'edison_desktop';
+const EDISON_REDIRECT_URI = 'http://email.easilydo.com';
+
 export const LOCAL_SERVER_PORT = 12141;
 export const LOCAL_REDIRECT_URI = `http://127.0.0.1:${LOCAL_SERVER_PORT}`;
 const GMAIL_CLIENT_ID = '533632962939-3kp63blvln9j1pjmqrtfsv9pc66nsfqn.apps.googleusercontent.com';
@@ -15,6 +29,35 @@ const GMAIL_SCOPES = [
   'email',
   'https://www.google.com/m8/feeds'
 ];
+
+const YAHOO_CLIENT_ID = 'dj0yJmk9c3IxR3h4VG5GTXBYJmQ9WVdrOVlVeHZNVXh1TkhVbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD02OQ--';
+const YAHOO_CLIENT_SECRET = '8a267b9f897da839465ff07a712f9735550ed412';
+
+const EDISON_CHAT_REST_URL = 'https://restxmpp.stag.easilydo.cc';
+const EDISON_CHAT_REST_PORT = 443;
+const EDISON_CHAT_REST_BASE_URL = `${EDISON_CHAT_REST_URL}:${EDISON_CHAT_REST_PORT}`;
+const EDISON_CHAT_REST_ENDPOINTS = {
+  config: 'config',
+  register: 'client/register',
+  unregister: 'client/unregister',
+  unregisterV2: 'client/unregisterV2',
+
+  login: 'client/login',
+  logout: 'client/logout',
+
+  updateToken: 'client/updateToken',
+  uploadContacts: 'client/uploadContacts',
+  queryProfile: 'client/queryProfile',
+
+  autoLogin: 'user/login/auto',
+  outTime: 'user/outtime',
+  userSearch: 'user/query',
+  userGet: 'user/get',
+  userUpdate: 'user/update',
+  updatePushToken: 'user/uploadinfo',
+
+  badgeSetting: 'client/badgeSetting',
+};
 
 function idForAccount(emailAddress, connectionSettings) {
   // changing your connection security settings / ports shouldn't blow
@@ -192,12 +235,142 @@ export async function buildGmailAccountFromAuthResponse(code) {
   return account;
 }
 
-export function buildGmailAuthURL(sessionKey) {
-  return `https://accounts.google.com/o/oauth2/auth?client_id=${GMAIL_CLIENT_ID}&redirect_uri=${encodeURIComponent(
-    LOCAL_REDIRECT_URI
-  )}&response_type=code&scope=${encodeURIComponent(
-    GMAIL_SCOPES.join(' ')
-  )}&access_type=offline&select_account%20consent`;
+export async function connectChat(account) {
+  AppEnv.showErrorDialog({
+    title: 'debug',
+    message: 'test',
+  });
+
+  const body = {
+    name: account.emailAddress,
+    emailType: 0,
+    emailProvider: 'gmail',
+    emailHost: 'imap.gmail.com',
+    emailSSL: true,
+    emailPort: 993,
+    emailAddress: account.emailAddress,
+    emailPassword: account.settings.refresh_token,
+    deviceType: 'iPhone', // iPhone, iPad, APhone(AndroidPhone), APad(AndroidPad), MAC, etc
+    deviceModel: 'iPhone 7',
+  };
+
+  const query = queryStringify(body, true);
+  const registerUrl = `${EDISON_CHAT_REST_BASE_URL}/${EDISON_CHAT_REST_ENDPOINTS.register}`;
+
+  console.log(query);
+  console.log(registerUrl);
+
+  const resp = await fetch(registerUrl, {
+    method: 'POST',
+    body: query,
+  });
+  console.log(resp);
+  const json = (await resp.json()) || {};
+  console.log(json);
+}
+
+export async function buildYahooAccountFromAuthResponse(code) {
+  AppEnv.showErrorDialog({
+    title: 'debug',
+    message: `${code}`,
+  });
+
+  const body = [
+    `client_id=${encodeURIComponent(YAHOO_CLIENT_ID)}`,
+    `client_secret=${encodeURIComponent(YAHOO_CLIENT_SECRET)}`,
+    `code=${encodeURIComponent(code)}`,
+    'grant_type=authorization_code',
+    `redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
+  ].join('&');
+
+  const resp = await fetch('https://api.login.yahoo.com/oauth2/get_token', {
+    method: 'POST',
+    body: body,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+    },
+  });
+
+  const json = (await resp.json()) || {};
+  if (!resp.ok) {
+    throw new Error(
+      `Yahoo OAuth Code exchange returned ${resp.status} ${resp.statusText}: ${JSON.stringify(
+        json
+      )}`
+    );
+  }
+
+  // extracting access and refresh tokens
+  const { access_token, refresh_token } = json;
+
+  // get the user's email address
+  const meResp = await fetch('https://social.yahooapis.com/v1/user/me/profile?format=json', {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
+
+  const me = await meResp.json();
+  if (!meResp.ok) {
+    throw new Error(
+      `Yahoo profile request returned ${resp.status} ${resp.statusText}: ${JSON.stringify(me)}`
+    );
+  }
+
+  const email = me.profile.emails[0].handle;
+  const { givenName, familyName } = me.profile;
+
+  let fullName = givenName;
+  if (familyName) {
+    fullName += ` ${familyName}`;
+  }
+
+  console.log(fullName);
+  console.log(email);
+  console.log(refresh_token);
+
+  const account = await expandAccountWithCommonSettings(
+    new Account({
+      name: fullName,
+      emailAddress: email,
+      provider: 'yahoo',
+      settings: {
+        refresh_client_id: YAHOO_CLIENT_ID,
+        refresh_token: refresh_token,
+      },
+    })
+  );
+
+  console.log(account);
+
+  account.id = idForAccount(email, account.settings);
+
+  console.log(account.id);
+
+  // test the account locally to ensure the All Mail folder is enabled
+  // and the refresh token can be exchanged for an account token.
+  await finalizeAndValidateAccount(account);
+
+  // return account;
+}
+
+export function buildYahooAuthURL() {
+  return `https://api.login.yahoo.com/oauth2/request_auth`
+       + `?`
+       + `client_id=${YAHOO_CLIENT_ID}`
+       + `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
+       + `&state=${EDISON_OAUTH_KEYWORD}`
+       + `&response_type=code`;
+}
+
+export function buildGmailAuthURL() {
+  return `https://accounts.google.com/o/oauth2/auth`
+       + `?`
+       + `client_id=${GMAIL_CLIENT_ID}`
+       + `&redirect_uri=${encodeURIComponent(LOCAL_REDIRECT_URI)}`
+       + `&response_type=code`
+       + `&scope=${encodeURIComponent(GMAIL_SCOPES.join(' '))}`
+       + `&access_type=offline`
+       + `&select_account%20consent`;
 }
 
 export async function finalizeAndValidateAccount(account) {
