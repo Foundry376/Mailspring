@@ -1,5 +1,32 @@
 # Mailspring Changelog
 
+### 1.4.0 (8/5/2018)
+
+Mailspring 1.4 adds macOS Touch Bar support and expands the `Thread` and `View` menus to include a
+wider range of functionality previously tied to keybindings but missing from the apps menus.
+
+Mailspring 1.4 also brings a revised welcome screen that separates Office 365 and Outlook and
+adds presets for Yandex and GMX. The new welcome screens display tips specific to each provider,
+ensuring that you follow any required steps (like creating an App Password or enabling IMAP.)
+
+Fixes:
+
+* Mailspring now connects to SMTP servers that only support GSSAPI or Kerberos and PLAIN using the PLAIN method rather than trying to use Kerberos and failing. #341
+
+* The "undo send" toast in Mailspring now has a countdown timer, and the undo button has been visually differentiated from the background. #872
+
+* Emails no longer get "stuck" when using undo send in some scenarios. #336
+
+* Undoing a send of an inline reply during the undo-send time window no longer leaves the composer "locked" or re-sends the original draft. #596, #390
+
+* Mailspring no longer throws an exception when parsing quoted text for some emails.
+
+* Removing the last account from Mailspring no longer causes it to return to the "Connect an Account" screen with errors that prevent you from moving forward without restarting the app.
+
+* The print window now warns you if one or more messages were omitted because they were collapsed, and renders properly in the dark theme.
+
+* The default SMTP port for Outlook is now the STARTTLS default and not port 25. #725
+
 ### 1.3.0 (7/14/2018)
 
 * Mailspring 1.3 brings an overhauled search bar with powerful autocomplete that makes it easier to create advanced search queries.
