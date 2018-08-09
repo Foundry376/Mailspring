@@ -2,7 +2,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import rimraf from 'rimraf';
-import path from 'path';
 
 import ConfigSchemaItem from './config-schema-item';
 import WorkspaceSection from './workspace-section';

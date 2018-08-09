@@ -109,7 +109,6 @@ class ThreadList extends React.Component {
               'thread-list:select-unread': this._onSelectUnread,
               'thread-list:select-starred': this._onSelectStarred,
               'thread-list:select-unstarred': this._onSelectUnstarred,
-              
             }}
             onDoubleClick={thread => Actions.popoutThread(thread)}
             onDragStart={this._onDragStart}
