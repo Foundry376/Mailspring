@@ -1,5 +1,12 @@
 # Mailspring Changelog
 
+### 1.4.1 (8/10/2018)
+
+Fixes:
+
+* Shift-I and Shift-U no longer trigger when typing in the composoer and mark as read / unread the
+  current email thread when the Gmail keyboard shortcut set is active.
+
 ### 1.4.0 (8/5/2018)
 
 Mailspring 1.4 adds macOS Touch Bar support and expands the `Thread` and `View` menus to include a
