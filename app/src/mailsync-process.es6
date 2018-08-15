@@ -45,6 +45,8 @@ export const LocalizedErrorStrings = {
     'The message has been blocked by Yahoo - you have exceeded your daily sending limit.',
   ErrorNoSender: 'The message has been blocked because no sender is configured.',
   ErrorInvalidRelaySMTP: 'The SMTP server would not relay a message. You may need to authenticate.',
+  ErrorNoImplementedAuthMethods:
+    'Sorry, your SMTP server does not support basic username / password authentication.',
   ErrorIdentityMissingFields:
     'Your Mailspring ID is missing required fields - you may need to reset Mailspring. http://support.getmailspring.com/hc/en-us/articles/115002012491',
 };

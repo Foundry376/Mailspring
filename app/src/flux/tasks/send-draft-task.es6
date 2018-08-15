@@ -144,8 +144,7 @@ export default class SendDraftTask extends Task {
         LocalizedErrorStrings[smtpError]
       }`;
     } else if (key === 'send-failed') {
-      errorMessage = `We were unable to deliver this message. ${LocalizedErrorStrings[debuginfo]}`;
-      errorDetail = `We encountered an SMTP error that prevented this message from being delivered:\n\n${
+      errorMessage = `Sorry, Mailspring was unable to deliver this message: ${
         LocalizedErrorStrings[debuginfo]
       }`;
     } else {
