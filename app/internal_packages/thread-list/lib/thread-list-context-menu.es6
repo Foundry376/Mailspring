@@ -31,6 +31,7 @@ export default class ThreadListContextMenu {
           this.archiveItem(),
           this.trashItem(),
           this.markAsReadItem(),
+          this.markAsSpamItem(),
           this.starItem(),
         ]);
       })
@@ -48,7 +49,9 @@ export default class ThreadListContextMenu {
     if (this.threadIds.length !== 1) {
       return null;
     }
-    const from = this.threads[0].participants.find(p => !p.isMe());
+    const first = this.threads[0];
+    const from = first.participants.find(p => !p.isMe()) || first.participants[0];
+
     return {
       label: `Search for ${from.email}`,
       click: () => {
@@ -174,6 +177,28 @@ export default class ThreadListContextMenu {
             source: 'Context Menu: Thread List',
             threads: this.threads,
           })
+        );
+      },
+    };
+  }
+
+  markAsSpamItem() {
+    const allInSpam = this.threads.every(item => item.folders.find(c => c.role === 'spam'));
+    const dir = allInSpam ? 'Not Spam' : 'Spam';
+
+    return {
+      label: `Mark as ${dir}`,
+      click: () => {
+        Actions.queueTasks(
+          allInSpam
+            ? TaskFactory.tasksForMarkingNotSpam({
+                source: 'Context Menu: Thread List',
+                threads: this.threads,
+              })
+            : TaskFactory.tasksForMarkingAsSpam({
+                source: 'Context Menu: Thread List',
+                threads: this.threads,
+              })
         );
       },
     };
