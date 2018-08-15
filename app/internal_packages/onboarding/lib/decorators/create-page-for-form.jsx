@@ -63,7 +63,7 @@ const CreatePageForForm = FormComponent => {
       return errorFieldNames.length === 0 && populated;
     }
 
-    onFieldChange = event => {
+    onFieldChange = (event, { afterSetState } = {}) => {
       const next = this.state.account.clone();
 
       let val = event.target.value;
@@ -83,13 +83,16 @@ const CreatePageForForm = FormComponent => {
 
       const { errorFieldNames, errorMessage, populated } = FormComponent.validateAccount(next);
 
-      this.setState({
-        account: next,
-        errorFieldNames,
-        errorMessage,
-        populated,
-        errorStatusCode: null,
-      });
+      this.setState(
+        {
+          account: next,
+          errorFieldNames,
+          errorMessage,
+          populated,
+          errorStatusCode: null,
+        },
+        afterSetState
+      );
     };
 
     onSubmit = () => {

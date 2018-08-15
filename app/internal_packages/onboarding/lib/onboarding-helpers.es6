@@ -38,6 +38,7 @@ function idForAccount(emailAddress, connectionSettings) {
 
 function mxRecordsForDomain(domain) {
   return new Promise((resolve, reject) => {
+    // timeout here is annoyingly long - 30s?
     dns.resolveMx(domain, (err, addresses) => {
       if (err) {
         resolve([]);

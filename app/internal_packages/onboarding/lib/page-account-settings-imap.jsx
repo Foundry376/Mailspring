@@ -69,19 +69,24 @@ class AccountIMAPSettingsForm extends React.Component {
     // the standard for that port. Lots of people don't update that field and
     // are getting confused.
     const onPortChange = event => {
-      onFieldChange(event);
-      if (event.target.value / 1 === 143 && settings.imap_security !== 'none') {
-        onFieldChange({ target: { value: 'none', id: 'settings.imap_security' } });
-      }
-      if (event.target.value / 1 === 993 && settings.imap_security !== 'SSL / TLS') {
-        onFieldChange({ target: { value: 'SSL / TLS', id: 'settings.imap_security' } });
-      }
-      if (event.target.value / 1 === 25 && settings.smtp_security !== 'none') {
-        onFieldChange({ target: { value: 'none', id: 'settings.smtp_security' } });
-      }
-      if (event.target.value / 1 === 587 && settings.smtp_security !== 'STARTTLS') {
-        onFieldChange({ target: { value: 'STARTTLS', id: 'settings.smtp_security' } });
-      }
+      const port = event.target.value / 1;
+
+      onFieldChange(event, {
+        afterSetState: () => {
+          if (port === 143 && settings.imap_security !== 'none') {
+            onFieldChange({ target: { value: 'none', id: 'settings.imap_security' } });
+          }
+          if (port === 993 && settings.imap_security !== 'SSL / TLS') {
+            onFieldChange({ target: { value: 'SSL / TLS', id: 'settings.imap_security' } });
+          }
+          if (port === 25 && settings.smtp_security !== 'none') {
+            onFieldChange({ target: { value: 'none', id: 'settings.smtp_security' } });
+          }
+          if (port === 587 && settings.smtp_security !== 'STARTTLS') {
+            onFieldChange({ target: { value: 'STARTTLS', id: 'settings.smtp_security' } });
+          }
+        },
+      });
     };
 
     return (
