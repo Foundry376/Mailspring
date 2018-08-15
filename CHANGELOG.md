@@ -1,5 +1,28 @@
 # Mailspring Changelog
 
+### 1.4.2 (8/15/2018)
+
+Fixes:
+
+* Mailspring no longer attempts CRAM-MD5 SMTP auth instead of PLAIN or LOGIN when both are supported.
+  CRAM-MD5 and DIGEST-MD5 require you've exchanged a shared secret with the SMTP server which is almost
+  never the case. #620
+
+* Mark as Spam now appears in the right-click dropdown menu for threads.
+
+* The IMAP/SMTP port dropdowns no longer "stick" the first time you change them during setup.
+
+* Mailspring now lets you know if your SMTP server refused to relay a test message during setup.
+
+* Mailspring now correctly supports SMTP accounts that do not require a username or password. #469
+
+* Open and link tracking now work correctly for accounts using Courier IMAP, (where sent messages
+  do not appear until re-selecting the folder via IMAP.)
+
+Debugging:
+
+* Mailspring now prints descriptive SMTP error strings instead of SMTP error codes in logs.
+
 ### 1.4.1 (8/10/2018)
 
 Fixes:
