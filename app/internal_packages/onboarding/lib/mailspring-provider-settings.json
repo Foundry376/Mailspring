@@ -5360,25 +5360,6 @@
     ],
     "enable_steps": []
   },
-  "umich.edu": {
-    "display_name": "UM ITCS Email",
-    "display_short_name": "UM ITCS",
-    "imap_host": "mail.umich.edu",
-    "imap_port": "993",
-    "imap_security": "SSL / TLS",
-    "imap_user_format": "email-without-domain",
-    "imap_authentication": [
-      "password-cleartext"
-    ],
-    "smtp_host": "smtp.mail.umich.edu",
-    "smtp_port": "587",
-    "smtp_security": "STARTTLS",
-    "smtp_user_format": "email-without-domain",
-    "smtp_authentication": [
-      "password-cleartext"
-    ],
-    "enable_steps": []
-  },
   "uol.com.br": {
     "display_name": "UOL",
     "display_short_name": "UOL",
