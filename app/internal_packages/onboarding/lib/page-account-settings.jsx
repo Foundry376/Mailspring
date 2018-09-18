@@ -31,7 +31,7 @@ class AccountBasicSettingsForm extends React.Component {
   static subtitleLabel = providerConfig => {
     return (
       providerConfig.note ||
-      `Enter your email account credentials to get started. Edison Mail\nstores your email password securely and it is never sent to our servers.`;
+      `Enter your email account credentials to get started. Edison Mail\nstores your email password securely and it is never sent to our servers.`
     );
   };
 
