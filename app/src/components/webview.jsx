@@ -44,7 +44,8 @@ class InitialLoadingCover extends React.Component {
     if (this.props.error) {
       message = this.props.error;
     } else if (this.state.slow) {
-      message = `Still trying to reach ${rootURLForServer('identity')}…`;
+      // message = `Still trying to reach ${rootURLForServer('identity')}…`;
+      message = `initalizing…`;
     } else {
       message = '&nbsp;';
     }

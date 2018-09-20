@@ -53,7 +53,8 @@ export default class OAuthSignInPage extends React.Component {
       const { query } = url.parse(request.url, { querystring: true });
       if (query.code) {
         this._onReceivedCode(query.code);
-        response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });
+        // when oauth succeed, display Edison homepage
+        response.writeHead(302, { Location: 'http://email.easilydo.com' });
         response.end();
       } else {
         response.end('Unknown Request');
