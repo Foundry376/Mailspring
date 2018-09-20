@@ -9,9 +9,12 @@ import MyMessageSidebar from './my-message-sidebar';
 // saved state using `serialize` it is provided.
 //
 export function activate() {
-  ComponentRegistry.register(MyComposerButton, {
-    location: WorkspaceStore.Location.RootSidebar.Toolbar,
-  });
+  if (WorkspaceStore.Location.RootSidebar && WorkspaceStore.Location.RootSidebar.Toolbar) {
+    ComponentRegistry.register(MyComposerButton, {
+      location: WorkspaceStore.Location.RootSidebar.Toolbar,
+    });
+  }
+
   // ComponentRegistry.register(MyMessageSidebar, {
   //   role: 'MessageListSidebar:ContactCard',
   // });
@@ -25,7 +28,7 @@ export function activate() {
 // You can return a state object that will be passed back to your package
 // when it is re-activated.
 //
-export function serialize() {}
+export function serialize() { }
 
 // This **optional** method is called when the window is shutting down,
 // or when your package is being updated or disabled. If your package is
