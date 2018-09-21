@@ -19,8 +19,8 @@ export function activate() {
   //   role: 'MessageListSidebar:ContactCard',
   // });
 
-  const { fork } = require('child_process');
-  const ps = fork(`${__dirname}/child.js`);
+  // const { fork } = require('child_process');
+  // const ps = fork(`${__dirname}/child.js`);
 
 }
 
