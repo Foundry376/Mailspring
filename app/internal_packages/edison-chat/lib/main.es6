@@ -9,11 +9,11 @@ import MyMessageSidebar from './my-message-sidebar';
 // saved state using `serialize` it is provided.
 //
 export function activate() {
-  if (WorkspaceStore.Location.RootSidebar && WorkspaceStore.Location.RootSidebar.Toolbar) {
-    ComponentRegistry.register(MyComposerButton, {
-      location: WorkspaceStore.Location.RootSidebar.Toolbar,
-    });
-  }
+  // if (WorkspaceStore.Location.RootSidebar && WorkspaceStore.Location.RootSidebar.Toolbar) {
+  //   ComponentRegistry.register(MyComposerButton, {
+  //     location: WorkspaceStore.Location.RootSidebar.Toolbar,
+  //   });
+  // }
 
   // ComponentRegistry.register(MyMessageSidebar, {
   //   role: 'MessageListSidebar:ContactCard',
@@ -36,6 +36,6 @@ export function serialize() { }
 // subscribing to events, release them here.
 //
 export function deactivate() {
-  ComponentRegistry.unregister(MyComposerButton);
+  // ComponentRegistry.unregister(MyComposerButton);
   // ComponentRegistry.unregister(MyMessageSidebar);
 }
