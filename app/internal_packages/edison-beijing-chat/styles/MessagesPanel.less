@@ -1,0 +1,74 @@
+@chatHeight: 800px;
+.chat-view-container {
+  .panel {
+    height: @chatHeight;
+    width: 100%;
+  }
+  
+  .chat {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .unselectedHint {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    vertical-align: middle;
+  }
+  
+  .splitPanel {
+    flex-grow: 1;
+  }
+  
+  .chatPanel {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .infoPanel {
+    background: white;
+  }
+  
+  @media screen and (max-width: 1027px) {
+    .splitPanel {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+  
+    .chatPanel {
+      flex-grow: 1;
+    }
+  
+    .infoPanel {
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      z-index: 3;
+      top: 0;
+      left: 0;
+    }
+  }
+  
+  @media screen and (min-width: 1028px) {
+    .splitPanel {
+      display: flex;
+      flex-direction: row;
+    }
+  
+    .chatPanel {
+      flex-grow: 1;
+    }
+  
+    .infoPanel {
+      flex-shrink: 0;
+      width: 30%;
+      min-width: 300px;
+    }
+  }  
+}

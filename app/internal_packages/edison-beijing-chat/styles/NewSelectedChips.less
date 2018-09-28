@@ -1,0 +1,51 @@
+.chat-view-container {
+  .resizableContainer {
+    overflow: scroll;
+    transition: max-height 0.25s ease-in-out;
+  }
+
+  .nonEmpty {
+    max-height: 80px;
+  }
+
+  .nonEmpty:hover {
+    max-height: 160px;
+  }
+
+  .empty {
+    max-height: 0px;
+  }
+
+  .nonEmpty > .chipContainer {
+    padding: 12px 4px 12px 4px;
+  }
+
+  .chipContainer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    height: 18px;
+    max-width: 200px;
+    margin: 4px;
+    padding: 6px 12px 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0097FF;
+    border-radius: 16px;
+    color: #0097FF;
+    cursor: pointer;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chip:hover {
+    background: #0097FF;
+    color: white;
+  }
+}

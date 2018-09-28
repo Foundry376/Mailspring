@@ -1,0 +1,33 @@
+.chat-view-container {
+  .contactsList {
+    flex: 1;
+    overflow-y: scroll;
+  }
+
+  .contactItem {
+    // height: 36px;
+    max-width: 100%;
+    padding: 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #DCDCDC;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+  }
+
+  .contactItem:hover {
+    background-color: #EFEFEF;
+  }
+
+  .selected {
+    background-color: #DCDCDC !important;
+  }
+
+  .contactName {
+    flex: 1;
+    margin-left: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

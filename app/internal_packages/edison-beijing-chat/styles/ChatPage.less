@@ -1,0 +1,52 @@
+@chatHeight: 800px;
+@chatWidth: 400px;
+.chat-view-container {
+  height: @chatHeight;
+  width: @chatWidth;
+  overflow: hidden;
+
+  // @media screen and (max-width: 799px) {
+    .chatPageContainer {
+      position: relative;
+    }
+  
+    .leftPanel {
+      height: @chatHeight;
+      width: @chatWidth;
+      background: white;
+    }
+  
+    .rightPanel {
+      height: @chatHeight;
+      width: @chatWidth;
+      display: none;
+      background: white;
+      position: absolute;
+      z-index: 2;
+      top: 0;
+      left: 0;
+    }
+  
+    .focused {
+      display: block;
+    }
+  // }
+  
+  // @media screen and (min-width: 800px) {
+  //   .chatPageContainer {
+  //     display: flex;
+  //     flex-direction: row;
+  //   }
+  
+  //   .leftPanel {
+  //     height: @chatHeight;
+  //     width: @chatWidth;
+  //     min-width: 360px;
+  //   }
+  
+  //   .rightPanel {
+  //     height: @chatHeight;
+  //     flex-grow: 1;
+  //   }
+  // }
+}
