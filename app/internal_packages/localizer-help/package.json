@@ -1,0 +1,17 @@
+{
+  "name": "localizer-help",
+  "version": "0.1.0",
+  "main": "./lib/main",
+
+  "isOptional": true,
+  "isHiddenOnPluginsPage": true,
+
+  "title": "Localizer Helper",
+  "description": "Allows localizers to click UI elements and suggest localizations inline.",
+  "icon": "./icon.png",
+
+  "license": "GPL-3.0",
+  "engines": {
+    "mailspring": "*"
+  }
+}

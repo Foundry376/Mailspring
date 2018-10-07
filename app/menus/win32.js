@@ -145,6 +145,7 @@ module.exports = {
         { label: localized('Install a Plugin') + '...', command: 'window:install-package' },
         { type: 'separator' },
         { label: localized('Reload'), command: 'window:reload' },
+        { label: localized('Toggle Localizer Tools'), command: 'window:toggle-localizer-tools' },
         { label: localized('Toggle Developer Tools'), command: 'window:toggle-dev-tools' },
         {
           label: localized('Toggle Component Regions'),
