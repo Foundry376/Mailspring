@@ -25,11 +25,11 @@ export default class ChangeUnreadTask extends ChangeMailTask {
       return localized(`Undoing changes`);
     }
 
-    const newState = this.unread ? localized('unread') : localized('read');
+    const newState = this.unread ? localized('Unread') : localized('Read');
     if (count > 1) {
-      return localized(`Marked %@ threads as %@`, count, newState);
+      return localized(`Marked %@ threads as %@`, count, newState.toLocaleLowerCase());
     }
-    return localized(`Marked as %@`, newState);
+    return localized(`Marked as %@`, newState.toLocaleLowerCase());
   }
 
   createUndoTask() {
