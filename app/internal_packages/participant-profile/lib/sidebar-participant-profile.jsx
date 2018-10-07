@@ -337,15 +337,15 @@ export default class SidebarParticipantProfile extends React.Component {
 
     if (metrics) {
       if (metrics.raised) {
-        funding = localized(`Raised $%@`, (metrics.raised / 1 || 0).toLocaleString());
+        funding = `${localized(`Raised`)} ${(metrics.raised / 1 || 0).toLocaleString()}`;
       } else if (metrics.marketCap) {
-        funding = localized(`Market cap $%@`, (metrics.marketCap / 1 || 0).toLocaleString());
+        funding = `${localized(`Market Cap`)} $${(metrics.marketCap / 1 || 0).toLocaleString()}`;
       }
 
       if (metrics.employees) {
-        employees = localized(`%@ employees`, (metrics.employees / 1 || 0).toLocaleString());
+        employees = `${(metrics.employees / 1 || 0).toLocaleString()} ${localized(`employees`)}`;
       } else if (metrics.employeesRange) {
-        employees = localized(`%@ employees`, metrics.employeesRange);
+        employees = `${metrics.employeesRange} ${localized(`employees`)}`;
       }
     }
 

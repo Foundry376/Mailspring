@@ -10,6 +10,7 @@ if (fs.existsSync(__dirname + `/../lang/${lang}.json`)) {
 }
 
 export function localized(en, ...subs) {
+  // TODO support %2$@
   let i = 0;
   let translated = localizations[en] || en;
   return translated.replace('%@', () => subs[i++]);

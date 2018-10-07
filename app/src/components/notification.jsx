@@ -82,7 +82,7 @@ export default class Notification extends React.Component {
 
   _subtitle() {
     if (this.props.isPermanentlyDismissable && this._numAsks() >= 1) {
-      return localized("Don't show this again");
+      return localized('Don’t show this again');
     }
     return this.props.subtitle;
   }

@@ -40,7 +40,7 @@ class ThreadListEmptyFolderBar extends React.Component {
     if (!role || count === 0) {
       return false;
     }
-    const term = role === 'trash' ? localized('deleted') : role;
+    const term = role === 'trash' ? localized('Deleted').toLocaleLowerCase() : role;
 
     return (
       <div className="thread-list-empty-folder-bar">

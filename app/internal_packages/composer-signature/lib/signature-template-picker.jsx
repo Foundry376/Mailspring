@@ -42,7 +42,7 @@ export default class SignatureTemplatePicker extends React.Component {
       resolvedData = Object.assign({}, resolvedData, {
         name: localized('Your name'),
         email: 'you@domain.com',
-        title: localized('Your Job Title'),
+        title: localized('Job Title'),
       });
     }
     return (

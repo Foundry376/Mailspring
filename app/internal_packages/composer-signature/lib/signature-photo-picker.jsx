@@ -188,7 +188,7 @@ export default class SignaturePhotoPicker extends React.Component {
               <option value="twitter">{localized('Twitter Profile Image')}</option>
               <option value="company">{localized('Company / Domain Logo')}</option>
               <option disabled>──────────</option>
-              <option value="custom">{localized('Custom Image')}</option>
+              <option value="custom">{localized('Custom Image…')}</option>
             </select>
             {source === 'custom' &&
               (isMailspringURL ? (

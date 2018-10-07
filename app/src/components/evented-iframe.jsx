@@ -432,7 +432,7 @@ class EventedIFrame extends React.Component {
       if (process.platform === 'darwin') {
         menu.append(
           new MenuItem({
-            label: localized(`Look Up '%@'`, textPreview),
+            label: localized(`Look Up “%@”`, textPreview),
             click() {
               AppEnv.getCurrentWindow().showDefinitionForSelection();
             },

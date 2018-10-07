@@ -22,7 +22,7 @@ function _getMenuTemplate(platform, application) {
 
   if (platform !== 'win32') {
     template.unshift({
-      label: localized('Open Inbox'),
+      label: `${localized('Open')} ${localized('Inbox')}`,
       click: () => application.emit('application:show-main-window'),
     });
   }

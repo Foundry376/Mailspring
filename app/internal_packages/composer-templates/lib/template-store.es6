@@ -220,7 +220,7 @@ class TemplateStore extends MailspringStore {
 
     if (
       this._displayDialog(
-        localized('Delete this template?'),
+        localized('Delete Template?'),
         localized('The template and its file will be permanently deleted.'),
         [localized('Delete'), localized('Cancel')]
       )
