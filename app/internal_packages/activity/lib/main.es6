@@ -1,4 +1,10 @@
-import { ComponentRegistry, WorkspaceStore, Actions, ExtensionRegistry } from 'mailspring-exports';
+import {
+  localized,
+  ComponentRegistry,
+  WorkspaceStore,
+  Actions,
+  ExtensionRegistry,
+} from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 
 import ActivityMailboxPerspective from './activity-mailbox-perspective';
@@ -7,8 +13,10 @@ import ActivityListButton from './list/activity-list-button';
 import Root from './dashboard/root';
 
 const ActivityListButtonWithTutorialTip = HasTutorialTip(ActivityListButton, {
-  title: 'Open and link tracking',
-  instructions: "If you've enabled link tracking or read receipts, those events will appear here!",
+  title: localized('Open and link tracking'),
+  instructions: localized(
+    "If you've enabled link tracking or read receipts, those events will appear here!"
+  ),
 });
 
 const AccountSidebarExtension = {
@@ -17,7 +25,7 @@ const AccountSidebarExtension = {
   sidebarItem(accountIds) {
     return {
       id: 'Activity',
-      name: 'Activity',
+      name: localized('Activity'),
       iconName: 'activity.png',
       perspective: new ActivityMailboxPerspective(accountIds),
     };

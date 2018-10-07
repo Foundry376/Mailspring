@@ -1,5 +1,6 @@
 import Task from './task';
 import Attributes from '../attributes';
+import { localized } from '../../intl';
 
 export default class ChangeRoleMappingTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -12,6 +13,6 @@ export default class ChangeRoleMappingTask extends Task {
   });
 
   label() {
-    return `Changing folder mapping...`;
+    return localized(`Changing folder mapping...`);
   }
 }

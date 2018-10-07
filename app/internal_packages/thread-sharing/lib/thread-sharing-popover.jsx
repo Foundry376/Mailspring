@@ -6,6 +6,7 @@ import {
   PropTypes,
   Thread,
   DatabaseStore,
+  localized,
   FeatureUsageStore,
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
@@ -54,7 +55,7 @@ export default class ThreadSharingPopover extends React.Component {
       if (!this.state.url) {
         try {
           await FeatureUsageStore.markUsedOrUpgrade('thread-sharing', {
-            usedUpHeader: 'All Sharing Links Used',
+            usedUpHeader: localized('All Sharing Links Used'),
             usagePhrase: 'share',
             iconUrl: 'mailspring://thread-sharing/assets/ic-modal-image@2x.png',
           });
@@ -74,9 +75,10 @@ export default class ThreadSharingPopover extends React.Component {
     } catch (error) {
       AppEnv.reportError(error);
       AppEnv.showErrorDialog(
-        `Sorry, we were unable to contact the Mailspring servers to share this thread.\n\n${
+        localized(
+          `Sorry, we were unable to contact the Mailspring servers to share this thread.\n\n%@`,
           error.message
-        }`
+        )
       );
     }
 
@@ -104,10 +106,11 @@ export default class ThreadSharingPopover extends React.Component {
                 name="inline-loading-spinner.gif"
                 mode={RetinaImg.Mode.ContentPreserve}
               />
-              Syncing...
+              {localized('Syncing') + '...'}
               <div className="meta">
-                Mailspring is syncing this thread and it's attachments to the cloud. For long
-                threads, this may take a moment.
+                {localized(
+                  `Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.`
+                )}
               </div>
             </label>
           ) : (
@@ -118,15 +121,18 @@ export default class ThreadSharingPopover extends React.Component {
                 checked={!!url}
                 onChange={this._onToggleShared}
               />
-              Share this thread
+              {localized('Share this thread')}
               <div className="meta">
-                Sync this conversation to the cloud and anyone with the secret link can read it and
-                download attachments.
+                {localized(
+                  'Sync this conversation to the cloud and anyone with the secret link can read it and download attachments.'
+                )}
               </div>
             </label>
           )}
           <div className="meta">
-            <a href="https://foundry376.zendesk.com/hc/en-us/articles/360002360771">Learn More</a>
+            <a href="https://foundry376.zendesk.com/hc/en-us/articles/360002360771">
+              {localized('Learn More')}
+            </a>
           </div>
         </div>
         <div className="share-input">
@@ -142,9 +148,14 @@ export default class ThreadSharingPopover extends React.Component {
         </div>
         <div className="share-controls">
           <button href={url} className="btn" disabled={!url}>
-            Open in browser
+            {localized('Open In Browser')}
           </button>
-          <CopyButton className="btn" disabled={!url} copyValue={url} btnLabel="Copy link" />
+          <CopyButton
+            className="btn"
+            disabled={!url}
+            copyValue={url}
+            btnLabel={localized('Copy link')}
+          />
         </div>
       </div>
     );

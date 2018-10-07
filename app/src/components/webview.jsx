@@ -5,6 +5,7 @@ import { shell } from 'electron';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
 import networkErrors from 'chromium-net-errors';
+import { localized } from 'mailspring-exports';
 
 import { rootURLForServer } from '../flux/mailspring-api-request';
 import RetinaImg from './retina-img';
@@ -44,7 +45,7 @@ class InitialLoadingCover extends React.Component {
     if (this.props.error) {
       message = this.props.error;
     } else if (this.state.slow) {
-      message = `Still trying to reach ${rootURLForServer('identity')}…`;
+      message = localized(`Still trying to reach %@…`, rootURLForServer('identity'));
     } else {
       message = '&nbsp;';
     }
@@ -60,7 +61,7 @@ class InitialLoadingCover extends React.Component {
         />
         <div className="message">{message}</div>
         <div className="btn try-again" onClick={this.props.onTryAgain}>
-          Try Again
+          {localized('Try Again')}
         </div>
         <div style={{ flex: 1 }} />
       </div>
@@ -140,11 +141,11 @@ export default class Webview extends React.Component {
       return;
     }
     if (httpResponseCode >= 400) {
-      const error = `
-        Could not reach Mailspring. Please try again or contact
-        support@getmailspring.com if the issue persists.
-        (${originalURL}: ${httpResponseCode})
-      `;
+      const error = localized(
+        `Could not reach Mailspring. Please try again or contact support@getmailspring.com if the issue persists. (%@: %@)`,
+        originalURL,
+        httpResponseCode
+      );
       this.setState({ ready: false, error: error, webviewLoading: false });
     }
     this.setState({ webviewLoading: false });
@@ -158,7 +159,7 @@ export default class Webview extends React.Component {
     }
 
     const e = networkErrors.createByCode(errorCode);
-    const error = `Could not reach ${validatedURL}. ${e ? e.message : errorCode}`;
+    const error = localized(`Could not reach %@. %@`, validatedURL, e ? e.message : errorCode);
     this.setState({ ready: false, error: error, webviewLoading: false });
   };
 

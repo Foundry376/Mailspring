@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { FocusedPerspectiveStore } from 'mailspring-exports';
+import { localized, FocusedPerspectiveStore } from 'mailspring-exports';
 import { RetinaImg, MailLabel } from 'mailspring-component-kit';
 import { PLUGIN_ID } from './snooze-constants';
 import { snoozedUntilMessage } from './snooze-utils';
@@ -36,7 +36,9 @@ class SnoozeMailLabel extends Component {
       <span className="snooze-mail-label">
         <RetinaImg name="icon-snoozed.png" mode={RetinaImg.Mode.ContentIsMask} />
         <span className="date-message">
-          {snoozedUntilMessage(metadata.expiration).replace('Snoozed', '')}
+          {snoozedUntilMessage(metadata.expiration)
+            .replace('Snoozed', '')
+            .replace(localized('Snoozed'), '')}
         </span>
       </span>
     );

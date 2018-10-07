@@ -2,6 +2,7 @@
 import path from 'path';
 import Model from './model';
 import Attributes from '../attributes';
+import { localized } from '../../intl';
 let RegExpUtils = null;
 
 /**
@@ -61,7 +62,7 @@ export default class File extends Model {
     if (defaultNames[this.contentType]) {
       return defaultNames[this.contentType];
     }
-    return 'Unnamed Attachment';
+    return localized('Unnamed Attachment');
   }
 
   safeDisplayName() {
@@ -81,7 +82,7 @@ export default class File extends Model {
 
   displayFileSize(bytes = this.size) {
     if (bytes === 0) {
-      return 'Empty';
+      return localized('Empty');
     }
 
     const units = ['B', 'KB', 'MB', 'GB'];

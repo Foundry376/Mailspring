@@ -1,4 +1,11 @@
-const { Actions, React, PropTypes, AccountStore, WorkspaceStore } = require('mailspring-exports');
+const {
+  localized,
+  Actions,
+  React,
+  PropTypes,
+  AccountStore,
+  WorkspaceStore,
+} = require('mailspring-exports');
 const { RetinaImg, KeyCommandsRegion } = require('mailspring-component-kit');
 
 const MovePickerPopover = require('./move-picker-popover').default;
@@ -71,7 +78,7 @@ class MovePicker extends React.Component {
           <button
             tabIndex={-1}
             ref={el => (this._moveEl = el)}
-            title={'Move to Folder'}
+            title={localized('Move to Folder')}
             onClick={this._onOpenMovePopover}
             className={'btn btn-toolbar btn-category-picker'}
           >
@@ -81,7 +88,7 @@ class MovePicker extends React.Component {
             <button
               tabIndex={-1}
               ref={el => (this._labelEl = el)}
-              title={'Apply Labels'}
+              title={localized('Apply Label')}
               onClick={this._onOpenLabelsPopover}
               className={'btn btn-toolbar btn-category-picker'}
             >

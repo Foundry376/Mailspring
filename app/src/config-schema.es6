@@ -1,3 +1,5 @@
+import { localized } from './intl';
+
 export default {
   core: {
     type: 'object',
@@ -8,7 +10,7 @@ export default {
           verboseUntil: {
             type: 'number',
             default: 0,
-            title: 'Enable verbose IMAP / SMTP logging',
+            title: localized('Enable verbose IMAP / SMTP logging'),
           },
         },
       },
@@ -23,26 +25,26 @@ export default {
           systemTray: {
             type: 'boolean',
             default: true,
-            title: 'Show icon in menu bar / system tray',
+            title: localized('Show icon in menu bar / system tray'),
             platforms: ['darwin', 'linux'],
           },
           showImportant: {
             type: 'boolean',
             default: true,
-            title: 'Show Gmail-style important markers (Gmail Only)',
+            title: localized('Show Gmail-style important markers (Gmail Only)'),
           },
           showUnreadForAllCategories: {
             type: 'boolean',
             default: false,
-            title: 'Show unread counts for all folders / labels',
+            title: localized('Show unread counts for all folders / labels'),
           },
           use24HourClock: {
             type: 'boolean',
             default: false,
-            title: 'Use 24-hour clock',
+            title: localized('Use 24-hour clock'),
           },
           interfaceZoom: {
-            title: 'Override standard interface scaling',
+            title: localized('Override standard interface scaling'),
             type: 'number',
             default: 1,
             advanced: true,
@@ -73,12 +75,14 @@ export default {
           openFolderAfterDownload: {
             type: 'boolean',
             default: false,
-            title: 'Open containing folder after downloading attachment',
+            title: localized('Open containing folder after downloading attachment'),
           },
           displayFilePreview: {
             type: 'boolean',
             default: true,
-            title: 'Display thumbnail previews for attachments when available. (macOS only)',
+            title: localized(
+              'Display thumbnail previews for attachments when available. (macOS only)'
+            ),
           },
         },
       },
@@ -89,23 +93,28 @@ export default {
             type: 'integer',
             default: 500,
             enum: [0, 500, 2000, -1],
-            enumLabels: ['Instantly', 'After ½ Second', 'After 2 Seconds', 'Manually'],
-            title: 'When reading messages, mark as read',
+            enumLabels: [
+              localized('Instantly'),
+              localized('After %@ Seconds', '0.5'),
+              localized('After %@ Seconds', '2'),
+              localized('Manually'),
+            ],
+            title: localized('When reading messages, mark as read'),
           },
           autoloadImages: {
             type: 'boolean',
             default: true,
-            title: 'Automatically load images in viewed messages',
+            title: localized('Automatically load images in viewed messages'),
           },
           backspaceDelete: {
             type: 'boolean',
             default: false,
-            title: 'Swipe gesture and backspace / delete move messages to trash',
+            title: localized('Swipe gesture and backspace / delete move messages to trash'),
           },
           descendingOrderMessageList: {
             type: 'boolean',
             default: false,
-            title: 'Display conversations in descending chronological order',
+            title: localized('Display conversations in descending chronological order'),
           },
         },
       },
@@ -115,7 +124,7 @@ export default {
           spellcheck: {
             type: 'boolean',
             default: true,
-            title: 'Check messages for spelling',
+            title: localized('Check messages for spelling'),
           },
           spellcheckDefaultLanguage: {
             type: 'string',
@@ -236,9 +245,10 @@ export default {
               'Ukrainian',
               'Vietnamese',
             ],
-            title: 'Default spellcheck language',
-            note:
-              'If you write a draft in another language, Mailspring will auto-detect it and use the correct spelling dictionary after a few sentences.',
+            title: localized('Spellcheck language'),
+            note: localized(
+              'If you write a draft in another language, Mailspring will auto-detect it and use the correct spelling dictionary after a few sentences.'
+            ),
           },
         },
       },
@@ -248,21 +258,27 @@ export default {
           sounds: {
             type: 'boolean',
             default: true,
-            title: 'Play sound when a message is sent',
+            title: localized('Message Sent Sound'),
           },
           defaultReplyType: {
             type: 'string',
             default: 'reply-all',
             enum: ['reply', 'reply-all'],
-            enumLabels: ['Reply', 'Reply All'],
-            title: 'Default reply behavior',
+            enumLabels: [localized('Reply'), localized('Reply All')],
+            title: localized('Default reply behavior'),
           },
           undoSend: {
             type: 'number',
             default: 5000,
             enum: [5000, 15000, 30000, 60000, 0],
-            enumLabels: ['5 seconds', '15 seconds', '30 seconds', '60 seconds', 'Disable'],
-            title: 'After sending, enable undo for',
+            enumLabels: [
+              `5 ${localized('seconds')}`,
+              `15 ${localized('seconds')}`,
+              `30 ${localized('seconds')}`,
+              `60 ${localized('seconds')}`,
+              localized('Disable'),
+            ],
+            title: localized('After sending, enable undo for'),
           },
         },
       },
@@ -272,29 +288,33 @@ export default {
           enabled: {
             type: 'boolean',
             default: true,
-            title: 'Show notifications for new unread messages',
+            title: localized('Show notifications for new unread messages'),
           },
           enabledForRepeatedTrackingEvents: {
             type: 'boolean',
             default: true,
-            title: 'Show notifications for repeated opens / clicks',
+            title: localized('Show notifications for repeated opens / clicks'),
           },
           sounds: {
             type: 'boolean',
             default: true,
-            title: 'Play sound when receiving new mail',
+            title: localized('Play sound when receiving new mail'),
           },
           unsnoozeToTop: {
             type: 'boolean',
             default: true,
-            title: 'Resurface messages to the top of the inbox when unsnoozing',
+            title: localized('Resurface messages to the top of the inbox when unsnoozing'),
           },
           countBadge: {
             type: 'string',
             default: 'unread',
             enum: ['hide', 'unread', 'total'],
-            enumLabels: ['Hide Badge', 'Show Unread Count', 'Show Total Count'],
-            title: 'Show badge on the app icon',
+            enumLabels: [
+              localized('Hide Badge'),
+              localized('Show Unread Count'),
+              localized('Show Total Count'),
+            ],
+            title: localized('Show badge on the app icon'),
           },
         },
       },

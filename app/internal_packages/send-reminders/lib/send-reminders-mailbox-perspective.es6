@@ -1,5 +1,6 @@
 import {
   Thread,
+  localized,
   MailboxPerspective,
   MutableQuerySubscription,
   DatabaseStore,
@@ -11,7 +12,7 @@ class SendRemindersMailboxPerspective extends MailboxPerspective {
   constructor(accountIds) {
     super(accountIds);
     this.accountIds = accountIds;
-    this.name = 'Reminders';
+    this.name = localized('Reminders');
     this.iconName = 'reminders.png';
   }
 
@@ -20,7 +21,7 @@ class SendRemindersMailboxPerspective extends MailboxPerspective {
   }
 
   emptyMessage() {
-    return 'No reminders set';
+    return localized('No reminders set');
   }
 
   threads() {

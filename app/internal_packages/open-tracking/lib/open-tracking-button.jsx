@@ -1,4 +1,4 @@
-import { React, PropTypes, APIError, MailspringAPIRequest } from 'mailspring-exports';
+import { localized, React, PropTypes, APIError, MailspringAPIRequest } from 'mailspring-exports';
 import { MetadataComposerToggleButton } from 'mailspring-component-kit';
 import { PLUGIN_ID, PLUGIN_NAME } from './open-tracking-constants';
 
@@ -22,11 +22,14 @@ export default class OpenTrackingButton extends React.Component {
       error instanceof APIError &&
       MailspringAPIRequest.TimeoutErrorCodes.includes(error.statusCode)
     ) {
-      return `Open tracking does not work offline. Please re-enable when you come back online.`;
+      return localized(
+        `Open tracking does not work offline. Please re-enable when you come back online.`
+      );
     }
-    return `Unfortunately, open tracking is currently not available. Please try again later. Error: ${
+    return localized(
+      `Unfortunately, open tracking is currently not available. Please try again later. Error: %@`,
       error.message
-    }`;
+    );
   }
 
   render() {

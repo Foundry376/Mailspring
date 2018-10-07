@@ -3,6 +3,7 @@ import querystring from 'querystring';
 import { ipcRenderer } from 'electron';
 import fs from 'fs';
 import {
+  localized,
   IdentityStore,
   DatabaseStore,
   Thread,
@@ -61,7 +62,7 @@ const _onOpenThreadFromWeb = (event, nylasUrl) => {
     })
     .catch(error => {
       AppEnv.reportError(error);
-      AppEnv.showErrorDialog(`The thread ${subject} does not exist in your mailbox!`);
+      AppEnv.showErrorDialog(localized(`The thread %@ does not exist in your mailbox!`, subject));
     });
 };
 

@@ -9,6 +9,7 @@ const {
   ReactDOM,
   PropTypes,
   Utils,
+  localized,
   IdentityStore,
   MailspringAPIRequest,
   SearchableComponentStore,
@@ -308,7 +309,7 @@ class EventedIFrame extends React.Component {
       if (href.startsWith('mailto')) {
         menu.append(
           new MenuItem({
-            label: 'Compose Message...',
+            label: localized('Compose New Message'),
             click() {
               AppEnv.windowEventHandler.openLink({ href });
             },
@@ -316,7 +317,7 @@ class EventedIFrame extends React.Component {
         );
         menu.append(
           new MenuItem({
-            label: 'Copy Email Address',
+            label: localized('Copy Email Address'),
             click() {
               clipboard.writeText(href.split('mailto:').pop());
             },
@@ -325,7 +326,7 @@ class EventedIFrame extends React.Component {
       } else {
         menu.append(
           new MenuItem({
-            label: 'Open Link',
+            label: localized('Open Link'),
             click() {
               AppEnv.windowEventHandler.openLink({ href });
             },
@@ -333,7 +334,7 @@ class EventedIFrame extends React.Component {
         );
         menu.append(
           new MenuItem({
-            label: 'Copy Link Address',
+            label: localized('Copy Link Address'),
             click() {
               clipboard.writeText(href);
             },
@@ -350,7 +351,7 @@ class EventedIFrame extends React.Component {
       const srcFilename = path.basename(src);
       menu.append(
         new MenuItem({
-          label: 'Save Image...',
+          label: localized('Save Image') + '...',
           click() {
             AppEnv.showSaveDialog({ defaultPath: srcFilename }, function(path) {
               if (!path) {
@@ -370,7 +371,7 @@ class EventedIFrame extends React.Component {
       );
       menu.append(
         new MenuItem({
-          label: 'Copy Image',
+          label: localized('Copy Image'),
           click() {
             let img = new Image();
             img.addEventListener(
@@ -414,7 +415,7 @@ class EventedIFrame extends React.Component {
       }
       menu.append(
         new MenuItem({
-          label: 'Copy',
+          label: localized('Copy'),
           click() {
             clipboard.writeText(text);
           },
@@ -422,7 +423,7 @@ class EventedIFrame extends React.Component {
       );
       menu.append(
         new MenuItem({
-          label: `Search Google for '${textPreview}'`,
+          label: localized(`Search Google for '%@'`, textPreview),
           click() {
             shell.openExternal(`https://www.google.com/search?q=${encodeURIComponent(text)}`);
           },
@@ -431,7 +432,7 @@ class EventedIFrame extends React.Component {
       if (process.platform === 'darwin') {
         menu.append(
           new MenuItem({
-            label: `Look Up '${textPreview}'`,
+            label: localized(`Look Up '%@'`, textPreview),
             click() {
               AppEnv.getCurrentWindow().showDefinitionForSelection();
             },

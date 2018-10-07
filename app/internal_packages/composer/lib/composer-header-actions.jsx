@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Actions } from 'mailspring-exports';
+import { localized, Actions } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import Fields from './fields';
 
@@ -27,7 +27,7 @@ export default class ComposerHeaderActions extends React.Component {
           key="cc"
           onClick={() => this.props.onShowAndFocusField(Fields.Cc)}
         >
-          Cc
+          {localized('Cc')}
         </span>
       );
     }
@@ -39,7 +39,7 @@ export default class ComposerHeaderActions extends React.Component {
           key="bcc"
           onClick={() => this.props.onShowAndFocusField(Fields.Bcc)}
         >
-          Bcc
+          {localized('Bcc')}
         </span>
       );
     }
@@ -51,7 +51,7 @@ export default class ComposerHeaderActions extends React.Component {
           key="subject"
           onClick={() => this.props.onShowAndFocusField(Fields.Subject)}
         >
-          Subject
+          {localized('Subject')}
         </span>
       );
     }
@@ -61,7 +61,7 @@ export default class ComposerHeaderActions extends React.Component {
         <span
           className="action show-popout"
           key="popout"
-          title="Popout composer…"
+          title={localized('Popout composer…')}
           onClick={this._onPopoutComposer}
         >
           <RetinaImg

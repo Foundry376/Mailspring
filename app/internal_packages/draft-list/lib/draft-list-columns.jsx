@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utils } from 'mailspring-exports';
+import { localized, Utils } from 'mailspring-exports';
 import { InjectedComponentSet, ListTabular } from 'mailspring-component-kit';
 
 function snippet(html) {
@@ -15,7 +15,7 @@ function snippet(html) {
 
 function subject(subj) {
   if ((subj || '').trim().length === 0) {
-    return <span className="no-subject">(No Subject)</span>;
+    return <span className="no-subject">{localized('(No Subject)')}</span>;
   }
   return Utils.extractTextFromHtml(subj);
 }
@@ -33,7 +33,7 @@ const ParticipantsColumn = new ListTabular.Column({
         </div>
       );
     } else {
-      return <div className="participants no-recipients">(No Recipients)</div>;
+      return <div className="participants no-recipients">{localized('(No Recipients)')}</div>;
     }
   },
 });

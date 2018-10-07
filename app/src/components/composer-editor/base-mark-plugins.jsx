@@ -1,4 +1,5 @@
 import React from 'react';
+import { localized } from 'mailspring-exports';
 
 import {
   BuildToggleButton,
@@ -11,10 +12,10 @@ import BaseBlockPlugins from './base-block-plugins';
 
 export const DEFAULT_FONT_SIZE = 2;
 export const DEFAULT_FONT_OPTIONS = [
-  { name: 'Small', value: 1 },
-  { name: 'Normal', value: 2 },
-  { name: 'Large', value: 4 },
-  { name: 'Huge', value: 6 },
+  { name: localized('Small'), value: 1 },
+  { name: localized('Normal'), value: 2 },
+  { name: localized('Large'), value: 4 },
+  { name: localized('Huge'), value: 6 },
 ];
 
 export const DEFAULT_FONT_FACE = 'sans-serif';

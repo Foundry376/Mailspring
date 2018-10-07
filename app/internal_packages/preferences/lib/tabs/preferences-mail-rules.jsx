@@ -1,7 +1,14 @@
 import React from 'react';
 import _ from 'underscore';
 
-import { Actions, AccountStore, MailRulesStore, MailRulesTemplates } from 'mailspring-exports';
+import {
+  localized,
+  localizedReactFragment,
+  Actions,
+  AccountStore,
+  MailRulesStore,
+  MailRulesTemplates,
+} from 'mailspring-exports';
 
 import {
   Flexbox,
@@ -76,13 +83,17 @@ class PreferencesMailRules extends React.Component {
 
     if (needsMessageBodies()) {
       AppEnv.showErrorDialog(
-        "One or more of your mail rules requires the bodies of messages being processed. These rules can't be run on your entire mailbox."
+        localized(
+          "One or more of your mail rules requires the bodies of messages being processed. These rules can't be run on your entire mailbox."
+        )
       );
     }
 
     if (this.state.rules.length === 0) {
       AppEnv.showErrorDialog(
-        "You haven't created any mail rules. To get started, define a new rule above and tell Mailspring how to process your inbox."
+        localized(
+          "You haven't created any mail rules. To get started, define a new rule above and tell Mailspring how to process your inbox."
+        )
       );
     }
     Actions.startReprocessingMailRules(this.state.currentAccount.id);
@@ -156,9 +167,9 @@ class PreferencesMailRules extends React.Component {
             name="rules-big.png"
             mode={RetinaImg.Mode.ContentDark}
           />
-          <h2>No rules</h2>
+          <h2>{localized('No rules')}</h2>
           <button className="btn btn-small" onClick={this._onAddRule}>
-            Create a new rule
+            {localized('Create a new Rule')}
           </button>
         </div>
       );
@@ -197,19 +208,20 @@ class PreferencesMailRules extends React.Component {
         <ScrollRegion className="rule-detail">
           {this._renderDetailDisabledNotice()}
           <div className="inner">
-            <span>If </span>
-            <select value={rule.conditionMode} onChange={this._onRuleConditionModeEdited}>
-              <option value="any">Any</option>
-              <option value="all">All</option>
-            </select>
-            <span> of the following conditions are met:</span>
+            {localizedReactFragment(
+              'If %@ of the following conditions are met:',
+              <select value={rule.conditionMode} onChange={this._onRuleConditionModeEdited}>
+                <option value="any">{localized('Any')}</option>
+                <option value="all">{localized('All')}</option>
+              </select>
+            )}
             <ScenarioEditor
               instances={rule.conditions}
               templates={this.state.conditionTemplates}
               onChange={conditions => Actions.updateMailRule(rule.id, { conditions })}
               className="well well-matchers"
             />
-            <span>Perform the following actions:</span>
+            <span>{localized('Perform these actions:')}</span>
             <ScenarioEditor
               instances={rule.actions}
               templates={this.state.actionTemplates}
@@ -223,7 +235,9 @@ class PreferencesMailRules extends React.Component {
 
     return (
       <div className="rule-detail">
-        <div className="no-selection">Create a rule or select one to get started</div>
+        <div className="no-selection">
+          {localized('Create a rule or select one to get started')}
+        </div>
       </div>
     );
   }
@@ -233,9 +247,11 @@ class PreferencesMailRules extends React.Component {
     return (
       <div className="disabled-reason">
         <button className="btn" onClick={this._onRuleEnabled}>
-          Enable
+          {localized('Enable')}
         </button>
-        This rule has been disabled. Make sure the actions below are valid and re-enable the rule.
+        {localized(
+          'This rule has been disabled. Make sure the actions below are valid and re-enable the rule.'
+        )}
         <div>({this.state.selectedRule.disabledReason})</div>
       </div>
     );
@@ -257,14 +273,14 @@ class PreferencesMailRules extends React.Component {
               </div>
               <div>
                 <strong>{AccountStore.accountForId(accountId).emailAddress}</strong>
-                {` — ${Number(count).toLocaleString()} processed...`}
+                {` — ${Number(count).toLocaleString()} ${localized(`processed`)}`}
               </div>
               <div style={{ flex: 1 }} />
               <button
                 className="btn btn-sm"
                 onClick={() => Actions.stopReprocessingMailRules(accountId)}
               >
-                Stop
+                {localized('Stop')}
               </button>
             </Flexbox>
           );
@@ -278,10 +294,10 @@ class PreferencesMailRules extends React.Component {
       <div className="container-mail-rules">
         <section>
           <Flexbox className="container-dropdown">
-            <div>Account:</div>
+            <div>{localized('Account')}:</div>
             <div className="dropdown">{this._renderAccountPicker()}</div>
           </Flexbox>
-          <p>Rules only apply to the selected account.</p>
+          <p>{localized('Rules only apply to the selected account.')}</p>
 
           {this._renderMailRules()}
 
@@ -293,15 +309,16 @@ class PreferencesMailRules extends React.Component {
                 style={{ float: 'right' }}
                 onClick={this._onReprocessRules}
               >
-                Process entire inbox
+                {localized('Process entire inbox')}
               </button>
             </div>
             {this._renderTasks()}
           </Flexbox>
 
           <p style={{ marginTop: 10 }}>
-            By default, mail rules are only applied to new mail as it arrives. Applying rules to
-            your entire inbox may take a long time and degrade performance.
+            {localized(
+              'By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.'
+            )}
           </p>
         </section>
       </div>

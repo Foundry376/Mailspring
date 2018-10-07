@@ -1,4 +1,4 @@
-import React from 'react';
+import { localized, React } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import OnboardingActions from './onboarding-actions';
 
@@ -15,7 +15,7 @@ export default class WelcomePage extends React.Component {
         <div className="steps-container">
           <div>
             <p className="hero-text" style={{ fontSize: 46, marginTop: 257 }}>
-              Welcome to Mailspring
+              {localized('Welcome to Mailspring')}
             </p>
             <RetinaImg
               className="icons"
@@ -26,7 +26,7 @@ export default class WelcomePage extends React.Component {
         </div>
         <div className="footer">
           <button key="next" className="btn btn-large btn-continue" onClick={this._onContinue}>
-            Get Started
+            {localized('Get Started')}
           </button>
         </div>
       </div>

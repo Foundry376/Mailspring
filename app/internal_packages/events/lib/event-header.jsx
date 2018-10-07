@@ -1,6 +1,7 @@
 const { RetinaImg } = require('mailspring-component-kit');
 const {
   Actions,
+  localized,
   React,
   PropTypes,
   DateUtils,
@@ -67,7 +68,7 @@ class EventHeader extends React.Component {
               name="icon-RSVP-calendar-mini@2x.png"
               mode={RetinaImg.Mode.ContentPreserve}
             />
-            <span className="event-title-text">Event: </span>
+            <span className="event-title-text">{localized('Event')}: </span>
             <span className="event-title">{this.state.event.title}</span>
           </div>
           <div className="event-body">
@@ -75,7 +76,7 @@ class EventHeader extends React.Component {
               <div className="event-day">
                 {moment(this.state.event.start * 1000)
                   .tz(DateUtils.timeZone)
-                  .format('dddd, MMMM Do')}
+                  .format(localized('dddd, MMMM Do'))}
               </div>
               <div>
                 <div className="event-time">
@@ -100,7 +101,11 @@ class EventHeader extends React.Component {
       return false;
     }
 
-    const actions = [['yes', 'Accept'], ['maybe', 'Maybe'], ['no', 'Decline']];
+    const actions = [
+      ['yes', localized('Accept')],
+      ['maybe', localized('Maybe')],
+      ['no', localized('Decline')],
+    ];
 
     return (
       <div className="event-actions">

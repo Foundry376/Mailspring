@@ -1,4 +1,4 @@
-import { Actions, React, AccountStore, IdentityStore } from 'mailspring-exports';
+import { localized, Actions, React, AccountStore, IdentityStore } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 export default class PleaseSubscribeNotification extends React.Component {
@@ -28,10 +28,12 @@ export default class PleaseSubscribeNotification extends React.Component {
 
     let msg = null;
     if (stripePlan === 'Basic' && accountCount > 4) {
-      msg = `You're syncing more than four accounts — please consider paying for Mailspring Pro!`;
+      msg = localized(
+        `You're syncing more than four accounts — please consider paying for Mailspring Pro!`
+      );
     }
     if (stripePlan !== stripePlanEffective) {
-      msg = `We're having trouble billing your Mailspring subscription.`;
+      msg = localized(`We're having trouble billing your Mailspring subscription.`);
     }
 
     return { msg };
@@ -48,7 +50,7 @@ export default class PleaseSubscribeNotification extends React.Component {
         title={this.state.msg}
         actions={[
           {
-            label: 'Manage',
+            label: localized('Manage'),
             fn: () => {
               Actions.switchPreferencesTab('Subscription');
               Actions.openPreferences();

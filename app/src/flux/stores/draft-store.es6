@@ -16,6 +16,7 @@ import TaskQueue from './task-queue';
 import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
+import { localized } from '../../intl';
 
 const { DefaultSendActionKey } = SendActionsStore;
 /*
@@ -307,7 +308,7 @@ class DraftStore extends MailspringStore {
       windowType: 'composer',
       windowKey: `composer-${headerMessageId}`,
       windowProps: Object.assign(options, { headerMessageId, draftJSON }),
-      title: options.newDraft ? 'New Message' : 'Message',
+      title: options.newDraft ? localized('New Message') : localized('Message'),
     });
   };
 

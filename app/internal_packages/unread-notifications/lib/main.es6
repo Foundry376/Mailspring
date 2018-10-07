@@ -7,6 +7,7 @@ import {
   SoundRegistry,
   NativeNotifications,
   DatabaseStore,
+  localized,
 } from 'mailspring-exports';
 
 const WAIT_FOR_CHANGES_DELAY = 400;
@@ -104,7 +105,7 @@ export class Notifier {
 
   _notifyAll() {
     NativeNotifications.displayNotification({
-      title: `${this.unnotifiedQueue.length} Unread Messages`,
+      title: `${this.unnotifiedQueue.length} ${localized('Unread Messages')}`,
       tag: 'unread-update',
       onActivate: () => {
         AppEnv.displayWindow();

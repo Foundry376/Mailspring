@@ -1,4 +1,11 @@
-const { React, PropTypes, Actions, TaskFactory, ExtensionRegistry } = require('mailspring-exports');
+const {
+  localized,
+  React,
+  PropTypes,
+  Actions,
+  TaskFactory,
+  ExtensionRegistry,
+} = require('mailspring-exports');
 
 class ThreadListIcon extends React.Component {
   static displayName = 'ThreadListIcon';
@@ -63,7 +70,7 @@ class ThreadListIcon extends React.Component {
     return (
       <div
         className={`thread-icon ${this._iconClassNames()}`}
-        title="Star"
+        title={localized('Star')}
         onClick={this._onToggleStar}
       />
     );

@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import URL from 'url';
+import { localized } from 'mailspring-exports';
 import ReactDOMServer from 'react-dom/server';
 import Templates from './templates';
 
@@ -8,43 +9,43 @@ export const RAW_TEMPLATE_NAME = 'raw';
 export const DataShape = [
   {
     key: 'name',
-    label: 'Name',
+    label: localized('Name'),
   },
   {
     key: 'title',
-    label: 'Title',
+    label: localized('Title'),
   },
   {
     key: 'phone',
-    label: 'Phone',
+    label: localized('Phone'),
   },
   {
     key: 'email',
-    label: 'Email Address',
+    label: localized('Email Address'),
   },
   {
     key: 'fax',
-    label: 'Fax',
+    label: localized('Fax'),
   },
   {
     key: 'address',
-    label: 'Address',
+    label: localized('Address'),
   },
   {
     key: 'websiteURL',
-    label: 'Website URL',
+    label: localized('Website'),
   },
   {
     key: 'facebookURL',
-    label: 'Facebook URL',
+    label: localized('Facebook URL'),
   },
   {
     key: 'twitterHandle',
-    label: 'Twitter Handle',
+    label: localized('Twitter Handle'),
   },
   {
     key: 'tintColor',
-    label: 'Theme Color',
+    label: localized('Theme Color'),
     placeholder: 'ex: #419bf9, purple',
   },
 ];

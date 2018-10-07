@@ -1,5 +1,6 @@
 import moment from 'moment';
 import {
+  localized,
   Actions,
   Label,
   DateUtils,
@@ -12,7 +13,7 @@ import {
 } from 'mailspring-exports';
 
 export function snoozedUntilMessage(snoozeDate, now = moment()) {
-  let message = 'Snoozed';
+  let message = localized('Snoozed');
   if (snoozeDate) {
     let dateFormat = DateUtils.DATE_FORMAT_SHORT;
     const date = moment(snoozeDate);
@@ -62,9 +63,10 @@ export async function markUnreadOrResurfaceThreads(threads, source) {
     // send a hidden email that will mark the thread as unread and bring it
     // to the top of your inbox in any mail client
     const body = `
-    <strong>Mailspring Reminder:</strong> This thread has been moved to the top of
-    your inbox by Mailspring.</p>
-    <p>--The Mailspring Team</p>`;
+    <strong>${localized('Mailspring Reminder')}:</strong> ${localized(
+      'This thread has been moved to the top of your inbox by Mailspring.'
+    )}</p>
+    <p>--${localized('The Mailspring Team')}</p>`;
 
     for (const thread of threads) {
       const draft = await DraftFactory.createDraftForResurfacing(thread, null, body);

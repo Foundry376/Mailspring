@@ -1,6 +1,6 @@
 import { shell, remote } from 'electron';
 import { RetinaImg } from 'mailspring-component-kit';
-import { React, ReactDOM, PropTypes } from 'mailspring-exports';
+import { localized, React, ReactDOM, PropTypes } from 'mailspring-exports';
 
 import OnboardingActions from '../onboarding-actions';
 import { finalizeAndValidateAccount } from '../onboarding-helpers';
@@ -133,12 +133,11 @@ const CreatePageForForm = FormComponent => {
         didWarnAboutGmailIMAP = true;
         const buttonIndex = remote.dialog.showMessageBox(null, {
           type: 'warning',
-          buttons: ['Go Back', 'Continue'],
-          message: 'Are you sure?',
-          detail:
-            `This looks like a Gmail account! While it's possible to setup an App ` +
-            `Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go ` +
-            `back and select "Gmail & Google Apps" from the provider screen.`,
+          buttons: [localized('Go Back'), localized('Continue')],
+          message: localized('Are you sure?'),
+          detail: localized(
+            `This looks like a Gmail account! While it's possible to setup an App Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go back and select "Gmail & Google Apps" from the provider screen.`
+          ),
         });
         if (buttonIndex === 0) {
           OnboardingActions.moveToPage('account-choose');
@@ -198,7 +197,7 @@ const CreatePageForForm = FormComponent => {
               height={15}
               mode={RetinaImg.Mode.ContentPreserve}
             />
-            Adding account&hellip;
+            {localized('Adding account')}&hellip;
           </button>
         );
       }
@@ -229,11 +228,11 @@ const CreatePageForForm = FormComponent => {
       let message;
       let articleURL;
       if (account.emailAddress.includes('@yahoo.com')) {
-        message = 'Have you enabled access through Yahoo?';
+        message = localized('Have you enabled access through Yahoo?');
         articleURL =
           'http://support.getmailspring.com//hc/en-us/articles/115001882372-Authorizing-Use-with-Yahoo';
       } else {
-        message = 'Some providers require an app password.';
+        message = localized('Some providers require an app password.');
         articleURL =
           'http://support.getmailspring.com/hc/en-us/articles/115001876051-App-Passwords';
       }
@@ -249,7 +248,7 @@ const CreatePageForForm = FormComponent => {
               shell.openExternal(articleURL);
             }}
           >
-            Learn more.
+            {localized('Learn more')}.
           </a>
         </div>
       );
@@ -299,7 +298,7 @@ const CreatePageForForm = FormComponent => {
           />
           <div>
             <div className="btn btn-large btn-gradient" onClick={this.onBack}>
-              Back
+              {localized('Back')}
             </div>
             {this._renderButton()}
           </div>

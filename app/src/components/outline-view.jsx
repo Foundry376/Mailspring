@@ -1,4 +1,4 @@
-import { Utils } from 'mailspring-exports';
+import { Utils, localized } from 'mailspring-exports';
 import React, { Component } from 'react';
 import DropZone from './drop-zone';
 import RetinaImg from './retina-img';
@@ -117,7 +117,7 @@ class OutlineView extends Component {
       editing: true,
       iconName: props.iconName,
       onEdited: this._onItemCreated,
-      inputPlaceholder: 'Create new item',
+      inputPlaceholder: localized('Create new item'),
       onInputCleared: this._onCreateInputCleared,
     };
     return <OutlineViewItem item={item} />;
@@ -140,7 +140,7 @@ class OutlineView extends Component {
   }
 
   _renderHeading(allowCreate, collapsed, collapsible) {
-    const collapseLabel = collapsed ? 'Show' : 'Hide';
+    const collapseLabel = collapsed ? localized('Show') : localized('Hide');
     return (
       <DropZone
         className="heading"

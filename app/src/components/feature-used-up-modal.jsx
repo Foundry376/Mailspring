@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { shell } from 'electron';
+import { localized } from 'mailspring-exports';
 import Actions from '../flux/actions';
 import RetinaImg from './retina-img';
 import BillingModal from './billing-modal';
@@ -58,22 +59,22 @@ export default class FeatureUsedUpModal extends React.Component {
         </div>
         <div className="feature-cta">
           <div className="pro-description">
-            <h3>Upgrade to Mailspring Pro</h3>
+            <h3>{localized('Upgrade to Mailspring Pro')}</h3>
             <ul>
-              <li>Unlimited Connected Accounts</li>
-              <li>Unlimited Contact Profiles</li>
-              <li>Unlimited Snoozing</li>
-              <li>Unlimited Read Receipts</li>
-              <li>Unlimited Link Tracking</li>
-              <li>Unlimited Reminders</li>
+              <li>{localized('Unlimited Connected Accounts')}</li>
+              <li>{localized('Unlimited Contact Profiles')}</li>
+              <li>{localized('Unlimited Snoozing')}</li>
+              <li>{localized('Unlimited Read Receipts')}</li>
+              <li>{localized('Unlimited Link Tracking')}</li>
+              <li>{localized('Unlimited Reminders')}</li>
               <li>
-                <a onClick={this.onGoToFeatures}>Dozens of other features!</a>
+                <a onClick={this.onGoToFeatures}>{localized('Dozens of other features!')}</a>
               </li>
             </ul>
           </div>
 
           <button className="btn btn-large btn-cta btn-emphasis" onClick={this.onUpgrade}>
-            Upgrade
+            {localized('Upgrade')}
           </button>
         </div>
       </div>

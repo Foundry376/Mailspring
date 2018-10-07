@@ -1,5 +1,5 @@
 import { shell } from 'electron';
-import { React, PropTypes } from 'mailspring-exports';
+import { localized, React, PropTypes } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
 import GithubStore from './github-store';
@@ -150,7 +150,7 @@ export default class ViewOnGithubButton extends React.Component {
         <button
           className="btn btn-toolbar btn-view-on-github"
           onClick={this._openLink}
-          title={'Visit Thread on GitHub'}
+          title={localized('Visit Thread on GitHub')}
         >
           <RetinaImg
             mode={RetinaImg.Mode.ContentIsMask}

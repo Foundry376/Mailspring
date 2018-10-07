@@ -1,4 +1,4 @@
-import { React, PropTypes } from 'mailspring-exports';
+import { localized, React, PropTypes } from 'mailspring-exports';
 import Templates from './templates';
 
 export default class SignatureTemplatePicker extends React.Component {
@@ -40,9 +40,9 @@ export default class SignatureTemplatePicker extends React.Component {
     const { name, email, title } = resolvedData;
     if (!name && !email && !title) {
       resolvedData = Object.assign({}, resolvedData, {
-        name: 'Your Name',
+        name: localized('Your name'),
         email: 'you@domain.com',
-        title: 'Your Job Title',
+        title: localized('Your Job Title'),
       });
     }
     return (
@@ -64,7 +64,7 @@ export default class SignatureTemplatePicker extends React.Component {
           className={`option ${!resolvedData.templateName && 'active'}`}
           onClick={this._onClickItem}
         >
-          <div className="centered">Raw HTML</div>
+          <div className="centered">{localized('Raw HTML')}</div>
         </div>
       </div>
     );

@@ -1,4 +1,4 @@
-import { React, PropTypes, Actions, DateUtils } from 'mailspring-exports';
+import { localized, React, PropTypes, Actions, DateUtils } from 'mailspring-exports';
 
 export default class RelatedThreads extends React.Component {
   static displayName = 'RelatedThreads';
@@ -30,7 +30,7 @@ export default class RelatedThreads extends React.Component {
     if (!this._hasToggle()) {
       return false;
     }
-    const msg = this.state.expanded ? 'Collapse' : 'Show more';
+    const msg = this.state.expanded ? localized('Collapse') : localized('Show more');
     return (
       <div className="toggle" onClick={this._toggle}>
         {msg}

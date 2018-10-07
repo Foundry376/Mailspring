@@ -1,5 +1,6 @@
 import AutoupdateImplBase from './autoupdate-impl-base';
 import WindowsUpdater from './windows-updater';
+import { localized } from '../intl';
 
 export default class AutoupdateImplWin32 extends AutoupdateImplBase {
   supportsUpdates() {
@@ -31,7 +32,7 @@ export default class AutoupdateImplWin32 extends AutoupdateImplBase {
           this.emitError(error);
           return;
         }
-        this.emit('update-downloaded', {}, 'A new version is available!', json.version);
+        this.emit('update-downloaded', {}, localized('A new version is available!'), json.version);
       });
     });
   }

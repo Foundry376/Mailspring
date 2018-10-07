@@ -4,7 +4,11 @@ const ReactDOM = require('react-dom');
 const PropTypes = require('prop-types');
 const classNames = require('classnames');
 const RetinaImg = require('./retina-img').default;
-const { FolderSyncProgressStore, FocusedPerspectiveStore } = require('mailspring-exports');
+const {
+  localized,
+  FolderSyncProgressStore,
+  FocusedPerspectiveStore,
+} = require('mailspring-exports');
 const { SyncingListState } = require('mailspring-component-kit');
 
 const INBOX_ZERO_ANIMATIONS = ['gem', 'oasis', 'tron', 'airstrip', 'galaxy'];
@@ -80,7 +84,7 @@ class EmptyInboxState extends React.Component {
             title="animation"
             src={`animations/inbox-zero/${animationName}/${animationName}.html`}
           />
-          <div className="message">Hooray! You’re done.</div>
+          <div className="message">{localized('Hooray! You’re done.')}</div>
         </div>
       </div>
     );

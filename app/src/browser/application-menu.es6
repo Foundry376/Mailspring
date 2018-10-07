@@ -6,6 +6,7 @@
  */
 const { BrowserWindow, Menu, app } = require('electron');
 const Utils = require('../flux/models/utils');
+const { localized } = require('../intl');
 
 // Used to manage the global application menu.
 //
@@ -142,7 +143,7 @@ module.exports = class ApplicationMenu {
   }
 
   extendTemplateWithWindowMenu(template) {
-    const windowMenu = template.find(({ label }) => label === 'Window');
+    const windowMenu = template.find(({ label }) => label === localized('Window'));
     if (!windowMenu) {
       return;
     }
@@ -172,13 +173,13 @@ module.exports = class ApplicationMenu {
   // Sets the proper visible state the update menu items
   updateAutoupdateMenuItem(state) {
     const checkForUpdateItem = this.flattenMenuItems(this.menu).find(
-      ({ label }) => label === 'Check for Update'
+      ({ label }) => label === localized('Check for Updates')
     );
     const downloadingUpdateItem = this.flattenMenuItems(this.menu).find(
-      ({ label }) => label === 'Downloading Update'
+      ({ label }) => label === localized('Downloading Update')
     );
     const installUpdateItem = this.flattenMenuItems(this.menu).find(
-      ({ label }) => label === 'Restart and Install Update'
+      ({ label }) => label === localized('Restart and Install Update')
     );
 
     if (checkForUpdateItem == null || downloadingUpdateItem == null || installUpdateItem == null) {
@@ -208,10 +209,10 @@ module.exports = class ApplicationMenu {
 
   updateFullscreenMenuItem(fullscreen) {
     const enterItem = this.flattenMenuItems(this.menu).find(
-      ({ label }) => label === 'Enter Full Screen'
+      ({ label }) => label === localized('Enter Full Screen')
     );
     const exitItem = this.flattenMenuItems(this.menu).find(
-      ({ label }) => label === 'Exit Full Screen'
+      ({ label }) => label === localized('Exit Full Screen')
     );
     if (!enterItem || !exitItem) {
       return;
@@ -237,27 +238,27 @@ module.exports = class ApplicationMenu {
       {
         label: 'Mailspring',
         submenu: [
-          { label: 'Check for Update', metadata: { autoUpdate: true } },
+          { label: localized('Check for Updates'), metadata: { autoUpdate: true } },
           {
-            label: 'Reload',
+            label: localized('Reload'),
             accelerator: 'CmdOrCtrl+R',
             click: () =>
               BrowserWindow.getFocusedWindow() && BrowserWindow.getFocusedWindow().reload(),
           },
           {
-            label: 'Close Window',
+            label: localized('Close Window'),
             accelerator: 'CmdOrCtrl+Shift+W',
             click: () =>
               BrowserWindow.getFocusedWindow() && BrowserWindow.getFocusedWindow().close(),
           },
           {
-            label: 'Toggle Dev Tools',
+            label: localized('Toggle Dev Tools'),
             accelerator: 'CmdOrCtrl+Alt+I',
             click: () =>
               BrowserWindow.getFocusedWindow() && BrowserWindow.getFocusedWindow().toggleDevTools(),
           },
           {
-            label: 'Quit',
+            label: localized('Quit'),
             accelerator: 'CmdOrCtrl+Q',
             click() {
               app.quit();

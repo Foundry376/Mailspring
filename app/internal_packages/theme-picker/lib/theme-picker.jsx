@@ -2,6 +2,7 @@
 import React from 'react';
 
 import { Flexbox, ScrollRegion } from 'mailspring-component-kit';
+import { localized } from 'mailspring-exports';
 import ThemeOption from './theme-option';
 
 class ThemePicker extends React.Component {
@@ -76,9 +77,9 @@ class ThemePicker extends React.Component {
     return (
       <div className="theme-picker" tabIndex="1">
         <Flexbox direction="column">
-          <h4 style={{ color: '#434648' }}>Themes</h4>
+          <h4 style={{ color: '#434648' }}>{localized('Themes')}</h4>
           <div style={{ color: 'rgba(35, 31, 32, 0.5)', fontSize: '12px' }}>
-            Click any theme to apply:
+            {localized('Click any theme to apply:')}
           </div>
           <ScrollRegion style={{ margin: '10px 5px 0 5px', height: '290px' }}>
             <Flexbox
@@ -94,7 +95,7 @@ class ThemePicker extends React.Component {
               href="https://github.com/Foundry376/Mailspring-Theme-Starter"
               style={{ color: '#3187e1' }}
             >
-              Create a Theme
+              {localized('Create a Theme')}
             </a>
           </div>
         </Flexbox>

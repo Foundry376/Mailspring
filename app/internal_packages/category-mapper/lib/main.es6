@@ -1,9 +1,9 @@
-import { PreferencesUIStore } from 'mailspring-exports';
+import { localized, PreferencesUIStore } from 'mailspring-exports';
 
 export function activate() {
   this.preferencesTab = new PreferencesUIStore.TabItem({
     tabId: 'Folders',
-    displayName: 'Folders',
+    displayName: localized('Folders'),
     componentClassFn: () => require('./preferences-category-mapper').default,
   });
 

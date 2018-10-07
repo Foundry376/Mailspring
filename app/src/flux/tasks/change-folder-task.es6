@@ -1,6 +1,7 @@
 import ChangeMailTask from './change-mail-task';
 import Attributes from '../attributes';
 import Folder from '../models/folder';
+import { localized } from '../../intl';
 
 // Public: Create a new task to apply labels to a message or thread.
 //
@@ -63,7 +64,7 @@ export default class ChangeFolderTask extends ChangeMailTask {
     if (this.folder) {
       return `Moving to ${this.folder.displayName}`;
     }
-    return 'Moving to folder';
+    return localized('Moving to folder');
   }
 
   description() {
@@ -71,14 +72,12 @@ export default class ChangeFolderTask extends ChangeMailTask {
       return this.taskDescription;
     }
 
-    const folderText = ` to ${this.folder.displayName}`;
-
     if (this.threadIds.length > 1) {
-      return `Moved ${this.threadIds.length} threads${folderText}`;
+      return localized(`Moved %@ threads to %@`, this.threadIds.length, this.folder.displayName);
     } else if (this.messageIds.length > 1) {
-      return `Moved ${this.messageIds.length} messages${folderText}`;
+      return localized(`Moved %@ messages to %@`, this.messageIds.length, this.folder.displayName);
     }
-    return `Moved${folderText}`;
+    return localized(`Moved to %@`, this.folder.displayName);
   }
 
   willBeQueued() {

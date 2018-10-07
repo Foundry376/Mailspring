@@ -1,4 +1,9 @@
-import { PreferencesUIStore, ExtensionRegistry, ComponentRegistry } from 'mailspring-exports';
+import {
+  localized,
+  PreferencesUIStore,
+  ExtensionRegistry,
+  ComponentRegistry,
+} from 'mailspring-exports';
 
 import SignatureComposerExtension from './signature-composer-extension';
 import SignatureComposerDropdown from './signature-composer-dropdown';
@@ -6,7 +11,7 @@ import SignatureComposerDropdown from './signature-composer-dropdown';
 export function activate() {
   this.preferencesTab = new PreferencesUIStore.TabItem({
     tabId: 'Signatures',
-    displayName: 'Signatures',
+    displayName: localized('Signatures'),
     componentClassFn: () => require('./preferences-signatures').default, // eslint-disable-line
   });
 

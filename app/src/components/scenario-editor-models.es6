@@ -16,6 +16,8 @@ export class Comparator {
 
 Comparator.Default = new Comparator('Default', ({ actual, desired }) => _.isEqual(actual, desired));
 
+// TODO LOCALIZATION
+
 const Types = {
   None: 'None',
   Enum: 'Enum',

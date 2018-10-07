@@ -1,4 +1,5 @@
 import {
+  localized,
   IdentityStore,
   FeatureUsageStore,
   React,
@@ -246,8 +247,8 @@ export default class SidebarParticipantProfile extends React.Component {
   _onClickedToTry = async () => {
     try {
       await FeatureUsageStore.markUsedOrUpgrade('contact-profiles', {
-        usedUpHeader: 'All Contact Previews Used',
-        usagePhrase: 'view contact profiles for',
+        usedUpHeader: localized('All Contact Previews Used'),
+        usagePhrase: localized('view contact profiles for'),
         iconUrl: 'mailspring://participant-profile/assets/ic-contact-profile-modal@2x.png',
       });
     } catch (err) {
@@ -296,11 +297,12 @@ export default class SidebarParticipantProfile extends React.Component {
     return (
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <p>
-          The contact sidebar in Mailspring Pro shows information about the people and companies
-          you're emailing with.
+          {localized(
+            `The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.`
+          )}
         </p>
         <div className="btn" onClick={!this.state.loading ? this._onClickedToTry : null}>
-          {!this.state.loading ? `Try it Now` : `Loading...`}
+          {!this.state.loading ? localized(`Try it Now`) : localized(`Loading...`)}
         </div>
       </div>
     );
@@ -335,15 +337,15 @@ export default class SidebarParticipantProfile extends React.Component {
 
     if (metrics) {
       if (metrics.raised) {
-        funding = `Raised $${(metrics.raised / 1 || 0).toLocaleString()}`;
+        funding = localized(`Raised $%@`, (metrics.raised / 1 || 0).toLocaleString());
       } else if (metrics.marketCap) {
-        funding = `Market cap $${(metrics.marketCap / 1 || 0).toLocaleString()}`;
+        funding = localized(`Market cap $%@`, (metrics.marketCap / 1 || 0).toLocaleString());
       }
 
       if (metrics.employees) {
-        employees = `${(metrics.employees / 1 || 0).toLocaleString()} employees`;
+        employees = localized(`%@ employees`, (metrics.employees / 1 || 0).toLocaleString());
       } else if (metrics.employeesRange) {
-        employees = `${metrics.employeesRange} employees`;
+        employees = localized(`%@ employees`, metrics.employeesRange);
       }
     }
 
@@ -380,7 +382,12 @@ export default class SidebarParticipantProfile extends React.Component {
           <IconRow icon="industry" node={category && (category.industry || category.sector)} />
           <IconRow
             icon="holding"
-            node={{ private: 'Privately Held', public: `Stock Symbol ${ticker}` }[type]}
+            node={
+              {
+                private: localized('Privately Held'),
+                public: localized(`Stock Symbol %@`, ticker),
+              }[type]
+            }
           />
           <IconRow icon="phone" node={phone} />
           <IconRow icon="employees" node={employees} />

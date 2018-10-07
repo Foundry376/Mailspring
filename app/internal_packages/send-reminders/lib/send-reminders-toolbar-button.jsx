@@ -1,12 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { localized } from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 import SendRemindersPopoverButton from './send-reminders-popover-button';
 
 const SendRemindersPopoverButtonWithTip = HasTutorialTip(SendRemindersPopoverButton, {
-  title: 'Get reminded!',
-  instructions:
-    "Get reminded if you don't receive a reply for this message within a specified time.",
+  title: localized('Get reminded!'),
+  instructions: localized(
+    "Get reminded if you don't receive a reply for this message within a specified time."
+  ),
 });
 
 export default function SendRemindersToolbarButton(props) {

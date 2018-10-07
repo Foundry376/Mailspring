@@ -1,12 +1,16 @@
 /* eslint global-require: 0*/
 
-import { DraftStore, Actions, QuotedHTMLTransformer, RegExpUtils } from 'mailspring-exports';
+import {
+  localized,
+  DraftStore,
+  Actions,
+  QuotedHTMLTransformer,
+  RegExpUtils,
+} from 'mailspring-exports';
 import { remote } from 'electron';
 import MailspringStore from 'mailspring-store';
 import path from 'path';
 import fs from 'fs';
-
-import TemplateActions from './template-actions';
 
 // Support accented characters in template names
 // https://regex101.com/r/nD3eY8/1
@@ -16,11 +20,11 @@ class TemplateStore extends MailspringStore {
   constructor() {
     super();
 
-    this.listenTo(TemplateActions.insertTemplateId, this._onInsertTemplateId);
-    this.listenTo(TemplateActions.createTemplate, this._onCreateTemplate);
-    this.listenTo(TemplateActions.showTemplates, this._onShowTemplates);
-    this.listenTo(TemplateActions.deleteTemplate, this._onDeleteTemplate);
-    this.listenTo(TemplateActions.renameTemplate, this._onRenameTemplate);
+    this.listenTo(Actions.insertTemplateId, this._onInsertTemplateId);
+    this.listenTo(Actions.createTemplate, this._onCreateTemplate);
+    this.listenTo(Actions.showTemplates, this._onShowTemplates);
+    this.listenTo(Actions.deleteTemplate, this._onDeleteTemplate);
+    this.listenTo(Actions.renameTemplate, this._onRenameTemplate);
 
     this._items = [];
     this._templatesDir = path.join(AppEnv.getConfigDirPath(), 'templates');
@@ -76,10 +80,11 @@ class TemplateStore extends MailspringStore {
     fs.readdir(this._templatesDir, (err, filenames) => {
       if (err) {
         AppEnv.showErrorDialog({
-          title: 'Cannot scan templates directory',
-          message: `Mailspring was unable to read the contents of your templates directory (${
+          title: localized('Cannot scan templates directory'),
+          message: localized(
+            'Mailspring was unable to read the contents of your templates directory (%@). You may want to delete this folder or ensure filesystem permissions are set correctly.',
             this._templatesDir
-          }). You may want to delete this folder or ensure filesystem permissions are set correctly.`,
+          ),
         });
         return;
       }
@@ -106,10 +111,10 @@ class TemplateStore extends MailspringStore {
       return;
     }
     if (!name || name.length === 0) {
-      this._displayError('You must provide a name for your template.');
+      this._displayError(localized('You must provide a name for your template.'));
     }
     if (!contents || contents.length === 0) {
-      this._displayError('You must provide contents for your template.');
+      this._displayError(localized('You must provide contents for your template.'));
     }
     this.saveNewTemplate(name, contents, this._onShowTemplates);
   }
@@ -124,10 +129,12 @@ class TemplateStore extends MailspringStore {
       draftContents = sigIndex > -1 ? draftContents.substr(0, sigIndex) : draftContents;
 
       if (!draftName || draftName.length === 0) {
-        this._displayError('Give your draft a subject to name your template.');
+        this._displayError(localized('Give your draft a subject to name your template.'));
       }
       if (!draftContents || draftContents.length === 0) {
-        this._displayError('To create a template you need to fill the body of the current draft.');
+        this._displayError(
+          localized('To create a template you need to fill the body of the current draft.')
+        );
       }
       this.saveNewTemplate(draftName, draftContents, this._onShowTemplates);
     });
@@ -139,7 +146,7 @@ class TemplateStore extends MailspringStore {
   }
 
   _displayError(message) {
-    remote.dialog.showErrorBox('Template Creation Error', message);
+    remote.dialog.showErrorBox(localized('Template Creation Error'), message);
   }
 
   _displayDialog(title, message, buttons) {
@@ -156,13 +163,15 @@ class TemplateStore extends MailspringStore {
 
   saveNewTemplate(name, contents, callback) {
     if (!name || name.length === 0) {
-      this._displayError('You must provide a template name.');
+      this._displayError(localized('You must provide a template name.'));
       return;
     }
 
     if (name.match(INVALID_TEMPLATE_NAME_REGEX)) {
       this._displayError(
-        'Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.'
+        localized(
+          'Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.'
+        )
       );
       return;
     }
@@ -211,9 +220,9 @@ class TemplateStore extends MailspringStore {
 
     if (
       this._displayDialog(
-        'Delete this template?',
-        'The template and its file will be permanently deleted.',
-        ['Delete', 'Cancel']
+        localized('Delete this template?'),
+        localized('The template and its file will be permanently deleted.'),
+        [localized('Delete'), localized('Cancel')]
       )
     ) {
       fs.unlink(template.path, () => {
@@ -230,12 +239,14 @@ class TemplateStore extends MailspringStore {
 
     if (newName.match(INVALID_TEMPLATE_NAME_REGEX)) {
       this._displayError(
-        'Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.'
+        localized(
+          'Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.'
+        )
       );
       return;
     }
     if (newName.length === 0) {
-      this._displayError('You must provide a template name.');
+      this._displayError(localized('You must provide a template name.'));
       return;
     }
 
@@ -257,10 +268,11 @@ class TemplateStore extends MailspringStore {
       let proceed = true;
       if (!session.draft().pristine && !session.draft().hasEmptyBody()) {
         proceed = this._displayDialog(
-          'Replace draft contents?',
-          'It looks like your draft already has some content. Loading this template will ' +
-            'overwrite all draft contents.',
-          ['Replace contents', 'Cancel']
+          localized('Replace draft contents?'),
+          localized(
+            'It looks like your draft already has some content. Loading this template will overwrite all draft contents.'
+          ),
+          [localized('Replace contents'), localized('Cancel')]
         );
       }
 

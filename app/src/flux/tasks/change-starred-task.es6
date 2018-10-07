@@ -5,6 +5,7 @@ import Thread from '../models/thread';
 import Actions from '../actions';
 import DatabaseStore from '../stores/database-store';
 import ChangeMailTask from './change-mail-task';
+import { localized } from '../../intl';
 
 export default class ChangeStarredTask extends ChangeMailTask {
   static attributes = Object.assign({}, ChangeMailTask.attributes, {
@@ -14,22 +15,22 @@ export default class ChangeStarredTask extends ChangeMailTask {
   });
 
   label() {
-    return this.starred ? 'Starring' : 'Unstarring';
+    return this.starred ? localized('Starring') : localized('Unstarring');
   }
 
   description() {
     const count = this.threadIds.length;
-    const type = count > 1 ? 'threads' : 'thread';
 
     if (this.isUndo) {
-      return `Undoing changes to ${count} ${type}`;
+      return localized(`Undoing changes`);
     }
 
-    const verb = this.starred ? 'Starred' : 'Unstarred';
     if (count > 1) {
-      return `${verb} ${count} ${type}`;
+      this.starred
+        ? localized('Starred %@ threads', count)
+        : localized('Unstarred %@ threads', count);
     }
-    return `${verb}`;
+    return this.starred ? localized('Starred') : localized('Unstarred');
   }
 
   willBeQueued() {

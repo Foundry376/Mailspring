@@ -1,5 +1,6 @@
 import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
+import { localized } from 'mailspring-exports';
 
 export class MetricContainer extends React.Component {
   render() {
@@ -155,11 +156,11 @@ export class MetricsBySubjectTable extends React.Component {
         <table>
           <thead>
             <tr>
-              <th>Subject Line</th>
-              <th style={{ width: '11vw' }}>Messages Sent</th>
-              <th style={{ width: '9vw' }}>Open Rate</th>
-              <th style={{ width: '11vw' }}>Link Click Rate</th>
-              <th style={{ width: '9vw' }}>Reply Rate</th>
+              <th>{localized('Subject Line')}</th>
+              <th style={{ width: '11vw' }}>{localized('Messages Sent')}</th>
+              <th style={{ width: '9vw' }}>{localized('Open Rate')}</th>
+              <th style={{ width: '11vw' }}>{localized('Link Click Rate')}</th>
+              <th style={{ width: '9vw' }}>{localized('Reply Rate')}</th>
             </tr>
           </thead>
           <tbody>

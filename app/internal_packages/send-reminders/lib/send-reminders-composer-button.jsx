@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
-import { Actions } from 'mailspring-exports';
+import { localized, Actions } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import moment from 'moment';
 
@@ -65,7 +65,7 @@ export default class SendRemindersComposerButton extends Component {
 
     if (this.state.saving) {
       return (
-        <button className={className} title="Saving reminder..." tabIndex={-1}>
+        <button className={className} title={localized('Saving reminder...')} tabIndex={-1}>
           <RetinaImg
             name="inline-loading-spinner.gif"
             mode={RetinaImg.Mode.ContentDark}
@@ -76,10 +76,10 @@ export default class SendRemindersComposerButton extends Component {
     }
 
     const reminderDate = reminderDateFor(this.props.draft);
-    let reminderLabel = 'Set reminder';
+    let reminderLabel = localized('Set Reminder');
     if (reminderDate) {
       className += ' btn-enabled';
-      reminderLabel = `Reminder set for ${moment(reminderDate).fromNow(true)} from now`;
+      reminderLabel = localized(`Reminder set for %@ from now`, moment(reminderDate).fromNow(true));
     }
 
     return (

@@ -1,6 +1,7 @@
 import Label from '../models/label';
 import ChangeMailTask from './change-mail-task';
 import Attributes from '../attributes';
+import { localized } from '../../intl';
 
 // Public: Create a new task to apply labels to a message or thread.
 //
@@ -23,7 +24,7 @@ export default class ChangeLabelsTask extends ChangeMailTask {
   });
 
   label() {
-    return 'Applying labels';
+    return localized('Applying labels');
   }
 
   description() {
@@ -38,6 +39,8 @@ export default class ChangeLabelsTask extends ChangeMailTask {
 
     const removed = this.labelsToRemove[0];
     const added = this.labelsToAdd[0];
+
+    // TODO LOCALIZATION
 
     // Spam / trash interactions are always "moves" because they're the three
     // folders of Gmail. If another folder is involved, we need to decide to

@@ -1,4 +1,4 @@
-import { ComponentRegistry, ExtensionRegistry } from 'mailspring-exports';
+import { localized, ComponentRegistry, ExtensionRegistry } from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 import SendRemindersThreadTimestamp from './send-reminders-thread-timestamp';
 import SendRemindersComposerButton from './send-reminders-composer-button';
@@ -12,9 +12,10 @@ import * as ThreadListExtension from './send-reminders-thread-list-extension';
 import * as AccountSidebarExtension from './send-reminders-account-sidebar-extension';
 
 const ComposerButtonWithTip = HasTutorialTip(SendRemindersComposerButton, {
-  title: 'Get reminded!',
-  instructions:
-    "Get reminded if you don't receive a reply for this message within a specified time.",
+  title: localized('Get reminded!'),
+  instructions: localized(
+    "Get reminded if you don't receive a reply for this message within a specified time."
+  ),
 });
 
 export function activate() {

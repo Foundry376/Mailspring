@@ -1,4 +1,4 @@
-import { React, DefaultClientHelper } from 'mailspring-exports';
+import { localized, React, DefaultClientHelper } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 const SETTINGS_KEY = 'mailto.prompted-about-default';
@@ -59,16 +59,16 @@ export default class DefaultClientNotification extends React.Component {
     }
     return (
       <Notification
-        title="Would you like to make Mailspring your default mail client?"
+        title={localized('Would you like to make Mailspring your default mail client?')}
         priority="1"
         icon="volstead-defaultclient.png"
         actions={[
           {
-            label: 'Yes',
+            label: localized('Yes'),
             fn: this._onAccept,
           },
           {
-            label: 'No',
+            label: localized('No'),
             fn: this._onDecline,
           },
         ]}

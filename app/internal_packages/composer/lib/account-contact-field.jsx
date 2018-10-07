@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { AccountStore, ContactStore } from 'mailspring-exports';
+import { localized, AccountStore, ContactStore } from 'mailspring-exports';
 import { Menu, ButtonDropdown, InjectedComponentSet } from 'mailspring-component-kit';
 
 export default class AccountContactField extends React.Component {
@@ -105,7 +105,7 @@ export default class AccountContactField extends React.Component {
   render() {
     return (
       <div className="composer-participant-field from-field">
-        <div className="composer-field-label">From:</div>
+        <div className="composer-field-label">{localized('From')}:</div>
         {this._renderAccountSelector()}
         {this._renderFromFieldComponents()}
       </div>

@@ -1,4 +1,4 @@
-import { Account, React, PropTypes, RegExpUtils } from 'mailspring-exports';
+import { localized, Account, React, PropTypes, RegExpUtils } from 'mailspring-exports';
 
 import OnboardingActions from './onboarding-actions';
 import CreatePageForForm from './decorators/create-page-for-form';
@@ -18,20 +18,25 @@ class AccountBasicSettingsForm extends React.Component {
   };
 
   static submitLabel = account => {
-    return account.provider === 'imap' ? 'Continue' : 'Connect Account';
+    return account.provider === 'imap' ? localized('Continue') : localized('Connect Account');
   };
 
   static titleLabel = providerConfig => {
     return (
       providerConfig.title ||
-      `Add your ${providerConfig.displayNameShort || providerConfig.displayName} account`
+      localized(
+        `Add your %@ account`,
+        providerConfig.displayNameShort || providerConfig.displayName
+      )
     );
   };
 
   static subtitleLabel = providerConfig => {
     return (
       providerConfig.note ||
-      `Enter your email account credentials to get started. Mailspring\nstores your email password securely and it is never sent to our servers.`
+      localized(
+        `Enter your email account credentials to get started. Mailspring\nstores your email password securely and it is never sent to our servers.`
+      )
     );
   };
 
@@ -45,15 +50,15 @@ class AccountBasicSettingsForm extends React.Component {
 
     if (!RegExpUtils.emailRegex().test(account.emailAddress)) {
       errorFieldNames.push('email');
-      errorMessage = 'Please provide a valid email address.';
+      errorMessage = localized('Please provide a valid email address.');
     }
     if (!account.name) {
       errorFieldNames.push('name');
-      errorMessage = 'Please provide your name.';
+      errorMessage = localized('Please provide your name.');
     }
     if (!account.settings.imap_password) {
       errorFieldNames.push('password');
-      errorMessage = 'Please provide a password for your account.';
+      errorMessage = localized('Please provide a password for your account.');
     }
 
     return { errorMessage, errorFieldNames, populated: true };
@@ -78,8 +83,8 @@ class AccountBasicSettingsForm extends React.Component {
   render() {
     return (
       <form className="settings">
-        <FormField field="name" title="Name" {...this.props} />
-        <FormField field="emailAddress" title="Email" {...this.props} />
+        <FormField field="name" title={localized('Name')} {...this.props} />
+        <FormField field="emailAddress" title={localized('Email')} {...this.props} />
         <FormField
           field="settings.imap_password"
           title="Password"

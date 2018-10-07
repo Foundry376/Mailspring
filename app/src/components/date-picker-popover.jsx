@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Actions, DateUtils } from 'mailspring-exports';
+import { localized, Actions, DateUtils } from 'mailspring-exports';
 import DateInput from './date-input';
 import Menu from './menu';
 
@@ -46,7 +46,9 @@ class DatePickerPopover extends Component {
       this._menuComponent.clearSelection();
       this.selectDate(date, 'Custom');
     } else {
-      AppEnv.showErrorDialog(`Sorry, we can't interpret ${inputValue} as a valid date.`);
+      AppEnv.showErrorDialog(
+        localized(`Sorry, we can't interpret %@ as a valid date.`, inputValue)
+      );
     }
   };
 

@@ -5,6 +5,7 @@ import { FeatureUsedUpModal } from 'mailspring-component-kit';
 import Actions from '../actions';
 import IdentityStore from './identity-store';
 import SendFeatureUsageEventTask from '../tasks/send-feature-usage-event-task';
+import { localized } from '../../intl';
 
 class NoProAccessError extends Error {}
 
@@ -134,10 +135,11 @@ class FeatureUsageStore extends MailspringStore {
     let headerText = '';
     let rechargeText = '';
     if (!featureData.quota) {
-      headerText = `Uhoh - that's a pro feature!`;
-      rechargeText = `Upgrade to Mailspring Pro to ${lexicon.usagePhrase}.`;
+      headerText = localized(`Uhoh - that's a pro feature!`);
+      rechargeText = localized(`Upgrade to Mailspring Pro to %@.`, lexicon.usagePhrase);
     } else {
-      headerText = lexicon.usedUpHeader || "You've reached your quota";
+      headerText = lexicon.usedUpHeader || localized("You've reached your quota");
+      // TODO LOCALIZATION
       let time = 'later';
       if (featureData.period === 'hourly') {
         time = 'an hour';

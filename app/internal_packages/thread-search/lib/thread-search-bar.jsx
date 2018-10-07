@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ListensToFluxStore, RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
-import { Actions, FocusedPerspectiveStore, WorkspaceStore } from 'mailspring-exports';
+import { localized, Actions, FocusedPerspectiveStore, WorkspaceStore } from 'mailspring-exports';
 import SearchStore from './search-store';
 import TokenizingContenteditable from './tokenizing-contenteditable';
 
@@ -279,9 +279,9 @@ class ThreadSearchBar extends Component {
 
   _placeholder = () => {
     if (this._initialQueryForPerspective() === '') {
-      return 'Search all email';
+      return localized('Search all mailboxes');
     }
-    return `Search ${this.props.perspective.name || ''}`;
+    return localized(`Search`) + ' ' + this.props.perspective.name || '';
   };
 
   render() {
@@ -354,7 +354,9 @@ class ThreadSearchBar extends Component {
               ))}
               {suggestions === TokenSuggestionsForEmpty && (
                 <div className="footer">
-                  Pro tip: Combine search terms with AND and OR to create complex queries.{' '}
+                  {localized(
+                    'Pro tip: Combine search terms with AND and OR to create complex queries. '
+                  )}
                   <a
                     onMouseDown={e => {
                       AppEnv.windowEventHandler.openLink({
@@ -364,7 +366,7 @@ class ThreadSearchBar extends Component {
                       e.preventDefault();
                     }}
                   >
-                    Learn more >
+                    {localized('Learn more')} >
                   </a>
                 </div>
               )}

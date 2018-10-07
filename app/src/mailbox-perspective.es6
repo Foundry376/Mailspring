@@ -2,6 +2,7 @@
 /* eslint no-use-before-define: 0 */
 import _ from 'underscore';
 
+import { localized } from './intl';
 import Utils from './flux/models/utils';
 import TaskFactory from './flux/tasks/task-factory';
 import AccountStore from './flux/stores/account-store';
@@ -133,7 +134,7 @@ export default class MailboxPerspective {
   }
 
   emptyMessage() {
-    return 'No Messages';
+    return localized('No Messages');
   }
 
   categories() {
@@ -241,7 +242,7 @@ export default class MailboxPerspective {
 class DraftsMailboxPerspective extends MailboxPerspective {
   constructor(accountIds) {
     super(accountIds);
-    this.name = 'Drafts';
+    this.name = localized('Drafts');
     this.iconName = 'drafts.png';
     this.drafts = true; // The DraftListStore looks for this
   }
@@ -274,7 +275,7 @@ class StarredMailboxPerspective extends MailboxPerspective {
   constructor(accountIds) {
     super(accountIds);
     this.starred = true;
-    this.name = 'Starred';
+    this.name = localized('Starred');
     this.iconName = 'starred.png';
   }
 
@@ -556,7 +557,7 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
   constructor(categories) {
     super(categories);
     this.unread = true;
-    this.name = 'Unread';
+    this.name = localized('Unread');
     this.iconName = 'unread.png';
   }
 

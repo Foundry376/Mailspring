@@ -8,6 +8,7 @@ import path from 'path';
 import proc from 'child_process';
 import { EventEmitter } from 'events';
 
+import { localized } from '../intl';
 import WindowManager from './window-manager';
 import FileListCache from './file-list-cache';
 import ConfigMigrator from './config-migrator';
@@ -49,14 +50,19 @@ export default class Application extends EventEmitter {
       await mailsync.migrate();
     } catch (err) {
       let message = null;
-      let buttons = ['Quit'];
+      let buttons = [localized('Quit')];
       if (err.toString().includes('ENOENT')) {
-        message = `Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.`;
+        message = localized(
+          `Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.`
+        );
       } else if (err.toString().includes('spawn')) {
-        message = `Mailspring could not spawn the mailsync process. ${err.toString()}`;
+        message = localized(`Mailspring could not spawn the mailsync process. %@`, err.toString());
       } else {
-        message = `We encountered a problem with your local email database. ${err.toString()}\n\nCheck that no other copies of Mailspring are running and click Rebuild to reset your local cache.`;
-        buttons = ['Quit', 'Rebuild'];
+        message = localized(
+          `We encountered a problem with your local email database. %@\n\nCheck that no other copies of Mailspring are running and click Rebuild to reset your local cache.`,
+          err.toString()
+        );
+        buttons = [localized('Quit'), localized('Rebuild')];
       }
 
       const buttonIndex = dialog.showMessageBox({ type: 'warning', buttons, message });
@@ -243,7 +249,7 @@ export default class Application extends EventEmitter {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
     } else {
       this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
-        title: 'Welcome to Mailspring',
+        title: localized('Welcome to Mailspring'),
       });
     }
   }
@@ -255,8 +261,10 @@ export default class Application extends EventEmitter {
     if (errorMessage) {
       dialog.showMessageBox({
         type: 'warning',
-        buttons: ['Okay'],
-        message: `We encountered a problem with your local email database. We will now attempt to rebuild it.`,
+        buttons: [localized('Okay')],
+        message: localized(
+          `We encountered a problem with your local email database. We will now attempt to rebuild it.`
+        ),
         detail: errorMessage,
       });
     }
@@ -293,9 +301,9 @@ export default class Application extends EventEmitter {
     this.on('application:run-package-specs', () => {
       dialog.showOpenDialog(
         {
-          title: 'Choose a Package Directory',
+          title: localized('Choose Directory'),
           defaultPath: this.configDirPath,
-          buttonLabel: 'Choose',
+          buttonLabel: localized('Choose'),
           properties: ['openDirectory'],
         },
         filenames => {
@@ -334,7 +342,7 @@ export default class Application extends EventEmitter {
       } else {
         this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
           windowProps: { addingAccount: true, existingAccountJSON },
-          title: 'Add an Account',
+          title: localized('Add Account'),
         });
       }
     });
@@ -486,7 +494,7 @@ export default class Application extends EventEmitter {
 
       const buttonIndex = dialog.showMessageBox({
         type: 'warning',
-        buttons: ['Reset Theme', 'Continue'],
+        buttons: [localized('Reset Theme'), localized('Continue')],
         defaultId: 0,
         message,
         detail,

@@ -1,4 +1,5 @@
 import {
+  localized,
   Actions,
   WorkspaceStore,
   ComponentRegistry,
@@ -29,7 +30,7 @@ const AccountSidebarExtension = {
   sidebarItem(accountIds) {
     return {
       id: 'Activity',
-      name: 'Activity',
+      name: localized('Activity'),
       iconName: 'activity.png',
       perspective: new ActivityMailboxPerspective(accountIds),
     };

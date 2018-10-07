@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs-plus';
 import { shell, remote, ipcRenderer } from 'electron';
-
+import { localized } from './intl';
 import Package from './package';
 
 export default class PackageManager {
@@ -48,7 +48,7 @@ export default class PackageManager {
             continue;
           }
           const wrapped = new Error(
-            `Unable to read package.json for ${filename}: ${err.toString()}`
+            localized(`Unable to read package.json for %@: %@`, filename, err.toString())
           );
           AppEnv.reportError(wrapped);
         }
@@ -94,9 +94,11 @@ export default class PackageManager {
     if (!pkg.json.engines.mailspring) {
       // don't use AppEnv.reportError, I don't want to know about these.
       console.error(
-        `This plugin or theme ${
-          pkg.name
-        } does not list "mailspring" in it's package.json's "engines" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: http://support.getmailspring.com/hc/en-us/articles/115001918391`
+        localized(
+          `This plugin or theme %@ does not list "mailspring" in it's package.json's "engines" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: %@`,
+          pkg.name,
+          `http://support.getmailspring.com/hc/en-us/articles/115001918391`
+        )
       );
       return;
     }
@@ -124,8 +126,8 @@ export default class PackageManager {
   installPackageManually() {
     AppEnv.showOpenDialog(
       {
-        title: 'Choose a Plugin Directory',
-        buttonLabel: 'Choose',
+        title: localized('Choose Directory'),
+        buttonLabel: localized('Choose'),
         properties: ['openDirectory'],
       },
       filenames => {
@@ -134,10 +136,16 @@ export default class PackageManager {
         }
         this.installPackageFromPath(filenames[0], (err, packageName) => {
           if (err) {
-            AppEnv.showErrorDialog({ title: 'Could not install plugin', message: err.message });
+            AppEnv.showErrorDialog({
+              title: localized('Could not install plugin'),
+              message: err.message,
+            });
           } else {
-            const message = `${packageName} has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.`;
-            AppEnv.showErrorDialog({ title: 'Plugin installed! 🎉', message });
+            const message = localized(
+              `%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.`,
+              packageName
+            );
+            AppEnv.showErrorDialog({ title: localized('Plugin installed! 🎉'), message });
           }
         });
       }
@@ -152,7 +160,10 @@ export default class PackageManager {
     } catch (err) {
       return callback(
         new Error(
-          `The plugin or theme folder you selected doesn't contain a package.json file, or it was invalid JSON. ${err.toString()}`
+          localized(
+            `The plugin or theme folder you selected doesn't contain a package.json file, or it was invalid JSON. %@`,
+            err.toString()
+          )
         )
       );
     }
@@ -160,7 +171,10 @@ export default class PackageManager {
     if (!json.engines.mailspring) {
       return callback(
         new Error(
-          `The plugin or theme you selected has not been upgraded to support Mailspring. If you're the developer, update the package.json's engines field to include "mailspring".\n\nFor more information, see this migration guide: http://support.getmailspring.com/hc/en-us/articles/115001918391`
+          localized(
+            `The plugin or theme you selected has not been upgraded to support Mailspring. If you're the developer, update the package.json's engines field to include "mailspring".\n\nFor more information, see this migration guide: %@`,
+            `http://support.getmailspring.com/hc/en-us/articles/115001918391`
+          )
         )
       );
     }
@@ -184,9 +198,11 @@ export default class PackageManager {
     if (!AppEnv.inDevMode()) {
       const btn = remote.dialog.showMessageBox({
         type: 'warning',
-        message: 'Run with debug flags?',
-        detail: `To develop plugins, you should run Mailspring with debug flags. This gives you better error messages, the debug version of React, and more. You can disable it at any time from the Developer menu.`,
-        buttons: ['OK', 'Cancel'],
+        message: localized('Run with debug flags?'),
+        detail: localized(
+          `To develop plugins, you should run Mailspring with debug flags. This gives you better error messages, the debug version of React, and more. You can disable it at any time from the Developer menu.`
+        ),
+        buttons: [localized('OK'), localized('Cancel')],
       });
       if (btn === 0) {
         ipcRenderer.send('command', 'application:toggle-dev');
@@ -199,7 +215,7 @@ export default class PackageManager {
 
     AppEnv.showSaveDialog(
       {
-        title: 'Save New Package',
+        title: localized('Save New Package'),
         defaultPath: devPackagesDir,
         properties: ['createDirectory'],
       },
@@ -210,29 +226,29 @@ export default class PackageManager {
 
         if (!newPackagePath.startsWith(devPackagesDir)) {
           return AppEnv.showErrorDialog({
-            title: 'Invalid plugin location',
-            message: 'Sorry, you must create plugins in the dev/packages folder.',
+            title: localized('Invalid plugin location'),
+            message: localized('Sorry, you must create plugins in the dev/packages folder.'),
           });
         }
 
         if (this.available[newName]) {
           return AppEnv.showErrorDialog({
-            title: 'Invalid plugin name',
-            message: 'Sorry, you must give your plugin a unique name.',
+            title: localized('Invalid plugin name'),
+            message: localized('Sorry, you must give your plugin a unique name.'),
           });
         }
 
         if (newName.indexOf(' ') !== -1) {
           return AppEnv.showErrorDialog({
-            title: 'Invalid plugin name',
-            message: 'Sorry, plugin names cannot contain spaces.',
+            title: localized('Invalid plugin name'),
+            message: localized('Sorry, plugin names cannot contain spaces.'),
           });
         }
 
         fs.mkdir(newPackagePath, err => {
           if (err) {
             return AppEnv.showErrorDialog({
-              title: 'Could not create plugin',
+              title: localized('Could not create plugin'),
               message: err.toString(),
             });
           }

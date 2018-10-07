@@ -83,7 +83,7 @@ export default class MenuManager {
 
   loadPlatformItems() {
     const menusDirPath = path.join(this.resourcePath, 'menus');
-    const platformMenuPath = fs.resolve(menusDirPath, process.platform, ['json']);
+    const platformMenuPath = fs.resolve(menusDirPath, process.platform, ['js', 'json']);
     const { menu } = require(platformMenuPath);
     this.add(menu);
   }

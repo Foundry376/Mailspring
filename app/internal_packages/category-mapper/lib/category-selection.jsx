@@ -5,7 +5,7 @@ import {
   LabelColorizer,
   BoldedSearchResult,
 } from 'mailspring-component-kit';
-import { Label, Utils, React, PropTypes } from 'mailspring-exports';
+import { localized, Label, Utils, React, PropTypes } from 'mailspring-exports';
 
 export default class CategorySelection extends React.Component {
   static propTypes = {
@@ -51,7 +51,7 @@ export default class CategorySelection extends React.Component {
     let icon;
     if (item.empty) {
       icon = <div className="empty-icon" />;
-      item.path = '(None)';
+      item.path = `(${localized('None')})`;
     } else {
       icon = (
         <RetinaImg
@@ -75,7 +75,9 @@ export default class CategorySelection extends React.Component {
   };
 
   render() {
-    const placeholder = this.props.accountUsesLabels ? 'Choose folder or label' : 'Choose folder';
+    const placeholder = this.props.accountUsesLabels
+      ? localized('Choose folder or label')
+      : localized('Choose folder');
 
     const headerComponents = [
       <input

@@ -1,28 +1,28 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { DateUtils } from 'mailspring-exports';
+import { localized, DateUtils } from 'mailspring-exports';
 import { DatePickerPopover } from 'mailspring-component-kit';
 
 const SendLaterOptions = {
-  'In 1 hour': DateUtils.in1Hour,
-  'In 2 hours': DateUtils.in2Hours,
-  'Later today': DateUtils.laterToday,
-  'Tomorrow morning': DateUtils.tomorrow,
-  'Tomorrow evening': DateUtils.tomorrowEvening,
-  'This weekend': DateUtils.thisWeekend,
-  'Next week': DateUtils.nextWeek,
+  [localized('In 1 hour')]: DateUtils.in1Hour,
+  [localized('In 2 hours')]: DateUtils.in2Hours,
+  [localized('Later Today')]: DateUtils.laterToday,
+  [localized('Tomorrow Morning')]: DateUtils.tomorrow,
+  [localized('Tomorrow Evening')]: DateUtils.tomorrowEvening,
+  [localized('This Weekend')]: DateUtils.thisWeekend,
+  [localized('Next Week')]: DateUtils.nextWeek,
 };
 
 function SendLaterPopover(props) {
   let footer;
   const { onAssignSendLaterDate, onCancelSendLater, sendLaterDate } = props;
-  const header = <span key="send-later-header">Send later:</span>;
+  const header = <span key="send-later-header">{localized('Send Later')}:</span>;
   if (sendLaterDate) {
     footer = [
       <div key="divider-unschedule" className="divider" />,
       <div className="section" key="cancel-section">
         <button className="btn btn-cancel" onClick={onCancelSendLater}>
-          Unschedule Send
+          {localized('Unschedule Send')}
         </button>
       </div>,
     ];

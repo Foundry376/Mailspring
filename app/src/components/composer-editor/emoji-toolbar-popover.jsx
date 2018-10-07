@@ -1,5 +1,6 @@
 import React from 'react';
 import { RetinaImg, ScrollRegion } from 'mailspring-component-kit';
+import { localized } from 'mailspring-exports';
 
 import categorizedEmojiList from './categorized-emoji';
 import { getEmojiImagePath } from './emoji-plugins';
@@ -77,10 +78,10 @@ export default class EmojiToolbarPopover extends React.Component {
       this.setState(
         {
           categorizedEmoji: {
-            'Search Results': searchMatches,
+            [localized('Search Results')]: searchMatches,
           },
           categoryPositions: {
-            'Search Results': {
+            [localized('Search Results')]: {
               top: 25,
               bottom: 25 + Math.ceil(searchMatches.length / 8) * 24,
             },
@@ -107,22 +108,22 @@ export default class EmojiToolbarPopover extends React.Component {
     let categorizedEmoji = categorizedEmojiList;
     const categoryPositions = {};
     let categoryNames = [
-      'People',
-      'Nature',
-      'Food and Drink',
-      'Activity',
-      'Travel and Places',
-      'Objects',
-      'Symbols',
-      'Flags',
+      localized('People'),
+      localized('Nature'),
+      localized('Food and Drink'),
+      localized('Activity'),
+      localized('Travel and Places'),
+      localized('Objects'),
+      localized('Symbols'),
+      localized('Flags'),
     ];
     const frequentlyUsedEmoji = []; //EmojiStore.frequentlyUsedEmoji();
     if (frequentlyUsedEmoji.length > 0) {
-      categorizedEmoji = { 'Frequently Used': frequentlyUsedEmoji };
+      categorizedEmoji = { [localized('Frequently Used')]: frequentlyUsedEmoji };
       for (const category of Object.keys(categorizedEmojiList)) {
         categorizedEmoji[category] = categorizedEmojiList[category];
       }
-      categoryNames = ['Frequently Used'].concat(categoryNames);
+      categoryNames = [localized('Frequently Used')].concat(categoryNames);
     }
     // Calculates where each category should be (variable because Frequently
     // Used may or may not be present)

@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-import { Utils } from 'mailspring-exports';
+import { Utils, localized } from 'mailspring-exports';
 
 import ScrollRegion from './scroll-region';
 import KeyCommandsRegion from './key-commands-region';
@@ -422,7 +422,7 @@ class EditableList extends Component {
         <RetinaImg
           className="edit-icon"
           name="edit-icon.png"
-          title="Edit Item"
+          title={localized('Edit Item')}
           mode={RetinaImg.Mode.ContentIsMask}
           onClick={_.partial(onEdit, _, item, idx)}
         />

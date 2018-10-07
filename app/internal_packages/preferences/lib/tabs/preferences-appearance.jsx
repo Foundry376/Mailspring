@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { RetinaImg, Flexbox } from 'mailspring-component-kit';
+import { localized } from 'mailspring-exports';
 
 class AppearanceScaleSlider extends React.Component {
   static displayName = 'AppearanceScaleSlider';
@@ -59,18 +60,18 @@ class MenubarStylePicker extends React.Component {
     const val = this.props.config.get(this.kp) || 'default';
 
     const options = [
-      ['default', 'Default Window Controls and Menubar', ''],
+      ['default', localized('Default Window Controls and Menubar'), ''],
       [
         'autohide',
-        'Default Window Controls and Auto-hiding Menubar',
-        '(Requires supported window manager. Press `Alt` to show menu.)',
+        localized('Default Window Controls and Auto-hiding Menubar'),
+        localized('(Requires supported window manager. Press `Alt` to show menu.)'),
       ],
-      ['hamburger', 'Custom Window Frame and Right-hand Menu', ''],
+      ['hamburger', localized('Custom Window Frame and Right-hand Menu'), ''],
     ];
 
     return (
       <section className="platform-linux-only">
-        <h6 htmlFor="change-layout">Window Controls and Menus</h6>
+        <h6 htmlFor="change-layout">{localized('Window Controls and Menus')}</h6>
         {options.map(([enumValue, description, comment], idx) => (
           <div key={enumValue} style={{ marginBottom: 10 }}>
             <label htmlFor={`radio${idx}`}>
@@ -98,9 +99,9 @@ class MenubarStylePicker extends React.Component {
               require('electron').remote.app.quit();
             }}
           >
-            Relaunch
+            {localized('Relaunch')}
           </div>
-          Relaunch to apply window changes.
+          {localized('Relaunch to apply window changes.')}
         </div>
       </section>
     );
@@ -154,7 +155,7 @@ class AppearanceModeSwitch extends React.Component {
           {this._renderModeOptions()}
         </Flexbox>
         <div className={applyChangesClass} onClick={this._onApplyChanges}>
-          Apply Layout
+          {localized('Apply Layout')}
         </div>
       </div>
     );
@@ -166,8 +167,8 @@ const AppearanceModeOption = function AppearanceModeOption(props) {
   if (props.active) classname += ' active';
 
   const label = {
-    list: 'Single Panel',
-    split: 'Two Panel',
+    list: localized('Single Panel'),
+    split: localized('Two Panel'),
   }[props.mode];
 
   return (
@@ -199,27 +200,27 @@ class PreferencesAppearance extends React.Component {
     return (
       <div className="container-appearance">
         <section>
-          <h6 htmlFor="change-layout">Layout</h6>
+          <h6 htmlFor="change-layout">{localized('Layout')}</h6>
           <AppearanceModeSwitch id="change-layout" config={this.props.config} />
         </section>
         <section>
           <h6 htmlFor="change-layout" style={{ marginTop: 10 }}>
-            Theme and Style
+            {localized('Theme and Style')}
           </h6>
           <div>
             <button className="btn btn-large" onClick={this.onPickTheme}>
-              Change theme...
+              {localized('Change Theme...')}
             </button>
           </div>
         </section>
         <MenubarStylePicker config={this.props.config} />
         <section>
-          <h6 htmlFor="change-scale">Scaling</h6>
+          <h6 htmlFor="change-scale">{localized('Scaling')}</h6>
           <AppearanceScaleSlider id="change-scale" config={this.props.config} />
           <div className="platform-note">
-            Scaling adjusts the entire UI, including icons, dividers, and text. Messages you send
-            will still have the same font size. Decreasing scale significantly may make dividers and
-            icons too small to click.
+            {localized(
+              'Scaling adjusts the entire UI, including icons, dividers, and text. Messages you send will still have the same font size. Decreasing scale significantly may make dividers and icons too small to click.'
+            )}
           </div>
         </section>
       </div>

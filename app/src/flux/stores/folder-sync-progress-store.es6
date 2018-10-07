@@ -3,6 +3,7 @@ import MailspringStore from 'mailspring-store';
 import AccountStore from './account-store';
 import CategoryStore from './category-store';
 import Folder from '../models/folder';
+import { localized } from '../../intl';
 
 /**
  * FolderSyncProgressStore keeps track of the sync state per account, and will
@@ -117,7 +118,12 @@ class FolderSyncProgressStore extends MailspringStore {
       }
       if (result > 1) break;
     }
-    return [null, 'Checking for mail', 'Caching recent mail', 'Scanning messages'][result];
+    return [
+      null,
+      localized('Checking for mail'),
+      localized('Caching recent mail'),
+      localized('Scanning messages'),
+    ][result];
   }
 
   /**

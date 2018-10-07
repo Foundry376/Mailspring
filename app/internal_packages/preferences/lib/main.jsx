@@ -1,5 +1,10 @@
 /* eslint global-require: 0 */
-import { PreferencesUIStore, WorkspaceStore, ComponentRegistry } from 'mailspring-exports';
+import {
+  localized,
+  PreferencesUIStore,
+  WorkspaceStore,
+  ComponentRegistry,
+} from 'mailspring-exports';
 
 import PreferencesRoot from './preferences-root';
 
@@ -7,7 +12,7 @@ export function activate() {
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
       tabId: 'General',
-      displayName: 'General',
+      displayName: localized('General'),
       componentClassFn: () => require('./tabs/preferences-general').default,
       order: 1,
     })
@@ -15,7 +20,7 @@ export function activate() {
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
       tabId: 'Accounts',
-      displayName: 'Accounts',
+      displayName: localized('Accounts'),
       componentClassFn: () => require('./tabs/preferences-accounts').default,
       order: 2,
     })
@@ -23,7 +28,7 @@ export function activate() {
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
       tabId: 'Subscription',
-      displayName: 'Subscription',
+      displayName: localized('Subscription'),
       componentClassFn: () => require('./tabs/preferences-identity').default,
       order: 3,
     })
@@ -31,7 +36,7 @@ export function activate() {
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
       tabId: 'Appearance',
-      displayName: 'Appearance',
+      displayName: localized('Appearance'),
       componentClassFn: () => require('./tabs/preferences-appearance').default,
       order: 4,
     })
@@ -39,7 +44,7 @@ export function activate() {
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
       tabId: 'Shortcuts',
-      displayName: 'Shortcuts',
+      displayName: localized('Shortcuts'),
       componentClassFn: () => require('./tabs/preferences-keymaps').default,
       order: 5,
     })
@@ -47,7 +52,7 @@ export function activate() {
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
       tabId: 'Mail Rules',
-      displayName: 'Mail Rules',
+      displayName: localized('Mail Rules'),
       componentClassFn: () => require('./tabs/preferences-mail-rules').default,
       order: 6,
     })

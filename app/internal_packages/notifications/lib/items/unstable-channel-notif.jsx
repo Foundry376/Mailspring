@@ -1,4 +1,4 @@
-import { React, UpdateChannelStore } from 'mailspring-exports';
+import { localized, React, UpdateChannelStore } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 export default class UnstableChannelNotification extends React.Component {
@@ -37,12 +37,12 @@ export default class UnstableChannelNotification extends React.Component {
       <Notification
         priority="0"
         displayName={UnstableChannelNotification.displayName}
-        title="You're on a pre-release channel. We'd love your feedback."
-        subtitle="You can switch back to stable from the preferences."
+        title={localized("You're on a pre-release channel. We'd love your feedback.")}
+        subtitle={localized('You can switch back to stable from the preferences.')}
         icon="volstead-defaultclient.png"
         actions={[
           {
-            label: 'Feedback',
+            label: localized('Feedback'),
             fn: this._onReportIssue,
           },
         ]}

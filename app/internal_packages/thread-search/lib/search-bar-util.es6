@@ -1,4 +1,5 @@
 import {
+  localized,
   CategoryStore,
   DatabaseStore,
   SearchQueryParser,
@@ -64,38 +65,38 @@ export const TokenSuggestions = [
   {
     token: 'from',
     term: '',
-    description: 'an email address',
+    description: localized('an email address'),
     termSuggestions: getContactSuggestions,
   },
   {
     token: 'to',
     term: '',
-    description: 'an email address',
+    description: localized('an email address'),
     termSuggestions: getContactSuggestions,
   },
   {
     token: 'in',
     term: '',
-    description: 'folder or label',
+    description: localized('folder or label'),
     termSuggestions: getCategorySuggestions,
   },
   {
     token: 'before',
     term: '',
-    description: 'date received or range',
+    description: localized('date received or range'),
     termSuggestions: ['yesterday', '2 days ago', 'last week', 'last month', '>=2018/05/31'],
   },
   {
     token: 'since',
     term: '',
-    description: 'date received or range',
+    description: localized('date received or range'),
     termSuggestions: ['yesterday', '2 days ago', 'last week', 'last month', '>=2018/05/31'],
   },
   {
     token: 'after',
     hidden: true,
     term: '',
-    description: 'date received or range',
+    description: localized('date received or range'),
     termSuggestions: ['yesterday', '2 days ago', 'last week', 'last month', '>=2018/05/31'],
   },
   {
@@ -107,7 +108,7 @@ export const TokenSuggestions = [
   {
     token: 'subject',
     term: '',
-    description: 'an email subject',
+    description: localized('an email subject'),
     termSuggestions: [],
   },
   // {

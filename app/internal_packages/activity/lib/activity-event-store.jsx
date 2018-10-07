@@ -1,5 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import {
+  localized,
   Actions,
   Thread,
   DatabaseStore,
@@ -82,7 +83,7 @@ class ActivityEventStore extends MailspringStore {
         AppEnv.reportError(
           new Error(`ActivityEventStore::focusThread: Can't find thread`, { threadId })
         );
-        AppEnv.showErrorDialog(`Can't find the selected thread in your mailbox`);
+        AppEnv.showErrorDialog(localized(`Can't find the selected thread in your mailbox`));
         return;
       }
       Actions.ensureCategoryIsFocused('sent', thread.accountId);
@@ -151,9 +152,11 @@ class ActivityEventStore extends MailspringStore {
         return;
       }
 
-      const recipientName = action.recipient ? action.recipient.displayName() : 'Someone';
+      const recipientName = action.recipient
+        ? action.recipient.displayName()
+        : localized('Someone');
       NativeNotifications.displayNotification({
-        title: `New ${config.verb}`,
+        title: `New ${config.verb}`, // TODO LOCALIZATION
         subtitle: `${recipientName} just ${config.predicate} ${action.title}`,
         onActivate: () => this.focusThread(action.threadId),
         tag: action.pluginId,

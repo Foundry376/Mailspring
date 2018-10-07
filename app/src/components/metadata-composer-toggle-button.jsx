@@ -3,6 +3,7 @@ import {
   PropTypes,
   MailspringAPIRequest,
   APIError,
+  localized,
   FeatureUsageStore,
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
@@ -70,13 +71,13 @@ export default class MetadataComposerToggleButton extends React.Component {
 
       AppEnv.config.set(this._configKey(), false);
 
-      let title = 'Error';
+      let title = localized('Error');
       if (!(error instanceof APIError)) {
         AppEnv.reportError(error);
       } else if (error.statusCode === 400) {
         AppEnv.reportError(error);
       } else if (MailspringAPIRequest.TimeoutErrorCodes.includes(error.statusCode)) {
-        title = 'Offline';
+        title = localized('Offline');
       }
 
       AppEnv.showErrorDialog({ title, message: errorMessage(error) });
@@ -98,7 +99,7 @@ export default class MetadataComposerToggleButton extends React.Component {
     if (nextEnabled && !FeatureUsageStore.isUsable(pluginId)) {
       try {
         await FeatureUsageStore.displayUpgradeModal(pluginId, {
-          usedUpHeader: `All used up!`,
+          usedUpHeader: localized(`All used up!`),
           usagePhrase: 'get open and click notifications for',
           iconUrl: `mailspring://${pluginId}/assets/ic-modal-image@2x.png`,
         });
@@ -136,7 +137,7 @@ export default class MetadataComposerToggleButton extends React.Component {
       <button
         className={className}
         onClick={this._onClick}
-        title={`${enabled ? 'Disable' : 'Enable'} ${this.props.pluginName}`}
+        title={`${enabled ? localized('Disable') : localized('Enable')} ${this.props.pluginName}`}
         tabIndex={-1}
       >
         {this.state.onByDefaultButUsedUp ? (

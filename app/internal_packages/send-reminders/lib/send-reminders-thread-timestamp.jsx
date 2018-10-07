@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { RetinaImg } from 'mailspring-component-kit';
 import moment from 'moment';
 
-import { FocusedPerspectiveStore } from 'mailspring-exports';
+import { localized, FocusedPerspectiveStore } from 'mailspring-exports';
 import { updateReminderMetadata } from './send-reminders-utils';
 import { PLUGIN_ID } from './send-reminders-constants';
 
@@ -39,10 +39,10 @@ class SendRemindersThreadTimestamp extends Component {
     return (
       <span
         className="send-reminders-thread-timestamp timestamp"
-        title={`Reminder set for ${mExpiration.fromNow(true)} from now`}
+        title={localized(`Reminder set for %@ from now`, mExpiration.fromNow(true))}
       >
         <RetinaImg name="ic-timestamp-reminder.png" mode={RetinaImg.Mode.ContentIsMask} />
-        <span className="date-message">{`in ${mExpiration.fromNow(true)}`}</span>
+        <span className="date-message">{localized('in %@', mExpiration.fromNow(true))}</span>
       </span>
     );
   }

@@ -1,10 +1,9 @@
 import fs from 'fs';
 import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
-import { React, ReactDOM } from 'mailspring-exports';
+import { Actions, localized, localizedReactFragment, React, ReactDOM } from 'mailspring-exports';
 import { shell } from 'electron';
 
 import TemplateStore from './template-store';
-import TemplateActions from './template-actions';
 
 const { Conversion: { convertFromHTML, convertToHTML } } = ComposerSupport;
 
@@ -49,7 +48,7 @@ class TemplateEditor extends React.Component {
           <input
             type="text"
             id="title"
-            placeholder="Name"
+            placeholder={localized('Name')}
             style={{ maxWidth: 400 }}
             defaultValue={template ? template.name : ''}
             onBlur={e => onEditTitle(e.target.value)}
@@ -66,11 +65,12 @@ class TemplateEditor extends React.Component {
           />
         </div>
         <div className="section note">
-          Changes are saved automatically. View the{' '}
-          <a href="https://foundry376.zendesk.com/hc/en-us/articles/115001875231-Using-quick-reply-templates">
-            Templates Guide
-          </a>{' '}
-          for tips and tricks.
+          {localizedReactFragment(
+            'Changes are saved automatically. View the %@ for tips and tricks.',
+            <a href="https://foundry376.zendesk.com/hc/en-us/articles/115001875231-Using-quick-reply-templates">
+              {localized('Templates Guide')}
+            </a>
+          )}
         </div>
       </div>
     );
@@ -115,15 +115,18 @@ export default class PreferencesTemplates extends React.Component {
   }
 
   _onAdd = () => {
-    TemplateActions.createTemplate({ name: 'Untitled', contents: 'Insert content here!' });
+    Actions.createTemplate({
+      name: localized('Untitled'),
+      contents: localized('Insert content here!'),
+    });
   };
 
   _onDelete = () => {
-    TemplateActions.deleteTemplate(this.state.selected.name);
+    Actions.deleteTemplate(this.state.selected.name);
   };
 
   _onEditTitle = newName => {
-    TemplateActions.renameTemplate(this.state.selected.name, newName);
+    Actions.renameTemplate(this.state.selected.name, newName);
   };
 
   _onSelect = item => {
@@ -153,7 +156,7 @@ export default class PreferencesTemplates extends React.Component {
                 style={{ marginTop: 10, display: 'block' }}
                 onClick={() => shell.showItemInFolder(TemplateStore.directory())}
               >
-                Show Templates Folder...
+                {localized('Show Templates Folder...')}
               </a>
             </div>
             <TemplateEditor

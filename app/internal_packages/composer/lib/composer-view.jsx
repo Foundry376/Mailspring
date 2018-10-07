@@ -2,6 +2,7 @@ import { remote } from 'electron';
 import {
   React,
   ReactDOM,
+  localized,
   PropTypes,
   Utils,
   Actions,
@@ -209,7 +210,7 @@ export default class ComposerView extends React.Component {
           }}
         >
           <RetinaImg
-            title="Remove quoted text"
+            title={localized('Remove quoted text')}
             name="image-cancel-button.png"
             mode={RetinaImg.Mode.ContentPreserve}
           />
@@ -324,7 +325,7 @@ export default class ComposerView extends React.Component {
           tabIndex={-1}
           className="btn btn-toolbar btn-trash"
           style={{ order: 100 }}
-          title="Delete draft"
+          title={localized('Delete Draft')}
           onClick={this._onDestroyDraft}
         >
           <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
@@ -334,7 +335,7 @@ export default class ComposerView extends React.Component {
           tabIndex={-1}
           className="btn btn-toolbar btn-attach"
           style={{ order: 50 }}
-          title="Attach file"
+          title={localized('Attach File')}
           onClick={this._onSelectAttachment}
         >
           <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
@@ -481,8 +482,8 @@ export default class ComposerView extends React.Component {
     if (errors.length > 0) {
       dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
-        buttons: ['Edit Message', 'Cancel'],
-        message: 'Cannot Send',
+        buttons: [localized('Edit Message'), localized('Cancel')],
+        message: localized('Cannot send message'),
         detail: errors[0],
       });
       return false;
@@ -491,9 +492,9 @@ export default class ComposerView extends React.Component {
     if (warnings.length > 0 && !options.force) {
       const response = dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
-        buttons: ['Send Anyway', 'Cancel'],
-        message: 'Are you sure?',
-        detail: `Send ${warnings.join(' and ')}?`,
+        buttons: [localized('Send Anyway'), localized('Cancel')],
+        message: localized('Are you sure?'),
+        detail: warnings.join('. '),
       });
       if (response === 0) {
         // response is button array index
@@ -545,7 +546,7 @@ export default class ComposerView extends React.Component {
                     name="composer-drop-to-attach.png"
                     mode={RetinaImg.Mode.ContentIsMask}
                   />
-                  Drop to attach
+                  {localized(`Drop to Attach`)}
                 </div>
               </div>
 

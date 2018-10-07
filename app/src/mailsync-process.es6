@@ -9,46 +9,65 @@ import path from 'path';
 import os from 'os';
 import { EventEmitter } from 'events';
 import fs from 'fs';
+import { localized } from './intl';
 
 let Utils = null;
 
 export const LocalizedErrorStrings = {
-  ErrorConnection: 'Connection Error - Unable to connect to the server / port you provided.',
-  ErrorInvalidAccount:
-    'This account is invalid or Mailspring could not find the Inbox or All Mail folder. http://support.getmailspring.com/hc/en-us/articles/115001881912',
-  ErrorTLSNotAvailable: 'TLS Not Available',
-  ErrorParse: 'Parsing Error',
-  ErrorCertificate: 'Certificate Error',
-  ErrorAuthentication: 'Authentication Error - Check your username and password.',
-  ErrorGmailIMAPNotEnabled: 'Gmail IMAP is not enabled. Visit Gmail settings to turn it on.',
-  ErrorGmailExceededBandwidthLimit: 'Gmail bandwidth exceeded. Please try again later.',
-  ErrorGmailTooManySimultaneousConnections:
-    'There are too many active connections to your Gmail account. Please try again later.',
-  ErrorMobileMeMoved: 'MobileMe has moved.',
-  ErrorYahooUnavailable: 'Yahoo is unavailable.',
-  ErrorNonExistantFolder: 'Sorry, this folder does not exist.',
-  ErrorStartTLSNotAvailable: 'StartTLS is not available.',
-  ErrorGmailApplicationSpecificPasswordRequired:
-    'A Gmail application-specific password is required.',
-  ErrorOutlookLoginViaWebBrowser: 'The Outlook server said you must sign in via a web browser.',
-  ErrorNeedsConnectToWebmail: 'The server said you must sign in via your webmail.',
-  ErrorNoValidServerFound: 'No valid server found.',
-  ErrorAuthenticationRequired: 'Authentication required.',
+  ErrorConnection: localized(
+    'Connection Error - Unable to connect to the server / port you provided.'
+  ),
+  ErrorInvalidAccount: localized(
+    'This account is invalid or Mailspring could not find the Inbox or All Mail folder. %@',
+    'http://support.getmailspring.com/hc/en-us/articles/115001881912'
+  ),
+  ErrorTLSNotAvailable: localized('TLS Not Available'),
+  ErrorParse: localized('Parsing Error'),
+  ErrorCertificate: localized('Certificate Error'),
+  ErrorAuthentication: localized('Authentication Error - Check your username and password.'),
+  ErrorGmailIMAPNotEnabled: localized(
+    'Gmail IMAP is not enabled. Visit Gmail settings to turn it on.'
+  ),
+  ErrorGmailExceededBandwidthLimit: localized('Gmail bandwidth exceeded. Please try again later.'),
+  ErrorGmailTooManySimultaneousConnections: localized(
+    'There are too many active connections to your Gmail account. Please try again later.'
+  ),
+  ErrorMobileMeMoved: localized('MobileMe has moved.'),
+  ErrorYahooUnavailable: localized('Yahoo is unavailable.'),
+  ErrorNonExistantFolder: localized('Sorry, this folder does not exist.'),
+  ErrorStartTLSNotAvailable: localized('StartTLS is not available.'),
+  ErrorGmailApplicationSpecificPasswordRequired: localized(
+    'A Gmail application-specific password is required.'
+  ),
+  ErrorOutlookLoginViaWebBrowser: localized(
+    'The Outlook server said you must sign in via a web browser.'
+  ),
+  ErrorNeedsConnectToWebmail: localized('The server said you must sign in via your webmail.'),
+  ErrorNoValidServerFound: localized('No valid server found.'),
+  ErrorAuthenticationRequired: localized('Authentication required.'),
 
   // sending related
-  ErrorSendMessageNotAllowed: 'Sending is not enabled for this account.',
-  ErrorSendMessageIllegalAttachment:
-    'The message contains an illegial attachment that is not allowed by the server.',
-  ErrorYahooSendMessageSpamSuspected:
-    "The message has been blocked by Yahoo's outbound spam filter.",
-  ErrorYahooSendMessageDailyLimitExceeded:
-    'The message has been blocked by Yahoo - you have exceeded your daily sending limit.',
-  ErrorNoSender: 'The message has been blocked because no sender is configured.',
-  ErrorInvalidRelaySMTP: 'The SMTP server would not relay a message. You may need to authenticate.',
-  ErrorNoImplementedAuthMethods:
-    'Sorry, your SMTP server does not support basic username / password authentication.',
-  ErrorIdentityMissingFields:
-    'Your Mailspring ID is missing required fields - you may need to reset Mailspring. http://support.getmailspring.com/hc/en-us/articles/115002012491',
+  ErrorSendMessageNotAllowed: localized('Sending is not enabled for this account.'),
+  ErrorSendMessageIllegalAttachment: localized(
+    'The message contains an illegial attachment that is not allowed by the server.'
+  ),
+  ErrorYahooSendMessageSpamSuspected: localized(
+    "The message has been blocked by Yahoo's outbound spam filter."
+  ),
+  ErrorYahooSendMessageDailyLimitExceeded: localized(
+    'The message has been blocked by Yahoo - you have exceeded your daily sending limit.'
+  ),
+  ErrorNoSender: localized('The message has been blocked because no sender is configured.'),
+  ErrorInvalidRelaySMTP: localized(
+    'The SMTP server would not relay a message. You may need to authenticate.'
+  ),
+  ErrorNoImplementedAuthMethods: localized(
+    'Sorry, your SMTP server does not support basic username / password authentication.'
+  ),
+  ErrorIdentityMissingFields: localized(
+    'Your Mailspring ID is missing required fields - you may need to reset Mailspring. %@',
+    'http://support.getmailspring.com/hc/en-us/articles/115002012491'
+  ),
 };
 
 export default class MailsyncProcess extends EventEmitter {
@@ -193,7 +212,9 @@ export default class MailsyncProcess extends EventEmitter {
             reject(error);
           }
         } catch (err) {
-          const error = new Error(`An unexpected mailsync error occurred (${code})`);
+          const error = new Error(
+            `${localized(`An unknown error has occurred`)} (mailsync: ${code})`
+          );
           error.rawLog = stripSecrets(buffer.toString());
           reject(error);
         }

@@ -1,4 +1,4 @@
-import { React, Utils, PropTypes } from 'mailspring-exports';
+import { localized, React, Utils, PropTypes } from 'mailspring-exports';
 
 export default class SyncbackActivity extends React.Component {
   static propTypes = {
@@ -41,7 +41,7 @@ export default class SyncbackActivity extends React.Component {
     if (items.length === 0) {
       items.push(
         <div className="item" key="no-labels">
-          <div className="inner">Applying changes...</div>
+          <div className="inner">{localized(`Applying changes...`)}</div>
         </div>
       );
     }

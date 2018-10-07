@@ -2,7 +2,7 @@
 /* eslint jsx-a11y/tabindex-no-positive:0 */
 
 import _ from 'underscore';
-import { Utils } from 'mailspring-exports';
+import { Utils, localized } from 'mailspring-exports';
 import classnames from 'classnames';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
@@ -265,7 +265,7 @@ class OutlineViewItem extends Component {
     if (this.props.item.onEdited) {
       menu.append(
         new MenuItem({
-          label: `Rename ${contextMenuLabel}`,
+          label: `${localized(`Rename`)} ${contextMenuLabel}`,
           click: this._onEdit,
         })
       );
@@ -274,7 +274,7 @@ class OutlineViewItem extends Component {
     if (this.props.item.onDelete) {
       menu.append(
         new MenuItem({
-          label: `Delete ${contextMenuLabel}`,
+          label: `${localized(`Delete`)} ${contextMenuLabel}`,
           click: this._onDelete,
         })
       );

@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import fs from 'fs';
 import { remote, shell } from 'electron';
+import { localized } from './intl';
 
 const bundleIdentifier = 'com.mailspring.mailspring';
 
@@ -26,7 +27,7 @@ class Windows {
               callback(err1 || err2);
               return;
             }
-            callback(output.includes('Nylas'));
+            callback(output.includes('Mailspring'));
           }
         );
       }
@@ -38,9 +39,11 @@ class Windows {
       null,
       {
         type: 'info',
-        buttons: ['Learn More'],
-        message: 'Visit Windows Settings to change your default mail client',
-        detail: "You'll find Mailspring, along with other options, listed in Default Apps > Mail.",
+        buttons: [localized('Learn More')],
+        message: localized('Visit Windows Settings to change your default mail client'),
+        detail: localized(
+          "You'll find Mailspring, along with other options, listed in Default Apps > Mail."
+        ),
       },
       () => {
         shell.openExternal(
@@ -62,8 +65,8 @@ class Windows {
         if (err) {
           remote.dialog.showMessageBox(null, {
             type: 'error',
-            buttons: ['OK'],
-            message: 'Sorry, an error occurred.',
+            buttons: [localized('OK')],
+            message: localized('An error has occurred'),
             detail: err.message,
           });
         }
@@ -72,10 +75,12 @@ class Windows {
             null,
             {
               type: 'info',
-              buttons: ['Learn More'],
+              buttons: [localized('Learn More')],
               defaultId: 1,
-              message: 'Visit Windows Settings to finish making Mailspring your mail client',
-              detail: "Click 'Learn More' to view instructions in our knowledge base.",
+              message: localized(
+                'Visit Windows Settings to finish making Mailspring your mail client'
+              ),
+              detail: localized("Click 'Learn More' to view instructions in our knowledge base."),
             },
             () => {
               shell.openExternal(

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { DefaultClientHelper, SystemStartService } from 'mailspring-exports';
+import { localized, DefaultClientHelper, SystemStartService } from 'mailspring-exports';
 import { shell } from 'electron';
 
 import ConfigSchemaItem from './config-schema-item';
@@ -49,7 +49,7 @@ class DefaultMailClientItem extends React.Component {
               shell.openExternal('https://foundry376.zendesk.com/hc/en-us/articles/115002281851')
             }
           >
-            Use Mailspring as default mail client
+            {localized('Use Mailspring as default mail client')}
           </div>
         </div>
       );
@@ -63,7 +63,7 @@ class DefaultMailClientItem extends React.Component {
           checked={this.state.defaultClient}
           onChange={this.toggleDefaultMailClient}
         />
-        <label htmlFor="default-client">Use Mailspring as default mail client</label>
+        <label htmlFor="default-client">{localized('Use Mailspring as default mail client')}</label>
       </div>
     );
   }
@@ -119,7 +119,7 @@ class LaunchSystemStartItem extends React.Component {
           checked={this.state.launchOnStart}
           onChange={this._toggleLaunchOnStart}
         />
-        <label htmlFor="launch-on-start">Launch on system start</label>
+        <label htmlFor="launch-on-start">{localized('Launch on system start')}</label>
       </div>
     );
   }
@@ -163,9 +163,9 @@ const WorkspaceSection = props => {
       />
 
       <div className="platform-note platform-linux-only">
-        &quot;Launch on system start&quot; only works in XDG-compliant desktop environments. To
-        enable the Mailspring icon in the system tray, you may need to install libappindicator.
-        (i.e., <code>sudo apt-get install libappindicator1</code>)
+        {localized(
+          `"Launch on system start" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.`
+        )}
       </div>
     </section>
   );

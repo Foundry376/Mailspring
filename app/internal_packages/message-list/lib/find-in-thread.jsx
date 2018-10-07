@@ -1,6 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
-import { Actions, MessageStore, SearchableComponentStore } from 'mailspring-exports';
+import { localized, Actions, MessageStore, SearchableComponentStore } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
 export default class FindInThread extends React.Component {
@@ -106,7 +106,7 @@ export default class FindInThread extends React.Component {
                 ref={el => {
                   this._searchBoxEl = el;
                 }}
-                placeholder="Find in thread"
+                placeholder={localized('Find in thread')}
                 onChange={this._onFindChange}
                 onKeyDown={this._onFindKeyDown}
                 value={this.state.searchTerm || ''}

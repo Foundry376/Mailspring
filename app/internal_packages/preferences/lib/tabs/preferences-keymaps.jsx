@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { remote } from 'electron';
 import { Flexbox } from 'mailspring-component-kit';
+import { localized } from 'mailspring-exports';
 
 import displayedKeybindings from './keymaps/displayed-keybindings';
 import CommandItem from './keymaps/command-item';
@@ -69,9 +70,9 @@ export default class PreferencesKeymaps extends React.Component {
   _onDeleteUserKeymap() {
     const chosen = remote.dialog.showMessageBox(AppEnv.getCurrentWindow(), {
       type: 'info',
-      message: 'Are you sure?',
-      detail: 'Delete your custom key bindings and reset to the template defaults?',
-      buttons: ['Cancel', 'Reset'],
+      message: localized('Are you sure?'),
+      detail: localized('Delete your custom key bindings and reset to the template defaults?'),
+      buttons: [localized('Cancel'), localized('Reset')],
     });
 
     if (chosen === 1) {
@@ -103,7 +104,7 @@ export default class PreferencesKeymaps extends React.Component {
       <div className="container-keymaps">
         <section>
           <Flexbox className="container-dropdown">
-            <div>Shortcut set:</div>
+            <div>{localized('Shortcuts')}</div>
             <div className="dropdown">
               <select
                 style={{ margin: 0 }}
@@ -122,23 +123,25 @@ export default class PreferencesKeymaps extends React.Component {
             </div>
             <div style={{ flex: 1 }} />
             <button className="btn" onClick={this._onDeleteUserKeymap}>
-              Reset to Defaults
+              {localized('Restore Defaults')}
             </button>
           </Flexbox>
           <p>
-            You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To
-            edit a shortcut, click it in the list below and enter a replacement on the keyboard.
+            {localized(
+              'You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.'
+            )}
           </p>
           {displayedKeybindings.map(this._renderBindingsSection)}
         </section>
         <section>
-          <h2>Customization</h2>
+          <h2>{localized('Customization')}</h2>
           <p>
-            Click shortcuts above to edit them. For even more control, you can edit the shortcuts
-            file directly below.
+            {localized(
+              'Click shortcuts above to edit them. For even more control, you can edit the shortcuts file directly below.'
+            )}
           </p>
           <button className="btn" onClick={this._onShowUserKeymaps}>
-            Edit custom shortcuts
+            {localized('Edit custom shortcuts')}
           </button>
         </section>
       </div>

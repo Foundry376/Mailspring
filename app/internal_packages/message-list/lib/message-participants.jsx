@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import classnames from 'classnames';
-import { React, PropTypes, Actions } from 'mailspring-exports';
+import { localized, React, PropTypes, Actions } from 'mailspring-exports';
 import { remote } from 'electron';
 
 const { Menu, MenuItem } = remote;
@@ -61,7 +61,7 @@ export default class MessageParticipants extends React.Component {
     menu.append(new MenuItem({ role: 'copy' }));
     menu.append(
       new MenuItem({
-        label: `Email ${contact.email}`,
+        label: `${localized(`Email`)} ${contact.email}`,
         click: () => Actions.composeNewDraftToRecipient(contact),
       })
     );
@@ -107,11 +107,11 @@ export default class MessageParticipants extends React.Component {
     });
   }
 
-  _renderExpandedField(name, field, { includeLabel = true } = {}) {
+  _renderExpandedField(name, label, field, { includeLabel = true } = {}) {
     return (
       <div className="participant-type" key={`participant-type-${name}`}>
         {includeLabel ? (
-          <div className={`participant-label ${name}-label`}>{name}:&nbsp;</div>
+          <div className={`participant-label ${name}-label`}>{label}:&nbsp;</div>
         ) : null}
         <div className={`participant-name ${name}-contact`}>{this._renderFullContacts(field)}</div>
       </div>
@@ -124,23 +124,25 @@ export default class MessageParticipants extends React.Component {
     const expanded = [];
 
     if (from.length > 0) {
-      expanded.push(this._renderExpandedField('from', from, { includeLabel: false }));
+      expanded.push(
+        this._renderExpandedField('from', localized('From'), from, { includeLabel: false })
+      );
     }
 
     if (replyTo.length > 0) {
-      expanded.push(this._renderExpandedField('reply-to', replyTo));
+      expanded.push(this._renderExpandedField('reply-to', localized('Reply to'), replyTo));
     }
 
     if (to.length > 0) {
-      expanded.push(this._renderExpandedField('to', to));
+      expanded.push(this._renderExpandedField('to', localized('To'), to));
     }
 
     if (cc.length > 0) {
-      expanded.push(this._renderExpandedField('cc', cc));
+      expanded.push(this._renderExpandedField('cc', localized('Cc'), cc));
     }
 
     if (bcc.length > 0) {
-      expanded.push(this._renderExpandedField('bcc', bcc));
+      expanded.push(this._renderExpandedField('bcc', localized('Bcc'), bcc));
     }
 
     return <div className="expanded-participants">{expanded}</div>;
@@ -161,7 +163,7 @@ export default class MessageParticipants extends React.Component {
     if (toParticipants.length > 0) {
       childSpans.push(
         <span className="participant-label to-label" key="to-label">
-          To:&nbsp;
+          {localized('To')}:&nbsp;
         </span>,
         <span className="participant-name to-contact" key="to-value">
           {this._shortNames(toParticipants)}

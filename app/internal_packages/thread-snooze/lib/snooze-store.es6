@@ -1,6 +1,7 @@
 import MailspringStore from 'mailspring-store';
 
 import {
+  localized,
   FeatureUsageStore,
   SyncbackMetadataTask,
   Actions,
@@ -33,7 +34,7 @@ class SnoozeStore extends MailspringStore {
     try {
       // ensure the user is authorized to use this feature
       await FeatureUsageStore.markUsedOrUpgrade('snooze', {
-        usedUpHeader: 'All Snoozes Used',
+        usedUpHeader: localized('All Snoozes Used'),
         usagePhrase: 'snooze',
         iconUrl: 'mailspring://thread-snooze/assets/ic-snooze-modal@2x.png',
       });
@@ -74,7 +75,7 @@ class SnoozeStore extends MailspringStore {
     moveThreads(threads, { snooze: false, description: 'Unsnoozed' });
 
     // mark the threads unread if setting is enabled
-    markUnreadOrResurfaceThreads(threads, 'Unsnoozed message');
+    markUnreadOrResurfaceThreads(threads, localized('Unsnoozed message'));
   };
 
   _onMetadataExpired = threads => {

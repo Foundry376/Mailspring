@@ -1,4 +1,4 @@
-import { React, PropTypes, MailspringAPIRequest } from 'mailspring-exports';
+import { localized, React, PropTypes, MailspringAPIRequest } from 'mailspring-exports';
 import { RetinaImg, DropZone } from 'mailspring-component-kit';
 
 const MAX_IMAGE_RES = 250;
@@ -29,7 +29,11 @@ export default class SignaturePhotoPicker extends React.Component {
 
   _onChooseImage = event => {
     AppEnv.showOpenDialog(
-      { title: 'Choose an image', buttonLabel: 'Choose', properties: ['openFile'] },
+      {
+        title: localized('Choose an image'),
+        buttonLabel: localized('Choose'),
+        properties: ['openFile'],
+      },
       paths => {
         if (paths && paths.length > 0) {
           this._onChooseImageFilePath(paths[0]);
@@ -43,9 +47,10 @@ export default class SignaturePhotoPicker extends React.Component {
     const ext = exts.find(ext => filepath.toLowerCase().endsWith(`.${ext}`));
     if (!ext) {
       AppEnv.showErrorDialog(
-        `Sorry, the file you selected does not look like an image. Please choose a file with one of the following extensions: ${exts.join(
-          ', '
-        )}`
+        localized(
+          'Sorry, the file you selected does not look like an image. Please choose a file with one of the following extensions: %@',
+          exts.join(',')
+        )
       );
       return;
     }
@@ -110,7 +115,10 @@ export default class SignaturePhotoPicker extends React.Component {
       link = await MailspringAPIRequest.postStaticAsset({ filename, blob });
     } catch (err) {
       AppEnv.showErrorDialog(
-        `Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\n\n(${err.toString()})`
+        localized(
+          `Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\n\n(%@)`,
+          err.toString()
+        )
       );
       return;
     } finally {
@@ -135,7 +143,10 @@ export default class SignaturePhotoPicker extends React.Component {
     // we don't display the <input> for data URLs because they can be
     // long and the UI becomes slow.
     const isMailspringURL = resolvedURL && resolvedURL.includes('getmailspring.com');
-    const dropVerb = resolvedURL && resolvedURL !== '' ? 'replace' : 'upload';
+    const dropNote =
+      resolvedURL && resolvedURL !== ''
+        ? localized('Click to replace')
+        : localized('Click to upload');
 
     const emptyPlaceholderURL =
       ' data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaCAMAAAAPdrEwAAAAWlBMVEUAAACZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmb09q6AAAAHXRSTlMA5joH1zxJ+yUtA6pxM5hkFrVPRkDvV7+3toqIfkj9t0gAAADfSURBVFjD7dXLbsMgEIXhAZOAMfie9Hre/zXrRqVS7cgbz6KJziexmcUvhJBGiIiIiIjoGZg9cgj2HE2n+bw2zdN5TsfTtWxVy6mPp62s5RfX9GLV0lGK3gFo9NKhqcrohIWp1B6kQ1tGwQNwMSul4wB0ZZaAy6jyIOWm3pZhHoOopT+xcL38UktHh29D1E9PHjfvt7+SNdMtflxlNHiLeunelLRpPYBOL33FX5egln7FyqCVDh5rnVL6Axu+1khnadyGaTXStVT3aKyCZE/32AT847W7Q4iIiIiI6PF9AVm2Jjrl81jZAAAAAElFTkSuQmCC';
@@ -172,12 +183,12 @@ export default class SignaturePhotoPicker extends React.Component {
               onChange={this.props.onChange}
               style={{ display: 'block' }}
             >
-              <option value="">None</option>
-              <option value="gravatar">Gravatar Profile Photo</option>
-              <option value="twitter">Twitter Profile Image</option>
-              <option value="company">Company / Domain Logo</option>
+              <option value="">{localized('None')}</option>
+              <option value="gravatar">{localized('Gravatar Profile Photo')}</option>
+              <option value="twitter">{localized('Twitter Profile Image')}</option>
+              <option value="company">{localized('Company / Domain Logo')}</option>
               <option disabled>──────────</option>
-              <option value="custom">Custom Image</option>
+              <option value="custom">{localized('Custom Image')}</option>
             </select>
             {source === 'custom' &&
               (isMailspringURL ? (
@@ -185,7 +196,7 @@ export default class SignaturePhotoPicker extends React.Component {
                   className="btn"
                   onClick={() => this.props.onChange({ target: { value: '', id: 'photoURL' } })}
                 >
-                  Remove
+                  {localized('Remove')}
                 </a>
               ) : (
                 <input
@@ -198,7 +209,7 @@ export default class SignaturePhotoPicker extends React.Component {
               ))}
           </div>
         </div>
-        <div className="drop-note">{`Click to ${dropVerb}`}</div>
+        <div className="drop-note">{dropNote}</div>
       </div>
     );
   }

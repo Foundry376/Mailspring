@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { localized } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import OnboardingActions from './onboarding-actions';
 import AccountProviders from './account-providers';
@@ -29,7 +30,7 @@ export default class AccountChoosePage extends React.Component {
   render() {
     return (
       <div className="page account-choose">
-        <h2>Connect an email account</h2>
+        <h2>{localized('Connect an email account')}</h2>
         <div className="provider-list">{this._renderProviders()}</div>
       </div>
     );

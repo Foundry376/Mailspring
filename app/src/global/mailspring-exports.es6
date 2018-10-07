@@ -47,6 +47,9 @@ const lazyLoadAndRegisterTask = (klassName, path) => {
   DatabaseObjectRegistry.register(klassName, () => exports[klassName]);
 };
 
+lazyLoadWithGetter(`localized`, () => require('../intl').localized);
+lazyLoadWithGetter(`localizedReactFragment`, () => require('../intl').localizedReactFragment);
+
 // Actions
 lazyLoad(`Actions`, 'flux/actions');
 

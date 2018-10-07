@@ -1,7 +1,7 @@
 const CSSTransitionGroup = require('react-transition-group/CSSTransitionGroup');
 const _ = require('underscore');
 
-const { React, PropTypes, Utils } = require('mailspring-exports');
+const { localized, React, PropTypes, Utils } = require('mailspring-exports');
 const InjectedComponentSet = require('./injected-component-set').default;
 
 /*
@@ -116,7 +116,7 @@ class MultiselectActionBar extends React.Component {
             className="btn btn-toolbar"
             onClick={this._onClearSelection}
           >
-            Clear Selection
+            {localized('Clear Selection')}
           </button>
         </div>
       </div>
@@ -136,6 +136,7 @@ class MultiselectActionBar extends React.Component {
   }
 
   _label() {
+    // TODO LOCALIZATION
     if (this.state.items.length > 1) {
       return `${this.state.items.length} ${this.props.collection}s selected`;
     } else if (this.state.items.length === 1) {

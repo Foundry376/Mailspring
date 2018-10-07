@@ -1,6 +1,7 @@
 import Task from './task';
 import Attributes from '../attributes';
 import Message from '../models/message';
+import { localized } from '../../intl';
 
 export default class SyncbackDraftTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -23,9 +24,10 @@ export default class SyncbackDraftTask extends Task {
   onError({ key, debuginfo }) {
     if (key === 'no-drafts-folder') {
       AppEnv.showErrorDialog({
-        title: 'Drafts folder not found',
-        message:
-          "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.",
+        title: localized('Drafts folder not found'),
+        message: localized(
+          "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder."
+        ),
       });
     }
   }

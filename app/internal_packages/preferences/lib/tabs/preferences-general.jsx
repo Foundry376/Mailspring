@@ -2,7 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import rimraf from 'rimraf';
-
+import { localized } from 'mailspring-exports';
 import ConfigSchemaItem from './config-schema-item';
 import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
@@ -25,7 +25,11 @@ class PreferencesGeneral extends React.Component {
     rimraf(AppEnv.getConfigDirPath(), { disableGlob: true }, err => {
       if (err) {
         return AppEnv.showErrorDialog(
-          `Could not reset accounts and settings. Please delete the folder ${AppEnv.getConfigDirPath()} manually.\n\n${err.toString()}`
+          localized(
+            `Could not reset accounts and settings. Please delete the folder %@ manually.\n\n%@`,
+            AppEnv.getConfigDirPath(),
+            err.toString()
+          )
         );
       }
       this._onReboot();
@@ -44,26 +48,27 @@ class PreferencesGeneral extends React.Component {
 
         <ConfigSchemaItem
           configSchema={this.props.configSchema.properties.notifications}
-          keyName="Notifications"
+          keyName={localized('Notifications')}
           keyPath="core.notifications"
           config={this.props.config}
         />
 
         <div className="platform-note platform-linux-only">
-          Mailspring desktop notifications on Linux require Zenity. You may need to install it with
-          your package manager (i.e., <code>sudo apt-get install zenity</code>).
+          {localized(
+            'Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.'
+          )}
         </div>
 
         <ConfigSchemaItem
           configSchema={this.props.configSchema.properties.reading}
-          keyName="Reading"
+          keyName={localized('Reading')}
           keyPath="core.reading"
           config={this.props.config}
         />
 
         <ConfigSchemaItem
           configSchema={this.props.configSchema.properties.composing}
-          keyName="Composing"
+          keyName={localized('Composing')}
           keyPath="core.composing"
           config={this.props.config}
         />
@@ -72,18 +77,18 @@ class PreferencesGeneral extends React.Component {
 
         <ConfigSchemaItem
           configSchema={this.props.configSchema.properties.attachments}
-          keyName="Attachments"
+          keyName={localized('Attachments')}
           keyPath="core.attachments"
           config={this.props.config}
         />
 
         <div className="local-data">
-          <h6>Local Data</h6>
+          <h6>{localized('Local Data')}</h6>
           <div className="btn" onClick={this._onResetEmailCache}>
-            Reset Email Cache
+            {localized('Reset Cache')}
           </div>
           <div className="btn" onClick={this._onResetAccountsAndSettings}>
-            Reset Accounts and Settings
+            {localized('Reset Accounts and Settings')}
           </div>
         </div>
       </div>

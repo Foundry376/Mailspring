@@ -1,4 +1,5 @@
 import {
+  localized,
   React,
   // The ComponentRegistry manages all React components in N1.
   ComponentRegistry,
@@ -67,8 +68,10 @@ class PhishingIndicator extends React.Component {
     if (replyToDomain !== fromDomain) {
       return (
         <div className="phishingIndicator">
-          <b>This message looks suspicious!</b>
-          <div className="description">{`It originates from ${fromEmail} but replies will go to ${replyToEmail}.`}</div>
+          <b>{localized(`This message looks suspicious!`)}</b>
+          <div className="description">
+            {localized(`It originates from %@ but replies will go to %@.`, fromEmail, replyToEmail)}
+          </div>
         </div>
       );
     }

@@ -1,4 +1,4 @@
-const { React, PropTypes, DateUtils } = require('mailspring-exports');
+const { localized, React, PropTypes, DateUtils } = require('mailspring-exports');
 const ThreadListStore = require('./thread-list-store');
 
 class ThreadListScrollTooltip extends React.Component {
@@ -35,7 +35,7 @@ class ThreadListScrollTooltip extends React.Component {
     if (this.state.item) {
       content = DateUtils.shortTimeString(this.state.item.lastMessageReceivedTimestamp);
     } else {
-      content = 'Loading...';
+      content = localized('Loading...');
     }
     return <div className="scroll-tooltip">{content}</div>;
   }

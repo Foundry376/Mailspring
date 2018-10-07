@@ -1,5 +1,5 @@
 import { RetinaImg } from 'mailspring-component-kit';
-import { React } from 'mailspring-exports';
+import { localized, localizedReactFragment, React } from 'mailspring-exports';
 
 export default class InitialPreferencesPage extends React.Component {
   static displayName = 'InitialPreferencesPage';
@@ -11,7 +11,7 @@ export default class InitialPreferencesPage extends React.Component {
   render() {
     return (
       <div className="page opaque initial-subscription" style={{ width: 900, height: 620 }}>
-        <h1 style={{ paddingTop: 100 }}>Go further with Mailspring Pro</h1>
+        <h1 style={{ paddingTop: 100 }}>{localized(`Go further with Mailspring Pro`)}</h1>
         <div
           style={{
             display: 'flex',
@@ -26,19 +26,21 @@ export default class InitialPreferencesPage extends React.Component {
             <div className="pro-feature-ring" style={{ marginRight: 40 }}>
               <RetinaImg name="pro-feature-ring.png" mode={RetinaImg.Mode.ContentPreserve} />
               <div className="price">$8</div>
-              <div className="period">monthly</div>
+              <div className="period">{localized(`Monthly`).toLocaleLowerCase()}</div>
             </div>
           </div>
           <div className="basic-explanation">
             <p>
-              You are using <strong>Mailspring Basic</strong>, which is free! You can link up to
-              four email accounts and try pro features like send later, read receipts and reminders
-              a few times a week.
+              {localizedReactFragment(
+                `You are using %@, which is free! You can link up to four email accounts and try pro features like send later, read receipts and reminders a few times a week.`,
+                <strong>Mailspring Basic</strong>
+              )}
             </p>
             <p>
-              If you enjoy Mailspring, upgrade to Mailspring Pro from{' '}
-              <strong>Preferences > Subscription</strong> to enable all these great features
-              permanently:
+              {localizedReactFragment(
+                `If you enjoy Mailspring, upgrade to Mailspring Pro from %@ to enable all these great features permanently:`,
+                <strong>{localized(`Preferences > Subscription`)}</strong>
+              )}
             </p>
             <div className="features">
               <ul>
@@ -47,35 +49,40 @@ export default class InitialPreferencesPage extends React.Component {
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Rich contact profiles
+                  />
+                  {localized(`Rich contact profiles`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Follow-up reminders
+                  />
+                  {localized(`Follow-up reminders`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Read receipts
+                  />
+                  {localized(`Read Receipts`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Link tracking
+                  />
+                  {localized(`Link tracking`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Powerful template support
+                  />
+                  {localized(`Powerful template support`)}
                 </li>
               </ul>
               <ul>
@@ -84,35 +91,40 @@ export default class InitialPreferencesPage extends React.Component {
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Send later
+                  />
+                  {localized(`Send Later`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Company overviews
+                  />
+                  {localized(`Company overviews`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Snooze messages
+                  />
+                  {localized(`Snooze messages`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Mailbox insights
+                  />
+                  {localized(`Mailbox insights`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />... and much more!
+                  />
+                  {localized(`... and much more!`)}
                 </li>
               </ul>
             </div>

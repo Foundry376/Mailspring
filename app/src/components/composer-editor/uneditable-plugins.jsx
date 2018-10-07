@@ -1,5 +1,6 @@
 import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
+import { localized } from 'mailspring-exports';
 
 export const UNEDITABLE_TYPE = 'uneditable';
 export const UNEDITABLE_TAGS = ['table', 'img', 'center', 'signature'];
@@ -24,7 +25,7 @@ function UneditableNode(props) {
         className="uneditable-remove"
       >
         <RetinaImg
-          title="Remove HTML"
+          title={localized('Remove HTML')}
           name="image-cancel-button.png"
           mode={RetinaImg.Mode.ContentPreserve}
         />

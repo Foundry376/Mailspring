@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
-import { Actions, FeatureUsageStore } from 'mailspring-exports';
+import { localized, Actions, FeatureUsageStore } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
 import SendLaterPopover from './send-later-popover';
@@ -73,7 +73,7 @@ class SendLaterButton extends Component {
     if (!currentSendLaterDate) {
       try {
         await FeatureUsageStore.markUsedOrUpgrade('send-later', {
-          usedUpHeader: 'All Scheduled Sends Used',
+          usedUpHeader: localized('All Scheduled Sends Used'),
           usagePhrase: 'schedule sending of',
           iconUrl: 'mailspring://send-later/assets/ic-send-later-modal@2x.png',
         });
@@ -121,7 +121,7 @@ class SendLaterButton extends Component {
       return (
         <button
           className={className}
-          title="Saving send date..."
+          title={localized('Saving send date...')}
           tabIndex={-1}
           style={{ order: -99 }}
         >
@@ -141,16 +141,18 @@ class SendLaterButton extends Component {
       className += ' btn-enabled';
       if (sendLaterDate > new Date()) {
         sendLaterLabel = (
-          <span className="at">Sending in {moment(sendLaterDate).fromNow(true)}</span>
+          <span className="at">
+            {localized('Sending in %@', moment(sendLaterDate).fromNow(true))}
+          </span>
         );
       } else {
-        sendLaterLabel = <span className="at">Sending now</span>;
+        sendLaterLabel = <span className="at">{localized('Sending now')}</span>;
       }
     }
     return (
       <button
         className={className}
-        title="Send later…"
+        title={localized('Send Later') + '…'}
         onClick={this.onClick}
         tabIndex={-1}
         style={{ order: -99 }}

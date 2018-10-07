@@ -1,4 +1,4 @@
-import { React, ReactDOM, Actions, PropTypes } from 'mailspring-exports';
+import { localized, React, ReactDOM, Actions, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import OpenTrackingMessagePopover from './open-tracking-message-popover';
 import { PLUGIN_ID } from './open-tracking-constants';
@@ -63,9 +63,13 @@ export default class OpenTrackingMessageStatus extends React.Component {
 
   render() {
     if (!this.state.hasMetadata) return false;
-    let openedCount = `${this.state.openCount} open${this.state.openCount === 1 ? '' : 's'}`;
-    if (this.state.openCount > 999) openedCount = '999+ opens';
-    const text = this.state.opened ? openedCount : 'No opens';
+    const noun = this.state.openCount === 1 ? localized('Open') : localized('Opens');
+    let count = this.state.openCount;
+    if (this.state.openCount > 999) {
+      count = '999+';
+    }
+
+    const text = this.state.opened ? `${count} ${noun.toLocaleLowerCase()}` : localized('No opens');
     return (
       <span
         className={`open-tracking-message-status ${this.state.opened ? 'opened' : 'unopened'}`}

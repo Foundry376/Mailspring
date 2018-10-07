@@ -4,7 +4,7 @@ export const LINK_TRACKING_ID = 'link-tracking';
 export function configForPluginId(id) {
   if (id === OPEN_TRACKING_ID) {
     return {
-      name: 'open',
+      name: 'open', // TODO LOCALIZATION
       verb: 'open',
       predicate: 'opened',
       iconName: 'icon-activity-mailopen.png',
