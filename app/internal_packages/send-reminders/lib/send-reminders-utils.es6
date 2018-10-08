@@ -2,18 +2,13 @@ import {
   Thread,
   Message,
   Actions,
+  localized,
   DatabaseStore,
   FeatureUsageStore,
   SyncbackMetadataTask,
 } from 'mailspring-exports';
 
 import { PLUGIN_ID } from './send-reminders-constants';
-
-const FEATURE_LEXICON = {
-  usedUpHeader: 'All Reminders Used',
-  usagePhrase: 'add reminders to',
-  iconUrl: 'mailspring://send-reminders/assets/ic-send-reminders-modal@2x.png',
-};
 
 export function reminderDateFor(draftOrThread) {
   return ((draftOrThread && draftOrThread.metadataForPluginId(PLUGIN_ID)) || {}).expiration;
@@ -24,7 +19,13 @@ async function incrementMetadataUse(model, expiration) {
     return true;
   }
   try {
-    await FeatureUsageStore.markUsedOrUpgrade(PLUGIN_ID, FEATURE_LEXICON);
+    await FeatureUsageStore.markUsedOrUpgrade(PLUGIN_ID, {
+      headerText: localized('All Reminders Used'),
+      rechargeText: `${localized(
+        `You can add reminders to %1$@ emails each %2$@ with Mailspring Basic.`
+      )} ${localized('Upgrade to Pro today!')}`,
+      iconUrl: 'mailspring://send-reminders/assets/ic-send-reminders-modal@2x.png',
+    });
   } catch (error) {
     if (error instanceof FeatureUsageStore.NoProAccessError) {
       return false;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Actions, IdentityStore } from 'mailspring-exports';
+import { Actions, IdentityStore, localized, localizedReactFragment } from 'mailspring-exports';
 import { OpenIdentityPageButton, BillingModal, RetinaImg } from 'mailspring-component-kit';
 import { shell } from 'electron';
 
@@ -75,18 +75,22 @@ class PreferencesIdentity extends React.Component {
       <div className="row padded">
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <div className="basic-explanation">
-            You are using <strong>Mailspring Basic</strong>, which is free! You can link up to four
-            email accounts and try pro features like snooze, send later, read receipts and reminders
-            a few times a week.{' '}
+            {localizedReactFragment(
+              `You are using %@, which is free! You can link up to four email accounts and try pro features like snooze, send later, read receipts and reminders a few times a week.`,
+              <strong>{localized('Mailspring Basic')}</strong>
+            )}
             <span className="platform-linux-only">
-              Mailspring is independent{' '}
-              <a href="https://github.com/Foundry376/Mailspring/">open source</a> software, and
-              subscription revenue allows us spend time maintaining and improving the product.
+              {localizedReactFragment(
+                `Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.`,
+                <a href="https://github.com/Foundry376/Mailspring/">{localized('open source')}</a>
+              )}
             </span>
             <br />
             <br />
-            Upgrade to <a onClick={onLearnMore}>Mailspring Pro</a> to use all these great features
-            permanently:
+            {localizedReactFragment(
+              `Upgrade to %@ to use all these great features permanently:`,
+              <a onClick={onLearnMore}>{localized('Mailspring Pro')}</a>
+            )}
             <div className="features">
               <ul>
                 <li>
@@ -94,35 +98,40 @@ class PreferencesIdentity extends React.Component {
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Rich contact profiles
+                  />
+                  {localized(`Rich contact profiles`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Follow-up reminders
+                  />
+                  {localized(`Follow-up reminders`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Read receipts
+                  />
+                  {localized(`Read Receipts`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Link tracking
+                  />
+                  {localized(`Link tracking`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Powerful template support
+                  />
+                  {localized(`Powerful template support`)}
                 </li>
               </ul>
               <ul>
@@ -131,35 +140,40 @@ class PreferencesIdentity extends React.Component {
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Send later
+                  />
+                  {localized(`Send Later`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Company overviews
+                  />
+                  {localized(`Company overviews`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Snooze messages
+                  />
+                  {localized(`Snooze messages`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />Mailbox insights
+                  />
+                  {localized(`Mailbox insights`)}
                 </li>
                 <li>
                   <RetinaImg
                     name="pro-feature-checkmark.png"
                     style={{ paddingRight: 8 }}
                     mode={RetinaImg.Mode.ContentDark}
-                  />... and much more!
+                  />
+                  {localized(`... and much more!`)}
                 </li>
               </ul>
             </div>
@@ -168,15 +182,15 @@ class PreferencesIdentity extends React.Component {
             <div className="pro-feature-ring">
               <RetinaImg name="pro-feature-ring.png" mode={RetinaImg.Mode.ContentPreserve} />
               <div className="price">$8</div>
-              <div className="period">monthly</div>
+              <div className="period">{localized('monthly')}</div>
             </div>
             <div
               className="btn btn-emphasis"
               onClick={this._onUpgrade}
               style={{ verticalAlign: 'top' }}
             >
-              <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} /> Get Mailspring
-              Pro
+              <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} />{' '}
+              {localized(`Get Mailspring Pro`)}
             </div>
           </div>
         </div>
@@ -185,11 +199,14 @@ class PreferencesIdentity extends React.Component {
   }
 
   _renderPaidPlan(planName, effectivePlanName) {
-    const planDisplayName = planName.replace('Annual', ' (Annual)');
+    const planDisplayName = planName.replace('Annual', ` (${localized('Annual')})`);
 
     const unpaidNote = effectivePlanName !== planName && (
       <p>
-        {`Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring ${effectivePlanName}. Click 'Billing' below to correct the issue.`}
+        {localized(
+          `Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring %@. Click 'Billing' below to correct the issue.`,
+          effectivePlanName
+        )}
       </p>
     );
     return (
@@ -246,7 +263,7 @@ class PreferencesIdentity extends React.Component {
                   campaign="Dashboard"
                 />
                 <div className="btn minor-width" onClick={logout}>
-                  Sign Out
+                  {localized('Sign Out')}
                 </div>
               </div>
             </div>

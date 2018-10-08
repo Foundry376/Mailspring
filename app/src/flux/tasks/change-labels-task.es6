@@ -32,40 +32,46 @@ export default class ChangeLabelsTask extends ChangeMailTask {
       return this.taskDescription;
     }
 
-    let countString = '';
-    if (this.threadIds.length > 1) {
-      countString = ` ${this.threadIds.length} threads`;
-    }
+    const withCount = str => {
+      if (this.threadIds.length > 1) {
+        return str.replace('%@', `${this.threadIds.length} ${localized('threads')}`);
+      }
+      return str.replace('%@ ', '');
+    };
 
     const removed = this.labelsToRemove[0];
     const added = this.labelsToAdd[0];
-
-    // TODO LOCALIZATION
 
     // Spam / trash interactions are always "moves" because they're the three
     // folders of Gmail. If another folder is involved, we need to decide to
     // return either "Moved to Bla" or "Added Bla".
     if (added && added.name === 'spam') {
-      return `Marked${countString} as Spam`;
+      return withCount(localized(`Marked %@ as Spam`));
     } else if (removed && removed.name === 'spam') {
-      return `Unmarked${countString} as Spam`;
+      return withCount(localized(`Unmarked %@ as Spam`));
     } else if (added && added.name === 'trash') {
-      return `Trashed${countString}`;
+      return withCount(localized(`Trashed %@`));
     } else if (removed && removed.name === 'trash') {
-      return `Removed${countString} from Trash`;
+      return withCount(localized(`Removed %@ from Trash`));
     }
     if (this.labelsToAdd.length === 0 && this.labelsToRemove.find(l => l.role === 'inbox')) {
-      return `Archived${countString}`;
+      return withCount(localized(`Archived %@`));
     } else if (this.labelsToRemove.length === 0 && this.labelsToAdd.find(l => l.role === 'inbox')) {
-      return `Unarchived${countString}`;
+      return withCount(localized(`Unarchived %@`));
     }
     if (this.labelsToAdd.length === 1 && this.labelsToRemove.length === 0) {
-      return `Added ${added.displayName}${countString ? ' to' : ''}${countString}`;
+      return this.threadIds.length > 1
+        ? localized(`Added %@ to %@ threads`, added.displayName, this.threadIds.length)
+        : localized(`Added %@`, added.displayName);
     }
     if (this.labelsToAdd.length === 0 && this.labelsToRemove.length === 1) {
-      return `Removed ${removed.displayName}${countString ? ' from' : ''}${countString}`;
+      return this.threadIds.length > 1
+        ? localized(`Removed %@ from %@ threads`, removed.displayName, this.threadIds.length)
+        : localized(`Removed %@`, added.displayName);
     }
-    return `Changed labels${countString ? ' on' : ''}${countString}`;
+    return this.threadIds.length > 1
+      ? localized(`Changed labels on %@ threads`, this.threadIds.length)
+      : localized(`Changed labels`);
   }
 
   _isArchive() {

@@ -247,8 +247,10 @@ export default class SidebarParticipantProfile extends React.Component {
   _onClickedToTry = async () => {
     try {
       await FeatureUsageStore.markUsedOrUpgrade('contact-profiles', {
-        usedUpHeader: localized('All Contact Previews Used'),
-        usagePhrase: localized('view contact profiles for'),
+        headerText: localized('All Contact Previews Used'),
+        rechargeText: `${localized(
+          `You can view contact profiles for %1$@ emails each %2$@ with Mailspring Basic.`
+        )} ${localized('Upgrade to Pro today!')}`,
         iconUrl: 'mailspring://participant-profile/assets/ic-contact-profile-modal@2x.png',
       });
     } catch (err) {

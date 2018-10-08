@@ -1,12 +1,14 @@
+import { localized } from 'mailspring-exports';
+
 export const OPEN_TRACKING_ID = 'open-tracking';
 export const LINK_TRACKING_ID = 'link-tracking';
 
 export function configForPluginId(id) {
   if (id === OPEN_TRACKING_ID) {
     return {
-      name: 'open', // TODO LOCALIZATION
-      verb: 'open',
-      predicate: 'opened',
+      name: 'open',
+      verb: localized('open'),
+      predicate: localized('opened'),
       iconName: 'icon-activity-mailopen.png',
       notificationInterval: 600000, // 60 minutes in ms
     };
@@ -14,8 +16,8 @@ export function configForPluginId(id) {
   if (id === LINK_TRACKING_ID) {
     return {
       name: 'link',
-      verb: 'click',
-      predicate: 'clicked',
+      verb: localized('click'),
+      predicate: localized('clicked'),
       iconName: 'icon-activity-linkopen.png',
       notificationInterval: 10000, // 10 seconds in ms
     };

@@ -156,8 +156,8 @@ class ActivityEventStore extends MailspringStore {
         ? action.recipient.displayName()
         : localized('Someone');
       NativeNotifications.displayNotification({
-        title: `New ${config.verb}`, // TODO LOCALIZATION
-        subtitle: `${recipientName} just ${config.predicate} ${action.title}`,
+        title: localized(`New %@`, config.verb),
+        subtitle: localized(`%@ recently %@ %@`, recipientName, config.predicate, action.title),
         onActivate: () => this.focusThread(action.threadId),
         tag: action.pluginId,
         canReply: false,

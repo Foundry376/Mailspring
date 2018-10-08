@@ -99,8 +99,10 @@ export default class MetadataComposerToggleButton extends React.Component {
     if (nextEnabled && !FeatureUsageStore.isUsable(pluginId)) {
       try {
         await FeatureUsageStore.displayUpgradeModal(pluginId, {
-          usedUpHeader: localized(`All used up!`),
-          usagePhrase: 'get open and click notifications for',
+          headerText: localized(`All used up!`),
+          rechargeText: `${localized(
+            `You can get open and click notifications for %1$@ emails each %2$@ with Mailspring Basic.`
+          )} ${localized('Upgrade to Pro today!')}`,
           iconUrl: `mailspring://${pluginId}/assets/ic-modal-image@2x.png`,
         });
       } catch (err) {

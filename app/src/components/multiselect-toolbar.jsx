@@ -27,14 +27,19 @@ class MultiselectToolbar extends Component {
   }
 
   selectionLabel = () => {
-    // TODO LOCALIZATION
     const { selectionCount, collection } = this.props;
-    if (selectionCount > 1) {
-      return `${selectionCount} ${collection}s selected`;
-    } else if (selectionCount === 1) {
-      return `${selectionCount} ${collection} selected`;
+    if (selectionCount === 0) {
+      return '';
     }
-    return '';
+
+    let noun = '';
+    if (collection === 'thread') {
+      noun = selectionCount > 1 ? localized('threads') : localized('thread');
+    } else if (collection === 'draft') {
+      noun = selectionCount > 1 ? localized('drafts') : localized('draft');
+    }
+
+    return localized(`%@ %@ selected`, selectionCount, noun);
   };
 
   renderToolbar() {

@@ -55,8 +55,10 @@ export default class ThreadSharingPopover extends React.Component {
       if (!this.state.url) {
         try {
           await FeatureUsageStore.markUsedOrUpgrade('thread-sharing', {
-            usedUpHeader: localized('All Sharing Links Used'),
-            usagePhrase: 'share',
+            headerText: localized('All Sharing Links Used'),
+            rechargeText: `${localized(
+              `You can share %1$@ emails each %2$@ with Mailspring Basic.`
+            )} ${localized('Upgrade to Pro today!')}`,
             iconUrl: 'mailspring://thread-sharing/assets/ic-modal-image@2x.png',
           });
         } catch (error) {

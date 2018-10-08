@@ -99,10 +99,18 @@ class SubmitLocalizationsBar extends React.Component {
     const { selecting, current, proposed } = this.state;
 
     return (
-      <div style={{ height: 40, background: 'moccasin' }}>
-        <div style={{ display: 'flex', alignItems: 'center', height: 40, padding: 10 }}>
-          <span style={{ marginRight: 10, flex: 1 }}>
-            {localized('Submit Improved Localizations')} ({window.navigator.language})
+      <div style={{ background: 'moccasin' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            height: 40,
+            padding: 10,
+            borderTop: `1px solid rgba(0,0,0,0.1)`,
+          }}
+        >
+          <span style={{ marginRight: 10, flex: 1, fontWeight: 500 }}>
+            {localized('Submit Improved Localizations')}
           </span>
           <button
             className="btn"
@@ -127,12 +135,28 @@ class SubmitLocalizationsBar extends React.Component {
             type="text"
             style={{ flex: 1 }}
             value={proposed}
-            placeholder={localized('Localized')}
+            placeholder={`${localized('Localized')} (${window.navigator.language})`}
             onChange={e => this.setState({ proposed: e.target.value })}
           />
           <button onClick={this.onSubmit} className="btn" type="submit" style={{ marginLeft: 10 }}>
             {localized('Submit')}
           </button>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            borderTop: `1px solid rgba(0,0,0,0.1)`,
+            fontSize: '0.9em',
+            padding: 10,
+          }}
+        >
+          <span style={{ marginRight: 10 }}>
+            {localized(
+              'Have a GitHub account? Want to contibute many translations? Contribute directly via a Pull Request!'
+            )}
+          </span>
+          <a>Learn More</a>
         </div>
       </div>
     );
@@ -145,7 +169,7 @@ export function activate() {
   AppEnv.commands.add(document.body, 'window:toggle-localizer-tools', () => {
     if (!visible) {
       ComponentRegistry.register(SubmitLocalizationsBar, {
-        location: WorkspaceStore.Sheet.Global.Header,
+        location: WorkspaceStore.Sheet.Global.Footer,
       });
     } else {
       ComponentRegistry.unregister(SubmitLocalizationsBar);
