@@ -1,12 +1,17 @@
 const fs = require('fs');
+const path = require('path');
 const React = process.type === 'renderer' ? require('react') : null;
+
 const locale =
   process.type === 'renderer' ? window.navigator.language : require('electron').app.getLocale();
 const lang = locale.split('-')[0] || 'en';
+const langsDir = path.join(__dirname, '..', 'lang');
 
 let localizations = {};
-if (fs.existsSync(__dirname + `/../lang/${lang}.json`)) {
-  localizations = require(__dirname + `/../lang/${lang}.json`);
+if (fs.existsSync(path.join(langsDir, `${locale}.json`))) {
+  localizations = require(path.join(langsDir, `${locale}.json`));
+} else if (fs.existsSync(path.join(langsDir, `${lang}.json`))) {
+  localizations = require(path.join(langsDir, `${lang}.json`));
 }
 
 export function localized(en, ...subs) {
