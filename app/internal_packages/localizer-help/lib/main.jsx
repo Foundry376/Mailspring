@@ -156,7 +156,9 @@ class SubmitLocalizationsBar extends React.Component {
               'Have a GitHub account? Want to contibute many translations? Contribute directly via a Pull Request!'
             )}
           </span>
-          <a>Learn More</a>
+          <a href="https://github.com/Foundry376/Mailspring/blob/master/LOCALIZATION.md">
+            Learn More
+          </a>
         </div>
       </div>
     );
