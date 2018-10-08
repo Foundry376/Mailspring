@@ -239,7 +239,7 @@ export default class WindowManager {
     coreWinOpts[WindowManager.ONBOARDING_WINDOW] = {
       windowKey: WindowManager.ONBOARDING_WINDOW,
       windowType: WindowManager.ONBOARDING_WINDOW,
-      title: localized('Account Setup'),
+      title: localized('Set up Account'),
       hidden: true, // Displayed by PageRouter::_initializeWindowSize
       frame: false, // Always false on Mac, explicitly set for Win & Linux
       toolbar: false,

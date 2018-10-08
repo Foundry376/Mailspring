@@ -34,12 +34,12 @@ class MultiselectToolbar extends Component {
 
     let noun = '';
     if (collection === 'thread') {
-      noun = selectionCount > 1 ? localized('threads') : localized('thread');
+      noun = selectionCount > 1 ? localized('Threads') : localized('Thread');
     } else if (collection === 'draft') {
-      noun = selectionCount > 1 ? localized('drafts') : localized('draft');
+      noun = selectionCount > 1 ? localized('Drafts') : localized('Draft');
     }
 
-    return localized(`%@ %@ selected`, selectionCount, noun);
+    return `${selectionCount} ${noun.toLocaleLowerCase()} ${localized(`selected`)}`;
   };
 
   renderToolbar() {

@@ -182,7 +182,7 @@ class PreferencesIdentity extends React.Component {
             <div className="pro-feature-ring">
               <RetinaImg name="pro-feature-ring.png" mode={RetinaImg.Mode.ContentPreserve} />
               <div className="price">$8</div>
-              <div className="period">{localized('monthly')}</div>
+              <div className="period">{localized('Monthly')}</div>
             </div>
             <div
               className="btn btn-emphasis"
@@ -199,7 +199,7 @@ class PreferencesIdentity extends React.Component {
   }
 
   _renderPaidPlan(planName, effectivePlanName) {
-    const planDisplayName = planName.replace('Annual', ` (${localized('Annual')})`);
+    const planDisplayName = planName.replace('Annual', ` (${localized('annual')})`);
 
     const unpaidNote = effectivePlanName !== planName && (
       <p>

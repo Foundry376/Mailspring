@@ -15,8 +15,10 @@
   "OK": "好",
   "Open": "開啟",
   "Paste": "貼上",
+  "Select file attachment": "選擇 檔案附件",
   "Share": "分享",
   "Stop": "停止",
   "Title": "大標題",
-  "Upgrade": "升級"
+  "Upgrade": "升級",
+  "selected": "已選擇"
 }

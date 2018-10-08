@@ -16,7 +16,7 @@ _Note: These translations are reviewed manually and a Mailspring maintainer will
 
 If you have a GitHub account, you can improve the localization files directly and submit a Pull Request! If you're interested in providing many translations, or translating things like network error messages you may not ever see yourself, this is the best bet. It also means you'll be recognized as a Mailspring contributor and the Mailspring project will appear on your GitHub profile!
 
-You'll find the localization files in [app/lang](https://github.com/Foundry376/Mailspring/tree/master/app/menus) named according to the "Language tag" standard. If you're not sure what language tag applies to your language, check the [ISO 639-1 lookup table](http://www.loc.gov/standards/iso639-2/php/English_list.php). To modify the file on GitHub and submit a pull request, click the "Pencil Icon" when viewing the file as shown [here](https://help.github.com/articles/editing-files-in-your-repository/).
+You'll find the localization files in [app/lang](https://github.com/Foundry376/Mailspring/tree/master/app/lang) named according to the "Language tag" standard. If you're not sure what language tag applies to your language, check the [ISO 639-1 lookup table](http://www.loc.gov/standards/iso639-2/php/English_list.php). To modify the file on GitHub and submit a pull request, click the "Pencil Icon" when viewing the file as shown [here](https://help.github.com/articles/editing-files-in-your-repository/).
 
 Each file contains a JSON dictionary mapping an English string to a translated string. For example:
 

@@ -8,7 +8,7 @@ export function configForPluginId(id) {
     return {
       name: 'open',
       verb: localized('open'),
-      predicate: localized('opened'),
+      predicate: localized('Opened').toLocaleLowerCase(),
       iconName: 'icon-activity-mailopen.png',
       notificationInterval: 600000, // 60 minutes in ms
     };
@@ -17,7 +17,7 @@ export function configForPluginId(id) {
     return {
       name: 'link',
       verb: localized('click'),
-      predicate: localized('clicked'),
+      predicate: localized('Clicked').toLocaleLowerCase(),
       iconName: 'icon-activity-linkopen.png',
       notificationInterval: 10000, // 10 seconds in ms
     };

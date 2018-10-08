@@ -19,14 +19,19 @@
   "Inbox": "ইনবক্স",
   "Name": "নাম",
   "No": "না (o)",
+  "No valid server found.": "সার্ভার পাওয়া যায়নি.",
   "Open In Browser": "ব্রাউজারে খোলা হবে (O)",
   "Password": "পাসওয়ার্ড",
   "Perform these actions:": "এই কর্ম সঞ্চালন:",
   "Quit": "প্রস্থান (Q)",
   "Reading": "পড়া হচ্ছে",
+  "Remove HTML": "Remove HTML",
   "Rename": "পুনরায় নামকরণ (R)",
   "Reset": "পুনঃনির্ধারণ (R)",
   "Search": "অনুসন্ধান",
+  "Select All Read": "Select All Read",
+  "Select All Starred": "Select All স্টারকৃত",
+  "Select All Unread": "Select All অপঠিত",
   "Selected Messages": "নির্বাচিত বার্তা",
   "Services": "সেবা",
   "Show All": "সব প্রদর্শিত হবে",
@@ -36,5 +41,7 @@
   "Unread": "অপঠিত",
   "Yes": "হ্যাঁ (e)",
   "Zoom": "বড় আকারে প্রদর্শন (Z)",
-  "seconds": "সেকেন্ড"
+  "seconds": "সেকেন্ড",
+  "then": "then",
+  "threads": "threads"
 }

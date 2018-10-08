@@ -15,8 +15,10 @@
   "OK": "好",
   "Open": "打开",
   "Paste": "粘贴",
+  "Select file attachment": "选择 文件附件",
   "Share": "共享",
   "Stop": "停止",
   "Title": "标题",
-  "Upgrade": "升级"
+  "Upgrade": "升级",
+  "selected": "已选择"
 }

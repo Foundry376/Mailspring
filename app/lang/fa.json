@@ -10,6 +10,7 @@
   "Cut": "بریدن",
   "Date": "تاریخ",
   "Delete": "حذف",
+  "Downloading Update": "در حال دریافت به‌روزرسانی",
   "Edit": "ویرایش",
   "Email": "پست الکترونیکی",
   "Exit": "خروج",
@@ -37,12 +38,16 @@
   "Redo": "از نو",
   "Reload": "بازآوردن",
   "Remove": "حذف",
+  "Remove HTML": "حذف HTML",
   "Rename": "تغییر نام",
   "Reply": "پاسخ دادن",
   "Restore Defaults": "احیای تنظیمات پیش‌فرض",
   "Search": "جست‌وجو",
   "Security": "امنیت",
   "Select All": "انتخاب همه",
+  "Select All Read": "انتخاب همه Read",
+  "Select All Starred": "انتخاب همه Starred",
+  "Select All Unread": "انتخاب همه Unread",
   "Selection": "انتخاب",
   "Services": "خدمات",
   "Show All": "نشان دادن همه",
@@ -55,5 +60,7 @@
   "View": "نما",
   "Window": "پنجره",
   "Yes": "بله",
-  "Zoom": "زوم"
+  "Zoom": "زوم",
+  "then": "then",
+  "threads": "threads"
 }

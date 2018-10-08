@@ -36,8 +36,8 @@ class SubmitLocalizationsBar extends React.Component {
         remote.dialog.showMessageBox({
           type: 'info',
           buttons: [localized('OK')],
-          message: localized('Thank You!'),
-          title: localized('Thank You!'),
+          message: localized('Thank you!'),
+          title: localized('Thank you!'),
           detail: localized(
             `Your updated localization will be reviewed and included in a future version of Mailspring.`
           ),

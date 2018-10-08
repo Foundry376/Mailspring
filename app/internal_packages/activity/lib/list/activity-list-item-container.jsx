@@ -47,9 +47,12 @@ class ActivityListItemContainer extends React.Component {
       }
       if (people.length === 1) text.recipient = people[0].displayName();
       else if (people.length === 2)
-        text.recipient = localized('%@ and 1 other', people[0].displayName());
+        text.recipient = `${people[0].displayName()} ${localized('and')} ${localized('1 other')}`;
       else
-        text.recipient = localized('%@ and %@ others', people[0].displayName(), people.length - 1);
+        text.recipient = `${people[0].displayName()} ${localized('and')} ${localized(
+          '%@ others',
+          people.length - 1
+        )}`;
     }
     if (lastAction.title) text.title = lastAction.title;
     text.date.setUTCSeconds(lastAction.timestamp);
