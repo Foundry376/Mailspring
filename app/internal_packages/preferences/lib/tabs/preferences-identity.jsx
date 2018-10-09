@@ -42,63 +42,81 @@ const ProTourFeatures = [
     link:
       'https://foundry376.zendesk.com/hc/en-us/articles/115003340291--Add-reminders-to-sent-messages',
     icon: `icon-composer-reminders.png`,
-    title: `Reminders`,
-    text: `Never forget to follow up! Mailspring reminds you if your messages haven't received replies.`,
+    title: localized(`Follow-up reminders`),
+    text: localized(
+      `Never forget to follow up! Mailspring reminds you if your messages haven't received replies.`
+    ),
   },
   {
     link:
       'https://foundry376.zendesk.com/hc/en-us/articles/115001881272--View-contact-and-company-profiles',
     icon: `toolbar-person-sidebar.png`,
-    title: `Rich contact profiles`,
-    text: `Write better emails with LinkedIn profiles, Twitter bios, message history, and more in the right sidebar.`,
+    title: localized(`Rich contact profiles`),
+    text: localized(
+      `Write better emails with LinkedIn profiles, Twitter bios, message history, and more in the right sidebar.`
+    ),
   },
   {
     link:
       'https://foundry376.zendesk.com/hc/en-us/articles/115001875431--Enable-read-receipts-link-tracking-and-notifications',
     icon: `icon-composer-eye.png`,
-    title: `Read receipts`,
-    text: `Get notified when each recipient opens your email to send timely follow-ups and reminders.`,
+    title: localized(`Read Receipts`),
+    text: localized(
+      `Get notified when each recipient opens your email to send timely follow-ups and reminders.`
+    ),
   },
   {
     link:
       'https://foundry376.zendesk.com/hc/en-us/articles/115001875231--Reply-faster-with-email-templates',
     icon: `toolbar-templates.png`,
-    title: `Mail Templates`,
-    text: `Create templated messages and fill them quickly to reply to messages and automate your common workflows.`,
+    title: localized(`Mail Templates`),
+    text: localized(
+      `Create templated messages and fill them quickly to reply to messages and automate your common workflows.`
+    ),
   },
   {
     link:
       'https://foundry376.zendesk.com/hc/en-us/articles/115001875431--Enable-read-receipts-link-tracking-and-notifications',
     icon: `icon-composer-linktracking.png`,
-    title: `Link tracking`,
-    text: `See when recipients click links in your emails so you can follow up with precision`,
+    title: localized(`Link tracking`),
+    text: localized(
+      `See when recipients click links in your emails so you can follow up with precision`
+    ),
   },
   {
     link:
       'https://foundry376.zendesk.com/hc/en-us/articles/115001882012--Schedule-messages-to-send-later',
     icon: `icon-composer-sendlater.png`,
-    title: `Send later`,
-    text: `Schedule messages to send at the ideal time to maximize your email reply rate or automate drip emails.`,
+    title: localized(`Send Later`),
+    text: localized(
+      `Schedule messages to send at the ideal time to maximize your email reply rate or automate drip emails.`
+    ),
   },
   {
     link:
       'https://foundry376.zendesk.com/hc/en-us/articles/115001881272--View-contact-and-company-profiles',
     icon: `icon-composer-reminders.png`,
-    title: `Company overviews`,
-    text: `See detailed information about companies you email, including their size, funding and timezone.`,
+    title: localized(`Company overviews`),
+    text: localized(
+      `See detailed information about companies you email, including their size, funding and timezone.`
+    ),
   },
   {
     link:
       'https://foundry376.zendesk.com/hc/en-us/articles/115001881232--Snooze-emails-to-handle-them-later',
     icon: `toolbar-snooze.png`,
-    title: `Snooze messages`,
-    text: `Schedule messages to re-appear later to keep your inbox clean and focus on immediate todos.`,
+    title: localized(`Snooze messages`),
+    text: localized(
+      `Schedule messages to re-appear later to keep your inbox clean and focus on immediate todos.`
+    ),
   },
   {
     link: 'https://foundry376.zendesk.com/hc/en-us/articles/115002507891-Activity-Reports-In-Depth',
     icon: `icon-toolbar-activity.png`,
-    title: `Mailbox insights`,
-    text: `Use the Activity tab to get a birds-eye view of your mailbox: open and click rates, subject line effectiveness, and more.`,
+    title: localized(`Mailbox insights`),
+    text: localized(
+      `Use the Activity tab to get a birds-eye view of your mailbox: open and click rates, subject line effectiveness, and more.`
+    ),
   },
 ];
 
@@ -277,17 +295,18 @@ class PreferencesIdentity extends React.Component {
     return (
       <div className="row padded">
         <div>
-          Thank you for using{' '}
-          <strong style={{ textTransform: 'capitalize' }}>{`Mailspring ${planDisplayName}`}</strong>{' '}
-          and supporting independent software. Get the most out of your subscription: explore pro
-          features below or visit the{' '}
-          <a href="https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started">
-            Help Center
-          </a>{' '}
-          to learn more about reminders, templates, activity insights, and more.
+          {localizedReactFragment(
+            `Thank you for using %@ and supporting independent software. Get the most out of your subscription: explore pro features below or visit the %@ to learn more about reminders, templates, activity insights, and more.`,
+            <strong
+              style={{ textTransform: 'capitalize' }}
+            >{`Mailspring ${planDisplayName}`}</strong>,
+            <a href="https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started">
+              {localized(`Help Center`)}
+            </a>
+          )}
           {unpaidNote}
         </div>
-        <div className="feature-explore-title">Explore Mailspring Pro</div>
+        <div className="feature-explore-title">{localized('Explore Mailspring Pro')}</div>
         <div className="feature-explore-grid">
           {ProTourFeatures.map(item => (
             <a key={item.title} className="feature" href={item.link}>
@@ -308,7 +327,7 @@ class PreferencesIdentity extends React.Component {
         </div>
         <div style={{ paddingTop: 15 }}>
           <OpenIdentityPageButton
-            label="Manage Billing"
+            label={localized('Manage Billing')}
             path="/dashboard#billing"
             source="Preferences Billing"
             campaign="Dashboard"
@@ -342,7 +361,7 @@ class PreferencesIdentity extends React.Component {
               <div className="email">{emailAddress}</div>
               <div className="identity-actions">
                 <OpenIdentityPageButton
-                  label="Account Details"
+                  label={localized('Account Details')}
                   path="/dashboard"
                   source="Preferences"
                   campaign="Dashboard"
