@@ -8,10 +8,16 @@ const lang = locale.split('-')[0] || 'en';
 const langsDir = path.join(__dirname, '..', 'lang');
 
 let localizations = {};
-if (fs.existsSync(path.join(langsDir, `${locale}.json`))) {
-  localizations = require(path.join(langsDir, `${locale}.json`));
-} else if (fs.existsSync(path.join(langsDir, `${lang}.json`))) {
+
+// Load localizations for the base language (eg: `zh`)
+if (fs.existsSync(path.join(langsDir, `${lang}.json`))) {
   localizations = require(path.join(langsDir, `${lang}.json`));
+}
+
+// Load localizations for the full locale if present (eg: `zh-CN`)
+// and override base localizations with the more specific regional ones.
+if (fs.existsSync(path.join(langsDir, `${locale}.json`))) {
+  localizations = Object.assign(localizations, require(path.join(langsDir, `${locale}.json`)));
 }
 
 export function localized(en, ...subs) {

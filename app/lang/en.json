@@ -1,10 +1,10 @@
 {
   "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.",
+  "%1$@ of %2$@": "%1$@ of %2$@",
   "%@ cannot be attached because it is larger than 25MB.": "%@ cannot be attached because it is larger than 25MB.",
   "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.",
   "%@ is a directory. Try compressing it and attaching it again.": "%@ is a directory. Try compressing it and attaching it again.",
   "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ messages in this thread are hidden because it was moved to trash or spam.",
-  "%@ of %@": "%@ of %@",
   "%@ others": "%@ others",
   "%@ recently %@ %@": "%@ recently %@ %@",
   "(No Recipients)": "(No Recipients)",

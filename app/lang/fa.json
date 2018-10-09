@@ -1,66 +1,901 @@
 {
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"راه اندازی سیستم شروع\" تنها در محیط دسکتاپ سازگار با XDG کار می کند. برای فعال کردن آیکون Mailspring در سینی سیستم، ممکن است نیاز به نصب libappindicator داشته باشید.",
+  "%1$@ of %2$@": "%1$@ از %2$@",
+  "%@ cannot be attached because it is larger than 25MB.": "%@ نمی تواند متصل شود چرا که آن بزرگتر از 25MB است.",
+  "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ نصب و فعال شده است. بدون نیاز به راه اندازی مجدد! اگر پلاگین را بارگیری نکنید، کنسول را برای خطاها بررسی کنید.",
+  "%@ is a directory. Try compressing it and attaching it again.": "%@ دایرکتوری است. سعی کنید آن را فشرده کنید و دوباره آن را ببندید.",
+  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ پیام های این موضوع پنهان شده اند زیرا به سطل زباله یا هرزنامه منتقل شده اند.",
+  "%@ others": "%@ دیگران",
+  "%@ recently %@ %@": "%@ به تازگی %@ %@",
+  "(No Recipients)": "(بدون دریافت کنندگان)",
+  "(No Subject)": "(بدون موضوع)",
+  "(Requires supported window manager. Press `Alt` to show menu.)": "(نیاز به مدیریت پنجره پشتیبانی شده است. برای نمایش منو، دکمه Alt را فشار دهید.)",
+  "... and much more!": "... و خیلی بیشتر!",
+  "1 other": "1 دیگر",
+  "A Gmail application-specific password is required.": "یک رمز عبور مخصوص Gmail درخواست شده است.",
+  "A new version is available!": "نسخه جدید در دسترس است!",
+  "About Mailspring": "درباره Mailspring",
+  "Accept": "تایید کنید",
+  "Account": "حساب",
+  "Account Details": "جزئیات حساب",
+  "Account Label": "برچسب حساب",
+  "Account Settings": "تنظیمات حساب",
+  "Accounts": "حساب ها",
+  "Actions": "اقدامات",
+  "Activity": "فعالیت",
+  "Activity View": "نمایش فعالیت",
+  "Add Account": "اضافه کردن حساب",
+  "Add your %@ account": "حساب %@ خود را اضافه کنید",
+  "Added %@": "اضافه شده %@",
+  "Added %@ to %@ threads": "اضافه شده %@ به %@ موضوعات",
+  "Adding account": "افزودن حساب",
+  "Adding your account to Mailspring…": "افزودن حساب کاربری خود به Mailspring ...",
+  "Address": "نشانی",
+  "After %@ Seconds": "پس از %@ ثانیه",
+  "After sending, enable undo for": "پس از ارسال، فعال کردن لغو برای",
+  "Aliases": "نام مستعار",
   "All": "همه",
+  "All Accounts": "همه حسابها",
+  "All Contact Previews Used": "همه پیشنمایش تماس استفاده شده است",
+  "All Mail": "همه ایمیل",
+  "All Reminders Used": "تمام یادآوری های مورد استفاده",
+  "All Scheduled Sends Used": "همه برنامه ریزی شده ارسال شده استفاده می شود",
+  "All Sharing Links Used": "همه اشتراک های استفاده شده",
+  "All Snoozes Used": "همه Snoozes استفاده می شود",
+  "All used up!": "همه استفاده می شود!",
+  "Allow insecure SSL": "اجازه SSL ناامن",
+  "Always show images from %@": "همیشه تصاویر را از %@ نشان می دهد",
+  "An error has occurred": "خطایی رخ داده است",
+  "An unknown error has occurred": "خطایی ناشناخته اتفاق افتاده است",
+  "An update to Mailspring is available %@": "به روز رسانی Mailspring در دسترس است %@",
+  "Any": "هرکسی",
+  "App Password": "رمز عبور برنامه",
+  "Appearance": "ظاهر",
+  "Application": "کاربرد",
+  "Apply Label": "برچسب اعمال کنید",
+  "Apply Layout": "طرح بندی را اعمال کنید",
+  "Applying changes...": "اعمال تغییرات ...",
+  "Applying labels": "اعمال برچسب ها",
+  "Archive": "بایگانی",
+  "Archived %@": "بایگانی شده %@",
+  "Are you sure?": "شما مطمئن هستید؟",
+  "Attach File": "ضمیمه فایل",
+  "Attach Mailsync to Xcode": "ضمیمه Mailsync به Xcode",
+  "Attachment name": "نام تأیید",
+  "Attachments": "پیوست ها",
+  "Authentication Error - Check your username and password.": "خطای تایید - نام کاربری و رمز عبور خود را بررسی کنید.",
+  "Authentication required.": "احراز هویت مورد نیاز است",
+  "Automatic CC / BCC": "خودکار CC / BCC",
+  "Automatically load images in viewed messages": "تصاویر را در پیام های مشاهده بارگیری کنید",
   "Back": "عقب",
+  "Bcc": "سی سی سی",
+  "Best Templates and Subject Lines": "بهترین الگوها و خطوط موضوع",
+  "Body": "بدن",
   "Bring All to Front": "آوردن همه به جلو",
+  "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.": "به طور پیش فرض، مقررات پست الکترونیکی فقط در مورد پست الکترونیکی جدید به هنگام ورود به آن اعمال می شود. اعمال قوانین به کل صندوق ورودی شما ممکن است طول بکشد و عملکرد را کاهش دهد.",
+  "Caching mail": "نامه ذخیره شده",
+  "Caching recent mail": "ایمیل های اخیر ذخیره شده",
+  "Can't find the selected thread in your mailbox": "موضوع انتخاب شده در صندوق پستی شما پیدا نشد",
   "Cancel": "انصراف",
+  "Cancel Send Later": "لغو ارسال بعدا",
+  "Cannot scan templates directory": "نمی توانم دایرکتوری قالب را اسکن کنم",
+  "Cannot send message": "نمی توانم پیام بفرستم",
+  "Cc": "سی سی",
+  "Certificate Error": "خطای Certificate",
+  "Change Folder": "تغییر پوشه",
+  "Change Labels": "تغییر برچسب ها",
+  "Change Theme": "تغییر زمینه",
+  "Change Theme...": "تغییر زمینه...",
+  "Changed labels": "برچسب ها را تغییر داد",
+  "Changed labels on %@ threads": "برچسب ها را بر روی %@ موضوعات تغییر داد",
+  "Changes are saved automatically. View the %@ for tips and tricks.": "تغییرات به صورت خودکار ذخیره می شوند. %@ برای نکات و ترفندها را مشاهده کنید.",
+  "Changing folder mapping...": "تغییر نقشه پوشه ...",
+  "Check Again": "دوباره بررسی کن",
   "Check for Updates": "بررسی برای بروزرسانی‌ها",
+  "Check messages for spelling": "پیام ها را برای املایی بررسی کنید",
+  "Checking": "چک کردن",
+  "Checking for mail": "بررسی ایمیل",
+  "Choose": "انتخاب کنید",
+  "Choose Directory": "دایرکتوری را انتخاب کنید",
+  "Choose an image": "یک تصویر را انتخاب کنید",
+  "Choose folder": "پوشه را انتخاب کنید",
+  "Choose folder or label": "پوشه یا برچسب را انتخاب کنید",
+  "Cleanup Complete": "پاکسازی کامل",
+  "Cleanup Error": "خطای پاک کردن",
+  "Cleanup Started": "پاکسازی شروع شده است",
+  "Clear Selection": "پاک کردن انتخاب",
+  "Clear reminder": "یادآوری پاک کن",
+  "Click 'Learn More' to view instructions in our knowledge base.": "برای دیدن دستورالعمل ها در پایگاه دانش ما کلیک کنید 'Learn More'.",
+  "Click any theme to apply:": "روی هر تم کلیک کنید",
+  "Click shortcuts above to edit them. For even more control, you can edit the shortcuts file directly below.": "برای ویرایش آنها روی میانبرهای بالا کلیک کنید. برای کنترل بیشتر، می توانید فایل های میانبر را به طور مستقیم در زیر ویرایش کنید.",
+  "Click to replace": "کلیک کنید تا جایگزین شود",
+  "Click to upload": "برای آپلود کلیک کنید",
+  "Clicked": "کلیک کرد",
+  "Clicked by:": "کلیک شده توسط:",
+  "Close Window": "پنجره بسته",
+  "Collapse": "سقوط - فروپاشی",
+  "Collapse All": "سقوط همه",
+  "Combine your search queries with Gmail-style terms like %@ and %@ to find anything in your mailbox.": "پیغام های جستجو خود را با اصطلاحات جیمیل مانند %@ و %@ ترکیب کنید تا هر چیزی را در صندوق پستی خود پیدا کنید.",
+  "Comma-separated email addresses": "آدرس ایمیل جدا شده از طريق کاما",
+  "Company / Domain Logo": "لوگو شرکت / دامنه",
+  "Company overviews": "نمای کلی شرکت",
+  "Complete the IMAP and SMTP settings below to connect your account.": "برای اتصال حساب کاربری خود، تنظیمات IMAP و SMTP زیر را تکمیل کنید.",
+  "Compose New Message": "نوشتن پیام جدید",
+  "Compose new message": "نوشتن پیام جدید",
+  "Compose with context": "نوشتن با متن",
+  "Composer": "آهنگساز",
+  "Composing": "ساختن",
+  "Connect Account": "اتصال حساب",
+  "Connect an email account": "یک حساب ایمیل ایجاد کنید",
+  "Connecting to %@…": "اتصال به %@",
+  "Connection Error - Unable to connect to the server / port you provided.": "خطای اتصال - اتصال به سرور / پورت ارائه شده امکان پذیر نیست",
   "Continue": "ادامه",
+  "Copied": "کپی شده",
   "Copy": "رونوشت برداشتن",
+  "Copy Debug Info to Clipboard": "کپی اطلاعات اشکال زدایی به کلیپ بورد",
   "Copy Email Address": "رونوشت برداشتن از نشانی پست الکترونیکی",
+  "Copy Image": "کپی تصویر",
+  "Copy Link Address": "کپی آدرس لینک",
+  "Copy link": "لینک کپی کنید",
+  "Could not create folder.": "پوشه ایجاد نشد",
+  "Could not create plugin": "پلاگین نمیتواند ایجاد کند",
+  "Could not find a file at path '%@'": "یک فایل در مسیر یافت نشد ['❌]'",
+  "Could not install plugin": "پلاگین نصب نشد",
+  "Could not reach %@. %@": "نمیتوانستم به %@ بروم %@",
+  "Could not reach Mailspring. Please try again or contact support@getmailspring.com if the issue persists. (%@: %@)": "نمی توانستم به Mailspring بروم لطفا دوباره امتحان کنید یا اگر این مشکل همچنان ادامه دارد، با support@getmailspring.com تماس بگیرید. (%@: %@)",
+  "Could not reset accounts and settings. Please delete the folder %@ manually.\\n\\n%@": "حسابها و تنظیمات مجددا تنظیم نشد لطفا پوشه %@ manually.\\n\\n %@ را حذف کنید",
+  "Create": "ايجاد كردن",
+  "Create a Plugin": "یک پلاگین ایجاد کنید",
+  "Create a Theme": "یک تم ایجاد کنید",
+  "Create a new Rule": "یک قانون جدید ایجاد کنید",
+  "Create a rule or select one to get started": "یک قانون ایجاد کنید یا یکی را انتخاب کنید تا شروع شود",
+  "Create new item": "ایجاد یک آیتم جدید",
+  "Create templated messages and fill them quickly to reply to messages and automate your common workflows.": "ایجاد پیام های قالب شده و به سرعت آنها را برای پاسخ دادن به پیام ها پر کرده و کارهای رایج خود را به صورت خودکار انجام دهید.",
+  "Creating %@": "ایجاد %@",
+  "Custom": "سفارشی",
+  "Custom Image…": "تصویر سفارشی ...",
+  "Custom Window Frame and Right-hand Menu": "قاب سفارشی پنجره و منوی راست دست",
+  "Customization": "سفارشی سازی",
   "Cut": "بریدن",
   "Date": "تاریخ",
+  "Decline": "کاهش می یابد",
+  "Default": "پیش فرض",
+  "Default Window Controls and Auto-hiding Menubar": "پیش فرض کنترل پنجره و منو بطور خودکار مخفی کردن",
+  "Default Window Controls and Menubar": "پیش فرض کنترل پنجره و منوبار",
+  "Default for new messages:": "پیش فرض برای پیام های جدید:",
+  "Default for:": "پیش فرض برای:",
+  "Default reply behavior": "رفتار پیش فرض پاسخ",
   "Delete": "حذف",
+  "Delete Draft": "حذف پیش نویس",
+  "Delete Template?": "قالب را حذف کنید؟",
+  "Delete your custom key bindings and reset to the template defaults?": "پیوندهای کلید سفارشی خود را حذف کنید و تنظیمات پیش فرض را بازنشانی کنید؟",
+  "Deleted": "حذف شده",
+  "Deleting %@": "حذف %@",
+  "Deleting all messages in %@": "حذف همه پیام ها در %@",
+  "Deleting draft": "حذف پیش نویس",
+  "Deselect all conversations": "تمام مکالمات را انتخاب کنید",
+  "Developer": "توسعهدهنده",
+  "Disable": "غیرفعال کردن",
+  "Dismiss": "رد",
+  "Display conversations in descending chronological order": "نمایش مکالمات در ترتیب نزولی chronological",
+  "Display thumbnail previews for attachments when available. (macOS only)": "نمایش پیش نمایش تصاویر کوچک برای فایلهای پیوست در صورت موجود بودن. (فقط macOS)",
+  "Do you prefer a single panel layout (like Gmail) or a two panel layout?": "آیا یک طرح پانل تنها (مانند Gmail) یا طرح دو پانل را ترجیح می دهید؟",
+  "Don’t show this again": "این را دوباره نشان ندهید",
+  "Download All": "دانلود همه",
+  "Download Failed": "دانلود نشد",
+  "Download Now": "الان دانلود کن",
   "Downloading Update": "در حال دریافت به‌روزرسانی",
+  "Dozens of other features!": "ده ها ویژگی دیگر!",
+  "Draft": "پیش نویس",
+  "Drafts": "پیش نویس",
+  "Drafts folder not found": "پوشه ی پیش نویس یافت نشد",
+  "Drop to Attach": "قطره به ضمیمه",
   "Edit": "ویرایش",
+  "Edit Item": "ویرایش آیتم",
+  "Edit Message": "ویرایش پیام",
+  "Edit Reminder": "ویرایش یادآوری",
+  "Edit Signatures...": "ویرایش امضا ...",
+  "Edit custom shortcuts": "ویرایش میانبرهای سفارشی",
   "Email": "پست الکترونیکی",
+  "Email Address": "آدرس ایمیل",
+  "Empty": "خالی",
+  "Empty %@ now": "خالی %@ حالا",
+  "Enable": "فعال کردن",
+  "Enable read receipts %@ or link tracking %@ to see notifications here.": "برای دیدن اعلان ها اینجا را کلیک کنید %@ یا ردیابی پیوند %@ خوانده شده را امتحان کنید.",
+  "Enable verbose IMAP / SMTP logging": "ورود مجدد IMAP / SMTP فعال را فعال کنید",
+  "Encountered an error while syncing %@": "در هنگام همگامسازی با یک خطا مواجه شد %@",
+  "Enter Full Screen": "ورود به حالت تمام صفحه",
+  "Enter your email account credentials to get started.": "برای شروع به حساب کاربری حساب کاربری خود وارد کنید",
+  "Enter your email account credentials to get started. Mailspring\\nstores your email password securely and it is never sent to our servers.": "برای شروع به حساب کاربری حساب کاربری خود وارد کنید Mailspring \\n رمز عبور ایمیل شما را به صورت ایمن ذخیره می کند و هرگز به سرور های ما ارسال نمی شود.",
+  "Error": "خطا",
+  "Event": "رویداد",
+  "Existing": "موجود است",
   "Exit": "خروج",
+  "Exit Full Screen": "خروج از تمام صفحه",
+  "Expand / collapse conversation": "مکالمه گسترش / فروپاشی",
+  "Expand All": "گسترش همه",
+  "Explore Mailspring Pro": "کاوش Mailspring طرفدار",
+  "Export Failed": "صادرات خراب شد",
+  "Export Raw Data": "صادرات داده های خام",
+  "Facebook URL": "URL فیس بوک",
+  "Failed to load \"%@\"": "بارگیری نشد \"%@\"",
+  "Failed to load config.json: %@": "بارگیری config.json بارگیری نشد: %@",
+  "Failed to save \"%@\"": "نتوانست \"%@\" را ذخیره کند",
+  "Failed to save config.json: %@": "ذخیره config.json ذخیره نشد: %@",
+  "False": "نادرست",
+  "Fax": "فکس",
+  "Feedback": "بازخورد",
   "File": "پرونده",
   "Find": "پیدا کردن",
+  "Find Next": "بعدی را پیدا کنید",
   "Find Previous": "پیدا کردن قبلی",
+  "Find in Mailbox": "در صندوق پستی پیدا کنید",
+  "Find in Thread": "در موضوع پیدا کنید",
+  "Find in thread": "در موضوع پیدا کنید",
+  "Flags": "پرچم ها",
+  "Focus the %@ field": "فضای %@ را تمرکز کنید",
+  "Folder": "پوشه",
+  "Folders": "پوشه ها",
+  "Follow-up reminders": "یادآورهای پیگیری",
+  "Food and Drink": "غذا و نوشیدنی",
   "Forward": "جلو",
+  "Forwarded Message": "پیام منتقل شده",
+  "Frequently Used": "اغلب مورد استفاده قرار می گیرد",
+  "From": "از جانب",
+  "GMX requires that you %@ before using email clients like Mailspring.": "GMX نیاز شما را به %@ قبل از استفاده از مشتریان ایمیل مانند Mailspring.",
   "General": "عمومی",
+  "Get Mailspring Pro": "دریافت نرم افزار Mailspring",
+  "Get Started": "شروع کنید",
+  "Get notified when each recipient opens your email to send timely follow-ups and reminders.": "مطلع شوید که هر گیرنده ایمیل خود را برای ارسال پیگیری های طولانی و یادآوری ها باز می کند.",
+  "Get reminded if you don't receive a reply for this message within a specified time.": "در صورتی که پاسخی برای این پیام در یک زمان معین دریافت نکنید، یادآوری کنید.",
+  "Get reminded!": "دریافت یادآوری",
+  "Give your draft a subject to name your template.": "پیشنویس یک موضوع برای نامگذاری قالب شما.",
+  "Gmail IMAP is not enabled. Visit Gmail settings to turn it on.": "Gmail IMAP فعال نیست برای تنظیم آن به تنظیمات Gmail مراجعه کنید.",
+  "Gmail Remove from view": "Gmail از بیننده را حذف کنید",
+  "Gmail bandwidth exceeded. Please try again later.": "پهنای باند Gmail بیش از حد است لطفا بعدا دوباره امتحان کنید",
+  "Go Back": "برگرد",
+  "Go further with Mailspring Pro": "بیشتر با Mailspring Pro بروید",
+  "Go to %@": "برو به %@",
+  "Got it!": "فهمیدم!",
+  "Gravatar Profile Photo": "عکس عکس گراواتوره",
+  "Handle it later!": "بعدا آن را اداره کنید",
+  "Have a GitHub account? Want to contibute many translations? Contribute directly via a Pull Request!": "یک حساب GitHub دارید؟ آیا می خواهید بسیاری از ترجمه ها را متوقف کنید؟ مستقیما از طریق درخواست کشیدن کمک کنید!",
+  "Have you enabled access through Yahoo?": "آیا شما دسترسی یاهو را فعال کرده اید؟",
   "Help": "راهنما",
+  "Help Center": "مرکز کمک",
+  "Hide": "پنهان شدن",
+  "Hide Badge": "پنهان کردن نشان",
+  "Hide Mailspring": "مخفی کردن Mailspring",
   "Hide Others": "دیگر برنامه‌ها را مخفی کن",
+  "Hide Sidebar": "مخفی کردن نوار کناری",
+  "Hooray! You’re done.": "هورا! شما انجام می شود",
+  "Huge": "بزرگ",
+  "If %@ of the following conditions are met:": "اگر %@ شرایط زیر رعایت شود:",
+  "If you enjoy Mailspring, upgrade to Mailspring Pro from %@ to enable all these great features permanently:": "اگر از Mailspring لذت می برید، از %@ به Mailspring Pro ارتقا دهید تا تمام این ویژگی های عالی را برای همیشه فعال کنید:",
+  "If you write a draft in another language, Mailspring will auto-detect it and use the correct spelling dictionary after a few sentences.": "اگر یک پیش نویس را در یک زبان دیگر بنویسید، Mailspring آن را به طور خودکار شناسایی می کند و پس از چند جمله از فرهنگ لغت املایی درست استفاده می کند.",
+  "If you've enabled link tracking or read receipts, those events will appear here!": "اگر پیگیری ردیابی را فعال کرده اید یا رفته اید، این رویدادها در اینجا ظاهر می شوند!",
+  "Important": "مهم",
+  "In 1 Week": "در 1 هفته",
+  "In 1 hour": "در 1 ساعت",
+  "In 2 Weeks": "در 2 هفته",
+  "In 2 hours": "در 2 ساعت",
+  "In 3 Days": "در 3 روز",
+  "In 3 Hours": "در 3 ساعت",
+  "In a Month": "در یک ماه",
+  "In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.": "برای انجام اقدامات در این صندوق پستی، شما باید مسئله همگام سازی را حل کنید. برای اطلاعات بیشتر، از گزینه Preferences> Accounts.",
+  "In order to send mail through Mailspring, your email account must have a Sent Mail folder. You can specify a Sent folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.": "برای ارسال نامه از طریق Mailspring، حساب ایمیل شما باید پوشه ارسال شده ایمیل داشته باشد. شما می توانید یک پوشه ارسال شده را به صورت دستی با مراجعه به Preferences> Folders و انتخاب نام پوشه از منوی کشویی مشخص کنید.",
+  "In order to send mail through Mailspring, your email account must have a Trash folder. You can specify a Trash folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.": "برای ارسال ایمیل از طریق Mailspring، حساب ایمیل شما باید پوشه سطل زباله داشته باشد. شما می توانید یک پوشه سطل زباله را به صورت دستی با مراجعه به Preferences> Folders و انتخاب نام پوشه از منوی کشویی مشخص کنید.",
+  "Inbox": "صندوق ورودی",
+  "Incoming Mail": "نامه ورودی",
+  "Indent": "عقب نشینی",
+  "Information": "اطلاعات",
+  "Insert Numbered List": "لیست شماره گذاری شده را وارد کنید",
+  "Insert a Quote Block": "یک بلوک نقل قول وارد کنید",
+  "Insert a bulleted list": "یک لیست گلوله ای وارد کنید",
+  "Insert a link": "یک پیوند را وارد کنید",
+  "Insert content here!": "مطالب را در اینجا قرار دهید",
+  "Install": "نصب",
+  "Install Theme": "نصب تم",
+  "Install a Plugin": "یک پلاگین نصب کنید",
+  "Instantly": "فورا",
+  "Invalid plugin location": "مکان پلاگین نامعتبر است",
+  "Invalid plugin name": "نام پلاگین نامعتبر است",
+  "Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.": "نام قالب نامعتبر است نام فقط شامل حروف، اعداد، فضاها، خطوط و حروف است.",
+  "It looks like your draft already has some content. Loading this template will overwrite all draft contents.": "به نظر می رسد پیش نویس شما دارای محتوای خاصی است. بارگذاری این الگو تمام مطالب پیش نویس را بازنویسی خواهد کرد.",
+  "It originates from %@ but replies will go to %@.": "از %@ آغاز می شود، اما پاسخ ها به %@ می روند.",
+  "Job Title": "عنوان شغلی",
+  "Jumping": "پریدن",
+  "Label as...": "برچسب به عنوان ...",
+  "Labels": "برچسب ها",
+  "Language Conversion Failed": "تبدیل زبان ناموفق بود",
+  "Large": "بزرگ",
+  "Last 2 Weeks": "آخرین 2 هفته",
+  "Last 4 Weeks": "4 هفته گذشته",
+  "Last 7 Days": "7 روز گذشته",
+  "Later Today": "امروز بعد",
+  "Launch on system start": "راه اندازی در شروع سیستم",
+  "Layout": "طرح",
+  "Learn More": "بیشتر بدانید",
+  "Learn Spelling": "یادگیری املا",
   "Learn more": "اطلاعات بیشتر",
+  "Let's set things up to your liking.": "بیایید همه چیز را به دلخواه خود تنظیم کنیم.",
+  "Link Click Rate": "لینک نرخ کلیک کنید",
+  "Link tracking": "ردیابی پیوند",
+  "Link tracking does not work offline. Please re-enable when you come back online.": "پیگیری پیوند آنلاین کار نمی کند. مجددا مجددا فعال کنید، زمانی که آنلاین می شوید.",
+  "Loading Messages": "پیام های در حال بارگذاری",
+  "Loading...": "بارگذاری...",
+  "Local Data": "داده های محلی",
+  "Localized": "محلی شده",
+  "Log Data": "ورود داده ها",
+  "Look Up “%@”": "نگاه کن \"%@\"",
+  "Looking for accounts...": "در حال جستجو برای حساب ...",
+  "Looking for more messages": "به دنبال پیام های بیشتر",
+  "Looks Good!": "به نظر خوب میاد!",
+  "Mail Rules": "قوانین ایمیل",
+  "Mail Templates": "قالب های ایمیل",
+  "Mailbox Summary": "خلاصه پستی",
+  "Mailbox insights": "بینش Mailbox",
+  "Mailspring Basic": "Mailspring Basic",
+  "Mailspring Help": "راهنمایی ماشینی",
+  "Mailspring Pro": "نرم افزار Mailspring Pro",
+  "Mailspring Reminder": "یادآور Mailspring",
+  "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspring دیگر نمی تواند با استفاده از %@ تأیید هویت شود. رمز عبور یا احراز هویت ممکن است تغییر کند",
+  "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspring نمی تواند پوشه ی پیش نویس های خود را پیدا کند برای ایجاد و ارسال نامه، به تنظیمات> پوشه ها بروید و پوشه ی پیش نویس را انتخاب کنید.",
+  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring می تواند روند mailsync را پیدا کند. اگر از منبع Mailspring در حال ساخت هستید، مطمئن شوید که mailsync.tar.gz در کپی کاری شما بارگیری شده و بازپس گرفته شده است.",
+  "Mailspring could not save an attachment because you have run out of disk space.": "Mailspring نمی تواند پیوست را ذخیره کند، زیرا شما از فضای دیسک فرار کرده اید.",
+  "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring نمی تواند پیوست را ذخیره کند. بررسی کنید که مجوزها به درستی تنظیم شده اند و اگر مسئله همچنان ادامه دارد، سعی کنید Mailspring را مجددا راه اندازی کنید.",
+  "Mailspring could not spawn the mailsync process. %@": "Mailspring نمیتواند فرآیند mailsync را ایجاد کند. %@",
+  "Mailspring could not store your password securely. %@ For more information, visit %@": "Mailspring نمی تواند رمز عبور شما را به صورت امن ذخیره کند. %@ برای کسب اطلاعات بیشتر، به %@ مراجعه کنید",
+  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "اطلاعیه های رومیزی Mailspring در لینوکس به Zenity نیاز دارند. ممکن است لازم باشد آن را با مدیر بسته خود نصب کنید.",
+  "Mailspring does not support stylesheets with the extension: %@": "Mailspring از شیوهای با پسوند پشتیبانی نمی کند: %@",
+  "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "Mailspring با خطاهای همگام سازی این حساب مواجه شد. گزارش های خرابی به تیم Mailspring ارسال شده است و ما برای رفع این خطاها در نسخه بعدی کار خواهیم کرد.",
+  "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "Mailspring این حافظه را برای %@ پاکسازی می کند. بسته به اندازه صندوق پستی، ممکن است چند ثانیه یا چند دقیقه طول بکشد. هنگام پاکسازی کامل، یک هشدار ظاهر می شود.",
+  "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "Mailspring مستقل %@ نرم افزار است، و درآمد اشتراک به ما اجازه می دهد زمان صرف شده و نگهداری و بهبود محصول.",
+  "Mailspring is offline": "Mailspring آنلاین نیست",
+  "Mailspring is running in dev mode and may be slower!": "Mailspring در حالت dev اجرا می شود و ممکن است کندتر باشد!",
+  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring این موضوع را همگام سازی می کند و آن فایل ها به ابر است. برای موضوعات طولانی، این ممکن است یک لحظه برسد.",
+  "Mailspring is unable to sync %@": "Mailspring قادر به همگام سازی %@",
+  "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring کش کش محلی را برای %@ در %@ ثانیه بازنشانی می کند. صندوق پستی شما دوباره شروع به همگام سازی می کند.",
+  "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring همه چیز را در مورد مخاطبین خود درست در داخل صندوق پستی نشان می دهد. پروفیلهای LinkedIn، BIOS توییتر، تاریخچه پیام و موارد دیگر را ببینید.",
+  "Mailspring was unable to modify your keymaps at %@.": "Mailspring نتوانست Keymaps خود را در %@ تغییر دهد.",
+  "Mailspring was unable to read the contents of your templates directory (%@). You may want to delete this folder or ensure filesystem permissions are set correctly.": "Mailspring قادر به خواندن محتویات دایرکتوری قالب شما نبود (%@). ممکن است بخواهید این پوشه را حذف کنید یا اطمینان حاصل کنید که مجوزهای سیستم فایل به درستی تنظیم شده است.",
+  "Mailspring was unable to reset the local cache. %@": "Mailspring قادر به بازنویسی حافظه داخلی نیست. %@",
+  "Mailspring was unable to write to the file location you specified (%@).": "Mailspring قادر به نوشتن در محل فایل مورد نظر شما نبود (%@).",
+  "Make sure you have `libsecret` installed and a keyring is present. ": "اطمینان حاصل کنید که شما `libsecret` نصب کرده اید و یک جلیقه وجود دارد.",
+  "Manage": "مدیریت کردن",
+  "Manage Accounts": "مدیریت حسابها",
+  "Manage Billing": "مدیریت صورتحساب",
+  "Manage Templates...": "مدیریت قالبها ...",
+  "Manually": "به صورت دستی",
+  "Mark as %@": "علامت گذاری به عنوان %@",
+  "Mark as Important": "علامت گذاری به عنوان مهم",
+  "Mark as Not Important": "علامت گذاری به عنوان مهم نیست",
+  "Mark as Read": "به عنوان خوانده شده علامت بزن",
+  "Mark as Spam": "علامت گذاری به عنوان هرزنامه",
+  "Marked %@ as Spam": "%@ بهعنوان هرزنامه علامتگذاری شده است",
+  "Marked %@ threads as %@": "موضوعات %@ به عنوان %@",
+  "Marked as %@": "علامت گذاری به عنوان %@",
+  "Market Cap": "سرپوش بازار",
+  "Marking as read": "علامت گذاری به عنوان خوانده شده",
+  "Marking as unread": "علامت گذاری به عنوان خوانده نشده",
+  "Maybe": "شاید",
   "Message": "پیغام",
+  "Message Sent Sound": "پیام فرستاده شده به صدا",
+  "Message Viewer": "نمایش پیام",
+  "Messages Received": "پیام دریافت شده",
+  "Messages Sent": "پیام های ارسال شده",
+  "Messages Time of Day": "پیام های زمان روز",
+  "Minimize": "به حداقل رساندن",
+  "MobileMe has moved.": "MobileMe نقل مکان کرده است",
+  "Monthly": "ماهانه",
+  "Move Message": "پیام را منتقل کنید",
+  "Move to Applications": "به برنامه ها بروید",
+  "Move to Applications?": "به برنامه ها بروید؟",
+  "Move to Archive": "رفتن به بایگانی",
+  "Move to Folder": "انتقال به پوشه",
+  "Move to Label": "انتقال به برچسب",
+  "Move to Trash": "انتقال به سطل زباله",
+  "Move to newer conversation": "به مکالمه جدیدتر بروید",
+  "Move to older conversation": "به مکالمه قدیمی بروید",
+  "Move to...": "حرکت به ...",
+  "Moved %@ messages to %@": "%@ پیام ها را به %@ منتقل کرد",
+  "Moved %@ threads to %@": "%@ موضوعات را به %@ منتقل کرد",
+  "Moved to %@": "به %@ منتقل شد",
+  "Moving to folder": "رفتن به پوشه",
   "Name": "نام",
+  "Nature": "طبیعت",
+  "Navigation": "جهت یابی",
+  "Never forget to follow up! Mailspring reminds you if your messages haven't received replies.": "هرگز فراموش نکنید که پیگیری کنید Mailspring به شما یادآوری می کند که آیا پیام های شما پاسخی دریافت نکرده اند.",
+  "New %@": "جدید %@",
+  "New Message": "پیام جدید",
   "Next": "بعدی",
+  "Next Month": "ماه بعد",
+  "Next Week": "هفته بعد",
+  "Next thread": "موضوع بعدی",
   "No": "خیر",
+  "No Date": "بدون تاریخ",
+  "No Guesses Found": "هیچ حدس زده نشد",
+  "No Matching Profile": "بدون تطبیق مشخصات",
+  "No Messages": "بدون پیام",
+  "No important folder / label": "هیچ پوشه / برچسب مهم نیست",
+  "No name provided": "بدون نام ارائه شده است",
+  "No opens": "هیچ باز نمی شود",
+  "No reminders set": "هیچ یادآوری وجود ندارد",
+  "No rules": "بدون قوانین",
+  "No search results": "هیچ نتیجه ای برای جستجو یافت نشد",
+  "No signature": "بدون امضا",
+  "No update available.": "هیچ بروزرسانی موجود نیست",
+  "No valid server found.": "هیچ سرور معتبری یافت نشد",
   "None": "هیچ",
   "Normal": "عادی",
+  "Not Important": "مهم نیست",
+  "Not Now": "الان نه",
+  "Not Spam": "هرزنامه نیست",
+  "Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring %@. Click 'Billing' below to correct the issue.": "توجه: با توجه به مسائل مربوط به آخرین پرداخت شما، شما به طور موقت به Mailspring %@ تغییر کرده اید. برای اصلاح مشکل، روی 'صورتحساب' کلیک کنید.",
+  "Notifications": "اطلاعیه",
+  "Notify me about new features and plugins via this email address.": "از طریق این آدرس ایمیل، در مورد ویژگی های جدید و پلاگین ها به من اطلاع دهید.",
+  "Now": "اکنون",
+  "OK": "خوب",
+  "Objects": "اشیاء",
+  "Of recipients click a link": "از دریافت کنندگان یک پیوند را کلیک کنید",
+  "Of threads you start get a reply": "از موضوعات شما شروع به دریافت یک پاسخ",
+  "Of your emails are opened": "از ایمیل های شما باز است",
+  "Offline": "آفلاین",
+  "Okay": "باشه",
+  "One message in this thread is hidden because it was moved to trash or spam.": "یک پیام در این موضوع پنهان است زیرا به حذف شده یا هرزنامه منتقل شده است.",
+  "One or more of your mail rules have been disabled.": "یک یا چند قانون پست الکترونیکی شما غیر فعال شده است.",
+  "One or more of your mail rules requires the bodies of messages being processed. These rules can't be run on your entire mailbox.": "یک یا چند قانون پست الکترونیکی شما مستلزم تشکیل پرونده های پردازش است. این قوانین در کل صندوق پستی شما اجرا نمی شود.",
   "Open": "باز کردن",
+  "Open In Browser": "در مرور گر باز کنید",
+  "Open Link": "لینک های باز",
+  "Open Mailsync Logs": "باز کردن گزارشهای Mailsync",
+  "Open Rate": "نرخ باز",
+  "Open and link tracking": "ردیابی باز و پیوند",
+  "Open containing folder after downloading attachment": "پس از دانلود فایل پیوست را باز کنید",
+  "Open selected conversation": "مکالمه انتخابی را باز کنید",
+  "Open tracking does not work offline. Please re-enable when you come back online.": "ردیابی باز آفلاین نیست. مجددا مجددا فعال کنید، زمانی که آنلاین می شوید.",
+  "Opened": "افتتاح شد",
+  "Opened by": "افتتاح شده توسط",
+  "Opens": "باز می شود",
+  "Or, 'next Monday at 2PM'": "یا، \"دوشنبه آینده در 2 بعدازظهر\"",
+  "Outdent": "دور افتاده",
+  "Outgoing Mail": "نامه خروجی",
+  "Override standard interface scaling": "مقیاس استاندارد رابط کاربری را نادیده بگیرید",
+  "Page didn't open? Paste this URL into your browser:": "صفحه باز نشد این نشانی اینترنتی را در مرورگر خود قرار دهید:",
+  "Parsing Error": "خطای تجزیه",
   "Password": "گذرواژه",
   "Paste": "چسباندن",
+  "Paste and Match Style": "سبک چسباندن و مطابقت",
+  "People": "مردم",
+  "Perform these actions:": "این اقدامات را انجام دهید:",
   "Phone": "شمارهٔ تلفن",
+  "Play sound when receiving new mail": "هنگام دریافت ایمیل جدید پخش را پخش کنید",
+  "Please provide a password for your account.": "لطفا یک رمز عبور برای حسابتان ارائه دهید.",
+  "Please provide a valid email address.": "لطفا یک آدرس ایمیل معتبر ارائه کنید.",
+  "Please provide a valid port number.": "لطفا یک شماره پورت معتبر ارائه کنید",
+  "Please provide your name.": "لطفا نام خود را ارائه دهید",
+  "Plugin installed! 🎉": "پلاگین نصب شده است! 🎉",
+  "Pop thread in": "موضوع پاپ در",
+  "Popout composer…": "آهنگساز پاورپوینت ...",
+  "Popout thread": "موضوع پرش به:",
+  "Port": "بندر",
+  "Powerful template support": "پشتیبانی از قالب قدرتمند",
   "Preferences": "ترجیحات",
+  "Preferences > Subscription": "تنظیمات> اشتراک",
+  "Press &quot;tab&quot; to quickly move between the blanks - highlighting will not be visible to recipients.": "مطبوعات & quot؛ تب & quot؛ به سرعت بین قلمها حرکت می کند - برجسته بودن برای گیرندگان قابل مشاهده نیست.",
+  "Preview": "پیش نمایش",
+  "Previous thread": "موضوع قبلی",
   "Print": "چاپ",
+  "Print Current Thread": "موضوع فعلی را چاپ کنید",
+  "Print Thread": "موضوع چاپ",
+  "Privately Held": "خصوصی برگزار شد",
+  "Pro tip: Combine search terms with AND and OR to create complex queries. ": "راهنمایی طرفدار: ترکیب کلمات جستجو با AND و OR برای ایجاد پرسش های پیچیده.",
+  "Process entire inbox": "فرآیند کل صندوق ورودی",
+  "Quick Reply": "پاسخ سریع",
   "Quit": "ترک",
+  "Quit Mailspring": "ترک Mailspring",
+  "Raised": "بالا بردن",
+  "Raw HTML": "HTML خام",
+  "Raw Source": "منبع خام",
+  "Re-authenticate...": "تأیید اعتبار مجدد ...",
+  "Read": "خواندن",
+  "Read Receipts": "خواندن رسید",
+  "Read Receipts and Link Tracking": "دفعات بازدید و پیگیری پیوند",
+  "Reading": "خواندن",
+  "Reading Pane Off": "خواندن پان خاموش",
+  "Reading Pane On": "خواندنی روی صفحه",
+  "Rebuild": "بازسازی",
+  "Rebuild Cache...": "بازسازی کش ...",
+  "Recipient": "گیرنده",
+  "Reconnect": "دوباره متصل شوید",
   "Redo": "از نو",
+  "Relaunch": "راه اندازی مجدد",
+  "Relaunch to apply window changes.": "دوباره به تغییرات پنجره اعمال می شود",
+  "Release channel": "کانال را آزاد کنید",
   "Reload": "بازآوردن",
+  "Remind me if no one replies": "به یاد داشته باشید اگر کسی پاسخ ندهد",
+  "Reminder": "یادآور",
+  "Reminder set for %@ from now": "اکنون یادآوری برای %@ تنظیم شده است",
+  "Reminders": "یادآوری ها",
   "Remove": "حذف",
   "Remove HTML": "حذف HTML",
+  "Remove Star": "حذف ستاره",
+  "Remove Stars": "حذف ستاره ها",
+  "Remove and show next": "حذف و نشان دادن بعدی",
+  "Remove and show previous": "حذف و نشان دادن قبلی",
+  "Remove from view": "حذف از نظر",
+  "Remove quoted text": "حذف متن نقل قول",
+  "Removed %@": "حذف %@",
+  "Removed %@ from %@ threads": "%@ از %@ موضوعات حذف شده است",
+  "Removed %@ from Trash": "%@ از سطل زباله حذف شده است",
   "Rename": "تغییر نام",
+  "Renaming %@": "تغییر نام %@",
+  "Replace contents": "محتویات را عوض کنید",
+  "Replace draft contents?": "محتوای پیش نویس را جایگزین کنید؟",
   "Reply": "پاسخ دادن",
+  "Reply All": "پاسخ همه",
+  "Reply Rate": "پاسخ نرخ",
+  "Reply to": "پاسخ دادن به",
+  "Reset": "بازنشانی",
+  "Reset Accounts and Settings": "تنظیم مجدد حسابها و تنظیمات",
+  "Reset Cache": "بازنشانی کش",
+  "Reset Configuration": "پیکربندی مجدد",
+  "Reset Theme": "تنظیم مجدد تم",
+  "Restart and Install Update": "راه اندازی مجدد و نصب به روز رسانی",
   "Restore Defaults": "احیای تنظیمات پیش‌فرض",
+  "Resurface messages to the top of the inbox when unsnoozing": "هنگام ارسال نشدن پیام ها به بالای صندوق ورودی پیغام بگذارید",
+  "Retrying in %@ seconds": "تلاش دوباره در %@ ثانیه",
+  "Retrying in 1 second": "تلاش مجدد در 1 ثانیه",
+  "Retrying now...": "در حال تلاش مجدد ...",
+  "Retrying...": "تلاش مجدد ...",
+  "Return to %@": "بازگشت به %@",
+  "Return to conversation list": "بازگشت به لیست مکالمه",
+  "Revert custom HTML?": "برگرداندن HTML سفارشی",
+  "Rich contact profiles": "پروفایل های مخاطره آمیز",
+  "Rules only apply to the selected account.": "قوانین فقط برای حساب انتخاب شده اعمال می شود.",
+  "Run with Debug Flags": "با پرچم های اشکال زدایی اجرا شود",
+  "Run with debug flags?": "با پرچم های اشکال زدایی اجرا شود؟",
+  "Save Draft as Template...": "ذخیره پیشنمایش به عنوان الگو ...",
+  "Save Image": "ذخیره تصویر",
+  "Save Into...": "صرفه جویی در ...",
+  "Save New Package": "ذخیره بسته جدید",
+  "Saving reminder...": "صرفه جویی در یادآوری ...",
+  "Saving send date...": "ذخیره تاریخ ارسال ...",
+  "Scaling": "مقیاس گیری",
+  "Scaling adjusts the entire UI, including icons, dividers, and text. Messages you send will still have the same font size. Decreasing scale significantly may make dividers and icons too small to click.": "مقیاس پذیری تمام رابط کاربر را تنظیم می کند، از جمله آیکون ها، تقسیم ها و متن. پیام های ارسالی شما همچنان همان اندازه فونت هستند. کاهش مقیاس به طور قابل توجهی ممکن است تقسیم کننده ها و آیکون ها را کوچک کند تا کلیک کنند.",
+  "Scanning": "اسکن کردن",
+  "Scanning messages": "پیام های اسکن شده",
+  "Schedule messages to re-appear later to keep your inbox clean and focus on immediate todos.": "پیام های برنامه ریزی شده بعدا دوباره ظاهر می شود تا صندوق ورودی خود را تمیز نگه دارد و روی تمرکز فوری تمرکز کند.",
+  "Schedule messages to send at the ideal time to maximize your email reply rate or automate drip emails.": "پیام های برنامه ریزی برای ارسال در زمان ایده آل برای به حداکثر رساندن پاسخ ایمیل خود و یا خودکار ایمیل های قطره.",
+  "Schedule this message to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!": "برنامه این پیام را در زمان ایده آل ارسال کنید. Mailspring کنترل فضای زمان را آسان می کند!",
+  "Scheduled for %@": "برنامه ریزی شده برای %@",
   "Search": "جست‌وجو",
+  "Search Google for '%@'": "جستجو Google برای '%@'",
+  "Search Results": "نتایج جستجو",
+  "Search all mailboxes": "جستجو در تمام صندوق های پستی",
+  "Search for": "جستجو برای",
+  "Search with ease": "جستجو با سهولت",
   "Security": "امنیت",
+  "See detailed information about companies you email, including their size, funding and timezone.": "اطلاعات دقیق درباره شرکتهایی که ایمیل می کنید، از جمله اندازه، بودجه و منطقه زمانی خود را مشاهده کنید.",
+  "See when recipients click links in your emails so you can follow up with precision": "ببینید وقتی دریافت کنندگان لینک ها را در ایمیل های شما می گیرند، شما می توانید با دقت پیگیری کنید",
+  "See when recipients open this email": "ببینید وقتی دریافت کنندگان این ایمیل را باز می کنند",
   "Select All": "انتخاب همه",
   "Select All Read": "انتخاب همه Read",
   "Select All Starred": "انتخاب همه Starred",
   "Select All Unread": "انتخاب همه Unread",
+  "Select All Unstarred": "انتخاب همه ستارهدار",
+  "Select all conversations": "تمام مکالمات را انتخاب کنید",
+  "Select all read conversations": "همه مکالمات خواندن را انتخاب کنید",
+  "Select all starred conversations": "تمام مکالمات ستارهدار را انتخاب کنید",
+  "Select all unread conversations": "تمام مکالمات خوانده نشده را انتخاب کنید",
+  "Select all unstarred conversations": "همه مکالمات ناشناخته را انتخاب کنید",
+  "Select conversation": "مکالمه را انتخاب کنید",
+  "Select file attachment": "پیوست فایل را انتخاب کنید",
+  "Selected Account": "حساب انتخاب شده",
+  "Selected Messages": "پیام های انتخاب شده",
   "Selection": "انتخاب",
+  "Send": "ارسال",
+  "Send Anyway": "به هر حال ارسال کنید",
+  "Send Later": "بعدا بفرست",
+  "Send message": "پیام فرستادن",
+  "Send more than one message using the same %@ or subject line to compare open rates and reply rates.": "ارسال بیش از یک پیام با استفاده از همان خط %@ یا موضوع برای مقایسه نرخ باز و نرخ پاسخ.",
+  "Send new messages from:": "ارسال پیام های جدید از:",
+  "Send on your own schedule": "ارسال به برنامه خودتان",
+  "Sending": "در حال ارسال",
+  "Sending in %@": "ارسال در %@",
+  "Sending in a few seconds": "ارسال در چند ثانیه",
+  "Sending is not enabled for this account.": "ارسال برای این حساب فعال نیست",
+  "Sending message": "ارسال پیام",
+  "Sending now": "ارسالی در حال حاضر",
+  "Sending soon...": "به زودی ارسال ...",
+  "Sent Mail": "ارسال ایمیل",
+  "Sent from Mailspring, the best free email app for work": "ارسال از Mailspring، بهترین برنامه ایمیل رایگان برای کار",
   "Services": "خدمات",
+  "Set Reminder": "تنظیم یادآوری",
+  "Set up Account": "تنظیم حساب",
+  "Several of your accounts are having issues": "تعدادی از حسابهای شما دارای مسائل هستند",
+  "Share": "اشتراک گذاری",
+  "Share Link": "لینک را به اشتراک بگذارید",
+  "Share this Report": "این گزارش را به اشتراک بگذارید",
+  "Share this thread": "این موضوع را به اشتراک بگذارید",
+  "Shortcuts": "میانبرها",
+  "Show": "نمایش",
   "Show All": "نشان دادن همه",
+  "Show Detail": "نمایش جزئیات",
+  "Show Gmail-style important markers (Gmail Only)": "نمایش نشانگرهای مهم Gmail به سبک (فقط Gmail)",
+  "Show Images": "نمایش تصاویر",
+  "Show Original": "نمایش نسخه اصلی",
+  "Show Progress": "نمایش پیشرفت",
+  "Show Sidebar": "نمایش نوار کناری",
+  "Show Templates Folder...": "نمایش قالب پوشه ...",
+  "Show Total Count": "نمایش کل تعداد",
+  "Show Unread Count": "نمایش تعداد خوانده نشده",
+  "Show all messages": "نمایش همه پیام ها",
+  "Show badge on the app icon": "نشان را بر روی نماد برنامه نشان دهید",
+  "Show icon in menu bar / system tray": "نمایش آیکون در نوار منو / سینی سیستم",
+  "Show more": "بیشتر نشان بده، اطلاعات بیشتر",
+  "Show notifications for new unread messages": "نمایش اعلان ها برای پیام های خوانده نشده جدید",
+  "Show notifications for repeated opens / clicks": "نمایش اعلانها برای بازدیدهای تکراری / کلیک کنید",
+  "Show unread counts for all folders / labels": "نمایش نمرات خوانده نشده برای همه پوشه ها / برچسب ها",
+  "Showing %@ threads with %@ messages": "نمایش %@ موضوعات با %@ پیام ها",
+  "Showing 1 thread with %@ messages": "نمایش 1 موضوع با پیام های %@",
+  "Sign Out": "خروج",
+  "Sign in with %@ in %@ your browser.": "با %@ در %@ مرورگر خود وارد سیستم شوید.",
+  "Signatures": "امضا",
+  "Single Panel": "پنل تک",
+  "Small": "کوچک",
+  "Snooze": "تعویق",
+  "Snooze emails to return at any time that suits you. Schedule messages to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!": "ایمیل های تعویق برای بازگشت هر زمان که مناسب شما است. پیام برنامه ریزی برای ارسال در زمان ایده آل. Mailspring کنترل فضای زمان را آسان می کند!",
+  "Snooze messages": "تعویق پیام ها",
+  "Snooze this email and it'll return to your inbox later. Click here or swipe across the thread in your inbox to snooze.": "تعویق این ایمیل و بعدا به صندوق پستی خود برگردید. اینجا را کلیک کنید یا در میان موضوع در صندوق ورودی خود به چرت زدن ضربه بزنید.",
+  "Snoozed": "افتتاح شد",
+  "Some providers require an app password.": "برخی از ارائه دهندگان نیاز به رمز عبور برنامه دارند.",
+  "Someone": "کسی",
+  "Sorry, Mailspring was unable to deliver this message: %@": "با عرض پوزش، Mailspring قادر به ارائه این پیام بود: %@",
+  "Sorry, plugin names cannot contain spaces.": "با عرض پوزش، نام پلاگین نمی تواند فضاهای باشد",
+  "Sorry, something went wrong when this account was added to Mailspring. If you do not see the account, try linking it again. %@": "با عرض پوزش، زمانی که این حساب به Mailspring اضافه شد، چیزی اشتباه رخ داد. اگر حساب را مشاهده نکنید، دوباره آن را پیوند دهید. %@",
+  "Sorry, the file you selected does not look like an image. Please choose a file with one of the following extensions: %@": "با عرض پوزش، فایل انتخاب شده شما به نظر نمی رسد. لطفا یک فایل با یکی از پسوندهای زیر را انتخاب کنید: %@",
+  "Sorry, this account does not appear to have an inbox folder so this feature is disabled.": "با عرض پوزش، به نظر نمی رسد که این حساب دارای یک صندوق ورودی باشد بنابراین این ویژگی غیرفعال می شود.",
+  "Sorry, this folder does not exist.": "با عرض پوزش، این پوشه وجود ندارد",
+  "Sorry, we can't interpret %@ as a valid date.": "با عرض پوزش، ما نمی توانیم %@ را به عنوان یک تاریخ معتبر تفسیر کنیم.",
+  "Sorry, we can't parse %@ as a valid date.": "با عرض پوزش، ما نمیتوانیم %@ را به عنوان تاریخ معتبر تجزیه کنیم.",
+  "Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\\n\\n(%@)": "با عرض پوزش، نمیتوانیم تصویر امضای شما را به سرورهای Mailspring ذخیره کنیم. لطفا دوباره امتحان کنید. \\n \\n (%@)",
+  "Sorry, we had trouble logging you in": "با عرض پوزش، ما در ورود به سیستم مشکل داشتیم",
+  "Sorry, we were unable to complete the translation request.": "با عرض پوزش، ما نتوانستیم درخواست ترجمه را تکمیل کنیم",
+  "Sorry, we were unable to contact the Mailspring servers to share this thread.\\n\\n%@": "با عرض پوزش، ما نتوانستیم با سرورهای Mailspring تماس بگیریم تا این موضوع را به اشتراک بگذاریم. \\n \\n %@",
+  "Sorry, you can't attach more than 25MB of attachments": "با عرض پوزش، شما نمی توانید بیش از 25 مگابایت فایل پیوست کنید",
+  "Sorry, you must create plugins in the dev/packages folder.": "با عرض پوزش، شما باید پلاگین ها را در پوشه dev / packages ایجاد کنید.",
+  "Sorry, you must give your plugin a unique name.": "با عرض پوزش، شما باید پلاگین خود را یک نام منحصر به فرد.",
+  "Sorry, your SMTP server does not support basic username / password authentication.": "با عرض پوزش، سرور SMTP شما اعتبار اساسی نام کاربری و رمز عبور را پشتیبانی نمی کند.",
+  "Spam": "هرزنامه ها",
+  "Spellcheck language": "زبان املایی",
   "Star": "ستاره‌گذاری",
+  "Starred": "ستاره دار",
+  "Starred %@ threads": "موضوعات %@ ستاره دار",
+  "Starring": "بازیگران",
+  "StartTLS is not available.": "StartTLS در دسترس نیست",
+  "Still trying to reach %@…": "هنوز در تلاش برای رسیدن به %@ ...",
+  "Stock Symbol %@": "نماد سهام %@",
   "Stop": "توقف",
   "Subject": "موضوع",
+  "Subject Line": "نوار عنوان",
+  "Submit": "ارسال",
+  "Submit Improved Localizations": "ارائه محلیابی بهبود یافته",
+  "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "مشترک شدن در کانال های مختلف به روز رسانی برای دریافت پیش نمایش از ویژگی های جدید. توجه داشته باشید که برخی از کانال های به روز رسانی کمتر پایدار هستند!",
+  "Subscription": "اشتراک، ابونمان",
+  "Successfully connected to %@!": "به طور موفقیت آمیز به %@ وصل شده است!",
+  "Swipe gesture and backspace / delete move messages to trash": "حرکت ژست و عقب نشینی / حذف پیام های حرکت به سطل زباله",
+  "Switching back to a signature template will overwrite the custom HTML you've entered.": "بازگشت به یک الگو امضا، HTML خاصی را که وارد کرده اید، بازنویسی می کند.",
+  "Symbols": "نمادها",
+  "Sync New Mail Now": "همگام سازی جدید ایمیل جدید",
+  "Sync this conversation to the cloud and anyone with the secret link can read it and download attachments.": "این مکالمه را به ابر همگام سازی کنید و هر کسی که با پیوند مخفی می تواند آن را بخواند و فایل پیوست را دانلود کند.",
+  "Syncing": "همگام سازی",
+  "Syncing your mailbox": "همگام سازی صندوق پستی خود",
+  "TLS Not Available": "TLS در دسترس نیست",
+  "Template": "قالب",
+  "Template Creation Error": "خطای ایجاد الگو",
+  "Templates": "قالب ها",
+  "Templates Guide": "راهنمای قالب",
+  "Thank you for helping debug Mailspring. Mailspring will now restart.": "با تشکر از شما برای کمک به نگارش Mailspring. Mailspring در حال حاضر راه اندازی مجدد.",
+  "Thank you for using %@ and supporting independent software. Get the most out of your subscription: explore pro features below or visit the %@ to learn more about reminders, templates, activity insights, and more.": "با تشکر از شما برای استفاده از %@ و پشتیبانی از نرم افزار مستقل. بیشترین استفاده از اشتراک خود را داشته باشید: ویژگیهای طرفدار زیر را ببینید یا از %@ دیدن کنید تا یادآوریها، الگوها، بینش فعالیتها و موارد دیگر را بیاموزید.",
+  "Thank you!": "متشکرم!",
+  "Thanks for downloading Mailspring! Would you like to move it to your Applications folder?": "با تشکر برای دانلود Mailspring! آیا می خواهید آن را به پوشه برنامه های خود انتقال دهید؟",
+  "The Mailspring Team": "تیم Mailspring",
+  "The Outlook server said you must sign in via a web browser.": "سرور Outlook گفته است شما باید از طریق یک مرورگر وب وارد شوید.",
+  "The SMTP server would not relay a message. You may need to authenticate.": "سرور SMTP یک پیام را رله نخواهد کرد. شما ممکن است احتیاج داشته باشید.",
+  "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "نوار کناری تماس در Mailspring طرفدار اطلاعات مربوط به افراد و شرکت هایی را که با آن ایمیل می کنید، نشان می دهد.",
+  "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "آدرس از زمان ارسال این پیش نویس تغییر کرده است. پیش نویس را بررسی کنید و دوباره روی «ارسال» کلیک کنید.",
+  "The message contains an empty template area.": "پیام حاوی یک منطقه خالی الگو است.",
+  "The message contains an illegial attachment that is not allowed by the server.": "پیام حاوی یک پیوست غیر قانونی است که توسط سرور مجاز نیست.",
+  "The message has been blocked because no sender is configured.": "پیام بسته شده است زیرا هیچ فرستنده پیکربندی نشده است.",
+  "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "یاهو مسدود شده است - شما از حد مجاز روزانه خود فراتر رفته اید.",
+  "The message has been blocked by Yahoo's outbound spam filter.": "این پیام توسط فیلتر هرزنامه یابی یاهو مسدود شده است.",
+  "The message is addressed to a name that doesn't appear to be a recipient (\"%@\")": "این پیام به نامی است که ظاهرا گیرنده نیست (\"%@\")",
+  "The message mentions an attachment but none are attached.": "این پیغام به پیوست اشاره می کند اما هیچیک از آنها پیوست نشده است.",
+  "The plugin or theme folder you selected doesn't contain a package.json file, or it was invalid JSON. %@": "پوشه افزونه یا تم مورد نظر شما حاوی یک فایل package.json نیست یا جسون نامعتبر بود. %@",
+  "The plugin or theme you selected has not been upgraded to support Mailspring. If you're the developer, update the package.json's engines field to include \"mailspring\".\\n\\nFor more information, see this migration guide: %@": "افزونه یا تم مورد نظر شما برای پشتیبانی از Mailspring ارتقا داده نشده است. اگر شما سازنده هستید، زمینه موتورهای package.json را برای افزودن \"mailspring\" به روز کنید. \\n \\n برای اطلاعات بیشتر، این راهنمای مهاجرت را ببینید: %@",
+  "The server said you must sign in via your webmail.": "سرور گفت شما باید از طریق وب پست خود وارد شوید.",
+  "The subject field is blank.": "زمینه موضوع خالی است.",
+  "The template and its file will be permanently deleted.": "قالب و فایل آن به طور دائمی حذف خواهند شد.",
+  "The thread %@ does not exist in your mailbox!": "موضوع %@ در صندوق پستی شما وجود ندارد!",
+  "Theme Color": "رنگ تم",
+  "Theme and Style": "تم و سبک",
+  "Themes": "تم ها",
+  "There are %@ more messages in this thread that are not in spam or trash.": "%@ پیام های بیشتری در این موضوع وجود دارد که در هرزنامه یا سطل آشغال نیست.",
+  "There are too many active connections to your Gmail account. Please try again later.": "ارتباطات فعال زیادی با حساب Gmail شما وجود دارد. لطفا بعدا دوباره امتحان کنید",
+  "There is one more message in this thread that is not in spam or trash.": "یک پیام دیگر در این موضوع وجود دارد که در هرزنامه یا سطل زباله نیست.",
+  "There was an error checking for updates.": "خطایی برای به روزرسانی وجود داشت.",
+  "These features were %@ of the messages you sentin this time period, so these numbers do not reflect all of your activity. To enableread receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.": "این ویژگی ها %@ پیام های ارسال شده شما در این دوره زمانی بود، بنابراین این تعداد تمام فعالیت های شما را نشان نمی دهد. برای دریافت صورتحساب و لینک پیگیری در ایمیلهایی که ارسال میکنید، روی آیکونهای %@ یا پیوند %@ در آهنگساز کلیک کنید.",
+  "This Weekend": "این آخر هفته",
+  "This account is invalid or Mailspring could not find the Inbox or All Mail folder. %@": "این حساب معتبر نیست و Mailspring نمیتواند صندوق ورودی یا همه ایمیل را پیدا کند. %@",
+  "This looks like a Gmail account! While it's possible to setup an App Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go back and select \"Gmail & Google Apps\" from the provider screen.": "این به نظر می رسد یک حساب جیمیل! در حالی که امکان راه اندازی یک رمز عبور برنامه و اتصال به Gmail از طریق IMAP، Mailspring نیز از Google OAuth پشتیبانی می کند. برگشت و \"Gmail و Google Apps\" را از صفحه ارائه دهنده انتخاب کنید.",
+  "This message has not been opened": "این پیام باز نشده است",
+  "This message looks suspicious!": "این پیام به نظر مشکوک است!",
+  "This plugin or theme %@ does not list \"mailspring\" in it's package.json's \"engines\" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: %@": "این پلاگین یا تم %@ \"mailspring\" را در قسمت \"engines\" package.json در لیست قرار نمیدهد. از توسعه دهنده بخواهید که پلاگین را با Mailspring تست کرده و آن را اضافه کند یا دستورالعمل های زیر را دنبال کنید: %@",
+  "This rule has been disabled. Make sure the actions below are valid and re-enable the rule.": "این قانون غیرفعال شده است اطمینان حاصل کنید که اقدامات زیر معتبر هستند و قانون را دوباره فعال کنید.",
+  "This thread has been moved to the top of your inbox by Mailspring.": "این موضوع توسط Mailspring به بالای صندوق ورودی منتقل شده است.",
+  "This thread was brought back to the top of your inbox as a reminder": "این موضوع به عنوان یک یادآوری به بالای صندوق ورودی شما بازگشته است",
+  "This thread will come back to the top of your inbox if nobody replies by:": "اگر کسی پاسخ ندهد، این موضوع به بالای صندوق پستی شما میرسد:",
+  "Thread": "موضوع",
+  "Threads": "موضوعات",
   "Title": "عنوان",
+  "To": "به",
+  "To create a template you need to fill the body of the current draft.": "برای ایجاد یک الگو باید بدنه پیش نویس فعلی را پر کنید.",
+  "To develop plugins, you should run Mailspring with debug flags. This gives you better error messages, the debug version of React, and more. You can disable it at any time from the Developer menu.": "برای توسعه افزونه ها، باید Mailspring با پرچم های اشکال زدایی اجرا شود. این به شما پیام های خطای بهتر، نسخه اشکال زدایی React و موارد دیگر را می دهد. شما می توانید آن را در هر زمان از منوی برنامهنویس غیرفعال کنید.",
+  "To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\\n\\n%@": "برای گوش دادن به پاسخ جیمیل Oauth، Mailspring نیاز به شروع یک وب سرور در بندر $ {LOCAL_SERVER_PORT}. لطفا به عقب برگردید و دوباره حساب خود را پیوند دهید. اگر این خطا همچنان ادامه دارد، از گزینه IMAP / SMTP با رمز عبور برنامه Gmail استفاده کنید. \\n \\n %@",
   "Today": "امروز",
+  "Toggle Bold": "تغییر ضخیم",
+  "Toggle Component Regions": "قسمتهای کامپوننت را تغییر دهید",
+  "Toggle Dev Tools": "تعویض ابزار Dev",
+  "Toggle Developer Tools": "ابزارهای برنامهنویسی را تغییر دهید",
+  "Toggle Italic": "تغییر کج",
+  "Toggle Localizer Tools": "ابزار محلی سازی را تغییر دهید",
+  "Toggle Screenshot Mode": "تغییر حالت حالت عکس",
+  "Tomorrow": "فردا",
+  "Tomorrow Evening": "فردا عصر",
+  "Tomorrow Morning": "فردا صبح",
+  "Tonight": "امشب",
+  "Track links in this email": "پیگیری لینک در این ایمیل",
+  "Track opens and clicks": "مسیر باز و کلیک می شود",
+  "Translate": "ترجمه کردن",
+  "Translate email body…": "ترجمه ایمیل بدن ...",
+  "Trash": "زباله ها",
+  "Trashed %@": "خراب %@",
+  "Travel and Places": "سفر و اماکن",
+  "True": "درست است",
+  "Try Again": "دوباره امتحان کنید",
+  "Try Reconnecting": "سعی کنید اتصال مجدد",
+  "Try it Now": "الآن امتحانش کن",
+  "Try now": "حالا امتحان کن",
+  "Twitter Handle": "دسته توییتر",
+  "Twitter Profile Image": "مشخصات تصویر توییتر",
+  "Two Panel": "دو پانل",
+  "Uhoh - that's a pro feature!": "Uhoh - این یک ویژگی حرفه ای است!",
+  "Unable to Add Account": "امکان افزودن حساب وجود ندارد",
+  "Unable to Start Local Server": "امکان شروع سرور محلی وجود ندارد",
+  "Unable to download %@. Check your network connection and try again. %@": "قادر به دانلود %@ نیست اتصال شبکه خود را بررسی کنید و دوباره امتحان کنید. %@",
+  "Unable to read package.json for %@: %@": "قادر به خواندن package.json برای %@: %@",
+  "Unarchived %@": "Unarchived %@",
+  "Underline": "زیر خط دار",
   "Undo": "واگرد",
+  "Undoing changes": "لغو تغییرات",
+  "Unfortunately, link tracking servers are currently not available. Please try again later. Error: %@": "متأسفانه، سرور پیگیری پیوند در حال حاضر در دسترس نیست. لطفا بعدا دوباره امتحان کنید خطا: %@",
+  "Unfortunately, open tracking is currently not available. Please try again later. Error: %@": "متاسفانه، ردیابی باز در حال حاضر در دسترس نیست. لطفا بعدا دوباره امتحان کنید خطا: %@",
+  "Unlimited Connected Accounts": "نامحدود حسابهای مرتبط",
+  "Unlimited Contact Profiles": "مشخصات تماس نامحدود",
+  "Unlimited Link Tracking": "ردیابی لینک نامحدود",
+  "Unlimited Read Receipts": "نامحدود خوانده شده رسید",
+  "Unlimited Reminders": "یادآوری نامحدود",
+  "Unlimited Snoozing": "تعطیلات نامحدود",
+  "Unmarked %@ as Spam": "%@ علامت گذاری شده به عنوان هرزنامه",
+  "Unnamed Attachment": "پیوست نامعلوم",
+  "Unread": "خوانده نشده",
+  "Unread Messages": "پیام های خوانده نشده",
+  "Unschedule Send": "ارسال بدون شارژ",
+  "Unsnoozed message": "پیام غیرفعال شده",
+  "Unstar": "باز کردن",
+  "Unstarred": "ستارهدار",
+  "Unstarred %@ threads": "موضوعات %@ جدا نشده %@",
+  "Unstarring": "تکه تکه شدن",
+  "Untitled": "بدون عنوان",
+  "Untitled Rule": "قانون بدون عنوان",
+  "Update Connection Settings...": "بهروزرسانی تنظیمات اتصال ...",
+  "Update Error": "خطای به روز رسانی",
+  "Updates": "به روز رسانی ها",
+  "Upgrade": "ارتقاء",
+  "Upgrade to %@ to use all these great features permanently:": "برای استفاده از تمام این ویژگی های عالی به طور دائمی به %@ ارتقا دهید:",
+  "Upgrade to Mailspring Pro": "به Mailspring Pro ارتقا دهید",
+  "Upgrade to Pro today!": "ارتقا به نرم افزار امروز!",
+  "Use 24-hour clock": "استفاده از ساعت 24 ساعته",
+  "Use Mailspring as default mail client": "از Mailspring به عنوان پیشفرض ایمیل استفاده کنید",
+  "Use the Activity tab to get a birds-eye view of your mailbox: open and click rates, subject line effectiveness, and more.": "از برگه فعالیت برای مشاهده چشم انداز پرنده از صندوق پستی خود استفاده کنید: باز کردن و کلیک بر روی نرخ، اثربخشی خط موضوع و موارد دیگر.",
+  "Verbose logging is now %@": "ورود به سیستم فعلی اکنون %@",
   "View": "نما",
+  "View Mail Rules": "مشاهده قوانین ایمیل",
+  "View changelog": "مشاهده تغییرات",
+  "Visit Thread on GitHub": "نمایش موضوع در GitHub",
+  "Visit Windows Settings to change your default mail client": "برای تغییر کلاینت پیش فرض ایمیل خود، از تنظیمات ویندوز دیدن کنید",
+  "Visit Windows Settings to finish making Mailspring your mail client": "برای انجام Mailspring سرویس گیرنده ایمیل خود، از تنظیمات ویندوز دیدن کنید",
+  "We encountered a problem moving to the Applications folder. Try quitting the application and moving it manually.": "ما با مشکلی در حال انتقال به پوشه Applications روبرو شدیم. سعی کنید برنامه را ترک کنید و آن را به صورت دستی حرکت دهید.",
+  "We encountered a problem with your local email database. %@\\n\\nCheck that no other copies of Mailspring are running and click Rebuild to reset your local cache.": "ما با یک پایگاه داده ایمیل محلی مواجه شدیم. %@ \\n \\n بررسی کنید که هیچ کپی دیگر از Mailspring در حال اجرا نیست و بر روی Rebuild کلیک کنید تا کش شما محلی شما بازنشانی شود.",
+  "We encountered a problem with your local email database. We will now attempt to rebuild it.": "ما با یک پایگاه داده ایمیل محلی مواجه شدیم. اکنون تلاش خواهیم کرد تا آن را بازسازی کنیم.",
+  "We encountered an SMTP Gateway error that prevented this message from being delivered to all recipients. The message was only sent successfully to these recipients:\\n%@\\n\\nError: %@": "ما با یک خطای SMTP دروازه مواجه شدیم که مانع این پیام برای همه گیرندگان ارسال شد. این پیام تنها با موفقیت به این گیرندگان ارسال شد: \\n %@ \\n \\n خطا: %@",
+  "We were unable to deliver this message to some recipients. Click 'See Details' for more information.": "ما نتوانستیم این پیام را به برخی گیرندگان ارسال کنیم. برای اطلاعات بیشتر روی «مشاهده جزئیات» کلیک کنید.",
+  "We were unable to deliver this message.": "ما نتوانستیم این پیام را ارائه دهیم.",
+  "We're having trouble billing your Mailspring subscription.": "ما با پرداخت صورتحساب اشتراک Mailspring مشکل داریم.",
+  "We've picked a set of keyboard shortcuts based on your email account and platform. You can also pick another set:": "ما مجموعه ای از میانبرهای صفحه کلید را بر اساس حساب و پلت فرم ایمیل خود انتخاب کرده ایم. شما همچنین می توانید یک مجموعه دیگر را انتخاب کنید:",
+  "Website": "سایت اینترنتی",
+  "Welcome to Mailspring": "به Mailspring خوش آمدید",
+  "When composing, automatically": "هنگام نوشتن، به صورت خودکار",
+  "When enabled, Mailspring will notify you as soon as someone reads this message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.": "هنگامی که فعال شد، Mailspring به محض اینکه کسی این پیام را می خواند، به شما اطلاع خواهد داد. ارسال به یک گروه؟ Mailspring نشان می دهد که کدام گیرندگان ایمیل شما را باز کرده اند، بنابراین می توانید با دقت پیگیری کنید.",
+  "When link tracking is turned on, Mailspring will notify you when recipients click links in this email.": "هنگامی که پیوند پیوند فعال می شود، Mailspring به شما اطلاع می دهد هنگامی که گیرندگان روی لینک ها در این ایمیل کلیک می کنند.",
+  "When reading messages, mark as read": "هنگام خواندن پیام، علامت گذاری به عنوان خوانده شده",
   "Window": "پنجره",
+  "Window Controls and Menus": "کنترل پنجره ها و منوها",
+  "With activity tracking, you’ll know as soon as someone reads your message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.": "با پیگیری فعالیت، به محض اینکه کسی پیام شما را می خواند، می دانید. ارسال به یک گروه؟ Mailspring نشان می دهد که کدام گیرندگان ایمیل شما را باز کرده اند، بنابراین می توانید با دقت پیگیری کنید.",
+  "Would you like to make Mailspring your default mail client?": "آیا میخواهید Mailspring ایمیل مشتری پیشفرض خود را انتخاب کنید؟",
+  "Write a reply…": "نوشتن پاسخ…",
+  "Write better emails with LinkedIn profiles, Twitter bios, message history, and more in the right sidebar.": "ایمیل های بهتر با پروفایل های LinkedIn، BIOS توییتر، تاریخچه پیام، و بیشتر در نوار کناری سمت راست نوشتن کنید.",
+  "Yahoo is unavailable.": "یاهو در دسترس نیست",
   "Yes": "بله",
+  "You": "شما",
+  "You are using %@, which is free! You can link up to four email accounts and try pro features like send later, read receipts and reminders a few times a week.": "شما با استفاده از %@، که رایگان است! شما می توانید تا چهار حساب ایمیل پیوند کنید و چندین بار در هفته چندین بار امتحان کنید که ویژگی های طرفدار مانند ارسال بعدها، رونوشت های خواندن و یادآوری ها را بخوانید.",
+  "You are using %@, which is free! You can link up to four email accounts and try pro features like snooze, send later, read receipts and reminders a few times a week.": "شما با استفاده از %@، که رایگان است! شما می توانید به چهار حساب ایمیل پیوند دهید و چندین بار در هفته چندین بار امتحان کنید که ویژگی های حرفه ای مانند چرت زدن، ارسال، خواندن و یادآوری را بخوانید.",
+  "You can add reminders to %1$@ emails each %2$@ with Mailspring Basic.": "شما می توانید یادآوری ها را به %1$@ ایمیل هر %2$@ با Mailspring پایه اضافه کنید.",
+  "You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.": "شما می توانید یک میانبر تنظیم شده برای استفاده از میانبرهای صفحه کلید از مشتریان ایمیل آشنا را انتخاب کنید. برای ویرایش یک میانبر، آن را در لیست زیر کلیک کنید و جایگزین را در صفحه کلید وارد کنید.",
+  "You can get open and click notifications for %1$@ emails each %2$@ with Mailspring Basic.": "شما می توانید هر %2$@ با Mailspring Basic ایمیل های %1$@ باز کنید و روی اعلان کلیک کنید.",
+  "You can schedule sending of %1$@ emails each %2$@ with Mailspring Basic.": "شما می توانید برنامه ارسال %1$@ ایمیل هر %2$@ با Mailspring پایه.",
+  "You can share %1$@ emails each %2$@ with Mailspring Basic.": "شما می توانید %1$@ ایمیل هر %2$@ با Mailspring پایه به اشتراک بگذارید.",
+  "You can snooze %1$@ emails each %2$@ with Mailspring Basic.": "شما می توانید %1$@ ایمیل هر %2$@ با Mailspring اساسی چرت زدن.",
+  "You can switch back to stable from the preferences.": "شما می توانید از ترجیحات به حالت پایدار بازگردید.",
+  "You can view contact profiles for %1$@ emails each %2$@ with Mailspring Basic.": "شما می توانید پروفایل های تماس را برای %1$@ ایمیل هر %2$@ با Mailspring Basic ببینید.",
+  "You haven't created any mail rules. To get started, define a new rule above and tell Mailspring how to process your inbox.": "شما هیچ مقررات پست الکترونیکی ایجاد نکرده اید. برای شروع، یک قاعده جدید را در بالا تعریف کرده و به Mailspring بگویید چگونه پردازش صندوق ورودی خود را پردازش کنید.",
+  "You may need to %@ to your Yandex account before connecting email apps. If you use two-factor auth, you need to create an %@ for Mailspring.": "قبل از اتصال برنامه های ایمیل، ممکن است نیاز به %@ حساب Yandex شما باشد. اگر از مجوز دو عامل استفاده کنید، باید یک %@ برای Mailspring ایجاد کنید.",
+  "You may need to configure aliases with your mail provider (Outlook, Gmail) before using them.": "ممکن است لازم باشد قبل از استفاده از آنها، نامهای پین را با ارائهدهنده ایمیل خود (Outlook، Gmail) پیکربندی کنید.",
+  "You must provide a name for your template.": "شما باید یک نام برای قالب خود را ارائه کنید.",
+  "You must provide a template name.": "شما باید نام قالب را ارائه دهید.",
+  "You must provide contents for your template.": "شما باید محتویات قالب خود را ارائه دهید.",
+  "You need to provide one or more recipients before sending the message.": "قبل از ارسال پیام، باید یک یا چند گیرنده را دریافت کنید.",
+  "You'll find Mailspring, along with other options, listed in Default Apps > Mail.": "شما Mailspring همراه با گزینه های دیگر، در برنامه های پیش فرض> Mail ذکر شده است.",
+  "You're on a pre-release channel. We'd love your feedback.": "شما در کانال پیش پخش قرار دارید ما بازخورد شما را دوست داریم",
+  "You're running the latest version of Mailspring (%@).": "شما آخرین نسخه Mailspring (%@) را اجرا می کنید.",
+  "You're syncing more than four accounts — please consider paying for Mailspring Pro!": "شما همگام سازی بیش از چهار حساب - لطفا در نظر بگیرید برای Mailspring نرم افزار پرداخت!",
+  "You've reached your quota": "شما به سهمیه خود رسیدهاید",
+  "Your Mailspring ID is missing required fields - you may need to reset Mailspring. %@": "شناسه Mailspring شما فیلدهای ضروری را از دست نمیدهد - ممکن است مجددا Mailspring را دوباره تنظیم کنید. %@",
+  "Your `Sent Mail` folder could not be automatically detected. Visit Preferences > Folders to choose a Sent folder and then try again.": "پوشه `ارسال شده شما 'نمی تواند به طور خودکار شناسایی شود. برای انتخاب یک پوشه ارسال شده به تنظیمات> پوشه ها بروید و سپس دوباره امتحان کنید.",
+  "Your `Trash` folder could not be automatically detected. Visit Preferences > Folders to choose a Trash folder and then try again.": "پوشه 'Trash' شما نمی تواند به طور خودکار شناسایی شود. برای انتخاب یک پوشه سطل زباله از گزینه> پوشه ها بروید و سپس دوباره امتحان کنید.",
+  "Your name": "اسم شما",
+  "Your updated localization will be reviewed and included in a future version of Mailspring.": "محلی سازی به روزرسانی شده شما در نسخه آینده Mailspring مورد بررسی و قرار می گیرد.",
   "Zoom": "زوم",
+  "an email address": "یک آدرس ایمیل",
+  "an email subject": "یک موضوع ایمیل",
+  "and": "و",
+  "annual": "سالانه",
+  "attachments": "پیوست ها",
+  "begins with": "شروع با",
+  "click": "کلیک",
+  "contains": "حاوی",
+  "date received or range": "تاریخ دریافت یا محدوده",
+  "does not contain": "شامل نمی شود",
+  "employees": "کارکنان",
+  "enable IMAP": "IMAP را فعال کنید",
+  "ends with": "به پایان می رسد با",
+  "equals": "برابر است",
+  "folder or label": "پوشه یا برچسب",
+  "iCloud requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.": "iCloud نیاز به ایجاد یک رمز عبور برنامه منحصر به فرد برای برنامه های ایمیل مانند Mailspring دارد. به دنبال %@ برای ایجاد یک و سپس آن را در زیر وارد کنید.",
+  "in %@": "در %@",
+  "link a phone number": "شماره تلفن را لینک کنید",
+  "matches expression": "بیان منطبق",
+  "month": "ماه",
+  "older messages": "پیام های قدیمی تر",
+  "one or more files": "یک یا چند فایل",
+  "open": "باز کن",
+  "open source": "متن باز",
+  "processed": "فرآوری شده",
+  "seconds": "ثانیه",
+  "selected": "انتخاب شد",
   "then": "then",
-  "threads": "threads"
+  "these instructions": "این دستورالعمل ها",
+  "threads": "threads",
+  "week": "هفته"
 }

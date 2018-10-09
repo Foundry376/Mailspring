@@ -1,202 +1,595 @@
 {
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "لا يعمل \"التشغيل عند بدء تشغيل النظام\" إلا في بيئات سطح المكتب المتوافقة مع XDG. لتمكين رمز Mailspring في علبة النظام ، قد تحتاج إلى تثبيت libappindicator.",
+  "%1$@ of %2$@": "%1$@ من %2$@",
+  "%@ cannot be attached because it is larger than 25MB.": "%@ لا يمكن إرفاقه لأنه أكبر من 25 ميغابايت.",
+  "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ تم تثبيتها وتمكينها. لا حاجة لإعادة! إذا لم تشاهد المكوّن الإضافي الذي تم تحميله ، فتحقق من وحدة التحكم بحثًا عن الأخطاء.",
+  "%@ is a directory. Try compressing it and attaching it again.": "%@ هو دليل. حاول ضغطها ثم إرفاقها مرة أخرى.",
+  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ تكون الرسائل في سلسلة المحادثات هذه مخفية نظرًا لأنه تم نقلها إلى المهملات أو الرسائل غير المرغوب فيها.",
   "%@ others": "%@ آخرين",
+  "%@ recently %@ %@": "%@ %@ %@ مؤخرا",
   "(No Recipients)": "(لا يوجد مستلمون)",
   "(No Subject)": "(بلا موضوع)",
+  "(Requires supported window manager. Press `Alt` to show menu.)": "(يتطلب مدير نوافذ مدعوم. اضغط على `Alt` لإظهار القائمة.)",
   "... and much more!": "... والمزيد!",
   "1 other": "١ آخر",
+  "A Gmail application-specific password is required.": "كلمة مرور خاصة بالتطبيقات في Gmail مطلوبة.",
+  "A new version is available!": "إصدار جديد متوفر!",
+  "About Mailspring": "حول Mailspring",
   "Accept": "قبول",
   "Account": "الحساب",
   "Account Details": "تفاصيل الحساب",
+  "Account Label": "تسمية الحساب",
   "Account Settings": "إعدادات الحساب",
   "Accounts": "الحسابات",
   "Actions": "الإجراءات",
   "Activity": "النشاط",
   "Activity View": "عرض النشاط",
   "Add Account": "إضافة حساب",
+  "Add your %@ account": "أضف حساب %@ الخاص بك",
   "Added %@": "تمت الإضافة %@",
+  "Added %@ to %@ threads": "إضافة %@ إلى %@ المواضيع",
+  "Adding account": "مضيفا الحساب",
+  "Adding your account to Mailspring…": "إضافة حسابك إلى Mailspring ...",
   "Address": "العنوان",
+  "After %@ Seconds": "بعد %@ ثانية",
+  "After sending, enable undo for": "بعد الإرسال ، مكِّن التراجع عن",
+  "Aliases": "اسماء مستعارة",
   "All": "الكل",
   "All Accounts": "كافة الحسابات",
+  "All Contact Previews Used": "جميع معاينات الاتصال المستخدمة",
   "All Mail": "كل البريد",
+  "All Reminders Used": "جميع التذكيرات المستخدمة",
+  "All Scheduled Sends Used": "جميع المجاميع المرسلة المستخدمة",
+  "All Sharing Links Used": "جميع الروابط المستخدمة المستخدمة",
+  "All Snoozes Used": "كل Snoozes مستعملة",
+  "All used up!": "جميع استخدامها حتى!",
+  "Allow insecure SSL": "السماح بانعدام الأمن SSL",
+  "Always show images from %@": "دائما إظهار الصور من %@",
   "An error has occurred": "لقد حدث خطأ ما",
   "An unknown error has occurred": "حدث خطأ غير معروف",
+  "An update to Mailspring is available %@": "تحديث ل Mailspring متاح %@",
   "Any": "أي",
+  "App Password": "كلمة مرور التطبيق",
   "Appearance": "المظهر",
   "Application": "التطبيق",
   "Apply Label": "تطبيق العنوان",
+  "Apply Layout": "تطبيق التخطيط",
+  "Applying changes...": "تطبيق التغييرات ...",
+  "Applying labels": "تطبيق العلامات",
   "Archive": "أرشفة",
+  "Archived %@": "مؤرشف %@",
+  "Are you sure?": "هل أنت واثق؟",
   "Attach File": "إرفاق ملف",
+  "Attach Mailsync to Xcode": "إرفاق Mailsync إلى Xcode",
   "Attachment name": "إسم المرفق",
   "Attachments": "المرفقات",
+  "Authentication Error - Check your username and password.": "خطأ في المصادقة - تحقق من اسم المستخدم وكلمة المرور.",
+  "Authentication required.": "يستلزم التوثيق.",
+  "Automatic CC / BCC": "التلقائي CC / BCC",
+  "Automatically load images in viewed messages": "تحميل الصور تلقائيا في الرسائل المشاهدة",
   "Back": "عودة",
   "Bcc": "نسخة مخفية",
+  "Best Templates and Subject Lines": "أفضل قوالب وخطوط الموضوع",
   "Body": "نص الرسالة",
   "Bring All to Front": "إحضار الكل للمقدمة",
+  "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.": "بشكل افتراضي ، يتم تطبيق قواعد البريد على البريد الجديد فقط عند وصوله. قد يستغرق تطبيق القواعد على بريدك الوارد بأكمله وقتًا طويلاً مع انخفاض مستوى الأداء.",
+  "Caching mail": "التخزين المؤقت للبريد",
+  "Caching recent mail": "التخزين المؤقت للبريد الحديث",
+  "Can't find the selected thread in your mailbox": "لا يمكن العثور على مؤشر الترابط المحدد في صندوق البريد الخاص بك",
   "Cancel": "إلغاء",
+  "Cancel Send Later": "إلغاء الإرسال لاحقًا",
+  "Cannot scan templates directory": "لا يمكن مسح دليل القوالب",
   "Cannot send message": "لا يمكن إرسال الرسالة",
   "Cc": "نسخة",
   "Certificate Error": "خطأ في الشهادة",
+  "Change Folder": "تغير مجلد",
+  "Change Labels": "تغيير التسميات",
+  "Change Theme": "غير الخلفية",
+  "Change Theme...": "غير الخلفية...",
+  "Changed labels": "التسميات التي تم تغييرها",
+  "Changed labels on %@ threads": "التسميات التي تم تغييرها على %@ المواضيع",
+  "Changes are saved automatically. View the %@ for tips and tricks.": "يتم حفظ التغييرات تلقائيا. عرض %@ للحصول على النصائح والحيل.",
+  "Changing folder mapping...": "تغيير تعيين مجلد ...",
+  "Check Again": "تحقق مرة اخرى",
   "Check for Updates": "التمس التحديثات",
+  "Check messages for spelling": "تحقق من رسائل التهجئة",
   "Checking": "فحص",
+  "Checking for mail": "التحقق من البريد",
   "Choose": "تحديد",
   "Choose Directory": "اختر مجلد",
   "Choose an image": "اختيار صورة",
+  "Choose folder": "إختر ملفا أحمق",
+  "Choose folder or label": "اختر مجلد أو تسمية",
+  "Cleanup Complete": "تنظيف كاملة",
+  "Cleanup Error": "خطأ في التنظيف",
+  "Cleanup Started": "بدأ التنظيف",
+  "Clear Selection": "مسح التحديد",
+  "Clear reminder": "مسح تذكير",
+  "Click 'Learn More' to view instructions in our knowledge base.": "انقر فوق \"معرفة المزيد\" لعرض التعليمات في قاعدة المعرفة الخاصة بنا.",
+  "Click any theme to apply:": "انقر فوق أي موضوع لتطبيق:",
+  "Click shortcuts above to edit them. For even more control, you can edit the shortcuts file directly below.": "انقر فوق الاختصارات أعلاه لتحريرها. لمزيد من التحكم ، يمكنك تحرير ملف الاختصارات أدناه مباشرة.",
+  "Click to replace": "انقر للاستبدال",
+  "Click to upload": "اضغط للتحميل",
+  "Clicked": "النقر",
+  "Clicked by:": "النقر بواسطة:",
   "Close Window": "إغلاق النافذة",
   "Collapse": "طي",
   "Collapse All": "طي الكل",
+  "Combine your search queries with Gmail-style terms like %@ and %@ to find anything in your mailbox.": "اجمع استعلامات البحث مع عبارات نمط Gmail مثل %@ و %@ للعثور على أي شيء في صندوق البريد الخاص بك.",
+  "Comma-separated email addresses": "عناوين البريد الإلكتروني مفصولة بفواصل",
+  "Company / Domain Logo": "شركة / نطاق المجال",
+  "Company overviews": "لمحة عامة عن الشركة",
+  "Complete the IMAP and SMTP settings below to connect your account.": "أكمل إعدادات IMAP و SMTP أدناه لتوصيل حسابك.",
   "Compose New Message": "إنشاء رسالة جديدة",
   "Compose new message": "إنشاء رسالة جديدة",
+  "Compose with context": "يؤلف مع السياق",
   "Composer": "الكاتب",
   "Composing": "كتابة",
+  "Connect Account": "ربط الحساب",
+  "Connect an email account": "قم بتوصيل حساب بريد إلكتروني",
+  "Connecting to %@…": "جارٍ الاتصال بـ %@ ...",
+  "Connection Error - Unable to connect to the server / port you provided.": "خطأ في الاتصال - غير قادر على الاتصال بالخادم / المنفذ الذي قدمته.",
   "Continue": "متابعة",
   "Copied": "منسوخ",
   "Copy": "نسخ",
+  "Copy Debug Info to Clipboard": "نسخ معلومات التصحيح إلى الحافظة",
   "Copy Email Address": "انسخ عنوان البريد الإلكتروني",
   "Copy Image": "نسخ الصورة",
+  "Copy Link Address": "نسخ عنوان الرابط",
+  "Copy link": "انسخ الرابط",
+  "Could not create folder.": "لا يمكن إنشاء مجلد.",
+  "Could not create plugin": "لا يمكن إنشاء المكون الإضافي",
+  "Could not find a file at path '%@'": "تعذر العثور على ملف في المسار \"%@\"",
+  "Could not install plugin": "لا يمكن تثبيت المكون الإضافي",
+  "Could not reach %@. %@": "لا يمكن أن تصل %@. %@",
+  "Could not reach Mailspring. Please try again or contact support@getmailspring.com if the issue persists. (%@: %@)": "لا يمكن الوصول إلى Mailspring. يرجى المحاولة مرة أخرى أو الاتصال بـ support@getmailspring.com إذا استمرت المشكلة. (%@: %@)",
+  "Could not reset accounts and settings. Please delete the folder %@ manually.\\n\\n%@": "لا يمكن إعادة تعيين الحسابات والإعدادات. يرجى حذف المجلد %@ يدويا. \\n\\n %@",
   "Create": "إنشاء",
+  "Create a Plugin": "إنشاء البرنامج المساعد",
+  "Create a Theme": "خلق موضوع",
   "Create a new Rule": "إنشاء قاعدة جديدة",
+  "Create a rule or select one to get started": "أنشئ قاعدة أو حدد واحدة للبدء",
+  "Create new item": "إنشاء عنصر جديد",
+  "Create templated messages and fill them quickly to reply to messages and automate your common workflows.": "يمكنك إنشاء الرسائل التي تم إعداد نموذج لها وتعبئتها بسرعة للرد على الرسائل وأتمتة عمليات سير العمل الشائعة.",
   "Creating %@": "يتم الآن إنشاء ملف PDF...",
   "Custom": "مخصص",
   "Custom Image…": "صورة مخصصة…",
+  "Custom Window Frame and Right-hand Menu": "إطار إطار مخصص والقائمة اليمنى",
+  "Customization": "التخصيص",
   "Cut": "قص",
   "Date": "التاريخ",
   "Decline": "رفض",
   "Default": "الافتراضي",
+  "Default Window Controls and Auto-hiding Menubar": "Default Window Controls والإخفاء التلقائي Menubar",
+  "Default Window Controls and Menubar": "نافذة التحكم الافتراضية و Menubar",
+  "Default for new messages:": "الافتراضي للرسائل الجديدة:",
+  "Default for:": "الافتراضي لـ:",
+  "Default reply behavior": "سلوك الرد الافتراضي",
   "Delete": "حذف",
   "Delete Draft": "حذف المسودة",
   "Delete Template?": "حذف القالب؟",
+  "Delete your custom key bindings and reset to the template defaults?": "هل تريد حذف روابط المفاتيح المخصصة وإعادة التعيين على إعدادات القالب؟",
   "Deleted": "محذوف",
+  "Deleting %@": "الحذف %@",
+  "Deleting all messages in %@": "حذف جميع الرسائل في %@",
+  "Deleting draft": "حذف المسودة",
+  "Deselect all conversations": "قم بإلغاء تحديد كل المحادثات",
+  "Developer": "مطور",
+  "Disable": "تعطيل",
   "Dismiss": "استبعاد",
+  "Display conversations in descending chronological order": "عرض المحادثات بترتيب زمني تنازلي",
+  "Display thumbnail previews for attachments when available. (macOS only)": "اعرض معاينات الصورة المصغرة للمرفقات عندما تكون متاحة. (ماك فقط)",
+  "Do you prefer a single panel layout (like Gmail) or a two panel layout?": "هل تفضل تخطيط لوحة واحدة (مثل Gmail) أو تخطيطًا من لوحين؟",
   "Don’t show this again": "عدم إظهار ذلك مرة أخرى",
+  "Download All": "تحميل الكل",
+  "Download Failed": "التحميل فشل",
   "Download Now": "نزِّل الآن",
   "Downloading Update": "ينزل التحديث",
+  "Dozens of other features!": "العشرات من الميزات الأخرى!",
   "Draft": "مسودة",
   "Drafts": "المسودات",
+  "Drafts folder not found": "مجلد المسودات غير موجود",
+  "Drop to Attach": "إسقاط لإرفاق",
   "Edit": "تحرير",
+  "Edit Item": "تعديل عنصر",
   "Edit Message": "تحرير الرسالة",
+  "Edit Reminder": "تحرير التذكير",
+  "Edit Signatures...": "تحرير التوقيعات ...",
+  "Edit custom shortcuts": "تعديل الاختصارات المخصصة",
   "Email": "البريد الإلكتروني",
+  "Email Address": "عنوان البريد الإلكتروني",
   "Empty": "فارغ",
+  "Empty %@ now": "فارغة %@ الآن",
   "Enable": "تمكين",
+  "Enable read receipts %@ or link tracking %@ to see notifications here.": "تمكين إعلامات القراءة %@ أو تتبع الرابط %@ للاطلاع على الإشعارات هنا.",
+  "Enable verbose IMAP / SMTP logging": "تمكين التسجيل عبر IMAP / SMTP المطوّل",
+  "Encountered an error while syncing %@": "صادف خطأ أثناء المزامنة %@",
   "Enter Full Screen": "دخول إلى وضع ملء الشاشة",
+  "Enter your email account credentials to get started.": "أدخل بيانات اعتماد حساب بريدك الإلكتروني للبدء.",
+  "Enter your email account credentials to get started. Mailspring\\nstores your email password securely and it is never sent to our servers.": "أدخل بيانات اعتماد حساب بريدك الإلكتروني للبدء. تقوم Mailspring [✖︎] بتخزين كلمة مرور البريد الإلكتروني بشكل آمن ولا يتم إرسالها أبدًا إلى خوادمنا.",
   "Error": "خطأ",
   "Event": "الحدث",
+  "Existing": "موجود",
   "Exit": "اخرج",
+  "Exit Full Screen": "الخروج من الشاشة الكاملة",
+  "Expand / collapse conversation": "توسيع / ​​تصغير المحادثة",
   "Expand All": "توسيع الكل",
+  "Explore Mailspring Pro": "استكشاف Mailspring برو",
+  "Export Failed": "فشل التصدير",
+  "Export Raw Data": "تصدير البيانات الخام",
+  "Facebook URL": "URL الفيسبوك",
+  "Failed to load \"%@\"": "فشل تحميل \"%@\"",
+  "Failed to load config.json: %@": "فشل تحميل config.json: %@",
+  "Failed to save \"%@\"": "أخفق الحفظ \"%@\"",
+  "Failed to save config.json: %@": "أخفق حفظ config.json: %@",
+  "False": "خاطئة",
   "Fax": "الفاكس",
   "Feedback": "تقرير",
   "File": "ملف",
   "Find": "بحث",
   "Find Next": "بحث عن التالي",
   "Find Previous": "بحث عن السابق",
+  "Find in Mailbox": "البحث في علبة البريد",
+  "Find in Thread": "البحث في الموضوع",
+  "Find in thread": "البحث في موضوع",
   "Flags": "الأعلام",
+  "Focus the %@ field": "ركز على الحقل %@",
   "Folder": "مجلد",
   "Folders": "مجلدات",
+  "Follow-up reminders": "تذكير متابعة",
+  "Food and Drink": "طعام و شراب",
   "Forward": "تحويل",
   "Forwarded Message": "الرسالة المحوّلة",
+  "Frequently Used": "كثيرا ما تستخدم",
   "From": "من",
+  "GMX requires that you %@ before using email clients like Mailspring.": "تتطلب GMX منك %@ قبل استخدام برامج البريد الإلكتروني مثل Mailspring.",
   "General": "عام",
+  "Get Mailspring Pro": "احصل على Mailspring Pro",
   "Get Started": "البدء",
+  "Get notified when each recipient opens your email to send timely follow-ups and reminders.": "احصل على إشعارات عندما يفتح كل مستلم بريدك الإلكتروني لإرسال رسائل التذكير والتذكيرات في الوقت المناسب.",
+  "Get reminded if you don't receive a reply for this message within a specified time.": "يرجى تذكيرك إذا لم تتلق ردًا على هذه الرسالة في غضون وقت محدد.",
+  "Get reminded!": "الحصول على تذكير!",
+  "Give your draft a subject to name your template.": "اعطي مسوّدة موضوعًا لتسمية القالب الخاص بك.",
+  "Gmail IMAP is not enabled. Visit Gmail settings to turn it on.": "Gmail IMAP غير ممكّن. انتقل إلى إعدادات Gmail لتشغيلها.",
+  "Gmail Remove from view": "Gmail إزالة من العرض",
+  "Gmail bandwidth exceeded. Please try again later.": "عرض النطاق الترددي في Gmail تجاوزت. الرجاء معاودة المحاولة في وقت لاحق.",
   "Go Back": "انتقال للخلف",
+  "Go further with Mailspring Pro": "تذهب أبعد مع Mailspring Pro",
   "Go to %@": "انتقال إلى %@",
+  "Got it!": "فهمتك!",
+  "Gravatar Profile Photo": "Gravatar الملف الشخصي صور",
+  "Handle it later!": "التعامل معها في وقت لاحق!",
+  "Have a GitHub account? Want to contibute many translations? Contribute directly via a Pull Request!": "هل لديك حساب GitHub؟ هل ترغب في كتابة العديد من الترجمات؟ المساهمة مباشرة عبر طلب السحب!",
+  "Have you enabled access through Yahoo?": "هل قمت بتمكين الوصول عبر Yahoo؟",
   "Help": "مساعدة",
+  "Help Center": "مركز المساعدة",
   "Hide": "إخفاء",
+  "Hide Badge": "إخفاء شارة",
+  "Hide Mailspring": "إخفاء المزيل",
   "Hide Others": "إخفاء الأخرى",
   "Hide Sidebar": "إخفاء الشريط الجانبي",
+  "Hooray! You’re done.": "الصيحة! انت انتهيت.",
+  "Huge": "ضخم",
+  "If %@ of the following conditions are met:": "إذا تم استيفاء %@ من الشروط التالية:",
+  "If you enjoy Mailspring, upgrade to Mailspring Pro from %@ to enable all these great features permanently:": "إذا كنت تستمتع ب Mailspring ، قم بالترقية إلى Mailspring Pro من %@ لتمكين كل هذه الميزات الرائعة بشكل دائم:",
+  "If you write a draft in another language, Mailspring will auto-detect it and use the correct spelling dictionary after a few sentences.": "إذا قمت بكتابة مسودة بلغة أخرى ، فستقوم Mailspring بالكشف عنها تلقائيًا واستخدام قاموس التدقيق الإملائي الصحيح بعد بضع جمل.",
+  "If you've enabled link tracking or read receipts, those events will appear here!": "إذا قمت بتمكين تتبع الارتباطات أو قراءة الإعلامات ، فستظهر هذه الأحداث هنا!",
   "Important": "هام",
+  "In 1 Week": "في 1 أسبوع",
+  "In 1 hour": "في 1 ساعة",
+  "In 2 Weeks": "في 2 أسابيع",
+  "In 2 hours": "في 2 ساعة",
+  "In 3 Days": "في 3 أيام",
+  "In 3 Hours": "في 3 ساعات",
+  "In a Month": "في شهر",
+  "In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.": "لتنفيذ إجراءات على صندوق البريد هذا ، تحتاج إلى حل مشكلة المزامنة. تفضل بزيارة التفضيلات> الحسابات لمزيد من المعلومات.",
+  "In order to send mail through Mailspring, your email account must have a Sent Mail folder. You can specify a Sent folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.": "لإرسال البريد عبر Mailspring ، يجب أن يكون حساب البريد الإلكتروني الخاص بك مجلد بريد مرسل. يمكنك تحديد مجلد إرسال يدويًا عن طريق زيارة Preferences> Folders واختيار اسم مجلد من القائمة المنسدلة.",
+  "In order to send mail through Mailspring, your email account must have a Trash folder. You can specify a Trash folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.": "لإرسال البريد عبر Mailspring ، يجب أن يحتوي حساب بريدك الإلكتروني على مجلد مهملات. يمكنك تحديد مجلد Trash يدويًا عن طريق زيارة Preferences> Folders واختيار اسم مجلد من القائمة المنسدلة.",
   "Inbox": "علبة الوارد",
+  "Incoming Mail": "بريد وارد",
   "Indent": "مسافة بادئة",
+  "Information": "معلومات",
   "Insert Numbered List": "إدراج قائمة ذات تعداد رقمي",
+  "Insert a Quote Block": "إدراج كتلة اقتباس",
   "Insert a bulleted list": "إدراج قائمة ذات تعداد نقطي",
+  "Insert a link": "أدخل رابط",
+  "Insert content here!": "أدخل المحتوى هنا!",
   "Install": "تثبيت",
+  "Install Theme": "تثبيت موضوع",
+  "Install a Plugin": "تثبيت البرنامج المساعد",
+  "Instantly": "فورا",
+  "Invalid plugin location": "موقع المكونات الإضافية غير صالح",
+  "Invalid plugin name": "اسم المكون الإضافي غير صالح",
+  "Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.": "اسم القالب غير صالح! لا يمكن أن تحتوي الأسماء إلا على أحرف وأرقام ومسافات وشرطات وشرطات سفلية.",
+  "It looks like your draft already has some content. Loading this template will overwrite all draft contents.": "يبدو أن مسودتك تتضمن بالفعل بعض المحتوى. سيؤدي تحميل هذا النموذج إلى استبدال جميع محتويات المسودة.",
+  "It originates from %@ but replies will go to %@.": "ينشأ من %@ ولكن الردود ستذهب إلى %@.",
   "Job Title": "المسمى الوظيفي",
+  "Jumping": "القفز",
+  "Label as...": "تسمية باسم ...",
   "Labels": "العناوين",
+  "Language Conversion Failed": "فشل تحويل اللغة",
   "Large": "كبير",
+  "Last 2 Weeks": "آخر 2 أسابيع",
+  "Last 4 Weeks": "آخر 4 أسابيع",
+  "Last 7 Days": "اخر 7 ايام",
   "Later Today": "في وقت لاحق اليوم",
+  "Launch on system start": "إطلاق في بداية النظام",
   "Layout": "التنسيق",
   "Learn More": "اطّلع على المزيد",
   "Learn Spelling": "تعلم التدقيق الإملائي",
   "Learn more": "اطّلع على المزيد",
+  "Let's set things up to your liking.": "دعونا نضع الأمور على هوايتك.",
+  "Link Click Rate": "رابط معدل النقر",
+  "Link tracking": "تتبع الارتباط",
+  "Link tracking does not work offline. Please re-enable when you come back online.": "تتبع الارتباط لا يعمل دون اتصال. يرجى إعادة التمكين عند العودة عبر الإنترنت.",
   "Loading Messages": "تحميل الرسائل",
   "Loading...": "تحميل...",
+  "Local Data": "البيانات المحلية",
+  "Localized": "موضعية",
+  "Log Data": "تسجيل البيانات",
   "Look Up “%@”": "البحث عن \"%@\"",
+  "Looking for accounts...": "تبحث عن حسابات ...",
+  "Looking for more messages": "أبحث عن المزيد من الرسائل",
+  "Looks Good!": "تبدو جيدا!",
+  "Mail Rules": "قواعد البريد",
+  "Mail Templates": "قوالب البريد",
+  "Mailbox Summary": "ملخص علبة البريد",
+  "Mailbox insights": "رؤى صندوق البريد",
+  "Mailspring Basic": "Mailspring الأساسية",
+  "Mailspring Help": "مساعدة Mailspring",
+  "Mailspring Pro": "Mailspring Pro",
+  "Mailspring Reminder": "تذكير Mailspring",
+  "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "لم يعد Mailspring يصدق مع %@. كلمة المرور أو المصادقة قد تغيرت.",
+  "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "يتعذر على Mailspring العثور على مجلد المسودات. لإنشاء البريد وإرساله ، تفضل بزيارة التفضيلات> المجلدات واختر مجلد المسودات.",
+  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "يمكن أن تجد Mailspring عملية mailsync. إذا كنت تقوم ببناء Mailspring من المصدر ، فتأكد من تنزيل mailsync.tar.gz وتفريغها في نسخة العمل الخاصة بك.",
+  "Mailspring could not save an attachment because you have run out of disk space.": "تعذر على Mailspring حفظ مرفق لأنك نفدت مساحة القرص.",
+  "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "تعذر على Mailspring حفظ المرفق. تحقق من تعيين الأذونات بشكل صحيح وحاول إعادة تشغيل Mailspring إذا استمرت المشكلة.",
+  "Mailspring could not spawn the mailsync process. %@": "Mailspring لا يمكن أن تفرز عملية mailsync. %@",
+  "Mailspring could not store your password securely. %@ For more information, visit %@": "تعذر على Mailspring تخزين كلمة مرورك بشكل آمن. %@ لمزيد من المعلومات ، يرجى زيارة %@",
+  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "تتطلب إخطارات سطح المكتب Mailspring على Linux أن تكون Zenity. قد تحتاج إلى تثبيته مع مدير الحزم الخاص بك.",
+  "Mailspring does not support stylesheets with the extension: %@": "Mailspring لا يدعم أوراق الأنماط بالامتداد: %@",
+  "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "واجهت Mailspring أخطاء في مزامنة هذا الحساب. تم إرسال تقارير الأعطال إلى فريق Mailspring وسنعمل على إصلاح هذه الأخطاء في الإصدار التالي.",
+  "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "تقوم Mailspring بمسح ذاكرة التخزين المؤقت لـ %@. استنادًا إلى حجم صندوق البريد ، قد يستغرق هذا بضع ثوانٍ أو بضع دقائق. سيظهر تنبيه عند اكتمال عملية التنظيف.",
+  "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "إن Mailspring عبارة عن برنامج %@ مستقل ، وتتيح لنا عائدات الاشتراك قضاء بعض الوقت في الحفاظ على المنتج وتحسينه.",
+  "Mailspring is offline": "Mailspring غير متصل",
+  "Mailspring is running in dev mode and may be slower!": "Mailspring قيد التشغيل في وضع مطور وقد يكون أبطأ!",
+  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "تقوم Mailspring بمزامنة هذا الموضوع ومرفقاته مع السحابة. لخيوط طويلة ، قد يستغرق هذا لحظة.",
+  "Mailspring is unable to sync %@": "Mailspring غير قادر على المزامنة %@",
+  "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "تعيد Mailspring ضبط ذاكرة التخزين المؤقت المحلية لـ %@ خلال %@ ثانية. ستبدأ علبة البريد الخاصة بك في المزامنة مرة أخرى.",
+  "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "يعرض لك Mailspring كل شيء حول جهات الاتصال الخاصة بك داخل صندوق الوارد الخاص بك. شاهد ملفات تعريف LinkedIn وسيرتك على تويتر وسجل الرسائل والمزيد.",
+  "Mailspring was unable to modify your keymaps at %@.": "تعذر على Mailspring تعديل مخططات المفاتيح في %@.",
+  "Mailspring was unable to read the contents of your templates directory (%@). You may want to delete this folder or ensure filesystem permissions are set correctly.": "تعذر على Mailspring قراءة محتويات دليل النماذج الخاصة بك (%@). قد ترغب في حذف هذا المجلد أو التأكد من تعيين أذونات نظام الملفات بشكل صحيح.",
+  "Mailspring was unable to reset the local cache. %@": "تعذر على Mailspring إعادة تعيين ذاكرة التخزين المؤقت المحلية. %@",
+  "Mailspring was unable to write to the file location you specified (%@).": "تعذر على Mailspring الكتابة إلى موقع الملف الذي حددته (%@).",
+  "Make sure you have `libsecret` installed and a keyring is present. ": "تأكد من تثبيت `libsecret` وحلقة مفاتيح موجودة.",
+  "Manage": "تدبير",
+  "Manage Accounts": "إدارة الحسابات",
+  "Manage Billing": "إدارة الفوترة",
+  "Manage Templates...": "إدارة القوالب ...",
   "Manually": "يدويًا",
+  "Mark as %@": "ضع علامة %@",
   "Mark as Important": "تعيين كمهم",
   "Mark as Not Important": "تعيين كغير مهم",
   "Mark as Read": "تمييز كمقروءة",
   "Mark as Spam": "وضع علامة كمزعج",
+  "Marked %@ as Spam": "تم وضع علامة عليها %@ كرسائل غير مرغوب فيها",
+  "Marked %@ threads as %@": "تم وضع علامة على %@ خيوط كـ %@",
+  "Marked as %@": "تم وضع علامة عليها %@",
   "Market Cap": "رسملة السوق",
+  "Marking as read": "وضع علامة كمقروءة",
+  "Marking as unread": "وضع علامة كغير مقروءة",
   "Maybe": "ربما",
   "Message": "رسالة",
   "Message Sent Sound": "صوت إرسال الرسائل",
+  "Message Viewer": "عارض الرسائل",
   "Messages Received": "تم استلام رسالة",
   "Messages Sent": "تم إرسال رسالة",
+  "Messages Time of Day": "رسائل الوقت من اليوم",
   "Minimize": "تصغير",
+  "MobileMe has moved.": "لقد انتقلت MobileMe.",
+  "Monthly": "شهريا",
   "Move Message": "نقل الرسالة",
+  "Move to Applications": "الانتقال إلى التطبيقات",
+  "Move to Applications?": "الانتقال إلى التطبيقات؟",
+  "Move to Archive": "الانتقال إلى الأرشيف",
   "Move to Folder": "نقل إلى مجلد",
+  "Move to Label": "الانتقال إلى التسمية",
   "Move to Trash": "حذف  إلى سلة المهملات",
+  "Move to newer conversation": "الانتقال إلى محادثة أحدث",
+  "Move to older conversation": "الانتقال إلى المحادثة القديمة",
+  "Move to...": "الانتقال إلى...",
+  "Moved %@ messages to %@": "نقلت %@ رسائل إلى %@",
+  "Moved %@ threads to %@": "تم نقل %@ خيوط إلى %@",
   "Moved to %@": "تم النقل إلى %@",
+  "Moving to folder": "الانتقال إلى المجلد",
   "Name": "الإسم",
   "Nature": "طبيعة",
+  "Navigation": "التنقل",
+  "Never forget to follow up! Mailspring reminds you if your messages haven't received replies.": "لا تنس أن تتابع! تذكرك Mailspring إذا لم تتلق رسائلك ردودًا.",
+  "New %@": "جديد %@",
   "New Message": "رسالة جديدة",
   "Next": "التالية",
+  "Next Month": "الشهر القادم",
   "Next Week": "الأسبوع القادم",
+  "Next thread": "الخيط التالي",
   "No": "لا",
+  "No Date": "لا تاريخ",
   "No Guesses Found": "لم يتم العثور على أية تخمينات",
+  "No Matching Profile": "لا يوجد ملف مطابق",
+  "No Messages": "لا رسائل",
+  "No important folder / label": "لا مجلد / تسمية مهمة",
+  "No name provided": "لا يوجد اسم المقدمة",
+  "No opens": "لا يفتح",
+  "No reminders set": "لا مجموعة تذكير",
+  "No rules": "لا قواعد",
+  "No search results": "لا نتائج للبحث",
+  "No signature": "لا توقيع",
+  "No update available.": "أي تحديث متاح.",
   "No valid server found.": "الخادوم غير موجود.",
   "None": "لا شيء",
   "Normal": "عادي",
   "Not Important": "غير مهم",
   "Not Now": "ليس الآن",
+  "Not Spam": "ليس بريدا موذيا",
+  "Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring %@. Click 'Billing' below to correct the issue.": "ملاحظة: نظرًا للمشكلات المتعلقة بأحدث دفعاتك ، فقد تم تخفيضك مؤقتًا إلى Mailspring %@. انقر فوق \"الفوترة\" أدناه لتصحيح المشكلة.",
   "Notifications": "الإشعارات",
+  "Notify me about new features and plugins via this email address.": "أبلغني عن الميزات الجديدة والمكونات الإضافية عبر عنوان البريد الإلكتروني هذا.",
+  "Now": "الآن",
   "OK": "موافق",
   "Objects": "كائنات",
+  "Of recipients click a link": "من المستلمين انقر فوق الارتباط",
+  "Of threads you start get a reply": "من المواضيع التي تبدأ الحصول على الرد",
+  "Of your emails are opened": "يتم فتح رسائل البريد الإلكتروني الخاصة بك",
   "Offline": "غير متصل",
+  "Okay": "حسنا",
+  "One message in this thread is hidden because it was moved to trash or spam.": "تم إخفاء إحدى الرسائل في سلسلة المحادثات هذه لأنه تم نقلها إلى المهملات أو الرسائل غير المرغوب فيها.",
+  "One or more of your mail rules have been disabled.": "تم تعطيل واحد أو أكثر من قواعد البريد الخاصة بك.",
+  "One or more of your mail rules requires the bodies of messages being processed. These rules can't be run on your entire mailbox.": "يتطلب واحد أو أكثر من قواعد البريد الخاص بك جسد الرسائل التي تتم معالجتها. لا يمكن تشغيل هذه القواعد على صندوق البريد الخاص بك بأكمله.",
   "Open": "فتح",
   "Open In Browser": "افتح في المتصفح",
   "Open Link": "فتح الرابط",
+  "Open Mailsync Logs": "فتح سجلات Mailsync",
+  "Open Rate": "معدل مفتوح",
+  "Open and link tracking": "فتح وتتبع الارتباط",
+  "Open containing folder after downloading attachment": "فتح مجلد يحتوي على بعد تنزيل المرفق",
+  "Open selected conversation": "افتح المحادثة المختارة",
+  "Open tracking does not work offline. Please re-enable when you come back online.": "فتح التتبع لا يعمل دون اتصال. يرجى إعادة التمكين عند العودة عبر الإنترنت.",
   "Opened": "فتحت",
+  "Opened by": "افتتح",
+  "Opens": "يفتح",
+  "Or, 'next Monday at 2PM'": "أو \"الاثنين القادم في الساعة 2 مساءً\"",
   "Outdent": "مسافة بادئة يسار",
+  "Outgoing Mail": "الرسائل المرسلة",
+  "Override standard interface scaling": "تجاوز القياس القياسي للواجهة",
+  "Page didn't open? Paste this URL into your browser:": "الصفحة لم تفتح؟ الصق عنوان URL هذا في متصفحك:",
+  "Parsing Error": "خطأ تحليل",
   "Password": "كلمة المرور",
   "Paste": "لصق",
   "Paste and Match Style": "لصق ومطابقة النمط",
   "People": "الأشخاص",
   "Perform these actions:": "نفذ الإجراءات التالية:",
   "Phone": "الهاتف",
+  "Play sound when receiving new mail": "تشغيل الصوت عند تلقي بريد جديد",
+  "Please provide a password for your account.": "يرجى تقديم كلمة مرور لحسابك.",
+  "Please provide a valid email address.": "يرجى تقديم عنوان بريد إلكتروني صالح.",
+  "Please provide a valid port number.": "يرجى تقديم رقم منفذ صالح.",
+  "Please provide your name.": "يرجى تقديم اسمك.",
+  "Plugin installed! 🎉": "تم تثبيت المكون الإضافي! 🎉",
+  "Pop thread in": "موضوع البوب ​​في",
+  "Popout composer…": "الملحن Popout ...",
+  "Popout thread": "موضوع بوبوت",
   "Port": "منفذ",
+  "Powerful template support": "دعم قالب قوي",
   "Preferences": "تفضيلات",
+  "Preferences > Subscription": "التفضيلات> الاشتراك",
+  "Press &quot;tab&quot; to quickly move between the blanks - highlighting will not be visible to recipients.": "اضغط على & quot؛ علامة التبويب & quot؛ للتنقل بسرعة بين الفراغات - لن يكون التمييز ظاهرًا للمستلمين.",
   "Preview": "معاينة",
+  "Previous thread": "الموضوع السابق",
   "Print": "طباعة",
+  "Print Current Thread": "طباعة الموضوع الحالي",
+  "Print Thread": "طباعة الموضوع",
+  "Privately Held": "تم عقده سرا",
+  "Pro tip: Combine search terms with AND and OR to create complex queries. ": "نصيحة احترافية: اجمع عبارات البحث مع AND و OR لإنشاء استعلامات معقدة.",
+  "Process entire inbox": "معالجة علبة الوارد بأكملها",
   "Quick Reply": "الرد السريع",
   "Quit": "إنهاء",
+  "Quit Mailspring": "قم بإنهاء Mailspring",
+  "Raised": "رفع",
+  "Raw HTML": "HTML الخام",
   "Raw Source": "مصدر خام",
+  "Re-authenticate...": "إعادة مصادقة ...",
   "Read": "مقروءة",
+  "Read Receipts": "قراءة إيصالات",
+  "Read Receipts and Link Tracking": "قراءة الإيصالات وتتبع الارتباط",
   "Reading": "القراءة",
+  "Reading Pane Off": "قراءة جزء قبالة",
+  "Reading Pane On": "قراءة جزء على",
   "Rebuild": "إعادة إنشاء",
+  "Rebuild Cache...": "إعادة إنشاء ذاكرة التخزين المؤقت ...",
   "Recipient": "المستلم",
+  "Reconnect": "إعادة الاتصال",
   "Redo": "إعادة",
+  "Relaunch": "استئناف",
+  "Relaunch to apply window changes.": "أعد تشغيل لتطبيق تغييرات النافذة.",
+  "Release channel": "قناة الإصدار",
   "Reload": "أعد التحميل",
+  "Remind me if no one replies": "ذكرني إذا لم يرد أحد",
   "Reminder": "التذكير",
+  "Reminder set for %@ from now": "تم تعيين التذكير لـ %@ من الآن",
   "Reminders": "رسائل التذكير",
   "Remove": "إزالة",
   "Remove HTML": "إزالة HTML",
+  "Remove Star": "إزالة ستار",
+  "Remove Stars": "إزالة النجوم",
+  "Remove and show next": "إزالة وإظهار التالي",
+  "Remove and show previous": "إزالة وإظهار السابق",
+  "Remove from view": "إزالة من العرض",
+  "Remove quoted text": "إزالة النص المقتبس",
+  "Removed %@": "تمت الإزالة %@",
+  "Removed %@ from %@ threads": "تمت الإزالة %@ من %@ سلاسل",
+  "Removed %@ from Trash": "تمت الإزالة %@ من المهملات",
   "Rename": "إعادة تسمية",
+  "Renaming %@": "إعادة تسمية %@",
+  "Replace contents": "استبدال المحتويات",
+  "Replace draft contents?": "هل تريد استبدال مسودة المحتويات؟",
   "Reply": "رد",
   "Reply All": "رد على الكل",
+  "Reply Rate": "معدل الرد",
   "Reply to": "رد إلى",
   "Reset": "إعادة تعيين",
+  "Reset Accounts and Settings": "إعادة ضبط الحسابات والإعدادات",
   "Reset Cache": "إعادة تعيين ذاكرة التخزين المؤقت",
+  "Reset Configuration": "إعادة تعيين التكوين",
   "Reset Theme": "إعادة الضبط النمط",
+  "Restart and Install Update": "إعادة تشغيل وتثبيت التحديث",
   "Restore Defaults": "استعد المبدئيات",
+  "Resurface messages to the top of the inbox when unsnoozing": "إعادة إظهار الرسائل في الجزء العلوي من البريد الوارد عند عدم التأجيل",
+  "Retrying in %@ seconds": "جارٍ إعادة المحاولة خلال %@ ثانية",
+  "Retrying in 1 second": "إعادة المحاولة في ثانية واحدة",
+  "Retrying now...": "جارٍ إعادة المحاولة الآن ...",
+  "Retrying...": "إعادة المحاولة ...",
+  "Return to %@": "ارجع إلى %@",
+  "Return to conversation list": "العودة إلى قائمة المحادثة",
+  "Revert custom HTML?": "العودة إلى HTML المخصص؟",
+  "Rich contact profiles": "ملفات تعريف الاتصال الغنية",
+  "Rules only apply to the selected account.": "القواعد لا تنطبق إلا على الحساب المحدد.",
+  "Run with Debug Flags": "تشغيل مع Debug Flags",
+  "Run with debug flags?": "تشغيل مع علامات التصحيح؟",
+  "Save Draft as Template...": "حفظ مسودة كقالب ...",
   "Save Image": "حفظ الصورة",
+  "Save Into...": "حفظ في ...",
+  "Save New Package": "حفظ حزمة جديدة",
+  "Saving reminder...": "حفظ التذكير ...",
+  "Saving send date...": "جارٍ حفظ تاريخ الإرسال ...",
+  "Scaling": "تدريج",
+  "Scaling adjusts the entire UI, including icons, dividers, and text. Messages you send will still have the same font size. Decreasing scale significantly may make dividers and icons too small to click.": "يضبط القياس واجهة المستخدم بالكامل ، بما في ذلك الرموز والفواصل والنص. ستظل الرسائل التي ترسلها بنفس حجم الخط. قد يؤدي خفض المقياس بشكل ملحوظ إلى جعل الفواصل والرموز صغيرة جدًا بحيث لا يمكن النقر عليها.",
+  "Scanning": "مسح",
+  "Scanning messages": "مسح الرسائل",
+  "Schedule messages to re-appear later to keep your inbox clean and focus on immediate todos.": "جدولة الرسائل لإعادة الظهور لاحقًا للحفاظ على نظافة البريد الوارد والتركيز على todos الفوري.",
+  "Schedule messages to send at the ideal time to maximize your email reply rate or automate drip emails.": "جدولة الرسائل لإرسالها في الوقت المثالي لزيادة معدل الرد على البريد الإلكتروني أو أتمتة رسائل البريد الإلكتروني بالتنقيط.",
+  "Schedule this message to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!": "جدولة هذه الرسالة لإرسالها في الوقت المثالي. Mailspring يجعل من السهل السيطرة على نسيج الزمكان!",
+  "Scheduled for %@": "مجدولة لـ %@",
   "Search": "بحث",
+  "Search Google for '%@'": "البحث في Google عن \"%@\"",
   "Search Results": "نتائج البحث",
   "Search all mailboxes": "بحث في كل صناديق البريد",
   "Search for": "البحث عن",
+  "Search with ease": "بحث بكل سهولة",
   "Security": "الأمن",
+  "See detailed information about companies you email, including their size, funding and timezone.": "اطلع على معلومات تفصيلية حول الشركات التي ترسل إليها بريدًا إلكترونيًا ، بما في ذلك حجمها وتمويلها ومنطقتها الزمنية.",
+  "See when recipients click links in your emails so you can follow up with precision": "شاهد متى ينقر المستلمون على روابط في رسائل البريد الإلكتروني حتى تتمكن من المتابعة بدقة",
+  "See when recipients open this email": "شاهد متى يفتح المستلمون هذه الرسالة الإلكترونية",
   "Select All": "اختيار الكل",
   "Select All Read": "اختيار الكل قراءة",
   "Select All Starred": "اختيار الكل مميز بنجمة",
   "Select All Unread": "اختيار الكل غير مقروءة",
+  "Select All Unstarred": "حدد الكل Unstarred",
+  "Select all conversations": "اختر كل المحادثات",
+  "Select all read conversations": "اختر كل المحادثات المقروءة",
+  "Select all starred conversations": "حدد جميع المحادثات المميزة بنجمة",
+  "Select all unread conversations": "حدد جميع المحادثات غير المقروءة",
+  "Select all unstarred conversations": "حدد جميع المحادثات غير المميزة بنجمة",
+  "Select conversation": "اختر محادثة",
   "Select file attachment": "تحديد مرفق ملف",
   "Selected Account": "الحساب المحدد",
   "Selected Messages": "الرسائل المختارة",
@@ -205,69 +598,304 @@
   "Send Anyway": "إرسال على أي حال",
   "Send Later": "إرسال لاحقاً",
   "Send message": "إرسال رسالة",
+  "Send more than one message using the same %@ or subject line to compare open rates and reply rates.": "إرسال أكثر من رسالة باستخدام نفس السطر %@ أو الموضوع لمقارنة معدلات فتح ومعدلات الرد.",
   "Send new messages from:": "إرسال الرسائل الجديدة من:",
+  "Send on your own schedule": "إرسال على الجدول الزمني الخاص بك",
   "Sending": "إرسال",
+  "Sending in %@": "إرسال في %@",
+  "Sending in a few seconds": "إرسال في بضع ثوان",
+  "Sending is not enabled for this account.": "لم يتم تمكين الإرسال لهذا الحساب.",
+  "Sending message": "ارسال رسالة",
   "Sending now": "إرسال",
+  "Sending soon...": "إرسال قريبا ...",
   "Sent Mail": "البريد المرسل",
+  "Sent from Mailspring, the best free email app for work": "أرسلت من Mailspring ، أفضل تطبيق البريد الإلكتروني المجاني للعمل",
   "Services": "خدمات",
+  "Set Reminder": "تعيين تذكير",
   "Set up Account": "اضبط حسابا",
+  "Several of your accounts are having issues": "العديد من حساباتك تواجه مشكلات",
   "Share": "مشاركة",
+  "Share Link": "مشاركة الرابط",
+  "Share this Report": "شارك هذا التقرير",
+  "Share this thread": "شارك هذا الموضوع",
   "Shortcuts": "الإختصارات",
   "Show": "عرض",
   "Show All": "إظهار الكل",
   "Show Detail": "إظهار التفاصيل",
+  "Show Gmail-style important markers (Gmail Only)": "عرض علامات مهمة على غرار Gmail (Gmail فقط)",
   "Show Images": "عرض الصور",
+  "Show Original": "إظهار النسخة الأصلية",
+  "Show Progress": "عرض التقدم",
   "Show Sidebar": "إظهار الشريط الجانبي",
+  "Show Templates Folder...": "إظهار مجلد القوالب ...",
+  "Show Total Count": "إظهار العدد الإجمالي",
+  "Show Unread Count": "إظهار عدد غير المقروء",
+  "Show all messages": "عرض كل الرسائل",
+  "Show badge on the app icon": "إظهار الشارة على رمز التطبيق",
+  "Show icon in menu bar / system tray": "إظهار الرمز في شريط القائمة / علبة النظام",
   "Show more": "إظهار المزيد",
+  "Show notifications for new unread messages": "عرض إشعارات للرسائل الجديدة غير المقروءة",
+  "Show notifications for repeated opens / clicks": "عرض إشعارات لفتح / النقرات المتكررة",
+  "Show unread counts for all folders / labels": "إظهار أعداد غير مقروءة لكل المجلدات / التصنيفات",
+  "Showing %@ threads with %@ messages": "عرض %@ سلاسل رسائل مع %@ رسائل",
+  "Showing 1 thread with %@ messages": "عرض 1 موضوع برسائل %@",
   "Sign Out": "تسجيل الخروج",
+  "Sign in with %@ in %@ your browser.": "قم بتسجيل الدخول باستخدام %@ في %@ متصفحك.",
   "Signatures": "التوقيعات",
+  "Single Panel": "لوحة واحدة",
   "Small": "صغير",
   "Snooze": "جدولة",
+  "Snooze emails to return at any time that suits you. Schedule messages to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!": "يمكنك تأجيل رسائل البريد الإلكتروني التي تم تأجيلها في أي وقت يناسبك. جدولة الرسائل لإرسالها في الوقت المثالي. Mailspring يجعل من السهل السيطرة على نسيج الزمكان!",
+  "Snooze messages": "رسائل الغفوة",
+  "Snooze this email and it'll return to your inbox later. Click here or swipe across the thread in your inbox to snooze.": "تأجيل هذا البريد الإلكتروني وسيعود إلى بريدك الوارد لاحقًا. انقر هنا أو مرّر سريعًا عبر مؤشر الترابط في بريدك الوارد إلى الغفوة.",
+  "Snoozed": "المؤجلة",
+  "Some providers require an app password.": "بعض مقدمي الخدمات تتطلب كلمة مرور التطبيق.",
+  "Someone": "شخصا ما",
+  "Sorry, Mailspring was unable to deliver this message: %@": "عذرًا ، تعذر على Mailspring تسليم هذه الرسالة: %@",
+  "Sorry, plugin names cannot contain spaces.": "عذرًا ، لا يمكن أن تحتوي أسماء المكوّنات الإضافية على مسافات.",
+  "Sorry, something went wrong when this account was added to Mailspring. If you do not see the account, try linking it again. %@": "عذرًا ، حدث خطأ ما عند إضافة هذا الحساب إلى Mailspring. إذا كنت لا ترى الحساب ، فحاول ربطه مرة أخرى. %@",
+  "Sorry, the file you selected does not look like an image. Please choose a file with one of the following extensions: %@": "عذرًا ، لا يبدو الملف الذي حددته مثل صورة. يرجى اختيار ملف مع أحد الملحقات التالية: %@",
+  "Sorry, this account does not appear to have an inbox folder so this feature is disabled.": "عذرًا ، لا يبدو أن هذا الحساب يحتوي على مجلد صندوق بريد حتى يتم تعطيل هذه الميزة.",
+  "Sorry, this folder does not exist.": "عذرا ، هذا المجلد غير موجود.",
+  "Sorry, we can't interpret %@ as a valid date.": "عذرًا ، لا يمكننا تفسير %@ كتاريخ صالح.",
+  "Sorry, we can't parse %@ as a valid date.": "عذرًا ، لا يمكننا تحليل %@ كتاريخ صالح.",
+  "Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\\n\\n(%@)": "عذرًا ، لم نتمكن من حفظ صورة التوقيع الخاصة بك لخوادم Mailspring. يرجى المحاولة مرة أخرى. \\n \\n (%@)",
+  "Sorry, we had trouble logging you in": "عذرًا ، واجهتنا مشكلة في تسجيل دخولك",
+  "Sorry, we were unable to complete the translation request.": "عذرًا ، لم نتمكن من إكمال طلب الترجمة.",
+  "Sorry, we were unable to contact the Mailspring servers to share this thread.\\n\\n%@": "عذرًا ، لم نتمكن من الاتصال بخوادم Mailspring لمشاركة هذا الموضوع. \\n \\n %@",
+  "Sorry, you can't attach more than 25MB of attachments": "عذرًا ، لا يمكنك إرفاق أكثر من 25 ميغابايت من المرفقات",
+  "Sorry, you must create plugins in the dev/packages folder.": "عذرًا ، يجب إنشاء مكونات إضافية في مجلد dev / packages.",
+  "Sorry, you must give your plugin a unique name.": "عذرًا ، يجب أن تعطي المكون الإضافي اسمًا فريدًا.",
+  "Sorry, your SMTP server does not support basic username / password authentication.": "عذرًا ، لا يدعم خادم SMTP مصادقة اسم المستخدم / كلمة المرور الأساسية.",
   "Spam": "البريد المزعج",
   "Spellcheck language": "لغة التدقيق الإملائي",
   "Star": "النجمة",
   "Starred": "مميز بنجمة",
+  "Starred %@ threads": "مميزة بنجمة %@",
   "Starring": "تمييز",
+  "StartTLS is not available.": "StartTLS غير متوفر.",
+  "Still trying to reach %@…": "لا تزال تحاول الوصول إلى %@ ...",
+  "Stock Symbol %@": "رمز السهم %@",
   "Stop": "أوقِف",
   "Subject": "الموضوع",
+  "Subject Line": "سطر الموضوع",
+  "Submit": "خضع",
+  "Submit Improved Localizations": "تقديم توطين محسنة",
+  "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "اشترك في قنوات التحديث المختلفة لتلقي معاينات الميزات الجديدة. لاحظ أن بعض قنوات التحديث قد تكون أقل ثباتًا!",
+  "Subscription": "اشتراك",
+  "Successfully connected to %@!": "تم توصيله بنجاح بـ %@!",
+  "Swipe gesture and backspace / delete move messages to trash": "حرك حركة التمرير و Backspace / delete إلى سلة المهملات",
+  "Switching back to a signature template will overwrite the custom HTML you've entered.": "سيؤدي التبديل إلى قالب التوقيع إلى استبدال HTML المخصص الذي قمت بإدخاله.",
   "Symbols": "رموز",
+  "Sync New Mail Now": "مزامنة البريد الجديد الآن",
+  "Sync this conversation to the cloud and anyone with the secret link can read it and download attachments.": "يمكنك مزامنة هذه المحادثة مع السحاب ويمكن لأي شخص لديه الرابط السري قراءتها وتنزيل المرفقات.",
+  "Syncing": "المزامنة",
+  "Syncing your mailbox": "مزامنة صندوق البريد الخاص بك",
+  "TLS Not Available": "TLS غير متوفر",
   "Template": "قالب",
+  "Template Creation Error": "خطأ في إنشاء القالب",
   "Templates": "قوالب",
+  "Templates Guide": "دليل القوالب",
+  "Thank you for helping debug Mailspring. Mailspring will now restart.": "شكرا للمساعدة في تصحيح Mailspring. سيتم الآن إعادة تشغيل Mailspring.",
+  "Thank you for using %@ and supporting independent software. Get the most out of your subscription: explore pro features below or visit the %@ to learn more about reminders, templates, activity insights, and more.": "نشكرك على استخدام %@ ودعم البرامج المستقلة. حقق أقصى استفادة من اشتراكك: استكشف الميزات الاحترافية أدناه أو تفضل بزيارة %@ لمعرفة المزيد عن التذكيرات والقوالب وإحصاءات الأنشطة والمزيد.",
+  "Thank you!": "شكرا لكم!",
+  "Thanks for downloading Mailspring! Would you like to move it to your Applications folder?": "شكرا لتحميله Mailspring! هل ترغب في نقلها إلى مجلد التطبيقات؟",
+  "The Mailspring Team": "فريق Mailspring",
+  "The Outlook server said you must sign in via a web browser.": "قال خادم Outlook يجب عليك تسجيل الدخول عبر متصفح الويب.",
+  "The SMTP server would not relay a message. You may need to authenticate.": "لن يقوم خادم SMTP بنقل رسالة. قد تحتاج إلى المصادقة.",
+  "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "يعرض الشريط الجانبي لجهة الاتصال في Mailspring Pro معلومات حول الأشخاص والشركات التي ترسل إليها بريدًا إلكترونيًا.",
+  "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "لقد تغير العنوان منذ أن بدأت بإرسال هذا المسودة. تحقق جيدًا من المسودة وانقر فوق \"إرسال\" مرة أخرى.",
+  "The message contains an empty template area.": "تحتوي الرسالة على مساحة قالب فارغة.",
+  "The message contains an illegial attachment that is not allowed by the server.": "تحتوي الرسالة على مرفق غير قانوني لا يسمح به الخادم.",
+  "The message has been blocked because no sender is configured.": "تم حظر الرسالة لعدم تكوين أي مرسل.",
+  "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "تم حظر الرسالة بواسطة Yahoo - لقد تجاوزت حد الإرسال اليومي.",
+  "The message has been blocked by Yahoo's outbound spam filter.": "تم حظر الرسالة بواسطة مرشح البريد العشوائي الصادر في Yahoo.",
+  "The message is addressed to a name that doesn't appear to be a recipient (\"%@\")": "الرسالة موجهة إلى اسم لا يبدو أنه مستلم (\"%@\")",
+  "The message mentions an attachment but none are attached.": "تشير الرسالة إلى مرفق ولكن لم يتم إرفاق أي منها.",
+  "The plugin or theme folder you selected doesn't contain a package.json file, or it was invalid JSON. %@": "لا يحتوي المكون الإضافي أو المجلد الذي حددته على ملف package.json ، أو كان JSON غير صالح. %@",
+  "The plugin or theme you selected has not been upgraded to support Mailspring. If you're the developer, update the package.json's engines field to include \"mailspring\".\\n\\nFor more information, see this migration guide: %@": "لم تتم ترقية المكون الإضافي أو المظهر الذي حددته لدعم Mailspring. إذا كنت مطور البرامج ، فحدّث حقل محركات package.json لتضمين \"mailspring\". \\n \\n لمزيد من المعلومات ، راجع دليل الترحيل هذا: %@",
+  "The server said you must sign in via your webmail.": "قال الخادم يجب عليك تسجيل الدخول عبر البريد الإلكتروني الخاص بك.",
+  "The subject field is blank.": "حقل الموضوع فارغ.",
+  "The template and its file will be permanently deleted.": "سيتم حذف القالب وملفه نهائيًا.",
+  "The thread %@ does not exist in your mailbox!": "الخيط %@ غير موجود في صندوق البريد الخاص بك!",
+  "Theme Color": "لون الموضوع",
+  "Theme and Style": "الموضوع والاسلوب",
+  "Themes": "المواضيع",
+  "There are %@ more messages in this thread that are not in spam or trash.": "هناك %@ المزيد من الرسائل في سلسلة المحادثات هذه غير موجودة في الرسائل غير المرغوب فيها أو المهملات.",
+  "There are too many active connections to your Gmail account. Please try again later.": "هناك عدد كبير جدًا من الاتصالات النشطة لحساب Gmail الخاص بك. الرجاء معاودة المحاولة في وقت لاحق.",
+  "There is one more message in this thread that is not in spam or trash.": "هناك رسالة واحدة أخرى في سلسلة المحادثات هذه ليست في الرسائل غير المرغوب فيها أو المهملات.",
+  "There was an error checking for updates.": "كان هناك خطأ في التحقق من وجود تحديثات.",
+  "These features were %@ of the messages you sentin this time period, so these numbers do not reflect all of your activity. To enableread receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.": "كانت هذه الميزات %@ من الرسائل التي أرسلتها في هذه الفترة الزمنية ، لذلك لا تعكس هذه الأرقام جميع أنشطتك. لإيصالات enableread وتتبع الارتباطات على رسائل البريد الإلكتروني التي ترسلها ، انقر على %@ أو رابط تتبع %@ الرموز في الملحن.",
+  "This Weekend": "هذا الاسبوع",
+  "This account is invalid or Mailspring could not find the Inbox or All Mail folder. %@": "هذا الحساب غير صالح أو تعذر على Mailspring العثور على مجلد علبة الوارد أو البريد بالكامل. %@",
+  "This looks like a Gmail account! While it's possible to setup an App Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go back and select \"Gmail & Google Apps\" from the provider screen.": "يبدو هذا وكأنه حساب Gmail! على الرغم من أنه من الممكن إعداد كلمة مرور التطبيقات والاتصال بـ Gmail عبر IMAP ، فإن Mailspring تدعم أيضًا Google OAuth. ارجع وحدد \"Gmail & Google Apps\" من شاشة الموفر.",
+  "This message has not been opened": "لم يتم فتح هذه الرسالة",
+  "This message looks suspicious!": "هذه الرسالة تبدو مريبة!",
+  "This plugin or theme %@ does not list \"mailspring\" in it's package.json's \"engines\" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: %@": "لا يدرج هذا المكوّن الإضافي أو المظهر %@ \"mailspring\" في الحقل \"engines\" في package.json. اطلب من المطور اختبار المكون الإضافي مع Mailspring وإضافته ، أو اتباع التعليمات هنا: %@",
+  "This rule has been disabled. Make sure the actions below are valid and re-enable the rule.": "تم تعطيل هذه القاعدة. تأكد من أن الإجراءات أدناه صحيحة ، وأعد تمكين القاعدة.",
+  "This thread has been moved to the top of your inbox by Mailspring.": "تم نقل هذا الموضوع إلى أعلى علبة الوارد الخاصة بك بواسطة Mailspring.",
+  "This thread was brought back to the top of your inbox as a reminder": "تم إرجاع هذا الموضوع إلى الجزء العلوي من البريد الوارد كتذكير",
+  "This thread will come back to the top of your inbox if nobody replies by:": "سيعود مؤشر الترابط هذا إلى الجزء العلوي من بريدك الوارد إذا لم يرد أحد عن طريق:",
   "Thread": "نقاش",
   "Threads": "النقاشات",
   "Title": "العنوان",
   "To": "إلى",
+  "To create a template you need to fill the body of the current draft.": "لإنشاء قالب ، يجب ملء نص المسودة الحالية.",
+  "To develop plugins, you should run Mailspring with debug flags. This gives you better error messages, the debug version of React, and more. You can disable it at any time from the Developer menu.": "لتطوير الإضافات ، يجب عليك تشغيل Mailspring مع علامات التصحيح. يمنحك ذلك رسائل خطأ أفضل ، إصدار تصحيح React ، والمزيد. يمكنك تعطيله في أي وقت من قائمة المطور.",
+  "To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\\n\\n%@": "للاستماع إلى استجابة Gmail Oauth ، يحتاج Mailspring إلى بدء خادم ويب على المنفذ $ {LOCAL_SERVER_PORT}. يرجى الرجوع ومحاولة ربط حسابك مرة أخرى. إذا استمر هذا الخطأ ، فاستخدم خيار IMAP / SMTP مع كلمة مرور تطبيق Gmail. \\n \\n %@",
   "Today": "اليوم",
+  "Toggle Bold": "تبديل جريئة",
+  "Toggle Component Regions": "تبديل مناطق المكونات",
+  "Toggle Dev Tools": "تبديل أدوات التطوير",
+  "Toggle Developer Tools": "تبديل أدوات المطور",
+  "Toggle Italic": "تبديل مائل",
+  "Toggle Localizer Tools": "تبديل أدوات Localizer",
+  "Toggle Screenshot Mode": "تبديل وضع لقطة الشاشة",
   "Tomorrow": "غدًا",
+  "Tomorrow Evening": "مساء غد",
+  "Tomorrow Morning": "غدا صباحا",
+  "Tonight": "هذه الليلة",
+  "Track links in this email": "تتبع الروابط في هذا البريد الإلكتروني",
+  "Track opens and clicks": "المسار يفتح والنقرات",
+  "Translate": "ترجمه",
+  "Translate email body…": "ترجمة نص البريد الإلكتروني ...",
   "Trash": "سلة المهملات",
+  "Trashed %@": "في المهملات %@",
+  "Travel and Places": "السفر والأماكن",
+  "True": "صحيح",
   "Try Again": "محاولة مرة أخرى",
+  "Try Reconnecting": "حاول إعادة الاتصال",
+  "Try it Now": "جربه الآن",
+  "Try now": "جرب الآن",
+  "Twitter Handle": "التعامل مع التغريد",
+  "Twitter Profile Image": "صورة ملف Twitter الشخصي",
+  "Two Panel": "لوحة اثنين",
+  "Uhoh - that's a pro feature!": "Uhoh - هذا هو ميزة للمحترفين!",
+  "Unable to Add Account": "غير قادر على إضافة حساب",
+  "Unable to Start Local Server": "غير قادر على بدء الخادم المحلي",
+  "Unable to download %@. Check your network connection and try again. %@": "غير قادر على تنزيل %@. تحقق من اتصال الشبكة وحاول مرة أخرى. %@",
+  "Unable to read package.json for %@: %@": "غير قادر على قراءة package.json لـ %@: %@",
+  "Unarchived %@": "غير منسوخ %@",
   "Underline": "تسطير",
   "Undo": "تراجع",
+  "Undoing changes": "التراجع عن التغييرات",
+  "Unfortunately, link tracking servers are currently not available. Please try again later. Error: %@": "للأسف ، لا تتوفر خوادم تتبع الارتباط حاليًا. الرجاء معاودة المحاولة في وقت لاحق. خطأ: %@",
+  "Unfortunately, open tracking is currently not available. Please try again later. Error: %@": "للأسف ، لا يتوفر التتبع المفتوح حاليًا. الرجاء معاودة المحاولة في وقت لاحق. خطأ: %@",
+  "Unlimited Connected Accounts": "حسابات غير محدودة متصلة",
+  "Unlimited Contact Profiles": "ملفات تعريف غير محدودة",
+  "Unlimited Link Tracking": "غير محدود رابط تتبع",
+  "Unlimited Read Receipts": "غير محدود قراءة إيصالات",
+  "Unlimited Reminders": "تذكير غير محدود",
+  "Unlimited Snoozing": "غير محدود الغفوة",
+  "Unmarked %@ as Spam": "غير مميز %@ كرسائل غير مرغوب فيها",
+  "Unnamed Attachment": "مرفق غير",
   "Unread": "غير مقروءة",
   "Unread Messages": "رسائل غير مقروءة",
+  "Unschedule Send": "Unschedule Send",
+  "Unsnoozed message": "رسالة غير متوقفة",
+  "Unstar": "إلغاء التمييز بنجمة",
+  "Unstarred": "إلغاء تعليم",
+  "Unstarred %@ threads": "غير مميزة %@ خيوط",
+  "Unstarring": "إزالة التمييز بنجمة",
   "Untitled": "بدون عنوان",
   "Untitled Rule": "بلا عنوان",
+  "Update Connection Settings...": "تحديث إعدادات الاتصال ...",
+  "Update Error": "خطأ في التحديث",
   "Updates": "التحديثات",
   "Upgrade": "ترقية",
+  "Upgrade to %@ to use all these great features permanently:": "الترقية إلى %@ لاستخدام جميع هذه الميزات الرائعة بشكل دائم:",
+  "Upgrade to Mailspring Pro": "الترقية إلى Mailspring Pro",
+  "Upgrade to Pro today!": "الترقية إلى Pro اليوم!",
+  "Use 24-hour clock": "استخدم 24 ساعة على مدار الساعة",
+  "Use Mailspring as default mail client": "استخدم Mailspring كعميل البريد الافتراضي",
+  "Use the Activity tab to get a birds-eye view of your mailbox: open and click rates, subject line effectiveness, and more.": "استخدم علامة التبويب \"النشاط\" للحصول على عرض شامل لعلبة البريد الخاصة بك: فتح والنقر على النسب وفعالية سطر الموضوع والمزيد.",
+  "Verbose logging is now %@": "التسجيل المطوّل هو الآن %@",
   "View": "عرض",
+  "View Mail Rules": "عرض قواعد البريد",
+  "View changelog": "عرض التغيير",
+  "Visit Thread on GitHub": "زيارة الموضوع على جيثب",
+  "Visit Windows Settings to change your default mail client": "قم بزيارة إعدادات Windows لتغيير عميل البريد الافتراضي الخاص بك",
+  "Visit Windows Settings to finish making Mailspring your mail client": "قم بزيارة إعدادات Windows لإنهاء عمل Mailspring عميل البريد الخاص بك",
+  "We encountered a problem moving to the Applications folder. Try quitting the application and moving it manually.": "لقد واجهنا مشكلة في الانتقال إلى مجلد التطبيقات. حاول إيقاف التطبيق وتحريكه يدويًا.",
+  "We encountered a problem with your local email database. %@\\n\\nCheck that no other copies of Mailspring are running and click Rebuild to reset your local cache.": "واجهنا مشكلة في قاعدة بيانات البريد الإلكتروني المحلية. %@ \\n \\n تحقق من عدم وجود نسخ أخرى من Mailspring قيد التشغيل ، ثم انقر فوق إعادة الإنشاء لإعادة تعيين ذاكرة التخزين المؤقت المحلية الخاصة بك.",
+  "We encountered a problem with your local email database. We will now attempt to rebuild it.": "واجهنا مشكلة في قاعدة بيانات البريد الإلكتروني المحلية. سنحاول الآن إعادة بنائه.",
+  "We encountered an SMTP Gateway error that prevented this message from being delivered to all recipients. The message was only sent successfully to these recipients:\\n%@\\n\\nError: %@": "صادفنا خطأ في بوابة SMTP تمنع تسليم هذه الرسالة إلى جميع المستلمين. تم إرسال الرسالة بنجاح إلى هؤلاء المستلمين فقط: \\n %@ \\n \\n خطأ: %@",
+  "We were unable to deliver this message to some recipients. Click 'See Details' for more information.": "لم نتمكن من تسليم هذه الرسالة إلى بعض المستلمين. انقر فوق \"انظر التفاصيل\" لمزيد من المعلومات.",
+  "We were unable to deliver this message.": "لم نتمكن من توصيل هذه الرسالة.",
+  "We're having trouble billing your Mailspring subscription.": "نواجه مشكلة في فوترة اشتراكك في Mailspring.",
+  "We've picked a set of keyboard shortcuts based on your email account and platform. You can also pick another set:": "لقد اخترنا مجموعة من اختصارات لوحة المفاتيح استنادًا إلى حساب بريدك الإلكتروني والنظام الأساسي. يمكنك أيضًا اختيار مجموعة أخرى:",
   "Website": "الموقع",
+  "Welcome to Mailspring": "مرحبا بك في Mailspring",
+  "When composing, automatically": "عند التأليف ، تلقائيا",
+  "When enabled, Mailspring will notify you as soon as someone reads this message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.": "عند التمكين ، ستعلمك Mailspring بمجرد أن يقرأ شخص ما هذه الرسالة. إرسال إلى مجموعة؟ يعرض لك Mailspring أي المستلمين فتح البريد الإلكتروني الخاص بك حتى تتمكن من متابعة بدقة.",
+  "When link tracking is turned on, Mailspring will notify you when recipients click links in this email.": "عندما يتم تشغيل تتبع الارتباط ، سيقوم Mailspring بإعلامك عندما يقوم المستلمون بالنقر فوق الارتباطات الموجودة في هذا البريد الإلكتروني.",
+  "When reading messages, mark as read": "عند قراءة الرسائل ، ضع علامة كمقروءة",
   "Window": "نافذة",
+  "Window Controls and Menus": "نافذة التحكم والقوائم",
+  "With activity tracking, you’ll know as soon as someone reads your message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.": "من خلال تتبع النشاط ، ستعرف ما أن يقرأ شخص ما رسالتك. إرسال إلى مجموعة؟ يعرض لك Mailspring أي المستلمين فتح البريد الإلكتروني الخاص بك حتى تتمكن من متابعة بدقة.",
+  "Would you like to make Mailspring your default mail client?": "هل ترغب في جعل Mailspring عميل البريد الافتراضي الخاص بك؟",
+  "Write a reply…": "اكتب رد ...",
+  "Write better emails with LinkedIn profiles, Twitter bios, message history, and more in the right sidebar.": "يمكنك كتابة رسائل إلكترونية أفضل باستخدام ملفات تعريف LinkedIn ، وسيرتك على تويتر ، وسجل الرسائل ، والمزيد في الشريط الجانبي الأيسر.",
+  "Yahoo is unavailable.": "ياهو غير متوفرة.",
   "Yes": "نعم",
+  "You": "أنت",
+  "You are using %@, which is free! You can link up to four email accounts and try pro features like send later, read receipts and reminders a few times a week.": "أنت تستخدم %@ ، وهي مجانية! يمكنك ربط ما يصل إلى أربعة حسابات بريد إلكتروني وتجربة ميزات احترافية مثل الإرسال لاحقًا وقراءة الإيصالات والتذكيرات عدة مرات في الأسبوع.",
+  "You are using %@, which is free! You can link up to four email accounts and try pro features like snooze, send later, read receipts and reminders a few times a week.": "أنت تستخدم %@ ، وهي مجانية! يمكنك ربط ما يصل إلى أربعة حسابات بريد إلكتروني وتجربة ميزات احترافية مثل التأجيل ، الإرسال لاحقًا ، قراءة الإيصالات والتذكيرات عدة مرات في الأسبوع.",
+  "You can add reminders to %1$@ emails each %2$@ with Mailspring Basic.": "يمكنك إضافة تذكيرات إلى %1$@ رسائل البريد الإلكتروني لكل %2$@ مع Mailspring Basic.",
+  "You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.": "يمكنك اختيار مجموعة اختصارات لاستخدام اختصارات لوحة المفاتيح لعملاء البريد الإلكتروني المألوفين. لتحرير اختصار ، انقر فوقه في القائمة أدناه وأدخل بديلاً على لوحة المفاتيح.",
+  "You can get open and click notifications for %1$@ emails each %2$@ with Mailspring Basic.": "يمكنك الحصول على تنبيهات مفتوحة وفتحها ل %1$@ رسائل البريد الإلكتروني لكل %2$@ مع Mailspring Basic.",
+  "You can schedule sending of %1$@ emails each %2$@ with Mailspring Basic.": "يمكنك جدولة إرسال %1$@ رسائل البريد الإلكتروني لكل %2$@ مع Mailspring Basic.",
+  "You can share %1$@ emails each %2$@ with Mailspring Basic.": "يمكنك مشاركة %1$@ رسائل البريد الإلكتروني لكل %2$@ مع Mailspring Basic.",
+  "You can snooze %1$@ emails each %2$@ with Mailspring Basic.": "يمكنك تأجيل %1$@ رسائل البريد الإلكتروني لكل %2$@ مع Mailspring Basic.",
+  "You can switch back to stable from the preferences.": "يمكنك التبديل مرة أخرى إلى التفضيلات من التفضيلات.",
+  "You can view contact profiles for %1$@ emails each %2$@ with Mailspring Basic.": "يمكنك عرض ملفات تعريف الاتصال ل %1$@ رسائل البريد الإلكتروني لكل %2$@ مع Mailspring Basic.",
+  "You haven't created any mail rules. To get started, define a new rule above and tell Mailspring how to process your inbox.": "لم تقم بإنشاء أي قواعد للبريد. للبدء ، حدد قاعدة جديدة أعلاه وأخبر Mailspring كيفية معالجة صندوق الوارد الخاص بك.",
+  "You may need to %@ to your Yandex account before connecting email apps. If you use two-factor auth, you need to create an %@ for Mailspring.": "قد تحتاج إلى %@ إلى حساب Yandex الخاص بك قبل توصيل تطبيقات البريد الإلكتروني. إذا كنت تستخدم المصادقة الثنائية ، فستحتاج إلى إنشاء %@ لـ Mailspring.",
+  "You may need to configure aliases with your mail provider (Outlook, Gmail) before using them.": "قد تحتاج إلى تكوين الأسماء المستعارة مع مزود البريد الخاص بك (Outlook ، Gmail) قبل استخدامها.",
+  "You must provide a name for your template.": "يجب عليك تقديم اسم للقالب الخاص بك.",
+  "You must provide a template name.": "يجب عليك تقديم اسم القالب.",
+  "You must provide contents for your template.": "يجب عليك تقديم محتويات القالب الخاص بك.",
+  "You need to provide one or more recipients before sending the message.": "يلزمك تقديم مستلم واحد أو أكثر قبل إرسال الرسالة.",
+  "You'll find Mailspring, along with other options, listed in Default Apps > Mail.": "ستجد خدمة Mailspring ، بالإضافة إلى خيارات أخرى ، مدرجة في التطبيقات الافتراضية> البريد.",
+  "You're on a pre-release channel. We'd love your feedback.": "أنت على قناة ما قبل الإصدار. نحن نحب ملاحظاتك.",
+  "You're running the latest version of Mailspring (%@).": "أنت تقوم بتشغيل أحدث إصدار من Mailspring (%@).",
+  "You're syncing more than four accounts — please consider paying for Mailspring Pro!": "أنت بصدد مزامنة أكثر من أربعة حسابات - يُرجى التفكير في الدفع لـ Mailspring Pro!",
+  "You've reached your quota": "لقد وصلت إلى حصتك",
+  "Your Mailspring ID is missing required fields - you may need to reset Mailspring. %@": "يفتقد معرف Mailspring الحقول المطلوبة - قد تحتاج إلى إعادة تعيين Mailspring. %@",
+  "Your `Sent Mail` folder could not be automatically detected. Visit Preferences > Folders to choose a Sent folder and then try again.": "لم يتم اكتشاف مجلد `Sent Mail` تلقائيًا. انتقل إلى التفضيلات> مجلدات لاختيار مجلد مرسل ثم أعد المحاولة.",
+  "Your `Trash` folder could not be automatically detected. Visit Preferences > Folders to choose a Trash folder and then try again.": "لا يمكن اكتشاف مجلد `Trash` تلقائيًا. انتقل إلى التفضيلات> المجلدات لاختيار مجلد المهملات ثم أعد المحاولة.",
+  "Your name": "اسمك",
+  "Your updated localization will be reviewed and included in a future version of Mailspring.": "سيتم مراجعة موقعك المحدث وإدراجه في إصدار مستقبلي من Mailspring.",
   "Zoom": "تكبير/تصغير",
+  "an email address": "عنوان البريد الإلكتروني",
+  "an email subject": "موضوع البريد الإلكتروني",
   "and": "و",
   "annual": "سنوي",
   "attachments": "مرفقات",
   "begins with": "يبدأ بـ",
+  "click": "انقر",
   "contains": "تحتوي على",
+  "date received or range": "تاريخ الاستلام أو النطاق",
   "does not contain": "لا تحتوي على",
+  "employees": "الموظفين",
+  "enable IMAP": "تمكين IMAP",
   "ends with": "ينتهي بـ",
   "equals": "يساوي",
+  "folder or label": "مجلد أو تسمية",
+  "iCloud requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.": "يتطلب iCloud إنشاء كلمة مرور تطبيق فريدة لتطبيقات البريد الإلكتروني مثل Mailspring. اتبع %@ لإنشاء واحد ثم لصقه أدناه.",
   "in %@": "في %@",
+  "link a phone number": "ربط رقم هاتف",
+  "matches expression": "يطابق التعبير",
   "month": "الشهر",
+  "older messages": "الرسائل القديمة",
+  "one or more files": "واحد أو أكثر من الملفات",
   "open": "فتح",
+  "open source": "المصدر المفتوح",
+  "processed": "معالجة",
   "seconds": "ثانية",
   "selected": "محدد",
   "then": "ثمّ،",
+  "these instructions": "هذه التعليمات",
   "threads": "النقاشات",
   "week": "أسبوع"
 }

@@ -63,7 +63,7 @@ class MessageListScrollTooltip extends React.Component {
   render() {
     return (
       <div className="scroll-tooltip">
-        {localized('%@ of %@', this.state.idx, this.state.count)}
+        {localized('%1$@ of %2$@', this.state.idx, this.state.count)}
       </div>
     );
   }

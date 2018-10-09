@@ -2,7 +2,7 @@
 
 Mailspring 1.5 and above support localization - the app's menus, messages, buttons, and more are loaded from language files based on the user's locale. This makes the app accessible to millions of people around the world and helps it blend in on your desktop!
 
-Providing localization in many languages is a challenge, and automatic translation often does a poor job of technical text. If you use your computer in another language and also speak English, contributing translations to Mailspring is a great way to impact the open source project.
+Providing localization in many languages is a challenge, and automatic translation often does a poor job of technical text. Mailspring's initial translation in ~90 languages was accomplished using a database of human-translated email terms and technical phrases (eg: "Archive", "Send message", etc.) supplemented with Google's NLT Translation API. If you use your computer in another language and also speak English, contributing translations to Mailspring is a great way to impact the open source project and could greatly improve localization quality!
 
 ## Contributing Localizations
 
