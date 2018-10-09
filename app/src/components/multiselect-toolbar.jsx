@@ -1,4 +1,4 @@
-import { Utils } from 'mailspring-exports';
+import { Utils, localized } from 'mailspring-exports';
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
@@ -28,12 +28,18 @@ class MultiselectToolbar extends Component {
 
   selectionLabel = () => {
     const { selectionCount, collection } = this.props;
-    if (selectionCount > 1) {
-      return `${selectionCount} ${collection}s selected`;
-    } else if (selectionCount === 1) {
-      return `${selectionCount} ${collection} selected`;
+    if (selectionCount === 0) {
+      return '';
     }
-    return '';
+
+    let noun = '';
+    if (collection === 'thread') {
+      noun = selectionCount > 1 ? localized('Threads') : localized('Thread');
+    } else if (collection === 'draft') {
+      noun = selectionCount > 1 ? localized('Drafts') : localized('Draft');
+    }
+
+    return `${selectionCount} ${noun.toLocaleLowerCase()} ${localized(`selected`)}`;
   };
 
   renderToolbar() {
@@ -45,7 +51,7 @@ class MultiselectToolbar extends Component {
           <div className="centered">{this.selectionLabel()}</div>
 
           <button style={{ order: 100 }} className="btn btn-toolbar" onClick={onClearSelection}>
-            Clear Selection
+            {localized('Clear Selection')}
           </button>
         </div>
       </div>

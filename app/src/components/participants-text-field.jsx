@@ -1,5 +1,13 @@
 import { remote, clipboard } from 'electron';
-import { React, PropTypes, Utils, Contact, ContactStore, RegExpUtils } from 'mailspring-exports';
+import {
+  localized,
+  React,
+  PropTypes,
+  Utils,
+  Contact,
+  ContactStore,
+  RegExpUtils,
+} from 'mailspring-exports';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
 const TokenRenderer = props => {
@@ -32,6 +40,9 @@ export default class ParticipantsTextField extends React.Component {
     // The name of the field, used for both display purposes and also
     // to modify the `participants` provided.
     field: PropTypes.string,
+
+    // The word displayed to the left of the field
+    menuPrompt: PropTypes.string,
 
     // An object containing arrays of participants. Typically, this is
     // {to: [], cc: [], bcc: []}. Each ParticipantsTextField needs all of
@@ -167,7 +178,7 @@ export default class ParticipantsTextField extends React.Component {
     const menu = new MenuClass();
     menu.append(
       new MenuItem({
-        label: `Copy ${participant.email}`,
+        label: `${localized(`Copy`)} ${participant.email}`,
         click: () => clipboard.writeText(participant.email),
       })
     );
@@ -178,7 +189,7 @@ export default class ParticipantsTextField extends React.Component {
     );
     menu.append(
       new MenuItem({
-        label: 'Remove',
+        label: localized('Remove'),
         click: () => this._remove([participant]),
       })
     );
@@ -228,7 +239,7 @@ export default class ParticipantsTextField extends React.Component {
           onFocus={this.props.onFocus}
           onTokenAction={this._onShowContextMenu}
           menuClassSet={classSet}
-          menuPrompt={this.props.field}
+          menuPrompt={this.props.menuPrompt}
           field={this.props.field}
           draft={this.props.draft}
           headerMessageId={headerMessageId}

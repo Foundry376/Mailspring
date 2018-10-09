@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { shell, ipcRenderer } from 'electron';
 import { EditableList } from 'mailspring-component-kit';
-import { RegExpUtils, KeyManager, Account } from 'mailspring-exports';
+import { localized, RegExpUtils, KeyManager, Account } from 'mailspring-exports';
 
 class AutoaddressControl extends Component {
   render() {
@@ -12,15 +12,15 @@ class AutoaddressControl extends Component {
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: 3 }}>
-          When composing, automatically
+          {localized('When composing, automatically')}
           <select
             style={{ marginTop: 0 }}
             value={autoaddress.type}
             onChange={e => onChange(Object.assign({}, autoaddress, { type: e.target.value }))}
             onBlur={onSaveChanges}
           >
-            <option value="cc">CC</option>
-            <option value="bcc">BCC</option>
+            <option value="cc">{localized('Cc')}</option>
+            <option value="bcc">{localized('Bcc')}</option>
           </select>:
         </div>
         <input
@@ -28,7 +28,7 @@ class AutoaddressControl extends Component {
           value={autoaddress.value}
           onChange={e => onChange(Object.assign({}, autoaddress, { value: e.target.value }))}
           onBlur={onSaveChanges}
-          placeholder="Comma-separated email addresses"
+          placeholder={localized('Comma-separated email addresses')}
         />
       </div>
     );
@@ -73,7 +73,7 @@ class PreferencesAccountDetails extends Component {
     const email = match[0];
     let name = str.slice(0, Math.max(0, match.index - 1));
     if (!name) {
-      name = account.name || 'No name provided';
+      name = account.name || localized('No name provided');
     }
     name = name.trim();
     // TODO Sanitize the name string
@@ -157,7 +157,7 @@ class PreferencesAccountDetails extends Component {
     if (aliases.length > 0) {
       return (
         <div className="default-alias-selector">
-          <div>Default for new messages:</div>
+          <div>{localized('Default for new messages:')}</div>
           <select value={defaultAlias} onChange={this._onDefaultAliasSelected}>
             <option value="None">{`${account.name} <${account.emailAddress}>`}</option>
             {aliases.map((alias, idx) => (
@@ -189,17 +189,19 @@ class PreferencesAccountDetails extends Component {
     switch (account.syncState) {
       case Account.SYNC_STATE_AUTH_FAILED:
         return this._renderErrorDetail(
-          `Mailspring can no longer authenticate with ${account.emailAddress}. The password
-            or authentication may have changed.`,
-          'Reconnect',
+          localized(
+            `Mailspring can no longer authenticate with %@. The password or authentication may have changed.`,
+            account.emailAddress
+          ),
+          localized('Reconnect'),
           this._onReconnect
         );
       case Account.SYNC_STATE_ERROR:
         return this._renderErrorDetail(
-          `Mailspring encountered errors syncing this account. Crash reports
-          have been sent to the Mailspring team and we'll work to fix these
-          errors in the next release.`,
-          'Try Reconnecting',
+          localized(
+            `Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.`
+          ),
+          localized('Try Reconnecting'),
           this._onReconnect
         );
       default:
@@ -214,30 +216,33 @@ class PreferencesAccountDetails extends Component {
     return (
       <div className="account-details">
         {this._renderSyncErrorDetails()}
-        <h3>Account Label</h3>
+        <h3>{localized('Account Label')}</h3>
         <input
           type="text"
           value={account.label}
           onBlur={this._saveChanges}
           onChange={this._onAccountLabelUpdated}
         />
-        <h3>Account Settings</h3>
+        <h3>{localized('Account Settings')}</h3>
         <div className="btn" onClick={this._onReconnect}>
-          {account.provider === 'imap' ? 'Update Connection Settings...' : 'Re-authenticate...'}
+          {account.provider === 'imap'
+            ? localized('Update Connection Settings...')
+            : localized('Re-authenticate...')}
         </div>
         <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
-          Rebuild Cache...
+          {localized('Rebuild Cache...')}
         </div>
-        <h3>Automatic CC / BCC</h3>
+        <h3>{localized('Automatic CC / BCC')}</h3>
         <AutoaddressControl
           autoaddress={account.autoaddress}
           onChange={this._onAccountAutoaddressUpdated}
           onSaveChanges={this._saveChanges}
         />
-        <h3>Aliases</h3>
+        <h3>{localized('Aliases')}</h3>
         <div className="platform-note">
-          You may need to configure aliases with your mail provider (Outlook, Gmail) before using
-          them.
+          {localized(
+            'You may need to configure aliases with your mail provider (Outlook, Gmail) before using them.'
+          )}
         </div>
         <EditableList
           showEditIcon

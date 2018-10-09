@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { localized } from 'mailspring-exports';
 import CreatePageForForm from './decorators/create-page-for-form';
 import FormField from './form-field';
 
@@ -19,15 +20,15 @@ class AccountIMAPSettingsForm extends React.Component {
   };
 
   static submitLabel = () => {
-    return 'Connect Account';
+    return localized('Connect Account');
   };
 
   static titleLabel = () => {
-    return 'Set up your account';
+    return localized('Set up Account');
   };
 
   static subtitleLabel = () => {
-    return 'Complete the IMAP and SMTP settings below to connect your account.';
+    return localized('Complete the IMAP and SMTP settings below to connect your account.');
   };
 
   static validateAccount = account => {
@@ -46,7 +47,7 @@ class AccountIMAPSettingsForm extends React.Component {
         return { errorMessage, errorFieldNames, populated: false };
       }
       if (!Number.isInteger(account.settings[`${type}_port`] / 1)) {
-        errorMessage = 'Please provide a valid port number.';
+        errorMessage = localized('Please provide a valid port number.');
         errorFieldNames.push(`${type}_port`);
       }
     }
@@ -91,7 +92,7 @@ class AccountIMAPSettingsForm extends React.Component {
 
     return (
       <span>
-        <label htmlFor={`settings.${field}`}>Port:</label>
+        <label htmlFor={`settings.${field}`}>{localized('Port')}:</label>
         <select
           id={`settings.${field}`}
           tabIndex={0}
@@ -105,7 +106,7 @@ class AccountIMAPSettingsForm extends React.Component {
             </option>
           ))}
           <option value={customValue} key="custom">
-            Custom
+            {localized('Custom')}
           </option>
         </select>
         {!isStandard && (
@@ -133,7 +134,7 @@ class AccountIMAPSettingsForm extends React.Component {
     return (
       <div>
         <span>
-          <label htmlFor={`settings.${protocol}_security`}>Security:</label>
+          <label htmlFor={`settings.${protocol}_security`}>{localized('Security')}:</label>
           <select
             id={`settings.${protocol}_security`}
             tabIndex={0}
@@ -149,7 +150,7 @@ class AccountIMAPSettingsForm extends React.Component {
               STARTTLS
             </option>
             <option value="none" key="none">
-              None
+              {localized('None')}
             </option>
           </select>
         </span>
@@ -163,7 +164,7 @@ class AccountIMAPSettingsForm extends React.Component {
             onChange={onFieldChange}
           />
           <label htmlFor={`${protocol}_allow_insecure_ssl"`} className="checkbox">
-            Allow insecure SSL
+            {localized('Allow insecure SSL')}
           </label>
         </span>
       </div>
@@ -181,7 +182,7 @@ class AccountIMAPSettingsForm extends React.Component {
         <FormField field={`settings.${type}_username`} title={'Username'} {...this.props} />
         <FormField
           field={`settings.${type}_password`}
-          title={'Password'}
+          title={localized('Password')}
           type="password"
           {...this.props}
         />
@@ -193,11 +194,11 @@ class AccountIMAPSettingsForm extends React.Component {
     return (
       <div className="twocol">
         <div className="col">
-          <div className="col-heading">Incoming Mail (IMAP):</div>
+          <div className="col-heading">{localized('Incoming Mail')} (IMAP):</div>
           {this.renderFieldsForType('imap')}
         </div>
         <div className="col">
-          <div className="col-heading">Outgoing Mail (SMTP):</div>
+          <div className="col-heading">{localized('Outgoing Mail')} (SMTP):</div>
           {this.renderFieldsForType('smtp')}
         </div>
       </div>

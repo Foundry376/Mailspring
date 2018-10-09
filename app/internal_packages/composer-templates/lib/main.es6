@@ -1,5 +1,10 @@
 /* eslint global-require: 0 */
-import { PreferencesUIStore, ComponentRegistry, ExtensionRegistry } from 'mailspring-exports';
+import {
+  localized,
+  PreferencesUIStore,
+  ComponentRegistry,
+  ExtensionRegistry,
+} from 'mailspring-exports';
 import TemplatePicker from './template-picker';
 import TemplateStatusBar from './template-status-bar';
 import TemplateComposerExtension from './template-composer-extension';
@@ -8,7 +13,7 @@ export function activate(state = {}) {
   this.state = state;
   this.preferencesTab = new PreferencesUIStore.TabItem({
     tabId: 'Templates',
-    displayName: 'Templates',
+    displayName: localized('Templates'),
     componentClassFn: () => require('./preferences-templates').default,
   });
   ComponentRegistry.register(TemplatePicker, { role: 'Composer:ActionButton' });

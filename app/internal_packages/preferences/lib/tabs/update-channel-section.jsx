@@ -1,5 +1,5 @@
 import React from 'react';
-import { UpdateChannelStore } from 'mailspring-exports';
+import { localized, UpdateChannelStore } from 'mailspring-exports';
 
 class UpdateChannelSection extends React.Component {
   static displayName = 'UpdateChannelSection';
@@ -55,8 +55,8 @@ class UpdateChannelSection extends React.Component {
 
     return (
       <section>
-        <h6>Updates</h6>
-        <label htmlFor="release-channel">Release channel: </label>
+        <h6>{localized('Updates')}</h6>
+        <label htmlFor="release-channel">{localized('Release channel')}: </label>
         <select
           id="release-channel"
           style={{ minWidth: 130 }}
@@ -73,8 +73,9 @@ class UpdateChannelSection extends React.Component {
           })}
         </select>
         <p>
-          Subscribe to different update channels to receive previews of new features. Note that some
-          update channels may be less stable!
+          {localized(
+            'Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!'
+          )}
         </p>
       </section>
     );

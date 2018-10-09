@@ -1,4 +1,4 @@
-import { React, PropTypes, Actions } from 'mailspring-exports';
+import { localized, React, PropTypes, Actions } from 'mailspring-exports';
 import { MultiselectDropdown } from 'mailspring-component-kit';
 
 export default class SignatureAccountDefaultPicker extends React.Component {
@@ -18,9 +18,11 @@ export default class SignatureAccountDefaultPicker extends React.Component {
     const isChecked = accountOrAlias => defaults[accountOrAlias.email] === signature.id;
     const checked = accountsAndAliases.filter(isChecked);
 
+    const noun = checked.length === 1 ? localized('Account') : localized('Accounts');
+
     return (
       <div className="account-picker">
-        Default for:{' '}
+        {localized('Default for:')}{' '}
         <MultiselectDropdown
           className="account-dropdown"
           items={accountsAndAliases}
@@ -29,7 +31,7 @@ export default class SignatureAccountDefaultPicker extends React.Component {
           itemKey={a => a.id}
           current={signature}
           attachment={'right'}
-          buttonText={`${checked.length} Account${checked.length === 1 ? '' : 's'}`}
+          buttonText={`${checked.length} ${noun}`}
           onToggleItem={this._onToggleAccount}
         />
       </div>

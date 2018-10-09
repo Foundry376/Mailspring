@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { remote } from 'electron';
+import { localized } from 'mailspring-exports';
 
 const { app, BrowserWindow } = remote;
 
@@ -31,7 +32,7 @@ export default class PrintWindow {
         <body>
           <div id="print-header">
             <div id="print-button">
-              Print
+              ${localized('Print')}
             </div>
             <div class="logo-wrapper">
               <span class="account">${account.name} &lt;${account.email}&gt;</span>
@@ -54,7 +55,7 @@ export default class PrintWindow {
     this.browserWin = new BrowserWindow({
       width: 800,
       height: 600,
-      title: `Print - ${subject}`,
+      title: `${localized('Print')} - ${subject}`,
       webPreferences: {
         nodeIntegration: false,
       },

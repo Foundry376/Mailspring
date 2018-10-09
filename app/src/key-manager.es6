@@ -1,5 +1,6 @@
 import { remote } from 'electron';
 import keytar from 'keytar';
+import { localized } from './intl';
 
 /**
  * A basic wrap around keytar's secure key management. Consolidates all of
@@ -98,12 +99,16 @@ class KeyManager {
   _reportFatalError(err) {
     let more = '';
     if (process.platform === 'linux') {
-      more = 'Make sure you have `libsecret` installed and a keyring is present. ';
+      more = localized('Make sure you have `libsecret` installed and a keyring is present. ');
     }
     remote.dialog.showMessageBox({
       type: 'error',
-      buttons: ['Quit'],
-      message: `Mailspring could not store your password securely. ${more} For more information, visit http://support.getmailspring.com/hc/en-us/articles/115001875571`,
+      buttons: [localized('Quit')],
+      message: localized(
+        `Mailspring could not store your password securely. %@ For more information, visit %@`,
+        more,
+        'http://support.getmailspring.com/hc/en-us/articles/115001875571'
+      ),
     });
 
     // tell the app to exit and rethrow the error to ensure code relying

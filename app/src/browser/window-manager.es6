@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import { app } from 'electron';
 import WindowLauncher from './window-launcher';
+import { localized } from '../intl';
 
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
@@ -225,7 +226,7 @@ export default class WindowManager {
     coreWinOpts[WindowManager.MAIN_WINDOW] = {
       windowKey: WindowManager.MAIN_WINDOW,
       windowType: WindowManager.MAIN_WINDOW,
-      title: 'Message Viewer',
+      title: localized('Message Viewer'),
       toolbar: true,
       neverClose: true,
       bootstrapScript: require.resolve('../window-bootstrap'),
@@ -238,7 +239,7 @@ export default class WindowManager {
     coreWinOpts[WindowManager.ONBOARDING_WINDOW] = {
       windowKey: WindowManager.ONBOARDING_WINDOW,
       windowType: WindowManager.ONBOARDING_WINDOW,
-      title: 'Account Setup',
+      title: localized('Set up Account'),
       hidden: true, // Displayed by PageRouter::_initializeWindowSize
       frame: false, // Always false on Mac, explicitly set for Win & Linux
       toolbar: false,

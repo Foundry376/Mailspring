@@ -1,5 +1,5 @@
 import { shell, clipboard } from 'electron';
-import { React, PropTypes } from 'mailspring-exports';
+import { localized, localizedReactFragment, React, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import http from 'http';
 import url from 'url';
@@ -62,8 +62,11 @@ export default class OAuthSignInPage extends React.Component {
     this._server.listen(LOCAL_SERVER_PORT, err => {
       if (err) {
         AppEnv.showErrorDialog({
-          title: 'Unable to Start Local Server',
-          message: `To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n${err}`,
+          title: localized('Unable to Start Local Server'),
+          message: localized(
+            `To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n%@`,
+            err
+          ),
         });
         return;
       }
@@ -107,18 +110,22 @@ export default class OAuthSignInPage extends React.Component {
     if (authStage === 'initial') {
       return (
         <h2>
-          Sign in with {this.props.serviceName} in<br />your browser.
+          {localizedReactFragment(
+            'Sign in with %@ in %@ your browser.',
+            this.props.serviceName,
+            <br />
+          )}
         </h2>
       );
     }
     if (authStage === 'buildingAccount') {
-      return <h2>Connecting to {this.props.serviceName}…</h2>;
+      return <h2>{localized('Connecting to %@…', this.props.serviceName)}</h2>;
     }
     if (authStage === 'accountSuccess') {
       return (
         <div>
-          <h2>Successfully connected to {this.props.serviceName}!</h2>
-          <h3>Adding your account to Mailspring…</h3>
+          <h2>{localized('Successfully connected to %@!', this.props.serviceName)}</h2>
+          <h3>{localized('Adding your account to Mailspring…')}</h3>
         </div>
       );
     }
@@ -126,11 +133,11 @@ export default class OAuthSignInPage extends React.Component {
     // Error
     return (
       <div>
-        <h2>Sorry, we had trouble logging you in</h2>
+        <h2>{localized('Sorry, we had trouble logging you in')}</h2>
         <div className="error-region">
           <FormErrorMessage message={this.state.errorMessage} />
           <div className="btn" style={{ marginTop: 20 }} onClick={this.props.onTryAgain}>
-            Try Again
+            {localized('Try Again')}
           </div>
         </div>
       </div>
@@ -147,7 +154,7 @@ export default class OAuthSignInPage extends React.Component {
       <div className="alternative-auth">
         <div className={classnames}>
           <div style={{ marginTop: 40 }}>
-            Page didn&#39;t open? Paste this URL into your browser:
+            {localized(`Page didn't open? Paste this URL into your browser:`)}
           </div>
           <input
             type="url"

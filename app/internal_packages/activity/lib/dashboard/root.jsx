@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import { shell } from 'electron';
 import { ScrollRegion, ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
 import {
+  localized,
+  localizedReactFragment,
   AccountStore,
   Message,
   DatabaseStore,
@@ -266,10 +268,13 @@ class RootWithTimespan extends React.Component {
 
       ws.on('error', err => {
         AppEnv.showErrorDialog({
-          title: 'Export Failed',
-          message:
-            `Mailspring was unable to write to the file location you specified (${filepath}).` +
-            `Try choosing another location.\n\n${err.toString()}`,
+          title: localized('Export Failed'),
+          message: localized(
+            `Mailspring was unable to write to the file location you specified (%@).` +
+              `Try choosing another location.\n\n%@`,
+            filepath,
+            err.toString()
+          ),
         });
         return;
       });
@@ -328,16 +333,16 @@ class RootWithTimespan extends React.Component {
       <div style={{ position: 'relative' }}>
         <LoadingCover active={loading} />
         <div className="section-divider">
-          <div>Mailbox Summary</div>
+          <div>{localized('Mailbox Summary')}</div>
         </div>
         <div className="section" style={{ display: 'flex' }}>
-          <MetricContainer name="Messages Received">
+          <MetricContainer name={localized('Messages Received')}>
             <MetricGraph key={version} values={metrics.receivedByDay} loading={loading} />
           </MetricContainer>
-          <MetricContainer name="Messages Sent">
+          <MetricContainer name={localized('Messages Sent')}>
             <MetricGraph key={version} values={metrics.sentByDay} loading={loading} />
           </MetricContainer>
-          <MetricContainer name="Messages Time of Day">
+          <MetricContainer name={localized('Messages Time of Day')}>
             <MetricHistogram
               key={version}
               left="12AM"
@@ -348,30 +353,31 @@ class RootWithTimespan extends React.Component {
           </MetricContainer>
         </div>
         <div className="section-divider">
-          <div>Read Receipts and Link Tracking</div>
+          <div>{localized('Read Receipts and Link Tracking')}</div>
         </div>
         {lowTrackingUsage && (
           <div className="usage-note">
-            {`These features were ${lowTrackingPhrase} of the messages you sent
+            {localizedReactFragment(
+              `These features were %@ of the messages you sent
             in this time period, so these numbers do not reflect all of your activity. To enable
-            read receipts and link tracking on emails you send, click the 
-            `}
-            <RetinaImg
-              name="icon-activity-mailopen.png"
-              className="hidden-on-web"
-              mode={RetinaImg.Mode.ContentDark}
-            />
-            {' or link tracking '}
-            <RetinaImg
-              name="icon-activity-linkopen.png"
-              className="hidden-on-web"
-              mode={RetinaImg.Mode.ContentDark}
-            />
-            {' icons in the composer.'}
+            read receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.
+            `,
+              lowTrackingPhrase,
+              <RetinaImg
+                name="icon-activity-mailopen.png"
+                className="hidden-on-web"
+                mode={RetinaImg.Mode.ContentDark}
+              />,
+              <RetinaImg
+                name="icon-activity-linkopen.png"
+                className="hidden-on-web"
+                mode={RetinaImg.Mode.ContentDark}
+              />
+            )}
           </div>
         )}
         <div className="section" style={{ display: 'flex' }}>
-          <MetricContainer name="Of your emails are opened">
+          <MetricContainer name={localized('Of your emails are opened')}>
             <MetricStat
               key={version}
               value={metrics.percentOpened}
@@ -380,7 +386,7 @@ class RootWithTimespan extends React.Component {
               name={'read-receipts'}
             />
           </MetricContainer>
-          <MetricContainer name="Of recipients click a link">
+          <MetricContainer name={localized('Of recipients click a link')}>
             <MetricStat
               key={version}
               value={metrics.percentLinkClicked}
@@ -389,7 +395,7 @@ class RootWithTimespan extends React.Component {
               name={'link-tracking'}
             />
           </MetricContainer>
-          <MetricContainer name="Of threads you start get a reply">
+          <MetricContainer name={localized('Of threads you start get a reply')}>
             <MetricStat
               key={version}
               value={metrics.percentReplied}
@@ -401,14 +407,15 @@ class RootWithTimespan extends React.Component {
         </div>
 
         <div className="section-divider">
-          <div>Best Templates and Subject Lines</div>
+          <div>{localized('Best Templates and Subject Lines')}</div>
         </div>
         <div className="section" style={{ display: 'flex' }}>
           {metricsBySubjectLine.length === 0 ? (
             <div className="empty-note">
-              Send more than one message using the same{' '}
-              <a onClick={this._onShowTemplates}>template</a> or subject line to compare open rates
-              and reply rates.
+              {localizedReactFragment(
+                'Send more than one message using the same %@ or subject line to compare open rates and reply rates.',
+                <a onClick={this._onShowTemplates}>{localized('Template').toLocaleLowerCase()}</a>
+              )}
             </div>
           ) : (
             <MetricsBySubjectTable data={metricsBySubjectLine} />
@@ -419,12 +426,16 @@ class RootWithTimespan extends React.Component {
             <div
               className="btn"
               onClick={this._onLearnMore}
-              style={{ marginRight: 10, width: 115 }}
+              style={{ marginRight: 10, minWidth: 115 }}
             >
-              Learn More
+              {localized('Learn More')}
             </div>
-            <div className="btn" onClick={this._onExport} style={{ marginRight: 10, width: 135 }}>
-              Export Raw Data
+            <div
+              className="btn"
+              onClick={this._onExport}
+              style={{ marginRight: 10, minWidth: 135 }}
+            >
+              {localized('Export Raw Data')}
             </div>
             <ShareButton key={version} />
           </div>
@@ -472,10 +483,10 @@ class Root extends React.Component {
       <ScrollRegion className="activity-dashboard">
         <div className="header">
           <div style={{ flex: 1 }}>
-            <h2>Activity</h2>
+            <h2>{localized('Activity')}</h2>
             <div className="accounts">
               {accountIds.length > 1
-                ? 'All Accounts'
+                ? localized('All Accounts')
                 : AccountStore.accountForId(accountIds[0]).label}
             </div>
           </div>

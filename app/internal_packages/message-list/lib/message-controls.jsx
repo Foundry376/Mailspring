@@ -1,6 +1,13 @@
 /* eslint global-require: 0 */
 import { remote } from 'electron';
-import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task } from 'mailspring-exports';
+import {
+  localized,
+  React,
+  PropTypes,
+  Actions,
+  TaskQueue,
+  GetMessageRFC2822Task,
+} from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 
 export default class MessageControls extends React.Component {
@@ -12,17 +19,17 @@ export default class MessageControls extends React.Component {
 
   _items() {
     const reply = {
-      name: 'Reply',
+      name: localized('Reply'),
       image: 'ic-dropdown-reply.png',
       select: this._onReply,
     };
     const replyAll = {
-      name: 'Reply All',
+      name: localized('Reply All'),
       image: 'ic-dropdown-replyall.png',
       select: this._onReplyAll,
     };
     const forward = {
-      name: 'Forward',
+      name: localized('Forward'),
       image: 'ic-dropdown-forward.png',
       select: this._onForward,
     };
@@ -86,10 +93,15 @@ export default class MessageControls extends React.Component {
     // Todo: refactor this so that message actions are provided
     // dynamically. Waiting to see if this will be used often.
     const menu = new SystemMenu();
-    menu.append(new SystemMenuItem({ label: 'Log Data', click: this._onLogData }));
-    menu.append(new SystemMenuItem({ label: 'Show Original', click: this._onShowOriginal }));
+    menu.append(new SystemMenuItem({ label: localized('Log Data'), click: this._onLogData }));
     menu.append(
-      new SystemMenuItem({ label: 'Copy Debug Info to Clipboard', click: this._onCopyToClipboard })
+      new SystemMenuItem({ label: localized('Show Original'), click: this._onShowOriginal })
+    );
+    menu.append(
+      new SystemMenuItem({
+        label: localized('Copy Debug Info to Clipboard'),
+        click: this._onCopyToClipboard,
+      })
     );
     menu.popup({});
   };

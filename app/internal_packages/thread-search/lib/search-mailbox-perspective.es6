@@ -1,4 +1,5 @@
 import {
+  localized,
   Folder,
   ChangeLabelsTask,
   ChangeFolderTask,
@@ -27,7 +28,7 @@ class SearchMailboxPerspective extends MailboxPerspective {
   }
 
   emptyMessage() {
-    return 'No search results available';
+    return localized('No search results');
   }
 
   isEqual(other) {

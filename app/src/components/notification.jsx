@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { localized } from 'mailspring-exports';
 import RetinaImg from './retina-img';
 
 export default class Notification extends React.Component {
@@ -81,7 +82,7 @@ export default class Notification extends React.Component {
 
   _subtitle() {
     if (this.props.isPermanentlyDismissable && this._numAsks() >= 1) {
-      return "Don't show this again";
+      return localized('Don’t show this again');
     }
     return this.props.subtitle;
   }
@@ -103,7 +104,7 @@ export default class Notification extends React.Component {
 
     if (this.props.isDismissable) {
       actions.push({
-        label: 'Dismiss',
+        label: localized('Dismiss'),
         fn: () => {
           this._shiftAsks(1);
           this.setState({ isDismissed: true });

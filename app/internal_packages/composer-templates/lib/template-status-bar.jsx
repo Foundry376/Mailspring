@@ -1,4 +1,4 @@
-import { React, PropTypes } from 'mailspring-exports';
+import { localized, React, PropTypes } from 'mailspring-exports';
 
 class TemplateStatusBar extends React.Component {
   static displayName = 'TemplateStatusBar';
@@ -21,8 +21,9 @@ class TemplateStatusBar extends React.Component {
     }
     return (
       <div className="template-status-bar">
-        Press &quot;tab&quot; to quickly move between the blanks - highlighting will not be visible
-        to recipients.
+        {localized(
+          'Press &quot;tab&quot; to quickly move between the blanks - highlighting will not be visible to recipients.'
+        )}
       </div>
     );
   }

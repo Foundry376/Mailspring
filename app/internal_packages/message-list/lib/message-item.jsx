@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Utils, Actions, AttachmentStore } from 'mailspring-exports';
+import { localized, Utils, Actions, AttachmentStore } from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
@@ -89,12 +89,12 @@ export default class MessageItem extends React.Component {
       <div className="download-all">
         <div className="attachment-number">
           <RetinaImg name="ic-attachments-all-clippy.png" mode={RetinaImg.Mode.ContentIsMask} />
-          <span>{this.props.message.files.length} attachments</span>
+          <span>{`${this.props.message.files.length} ${localized('attachments')}`}</span>
         </div>
         <div className="separator">-</div>
         <div className="download-all-action" onClick={this._onDownloadAll}>
           <RetinaImg name="ic-attachments-download-all.png" mode={RetinaImg.Mode.ContentIsMask} />
-          <span>Download all</span>
+          <span>{localized('Download All')}</span>
         </div>
       </div>
     );
@@ -242,7 +242,7 @@ export default class MessageItem extends React.Component {
 
     return (
       <div className="header-row">
-        <div className="header-label">Folder:&nbsp;</div>
+        <div className="header-label">{localized('Folder')}:&nbsp;</div>
         <div className="header-name">{folder.displayName}</div>
       </div>
     );

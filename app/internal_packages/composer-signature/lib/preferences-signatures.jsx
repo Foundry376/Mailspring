@@ -1,6 +1,7 @@
 import { remote } from 'electron';
 import {
   React,
+  localized,
   AccountStore,
   SignatureStore,
   Actions,
@@ -35,10 +36,11 @@ class SignatureEditor extends React.Component {
       if (!htmlMatchesATemplate) {
         const idx = remote.dialog.showMessageBox({
           type: 'warning',
-          buttons: ['Cancel', 'Continue'],
-          message: 'Revert custom HTML?',
-          detail:
-            "Switching back to a signature template will overwrite the custom HTML you've entered.",
+          buttons: [localized('Cancel'), localized('Continue')],
+          message: localized('Revert custom HTML?'),
+          detail: localized(
+            "Switching back to a signature template will overwrite the custom HTML you've entered."
+          ),
         });
         if (idx === 0) {
           return;
@@ -78,7 +80,7 @@ class SignatureEditor extends React.Component {
           <input
             type="text"
             id="title"
-            placeholder="Name"
+            placeholder={localized('Name')}
             value={signature.title || ''}
             onChange={this._onBaseFieldChange}
           />
@@ -91,7 +93,7 @@ class SignatureEditor extends React.Component {
         </div>
 
         <div className="section preview">
-          <div className="label">Preview</div>
+          <div className="label">{localized('Preview')}</div>
           <div className="preview" dangerouslySetInnerHTML={{ __html: signature.body }} />
         </div>
 
@@ -102,7 +104,7 @@ class SignatureEditor extends React.Component {
         {!resolvedData.templateName
           ? [
               <div key="header" className="section-header">
-                Raw HTML Source
+                {localized('Raw Source')}
               </div>,
               <textarea
                 id="body"
@@ -115,7 +117,7 @@ class SignatureEditor extends React.Component {
             ]
           : [
               <div key="header" className="section-header">
-                Information
+                {localized('Information')}
               </div>,
               <div key="section" className="section information">
                 {DataShape.map(item => (
@@ -191,7 +193,7 @@ export default class PreferencesSignatures extends React.Component {
       body = RenderSignatureData(data);
     }
 
-    Actions.upsertSignature({ id, title: 'Untitled', body, data }, id);
+    Actions.upsertSignature({ id, title: localized('Untitled'), body, data }, id);
     Actions.selectSignature(id);
   };
 

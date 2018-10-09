@@ -1,4 +1,4 @@
-import { Actions, React, ReactDOM, PropTypes } from 'mailspring-exports';
+import { localized, Actions, React, ReactDOM, PropTypes } from 'mailspring-exports';
 import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 import ThreadSharingPopover from './thread-sharing-popover';
 import { isShared } from './main';
@@ -45,7 +45,7 @@ export default class ThreadSharingButton extends React.Component {
       <BindGlobalCommands commands={{ 'core:share-item-link': () => this._onClick() }}>
         <button
           className={`btn btn-toolbar thread-sharing-button ${isShared(item) && 'active'}`}
-          title="Share"
+          title={localized('Share')}
           style={{ marginRight: 0 }}
           onClick={this._onClick}
         >

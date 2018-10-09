@@ -4,7 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { remote } from 'electron';
-import { Actions, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
+import { localized, Actions, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 
 import Flexbox from './components/flexbox';
 import RetinaImg from './components/retina-img';
@@ -79,16 +79,16 @@ class ToolbarBack extends React.Component {
   };
 
   render() {
-    let title = 'Back';
+    let title = localized('Back');
     if (this.state.categoryName === Category.AllMailName) {
-      title = 'All Mail';
+      title = localized('All Mail');
     } else if (this.state.categoryName === 'INBOX') {
-      title = 'Inbox';
+      title = localized('Inbox');
     } else {
       title = this.state.categoryName;
     }
     return (
-      <div className="item-back" onClick={this._onClick} title={`Return to ${title}`}>
+      <div className="item-back" onClick={this._onClick} title={localized(`Return to %@`, title)}>
         <RetinaImg name="sheet-back.png" mode={RetinaImg.Mode.ContentIsMask} />
         <div className="item-back-title">{title}</div>
       </div>

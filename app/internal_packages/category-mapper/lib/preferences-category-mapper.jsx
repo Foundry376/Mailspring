@@ -2,6 +2,7 @@ import {
   AccountStore,
   CategoryStore,
   React,
+  Category,
   Actions,
   ChangeRoleMappingTask,
 } from 'mailspring-exports';
@@ -60,7 +61,7 @@ export default class PreferencesCategoryMapper extends React.Component {
     }
     return (
       <div className="role-section" key={`${account.id}-${role}`}>
-        <div className="col-left">{`${role[0].toUpperCase()}${role.substr(1)}`}:</div>
+        <div className="col-left">{Category.LocalizedStringForRole[role]}:</div>
         <div className="col-right">
           <CategorySelection
             all={this.state.all[account.id]}

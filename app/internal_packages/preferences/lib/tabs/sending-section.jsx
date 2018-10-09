@@ -1,4 +1,4 @@
-import { React, PropTypes, AccountStore, SendActionsStore } from 'mailspring-exports';
+import { localized, React, PropTypes, AccountStore, SendActionsStore } from 'mailspring-exports';
 import { ListensToFluxStore } from 'mailspring-component-kit';
 import ConfigSchemaItem from './config-schema-item';
 
@@ -7,10 +7,10 @@ function getExtendedSendingSchema(configSchema) {
   // const sendActions = SendActionsStore.sendActions()
   const defaultAccountIdForSend = {
     type: 'string',
-    title: 'Send new messages from',
+    title: localized('Send new messages from:').replace(':', ''),
     default: 'selected-mailbox',
     enum: ['selected-mailbox'].concat(accounts.map(acc => acc.id)),
-    enumLabels: ['Account of selected mailbox'].concat(accounts.map(acc => acc.me().toString())),
+    enumLabels: [localized('Selected Account')].concat(accounts.map(acc => acc.me().toString())),
   };
   // TODO re-enable sending actions at some point
   // const defaultSendType = {
@@ -34,7 +34,7 @@ function SendingSection(props) {
     <ConfigSchemaItem
       config={config}
       configSchema={sendingConfigSchema}
-      keyName="Sending"
+      keyName={localized('Sending')}
       keyPath="core.sending"
     />
   );

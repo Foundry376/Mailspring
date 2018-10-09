@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {
+  localized,
   DateUtils,
   Actions,
   SyncbackMetadataTask,
@@ -71,11 +72,14 @@ export default class SendLaterStatus extends Component {
 
     let label = null;
     if (expiration > new Date(Date.now() + 60 * 1000)) {
-      label = `Scheduled for ${DateUtils.format(moment(expiration), DATE_FORMAT_SHORT)}`;
+      label = localized(
+        `Scheduled for %@`,
+        DateUtils.format(moment(expiration), DATE_FORMAT_SHORT)
+      );
     } else {
-      label = `Sending in a few seconds...`;
+      label = localized(`Sending in a few seconds`) + '...';
       if (this.state.task) {
-        label = `Sending now...`;
+        label = localized(`Sending now`) + '...';
       }
     }
 
@@ -84,7 +88,7 @@ export default class SendLaterStatus extends Component {
         <span className="time">{label}</span>
         <RetinaImg
           name="image-cancel-button.png"
-          title="Cancel Send Later"
+          title={localized('Cancel Send Later')}
           onClick={this.onCancelSendLater}
           mode={RetinaImg.Mode.ContentPreserve}
         />

@@ -2,6 +2,7 @@
 import utf7 from 'utf7';
 import Model from './model';
 import Attributes from '../attributes';
+import { localized } from '../../intl';
 
 // We look for a few standard categories and display them in the Mailboxes
 // portion of the left sidebar. Note that these may not all be present on
@@ -38,6 +39,22 @@ const HiddenRoleMap = ToObject([
   '[Mailspring]',
 ]);
 
+/*
+Why not just call localized(cat.role)? We want to hardcode each
+of the localized(xxx) calls so that a static analysis can
+identify all strings that are passed to localize().
+*/
+const LocalizedStringForRole = {
+  sent: localized('Sent Mail'),
+  inbox: localized('Inbox'),
+  important: localized('Important'),
+  snoozed: localized('Snoozed'),
+  drafts: localized('Drafts'),
+  all: localized('All Mail'),
+  spam: localized('Spam'),
+  archive: localized('Archive'),
+  trash: localized('Trash'),
+};
 /**
 Private:
 This abstract class has only two concrete implementations:
@@ -103,6 +120,7 @@ export default class Category extends Model {
   static StandardRoles = Object.keys(StandardRoleMap);
   static LockedRoles = Object.keys(LockedRoleMap);
   static HiddenRoles = Object.keys(HiddenRoleMap);
+  static LocalizedStringForRole = LocalizedStringForRole;
 
   static categoriesSharedRole(cats) {
     if (!cats || cats.length === 0) {

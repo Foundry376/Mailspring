@@ -5,7 +5,7 @@ import AccountStore from './account-store';
 import ContactStore from './contact-store';
 import MessageStore from './message-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
-
+import { localized } from '../../intl';
 import Contact from '../models/contact';
 import Message from '../models/message';
 import MessageUtils from '../models/message-utils';
@@ -183,10 +183,10 @@ class DraftFactory {
     const contactsAsHtml = cs => DOMUtils.escapeHTMLCharacters(_.invoke(cs, 'toString').join(', '));
     const fields = [];
     if (message.from.length > 0) fields.push(`From: ${contactsAsHtml(message.from)}`);
-    fields.push(`Subject: ${message.subject}`);
-    fields.push(`Date: ${message.formattedDate()}`);
-    if (message.to.length > 0) fields.push(`To: ${contactsAsHtml(message.to)}`);
-    if (message.cc.length > 0) fields.push(`Cc: ${contactsAsHtml(message.cc)}`);
+    fields.push(`${localized('Subject')}: ${message.subject}`);
+    fields.push(`${localized('Date')}: ${message.formattedDate()}`);
+    if (message.to.length > 0) fields.push(`${localized('To')}: ${contactsAsHtml(message.to)}`);
+    if (message.cc.length > 0) fields.push(`${localized('Cc')}: ${contactsAsHtml(message.cc)}`);
 
     const body = await prepareBodyForQuoting(message.body);
 
@@ -201,7 +201,7 @@ class DraftFactory {
         <br/>
         <div class="gmail_quote">
           <br>
-          ---------- Forwarded message ---------
+          ---------- ${localized('Forwarded Message')} ---------
           <br><br>
           ${fields.join('<br>')}
           <br><br>

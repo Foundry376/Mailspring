@@ -1,4 +1,4 @@
-import { React, ReactDOM, PropTypes, Actions, AccountStore } from 'mailspring-exports';
+import { localized, React, ReactDOM, PropTypes, Actions, AccountStore } from 'mailspring-exports';
 import {
   KeyCommandsRegion,
   ParticipantsTextField,
@@ -131,7 +131,7 @@ export default class ComposerHeader extends React.Component {
           }}
           type="text"
           name="subject"
-          placeholder="Subject"
+          placeholder={localized('Subject')}
           value={this.props.draft.subject}
           onChange={this._onSubjectChange}
         />
@@ -155,6 +155,7 @@ export default class ComposerHeader extends React.Component {
         }}
         key="to"
         field="to"
+        menuPrompt={localized('To')}
         change={this._onChangeParticipants}
         className="composer-participant-field to-field"
         participants={{ to, cc, bcc }}
@@ -173,6 +174,7 @@ export default class ComposerHeader extends React.Component {
           }}
           key="cc"
           field="cc"
+          menuPrompt={localized('Cc')}
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Cc)}
           className="composer-participant-field cc-field"
@@ -193,6 +195,7 @@ export default class ComposerHeader extends React.Component {
           }}
           key="bcc"
           field="bcc"
+          menuPrompt={localized('Bcc')}
           change={this._onChangeParticipants}
           onEmptied={() => this.hideField(Fields.Bcc)}
           className="composer-participant-field bcc-field"

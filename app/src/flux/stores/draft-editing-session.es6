@@ -2,6 +2,7 @@ import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
 import { Conversion } from '../../components/composer-editor/composer-support';
 import RegExpUtils from '../../regexp-utils';
+import { localized } from '../../intl';
 
 import TaskQueue from './task-queue';
 import Message from '../models/message';
@@ -264,7 +265,9 @@ export default class DraftEditingSession extends MailspringStore {
     }
 
     if (allRecipients.length === 0) {
-      errors.push('You need to provide one or more recipients before sending the message.');
+      errors.push(
+        localized('You need to provide one or more recipients before sending the message.')
+      );
     }
 
     if (errors.length > 0) {
@@ -272,7 +275,7 @@ export default class DraftEditingSession extends MailspringStore {
     }
 
     if (this._draft.subject.length === 0) {
-      warnings.push('without a subject line');
+      warnings.push(localized('The subject field is blank.'));
     }
 
     let cleaned = QuotedHTMLTransformer.removeQuotedHTML(this._draft.body.trim());
@@ -285,7 +288,7 @@ export default class DraftEditingSession extends MailspringStore {
     }
 
     if (cleaned.toLowerCase().includes('attach') && !hasAttachment) {
-      warnings.push('without an attachment');
+      warnings.push(localized('The message mentions an attachment but none are attached.'));
     }
 
     if (!unnamedRecipientPresent) {
@@ -297,7 +300,10 @@ export default class DraftEditingSession extends MailspringStore {
         const salutation = (match[1] || '').toLowerCase();
         if (!allNames.find(n => n === salutation || (n.length > 1 && salutation.includes(n)))) {
           warnings.push(
-            `addressed to a name that doesn't appear to be a recipient ("${salutation}")`
+            localized(
+              `The message is addressed to a name that doesn't appear to be a recipient ("%@")`,
+              salutation
+            )
           );
         }
       }

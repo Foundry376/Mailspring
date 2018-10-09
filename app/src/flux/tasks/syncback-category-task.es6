@@ -1,6 +1,7 @@
 import utf7 from 'utf7';
 import Task from './task';
 import Attributes from '../attributes';
+import { localized } from '../../intl';
 
 export default class SyncbackCategoryTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -32,7 +33,7 @@ export default class SyncbackCategoryTask extends Task {
 
   label() {
     return this.existingPath
-      ? `Renaming ${utf7.imap.decode(this.existingPath)}`
-      : `Creating ${utf7.imap.decode(this.path)}`;
+      ? localized(`Renaming %@`, utf7.imap.decode(this.existingPath))
+      : localized(`Creating %@`, utf7.imap.decode(this.path));
   }
 }

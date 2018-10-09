@@ -1,12 +1,13 @@
-import { ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
+import { localized, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 
 import ModeToggle from './mode-toggle';
 
 const ToggleWithTutorialTip = HasTutorialTip(ModeToggle, {
-  title: 'Compose with context',
-  instructions:
-    'Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.',
+  title: localized('Compose with context'),
+  instructions: localized(
+    'Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.'
+  ),
 });
 
 // NOTE: this is a hack to allow ComponentRegistry

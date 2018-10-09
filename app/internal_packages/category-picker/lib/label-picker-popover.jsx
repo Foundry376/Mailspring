@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
 import {
   Utils,
+  localized,
   Actions,
   TaskQueue,
   Label,
@@ -194,7 +195,7 @@ export default class LabelPickerPopover extends Component {
           mode={RetinaImg.Mode.ContentIsMask}
         />
         <div className="category-display-name">
-          <strong>&ldquo;{searchValue}&rdquo;</strong> (create new)
+          <strong>&ldquo;{searchValue}&rdquo;</strong> ({localized(`Create`).toLocaleLowerCase()})
         </div>
       </div>
     );
@@ -224,7 +225,7 @@ export default class LabelPickerPopover extends Component {
         tabIndex="1"
         key="textfield"
         className="search"
-        placeholder={'Label as...'}
+        placeholder={localized('Label as...')}
         value={this.state.searchValue}
         onChange={this._onSearchValueChange}
       />,

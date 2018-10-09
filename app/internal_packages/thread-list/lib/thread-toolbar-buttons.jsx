@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { RetinaImg, CreateButtonGroup, BindGlobalCommands } from 'mailspring-component-kit';
 import {
+  localized,
   Actions,
   TaskFactory,
   ChangeLabelsTask,
@@ -42,7 +43,12 @@ export class ArchiveButton extends React.Component {
 
     return (
       <BindGlobalCommands commands={{ 'core:archive-item': () => this._onArchive() }}>
-        <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
+        <button
+          tabIndex={-1}
+          className="btn btn-toolbar"
+          title={localized('Archive')}
+          onClick={this._onArchive}
+        >
           <RetinaImg name="toolbar-archive.png" mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
@@ -82,7 +88,7 @@ export class TrashButton extends React.Component {
         <button
           tabIndex={-1}
           className="btn btn-toolbar"
-          title="Move to Trash"
+          title={localized('Move to Trash')}
           onClick={this._onRemove}
         >
           <RetinaImg name="toolbar-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
@@ -226,7 +232,7 @@ export class MarkAsSpamButton extends React.Component {
           <button
             tabIndex={-1}
             className="btn btn-toolbar"
-            title="Not Spam"
+            title={localized('Not Spam')}
             onClick={this._onNotSpam}
           >
             <RetinaImg name="toolbar-not-spam.png" mode={RetinaImg.Mode.ContentIsMask} />
@@ -247,7 +253,7 @@ export class MarkAsSpamButton extends React.Component {
         <button
           tabIndex={-1}
           className="btn btn-toolbar"
-          title="Mark as Spam"
+          title={localized('Mark as Spam')}
           onClick={this._onMarkAsSpam}
         >
           <RetinaImg name="toolbar-spam.png" mode={RetinaImg.Mode.ContentIsMask} />
@@ -280,7 +286,7 @@ export class ToggleStarredButton extends React.Component {
 
   render() {
     const postClickStarredState = this.props.items.every(t => t.starred === false);
-    const title = postClickStarredState ? 'Star' : 'Unstar';
+    const title = postClickStarredState ? localized('Star') : localized('Unstar');
     const imageName = postClickStarredState ? 'toolbar-star.png' : 'toolbar-star-selected.png';
 
     return (
@@ -321,11 +327,12 @@ export class ToggleUnreadButton extends React.Component {
 
   render() {
     const targetUnread = this.props.items.every(t => t.unread === false);
-    const fragment = targetUnread ? 'unread' : 'read';
+    const fragment = targetUnread ? localized('Unread') : localized('Read');
+    const key = targetUnread ? 'unread' : 'read';
 
     return (
       <BindGlobalCommands
-        key={fragment}
+        key={key}
         commands={
           targetUnread
             ? { 'core:mark-as-unread': () => this._onChangeUnread(true) }
@@ -335,10 +342,10 @@ export class ToggleUnreadButton extends React.Component {
         <button
           tabIndex={-1}
           className="btn btn-toolbar"
-          title={`Mark as ${fragment}`}
+          title={localized(`Mark as %@`, fragment)}
           onClick={this._onClick}
         >
-          <RetinaImg name={`toolbar-markas${fragment}.png`} mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={`toolbar-markas${key}.png`} mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -422,7 +429,7 @@ export const DownButton = () => {
     <ThreadArrowButton
       getStateFromStores={getStateFromStores}
       direction={'down'}
-      title={'Next thread'}
+      title={localized('Next thread')}
       command={'core:next-item'}
     />
   );
@@ -443,7 +450,7 @@ export const UpButton = () => {
     <ThreadArrowButton
       getStateFromStores={getStateFromStores}
       direction={'up'}
-      title={'Previous thread'}
+      title={localized('Previous thread')}
       command={'core:previous-item'}
     />
   );

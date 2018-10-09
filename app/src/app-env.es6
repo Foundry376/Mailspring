@@ -5,6 +5,7 @@ import path from 'path';
 import { ipcRenderer, remote } from 'electron';
 import { Emitter } from 'event-kit';
 import { mapSourcePosition } from 'source-map-support';
+import { localized } from './intl';
 
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
@@ -784,7 +785,7 @@ export default class AppEnvConstructor {
     if (!detail) {
       return remote.dialog.showMessageBox(winToShow, {
         type: 'warning',
-        buttons: ['Okay'],
+        buttons: [localized('Okay')],
         message: title,
         detail: message,
       });
@@ -793,7 +794,7 @@ export default class AppEnvConstructor {
       winToShow,
       {
         type: 'warning',
-        buttons: ['Okay', 'Show Details'],
+        buttons: [localized('Okay'), localized('Show Detail')],
         message: title,
         detail: message,
       },

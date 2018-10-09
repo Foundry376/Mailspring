@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Actions,
+  localized,
   Utils,
   FolderSyncProgressStore,
   TaskQueue,
@@ -95,14 +96,14 @@ export default class ActivitySidebar extends React.Component {
                 style={{ whiteSpace: 'nowrap', display: 'flex', flexDirection: 'row' }}
               >
                 <div style={{ textOverflow: 'ellipsis', overflow: 'hidden', flex: 1 }}>
-                  {syncSummary.phrase || 'Syncing your mailbox'}
+                  {syncSummary.phrase || localized('Syncing your mailbox')}
                   <span className={`ellipsis1`}>.</span>
                   <span className={`ellipsis2`}>.</span>
                   <span className={`ellipsis3`}>.</span>
                 </div>
                 {this.state.expanded && (
                   <a onClick={this.onCollapse} style={{ paddingLeft: 5 }}>
-                    Hide
+                    {localized('Hide')}
                   </a>
                 )}
               </div>

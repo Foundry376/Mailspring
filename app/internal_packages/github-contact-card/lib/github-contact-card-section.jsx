@@ -1,4 +1,4 @@
-import { React, PropTypes } from 'mailspring-exports';
+import { localized, React, PropTypes } from 'mailspring-exports';
 import GithubUserStore from './github-user-store';
 
 // Small React component that renders a single Github repository
@@ -87,11 +87,11 @@ export default class GithubContactCardSection extends React.Component {
   _renderInner() {
     // Handle various loading states by returning early
     if (this.state.loading) {
-      return <div className="pending">Loading...</div>;
+      return <div className="pending">{localized('Loading...')}</div>;
     }
 
     if (!this.state.profile) {
-      return <div className="pending">No Matching Profile</div>;
+      return <div className="pending">{localized('No Matching Profile')}</div>;
     }
 
     return <GithubProfile profile={this.state.profile} />;
@@ -100,7 +100,7 @@ export default class GithubContactCardSection extends React.Component {
   render() {
     return (
       <div className="sidebar-github-profile">
-        <h2>Github</h2>
+        <h2>GitHub</h2>
         {this._renderInner()}
       </div>
     );

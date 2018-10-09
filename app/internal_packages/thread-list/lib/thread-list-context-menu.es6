@@ -1,6 +1,7 @@
 /* eslint global-require: 0*/
 import _ from 'underscore';
 import {
+  localized,
   Thread,
   Actions,
   Message,
@@ -53,7 +54,7 @@ export default class ThreadListContextMenu {
     const from = first.participants.find(p => !p.isMe()) || first.participants[0];
 
     return {
-      label: `Search for ${from.email}`,
+      label: localized(`Search for`) + ' ' + from.email,
       click: () => {
         Actions.searchQuerySubmitted(`"${from.email.replace('"', '""')}"`);
       },
@@ -67,7 +68,10 @@ export default class ThreadListContextMenu {
     const subject = this.threads[0].subject;
 
     return {
-      label: `Search for ${subject.length > 35 ? `${subject.substr(0, 35)}...` : subject}`,
+      label:
+        localized(`Search for`) +
+        ' ' +
+        (subject.length > 35 ? `${subject.substr(0, 35)}...` : subject),
       click: () => {
         Actions.searchQuerySubmitted(`subject:"${subject}"`);
       },
@@ -79,7 +83,7 @@ export default class ThreadListContextMenu {
       return null;
     }
     return {
-      label: 'Reply',
+      label: localized('Reply'),
       click: () => {
         Actions.composeReply({
           threadId: this.threadIds[0],
@@ -102,7 +106,7 @@ export default class ThreadListContextMenu {
       .then(message => {
         if (message && message.canReplyAll()) {
           return {
-            label: 'Reply All',
+            label: localized('Reply All'),
             click: () => {
               Actions.composeReply({
                 threadId: this.threadIds[0],
@@ -122,7 +126,7 @@ export default class ThreadListContextMenu {
       return null;
     }
     return {
-      label: 'Forward',
+      label: localized('Forward'),
       click: () => {
         Actions.composeForward({ threadId: this.threadIds[0], popout: true });
       },
@@ -136,7 +140,7 @@ export default class ThreadListContextMenu {
       return null;
     }
     return {
-      label: 'Archive',
+      label: localized('Archive'),
       click: () => {
         const tasks = TaskFactory.tasksForArchiving({
           source: 'Context Menu: Thread List',
@@ -154,7 +158,7 @@ export default class ThreadListContextMenu {
       return null;
     }
     return {
-      label: 'Trash',
+      label: localized('Trash'),
       click: () => {
         const tasks = TaskFactory.tasksForMovingToTrash({
           source: 'Context Menu: Thread List',
@@ -167,10 +171,10 @@ export default class ThreadListContextMenu {
 
   markAsReadItem() {
     const unread = this.threads.every(t => t.unread === false);
-    const dir = unread ? 'Unread' : 'Read';
+    const dir = unread ? localized('Unread') : localized('Read');
 
     return {
-      label: `Mark as ${dir}`,
+      label: localized(`Mark as %@`, dir),
       click: () => {
         Actions.queueTask(
           TaskFactory.taskForInvertingUnread({
@@ -184,10 +188,10 @@ export default class ThreadListContextMenu {
 
   markAsSpamItem() {
     const allInSpam = this.threads.every(item => item.folders.find(c => c.role === 'spam'));
-    const dir = allInSpam ? 'Not Spam' : 'Spam';
+    const dir = allInSpam ? localized('Not Spam') : localized('Spam');
 
     return {
-      label: `Mark as ${dir}`,
+      label: localized(`Mark as %@`, dir),
       click: () => {
         Actions.queueTasks(
           allInSpam
@@ -207,15 +211,13 @@ export default class ThreadListContextMenu {
   starItem() {
     const starred = this.threads.every(t => t.starred === false);
 
-    let dir = '';
-    let star = 'Star';
+    let label = localized('Star');
     if (!starred) {
-      dir = 'Remove ';
-      star = this.threadIds.length > 1 ? 'Stars' : 'Star';
+      label = this.threadIds.length > 1 ? localized('Remove Stars') : localized('Remove Star');
     }
 
     return {
-      label: `${dir}${star}`,
+      label: label,
       click: () => {
         Actions.queueTask(
           TaskFactory.taskForInvertingStarred({

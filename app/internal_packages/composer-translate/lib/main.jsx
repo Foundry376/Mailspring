@@ -12,6 +12,7 @@ import {
   PropTypes,
   ComponentRegistry,
   QuotedHTMLTransformer,
+  localized,
   Actions,
 } from 'mailspring-exports';
 
@@ -54,7 +55,7 @@ class TranslateButton extends React.Component {
   _onError(error) {
     Actions.closePopover();
     const dialog = require('electron').remote.dialog;
-    dialog.showErrorBox('Language Conversion Failed', error.toString());
+    dialog.showErrorBox(localized('Language Conversion Failed'), error.toString());
   }
 
   _onTranslate = async lang => {
@@ -75,7 +76,7 @@ class TranslateButton extends React.Component {
     try {
       const resp = await fetch(YandexTranslationURL, { method: 'POST', body: queryParams });
       if (!resp.ok) {
-        throw new Error('Sorry, we were unable to complete the translation request.');
+        throw new Error(localized('Sorry, we were unable to complete the translation request.'));
       }
       const json = await resp.json();
       let translated = json.text.join('');
@@ -101,7 +102,7 @@ class TranslateButton extends React.Component {
 
   // Helper method that will render the contents of our popover.
   _renderPopover() {
-    const headerComponents = [<span key="header">Translate:</span>];
+    const headerComponents = [<span key="header">{localized('Translate')}:</span>];
     return (
       <Menu
         className="translate-language-picker"
@@ -134,7 +135,7 @@ class TranslateButton extends React.Component {
         tabIndex={-1}
         className="btn btn-toolbar btn-translate pull-right"
         onClick={this._onClickTranslateButton}
-        title="Translate email body…"
+        title={localized('Translate email body…')}
       >
         <RetinaImg
           mode={RetinaImg.Mode.ContentIsMask}

@@ -1,4 +1,4 @@
-import { React } from 'mailspring-exports';
+import { localized, localizedReactFragment, React } from 'mailspring-exports';
 
 const AccountProviders = [
   {
@@ -35,10 +35,11 @@ const AccountProviders = [
     displayName: 'iCloud',
     note: (
       <span>
-        <strong>Important:</strong> iCloud requires that you create a unique app password for email
-        apps like Mailspring. Follow{' '}
-        <a href="https://support.apple.com/en-us/HT204397">these instructions</a> to create one and
-        then paste it below.
+        <strong>{localized('Important')}:</strong>{' '}
+        {localizedReactFragment(
+          'iCloud requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.',
+          <a href="https://support.apple.com/en-us/HT204397">{localized('these instructions')}</a>
+        )}
       </span>
     ),
     icon: 'ic-settings-account-icloud.png',
@@ -57,10 +58,13 @@ const AccountProviders = [
     displayName: 'GMX',
     note: (
       <span>
-        Enter your email account credentials to get started.<br />
-        <strong>Important:</strong> GMX requires that you{' '}
-        <a href="https://support.gmx.com/pop-imap/toggle.html">enable IMAP</a> before using email
-        clients like Mailspring.
+        {localized('Enter your email account credentials to get started.')}
+        <br />
+        <strong>{localized('Important')}:</strong>{' '}
+        {localizedReactFragment(
+          'GMX requires that you %@ before using email clients like Mailspring.',
+          <a href="https://support.gmx.com/pop-imap/toggle.html">{localized('enable IMAP')}</a>
+        )}
       </span>
     ),
     icon: 'ic-settings-account-gmx.png',
@@ -72,13 +76,14 @@ const AccountProviders = [
     displayName: 'Yandex',
     note: (
       <span>
-        <strong>Important:</strong> You may need to{' '}
-        <a href="https://phone-passport.yandex.com/phones">link a phone number</a> to your Yandex
-        account before connecting email apps. If you use two-factor auth, you need to create an{' '}
-        <a href="https://yandex.com/support/passport/authorization/app-passwords.html">
-          App Password
-        </a>{' '}
-        for Mailspring.
+        <strong>{localized('Important')}:</strong>
+        {localizedReactFragment(
+          'You may need to %@ to your Yandex account before connecting email apps. If you use two-factor auth, you need to create an %@ for Mailspring.',
+          <a href="https://phone-passport.yandex.com/phones">{localized('link a phone number')}</a>,
+          <a href="https://yandex.com/support/passport/authorization/app-passwords.html">
+            {localized('App Password')}
+          </a>
+        )}
       </span>
     ),
     icon: 'ic-settings-account-yandex.png',

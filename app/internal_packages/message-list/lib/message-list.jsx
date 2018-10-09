@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 
 import {
+  localized,
   React,
   ReactDOM,
   PropTypes,
@@ -62,7 +63,7 @@ class MessageListScrollTooltip extends React.Component {
   render() {
     return (
       <div className="scroll-tooltip">
-        {this.state.idx} of {this.state.count}
+        {localized('%@ of %@', this.state.idx, this.state.count)}
       </div>
     );
   }
@@ -351,7 +352,7 @@ class MessageList extends React.Component {
   _renderSubject() {
     let subject = this.state.currentThread.subject;
     if (!subject || subject.length === 0) {
-      subject = '(No Subject)';
+      subject = localized('(No Subject)');
     }
 
     return (
@@ -376,7 +377,11 @@ class MessageList extends React.Component {
       <div className="message-icons-wrap">
         {this._renderExpandToggle()}
         <div onClick={this._onPrintThread}>
-          <RetinaImg name="print.png" title="Print Thread" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg
+            name="print.png"
+            title={localized('Print Thread')}
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
         </div>
         {this._renderPopoutToggle()}
       </div>
@@ -392,7 +397,7 @@ class MessageList extends React.Component {
       <div onClick={this._onToggleAllMessagesExpanded}>
         <RetinaImg
           name={this.state.hasCollapsedItems ? 'expand.png' : 'collapse.png'}
-          title={this.state.hasCollapsedItems ? 'Expand All' : 'Collapse All'}
+          title={this.state.hasCollapsedItems ? localized('Expand All') : localized('Collapse All')}
           mode={RetinaImg.Mode.ContentIsMask}
         />
       </div>
@@ -405,7 +410,7 @@ class MessageList extends React.Component {
         <div onClick={this._onPopThreadIn}>
           <RetinaImg
             name="thread-popin.png"
-            title="Pop thread in"
+            title={localized('Pop thread in')}
             mode={RetinaImg.Mode.ContentIsMask}
           />
         </div>
@@ -415,7 +420,7 @@ class MessageList extends React.Component {
       <div onClick={this._onPopoutThread}>
         <RetinaImg
           name="thread-popout.png"
-          title="Popout thread"
+          title={localized('Popout thread')}
           mode={RetinaImg.Mode.ContentIsMask}
         />
       </div>
@@ -427,7 +432,7 @@ class MessageList extends React.Component {
       <div className="footer-reply-area-wrap" onClick={this._onClickReplyArea} key="reply-area">
         <div className="footer-reply-area">
           <RetinaImg name={`${this._replyType()}-footer.png`} mode={RetinaImg.Mode.ContentIsMask} />
-          <span className="reply-text">Write a reply…</span>
+          <span className="reply-text">{localized('Write a reply…')}</span>
         </div>
       </div>
     );
@@ -444,7 +449,9 @@ class MessageList extends React.Component {
         onClick={() => this.setState({ minified: false })}
         key={Utils.generateTempId()}
       >
-        <div className="num-messages">{bundle.messages.length} older messages</div>
+        <div className="num-messages">{`${bundle.messages.length} ${localized(
+          'older messages'
+        )}`}</div>
         <div className="msg-lines" style={{ height: h * lines.length }}>
           {lines.map((msg, i) => (
             <div key={msg.id} style={{ height: h * 2, top: -h * i }} className="msg-line" />

@@ -1,6 +1,7 @@
 /* eslint global-require: 0 */
 import { shell, ipcRenderer, remote } from 'electron';
 import url from 'url';
+import { localized } from './intl';
 
 let ComponentRegistry = null;
 let Spellchecker = null;
@@ -334,21 +335,21 @@ export default class WindowEventHandler {
 
     menu.append(
       new MenuItem({
-        label: 'Cut',
+        label: localized('Cut'),
         enabled: hasSelectedText,
         click: () => AppEnv.commands.dispatch('core:cut'),
       })
     );
     menu.append(
       new MenuItem({
-        label: 'Copy',
+        label: localized('Copy'),
         enabled: hasSelectedText,
         click: () => AppEnv.commands.dispatch('core:copy'),
       })
     );
     menu.append(
       new MenuItem({
-        label: 'Paste',
+        label: localized('Paste'),
         click: () => {
           onRestoreSelection();
           AppEnv.commands.dispatch('core:paste');
@@ -357,7 +358,7 @@ export default class WindowEventHandler {
     );
     menu.append(
       new MenuItem({
-        label: 'Paste and Match Style',
+        label: localized('Paste and Match Style'),
         click: () => {
           onRestoreSelection();
           AppEnv.commands.dispatch('core:paste-and-match-style');

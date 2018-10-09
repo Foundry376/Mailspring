@@ -7,6 +7,7 @@ import Message from '../models/message';
 import DatabaseStore from '../stores/database-store';
 import CategoryStore from '../stores/category-store';
 import MailRulesProcessor from '../../mail-rules-processor';
+import { localized } from '../../intl';
 
 import { ConditionMode, ConditionTemplates, ActionTemplates } from '../../mail-rules-templates';
 
@@ -103,7 +104,7 @@ class MailRulesStore extends MailspringStore {
   _onAddMailRule = properties => {
     const defaults = {
       id: Utils.generateTempId(),
-      name: 'Untitled Rule',
+      name: localized('Untitled Rule'),
       conditionMode: ConditionMode.All,
       conditions: [ConditionTemplates[0].createDefaultInstance()],
       actions: [ActionTemplates[0].createDefaultInstance()],
@@ -158,7 +159,9 @@ class MailRulesStore extends MailspringStore {
     const inboxCategory = CategoryStore.getCategoryByRole(aid, 'inbox');
     if (!inboxCategory) {
       AppEnv.showErrorDialog(
-        `Sorry, this account does not appear to have an inbox folder so this feature is disabled.`
+        localized(
+          `Sorry, this account does not appear to have an inbox folder so this feature is disabled.`
+        )
       );
       return;
     }

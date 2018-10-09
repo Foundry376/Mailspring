@@ -1,6 +1,6 @@
 import React from 'react';
 import { clipboard } from 'electron';
-import { MailspringAPIRequest } from 'mailspring-exports';
+import { localized, MailspringAPIRequest } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
 function buildShareHTML(htmlEl, styleEl) {
@@ -88,8 +88,8 @@ export default class ShareButton extends React.Component {
   render() {
     return (
       <div style={{ display: 'flex' }}>
-        <div className="btn" onClick={this._onShareReport} style={{ width: 150 }}>
-          Share this Report
+        <div className="btn" onClick={this._onShareReport} style={{ minWidth: 150 }}>
+          {localized('Share this Report')}
           {this.state.loading && (
             <RetinaImg
               name="inline-loading-spinner.gif"

@@ -1,4 +1,11 @@
-import { React, PropTypes, Actions, SendActionsStore, SoundRegistry } from 'mailspring-exports';
+import {
+  localized,
+  React,
+  PropTypes,
+  Actions,
+  SendActionsStore,
+  SoundRegistry,
+} from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
 
 class SendActionButton extends React.Component {
@@ -50,7 +57,10 @@ class SendActionButton extends React.Component {
     return (
       <span>
         <RetinaImg name="icon-composer-send.png" mode={RetinaImg.Mode.ContentIsMask} />
-        <span className="text">Send{plusHTML}</span>
+        <span className="text">
+          {localized(`Send`)}
+          {plusHTML}
+        </span>
         {additionalImg}
       </span>
     );

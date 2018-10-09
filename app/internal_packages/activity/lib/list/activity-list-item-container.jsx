@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { DisclosureTriangle, Flexbox, RetinaImg } from 'mailspring-component-kit';
-import { DateUtils } from 'mailspring-exports';
+import { localized, DateUtils } from 'mailspring-exports';
 
 import ActivityEventStore from '../activity-event-store';
 import { configForPluginId } from '../plugin-helpers';
@@ -31,8 +31,8 @@ class ActivityListItemContainer extends React.Component {
 
   _getText() {
     const text = {
-      recipient: 'Someone',
-      title: '(No Subject)',
+      recipient: localized('Someone'),
+      title: localized('(No Subject)'),
       date: new Date(0),
     };
     const lastAction = this.props.group[0];
@@ -46,8 +46,13 @@ class ActivityListItemContainer extends React.Component {
         }
       }
       if (people.length === 1) text.recipient = people[0].displayName();
-      else if (people.length === 2) text.recipient = `${people[0].displayName()} and 1 other`;
-      else text.recipient = `${people[0].displayName()} and ${people.length - 1} others`;
+      else if (people.length === 2)
+        text.recipient = `${people[0].displayName()} ${localized('and')} ${localized('1 other')}`;
+      else
+        text.recipient = `${people[0].displayName()} ${localized('and')} ${localized(
+          '%@ others',
+          people.length - 1
+        )}`;
     }
     if (lastAction.title) text.title = lastAction.title;
     text.date.setUTCSeconds(lastAction.timestamp);
@@ -67,7 +72,7 @@ class ActivityListItemContainer extends React.Component {
         <div key={`${action.messageId}-${action.timestamp}`} className="activity-list-toggle-item">
           <Flexbox direction="row">
             <div className="action-message">
-              {action.recipient ? action.recipient.displayName() : 'Someone'}
+              {action.recipient ? action.recipient.displayName() : localized('Someone')}
             </div>
             <div className="spacer" />
             <div className="timestamp">{DateUtils.shortTimeString(date)}</div>

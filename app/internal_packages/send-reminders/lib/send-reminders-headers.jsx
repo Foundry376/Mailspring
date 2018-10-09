@@ -2,7 +2,7 @@ import React from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import { RetinaImg } from 'mailspring-component-kit';
-import { DateUtils } from 'mailspring-exports';
+import { localized, DateUtils } from 'mailspring-exports';
 
 import { updateReminderMetadata } from './send-reminders-utils';
 import { PLUGIN_ID } from './send-reminders-constants';
@@ -19,8 +19,10 @@ export function NotificationExplanationMessageHeader({ thread, message }) {
   return (
     <div className="send-reminders-header">
       <RetinaImg name="ic-timestamp-reminder.png" mode={RetinaImg.Mode.ContentIsMask} />
-      <span title="This thread was brought back to the top of your inbox as a reminder">
-        Reminder
+      <span
+        title={localized('This thread was brought back to the top of your inbox as a reminder')}
+      >
+        {localized('Reminder')}
       </span>
     </div>
   );
@@ -51,7 +53,7 @@ export function ScheduledReminderThreadHeader({ thread }) {
         {` ${moment(metadata.expiration).format(DateUtils.DATE_FORMAT_LONG_NO_YEAR)}`}
       </span>
       <span className="clear-reminder" onClick={onClearReminder}>
-        Cancel
+        {localized('Cancel')}
       </span>
     </div>
   );

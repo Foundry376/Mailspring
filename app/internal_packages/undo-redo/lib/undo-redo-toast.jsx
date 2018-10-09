@@ -1,4 +1,4 @@
-import { React, UndoRedoStore, SyncbackMetadataTask } from 'mailspring-exports';
+import { localized, React, UndoRedoStore, SyncbackMetadataTask } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CSSTransitionGroup } from 'react-transition-group';
 
@@ -69,10 +69,10 @@ const UndoSendContent = ({ block, onMouseEnter, onMouseLeave }) => {
   return (
     <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <Countdown expiration={getUndoSendExpiration(block)} />
-      <div className="message">Sending soon...</div>
+      <div className="message">{localized('Sending soon...')}</div>
       <div className="action" onClick={() => AppEnv.commands.dispatch('core:undo')}>
         <RetinaImg name="undo-icon@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
-        <span className="undo-action-text">Undo</span>
+        <span className="undo-action-text">{localized('Undo')}</span>
       </div>
     </div>
   );
@@ -84,7 +84,7 @@ const BasicContent = ({ block, onMouseEnter, onMouseLeave }) => {
       <div className="message">{block.description}</div>
       <div className="action" onClick={() => AppEnv.commands.dispatch('core:undo')}>
         <RetinaImg name="undo-icon@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
-        <span className="undo-action-text">Undo</span>
+        <span className="undo-action-text">{localized('Undo')}</span>
       </div>
     </div>
   );

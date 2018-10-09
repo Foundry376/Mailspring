@@ -81,6 +81,10 @@ Back in 2015 and 2016, the Nylas Mail team made a huge effort to document the co
 
 In order to keep the conversation clear and transparent, please limit discussion to English and keep things on topic with the issue. Be considerate to others and try to be courteous and professional at all times.
 
+#### Testing Localization
+
+You can run the app in different localizations by passing a langauge code to Electron via `--lang=de`. To use this in conjunction `npm start`, you'll need to use the `--` argument forwarding syntax: `npm start -- --lang=de`.
+
 # Where to Contribute
 
 Check out the full issues list for a list of all potential areas for contributions. Note that just because an issue exists in the repository does not mean we will accept a contribution to the core mail client for it. There are several reasons we may not accepts a pull requests, like:

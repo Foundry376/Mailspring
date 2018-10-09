@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { ipcRenderer, remote } from 'electron';
+import { localized } from '../intl';
 import _ from 'underscore';
 
 import Task from './tasks/task';
@@ -131,7 +132,7 @@ export default class MailsyncBridge {
 
   toggleVerboseLogging() {
     const { configDirPath } = AppEnv.getLoadSettings();
-    let message = 'Thank you for helping debug Mailspring. Mailspring will now restart.';
+    let message = localized('Thank you for helping debug Mailspring. Mailspring will now restart.');
     let phrase = 'disabled';
 
     if (AppEnv.config.get(VERBOSE_UNTIL_KEY)) {
@@ -146,7 +147,7 @@ export default class MailsyncBridge {
         `in the directory: \n\n${configDirPath}.\n\nMailspring will now restart.`;
     }
     AppEnv.showErrorDialog({
-      title: `Verbose logging is now ${phrase}`,
+      title: localized(`Verbose logging is now %@`, phrase),
       message,
     });
     remote.app.relaunch();
@@ -193,8 +194,10 @@ export default class MailsyncBridge {
     if (!this._clients[accountId]) {
       const { emailAddress } = AccountStore.accountForId(accountId) || {};
       return AppEnv.showErrorDialog({
-        title: `Mailspring is unable to sync ${emailAddress}`,
-        message: `In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.`,
+        title: localized(`Mailspring is unable to sync %@`, emailAddress),
+        message: localized(
+          `In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.`
+        ),
       });
     }
     this._clients[accountId].sendMessage(json);
@@ -223,10 +226,11 @@ export default class MailsyncBridge {
 
     if (!silent) {
       AppEnv.showErrorDialog({
-        title: `Cleanup Started`,
-        message: `Mailspring is clearing it's cache for ${
+        title: localized(`Cleanup Started`),
+        message: localized(
+          `Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
           account.emailAddress
-        }. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
+        ),
       });
     }
 
@@ -237,16 +241,18 @@ export default class MailsyncBridge {
 
       if (!silent) {
         AppEnv.showErrorDialog({
-          title: `Cleanup Complete`,
-          message: `Mailspring reset the local cache for ${account.emailAddress} in ${Math.ceil(
-            (Date.now() - start) / 1000
-          )} seconds. Your mailbox will now begin to sync again.`,
+          title: localized(`Cleanup Complete`),
+          message: localized(
+            `Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.`,
+            account.emailAddress,
+            Math.ceil((Date.now() - start) / 1000)
+          ),
         });
       }
     } catch (error) {
       AppEnv.showErrorDialog({
-        title: `Cleanup Error`,
-        message: `Mailspring was unable to reset the local cache. ${error}`,
+        title: localized(`Cleanup Error`),
+        message: localized(`Mailspring was unable to reset the local cache. %@`, error),
       });
     } finally {
       delete this._clients[account.id];

@@ -1,4 +1,4 @@
-import { AccountStore, Account, IdentityStore } from 'mailspring-exports';
+import { localized, AccountStore, Account, IdentityStore } from 'mailspring-exports';
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 
@@ -127,10 +127,11 @@ class OnboardingStore extends MailspringStore {
     } catch (e) {
       AppEnv.reportError(e);
       AppEnv.showErrorDialog({
-        title: 'Unable to Add Account',
-        message:
-          'Sorry, something went wrong when this account was added to Mailspring. ' +
-          `If you do not see the account, try linking it again. ${e.toString()}`,
+        title: localized('Unable to Add Account'),
+        message: localized(
+          'Sorry, something went wrong when this account was added to Mailspring. If you do not see the account, try linking it again. %@',
+          e.toString()
+        ),
       });
     }
 

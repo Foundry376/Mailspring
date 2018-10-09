@@ -1,4 +1,5 @@
 const {
+  localized,
   Actions,
   React,
   PropTypes,
@@ -19,7 +20,7 @@ class ThreadArchiveQuickAction extends React.Component {
     return (
       <div
         key="archive"
-        title="Archive"
+        title={localized('Archive')}
         style={{ order: 100 }}
         className="btn action action-archive"
         onClick={this._onArchive}
@@ -59,7 +60,7 @@ class ThreadTrashQuickAction extends React.Component {
     return (
       <div
         key="remove"
-        title="Trash"
+        title={localized('Trash')}
         style={{ order: 110 }}
         className="btn action action-trash"
         onClick={this._onRemove}

@@ -3,7 +3,7 @@ const PropTypes = require('prop-types');
 const path = require('path');
 const fs = require('fs');
 const { RetinaImg, Flexbox, ConfigPropContainer } = require('mailspring-component-kit');
-const { AccountStore, IdentityStore } = require('mailspring-exports');
+const { localized, AccountStore, IdentityStore } = require('mailspring-exports');
 const OnboardingActions = require('./onboarding-actions').default;
 const NewsletterSignup = require('./newsletter-signup').default;
 
@@ -22,8 +22,8 @@ class AppearanceModeOption extends React.Component {
     }
 
     const label = {
-      list: 'Reading Pane Off',
-      split: 'Reading Pane On',
+      list: localized('Reading Pane Off'),
+      split: localized('Reading Pane On'),
     }[this.props.mode];
 
     return (
@@ -105,7 +105,9 @@ class InitialPreferencesOptions extends React.Component {
         }}
       >
         <div style={{ flex: 1 }}>
-          <p>Do you prefer a single panel layout (like Gmail) or a two panel layout?</p>
+          <p>
+            {localized('Do you prefer a single panel layout (like Gmail) or a two panel layout?')}
+          </p>
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
             {['list', 'split'].map(mode => (
               <AppearanceModeOption
@@ -123,8 +125,9 @@ class InitialPreferencesOptions extends React.Component {
         />
         <div style={{ flex: 1 }}>
           <p>
-            We've picked a set of keyboard shortcuts based on your email account and platform. You
-            can also pick another set:
+            {localized(
+              `We've picked a set of keyboard shortcuts based on your email account and platform. You can also pick another set:`
+            )}
           </p>
           <select
             style={{ margin: 0 }}
@@ -177,13 +180,13 @@ class InitialPreferencesPage extends React.Component {
     }
     return (
       <div className="page opaque" style={{ width: 900, height: 620 }}>
-        <h1 style={{ paddingTop: 100 }}>Welcome to Mailspring</h1>
-        <h4 style={{ marginBottom: 60 }}>Let's set things up to your liking.</h4>
+        <h1 style={{ paddingTop: 100 }}>{localized(`Welcome to Mailspring`)}</h1>
+        <h4 style={{ marginBottom: 60 }}>{localized(`Let's set things up to your liking.`)}</h4>
         <ConfigPropContainer>
           <InitialPreferencesOptions account={this.state.account} />
         </ConfigPropContainer>
         <button className="btn btn-large" style={{ marginBottom: 60 }} onClick={this._onFinished}>
-          Looks Good!
+          {localized(`Looks Good!`)}
         </button>
       </div>
     );

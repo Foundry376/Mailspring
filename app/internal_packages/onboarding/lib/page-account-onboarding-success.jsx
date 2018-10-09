@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { localized } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import AccountProviders from './account-providers';
 
@@ -27,10 +28,12 @@ class AccountOnboardingSuccess extends Component {
         </div>
         <div>
           <h2>
-            Successfully connected to{' '}
-            {providerConfig.displayNameShort || providerConfig.displayName}!
+            {localized(
+              'Successfully connected to %@!',
+              providerConfig.displayNameShort || providerConfig.displayName
+            )}
           </h2>
-          <h3>Adding your account to Mailspring…</h3>
+          <h3>{localized('Adding your account to Mailspring…')}</h3>
         </div>
       </div>
     );

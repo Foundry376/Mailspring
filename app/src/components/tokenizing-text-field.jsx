@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import _ from 'underscore';
 import { remote } from 'electron';
-import { React, ReactDOM, PropTypes, Utils, RegExpUtils } from 'mailspring-exports';
+import { localized, React, ReactDOM, PropTypes, Utils, RegExpUtils } from 'mailspring-exports';
 import { Menu } from 'mailspring-component-kit';
 
 import RetinaImg from './retina-img';
@@ -721,14 +721,14 @@ export default class TokenizingTextField extends React.Component {
     menu.append(
       new remote.MenuItem({
         click: () => this._removeTokens([token]),
-        label: 'Remove',
+        label: localized('Remove'),
       })
     );
 
     if (this.props.onEditMotion) {
       menu.append(
         new remote.MenuItem({
-          label: 'Edit',
+          label: localized('Edit'),
           click: () => this.props.onEditMotion(token),
         })
       );

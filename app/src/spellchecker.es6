@@ -1,6 +1,7 @@
 import { remote } from 'electron';
 import fs from 'fs';
 import path from 'path';
+import { localized } from './intl';
 
 const app = remote.app;
 const MenuItem = remote.MenuItem;
@@ -143,13 +144,13 @@ class Spellchecker {
           );
         });
       } else {
-        menu.append(new MenuItem({ label: 'No Guesses Found', enabled: false }));
+        menu.append(new MenuItem({ label: localized('No Guesses Found'), enabled: false }));
       }
       menu.append(new MenuItem({ type: 'separator' }));
 
       menu.append(
         new MenuItem({
-          label: 'Learn Spelling',
+          label: localized('Learn Spelling'),
           click: () => {
             this.learnWord(word);
             if (onDidLearn) {

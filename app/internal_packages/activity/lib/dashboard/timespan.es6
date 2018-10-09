@@ -1,20 +1,21 @@
 import moment from 'moment';
+import { localized } from 'mailspring-exports';
 
 export const DEFAULT_TIMESPAN_ID = '14';
 
 export function getTimespanOptions() {
   return [
-    { id: '0', name: 'Today' },
-    { id: '7', name: 'Last 7 Days' },
-    { id: '14', name: 'Last 2 Weeks' },
-    { id: '28', name: 'Last 4 Weeks' },
+    { id: '0', name: localized('Today') },
+    { id: '7', name: localized('Last 7 Days') },
+    { id: '14', name: localized('Last 2 Weeks') },
+    { id: '28', name: localized('Last 4 Weeks') },
     { id: '-', name: '-', divider: true },
     ...[0, 1, 2].map(n => {
       return {
         id: `month-${n}`,
         name: moment()
           .subtract(n, 'month')
-          .format('MMMM YYYY'),
+          .format(localized('MMMM YYYY')),
       };
     }),
   ];

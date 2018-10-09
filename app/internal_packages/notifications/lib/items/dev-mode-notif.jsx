@@ -1,4 +1,4 @@
-import { React } from 'mailspring-exports';
+import { localized, React } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 export default class DevModeNotification extends React.Component {
@@ -18,7 +18,10 @@ export default class DevModeNotification extends React.Component {
       return <span />;
     }
     return (
-      <Notification priority="0" title="Mailspring is running in dev mode and may be slower!" />
+      <Notification
+        priority="0"
+        title={localized('Mailspring is running in dev mode and may be slower!')}
+      />
     );
   }
 }

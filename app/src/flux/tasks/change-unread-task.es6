@@ -5,6 +5,7 @@ import Actions from '../actions';
 import Attributes from '../attributes';
 import DatabaseStore from '../stores/database-store';
 import ChangeMailTask from './change-mail-task';
+import { localized } from '../../intl';
 
 export default class ChangeUnreadTask extends ChangeMailTask {
   static attributes = Object.assign({}, ChangeMailTask.attributes, {
@@ -14,22 +15,21 @@ export default class ChangeUnreadTask extends ChangeMailTask {
   });
 
   label() {
-    return this.unread ? 'Marking as unread' : 'Marking as read';
+    return this.unread ? localized('Marking as unread') : localized('Marking as read');
   }
 
   description() {
     const count = this.threadIds.length;
-    const type = count > 1 ? 'threads' : 'thread';
 
     if (this.isUndo) {
-      return `Undoing changes to ${count} ${type}`;
+      return localized(`Undoing changes`);
     }
 
-    const newState = this.unread ? 'unread' : 'read';
+    const newState = this.unread ? localized('Unread') : localized('Read');
     if (count > 1) {
-      return `Marked ${count} ${type} as ${newState}`;
+      return localized(`Marked %@ threads as %@`, count, newState.toLocaleLowerCase());
     }
-    return `Marked as ${newState}`;
+    return localized(`Marked as %@`, newState.toLocaleLowerCase());
   }
 
   createUndoTask() {

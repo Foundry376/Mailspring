@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { localized } from 'mailspring-exports';
 import { RetinaImg, Flexbox, EditableList } from 'mailspring-component-kit';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
@@ -30,7 +31,7 @@ class PreferencesAccountList extends Component {
 
   _renderAccount = account => {
     const label = account.label;
-    const accountSub = `${account.name || 'No name provided'} <${account.emailAddress}>`;
+    const accountSub = `${account.name || localized('No name provided')} <${account.emailAddress}>`;
     const syncError = account.hasSyncStateError();
 
     return (

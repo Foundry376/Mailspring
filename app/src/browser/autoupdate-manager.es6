@@ -3,6 +3,7 @@ import { dialog } from 'electron';
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs';
+import { localized } from '../intl';
 
 let autoUpdater = null;
 
@@ -164,11 +165,11 @@ export default class AutoUpdateManager extends EventEmitter {
     autoUpdater.removeListener('error', this.onUpdateError);
     dialog.showMessageBox({
       type: 'info',
-      buttons: ['OK'],
+      buttons: [localized('OK')],
       icon: this.iconURL(),
-      message: 'No update available.',
-      title: 'No Update Available',
-      detail: `You're running the latest version of Mailspring (${this.version}).`,
+      message: localized('No update available.'),
+      title: localized('No update available.'),
+      detail: localized(`You're running the latest version of Mailspring (%@).`, this.version),
     });
   };
 
@@ -176,10 +177,10 @@ export default class AutoUpdateManager extends EventEmitter {
     autoUpdater.removeListener('update-not-available', this.onUpdateNotAvailable);
     dialog.showMessageBox({
       type: 'warning',
-      buttons: ['OK'],
+      buttons: [localized('OK')],
       icon: this.iconURL(),
-      message: 'There was an error checking for updates.',
-      title: 'Update Error',
+      message: localized('There was an error checking for updates.'),
+      title: localized('Update Error'),
       detail: message,
     });
   };

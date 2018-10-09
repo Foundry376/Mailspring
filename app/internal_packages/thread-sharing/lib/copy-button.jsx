@@ -1,4 +1,4 @@
-import { React, PropTypes, Utils } from 'mailspring-exports';
+import { localized, React, PropTypes, Utils } from 'mailspring-exports';
 import { clipboard } from 'electron';
 
 class CopyButton extends React.Component {
@@ -31,7 +31,7 @@ class CopyButton extends React.Component {
     }
     const { copyValue, btnLabel } = this.props;
     clipboard.writeText(copyValue);
-    this.setState({ btnLabel: 'Copied!' });
+    this.setState({ btnLabel: localized('Copied') });
     this._timeout = setTimeout(() => {
       this._timeout = null;
       this.setState({ btnLabel: btnLabel });

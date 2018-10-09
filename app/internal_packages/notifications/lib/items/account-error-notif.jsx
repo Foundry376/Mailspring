@@ -1,5 +1,5 @@
 import { shell, ipcRenderer } from 'electron';
-import { React, Account, AccountStore, Actions, KeyManager } from 'mailspring-exports';
+import { localized, React, Account, AccountStore, Actions, KeyManager } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 export default class AccountErrorNotification extends React.Component {
@@ -64,7 +64,9 @@ export default class AccountErrorNotification extends React.Component {
 
   render() {
     const erroredAccounts = this.state.accounts.filter(a => a.hasSyncStateError());
-    const checkAgainLabel = this.state.checking ? 'Checking...' : 'Check Again';
+    const checkAgainLabel = this.state.checking
+      ? `${localized('Checking')}...`
+      : localized('Check Again');
     let title;
     let subtitle;
     let subtitleAction;
@@ -72,14 +74,14 @@ export default class AccountErrorNotification extends React.Component {
     if (erroredAccounts.length === 0) {
       return <span />;
     } else if (erroredAccounts.length > 1) {
-      title = 'Several of your accounts are having issues';
+      title = localized('Several of your accounts are having issues');
       actions = [
         {
           label: checkAgainLabel,
           fn: () => this._onCheckAgain(AccountStore.accounts().filter(a => a.hasSyncStateError())),
         },
         {
-          label: 'Manage',
+          label: localized('Manage'),
           fn: this._onOpenAccountPreferences,
         },
       ];
@@ -94,16 +96,16 @@ export default class AccountErrorNotification extends React.Component {
               fn: () => this._onCheckAgain([erroredAccount]),
             },
             {
-              label: 'Reconnect',
+              label: localized('Reconnect'),
               fn: () => this._onReconnect(erroredAccount),
             },
           ];
           break;
         default: {
-          title = `Encountered an error while syncing ${erroredAccount.emailAddress}`;
+          title = localized(`Encountered an error while syncing %@`, erroredAccount.emailAddress);
           actions = [
             {
-              label: this.state.checking ? 'Retrying...' : 'Try Again',
+              label: this.state.checking ? localized('Retrying...') : localized('Try Again'),
               fn: () => this._onCheckAgain([erroredAccount]),
             },
           ];

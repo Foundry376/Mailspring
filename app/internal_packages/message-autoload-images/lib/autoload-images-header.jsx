@@ -1,4 +1,4 @@
-import { React, PropTypes, Message } from 'mailspring-exports';
+import { localized, React, PropTypes, Message } from 'mailspring-exports';
 
 import AutoloadImagesStore from './autoload-images-store';
 import Actions from './autoload-images-actions';
@@ -48,11 +48,11 @@ export default class AutoloadImagesHeader extends React.Component {
     return (
       <div className="autoload-images-header">
         <a className="option" onClick={() => Actions.temporarilyEnableImages(message)}>
-          Show Images
+          {localized('Show Images')}
         </a>
         <span style={{ paddingLeft: 10, paddingRight: 10 }}>|</span>
         <a className="option" onClick={() => Actions.permanentlyEnableImages(message)}>
-          Always show images from {message.fromContact().toString()}
+          {localized('Always show images from %@', message.fromContact().toString())}
         </a>
       </div>
     );

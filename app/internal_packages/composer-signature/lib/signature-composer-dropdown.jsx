@@ -1,4 +1,4 @@
-import { React, Actions, PropTypes, SignatureStore } from 'mailspring-exports';
+import { localized, React, Actions, PropTypes, SignatureStore } from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown } from 'mailspring-component-kit';
 
 import { applySignature, currentSignatureId } from './signature-utils';
@@ -28,12 +28,12 @@ export default class SignatureComposerDropdown extends React.Component {
     );
     this._staticHeaderItems = [
       <div className="item item-none" key="none" onMouseDown={this._onClickNoSignature}>
-        <span>No signature</span>
+        <span>{localized('No signature')}</span>
       </div>,
     ];
     this._staticFooterItems = [
       <div className="item item-edit" key="edit" onMouseDown={this._onClickEditSignatures}>
-        <span>Edit Signatures...</span>
+        <span>{localized('Edit Signatures...')}</span>
       </div>,
     ];
   }

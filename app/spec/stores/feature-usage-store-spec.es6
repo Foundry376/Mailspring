@@ -80,8 +80,8 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
     describe('showing modal', () => {
       beforeEach(() => {
         this.lexicon = {
-          usedUpHeader: 'all test used',
-          usagePhrase: 'add a test to',
+          headerText: 'all test used',
+          rechargeText: 'add a test to',
           iconUrl: 'icon url',
         };
       });

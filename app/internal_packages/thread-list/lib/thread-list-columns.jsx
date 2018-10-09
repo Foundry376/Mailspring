@@ -8,7 +8,7 @@ const {
   InjectedComponentSet,
 } = require('mailspring-component-kit');
 
-const { FocusedPerspectiveStore, Utils, DateUtils } = require('mailspring-exports');
+const { localized, FocusedPerspectiveStore, Utils, DateUtils } = require('mailspring-exports');
 
 const { ThreadArchiveQuickAction, ThreadTrashQuickAction } = require('./thread-list-quick-actions');
 const ThreadListParticipants = require('./thread-list-participants');
@@ -19,7 +19,7 @@ const ThreadListTimestamp = function({ thread }) {
   let rawTimestamp = FocusedPerspectiveStore.current().isSent()
     ? thread.lastMessageSentTimestamp
     : thread.lastMessageReceivedTimestamp;
-  const timestamp = rawTimestamp ? DateUtils.shortTimeString(rawTimestamp) : 'No Date';
+  const timestamp = rawTimestamp ? DateUtils.shortTimeString(rawTimestamp) : localized('No Date');
   return <span className="timestamp">{timestamp}</span>;
 };
 
@@ -27,7 +27,7 @@ ThreadListTimestamp.containerRequired = false;
 
 const subject = function(subj) {
   if ((subj || '').trim().length === 0) {
-    return <span className="no-subject">(No Subject)</span>;
+    return <span className="no-subject">{localized('(No Subject)')}</span>;
   } else if (subj.split(/([\uD800-\uDBFF][\uDC00-\uDFFF])/g).length > 1) {
     const subjComponents = [];
     const subjParts = subj.split(/([\uD800-\uDBFF][\uDC00-\uDFFF])/g);

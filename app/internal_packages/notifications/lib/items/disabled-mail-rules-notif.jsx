@@ -1,4 +1,4 @@
-import { React, MailRulesStore, Actions } from 'mailspring-exports';
+import { localized, React, MailRulesStore, Actions } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 export default class DisabledMailRulesNotification extends React.Component {
@@ -37,12 +37,12 @@ export default class DisabledMailRulesNotification extends React.Component {
     return (
       <Notification
         priority="2"
-        title="One or more of your mail rules have been disabled."
+        title={localized('One or more of your mail rules have been disabled.')}
         icon="volstead-defaultclient.png"
         isError
         actions={[
           {
-            label: 'View Mail Rules',
+            label: localized('View Mail Rules'),
             fn: this._onOpenMailRulesPreferences,
           },
         ]}

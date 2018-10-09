@@ -1,6 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
-import { Actions, FocusedPerspectiveStore } from 'mailspring-exports';
+import { localized, Actions, FocusedPerspectiveStore } from 'mailspring-exports';
 import { Flexbox, ScrollRegion, RetinaImg } from 'mailspring-component-kit';
 
 import ActivityEventStore from '../activity-event-store';
@@ -94,7 +94,7 @@ class ActivityList extends React.Component {
         <ScrollRegion style={{ height: '100%' }}>{this.renderActions()}</ScrollRegion>
         {!empty && (
           <a className="activity-summary-cta" onClick={this._onViewSummary}>
-            View Activity Summary
+            {localized('Activity View')}
             <RetinaImg
               name="activity-drill-down-arrow.png"
               style={{ paddingLeft: 6 }}

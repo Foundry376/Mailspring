@@ -3,6 +3,7 @@ import _ from 'underscore';
 import React from 'react';
 import {
   Message,
+  localized,
   DraftStore,
   WorkspaceStore,
   ComponentRegistry,
@@ -69,7 +70,7 @@ class ComposerWithWindowProps extends React.Component {
     // don't delay the modal may come up in a state where the draft looks
     // like it hasn't been restored or has been lost.
     _.delay(() => {
-      AppEnv.showErrorDialog({ title: 'Error', message: msg }, { detail: detail });
+      AppEnv.showErrorDialog({ title: localized('Error'), message: msg }, { detail: detail });
     }, 100);
   }
 }

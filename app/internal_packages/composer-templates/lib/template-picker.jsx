@@ -1,8 +1,7 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
-import { React, ReactDOM, PropTypes, Actions } from 'mailspring-exports';
+import { localized, React, ReactDOM, PropTypes, Actions } from 'mailspring-exports';
 import { Menu, RetinaImg } from 'mailspring-component-kit';
 import TemplateStore from './template-store';
-import TemplateActions from './template-actions';
 
 class TemplatePopover extends React.Component {
   static displayName = 'TemplatePopover';
@@ -48,7 +47,7 @@ class TemplatePopover extends React.Component {
   };
 
   _onChooseTemplate = template => {
-    TemplateActions.insertTemplateId({
+    Actions.insertTemplateId({
       templateId: template.id,
       headerMessageId: this.props.headerMessageId,
     });
@@ -56,11 +55,11 @@ class TemplatePopover extends React.Component {
   };
 
   _onManageTemplates = () => {
-    TemplateActions.showTemplates();
+    Actions.showTemplates();
   };
 
   _onNewTemplate = () => {
-    TemplateActions.createTemplate({ headerMessageId: this.props.headerMessageId });
+    Actions.createTemplate({ headerMessageId: this.props.headerMessageId });
   };
 
   _onClickButton = () => {
@@ -85,10 +84,10 @@ class TemplatePopover extends React.Component {
     // note: these are using onMouseDown to avoid clearing focus in the composer (I think)
     const footerComponents = [
       <div className="item" key="new" onMouseDown={this._onNewTemplate}>
-        Save Draft as Template...
+        {localized('Save Draft as Template...')}
       </div>,
       <div className="item" key="manage" onMouseDown={this._onManageTemplates}>
-        Manage Templates...
+        {localized('Manage Templates...')}
       </div>,
     ];
 
@@ -127,7 +126,7 @@ class TemplatePicker extends React.Component {
         tabIndex={-1}
         className="btn btn-toolbar btn-templates narrow pull-right"
         onClick={this._onClickButton}
-        title="Insert quick reply…"
+        title={localized('Quick Reply')}
       >
         <RetinaImg
           url="mailspring://composer-templates/assets/icon-composer-templates@2x.png"

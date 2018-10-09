@@ -1,14 +1,15 @@
-import React from 'react';
+import { localized, React } from 'mailspring-exports';
 import OnboardingActions from './onboarding-actions';
 
 const Steps = [
   {
     seen: false,
     id: 'people',
-    title: 'Compose with context',
+    title: localized('Compose with context'),
     image: 'feature-people@2x.png',
-    description:
-      'Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.',
+    description: localized(
+      'Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.'
+    ),
     x: 96.6,
     y: 1.3,
     xDot: 93.5,
@@ -17,10 +18,11 @@ const Steps = [
   {
     seen: false,
     id: 'activity',
-    title: 'Track opens and clicks',
+    title: localized('Track opens and clicks'),
     image: 'feature-activity@2x.png',
-    description:
-      'With activity tracking, you’ll know as soon as someone reads your message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.',
+    description: localized(
+      'With activity tracking, you’ll know as soon as someone reads your message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.'
+    ),
     x: 12.8,
     y: 1,
     xDot: 15,
@@ -29,10 +31,11 @@ const Steps = [
   {
     seen: false,
     id: 'snooze',
-    title: 'Send on your own schedule',
+    title: localized('Send on your own schedule'),
     image: 'feature-snooze@2x.png',
-    description:
-      'Snooze emails to return at any time that suits you. Schedule messages to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!',
+    description: localized(
+      'Snooze emails to return at any time that suits you. Schedule messages to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!'
+    ),
     x: 5.5,
     y: 23.3,
     xDot: 10,
@@ -141,10 +144,10 @@ export default class TutorialPage extends React.Component {
         </div>
         <div className="footer">
           <button key="prev" className="btn btn-large btn-prev" onClick={this._onBack}>
-            Back
+            {localized('Back')}
           </button>
           <button key="next" className="btn btn-large btn-next" onClick={this._onNextUnseen}>
-            {seen.length < Steps.length ? 'Next' : 'Get Started'}
+            {seen.length < Steps.length ? localized('Next') : localized('Get Started')}
           </button>
         </div>
       </div>

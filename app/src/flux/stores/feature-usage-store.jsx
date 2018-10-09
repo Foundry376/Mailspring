@@ -5,6 +5,7 @@ import { FeatureUsedUpModal } from 'mailspring-component-kit';
 import Actions from '../actions';
 import IdentityStore from './identity-store';
 import SendFeatureUsageEventTask from '../tasks/send-feature-usage-event-task';
+import { localized } from '../../intl';
 
 class NoProAccessError extends Error {}
 
@@ -69,7 +70,18 @@ class FeatureUsageStore extends MailspringStore {
   }
 
   displayUpgradeModal(feature, lexicon) {
-    const { headerText, rechargeText } = this._modalText(feature, lexicon);
+    //
+    const featureData = this._dataForFeature(feature);
+    let { headerText, rechargeText, iconUrl } = lexicon;
+
+    if (!featureData.quota) {
+      headerText = localized(`Uhoh - that's a pro feature!`);
+    } else {
+      headerText = headerText || localized("You've reached your quota");
+
+      let time = featureData.period === 'monthly' ? localized('month') : localized('week');
+      rechargeText = rechargeText.replace('%1$@', featureData.quota).replace('%2$@', time);
+    }
 
     Actions.openModal({
       height: 575,
@@ -78,7 +90,7 @@ class FeatureUsageStore extends MailspringStore {
         <FeatureUsedUpModal
           modalClass={feature}
           headerText={headerText}
-          iconUrl={lexicon.iconUrl}
+          iconUrl={iconUrl}
           rechargeText={rechargeText}
         />
       ),
@@ -127,35 +139,6 @@ class FeatureUsageStore extends MailspringStore {
     }
     this._waitForModalClose = [];
   };
-
-  _modalText(feature, lexicon = {}) {
-    const featureData = this._dataForFeature(feature);
-
-    let headerText = '';
-    let rechargeText = '';
-    if (!featureData.quota) {
-      headerText = `Uhoh - that's a pro feature!`;
-      rechargeText = `Upgrade to Mailspring Pro to ${lexicon.usagePhrase}.`;
-    } else {
-      headerText = lexicon.usedUpHeader || "You've reached your quota";
-      let time = 'later';
-      if (featureData.period === 'hourly') {
-        time = 'an hour';
-      } else if (featureData.period === 'daily') {
-        time = 'a day';
-      } else if (featureData.period === 'weekly') {
-        time = 'a week';
-      } else if (featureData.period === 'monthly') {
-        time = 'a month';
-      } else if (featureData.period === 'yearly') {
-        time = 'a year';
-      }
-      rechargeText = `You can ${lexicon.usagePhrase} ${
-        featureData.quota
-      } emails ${time} with Mailspring Basic. Upgrade to Pro today!`;
-    }
-    return { headerText, rechargeText };
-  }
 
   _dataForFeature(feature) {
     const identity = IdentityStore.identity();

@@ -5,6 +5,7 @@ import Attributes from '../attributes';
 import Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
 import AccountStore from '../stores/account-store';
+import { localized } from '../../intl';
 
 let FocusedPerspectiveStore = null; // Circular Dependency
 
@@ -405,7 +406,7 @@ export default class Contact extends Model {
         return `You (${account.label})`;
       }
     }
-    return 'You';
+    return localized('You');
   }
 
   // Returns a {String} display name.

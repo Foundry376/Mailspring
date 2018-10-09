@@ -9,6 +9,7 @@ import DraftStore from './draft-store';
 import Actions from '../actions';
 import File from '../models/file';
 import Utils from '../models/utils';
+import { localized } from '../../intl';
 
 Promise.promisifyAll(fs);
 
@@ -251,8 +252,8 @@ class AttachmentStore extends MailspringStore {
     const defaultPath = this._defaultSaveDir();
     const options = {
       defaultPath,
-      title: 'Save Into...',
-      buttonLabel: 'Download All',
+      title: localized('Save Into...'),
+      buttonLabel: localized('Download All'),
       properties: ['openDirectory', 'createDirectory'],
     };
 
@@ -328,13 +329,17 @@ class AttachmentStore extends MailspringStore {
   }
 
   _presentError({ file, error } = {}) {
-    const name = file ? file.displayName() : 'one or more files';
+    const name = file ? file.displayName() : localized('one or more files');
     const errorString = error ? error.toString() : '';
 
     return remote.dialog.showMessageBox({
       type: 'warning',
-      message: 'Download Failed',
-      detail: `Unable to download ${name}. Check your network connection and try again. ${errorString}`,
+      message: localized('Download Failed'),
+      detail: localized(
+        `Unable to download %@. Check your network connection and try again. %@`,
+        name,
+        errorString
+      ),
       buttons: ['OK'],
     });
   }
@@ -342,19 +347,22 @@ class AttachmentStore extends MailspringStore {
   _catchFSErrors(error) {
     let message = null;
     if (['EPERM', 'EMFILE', 'EACCES'].includes(error.code)) {
-      message =
-        'Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.';
+      message = localized(
+        'Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.'
+      );
     }
     if (['ENOSPC'].includes(error.code)) {
-      message = 'Mailspring could not save an attachment because you have run out of disk space.';
+      message = localized(
+        'Mailspring could not save an attachment because you have run out of disk space.'
+      );
     }
 
     if (message) {
       remote.dialog.showMessageBox({
         type: 'warning',
-        message: 'Download Failed',
+        message: localized('Download Failed'),
         detail: `${message}\n\n${error.message}`,
-        buttons: ['OK'],
+        buttons: [localized('OK')],
       });
       return Promise.resolve();
     }
@@ -440,9 +448,13 @@ class AttachmentStore extends MailspringStore {
       const filename = path.basename(filePath);
       const stats = await this._getFileStats(filePath);
       if (stats.isDirectory()) {
-        throw new Error(`${filename} is a directory. Try compressing it and attaching it again.`);
+        throw new Error(
+          localized(`%@ is a directory. Try compressing it and attaching it again.`, filename)
+        );
       } else if (stats.size > 25 * 1000000) {
-        throw new Error(`${filename} cannot be attached because it is larger than 25MB.`);
+        throw new Error(
+          localized(`%@ cannot be attached because it is larger than 25MB.`, filename)
+        );
       }
 
       const file = new File({
@@ -459,7 +471,7 @@ class AttachmentStore extends MailspringStore {
 
       await this._applySessionChanges(headerMessageId, files => {
         if (files.reduce((c, f) => c + f.size, 0) >= 25 * 1000000) {
-          throw new Error(`Sorry, you can't attach more than 25MB of attachments`);
+          throw new Error(localized(`Sorry, you can't attach more than 25MB of attachments`));
         }
         return files.concat([file]);
       });

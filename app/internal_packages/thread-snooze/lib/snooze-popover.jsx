@@ -1,32 +1,32 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { DateUtils, Actions } from 'mailspring-exports';
+import { localized, DateUtils, Actions } from 'mailspring-exports';
 import { RetinaImg, DateInput } from 'mailspring-component-kit';
 import SnoozeActions from './snooze-actions';
 
 const { DATE_FORMAT_LONG } = DateUtils;
 
 const SnoozeOptions = [
-  ['Later today', 'Tonight', 'Tomorrow'],
-  ['This weekend', 'Next week', 'Next month'],
+  [localized('Later Today'), localized('Tonight'), localized('Tomorrow')],
+  [localized('This Weekend'), localized('Next Week'), localized('Next Month')],
 ];
 
 const SnoozeDatesFactory = {
-  'Later today': DateUtils.laterToday,
-  Tonight: DateUtils.tonight,
-  Tomorrow: DateUtils.tomorrow,
-  'This weekend': DateUtils.thisWeekend,
-  'Next week': DateUtils.nextWeek,
-  'Next month': DateUtils.nextMonth,
+  [localized('Later Today')]: DateUtils.laterToday,
+  [localized('Tonight')]: DateUtils.tonight,
+  [localized('Tomorrow')]: DateUtils.tomorrow,
+  [localized('This Weekend')]: DateUtils.thisWeekend,
+  [localized('Next Week')]: DateUtils.nextWeek,
+  [localized('Next Month')]: DateUtils.nextMonth,
 };
 
 const SnoozeIconNames = {
-  'Later today': 'later',
-  Tonight: 'tonight',
-  Tomorrow: 'tomorrow',
-  'This weekend': 'weekend',
-  'Next week': 'week',
-  'Next month': 'month',
+  [localized('Later Today')]: 'later',
+  [localized('Tonight')]: 'tonight',
+  [localized('Tomorrow')]: 'tomorrow',
+  [localized('This Weekend')]: 'weekend',
+  [localized('Next Week')]: 'week',
+  [localized('Next Month')]: 'month',
 };
 
 class SnoozePopover extends Component {
@@ -66,7 +66,7 @@ class SnoozePopover extends Component {
     if (date) {
       this.onSnooze(date, 'Custom');
     } else {
-      AppEnv.showErrorDialog(`Sorry, we can't parse ${inputValue} as a valid date.`);
+      AppEnv.showErrorDialog(localized(`Sorry, we can't parse %@ as a valid date.`, inputValue));
     }
   };
 

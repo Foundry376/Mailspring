@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const classNames = require('classnames');
 const {
+  localized,
   React,
   PropTypes,
   Actions,
@@ -92,11 +93,11 @@ class MailImportantIcon extends React.Component {
     });
 
     if (!this.state.category) {
-      title = 'No important folder / label';
+      title = localized('No important folder / label');
     } else if (this.state.isImportant) {
-      title = 'Mark as unimportant';
+      title = localized('Mark as Not Important');
     } else {
-      title = 'Mark as important';
+      title = localized('Mark as Important');
     }
 
     return <div className={classes} title={title} onClick={this._onToggleImportant} />;

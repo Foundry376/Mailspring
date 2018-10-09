@@ -1,4 +1,4 @@
-import { React, PropTypes, DateUtils } from 'mailspring-exports';
+import { localized, React, PropTypes, DateUtils } from 'mailspring-exports';
 import { Flexbox } from 'mailspring-component-kit';
 import { pluckByEmail } from '../../activity/lib/activity-event-store';
 
@@ -23,7 +23,9 @@ class LinkTrackingMessagePopover extends React.Component {
       date.setUTCSeconds(click.timestamp);
       return (
         <Flexbox key={`${click.timestamp}`} className="click-action">
-          <div className="recipient">{recipient ? recipient.displayName() : 'Someone'}</div>
+          <div className="recipient">
+            {recipient ? recipient.displayName() : localized('Someone')}
+          </div>
           <div className="spacer" />
           <div className="timestamp">{DateUtils.shortTimeString(date)}</div>
         </Flexbox>
@@ -34,7 +36,7 @@ class LinkTrackingMessagePopover extends React.Component {
   render() {
     return (
       <div className="link-tracking-message-popover" tabIndex="-1">
-        <div className="link-tracking-header">Clicked by:</div>
+        <div className="link-tracking-header">{localized('Clicked by:')}</div>
         <div className="click-history-container">{this.renderClickActions()}</div>
       </div>
     );

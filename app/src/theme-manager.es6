@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron';
 import { Emitter } from 'event-kit';
 import path from 'path';
 import fs from 'fs-plus';
-
+import { localized } from './intl';
 import LessCompileCache from './less-compile-cache';
 
 const CONFIG_THEME_KEY = 'core.theme';
@@ -153,7 +153,7 @@ export default class ThemeManager {
   requireStylesheet(stylesheetPath) {
     const sourcePath = this.resolveStylesheetPath(stylesheetPath);
     if (!sourcePath) {
-      throw new Error(`Could not find a file at path '${stylesheetPath}'`);
+      throw new Error(localized(`Could not find a file at path '%@'`, stylesheetPath));
     }
     const content = this.cssContentsOfStylesheet(sourcePath);
     this.styleSheetDisposablesBySourcePath[sourcePath] = AppEnv.styles.addStyleSheet(content, {
@@ -182,7 +182,9 @@ export default class ThemeManager {
     } else if (ext === '.css') {
       return fs.readFileSync(stylesheetPath, 'utf8');
     } else {
-      throw new Error(`Mailspring does not support stylesheets with the extension: ${ext}`);
+      throw new Error(
+        localized(`Mailspring does not support stylesheets with the extension: %@`, ext)
+      );
     }
   }
 

@@ -1,5 +1,6 @@
 import { ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
 import {
+  localized,
   Actions,
   React,
   Folder,
@@ -39,14 +40,14 @@ class ThreadListEmptyFolderBar extends React.Component {
     if (!role || count === 0) {
       return false;
     }
-    const term = role === 'trash' ? 'deleted' : role;
+    const term = role === 'trash' ? localized('Deleted').toLocaleLowerCase() : role;
 
     return (
       <div className="thread-list-empty-folder-bar">
         <div className="notice">
-          {`Showing ${(count / 1).toLocaleString()}
-          ${count > 1 ? 'threads' : 'thread'}
-          with ${term} messages`}
+          {count > 1
+            ? localized(`Showing %@ threads with %@ messages`, (count / 1).toLocaleString(), term)
+            : localized(`Showing 1 thread with %@ messages`, term)}
         </div>
         {busy ? (
           <div className="btn">
@@ -57,7 +58,9 @@ class ThreadListEmptyFolderBar extends React.Component {
             />
           </div>
         ) : (
-          <div className="btn" onClick={this._onClick}>{`Empty ${role} now`}</div>
+          <div className="btn" onClick={this._onClick}>
+            {localized(`Empty %@ now`, role)}
+          </div>
         )}
       </div>
     );

@@ -1,4 +1,4 @@
-import { OnlineStatusStore, React, PropTypes, Actions } from 'mailspring-exports';
+import { localized, OnlineStatusStore, React, PropTypes, Actions } from 'mailspring-exports';
 import { Notification, ListensToFluxStore } from 'mailspring-component-kit';
 
 function OfflineNotification({ isOnline, retryingInSeconds }) {
@@ -6,20 +6,22 @@ function OfflineNotification({ isOnline, retryingInSeconds }) {
     return false;
   }
   const subtitle = retryingInSeconds
-    ? `Retrying in ${retryingInSeconds} second${retryingInSeconds > 1 ? 's' : ''}`
-    : `Retrying now...`;
+    ? retryingInSeconds > 1
+      ? localized(`Retrying in %@ seconds`, retryingInSeconds)
+      : localized(`Retrying in 1 second`)
+    : localized(`Retrying now...`);
 
   return (
     <Notification
       className="offline"
-      title="Mailspring is offline"
+      title={localized('Mailspring is offline')}
       subtitle={subtitle}
       priority="5"
       icon="volstead-offline.png"
       actions={[
         {
           id: 'try_now',
-          label: 'Try now',
+          label: localized('Try now'),
           fn: () => Actions.checkOnlineStatus(),
         },
       ]}

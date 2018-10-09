@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs-plus';
 import { BrowserWindow, dialog, app } from 'electron';
 import { atomicWriteFileSync } from '../fs-utils';
+import { localized } from '../intl';
 
 let _ = require('underscore');
 _ = Object.assign(_, require('../config-utils'));
@@ -51,7 +52,7 @@ export default class ConfigPersistenceManager {
   }
 
   _showLoadErrorDialog(error) {
-    const message = `Failed to load "${path.basename(this.configFilePath)}"`;
+    const message = localized(`Failed to load "%@"`, path.basename(this.configFilePath));
     let detail = error.message;
 
     if (error instanceof SyntaxError) {
@@ -68,7 +69,7 @@ export default class ConfigPersistenceManager {
       type: 'error',
       message,
       detail,
-      buttons: ['Quit', 'Try Again', 'Reset Configuration'],
+      buttons: [localized('Quit'), localized('Try Again'), localized('Reset Configuration')],
     });
 
     switch (clickedIndex) {
@@ -94,7 +95,7 @@ export default class ConfigPersistenceManager {
       this.settings = json['*'];
       this.emitChangeEvent();
     } catch (error) {
-      error.message = `Failed to load config.json: ${error.message}`;
+      error.message = localized(`Failed to load config.json: %@`, error.message);
 
       const action = this._showLoadErrorDialog(error);
       if (action === 'quit') {
@@ -123,11 +124,11 @@ export default class ConfigPersistenceManager {
   _showSaveErrorDialog() {
     const clickedIndex = dialog.showMessageBox({
       type: 'error',
-      message: `Failed to save "${path.basename(this.configFilePath)}"`,
+      message: localized(`Failed to save "%@"`, path.basename(this.configFilePath)),
       detail: `\n\nWe were unable to save the file ${
         this.configFilePath
       }. Make sure you have permissions to access this file, and check that the file is not open or being edited and try again.`,
-      buttons: ['Okay', 'Try again'],
+      buttons: [localized('Okay'), localized('Try Again')],
     });
     return ['ignore', 'retry'][clickedIndex];
   }
@@ -145,7 +146,7 @@ export default class ConfigPersistenceManager {
       this.saveRetries = 0;
     } catch (error) {
       if (this.saveRetries >= RETRY_SAVES) {
-        error.message = `Failed to save config.json: ${error.message}`;
+        error.message = localized(`Failed to save config.json: %@`, error.message);
         const action = this._showSaveErrorDialog();
         this.saveRetries = 0;
 

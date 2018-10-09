@@ -6,6 +6,7 @@ import {
   SyncbackMetadataTask,
   SendActionsStore,
   Actions,
+  localized,
 } from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 
@@ -16,9 +17,10 @@ import { PLUGIN_ID } from './send-later-constants';
 let unlisten = null;
 
 const SendLaterButtonWithTip = HasTutorialTip(SendLaterButton, {
-  title: 'Send on your own schedule',
-  instructions:
-    'Schedule this message to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!',
+  title: localized('Send on your own schedule'),
+  instructions: localized(
+    'Schedule this message to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!'
+  ),
 });
 
 function handleMetadataExpiration(change) {

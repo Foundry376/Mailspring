@@ -1,5 +1,5 @@
 import utf7 from 'utf7';
-import { AccountStore, React, PropTypes } from 'mailspring-exports';
+import { localized, AccountStore, React, PropTypes } from 'mailspring-exports';
 
 export default class SyncActivity extends React.Component {
   static displayName = 'ExpandedSyncActivity';
@@ -15,11 +15,11 @@ export default class SyncActivity extends React.Component {
     if (busy) {
       status = 'busy';
       if (scanProgress < 1) {
-        progressLabel = `Scanning (${Math.round(scanProgress * 100)}%)`;
+        progressLabel = localized(`Scanning`) + ` (${Math.round(scanProgress * 100)}%)`;
       } else if (bodyProgress < 1) {
-        progressLabel = `Caching mail (${Math.round(bodyProgress * 100)}%)`;
+        progressLabel = localized(`Caching mail`) + ` (${Math.round(bodyProgress * 100)}%)`;
       } else {
-        progressLabel = `Scanning...`;
+        progressLabel = localized(`Scanning`) + '...';
       }
     }
 
@@ -60,7 +60,8 @@ export default class SyncActivity extends React.Component {
     if (accountComponents.length === 0) {
       accountComponents = (
         <div>
-          <br />Looking for accounts...
+          <br />
+          {localized('Looking for accounts...')}
         </div>
       );
     }

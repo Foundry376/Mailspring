@@ -1,14 +1,23 @@
-import { React, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
+import {
+  localizedReactFragment,
+  localized,
+  React,
+  ComponentRegistry,
+  WorkspaceStore,
+} from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 
 import ThreadSearchBar from './thread-search-bar';
 
 const ThreadSearchBarWithTip = HasTutorialTip(ThreadSearchBar, {
-  title: 'Search with ease',
+  title: localized('Search with ease'),
   instructions: (
     <span>
-      Combine your search queries with Gmail-style terms like <strong>in: folder</strong> and{' '}
-      <strong>since: "last month"</strong> to find anything in your mailbox.
+      {localizedReactFragment(
+        `Combine your search queries with Gmail-style terms like %@ and %@ to find anything in your mailbox.`,
+        <strong>in: folder</strong>,
+        <strong>since: "last month"</strong>
+      )}
     </span>
   ),
 });

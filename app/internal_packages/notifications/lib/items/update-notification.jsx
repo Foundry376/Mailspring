@@ -1,4 +1,4 @@
-import { React } from 'mailspring-exports';
+import { localized, React } from 'mailspring-exports';
 import { ipcRenderer, remote, shell } from 'electron';
 import { Notification } from 'mailspring-component-kit';
 
@@ -48,15 +48,16 @@ export default class UpdateNotification extends React.Component {
     return (
       <Notification
         priority="4"
-        title={`An update to Mailspring is available ${
+        title={localized(
+          `An update to Mailspring is available %@`,
           version ? `(${version.replace('Mailspring', '').trim()})` : ''
-        }`}
-        subtitle="View changelog"
+        )}
+        subtitle={localized('View changelog')}
         subtitleAction={this._onViewChangelog}
         icon="volstead-upgrade.png"
         actions={[
           {
-            label: updateIsManual ? 'Download Now' : 'Install Update',
+            label: updateIsManual ? localized('Download Now') : localized('Install'),
             fn: this._onUpdate,
           },
         ]}

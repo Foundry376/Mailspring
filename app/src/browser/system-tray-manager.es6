@@ -1,27 +1,28 @@
 import { Tray, Menu, nativeImage } from 'electron';
+import { localized } from '../intl';
 
 function _getMenuTemplate(platform, application) {
   const template = [
     {
-      label: 'New Message',
+      label: localized('New Message'),
       click: () => application.emit('application:new-message'),
     },
     {
-      label: 'Preferences',
+      label: localized('Preferences'),
       click: () => application.emit('application:open-preferences'),
     },
     {
       type: 'separator',
     },
     {
-      label: 'Quit Mailspring',
+      label: localized('Quit Mailspring'),
       click: () => application.emit('application:quit'),
     },
   ];
 
   if (platform !== 'win32') {
     template.unshift({
-      label: 'Open Inbox',
+      label: `${localized('Open')} ${localized('Inbox')}`,
       click: () => application.emit('application:show-main-window'),
     });
   }

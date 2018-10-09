@@ -1,4 +1,4 @@
-import { ComponentRegistry } from 'mailspring-exports';
+import { localized, ComponentRegistry } from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 
 import { ToolbarSnooze, QuickActionSnooze } from './snooze-buttons';
@@ -7,9 +7,10 @@ import SnoozeStore from './snooze-store';
 
 export function activate() {
   const ToolbarSnoozeWithTutorialTip = HasTutorialTip(ToolbarSnooze, {
-    title: 'Handle it later!',
-    instructions:
-      "Snooze this email and it'll return to your inbox later. Click here or swipe across the thread in your inbox to snooze.",
+    title: localized('Handle it later!'),
+    instructions: localized(
+      "Snooze this email and it'll return to your inbox later. Click here or swipe across the thread in your inbox to snooze."
+    ),
   });
 
   SnoozeStore.activate();

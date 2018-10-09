@@ -1,5 +1,5 @@
 import { RetinaImg } from 'mailspring-component-kit';
-import { React, PropTypes, Actions } from 'mailspring-exports';
+import { localized, React, PropTypes, Actions } from 'mailspring-exports';
 
 class DraftDeleteButton extends React.Component {
   static displayName = 'DraftDeleteButton';
@@ -14,7 +14,7 @@ class DraftDeleteButton extends React.Component {
       <button
         style={{ order: -100 }}
         className="btn btn-toolbar"
-        title="Delete"
+        title={localized('Delete')}
         onClick={this._onDestroySelected}
       >
         <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />

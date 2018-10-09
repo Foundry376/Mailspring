@@ -12,6 +12,7 @@ const {
   Label,
   ExtensionRegistry,
   RegExpUtils,
+  localized,
 } = require('mailspring-exports');
 
 const SidebarItem = require('./sidebar-item');
@@ -83,10 +84,10 @@ class SidebarSection {
   static standardSectionForAccounts(accounts) {
     let children;
     if (!accounts || accounts.length === 0) {
-      return this.empty('All Accounts');
+      return this.empty(localized('All Accounts'));
     }
     if (CategoryStore.categories().length === 0) {
-      return this.empty('All Accounts');
+      return this.empty(localized('All Accounts'));
     }
     if (accounts.length === 1) {
       return this.standardSectionForAccount(accounts[0]);
@@ -168,7 +169,7 @@ class SidebarSection {
       });
 
     return {
-      title: 'All Accounts',
+      title: localized('All Accounts'),
       items,
     };
   }
@@ -220,12 +221,12 @@ class SidebarSection {
 
     if (inbox && inbox.constructor === Label) {
       if (title == null) {
-        title = 'Labels';
+        title = localized('Labels');
       }
       iconName = 'tag.png';
     } else {
       if (title == null) {
-        title = 'Folders';
+        title = localized('Folders');
       }
       iconName = 'folder.png';
     }

@@ -1,4 +1,4 @@
-const { Actions, React, PropTypes } = require('mailspring-exports');
+const { localized, Actions, React, PropTypes } = require('mailspring-exports');
 const { RetinaImg } = require('mailspring-component-kit');
 const AccountCommands = require('../account-commands');
 
@@ -16,8 +16,8 @@ class AccountSwitcher extends React.Component {
     });
     template = template.concat([
       { type: 'separator' },
-      { label: 'Add Account...', click: this._onAddAccount },
-      { label: 'Manage Accounts...', click: this._onManageAccounts },
+      { label: `${localized('Add Account')}...`, click: this._onAddAccount },
+      { label: `${localized('Manage Accounts')}...`, click: this._onManageAccounts },
     ]);
     return template;
   };

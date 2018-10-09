@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { RetinaImg, Flexbox } from 'mailspring-component-kit';
-import { MailspringAPIRequest } from 'mailspring-exports';
+import { localized, MailspringAPIRequest } from 'mailspring-exports';
 
 export default class NewsletterSignup extends React.Component {
   static displayName = 'NewsletterSignup';
@@ -134,7 +134,7 @@ export default class NewsletterSignup extends React.Component {
       <Flexbox direction="row" height="auto" style={{ textAlign: 'left' }}>
         <div style={{ minWidth: 15 }}>{this._renderControl()}</div>
         <label htmlFor="subscribe-check" style={{ paddingLeft: 4, flex: 1 }}>
-          Notify me about new features and plugins via this email address.
+          {localized('Notify me about new features and plugins via this email address.')}
         </label>
       </Flexbox>
     );

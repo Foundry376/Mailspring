@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import { localized } from 'mailspring-exports';
 
 export class Comparator {
   constructor(name, fn) {
@@ -24,37 +25,37 @@ const Types = {
 
 export const Comparators = {
   String: {
-    contains: new Comparator('contains', ({ actual, desired }) => {
+    contains: new Comparator(localized('contains'), ({ actual, desired }) => {
       if (!actual || !desired) {
         return false;
       }
       return actual.toLowerCase().includes(desired.toLowerCase());
     }),
 
-    doesNotContain: new Comparator('does not contain', ({ actual, desired }) => {
+    doesNotContain: new Comparator(localized('does not contain'), ({ actual, desired }) => {
       if (!actual || !desired) {
         return false;
       }
       return !actual.toLowerCase().includes(desired.toLowerCase());
     }),
 
-    beginsWith: new Comparator('begins with', ({ actual, desired }) => {
+    beginsWith: new Comparator(localized('begins with'), ({ actual, desired }) => {
       if (!actual || !desired) {
         return false;
       }
       return actual.toLowerCase().startsWith(desired.toLowerCase());
     }),
 
-    endsWith: new Comparator('ends with', ({ actual, desired }) => {
+    endsWith: new Comparator(localized('ends with'), ({ actual, desired }) => {
       if (!actual || !desired) {
         return false;
       }
       return actual.toLowerCase().endsWith(desired.toLowerCase());
     }),
 
-    equals: new Comparator('equals', ({ actual, desired }) => actual === desired),
+    equals: new Comparator(localized('equals'), ({ actual, desired }) => actual === desired),
 
-    matchesExpression: new Comparator('matches expression', ({ actual, desired }) => {
+    matchesExpression: new Comparator(localized('matches expression'), ({ actual, desired }) => {
       if (!actual || !desired) {
         return false;
       }

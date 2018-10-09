@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
-import { Actions, DatabaseStore, Message } from 'mailspring-exports';
+import { localized, Actions, DatabaseStore, Message } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import SendRemindersPopover from './send-reminders-popover';
 import { updateReminderMetadata, reminderDateFor } from './send-reminders-utils';
@@ -62,7 +62,7 @@ export default class SendRemindersPopoverButton extends Component {
   render() {
     const { className, thread } = this.props;
     const reminderDate = reminderDateFor(thread);
-    const title = reminderDate ? 'Edit reminder' : 'Set reminder';
+    const title = reminderDate ? localized('Edit Reminder') : localized('Set Reminder');
     return (
       <button
         title={title}

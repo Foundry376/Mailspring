@@ -7,6 +7,7 @@ import Message from '../models/message';
 import SoundRegistry from '../../registries/sound-registry';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import { LocalizedErrorStrings } from '../../mailsync-process';
+import { localized } from '../../intl';
 
 function applyExtensionTransforms(draft, recipient) {
   const extensions = ComposerExtensionRegistry.extensions();
@@ -83,7 +84,7 @@ export default class SendDraftTask extends Task {
   }
 
   label() {
-    return this.silent ? null : 'Sending message';
+    return this.silent ? null : localized('Sending message');
   }
 
   willBeQueued() {
@@ -97,7 +98,9 @@ export default class SendDraftTask extends Task {
     }
     if (this.draft.accountId !== account.id) {
       throw new Error(
-        "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again."
+        localized(
+          "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again."
+        )
       );
     }
   }
@@ -127,29 +130,40 @@ export default class SendDraftTask extends Task {
     let errorDetail = null;
 
     if (key === 'no-sent-folder') {
-      errorMessage =
-        'Your `Sent Mail` folder could not be automatically detected. Visit Preferences > Folders to choose a Sent folder and then try again.';
-      errorDetail =
-        'In order to send mail through Mailspring, your email account must have a Sent Mail folder. You can specify a Sent folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.';
+      errorMessage = localized(
+        'Your `Sent Mail` folder could not be automatically detected. Visit Preferences > Folders to choose a Sent folder and then try again.'
+      );
+      errorDetail = localized(
+        'In order to send mail through Mailspring, your email account must have a Sent Mail folder. You can specify a Sent folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.'
+      );
     } else if (key === 'no-trash-folder') {
-      errorMessage =
-        'Your `Trash` folder could not be automatically detected. Visit Preferences > Folders to choose a Trash folder and then try again.';
-      errorDetail =
-        'In order to send mail through Mailspring, your email account must have a Trash folder. You can specify a Trash folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.';
+      errorMessage = localized(
+        'Your `Trash` folder could not be automatically detected. Visit Preferences > Folders to choose a Trash folder and then try again.'
+      );
+      errorDetail = localized(
+        'In order to send mail through Mailspring, your email account must have a Trash folder. You can specify a Trash folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.'
+      );
     } else if (key === 'send-partially-failed') {
       const [smtpError, emails] = debuginfo.split(':::');
-      errorMessage =
-        "We were unable to deliver this message to some recipients. Click 'See Details' for more information.";
-      errorDetail = `We encountered an SMTP Gateway error that prevented this message from being delivered to all recipients. The message was only sent successfully to these recipients:\n${emails}\n\nError: ${
+      errorMessage = localized(
+        "We were unable to deliver this message to some recipients. Click 'See Details' for more information."
+      );
+      errorDetail = localized(
+        `We encountered an SMTP Gateway error that prevented this message from being delivered to all recipients. The message was only sent successfully to these recipients:\n%@\n\nError: %@`,
+        emails,
         LocalizedErrorStrings[smtpError]
-      }`;
+      );
     } else if (key === 'send-failed') {
-      errorMessage = `Sorry, Mailspring was unable to deliver this message: ${
+      errorMessage = localized(
+        `Sorry, Mailspring was unable to deliver this message: %@`,
         LocalizedErrorStrings[debuginfo]
-      }`;
+      );
     } else {
-      errorMessage = 'We were unable to deliver this message.';
-      errorDetail = `An unknown error occurred: ${JSON.stringify({ key, debuginfo })}`;
+      errorMessage = localized('We were unable to deliver this message.');
+      errorDetail = `${localized(`An unknown error has occurred`)}: ${JSON.stringify({
+        key,
+        debuginfo,
+      })}`;
     }
 
     Actions.draftDeliveryFailed({
