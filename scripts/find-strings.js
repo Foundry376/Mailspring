@@ -44,9 +44,13 @@ files.forEach(file => {
   while ((match = start.exec(js))) {
     const paren = match[1];
     const startIndex = match.index + match[0].length;
-    const end = new RegExp(`[^${paren}]${paren}`);
+    const end = new RegExp(`[^\\${paren}]${paren}`);
     const endIndex = end.exec(js.substr(startIndex)).index + startIndex + 1;
-    const base = js.substr(startIndex, endIndex - startIndex);
+    let base = js.substr(startIndex, endIndex - startIndex);
+
+    // Replace "\n" in the string with an actual \n, simulating what JS would do
+    // when evaluating it in quotes.
+    base = base.replace(/\\n/g, '\n').replace(/\\r/g, '\r');
 
     found += 1;
     sourceTerms[base] = base;
