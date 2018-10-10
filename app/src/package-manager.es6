@@ -168,7 +168,7 @@ export default class PackageManager {
       );
     }
 
-    if (!json.engines.mailspring) {
+    if (!json.engines || !json.engines.mailspring) {
       return callback(
         new Error(
           localized(
