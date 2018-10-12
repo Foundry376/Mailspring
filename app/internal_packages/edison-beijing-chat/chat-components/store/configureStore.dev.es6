@@ -33,11 +33,13 @@ const configureStore = () => {
   middleware.push(createMousetrapMiddleware(Mousetrap, shortcutActions));
 
   // Logging Middleware
-  const logger = createLogger({
-    level: 'info',
-    collapsed: true
-  });
-  middleware.push(logger);
+  // will show too many messages about redex actions on  develop tools console
+  // so comment below out
+  // const logger = createLogger({
+  //   level: 'info',
+  //   collapsed: true
+  // });
+  // middleware.push(logger);
 
   // Router Middleware
   const router = routerMiddleware(history);

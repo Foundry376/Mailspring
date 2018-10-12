@@ -4,11 +4,11 @@ import HomePage from '../components/home/HomePage';
 import { submitAuth } from '../actions/auth';
 
 const actionCreators = {
-  submitAuth
+  submitAuth,
 };
 
 const mapStateToProps = state => ({
-  isAuthenticating: state.auth.isAuthenticating
+  isAuthenticating: state.auth.isAuthenticating,
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators(actionCreators, dispatch);

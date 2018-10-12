@@ -13,7 +13,8 @@ export default class NewPanel extends PureComponent {
     onPrivateConversationCompleted: PropTypes.func,
     contacts: PropTypes.arrayOf(PropTypes.shape({
       jid: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
+      // Warning: Failed prop type
+      // name: PropTypes.string.isRequired,
     })).isRequired,
   }
 
@@ -69,7 +70,8 @@ export default class NewPanel extends PureComponent {
 
     const sanitizedFilter = filterString.trim().toLowerCase();
     const visibleContacts = contacts.filter(({ name }) =>
-      name.trim().toLowerCase().indexOf(sanitizedFilter) > -1
+      // TypeError: Cannot read property 'trim' of undefined
+      name && (name.trim().toLowerCase().indexOf(sanitizedFilter) > -1)
     );
 
     return (

@@ -14,6 +14,6 @@ export default {
     },
   },
   required: [
-    'name',
-  ]
+    //'name', // will cause a Rx Error does not match schema, while name field is null.
+  ],
 };
