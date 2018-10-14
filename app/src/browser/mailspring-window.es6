@@ -76,7 +76,8 @@ module.exports = class MailspringWindow extends EventEmitter {
     // taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if (process.platform === 'linux') {
       if (!WindowIconPath) {
-        WindowIconPath = path.resolve(__dirname, '..', '..', 'mailspring.png');
+        WindowIconPath = path.resolve('/usr', 'share', 'pixmaps', 'mailspring.png');
+        // Provides icon when running from npm start / development mode.
         if (!fs.existsSync(WindowIconPath)) {
           WindowIconPath = path.resolve(
             __dirname,
