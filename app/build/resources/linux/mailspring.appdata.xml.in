@@ -20,12 +20,6 @@
       Mailspring does not send your email credentials to the cloud.
     </p>
   </description>
-  <categories>
-    <category>Communication</category>
-    <category>ContactManagement</category>
-    <category>Email</category>
-    <category>Productivity</category>
-  </categories>
   <url type="homepage">https://getmailspring.com/</url>
   <url type="bugtracker">https://github.com/Foundry376/Mailspring/issues</url>
   <url type="help">http://support.getmailspring.com/</url>
