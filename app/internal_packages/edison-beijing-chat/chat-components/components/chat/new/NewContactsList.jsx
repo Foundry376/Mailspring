@@ -13,10 +13,14 @@ export default class NewContactsList extends PureComponent {
     contacts: PropTypes.arrayOf(PropTypes.shape({
       jid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      email: PropTypes.string.isRequired,
+      avatar: PropTypes.string
     })),
     selectedContacts: PropTypes.arrayOf(PropTypes.shape({
       jid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      email: PropTypes.string.isRequired,
+      avatar: PropTypes.string
     })),
   }
 
@@ -53,7 +57,8 @@ export default class NewContactsList extends PureComponent {
               className={getContactItemClasses(contact)}
               onTouchTap={() => onContactClicked(contact)}
             >
-              <ContactAvatar name={contact.name} jid={contact.jid} size={32} />
+              <ContactAvatar jid={contact.jid} name={contact.name}
+                email={contact.email} avatar={contact.avatar} size={32} />
               <span className="contactName">{contact.name}</span>
               {groupMode ?
                 <CheckBox

@@ -113,7 +113,9 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
 
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
-    .filter(({ payload }) => payload.body)
+    .filter(({ payload }) => {
+      return payload.body
+    })
     .map(({ payload }) => receivePrivateMessage(payload));
 
 export const receiveGroupMessageEpic = action$ =>
@@ -124,13 +126,13 @@ export const receiveGroupMessageEpic = action$ =>
 export const convertReceivedPrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE)
     .map(({ payload }) => {
-      const { content, timeServerReceived } = JSON.parse(payload.body);
+      const { content, timeSend } = JSON.parse(payload.body);
       return {
         id: payload.id,
         conversationJid: payload.from.bare,
         sender: payload.from.bare,
         body: content,
-        sentTime: (new Date(timeServerReceived)).getTime(),
+        sentTime: (new Date(timeSend)).getTime(),
         status: MESSAGE_STATUS_RECEIVED,
       };
     })
@@ -139,7 +141,7 @@ export const convertReceivedPrivateMessageEpic = action$ =>
 export const updatePrivateMessageConversationEpic = action$ =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE)
     .map(({ payload }) => {
-      const { content, timeServerReceived } = JSON.parse(payload.body);
+      const { content, timeSend } = JSON.parse(payload.body);
       return {
         jid: payload.from.bare,
         name: payload.from.local,
@@ -149,7 +151,7 @@ export const updatePrivateMessageConversationEpic = action$ =>
           payload.from.bare,
           payload.to.bare
         ],
-        lastMessageTime: (new Date(timeServerReceived)).getTime(),
+        lastMessageTime: (new Date(timeSend)).getTime(),
         lastMessageText: content,
         lastMessageSender: payload.from.bare
       };

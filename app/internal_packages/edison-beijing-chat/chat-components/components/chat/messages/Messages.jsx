@@ -142,7 +142,7 @@ export default class Messages extends PureComponent {
                     </div> : null
                   }
                   <div className="messageContent">
-                    <div className="messageBody">{msg.body}</div>
+                    <div className="messageBody">{msg.body.indexOf('{') == 0 ? JSON.parse(msg.body).content : msg.body}</div>
                     <div className="messageMeta">
                       {getStatusWeight(msg.status) >= getStatusWeight(MESSAGE_STATUS_DELIVERED) ?
                         <CheckIcon

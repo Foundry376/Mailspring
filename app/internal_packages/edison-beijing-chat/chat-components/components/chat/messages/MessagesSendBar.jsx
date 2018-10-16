@@ -12,6 +12,7 @@ export default class MessagesSendBar extends PureComponent {
     selectedConversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      email: PropTypes.string,//.isRequired,
       isGroup: PropTypes.bool.isRequired
     }).isRequired,
   }
@@ -49,7 +50,14 @@ export default class MessagesSendBar extends PureComponent {
     const { selectedConversation } = this.props;
     const message = messageBody.trim();
     if (selectedConversation && message) {
-      this.props.onMessageSubmitted(selectedConversation, message);
+      let body = {
+        type: 1,
+        timeSend: new Date().getTime(),
+        content: message,
+        email: selectedConversation.email,
+        name: selectedConversation.name
+      };
+      this.props.onMessageSubmitted(selectedConversation, JSON.stringify(body));//message);
       this.setState({ messageBody: '' });
     }
   }

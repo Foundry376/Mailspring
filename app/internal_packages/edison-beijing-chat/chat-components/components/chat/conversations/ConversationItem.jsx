@@ -10,6 +10,8 @@ export default class ConversationItem extends PureComponent {
     conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      email: PropTypes.string,//.isRequired,
+      avatar: PropTypes.string,
       lastMessageText: PropTypes.string.isRequired,
       lastMessageTime: PropTypes.number.isRequired,
     }).isRequired,

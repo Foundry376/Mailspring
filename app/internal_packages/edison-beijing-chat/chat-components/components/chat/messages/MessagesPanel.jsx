@@ -31,6 +31,8 @@ export default class MessagesPanel extends PureComponent {
       isGroup: PropTypes.bool.isRequired,
       jid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      email: PropTypes.string,//.isRequired,
+      avatar: PropTypes.string,
       occupants: PropTypes.arrayOf(PropTypes.string).isRequired,
     }),
   }

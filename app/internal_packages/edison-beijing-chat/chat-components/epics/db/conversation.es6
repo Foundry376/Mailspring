@@ -63,9 +63,9 @@ export const retrieveConversationsEpic = action$ =>
             .takeUntil(action$.ofType(RETRIEVE_ALL_CONVERSATIONS))
             .map(conversations =>
               conversations.filter(conversation =>
-                  conversation.lastMessageText && conversation.lastMessageSender &&
-                    conversation.lastMessageTime
-                )
+                conversation.lastMessageText && conversation.lastMessageSender &&
+                conversation.lastMessageTime
+              )
                 .sort((a, b) => b.lastMessageTime - a.lastMessageTime)
             )
             .map(conversations => updateConversations(conversations))
@@ -93,6 +93,8 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
           return updateSelectedConversation({
             jid: contact.jid,
             name: contact.name,
+            email: contact.email,
+            avatar: contact.avatar,
             isGroup: false,
             unreadMessages: 0,
             occupants: [
