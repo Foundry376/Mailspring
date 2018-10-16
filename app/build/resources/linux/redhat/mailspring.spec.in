@@ -27,6 +27,9 @@ chmod 755 %{buildroot}/usr/bin/mailspring
 mkdir -p %{buildroot}/usr/share/applications/
 mv mailspring.desktop %{buildroot}/usr/share/applications/
 
+mkdir -p %{buildroot}/usr/share/appdata/
+mv mailspring.appdata.xml %{buildroot}/usr/share/appdata/
+
 for s in 16 32 64 128 256 512; do
     mkdir -p %{buildroot}/usr/share/icons/hicolor/${s}x${s}/apps
     cp -p <%= linuxAssetsDir %>/icons/${s}.png %{buildroot}/usr/share/icons/hicolor/${s}x${s}/apps/mailspring.png
@@ -36,6 +39,7 @@ done
 /usr/bin/mailspring
 /usr/share/mailspring
 /usr/share/applications/mailspring.desktop
+/usr/share/appdata/mailspring.appdata.xml
 /usr/share/icons/hicolor/16x16/apps/mailspring.png
 /usr/share/icons/hicolor/32x32/apps/mailspring.png
 /usr/share/icons/hicolor/64x64/apps/mailspring.png
