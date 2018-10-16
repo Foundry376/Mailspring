@@ -49,6 +49,7 @@ const lazyLoadAndRegisterTask = (klassName, path) => {
 
 lazyLoadWithGetter(`localized`, () => require('../intl').localized);
 lazyLoadWithGetter(`localizedReactFragment`, () => require('../intl').localizedReactFragment);
+lazyLoadWithGetter(`isRTL`, () => require('../intl').isRTL);
 
 // Actions
 lazyLoad(`Actions`, 'flux/actions');

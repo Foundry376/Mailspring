@@ -14,7 +14,11 @@ class ThreadListParticipants extends React.Component {
 
   render() {
     const items = this.getTokens();
-    return <div className="participants">{this.renderSpans(items)}</div>;
+    return (
+      <div className="participants" dir="auto">
+        {this.renderSpans(items)}
+      </div>
+    );
   }
 
   renderSpans(items) {

@@ -199,6 +199,8 @@
   .metric-graph {
     position: relative;
     height: 120px;
+    transform: scaleX(1) /*rtl: scaleX(-1) */;
+
     .gridline {
       width: 1;
       height: 100%;
@@ -207,10 +209,11 @@
     }
     .layer.text-overlay {
       background: linear-gradient(
-        to right,
-        fadeout(@background-primary, 0%) 15%,
-        fadeout(@background-primary, 100%) 100%
-      );
+          to right,
+          fadeout(@background-primary, 0%) 15%,
+          fadeout(@background-primary, 100%) 100%
+        )
+        /*rtl:ignore */;
       font-size: 60px;
       display: flex;
       align-items: flex-end;

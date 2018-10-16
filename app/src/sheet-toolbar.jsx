@@ -4,7 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { remote } from 'electron';
-import { localized, Actions, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
+import { localized, isRTL, Actions, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 
 import Flexbox from './components/flexbox';
 import RetinaImg from './components/retina-img';
@@ -89,7 +89,11 @@ class ToolbarBack extends React.Component {
     }
     return (
       <div className="item-back" onClick={this._onClick} title={localized(`Return to %@`, title)}>
-        <RetinaImg name="sheet-back.png" mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg
+          name="sheet-back.png"
+          mode={RetinaImg.Mode.ContentIsMask}
+          style={isRTL ? { transform: `scaleX(-1)` } : {}}
+        />
         <div className="item-back-title">{title}</div>
       </div>
     );
@@ -180,12 +184,19 @@ class ToolbarMenuControl extends React.Component {
   }
 }
 
+// macOS and other platforms do not flip the corner that the window controls
+// appear in when displaying the UI RTL, but Chrome flips our whole UI. We need
+// to intentionally undo the flip.
 ComponentRegistry.register(ToolbarWindowControls, {
-  location: WorkspaceStore.Sheet.Global.Toolbar.Left,
+  location: isRTL
+    ? WorkspaceStore.Sheet.Global.Toolbar.Right
+    : WorkspaceStore.Sheet.Global.Toolbar.Left,
 });
 
 ComponentRegistry.register(ToolbarMenuControl, {
-  location: WorkspaceStore.Sheet.Global.Toolbar.Right,
+  location: isRTL
+    ? WorkspaceStore.Sheet.Global.Toolbar.Left
+    : WorkspaceStore.Sheet.Global.Toolbar.Right,
 });
 
 export default class Toolbar extends React.Component {

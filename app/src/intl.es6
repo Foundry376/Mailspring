@@ -2,16 +2,41 @@ const fs = require('fs');
 const path = require('path');
 const React = process.type === 'renderer' ? require('react') : null;
 
+const RTL_LANGS = [
+  'ae' /* Avestan */,
+  'ar' /* 'العربية', Arabic */,
+  'arc' /* Aramaic */,
+  'bcc' /* 'بلوچی مکرانی', Southern Balochi */,
+  'bqi' /* 'بختياري', Bakthiari */,
+  'ckb' /* 'Soranî / کوردی', Sorani */,
+  'dv' /* Dhivehi */,
+  'fa' /* 'فارسی', Persian */,
+  'glk' /* 'گیلکی', Gilaki */,
+  'he' /* 'עברית', Hebrew */,
+  'ku' /* 'Kurdî / كوردی', Kurdish */,
+  'mzn' /* 'مازِرونی', Mazanderani */,
+  'nqo' /* N'Ko */,
+  'pnb' /* 'پنجابی', Western Punjabi */,
+  'ps' /* 'پښتو', Pashto, */,
+  'sd' /* 'سنڌي', Sindhi */,
+  'ug' /* 'Uyghurche / ئۇيغۇرچە', Uyghur */,
+  'ur' /* 'اردو', Urdu */,
+  'yi' /* 'ייִדיש', Yiddish */,
+];
+
 const locale =
   process.type === 'renderer' ? window.navigator.language : require('electron').app.getLocale();
 const lang = locale.split('-')[0] || 'en';
 const langsDir = path.join(__dirname, '..', 'lang');
+
+export let isRTL = false;
 
 let localizations = {};
 
 // Load localizations for the base language (eg: `zh`)
 if (fs.existsSync(path.join(langsDir, `${lang}.json`))) {
   localizations = require(path.join(langsDir, `${lang}.json`));
+  isRTL = RTL_LANGS.includes(lang);
 }
 
 // Load localizations for the full locale if present (eg: `zh-CN`)

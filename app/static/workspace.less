@@ -61,8 +61,8 @@ mailspring-workspace {
 
 .toolbar-window-controls {
   margin-top: 9px;
-  margin-left: @spacing-half;
-  order: -1000;
+  margin-left: @spacing-half /*rtl:ignore */;
+  order: -1000 /*rtl: 1000*/;
   min-width: 72px;
   width: 72px;
   flex-grow: 0;
@@ -76,12 +76,11 @@ mailspring-workspace {
 
   button {
     -webkit-app-region: no-drag;
-    display: inline-block;
     padding: 0;
     width: 12px;
     height: 12px;
     margin: 4px;
-    float: left;
+    float: left /*rtl:left */;
     background-color: transparent;
     background-repeat: no-repeat;
     background-position: 0 0;
@@ -395,7 +394,7 @@ body.platform-linux,
 body.platform-win32.window-type-default {
   .toolbar-menu-control {
     display: inherit;
-    order: 10000;
+    order: 10000 /*rtl: -10000 */;
     .btn-toolbar {
       margin-left: 0;
       padding: 0 17px;

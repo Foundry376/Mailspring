@@ -5,7 +5,7 @@ import path from 'path';
 import { ipcRenderer, remote } from 'electron';
 import { Emitter } from 'event-kit';
 import { mapSourcePosition } from 'source-map-support';
-import { localized } from './intl';
+import { localized, isRTL } from './intl';
 
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
@@ -727,6 +727,9 @@ export default class AppEnvConstructor {
     this.item.setAttribute('id', 'sheet-container');
     this.item.setAttribute('class', 'sheet-container');
     this.item.setAttribute('tabIndex', '-1');
+    if (isRTL) {
+      this.item.setAttribute('dir', 'rtl');
+    }
 
     const React = require('react');
     const ReactDOM = require('react-dom');

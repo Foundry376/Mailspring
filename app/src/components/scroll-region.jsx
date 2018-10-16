@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const { React, ReactDOM, PropTypes, Utils } = require('mailspring-exports');
+const { React, ReactDOM, PropTypes, Utils, isRTL } = require('mailspring-exports');
 const classNames = require('classnames');
 const ScrollbarTicks = require('./scrollbar-ticks').default;
 
@@ -150,7 +150,7 @@ class Scrollbar extends React.Component {
       position: 'absolute',
       top: 0,
       bottom: 0,
-      right: 0,
+      [isRTL ? 'left' : 'right']: 0,
       zIndex: 2,
       visibility:
         this.state.totalHeight !== 0 && this.state.totalHeight === this.state.viewportHeight

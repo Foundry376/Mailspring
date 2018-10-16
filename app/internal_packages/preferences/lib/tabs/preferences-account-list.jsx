@@ -49,9 +49,11 @@ class PreferencesAccountList extends Component {
               mode={RetinaImg.Mode.ContentPreserve}
             />
           </div>
-          <div style={{ flex: 1, marginLeft: 10 }}>
-            <div className="account-name">{label}</div>
-            <div className="account-subtext">
+          <div style={{ flex: 1, marginLeft: 10, marginRight: 10 }}>
+            <div className="account-name" dir="auto">
+              {label}
+            </div>
+            <div className="account-subtext" dir="auto">
               {accountSub} ({account.displayProvider()})
             </div>
           </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
-import { localized } from 'mailspring-exports';
+import { localized, isRTL } from 'mailspring-exports';
 
 export class MetricContainer extends React.Component {
   render() {
@@ -24,7 +24,7 @@ export class MetricStat extends React.Component {
           style={{
             zIndex: 1,
             padding: `15px 5px`,
-            textAlign: 'right',
+            textAlign: isRTL ? 'left' : 'right',
           }}
         >
           <RetinaImg name={`metric-background-${name}.png`} mode={RetinaImg.Mode.ContentIsMask} />

@@ -120,8 +120,12 @@ const c3 = new ListTabular.Column({
     return (
       <span className="details">
         <MailLabelSet thread={thread} />
-        <span className="subject">{subject(thread.subject)}</span>
-        <span className="snippet">{getSnippet(thread)}</span>
+        <span className="subject" dir="auto">
+          {subject(thread.subject)}
+        </span>
+        <span className="snippet" dir="auto">
+          {getSnippet(thread)}
+        </span>
         {attachment}
       </span>
     );
@@ -221,9 +225,13 @@ const cNarrow = new ListTabular.Column({
               matching={{ role: 'ThreadListTimestamp' }}
             />
           </div>
-          <div className="subject">{subject(thread.subject)}</div>
+          <div className="subject" dir="auto">
+            {subject(thread.subject)}
+          </div>
           <div className="snippet-and-labels">
-            <div className="snippet">{getSnippet(thread)}&nbsp;</div>
+            <div className="snippet" dir="auto">
+              {getSnippet(thread)}&nbsp;
+            </div>
             <div style={{ flex: 1, flexShrink: 1 }} />
             <MailLabelSet thread={thread} />
           </div>

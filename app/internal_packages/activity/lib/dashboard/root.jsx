@@ -423,17 +423,13 @@ class RootWithTimespan extends React.Component {
         </div>
         <div className="section hidden-on-web" style={{ display: 'flex', textAlign: 'center' }}>
           <div style={{ display: 'flex', margin: 'auto' }}>
-            <div
-              className="btn"
-              onClick={this._onLearnMore}
-              style={{ marginRight: 10, minWidth: 115 }}
-            >
+            <div className="btn" onClick={this._onLearnMore} style={{ minWidth: 115 }}>
               {localized('Learn More')}
             </div>
             <div
               className="btn"
               onClick={this._onExport}
-              style={{ marginRight: 10, minWidth: 135 }}
+              style={{ marginRight: 10, marginLeft: 10, minWidth: 135 }}
             >
               {localized('Export Raw Data')}
             </div>

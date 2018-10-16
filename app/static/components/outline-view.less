@@ -1,5 +1,5 @@
-@import "ui-variables";
-@import "ui-mixins";
+@import 'ui-variables';
+@import 'ui-mixins';
 
 @count-color: fadeout(@text-color-subtle, 40%);
 
@@ -22,8 +22,8 @@
     color: @text-color-very-subtle;
     font-weight: @font-weight-semi-bold;
     font-size: @font-size-small * 0.9;
-    padding-left:@padding-small-horizontal;
-    padding-top:@padding-small-horizontal;
+    padding-left: @padding-small-horizontal;
+    padding-top: @padding-small-horizontal;
     padding-right: @padding-xs-horizontal;
     letter-spacing: -0.2px;
 
@@ -37,7 +37,9 @@
       margin-left: @padding-small-horizontal;
       margin-right: @padding-small-horizontal;
       cursor: pointer;
-      img {background: @text-color-very-subtle; }
+      img {
+        background: @text-color-very-subtle;
+      }
       display: none;
     }
 
@@ -52,19 +54,22 @@
 
   &:hover {
     .heading {
-      .collapse-button,.add-item-button {
+      .collapse-button,
+      .add-item-button {
         display: inherit;
       }
     }
   }
 
   .item-container {
-    display:flex;
+    display: flex;
     &.dropping {
       background-color: lighten(@source-list-bg, 20%);
       .item {
         color: @source-list-active-color;
-        img.content-mask { background-color: @source-list-active-color; }
+        img.content-mask {
+          background-color: @source-list-active-color;
+        }
       }
     }
   }
@@ -106,7 +111,8 @@
       font-weight: @font-weight-semi-bold;
       color: @count-color;
       margin-left: @padding-small-horizontal * 0.8;
-      box-shadow: 0 0.5px 0 @count-color, 0 -0.5px 0 @count-color, 0.5px 0 0 @count-color, -0.5px 0 0 @count-color;
+      box-shadow: 0 0.5px 0 @count-color, 0 -0.5px 0 @count-color, 0.5px 0 0 @count-color,
+        -0.5px 0 0 @count-color;
     }
     .item-count-box.alt-count {
       color: @source-list-active-bg;
@@ -122,12 +128,16 @@
     &.selected {
       background: @source-list-active-bg;
       color: @source-list-active-color;
-      img.content-mask { background-color: @source-list-active-color; }
+      img.content-mask {
+        background-color: @source-list-active-color;
+      }
     }
     &.dropping {
       background-color: lighten(@source-list-bg, 20%);
       color: @source-list-active-color;
-      img.content-mask { background-color: @source-list-active-color; }
+      img.content-mask {
+        background-color: @source-list-active-color;
+      }
     }
     &.editing {
       align-items: center;
