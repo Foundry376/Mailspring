@@ -56,7 +56,7 @@ export function localized(en, ...subs) {
         translated = translated.replace(`%${idx}$@`, sub);
       });
     } else {
-      translated = translated.replace('%@', () => subs[i++]);
+      translated = translated.replace(/%@/g, () => subs[i++]);
     }
   }
   return translated;

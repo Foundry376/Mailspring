@@ -14,7 +14,7 @@ export default class LessCompileCache {
     ];
 
     this.cache = new LessCache({
-      cacheDir: path.join(configDirPath, 'compile-cache', 'less'),
+      cacheDir: path.join(configDirPath, 'compile-cache', isRTL ? 'less-rtl' : 'less'),
       fallbackDir: path.join(resourcePath, 'less-compile-cache'),
       importPaths: importPaths.concat(this.lessSearchPaths),
       resourcePath: resourcePath,
