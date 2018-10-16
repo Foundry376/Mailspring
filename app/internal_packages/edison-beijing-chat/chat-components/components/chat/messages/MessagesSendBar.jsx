@@ -22,6 +22,7 @@ export default class MessagesSendBar extends PureComponent {
 
   state = {
     messageBody: '',
+    files: [],
   }
 
   fileInput = null;
@@ -41,6 +42,7 @@ export default class MessagesSendBar extends PureComponent {
     const { target: { value } } = event;
     this.setState({
       messageBody: value,
+      files: [],
     });
   }
 
@@ -50,8 +52,20 @@ export default class MessagesSendBar extends PureComponent {
     const message = messageBody.trim();
     if (selectedConversation && message) {
       this.props.onMessageSubmitted(selectedConversation, message);
-      this.setState({ messageBody: '' });
+      this.setState({ messageBody: '', files: []});
     }
+  }
+  onChange = event => {
+    console.log('file input onChange', event.target.files);
+    let state,
+      files = [];
+    // event.target.files is type FileList
+    // it need be converted to Array  to use this.state.files.map(...) in jsx
+    for (let file of event.target.files) {
+      files.push(file);
+    }
+    state = Object.assign({}, this.state, { files });
+    this.setState(state);
   }
 
   render() {
@@ -69,19 +83,27 @@ export default class MessagesSendBar extends PureComponent {
               ref={element => { this.fileInput = element; }}
               type="file"
               multiple
+              onChange={this.onChange}
             />
           </Button>
         </div>
-        <TextArea
-          className="messageTextField"
-          placeholder="Write a message..."
-          rows={1}
-          maxRows={5}
-          value={this.state.messageBody}
-          onChange={this.onMessageBodyChanged.bind(this)}
-          onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
-          ref={element => { this.textarea = element; }}
-        />
+        {!this.state.files.length?
+          <TextArea
+            className="messageTextField"
+            placeholder="Write a message..."
+            rows={1}
+            maxRows={5}
+            value={this.state.messageBody}
+            onChange={this.onMessageBodyChanged.bind(this)}
+            onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
+            ref={element => { this.textarea = element; }}
+          />:
+          <div class="chat-message-filelist">
+            {this.state.files.map((file, index) => {
+              return <div key={index}>{file.path}</div>;
+            })}
+          </div>
+        }
         <div className="sendBarActions">
           <Button onTouchTap={this.sendMessage.bind(this)}>
             <SendIcon color={theme.primaryColor} />
