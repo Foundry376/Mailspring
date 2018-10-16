@@ -1,4 +1,4 @@
-@chatHeight: 800px;
+@chatHeight: 600px;
 .chat-view-container {
   .panel {
     height: @chatHeight;
@@ -34,7 +34,7 @@
     background: white;
   }
   
-  @media screen and (max-width: 1027px) {
+  // @media screen and (max-width: 1027px) {
     .splitPanel {
       display: flex;
       flex-direction: column;
@@ -53,22 +53,22 @@
       top: 0;
       left: 0;
     }
-  }
+  // }
   
-  @media screen and (min-width: 1028px) {
-    .splitPanel {
-      display: flex;
-      flex-direction: row;
-    }
+  // @media screen and (min-width: 1028px) {
+  //   .splitPanel {
+  //     display: flex;
+  //     flex-direction: row;
+  //   }
   
-    .chatPanel {
-      flex-grow: 1;
-    }
+  //   .chatPanel {
+  //     flex-grow: 1;
+  //   }
   
-    .infoPanel {
-      flex-shrink: 0;
-      width: 30%;
-      min-width: 300px;
-    }
-  }  
+  //   .infoPanel {
+  //     flex-shrink: 0;
+  //     width: 30%;
+  //     min-width: 300px;
+  //   }
+  // }  
 }
