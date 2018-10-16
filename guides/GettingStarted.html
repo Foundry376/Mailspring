@@ -1313,7 +1313,7 @@
 <p><img src="../img/screenshot-create-plugin.png" alt=""></p>
 <h3 id="2-create-a-plugin"><a name="2-create-a-plugin" class="plugin-anchor" href="#2-create-a-plugin"><i class="fa fa-link" aria-hidden="true"></i></a>2. Create a plugin</h3>
 <p>First, switch over to Developer Mode. Go to the <code>Developer</code> menu and select <code>Run with debug flags...</code>. Developer Mode turns on better exception logging and enables hot-reloading.</p>
-<p>Next, choose <code>Create a Plugin...</code> from the <code>Developer</code> menu, and name your new plugin. This creates a directory in <code>~/.nylas/dev/packages</code> containing your new plugin.</p>
+<p>Next, choose <code>Create a Plugin...</code> from the <code>Developer</code> menu, and name your new plugin. This creates a directory in <code>~/.nylas/dev/packages</code> containing your new plugin (on MacOS it can be found in <code>~/Library/Application\ Support/Mailspring-dev/dev/packages/</code>).</p>
 <h3 id="3-start-hacking"><a name="3-start-hacking" class="plugin-anchor" href="#3-start-hacking"><i class="fa fa-link" aria-hidden="true"></i></a>3. Start hacking!</h3>
 <p>Open the file <code>&lt;your-package-name&gt;/lib/my-message-sidebar.cjsx</code> in your favorite text editor. Your new plugin is pre-filled with a simple example component for the message sidebar (on the right when you&apos;re viewing an email). It only shows the name of the selected contact, but with a few quick changes we can build something more interesting.</p>
 <p>Scroll down to line 34, the <code>render</code> method. Replace the code here to change what shows up in the sidebar. See your changes happen live when you save!</p>
