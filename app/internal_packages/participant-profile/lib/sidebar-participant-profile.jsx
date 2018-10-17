@@ -9,6 +9,7 @@ import {
   Utils,
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
+import crypto from 'crypto';
 import moment from 'moment-timezone';
 
 import ParticipantProfileDataSource from './participant-profile-data-source';
@@ -56,9 +57,18 @@ class ProfilePictureOrColorBox extends React.Component {
     const hue = Utils.hueForString(contact.email);
     const bgColor = `hsl(${hue}, 50%, 45%)`;
 
+    const hash = crypto
+      .createHash('md5')
+      .update((contact.email || '').toLowerCase().trim())
+      .digest('hex');
+    const gravatarBg = `url("https://www.gravatar.com/avatar/${hash}/?s=88&msw=88&msh=88&d=blank")`;
+
     let content = (
       <div className="default-profile-image" style={{ backgroundColor: bgColor }}>
-        {contact.nameAbbreviation()}
+        <div className="layer" style={{ zIndex: 2, backgroundImage: gravatarBg }} />
+        <div className="layer" style={{ zIndex: 1 }}>
+          {contact.nameAbbreviation()}
+        </div>
       </div>
     );
 
