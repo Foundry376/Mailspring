@@ -9,6 +9,8 @@
   "dependencies": {
     "babel-core": "6.22.0",
     "aws-sdk": "^2.321.0",
+    "crypto-js": "^3.1.9-1",
+    "node-rsa": "^1.0.1",
     "babel-preset-electron": "bengotow/babel-preset-electron#00783dfc438f122997993ae597a41ec315ba121b",
     "babel-preset-react": "6.22.0",
     "babel-regenerator-runtime": "6.5.0",
