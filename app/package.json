@@ -8,6 +8,7 @@
   "main": "./src/browser/main.js",
   "dependencies": {
     "babel-core": "6.22.0",
+    "aws-sdk": "^2.321.0",
     "babel-preset-electron": "bengotow/babel-preset-electron#00783dfc438f122997993ae597a41ec315ba121b",
     "babel-preset-react": "6.22.0",
     "babel-regenerator-runtime": "6.5.0",
