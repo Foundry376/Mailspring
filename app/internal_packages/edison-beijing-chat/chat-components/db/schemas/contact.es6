@@ -12,8 +12,14 @@ export default {
       type: 'string',
       indexed: true,
     },
+    email: {
+      type: 'string'
+    },
+    avatar: {
+      type: 'string'
+    }
   },
   required: [
-    //'name', // will cause a Rx Error does not match schema, while name field is null.
+    'name'// will cause a Rx Error does not match schema, while name field is null.
   ],
 };

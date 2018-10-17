@@ -14,7 +14,9 @@ export default class NewPanel extends PureComponent {
     contacts: PropTypes.arrayOf(PropTypes.shape({
       jid: PropTypes.string.isRequired,
       // Warning: Failed prop type
-      // name: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      email: PropTypes.string,//.isRequired,
+      avatar: PropTypes.string
     })).isRequired,
   }
 

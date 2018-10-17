@@ -26,6 +26,15 @@ export const fetchRosterEpic = action$ =>
 
 export const triggerStoreContactsEpic = action$ =>
   action$.ofType(SUCCESS_FETCH_ROSTER)
-    .filter(({ payload: { items } }) => items && items.length)
+    .filter(({ payload: { items } }) => {
+      if (items && items.length) {
+        items.forEach((item) => {
+          if (!item.name) {
+            item.name = item.oriName;
+          }
+        });
+        return true;
+      } return false;
+    })
     .map(({ payload: { items } }) => storeContacts(items));
 

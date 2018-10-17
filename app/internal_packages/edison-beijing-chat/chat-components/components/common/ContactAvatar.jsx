@@ -40,6 +40,8 @@ const ContactAvatar = ({ name, jid, size = 48 }) => (
 ContactAvatar.propTypes = {
   jid: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
+  email: PropTypes.string,//.isRequired,
+  avatar: PropTypes.string,
   size: PropTypes.number,
 };
 

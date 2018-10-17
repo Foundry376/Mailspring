@@ -22,7 +22,9 @@ export default class ChatPage extends PureComponent {
     contacts: PropTypes.arrayOf(PropTypes.shape({
       jid: PropTypes.string.isRequired,
       // Warning: Failed prop type
-      // name: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      email: PropTypes.string,//.isRequired,
+      avatar: PropTypes.string
     })),
     groupedMessages: PropTypes.arrayOf(
       PropTypes.shape({
@@ -45,6 +47,8 @@ export default class ChatPage extends PureComponent {
       isGroup: PropTypes.bool.isRequired,
       jid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      email: PropTypes.string,//.isRequired,
+      avatar: PropTypes.string,
       occupants: PropTypes.arrayOf(PropTypes.string).isRequired,
     }),
   }
