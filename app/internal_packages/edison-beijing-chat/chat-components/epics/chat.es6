@@ -156,6 +156,20 @@ export const updatePrivateMessageConversationEpic = action$ =>
         lastMessageSender: payload.from.bare
       };
     })
+    .mergeMap(
+      conversation => Observable.fromPromise(getDb())
+        .map(db => ({ db, conversation }))
+    )
+    // get the latest name for display
+    .mergeMap(({ db, conversation }) => {
+      return Observable.fromPromise(db.contacts.findOne(conversation.jid).exec())
+        .map(contact => {
+          if (contact) {
+            conversation.name = contact.name;
+          }
+          return conversation;
+        })
+    })
     .map(conversation => beginStoringConversations([conversation]));
 
 export const beginRetrievingMessagesEpic = action$ =>
