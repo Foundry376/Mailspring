@@ -116,6 +116,20 @@ export const receivePrivateMessageEpic = action$ =>
     .filter(({ payload }) => {
       return payload.body
     })
+    // get the latest name for display
+    .mergeMap(
+      ({ payload }) => Observable.fromPromise(getDb())
+        .map(db => ({ db, payload }))
+    )
+    .mergeMap(({ db, payload }) => {
+      return Observable.fromPromise(db.contacts.findOne(payload.from.bare).exec())
+        .map(contact => {
+          if (contact) {
+            payload.from.local = contact.name;
+          }
+          return { payload };
+        })
+    })
     .map(({ payload }) => receivePrivateMessage(payload));
 
 export const receiveGroupMessageEpic = action$ =>
@@ -155,20 +169,6 @@ export const updatePrivateMessageConversationEpic = action$ =>
         lastMessageText: content,
         lastMessageSender: payload.from.bare
       };
-    })
-    .mergeMap(
-      conversation => Observable.fromPromise(getDb())
-        .map(db => ({ db, conversation }))
-    )
-    // get the latest name for display
-    .mergeMap(({ db, conversation }) => {
-      return Observable.fromPromise(db.contacts.findOne(conversation.jid).exec())
-        .map(contact => {
-          if (contact) {
-            conversation.name = contact.name;
-          }
-          return conversation;
-        })
     })
     .map(conversation => beginStoringConversations([conversation]));
 
