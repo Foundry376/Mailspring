@@ -35,11 +35,11 @@ const configureStore = () => {
   // Logging Middleware
   // will show too many messages about redex actions on  develop tools console
   // so comment below out
-  // const logger = createLogger({
-  //   level: 'info',
-  //   collapsed: true
-  // });
-  // middleware.push(logger);
+  const logger = createLogger({
+    level: 'info',
+    collapsed: true
+  });
+  middleware.push(logger);
 
   // Router Middleware
   const router = routerMiddleware(history);

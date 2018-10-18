@@ -50,14 +50,22 @@ export const successSendMessageEpic = action$ =>
 
 export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
-    .map(({ payload: { conversation, body, id } }) => ({
+    .map(({ payload: { conversation, body, id } }) => {
+      console.log('sendMessageEpic payload', body);
+      return ({
       id,
       body,
       to: conversation.jid,
       type: conversation.isGroup ? 'groupchat' : 'chat'
-    }))
+    }
+    )
+    })
+
     .map(message => sendingMessage(message))
-    .do(({ payload }) => xmpp.sendMessage(payload));
+    .do(({ payload }) => {
+      console.log('sendMessageEpic payload2', payload);
+      return xmpp.sendMessage(payload)
+    });
 
 export const newTempMessageEpic = (action$, { getState }) =>
   action$.ofType(SENDING_MESSAGE)

@@ -5,6 +5,8 @@ import Button from '../../common/Button';
 import FilePlusIcon from '../../common/icons/FilePlusIcon';
 import SendIcon from '../../common/icons/SendIcon';
 import { theme } from '../../../utils/colors';
+import { uploadeFile } from '../../../utils/awss3';
+import RetinaImg from '../../../../../../src/components/retina-img';
 
 export default class MessagesSendBar extends PureComponent {
   static propTypes = {
@@ -23,6 +25,7 @@ export default class MessagesSendBar extends PureComponent {
 
   state = {
     messageBody: '',
+    files: [],
   }
 
   fileInput = null;
@@ -40,26 +43,76 @@ export default class MessagesSendBar extends PureComponent {
 
   onMessageBodyChanged(event) {
     const { target: { value } } = event;
-    this.setState({
-      messageBody: value,
-    });
+    let state = Object.assign({}, this.state, { messageBody: value });
+    this.setState(state);
   }
 
   sendMessage() {
     const { messageBody } = this.state;
     const { selectedConversation } = this.props;
-    const message = messageBody.trim();
-    if (selectedConversation && message) {
-      let body = {
-        type: 1,
-        timeSend: new Date().getTime(),
-        content: message,
-        email: selectedConversation.email,
-        name: selectedConversation.name
-      };
-      this.props.onMessageSubmitted(selectedConversation, JSON.stringify(body));//message);
-      this.setState({ messageBody: '' });
+    const atIndex = selectedConversation.jid.indexOf('@')
+    let jidLocal = selectedConversation.jid.slice(0, atIndex);
+
+    if (this.state.files.length) {
+      this.state.files.map((file, index) => {
+        uploadeFile(jidLocal, null, file, (err, filename, myKey, size) => {
+            if (err) {
+              alert(`upload files failed, filename: ${filename}`);
+              return;
+            } else {
+              console.log('sendMessage uploadeFile', selectedConversation.jid, err, filename, myKey, size);
+            }
+            let message;
+            if (index === 0) {
+              message = messageBody.trim();
+            } else {
+              message = 'file received';
+            }
+            if (selectedConversation && message) {
+              let body = {
+                type: 1,
+                timeSend: new Date().getTime(),
+                content: message,
+                email: selectedConversation.email,
+                name: selectedConversation.name,
+                mediaObjectId: myKey,
+              };
+              this.props.onMessageSubmitted(selectedConversation, JSON.stringify(body));
+            }
+          },
+        );
+      })
+    } else {
+      let message = messageBody.trim();
+      if (selectedConversation && message) {
+        let body = {
+          type: 1,
+          timeSend: new Date().getTime(),
+          content: message,
+          email: selectedConversation.email,
+          name: selectedConversation.name,
+        };
+        this.props.onMessageSubmitted(selectedConversation, JSON.stringify(body));//message);
+      }
+
     }
+    this.setState({ messageBody: '', files: [] });
+  }
+  onChange = event => {
+    console.log('file input onChange', event.target.files);
+    let state,
+      files = [];
+    // event.target.files is type FileList
+    // it need be converted to Array  to use this.state.files.map(...) in jsx
+    for (let file of event.target.files) {
+      console.log('fileinput.target.file', file);
+      files.push(file.path);
+    }
+    state = Object.assign({}, this.state, { files });
+    debugger;
+    this.setState(state);
+    event.target.value = '';
+    // event.target.files = new window.FileList();
   }
 
   render() {
@@ -77,19 +130,31 @@ export default class MessagesSendBar extends PureComponent {
               ref={element => { this.fileInput = element; }}
               type="file"
               multiple
+              onChange={this.onChange}
             />
           </Button>
         </div>
-        <TextArea
-          className="messageTextField"
-          placeholder="Write a message..."
-          rows={1}
-          maxRows={5}
-          value={this.state.messageBody}
-          onChange={this.onMessageBodyChanged.bind(this)}
-          onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
-          ref={element => { this.textarea = element; }}
-        />
+        <div className="messageTextField">
+          <TextArea
+            className="messageTextField"
+            placeholder="Write a message..."
+            rows={1}
+            maxRows={5}
+            value={this.state.messageBody}
+            onChange={this.onMessageBodyChanged.bind(this)}
+            onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
+            ref={element => { this.textarea = element; }}
+          />
+          <div className="chat-message-filelist">
+            {this.state.files.map((file, index) => {
+              return <RetinaImg
+              name="fileIcon.png"
+              mode={RetinaImg.Mode.ContentPreserve}
+              key={index}
+              />;
+            })}
+          </div>
+        </div>
         <div className="sendBarActions">
           <Button onTouchTap={this.sendMessage.bind(this)}>
             <SendIcon color={theme.primaryColor} />

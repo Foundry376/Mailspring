@@ -67,6 +67,7 @@ export const newMessage = formattedMessage => ({
 });
 
 export const beginSendingMessage = (conversation, body, messageId = '') => {
+  console.log('beginSendingMessage body', body);
   return {
     type: BEGIN_SEND_MESSAGE,
     payload: {
@@ -77,10 +78,13 @@ export const beginSendingMessage = (conversation, body, messageId = '') => {
   };
 };
 
-export const sendingMessage = message => ({
-  type: SENDING_MESSAGE,
-  payload: message
-});
+export const sendingMessage = message => {
+  console.log('actions/chat.es6 sendingMessage message:', message);
+  return ({
+    type: SENDING_MESSAGE,
+    payload: message
+  });
+}
 
 export const selectConversation = jid => ({
   type: SELECT_CONVERSATION,
