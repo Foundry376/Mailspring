@@ -14,7 +14,9 @@ class ParticipantProfileDataSource {
     }
   }
 
-  async find(email) {
+  async find(contact) {
+    const { email, name } = contact;
+
     if (!email || Utils.likelyNonHumanEmail(email)) {
       return {};
     }
@@ -30,7 +32,7 @@ class ParticipantProfileDataSource {
       body = await makeRequest({
         server: 'identity',
         method: 'GET',
-        path: `/api/info-for-email-v2/${email}`,
+        path: `/api/info-for-email-v2/${email}?phrase=${encodeURIComponent(name)}`,
       });
     } catch (err) {
       // we don't care about errors returned by this clearbit proxy

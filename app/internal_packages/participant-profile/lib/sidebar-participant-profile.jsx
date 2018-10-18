@@ -277,7 +277,7 @@ export default class SidebarParticipantProfile extends React.Component {
     if (!this.state.loading) {
       this.setState({ loading: true });
     }
-    ParticipantProfileDataSource.find(this.props.contact.email).then(result => {
+    ParticipantProfileDataSource.find(this.props.contact).then(result => {
       if (!this._mounted) {
         return;
       }
