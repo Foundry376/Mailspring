@@ -1,7 +1,10 @@
 var AWS = require('aws-sdk');
+import fs from 'fs';
+import uuid from 'uuid';
+
 // import AWS object without services
 //var AWS = require('aws-sdk/global');
-// Set the region 
+// Set the region
 AWS.config.update({
     region: "us-east-2",
     accessKeyId: "AKIAJPPBMFBNHSNZ5ELA",
@@ -18,7 +21,7 @@ var path = require('path');
 var myBucket = 'edison-media-stag';
 var ENCRYPTED_SUFFIX = ".encrypted";
 
-const downloadeFile = (aes, key, name) => {
+export const downloadFile = (aes, key, name) => {
     var params = {
         Bucket: myBucket,
         Key: key
@@ -30,15 +33,16 @@ const downloadeFile = (aes, key, name) => {
             //console.log('data.Body', data.Body);
             if (aes) {
                 //fs.writeFileSync('./files/src' + name, data.Body);
-                fs.writeFileSync('./files/' + name, decryptByAESFile(aes, data.Body));
+                fs.writeFileSync(name, decryptByAESFile(aes, data.Body));
             } else {
-                fs.writeFileSync('./files/' + name, data.Body);
+                fs.writeFileSync(name, data.Body);
             }
+            console.log(`succeed downloadFile aws3 file ${key} to ${name}`);
         }
     });
 }
 
-const uploadeFile = (oid, aes, file, callback) => {
+export const uploadeFile = (oid, aes, file, callback) => {
 
     let filename = path.basename(file);
     let size;
@@ -61,7 +65,7 @@ const uploadeFile = (oid, aes, file, callback) => {
             //console.log('fileStream', fileStream);
             myKey = myKey + ENCRYPTED_SUFFIX;
         } else {
-            fileStream = chunk;
+            fileStream = data;
         }
 
         var uploadParams = { Bucket: myBucket, Key: myKey, Body: fileStream };//,ACL: 'public-read'};
@@ -88,7 +92,3 @@ function getSize(len) {
     }
 }
 
-export default {
-    downloadeFile,
-    uploadeFile
-}

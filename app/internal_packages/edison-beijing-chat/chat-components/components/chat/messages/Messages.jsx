@@ -8,9 +8,13 @@ import {
 } from '../../../db/schemas/message';
 import { colorForString } from '../../../utils/colors';
 import { buildTimeDescriptor } from '../../../utils/time';
+import RetinaImg from '../../../../../../src/components/retina-img';
+import { downloadFile } from '../../../utils/awss3';
+const {dialog} = require('electron').remote;
 
 // The number of pixels away from the bottom to be considered as being at the bottom
 const BOTTOM_TOLERANCE = 32;
+debugger;
 
 const flattenMsgIds = groupedMessages =>
   groupedMessages
@@ -99,6 +103,15 @@ export default class Messages extends PureComponent {
       this.setState({ shouldScrollBottom: false });
     }
   }
+  download = (event) => {
+    let aws3file = event.target.title;
+    console.log( 'download', aws3file );
+    let path = dialog.showSaveDialog({
+      title: `download the file -- ${aws3file}`,
+    });
+    debugger;
+    downloadFile(null, aws3file, path);
+  }
 
   render() {
     const {
@@ -126,6 +139,11 @@ export default class Messages extends PureComponent {
         {groupedMessages.map(group => (
           <div className="messageGroup" key={uuid()}>
             {group.messages.map((msg, idx) => {
+              let msgBody = msg.body.indexOf('{') == 0 ? JSON.parse(msg.body) : msg.body;
+              console.log('render message -- msg.body:', msg.body);
+              if (msgBody.mediaObjectId) {
+                debugger;
+              }
               const color = colorForString(msg.sender);
               return (
                 <div
@@ -142,7 +160,7 @@ export default class Messages extends PureComponent {
                     </div> : null
                   }
                   <div className="messageContent">
-                    <div className="messageBody">{msg.body.indexOf('{') == 0 ? JSON.parse(msg.body).content : msg.body}</div>
+                    <div className="messageBody">{msgBody.content || msgBody}</div>
                     <div className="messageMeta">
                       {getStatusWeight(msg.status) >= getStatusWeight(MESSAGE_STATUS_DELIVERED) ?
                         <CheckIcon
@@ -153,6 +171,15 @@ export default class Messages extends PureComponent {
                       }
                       {timeDescriptor(msg.sentTime, true)}
                     </div>
+                    { msgBody.mediaObjectId && <div className="messageMeta">
+                        <RetinaImg
+                            name="fileIcon.png"
+                            mode={RetinaImg.Mode.ContentPreserve}
+                            title={msgBody.mediaObjectId}
+                            onClick={this.download}
+                        />
+                      </div>
+                    }
                   </div>
                 </div>
               );
