@@ -72,10 +72,9 @@ export function localizedReactFragment(en, ...subs) {
   // The translation may contain this format even if the original string does not.
 
   let parts = [];
-  let r = /%(?:(\d)+\$)?@/g;
   let match = null;
   let used = 0;
-  while ((match = r.exec(translated))) {
+  while ((match = /%(?:(\d)+\$)?@/g.exec(translated))) {
     if (match.index > 0) {
       parts.push(translated.substr(0, match.index));
     }

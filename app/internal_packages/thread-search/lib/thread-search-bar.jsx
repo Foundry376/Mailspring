@@ -355,8 +355,8 @@ class ThreadSearchBar extends Component {
               {suggestions === TokenSuggestionsForEmpty && (
                 <div className="footer">
                   {localized(
-                    'Pro tip: Combine search terms with AND and OR to create complex queries. '
-                  )}
+                    'Pro tip: Combine search terms with AND and OR to create complex queries.'
+                  )}{' '}
                   <a
                     onMouseDown={e => {
                       AppEnv.windowEventHandler.openLink({
