@@ -1,5 +1,35 @@
 # Mailspring Changelog
 
+### 1.5.0 (10/22/2018)
+
+Features:
+
+* Mailspring now supports localization! The app detects your system locale and all text, menus, buttons, etc. in the app appear in your language. Mailspring's core strings has been manually localized in 38 languages and the rest (mostly error messages and text describing features) have been automatically translated.
+
+  * We'd love your help improving these localizations! A new "Developer > Toggle Localizer Tools" menu option in Mailspring allows you to submit better translations right within the app. You can also edit the translation files directly and submit a pull request. See the new [localizer guide here](https://github.com/Foundry376/Mailspring/blob/master/LOCALIZATION.md).
+
+  * If you use a RTL language, Mailspring's entire UI now appears right-justified, including the sidebar, preference panels, scrollbars, and more. If you use Mailspring in Arabic or Hebrew and notice issues in the right-to-left presentation, please file issues or submit pull requests.
+
+Fixes:
+
+* The "contact profiles" feature of Mailspring Pro is much more robust and reliable thanks to a new profile discovery mechanism.
+
+* The "contact profile" sidebar shows the Gravatar associated with the email address before falling back to the "empty box with initials".
+
+* Mailspring now uses the latest version of libetpan, which improves stability and fixes several parsing bugs. It also more flexibly parses IMAP responses that include unquoted text fragments. #429
+
+* On Linux, Mailspring now uses the pixmaps dir to show an icon in the corner of each window. #1135
+
+* On Linux, Mailspring uses circular icons rather than square ones. #1098
+
+* The padding of the search bar in the Darkside theme has been fixed. #1048
+
+Developer:
+
+* Trying to open a package that does not define `engines` in it's package.json no longer crashes the app.
+
+* Mailspring now uses Electron 2.0.11 which resolves #1108.
+
 ### 1.4.2 (8/15/2018)
 
 Fixes:

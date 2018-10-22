@@ -12,7 +12,7 @@ class SubmitLocalizationsBar extends React.Component {
 
   state = {
     current: '',
-    proposed: '',
+    suggestion: '',
     selecting: false,
   };
 
@@ -22,13 +22,13 @@ class SubmitLocalizationsBar extends React.Component {
   }
 
   onSubmit = async () => {
-    const { current, proposed } = this.state;
+    const { current, suggestion } = this.state;
 
     try {
       const { status } = await MailspringAPIRequest.makeRequest({
         server: 'identity',
         method: 'POST',
-        body: { current, proposed, language: window.navigator.language },
+        body: { current, suggestion, language: window.navigator.language },
         path: '/api/localization-suggestion',
         json: true,
       });
@@ -77,7 +77,7 @@ class SubmitLocalizationsBar extends React.Component {
     event.stopPropagation();
     document.removeEventListener('mousedown', this.onSelectionMouseDown);
     if (text && text.length) {
-      this.setState({ selecting: false, current: text, proposed: text });
+      this.setState({ selecting: false, current: text, suggestion: text });
     } else {
       this.setState({ selecting: false });
     }
@@ -96,7 +96,7 @@ class SubmitLocalizationsBar extends React.Component {
   };
 
   render() {
-    const { selecting, current, proposed } = this.state;
+    const { selecting, current, suggestion } = this.state;
 
     return (
       <div style={{ background: 'moccasin' }}>
@@ -134,9 +134,9 @@ class SubmitLocalizationsBar extends React.Component {
           <input
             type="text"
             style={{ flex: 1 }}
-            value={proposed}
+            value={suggestion}
             placeholder={`${localized('Localized')} (${window.navigator.language})`}
-            onChange={e => this.setState({ proposed: e.target.value })}
+            onChange={e => this.setState({ suggestion: e.target.value })}
           />
           <button onClick={this.onSubmit} className="btn" type="submit" style={{ marginLeft: 10 }}>
             {localized('Submit')}
