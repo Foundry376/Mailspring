@@ -47,7 +47,7 @@ export const triggerStoreMessageEpic = action$ =>
         .map(dbMessage => ({ dbMessage, newMessage }))
     )
     .filter(({ dbMessage, newMessage }) =>
-      !dbMessage || getStatusWeight(newMessage.status) > getStatusWeight(dbMessage.status)
+      !dbMessage || newMessage.status === 'MESSAGE_STATUS_RECEIVED' || getStatusWeight(newMessage.status) > getStatusWeight(dbMessage.status)
     )
     .map(({ newMessage }) => beginStoringMessage(newMessage));
 

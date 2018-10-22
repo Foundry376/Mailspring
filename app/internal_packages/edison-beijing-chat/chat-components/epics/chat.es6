@@ -37,6 +37,7 @@ import {
 import {
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
+import { isJsonString } from '../utils/stringUtils'
 
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
@@ -53,12 +54,11 @@ export const sendMessageEpic = action$ =>
     .map(({ payload: { conversation, body, id } }) => {
       console.log('sendMessageEpic payload', body);
       return ({
-      id,
-      body,
-      to: conversation.jid,
-      type: conversation.isGroup ? 'groupchat' : 'chat'
-    }
-    )
+        id,
+        body,
+        to: conversation.jid,
+        type: conversation.isGroup ? 'groupchat' : 'chat'
+      })
     })
 
     .map(message => sendingMessage(message))
@@ -109,9 +109,13 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
             const { chat: { selectedConversation } } = getState();
             conv = selectedConversation;
           }
+          let content = message.body;
+          if (isJsonString(message.body)) {
+            content = JSON.parse(message.body).content;
+          }
           return Object.assign({}, JSON.parse(JSON.stringify(conv)), {
             lastMessageTime: (new Date()).getTime(),
-            lastMessageText: message.body,
+            lastMessageText: content,
             lastMessageSender: message.from.bare,
             _rev: undefined
           });

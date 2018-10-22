@@ -3,8 +3,10 @@ import getDb from '../../db';
 import {
   SELECT_CONVERSATION,
   CREATE_PRIVATE_CONVERSATION,
+  CREATE_GROUP_CONVERSATION,
   selectConversation,
 } from '../../actions/chat';
+// import { beginJoiningRooms } from '../../actions/auth';
 import {
   BEGIN_STORE_CONVERSATIONS,
   FAIL_STORE_CONVERSATIONS,
@@ -18,6 +20,7 @@ import {
   failRetrievingConversations,
   updateSelectedConversation,
   failedSelectingConversation,
+  beginStoringConversations
 } from '../../actions/db/conversation';
 
 const saveConversations = async conversations => {
@@ -104,3 +107,72 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
           });
         })
     );
+
+// TODO quanzs did not complete, jid is temp
+export const groupConversationCreatedEpic = (action$, { getState }) =>
+  action$.ofType(CREATE_GROUP_CONVERSATION)
+    .mergeMap(({ payload: contacts }) => {
+      const jidArr = contacts.map(contact => contact.jid).sort();
+      const jids = jidArr.join('|');
+      const names = contacts.map(contact => contact.name).sort().join(',');
+      const emails = contacts.map(contact => contact.email).sort().join(',');
+      const contact = contacts[0];
+      return Observable.fromPromise(retriveConversation(jids))
+        .map(conv => {
+          if (conv) {
+            return selectConversation(conv.jid);
+          }
+          const { auth: { currentUser } } = getState();
+          console.log('*******currentUser', [
+            currentUser.bare,
+            ...(contacts.map(contact => contact.jid).sort())
+          ]);
+          return updateSelectedConversation({
+            jid: jids,
+            name: names,
+            email: emails,
+            avatar: contact.avatar,
+            isGroup: true,
+            unreadMessages: 0,
+            occupants: [
+              currentUser.bare,
+              ...jidArr
+            ],
+          });
+        })
+    });
+
+// TODO quanzs save group coversation, the jids is temp
+export const updateGroupMessageConversationEpic = (action$, { getState }) =>
+  action$.ofType(CREATE_GROUP_CONVERSATION)
+    .map(({ payload: contacts }) => {
+      const jidArr = contacts.map(contact => contact.jid).sort();
+      const jids = jidArr.join('|');
+      const names = contacts.map(contact => contact.name).sort().join(',');
+      const content = 'no message';
+      const timeSend = new Date().getTime();
+      const { auth: { currentUser } } = getState();
+      const conversation = {
+        jid: jids,
+        name: names,
+        isGroup: true,
+        unreadMessages: 0,
+        occupants: [
+          currentUser.bare,
+          ...jidArr,
+          'testmail' + new Date().getTime() + '@testmail.com'
+        ],
+        lastMessageTime: (new Date(timeSend)).getTime(),
+        lastMessageText: content,
+        lastMessageSender: currentUser.bare
+      };
+      return conversation;
+    })
+    .map(conversation => beginStoringConversations([conversation]));
+
+// TODO quanzs joinRoom
+// export const joinRoomEpic = (action$, { getState }) =>
+//   action$.ofType(CREATE_GROUP_CONVERSATION)
+//     .map(({ payload: roomId }) => {
+//       return beginJoiningRooms([roomId])
+//     });
