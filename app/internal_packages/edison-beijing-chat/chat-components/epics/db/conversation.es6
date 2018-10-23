@@ -97,17 +97,19 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
 
           const { auth: { currentUser } } = getState();
           let db;
-          debugger;
-          getDb().then(db =>{
-            db.conversations.findOne(contact.jid).exec().then((conv=> {
-              console.log('conv  before upsert:', conv)}));
-            db.conversations.upsert({jid:contact.jid, name:contact.name, occupants:[currentUser], isGroup: false, unreadMessages:3});
-            db.conversations.findOne(contact.jid).exec().then((conv=> {
-              console.log('conv after upsert:', conv)}));
-          }).catch(error => {
-            debugger;
-            console.log('error while insert conversation')
-          });
+          getDb().then(db => {
+            db.conversations.upsert({
+              jid:contact.jid,
+              name:contact.name,
+              occupants:[currentUser],
+              isGroup: false,
+              unreadMessages:3,
+              // below is some unmeaningful filling to show th conversation
+              lastMessageSender: contact.jid,
+              lastMessageText: ' ',
+              lastMessageTime: (new Date()).getTime()
+            })
+          })
           return updateSelectedConversation({
             jid: contact.jid,
             name: contact.name,
@@ -118,7 +120,7 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
             occupants: [
               currentUser.bare,
               contact.jid,
-            ],
+            ]
           });
         })
     );
