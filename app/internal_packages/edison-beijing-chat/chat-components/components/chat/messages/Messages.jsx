@@ -10,11 +10,12 @@ import { colorForString } from '../../../utils/colors';
 import { buildTimeDescriptor } from '../../../utils/time';
 import RetinaImg from '../../../../../../src/components/retina-img';
 import { downloadFile } from '../../../utils/awss3';
-const {dialog} = require('electron').remote;
+const { dialog } = require('electron').remote;
+import { isJsonString } from '../../../utils/stringUtils'
 
 // The number of pixels away from the bottom to be considered as being at the bottom
 const BOTTOM_TOLERANCE = 32;
-debugger;
+// debugger;
 
 const flattenMsgIds = groupedMessages =>
   groupedMessages
@@ -105,11 +106,11 @@ export default class Messages extends PureComponent {
   }
   download = (event) => {
     let aws3file = event.target.title;
-    console.log( 'download', aws3file );
+    console.log('download', aws3file);
     let path = dialog.showSaveDialog({
       title: `download the file -- ${aws3file}`,
     });
-    debugger;
+    // debugger;
     downloadFile(null, aws3file, path);
   }
 
@@ -139,10 +140,10 @@ export default class Messages extends PureComponent {
         {groupedMessages.map(group => (
           <div className="messageGroup" key={uuid()}>
             {group.messages.map((msg, idx) => {
-              let msgBody = msg.body.indexOf('{') == 0 ? JSON.parse(msg.body) : msg.body;
+              let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
               console.log('render message -- msg.body:', msg.body);
               if (msgBody.mediaObjectId) {
-                debugger;
+                // debugger;
               }
               const color = colorForString(msg.sender);
               return (
@@ -171,14 +172,14 @@ export default class Messages extends PureComponent {
                       }
                       {timeDescriptor(msg.sentTime, true)}
                     </div>
-                    { msgBody.mediaObjectId && <div className="messageMeta">
-                        <RetinaImg
-                            name="fileIcon.png"
-                            mode={RetinaImg.Mode.ContentPreserve}
-                            title={msgBody.mediaObjectId}
-                            onClick={this.download}
-                        />
-                      </div>
+                    {msgBody.mediaObjectId && <div className="messageMeta">
+                      <RetinaImg
+                        name="fileIcon.png"
+                        mode={RetinaImg.Mode.ContentPreserve}
+                        title={msgBody.mediaObjectId}
+                        onClick={this.download}
+                      />
+                    </div>
                     }
                   </div>
                 </div>
