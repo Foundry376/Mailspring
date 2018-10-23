@@ -103,8 +103,8 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
               name:contact.name,
               occupants:[currentUser],
               isGroup: false,
-              unreadMessages:3,
               // below is some unmeaningful filling to show th conversation
+              unreadMessages:0,
               lastMessageSender: contact.jid,
               lastMessageText: ' ',
               lastMessageTime: (new Date()).getTime()
@@ -124,6 +124,31 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
           });
         })
     );
+
+export const crateIntiatedPrivateConversationEpic = (action$, { getState }) =>
+   action$.ofType(CREATE_PRIVATE_CONVERSATION)
+    .mergeMap(({ payload: contact }) =>
+      Observable.fromPromise(retriveConversation(contact.jid))
+        .map(conv => {
+          if (conv) {
+            return selectConversation(conv.jid);
+          } else {
+            const { auth: { currentUser } } = getState();
+            conv = {
+              jid: contact.jid,
+              name: contact.name,
+              occupants: [currentUser],
+              isGroup: false,
+              // below is some unmeaningful filling to show th conversation
+              unreadMessages: 0,
+              lastMessageSender: contact.jid,
+              lastMessageText: ' ',
+              lastMessageTime: (new Date()).getTime()
+            }
+            return conv
+          }
+        })
+        .map(conversation => beginStoringConversations([conversation])))
 
 // TODO quanzs did not complete, jid is temp
 export const groupConversationCreatedEpic = (action$, { getState }) =>
