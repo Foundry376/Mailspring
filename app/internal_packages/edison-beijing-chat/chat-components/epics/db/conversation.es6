@@ -30,6 +30,8 @@ const saveConversations = async conversations => {
 
 const retriveConversation = async jid => {
   const db = await getDb();
+  debugger;
+  db.conversations.find({}).exec().then((conv=> {console.log('conv:', conv)}));
   return db.conversations.findOne(jid).exec();
 };
 
@@ -92,7 +94,20 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
           if (conv) {
             return selectConversation(conv.jid);
           }
+
           const { auth: { currentUser } } = getState();
+          let db;
+          debugger;
+          getDb().then(db =>{
+            db.conversations.findOne(contact.jid).exec().then((conv=> {
+              console.log('conv  before upsert:', conv)}));
+            db.conversations.upsert({jid:contact.jid, name:contact.name, occupants:[currentUser], isGroup: false, unreadMessages:3});
+            db.conversations.findOne(contact.jid).exec().then((conv=> {
+              console.log('conv after upsert:', conv)}));
+          }).catch(error => {
+            debugger;
+            console.log('error while insert conversation')
+          });
           return updateSelectedConversation({
             jid: contact.jid,
             name: contact.name,

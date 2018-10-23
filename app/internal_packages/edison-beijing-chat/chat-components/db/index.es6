@@ -28,7 +28,6 @@ const createDb = async () => {
     Object.entries(schemas)
       .map(([name, schema]) => db.collection({ name, schema }))
   );
-  debugger;
   window.rxdb = db;
   return db;
 };
