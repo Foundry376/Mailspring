@@ -116,7 +116,7 @@ export const crateIntiatedPrivateConversationEpic = (action$, { getState }) =>
     .mergeMap(({ payload: contact }) =>
       Observable.fromPromise(retriveConversation(contact.jid))
         .map(conv => {
-          if (conv) {
+          if (conv || !contact.name) {
             return selectConversation(conv.jid);
           } else {
             const { auth: { currentUser } } = getState();
