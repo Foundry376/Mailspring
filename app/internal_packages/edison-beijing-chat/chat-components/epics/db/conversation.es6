@@ -96,20 +96,6 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
           }
 
           const { auth: { currentUser } } = getState();
-          let db;
-          getDb().then(db => {
-            db.conversations.upsert({
-              jid:contact.jid,
-              name:contact.name,
-              occupants:[currentUser],
-              isGroup: false,
-              // below is some unmeaningful filling to show th conversation
-              unreadMessages:0,
-              lastMessageSender: contact.jid,
-              lastMessageText: ' ',
-              lastMessageTime: (new Date()).getTime()
-            })
-          })
           return updateSelectedConversation({
             jid: contact.jid,
             name: contact.name,
