@@ -12,15 +12,17 @@ import getDb from '../../db';
 const saveContacts = async contacts => {
   const db = await getDb();
   return Promise.all(
-    contacts.map(({ jid: { bare: jid }, name, email, avatar }) =>
-      db.contacts
-        .upsert({
-          jid,
-          name,
-          email,
-          avatar
-        })
-    )
+    contacts
+      .filter(({ name }) => !!name) // ignore the contact that the name is undefined
+      .map(({ jid: { bare: jid }, name, email, avatar }) =>
+        db.contacts
+          .upsert({
+            jid,
+            name,
+            email,
+            avatar
+          })
+      )
   );
 };
 
