@@ -52,7 +52,6 @@ export const successSendMessageEpic = action$ =>
 export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
     .map(({ payload: { conversation, body, id } }) => {
-      console.log('sendMessageEpic payload', body);
       return ({
         id,
         body,
@@ -63,7 +62,6 @@ export const sendMessageEpic = action$ =>
 
     .map(message => sendingMessage(message))
     .do(({ payload }) => {
-      console.log('sendMessageEpic payload2', payload);
       return xmpp.sendMessage(payload)
     });
 
@@ -143,6 +141,21 @@ export const receivePrivateMessageEpic = action$ =>
         })
     })
     .map(({ payload }) => receivePrivateMessage(payload));
+
+export const addUnreadMessagesEpic = action$ =>
+  action$.ofType(RECEIVE_CHAT)
+    .filter(({ payload }) => {
+      return payload.body
+    })
+    // get the latest name for display
+    .mergeMap(
+      ({ payload }) => Observable.fromPromise(getDb())
+        .map(db => ({ db, payload }))
+    )
+    .mergeMap(({ db, payload }) =>
+      Observable.fromPromise(db.conversations && db.conversations.findOne(payload.from.bare).exec())
+      .map( conv => Object.assign({}, conv, {unreadMessages:conv.unreadMessages + 1}))
+    ).map(conv => beginStoringConversations([conv]));
 
 export const receiveGroupMessageEpic = action$ =>
   action$.ofType(RECEIVE_GROUPCHAT)

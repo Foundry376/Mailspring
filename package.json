@@ -71,6 +71,7 @@
     "ci-setup-mac-keychain": "grunt setup-mac-keychain --gruntfile=app/build/Gruntfile.js --base=./"
   },
   "dependencies": {
-    "aws-sdk": "^2.336.0"
+    "aws-sdk": "^2.336.0",
+    "react-bootstrap": "^0.32.4"
   }
 }

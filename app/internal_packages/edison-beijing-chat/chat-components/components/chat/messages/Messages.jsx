@@ -15,7 +15,6 @@ import { isJsonString } from '../../../utils/stringUtils'
 
 // The number of pixels away from the bottom to be considered as being at the bottom
 const BOTTOM_TOLERANCE = 32;
-// debugger;
 
 const flattenMsgIds = groupedMessages =>
   groupedMessages
@@ -106,11 +105,9 @@ export default class Messages extends PureComponent {
   }
   download = (event) => {
     let aws3file = event.target.title;
-    console.log('download', aws3file);
     let path = dialog.showSaveDialog({
       title: `download the file -- ${aws3file}`,
     });
-    // debugger;
     downloadFile(null, aws3file, path);
   }
 
@@ -141,10 +138,6 @@ export default class Messages extends PureComponent {
           <div className="messageGroup" key={uuid()}>
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
-              console.log('render message -- msg.body:', msg.body);
-              if (msgBody.mediaObjectId) {
-                // debugger;
-              }
               const color = colorForString(msg.sender);
               return (
                 <div

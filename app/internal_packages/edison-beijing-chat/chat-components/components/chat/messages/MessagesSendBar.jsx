@@ -59,8 +59,6 @@ export default class MessagesSendBar extends PureComponent {
             if (err) {
               alert(`upload files failed, filename: ${filename}`);
               return;
-            } else {
-              console.log('sendMessage uploadeFile', selectedConversation.jid, err, filename, myKey, size);
             }
             let message;
             if (index === 0) {
@@ -99,17 +97,14 @@ export default class MessagesSendBar extends PureComponent {
     this.setState({ messageBody: '', files: [] });
   }
   onChange = event => {
-    console.log('file input onChange', event.target.files);
     let state,
       files = [];
     // event.target.files is type FileList
     // it need be converted to Array  to use this.state.files.map(...) in jsx
     for (let file of event.target.files) {
-      console.log('fileinput.target.file', file);
       files.push(file.path);
     }
     state = Object.assign({}, this.state, { files });
-    debugger;
     this.setState(state);
     event.target.value = '';
     // event.target.files = new window.FileList();
