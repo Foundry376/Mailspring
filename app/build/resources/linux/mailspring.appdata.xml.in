@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id><%= name %></id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name><%= productName %></name>
+  <summary><%= description %></summary>
+  <description>
+    <p>
+      Mailspring is a new version of Nylas Mail maintained by one of the original authors. It's
+      faster, leaner, and shipping today! It replaces the JavaScript sync code in Nylas Mail with
+      a new C++ sync engine based on Mailcore2. It uses roughly half the RAM and CPU of Nylas Mail
+      and idles with almost zero "CPU Wakes", which translates to great battery life. It also has
+      an entirely revamped composer and other great new features.
+    </p>
+    <p>
+      Mailspring comes packed with powerful features like Unified Inbox, Snooze, Send Later, Mail
+      Rules, Templates and more. Mailspring Pro, which you can unlock with a monthly subscription,
+      adds even more features for people who send a ton of email: link tracking, read receipts,
+      mailbox analytics, contact and company profiles. All of these features run in the client -
+      Mailspring does not send your email credentials to the cloud.
+    </p>
+  </description>
+  <url type="homepage">https://getmailspring.com/</url>
+  <url type="bugtracker">https://github.com/Foundry376/Mailspring/issues</url>
+  <url type="help">http://support.getmailspring.com/</url>
+  <launchable type="desktop-id"><%= name %>.desktop</launchable>
+
+  <developer_name>Mailspring</developer_name>
+  <project_license>GPL-3.0+ AND LicenseRef-proprietary</project_license>
+
+  <screenshots>
+    <screenshot type="default">https://getmailspring.com/static/img/hero_graphic_linux@2x.png</screenshot>
+  </screenshots>
+
+  <content_rating type="oars-1.0">
+    <content_attribute id="violence-cartoon">none</content_attribute>
+    <content_attribute id="violence-fantasy">none</content_attribute>
+    <content_attribute id="violence-realistic">none</content_attribute>
+    <content_attribute id="violence-bloodshed">none</content_attribute>
+    <content_attribute id="violence-sexual">none</content_attribute>
+    <content_attribute id="drugs-alcohol">none</content_attribute>
+    <content_attribute id="drugs-narcotics">none</content_attribute>
+    <content_attribute id="drugs-tobacco">none</content_attribute>
+    <content_attribute id="sex-nudity">none</content_attribute>
+    <content_attribute id="sex-themes">none</content_attribute>
+    <content_attribute id="language-profanity">none</content_attribute>
+    <content_attribute id="language-humor">none</content_attribute>
+    <content_attribute id="language-discrimination">none</content_attribute>
+    <content_attribute id="social-chat">intense</content_attribute>
+    <content_attribute id="social-info">intense</content_attribute>
+    <content_attribute id="social-audio">none</content_attribute>
+    <content_attribute id="social-location">none</content_attribute>
+    <content_attribute id="social-contacts">none</content_attribute>
+    <content_attribute id="money-purchasing">none</content_attribute>
+    <content_attribute id="money-gambling">none</content_attribute>
+  </content_rating>
+</component>

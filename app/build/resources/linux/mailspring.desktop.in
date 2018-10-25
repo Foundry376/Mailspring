@@ -7,5 +7,5 @@ Icon=mailspring
 Type=Application
 StartupNotify=true
 StartupWMClass=<%= productName %>
-Categories=GNOME;GTK;Network;Email;
+Categories=GNOME;GTK;Network;Email;Productivity;Communication;
 MimeType=x-scheme-handler/mailto;x-scheme-handler/mailspring;

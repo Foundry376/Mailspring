@@ -62,6 +62,10 @@ module.exports = grunt => {
     const desktopInFilePath = path.join(linuxAssetsDir, 'mailspring.desktop.in');
     writeFromTemplate(desktopInFilePath, templateData);
 
+    // This populates mailspring.appdata.xml
+    const appdataInFilePath = path.join(linuxAssetsDir, 'mailspring.appdata.xml.in');
+    writeFromTemplate(appdataInFilePath, templateData);
+
     const cmd = path.join(grunt.config('appDir'), 'script', 'mkrpm');
     const args = [outputDir, contentsDir, linuxAssetsDir];
     spawn({ cmd, args }, error => {
@@ -100,6 +104,7 @@ module.exports = grunt => {
       };
       writeFromTemplate(path.join(linuxAssetsDir, 'debian', 'control.in'), data);
       writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.desktop.in'), data);
+      writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.appdata.xml.in'), data);
 
       const icon = path.join(grunt.config('appDir'), 'build', 'resources', 'mailspring.png');
       const cmd = path.join(grunt.config('appDir'), 'script', 'mkdeb');
