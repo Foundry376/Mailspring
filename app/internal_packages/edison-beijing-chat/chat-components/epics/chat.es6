@@ -164,15 +164,21 @@ export const convertReceivedPrivateMessageEpic = action$ =>
     })
     .map(newPayload => newMessage(newPayload));
 
-export const updatePrivateMessageConversationEpic = action$ =>
+export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE)
     .map(({ payload }) => {
       const { content, timeSend } = JSON.parse(payload.body);
+      // if not current conversation, unreadMessages + 1
+      let unreadMessages = 0;
+      const { chat: { selectedConversation } } = getState();
+      if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
+        unreadMessages = 1;
+      }
       return {
         jid: payload.from.bare,
         name: payload.from.local,
         isGroup: false,
-        unreadMessages: 0,
+        unreadMessages: unreadMessages,
         occupants: [
           payload.from.bare,
           payload.to.bare

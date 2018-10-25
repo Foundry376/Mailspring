@@ -38,6 +38,7 @@ export default class ConversationItem extends PureComponent {
             </span>
           </div>
           <div className="subHeader">{conversation.lastMessageText}</div>
+          <span>{conversation.unreadMessages}</span>
         </div>
       </div >
     );

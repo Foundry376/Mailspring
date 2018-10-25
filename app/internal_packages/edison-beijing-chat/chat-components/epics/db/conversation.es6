@@ -25,14 +25,31 @@ import {
 
 const saveConversations = async conversations => {
   const db = await getDb();
-  return Promise.all(conversations.map(conv => db.conversations.upsert(conv)));
+  return Promise.all(conversations.map(async conv => {
+    if (conv.unreadMessages === 1) {
+      const convInDB = await db.conversations.findOne(conv.jid).exec();
+      if (convInDB) {
+        conv.unreadMessages = convInDB.unreadMessages + 1;
+      }
+    }
+    return db.conversations.upsert(conv)
+  }));
 };
 
 const retriveConversation = async jid => {
   const db = await getDb();
   debugger;
-  db.conversations.find({}).exec().then((conv=> {console.log('conv:', conv)}));
+  db.conversations.find({}).exec().then((conv => { console.log('conv:', conv) }));
   return db.conversations.findOne(jid).exec();
+};
+
+const clearConversationUnreadMessages = async jid => {
+  const db = await getDb();
+  return db.conversations.findOne(jid).update({
+    $set: {
+      unreadMessages: 0
+    }
+  });
 };
 
 export const beginStoreConversationsEpic = action$ =>
@@ -80,11 +97,12 @@ export const retrieveConversationsEpic = action$ =>
 
 export const selectConversationEpic = action$ =>
   action$.ofType(SELECT_CONVERSATION)
-    .mergeMap(({ payload: jid }) =>
-      Observable.fromPromise(retriveConversation(jid))
+    .mergeMap(({ payload: jid }) => {
+      clearConversationUnreadMessages(jid);
+      return Observable.fromPromise(retriveConversation(jid))
         .map(conversation => updateSelectedConversation(conversation))
         .catch(error => failedSelectingConversation(error, jid))
-    );
+    });
 
 export const privateConversationCreatedEpic = (action$, { getState }) =>
   action$.ofType(CREATE_PRIVATE_CONVERSATION)
@@ -112,7 +130,7 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
     );
 
 export const crateIntiatedPrivateConversationEpic = (action$, { getState }) =>
-   action$.ofType(CREATE_PRIVATE_CONVERSATION)
+  action$.ofType(CREATE_PRIVATE_CONVERSATION)
     .mergeMap(({ payload: contact }) =>
       Observable.fromPromise(retriveConversation(contact.jid))
         .map(conv => {
@@ -151,10 +169,6 @@ export const groupConversationCreatedEpic = (action$, { getState }) =>
             return selectConversation(conv.jid);
           }
           const { auth: { currentUser } } = getState();
-          console.log('*******currentUser', [
-            currentUser.bare,
-            ...(contacts.map(contact => contact.jid).sort())
-          ]);
           return updateSelectedConversation({
             jid: jids,
             name: names,
