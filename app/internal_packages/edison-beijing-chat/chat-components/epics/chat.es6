@@ -38,6 +38,8 @@ import {
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
 import { isJsonString } from '../utils/stringUtils'
+import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generateAESKey } from '../utils/aes'
+import { encrypte, decrypte } from '../utils/rsa'
 
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
@@ -51,6 +53,50 @@ export const successSendMessageEpic = action$ =>
 
 export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
+    // .mergeMap(
+    //   ({ payload }) => Observable.fromPromise(getDb())
+    //     .map(db => ({ db, payload }))
+    // )//yazzzzz
+    // .mergeMap(({ db, payload }) => {
+    //   return Observable.fromPromise(db.e2ees.findOne(payload.conversation.jid).exec())
+    //     .map(e2ee => {
+    //       if (e2ee) {
+    //         payload.devices = e2ee.devices;
+    //       }
+    //       return { db, payload };
+    //     })
+    // })
+    // .mergeMap(({ db, payload }) => {
+    //   return Observable.fromPromise(db.e2ees.findOne(window.localStorage.jid).exec())
+    //     .map(e2ee => {
+    //       if (e2ee) {
+    //         payload.selfDevices = e2ee.devices;
+    //       }
+    //       return { payload };
+    //     })
+    // })
+    // .map(({ payload: { conversation, body, id, devices, selfDevices } }) => {
+    //   console.log('sendMessageEpic payload', body);
+    //   let ediEncrypted;
+    //   if (devices) {
+    //     ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices);
+    //   }
+    //   if (ediEncrypted) {
+    //     return ({
+    //       id,
+    //       ediEncrypted: ediEncrypted,
+    //       to: conversation.jid,
+    //       type: conversation.isGroup ? 'groupchat' : 'chat'
+    //     });
+    //   } else {
+    //     return ({
+    //       id,
+    //       body: body,
+    //       to: conversation.jid,
+    //       type: conversation.isGroup ? 'groupchat' : 'chat'
+    //     });
+    //   }
+    // })
     .map(({ payload: { conversation, body, id } }) => {
       return ({
         id,
@@ -154,7 +200,7 @@ export const addUnreadMessagesEpic = action$ =>
     )
     .mergeMap(({ db, payload }) =>
       Observable.fromPromise(db.conversations && db.conversations.findOne(payload.from.bare).exec())
-      .map( conv => Object.assign({}, conv, {unreadMessages:conv.unreadMessages + 1}))
+        .map(conv => Object.assign({}, conv, { unreadMessages: conv.unreadMessages + 1 }))
     ).map(conv => beginStoringConversations([conv]));
 
 export const receiveGroupMessageEpic = action$ =>
@@ -262,3 +308,55 @@ export const goNextConversationEpic = (action$, { getState }) =>
     .filter(({ jids }) => jids.length > 0)
     .filter(({ jids, selectedIndex }) => selectedIndex === -1 || selectedIndex < jids.length - 1)
     .map(({ jids, selectedIndex }) => selectConversation(jids[selectedIndex + 1]));
+
+
+
+const getEncrypted = (jid, body, devices, selfDevices) => {
+  let aeskey = generateAESKey();
+  let uid = jid.substring(0, jid.indexOf('@'));//new JID(jid).local;//.substring(0,jid.indexOf('@'));
+  let dk = JSON.parse(devices);
+  let selfDk = JSON.parse(selfDevices);
+  // let selfUid = selfConfig.JID.local;//.jid.substring(0,selfConfig.jid.indexOf('@'));
+
+  let flag = false;
+  let keys = [];
+  for (let i in dk) {
+    let did = dk[i];
+    if (!did.key || did.key.length < 10) {
+      continue;
+    }
+    let key = {
+      uid: uid,
+      rid: did.id,
+      text: encrypte(did.key, aeskey)
+    }
+    keys.push(key);
+    flag = true;
+  }
+  for (let i in selfDk) {
+    let did = selfDk[i];
+    if (did.id == window.localStorage.deviceId || !did.key || did.key.length < 10) {
+      continue;
+    }
+    let key = {
+      uid: window.localStorage.jidLocal,
+      rid: did.id,
+      text: encrypte(did.key, aeskey)
+    }
+    keys.push(key);
+  }
+
+  //对称加密body
+  if (flag) {
+    let ediEncrypted = {
+      header: {
+        sid: window.localStorage.deviceId,
+        key: keys
+      },
+      payload: encryptByAES(aeskey, body)
+    }
+    return ediEncrypted;
+
+  }
+  return false;
+}

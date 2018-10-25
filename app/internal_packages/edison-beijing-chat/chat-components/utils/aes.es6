@@ -1,3 +1,4 @@
+import uuid from 'uuid/v4';
 // 导入 crypto-js 包
 const CryptoJS = require('crypto-js');
 

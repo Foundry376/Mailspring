@@ -7,8 +7,13 @@ export const FAIL_FETCH_ROSTER = 'FAIL_FETCH_ROSTER';
 export const USER_AVAILABLE = 'USER_AVAILABLE';
 export const USER_UNAVAILABLE = 'USER_UNAVAILABLE';
 
+export const BEGIN_FETCH_E2EE = 'BEGIN_FETCH_E2EE';
+export const SUCCESS_FETCH_E2EE = 'SUCCESS_FETCH_E2EE';
 // Roster management
 export const fetchRoster = () => ({ type: BEGIN_FETCH_ROSTER });
+
+export const fetchE2ee = () => ({ type: BEGIN_FETCH_E2EE });//yazz+
+export const succesfullyFetchedE2ee = result => ({ type: SUCCESS_FETCH_E2EE, payload: result });
 
 export const succesfullyFetchedRoster = result => ({ type: SUCCESS_FETCH_ROSTER, payload: result });
 

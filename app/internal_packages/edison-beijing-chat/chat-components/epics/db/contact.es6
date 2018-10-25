@@ -1,8 +1,10 @@
 import { Observable } from 'rxjs/Observable';
 import {
+  BEGIN_STORE_E2EES,
   BEGIN_STORE_CONTACTS,
   RETRIEVE_STORED_CONTACTS,
   successfullyStoredContacts,
+  successfullyStoredE2ees,
   failedStoringContacts,
   failedRetrievingContacts,
   updateStoredContacts,
@@ -21,6 +23,20 @@ const saveContacts = async contacts => {
             name,
             email,
             avatar
+          })
+      )
+  );
+};
+const saveE2ees = async e2ees => {
+  const db = await getDb();
+  return Promise.all(
+    e2ees.filter(({ devices }) => !!devices)
+      .map(({ jid, devices }) =>
+        db.e2ees
+          .upsert({
+            jid,
+            devices
+            //key
           })
       )
   );
@@ -49,4 +65,15 @@ export const retrieveContactsEpic = action$ =>
             .map(contacts => updateStoredContacts(contacts))
         )
         .catch(error => Observable.of(failedRetrievingContacts(error)))
+    );
+
+export const storeE2eesEpic = action$ =>
+  action$.ofType(BEGIN_STORE_E2EES)
+    .mergeMap(({ payload }) =>
+      Observable.fromPromise(saveE2ees(payload))
+        .map(e2ees => successfullyStoredE2ees(e2ees))
+        .catch(error => {
+          console.error(error);
+          //return Observable.of(failedStoringContacts(error, payload))
+        })
     );

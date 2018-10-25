@@ -103,6 +103,14 @@ export class Xmpp extends EventEmitter3 {
     return this.client.getRoster();
   }
 
+  async getE2ee() {//yazzxx
+    this.requireConnection();
+    return this.client.getE2ee();
+  }
+  async setE2ee(user) {//yazzxx
+    this.requireConnection();
+    return this.client.setE2ee(user);
+  }
   /**
    * Joins the rooms with the provided Jids. Requires connection to server.
    * @param   {...string} roomJids  The jids of the rooms to join

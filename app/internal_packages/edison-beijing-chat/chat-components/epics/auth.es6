@@ -1,3 +1,4 @@
+import uuid from 'uuid/v4';
 import { Observable } from 'rxjs/Observable';
 import { replace } from 'react-router-redux';
 import xmpp from '../xmpp';
@@ -33,16 +34,18 @@ export const submitAuthEpic = action$ => action$.ofType(SUBMIT_AUTH)
  */
 export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTION_AUTH)
   .mergeMap(({ payload: { jid, password } }) => {
-    let deviceId = '2b92e45c-2fde-48e3-9335-421c8c57777f';
-    let resource = deviceId.replace(/-/g, '');
+    // let deviceId = '2b92e45c-2fde-48e3-9335-421c8c57777f';
+    if (!window.localStorage.deviceId) {
+      window.localStorage.deviceId = uuid();
+    }
     xmpp.init({
       jid,
       password,
       transport: 'websocket',
       //wsURL: 'ws://192.168.1.103:5290'
       wsURL: 'ws://tigase.stag.easilydo.cc:5290',
-      resource: resource,
-      deviceId: deviceId,//'2b92e45c-2fde-48e3-9335-421c8c57777f"',
+      resource: window.localStorage.deviceId.replace(/-/g, ''),
+      deviceId: window.localStorage.deviceId,//'2b92e45c-2fde-48e3-9335-421c8c57777f"',
       timespan: new Date().getTime(),
       deviceType: 'desktop_new',
       deviceModel: process.platform,
@@ -50,6 +53,12 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
       clientVerName: '1.0.0',
       //sessionId: window.localStorage.sessionId
     });
+    if (jid.indexOf('/') > 0) {
+      window.localStorage.jid = jid.substring(0, jid.indexOf('/'));//{ jid, local: jid.substring(0, jid.indexOf('@')) };
+    } else {
+      window.localStorage.jid = jid;//{ jid, local: jid.substring(0, jid.indexOf('@')) };
+    }
+    window.localStorage.jidLocal = jid.substring(0, jid.indexOf('@'));
     return Observable.fromPromise(xmpp.connect())
       .map(res => successfulConnectionAuth(res))
       .catch(error => Observable.of(failConnectionAuth(error)));

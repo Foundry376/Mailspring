@@ -8,11 +8,19 @@ export const RETRIEVE_STORED_CONTACTS = 'RETRIEVE_STORED_CONTACTS';
 export const FAIL_RETRIEVE_STORED_CONTACTS = 'FAIL_RETRIEVE_STORED_CONTACTS';
 export const UPDATE_STORED_CONTACTS = 'UPDATE_STORED_CONTACTS';
 
+export const BEGIN_STORE_E2EES = 'BEGIN_STORE_E2EES';
+export const SUCCESS_STORE_E2EES = 'SUCCESS_STORE_E2EES';
+
 // Contact storage
 export const storeContacts = contacts => ({ type: BEGIN_STORE_CONTACTS, payload: contacts });
 
+export const storeE2ees = e2ees => ({ type: BEGIN_STORE_E2EES, payload: e2ees });
+
 export const successfullyStoredContacts = contacts =>
   ({ type: SUCCESS_STORE_CONTACTS, payload: contacts });
+
+export const successfullyStoredE2ees = e2ees =>
+  ({ type: SUCCESS_STORE_E2EES, payload: e2ees });
 
 export const failedStoringContacts = (error, contacts) =>
   ({ type: FAIL_STORE_CONTACTS, payload: { error, contacts } });

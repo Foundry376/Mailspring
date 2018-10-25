@@ -23,7 +23,7 @@ export default class ChatPage extends PureComponent {
       jid: PropTypes.string.isRequired,
       // Warning: Failed prop type
       name: PropTypes.string.isRequired,
-      email: PropTypes.string,//.isRequired,
+      email: PropTypes.string.isRequired,
       avatar: PropTypes.string
     })),
     groupedMessages: PropTypes.arrayOf(

@@ -4,9 +4,18 @@ const strPriKey = "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAJVjkPly35zRh
 
 export const generateKey = () => {
     var key = new NodeRSA({ b: 1024 });//生成128位秘钥
-    console.log(key);
     var pubkey = key.exportKey('pkcs8-public');//导出公钥
     var prikey = key.exportKey('pkcs8-private');//导出私钥
+    let pub = pubkey.split('\n');
+    pubkey = '';
+    for (let i = 1; i < pub.length - 1; i++) {
+        pubkey += pub[i];
+    }
+    let pri = prikey.split('\n');
+    prikey = '';
+    for (let i = 1; i < pri.length - 1; i++) {
+        prikey += pri[i];
+    }
     console.log(pubkey);
     console.log(prikey);
     return { pubkey, prikey };
@@ -18,6 +27,7 @@ priKey.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码�
 
 // test();
 const test = () => {
+    debugger;
     const { pubkey, prikey } = generateKey();
     let aeskey = 'HHM3MWsucz6tq71CxeObsg==';
     let tjia = encrypte(strPubKey, 'hello ya');
@@ -30,8 +40,8 @@ const test = () => {
 }
 /**
  * 公钥加密
- * @param {公钥字符串}} pubKey
- * @param {待加密字符串} buffer
+ * @param {公钥字符串}} pubKey 
+ * @param {待加密字符串} buffer 
  */
 export const encrypte = (pubStr, data) => {
     let pub = new NodeRSA(pubStr, 'pkcs8-public');
@@ -41,7 +51,7 @@ export const encrypte = (pubStr, data) => {
 }
 /**
  * 私钥解密
- * @param {待解密字符串} buffer
+ * @param {待解密字符串} buffer 
  */
 export const decrypte = (data, priStr) => {
     if (priStr) {
