@@ -479,7 +479,7 @@ export default class Contact extends Model {
     let name = this.name;
 
     // At this point, if the name is empty we'll use the email address
-    if (!name || name.length === 0) {
+    if (!name || name.length === 0 || name === 'NIL') {
       name = this.email || '';
 
       // If the phrase has an '@', use everything before the @ sign
