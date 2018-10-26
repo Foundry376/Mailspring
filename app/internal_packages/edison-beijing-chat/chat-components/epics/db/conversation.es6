@@ -4,6 +4,7 @@ import {
   SELECT_CONVERSATION,
   CREATE_PRIVATE_CONVERSATION,
   CREATE_GROUP_CONVERSATION,
+  REMOVE_CONVERSATION,
   selectConversation,
 } from '../../actions/chat';
 // import { beginJoiningRooms } from '../../actions/auth';
@@ -39,8 +40,15 @@ const saveConversations = async conversations => {
 const retriveConversation = async jid => {
   const db = await getDb();
   debugger;
-  db.conversations.find({}).exec().then((conv => { console.log('conv:', conv) }));
   return db.conversations.findOne(jid).exec();
+};
+
+const removeConversation = async jid => {
+  const db = await getDb();
+  return (db.conversations.findOne(jid).exec()).then((conv) => {
+    conv.remove();
+
+  });
 };
 
 const clearConversationUnreadMessages = async jid => {
@@ -211,6 +219,17 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
       return conversation;
     })
     .map(conversation => beginStoringConversations([conversation]));
+
+export const removeConversationEpic = (action$, { getState }) =>
+  action$.ofType(REMOVE_CONVERSATION)
+    .map(({ payload: jid }) => {
+      debugger;
+      removeConversation(jid);
+      return jid;
+    }).map(jid => {
+      debugger;
+      return { type: 'REMOVING-CONVERSATION', payload: jid }
+  });
 
 // TODO quanzs joinRoom
 // export const joinRoomEpic = (action$, { getState }) =>

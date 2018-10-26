@@ -23,23 +23,35 @@ export default class ConversationItem extends PureComponent {
     referenceTime: new Date().getTime(),
   }
 
+  onClickRemove = (event) => {
+    console.log('remove conversation');
+    event.stopPropagation();
+    event.preventDefault();
+    const { conversation, removeconversation } = this.props;
+    debugger;
+    removeconversation(conversation.jid);
+  }
+
   render() {
-    const { selected, conversation, referenceTime, ...otherProps } = this.props;
+    const { selected, conversation, referenceTime, onTouchTap, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
 
     return (
-      <div className={'item' + (selected ? ' selected' : '')} {...otherProps}>
-        < ContactAvatar name={conversation.name} jid={conversation.jid} />
-        <div className="content">
-          <div className="headerRow">
-            <span className="headerText">{conversation.name}</span>
-            <span className="headerSecondaryText">
-              {timeDescriptor(conversation.lastMessageTime)}
-            </span>
-          </div>
-          <div className="subHeader">{conversation.lastMessageText}</div>
-          <span>{conversation.unreadMessages}</span>
+      <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
+        <div onTouchTap={onTouchTap} style={{ width: '85%' }}>
+          < ContactAvatar name={conversation.name} jid={conversation.jid} style={{ display: 'inline-block' }}/>
+          <div className="content"  style={{ display: 'inline-block' }}>
+            <div className="headerRow"  style={{ display: 'inline-block' }}>
+              <span className="headerText">{conversation.name}</span>
+            </div>
+            <div className="headerRow"  style={{ display: 'inline-block' }}>
+                {timeDescriptor(conversation.lastMessageTime)}
+              </div>
+            <div className="subHeader">{conversation.lastMessageText}</div>
+            <span>{conversation.unreadMessages}</span>
         </div>
+        </div>
+          <span style={{ float: "right" }} onClick = {this.onClickRemove}> remove </span>
       </div >
     );
   }

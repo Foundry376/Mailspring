@@ -5,6 +5,7 @@ import Conversations from './Conversations';
 import ConversationsTopBar from './ConversationsTopBar';
 import Button from '../../common/Button';
 import Divider from '../../common/Divider';
+import { removeConversation } from '../../../actions/chat';
 
 export default class ConversationsPanel extends PureComponent {
   static propTypes = {
@@ -33,6 +34,7 @@ export default class ConversationsPanel extends PureComponent {
       conversations,
       selectedConversationJid,
       referenceTime,
+      removeConversation
     } = this.props;
     const selectedIndex = conversations.map(conv => conv.jid)
       .indexOf(selectedConversationJid);
@@ -42,6 +44,7 @@ export default class ConversationsPanel extends PureComponent {
       conversations,
       selectedIndex,
       referenceTime,
+      removeConversation
     };
 
     return (

@@ -32,6 +32,7 @@ export default class Conversations extends PureComponent {
             conversation={conv}
             referenceTime={referenceTime}
             onTouchTap={() => selectConversation(conv.jid)}
+            removeconversation={this.props.removeConversation}
           />
         ))}
       </div>

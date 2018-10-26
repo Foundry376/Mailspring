@@ -87,6 +87,7 @@ export default class ChatPage extends PureComponent {
       groupedMessages,
       referenceTime,
       selectedConversation,
+      removeConversation,
     } = this.props;
     const selectedConversationJid = selectedConversation ? selectedConversation.jid : null;
 
@@ -96,6 +97,7 @@ export default class ChatPage extends PureComponent {
       conversations,
       selectedConversationJid,
       referenceTime,
+      removeConversation,
     };
     const messagesPanelProps = {
       deselectConversation,
