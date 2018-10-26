@@ -188,21 +188,6 @@ export const receivePrivateMessageEpic = action$ =>
     })
     .map(({ payload }) => receivePrivateMessage(payload));
 
-export const addUnreadMessagesEpic = action$ =>
-  action$.ofType(RECEIVE_CHAT)
-    .filter(({ payload }) => {
-      return payload.body
-    })
-    // get the latest name for display
-    .mergeMap(
-      ({ payload }) => Observable.fromPromise(getDb())
-        .map(db => ({ db, payload }))
-    )
-    .mergeMap(({ db, payload }) =>
-      Observable.fromPromise(db.conversations && db.conversations.findOne(payload.from.bare).exec())
-        .map(conv => Object.assign({}, conv, { unreadMessages: conv.unreadMessages + 1 }))
-    ).map(conv => beginStoringConversations([conv]));
-
 export const receiveGroupMessageEpic = action$ =>
   action$.ofType(RECEIVE_GROUPCHAT)
     .filter(({ payload }) => payload.body)
