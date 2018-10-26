@@ -37,9 +37,9 @@ import {
 import {
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
-import { isJsonString } from '../utils/stringUtils'
-import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generateAESKey } from '../utils/aes'
-import { encrypte, decrypte } from '../utils/rsa'
+import { isJsonString } from '../utils/stringUtils';
+import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generateAESKey } from '../utils/aes';
+import { encrypte, decrypte } from '../utils/rsa';
 
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
@@ -53,79 +53,100 @@ export const successSendMessageEpic = action$ =>
 
 export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
-    // .mergeMap(
-    //   ({ payload }) => Observable.fromPromise(getDb())
-    //     .map(db => ({ db, payload }))
-    // )//yazzzzz
-    // .mergeMap(({ db, payload }) => {
-    //   return Observable.fromPromise(db.e2ees.findOne(payload.conversation.jid).exec())
-    //     .map(e2ee => {
-    //       if (e2ee) {
-    //         payload.devices = e2ee.devices;
-    //       }
-    //       return { db, payload };
-    //     })
-    // })
-    // .mergeMap(({ db, payload }) => {
-    //   return Observable.fromPromise(db.e2ees.findOne(window.localStorage.jid).exec())
-    //     .map(e2ee => {
-    //       if (e2ee) {
-    //         payload.selfDevices = e2ee.devices;
-    //       }
-    //       return { payload };
-    //     })
-    // })
-    // .map(({ payload: { conversation, body, id, devices, selfDevices } }) => {
-    //   console.log('sendMessageEpic payload', body);
-    //   let ediEncrypted;
-    //   if (devices) {
-    //     ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices);
-    //   }
-    //   if (ediEncrypted) {
-    //     return ({
-    //       id,
-    //       ediEncrypted: ediEncrypted,
-    //       to: conversation.jid,
-    //       type: conversation.isGroup ? 'groupchat' : 'chat'
-    //     });
-    //   } else {
-    //     return ({
-    //       id,
-    //       body: body,
-    //       to: conversation.jid,
-    //       type: conversation.isGroup ? 'groupchat' : 'chat'
-    //     });
-    //   }
-    // })
-    .map(({ payload: { conversation, body, id } }) => {
-      return ({
-        id,
-        body,
-        to: conversation.jid,
-        type: conversation.isGroup ? 'groupchat' : 'chat'
-      })
+    .mergeMap(
+      ({ payload }) => Observable.fromPromise(getDb())
+        .map(db => ({ db, payload }))
+    )//yazzzzz
+    .mergeMap(({ db, payload }) => {
+      return Observable.fromPromise(db.e2ees.findOne(payload.conversation.jid).exec())
+        .map(e2ee => {
+          if (e2ee) {
+            payload.devices = e2ee.devices;
+          }
+          return { db, payload };
+        })
     })
-
-    .map(message => sendingMessage(message))
+    .mergeMap(({ db, payload }) => {
+      return Observable.fromPromise(db.e2ees.findOne(window.localStorage.jid).exec())
+        .map(e2ee => {
+          if (e2ee) {
+            payload.selfDevices = e2ee.devices;
+          }
+          return { payload };
+        })
+    })
+    .map(({ payload: { conversation, body, id, devices, selfDevices } }) => {
+      console.log('sendMessageEpic payload', body);
+      let ediEncrypted;
+      if (devices) {
+        ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices);
+      }
+      if (ediEncrypted) {
+        return ({
+          id,
+          ediEncrypted: ediEncrypted,
+          to: conversation.jid,
+          type: conversation.isGroup ? 'groupchat' : 'chat'
+        });
+      } else {
+        return ({
+          id,
+          body: body,
+          to: conversation.jid,
+          type: conversation.isGroup ? 'groupchat' : 'chat'
+        });
+      }
+    })
+    // .map(({ payload: { conversation, body, id } }) => {
+    //   return ({
+    //     id,
+    //     body,
+    //     to: conversation.jid,
+    //     type: conversation.isGroup ? 'groupchat' : 'chat'
+    //   })
+    // })
+    .map(message => sendingMessage(message))//yazzz1
     .do(({ payload }) => {
       return xmpp.sendMessage(payload)
     });
 
 export const newTempMessageEpic = (action$, { getState }) =>
-  action$.ofType(SENDING_MESSAGE)
+  action$.ofType(SENDING_MESSAGE)//yazzz2
     .map(({ payload }) => {
       const { auth: { currentUser: { bare: currentUser } } } = getState();
+      console.log('newTempMessageEpic payload', payload);
+      if (payload.ediEncrypted) {
+        let keys = payload.ediEncrypted.header.key;//JSON.parse(msg.body);
+        let text = getAes(keys);
+        if (text) {
+          let aes = decrypte(text, window.localStorage.priKey);
+          payload.body = decryptByAES(aes, payload.ediEncrypted.payload);
+        }
+      }
       return {
         id: payload.id,
         conversationJid: payload.to,
         sender: currentUser,
-        body: payload.body,
+        body: payload.body,// || payload.ediEncrypted,//yazzz3
         sentTime: (new Date()).getTime(),
         status: MESSAGE_STATUS_SENDING,
       };
     })
     .map(newPayload => newMessage(newPayload));
-
+const getAes = (keys) => {
+  if (keys) {
+    let text;
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i];
+      if (key.uid == window.localStorage.jidLocal
+        && key.rid == window.localStorage.deviceId) {
+        text = key.text;
+        break;
+      }
+    };
+    return text;
+  }
+}
 export const convertSentMessageEpic = action$ =>
   action$.ofType(SUCCESS_SEND_MESSAGE)
     .map(({ payload }) => ({
@@ -170,7 +191,18 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
     .filter(({ payload }) => {
-      return payload.body
+      if (payload.payload) {
+        let keys = payload.keys;//JSON.parse(msg.body);
+        if (keys[window.localStorage.jidLocal]
+          && keys[window.localStorage.jidLocal][window.localStorage.deviceId]) {
+          let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
+          if (text) {
+            let aes = decrypte(text, window.localStorage.priKey);
+            payload.body = decryptByAES(aes, payload.payload);
+          }
+        }
+      }
+      return payload.body;
     })
     // get the latest name for display
     .mergeMap(
@@ -188,6 +220,32 @@ export const receivePrivateMessageEpic = action$ =>
     })
     .map(({ payload }) => receivePrivateMessage(payload));
 
+// export const addUnreadMessagesEpic = action$ =>
+//   action$.ofType(RECEIVE_CHAT)
+//     .filter(({ payload }) => {
+//       if (!payload.body && payload.payload) {
+//         let keys = payload.keys;//JSON.parse(msg.body);
+//         if (keys[window.localStorage.jidLocal]
+//           && keys[window.localStorage.jidLocal][window.localStorage.deviceId]) {
+//           let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
+//           if (text) {
+//             let aes = decrypte(text, window.localStorage.priKey);
+//             payload.body = decryptByAES(aes, payload.payload);
+//           }
+//         }
+//       }
+//       return payload.body;
+//     })
+//     // get the latest name for display
+//     .mergeMap(
+//       ({ payload }) => Observable.fromPromise(getDb())
+//         .map(db => ({ db, payload }))
+//     )
+//     .mergeMap(({ db, payload }) =>
+//       Observable.fromPromise(db.conversations && db.conversations.findOne(payload.from.bare).exec())
+//         .map(conv => Object.assign({}, conv, { unreadMessages: conv.unreadMessages + 1 }))
+//     ).map(conv => beginStoringConversations([conv]));
+
 export const receiveGroupMessageEpic = action$ =>
   action$.ofType(RECEIVE_GROUPCHAT)
     .filter(({ payload }) => payload.body)
@@ -196,12 +254,12 @@ export const receiveGroupMessageEpic = action$ =>
 export const convertReceivedPrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE)
     .map(({ payload }) => {
-      const { content, timeSend } = JSON.parse(payload.body);
+      const { timeSend } = JSON.parse(payload.body);
       return {
         id: payload.id,
         conversationJid: payload.from.bare,
         sender: payload.from.bare,
-        body: content,
+        body: payload.body,
         sentTime: (new Date(timeSend)).getTime(),
         status: MESSAGE_STATUS_RECEIVED,
       };
@@ -294,8 +352,6 @@ export const goNextConversationEpic = (action$, { getState }) =>
     .filter(({ jids, selectedIndex }) => selectedIndex === -1 || selectedIndex < jids.length - 1)
     .map(({ jids, selectedIndex }) => selectConversation(jids[selectedIndex + 1]));
 
-
-
 const getEncrypted = (jid, body, devices, selfDevices) => {
   let aeskey = generateAESKey();
   let uid = jid.substring(0, jid.indexOf('@'));//new JID(jid).local;//.substring(0,jid.indexOf('@'));
@@ -320,7 +376,7 @@ const getEncrypted = (jid, body, devices, selfDevices) => {
   }
   for (let i in selfDk) {
     let did = selfDk[i];
-    if (did.id == window.localStorage.deviceId || !did.key || did.key.length < 10) {
+    if (!did.key || did.key.length < 10) {
       continue;
     }
     let key = {
