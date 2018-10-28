@@ -1,5 +1,18 @@
 # Mailspring Changelog
 
+### 1.5.1 (10/27/2018)
+
+Improvements:
+
+* Thousands of translations have been improved or manually reviewed. Thanks to @odie2 @pamo @SimonVanacco @louim @DarkSmile92 @phylophyl and @renfliu for help in 6 languages!
+
+* Mailspring now ships Linux appdata files (Thanks @kirbyfan64!)
+
+Fixes:
+
+* Reverts a change to IMAP message parsing that was designed to extend support for Proton Mail Bridge,
+  which caused many emails from some IMAP servers to appear to be from "NIL".
+
 ### 1.5.0 (10/22/2018)
 
 Features:

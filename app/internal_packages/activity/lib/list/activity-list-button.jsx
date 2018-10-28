@@ -1,5 +1,5 @@
 import React from 'react';
-import { Actions, ReactDOM } from 'mailspring-exports';
+import { Actions, ReactDOM, localized } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
 import ActivityList from './activity-list';
@@ -44,7 +44,12 @@ class ActivityListButton extends React.Component {
       iconClass += ' unread';
     }
     return (
-      <div tabIndex={-1} className="toolbar-activity" title="View activity" onClick={this.onClick}>
+      <div
+        tabIndex={-1}
+        className="toolbar-activity"
+        title={localized('View activity')}
+        onClick={this.onClick}
+      >
         <div className={unreadCountClass}>{this.state.unreadCount}</div>
         <RetinaImg
           name="icon-toolbar-activity.png"
