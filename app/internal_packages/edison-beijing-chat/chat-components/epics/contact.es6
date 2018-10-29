@@ -20,8 +20,11 @@ import xmpp from '../xmpp';
 
 export const triggerFetchRosterEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
-    .mapTo(fetchRoster())
-    .mapTo(fetchE2ee());//yazzxx1
+    .map(fetchRoster)
+
+export const triggerFetchE2eeEpic = action$ =>
+  action$.ofType(SUCCESS_AUTH)
+    .map(fetchE2ee);//yazzxx1
 
 export const fetchRosterEpic = action$ =>
   action$.ofType(BEGIN_FETCH_ROSTER)//yazzxx2
@@ -48,7 +51,7 @@ export const triggerStoreContactsEpic = action$ =>
 
 export const fetchE2eeEpic = action$ =>
   action$.ofType(BEGIN_FETCH_E2EE)//yazzxx2
-    .mapTo(() => {
+    .map(() => {
       if (!window.localStorage.priKey) {
         let { pubkey, prikey } = generateKey();
         window.localStorage.pubKey = pubkey;
