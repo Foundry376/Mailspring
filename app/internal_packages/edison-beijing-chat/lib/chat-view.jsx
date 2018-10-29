@@ -6,7 +6,7 @@ import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
 const store = configureStore();
 
-export default class ChatButton extends React.Component {
+export default class ChatView extends React.Component {
   static displayName = 'ChatView';
 
   render() {
