@@ -20,7 +20,7 @@ export default {
     },
     occupants: { // Jids of occupants
       type: 'array',
-      uniqueItems: true,
+      // uniqueItems: true,
       item: {
         type: 'string'
       }

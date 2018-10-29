@@ -208,8 +208,7 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
         unreadMessages: 0,
         occupants: [
           currentUser.bare,
-          ...jidArr,
-          'testmail' + new Date().getTime() + '@testmail.com'
+          ...jidArr
         ],
         lastMessageTime: (new Date(timeSend)).getTime(),
         lastMessageText: content,
@@ -226,7 +225,7 @@ export const removeConversationEpic = (action$, { getState }) =>
       return jid;
     }).map(jid => {
       return { type: 'REMOVING-CONVERSATION', payload: jid }
-  });
+    });
 
 // TODO quanzs joinRoom
 // export const joinRoomEpic = (action$, { getState }) =>
