@@ -8,6 +8,7 @@ export default class Conversations extends PureComponent {
     selectedIndex: PropTypes.number,
     selectConversation: PropTypes.func.isRequired,
     referenceTime: PropTypes.number,
+    removeConversation: PropTypes.func
   };
 
   static defaultProps = {
@@ -21,18 +22,19 @@ export default class Conversations extends PureComponent {
       selectConversation,
       selectedIndex,
       referenceTime,
+      removeConversation
     } = this.props;
 
     return (
       <div>
-        { conversations.map((conv, index) => (
+        {conversations.map((conv, index) => (
           <ConversationItem
             key={conv.jid}
             selected={selectedIndex === index}
             conversation={conv}
             referenceTime={referenceTime}
             onTouchTap={() => selectConversation(conv.jid)}
-            removeconversation={this.props.removeConversation}
+            removeConversation={removeConversation}
           />
         ))}
       </div>

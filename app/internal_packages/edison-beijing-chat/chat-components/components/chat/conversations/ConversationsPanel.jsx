@@ -14,6 +14,7 @@ export default class ConversationsPanel extends PureComponent {
     conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
     selectedConversationJid: PropTypes.string,
     referenceTime: PropTypes.number,
+    removeConversation: PropTypes.func
   };
 
   static defaultProps = {
