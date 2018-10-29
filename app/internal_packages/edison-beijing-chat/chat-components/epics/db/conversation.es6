@@ -39,7 +39,6 @@ const saveConversations = async conversations => {
 
 const retriveConversation = async jid => {
   const db = await getDb();
-  debugger;
   return db.conversations.findOne(jid).exec();
 };
 
@@ -223,11 +222,9 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
 export const removeConversationEpic = (action$, { getState }) =>
   action$.ofType(REMOVE_CONVERSATION)
     .map(({ payload: jid }) => {
-      debugger;
       removeConversation(jid);
       return jid;
     }).map(jid => {
-      debugger;
       return { type: 'REMOVING-CONVERSATION', payload: jid }
   });
 
