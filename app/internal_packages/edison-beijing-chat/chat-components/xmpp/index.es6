@@ -111,6 +111,59 @@ export class Xmpp extends EventEmitter3 {
     this.requireConnection();
     return this.client.setE2ee(user);
   }
+
+  //------------------room start
+  /**
+   * 
+   * @param room 
+   * @param opts { name:'room name', subject:'subject', description:'description'}
+   */
+  async setRoomName(room, opts) {
+    return client.setRoomName(room, opts);
+  }
+  async setNickName(room, nick) {
+    return client.setNickName(room, nick);
+  }
+  async addMember(room, jid) {
+    return client.addMember(room, jid);
+  }
+  async leaveRoom(room, jid) {
+    return client.leaveRoom(room, jid);
+  }
+  async destroyRoom(room, reason) {
+    return client.destroyRoom(room, { reason: reason });
+  }
+  /**
+   * 
+   * @param room 
+   * @param opts 
+   * {
+   *    type:'create',
+   *    name:'yazz_test',
+   *    subject:'yazz test',
+   *    description:'description',
+   *    members:{
+   *        jid:['100004@im.edison.tech','100007@im.edison.tech','1000@im.edison.tech']
+   *    }
+   * }
+   */
+  async createRoom(room, opts) {
+    return client.createRoom(room, opts);
+  }
+  async getRoomMembers(room, ver) {
+    return client.getRoomMembers(room, {
+      ver: ver,
+      items: [{
+        affiliation: 'member'
+      }]
+    });
+  }
+  async getRoomList(ver) {
+    return client.getRoomList(ver);
+  }
+
+  //----------------------room end
+
   /**
    * Joins the rooms with the provided Jids. Requires connection to server.
    * @param   {...string} roomJids  The jids of the rooms to join
