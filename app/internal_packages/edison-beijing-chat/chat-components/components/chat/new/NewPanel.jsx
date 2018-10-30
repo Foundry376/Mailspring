@@ -5,6 +5,7 @@ import NewFilterBar from './NewFilterBar';
 import NewSelectedChips from './NewSelectedChips';
 import NewContactsList from './NewContactsList';
 import Divider from '../../common/Divider';
+import uuid from 'uuid/v4'
 
 export default class NewPanel extends PureComponent {
   static propTypes = {
@@ -62,7 +63,8 @@ export default class NewPanel extends PureComponent {
     const { onGroupConversationCompleted } = this.props;
     const { selectedContacts } = this.state;
     if (onGroupConversationCompleted && selectedContacts.length) {
-      onGroupConversationCompleted(selectedContacts);
+      const roomId = uuid() + '@muc.im.edison.tech';
+      onGroupConversationCompleted({ contacts: selectedContacts, roomId });
     }
   }
 

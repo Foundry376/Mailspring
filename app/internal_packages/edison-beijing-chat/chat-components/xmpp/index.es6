@@ -119,19 +119,19 @@ export class Xmpp extends EventEmitter3 {
    * @param opts { name:'room name', subject:'subject', description:'description'}
    */
   async setRoomName(room, opts) {
-    return client.setRoomName(room, opts);
+    return this.client.setRoomName(room, opts);
   }
   async setNickName(room, nick) {
-    return client.setNickName(room, nick);
+    return this.client.setNickName(room, nick);
   }
   async addMember(room, jid) {
-    return client.addMember(room, jid);
+    return this.client.addMember(room, jid);
   }
   async leaveRoom(room, jid) {
-    return client.leaveRoom(room, jid);
+    return this.client.leaveRoom(room, jid);
   }
   async destroyRoom(room, reason) {
-    return client.destroyRoom(room, { reason: reason });
+    return this.client.destroyRoom(room, { reason: reason });
   }
   /**
    * 
@@ -148,10 +148,10 @@ export class Xmpp extends EventEmitter3 {
    * }
    */
   async createRoom(room, opts) {
-    return client.createRoom(room, opts);
+    return this.client.createRoom(room, opts);
   }
   async getRoomMembers(room, ver) {
-    return client.getRoomMembers(room, {
+    return this.client.getRoomMembers(room, {
       ver: ver,
       items: [{
         affiliation: 'member'

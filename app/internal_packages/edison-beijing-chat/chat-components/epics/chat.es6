@@ -14,6 +14,7 @@ import {
   RECEIVE_GROUPCHAT,
   MESSAGE_SENT,
   RECEIVE_PRIVATE_MESSAGE,
+  RECEIVE_GROUP_MESSAGE,
   SENDING_MESSAGE,
   SUCCESS_SEND_MESSAGE,
   CREATE_PRIVATE_CONVERSATION,
@@ -76,7 +77,6 @@ export const sendMessageEpic = action$ =>
         })
     })
     .map(({ payload: { conversation, body, id, devices, selfDevices } }) => {
-      console.log('sendMessageEpic payload', body);
       let ediEncrypted;
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices);
@@ -114,7 +114,6 @@ export const newTempMessageEpic = (action$, { getState }) =>
   action$.ofType(SENDING_MESSAGE)//yazzz2
     .map(({ payload }) => {
       const { auth: { currentUser: { bare: currentUser } } } = getState();
-      console.log('newTempMessageEpic payload', payload);
       if (payload.ediEncrypted) {
         let keys = payload.ediEncrypted.header.key;//JSON.parse(msg.body);
         let text = getAes(keys);
@@ -248,17 +247,37 @@ export const receivePrivateMessageEpic = action$ =>
 
 export const receiveGroupMessageEpic = action$ =>
   action$.ofType(RECEIVE_GROUPCHAT)
-    .filter(({ payload }) => payload.body)
+    .filter(({ payload }) => {
+      if (payload.payload) {
+        let keys = payload.keys;//JSON.parse(msg.body);
+        if (keys[window.localStorage.jidLocal]
+          && keys[window.localStorage.jidLocal][window.localStorage.deviceId]) {
+          let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
+          if (text) {
+            let aes = decrypte(text, window.localStorage.priKey);
+            payload.body = decryptByAES(aes, payload.payload);
+          }
+        }
+      }
+      return payload.body;
+    })
     .map(({ payload }) => receiveGroupMessage(payload));
 
-export const convertReceivedPrivateMessageEpic = action$ =>
-  action$.ofType(RECEIVE_PRIVATE_MESSAGE)
-    .map(({ payload }) => {
+export const convertReceivedPrivateMessageEpic = (action$, { getState }) =>
+  action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
+    .filter(({ type, payload }) => {
+      // if groupchat and the "sender" is your self, skip the message
+      if (type === RECEIVE_GROUP_MESSAGE && payload.from.resource === getState().auth.currentUser.local) {
+        return false;
+      }
+      return true;
+    })
+    .map(({ type, payload }) => {
       const { timeSend } = JSON.parse(payload.body);
       return {
         id: payload.id,
         conversationJid: payload.from.bare,
-        sender: payload.from.bare,
+        sender: type === RECEIVE_GROUP_MESSAGE ? payload.from.resource : payload.from.bare,
         body: payload.body,
         sentTime: (new Date(timeSend)).getTime(),
         status: MESSAGE_STATUS_RECEIVED,
@@ -267,8 +286,8 @@ export const convertReceivedPrivateMessageEpic = action$ =>
     .map(newPayload => newMessage(newPayload));
 
 export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
-  action$.ofType(RECEIVE_PRIVATE_MESSAGE)
-    .map(({ payload }) => {
+  action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
+    .map(({ type, payload }) => {
       const { content, timeSend } = JSON.parse(payload.body);
       // if not current conversation, unreadMessages + 1
       let unreadMessages = 0;
@@ -279,7 +298,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
       return {
         jid: payload.from.bare,
         name: payload.from.local,
-        isGroup: false,
+        isGroup: type === RECEIVE_GROUP_MESSAGE ? true : false,
         unreadMessages: unreadMessages,
         occupants: [
           payload.from.bare,

@@ -13,6 +13,7 @@ import {
   FAIL_STORE_CONVERSATIONS,
   RETRY_STORE_CONVERSATIONS,
   RETRIEVE_ALL_CONVERSATIONS,
+  REMOVING_CONVERSATION,
   successfullyStoredConversations,
   failedStoringConversations,
   retryStoringConversations,
@@ -23,6 +24,7 @@ import {
   failedSelectingConversation,
   beginStoringConversations
 } from '../../actions/db/conversation';
+import xmpp from '../../xmpp/index.es6';
 
 const saveConversations = async conversations => {
   const db = await getDb();
@@ -161,24 +163,39 @@ export const crateIntiatedPrivateConversationEpic = (action$, { getState }) =>
         })
         .map(conversation => beginStoringConversations([conversation])))
 
-// TODO quanzs did not complete, jid is temp
+// TODO quanzs did not complete, name, subject and description is temp
 export const groupConversationCreatedEpic = (action$, { getState }) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
-    .mergeMap(({ payload: contacts }) => {
+    .mergeMap(({ payload: { contacts, roomId } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
-      const jids = jidArr.join('|');
-      const names = contacts.map(contact => contact.name).sort().join(',');
+      const name = 'test name';
+      const opt = {
+        type: 'create',
+        name: name,
+        subject: 'test subject',
+        description: 'teset description',
+        members: {
+          jid: jidArr
+        }
+      }
+      return Observable.fromPromise(xmpp.createRoom(roomId, opt))
+        .map(() => {
+          return { payload: { contacts, roomId, name } }
+        });
+    })
+    .mergeMap(({ payload: { contacts, roomId, name } }) => {
+      const jidArr = contacts.map(contact => contact.jid).sort();
       const emails = contacts.map(contact => contact.email).sort().join(',');
       const contact = contacts[0];
-      return Observable.fromPromise(retriveConversation(jids))
+      return Observable.fromPromise(retriveConversation(roomId))
         .map(conv => {
           if (conv) {
             return selectConversation(conv.jid);
           }
           const { auth: { currentUser } } = getState();
           return updateSelectedConversation({
-            jid: jids,
-            name: names,
+            jid: roomId,
+            name: name,
             email: emails,
             avatar: contact.avatar,
             isGroup: true,
@@ -194,16 +211,15 @@ export const groupConversationCreatedEpic = (action$, { getState }) =>
 // TODO quanzs save group coversation, the jids is temp
 export const updateGroupMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
-    .map(({ payload: contacts }) => {
+    .map(({ payload: { contacts, roomId } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
-      const jids = jidArr.join('|');
-      const names = contacts.map(contact => contact.name).sort().join(',');
+      const name = 'test name';
       const content = 'no message';
       const timeSend = new Date().getTime();
       const { auth: { currentUser } } = getState();
       const conversation = {
-        jid: jids,
-        name: names,
+        jid: roomId,
+        name: name,
         isGroup: true,
         unreadMessages: 0,
         occupants: [
@@ -224,12 +240,6 @@ export const removeConversationEpic = (action$, { getState }) =>
       removeConversation(jid);
       return jid;
     }).map(jid => {
-      return { type: 'REMOVING-CONVERSATION', payload: jid }
+      return { type: REMOVING_CONVERSATION, payload: jid }
     });
 
-// TODO quanzs joinRoom
-// export const joinRoomEpic = (action$, { getState }) =>
-//   action$.ofType(CREATE_GROUP_CONVERSATION)
-//     .map(({ payload: roomId }) => {
-//       return beginJoiningRooms([roomId])
-//     });
