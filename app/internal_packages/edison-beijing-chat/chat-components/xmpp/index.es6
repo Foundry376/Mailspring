@@ -159,7 +159,7 @@ export class Xmpp extends EventEmitter3 {
     });
   }
   async getRoomList(ver) {
-    return client.getRoomList(ver);
+    return this.client.getRoomList(ver);
   }
 
   //----------------------room end

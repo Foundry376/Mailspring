@@ -186,7 +186,6 @@ export const groupConversationCreatedEpic = (action$, { getState }) =>
     .mergeMap(({ payload: { contacts, roomId, name } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
       const emails = contacts.map(contact => contact.email).sort().join(',');
-      const contact = contacts[0];
       return Observable.fromPromise(retriveConversation(roomId))
         .map(conv => {
           if (conv) {
@@ -197,7 +196,7 @@ export const groupConversationCreatedEpic = (action$, { getState }) =>
             jid: roomId,
             name: name,
             email: emails,
-            avatar: contact.avatar,
+            avatar: 'GP', // this is temp
             isGroup: true,
             unreadMessages: 0,
             occupants: [

@@ -7,6 +7,8 @@ import NewContactsList from './NewContactsList';
 import Divider from '../../common/Divider';
 import uuid from 'uuid/v4'
 
+const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
+
 export default class NewPanel extends PureComponent {
   static propTypes = {
     onMount: PropTypes.func,
@@ -63,7 +65,7 @@ export default class NewPanel extends PureComponent {
     const { onGroupConversationCompleted } = this.props;
     const { selectedContacts } = this.state;
     if (onGroupConversationCompleted && selectedContacts.length) {
-      const roomId = uuid() + '@muc.im.edison.tech';
+      const roomId = uuid() + GROUP_CHAT_DOMAIN;
       onGroupConversationCompleted({ contacts: selectedContacts, roomId });
     }
   }
