@@ -152,7 +152,7 @@ export const crateIntiatedPrivateConversationEpic = (action$, { getState }) =>
               name: contact.name,
               occupants: [currentUser],
               isGroup: false,
-              // below is some unmeaningful filling to show th conversation
+              // below is some filling to show the conversation
               unreadMessages: 0,
               lastMessageSender: contact.jid,
               lastMessageText: ' ',
@@ -166,9 +166,8 @@ export const crateIntiatedPrivateConversationEpic = (action$, { getState }) =>
 // TODO quanzs did not complete, name, subject and description is temp
 export const groupConversationCreatedEpic = (action$, { getState }) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
-    .mergeMap(({ payload: { contacts, roomId } }) => {
+    .mergeMap(({ payload: { contacts, roomId, name } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
-      const name = 'test name';
       const opt = {
         type: 'create',
         name: name,
@@ -210,9 +209,8 @@ export const groupConversationCreatedEpic = (action$, { getState }) =>
 // TODO quanzs save group coversation, the jids is temp
 export const updateGroupMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
-    .map(({ payload: { contacts, roomId } }) => {
+    .map(({ payload: { contacts, roomId, name } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
-      const name = 'test name';
       const content = 'no message';
       const timeSend = new Date().getTime();
       const { auth: { currentUser } } = getState();

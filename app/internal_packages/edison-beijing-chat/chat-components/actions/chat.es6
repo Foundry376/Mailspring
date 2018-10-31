@@ -107,9 +107,9 @@ export const createPrivateConversation = contact => ({
   payload: contact,
 });
 
-export const createGroupConversation = ({ contacts, roomId }) => ({
+export const createGroupConversation = ({ contacts, roomId, name }) => ({
   type: CREATE_GROUP_CONVERSATION,
-  payload: { contacts, roomId },
+  payload: { contacts, roomId, name },
 });
 
 export const showConversationNotification = (conversationJid, title, body) => ({
