@@ -47,11 +47,11 @@ class SystemTrayIconStore {
     this._unsubscribers.forEach(unsub => unsub());
   }
 
-  _getIconImageData(isInboxZero, isWindowBlurred) {
+  _getIconImageData(isInboxZero, isWindowBlurred, areUnread) {
     if (isInboxZero) {
       return { iconPath: INBOX_ZERO_ICON, isTemplateImg: true };
     }
-    return isWindowBlurred
+    return isWindowBlurred && areUnread
       ? { iconPath: INBOX_UNREAD_ALT_ICON, isTemplateImg: false }
       : { iconPath: INBOX_UNREAD_ICON, isTemplateImg: true };
   }
@@ -72,7 +72,8 @@ class SystemTrayIconStore {
     const unread = BadgeStore.unread();
     const unreadString = (+unread).toLocaleString();
     const isInboxZero = BadgeStore.total() === 0;
-    const { iconPath, isTemplateImg } = this._getIconImageData(isInboxZero, this._windowBlurred);
+    const areUnread = unread !== 0;
+    const { iconPath, isTemplateImg } = this._getIconImageData(isInboxZero, this._windowBlurred, areUnread);
     ipcRenderer.send('update-system-tray', iconPath, unreadString, isTemplateImg);
   };
 }
