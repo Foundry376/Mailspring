@@ -39,11 +39,11 @@ export default class ConversationItem extends PureComponent {
       <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
         <div onTouchTap={onTouchTap} style={{ width: '95%' }}>
           < div style={{ display: 'inline-block', height: "48px", width: "48px", fontSize: "24px", borderRadius: "24px",
-            background: "rgb(255, 108, 95)", color: "white", overflow: "hidden", textAlign:"center", padding:"5px 0 0 0" }} >
+            background: "rgb(255, 108, 95)", color: "white", overflow: "hidden", textAlign:"center", paddingTop:"5px" }} >
             {conversation.name.slice(0,2).toUpperCase()}
           </div>
           <div className="content" style={{ display: 'inline-block', width:"85%"}}>
-            <div className="headerRow" style={{ display: 'inline-block', padding:"0 10px 0 0" }}>
+            <div className="headerRow" style={{ display: 'inline-block', paddingRight:"10px" }}>
               <span className="headerText">{conversation.name}</span>
             </div>
             <div className="headerRow" style={{ display: 'inline-block' }}>
@@ -58,5 +58,3 @@ export default class ConversationItem extends PureComponent {
     );
   }
 }
-
-<div style="height: 48px; width: 48px; min-width: 48px; min-height: 48px; font-size: 24px; border-radius: 24px; background: rgb(255, 108, 95); color: white; display: flex; align-items: center; justify-content: center; text-align: center; flex-shrink: 0;">第</div>
