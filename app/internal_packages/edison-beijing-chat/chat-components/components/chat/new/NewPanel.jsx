@@ -59,12 +59,12 @@ export default class NewPanel extends PureComponent {
     }
   }
 
-  createGroup() {
+  createGroup(name) {
     const { onGroupConversationCompleted } = this.props;
     const { selectedContacts } = this.state;
     if (onGroupConversationCompleted && selectedContacts.length) {
       const roomId = uuid() + '@muc.im.edison.tech';
-      onGroupConversationCompleted({ contacts: selectedContacts, roomId });
+      onGroupConversationCompleted({ contacts: selectedContacts, roomId, name });
     }
   }
 
