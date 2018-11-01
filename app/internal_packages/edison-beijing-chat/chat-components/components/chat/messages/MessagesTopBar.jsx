@@ -1,10 +1,13 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import TopBar from '../../common/TopBar';
+import InviteGroupChatList from '../new/InviteGroupChatList';
 import BackIcon from '../../common/icons/BackIcon';
 import InfoIcon from '../../common/icons/InfoIcon';
 import { theme } from '../../../utils/colors';
+import xmpp from '../../../xmpp';
+import conversation from '../../../db/schemas/conversation';
 
 const privateStatus = (availableUsers, conversationJid) =>
   (availableUsers.indexOf(conversationJid) >= 0 ? 'Online' : 'Offline');
@@ -16,7 +19,7 @@ const groupStatus = (availableUsers, occupants) => {
   return `${onlineCount} Online`;
 };
 
-export default class MessagesTopBar extends PureComponent {
+export default class MessagesTopBar extends Component {
   static propTypes = {
     onBackPressed: PropTypes.func,
     onInfoPressed: PropTypes.func,
@@ -39,6 +42,24 @@ export default class MessagesTopBar extends PureComponent {
     infoActive: false,
     selectedConversation: null,
   }
+  constructor() {
+    super();
+    this.state = { inviting: false }
+  }
+
+  onInvite = () => {
+    this.setState({inviting: true});
+  }
+
+  onUpdateGroup = (contacts) => {
+    this.setState(Object.assign({}, this.state, { inviting: false }));
+    const {selectedConversation} = this.props;
+    debugger;
+    for (const i in contacts) {
+      xmpp.addMember(selectedConversation.jid, contacts[i].jid);
+    }
+  }
+
 
   render() {
     const {
@@ -51,31 +72,40 @@ export default class MessagesTopBar extends PureComponent {
     const conversationJid = selectedConversation.jid;
 
     return (
-      <TopBar
-        left={
-          <div className="backButtonContainer">
-            <Button onTouchTap={() => onBackPressed()}>
-              <BackIcon color={theme.primaryColor} />
-            </Button>
-          </div>
-        }
-        center={
-          <div className="chatTopBarCenter">
-            <div className="conversationName">{selectedConversation.name}</div>
-            <div className="onlineIndicatior">
-              {selectedConversation.isGroup ?
-                groupStatus(availableUsers, selectedConversation.occupants) :
-                privateStatus(availableUsers, conversationJid)
-              }
+      <div>
+        <TopBar
+          left={
+            <div className="backButtonContainer">
+              <Button onTouchTap={() => onBackPressed()}>
+                <BackIcon color={theme.primaryColor} />
+              </Button>
             </div>
-          </div>
-        }
-        right={
-          <Button onTouchTap={() => onInfoPressed()}>
-            <InfoIcon active={infoActive} color={theme.primaryColor} />
-          </Button>
-        }
-      />
+          }
+          center={
+            <div className="chatTopBarCenter">
+              <div style={{ width: '100%' }}>
+                <div className="conversationName" style={{ float:'left', margin:"0 2px" }}>{selectedConversation.name}</div>
+                <div className="onlineIndicatior" style={{ float:'left', margin:"0 2px" }}>
+                  {selectedConversation.isGroup ?
+                    groupStatus(availableUsers, selectedConversation.occupants) :
+                    privateStatus(availableUsers, conversationJid)
+                  }
+                </div>
+                { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', right:'-380px' }} onTouchTap={() => this.onInvite()}>
+                  invite
+                </div>
+                }
+              </div>
+            </div>
+          }
+          right={
+            <Button onTouchTap={() => onInfoPressed()}>
+              <InfoIcon active={infoActive} color={theme.primaryColor} />
+            </Button>
+          }
+        />
+        {this.state.inviting && <InviteGroupChatList groupMode={true} onUpdateGroup = {this.onUpdateGroup}></InviteGroupChatList>}
+      </div>
     );
   }
 }

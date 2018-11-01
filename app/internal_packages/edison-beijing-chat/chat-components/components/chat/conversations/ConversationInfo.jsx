@@ -29,7 +29,7 @@ export default class ConversationInfo extends Component {
       <div className="email">{conversation.email}</div>
       {
         this.state.members.map(member => {
-          return <div  className="email"> {member.jid.bare}</div>
+          return <div  className="email" key={member.jid.bare}> {member.jid.bare}</div>
         })
       }
     </div>
