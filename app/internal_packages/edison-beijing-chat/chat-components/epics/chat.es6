@@ -263,7 +263,7 @@ export const receiveGroupMessageEpic = action$ =>
     })
     .map(({ payload }) => receiveGroupMessage(payload));
 
-export const convertReceivedPrivateMessageEpic = (action$, { getState }) =>
+export const convertReceivedMessageEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
     .filter(({ type, payload }) => {
       // if groupchat and the "sender" is your self, skip the message
@@ -274,10 +274,22 @@ export const convertReceivedPrivateMessageEpic = (action$, { getState }) =>
     })
     .map(({ type, payload }) => {
       const { timeSend } = JSON.parse(payload.body);
+      let sender = payload.from.bare;
+      // if groupchat, display the sender name
+      if (type === RECEIVE_GROUP_MESSAGE) {
+        sender = payload.from.resource;
+        const { contact: { contacts } } = getState();
+        for (const item of contacts) {
+          if (item.jid.split('@')[0] === sender) {
+            sender = item.name;
+            break;
+          }
+        }
+      }
       return {
         id: payload.id,
         conversationJid: payload.from.bare,
-        sender: type === RECEIVE_GROUP_MESSAGE ? payload.from.resource : payload.from.bare,
+        sender: sender,
         body: payload.body,
         sentTime: (new Date(timeSend)).getTime(),
         status: MESSAGE_STATUS_RECEIVED,
@@ -285,7 +297,7 @@ export const convertReceivedPrivateMessageEpic = (action$, { getState }) =>
     })
     .map(newPayload => newMessage(newPayload));
 
-export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
+export const updateMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
     .mergeMap(({ type, payload }) => {
       let name = payload.from.local;
