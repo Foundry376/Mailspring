@@ -5,6 +5,7 @@ import {
 } from '../actions/contact';
 import {
   UPDATE_STORED_CONTACTS,
+  SUCCESS_STORE_CONTACTS
 } from '../actions/db/contact';
 
 const initialState = {
@@ -34,6 +35,8 @@ export default function contactReducer(state = initialState, { type, payload }) 
       return addAvailableUser(state, payload.from.bare);
     case USER_UNAVAILABLE:
       return removeAvailableUser(state, payload.from.bare);
+    case SUCCESS_STORE_CONTACTS:
+      return Object.assign({}, state, { contacts: payload });
     case UPDATE_STORED_CONTACTS:
       return Object.assign({}, state, { contacts: payload });
     default:

@@ -176,6 +176,7 @@ export default class MailsyncProcess extends EventEmitter {
         try {
           const lastLine = buffer
             .toString('UTF-8')
+            .trim()
             .split('\n')
             .pop();
           const response = JSON.parse(lastLine);
@@ -215,7 +216,7 @@ export default class MailsyncProcess extends EventEmitter {
         outBuffer += added;
 
         if (added.indexOf('\n') !== -1) {
-          const msgs = outBuffer.split('\n');
+          const msgs = outBuffer.trim().split('\n');
           outBuffer = msgs.pop();
           this.emit('deltas', msgs);
         }

@@ -62,6 +62,7 @@ export default class InviteGroupChatList extends Component {
 
   onUpdateGroup = () => {
     const { selectedContacts } = this.state;
+    this.setState({ selectedContacts: [], inviting:false });
     debugger;
     this.props.onUpdateGroup(selectedContacts);
   }
@@ -91,25 +92,27 @@ export default class InviteGroupChatList extends Component {
         <Button onTouchTap={ this.onUpdateGroup } style={{position:'relative', top:'-50px', right:'-450px'}}>
           <DoneIcon color={primaryColor} />
         </Button>
-        {
-          contacts.map(contact =>
-            <div
-              key={contact.jid}
-              className={getContactItemClasses(contact)}
-              onTouchTap={() => this.contactSelected(contact)}
-            >
-              <ContactAvatar jid={contact.jid} name={contact.name}
-                email={contact.email} avatar={contact.avatar} size={32} />
-              <span className="contactName">{contact.name}</span>
-              <CheckBox
-                checked={jids.has(contact.jid)}
-                checkColor={primaryColor}
-                circleColor="#444"
-                size={18}
-              />
-            </div>
-          )
-        }
+        <div style={{ overflowY: 'scroll', flex: 1 }}>
+          {
+            contacts.map(contact =>
+              <div
+                key={contact.jid}
+                className={getContactItemClasses(contact)}
+                onTouchTap={() => this.contactSelected(contact)}
+              >
+                <ContactAvatar jid={contact.jid} name={contact.name}
+                  email={contact.email} avatar={contact.avatar} size={32} />
+                <span className="contactName">{contact.name}</span>
+                <CheckBox
+                  checked={jids.has(contact.jid)}
+                  checkColor={primaryColor}
+                  circleColor="#444"
+                  size={18}
+                />
+              </div>
+            )
+          }
+        </div>
       </div>
     );
   }

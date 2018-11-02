@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import TopBar from '../../common/TopBar';
-import InviteGroupChatList from '../new/InviteGroupChatList';
 import BackIcon from '../../common/icons/BackIcon';
 import InfoIcon from '../../common/icons/InfoIcon';
 import { theme } from '../../../utils/colors';
@@ -46,18 +45,9 @@ export default class MessagesTopBar extends Component {
     super();
     this.state = { inviting: false }
   }
-
   onToggleInvite = () => {
-    this.setState({inviting: !this.state.inviting});
-  }
-
-  onUpdateGroup = (contacts) => {
-    this.setState(Object.assign({}, this.state, { inviting: false }));
-    const {selectedConversation} = this.props;
-    debugger;
-    for (const i in contacts) {
-      xmpp.addMember(selectedConversation.jid, contacts[i].jid);
-    }
+    this.props.toggleInvite();
+    this.setState({ inviting: !this.state.inviting });
   }
 
 
@@ -68,6 +58,8 @@ export default class MessagesTopBar extends Component {
       selectedConversation,
       onBackPressed,
       onInfoPressed,
+      inviting,
+      toggleInvite,
     } = this.props;
     const conversationJid = selectedConversation.jid;
 
@@ -91,8 +83,8 @@ export default class MessagesTopBar extends Component {
                     privateStatus(availableUsers, conversationJid)
                   }
                 </div>
-                { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', right:'-280px' }} onTouchTap={() => this.onToggleInvite()}>
-                  {this.state.inviting? "cancel": "invite" }
+                { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', right:'-280px' }} onTouchTap={toggleInvite}>
+                  {inviting? "cancel": "invite" }
                 </div>
                 }
               </div>
@@ -104,7 +96,6 @@ export default class MessagesTopBar extends Component {
             </Button>
           }
         />
-        {this.state.inviting && <InviteGroupChatList groupMode={true} onUpdateGroup = {this.onUpdateGroup}></InviteGroupChatList>}
       </div>
     );
   }

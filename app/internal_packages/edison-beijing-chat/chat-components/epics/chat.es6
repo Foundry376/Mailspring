@@ -287,7 +287,28 @@ export const convertReceivedPrivateMessageEpic = (action$, { getState }) =>
 
 export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
-    .map(({ type, payload }) => {
+    .mergeMap(({ type, payload }) => {
+      let name = payload.from.local;
+      // if group chat, get the room name
+      if (type === RECEIVE_GROUP_MESSAGE) {
+        const { room: { rooms } } = getState();
+        if (rooms[payload.from.bare]) {
+          name = rooms[payload.from.bare];
+        } else {
+          return Observable.fromPromise(xmpp.getRoomList())
+            .map(({ discoItems: { items } }) => {
+              for (const item of items) {
+                if (payload.from.local === item.jid.local) {
+                  return { type, payload, name: item.name }
+                }
+              }
+              return [{ type, payload, name }]
+            })
+        }
+      }
+      return [{ type, payload, name }]
+    })
+    .map(({ type, payload, name }) => {
       const { content, timeSend } = JSON.parse(payload.body);
       // if not current conversation, unreadMessages + 1
       let unreadMessages = 0;
@@ -297,7 +318,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
       }
       return {
         jid: payload.from.bare,
-        name: payload.from.local,
+        name: name,
         isGroup: type === RECEIVE_GROUP_MESSAGE ? true : false,
         unreadMessages: unreadMessages,
         occupants: [
