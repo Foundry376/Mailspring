@@ -9,7 +9,7 @@
 **/arclib
 
 ##### Client Private Plugins (symlinked)
-**/app/src/error-logger-extensions
+#**/app/src/error-logger-extensions
 **/internal_packages/composer-mail-merge
 **/internal_packages/composer-scheduler
 
