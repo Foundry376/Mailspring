@@ -164,6 +164,18 @@ export class Xmpp extends EventEmitter3 {
 
   //----------------------room end
 
+  //----------------------block start
+  async block(jid) {
+    return client.block(jid);
+  }
+  async unblock(jid) {
+    return client.unblock(jid);
+  }
+  async getBlocked(ver) {
+    return client.getBlocked(ver);
+  }
+  //----------------------block end
+
   /**
    * Joins the rooms with the provided Jids. Requires connection to server.
    * @param   {...string} roomJids  The jids of the rooms to join
