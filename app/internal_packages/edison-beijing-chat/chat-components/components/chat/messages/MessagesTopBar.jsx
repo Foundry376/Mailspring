@@ -47,8 +47,8 @@ export default class MessagesTopBar extends Component {
     this.state = { inviting: false }
   }
 
-  onInvite = () => {
-    this.setState({inviting: true});
+  onToggleInvite = () => {
+    this.setState({inviting: !this.state.inviting});
   }
 
   onUpdateGroup = (contacts) => {
@@ -91,8 +91,8 @@ export default class MessagesTopBar extends Component {
                     privateStatus(availableUsers, conversationJid)
                   }
                 </div>
-                { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', right:'-380px' }} onTouchTap={() => this.onInvite()}>
-                  invite
+                { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', right:'-280px' }} onTouchTap={() => this.onToggleInvite()}>
+                  {this.state.inviting? "cancel": "invite" }
                 </div>
                 }
               </div>
