@@ -58,6 +58,8 @@ export default class MessagesTopBar extends Component {
       selectedConversation,
       onBackPressed,
       onInfoPressed,
+      inviting,
+      toggleInvite,
     } = this.props;
     const conversationJid = selectedConversation.jid;
 
@@ -81,8 +83,8 @@ export default class MessagesTopBar extends Component {
                     privateStatus(availableUsers, conversationJid)
                   }
                 </div>
-                { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', right:'-280px' }} onTouchTap={this.onToggleInvite}>
-                  {this.state.inviting? "cancel": "invite" }
+                { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', right:'-280px' }} onTouchTap={toggleInvite}>
+                  {inviting? "cancel": "invite" }
                 </div>
                 }
               </div>

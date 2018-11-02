@@ -85,11 +85,12 @@ export default class MessagesPanel extends PureComponent {
         let { showConversationInfo } = this.state;
         if (!this.inviting) showConversationInfo = false;
         this.setState({ inviting: !this.state.inviting, showConversationInfo });
-      },
 
+      },
       availableUsers,
       infoActive: showConversationInfo,
       selectedConversation,
+      inviting:this.state.inviting
     };
     const messagesProps = {
       currentUserId,

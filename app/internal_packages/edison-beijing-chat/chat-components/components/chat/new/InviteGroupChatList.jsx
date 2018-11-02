@@ -62,6 +62,7 @@ export default class InviteGroupChatList extends Component {
 
   onUpdateGroup = () => {
     const { selectedContacts } = this.state;
+    this.setState({ selectedContacts: [], inviting:false });
     debugger;
     this.props.onUpdateGroup(selectedContacts);
   }
