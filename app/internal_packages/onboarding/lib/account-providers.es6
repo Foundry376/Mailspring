@@ -18,6 +18,17 @@ const AccountProviders = [
   {
     provider: 'yahoo',
     displayName: 'Yahoo',
+    note: (
+      <span>
+        <strong>{localized('Important')}:</strong>{' '}
+        {localizedReactFragment(
+          'Yahoo requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.',
+          <a href="https://help.yahoo.com/kb/SLN15241.html?guccounter=1">
+            {localized('these instructions')}
+          </a>
+        )}
+      </span>
+    ),
     icon: 'ic-settings-account-yahoo.png',
     headerIcon: 'setup-icon-provider-yahoo.png',
     color: '#a76ead',

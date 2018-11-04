@@ -121,6 +121,7 @@ const CreatePageForForm = FormComponent => {
 
     onConnect = updatedAccount => {
       const account = updatedAccount || this.state.account;
+      const providerConfig = AccountProviders.find(({ provider }) => provider === account.provider);
 
       // warn users about authenticating a Gmail or Google Apps account via IMAP
       // and allow them to go back
@@ -173,6 +174,16 @@ const CreatePageForForm = FormComponent => {
             }
           }
 
+          if (providerConfig.note) {
+            const node = document.createElement('div');
+            ReactDOM.render(providerConfig.note, node);
+            let note = node.innerText;
+            const link = node.querySelector('a');
+            if (link) {
+              note += '\n' + link.getAttribute('href');
+            }
+            err.rawLog = note + '\n\n' + err.rawLog;
+          }
           this.setState({
             errorMessage: err.message,
             errorStatusCode: err.statusCode,
