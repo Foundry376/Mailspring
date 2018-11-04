@@ -2,20 +2,27 @@ import _ from 'underscore';
 import { localized } from 'mailspring-exports';
 
 export class Comparator {
-  constructor(name, fn) {
+  constructor({ name, arrayMatchFn }, fn) {
     this.name = name;
     this.fn = fn;
+    this.arrayMatchFn = arrayMatchFn;
   }
 
   evaluate({ actual, desired }) {
     if (actual instanceof Array) {
-      return actual.some(item => this.fn({ actual: item, desired }));
+      return this.arrayMatchFn.call(actual, item => this.fn({ actual: item, desired }));
     }
     return this.fn({ actual, desired });
   }
 }
 
-Comparator.Default = new Comparator('Default', ({ actual, desired }) => _.isEqual(actual, desired));
+Comparator.Default = new Comparator(
+  {
+    name: 'Default',
+    arrayMatchFn: Array.prototype.some,
+  },
+  ({ actual, desired }) => _.isEqual(actual, desired)
+);
 
 const Types = {
   None: 'None',
@@ -25,42 +32,78 @@ const Types = {
 
 export const Comparators = {
   String: {
-    contains: new Comparator(localized('contains'), ({ actual, desired }) => {
-      if (!actual || !desired) {
-        return false;
+    contains: new Comparator(
+      {
+        name: localized('contains'),
+        arrayMatchFn: Array.prototype.some,
+      },
+      ({ actual, desired }) => {
+        if (!actual || !desired) {
+          return false;
+        }
+        return actual.toLowerCase().includes(desired.toLowerCase());
       }
-      return actual.toLowerCase().includes(desired.toLowerCase());
-    }),
+    ),
 
-    doesNotContain: new Comparator(localized('does not contain'), ({ actual, desired }) => {
-      if (!actual || !desired) {
-        return false;
+    doesNotContain: new Comparator(
+      {
+        name: localized('does not contain'),
+        arrayMatchFn: Array.prototype.every,
+      },
+      ({ actual, desired }) => {
+        if (!actual || !desired) {
+          return false;
+        }
+        return !actual.toLowerCase().includes(desired.toLowerCase());
       }
-      return !actual.toLowerCase().includes(desired.toLowerCase());
-    }),
+    ),
 
-    beginsWith: new Comparator(localized('begins with'), ({ actual, desired }) => {
-      if (!actual || !desired) {
-        return false;
+    beginsWith: new Comparator(
+      {
+        name: localized('begins with'),
+        arrayMatchFn: Array.prototype.some,
+      },
+      ({ actual, desired }) => {
+        if (!actual || !desired) {
+          return false;
+        }
+        return actual.toLowerCase().startsWith(desired.toLowerCase());
       }
-      return actual.toLowerCase().startsWith(desired.toLowerCase());
-    }),
+    ),
 
-    endsWith: new Comparator(localized('ends with'), ({ actual, desired }) => {
-      if (!actual || !desired) {
-        return false;
+    endsWith: new Comparator(
+      {
+        name: localized('ends with'),
+        arrayMatchFn: Array.prototype.some,
+      },
+      ({ actual, desired }) => {
+        if (!actual || !desired) {
+          return false;
+        }
+        return actual.toLowerCase().endsWith(desired.toLowerCase());
       }
-      return actual.toLowerCase().endsWith(desired.toLowerCase());
-    }),
+    ),
 
-    equals: new Comparator(localized('equals'), ({ actual, desired }) => actual === desired),
+    equals: new Comparator(
+      {
+        name: localized('equals'),
+        arrayMatchFn: Array.prototype.some,
+      },
+      ({ actual, desired }) => actual === desired
+    ),
 
-    matchesExpression: new Comparator(localized('matches expression'), ({ actual, desired }) => {
-      if (!actual || !desired) {
-        return false;
+    matchesExpression: new Comparator(
+      {
+        name: localized('matches expression'),
+        arrayMatchFn: Array.prototype.some,
+      },
+      ({ actual, desired }) => {
+        if (!actual || !desired) {
+          return false;
+        }
+        return new RegExp(desired, 'gi').test(actual);
       }
-      return new RegExp(desired, 'gi').test(actual);
-    }),
+    ),
   },
 };
 
