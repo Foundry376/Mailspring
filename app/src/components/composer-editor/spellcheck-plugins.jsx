@@ -176,7 +176,7 @@ function onSpellcheckFullDocument(editor) {
   // re-determine the language the document is written in
   if (value.focusBlock) {
     const text = value.focusBlock.text;
-    if (text.length > 80) {
+    if (text.length > 60) {
       AppEnv.spellchecker.provideHintText(text.substr(text.length - 512, 512));
     }
   }
