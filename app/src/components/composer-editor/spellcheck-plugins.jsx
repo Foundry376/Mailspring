@@ -59,7 +59,7 @@ function renderMark(props) {
         style={{
           backgroundImage: 'linear-gradient(to left, red 40%, rgba(255, 255, 255, 0) 0%)',
           backgroundPosition: 'bottom',
-          backgroundSize: '5px 1px',
+          backgroundSize: '5px 1.3px',
           backgroundRepeat: 'repeat-x',
         }}
       >
