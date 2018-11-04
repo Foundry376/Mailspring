@@ -252,10 +252,15 @@ function onKeyUp(event, change, editor) {
     }
     let suggestions = [];
     let picked = emoji.data.get('picked');
+
     if (typed.length >= 3) {
-      suggestions = getEmojiSuggestions(typed.replace(':', ''));
-      const pickedIdx = suggestions.indexOf(picked);
-      picked = suggestions[pickedIdx === -1 ? 0 : pickedIdx];
+      const typedEmoji = typed.replace(':', '');
+      const isNumeric = `${typedEmoji / 1}` === typedEmoji;
+      if (!isNumeric || typedEmoji.length >= 3) {
+        suggestions = getEmojiSuggestions(typedEmoji);
+        const pickedIdx = suggestions.indexOf(picked);
+        picked = suggestions[pickedIdx === -1 ? 0 : pickedIdx];
+      }
     }
     updateEmojiMark(change, emoji, { typed, suggestions, picked });
   }
