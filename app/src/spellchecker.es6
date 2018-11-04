@@ -41,11 +41,9 @@ class Spellchecker {
 
   _switchToLanguage = lang => {
     if (lang === null || lang === undefined || lang === '') {
-      lang = app.getLocale();
+      lang = app.getLocale() || 'en-US';
     }
-    if (lang) {
-      this.handler.switchLanguage(lang);
-    }
+    this.handler.switchLanguage(lang);
   };
 
   _loadCustomDict = () => {
