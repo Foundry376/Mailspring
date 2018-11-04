@@ -5,6 +5,19 @@ import { localized } from 'mailspring-exports';
 import categorizedEmojiList from './categorized-emoji';
 import { getEmojiImagePath } from './emoji-plugins';
 
+const LocalizedCategoryNames = {
+  People: localized('People'),
+  Nature: localized('Nature'),
+  'Food and Drink': localized('Food and Drink'),
+  Activity: localized('Activity'),
+  'Travel and Places': localized('Travel and Places'),
+  Objects: localized('Objects'),
+  Symbols: localized('Symbols'),
+  Flags: localized('Flags'),
+  'Frequently Used': localized('Frequently Used'),
+  'Search Results': localized('Search Results'),
+};
+
 export default class EmojiToolbarPopover extends React.Component {
   static displayName = 'EmojiToolbarPopover';
 
@@ -78,10 +91,10 @@ export default class EmojiToolbarPopover extends React.Component {
       this.setState(
         {
           categorizedEmoji: {
-            [localized('Search Results')]: searchMatches,
+            'Search Results': searchMatches,
           },
           categoryPositions: {
-            [localized('Search Results')]: {
+            'Search Results': {
               top: 25,
               bottom: 25 + Math.ceil(searchMatches.length / 8) * 24,
             },
@@ -108,22 +121,22 @@ export default class EmojiToolbarPopover extends React.Component {
     let categorizedEmoji = categorizedEmojiList;
     const categoryPositions = {};
     let categoryNames = [
-      localized('People'),
-      localized('Nature'),
-      localized('Food and Drink'),
-      localized('Activity'),
-      localized('Travel and Places'),
-      localized('Objects'),
-      localized('Symbols'),
-      localized('Flags'),
+      'People',
+      'Nature',
+      'Food and Drink',
+      'Activity',
+      'Travel and Places',
+      'Objects',
+      'Symbols',
+      'Flags',
     ];
     const frequentlyUsedEmoji = []; //EmojiStore.frequentlyUsedEmoji();
     if (frequentlyUsedEmoji.length > 0) {
-      categorizedEmoji = { [localized('Frequently Used')]: frequentlyUsedEmoji };
+      categorizedEmoji = { ['Frequently Used']: frequentlyUsedEmoji };
       for (const category of Object.keys(categorizedEmojiList)) {
         categorizedEmoji[category] = categorizedEmojiList[category];
       }
-      categoryNames = [localized('Frequently Used')].concat(categoryNames);
+      categoryNames = ['Frequently Used'].concat(categoryNames);
     }
     // Calculates where each category should be (variable because Frequently
     // Used may or may not be present)
@@ -256,7 +269,7 @@ export default class EmojiToolbarPopover extends React.Component {
       position.x = 18;
       position.y += 48;
     }
-    ctx.fillText(category, position.x, position.y);
+    ctx.fillText(LocalizedCategoryNames[category] || category, position.x, position.y);
     position.x = 18;
     position.y += 48;
 
