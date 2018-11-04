@@ -17,7 +17,7 @@
     "classnames": "1.2.1",
     "collapse-whitespace": "^1.1.6",
     "debug": "github:emorikawa/debug#nylas",
-    "electron-spellchecker": "1.1.2",
+    "electron-spellchecker": "github:bengotow/electron-spellchecker#master",
     "emoji-data": "^0.2.0",
     "enzyme": "3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
