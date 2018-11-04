@@ -99,9 +99,6 @@ class PreferencesAccountDetails extends Component {
   _onAccountAutoaddressUpdated = autoaddress => {
     this._setState({ autoaddress });
   };
-  _onAccountLabelUpdated = event => {
-    this._setState({ label: event.target.value });
-  };
 
   _onAccountAliasCreated = newAlias => {
     const coercedAlias = this._makeAlias(newAlias);
@@ -221,7 +218,7 @@ class PreferencesAccountDetails extends Component {
           type="text"
           value={account.label}
           onBlur={this._saveChanges}
-          onChange={this._onAccountLabelUpdated}
+          onChange={e => this._setState({ label: e.target.value })}
         />
         <h3>{localized('Account Settings')}</h3>
         <div className="btn" onClick={this._onReconnect}>
@@ -232,6 +229,13 @@ class PreferencesAccountDetails extends Component {
         <div className="btn" style={{ margin: 6 }} onClick={this._onResetCache}>
           {localized('Rebuild Cache...')}
         </div>
+        <h3>{localized('Sender Name')}</h3>
+        <input
+          type="text"
+          value={account.name}
+          onBlur={this._saveChanges}
+          onChange={e => this._setState({ name: e.target.value })}
+        />
         <h3>{localized('Automatic CC / BCC')}</h3>
         <AutoaddressControl
           autoaddress={account.autoaddress}
