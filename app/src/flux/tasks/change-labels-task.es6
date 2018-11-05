@@ -36,7 +36,7 @@ export default class ChangeLabelsTask extends ChangeMailTask {
       if (this.threadIds.length > 1) {
         return str.replace('%@', `${this.threadIds.length} ${localized('threads')}`);
       }
-      return str.replace('%@ ', '');
+      return str.replace('%@ ', '').replace(' %@', '');
     };
 
     const removed = this.labelsToRemove[0];
