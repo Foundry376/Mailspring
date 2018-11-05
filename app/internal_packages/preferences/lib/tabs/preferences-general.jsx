@@ -6,6 +6,7 @@ import { localized } from 'mailspring-exports';
 import ConfigSchemaItem from './config-schema-item';
 import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
+import LanguageSection from './language-section';
 
 class PreferencesGeneral extends React.Component {
   static displayName = 'PreferencesGeneral';
@@ -45,6 +46,8 @@ class PreferencesGeneral extends React.Component {
     return (
       <div className="container-general" style={{ maxWidth: 600 }}>
         <WorkspaceSection config={this.props.config} configSchema={this.props.configSchema} />
+
+        <LanguageSection config={this.props.config} configSchema={this.props.configSchema} />
 
         <ConfigSchemaItem
           configSchema={this.props.configSchema.properties.notifications}

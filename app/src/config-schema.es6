@@ -4,6 +4,16 @@ export default {
   core: {
     type: 'object',
     properties: {
+      intl: {
+        type: 'object',
+        properties: {
+          language: {
+            type: 'string',
+            title: 'Interface Langauge',
+            default: '',
+          },
+        },
+      },
       sync: {
         type: 'object',
         properties: {

@@ -8,7 +8,7 @@ import path from 'path';
 import proc from 'child_process';
 import { EventEmitter } from 'events';
 
-import { localized } from '../intl';
+import { localized, initializeLocalization } from '../intl';
 import WindowManager from './window-manager';
 import FileListCache from './file-list-cache';
 import ConfigMigrator from './config-migrator';
@@ -29,6 +29,8 @@ let clipboard = null;
 export default class Application extends EventEmitter {
   async start(options) {
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
+
+    initializeLocalization({ configDirPath });
 
     // Normalize to make sure drive letter case is consistent on Windows
     this.resourcePath = resourcePath;

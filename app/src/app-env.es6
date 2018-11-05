@@ -5,7 +5,7 @@ import path from 'path';
 import { ipcRenderer, remote } from 'electron';
 import { Emitter } from 'event-kit';
 import { mapSourcePosition } from 'source-map-support';
-import { localized, isRTL } from './intl';
+import { localized, isRTL, initializeLocalization } from './intl';
 
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
@@ -49,6 +49,8 @@ export default class AppEnvConstructor {
 
     const { devMode, safeMode, resourcePath, configDirPath, windowType } = this.getLoadSettings();
     const specMode = this.inSpecMode();
+
+    initializeLocalization({ configDirPath });
 
     // Add 'src/global/' to module search path.
     const globalPath = path.join(resourcePath, 'src', 'global');
