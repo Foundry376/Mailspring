@@ -56,6 +56,7 @@ export default class MailsyncProcess extends EventEmitter {
     this.resourcePath = resourcePath;
     this.configDirPath = configDirPath;
     this.binaryPath = path.join(resourcePath, 'mailsync').replace('app.asar', 'app.asar.unpacked');
+    // this.binaryPath = path.join('/Users/zsq/Library/Developer/Xcode/DerivedData/EdisonMailSync-gnxarlbpnlszfmgdglqxwrawejbo/Build/Products/Debug', 'mailsync').replace('app.asar', 'app.asar.unpacked');
     this._proc = null;
     this._win = null;
 
@@ -205,6 +206,17 @@ export default class MailsyncProcess extends EventEmitter {
     this._proc.kill();
   }
 
+  _arrayTrim(arr) {
+    for (let i = arr.length - 1; i >= 0; i--) {
+      if (!arr[i] || !arr[i].trim()) {
+        arr.pop();
+      } else {
+        break;
+      }
+    }
+    return arr;
+  }
+
   sync() {
     this._spawnProcess('sync');
     let outBuffer = '';
@@ -213,10 +225,13 @@ export default class MailsyncProcess extends EventEmitter {
     if (this._proc.stdout) {
       this._proc.stdout.on('data', data => {
         const added = data.toString();
-        outBuffer += added;
+        const isJson = /^\{.*\}$/.test(added.trim());
+        if (isJson) {
+          outBuffer += '\n' + added.trim();
+        }
 
-        if (added.indexOf('\n') !== -1) {
-          const msgs = outBuffer.trim().split('\n');
+        if (isJson) {
+          const msgs = this._arrayTrim(outBuffer.split('\n'))
           outBuffer = msgs.pop();
           this.emit('deltas', msgs);
         }
