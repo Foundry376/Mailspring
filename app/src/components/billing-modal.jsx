@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { webFrame } from 'electron';
 import Webview from './webview';
 import Actions from '../flux/actions';
 import IdentityStore from '../flux/stores/identity-store';
@@ -30,6 +31,14 @@ export default class BillingModal extends React.Component {
   }
 
   componentDidMount() {
+    // Due to a bug in Electron, opening a webview with a non 100% size when
+    // the app has a custom zoomLevel scales it's contents incorrectly and no
+    // CSS will fix it. Fix this by just temporarily reverting zoom to 1.0
+    // https://github.com/electron/electron/issues/940#issuecomment-125999112
+    this._initialZoom = webFrame.getZoomFactor();
+    if (this._initialZoom !== 1) {
+      webFrame.setZoomFactor(1);
+    }
     this._mounted = true;
   }
 
@@ -41,6 +50,7 @@ export default class BillingModal extends React.Component {
    * to determine if the user succesffully paid us or not.
    */
   componentWillUnmount() {
+    webFrame.setZoomFactor(this._initialZoom);
     this._mounted = false;
   }
 
