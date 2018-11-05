@@ -21,7 +21,7 @@ export default class ConversationInfo extends Component {
   render = () => {
     const { conversation } = this.props;
 
-    return <div className="infoPanel">
+    return <div className="infoPanel" style={{overflowY:"scroll"}}>
       <ContactAvatar jid={conversation.jid} name={conversation.name}
                      email={conversation.email} avatar={conversation.avatar} size={100}/>
       {/* <img src='https://s3.us-east-2.amazonaws.com/edison-profile-stag/{conversation.avatar}' width="80" height="80"></img> */}
