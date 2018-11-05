@@ -22,7 +22,7 @@ class TemplateStatusBar extends React.Component {
     return (
       <div className="template-status-bar">
         {localized(
-          'Press &quot;tab&quot; to quickly move between the blanks - highlighting will not be visible to recipients.'
+          'Press "tab" to quickly move between the blanks - highlighting will not be visible to recipients.'
         )}
       </div>
     );
