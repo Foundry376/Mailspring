@@ -4,6 +4,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 const _ = require('underscore');
+const { webFrame } = require('electron');
 const Actions = require('../actions').default;
 const MailspringStore = require('mailspring-store').default;
 
@@ -33,13 +34,15 @@ class WorkspaceStore extends MailspringStore {
     this.listenTo(Actions.pushSheet, this.pushSheet);
 
     const { windowType } = AppEnv.getLoadSettings();
-    if (windowType !== 'onboarding') {
-      require('electron').webFrame.setVisualZoomLevelLimits(1, 1);
-      AppEnv.config.observe('core.workspace.interfaceZoom', z => {
-        if (z && _.isNumber(z)) {
-          require('electron').webFrame.setZoomFactor(z);
-        }
-      });
+
+    // Disable double-tap to zoom, pinch to zoom
+    webFrame.setVisualZoomLevelLimits(1, 1);
+
+    // Allow the user to override the interface zoom
+    this._applyDesiredScale();
+    AppEnv.config.observe('core.workspace.interfaceZoom', this._applyDesiredScale);
+    if (windowType === 'emptyWindow') {
+      AppEnv.onWindowPropsReceived(this._applyDesiredScale);
     }
 
     if (AppEnv.isMainWindow()) {
@@ -71,6 +74,16 @@ class WorkspaceStore extends MailspringStore {
       this.defineSheet('Global');
     }
   }
+
+  _applyDesiredScale = () => {
+    let zoom = AppEnv.config.get('core.workspace.interfaceZoom');
+    if (AppEnv.getLoadSettings().windowType === 'onboarding') {
+      zoom = 1; // onboarding is a fixed-size modal, zoom causes content clipping
+    }
+    if (zoom && _.isNumber(zoom)) {
+      webFrame.setZoomFactor(zoom);
+    }
+  };
 
   /*
   Inbound Events
