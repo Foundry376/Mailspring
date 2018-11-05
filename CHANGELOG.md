@@ -1,5 +1,33 @@
 # Mailspring Changelog
 
+### 1.5.2 (11/6/2018)
+
+Improvements:
+
+* Mailspring now defaults to English for languages whose translations have not been manually reviewed by a contributor. You can customize the interface language via a new setting in Preferences > General.
+
+* Hundreds of translations have been manually reviewed and refined in German, Chinese, French and Korean. (Thanks to @pandanonyme @jungin500 @qitar888 @DarkSmile92!)
+
+* When connecting a Yahoo Mail account, Mailspring notes that Yahoo requires an App Password. Provider-specific notes are also included in the "View Log" text for easier debugging.
+
+* You can now change the "Sender Identity" (the name that is sent in the From field with your email address) for each account in Preferences > Accounts. #1169
+
+Fixes:
+
+* Mailspring no longer aggressively autocompletes :10 to the :100 emoji, or :12 to the :1234 emoji, to avoid conflicts with typing times. #1148
+
+* On macOS, Mailspring's spellchecker correctly transitions to the language you're typing in consistent with Linux and Windows.
+
+* The Emoji picker now works correctly when using Mailspring in a language other than English. #1189
+
+* Shrinking Mailspring's UI using the "inteface zoom" setting no longer causes spellchecking "squiggles" to become invisible.
+
+* The "Does Not Contain" mail rule now requires that every item in the field not contain the text as expected, rather than just requiring that any one of the items (senders, recipients, etc.) not contain the text. #1110
+
+* Mailspring's "Upgrade to Pro" modal no longer appears badly clipped when using a custom interface zoom level.
+
+* The fixed size "Add an Account" window now ignores custom zoom levels so that fields and forms are not clipped.
+
 ### 1.5.1 (10/27/2018)
 
 Improvements:
