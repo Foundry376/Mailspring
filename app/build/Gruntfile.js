@@ -35,12 +35,9 @@ module.exports = grunt => {
       'src/**/*.es6',
       'src/**/*.es',
       'src/**/*.jsx',
-      'src/K2/**/*.js', // K2 doesn't use ES6 extension, lint it anyway!
-      '!src/K2/packages/local-private/src/error-logger-extensions/*.js',
       '!src/**/node_modules/**/*.es6',
       '!src/**/node_modules/**/*.es',
       '!src/**/node_modules/**/*.jsx',
-      '!src/K2/**/node_modules/**/*.js',
       '!internal_packages/**/node_modules/**/*.es6',
       '!internal_packages/**/node_modules/**/*.es',
       '!internal_packages/**/node_modules/**/*.jsx',

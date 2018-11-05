@@ -59,7 +59,7 @@ module.exports = function(grunt) {
 
       let srcPath = path.resolve(__dirname, '..', '..', 'src');
 
-      const blacklist = ['/K2/', 'legacy-edgehill-api', 'edgehill-api'];
+      const blacklist = ['legacy-edgehill-api', 'edgehill-api'];
 
       let in_blacklist = function(file) {
         for (var i = 0; i < blacklist.length; i++) {

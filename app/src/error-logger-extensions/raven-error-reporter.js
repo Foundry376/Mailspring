@@ -56,6 +56,15 @@ module.exports = class RavenErrorReporter {
       }
     ).install();
 
+    // Just give us something random that we can use to tell how many users are impacted
+    // by each bug. This is important because sometimes one user will hit an exception 1,000
+    // times and skew the Sentry data.
+    Raven.mergeContext({
+      user: {
+        id: this.deviceHash,
+      },
+    });
+
     Raven.on('error', e => {
       console.log(`Raven: ${e.statusCode} - ${e.reason}`);
     });
