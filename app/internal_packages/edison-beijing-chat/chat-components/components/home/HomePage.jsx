@@ -2,6 +2,9 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../common/Button';
 import Loader from '../common/Loader';
+import chatModel from '../../store/model';
+
+
 
 export default class HomePage extends PureComponent {
   static propTypes = {
@@ -30,6 +33,7 @@ export default class HomePage extends PureComponent {
     const { jid: { value: jid }, password: { value: password } } = this.state;
 
     if (jid && password) {
+      chatModel.currentUser.jid = jid;
       this.props.submitAuth(jid, password);
     } else {
       if (!jid) {

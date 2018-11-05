@@ -7,7 +7,8 @@ import ConversationInfo from '../conversations/ConversationInfo';
 import Divider from '../../common/Divider';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import xmpp from '../../../xmpp/index';
-
+import chatModel from '../../../store/model';
+import getDb from '../../../db';
 
 export default class MessagesPanel extends PureComponent {
   static propTypes = {
@@ -86,6 +87,17 @@ export default class MessagesPanel extends PureComponent {
         if (!this.inviting) showConversationInfo = false;
         this.setState({ inviting: !this.state.inviting, showConversationInfo });
 
+      },
+      exitGroup: () => {
+        let { showConversationInfo } = this.state;
+        console.log('exitGroup:', selectedConversation.jid, chatModel.currentUser.jid);
+        xmpp.leaveRoom(selectedConversation.jid, chatModel.currentUser.jid);
+        (getDb()).then(db => {
+          db.conversations.findOne(selectedConversation.jid).exec().then(conv => {
+            conv.remove()}).catch((error) => {
+          })
+        });
+        this.props.deselectConversation();
       },
       availableUsers,
       infoActive: showConversationInfo,
