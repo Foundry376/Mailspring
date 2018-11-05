@@ -56,6 +56,13 @@ export default class PreferencesCategoryMapper extends React.Component {
   };
 
   _renderRoleSection = (account, role) => {
+    if (!account) return false;
+
+    const assignments = this.state.assignments[account.id];
+    if (!assignments) {
+      // Account may not have completed an initial sync yet
+      return false;
+    }
     if (account.provider === 'gmail' && role === 'archive') {
       return false;
     }
@@ -65,7 +72,7 @@ export default class PreferencesCategoryMapper extends React.Component {
         <div className="col-right">
           <CategorySelection
             all={this.state.all[account.id]}
-            current={this.state.assignments[account.id][role]}
+            current={assignments[role]}
             onSelect={category => this._onCategorySelection(account, role, category)}
             accountUsesLabels={account.usesLabels()}
           />
