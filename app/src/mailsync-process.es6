@@ -297,7 +297,7 @@ export default class MailsyncProcess extends EventEmitter {
     if (!Utils) {
       Utils = require('mailspring-exports').Utils;
     }
-    console.log(`Sending to mailsync ${this.account.id}`, json);
+    console.log(`Sending to mailsync ${this.account ? this.account.id : '?'}`, json);
     const msg = `${JSON.stringify(json)}\n`;
     try {
       this._proc.stdin.write(msg, 'UTF8');
