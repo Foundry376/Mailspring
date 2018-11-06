@@ -80,7 +80,12 @@ class KeymapFile {
   };
 
   watch() {
-    fs.watch(this._path, this.load);
+    try {
+      fs.watch(this._path, this.load);
+    } catch (err) {
+      // usually an ENOSPC error
+      console.warn(`Unable to watch your keymap file for changes: ${err.toString()}`);
+    }
   }
 
   bindings() {
