@@ -132,7 +132,7 @@ export default class EmojiToolbarPopover extends React.Component {
     ];
     const frequentlyUsedEmoji = []; //EmojiStore.frequentlyUsedEmoji();
     if (frequentlyUsedEmoji.length > 0) {
-      categorizedEmoji = { ['Frequently Used']: frequentlyUsedEmoji };
+      categorizedEmoji = { 'Frequently Used': frequentlyUsedEmoji };
       for (const category of Object.keys(categorizedEmojiList)) {
         categorizedEmoji[category] = categorizedEmojiList[category];
       }

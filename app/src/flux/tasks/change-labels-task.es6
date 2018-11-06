@@ -67,7 +67,7 @@ export default class ChangeLabelsTask extends ChangeMailTask {
     if (this.labelsToAdd.length === 0 && this.labelsToRemove.length === 1) {
       return this.threadIds.length > 1
         ? localized(`Removed %@ from %@ threads`, removed.displayName, this.threadIds.length)
-        : localized(`Removed %@`, added.displayName);
+        : localized(`Removed %@`, removed.displayName);
     }
     return this.threadIds.length > 1
       ? localized(`Changed labels on %@ threads`, this.threadIds.length)
