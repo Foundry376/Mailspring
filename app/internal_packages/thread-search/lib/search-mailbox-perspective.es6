@@ -50,7 +50,9 @@ class SearchMailboxPerspective extends MailboxPerspective {
         return [];
       }
       const dest = account.preferredRemovalDestination();
-
+      if (!dest) {
+        return [];
+      }
       if (dest instanceof Folder) {
         return new ChangeFolderTask({
           threads: accountThreads,
