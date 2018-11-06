@@ -84,21 +84,23 @@ export default class MessagesTopBar extends Component {
                     privateStatus(availableUsers, conversationJid)
                   }
                 </div>
-                { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', right:'-265px' }} onTouchTap={exitGroup}>
-                  {"exit" }
-                </div>
-                }
-                { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', right:'-280px' }} onTouchTap={toggleInvite}>
-                  {inviting? "cancel": "invite" }
-                </div>
-                }
               </div>
             </div>
           }
           right={
+            <div>
+            { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', top:'15px', marginRight:"5px" }} onTouchTap={exitGroup}>
+                {"exit" }
+              </div>
+            }
+            { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', top: '15px' }} onTouchTap={toggleInvite}>
+              {inviting? "cancel": "invite" }
+              </div>
+            }
             <Button onTouchTap={() => onInfoPressed()}>
               <InfoIcon active={infoActive} color={theme.primaryColor} />
             </Button>
+            </div>
           }
         />
       </div>
