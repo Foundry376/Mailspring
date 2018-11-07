@@ -7,7 +7,7 @@ import ChatPage from './containers/ChatPage';
 export default () => (
   <App>
     <Switch>
-      <Route exact path="/" component={HomePage} />
+      <Route exact path="/" component={ChatPage} />
       <Route path="/chat" component={ChatPage} />
     </Switch>
   </App>

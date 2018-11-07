@@ -1,10 +1,11 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
 import Root from '../chat-components/containers/Root';
-const { configureStore, history } = require('../chat-components/store/configureStore').default;
+import chatModel from '../chat-components/store/model'
 import injectTapEventPlugin from 'react-tap-event-plugin';
+
+const { configureStore, history } = require('../chat-components/store/configureStore').default;
 injectTapEventPlugin();
-const store = configureStore();
 
 export default class ChatView extends React.Component {
   static displayName = 'ChatView';
@@ -13,7 +14,7 @@ export default class ChatView extends React.Component {
     const { showFlag } = this.props;
     return (
       <div className="chat-view-container" style={{ display: showFlag ? 'block' : 'none' }}>
-        <Root store={store} history={history} />
+        <Root store={chatModel.store} history={history} />
       </div>
     )
   }
