@@ -3,6 +3,7 @@ import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 import { connectChat } from './onboarding-helpers';
 import OnboardingActions from './onboarding-actions';
+import {register} from '../../edison-beijing-chat/chat-components/utils/restjs'
 
 class OnboardingStore extends MailspringStore {
   constructor() {
@@ -90,6 +91,25 @@ class OnboardingStore extends MailspringStore {
     if (!(acct instanceof Account)) {
       throw new Error('OnboardingActions.setAccount expects an Account instance.');
     }
+    register(acct.emailAddress, acct.settings.imap_password, acct.name, (err, res) => {
+      if (err) return;
+      res = JSON.parse(res);
+      if (res.resultCode != 1) return;
+      // {"data":{"expiresIn":604800,"password":"qgq3SSkNz","isNewRegistered":false,"name":"CaoXingMing",
+      //   "warning":"fake device, push function will not be available","accessToken":"GrED8KJ5QjKryVHfO_ykqQ","userId":"400376","badgeSetting":true,
+      //   "email":"caoxm2345@sina.com"},"resultCode":1,"resultMsg":"Success"}
+      // {
+      //     userId: res.data.userId,
+      //     name: res.data.name,
+      //     email: res.data.email,
+      //     password: res.data.password,
+      //     accessToken: res.data.accessToken
+      //
+      // }
+      let chatAccounts = AppEnv.config.get('chatAccounts') || {};
+      chatAccounts[res.data.email] = res.data;
+      AppEnv.config.set('chatAccounts', chatAccounts);
+    });
     this._account = acct;
     this.trigger();
   };
