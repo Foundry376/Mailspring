@@ -41,6 +41,7 @@ import {
 import { isJsonString } from '../utils/stringUtils';
 import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
+import { getPriKey, setPriKey, getPubKey, setPubKey } from '../utils/e2ee';
 
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
@@ -118,7 +119,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
         let keys = payload.ediEncrypted.header.key;//JSON.parse(msg.body);
         let text = getAes(keys);
         if (text) {
-          let aes = decrypte(text, window.localStorage.priKey);
+          let aes = decrypte(text, getPriKey(window.localStorage.jidLocal));//window.localStorage.priKey);
           payload.body = decryptByAES(aes, payload.ediEncrypted.payload);
         }
       }
@@ -196,7 +197,7 @@ export const receivePrivateMessageEpic = action$ =>
           && keys[window.localStorage.jidLocal][window.localStorage.deviceId]) {
           let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
           if (text) {
-            let aes = decrypte(text, window.localStorage.priKey);
+            let aes = decrypte(text, getPriKey(window.localStorage.jidLocal)); //window.localStorage.priKey);
             payload.body = decryptByAES(aes, payload.payload);
           }
         }
@@ -254,7 +255,7 @@ export const receiveGroupMessageEpic = action$ =>
           && keys[window.localStorage.jidLocal][window.localStorage.deviceId]) {
           let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
           if (text) {
-            let aes = decrypte(text, window.localStorage.priKey);
+            let aes = decrypte(text, getPriKey(window.localStorage.jidLocal));//window.localStorage.priKey);
             payload.body = decryptByAES(aes, payload.payload);
           }
         }
