@@ -47,7 +47,7 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
       resource: window.localStorage.deviceId.replace(/-/g, ''),
       deviceId: window.localStorage.deviceId,//'2b92e45c-2fde-48e3-9335-421c8c57777f"',
       timespan: new Date().getTime(),
-      deviceType: 'desktop_new',
+      deviceType: 'desktop',
       deviceModel: process.platform,
       clientVerCode: '101',
       clientVerName: '1.0.0',
