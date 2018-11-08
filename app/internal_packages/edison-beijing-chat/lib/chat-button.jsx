@@ -5,6 +5,7 @@ import { RetinaImg } from 'mailspring-component-kit';
 import { submitAuth } from '../chat-components/actions/auth';
 const { configureStore } = require('../chat-components/store/configureStore').default;
 const store = configureStore();
+let xmppConnected = false;
 
 export default class ChatButton extends React.Component {
   static displayName = 'ChatButton';
@@ -17,11 +18,16 @@ export default class ChatButton extends React.Component {
   }
 
   toggleChatPanel = () => {
-    const identity = AppEnv.config.get('identity');
-    const chatAccounts = AppEnv.config.get('chatAccounts');
-    const activeChatAccount = chatAccounts[identity.emailAddress];
-    let jid = activeChatAccount.userId + '@im.edison.tech/macos';
-    store.dispatch(submitAuth(jid, activeChatAccount.password));
+    if (!xmppConnected){
+      const identity = AppEnv.config.get('identity');
+      const chatAccounts = AppEnv.config.get('chatAccounts');
+      for (let email in chatAccounts) {
+        let chatAccount = chatAccounts[email]
+        let jid = chatAccount.userId + '@im.edison.tech/macos';
+        store.dispatch(submitAuth(jid, chatAccount.password));
+      }
+      xmppConnected = true;
+    }
     this.setState({
       showFlag: !this.state.showFlag
     });
