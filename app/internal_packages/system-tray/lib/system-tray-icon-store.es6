@@ -7,6 +7,7 @@ import { BadgeStore } from 'mailspring-exports';
 const { platform } = process;
 const INBOX_ZERO_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero.png');
 const INBOX_UNREAD_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full.png');
+const TRAY_CHAT_ICON = path.join(__dirname, '..', 'assets', platform, 'chat.png');
 const INBOX_UNREAD_ALT_ICON = path.join(
   __dirname,
   '..',
@@ -49,11 +50,11 @@ class SystemTrayIconStore {
 
   _getIconImageData(isInboxZero, isWindowBlurred) {
     if (isInboxZero) {
-      return { iconPath: INBOX_ZERO_ICON, isTemplateImg: true };
+      return { iconPath: INBOX_ZERO_ICON, isTemplateImg: true, chatIconPath: TRAY_CHAT_ICON };
     }
     return isWindowBlurred
-      ? { iconPath: INBOX_UNREAD_ALT_ICON, isTemplateImg: false }
-      : { iconPath: INBOX_UNREAD_ICON, isTemplateImg: true };
+      ? { iconPath: INBOX_UNREAD_ALT_ICON, isTemplateImg: false, chatIconPath: TRAY_CHAT_ICON }
+      : { iconPath: INBOX_UNREAD_ICON, isTemplateImg: true, chatIconPath: TRAY_CHAT_ICON };
   }
 
   _onWindowBlur = () => {
@@ -72,8 +73,8 @@ class SystemTrayIconStore {
     const unread = BadgeStore.unread();
     const unreadString = (+unread).toLocaleString();
     const isInboxZero = BadgeStore.total() === 0;
-    const { iconPath, isTemplateImg } = this._getIconImageData(isInboxZero, this._windowBlurred);
-    ipcRenderer.send('update-system-tray', iconPath, unreadString, isTemplateImg);
+    const { iconPath, isTemplateImg, chatIconPath } = this._getIconImageData(isInboxZero, this._windowBlurred);
+    ipcRenderer.send('update-system-tray', iconPath, unreadString, isTemplateImg, chatIconPath);
   };
 }
 

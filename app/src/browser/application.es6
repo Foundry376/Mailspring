@@ -201,7 +201,7 @@ export default class Application extends EventEmitter {
   // we close windows and log out, we need to wait for these processes to completely
   // exit and then delete the file. It's hard to tell when this happens, so we just
   // retry the deletion a few times.
-  deleteFileWithRetry(filePath, callback = () => {}, retries = 5) {
+  deleteFileWithRetry(filePath, callback = () => { }, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -457,6 +457,10 @@ export default class Application extends EventEmitter {
     // System Tray
     ipcMain.on('update-system-tray', (event, ...args) => {
       this.systemTrayManager.updateTraySettings(...args);
+    });
+
+    ipcMain.on('update-system-tray-chat-unread-count', (event, ...args) => {
+      this.systemTrayManager.updateTrayChatUnreadCount(...args);
     });
 
     ipcMain.on('set-badge-value', (event, value) => {
