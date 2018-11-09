@@ -86,6 +86,14 @@ const AccountProviders = [
     color: '#fff',
   },
   {
+    provider: 'exchange',
+    displayName: 'EXCHANGE',
+    displayNameShort: 'EXCHANGE',
+    icon: 'ic-settings-account-exchange.png',
+    headerIcon: 'setup-icon-provider-exchange.png',
+    color: '#aaa',
+  },
+  {
     provider: 'imap',
     displayName: 'IMAP / SMTP',
     displayNameShort: 'IMAP',
