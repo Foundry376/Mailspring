@@ -17,6 +17,7 @@ import {
 } from '../actions/db/contact';
 import { generateKey } from '../utils/rsa';
 import xmpp from '../xmpp';
+import { getPriKey, setPriKey, getPubKey, setPubKey } from '../utils/e2ee';
 
 export const triggerFetchRosterEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
@@ -52,10 +53,10 @@ export const triggerStoreContactsEpic = action$ =>
 export const fetchE2eeEpic = action$ =>
   action$.ofType(BEGIN_FETCH_E2EE)//yazzxx2
     .map(() => {
-      if (!window.localStorage.priKey) {
+      if (!getPriKey(window.localStorage.jidLocal)) {
         let { pubkey, prikey } = generateKey();
-        window.localStorage.pubKey = pubkey;
-        window.localStorage.priKey = prikey;
+        setPriKey(window.localStorage.jidLocal, prikey);
+        setPubKey(window.localStorage.jidLocal, pubkey);
         Observable.fromPromise(xmpp.setE2ee({
           jid: window.localStorage.jid,
           did: window.localStorage.deviceId,
