@@ -112,6 +112,13 @@ class SystemTrayManager {
 
   updateTrayChatUnreadCount(count) {
     if (this._trayChat && count !== undefined) {
+      if (count > 99) {
+        count = '99+';
+      } else if (count == 0) {
+        count = '';
+      } else {
+        count = count + '';
+      }
       this._trayChat.setTitle(count);
     }
   }

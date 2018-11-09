@@ -25,6 +25,7 @@ import {
   beginStoringConversations
 } from '../../actions/db/conversation';
 import xmpp from '../../xmpp/index.es6';
+import { ipcRenderer } from 'electron';
 
 const saveConversations = async conversations => {
   const db = await getDb();
@@ -99,7 +100,19 @@ export const retrieveConversationsEpic = action$ =>
               )
                 .sort((a, b) => b.lastMessageTime - a.lastMessageTime)
             )
-            .map(conversations => updateConversations(conversations))
+            .map(conversations => {
+              // update system tray's unread count
+              setTimeout(() => {
+                if (conversations) {
+                  let totalUnread = 0;
+                  conversations.map(item => {
+                    totalUnread += item.unreadMessages;
+                  })
+                  ipcRenderer.send('update-system-tray-chat-unread-count', totalUnread);
+                }
+              }, 100);
+              return updateConversations(conversations)
+            })
         )
         .catch(err => Observable.of(failRetrievingConversations(err)))
     );
