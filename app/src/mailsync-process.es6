@@ -224,7 +224,7 @@ export default class MailsyncProcess extends EventEmitter {
 
   kill() {
     console.warn('Terminating mailsync...');
-    this._proc.kill();
+    this._proc && this._proc.kill();
   }
 
   sync() {
