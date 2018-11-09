@@ -122,6 +122,9 @@ export default class WindowManager {
   _didCreateNewWindow = win => {
     win.browserWindow.on('closed', () => {
       delete this._windows[win.windowKey];
+      if (this.windowLauncher.hotWindow === win) {
+        this.windowLauncher.hotWindow = null;
+      }
       this.quitWinLinuxIfNoWindows();
     });
 
