@@ -27,8 +27,7 @@ export default class HomePage extends Component {
           res = JSON.parse(res);
           chatAccount = res.data;
           chatAccounts[acc.emailAddress] = chatAccount;
-          AppEnv.config.set(chatAccounts, chatAccounts);
-          chatAccount = chatAccounts[acc.emailAddress];
+          AppEnv.config.set('chatAccounts', chatAccounts);
           let jid = chatAccount.userId + '@im.edison.tech/macos';
           this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
         })
