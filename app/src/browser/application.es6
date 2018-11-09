@@ -1,6 +1,6 @@
 /* eslint global-require: "off" */
 
-import { BrowserWindow, Menu, app, ipcMain, dialog } from 'electron';
+import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage } from 'electron';
 
 import fs from 'fs-plus';
 import url from 'url';
@@ -588,6 +588,12 @@ export default class Application extends EventEmitter {
         return;
       }
       mainWindow.browserWindow.webContents.send('action-bridge-message', ...args);
+    });
+
+    ipcMain.on('write-image-to-clipboard', (event, dataURL) => {
+      // This can't be done from the renderer due to https://github.com/electron/electron/issues/8151
+      clipboard = require('electron').clipboard;
+      clipboard.writeImage(nativeImage.createFromDataURL(dataURL));
     });
 
     ipcMain.on('write-text-to-selection-clipboard', (event, selectedText) => {

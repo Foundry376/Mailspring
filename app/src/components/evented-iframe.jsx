@@ -296,7 +296,7 @@ class EventedIFrame extends React.Component {
     // "Copy Image" and "Search Google for 'Bla'"
     event.preventDefault();
 
-    const { remote, clipboard, shell, nativeImage } = require('electron');
+    const { remote, clipboard, shell, ipcRenderer } = require('electron');
     const { Menu, MenuItem } = remote;
     const path = require('path');
     const fs = require('fs');
@@ -382,8 +382,7 @@ class EventedIFrame extends React.Component {
                 canvas.height = img.height;
                 canvas.getContext('2d').drawImage(imageTarget, 0, 0);
                 const imageDataURL = canvas.toDataURL('image/png');
-                img = nativeImage.createFromDataURL(imageDataURL);
-                clipboard.writeImage(img);
+                ipcRenderer.send('write-image-to-clipboard', imageDataURL);
               },
               false
             );
