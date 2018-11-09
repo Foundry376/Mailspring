@@ -1,80 +1,54 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../common/Button';
 import Loader from '../common/Loader';
-import chatModel from '../../store/model';
+import { register } from '../../utils/restjs';
+import keyMannager from '../../../../../src/key-manager';
 
-
-
-export default class HomePage extends PureComponent {
+export default class HomePage extends Component {
   static propTypes = {
     isAuthenticating: PropTypes.bool.isRequired,
     submitAuth: PropTypes.func.isRequired
   }
-
-  state = {
-    jid: {
-      value: '601081@im.edison.tech/macos',
-      error: null
-    },
-    password: {
-      value: 'JiUcDBzAR',
-      error: null
-    }
+  constructor(){
+    super()
+    this.state = {}
   }
 
-  onEnterPress(event) {
-    if (event.nativeEvent.keyCode === 13) {
-      this.login();
-    }
-  }
-
-  login() {
-    const { jid: { value: jid }, password: { value: password } } = this.state;
-
-    if (jid && password) {
-      chatModel.currentUser.jid = jid;
-      this.props.submitAuth(jid, password);
+  startChat = () => {
+    let acc = this.selectedAccount;
+    let chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    let chatAccount = chatAccounts[acc.emailAddress];
+    if (!chatAccount) {
+      acc.clone = () => Object.assign({}, acc);
+      keyMannager.insertAccountSecrets(acc).then(acc => {
+        register(acc.emailAddress, acc.settings.imap_password, acc.name, (err, res) => {
+          if (err) return;
+          res = JSON.parse(res);
+          chatAccount = res.data;
+          chatAccounts[acc.emailAddress] = chatAccount;
+          AppEnv.config.set(chatAccounts, chatAccounts);
+          chatAccount = chatAccounts[acc.emailAddress];
+          let jid = chatAccount.userId + '@im.edison.tech/macos';
+          this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
+        })
+      })
     } else {
-      if (!jid) {
-        const jidState = Object.assign({}, this.state.jid, {
-          error: 'Required'
-        });
-        this.setState({
-          jid: jidState
-        });
-      }
-      if (!password) {
-        const passwordState = Object.assign({}, this.state.password, {
-          error: 'Required'
-        });
-        this.setState({
-          password: passwordState
-        });
-      }
+      let jid = chatAccount.userId + '@im.edison.tech/macos';
+      this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
     }
   }
 
-  onJidChanged(event) {
-    const newValue = event.target.value;
-    const jidState = Object.assign({}, this.state.jid, {
-      value: newValue,
-      error: null
-    });
-    this.setState({
-      jid: jidState
-    });
+  componentWillMount() {
+    let accounts = AppEnv.config.get('accounts') || {};
+    this.state.accounts = accounts;
+    this.selectedAccount = accounts[0];
+    debugger;
   }
-
-  onPasswordChanged(event) {
-    const newValue = event.target.value;
-    const passwordState = Object.assign({}, this.state.passowrd, {
-      value: newValue,
-      error: null
-    });
-    this.setState({
-      password: passwordState
-    });
+  onChangeAccount = event => {
+    let value = event.target.value
+    console.log('onChangeAccount', value);
+    this.selectedAccount = this.state.accounts[value];
   }
 
   render() {
@@ -83,26 +57,12 @@ export default class HomePage extends PureComponent {
         {this.props.isAuthenticating ?
           <Loader /> :
           <div className="authFormContainer">
-            <div className="label">JID:</div>
-            <input
-              placeholder="e.g. 1234@128.0.0.7"
-              onChange={this.onJidChanged.bind(this)}
-              onKeyPress={this.onEnterPress.bind(this)}
-              type="email"
-              value={this.state.jid.value}
-            />
-            <div className="error">{this.state.jid.error}</div>
-            <div className="label">Password:</div>
-            <input
-              placeholder="Password"
-              onChange={this.onPasswordChanged.bind(this)}
-              onKeyPress={this.onEnterPress.bind(this)}
-              type="password"
-              value={this.state.password.value}
-            />
-            <div className="error">{this.state.password.error}</div>
-            <Button onTouchTap={this.login.bind(this)}>
-              SUBMIT
+            <div className="label" style={{margin:"0 auto"}}>email:</div>
+            <select className="label" onChange={this.onChangeAccount} style={{margin:"0 auto", padding:"0 5px", textAlign:"center"}}>
+              {this.state.accounts.map( (acc, index) => <option value={index} key={acc.emailAddress}> {acc.emailAddress} </option> )}
+            </select>
+            <Button onTouchTap={this.startChat} style={{margin:"10px auto", backgroundColor:"gray", border:"solid pink 2px"}}>
+              start chatting!
             </Button>
           </div>
         }
