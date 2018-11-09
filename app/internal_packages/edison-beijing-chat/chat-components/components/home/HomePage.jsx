@@ -4,6 +4,7 @@ import Button from '../common/Button';
 import Loader from '../common/Loader';
 import { register } from '../../utils/restjs';
 import keyMannager from '../../../../../src/key-manager';
+import chatModel from '../../store/model';
 
 export default class HomePage extends Component {
   static propTypes = {
@@ -29,11 +30,13 @@ export default class HomePage extends Component {
           chatAccounts[acc.emailAddress] = chatAccount;
           AppEnv.config.set('chatAccounts', chatAccounts);
           let jid = chatAccount.userId + '@im.edison.tech/macos';
+          chatModel.currentUser.jid = jid;
           this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
         })
       })
     } else {
       let jid = chatAccount.userId + '@im.edison.tech/macos';
+      chatModel.currentUser.jid = jid;
       this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
     }
   }
