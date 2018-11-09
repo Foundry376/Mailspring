@@ -163,7 +163,7 @@ class FolderSyncProgressStore extends MailspringStore {
       return true;
     }
 
-    if (folderPath) {
+    if (folderPath && state[folderPath]) {
       return state[folderPath].busy;
     }
 
