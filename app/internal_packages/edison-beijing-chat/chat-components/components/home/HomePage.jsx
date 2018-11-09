@@ -53,12 +53,12 @@ export default class HomePage extends Component {
 
   render() {
     return (
-      <div className="chat-container">
+      <div className="chat-container" style={{margin:"120px auto 120px"}}>
         {this.props.isAuthenticating ?
           <Loader /> :
           <div className="authFormContainer">
-            <div className="label" style={{margin:"0 auto"}}>email:</div>
-            <select className="label" onChange={this.onChangeAccount} style={{margin:"0 auto", padding:"0 5px", textAlign:"center"}}>
+            <div className="label" style={{margin:"20px auto",  fontSize: "28px"}}>email:</div>
+            <select className="label" onChange={this.onChangeAccount} style={{margin:"0 auto 40px", padding:"0 5px", textAlign:"center",  fontSize: "24px"}}>
               {this.state.accounts.map( (acc, index) => <option value={index} key={acc.emailAddress}> {acc.emailAddress} </option> )}
             </select>
             <Button onTouchTap={this.startChat} style={{margin:"10px auto", backgroundColor:"gray", border:"solid pink 2px"}}>
