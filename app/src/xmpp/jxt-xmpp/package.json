@@ -1,0 +1,30 @@
+{
+  "name": "jxt-xmpp",
+  "version": "3.2.1",
+  "description": "JXT definitions for XMPP",
+  "main": "./lib/index.js",
+  "author": "Lance Stout <lance@andyet.net>",
+  "license": "MIT",
+  "dependencies": {
+    "babel-runtime": "^5.6.15",
+    "lodash.foreach": "^3.0.3",
+    "xmpp-constants": "^2.3.0",
+    "xmpp-jid": "^1.1.1"
+  },
+  "devDependencies": {
+    "babel": "^5.6.7",
+    "eslint": "^0.24.0",
+    "eslint-plugin-hapi": "^1.2.0",
+    "precommit-hook": "^3.0.0"
+  },
+  "scripts": {
+    "validate": "npm ls",
+    "lint": "./node_modules/.bin/eslint -f ./src",
+    "compile": "babel --optional runtime -sd lib/ src/",
+    "prepublish": "npm run compile"
+  },
+  "pre-commit": [
+    "lint",
+    "validate"
+  ]
+}

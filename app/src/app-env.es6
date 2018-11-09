@@ -876,6 +876,10 @@ export default class AppEnvConstructor {
     this.windowEventHandler.removeUnloadCallback(callback);
   }
 
+  setTrayChatUnreadCount(count) {
+    ipcRenderer.send('update-system-tray-chat-unread-count', count);
+  }
+
   enhanceEventObject() {
     const overriddenStop = Event.prototype.stopPropagation;
     Event.prototype.stopPropagation = function stopPropagation(...args) {

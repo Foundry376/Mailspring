@@ -51,6 +51,7 @@ class SystemTrayManager {
     this._iconPath = null;
     this._unreadString = null;
     this._tray = null;
+    this._trayChat = null;
     this.initTray();
 
     this._application.config.onDidChange('core.workspace.systemTray', ({ newValue }) => {
@@ -67,6 +68,9 @@ class SystemTrayManager {
     const created = this._tray !== null;
 
     if (enabled && !created) {
+      this._trayChat = new Tray(_getIcon(this._iconPath));
+      this._trayChat.addListener('click', this._onChatClick);
+
       this._tray = new Tray(_getIcon(this._iconPath));
       this._tray.setToolTip(_getTooltip(this._unreadString));
       this._tray.addListener('click', this._onClick);
@@ -87,7 +91,11 @@ class SystemTrayManager {
     }
   };
 
-  updateTraySettings(iconPath, unreadString, isTemplateImg) {
+  _onChatClick = () => {
+    this._application.emit('application:show-main-window');
+  };
+
+  updateTraySettings(iconPath, unreadString, isTemplateImg, chatIconPath) {
     if (this._iconPath !== iconPath) {
       this._iconPath = iconPath;
       if (this._tray) this._tray.setImage(_getIcon(this._iconPath, isTemplateImg));
@@ -96,6 +104,23 @@ class SystemTrayManager {
       this._unreadString = unreadString;
       if (this._tray) this._tray.setToolTip(_getTooltip(unreadString));
     }
+    if (this._iconChatPath !== chatIconPath) {
+      this._iconChatPath = chatIconPath;
+      if (this._trayChat) this._trayChat.setImage(_getIcon(this._iconChatPath, isTemplateImg));
+    }
+  }
+
+  updateTrayChatUnreadCount(count) {
+    if (this._trayChat && count !== undefined) {
+      if (count > 99) {
+        count = '99+';
+      } else if (count == 0) {
+        count = '';
+      } else {
+        count = count + '';
+      }
+      this._trayChat.setTitle(count);
+    }
   }
 
   destroyTray() {
@@ -103,6 +128,11 @@ class SystemTrayManager {
       this._tray.removeListener('click', this._onClick);
       this._tray.destroy();
       this._tray = null;
+    }
+    if (this._trayChat) {
+      this._trayChat.removeListener('click', this._onChatClick);
+      this._trayChat.destroy();
+      this._trayChat = null;
     }
   }
 }

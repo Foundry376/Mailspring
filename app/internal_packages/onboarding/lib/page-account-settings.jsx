@@ -55,18 +55,22 @@ class AccountBasicSettingsForm extends React.Component {
       errorFieldNames.push('password');
       errorMessage = 'Please provide a password for your account.';
     }
+    if (account.provider === 'exchange' && !account.settings.exchangeServer) {
+      errorFieldNames.push('exchangeServer');
+      errorMessage = 'Please provide your exchange server.';
+    }
 
     return { errorMessage, errorFieldNames, populated: true };
   };
 
   async submit() {
     // create a new account with expanded settings and just the three fields
-    const { name, emailAddress, provider, settings: { imap_password } } = this.props.account;
-    let account = new Account({ name, emailAddress, provider, settings: { imap_password } });
+    const { name, emailAddress, provider, settings: { imap_password, exchangeServer } } = this.props.account;
+    let account = new Account({ name, emailAddress, provider, settings: { imap_password, exchangeServer } });
     account = await expandAccountWithCommonSettings(account);
     OnboardingActions.setAccount(account);
 
-    if (account.settings.imap_host && account.settings.smtp_host) {
+    if ((account.settings.imap_host && account.settings.smtp_host) || provider === 'exchange') {
       // expanding the account settings succeeded - try to authenticate
       this.props.onConnect(account);
     } else {
@@ -76,6 +80,7 @@ class AccountBasicSettingsForm extends React.Component {
   }
 
   render() {
+    const { provider } = this.props.account;
     return (
       <form className="settings">
         <FormField field="name" title="Name" {...this.props} />
@@ -86,6 +91,7 @@ class AccountBasicSettingsForm extends React.Component {
           type="password"
           {...this.props}
         />
+        {provider === 'exchange' ? <FormField field="settings.exchangeServer" title="Exchange Server" {...this.props} /> : null}
       </form>
     );
   }

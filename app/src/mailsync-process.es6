@@ -225,12 +225,13 @@ export default class MailsyncProcess extends EventEmitter {
     if (this._proc.stdout) {
       this._proc.stdout.on('data', data => {
         const added = data.toString();
-        const isJson = added && added[0] === '{';
-        if (isJson) {
-          outBuffer += '\n' + added.trim();
+        if (added.trim() === 'Waiting for Account JSON:') {
+          return;
         }
+        const isIndexOfEnter = added && added.indexOf('\n') !== -1;
+        outBuffer += added;
 
-        if (isJson) {
+        if (isIndexOfEnter) {
           const msgs = this._arrayTrim(outBuffer.split('\n'))
           outBuffer = '';
           this.emit('deltas', msgs);

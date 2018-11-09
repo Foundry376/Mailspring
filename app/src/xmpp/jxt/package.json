@@ -1,0 +1,60 @@
+{
+  "name": "jxt",
+  "version": "3.1.0",
+  "description": "JSON/XML Translator. Set/retrieve data from XML just like working with a dictionary.",
+  "main": "index.js",
+  "dependencies": {
+    "lodash.assign": "^3.0.0",
+    "ltx": "^2.2.0",
+    "uuid": "^3.0.0"
+  },
+  "devDependencies": {
+    "browserify": "^9.0.0",
+    "jshint": "^2.6.3",
+    "make-better": "^0.4.1",
+    "nsp": "^1.0.0",
+    "precommit-hook": "^2.0.0",
+    "tap-spec": "^2.0.0",
+    "tape": "^3.5.0",
+    "uglify-js": "^2.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/otalk/jxt.git"
+  },
+  "testling": {
+    "files": [
+      "test/test.js"
+    ],
+    "browsers": [
+      "ie/10..latest",
+      "chrome/20..latest",
+      "chrome/canary",
+      "firefox/10..latest",
+      "firefox/nightly",
+      "opera/next",
+      "safari/6..latest",
+      "iphone/6..latest",
+      "ipad/6..latest",
+      "android-browser/4.2..latest"
+    ]
+  },
+  "bugs": "https://github.com/otalk/jxt/issues",
+  "keywords": [
+    "JXT",
+    "JSON",
+    "XML",
+    "translation",
+    "stanza.io"
+  ],
+  "contributors": [
+    "Lance Stout <lance@andyet.net>"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "audit": "make audit",
+    "build": "make build",
+    "test": "make test"
+  },
+  "typings": "types.d.ts"
+}

@@ -1,0 +1,52 @@
+'use strict';
+
+module.exports = function (client) {
+    // We always need this one first
+    client.use(require('./disco'));
+
+    client.use(require('./attention'));
+    client.use(require('./avatar'));
+    client.use(require('./blocking'));
+    client.use(require('./bob'));
+    client.use(require('./bookmarks'));
+    client.use(require('./carbons'));
+    client.use(require('./chatstates'));
+    client.use(require('./command'));
+    client.use(require('./correction'));
+    client.use(require('./csi'));
+    client.use(require('./dataforms'));
+    client.use(require('./delayed'));
+    client.use(require('./escaping'));
+    client.use(require('./extdisco'));
+    client.use(require('./forwarding'));
+    client.use(require('./geoloc'));
+    client.use(require('./hashes'));
+    client.use(require('./idle'));
+    client.use(require('./invisible'));
+    client.use(require('./jidprep'));
+    client.use(require('./jingle'));
+    client.use(require('./json'));
+    client.use(require('./keepalive'));
+    client.use(require('./logging'));
+    client.use(require('./mam'));
+    client.use(require('./muc'));
+    client.use(require('./mood'));
+    client.use(require('./nick'));
+    client.use(require('./oob'));
+    client.use(require('./ping'));
+    client.use(require('./private'));
+    client.use(require('./psa'));
+    client.use(require('./push'));
+    client.use(require('./pubsub'));
+    client.use(require('./reach'));
+    client.use(require('./receipts'));
+    client.use(require('./references'));
+    client.use(require('./register'));
+    client.use(require('./roster'));
+    client.use(require('./rtt'));
+    client.use(require('./shim'));
+    client.use(require('./time'));
+    client.use(require('./vcard'));
+    client.use(require('./version'));
+    client.use(require('./e2ee'));
+};
