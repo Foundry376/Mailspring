@@ -231,7 +231,7 @@ export default class WindowManager {
       bootstrapScript: require.resolve('../window-bootstrap'),
       mainWindow: true,
       width: 900, // Gets changed based on previous settings
-      height: 700, // Gets changed based on previous settings
+      height: 670, // Gets changed based on previous settings
       initializeInBackground: this.initializeInBackground,
     };
 
@@ -244,7 +244,7 @@ export default class WindowManager {
       toolbar: false,
       resizable: false,
       width: 900,
-      height: 600,
+      height: 670,
     };
 
     // The SPEC_WINDOW gets passed its own bootstrapScript
