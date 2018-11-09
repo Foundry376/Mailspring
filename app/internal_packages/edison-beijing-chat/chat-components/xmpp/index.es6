@@ -1,4 +1,4 @@
-import Stanza, { Client } from 'stanza.io';
+import Stanza, { Client } from '../../../../src/xmpp/stanza.io';
 import EventEmitter3 from 'eventemitter3';
 import { Observable } from 'rxjs/Observable';
 
