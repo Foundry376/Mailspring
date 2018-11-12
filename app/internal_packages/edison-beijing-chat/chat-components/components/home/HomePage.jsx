@@ -11,6 +11,7 @@ export default class HomePage extends Component {
     isAuthenticating: PropTypes.bool.isRequired,
     submitAuth: PropTypes.func.isRequired
   }
+
   constructor(){
     super()
     this.state = {}
@@ -24,8 +25,11 @@ export default class HomePage extends Component {
       acc.clone = () => Object.assign({}, acc);
       keyMannager.insertAccountSecrets(acc).then(acc => {
         register(acc.emailAddress, acc.settings.imap_password, acc.name, (err, res) => {
-          if (err) return;
           res = JSON.parse(res);
+          if (err || !res || res.resultCode != 1) {
+            this.setState({errorMessage: "This email has not a chat account，need to be registered, but failed, please try later again"});
+            return;
+          }
           chatAccount = res.data;
           chatAccounts[acc.emailAddress] = chatAccount;
           AppEnv.config.set('chatAccounts', chatAccounts);
@@ -66,6 +70,7 @@ export default class HomePage extends Component {
             <Button onTouchTap={this.startChat} style={{margin:"10px auto", backgroundColor:"gray", border:"solid pink 2px"}}>
               start chatting!
             </Button>
+            {this.state.errorMessage && <div style={{margin:"0 auto 40px", padding:"0 5px", textAlign:"center",  fontSize: "20px", color:"red"}}>{this.state.errorMessage}</div>}
           </div>
         }
       </div>
