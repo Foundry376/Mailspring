@@ -67,7 +67,7 @@ export const uploadContacts = (accessToken, contacts, cb) => {
  * @param {*} cb 
  */
 export const getavatar = (email, cb) => {
-    get(urlPre + 'getavatar?email=' + email, cb);
+    get('https://restxmpp.stag.easilydo.cc/public/getavatar?email=' + email, cb);
 }
 
 export default {
