@@ -89,6 +89,8 @@ exports['default'] = function (JXT) {
         element: 'item',
         fields: {
             affiliation: Utils.attribute('affiliation'),
+            name: Utils.attribute('name'),
+            email: Utils.attribute('email'),
             nick: Utils.attribute('nick'),
             jid: Utils.jidAttribute('jid'),
             role: Utils.attribute('role'),
@@ -273,12 +275,12 @@ exports['default'] = function (JXT) {
         element: 'members',
         fields: {
             jid: {
-                set : function setJid(values){
-                    for(let i in values){
-                        Utils.setSubAttribute(this.xml, '', 'member','jid', values[i]);
+                set: function setJid(values) {
+                    for (let i in values) {
+                        Utils.setSubAttribute(this.xml, '', 'member', 'jid', values[i]);
                     }
                 },
-                get:function getJid(){
+                get: function getJid() {
 
                 }
             }
@@ -298,7 +300,7 @@ exports['default'] = function (JXT) {
     });
     var EdimucConfig = JXT.define({
         name: 'edimucconfig',
-        namespace:'edimucconfig',
+        namespace: 'edimucconfig',
         element: 'edimucconfig',
         fields: {
             subject: Utils.textSub('', 'subject'),
@@ -306,11 +308,11 @@ exports['default'] = function (JXT) {
             description: Utils.textSub('', 'description')
         }
     });
-    var EdimucProfile=JXT.define({
-        name:'edimucprofile',
-        namespace:'edimucprofile',
-        element:'edimucprofile',
-        fields:{
+    var EdimucProfile = JXT.define({
+        name: 'edimucprofile',
+        namespace: 'edimucprofile',
+        element: 'edimucprofile',
+        fields: {
             jid: proxy('_mucEdiItem', 'jid'),
             nickname: proxy('_mucEdiItem', 'nickname')
         }
