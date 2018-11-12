@@ -1,10 +1,15 @@
 const { get, post } = require('./httpex');
 var urlPre = 'https://restxmpp.stag.easilydo.cc/client/';
-export const register = (email, pwd, name, host, port, ssl, cb) => {
+export const register = (email, pwd, name, type, provider, setting, cb) => {
+    let emailProvider = provider == "" ? "other" : provider;
+    let host = setting.imap_host;
+    let ssl = setting.imap_allow_insecure_ssl;
+    let port = setting.imap_port;
+
     let data = {
         "name": name,
-        "emailType": "0",
-        "emailProvider": "other",
+        "emailType": type,
+        "emailProvider": emailProvider,
         "emailHost": host,
         "emailSSL": ssl,
         "emailPort": port,
