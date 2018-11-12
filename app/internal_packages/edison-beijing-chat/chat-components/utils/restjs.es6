@@ -1,10 +1,13 @@
 const { get, post } = require('./httpex');
 var urlPre = 'https://restxmpp.stag.easilydo.cc/client/';
-export const register = (email, pwd, name, cb) => {
+export const register = (email, pwd, name, host, port, ssl, cb) => {
     let data = {
         "name": name,
         "emailType": "0",
         "emailProvider": "other",
+        "emailHost": host,
+        "emailSSL": ssl,
+        "emailPort": port,
         "deviceType": "desktop",
         "deviceModel": process.platform,
         "pushToken": "",
