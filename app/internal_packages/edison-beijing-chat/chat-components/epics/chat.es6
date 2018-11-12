@@ -266,24 +266,23 @@ export const receiveGroupMessageEpic = action$ =>
 
 export const convertReceivedMessageEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
-    .filter(({ type, payload }) => {
-      // if groupchat and the "sender" is your self, skip the message
-      if (type === RECEIVE_GROUP_MESSAGE && payload.from.resource === getState().auth.currentUser.local) {
-        return false;
-      }
-      return true;
-    })
     .map(({ type, payload }) => {
       const { timeSend } = JSON.parse(payload.body);
       let sender = payload.from.bare;
       // if groupchat, display the sender name
       if (type === RECEIVE_GROUP_MESSAGE) {
-        sender = payload.from.resource;
-        const { contact: { contacts } } = getState();
-        for (const item of contacts) {
-          if (item.jid.split('@')[0] === sender) {
-            sender = item.name;
-            break;
+        const reduxStore = getState();
+        // If the sender is your self
+        if (payload.from.resource === reduxStore.auth.currentUser.local) {
+          sender = reduxStore.auth.currentUser.bare
+        } else {
+          sender = payload.from.resource;
+          const { contact: { contacts } } = reduxStore;
+          for (const item of contacts) {
+            if (item.jid.split('@')[0] === sender) {
+              sender = item.name;
+              break;
+            }
           }
         }
       }

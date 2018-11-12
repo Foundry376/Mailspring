@@ -231,7 +231,7 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
     .map(({ payload: { contacts, roomId, name } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
-      const content = 'no message';
+      const content = '';
       const timeSend = new Date().getTime();
       const { auth: { currentUser } } = getState();
       const conversation = {
