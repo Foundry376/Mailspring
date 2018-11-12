@@ -21,7 +21,7 @@ var path = require('path');
 var myBucket = 'edison-media-stag';
 var ENCRYPTED_SUFFIX = ".encrypted";
 
-export const downloadFile = (aes, key, name) => {
+export const downloadFile = (aes, key, name, callback) => {
     var params = {
         Bucket: myBucket,
         Key: key
@@ -36,6 +36,9 @@ export const downloadFile = (aes, key, name) => {
                 fs.writeFileSync(name, decryptByAESFile(aes, data.Body));
             } else {
                 fs.writeFileSync(name, data.Body);
+            }
+            if (callback) {
+                callback();
             }
             console.log(`succeed downloadFile aws3 file ${key} to ${name}`);
         }

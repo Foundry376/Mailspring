@@ -36,6 +36,13 @@ const saveConversations = async conversations => {
         conv.unreadMessages = convInDB.unreadMessages + 1;
       }
     }
+    // when private chat, update avtar
+    if (!conv.isGroup) {
+      const contact = await db.contacts.findOne(conv.jid).exec();
+      if (contact && contact.avatar) {
+        conv.avatar = contact.avatar;
+      }
+    }
     return db.conversations.upsert(conv)
   }));
 };
