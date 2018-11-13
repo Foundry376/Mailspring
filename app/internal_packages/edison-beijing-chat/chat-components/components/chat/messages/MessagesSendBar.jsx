@@ -7,6 +7,7 @@ import SendIcon from '../../common/icons/SendIcon';
 import { theme } from '../../../utils/colors';
 import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
+
 import uuid from 'uuid/v4';
 
 export default class MessagesSendBar extends PureComponent {
@@ -123,6 +124,8 @@ export default class MessagesSendBar extends PureComponent {
     files.push(path);
     this.setState(Object.assign({}, this.state, { files }));
   }
+
+
 
 
   render() {

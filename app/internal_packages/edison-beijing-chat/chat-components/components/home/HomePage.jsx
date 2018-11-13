@@ -23,7 +23,6 @@ export default class HomePage extends Component {
     let chatAccount = chatAccounts[acc.emailAddress];
     if (!chatAccount) {
       acc.clone = () => Object.assign({}, acc);
-      debugger
       keyMannager.insertAccountSecrets(acc).then(acc => {
         let email = acc.emailAddress;
         let type = 0;
@@ -32,7 +31,11 @@ export default class HomePage extends Component {
         }
         //register = (email, pwd, name, type, provider, setting, cb) => {
         register(acc.emailAddress, acc.settings.imap_password, acc.name, type, acc.provider, acc.settings, (err, res) => {
-          res = JSON.parse(res);
+          try {
+            res = JSON.parse(res);
+          } catch(e) {
+            console.log('response is not json');
+          }
           if (err || !res || res.resultCode != 1) {
             this.setState({errorMessage: "This email has not a chat account，need to be registered, but failed, please try later again"});
             return;
@@ -48,7 +51,6 @@ export default class HomePage extends Component {
     } else {
       let jid = chatAccount.userId + '@im.edison.tech/macos';
       chatModel.currentUser.jid = jid;
-      debugger
       this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
     }
   }
@@ -57,7 +59,6 @@ export default class HomePage extends Component {
     let accounts = AppEnv.config.get('accounts') || {};
     this.state.accounts = accounts;
     this.selectedAccount = accounts[0];
-    debugger;
   }
   onChangeAccount = event => {
     let value = event.target.value

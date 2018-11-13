@@ -57,7 +57,6 @@ export default class MessagesPanel extends PureComponent {
   onUpdateGroup = (contacts) => {
     this.setState(Object.assign({}, this.state, { inviting: false }));
     const {selectedConversation} = this.props;
-    debugger;
     for (const i in contacts) {
       xmpp.addMember(selectedConversation.jid, contacts[i].jid);
     }

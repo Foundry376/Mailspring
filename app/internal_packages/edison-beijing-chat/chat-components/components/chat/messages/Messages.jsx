@@ -141,17 +141,13 @@ export default class Messages extends PureComponent {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
               const color = colorForString(msg.sender);
               let msgFile;
-              if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)/))
-                debugger;
 
               let download = (event) => {
-
-                // 判断是否存储在aws上的文件
+                // assert the file is on aws
                 if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
                   let path = dialog.showSaveDialog({ title: `download file` });
                   downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
                 }
-
               }
               if (msgBody.path) {
                 msgFile = (<div className="messageMeta">

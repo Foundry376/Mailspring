@@ -200,7 +200,6 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
     .filter(({ payload }) => {
-      debugger;
       if (payload.payload) {
         let keys = payload.keys;//JSON.parse(msg.body);
         if (keys[window.localStorage.jidLocal]
@@ -210,7 +209,6 @@ export const receivePrivateMessageEpic = action$ =>
             let aes = decrypte(text, getPriKey(window.localStorage.jidLocal)); //window.localStorage.priKey);
             let body = decryptByAES(aes, payload.payload);
             let msgBody = JSON.parse(body);
-            debugger;
             if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)\.encrypted$/)) {
               let name = msgBody.mediaObjectId;
               name = name.split('/')[1]
