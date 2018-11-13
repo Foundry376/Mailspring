@@ -66,11 +66,11 @@ export default class MessagesSendBar extends PureComponent {
             } else {
               message = 'file received';
             }
-            if (selectedConversation && message) {
+            if (selectedConversation) {
               let body = {
                 type: 1,
                 timeSend: new Date().getTime(),
-                content: message,
+                content: message || " ",
                 email: selectedConversation.email,
                 name: selectedConversation.name,
                 mediaObjectId: myKey,
@@ -110,6 +110,15 @@ export default class MessagesSendBar extends PureComponent {
     // event.target.files = new window.FileList();
   }
 
+
+  onDrop = (e) => {
+    let path = e.dataTransfer.files[0].path,
+        files = this.state.files.slice();
+    files.push(path);
+    this.setState(Object.assign({}, this.state, {files}));
+  }
+
+
   render() {
     return (
       <div className="sendBar">
@@ -129,7 +138,7 @@ export default class MessagesSendBar extends PureComponent {
             />
           </Button>
         </div>
-        <div className="messageTextField">
+        <div className="messageTextField" onDrop = {this.onDrop}>
           <TextArea
             className="messageTextField"
             placeholder="Write a message..."
