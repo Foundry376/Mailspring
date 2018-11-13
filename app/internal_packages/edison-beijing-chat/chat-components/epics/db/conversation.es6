@@ -36,6 +36,13 @@ const saveConversations = async conversations => {
         conv.unreadMessages = convInDB.unreadMessages + 1;
       }
     }
+    // when private chat, update avtar
+    if (!conv.isGroup) {
+      const contact = await db.contacts.findOne(conv.jid).exec();
+      if (contact && contact.avatar) {
+        conv.avatar = contact.avatar;
+      }
+    }
     return db.conversations.upsert(conv)
   }));
 };
@@ -224,7 +231,7 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
     .map(({ payload: { contacts, roomId, name } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
-      const content = 'no message';
+      const content = '';
       const timeSend = new Date().getTime();
       const { auth: { currentUser } } = getState();
       const conversation = {

@@ -162,7 +162,7 @@ class OutlineView extends Component {
   }
 
   _renderItems() {
-    return this.props.items.map(item => <OutlineViewItem key={item.id} item={item} />);
+    return this.props.items.map(item => item.name ? <OutlineViewItem key={item.id} item={item} /> : null);
   }
 
   _renderOutline(allowCreate, collapsed) {

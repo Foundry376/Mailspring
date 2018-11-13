@@ -67,13 +67,14 @@ export const newMessage = formattedMessage => ({
   payload: formattedMessage
 });
 
-export const beginSendingMessage = (conversation, body, messageId = '') => {
+export const beginSendingMessage = (conversation, body, messageId = '', isUploading = false) => {
   return {
     type: BEGIN_SEND_MESSAGE,
     payload: {
       conversation,
       body,
       id: messageId || uuid(),
+      isUploading: isUploading
     }
   };
 };

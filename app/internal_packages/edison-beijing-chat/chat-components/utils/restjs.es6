@@ -1,10 +1,21 @@
 const { get, post } = require('./httpex');
 var urlPre = 'https://restxmpp.stag.easilydo.cc/client/';
-export const register = (email, pwd, name, cb) => {
+export const register = (email, pwd, name, type, provider, setting, cb) => {
+    if (!setting) {
+        return;
+    }
+    let emailProvider = provider == "" ? "other" : provider;
+    let host = setting.imap_host;
+    let ssl = setting.imap_allow_insecure_ssl ? true : (setting.imap_security === 'SSL / TLS' ? true : false);
+    let port = setting.imap_port;
+
     let data = {
         "name": name,
-        "emailType": "0",
-        "emailProvider": "other",
+        "emailType": type,
+        "emailProvider": emailProvider,
+        "emailHost": host,
+        "emailSSL": ssl,
+        "emailPort": port,
         "deviceType": "desktop",
         "deviceModel": process.platform,
         "pushToken": "",
@@ -59,7 +70,7 @@ export const uploadContacts = (accessToken, contacts, cb) => {
  * @param {*} cb 
  */
 export const getavatar = (email, cb) => {
-    get(urlPre + 'getavatar?email=' + email, cb);
+    get('https://restxmpp.stag.easilydo.cc/public/getavatar?email=' + email, cb);
 }
 
 export default {

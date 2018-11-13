@@ -1,4 +1,5 @@
 var AWS = require('aws-sdk');
+const { decryptByAESFile } = require('./aes');
 import fs from 'fs';
 import uuid from 'uuid';
 
@@ -21,7 +22,7 @@ var path = require('path');
 var myBucket = 'edison-media-stag';
 var ENCRYPTED_SUFFIX = ".encrypted";
 
-export const downloadFile = (aes, key, name) => {
+export const downloadFile = (aes, key, name, callback) => {
     var params = {
         Bucket: myBucket,
         Key: key
@@ -37,12 +38,15 @@ export const downloadFile = (aes, key, name) => {
             } else {
                 fs.writeFileSync(name, data.Body);
             }
+            if (callback) {
+                callback();
+            }
             console.log(`succeed downloadFile aws3 file ${key} to ${name}`);
         }
     });
 }
 
-export const uploadeFile = (oid, aes, file, callback) => {
+export const uploadFile = (oid, aes, file, callback) => {
 
     let filename = path.basename(file);
     let size;
@@ -79,6 +83,7 @@ export const uploadeFile = (oid, aes, file, callback) => {
         });
     })
 }
+
 function getSize(len) {
     if (len < 1024) {
         return len + ' B';

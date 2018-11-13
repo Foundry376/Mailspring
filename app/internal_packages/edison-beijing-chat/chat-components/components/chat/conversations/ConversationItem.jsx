@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { buildTimeDescriptor } from '../../../utils/time';
 import ContactAvatar from '../../common/ContactAvatar';
+import Badge from './ConversationBadge';
 
 export default class ConversationItem extends PureComponent {
 
@@ -34,24 +35,23 @@ export default class ConversationItem extends PureComponent {
   render() {
     const { selected, conversation, referenceTime, onTouchTap, removeConversation, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
-
     return (
       <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
         <div onTouchTap={onTouchTap} style={{ width: '95%' }}>
-          < div style={{ display: 'inline-block', height: "48px", width: "48px", fontSize: "24px", borderRadius: "24px",
-            background: "rgb(255, 108, 95)", color: "white", overflow: "hidden", textAlign:"center", paddingTop:"5px" }} >
-            {conversation.name.slice(0,2).toUpperCase()}
+          <div className="avatarWrapper">
+            <ContactAvatar jid={conversation.jid} name={conversation.name}
+              email={conversation.email} avatar={conversation.avatar} size={48} />
+            <Badge count={conversation.unreadMessages} />
           </div>
-          <div className="content" style={{ display: 'inline-block', width:"85%"}}>
-            <div className="headerRow" style={{ display: 'inline-block', paddingRight:"10px" }}>
+          <div className="content" style={{ display: 'inline-block', width: "85%" }}>
+            <div className="headerRow" style={{ display: 'inline-block', paddingRight: "10px" }}>
               <span className="headerText">{conversation.name}</span>
             </div>
             <div className="headerRow" style={{ display: 'inline-block' }}>
               <span>{timeDescriptor(conversation.lastMessageTime)}</span>
-              <div style={{ display: 'inline-block', color: "blue", marginLeft:"4px"}}>{conversation.unreadMessages}</div>
             </div>
             <div className="subHeader">{conversation.lastMessageText}</div>
-           </div>
+          </div>
         </div>
         <span style={{ float: "right" }} onClick={this.onClickRemove}> remove </span>
       </div >

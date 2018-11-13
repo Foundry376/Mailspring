@@ -2,7 +2,9 @@ import { Observable } from 'rxjs/Observable';
 import { replace } from 'react-router-redux';
 import xmpp from '../xmpp';
 import getDb from '../db';
+import fs from 'fs'
 import {
+  MESSAGE_STATUS_FILE_UPLOADING,
   MESSAGE_STATUS_SENDING,
   MESSAGE_STATUS_DELIVERED,
   MESSAGE_STATUS_RECEIVED,
@@ -29,7 +31,7 @@ import {
   newMessage,
   sendingMessage,
   selectConversation,
-  showConversationNotification
+  showConversationNotification,
 } from '../actions/chat';
 import {
   UPDATE_SELECTED_CONVERSATION,
@@ -42,6 +44,7 @@ import { isJsonString } from '../utils/stringUtils';
 import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, setPriKey, getPubKey, setPubKey } from '../utils/e2ee';
+import { downloadFile } from '../utils/awss3';
 
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
@@ -57,7 +60,7 @@ export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
     .mergeMap(
       ({ payload }) => Observable.fromPromise(getDb())
-        .map(db => ({ db, payload }))
+        .map(db => ({ db, payload })),
     )//yazzzzz
     .mergeMap(({ db, payload }) => {
       return Observable.fromPromise(db.e2ees.findOne(payload.conversation.jid).exec())
@@ -66,7 +69,7 @@ export const sendMessageEpic = action$ =>
             payload.devices = e2ee.devices;
           }
           return { db, payload };
-        })
+        });
     })
     .mergeMap(({ db, payload }) => {
       return Observable.fromPromise(db.e2ees.findOne(window.localStorage.jid).exec())
@@ -75,9 +78,9 @@ export const sendMessageEpic = action$ =>
             payload.selfDevices = e2ee.devices;
           }
           return { payload };
-        })
+        });
     })
-    .map(({ payload: { conversation, body, id, devices, selfDevices } }) => {
+    .map(({ payload: { conversation, body, id, devices, selfDevices, isUploading } }) => {
       let ediEncrypted;
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices);
@@ -87,14 +90,16 @@ export const sendMessageEpic = action$ =>
           id,
           ediEncrypted: ediEncrypted,
           to: conversation.jid,
-          type: conversation.isGroup ? 'groupchat' : 'chat'
+          type: conversation.isGroup ? 'groupchat' : 'chat',
+          isUploading
         });
       } else {
         return ({
           id,
           body: body,
           to: conversation.jid,
-          type: conversation.isGroup ? 'groupchat' : 'chat'
+          type: conversation.isGroup ? 'groupchat' : 'chat',
+          isUploading
         });
       }
     })
@@ -108,7 +113,10 @@ export const sendMessageEpic = action$ =>
     // })
     .map(message => sendingMessage(message))//yazzz1
     .do(({ payload }) => {
-      return xmpp.sendMessage(payload)
+      // when uploading file, do not send message
+      if (!payload.isUploading) {
+        xmpp.sendMessage(payload);
+      }
     });
 
 export const newTempMessageEpic = (action$, { getState }) =>
@@ -129,7 +137,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
         sender: currentUser,
         body: payload.body,// || payload.ediEncrypted,//yazzz3
         sentTime: (new Date()).getTime(),
-        status: MESSAGE_STATUS_SENDING,
+        status: payload.isUploading ? MESSAGE_STATUS_FILE_UPLOADING : MESSAGE_STATUS_SENDING,
       };
     })
     .map(newPayload => newMessage(newPayload));
@@ -143,10 +151,11 @@ const getAes = (keys) => {
         text = key.text;
         break;
       }
-    };
+    }
+    ;
     return text;
   }
-}
+};
 export const convertSentMessageEpic = action$ =>
   action$.ofType(SUCCESS_SEND_MESSAGE)
     .map(({ payload }) => ({
@@ -164,7 +173,7 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(SUCCESS_SEND_MESSAGE)
     .mergeMap(({ payload: message }) =>
       Observable.fromPromise(getDb())
-        .map(db => ({ db, message }))
+        .map(db => ({ db, message })),
     )
     .mergeMap(({ db, message }) =>
       Observable.fromPromise(db.conversations.findOne(message.to.bare).exec())
@@ -182,15 +191,16 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
             lastMessageTime: (new Date()).getTime(),
             lastMessageText: content,
             lastMessageSender: message.from.bare,
-            _rev: undefined
+            _rev: undefined,
           });
-        })
+        }),
     )
     .map(conversation => beginStoringConversations([conversation]));
 
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
     .filter(({ payload }) => {
+      debugger;
       if (payload.payload) {
         let keys = payload.keys;//JSON.parse(msg.body);
         if (keys[window.localStorage.jidLocal]
@@ -198,7 +208,30 @@ export const receivePrivateMessageEpic = action$ =>
           let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
           if (text) {
             let aes = decrypte(text, getPriKey(window.localStorage.jidLocal)); //window.localStorage.priKey);
-            payload.body = decryptByAES(aes, payload.payload);
+            let body = decryptByAES(aes, payload.payload);
+            let msgBody = JSON.parse(body);
+            debugger;
+            if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)\.encrypted$/)) {
+              let name = msgBody.mediaObjectId;
+              name = name.split('/')[1]
+              name = name.replace('.encrypted', '');
+              let path = AppEnv.getConfigDirPath();
+              let downpath = path + '/download/';
+              if (!fs.existsSync(downpath)) {
+                fs.mkdirSync(downpath);
+              }
+              path = downpath + name;
+              msgBody.path = 'file://' + path;
+              downloadFile(aes, msgBody.mediaObjectId, path);
+            } else if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)$/)) {
+              let path = msgBody.mediaObjectId;
+              if (!path.match('https?://')) {
+                path = 'https://s3.us-east-2.amazonaws.com/edison-profile-stag/' + path;
+              }
+              msgBody.path = path;
+            }
+            msgBody.aes = aes;
+            payload.body = JSON.stringify(msgBody);
           }
         }
       }
@@ -207,7 +240,7 @@ export const receivePrivateMessageEpic = action$ =>
     // get the latest name for display
     .mergeMap(
       ({ payload }) => Observable.fromPromise(getDb())
-        .map(db => ({ db, payload }))
+        .map(db => ({ db, payload })),
     )
     .mergeMap(({ db, payload }) => {
       return Observable.fromPromise(db.contacts.findOne(payload.from.bare).exec())
@@ -216,35 +249,9 @@ export const receivePrivateMessageEpic = action$ =>
             payload.from.local = contact.name;
           }
           return { payload };
-        })
+        });
     })
     .map(({ payload }) => receivePrivateMessage(payload));
-
-// export const addUnreadMessagesEpic = action$ =>
-//   action$.ofType(RECEIVE_CHAT)
-//     .filter(({ payload }) => {
-//       if (!payload.body && payload.payload) {
-//         let keys = payload.keys;//JSON.parse(msg.body);
-//         if (keys[window.localStorage.jidLocal]
-//           && keys[window.localStorage.jidLocal][window.localStorage.deviceId]) {
-//           let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
-//           if (text) {
-//             let aes = decrypte(text, window.localStorage.priKey);
-//             payload.body = decryptByAES(aes, payload.payload);
-//           }
-//         }
-//       }
-//       return payload.body;
-//     })
-//     // get the latest name for display
-//     .mergeMap(
-//       ({ payload }) => Observable.fromPromise(getDb())
-//         .map(db => ({ db, payload }))
-//     )
-//     .mergeMap(({ db, payload }) =>
-//       Observable.fromPromise(db.conversations && db.conversations.findOne(payload.from.bare).exec())
-//         .map(conv => Object.assign({}, conv, { unreadMessages: conv.unreadMessages + 1 }))
-//     ).map(conv => beginStoringConversations([conv]));
 
 export const receiveGroupMessageEpic = action$ =>
   action$.ofType(RECEIVE_GROUPCHAT)
@@ -266,24 +273,23 @@ export const receiveGroupMessageEpic = action$ =>
 
 export const convertReceivedMessageEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
-    .filter(({ type, payload }) => {
-      // if groupchat and the "sender" is your self, skip the message
-      if (type === RECEIVE_GROUP_MESSAGE && payload.from.resource === getState().auth.currentUser.local) {
-        return false;
-      }
-      return true;
-    })
     .map(({ type, payload }) => {
       const { timeSend } = JSON.parse(payload.body);
       let sender = payload.from.bare;
       // if groupchat, display the sender name
       if (type === RECEIVE_GROUP_MESSAGE) {
-        sender = payload.from.resource;
-        const { contact: { contacts } } = getState();
-        for (const item of contacts) {
-          if (item.jid.split('@')[0] === sender) {
-            sender = item.name;
-            break;
+        const reduxStore = getState();
+        // If the sender is your self
+        if (payload.from.resource === reduxStore.auth.currentUser.local) {
+          sender = reduxStore.auth.currentUser.bare
+        } else {
+          sender = payload.from.resource;
+          const { contact: { contacts } } = reduxStore;
+          for (const item of contacts) {
+            if (item.jid.split('@')[0] === sender) {
+              sender = item.name;
+              break;
+            }
           }
         }
       }
@@ -312,14 +318,14 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
             .map(({ discoItems: { items } }) => {
               for (const item of items) {
                 if (payload.from.local === item.jid.local) {
-                  return { type, payload, name: item.name }
+                  return { type, payload, name: item.name };
                 }
               }
-              return [{ type, payload, name }]
-            })
+              return [{ type, payload, name }];
+            });
         }
       }
-      return [{ type, payload, name }]
+      return [{ type, payload, name }];
     })
     .map(({ type, payload, name }) => {
       const { content, timeSend } = JSON.parse(payload.body);
@@ -336,11 +342,11 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
         unreadMessages: unreadMessages,
         occupants: [
           payload.from.bare,
-          payload.to.bare
+          payload.to.bare,
         ],
         lastMessageTime: (new Date(timeSend)).getTime(),
         lastMessageText: content,
-        lastMessageSender: payload.from.bare
+        lastMessageSender: payload.from.bare,
       };
     })
     .map(conversation => beginStoringConversations([conversation]));
@@ -375,7 +381,7 @@ export const showConversationNotificationEpic = (action$, { getState }) =>
           const { chat: { selectedConversation } } = getState();
           return !selectedConversation || selectedConversation.jid !== jid;
         })
-        .map(() => selectConversation(jid))
+        .map(() => selectConversation(jid)),
     );
 
 export const goPrevConversationEpic = (action$, { getState }) =>
@@ -422,8 +428,8 @@ const getEncrypted = (jid, body, devices, selfDevices) => {
     let key = {
       uid: uid,
       rid: did.id,
-      text: encrypte(did.key, aeskey)
-    }
+      text: encrypte(did.key, aeskey),
+    };
     keys.push(key);
     flag = true;
   }
@@ -435,8 +441,8 @@ const getEncrypted = (jid, body, devices, selfDevices) => {
     let key = {
       uid: window.localStorage.jidLocal,
       rid: did.id,
-      text: encrypte(did.key, aeskey)
-    }
+      text: encrypte(did.key, aeskey),
+    };
     keys.push(key);
   }
 
@@ -445,12 +451,12 @@ const getEncrypted = (jid, body, devices, selfDevices) => {
     let ediEncrypted = {
       header: {
         sid: window.localStorage.deviceId,
-        key: keys
+        key: keys,
       },
-      payload: encryptByAES(aeskey, body)
-    }
+      payload: encryptByAES(aeskey, body),
+    };
     return ediEncrypted;
 
   }
   return false;
-}
+};

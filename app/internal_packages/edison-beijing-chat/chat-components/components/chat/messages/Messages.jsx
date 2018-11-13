@@ -103,6 +103,7 @@ export default class Messages extends PureComponent {
       this.setState({ shouldScrollBottom: false });
     }
   }
+
   download = (event) => {
     let aws3file = event.target.title;
     let path = dialog.showSaveDialog({
@@ -139,6 +140,38 @@ export default class Messages extends PureComponent {
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
               const color = colorForString(msg.sender);
+              let msgFile;
+              if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)/))
+                debugger;
+
+              let download = (event) => {
+
+                // 判断是否存储在aws上的文件
+                if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
+                  let path = dialog.showSaveDialog({ title: `download file` });
+                  downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+                }
+
+              }
+              if (msgBody.path) {
+                msgFile = (<div className="messageMeta">
+                  <img
+                    src={msgBody.path}
+                    title={msgBody.mediaObjectId}
+                    onClick={download}
+                  />
+                </div>)
+              } else {
+                msgFile = msgBody.mediaObjectId && <div className="messageMeta">
+                  <RetinaImg
+                    name="fileIcon.png"
+                    mode={RetinaImg.Mode.ContentPreserve}
+                    title={msgBody.mediaObjectId}
+                    onClick={this.download}
+                  />
+                </div>
+              }
+
               return (
                 <div
                   key={msg.id}
@@ -166,12 +199,7 @@ export default class Messages extends PureComponent {
                       {timeDescriptor(msg.sentTime, true)}
                     </div>
                     {msgBody.mediaObjectId && <div className="messageMeta">
-                      <RetinaImg
-                        name="fileIcon.png"
-                        mode={RetinaImg.Mode.ContentPreserve}
-                        title={msgBody.mediaObjectId}
-                        onClick={this.download}
-                      />
+                      {msgFile}
                     </div>
                     }
                   </div>

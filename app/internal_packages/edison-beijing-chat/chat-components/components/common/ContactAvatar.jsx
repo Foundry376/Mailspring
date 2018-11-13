@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { colorForString } from '../../utils/colors';
 
@@ -15,27 +15,36 @@ const getInitials = name => {
   return initials;
 };
 
-const ContactAvatar = ({ name, jid, size = 48 }) => (
-  <div
-    style={{
-      height: size,
-      width: size,
-      minWidth: size,
-      minHeight: size,
-      fontSize: size / 2,
-      borderRadius: size / 2,
-      background: colorForString(jid),
-      color: 'white',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center',
-      flexShrink: 0,
-    }}
-  >
-    {getInitials(name).toUpperCase()}
-  </div>
-);
+class ContactAvatar extends Component {
+  constructor(props) {
+    super(props);
+  }
+  render() {
+    const { name, jid, size = 48, avatar } = this.props;
+    return (
+      <div
+        style={{
+          height: size,
+          width: size,
+          minWidth: size,
+          minHeight: size,
+          fontSize: size / 2,
+          borderRadius: size / 2,
+          background: avatar ? `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${avatar})` : colorForString(jid),
+          backgroundSize: 'cover',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {avatar ? null : getInitials(name).toUpperCase()}
+      </div>
+    )
+  }
+}
 
 ContactAvatar.propTypes = {
   jid: PropTypes.string.isRequired,

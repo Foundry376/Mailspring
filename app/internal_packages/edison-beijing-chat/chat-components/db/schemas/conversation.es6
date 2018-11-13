@@ -11,6 +11,9 @@ export default {
     name: {
       type: 'string'
     },
+    avatar: {
+      type: 'string'
+    },
     isGroup: {
       type: 'boolean'
     },
