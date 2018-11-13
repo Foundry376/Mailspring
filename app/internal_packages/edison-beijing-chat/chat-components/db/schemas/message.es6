@@ -1,4 +1,5 @@
 // For messages from current user
+export const MESSAGE_STATUS_FILE_UPLOADING = 'MESSAGE_STATUS_FILE_UPLOADING';
 export const MESSAGE_STATUS_SENDING = 'MESSAGE_STATUS_SENDING';
 export const MESSAGE_STATUS_DELIVERED = 'MESSAGE_STATUS_DELIVERED';
 export const MESSAGE_STATUS_READ = 'MESSAGE_STATUS_READ';
@@ -9,6 +10,7 @@ export const MESSAGE_STATUS_RECEIVED = 'MESSAGE_STATUS_RECEIVED';
 // Messages from others have weights < 0,
 // Messages from self have weights > 0
 const STATUS_WEIGHTS = {
+  MESSAGE_STATUS_FILE_UPLOADING: -2,
   MESSAGE_STATUS_RECEIVED: -1,
   MESSAGE_STATUS_SENDING: 1,
   MESSAGE_STATUS_DELIVERED: 2,
@@ -44,6 +46,7 @@ export default {
     status: {
       type: 'string',
       enum: [
+        MESSAGE_STATUS_FILE_UPLOADING,
         MESSAGE_STATUS_SENDING,
         MESSAGE_STATUS_DELIVERED,
         MESSAGE_STATUS_READ,

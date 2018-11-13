@@ -7,6 +7,7 @@ import SendIcon from '../../common/icons/SendIcon';
 import { theme } from '../../../utils/colors';
 import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
+import uuid from 'uuid/v4';
 
 export default class MessagesSendBar extends PureComponent {
   static propTypes = {
@@ -49,40 +50,45 @@ export default class MessagesSendBar extends PureComponent {
 
   sendMessage() {
     const { messageBody } = this.state;
-    const { selectedConversation } = this.props;
+    const { selectedConversation, onMessageSubmitted } = this.props;
     const atIndex = selectedConversation.jid.indexOf('@')
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
 
+    if (!selectedConversation) {
+      return;
+    }
+
     if (this.state.files.length) {
       this.state.files.map((file, index) => {
+        let message;
+        if (index === 0) {
+          message = messageBody.trim();
+        } else {
+          message = 'file received';
+        }
+        let body = {
+          type: 1,
+          timeSend: new Date().getTime(),
+          content: 'sending...',
+          email: selectedConversation.email,
+          name: selectedConversation.name,
+          mediaObjectId: '',
+        };
+        const messageId = uuid();
+        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
         uploadFile(jidLocal, null, file, (err, filename, myKey, size) => {
           if (err) {
             alert(`upload files failed, filename: ${filename}`);
             return;
           }
-          let message;
-          if (index === 0) {
-            message = messageBody.trim();
-          } else {
-            message = 'file received';
-          }
-          if (selectedConversation) {
-            let body = {
-              type: 1,
-              timeSend: new Date().getTime(),
-              content: message || " ",
-              email: selectedConversation.email,
-              name: selectedConversation.name,
-              mediaObjectId: myKey,
-            };
-            this.props.onMessageSubmitted(selectedConversation, JSON.stringify(body));
-          }
-        },
-        );
+          body.content = message || " ";
+          body.mediaObjectId = myKey;
+          onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
+        });
       })
     } else {
       let message = messageBody.trim();
-      if (selectedConversation && message) {
+      if (message) {
         let body = {
           type: 1,
           timeSend: new Date().getTime(),
@@ -90,7 +96,7 @@ export default class MessagesSendBar extends PureComponent {
           email: selectedConversation.email,
           name: selectedConversation.name,
         };
-        this.props.onMessageSubmitted(selectedConversation, JSON.stringify(body));//message);
+        onMessageSubmitted(selectedConversation, JSON.stringify(body));//message);
       }
 
     }

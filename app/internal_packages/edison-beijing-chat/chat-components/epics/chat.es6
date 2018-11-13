@@ -4,6 +4,7 @@ import xmpp from '../xmpp';
 import getDb from '../db';
 import fs from 'fs'
 import {
+  MESSAGE_STATUS_FILE_UPLOADING,
   MESSAGE_STATUS_SENDING,
   MESSAGE_STATUS_DELIVERED,
   MESSAGE_STATUS_RECEIVED,
@@ -79,7 +80,7 @@ export const sendMessageEpic = action$ =>
           return { payload };
         });
     })
-    .map(({ payload: { conversation, body, id, devices, selfDevices } }) => {
+    .map(({ payload: { conversation, body, id, devices, selfDevices, isUploading } }) => {
       let ediEncrypted;
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices);
@@ -90,6 +91,7 @@ export const sendMessageEpic = action$ =>
           ediEncrypted: ediEncrypted,
           to: conversation.jid,
           type: conversation.isGroup ? 'groupchat' : 'chat',
+          isUploading
         });
       } else {
         return ({
@@ -97,6 +99,7 @@ export const sendMessageEpic = action$ =>
           body: body,
           to: conversation.jid,
           type: conversation.isGroup ? 'groupchat' : 'chat',
+          isUploading
         });
       }
     })
@@ -110,7 +113,10 @@ export const sendMessageEpic = action$ =>
     // })
     .map(message => sendingMessage(message))//yazzz1
     .do(({ payload }) => {
-      return xmpp.sendMessage(payload);
+      // when uploading file, do not send message
+      if (!payload.isUploading) {
+        xmpp.sendMessage(payload);
+      }
     });
 
 export const newTempMessageEpic = (action$, { getState }) =>
@@ -125,13 +131,14 @@ export const newTempMessageEpic = (action$, { getState }) =>
           payload.body = decryptByAES(aes, payload.ediEncrypted.payload);
         }
       }
+      console.log('*********payload-2', payload);
       return {
         id: payload.id,
         conversationJid: payload.to,
         sender: currentUser,
         body: payload.body,// || payload.ediEncrypted,//yazzz3
         sentTime: (new Date()).getTime(),
-        status: MESSAGE_STATUS_SENDING,
+        status: payload.isUploading ? MESSAGE_STATUS_FILE_UPLOADING : MESSAGE_STATUS_SENDING,
       };
     })
     .map(newPayload => newMessage(newPayload));
