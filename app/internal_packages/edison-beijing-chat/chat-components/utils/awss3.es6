@@ -1,5 +1,5 @@
 var AWS = require('aws-sdk');
-const {decryptByAESFile} = require('./aes');
+const { decryptByAESFile } = require('./aes');
 import fs from 'fs';
 import uuid from 'uuid';
 
@@ -46,7 +46,7 @@ export const downloadFile = (aes, key, name, callback) => {
     });
 }
 
-export const uploadeFile = (oid, aes, file, callback) => {
+export const uploadFile = (oid, aes, file, callback) => {
 
     let filename = path.basename(file);
     let size;

@@ -5,7 +5,7 @@ import Button from '../../common/Button';
 import FilePlusIcon from '../../common/icons/FilePlusIcon';
 import SendIcon from '../../common/icons/SendIcon';
 import { theme } from '../../../utils/colors';
-import { uploadeFile } from '../../../utils/awss3';
+import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
 
 export default class MessagesSendBar extends PureComponent {
@@ -55,29 +55,29 @@ export default class MessagesSendBar extends PureComponent {
 
     if (this.state.files.length) {
       this.state.files.map((file, index) => {
-        uploadeFile(jidLocal, null, file, (err, filename, myKey, size) => {
-            if (err) {
-              alert(`upload files failed, filename: ${filename}`);
-              return;
-            }
-            let message;
-            if (index === 0) {
-              message = messageBody.trim();
-            } else {
-              message = 'file received';
-            }
-            if (selectedConversation) {
-              let body = {
-                type: 1,
-                timeSend: new Date().getTime(),
-                content: message || " ",
-                email: selectedConversation.email,
-                name: selectedConversation.name,
-                mediaObjectId: myKey,
-              };
-              this.props.onMessageSubmitted(selectedConversation, JSON.stringify(body));
-            }
-          },
+        uploadFile(jidLocal, null, file, (err, filename, myKey, size) => {
+          if (err) {
+            alert(`upload files failed, filename: ${filename}`);
+            return;
+          }
+          let message;
+          if (index === 0) {
+            message = messageBody.trim();
+          } else {
+            message = 'file received';
+          }
+          if (selectedConversation) {
+            let body = {
+              type: 1,
+              timeSend: new Date().getTime(),
+              content: message || " ",
+              email: selectedConversation.email,
+              name: selectedConversation.name,
+              mediaObjectId: myKey,
+            };
+            this.props.onMessageSubmitted(selectedConversation, JSON.stringify(body));
+          }
+        },
         );
       })
     } else {
@@ -113,9 +113,9 @@ export default class MessagesSendBar extends PureComponent {
 
   onDrop = (e) => {
     let path = e.dataTransfer.files[0].path,
-        files = this.state.files.slice();
+      files = this.state.files.slice();
     files.push(path);
-    this.setState(Object.assign({}, this.state, {files}));
+    this.setState(Object.assign({}, this.state, { files }));
   }
 
 
@@ -138,7 +138,7 @@ export default class MessagesSendBar extends PureComponent {
             />
           </Button>
         </div>
-        <div className="messageTextField" onDrop = {this.onDrop}>
+        <div className="messageTextField" onDrop={this.onDrop}>
           <TextArea
             className="messageTextField"
             placeholder="Write a message..."
@@ -152,9 +152,9 @@ export default class MessagesSendBar extends PureComponent {
           <div className="chat-message-filelist">
             {this.state.files.map((file, index) => {
               return <RetinaImg
-              name="fileIcon.png"
-              mode={RetinaImg.Mode.ContentPreserve}
-              key={index}
+                name="fileIcon.png"
+                mode={RetinaImg.Mode.ContentPreserve}
+                key={index}
               />;
             })}
           </div>
