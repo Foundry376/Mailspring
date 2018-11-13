@@ -1,6 +1,9 @@
 const { get, post } = require('./httpex');
 var urlPre = 'https://restxmpp.stag.easilydo.cc/client/';
 export const register = (email, pwd, name, type, provider, setting, cb) => {
+    if (!setting) {
+        return;
+    }
     let emailProvider = provider == "" ? "other" : provider;
     let host = setting.imap_host;
     let ssl = setting.imap_allow_insecure_ssl ? true : (setting.imap_security === 'SSL / TLS' ? true : false);
