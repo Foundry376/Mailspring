@@ -1,4 +1,5 @@
 var AWS = require('aws-sdk');
+const {decryptByAESFile} = require('./aes');
 import fs from 'fs';
 import uuid from 'uuid';
 
@@ -82,6 +83,7 @@ export const uploadeFile = (oid, aes, file, callback) => {
         });
     })
 }
+
 function getSize(len) {
     if (len < 1024) {
         return len + ' B';
