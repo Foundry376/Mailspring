@@ -131,7 +131,6 @@ export const newTempMessageEpic = (action$, { getState }) =>
           payload.body = decryptByAES(aes, payload.ediEncrypted.payload);
         }
       }
-      console.log('*********payload-2', payload);
       return {
         id: payload.id,
         conversationJid: payload.to,
