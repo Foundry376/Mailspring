@@ -104,6 +104,14 @@ export default class Messages extends PureComponent {
     }
   }
 
+  download = (event) => {
+    let aws3file = event.target.title;
+    let path = dialog.showSaveDialog({
+      title: `download the file -- ${aws3file}`,
+    });
+    downloadFile(null, aws3file, path);
+  }
+
   render() {
     const {
       currentUserId,
@@ -122,7 +130,6 @@ export default class Messages extends PureComponent {
       return messageStyles.join(' ');
     };
 
-
     return (
       <div
         className="messages"
@@ -133,14 +140,18 @@ export default class Messages extends PureComponent {
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
               const color = colorForString(msg.sender);
-              let msgFile
+              let msgFile;
               if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)/))
                 debugger;
+
               let download = (event) => {
-                let path = dialog.showSaveDialog({
-                  title: `download the file -- ${aws3file}`,
-                });
-                downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+
+                // 判断是否存储在aws上的文件
+                if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
+                  let path = dialog.showSaveDialog({ title: `download file` });
+                  downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+                }
+
               }
               if (msgBody.path) {
                 msgFile = (<div className="messageMeta">
@@ -160,6 +171,7 @@ export default class Messages extends PureComponent {
                   />
                 </div>
               }
+
               return (
                 <div
                   key={msg.id}
@@ -185,7 +197,12 @@ export default class Messages extends PureComponent {
                         /> : null
                       }
                       {timeDescriptor(msg.sentTime, true)}
-                    </div> { msgFile } </div>
+                    </div>
+                    {msgBody.mediaObjectId && <div className="messageMeta">
+                      {msgFile}
+                    </div>
+                    }
+                  </div>
                 </div>
               );
             })}
