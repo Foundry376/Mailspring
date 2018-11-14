@@ -30,7 +30,7 @@ export default class HomePage extends Component {
           type = 1;
         }
         //register = (email, pwd, name, type, provider, setting, cb) => {
-        register(acc.emailAddress, acc.settings.imap_password, acc.name, type, acc.provider, acc.settings, (err, res) => {
+        register(acc.emailAddress, acc.settings.imap_password || acc.settings.refresh_token, acc.name, type, acc.provider, acc.settings, (err, res) => {
           try {
             res = JSON.parse(res);
           } catch(e) {
@@ -51,6 +51,7 @@ export default class HomePage extends Component {
     } else {
       let jid = chatAccount.userId + '@im.edison.tech/macos';
       chatModel.currentUser.jid = jid;
+      console.log('jid:', jid)
       this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
     }
   }
