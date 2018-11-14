@@ -117,16 +117,12 @@ export default class MessagesSendBar extends PureComponent {
     // event.target.files = new window.FileList();
   }
 
-
   onDrop = (e) => {
     let path = e.dataTransfer.files[0].path,
       files = this.state.files.slice();
     files.push(path);
     this.setState(Object.assign({}, this.state, { files }));
   }
-
-
-
 
   render() {
     return (

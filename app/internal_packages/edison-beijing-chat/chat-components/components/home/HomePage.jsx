@@ -62,7 +62,6 @@ export default class HomePage extends Component {
   }
   onChangeAccount = event => {
     let value = event.target.value
-    console.log('onChangeAccount', value);
     this.selectedAccount = this.state.accounts[value];
   }
 
