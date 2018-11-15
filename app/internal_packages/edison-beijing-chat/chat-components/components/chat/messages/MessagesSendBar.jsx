@@ -8,8 +8,9 @@ import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
 import Mention, { toString, getMentions } from 'rc-editor-mention';
 import xmpp from '../../../xmpp';
-
 import uuid from 'uuid/v4';
+
+const FAKE_SPACE = '\u00A0';
 
 const activeStyle = {
   transform: 'scaleY(1)',
@@ -59,7 +60,6 @@ export default class MessagesSendBar extends PureComponent {
 
   state = {
     messageBody: '',
-    atPersonNames: [],
     files: [],
     suggestions: [],
     suggestionStyle: activeStyle,
@@ -101,24 +101,25 @@ export default class MessagesSendBar extends PureComponent {
 
   onMessageBodyChanged = (editorState) => {
     const messageBody = toString(editorState, { encode: true });
-    const atPersonNames = getMentions(editorState);
     this.setState({
-      messageBody,
-      atPersonNames
+      messageBody
     });
   }
 
   getAtTargetPersons = () => {
-    const { atPersonNames, originSuggestions } = this.state;
+    const { messageBody, originSuggestions } = this.state;
     const { selectedConversation } = this.props;
     if (!selectedConversation.isGroup) {
       return [];
     }
     const atJids = [];
+    const atPersonNames = messageBody.match(/@[^ ]+ |@[^ ]+$/g).map(item => {
+      return item.trim().substr(1).replace(/&nbsp;/g, FAKE_SPACE)
+    });
     if (atPersonNames) {
       for (const name of atPersonNames) {
         for (const member of originSuggestions) {
-          if ('@' + member.name.replace(/ /g, '') === name) {
+          if (member.name.replace(/ /g, FAKE_SPACE) === name) {
             atJids.push(member.jid.bare);
             break;
           }
@@ -241,7 +242,7 @@ export default class MessagesSendBar extends PureComponent {
     }
     const { originSuggestions } = this.state;
     const searchValue = value.toLowerCase();
-    const memberNames = originSuggestions.map(item => item.name.replace(/ /g, ''));
+    const memberNames = originSuggestions.map(item => item.name.replace(/ /g, FAKE_SPACE));
     const filtered = memberNames.filter(item =>
       item.toLowerCase().indexOf(searchValue) !== -1
     );
