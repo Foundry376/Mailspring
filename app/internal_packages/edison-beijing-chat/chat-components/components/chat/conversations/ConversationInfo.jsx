@@ -11,12 +11,13 @@ export default class ConversationInfo extends Component {
 
   componentDidMount() {
     const me = this;
-    const { conversation } = this.props;
-    xmpp.getRoomMembers(conversation.jid).then((result) => {
-      console.log('***members', result);
-      const members = result.mucAdmin.items;
-      me.setState({ members });
-    });
+    const { conversation, isGroup } = this.props;
+    if (isGroup) {
+      xmpp.getRoomMembers(conversation.jid).then((result) => {
+        const members = result.mucAdmin.items;
+        me.setState({ members });
+      });
+    }
   }
 
   render = () => {
@@ -41,9 +42,6 @@ export default class ConversationInfo extends Component {
     )
   };
 }
-
-
-
 
 ConversationInfo.propTypes = {
   conversation: PropTypes.shape({
