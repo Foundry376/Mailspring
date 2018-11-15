@@ -10,6 +10,26 @@ import RetinaImg from '../../../../../../src/components/retina-img';
 
 import uuid from 'uuid/v4';
 
+const platform = require('electron-platform')
+const {clipboard} = require('electron');
+const plist = require('plist');
+
+//linux is not implemented because no method was found after googling a lot
+// only be tested on mac, not be tested on Windows
+//https://github.com/electron/electron/issues/9035
+function getClipboardFiles() {
+  if (platform.isDarwin) {
+    if (!clipboard.has('NSFilenamesPboardType')) {
+      // this check is neccessary to prevent exception while no files is copied
+      return [];
+    } else {
+      return plist.parse(clipboard.read('NSFilenamesPboardType'));
+    }
+  } else if (platform.isWin32) {
+    clipboard.readBuffer('FileNameW').replace(RegExp(String.fromCharCode(0), 'g'), '');
+  }
+}
+
 export default class MessagesSendBar extends PureComponent {
   static propTypes = {
     onMessageSubmitted: PropTypes.func.isRequired,
@@ -103,7 +123,7 @@ export default class MessagesSendBar extends PureComponent {
     }
     this.setState({ messageBody: '', files: [] });
   }
-  onChange = event => {
+  onFileChange = event => {
     let state,
       files = [];
     // event.target.files is type FileList
@@ -118,10 +138,30 @@ export default class MessagesSendBar extends PureComponent {
   }
 
   onDrop = (e) => {
-    let path = e.dataTransfer.files[0].path,
+    let tranFiles = e.dataTransfer.files,
       files = this.state.files.slice();
-    files.push(path);
+    for (let i=0; i++; i<tranFiles.length){
+      files.push(tranFiles[i].path);
+    }
     this.setState(Object.assign({}, this.state, { files }));
+  }
+
+  onKeyDown = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) {
+      let files;
+        // try-catch is neccessary to prevent exception
+      // while the clipboard is containing files copied from non standard system application(e.g. webstorm)
+        try {
+        files = getClipboardFiles();
+        }
+        catch(e) {
+        }
+      files = this.state.files.concat(files);
+      this.setState(Object.assign({}, this.state, { files }));
+    }
   }
 
   render() {
@@ -139,11 +179,11 @@ export default class MessagesSendBar extends PureComponent {
               ref={element => { this.fileInput = element; }}
               type="file"
               multiple
-              onChange={this.onChange}
+              onChange={this.onFileChange}
             />
           </Button>
         </div>
-        <div className="messageTextField" onDrop={this.onDrop}>
+        <div className="messageTextField" onDrop={this.onDrop} onKeyDown={this.onKeyDown}>
           <TextArea
             className="messageTextField"
             placeholder="Write a message..."
@@ -153,6 +193,7 @@ export default class MessagesSendBar extends PureComponent {
             onChange={this.onMessageBodyChanged.bind(this)}
             onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
             ref={element => { this.textarea = element; }}
+            onKeyDown={this.onKeyDown}
           />
           <div className="chat-message-filelist">
             {this.state.files.map((file, index) => {
