@@ -236,11 +236,12 @@ export default class MessagesSendBar extends PureComponent {
     }
     const { originSuggestions } = this.state;
     const searchValue = value.toLowerCase();
-    const filtered = originSuggestions.filter(suggestion =>
-      suggestion.name.toLowerCase().indexOf(searchValue) !== -1
+    const memberNames = originSuggestions.map(item => item.name.replace(/ /g, ''));
+    const filtered = memberNames.filter(item =>
+      item.toLowerCase().indexOf(searchValue) !== -1
     );
     this.setState({
-      suggestions: filtered.map(item => item.name.replace(/ /g, '')),
+      suggestions: filtered,
       suggestionStyle: filtered.length ? activeStyle : disableStyle
     });
   }
