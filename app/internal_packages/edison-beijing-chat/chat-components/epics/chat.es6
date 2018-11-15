@@ -305,10 +305,13 @@ export const convertReceivedMessageEpic = (action$, { getState }) =>
 export const updateMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
     .mergeMap(({ type, payload }) => {
+      let beAt = false;
       let name = payload.from.local;
-      // if group chat, get the room name
+      // if group chat, get the room name and whether you are '@'
       if (type === RECEIVE_GROUP_MESSAGE) {
-        const { room: { rooms } } = getState();
+        const { room: { rooms }, auth } = getState();
+        const body = JSON.parse(payload.body);
+        beAt = !body.atJids || body.atJids.indexOf(auth.currentUser.bare) === -1 ? false : true;
         if (rooms[payload.from.bare]) {
           name = rooms[payload.from.bare];
         } else {
@@ -316,22 +319,24 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
             .map(({ discoItems: { items } }) => {
               for (const item of items) {
                 if (payload.from.local === item.jid.local) {
-                  return { type, payload, name: item.name };
+                  return { type, payload, name: item.name, beAt };
                 }
               }
-              return [{ type, payload, name }];
+              return [{ type, payload, name, beAt }];
             });
         }
       }
-      return [{ type, payload, name }];
+      return [{ type, payload, name, beAt }];
     })
-    .map(({ type, payload, name }) => {
+    .map(({ type, payload, name, beAt }) => {
+      let at = false;
       const { content, timeSend } = JSON.parse(payload.body);
       // if not current conversation, unreadMessages + 1
       let unreadMessages = 0;
       const { chat: { selectedConversation } } = getState();
       if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
         unreadMessages = 1;
+        at = beAt;
       }
       return {
         jid: payload.from.bare,
@@ -345,6 +350,7 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
         lastMessageTime: (new Date(timeSend)).getTime(),
         lastMessageText: content,
         lastMessageSender: payload.from.bare,
+        at
       };
     })
     .map(conversation => beginStoringConversations([conversation]));

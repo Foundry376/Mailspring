@@ -64,7 +64,8 @@ const clearConversationUnreadMessages = async jid => {
   const db = await getDb();
   return db.conversations.findOne(jid).update({
     $set: {
-      unreadMessages: 0
+      unreadMessages: 0,
+      at: false
     }
   });
 };

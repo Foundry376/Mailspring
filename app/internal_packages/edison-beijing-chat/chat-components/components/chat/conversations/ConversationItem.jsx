@@ -50,7 +50,10 @@ export default class ConversationItem extends PureComponent {
             <div className="headerRow" style={{ display: 'inline-block' }}>
               <span>{timeDescriptor(conversation.lastMessageTime)}</span>
             </div>
-            <div className="subHeader">{conversation.lastMessageText}</div>
+            <div className="subHeader">
+              {conversation.at ? (<span style={{ color: 'red' }}>[@me]</span>) : null}
+              {conversation.lastMessageText}
+            </div>
           </div>
         </div>
         <span style={{ float: "right" }} onClick={this.onClickRemove}> remove </span>

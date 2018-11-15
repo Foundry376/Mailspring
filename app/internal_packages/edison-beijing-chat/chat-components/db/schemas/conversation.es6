@@ -17,6 +17,9 @@ export default {
     isGroup: {
       type: 'boolean'
     },
+    at: { // be '@'
+      type: 'boolean'
+    },
     unreadMessages: {
       type: 'number',
       min: 0
