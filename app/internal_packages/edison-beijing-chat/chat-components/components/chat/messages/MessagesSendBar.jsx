@@ -1,13 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import TextArea from 'react-autosize-textarea';
 import Button from '../../common/Button';
 import FilePlusIcon from '../../common/icons/FilePlusIcon';
 import SendIcon from '../../common/icons/SendIcon';
 import { theme } from '../../../utils/colors';
 import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
-import Mention, { toString } from 'rc-editor-mention';
+import Mention, { toString, getMentions } from 'rc-editor-mention';
 import xmpp from '../../../xmpp';
 
 import uuid from 'uuid/v4';
@@ -60,6 +59,7 @@ export default class MessagesSendBar extends PureComponent {
 
   state = {
     messageBody: '',
+    atPersonNames: [],
     files: [],
     suggestions: [],
     suggestionStyle: activeStyle,
@@ -101,23 +101,24 @@ export default class MessagesSendBar extends PureComponent {
 
   onMessageBodyChanged = (editorState) => {
     const messageBody = toString(editorState, { encode: true });
+    const atPersonNames = getMentions(editorState);
     this.setState({
-      messageBody
+      messageBody,
+      atPersonNames
     });
   }
 
   getAtTargetPersons = () => {
-    const { messageBody, originSuggestions } = this.state;
+    const { atPersonNames, originSuggestions } = this.state;
     const { selectedConversation } = this.props;
     if (!selectedConversation.isGroup) {
       return [];
     }
     const atJids = [];
-    const atPersonNames = messageBody.match(/@[^ ]+ |@[^ ]+$/g).map(item => item.trim().substr(1));
     if (atPersonNames) {
       for (const name of atPersonNames) {
         for (const member of originSuggestions) {
-          if (member.name.replace(/ /g, '') === name) {
+          if ('@' + member.name.replace(/ /g, '') === name) {
             atJids.push(member.jid.bare);
             break;
           }
@@ -220,8 +221,12 @@ export default class MessagesSendBar extends PureComponent {
       }
       files = this.state.files.concat(files);
       this.setState(Object.assign({}, this.state, { files }));
-      e.preventDefault()
-      e.stopPropagation()
+      e.preventDefault();
+      e.stopPropagation();
+    } else if (e.keyCode == 13 && (e.ctrlKey || e.metaKey)) {
+      this.sendMessage();
+      e.preventDefault();
+      e.stopPropagation();
     }
   };
 
@@ -267,16 +272,6 @@ export default class MessagesSendBar extends PureComponent {
           </Button>
         </div>
         <div className="messageTextField" onDrop={this.onDrop} onKeyDown={this.onKeyDown}>
-          {/* <TextArea
-            className="messageTextField"
-            placeholder="Write a message..."
-            rows={1}
-            maxRows={5}
-            value={this.state.messageBody}
-            onChange={this.onMessageBodyChanged.bind(this)}
-            onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
-            ref={element => { this.textarea = element; }}
-          /> */}
           <Mention
             style={{ width: '100%', height: '70px' }}
             multiLines={true}
@@ -285,6 +280,7 @@ export default class MessagesSendBar extends PureComponent {
             suggestions={suggestions}
             suggestionStyle={suggestionStyle}
             prefixCls="rc-editor-mention"
+            notFoundContent="could not find"
             ref="mention"
             prefix="@"
           />
