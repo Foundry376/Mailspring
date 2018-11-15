@@ -135,7 +135,7 @@ export default class MessagesSendBar extends PureComponent {
     this.setState(state);
     event.target.value = '';
     // event.target.files = new window.FileList();
-  }
+  };
 
   onDrop = (e) => {
     let tranFiles = e.dataTransfer.files,
@@ -144,11 +144,11 @@ export default class MessagesSendBar extends PureComponent {
       files.push(tranFiles[i].path);
     }
     this.setState(Object.assign({}, this.state, { files }));
-  }
+  };
 
   onKeyDown = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
 
     if (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) {
       let files;
@@ -162,7 +162,11 @@ export default class MessagesSendBar extends PureComponent {
       files = this.state.files.concat(files);
       this.setState(Object.assign({}, this.state, { files }));
     }
-  }
+  };
+
+  clearFiles = (e) => {
+    this.setState(Object.assign({}, this.state, { files: [] }));
+  };
 
   render() {
     return (
@@ -197,19 +201,49 @@ export default class MessagesSendBar extends PureComponent {
           />
           <div className="chat-message-filelist">
             {this.state.files.map((file, index) => {
-              return <RetinaImg
-                name="fileIcon.png"
-                mode={RetinaImg.Mode.ContentPreserve}
-                key={index}
-              />;
-            })}
-          </div>
+              const removeFile = (e) => {
+                let files = this.state.files;
+                index = files.indexOf(file);
+                files.splice(index, 1);
+                files = files.slice();
+                this.setState(Object.assign({}, this.state, { files }));
+              };
+              return (
+                <div style={{ display: 'inline-block' }} key={index} onClick={removeFile} title={file}>
+                  <RetinaImg
+                    name="fileIcon.png"
+                    mode={RetinaImg.Mode.ContentPreserve}
+                    key={index}
+                  />
+                  <div title="remove this file from the list" style={{
+                    display: 'inline-block',
+                    border: 'solid 1px gray',
+                    backgroundColor: "lightgray",
+                    width: "15px",
+                    height: "15px",
+                    textAlign: 'center',
+                    position: 'relative',
+                    top: '10px',
+                    left: '-20px'
+                  }}>
+                    -
+                  </div>
+                </div>
+              );
+            })
+            }
+            { this.state.files.length? <div title="clear all files from the list" onClick={this.clearFiles} style={{display:'inline-block', border:'solid 2px gray', backgroundColor:"lightgray", width:"20px", height:"20px", textAlign: 'center'}}>
+              X
+            </div>:
+              null
+            }
         </div>
-        <div className="sendBarActions">
+        <div className="sendBarActions" id="send-message">
           <Button onTouchTap={this.sendMessage.bind(this)}>
             <SendIcon color={theme.primaryColor} />
           </Button>
         </div>
+      </div>
       </div>
     );
   }
