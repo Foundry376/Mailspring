@@ -73,10 +73,10 @@ export default class NewTopBar extends Component {
             </Link>
         }
         center={
-          <div style={{ fontSize: 14, textAlign: 'center' }}>
+          <div className="mid-title">
             New {groupMode ? 'Group' : 'Conversation'}
-            {this.state.openInput && <div style={{position:"absolute", top:"60px", left:"800px", border:"1px solid black"}}>
-              <h6 style={{backgroundColor:"lightgray", color:"blue", border:"1px solid lightgray", margin:0}}>the name for the group chat</h6>
+            {this.state.openInput && <div id="input-group-name-dialog">
+              <h6 id="input-group-name-dialog-title">the name for the group chat</h6>
               <input placeholder={"input here..."} ref={(el) => this.chatNameInput = el }></input>
               {this.state.needName && <p style={{color:"red"}}>please input a chat name!</p>}
               <input type={"button"} onClick={this.onStartGroupChat} value={"ok"}></input>

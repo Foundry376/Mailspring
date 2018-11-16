@@ -88,7 +88,7 @@ export default class InviteGroupChatList extends Component {
           selectedContacts={selectedContacts}
           onContactClicked={this.contactSelected.bind(this)}
         />
-        <Button onTouchTap={ this.onUpdateGroup } style={{position:'relative', top:'-50px', right:'-450px'}}>
+        <Button onTouchTap={ this.onUpdateGroup } className="update-group-button">
           <DoneIcon color={primaryColor} />
         </Button>
         <div style={{ overflowY: 'scroll', flex: 1 }}>

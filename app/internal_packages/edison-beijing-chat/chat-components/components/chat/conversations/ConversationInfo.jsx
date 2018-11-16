@@ -23,7 +23,7 @@ export default class ConversationInfo extends Component {
   render = () => {
     const { conversation } = this.props;
     return (
-      <div className="infoPanel" style={{ overflowY: "scroll" }}>
+      <div className="info-panel">
         <ContactAvatar jid={conversation.jid} name={conversation.name}
           email={conversation.email} avatar={conversation.avatar} size={100} />
         <div className="name">{conversation.name}</div>
