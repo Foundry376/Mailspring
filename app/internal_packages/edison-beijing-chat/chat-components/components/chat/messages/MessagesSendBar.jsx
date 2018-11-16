@@ -113,13 +113,15 @@ export default class MessagesSendBar extends PureComponent {
       return [];
     }
     const atJids = [];
-    const atPersonNames = messageBody.match(/@[^ ]+ |@[^ ]+$/g).map(item => {
-      return item.trim().substr(1).replace(/&nbsp;/g, FAKE_SPACE)
-    });
+    let atPersonNames = messageBody.match(/@[^ ]+ |@[^ ]+$/g);
+
     if (atPersonNames) {
+      atPersonNames = atPersonNames.map(item => {
+        return item.trim().substr(1).replace(/&nbsp;/g, ' ')
+      });
       for (const name of atPersonNames) {
         for (const member of originSuggestions) {
-          if (member.name.replace(/ /g, FAKE_SPACE) === name) {
+          if (member.name === name) {
             atJids.push(member.jid.bare);
             break;
           }
@@ -130,7 +132,8 @@ export default class MessagesSendBar extends PureComponent {
   }
 
   sendMessage() {
-    const { messageBody } = this.state;
+    let { messageBody } = this.state;
+    messageBody = messageBody.replace(/[&nbsp;|<br />]/g, ' ');
     const { selectedConversation, onMessageSubmitted } = this.props;
     const atIndex = selectedConversation.jid.indexOf('@')
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
