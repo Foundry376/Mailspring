@@ -63,25 +63,28 @@ export default class MessagesSendBar extends PureComponent {
     files: [],
     suggestions: [],
     suggestionStyle: activeStyle,
-    originSuggestions: []
+    roomMembers: [],
+    occupants: []
   }
 
   fileInput = null;
   textarea = null;
 
   componentDidMount = async () => {
-    const members = await this.getRoomMembers();
+    const roomMembers = await this.getRoomMembers();
+    const occupants = roomMembers.map(item => item.jid.bare);
     this.setState({
-      originSuggestions: members
+      roomMembers,
+      occupants
     })
   }
 
   getRoomMembers = async () => {
     const { selectedConversation } = this.props;
-    const { originSuggestions } = this.state;
+    const { roomMembers } = this.state;
     if (selectedConversation.isGroup) {
-      if (originSuggestions && originSuggestions.length) {
-        return originSuggestions;
+      if (roomMembers && roomMembers.length) {
+        return roomMembers;
       }
       const result = await xmpp.getRoomMembers(selectedConversation.jid)
       return result.mucAdmin.items;
@@ -107,7 +110,7 @@ export default class MessagesSendBar extends PureComponent {
   }
 
   getAtTargetPersons = () => {
-    const { messageBody, originSuggestions } = this.state;
+    const { messageBody, roomMembers } = this.state;
     const { selectedConversation } = this.props;
     if (!selectedConversation.isGroup) {
       return [];
@@ -120,7 +123,7 @@ export default class MessagesSendBar extends PureComponent {
         return item.trim().substr(1).replace(/&nbsp;/g, ' ')
       });
       for (const name of atPersonNames) {
-        for (const member of originSuggestions) {
+        for (const member of roomMembers) {
           if (member.name === name) {
             atJids.push(member.jid.bare);
             break;
@@ -132,8 +135,8 @@ export default class MessagesSendBar extends PureComponent {
   }
 
   sendMessage() {
-    let { messageBody } = this.state;
-    messageBody = messageBody.replace(/[&nbsp;|<br />]/g, ' ');
+    let { messageBody, occupants } = this.state;
+    messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
     const { selectedConversation, onMessageSubmitted } = this.props;
     const atIndex = selectedConversation.jid.indexOf('@')
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
@@ -167,6 +170,7 @@ export default class MessagesSendBar extends PureComponent {
           }
           body.content = message || " ";
           body.mediaObjectId = myKey;
+          body.occupants = occupants;
           body.atJids = this.getAtTargetPersons();
           onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
         });
@@ -180,6 +184,7 @@ export default class MessagesSendBar extends PureComponent {
           content: message,
           email: selectedConversation.email,
           name: selectedConversation.name,
+          occupants,
           atJids: this.getAtTargetPersons()
         };
         onMessageSubmitted(selectedConversation, JSON.stringify(body));//message);
@@ -243,9 +248,9 @@ export default class MessagesSendBar extends PureComponent {
     if (!selectedConversation.isGroup) {
       return;
     }
-    const { originSuggestions } = this.state;
+    const { roomMembers } = this.state;
     const searchValue = value.toLowerCase();
-    const memberNames = originSuggestions.map(item => item.name.replace(/ /g, FAKE_SPACE));
+    const memberNames = roomMembers.map(item => item.name.replace(/ /g, FAKE_SPACE));
     const filtered = memberNames.filter(item =>
       item.toLowerCase().indexOf(searchValue) !== -1
     );

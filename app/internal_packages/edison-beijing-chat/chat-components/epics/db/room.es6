@@ -8,7 +8,6 @@ import getDb from '../../db';
 
 const saveRooms = async rooms => {
   const db = await getDb();
-  console.log('****saveRooms', rooms);
   return Promise.all(
     rooms
       .filter(({ name }) => !!name) // ignore the contact that the name is undefined
