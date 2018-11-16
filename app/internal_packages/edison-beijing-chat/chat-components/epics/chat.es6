@@ -63,13 +63,32 @@ export const sendMessageEpic = action$ =>
         .map(db => ({ db, payload })),
     )//yazzzzz
     .mergeMap(({ db, payload }) => {
-      return Observable.fromPromise(db.e2ees.findOne(payload.conversation.jid).exec())
-        .map(e2ee => {
-          if (e2ee) {
-            payload.devices = e2ee.devices;
-          }
-          return { db, payload };
-        });
+      if (payload.conversation.isGroup) {//区分群聊和非群聊
+        let occupants = JSON.parse(payload.body).occupants;
+        return Observable.fromPromise(db.e2ees.find({ jid: { $in: occupants } }).exec())
+          .map(e2ees => {
+            let devices = [];
+            if (e2ees && e2ees.length == occupants.length) {
+              e2ees.forEach((e2ee => {
+                let device = {};
+                device.dk = JSON.parse(e2ee.devices);
+                device.jid = e2ee.jid;
+                devices.push(device);
+              }));
+              console.log(devices)
+            }
+            payload.devices = devices;//e2ee.devices;
+            return { db, payload };
+          });
+      } else {
+        return Observable.fromPromise(db.e2ees.findOne(payload.conversation.jid).exec())
+          .map(e2ee => {
+            if (e2ee) {
+              payload.devices = e2ee.devices;
+            }
+            return { db, payload };
+          });
+      }
     })
     .mergeMap(({ db, payload }) => {
       return Observable.fromPromise(db.e2ees.findOne(window.localStorage.jid).exec())
@@ -418,40 +437,22 @@ export const goNextConversationEpic = (action$, { getState }) =>
 const getEncrypted = (jid, body, devices, selfDevices) => {
   let aeskey = generateAESKey();
   let uid = jid.substring(0, jid.indexOf('@'));//new JID(jid).local;//.substring(0,jid.indexOf('@'));
-  let dk = JSON.parse(devices);
   let selfDk = JSON.parse(selfDevices);
-  // let selfUid = selfConfig.JID.local;//.jid.substring(0,selfConfig.jid.indexOf('@'));
+  let dk = [];
 
-  let flag = false;
   let keys = [];
-  for (let i in dk) {
-    let did = dk[i];
-    if (!did.key || did.key.length < 10) {
-      continue;
-    }
-    let key = {
-      uid: uid,
-      rid: did.id,
-      text: encrypte(did.key, aeskey),
-    };
-    keys.push(key);
-    flag = true;
-  }
-  for (let i in selfDk) {
-    let did = selfDk[i];
-    if (!did.key || did.key.length < 10) {
-      continue;
-    }
-    let key = {
-      uid: window.localStorage.jidLocal,
-      rid: did.id,
-      text: encrypte(did.key, aeskey),
-    };
-    keys.push(key);
+  if (typeof devices == "string") {
+    dk = JSON.parse(devices);
+    keys = addKeys(uid, dk, aeskey, keys);
+  } else {
+    devices.forEach(device => {
+      keys = addKeys(device.jid, device.dk, aeskey, keys);
+    });
   }
 
   //对称加密body
-  if (flag) {
+  if (keys.length > 0) {
+    keys = addKeys(window.localStorage.jidLocal, selfDk, aeskey, keys);
     let ediEncrypted = {
       header: {
         sid: window.localStorage.deviceId,
@@ -463,4 +464,19 @@ const getEncrypted = (jid, body, devices, selfDevices) => {
 
   }
   return false;
+};
+const addKeys = (jid, dk, aeskey, keys) => {
+  for (let i in dk) {
+    let did = dk[i];
+    if (!did.key || did.key.length < 10) {
+      continue;
+    }
+    let key = {
+      uid: jid,
+      rid: did.id,
+      text: encrypte(did.key, aeskey),
+    };
+    keys.push(key);
+  }
+  return keys;
 };
