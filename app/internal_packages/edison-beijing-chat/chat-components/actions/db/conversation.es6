@@ -13,6 +13,10 @@ export const FAIL_SELECT_CONVERSATION = 'FAIL_SELECT_CONVERSATION';
 
 export const REMOVING_CONVERSATION = 'REMOVING_CONVERSATION';
 
+export const BEGIN_STORE_OCCUPANTS = 'BEGIN_STORE_OCCUPANTS';
+export const SUCCESS_STORE_OCCUPANTS = 'SUCCESS_STORE_OCCUPANTS';
+export const FAIL_STORE_OCCUPANTS = 'FAIL_STORE_OCCUPANTS';
+
 export const beginStoringConversations = conversations => ({
   type: BEGIN_STORE_CONVERSATIONS,
   payload: conversations
@@ -26,6 +30,21 @@ export const successfullyStoredConversations = conversations => ({
 export const failedStoringConversations = (err, conversations) => ({
   type: FAIL_STORE_CONVERSATIONS,
   payload: Object.assign({}, err, { conversations })
+});
+
+export const beginStoringOccupants = conversations => ({
+  type: BEGIN_STORE_OCCUPANTS,
+  payload: conversations
+});
+
+export const successfullyStoredOccupants = conversation => ({
+  type: SUCCESS_STORE_OCCUPANTS,
+  payload: conversation
+});
+
+export const failedStoringOccupants = (err, conversation) => ({
+  type: FAIL_STORE_OCCUPANTS,
+  payload: Object.assign({}, err, { conversation })
 });
 
 export const retryStoringConversations = conversations => ({

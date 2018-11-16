@@ -10,6 +10,7 @@ import {
 // import { beginJoiningRooms } from '../../actions/auth';
 import {
   BEGIN_STORE_CONVERSATIONS,
+  BEGIN_STORE_OCCUPANTS,
   FAIL_STORE_CONVERSATIONS,
   RETRY_STORE_CONVERSATIONS,
   RETRIEVE_ALL_CONVERSATIONS,
@@ -22,16 +23,36 @@ import {
   failRetrievingConversations,
   updateSelectedConversation,
   failedSelectingConversation,
-  beginStoringConversations
+  beginStoringConversations,
+  successfullyStoredOccupants,
+  failedStoringOccupants,
 } from '../../actions/db/conversation';
 import xmpp from '../../xmpp/index.es6';
 import { ipcRenderer } from 'electron';
 
+const saveOccupants = async payload => {
+  if (!payload.mucAdmin) {
+    return null;
+  }
+  const jid = payload.from.bare;
+  const occupants = payload.mucAdmin.items.map(item => item.jid.bare);
+  const db = await getDb();
+  const convInDB = await db.conversations.findOne(jid).exec();
+  if (convInDB) {
+    return convInDB.update({
+      $set: {
+        occupants
+      }
+    })
+  }
+  return null;
+};
+
 const saveConversations = async conversations => {
   const db = await getDb();
   return Promise.all(conversations.map(async conv => {
+    const convInDB = await db.conversations.findOne(conv.jid).exec();
     if (conv.unreadMessages === 1) {
-      const convInDB = await db.conversations.findOne(conv.jid).exec();
       if (convInDB) {
         conv.unreadMessages = convInDB.unreadMessages + 1;
       }
@@ -41,6 +62,20 @@ const saveConversations = async conversations => {
       const contact = await db.contacts.findOne(conv.jid).exec();
       if (contact && contact.avatar) {
         conv.avatar = contact.avatar;
+      }
+    }
+    // when group chat, if exists in db, do not update occupants
+    else {
+      if (convInDB) {
+        return convInDB.update({
+          $set: {
+            at: conv.at,
+            unreadMessages: conv.unreadMessages,
+            lastMessageTime: conv.lastMessageTime,
+            lastMessageText: conv.lastMessageText,
+            lastMessageSender: conv.lastMessageSender
+          }
+        })
       }
     }
     return db.conversations.upsert(conv)
@@ -69,6 +104,14 @@ const clearConversationUnreadMessages = async jid => {
     }
   });
 };
+
+export const beginStoreOccupantsEpic = action$ =>
+  action$.ofType(BEGIN_STORE_OCCUPANTS)
+    .mergeMap(({ payload }) =>
+      Observable.fromPromise(saveOccupants(payload))
+        .map(conv => successfullyStoredOccupants(conv))
+        .catch(err => Observable.of(failedStoringOccupants(err, payload)))
+    );
 
 export const beginStoreConversationsEpic = action$ =>
   action$.ofType(BEGIN_STORE_CONVERSATIONS)
@@ -193,7 +236,7 @@ export const groupConversationCreatedEpic = (action$, { getState }) =>
         type: 'create',
         name: name,
         subject: 'test subject',
-        description: 'teset description',
+        description: 'test description',
         members: {
           jid: jidArr
         }

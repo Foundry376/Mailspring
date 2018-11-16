@@ -9,13 +9,12 @@ export default class ConversationInfo extends Component {
     this.state = { members: [] };
   }
 
-  componentDidMount() {
-    const me = this;
-    const { conversation, isGroup } = this.props;
-    if (isGroup) {
+  componentDidMount = () => {
+    const { conversation } = this.props;
+    if (conversation.isGroup) {
       xmpp.getRoomMembers(conversation.jid).then((result) => {
         const members = result.mucAdmin.items;
-        me.setState({ members });
+        this.setState({ members });
       });
     }
   }

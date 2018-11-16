@@ -151,12 +151,14 @@ export class Xmpp extends EventEmitter3 {
     return this.client.createRoom(room, opts);
   }
   async getRoomMembers(room, ver) {
-    return this.client.getRoomMembers(room, {
+    const members = await this.client.getRoomMembers(room, {
       ver: ver,
       items: [{
         affiliation: 'member'
       }]
     });
+    this.emit('receive:members', members);
+    return members;
   }
   async getRoomList(ver) {
     return this.client.getRoomList(ver);
