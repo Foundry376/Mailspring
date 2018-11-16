@@ -298,32 +298,21 @@ export default class MessagesSendBar extends PureComponent {
                 this.setState(Object.assign({}, this.state, { files }));
               };
               return (
-                <div style={{ display: 'inline-block' }} key={index} onClick={removeFile} title={file}>
+                <div id='remove-file' key={index} onClick={removeFile} title={file}>
                   <RetinaImg
                     name="fileIcon.png"
                     mode={RetinaImg.Mode.ContentPreserve}
                     key={index}
                   />
-                  <div title="remove this file from the list" style={{
-                    display: 'inline-block',
-                    border: 'solid 1px gray',
-                    backgroundColor: "lightgray",
-                    width: "15px",
-                    height: "15px",
-                    textAlign: 'center',
-                    position: 'relative',
-                    top: '10px',
-                    left: '-20px'
-                  }}>
+                  <div id='remove-file-inner' title="remove this file from the list">
                     -
                   </div>
                 </div>
               );
             })
             }
-            {this.state.files.length ? <div title="clear all files from the list" onClick={this.clearFiles} style={{ display: 'inline-block', border: 'solid 2px gray', backgroundColor: "lightgray", width: "20px", height: "20px", textAlign: 'center' }}>
-              X
-            </div> :
+            {this.state.files.length ?
+              <div id="clear-all-files" title="clear all files from the list" onClick={this.clearFiles}> X </div> :
               null
             }
           </div>

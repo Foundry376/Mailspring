@@ -19,7 +19,7 @@ export default class ConversationsTopBar extends PureComponent {
           </Link>
         }
         center={
-          <div style={{ fontSize: 14 }}>Conversations</div>
+          <div className="mid-title">Conversations</div>
         }
         right={
           <Link to="/chat/new">

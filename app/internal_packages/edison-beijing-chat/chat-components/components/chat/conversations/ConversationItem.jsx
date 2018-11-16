@@ -56,7 +56,7 @@ export default class ConversationItem extends PureComponent {
             </div>
           </div>
         </div>
-        <span style={{ float: "right" }} onClick={this.onClickRemove}> remove </span>
+        <span id="remove-button" onClick={this.onClickRemove}> remove </span>
       </div >
     );
   }

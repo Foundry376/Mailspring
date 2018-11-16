@@ -77,8 +77,8 @@ export default class MessagesTopBar extends Component {
           center={
             <div className="chatTopBarCenter">
               <div style={{ width: '100%' }}>
-                <div className="conversationName" style={{ float:'left', margin:"0 2px" }}>{selectedConversation.name}</div>
-                <div className="onlineIndicatior" style={{ float:'left', margin:"0 2px" }}>
+                <div className="conversationName">{selectedConversation.name}</div>
+                <div className="onlineIndicatior">
                   {selectedConversation.isGroup ?
                     groupStatus(availableUsers, selectedConversation.occupants) :
                     privateStatus(availableUsers, conversationJid)
@@ -89,11 +89,11 @@ export default class MessagesTopBar extends Component {
           }
           right={
             <div>
-            { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', top:'15px', marginRight:"5px" }} onTouchTap={exitGroup}>
+            { selectedConversation.isGroup && <div  id="exit-button" onTouchTap={exitGroup}>
                 {"exit" }
               </div>
             }
-            { selectedConversation.isGroup && <div style={{ float:'left', border:"1px solid black", backgroundColor:"lightgray", position:'relative', top: '15px' }} onTouchTap={toggleInvite}>
+            { selectedConversation.isGroup && <div id="invite-button" onTouchTap={toggleInvite}>
               {inviting? "cancel": "invite" }
               </div>
             }
