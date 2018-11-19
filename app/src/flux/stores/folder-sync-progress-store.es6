@@ -56,12 +56,13 @@ class FolderSyncProgressStore extends MailspringStore {
       implementation changes.
       */
       for (const folder of folders) {
-        const { uidnext = 1, busy = true, syncedMinUID, bodiesPresent, bodiesWanted } =
+        const { uidnext = 1, busy = true, syncedMinUID, bodiesPresent, bodiesWanted, messagesPresent, messagesWanted } =
           folder.localStatus || {};
 
         state[folder.path] = {
           busy: busy,
-          scanProgress: syncedMinUID > 0 ? 1.0 - (syncedMinUID - 1) / uidnext : 0,
+          // scanProgress: syncedMinUID > 0 ? 1.0 - (syncedMinUID - 1) / uidnext : 0,
+          scanProgress: messagesWanted > 0 ? messagesPresent / messagesWanted : 1,
           bodyProgress: bodiesWanted > 0 ? bodiesPresent / bodiesWanted : 1,
         };
 
@@ -69,7 +70,8 @@ class FolderSyncProgressStore extends MailspringStore {
         // weight the "importance" of these percents based on a rough guess
         // of the size of the folder (via uidnext, which is more a measure
         // of mailbox activity than size)
-        const weight = uidnext / 10000;
+        // const weight = uidnext / 10000;
+        const weight = messagesWanted / 1000;
         const scanPercent = ['spam', 'trash'].includes(folder.role) ? 1 : 0.4;
         totalProgress += state[folder.path].scanProgress * weight * scanPercent;
         totalProgress += state[folder.path].bodyProgress * weight * (1 - scanPercent);
