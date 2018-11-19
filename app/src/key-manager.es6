@@ -71,8 +71,12 @@ class KeyManager {
   async insertChatAccountSecrets(account) {
     const next = account.clone();
     const keys = await this._getKeyHash();
-    next.password = keys[`${account.email}-password`];
-    next.accessToken = keys[`${account.email}-accessToken`];
+    if (keys[`${account.email}-password`]){
+      next.password = keys[`${account.email}-password`];
+    }
+    if (keys[`${account.email}-accessToken`]){
+      next.accessToken = keys[`${account.email}-accessToken`];
+    }
     return next;
   }
 
