@@ -445,6 +445,9 @@ const getEncrypted = (jid, body, devices, selfDevices) => {
   if (typeof devices == "string") {
     dk = JSON.parse(devices);
     keys = addKeys(uid, dk, aeskey, keys);
+    if (keys.length > 0) {
+      keys = addKeys(window.localStorage.jidLocal, selfDk, aeskey, keys);
+    }
   } else {
     devices.forEach(device => {
       keys = addKeys(device.jid, device.dk, aeskey, keys);
@@ -453,7 +456,7 @@ const getEncrypted = (jid, body, devices, selfDevices) => {
 
   //对称加密body
   if (keys.length > 0) {
-    keys = addKeys(window.localStorage.jidLocal, selfDk, aeskey, keys);
+    //keys = addKeys(window.localStorage.jidLocal, selfDk, aeskey, keys);
     let ediEncrypted = {
       header: {
         sid: window.localStorage.deviceId,
@@ -472,8 +475,12 @@ const addKeys = (jid, dk, aeskey, keys) => {
     if (!did.key || did.key.length < 10) {
       continue;
     }
+    let uid = jid;
+    if (jid.indexOf('@') > 0) {
+      uid = jid.substring(0, jid.indexOf('@'));
+    }
     let key = {
-      uid: jid,
+      uid: uid,
       rid: did.id,
       text: encrypte(did.key, aeskey),
     };
