@@ -43,20 +43,25 @@ export default class HomePage extends Component {
             return;
           }
           chatAccount = res.data;
-          chatAccounts[acc.emailAddress] = chatAccount;
-          AppEnv.config.set('chatAccounts', chatAccounts);
-          AppEnv.config.set('activeChatAccount', chatAccount)
           let jid = chatAccount.userId + '@im.edison.tech/macos';
           chatModel.currentUser.jid = jid;
           this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
+          chatAccount.clone = () => Object.assign({}, chatAccount);
+          keyMannager.extractChatAccountSecrets(chatAccount).then(chatAccount => {
+            chatAccounts[acc.emailAddress] = chatAccount;
+            AppEnv.config.set('chatAccounts', chatAccounts);
+            AppEnv.config.set('activeChatAccount', chatAccount);
+          })
         })
       })
     } else {
       AppEnv.config.set('activeChatAccount', chatAccount);
-      let jid = chatAccount.userId + '@im.edison.tech/macos';
-      chatModel.currentUser.jid = jid;
-      const db = getDb();
-      this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
+      chatAccount.clone = () => Object.assign({}, chatAccount);
+      chatAccount = keyMannager.insertChatAccountSecrets(chatAccount).then(chatAccount => {
+        let jid = chatAccount.userId + '@im.edison.tech/macos';
+        chatModel.currentUser.jid = jid;
+        this.props.submitAuth(jid, chatAccount.password, chatAccount.email);
+      });
     }
   }
 

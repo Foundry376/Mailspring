@@ -53,6 +53,29 @@ class KeyManager {
     return next;
   }
 
+  async extractChatAccountSecrets(account) {
+    try {
+      const keys = await this._getKeyHash();
+      keys[`${account.email}-password`] = account.password;
+      keys[`${account.email}-accessToken`] = account.accessToken;
+      await this._writeKeyHash(keys);
+    } catch (err) {
+      this._reportFatalError(err);
+    }
+    const next = account.clone();
+    delete next.password;
+    delete next.accessToken;
+    return next;
+  }
+
+  async insertChatAccountSecrets(account) {
+    const next = account.clone();
+    const keys = await this._getKeyHash();
+    next.password = keys[`${account.email}-password`];
+    next.accessToken = keys[`${account.email}-accessToken`];
+    return next;
+  }
+
   async replacePassword(keyName, newVal) {
     try {
       const keys = await this._getKeyHash();
