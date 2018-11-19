@@ -63,8 +63,9 @@ export const sendMessageEpic = action$ =>
         .map(db => ({ db, payload })),
     )//yazzzzz
     .mergeMap(({ db, payload }) => {
-      if (payload.conversation.isGroup) {//区分群聊和非群聊
-        let occupants = JSON.parse(payload.body).occupants;
+      if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
+        //console.log(payload.conversation);
+        let occupants = payload.conversation.occupants;
         return Observable.fromPromise(db.e2ees.find({ jid: { $in: occupants } }).exec())
           .map(e2ees => {
             let devices = [];

@@ -39,11 +39,13 @@ const saveOccupants = async payload => {
   const db = await getDb();
   const convInDB = await db.conversations.findOne(jid).exec();
   if (convInDB) {
-    return convInDB.update({
+    //return 
+    convInDB.update({
       $set: {
         occupants
       }
     })
+    return occupants;
   }
   return null;
 };

@@ -103,9 +103,9 @@ export class Xmpp extends EventEmitter3 {
     return this.client.getRoster();
   }
 
-  async getE2ee() {//yazzxx
+  async getE2ee(user) {//yazzxx
     this.requireConnection();
-    return this.client.getE2ee();
+    return this.client.getE2ee(user);
   }
   async setE2ee(user) {//yazzxx
     this.requireConnection();
