@@ -6,6 +6,8 @@ import { register } from '../../utils/restjs';
 import keyMannager from '../../../../../src/key-manager';
 import chatModel from '../../store/model';
 
+import getDb from '../../db';
+
 export default class HomePage extends Component {
   static propTypes = {
     isAuthenticating: PropTypes.bool.isRequired,
@@ -43,15 +45,17 @@ export default class HomePage extends Component {
           chatAccount = res.data;
           chatAccounts[acc.emailAddress] = chatAccount;
           AppEnv.config.set('chatAccounts', chatAccounts);
+          AppEnv.config.set('activeChatAccount', chatAccount)
           let jid = chatAccount.userId + '@im.edison.tech/macos';
           chatModel.currentUser.jid = jid;
           this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
         })
       })
     } else {
+      AppEnv.config.set('activeChatAccount', chatAccount);
       let jid = chatAccount.userId + '@im.edison.tech/macos';
       chatModel.currentUser.jid = jid;
-      console.log('jid:', jid)
+      const db = getDb();
       this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
     }
   }
