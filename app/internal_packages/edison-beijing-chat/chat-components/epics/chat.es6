@@ -46,6 +46,33 @@ import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, setPriKey, getPubKey, setPubKey } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 
+const downloadAndTagIMageFileInMessage = (aes, payload) => {
+  let body = decryptByAES(aes, payload.payload);
+  let msgBody = JSON.parse(body);
+  if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)\.encrypted$/)) {
+    let name = msgBody.mediaObjectId;
+    name = name.split('/')[1]
+    name = name.replace('.encrypted', '');
+    let path = AppEnv.getConfigDirPath();
+    let downpath = path + '/download/';
+    if (!fs.existsSync(downpath)) {
+      fs.mkdirSync(downpath);
+    }
+    path = downpath + name;
+    msgBody.path = 'file://' + path;
+    downloadFile(aes, msgBody.mediaObjectId, path);
+  } else if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)$/)) {
+    let path = msgBody.mediaObjectId;
+    if (!path.match('https?://')) {
+      path = 'https://s3.us-east-2.amazonaws.com/edison-profile-stag/' + path;
+    }
+    msgBody.path = path;
+  }
+  msgBody.aes = aes;
+  payload.body = JSON.stringify(msgBody);
+  return;
+}
+
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
     .filter(({ payload }) => payload.receipt && !payload.body)
@@ -227,29 +254,7 @@ export const receivePrivateMessageEpic = action$ =>
           let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
           if (text) {
             let aes = decrypte(text, getPriKey(window.localStorage.jidLocal)); //window.localStorage.priKey);
-            let body = decryptByAES(aes, payload.payload);
-            let msgBody = JSON.parse(body);
-            if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)\.encrypted$/)) {
-              let name = msgBody.mediaObjectId;
-              name = name.split('/')[1]
-              name = name.replace('.encrypted', '');
-              let path = AppEnv.getConfigDirPath();
-              let downpath = path + '/download/';
-              if (!fs.existsSync(downpath)) {
-                fs.mkdirSync(downpath);
-              }
-              path = downpath + name;
-              msgBody.path = 'file://' + path;
-              downloadFile(aes, msgBody.mediaObjectId, path);
-            } else if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)$/)) {
-              let path = msgBody.mediaObjectId;
-              if (!path.match('https?://')) {
-                path = 'https://s3.us-east-2.amazonaws.com/edison-profile-stag/' + path;
-              }
-              msgBody.path = path;
-            }
-            msgBody.aes = aes;
-            payload.body = JSON.stringify(msgBody);
+            downloadAndTagIMageFileInMessage(aes, payload);
           }
         }
       }
@@ -281,7 +286,7 @@ export const receiveGroupMessageEpic = action$ =>
           let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
           if (text) {
             let aes = decrypte(text, getPriKey(window.localStorage.jidLocal));//window.localStorage.priKey);
-            payload.body = decryptByAES(aes, payload.payload);
+            downloadAndTagIMageFileInMessage(aes, payload);
           }
         }
       }

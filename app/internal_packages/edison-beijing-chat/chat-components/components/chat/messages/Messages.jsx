@@ -148,7 +148,9 @@ export default class Messages extends PureComponent {
                   let path = dialog.showSaveDialog({ title: `download file` });
                   downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
                 }
-              }
+              };
+
+              console.log('messsage.jsx render', msgBody);
               if (msgBody.path) {
                 let maxHeight;
                 if (msgBody.path.match(/\.gif$/)) {
