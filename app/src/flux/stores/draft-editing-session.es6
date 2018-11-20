@@ -93,10 +93,10 @@ class DraftChangeSet extends EventEmitter {
     this._timer = setTimeout(() => this.commit(), SaveAfterIdleMSec);
   }
 
-  async commit() {
+  async commit(arg) {
     if (this.dirtyFields().length === 0) return;
     if (this._timer) clearTimeout(this._timer);
-    await this.callbacks.onCommit();
+    await this.callbacks.onCommit(arg);
     this._lastCommitTime = Date.now();
   }
 }
@@ -109,14 +109,14 @@ function hotwireDraftBodyState(draft) {
 
   draft.__bodyPropDescriptor = {
     configurable: true,
-    get: function() {
+    get: function () {
       if (!_bodyHTMLCache) {
         console.log('building HTML body cache');
         _bodyHTMLCache = convertToHTML(_bodyEditorState);
       }
       return _bodyHTMLCache;
     },
-    set: function(inHTML) {
+    set: function (inHTML) {
       let nextValue = convertFromHTML(inHTML);
       if (draft.bodyEditorState) {
         nextValue = draft.bodyEditorState
@@ -134,10 +134,10 @@ function hotwireDraftBodyState(draft) {
 
   draft.__bodyEditorStatePropDescriptor = {
     configurable: true,
-    get: function() {
+    get: function () {
       return _bodyEditorState;
     },
-    set: function(next) {
+    set: function (next) {
       if (_bodyEditorState !== next) {
         _bodyHTMLCache = null;
       }
@@ -186,7 +186,7 @@ export default class DraftEditingSession extends MailspringStore {
     this.headerMessageId = headerMessageId;
     this.changes = new DraftChangeSet({
       onAddChanges: changes => this.changeSetApplyChanges(changes),
-      onCommit: () => this.changeSetCommit(), // for specs
+      onCommit: (arg) => this.changeSetCommit(arg), // for specs
     });
 
     DraftStore = DraftStore || require('./draft-store').default;
@@ -420,11 +420,12 @@ export default class DraftEditingSession extends MailspringStore {
     }
   };
 
-  async changeSetCommit() {
+  async changeSetCommit(arg) {
     if (this._destroyed || !this._draft) {
       return;
     }
     const task = new SyncbackDraftTask({ draft: this._draft });
+    task.saveOnRemote = arg === 'unload' ? true : false;
     Actions.queueTask(task);
     await TaskQueue.waitForPerformLocal(task);
   }

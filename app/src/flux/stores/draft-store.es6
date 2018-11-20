@@ -122,7 +122,7 @@ class DraftStore extends MailspringStore {
           })
         );
       } else if (session.changes.isDirty()) {
-        promises.push(session.changes.commit());
+        promises.push(session.changes.commit('unload'));
       }
     });
 

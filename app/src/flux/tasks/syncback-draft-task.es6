@@ -7,6 +7,9 @@ export default class SyncbackDraftTask extends Task {
     headerMessageId: Attributes.String({
       modelKey: 'headerMessageId',
     }),
+    saveOnRemote: Attributes.Boolean({
+      modelKey: 'saveOnRemote',
+    }),
     draft: Attributes.Object({
       modelKey: 'draft',
       itemClass: Message,
