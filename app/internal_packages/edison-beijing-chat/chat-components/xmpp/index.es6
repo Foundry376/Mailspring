@@ -104,7 +104,7 @@ export class Xmpp extends EventEmitter3 {
   async joinRooms(curJid,
     ...roomJids) {
     let xmpp = this.getXmpp(curJid);
-    return xmpp.joinRooms(roomJids);
+    return xmpp.joinRooms(...roomJids);
   }
   sendMessage(message, curJid) {
     let xmpp = this.getXmpp(curJid);
@@ -219,8 +219,8 @@ export class XmppEx extends EventEmitter3 {
 
   //------------------room start
   /**
-   * 
-   * @param room 
+   *
+   * @param room
    * @param opts { name:'room name', subject:'subject', description:'description'}
    */
   async setRoomName(room, opts) {
@@ -239,9 +239,9 @@ export class XmppEx extends EventEmitter3 {
     return this.client.destroyRoom(room, { reason: reason });
   }
   /**
-   * 
-   * @param room 
-   * @param opts 
+   *
+   * @param room
+   * @param opts
    * {
    *    type:'create',
    *    name:'yazz_test',
