@@ -101,7 +101,7 @@ export const enableCarbonsEpic = action$ => action$.ofType(BEGIN_ENABLE_CARBONS)
  * Joins xmpp rooms
  */
 export const joinRoomsEpic = action$ => action$.ofType(BEGIN_JOIN_ROOMS)
-  .mergeMap(({ payload: rooms }) => Observable.fromPromise(xmpp.joinRooms(...rooms))
+  .mergeMap(({ payload: rooms }) => Observable.fromPromise(xmpp.joinRooms('', ...rooms))
     .map(res => successfullyJoinedRooms(res))
     .catch(err => Observable.of(failedJoiningRooms(err)))
   );

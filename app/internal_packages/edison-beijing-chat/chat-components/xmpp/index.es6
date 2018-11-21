@@ -7,11 +7,116 @@ import { Observable } from 'rxjs/Observable';
  */
 const JOIN_INTERVAL = 5;
 
+export class Xmpp extends EventEmitter3 {
+  defaultJid;
+  xmppMap = new Map();
+  init(credentials) {
+    let jid = credentials.jid;
+    if (jid.indexOf('/') > 0) {
+      credentials.jid = jid.substring(0, jid.indexOf('/'));
+    }
+    let xmpp = this.xmppMap.get(credentials.jid);
+    if (!xmpp) {
+      xmpp = new XmppEx();
+      this.xmppMap.set(credentials.jid, xmpp);
+      this.defaultJid = credentials.jid;
+    }
+    xmpp.init(credentials);
+    xmpp.client.on('*', (name, data) => {
+      if (data && typeof data != "string") {
+        data.curJid = xmpp.connectedJid;
+      }
+      this.emit(name, data);
+    });
+  }
+  connect(jid) {
+    let xmpp = this.getXmpp(jid);
+    console.log(xmpp);
+    return xmpp.connect();
+  }
+  getXmpp(jid) {
+    if (jid) {
+      return this.xmppMap.get(jid);
+    } else {
+      return this.xmppMap.get(this.defaultJid);
+    }
+  }
+  async enableCarbons(curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.enableCarbons();
+  }
+  async getRoster(curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.getRoster();
+  }
+  async getE2ee(user, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.getE2ee(user);
+  }
+  async setE2ee(user, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.setE2ee(user);
+  }
+  async setRoomName(room, opts, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.setRoomName(room, opts);
+  }
+  async setNickName(room, nick, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.setNickName(room, nick);
+  }
+  async addMember(room, jid, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.addMember(room, jid);
+  }
+  async leaveRoom(room, jid, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.leaveRoom(room, jid);
+  }
+  async destroyRoom(room, reason, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.destroyRoom(room, reason);
+  }
+  async createRoom(room, opts, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.createRoom(room, opts);
+  }
+  async getRoomMembers(room, ver, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.getRoomMembers(room, ver);
+  }
+  async getRoomList(ver, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.getRoomList(ver);
+  }
+  async block(jid, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.block(jid);
+  }
+  async unblock(jid, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.unblock(jid);
+  }
+  async getBlocked(ver, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.getBlocked(ver);
+  }
+  async joinRooms(curJid,
+    ...roomJids) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.joinRooms(roomJids);
+  }
+  sendMessage(message, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    xmpp.sendMessage(message);
+  }
+}
+
 /**
  * A class that interfaces with the Quickblox REST API
  * @extends EventEmitter3
  */
-export class Xmpp extends EventEmitter3 {
+export class XmppEx extends EventEmitter3 {
   isConnected = false;
   client = null;
   credentials = null;
