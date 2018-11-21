@@ -6,16 +6,11 @@ import fs from 'fs';
 
 RxDB.plugin(adapter);
 
-let dbPromiseMap = {};
+let dbPromise;
 
-function databasePath(userId, specMode) {
+function databasePath(specMode) {
   let configDirPath = AppEnv.getConfigDirPath();
   let dbpath = path.join(configDirPath, 'chat-db');
-  if (!fs.existsSync(dbpath)) {
-    fs.mkdirSync(dbpath);
-  }
-  let activeChatAccount = AppEnv.config.get('activeChatAccount');
-  dbpath = path.join(dbpath, userId);
   if (!fs.existsSync(dbpath)) {
     fs.mkdirSync(dbpath);
   }
@@ -26,9 +21,9 @@ function databasePath(userId, specMode) {
   return dbPath;
 }
 
-const createDb = async (userId) => {
+const createDb = async () => {
   let specMode = AppEnv.inSpecMode();
-  let dbPath = databasePath(userId, specMode);
+  let dbPath = databasePath(specMode);
   const db = await RxDB.create({name: dbPath,
     adapter: 'websql',
     // pouchSettings: {
@@ -45,12 +40,8 @@ const createDb = async (userId) => {
 };
 
 export default () => {
-  let activeChatAccount = AppEnv.config.get('activeChatAccount');
-  let userId = activeChatAccount.userId;
-  let dbPromise = dbPromiseMap[userId];
   if (!dbPromise) {
-    dbPromise = createDb(userId);
-    dbPromiseMap[userId] = dbPromise;
+    dbPromise = createDb();
   }
   return dbPromise;
 };
