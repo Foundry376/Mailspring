@@ -8,6 +8,9 @@ export default {
       type: 'string',
       primary: true
     },
+    curJid: {
+      type: 'string',
+    },
     name: {
       type: 'string'
     },
