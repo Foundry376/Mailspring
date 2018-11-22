@@ -19,8 +19,8 @@ export class Xmpp extends EventEmitter3 {
     if (!xmpp) {
       xmpp = new XmppEx();
       this.xmppMap.set(credentials.jid, xmpp);
-      this.defaultJid = credentials.jid;
     }
+    this.defaultJid = credentials.jid;
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
       if (data && typeof data != "string") {
