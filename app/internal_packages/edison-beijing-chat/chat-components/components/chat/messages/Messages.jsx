@@ -129,6 +129,7 @@ export default class Messages extends PureComponent {
       }
       return messageStyles.join(' ');
     };
+    debugger;
 
     return (
       <div
@@ -139,6 +140,9 @@ export default class Messages extends PureComponent {
           <div className="messageGroup" key={uuid()}>
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
+              if (msgBody.localFile) {
+                msgBody.path = msgBody.localFile;
+              }
               const color = colorForString(msg.sender);
               let msgFile;
 
@@ -149,8 +153,7 @@ export default class Messages extends PureComponent {
                   downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
                 }
               };
-
-              console.log('messsage.jsx render', msgBody);
+              
               if (msgBody.path) {
                 let maxHeight;
                 if (msgBody.path.match(/\.gif$/)) {

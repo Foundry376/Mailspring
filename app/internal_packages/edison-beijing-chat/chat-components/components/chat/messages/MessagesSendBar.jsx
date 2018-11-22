@@ -160,8 +160,10 @@ export default class MessagesSendBar extends PureComponent {
           email: selectedConversation.email,
           name: selectedConversation.name,
           mediaObjectId: '',
+          localFile:file,
         };
         const messageId = uuid();
+        debugger;
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
         uploadFile(jidLocal, null, file, (err, filename, myKey, size) => {
           if (err) {
@@ -172,6 +174,7 @@ export default class MessagesSendBar extends PureComponent {
           body.mediaObjectId = myKey;
           body.occupants = occupants;
           body.atJids = this.getAtTargetPersons();
+          body.localFile = file;
           onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
         });
       })

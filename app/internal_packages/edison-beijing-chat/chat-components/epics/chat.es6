@@ -46,7 +46,7 @@ import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, setPriKey, getPubKey, setPubKey } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 
-const downloadAndTagIMageFileInMessage = (aes, payload) => {
+const downloadAndTagImageFileInMessage = (aes, payload) => {
   let body = decryptByAES(aes, payload.payload);
   let msgBody = JSON.parse(body);
   if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)\.encrypted$/)) {
@@ -129,6 +129,7 @@ export const sendMessageEpic = action$ =>
     })
     .map(({ payload: { conversation, body, id, devices, selfDevices, isUploading } }) => {
       let ediEncrypted;
+      debugger;
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices);
       }
@@ -160,6 +161,7 @@ export const sendMessageEpic = action$ =>
     // })
     .map(message => sendingMessage(message))//yazzz1
     .do(({ payload }) => {
+      debugger;
       // when uploading file, do not send message
       if (!payload.isUploading) {
         xmpp.sendMessage(payload);
@@ -254,7 +256,7 @@ export const receivePrivateMessageEpic = action$ =>
           let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
           if (text) {
             let aes = decrypte(text, getPriKey(window.localStorage.jidLocal)); //window.localStorage.priKey);
-            downloadAndTagIMageFileInMessage(aes, payload);
+            downloadAndTagImageFileInMessage(aes, payload);
           }
         }
       }
@@ -286,7 +288,7 @@ export const receiveGroupMessageEpic = action$ =>
           let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
           if (text) {
             let aes = decrypte(text, getPriKey(window.localStorage.jidLocal));//window.localStorage.priKey);
-            downloadAndTagIMageFileInMessage(aes, payload);
+            downloadAndTagImageFileInMessage(aes, payload);
           }
         }
       }
