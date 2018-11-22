@@ -155,6 +155,7 @@ class ActivityEventStore extends MailspringStore {
       const recipientName = action.recipient
         ? action.recipient.displayName()
         : localized('Someone');
+
       NativeNotifications.displayNotification({
         title: localized(`New %@`, config.verb),
         subtitle: localized(`%@ recently %@ %@`, recipientName, config.predicate, action.title),

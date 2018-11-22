@@ -1,6 +1,8 @@
 /* eslint global-require: 0 */
+const platform = process.platform;
+
 let MacNotifierNotification = null;
-if (process.platform === 'darwin') {
+if (platform === 'darwin') {
   try {
     MacNotifierNotification = require('node-mac-notifier');
   } catch (err) {
@@ -22,8 +24,23 @@ class NativeNotifications {
       });
     }
   }
+
+  doNotDisturb() {
+    if (platform === 'win32' && require('windows-quiet-hours').getIsQuietHours()) {
+      return true;
+    }
+    if (platform === 'darwin' && require('macos-notification-state').getDoNotDisturb()) {
+      return true;
+    }
+    return false;
+  }
+
   displayNotification({ title, subtitle, body, tag, canReply, onActivate = () => {} } = {}) {
     let notif = null;
+
+    if (this.doNotDisturb()) {
+      return null;
+    }
 
     if (MacNotifierNotification) {
       if (tag && this._macNotificationsByTag[tag]) {

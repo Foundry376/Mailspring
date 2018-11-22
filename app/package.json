@@ -73,6 +73,8 @@
     "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7"
   },
   "optionalDependencies": {
-    "node-mac-notifier": "0.0.13"
+    "macos-notification-state": "^1.1.0",
+    "node-mac-notifier": "1.1.0",
+    "windows-quiet-hours": "^1.2.5"
   }
 }
