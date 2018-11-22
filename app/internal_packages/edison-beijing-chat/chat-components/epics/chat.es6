@@ -250,12 +250,13 @@ export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
     .filter(({ payload }) => {
       if (payload.payload) {
+        let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
-        if (keys[window.localStorage.jidLocal]
-          && keys[window.localStorage.jidLocal][window.localStorage.deviceId]) {
-          let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
+        if (keys[jidLocal]
+          && keys[jidLocal][window.localStorage.deviceId]) {
+          let text = keys[jidLocal][window.localStorage.deviceId];
           if (text) {
-            let aes = decrypte(text, getPriKey(window.localStorage.jidLocal)); //window.localStorage.priKey);
+            let aes = decrypte(text, getPriKey(jidLocal)); //window.localStorage.priKey);
             downloadAndTagImageFileInMessage(aes, payload);
           }
         }
@@ -282,12 +283,13 @@ export const receiveGroupMessageEpic = action$ =>
   action$.ofType(RECEIVE_GROUPCHAT)
     .filter(({ payload }) => {
       if (payload.payload) {
+        let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
-        if (keys[window.localStorage.jidLocal]
-          && keys[window.localStorage.jidLocal][window.localStorage.deviceId]) {
-          let text = keys[window.localStorage.jidLocal][window.localStorage.deviceId];
+        if (keys[jidLocal]
+          && keys[jidLocal][window.localStorage.deviceId]) {
+          let text = keys[jidLocal][window.localStorage.deviceId];
           if (text) {
-            let aes = decrypte(text, getPriKey(window.localStorage.jidLocal));//window.localStorage.priKey);
+            let aes = decrypte(text, getPriKey(jidLocal));//window.localStorage.priKey);
             downloadAndTagImageFileInMessage(aes, payload);
           }
         }
