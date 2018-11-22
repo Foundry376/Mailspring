@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/Observable';
 const JOIN_INTERVAL = 5;
 
 export class Xmpp extends EventEmitter3 {
-  defaultJid;
+  curJid;
   xmppMap = new Map();
   init(credentials) {
     let jid = credentials.jid;
@@ -19,8 +19,8 @@ export class Xmpp extends EventEmitter3 {
     if (!xmpp) {
       xmpp = new XmppEx();
       this.xmppMap.set(credentials.jid, xmpp);
+      this.curJid = credentials.jid;
     }
-    this.defaultJid = credentials.jid;
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
       if (data && typeof data != "string") {
@@ -38,7 +38,7 @@ export class Xmpp extends EventEmitter3 {
     if (jid) {
       return this.xmppMap.get(jid);
     } else {
-      return this.xmppMap.get(this.defaultJid);
+      return this.xmppMap.get(this.curJid);
     }
   }
   async enableCarbons(curJid) {
@@ -205,7 +205,11 @@ export class XmppEx extends EventEmitter3 {
    */
   async getRoster() {
     this.requireConnection();
-    return this.client.getRoster();
+    const roster =  this.client.getRoster();
+    if (roster) {
+      roster.curJid = this.curJid;
+    }
+    return roster;
   }
 
   async getE2ee(user) {//yazzxx

@@ -90,7 +90,7 @@ export default class MessagesTopBar extends Component {
           right={
             <div>
             { selectedConversation.isGroup && <div  id="exit-button" onTouchTap={exitGroup}>
-                {"exit" }
+                exit
               </div>
             }
             { selectedConversation.isGroup && <div id="invite-button" onTouchTap={toggleInvite}>

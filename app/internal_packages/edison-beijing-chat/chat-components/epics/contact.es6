@@ -36,6 +36,7 @@ export const fetchRosterEpic = action$ =>
     );
 
 export const triggerStoreContactsEpic = action$ =>
+  // items now have .curJid field, which is xmpp.curJid
   action$.ofType(SUCCESS_FETCH_ROSTER)
     .filter(({ payload: { items } }) => {
       if (items && items.length) {

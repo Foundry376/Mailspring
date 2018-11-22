@@ -160,7 +160,6 @@ export default class MessagesSendBar extends PureComponent {
           email: selectedConversation.email,
           name: selectedConversation.name,
           mediaObjectId: '',
-          localFile:file,
         };
         const messageId = uuid();
         debugger;

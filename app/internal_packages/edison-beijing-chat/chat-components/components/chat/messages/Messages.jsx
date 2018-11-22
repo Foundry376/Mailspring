@@ -140,7 +140,7 @@ export default class Messages extends PureComponent {
           <div className="messageGroup" key={uuid()}>
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
-              if (msgBody.localFile) {
+              if (msgBody.localFile && !msgBody.path) {
                 msgBody.path = msgBody.localFile;
               }
               const color = colorForString(msg.sender);
@@ -153,7 +153,7 @@ export default class Messages extends PureComponent {
                   downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
                 }
               };
-              
+
               if (msgBody.path) {
                 let maxHeight;
                 if (msgBody.path.match(/\.gif$/)) {
