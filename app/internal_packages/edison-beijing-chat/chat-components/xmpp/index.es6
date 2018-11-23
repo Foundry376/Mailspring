@@ -9,17 +9,17 @@ const JOIN_INTERVAL = 5;
 
 export class Xmpp extends EventEmitter3 {
   defaultJid;
-  xmppMap = new Map();
+  xmppMap = {};
   init(credentials) {
     let jid = credentials.jid;
     if (jid.indexOf('/') > 0) {
-      credentials.jid = jid.substring(0, jid.indexOf('/'));
+      jid = jid.substring(0, jid.indexOf('/'));
     }
-    let xmpp = this.xmppMap.get(credentials.jid);
+    let xmpp = this.xmppMap[jid];
     if (!xmpp) {
       xmpp = new XmppEx();
-      this.xmppMap.set(credentials.jid, xmpp);
-      this.defaultJid = credentials.jid;
+      this.xmppMap[jid] = xmpp;
+      this.defaultJid = jid;
     }
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
@@ -30,15 +30,19 @@ export class Xmpp extends EventEmitter3 {
     });
   }
   connect(jid) {
+    debugger
     let xmpp = this.getXmpp(jid);
     console.log(xmpp);
     return xmpp.connect();
   }
   getXmpp(jid) {
+    if (jid && jid.indexOf('/') > 0) {
+      jid = jid.substring(0, jid.indexOf('/'));
+    }
     if (jid) {
-      return this.xmppMap.get(jid);
+      return this.xmppMap[jid];
     } else {
-      return this.xmppMap.get(this.curJid);
+      return this.xmppMap[this.defaultJid];
     }
   }
   async enableCarbons(curJid) {

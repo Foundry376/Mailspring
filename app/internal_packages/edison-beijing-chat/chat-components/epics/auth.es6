@@ -59,7 +59,7 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
       window.localStorage.jid = jid;//{ jid, local: jid.substring(0, jid.indexOf('@')) };
     }
     window.localStorage.jidLocal = jid.substring(0, jid.indexOf('@'));
-    return Observable.fromPromise(xmpp.connect())
+    return Observable.fromPromise(xmpp.connect(jid))
       .map(res => successfulConnectionAuth(res))
       .catch(error => Observable.of(failConnectionAuth(error)));
   });
