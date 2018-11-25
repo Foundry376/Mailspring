@@ -1,5 +1,5 @@
 import React from 'react';
-import { Range } from 'slate';
+import { Decoration } from 'slate';
 
 import { BLOCK_CONFIG } from './base-block-plugins';
 import { LINK_TYPE } from './link-plugins';
@@ -45,15 +45,11 @@ function renderMark(props) {
           // select the entire word so that the contextual menu offers spelling suggestions
           const { editor: { onChange, value }, node, offset, text } = props;
           onChange(
-            value.change().select(
-              Range.create({
-                anchorKey: node.key,
-                anchorOffset: offset,
-                focusKey: node.key,
-                focusOffset: offset + text.length,
-                isFocused: true,
-              })
-            )
+            value.change().select({
+              anchor: { key: node.key, offset: offset },
+              focus: { key: node.key, offset: offset + text.length },
+              isFocused: true,
+            })
           );
         }}
         style={{
@@ -75,25 +71,20 @@ function decorationsForNode(node, value) {
   const decorations = [];
   let match = null;
 
-  const isFocused = node.key === value.focusKey;
+  const focus = value.selection.focus;
+  const isFocused = focus && key === focus.key;
 
   while ((match = regexp.exec(text))) {
     // If this word contains the insertion point don't mark it as misspelled.
-    if (
-      isFocused &&
-      match.index <= value.focusOffset &&
-      match.index + match[0].length >= value.focusOffset
-    ) {
+    if (isFocused && match.index <= focus.offset && match.index + match[0].length >= focus.offset) {
       continue;
     }
 
     if (AppEnv.spellchecker.isMisspelled(match[0])) {
-      const range = Range.create({
-        anchorKey: key,
-        anchorOffset: match.index,
-        focusKey: key,
-        focusOffset: match.index + match[0].length,
-        marks: [{ type: MISSPELLED_TYPE }],
+      const range = Decoration.create({
+        anchor: { key: key, offset: match.index },
+        focus: { key: key, offset: match.index + match[0].length },
+        mark: { type: MISSPELLED_TYPE },
       });
 
       // If this text range has marks (it's part of a link, template variable,
@@ -140,7 +131,7 @@ function collectSpellcheckableTextNodes(node) {
 function onSpellcheckFocusedNode(change) {
   const { value } = change;
   const decorations = value.get('decorations') || [];
-  if (!value.focusKey) {
+  if (!value.selection.focus) {
     return;
   }
 
@@ -159,7 +150,7 @@ function onSpellcheckFocusedNode(change) {
 
   // add the decorations already in nodes we didn't visit
   decorations.forEach(d => {
-    if (!scannedNodeKeys[d.focusKey]) {
+    if (!scannedNodeKeys[d.focus.key]) {
       next.push(d);
     }
   });
@@ -201,10 +192,10 @@ function onSpellcheckFullDocument(editor) {
   } else {
     const table = {};
     previous.forEach(
-      d => (table[`${d.anchorKey}:${d.anchorOffset}-${d.focusKey}:${d.focusOffset}`] = true)
+      d => (table[`${d.anchor.key}:${d.anchor.offset}-${d.focus.key}:${d.focus.offset}`] = true)
     );
     for (const d of decorations) {
-      if (!table[`${d.anchorKey}:${d.anchorOffset}-${d.focusKey}:${d.focusOffset}`]) {
+      if (!table[`${d.anchor.key}:${d.anchor.offset}-${d.focus.key}:${d.focus.offset}`]) {
         changed = true;
         break;
       }

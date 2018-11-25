@@ -14,16 +14,16 @@ function removeMarksOfTypeInRange(change, range, type) {
   }
   const document = change.value.document;
   const texts = document.getTextsAtRange(range);
-  const { startKey, startOffset, endKey, endOffset } = range;
+  const { start, end } = range;
 
   texts.forEach(node => {
     const { key } = node;
     let index = 0;
     let length = node.text.length;
 
-    if (key === startKey) index = startOffset;
-    if (key === endKey) length = endOffset;
-    if (key === startKey && key === endKey) length = endOffset - startOffset;
+    if (key === start.key) index = start.offset;
+    if (key === end.key) length = end.offset;
+    if (key === start.key && key === end.key) length = end.offset - start.offset;
 
     node.getMarks().forEach(mark => {
       if (mark.type === type) {
@@ -37,9 +37,9 @@ function removeMarksOfTypeInRange(change, range, type) {
 
 export function expandSelectionToRangeOfMark(change, type) {
   const { selection, document } = change.value;
-  const node = document.getNode(selection.anchorKey);
-  let start = selection.anchorOffset;
-  let end = selection.anchorOffset;
+  const node = document.getNode(selection.anchor.key);
+  let start = selection.anchor.offset;
+  let end = selection.anchor.offset;
 
   // expand backwards until the mark disappears
   while (start > 0 && node.getMarksAtIndex(start).find(m => m.type === type)) {
@@ -52,10 +52,8 @@ export function expandSelectionToRangeOfMark(change, type) {
 
   // expand selection
   change.select({
-    anchorKey: selection.anchorKey,
-    anchorOffset: start,
-    focusKey: selection.anchorKey,
-    focusOffset: end,
+    anchor: { key: selection.anchor.key, offset: start },
+    focus: { key: selection.anchor.key, offset: end },
     isFocused: true,
     isBackward: false,
   });
@@ -198,7 +196,7 @@ export function BuildMarkButtonWithValuePicker(config) {
       const { value, onChange } = this.props;
       const active = getMarkOfType(this.props.value, config.type);
       if (value.selection.isCollapsed) {
-        const anchorNode = value.document.getNode(value.selection.anchorKey);
+        const anchorNode = value.document.getNode(value.selection.anchor.key);
         const expanded = value.selection.moveToRangeOf(anchorNode);
         onChange(value.change().removeMarkAtRange(expanded, active));
       } else {

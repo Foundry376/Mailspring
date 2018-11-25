@@ -140,11 +140,11 @@ export default [
   AutoReplace({
     trigger: e => !!TriggerKeyValues[e.key],
     before: RegExpUtils.emailRegex({ requireStartOrWhitespace: true, matchTailOfString: true }),
-    transform: buildAutoReplaceHandler({ hrefPrefix: 'mailto:' }),
+    change: buildAutoReplaceHandler({ hrefPrefix: 'mailto:' }),
   }),
   AutoReplace({
     trigger: e => !!TriggerKeyValues[e.key],
     before: RegExpUtils.urlRegex({ matchTailOfString: true }),
-    transform: buildAutoReplaceHandler(),
+    change: buildAutoReplaceHandler(),
   }),
 ];

@@ -9,11 +9,12 @@ export default [
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '*',
     before: /([*]{2})([^*]+)([*]{1})$/,
-    transform: (transform, e, matches) => {
-      const text = matches.before[2];
-      const mark = Mark.create({ type: MARK_CONFIG.bold.type });
-      const marks = Mark.createSet([mark]);
-      transform.insertText(text, marks).removeMark(mark.type);
+    change: (transform, e, matches) => {
+      transform
+        .addMark(MARK_CONFIG.bold.type)
+        .insertText(matches.before[2])
+        .toggleMark(MARK_CONFIG.bold.type)
+        .insertText(' ');
     },
   }),
 
@@ -22,11 +23,12 @@ export default [
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '*',
     before: /(?:[^|^*]){1}([*]{1})([^*]+)$/,
-    transform: (transform, e, matches) => {
-      const text = matches.before[2];
-      const mark = Mark.create({ type: MARK_CONFIG.italic.type });
-      const marks = Mark.createSet([mark]);
-      transform.insertText(text, marks).removeMark(mark.type);
+    change: (transform, e, matches) => {
+      transform
+        .addMark(MARK_CONFIG.italic.type)
+        .insertText(matches.before[2])
+        .toggleMark(MARK_CONFIG.italic.type)
+        .insertText(' ');
     },
   }),
 
@@ -36,12 +38,11 @@ export default [
     trigger: '*',
     before: /(\*)$/,
     after: /^([^*]+)([*]{2})/,
-    transform: (transform, e, matches) => {
+    change: (transform, e, matches) => {
       const text = matches.after[1];
-      const mark = Mark.create({ type: MARK_CONFIG.bold.type });
-      const marks = Mark.createSet([mark]);
       transform
-        .insertText(text, marks)
+        .addMark(MARK_CONFIG.bold.type)
+        .insertText(text)
         .moveAnchor(-text.length)
         .collapseToAnchor();
     },
@@ -52,12 +53,11 @@ export default [
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '*',
     after: /^([^*]+)([*]{1})(?:[^*]{1}|$)/,
-    transform: (transform, e, matches) => {
+    change: (transform, e, matches) => {
       const text = matches.after[1];
-      const mark = Mark.create({ type: MARK_CONFIG.italic.type });
-      const marks = Mark.createSet([mark]);
       transform
-        .insertText(text, marks)
+        .addMark(MARK_CONFIG.italic.type)
+        .insertText(text)
         .moveAnchor(-text.length)
         .collapseToAnchor();
     },
@@ -68,8 +68,8 @@ export default [
     onlyIn: [BLOCK_CONFIG.div.type],
     trigger: '`',
     before: /^([`]{2})$/,
-    transform: (transform, e, matches) => {
-      transform.setBlock(BLOCK_CONFIG.code.type);
+    change: (transform, e, matches) => {
+      transform.setBlocks(BLOCK_CONFIG.code.type);
     },
   }),
 
@@ -78,11 +78,12 @@ export default [
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '`',
     before: /(?:[^|^`]){1}([`]{1})([^`]+)$/,
-    transform: (transform, e, matches) => {
-      const text = matches.before[2];
-      const mark = Mark.create({ type: MARK_CONFIG.codeInline.type });
-      const marks = Mark.createSet([mark]);
-      transform.insertText(text, marks).removeMark(mark);
+    change: (transform, e, matches) => {
+      transform
+        .addMark(MARK_CONFIG.codeInline.type)
+        .insertText(matches.before[2])
+        .removeMark(MARK_CONFIG.codeInline.type)
+        .insertText(' ');
     },
   }),
 ];

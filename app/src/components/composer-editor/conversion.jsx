@@ -217,6 +217,7 @@ export function convertFromHTML(html) {
   because the input contained whitespace, or because there were elements present
   that we didn't convert into anything. Prune the trailing empty node(s). */
   const cleanupTrailingWhitespace = (node, isTopLevel) => {
+    // TODO WHEREI S VOID
     if (!node.nodes || node.isVoid) return;
 
     while (true) {

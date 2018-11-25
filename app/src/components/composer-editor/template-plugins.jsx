@@ -88,10 +88,8 @@ function onKeyDown(event, change, editor) {
 
     if (next) {
       change.select({
-        anchorKey: next.key,
-        anchorOffset: 0,
-        focusKey: next.key,
-        focusOffset: 0,
+        anchor: { key: next.key, offset: 0 },
+        focus: { key: next.key, offset: 0 },
         isFocused: true,
         isBackward: false,
       });
@@ -137,7 +135,7 @@ export default [
   AutoReplace({
     trigger: '}',
     before: /({{)([^}]+)(})/,
-    transform: (transform, e, matches) => {
+    change: (transform, e, matches) => {
       const name = matches.before[2];
       const node = Inline.create({
         type: VARIABLE_TYPE,

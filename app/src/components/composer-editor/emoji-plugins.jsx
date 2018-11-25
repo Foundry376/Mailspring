@@ -166,7 +166,7 @@ const rules = [
 export function swapEmojiMarkFor(change, emoji, picked) {
   change.removeMark(emoji);
   if (picked) {
-    change.extend(-emoji.data.get('typed').length);
+    change.moveFocusForward(-emoji.data.get('typed').length);
     change.delete();
     change.insertInline({
       object: 'inline',
@@ -182,7 +182,7 @@ export function swapEmojiMarkFor(change, emoji, picked) {
 }
 
 export function updateEmojiMark(change, emoji, { typed, suggestions, picked }) {
-  change.extend(-typed.length);
+  change.moveFocusForward(-typed.length);
   change.delete();
 
   // https://sentry.io/foundry-376-llc/mailspring/issues/445604114/
@@ -226,7 +226,7 @@ function onKeyDown(event, change, editor) {
 function onKeyUp(event, change, editor) {
   const emoji = change.value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
   if (!emoji) {
-    const justTyped = change.value.change().extend(-1).value.fragment.text;
+    const justTyped = change.value.change().moveFocusForward(-1).value.fragment.text;
     if (justTyped.trim() === ':') {
       change.addMark({ type: EMOJI_TYPING_TYPE, data: { typed: '', suggestions: [], picked: '' } });
     }
@@ -237,7 +237,7 @@ function onKeyUp(event, change, editor) {
     let typed = '';
     const tmp = change.value.change();
     while (true) {
-      tmp.extend(-1);
+      tmp.moveFocusForward(-1);
       if (typed === tmp.value.fragment.text) {
         break;
       }

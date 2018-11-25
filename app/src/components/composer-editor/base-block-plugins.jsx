@@ -2,6 +2,7 @@ import React from 'react';
 import SoftBreak from 'slate-soft-break';
 import EditList from 'slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
+import When from 'slate-when';
 
 import { BuildToggleButton } from './toolbar-component-factories';
 
@@ -44,9 +45,9 @@ function toggleBlockTypeWithBreakout(value, change, type) {
       change.splitBlock(ancestors.size - idx);
       for (let x = 0; x < depth; x++) change.unwrapBlock();
     }
-    change.setBlock(BLOCK_CONFIG.div.type);
+    change.setBlocks(BLOCK_CONFIG.div.type);
   } else {
-    change.setBlock(type);
+    change.setBlocks(type);
   }
 
   return change;
@@ -114,8 +115,8 @@ export const BLOCK_CONFIG = {
       iconClass: 'fa fa-sticky-note-o',
       onToggle: (value, active) =>
         active
-          ? value.change().setBlock(BLOCK_CONFIG.div.type)
-          : value.change().setBlock(BLOCK_CONFIG.code.type),
+          ? value.change().setBlocks(BLOCK_CONFIG.div.type)
+          : value.change().setBlocks(BLOCK_CONFIG.code.type),
     },
   },
   ol_list: {
@@ -327,13 +328,13 @@ export default [
       'contenteditable:indent': (event, value) => {
         const focusBlock = value.focusBlock;
         if (focusBlock && focusBlock.type === BLOCK_CONFIG.div.type) {
-          return value.change().setBlock(BLOCK_CONFIG.blockquote.type);
+          return value.change().setBlocks(BLOCK_CONFIG.blockquote.type);
         }
       },
       'contenteditable:outdent': (event, value) => {
         const focusBlock = value.focusBlock;
         if (focusBlock && focusBlock.type === BLOCK_CONFIG.blockquote.type) {
-          return value.change().setBlock(BLOCK_CONFIG.div.type);
+          return value.change().setBlocks(BLOCK_CONFIG.div.type);
         }
       },
     },
@@ -341,8 +342,9 @@ export default [
   },
 
   // Return creates soft newlines in code blocks
-  SoftBreak({
-    onlyIn: [BLOCK_CONFIG.code.type],
+  When({
+    when: value => value.blocks.some(b => b.type === BLOCK_CONFIG.code.type),
+    plugin: SoftBreak(),
   }),
 
   // Pressing backspace when you're at the top of the document should not delete down
@@ -351,9 +353,15 @@ export default [
       if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
         return;
       }
-      const { focusText, focusOffset, document } = change.value;
+      const { focusText, selection, document } = change.value;
       const firstText = document.getFirstText();
-      if (focusOffset === 0 && focusText && firstText && firstText.key === focusText.key) {
+      if (
+        selection.focus &&
+        selection.focus.offset === 0 &&
+        focusText &&
+        firstText &&
+        firstText.key === focusText.key
+      ) {
         event.preventDefault();
         return true;
       }
@@ -386,7 +394,7 @@ export default [
     onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
     trigger: ' ',
     before: /^([-]{1})$/,
-    transform: (transform, e, matches) => {
+    change: (transform, e, matches) => {
       EditListPlugin.changes.wrapInList(transform, BLOCK_CONFIG.ul_list.type);
     },
   }),
@@ -394,7 +402,7 @@ export default [
     onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
     trigger: ' ',
     before: /^([1]{1}[.]{1})$/,
-    transform: (transform, e, matches) => {
+    change: (transform, e, matches) => {
       EditListPlugin.changes.wrapInList(transform, BLOCK_CONFIG.ol_list.type);
     },
   }),
