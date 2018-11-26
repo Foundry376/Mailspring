@@ -181,8 +181,6 @@ export default class MessageItemBody extends React.Component {
           direction="column"
           style={{ width: '100%' }}
         />
-        <hr />
-        <h2>bodybodybody</h2>
         {this._renderBody()}
         <ConditionalQuotedTextControl
           body={this.props.message.body || ''}
