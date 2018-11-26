@@ -11,6 +11,7 @@ export const TimeoutErrorCodes = [
   'ENETDOWN',
   'ENETUNREACH',
 ];
+import { IdentityStore } from 'mailspring-exports';
 export const PermanentErrorCodes = [
   400,
   401,
@@ -28,7 +29,7 @@ export const PermanentErrorCodes = [
 export const CanceledErrorCodes = [-123, 'ECONNABORTED'];
 export const SampleTemporaryErrorCode = 504;
 
-let IdentityStore = null;
+// let IdentityStore = null;
 
 // server option
 
@@ -79,46 +80,47 @@ export async function postStaticPage({ html, key }) {
 }
 
 export async function makeRequest(options) {
-  // for some reason when `fetch` completes, the stack trace has been lost.
-  // In case the request failsm capture the stack now.
-  const root = rootURLForServer(options.server);
+  return IdentityStore.identity();
+  // // for some reason when `fetch` completes, the stack trace has been lost.
+  // // In case the request failsm capture the stack now.
+  // const root = rootURLForServer(options.server);
 
-  options.headers = options.headers || new Headers();
-  options.headers.set('Accept', 'application/json');
-  options.credentials = 'include';
+  // options.headers = options.headers || new Headers();
+  // options.headers.set('Accept', 'application/json');
+  // options.credentials = 'include';
 
-  if (!options.auth && options.auth !== false) {
-    if (options.server === 'identity') {
-      IdentityStore = IdentityStore || require('./stores/identity-store').default;
-      const username = IdentityStore.identity().token;
-      options.headers.set('Authorization', `Basic ${btoa(`${username}:`)}`);
-    }
-  }
+  // if (!options.auth && options.auth !== false) {
+  //   if (options.server === 'identity') {
+  //     IdentityStore = IdentityStore || require('./stores/identity-store').default;
+  //     const username = IdentityStore.identity().token;
+  //     options.headers.set('Authorization', `Basic ${btoa(`${username}:`)}`);
+  //   }
+  // }
 
-  if (options.path) {
-    options.url = `${root}${options.path}`;
-  }
+  // if (options.path) {
+  //   options.url = `${root}${options.path}`;
+  // }
 
-  if (options.body && !(options.body instanceof FormData)) {
-    options.headers.set('Content-Type', 'application/json');
-    options.body = JSON.stringify(options.body);
-  }
+  // if (options.body && !(options.body instanceof FormData)) {
+  //   options.headers.set('Content-Type', 'application/json');
+  //   options.body = JSON.stringify(options.body);
+  // }
 
-  const error = new APIError(`${options.method || 'GET'} ${options.url} failed`);
-  let resp = null;
-  try {
-    resp = await fetch(options.url, options);
-  } catch (uselessFetchError) {
-    throw error;
-  }
-  if (!resp.ok) {
-    error.statusCode = resp.status;
-    error.message = `${options.method || 'GET'} ${options.url} returned ${resp.status} ${
-      resp.statusText
-    }`;
-    throw error;
-  }
-  return resp.json();
+  // const error = new APIError(`${options.method || 'GET'} ${options.url} failed`);
+  // let resp = null;
+  // try {
+  //   resp = await fetch(options.url, options);
+  // } catch (uselessFetchError) {
+  //   throw error;
+  // }
+  // if (!resp.ok) {
+  //   error.statusCode = resp.status;
+  //   error.message = `${options.method || 'GET'} ${options.url} returned ${resp.status} ${
+  //     resp.statusText
+  //     }`;
+  //   throw error;
+  // }
+  // return resp.json();
 }
 
 export default {
