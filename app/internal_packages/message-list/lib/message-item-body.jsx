@@ -6,6 +6,8 @@ import {
   MessageBodyProcessor,
   QuotedHTMLTransformer,
   AttachmentStore,
+  DatabaseStore,
+  Message
 } from 'mailspring-exports';
 import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 
@@ -59,7 +61,7 @@ export default class MessageItemBody extends React.Component {
     this._unsub = MessageBodyProcessor.subscribe(
       this.props.message,
       needInitialCallback,
-      processedBody => this.setState({ processedBody })
+      processedBody => this._setProcessBody(processedBody, this.props.message.id)
     );
   }
 
@@ -68,13 +70,29 @@ export default class MessageItemBody extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.message.id !== this.props.message.id) {
+    if (nextProps.message.id !== this.props.message.id || !this.state.processedBody) {
       if (this._unsub) {
         this._unsub();
       }
-      this._unsub = MessageBodyProcessor.subscribe(nextProps.message, true, processedBody =>
-        this.setState({ processedBody })
+      this._unsub = MessageBodyProcessor.subscribe(
+        nextProps.message,
+        true,
+        processedBody => this._setProcessBody(processedBody, nextProps.message.id)
       );
+    }
+  }
+
+  _setProcessBody = (processedBody, messageId) => {
+    if (processedBody === null || processedBody.trim() === "") {
+      const query = DatabaseStore.find(Message, messageId);
+      query.include(Message.attributes.body);
+      query.then(msg => {
+        if (msg.body !== this.state.processedBody) {
+          this.setState({ processedBody });
+        }
+      })
+    } else {
+      this.setState({ processedBody });
     }
   }
 
@@ -124,6 +142,8 @@ export default class MessageItemBody extends React.Component {
     // no "missing image" region shown, just a space.
     merged = merged.replace(MessageUtils.cidRegex, `src="${TransparentPixel}"`);
 
+    // console.log('****message.body merged:', merged);
+
     return merged;
   }
 
@@ -161,6 +181,8 @@ export default class MessageItemBody extends React.Component {
           direction="column"
           style={{ width: '100%' }}
         />
+        <hr />
+        <h2>bodybodybody</h2>
         {this._renderBody()}
         <ConditionalQuotedTextControl
           body={this.props.message.body || ''}
