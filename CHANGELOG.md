@@ -1,5 +1,25 @@
 # Mailspring Changelog
 
+### 1.5.3 (11/25/2018)
+
+Improvements:
+
+* French and Japanese localizations have been improved. (Thanks @komentech, @shyne99!)
+
+* Mailspring now honors "Do Not Disturb" on macOS and "Quiet Time" on Windows. Notifications do not appear and the "new mail" sound does not play.
+
+* Mailspring is more stable and handles a variety of edge cases better thanks to crash reports from Sentry.
+
+* Right-clicking an image and choosing "Copy Image" now works correctly on Linux.
+
+* Mailspring's Outlook keyboard shortcut preset now includes Ctrl-Q for "mark as read" and many other shortcuts. On Windows, Alt-F4 quits the program rather than the non-standard Ctrl-Q.
+
+Development:
+
+* Mailspring now uses it's own logo API rather than Clearbit's, since we cannot provide appropriate Clearbit attribution when the logo images are used in email signatures.
+
+* Mailspring now ships with Electron 2.0.14, which fixes a variety of small issues. We will move to Electron 4.x as soon as electron/electron#14260 is resolved.
+
 ### 1.5.2 (11/6/2018)
 
 Improvements:
