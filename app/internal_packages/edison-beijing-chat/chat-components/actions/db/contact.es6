@@ -31,5 +31,8 @@ export const retrieveContacts = () => ({ type: RETRIEVE_STORED_CONTACTS });
 export const failedRetrievingContacts = error =>
   ({ type: FAIL_RETRIEVE_STORED_CONTACTS, payload: error });
 
-export const updateStoredContacts = contacts =>
-  ({ type: UPDATE_STORED_CONTACTS, payload: contacts });
+export const updateStoredContacts = contacts => {
+  console.log('updateStoredContacts', contacts);
+  return ({ type: UPDATE_STORED_CONTACTS, payload: contacts });
+}
+

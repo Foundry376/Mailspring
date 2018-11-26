@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 
-export default class ConversationItem extends PureComponent {
+export default class ConversationBadge extends PureComponent {
     static propTypes = {
         count: PropTypes.number
     }

@@ -91,7 +91,6 @@ export const sendMessageEpic = action$ =>
     )//yazzzzz
     .mergeMap(({ db, payload }) => {
       if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
-        //console.log(payload.conversation);
         let occupants = payload.conversation.occupants;
         return Observable.fromPromise(db.e2ees.find({ jid: { $in: occupants } }).exec())
           .map(e2ees => {
@@ -129,7 +128,6 @@ export const sendMessageEpic = action$ =>
     })
     .map(({ payload: { conversation, body, id, devices, selfDevices, isUploading } }) => {
       let ediEncrypted;
-      debugger;
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices);
       }
@@ -161,7 +159,6 @@ export const sendMessageEpic = action$ =>
     // })
     .map(message => sendingMessage(message))//yazzz1
     .do(({ payload }) => {
-      debugger;
       // when uploading file, do not send message
       if (!payload.isUploading) {
         xmpp.sendMessage(payload);

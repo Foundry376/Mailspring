@@ -29,26 +29,36 @@ export const triggerFetchE2eeEpic = action$ =>
 
 export const fetchRosterEpic = action$ =>
   action$.ofType(BEGIN_FETCH_ROSTER)//yazzxx2
-    .mergeMap(() =>
-      Observable.fromPromise(xmpp.getRoster())
-        .map(({ roster }) => succesfullyFetchedRoster(roster))//yazzxx3
+    .mergeMap(() => {
+      return Observable.fromPromise(xmpp.getRoster())
+        .map((payload) => {
+          const {roster} = payload;
+          roster.curJid = payload.curJid;
+          return succesfullyFetchedRoster(roster);
+        })//yazzxx3
         .catch(err => Observable.of(failedFetchingRoster(err)))
-    );
+    });
 
 export const triggerStoreContactsEpic = action$ =>
   // items now have .curJid field, which is xmpp.curJid
   action$.ofType(SUCCESS_FETCH_ROSTER)
-    .filter(({ payload: { items } }) => {
+    .filter(({payload}) => {
+      const {items} = payload;
       if (items && items.length) {
         items.forEach((item) => {
           if (!item.name) {
             item.name = item.oriName;
           }
+          item.curJid = payload.curJid;
         });
         return true;
-      } return false;
+      } else {
+        return false;
+      }
     })
-    .map(({ payload: { items } }) => storeContacts(items));
+    .map(({ payload: { items } }) => {
+      return storeContacts(items)
+    });
 
 
 export const fetchE2eeEpic = action$ =>
@@ -68,7 +78,7 @@ export const fetchE2eeEpic = action$ =>
     })
     .mergeMap(() =>
       Observable.fromPromise(xmpp.getE2ee())
-        .map(({ e2ee }) => { console.log('e2ee', e2ee); return succesfullyFetchedE2ee(e2ee) })//yazzxx3
+        .map(({ e2ee }) => { return succesfullyFetchedE2ee(e2ee) })//yazzxx3
         .catch(err => console.log(err))
     );
 

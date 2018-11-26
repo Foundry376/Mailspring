@@ -129,7 +129,6 @@ export default class Messages extends PureComponent {
       }
       return messageStyles.join(' ');
     };
-    debugger;
 
     return (
       <div

@@ -95,7 +95,6 @@ function Client(opts) {
         }
         self.emit(data._eventname || data._name, json);
         if (data._name == 'open') {
-            debugger;
             if (data.id) {
                 self.emit("streamFeaturesEx", "bind");
             }
@@ -187,7 +186,7 @@ function Client(opts) {
     });
 
     this.on('message', function (msg) {
-        //yazz 
+        //yazz
         //console.log("yazz-on-message:",msg);
         if (Object.keys(msg.$body || msg.$payload || {}).length) {
             if (msg.type === 'chat' || msg.type === 'normal') {

@@ -89,7 +89,6 @@ export default class MessagesPanel extends PureComponent {
       },
       exitGroup: () => {
         let { showConversationInfo } = this.state;
-        console.log('exitGroup:', selectedConversation.jid, chatModel.currentUser.jid);
         xmpp.leaveRoom(selectedConversation.jid, chatModel.currentUser.jid);
         (getDb()).then(db => {
           db.conversations.findOne(selectedConversation.jid).exec().then(conv => {

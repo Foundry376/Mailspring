@@ -30,7 +30,6 @@ export class Xmpp extends EventEmitter3 {
     });
   }
   connect(jid) {
-    debugger
     let xmpp = this.getXmpp(jid);
     console.log(xmpp);
     return xmpp.connect();
@@ -209,10 +208,7 @@ export class XmppEx extends EventEmitter3 {
    */
   async getRoster() {
     this.requireConnection();
-    const roster =  this.client.getRoster();
-    if (roster) {
-      roster.curJid = this.connectedJid;
-    }
+    const roster = this.client.getRoster();
     return roster;
   }
 

@@ -39,7 +39,6 @@ const saveOccupants = async payload => {
   const db = await getDb();
   const convInDB = await db.conversations.findOne(jid).exec();
   if (convInDB) {
-    //return 
     convInDB.update({
       $set: {
         occupants
@@ -191,6 +190,7 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
           const { auth: { currentUser } } = getState();
           return updateSelectedConversation({
             jid: contact.jid,
+            curJid: contact.curJid,
             name: contact.name,
             email: contact.email,
             avatar: contact.avatar,
@@ -204,7 +204,7 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
         })
     );
 
-export const crateIntiatedPrivateConversationEpic = (action$, { getState }) =>
+export const createInitiatedPrivateConversationEpic = (action$, { getState }) =>
   action$.ofType(CREATE_PRIVATE_CONVERSATION)
     .mergeMap(({ payload: contact }) =>
       Observable.fromPromise(retriveConversation(contact.jid))
@@ -215,6 +215,7 @@ export const crateIntiatedPrivateConversationEpic = (action$, { getState }) =>
             const { auth: { currentUser } } = getState();
             conv = {
               jid: contact.jid,
+              curJid: contact.curJid,
               name: contact.name,
               occupants: [currentUser],
               isGroup: false,
@@ -259,6 +260,7 @@ export const groupConversationCreatedEpic = (action$, { getState }) =>
           const { auth: { currentUser } } = getState();
           return updateSelectedConversation({
             jid: roomId,
+            curJid: contacts[0].curJid,
             name: name,
             email: emails,
             avatar: 'GP', // this is temp

@@ -34,7 +34,6 @@ export default class NewTopBar extends Component {
   }
 
   onCreateGroup = () => {
-    console.log('new conversation onCreateGroup');
     this.setState({openInput:true})
     // this.props.onCreateGroupPressed()
   }
@@ -45,7 +44,6 @@ export default class NewTopBar extends Component {
       this.setState({ openInput: true, needName: true })
       return;
     } else {
-      console.log('onStartGroupChat', name);
       this.props.onCreateGroupPressed(name);
     }
   }

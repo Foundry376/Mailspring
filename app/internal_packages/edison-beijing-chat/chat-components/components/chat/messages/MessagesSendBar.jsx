@@ -162,7 +162,6 @@ export default class MessagesSendBar extends PureComponent {
           mediaObjectId: '',
         };
         const messageId = uuid();
-        debugger;
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
         uploadFile(jidLocal, null, file, (err, filename, myKey, size) => {
           if (err) {

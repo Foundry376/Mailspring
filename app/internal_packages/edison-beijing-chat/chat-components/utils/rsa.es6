@@ -27,7 +27,6 @@ priKey.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码�
 
 // test();
 const test = () => {
-    debugger;
     const { pubkey, prikey } = generateKey();
     let aeskey = 'HHM3MWsucz6tq71CxeObsg==';
     let tjia = encrypte(strPubKey, 'hello ya');
@@ -40,8 +39,8 @@ const test = () => {
 }
 /**
  * 公钥加密
- * @param {公钥字符串}} pubKey 
- * @param {待加密字符串} buffer 
+ * @param {公钥字符串}} pubKey
+ * @param {待加密字符串} buffer
  */
 export const encrypte = (pubStr, data) => {
     let pub = new NodeRSA(pubStr, 'pkcs8-public');
@@ -51,7 +50,7 @@ export const encrypte = (pubStr, data) => {
 }
 /**
  * 私钥解密
- * @param {待解密字符串} buffer 
+ * @param {待解密字符串} buffer
  */
 export const decrypte = (data, priStr) => {
     if (priStr) {

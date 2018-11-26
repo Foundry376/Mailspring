@@ -16,15 +16,17 @@ const saveContacts = async contacts => {
   return Promise.all(
     contacts
       .filter(({ name }) => !!name) // ignore the contact that the name is undefined
-      .map(({ jid: { bare: jid }, name, email, avatar }) =>
-        db.contacts
+      .map((contact) => {
+        const { jid: { bare: jid }, curJid, name, email, avatar } = contact;
+        return db.contacts
           .upsert({
             jid,
+            curJid,
             name,
             email,
             avatar
           })
-      )
+      })
   );
 };
 const saveE2ees = async e2ees => {
@@ -57,14 +59,15 @@ export const retrieveContactsEpic = action$ =>
   action$.ofType(RETRIEVE_STORED_CONTACTS)
     .mergeMap(() =>
       Observable.fromPromise(getDb())
-        .mergeMap(db =>
-          db.contacts
-            .find()
-            .$
-            .takeUntil(action$.ofType(RETRIEVE_STORED_CONTACTS))
-            .map(contacts => updateStoredContacts(contacts))
-        )
-        .catch(error => Observable.of(failedRetrievingContacts(error)))
+        .mergeMap(db =>{
+            return db.contacts
+              .find()
+              .$
+              .takeUntil(action$.ofType(RETRIEVE_STORED_CONTACTS))
+              .map(contacts => {
+                return updateStoredContacts(contacts)
+              })
+        }).catch(error => Observable.of(failedRetrievingContacts(error)))
     );
 
 export const storeE2eesEpic = action$ =>
