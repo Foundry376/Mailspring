@@ -68,7 +68,7 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
  * Outputs authentication success when connection auth succeeds
  */
 export const successAuthEpic = action$ => action$.ofType(SUCCESS_CONNECTION_AUTH)
-  .map(({ payload }) => successAuth(payload));
+  .map(({ jid }) => successAuth(jid));
 
 /**
  * Outputs authentication failure when connection fails

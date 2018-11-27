@@ -208,8 +208,7 @@ export class XmppEx extends EventEmitter3 {
    */
   async getRoster() {
     this.requireConnection();
-    const roster = this.client.getRoster();
-    return roster;
+    return this.client.getRoster();
   }
 
   async getE2ee(user) {//yazzxx

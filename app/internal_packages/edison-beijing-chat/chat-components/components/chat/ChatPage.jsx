@@ -112,7 +112,6 @@ export default class ChatPage extends PureComponent {
       onGroupConversationCompleted: createGroupConversation,
       onPrivateConversationCompleted: createPrivateConversation,
       onMount: () => {
-        fetchRoster();
         retrieveContacts();
       },
       contacts,

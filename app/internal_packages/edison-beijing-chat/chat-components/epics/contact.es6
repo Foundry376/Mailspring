@@ -21,7 +21,10 @@ import { getPriKey, setPriKey, getPubKey, setPubKey } from '../utils/e2ee';
 import { SUCCESS_STORE_OCCUPANTS } from '../actions/db/conversation';
 export const triggerFetchRosterEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
-    .map(fetchRoster)
+    .map(({payload}) => {
+      console.log('triggerFetchRosterEpic', payload, payload.bare);
+      return fetchRoster(payload);
+    });
 
 export const triggerFetchE2eeEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
@@ -29,14 +32,16 @@ export const triggerFetchE2eeEpic = action$ =>
 
 export const fetchRosterEpic = action$ =>
   action$.ofType(BEGIN_FETCH_ROSTER)//yazzxx2
-    .mergeMap(() => {
-      return Observable.fromPromise(xmpp.getRoster())
-        .map((payload) => {
-          const {roster} = payload;
-          roster.curJid = payload.curJid;
+    .mergeMap(({payload}) => {
+      return Observable.fromPromise(xmpp.getRoster(payload.bare))
+        .map((res) => {
+          const {roster} = res;
+          roster.curJid = payload.bare;
           return succesfullyFetchedRoster(roster);
         })//yazzxx3
-        .catch(err => Observable.of(failedFetchingRoster(err)))
+        .catch(err => {
+          return Observable.of(failedFetchingRoster(err))
+        })
     });
 
 export const triggerStoreContactsEpic = action$ =>
