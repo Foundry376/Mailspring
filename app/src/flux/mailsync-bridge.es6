@@ -211,7 +211,7 @@ export default class MailsyncBridge {
 
     // no-op - do not allow us to kill this client - we may be reseting the cache of an
     // account which does not exist anymore, but we don't want to interrupt this process
-    resetClient.kill = () => {};
+    resetClient.kill = () => { };
 
     this._clients[account.id] = resetClient;
 
@@ -226,7 +226,7 @@ export default class MailsyncBridge {
         title: `Cleanup Started`,
         message: `Mailspring is clearing it's cache for ${
           account.emailAddress
-        }. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
+          }. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
       });
     }
 
@@ -254,6 +254,10 @@ export default class MailsyncBridge {
         this.ensureClients();
       });
     }
+  }
+
+  fakeEmit(msgs) {
+    this._onIncomingMessages(msgs);
   }
 
   // Private

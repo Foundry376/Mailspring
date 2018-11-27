@@ -125,6 +125,15 @@ export default class AppEnvConstructor {
     this.onWindowPropsReceived(() => {
       process.title = `Mailspring ${this.getWindowType()}`;
     });
+
+    // auto call sync mail timely
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+    this.timer = setInterval(() => {
+      console.log(`sync mail:` + new Date().toISOString());
+      this.mailsyncBridge.sendSyncMailNow();
+    }, 1000 * 60 * 5); // 5 minutes
   }
 
   // This ties window.onerror and process.uncaughtException,handledRejection
@@ -417,6 +426,10 @@ export default class AppEnvConstructor {
   // Extended: Show the current window.
   show() {
     return ipcRenderer.send('call-window-method', 'show');
+  }
+
+  fakeEmit(msg) {
+    this.mailsyncBridge.fakeEmit([msg])
   }
 
   isVisible() {
