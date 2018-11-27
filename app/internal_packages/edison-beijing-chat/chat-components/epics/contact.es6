@@ -21,21 +21,24 @@ import { getPriKey, setPriKey, getPubKey, setPubKey } from '../utils/e2ee';
 import { SUCCESS_STORE_OCCUPANTS } from '../actions/db/conversation';
 export const triggerFetchRosterEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
-    .map(({payload}) => {
+    .map(({ payload }) => {
       console.log('triggerFetchRosterEpic', payload, payload.bare);
       return fetchRoster(payload);
     });
 
 export const triggerFetchE2eeEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
-    .map(fetchE2ee);//yazzxx1
+    .map(({ payload }) => {
+      return fetchE2ee(payload);
+    });
+// .map(fetchE2ee);//yazzxx1
 
 export const fetchRosterEpic = action$ =>
   action$.ofType(BEGIN_FETCH_ROSTER)//yazzxx2
-    .mergeMap(({payload}) => {
+    .mergeMap(({ payload }) => {
       return Observable.fromPromise(xmpp.getRoster(payload.bare))
         .map((res) => {
-          const {roster} = res;
+          const { roster } = res;
           roster.curJid = payload.bare;
           return succesfullyFetchedRoster(roster);
         })//yazzxx3
@@ -47,8 +50,8 @@ export const fetchRosterEpic = action$ =>
 export const triggerStoreContactsEpic = action$ =>
   // items now have .curJid field, which is xmpp.curJid
   action$.ofType(SUCCESS_FETCH_ROSTER)
-    .filter(({payload}) => {
-      const {items} = payload;
+    .filter(({ payload }) => {
+      const { items } = payload;
       if (items && items.length) {
         items.forEach((item) => {
           if (!item.name) {
@@ -68,13 +71,14 @@ export const triggerStoreContactsEpic = action$ =>
 
 export const fetchE2eeEpic = action$ =>
   action$.ofType(BEGIN_FETCH_E2EE)//yazzxx2
-    .map(() => {
-      if (!getPriKey(window.localStorage.jidLocal)) {
+    .map((payload) => {
+      let local = payload.payload.local;
+      if (!getPriKey(local)) {
         let { pubkey, prikey } = generateKey();
-        setPriKey(window.localStorage.jidLocal, prikey);
-        setPubKey(window.localStorage.jidLocal, pubkey);
+        setPriKey(local, prikey);
+        setPubKey(local, pubkey);
         Observable.fromPromise(xmpp.setE2ee({
-          jid: window.localStorage.jid,
+          jid: payload.bare,
           did: window.localStorage.deviceId,
           key: pubkey
         }))
