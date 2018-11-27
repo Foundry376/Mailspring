@@ -184,8 +184,10 @@ export default class MailsyncBridge {
 
   sendSyncMailNow() {
     console.warn('Sending `wake` to all mailsync workers...');
-    for (const client of Object.values(this._clients)) {
-      client.sendMessage({ type: 'wake-workers' });
+    if (this._clients) {
+      for (const client of Object.values(this._clients)) {
+        client.sendMessage({ type: 'wake-workers' });
+      }
     }
   }
 
