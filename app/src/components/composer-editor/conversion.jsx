@@ -1,5 +1,5 @@
 import Html from 'slate-html-serializer';
-import { Value } from 'slate';
+import { Value, useMemoization } from 'slate';
 
 import BaseMarkPlugins from './base-mark-plugins';
 import TemplatePlugins from './template-plugins';
@@ -10,6 +10,8 @@ import InlineAttachmentPlugins from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
 import EmojiPlugins from './emoji-plugins';
+
+useMemoization(false);
 
 // Note: order is important here because we deserialize HTML with rules
 // in this order. <code class="var"> before <code>, etc.
@@ -24,6 +26,23 @@ export const plugins = [
   ...MarkdownPlugins,
   ...SpellcheckPlugins,
 ];
+
+export const schema = {
+  inlines: {
+    templatevar: {
+      isVoid: true,
+    },
+    emoji: {
+      isVoid: true,
+    },
+    uneditable: {
+      isVoid: true,
+    },
+    image: {
+      isVoid: true,
+    },
+  },
+};
 
 const cssValueIsZero = val => {
   return val === '0' || val === '0px' || val === '0em' || val === 0;

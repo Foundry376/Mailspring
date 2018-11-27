@@ -31,38 +31,37 @@ const MAX_MISPELLINGS = 10;
 const EXCEPT_BLOCK_TYPES = [BLOCK_CONFIG.blockquote.type, BLOCK_CONFIG.code.type];
 const EXCEPT_MARK_TYPES = [MARK_CONFIG.codeInline.type, LINK_TYPE, VARIABLE_TYPE];
 
-function renderMark(props) {
+function renderMark(props, editor = null, next = () => {}) {
   const { children, mark } = props;
-  if (mark.type === MISSPELLED_TYPE) {
-    return (
-      <span
-        onMouseDown={event => {
-          // handle only ctrl click or right click (button = 2)
-          if (!event.metaKey && !event.ctrlKey && event.button !== 2) {
-            return;
-          }
-          event.preventDefault();
-          // select the entire word so that the contextual menu offers spelling suggestions
-          const { editor: { onChange, value }, node, offset, text } = props;
-          onChange(
-            value.change().select({
-              anchor: { key: node.key, offset: offset },
-              focus: { key: node.key, offset: offset + text.length },
-              isFocused: true,
-            })
-          );
-        }}
-        style={{
-          backgroundImage: 'linear-gradient(to left, red 40%, rgba(255, 255, 255, 0) 0%)',
-          backgroundPosition: 'bottom',
-          backgroundSize: '5px 1.3px',
-          backgroundRepeat: 'repeat-x',
-        }}
-      >
-        {children}
-      </span>
-    );
+  if (mark.type !== MISSPELLED_TYPE) {
+    return next();
   }
+  return (
+    <span
+      onMouseDown={event => {
+        // handle only ctrl click or right click (button = 2)
+        if (!event.metaKey && !event.ctrlKey && event.button !== 2) {
+          return;
+        }
+        event.preventDefault();
+        // select the entire word so that the contextual menu offers spelling suggestions
+        const { editor, node, offset, text } = props;
+        editor.select({
+          anchor: { key: node.key, offset: offset },
+          focus: { key: node.key, offset: offset + text.length },
+          isFocused: true,
+        });
+      }}
+      style={{
+        backgroundImage: 'linear-gradient(to left, red 40%, rgba(255, 255, 255, 0) 0%)',
+        backgroundPosition: 'bottom',
+        backgroundSize: '5px 1.3px',
+        backgroundRepeat: 'repeat-x',
+      }}
+    >
+      {children}
+    </span>
+  );
 }
 
 function decorationsForNode(node, value) {
@@ -128,17 +127,19 @@ function collectSpellcheckableTextNodes(node) {
   return array;
 }
 
-function onSpellcheckFocusedNode(change) {
-  const { value } = change;
+function onSpellcheckFocusedNode(editor) {
+  const { value } = editor;
   const decorations = value.get('decorations') || [];
-  if (!value.selection.focus) {
+  const block = value.focusBlock;
+
+  if (!block) {
     return;
   }
 
   const next = [];
 
   // spellcheck the text nodes of the focused block
-  const texts = collectSpellcheckableTextNodes(value.focusBlock);
+  const texts = collectSpellcheckableTextNodes(block);
   const scannedNodeKeys = {};
   for (const node of texts) {
     scannedNodeKeys[node.key] = true;
@@ -155,10 +156,9 @@ function onSpellcheckFocusedNode(change) {
     }
   });
 
-  change
-    .setOperationFlag('save', false)
-    .setValue({ decorations: next })
-    .setOperationFlag('save', true);
+  editor.withoutSaving(() => {
+    editor.setDecorations(next);
+  });
 }
 
 function onSpellcheckFullDocument(editor) {
@@ -203,34 +203,32 @@ function onSpellcheckFullDocument(editor) {
   }
 
   if (changed) {
-    const change = value
-      .change()
-      .setOperationFlag('save', false)
-      .setValue({ decorations })
-      .setOperationFlag('save', true);
-    editor.onChange(change);
+    editor.withoutSaving(() => {
+      editor.setDecorations(decorations);
+    });
   }
 }
 
 let timer = null;
 let timerStart = Date.now();
 
-function onChange(change, editor) {
+function onChange(editor, next) {
   if (!AppEnv.config.get('core.composing.spellcheck')) {
-    return;
+    return next();
   }
   const now = Date.now();
   if (timer && now - timerStart < 200) {
-    return;
+    return next();
   }
   if (editor.state.isComposing) {
-    return;
+    return next();
   }
-  onSpellcheckFocusedNode(change);
+  onSpellcheckFocusedNode(editor);
 
   timerStart = now;
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => onSpellcheckFullDocument(editor), 1000);
+  return next();
 }
 
 export default [

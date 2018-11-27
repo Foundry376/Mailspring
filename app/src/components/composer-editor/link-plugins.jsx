@@ -8,28 +8,29 @@ import { BuildMarkButtonWithValuePicker, getMarkOfType } from './toolbar-compone
 
 export const LINK_TYPE = 'link';
 
-function onPaste(event, change, editor) {
+function onPaste(event, editor, next) {
   const html = event.clipboardData.getData('text/html');
   const plain = event.clipboardData.getData('text/plain');
   const regex = RegExpUtils.urlRegex({ matchStartOfString: true, matchTailOfString: true });
   if (!html && plain && plain.match(regex)) {
     const mark = Mark.create({ type: LINK_TYPE, data: { href: plain } });
-    change
+    editor
       .addMark(mark)
       .insertText(plain)
       .removeMark(mark);
-    return true;
+  } else {
+    return next();
   }
 }
 
 function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
-  return function(transform, e, matches) {
-    if (transform.value.activeMarks.find(m => m.type === LINK_TYPE))
-      return transform.insertText(TriggerKeyValues[e.key]);
+  return function(editor, e, matches) {
+    if (editor.value.activeMarks.find(m => m.type === LINK_TYPE))
+      return editor.insertText(TriggerKeyValues[e.key]);
 
     const link = matches.before[0];
     const mark = Mark.create({ type: LINK_TYPE, data: { href: hrefPrefix + matches.before[0] } });
-    return transform
+    return editor
       .deleteBackward(link.length)
       .addMark(mark)
       .insertText(link)
@@ -38,9 +39,9 @@ function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
   };
 }
 
-function renderMark({ mark, children, targetIsHTML }) {
+function renderMark({ mark, children, targetIsHTML }, editor = null, next = () => {}) {
   if (mark.type !== LINK_TYPE) {
-    return;
+    return next();
   }
   const href = mark.data.href || mark.data.get('href');
   if (targetIsHTML) {
@@ -102,20 +103,21 @@ export default [
       }),
     ],
     onPaste,
-    onKeyDown: function onKeyDown(event, change) {
+    onKeyDown: function onKeyDown(event, editor, next) {
       // ensure space and enter always terminate links
       if (!['Space', 'Enter', ' ', 'Return'].includes(event.key)) {
-        return;
+        return next();
       }
-      const mark = getMarkOfType(change.value, LINK_TYPE);
+      const mark = getMarkOfType(editor.value, LINK_TYPE);
       if (mark) {
-        change.removeMark(mark);
+        editor.removeMark(mark);
       }
+      return next();
     },
     renderMark,
     rules,
     commands: {
-      'contenteditable:insert-link': event => {
+      'contenteditable:insert-link': (event, editor) => {
         // want to see a hack? here you go!
         // 1: find our container and then find the link toolbar icon - this approach
         // ensures we get the link button in the /current/ composer.

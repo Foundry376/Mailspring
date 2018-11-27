@@ -1,4 +1,3 @@
-import { Mark } from 'slate';
 import AutoReplace from 'slate-auto-replace';
 import { BLOCK_CONFIG } from './base-block-plugins';
 import { MARK_CONFIG } from './base-mark-plugins';
@@ -38,13 +37,13 @@ export default [
     trigger: '*',
     before: /(\*)$/,
     after: /^([^*]+)([*]{2})/,
-    change: (transform, e, matches) => {
+    change: (editor, e, matches) => {
       const text = matches.after[1];
-      transform
+      editor
         .addMark(MARK_CONFIG.bold.type)
         .insertText(text)
-        .moveAnchor(-text.length)
-        .collapseToAnchor();
+        .moveAnchorForward(-text.length)
+        .moveToAnchor();
     },
   }),
 
@@ -53,13 +52,13 @@ export default [
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '*',
     after: /^([^*]+)([*]{1})(?:[^*]{1}|$)/,
-    change: (transform, e, matches) => {
+    change: (editor, e, matches) => {
       const text = matches.after[1];
-      transform
+      editor
         .addMark(MARK_CONFIG.italic.type)
         .insertText(text)
-        .moveAnchor(-text.length)
-        .collapseToAnchor();
+        .moveAnchorForward(-text.length)
+        .moveToAnchor();
     },
   }),
 

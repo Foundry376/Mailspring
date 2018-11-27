@@ -55,7 +55,7 @@ export const MARK_CONFIG = {
     render: props => <strong>{props.children}</strong>,
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.bold.type),
-      onToggle: value => value.change().toggleMark(MARK_CONFIG.bold.type),
+      onToggle: editor => editor.toggleMark(MARK_CONFIG.bold.type),
       iconClass: 'fa fa-bold',
     },
   },
@@ -65,7 +65,7 @@ export const MARK_CONFIG = {
     render: props => <em>{props.children}</em>,
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.italic.type),
-      onToggle: value => value.change().toggleMark(MARK_CONFIG.italic.type),
+      onToggle: editor => editor.toggleMark(MARK_CONFIG.italic.type),
       iconClass: 'fa fa-italic',
     },
   },
@@ -75,7 +75,7 @@ export const MARK_CONFIG = {
     render: props => <u>{props.children}</u>,
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.underline.type),
-      onToggle: value => value.change().toggleMark(MARK_CONFIG.underline.type),
+      onToggle: editor => editor.toggleMark(MARK_CONFIG.underline.type),
       iconClass: 'fa fa-underline',
     },
   },
@@ -86,7 +86,7 @@ export const MARK_CONFIG = {
     render: props => <strike>{props.children}</strike>,
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.strike.type),
-      onToggle: value => value.change().toggleMark(MARK_CONFIG.strike.type),
+      onToggle: editor => editor.toggleMark(MARK_CONFIG.strike.type),
       iconClass: 'fa fa-strikethrough',
     },
   },
@@ -131,9 +131,9 @@ export const MARK_CONFIG = {
   },
 };
 
-function renderMark(props) {
+function renderMark(props, editor = null, next = () => {}) {
   const config = MARK_CONFIG[props.mark.type];
-  return config && config.render(props);
+  return config && config.render ? config.render(props) : next();
 }
 
 const rules = [
@@ -304,11 +304,9 @@ export default [
       ]),
     renderMark,
     commands: {
-      'contenteditable:bold': (event, value) => value.change().toggleMark(MARK_CONFIG.bold.type),
-      'contenteditable:underline': (event, value) =>
-        value.change().toggleMark(MARK_CONFIG.underline.type),
-      'contenteditable:italic': (event, value) =>
-        value.change().toggleMark(MARK_CONFIG.italic.type),
+      'contenteditable:bold': (event, editor) => editor.toggleMark(MARK_CONFIG.bold.type),
+      'contenteditable:underline': (event, editor) => editor.toggleMark(MARK_CONFIG.underline.type),
+      'contenteditable:italic': (event, editor) => editor.toggleMark(MARK_CONFIG.italic.type),
     },
     rules,
   },

@@ -5,7 +5,7 @@ import { BuildToggleButton } from './toolbar-component-factories';
 
 export const VARIABLE_TYPE = 'templatevar';
 
-function renderNode({ attributes, node, editor, isSelected }) {
+function renderNode({ attributes, node, isSelected, children }, editor = null, next = () => {}) {
   if (node.type === VARIABLE_TYPE) {
     const name = node.data.name || node.data.get('name');
 
@@ -15,11 +15,14 @@ function renderNode({ attributes, node, editor, isSelected }) {
         data-tvar={name}
         className={`template-variable ${isSelected && 'selected'}`}
         title={name}
+        contentEditable={false}
       >
         {name}
       </span>
     );
   }
+
+  return next();
 }
 
 const rules = [
@@ -33,7 +36,6 @@ const rules = [
         return {
           object: 'inline',
           type: VARIABLE_TYPE,
-          isVoid: true,
           data: { name },
         };
       }
@@ -45,56 +47,66 @@ const rules = [
   },
 ];
 
-function onKeyDown(event, change, editor) {
+function onKeyDown(event, editor, next) {
   // If the user has a template variable selected and types a character,
   // delete the template variable. By default you just can't type.
   if (
     event.key.length === 1 &&
-    change.value.selection.isCollapsed &&
-    change.value.inlines.find(i => i.type === VARIABLE_TYPE)
+    editor.value.selection.isCollapsed &&
+    editor.value.inlines.find(i => i.type === VARIABLE_TYPE)
   ) {
-    const node = change.value.inlines.find(i => i.type === VARIABLE_TYPE);
-    change.removeNodeByKey(node.key);
-    return;
+    const node = editor.value.inlines.find(i => i.type === VARIABLE_TYPE);
+    editor.removeNodeByKey(node.key);
+    return next();
   }
 
   // Tabbing between template variables
   if (event.keyCode === 9) {
-    if (!change.value.document.getInlinesByType('templatevar').first()) {
-      return;
+    if (!editor.value.document.getInlinesByType(VARIABLE_TYPE).first()) {
+      return next();
     }
 
     // create another temporary change we'll discard - we need to find the "next"
     // inline which is easiest to do if we create a new selection, but this will
     // leave artifacts if we don't find a template node to select.
     const forwards = !event.shiftKey;
-    const tmp = change.value.change();
-
-    // avoid re-selecting the current node by just removing it from our temp value
-    const current = change.value.inlines.find(i => i.type === VARIABLE_TYPE);
-    if (current) {
-      tmp.removeNodeByKey(current.key);
-    }
+    const current = editor.value.inlines.find(i => i.type === VARIABLE_TYPE);
+    const oldSelection = editor.value.selection;
 
     // select the remainder of the document and then find our next template var
-    let next = null;
+    let nextvar = null;
     if (forwards) {
-      tmp.collapseToEnd().extendToEndOf(tmp.value.document);
-      next = tmp.value.document.getInlinesAtRange(tmp.value.selection, 'templatevar').first();
+      editor.moveFocusToEndOfNode(editor.value.document);
+      let inlines = editor.value.document
+        .getLeafInlinesAtRange(editor.value.selection)
+        .toArray()
+        .filter(i => i.type === VARIABLE_TYPE);
+      if (current) {
+        inlines = inlines.slice(inlines.indexOf(current) + 1);
+      }
+      nextvar = inlines[0];
     } else {
-      tmp.collapseToStart().extendToStartOf(tmp.value.document);
-      next = tmp.value.document.getInlinesAtRange(tmp.value.selection, 'templatevar').last();
+      editor.moveFocusToStartOfNode(editor.value.document);
+      let inlines = editor.value.document
+        .getLeafInlinesAtRange(editor.value.selection)
+        .toArray()
+        .filter(i => i.type === VARIABLE_TYPE);
+      if (current) {
+        inlines = inlines.slice(0, inlines.indexOf(current));
+      }
+      nextvar = inlines.pop();
     }
 
-    if (next) {
-      change.select({
-        anchor: { key: next.key, offset: 0 },
-        focus: { key: next.key, offset: 0 },
-        isFocused: true,
-        isBackward: false,
-      });
+    if (nextvar) {
+      editor.moveToRangeOfNode(nextvar.nodes.first()).focus();
+      event.preventDefault();
+      return;
+    } else {
+      editor.select(oldSelection);
     }
   }
+
+  return next();
 }
 
 export default [
@@ -106,23 +118,20 @@ export default [
         button: {
           iconClass: 'fa fa-tag',
           isActive: value => value.inlines.find(i => i.type === VARIABLE_TYPE),
-          onToggle: (value, active) => {
+          onToggle: (editor, active) => {
             if (active) {
-              const node = value.inlines.find(i => i.type === VARIABLE_TYPE);
-              return value
-                .change()
-                .removeNodeByKey(node.key)
-                .insertText(node.data.get('name'));
+              const node = editor.value.inlines.find(i => i.type === VARIABLE_TYPE);
+              return editor.removeNodeByKey(node.key).insertText(node.data.get('name'));
             } else {
               const node = Inline.create({
                 type: VARIABLE_TYPE,
-                data: { name: value.selection.isCollapsed ? 'variable' : value.fragment.text },
-                isVoid: true,
+                data: {
+                  name: editor.value.selection.isCollapsed
+                    ? 'variable'
+                    : editor.value.fragment.text,
+                },
               });
-              return value
-                .change()
-                .insertInlineAtRange(value.selection, node)
-                .collapseToEnd();
+              return editor.insertInlineAtRange(editor.value.selection, node).moveToEnd();
             }
           },
         },
@@ -135,14 +144,13 @@ export default [
   AutoReplace({
     trigger: '}',
     before: /({{)([^}]+)(})/,
-    change: (transform, e, matches) => {
+    change: (editor, e, matches) => {
       const name = matches.before[2];
       const node = Inline.create({
         type: VARIABLE_TYPE,
         data: { name },
-        isVoid: true,
       });
-      transform.insertInlineAtRange(transform.value.selection, node).collapseToEnd();
+      editor.insertInlineAtRange(editor.value.selection, node).moveToEnd();
     },
   }),
 ];

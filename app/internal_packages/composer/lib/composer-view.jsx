@@ -31,7 +31,6 @@ const {
   hasBlockquote,
   hasNonTrailingBlockquote,
   hideQuotedTextByDefault,
-  removeQuotedText,
 } = ComposerSupport.BaseBlockPlugins;
 
 // The ComposerView is a unique React component because it (currently) is a
@@ -104,8 +103,10 @@ export default class ComposerView extends React.Component {
     // In the future, we should clean up the draft session entirely, or give it
     // the same lifecycle as the composer view. For now, just make sure we free
     // up all the memory used for undo/redo.
-    const { draft, session } = this.props;
-    session.changes.add({ bodyEditorState: draft.bodyEditorState.set('history', new History()) });
+
+    // TODO SLATE RESTORE
+    // const { draft, session } = this.props;
+    // session.changes.add({ bodyEditorState: draft.bodyEditorState.set('history', new History()) });
   }
 
   focus() {
@@ -203,10 +204,9 @@ export default class ComposerView extends React.Component {
           onMouseUp={e => {
             e.preventDefault();
             e.stopPropagation();
-            const { draft, session } = this.props;
-            const change = removeQuotedText(draft.bodyEditorState);
-            session.changes.add({ bodyEditorState: change.value });
-            this.setState({ quotedTextHidden: false });
+            this.setState({ quotedTextHidden: false }, () => {
+              this._els[Fields.Body].removeQuotedText();
+            });
           }}
         >
           <RetinaImg

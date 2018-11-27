@@ -1,6 +1,6 @@
 import React from 'react';
 import SoftBreak from 'slate-soft-break';
-import EditList from 'slate-edit-list';
+import EditList from 'golery-slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
 import When from 'slate-when';
 
@@ -31,26 +31,24 @@ function isBlockTypeOrWithinType(value, type) {
   return isMe || isParent;
 }
 
-function toggleBlockTypeWithBreakout(value, change, type) {
-  const ancestors = value.document.getAncestors(value.focusBlock.key);
+function toggleBlockTypeWithBreakout(editor, type) {
+  const ancestors = editor.value.document.getAncestors(editor.value.focusBlock.key);
 
   let idx = ancestors.findIndex(b => b.type === type);
-  if (idx === -1 && value.focusBlock.type === type) {
+  if (idx === -1 && editor.value.focusBlock.type === type) {
     idx = ancestors.size - 1;
   }
 
   if (idx !== -1) {
     const depth = ancestors.size - idx;
     if (depth > 0) {
-      change.splitBlock(ancestors.size - idx);
-      for (let x = 0; x < depth; x++) change.unwrapBlock();
+      editor.splitBlock(ancestors.size - idx);
+      for (let x = 0; x < depth; x++) editor.unwrapBlock();
     }
-    change.setBlocks(BLOCK_CONFIG.div.type);
+    editor.setBlocks(BLOCK_CONFIG.div.type);
   } else {
-    change.setBlocks(type);
+    editor.setBlocks(type);
   }
-
-  return change;
 }
 
 export const BLOCK_CONFIG = {
@@ -90,8 +88,8 @@ export const BLOCK_CONFIG = {
       isActive: value => {
         return isBlockTypeOrWithinType(value, BLOCK_CONFIG.blockquote.type);
       },
-      onToggle: (value, active) => {
-        return toggleBlockTypeWithBreakout(value, value.change(), BLOCK_CONFIG.blockquote.type);
+      onToggle: (editor, active) => {
+        return toggleBlockTypeWithBreakout(editor, BLOCK_CONFIG.blockquote.type);
       },
     },
   },
@@ -113,10 +111,8 @@ export const BLOCK_CONFIG = {
     button: {
       isActive: value => value.focusBlock && value.focusBlock.type === BLOCK_CONFIG.code.type,
       iconClass: 'fa fa-sticky-note-o',
-      onToggle: (value, active) =>
-        active
-          ? value.change().setBlocks(BLOCK_CONFIG.div.type)
-          : value.change().setBlocks(BLOCK_CONFIG.code.type),
+      onToggle: (editor, active) =>
+        active ? editor.setBlocks(BLOCK_CONFIG.div.type) : editor.setBlocks(BLOCK_CONFIG.code.type),
     },
   },
   ol_list: {
@@ -129,10 +125,10 @@ export const BLOCK_CONFIG = {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ol_list.type;
       },
-      onToggle: (value, active) =>
+      onToggle: (editor, active) =>
         active
-          ? EditListPlugin.changes.unwrapList(value.change())
-          : EditListPlugin.changes.wrapInList(value.change(), BLOCK_CONFIG.ol_list.type),
+          ? EditListPlugin.changes.unwrapList(editor)
+          : EditListPlugin.changes.wrapInList(editor, BLOCK_CONFIG.ol_list.type),
     },
   },
   ul_list: {
@@ -145,10 +141,10 @@ export const BLOCK_CONFIG = {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ul_list.type;
       },
-      onToggle: (value, active) =>
+      onToggle: (editor, active) =>
         active
-          ? EditListPlugin.changes.unwrapList(value.change())
-          : EditListPlugin.changes.wrapInList(value.change(), BLOCK_CONFIG.ul_list.type),
+          ? EditListPlugin.changes.unwrapList(editor)
+          : EditListPlugin.changes.wrapInList(editor, BLOCK_CONFIG.ul_list.type),
     },
   },
   list_item: {
@@ -174,9 +170,9 @@ const EditListPlugin = new EditList({
   typeDefault: BLOCK_CONFIG.div.type,
 });
 
-function renderNode(props) {
+function renderNode(props, editor = null, next = () => {}) {
   const config = BLOCK_CONFIG[props.node.type];
-  return config && config.render(props);
+  return config ? config.render(props) : next();
 }
 
 const rules = [
@@ -283,13 +279,11 @@ export function lastUnquotedNode(value) {
   return all[0];
 }
 
-export function removeQuotedText(value) {
-  const change = value.change();
+export function removeQuotedText(editor) {
   let quoteBlock = null;
-  while ((quoteBlock = allNodesInBFSOrder(change.value).find(isQuoteNode))) {
-    change.removeNodeByKey(quoteBlock.key);
+  while ((quoteBlock = allNodesInBFSOrder(editor.value).find(isQuoteNode))) {
+    editor.removeNodeByKey(quoteBlock.key);
   }
-  return change;
 }
 
 export function hideQuotedTextByDefault(draft) {
@@ -313,28 +307,28 @@ export default [
       .map(BuildToggleButton),
     renderNode,
     commands: {
-      'contenteditable:quote': (event, value) => {
+      'contenteditable:quote': (event, editor) => {
         const { isActive, onToggle } = BLOCK_CONFIG.blockquote.button;
-        return onToggle(value, isActive(value));
+        return onToggle(editor, isActive(editor.value));
       },
-      'contenteditable:numbered-list': (event, value) => {
+      'contenteditable:numbered-list': (event, editor) => {
         const { isActive, onToggle } = BLOCK_CONFIG.ol_list.button;
-        return onToggle(value, isActive(value));
+        return onToggle(editor, isActive(editor.value));
       },
-      'contenteditable:bulleted-list': (event, value) => {
+      'contenteditable:bulleted-list': (event, editor) => {
         const { isActive, onToggle } = BLOCK_CONFIG.ul_list.button;
-        return onToggle(value, isActive(value));
+        return onToggle(editor, isActive(editor.value));
       },
-      'contenteditable:indent': (event, value) => {
-        const focusBlock = value.focusBlock;
+      'contenteditable:indent': (event, editor) => {
+        const focusBlock = editor.value.focusBlock;
         if (focusBlock && focusBlock.type === BLOCK_CONFIG.div.type) {
-          return value.change().setBlocks(BLOCK_CONFIG.blockquote.type);
+          return editor.setBlocks(BLOCK_CONFIG.blockquote.type);
         }
       },
-      'contenteditable:outdent': (event, value) => {
-        const focusBlock = value.focusBlock;
+      'contenteditable:outdent': (event, editor) => {
+        const focusBlock = editor.value.focusBlock;
         if (focusBlock && focusBlock.type === BLOCK_CONFIG.blockquote.type) {
-          return value.change().setBlocks(BLOCK_CONFIG.div.type);
+          return editor.setBlocks(BLOCK_CONFIG.div.type);
         }
       },
     },
@@ -349,11 +343,11 @@ export default [
 
   // Pressing backspace when you're at the top of the document should not delete down
   {
-    onKeyDown: function onKeyDown(event, change) {
+    onKeyDown: function onKeyDown(event, editor, next) {
       if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
-        return;
+        return next();
       }
-      const { focusText, selection, document } = change.value;
+      const { focusText, selection, document } = editor.value;
       const firstText = document.getFirstText();
       if (
         selection.focus &&
@@ -363,26 +357,27 @@ export default [
         firstText.key === focusText.key
       ) {
         event.preventDefault();
-        return true;
+        return;
+      } else {
+        return next();
       }
     },
   },
 
   // Return breaks you out of blockquotes completely
   {
-    onKeyDown: function onKeyDown(event, change) {
+    onKeyDown: function onKeyDown(event, editor, next) {
       if (event.shiftKey) {
-        return;
+        return next();
       }
       if (event.key !== 'Enter') {
-        return;
+        return next();
       }
-      if (!isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.blockquote.type)) {
-        return;
+      if (!isBlockTypeOrWithinType(editor.value, BLOCK_CONFIG.blockquote.type)) {
+        return next();
       }
-      toggleBlockTypeWithBreakout(change.value, change, BLOCK_CONFIG.blockquote.type);
+      toggleBlockTypeWithBreakout(editor, BLOCK_CONFIG.blockquote.type);
       event.preventDefault(); // since this inserts a newline
-      return change;
     },
   },
 

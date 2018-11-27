@@ -4,8 +4,8 @@ import { clipboard as ElectronClipboard } from 'electron';
 
 import KeyCommandsRegion from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
-import { plugins, convertFromHTML, convertToHTML } from './conversion';
-import { lastUnquotedNode } from './base-block-plugins';
+import { schema, plugins, convertFromHTML, convertToHTML } from './conversion';
+import { lastUnquotedNode, removeQuotedText } from './base-block-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
 
 export default class ComposerEditor extends React.Component {
@@ -22,11 +22,7 @@ export default class ComposerEditor extends React.Component {
       Object.entries(plugin.commands || {}).forEach(([command, handler]) => {
         this._pluginKeyHandlers[command] = event => {
           if (!this._mounted) return;
-          const { onChange, value } = this.props;
-          const change = handler(event, value);
-          if (change) {
-            onChange(change);
-          }
+          handler(event, this.editor);
         };
       });
     });
@@ -41,46 +37,35 @@ export default class ComposerEditor extends React.Component {
   }
 
   focus = () => {
-    const { onChange, value } = this.props;
-    onChange(
-      value
-        .change()
-        .selectAll()
-        .collapseToStart()
-        .focus()
-    );
+    this.editor
+      .moveToRangeOfDocument()
+      .moveToStart()
+      .focus();
   };
 
   focusEndReplyText = () => {
     window.requestAnimationFrame(() => {
-      const { onChange, value } = this.props;
-      const node = lastUnquotedNode(value);
+      const node = lastUnquotedNode(this.editor.value);
       if (!node) return;
-      onChange(
-        value
-          .change()
-          .collapseToEndOf(node)
-          .focus()
-      );
+      this.editor.moveToEndOfNode(node).focus();
     });
   };
 
   focusEndAbsolute = () => {
     window.requestAnimationFrame(() => {
-      const { onChange, value } = this.props;
-      onChange(
-        value
-          .change()
-          .selectAll()
-          .collapseToEnd()
-          .focus()
-      );
+      this.editor
+        .moveToRangeOfDocument()
+        .moveToEnd()
+        .focus();
     });
   };
 
+  removeQuotedText = () => {
+    removeQuotedText(this.editor);
+  };
+
   insertInlineAttachment = file => {
-    const { onChange, value } = this.props;
-    onChange(InlineAttachmentChanges.insert(value.change(), file));
+    InlineAttachmentChanges.insert(this.editor, file);
   };
 
   onFocusIfBlurred = event => {
@@ -89,25 +74,23 @@ export default class ComposerEditor extends React.Component {
     }
   };
 
-  onCopy = (event, change, editor) => {
+  onCopy = (event, editor, next) => {
     event.preventDefault();
     const document = editor.value.document.getFragmentAtRange(editor.value.selection);
     event.clipboardData.setData('text/html', convertToHTML({ document }));
     event.clipboardData.setData('text/plain', editor.value.fragment.text);
-    return true;
   };
 
-  onCut = (event, change, editor) => {
-    this.onCopy(event, change, editor);
-    change.deleteBackward();
-    return true;
+  onCut = (event, editor, next) => {
+    this.onCopy(event, editor, next);
+    editor.deleteBackward();
   };
 
-  onPaste = (event, change, editor) => {
+  onPaste = (event, editor, next) => {
     const { onFileReceived } = this.props;
 
     if (!onFileReceived || event.clipboardData.items.length === 0) {
-      return;
+      return next();
     }
     event.preventDefault();
 
@@ -139,7 +122,7 @@ export default class ComposerEditor extends React.Component {
         });
       });
       reader.readAsArrayBuffer(blob);
-      return true;
+      return;
     } else {
       const macCopiedFile = decodeURI(
         ElectronClipboard.read('public.file-url').replace('file://', '')
@@ -150,7 +133,7 @@ export default class ComposerEditor extends React.Component {
       );
       if (macCopiedFile.length || winCopiedFile.length) {
         onFileReceived(macCopiedFile || winCopiedFile);
-        return true;
+        return;
       }
     }
 
@@ -159,10 +142,12 @@ export default class ComposerEditor extends React.Component {
     if (html) {
       const value = convertFromHTML(html);
       if (value && value.document) {
-        change.insertFragment(value.document);
-        return true;
+        editor.insertFragment(value.document);
+        return;
       }
     }
+
+    next();
   };
 
   onContextMenu = event => {
@@ -174,10 +159,10 @@ export default class ComposerEditor extends React.Component {
 
     AppEnv.windowEventHandler.openSpellingMenuFor(word, hasSelectedText, {
       onCorrect: correction => {
-        this.onChange(this.props.value.change().insertText(correction));
+        this.editor.insertText(correction);
       },
       onRestoreSelection: () => {
-        this.onChange(this.props.value.change().select(sel));
+        this.editor.select(sel);
       },
     });
   };
@@ -198,18 +183,22 @@ export default class ComposerEditor extends React.Component {
         className={`RichEditor-root ${className || ''}`}
         localHandlers={this._pluginKeyHandlers}
       >
-        <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} />
+        {/* {this.editor && (
+          <ComposerEditorToolbar editor={this.editor} value={value} plugins={plugins} />
+        )} */}
         <div
           className="RichEditor-content"
           onClick={this.onFocusIfBlurred}
           onContextMenu={this.onContextMenu}
         >
-          {plugins
-            .filter(p => p.topLevelComponent)
-            .map((p, idx) => (
-              <p.topLevelComponent key={idx} value={value} onChange={this.onChange} />
-            ))}
+          {/* {this.editor &&
+            plugins
+              .filter(p => p.topLevelComponent)
+              .map((p, idx) => (
+                <p.topLevelComponent key={idx} editor={this.editor} value={value} />
+              ))} */}
           <Editor
+            ref={editor => (this.editor = editor)}
             value={value}
             onChange={this.onChange}
             onBlur={onBlur}
@@ -218,12 +207,13 @@ export default class ComposerEditor extends React.Component {
             onCopy={this.onCopy}
             onPaste={this.onPaste}
             spellCheck={false}
+            schema={schema}
             plugins={plugins}
             propsForPlugins={propsForPlugins}
           />
-          {plugins
+          {/* {plugins
             .reduce((arr, p) => (p.topLevelComponents ? arr.concat(p.topLevelComponents) : arr), [])
-            .map((Component, idx) => <Component key={idx} />)}
+            .map((Component, idx) => <Component key={idx} />)} */}
         </div>
       </KeyCommandsRegion>
     );
