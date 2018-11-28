@@ -263,6 +263,14 @@ Section: Models
 */
 export default class Contact extends Model {
   static attributes = Object.assign({}, Model.attributes, {
+    // load id column into json
+    id: Attributes.String({
+      queryable: true,
+      jsonKey: 'id',
+      modelKey: 'id',
+      loadFromColumn: true
+    }),
+
     name: Attributes.String({
       modelKey: 'name',
     }),

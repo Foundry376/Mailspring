@@ -48,7 +48,7 @@ export default class Attribute {
     if (val.length === 0) {
       console.warn(
         `Attribute::in (${
-          this.modelKey
+        this.modelKey
         }) called with an empty set. You should avoid this useless query!`
       );
     }
@@ -93,6 +93,7 @@ export default class Attribute {
   }
 
   needsColumn() {
-    return this.queryable && this.columnSQL && this.jsonKey !== 'id';
+    // return this.queryable && this.columnSQL && this.jsonKey !== 'id';
+    return this.queryable && this.columnSQL;
   }
 }

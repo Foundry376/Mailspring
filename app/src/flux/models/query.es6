@@ -121,7 +121,7 @@ export default class ModelQuery {
         if (!attr) {
           const msg = `Cannot create where clause \`${key}:${value}\`. ${key} is not an attribute of ${
             this._klass.name
-          }`;
+            }`;
           throw new Error(msg);
         }
 
@@ -352,7 +352,7 @@ export default class ModelQuery {
         if (!attr.needsColumn() || !attr.loadFromColumn) {
           continue;
         }
-        result += `, ${attr.tableColumn} `;
+        result += `, \`${this._klass.name}\`.${attr.tableColumn} `;
       }
       this._includeJoinedData.forEach(attr => {
         result += `, ${attr.selectSQL(this._klass)} `;
@@ -380,12 +380,12 @@ export default class ModelQuery {
       const subSql = this._subselectSQL(joins[0], this._matchers, order, limit);
       return `SELECT${distinct} ${result} FROM \`${
         this._klass.name
-      }\` WHERE \`id\` IN (${subSql}) ${order}`;
+        }\` WHERE \`id\` IN (${subSql}) ${order}`;
     }
 
     return `SELECT${distinct} ${result} FROM \`${
       this._klass.name
-    }\` ${this._whereClause()} ${order} ${limit}`;
+      }\` ${this._whereClause()} ${order} ${limit}`;
   }
 
   // If one of our matchers requires a join, and the attribute configuration lists

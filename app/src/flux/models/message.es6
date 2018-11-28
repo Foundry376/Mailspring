@@ -64,6 +64,14 @@ Section: Models
 */
 export default class Message extends ModelWithMetadata {
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
+    // load id column into json
+    id: Attributes.String({
+      queryable: true,
+      jsonKey: 'id',
+      modelKey: 'id',
+      loadFromColumn: true
+    }),
+
     to: Attributes.Collection({
       modelKey: 'to',
       itemClass: Contact,

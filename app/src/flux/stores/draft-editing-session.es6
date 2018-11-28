@@ -424,6 +424,9 @@ export default class DraftEditingSession extends MailspringStore {
     if (this._destroyed || !this._draft) {
       return;
     }
+    if (!this._draft.id && this._draft.headerMessageId) {
+      this._draft.id = this._draft.headerMessageId;
+    }
     const task = new SyncbackDraftTask({ draft: this._draft });
     task.saveOnRemote = arg === 'unload' ? true : false;
     Actions.queueTask(task);
