@@ -35,10 +35,9 @@ export const beginConnectionAuth = (jid, password) => ({
   payload: { jid, password }
 });
 
-export const successfulConnectionAuth = jid => ({
-  type: SUCCESS_CONNECTION_AUTH,
-  payload: jid
-});
+export const successfulConnectionAuth = jid => {
+  return { type: SUCCESS_CONNECTION_AUTH, jid}
+};
 
 export const failConnectionAuth = err => ({
   type: FAIL_CONNECTION_AUTH,

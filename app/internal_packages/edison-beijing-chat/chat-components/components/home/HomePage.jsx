@@ -14,7 +14,7 @@ export default class HomePage extends Component {
     submitAuth: PropTypes.func.isRequired
   }
 
-  constructor(){
+  constructor() {
     super()
     this.state = {}
   }
@@ -35,15 +35,15 @@ export default class HomePage extends Component {
         register(acc.emailAddress, acc.settings.imap_password || acc.settings.refresh_token, acc.name, type, acc.provider, acc.settings, (err, res) => {
           try {
             res = JSON.parse(res);
-          } catch(e) {
+          } catch (e) {
             console.log('response is not json');
           }
           if (err || !res || res.resultCode != 1) {
-            this.setState({errorMessage: "This email has not a chat account，need to be registered, but failed, please try later again"});
+            this.setState({ errorMessage: "This email has not a chat account，need to be registered, but failed, please try later again" });
             return;
           }
           chatAccount = res.data;
-          let jid = chatAccount.userId + '@im.edison.tech/macos';
+          let jid = chatAccount.userId + '@im.edison.tech';
           chatModel.currentUser.jid = jid;
           this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
           chatAccount.clone = () => Object.assign({}, chatAccount);
@@ -58,7 +58,7 @@ export default class HomePage extends Component {
       AppEnv.config.set('activeChatAccount', chatAccount);
       chatAccount.clone = () => Object.assign({}, chatAccount);
       chatAccount = keyMannager.insertChatAccountSecrets(chatAccount).then(chatAccount => {
-        let jid = chatAccount.userId + '@im.edison.tech/macos';
+        let jid = chatAccount.userId + '@im.edison.tech';
         chatModel.currentUser.jid = jid;
         this.props.submitAuth(jid, chatAccount.password, chatAccount.email);
       });
@@ -83,7 +83,7 @@ export default class HomePage extends Component {
           <div className="authFormContainer">
             <div className="label">email:</div>
             <select className="label" onChange={this.onChangeAccount}>
-              {this.state.accounts.map( (acc, index) => <option value={index} key={acc.emailAddress}> {acc.emailAddress} </option> )}
+              {this.state.accounts.map((acc, index) => <option value={index} key={acc.emailAddress}> {acc.emailAddress} </option>)}
             </select>
             <Button onTouchTap={this.startChat} className="start-chat-button">
               start chatting!
