@@ -46,6 +46,11 @@ class DraftStore extends MailspringStore {
       ipcRenderer.on('new-message', () => {
         Actions.composeNewBlankDraft();
       });
+
+      // send mail Immediately
+      ipcRenderer.on('action-send-now', (event, headerMessageId, actionKey) => {
+        Actions.sendDraft(headerMessageId, { actionKey, delay: 0 });
+      });
     }
 
     // Remember that these two actions only fire in the current window and
@@ -442,6 +447,7 @@ class DraftStore extends MailspringStore {
           undoValue: { expiration: null, isUndoSend: true },
         })
       );
+      ipcRenderer.send('send-later-manager', 'send-later', headerMessageId, delay, actionKey);
     } else {
       // Immediately send the draft
       await sendAction.performSendAction({ draft });
