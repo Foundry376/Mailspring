@@ -126,14 +126,16 @@ export default class AppEnvConstructor {
       process.title = `Mailspring ${this.getWindowType()}`;
     });
 
-    // auto call sync mail timely
-    if (this.timer) {
-      clearInterval(this.timer);
+    if (this.isMainWindow()) {
+      // auto call sync mail timely
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
+      this.timer = setInterval(() => {
+        console.log(`sync mail:` + new Date().toISOString());
+        this.mailsyncBridge.sendSyncMailNow();
+      }, 1000 * 60 * 5); // 5 minutes
     }
-    this.timer = setInterval(() => {
-      console.log(`sync mail:` + new Date().toISOString());
-      this.mailsyncBridge.sendSyncMailNow();
-    }, 1000 * 60 * 5); // 5 minutes
   }
 
   // This ties window.onerror and process.uncaughtException,handledRejection
