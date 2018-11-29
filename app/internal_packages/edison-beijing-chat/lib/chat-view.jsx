@@ -11,9 +11,8 @@ export default class ChatView extends React.Component {
   static displayName = 'ChatView';
 
   render() {
-    const { showFlag } = this.props;
     return (
-      <div className="chat-view-container" style={{ display: showFlag ? 'block' : 'none' }}>
+      <div className="chat-view-container">
         <Root store={chatModel.store} history={history} />
       </div>
     )

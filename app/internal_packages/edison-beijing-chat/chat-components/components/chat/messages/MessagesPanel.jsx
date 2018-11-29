@@ -51,12 +51,12 @@ export default class MessagesPanel extends PureComponent {
 
   state = {
     showConversationInfo: false,
-    inviting:false,
+    inviting: false,
   }
 
   onUpdateGroup = (contacts) => {
     this.setState(Object.assign({}, this.state, { inviting: false }));
-    const {selectedConversation} = this.props;
+    const { selectedConversation } = this.props;
     for (const i in contacts) {
       xmpp.addMember(selectedConversation.jid, contacts[i].jid);
     }
@@ -92,7 +92,8 @@ export default class MessagesPanel extends PureComponent {
         xmpp.leaveRoom(selectedConversation.jid, chatModel.currentUser.jid);
         (getDb()).then(db => {
           db.conversations.findOne(selectedConversation.jid).exec().then(conv => {
-            conv.remove()}).catch((error) => {
+            conv.remove()
+          }).catch((error) => {
           })
         });
         this.props.deselectConversation();
@@ -100,7 +101,7 @@ export default class MessagesPanel extends PureComponent {
       availableUsers,
       infoActive: showConversationInfo,
       selectedConversation,
-      inviting:this.state.inviting
+      inviting: this.state.inviting
     };
     const messagesProps = {
       currentUserId,
@@ -112,7 +113,7 @@ export default class MessagesPanel extends PureComponent {
       onMessageSubmitted: sendMessage,
       selectedConversation,
     };
-    const {inviting} = this.state;
+    const { inviting } = this.state;
 
     return (
       <div className="panel">
@@ -121,19 +122,18 @@ export default class MessagesPanel extends PureComponent {
             <MessagesTopBar {...topBarProps} />
             <Divider type="horizontal" />
             <div className="splitPanel">
-              {!inviting  && !showConversationInfo && <div className="chatPanel">
+              <div className="chatPanel">
                 <Messages {...messagesProps} />
                 <div>
-                  <Divider type="horizontal"/>
+                  <Divider type="horizontal" />
                   <MessagesSendBar {...sendBarProps} />·
                 </div>
               </div>
-              }
               <Divider type="vertical" />
-              {showConversationInfo  && <div className="infoPanel">
-                  <ConversationInfo conversation={selectedConversation} />
-                </div> }
-              {inviting && <InviteGroupChatList groupMode={true} onUpdateGroup = {this.onUpdateGroup}></InviteGroupChatList>}
+              {showConversationInfo && <div className="infoPanel">
+                <ConversationInfo conversation={selectedConversation} />
+              </div>}
+              {inviting && <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup}></InviteGroupChatList>}
             </div>
           </div> :
           <div className="unselectedHint">

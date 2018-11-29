@@ -1,4 +1,4 @@
-@chatHeight: 600px;
+@chatHeight: 100%;
 .chat-view-container {
   .panel {
     height: @chatHeight;
@@ -35,10 +35,30 @@
   }
   
   // @media screen and (max-width: 1027px) {
+    // .splitPanel {
+    //   display: flex;
+    //   flex-direction: column;
+    //   position: relative;
+    // }
+  
+    // .chatPanel {
+    //   flex-grow: 1;
+    // }
+  
+    // .infoPanel {
+    //   height: 100%;
+    //   width: 100%;
+    //   position: absolute;
+    //   z-index: 3;
+    //   top: 0;
+    //   left: 0;
+    // }
+  // }
+  
+  @media screen and (min-width: 1028px) {
     .splitPanel {
       display: flex;
-      flex-direction: column;
-      position: relative;
+      flex-direction: row;
     }
   
     .chatPanel {
@@ -46,29 +66,9 @@
     }
   
     .infoPanel {
-      height: 100%;
-      width: 100%;
-      position: absolute;
-      z-index: 3;
-      top: 0;
-      left: 0;
+      flex-shrink: 0;
+      width: 30%;
+      min-width: 300px;
     }
-  // }
-  
-  // @media screen and (min-width: 1028px) {
-  //   .splitPanel {
-  //     display: flex;
-  //     flex-direction: row;
-  //   }
-  
-  //   .chatPanel {
-  //     flex-grow: 1;
-  //   }
-  
-  //   .infoPanel {
-  //     flex-shrink: 0;
-  //     width: 30%;
-  //     min-width: 300px;
-  //   }
-  // }  
+  }  
 }

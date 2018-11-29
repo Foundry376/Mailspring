@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const App = ({ children }) => (
-  <div>{children}</div>
+  <div style={{ height: '100%', width: '100%' }}>{children}</div>
 );
 
 App.propTypes = {
