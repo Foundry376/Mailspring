@@ -179,7 +179,7 @@ export class XmppEx extends EventEmitter3 {
           self.client.disconnect();
           reject('Connection timeout');
         }
-      }, 6000);
+      }, 30000);
       const removeListeners = () => {
         self.removeListener('session:started', success);
         self.removeListener('auth:failed', failure);
