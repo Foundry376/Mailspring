@@ -71,8 +71,8 @@ export const triggerStoreContactsEpic = action$ =>
 
 export const fetchE2eeEpic = action$ =>
   action$.ofType(BEGIN_FETCH_E2EE)//yazzxx2
-    .map((payload) => {
-      let local = payload.payload.local;
+    .map(({ payload }) => {
+      let local = payload.local;
       if (!getPriKey(local)) {
         let { pubkey, prikey } = generateKey();
         setPriKey(local, prikey);
