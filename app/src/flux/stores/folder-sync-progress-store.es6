@@ -160,7 +160,7 @@ class FolderSyncProgressStore extends MailspringStore {
     }
 
     if (folderPath) {
-      return state[folderPath].busy;
+      return state[folderPath] && state[folderPath].busy;
     }
 
     const folderPaths = Object.keys(state);
