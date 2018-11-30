@@ -6,29 +6,44 @@ import xmpp from '../../../xmpp';
 export default class ConversationInfo extends Component {
   constructor() {
     super()
-    this.state = { members: [] };
+    this.state = { members: [], loading: false };
   }
 
   componentDidMount = () => {
+    this.getRoomMembers();
+  }
+
+  componentWillReceiveProps = () => {
+    this.getRoomMembers();
+  }
+
+  getRoomMembers() {
     const { conversation } = this.props;
+    this.setState({
+      loading: true
+    })
     if (conversation.isGroup) {
       xmpp.getRoomMembers(conversation.jid).then((result) => {
         const members = result.mucAdmin.items;
-        this.setState({ members });
+        this.setState({ members, loading: false });
       });
     }
   }
 
   render = () => {
     const { conversation } = this.props;
+    const { loading } = this.state;
     return (
       <div className="info-panel">
         <ContactAvatar jid={conversation.jid} name={conversation.name}
           email={conversation.email} avatar={conversation.avatar} size={100} />
         <div className="name">{conversation.name}</div>
         <div className="email">{conversation.email}</div>
+        {loading && conversation.isGroup ? (
+          <div>loading</div>
+        ) : null}
         {
-          this.state.members.map(member => {
+          !loading && conversation.isGroup && this.state.members.map(member => {
             return (
               <div className="email" key={member.jid.bare}>
                 {member.name}:{member.email}
