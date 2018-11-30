@@ -124,6 +124,7 @@ export class XmppEx extends EventEmitter3 {
   client = null;
   credentials = null;
   connectedJid = null;
+  retryTimes = 0;
 
   /**
    * Initializes the QuickBlox instance's credentials.
@@ -138,15 +139,29 @@ export class XmppEx extends EventEmitter3 {
     }
     this.credentials = credentials;
     this.client = Stanza.createClient(credentials);
-    this.client.on('*', (name, data) => this.emit(name, data));
+    this.client.on('*', (name, data) => {
+      if (name != 'disconnected') {
+        this.emit(name, data)
+      }
+    });
     this.client.on('session:started', () => {
+      //console.log('session:started', this.connectedJid, Date.now())
+      this.retryTimes = 0;
       this.isConnected = true;
       this.connectedJid = credentials.jid;
       this.client.sendPresence();
+      this.client.enableKeepAlive({ timeout: 30, interval: 30 });
     });
     this.client.on('disconnected', () => {
-      this.connectedJid = null;
+      //console.log('disconnected', this.connectedJid, this.isConnected, Date.now())
       this.isConnected = false;
+      if (this.retryTimes == 0) {
+        this.retryTimes++;
+        this.connect();
+      } else {
+        this.emit('disconnected', this.connectedJid);
+        this.connectedJid = null;
+      }
     });
   }
 
@@ -344,6 +359,7 @@ export class XmppEx extends EventEmitter3 {
     if (!this.isConnected || !(this.client instanceof Client)) {
       throw Error('This method requires a connection to the XMPP server, call connect before ' +
         'using this method.');
+      //this.emit('disconnected', this.connectedJid);
     }
   }
 }
