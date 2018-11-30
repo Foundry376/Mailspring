@@ -1,11 +1,9 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
 import Root from '../chat-components/containers/Root';
-import chatModel from '../chat-components/store/model'
-import injectTapEventPlugin from 'react-tap-event-plugin';
+import chatModel from '../chat-components/store/model';
 
 const { configureStore, history } = require('../chat-components/store/configureStore').default;
-injectTapEventPlugin();
 
 export default class ChatView extends React.Component {
   static displayName = 'ChatView';

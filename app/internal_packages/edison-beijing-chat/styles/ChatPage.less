@@ -1,6 +1,5 @@
 .chat-view-container {
   height: 100%;
-  width: 100%;
   overflow: hidden;
 
   .chatPageContainer {
@@ -9,12 +8,36 @@
     flex-direction: row;
   }
 
-  .leftPanel {
-    height: 100%;
-  }
-
   .rightPanel {
     height: 100%;
     flex-grow: 1;
+  }
+}
+
+.chat-left-panel-container {
+  height: 300px;
+  .leftPanel {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    .resizeBar {
+      position: absolute;
+      background: #999;
+      border-radius: 3px;
+      width: 50px;
+      height: 4px;
+      top: 4px;
+      left: 50%;
+      margin-left: -25px;
+      cursor: row-resize;
+      opacity: 0.2;
+      transition-property: opacity;
+      transition-duration: 1s;
+    }
+  }
+  .leftPanel:hover {
+    .resizeBar {
+      opacity: 0.9;
+    }
   }
 }

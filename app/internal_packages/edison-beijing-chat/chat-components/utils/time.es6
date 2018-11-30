@@ -41,7 +41,8 @@ export const buildTimeDescriptor = (currentTime = new Date().getTime()) => {
       throw Error('Invalid argument for param `timestamp`: must be a positive number');
     }
 
-    return moment(timestamp).calendar(currentTime, longFormat ? LONG_FORMATS : SHORT_FORMATS);
+    // return moment(timestamp).calendar(currentTime, longFormat ? LONG_FORMATS : SHORT_FORMATS);
+    return moment(timestamp).format('hh:mm')
   };
 };
 

@@ -1,11 +1,12 @@
 .chat-view-container {
   .item {
-    min-height: 48px;
+    height: 68px;
     padding: 8px;
     cursor: pointer;
     border-bottom: 1px solid #DCDCDC;
     display: flex;
     flex-direction: row;
+    position: relative;
   }
 
   .item:hover {
@@ -26,9 +27,14 @@
     margin-left: 12px;
     flex: 1;
     min-width: 0;
+    float: left;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    .time {
+      font-size: 12px;
+      color: #666;
+    }
   }
 
   .headerRow {
@@ -60,7 +66,7 @@
 
   .avatarWrapper {
     position: relative;
-    display: inline-block;
+    float: left;
   }
 
   .badge {
@@ -78,7 +84,12 @@
   }
 
   #remove-button {
-    float: right;
+    position: absolute;
+    right: 0;
+    top: 0;
+    display: none;
   }
-
+  .item:hover #remove-button {
+    display: block;
+  }
 }

@@ -37,26 +37,24 @@ export default class ConversationItem extends PureComponent {
     const timeDescriptor = buildTimeDescriptor(referenceTime);
     return (
       <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
-        <div onTouchTap={onTouchTap} style={{ width: '95%' }}>
+        <div onTouchTap={onTouchTap} style={{ width: '98%', display: 'flex' }}>
           <div className="avatarWrapper">
             <ContactAvatar jid={conversation.jid} name={conversation.name}
               email={conversation.email} avatar={conversation.avatar} size={48} />
             <Badge count={conversation.unreadMessages} />
           </div>
-          <div className="content" style={{ display: 'inline-block', width: "85%" }}>
-            <div className="headerRow" style={{ display: 'inline-block', paddingRight: "10px" }}>
+          <div className="content">
+            <div className="headerRow">
               <span className="headerText">{conversation.name}</span>
-            </div>
-            <div className="headerRow" style={{ display: 'inline-block' }}>
-              <span>{timeDescriptor(conversation.lastMessageTime)}</span>
+              <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span>
             </div>
             <div className="subHeader">
               {conversation.at ? (<span style={{ color: 'red' }}>[@me]</span>) : null}
-              {conversation.lastMessageText}
+              {/* {conversation.lastMessageText} */}
             </div>
           </div>
         </div>
-        <span id="remove-button" onClick={this.onClickRemove}> remove </span>
+        <span id="remove-button" onClick={this.onClickRemove}>X</span>
       </div >
     );
   }
