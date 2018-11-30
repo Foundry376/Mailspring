@@ -70,21 +70,6 @@ export default class ChatPage extends PureComponent {
     }
   }
 
-  onDragStart(e) {
-    const startY = e.clientY;
-    const leftPanel = document.querySelector('.chat-left-panel-container');
-    const height = leftPanel.offsetHeight;
-    const onMouseMove = (e) => {
-      const distance = startY - e.clientY;
-      leftPanel.style.height = height + distance + 'px';
-    }
-    window.onmousemove = onMouseMove;
-    window.onmouseup = () => {
-      window.onmousemove = null;
-      window.onmouseup = null;
-    }
-  }
-
   render() {
     const {
       createGroupConversation,
@@ -103,7 +88,9 @@ export default class ChatPage extends PureComponent {
       referenceTime,
       selectedConversation,
       removeConversation,
-      isLeft
+      isLeft,
+      resetHeight,
+      onDragStart
     } = this.props;
     const selectedConversationJid = selectedConversation ? selectedConversation.jid : null;
 
@@ -142,7 +129,7 @@ export default class ChatPage extends PureComponent {
     return (
       <div className="chatPageContainer">
         <div className="leftPanel" style={{ display: isLeft ? 'block' : 'none' }}>
-          <div onMouseDown={this.onDragStart} className="resizeBar"></div>
+          <div onDoubleClick={resetHeight} onMouseDown={onDragStart} className="resizeBar"></div>
           <Route
             exact
             path="/chat"
