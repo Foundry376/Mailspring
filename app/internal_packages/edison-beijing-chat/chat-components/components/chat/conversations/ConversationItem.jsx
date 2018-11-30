@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 import { buildTimeDescriptor } from '../../../utils/time';
 import ContactAvatar from '../../common/ContactAvatar';
 import Badge from './ConversationBadge';
+import CancelIcon from '../../common/icons/CancelIcon';
+import { theme } from '../../../utils/colors';
+
+const { primaryColor } = theme;
+
 
 export default class ConversationItem extends PureComponent {
 
@@ -54,7 +59,7 @@ export default class ConversationItem extends PureComponent {
             </div>
           </div>
         </div>
-        <span id="remove-button" onClick={this.onClickRemove}>X</span>
+        <span id="remove-button" onClick={this.onClickRemove}> <CancelIcon color={primaryColor} /> </span>
       </div >
     );
   }
