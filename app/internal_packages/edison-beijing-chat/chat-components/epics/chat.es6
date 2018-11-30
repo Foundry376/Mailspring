@@ -137,7 +137,8 @@ export const sendMessageEpic = action$ =>
           ediEncrypted: ediEncrypted,
           to: conversation.jid,
           type: conversation.isGroup ? 'groupchat' : 'chat',
-          isUploading
+          isUploading,
+          curJid: conversation.curJid
         });
       } else {
         return ({
@@ -145,7 +146,8 @@ export const sendMessageEpic = action$ =>
           body: body,
           to: conversation.jid,
           type: conversation.isGroup ? 'groupchat' : 'chat',
-          isUploading
+          isUploading,
+          curJid: conversation.curJid
         });
       }
     })
@@ -161,7 +163,7 @@ export const sendMessageEpic = action$ =>
     .do(({ payload }) => {
       // when uploading file, do not send message
       if (!payload.isUploading) {
-        xmpp.sendMessage(payload);
+        xmpp.sendMessage(payload, payload.curJid);
       }
     });
 

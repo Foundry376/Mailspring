@@ -1,4 +1,5 @@
 @chatHeight: 100%;
+@infoPanelWidth: 300px;
 .chat-view-container {
   .panel {
     height: @chatHeight;
@@ -23,52 +24,45 @@
   
   .splitPanel {
     flex-grow: 1;
+    display: flex;
+    flex-direction: row;
   }
   
   .chatPanel {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
   }
-  
+
   .infoPanel {
     background: white;
+    flex-shrink: 0;
+    overflow-x: hidden;
+  }
+
+  .infoPanel>div {
+    width: @infoPanelWidth;
+    overflow-x: hidden;
+  }
+
+  .transition-slide-enter {
+    opacity: 0.01;
+    width: 0;
+    transition: all 0.25s ease-out;
   }
   
-  // @media screen and (max-width: 1027px) {
-    // .splitPanel {
-    //   display: flex;
-    //   flex-direction: column;
-    //   position: relative;
-    // }
+  .transition-slide-enter.transition-slide-enter-active {
+    opacity: 1;
+    width: @infoPanelWidth;
+  }
+  .transition-slide-leave {
+    opacity: 1;
+    width: @infoPanelWidth;
+    transition: all 0.25s ease-in;
+  }
   
-    // .chatPanel {
-    //   flex-grow: 1;
-    // }
-  
-    // .infoPanel {
-    //   height: 100%;
-    //   width: 100%;
-    //   position: absolute;
-    //   z-index: 3;
-    //   top: 0;
-    //   left: 0;
-    // }
-  // }
-  
-  @media screen and (min-width: 1028px) {
-    .splitPanel {
-      display: flex;
-      flex-direction: row;
-    }
-  
-    .chatPanel {
-      flex-grow: 1;
-    }
-  
-    .infoPanel {
-      flex-shrink: 0;
-      width: 30%;
-      min-width: 300px;
-    }
-  }  
+  .transition-slide-leave.transition-slide-leave-active {
+    opacity: 0.01;
+    width: 0;
+  }
 }

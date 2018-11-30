@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
 import MessagesSendBar from './MessagesSendBar';
@@ -119,10 +120,10 @@ export default class MessagesPanel extends PureComponent {
       <div className="panel">
         {selectedConversation ?
           <div className="chat">
-            <MessagesTopBar {...topBarProps} />
-            <Divider type="horizontal" />
             <div className="splitPanel">
               <div className="chatPanel">
+                <MessagesTopBar {...topBarProps} />
+                {/* <Divider type="horizontal" /> */}
                 <Messages {...messagesProps} />
                 <div>
                   <Divider type="horizontal" />
@@ -130,9 +131,17 @@ export default class MessagesPanel extends PureComponent {
                 </div>
               </div>
               <Divider type="vertical" />
-              {showConversationInfo && <div className="infoPanel">
-                <ConversationInfo conversation={selectedConversation} />
-              </div>}
+              <CSSTransitionGroup
+                transitionName="transition-slide"
+                transitionLeaveTimeout={250}
+                transitionEnterTimeout={250}
+              >
+                {showConversationInfo && (
+                  <div className="infoPanel">
+                    <ConversationInfo conversation={selectedConversation} />
+                  </div>
+                )}
+              </CSSTransitionGroup>
               {inviting && <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup}></InviteGroupChatList>}
             </div>
           </div> :
