@@ -1,4 +1,5 @@
 const { get, post } = require('./httpex');
+import { getPubKey } from './e2ee';
 var urlPre = 'https://restxmpp.stag.easilydo.cc/client/';
 export const register = (email, pwd, name, type, provider, setting, cb) => {
     if (!setting) {
@@ -21,6 +22,9 @@ export const register = (email, pwd, name, type, provider, setting, cb) => {
         "pushToken": "",
         "deviceId": window.localStorage.deviceId,
         "otherAccounts": [],
+        "e2eeKeys": [
+            { 'id': '1', 'key': getPubKey() }
+        ],
         "emailAddress": email,
         "emailPassword": pwd,
         "autoLogin": "true"

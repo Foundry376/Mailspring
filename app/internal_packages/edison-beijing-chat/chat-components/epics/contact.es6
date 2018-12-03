@@ -15,9 +15,7 @@ import {
   storeContacts,
   storeE2ees
 } from '../actions/db/contact';
-import { generateKey } from '../utils/rsa';
 import xmpp from '../xmpp';
-import { getPriKey, setPriKey, getPubKey, setPubKey } from '../utils/e2ee';
 import { SUCCESS_STORE_OCCUPANTS } from '../actions/db/conversation';
 export const triggerFetchRosterEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
@@ -71,25 +69,11 @@ export const triggerStoreContactsEpic = action$ =>
 
 export const fetchE2eeEpic = action$ =>
   action$.ofType(BEGIN_FETCH_E2EE)//yazzxx2
-    .map(({ payload }) => {
-      let local = payload.local;
-      if (!getPriKey(local)) {
-        let { pubkey, prikey } = generateKey();
-        setPriKey(local, prikey);
-        setPubKey(local, pubkey);
-        Observable.fromPromise(xmpp.setE2ee({
-          jid: payload.bare,
-          did: window.localStorage.deviceId,
-          key: pubkey
-        }))
-          .catch(err => console.log(err))
-      }
-    })
-    .mergeMap(() =>
-      Observable.fromPromise(xmpp.getE2ee())
+    .mergeMap(({ payload }) => {
+      return Observable.fromPromise(xmpp.getE2ee('', payload.bare))
         .map(({ e2ee }) => { return succesfullyFetchedE2ee(e2ee) })//yazzxx3
         .catch(err => console.log(err))
-    );
+    });
 
 export const fetchE2eeByJidsEpic = action$ =>
   action$.ofType(SUCCESS_STORE_OCCUPANTS)
@@ -97,8 +81,8 @@ export const fetchE2eeByJidsEpic = action$ =>
       return payload && payload.length > 0;
     })
     .mergeMap((payload) =>
-      Observable.fromPromise(xmpp.getE2ee(payload.payload))
-        .map(({ e2ee }) => { console.log('e2ee', e2ee); return succesfullyFetchedE2ee(e2ee) })//yazzxx3
+      Observable.fromPromise(xmpp.getE2ee(payload))
+        .map(({ e2ee }) => { return succesfullyFetchedE2ee(e2ee) })//yazzxx3
         .catch(err => console.log(err))
     );
 
