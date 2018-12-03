@@ -4,7 +4,7 @@
 
 Improvements:
 
-* French and Japanese localizations have been improved. (Thanks @komentech, @shyne99!)
+* French and Japanese localizations have been improved. (Thanks @kometchtech, @shyne99!)
 
 * Mailspring now honors "Do Not Disturb" on macOS and "Quiet Time" on Windows. Notifications do not appear and the "new mail" sound does not play.
 
