@@ -284,6 +284,7 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
       const { auth: { currentUser } } = getState();
       const conversation = {
         jid: roomId,
+        curJid: contacts[0].curJid,
         name: name,
         isGroup: true,
         unreadMessages: 0,

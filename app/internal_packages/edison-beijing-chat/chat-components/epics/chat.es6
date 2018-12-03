@@ -368,6 +368,7 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
       }
       return {
         jid: payload.from.bare,
+        curJid: payload.curJid,
         name: name,
         isGroup: type === RECEIVE_GROUP_MESSAGE ? true : false,
         unreadMessages: unreadMessages,
