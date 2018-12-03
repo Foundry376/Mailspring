@@ -12,19 +12,18 @@ export default class ConversationsTopBar extends PureComponent {
     return (
       <TopBar
         left={
-          <Link to="/">
-            <Button>
-              <BackIcon color={theme.primaryColor} />
-            </Button>
-          </Link>
-        }
-        center={
+          // <Link to="/">
+          //   <Button>
+          //     <BackIcon color={theme.primaryColor} />
+          //   </Button>
+          // </Link>
           <div className="mid-title">MESSAGES</div>
         }
+        // center={}
         right={
           <Link to="/chat/new">
-            <Button>
-              <ComposeIcon color={theme.primaryColor} />
+            <Button className="new-message">
+              <span style={{ fontSize: '16px' }}>+</span> New
             </Button>
           </Link>
         }

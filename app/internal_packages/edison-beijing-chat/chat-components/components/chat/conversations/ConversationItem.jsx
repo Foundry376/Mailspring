@@ -42,16 +42,16 @@ export default class ConversationItem extends PureComponent {
     const timeDescriptor = buildTimeDescriptor(referenceTime);
     return (
       <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
-        <div onTouchTap={onTouchTap} style={{ width: '98%', display: 'flex' }}>
+        <div onTouchTap={onTouchTap} style={{ width: '100%', display: 'flex' }}>
           <div className="avatarWrapper">
             <ContactAvatar jid={conversation.jid} name={conversation.name}
-              email={conversation.email} avatar={conversation.avatar} size={48} />
+              email={conversation.email} avatar={conversation.avatar} size={26} />
             <Badge count={conversation.unreadMessages} />
           </div>
           <div className="content">
             <div className="headerRow">
               <span className="headerText">{conversation.name}</span>
-              <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span>
+              {/* <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span> */}
             </div>
             <div className="subHeader">
               {conversation.at ? (<span style={{ color: 'red' }}>[@me]</span>) : null}

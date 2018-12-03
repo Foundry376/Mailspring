@@ -51,7 +51,7 @@ export default class ConversationsPanel extends PureComponent {
     return (
       <div className="panel">
         <ConversationsTopBar />
-        <Divider type="horizontal" />
+        {/* <Divider type="horizontal" /> */}
         <div className="conversations">
           {conversations.length ?
             <Conversations {...conversationsProps} /> :

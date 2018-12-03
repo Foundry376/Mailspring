@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { colorForString } from '../../utils/colors';
+import { gradientColorForString } from '../../utils/colors';
 
 const getInitials = name => {
   const trimmedName = name.trim();
@@ -28,9 +28,9 @@ class ContactAvatar extends Component {
           width: size,
           minWidth: size,
           minHeight: size,
-          fontSize: size / 2,
+          fontSize: size / 2 - 1,
           borderRadius: size / 2,
-          background: avatar ? `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${avatar})` : colorForString(jid),
+          background: avatar ? `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${avatar})` : gradientColorForString(jid),
           backgroundSize: 'cover',
           color: 'white',
           display: 'flex',
