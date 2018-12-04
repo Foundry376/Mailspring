@@ -1,13 +1,19 @@
-import { color, lightness } from 'kewler';
 const colors = [
-  '#3369e7',
-  '#8e43e7',
-  '#b84592',
-  '#ff4f81',
-  '#ff6c5f',
-  '#ffc168',
-  '#2dde98',
-  '#1cc7d0',
+  '#ff2d60',
+  '#ff5e3a',
+  '#54c4f6',
+  '#1966f2',
+  '#c643fc',
+  '#5856d6'
+];
+
+const colorsStop = [
+  '#ff5939',
+  '#ff8d09',
+  '#4ee3ca',
+  '#16c8fd',
+  '#e94cc0',
+  '#b647f6'
 ];
 
 export const colorForString = str => {
@@ -35,9 +41,10 @@ export const gradientColorForString = str => {
     /* eslint-enable no-bitwise */
     i += 1;
   }
-  const startColor = colors[Math.abs(hash % colors.length)];
-  const stopColor = color(startColor)(lightness(10));
-  return `linear-gradient(${startColor}, ${stopColor()})`
+  const colorIdx = Math.abs(hash % colors.length);
+  const startColor = colors[colorIdx];
+  const stopColor = colorsStop[colorIdx];
+  return `linear-gradient(${startColor}, ${stopColor})`
 };
 
 export const theme = {

@@ -11,7 +11,8 @@ import { buildTimeDescriptor } from '../../../utils/time';
 import RetinaImg from '../../../../../../src/components/retina-img';
 import { downloadFile } from '../../../utils/awss3';
 const { dialog } = require('electron').remote;
-import { isJsonString } from '../../../utils/stringUtils'
+import { isJsonString } from '../../../utils/stringUtils';
+import ContactAvatar from '../../common/ContactAvatar';
 
 // The number of pixels away from the bottom to be considered as being at the bottom
 const BOTTOM_TOLERANCE = 32;
@@ -112,6 +113,22 @@ export default class Messages extends PureComponent {
     downloadFile(null, aws3file, path);
   }
 
+  getContactInfoByJid = (jid) => {
+    const members = this.props.members;
+    if (!members || members.length === 0) {
+      return null;
+    }
+    for (const member of members) {
+      if (member.jid.bare === jid) {
+        return (
+          <ContactAvatar jid={member.jid.bare} name={member.name}
+            email={member.email} avatar={member.avatar} size={32} />
+        )
+      }
+    }
+    return null;
+  }
+
   render() {
     const {
       currentUserId,
@@ -165,7 +182,7 @@ export default class Messages extends PureComponent {
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
                     onClick={download}
-                    style={{maxHeight}}
+                    style={{ maxHeight }}
                   />
                 </div>)
               } else {
@@ -185,12 +202,14 @@ export default class Messages extends PureComponent {
                   className={getMessageClasses(msg)}
                   style={{ borderColor: color }}
                 >
-                  {isGroup && msg.sender !== currentUserId && idx === 0 ?
-                    <div
-                      className="messageSender"
-                      style={{ color }}
-                    >
-                      {msg.sender}
+                  {isGroup && msg.sender !== currentUserId ?
+                    <div className="messageSender">
+                      {this.getContactInfoByJid(msg.sender)}
+                    </div> : null
+                  }
+                  {isGroup && msg.sender === currentUserId ?
+                    <div className="messageSender">
+                      {this.getContactInfoByJid(msg.sender)}
                     </div> : null
                   }
                   <div className="messageContent">

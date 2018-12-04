@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import TopBar from '../../common/TopBar';
+import ContactAvatar from '../../common/ContactAvatar';
 import BackIcon from '../../common/icons/BackIcon';
 import InfoIcon from '../../common/icons/InfoIcon';
 import { theme } from '../../../utils/colors';
@@ -68,16 +69,11 @@ export default class MessagesTopBar extends Component {
       <div>
         <TopBar
           left={
-            <div className="backButtonContainer">
-              <Button onTouchTap={() => onBackPressed()}>
-                <BackIcon color={theme.primaryColor} />
-              </Button>
-            </div>
+            <div className="conversationName">{selectedConversation.name}</div>
           }
           center={
             <div className="chatTopBarCenter">
               <div style={{ width: '100%' }}>
-                <div className="conversationName">{selectedConversation.name}</div>
                 {/* <div className="onlineIndicatior">
                   {selectedConversation.isGroup ?
                     groupStatus(availableUsers, selectedConversation.occupants) :
@@ -89,16 +85,17 @@ export default class MessagesTopBar extends Component {
           }
           right={
             <div>
-              {selectedConversation.isGroup && <div id="exit-button" onTouchTap={exitGroup}>
+              {/* {selectedConversation.isGroup && <div id="exit-button" onTouchTap={exitGroup}>
                 exit
               </div>
               }
               {selectedConversation.isGroup && <div id="invite-button" onTouchTap={toggleInvite}>
                 {inviting ? "cancel" : "invite"}
               </div>
-              }
+              } */}
               <Button onTouchTap={() => onInfoPressed()}>
-                <InfoIcon active={infoActive} color={theme.primaryColor} />
+                <ContactAvatar jid={selectedConversation.jid} name={selectedConversation.name}
+                  email={selectedConversation.email} avatar={selectedConversation.avatar} size={26} />
               </Button>
             </div>
           }

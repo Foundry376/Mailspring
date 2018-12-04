@@ -53,6 +53,7 @@ export default class MessagesPanel extends PureComponent {
   state = {
     showConversationInfo: false,
     inviting: false,
+    members: []
   }
 
   onUpdateGroup = (contacts) => {
@@ -63,8 +64,26 @@ export default class MessagesPanel extends PureComponent {
     }
   }
 
+  componentDidMount() {
+    this.getRoomMembers();
+  }
+
+  componentWillReceiveProps() {
+    this.getRoomMembers();
+  }
+
+  getRoomMembers = () => {
+    const { selectedConversation: conversation } = this.props;
+    if (conversation && conversation.isGroup) {
+      xmpp.getRoomMembers(conversation.jid).then((result) => {
+        const members = result.mucAdmin.items;
+        this.setState({ members });
+      });
+    }
+  }
+
   render() {
-    const { showConversationInfo } = this.state;
+    const { showConversationInfo, members } = this.state;
     const {
       deselectConversation,
       sendMessage,
@@ -109,6 +128,7 @@ export default class MessagesPanel extends PureComponent {
       groupedMessages,
       referenceTime,
       selectedConversation,
+      members
     };
     const sendBarProps = {
       onMessageSubmitted: sendMessage,
@@ -127,7 +147,7 @@ export default class MessagesPanel extends PureComponent {
                 <Messages {...messagesProps} />
                 <div>
                   <Divider type="horizontal" />
-                  <MessagesSendBar {...sendBarProps} />·
+                  <MessagesSendBar {...sendBarProps} />
                 </div>
               </div>
               <Divider type="vertical" />

@@ -9,6 +9,7 @@ import RetinaImg from '../../../../../../src/components/retina-img';
 import Mention, { toString, getMentions } from 'rc-editor-mention';
 import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
+import TextArea from 'react-autosize-textarea';
 
 const FAKE_SPACE = '\u00A0';
 
@@ -102,8 +103,15 @@ export default class MessagesSendBar extends PureComponent {
     return true;
   }
 
-  onMessageBodyChanged = (editorState) => {
-    const messageBody = toString(editorState, { encode: true });
+  // onMessageBodyChanged = (editorState) => {
+  //   const messageBody = toString(editorState, { encode: true });
+  //   this.setState({
+  //     messageBody
+  //   });
+  // }
+
+  onMessageBodyChanged = (e) => {
+    const messageBody = e.target.value;
     this.setState({
       messageBody
     });
@@ -193,7 +201,7 @@ export default class MessagesSendBar extends PureComponent {
 
     }
     this.setState({ messageBody: '', files: [] });
-    this.refs.mention.reset();
+    // this.refs.mention.reset();
   }
 
   onFileChange = event => {
@@ -264,8 +272,62 @@ export default class MessagesSendBar extends PureComponent {
   render() {
     const { suggestions, suggestionStyle } = this.state;
     return (
-      <div className="sendBar">
-        <div className="sendBarActions">
+      <div className="sendBar" onDrop={this.onDrop}>
+        {/* <Mention
+            style={{ width: '100%', height: '70px' }}
+            multiLines={true}
+            onChange={this.onMessageBodyChanged}
+            onSearchChange={this.onSearchChange}
+            suggestions={suggestions}
+            suggestionStyle={suggestionStyle}
+            prefixCls="rc-editor-mention"
+            notFoundContent="could not find"
+            ref="mention"
+            prefix="@"
+          /> */}
+        <TextArea
+          className="messageTextField"
+          placeholder="Edison Chat"
+          rows={1}
+          maxRows={5}
+          value={this.state.messageBody}
+          onChange={this.onMessageBodyChanged.bind(this)}
+          onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
+          ref={element => { this.textarea = element; }}
+          onKeyDown={this.onKeyDown}
+        />
+        <div className="chat-message-filelist">
+          {this.state.files.map((file, index) => {
+            const removeFile = (e) => {
+              let files = this.state.files;
+              index = files.indexOf(file);
+              files.splice(index, 1);
+              files = files.slice();
+              this.setState(Object.assign({}, this.state, { files }));
+            };
+            return (
+              <div id='remove-file' key={index} onClick={removeFile} title={file}>
+                <RetinaImg
+                  name="fileIcon.png"
+                  mode={RetinaImg.Mode.ContentPreserve}
+                  key={index}
+                />
+                <div id='remove-file-inner' title="remove this file from the list">
+                  -
+                  </div>
+              </div>
+            );
+          })
+          }
+          {this.state.files.length ?
+            <div id="clear-all-files" title="clear all files from the list" onClick={this.clearFiles}> X </div> :
+            null
+          }
+        </div>
+        <div className="sendBarActions" id="send-message">
+          <Button onTouchTap={this.sendMessage.bind(this)}>
+            <SendIcon color={theme.primaryColor} />
+          </Button>
           <Button
             onTouchTap={() => {
               this.fileInput.click();
@@ -280,53 +342,6 @@ export default class MessagesSendBar extends PureComponent {
               onChange={this.onFileChange}
             />
           </Button>
-        </div>
-        <div className="messageTextField" onDrop={this.onDrop} onKeyDown={this.onKeyDown}>
-          <Mention
-            style={{ width: '100%', height: '70px' }}
-            multiLines={true}
-            onChange={this.onMessageBodyChanged}
-            onSearchChange={this.onSearchChange}
-            suggestions={suggestions}
-            suggestionStyle={suggestionStyle}
-            prefixCls="rc-editor-mention"
-            notFoundContent="could not find"
-            ref="mention"
-            prefix="@"
-          />
-          <div className="chat-message-filelist">
-            {this.state.files.map((file, index) => {
-              const removeFile = (e) => {
-                let files = this.state.files;
-                index = files.indexOf(file);
-                files.splice(index, 1);
-                files = files.slice();
-                this.setState(Object.assign({}, this.state, { files }));
-              };
-              return (
-                <div id='remove-file' key={index} onClick={removeFile} title={file}>
-                  <RetinaImg
-                    name="fileIcon.png"
-                    mode={RetinaImg.Mode.ContentPreserve}
-                    key={index}
-                  />
-                  <div id='remove-file-inner' title="remove this file from the list">
-                    -
-                  </div>
-                </div>
-              );
-            })
-            }
-            {this.state.files.length ?
-              <div id="clear-all-files" title="clear all files from the list" onClick={this.clearFiles}> X </div> :
-              null
-            }
-          </div>
-          <div className="sendBarActions" id="send-message">
-            <Button onTouchTap={this.sendMessage.bind(this)}>
-              <SendIcon color={theme.primaryColor} />
-            </Button>
-          </div>
         </div>
       </div>
     );

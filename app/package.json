@@ -44,7 +44,6 @@
     "jingle": "^3.0.0",
     "juice": "^1.4",
     "jxt-xmpp-types": "^3.0.0",
-    "kewler": "^1.0.8",
     "keytar": "4.1.0",
     "less-cache": "1.1.0",
     "leveldown": "^4.0.1",

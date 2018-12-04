@@ -309,14 +309,14 @@ export const convertReceivedMessageEpic = (action$, { getState }) =>
         if (payload.from.resource === reduxStore.auth.currentUser.local) {
           sender = reduxStore.auth.currentUser.bare
         } else {
-          sender = payload.from.resource;
-          const { contact: { contacts } } = reduxStore;
-          for (const item of contacts) {
-            if (item.jid.split('@')[0] === sender) {
-              sender = item.name;
-              break;
-            }
-          }
+          sender = payload.from.resource + '@im.edison.tech';
+          // const { contact: { contacts } } = reduxStore;
+          // for (const item of contacts) {
+          //   if (item.jid.split('@')[0] === sender) {
+          //     sender = item.name;
+          //     break;
+          //   }
+          // }
         }
       }
       return {

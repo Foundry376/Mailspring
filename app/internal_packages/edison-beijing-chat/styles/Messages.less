@@ -17,45 +17,83 @@
     display: flex;
     flex-direction: column;
     border-width: 2px;
+    font-size: 12px;
   }
   
   .message.currentUser {
     align-self: flex-end;
-    background: #0097FF;
-    border: none;
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
+    background-color: #2fa3fc;
+    padding: 12px;
+    border-radius: 15px;
     color: white;
+    position: relative;
+    margin-right: 37px;
+    .messageSender {
+      display: none;
+    }
   }
   
   .message.otherUser {
     align-self: flex-start;
-    background: white;
-    border-style: solid;
-    border-color: #555;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-    color: #555;
+    padding: 12px;
+    border-radius: 15px;
+    color: #000;
+    position: relative;
+    margin-left: 37px;
+    background-color:  #f4f6f8;
+    .messageSender {
+      display: none;
+    }
   }
   
-  .message.currentUser:first-child {
-    border-top-right-radius: 12px;
-  }
+  // .message.currentUser:first-child {
+  //   border-top-right-radius: 12px;
+  // }
   
   .message.currentUser:last-child {
-    border-bottom-right-radius: 12px;
+    &:after {
+      content: '';
+      display: block;
+      width: 14px;
+      height: 12px;
+      background-image: url('data:image/svg+xml;utf8,<svg width="14px" height="12px" viewBox="0 0 27 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><path d="M26.2278446,17.4092324 L11.1870041,0 C12.1315883,11.8835969 8.40258689,19.8665561 0,23.9488774 C10.3997077,24.6521893 19.1423226,22.4723076 26.2278446,17.4092324 Z" id="Path-4" fill="#2fa3fc" transform="translate(13.113922, 12.038775) scale(-1, 1) translate(-13.113922, -12.038775) "></path></g></svg>');
+      background-repeat: no-repeat;
+      background-position: center center;
+      position: absolute;
+      right: -6px;
+      bottom: 0px;
+    }
+    .messageSender {
+      display: block;
+      position: absolute;
+      right: -37px;
+      bottom: 0;
+    }
   }
   
-  .message.otherUser:first-child {
-    border-top-left-radius: 12px;
-  }
+  // .message.otherUser:first-child {
+  //   border-top-left-radius: 12px;
+  // }
   
   .message.otherUser:last-child {
-    border-bottom-left-radius: 12px;
+    &:after {
+      content: '';
+      display: block;
+      width: 14px;
+      height: 12px;
+      background-image: url('data:image/svg+xml;utf8,<svg width="14px" height="12px" viewBox="0 0 27 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><path d="M26.8617391,18.1666791 L11.8208986,0.757446655 C12.7654827,12.6410436 9.03648138,20.6240027 0.633894483,24.706324 C11.0336022,25.4096359 19.7762171,23.2297543 26.8617391,18.1666791 Z" id="Path-4" fill="#f4f6f8"></path></g></svg>');
+      background-repeat: no-repeat;
+      background-position: center center;
+      position: absolute;
+      left: -6px;
+      bottom: 0px;
+    }
+    .messageSender {
+      display: block;
+      position: absolute;
+      left: -37px;
+      bottom: 0;
+    }
   }
   
   .messageSender {
