@@ -213,7 +213,9 @@ export default class MessagesSendBar extends PureComponent {
       files.push(file.path);
     }
     state = Object.assign({}, this.state, { files });
-    this.setState(state);
+    this.setState(state, () => {
+      this.sendMessage();
+    });
     event.target.value = '';
     // event.target.files = new window.FileList();
   };
@@ -324,16 +326,13 @@ export default class MessagesSendBar extends PureComponent {
             null
           }
         </div>
-        <div className="sendBarActions" id="send-message">
-          <Button onTouchTap={this.sendMessage.bind(this)}>
-            <SendIcon color={theme.primaryColor} />
-          </Button>
+        <div className="sendBarActions">
           <Button
             onTouchTap={() => {
               this.fileInput.click();
             }}
           >
-            <FilePlusIcon color={theme.primaryColor} />
+            <FilePlusIcon className="icon" />
             <input
               style={{ display: 'none' }}
               ref={element => { this.fileInput = element; }}

@@ -175,7 +175,7 @@ export default class Messages extends PureComponent {
                 if (msgBody.path.match(/\.gif$/)) {
                   maxHeight = "100px";
                 } else if (msgBody.path.match(/(\.bmp|\.png|\.jpg)$/)) {
-                  maxHeight = "400px";
+                  maxHeight = "250px";
                 }
                 msgFile = (<div className="messageMeta">
                   <img
@@ -214,6 +214,10 @@ export default class Messages extends PureComponent {
                   }
                   <div className="messageContent">
                     <div className="messageBody">{msgBody.content || msgBody}</div>
+                    {msgBody.mediaObjectId && <div className="messageMeta">
+                      <div style={{ background: "#fff" }}>{msgFile}</div>
+                    </div>
+                    }
                     <div className="messageMeta">
                       {getStatusWeight(msg.status) >= getStatusWeight(MESSAGE_STATUS_DELIVERED) ?
                         <CheckIcon
@@ -224,10 +228,6 @@ export default class Messages extends PureComponent {
                       }
                       {timeDescriptor(msg.sentTime, true)}
                     </div>
-                    {msgBody.mediaObjectId && <div className="messageMeta">
-                      {msgFile}
-                    </div>
-                    }
                   </div>
                 </div>
               );

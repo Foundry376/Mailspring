@@ -15,13 +15,24 @@
 
   .sendBarActions {
     position: absolute;
+    bottom: 0px;
+    right: 0px;
+    margin: 16px;
+    .button {
+      padding: 6px;
+    }
+    .icon {
+      fill: #787d80;
+      transition: transform 0.3s;
+    }
+    .button:hover {
+      .icon {
+        fill: #0096ff;
+        transform: scale(1.2);
+      }
+    }
   }
 
-  #send-message {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-  }
   #remove-file {
     display: inline-block;
   }
