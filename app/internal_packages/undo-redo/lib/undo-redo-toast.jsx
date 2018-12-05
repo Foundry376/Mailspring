@@ -1,4 +1,11 @@
-import { React, UndoRedoStore, SyncbackMetadataTask, ChangeUnreadTask, ChangeStarredTask } from 'mailspring-exports';
+import {
+  React,
+  UndoRedoStore,
+  SyncbackMetadataTask,
+  ChangeUnreadTask,
+  ChangeStarredTask,
+  ChangeFolderTask
+} from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CSSTransitionGroup } from 'react-transition-group';
 
@@ -95,6 +102,13 @@ const BasicContent = ({ block, onMouseEnter, onMouseLeave }) => {
       tasks.forEach(item => (total += item.threadIds.length));
       const verb = tasks[0].starred ? 'Starred' : 'Unstarred';
       description = `${verb} ${total} threads`;
+    }
+    // if all ChangeFolderTask
+    else if (tasks[0] instanceof ChangeFolderTask && tasks[tasks.length - 1] instanceof ChangeFolderTask) {
+      let total = 0;
+      tasks.forEach(item => (total += item.threadIds.length));
+      const folderText = ` to ${tasks[0].folder.displayName}`;
+      description = `Moved ${total} threads${folderText}`;
     }
   }
   return (

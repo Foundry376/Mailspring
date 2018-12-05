@@ -36,14 +36,24 @@ export function moveThreads(threads, { snooze, description } = {}) {
     const inboxCat = CategoryStore.getInboxCategory(accountId);
 
     if (snoozeCat instanceof Label) {
-      return new ChangeLabelsTask({
-        source: 'Snooze Move',
-        threads: accountThreads,
-        taskDescription: description,
-        labelsToAdd: snooze ? [snoozeCat] : [inboxCat],
-        labelsToRemove: snooze ? [inboxCat] : [snoozeCat],
-        canBeUndone: snooze ? true : false,
-      });
+      return [
+        new ChangeLabelsTask({
+          source: 'Snooze Move',
+          threads: accountThreads,
+          taskDescription: description,
+          labelsToAdd: [],
+          labelsToRemove: snooze ? [inboxCat] : [snoozeCat],
+          canBeUndone: snooze ? true : false,
+        }),
+        new ChangeLabelsTask({
+          source: 'Snooze Move',
+          threads: accountThreads,
+          taskDescription: description,
+          labelsToAdd: snooze ? [snoozeCat] : [inboxCat],
+          labelsToRemove: [],
+          canBeUndone: snooze ? true : false,
+        })
+      ];
     }
     return new ChangeFolderTask({
       source: 'Snooze Move',

@@ -12,6 +12,7 @@ import {
   ChangeFolderTask,
   ChangeLabelsTask,
   FocusedPerspectiveStore,
+  TaskFactory
 } from 'mailspring-exports';
 import { Categories } from 'mailspring-observables';
 
@@ -146,10 +147,11 @@ export default class MovePickerPopover extends Component {
 
   _onMoveToCategory = ({ category }) => {
     const { threads } = this.props;
+    console.log('****_onMoveToCategory', threads, category);
 
     if (category instanceof Folder) {
-      Actions.queueTask(
-        new ChangeFolderTask({
+      Actions.queueTasks(
+        TaskFactory.tasksForChangeFolder({
           source: 'Category Picker: New Category',
           threads: threads,
           folder: category,
@@ -159,14 +161,20 @@ export default class MovePickerPopover extends Component {
       const all = [];
       threads.forEach(({ labels }) => all.push(...labels));
 
-      Actions.queueTask(
+      Actions.queueTasks([
         new ChangeLabelsTask({
           source: 'Category Picker: New Category',
           labelsToRemove: all,
+          labelsToAdd: [],
+          threads: threads,
+        }),
+        new ChangeLabelsTask({
+          source: 'Category Picker: New Category',
+          labelsToRemove: [],
           labelsToAdd: [category],
           threads: threads,
         })
-      );
+      ]);
     }
   };
 
@@ -207,8 +215,8 @@ export default class MovePickerPopover extends Component {
           mode={RetinaImg.Mode.ContentIsMask}
         />
       ) : (
-        <RetinaImg name={`tag.png`} mode={RetinaImg.Mode.ContentIsMask} />
-      );
+          <RetinaImg name={`tag.png`} mode={RetinaImg.Mode.ContentIsMask} />
+        );
 
     return (
       <div className="category-item">

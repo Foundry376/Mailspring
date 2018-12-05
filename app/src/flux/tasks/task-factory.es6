@@ -123,6 +123,16 @@ const TaskFactory = {
     return tasks;
   },
 
+  tasksForChangeFolder({ threads, source, folder }) {
+    return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+      return new ChangeFolderTask({
+        folder,
+        threads: accountThreads,
+        source,
+      });
+    });
+  },
+
   _splitByAccount(threads) {
     const accountIds = _.uniq(threads.map(({ accountId }) => accountId));
     const result = {};
