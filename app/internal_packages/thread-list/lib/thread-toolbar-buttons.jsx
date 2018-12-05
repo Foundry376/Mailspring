@@ -309,7 +309,7 @@ export class ToggleUnreadButton extends React.Component {
   };
 
   _onChangeUnread = targetUnread => {
-    Actions.queueTask(
+    Actions.queueTasks(
       TaskFactory.taskForSettingUnread({
         threads: this.props.items,
         unread: targetUnread,

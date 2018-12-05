@@ -5,6 +5,7 @@ import ChangeStarredTask from './change-starred-task';
 import CategoryStore from '../stores/category-store';
 import Thread from '../models/thread';
 import Label from '../models/label';
+import _ from 'underscore'
 
 const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {
@@ -95,13 +96,50 @@ const TaskFactory = {
   },
 
   taskForSettingUnread({ threads, unread, source, canBeUndone }) {
-    return new ChangeUnreadTask({ threads, unread, source, canBeUndone });
+    const threadsByFolder = this._splitByFolder(threads);
+    const tasks = [];
+    for (const accId in threadsByFolder) {
+      for (const item of threadsByFolder[accId]) {
+        const t = new ChangeUnreadTask({ threads: item, unread, source, canBeUndone });
+        tasks.push(t);
+      }
+    }
+    return tasks;
   },
 
   taskForInvertingStarred({ threads, source }) {
     const starred = threads.every(t => t.starred === false);
     return new ChangeStarredTask({ threads, starred, source });
   },
+
+  _splitByFolder(threads) {
+    const accountIds = _.uniq(threads.map(({ accountId }) => accountId));
+    const result = {};
+    for (const accId of accountIds) {
+      const threadsByAccount = threads.filter(item => item.accountId === accId);
+
+      const folderIds = _.uniq(threadsByAccount.map(({ id, folders }) => {
+        if (folders && folders.length > 0) {
+          return folders[0].id
+        } else {
+          console.warn(`ThreadId: ${id} have no folder attribute`)
+          return null;
+        }
+      }))
+      const arr = [];
+      for (const folderId of folderIds) {
+        const threadGroup = threadsByAccount.filter(({ folders }) => {
+          if (folders && folders.length > 0 && folders[0].id === folderId) {
+            return true;
+          }
+          return false;
+        })
+        arr.push(threadGroup);
+      }
+      result[accId] = arr;
+    }
+    return result;
+  }
 };
 
 export default TaskFactory;
