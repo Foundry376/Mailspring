@@ -23,11 +23,14 @@ const TaskFactory = {
 
     const tasks = [];
     Object.values(byAccount).forEach(({ accountThreads, accountId }) => {
-      const taskOrTasks = callback(accountThreads, accountId);
-      if (taskOrTasks && taskOrTasks instanceof Array) {
-        tasks.push(...taskOrTasks);
-      } else if (taskOrTasks) {
-        tasks.push(taskOrTasks);
+      const threadsByFolder = this._splitByFolder(accountThreads);
+      for (const item of threadsByFolder) {
+        const taskOrTasks = callback(item, accountId);
+        if (taskOrTasks && taskOrTasks instanceof Array) {
+          tasks.push(...taskOrTasks);
+        } else if (taskOrTasks) {
+          tasks.push(taskOrTasks);
+        }
       }
     });
     return tasks;
@@ -96,7 +99,7 @@ const TaskFactory = {
   },
 
   taskForSettingUnread({ threads, unread, source, canBeUndone }) {
-    const threadsByFolder = this._splitByFolder(threads);
+    const threadsByFolder = this._splitByAccount(threads);
     const tasks = [];
     for (const accId in threadsByFolder) {
       for (const item of threadsByFolder[accId]) {
@@ -109,7 +112,7 @@ const TaskFactory = {
 
   taskForInvertingStarred({ threads, source }) {
     const starred = threads.every(t => t.starred === false);
-    const threadsByFolder = this._splitByFolder(threads);
+    const threadsByFolder = this._splitByAccount(threads);
     const tasks = [];
     for (const accId in threadsByFolder) {
       for (const item of threadsByFolder[accId]) {
@@ -120,33 +123,36 @@ const TaskFactory = {
     return tasks;
   },
 
-  _splitByFolder(threads) {
+  _splitByAccount(threads) {
     const accountIds = _.uniq(threads.map(({ accountId }) => accountId));
     const result = {};
     for (const accId of accountIds) {
       const threadsByAccount = threads.filter(item => item.accountId === accId);
-
-      const folderIds = _.uniq(threadsByAccount.map(({ id, folders }) => {
-        if (folders && folders.length > 0) {
-          return folders[0].id
-        } else {
-          console.warn(`ThreadId: ${id} have no folder attribute`)
-          return null;
-        }
-      }))
-      const arr = [];
-      for (const folderId of folderIds) {
-        const threadGroup = threadsByAccount.filter(({ folders }) => {
-          if (folders && folders.length > 0 && folders[0].id === folderId) {
-            return true;
-          }
-          return false;
-        })
-        arr.push(threadGroup);
-      }
+      const arr = this._splitByFolder(threadsByAccount);
       result[accId] = arr;
     }
     return result;
+  },
+  _splitByFolder(threads) {
+    const arr = [];
+    const folderIds = _.uniq(threads.map(({ id, folders }) => {
+      if (folders && folders.length > 0) {
+        return folders[0].id
+      } else {
+        console.warn(`ThreadId: ${id} have no folder attribute`)
+        return null;
+      }
+    }))
+    for (const folderId of folderIds) {
+      const threadGroup = threads.filter(({ folders }) => {
+        if (folders && folders.length > 0 && folders[0].id === folderId) {
+          return true;
+        }
+        return false;
+      })
+      arr.push(threadGroup);
+    }
+    return arr;
   }
 };
 
