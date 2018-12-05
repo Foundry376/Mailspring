@@ -109,7 +109,15 @@ const TaskFactory = {
 
   taskForInvertingStarred({ threads, source }) {
     const starred = threads.every(t => t.starred === false);
-    return new ChangeStarredTask({ threads, starred, source });
+    const threadsByFolder = this._splitByFolder(threads);
+    const tasks = [];
+    for (const accId in threadsByFolder) {
+      for (const item of threadsByFolder[accId]) {
+        const t = new ChangeStarredTask({ threads: item, starred, source });
+        tasks.push(t);
+      }
+    }
+    return tasks;
   },
 
   _splitByFolder(threads) {

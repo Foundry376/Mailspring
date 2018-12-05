@@ -1,4 +1,4 @@
-import { React, UndoRedoStore, SyncbackMetadataTask } from 'mailspring-exports';
+import { React, UndoRedoStore, SyncbackMetadataTask, ChangeUnreadTask, ChangeStarredTask } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CSSTransitionGroup } from 'react-transition-group';
 
@@ -79,9 +79,27 @@ const UndoSendContent = ({ block, onMouseEnter, onMouseLeave }) => {
 };
 
 const BasicContent = ({ block, onMouseEnter, onMouseLeave }) => {
+  let description = block.description;
+  if (block.tasks.length >= 2) {
+    const tasks = block.tasks;
+    // if all ChangeUnreadTask
+    if (tasks[0] instanceof ChangeUnreadTask && tasks[tasks.length - 1] instanceof ChangeUnreadTask) {
+      let total = 0;
+      tasks.forEach(item => (total += item.threadIds.length));
+      const newState = tasks[0].unread ? 'unread' : 'read';
+      description = `Marked ${total} threads as ${newState}`;
+    }
+    // if all ChangeStarredTask
+    else if (tasks[0] instanceof ChangeStarredTask && tasks[tasks.length - 1] instanceof ChangeStarredTask) {
+      let total = 0;
+      tasks.forEach(item => (total += item.threadIds.length));
+      const verb = tasks[0].starred ? 'Starred' : 'Unstarred';
+      description = `${verb} ${total} threads`;
+    }
+  }
   return (
     <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      <div className="message">{block.description}</div>
+      <div className="message">{description}</div>
       <div className="action" onClick={() => AppEnv.commands.dispatch('core:undo')}>
         <RetinaImg name="undo-icon@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
         <span className="undo-action-text">Undo</span>

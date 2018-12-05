@@ -70,7 +70,7 @@ class ThreadListIcon extends React.Component {
   }
 
   _onToggleStar = event => {
-    Actions.queueTask(
+    Actions.queueTasks(
       TaskFactory.taskForInvertingStarred({
         threads: [this.props.thread],
         source: 'Thread List Icon',

@@ -308,11 +308,11 @@ class StarredMailboxPerspective extends MailboxPerspective {
   }
 
   tasksForRemovingItems(threads) {
-    const task = TaskFactory.taskForInvertingStarred({
+    const tasks = TaskFactory.taskForInvertingStarred({
       threads: threads,
       source: 'Removed From List',
     });
-    return [task];
+    return tasks;
   }
 }
 
