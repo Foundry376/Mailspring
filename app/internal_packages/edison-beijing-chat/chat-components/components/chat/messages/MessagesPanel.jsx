@@ -146,7 +146,7 @@ export default class MessagesPanel extends PureComponent {
                 {/* <Divider type="horizontal" /> */}
                 <Messages {...messagesProps} />
                 <div>
-                  <Divider type="horizontal" />
+                  {/* <Divider type="horizontal" /> */}
                   <MessagesSendBar {...sendBarProps} />
                 </div>
               </div>

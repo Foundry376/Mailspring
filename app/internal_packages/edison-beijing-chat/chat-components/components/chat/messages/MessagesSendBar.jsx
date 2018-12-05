@@ -239,8 +239,13 @@ export default class MessagesSendBar extends PureComponent {
       }
       catch (e) {
       }
+      if (!files || files.length === 0) {
+        return true;
+      }
       files = this.state.files.concat(files);
-      this.setState(Object.assign({}, this.state, { files }));
+      this.setState(Object.assign({}, this.state, { files }), () => {
+        this.sendMessage();
+      });
       e.preventDefault();
       e.stopPropagation();
     } else if (e.keyCode == 13 && (e.ctrlKey || e.metaKey)) {
