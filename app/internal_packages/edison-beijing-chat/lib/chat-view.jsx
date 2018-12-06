@@ -17,7 +17,6 @@ export default class ChatView extends React.Component {
     for (let acc of accounts) {
       let chatAccount = chatAccounts[acc.emailAddress];
       if (!chatAccount) {
-        debugger
         acc.clone = () => Object.assign({}, acc);
         keyMannager.insertAccountSecrets(acc).then(acc => {
           let email = acc.emailAddress;
