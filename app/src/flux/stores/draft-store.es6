@@ -413,6 +413,7 @@ class DraftStore extends MailspringStore {
     if (sendLaterMetadataValue) {
       session.changes.addPluginMetadata('send-later', sendLaterMetadataValue);
     }
+
     await session.changes.commit();
     await session.teardown();
 

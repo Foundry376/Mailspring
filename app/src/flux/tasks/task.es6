@@ -6,7 +6,7 @@ import { generateTempId } from '../models/utils';
 import { PermanentErrorCodes } from '../mailspring-api-request';
 
 const Status = {
-  Local: 'local',
+  Local: 'local', // means the task has NOT run the local phase yet
   Remote: 'remote',
   Complete: 'complete',
   Cancelled: 'cancelled',
@@ -45,6 +45,13 @@ export default class Task extends Model {
     super(data);
     this.status = this.status || Status.Local;
     this.id = this.id || generateTempId();
+  }
+
+  // Public: Returns true if the task has finished local execution. We have
+  // a helper for this because historical naming choice here is poor. The
+  // "local" state value means the task has /not/ run yet.
+  hasRunLocally() {
+    return this.status !== Status.Local;
   }
 
   // Public: Override to raise exceptions if your task is missing required

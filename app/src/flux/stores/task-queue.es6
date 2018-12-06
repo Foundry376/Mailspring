@@ -40,6 +40,7 @@ Actions.dequeueMatchingTask({
   }
 })
 */
+
 class TaskQueue extends MailspringStore {
   constructor() {
     super();
@@ -61,7 +62,7 @@ class TaskQueue extends MailspringStore {
 
     this._waitingForLocal.filter(({ task, resolve }) => {
       const match = all.find(t => task.id === t.id);
-      if (match) {
+      if (match && match.hasRunLocally()) {
         resolve(match);
         return false;
       }
@@ -111,7 +112,7 @@ class TaskQueue extends MailspringStore {
 
   waitForPerformLocal = task => {
     const upToDateTask = [].concat(this._queue, this._completed).find(t => t.id === task.id);
-    if (upToDateTask && upToDateTask.status !== Task.Status.Local) {
+    if (upToDateTask && upToDateTask.hasRunLocally()) {
       return Promise.resolve(upToDateTask);
     }
 
