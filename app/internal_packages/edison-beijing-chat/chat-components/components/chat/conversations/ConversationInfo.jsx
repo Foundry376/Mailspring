@@ -5,45 +5,29 @@ import xmpp from '../../../xmpp';
 
 export default class ConversationInfo extends Component {
   constructor() {
-    super()
-    this.state = { members: [], loading: false };
+    super();
   }
 
   componentDidMount = () => {
-    this.getRoomMembers();
+    this.props.getRoomMembers();
   }
 
-  componentWillReceiveProps = () => {
-    this.getRoomMembers();
-  }
-
-  getRoomMembers() {
-    const { conversation } = this.props;
-    this.setState({
-      loading: true
-    })
-    if (conversation.isGroup) {
-      xmpp.getRoomMembers(conversation.jid).then((result) => {
-        const members = result.mucAdmin.items;
-        this.setState({ members, loading: false });
-      });
+  componentWillReceiveProps = (nextProps) => {
+    if (!this.props.conversation || nextProps.conversation.jid !== this.props.conversation.jid) {
+      this.props.getRoomMembers();
     }
   }
 
   render = () => {
-    const { conversation } = this.props;
-    const { loading } = this.state;
+    const { conversation, members } = this.props;
     return (
       <div className="info-panel">
         <ContactAvatar jid={conversation.jid} name={conversation.name}
           email={conversation.email} avatar={conversation.avatar} size={100} />
         <div className="name">{conversation.name}</div>
         <div className="email">{conversation.email}</div>
-        {loading && conversation.isGroup ? (
-          <div>loading</div>
-        ) : null}
         {
-          !loading && conversation.isGroup && this.state.members.map(member => {
+          conversation.isGroup && members && members.map(member => {
             return (
               <div className="email" key={member.jid.bare}>
                 {member.name}:{member.email}

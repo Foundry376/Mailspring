@@ -87,7 +87,7 @@ export default class MessagesSendBar extends PureComponent {
       if (roomMembers && roomMembers.length) {
         return roomMembers;
       }
-      const result = await xmpp.getRoomMembers(selectedConversation.jid)
+      const result = await xmpp.getRoomMembers(selectedConversation.jid, null, selectedConversation.curJid)
       return result.mucAdmin.items;
     }
     return [];

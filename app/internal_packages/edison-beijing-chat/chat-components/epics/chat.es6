@@ -345,9 +345,11 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
         } else {
           return Observable.fromPromise(xmpp.getRoomList())
             .map(({ discoItems: { items } }) => {
-              for (const item of items) {
-                if (payload.from.local === item.jid.local) {
-                  return { type, payload, name: item.name, beAt };
+              if (items) {
+                for (const item of items) {
+                  if (payload.from.local === item.jid.local) {
+                    return { type, payload, name: item.name, beAt };
+                  }
                 }
               }
               return [{ type, payload, name, beAt }];

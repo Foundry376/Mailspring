@@ -75,7 +75,7 @@ export default class MessagesPanel extends PureComponent {
   getRoomMembers = () => {
     const { selectedConversation: conversation } = this.props;
     if (conversation && conversation.isGroup) {
-      xmpp.getRoomMembers(conversation.jid).then((result) => {
+      xmpp.getRoomMembers(conversation.jid, null, conversation.curJid).then((result) => {
         const members = result.mucAdmin.items;
         this.setState({ members });
       });
@@ -83,7 +83,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   render() {
-    const { showConversationInfo, members } = this.state;
+    const { showConversationInfo, members, inviting } = this.state;
     const {
       deselectConversation,
       sendMessage,
@@ -134,7 +134,6 @@ export default class MessagesPanel extends PureComponent {
       onMessageSubmitted: sendMessage,
       selectedConversation,
     };
-    const { inviting } = this.state;
 
     return (
       <div className="panel">
@@ -158,7 +157,10 @@ export default class MessagesPanel extends PureComponent {
               >
                 {showConversationInfo && (
                   <div className="infoPanel">
-                    <ConversationInfo conversation={selectedConversation} />
+                    <ConversationInfo
+                      conversation={selectedConversation}
+                      members={members}
+                      getRoomMembers={this.getRoomMembers} />
                   </div>
                 )}
               </CSSTransitionGroup>
