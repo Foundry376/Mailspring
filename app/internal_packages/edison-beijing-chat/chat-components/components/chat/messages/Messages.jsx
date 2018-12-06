@@ -166,7 +166,9 @@ export default class Messages extends PureComponent {
                 // assert the file is on aws
                 if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
                   let path = dialog.showSaveDialog({ title: `download file` });
-                  downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+                  if (typeof path === 'string'){
+                    downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+                  }
                 }
               };
 

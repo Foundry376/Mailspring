@@ -10,6 +10,10 @@ import InviteGroupChatList from '../new/InviteGroupChatList';
 import xmpp from '../../../xmpp/index';
 import chatModel from '../../../store/model';
 import getDb from '../../../db';
+import FilePlusIcon from '../../common/icons/FilePlusIcon';
+import { uploadFile } from '../../../utils/awss3';
+import uuid from 'uuid/v4';
+
 
 export default class MessagesPanel extends PureComponent {
   static propTypes = {
@@ -89,6 +93,65 @@ export default class MessagesPanel extends PureComponent {
 
   }
 
+  onDragOver = (event) => {
+    const state = Object.assign({}, this.state, {dragover:true});
+    this.setState(state);
+  }
+
+  onDrop = (event) => {
+    let tranFiles = event.dataTransfer.files,
+      files = [];
+    for (let i = 0; i < tranFiles.length; i++) {
+      files.push(tranFiles[i].path);
+    }
+    const state = Object.assign({}, this.state, {dragover:false});
+    this.setState(state);
+    this.sendFile(files);
+  }
+
+  sendFile(files) {
+    const { selectedConversation } = this.props;
+    const onMessageSubmitted = this.props.sendMessage;
+    const atIndex = selectedConversation.jid.indexOf('@');
+
+    let jidLocal = selectedConversation.jid.slice(0, atIndex);
+
+    files.map((file, index) => {
+      let message = 'file received';
+      let body = {
+        type: 1,
+        timeSend: new Date().getTime(),
+        content: 'sending...',
+        email: selectedConversation.email,
+        name: selectedConversation.name,
+        mediaObjectId: '',
+      };
+      const messageId = uuid();
+      onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
+      uploadFile(jidLocal, null, file, (err, filename, myKey, size) => {
+        if (err) {
+          alert(`upload files failed because error: ${err}, filename: ${filename}`);
+          return;
+        }
+        if (filename.match(/.gif$/)){
+          body.type = 5;
+        } else if (filename.match(/(\.bmp|\.png|\.jpg)$/)){
+          body.type = 2;
+        } else {
+          body.type = 9;
+        }
+        body.content = " ";
+        body.mediaObjectId = myKey;
+        body.occupants = [];
+        body.atJids = [];
+        body.localFile = file;
+        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
+      });
+    })
+  }
+
+
+>>>>>>> 0d5b6d5ed98ce2160fbcce82a3997fa3f48cdf86
   render() {
     const { showConversationInfo, members, inviting } = this.state;
     const {
@@ -144,7 +207,10 @@ export default class MessagesPanel extends PureComponent {
     };
 
     return (
-      <div className="panel">
+      <div className="panel"
+           onDragOver={this.onDragOver}
+           onDrop={this.onDrop}
+      >
         {selectedConversation ?
           <div className="chat">
             <div className="splitPanel">
@@ -152,6 +218,13 @@ export default class MessagesPanel extends PureComponent {
                 <MessagesTopBar {...topBarProps} />
                 {/* <Divider type="horizontal" /> */}
                 <Messages {...messagesProps} />
+                { this.state.dragover && <div id="message-dragdrop-override">
+                  <div id="message-dragdrop-inner" style={{width:"50%", height:"10%", position:"absolute", top:"40%", left:"20%"}}>
+                    <FilePlusIcon className="icon" />
+                    drop file here to send
+                  </div>
+                </div>
+                }
                 <div>
                   {/* <Divider type="horizontal" /> */}
                   <MessagesSendBar {...sendBarProps} />
