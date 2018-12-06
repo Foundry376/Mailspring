@@ -94,7 +94,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   onDragOver = (event) => {
-    const state = Object.assign({}, this.state, {dragover:true});
+    const state = Object.assign({}, this.state, { dragover: true });
     this.setState(state);
   }
 
@@ -104,7 +104,7 @@ export default class MessagesPanel extends PureComponent {
     for (let i = 0; i < tranFiles.length; i++) {
       files.push(tranFiles[i].path);
     }
-    const state = Object.assign({}, this.state, {dragover:false});
+    const state = Object.assign({}, this.state, { dragover: false });
     this.setState(state);
     this.sendFile(files);
   }
@@ -133,9 +133,9 @@ export default class MessagesPanel extends PureComponent {
           alert(`upload files failed because error: ${err}, filename: ${filename}`);
           return;
         }
-        if (filename.match(/.gif$/)){
+        if (filename.match(/.gif$/)) {
           body.type = 5;
-        } else if (filename.match(/(\.bmp|\.png|\.jpg)$/)){
+        } else if (filename.match(/(\.bmp|\.png|\.jpg)$/)) {
           body.type = 2;
         } else {
           body.type = 9;
@@ -150,8 +150,6 @@ export default class MessagesPanel extends PureComponent {
     })
   }
 
-
->>>>>>> 0d5b6d5ed98ce2160fbcce82a3997fa3f48cdf86
   render() {
     const { showConversationInfo, members, inviting } = this.state;
     const {
@@ -208,8 +206,8 @@ export default class MessagesPanel extends PureComponent {
 
     return (
       <div className="panel"
-           onDragOver={this.onDragOver}
-           onDrop={this.onDrop}
+        onDragOver={this.onDragOver}
+        onDrop={this.onDrop}
       >
         {selectedConversation ?
           <div className="chat">
@@ -218,8 +216,8 @@ export default class MessagesPanel extends PureComponent {
                 <MessagesTopBar {...topBarProps} />
                 {/* <Divider type="horizontal" /> */}
                 <Messages {...messagesProps} />
-                { this.state.dragover && <div id="message-dragdrop-override">
-                  <div id="message-dragdrop-inner" style={{width:"50%", height:"10%", position:"absolute", top:"40%", left:"20%"}}>
+                {this.state.dragover && <div id="message-dragdrop-override">
+                  <div id="message-dragdrop-inner" style={{ width: "50%", height: "10%", position: "absolute", top: "40%", left: "20%" }}>
                     <FilePlusIcon className="icon" />
                     drop file here to send
                   </div>
