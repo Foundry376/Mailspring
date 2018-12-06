@@ -5,6 +5,8 @@ import DatabaseStore from './database-store';
 import SanitizeTransformer from '../../services/sanitize-transformer';
 
 class MessageBodyProcessor {
+  MAX_DISPLAY_LENGTH = 300000;
+
   constructor() {
     this._subscriptions = [];
     this.resetCache();
@@ -73,7 +75,7 @@ class MessageBodyProcessor {
     const output = await this.retrieve(updatedMessage);
 
     // only trigger if the body has really changed
-    if (!oldCacheRecord || output !== oldCacheRecord.body) {
+    if (!oldCacheRecord || output.body !== oldCacheRecord.body) {
       for (const subscription of subscriptions) {
         subscription.callback(output);
         subscription.message = updatedMessage;
@@ -112,15 +114,15 @@ class MessageBodyProcessor {
       return this._recentlyProcessedD[key].body;
     }
 
-    const body = await this._process(message);
-    this._addToCache(key, body);
-    return body;
+    const output = await this._process(message);
+    this._addToCache(key, output);
+    return output;
   }
 
   retrieveCached(message) {
     const key = this._key(message);
     if (this._recentlyProcessedD[key]) {
-      return this._recentlyProcessedD[key].body;
+      return this._recentlyProcessedD[key];
     }
     return null;
   }
@@ -133,46 +135,53 @@ class MessageBodyProcessor {
     return message.id;
   }
 
-  _process(message) {
+  async _process(message) {
     if (typeof message.body !== 'string') {
-      return Promise.resolve('');
+      return { body: '', clipped: false };
+    }
+
+    let body = message.body;
+    let clipped = false;
+    if (body.length > this.MAX_DISPLAY_LENGTH) {
+      // We clip messages at 300,000 characters to avoid bringing Chromium to
+      // a crawl. We will display a "message clipped notice" later.
+      body = body.substr(0, this.MAX_DISPLAY_LENGTH);
+      clipped = true;
     }
 
     // Sanitizing <script> tags, etc. isn't necessary because we use CORS rules
     // to prevent their execution and sandbox content in the iFrame, but we still
     // want to remove contenteditable attributes and other strange things.
-    return SanitizeTransformer.run(message.body, SanitizeTransformer.Preset.UnsafeOnly).then(
-      sanitized => {
-        let body = sanitized;
-        for (const extension of MessageStore.extensions()) {
-          if (!extension.formatMessageBody) {
-            continue;
-          }
+    body = await SanitizeTransformer.run(body, SanitizeTransformer.Preset.UnsafeOnly);
 
-          // Give each extension the message object to process the body, but don't
-          // allow them to modify anything but the body for the time being.
-          const previousBody = body;
-          try {
-            const virtual = message.clone();
-            virtual.body = body;
-            extension.formatMessageBody({ message: virtual });
-            body = virtual.body;
-          } catch (err) {
-            AppEnv.reportError(err);
-            body = previousBody;
-          }
-        }
-        return body;
+    for (const extension of MessageStore.extensions()) {
+      if (!extension.formatMessageBody) {
+        continue;
       }
-    );
+
+      // Give each extension the message object to process the body, but don't
+      // allow them to modify anything but the body for the time being.
+      const previousBody = body;
+      try {
+        const virtual = message.clone();
+        virtual.body = body;
+        extension.formatMessageBody({ message: virtual });
+        body = virtual.body;
+      } catch (err) {
+        AppEnv.reportError(err);
+        body = previousBody;
+      }
+    }
+
+    return { body, clipped };
   }
 
-  _addToCache(key, body) {
+  _addToCache(key, { body, clipped }) {
     if (this._recentlyProcessedA.length > 50) {
       const removed = this._recentlyProcessedA.pop();
       delete this._recentlyProcessedD[removed.key];
     }
-    const item = { key, body };
+    const item = { key, body, clipped };
     this._recentlyProcessedA.unshift(item);
     this._recentlyProcessedD[key] = item;
   }

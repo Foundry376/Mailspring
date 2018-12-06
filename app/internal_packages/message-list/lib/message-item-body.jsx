@@ -1,3 +1,5 @@
+import fs from 'fs';
+import { remote } from 'electron';
 import {
   Utils,
   React,
@@ -48,9 +50,13 @@ export default class MessageItemBody extends React.Component {
   constructor(props, context) {
     super(props, context);
     this._mounted = false;
+
+    const cached = MessageBodyProcessor.retrieveCached(props.message);
+
     this.state = {
-      showQuotedText: this.props.message.isForwarded(),
-      processedBody: MessageBodyProcessor.retrieveCached(this.props.message),
+      showQuotedText: props.message.isForwarded(),
+      processedBody: cached ? cached.body : null,
+      clipped: cached ? cached.clipped : false,
     };
   }
 
@@ -59,7 +65,7 @@ export default class MessageItemBody extends React.Component {
     this._unsub = MessageBodyProcessor.subscribe(
       this.props.message,
       needInitialCallback,
-      processedBody => this.setState({ processedBody })
+      this._onBodyProcessed
     );
   }
 
@@ -72,9 +78,7 @@ export default class MessageItemBody extends React.Component {
       if (this._unsub) {
         this._unsub();
       }
-      this._unsub = MessageBodyProcessor.subscribe(nextProps.message, true, processedBody =>
-        this.setState({ processedBody })
-      );
+      this._unsub = MessageBodyProcessor.subscribe(nextProps.message, true, this._onBodyProcessed);
     }
   }
 
@@ -85,10 +89,28 @@ export default class MessageItemBody extends React.Component {
     }
   }
 
+  _onBodyProcessed = ({ body, clipped }) => this.setState({ processedBody: body, clipped });
+
   _onToggleQuotedText = () => {
     this.setState({
       showQuotedText: !this.state.showQuotedText,
     });
+  };
+
+  _onShowClipped = async () => {
+    const { message } = this.props;
+    const filepath = require('path').join(remote.app.getPath('temp'), `${message.id}.html`);
+    fs.writeFileSync(filepath, message.body);
+    const win = new remote.BrowserWindow({
+      title: `${message.subject}`,
+      width: 800,
+      height: 600,
+      webPreferences: {
+        javascript: false,
+        nodeIntegration: false,
+      },
+    });
+    win.loadURL(`file://${filepath}`);
   };
 
   _mergeBodyWithFiles(body) {
@@ -166,6 +188,7 @@ export default class MessageItemBody extends React.Component {
           body={this.props.message.body || ''}
           onClick={this._onToggleQuotedText}
         />
+        {this.state.clipped && <a onClick={this._onShowClipped}>[Message Clipped - Show All]</a>}
       </span>
     );
   }

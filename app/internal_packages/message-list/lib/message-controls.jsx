@@ -120,6 +120,10 @@ export default class MessageControls extends React.Component {
       width: 800,
       height: 600,
       title: `${message.subject} - RFC822`,
+      webPreferences: {
+        javascript: false,
+        nodeIntegration: false,
+      },
     });
     win.loadURL(`file://${filepath}`);
   };
