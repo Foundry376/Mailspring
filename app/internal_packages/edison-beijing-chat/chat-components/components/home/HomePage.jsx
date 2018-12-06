@@ -81,14 +81,6 @@ export default class HomePage extends Component {
         {this.props.isAuthenticating ?
           <Loader /> :
           <div className="authFormContainer">
-            <div className="label">email:</div>
-            <select className="label" onChange={this.onChangeAccount}>
-              {this.state.accounts.map((acc, index) => <option value={index} key={acc.emailAddress}> {acc.emailAddress} </option>)}
-            </select>
-            <Button onTouchTap={this.startChat} className="start-chat-button">
-              start chatting!
-            </Button>
-            {this.state.errorMessage && <div className="error-message">{this.state.errorMessage}</div>}
           </div>
         }
       </div>

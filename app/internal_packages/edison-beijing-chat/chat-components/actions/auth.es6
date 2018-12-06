@@ -17,9 +17,9 @@ export const BEGIN_JOIN_ROOMS = 'BEGIN_JOIN_ROOMS';
 export const SUCCESS_JOIN_ROOMS = 'SUCCESS_JOIN_ROOMS';
 export const FAIL_JOIN_ROOMS = 'FAIL_JOIN_ROOMS';
 
-export const submitAuth = (jid, password) => ({
+export const submitAuth = (jid, password, email) => ({
   type: SUBMIT_AUTH,
-  payload: { jid, password }
+  payload: { jid, password, email }
 });
 
 export const successAuth = jid => ({
