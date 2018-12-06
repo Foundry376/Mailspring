@@ -203,7 +203,7 @@ export function localized(en, ...subs) {
     // The translation may contain this format even if the original string does not.
     if (translated.includes('%1$@')) {
       subs.forEach((sub, idx) => {
-        translated = translated.replace(`%${idx}$@`, sub);
+        translated = translated.replace(`%${idx + 1}$@`, sub);
       });
     } else {
       translated = translated.replace(/%@/g, () => subs[i++]);
