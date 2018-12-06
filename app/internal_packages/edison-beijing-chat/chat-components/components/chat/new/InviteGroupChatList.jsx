@@ -58,11 +58,11 @@ export default class InviteGroupChatList extends Component {
       selectedContactsCopy.push(contact);
       this.setState({ selectedContacts: selectedContactsCopy });
     }
-   }
+  }
 
   onUpdateGroup = () => {
     const { selectedContacts } = this.state;
-    this.setState({ selectedContacts: [], inviting:false });
+    this.setState({ selectedContacts: [], inviting: false });
     this.props.onUpdateGroup(selectedContacts);
   }
 
@@ -80,15 +80,15 @@ export default class InviteGroupChatList extends Component {
       }
       return classes.join(' ');
     };
-    const {onUpdateGroup} = this.props;
+    const { onUpdateGroup } = this.props;
 
     return (
       <div className="contactsList">
-        <NewSelectedChips
+        {/* <NewSelectedChips
           selectedContacts={selectedContacts}
           onContactClicked={this.contactSelected.bind(this)}
-        />
-        <Button onTouchTap={ this.onUpdateGroup } className="update-group-button">
+        /> */}
+        <Button onTouchTap={this.onUpdateGroup} className="update-group-button">
           <DoneIcon color={primaryColor} />
         </Button>
         <div style={{ overflowY: 'scroll', flex: 1 }}>

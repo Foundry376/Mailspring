@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
-import xmpp from '../../../xmpp';
+import Button from '../../common/Button';
 
 export default class ConversationInfo extends Component {
   constructor() {
@@ -20,22 +20,52 @@ export default class ConversationInfo extends Component {
 
   render = () => {
     const { conversation, members } = this.props;
+    members.sort((a, b) => a.affiliation > b.affiliation);
     return (
       <div className="info-panel">
-        <ContactAvatar jid={conversation.jid} name={conversation.name}
-          email={conversation.email} avatar={conversation.avatar} size={100} />
-        <div className="name">{conversation.name}</div>
-        <div className="email">{conversation.email}</div>
+        {
+          !conversation.isGroup ? (
+            <div>
+              <ContactAvatar jid={conversation.jid} name={conversation.name}
+                email={conversation.email} avatar={conversation.avatar} size={100} />
+              <div className="name">{conversation.name}</div>
+              <div className="email">{conversation.email}</div>
+            </div>
+          ) : null
+        }
         {
           conversation.isGroup && members && members.map(member => {
             return (
-              <div className="email" key={member.jid.bare}>
-                {member.name}:{member.email}
-                {member.affiliation === 'owner' ? <span>⭐️</span> : null}
+              <div className="row" key={member.jid.bare}>
+                <div id="avatar">
+                  <ContactAvatar jid={member.jid.bare} name={member.name}
+                    email={member.email} avatar={member.avatar} size={30} />
+                </div>
+                <div className="info">
+                  <div className="name">
+                    {member.name}
+                    {member.affiliation === 'owner' ? <span> (owner)</span> : null}
+                  </div>
+                  <div className="email">{member.email}</div>
+                </div>
               </div>
             )
           })
         }
+        {
+          conversation.isGroup ? (
+            <div className="row add-to-group">
+              <Button onTouchTap={this.props.toggleInvite}>
+                Add to Group
+              </Button>
+            </div>
+          ) : null
+        }
+        <div className="clear">
+          <Button className="clear-message">
+            Clear Message History
+          </Button>
+        </div>
       </div>
     )
   };

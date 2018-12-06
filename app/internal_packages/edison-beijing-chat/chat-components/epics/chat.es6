@@ -170,10 +170,11 @@ export const sendMessageEpic = action$ =>
 export const newTempMessageEpic = (action$, { getState }) =>
   action$.ofType(SENDING_MESSAGE)//yazzz2
     .map(({ payload }) => {
-      const { auth: { currentUser } } = getState();
+      const curJid = payload.curJid;
+      const curJidLocal = curJid ? curJid.split('@')[0] : '';
       if (payload.ediEncrypted) {
         let keys = payload.ediEncrypted.header.key;//JSON.parse(msg.body);
-        let text = getAes(keys, currentUser.local);
+        let text = getAes(keys, curJidLocal);
         if (text) {
           let aes = decrypte(text, getPriKey());//window.localStorage.priKey);
           payload.body = decryptByAES(aes, payload.ediEncrypted.payload);
@@ -182,7 +183,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
       return {
         id: payload.id,
         conversationJid: payload.to,
-        sender: currentUser.bare,
+        sender: curJid,
         body: payload.body,// || payload.ediEncrypted,//yazzz3
         sentTime: (new Date()).getTime(),
         status: payload.isUploading ? MESSAGE_STATUS_FILE_UPLOADING : MESSAGE_STATUS_SENDING,
@@ -352,7 +353,7 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
                   }
                 }
               }
-              return [{ type, payload, name, beAt }];
+              return { type, payload, name, beAt };
             });
         }
       }

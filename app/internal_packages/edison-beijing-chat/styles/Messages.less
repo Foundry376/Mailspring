@@ -2,6 +2,14 @@
   .messages {
     flex-grow: 1;
     overflow-y: scroll;
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    &::-webkit-scrollbar-thumb {
+      -webkit-border-radius: 2px;
+      background: rgba(150, 150, 150, 0.33);
+    }
   }
   
   .messageGroup {

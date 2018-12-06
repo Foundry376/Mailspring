@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { gradientColorForString } from '../../utils/colors';
 
 const getInitials = name => {
-  const trimmedName = name.trim();
+  const trimmedName = name ? name.trim() : '';
   const nameParts = trimmedName.split(' ');
   if (!nameParts.length) {
     return '';

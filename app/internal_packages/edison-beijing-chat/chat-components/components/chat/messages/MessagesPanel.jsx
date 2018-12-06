@@ -82,6 +82,13 @@ export default class MessagesPanel extends PureComponent {
     }
   }
 
+  toggleInvite = () => {
+    // let { showConversationInfo } = this.state;
+    // if (!this.inviting) showConversationInfo = false;
+    this.setState({ inviting: !this.state.inviting });
+
+  }
+
   render() {
     const { showConversationInfo, members, inviting } = this.state;
     const {
@@ -101,12 +108,7 @@ export default class MessagesPanel extends PureComponent {
       },
       onInfoPressed: () =>
         this.setState({ showConversationInfo: !this.state.showConversationInfo }),
-      toggleInvite: () => {
-        let { showConversationInfo } = this.state;
-        if (!this.inviting) showConversationInfo = false;
-        this.setState({ inviting: !this.state.inviting, showConversationInfo });
-
-      },
+      toggleInvite: this.toggleInvite,
       exitGroup: () => {
         let { showConversationInfo } = this.state;
         xmpp.leaveRoom(selectedConversation.jid, chatModel.currentUser.jid);
@@ -134,6 +136,12 @@ export default class MessagesPanel extends PureComponent {
       onMessageSubmitted: sendMessage,
       selectedConversation,
     };
+    const infoProps = {
+      conversation: selectedConversation,
+      members,
+      toggleInvite: this.toggleInvite,
+      getRoomMembers: this.getRoomMembers
+    };
 
     return (
       <div className="panel">
@@ -157,14 +165,17 @@ export default class MessagesPanel extends PureComponent {
               >
                 {showConversationInfo && (
                   <div className="infoPanel">
-                    <ConversationInfo
-                      conversation={selectedConversation}
-                      members={members}
-                      getRoomMembers={this.getRoomMembers} />
+                    <ConversationInfo {...infoProps} />
                   </div>
                 )}
               </CSSTransitionGroup>
-              {inviting && <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup}></InviteGroupChatList>}
+              <CSSTransitionGroup
+                transitionName="transition-slide"
+                transitionLeaveTimeout={250}
+                transitionEnterTimeout={250}
+              >
+                {inviting && <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup}></InviteGroupChatList>}
+              </CSSTransitionGroup>
             </div>
           </div> :
           <div className="unselectedHint">

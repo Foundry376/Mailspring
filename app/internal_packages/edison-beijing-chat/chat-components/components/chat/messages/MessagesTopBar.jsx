@@ -93,10 +93,10 @@ export default class MessagesTopBar extends Component {
                 {inviting ? "cancel" : "invite"}
               </div>
               } */}
-              <Button onTouchTap={() => onInfoPressed()}>
+              <div id="open-info" onTouchTap={() => onInfoPressed()}>
                 <ContactAvatar jid={selectedConversation.jid} name={selectedConversation.name}
                   email={selectedConversation.email} avatar={selectedConversation.avatar} size={26} />
-              </Button>
+              </div>
             </div>
           }
         />
