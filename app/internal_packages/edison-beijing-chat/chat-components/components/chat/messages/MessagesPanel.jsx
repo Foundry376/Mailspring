@@ -156,11 +156,11 @@ export default class MessagesPanel extends PureComponent {
       deselectConversation,
       sendMessage,
       availableUsers,
-      currentUserId,
       groupedMessages,
       selectedConversation,
       referenceTime,
     } = this.props;
+    const currentUserId = selectedConversation ? selectedConversation.curJid : '';
 
     const topBarProps = {
       onBackPressed: () => {
