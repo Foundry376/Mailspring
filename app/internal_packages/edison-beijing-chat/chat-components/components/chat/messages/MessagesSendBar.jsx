@@ -176,6 +176,13 @@ export default class MessagesSendBar extends PureComponent {
             alert(`upload files failed because error: ${err}, filename: ${filename}`);
             return;
           }
+          if (filename.match(/.gif$/)){
+            body.type = 5;
+          } else if (filename.match(/(\.bmp|\.png|\.jpg)$/)){
+            body.type = 2;
+          } else {
+            body.type = 9;
+          }
           body.content = message || " ";
           body.mediaObjectId = myKey;
           body.occupants = occupants;
