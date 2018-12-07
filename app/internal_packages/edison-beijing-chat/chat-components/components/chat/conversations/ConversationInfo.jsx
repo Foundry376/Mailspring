@@ -41,11 +41,17 @@ export default class ConversationInfo extends Component {
       <div className="info-panel">
         {
           !conversation.isGroup ? (
-            <div>
-              <ContactAvatar jid={conversation.jid} name={conversation.name}
-                email={conversation.email} avatar={conversation.avatar} size={100} />
-              <div className="name">{conversation.name}</div>
-              <div className="email">{conversation.email}</div>
+            <div className="row">
+              <div id="avatar">
+                <ContactAvatar jid={conversation.jid} name={conversation.name}
+                  email={conversation.email} avatar={conversation.avatar} size={30} />
+              </div>
+              <div className="info">
+                <div className="name">
+                  {conversation.name}
+                </div>
+                <div className="email">{conversation.email}</div>
+              </div>
             </div>
           ) : null
         }

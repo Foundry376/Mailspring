@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ConversationItem from './ConversationItem';
-
+import { WorkspaceStore, Actions } from 'mailspring-exports';
 export default class Conversations extends PureComponent {
   static propTypes = {
     conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
@@ -26,7 +26,7 @@ export default class Conversations extends PureComponent {
     } = this.props;
 
     return (
-      <div>
+      <div onTouchTap={() => Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView)}>
         {conversations.map((conv, index) => (
           <ConversationItem
             key={conv.jid}

@@ -101,6 +101,11 @@ export default class MessagesPanel extends PureComponent {
     this.setState(state);
   }
 
+  onDragEnd = (event) => {
+    const state = Object.assign({}, this.state, { dragover: false });
+    this.setState(state);
+  }
+
   onDrop = (event) => {
     let tranFiles = event.dataTransfer.files,
       files = [];
@@ -209,7 +214,9 @@ export default class MessagesPanel extends PureComponent {
 
     return (
       <div className="panel"
-        onDragOver={this.onDragOver}
+        onDragOverCapture={this.onDragOver}
+        onDragEnd={this.onDragEnd}
+        onMouseLeave={this.onDragEnd}
         onDrop={this.onDrop}
       >
         {selectedConversation ?
@@ -219,13 +226,9 @@ export default class MessagesPanel extends PureComponent {
                 <MessagesTopBar {...topBarProps} />
                 {/* <Divider type="horizontal" /> */}
                 <Messages {...messagesProps} />
-                {this.state.dragover && <div id="message-dragdrop-override">
-                  <div id="message-dragdrop-inner" style={{ width: "50%", height: "10%", position: "absolute", top: "40%", left: "20%" }}>
-                    <FilePlusIcon className="icon" />
-                    drop file here to send
-                  </div>
-                </div>
-                }
+                {this.state.dragover && (
+                  <div id="message-dragdrop-override"></div>
+                )}
                 <div>
                   {/* <Divider type="horizontal" /> */}
                   <MessagesSendBar {...sendBarProps} />
