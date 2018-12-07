@@ -14,6 +14,10 @@ const { dialog } = require('electron').remote;
 import { isJsonString } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
 
+var http = require("http");
+var https = require("https");
+var fs = require("fs");
+
 // The number of pixels away from the bottom to be considered as being at the bottom
 const BOTTOM_TOLERANCE = 32;
 
@@ -105,14 +109,6 @@ export default class Messages extends PureComponent {
     }
   }
 
-  download = (event) => {
-    let aws3file = event.target.title;
-    let path = dialog.showSaveDialog({
-      title: `download the file -- ${aws3file}`,
-    });
-    downloadFile(null, aws3file, path);
-  }
-
   getContactInfoByJid = (jid) => {
     const members = this.props.members;
     if (!members || members.length === 0) {
@@ -163,21 +159,44 @@ export default class Messages extends PureComponent {
               let msgFile;
 
               let download = (event) => {
-                // assert the file is on aws
+                let path = dialog.showSaveDialog({ title: `download file` });
+                if (!path || typeof path !== 'string') {
+                  return;
+                }
                 if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
-                  let path = dialog.showSaveDialog({ title: `download file` });
-                  if (typeof path === 'string'){
-                    downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+                  // the file is on aws
+                  downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+                } else {
+                  let request;
+                  if (msgBody.mediaObjectId.match(/^https/)) {
+                    request = https;
+                  } else {
+                    request = http;
                   }
+                  request.get(msgBody.mediaObjectId, function(res) {
+                    var imgData = '';
+                    res.setEncoding('binary');
+                    res.on('data', function(chunk){
+                      imgData += chunk;
+                    });
+                    res.on('end', function() {
+                      fs.writeFile(path, imgData, 'binary', function(err) {
+                        if (err) {
+                          console.log('down fail');
+                        }
+                        console.log('down success');
+                      });
+                    });
+                  });
                 }
               };
 
               if (msgBody.path) {
                 let maxHeight;
                 if (msgBody.path.match(/\.gif$/)) {
-                  maxHeight = "100px";
-                } else if (msgBody.path.match(/(\.bmp|\.png|\.jpg)$/)) {
-                  maxHeight = "250px";
+                  maxHeight = '100px';
+                } else if (msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
+                  maxHeight = '250px';
                 }
                 msgFile = (<div className="messageMeta">
                   <img
@@ -193,7 +212,7 @@ export default class Messages extends PureComponent {
                     name="fileIcon.png"
                     mode={RetinaImg.Mode.ContentPreserve}
                     title={msgBody.mediaObjectId}
-                    onClick={this.download}
+                    onClick={download}
                   />
                 </div>
               }

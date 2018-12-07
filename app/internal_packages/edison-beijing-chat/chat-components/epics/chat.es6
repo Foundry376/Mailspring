@@ -47,9 +47,14 @@ import { getPriKey } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 
 const downloadAndTagImageFileInMessage = (aes, payload) => {
-  let body = decryptByAES(aes, payload.payload);
+  let body;
+  if (aes) {
+    body = decryptByAES(aes, payload.payload);
+  } else {
+    body = payload.body;
+  }
   let msgBody = JSON.parse(body);
-  if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)\.encrypted$/)) {
+  if (aes && msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpeg|jpg|gif|png|bmp)\.encrypted$/)) {
     let name = msgBody.mediaObjectId;
     name = name.split('/')[1]
     name = name.replace('.encrypted', '');
@@ -61,14 +66,16 @@ const downloadAndTagImageFileInMessage = (aes, payload) => {
     path = downpath + name;
     msgBody.path = 'file://' + path;
     downloadFile(aes, msgBody.mediaObjectId, path);
-  } else if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpg|gif|png|bmp)$/)) {
+  } else if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpeg|jpg|gif|png|bmp)$/)) {
     let path = msgBody.mediaObjectId;
     if (!path.match('https?://')) {
       path = 'https://s3.us-east-2.amazonaws.com/edison-profile-stag/' + path;
     }
     msgBody.path = path;
   }
-  msgBody.aes = aes;
+  if (aes) {
+    msgBody.aes = aes;
+  }
   payload.body = JSON.stringify(msgBody);
   return;
 }
@@ -260,6 +267,8 @@ export const receivePrivateMessageEpic = action$ =>
             downloadAndTagImageFileInMessage(aes, payload);
           }
         }
+      } else {
+        downloadAndTagImageFileInMessage(null, payload);
       }
       return payload.body;
     })
@@ -293,6 +302,8 @@ export const receiveGroupMessageEpic = action$ =>
             downloadAndTagImageFileInMessage(aes, payload);
           }
         }
+      } else {
+        downloadAndTagImageFileInMessage(null, payload);
       }
       return payload.body;
     })
