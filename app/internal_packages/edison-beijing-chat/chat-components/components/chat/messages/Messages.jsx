@@ -152,7 +152,7 @@ export default class Messages extends PureComponent {
           <div className="messageGroup" key={uuid()}>
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
-              if (msgBody.localFile && !msgBody.path) {
+              if (msg.sender === currentUserId) {
                 msgBody.path = msgBody.localFile;
               }
               const color = colorForString(msg.sender);
