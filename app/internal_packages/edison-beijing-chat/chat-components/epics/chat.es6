@@ -43,7 +43,7 @@ import {
 import { isJsonString } from '../utils/stringUtils';
 import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
-import { getPriKey } from '../utils/e2ee';
+import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 
 const downloadAndTagImageFileInMessage = (aes, payload) => {
@@ -133,10 +133,15 @@ export const sendMessageEpic = action$ =>
           return { payload };
         });
     })
-    .map(({ payload: { conversation, body, id, devices, selfDevices, isUploading } }) => {
+    .mergeMap(({ payload }) => {
+      return Observable.fromPromise(getDeviceId()).map((deviceId) => {
+        return { payload, deviceId };
+      });
+    })
+    .map(({ payload: { conversation, body, id, devices, selfDevices, isUploading }, deviceId }) => {
       let ediEncrypted;
       if (devices) {
-        ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices, conversation.curJid);
+        ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices, conversation.curJid, deviceId);
       }
       if (ediEncrypted) {
         return ({
@@ -176,14 +181,19 @@ export const sendMessageEpic = action$ =>
 
 export const newTempMessageEpic = (action$, { getState }) =>
   action$.ofType(SENDING_MESSAGE)//yazzz2
-    .map(({ payload }) => {
+    .mergeMap((payload) => {
+      return Observable.fromPromise(getPriKey()).map(({ deviceId, priKey }) => {
+        return { payload: payload.payload, deviceId, priKey };
+      });
+    })
+    .map(({ payload, deviceId, priKey }) => {
       const curJid = payload.curJid;
       const curJidLocal = curJid ? curJid.split('@')[0] : '';
       if (payload.ediEncrypted) {
         let keys = payload.ediEncrypted.header.key;//JSON.parse(msg.body);
-        let text = getAes(keys, curJidLocal);
+        let text = getAes(keys, curJidLocal, deviceId);
         if (text) {
-          let aes = decrypte(text, getPriKey());//window.localStorage.priKey);
+          let aes = decrypte(text, priKey);//window.localStorage.priKey);
           payload.body = decryptByAES(aes, payload.ediEncrypted.payload);
         }
       }
@@ -197,13 +207,13 @@ export const newTempMessageEpic = (action$, { getState }) =>
       };
     })
     .map(newPayload => newMessage(newPayload));
-const getAes = (keys, curJid) => {
+const getAes = (keys, curJid, deviceId) => {
   if (keys) {
     let text;
     for (let i = 0; i < keys.length; i++) {
       let key = keys[i];
       if (key.uid == curJid
-        && key.rid == window.localStorage.deviceId) {
+        && key.rid == deviceId) {
         text = key.text;
         break;
       }
@@ -255,15 +265,20 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
 
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
-    .filter(({ payload }) => {
+    .mergeMap((payload) => {
+      return Observable.fromPromise(getPriKey()).map(({ deviceId, priKey }) => {
+        return { payload: payload.payload, deviceId, priKey };
+      });
+    })
+    .filter(({ payload, deviceId, priKey }) => {
       if (payload.payload) {
         let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
         if (keys[jidLocal]
-          && keys[jidLocal][window.localStorage.deviceId]) {
-          let text = keys[jidLocal][window.localStorage.deviceId];
+          && keys[jidLocal][deviceId]) {
+          let text = keys[jidLocal][deviceId];
           if (text) {
-            let aes = decrypte(text, getPriKey()); //window.localStorage.priKey);
+            let aes = decrypte(text, priKey); //window.localStorage.priKey);
             downloadAndTagImageFileInMessage(aes, payload);
           }
         }
@@ -290,15 +305,20 @@ export const receivePrivateMessageEpic = action$ =>
 
 export const receiveGroupMessageEpic = action$ =>
   action$.ofType(RECEIVE_GROUPCHAT)
-    .filter(({ payload }) => {
+    .mergeMap((payload) => {
+      return Observable.fromPromise(getPriKey()).map(({ deviceId, priKey }) => {
+        return { payload: payload.payload, deviceId, priKey };
+      });
+    })
+    .filter(({ payload, deviceId, priKey }) => {
       if (payload.payload) {
         let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
         if (keys[jidLocal]
-          && keys[jidLocal][window.localStorage.deviceId]) {
-          let text = keys[jidLocal][window.localStorage.deviceId];
+          && keys[jidLocal][deviceId]) {
+          let text = keys[jidLocal][deviceId];
           if (text) {
-            let aes = decrypte(text, getPriKey());//window.localStorage.priKey);
+            let aes = decrypte(text, priKey);//window.localStorage.priKey);
             downloadAndTagImageFileInMessage(aes, payload);
           }
         }
@@ -458,7 +478,7 @@ export const goNextConversationEpic = (action$, { getState }) =>
     .filter(({ jids, selectedIndex }) => selectedIndex === -1 || selectedIndex < jids.length - 1)
     .map(({ jids, selectedIndex }) => selectConversation(jids[selectedIndex + 1]));
 
-const getEncrypted = (jid, body, devices, selfDevices, curJid) => {
+const getEncrypted = (jid, body, devices, selfDevices, curJid, deviceId) => {
   let aeskey = generateAESKey();
   let uid = jid.substring(0, jid.indexOf('@'));//new JID(jid).local;//.substring(0,jid.indexOf('@'));
   let selfDk = JSON.parse(selfDevices);
@@ -482,7 +502,7 @@ const getEncrypted = (jid, body, devices, selfDevices, curJid) => {
     //keys = addKeys(window.localStorage.jidLocal, selfDk, aeskey, keys);
     let ediEncrypted = {
       header: {
-        sid: window.localStorage.deviceId,
+        sid: deviceId,
         key: keys,
       },
       payload: encryptByAES(aeskey, body),

@@ -17,6 +17,7 @@ import {
 } from '../actions/db/contact';
 import xmpp from '../xmpp';
 import { SUCCESS_STORE_OCCUPANTS } from '../actions/db/conversation';
+import { getE2ees, setE2eeJid } from '../utils/e2ee';
 export const triggerFetchRosterEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
     .map(({ payload }) => {
@@ -26,7 +27,21 @@ export const triggerFetchRosterEpic = action$ =>
 
 export const triggerFetchE2eeEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
-    .map(({ payload }) => {
+    .mergeMap(({ payload }) => {
+      return Observable.fromPromise(getE2ees(payload.local)).map((data) => {
+        if (data.needUpload) {
+          Observable.fromPromise(xmpp.setE2ee({
+            jid: payload.bare,
+            did: data.deviceId,
+            key: data.e2ee_pubkey
+          }, payload.bare)).map(() => {
+            setE2eeJid(payload.local, data['e2ee_' + payload.local]);
+          }).catch(err => { console.log(err) });
+        }
+        return payload;
+      });
+    })
+    .map((payload) => {
       return fetchE2ee(payload);
     });
 // .map(fetchE2ee);//yazzxx1

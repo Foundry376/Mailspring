@@ -153,14 +153,16 @@ export class XmppEx extends EventEmitter3 {
       this.client.enableKeepAlive({ timeout: 30, interval: 30 });
     });
     this.client.on('disconnected', () => {
+      console.log('disconnected');
       //console.log('disconnected', this.connectedJid, this.isConnected, Date.now())
       this.isConnected = false;
       if (this.retryTimes == 0) {
+        console.log('connecting。。。');
         this.retryTimes++;
-        this.connect();
+        setTimeout(() => this.connect(), 500);
       } else {
         this.emit('disconnected', this.connectedJid);
-        this.connectedJid = null;
+        //this.connectedJid = null;
       }
     });
   }
@@ -192,7 +194,8 @@ export class XmppEx extends EventEmitter3 {
         if (!isComplete) {
           removeListeners();
           self.client.disconnect();
-          reject('Connection timeout');
+          //reject('Connection timeout');
+          console.log('Connection timeout');
         }
       }, 30000);
       const removeListeners = () => {
@@ -311,7 +314,7 @@ export class XmppEx extends EventEmitter3 {
   async joinRooms(...roomJids) {
     this.requireConnection();
     if (roomJids.length === 0) {
-      throw Error('At least 1 room jid is required');
+      console.warn('At least 1 room jid is required');
     }
     const self = this;
     const incomplete = new Set(roomJids);
@@ -347,7 +350,12 @@ export class XmppEx extends EventEmitter3 {
    * @throws  {Error}             Throws an error if the client is not connected
    */
   sendMessage(message) {
-    this.requireConnection();
+    try {
+      this.requireConnection();
+    } catch (e) {
+      console.warn(e);
+      setTimeout(() => this.connect(), 100);
+    }
     const finalMessage = Object.assign({}, message, {
       from: this.connectedJid,
       requestReceipt: true,
@@ -357,7 +365,7 @@ export class XmppEx extends EventEmitter3 {
 
   requireConnection() {
     if (!this.isConnected || !(this.client instanceof Client)) {
-      throw Error('This method requires a connection to the XMPP server, call connect before ' +
+      console.warn('This method requires a connection to the XMPP server, call connect before ' +
         'using this method.');
       //this.emit('disconnected', this.connectedJid);
     }

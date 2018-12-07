@@ -10,26 +10,33 @@ export const register = (email, pwd, name, type, provider, setting, cb) => {
     let ssl = setting.imap_allow_insecure_ssl ? true : (setting.imap_security === 'SSL / TLS' ? true : false);
     let port = setting.imap_port;
 
-    let data = {
-        "name": name,
-        "emailType": type,
-        "emailProvider": emailProvider,
-        "emailHost": host,
-        "emailSSL": ssl,
-        "emailPort": port,
-        "deviceType": "desktop",
-        "deviceModel": process.platform,
-        "pushToken": "",
-        "deviceId": window.localStorage.deviceId,
-        "otherAccounts": [],
-        "e2eeKeys": [
-            { 'id': '1', 'key': getPubKey() }
-        ],
-        "emailAddress": email,
-        "emailPassword": pwd,
-        "autoLogin": "true"
-    };
-    post(urlPre + 'register', data, cb);
+    getPubKey((err, deviceId, pubKey) => {
+        if (!err) {
+            let data = {
+                "name": name,
+                "emailType": type,
+                "emailProvider": emailProvider,
+                "emailHost": host,
+                "emailSSL": ssl,
+                "emailPort": port,
+                "deviceType": "desktop",
+                "deviceModel": process.platform,
+                "pushToken": "",
+                "deviceId": deviceId,
+                "otherAccounts": [],
+                "e2eeKeys": [
+                    { 'id': '1', 'key': pubKey }
+                ],
+                "emailAddress": email,
+                "emailPassword": pwd,
+                "autoLogin": "true"
+            };
+            post(urlPre + 'register', data, cb);
+        } else {
+            console.warn(err);
+        }
+    })
+
 }
 export const unregister = (userId, password, cb) => {
     post(urlPre + 'unregisterV2',

@@ -22,6 +22,7 @@ import {
   successfullyJoinedRooms,
   failedJoiningRooms,
 } from '../actions/auth';
+import { getDeviceId } from '../utils/e2ee';
 
 /**
  * Starts the authentication process by starting session creation
@@ -33,19 +34,25 @@ export const submitAuthEpic = action$ => action$.ofType(SUBMIT_AUTH)
  * Creates a XMPP Connection and outputs success or failure
  */
 export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTION_AUTH)
-  .mergeMap(({ payload: { jid, password } }) => {
+  .mergeMap(({ payload }) => {
+    return Observable.fromPromise(getDeviceId()).map((deviceId) => {
+      console.log(payload);
+      return { payload, deviceId };
+    });
+  })
+  .mergeMap(({ payload: { jid, password }, deviceId }) => {
     // let deviceId = '2b92e45c-2fde-48e3-9335-421c8c57777f';
-    if (!window.localStorage.deviceId) {
-      window.localStorage.deviceId = uuid();
-    }
+    // if (!window.localStorage.deviceId) {
+    //   window.localStorage.deviceId = uuid();
+    // }
     xmpp.init({
       jid,
       password,
       transport: 'websocket',
       //wsURL: 'ws://192.168.1.103:5290'
       wsURL: 'ws://tigase.stag.easilydo.cc:5290',
-      resource: window.localStorage.deviceId.replace(/-/g, ''),
-      deviceId: window.localStorage.deviceId,//'2b92e45c-2fde-48e3-9335-421c8c57777f"',
+      resource: deviceId.replace(/-/g, ''),
+      deviceId: deviceId,//'2b92e45c-2fde-48e3-9335-421c8c57777f"',
       timespan: new Date().getTime(),
       deviceType: 'desktop',
       deviceModel: process.platform,
@@ -53,12 +60,12 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
       clientVerName: '1.0.0',
       //sessionId: window.localStorage.sessionId
     });
-    if (jid.indexOf('/') > 0) {
-      window.localStorage.jid = jid.substring(0, jid.indexOf('/'));//{ jid, local: jid.substring(0, jid.indexOf('@')) };
-    } else {
-      window.localStorage.jid = jid;//{ jid, local: jid.substring(0, jid.indexOf('@')) };
-    }
-    window.localStorage.jidLocal = jid.substring(0, jid.indexOf('@'));
+    // if (jid.indexOf('/') > 0) {
+    //   window.localStorage.jid = jid.substring(0, jid.indexOf('/'));//{ jid, local: jid.substring(0, jid.indexOf('@')) };
+    // } else {
+    //   window.localStorage.jid = jid;//{ jid, local: jid.substring(0, jid.indexOf('@')) };
+    // }
+    // window.localStorage.jidLocal = jid.substring(0, jid.indexOf('@'));
     return Observable.fromPromise(xmpp.connect(jid))
       .map(res => successfulConnectionAuth(res))
       .catch(error => Observable.of(failConnectionAuth(error)));
