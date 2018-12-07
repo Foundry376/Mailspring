@@ -8,12 +8,15 @@
     flex-direction: row;
     align-items: center;
   }
+  .left-title,
   .mid-title {
-    font-size: 14px;
+    font-size: 13px;
     text-align: center;
-    padding-left: 24px;
     font-weight: bold;
+  }
 
+  .left-title {
+    padding-left: 24px;
   }
 
   .left {
@@ -40,17 +43,23 @@
     justify-content: flex-end;
   }
   #input-group-name-dialog {
-    position:relative;
-    top:40px;
-    left:10px;
-    border:1px solid black;
+    position: absolute;
+    width: 100%;
+    top: 40px;
+    left: 0px;
+    padding: 10px 8px;
+    background: #fff;
+    input {
+      width: 100%;
+      height: 26px;
+      border-radius: 3px;
+      margin-bottom: 5px;
+    }
   }
 
   #input-group-name-dialog-title {
-    background-color:lightgray;
-    color:blue;
-    border:1px solid lightgray;
-    margin:0
+    line-height: 20px;
+    margin:0;
   }
 
   #invite-button {

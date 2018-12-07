@@ -41,6 +41,7 @@ export default class NewFilterBar extends PureComponent {
         />
         {filterString.length ?
           <Button
+            className="no-border"
             onTouchTap={
               () => {
                 this.setState({ filterString: '' });

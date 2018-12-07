@@ -96,7 +96,7 @@ export default class NewPanel extends PureComponent {
           onFilterStringChanged={newFilter => this.setState({ filterString: newFilter })}
         />
         <Divider type="horizontal" />
-        {isGroupMode ?
+        {/* {isGroupMode ?
           <NewSelectedChips
             selectedContacts={selectedContacts}
             onContactClicked={this.contactSelected.bind(this)}
@@ -105,7 +105,7 @@ export default class NewPanel extends PureComponent {
         }
         {isGroupMode && selectedContacts.length ?
           <Divider type="horizontal" /> : null
-        }
+        } */}
         <NewContactsList
           groupMode={isGroupMode}
           contacts={visibleContacts}

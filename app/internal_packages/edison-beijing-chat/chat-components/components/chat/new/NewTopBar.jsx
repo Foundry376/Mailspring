@@ -21,20 +21,20 @@ export default class NewTopBar extends Component {
   }
 
   static defaultProps = {
-    onCancelGroupModePressed: () => {},
-    onCreateGroupPressed: () => {},
-    onEnterGroupModePressed: () => {},
+    onCancelGroupModePressed: () => { },
+    onCreateGroupPressed: () => { },
+    onEnterGroupModePressed: () => { },
     groupMode: false,
     createGroupEnabled: false,
   }
 
-  constructor(){
+  constructor() {
     super()
     this.state = {}
   }
 
   onCreateGroup = () => {
-    this.setState({openInput:true})
+    this.setState({ openInput: true })
     // this.props.onCreateGroupPressed()
   }
 
@@ -61,11 +61,11 @@ export default class NewTopBar extends Component {
       <TopBar
         left={
           groupMode ?
-            <Button onTouchTap={() => onCancelGroupModePressed()}>
+            <Button className="no-border" onTouchTap={() => onCancelGroupModePressed()}>
               <CancelIcon color={primaryColor} />
             </Button> :
             <Link to="/chat">
-              <Button>
+              <Button className="no-border">
                 <BackIcon color={primaryColor} />
               </Button>
             </Link>
@@ -73,24 +73,27 @@ export default class NewTopBar extends Component {
         center={
           <div className="mid-title">
             New {groupMode ? 'Group' : 'Conversation'}
-            {this.state.openInput && <div id="input-group-name-dialog">
-              <h6 id="input-group-name-dialog-title">the name for the group chat</h6>
-              <input placeholder={"input here..."} ref={(el) => this.chatNameInput = el }></input>
-              {this.state.needName && <p style={{color:"red"}}>please input a chat name!</p>}
-              <input type={"button"} onClick={this.onStartGroupChat} value={"ok"}></input>
-            </div>
-            }
+            {this.state.openInput && (
+              <div id="input-group-name-dialog">
+                <h6 id="input-group-name-dialog-title">Group chat name</h6>
+                <input ref={(el) => this.chatNameInput = el}></input>
+                {this.state.needName && <p style={{ color: "red" }}>please input a chat name</p>}
+                <Button onTouchTap={this.onStartGroupChat}>OK</Button>
+              </div>
+            )}
           </div>
         }
         right={
           groupMode ?
             <Button
+              className="no-border"
               disabled={!createGroupEnabled}
               onTouchTap={this.onCreateGroup}
             >
               <DoneIcon color={primaryColor} />
             </Button> :
             <Button
+              className="no-border"
               onTouchTap={() => onEnterGroupModePressed()}
             >
               <CreateGroupIcon color={primaryColor} />

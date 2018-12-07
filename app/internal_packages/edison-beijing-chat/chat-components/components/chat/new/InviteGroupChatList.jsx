@@ -6,6 +6,7 @@ import { theme } from '../../../utils/colors';
 import getDb from '../../../db';
 import NewSelectedChips from './NewSelectedChips';
 import DoneIcon from '../../common/icons/DoneIcon';
+import CancelIcon from '../../common/icons/CancelIcon';
 import Button from '../../common/Button';
 
 const { primaryColor } = theme;
@@ -60,6 +61,11 @@ export default class InviteGroupChatList extends Component {
     }
   }
 
+  onCancel = () => {
+    this.setState({ selectedContacts: [], inviting: false });
+    this.props.onUpdateGroup([]);
+  }
+
   onUpdateGroup = () => {
     const { selectedContacts } = this.state;
     this.setState({ selectedContacts: [], inviting: false });
@@ -88,9 +94,14 @@ export default class InviteGroupChatList extends Component {
           selectedContacts={selectedContacts}
           onContactClicked={this.contactSelected.bind(this)}
         /> */}
-        <Button onTouchTap={this.onUpdateGroup} className="update-group-button">
-          <DoneIcon color={primaryColor} />
-        </Button>
+        <div style={{ padding: '5px 12px', overflow: 'hidden' }}>
+          <Button style={{ float: 'left' }} className="no-border" onTouchTap={this.onCancel}>
+            <CancelIcon color={primaryColor} />
+          </Button>
+          <Button style={{ float: 'right' }} onTouchTap={this.onUpdateGroup} className="update-group-button no-border">
+            <DoneIcon color={primaryColor} />
+          </Button>
+        </div>
         <div style={{ overflowY: 'scroll', flex: 1 }}>
           {
             contacts.map(contact =>

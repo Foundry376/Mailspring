@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
+import getDb from '../../../db';
 
 export default class ConversationInfo extends Component {
   constructor() {
@@ -16,6 +17,21 @@ export default class ConversationInfo extends Component {
     if (!this.props.conversation || nextProps.conversation.jid !== this.props.conversation.jid) {
       this.props.getRoomMembers();
     }
+  }
+
+  clearMessages = () => {
+    (getDb()).then(db => {
+      db.messages
+        .find()
+        .where('conversationJid')
+        .eq(this.props.conversation.jid)
+        .remove()
+        .then(conv => {
+          console.log('*****conv', conv);
+        }).catch((error) => {
+          console.warn('remove message error', error);
+        })
+    });
   }
 
   render = () => {
@@ -62,7 +78,7 @@ export default class ConversationInfo extends Component {
           ) : null
         }
         <div className="clear">
-          <Button className="clear-message">
+          <Button className="clear-message" onTouchTap={this.clearMessages}>
             Clear Message History
           </Button>
         </div>
