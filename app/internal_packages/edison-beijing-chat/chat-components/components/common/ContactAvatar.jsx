@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { gradientColorForString } from '../../utils/colors';
+import { getavatar } from '../../utils/restjs';
 
 const getInitials = name => {
   const trimmedName = name ? name.trim() : '';
@@ -18,9 +19,41 @@ const getInitials = name => {
 class ContactAvatar extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      avatar: props.avatar ? `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${props.avatar})` : gradientColorForString(props.jid),
+      isImgExist: false
+    }
+  }
+  componentDidMount = () => {
+    if (this.props.email && !this.props.avatar) {
+      getavatar(this.props.email, (error, data, res) => {
+        if (res.statusCode >= 400) {
+          return;
+        }
+        if (res.statusCode === 302) {
+          const img = new Image();
+          img.src = res.headers.location;
+          img.onload = () => {
+            this.setState({
+              avatar: `url("${res.headers.location}") center center / cover`,
+              isImgExist: true
+            })
+          }
+          img.onerror = () => {
+            console.warn(`avatar not exists. jid:${this.props.jid}`);
+          }
+          return;
+        }
+        this.setState({
+          avatar: `url("${res.headers.location}") center center / cover`,
+          isImgExist: true
+        })
+      })
+    }
   }
   render() {
-    const { name, jid, size = 48, avatar } = this.props;
+    const { name, size = 48 } = this.props;
+    const { avatar, isImgExist } = this.state;
     return (
       <div
         style={{
@@ -30,7 +63,7 @@ class ContactAvatar extends Component {
           minHeight: size,
           fontSize: size / 2 - 1,
           borderRadius: size / 2,
-          background: avatar ? `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${avatar})` : gradientColorForString(jid),
+          background: avatar,
           backgroundSize: 'cover',
           color: 'white',
           display: 'flex',
@@ -40,7 +73,7 @@ class ContactAvatar extends Component {
           flexShrink: 0,
         }}
       >
-        {avatar ? null : getInitials(name).toUpperCase()}
+        {isImgExist ? null : getInitials(name).toUpperCase()}
       </div>
     )
   }
