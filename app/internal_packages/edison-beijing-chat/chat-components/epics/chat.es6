@@ -47,9 +47,14 @@ import { getPriKey } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 
 const downloadAndTagImageFileInMessage = (aes, payload) => {
-  let body = decryptByAES(aes, payload.payload);
+  let body;
+  if (aes) {
+    body = decryptByAES(aes, payload.payload);
+  } else {
+    body = payload.body;
+  }
   let msgBody = JSON.parse(body);
-  if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpeg|jpg|gif|png|bmp)\.encrypted$/)) {
+  if (aes && msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpeg|jpg|gif|png|bmp)\.encrypted$/)) {
     let name = msgBody.mediaObjectId;
     name = name.split('/')[1]
     name = name.replace('.encrypted', '');
@@ -68,7 +73,9 @@ const downloadAndTagImageFileInMessage = (aes, payload) => {
     }
     msgBody.path = path;
   }
-  msgBody.aes = aes;
+  if (aes) {
+    msgBody.aes = aes;
+  }
   payload.body = JSON.stringify(msgBody);
   return;
 }
@@ -260,6 +267,8 @@ export const receivePrivateMessageEpic = action$ =>
             downloadAndTagImageFileInMessage(aes, payload);
           }
         }
+      } else {
+        downloadAndTagImageFileInMessage(null, payload);
       }
       return payload.body;
     })
@@ -293,6 +302,8 @@ export const receiveGroupMessageEpic = action$ =>
             downloadAndTagImageFileInMessage(aes, payload);
           }
         }
+      } else {
+        downloadAndTagImageFileInMessage(null, payload);
       }
       return payload.body;
     })
