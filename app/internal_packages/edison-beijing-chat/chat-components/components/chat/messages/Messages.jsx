@@ -105,14 +105,6 @@ export default class Messages extends PureComponent {
     }
   }
 
-  download = (event) => {
-    let aws3file = event.target.title;
-    let path = dialog.showSaveDialog({
-      title: `download the file -- ${aws3file}`,
-    });
-    downloadFile(null, aws3file, path);
-  }
-
   getContactInfoByJid = (jid) => {
     const members = this.props.members;
     if (!members || members.length === 0) {
@@ -166,7 +158,7 @@ export default class Messages extends PureComponent {
                 // assert the file is on aws
                 if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
                   let path = dialog.showSaveDialog({ title: `download file` });
-                  if (typeof path === 'string'){
+                  if (path && typeof path === 'string') {
                     downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
                   }
                 }
@@ -193,7 +185,7 @@ export default class Messages extends PureComponent {
                     name="fileIcon.png"
                     mode={RetinaImg.Mode.ContentPreserve}
                     title={msgBody.mediaObjectId}
-                    onClick={this.download}
+                    onClick={download}
                   />
                 </div>
               }
