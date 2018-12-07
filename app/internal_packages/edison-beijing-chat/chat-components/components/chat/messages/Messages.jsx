@@ -160,7 +160,7 @@ export default class Messages extends PureComponent {
 
               let download = (event) => {
                 let path = dialog.showSaveDialog({ title: `download file` });
-                if (!path && typeof path === 'string') {
+                if (!path || typeof path !== 'string') {
                   return;
                 }
                 if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
