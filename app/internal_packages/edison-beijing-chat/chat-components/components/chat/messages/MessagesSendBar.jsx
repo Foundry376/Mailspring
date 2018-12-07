@@ -178,7 +178,7 @@ export default class MessagesSendBar extends PureComponent {
           }
           if (filename.match(/.gif$/)){
             body.type = 5;
-          } else if (filename.match(/(\.bmp|\.png|\.jpg)$/)){
+          } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)){
             body.type = 2;
           } else {
             body.type = 9;

@@ -176,7 +176,7 @@ export default class Messages extends PureComponent {
                 let maxHeight;
                 if (msgBody.path.match(/\.gif$/)) {
                   maxHeight = "100px";
-                } else if (msgBody.path.match(/(\.bmp|\.png|\.jpg)$/)) {
+                } else if (msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
                   maxHeight = "250px";
                 }
                 msgFile = (<div className="messageMeta">
