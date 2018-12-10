@@ -55,8 +55,8 @@ export const getPriKey = async (cb) => {
     //     cb(data);
     // });
 }
-export const getPubKey = (cb) => {
-    const db = getDb();
+export const getPubKey = async (cb) => {
+    const db = await getDb();
     db.configs.find({ key: { $in: ['deviceId', 'e2ee_pubkey'] } }).exec().then((data) => {
         if (data.length == 2) {
             cb(null, data[0].value, data[1].value);
