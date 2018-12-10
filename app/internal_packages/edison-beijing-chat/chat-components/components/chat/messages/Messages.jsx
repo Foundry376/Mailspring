@@ -110,16 +110,18 @@ export default class Messages extends PureComponent {
   }
 
   getContactInfoByJid = (jid) => {
-    const members = this.props.members;
-    if (!members || members.length === 0) {
-      return null;
-    }
-    for (const member of members) {
-      if (member.jid.bare === jid) {
-        return (
-          <ContactAvatar jid={member.jid.bare} name={member.name}
-            email={member.email} avatar={member.avatar} size={32} />
-        )
+    if (this.props.selectedConversation.isGroup) {
+      const members = this.props.members;
+      if (!members || members.length === 0) {
+        return null;
+      }
+      for (const member of members) {
+        if (member.jid.bare === jid) {
+          return (
+            <ContactAvatar jid={member.jid.bare} name={member.name}
+              email={member.email} avatar={member.avatar} size={32} />
+          )
+        }
       }
     }
     return null;
@@ -173,14 +175,14 @@ export default class Messages extends PureComponent {
                   } else {
                     request = http;
                   }
-                  request.get(msgBody.mediaObjectId, function(res) {
+                  request.get(msgBody.mediaObjectId, function (res) {
                     var imgData = '';
                     res.setEncoding('binary');
-                    res.on('data', function(chunk){
+                    res.on('data', function (chunk) {
                       imgData += chunk;
                     });
-                    res.on('end', function() {
-                      fs.writeFile(path, imgData, 'binary', function(err) {
+                    res.on('end', function () {
+                      fs.writeFile(path, imgData, 'binary', function (err) {
                         if (err) {
                           console.log('down fail');
                         }
@@ -223,12 +225,12 @@ export default class Messages extends PureComponent {
                   className={getMessageClasses(msg)}
                   style={{ borderColor: color }}
                 >
-                  {isGroup && msg.sender !== currentUserId ?
+                  {msg.sender !== currentUserId ?
                     <div className="messageSender">
                       {this.getContactInfoByJid(msg.sender)}
                     </div> : null
                   }
-                  {isGroup && msg.sender === currentUserId ?
+                  {msg.sender === currentUserId ?
                     <div className="messageSender">
                       {this.getContactInfoByJid(msg.sender)}
                     </div> : null
