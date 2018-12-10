@@ -135,9 +135,9 @@ module.exports = grunt => {
         linux: undefined,
       }[platform],
       name: {
-        darwin: 'Edison Mail',
-        win32: 'Edison Mail',
-        linux: 'Edison Mail',
+        darwin: 'EdisonMail',
+        win32: 'EdisonMail',
+        linux: 'EdisonMail',
       }[platform],
       appCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
       derefSymlinks: false,

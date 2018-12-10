@@ -8,19 +8,19 @@ module.exports = grunt => {
 
   grunt.registerTask('create-mac-zip', 'Zip up Mailspring', function pack() {
     const done = this.async();
-    const zipPath = path.join(grunt.config('outputDir'), 'Mailspring.zip');
+    const zipPath = path.join(grunt.config('outputDir'), 'EdisonMail.zip');
 
     if (grunt.file.exists(zipPath)) {
       grunt.file.delete(zipPath, { force: true });
     }
 
     const orig = process.cwd();
-    process.chdir(path.join(grunt.config('outputDir'), 'Mailspring-darwin-x64'));
+    process.chdir(path.join(grunt.config('outputDir'), 'EdisonMail-darwin-x64'));
 
     spawn(
       {
         cmd: 'zip',
-        args: ['-9', '-y', '-r', '-9', '-X', zipPath, 'Mailspring.app'],
+        args: ['-9', '-y', '-r', '-9', '-X', zipPath, 'EdisonMail.app'],
       },
       error => {
         process.chdir(orig);
