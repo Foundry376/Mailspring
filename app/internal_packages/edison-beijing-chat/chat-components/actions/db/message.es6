@@ -13,10 +13,12 @@ export const beginStoringMessage = message => ({
   payload: message
 });
 
-export const successfullyStoredMessage = message => ({
-  type: SUCCESS_STORE_MESSAGE,
-  payload: message
-});
+export const successfullyStoredMessage = message => {
+  return {
+    type: SUCCESS_STORE_MESSAGE,
+    payload: message
+  };
+}
 
 export const failedStoringMessage = (error, message) => ({
   type: FAIL_STORE_MESSAGE,

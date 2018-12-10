@@ -46,6 +46,10 @@ import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 
+import { messageSent } from '../actions/chat';
+import chatModel from '../store/model';
+
+
 const downloadAndTagImageFileInMessage = (aes, payload) => {
   let body;
   if (aes) {
@@ -171,13 +175,25 @@ export const sendMessageEpic = action$ =>
     //     type: conversation.isGroup ? 'groupchat' : 'chat'
     //   })
     // })
-    .map(message => sendingMessage(message))//yazzz1
-    .do(({ payload }) => {
-      // when uploading file, do not send message
+    .map(message => {
+      const action = sendingMessage(message);
+      let payload = message;
       if (!payload.isUploading) {
+        console.log('before xmpp.sendMessage: ', payload);
+        let body = payload.body;
+        if (typeof body === 'string') {
+          try {
+            body = JSON.parse(body);
+            delete body.localFile;
+            payload = Object.assign({}, payload);
+            payload.body = JSON.stringify(body);
+          } catch (e) {
+          }
+        }
         xmpp.sendMessage(payload, payload.curJid);
       }
-    });
+      return action;
+    })
 
 export const newTempMessageEpic = (action$, { getState }) =>
   action$.ofType(SENDING_MESSAGE)//yazzz2
