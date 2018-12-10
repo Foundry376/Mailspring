@@ -129,15 +129,15 @@ module.exports = grunt => {
           'build',
           'resources',
           'mac',
-          'mailspring.icns'
+          'edisonMail.icns'
         ),
         win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'mailspring.ico'),
         linux: undefined,
       }[platform],
       name: {
-        darwin: 'Mailspring',
-        win32: 'Mailspring',
-        linux: 'mailspring',
+        darwin: 'Edison Mail',
+        win32: 'Edison Mail',
+        linux: 'Edison Mail',
       }[platform],
       appCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
       derefSymlinks: false,
