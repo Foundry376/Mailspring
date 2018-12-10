@@ -27,7 +27,7 @@ import {
   successfullyStoredOccupants,
   failedStoringOccupants,
 } from '../../actions/db/conversation';
-import xmpp from '../../xmpp/index.es6';
+import xmpp from '../../xmpp/index';
 import { ipcRenderer } from 'electron';
 
 const saveOccupants = async payload => {
