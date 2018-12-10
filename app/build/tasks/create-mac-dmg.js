@@ -8,7 +8,7 @@ module.exports = grunt => {
     createDMG(
       {
         appPath: path.join(grunt.config('outputDir'), 'EdisonMail-darwin-x64', 'EdisonMail.app'),
-        name: 'Mailspring',
+        name: 'EdisonMail',
         background: path.resolve(
           grunt.config('appDir'),
           'build',
