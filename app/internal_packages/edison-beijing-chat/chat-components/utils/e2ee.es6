@@ -79,8 +79,8 @@ export const getDeviceId = async (cb) => {
     //     cb(data);
     // });
 }
-export const setE2eeJid = (jidLocal, value) => {
-    const db = getDb();
+export const setE2eeJid = async (jidLocal, value) => {
+    const db = await getDb();
     db.configs.upsert({ key: 'e2ee_' + jidLocal, value, time: Date.now() });
 }
 export const getE2ees = async (jidLocal) => {
