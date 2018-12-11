@@ -11,13 +11,13 @@
       background: rgba(150, 150, 150, 0.33);
     }
   }
-  
+
   .messageGroup {
     margin: 8px 16px 8px 16px;
     display: flex;
     flex-direction: column;
   }
-  
+
   .message {
     max-width: 80%;
     margin: 1px 0 1px 0;
@@ -27,7 +27,7 @@
     border-width: 2px;
     font-size: 12px;
   }
-  
+
   .message.currentUser {
     align-self: flex-end;
     background-color: #2fa3fc;
@@ -40,7 +40,7 @@
       display: none;
     }
   }
-  
+
   .message.otherUser {
     align-self: flex-start;
     padding: 12px;
@@ -53,11 +53,11 @@
       display: none;
     }
   }
-  
+
   // .message.currentUser:first-child {
   //   border-top-right-radius: 12px;
   // }
-  
+
   .message.currentUser:last-child {
     &:after {
       content: '';
@@ -78,11 +78,11 @@
       bottom: 0;
     }
   }
-  
+
   // .message.otherUser:first-child {
   //   border-top-left-radius: 12px;
   // }
-  
+
   .message.otherUser:last-child {
     &:after {
       content: '';
@@ -103,20 +103,20 @@
       bottom: 0;
     }
   }
-  
+
   .messageSender {
     margin-top: 2px;
     margin-bottom: 4px;
     font-weight: bold;
   }
-  
+
   .messageContent {
     display: flex;
     flex-flow: row wrap;
     align-items: baseline;
     justify-content: flex-end;
   }
-  
+
   .messageBody {
     align-self: flex-start;
     flex-grow: 1;
@@ -124,15 +124,27 @@
     white-space: pre-line;
     word-break: break-word;
   }
-  
+
   .messageMeta {
     margin: 4px 0 0 6px;
     align-self: flex-end;
     text-align: right;
     font-size: 0.7em;
   }
-  
+
   .messageStatus {
     margin-right: 2px;
-  }  
+  }
+  .download-button {
+    position:absolute;
+    z-index: 9999;
+    opacity:1;
+    top: 40%;
+    left: 40%;
+    font-size: 3em;
+    border: 1px solid blue;
+    backgroune-color: #a8a8a8;
+    width: 100px;
+    height: 40px;
+  }
 }

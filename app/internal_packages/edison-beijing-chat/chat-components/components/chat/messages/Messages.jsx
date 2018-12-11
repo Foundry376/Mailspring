@@ -18,6 +18,8 @@ var http = require("http");
 var https = require("https");
 var fs = require("fs");
 
+let key = 0;
+
 // The number of pixels away from the bottom to be considered as being at the bottom
 const BOTTOM_TOLERANCE = 32;
 
@@ -190,6 +192,16 @@ export default class Messages extends PureComponent {
                   });
                 }
               };
+              let showDownload = () => {
+                msg.showDownload = true;
+                key++;
+                this.setState(Object.assign({}, this.state, {key}));
+              }
+              let hideDownload = () => {
+                msg.showDownload = false;
+                key++;
+                this.setState(Object.assign({}, this.state, {key}));
+              }
 
               if (msgBody.path) {
                 let maxHeight;
@@ -198,22 +210,24 @@ export default class Messages extends PureComponent {
                 } else if (msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
                   maxHeight = '250px';
                 }
-                msgFile = (<div className="messageMeta">
+                msgFile = (<div className="messageMeta" onMouseEnter={showDownload} onMouseLeave={hideDownload}>
                   <img
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
                     onClick={download}
                     style={{ maxHeight }}
                   />
+                    {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
                 </div>)
               } else {
-                msgFile = msgBody.mediaObjectId && <div className="messageMeta">
+                msgFile = msgBody.mediaObjectId && <div className="messageMeta" onMouseEnter={showDownload} onMouseLeave={hideDownload}>
                   <RetinaImg
                     name="fileIcon.png"
                     mode={RetinaImg.Mode.ContentPreserve}
                     title={msgBody.mediaObjectId}
                     onClick={download}
                   />
+                  {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
                 </div>
               }
 
