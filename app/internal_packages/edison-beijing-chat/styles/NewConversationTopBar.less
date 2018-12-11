@@ -5,15 +5,11 @@
     border-width: 0 0 1px 0;
     border-radius: 0;
     margin: 18px 18px 0;
-    padding-left: 44px;
+    padding-left: 22px;
     box-shadow: none;
     &:hover {
       box-shadow: none;
     }
-  }
-  .rc-select-dropdown {
-    height: 160px;
-    overflow-y: auto;
   }
   .new-conversation-header {
     .to {
@@ -21,11 +17,43 @@
       display: flex;
       flex-direction: column;
       left: 22px;
-      top: 2px;
-      color:#797d80 !important;
+      top: 5px;
+      color:#797d80;
       font-size: 13px;
       font-weight: bold;
       z-index: 2;
+      .button {
+        color:#797d80;
+      }
+    }
+  }
+}
+
+li.rc-select-dropdown-menu-item-active {
+  background-color: #e7ebed;
+}
+
+.rc-select-dropdown {
+  width: 450px !important;
+  max-height: 320px;
+  overflow-y: auto;
+  .chip {
+    line-height: 32px;
+    overflow: hidden;
+    &>div,
+    &>span{
+      float: left;
+    }
+    .contact-name {
+      font-weight: bold;
+      font-size: 12px;
+      margin-left: 15px;
+      color: #000;
+    }
+    .contact-email {
+      font-size: 11px;
+      margin-left: 15px;
+      color: #7d8285;
     }
   }
 }
