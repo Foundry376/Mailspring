@@ -177,6 +177,31 @@ export default class MessagesPanel extends PureComponent {
     }
   }
 
+  removeMember = member => {
+    const conversation = this.props.selectedConversation;
+    console.log('removeMember conversation:', conversation);
+    if (member.affiliation === 'owner') {
+      alert('you can not remove the owner of the group chat!');
+      return;
+    }
+    xmpp.leaveRoom(conversation.jid, member.jid.bare);
+    if (member.jid.bare == chatModel.currentUser.jid) {
+      (getDb()).then(db => {
+        db.conversations.findOne(conversation.jid).exec().then(conv => {
+          conv.remove()
+        }).catch((error) => { })
+      });
+      this.props.deselectConversation();
+    } else {
+      debugger;
+      let index = this.state.members.indexOf(member);
+      this.state.members.splice(index, 1);
+      let members = this.state.members.slice();
+      const state = Object.assign({}, this.state, { members });
+      this.setState(state);
+    }
+  };
+
   render() {
     const { showConversationInfo, members, inviting } = this.state;
     const {
@@ -229,9 +254,11 @@ export default class MessagesPanel extends PureComponent {
     }
     const infoProps = {
       conversation: selectedConversation,
+      deselectConversation: this.props.deselectConversation,
       members,
       toggleInvite: this.toggleInvite,
-      getRoomMembers: this.getRoomMembers
+      getRoomMembers: this.getRoomMembers,
+      removeMember: this.removeMember
     };
     const newConversationProps = {
       contacts,

@@ -43,7 +43,6 @@ export default class ChatView extends React.Component {
             keyMannager.extractChatAccountSecrets(chatAccount).then(chatAccount => {
               chatAccounts[acc.emailAddress] = chatAccount;
               AppEnv.config.set('chatAccounts', chatAccounts);
-              //AppEnv.config.set('activeChatAccount', chatAccount);
             })
           })
         })

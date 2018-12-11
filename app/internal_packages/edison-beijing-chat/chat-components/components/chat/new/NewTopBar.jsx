@@ -44,6 +44,7 @@ export default class NewTopBar extends Component {
       this.setState({ openInput: true, needName: true })
       return;
     } else {
+      this.setState({ openInput: false, needName: false });
       this.props.onCreateGroupPressed(name);
     }
   }
