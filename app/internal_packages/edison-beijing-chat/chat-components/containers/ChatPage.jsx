@@ -10,6 +10,7 @@ import {
   createPrivateConversation,
   deselectConversation,
   selectConversation,
+  newConversation,
   removeConversation,
   beginSendingMessage,
 } from '../actions/chat';
@@ -26,6 +27,7 @@ const actionCreators = {
   retrieveContacts,
   deselectConversation,
   selectConversation,
+  newConversation,
   removeConversation,
   sendMessage: beginSendingMessage,
   setReferenceTime,

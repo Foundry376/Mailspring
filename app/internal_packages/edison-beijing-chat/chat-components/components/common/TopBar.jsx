@@ -11,8 +11,8 @@ export default class TopBar extends PureComponent {
   }
 
   static defaultProps = {
-    left: EMPTY_SPAN,
-    center: EMPTY_SPAN,
+    left: null,
+    center: null,
     right: EMPTY_SPAN,
   }
 
@@ -20,12 +20,16 @@ export default class TopBar extends PureComponent {
     const { left, center, right } = this.props;
     return (
       <div className="topBarContainer">
-        <div className="left">
-          {left}
-        </div>
-        <div className="center">
-          {center}
-        </div>
+        {left ? (
+          <div className="left">
+            {left}
+          </div>
+        ) : null}
+        {center ? (
+          <div className="center">
+            {center}
+          </div>
+        ) : null}
         <div className="right">
           {right}
         </div>

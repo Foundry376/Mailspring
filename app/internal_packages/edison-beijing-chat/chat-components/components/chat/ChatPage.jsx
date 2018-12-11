@@ -16,6 +16,7 @@ export default class ChatPage extends PureComponent {
     retrieveAllConversations: PropTypes.func.isRequired,
     retrieveContacts: PropTypes.func.isRequired,
     selectConversation: PropTypes.func.isRequired,
+    newConversation: PropTypes.func.isRequired,
     sendMessage: PropTypes.func.isRequired,
     setReferenceTime: PropTypes.func.isRequired,
     availableUsers: PropTypes.arrayOf(PropTypes.string),
@@ -79,6 +80,7 @@ export default class ChatPage extends PureComponent {
       retrieveAllConversations,
       retrieveContacts,
       selectConversation,
+      newConversation,
       sendMessage,
       availableUsers,
       contacts,
@@ -97,6 +99,7 @@ export default class ChatPage extends PureComponent {
     const conversationsPanelProps = {
       retrieveAllConversations,
       selectConversation,
+      newConversation,
       conversations,
       selectedConversationJid,
       referenceTime,
@@ -110,6 +113,8 @@ export default class ChatPage extends PureComponent {
       groupedMessages,
       referenceTime,
       selectedConversation,
+      contacts,
+      onGroupConversationCompleted: createGroupConversation,
     };
     const newConversationPanelProps = {
       onGroupConversationCompleted: createGroupConversation,

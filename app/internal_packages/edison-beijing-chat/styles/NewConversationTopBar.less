@@ -1,0 +1,31 @@
+@import '../node_modules/rc-select/assets/index.css';
+.chat-view-container {
+  .rc-select-selection {
+    border: 1px solid #e7ebed;
+    border-width: 0 0 1px 0;
+    border-radius: 0;
+    margin: 18px 18px 0;
+    padding-left: 44px;
+    box-shadow: none;
+    &:hover {
+      box-shadow: none;
+    }
+  }
+  .rc-select-dropdown {
+    height: 160px;
+    overflow-y: auto;
+  }
+  .new-conversation-header {
+    .to {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      left: 22px;
+      top: 2px;
+      color:#797d80 !important;
+      font-size: 13px;
+      font-weight: bold;
+      z-index: 2;
+    }
+  }
+}

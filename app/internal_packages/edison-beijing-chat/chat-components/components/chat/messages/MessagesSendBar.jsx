@@ -176,9 +176,9 @@ export default class MessagesSendBar extends PureComponent {
             alert(`upload files failed because error: ${err}, filename: ${filename}`);
             return;
           }
-          if (filename.match(/.gif$/)){
+          if (filename.match(/.gif$/)) {
             body.type = 5;
-          } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)){
+          } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
             body.type = 2;
           } else {
             body.type = 9;
@@ -284,7 +284,13 @@ export default class MessagesSendBar extends PureComponent {
   }
 
   render() {
-    const { suggestions, suggestionStyle } = this.state;
+    // const { suggestions, suggestionStyle } = this.state;
+    const inputProps = {};
+    if (this.props.createRoom) {
+      inputProps.onFocus = () => {
+        this.props.createRoom();
+      }
+    }
     return (
       <div className="sendBar" onDrop={this.onDrop}>
         {/* <Mention
@@ -309,6 +315,7 @@ export default class MessagesSendBar extends PureComponent {
           onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
           ref={element => { this.textarea = element; }}
           onKeyDown={this.onKeyDown}
+          {...inputProps}
         />
         <div className="chat-message-filelist">
           {this.state.files.map((file, index) => {

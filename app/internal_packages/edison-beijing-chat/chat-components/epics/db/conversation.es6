@@ -2,6 +2,7 @@ import { Observable } from 'rxjs/Observable';
 import getDb from '../../db';
 import {
   SELECT_CONVERSATION,
+  NEW_CONVERSATION,
   CREATE_PRIVATE_CONVERSATION,
   CREATE_GROUP_CONVERSATION,
   REMOVE_CONVERSATION,
@@ -176,6 +177,21 @@ export const selectConversationEpic = action$ =>
       return Observable.fromPromise(retriveConversation(jid))
         .map(conversation => updateSelectedConversation(conversation))
         .catch(error => failedSelectingConversation(error, jid))
+    });
+
+export const newConversationEpic = action$ =>
+  action$.ofType(NEW_CONVERSATION)
+    .map(({ payload: jid }) => {
+      return updateSelectedConversation({
+        jid: jid,
+        curJid: null,
+        name: ' ',
+        email: null,
+        avatar: null,
+        isGroup: false,
+        unreadMessages: 0,
+        occupants: []
+      });
     });
 
 export const privateConversationCreatedEpic = (action$, { getState }) =>

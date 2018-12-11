@@ -17,6 +17,7 @@ export const SENDING_MESSAGE = 'SENDING_MESSAGE';
 export const SELECT_CONVERSATION = 'SELECT_CONVERSATION';
 export const DESELECT_CONVERSATION = 'DESELECT_CONVERSATION';
 
+export const NEW_CONVERSATION = 'NEW_CONVERSATION';
 export const CREATE_PRIVATE_CONVERSATION = 'CREATE_PRIVATE_CONVERSATION';
 export const CREATE_GROUP_CONVERSATION = 'CREATE_GROUP_CONVERSATION';
 export const REMOVE_CONVERSATION = 'REMOVE_CONVERSATION';
@@ -88,6 +89,11 @@ export const sendingMessage = message => {
 
 export const selectConversation = jid => ({
   type: SELECT_CONVERSATION,
+  payload: jid
+});
+
+export const newConversation = jid => ({
+  type: NEW_CONVERSATION,
   payload: jid
 });
 

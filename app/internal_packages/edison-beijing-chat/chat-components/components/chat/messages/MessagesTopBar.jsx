@@ -71,18 +71,18 @@ export default class MessagesTopBar extends Component {
           left={
             <div className="conversationName">{selectedConversation.name}</div>
           }
-          center={
-            <div className="chatTopBarCenter">
-              <div style={{ width: '100%' }}>
-                {/* <div className="onlineIndicatior">
-                  {selectedConversation.isGroup ?
-                    groupStatus(availableUsers, selectedConversation.occupants) :
-                    privateStatus(availableUsers, conversationJid)
-                  }
-                </div> */}
-              </div>
-            </div>
-          }
+          // center={
+          //   <div className="chatTopBarCenter">
+          //     <div style={{ width: '100%' }}>
+          //       <div className="onlineIndicatior">
+          //         {selectedConversation.isGroup ?
+          //           groupStatus(availableUsers, selectedConversation.occupants) :
+          //           privateStatus(availableUsers, conversationJid)
+          //         }
+          //       </div>
+          //     </div>
+          //   </div>
+          // }
           right={
             <div>
               {/* {selectedConversation.isGroup && <div id="exit-button" onTouchTap={exitGroup}>

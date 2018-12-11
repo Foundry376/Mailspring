@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
+import NewConversationTopBar from './NewConversationTopBar';
 import MessagesSendBar from './MessagesSendBar';
 import Messages from './Messages';
 import ConversationInfo from '../conversations/ConversationInfo';
@@ -10,10 +11,10 @@ import InviteGroupChatList from '../new/InviteGroupChatList';
 import xmpp from '../../../xmpp/index';
 import chatModel from '../../../store/model';
 import getDb from '../../../db';
-import FilePlusIcon from '../../common/icons/FilePlusIcon';
 import { uploadFile } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
-
+import { NEW_CONVERSATION } from '../../../actions/chat';
+const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class MessagesPanel extends PureComponent {
   static propTypes = {
@@ -57,7 +58,8 @@ export default class MessagesPanel extends PureComponent {
   state = {
     showConversationInfo: false,
     inviting: false,
-    members: []
+    members: [],
+    membersTemp: null
   }
 
   onUpdateGroup = async (contacts) => {
@@ -89,11 +91,12 @@ export default class MessagesPanel extends PureComponent {
     }
   }
 
-  toggleInvite = () => {
-    // let { showConversationInfo } = this.state;
-    // if (!this.inviting) showConversationInfo = false;
-    this.setState({ inviting: !this.state.inviting });
+  saveRoomMembersForTemp = (members) => {
+    this.setState({ membersTemp: members })
+  }
 
+  toggleInvite = () => {
+    this.setState({ inviting: !this.state.inviting });
   }
 
   onDragOver = (event) => {
@@ -158,6 +161,22 @@ export default class MessagesPanel extends PureComponent {
     })
   }
 
+  createRoom = () => {
+    const members = this.state.membersTemp;
+    if (members && members.length) {
+      const { onGroupConversationCompleted } = this.props;
+      if (onGroupConversationCompleted) {
+        const roomId = uuid() + GROUP_CHAT_DOMAIN;
+        const names = members.map(item => item.name);
+        let chatName = names.slice(0, names.length - 1).join(', ') + '& ' + names[names.length - 1];
+        if (names.length === 0) {
+          chatName = names[0];
+        }
+        onGroupConversationCompleted({ contacts: members, roomId, name: chatName });
+      }
+    }
+  }
+
   render() {
     const { showConversationInfo, members, inviting } = this.state;
     const {
@@ -167,8 +186,9 @@ export default class MessagesPanel extends PureComponent {
       groupedMessages,
       selectedConversation,
       referenceTime,
+      contacts
     } = this.props;
-    const currentUserId = selectedConversation ? selectedConversation.curJid : '';
+    const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
 
     const topBarProps = {
       onBackPressed: () => {
@@ -179,7 +199,6 @@ export default class MessagesPanel extends PureComponent {
         this.setState({ showConversationInfo: !this.state.showConversationInfo }),
       toggleInvite: this.toggleInvite,
       exitGroup: () => {
-        let { showConversationInfo } = this.state;
         xmpp.leaveRoom(selectedConversation.jid, chatModel.currentUser.jid);
         (getDb()).then(db => {
           db.conversations.findOne(selectedConversation.jid).exec().then(conv => {
@@ -187,7 +206,7 @@ export default class MessagesPanel extends PureComponent {
           }).catch((error) => {
           })
         });
-        this.props.deselectConversation();
+        deselectConversation();
       },
       availableUsers,
       infoActive: showConversationInfo,
@@ -205,12 +224,20 @@ export default class MessagesPanel extends PureComponent {
       onMessageSubmitted: sendMessage,
       selectedConversation,
     };
+    if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {
+      sendBarProps.createRoom = this.createRoom;
+    }
     const infoProps = {
       conversation: selectedConversation,
       members,
       toggleInvite: this.toggleInvite,
       getRoomMembers: this.getRoomMembers
     };
+    const newConversationProps = {
+      contacts,
+      saveRoomMembersForTemp: this.saveRoomMembersForTemp,
+      deselectConversation
+    }
 
     return (
       <div className="panel"
@@ -223,14 +250,17 @@ export default class MessagesPanel extends PureComponent {
           <div className="chat">
             <div className="splitPanel">
               <div className="chatPanel">
-                <MessagesTopBar {...topBarProps} />
+                {selectedConversation.jid === NEW_CONVERSATION ? (
+                  <NewConversationTopBar {...newConversationProps} />
+                ) : (
+                    <MessagesTopBar {...topBarProps} />
+                  )}
                 {/* <Divider type="horizontal" /> */}
                 <Messages {...messagesProps} />
                 {this.state.dragover && (
                   <div id="message-dragdrop-override"></div>
                 )}
                 <div>
-                  {/* <Divider type="horizontal" /> */}
                   <MessagesSendBar {...sendBarProps} />
                 </div>
               </div>
@@ -240,7 +270,7 @@ export default class MessagesPanel extends PureComponent {
                 transitionLeaveTimeout={250}
                 transitionEnterTimeout={250}
               >
-                {showConversationInfo && (
+                {showConversationInfo && selectedConversation.jid !== NEW_CONVERSATION && (
                   <div className="infoPanel">
                     <ConversationInfo {...infoProps} />
                   </div>
@@ -251,7 +281,7 @@ export default class MessagesPanel extends PureComponent {
                 transitionLeaveTimeout={250}
                 transitionEnterTimeout={250}
               >
-                {inviting && <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup}></InviteGroupChatList>}
+                {inviting && selectedConversation.jid !== NEW_CONVERSATION && <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup}></InviteGroupChatList>}
               </CSSTransitionGroup>
             </div>
           </div> :
