@@ -186,7 +186,7 @@ class AttachmentStore extends MailspringStore {
       this._prepareAndResolveFilePath(file)
         .catch(this._catchFSErrors)
         // Passively ignore
-        .catch(() => {})
+        .catch(() => { })
     );
   };
 
@@ -407,6 +407,7 @@ class AttachmentStore extends MailspringStore {
     const session = await DraftStore.sessionForClientId(headerMessageId);
     const files = changeFunction(session.draft().files);
     session.changes.add({ files });
+    session.changes.commit();
   }
 
   // Handlers
@@ -432,7 +433,7 @@ class AttachmentStore extends MailspringStore {
     headerMessageId,
     filePath,
     inline = false,
-    onCreated = () => {},
+    onCreated = () => { },
   }) => {
     this._assertIdPresent(headerMessageId);
 
