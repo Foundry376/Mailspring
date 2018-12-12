@@ -195,12 +195,12 @@ export default class Messages extends PureComponent {
               let showDownload = () => {
                 msg.showDownload = true;
                 key++;
-                this.setState(Object.assign({}, this.state, {key}));
+                this.setState(Object.assign({}, this.state, { key }));
               }
               let hideDownload = () => {
                 msg.showDownload = false;
                 key++;
-                this.setState(Object.assign({}, this.state, {key}));
+                this.setState(Object.assign({}, this.state, { key }));
               }
 
               if (msgBody.path) {
@@ -214,10 +214,10 @@ export default class Messages extends PureComponent {
                   <img
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
-                    onClick={download}
+                    // onClick={download}
                     style={{ maxHeight }}
                   />
-                    {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
+                  {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
                 </div>)
               } else {
                 msgFile = msgBody.mediaObjectId && <div className="messageMeta" onMouseEnter={showDownload} onMouseLeave={hideDownload}>
