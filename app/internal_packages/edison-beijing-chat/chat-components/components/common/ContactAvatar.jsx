@@ -27,6 +27,9 @@ class ContactAvatar extends Component {
   componentDidMount = () => {
     if (this.props.email && !this.props.avatar) {
       getavatar(this.props.email, (error, data, res) => {
+        if (!res) {
+          return;
+        }
         if (res.statusCode >= 400) {
           return;
         }

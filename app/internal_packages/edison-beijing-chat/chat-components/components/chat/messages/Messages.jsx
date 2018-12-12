@@ -20,6 +20,14 @@ var fs = require("fs");
 
 let key = 0;
 
+const shouldInlineImg = (msgBody) => {
+  return msgBody.path && msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/);
+}
+const shouldDisplayFileIcon = (msgBody) => {
+  return msgBody.mediaObjectId && !msgBody.path || // this is received file msgBody.path is added for image file while receiving message
+    msgBody.path && !msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) //this is sent file, msgBody.path is msgBody.localFile added while sending
+}
+
 // The number of pixels away from the bottom to be considered as being at the bottom
 const BOTTOM_TOLERANCE = 32;
 
@@ -203,7 +211,7 @@ export default class Messages extends PureComponent {
                 this.setState(Object.assign({}, this.state, { key }));
               }
 
-              if (msgBody.path) {
+              if (shouldInlineImg(msgBody)) {
                 let maxHeight;
                 if (msgBody.path.match(/\.gif$/)) {
                   maxHeight = '100px';
@@ -219,8 +227,8 @@ export default class Messages extends PureComponent {
                   />
                   {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
                 </div>)
-              } else {
-                msgFile = msgBody.mediaObjectId && <div className="messageMeta" onMouseEnter={showDownload} onMouseLeave={hideDownload}>
+              } else if (shouldDisplayFileIcon(msgBody)) {
+                msgFile = <div className="messageMeta" onMouseEnter={showDownload} onMouseLeave={hideDownload}>
                   <RetinaImg
                     name="fileIcon.png"
                     mode={RetinaImg.Mode.ContentPreserve}
@@ -229,6 +237,8 @@ export default class Messages extends PureComponent {
                   />
                   {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
                 </div>
+              } else {
+                msgFile = null;
               }
 
               return (
