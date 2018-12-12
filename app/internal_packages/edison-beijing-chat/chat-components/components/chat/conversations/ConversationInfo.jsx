@@ -99,7 +99,7 @@ export default class ConversationInfo extends Component {
                   </div>
                   <div className="email">{member.email}</div>
                 </div>
-                { this.currentUserIsOwner && <span id="remove-button" onClick={onClickRemove}>
+                { this.currentUserIsOwner && member.affiliation !== 'owner' && <span id="remove-button" onClick={onClickRemove}>
                   <CancelIcon color={primaryColor} />
                 </span>
                 }
