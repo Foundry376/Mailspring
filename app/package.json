@@ -15,7 +15,7 @@
     "babel-preset-react": "6.22.0",
     "babel-regenerator-runtime": "6.5.0",
     "babel-runtime": "^5.6.15",
-    "better-sqlite3": "^1.3.6",
+    "better-sqlite3": "^1.4.0",
     "browserify-versionify": "^1.0.4",
     "chromium-net-errors": "1.0.3",
     "chrono-node": "^1.1.2",
@@ -24,6 +24,7 @@
     "crypto-js": "^3.1.9-1",
     "debug": "github:emorikawa/debug#nylas",
     "double-ended-queue": "^2.1.0-0",
+    "electron-platform": "^1.2.0",
     "electron-spellchecker": "1.1.2",
     "emoji-data": "^0.2.0",
     "enzyme": "3.3.0",
@@ -44,7 +45,7 @@
     "jingle": "^3.0.0",
     "juice": "^1.4",
     "jxt-xmpp-types": "^3.0.0",
-    "keytar": "4.1.0",
+    "keytar": "^4.1.0",
     "less-cache": "1.1.0",
     "leveldown": "^4.0.1",
     "lodash.assign": "^3.0.0",
@@ -63,12 +64,13 @@
     "node-rsa": "^1.0.1",
     "optimist": "0.4.0",
     "pick-react-known-prop": "0.x.x",
+    "plist": "^3.0.1",
     "pouchdb": "^7.0.0",
     "pouchdb-adapter-node-websql": "^7.0.0",
     "pouchdb-adapter-websql": "^7.0.0",
     "proxyquire": "1.3.1",
     "raven": "2.1.2",
-    "rc-editor-mention": "^1.1.10",
+    "rc-editor-mention": "^1.1.12",
     "rc-select": "^8.6.4",
     "react": "16.2.0",
     "react-autosize-textarea": "^4.0.0",
@@ -121,11 +123,12 @@
     "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7",
     "xhr": "^2.0.1",
     "xmpp-constants": "^2.3.0",
-    "xmpp-jid": "^1.0.0",
-    "electron-platform": "^1.2.0",
-    "plist": "^3.0.1"
+    "xmpp-jid": "^1.0.0"
   },
   "optionalDependencies": {
     "node-mac-notifier": "0.0.13"
+  },
+  "devDependencies": {
+    "electron-rebuild": "^1.8.2"
   }
 }

@@ -6,7 +6,7 @@ import SendIcon from '../../common/icons/SendIcon';
 import { theme } from '../../../utils/colors';
 import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
-import Mention, { toString, getMentions } from 'rc-editor-mention';
+// import Mention, { toString, getMentions } from 'rc-editor-mention';
 import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
