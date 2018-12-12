@@ -118,7 +118,7 @@ export default class ConversationInfo extends Component {
         }
         {
           conversation.isGroup ? (
-            <div className="row add-to-group">
+            !this.currentUserIsOwner && <div className="row add-to-group">
               <Button onTouchTap={this.exitGroup}>
                 Exit from Group
               </Button>
