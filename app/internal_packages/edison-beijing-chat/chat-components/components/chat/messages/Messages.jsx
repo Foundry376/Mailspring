@@ -221,11 +221,6 @@ export default class Messages extends PureComponent {
                 this.setState(Object.assign({}, this.state, { key }));
               }
               let cursor = 'zoom-in';
-              if (msg.maxHeight < 1600) {
-                cursor = 'zoom-in';
-              } else {
-                cursor = null;
-              }
 
               if (shouldInlineImg(msgBody)) {
                 msg.maxHeight = msg.maxHeight || 100;

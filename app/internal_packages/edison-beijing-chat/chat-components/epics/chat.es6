@@ -46,10 +46,6 @@ import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 
-import { messageSent } from '../actions/chat';
-import chatModel from '../store/model';
-
-
 const downloadAndTagImageFileInMessage = (aes, payload) => {
   let body;
   if (aes) {
