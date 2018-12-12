@@ -210,20 +210,30 @@ export default class Messages extends PureComponent {
                 key++;
                 this.setState(Object.assign({}, this.state, { key }));
               }
+              let onClickImage = () => {
+                if (msg.maxHeight < 1600) {
+                  console.log('onClickImage msg.maxHeight', msg.maxHeight);
+                  msg.maxHeight *= 2;
+                } else {
+                  msg.maxHeight = 100;
+                }
+                key++;
+                this.setState(Object.assign({}, this.state, { key }));
+              }
+              let cursor = 'zoom-in';
+              if (msg.maxHeight < 1600) {
+                cursor = 'zoom-in';
+              } else {
+                cursor = null;
+              }
 
               if (shouldInlineImg(msgBody)) {
-                let maxHeight;
-                if (msgBody.path.match(/\.gif$/)) {
-                  maxHeight = '100px';
-                } else if (msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
-                  maxHeight = '250px';
-                }
-                msgFile = (<div className="messageMeta" onMouseEnter={showDownload} onMouseLeave={hideDownload}>
+                msg.maxHeight = msg.maxHeight || 100;
+                msgFile = (<div className="messageMeta" onClick={onClickImage} onMouseEnter={showDownload} onMouseLeave={hideDownload}>
                   <img
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
-                    // onClick={download}
-                    style={{ maxHeight }}
+                    style={{ maxHeight:msg.maxHeight+'px', cursor}}
                   />
                   {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
                 </div>)
@@ -233,7 +243,6 @@ export default class Messages extends PureComponent {
                     name="fileIcon.png"
                     mode={RetinaImg.Mode.ContentPreserve}
                     title={msgBody.mediaObjectId}
-                    onClick={download}
                   />
                   {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
                 </div>
