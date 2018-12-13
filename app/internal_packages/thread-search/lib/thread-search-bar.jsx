@@ -4,6 +4,7 @@ import { ListensToFluxStore, RetinaImg, KeyCommandsRegion } from 'mailspring-com
 import { Actions, FocusedPerspectiveStore, WorkspaceStore } from 'mailspring-exports';
 import SearchStore from './search-store';
 import TokenizingContenteditable from './tokenizing-contenteditable';
+var utf7 = require('utf7').imap;
 
 import {
   LearnMoreURL,
@@ -261,6 +262,15 @@ class ThreadSearchBar extends Component {
   };
 
   _onSubmitSearchQuery = nextQuery => {
+    const SPACE = ' ';
+    // for the chinese folder name
+    const input = nextQuery.split(SPACE).map(item => {
+      if (item.indexOf('in:') !== -1) {
+        item = utf7.encode(item);
+      }
+      return item;
+    })
+    nextQuery = input.join(SPACE);
     Actions.searchQuerySubmitted(nextQuery);
     this._fieldEl.blur();
   };
@@ -313,16 +323,16 @@ class ThreadSearchBar extends Component {
             mode={RetinaImg.Mode.ContentPreserve}
           />
         ) : (
-          <RetinaImg
-            className="search-accessory search"
-            name="searchloupe.png"
-            mode={RetinaImg.Mode.ContentDark}
-            onClick={() => this._fieldEl.focus()}
-          />
-        )}
+            <RetinaImg
+              className="search-accessory search"
+              name="searchloupe.png"
+              mode={RetinaImg.Mode.ContentDark}
+              onClick={() => this._fieldEl.focus()}
+            />
+          )}
         <TokenizingContenteditable
           ref={el => (this._fieldEl = el)}
-          value={showPlaceholder ? this._placeholder() : query}
+          value={showPlaceholder ? this._placeholder() : utf7.decode(query)}
           onKeyDown={this._onKeyDown}
           onFocus={this._onFocus}
           onBlur={this._onBlur}
