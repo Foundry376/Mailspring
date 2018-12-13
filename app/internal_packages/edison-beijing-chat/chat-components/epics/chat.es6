@@ -138,11 +138,12 @@ export const sendMessageEpic = action$ =>
         return { payload, deviceId };
       });
     })
-    .map(({ payload: { conversation, body, id, devices, selfDevices, isUploading }, deviceId }) => {
+    .map(({ payload: { conversation, body, id, devices, selfDevices, isUploading, updating }, deviceId }) => {
       let ediEncrypted;
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices, conversation.curJid, deviceId);
       }
+      console.log('before sendingMessage: ', updating);
       if (ediEncrypted) {
         return ({
           id,
@@ -150,7 +151,8 @@ export const sendMessageEpic = action$ =>
           to: conversation.jid,
           type: conversation.isGroup ? 'groupchat' : 'chat',
           isUploading,
-          curJid: conversation.curJid
+          curJid: conversation.curJid,
+          updating
         });
       } else {
         return ({
@@ -159,7 +161,8 @@ export const sendMessageEpic = action$ =>
           to: conversation.jid,
           type: conversation.isGroup ? 'groupchat' : 'chat',
           isUploading,
-          curJid: conversation.curJid
+          curJid: conversation.curJid,
+          updating
         });
       }
     })
@@ -209,7 +212,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
           payload.body = decryptByAES(aes, payload.ediEncrypted.payload);
         }
       }
-      return {
+      const message = {
         id: payload.id,
         conversationJid: payload.to,
         sender: curJid,
@@ -217,6 +220,13 @@ export const newTempMessageEpic = (action$, { getState }) =>
         sentTime: (new Date()).getTime(),
         status: payload.isUploading ? MESSAGE_STATUS_FILE_UPLOADING : MESSAGE_STATUS_SENDING,
       };
+      console.log('newTempMessageEpic payload', payload.updating, payload);
+      if (payload.updating) {
+        message.updateTime = (new Date()).getTime()
+      } else {
+        message.sentTime = (new Date()).getTime()
+      }
+      return message;
     })
     .map(newPayload => newMessage(newPayload));
 const getAes = (keys, curJid, deviceId) => {

@@ -16,6 +16,8 @@ import {
   DESELECT_CONVERSATION,
 } from '../../actions/chat';
 
+import { copyRxdbMessage } from '../../utils/db-utils';
+
 const saveMessages = async messages => {
   const db = await getDb();
   return Promise.all(messages.map(msg => {
@@ -25,20 +27,20 @@ const saveMessages = async messages => {
         // so do below to restore  localFile field
         // and for RXDocouments Object.assign will not copy all fields
         // it is necessary to rebuild the message one field by one field.
+
         let body = JSON.parse(msg1.body);
         let localFile =  body.localFile;
         body = JSON.parse(msg.body);
-        if (localFile) {
+        if (localFile && msg.status === 'MESSAGE_STATUS_RECEIVED') {
           body.localFile = localFile;
         }
         body = JSON.stringify(body);
-        let msg2 = {};
-        msg2.id = msg.id;
-        msg2.conversationJid = msg.conversationJid;
-        msg2.sender = msg.sender;
+        let msg2 = copyRxdbMessage(msg);
         msg2.body  = body;
-        msg2.sentTime  = msg.sentTime;
-        msg2.status = msg.status;
+        msg2.sentTime  = msg1.sentTime;
+        if (msg1.updateTime && msg.status === 'MESSAGE_STATUS_RECEIVED') {
+          msg2.updateTime  = msg1.updateTime;
+        }
         return db.messages.upsert(msg2);
       } else {
         return db.messages.upsert(msg);

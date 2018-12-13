@@ -13,6 +13,10 @@ import { downloadFile } from '../../../utils/awss3';
 const { dialog } = require('electron').remote;
 import { isJsonString } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
+import chatModel from '../../../store/model';
+import getDb from '../../../db';
+import { copyRxdbMessage } from '../../../utils/db-utils';
+
 
 var http = require("http");
 var https = require("https");
@@ -108,6 +112,23 @@ export default class Messages extends PureComponent {
       this.scrollToMessagesBottom();
     }
   }
+  componentWillUnmount()  {
+    const {
+      currentUserId,
+      groupedMessages,
+      selectedConversation: { isGroup },
+    } = this.props;
+    const unmountTime = new Date().getTime();
+    getDb().then(db =>{
+      groupedMessages.map(group => {
+        group.messages.map((msg, idx) => {
+          msg = copyRxdbMessage(msg);
+          msg.readTime = unmountTime;
+          db.messages.upsert(msg);
+        })
+      })
+    })
+  }
 
   messagesPanel = null;
   messagePanelEnd = null;
@@ -168,7 +189,17 @@ export default class Messages extends PureComponent {
               const color = colorForString(msg.sender);
               let msgFile;
 
+              let startEditMessage = (event) => {
+                chatModel.editingMessageId = msg.id;
+                event.stopPropagation();
+                event.preventDefault();
+                key++;
+                this.setState(Object.assign({}, this.state, { key }));
+              };
+
               let download = (event) => {
+                event.stopPropagation();
+                event.preventDefault();
                 let path = dialog.showSaveDialog({ title: `download file` });
                 if (!path || typeof path !== 'string') {
                   return;
@@ -200,13 +231,13 @@ export default class Messages extends PureComponent {
                   });
                 }
               };
-              let showDownload = () => {
-                msg.showDownload = true;
+              let showToolbar = () => {
+                msg.showToolbar = true;
                 key++;
                 this.setState(Object.assign({}, this.state, { key }));
               }
-              let hideDownload = () => {
-                msg.showDownload = false;
+              let hideToolbar = () => {
+                msg.showToolbar = false;
                 key++;
                 this.setState(Object.assign({}, this.state, { key }));
               }
@@ -224,32 +255,64 @@ export default class Messages extends PureComponent {
 
               if (shouldInlineImg(msgBody)) {
                 msg.height = msg.height || 100;
-                msgFile = (<div className="messageMeta" onClick={onClickImage} onMouseEnter={showDownload} onMouseLeave={hideDownload}>
+                msgFile = (<div className="messageMeta" onClick={onClickImage} onMouseEnter={showToolbar} onMouseLeave={hideToolbar}>
                   <img
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
                     style={{ height:msg.height+'px', cursor}}
                   />
-                  {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
+                  {msg.showToolbar && <div className='message-toolbar' ><span
+                    className="download-img"
+                    title={msgBody.path}
+                    onClick={download}
+                  />
+                    <span
+                      className="inplace-edit-img"
+                      onClick={startEditMessage}
+                    /></div>}
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
-                msgFile = <div className="messageMeta" onMouseEnter={showDownload} onMouseLeave={hideDownload}>
+                msgFile = <div className="messageMeta" onMouseEnter={showToolbar} onMouseLeave={hideToolbar}>
                   <RetinaImg
                     name="fileIcon.png"
                     mode={RetinaImg.Mode.ContentPreserve}
                     title={msgBody.mediaObjectId}
                   />
-                  {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
+                  {msg.showToolbar && <div className='message-toolbar' onClick={download}><span
+                    className="download-img"
+                    title={msgBody.path}
+                    onClick={download}
+                  />
+                    <span
+                      className="inplace-edit-img"
+                      onClick={startEditMessage}
+                    /></div>}
                 </div>
               } else {
                 msgFile = null;
+              }
+              let border = null;
+              const isUnreadUpdatedMessage = (msg) => {
+                if (!msg.updateTime) {
+                  return false;
+                } else {
+                  const readTime = msg.readTime || 0;
+                  return readTime < msg.updateTime;
+                }
+              }
+              if (msg.id === chatModel.editingMessageId) {
+                border = 'dashed 2px red';
+              } else if (isUnreadUpdatedMessage(msg)) {
+                border = 'solid 2px red';
               }
 
               return (
                 <div
                   key={msg.id}
                   className={getMessageClasses(msg)}
-                  style={{ borderColor: color }}
+                  style={{ borderColor: color, border }}
+                  onMouseEnter={showToolbar}
+                  onMouseLeave={hideToolbar}
                 >
                   {msg.sender !== currentUserId ?
                     <div className="messageSender">
@@ -278,6 +341,11 @@ export default class Messages extends PureComponent {
                       {timeDescriptor(msg.sentTime, true)}
                     </div>
                   </div>
+                  {msg.showToolbar && !msgFile && <div className='message-toolbar' >
+                    <span
+                      className="inplace-edit-img"
+                      onClick={startEditMessage}
+                    /></div>}
                 </div>
               );
             })}

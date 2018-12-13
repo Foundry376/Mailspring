@@ -40,7 +40,15 @@ export default {
       type: 'string'
     },
     sentTime: {
-      type: 'number',
+      type: 'number', //cxm: sentTime is the first sentTime
+      min: 0
+    },
+    updateTime: {
+      type: 'number', //cxm: updateTime is the last sentTime(including edit sent messages)
+      min: 0
+    },
+    readTime: {
+      type: 'number', //cxm: readTime is set at the time while message.jsx.componentWillUnmount
       min: 0
     },
     status: {

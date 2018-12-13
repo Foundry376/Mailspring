@@ -10,6 +10,7 @@ import RetinaImg from '../../../../../../src/components/retina-img';
 import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
+import chatModel from '../../../store/model';
 
 const FAKE_SPACE = '\u00A0';
 
@@ -152,6 +153,14 @@ export default class MessagesSendBar extends PureComponent {
     if (!selectedConversation) {
       return;
     }
+    let messageId, updating = false;
+    if (chatModel.editingMessageId) {
+      messageId = chatModel.editingMessageId;
+      updating = true;
+      chatModel.editingMessageId = null;
+    } else {
+      messageId = uuid();
+    }
 
     if (this.state.files.length) {
       this.state.files.map((file, index) => {
@@ -169,8 +178,8 @@ export default class MessagesSendBar extends PureComponent {
           name: selectedConversation.name,
           mediaObjectId: '',
         };
-        const messageId = uuid();
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
+
+        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true, updating);
         uploadFile(jidLocal, null, file, (err, filename, myKey, size) => {
           if (err) {
             alert(`upload files failed because error: ${err}, filename: ${filename}`);
@@ -178,8 +187,10 @@ export default class MessagesSendBar extends PureComponent {
           }
           if (filename.match(/.gif$/)) {
             body.type = 5;
+            body.localFile = file;
           } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
             body.type = 2;
+            body.localFile = file;
           } else {
             body.type = 9;
           }
@@ -187,8 +198,7 @@ export default class MessagesSendBar extends PureComponent {
           body.mediaObjectId = myKey;
           body.occupants = occupants;
           body.atJids = this.getAtTargetPersons();
-          body.localFile = file;
-          onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
+          onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false, updating);
         });
       })
     } else {
@@ -203,7 +213,7 @@ export default class MessagesSendBar extends PureComponent {
           occupants,
           atJids: this.getAtTargetPersons()
         };
-        onMessageSubmitted(selectedConversation, JSON.stringify(body));//message);
+        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false, updating);
       }
 
     }
