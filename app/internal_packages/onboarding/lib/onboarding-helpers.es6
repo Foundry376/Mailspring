@@ -6,12 +6,12 @@ import MailspringProviderSettings from './mailspring-provider-settings';
 import MailcoreProviderSettings from './mailcore-provider-settings';
 import dns from 'dns';
 
-const queryStringify = (data, encoded=false) => {
+const queryStringify = (data, encoded = false) => {
   const queryString = Object.keys(data).map((key) => {
     if (encoded === true) {
       return encodeURIComponent(`${key}`) + '=' + encodeURIComponent(`${data[key]}`);
     } else {
-      return`${key}=${data[key]}`;
+      return `${key}=${data[key]}`;
     }
   }).join('&');
   return queryString;
@@ -270,11 +270,6 @@ export async function connectChat(account) {
 }
 
 export async function buildYahooAccountFromAuthResponse(code) {
-  AppEnv.showErrorDialog({
-    title: 'debug',
-    message: `${code}`,
-  });
-
   const body = [
     `client_id=${encodeURIComponent(YAHOO_CLIENT_ID)}`,
     `client_secret=${encodeURIComponent(YAHOO_CLIENT_SECRET)}`,
@@ -316,13 +311,15 @@ export async function buildYahooAccountFromAuthResponse(code) {
     );
   }
 
-  const email = me.profile.emails[0].handle;
   const { givenName, familyName } = me.profile;
 
   let fullName = givenName;
   if (familyName) {
     fullName += ` ${familyName}`;
   }
+
+  // const email = me.profile.emails[0].handle;
+  const email = fullName + '/Yahoo';
 
   console.log(fullName);
   console.log(email);
@@ -355,22 +352,22 @@ export async function buildYahooAccountFromAuthResponse(code) {
 
 export function buildYahooAuthURL() {
   return `https://api.login.yahoo.com/oauth2/request_auth`
-       + `?`
-       + `client_id=${YAHOO_CLIENT_ID}`
-       + `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
-       + `&state=${EDISON_OAUTH_KEYWORD}`
-       + `&response_type=code`;
+    + `?`
+    + `client_id=${YAHOO_CLIENT_ID}`
+    + `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
+    + `&state=${EDISON_OAUTH_KEYWORD}`
+    + `&response_type=code`;
 }
 
 export function buildGmailAuthURL() {
   return `https://accounts.google.com/o/oauth2/auth`
-       + `?`
-       + `client_id=${GMAIL_CLIENT_ID}`
-       + `&redirect_uri=${encodeURIComponent(LOCAL_REDIRECT_URI)}`
-       + `&response_type=code`
-       + `&scope=${encodeURIComponent(GMAIL_SCOPES.join(' '))}`
-       + `&access_type=offline`
-       + `&select_account%20consent`;
+    + `?`
+    + `client_id=${GMAIL_CLIENT_ID}`
+    + `&redirect_uri=${encodeURIComponent(LOCAL_REDIRECT_URI)}`
+    + `&response_type=code`
+    + `&scope=${encodeURIComponent(GMAIL_SCOPES.join(' '))}`
+    + `&access_type=offline`
+    + `&select_account%20consent`;
 }
 
 export async function finalizeAndValidateAccount(account) {
