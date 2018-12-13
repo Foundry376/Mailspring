@@ -33,6 +33,10 @@ const GMAIL_SCOPES = [
 const YAHOO_CLIENT_ID = 'dj0yJmk9c3IxR3h4VG5GTXBYJmQ9WVdrOVlVeHZNVXh1TkhVbWNHbzlNQS0tJnM9Y29uc3VtZXJzZWNyZXQmeD02OQ--';
 const YAHOO_CLIENT_SECRET = '8a267b9f897da839465ff07a712f9735550ed412';
 
+const OFFICE365_CLIENT_ID = '000000004818114B';
+const OFFICE365_CLIENT_SECRET = 'jXRAIb5CxLHI5MsVy9kb5okP9mGDZaqw';
+const OFFICE365_SCOPES = ['wl.basic', 'wl.emails', 'wl.imap', 'wl.offline_access'];
+
 const EDISON_CHAT_REST_URL = 'https://restxmpp.stag.easilydo.cc';
 const EDISON_CHAT_REST_PORT = 443;
 const EDISON_CHAT_REST_BASE_URL = `${EDISON_CHAT_REST_URL}:${EDISON_CHAT_REST_PORT}`;
@@ -177,6 +181,69 @@ export async function expandAccountWithCommonSettings(account) {
   return populated;
 }
 
+export async function buildOffice365AccountFromAuthResponse(code) {
+  console.log(code);
+  /// Exchange code for an access token
+  const body = [];
+  body.push(`code=${encodeURIComponent(code)}`);
+  body.push(`client_id=${encodeURIComponent(OFFICE365_CLIENT_ID)}`);
+  body.push(`client_secret=${encodeURIComponent(OFFICE365_CLIENT_SECRET)}`);
+  body.push(`redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`);
+  body.push(`grant_type=${encodeURIComponent('authorization_code')}`);
+
+  const resp = await fetch('https://login.live.com/oauth20_token.srf', {
+    method: 'POST',
+    body: body.join('&'),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    },
+  });
+
+  const json = (await resp.json()) || {};
+  if (!resp.ok) {
+    throw new Error(
+      `Office365 OAuth Code exchange returned ${resp.status} ${resp.statusText}: ${JSON.stringify(
+        json
+      )}`
+    );
+  }
+  const { access_token, refresh_token } = json;
+
+  console.log('****access_token', access_token);
+  console.log('****refresh_token', refresh_token);
+
+  // get the user's email address
+  const meResp = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
+  const me = await meResp.json();
+  if (!meResp.ok) {
+    throw new Error(
+      `Gmail profile request returned ${resp.status} ${resp.statusText}: ${JSON.stringify(me)}`
+    );
+  }
+  const account = await expandAccountWithCommonSettings(
+    new Account({
+      name: me.name,
+      emailAddress: me.email,
+      provider: 'gmail',
+      settings: {
+        refresh_client_id: GMAIL_CLIENT_ID,
+        refresh_token: refresh_token,
+      },
+    })
+  );
+
+  account.id = idForAccount(me.email, account.settings);
+
+  // test the account locally to ensure the All Mail folder is enabled
+  // and the refresh token can be exchanged for an account token.
+  await finalizeAndValidateAccount(account);
+
+  return account;
+}
+
 export async function buildGmailAccountFromAuthResponse(code) {
   /// Exchange code for an access token
   const body = [];
@@ -311,7 +378,8 @@ export async function buildYahooAccountFromAuthResponse(code) {
     );
   }
 
-  const { givenName, familyName } = me.profile;
+  const { givenName, familyName, guid } = me.profile;
+  console.log('***me', me);
 
   let fullName = givenName;
   if (familyName) {
@@ -336,6 +404,7 @@ export async function buildYahooAccountFromAuthResponse(code) {
       },
     })
   );
+  account.settings.imap_username = account.settings.smtp_username = guid;
 
   console.log(account);
 
@@ -348,6 +417,15 @@ export async function buildYahooAccountFromAuthResponse(code) {
   await finalizeAndValidateAccount(account);
 
   // return account;
+}
+
+export function buildOffice365AuthURL() {
+  return `https://login.live.com/oauth20_authorize.srf`
+    + `?`
+    + `client_id=${OFFICE365_CLIENT_ID}`
+    + `&scope=${encodeURIComponent(OFFICE365_SCOPES.join(' '))}`
+    + `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
+    + `&response_type=code`;
 }
 
 export function buildYahooAuthURL() {

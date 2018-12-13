@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-// import { buildGmailAccountFromAuthResponse, buildGmailAuthURL } from './onboarding-helpers';
+import { buildOffice365AccountFromAuthResponse, buildOffice365AuthURL } from './onboarding-helpers';
 
 import OAuthSignInPage from './oauth-signin-page';
 import OnboardingActions from './onboarding-actions';
@@ -16,7 +16,7 @@ export default class AccountSettingsPageOffice365 extends React.Component {
 
   constructor() {
     super();
-    // this._gmailAuthUrl = buildGmailAuthURL();
+    this._office365AuthUrl = buildOffice365AuthURL();
   }
 
   onSuccess(account) {
@@ -31,8 +31,8 @@ export default class AccountSettingsPageOffice365 extends React.Component {
     return (
       <OAuthSignInPage
         serviceName="Office365"
-        providerAuthPageUrl={""}
-        buildAccountFromAuthResponse={() => {}}
+        providerAuthPageUrl={this._office365AuthUrl}
+        buildAccountFromAuthResponse={buildOffice365AccountFromAuthResponse}
         iconName={headerIcon}
         onSuccess={this.onSuccess}
         onTryAgain={goBack}
