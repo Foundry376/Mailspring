@@ -10,6 +10,7 @@
     font-weight: bold;
     font-size: 14px;
     margin: 0 16px;
+    width: 100%;
   }
 
   .onlineIndicatior {
@@ -21,5 +22,17 @@
 
   .backButtonContainer {
     display: none;
+  }
+
+  div[contenteditable]:hover,
+  div[contenteditable]:focus,
+  div[contenteditable]:active,
+  .contenteditable {
+    white-space: nowrap;
+    border-bottom: 1px solid #23c0fa;
+    overflow: hidden;
+    a:hover {
+      cursor: text;
+    }
   }
 }

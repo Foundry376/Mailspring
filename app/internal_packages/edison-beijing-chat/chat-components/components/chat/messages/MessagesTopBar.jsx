@@ -7,7 +7,6 @@ import BackIcon from '../../common/icons/BackIcon';
 import InfoIcon from '../../common/icons/InfoIcon';
 import { theme } from '../../../utils/colors';
 import xmpp from '../../../xmpp';
-import conversation from '../../../db/schemas/conversation';
 
 const privateStatus = (availableUsers, conversationJid) =>
   (availableUsers.indexOf(conversationJid) >= 0 ? 'Online' : 'Offline');
@@ -34,7 +33,6 @@ export default class MessagesTopBar extends Component {
       occupants: PropTypes.arrayOf(PropTypes.string).isRequired,
     }),
   }
-
   static defaultProps = {
     onBackPressed: () => { },
     onInfoPressed: () => { },
@@ -42,7 +40,7 @@ export default class MessagesTopBar extends Component {
     infoActive: false,
     selectedConversation: null,
   }
-  constructor() {
+  constructor(props) {
     super();
     this.state = { inviting: false }
   }
@@ -50,7 +48,29 @@ export default class MessagesTopBar extends Component {
     this.props.toggleInvite();
     this.setState({ inviting: !this.state.inviting });
   }
+  _onkeyDown = (e) => {
+    if (e.keyCode === 13) {
+      e.currentTarget.blur();
+      this.saveRoomName(e.currentTarget.innerText);
+      e.preventDefault();
+    }
+  }
 
+  _onBlur = (e) => {
+    this.saveRoomName(e.currentTarget.innerText);
+  }
+
+  async saveRoomName(name) {
+    const { selectedConversation } = this.props;
+    if (name && name !== selectedConversation.name) {
+      await xmpp.setRoomName(selectedConversation.jid, {
+        name
+      })
+      selectedConversation.update({
+        $set: { name }
+      })
+    }
+  }
 
   render() {
     const {
@@ -69,7 +89,13 @@ export default class MessagesTopBar extends Component {
       <div>
         <TopBar
           left={
-            <div className="conversationName">{selectedConversation.name}</div>
+            <div
+              contentEditable
+              dangerouslySetInnerHTML={{ __html: selectedConversation.name }}
+              onKeyDown={this._onkeyDown}
+              onBlur={this._onBlur}
+              className="conversationName">
+            </div>
           }
           // center={
           //   <div className="chatTopBarCenter">
