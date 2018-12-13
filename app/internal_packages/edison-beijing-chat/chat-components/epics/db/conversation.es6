@@ -30,6 +30,8 @@ import {
 } from '../../actions/db/conversation';
 import xmpp from '../../xmpp/index';
 import { ipcRenderer } from 'electron';
+import chatModel from '../../store/model';
+
 
 const saveOccupants = async payload => {
   if (!payload.mucAdmin) {
@@ -305,7 +307,7 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
         isGroup: true,
         unreadMessages: 0,
         occupants: [
-          currentUser.bare,
+          chatModel.currentUser.jid,
           ...jidArr
         ],
         lastMessageTime: (new Date(timeSend)).getTime(),
