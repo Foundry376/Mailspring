@@ -211,11 +211,11 @@ export default class Messages extends PureComponent {
                 this.setState(Object.assign({}, this.state, { key }));
               }
               let onClickImage = () => {
-                if (msg.maxHeight < 1600) {
-                  console.log('onClickImage msg.maxHeight', msg.maxHeight);
-                  msg.maxHeight *= 2;
+                if (msg.height < 1600) {
+                  console.log('onClickImage msg.height', msg.height);
+                  msg.height *= 2;
                 } else {
-                  msg.maxHeight = 100;
+                  msg.height = 100;
                 }
                 key++;
                 this.setState(Object.assign({}, this.state, { key }));
@@ -223,12 +223,12 @@ export default class Messages extends PureComponent {
               let cursor = 'zoom-in';
 
               if (shouldInlineImg(msgBody)) {
-                msg.maxHeight = msg.maxHeight || 100;
+                msg.height = msg.height || 100;
                 msgFile = (<div className="messageMeta" onClick={onClickImage} onMouseEnter={showDownload} onMouseLeave={hideDownload}>
                   <img
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
-                    style={{ maxHeight:msg.maxHeight+'px', cursor}}
+                    style={{ height:msg.height+'px', cursor}}
                   />
                   {msg.showDownload && <div className='download-button' onClick={download}>download</div>}
                 </div>)
