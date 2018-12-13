@@ -17,6 +17,7 @@ import Category from './flux/models/category';
 import Label from './flux/models/label';
 import Folder from './flux/models/folder';
 import Actions from './flux/actions';
+import Matcher from './flux/attributes/matcher.es6';
 
 let WorkspaceStore = null;
 let ChangeStarredTask = null;
@@ -380,6 +381,12 @@ class CategoryMailboxPerspective extends MailboxPerspective {
 
     if (!['spam', 'trash'].includes(this.categoriesSharedRole())) {
       query.where({ inAllMail: true });
+    }
+
+    if (['spam', 'trash'].includes(this.categoriesSharedRole())) {
+      query.where(new Matcher.Not([
+        Thread.attributes.id.like('delete')
+      ]));
     }
 
     if (this._categories.length > 1 && this.accountIds.length < this._categories.length) {
