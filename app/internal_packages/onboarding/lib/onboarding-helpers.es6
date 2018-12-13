@@ -182,7 +182,6 @@ export async function expandAccountWithCommonSettings(account) {
 }
 
 export async function buildOffice365AccountFromAuthResponse(code) {
-  console.log(code);
   /// Exchange code for an access token
   const body = [];
   body.push(`code=${encodeURIComponent(code)}`);
@@ -208,9 +207,6 @@ export async function buildOffice365AccountFromAuthResponse(code) {
     );
   }
   const { access_token, refresh_token } = json;
-
-  console.log('****access_token', access_token);
-  console.log('****refresh_token', refresh_token);
 
   // get the user's email address
   const meResp = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
@@ -379,7 +375,6 @@ export async function buildYahooAccountFromAuthResponse(code) {
   }
 
   const { givenName, familyName, guid } = me.profile;
-  console.log('***me', me);
 
   let fullName = givenName;
   if (familyName) {

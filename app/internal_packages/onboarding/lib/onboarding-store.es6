@@ -31,7 +31,7 @@ class OnboardingStore extends MailspringStore {
       // Used when re-adding an account after re-connecting, take the user back
       // to the best page with the most details
       this._account = new Account(existingAccountJSON);
-      if (['gmail', 'office365', 'yahoo'].includes(this._account.provider)) {
+      if (['gmail', 'yahoo'].includes(this._account.provider)) {
         this._pageStack = ['account-choose', `account-settings-${this._account.provider}`];
       } else if (this._account.provider === 'imap') {
         this._pageStack = ['account-choose', 'account-settings', 'account-settings-imap'];
@@ -70,7 +70,7 @@ class OnboardingStore extends MailspringStore {
 
   _onChooseAccountProvider = provider => {
     let nextPage = 'account-settings';
-    if (['gmail', 'office365', 'yahoo'].includes(provider)) {
+    if (['gmail', 'yahoo'].includes(provider)) {
       nextPage += `-${provider}`;
     }
 
