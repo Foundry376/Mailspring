@@ -17,7 +17,7 @@ import Category from './flux/models/category';
 import Label from './flux/models/label';
 import Folder from './flux/models/folder';
 import Actions from './flux/actions';
-import Matcher from './flux/attributes/matcher.es6';
+import Matcher from './flux/attributes/matcher';
 
 let WorkspaceStore = null;
 let ChangeStarredTask = null;
