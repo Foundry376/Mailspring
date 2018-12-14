@@ -13,7 +13,7 @@ export default function registerLoginChatAccounts() {
       keyMannager.insertAccountSecrets(acc).then(acc => {
         let email = acc.emailAddress;
         let type = 0;
-        if (email.includes('gmail.com') || email.includes('mail.ru')) {
+        if (email.includes('gmail.com') || email.includes('edison.tech') || email.includes('mail.ru')) {
           type = 1;
         }
         //register = (email, pwd, name, type, provider, setting, cb) => {

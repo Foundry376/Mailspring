@@ -16,12 +16,12 @@ if (typeof process.setFdLimit === 'function') {
 }
 
 const setupConfigDir = args => {
-  let dirname = 'Mailspring';
+  let dirname = 'EdisonMail';
   if (args.devMode) {
-    dirname = 'Mailspring-dev';
+    dirname = 'EdisonMail-dev';
   }
   if (args.specMode) {
-    dirname = 'Mailspring-spec';
+    dirname = 'EdisonMail-spec';
   }
   let configDirPath = path.join(app.getPath('appData'), dirname);
   if (process.platform === 'linux' && process.env.SNAP) {
