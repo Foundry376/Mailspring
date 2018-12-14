@@ -381,8 +381,10 @@ export async function buildYahooAccountFromAuthResponse(code) {
     fullName += ` ${familyName}`;
   }
 
-  // const email = me.profile.emails[0].handle;
-  const email = fullName + '/Yahoo';
+  let email = fullName + '/Yahoo';
+  if (me.profile.emails[0] && me.profile.emails[0].handle) {
+    email = me.profile.emails[0].handle
+  }
 
   console.log(fullName);
   console.log(email);
@@ -411,7 +413,7 @@ export async function buildYahooAccountFromAuthResponse(code) {
   // and the refresh token can be exchanged for an account token.
   await finalizeAndValidateAccount(account);
 
-  // return account;
+  return account;
 }
 
 export function buildOffice365AuthURL() {
