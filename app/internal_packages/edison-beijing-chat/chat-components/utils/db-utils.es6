@@ -1,3 +1,5 @@
+import getDb from '../db/index';
+
 export function copyRxdbMessage(msg) {
   const result = {};
   result.id = msg.id;
@@ -10,3 +12,17 @@ export function copyRxdbMessage(msg) {
   result.status = msg.status;
   return result;
 }
+
+export function saveGroupMessages(groupedMessages) {
+  const readTime = new Date().getTime();
+  getDb().then(db =>{
+    groupedMessages.map(group => {
+      group.messages.map((msg, idx) => {
+        msg = copyRxdbMessage(msg);
+        msg.readTime = readTime;
+        db.messages.upsert(msg);
+      })
+    })
+  })
+}
+

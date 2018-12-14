@@ -14,9 +14,7 @@ const { dialog } = require('electron').remote;
 import { isJsonString } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
 import chatModel from '../../../store/model';
-import getDb from '../../../db';
-import { copyRxdbMessage } from '../../../utils/db-utils';
-
+import { saveGroupMessages } from '../../../utils/db-utils';
 
 var http = require("http");
 var https = require("https");
@@ -118,16 +116,7 @@ export default class Messages extends PureComponent {
       groupedMessages,
       selectedConversation: { isGroup },
     } = this.props;
-    const unmountTime = new Date().getTime();
-    getDb().then(db =>{
-      groupedMessages.map(group => {
-        group.messages.map((msg, idx) => {
-          msg = copyRxdbMessage(msg);
-          msg.readTime = unmountTime;
-          db.messages.upsert(msg);
-        })
-      })
-    })
+    SaveGroupMessages(groupedMessages);
   }
 
   messagesPanel = null;
@@ -165,6 +154,10 @@ export default class Messages extends PureComponent {
       referenceTime,
       selectedConversation: { isGroup },
     } = this.props;
+    console.log('messages.jsx render groupedMessages: ', groupedMessages);
+    if (groupedMessages.length) {
+      chatModel.groupedMessages = groupedMessages;
+    }
     const timeDescriptor = buildTimeDescriptor(referenceTime);
     const getMessageClasses = message => {
       const messageStyles = ['message'];

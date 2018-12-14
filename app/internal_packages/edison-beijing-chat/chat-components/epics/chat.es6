@@ -1,8 +1,11 @@
+import fs from 'fs'
 import { Observable } from 'rxjs/Observable';
 import { replace } from 'react-router-redux';
 import xmpp from '../xmpp';
 import getDb from '../db';
-import fs from 'fs'
+import chatModel from '../store/model';
+import { saveGroupMessages } from '../utils/db-utils';
+
 import {
   MESSAGE_STATUS_FILE_UPLOADING,
   MESSAGE_STATUS_SENDING,
@@ -442,7 +445,16 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
 
 export const beginRetrievingMessagesEpic = action$ =>
   action$.ofType(UPDATE_SELECTED_CONVERSATION)
-    .map(({ payload: { jid } }) => retrieveSelectedConversationMessages(jid));
+    .map(({ payload: { jid } }) => {
+      debugger;
+      console.log('beginRetrievingMessagesEpic chatModel.groupedMessages: ', chatModel.groupedMessages);
+      if (chatModel.conversationJid != jid) {
+        saveGroupMessages(chatModel.groupedMessages);
+      }
+      chatModel.conversationJid = jid;
+      return retrieveSelectedConversationMessages(jid);
+
+    });
 
 export const conversationCreatedEpic = action$ =>
   action$.ofType(CREATE_PRIVATE_CONVERSATION, CREATE_GROUP_CONVERSATION)

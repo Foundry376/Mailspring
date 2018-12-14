@@ -20,6 +20,7 @@ import { copyRxdbMessage } from '../../utils/db-utils';
 
 const saveMessages = async messages => {
   const db = await getDb();
+  console.log('saveMessages: ', messages);
   return Promise.all(messages.map(msg => {
     db.messages.findOne(msg.id).exec().then((msg1) => {
       if (msg1) {
@@ -44,6 +45,7 @@ const saveMessages = async messages => {
         return db.messages.upsert(msg2);
       } else {
         return db.messages.upsert(msg);
+        console.log('saveMessages not findOne upserted: ', msg);
       }
     }).catch((err) => {
       return db.messages.upsert(msg);
@@ -77,9 +79,10 @@ export const triggerStoreMessageEpic = action$ =>
         .mergeMap(db => db.messages.findOne(newMessage.id).exec())
         .map(dbMessage => ({ dbMessage, newMessage }))
     )
-    .filter(({ dbMessage, newMessage }) =>
-      !dbMessage || newMessage.status === 'MESSAGE_STATUS_RECEIVED' || getStatusWeight(newMessage.status) > getStatusWeight(dbMessage.status)
-    )
+    .filter(({ dbMessage, newMessage }) => {
+      // !dbMessage || newMessage.status === 'MESSAGE_STATUS_RECEIVED' || getStatusWeight(newMessage.status) > getStatusWeight(dbMessage.status)
+      return true;
+    })
     .map(({ newMessage }) => {
       return beginStoringMessage(newMessage);
     });
@@ -105,7 +108,9 @@ export const retrieveSelectedConversationMessagesEpic = action$ =>
             .takeUntil(action$.ofType(SELECT_CONVERSATION, DESELECT_CONVERSATION))
             .map(messages => messages.sort((a, b) => a.sentTime - b.sentTime))
             .mergeMap(messages => groupMessages(messages))
-            .map(groupedMessages => updateSelectedConversationMessages(groupedMessages))
+            .map(groupedMessages => {
+              return updateSelectedConversationMessages(groupedMessages)
+            })
         )
         .catch(error =>
           Observable.of(failedRetrievingSelectedConversationMessages(error, jid))
