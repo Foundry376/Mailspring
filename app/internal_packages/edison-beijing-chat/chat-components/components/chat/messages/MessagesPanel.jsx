@@ -181,7 +181,6 @@ export default class MessagesPanel extends PureComponent {
 
   removeMember = member => {
     const conversation = this.props.selectedConversation;
-    console.log('removeMember conversation:', conversation);
     if (member.affiliation === 'owner') {
       alert('you can not remove the owner of the group chat!');
       return;
@@ -195,7 +194,6 @@ export default class MessagesPanel extends PureComponent {
       });
       this.props.deselectConversation();
     } else {
-      debugger;
       let index = this.state.members.indexOf(member);
       this.state.members.splice(index, 1);
       let members = this.state.members.slice();

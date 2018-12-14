@@ -146,7 +146,6 @@ export const sendMessageEpic = action$ =>
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices, conversation.curJid, deviceId);
       }
-      console.log('before sendingMessage: ', updating);
       if (ediEncrypted) {
         return ({
           id,
@@ -181,7 +180,6 @@ export const sendMessageEpic = action$ =>
       const action = sendingMessage(message);
       let payload = message;
       if (!payload.isUploading) {
-        console.log('before xmpp.sendMessage: ', payload);
         let body = payload.body;
         if (typeof body === 'string') {
           try {
@@ -223,7 +221,6 @@ export const newTempMessageEpic = (action$, { getState }) =>
         sentTime: (new Date()).getTime(),
         status: payload.isUploading ? MESSAGE_STATUS_FILE_UPLOADING : MESSAGE_STATUS_SENDING,
       };
-      console.log('newTempMessageEpic payload', payload.updating, payload);
       if (payload.updating) {
         message.updateTime = (new Date()).getTime()
       } else {
@@ -446,8 +443,6 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
 export const beginRetrievingMessagesEpic = action$ =>
   action$.ofType(UPDATE_SELECTED_CONVERSATION)
     .map(({ payload: { jid } }) => {
-      debugger;
-      console.log('beginRetrievingMessagesEpic chatModel.groupedMessages: ', chatModel.groupedMessages);
       if (chatModel.conversationJid != jid) {
         saveGroupMessages(chatModel.groupedMessages);
       }

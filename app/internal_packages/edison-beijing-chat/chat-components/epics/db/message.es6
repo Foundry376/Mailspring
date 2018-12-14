@@ -20,7 +20,6 @@ import { copyRxdbMessage } from '../../utils/db-utils';
 
 const saveMessages = async messages => {
   const db = await getDb();
-  console.log('saveMessages: ', messages);
   return Promise.all(messages.map(msg => {
     db.messages.findOne(msg.id).exec().then((msg1) => {
       if (msg1) {
@@ -45,7 +44,6 @@ const saveMessages = async messages => {
         return db.messages.upsert(msg2);
       } else {
         return db.messages.upsert(msg);
-        console.log('saveMessages not findOne upserted: ', msg);
       }
     }).catch((err) => {
       return db.messages.upsert(msg);

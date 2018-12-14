@@ -116,7 +116,7 @@ export default class Messages extends PureComponent {
       groupedMessages,
       selectedConversation: { isGroup },
     } = this.props;
-    SaveGroupMessages(groupedMessages);
+    saveGroupMessages(groupedMessages);
   }
 
   messagesPanel = null;
@@ -154,7 +154,6 @@ export default class Messages extends PureComponent {
       referenceTime,
       selectedConversation: { isGroup },
     } = this.props;
-    console.log('messages.jsx render groupedMessages: ', groupedMessages);
     if (groupedMessages.length) {
       chatModel.groupedMessages = groupedMessages;
     }
@@ -236,7 +235,6 @@ export default class Messages extends PureComponent {
               }
               let onClickImage = () => {
                 if (msg.height < 1600) {
-                  console.log('onClickImage msg.height', msg.height);
                   msg.height *= 2;
                 } else {
                   msg.height = 100;
