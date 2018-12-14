@@ -75,9 +75,9 @@ async function openDatabase(dbPath) {
 }
 
 function databasePath(configDirPath, specMode = false) {
-  let dbPath = path.join(configDirPath, 'edgehill.db');
+  let dbPath = path.join(configDirPath, 'edisondb.db');
   if (specMode) {
-    dbPath = path.join(configDirPath, 'edgehill.test.db');
+    dbPath = path.join(configDirPath, 'edisondb.test.db');
   }
   return dbPath;
 }
