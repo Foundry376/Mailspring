@@ -273,9 +273,9 @@ export default class Application extends EventEmitter {
   };
 
   _deleteDatabase = callback => {
-    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisondb.db'), callback);
-    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisondb.db-wal'));
-    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisondb.db-shm'));
+    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db'), callback);
+    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-wal'));
+    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'));
   };
 
   // Registers basic application commands, non-idempotent.

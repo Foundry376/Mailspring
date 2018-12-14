@@ -75,9 +75,9 @@ async function openDatabase(dbPath) {
 }
 
 function databasePath(configDirPath, specMode = false) {
-  let dbPath = path.join(configDirPath, 'edisondb.db');
+  let dbPath = path.join(configDirPath, 'edisonmail.db');
   if (specMode) {
-    dbPath = path.join(configDirPath, 'edisondb.test.db');
+    dbPath = path.join(configDirPath, 'edisonmail.test.db');
   }
   return dbPath;
 }
