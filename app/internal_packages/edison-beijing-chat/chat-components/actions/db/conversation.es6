@@ -17,6 +17,19 @@ export const BEGIN_STORE_OCCUPANTS = 'BEGIN_STORE_OCCUPANTS';
 export const SUCCESS_STORE_OCCUPANTS = 'SUCCESS_STORE_OCCUPANTS';
 export const FAIL_STORE_OCCUPANTS = 'FAIL_STORE_OCCUPANTS';
 
+export const STORE_CONVERSATION_NAME = 'STORE_CONVERSATION_NAME';
+export const SUCCESS_STORE_CONVERSATION_NAME = 'SUCCESS_STORE_CONVERSATION_NAME';
+
+export const storeConversationName = conversationInfo => ({
+  type: STORE_CONVERSATION_NAME,
+  payload: conversationInfo
+});
+
+export const successfullyStoredConversationName = conversation => ({
+  type: SUCCESS_STORE_CONVERSATION_NAME,
+  payload: conversation
+});
+
 export const beginStoringConversations = conversations => ({
   type: BEGIN_STORE_CONVERSATIONS,
   payload: conversations

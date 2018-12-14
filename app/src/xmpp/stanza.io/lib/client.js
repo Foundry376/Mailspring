@@ -106,7 +106,7 @@ function Client(opts) {
             self.sm.handle(json);
             //console.log(json);//yazz
             if (json.edimucevent && json.edimucevent.edimucconfig) {
-                self.emit('edimucconfig', json.edimucevent.edimucconfig);
+                self.emit('edimucconfig', json);
             } else {
                 self.emit('stanza', json);
             }

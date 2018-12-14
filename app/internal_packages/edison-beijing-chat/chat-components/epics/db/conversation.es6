@@ -16,6 +16,7 @@ import {
   RETRY_STORE_CONVERSATIONS,
   RETRIEVE_ALL_CONVERSATIONS,
   REMOVING_CONVERSATION,
+  STORE_CONVERSATION_NAME,
   successfullyStoredConversations,
   failedStoringConversations,
   retryStoringConversations,
@@ -27,6 +28,7 @@ import {
   beginStoringConversations,
   successfullyStoredOccupants,
   failedStoringOccupants,
+  successfullyStoredConversationName
 } from '../../actions/db/conversation';
 import xmpp from '../../xmpp/index';
 import { ipcRenderer } from 'electron';
@@ -108,6 +110,27 @@ const clearConversationUnreadMessages = async jid => {
     }
   });
 };
+
+const saveConversationName = async payload => {
+  const db = await getDb();
+  const conv = await db.conversations.findOne(payload.from.bare).exec();
+  if (conv) {
+    return conv.update({
+      $set: {
+        name: payload.edimucevent.edimucconfig.name
+      }
+    })
+  }
+  return null
+};
+
+export const storeConversationNameEpic = action$ =>
+  action$.ofType(STORE_CONVERSATION_NAME)
+    .mergeMap(({ payload }) =>
+      Observable.fromPromise((saveConversationName(payload)))
+        .map((conv) => successfullyStoredConversationName(conv))
+        .catch(err => console.log(err))
+    );
 
 export const beginStoreOccupantsEpic = action$ =>
   action$.ofType(BEGIN_STORE_OCCUPANTS)
