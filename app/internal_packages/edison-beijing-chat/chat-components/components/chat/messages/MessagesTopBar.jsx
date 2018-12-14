@@ -90,7 +90,7 @@ export default class MessagesTopBar extends Component {
         <TopBar
           left={
             <div
-              contentEditable
+              contentEditable={selectedConversation.isGroup}
               dangerouslySetInnerHTML={{ __html: selectedConversation.name }}
               onKeyDown={this._onkeyDown}
               onBlur={this._onBlur}

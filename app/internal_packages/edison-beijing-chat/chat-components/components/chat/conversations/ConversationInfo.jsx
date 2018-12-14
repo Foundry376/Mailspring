@@ -33,22 +33,19 @@ export default class ConversationInfo extends Component {
         .where('conversationJid')
         .eq(this.props.conversation.jid)
         .remove()
-        .then(conv => {
-          console.log('*****conv', conv);
-        }).catch((error) => {
+        .catch((error) => {
           console.warn('remove message error', error);
         })
     });
   }
 
   exitGroup = () => {
-    console.log('exitGroup props', this.props);
-    const {conversation} = this.props;
-    console.log('exitGroup:', conversation.jid, chatModel.currentUser.jid);
+    const { conversation } = this.props;
     xmpp.leaveRoom(conversation.jid, chatModel.currentUser.jid);
     (getDb()).then(db => {
       db.conversations.findOne(conversation.jid).exec().then(conv => {
-      conv.remove()}).catch((error) => {})
+        conv.remove()
+      }).catch((error) => { })
     });
     this.props.deselectConversation();
   }
@@ -64,67 +61,69 @@ export default class ConversationInfo extends Component {
     members.sort((a, b) => a.affiliation > b.affiliation);
     return (
       <div className="info-panel">
-        {
-          !conversation.isGroup ? (
-            <div className={"row"}>
-              <div id="avatar">
-                <ContactAvatar jid={conversation.jid} name={conversation.name}
-                  email={conversation.email} avatar={conversation.avatar} size={30} />
-              </div>
-              <div className="info">
-                <div className="name">
-                  {conversation.name}
-                </div>
-                <div className="email">{conversation.email}</div>
-              </div>
-            </div>
-          ) : null
-        }
-        {
-          conversation.isGroup && members && members.map(member => {
-            const onClickRemove = () => {
-              this.props.removeMember(member);
-            };
-
-            return (
-              <div className="row item" key={member.jid.bare}>
+        <div>
+          {
+            !conversation.isGroup ? (
+              <div className="row item">
                 <div id="avatar">
-                  <ContactAvatar jid={member.jid.bare} name={member.name}
-                    email={member.email} avatar={member.avatar} size={30} />
+                  <ContactAvatar jid={conversation.jid} name={conversation.name}
+                    email={conversation.email} avatar={conversation.avatar} size={30} />
                 </div>
                 <div className="info">
                   <div className="name">
-                    {member.name}
-                    {member.affiliation === 'owner' ? <span> (owner)</span> : null}
+                    {conversation.name}
                   </div>
-                  <div className="email">{member.email}</div>
+                  <div className="email">{conversation.email}</div>
                 </div>
-                { this.currentUserIsOwner && member.affiliation !== 'owner' && <span id="remove-button" onClick={onClickRemove}>
-                  <CancelIcon color={primaryColor} />
-                </span>
-                }
               </div>
-            )
-          })
-        }
-        {
-          conversation.isGroup ? (
-            <div className="row add-to-group">
-              <Button onTouchTap={this.props.toggleInvite}>
-                Add to Group
+            ) : null
+          }
+          {
+            conversation.isGroup && members && members.map(member => {
+              const onClickRemove = () => {
+                this.props.removeMember(member);
+              };
+
+              return (
+                <div className="row item" key={member.jid.bare}>
+                  <div id="avatar">
+                    <ContactAvatar jid={member.jid.bare} name={member.name}
+                      email={member.email} avatar={member.avatar} size={30} />
+                  </div>
+                  <div className="info">
+                    <div className="name">
+                      {member.name}
+                      {member.affiliation === 'owner' ? <span> (owner)</span> : null}
+                    </div>
+                    <div className="email">{member.email}</div>
+                  </div>
+                  {this.currentUserIsOwner && member.affiliation !== 'owner' && <span id="remove-button" onClick={onClickRemove}>
+                    <CancelIcon color={primaryColor} />
+                  </span>
+                  }
+                </div>
+              )
+            })
+          }
+          {
+            conversation.isGroup ? (
+              <div className="row add-to-group">
+                <Button onTouchTap={this.props.toggleInvite}>
+                  Add to Group
               </Button>
-            </div>
-          ) : null
-        }
-        {
-          conversation.isGroup ? (
-            !this.currentUserIsOwner && <div className="row add-to-group">
-              <Button onTouchTap={this.exitGroup}>
-                Exit from Group
+              </div>
+            ) : null
+          }
+          {
+            conversation.isGroup ? (
+              !this.currentUserIsOwner && <div className="row add-to-group">
+                <Button onTouchTap={this.exitGroup}>
+                  Exit from Group
               </Button>
-            </div>
-          ) : null
-        }
+              </div>
+            ) : null
+          }
+        </div>
         <div className="clear">
           <Button className="clear-message" onTouchTap={this.clearMessages}>
             Clear Message History

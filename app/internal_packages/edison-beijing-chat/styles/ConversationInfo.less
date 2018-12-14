@@ -22,6 +22,9 @@
     .clear-message {
       color: #ff355e;
     }
+    &>div {
+      width: 100%;
+    }
   }
   .row:hover {
     background-color: #EFEFEF;
@@ -67,11 +70,12 @@
     border-top-right-radius: 3px;
   }
 
-  .row.add-to-group {
+  .row:last-child {
     border-bottom-left-radius: 3px;
     border-bottom-right-radius: 3px;
     border-bottom: 1px solid #e8ecee;
   }
+  
   #remove-button {
     position: absolute;
     right: 2px;

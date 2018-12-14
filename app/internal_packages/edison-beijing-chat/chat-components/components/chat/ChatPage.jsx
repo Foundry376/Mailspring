@@ -115,6 +115,7 @@ export default class ChatPage extends PureComponent {
       selectedConversation,
       contacts,
       onGroupConversationCompleted: createGroupConversation,
+      onPrivateConversationCompleted: createPrivateConversation,
     };
     const newConversationPanelProps = {
       onGroupConversationCompleted: createGroupConversation,
