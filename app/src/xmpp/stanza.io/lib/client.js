@@ -105,7 +105,11 @@ function Client(opts) {
         if (data._name === 'message' || data._name === 'presence' || data._name === 'iq') {
             self.sm.handle(json);
             //console.log(json);//yazz
-            self.emit('stanza', json);
+            if (json.edimucevent && json.edimucevent.edimucconfig) {
+                self.emit('edimucconfig', json.edimucevent.edimucconfig);
+            } else {
+                self.emit('stanza', json);
+            }
         } else if (data._name === 'smAck') {
             return self.sm.process(json);
         } else if (data._name === 'smRequest') {

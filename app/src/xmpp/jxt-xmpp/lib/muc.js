@@ -298,14 +298,23 @@ exports['default'] = function (JXT) {
             members: Utils.textSub('', 'members'),
         }
     });
+    var EdimucEvent = JXT.define({
+        name: 'edimucevent',
+        namespace: 'edimucevent',
+        element: 'edimucevent',
+        fields: {
+            subject: Utils.attribute('ts'),
+        }
+    });
     var EdimucConfig = JXT.define({
         name: 'edimucconfig',
         namespace: 'edimucconfig',
         element: 'edimucconfig',
         fields: {
-            subject: Utils.textSub('', 'subject'),
-            name: Utils.textSub('', 'name'),
-            description: Utils.textSub('', 'description')
+            subject: Utils.textSub('edimucconfig', 'subject'),
+            name: Utils.textSub('edimucconfig', 'name'),
+            description: Utils.textSub('edimucconfig', 'description'),
+            actorJid: Utils.subAttribute('edimucconfig', 'actor', 'jid')
         }
     });
     var EdimucProfile = JXT.define({
@@ -345,6 +354,9 @@ exports['default'] = function (JXT) {
 
     JXT.extendMessage(MUC);
     JXT.extendMessage(DirectInvite);
+
+    JXT.extend(EdimucEvent, EdimucConfig);
+    JXT.extendMessage(EdimucEvent);
 
     JXT.withIQ(function (IQ) {
 
