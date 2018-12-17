@@ -174,9 +174,11 @@ export default class Webview extends React.Component {
     this.props.onDidFinishLoad(webview);
 
     // tweak the size of the webview to ensure it's contents have laid out
-    webview.style.bottom = '1px';
     window.requestAnimationFrame(() => {
-      webview.style.bottom = '0';
+      webview.style.bottom = '1px';
+      window.requestAnimationFrame(() => {
+        webview.style.bottom = '0';
+      });
     });
   };
 
