@@ -57,10 +57,14 @@ const downloadAndTagImageFileInMessage = (aes, payload) => {
     body = payload.body;
   }
   let msgBody = JSON.parse(body);
-  if (aes && msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpeg|jpg|gif|png|bmp)\.encrypted$/)) {
+  if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
+    // a img link
+    msgBody.path = msgBody.mediaObjectId;
+  } else if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpeg|jpg|gif|png|bmp)(\.encrypted)?$/)) {
+    // image file on aws
     let name = msgBody.mediaObjectId;
     name = name.split('/')[1]
-    name = name.replace('.encrypted', '');
+    name = name.replace(/\.encrypted$/, '');
     let path = AppEnv.getConfigDirPath();
     let downpath = path + '/download/';
     if (!fs.existsSync(downpath)) {
@@ -69,12 +73,6 @@ const downloadAndTagImageFileInMessage = (aes, payload) => {
     path = downpath + name;
     msgBody.path = 'file://' + path;
     downloadFile(aes, msgBody.mediaObjectId, path);
-  } else if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpeg|jpg|gif|png|bmp)$/)) {
-    let path = msgBody.mediaObjectId;
-    if (!path.match('https?://')) {
-      path = 'https://s3.us-east-2.amazonaws.com/edison-profile-stag/' + path;
-    }
-    msgBody.path = path;
   }
   if (aes) {
     msgBody.aes = aes;
