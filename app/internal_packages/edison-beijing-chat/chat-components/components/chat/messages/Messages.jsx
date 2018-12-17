@@ -15,6 +15,7 @@ import { isJsonString } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
 import chatModel from '../../../store/model';
 import { saveGroupMessages } from '../../../utils/db-utils';
+import { NEW_CONVERSATION } from '../../../actions/chat';
 
 var http = require("http");
 var https = require("https");
@@ -110,7 +111,7 @@ export default class Messages extends PureComponent {
       this.scrollToMessagesBottom();
     }
   }
-  componentWillUnmount()  {
+  componentWillUnmount() {
     const {
       currentUserId,
       groupedMessages,
@@ -152,7 +153,7 @@ export default class Messages extends PureComponent {
       currentUserId,
       groupedMessages,
       referenceTime,
-      selectedConversation: { isGroup },
+      selectedConversation: { isGroup, jid },
     } = this.props;
     if (groupedMessages.length) {
       chatModel.groupedMessages = groupedMessages;
@@ -173,7 +174,7 @@ export default class Messages extends PureComponent {
         className="messages"
         ref={element => { this.messagesPanel = element; }}
       >
-        {groupedMessages.map(group => (
+        {jid !== NEW_CONVERSATION && groupedMessages.map(group => (
           <div className="messageGroup" key={uuid()}>
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
@@ -250,7 +251,7 @@ export default class Messages extends PureComponent {
                   <img
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
-                    style={{ height:msg.height+'px', cursor}}
+                    style={{ height: msg.height + 'px', cursor }}
                   />
                   {msg.showToolbar && <div className='message-toolbar' ><span
                     className="download-img"
