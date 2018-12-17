@@ -5,7 +5,7 @@ import {
 } from '../../actions/chat';
 
 export default {
-  esc: deselectConversation,
+  // esc: deselectConversation,
   'option+left': deselectConversation,
   'option+up': goToPreviousConversation,
   'option+down': goToNextConversation,

@@ -1,3 +1,7 @@
+var http = require("http");
+var https = require("https");
+var fs = require("fs");
+
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import uuid from 'uuid/v4';
@@ -20,6 +24,9 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 var http = require("http");
 var https = require("https");
 var fs = require("fs");
+import CancelIcon from '../../common/icons/CancelIcon';
+import { theme } from '../../../utils/colors';
+const { primaryColor } = theme;
 
 let key = 0;
 
@@ -147,6 +154,16 @@ export default class Messages extends PureComponent {
     }
     return null;
   }
+  onKeyDown = event => {
+    let keyCode = event.keyCode;
+    if (keyCode === 27) { // ESC
+      event.stopPropagation()
+      event.preventDefault()
+      chatModel.editingMessageId = null;
+      key++;
+      this.setState(Object.assign({}, this.state, { key }));
+    }
+  }
 
   render() {
     const {
@@ -169,10 +186,13 @@ export default class Messages extends PureComponent {
       return messageStyles.join(' ');
     };
 
+
     return (
       <div
         className="messages"
         ref={element => { this.messagesPanel = element; }}
+        onKeyDown={this.onKeyDown}
+        tabIndex="0"
       >
         {jid !== NEW_CONVERSATION && groupedMessages.map(group => (
           <div className="messageGroup" key={uuid()}>
@@ -235,11 +255,19 @@ export default class Messages extends PureComponent {
                 this.setState(Object.assign({}, this.state, { key }));
               }
               let onClickImage = () => {
+                msg.zoomin = true;
                 if (msg.height < 1600) {
                   msg.height *= 2;
                 } else {
                   msg.height = 100;
                 }
+                key++;
+                this.setState(Object.assign({}, this.state, { key }));
+              }
+              const CancelZoomIn = (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                msg.zoomin = false;
                 key++;
                 this.setState(Object.assign({}, this.state, { key }));
               }
@@ -251,8 +279,22 @@ export default class Messages extends PureComponent {
                   <img
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
-                    style={{ height: msg.height + 'px', cursor }}
+                    style={{ height: '100px', cursor }}
                   />
+                  {msg.zoomin && <div style={{ position: 'fixed', top: '40px', left: '120px', zIndex: 999 }}>
+                    <img
+                      src={msgBody.path}
+                      style={{ width: (screen.width - 240) + 'px' }}
+                    />
+                    <span className="cancel-zoomin-button" onClick={CancelZoomIn}>
+                      <CancelIcon color={primaryColor} />
+                      <span
+                        className="download-img"
+                        title={msgBody.path}
+                        onClick={download}
+                      />
+                    </span>
+                  </div>}
                   {msg.showToolbar && <div className='message-toolbar' ><span
                     className="download-img"
                     title={msgBody.path}
@@ -305,6 +347,7 @@ export default class Messages extends PureComponent {
                   style={{ borderColor: color, border }}
                   onMouseEnter={showToolbar}
                   onMouseLeave={hideToolbar}
+
                 >
                   {msg.sender !== currentUserId ?
                     <div className="messageSender">
