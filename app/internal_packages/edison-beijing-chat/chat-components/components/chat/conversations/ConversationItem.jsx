@@ -50,9 +50,9 @@ export default class ConversationItem extends PureComponent {
       <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
         <div style={{ width: '100%', display: 'flex' }} onTouchTap={onTouchTap}>
           <div className="avatarWrapper">
-            <ContactAvatar jid={conversation.jid} name={conversation.name}
+            <ContactAvatar conversation={conversation} jid={conversation.jid} name={conversation.name}
               email={conversation.email} avatar={conversation.avatar} size={26} />
-            <Badge count={conversation.unreadMessages} />
+            {!conversation.isHiddenNotification ? <Badge count={conversation.unreadMessages} /> : null}
           </div>
           <div className="content">
             <div className="headerRow">

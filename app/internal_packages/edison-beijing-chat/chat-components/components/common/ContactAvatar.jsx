@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { gradientColorForString } from '../../utils/colors';
 import { getavatar } from '../../utils/restjs';
+import { connect } from 'react-redux';
+import { relative } from 'path';
 
 const getInitials = name => {
   const trimmedName = name ? name.trim() : '';
@@ -23,6 +25,10 @@ class ContactAvatar extends Component {
       avatar: props.avatar ? `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${props.avatar})` : gradientColorForString(props.jid),
       isImgExist: false
     }
+  }
+  isOnline = () => {
+    const { availableUsers, jid } = this.props;
+    return availableUsers && availableUsers.indexOf(jid) >= 0 ? 'online' : 'offline';
   }
   componentDidMount = () => {
     if (this.props.email && !this.props.avatar) {
@@ -55,10 +61,12 @@ class ContactAvatar extends Component {
     }
   }
   render() {
-    const { name, size = 48 } = this.props;
+    const { name, size = 48, conversation } = this.props;
     const { avatar, isImgExist } = this.state;
+    const isGroup = conversation && conversation.isGroup;
     return (
       <div
+        className="chat-avatar"
         style={{
           height: size,
           width: size,
@@ -66,17 +74,13 @@ class ContactAvatar extends Component {
           minHeight: size,
           fontSize: size / 2 - 1,
           borderRadius: size / 2,
-          background: avatar,
-          backgroundSize: 'cover',
-          color: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          flexShrink: 0,
+          background: avatar
         }}
       >
         {isImgExist ? null : getInitials(name).toUpperCase()}
+        {!isGroup ? (
+          <div className={this.isOnline()}></div>
+        ) : null}
       </div>
     )
   }
@@ -94,4 +98,8 @@ ContactAvatar.defaultProps = {
   size: 48,
 };
 
-export default ContactAvatar;
+const mapStateToProps = (state) => ({
+  availableUsers: state.contact.availableUsers
+})
+
+export default connect(mapStateToProps)(ContactAvatar);

@@ -364,13 +364,6 @@ export const convertReceivedMessageEpic = (action$, { getState }) =>
           sender = reduxStore.auth.currentUser.bare
         } else {
           sender = payload.from.resource + '@im.edison.tech';
-          // const { contact: { contacts } } = reduxStore;
-          // for (const item of contacts) {
-          //   if (item.jid.split('@')[0] === sender) {
-          //     sender = item.name;
-          //     break;
-          //   }
-          // }
         }
       }
       return {
@@ -456,8 +449,8 @@ export const conversationCreatedEpic = action$ =>
     .map(() => replace('/chat'));
 
 // TODO: Handle group conversations
-export const triggerPrivateNotificationEpic = action$ =>
-  action$.ofType(RECEIVE_PRIVATE_MESSAGE)
+export const triggerNotificationEpic = action$ =>
+  action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
     .map(({ payload: { from: { bare: conversationJid, local: title }, body } }) => {
       const { content } = JSON.parse(body);
       return showConversationNotification(conversationJid, title, content);

@@ -11,8 +11,11 @@ const { primaryColor } = theme;
 
 
 export default class ConversationInfo extends Component {
-  constructor() {
+  constructor(props) {
     super();
+    this.state = {
+      isHiddenNotifi: props.conversation && !!props.conversation.isHiddenNotification
+    }
   }
 
   componentDidMount = () => {
@@ -23,6 +26,9 @@ export default class ConversationInfo extends Component {
   componentWillReceiveProps = (nextProps) => {
     if (!this.props.conversation || nextProps.conversation.jid !== this.props.conversation.jid) {
       this.props.getRoomMembers();
+      this.setState({
+        isHiddenNotifi: nextProps.conversation && !!nextProps.conversation.isHiddenNotification
+      })
     }
   }
 
@@ -39,6 +45,18 @@ export default class ConversationInfo extends Component {
     });
   }
 
+  hiddenNotifi = () => {
+    const isHidden = !this.props.conversation.isHiddenNotification;
+    this.props.conversation.update({
+      $set: {
+        isHiddenNotification: isHidden
+      }
+    })
+    this.setState({
+      isHiddenNotifi: isHidden
+    })
+  }
+
   exitGroup = () => {
     const { conversation } = this.props;
     xmpp.leaveRoom(conversation.jid, chatModel.currentUser.jid);
@@ -53,6 +71,7 @@ export default class ConversationInfo extends Component {
 
   render = () => {
     const { conversation, members } = this.props;
+    const { isHiddenNotifi } = this.state;
     for (let member of members) {
       if (member.affiliation === 'owner' && member.jid.bare === chatModel.currentUser.jid) {
         this.currentUserIsOwner = true;
@@ -123,6 +142,12 @@ export default class ConversationInfo extends Component {
               </div>
             ) : null
           }
+          <div className="row">
+            <label>
+              <input type="checkbox" onChange={this.hiddenNotifi} checked={isHiddenNotifi} />
+              Hide notifications
+            </label>
+          </div>
         </div>
         <div className="clear">
           <Button className="clear-message" onTouchTap={this.clearMessages}>

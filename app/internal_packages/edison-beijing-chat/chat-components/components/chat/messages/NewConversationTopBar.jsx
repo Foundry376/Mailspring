@@ -53,6 +53,7 @@ export default class MessagesTopBar extends Component {
           mode="tags"
           style={{ width: '100%', height: '50px' }}
           onChange={this.handleChange}
+          defaultOpen
           multiple
           tokenSeparators={[',']}
         >

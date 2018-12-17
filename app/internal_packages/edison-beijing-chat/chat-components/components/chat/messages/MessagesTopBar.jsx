@@ -120,7 +120,7 @@ export default class MessagesTopBar extends Component {
               </div>
               } */}
               <div id="open-info" onTouchTap={() => onInfoPressed()}>
-                <ContactAvatar jid={selectedConversation.jid} name={selectedConversation.name}
+                <ContactAvatar conversation={selectedConversation} jid={selectedConversation.jid} name={selectedConversation.name}
                   email={selectedConversation.email} avatar={selectedConversation.avatar} size={26} />
               </div>
             </div>

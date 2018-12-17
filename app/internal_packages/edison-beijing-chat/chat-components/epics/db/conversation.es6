@@ -69,6 +69,13 @@ const saveConversations = async conversations => {
       if (contact && contact.avatar) {
         conv.avatar = contact.avatar;
       }
+      if (convInDB) {
+        return convInDB.update({
+          $set: {
+            ...conv
+          }
+        })
+      }
     }
     // when group chat, if exists in db, do not update occupants
     else {

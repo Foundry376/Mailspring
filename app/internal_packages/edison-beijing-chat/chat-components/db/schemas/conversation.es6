@@ -20,6 +20,9 @@ export default {
     isGroup: {
       type: 'boolean'
     },
+    isHiddenNotification: {
+      type: 'boolean'
+    },
     at: { // be '@'
       type: 'boolean'
     },
