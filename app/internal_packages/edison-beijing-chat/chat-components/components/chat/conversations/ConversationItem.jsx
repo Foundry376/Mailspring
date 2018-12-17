@@ -5,6 +5,11 @@ import ContactAvatar from '../../common/ContactAvatar';
 import Badge from './ConversationBadge';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
+import chatModel from '../../../store/model';
+import getDb from '../../../db';
+import { copyRxdbConversation } from '../../../utils/db-utils';
+import { DESELECT_CONVERSATION } from '../../../actions/chat';
+
 
 const { primaryColor } = theme;
 
@@ -35,6 +40,7 @@ export default class ConversationItem extends PureComponent {
     event.preventDefault();
     const { conversation, removeConversation } = this.props;
     removeConversation(conversation.jid);
+    chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
   }
 
   render() {

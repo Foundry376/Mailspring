@@ -332,7 +332,7 @@ export default class Messages extends PureComponent {
                       {timeDescriptor(msg.sentTime, true)}
                     </div>
                   </div>
-                  {msg.showToolbar && !msgFile && <div className='message-toolbar' >
+                  {msg.showToolbar && !msgFile && msg.sender === currentUserId && <div className='message-toolbar' >
                     <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}
