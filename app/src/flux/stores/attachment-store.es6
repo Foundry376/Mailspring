@@ -396,8 +396,33 @@ class AttachmentStore extends MailspringStore {
   async _deleteFile(file) {
     try {
       // Delete the file and it's containing folder. Todo: possibly other empty dirs?
-      await fs.unlinkAsync(this.pathForFile(file));
-      await fs.rmdirAsync(path.dirname(this.pathForFile(file)));
+      let removeFinishedCount = 0;
+      fs.unlink(this.pathForFile(file), err => {
+        if (err) {
+          console.error('Delete attachment failed: ', err);
+        }
+        removeFinishedCount++;
+        if (removeFinishedCount >= 2) {
+          fs.rmdir(path.dirname(this.pathForFile(file)), err => {
+            if (err) {
+              console.error('Delete attachment failed: ', err);
+            }
+          });
+        }
+      });
+      fs.unlink(this.pathForFile(file) + '.png', err => {
+        if (err) {
+          console.error('Delete attachment failed: ', err);
+        }
+        removeFinishedCount++;
+        if (removeFinishedCount >= 2) {
+          fs.rmdir(path.dirname(this.pathForFile(file)), err => {
+            if (err) {
+              console.error('Delete attachment failed: ', err);
+            }
+          });
+        }
+      });
     } catch (err) {
       throw new Error(`Error deleting file file ${file.filename}:\n\n${err.message}`);
     }
