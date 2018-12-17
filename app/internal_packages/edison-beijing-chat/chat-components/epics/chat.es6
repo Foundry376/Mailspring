@@ -449,9 +449,25 @@ export const conversationCreatedEpic = action$ =>
 // TODO: Handle group conversations
 export const triggerNotificationEpic = action$ =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
-    .map(({ payload: { from: { bare: conversationJid, local: title }, body } }) => {
+    .mergeMap(
+      ({ payload }) => Observable.fromPromise(getDb())
+        .map(db => ({ db, payload })),
+    )
+    .mergeMap(
+      ({ db, payload }) => {
+        const { from: { bare: conversationJid } } = payload;
+        return Observable.fromPromise(db.conversations.findOne(conversationJid).exec())
+          .map(conv => ({ conv, payload }))
+      },
+    )
+    .filter(({ conv }) => {
+      // hide notifications
+      return !conv.isHiddenNotification;
+    })
+    .map(({ conv, payload }) => {
+      const { from: { bare: conversationJid }, body } = payload;
       const { content } = JSON.parse(body);
-      return showConversationNotification(conversationJid, title, content);
+      return showConversationNotification(conversationJid, conv.name, content);
     });
 
 export const showConversationNotificationEpic = (action$, { getState }) =>
