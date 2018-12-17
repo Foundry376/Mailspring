@@ -349,12 +349,21 @@ export class XmppEx extends EventEmitter3 {
    * @param   {Object}  message   The message to be sent
    * @throws  {Error}             Throws an error if the client is not connected
    */
-  sendMessage(message) {
+  sendMessage(message, retryCnt = 0) {
+    let isConnected = false;
     try {
-      this.requireConnection();
+      isConnected = this.requireConnection();
     } catch (e) {
       console.warn(e);
-      setTimeout(() => this.connect(), 100);
+    }
+    if (!isConnected) {
+      retryCnt++;
+      if (retryCnt <= 10) {
+        setTimeout(() => {
+          this.connect().then(() => this.sendMessage(message, retryCnt));
+        }, 100 + 1000 * (retryCnt - 1)); // 0.1s, 1.1s, 2.1s ...
+      }
+      return;
     }
     const finalMessage = Object.assign({}, message, {
       from: this.connectedJid,
@@ -368,7 +377,9 @@ export class XmppEx extends EventEmitter3 {
       console.warn('This method requires a connection to the XMPP server, call connect before ' +
         'using this method.');
       //this.emit('disconnected', this.connectedJid);
+      return false;
     }
+    return true;
   }
 }
 
