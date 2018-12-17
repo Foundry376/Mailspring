@@ -47,8 +47,8 @@ export default class ConversationItem extends PureComponent {
     const { selected, conversation, referenceTime, onTouchTap, removeConversation, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
     return (
-      <div onTouchTap={onTouchTap} className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
-        <div style={{ width: '100%', display: 'flex' }}>
+      <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
+        <div style={{ width: '100%', display: 'flex' }} onTouchTap={onTouchTap}>
           <div className="avatarWrapper">
             <ContactAvatar jid={conversation.jid} name={conversation.name}
               email={conversation.email} avatar={conversation.avatar} size={26} />
