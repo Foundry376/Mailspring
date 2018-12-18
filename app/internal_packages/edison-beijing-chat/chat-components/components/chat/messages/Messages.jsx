@@ -288,34 +288,36 @@ export default class Messages extends PureComponent {
 
               if (shouldInlineImg(msgBody)) {
                 msg.height = msg.height || 220;
-                msgFile = (<div className="messageMeta" onClick={onClickImage} onMouseEnter={showToolbar} onMouseLeave={hideToolbar}>
+                msgFile = (<div className="messageMeta" onClick={onClickImage}>
                   <img
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
                     style={{ height: '220px', cursor }}
                   />
-                  {msg.showToolbar && <div className='message-toolbar' ><span
-                    className="download-img"
-                    title={msgBody.path}
-                    onClick={download}
-                  />
+                  {msg.showToolbar && <div className='message-toolbar' >
+                    <span
+                      className="download-img"
+                      title={msgBody.path}
+                      onClick={download}
+                    />
                     <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}
                     /></div>}
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
-                msgFile = <div className="messageMeta" onMouseEnter={showToolbar} onMouseLeave={hideToolbar}>
+                msgFile = <div className="messageMeta">
                   <RetinaImg
                     name="fileIcon.png"
                     mode={RetinaImg.Mode.ContentPreserve}
                     title={msgBody.mediaObjectId}
                   />
-                  {msg.showToolbar && <div className='message-toolbar' onClick={download}><span
-                    className="download-img"
-                    title={msgBody.path}
-                    onClick={download}
-                  />
+                  {msg.showToolbar && <div className='message-toolbar' onClick={download}>
+                    <span
+                      className="download-img"
+                      title={msgBody.path}
+                      onClick={download}
+                    />
                     <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}

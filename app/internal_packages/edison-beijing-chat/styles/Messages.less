@@ -27,6 +27,9 @@
     flex-direction: column;
     border-width: 2px;
     font-size: 12px;
+    &:hover .message-toolbar {
+      display: block;
+    }
   }
 
   .message.currentUser {
@@ -131,12 +134,17 @@
     align-self: flex-end;
     text-align: right;
     font-size: 0.7em;
+    position: relative;
+    &:hover .message-toolbar {
+      display: block;
+    }
   }
 
   .messageStatus {
     margin-right: 2px;
   }
   .message-toolbar {
+    display: none;
     position:absolute;
     z-index: 99;
     opacity:1;
