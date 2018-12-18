@@ -226,9 +226,8 @@ export default class Messages extends PureComponent {
                   return;
                 }
                 if (msgBody.path.match(/^file:\/\//)) {
-                  console.log('downloadImage: ', msgBody.path);
                   let imgpath = msgBody.path.replace('file://', '');
-                  fs.renameSync(imgpath, path);
+                  fs.copyFileSync(imgpath, path);
                 } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
                   // the file is on aws
                   downloadFile(msgBody.aes, msgBody.mediaObjectId, path);

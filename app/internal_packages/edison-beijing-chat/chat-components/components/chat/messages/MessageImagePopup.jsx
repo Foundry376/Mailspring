@@ -16,7 +16,6 @@ export default class MessageImagePopup extends Component {
     messageModel.imagePopup = this;
   }
   update() {
-    console.log('MessageImagePopup update');
     this.setState(Object.assign({}, this.state, {key:key++}));
   }
   getContactNameByJid(jid) {
@@ -45,7 +44,7 @@ export default class MessageImagePopup extends Component {
     if (msgBody.path.match(/^file:\/\//)) {
       console.log('downloadImage: ', msgBody.path);
       let imgpath = msgBody.path.replace('file://', '');
-      fs.renameSync(imgpath, path);
+      fs.copyFileSync(imgpath, path);
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
       downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
@@ -74,7 +73,6 @@ export default class MessageImagePopup extends Component {
     }
   }
   gotoPrevImage = (event) => {
-    debugger;
     const groupedMessages = messageModel.messagesReactInstance.props.groupedMessages;
     let group = messageModel.group;
     let groupIndex = groupedMessages.indexOf(group);
@@ -103,7 +101,6 @@ export default class MessageImagePopup extends Component {
     }
   }
   gotoNextImage = (event) => {
-    debugger;
     const groupedMessages = messageModel.messagesReactInstance.props.groupedMessages;
     let group = messageModel.group;
     let groupIndex = groupedMessages.indexOf(group);
@@ -160,13 +157,13 @@ export default class MessageImagePopup extends Component {
         </div>
         <span className="download-img" style={{float:'right'}} onClick={this.downloadImage}></span>
       </div>
-        <div>
+        <div className="popup-img-container" style={{ width:(screen.width-100)+'px', height:(screen.height-200)+'px' }}>
           <div className="left-span">
           <span className='left-arrow-button' onClick={this.gotoPrevImage}></span>
           </div>
-          <img
+          <img className='popup-img'
             src={msgBody.path}
-            style={{ width:(screen.width-180)+'px', height:(screen.height-160)+'px' }}
+            style={{ width:(screen.width-200)+'px', height:(screen.height-200)+'px', verticalAlign:'top', margin:'0 auto'}}
           />
           <div className="right-span">
           <span className='right-arrow-button' onClick={this.gotoNextImage}></span>
