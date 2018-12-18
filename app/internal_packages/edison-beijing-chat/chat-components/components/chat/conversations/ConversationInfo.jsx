@@ -6,14 +6,17 @@ import getDb from '../../../db';
 import chatModel from '../../../store/model';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
+import { remote } from 'electron';
 
 const { primaryColor } = theme;
 
 
 export default class ConversationInfo extends Component {
+  static timer;
   constructor(props) {
     super();
     this.state = {
+      visible: false,
       isHiddenNotifi: props.conversation && !!props.conversation.isHiddenNotification
     }
   }
@@ -68,10 +71,35 @@ export default class ConversationInfo extends Component {
     this.props.deselectConversation();
   }
 
+  showMenu = (e) => {
+    const menus = [
+      {
+        label: `Add to Group...`,
+        click: () => {
+          this.props.toggleInvite();
+        },
+      },
+      {
+        label: `Clear Message History`,
+        click: () => {
+          this.clearMessages();
+        },
+      },
+      { type: 'separator' },
+      {
+        label: `Hide notifications`,
+        type: 'checkbox',
+        checked: this.state.isHiddenNotifi,
+        click: () => {
+          this.hiddenNotifi();
+        },
+      },
+    ]
+    remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
+  }
 
   render = () => {
     const { conversation, members } = this.props;
-    const { isHiddenNotifi } = this.state;
     for (let member of members) {
       if (member.affiliation === 'owner' && member.jid.bare === chatModel.currentUser.jid) {
         this.currentUserIsOwner = true;
@@ -80,6 +108,10 @@ export default class ConversationInfo extends Component {
     members.sort((a, b) => a.affiliation > b.affiliation);
     return (
       <div className="info-panel">
+        <div className="member-management">
+          <div className="member-count">{members.length}People</div>
+          <Button className="more" onClick={this.showMenu}></Button>
+        </div>
         <div>
           {
             !conversation.isGroup ? (
@@ -124,7 +156,7 @@ export default class ConversationInfo extends Component {
               )
             })
           }
-          {
+          {/* {
             conversation.isGroup ? (
               <div className="row add-to-group">
                 <Button onTouchTap={this.props.toggleInvite}>
@@ -132,7 +164,7 @@ export default class ConversationInfo extends Component {
               </Button>
               </div>
             ) : null
-          }
+          } */}
           {
             conversation.isGroup ? (
               !this.currentUserIsOwner && <div className="row add-to-group">
@@ -142,18 +174,12 @@ export default class ConversationInfo extends Component {
               </div>
             ) : null
           }
-          <div className="row">
-            <label>
-              <input type="checkbox" onChange={this.hiddenNotifi} checked={isHiddenNotifi} />
-              Hide notifications
-            </label>
-          </div>
         </div>
-        <div className="clear">
+        {/* <div className="clear">
           <Button className="clear-message" onTouchTap={this.clearMessages}>
             Clear Message History
           </Button>
-        </div>
+        </div> */}
       </div>
     )
   };

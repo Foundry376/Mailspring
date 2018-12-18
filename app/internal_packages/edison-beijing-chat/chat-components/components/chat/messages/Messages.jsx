@@ -287,12 +287,12 @@ export default class Messages extends PureComponent {
               let cursor = 'zoom-in';
 
               if (shouldInlineImg(msgBody)) {
-                msg.height = msg.height || 100;
+                msg.height = msg.height || 220;
                 msgFile = (<div className="messageMeta" onClick={onClickImage} onMouseEnter={showToolbar} onMouseLeave={hideToolbar}>
                   <img
                     src={msgBody.path}
                     title={msgBody.mediaObjectId}
-                    style={{ height: '100px', cursor }}
+                    style={{ height: '220px', cursor }}
                   />
                   {msg.showToolbar && <div className='message-toolbar' ><span
                     className="download-img"
@@ -386,7 +386,7 @@ export default class Messages extends PureComponent {
           </div>
         ))
         }
-        <MessageImagePopup/>
+        <MessageImagePopup />
         <div ref={element => { this.messagePanelEnd = element; }} />
       </div>
     );
