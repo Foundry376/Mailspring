@@ -1,5 +1,22 @@
 import { RegExpUtils } from 'mailspring-exports';
 
+function numberOfTrailingBRs(text) {
+  let count = 0;
+  text = text.trim();
+  while (true) {
+    if (text.endsWith('<br/>')) {
+      text = text.substr(0, text.length - 5);
+    } else if (text.endsWith('<div></div>')) {
+      text = text.substr(0, text.length - 11);
+    } else {
+      break;
+    }
+    text = text.trim();
+    count++;
+  }
+  return count;
+}
+
 export function currentSignatureId(body) {
   let replyEnd = body.search(RegExpUtils.nativeQuoteStartRegex());
   if (replyEnd === -1) {
@@ -12,13 +29,13 @@ export function currentSignatureId(body) {
 }
 
 export function applySignature(body, signature) {
+  // Remove any existing signature in the body
   let additionalWhitespace = '<br/>';
 
-  // Remove any existing signature in the body
   let newBody = body;
   if (currentSignatureId(body)) {
     newBody = newBody.replace(RegExpUtils.mailspringSignatureRegex(), '');
-    additionalWhitespace = '';
+    additionalWhitespace = ''; // never add whitespace when switching signatures
   }
 
   // http://www.regexpal.com/?fam=94390
@@ -32,6 +49,10 @@ export function applySignature(body, signature) {
   if (signature) {
     const contentBefore = newBody.slice(0, insertionPoint);
     const contentAfter = newBody.slice(insertionPoint);
+    if (numberOfTrailingBRs(contentBefore) > 1) {
+      additionalWhitespace = ''; // never add whitespace when we already have 2 spaces
+    }
+
     return `${contentBefore}${additionalWhitespace}<signature id="${signature.id}">${
       signature.body
     }</signature>${contentAfter}`;
