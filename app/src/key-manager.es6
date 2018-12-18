@@ -15,8 +15,8 @@ const weakPassword = '233ceoTeuoR/o-ecTE';
  */
 class KeyManager {
   constructor() {
-    this.SERVICE_NAME = AppEnv.inDevMode() ? 'EdisonMail Dev' : 'EdisonMail';
-    this.KEY_NAME = 'EdisonMail Keys';
+    this.SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
+    this.KEY_NAME = 'Mailspring Keys';
     this.CONFIGKEY='accountCredentials';
   }
 
