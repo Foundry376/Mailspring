@@ -16,7 +16,7 @@ export default class MessageImagePopup extends Component {
     messageModel.imagePopup = this;
   }
   update() {
-    this.setState(Object.assign({}, this.state, {key:key++}));
+    this.setState(Object.assign({}, this.state, { key: key++ }));
   }
   getContactNameByJid(jid) {
     this.props = messageModel.messagesReactInstance.props;
@@ -107,7 +107,7 @@ export default class MessageImagePopup extends Component {
     let msg = messageModel.msg
     let index = group.messages.indexOf(msg);
     while (1) {
-      while (index<group.messages.length-1) {
+      while (index < group.messages.length - 1) {
         index++;
         msg = group.messages[index];
         let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
@@ -119,7 +119,7 @@ export default class MessageImagePopup extends Component {
           return;
         }
       }
-      if (groupIndex < groupedMessages.length-1) {
+      if (groupIndex < groupedMessages.length - 1) {
         groupIndex++;
         group = groupedMessages[groupIndex];
         index = group.messages.length;
@@ -141,35 +141,34 @@ export default class MessageImagePopup extends Component {
     let msg = messageModel.msg;
     let msgBody = messageModel.msgBody;
 
-    return (<div className='message-image-popup' style={{top:'40px', left:'40px', width:(screen.width-80)+'px', height:(screen.height-160)+'px'}}>
-      <div className='topbar'>
-        <span id='close-button'onClick={()=>{this.hidden = true; this.update();}}></span>
-      </div>
-      <div className='message-image-popup-toolbar'>
-        {true || msg.sender !== messageModel.currentUserId ?
-          <div className="messageSender image-popup-avatar" style={{display:'inline-block'}}>
-            {messageModel.messagesReactInstance.getContactInfoByJid(msg.sender)}
-          </div> : null
-        }
-        <div style={{display:'inline-block'}}>
-          <span style={{display:'inline-block', width:'100%'}}>{msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</span>
-          <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
+    return (
+      <div className='message-image-popup'>
+        <div className='message-image-popup-toolbar'>
+          <span id='close-button' onClick={() => { this.hidden = true; this.update(); }}></span>
+          {true || msg.sender !== messageModel.currentUserId ?
+            <div className="messageSender image-popup-avatar" style={{ display: 'inline-block' }}>
+              {messageModel.messagesReactInstance.getContactInfoByJid(msg.sender)}
+            </div> : null
+          }
+          <div style={{ display: 'inline-block' }}>
+            <span style={{ display: 'inline-block', width: '100%' }}>{msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</span>
+            <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
+          </div>
+          <span className="download-img" style={{ float: 'right' }} onClick={this.downloadImage}></span>
         </div>
-        <span className="download-img" style={{float:'right'}} onClick={this.downloadImage}></span>
-      </div>
-        <div className="popup-img-container" style={{ width:(screen.width-100)+'px', height:(screen.height-200)+'px' }}>
+        <div className='message-image-popup-content'>
           <div className="left-span">
-          <span className='left-arrow-button' onClick={this.gotoPrevImage}></span>
+            <span className='left-arrow-button' onClick={this.gotoPrevImage}></span>
           </div>
-          <img className='popup-img'
-            src={msgBody.path}
-            style={{ width:(screen.width-200)+'px', height:(screen.height-200)+'px', verticalAlign:'top', margin:'0 auto'}}
-          />
+          <div className="img-container">
+            <img src={msgBody.path} />
+          </div>
           <div className="right-span">
-          <span className='right-arrow-button' onClick={this.gotoNextImage}></span>
+            <span className='right-arrow-button' onClick={this.gotoNextImage}></span>
           </div>
         </div>
-      </div>)
+      </div>
+    )
   }
 }
 

@@ -109,7 +109,7 @@ export default class ConversationInfo extends Component {
     return (
       <div className="info-panel">
         <div className="member-management">
-          <div className="member-count">{members.length}People</div>
+          <div className="member-count">{conversation.isGroup ? members.length + "People" : ""}</div>
           <Button className="more" onClick={this.showMenu}></Button>
         </div>
         <div>
