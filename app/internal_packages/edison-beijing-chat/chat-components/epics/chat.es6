@@ -48,6 +48,7 @@ import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generat
 import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
+import messageModel from '../components/chat/messages/messageModel';
 
 const downloadAndTagImageFileInMessage = (aes, payload) => {
   let body;
@@ -72,7 +73,11 @@ const downloadAndTagImageFileInMessage = (aes, payload) => {
     }
     path = downpath + name;
     msgBody.path = 'file://' + path;
-    downloadFile(aes, msgBody.mediaObjectId, path);
+    downloadFile(aes, msgBody.mediaObjectId, path, () => {
+      if (fs.existsSync(path)) {
+        messageModel.messagesReactInstance.update();
+      }
+    });
   }
   if (aes) {
     msgBody.aes = aes;

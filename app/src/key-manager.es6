@@ -15,8 +15,9 @@ const weakPassword = '233ceoTeuoR/o-ecTE';
  */
 class KeyManager {
   constructor() {
-    this.SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
-    this.KEY_NAME = 'Mailspring Keys';
+    this.SERVICE_NAME = AppEnv.inDevMode() ? 'EdisonMail Dev' : 'EdisonMail';
+    this.KEY_NAME = 'EdisonMail Keys';
+    this.CONFIGKEY='accountCredentials';
   }
 
   async deleteAccountSecrets(account) {
@@ -114,16 +115,24 @@ class KeyManager {
   }
 
   async _getKeyHash() {
-    let raw = (await keytar.getPassword(this.SERVICE_NAME, this.KEY_NAME)) || '{}';
-    if (raw === '{}') {
-      console.info('failed to open keychain');
-      const cipherText = AppEnv.config.get('accountCredentials');
+    let raw = '{}';
+    const cipherText = AppEnv.config.get(this.CONFIGKEY);
+    if (cipherText && cipherText.length > 0) {
       try {
         let bytes = aes.decrypt(cipherText, weakPassword);
         raw = bytes.toString(utf8);
       } catch (err) {
         console.log('decrypt account credentials failed: ', err);
       }
+    }
+    if (raw === '{}') {
+      try {
+        raw = (await keytar.getPassword(this.SERVICE_NAME, this.KEY_NAME)) || '{}';
+        AppEnv.config.unset(this.CONFIGKEY);
+      } catch (err) {
+        console.log('keychain access failed');
+      }
+      console.log('raw key data: ', raw);
     }
     try {
       return JSON.parse(raw);
@@ -135,11 +144,12 @@ class KeyManager {
   async _writeKeyHash(keys) {
     try {
       await keytar.setPassword(this.SERVICE_NAME, this.KEY_NAME, JSON.stringify(keys));
+      AppEnv.config.unset(this.CONFIGKEY);
     } catch (err) {
-      console.info('Failed to write to keychain');
+      console.log('Failed to write to keychain');
       try {
         const encryptedText = aes.encrypt(JSON.stringify(keys), weakPassword).toString();
-        AppEnv.config.set('accountCredentials', encryptedText);
+        AppEnv.config.set(this.CONFIGKEY, encryptedText);
       } catch (err) {
         return Promise.reject('Storing credentials failed');
       }

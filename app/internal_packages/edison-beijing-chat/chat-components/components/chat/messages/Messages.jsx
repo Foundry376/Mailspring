@@ -33,11 +33,12 @@ const { primaryColor } = theme;
 let key = 0;
 
 const shouldInlineImg = (msgBody) => {
-  return msgBody.path && msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/);
+  let path = msgBody.path && msgBody.path.replace('file://', '');
+  return path && path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) && (fs.existsSync(path));
 }
 const shouldDisplayFileIcon = (msgBody) => {
-  return msgBody.mediaObjectId && !msgBody.path || // this is received file msgBody.path is added for image file while receiving message
-    msgBody.path && !msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) //this is sent file, msgBody.path is msgBody.localFile added while sending
+  return msgBody.mediaObjectId && !msgBody.path ||
+    msgBody.path && !msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/)
 }
 
 // The number of pixels away from the bottom to be considered as being at the bottom
@@ -226,9 +227,8 @@ export default class Messages extends PureComponent {
                   return;
                 }
                 if (msgBody.path.match(/^file:\/\//)) {
-                  console.log('downloadImage: ', msgBody.path);
                   let imgpath = msgBody.path.replace('file://', '');
-                  fs.renameSync(imgpath, path);
+                  fs.copyFileSync(imgpath, path);
                 } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
                   // the file is on aws
                   downloadFile(msgBody.aes, msgBody.mediaObjectId, path);

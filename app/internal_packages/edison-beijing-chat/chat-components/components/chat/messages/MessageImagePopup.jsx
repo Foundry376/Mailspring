@@ -16,7 +16,6 @@ export default class MessageImagePopup extends Component {
     messageModel.imagePopup = this;
   }
   update() {
-    console.log('MessageImagePopup update');
     this.setState(Object.assign({}, this.state, { key: key++ }));
   }
   getContactNameByJid(jid) {
@@ -45,7 +44,7 @@ export default class MessageImagePopup extends Component {
     if (msgBody.path.match(/^file:\/\//)) {
       console.log('downloadImage: ', msgBody.path);
       let imgpath = msgBody.path.replace('file://', '');
-      fs.renameSync(imgpath, path);
+      fs.copyFileSync(imgpath, path);
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
       downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
@@ -74,7 +73,6 @@ export default class MessageImagePopup extends Component {
     }
   }
   gotoPrevImage = (event) => {
-    debugger;
     const groupedMessages = messageModel.messagesReactInstance.props.groupedMessages;
     let group = messageModel.group;
     let groupIndex = groupedMessages.indexOf(group);
@@ -103,7 +101,6 @@ export default class MessageImagePopup extends Component {
     }
   }
   gotoNextImage = (event) => {
-    debugger;
     const groupedMessages = messageModel.messagesReactInstance.props.groupedMessages;
     let group = messageModel.group;
     let groupIndex = groupedMessages.indexOf(group);
