@@ -10,6 +10,9 @@ const isTextInput = node => {
   if (!node) {
     return false;
   }
+  if (node.nodeName === 'WEBVIEW') {
+    return true;
+  }
   if (node.nodeName === 'TEXTAREA') {
     return true;
   }
