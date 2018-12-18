@@ -1,5 +1,6 @@
 import Html from 'slate-html-serializer';
 import { Value } from 'slate';
+import React from 'react';
 
 import BaseMarkPlugins from './base-mark-plugins';
 import TemplatePlugins from './template-plugins';
@@ -115,9 +116,57 @@ function parseHtml(html) {
   return tree;
 }
 
+// This is copied from slate-html-serializer/index.js and improved to preserve
+// sequential space characters that would be compacted during the HTML display.
+const TEXT_RULE_IMPROVED = {
+  deserialize: el => {
+    if (el.tagName && el.tagName.toLowerCase() === 'br') {
+      return {
+        object: 'text',
+        leaves: [
+          {
+            object: 'leaf',
+            text: '\n',
+          },
+        ],
+      };
+    }
+
+    if (el.nodeName === '#text') {
+      if (el.nodeValue && el.nodeValue.match(/<!--.*?-->/)) return;
+
+      return {
+        object: 'text',
+        leaves: [
+          {
+            object: 'leaf',
+            text: el.nodeValue,
+          },
+        ],
+      };
+    }
+  },
+  serialize: (obj, children) => {
+    if (obj.object === 'string') {
+      return children.split('\n').reduce((array, text, i) => {
+        if (i !== 0) array.push(<br />);
+        // BEGIN CHANGE
+        // Replace "a   b c" with "a&nbsp;&nbsp; b c" (to match Gmail's behavior exactly.)
+        // In a long run of spaces, all but the last space are converted to &nbsp;.
+        // Note: This text is pushed through React's HTML serializer after we're done,
+        // so we need to use `\u00A0` which is the unicode character for &nbsp;
+        text = text.replace(/([ ]+) /g, (str, match) => match.replace(/ /g, '\u00A0') + ' ');
+        // END CHANGE
+        array.push(text);
+        return array;
+      }, []);
+    }
+  },
+};
+
 const HtmlSerializer = new Html({
   defaultBlock: { type: BLOCK_CONFIG.div.type },
-  rules: [].concat(...plugins.filter(p => p.rules).map(p => p.rules)),
+  rules: [].concat(...plugins.filter(p => p.rules).map(p => p.rules)).concat([TEXT_RULE_IMPROVED]),
   parseHtml: parseHtml,
 });
 
