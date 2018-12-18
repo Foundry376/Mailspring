@@ -1,54 +1,65 @@
 .message-image-popup {
   position: fixed;
-  border: solid 1px black;
-  background-color: white;
-  border-radius: 5px;
+  left: 0;
+  top: 0px;
+  padding-top: 50px;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255,255,255,0.95);
   z-index: 999;
   overflow: hidden;
-
-  .topbar {
-    height:24px;
-    width:100%;
-    background-color: gray;
-  }
+  display: flex;
+  flex-direction: column;
   .message-image-popup-toolbar {
     width: 100%;
     height: 48px;
+    .image-popup-avatar {
+      position: relative;
+      top:-10px;
+      margin: auto 0 auto 0;
+      height: 48px;
+      width: 48px;
+    }
+    #close-button {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      background: url(images/chat/mac-close-window.png) no-repeat center center;
+    }
   }
-  .image-popup-avatar {
-    position: relative;
-    top:-10px;
-    margin: auto 0 auto 0;
-    height: 48px;
-    width: 48px;
+  .message-image-popup-content {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    .img-container {
+      flex: 1;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      img {
+        width: 100%;
+      }
+    }
+    .left-arrow-button,
+    .right-arrow-button {
+      display: block;
+      height: 48px;
+    }
+    .left-arrow-button {
+      background: url(images/chat/left-arrow.png) no-repeat center center;
+    }
+    .right-arrow-button {
+      background: url(images/chat/right-arrow.png) no-repeat center center;
+    }
+    .left-span,
+    .right-span {
+      width: 100px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
   }
-  #close-button {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    background: url(images/chat/mac-close-window.png) no-repeat center center;
-  }
-  .left-arrow-button {
-    display: inline-block;
-    width: 48px;
-    height: 48px;
-    background: url(images/chat/left-arrow.png) no-repeat center center;
-  }
-  .right-arrow-button {
-    display: inline-block;
-    width: 48px;
-    height: 48px;
-    background: url(images/chat/right-arrow.png) no-repeat center center;
-  }
-  .left-span {
-     display: inline-block;
-     width: 48px;
-     height: 100%;
-   }
-  .right-span {
-    display: inline-block;
-    width: 48px;
-    height: 100%;
-  }
-
 }
