@@ -20,6 +20,8 @@ import ContactAvatar from '../../common/ContactAvatar';
 import chatModel from '../../../store/model';
 import { saveGroupMessages } from '../../../utils/db-utils';
 import { NEW_CONVERSATION } from '../../../actions/chat';
+import messageModel from './messageModel';
+import MessageImagePopup from './MessageImagePopup';
 
 var http = require("http");
 var https = require("https");
@@ -137,7 +139,7 @@ export default class Messages extends PureComponent {
     }
   }
 
-  getContactInfoByJid = (jid) => {
+  getContactInfoByJid(jid) {
     if (this.props.selectedConversation.isGroup) {
       const members = this.props.members;
       if (!members || members.length === 0) {
@@ -164,6 +166,10 @@ export default class Messages extends PureComponent {
       this.setState(Object.assign({}, this.state, { key }));
     }
   }
+  update() {
+    key++;
+    this.setState(Object.assign({}, this.state, { key }));
+  }
 
   render() {
     const {
@@ -172,6 +178,9 @@ export default class Messages extends PureComponent {
       referenceTime,
       selectedConversation: { isGroup, jid },
     } = this.props;
+    messageModel.messagesReactInstance = this;
+    messageModel.currentUserId = currentUserId;
+    messageModel.getContactInfoByJid = this.getContactInfoByJid;
     if (groupedMessages.length) {
       chatModel.groupedMessages = groupedMessages;
     }
@@ -206,8 +215,7 @@ export default class Messages extends PureComponent {
                 chatModel.editingMessageId = msg.id;
                 event.stopPropagation();
                 event.preventDefault();
-                key++;
-                this.setState(Object.assign({}, this.state, { key }));
+                this.update();
               };
 
               let download = (event) => {
@@ -217,7 +225,11 @@ export default class Messages extends PureComponent {
                 if (!path || typeof path !== 'string') {
                   return;
                 }
-                if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
+                if (msgBody.path.match(/^file:\/\//)) {
+                  console.log('downloadImage: ', msgBody.path);
+                  let imgpath = msgBody.path.replace('file://', '');
+                  fs.renameSync(imgpath, path);
+                } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
                   // the file is on aws
                   downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
                 } else {
@@ -246,13 +258,11 @@ export default class Messages extends PureComponent {
               };
               let showToolbar = () => {
                 msg.showToolbar = true;
-                key++;
-                this.setState(Object.assign({}, this.state, { key }));
+                this.update();
               }
               let hideToolbar = () => {
                 msg.showToolbar = false;
-                key++;
-                this.setState(Object.assign({}, this.state, { key }));
+                this.update();
               }
               let onClickImage = () => {
                 msg.zoomin = true;
@@ -261,15 +271,18 @@ export default class Messages extends PureComponent {
                 } else {
                   msg.height = 100;
                 }
-                key++;
-                this.setState(Object.assign({}, this.state, { key }));
+                messageModel.group = group;
+                messageModel.msg = msg;
+                messageModel.msgBody = msgBody;
+                messageModel.imagePopup.hidden = false;
+                messageModel.imagePopup.update();
+                this.update();
               }
               const CancelZoomIn = (event) => {
                 event.stopPropagation();
                 event.preventDefault();
                 msg.zoomin = false;
-                key++;
-                this.setState(Object.assign({}, this.state, { key }));
+                this.update();
               }
               let cursor = 'zoom-in';
 
@@ -281,20 +294,6 @@ export default class Messages extends PureComponent {
                     title={msgBody.mediaObjectId}
                     style={{ height: '100px', cursor }}
                   />
-                  {msg.zoomin && <div style={{ position: 'fixed', top: '40px', left: '120px', zIndex: 999 }}>
-                    <img
-                      src={msgBody.path}
-                      style={{ width: (screen.width - 240) + 'px' }}
-                    />
-                    <span className="cancel-zoomin-button" onClick={CancelZoomIn}>
-                      <CancelIcon color={primaryColor} />
-                      <span
-                        className="download-img"
-                        title={msgBody.path}
-                        onClick={download}
-                      />
-                    </span>
-                  </div>}
                   {msg.showToolbar && <div className='message-toolbar' ><span
                     className="download-img"
                     title={msgBody.path}
@@ -387,6 +386,7 @@ export default class Messages extends PureComponent {
           </div>
         ))
         }
+        <MessageImagePopup/>
         <div ref={element => { this.messagePanelEnd = element; }} />
       </div>
     );
