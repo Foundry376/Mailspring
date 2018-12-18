@@ -1,3 +1,4 @@
+@border-radius: 4px;
 .chat-view-container {
   .messages {
     flex-grow: 1;
@@ -26,6 +27,9 @@
     flex-direction: column;
     border-width: 2px;
     font-size: 12px;
+    &:hover .message-toolbar {
+      display: block;
+    }
   }
 
   .message.currentUser {
@@ -130,29 +134,47 @@
     align-self: flex-end;
     text-align: right;
     font-size: 0.7em;
+    position: relative;
+    &:hover .message-toolbar {
+      display: block;
+    }
   }
 
   .messageStatus {
     margin-right: 2px;
   }
   .message-toolbar {
+    display: none;
     position:absolute;
     z-index: 99;
     opacity:1;
-    top: 20%;
-    left: 20%;
+    top: 3px;
+    right: 0;
+  }
+  .download-img,
+  .inplace-edit-img {
+    margin-right: 6px;
+    display: inline-block;
+    width: 36px;
+    height: 36px;
   }
   .download-img {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    background: url(images/chat/download-12x12.png) no-repeat center center;
+    background: url(images/chat/download.png) no-repeat center center rgba(255, 255, 255, 0.95);
+    background-size: 30px auto;
+    border-radius: @border-radius;
+  }
+  .download-img:hover {
+    background: url(images/chat/download-active.png) no-repeat center center rgba(255, 255, 255, 1);
+    background-size: 30px auto;
   }
   .inplace-edit-img {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    background: url(images/chat/inplace-edit-12x12.png) no-repeat center center;
+    background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 0.95);
+    background-size: 30px auto;
+    border-radius: @border-radius;
+  }
+  .inplace-edit-img:hover {
+    background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 1);
+    background-size: 30px auto;
   }
   .cancel-zoomin-button {
     position: absolute;

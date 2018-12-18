@@ -22,6 +22,10 @@
     height: 48px;
     width: 48px;
   }
+  .popup-img-container {
+    justify-content: center;
+    align-items: center;
+  }
   #close-button {
     display: inline-block;
     width: 24px;
@@ -30,12 +34,18 @@
   }
   .left-arrow-button {
     display: inline-block;
+    position: absolute;
+    top:45%;
+    left:0;
     width: 48px;
     height: 48px;
     background: url(images/chat/left-arrow.png) no-repeat center center;
   }
   .right-arrow-button {
     display: inline-block;
+    position: absolute;
+    top:45%;
+    right:0;
     width: 48px;
     height: 48px;
     background: url(images/chat/right-arrow.png) no-repeat center center;
@@ -49,6 +59,11 @@
     display: inline-block;
     width: 48px;
     height: 100%;
+    float: right;
   }
-
+  .popup-img {
+    vertical-align: top;
+    margin: auto;
+    align-self: center;
+  }
 }

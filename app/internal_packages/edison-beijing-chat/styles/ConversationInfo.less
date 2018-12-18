@@ -1,4 +1,5 @@
 .chat-view-container {
+  @more-height: 26px;
   .infoPanel {
     height: 100%;
     overflow-y: auto;
@@ -18,6 +19,23 @@
       border-radius: 3px;
       width: 100%;
       text-align: center;
+    }
+    .member-management {
+      overflow: hidden;
+      padding: 8px 0;
+    }
+    .button.more {
+      float: right;
+      width: @more-height;
+      height: @more-height;
+      border-radius: 50%;
+      background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 1);
+      background-size: 20px auto;
+    }
+    .member-count {
+      float: left;
+      font-weight: bold;
+      line-height: @more-height;
     }
     .clear-message {
       color: #ff355e;
