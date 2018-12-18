@@ -177,6 +177,10 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'folder',
       itemClass: Folder,
     }),
+    state: Attributes.Number({
+      modelKey: 'state',
+      queryable: true,
+    }),
   });
 
   static naturalSortOrder() {
@@ -373,6 +377,9 @@ export default class Message extends ModelWithMetadata {
     const re = /(?:<signature>.*<\/signature>)|(?:<.+?>)|\s/gim;
     return this.body.replace(re, '').length === 0;
   }
+  isDeleted() {
+    return this.state === 1;
+  }
 
   isHidden() {
     const isReminder =
@@ -380,7 +387,7 @@ export default class Message extends ModelWithMetadata {
       this.from.length === 1 &&
       this.to[0].email === this.from[0].email &&
       (this.from[0].name || '').endsWith('via Mailspring');
-    const isDraftBeingDeleted = this.id.startsWith('deleted-');
+    const isDraftBeingDeleted = this.id.startsWith('deleted-') || this.isDeleted();
 
     return isReminder || isDraftBeingDeleted;
   }

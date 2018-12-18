@@ -380,14 +380,16 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     }
 
     if (!['spam', 'trash'].includes(this.categoriesSharedRole())) {
-      query.where({ inAllMail: true });
+      query.where({ inAllMail: true, state: 0});
     }
 
-    if (['spam', 'trash'].includes(this.categoriesSharedRole())) {
-      query.where(new Matcher.Not([
-        Thread.attributes.id.like('delete')
-      ]));
-    }
+
+
+    // if (['spam', 'trash'].includes(this.categoriesSharedRole())) {
+    //   query.where(new Matcher.Not([
+    //     Thread.attributes.id.like('delete')
+    //   ]));
+    // }
 
     if (this._categories.length > 1 && this.accountIds.length < this._categories.length) {
       // The user has multiple categories in the same account selected, which

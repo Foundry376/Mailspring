@@ -91,6 +91,10 @@ export default class Category extends Model {
     localStatus: Attributes.Object({
       modelKey: 'localStatus',
     }),
+    state: Attributes.Number({
+      modelKey: 'state',
+      queryable: true,
+    }),
   });
 
   static Types = {
@@ -153,6 +157,10 @@ export default class Category extends Model {
 
   isUserCategory() {
     return !this.isStandardCategory() && !this.isHiddenCategory();
+  }
+
+  isDeleted() {
+    return this.state === 1;
   }
 
   isArchive() {

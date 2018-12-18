@@ -118,6 +118,10 @@ export default class Thread extends ModelWithMetadata {
       queryable: true,
       modelKey: 'inAllMail',
     }),
+    state: Attributes.Number({
+      modelKey: 'state',
+      queryable: true,
+    }),
   });
 
   static sortOrderAttribute = () => {
