@@ -106,6 +106,12 @@ export const TokenSuggestions = [
     termSuggestions: ['unread', 'starred'],
   },
   {
+    token: 'has',
+    term: '',
+    description: 'attachment',
+    termSuggestions: ['attachment'],
+  },
+  {
     token: 'subject',
     term: '',
     description: localized('an email subject'),

@@ -98,6 +98,8 @@ export default class Thread extends ModelWithMetadata {
       itemClass: Contact,
     }),
 
+    // Note: Attachment count only includes non-inline files and inline files > 12kb.
+    // (Attachments that would trigger the display of the attachment icon.)
     attachmentCount: Attributes.Number({
       modelKey: 'attachmentCount',
     }),

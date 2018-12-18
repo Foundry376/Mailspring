@@ -223,7 +223,12 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitHasAttachment(/* node */) {
-    this._result = `(\`${this._className}\`.\`data\` LIKE '%"has_attachments":true%')`;
+    /*
+    TODO BG: On Dec. 18th 2018 I fixed the sync engine to populate the `hasAttachment` column
+    with a valid attachment count. After DB CURRENT_VERSION > 4, we should switch to using
+    that field rather than this slow LIKE clause.
+    */
+    this._result = `(\`${this._className}\`.\`data\` NOT LIKE '%"attachmentCount":0%')`;
   }
 
   visitDate(node) {

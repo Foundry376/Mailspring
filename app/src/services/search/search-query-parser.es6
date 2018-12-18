@@ -223,7 +223,8 @@ const parseHasQuery = text => {
   }
   const tokText = tok.s.toUpperCase();
   switch (tokText) {
-    case 'ATTACHMENT': {
+    case 'ATTACHMENT':
+    case 'ATTACHMENTS': {
       return [new HasAttachmentQueryExpression(), afterTok];
     }
     default:
