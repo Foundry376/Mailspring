@@ -1,5 +1,9 @@
 import { remote } from 'electron';
 import keytar from 'keytar';
+import aes from 'crypto-js/aes';
+import utf8 from 'crypto-js/enc-utf8';
+
+const weakPassword = '233ceoTeuoR/o-ecTE';
 
 /**
  * A basic wrap around keytar's secure key management. Consolidates all of
@@ -71,10 +75,10 @@ class KeyManager {
   async insertChatAccountSecrets(account) {
     const next = account.clone();
     const keys = await this._getKeyHash();
-    if (keys[`${account.email}-password`]){
+    if (keys[`${account.email}-password`]) {
       next.password = keys[`${account.email}-password`];
     }
-    if (keys[`${account.email}-accessToken`]){
+    if (keys[`${account.email}-accessToken`]) {
       next.accessToken = keys[`${account.email}-accessToken`];
     }
     return next;
@@ -110,7 +114,17 @@ class KeyManager {
   }
 
   async _getKeyHash() {
-    const raw = (await keytar.getPassword(this.SERVICE_NAME, this.KEY_NAME)) || '{}';
+    let raw = (await keytar.getPassword(this.SERVICE_NAME, this.KEY_NAME)) || '{}';
+    if (raw === '{}') {
+      console.info('failed to open keychain');
+      const cipherText = AppEnv.config.get('accountCredentials');
+      try {
+        let bytes = aes.decrypt(cipherText, weakPassword);
+        raw = bytes.toString(utf8);
+      } catch (err) {
+        console.log('decrypt account credentials failed: ', err);
+      }
+    }
     try {
       return JSON.parse(raw);
     } catch (err) {
@@ -119,7 +133,17 @@ class KeyManager {
   }
 
   async _writeKeyHash(keys) {
-    await keytar.setPassword(this.SERVICE_NAME, this.KEY_NAME, JSON.stringify(keys));
+    try {
+      await keytar.setPassword(this.SERVICE_NAME, this.KEY_NAME, JSON.stringify(keys));
+    } catch (err) {
+      console.info('Failed to write to keychain');
+      try {
+        const encryptedText = aes.encrypt(JSON.stringify(keys), weakPassword).toString();
+        AppEnv.config.set('accountCredentials', encryptedText);
+      } catch (err) {
+        return Promise.reject('Storing credentials failed');
+      }
+    }
   }
 
   _reportFatalError(err) {
