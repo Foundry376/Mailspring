@@ -70,7 +70,6 @@ class GroupChatAvatar extends Component {
       return;
     }
     this.avatarMembers = [];
-    console.log('ConversationItem componentWillMount 2:', this.avatarMembers);
     xmpp.getRoomMembers(conversation.jid, null, conversation.curJid).then((result) => {
       const members = result.mucAdmin.items;
       console.log('conversationJid members:', members);
@@ -128,7 +127,6 @@ class GroupChatAvatar extends Component {
   }
   render() {
     const { size = 48, conversation } = this.props;
-    console.log('***this.avatarMembers', this.avatarMembers);
     const name1 = this.avatarMembers[0] && this.avatarMembers[0].name;
     const name2 = this.avatarMembers[1] && this.avatarMembers[1].name;
     console.log('GroupChatAvatar.render name:', name);

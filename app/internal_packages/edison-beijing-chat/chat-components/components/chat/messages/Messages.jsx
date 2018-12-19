@@ -33,8 +33,8 @@ const { primaryColor } = theme;
 let key = 0;
 
 const shouldInlineImg = (msgBody) => {
-  let path = msgBody.path && msgBody.path.replace('file://', '');
-  return path && path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) && (fs.existsSync(path));
+  let path = msgBody.path;
+  return path && path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) && ( path.match(/^https?:\/\//) || fs.existsSync(path.replace('file://', '')));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId && !msgBody.path ||
