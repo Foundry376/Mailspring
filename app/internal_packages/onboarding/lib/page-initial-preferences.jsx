@@ -169,7 +169,7 @@ class InitialPreferencesPage extends React.Component {
       return <div />;
     }
     return (
-      <div className="page opaque" style={{ width: 900, height: 620 }}>
+      <div className="page opaque" style={{ width: 900, height: '100%' }}>
         <h1 style={{ paddingTop: 100 }}>Welcome to Edison Mail</h1>
         <h4 style={{ marginBottom: 60 }}>Let's set things up to your liking.</h4>
         <ConfigPropContainer>
