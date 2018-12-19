@@ -42,12 +42,33 @@ export const unregister = (userId, password, cb) => {
     post(urlPre + 'unregisterV2',
         { IMAccounts: [{ userId: userId, password: password }] }, cb);
 }
+
+const profileCache = {};
 /**
  * 
  * @param {{"accessToken":"cVAy1XCdQs6Y_xRvkDTNRg",userId:"601226"}} data 
  */
 export const queryProfile = (data, cb) => {
-    post(urlPre + 'queryProfile', data, cb);
+    if (profileCache[data.userId]) {
+        cb(null, profileCache[data.userId]);
+        return;
+    }
+    post(urlPre + 'queryProfile', data, (err, resData, ...args) => {
+        let userProfile = resData;
+        if (!err) {
+            try {
+                if (typeof userProfile === 'string') {
+                    userProfile = JSON.parse(userProfile);
+                }
+            } catch (err) {
+                console.warn('queryProfile error', err);
+            }
+            profileCache[data.userId] = userProfile;
+        }
+        if (cb) {
+            cb(err, userProfile, ...args);
+        }
+    });
 };
 /**
  * 

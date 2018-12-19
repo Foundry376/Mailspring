@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { gradientColorForString } from '../../utils/colors';
-import { getavatar } from '../../utils/restjs';
+import { getavatar, queryProfile } from '../../utils/restjs';
 import { connect } from 'react-redux';
+import keyMannager from '../../../../../src/key-manager';
 import { relative } from 'path';
 
 const getInitials = name => {
@@ -23,16 +24,44 @@ class ContactAvatar extends Component {
     super(props);
     this.state = {
       avatar: props.avatar ? `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${props.avatar})` : gradientColorForString(props.jid),
-      isImgExist: false
+      isImgExist: false,
+      userProfile: {}
     }
   }
   isOnline = () => {
     const { availableUsers, jid } = this.props;
     return availableUsers && availableUsers.indexOf(jid) >= 0 ? 'online' : 'offline';
   }
-  componentDidMount = () => {
-    if (this.props.email && !this.props.avatar) {
-      getavatar(this.props.email, (error, data, res) => {
+  getProfile = async () => {
+    const chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    if (Object.keys(chatAccounts).length > 0) {
+      const accessToken = await keyMannager.getAccessTokenByEmail(Object.keys(chatAccounts)[0]);
+      const userId = this.props.jid.split('@')[0];
+      return await new Promise((resolve, reject) => {
+        queryProfile({ accessToken, userId }, (error, data) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(data);
+          }
+        })
+      });
+    }
+    return null;
+  }
+  componentDidMount = async () => {
+    let { email, conversation } = this.props;
+    if (this.props.jid && !email && (!conversation || !conversation.isGroup)) {
+      const { data: userProfile } = await this.getProfile();
+      if (userProfile) {
+        email = userProfile.email
+        this.setState({
+          userProfile: userProfile || {}
+        })
+      }
+    }
+    if (email && !this.props.avatar) {
+      getavatar(email, (error, data, res) => {
         if (!res) {
           return;
         }
@@ -62,7 +91,7 @@ class ContactAvatar extends Component {
   }
   render() {
     const { name, size = 48, conversation } = this.props;
-    const { avatar, isImgExist } = this.state;
+    const { avatar, isImgExist, userProfile } = this.state;
     const isGroup = conversation && conversation.isGroup;
     return (
       <div
@@ -77,7 +106,7 @@ class ContactAvatar extends Component {
           background: avatar
         }}
       >
-        {isImgExist ? null : getInitials(name).toUpperCase()}
+        {isImgExist ? null : getInitials(name || userProfile.name).toUpperCase()}
         {!isGroup ? (
           <div className={this.isOnline()}></div>
         ) : null}
@@ -88,8 +117,8 @@ class ContactAvatar extends Component {
 
 ContactAvatar.propTypes = {
   jid: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-  email: PropTypes.string,//.isRequired,
+  name: PropTypes.string,
+  email: PropTypes.string,
   avatar: PropTypes.string,
   size: PropTypes.number,
 };

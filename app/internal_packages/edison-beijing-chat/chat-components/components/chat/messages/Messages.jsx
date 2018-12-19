@@ -155,7 +155,9 @@ export default class Messages extends PureComponent {
         }
       }
     }
-    return null;
+    return (
+      <ContactAvatar jid={jid} size={32} />
+    )
   }
   onKeyDown = event => {
     let keyCode = event.keyCode;
@@ -256,14 +258,6 @@ export default class Messages extends PureComponent {
                   });
                 }
               };
-              let showToolbar = () => {
-                msg.showToolbar = true;
-                this.update();
-              }
-              let hideToolbar = () => {
-                msg.showToolbar = false;
-                this.update();
-              }
               let onClickImage = () => {
                 msg.zoomin = true;
                 if (msg.height < 1600) {
@@ -294,7 +288,7 @@ export default class Messages extends PureComponent {
                     title={msgBody.mediaObjectId}
                     style={{ height: '220px', cursor }}
                   />
-                  {msg.showToolbar && <div className='message-toolbar' >
+                  <div className='message-toolbar' >
                     <span
                       className="download-img"
                       title={msgBody.path}
@@ -303,7 +297,8 @@ export default class Messages extends PureComponent {
                     <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}
-                    /></div>}
+                    />
+                  </div>
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
                 msgFile = <div className="messageMeta">
@@ -312,7 +307,7 @@ export default class Messages extends PureComponent {
                     mode={RetinaImg.Mode.ContentPreserve}
                     title={msgBody.mediaObjectId}
                   />
-                  {msg.showToolbar && <div className='message-toolbar' onClick={download}>
+                  <div className='message-toolbar' onClick={download}>
                     <span
                       className="download-img"
                       title={msgBody.path}
@@ -321,7 +316,8 @@ export default class Messages extends PureComponent {
                     <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}
-                    /></div>}
+                    />
+                  </div>
                 </div>
               } else {
                 msgFile = null;
@@ -346,9 +342,6 @@ export default class Messages extends PureComponent {
                   key={msg.id}
                   className={getMessageClasses(msg)}
                   style={{ borderColor: color, border }}
-                  onMouseEnter={showToolbar}
-                  onMouseLeave={hideToolbar}
-
                 >
                   {msg.sender !== currentUserId ?
                     <div className="messageSender">

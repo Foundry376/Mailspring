@@ -3,6 +3,8 @@ import messageModel from './messageModel'
 import { buildTimeDescriptor } from '../../../utils/time';
 import { downloadFile } from '../../../utils/awss3';
 import { isJsonString } from '../../../utils/stringUtils';
+import CancelIcon from '../../common/icons/CancelIcon';
+import Button from '../../common/Button';
 const { dialog } = require('electron').remote;
 
 var http = require("http");
@@ -144,7 +146,9 @@ export default class MessageImagePopup extends Component {
     return (
       <div className='message-image-popup'>
         <div className='message-image-popup-toolbar'>
-          <span id='close-button' onClick={() => { this.hidden = true; this.update(); }}></span>
+          <Button id='close-button' className="no-border" onTouchTap={() => { this.hidden = true; this.update(); }}>
+            <CancelIcon color={"#787e80"} />
+          </Button>
           {true || msg.sender !== messageModel.currentUserId ?
             <div className="messageSender image-popup-avatar" style={{ display: 'inline-block' }}>
               {messageModel.messagesReactInstance.getContactInfoByJid(msg.sender)}

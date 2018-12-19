@@ -17,7 +17,7 @@ class KeyManager {
   constructor() {
     this.SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
     this.KEY_NAME = 'Mailspring Keys';
-    this.CONFIGKEY='accountCredentials';
+    this.CONFIGKEY = 'accountCredentials';
   }
 
   async deleteAccountSecrets(account) {
@@ -56,6 +56,23 @@ class KeyManager {
     next.settings.smtp_password = keys[`${account.emailAddress}-smtp`];
     next.settings.refresh_token = keys[`${account.emailAddress}-refresh-token`];
     return next;
+  }
+
+  accTokenCache = {}
+  async getAccessTokenByEmail(email) {
+    let accToken = null;
+    // cache the access_token
+    if (this.accTokenCache[email]) {
+      return this.accTokenCache[email];
+    }
+    try {
+      const keys = await this._getKeyHash();
+      accToken = keys[`${email}-accessToken`];
+      this.accTokenCache[email] = accToken;
+    } catch (err) {
+      this._reportFatalError(err);
+    }
+    return accToken;
   }
 
   async extractChatAccountSecrets(account) {
