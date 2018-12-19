@@ -25,3 +25,32 @@
         display: none;
     }
 }
+.chat-avatar2 {
+    background-size: cover;
+    color: #eaa2ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex-shrink: 0;
+    position: absolute;
+    bottom:0;
+    right:0;
+    overflow: visible;
+    .offline,
+    .online {
+        height: 8px;
+        width: 8px;
+        border-radius: 50%;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+    }
+    .online {
+        background: #00dc60;
+    }
+    .offline {
+        background: #666;
+        display: none;
+    }
+}

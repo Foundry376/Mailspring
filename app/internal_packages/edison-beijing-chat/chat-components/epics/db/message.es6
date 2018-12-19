@@ -1,6 +1,8 @@
 import { Observable } from 'rxjs/Observable';
 import getDb from '../../db';
-import { getStatusWeight } from '../../db/schemas/message';
+import {groupMessages} from '../../utils/message';
+
+
 import {
   BEGIN_STORE_MESSAGE,
   RETRIEVE_SELECTED_CONVERSATION_MESSAGES,
@@ -52,24 +54,6 @@ const saveMessages = async messages => {
   }));
 };
 
-const groupMessages = async messages => {
-  const groupedMessages = [];
-  const createGroup = message => ({
-    sender: message.sender,
-    messages: [message]
-  });
-  messages.forEach((message, index) => {
-    const lastIndex = groupedMessages.length - 1;
-    if (index === 0 || groupedMessages[lastIndex].sender !== message.sender) {
-      groupedMessages.push(createGroup(message));
-    } else {
-      groupedMessages[lastIndex].messages.push(message);
-    }
-  });
-
-  return groupedMessages;
-};
-
 export const triggerStoreMessageEpic = action$ =>
   action$.ofType(NEW_MESSAGE)
     .mergeMap(({ payload: newMessage }) =>
@@ -107,6 +91,7 @@ export const retrieveSelectedConversationMessagesEpic = action$ =>
             .map(messages => messages.sort((a, b) => a.sentTime - b.sentTime))
             .mergeMap(messages => groupMessages(messages))
             .map(groupedMessages => {
+              console.log('RETRIEVE_SELECTED_CONVERSATION_MESSAGES: ', groupedMessages);
               return updateSelectedConversationMessages(groupedMessages)
             })
         )
