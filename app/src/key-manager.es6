@@ -15,8 +15,8 @@ const weakPassword = '233ceoTeuoR/o-ecTE';
  */
 class KeyManager {
   constructor() {
-    this.SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
-    this.KEY_NAME = 'Mailspring Keys';
+    this.SERVICE_NAME = AppEnv.inDevMode() ? 'EdisonMail Dev' : 'EdisonMail';
+    this.KEY_NAME = 'EdisonMail Keys';
     this.CONFIGKEY='accountCredentials';
   }
 
@@ -119,6 +119,7 @@ class KeyManager {
     const cipherText = AppEnv.config.get(this.CONFIGKEY);
     if (cipherText && cipherText.length > 0) {
       try {
+        console.log('credentials are in config file');
         let bytes = aes.decrypt(cipherText, weakPassword);
         raw = bytes.toString(utf8);
       } catch (err) {
@@ -130,9 +131,8 @@ class KeyManager {
         raw = (await keytar.getPassword(this.SERVICE_NAME, this.KEY_NAME)) || '{}';
         AppEnv.config.unset(this.CONFIGKEY);
       } catch (err) {
-        console.log('keychain access failed');
+        console.log('keychain access failed: ', err);
       }
-      console.log('raw key data: ', raw);
     }
     try {
       return JSON.parse(raw);
@@ -146,10 +146,12 @@ class KeyManager {
       await keytar.setPassword(this.SERVICE_NAME, this.KEY_NAME, JSON.stringify(keys));
       AppEnv.config.unset(this.CONFIGKEY);
     } catch (err) {
-      console.log('Failed to write to keychain');
+      console.log('Failed to write to keychain: ', err);
       try {
+        console.log('writing credentials to config');
         const encryptedText = aes.encrypt(JSON.stringify(keys), weakPassword).toString();
         AppEnv.config.set(this.CONFIGKEY, encryptedText);
+        console.log('written credentials to config');
       } catch (err) {
         return Promise.reject('Storing credentials failed');
       }
