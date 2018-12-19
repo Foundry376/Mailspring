@@ -35,6 +35,10 @@ export default class MailboxPerspective {
     return new EmptyMailboxPerspective();
   }
 
+  static forSingleAccount(accountId){
+    return new SingleAccountMailboxPerspective(accountId);
+  }
+
   static forDrafts(accountsOrIds) {
     return new DraftsMailboxPerspective(accountsOrIds);
   }
@@ -236,6 +240,12 @@ export default class MailboxPerspective {
       throw new Error('tasksForRemovingItems: you must pass an array of threads or thread ids');
     }
     return [];
+  }
+}
+class SingleAccountMailboxPerspective extends MailboxPerspective{
+  constructor(accountId){
+    super([accountId]);
+    this.iconName = 'inbox.png';
   }
 }
 

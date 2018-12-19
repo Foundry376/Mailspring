@@ -51,7 +51,7 @@ class SidebarSection {
     }
 
     const items = _.reject(cats, cat => cat.role === 'drafts').map(cat =>
-      SidebarItem.forCategories([cat], { editable: false, deletable: false })
+      SidebarItem.forCategories([cat], { editable: false, deletable: false }),
     );
 
     const unreadItem = SidebarItem.forUnread([account.id]);
@@ -82,6 +82,7 @@ class SidebarSection {
 
   static standardSectionForAccounts(accounts) {
     let children;
+    const items = [];
     if (!accounts || accounts.length === 0) {
       return this.empty('All Accounts');
     }
@@ -90,8 +91,18 @@ class SidebarSection {
     }
     if (accounts.length === 1) {
       return this.standardSectionForAccount(accounts[0]);
+    } else {
+      //TODO for different unified inbox layout
+      // accounts.forEach(acc => {
+      //   items.push(
+      //     SidebarItem.forSingleAccount(acc.id, {
+      //       name: acc.label,
+      //       iconName: 'inbox.png',
+      //       children: this.standardSectionForAccount(acc).items,
+      //     })
+      //   );
+      // });
     }
-
     const standardNames = [
       'inbox',
       'important',
@@ -101,7 +112,6 @@ class SidebarSection {
       'spam',
       'trash',
     ];
-    const items = [];
 
     for (var names of standardNames) {
       names = Array.isArray(names) ? names : [names];
@@ -114,7 +124,7 @@ class SidebarSection {
       // eslint-disable-next-line
       accounts.forEach(acc => {
         const cat = _.first(
-          _.compact(names.map(name => CategoryStore.getCategoryByRole(acc, name)))
+          _.compact(names.map(role => CategoryStore.getCategoryByRole(acc, role)))
         );
         if (!cat) {
           return;
@@ -248,7 +258,7 @@ class SidebarSection {
           SyncbackCategoryTask.forCreating({
             name: displayName,
             accountId: account.id,
-          })
+          }),
         );
       },
     };

@@ -205,6 +205,12 @@ class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
+  static forSingleAccount(accountId, opts={}){
+    const perspective = MailboxPerspective.forSingleAccount(accountId);
+    const id = accountId;
+    return this.forPerspective(id, perspective, opts);
+  }
+
   static forDrafts(accountIds, opts = {}) {
     const perspective = MailboxPerspective.forDrafts(accountIds);
     const id = `Drafts-${opts.name}`;
