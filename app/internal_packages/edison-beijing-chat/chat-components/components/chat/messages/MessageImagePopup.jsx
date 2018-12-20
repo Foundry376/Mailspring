@@ -78,7 +78,7 @@ export default class MessageImagePopup extends Component {
     const groupedMessages = messageModel.messagesReactInstance.props.groupedMessages;
     let group = messageModel.group;
     let groupIndex = groupedMessages.indexOf(group);
-    let msg = messageModel.msg
+    let msg = messageModel.msg;
     let index = group.messages.indexOf(msg);
     while (1) {
       while (index) {
@@ -124,7 +124,7 @@ export default class MessageImagePopup extends Component {
       if (groupIndex < groupedMessages.length - 1) {
         groupIndex++;
         group = groupedMessages[groupIndex];
-        index = group.messages.length;
+        index = -1;
       } else {
         break;
       }
@@ -155,7 +155,7 @@ export default class MessageImagePopup extends Component {
             </div> : null
           }
           <div style={{ display: 'inline-block' }}>
-            <span style={{ display: 'inline-block', width: '100%' }}>{msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</span>
+            <span style={{ display: 'inline-block', width: '100%' }}>{ msgBody.localFile || msgBody.mediaObjectId.replace(/\.encrypted$/, '') }</span>
             <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
           </div>
           <span className="download-img" style={{ float: 'right' }} onClick={this.downloadImage}></span>

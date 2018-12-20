@@ -33,8 +33,8 @@ const { primaryColor } = theme;
 let key = 0;
 
 const shouldInlineImg = (msgBody) => {
-  let path = msgBody.path && msgBody.path.replace('file://', '');
-  return path && path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) && (fs.existsSync(path));
+  let path = msgBody.path;
+  return path && path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) && ( path.match(/^https?:\/\//) || fs.existsSync(path.replace('file://', '')));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId && !msgBody.path ||
@@ -285,19 +285,19 @@ export default class Messages extends PureComponent {
                 msgFile = (<div className="messageMeta" onClick={onClickImage}>
                   <img
                     src={msgBody.path}
-                    title={msgBody.mediaObjectId}
+                    title={msgBody.localFile || msgBody.mediaObjectId}
                     style={{ height: '220px', cursor }}
                   />
-                  <div className='message-toolbar' >
+                    <div className='message-toolbar' >
                     <span
                       className="download-img"
                       title={msgBody.path}
                       onClick={download}
                     />
-                    <span
+                      {msg.sender === currentUserId && <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}
-                    />
+                    />}
                   </div>
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
@@ -313,10 +313,10 @@ export default class Messages extends PureComponent {
                       title={msgBody.path}
                       onClick={download}
                     />
-                    <span
+                    {msg.sender === currentUserId && <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}
-                    />
+                    />}
                   </div>
                 </div>
               } else {
@@ -370,7 +370,7 @@ export default class Messages extends PureComponent {
                       {timeDescriptor(msg.sentTime, true)}
                     </div>
                   </div>
-                  {msg.showToolbar && !msgFile && msg.sender === currentUserId && <div className='message-toolbar' >
+                  {!msgFile && msg.sender === currentUserId && <div className='message-toolbar' >
                     <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}

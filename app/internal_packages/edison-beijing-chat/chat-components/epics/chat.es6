@@ -183,16 +183,6 @@ export const sendMessageEpic = action$ =>
       const action = sendingMessage(message);
       let payload = message;
       if (!payload.isUploading) {
-        let body = payload.body;
-        if (typeof body === 'string') {
-          try {
-            body = JSON.parse(body);
-            delete body.localFile;
-            payload = Object.assign({}, payload);
-            payload.body = JSON.stringify(body);
-          } catch (e) {
-          }
-        }
         xmpp.sendMessage(payload, payload.curJid);
       }
       return action;

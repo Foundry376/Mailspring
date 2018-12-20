@@ -23,13 +23,12 @@ class GroupChatAvatar extends Component {
     }
   }
   refreshAvatar = (props) => {
+    const self = this;
     const { conversation } = props;
-    console.log('ConversationItem componentWillMount 1:', conversation);
     if (!conversation.isGroup) {
       return;
     }
     const avatarMembers = [];
-    console.log('ConversationItem componentWillMount 2:', avatarMembers);
     xmpp.getRoomMembers(conversation.jid, null, conversation.curJid).then((result) => {
       const members = result.mucAdmin.items;
       console.log('conversationJid members:', members);
@@ -78,7 +77,7 @@ class GroupChatAvatar extends Component {
             avatarMembers.push(members[1]);
           }
         })
-        this.setState({
+        self.setState({
           avatarMembers
         })
       })
@@ -87,16 +86,20 @@ class GroupChatAvatar extends Component {
   render() {
     const { avatarMembers } = this.state;
     console.log('*****group avatar render avatarMembers', avatarMembers);
-    const name1 = avatarMembers[0] && avatarMembers[0].name;
-    const name2 = avatarMembers[1] && avatarMembers[1].name;
     return (
       <div className="groupAvatar">
-        {avatarMembers && avatarMembers.length >= 1 ? (
-          <ContactAvatar jid={avatarMembers[0].jid.bare} name={name1} email={avatarMembers[0].email} size={30} />
-        ) : null}
-        {avatarMembers && avatarMembers.length >= 2 ? (
-          <ContactAvatar jid={avatarMembers[0].jid.bare} name={name2} email={avatarMembers[0].email} size={30} />
-        ) : null}
+        {
+          avatarMembers.map(item => (
+            <ContactAvatar
+              key={item.jid.bare}
+              conversation={this.props.conversation}
+              jid={item.jid.bare}
+              name={item && item.name}
+              email={item.email}
+              size={30}
+            />
+          ))
+        }
       </div>
     )
   }

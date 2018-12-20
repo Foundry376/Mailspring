@@ -91,7 +91,6 @@ export const retrieveSelectedConversationMessagesEpic = action$ =>
             .map(messages => messages.sort((a, b) => a.sentTime - b.sentTime))
             .mergeMap(messages => groupMessages(messages))
             .map(groupedMessages => {
-              console.log('RETRIEVE_SELECTED_CONVERSATION_MESSAGES: ', groupedMessages);
               return updateSelectedConversationMessages(groupedMessages)
             })
         )

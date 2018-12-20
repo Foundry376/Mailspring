@@ -8,6 +8,8 @@ import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
 import chatModel from '../../../store/model';
 import { DESELECT_CONVERSATION, SELECT_CONVERSATION } from '../../../actions/chat';
+import messageModel from '../messages/messageModel';
+
 
 const { primaryColor } = theme;
 
@@ -40,6 +42,8 @@ export default class ConversationItem extends PureComponent {
     event.preventDefault();
     const { conversation, removeConversation } = this.props;
     removeConversation(conversation.jid);
+    messageModel.imagePopup.hidden = true;
+    messageModel.imagePopup.update();
     chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
   }
 
