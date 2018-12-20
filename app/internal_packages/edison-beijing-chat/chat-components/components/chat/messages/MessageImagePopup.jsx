@@ -78,7 +78,7 @@ export default class MessageImagePopup extends Component {
     const groupedMessages = messageModel.messagesReactInstance.props.groupedMessages;
     let group = messageModel.group;
     let groupIndex = groupedMessages.indexOf(group);
-    let msg = messageModel.msg
+    let msg = messageModel.msg;
     let index = group.messages.indexOf(msg);
     while (1) {
       while (index) {

@@ -288,16 +288,16 @@ export default class Messages extends PureComponent {
                     title={msgBody.localFile || msgBody.mediaObjectId}
                     style={{ height: '220px', cursor }}
                   />
-                  <div className='message-toolbar' >
+                    <div className='message-toolbar' >
                     <span
                       className="download-img"
                       title={msgBody.path}
                       onClick={download}
                     />
-                    <span
+                      {msg.sender === currentUserId && <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}
-                    />
+                    />}
                   </div>
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
@@ -313,10 +313,10 @@ export default class Messages extends PureComponent {
                       title={msgBody.path}
                       onClick={download}
                     />
-                    <span
+                    {msg.sender === currentUserId && <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}
-                    />
+                    />}
                   </div>
                 </div>
               } else {
