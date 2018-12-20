@@ -37,13 +37,11 @@ class GroupChatAvatar extends Component {
     const avatarMembers = [];
     const result = await xmpp.getRoomMembers(conversation.jid, null, conversation.curJid);
     const members = result.mucAdmin.items;
-    console.log('conversationJid members:', members);
     const db = await getDb();
     const messages = await db.messages.find().where('conversationJid').eq(conversation.jid).exec();
     messages.sort((a, b) => a.sentTime - b.sentTime);
     try {
       const groupedMessages = await groupMessages(messages);
-      console.log('conversationJid groupedMessages:', groupedMessages, members);
       if (groupedMessages.length >= 2) {
         // last two message senders
         let i = groupedMessages.length - 1;
@@ -74,7 +72,6 @@ class GroupChatAvatar extends Component {
       }
     } catch (err) {
       // group chat owner + anyone other(first or second member)
-      console.log('no groupedMessages got catch:', members);
       let member = findGroupChatOwner(members);
       avatarMembers.push(member);
       if (members[0] !== member) {
@@ -89,7 +86,6 @@ class GroupChatAvatar extends Component {
   }
   render() {
     const { avatarMembers } = this.state;
-    console.log('*****group avatar render avatarMembers', avatarMembers);
     return (
       <div className="groupAvatar">
         {
