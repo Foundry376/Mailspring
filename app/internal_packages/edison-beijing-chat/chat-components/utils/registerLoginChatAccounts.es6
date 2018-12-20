@@ -24,7 +24,7 @@ export default function registerLoginChatAccounts() {
             console.log('response is not json');
           }
           if (err || !res || res.resultCode != 1) {
-            this.setState({ errorMessage: "This email has not a chat account，need to be registered, but failed, please try later again" });
+            // this.setState({ errorMessage: "This email has not a chat account，need to be registered, but failed, please try later again" });
             return;
           }
           chatAccount = res.data;
