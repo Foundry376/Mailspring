@@ -138,6 +138,7 @@ export class XmppEx extends EventEmitter3 {
       this.client.disconnect();
     }
     this.credentials = credentials;
+    this.connectedJid = credentials.jid;
     this.client = Stanza.createClient(credentials);
     this.client.on('*', (name, data) => {
       if (name != 'disconnected') {
@@ -145,16 +146,13 @@ export class XmppEx extends EventEmitter3 {
       }
     });
     this.client.on('session:started', () => {
-      //console.log('session:started', this.connectedJid, Date.now())
       this.retryTimes = 0;
       this.isConnected = true;
-      this.connectedJid = credentials.jid;
       this.client.sendPresence();
       this.client.enableKeepAlive({ timeout: 30, interval: 30 });
     });
     this.client.on('disconnected', () => {
       console.log('disconnected');
-      //console.log('disconnected', this.connectedJid, this.isConnected, Date.now())
       this.isConnected = false;
       if (this.retryTimes == 0) {
         console.log('connecting。。。');
@@ -162,7 +160,6 @@ export class XmppEx extends EventEmitter3 {
         setTimeout(() => this.connect(), 500);
       } else {
         this.emit('disconnected', this.connectedJid);
-        //this.connectedJid = null;
       }
     });
   }
@@ -376,7 +373,6 @@ export class XmppEx extends EventEmitter3 {
     if (!this.isConnected || !(this.client instanceof Client)) {
       console.warn('This method requires a connection to the XMPP server, call connect before ' +
         'using this method.');
-      //this.emit('disconnected', this.connectedJid);
       return false;
     }
     return true;
