@@ -13,6 +13,7 @@ export default class PrintWindow {
     const tmp = app.getPath('temp');
     const tmpMessagesPath = path.join(tmp, 'print.messages.js');
 
+    const preloadPath = path.join(__dirname, '..', 'static', 'print-preload.js');
     const scriptPath = path.join(__dirname, '..', 'static', 'print.js');
     const stylesPath = path.join(__dirname, '..', 'static', 'print-styles.css');
     const participantsHtml = participants
@@ -31,18 +32,31 @@ export default class PrintWindow {
         </head>
         <body>
           <div id="print-header">
-            <div id="print-button">
-              ${localized('Print')}
+            <div id="print-note" style="display: none;">
+              One or more messages in this thread were collapsed and will not be printed.
+              To print these messages, expand them in the main window.
             </div>
-            <div class="logo-wrapper">
-              <span class="account">${account.name} &lt;${account.email}&gt;</span>
+            <div style="padding: 10px 14px;">
+              <div id="close-button">
+                ${localized('Close')}
+              </div>
+              <div id="print-button">
+                ${localized('Print')}
+              </div>
+              <div id="print-pdf-button">
+                ${localized('Save as PDF')}
+              </div>
+              <div class="logo-wrapper">
+                <span class="account">${account.name} &lt;${account.email}&gt;</span>
+              </div>
             </div>
-            <h1>${subject}</h1>
-          <div class="participants">
+          </div>
+          <div id="print-header-spacing"></div>
+          <h1 class="print-subject">${subject}</h1>
+          <div class="print-participants">
             <ul>
               ${participantsHtml}
             </ul>
-          </div>
           </div>
           ${htmlContent}
           <script type="text/javascript" src="${tmpMessagesPath}"></script>
@@ -57,7 +71,9 @@ export default class PrintWindow {
       height: 600,
       title: `${localized('Print')} - ${subject}`,
       webPreferences: {
+        preload: preloadPath,
         nodeIntegration: false,
+        contextIsolation: false,
       },
     });
     this.browserWin.setMenu(null);

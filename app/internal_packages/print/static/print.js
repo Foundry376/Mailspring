@@ -25,29 +25,29 @@
     removeClassFromNodes(scrollContentInners, 'scroll-region-content-inner');
   }
 
-  function continueAndPrint() {
-    document.getElementById('print-button').style.display = 'none';
-    window.requestAnimationFrame(function() {
-      window.print();
-      // Close this print window after selecting to print
-      // This is really hackish but appears to be the only working solution
-      setTimeout(window.close, 500);
-    });
-  }
-
   var messageNodes = document.querySelectorAll('.message-item-area>span');
 
   removeScrollClasses();
   rebuildMessages(messageNodes, window.printMessages);
 
-  document.getElementById('print-button').addEventListener('click', continueAndPrint);
-  window.continueAndPrint = continueAndPrint;
+  document.getElementById('print-button').addEventListener('click', () => {
+    setTimeout(function() {
+      window.print();
+    }, 0);
+  });
+  document.getElementById('print-pdf-button').addEventListener('click', () => {
+    setTimeout(function() {
+      window.printToPDF();
+    }, 0);
+  });
+  document.getElementById('close-button').addEventListener('click', () => {
+    window.close();
+  });
 
+  const note = document.getElementById('print-note');
+  const spacing = document.getElementById('print-header-spacing');
   if (document.querySelector('.message-item-wrap.collapsed')) {
-    const note = document.createElement('div');
-    note.classList.add('print-note');
-    note.innerText =
-      'One or more messages in this thread were collapsed and will not be printed. To print these messages, expand them in the main window.';
-    document.body.insertBefore(note, document.body.children[0]);
+    note.style.display = 'block';
+    spacing.style.height = '90px';
   }
 })();

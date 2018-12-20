@@ -13,7 +13,9 @@ h1,
   color: black !important;
 }
 
-#print-button {
+#print-button,
+#print-pdf-button,
+#close-button {
   float: right;
   margin-left: 10px;
 
@@ -24,17 +26,36 @@ h1,
   height: 1.9em;
   line-height: 1.9em;
   font-size: 13.02px;
+  font-weight: 500;
   cursor: default;
-  color: #231f20;
   position: relative;
   color: #ffffff;
-  font-weight: 500;
   background: linear-gradient(to bottom, #6bb1f9 0%, #0a80ff 100%);
   box-shadow: none;
   border: 1px solid #3878fa;
 }
+#print-button:active,
+#print-pdf-button:active {
+  background: linear-gradient(to bottom, #5a95d1 0%, #0869d1 100%);
+  border: 1px solid #2b5dc2;
+}
+#close-button {
+  color: #231f20;
+  background: #fcfcfc;
+  border: 1px solid rgba(190, 190, 190, 0.9);
+}
+#close-button:active {
+  background: #d8d8d8;
+  border: 1px solid rgba(170, 170, 170, 0.9);
+}
 #print-header {
-  padding: 15px 20px 0 20px;
+  background: white;
+  z-index: 10000;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 #print-header img {
   zoom: 0.5;
@@ -43,16 +64,19 @@ h1,
   display: flex;
   align-items: center;
   font-family: 'Nylas-Pro', 'Helvetica', 'Lucidia Grande', sans-serif !important;
-}
-#print-header h1 {
-  font-size: 1.5em !important;
-  font-family: 'Nylas-Pro', 'Helvetica', 'Lucidia Grande', sans-serif !important;
+  line-height: 1.68em;
 }
 #print-header .account {
   margin-left: auto;
   font-size: 0.8em !important;
 }
-#print-header .participant {
+
+.print-subject {
+  margin-left: 15px;
+  font-size: 1.5em !important;
+  font-family: 'Nylas-Pro', 'Helvetica', 'Lucidia Grande', sans-serif !important;
+}
+.print-participants .participant {
   font-size: 0.7em;
   font-family: 'Nylas-Pro', 'Helvetica', 'Lucidia Grande', sans-serif !important;
 }
@@ -86,13 +110,21 @@ h1,
   box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.28), 0 1px 1.5px rgba(0, 0, 0, 0.08) !important;
 }
 
+#print-header-spacing {
+  height: 60px;
+}
+
+#inbox-html-wrapper {
+  margin-top: 10px;
+}
+
 @media only print {
   body,
   #message-list,
   .message-item-wrap,
   .message-item-white-wrap,
   .message-item-area,
-  .inbox-html-wrapper {
+  #inbox-html-wrapper {
     display: block !important;
     width: auto !important;
     height: auto !important;
@@ -101,11 +133,9 @@ h1,
   #message-list {
     min-height: initial;
   }
-  #print-header {
-    padding: 0;
-  }
-  #print-header .account {
-    font-size: 0.7em;
+  #print-header,
+  #print-header-spacing {
+    display: none;
   }
   .message-item-wrap {
     display: block;
@@ -116,19 +146,14 @@ h1,
   .message-item-area > header {
     page-break-after: avoid;
   }
-  .print-note {
-    display: none;
-  }
 }
 
-.print-note {
+#print-note {
   display: block;
-  margin-bottom: 10px;
   padding: 5px 10px;
   background: antiquewhite;
   color: #444;
   text-align: center;
   font-size: 0.9em;
-  border: 1px solid darkgoldenrod;
-  border-top: 0;
+  border-bottom: 1px solid darkgoldenrod;
 }

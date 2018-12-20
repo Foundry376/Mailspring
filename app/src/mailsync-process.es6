@@ -98,7 +98,7 @@ export default class MailsyncProcess extends EventEmitter {
       maximizable: false,
       closable: false,
       fullscreenable: false,
-      webPreferences: { nodeIntegration: false, javascript: false },
+      webPreferences: { nodeIntegration: false, javascript: false, contextIsolation: false },
     });
     this._win.setContentSize(350, 90);
     this._win.once('ready-to-show', () => {
