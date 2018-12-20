@@ -441,9 +441,8 @@ export const conversationCreatedEpic = action$ =>
   action$.ofType(CREATE_PRIVATE_CONVERSATION, CREATE_GROUP_CONVERSATION)
     .map(() => replace('/chat'));
 
-// TODO: Handle group conversations
-export const triggerNotificationEpic = action$ =>
-  action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
+export const triggerPrivateNotificationEpic = action$ =>
+  action$.ofType(RECEIVE_PRIVATE_MESSAGE)
     .mergeMap(
       ({ payload }) => Observable.fromPromise(getDb())
         .map(db => ({ db, payload })),
@@ -457,12 +456,55 @@ export const triggerNotificationEpic = action$ =>
     )
     .filter(({ conv }) => {
       // hide notifications
-      return !conv.isHiddenNotification;
+      return !conv || !conv.isHiddenNotification;
     })
-    .map(({ conv, payload }) => {
+    .map(({ payload }) => {
+      const { from: { bare: conversationJid, local: name }, body } = payload;
+      const { content } = JSON.parse(body);
+      return showConversationNotification(conversationJid, name, content);
+    });
+
+export const triggerGroupNotificationEpic = (action$, { getState }) =>
+  action$.ofType(RECEIVE_GROUP_MESSAGE)
+    .mergeMap(
+      ({ payload }) => Observable.fromPromise(getDb())
+        .map(db => ({ db, payload })),
+    )
+    .mergeMap(
+      ({ db, payload }) => {
+        const { from: { bare: conversationJid } } = payload;
+        return Observable.fromPromise(db.conversations.findOne(conversationJid).exec())
+          .map(conv => ({ conv, payload }))
+      },
+    )
+    .filter(({ conv }) => {
+      // hide notifications
+      return !conv || !conv.isHiddenNotification;
+    })
+    .mergeMap(({ conv, payload }) => {
+      let name = payload.from.local;
+      const { room: { rooms } } = getState();
+      if (rooms[payload.from.bare]) {
+        name = rooms[payload.from.bare];
+      } else {
+        return Observable.fromPromise(xmpp.getRoomList())
+          .map(({ discoItems: { items } }) => {
+            if (items) {
+              for (const item of items) {
+                if (payload.from.local === item.jid.local) {
+                  return { conv, payload, name: item.name };
+                }
+              }
+            }
+            return { conv, payload, name };
+          });
+      }
+      return [{ conv, payload, name }];
+    })
+    .map(({ conv, payload, name }) => {
       const { from: { bare: conversationJid }, body } = payload;
       const { content } = JSON.parse(body);
-      return showConversationNotification(conversationJid, conv.name, content);
+      return showConversationNotification(conversationJid, name || conv.name, content);
     });
 
 export const showConversationNotificationEpic = (action$, { getState }) =>

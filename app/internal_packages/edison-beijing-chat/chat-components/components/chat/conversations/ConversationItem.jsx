@@ -34,7 +34,7 @@ export default class ConversationItem extends PureComponent {
     referenceTime: new Date().getTime(),
   }
 
-  componentWillMount () {
+  componentWillMount() {
   }
 
   onClickRemove = (event) => {
@@ -42,8 +42,10 @@ export default class ConversationItem extends PureComponent {
     event.preventDefault();
     const { conversation, removeConversation } = this.props;
     removeConversation(conversation.jid);
-    messageModel.imagePopup.hidden = true;
-    messageModel.imagePopup.update();
+    if (messageModel.imagePopup) {
+      messageModel.imagePopup.hidden = true;
+      messageModel.imagePopup.update();
+    }
     chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
   }
 
@@ -54,10 +56,10 @@ export default class ConversationItem extends PureComponent {
       <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
         <div style={{ width: '100%', display: 'flex' }} onTouchTap={onTouchTap}>
           <div className="avatarWrapper">
-            {conversation.isGroup?
-              <GroupChatAvatar conversation={conversation} size={26}/>:
+            {conversation.isGroup ?
+              <GroupChatAvatar conversation={conversation} size={26} /> :
               <ContactAvatar conversation={conversation} jid={conversation.jid} name={conversation.name}
-                            email={conversation.email} avatar={conversation.avatar} size={26}/>
+                email={conversation.email} avatar={conversation.avatar} size={26} />
             }
             {!conversation.isHiddenNotification ? <Badge count={conversation.unreadMessages} /> : null}
           </div>
