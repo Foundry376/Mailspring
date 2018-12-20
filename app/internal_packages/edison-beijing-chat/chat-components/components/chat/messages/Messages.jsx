@@ -285,7 +285,7 @@ export default class Messages extends PureComponent {
                 msgFile = (<div className="messageMeta" onClick={onClickImage}>
                   <img
                     src={msgBody.path}
-                    title={msgBody.mediaObjectId}
+                    title={msgBody.localFile || msgBody.mediaObjectId}
                     style={{ height: '220px', cursor }}
                   />
                   <div className='message-toolbar' >
