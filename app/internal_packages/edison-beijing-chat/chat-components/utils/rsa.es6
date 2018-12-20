@@ -1,8 +1,10 @@
 const NodeRSA = require('node-rsa');
 const strPubKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVY5D5ct+c0YYuWVBnONR0TWAPC4gTfWHvqmBcVzI72CVHjFwtC173eGChVGR25HM3TtWkPhENTFi/Uz7kkirUsiRh+upTmHrOekYmsf2wnRrnkLfQNCYw05s28XIHh3IcKxDwKRLLjWGUHHZdwTFnRVj3g/kUQmahK9m+f5FhowIDAQAB";
 const strPriKey = "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAJVjkPly35zRhi5ZUGc41HRNYA8LiBN9Ye+qYFxXMjvYJUeMXC0LXvd4YKFUZHbkczdO1aQ+EQ1MWL9TPuSSKtSyJGH66lOYes56Riax/bCdGueQt9A0JjDTmzbxcgeHchwrEPApEsuNYZQcdl3BMWdFWPeD+RRCZqEr2b5/kWGjAgMBAAECgYB+JAaEO1VJqznr5QqZPklWswcLbSdHnbWWk3yuPAp0sbw4v/INLu7Pc1vUndf+9EO9Tdnjx2zKl87QLtCKXEnA6M8ed9tv6EPWUWnDkwtF9YcNl0ij5NjlSzQXYUVE+jlo+dd2Ri2KZIG/AHMWx/Iipm7p2YEaRwboaD9rmHB0oQJBAM00FAiuicy5wsgj3xQhvFro1Ygm7myTV/gnJyLWHntppej1HPbfNITM0rPQq3bFa7iwBYHGVgwQPFnzQ5tymisCQQC6XnlhhROHQHI7h3eC/vzZpmJjNYBf3JiSgJrmGPGgTFvIJMySux0wzyOtAvZmnk2AypXMhYhyan4G434HO3JpAkAaXSqFwwbpSqR/2jv69iqg83EbwQS45mVS+JTKoP/hkz1BpNxHy32P4lDf0Vt2Mv8YB2VtuvGrMxrN47c37Y1pAkEAsc58w9uw+/MyiTT/gs0/829YowpiRhMyxWNJZYoazTLMxjDFtKAsg2q8wM34w4L4so2VSaGEwpRzVKMqlD/VMQJABWAapq3Y8JU4JL0ghcsKx6P0d5UNsK5Ps/5/9ijiN8Aj5Otnaz8Ogf7V1nS3rRK+ZUMS5iSjv+NPGnGTgD3q+Q==";
-const start = '-----BEGIN PRIVATE KEY-----';
-const end = '-----END PRIVATE KEY-----';
+const PRI_START = '-----BEGIN PRIVATE KEY-----';
+const PRI_END = '-----END PRIVATE KEY-----';
+const PUB_START = '-----BEGIN PUBLIC KEY-----';
+const PUB_END = '-----END PUBLIC KEY-----';
 export const generateKey = () => {
     var key = new NodeRSA({ b: 1024 });//生成128位秘钥
     var pubkey = key.exportKey('pkcs8-public');//导出公钥
@@ -23,7 +25,7 @@ export const generateKey = () => {
 }
 
 
-const priKey = new NodeRSA(start + strPriKey + end, 'pkcs8-private');//导入私钥
+const priKey = new NodeRSA(PRI_START + strPriKey + PRI_END, 'pkcs8-private');//导入私钥
 priKey.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码。
 
 // test();
@@ -44,7 +46,7 @@ const test = () => {
  * @param {待加密字符串} buffer
  */
 export const encrypte = (pubStr, data) => {
-    let pub = new NodeRSA(pubStr, 'pkcs8-public');
+    let pub = new NodeRSA(PUB_START + pubStr + PUB_END, 'pkcs8-public');
     pub.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码。
     let encrypted = pub.encrypt(data, 'base64');
     return encrypted;
@@ -55,7 +57,7 @@ export const encrypte = (pubStr, data) => {
  */
 export const decrypte = (data, priStr) => {
     if (priStr) {
-        let priTmp = new NodeRSA(priStr, 'pkcs8-private');//导入私钥
+        let priTmp = new NodeRSA(PRI_START + priStr + PRI_END, 'pkcs8-private');//导入私钥
         priTmp.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码。
         return priTmp.decrypt(data, 'utf8');
     }
