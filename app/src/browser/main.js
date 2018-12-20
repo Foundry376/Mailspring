@@ -244,16 +244,18 @@ const start = () => {
   options.configDirPath = configDirPath;
 
   if (!options.devMode) {
-    const otherInstanceRunning = app.makeSingleInstance(commandLine => {
-      const otherOpts = parseCommandLine(commandLine);
-      global.application.handleLaunchOptions(otherOpts);
-    });
+    const gotTheLock = app.requestSingleInstanceLock();
 
-    if (otherInstanceRunning) {
+    if (!gotTheLock) {
       console.log('Exiting because another instance of the app is already running.');
       app.exit(1);
       return;
     }
+
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+      const otherOpts = parseCommandLine(commandLine);
+      global.application.handleLaunchOptions(otherOpts);
+    });
   }
 
   setupCompileCache(configDirPath);
