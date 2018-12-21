@@ -17,8 +17,12 @@ export default class MessageImagePopup extends Component {
     super();
     messageModel.imagePopup = this;
   }
+
   update() {
     this.setState(Object.assign({}, this.state, { key: key++ }));
+  }
+  componentDidUpdate(){
+    this.node && this.node.focus();
   }
   getContactNameByJid(jid) {
     this.props = messageModel.messagesReactInstance.props;
@@ -153,7 +157,7 @@ export default class MessageImagePopup extends Component {
     let msgBody = messageModel.msgBody;
 
     return (
-      <div className='message-image-popup' onKeyUp={this.onKeyUp} tabIndex='0' >
+      <div className='message-image-popup' onKeyUp={this.onKeyUp} tabIndex='0' ref={(el) => this.node = el}>
         <div className='message-image-popup-toolbar'>
           <Button id='close-button' className="no-border" onTouchTap={() => { this.hidden = true; this.update(); }}>
             <CancelIcon color={"#787e80"} />
