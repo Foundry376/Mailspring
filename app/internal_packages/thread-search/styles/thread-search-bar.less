@@ -8,10 +8,12 @@
   order: -100;
   overflow: visible;
   z-index: 100;
-  width: 100%;
+  width: 30%;
   height: 23px;
   font-weight: 400;
   line-height: 23px;
+  border:1px solid gray;
+  border-radius: 2px;
   background: @input-bg;
   color: @text-color;
   margin-top: (38px - 23px) / 2;
@@ -19,9 +21,14 @@
   padding-right: @padding-xs-horizontal;
   display: flex;
   align-items: center;
-
+  &:hover {
+    border: 0;
+    width: 100%;
+    box-shadow: 0 0 0 2px darken(@input-border-color, 20%);
+  }
   &:focus {
     border: 0;
+    width: 100%;
     border-radius: 0;
     box-shadow: 0 0 0 2px darken(@input-border-color, 20%);
   }
