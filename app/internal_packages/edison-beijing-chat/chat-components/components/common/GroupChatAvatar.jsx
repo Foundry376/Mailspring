@@ -40,7 +40,7 @@ class GroupChatAvatar extends Component {
     try {
       const result = await xmpp.getRoomMembers(conversation.jid, null, conversation.curJid);
       members = members.concat(result.mucAdmin.items);
-    } catch (e) {}
+    } catch (e) { }
     console.log('conversationJid members:', members);
     const db = await getDb();
     const messages = await db.messages.find().where('conversationJid').eq(conversation.jid).exec();
@@ -97,9 +97,10 @@ class GroupChatAvatar extends Component {
           avatarMembers.map(item => {
             item = item || {};
             return (<ContactAvatar
+              key={item.jid && item.jid.bare || item.jid || ''}
               conversation={this.props.conversation}
               jid={item.jid && item.jid.bare || item.jid || ''}
-              name={item && item.name|| ''}
+              name={item && item.name || ''}
               email={item.email || ''}
               size={30}
             />)

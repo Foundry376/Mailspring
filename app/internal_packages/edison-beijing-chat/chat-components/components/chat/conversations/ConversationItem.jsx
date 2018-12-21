@@ -66,11 +66,11 @@ export default class ConversationItem extends PureComponent {
           <div className="content">
             <div className="headerRow">
               <span className="headerText">{conversation.name}</span>
-              {/* <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span> */}
+              <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span>
             </div>
             <div className="subHeader">
               {conversation.at ? (<span style={{ color: 'red' }}>[@me]</span>) : null}
-              {/* {conversation.lastMessageText} */}
+              {conversation.lastMessageText}
             </div>
           </div>
         </div>
