@@ -75,11 +75,9 @@ export const getDeviceId = async (cb) => {
     const db = await getDb();
     let data = await db.configs.findOne({ key: 'deviceId' }).exec();
     if (data) {
-        console.log('*****deviceId-1', data.value);
         return data.value;
     } else {
         const deviceId = await iniE2ee();
-        console.log('*****deviceId-2', deviceId);
         return deviceId;
     }
     // db.configs.findOne({ key: 'deviceId' }).exec().then((data) => {

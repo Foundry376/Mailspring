@@ -149,6 +149,30 @@ export const sendMessageEpic = action$ =>
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices, conversation.curJid, deviceId);
       }
+      // update conversation last message
+      let data = {};
+      if (body) {
+        data = JSON.parse(body);
+        if (conversation.update) {
+          conversation.update({
+            $set: {
+              lastMessageSender: conversation.curJid,
+              lastMessageText: data.content
+            }
+          })
+        }
+        // if private chat, and it's a new conversation
+        else if (!conversation.isGroup) {
+          getDb().then(db => db.conversations.findOne(conversation.jid).exec().then(conv => {
+            conv.update({
+              $set: {
+                lastMessageSender: conversation.curJid,
+                lastMessageText: data.content
+              }
+            })
+          }))
+        }
+      }
       if (ediEncrypted) {
         return ({
           id,
@@ -171,14 +195,6 @@ export const sendMessageEpic = action$ =>
         });
       }
     })
-    // .map(({ payload: { conversation, body, id } }) => {
-    //   return ({
-    //     id,
-    //     body,
-    //     to: conversation.jid,
-    //     type: conversation.isGroup ? 'groupchat' : 'chat'
-    //   })
-    // })
     .map(message => {
       const action = sendingMessage(message);
       let payload = message;
