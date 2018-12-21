@@ -25,6 +25,8 @@ const LONG_FORMATS = {
  * @returns {number => string}    A function that converts
  */
 export const buildTimeDescriptor = (currentTime = new Date().getTime()) => {
+  const HOUR = 60 * 60 * 1000;
+  const DAY = 24 * HOUR;
   if (typeof currentTime !== 'number' || currentTime <= 0) {
     throw Error('Invalid argument type for param `currentDate`');
   }
@@ -42,6 +44,17 @@ export const buildTimeDescriptor = (currentTime = new Date().getTime()) => {
     }
 
     // return moment(timestamp).calendar(currentTime, longFormat ? LONG_FORMATS : SHORT_FORMATS);
+    // if yestoday, don't display
+    var d = new Date();
+    if (timestamp < d.setHours(0, 0, 0, 0)) {
+      const now = new Date().getTime();
+      const timegap = now - timestamp;
+      if (timegap < DAY) {
+        return Math.round(timegap / HOUR) + 'H';
+      } else {
+        return Math.round(timegap / HOUR) + 'D';
+      }
+    }
     return moment(timestamp).format('hh:mm')
   };
 };

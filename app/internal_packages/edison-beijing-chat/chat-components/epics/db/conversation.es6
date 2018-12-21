@@ -33,7 +33,8 @@ import {
 import xmpp from '../../xmpp/index';
 import { ipcRenderer } from 'electron';
 import chatModel from '../../store/model';
-
+import keyMannager from '../../../../../src/key-manager';
+import { queryProfile } from '../../utils/restjs';
 
 const saveOccupants = async payload => {
   if (!payload.mucAdmin) {
@@ -54,6 +55,24 @@ const saveOccupants = async payload => {
   return null;
 };
 
+const getProfile = async (jid) => {
+  const chatAccounts = AppEnv.config.get('chatAccounts') || {};
+  if (jid && Object.keys(chatAccounts).length > 0) {
+    const accessToken = await keyMannager.getAccessTokenByEmail(Object.keys(chatAccounts)[0]);
+    const userId = jid.split('@')[0];
+    return await new Promise((resolve, reject) => {
+      queryProfile({ accessToken, userId }, (error, data) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(data);
+        }
+      })
+    });
+  }
+  return null;
+}
+
 const saveConversations = async conversations => {
   const db = await getDb();
   return Promise.all(conversations.map(async conv => {
@@ -63,7 +82,7 @@ const saveConversations = async conversations => {
         conv.unreadMessages = convInDB.unreadMessages + 1;
       }
     }
-    // when private chat, update avtar
+    // when private chat, update avatar
     if (!conv.isGroup) {
       const contact = await db.contacts.findOne(conv.jid).exec();
       if (contact && contact.avatar) {
@@ -79,6 +98,10 @@ const saveConversations = async conversations => {
     }
     // when group chat, if exists in db, do not update occupants
     else {
+      const profile = await getProfile(conv.lastMessageSender);
+      if (profile && profile.resultCode === 1) {
+        conv.lastMessageSenderName = profile.data.name;
+      }
       if (convInDB) {
         return convInDB.update({
           $set: {
@@ -86,7 +109,8 @@ const saveConversations = async conversations => {
             unreadMessages: conv.unreadMessages,
             lastMessageTime: conv.lastMessageTime,
             lastMessageText: conv.lastMessageText,
-            lastMessageSender: conv.lastMessageSender
+            lastMessageSender: conv.lastMessageSender,
+            lastMessageSenderName: conv.lastMessageSenderName
           }
         })
       }
@@ -180,7 +204,7 @@ export const retrieveConversationsEpic = action$ =>
             .takeUntil(action$.ofType(RETRIEVE_ALL_CONVERSATIONS))
             .map(conversations =>
               conversations.filter(conversation =>
-                conversation.lastMessageText && conversation.lastMessageSender &&
+                conversation.lastMessageSender &&
                 conversation.lastMessageTime
               )
                 .sort((a, b) => b.lastMessageTime - a.lastMessageTime)
@@ -252,7 +276,7 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
         })
     );
 
-export const createInitiatedPrivateConversationEpic = (action$, { getState }) =>
+export const createInitiatedPrivateConversationEpic = (action$) =>
   action$.ofType(CREATE_PRIVATE_CONVERSATION)
     .mergeMap(({ payload: contact }) =>
       Observable.fromPromise(retriveConversation(contact.jid))
@@ -260,26 +284,28 @@ export const createInitiatedPrivateConversationEpic = (action$, { getState }) =>
           if (conv || !contact.name) {
             return selectConversation(conv.jid);
           } else {
-            const { auth: { currentUser } } = getState();
+            const content = '';
             conv = {
               jid: contact.jid,
               curJid: contact.curJid,
               name: contact.name,
-              occupants: [currentUser],
+              occupants: [contact.jid, contact.curJid],
               isGroup: false,
               // below is some filling to show the conversation
               unreadMessages: 0,
-              lastMessageSender: contact.jid,
-              lastMessageText: ' ',
+              lastMessageSender: contact.curJid,
+              lastMessageText: content,
               lastMessageTime: (new Date()).getTime()
             }
-            return conv
+            return { conversation: conv }
           }
-        })
-        .map(conversation => beginStoringConversations([conversation])))
+        }))
+    .filter(({ conversation }) => {
+      return !!conversation;
+    })
+    .map(({ conversation }) => beginStoringConversations([conversation]))
 
-// TODO quanzs did not complete, name, subject and description is temp
-export const groupConversationCreatedEpic = (action$, { getState }) =>
+export const groupConversationCreatedEpic = (action$) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
     .mergeMap(({ payload: { contacts, roomId, name } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
@@ -305,7 +331,6 @@ export const groupConversationCreatedEpic = (action$, { getState }) =>
           if (conv) {
             return selectConversation(conv.jid);
           }
-          const { auth: { currentUser } } = getState();
           return updateSelectedConversation({
             jid: roomId,
             curJid: contacts[0].curJid,
@@ -315,21 +340,19 @@ export const groupConversationCreatedEpic = (action$, { getState }) =>
             isGroup: true,
             unreadMessages: 0,
             occupants: [
-              currentUser.bare,
+              contacts[0].curJid,
               ...jidArr
             ],
           });
         })
     });
 
-// TODO quanzs save group coversation, the jids is temp
-export const updateGroupMessageConversationEpic = (action$, { getState }) =>
+export const createGroupMessageConversationEpic = (action$) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
     .map(({ payload: { contacts, roomId, name } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
       const content = '';
       const timeSend = new Date().getTime();
-      const { auth: { currentUser } } = getState();
       const conversation = {
         jid: roomId,
         curJid: contacts[0].curJid,
@@ -342,13 +365,13 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
         ],
         lastMessageTime: (new Date(timeSend)).getTime(),
         lastMessageText: content,
-        lastMessageSender: currentUser.bare
+        lastMessageSender: contacts[0].curJid
       };
       return conversation;
     })
     .map(conversation => beginStoringConversations([conversation]));
 
-export const removeConversationEpic = (action$, { getState }) =>
+export const removeConversationEpic = (action$) =>
   action$.ofType(REMOVE_CONVERSATION)
     .map(({ payload: jid }) => {
       removeConversation(jid);

@@ -420,7 +420,7 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
         ],
         lastMessageTime: (new Date(timeSend)).getTime(),
         lastMessageText: content,
-        lastMessageSender: payload.from.bare,
+        lastMessageSender: type === RECEIVE_GROUP_MESSAGE ? payload.from.resource : payload.from.bare,
         at
       };
     })

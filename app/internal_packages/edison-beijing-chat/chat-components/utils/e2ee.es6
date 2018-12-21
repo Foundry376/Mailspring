@@ -5,42 +5,46 @@ import getDb from '../db';
 const iniE2ee = async () => {
     const db = await getDb();
     const datas = await db.configs.find({ key: { $in: ['deviceId', 'e2ee_prikey', 'e2ee_pubkey'] } }).exec();
+    let deviceId = null;
     if (datas.length < 3) {
-        let deviceId = false;
         for (let data in datas) {
             if (data.key == 'deviceId') {
-                deviceId = true; break;
+                deviceId = data.value; break;
             }
         }
         if (deviceId) {
-            setE2ee(db);
+            await setE2ee(db);
         } else if (datas.length == 2) {
-            setDeviceId(db);
+            deviceId = await setDeviceId(db);
         } else {
-            setDeviceId(db);
-            setE2ee(db);
+            deviceId = await setDeviceId(db);
+            await setE2ee(db);
         }
     }
+    return deviceId;
 }
 const setDeviceId = (db) => {
-    require('getmac').getMac(function (err, macAddress) {
-        let deviceId;
-        if (err) {
-            console.warn(err);
-            deviceId = uuid();
-        }
-        else {
-            deviceId = macAddress.replace(/:/g, '-');
-        }
-        db.configs.upsert({ key: 'deviceId', value: deviceId, time: Date.now() });
-        // console.log(macAddress);
-        // console.log(encryptByAES(macAddress, '75ab8e66395f').replace(/[=+]/g, ''));
-    });
+    return new Promise((resolve) => {
+        require('getmac').getMac(function (err, macAddress) {
+            let deviceId;
+            if (err) {
+                console.warn(err);
+                deviceId = uuid();
+            }
+            else {
+                deviceId = macAddress.replace(/:/g, '-');
+            }
+            resolve(deviceId);
+            db.configs.upsert({ key: 'deviceId', value: deviceId, time: Date.now() });
+            // console.log(macAddress);
+            // console.log(encryptByAES(macAddress, '75ab8e66395f').replace(/[=+]/g, ''));
+        });
+    })
 }
-const setE2ee = (db) => {
+const setE2ee = async (db) => {
     let { pubkey, prikey } = generateKey();
-    db.configs.upsert({ key: 'e2ee_prikey', value: prikey, time: Date.now() });
-    db.configs.upsert({ key: 'e2ee_pubkey', value: pubkey, time: Date.now() });
+    await db.configs.upsert({ key: 'e2ee_prikey', value: prikey, time: Date.now() });
+    await db.configs.upsert({ key: 'e2ee_pubkey', value: pubkey, time: Date.now() });
 }
 iniE2ee();
 export const getPriKey = async (cb) => {
@@ -71,9 +75,12 @@ export const getDeviceId = async (cb) => {
     const db = await getDb();
     let data = await db.configs.findOne({ key: 'deviceId' }).exec();
     if (data) {
+        console.log('*****deviceId-1', data.value);
         return data.value;
     } else {
-        return null;
+        const deviceId = await iniE2ee();
+        console.log('*****deviceId-2', deviceId);
+        return deviceId;
     }
     // db.configs.findOne({ key: 'deviceId' }).exec().then((data) => {
     //     cb(data);

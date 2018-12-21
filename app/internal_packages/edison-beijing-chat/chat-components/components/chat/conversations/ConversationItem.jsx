@@ -70,6 +70,10 @@ export default class ConversationItem extends PureComponent {
             </div>
             <div className="subHeader">
               {conversation.at ? (<span style={{ color: 'red' }}>[@me]</span>) : null}
+              {
+                conversation.isGroup && conversation.lastMessageSenderName && conversation.lastMessageText ?
+                  `${conversation.lastMessageSenderName}:` : null
+              }
               {conversation.lastMessageText}
             </div>
           </div>

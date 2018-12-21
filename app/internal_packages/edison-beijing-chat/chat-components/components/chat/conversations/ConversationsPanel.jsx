@@ -52,19 +52,10 @@ export default class ConversationsPanel extends PureComponent {
     return (
       <div className="panel">
         <ConversationsTopBar newConversation={newConversation} />
-        {/* <Divider type="horizontal" /> */}
         <div className="conversations">
           {conversations.length ?
             <Conversations {...conversationsProps} /> :
             <div className="noConversations">
-              {/* <div>It looks like you are new here</div>
-              <Link to="/chat/new">
-                <Button>
-                  <span className="newPrompt">
-                    Start a conversation now!
-                  </span>
-                </Button>
-              </Link> */}
             </div>
           }
         </div>

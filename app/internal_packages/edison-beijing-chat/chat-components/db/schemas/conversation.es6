@@ -46,6 +46,9 @@ export default {
     },
     lastMessageSender: { // Jid of last sender
       type: 'string'
+    },
+    lastMessageSenderName: {
+      type: 'string'
     }
   },
   required: [

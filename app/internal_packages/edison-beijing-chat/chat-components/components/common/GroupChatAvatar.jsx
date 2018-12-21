@@ -94,10 +94,10 @@ class GroupChatAvatar extends Component {
     return (
       <div className="groupAvatar">
         {
-          avatarMembers.map(item => {
+          avatarMembers.map((item, index) => {
             item = item || {};
             return (<ContactAvatar
-              key={item.jid && item.jid.bare || item.jid || ''}
+              key={(item.jid && item.jid.bare || item.jid || '') + index}
               conversation={this.props.conversation}
               jid={item.jid && item.jid.bare || item.jid || ''}
               name={item && item.name || ''}
