@@ -156,6 +156,7 @@ export const sendMessageEpic = action$ =>
         if (conversation.update) {
           conversation.update({
             $set: {
+              lastMessageTime: (new Date()).getTime(),
               lastMessageSender: conversation.curJid,
               lastMessageText: data.content
             }
@@ -166,6 +167,7 @@ export const sendMessageEpic = action$ =>
           getDb().then(db => db.conversations.findOne(conversation.jid).exec().then(conv => {
             conv.update({
               $set: {
+                lastMessageTime: (new Date()).getTime(),
                 lastMessageSender: conversation.curJid,
                 lastMessageText: data.content
               }
