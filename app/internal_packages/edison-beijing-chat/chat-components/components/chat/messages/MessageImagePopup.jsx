@@ -130,6 +130,15 @@ export default class MessageImagePopup extends Component {
       }
     }
   }
+  onKeyUp = (event) => {
+    console.log('onKeyUp', event);
+    let keyCode = event.keyCode;
+    if (keyCode === 37 || keyCode === 38) {
+      this.gotoPrevImage();
+    } else if (keyCode === 39 || keyCode === 40) {
+      this.gotoNextImage();
+    }
+  };
 
   render() {
     const {
@@ -144,7 +153,7 @@ export default class MessageImagePopup extends Component {
     let msgBody = messageModel.msgBody;
 
     return (
-      <div className='message-image-popup'>
+      <div className='message-image-popup' onKeyUp={this.onKeyUp} tabIndex='0' >
         <div className='message-image-popup-toolbar'>
           <Button id='close-button' className="no-border" onTouchTap={() => { this.hidden = true; this.update(); }}>
             <CancelIcon color={"#787e80"} />
