@@ -2,8 +2,8 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import FilePlusIcon from '../../common/icons/FilePlusIcon';
-import SendIcon from '../../common/icons/SendIcon';
-import { theme } from '../../../utils/colors';
+import os from 'os';
+import fs from 'fs';
 import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
 // import Mention, { toString, getMentions } from 'rc-editor-mention';
@@ -34,7 +34,14 @@ const plist = require('plist');
 //https://github.com/electron/electron/issues/9035
 function getClipboardFiles() {
   if (platform.isDarwin) {
-    if (!clipboard.has('NSFilenamesPboardType')) {
+    const image = clipboard.readImage();
+    // get the screen capture
+    if (!image.isEmpty()) {
+      const filePath = os.tmpdir() + `/EdisonCapture${new Date().getTime()}.png`;
+      fs.writeFileSync(filePath, image.toPNG());
+      return filePath;
+    }
+    else if (!clipboard.has('NSFilenamesPboardType')) {
       // this check is neccessary to prevent exception while no files is copied
       return [];
     } else {
