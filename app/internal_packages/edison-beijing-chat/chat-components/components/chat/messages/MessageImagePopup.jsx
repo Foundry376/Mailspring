@@ -10,6 +10,7 @@ const { dialog } = require('electron').remote;
 var http = require("http");
 var https = require("https");
 var fs = require("fs");
+const path = require('path');
 
 let key = 0;
 export default class MessageImagePopup extends Component {
@@ -170,7 +171,7 @@ export default class MessageImagePopup extends Component {
             </div> : null
           }
           <div style={{ display: 'inline-block' }}>
-            <span style={{ display: 'inline-block', width: '100%' }}>{msgBody.localFile || msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</span>
+            <span style={{ display: 'inline-block', width: '100%' }}>{msgBody.localFile && path.basename(msgBody.localFile) || msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</span>
             <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
           </div>
           <span className="download-img" style={{ float: 'right' }} onClick={this.downloadImage}></span>
