@@ -11,6 +11,7 @@ import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
 import chatModel from '../../../store/model';
+import { FILE_TYPE } from './messageModel';
 const path = require('path');
 
 const FAKE_SPACE = '\u00A0';
@@ -179,7 +180,7 @@ export default class MessagesSendBar extends PureComponent {
           message = 'file received';
         }
         let body = {
-          type: 1,
+          type: FILE_TYPE.TEXT,
           timeSend: new Date().getTime(),
           content: 'sending...',
           email: selectedConversation.email,
@@ -194,11 +195,11 @@ export default class MessagesSendBar extends PureComponent {
             return;
           }
           if (filename.match(/.gif$/)) {
-            body.type = 5;
+            body.type = FILE_TYPE.GIF;
           } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
-            body.type = 2;
+            body.type = FILE_TYPE.IMAGE;
           } else {
-            body.type = 9;
+            body.type = FILE_TYPE.OTHER_FILE;
           }
           body.localFile = path.basename(file);
           body.content = message || " ";
@@ -212,7 +213,7 @@ export default class MessagesSendBar extends PureComponent {
       let message = messageBody.trim();
       if (message) {
         let body = {
-          type: 1,
+          type: FILE_TYPE.TEXT,
           timeSend: new Date().getTime(),
           content: message,
           email: selectedConversation.email,

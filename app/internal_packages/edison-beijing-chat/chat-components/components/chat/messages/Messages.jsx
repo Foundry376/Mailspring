@@ -268,8 +268,7 @@ export default class Messages extends PureComponent {
                 messageModel.group = group;
                 messageModel.msg = msg;
                 messageModel.msgBody = msgBody;
-                messageModel.imagePopup.hidden = false;
-                messageModel.imagePopup.update();
+                messageModel.imagePopup.show();
                 this.update();
               }
               const CancelZoomIn = (event) => {
@@ -288,13 +287,13 @@ export default class Messages extends PureComponent {
                     title={msgBody.localFile || msgBody.mediaObjectId}
                     style={{ height: '220px', cursor }}
                   />
-                    <div className='message-toolbar' >
+                  <div className='message-toolbar' >
                     <span
                       className="download-img"
                       title={msgBody.path}
                       onClick={download}
                     />
-                      {msg.sender === currentUserId && <span
+                    {msg.sender === currentUserId && <span
                       className="inplace-edit-img"
                       onClick={startEditMessage}
                     />}

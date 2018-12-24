@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import messageModel from './messageModel'
+import messageModel, { FILE_TYPE } from './messageModel'
 import { buildTimeDescriptor } from '../../../utils/time';
 import { downloadFile } from '../../../utils/awss3';
 import { isJsonString } from '../../../utils/stringUtils';
@@ -15,11 +15,11 @@ let key = 0;
 export default class MessageImagePopup extends Component {
   constructor() {
     super();
+    this.state = {
+      imgIndex: -1,
+      hidden: false
+    }
     messageModel.imagePopup = this;
-  }
-
-  update() {
-    this.setState(Object.assign({}, this.state, { key: key++ }));
   }
   componentDidUpdate() {
     this.node && this.node.focus();
@@ -78,61 +78,53 @@ export default class MessageImagePopup extends Component {
       });
     }
   }
-  gotoPrevImage = (event) => {
+  componentDidMount = () => {
+    this.images = this.getAllImages();
+  }
+  componentWillReceiveProps = () => {
+    this.images = this.getAllImages();
+  }
+  getAllImages() {
+    const imageData = []
     const groupedMessages = messageModel.messagesReactInstance.props.groupedMessages;
-    let group = messageModel.group;
-    let groupIndex = groupedMessages.indexOf(group);
-    let msg = messageModel.msg;
-    let index = group.messages.indexOf(msg);
-    while (1) {
-      while (index) {
-        index--;
-        msg = group.messages[index];
+    let index = 0;
+    for (const groupedMessage of groupedMessages) {
+      const { messages } = groupedMessage;
+      for (const msg of messages) {
         let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
-        if (msgBody.path) {
-          messageModel.group = group;
-          messageModel.msg = msg;
-          messageModel.msgBody = msgBody;
-          this.update();
-          return;
+        if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
+          if (msg === messageModel.msg) {
+            this.setState({
+              imgIndex: index
+            })
+          }
+          imageData.push({
+            msg,
+            msgBody
+          })
+          index++;
         }
       }
-      if (groupIndex) {
-        groupIndex--;
-        group = groupedMessages[groupIndex];
-        index = group.messages.length;
-      } else {
-        break;
-      }
     }
+    return imageData;
+  }
+  gotoPrevImage = (event) => {
+    let prevIndex = this.state.imgIndex - 1;
+    if (prevIndex < 0) {
+      prevIndex = 0
+    }
+    this.setState({
+      imgIndex: prevIndex
+    })
   }
   gotoNextImage = (event) => {
-    const groupedMessages = messageModel.messagesReactInstance.props.groupedMessages;
-    let group = messageModel.group;
-    let groupIndex = groupedMessages.indexOf(group);
-    let msg = messageModel.msg
-    let index = group.messages.indexOf(msg);
-    while (1) {
-      while (index < group.messages.length - 1) {
-        index++;
-        msg = group.messages[index];
-        let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
-        if (msgBody.path) {
-          messageModel.group = group;
-          messageModel.msg = msg;
-          messageModel.msgBody = msgBody;
-          this.update();
-          return;
-        }
-      }
-      if (groupIndex < groupedMessages.length - 1) {
-        groupIndex++;
-        group = groupedMessages[groupIndex];
-        index = -1;
-      } else {
-        break;
-      }
+    let nextIndex = this.state.imgIndex + 1;
+    if (nextIndex > this.images.length - 1) {
+      nextIndex = this.images.length - 1
     }
+    this.setState({
+      imgIndex: nextIndex
+    })
   }
   onKeyUp = (event) => {
     let keyCode = event.keyCode;
@@ -141,10 +133,19 @@ export default class MessageImagePopup extends Component {
     } else if (keyCode === 39 || keyCode === 40) {
       this.gotoNextImage();
     } else if (keyCode === 27) { // ESC
-      this.hidden = true;
-      this.update();
+      this.hide();
     }
-  };
+  }
+  show = () => {
+    this.setState({
+      hidden: false
+    });
+  }
+  hide = () => {
+    this.setState({
+      hidden: true
+    });
+  }
 
   render() {
     const {
@@ -152,40 +153,47 @@ export default class MessageImagePopup extends Component {
     } = this.props;
 
     const timeDescriptor = buildTimeDescriptor(referenceTime);
-    if (this.hidden || !messageModel.msg) {
+    if (this.state.hidden || !messageModel.msg) {
       return null;
     }
-    let msg = messageModel.msg;
-    let msgBody = messageModel.msgBody;
-
+    // let msg = messageModel.msg;
+    // let msgBody = messageModel.msgBody;
+    const { imgIndex } = this.state;
+    const { msg, msgBody } = this.images[imgIndex];
+    const isLeftEdge = imgIndex <= 0;
+    const isRightEdge = imgIndex >= this.images.length - 1;
     return (
-      <div className='message-image-popup' onKeyUp={this.onKeyUp} tabIndex='0' ref={(el) => this.node = el}>
-        <div className='message-image-popup-toolbar'>
-          <Button id='close-button' className="no-border" onTouchTap={() => { this.hidden = true; this.update(); }}>
-            <CancelIcon color={"#787e80"} />
-          </Button>
-          {true || msg.sender !== messageModel.currentUserId ?
-            <div className="messageSender image-popup-avatar" style={{ display: 'inline-block' }}>
-              {messageModel.messagesReactInstance.getContactInfoByJid(msg.sender)}
-            </div> : null
-          }
-          <div style={{ display: 'inline-block' }}>
-            <span style={{ display: 'inline-block', width: '100%' }}>{msgBody.localFile || msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</span>
-            <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
+      <div>
+        {imgIndex !== -1 && (
+          <div className='message-image-popup' onKeyUp={this.onKeyUp} tabIndex='0' ref={(el) => this.node = el}>
+            <div className='message-image-popup-toolbar'>
+              <Button id='close-button' className="no-border" onTouchTap={this.hide}>
+                <CancelIcon color={"#787e80"} />
+              </Button>
+              {true || msg.sender !== messageModel.currentUserId ?
+                <div className="messageSender image-popup-avatar" style={{ display: 'inline-block' }}>
+                  {messageModel.messagesReactInstance.getContactInfoByJid(msg.sender)}
+                </div> : null
+              }
+              <div style={{ display: 'inline-block' }}>
+                <span style={{ display: 'inline-block', width: '100%' }}>{msgBody.localFile || msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</span>
+                <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
+              </div>
+              <span className="download-img" style={{ float: 'right' }} onClick={this.downloadImage}></span>
+            </div>
+            <div className='message-image-popup-content'>
+              <div className="left-span">
+                {!isLeftEdge && <span className='left-arrow-button' onClick={this.gotoPrevImage}></span>}
+              </div>
+              <div className="img-container">
+                <img src={msgBody.path} />
+              </div>
+              <div className="right-span">
+                {!isRightEdge && <span className='right-arrow-button' onClick={this.gotoNextImage}></span>}
+              </div>
+            </div>
           </div>
-          <span className="download-img" style={{ float: 'right' }} onClick={this.downloadImage}></span>
-        </div>
-        <div className='message-image-popup-content'>
-          <div className="left-span">
-            <span className='left-arrow-button' onClick={this.gotoPrevImage}></span>
-          </div>
-          <div className="img-container">
-            <img src={msgBody.path} />
-          </div>
-          <div className="right-span">
-            <span className='right-arrow-button' onClick={this.gotoNextImage}></span>
-          </div>
-        </div>
+        )}
       </div>
     )
   }
