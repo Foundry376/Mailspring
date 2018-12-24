@@ -13,6 +13,26 @@
     overflow: hidden;
   }
 
+  .sendBarEmoji{
+    position: absolute;
+    bottom: 0px;
+    right: 16px;
+    margin: 16px;
+    .button {
+      padding: 6px;
+    }
+    .icon {
+      fill: #787d80;
+      transition: transform 0.3s;
+    }
+    .button:hover {
+      .icon {
+        fill: #0096ff;
+        transform: scale(1.2);
+      }
+    }
+  }
+
   .sendBarActions {
     position: absolute;
     bottom: 0px;

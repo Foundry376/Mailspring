@@ -11,8 +11,11 @@ import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
 import chatModel from '../../../store/model';
-
+import emoji from 'node-emoji';
+import {Actions, ReactDOM} from 'mailspring-exports';
+import EmojiPopup from '../../common/EmojiPopup'
 const FAKE_SPACE = '\u00A0';
+
 
 const activeStyle = {
   transform: 'scaleY(1)',
@@ -66,8 +69,9 @@ export default class MessagesSendBar extends PureComponent {
     suggestions: [],
     suggestionStyle: activeStyle,
     roomMembers: [],
-    occupants: []
+    occupants: [],
   }
+  emojiRef = null;
 
   fileInput = null;
   textarea = null;
@@ -112,7 +116,7 @@ export default class MessagesSendBar extends PureComponent {
   // }
 
   onMessageBodyChanged = (e) => {
-    const messageBody = e.target.value;
+    const messageBody = emoji.emojify(e.target.value);
     this.setState({
       messageBody
     });
@@ -291,6 +295,40 @@ export default class MessagesSendBar extends PureComponent {
       suggestions: filtered,
       suggestionStyle: filtered.length ? activeStyle : disableStyle
     });
+  };
+  onEmojiSelected = (value)=>{
+    Actions.closePopover();
+    let el = ReactDOM.findDOMNode(this.textarea);
+    let cursorPosistion = el.selectionStart;
+    this.setState({
+      messageBody:
+        this.state.messageBody.slice(0, cursorPosistion) +
+        value +
+        this.state.messageBody.slice(cursorPosistion),
+      openEmoji: false,
+    });
+    el.focus();
+  };
+  onEmojiTouch =()=>{
+    let rectPosition= ReactDOM.findDOMNode(this.emojiRef);
+    console.log('current dom: ', rectPosition.getBoundingClientRect());
+    if(!this.state.openEmoji) {
+      Actions.openPopover(<EmojiPopup onEmojiSelected={this.onEmojiSelected}/>, {
+        direction: 'up',
+        originRect: {
+          top: rectPosition.getBoundingClientRect().top,
+          left: rectPosition.getBoundingClientRect().left,
+          width: 190
+        },
+        closeOnAppBlur: true,
+        onClose: () => {
+          this.setState({ openEmoji: false });
+        },
+      });
+    }else{
+        Actions.closePopover();
+    }
+    this.setState({openEmoji: !this.state.openEmoji});
   }
 
   render() {
@@ -355,7 +393,12 @@ export default class MessagesSendBar extends PureComponent {
             null
           }
         </div>
-        <div className="sendBarActions">
+        <div key='emoji' className="sendBarEmoji" ref={(emoji)=>{this.emojiRef=emoji}}>
+          <Button className='no-border' onTouchTap={this.onEmojiTouch}>
+            <FilePlusIcon className="icon" />
+          </Button>
+        </div>
+        <div key='attacheFile' className="sendBarActions">
           <Button
             className='no-border'
             onTouchTap={() => {
@@ -372,6 +415,9 @@ export default class MessagesSendBar extends PureComponent {
             />
           </Button>
         </div>
+        {/*{this.state.openEmoji ?<FixedPopover direction={'up'} originRect={{top: 50, left: 50, width: 190}}>*/}
+          {/*<Button className='no-border'>emoji</Button>*/}
+        {/*</FixedPopover> : null}*/}
       </div>
     );
   }

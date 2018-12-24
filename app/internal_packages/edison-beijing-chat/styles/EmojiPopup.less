@@ -1,0 +1,27 @@
+.emoji-popup-container {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  .emoji-row{
+    width: 250px;
+    display: flex;
+    justify-content: space-around;
+    height: 30px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+  }
+  .emoji-cell{
+    height: 25px;
+    width: 25px;
+    padding: 1px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    //border: 1px solid #f0f1f3;
+  }
+  .emoji-cell:hover{
+    box-shadow: -2px 2px 6px #999;
+  }
+}

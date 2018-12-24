@@ -11,5 +11,8 @@
   "windowTypes": {
     "default": true,
     "edison-beijing-chat": true
+  },
+  "dependencies": {
+    "node-emoji": "1.8.1"
   }
 }
