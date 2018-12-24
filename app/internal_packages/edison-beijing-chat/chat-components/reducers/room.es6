@@ -17,8 +17,9 @@ function processRoomsData(data) {
 export default function roomReducer(state = initialState, { type, payload }) {
   switch (type) {
     case SUCCESS_STORE_ROOMS:
-      console.log('***rooms', payload);
-      return Object.assign({}, state, { rooms: processRoomsData(payload) });
+      var rooms = processRoomsData(payload);
+      rooms = Object.assign({}, state.rooms, rooms);
+      return Object.assign({}, { rooms });
     default:
       return state;
   }

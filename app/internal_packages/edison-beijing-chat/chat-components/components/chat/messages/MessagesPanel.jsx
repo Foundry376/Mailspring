@@ -66,10 +66,27 @@ export default class MessagesPanel extends PureComponent {
     this.setState(Object.assign({}, this.state, { inviting: false }));
     const { selectedConversation } = this.props;
     if (contacts && contacts.length > 0) {
-      await Promise.all(contacts.map(contact => (
-        xmpp.addMember(selectedConversation.jid, contact.jid)
-      )))
-      this.getRoomMembers();
+      if (selectedConversation.isGroup) {
+        await Promise.all(contacts.map(contact => (
+          xmpp.addMember(selectedConversation.jid, contact.jid)
+        )));
+        this.getRoomMembers();
+      } else {
+        const roomId = uuid() + GROUP_CHAT_DOMAIN;
+        const db = await getDb();
+        if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
+          const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
+          contacts.unshift(other);
+        }
+        if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
+          const owner = await db.contacts.findOne().where('jid').eq(selectedConversation.curJid).exec();
+          contacts.unshift(owner);
+        }
+        const names = contacts.map(item => item.name);
+        const chatName = names.slice(0, names.length - 1).join(' , ') + ' & ' + names[names.length - 1];
+        const { onGroupConversationCompleted } = this.props;
+        onGroupConversationCompleted({ contacts, roomId, name: chatName });
+      }
     }
   }
 

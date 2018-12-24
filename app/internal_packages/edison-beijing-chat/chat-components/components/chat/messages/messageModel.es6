@@ -1,3 +1,10 @@
+const FILE_TYPE = {
+  TEXT: 1,
+  IMAGE: 2,
+  GIF: 5,
+  OTHER_FILE: 9
+}
+
 /*
   the data object to share data between Messages and MessageImagePopup
   the code is simpler not to use redux.
@@ -9,4 +16,5 @@ export default module.exports = {
   group: null, // current group that contains current msg taht contains current image
   msg: null, // current msg contains current image
   msgBody: null, // msgBody contains current image
+  FILE_TYPE
 }

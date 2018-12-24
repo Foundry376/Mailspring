@@ -43,8 +43,7 @@ export default class ConversationItem extends PureComponent {
     const { conversation, removeConversation } = this.props;
     removeConversation(conversation.jid);
     if (messageModel.imagePopup) {
-      messageModel.imagePopup.hidden = true;
-      messageModel.imagePopup.update();
+      messageModel.imagePopup.hide();
     }
     chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
   }

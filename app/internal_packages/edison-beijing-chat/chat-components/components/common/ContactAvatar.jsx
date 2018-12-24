@@ -4,7 +4,6 @@ import { gradientColorForString } from '../../utils/colors';
 import { getavatar, queryProfile } from '../../utils/restjs';
 import { connect } from 'react-redux';
 import keyMannager from '../../../../../src/key-manager';
-import { relative } from 'path';
 
 const getInitials = name => {
   const trimmedName = name ? name.trim() : '';
@@ -55,7 +54,7 @@ class ContactAvatar extends Component {
       const { data: userProfile } = await this.getProfile();
       if (userProfile) {
         email = userProfile.email
-        this.setState({
+        this && this.setState({
           userProfile: userProfile || {}
         })
       }
@@ -72,7 +71,7 @@ class ContactAvatar extends Component {
           const img = new Image();
           img.src = res.headers.location;
           img.onload = () => {
-            this.setState({
+            this && this.setState({
               avatar: `url("${res.headers.location}") center center / cover`,
               isImgExist: true
             })
@@ -82,7 +81,7 @@ class ContactAvatar extends Component {
           }
           return;
         }
-        this.setState({
+        this && this.setState({
           avatar: `url("${res.headers.location}") center center / cover`,
           isImgExist: true
         })

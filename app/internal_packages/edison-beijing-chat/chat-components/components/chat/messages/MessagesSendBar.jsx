@@ -2,8 +2,8 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import FilePlusIcon from '../../common/icons/FilePlusIcon';
-import SendIcon from '../../common/icons/SendIcon';
-import { theme } from '../../../utils/colors';
+import os from 'os';
+import fs from 'fs';
 import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
 // import Mention, { toString, getMentions } from 'rc-editor-mention';
@@ -11,11 +11,12 @@ import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
 import chatModel from '../../../store/model';
+import { FILE_TYPE } from './messageModel';
+const path = require('path');
 import emoji from 'node-emoji';
 import {Actions, ReactDOM} from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup'
 const FAKE_SPACE = '\u00A0';
-
 
 const activeStyle = {
   transform: 'scaleY(1)',
@@ -37,7 +38,14 @@ const plist = require('plist');
 //https://github.com/electron/electron/issues/9035
 function getClipboardFiles() {
   if (platform.isDarwin) {
-    if (!clipboard.has('NSFilenamesPboardType')) {
+    const image = clipboard.readImage();
+    // get the screen capture
+    if (!image.isEmpty()) {
+      const filePath = os.tmpdir() + `/EdisonCapture${new Date().getTime()}.png`;
+      fs.writeFileSync(filePath, image.toPNG());
+      return filePath;
+    }
+    else if (!clipboard.has('NSFilenamesPboardType')) {
       // this check is neccessary to prevent exception while no files is copied
       return [];
     } else {
@@ -175,7 +183,7 @@ export default class MessagesSendBar extends PureComponent {
           message = 'file received';
         }
         let body = {
-          type: 1,
+          type: FILE_TYPE.TEXT,
           timeSend: new Date().getTime(),
           content: 'sending...',
           email: selectedConversation.email,
@@ -190,14 +198,13 @@ export default class MessagesSendBar extends PureComponent {
             return;
           }
           if (filename.match(/.gif$/)) {
-            body.type = 5;
-            body.localFile = file;
+            body.type = FILE_TYPE.GIF;
           } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
-            body.type = 2;
-            body.localFile = file;
+            body.type = FILE_TYPE.IMAGE;
           } else {
-            body.type = 9;
+            body.type = FILE_TYPE.OTHER_FILE;
           }
+          body.localFile = file;
           body.content = message || " ";
           body.mediaObjectId = myKey;
           body.occupants = occupants;
@@ -209,7 +216,7 @@ export default class MessagesSendBar extends PureComponent {
       let message = messageBody.trim();
       if (message) {
         let body = {
-          type: 1,
+          type: FILE_TYPE.TEXT,
           timeSend: new Date().getTime(),
           content: message,
           email: selectedConversation.email,
@@ -415,9 +422,6 @@ export default class MessagesSendBar extends PureComponent {
             />
           </Button>
         </div>
-        {/*{this.state.openEmoji ?<FixedPopover direction={'up'} originRect={{top: 50, left: 50, width: 190}}>*/}
-          {/*<Button className='no-border'>emoji</Button>*/}
-        {/*</FixedPopover> : null}*/}
       </div>
     );
   }
