@@ -11,6 +11,7 @@ import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
 import chatModel from '../../../store/model';
+const path = require('path');
 
 const FAKE_SPACE = '\u00A0';
 
@@ -194,13 +195,12 @@ export default class MessagesSendBar extends PureComponent {
           }
           if (filename.match(/.gif$/)) {
             body.type = 5;
-            body.localFile = file;
           } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
             body.type = 2;
-            body.localFile = file;
           } else {
             body.type = 9;
           }
+          body.localFile = path.basename(file);
           body.content = message || " ";
           body.mediaObjectId = myKey;
           body.occupants = occupants;

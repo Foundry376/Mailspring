@@ -66,10 +66,10 @@ export default class MessagesPanel extends PureComponent {
     this.setState(Object.assign({}, this.state, { inviting: false }));
     const { selectedConversation } = this.props;
     if (contacts && contacts.length > 0) {
-      if (selectedConversation.isGroup){
+      if (selectedConversation.isGroup) {
         await Promise.all(contacts.map(contact => (
           xmpp.addMember(selectedConversation.jid, contact.jid)
-        )))
+        )));
         this.getRoomMembers();
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
@@ -83,7 +83,6 @@ export default class MessagesPanel extends PureComponent {
         const { onGroupConversationCompleted } = this.props;
         onGroupConversationCompleted({ contacts, roomId, name: chatName });
       }
-
     }
   }
 
