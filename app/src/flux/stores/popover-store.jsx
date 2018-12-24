@@ -35,13 +35,14 @@ class PopoverStore extends MailspringStore {
 
   openPopover = (
     element,
-    { originRect, direction, fallbackDirection, closeOnAppBlur, callback = () => {} }
+    { originRect, direction, fallbackDirection, closeOnAppBlur, onClose=()=>{}, callback = () => {} }
   ) => {
     const props = {
       direction,
       originRect,
       fallbackDirection,
       closeOnAppBlur,
+      onClose
     };
 
     if (this.isOpen) {

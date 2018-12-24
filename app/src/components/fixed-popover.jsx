@@ -47,6 +47,7 @@ class FixedPopover extends Component {
       width: PropTypes.number,
     }),
     focusElementWithTabIndex: PropTypes.func,
+    onClose: PropTypes.func
   };
 
   static defaultProps = {
@@ -99,7 +100,7 @@ class FixedPopover extends Component {
   };
 
   onWindowResize() {
-    Actions.closePopover();
+    Actions.closePopover(this.props.onClose);
   }
 
   onPopoverRendered = () => {
@@ -136,13 +137,13 @@ class FixedPopover extends Component {
       return;
     }
     if (!target || !findDOMNode(this).contains(target)) {
-      Actions.closePopover();
+      Actions.closePopover(this.props.onClose);
     }
   };
 
   onKeyDown = event => {
     if (event.key === 'Escape') {
-      Actions.closePopover();
+      Actions.closePopover(this.props.onClose);
     }
   };
 
@@ -334,6 +335,7 @@ class FixedPopover extends Component {
           className={`fixed-popover-container${animateClass}`}
           onKeyDown={this.onKeyDown}
           onBlur={this.onBlur}
+          tabIndex={-1}
         >
           <div ref="popover" className={`fixed-popover`} style={popoverStyle}>
             {children}
