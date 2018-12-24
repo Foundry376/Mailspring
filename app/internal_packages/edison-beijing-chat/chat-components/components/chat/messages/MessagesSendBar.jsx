@@ -201,7 +201,7 @@ export default class MessagesSendBar extends PureComponent {
           } else {
             body.type = FILE_TYPE.OTHER_FILE;
           }
-          body.localFile = path.basename(file);
+          body.localFile = file;
           body.content = message || " ";
           body.mediaObjectId = myKey;
           body.occupants = occupants;
