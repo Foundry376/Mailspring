@@ -7,6 +7,7 @@ import {
   UPDATE_STORED_CONTACTS,
   SUCCESS_STORE_CONTACTS
 } from '../actions/db/contact';
+import _ from 'underscore';
 
 const initialState = {
   availableUsers: [],
@@ -36,8 +37,12 @@ export default function contactReducer(state = initialState, { type, payload }) 
     case USER_UNAVAILABLE:
       return removeAvailableUser(state, payload.from.bare);
     case SUCCESS_STORE_CONTACTS:
-      return Object.assign({}, state, { contacts: payload });
+      var contacts = [].concat(state.contacts, payload);
+      contacts = _.unique(contacts);
+      return Object.assign({}, { contacts });
     case UPDATE_STORED_CONTACTS:
+      var contacts = [].concat(state.contacts, payload);
+      contacts = _.unique(contacts);
       return Object.assign({}, state, { contacts: payload });
     default:
       return state;
