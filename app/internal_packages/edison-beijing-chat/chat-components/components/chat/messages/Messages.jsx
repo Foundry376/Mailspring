@@ -4,7 +4,6 @@ var fs = require("fs");
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import uuid from 'uuid/v4';
 import CheckIcon from '../../common/icons/CheckIcon';
 import {
   MESSAGE_STATUS_DELIVERED,
@@ -34,7 +33,7 @@ let key = 0;
 
 const shouldInlineImg = (msgBody) => {
   let path = msgBody.path;
-  return path && path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) && ( path.match(/^https?:\/\//) || fs.existsSync(path.replace('file://', '')));
+  return path && path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) && (path.match(/^https?:\/\//) || fs.existsSync(path.replace('file://', '')));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId && !msgBody.path ||
@@ -206,8 +205,8 @@ export default class Messages extends PureComponent {
         onKeyDown={this.onKeyDown}
         tabIndex="0"
       >
-        {jid !== NEW_CONVERSATION && groupedMessages.map(group => (
-          <div className="messageGroup" key={uuid()}>
+        {jid !== NEW_CONVERSATION && groupedMessages.map((group, index) => (
+          <div className="messageGroup" key={index}>
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
               msgBody.path = msgBody.localFile || msgBody.path;

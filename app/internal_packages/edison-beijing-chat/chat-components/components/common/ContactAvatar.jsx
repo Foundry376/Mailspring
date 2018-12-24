@@ -54,7 +54,7 @@ class ContactAvatar extends Component {
       const { data: userProfile } = await this.getProfile();
       if (userProfile) {
         email = userProfile.email
-        this.setState({
+        this && this.setState({
           userProfile: userProfile || {}
         })
       }
@@ -81,7 +81,7 @@ class ContactAvatar extends Component {
           }
           return;
         }
-        this.setState({
+        this && this.setState({
           avatar: `url("${res.headers.location}") center center / cover`,
           isImgExist: true
         })
