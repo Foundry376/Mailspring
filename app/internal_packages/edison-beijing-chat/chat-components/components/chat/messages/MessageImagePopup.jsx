@@ -21,7 +21,7 @@ export default class MessageImagePopup extends Component {
   update() {
     this.setState(Object.assign({}, this.state, { key: key++ }));
   }
-  componentDidUpdate(){
+  componentDidUpdate() {
     this.node && this.node.focus();
   }
   getContactNameByJid(jid) {
@@ -135,12 +135,14 @@ export default class MessageImagePopup extends Component {
     }
   }
   onKeyUp = (event) => {
-    console.log('onKeyUp', event);
     let keyCode = event.keyCode;
     if (keyCode === 37 || keyCode === 38) {
       this.gotoPrevImage();
     } else if (keyCode === 39 || keyCode === 40) {
       this.gotoNextImage();
+    } else if (keyCode === 27) { // ESC
+      this.hidden = true;
+      this.update();
     }
   };
 
@@ -168,7 +170,7 @@ export default class MessageImagePopup extends Component {
             </div> : null
           }
           <div style={{ display: 'inline-block' }}>
-            <span style={{ display: 'inline-block', width: '100%' }}>{ msgBody.localFile || msgBody.mediaObjectId.replace(/\.encrypted$/, '') }</span>
+            <span style={{ display: 'inline-block', width: '100%' }}>{msgBody.localFile || msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</span>
             <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
           </div>
           <span className="download-img" style={{ float: 'right' }} onClick={this.downloadImage}></span>

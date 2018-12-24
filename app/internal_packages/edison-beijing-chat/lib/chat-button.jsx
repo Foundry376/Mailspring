@@ -16,9 +16,9 @@ export default class ChatButton extends React.Component {
     Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
   }
 
-  componentDidMount() {
-    Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
-  }
+  // componentDidMount() {
+  //   Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
+  // }
   render() {
     return (
       <div className="toolbar-chat">
