@@ -1,7 +1,7 @@
-var http = require("http");
-var https = require("https");
-var fs = require("fs");
-
+import http from 'http';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import CheckIcon from '../../common/icons/CheckIcon';
@@ -22,18 +22,11 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 
-var http = require("http");
-var https = require("https");
-var fs = require("fs");
-import CancelIcon from '../../common/icons/CancelIcon';
-import { theme } from '../../../utils/colors';
-const { primaryColor } = theme;
-
 let key = 0;
 
 const shouldInlineImg = (msgBody) => {
   let path = msgBody.path;
-  return (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF)  && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
+  return (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId && !msgBody.path ||
@@ -352,7 +345,20 @@ export default class Messages extends PureComponent {
                     </div> : null
                   }
                   <div className="messageContent">
-                    <div className="messageBody">{msgBody.content || msgBody}</div>
+                    {
+                      msgBody && msgBody.isUploading ? (
+                        <div className="messageBody loading">
+                          <RetinaImg
+                            name="inline-loading-spinner.gif"
+                            mode={RetinaImg.Mode.ContentPreserve}
+                          />
+                          <div>Uploading {msgBody.localFile && path.basename(msgBody.localFile)}</div>
+                        </div>
+                      ) : (
+                          <div className="messageBody">{msgBody.content || msgBody}</div>
+                        )
+                    }
+
                     {msgBody.mediaObjectId && <div className="messageMeta">
                       <div style={{ background: "#fff" }}>{msgFile}</div>
                     </div>
