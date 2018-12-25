@@ -185,7 +185,7 @@ export default class MessageImagePopup extends Component {
                 {!isLeftEdge && <span className='left-arrow-button' onClick={this.gotoPrevImage}></span>}
               </div>
               <div className="img-container">
-                <img src={msgBody.path} />
+                <img src={msgBody.path || msgBody.localFile} />
               </div>
               <div className="right-span">
                 {!isRightEdge && <span className='right-arrow-button' onClick={this.gotoNextImage}></span>}
