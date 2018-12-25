@@ -48,7 +48,7 @@ import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generat
 import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
-import messageModel from '../components/chat/messages/messageModel';
+import messageModel, { FILE_TYPE } from '../components/chat/messages/messageModel';
 
 const downloadAndTagImageFileInMessage = (aes, payload) => {
   let body;
@@ -61,7 +61,7 @@ const downloadAndTagImageFileInMessage = (aes, payload) => {
   if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
     // a img link
     msgBody.path = msgBody.mediaObjectId;
-  } else if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/\.(jpeg|jpg|gif|png|bmp)(\.encrypted)?$/)) {
+  } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF ) {
     // image file on aws
     let name = msgBody.mediaObjectId;
     name = name.split('/')[1]

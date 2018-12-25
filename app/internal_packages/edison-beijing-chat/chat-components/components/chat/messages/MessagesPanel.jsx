@@ -14,6 +14,7 @@ import getDb from '../../../db';
 import { uploadFile } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
+import { FILE_TYPE } from './messageModel';
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class MessagesPanel extends PureComponent {
@@ -162,11 +163,11 @@ export default class MessagesPanel extends PureComponent {
           return;
         }
         if (filename.match(/.gif$/)) {
-          body.type = 5;
+          body.type = FILE_TYPE.GIF;
         } else if (filename.match(/(\.bmp|\.png|\.jpg\.jpeg)$/)) {
-          body.type = 2;
+          body.type = FILE_TYPE.IMAGE;
         } else {
-          body.type = 9;
+          body.type = FILE_TYPE.OTHER_FILE;
         }
         body.content = " ";
         body.mediaObjectId = myKey;

@@ -19,7 +19,7 @@ import ContactAvatar from '../../common/ContactAvatar';
 import chatModel from '../../../store/model';
 import { saveGroupMessages } from '../../../utils/db-utils';
 import { NEW_CONVERSATION } from '../../../actions/chat';
-import messageModel from './messageModel';
+import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 
 var http = require("http");
@@ -33,11 +33,11 @@ let key = 0;
 
 const shouldInlineImg = (msgBody) => {
   let path = msgBody.path;
-  return path && path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/) && (path.match(/^https?:\/\//) || fs.existsSync(path.replace('file://', '')));
+  return (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF)  && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId && !msgBody.path ||
-    msgBody.path && !msgBody.path.match(/(\.bmp|\.png|\.jpg|\.jpeg|\.gif)$/)
+    msgBody.path && !(msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF)
 }
 
 // The number of pixels away from the bottom to be considered as being at the bottom
