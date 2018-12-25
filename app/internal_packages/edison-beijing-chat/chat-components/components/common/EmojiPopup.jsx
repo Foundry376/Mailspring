@@ -23,7 +23,6 @@ export default class EmojiPopup extends PureComponent {
   renderEmojis = () => {
     let ret = [];
     let values = Object.values(emojiData);
-    console.log('values: ', values);
     let i = 0;
     while (i < values.length) {
       let tmp = [];

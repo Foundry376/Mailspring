@@ -306,8 +306,7 @@ export default class MessagesSendBar extends PureComponent {
   };
   onEmojiSelected = (value) => {
     Actions.closePopover();
-    document.execCommand('insertText', false, value);
-    // let el = ReactDOM.findDOMNode(this.textarea);
+    let el = ReactDOM.findDOMNode(this.textarea);
     // let cursorPosistion = el.selectionStart;
     // this.setState({
     //   messageBody:
@@ -317,6 +316,7 @@ export default class MessagesSendBar extends PureComponent {
     //   openEmoji: false,
     // });
     el.focus();
+    document.execCommand('insertText', false, value);
   };
   onEmojiTouch = () => {
     let rectPosition = ReactDOM.findDOMNode(this.emojiRef);
