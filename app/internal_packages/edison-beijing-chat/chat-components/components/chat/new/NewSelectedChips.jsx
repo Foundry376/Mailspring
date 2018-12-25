@@ -38,7 +38,7 @@ export default class NewSelectedChips extends PureComponent {
             <div
               className="chip"
               key={contact.jid}
-              onTouchTap={() => onContactClicked(contact)}
+              onClick={() => onContactClicked(contact)}
             >
               {contact.name}
             </div>

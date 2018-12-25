@@ -159,7 +159,7 @@ export default class ConversationInfo extends Component {
           {/* {
             conversation.isGroup ? (
               <div className="row add-to-group">
-                <Button onTouchTap={this.props.toggleInvite}>
+                <Button onClick={this.props.toggleInvite}>
                   Add to Group
               </Button>
               </div>
@@ -168,7 +168,7 @@ export default class ConversationInfo extends Component {
           {
             conversation.isGroup ? (
               !this.currentUserIsOwner && <div className="row add-to-group">
-                <Button onTouchTap={this.exitGroup}>
+                <Button onClick={this.exitGroup}>
                   Exit from Group
               </Button>
               </div>
@@ -176,7 +176,7 @@ export default class ConversationInfo extends Component {
           }
         </div>
         {/* <div className="clear">
-          <Button className="clear-message" onTouchTap={this.clearMessages}>
+          <Button className="clear-message" onClick={this.clearMessages}>
             Clear Message History
           </Button>
         </div> */}

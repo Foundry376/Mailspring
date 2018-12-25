@@ -2,8 +2,8 @@ import ChatButton from './chat-button';
 import ChatView from './chat-view';
 import ChatViewLeft from './chat-view-left';
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
-import injectTapEventPlugin from 'react-tap-event-plugin';
-injectTapEventPlugin();
+// import injectTapEventPlugin from 'react-tap-event-plugin';
+// injectTapEventPlugin();
 
 module.exports = {
   activate() {

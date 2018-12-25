@@ -55,7 +55,7 @@ export default class NewContactsList extends PureComponent {
             <div
               key={contact.jid}
               className={getContactItemClasses(contact)}
-              onTouchTap={() => onContactClicked(contact)}
+              onClick={() => onContactClicked(contact)}
             >
               <ContactAvatar jid={contact.jid} name={contact.name}
                 email={contact.email} avatar={contact.avatar} size={32} />

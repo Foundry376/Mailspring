@@ -95,10 +95,10 @@ export default class InviteGroupChatList extends Component {
           onContactClicked={this.contactSelected.bind(this)}
         /> */}
         <div style={{ padding: '5px 12px', overflow: 'hidden' }}>
-          <Button style={{ float: 'left' }} className="no-border" onTouchTap={this.onCancel}>
+          <Button style={{ float: 'left' }} className="no-border" onClick={this.onCancel}>
             <CancelIcon color={primaryColor} />
           </Button>
-          <Button style={{ float: 'right' }} onTouchTap={this.onUpdateGroup} className="update-group-button no-border">
+          <Button style={{ float: 'right' }} onClick={this.onUpdateGroup} className="update-group-button no-border">
             <DoneIcon color={primaryColor} />
           </Button>
         </div>
@@ -108,7 +108,7 @@ export default class InviteGroupChatList extends Component {
               <div
                 key={contact.jid}
                 className={getContactItemClasses(contact)}
-                onTouchTap={() => this.contactSelected(contact)}
+                onClick={() => this.contactSelected(contact)}
               >
                 <ContactAvatar jid={contact.jid} name={contact.name}
                   email={contact.email} avatar={contact.avatar} size={32} />

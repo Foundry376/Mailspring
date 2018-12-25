@@ -14,7 +14,7 @@ import chatModel from '../../../store/model';
 import { FILE_TYPE } from './messageModel';
 const path = require('path');
 import emoji from 'node-emoji';
-import {Actions, ReactDOM} from 'mailspring-exports';
+import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup'
 const FAKE_SPACE = '\u00A0';
 
@@ -303,7 +303,7 @@ export default class MessagesSendBar extends PureComponent {
       suggestionStyle: filtered.length ? activeStyle : disableStyle
     });
   };
-  onEmojiSelected = (value)=>{
+  onEmojiSelected = (value) => {
     Actions.closePopover();
     let el = ReactDOM.findDOMNode(this.textarea);
     let cursorPosistion = el.selectionStart;
@@ -316,11 +316,11 @@ export default class MessagesSendBar extends PureComponent {
     });
     el.focus();
   };
-  onEmojiTouch =()=>{
-    let rectPosition= ReactDOM.findDOMNode(this.emojiRef);
+  onEmojiTouch = () => {
+    let rectPosition = ReactDOM.findDOMNode(this.emojiRef);
     console.log('current dom: ', rectPosition.getBoundingClientRect());
-    if(!this.state.openEmoji) {
-      Actions.openPopover(<EmojiPopup onEmojiSelected={this.onEmojiSelected}/>, {
+    if (!this.state.openEmoji) {
+      Actions.openPopover(<EmojiPopup onEmojiSelected={this.onEmojiSelected} />, {
         direction: 'up',
         originRect: {
           top: rectPosition.getBoundingClientRect().top,
@@ -332,10 +332,10 @@ export default class MessagesSendBar extends PureComponent {
           this.setState({ openEmoji: false });
         },
       });
-    }else{
-        Actions.closePopover();
+    } else {
+      Actions.closePopover();
     }
-    this.setState({openEmoji: !this.state.openEmoji});
+    this.setState({ openEmoji: !this.state.openEmoji });
   }
 
   render() {
@@ -400,15 +400,15 @@ export default class MessagesSendBar extends PureComponent {
             null
           }
         </div>
-        <div key='emoji' className="sendBarEmoji" ref={(emoji)=>{this.emojiRef=emoji}}>
-          <Button className='no-border' onTouchTap={this.onEmojiTouch}>
+        <div key='emoji' className="sendBarEmoji" ref={(emoji) => { this.emojiRef = emoji }}>
+          <Button className='no-border' onClick={this.onEmojiTouch}>
             <FilePlusIcon className="icon" />
           </Button>
         </div>
         <div key='attacheFile' className="sendBarActions">
           <Button
             className='no-border'
-            onTouchTap={() => {
+            onClick={() => {
               this.fileInput.click();
             }}
           >

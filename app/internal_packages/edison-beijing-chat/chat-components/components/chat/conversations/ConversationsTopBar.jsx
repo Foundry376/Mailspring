@@ -19,7 +19,7 @@ export default class ConversationsTopBar extends PureComponent {
         }
         right={
           // <Link to="/chat/new">
-          <Button className="button new-message" onTouchTap={this.newConversation}>
+          <Button className="button new-message" onClick={this.newConversation}>
             <span style={{ fontSize: '16px' }}>+</span> New
           </Button>
           // </Link>

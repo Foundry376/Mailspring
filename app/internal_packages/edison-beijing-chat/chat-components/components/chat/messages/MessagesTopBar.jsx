@@ -111,15 +111,15 @@ export default class MessagesTopBar extends Component {
           // }
           right={
             <div>
-              {/* {selectedConversation.isGroup && <div id="exit-button" onTouchTap={exitGroup}>
+              {/* {selectedConversation.isGroup && <div id="exit-button" onClick={exitGroup}>
                 exit
               </div>
               }
-              {selectedConversation.isGroup && <div id="invite-button" onTouchTap={toggleInvite}>
+              {selectedConversation.isGroup && <div id="invite-button" onClick={toggleInvite}>
                 {inviting ? "cancel" : "invite"}
               </div>
               } */}
-              <div id="open-info" onTouchTap={() => onInfoPressed()}>
+              <div id="open-info" onClick={() => onInfoPressed()}>
                 <ContactAvatar conversation={selectedConversation} jid={selectedConversation.jid} name={selectedConversation.name}
                   email={selectedConversation.email} avatar={selectedConversation.avatar} size={26} />
               </div>

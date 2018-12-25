@@ -49,11 +49,11 @@ export default class ConversationItem extends PureComponent {
   }
 
   render() {
-    const { selected, conversation, referenceTime, onTouchTap, removeConversation, ...otherProps } = this.props;
+    const { selected, conversation, referenceTime, onClick, removeConversation, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
     return (
       <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
-        <div style={{ width: '100%', display: 'flex' }} onTouchTap={onTouchTap}>
+        <div style={{ width: '100%', display: 'flex' }} onClick={onClick}>
           <div className="avatarWrapper">
             {conversation.isGroup ?
               <GroupChatAvatar conversation={conversation} size={26} /> :

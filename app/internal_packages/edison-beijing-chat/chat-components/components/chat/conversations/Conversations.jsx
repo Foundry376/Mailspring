@@ -26,14 +26,14 @@ export default class Conversations extends PureComponent {
     } = this.props;
 
     return (
-      <div onTouchTap={() => Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView)}>
+      <div onClick={() => Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView)}>
         {conversations.map((conv, index) => (
           <ConversationItem
             key={conv.jid}
             selected={selectedIndex === index}
             conversation={conv}
             referenceTime={referenceTime}
-            onTouchTap={() => selectConversation(conv.jid)}
+            onClick={() => selectConversation(conv.jid)}
             removeConversation={removeConversation}
           />
         ))}
