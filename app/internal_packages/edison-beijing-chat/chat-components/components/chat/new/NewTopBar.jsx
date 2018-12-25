@@ -62,7 +62,7 @@ export default class NewTopBar extends Component {
       <TopBar
         left={
           groupMode ?
-            <Button className="no-border" onTouchTap={() => onCancelGroupModePressed()}>
+            <Button className="no-border" onClick={() => onCancelGroupModePressed()}>
               <CancelIcon color={primaryColor} />
             </Button> :
             <Link to="/chat">
@@ -79,7 +79,7 @@ export default class NewTopBar extends Component {
                 <h6 id="input-group-name-dialog-title">Group chat name</h6>
                 <input ref={(el) => this.chatNameInput = el}></input>
                 {this.state.needName && <p style={{ color: "red" }}>please input a chat name</p>}
-                <Button onTouchTap={this.onStartGroupChat}>OK</Button>
+                <Button onClick={this.onStartGroupChat}>OK</Button>
               </div>
             )}
           </div>
@@ -89,13 +89,13 @@ export default class NewTopBar extends Component {
             <Button
               className="no-border"
               disabled={!createGroupEnabled}
-              onTouchTap={this.onCreateGroup}
+              onClick={this.onCreateGroup}
             >
               <DoneIcon color={primaryColor} />
             </Button> :
             <Button
               className="no-border"
-              onTouchTap={() => onEnterGroupModePressed()}
+              onClick={() => onEnterGroupModePressed()}
             >
               <CreateGroupIcon color={primaryColor} />
             </Button>

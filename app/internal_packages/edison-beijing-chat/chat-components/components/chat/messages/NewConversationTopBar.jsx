@@ -43,7 +43,7 @@ export default class MessagesTopBar extends Component {
         <div className="to">
           <Button
             className='no-border'
-            onTouchTap={() => {
+            onClick={() => {
               this.props.deselectConversation();
             }}
           >X</Button>

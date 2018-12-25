@@ -18,7 +18,7 @@ export default class MessageImagePopup extends Component {
     super();
     this.state = {
       imgIndex: -1,
-      hidden: false
+      hidden: true
     }
     messageModel.imagePopup = this;
   }
@@ -154,12 +154,10 @@ export default class MessageImagePopup extends Component {
     } = this.props;
 
     const timeDescriptor = buildTimeDescriptor(referenceTime);
-    if (this.state.hidden || !messageModel.msg) {
+    const { imgIndex } = this.state;
+    if (this.state.hidden || !messageModel.msg || imgIndex === -1) {
       return null;
     }
-    // let msg = messageModel.msg;
-    // let msgBody = messageModel.msgBody;
-    const { imgIndex } = this.state;
     const { msg, msgBody } = this.images[imgIndex];
     const isLeftEdge = imgIndex <= 0;
     const isRightEdge = imgIndex >= this.images.length - 1;
@@ -168,19 +166,19 @@ export default class MessageImagePopup extends Component {
         {imgIndex !== -1 && (
           <div className='message-image-popup' onKeyUp={this.onKeyUp} tabIndex='0' ref={(el) => this.node = el}>
             <div className='message-image-popup-toolbar'>
-              <Button id='close-button' className="no-border" onTouchTap={this.hide}>
+              <Button id='close-button' className="no-border" onClick={this.hide}>
                 <CancelIcon color={"#787e80"} />
               </Button>
               {true || msg.sender !== messageModel.currentUserId ?
-                <div className="messageSender image-popup-avatar" style={{ display: 'inline-block' }}>
+                <div className="messageSender image-popup-avatar" className="inline-block">
                   {messageModel.messagesReactInstance.getContactInfoByJid(msg.sender)}
                 </div> : null
               }
-              <div style={{ display: 'inline-block' }}>
-                <span style={{ display: 'inline-block', width: '100%' }}>{msgBody.localFile && path.basename(msgBody.localFile) || msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</span>
+              <div className="inline-block">
+                <div>{msgBody.localFile && path.basename(msgBody.localFile) || msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</div>
                 <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
               </div>
-              <span className="download-img" style={{ float: 'right' }} onClick={this.downloadImage}></span>
+              <span className="download-img float-right" onClick={this.downloadImage}></span>
             </div>
             <div className='message-image-popup-content'>
               <div className="left-span">

@@ -7,7 +7,7 @@ import os from 'os';
 import fs from 'fs';
 import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
-// import Mention, { toString, getMentions } from 'rc-editor-mention';
+
 import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
@@ -15,7 +15,7 @@ import chatModel from '../../../store/model';
 import { FILE_TYPE } from './messageModel';
 const path = require('path');
 import emoji from 'node-emoji';
-import {Actions, ReactDOM} from 'mailspring-exports';
+import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup'
 const FAKE_SPACE = '\u00A0';
 
@@ -304,7 +304,7 @@ export default class MessagesSendBar extends PureComponent {
       suggestionStyle: filtered.length ? activeStyle : disableStyle
     });
   };
-  onEmojiSelected = (value)=>{
+  onEmojiSelected = (value) => {
     Actions.closePopover();
     document.execCommand('insertText', false, value);
     // let el = ReactDOM.findDOMNode(this.textarea);
@@ -318,25 +318,25 @@ export default class MessagesSendBar extends PureComponent {
     // });
     el.focus();
   };
-  onEmojiTouch =()=>{
-    let rectPosition= ReactDOM.findDOMNode(this.emojiRef);
-    if(!this.state.openEmoji) {
-      Actions.openPopover(<EmojiPopup onEmojiSelected={this.onEmojiSelected}/>, {
+  onEmojiTouch = () => {
+    let rectPosition = ReactDOM.findDOMNode(this.emojiRef);
+    if (!this.state.openEmoji) {
+      Actions.openPopover(<EmojiPopup onEmojiSelected={this.onEmojiSelected} />, {
         direction: 'up',
         originRect: {
           top: rectPosition.getBoundingClientRect().top,
           left: rectPosition.getBoundingClientRect().left,
           width: 250,
         },
-        closeOnAppBlur: false,
+        closeOnAppBlur: true,
         onClose: () => {
           this.setState({ openEmoji: false });
         },
       });
-    }else{
-        Actions.closePopover();
+    } else {
+      Actions.closePopover();
     }
-    this.setState({openEmoji: !this.state.openEmoji});
+    this.setState({ openEmoji: !this.state.openEmoji });
   }
 
   render() {
@@ -401,15 +401,15 @@ export default class MessagesSendBar extends PureComponent {
             null
           }
         </div>
-        <div key='emoji' className="sendBarEmoji" ref={(emoji)=>{this.emojiRef=emoji}}>
-          <Button className='no-border' onTouchTap={this.onEmojiTouch}>
+        <div key='emoji' className="sendBarEmoji" ref={(emoji) => { this.emojiRef = emoji }}>
+          <Button className='no-border' onClick={this.onEmojiTouch}>
             <EmojiIcon className="icon" />
           </Button>
         </div>
         <div key='attacheFile' className="sendBarActions">
           <Button
             className='no-border'
-            onTouchTap={() => {
+            onClick={() => {
               this.fileInput.click();
             }}
           >
