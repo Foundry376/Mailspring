@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Actions } from 'mailspring-exports';
-import {Flexbox } from 'mailspring-component-kit';
+import {Flexbox, ScrollRegion } from 'mailspring-component-kit';
 import PropTypes from 'prop-types';
 
 const emojiData = require('node-emoji/lib/emoji.json');
@@ -38,8 +38,8 @@ export default class EmojiPopup extends PureComponent {
 
 
   render() {
-    return <div className='emoji-popup-container' ref={(_ref)=>{this.currentRef= _ref}}>
+    return <ScrollRegion className='emoji-popup-container' ref={(_ref)=>{this.currentRef= _ref}}>
       {this.renderEmojis()}
-    </div>;
+    </ScrollRegion>;
   }
 }

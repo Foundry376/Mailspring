@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import FilePlusIcon from '../../common/icons/FilePlusIcon';
+import EmojiIcon from '../../common/icons/EmojiIcon';
 import os from 'os';
 import fs from 'fs';
 import { uploadFile } from '../../../utils/awss3';
@@ -305,29 +306,29 @@ export default class MessagesSendBar extends PureComponent {
   };
   onEmojiSelected = (value)=>{
     Actions.closePopover();
-    let el = ReactDOM.findDOMNode(this.textarea);
-    let cursorPosistion = el.selectionStart;
-    this.setState({
-      messageBody:
-        this.state.messageBody.slice(0, cursorPosistion) +
-        value +
-        this.state.messageBody.slice(cursorPosistion),
-      openEmoji: false,
-    });
+    document.execCommand('insertText', false, value);
+    // let el = ReactDOM.findDOMNode(this.textarea);
+    // let cursorPosistion = el.selectionStart;
+    // this.setState({
+    //   messageBody:
+    //     this.state.messageBody.slice(0, cursorPosistion) +
+    //     value +
+    //     this.state.messageBody.slice(cursorPosistion),
+    //   openEmoji: false,
+    // });
     el.focus();
   };
   onEmojiTouch =()=>{
     let rectPosition= ReactDOM.findDOMNode(this.emojiRef);
-    console.log('current dom: ', rectPosition.getBoundingClientRect());
     if(!this.state.openEmoji) {
       Actions.openPopover(<EmojiPopup onEmojiSelected={this.onEmojiSelected}/>, {
         direction: 'up',
         originRect: {
           top: rectPosition.getBoundingClientRect().top,
           left: rectPosition.getBoundingClientRect().left,
-          width: 190
+          width: 250,
         },
-        closeOnAppBlur: true,
+        closeOnAppBlur: false,
         onClose: () => {
           this.setState({ openEmoji: false });
         },
@@ -402,7 +403,7 @@ export default class MessagesSendBar extends PureComponent {
         </div>
         <div key='emoji' className="sendBarEmoji" ref={(emoji)=>{this.emojiRef=emoji}}>
           <Button className='no-border' onTouchTap={this.onEmojiTouch}>
-            <FilePlusIcon className="icon" />
+            <EmojiIcon className="icon" />
           </Button>
         </div>
         <div key='attacheFile' className="sendBarActions">
