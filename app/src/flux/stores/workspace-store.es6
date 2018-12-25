@@ -53,7 +53,14 @@ class WorkspaceStore extends MailspringStore {
     this.Location = Location = {};
     this.Sheet = Sheet = {};
 
-    this._hiddenLocations = AppEnv.config.get('core.workspace.hiddenLocations') || {};
+    this._hiddenLocations = AppEnv.config.get('core.workspace.hiddenLocations') || {
+      "MessageListSidebar": {
+        "id": "MessageListSidebar",
+        "Toolbar": {
+          "id": "MessageListSidebar:Toolbar"
+        }
+      }
+    };
     this._sheetStack = [];
 
     if (AppEnv.isMainWindow()) {
