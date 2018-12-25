@@ -57,8 +57,8 @@ function handleMetadataExpiration(change) {
 }
 
 export function activate() {
-  ComponentRegistry.register(SendLaterButtonWithTip, { role: 'Composer:ActionButton' });
-  ComponentRegistry.register(SendLaterStatus, { role: 'DraftList:DraftStatus' });
+  // ComponentRegistry.register(SendLaterButtonWithTip, { role: 'Composer:ActionButton' });
+  // ComponentRegistry.register(SendLaterStatus, { role: 'DraftList:DraftStatus' });
 
   if (AppEnv.isMainWindow()) {
     unlisten = DatabaseStore.listen(handleMetadataExpiration);
@@ -66,8 +66,8 @@ export function activate() {
 }
 
 export function deactivate() {
-  ComponentRegistry.unregister(SendLaterButtonWithTip);
-  ComponentRegistry.unregister(SendLaterStatus);
+  // ComponentRegistry.unregister(SendLaterButtonWithTip);
+  // ComponentRegistry.unregister(SendLaterStatus);
   if (unlisten) {
     unlisten();
   }

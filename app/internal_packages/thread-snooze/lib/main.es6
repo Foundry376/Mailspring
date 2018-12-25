@@ -13,15 +13,15 @@ export function activate() {
   });
 
   SnoozeStore.activate();
-  ComponentRegistry.register(ToolbarSnoozeWithTutorialTip, { role: 'ThreadActionsToolbarButton' });
-  ComponentRegistry.register(QuickActionSnooze, { role: 'ThreadListQuickAction' });
-  ComponentRegistry.register(SnoozeMailLabel, { role: 'Thread:MailLabel' });
+  // ComponentRegistry.register(ToolbarSnoozeWithTutorialTip, { role: 'ThreadActionsToolbarButton' });
+  // ComponentRegistry.register(QuickActionSnooze, { role: 'ThreadListQuickAction' });
+  // ComponentRegistry.register(SnoozeMailLabel, { role: 'Thread:MailLabel' });
 }
 
 export function deactivate() {
-  ComponentRegistry.unregister(ToolbarSnooze);
-  ComponentRegistry.unregister(QuickActionSnooze);
-  ComponentRegistry.unregister(SnoozeMailLabel);
+  // ComponentRegistry.unregister(ToolbarSnooze);
+  // ComponentRegistry.unregister(QuickActionSnooze);
+  // ComponentRegistry.unregister(SnoozeMailLabel);
   SnoozeStore.deactivate();
 }
 
