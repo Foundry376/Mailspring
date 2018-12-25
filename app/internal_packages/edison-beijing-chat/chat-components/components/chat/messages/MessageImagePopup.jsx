@@ -18,7 +18,7 @@ export default class MessageImagePopup extends Component {
     super();
     this.state = {
       imgIndex: -1,
-      hidden: false
+      hidden: true
     }
     messageModel.imagePopup = this;
   }
