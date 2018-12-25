@@ -6,40 +6,55 @@ let deathTimer = setTimeout(() => process.exit(0), deathDelay);
 
 const getDatabase = (dbpath) => {
   if (dbs[dbpath]) {
-    return dbs[dbpath].openPromise;
+    return dbs[dbpath];
   }
 
-  let openResolve = null;
+  // let openResolve = null;
 
-  dbs[dbpath] = new Sqlite3(dbpath, {readonly: true});
-  dbs[dbpath].on('close', (err) => {
+  try {
+    dbs[dbpath] = new Sqlite3(dbpath, { readonly: true });
+  } catch (err) {
     console.error(err);
     process.exit(1);
-  });
-  dbs[dbpath].on('open', () => {
-    openResolve(dbs[dbpath]);
-  });
+  }
+  // dbs[dbpath].on('close', (err) => {
+  //   console.error(err);
+  //   process.exit(1);
+  // });
+  // dbs[dbpath].on('open', () => {
+  //   openResolve(dbs[dbpath]);
+  // });
 
-  dbs[dbpath].openPromise = new Promise((resolve) => {
-    openResolve = resolve;
-  });
+  // dbs[dbpath].openPromise = new Promise((resolve) => {
+  //   openResolve = resolve;
+  // });
 
-  return dbs[dbpath].openPromise;
+  return dbs[dbpath];
 }
 
 process.on('message', (m) => {
   clearTimeout(deathTimer);
-  const {query, values, id, dbpath} = m;
+  const { query, values, id, dbpath } = m;
   const start = Date.now();
 
-  getDatabase(dbpath).then((db) => {
-    clearTimeout(deathTimer);
-    const fn = query.startsWith('SELECT') ? 'all' : 'run';
-    const stmt = db.prepare(query);
-    const results = stmt[fn](values);
-    process.send({type: 'results', results, id, agentTime: Date.now() - start});
+  const db = getDatabase(dbpath);
+  clearTimeout(deathTimer);
+  const fn = query.startsWith('SELECT') ? 'all' : 'run';
+  const stmt = db.prepare(query);
+  const results = stmt[fn](values);
+  process.send({ type: 'results', results, id, agentTime: Date.now() - start });
 
-    clearTimeout(deathTimer);
-    deathTimer = setTimeout(() => process.exit(0), deathDelay);
-  });
+  clearTimeout(deathTimer);
+  deathTimer = setTimeout(() => process.exit(0), deathDelay);
+
+  // getDatabase(dbpath).then((db) => {
+  //   clearTimeout(deathTimer);
+  //   const fn = query.startsWith('SELECT') ? 'all' : 'run';
+  //   const stmt = db.prepare(query);
+  //   const results = stmt[fn](values);
+  //   process.send({ type: 'results', results, id, agentTime: Date.now() - start });
+
+  //   clearTimeout(deathTimer);
+  //   deathTimer = setTimeout(() => process.exit(0), deathDelay);
+  // });
 });
