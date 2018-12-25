@@ -14,16 +14,16 @@ import {
   storeRooms
 } from '../actions/db/room';
 
-export const triggerFetchRoomrEpic = action$ =>
+export const triggerFetchRoomEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
     .map(({ payload }) => {
       return fetchRoom(payload);
     })
 
-export const fetchRosterEpic = action$ =>
+export const fetchRoomEpic = action$ =>
   action$.ofType(BEGIN_FETCH_ROOM)//yazzxx2
     .mergeMap(({ payload }) =>
-      Observable.fromPromise(xmpp.getRoomList(null, payload.bare)) // TODO quanzs pass the version to here
+      Observable.fromPromise(xmpp.getRoomList(null, payload.bare))
         .map(rooms => succesfullyFetchedRoom(rooms))//yazzxx3
         .catch(err => Observable.of(failedFetchingRoom(err)))
     );

@@ -505,7 +505,7 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
       if (rooms[payload.from.bare]) {
         name = rooms[payload.from.bare];
       } else {
-        return Observable.fromPromise(xmpp.getRoomList())
+        return Observable.fromPromise(xmpp.getRoomList(null, payload.curJid))
           .map(({ discoItems: { items } }) => {
             if (items) {
               for (const item of items) {
