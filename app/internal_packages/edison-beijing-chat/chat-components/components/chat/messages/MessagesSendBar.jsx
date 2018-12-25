@@ -186,10 +186,12 @@ export default class MessagesSendBar extends PureComponent {
         let body = {
           type: FILE_TYPE.TEXT,
           timeSend: new Date().getTime(),
+          isUploading: true,
           content: 'sending...',
           email: selectedConversation.email,
           name: selectedConversation.name,
           mediaObjectId: '',
+          localFile: file
         };
 
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true, updating);
@@ -206,6 +208,7 @@ export default class MessagesSendBar extends PureComponent {
             body.type = FILE_TYPE.OTHER_FILE;
           }
           body.localFile = file;
+          body.isUploading = false;
           body.content = message || " ";
           body.mediaObjectId = myKey;
           body.occupants = occupants;
