@@ -37,6 +37,12 @@ export default {
         type: 'string'
       }
     },
+    avatarMembers: {
+      type: 'array',
+      item: {
+        type: 'object'
+      }
+    },
     lastMessageTime: {
       type: 'number',
       min: 0

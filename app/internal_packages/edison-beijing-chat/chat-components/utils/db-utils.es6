@@ -1,5 +1,15 @@
 import getDb from '../db/index';
 
+export function copyRxdbContact(contact) {
+  const result = {};
+  result.jid = contact.jid;
+  result.curJid = contact.curJid;
+  result.name = contact.name;
+  result.email = contact.email;
+  result.avatar = contact.avatar;
+  return result;
+}
+
 export function copyRxdbMessage(msg) {
   const result = {};
   result.id = msg.id;

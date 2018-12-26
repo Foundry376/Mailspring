@@ -35,6 +35,7 @@ import { ipcRenderer } from 'electron';
 import chatModel from '../../store/model';
 import keyMannager from '../../../../../src/key-manager';
 import { queryProfile } from '../../utils/restjs';
+import { copyRxdbContact } from '../../utils/db-utils';
 
 const saveOccupants = async payload => {
   if (!payload.mucAdmin) {
@@ -369,7 +370,23 @@ export const createGroupMessageConversationEpic = (action$) =>
       };
       return conversation;
     })
-    .map(conversation => beginStoringConversations([conversation]));
+    .mergeMap(conv => {
+      return Observable.fromPromise(getDb())
+        .mergeMap(db => {
+          return Observable.fromPromise(Promise.all(conv.occupants.map(occupant => db.contacts.findOne().where('jid').eq(occupant).exec())
+            )).map(contacts => {
+              debugger;
+            contacts = contacts.filter(contact => contact);
+            contacts = [contacts.find(contact => contact.jid===conv.curJid), contacts.find(contact => contact.jid!==conv.curJid)];
+            contacts = [copyRxdbContact(contacts[0]), copyRxdbContact(contacts[1])];
+            conv.avatarMembers = contacts;
+            return conv;
+          });
+      })
+    })
+    .map(conversation => {
+      return beginStoringConversations([conversation]);
+    });
 
 export const removeConversationEpic = (action$) =>
   action$.ofType(REMOVE_CONVERSATION)
