@@ -73,7 +73,7 @@ class WorkspaceStore extends MailspringStore {
           split: ['RootSidebar', 'ThreadList', 'MessageList', 'MessageListSidebar'],
         }
       );
-      this.defineSheet('Thread', {leftToolBarMode: 'thread'}, { list: ['RootSidebar', 'MessageList', 'MessageListSidebar'] });
+      this.defineSheet('Thread', {}, { list: ['RootSidebar', 'MessageList', 'MessageListSidebar'] });
     } else {
       this.defineSheet('Global');
     }

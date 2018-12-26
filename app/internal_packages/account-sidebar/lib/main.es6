@@ -8,7 +8,7 @@ module.exports = {
   activate(state) {
     this.state = state;
     ComponentRegistry.register(AccountSidebar, { location: WorkspaceStore.Location.RootSidebar });
-    ComponentRegistry.register(ToolbarBack, { location: WorkspaceStore.Sheet.Thread.Toolbar.Right, mode: 'list'});
+    ComponentRegistry.register(ToolbarBack, { location: WorkspaceStore.Location.MessageList.Toolbar, mode: 'list'});
   },
 
   deactivate(state) {
