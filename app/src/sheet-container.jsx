@@ -87,7 +87,7 @@ export default class SheetContainer extends React.Component {
     const topSheet = this.state.stack[totalSheets - 1];
 
     if (!topSheet) {
-      return <div />;
+      return <div/>;
     }
 
     const sheetComponents = this.state.stack.map((sheet, index) => (
@@ -117,13 +117,17 @@ export default class SheetContainer extends React.Component {
 
         <div name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
           {sheetComponents[0]}
-          <CSSTransitionGroup
-            transitionLeaveTimeout={125}
-            transitionEnterTimeout={125}
-            transitionName="sheet-stack"
-          >
-            {sheetComponents.slice(1)}
-          </CSSTransitionGroup>
+          {this.state.mode === 'list' ? (
+            sheetComponents.slice(1)
+          ) : (
+            <CSSTransitionGroup
+              transitionLeaveTimeout={125}
+              transitionEnterTimeout={125}
+              transitionName="sheet-stack"
+            >
+              {sheetComponents.slice(1)}
+            </CSSTransitionGroup>
+          )}
         </div>
 
         <div name="Footer" style={{ order: 3, zIndex: 4 }}>

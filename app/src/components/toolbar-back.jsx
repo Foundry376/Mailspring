@@ -1,7 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ReactDOM from 'react-dom';
-import { remote } from 'electron';
 import { Actions, } from 'mailspring-exports';
 
 import RetinaImg from './retina-img';
