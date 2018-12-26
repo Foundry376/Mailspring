@@ -46,55 +46,55 @@ class WindowTitle extends React.Component {
     return <div className="window-title">{this.state.title}</div>;
   }
 }
-
-class ToolbarBack extends React.Component {
-  static displayName = 'ToolbarBack';
-
-  // These stores are only required when this Toolbar is actually needed.
-  // This is because loading these stores has database side effects.
-  constructor(props) {
-    super(props);
-    Category = Category || require('./flux/models/category').default;
-    FocusedPerspectiveStore =
-      FocusedPerspectiveStore || require('./flux/stores/focused-perspective-store').default;
-    this.state = {
-      categoryName: FocusedPerspectiveStore.current().name,
-    };
-  }
-
-  componentDidMount() {
-    this._unsubscriber = FocusedPerspectiveStore.listen(() =>
-      this.setState({ categoryName: FocusedPerspectiveStore.current().name })
-    );
-  }
-
-  componentWillUnmount() {
-    if (this._unsubscriber) {
-      this._unsubscriber();
-    }
-  }
-
-  _onClick = () => {
-    Actions.popSheet();
-  };
-
-  render() {
-    let title = 'Back';
-    if (this.state.categoryName === Category.AllMailName) {
-      title = 'All Mail';
-    } else if (this.state.categoryName === 'INBOX') {
-      title = 'Inbox';
-    } else {
-      title = this.state.categoryName;
-    }
-    return (
-      <div className="item-back" onClick={this._onClick} title={`Return to ${title}`}>
-        <RetinaImg name="sheet-back.png" mode={RetinaImg.Mode.ContentIsMask} />
-        <div className="item-back-title">{title}</div>
-      </div>
-    );
-  }
-}
+//Moved ToolbarBack to separate component, and exported to component-kit
+// class ToolbarBack extends React.Component {
+//   static displayName = 'ToolbarBack';
+//
+//   // These stores are only required when this Toolbar is actually needed.
+//   // This is because loading these stores has database side effects.
+//   constructor(props) {
+//     super(props);
+//     Category = Category || require('./flux/models/category').default;
+//     FocusedPerspectiveStore =
+//       FocusedPerspectiveStore || require('./flux/stores/focused-perspective-store').default;
+//     this.state = {
+//       categoryName: FocusedPerspectiveStore.current().name,
+//     };
+//   }
+//
+//   componentDidMount() {
+//     this._unsubscriber = FocusedPerspectiveStore.listen(() =>
+//       this.setState({ categoryName: FocusedPerspectiveStore.current().name })
+//     );
+//   }
+//
+//   componentWillUnmount() {
+//     if (this._unsubscriber) {
+//       this._unsubscriber();
+//     }
+//   }
+//
+//   _onClick = () => {
+//     Actions.popSheet();
+//   };
+//
+//   render() {
+//     let title = 'Back';
+//     if (this.state.categoryName === Category.AllMailName) {
+//       title = 'All Mail';
+//     } else if (this.state.categoryName === 'INBOX') {
+//       title = 'Inbox';
+//     } else {
+//       title = this.state.categoryName;
+//     }
+//     return (
+//       <div className="item-back" onClick={this._onClick} title={`Return to ${title}`}>
+//         <RetinaImg name="sheet-back.png" mode={RetinaImg.Mode.ContentIsMask} />
+//         <div className="item-back-title">{title}</div>
+//       </div>
+//     );
+//   }
+// }
 
 class ToolbarWindowControls extends React.Component {
   static displayName = 'ToolbarWindowControls';
@@ -316,9 +316,10 @@ export default class Toolbar extends React.Component {
         });
         state.columns[0].push(...entries);
       }
-      if (props.depth > 0) {
-        state.columns[0].push(ToolbarBack);
-      }
+      //Removed because we moved back button to messageList
+      // if (props.depth > 0) {
+      //   state.columns[0].push(ToolbarBack);
+      // }
 
       // Add right items registered to the Sheet instead of to a Region
       for (const loc of [WorkspaceStore.Sheet.Global, props.data]) {
