@@ -4,7 +4,7 @@ import { replace } from 'react-router-redux';
 import xmpp from '../xmpp';
 import getDb from '../db';
 import chatModel from '../store/model';
-import { saveGroupMessages } from '../utils/db-utils';
+import { copyRxdbContact, saveGroupMessages } from '../utils/db-utils';
 
 import {
   MESSAGE_STATUS_FILE_UPLOADING,
@@ -294,6 +294,33 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
           });
         }),
     )
+    .mergeMap(conv => {
+      return Observable.fromPromise(getDb())
+        .mergeMap(db => {
+          return Observable.fromPromise(db.conversations.findOne().where('jid').eq(conv.jid).exec())
+            .map(convInDb => {
+              if (conv.isGroup) {
+                conv.occupants = convInDb.occupants;
+                conv.avatarMembers[1] = convInDb.avatarMembers[0];
+                return conv;
+              } else {
+                return conv;
+              }
+            })
+            .mergeMap(conv => {
+              return Observable.fromPromise(db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec())
+                .map(contact => {
+                  if (conv.isGroup) {
+                    contact = copyRxdbContact(contact);
+                    conv.avatarMembers[0] = contact;
+                    return conv;
+                  } else {
+                    return conv;
+                  }
+                })
+            })
+        })
+    })
     .map(conversation => beginStoringConversations([conversation]));
 
 export const receivePrivateMessageEpic = action$ =>
@@ -360,7 +387,9 @@ export const receiveGroupMessageEpic = action$ =>
       }
       return payload.body;
     })
-    .map(({ payload }) => receiveGroupMessage(payload));
+    .map(({ payload }) => {
+      return receiveGroupMessage(payload)
+    });
 
 export const convertReceivedMessageEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
@@ -432,17 +461,47 @@ export const updateMessageConversationEpic = (action$, { getState }) =>
         name: name,
         isGroup: type === RECEIVE_GROUP_MESSAGE ? true : false,
         unreadMessages: unreadMessages,
-        occupants: [
-          payload.from.bare,
-          payload.to.bare,
-        ],
         lastMessageTime: (new Date(timeSend)).getTime(),
         lastMessageText: content,
-        lastMessageSender: type === RECEIVE_GROUP_MESSAGE ? payload.from.resource : payload.from.bare,
+        lastMessageSender: type === RECEIVE_GROUP_MESSAGE ? payload.from.resource+'@im.edison.tech': payload.from.bare,
         at
       };
     })
-    .map(conversation => beginStoringConversations([conversation]));
+    .mergeMap(conv => {
+      return Observable.fromPromise(getDb())
+        .mergeMap(db => {
+          return Observable.fromPromise(db.conversations.findOne().where('jid').eq(conv.jid).exec())
+            .map(convInDb => {
+              if (conv.isGroup) {``
+                conv.avatarMembers = [];
+                if(convInDb) {
+                  conv.occupants = convInDb.occupants;
+                  conv.avatarMembers[1] = convInDb.avatarMembers[0];
+                } else {
+                  conv.occupants = [];
+                }
+                return conv;
+              } else {
+                return conv;
+              }
+            })
+            .mergeMap(conv => {
+              return Observable.fromPromise(db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec())
+                .map(contact => {
+                  console.log('cxm*** contact: 4 contact', contact);
+                  if (conv.isGroup) {
+                    contact = copyRxdbContact(contact);
+                    conv.avatarMembers[0] = contact;
+                    return conv;
+                  } else {
+                    return conv;
+                  }
+                })
+            })
+        })
+  }).map(conversation => {
+    return beginStoringConversations([conversation])
+  });
 
 export const beginRetrievingMessagesEpic = action$ =>
   action$.ofType(UPDATE_SELECTED_CONVERSATION)
