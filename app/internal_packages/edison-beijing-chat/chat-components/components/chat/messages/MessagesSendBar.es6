@@ -161,14 +161,7 @@ export default class MessagesSendBar extends PureComponent {
     if (!selectedConversation) {
       return;
     }
-    let messageId, updating = false;
-    if (chatModel.editingMessageId) {
-      messageId = chatModel.editingMessageId;
-      updating = true;
-      chatModel.editingMessageId = null;
-    } else {
-      messageId = uuid();
-    }
+
 
     if (this.state.files.length) {
       this.state.files.map((file, index) => {
@@ -183,6 +176,14 @@ export default class MessagesSendBar extends PureComponent {
           }
         } else {
           filepath = file;
+        }
+        let messageId, updating = false;
+        if (chatModel.editingMessageId) {
+          messageId = chatModel.editingMessageId;
+          updating = true;
+          chatModel.editingMessageId = null;
+        } else {
+          messageId = uuid();
         }
         let message;
         if (index === 0) {
@@ -204,11 +205,12 @@ export default class MessagesSendBar extends PureComponent {
           body.emailSubject = file.subject;
           body.emailMessageId = file.messageId;
         }
-
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true, updating);
+        console.log('before uploadFile: ', filepath);
+        debugger;
         uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
           if (err) {
-            alert(`upload files failed because error: ${err}, filename: ${filename}`);
+            alert(`upload files failed because error: ${err}, filepath: ${filepath}`);
             return;
           }
           if (filename.match(/.gif$/)) {
@@ -239,6 +241,14 @@ export default class MessagesSendBar extends PureComponent {
           occupants,
           atJids: this.getAtTargetPersons()
         };
+        let messageId, updating = false;
+        if (chatModel.editingMessageId) {
+          messageId = chatModel.editingMessageId;
+          updating = true;
+          chatModel.editingMessageId = null;
+        } else {
+          messageId = uuid();
+        }
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false, updating);
       }
 
@@ -320,10 +330,8 @@ export default class MessagesSendBar extends PureComponent {
   };
   sendEmailAttachment = (files) => {
     Actions.closePopover();
-    files = files.filter(file => file.checked);
     let state = Object.assign({}, this.state, { files });
     this.setState(state, () => {
-      console.log('sendEmailAttachment sendMessage: ', files, state, this.state);
       this.sendMessage();
     });
     event.target.value = '';
