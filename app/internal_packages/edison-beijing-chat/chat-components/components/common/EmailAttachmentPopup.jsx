@@ -48,10 +48,9 @@ export default class EmailAttachmentPopup extends Component {
     return files.map((file, index) => {
       const onClick = (event) => {
         file.checked = !file.checked;
-        this.setState({ files:this.state.files, key:key++});
+        this.setState({ files:this.state.files.slice()});
       }
-      const rowClassName = file.checked ? 'attachment-row checked' : 'attachment-row';
-      return (<div className={rowClassName} onClick={onClick} key={index}>
+      return (<div className={`attachment-row ${file.checked ?  'checked' : ``}`} onClick={onClick} key={index}>
         <input type="checkbox"  className="email-check" checked={!!file.checked}/>
         <div className="email-subject">{file.subject &&file.subject.subject}</div>
         <div className="email-attachment">{file.filename}</div>
@@ -61,7 +60,7 @@ export default class EmailAttachmentPopup extends Component {
 
   onConfirmSend = (event) => {
     if (this.props.sendEmailAttachment) {
-      this.props.sendEmailAttachment(this.state.files);
+      this.props.sendEmailAttachment(this.state.files.filter(file => file.checked));
     }
   };
 
