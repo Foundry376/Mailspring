@@ -65,7 +65,7 @@ async function openDatabase(dbPath) {
       db.pragma(`main.synchronous = NORMAL`);
       
       db.pragma(`busy_timeout = 30000`);
-      db.pragma(`locking_mode=NORMAL`);
+      db.pragma(`locking_mode = NORMAL`);
       
       resolve(db);
       // });
