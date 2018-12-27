@@ -5,7 +5,7 @@ import { BrowserWindow, Menu, app, ipcMain, dialog } from 'electron';
 import fs from 'fs-plus';
 import url from 'url';
 import path from 'path';
-import proc from 'child_process';
+import proc, { execSync } from 'child_process';
 import { EventEmitter } from 'events';
 
 import WindowManager from './window-manager';
@@ -228,6 +228,30 @@ export default class Application extends EventEmitter {
     }
   }
 
+  renameFileWithRetry(filePath, newPath, callback = () => { }, retries = 5) {
+    const callbackWithRetry = err => {
+      if (err && err.message.indexOf('no such file') === -1) {
+        console.log(`File Error: ${err.message} - retrying in 150msec`);
+        setTimeout(() => {
+          this.renameFileWithRetry(filePath, newPath, callback, retries - 1);
+        }, 150);
+      } else {
+        callback(null);
+      }
+    };
+
+    if (!fs.existsSync(filePath)) {
+      callback(null);
+      return;
+    }
+
+    if (retries > 0) {
+      fs.rename(filePath, newPath, callbackWithRetry);
+    } else {
+      fs.rename(filePath, newPath, callback);
+    }
+  }
+
   // Configures required javascript environment flags.
   setupJavaScriptArguments() {
     app.commandLine.appendSwitch('js-flags', '--harmony');
@@ -272,8 +296,45 @@ export default class Application extends EventEmitter {
     this._deleteDatabase(done);
   };
 
+  _relaunch = () => {
+    if (this.isShown) {
+      return;
+    }
+    this.isShown = true;
+    dialog.showMessageBox({
+      type: 'warning',
+      buttons: ['Okay'],
+      message: `We encountered a problem with your local email database. The app will relaunch.`,
+      detail: '',
+    });
+    app.relaunch();
+    app.quit();
+  }
+
   _deleteDatabase = callback => {
-    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db'), callback);
+    const dbPath = path.join(this.configDirPath, 'edisonmail.db');
+    const newDbName = `edisonmail_backup_${new Date().getTime()}.db`;
+    const newDbPath = path.join(this.configDirPath, newDbName);
+    this.renameFileWithRetry(dbPath, newDbPath, () => {
+      // repair the database
+      if (process.platform === 'darwin') {
+        const sqlPath = 'data.sql';
+        execSync(`sqlite3 ${newDbName} .dump > ${sqlPath}`, {
+          cwd: this.configDirPath,
+        });
+        execSync(`sed -i '' 's/ROLLBACK/COMMIT/g' ${sqlPath}`, {
+          cwd: this.configDirPath,
+        });
+        execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
+          cwd: this.configDirPath,
+        });
+        fs.unlink(path.join(this.configDirPath, sqlPath));
+      } else {
+        // TODO in windows
+        console.warn('in this system does not implement yet');
+      }
+      callback();
+    });
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-wal'));
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'));
   };
@@ -316,6 +377,8 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:reset-database', this._resetDatabaseAndRelaunch);
+
+    this.on('application:window-relaunch', this._relaunch);
 
     this.on('application:quit', () => {
       app.quit();
