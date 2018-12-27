@@ -44,7 +44,7 @@ function handleUnrecoverableDatabaseError(
   });
 }
 
-async function openDatabase(dbPath) {
+async function openDatabase(dbPath, retryCnt = 0) {
   try {
     const database = await new Promise((resolve, reject) => {
       const db = new Sqlite3(dbPath, { readonly: true });
@@ -63,17 +63,30 @@ async function openDatabase(dbPath) {
       db.pragma(`main.page_size = 8192`);
       db.pragma(`main.cache_size = 20000`);
       db.pragma(`main.synchronous = NORMAL`);
-      
+
       db.pragma(`busy_timeout = 30000`);
       db.pragma(`locking_mode = NORMAL`);
-      
+
       resolve(db);
       // });
     });
     return database;
   } catch (err) {
-    handleUnrecoverableDatabaseError(err);
-    return null;
+    const errString = err.toString();
+    if (/database disk image is malformed/gi.test(errString)) {
+      handleUnrecoverableDatabaseError(err);
+      return null;
+    }
+    if (retryCnt > 10) {
+      const ipc = require('electron').ipcRenderer;
+      ipc.send('command', 'application:window-relaunch');
+      return null;
+    }
+    return await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        openDatabase(dbPath, retryCnt + 1).then(db => resolve(db));
+      }, 1000);
+    })
   }
 }
 
