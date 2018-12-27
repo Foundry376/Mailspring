@@ -3,8 +3,10 @@ import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import FilePlusIcon from '../../common/icons/FilePlusIcon';
 import EmojiIcon from '../../common/icons/EmojiIcon';
+import InfoIcon from '../../common/icons/InfoIcon';
 import os from 'os';
 import fs from 'fs';
+const path = require('path');
 import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
 
@@ -13,10 +15,10 @@ import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
 import chatModel from '../../../store/model';
 import { FILE_TYPE } from './messageModel';
-const path = require('path');
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup'
+import EmailAttachmentPopup from '../../common/EmailAttachmentPopup'
 const FAKE_SPACE = '\u00A0';
 
 const activeStyle = {
@@ -117,13 +119,6 @@ export default class MessagesSendBar extends PureComponent {
     return true;
   }
 
-  // onMessageBodyChanged = (editorState) => {
-  //   const messageBody = toString(editorState, { encode: true });
-  //   this.setState({
-  //     messageBody
-  //   });
-  // }
-
   onMessageBodyChanged = (e) => {
     const messageBody = emoji.emojify(e.target.value);
     this.setState({
@@ -177,11 +172,23 @@ export default class MessagesSendBar extends PureComponent {
 
     if (this.state.files.length) {
       this.state.files.map((file, index) => {
+        let filepath;
+        if (typeof file === 'object') {
+          let id = file.id;
+          let configDirPath = AppEnv.getConfigDirPath();
+          filepath = path.join(configDirPath, 'files', id.slice(0, 2), id.slice(2, 4), id, file.filename);
+          if (!fs.existsSync(filepath)) {
+            alert(`the selected file to be sent is not downloaded  to this computer: ${filepath}, ${file.id}, ${file.filename}`);
+            return;
+          }
+        } else {
+          filepath = file;
+        }
         let message;
         if (index === 0) {
           message = messageBody.trim();
         } else {
-          message = 'file received';
+          message = 'file: ';
         }
         let body = {
           type: FILE_TYPE.TEXT,
@@ -191,11 +198,15 @@ export default class MessagesSendBar extends PureComponent {
           email: selectedConversation.email,
           name: selectedConversation.name,
           mediaObjectId: '',
-          localFile: file
+          localFile: filepath
         };
+        if (file !== filepath) {
+          body.emailSubject = file.subject;
+          body.emailMessageId = file.messageId;
+        }
 
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true, updating);
-        uploadFile(jidLocal, null, file, (err, filename, myKey, size) => {
+        uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
           if (err) {
             alert(`upload files failed because error: ${err}, filename: ${filename}`);
             return;
@@ -207,7 +218,7 @@ export default class MessagesSendBar extends PureComponent {
           } else {
             body.type = FILE_TYPE.OTHER_FILE;
           }
-          body.localFile = file;
+          body.localFile = filepath;
           body.isUploading = false;
           body.content = message || " ";
           body.mediaObjectId = myKey;
@@ -307,20 +318,44 @@ export default class MessagesSendBar extends PureComponent {
       suggestionStyle: filtered.length ? activeStyle : disableStyle
     });
   };
+  sendEmailAttachment = (files) => {
+    Actions.closePopover();
+    files = files.filter(file => file.checked);
+    let state = Object.assign({}, this.state, { files });
+    this.setState(state, () => {
+      console.log('sendEmailAttachment sendMessage: ', files, state, this.state);
+      this.sendMessage();
+    });
+    event.target.value = '';
+    let el = ReactDOM.findDOMNode(this.textarea);
+    el.focus();
+  };
   onEmojiSelected = (value) => {
     Actions.closePopover();
     let el = ReactDOM.findDOMNode(this.textarea);
-    // let cursorPosistion = el.selectionStart;
-    // this.setState({
-    //   messageBody:
-    //     this.state.messageBody.slice(0, cursorPosistion) +
-    //     value +
-    //     this.state.messageBody.slice(cursorPosistion),
-    //   openEmoji: false,
-    // });
     el.focus();
     document.execCommand('insertText', false, value);
   };
+  onEmailAttachmentTouch = () => {
+    let attachmentEl = ReactDOM.findDOMNode(this.attachmentRef);
+    if (!this.state.openAttachment) {
+      Actions.openPopover(<EmailAttachmentPopup sendEmailAttachment={this.sendEmailAttachment} />, {
+        direction: 'up',
+        originRect: {
+          top: attachmentEl.getBoundingClientRect().top,
+          left: attachmentEl.getBoundingClientRect().left,
+          width: 250,
+        },
+        closeOnAppBlur: true,
+        onClose: () => {
+          this.setState({ openAttachment: false });
+        },
+      });
+    } else {
+      Actions.closePopover();
+    }
+    this.setState({ openAttachment: !this.state.openAttachment });
+  }
   onEmojiTouch = () => {
     let rectPosition = ReactDOM.findDOMNode(this.emojiRef);
     if (!this.state.openEmoji) {
@@ -404,6 +439,12 @@ export default class MessagesSendBar extends PureComponent {
             null
           }
         </div>
+        <div key='attachments' className="sendbar-attacment" ref={(el) => { this.attachmentRef = el }}>
+          <Button className='no-border' onClick={this.onEmailAttachmentTouch}>
+            <InfoIcon className="icon" />
+          </Button>
+        </div>
+
         <div key='emoji' className="sendBarEmoji" ref={(emoji) => { this.emojiRef = emoji }}>
           <Button className='no-border' onClick={this.onEmojiTouch}>
             <EmojiIcon className="icon" />
