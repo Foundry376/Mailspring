@@ -1,68 +1,59 @@
 .email-attachment-popup-container {
-  position: relative;
-  width: 400px;
-  height: 500px;
-  email-title {
+  background: #fff;
+  .scroll-region {
+    position: relative;
+    width: 400px;
+    height: 500px;
+  }
+  .email-title {
     display:inline-block;
     width: 380px;
     text-align: center;
   }
   .confirm-button {
-    display:inline-block;
+    display: inline-block;
     position: absolute;
-    top:0;
-    right:0;
+    top: 22px;
+    right: 10px;
   }
   .email-label-row {
     width:100%;
     padding-left: 20px;
     height:30px;
     padding-bottom: 5px;
-    background-color: gray;
+    background-color: #f6f8fd;
   }
   .attachment-row {
     width:100%;
     height:30px;
-    padding-bottom: 5px;
+    overflow: hidden;
+    &:hover {
+      background-color: #EFEFEF;
+    }
   }
   .attachment-row.checked {
-    background-color: lightgray;
+    background-color: #f8f8fa !important;
+    color: #1293fd;
+  }
+  .email-check,
+  .email-subject,
+  .email-attachment {
+    float: left;
+    height: 100%;
+    line-height: 30px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .email-check {
-    display: inline-block;
     width:20px;
-    height:25px;
   }
   .email-subject {
-    display: inline-block;
     width: 200px;
-    height: 25px;
     margin: 0 auto;
-    //text-align: center;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    padding-right: 12px;
   }
   .email-attachment {
-    display: inline-block;
-    height: 25px;
+    width: 180px;
     margin: 0 auto;
-    //text-align: center;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    padding-right: 12px;
-
-  }
-  .emoji-cell{
-    height: 25px;
-    width: 25px;
-    padding: 1px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    //border: 1px solid #f0f1f3;
-  }
-  .emoji-cell:hover{
-    box-shadow: -2px 2px 6px #999;
   }
 }

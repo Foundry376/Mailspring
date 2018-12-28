@@ -354,10 +354,10 @@ export default class MessagesSendBar extends PureComponent {
           left: attachmentEl.getBoundingClientRect().left,
           width: 250,
         },
-        closeOnAppBlur: true,
-        onClose: () => {
-          this.setState({ openAttachment: false });
-        },
+        closeOnAppBlur: false,
+        // onClose: () => {
+        //   this.setState({ openAttachment: false });
+        // },
       });
     } else {
       Actions.closePopover();
