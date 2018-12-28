@@ -117,7 +117,7 @@ export default class MailsyncBridge {
     AppEnv.onReadyToUnload(this._onReadyToUnload);
 
     process.nextTick(() => {
-      this.ensureClients();
+      this.ensureClients('constructor');
     });
   }
 
@@ -157,7 +157,7 @@ export default class MailsyncBridge {
     return this._clients;
   }
 
-  ensureClients = _.throttle(() => {
+  ensureClients = _.throttle((kind) => {
     const clientsWithoutAccounts = Object.assign({}, this._clients);
 
     for (const acct of AccountStore.accounts()) {
@@ -175,6 +175,7 @@ export default class MailsyncBridge {
     // deleted accounts.
     for (const client of Object.values(clientsWithoutAccounts)) {
       client.kill();
+      AppEnv.debugLog('mailsync-bridge ensureClients:' + kind);
     }
   }, 100);
 
@@ -221,6 +222,7 @@ export default class MailsyncBridge {
     // client has already been replaced in our lookup table.
     if (syncingClient) {
       syncingClient.kill();
+      AppEnv.debugLog('mailsync-bridge resetCacheForAccount');
     }
 
     if (!silent) {
@@ -253,7 +255,7 @@ export default class MailsyncBridge {
     } finally {
       delete this._clients[account.id];
       process.nextTick(() => {
-        this.ensureClients();
+        this.ensureClients('resetCacheForAccount');
       });
     }
   }
@@ -313,7 +315,7 @@ export default class MailsyncBridge {
           syncError: { code, error, signal },
         });
       } else {
-        this.ensureClients();
+        this.ensureClients('_launchClient');
       }
     });
 
@@ -474,6 +476,7 @@ export default class MailsyncBridge {
   _onReadyToUnload = () => {
     for (const client of Object.values(this._clients)) {
       client.kill();
+      AppEnv.debugLog('mailsync-bridge _onReadyToUnload: page refresh');
     }
     this._clients = [];
   };

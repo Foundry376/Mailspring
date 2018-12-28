@@ -5,6 +5,7 @@ import path from 'path';
 import { ipcRenderer, remote } from 'electron';
 import { Emitter } from 'event-kit';
 import { mapSourcePosition } from 'source-map-support';
+import fs from 'fs';
 
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
@@ -205,6 +206,11 @@ export default class AppEnvConstructor {
     });
 
     return null;
+  }
+
+  debugLog(msg) {
+    const fileName = path.join(this.getConfigDirPath(), `ui-kill-${new Date().getTime()}.txt`);
+    fs.writeFileSync(fileName, msg);
   }
 
   _onUnhandledRejection = (error, sourceMapCache) => {
