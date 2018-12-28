@@ -319,8 +319,6 @@ export default class Messages extends PureComponent {
                 border = 'solid 2px red';
               }
 
-              console.log('****msgBody', msgBody);
-
               return (
                 <div
                   key={msg.id}
