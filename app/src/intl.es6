@@ -108,6 +108,7 @@ const LANG_NAMES = {
   pa: 'Punjabi',
   pl: 'Polish',
   pt: 'Portuguese',
+  pt_BR: 'Brazilian Portuguese',
   rm: 'Romansh',
   ro: 'Romanian',
   ru: 'Russian',
