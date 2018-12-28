@@ -42,10 +42,22 @@
 
   .right {
     width: 50px;
+    height: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
+    .avatarWrapper {
+      height: 100%;
+      position: relative;
+      margin-right: 10px;
+      .groupAvatar {
+        .chat-avatar:nth-child(1),
+        .chat-avatar:nth-child(2) {
+          margin-top: 5px;
+        }
+      }
+    }
   }
   #input-group-name-dialog {
     position: absolute;
@@ -85,7 +97,6 @@
   }
 
   #open-info {
-    padding-right: 10px;
     cursor: pointer;
   }
 

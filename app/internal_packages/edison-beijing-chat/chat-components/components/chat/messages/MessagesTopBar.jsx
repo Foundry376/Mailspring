@@ -112,7 +112,7 @@ export default class MessagesTopBar extends Component {
           //   </div>
           // }
           right={
-            <div>
+            <div className="avatarWrapper">
               {/* {selectedConversation.isGroup && <div id="exit-button" onClick={exitGroup}>
                 exit
               </div>
@@ -125,7 +125,7 @@ export default class MessagesTopBar extends Component {
                 {conversation.isGroup ?
                   <GroupChatAvatar conversation={conversation} size={26} /> :
                   <ContactAvatar conversation={conversation} jid={conversation.jid} name={conversation.name}
-                                 email={conversation.email} avatar={conversation.avatar} size={26} />
+                    email={conversation.email} avatar={conversation.avatar} size={26} />
                 }
               </div>
             </div>
