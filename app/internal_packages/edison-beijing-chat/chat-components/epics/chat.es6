@@ -301,7 +301,7 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
             .map(convInDb => {
               if (conv.isGroup) {
                 conv.occupants = convInDb.occupants;
-                conv.avatarMembers[1] = convInDb.avatarMembers[0];
+                conv.avatarMembers = convInDb.avatarMembers;
                 return conv;
               } else {
                 return conv;
@@ -310,7 +310,8 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
             .mergeMap(conv => {
               return Observable.fromPromise(db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec())
                 .map(contact => {
-                  if (conv.isGroup) {
+                  if (conv.isGroup && contact.jid != conv.avatarMembers[0].jid) {
+                    conv.avatarMembers[1] = conv.avatarMembers[0];
                     contact = copyRxdbContact(contact);
                     conv.avatarMembers[0] = contact;
                     return conv;
@@ -502,10 +503,9 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
         .mergeMap(db => {
           return Observable.fromPromise(db.conversations.findOne().where('jid').eq(conv.jid).exec())
             .map(convInDb => {
-              conv.avatarMembers = [];
               if (convInDb) {
                 conv.occupants = convInDb.occupants;
-                conv.avatarMembers[1] = convInDb.avatarMembers[0];
+                conv.avatarMembers = convInDb.avatarMembers;
               } else {
                 conv.occupants = [];
               }
@@ -514,9 +514,12 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
             .mergeMap(conv => {
               return Observable.fromPromise(db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec())
                 .map(contact => {
-                  contact = copyRxdbContact(contact);
-                  conv.avatarMembers[0] = contact;
-                  return conv;
+                  if (contact.jid !== conv.avatarMembers[0].jid) {
+                    conv.avatarMembers[1] = conv.avatarMembers[0];
+                    contact = copyRxdbContact(contact);
+                    conv.avatarMembers[0] = contact;
+                    return conv;
+                  }
                 })
             })
         })

@@ -37,10 +37,12 @@ class GroupChatAvatar extends Component {
     const db = await getDb();
     const conv = await db.conversations.findOne().where('jid').eq(conversation.jid).exec();
     const avatarMembers = conv.avatarMembers;
+    console.log('refreshAvatar: avatarMembers: ', avatarMembers);
     this.setState({ avatarMembers });
   }
   render() {
     const { avatarMembers } = this.state;
+    console.log('render: avatarMembers: ', avatarMembers);
     return (
       <div className="groupAvatar">
         {
