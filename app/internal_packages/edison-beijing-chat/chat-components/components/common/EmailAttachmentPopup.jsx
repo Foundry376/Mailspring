@@ -26,13 +26,8 @@ export default class EmailAttachmentPopup extends Component {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
     const db = sqlite(dbpath);
-    const stmt = db.prepare('SELECT * FROM File');
+    const stmt = db.prepare('SELECT file.*, Message.subject FROM File inner join Message on File.messageId=Message.id');
     const files = stmt.all();
-    files.map(file => {
-      const stmt = db.prepare(`SELECT subject FROM Message where id=="${file.messageId}"`);
-      const subject = stmt.all();
-      file.subject = subject[0];
-    });
     this.setState({ files });
   }
   renderAttachments = () => {
@@ -44,7 +39,7 @@ export default class EmailAttachmentPopup extends Component {
       }
       return (<div className={`attachment-row ${file.checked ? 'checked' : ``}`} onClick={onClick} key={index}>
         <input type="checkbox" className="email-check" checked={!!file.checked} />
-        <div className="email-subject">{file.subject && file.subject.subject}</div>
+        <div className="email-subject">{file.subject}</div>
         <div className="email-attachment">{file.filename}</div>
       </div>)
     });

@@ -206,8 +206,6 @@ export default class MessagesSendBar extends PureComponent {
           body.emailMessageId = file.messageId;
         }
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true, updating);
-        console.log('before uploadFile: ', filepath);
-        debugger;
         uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
           if (err) {
             alert(`upload files failed because error: ${err}, filepath: ${filepath}`);
