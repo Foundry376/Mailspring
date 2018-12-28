@@ -374,15 +374,14 @@ export const createGroupMessageConversationEpic = (action$) =>
       return Observable.fromPromise(getDb())
         .mergeMap(db => {
           return Observable.fromPromise(Promise.all(conv.occupants.map(occupant => db.contacts.findOne().where('jid').eq(occupant).exec())
-            )).map(contacts => {
-              debugger;
+          )).map(contacts => {
             contacts = contacts.filter(contact => contact);
-            contacts = [contacts.find(contact => contact.jid===conv.curJid), contacts.find(contact => contact.jid!==conv.curJid)];
+            contacts = [contacts.find(contact => contact.jid === conv.curJid), contacts.find(contact => contact.jid !== conv.curJid)];
             contacts = [copyRxdbContact(contacts[0]), copyRxdbContact(contacts[1])];
             conv.avatarMembers = contacts;
             return conv;
           });
-      })
+        })
     })
     .map(conversation => {
       return beginStoringConversations([conversation]);

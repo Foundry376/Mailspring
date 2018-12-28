@@ -91,10 +91,6 @@
     }
   }
 
-  // .message.otherUser:first-child {
-  //   border-top-left-radius: 12px;
-  // }
-
   .message.otherUser:last-child {
     &:after {
       content: '';
@@ -138,7 +134,7 @@
   }
 
   .messageMeta {
-    margin: 4px 0 0 6px;
+    margin: 4px 0 4px 6px;
     align-self: flex-end;
     text-align: right;
     font-size: 0.7em;
@@ -148,6 +144,14 @@
     }
   }
 
+  .file-name {
+    height: 65px;
+    max-width: 350px;
+    background: url(images/chat-messages/file-icon.png) no-repeat left top;
+    background-size: 65px auto; 
+    text-align: left;
+    padding: 4px 0 0 68px;
+  }
   .messageStatus {
     margin-right: 2px;
   }

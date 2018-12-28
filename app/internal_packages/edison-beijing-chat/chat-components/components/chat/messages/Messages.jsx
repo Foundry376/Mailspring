@@ -115,9 +115,7 @@ export default class Messages extends PureComponent {
   }
   componentWillUnmount() {
     const {
-      currentUserId,
-      groupedMessages,
-      selectedConversation: { isGroup },
+      groupedMessages
     } = this.props;
     saveGroupMessages(groupedMessages);
   }
@@ -263,12 +261,6 @@ export default class Messages extends PureComponent {
                 messageModel.imagePopup.show();
                 this.update();
               }
-              const CancelZoomIn = (event) => {
-                event.stopPropagation();
-                event.preventDefault();
-                msg.zoomin = false;
-                this.update();
-              }
               let cursor = 'zoom-in';
 
               if (shouldInlineImg(msgBody)) {
@@ -292,16 +284,15 @@ export default class Messages extends PureComponent {
                   </div>
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
+                const fileName = msgBody.path ? path.basename(msgBody.path) : '';
                 msgFile = <div className="messageMeta">
-                  <RetinaImg
-                    name="fileIcon.png"
-                    mode={RetinaImg.Mode.ContentPreserve}
-                    title={msgBody.mediaObjectId}
-                  />
+                  <div className="file-name">
+                    <h4>{fileName}</h4>
+                  </div>
                   <div className='message-toolbar' onClick={download}>
                     <span
                       className="download-img"
-                      title={msgBody.path}
+                      title={fileName}
                       onClick={download}
                     />
                     {msg.sender === currentUserId && <span
@@ -327,6 +318,8 @@ export default class Messages extends PureComponent {
               } else if (isUnreadUpdatedMessage(msg)) {
                 border = 'solid 2px red';
               }
+
+              console.log('****msgBody', msgBody);
 
               return (
                 <div
@@ -359,10 +352,16 @@ export default class Messages extends PureComponent {
                         )
                     }
 
-                    {msgBody.mediaObjectId && <div className="messageMeta">
-                      <div style={{ background: "#fff" }}>{msgFile}</div>
-                    </div>
-                    }
+                    {msgBody.mediaObjectId && msgBody.type === FILE_TYPE.OTHER_FILE && (
+                      <div className="messageMeta">
+                        {msgFile}
+                      </div>
+                    )}
+                    {msgBody.mediaObjectId && msgBody.type !== FILE_TYPE.OTHER_FILE && (
+                      <div className="messageMeta">
+                        <div style={{ background: "#fff" }}>{msgFile}</div>
+                      </div>
+                    )}
                     <div className="messageMeta">
                       {getStatusWeight(msg.status) >= getStatusWeight(MESSAGE_STATUS_DELIVERED) ?
                         <CheckIcon

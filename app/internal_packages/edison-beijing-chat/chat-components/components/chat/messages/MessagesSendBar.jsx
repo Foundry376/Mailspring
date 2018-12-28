@@ -6,7 +6,7 @@ import EmojiIcon from '../../common/icons/EmojiIcon';
 import InfoIcon from '../../common/icons/InfoIcon';
 import os from 'os';
 import fs from 'fs';
-const path = require('path');
+import path from 'path';
 import { uploadFile } from '../../../utils/awss3';
 import RetinaImg from '../../../../../../src/components/retina-img';
 
@@ -189,7 +189,7 @@ export default class MessagesSendBar extends PureComponent {
         if (index === 0) {
           message = messageBody.trim();
         } else {
-          message = 'file: ';
+          message = '📄';
         }
         let body = {
           type: FILE_TYPE.TEXT,
@@ -352,10 +352,10 @@ export default class MessagesSendBar extends PureComponent {
           left: attachmentEl.getBoundingClientRect().left,
           width: 250,
         },
-        closeOnAppBlur: false,
-        // onClose: () => {
-        //   this.setState({ openAttachment: false });
-        // },
+        closeOnAppBlur: true,
+        onClose: () => {
+          this.setState({ openAttachment: false });
+        },
       });
     } else {
       Actions.closePopover();

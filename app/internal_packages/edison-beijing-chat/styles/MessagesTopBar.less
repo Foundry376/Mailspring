@@ -24,11 +24,23 @@
     display: none;
   }
 
-  div[contenteditable=true]:hover,
+  div[contenteditable=true]:hover {
+    background: url(images/chat/edit.png) no-repeat right center;
+    background-size: 40px auto;
+    border-bottom: 1px solid #23c0fa;
+  }
+
+  div[contenteditable] {
+    transition-duration: 0.5s;
+    transition-property: padding-left;
+  }
+
   div[contenteditable]:focus,
   .contenteditable {
+    padding-left: 6px;
     white-space: nowrap;
-    border-bottom: 1px solid #23c0fa;
+    border: 1px solid #23c0fa;
+    border-radius: 6px;
     overflow: hidden;
     a:hover {
       cursor: text;
