@@ -7,6 +7,7 @@ import BackIcon from '../../common/icons/BackIcon';
 import InfoIcon from '../../common/icons/InfoIcon';
 import { theme } from '../../../utils/colors';
 import xmpp from '../../../xmpp';
+import GroupChatAvatar from '../../common/GroupChatAvatar';
 
 const privateStatus = (availableUsers, conversationJid) =>
   (availableUsers.indexOf(conversationJid) >= 0 ? 'Online' : 'Offline');
@@ -84,14 +85,15 @@ export default class MessagesTopBar extends Component {
       exitGroup,
     } = this.props;
     const conversationJid = selectedConversation.jid;
+    const conversation = selectedConversation;
 
     return (
       <div>
         <TopBar
           left={
             <div
-              contentEditable={selectedConversation.isGroup}
-              dangerouslySetInnerHTML={{ __html: selectedConversation.name }}
+              contentEditable={conversation.isGroup}
+              dangerouslySetInnerHTML={{ __html: conversation.name }}
               onKeyDown={this._onkeyDown}
               onBlur={this._onBlur}
               className="conversationName">
@@ -120,8 +122,11 @@ export default class MessagesTopBar extends Component {
               </div>
               } */}
               <div id="open-info" onClick={() => onInfoPressed()}>
-                <ContactAvatar conversation={selectedConversation} jid={selectedConversation.jid} name={selectedConversation.name}
-                  email={selectedConversation.email} avatar={selectedConversation.avatar} size={26} />
+                {conversation.isGroup ?
+                  <GroupChatAvatar conversation={conversation} size={26} /> :
+                  <ContactAvatar conversation={conversation} jid={conversation.jid} name={conversation.name}
+                                 email={conversation.email} avatar={conversation.avatar} size={26} />
+                }
               </div>
             </div>
           }

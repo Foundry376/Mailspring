@@ -332,8 +332,8 @@ export default class MessagesSendBar extends PureComponent {
     this.setState(state, () => {
       this.sendMessage();
     });
-    event.target.value = '';
     let el = ReactDOM.findDOMNode(this.textarea);
+    el.value = '';
     el.focus();
   };
   onEmojiSelected = (value) => {
