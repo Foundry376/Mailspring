@@ -106,7 +106,7 @@ export default class MailspringStore {
     if (this._emitter == null) {
       this._emitter = new EventEmitter();
     }
-    return this._emitter.setMaxListeners(100);
+    return this._emitter.setMaxListeners(250);
   }
 
   listen(callback, bindContext = this) {
@@ -126,6 +126,7 @@ export default class MailspringStore {
     };
 
     this._emitter.addListener('trigger', eventHandler);
+
     return () => {
       aborted = true;
       return this._emitter.removeListener('trigger', eventHandler);

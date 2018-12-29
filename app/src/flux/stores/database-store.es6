@@ -141,7 +141,6 @@ class DatabaseStore extends MailspringStore {
     this._preparedStatementCache = LRU({ max: 500 });
 
     this.setupEmitter();
-    this._emitter.setMaxListeners(100);
 
     this._databasePath = databasePath(AppEnv.getConfigDirPath(), AppEnv.inSpecMode());
 
