@@ -1,5 +1,41 @@
 # Mailspring Changelog
 
+### 1.5.4 (12/29/2018)
+
+Improvements:
+
+* An important bug that caused Mailspring to occasionally send blank or incomplete drafts (especially long relies or messages with significant quoted text) has been resolved! #948
+
+* Printing email messages now works reliably and a new "Save as PDF" option in the print window makes it easy to export an email thread. #1236 #1027
+
+* Extremely long messages now clip in the message panel and a "popout" option allows you to view their entire text in a separate window, similar to Gmail. This allows Mailspring to more reliably maintain good performance as you browse your email.
+
+* A Brazillian Portuguese translation has been added (Thanks @leoescarpellin!)
+
+* Russian and Japanese translations have been improved (Thanks @kometchtech, @TiiRiiX)
+
+* Mailspring now runs on **Electron 4**. This should fix the menu bar not appearing in Ubuntu 18.10 (#1258, #1158) and comes with a long list of bug fixes and improvements (Mailspring was previously on Electron 2.0.14.) _As of this release, Mailspring and Electron no longer support macOS 10.9._
+
+* The `has:attachment` search filter has been added. Note that this clause only returns messages Mailspring has downloaded and has "seen" the attachments for. (Currently the last three months of mail.) #1260
+
+Fixes:
+
+* Sending emails with consecutive whitespaces now works as expected. #1270
+
+* Mailspring now adds itself to the Dock in macOS Mavericks properly. #1256
+
+* The `Send and Archive` option is no longer shown when you're composing a new message. #980
+
+* Mailspring no longer hangs when trying to sync a mailbox containing a message with an unidentified MIME part. #1266
+
+* Mailspring no longer inserts an extra whitespace when you compose a reply with a default signature. #1264
+
+* The tool tip displayed when scrolling in the message panel is now localized correctly.
+
+* Copy / paste and the Terms / Privacy links in billing and registration windows now work properly. #1280
+
+* Open tracking pixels now display as `Sent from Mailspring` when the recipient's email client shows image alt text. It's important we have alt text identifying the image in some way for highest deliverability, but the previous `open tracking` alt text was a bit too revealing for many users.
+
 ### 1.5.3 (11/25/2018)
 
 Improvements:
