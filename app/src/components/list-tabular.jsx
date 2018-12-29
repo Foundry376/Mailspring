@@ -349,7 +349,6 @@ class ListTabular extends Component {
     } = this.props;
     const { count, loaded, empty } = this.state;
     const rows = this.getRowsToRender();
-    const innerStyles = { height: count * itemHeight };
 
     return (
       <div className={`list-container list-tabular ${className}`}>
@@ -366,7 +365,10 @@ class ListTabular extends Component {
             columns={columns}
             draggable={draggable}
             itemHeight={itemHeight}
-            innerStyles={innerStyles}
+            innerStyles={{
+              height: count * itemHeight,
+              backgroundSize: `100% ${this.props.itemHeight}px`,
+            }}
             onClick={onClick}
             onSelect={onSelect}
             onDragEnd={onDragEnd}

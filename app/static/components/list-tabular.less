@@ -77,6 +77,12 @@
 }
 
 .list-container {
+  .list-rows {
+    // Note: This fills empty / unrendered space with the dividers.
+    // background-size needs to be provided.
+    background: linear-gradient(to top, @list-border 0px, @list-bg 1px) repeat;
+  }
+
   .list-rows > div {
     // Note: This allows rows to be animated in and out!
     transition: top ease-out 120ms;
