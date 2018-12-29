@@ -112,6 +112,10 @@ class DraftStore extends MailspringStore {
     // window.close() within on onbeforeunload could do weird things.
     Object.values(this._draftSessions).forEach(session => {
       const draft = session.draft();
+      // if draft.id is empty, use headerMessageId
+      if (!draft.id && draft.headerMessageId) {
+        draft.id = draft.headerMessageId;
+      }
       if (!draft || !draft.id) {
         return;
       }

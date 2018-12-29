@@ -424,6 +424,7 @@ export default class DraftEditingSession extends MailspringStore {
     if (this._destroyed || !this._draft) {
       return;
     }
+    // if draft.id is empty, use headerMessageId
     if (!this._draft.id && this._draft.headerMessageId) {
       this._draft.id = this._draft.headerMessageId;
     }
