@@ -129,7 +129,7 @@ export default class ComposerEditor extends React.Component {
 
       const reader = new FileReader();
       reader.addEventListener('loadend', () => {
-        const buffer = new Buffer(new Uint8Array(reader.result));
+        const buffer = Buffer.from(new Uint8Array(reader.result));
         const tmpFolder = temp.path('-nylas-attachment');
         const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
         fs.mkdir(tmpFolder, () => {
