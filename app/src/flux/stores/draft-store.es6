@@ -225,7 +225,7 @@ class DraftStore extends MailspringStore {
         );
       }
       queries.thread = thread;
-    } else if (threadId != null) {
+    } else if (threadId && threadId.length) {
       queries.thread = DatabaseStore.find(Thread, threadId);
     } else {
       throw new Error('newMessageWithContext: `thread` or `threadId` is required.');
@@ -238,7 +238,7 @@ class DraftStore extends MailspringStore {
         );
       }
       queries.message = message;
-    } else if (messageId != null) {
+    } else if (messageId && messageId.length) {
       queries.message = DatabaseStore.find(Message, messageId).include(Message.attributes.body);
     } else {
       queries.message = DatabaseStore.findAll(Message, { threadId: threadId || thread.id })

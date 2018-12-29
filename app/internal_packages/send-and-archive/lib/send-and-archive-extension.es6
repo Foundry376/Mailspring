@@ -8,17 +8,19 @@ export function sendActions() {
       title: 'Send and Archive',
       iconUrl: 'mailspring://send-and-archive/images/composer-archive@2x.png',
       isAvailableForDraft({ draft }) {
-        return draft.threadId != null;
+        return draft.threadId;
       },
-      performSendAction({ draft }) {
+      async performSendAction({ draft }) {
         Actions.queueTask(SendDraftTask.forSending(draft));
-        return DatabaseStore.modelify(Thread, [draft.threadId]).then(threads => {
-          const tasks = TaskFactory.tasksForArchiving({
-            source: 'Send and Archive',
-            threads: threads,
-          });
-          Actions.queueTasks(tasks);
+
+        if (!draft.threadId) return;
+
+        const threads = await DatabaseStore.modelify(Thread, [draft.threadId]);
+        const tasks = TaskFactory.tasksForArchiving({
+          source: 'Send and Archive',
+          threads: threads,
         });
+        Actions.queueTasks(tasks);
       },
     },
   ];
