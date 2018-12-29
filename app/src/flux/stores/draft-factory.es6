@@ -5,6 +5,7 @@ import AccountStore from './account-store';
 import ContactStore from './contact-store';
 import MessageStore from './message-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
+import uuid from 'uuid';
 
 import Contact from '../models/contact';
 import Message from '../models/message';
@@ -31,14 +32,15 @@ async function prepareBodyForQuoting(body) {
 class DraftFactory {
   async createDraft(fields = {}) {
     const account = this._accountForNewDraft();
-    const uniqueId = `${Math.floor(Date.now() / 1000)}.${Utils.generateTempId()}`;
+    // const uniqueId = `${Math.floor(Date.now() / 1000)}.${Utils.generateTempId()}`;
+    const uniqueId = uuid();
     const defaults = {
       body: '<br/>',
       subject: '',
       version: 0,
       unread: false,
       starred: false,
-      headerMessageId: `${uniqueId}-v${AppEnv.getVersion()}@getmailspring.com`,
+      headerMessageId: `${uniqueId}@edison.tech`,
       from: [account.defaultMe()],
       date: new Date(),
       draft: true,
@@ -165,8 +167,8 @@ class DraftFactory {
         <br/>
         <br/>
         <div class="gmail_quote_attribution">${DOMUtils.escapeHTMLCharacters(
-          message.replyAttributionLine()
-        )}</div>
+        message.replyAttributionLine()
+      )}</div>
         <blockquote class="gmail_quote"
           style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
           ${prevBody}
