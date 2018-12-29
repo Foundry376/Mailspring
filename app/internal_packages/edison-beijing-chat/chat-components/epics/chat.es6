@@ -322,7 +322,9 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
             })
         })
     })
-    .map(conversation => beginStoringConversations([conversation]));
+    .map(conversation => {
+      beginStoringConversations([conversation])
+    });
 
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
@@ -447,7 +449,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
         at
       };
     }).map(conversation => {
-      return beginStoringConversations([conversation])
+    return beginStoringConversations([conversation])
     });
 
 export const updateGroupMessageConversationEpic = (action$, { getState }) =>
@@ -519,12 +521,14 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
                     contact = copyRxdbContact(contact);
                     conv.avatarMembers[0] = contact;
                     return conv;
+                  } else {
+                    return conv;
                   }
                 })
             })
         })
     }).map(conversation => {
-      return beginStoringConversations([conversation])
+      return beginStoringConversations([conversation]);
     });
 
 export const beginRetrievingMessagesEpic = action$ =>

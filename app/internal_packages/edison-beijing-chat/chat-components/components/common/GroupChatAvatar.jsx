@@ -23,10 +23,6 @@ class GroupChatAvatar extends Component {
     }
   }
   shouldComponentUpdate(nextProps, nextState) {
-    if (nextProps.conversation.jid === this.props.conversation.jid
-      && nextState.avatarMembers === this.state.avatarMembers) {
-      return false;
-    }
     return true;
   }
   refreshAvatar = async (props) => {
@@ -34,19 +30,15 @@ class GroupChatAvatar extends Component {
     if (!conversation.isGroup) {
       return;
     }
-    const db = await getDb();
-    const conv = await db.conversations.findOne().where('jid').eq(conversation.jid).exec();
-    const avatarMembers = conv.avatarMembers;
-    console.log('refreshAvatar: avatarMembers: ', avatarMembers);
+    const avatarMembers = conversation.avatarMembers;
     this.setState({ avatarMembers });
   }
   render() {
     const { avatarMembers } = this.state;
-    console.log('render: avatarMembers: ', avatarMembers);
     return (
       <div className="groupAvatar">
         {
-          avatarMembers.map((item, index) => {
+          avatarMembers && avatarMembers.map((item, index) => {
             item = item || {};
             return (<ContactAvatar
               key={(item.jid && item.jid.bare || item.jid || '') + index}

@@ -77,7 +77,7 @@ const getProfile = async (jid) => {
 const saveConversations = async conversations => {
   const db = await getDb();
   return Promise.all(conversations.map(async conv => {
-    const convInDB = await db.conversations.findOne(conv.jid).exec();
+     const convInDB = await db.conversations.findOne(conv.jid).exec();
     if (conv.unreadMessages === 1) {
       if (convInDB) {
         conv.unreadMessages = convInDB.unreadMessages + 1;
@@ -111,7 +111,8 @@ const saveConversations = async conversations => {
             lastMessageTime: conv.lastMessageTime,
             lastMessageText: conv.lastMessageText,
             lastMessageSender: conv.lastMessageSender,
-            lastMessageSenderName: conv.lastMessageSenderName
+            lastMessageSenderName: conv.lastMessageSenderName,
+            avatarMembers: conv.avatarMembers
           }
         })
       }
@@ -177,7 +178,9 @@ export const beginStoreConversationsEpic = action$ =>
     .mergeMap(({ payload: conversations }) =>
       Observable.fromPromise(saveConversations(conversations))
         .map(convs => successfullyStoredConversations(convs))
-        .catch(err => Observable.of(failedStoringConversations(err, conversations)))
+        .catch(err => {
+          return Observable.of(failedStoringConversations(err, conversations))
+        })
     );
 
 export const retryStoreConversationsEpic = action$ =>
@@ -304,7 +307,9 @@ export const createInitiatedPrivateConversationEpic = (action$) =>
     .filter(({ conversation }) => {
       return !!conversation;
     })
-    .map(({ conversation }) => beginStoringConversations([conversation]))
+    .map(({ conversation }) => {
+      return beginStoringConversations([conversation]);
+    });
 
 export const groupConversationCreatedEpic = (action$) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)

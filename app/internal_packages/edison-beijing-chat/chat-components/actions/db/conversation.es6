@@ -30,10 +30,12 @@ export const successfullyStoredConversationName = conversation => ({
   payload: conversation
 });
 
-export const beginStoringConversations = conversations => ({
-  type: BEGIN_STORE_CONVERSATIONS,
-  payload: conversations
-});
+export const beginStoringConversations = conversations => {
+  return ({
+    type: BEGIN_STORE_CONVERSATIONS,
+    payload: conversations
+  });
+}
 
 export const successfullyStoredConversations = conversations => ({
   type: SUCCESS_STORE_CONVERSATIONS,
