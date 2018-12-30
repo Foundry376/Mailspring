@@ -301,6 +301,13 @@ export default class WindowEventHandler {
     if (!textualInputs.includes(event.target.type)) {
       return;
     }
+
+    const supportsCutCopy = event.target.type !== 'password';
+    if (!supportsCutCopy) {
+      this.openSpellingMenuFor('', false, {});
+      return;
+    }
+
     const hasSelectedText = event.target.selectionStart !== event.target.selectionEnd;
     let wordStart = null;
     let wordEnd = null;
@@ -333,8 +340,10 @@ export default class WindowEventHandler {
     const { Menu, MenuItem } = remote;
     const menu = new Menu();
 
-    Spellchecker = Spellchecker || require('./spellchecker').default;
-    Spellchecker.appendSpellingItemsToMenu({ menu, word, onCorrect });
+    if (word) {
+      Spellchecker = Spellchecker || require('./spellchecker').default;
+      Spellchecker.appendSpellingItemsToMenu({ menu, word, onCorrect });
+    }
 
     menu.append(
       new MenuItem({
