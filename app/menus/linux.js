@@ -192,6 +192,7 @@ module.exports = {
         { label: 'VERSION', enabled: false },
         { type: 'separator' },
         { label: localized('Mailspring Help'), command: 'application:view-help' },
+        { label: localized('View License'), command: 'application:view-license' },
       ],
     },
   ],
