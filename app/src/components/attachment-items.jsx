@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
+import Actions from '../flux/actions';
 import { pickHTMLProps } from 'pick-react-known-prop';
 import RetinaImg from './retina-img';
 import Flexbox from './flexbox';
@@ -13,7 +14,6 @@ const propTypes = {
   className: PropTypes.string,
   draggable: PropTypes.bool,
   focusable: PropTypes.bool,
-  previewable: PropTypes.bool,
   filePath: PropTypes.string,
   contentType: PropTypes.string,
   download: PropTypes.shape({
@@ -103,17 +103,6 @@ export class AttachmentItem extends Component {
 
   static defaultProps = defaultProps;
 
-  _canPreview() {
-    const { filePath, previewable } = this.props;
-    return previewable && process.platform === 'darwin' && fs.existsSync(filePath);
-  }
-
-  _previewAttachment() {
-    const { filePath } = this.props;
-    const currentWin = AppEnv.getCurrentWindow();
-    currentWin.previewFile(filePath);
-  }
-
   _onDragStart = event => {
     const { contentType, filePath } = this.props;
     if (fs.existsSync(filePath)) {
@@ -140,12 +129,9 @@ export class AttachmentItem extends Component {
   };
 
   _onAttachmentKeyDown = event => {
-    if (event.key === SPACE) {
-      if (!this._canPreview()) {
-        return;
-      }
+    if (event.key === SPACE && this.props.filePreviewPath) {
       event.preventDefault();
-      this._previewAttachment();
+      Actions.quickPreviewFile(this.props.filePath);
     }
     if (event.key === 'Escape') {
       const attachmentNode = ReactDOM.findDOMNode(this);
@@ -158,7 +144,7 @@ export class AttachmentItem extends Component {
   _onClickQuicklookIcon = event => {
     event.preventDefault();
     event.stopPropagation();
-    this._previewAttachment();
+    Actions.quickPreviewFile(this.props.filePath);
   };
 
   render() {
@@ -195,9 +181,11 @@ export class AttachmentItem extends Component {
         {...pickHTMLProps(extraProps)}
       >
         {filePreviewPath ? (
-          <div className="file-thumbnail-preview" draggable={false}>
-            <img alt="" src={`file://${filePreviewPath}`} style={{ zoom: 1 / devicePixelRatio }} />
-          </div>
+          <div
+            draggable={false}
+            className="file-thumbnail-preview"
+            style={{ background: `url('file://${filePreviewPath}') 0% 1% / cover` }}
+          />
         ) : null}
         <div className="inner">
           <ProgressBar download={download} />
@@ -216,15 +204,12 @@ export class AttachmentItem extends Component {
                 {displayName}
               </span>
               <span className="file-size">{displaySize ? `(${displaySize})` : ''}</span>
-              {this._canPreview() ? (
-                <RetinaImg
-                  className="quicklook-icon"
-                  name="attachment-quicklook.png"
-                  mode={RetinaImg.Mode.ContentIsMask}
-                  onClick={this._onClickQuicklookIcon}
-                />
-              ) : null}
             </div>
+            {filePreviewPath ? (
+              <div className="file-action-icon quicklook" onClick={this._onClickQuicklookIcon}>
+                <RetinaImg name="attachment-quicklook.png" mode={RetinaImg.Mode.ContentIsMask} />
+              </div>
+            ) : null}
             <AttachmentActionIcon
               {...this.props}
               removeIcon="remove-attachment.png"

@@ -427,6 +427,7 @@ class Actions {
   static fetchAndSaveAllFiles = ActionScopeWindow;
   static fetchFile = ActionScopeWindow;
   static abortFetchFile = ActionScopeWindow;
+  static quickPreviewFile = ActionScopeWindow;
 
   /*
   Public: Pop the current sheet off the Sheet stack maintained by the {WorkspaceStore}.

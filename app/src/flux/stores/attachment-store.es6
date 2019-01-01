@@ -1,7 +1,6 @@
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import { exec } from 'child_process';
 import { remote, shell } from 'electron';
 import mkdirp from 'mkdirp';
 import MailspringStore from 'mailspring-store';
@@ -10,12 +9,17 @@ import Actions from '../actions';
 import File from '../models/file';
 import Utils from '../models/utils';
 import { localized } from '../../intl';
+import {
+  generatePreview,
+  canPossiblyPreviewExtension,
+  displayQuickPreviewWindow,
+} from '../../quickpreview';
 
 Promise.promisifyAll(fs);
 
 const mkdirpAsync = Promise.promisify(mkdirp);
 
-const fileAcessibleAtPath = async filePath => {
+const fileAccessibleAtPath = async filePath => {
   try {
     await fs.accessAsync(filePath, fs.F_OK);
     return true;
@@ -23,25 +27,6 @@ const fileAcessibleAtPath = async filePath => {
     return false;
   }
 };
-
-// TODO make this list more exhaustive
-const NonPreviewableExtensions = [
-  'jpg',
-  'bmp',
-  'gif',
-  'png',
-  'jpeg',
-  'zip',
-  'tar',
-  'gz',
-  'bz2',
-  'dmg',
-  'exe',
-  'ics',
-];
-
-const PREVIEW_FILE_SIZE_LIMIT = 2000000; // 2mb
-const THUMBNAIL_WIDTH = 320;
 
 class AttachmentStore extends MailspringStore {
   constructor() {
@@ -53,6 +38,7 @@ class AttachmentStore extends MailspringStore {
     this.listenTo(Actions.fetchAndSaveFile, this._fetchAndSave);
     this.listenTo(Actions.fetchAndSaveAllFiles, this._fetchAndSaveAll);
     this.listenTo(Actions.abortFetchFile, this._abortFetchFile);
+    this.listenTo(Actions.quickPreviewFile, this._quickPreviewFile);
 
     // sending
     this.listenTo(Actions.addAttachment, this._onAddAttachment);
@@ -112,8 +98,8 @@ class AttachmentStore extends MailspringStore {
   async _prepareAndResolveFilePath(file) {
     let filePath = this.pathForFile(file);
 
-    if (await fileAcessibleAtPath(filePath)) {
-      this._generatePreview(file);
+    if (await fileAccessibleAtPath(filePath)) {
+      this._ensurePreviewOfFile(file);
     } else {
       // try to find the file in the directory (it should be the only file)
       // this allows us to handle obscure edge cases where the sync engine
@@ -128,59 +114,37 @@ class AttachmentStore extends MailspringStore {
     return filePath;
   }
 
-  async _generatePreview(file) {
-    if (process.platform !== 'darwin') {
-      return Promise.resolve();
-    }
+  async _ensurePreviewOfFile(file) {
     if (!AppEnv.config.get('core.attachments.displayFilePreview')) {
-      return Promise.resolve();
+      return;
     }
-    if (NonPreviewableExtensions.includes(file.displayExtension())) {
-      return Promise.resolve();
-    }
-    if (file.size > PREVIEW_FILE_SIZE_LIMIT) {
-      return Promise.resolve();
+    if (!canPossiblyPreviewExtension(file)) {
+      return;
     }
 
     const filePath = this.pathForFile(file);
     const previewPath = `${filePath}.png`;
 
-    if (await fileAcessibleAtPath(previewPath)) {
+    if (await fileAccessibleAtPath(previewPath)) {
       // If the preview file already exists, set our state and bail
       this._filePreviewPaths[file.id] = previewPath;
       this.trigger();
-      return Promise.resolve();
+      return;
     }
 
     // If the preview file doesn't exist yet, generate it
-    const fileDir = `"${path.dirname(filePath)}"`;
-    const escapedPath = `"${filePath}"`;
-
-    return new Promise(resolve => {
-      const previewSize = THUMBNAIL_WIDTH * (11 / 8.5);
-      exec(
-        `qlmanage -t -f ${window.devicePixelRatio} -s ${previewSize} -o ${fileDir} ${escapedPath}`,
-        (error, stdout, stderr) => {
-          if (error) {
-            // Ignore errors, we don't really mind if we can't generate a preview
-            // for a file
-            AppEnv.reportError(error);
-            resolve();
-            return;
-          }
-          if (stdout.match(/No thumbnail created/i) || stderr) {
-            resolve();
-            return;
-          }
-          this._filePreviewPaths[file.id] = previewPath;
-          this.trigger();
-          resolve();
-        }
-      );
-    });
+    if (await generatePreview({ file, filePath, previewPath })) {
+      this._filePreviewPaths[file.id] = previewPath;
+      console.log('got preview for ' + previewPath);
+      this.trigger();
+    }
   }
 
   // Section: Retrieval of Files
+
+  _quickPreviewFile = filePath => {
+    displayQuickPreviewWindow(filePath);
+  };
 
   _fetch = file => {
     return (
