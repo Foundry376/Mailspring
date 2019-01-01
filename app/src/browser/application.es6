@@ -1,6 +1,6 @@
 /* eslint global-require: "off" */
 
-import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage } from 'electron';
+import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage, shell } from 'electron';
 
 import fs from 'fs-plus';
 import url from 'url';
@@ -358,7 +358,7 @@ export default class Application extends EventEmitter {
 
     this.on('application:view-help', () => {
       const helpUrl = 'http://support.getmailspring.com/hc/en-us';
-      require('electron').shell.openExternal(helpUrl);
+      shell.openExternal(helpUrl);
     });
 
     this.on('application:open-preferences', () => {
@@ -391,6 +391,10 @@ export default class Application extends EventEmitter {
       }
       app.relaunch({ args });
       app.quit();
+    });
+
+    this.on('application:view-license', () => {
+      shell.openExternal(`file://${path.join(this.resourcePath, 'static', 'ALL_LICENSES.html')}`);
     });
 
     if (process.platform === 'darwin') {

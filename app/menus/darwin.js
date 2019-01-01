@@ -6,6 +6,7 @@ module.exports = {
       label: 'Mailspring',
       submenu: [
         { label: localized('About Mailspring'), command: 'application:about' },
+        { label: localized('View License'), command: 'application:view-license' },
         { type: 'separator' },
         { label: localized('Preferences'), command: 'application:open-preferences' },
         { label: localized('Change Theme') + '...', command: 'window:launch-theme-picker' },

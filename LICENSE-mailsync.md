@@ -1,5 +1,5 @@
 Mailspring Sync Engine ("Mailsync")
-Copyright 2016-2017 Foundry 376, LLC., all rights reserved.
+Copyright 2016-2018 Foundry 376, LLC., all rights reserved.
 
 Redistribution and use of the Mailspring Sync Engine in binary form,
 without modification, is permitted, provided it is used in conjunction
