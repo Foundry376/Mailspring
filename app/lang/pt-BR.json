@@ -1,18 +1,25 @@
 {
-  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.": "\"Carregar no início do sistema\" só funciona em ambientes de desktop compatíveis com XDG. Para ativar o ícone do Mailspring na bandeja do sistema, talvez seja necessário instalar o libappindicator.",
+  "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator.":
+    "\"Carregar no início do sistema\" só funciona em ambientes de desktop compatíveis com XDG. Para ativar o ícone do Mailspring na bandeja do sistema, talvez seja necessário instalar o libappindicator.",
   "%1$@ of %2$@": "%1$@ de %2$@",
-  "%@ cannot be attached because it is larger than 25MB.": "%@ não pode ser anexado porque é maior que 25MB.",
-  "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.": "%@ foi instalado e ativado. Não há necessidade de reiniciar! Se você não ver o plug-in carregado, verifique se há erros no console.",
-  "%@ is a directory. Try compressing it and attaching it again.": "%@ é um diretório. Tente comprimir e anexar novamente.",
-  "%@ messages in this thread are hidden because it was moved to trash or spam.": "%@ mensagens nesta conversa estão ocultas porque foram movidas para lixo ou spam.",
+  "%@ cannot be attached because it is larger than 25MB.":
+    "%@ não pode ser anexado porque é maior que 25MB.",
+  "%@ has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.":
+    "%@ foi instalado e ativado. Não há necessidade de reiniciar! Se você não ver o plug-in carregado, verifique se há erros no console.",
+  "%@ is a directory. Try compressing it and attaching it again.":
+    "%@ é um diretório. Tente comprimir e anexar novamente.",
+  "%@ messages in this thread are hidden because it was moved to trash or spam.":
+    "%@ mensagens nesta conversa estão ocultas porque foram movidas para lixo ou spam.",
   "%@ others": "mais %@",
   "%@ recently %@ %@": "%@ recentemente %@ %@",
   "(No Recipients)": "(Sem Destinatários)",
   "(No Subject)": "(Sem Assunto)",
-  "(Requires supported window manager. Press `Alt` to show menu.)": "(Requer gerenciador de janelas suportado. Pressione `Alt` para mostrar o menu.)",
+  "(Requires supported window manager. Press `Alt` to show menu.)":
+    "(Requer gerenciador de janelas suportado. Pressione `Alt` para mostrar o menu.)",
   "... and much more!": "... e muito mais!",
   "1 other": "mais 1",
-  "A Gmail application-specific password is required.": "É necessária uma senha específica do aplicativo do Gmail.",
+  "A Gmail application-specific password is required.":
+    "É necessária uma senha específica do aplicativo do Gmail.",
   "A new version is available!": "Uma nova versão está disponível!",
   "About Mailspring": "Sobre o Mailspring",
   "Accept": "Aceitar",
@@ -63,19 +70,23 @@
   "Attach Mailsync to Xcode": "Anexar Mailsync ao Xcode",
   "Attachment name": "Nome do anexo",
   "Attachments": "Anexos",
-  "Authentication Error - Check your username and password.": "Erro de Autenticação - Verifique seu nome de usuário e senha.",
+  "Authentication Error - Check your username and password.":
+    "Erro de Autenticação - Verifique seu nome de usuário e senha.",
   "Authentication required.": "Autenticação requerida.",
   "Automatic CC / BCC": "CC automático / CCO",
-  "Automatically load images in viewed messages": "Carregar imagens automaticamente em mensagens visualizadas",
+  "Automatically load images in viewed messages":
+    "Carregar imagens automaticamente em mensagens visualizadas",
   "Back": "Voltar",
   "Bcc": "Cco",
   "Best Templates and Subject Lines": "Melhores modelos e linhas de assunto",
   "Body": "Corpo",
   "Bring All to Front": "Trazer tudo para a frente",
-  "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.": "Por padrão, as regras de e-mail são aplicadas apenas a novos e-mails. A aplicação de regras a toda a sua caixa de entrada pode demorar muito e prejudicar o desempenho.",
+  "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.":
+    "Por padrão, as regras de e-mail são aplicadas apenas a novos e-mails. A aplicação de regras a toda a sua caixa de entrada pode demorar muito e prejudicar o desempenho.",
   "Caching mail": "Correio de Cache",
   "Caching recent mail": "Cache de correio recente",
-  "Can't find the selected thread in your mailbox": "Não é possível encontrar a conversa selecionada em sua caixa de correio",
+  "Can't find the selected thread in your mailbox":
+    "Não é possível encontrar a conversa selecionada em sua caixa de correio",
   "Cancel": "Cancelar",
   "Cancel Send Later": "Cancelar Enviar Mais Tarde",
   "Cannot scan templates directory": "Não é possível digitalizar o diretório de modelos",
@@ -88,7 +99,8 @@
   "Change Theme...": "Alterar tema...",
   "Changed labels": "Marcador alterado",
   "Changed labels on %@ threads": "Marcadores alterados em %@ conversas",
-  "Changes are saved automatically. View the %@ for tips and tricks.": "As alterações são salvas automaticamente. Veja o %@ para dicas e truques.",
+  "Changes are saved automatically. View the %@ for tips and tricks.":
+    "As alterações são salvas automaticamente. Veja o %@ para dicas e truques.",
   "Changing folder mapping...": "Alterando o mapeamento de pastas ...",
   "Check Again": "Verificar novamente",
   "Check for Updates": "Procurar por atualizações",
@@ -105,9 +117,11 @@
   "Cleanup Started": "Limpeza Iniciada",
   "Clear Selection": "Desfazer Seleção",
   "Clear reminder": "Desfazer lembrete",
-  "Click 'Learn More' to view instructions in our knowledge base.": "Clique em 'Saiba mais' para ver as instruções na nossa base de conhecimento.",
+  "Click 'Learn More' to view instructions in our knowledge base.":
+    "Clique em 'Saiba mais' para ver as instruções na nossa base de conhecimento.",
   "Click any theme to apply:": "Clique em qualquer tema para aplicar:",
-  "Click shortcuts above to edit them. For even more control, you can edit the shortcuts file directly below.": "Clique nos atalhos acima para editá-los. Para ainda mais controle, você pode editar o arquivo de atalhos diretamente abaixo.",
+  "Click shortcuts above to edit them. For even more control, you can edit the shortcuts file directly below.":
+    "Clique nos atalhos acima para editá-los. Para ainda mais controle, você pode editar o arquivo de atalhos diretamente abaixo.",
   "Click to replace": "Clique para substituir",
   "Click to upload": "Clique para carregar",
   "Clicked": "Clicado",
@@ -115,11 +129,13 @@
   "Close Window": "Fechar Janela",
   "Collapse": "Comprimir",
   "Collapse All": "Comprimir Tudo",
-  "Combine your search queries with Gmail-style terms like %@ and %@ to find anything in your mailbox.": "Combine suas consultas de pesquisa com termos no estilo do Gmail, como %@ e %@, para encontrar qualquer coisa em sua caixa de correio.",
+  "Combine your search queries with Gmail-style terms like %@ and %@ to find anything in your mailbox.":
+    "Combine suas consultas de pesquisa com termos no estilo do Gmail, como %@ e %@, para encontrar qualquer coisa em sua caixa de correio.",
   "Comma-separated email addresses": "Endereços de email separados por vírgula",
   "Company / Domain Logo": "Logotipo Empresa / Domínio",
   "Company overviews": "Visão geral da empresa",
-  "Complete the IMAP and SMTP settings below to connect your account.": "Preencha as configurações de IMAP e SMTP abaixo para conectar sua conta.",
+  "Complete the IMAP and SMTP settings below to connect your account.":
+    "Preencha as configurações de IMAP e SMTP abaixo para conectar sua conta.",
   "Compose New Message": "Criar Nova Mensagem",
   "Compose new message": "Criar nova mensagem",
   "Compose with context": "Compor com contexto",
@@ -128,7 +144,8 @@
   "Connect Account": "Conectar conta",
   "Connect an email account": "Conecte uma conta de email",
   "Connecting to %@…": "Conectando a %@…",
-  "Connection Error - Unable to connect to the server / port you provided.": "Erro de conexão - Não é possível conectar-se ao servidor / porta que você forneceu.",
+  "Connection Error - Unable to connect to the server / port you provided.":
+    "Erro de conexão - Não é possível conectar-se ao servidor / porta que você forneceu.",
   "Continue": "Continuar",
   "Copied": "Copiado",
   "Copy": "Copiar",
@@ -142,15 +159,18 @@
   "Could not find a file at path '%@'": "Não foi possível localizar o arquivo no caminho '%@'",
   "Could not install plugin": "Não foi possível instalar o plugin",
   "Could not reach %@. %@": "Não foi possível alcançar %@. %@",
-  "Could not reach Mailspring. Please try again or contact support@getmailspring.com if the issue persists. (%@: %@)": "Não foi possível alcançar o Mailspring. Por favor, tente novamente ou contate support@getmailspring.com se o problema persistir. (%@: %@)",
-  "Could not reset accounts and settings. Please delete the folder %@ manually.\n\n%@": "Não foi possível redefinir contas e configurações. Por favor, apague a pasta %@ manualmente.\n\n %@",
+  "Could not reach Mailspring. Please try again or contact support@getmailspring.com if the issue persists. (%@: %@)":
+    "Não foi possível alcançar o Mailspring. Por favor, tente novamente ou contate support@getmailspring.com se o problema persistir. (%@: %@)",
+  "Could not reset accounts and settings. Please delete the folder %@ manually.\n\n%@":
+    "Não foi possível redefinir contas e configurações. Por favor, apague a pasta %@ manualmente.\n\n %@",
   "Create": "Criar",
   "Create a Plugin": "Crie um plugin",
   "Create a Theme": "Crie um tema",
   "Create a new Rule": "Criar uma nova Regra",
   "Create a rule or select one to get started": "Crie uma regra ou selecione uma para começar",
   "Create new item": "Criar novo item",
-  "Create templated messages and fill them quickly to reply to messages and automate your common workflows.": "Crie mensagens com modelos e preencha-as rapidamente para responder a mensagens e automatizar seus fluxos de trabalho comuns.",
+  "Create templated messages and fill them quickly to reply to messages and automate your common workflows.":
+    "Crie mensagens com modelos e preencha-as rapidamente para responder a mensagens e automatizar seus fluxos de trabalho comuns.",
   "Creating %@": "Criando %@",
   "Custom": "Personalizado",
   "Custom Image…": "Imagem Personalizada…",
@@ -160,7 +180,8 @@
   "Date": "Data",
   "Decline": "Recusar",
   "Default": "Padrão",
-  "Default Window Controls and Auto-hiding Menubar": "Controles padrão da janela e ocultamento automático da barra de menus",
+  "Default Window Controls and Auto-hiding Menubar":
+    "Controles padrão da janela e ocultamento automático da barra de menus",
   "Default Window Controls and Menubar": "Controles padrão da janela e barra de menu",
   "Default for new messages:": "Padrão para novas mensagens:",
   "Default for:": "Padrão para:",
@@ -168,7 +189,8 @@
   "Delete": "Apagar",
   "Delete Draft": "Apagar rascunho",
   "Delete Template?": "Apagar Modelo?",
-  "Delete your custom key bindings and reset to the template defaults?": "Excluir suas ligações de teclas personalizadas e redefinir para o modelo padrão?",
+  "Delete your custom key bindings and reset to the template defaults?":
+    "Excluir suas ligações de teclas personalizadas e redefinir para o modelo padrão?",
   "Deleted": "Excluido",
   "Deleting %@": "Excluindo %@",
   "Deleting all messages in %@": "Excluindo todas as mensagens em %@",
@@ -177,9 +199,12 @@
   "Developer": "Desenvolvedor",
   "Disable": "Desabilitar",
   "Dismiss": "Ignorar",
-  "Display conversations in descending chronological order": "Exibir conversas em ordem cronológica decrescente",
-  "Display thumbnail previews for attachments when available. (macOS only)": "Exibir miniaturas para anexos quando disponíveis. (apenas macOS)",
-  "Do you prefer a single panel layout (like Gmail) or a two panel layout?": "Você prefere um layout de painel único (como o Gmail) ou um layout de dois painéis?",
+  "Display conversations in descending chronological order":
+    "Exibir conversas em ordem cronológica decrescente",
+  "Display thumbnail previews for attachments when available.":
+    "Exibir miniaturas para anexos quando disponíveis.",
+  "Do you prefer a single panel layout (like Gmail) or a two panel layout?":
+    "Você prefere um layout de painel único (como o Gmail) ou um layout de dois painéis?",
   "Don’t show this again": "Não mostrar isto novamente",
   "Download All": "Baixar Tudo",
   "Download Failed": "Download Falhou",
@@ -201,12 +226,15 @@
   "Empty": "Vazio",
   "Empty %@ now": "Esvaziar %@ agora",
   "Enable": "Ativar",
-  "Enable read receipts %@ or link tracking %@ to see notifications here.": "Ative as confirmações de leitura %@ ou o rastreamento de links %@ para ver as notificações aqui.",
+  "Enable read receipts %@ or link tracking %@ to see notifications here.":
+    "Ative as confirmações de leitura %@ ou o rastreamento de links %@ para ver as notificações aqui.",
   "Enable verbose IMAP / SMTP logging": "Ativar o registro em log detalhado do IMAP / SMTP",
   "Encountered an error while syncing %@": "Encontrou um erro ao sincronizar %@",
   "Enter Full Screen": "Entrar em Tela Cheia",
-  "Enter your email account credentials to get started.": "Insira as credenciais da sua conta de e-mail para começar.",
-  "Enter your email account credentials to get started. Mailspring\nstores your email password securely and it is never sent to our servers.": "Insira as credenciais da sua conta de e-mail para começar. Mailspring\narmazena sua senha de e-mail com segurança e nunca é enviada para nossos servidores.",
+  "Enter your email account credentials to get started.":
+    "Insira as credenciais da sua conta de e-mail para começar.",
+  "Enter your email account credentials to get started. Mailspring\nstores your email password securely and it is never sent to our servers.":
+    "Insira as credenciais da sua conta de e-mail para começar. Mailspring\narmazena sua senha de e-mail com segurança e nunca é enviada para nossos servidores.",
   "Error": "Erro",
   "Event": "Evento",
   "Existing": "Existente",
@@ -242,24 +270,31 @@
   "Forwarded Message": "Mensagem Encaminhada",
   "Frequently Used": "Usado frequentemente",
   "From": "De",
-  "GMX requires that you %@ before using email clients like Mailspring.": "O GMX exige que você %@ antes de usar clientes de email como o Mailspring.",
+  "GMX requires that you %@ before using email clients like Mailspring.":
+    "O GMX exige que você %@ antes de usar clientes de email como o Mailspring.",
   "General": "Geral",
   "Get Mailspring Pro": "Obter Mailspring Pro",
   "Get Started": "Iniciar",
-  "Get notified when each recipient opens your email to send timely follow-ups and reminders.": "Seja notificado quando cada destinatário abrir seu e-mail para enviar acompanhamentos e lembretes oportunos.",
-  "Get reminded if you don't receive a reply for this message within a specified time.": "Receba um aviso se não receber uma resposta para esta mensagem dentro de um prazo especificado.",
+  "Get notified when each recipient opens your email to send timely follow-ups and reminders.":
+    "Seja notificado quando cada destinatário abrir seu e-mail para enviar acompanhamentos e lembretes oportunos.",
+  "Get reminded if you don't receive a reply for this message within a specified time.":
+    "Receba um aviso se não receber uma resposta para esta mensagem dentro de um prazo especificado.",
   "Get reminded!": "Seja lembrado!",
-  "Give your draft a subject to name your template.": "Dê ao seu rascunho um assunto para nomear seu modelo.",
-  "Gmail IMAP is not enabled. Visit Gmail settings to turn it on.": "O IMAP do Gmail não está ativado. Visite as configurações do Gmail para ativá-lo.",
+  "Give your draft a subject to name your template.":
+    "Dê ao seu rascunho um assunto para nomear seu modelo.",
+  "Gmail IMAP is not enabled. Visit Gmail settings to turn it on.":
+    "O IMAP do Gmail não está ativado. Visite as configurações do Gmail para ativá-lo.",
   "Gmail Remove from view": "Gmail Removeu da visualização",
-  "Gmail bandwidth exceeded. Please try again later.": "A largura de banda do Gmail foi excedida. Por favor, tente novamente mais tarde.",
+  "Gmail bandwidth exceeded. Please try again later.":
+    "A largura de banda do Gmail foi excedida. Por favor, tente novamente mais tarde.",
   "Go Back": "Voltar",
   "Go further with Mailspring Pro": "Vá mais longe com o Mailspring Pro",
   "Go to %@": "Ir para %@",
   "Got it!": "Entendido!",
   "Gravatar Profile Photo": "Foto de perfil do Gravatar",
   "Handle it later!": "Lidar com isso depois!",
-  "Have a GitHub account? Want to contibute many translations? Contribute directly via a Pull Request!": "Tem uma conta no GitHub? Quer contribuir com muitas traduções? Contribua diretamente através de um pedido de extração!",
+  "Have a GitHub account? Want to contibute many translations? Contribute directly via a Pull Request!":
+    "Tem uma conta no GitHub? Quer contribuir com muitas traduções? Contribua diretamente através de um pedido de extração!",
   "Have you enabled access through Yahoo?": "Você ativou o acesso através do Yahoo?",
   "Help": "Ajuda",
   "Help Center": "Centro de ajuda",
@@ -271,9 +306,12 @@
   "Hooray! You’re done.": "Viva! Você está pronto.",
   "Huge": "Enorme",
   "If %@ of the following conditions are met:": "Se %@ das seguintes condições forem atendidas:",
-  "If you enjoy Mailspring, upgrade to Mailspring Pro from %@ to enable all these great features permanently:": "Se você gostou do Mailspring, atualize para o Mailspring Pro de %@ para ativar permanentemente todos esses ótimos recursos:",
-  "If you write a draft in another language, Mailspring will auto-detect it and use the correct spelling dictionary after a few sentences.": "Se você escrever um rascunho em outro idioma, o Mailspring detectará automaticamente e usará o dicionário de ortografia correto após algumas frases.",
-  "If you've enabled link tracking or read receipts, those events will appear here!": "Se você ativou o acompanhamento de links ou confirmação de leitura, esses eventos aparecerão aqui!",
+  "If you enjoy Mailspring, upgrade to Mailspring Pro from %@ to enable all these great features permanently:":
+    "Se você gostou do Mailspring, atualize para o Mailspring Pro de %@ para ativar permanentemente todos esses ótimos recursos:",
+  "If you write a draft in another language, Mailspring will auto-detect it and use the correct spelling dictionary after a few sentences.":
+    "Se você escrever um rascunho em outro idioma, o Mailspring detectará automaticamente e usará o dicionário de ortografia correto após algumas frases.",
+  "If you've enabled link tracking or read receipts, those events will appear here!":
+    "Se você ativou o acompanhamento de links ou confirmação de leitura, esses eventos aparecerão aqui!",
   "Important": "Importante",
   "In 1 Week": "Em 1 Semana",
   "In 1 hour": "Em 1 Hora",
@@ -282,9 +320,12 @@
   "In 3 Days": "Em 3 Dias",
   "In 3 Hours": "Em 3 Horas",
   "In a Month": "Daqui um mês",
-  "In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.": "Para executar ações nesta caixa de correio, você precisa resolver o problema de sincronização. Visite Preferências > Contas para mais informações.",
-  "In order to send mail through Mailspring, your email account must have a Sent Mail folder. You can specify a Sent folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.": "Para enviar e-mails através do Mailspring, sua conta de e-mail deve ter uma pasta Enviados. Você pode especificar a pasta Enviados manualmente visitando Preferências > Pastas e escolhendo um nome de pasta no menu suspenso.",
-  "In order to send mail through Mailspring, your email account must have a Trash folder. You can specify a Trash folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.": "Para enviar e-mails através do Mailspring, sua conta de e-mail deve ter uma pasta Lixeira. Você pode especificar a pasta Lixeira manualmente, visitando Preferências > Pastas e escolhendo um nome de pasta no menu suspenso.",
+  "In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.":
+    "Para executar ações nesta caixa de correio, você precisa resolver o problema de sincronização. Visite Preferências > Contas para mais informações.",
+  "In order to send mail through Mailspring, your email account must have a Sent Mail folder. You can specify a Sent folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.":
+    "Para enviar e-mails através do Mailspring, sua conta de e-mail deve ter uma pasta Enviados. Você pode especificar a pasta Enviados manualmente visitando Preferências > Pastas e escolhendo um nome de pasta no menu suspenso.",
+  "In order to send mail through Mailspring, your email account must have a Trash folder. You can specify a Trash folder manually by visiting Preferences > Folders and choosing a folder name from the dropdown menu.":
+    "Para enviar e-mails através do Mailspring, sua conta de e-mail deve ter uma pasta Lixeira. Você pode especificar a pasta Lixeira manualmente, visitando Preferências > Pastas e escolhendo um nome de pasta no menu suspenso.",
   "Inbox": "Caixa de entrada",
   "Incoming Mail": "E-mail recebido",
   "Indent": "Recuo",
@@ -300,9 +341,12 @@
   "Instantly": "Imediatamente",
   "Invalid plugin location": "Local de plugin inválido",
   "Invalid plugin name": "Nome do plugin inválido",
-  "Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.": "Nome do modelo inválido! Os nomes podem conter apenas letras, números, espaços, traços e sublinhados.",
-  "It looks like your draft already has some content. Loading this template will overwrite all draft contents.": "Parece que seu rascunho já tem algum conteúdo. O carregamento deste modelo substituirá todo o conteúdo do rascunho.",
-  "It originates from %@ but replies will go to %@.": "Origina-se de %@, mas as respostas vão para %@.",
+  "Invalid template name! Names can only contain letters, numbers, spaces, dashes, and underscores.":
+    "Nome do modelo inválido! Os nomes podem conter apenas letras, números, espaços, traços e sublinhados.",
+  "It looks like your draft already has some content. Loading this template will overwrite all draft contents.":
+    "Parece que seu rascunho já tem algum conteúdo. O carregamento deste modelo substituirá todo o conteúdo do rascunho.",
+  "It originates from %@ but replies will go to %@.":
+    "Origina-se de %@, mas as respostas vão para %@.",
   "Job Title": "Cargo",
   "Jumping": "Saltando",
   "Label as...": "Rotular como ...",
@@ -321,7 +365,8 @@
   "Let's set things up to your liking.": "Vamos definir as coisas ao seu gosto.",
   "Link Click Rate": "Taxa de cliques do link",
   "Link tracking": "Acompanhamento de links",
-  "Link tracking does not work offline. Please re-enable when you come back online.": "O acompanhamento de links não funciona off-line. Por favor, reative quando voltar online.",
+  "Link tracking does not work offline. Please re-enable when you come back online.":
+    "O acompanhamento de links não funciona off-line. Por favor, reative quando voltar online.",
   "Loading Messages": "A Carregar Mensagens",
   "Loading...": "Carregando...",
   "Local Data": "Dados locais",
@@ -339,29 +384,50 @@
   "Mailspring Help": "Ajuda Mailspring",
   "Mailspring Pro": "Mailspring Pro",
   "Mailspring Reminder": "Lembrete de Mailspring",
-  "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspring não pode mais ser autenticado com %@. A senha ou autenticação pode ter mudado.",
-  "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspring não consegue encontrar sua pasta Rascunhos. Para criar e enviar e-mails, visite Preferências > Pastas e escolha uma pasta Rascunhos.",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring poder encontrar o processo de mailsync. Se você estiver criando Mailspring a partir do código-fonte, certifique-se de que o mailsync.tar.gz tenha sido baixado e descompactado em sua cópia de trabalho.",
-  "Mailspring could not save an attachment because you have run out of disk space.": "Mailspring não pôde salvar um anexo porque você ficou sem espaço em disco.",
-  "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring não pôde salvar um anexo. Verifique se as permissões estão definidas corretamente e tente reiniciar o Mailspring se o problema persistir.",
-  "Mailspring could not spawn the mailsync process. %@": "Mailspring não poderia gerar o processo de mailsync. %@",
-  "Mailspring could not store your password securely. %@ For more information, visit %@": "A Mailspring não pôde armazenar sua senha com segurança. %@ Para mais informações, visite %@",
-  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.": "Notificações de desktop em mailspring no Linux exigem o Zenity. Você pode precisar instalá-lo com o seu gerenciador de pacotes.",
-  "Mailspring does not support stylesheets with the extension: %@": "O Mailspring não suporta folhas de estilo com a extensão: %@",
-  "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.": "A Mailspring encontrou erros ao sincronizar essa conta. Os relatórios de falhas foram enviados para a equipe do Mailspring e trabalharemos para corrigir esses erros na próxima versão.",
-  "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.": "O Mailspring está limpando seu cache para %@. Dependendo do tamanho da caixa de correio, isso pode levar alguns segundos ou alguns minutos. Um alerta aparecerá quando a limpeza estiver concluída.",
-  "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.": "A Mailspring é um software independente %@, e a receita de assinaturas nos permite gastar tempo mantendo e melhorando o produto.",
+  "Mailspring can no longer authenticate with %@. The password or authentication may have changed.":
+    "Mailspring não pode mais ser autenticado com %@. A senha ou autenticação pode ter mudado.",
+  "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.":
+    "Mailspring não consegue encontrar sua pasta Rascunhos. Para criar e enviar e-mails, visite Preferências > Pastas e escolha uma pasta Rascunhos.",
+  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.":
+    "Mailspring poder encontrar o processo de mailsync. Se você estiver criando Mailspring a partir do código-fonte, certifique-se de que o mailsync.tar.gz tenha sido baixado e descompactado em sua cópia de trabalho.",
+  "Mailspring could not save an attachment because you have run out of disk space.":
+    "Mailspring não pôde salvar um anexo porque você ficou sem espaço em disco.",
+  "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.":
+    "Mailspring não pôde salvar um anexo. Verifique se as permissões estão definidas corretamente e tente reiniciar o Mailspring se o problema persistir.",
+  "Mailspring could not spawn the mailsync process. %@":
+    "Mailspring não poderia gerar o processo de mailsync. %@",
+  "Mailspring could not store your password securely. %@ For more information, visit %@":
+    "A Mailspring não pôde armazenar sua senha com segurança. %@ Para mais informações, visite %@",
+  "Mailspring desktop notifications on Linux require Zenity. You may need to install it with your package manager.":
+    "Notificações de desktop em mailspring no Linux exigem o Zenity. Você pode precisar instalá-lo com o seu gerenciador de pacotes.",
+  "Mailspring does not support stylesheets with the extension: %@":
+    "O Mailspring não suporta folhas de estilo com a extensão: %@",
+  "Mailspring encountered errors syncing this account. Crash reports have been sent to the Mailspring team and we'll work to fix these errors in the next release.":
+    "A Mailspring encontrou erros ao sincronizar essa conta. Os relatórios de falhas foram enviados para a equipe do Mailspring e trabalharemos para corrigir esses erros na próxima versão.",
+  "Mailspring is clearing it's cache for %@. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.":
+    "O Mailspring está limpando seu cache para %@. Dependendo do tamanho da caixa de correio, isso pode levar alguns segundos ou alguns minutos. Um alerta aparecerá quando a limpeza estiver concluída.",
+  "Mailspring is independent %@ software, and subscription revenue allows us spend time maintaining and improving the product.":
+    "A Mailspring é um software independente %@, e a receita de assinaturas nos permite gastar tempo mantendo e melhorando o produto.",
   "Mailspring is offline": "Mailspring está offline",
-  "Mailspring is running in dev mode and may be slower!": "Mailspring está sendo executado no modo dev e pode ser mais lento!",
-  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.": "Mailspring está sincronizando essa conversa e seus anexos com a nuvem. Para longas conversas, isso pode demorar um pouco.",
+  "Mailspring is running in dev mode and may be slower!":
+    "Mailspring está sendo executado no modo dev e pode ser mais lento!",
+  "Mailspring is syncing this thread and it's attachments to the cloud. For long threads, this may take a moment.":
+    "Mailspring está sincronizando essa conversa e seus anexos com a nuvem. Para longas conversas, isso pode demorar um pouco.",
   "Mailspring is unable to sync %@": "Mailspring é incapaz de sincronizar %@",
-  "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring redefine o cache local para %@ em %@ segundos. Sua caixa de correio agora começará a sincronizar novamente.",
-  "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "O Mailspring mostra tudo sobre seus contatos diretamente na sua caixa de entrada. Veja perfis do LinkedIn, biografias do Twitter, histórico de mensagens e muito mais.",
-  "Mailspring was unable to modify your keymaps at %@.": "Mailspring não pôde modificar seus mapas de teclado em %@.",
-  "Mailspring was unable to read the contents of your templates directory (%@). You may want to delete this folder or ensure filesystem permissions are set correctly.": "Mailspring não pôde ler o conteúdo do seu diretório de templates (%@). Você pode querer excluir esta pasta ou garantir que as permissões do sistema de arquivos estejam configuradas corretamente.",
-  "Mailspring was unable to reset the local cache. %@": "Mailspring não pôde redefinir o cache local. %@",
-  "Mailspring was unable to write to the file location you specified (%@).": "Mailspring não pôde gravar no local do arquivo que você especificou (%@).",
-  "Make sure you have `libsecret` installed and a keyring is present. ": "Certifique-se de ter o `libsecret` instalado e um keyring presente.",
+  "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.":
+    "Mailspring redefine o cache local para %@ em %@ segundos. Sua caixa de correio agora começará a sincronizar novamente.",
+  "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.":
+    "O Mailspring mostra tudo sobre seus contatos diretamente na sua caixa de entrada. Veja perfis do LinkedIn, biografias do Twitter, histórico de mensagens e muito mais.",
+  "Mailspring was unable to modify your keymaps at %@.":
+    "Mailspring não pôde modificar seus mapas de teclado em %@.",
+  "Mailspring was unable to read the contents of your templates directory (%@). You may want to delete this folder or ensure filesystem permissions are set correctly.":
+    "Mailspring não pôde ler o conteúdo do seu diretório de templates (%@). Você pode querer excluir esta pasta ou garantir que as permissões do sistema de arquivos estejam configuradas corretamente.",
+  "Mailspring was unable to reset the local cache. %@":
+    "Mailspring não pôde redefinir o cache local. %@",
+  "Mailspring was unable to write to the file location you specified (%@).":
+    "Mailspring não pôde gravar no local do arquivo que você especificou (%@).",
+  "Make sure you have `libsecret` installed and a keyring is present. ":
+    "Certifique-se de ter o `libsecret` instalado e um keyring presente.",
   "Manage": "Gerenciar",
   "Manage Accounts": "Gerenciar contas",
   "Manage Billing": "Gerenciar faturamento",
@@ -405,7 +471,8 @@
   "Name": "Nome",
   "Nature": "Natureza",
   "Navigation": "Navegação",
-  "Never forget to follow up! Mailspring reminds you if your messages haven't received replies.": "Nunca esqueça de acompanhar! O Mailspring lembra se suas mensagens não receberam respostas.",
+  "Never forget to follow up! Mailspring reminds you if your messages haven't received replies.":
+    "Nunca esqueça de acompanhar! O Mailspring lembra se suas mensagens não receberam respostas.",
   "New %@": "Novo %@",
   "New Message": "Nova Mensagem",
   "Next": "Avançar",
@@ -431,9 +498,11 @@
   "Not Important": "Não é importante",
   "Not Now": "Agora não",
   "Not Spam": "Não Spam",
-  "Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring %@. Click 'Billing' below to correct the issue.": "Observação: devido a problemas com seu pagamento mais recente, você foi temporariamente rebaixado para o Mailspring %@. Clique em 'Faturamento' abaixo para corrigir o problema.",
+  "Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring %@. Click 'Billing' below to correct the issue.":
+    "Observação: devido a problemas com seu pagamento mais recente, você foi temporariamente rebaixado para o Mailspring %@. Clique em 'Faturamento' abaixo para corrigir o problema.",
   "Notifications": "Notificações",
-  "Notify me about new features and plugins via this email address.": "Notifique-me sobre novos recursos e plugins através deste endereço de e-mail.",
+  "Notify me about new features and plugins via this email address.":
+    "Notifique-me sobre novos recursos e plugins através deste endereço de e-mail.",
   "Now": "Agora",
   "OK": "OK",
   "Objects": "Objetos",
@@ -442,18 +511,23 @@
   "Of your emails are opened": "De seus e-mails são abertos",
   "Offline": "Desconectado",
   "Okay": "OK",
-  "One message in this thread is hidden because it was moved to trash or spam.": "Uma mensagem nesta conversa está oculta porque foi movida para o lixo ou spam.",
-  "One or more of your mail rules have been disabled.": "Uma ou mais das suas regras de e-mail foram desativadas.",
-  "One or more of your mail rules requires the bodies of messages being processed. These rules can't be run on your entire mailbox.": "Uma ou mais das suas regras de e-mail exigem os corpos das mensagens que estão sendo processadas. Essas regras não podem ser executadas em toda a sua caixa de correio.",
+  "One message in this thread is hidden because it was moved to trash or spam.":
+    "Uma mensagem nesta conversa está oculta porque foi movida para o lixo ou spam.",
+  "One or more of your mail rules have been disabled.":
+    "Uma ou mais das suas regras de e-mail foram desativadas.",
+  "One or more of your mail rules requires the bodies of messages being processed. These rules can't be run on your entire mailbox.":
+    "Uma ou mais das suas regras de e-mail exigem os corpos das mensagens que estão sendo processadas. Essas regras não podem ser executadas em toda a sua caixa de correio.",
   "Open": "Abrir",
   "Open In Browser": "Abrir no Navegador",
   "Open Link": "Abrir Link",
   "Open Mailsync Logs": "Abrir logs do Mailsync",
   "Open Rate": "Taxa livre",
   "Open and link tracking": "Abrir e linkar rastreamento",
-  "Open containing folder after downloading attachment": "Abrir pasta de destino após o download do anexo",
+  "Open containing folder after downloading attachment":
+    "Abrir pasta de destino após o download do anexo",
   "Open selected conversation": "Abrir conversa selecionada",
-  "Open tracking does not work offline. Please re-enable when you come back online.": "O rastreamento aberto não funciona off-line. Por favor, reative quando voltar online.",
+  "Open tracking does not work offline. Please re-enable when you come back online.":
+    "O rastreamento aberto não funciona off-line. Por favor, reative quando voltar online.",
   "Opened": "Aberto",
   "Opened by": "Aberto por",
   "Opens": "Abre",
@@ -461,7 +535,8 @@
   "Outdent": "Diminuir Recuo",
   "Outgoing Mail": "E-Mail de saída",
   "Override standard interface scaling": "Substituir o dimensionamento da interface padrão",
-  "Page didn't open? Paste this URL into your browser:": "Página não abriu? Cole este URL no seu navegador:",
+  "Page didn't open? Paste this URL into your browser:":
+    "Página não abriu? Cole este URL no seu navegador:",
   "Parsing Error": "Erro de análise",
   "Password": "Senha",
   "Paste": "Colar",
@@ -482,14 +557,16 @@
   "Powerful template support": "Suporte de modelo poderoso",
   "Preferences": "Preferências",
   "Preferences > Subscription": "Preferências > Assinatura",
-  "Press \"tab\" to quickly move between the blanks - highlighting will not be visible to recipients.": "Pressione \"tab\" para se mover rapidamente entre os espaços em branco - o realce não será visível para os destinatários.",
+  "Press \"tab\" to quickly move between the blanks - highlighting will not be visible to recipients.":
+    "Pressione \"tab\" para se mover rapidamente entre os espaços em branco - o realce não será visível para os destinatários.",
   "Preview": "Pré-visualizar",
   "Previous thread": "Conversa anterior",
   "Print": "Imprimir",
   "Print Current Thread": "Imprimir conversa atual",
   "Print Thread": "Imprimir conversa",
   "Privately Held": "Empresa privada",
-  "Pro tip: Combine search terms with AND and OR to create complex queries.": "Sugestão: combine termos de pesquisa com AND e OR para criar consultas complexas.",
+  "Pro tip: Combine search terms with AND and OR to create complex queries.":
+    "Sugestão: combine termos de pesquisa com AND e OR para criar consultas complexas.",
   "Process entire inbox": "Processar a caixa de entrada inteira",
   "Quick Reply": "Resposta rápida",
   "Quit": "Sair",
@@ -543,7 +620,8 @@
   "Reset Theme": "Restaurar Tema",
   "Restart and Install Update": "Reinicie e instale a atualização",
   "Restore Defaults": "Restaurar padrão",
-  "Resurface messages to the top of the inbox when unsnoozing": "Ressurgir mensagens na parte superior da caixa de entrada ao antecipar",
+  "Resurface messages to the top of the inbox when unsnoozing":
+    "Ressurgir mensagens na parte superior da caixa de entrada ao antecipar",
   "Retrying in %@ seconds": "Tentando novamente em %@ segundos",
   "Retrying in 1 second": "Tentando novamente em 1 segundo",
   "Retrying now...": "Tentando novamente agora ...",
@@ -562,12 +640,16 @@
   "Saving reminder...": "Salvando lembrete ...",
   "Saving send date...": "Salvando a data de envio ...",
   "Scaling": "Escala",
-  "Scaling adjusts the entire UI, including icons, dividers, and text. Messages you send will still have the same font size. Decreasing scale significantly may make dividers and icons too small to click.": "O ajuste de escala ajusta toda a interface do usuário, incluindo ícones, divisores e texto. As mensagens que você enviar ainda terão o mesmo tamanho de fonte. A diminuição da escala pode tornar os divisores e os ícones muito pequenos para serem clicados.",
+  "Scaling adjusts the entire UI, including icons, dividers, and text. Messages you send will still have the same font size. Decreasing scale significantly may make dividers and icons too small to click.":
+    "O ajuste de escala ajusta toda a interface do usuário, incluindo ícones, divisores e texto. As mensagens que você enviar ainda terão o mesmo tamanho de fonte. A diminuição da escala pode tornar os divisores e os ícones muito pequenos para serem clicados.",
   "Scanning": "Digitalização",
   "Scanning messages": "Mensagens de digitalização",
-  "Schedule messages to re-appear later to keep your inbox clean and focus on immediate todos.": "Agende mensagens para reaparecer mais tarde para manter sua caixa de entrada limpa e focar em todos os itens imediatos.",
-  "Schedule messages to send at the ideal time to maximize your email reply rate or automate drip emails.": "Agende mensagens para enviar no momento ideal para maximizar sua taxa de resposta de e-mail ou para automatizar e-mails de gotejamento.",
-  "Schedule this message to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!": "Agende esta mensagem para enviar no momento ideal. O Mailspring facilita o controle da fabrica do espaço-tempo!",
+  "Schedule messages to re-appear later to keep your inbox clean and focus on immediate todos.":
+    "Agende mensagens para reaparecer mais tarde para manter sua caixa de entrada limpa e focar em todos os itens imediatos.",
+  "Schedule messages to send at the ideal time to maximize your email reply rate or automate drip emails.":
+    "Agende mensagens para enviar no momento ideal para maximizar sua taxa de resposta de e-mail ou para automatizar e-mails de gotejamento.",
+  "Schedule this message to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!":
+    "Agende esta mensagem para enviar no momento ideal. O Mailspring facilita o controle da fabrica do espaço-tempo!",
   "Scheduled for %@": "Agendado para %@",
   "Search": "Buscar",
   "Search Google for '%@'": "Pesquise no Google por '%@'",
@@ -576,8 +658,10 @@
   "Search for": "Pesquisar por",
   "Search with ease": "Pesquise com facilidade",
   "Security": "Segurança",
-  "See detailed information about companies you email, including their size, funding and timezone.": "Veja informações detalhadas sobre as empresas para as quais você envia e-mails, incluindo o tamanho, o financiamento e o fuso horário.",
-  "See when recipients click links in your emails so you can follow up with precision": "Veja quando os destinatários clicam nos links dos seus e-mails para que você possa acompanhar com precisão",
+  "See detailed information about companies you email, including their size, funding and timezone.":
+    "Veja informações detalhadas sobre as empresas para as quais você envia e-mails, incluindo o tamanho, o financiamento e o fuso horário.",
+  "See when recipients click links in your emails so you can follow up with precision":
+    "Veja quando os destinatários clicam nos links dos seus e-mails para que você possa acompanhar com precisão",
   "See when recipients open this email": "Veja quando os destinatários abrem este e-mail",
   "Select All": "Selecionar tudo",
   "Select All Read": "Selecionar tudo Lido",
@@ -598,7 +682,8 @@
   "Send Anyway": "Enviar Mesmo Assim",
   "Send Later": "Enviar depois",
   "Send message": "Enviar mensagem",
-  "Send more than one message using the same %@ or subject line to compare open rates and reply rates.": "Envie mais de uma mensagem usando a mesma linha %@ ou assunto para comparar as taxas de abertura e as taxas de resposta.",
+  "Send more than one message using the same %@ or subject line to compare open rates and reply rates.":
+    "Envie mais de uma mensagem usando a mesma linha %@ ou assunto para comparar as taxas de abertura e as taxas de resposta.",
   "Send new messages from:": "Enviar novas mensagens de:",
   "Send on your own schedule": "Envie conforme sua agenda",
   "Sending": "Enviando",
@@ -609,7 +694,8 @@
   "Sending now": "Enviando agora",
   "Sending soon...": "Enviando em breve ...",
   "Sent Mail": "Enviados",
-  "Sent from Mailspring, the best free email app for work": "Enviado do Mailspring, o melhor aplicativo de e-mail gratuito para o trabalho",
+  "Sent from Mailspring, the best free email app for work":
+    "Enviado do Mailspring, o melhor aplicativo de e-mail gratuito para o trabalho",
   "Services": "Serviços",
   "Set Reminder": "Configurar lembrete",
   "Set up Account": "Configurar conta",
@@ -622,7 +708,8 @@
   "Show": "Mostrar",
   "Show All": "Mostrar Tudo",
   "Show Detail": "Mostrar Detalhe",
-  "Show Gmail-style important markers (Gmail Only)": "Mostrar marcadores importantes no estilo do Gmail (somente Gmail)",
+  "Show Gmail-style important markers (Gmail Only)":
+    "Mostrar marcadores importantes no estilo do Gmail (somente Gmail)",
   "Show Images": "Mostrar Imagens",
   "Show Original": "Mostrar original",
   "Show Progress": "Mostrar progresso",
@@ -634,9 +721,12 @@
   "Show badge on the app icon": "Mostrar contador no ícone do aplicativo",
   "Show icon in menu bar / system tray": "Mostrar ícone na barra de menu / bandeja do sistema",
   "Show more": "Mostrar mais",
-  "Show notifications for new unread messages": "Mostrar notificações para novas mensagens não lidas",
-  "Show notifications for repeated opens / clicks": "Mostrar notificações para repetidos cliques / abertos",
-  "Show unread counts for all folders / labels": "Mostrar contagens não lidas de todas as pastas / marcadores",
+  "Show notifications for new unread messages":
+    "Mostrar notificações para novas mensagens não lidas",
+  "Show notifications for repeated opens / clicks":
+    "Mostrar notificações para repetidos cliques / abertos",
+  "Show unread counts for all folders / labels":
+    "Mostrar contagens não lidas de todas as pastas / marcadores",
   "Showing %@ threads with %@ messages": "Mostrando %@ e-mails como %@",
   "Showing 1 thread with %@ messages": "Mostrando 1 thread com %@ mensagens",
   "Sign Out": "Terminar sessão",
@@ -645,28 +735,44 @@
   "Single Panel": "Painel Único",
   "Small": "Pequeno",
   "Snooze": "Adiar",
-  "Snooze emails to return at any time that suits you. Schedule messages to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!": "Adie os e-mails para retornar a qualquer momento que seja adequado para você. Agende mensagens para enviar no momento ideal. O Mailspring facilita o controle da fábrica de espaço-tempo!",
+  "Snooze emails to return at any time that suits you. Schedule messages to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!":
+    "Adie os e-mails para retornar a qualquer momento que seja adequado para você. Agende mensagens para enviar no momento ideal. O Mailspring facilita o controle da fábrica de espaço-tempo!",
   "Snooze messages": "Adiar mensagens",
-  "Snooze this email and it'll return to your inbox later. Click here or swipe across the thread in your inbox to snooze.": "Adie este e-mail e ele retornará à sua caixa de entrada posteriormente. Clique aqui ou deslize pela conversa na sua caixa de entrada para adiar.",
+  "Snooze this email and it'll return to your inbox later. Click here or swipe across the thread in your inbox to snooze.":
+    "Adie este e-mail e ele retornará à sua caixa de entrada posteriormente. Clique aqui ou deslize pela conversa na sua caixa de entrada para adiar.",
   "Snoozed": "Adiado",
   "Some providers require an app password.": "Alguns provedores exigem uma senha do aplicativo.",
   "Someone": "Alguém",
-  "Sorry, Mailspring was unable to deliver this message: %@": "Desculpe, Mailspring não conseguiu entregar esta mensagem: %@",
-  "Sorry, plugin names cannot contain spaces.": "Desculpe, os nomes dos plugins não podem conter espaços.",
-  "Sorry, something went wrong when this account was added to Mailspring. If you do not see the account, try linking it again. %@": "Desculpe, algo deu errado quando essa conta foi adicionada ao Mailspring. Se você não ver a conta, tente vinculá-la novamente. %@",
-  "Sorry, the file you selected does not look like an image. Please choose a file with one of the following extensions: %@": "Desculpe, o arquivo que você selecionou não se parece com uma imagem. Por favor, escolha um arquivo com uma das seguintes extensões: %@",
-  "Sorry, this account does not appear to have an inbox folder so this feature is disabled.": "Desculpe, essa conta não parece ter uma pasta de caixa de entrada, portanto, esse recurso está desativado.",
+  "Sorry, Mailspring was unable to deliver this message: %@":
+    "Desculpe, Mailspring não conseguiu entregar esta mensagem: %@",
+  "Sorry, plugin names cannot contain spaces.":
+    "Desculpe, os nomes dos plugins não podem conter espaços.",
+  "Sorry, something went wrong when this account was added to Mailspring. If you do not see the account, try linking it again. %@":
+    "Desculpe, algo deu errado quando essa conta foi adicionada ao Mailspring. Se você não ver a conta, tente vinculá-la novamente. %@",
+  "Sorry, the file you selected does not look like an image. Please choose a file with one of the following extensions: %@":
+    "Desculpe, o arquivo que você selecionou não se parece com uma imagem. Por favor, escolha um arquivo com uma das seguintes extensões: %@",
+  "Sorry, this account does not appear to have an inbox folder so this feature is disabled.":
+    "Desculpe, essa conta não parece ter uma pasta de caixa de entrada, portanto, esse recurso está desativado.",
   "Sorry, this folder does not exist.": "Desculpe, esta pasta não existe.",
-  "Sorry, we can't interpret %@ as a valid date.": "Desculpe, não podemos interpretar %@ como uma data válida.",
-  "Sorry, we can't parse %@ as a valid date.": "Desculpe, não podemos analisar %@ como uma data válida.",
-  "Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\n\n(%@)": "Desculpe, não foi possível salvar sua imagem de assinatura nos servidores da Mailspring. Por favor tente novamente.\n\n(%@)",
+  "Sorry, we can't interpret %@ as a valid date.":
+    "Desculpe, não podemos interpretar %@ como uma data válida.",
+  "Sorry, we can't parse %@ as a valid date.":
+    "Desculpe, não podemos analisar %@ como uma data válida.",
+  "Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\n\n(%@)":
+    "Desculpe, não foi possível salvar sua imagem de assinatura nos servidores da Mailspring. Por favor tente novamente.\n\n(%@)",
   "Sorry, we had trouble logging you in": "Desculpe, tivemos problemas para fazer login",
-  "Sorry, we were unable to complete the translation request.": "Desculpe, não foi possível concluir o pedido de tradução.",
-  "Sorry, we were unable to contact the Mailspring servers to share this thread.\n\n%@": "Desculpe, não foi possível entrar em contato com os servidores Mailspring para compartilhar esta conversa. \n \n %@",
-  "Sorry, you can't attach more than 25MB of attachments": "Desculpe, você não pode anexar mais de 25MB de anexos",
-  "Sorry, you must create plugins in the dev/packages folder.": "Desculpe, você deve criar plugins na pasta dev/packages.",
-  "Sorry, you must give your plugin a unique name.": "Desculpe, você deve dar ao seu plugin um nome único.",
-  "Sorry, your SMTP server does not support basic username / password authentication.": "Desculpe, seu servidor SMTP não suporta autenticação básica de nome de usuário / senha.",
+  "Sorry, we were unable to complete the translation request.":
+    "Desculpe, não foi possível concluir o pedido de tradução.",
+  "Sorry, we were unable to contact the Mailspring servers to share this thread.\n\n%@":
+    "Desculpe, não foi possível entrar em contato com os servidores Mailspring para compartilhar esta conversa. \n \n %@",
+  "Sorry, you can't attach more than 25MB of attachments":
+    "Desculpe, você não pode anexar mais de 25MB de anexos",
+  "Sorry, you must create plugins in the dev/packages folder.":
+    "Desculpe, você deve criar plugins na pasta dev/packages.",
+  "Sorry, you must give your plugin a unique name.":
+    "Desculpe, você deve dar ao seu plugin um nome único.",
+  "Sorry, your SMTP server does not support basic username / password authentication.":
+    "Desculpe, seu servidor SMTP não suporta autenticação básica de nome de usuário / senha.",
   "Spam": "Spam",
   "Spellcheck language": "Idioma da verificação ortográfica",
   "Star": "Estrela",
@@ -681,14 +787,18 @@
   "Subject Line": "Linha de assunto",
   "Submit": "Enviar",
   "Submit Improved Localizations": "Enviar localizações aprimoradas",
-  "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!": "Inscreva-se em diferentes canais de atualização para receber visualizações de novos recursos. Note que alguns canais de atualização podem ser menos estáveis!",
+  "Subscribe to different update channels to receive previews of new features. Note that some update channels may be less stable!":
+    "Inscreva-se em diferentes canais de atualização para receber visualizações de novos recursos. Note que alguns canais de atualização podem ser menos estáveis!",
   "Subscription": "Inscrição",
   "Successfully connected to %@!": "Conectado com sucesso a %@!",
-  "Swipe gesture and backspace / delete move messages to trash": "Deslize o gesto e retroceda / delete as mensagens para o lixo",
-  "Switching back to a signature template will overwrite the custom HTML you've entered.": "Mudar de volta para um modelo de assinatura sobrescreverá o HTML personalizado que você inseriu.",
+  "Swipe gesture and backspace / delete move messages to trash":
+    "Deslize o gesto e retroceda / delete as mensagens para o lixo",
+  "Switching back to a signature template will overwrite the custom HTML you've entered.":
+    "Mudar de volta para um modelo de assinatura sobrescreverá o HTML personalizado que você inseriu.",
   "Symbols": "Símbolos",
   "Sync New Mail Now": "Sincronizar e-mail agora",
-  "Sync this conversation to the cloud and anyone with the secret link can read it and download attachments.": "Sincronize esta conversa com a nuvem e qualquer pessoa com o link secreto poderá lê-la e fazer download de anexos.",
+  "Sync this conversation to the cloud and anyone with the secret link can read it and download attachments.":
+    "Sincronize esta conversa com a nuvem e qualquer pessoa com o link secreto poderá lê-la e fazer download de anexos.",
   "Syncing": "Sincronizando",
   "Syncing your mailbox": "Sincronizando sua caixa de correio",
   "TLS Not Available": "TLS não disponível",
@@ -696,53 +806,85 @@
   "Template Creation Error": "Erro na criação de modelo",
   "Templates": "Modelos",
   "Templates Guide": "Guia de modelos",
-  "Thank you for helping debug Mailspring. Mailspring will now restart.": "Obrigado por ajudar a depurar o Mailspring. Mailspring agora será reiniciado.",
-  "Thank you for using %@ and supporting independent software. Get the most out of your subscription: explore pro features below or visit the %@ to learn more about reminders, templates, activity insights, and more.": "Obrigado por usar %@ e suporte a software independente. Obtenha o máximo da sua assinatura: explore os recursos profissionais abaixo ou visite o site %@ para saber mais sobre lembretes, modelos, informações sobre atividades e muito mais.",
+  "Thank you for helping debug Mailspring. Mailspring will now restart.":
+    "Obrigado por ajudar a depurar o Mailspring. Mailspring agora será reiniciado.",
+  "Thank you for using %@ and supporting independent software. Get the most out of your subscription: explore pro features below or visit the %@ to learn more about reminders, templates, activity insights, and more.":
+    "Obrigado por usar %@ e suporte a software independente. Obtenha o máximo da sua assinatura: explore os recursos profissionais abaixo ou visite o site %@ para saber mais sobre lembretes, modelos, informações sobre atividades e muito mais.",
   "Thank you!": "Obrigado",
-  "Thanks for downloading Mailspring! Would you like to move it to your Applications folder?": "Obrigado por baixar Mailspring! Você gostaria de movê-lo para sua pasta Aplicativos?",
+  "Thanks for downloading Mailspring! Would you like to move it to your Applications folder?":
+    "Obrigado por baixar Mailspring! Você gostaria de movê-lo para sua pasta Aplicativos?",
   "The Mailspring Team": "A equipe de Mailspring",
-  "The Outlook server said you must sign in via a web browser.": "O servidor do Outlook disse que você deve fazer login por meio de um navegador da web.",
-  "The SMTP server would not relay a message. You may need to authenticate.": "O servidor SMTP não retransmitiria uma mensagem. Você pode precisar autenticar.",
-  "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.": "A barra lateral de contato do Mailspring Pro mostra informações sobre as pessoas e empresas com as quais você está enviando e-mails.",
-  "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.": "O endereço de remetente mudou desde que você começou a enviar este rascunho. Verifique novamente o rascunho e clique em 'Enviar' novamente.",
+  "The Outlook server said you must sign in via a web browser.":
+    "O servidor do Outlook disse que você deve fazer login por meio de um navegador da web.",
+  "The SMTP server would not relay a message. You may need to authenticate.":
+    "O servidor SMTP não retransmitiria uma mensagem. Você pode precisar autenticar.",
+  "The contact sidebar in Mailspring Pro shows information about the people and companies you're emailing with.":
+    "A barra lateral de contato do Mailspring Pro mostra informações sobre as pessoas e empresas com as quais você está enviando e-mails.",
+  "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again.":
+    "O endereço de remetente mudou desde que você começou a enviar este rascunho. Verifique novamente o rascunho e clique em 'Enviar' novamente.",
   "The message contains an empty template area.": "A mensagem contém uma área de modelo vazia.",
-  "The message contains an illegial attachment that is not allowed by the server.": "A mensagem contém um anexo ilegial que não é permitido pelo servidor.",
-  "The message has been blocked because no sender is configured.": "A mensagem foi bloqueada porque nenhum remetente está configurado.",
-  "The message has been blocked by Yahoo - you have exceeded your daily sending limit.": "A mensagem foi bloqueada pelo Yahoo - você excedeu o limite de envio diário.",
-  "The message has been blocked by Yahoo's outbound spam filter.": "A mensagem foi bloqueada pelo filtro de spam de saída do Yahoo.",
-  "The message is addressed to a name that doesn't appear to be a recipient (\"%@\")": "A mensagem é endereçada a um nome que não parece ser um destinatário (\"%@\")",
-  "The message mentions an attachment but none are attached.": "A mensagem menciona um anexo, mas nenhum está anexado.",
-  "The plugin or theme folder you selected doesn't contain a package.json file, or it was invalid JSON. %@": "A pasta de plugin ou tema selecionada não contém um arquivo package.json ou era um JSON inválido. %@",
-  "The plugin or theme you selected has not been upgraded to support Mailspring. If you're the developer, update the package.json's engines field to include \"mailspring\".\n\nFor more information, see this migration guide: %@": "O plug-in ou tema selecionado não foi atualizado para suportar o Mailspring. Se você for o desenvolvedor, atualize o campo engines do package.json para incluir \"mailspring\".\n\nPara obter mais informações, consulte este guia de migração: %@",
-  "The server said you must sign in via your webmail.": "O servidor disse que você deve entrar através do seu webmail.",
+  "The message contains an illegial attachment that is not allowed by the server.":
+    "A mensagem contém um anexo ilegial que não é permitido pelo servidor.",
+  "The message has been blocked because no sender is configured.":
+    "A mensagem foi bloqueada porque nenhum remetente está configurado.",
+  "The message has been blocked by Yahoo - you have exceeded your daily sending limit.":
+    "A mensagem foi bloqueada pelo Yahoo - você excedeu o limite de envio diário.",
+  "The message has been blocked by Yahoo's outbound spam filter.":
+    "A mensagem foi bloqueada pelo filtro de spam de saída do Yahoo.",
+  "The message is addressed to a name that doesn't appear to be a recipient (\"%@\")":
+    "A mensagem é endereçada a um nome que não parece ser um destinatário (\"%@\")",
+  "The message mentions an attachment but none are attached.":
+    "A mensagem menciona um anexo, mas nenhum está anexado.",
+  "The plugin or theme folder you selected doesn't contain a package.json file, or it was invalid JSON. %@":
+    "A pasta de plugin ou tema selecionada não contém um arquivo package.json ou era um JSON inválido. %@",
+  "The plugin or theme you selected has not been upgraded to support Mailspring. If you're the developer, update the package.json's engines field to include \"mailspring\".\n\nFor more information, see this migration guide: %@":
+    "O plug-in ou tema selecionado não foi atualizado para suportar o Mailspring. Se você for o desenvolvedor, atualize o campo engines do package.json para incluir \"mailspring\".\n\nPara obter mais informações, consulte este guia de migração: %@",
+  "The server said you must sign in via your webmail.":
+    "O servidor disse que você deve entrar através do seu webmail.",
   "The subject field is blank.": "O campo do assunto está em branco.",
-  "The template and its file will be permanently deleted.": "O modelo e seu arquivo serão excluídos permanentemente.",
-  "The thread %@ does not exist in your mailbox!": "A conversa %@ não existe na sua caixa de correio!",
+  "The template and its file will be permanently deleted.":
+    "O modelo e seu arquivo serão excluídos permanentemente.",
+  "The thread %@ does not exist in your mailbox!":
+    "A conversa %@ não existe na sua caixa de correio!",
   "Theme Color": "Cor do tema",
   "Theme and Style": "Tema e Estilo",
   "Themes": "Temas",
-  "There are %@ more messages in this thread that are not in spam or trash.": "Há mais %@ mensagens nesta conversa que não estão em spam ou lixo.",
-  "There are too many active connections to your Gmail account. Please try again later.": "Existem muitas conexões ativas para sua conta do Gmail. Por favor, tente novamente mais tarde.",
-  "There is one more message in this thread that is not in spam or trash.": "Há mais uma mensagem nesta conversa que não está em spam ou lixo.",
+  "There are %@ more messages in this thread that are not in spam or trash.":
+    "Há mais %@ mensagens nesta conversa que não estão em spam ou lixo.",
+  "There are too many active connections to your Gmail account. Please try again later.":
+    "Existem muitas conexões ativas para sua conta do Gmail. Por favor, tente novamente mais tarde.",
+  "There is one more message in this thread that is not in spam or trash.":
+    "Há mais uma mensagem nesta conversa que não está em spam ou lixo.",
   "There was an error checking for updates.": "Houve um erro na verificação de atualizações.",
-  "These features were %@ of the messages you sentin this time period, so these numbers do not reflect all of your activity. To enableread receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.": "Esses recursos foram %@ das mensagens que você enviou nesse período de tempo, portanto, esses números não refletem toda a sua atividade. Para habilitar os recibos e o rastreamento de links nos e-mails enviados, clique nos ícones %@ ou rastreamento de links %@ no compositor.",
+  "These features were %@ of the messages you sentin this time period, so these numbers do not reflect all of your activity. To enableread receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.":
+    "Esses recursos foram %@ das mensagens que você enviou nesse período de tempo, portanto, esses números não refletem toda a sua atividade. Para habilitar os recibos e o rastreamento de links nos e-mails enviados, clique nos ícones %@ ou rastreamento de links %@ no compositor.",
   "This Weekend": "Este fim de semana",
-  "This account is invalid or Mailspring could not find the Inbox or All Mail folder. %@": "Esta conta é inválida ou Mailspring não pôde encontrar a pasta Caixa de Entrada ou Todos os E-mails. %@",
-  "This looks like a Gmail account! While it's possible to setup an App Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go back and select \"Gmail & Google Apps\" from the provider screen.": "Isso parece uma conta do Gmail! Embora seja possível configurar uma senha de aplicativo e se conectar ao Gmail via IMAP, a Mailspring também oferece suporte ao Google OAuth. Volte e selecione \"Gmail e Google Apps\" na tela do provedor.",
+  "This account is invalid or Mailspring could not find the Inbox or All Mail folder. %@":
+    "Esta conta é inválida ou Mailspring não pôde encontrar a pasta Caixa de Entrada ou Todos os E-mails. %@",
+  "This looks like a Gmail account! While it's possible to setup an App Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go back and select \"Gmail & Google Apps\" from the provider screen.":
+    "Isso parece uma conta do Gmail! Embora seja possível configurar uma senha de aplicativo e se conectar ao Gmail via IMAP, a Mailspring também oferece suporte ao Google OAuth. Volte e selecione \"Gmail e Google Apps\" na tela do provedor.",
   "This message has not been opened": "Esta mensagem não foi aberta",
   "This message looks suspicious!": "Esta mensagem parece suspeita!",
-  "This plugin or theme %@ does not list \"mailspring\" in it's package.json's \"engines\" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: %@": "Este plugin ou tema %@ não lista \"mailspring\" no campo \"engines\" do package.json. Peça ao desenvolvedor para testar o plug-in com Mailspring e adicioná-lo, ou siga as instruções aqui: %@",
-  "This rule has been disabled. Make sure the actions below are valid and re-enable the rule.": "Esta regra foi desativada. Certifique-se de que as ações abaixo sejam válidas e reative a regra.",
-  "This thread has been moved to the top of your inbox by Mailspring.": "Esta conversa foi movido para o topo da sua caixa de entrada pela Mailspring.",
-  "This thread was brought back to the top of your inbox as a reminder": "Esta conversa foi trazido de volta ao topo da sua caixa de entrada como um lembrete",
-  "This thread will come back to the top of your inbox if nobody replies by:": "Esta conversa voltará ao topo da sua caixa de entrada se ninguém responder por:",
+  "This plugin or theme %@ does not list \"mailspring\" in it's package.json's \"engines\" field. Ask the developer to test the plugin with Mailspring and add it, or follow the instructions here: %@":
+    "Este plugin ou tema %@ não lista \"mailspring\" no campo \"engines\" do package.json. Peça ao desenvolvedor para testar o plug-in com Mailspring e adicioná-lo, ou siga as instruções aqui: %@",
+  "This rule has been disabled. Make sure the actions below are valid and re-enable the rule.":
+    "Esta regra foi desativada. Certifique-se de que as ações abaixo sejam válidas e reative a regra.",
+  "This thread has been moved to the top of your inbox by Mailspring.":
+    "Esta conversa foi movido para o topo da sua caixa de entrada pela Mailspring.",
+  "This thread was brought back to the top of your inbox as a reminder":
+    "Esta conversa foi trazido de volta ao topo da sua caixa de entrada como um lembrete",
+  "This thread will come back to the top of your inbox if nobody replies by:":
+    "Esta conversa voltará ao topo da sua caixa de entrada se ninguém responder por:",
   "Thread": "Conversa",
   "Threads": "Conversas",
   "Title": "Título",
   "To": "Para",
-  "To create a template you need to fill the body of the current draft.": "Para criar um modelo, você precisa preencher o corpo do rascunho atual.",
-  "To develop plugins, you should run Mailspring with debug flags. This gives you better error messages, the debug version of React, and more. You can disable it at any time from the Developer menu.": "Para desenvolver plugins, você deve executar o Mailspring com sinalizadores de depuração. Isso fornece melhores mensagens de erro, a versão de depuração do React e muito mais. Você pode desativá-lo a qualquer momento no menu Desenvolvedor.",
-  "To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n%@": "Para ouvir a resposta do Gmail Oauth, o Mailspring precisa iniciar um servidor da Web na porta $ {LOCAL_SERVER_PORT}. Volte e tente vincular sua conta novamente. Se esse erro persistir, use a opção IMAP / SMTP com uma senha de aplicativo do Gmail.\n\n %@",
+  "To create a template you need to fill the body of the current draft.":
+    "Para criar um modelo, você precisa preencher o corpo do rascunho atual.",
+  "To develop plugins, you should run Mailspring with debug flags. This gives you better error messages, the debug version of React, and more. You can disable it at any time from the Developer menu.":
+    "Para desenvolver plugins, você deve executar o Mailspring com sinalizadores de depuração. Isso fornece melhores mensagens de erro, a versão de depuração do React e muito mais. Você pode desativá-lo a qualquer momento no menu Desenvolvedor.",
+  "To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n%@":
+    "Para ouvir a resposta do Gmail Oauth, o Mailspring precisa iniciar um servidor da Web na porta $ {LOCAL_SERVER_PORT}. Volte e tente vincular sua conta novamente. Se esse erro persistir, use a opção IMAP / SMTP com uma senha de aplicativo do Gmail.\n\n %@",
   "Today": "Hoje",
   "Toggle Bold": "Alternar negrito",
   "Toggle Component Regions": "Alternar regiões de componentes",
@@ -773,14 +915,17 @@
   "Uhoh - that's a pro feature!": "Uhoh - isso é um recurso pro!",
   "Unable to Add Account": "Não é possível adicionar conta",
   "Unable to Start Local Server": "Não é possível iniciar o servidor local",
-  "Unable to download %@. Check your network connection and try again. %@": "Não foi possível baixar %@. Verifique sua conexão de rede e tente novamente. %@",
+  "Unable to download %@. Check your network connection and try again. %@":
+    "Não foi possível baixar %@. Verifique sua conexão de rede e tente novamente. %@",
   "Unable to read package.json for %@: %@": "Não é possível ler package.json para %@: %@",
   "Unarchived %@": "Desarquivado %@",
   "Underline": "Sublinhado",
   "Undo": "Desfazer",
   "Undoing changes": "Desfazendo alterações",
-  "Unfortunately, link tracking servers are currently not available. Please try again later. Error: %@": "Infelizmente, os servidores de rastreamento de links não estão disponíveis no momento. Por favor, tente novamente mais tarde. Erro: %@",
-  "Unfortunately, open tracking is currently not available. Please try again later. Error: %@": "Infelizmente, o rastreamento aberto não está disponível no momento. Por favor, tente novamente mais tarde. Erro: %@",
+  "Unfortunately, link tracking servers are currently not available. Please try again later. Error: %@":
+    "Infelizmente, os servidores de rastreamento de links não estão disponíveis no momento. Por favor, tente novamente mais tarde. Erro: %@",
+  "Unfortunately, open tracking is currently not available. Please try again later. Error: %@":
+    "Infelizmente, o rastreamento aberto não está disponível no momento. Por favor, tente novamente mais tarde. Erro: %@",
   "Unlimited Connected Accounts": "Contas conectadas ilimitadas",
   "Unlimited Contact Profiles": "Perfis de contato ilimitados",
   "Unlimited Link Tracking": "Acompanhamento ilimitado de links",
@@ -803,69 +948,107 @@
   "Update Error": "Erro de Atualização",
   "Updates": "Atualizações",
   "Upgrade": "Atualizar",
-  "Upgrade to %@ to use all these great features permanently:": "Atualize para %@ para usar todos esses ótimos recursos permanentemente:",
+  "Upgrade to %@ to use all these great features permanently:":
+    "Atualize para %@ para usar todos esses ótimos recursos permanentemente:",
   "Upgrade to Mailspring Pro": "Atualizar para o Mailspring Pro",
   "Upgrade to Pro today!": "Atualize para o Pro hoje!",
   "Use 24-hour clock": "Use o relógio - 24 horas",
   "Use Mailspring as default mail client": "Use Mailspring como cliente de email padrão",
-  "Use the Activity tab to get a birds-eye view of your mailbox: open and click rates, subject line effectiveness, and more.": "Use a guia Atividade para obter uma visão panorâmica da sua caixa de correio: taxas de abertura e cliques, eficácia da linha de assunto e muito mais.",
+  "Use the Activity tab to get a birds-eye view of your mailbox: open and click rates, subject line effectiveness, and more.":
+    "Use a guia Atividade para obter uma visão panorâmica da sua caixa de correio: taxas de abertura e cliques, eficácia da linha de assunto e muito mais.",
   "Verbose logging is now %@": "O registro detalhado agora é %@",
   "View": "Visualizar",
   "View Mail Rules": "Visualizar regras de correio",
   "View changelog": "Visualizar registro de alteração",
   "Visit Thread on GitHub": "Visite o tópico no GitHub",
-  "Visit Windows Settings to change your default mail client": "Visite as Configurações do Windows para alterar seu cliente de e-mail padrão",
-  "Visit Windows Settings to finish making Mailspring your mail client": "Visite as Configurações do Windows para terminar de fazer do Mailspring seu cliente de e-mail",
-  "We encountered a problem moving to the Applications folder. Try quitting the application and moving it manually.": "Encontramos um problema ao mudar para a pasta Aplicativos. Tente encerrar o aplicativo e movê-lo manualmente.",
-  "We encountered a problem with your local email database. %@\n\nCheck that no other copies of Mailspring are running and click Rebuild to reset your local cache.": "Encontramos um problema com seu banco de dados de e-mail local. %@\n\nVerifique se nenhuma outra cópia do Mailspring está sendo executada e clique em Reconstruir para redefinir seu cache local.",
-  "We encountered a problem with your local email database. We will now attempt to rebuild it.": "Encontramos um problema com seu banco de dados de e-mail local. Vamos agora tentar reconstruí-lo.",
-  "We encountered an SMTP Gateway error that prevented this message from being delivered to all recipients. The message was only sent successfully to these recipients:\n%@\n\nError: %@": "Encontramos um erro do gateway SMTP que impediu que essa mensagem fosse entregue a todos os destinatários. A mensagem só foi enviada com sucesso para esses destinatários:\n%@\n\nErro: %@",
-  "We were unable to deliver this message to some recipients. Click 'See Details' for more information.": "Não foi possível entregar esta mensagem para alguns destinatários. Clique em 'Ver detalhes' para mais informações.",
+  "Visit Windows Settings to change your default mail client":
+    "Visite as Configurações do Windows para alterar seu cliente de e-mail padrão",
+  "Visit Windows Settings to finish making Mailspring your mail client":
+    "Visite as Configurações do Windows para terminar de fazer do Mailspring seu cliente de e-mail",
+  "We encountered a problem moving to the Applications folder. Try quitting the application and moving it manually.":
+    "Encontramos um problema ao mudar para a pasta Aplicativos. Tente encerrar o aplicativo e movê-lo manualmente.",
+  "We encountered a problem with your local email database. %@\n\nCheck that no other copies of Mailspring are running and click Rebuild to reset your local cache.":
+    "Encontramos um problema com seu banco de dados de e-mail local. %@\n\nVerifique se nenhuma outra cópia do Mailspring está sendo executada e clique em Reconstruir para redefinir seu cache local.",
+  "We encountered a problem with your local email database. We will now attempt to rebuild it.":
+    "Encontramos um problema com seu banco de dados de e-mail local. Vamos agora tentar reconstruí-lo.",
+  "We encountered an SMTP Gateway error that prevented this message from being delivered to all recipients. The message was only sent successfully to these recipients:\n%@\n\nError: %@":
+    "Encontramos um erro do gateway SMTP que impediu que essa mensagem fosse entregue a todos os destinatários. A mensagem só foi enviada com sucesso para esses destinatários:\n%@\n\nErro: %@",
+  "We were unable to deliver this message to some recipients. Click 'See Details' for more information.":
+    "Não foi possível entregar esta mensagem para alguns destinatários. Clique em 'Ver detalhes' para mais informações.",
   "We were unable to deliver this message.": "Não foi possível entregar esta mensagem.",
-  "We're having trouble billing your Mailspring subscription.": "Estamos com problemas para faturar sua assinatura do Mailspring.",
-  "We've picked a set of keyboard shortcuts based on your email account and platform. You can also pick another set:": "Escolhemos um conjunto de atalhos de teclado com base na sua conta de e-mail e plataforma. Você também pode escolher outro conjunto:",
+  "We're having trouble billing your Mailspring subscription.":
+    "Estamos com problemas para faturar sua assinatura do Mailspring.",
+  "We've picked a set of keyboard shortcuts based on your email account and platform. You can also pick another set:":
+    "Escolhemos um conjunto de atalhos de teclado com base na sua conta de e-mail e plataforma. Você também pode escolher outro conjunto:",
   "Website": "Website",
   "Welcome to Mailspring": "Bem vindo ao Mailspring",
   "When composing, automatically": "Ao compor, automaticamente",
-  "When enabled, Mailspring will notify you as soon as someone reads this message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.": "Quando habilitado, o Mailspring irá notificá-lo assim que alguém ler esta mensagem. Enviando para um grupo? O Mailspring mostra quais destinatários abriram seu e-mail para que você possa acompanhar com precisão.",
-  "When link tracking is turned on, Mailspring will notify you when recipients click links in this email.": "Quando o rastreamento de links está ativado, o Mailspring avisará quando os destinatários clicarem em links neste e-mail.",
+  "When enabled, Mailspring will notify you as soon as someone reads this message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.":
+    "Quando habilitado, o Mailspring irá notificá-lo assim que alguém ler esta mensagem. Enviando para um grupo? O Mailspring mostra quais destinatários abriram seu e-mail para que você possa acompanhar com precisão.",
+  "When link tracking is turned on, Mailspring will notify you when recipients click links in this email.":
+    "Quando o rastreamento de links está ativado, o Mailspring avisará quando os destinatários clicarem em links neste e-mail.",
   "When reading messages, mark as read": "Ao ler mensagens, marque como lido",
   "Window": "Janela",
   "Window Controls and Menus": "Controles de Janela e Menus",
-  "With activity tracking, you’ll know as soon as someone reads your message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.": "Com o acompanhamento de atividades, você saberá assim que alguém ler sua mensagem. Enviando para um grupo? O Mailspring mostra quais destinatários abriram seu e-mail para que você possa acompanhar com precisão.",
-  "Would you like to make Mailspring your default mail client?": "Você gostaria de tornar o Mailspring seu cliente de e-mail padrão?",
+  "With activity tracking, you’ll know as soon as someone reads your message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.":
+    "Com o acompanhamento de atividades, você saberá assim que alguém ler sua mensagem. Enviando para um grupo? O Mailspring mostra quais destinatários abriram seu e-mail para que você possa acompanhar com precisão.",
+  "Would you like to make Mailspring your default mail client?":
+    "Você gostaria de tornar o Mailspring seu cliente de e-mail padrão?",
   "Write a reply…": "Escreva uma resposta…",
-  "Write better emails with LinkedIn profiles, Twitter bios, message history, and more in the right sidebar.": "Escreva e-mails melhores com perfis do LinkedIn, biografias do Twitter, histórico de mensagens e muito mais na barra lateral direita.",
+  "Write better emails with LinkedIn profiles, Twitter bios, message history, and more in the right sidebar.":
+    "Escreva e-mails melhores com perfis do LinkedIn, biografias do Twitter, histórico de mensagens e muito mais na barra lateral direita.",
   "Yahoo is unavailable.": "Yahoo não está disponível.",
   "Yes": "Sim",
   "You": "Você",
-  "You are using %@, which is free! You can link up to four email accounts and try pro features like send later, read receipts and reminders a few times a week.": "Você está usando %@, que é grátis! Você pode vincular até quatro contas de e-mail e tentar recursos pro como enviar mais tarde, ler recibos e lembretes algumas vezes por semana.",
-  "You are using %@, which is free! You can link up to four email accounts and try pro features like snooze, send later, read receipts and reminders a few times a week.": "Você está usando %@, que é grátis! Você pode vincular até quatro contas de e-mail e experimentar recursos pro como adiar, enviar mais tarde, ler recibos e lembretes algumas vezes por semana.",
-  "You can add reminders to %1$@ emails each %2$@ with Mailspring Basic.": "Você pode adicionar lembretes a %1$@ emails cada %2$@ com o Mailspring Basic.",
-  "You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.": "Você pode escolher um conjunto de atalhos para usar atalhos de teclado de clientes de e-mail conhecidos. Para editar um atalho, clique na lista abaixo e insira uma substituição no teclado.",
-  "You can get open and click notifications for %1$@ emails each %2$@ with Mailspring Basic.": "Você pode abrir e clicar em notificações para %1$@ emails cada %2$@ com o Mailspring Basic.",
-  "You can schedule sending of %1$@ emails each %2$@ with Mailspring Basic.": "Você pode agendar o envio de %1$@ emails cada %2$@ com o Mailspring Basic.",
-  "You can share %1$@ emails each %2$@ with Mailspring Basic.": "Você pode compartilhar %1$@ emails cada %2$@ com o Mailspring Basic.",
-  "You can snooze %1$@ emails each %2$@ with Mailspring Basic.": "Você pode adiar %1$@ emails cada %2$@ com o Mailspring Basic.",
-  "You can switch back to stable from the preferences.": "Você pode voltar para estável a partir das preferências.",
-  "You can view contact profiles for %1$@ emails each %2$@ with Mailspring Basic.": "Você pode ver os perfis de contato para %1$@ emails cada %2$@ com o Mailspring Basic.",
-  "You haven't created any mail rules. To get started, define a new rule above and tell Mailspring how to process your inbox.": "Você não criou nenhuma regra de correio. Para começar, defina uma nova regra acima e diga ao Mailspring como processar sua caixa de entrada.",
-  "You may need to %@ to your Yandex account before connecting email apps. If you use two-factor auth, you need to create an %@ for Mailspring.": "Você pode precisar %@ para sua conta Yandex antes de conectar os aplicativos de e-mail. Se você usa autenticação de dois fatores, você precisa criar um %@ para Mailspring.",
-  "You may need to configure aliases with your mail provider (Outlook, Gmail) before using them.": "Pode ser necessário configurar aliases com seu provedor de email (Outlook, Gmail) antes de usá-los.",
+  "You are using %@, which is free! You can link up to four email accounts and try pro features like send later, read receipts and reminders a few times a week.":
+    "Você está usando %@, que é grátis! Você pode vincular até quatro contas de e-mail e tentar recursos pro como enviar mais tarde, ler recibos e lembretes algumas vezes por semana.",
+  "You are using %@, which is free! You can link up to four email accounts and try pro features like snooze, send later, read receipts and reminders a few times a week.":
+    "Você está usando %@, que é grátis! Você pode vincular até quatro contas de e-mail e experimentar recursos pro como adiar, enviar mais tarde, ler recibos e lembretes algumas vezes por semana.",
+  "You can add reminders to %1$@ emails each %2$@ with Mailspring Basic.":
+    "Você pode adicionar lembretes a %1$@ emails cada %2$@ com o Mailspring Basic.",
+  "You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.":
+    "Você pode escolher um conjunto de atalhos para usar atalhos de teclado de clientes de e-mail conhecidos. Para editar um atalho, clique na lista abaixo e insira uma substituição no teclado.",
+  "You can get open and click notifications for %1$@ emails each %2$@ with Mailspring Basic.":
+    "Você pode abrir e clicar em notificações para %1$@ emails cada %2$@ com o Mailspring Basic.",
+  "You can schedule sending of %1$@ emails each %2$@ with Mailspring Basic.":
+    "Você pode agendar o envio de %1$@ emails cada %2$@ com o Mailspring Basic.",
+  "You can share %1$@ emails each %2$@ with Mailspring Basic.":
+    "Você pode compartilhar %1$@ emails cada %2$@ com o Mailspring Basic.",
+  "You can snooze %1$@ emails each %2$@ with Mailspring Basic.":
+    "Você pode adiar %1$@ emails cada %2$@ com o Mailspring Basic.",
+  "You can switch back to stable from the preferences.":
+    "Você pode voltar para estável a partir das preferências.",
+  "You can view contact profiles for %1$@ emails each %2$@ with Mailspring Basic.":
+    "Você pode ver os perfis de contato para %1$@ emails cada %2$@ com o Mailspring Basic.",
+  "You haven't created any mail rules. To get started, define a new rule above and tell Mailspring how to process your inbox.":
+    "Você não criou nenhuma regra de correio. Para começar, defina uma nova regra acima e diga ao Mailspring como processar sua caixa de entrada.",
+  "You may need to %@ to your Yandex account before connecting email apps. If you use two-factor auth, you need to create an %@ for Mailspring.":
+    "Você pode precisar %@ para sua conta Yandex antes de conectar os aplicativos de e-mail. Se você usa autenticação de dois fatores, você precisa criar um %@ para Mailspring.",
+  "You may need to configure aliases with your mail provider (Outlook, Gmail) before using them.":
+    "Pode ser necessário configurar aliases com seu provedor de email (Outlook, Gmail) antes de usá-los.",
   "You must provide a name for your template.": "Você deve fornecer um nome para o seu modelo.",
   "You must provide a template name.": "Você deve fornecer um nome de modelo.",
   "You must provide contents for your template.": "Você deve fornecer conteúdo para o seu modelo.",
-  "You need to provide one or more recipients before sending the message.": "Você precisa fornecer um ou mais destinatários antes de enviar a mensagem.",
-  "You'll find Mailspring, along with other options, listed in Default Apps > Mail.": "Você encontrará o Mailspring, junto com outras opções, listado em Aplicativos padrão > Correio.",
-  "You're on a pre-release channel. We'd love your feedback.": "Você está em um canal de pré-lançamento. Nós adoraríamos o seu feedback.",
-  "You're running the latest version of Mailspring (%@).": "Você está executando a versão mais recente do Mailspring (%@).",
-  "You're syncing more than four accounts — please consider paying for Mailspring Pro!": "Você está sincronizando mais de quatro contas - considere pagar pelo Mailspring Pro!",
+  "You need to provide one or more recipients before sending the message.":
+    "Você precisa fornecer um ou mais destinatários antes de enviar a mensagem.",
+  "You'll find Mailspring, along with other options, listed in Default Apps > Mail.":
+    "Você encontrará o Mailspring, junto com outras opções, listado em Aplicativos padrão > Correio.",
+  "You're on a pre-release channel. We'd love your feedback.":
+    "Você está em um canal de pré-lançamento. Nós adoraríamos o seu feedback.",
+  "You're running the latest version of Mailspring (%@).":
+    "Você está executando a versão mais recente do Mailspring (%@).",
+  "You're syncing more than four accounts — please consider paying for Mailspring Pro!":
+    "Você está sincronizando mais de quatro contas - considere pagar pelo Mailspring Pro!",
   "You've reached your quota": "Você atingiu sua cota",
-  "Your Mailspring ID is missing required fields - you may need to reset Mailspring. %@": "Seu ID de Mailspring não possui campos obrigatórios - talvez seja necessário redefinir o Mailspring. %@",
-  "Your `Sent Mail` folder could not be automatically detected. Visit Preferences > Folders to choose a Sent folder and then try again.": "Sua pasta `Enviados` não pôde ser detectada automaticamente. Visite Preferências > Pastas para escolher uma pasta Enviada e tente novamente.",
-  "Your `Trash` folder could not be automatically detected. Visit Preferences > Folders to choose a Trash folder and then try again.": "Sua pasta `Lixeira` não pôde ser detectada automaticamente. Visite Preferências> Pastas para escolher uma pasta Lixeira e tente novamente.",
+  "Your Mailspring ID is missing required fields - you may need to reset Mailspring. %@":
+    "Seu ID de Mailspring não possui campos obrigatórios - talvez seja necessário redefinir o Mailspring. %@",
+  "Your `Sent Mail` folder could not be automatically detected. Visit Preferences > Folders to choose a Sent folder and then try again.":
+    "Sua pasta `Enviados` não pôde ser detectada automaticamente. Visite Preferências > Pastas para escolher uma pasta Enviada e tente novamente.",
+  "Your `Trash` folder could not be automatically detected. Visit Preferences > Folders to choose a Trash folder and then try again.":
+    "Sua pasta `Lixeira` não pôde ser detectada automaticamente. Visite Preferências> Pastas para escolher uma pasta Lixeira e tente novamente.",
   "Your name": "Seu nome",
-  "Your updated localization will be reviewed and included in a future version of Mailspring.": "Sua localização atualizada será revisada e incluída em uma versão futura do Mailspring.",
+  "Your updated localization will be reviewed and included in a future version of Mailspring.":
+    "Sua localização atualizada será revisada e incluída em uma versão futura do Mailspring.",
   "Zoom": "Ampliar/Reduzir",
   "an email address": "um endereço de email",
   "an email subject": "um assunto de email",
@@ -882,7 +1065,8 @@
   "ends with": "termina com",
   "equals": "é igual a",
   "folder or label": "pasta ou marcador",
-  "iCloud requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.": "O iCloud exige que você crie uma senha de aplicativo exclusiva para aplicativos de e-mail, como o Mailspring. Siga %@ para criar um e cole-o abaixo.",
+  "iCloud requires that you create a unique app password for email apps like Mailspring. Follow %@ to create one and then paste it below.":
+    "O iCloud exige que você crie uma senha de aplicativo exclusiva para aplicativos de e-mail, como o Mailspring. Siga %@ para criar um e cole-o abaixo.",
   "in %@": "em %@",
   "link a phone number": "Linkar um número de telefone",
   "matches expression": "corresponde a expressão",

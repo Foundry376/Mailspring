@@ -25,7 +25,7 @@
 
   .file-thumbnail-preview {
     width: 100%;
-    max-height: 64px;
+    height: 94px;
     text-align: left;
     overflow: hidden;
     border: solid 1px @attachment-border-color;
@@ -60,7 +60,7 @@
     display: flex;
     align-items: center;
     flex-grow: 2;
-    min-width: 85%;
+    min-width: 65%;
     padding: 10px;
     height: 105%;
     border: solid 1px @attachment-border-color;
@@ -87,16 +87,6 @@
       margin-right: @spacing-three-quarters;
       color: @file-size-color;
     }
-    img.quicklook-icon {
-      background-color: @file-icon-color;
-
-      &:hover {
-        background-color: darken(@file-icon-color, 20%);
-      }
-      &:active {
-        background-color: darken(@file-icon-color, 40%);
-      }
-    }
   }
 
   .file-action-icon {
@@ -119,6 +109,10 @@
       background-color: @file-icon-color;
     }
 
+    &.quicklook {
+      border-radius: 0;
+      border-right: none;
+    }
     &:hover img {
       background-color: darken(@file-icon-color, 20%);
     }

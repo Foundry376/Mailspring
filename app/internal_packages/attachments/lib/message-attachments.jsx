@@ -56,7 +56,6 @@ class MessageAttachments extends Component {
       <AttachmentRenderer
         key={file.id}
         focusable
-        previewable
         filePath={filePath}
         download={download}
         contentType={contentType}

@@ -1,0 +1,163 @@
+<body style="padding:0; border:0; margin: 15px; background-color: white;" tabindex="1">
+  <style>
+    .xlsx-content {
+      margin-bottom: 30px;
+    }
+    .xlsx-tabs {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: row;
+      height: 30px;
+      background: #98a7b9;
+      overflow-x: scroll;
+      white-space: nowrap;
+      border-top: 1px solid #777;
+    }
+    .xlsx-tabs .tab {
+      padding: 0 10px;
+      margin-right: 3px;
+      border-left: 1px solid #ddd;
+      background: #e2e2e2;
+      height: 26px;
+      line-height: 26px;
+      box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+      color: #333;
+      cursor: default;
+      user-select: none;
+    }
+    .xlsx-tabs .tab.active {
+      background: white;
+    }
+  </style>
+
+  <div id="the-doc"><canvas id="the-canvas"></canvas></div>
+
+  <script>
+    const div = document.getElementById('the-doc');
+
+    async function runPDFCapture({ filePath, previewPath }) {
+      const canvas = document.getElementById('the-canvas');
+      const context = canvas.getContext('2d');
+      const pdf = await window.nodePDFForFile(filePath);
+      const page = await pdf.getPage(1);
+
+      const viewport = page.getViewport({ scale: 1 });
+      const scale = window.outerWidth / (viewport.width || viewport.viewBox[2]);
+      const scaledViewport = page.getViewport({ scale: scale });
+
+      scaledViewport.height = scaledViewport.height || viewport.viewBox[3] * scale;
+      scaledViewport.width = scaledViewport.width || viewport.viewBox[2] * scale;
+      if (Number.isNaN(scaledViewport.transform[0])) {
+        scaledViewport.transform = [scale, 0, 0, -scale, 0, scaledViewport.height];
+      }
+      canvas.height = scaledViewport.height;
+      canvas.width = scaledViewport.width;
+      canvas.style.height = scaledViewport.height / window.devicePixelRatio + 'px';
+      canvas.style.width = scaledViewport.width / window.devicePixelRatio + 'px';
+
+      const renderTask = page.render({
+        canvasContext: context,
+        viewport: scaledViewport,
+      });
+
+      await renderTask.promise.then(function() {
+        canvas.toBlob(blob => {
+          const reader = new FileReader();
+          reader.addEventListener('loadend', () => {
+            window.finishWithData(previewPath, new Uint8Array(reader.result));
+          });
+          reader.readAsArrayBuffer(blob);
+        });
+      });
+    }
+
+    async function runXLSX({ filePath, previewPath }) {
+      const data = nodeXLSXForFile(filePath);
+      const workbook = window.xlsx.read(data, { type: 'array', cellStyles: true, cellHTML: true });
+
+      div.innerHTML = '';
+
+      if (mode === 'capture') {
+        div.innerHTML = window.xlsx.write(workbook, {
+          sheet: workbook.SheetNames[0],
+          type: 'string',
+          bookType: 'html',
+          header: '<div>',
+          footer: '</div>',
+        });
+        window.finishWithWindowCapture(previewPath);
+      } else {
+        const content = document.createElement('div');
+        content.classList.add('xlsx-content');
+        div.appendChild(content);
+        const tabs = document.createElement('div');
+        tabs.classList.add('xlsx-tabs');
+        div.appendChild(tabs);
+
+        const showTab = sheetName => {
+          document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+          const tab = document.querySelector(`[data-sheet-name="${sheetName}"]`);
+          if (tab) tab.classList.add('active');
+
+          content.innerHTML = window.xlsx.write(workbook, {
+            sheet: sheetName,
+            type: 'string',
+            bookType: 'html',
+            header: '<div>',
+            footer: '</div>',
+          });
+        };
+
+        workbook.SheetNames.forEach(sheetName => {
+          const tab = document.createElement('div');
+          tab.classList.add('tab');
+          tab.innerText = sheetName;
+          tab.dataset.sheetName = sheetName;
+          tab.addEventListener('click', () => showTab(sheetName));
+          tabs.appendChild(tab);
+        });
+
+        showTab(workbook.SheetNames[0]);
+      }
+    }
+
+    async function runMammoth({ filePath, previewPath, mode }) {
+      div.innerHTML = await nodeMammothHTMLForFile(filePath);
+      if (mode === 'capture') {
+        window.finishWithWindowCapture(previewPath);
+      }
+    }
+
+    async function runSnarkdown({ filePath, previewPath, mode }) {
+      div.innerHTML = await nodeSnarkdownHTMLForFile(filePath);
+      div.style.fontFamily =
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"';
+      if (mode === 'capture') {
+        window.finishWithWindowCapture(previewPath);
+      }
+    }
+
+    const { mode, filePath, previewPath } = JSON.parse(
+      decodeURIComponent(window.location.search.substr(1))
+    );
+
+    window.requestAnimationFrame(() => {
+      if (filePath.endsWith('.pdf')) {
+        if (mode === 'capture') {
+          runPDFCapture({ filePath, previewPath });
+        } else {
+          // To view PDFs we use the separate pdfviewer included with pdfjs
+        }
+      } else if (filePath.endsWith('.docx')) {
+        runMammoth({ mode, filePath, previewPath });
+      } else if (filePath.endsWith('.md')) {
+        runSnarkdown({ mode, filePath, previewPath });
+      } else {
+        runXLSX({ mode, filePath, previewPath });
+      }
+    });
+  </script>
+</body>

@@ -91,7 +91,7 @@ export default {
             type: 'boolean',
             default: true,
             title: localized(
-              'Display thumbnail previews for attachments when available. (macOS only)'
+              'Display thumbnail previews for attachments when available.'
             ),
           },
         },
