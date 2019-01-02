@@ -104,7 +104,7 @@ const saveConversations = async conversations => {
         conv.lastMessageSenderName = profile.data.name;
       }
       if (convInDB) {
-        return convInDB.update({
+         await convInDB.update({
           $set: {
             at: conv.at,
             unreadMessages: conv.unreadMessages,
@@ -114,7 +114,9 @@ const saveConversations = async conversations => {
             lastMessageSenderName: conv.lastMessageSenderName,
             avatarMembers: conv.avatarMembers
           }
-        })
+        });
+         chatModel.updateAvatars(conv.jid);
+         return;
       }
     }
     return db.conversations.upsert(conv)
