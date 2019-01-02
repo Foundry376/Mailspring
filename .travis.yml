@@ -52,7 +52,6 @@ addons:
     - libglib2.0-dev
     - libxml2-dev
     - uuid-dev
-    - gcc-7-base=7.3.0-21ubuntu1
 
 branches:
   only:
