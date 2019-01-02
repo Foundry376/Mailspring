@@ -21,6 +21,7 @@ import { saveGroupMessages } from '../../../utils/db-utils';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
+import MessageEditBar from './MessageEditBar';
 
 let key = 0;
 
@@ -313,24 +314,29 @@ export default class Messages extends PureComponent {
                   return readTime < msg.updateTime;
                 }
               }
+              let isEditing = false;
               if (msg.id === chatModel.editingMessageId) {
-                border = 'dashed 2px red';
+                // border = 'dashed 2px red';
+                isEditing = true;
               } else if (isUnreadUpdatedMessage(msg)) {
-                border = 'solid 2px red';
+                // border = 'solid 2px red';
               }
+              const isCurrentUser = msg.sender === currentUserId;
 
               return (
                 <div
                   key={msg.id}
-                  className={getMessageClasses(msg)}
+                  className={getMessageClasses(msg) + (
+                    isEditing ? ' editing' : ''
+                  )}
                   style={{ borderColor: color, border }}
                 >
-                  {msg.sender !== currentUserId ?
+                  {!isCurrentUser ?
                     <div className="messageSender">
                       {this.getContactInfoByJid(msg.sender)}
                     </div> : null
                   }
-                  {msg.sender === currentUserId ?
+                  {isCurrentUser ?
                     <div className="messageSender">
                       {this.getContactInfoByJid(msg.sender)}
                     </div> : null
@@ -346,7 +352,13 @@ export default class Messages extends PureComponent {
                           <div>Uploading {msgBody.localFile && path.basename(msgBody.localFile)}</div>
                         </div>
                       ) : (
-                          <div className="messageBody">{msgBody.content || msgBody}</div>
+                          isEditing ? (
+                            <div>
+                              <MessageEditBar value={msgBody.content || msgBody} {...this.props.sendBarProps} />
+                            </div>
+                          ) : (
+                              <div className="messageBody">{msgBody.content || msgBody}</div>
+                            )
                         )
                     }
 
@@ -371,11 +383,13 @@ export default class Messages extends PureComponent {
                       {timeDescriptor(msg.sentTime, true)}
                     </div>
                   </div>
-                  {!msgFile && msg.sender === currentUserId && <div className='message-toolbar' >
-                    <span
-                      className="inplace-edit-img"
-                      onClick={startEditMessage}
-                    /></div>}
+                  {
+                    !msgFile && isCurrentUser && !isEditing && <div className='message-toolbar' >
+                      <span
+                        className="inplace-edit-img"
+                        onClick={startEditMessage}
+                      /></div>
+                  }
                 </div>
               );
             })}

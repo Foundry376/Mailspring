@@ -299,7 +299,7 @@ export default class MessagesPanel extends PureComponent {
                     <MessagesTopBar {...topBarProps} />
                   )}
                 {/* <Divider type="horizontal" /> */}
-                <Messages {...messagesProps} />
+                <Messages {...messagesProps} sendBarProps={sendBarProps} />
                 {this.state.dragover && (
                   <div id="message-dragdrop-override"></div>
                 )}

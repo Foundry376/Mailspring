@@ -199,4 +199,18 @@
   .inline-block {
     display: inline-block;
   }
+  .message.editing {
+    width: 100%;
+    padding: 0;
+    background: #f4f6f8;
+    &:after {
+      display: none!important;
+    }
+    .messageContent>div{
+      width: 100%;
+    }
+    textarea {
+      color: #000;
+    }
+  }
 }
