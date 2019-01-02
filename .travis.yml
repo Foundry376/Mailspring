@@ -52,6 +52,7 @@ addons:
     - libglib2.0-dev
     - libxml2-dev
     - uuid-dev
+    - gcc-7-base=7.3.0-21ubuntu1
 
 branches:
   only:
@@ -68,8 +69,6 @@ matrix:
     env: CC=clang CXX=clang++ SIGN_BUILD=true
 
 before_install:
-# Patch gcc-7-base
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y --force-yes -q -qq dpkg; wget http://launchpadlibrarian.net/386851587/gcc-7-base_7.3.0-29ubuntu1_amd64.deb; sudo dpkg -i ./gcc-7-base_7.3.0-29ubuntu1_amd64.deb; fi
 # Decrypt and uncompress code signing certs, etc.
 - openssl aes-256-cbc -K $encrypted_faf2708e46e2_key -iv $encrypted_faf2708e46e2_iv
   -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d;
