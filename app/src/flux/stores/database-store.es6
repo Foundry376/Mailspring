@@ -60,9 +60,9 @@ async function openDatabase(dbPath, retryCnt = 0) {
 
       // https://www.sqlite.org/intern-v-extern-blob.html
       // A database page size of 8192 or 16384 gives the best performance for large BLOB I/O.
-      db.pragma(`main.page_size = 8192`);
-      db.pragma(`main.cache_size = 20000`);
-      db.pragma(`main.synchronous = NORMAL`);
+      db.pragma(`main.page_size = 4096`);
+      db.pragma(`main.cache_size = 10000`);
+      db.pragma(`main.synchronous = FULL`);
 
       db.pragma(`busy_timeout = 30000`);
       db.pragma(`locking_mode = NORMAL`);
