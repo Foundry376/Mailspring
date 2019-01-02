@@ -7,6 +7,7 @@ import KeyManager from '../../key-manager';
 import Actions from '../actions';
 import Account from '../models/account';
 import Utils from '../models/utils';
+import getDb from '../../../internal_packages/edison-beijing-chat/chat-components/db';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
@@ -174,6 +175,14 @@ class AccountStore extends MailspringStore {
   _onRemoveAccount = id => {
     const account = this._accounts.find(a => a.id === id);
     if (!account) return;
+    let chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    let chatAccount = chatAccounts[account.emailAddress];
+    delete chatAccounts[account.emailAddress];
+    AppEnv.config.set('chatAccounts', chatAccounts);
+    let jid = chatAccount.userId + '@im.edison.tech';
+    getDb().then(db => {
+      db.conversations.find().where('curJid').eq(jid).remove();
+    });
 
     this._caches = {};
 

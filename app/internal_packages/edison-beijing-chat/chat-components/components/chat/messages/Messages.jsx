@@ -13,7 +13,9 @@ import { colorForString } from '../../../utils/colors';
 import { buildTimeDescriptor } from '../../../utils/time';
 import RetinaImg from '../../../../../../src/components/retina-img';
 import { downloadFile } from '../../../utils/awss3';
-const { dialog } = require('electron').remote;
+
+const remote = require('electron').remote;
+const { dialog, Menu, MenuItem } = remote;
 import { isJsonString } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
 import chatModel from '../../../store/model';
@@ -108,7 +110,30 @@ export default class Messages extends PureComponent {
       shouldScrollBottom: areNewMessages && (isLatestSelf || isAtBottom),
     });
   }
-
+  componentDidMount() {
+    this.menu = new Menu()
+    let menuItem = new MenuItem({
+      label: 'Edit text',
+      click: () => {
+        chatModel.editingMessageId = this.activeMsg.id;
+        this.update();
+        this.menu.closePopup();
+      }
+    });
+    this.menu.append(menuItem);
+    menuItem = new MenuItem({
+      label: 'Delete message',
+      click: () => {
+        const { selectedConversation, onMessageSubmitted } = this.props;
+        const body = this.activeMsgBody;
+        body.deleted = true;
+        const updating = true;
+        onMessageSubmitted(selectedConversation, JSON.stringify(body), this.activeMsg.id, true, updating);
+        this.menu.closePopup();
+      }
+    });
+    this.menu.append(menuItem);
+  }
   componentDidUpdate() {
     if (this.state.shouldScrollBottom) {
       this.scrollToMessagesBottom();
@@ -201,15 +226,19 @@ export default class Messages extends PureComponent {
           <div className="messageGroup" key={index}>
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
+              if (msgBody.deleted) {
+                return null;
+              }
               msgBody.path = msgBody.localFile || msgBody.path;
               const color = colorForString(msg.sender);
               let msgFile;
 
-              let startEditMessage = (event) => {
-                chatModel.editingMessageId = msg.id;
+              let showPopupMenu = (event) => {
+                this.activeMsg = msg;
+                this.activeMsgBody = msgBody;
                 event.stopPropagation();
                 event.preventDefault();
-                this.update();
+                this.menu.popup({ x: event.clientX, y: event.clientY });
               };
 
               let download = (event) => {
@@ -280,7 +309,8 @@ export default class Messages extends PureComponent {
                     />
                     {msg.sender === currentUserId && <span
                       className="inplace-edit-img"
-                      onClick={startEditMessage}
+                      onClick={showPopupMenu}
+                      onContextMenu={showPopupMenu}
                     />}
                   </div>
                 </div>)
@@ -298,7 +328,8 @@ export default class Messages extends PureComponent {
                     />
                     {msg.sender === currentUserId && <span
                       className="inplace-edit-img"
-                      onClick={startEditMessage}
+                      onClick={showPopupMenu}
+                      onContextMenu={showPopupMenu}
                     />}
                   </div>
                 </div>
@@ -387,7 +418,8 @@ export default class Messages extends PureComponent {
                     !msgFile && isCurrentUser && !isEditing && <div className='message-toolbar' >
                       <span
                         className="inplace-edit-img"
-                        onClick={startEditMessage}
+                        onClick={showPopupMenu}
+                        onContextMenu={showPopupMenu}
                       /></div>
                   }
                 </div>

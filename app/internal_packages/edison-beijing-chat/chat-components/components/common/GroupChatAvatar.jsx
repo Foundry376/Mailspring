@@ -5,7 +5,8 @@ import getDb from '../../db';
 import xmpp from '../../xmpp/index';
 import { getContactInfo, findGroupChatOwner, getChatMembersFromDb } from '../../utils/contact-utils';
 import { groupMessages } from '../../utils/message';
-import ContactAvatar from './ContactAvatar'
+import ContactAvatar from './ContactAvatar';
+import chatModel from '../../store/model';
 
 class GroupChatAvatar extends Component {
   constructor(props) {
@@ -16,6 +17,8 @@ class GroupChatAvatar extends Component {
   }
   componentDidMount() {
     this.refreshAvatar(this.props);
+    const groupAvatars = chatModel.groupAvatars;
+    groupAvatars.push(this);
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.conversation.jid !== this.props.conversation.jid) {

@@ -259,7 +259,8 @@ export default class MessagesPanel extends PureComponent {
       groupedMessages,
       referenceTime,
       selectedConversation,
-      members
+      members,
+      onMessageSubmitted: sendMessage,
     };
     const sendBarProps = {
       onMessageSubmitted: sendMessage,
