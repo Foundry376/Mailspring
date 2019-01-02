@@ -4,7 +4,7 @@ const chatModel = {
   },
   store: null, // will save the store instance in ConfigureStore
   editingMessageId: null, //inplace editing message's id
-  groupAvatars:[], //GroupChatAvatar React instance
+  groupAvatars: [], // GroupChatAvatar React instance
   updateAvatars(conversationJid) {
     this.groupAvatars.forEach(groupAvatar => {
          if(conversationJid === groupAvatar.props.conversation.jid) {
