@@ -179,10 +179,12 @@ class AccountStore extends MailspringStore {
     let chatAccount = chatAccounts[account.emailAddress];
     delete chatAccounts[account.emailAddress];
     AppEnv.config.set('chatAccounts', chatAccounts);
-    let jid = chatAccount.userId + '@im.edison.tech';
-    getDb().then(db => {
-      db.conversations.find().where('curJid').eq(jid).remove();
-    });
+    if(chatAccount){//If there is an chat account
+      let jid = chatAccount.userId + '@im.edison.tech';
+      getDb().then(db => {
+        db.conversations.find().where('curJid').eq(jid).remove();
+      });
+    }
 
     this._caches = {};
 
