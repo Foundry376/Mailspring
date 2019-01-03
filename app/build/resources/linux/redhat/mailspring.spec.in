@@ -48,6 +48,7 @@ done
 /usr/share/icons/hicolor/512x512/apps/mailspring.png
 
 %post
+gtk-update-icon-cache -f /usr/share/icons/hicolor &> /dev/null
 update-desktop-database &> /dev/null
 
 %postun

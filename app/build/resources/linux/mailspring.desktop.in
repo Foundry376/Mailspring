@@ -8,4 +8,5 @@ Type=Application
 StartupNotify=true
 StartupWMClass=<%= productName %>
 Categories=GNOME;GTK;Network;Email;
+Keywords=email;internet;
 MimeType=x-scheme-handler/mailto;x-scheme-handler/mailspring;

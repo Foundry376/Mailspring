@@ -1,5 +1,23 @@
 # Mailspring Changelog
 
+### 1.5.5 (1/3/2019)
+
+Features:
+
+* Mailspring now shows visual previews of PDF, DOCX, XLSX, XLS, CSV, and Markdown attachments on Windows and Linux as well as macOS. Selecting an attachment in the message view and pressing the space bar or clicking the small "eye" icon shows a preview of the contents in a new window.
+
+Fixes:
+
+* Mailspring no longer crashes with a fatal error on CentOS, Red Hat Enterprise Linux (RHEL) 7.6 with a "CXXABI_1.3.9" message. When we upgraded to Electron 4, using GCC++5 to build parts of Mailspring resulted in libraries too new for some linux platforms.
+
+* In dark mode, text in message bodies is no longer black.
+
+* The `copy` and `cut` context menu items are disabled when right-clicking a password field.
+
+* The Brazillian Portuguese translation has been improved (Thanks @leoescarpellin!)
+
+* You can now view Mailspring's open source license and all of it's dependencies' licenses and copyright notices from the menu.
+
 ### 1.5.4 (12/29/2018)
 
 Improvements:
