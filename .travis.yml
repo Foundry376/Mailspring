@@ -25,33 +25,17 @@ addons:
     packages:
     - build-essential
     - clang
-    - cmake
     - execstack
     - fakeroot
-    - g++-5
+    - g++-4.8
     - git
     - libgnome-keyring-dev
     - libsecret-1-dev
     - xvfb
     - rpm
-    - autoconf
-    - automake
-    - libtool
-    - libc-ares-dev
-    - libctemplate-dev
-    - libcurl4-openssl-dev
-    - libicu-dev
     - libxext-dev
-    - libsasl2-dev
-    - libsasl2-modules
-    - libsasl2-modules-gssapi-mit
-    - libssl-dev
-    - libtidy-dev
     - libxtst-dev
     - libxkbfile-dev
-    - libglib2.0-dev
-    - libxml2-dev
-    - uuid-dev
 
 branches:
   only:
@@ -62,7 +46,7 @@ branches:
 matrix:
   include:
   - os: linux
-    env: CC=gcc-5 CXX=g++-5
+    env: CC=gcc-4.8 CXX=g++-4.8
   - os: osx
     osx_image: xcode8.3
     env: CC=clang CXX=clang++ SIGN_BUILD=true
@@ -82,6 +66,8 @@ before_install:
 
 before_script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install cmake execstack g++-5 autoconf automake libtool libc-ares-dev libctemplate-dev libcurl4-openssl-dev libicu-dev libxext-dev libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit libssl-dev libtidy-dev libxtst-dev libxkbfile-dev libglib2.0-dev libxml2-dev uuid-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=gcc-5 CXX=g++-5; fi
 
 script:
 - npm run ci-setup-mac-keychain
