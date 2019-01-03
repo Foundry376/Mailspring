@@ -35,6 +35,9 @@ global.finishWithData = (previewPath, arrayBuffer) => {
 };
 
 global.finishWithWindowCapture = (previewPath, startedAt = Date.now()) => {
+  // Remove scroll bars or they appear in the capture on Windows
+  document.body.style.overflow = 'hidden';
+
   // Wait up to 1 sec for images in the rendered HTML to finish loading
   const waitingForImage = Array.from(document.querySelectorAll('img')).find(
     i => i.complete === false
