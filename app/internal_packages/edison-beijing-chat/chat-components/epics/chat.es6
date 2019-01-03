@@ -44,6 +44,7 @@ import {
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
 import { isJsonString } from '../utils/stringUtils';
+import { getLastMessageText } from '../utils/message';
 import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
@@ -152,13 +153,13 @@ export const sendMessageEpic = action$ =>
       // update conversation last message
       let data = {};
       if (body) {
-        data = JSON.parse(body);
+        let content = getLastMessageText(body);
         if (conversation.update) {
           conversation.update({
             $set: {
               lastMessageTime: (new Date()).getTime(),
               lastMessageSender: conversation.curJid,
-              lastMessageText: data.content
+              lastMessageText: content
             }
           })
         }
@@ -169,7 +170,7 @@ export const sendMessageEpic = action$ =>
               $set: {
                 lastMessageTime: (new Date()).getTime(),
                 lastMessageSender: conversation.curJid,
-                lastMessageText: data.content
+                lastMessageText:content
               }
             })
           }))
@@ -282,10 +283,7 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
             const { chat: { selectedConversation } } = getState();
             conv = selectedConversation;
           }
-          let content = message.body;
-          if (isJsonString(message.body)) {
-            content = JSON.parse(message.body).content;
-          }
+          let content = getLastMessageText(message);
           return Object.assign({}, JSON.parse(JSON.stringify(conv)), {
             lastMessageTime: (new Date()).getTime(),
             lastMessageText: content,
@@ -429,7 +427,8 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
     })
     .map(({ payload, name, beAt }) => {
       let at = false;
-      const { content, timeSend } = JSON.parse(payload.body);
+      let content = getLastMessageText(payload);
+      const { timeSend } = JSON.parse(payload.body);
       // if not current conversation, unreadMessages + 1
       let unreadMessages = 0;
       const { chat: { selectedConversation } } = getState();
@@ -480,7 +479,8 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
     })
     .map(({ payload, name, beAt }) => {
       let at = false;
-      const { content, timeSend } = JSON.parse(payload.body);
+      let content = getLastMessageText(payload);
+      const { timeSend } = JSON.parse(payload.body);
       // if not current conversation, unreadMessages + 1
       let unreadMessages = 0;
       const { chat: { selectedConversation } } = getState();
@@ -516,7 +516,8 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
             .mergeMap(conv => {
               return Observable.fromPromise(db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec())
                 .map(contact => {
-                  if (contact.jid !== conv.avatarMembers[0].jid) {
+                  conv.avatarMembers = conv.avatarMembers || [];
+                  if (conv.avatarMembers[0] && contact.jid !== conv.avatarMembers[0].jid) {
                     conv.avatarMembers[1] = conv.avatarMembers[0];
                     contact = copyRxdbContact(contact);
                     conv.avatarMembers[0] = contact;
