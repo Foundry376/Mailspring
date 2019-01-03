@@ -167,7 +167,6 @@ export class AttachmentItem extends Component {
     });
     const style = draggable ? { WebkitUserDrag: 'element' } : null;
     const tabIndex = focusable ? 0 : null;
-    const { devicePixelRatio } = window;
 
     return (
       <div

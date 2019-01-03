@@ -90,9 +90,7 @@ export default {
           displayFilePreview: {
             type: 'boolean',
             default: true,
-            title: localized(
-              'Display thumbnail previews for attachments when available.'
-            ),
+            title: localized('Display thumbnail previews for attachments when available.'),
           },
         },
       },

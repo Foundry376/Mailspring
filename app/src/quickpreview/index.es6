@@ -126,49 +126,73 @@ async function _generateCrossplatformPreview({ file, filePath, previewPath }) {
     captureQueue.push({ file, filePath, previewPath, resolve });
 
     if (!captureWindow || captureWindow.isDestroyed()) {
-      captureWindow = new remote.BrowserWindow({
-        width: ThumbnailWidth,
-        height: ThumbnailWidth,
-        show: false,
-        webPreferences: {
-          preload: path.join(__dirname, 'preload.js'),
-          nodeIntegration: false,
-          contextIsolation: false,
-        },
-      });
-      captureWindow.once('closed', () => {
-        captureWindow = null;
-      });
+      captureWindow = _createCaptureWindow();
       _generateNextCrossplatformPreview();
     }
   });
 }
 
+function _createCaptureWindow() {
+  const win = new remote.BrowserWindow({
+    width: ThumbnailWidth,
+    height: ThumbnailWidth,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: false,
+    },
+  });
+  win.webContents.on('crashed', () => {
+    console.warn(`Thumbnail generation webcontents crashed.`);
+    if (captureWindow === win) captureWindow = null;
+    win.destroy();
+  });
+  win.once('closed', () => {
+    if (captureWindow === win) captureWindow = null;
+  });
+  return win;
+}
+
 function _generateNextCrossplatformPreview() {
   if (captureQueue.length === 0) {
-    captureWindow.destroy();
+    if (captureWindow && !captureWindow.isDestroyed()) {
+      captureWindow.destroy();
+    } else {
+      console.warn(`Thumbnail generation finished but window is already destroyed.`);
+    }
     captureWindow = null;
     return;
   }
 
   const { filePath, previewPath, resolve } = captureQueue.pop();
 
+  // Start the thumbnail generation
   captureWindow.loadFile(path.join(__dirname, 'renderer.html'), {
     search: JSON.stringify({ mode: 'capture', filePath, previewPath }),
   });
 
   // Race against a timer to complete the preview. We don't want this to hang
   // forever if for some reason the window encounters an exception
-  const timer = setTimeout(() => {
-    _generateNextCrossplatformPreview();
-    resolve(false);
-  }, 3000);
+  let onFinalize = null;
 
-  captureWindow.once('page-title-updated', () => {
+  const timer = setTimeout(() => {
+    console.warn(`Thumbnail generation timed out for ${filePath}`);
+    onFinalize(false);
+  }, 5000);
+
+  const onRendererSuccess = () => {
+    onFinalize(true);
+  };
+
+  onFinalize = success => {
     clearTimeout(timer);
-    _generateNextCrossplatformPreview();
-    resolve(true);
-  });
+    captureWindow.removeListener('page-title-updated', onRendererSuccess);
+    process.nextTick(_generateNextCrossplatformPreview);
+    resolve(success);
+  };
+
+  captureWindow.once('page-title-updated', onRendererSuccess);
 }
 
 async function _generateQuicklookPreview({ filePath }) {
