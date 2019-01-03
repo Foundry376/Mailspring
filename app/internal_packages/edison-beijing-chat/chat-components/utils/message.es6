@@ -19,8 +19,6 @@ export const groupMessages = async messages => {
 }
 
 export const getLastMessageText = message => {
-  console.log('cxm*** getLastMessageText: ', message);
-  debugger;
   let body, content;
   if (isJsonStr(message)) {
     message = JSON.parse(message);
