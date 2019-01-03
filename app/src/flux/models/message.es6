@@ -63,6 +63,11 @@ This class also inherits attributes from {Model}
 Section: Models
 */
 export default class Message extends ModelWithMetadata {
+  static NewDraft = 1;
+  static EditExistingDraft = 2;
+  static ReplyDraft = 3;
+  static ForwardDraft = 4;
+  static ReplyAllDraft = 5;
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
     // load id column into json
     id: Attributes.String({
@@ -172,6 +177,11 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'forwardedHeaderMessageId',
     }),
 
+    referenceMessageId: Attributes.String({
+      jsonKey: 'refMsgId',
+      modelKey: 'referenceMessageId',
+    }),
+
     folder: Attributes.Object({
       queryable: false,
       modelKey: 'folder',
@@ -181,6 +191,13 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'state',
       queryable: true,
     }),
+    msgOrigin: Attributes.Number({
+      modelKey: 'msgOrigin',
+      queryable: true,
+    }),
+    remoteUID: Attributes.Number({
+      modelKey: "remoteUID",
+    })
   });
 
   static naturalSortOrder() {
@@ -390,5 +407,8 @@ export default class Message extends ModelWithMetadata {
     const isDraftBeingDeleted = this.id.startsWith('deleted-') || this.isDeleted();
 
     return isReminder || isDraftBeingDeleted;
+  }
+  setOrigin(val){
+    this.msgOrigin = val;
   }
 }

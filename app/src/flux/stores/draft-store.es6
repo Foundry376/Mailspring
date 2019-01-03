@@ -306,7 +306,12 @@ class DraftStore extends MailspringStore {
 
     const session = await this.sessionForClientId(headerMessageId);
     await session.changes.commit();
-    const draftJSON = session.draft().toJSON();
+    const draft = session.draft();
+    if(draft.remoteUID){
+      debugger
+        draft.setOrigin(Message.EditExistingDraft);
+    }
+    const draftJSON = draft.toJSON();
 
     // Since we pass a windowKey, if the popout composer draft already
     // exists we'll simply show that one instead of spawning a whole new
@@ -388,7 +393,6 @@ class DraftStore extends MailspringStore {
     } = options;
 
     this._draftsSending[headerMessageId] = true;
-
     const sendAction = SendActionsStore.sendActionForKey(actionKey);
     if (!sendAction) {
       throw new Error(`Cant find send action ${actionKey} `);
@@ -429,7 +433,6 @@ class DraftStore extends MailspringStore {
     draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true }).include(
       Message.attributes.body
     );
-
     // Directly update the message body cache so the user immediately sees
     // the new message text (and never old draft text or blank text) sending.
     await MessageBodyProcessor.updateCacheForMessage(draft);

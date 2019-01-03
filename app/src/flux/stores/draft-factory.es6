@@ -45,10 +45,16 @@ class DraftFactory {
       date: new Date(),
       draft: true,
       pristine: true,
+      msgOrigin: Message.NewDraft,
       accountId: account.id,
     };
 
     const merged = Object.assign(defaults, fields);
+    if(merged.forwardedHeaderMessageId){
+      merged.referenceMessageId = merged.forwardedHeaderMessageId;
+    }else{
+      merged.referenceMessageId = merged.replyToHeaderMessageId;
+    }
 
     const autoContacts = await ContactStore.parseContactsInString(account.autoaddress.value);
     if (account.autoaddress.type === 'cc') {
@@ -89,7 +95,7 @@ class DraftFactory {
     // URL encoded. (In the above example, decoding the body would cause the URL
     // to fall apart.)
     //
-    const query = {};
+    const query = {msgOrigin: Message.NewDraft};
     query.to = to;
 
     const querySplit = /[&|?](subject|body|cc|to|from|bcc)+\s*=/gi;
@@ -163,6 +169,7 @@ class DraftFactory {
       threadId: thread.id,
       accountId: message.accountId,
       replyToHeaderMessageId: message.headerMessageId,
+      msgOrigin: type === 'reply' ? Message.ReplyDraft : Message.ReplyAllDraft,
       body: `
         <br/>
         <br/>
@@ -199,6 +206,7 @@ class DraftFactory {
       threadId: thread.id,
       accountId: message.accountId,
       forwardedHeaderMessageId: message.headerMessageId,
+      msgOrigin: Message.ForwardDraft,
       body: `
         <br/>
         <div class="gmail_quote">
