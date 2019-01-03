@@ -153,7 +153,7 @@ export default class MessageEditBar extends PureComponent {
     return atJids;
   }
 
-  sendMessage() {
+  sendMessage = () => {
     let { messageBody, occupants } = this.state;
     messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
     const { selectedConversation, onMessageSubmitted } = this.props;
@@ -419,6 +419,15 @@ export default class MessageEditBar extends PureComponent {
           onKeyDown={this.onKeyDown}
           {...inputProps}
         />
+        <div className="edit-button-group">
+          <div key='emoji' className="sendBarEmoji" ref={(emoji) => { this.emojiRef = emoji }}>
+            <Button className='no-border' onClick={this.onEmojiTouch}>
+              <EmojiIcon className="icon" />
+            </Button>
+          </div>
+          <Button className="cancel" onClick={this.props.cancelEdit}>Cancel</Button>
+          <Button onClick={this.sendMessage}>Save Changes</Button>
+        </div>
         <div className="chat-message-filelist">
           {this.state.files.map((file, index) => {
             const removeFile = (e) => {
@@ -453,12 +462,12 @@ export default class MessageEditBar extends PureComponent {
           </Button>
         </div> */}
 
-        <div key='emoji' className="sendBarEmoji" ref={(emoji) => { this.emojiRef = emoji }}>
+        {/* <div key='emoji' className="sendBarEmoji" ref={(emoji) => { this.emojiRef = emoji }}>
           <Button className='no-border' onClick={this.onEmojiTouch}>
             <EmojiIcon className="icon" />
           </Button>
         </div>
-        {/* <div key='attacheFile' className="sendBarActions">
+        <div key='attacheFile' className="sendBarActions">
           <Button
             className='no-border'
             onClick={() => {

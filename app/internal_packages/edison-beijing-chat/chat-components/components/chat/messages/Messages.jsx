@@ -178,12 +178,15 @@ export default class Messages extends PureComponent {
   onKeyDown = event => {
     let keyCode = event.keyCode;
     if (keyCode === 27) { // ESC
-      event.stopPropagation()
-      event.preventDefault()
-      chatModel.editingMessageId = null;
-      key++;
-      this.setState(Object.assign({}, this.state, { key }));
+      event.stopPropagation();
+      event.preventDefault();
+      this.cancelEdit();
     }
+  }
+  cancelEdit = () => {
+    chatModel.editingMessageId = null;
+    key++;
+    this.setState(Object.assign({}, this.state, { key }));
   }
   update() {
     key++;
@@ -385,7 +388,7 @@ export default class Messages extends PureComponent {
                       ) : (
                           isEditing ? (
                             <div>
-                              <MessageEditBar value={msgBody.content || msgBody} {...this.props.sendBarProps} />
+                              <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} {...this.props.sendBarProps} />
                             </div>
                           ) : (
                               <div className="messageBody">{msgBody.content || msgBody}</div>

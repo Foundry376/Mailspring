@@ -10,7 +10,6 @@
     align-items: flex-end;
     padding: 16px;
     height: auto;
-    overflow: hidden;
   }
 
   .sendbar-attacment {
@@ -115,5 +114,25 @@
   .chat-message-filelist {
     display:block;
     align-self: left;
+  }
+  .edit-button-group {
+    position: absolute;
+    right: 16px;
+    bottom: -15px;
+    display: flex;
+    width: 300px;
+    justify-content: flex-end;
+    .button {
+      border-radius: 5px;
+      margin-left: 10px;
+      padding: 2px 10px;
+      &.cancel {
+        color: #ff355e;
+      }
+    }
+    .sendBarEmoji {
+      position: static;
+      margin: 0;
+    }
   }
 }
