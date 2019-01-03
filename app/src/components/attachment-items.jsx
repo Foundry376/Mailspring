@@ -183,7 +183,9 @@ export class AttachmentItem extends Component {
           <div
             draggable={false}
             className="file-thumbnail-preview"
-            style={{ background: `url('file://${filePreviewPath}') 0% 1% / cover` }}
+            style={{
+              background: `url('file://${filePreviewPath.replace(/\\/g, '\\\\')}') 0% 1% / cover`,
+            }}
           />
         ) : null}
         <div className="inner">
