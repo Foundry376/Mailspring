@@ -51,6 +51,27 @@ import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 import messageModel, { FILE_TYPE } from '../components/chat/messages/messageModel';
 
+const addToAvatarMembers = (conv, contact) => {
+  if (!conv.isGroup) {
+    return conv;
+  }
+  conv.avatarMembers = conv.avatarMembers || [];
+  if (conv.avatarMembers[0]){
+    if(contact.jid !== conv.avatarMembers[0].jid) {
+      conv.avatarMembers[1] = conv.avatarMembers[0];
+      contact = copyRxdbContact(contact);
+      conv.avatarMembers[0] = contact;
+      return conv;
+    } else {
+      return conv;
+    }
+  } else {
+    contact = copyRxdbContact(contact);
+    conv.avatarMembers[0] = contact;
+    return conv;
+  }
+}
+
 const downloadAndTagImageFileInMessage = (aes, payload) => {
   let body;
   if (aes) {
@@ -308,14 +329,8 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
             .mergeMap(conv => {
               return Observable.fromPromise(db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec())
                 .map(contact => {
-                  if (conv.isGroup && contact.jid != conv.avatarMembers[0].jid) {
-                    conv.avatarMembers[1] = conv.avatarMembers[0];
-                    contact = copyRxdbContact(contact);
-                    conv.avatarMembers[0] = contact;
-                    return conv;
-                  } else {
-                    return conv;
-                  }
+                  addToAvatarMembers(conv, contact);
+                  return conv;
                 })
             })
         })
@@ -516,15 +531,8 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
             .mergeMap(conv => {
               return Observable.fromPromise(db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec())
                 .map(contact => {
-                  conv.avatarMembers = conv.avatarMembers || [];
-                  if (conv.avatarMembers[0] && contact.jid !== conv.avatarMembers[0].jid) {
-                    conv.avatarMembers[1] = conv.avatarMembers[0];
-                    contact = copyRxdbContact(contact);
-                    conv.avatarMembers[0] = contact;
-                    return conv;
-                  } else {
-                    return conv;
-                  }
+                  addToAvatarMembers(conv, contact);
+                  return conv;
                 })
             })
         })
