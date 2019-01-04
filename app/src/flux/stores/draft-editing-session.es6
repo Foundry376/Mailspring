@@ -14,6 +14,7 @@ import { Composer as ComposerExtensionRegistry } from '../../registries/extensio
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import DestroyDraftTask from '../tasks/destroy-draft-task';
+import uuid from 'uuid';
 
 const { convertFromHTML, convertToHTML } = Conversion;
 const MetadataChangePrefix = 'metadata.';
@@ -423,12 +424,23 @@ export default class DraftEditingSession extends MailspringStore {
   };
 
   async changeSetCommit(arg) {
+    console.log(`change set commit ${arg}`)
     if (this._destroyed || !this._draft) {
       return;
     }
     // if draft.id is empty, use headerMessageId
     if (!this._draft.id && this._draft.headerMessageId) {
       this._draft.id = this._draft.headerMessageId;
+    }
+    if(this._draft.remoteUID){
+      this._draft.setOrigin(Message.EditExistingDraft);
+      if(!this._draft.referenceMessageId || this._draft.referenceMessageId ===''){
+        this._draft.referenceMessageId = this._draft.id;
+      }
+      if(arg === 'unload'){
+        debugger;
+        this._draft.id = uuid();
+      }
     }
     const task = new SyncbackDraftTask({ draft: this._draft });
     task.saveOnRemote = arg === 'unload' ? true : false;

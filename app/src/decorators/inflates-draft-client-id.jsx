@@ -72,8 +72,9 @@ function InflatesDraftClientId(ComposedComponent) {
     }
 
     _teardownForDraft() {
+      console.log('tearing down session');
       if (this.state.session) {
-        this.state.session.changes.commit();
+        this.state.session.changes.commit('unload');
       }
       if (this._sessionUnlisten) {
         this._sessionUnlisten();

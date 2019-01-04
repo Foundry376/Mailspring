@@ -272,7 +272,7 @@ class DraftStore extends MailspringStore {
     // Optimistically create a draft session and hand it the draft so that it
     // doesn't need to do a query for it a second from now when the composer wants it.
     this._createSession(draft.headerMessageId, draft);
-
+    console.log('_finalizeAndPersist');
     const task = new SyncbackDraftTask({ draft });
     Actions.queueTask(task);
 
@@ -311,7 +311,7 @@ class DraftStore extends MailspringStore {
     if(draft.remoteUID && !draft.pristine){
       draft.referenceMessageId = draft.id;
       draft.setOrigin(Message.EditExistingDraft);
-      draft.id = uuid();
+      // draft.id = uuid();
     }
     const draftJSON = draft.toJSON();
 
@@ -389,6 +389,7 @@ class DraftStore extends MailspringStore {
   };
 
   _onSendDraft = async (headerMessageId, options = {}) => {
+    console.log(`on send draft headerMessageId: ${headerMessageId}`);
     const {
       delay = AppEnv.config.get('core.sending.undoSend'),
       actionKey = DefaultSendActionKey,
