@@ -6,6 +6,7 @@ import {
   successfullyStoredContacts,
   successfullyStoredE2ees,
   failedStoringContacts,
+  failedStoringE2ees,
   failedRetrievingContacts,
   updateStoredContacts,
 } from '../../actions/db/contact';
@@ -77,6 +78,6 @@ export const storeE2eesEpic = action$ =>
         .map(e2ees => successfullyStoredE2ees(e2ees))
         .catch(error => {
           console.error(error);
-          //return Observable.of(failedStoringContacts(error, payload))
+          return Observable.of(failedStoringE2ees(error, payload))
         })
     );
