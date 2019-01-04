@@ -84,7 +84,7 @@ function InflatesDraftClientId(ComposedComponent) {
       if (!this.state.draft) {
         return;
       }
-      if (this.state.draft.pristine) {
+      if (this.state.draft.pristine && !this.state.draft.remoteUID) {//making sure draft is not from remote
         Actions.destroyDraft(this.state.draft);
       }
     }
