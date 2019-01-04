@@ -281,14 +281,25 @@ export class XmppEx extends EventEmitter3 {
     return this.client.createRoom(room, opts);
   }
   async getRoomMembers(room, ver) {
-    const members = await this.client.getRoomMembers(room, {
-      ver: ver,
-      items: [{
-        affiliation: 'member'
-      }]
-    });
-    this.emit('receive:members', members);
-    return members;
+    try {
+      const members = await this.client.getRoomMembers(room, {
+        ver: ver,
+        items: [{
+          affiliation: 'member'
+        }]
+      });
+      this.emit('receive:members', members);
+      return members;
+    } catch (err) {
+      console.warn('getRoomMembers failed, maybe you are not this room member', err);
+      const emptyEmebers = {
+        mucAdmin: {
+          items: []
+        }
+      }
+      this.emit('receive:members', emptyEmebers);
+      return emptyEmebers;
+    }
   }
   async getRoomList(ver) {
     return this.client.getRoomList(ver);
