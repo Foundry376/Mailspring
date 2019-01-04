@@ -364,7 +364,9 @@ export default class DraftEditingSession extends MailspringStore {
 
       Actions.queueTask(create);
       await TaskQueue.waitForPerformLocal(create);
-      if (destroy) Actions.queueTask(destroy);
+      if (destroy){
+        Actions.queueTask(destroy);
+      }
     }
 
     return this;

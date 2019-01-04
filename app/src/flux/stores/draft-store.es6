@@ -16,6 +16,7 @@ import TaskQueue from './task-queue';
 import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
+import uuid from 'uuid';
 
 const { DefaultSendActionKey } = SendActionsStore;
 /*
@@ -307,9 +308,10 @@ class DraftStore extends MailspringStore {
     const session = await this.sessionForClientId(headerMessageId);
     await session.changes.commit();
     const draft = session.draft();
-    if(draft.remoteUID){
-      debugger
-        draft.setOrigin(Message.EditExistingDraft);
+    if(draft.remoteUID && !draft.pristine){
+      draft.referenceMessageId = draft.id;
+      draft.setOrigin(Message.EditExistingDraft);
+      draft.id = uuid();
     }
     const draftJSON = draft.toJSON();
 
