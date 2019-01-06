@@ -1,16 +1,27 @@
 const fs = require('fs');
 const path = require('path');
 
-const PDFJSRoot = path.join(__dirname, 'pdfjs-2.0.943');
+global.PDFJSRoot = path.join(__dirname, 'pdfjs-2.0.943');
+global.PrismRoot = path.join(__dirname, 'prism-1.15.0');
 
 global.nodePDFForFile = async filePath => {
-  global.pdfjs = require(`${PDFJSRoot}/build/pdf.js`);
-  global.pdfjs.GlobalWorkerOptions.workerSrc = path.join(PDFJSRoot, 'build', 'pdf.worker.js');
+  global.pdfjs = require(`${global.PDFJSRoot}/build/pdf.js`);
+  global.pdfjs.GlobalWorkerOptions.workerSrc = path.join(
+    global.PDFJSRoot,
+    'build',
+    'pdf.worker.js'
+  );
 
   return await global.pdfjs.getDocument(filePath, {
-    cMapUrl: path.join(PDFJSRoot, 'web', 'cmaps'),
+    cMapUrl: path.join(global.PDFJSRoot, 'web', 'cmaps'),
     cMapPacked: true,
   });
+};
+
+global.nodeStringForFile = (filePath, { truncate } = {}) => {
+  let raw = fs.readFileSync(filePath).toString();
+  if (truncate) raw = raw.substr(0, 1000);
+  return raw;
 };
 
 global.nodeXLSXForFile = filepath => {
@@ -47,10 +58,16 @@ global.finishWithWindowCapture = (previewPath, startedAt = Date.now()) => {
     return;
   }
 
-  const win = require('electron').remote.getCurrentWindow();
-  win.capturePage(img => {
-    fs.writeFileSync(previewPath, img.toPNG());
-    document.title = 'Finished';
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const win = require('electron').remote.getCurrentWindow();
+        win.capturePage(img => {
+          fs.writeFileSync(previewPath, img.toPNG());
+          document.title = 'Finished';
+        });
+      });
+    });
   });
 };
 

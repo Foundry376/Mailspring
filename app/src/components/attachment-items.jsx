@@ -131,6 +131,7 @@ export class AttachmentItem extends Component {
   _onAttachmentKeyDown = event => {
     if (event.key === SPACE && this.props.filePreviewPath) {
       event.preventDefault();
+      event.stopPropagation();
       Actions.quickPreviewFile(this.props.filePath);
     }
     if (event.key === 'Escape') {

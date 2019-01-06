@@ -124,6 +124,87 @@
       }
     }
 
+    async function runPrism({ filePath, previewPath, mode }) {
+      const ext = filePath.split('.').pop();
+      const str = await nodeStringForFile(filePath, {
+        truncate: mode === 'capture',
+      });
+
+      const grammars = {
+        html: 'html',
+        xml: 'xml',
+        svg: 'svg',
+        css: 'css',
+        js: 'javascript',
+        c: 'c',
+        h: 'c',
+        cs: 'csharp',
+        cc: 'cpp',
+        cpp: 'cpp',
+        patch: 'diff',
+        go: 'go',
+        java: 'java',
+        json: 'json',
+        jsonp: 'json',
+        tex: 'latex',
+        m: 'objectivec',
+        mm: 'objectivec',
+        py: 'python',
+        jsx: 'jsx',
+        tsx: 'tsx',
+        rb: 'ruby',
+        rs: 'rust',
+        sql: 'sql',
+        swift: 'swift',
+        ts: 'typescript',
+        yaml: 'yaml',
+        txt: 'clike',
+        log: 'clike',
+      };
+
+      const grammar = grammars[ext] || 'clike';
+
+      // Attach Prism CSS
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = './prism-1.15.0/prism.css';
+      document.body.appendChild(link);
+      document.body.style.margin = '0';
+
+      // Attach <pre><code class="language-XXX">{text}</code></pre> to the DOM
+      div.innerHTML = '';
+      if (mode !== 'capture') {
+        div.style.opacity = 0;
+      }
+      const preEl = document.createElement('pre');
+      preEl.style = 'min-height: 100%; margin: 0; border-radius: 0;';
+      div.appendChild(preEl);
+
+      const codeEl = document.createElement('code');
+      codeEl.textContent = str;
+      codeEl.classList.add(`language-${grammar}`);
+      preEl.appendChild(codeEl);
+
+      // Load the Prism script and capture/show the DOM when it's completed
+      const finish = () => {
+        const stylesReady = window.getComputedStyle(preEl).fontFamily.includes('Monaco');
+        if (!stylesReady) {
+          setTimeout(finish, 1);
+          return;
+        }
+
+        div.style.opacity = 1;
+        if (mode === 'capture') {
+          window.finishWithWindowCapture(previewPath);
+        }
+      };
+
+      const script = document.createElement('script');
+      script.onload = finish;
+      script.src = './prism-1.15.0/prism.js';
+      document.body.appendChild(script);
+    }
+
     async function runMammoth({ filePath, previewPath, mode }) {
       div.innerHTML = await nodeMammothHTMLForFile(filePath);
       if (mode === 'capture') {
@@ -140,22 +221,24 @@
       }
     }
 
-    const { mode, filePath, previewPath } = JSON.parse(
+    const { mode, filePath, previewPath, strategy } = JSON.parse(
       decodeURIComponent(window.location.search.substr(1))
     );
 
     window.requestAnimationFrame(() => {
-      if (filePath.endsWith('.pdf')) {
+      if (strategy === 'pdfjs') {
         if (mode === 'capture') {
           runPDFCapture({ filePath, previewPath });
         } else {
           // To view PDFs we use the separate pdfviewer included with pdfjs
         }
-      } else if (filePath.endsWith('.docx')) {
+      } else if (strategy === 'mammoth') {
         runMammoth({ mode, filePath, previewPath });
-      } else if (filePath.endsWith('.md')) {
+      } else if (strategy === 'snarkdown') {
         runSnarkdown({ mode, filePath, previewPath });
-      } else {
+      } else if (strategy === 'prism') {
+        runPrism({ mode, filePath, previewPath });
+      } else if (strategy === 'xlsx') {
         runXLSX({ mode, filePath, previewPath });
       }
     });

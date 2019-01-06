@@ -11,8 +11,7 @@ const ThumbnailWidth = 320 * (11 / 8.5);
 const QuicklookIsAvailable = process.platform === 'darwin';
 const PDFJSRoot = path.join(__dirname, 'pdfjs-2.0.943');
 
-// TODO make this list more exhaustive
-const QuicklookNonPreviewableExtensions = [
+const QuicklookBlacklist = [
   'jpg',
   'bmp',
   'gif',
@@ -27,31 +26,75 @@ const QuicklookNonPreviewableExtensions = [
   'ics',
 ];
 
-const CrossplatformPreviewableExtensions = [
-  // pdfjs
-  'pdf',
+const CrossplatformStrategies = {
+  pdfjs: ['pdf'],
+  mammoth: ['docx'],
+  snarkdown: ['md'],
+  xlsx: [
+    'xls',
+    'xlsx',
+    'csv',
+    'eth',
+    'ods',
+    'fods',
+    'uos1',
+    'uos2',
+    'dbf',
+    'txt',
+    'prn',
+    'xlw',
+    'xlsb',
+  ],
+  prism: [
+    'html',
+    'svg',
+    'xml',
+    'css',
+    'c',
+    'cc',
+    'cpp',
+    'js',
+    'jsx',
+    'tsx',
+    'ts',
+    'go',
+    'cs',
+    'patch',
+    'swift',
+    'java',
+    'json',
+    'jsonp',
+    'tex',
+    'mm',
+    'm',
+    'h',
+    'py',
+    'rb',
+    'rs',
+    'sql',
+    'yaml',
+    'txt',
+    'log',
+  ],
+};
 
-  // Mammoth
-  'docx',
+const CrossplatformStrategiesBetterThanQuicklook = ['snarkdown', 'prism'];
 
-  // Snarkdown
-  'md',
+function strategyForPreviewing(ext) {
+  if (ext.startsWith('.')) ext = ext.substr(1);
 
-  // XLSX
-  'xls',
-  'xlsx',
-  'csv',
-  'eth',
-  'ods',
-  'fods',
-  'uos1',
-  'uos2',
-  'dbf',
-  'txt',
-  'prn',
-  'xlw',
-  'xlsb',
-];
+  const strategy = Object.keys(CrossplatformStrategies).find(strategy =>
+    CrossplatformStrategies[strategy].includes(ext)
+  );
+
+  if (QuicklookIsAvailable && !QuicklookBlacklist.includes(ext)) {
+    if (!strategy || !CrossplatformStrategiesBetterThanQuicklook.includes(strategy)) {
+      return 'quicklook';
+    }
+  }
+
+  return strategy;
+}
 
 const PreviewWindowMenuTemplate = [
   {
@@ -146,24 +189,18 @@ export function canPossiblyPreviewExtension(file) {
   if (file.size > FileSizeLimit) {
     return false;
   }
-  // On macOS, we try to quicklook basically everything because it supports
-  // a large number of formats and plugins (adding support for Sketch files, etc).
-  // On other platforms, we only preview a specific set of formats we support.
-  if (QuicklookIsAvailable) {
-    return !QuicklookNonPreviewableExtensions.includes(file.displayExtension());
-  } else {
-    return CrossplatformPreviewableExtensions.includes(file.displayExtension());
-  }
+  return !!strategyForPreviewing(file.displayExtension());
 }
 
 export function displayQuickPreviewWindow(filePath) {
-  if (QuicklookIsAvailable) {
+  const isPDF = filePath.endsWith('.pdf');
+  const strategy = strategyForPreviewing(path.extname(filePath));
+
+  if (strategy === 'quicklook') {
     const currentWin = AppEnv.getCurrentWindow();
     currentWin.previewFile(filePath);
     return;
   }
-
-  const isPDF = filePath.endsWith('.pdf');
 
   if (quickPreviewWindow === null) {
     quickPreviewWindow = new remote.BrowserWindow({
@@ -192,28 +229,28 @@ export function displayQuickPreviewWindow(filePath) {
     });
   } else {
     quickPreviewWindow.loadFile(path.join(__dirname, 'renderer.html'), {
-      search: JSON.stringify({ mode: 'display', filePath }),
+      search: JSON.stringify({ mode: 'display', filePath, strategy }),
     });
   }
 }
 
-export async function generatePreview(...args) {
-  if (QuicklookIsAvailable) {
-    return await _generateQuicklookPreview(...args);
+export async function generatePreview({ file, filePath, previewPath }) {
+  const strategy = strategyForPreviewing(file.displayExtension());
+
+  if (strategy === 'quicklook') {
+    return await _generateQuicklookPreview({ file, filePath, previewPath });
+  } else if (strategy) {
+    return await _generateCrossplatformPreview({ file, filePath, previewPath, strategy });
   } else {
-    return await _generateCrossplatformPreview(...args);
+    return false;
   }
 }
 
 // Private
 
-async function _generateCrossplatformPreview({ file, filePath, previewPath }) {
-  if (!CrossplatformPreviewableExtensions.includes(file.displayExtension())) {
-    return false;
-  }
-
+async function _generateCrossplatformPreview({ file, filePath, previewPath, strategy }) {
   return new Promise(resolve => {
-    captureQueue.push({ file, filePath, previewPath, resolve });
+    captureQueue.push({ file, filePath, previewPath, strategy, resolve });
 
     if (!captureWindow || captureWindow.isDestroyed()) {
       captureWindow = _createCaptureWindow();
@@ -255,11 +292,11 @@ function _generateNextCrossplatformPreview() {
     return;
   }
 
-  const { filePath, previewPath, resolve } = captureQueue.pop();
+  const { strategy, filePath, previewPath, resolve } = captureQueue.pop();
 
   // Start the thumbnail generation
   captureWindow.loadFile(path.join(__dirname, 'renderer.html'), {
-    search: JSON.stringify({ mode: 'capture', filePath, previewPath }),
+    search: JSON.stringify({ strategy, mode: 'capture', filePath, previewPath }),
   });
 
   // Race against a timer to complete the preview. We don't want this to hang
