@@ -46,7 +46,7 @@ export const getLastMessageInfo = async (message) => {
         lastMessageTime = lastMessage.sentTime;
         lastMessageText = getMessageContent(lastMessage);
       } else if (body.deleted) {
-        lastMessageTime = lastMessage.sendTime;
+        lastMessageTime = lastMessage.sendTime || lastMessageTime;
         lastMessageText = '';
       } else {
         lastMessageText = body.content;
