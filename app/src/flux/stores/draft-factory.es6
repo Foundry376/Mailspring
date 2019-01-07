@@ -41,6 +41,7 @@ class DraftFactory {
       unread: false,
       starred: false,
       headerMessageId: `${uniqueId}@edison.tech`,
+      id: uniqueId,
       from: [account.defaultMe()],
       date: new Date(),
       draft: true,
