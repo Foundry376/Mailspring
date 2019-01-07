@@ -6,7 +6,7 @@ import chatModel from '../chat-components/store/model';
 const { history } = require('../chat-components/store/configureStore').default;
 import registerLoginChatAccounts from '../chat-components/utils/registerLoginChatAccounts';
 
-export default class ChatView extends React.Component {
+export default class ChatView extends Component {
   static displayName = 'ChatView';
 
   componentWillMount() {

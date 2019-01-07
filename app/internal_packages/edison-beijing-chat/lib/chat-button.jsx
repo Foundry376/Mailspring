@@ -1,8 +1,6 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
-import ChatView from './chat-view'
 import { RetinaImg } from 'mailspring-component-kit';
-import { submitAuth } from '../chat-components/actions/auth';
 import {
   Actions,
   WorkspaceStore
@@ -10,7 +8,7 @@ import {
 const { configureStore } = require('../chat-components/store/configureStore').default;
 const store = configureStore();
 
-export default class ChatButton extends React.Component {
+export default class ChatButton extends Component {
   static displayName = 'ChatButton';
   toggleChatPanel = () => {
     Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);

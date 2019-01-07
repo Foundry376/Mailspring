@@ -15,6 +15,8 @@ import { uploadFile } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
+import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
+import Button from '../../common/Button';
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class MessagesPanel extends PureComponent {
@@ -237,6 +239,15 @@ export default class MessagesPanel extends PureComponent {
     }
   };
 
+  shouldComponentUpdate(nextProps, nextState) {
+    // if network status was became to online
+    if (this.state.online === false && nextState.online === true) {
+      // connect to chat server
+      registerLoginChatAccounts();
+    }
+    return true;
+  }
+
   render() {
     const { showConversationInfo, members, inviting } = this.state;
     const {
@@ -351,7 +362,13 @@ export default class MessagesPanel extends PureComponent {
             <span>Select a conversation to start messaging</span>
           </div>
         }
-        {!this.state.online && <div className="network-offline"></div>}
+        {(!this.state.online || !this.props.chat_online) && (
+          <div className="network-offline">
+            {this.state.online ? (
+              <Button className="reconnect" onClick={registerLoginChatAccounts}>Reconnect</Button>
+            ) : null}
+          </div>
+        )}
       </div>
     );
   }
