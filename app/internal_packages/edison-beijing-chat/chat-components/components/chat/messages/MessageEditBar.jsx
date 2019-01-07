@@ -201,13 +201,14 @@ export default class MessageEditBar extends PureComponent {
           email: selectedConversation.email,
           name: selectedConversation.name,
           mediaObjectId: '',
-          localFile: filepath
+          localFile: filepath,
+          updating
         };
         if (file !== filepath) {
           body.emailSubject = file.subject;
           body.emailMessageId = file.messageId;
         }
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true, updating);
+        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
         uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
           if (err) {
             alert(`upload files failed because error: ${err}, filepath: ${filepath}`);
@@ -226,10 +227,19 @@ export default class MessageEditBar extends PureComponent {
           body.mediaObjectId = myKey;
           body.occupants = occupants;
           body.atJids = this.getAtTargetPersons();
-          onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false, updating);
+          body.updating = updating;
+          onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
         });
       })
     } else {
+      let messageId, updating = false;
+      if (chatModel.editingMessageId) {
+        messageId = chatModel.editingMessageId;
+        updating = true;
+        chatModel.editingMessageId = null;
+      } else {
+        messageId = uuid();
+      }
       let message = messageBody.trim();
       if (message) {
         let body = {
@@ -239,17 +249,11 @@ export default class MessageEditBar extends PureComponent {
           email: selectedConversation.email,
           name: selectedConversation.name,
           occupants,
-          atJids: this.getAtTargetPersons()
+          atJids: this.getAtTargetPersons(),
+          updating
         };
-        let messageId, updating = false;
-        if (chatModel.editingMessageId) {
-          messageId = chatModel.editingMessageId;
-          updating = true;
-          chatModel.editingMessageId = null;
-        } else {
-          messageId = uuid();
-        }
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false, updating);
+
+        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
       }
 
     }
