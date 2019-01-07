@@ -36,6 +36,7 @@ const actionCreators = {
 const mapStateToProps = ({
   auth: {
     currentUser,
+    online
   },
   chat: {
     groupedMessages,
@@ -55,6 +56,7 @@ const mapStateToProps = ({
   groupedMessages,
   referenceTime,
   selectedConversation,
+  online
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators(actionCreators, dispatch);
