@@ -95,7 +95,9 @@ class DraftChangeSet extends EventEmitter {
   }
 
   async commit(arg) {
-    if (this.dirtyFields().length === 0) return;
+    if (this.dirtyFields().length === 0 && (arg !== 'unload')){
+     return;
+    }
     if (this._timer) clearTimeout(this._timer);
     await this.callbacks.onCommit(arg);
     this._lastCommitTime = Date.now();
@@ -424,26 +426,22 @@ export default class DraftEditingSession extends MailspringStore {
   };
 
   async changeSetCommit(arg) {
-    console.log(`change set commit ${arg}`)
     if (this._destroyed || !this._draft) {
       return;
     }
-    // if draft.id is empty, use headerMessageId
-    if (!this._draft.id && this._draft.headerMessageId) {
-      this._draft.id = this._draft.headerMessageId;
+    //if id is empty, we assign uuid to id;
+    if (!this._draft.id || this._draft.id === '') {
+      this._draft.id = uuid();
     }
     if(this._draft.remoteUID){
       this._draft.setOrigin(Message.EditExistingDraft);
-      if(!this._draft.referenceMessageId || this._draft.referenceMessageId ===''){
-        this._draft.referenceMessageId = this._draft.id;
-      }
+      this._draft.referenceMessageId = this._draft.id;
       if(arg === 'unload'){
-        debugger;
         this._draft.id = uuid();
       }
     }
     const task = new SyncbackDraftTask({ draft: this._draft });
-    task.saveOnRemote = arg === 'unload' ? true : false;
+    task.saveOnRemote = arg === 'unload';
     Actions.queueTask(task);
     await TaskQueue.waitForPerformLocal(task);
   }
