@@ -21,14 +21,14 @@ const MetadataChangePrefix = 'metadata.';
 let DraftStore = null;
 
 /**
-Public: As the user interacts with the draft, changes are accumulated in the
-DraftChangeSet associated with the store session.
+ Public: As the user interacts with the draft, changes are accumulated in the
+ DraftChangeSet associated with the store session.
 
-This class used to be more complex - now it's mostly a holdover from when
-we implemented undo/redo manually and just functions as a pass-through.
+ This class used to be more complex - now it's mostly a holdover from when
+ we implemented undo/redo manually and just functions as a pass-through.
 
-Section: Drafts
-*/
+ Section: Drafts
+ */
 const SaveAfterIdleMSec = 10000;
 const SaveAfterIdleSlushMSec = 2000;
 
@@ -76,7 +76,7 @@ class DraftChangeSet extends EventEmitter {
 
   dirtyFields() {
     return Object.keys(this._lastModifiedTimes).filter(
-      key => this._lastModifiedTimes[key] > this._lastCommitTime
+      key => this._lastModifiedTimes[key] > this._lastCommitTime,
     );
   }
 
@@ -95,8 +95,8 @@ class DraftChangeSet extends EventEmitter {
   }
 
   async commit(arg) {
-    if (this.dirtyFields().length === 0 && (arg !== 'unload')){
-     return;
+    if (this.dirtyFields().length === 0 && (arg !== 'unload')) {
+      return;
     }
     if (this._timer) clearTimeout(this._timer);
     await this.callbacks.onCommit(arg);
@@ -112,14 +112,14 @@ function hotwireDraftBodyState(draft) {
 
   draft.__bodyPropDescriptor = {
     configurable: true,
-    get: function () {
+    get: function() {
       if (!_bodyHTMLCache) {
         console.log('building HTML body cache');
         _bodyHTMLCache = convertToHTML(_bodyEditorState);
       }
       return _bodyHTMLCache;
     },
-    set: function (inHTML) {
+    set: function(inHTML) {
       let nextValue = convertFromHTML(inHTML);
       if (draft.bodyEditorState) {
         nextValue = draft.bodyEditorState
@@ -137,10 +137,10 @@ function hotwireDraftBodyState(draft) {
 
   draft.__bodyEditorStatePropDescriptor = {
     configurable: true,
-    get: function () {
+    get: function() {
       return _bodyEditorState;
     },
-    set: function (next) {
+    set: function(next) {
       if (_bodyEditorState !== next) {
         _bodyHTMLCache = null;
       }
@@ -165,18 +165,18 @@ function fastCloneDraft(draft) {
 }
 
 /**
-Public: DraftEditingSession is a small class that makes it easy to implement components
-that display Draft objects or allow for interactive editing of Drafts.
+ Public: DraftEditingSession is a small class that makes it easy to implement components
+ that display Draft objects or allow for interactive editing of Drafts.
 
-1. It synchronously provides an instance of a draft via `draft()`, and
-   triggers whenever that draft instance has changed.
+ 1. It synchronously provides an instance of a draft via `draft()`, and
+ triggers whenever that draft instance has changed.
 
-2. It provides an interface for modifying the draft that transparently
-   batches changes, and ensures that the draft provided via `draft()`
-   always has pending changes applied.
+ 2. It provides an interface for modifying the draft that transparently
+ batches changes, and ensures that the draft provided via `draft()`
+ always has pending changes applied.
 
-Section: Drafts
-*/
+ Section: Drafts
+ */
 export default class DraftEditingSession extends MailspringStore {
   static DraftChangeSet = DraftChangeSet;
 
@@ -249,7 +249,7 @@ export default class DraftEditingSession extends MailspringStore {
     for (const contact of allRecipients) {
       if (!ContactStore.isValidContact(contact)) {
         errors.push(
-          `${contact.email} is not a valid email address - please remove or edit it before sending.`
+          `${contact.email} is not a valid email address - please remove or edit it before sending.`,
         );
       }
       const name = contact.fullName();
@@ -300,7 +300,7 @@ export default class DraftEditingSession extends MailspringStore {
         const salutation = (match[1] || '').toLowerCase();
         if (!allNames.find(n => n === salutation || (n.length > 1 && salutation.includes(n)))) {
           warnings.push(
-            `addressed to a name that doesn't appear to be a recipient ("${salutation}")`
+            `addressed to a name that doesn't appear to be a recipient ("${salutation}")`,
           );
         }
       }
@@ -326,7 +326,7 @@ export default class DraftEditingSession extends MailspringStore {
     const account = AccountStore.accountForEmail(draft.from[0].email);
     if (!account) {
       throw new Error(
-        'DraftEditingSession::ensureCorrectAccount - you can only send drafts from a configured account.'
+        'DraftEditingSession::ensureCorrectAccount - you can only send drafts from a configured account.',
       );
     }
 
@@ -367,7 +367,7 @@ export default class DraftEditingSession extends MailspringStore {
 
       Actions.queueTask(create);
       await TaskQueue.waitForPerformLocal(create);
-      if (destroy){
+      if (destroy) {
         Actions.queueTask(destroy);
       }
     }
@@ -431,14 +431,20 @@ export default class DraftEditingSession extends MailspringStore {
     }
     //if id is empty, we assign uuid to id;
     if (!this._draft.id || this._draft.id === '') {
+      console.log('draft id is empty', this._draft);
       this._draft.id = uuid();
     }
-    if(this._draft.remoteUID){
+    if (this._draft.remoteUID && (!this._draft.msgOrigin || (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID))) {
       this._draft.setOrigin(Message.EditExistingDraft);
       this._draft.referenceMessageId = this._draft.id;
-      if(arg === 'unload'){
-        this._draft.id = uuid();
-      }
+      this._draft.id = uuid();
+      this._draft.hasNewID = true;
+    } else if (this._draft.remoteUID && (this._draft.msgOrigin !== Message.EditExistingDraft)) {
+      console.log('Message with remoteUID but origin is edit existing draft');
+      this._draft.setOrigin(Message.EditExistingDraft);
+    }
+    if (arg === 'unload') {
+      this._draft.hasNewID = false;
     }
     const task = new SyncbackDraftTask({ draft: this._draft });
     task.saveOnRemote = arg === 'unload';

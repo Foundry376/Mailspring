@@ -308,11 +308,11 @@ class DraftStore extends MailspringStore {
     const session = await this.sessionForClientId(headerMessageId);
     await session.changes.commit();
     const draft = session.draft();
-    if(draft.remoteUID && !draft.pristine){
-      draft.referenceMessageId = draft.id;
-      draft.setOrigin(Message.EditExistingDraft);
-      // draft.id = uuid();
-    }
+    // if(draft.remoteUID && !draft.pristine){
+    //   draft.referenceMessageId = draft.id;
+    //   draft.setOrigin(Message.EditExistingDraft);
+    //   // draft.id = uuid();
+    // }
     const draftJSON = draft.toJSON();
 
     // Since we pass a windowKey, if the popout composer draft already

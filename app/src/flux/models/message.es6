@@ -196,8 +196,11 @@ export default class Message extends ModelWithMetadata {
       queryable: true,
     }),
     remoteUID: Attributes.Number({
-      modelKey: "remoteUID",
-    })
+      modelKey: 'remoteUID',
+    }),
+    hasNewID: Attributes.Boolean({
+      modelKey: 'hasNewID',
+    }),
   });
 
   static naturalSortOrder() {

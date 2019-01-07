@@ -47,6 +47,7 @@ class DraftFactory {
       draft: true,
       pristine: true,
       msgOrigin: Message.NewDraft,
+      hasNewID: false,
       accountId: account.id,
     };
 
