@@ -44,12 +44,14 @@ import {
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
 import { isJsonString } from '../utils/stringUtils';
-import { getLastMessageText } from '../utils/message';
+import { getLastMessageInfo, parseMessageBody } from '../utils/message';
 import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 import messageModel, { FILE_TYPE } from '../components/chat/messages/messageModel';
+
+
 
 const addToAvatarMembers = (conv, contact) => {
   if (!conv.isGroup) {
@@ -166,36 +168,38 @@ export const sendMessageEpic = action$ =>
         return { payload, deviceId };
       });
     })
-    .map(({ payload: { conversation, body, id, devices, selfDevices, isUploading, updating }, deviceId }) => {
+    .map(({ payload, deviceId }) => {
+      const { conversation, body, id, devices, selfDevices, isUploading, updating } = payload;
+
       let ediEncrypted;
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices, conversation.curJid, deviceId);
       }
       // update conversation last message
-      let data = {};
       if (body) {
-        let content = getLastMessageText(body);
-        if (conversation.update) {
-          conversation.update({
-            $set: {
-              lastMessageTime: (new Date()).getTime(),
-              lastMessageSender: conversation.curJid,
-              lastMessageText: content
-            }
-          })
-        }
-        // if private chat, and it's a new conversation
-        else if (!conversation.isGroup) {
-          getDb().then(db => db.conversations.findOne(conversation.jid).exec().then(conv => {
-            conv.update({
+        getLastMessageInfo(payload).then(({ lastMessageTime, sender, lastMessageText }) => {
+          if (conversation.update) {
+            conversation.update({
               $set: {
-                lastMessageTime: (new Date()).getTime(),
-                lastMessageSender: conversation.curJid,
-                lastMessageText:content
+                lastMessageTime,
+                lastMessageSender: sender || conversation.curJid,
+                lastMessageText
               }
             })
-          }))
-        }
+          }
+          // if private chat, and it's a new conversation
+          else if (!conversation.isGroup) {
+            getDb().then(db => db.conversations.findOne(conversation.jid).exec().then(conv => {
+              conv.update({
+                $set: {
+                  lastMessageTime,
+                  lastMessageSender: sender || conversation.curJid,
+                  lastMessageText
+                }
+              })
+            }))
+          }
+        });
       }
       if (ediEncrypted) {
         return ({
@@ -254,7 +258,8 @@ export const newTempMessageEpic = (action$, { getState }) =>
         sentTime: (new Date()).getTime(),
         status: payload.isUploading ? MESSAGE_STATUS_FILE_UPLOADING : MESSAGE_STATUS_SENDING,
       };
-      if (payload.updating) {
+      let body = parseMessageBody(payload.body);
+      if (body.updating) {
         message.updateTime = (new Date()).getTime()
       } else {
         message.sentTime = (new Date()).getTime()
@@ -298,19 +303,21 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
     )
     .mergeMap(({ db, message }) =>
       Observable.fromPromise(db.conversations.findOne(message.to.bare).exec())
-        .map(conversation => {
+        .mergeMap(conversation => {
           let conv = conversation;
           if (!conversation) {
             const { chat: { selectedConversation } } = getState();
             conv = selectedConversation;
           }
-          let content = getLastMessageText(message);
-          return Object.assign({}, JSON.parse(JSON.stringify(conv)), {
-            lastMessageTime: (new Date()).getTime(),
-            lastMessageText: content,
-            lastMessageSender: message.from.bare,
-            _rev: undefined,
-          });
+          return Observable.fromPromise(getLastMessageInfo(message))
+            .map(({ lastMessageTime, sender, lastMessageText }) => {
+              return Object.assign({}, JSON.parse(JSON.stringify(conv)), {
+                lastMessageTime,
+                lastMessageText,
+                lastMessageSender: sender || message.from.bare,
+                _rev: undefined,
+              });
+            });
         }),
     )
     .mergeMap(conv => {
@@ -440,28 +447,30 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
       let name = payload.from.local;
       return [{ type, payload, name, beAt }];
     })
-    .map(({ payload, name, beAt }) => {
+    .mergeMap(({ payload, name, beAt }) => {
       let at = false;
-      let content = getLastMessageText(payload);
-      const { timeSend } = JSON.parse(payload.body);
-      // if not current conversation, unreadMessages + 1
-      let unreadMessages = 0;
-      const { chat: { selectedConversation } } = getState();
-      if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
-        unreadMessages = 1;
-        at = beAt;
-      }
-      return {
-        jid: payload.from.bare,
-        curJid: payload.curJid,
-        name: name,
-        isGroup: false,
-        unreadMessages: unreadMessages,
-        lastMessageTime: (new Date(timeSend)).getTime(),
-        lastMessageText: content,
-        lastMessageSender: payload.from.bare,
-        at
-      };
+      return Observable.fromPromise(getLastMessageInfo(payload))
+        .map(({ lastMessageTime, sender, lastMessageText }) => {
+          const { timeSend } = JSON.parse(payload.body);
+          // if not current conversation, unreadMessages + 1
+          let unreadMessages = 0;
+          const { chat: { selectedConversation } } = getState();
+          if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
+            unreadMessages = 1;
+            at = beAt;
+          }
+          return {
+            jid: payload.from.bare,
+            curJid: payload.curJid,
+            name: name,
+            isGroup: false,
+            unreadMessages: unreadMessages,
+            lastMessageTime,
+            lastMessageText,
+            lastMessageSender: sender || payload.from.bare,
+            at
+          };
+        })
     }).map(conversation => {
     return beginStoringConversations([conversation])
     });
@@ -492,28 +501,30 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
       }
       return [{ payload, name, beAt }];
     })
-    .map(({ payload, name, beAt }) => {
+    .mergeMap(({ payload, name, beAt }) => {
       let at = false;
-      let content = getLastMessageText(payload);
-      const { timeSend } = JSON.parse(payload.body);
-      // if not current conversation, unreadMessages + 1
-      let unreadMessages = 0;
-      const { chat: { selectedConversation } } = getState();
-      if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
-        unreadMessages = 1;
-        at = beAt;
-      }
-      return {
-        jid: payload.from.bare,
-        curJid: payload.curJid,
-        name: name,
-        isGroup: true,
-        unreadMessages: unreadMessages,
-        lastMessageTime: (new Date(timeSend)).getTime(),
-        lastMessageText: content,
-        lastMessageSender: payload.from.resource + '@im.edison.tech',
-        at
-      };
+      return Observable.fromPromise(getLastMessageInfo(payload))
+        .map(({ lastMessageTime, sender, lastMessageText }) => {
+          const { timeSend } = JSON.parse(payload.body);
+          // if not current conversation, unreadMessages + 1
+          let unreadMessages = 0;
+          const { chat: { selectedConversation } } = getState();
+          if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
+            unreadMessages = 1;
+            at = beAt;
+          }
+          return {
+            jid: payload.from.bare,
+            curJid: payload.curJid,
+            name: name,
+            isGroup: true,
+            unreadMessages: unreadMessages,
+            lastMessageTime,
+            lastMessageText,
+            lastMessageSender: sender || payload.from.resource + '@im.edison.tech',
+            at
+          };
+        })
     })
     .mergeMap(conv => {
       return Observable.fromPromise(getDb())

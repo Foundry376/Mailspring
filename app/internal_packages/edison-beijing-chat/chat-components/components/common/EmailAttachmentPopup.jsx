@@ -28,6 +28,7 @@ export default class EmailAttachmentPopup extends Component {
     const db = sqlite(dbpath);
     const stmt = db.prepare('SELECT file.*, Message.subject FROM File inner join Message on File.messageId=Message.id');
     const files = stmt.all();
+    db.close();
     this.setState({ files });
   }
   renderAttachments = () => {

@@ -126,9 +126,9 @@ export default class Messages extends PureComponent {
       click: () => {
         const { selectedConversation, onMessageSubmitted } = this.props;
         const body = this.activeMsgBody;
+        body.updating = true;
         body.deleted = true;
-        const updating = true;
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), this.activeMsg.id, true, updating);
+        onMessageSubmitted(selectedConversation, JSON.stringify(body), this.activeMsg.id, true);
         this.menu.closePopup();
       }
     });

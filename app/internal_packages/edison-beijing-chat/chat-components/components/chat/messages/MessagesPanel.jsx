@@ -60,7 +60,8 @@ export default class MessagesPanel extends PureComponent {
     showConversationInfo: false,
     inviting: false,
     members: [],
-    membersTemp: null
+    membersTemp: null,
+    online: true
   }
 
   onUpdateGroup = async (contacts) => {
@@ -93,6 +94,24 @@ export default class MessagesPanel extends PureComponent {
 
   componentDidMount() {
     this.getRoomMembers();
+    window.addEventListener("online", this.onLine);
+    window.addEventListener("offline", this.offLine);
+  }
+  componentWillUnmount() {
+    window.removeEventListener("online", this.onLine);
+    window.removeEventListener("offline", this.offLine);
+  }
+
+  onLine = () => {
+    this.setState({
+      online: true
+    })
+  }
+
+  offLine = () => {
+    this.setState({
+      online: false
+    })
   }
 
   componentWillReceiveProps() {
@@ -299,7 +318,6 @@ export default class MessagesPanel extends PureComponent {
                 ) : (
                     <MessagesTopBar {...topBarProps} />
                   )}
-                {/* <Divider type="horizontal" /> */}
                 <Messages {...messagesProps} sendBarProps={sendBarProps} />
                 {this.state.dragover && (
                   <div id="message-dragdrop-override"></div>
@@ -333,6 +351,7 @@ export default class MessagesPanel extends PureComponent {
             <span>Select a conversation to start messaging</span>
           </div>
         }
+        {!this.state.online && <div className="network-offline"></div>}
       </div>
     );
   }

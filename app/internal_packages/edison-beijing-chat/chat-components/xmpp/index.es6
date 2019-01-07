@@ -39,7 +39,7 @@ export class Xmpp extends EventEmitter3 {
       jid = jid.substring(0, jid.indexOf('/'));
     }
     if (jid) {
-      return this.xmppMap[jid];
+      return this.xmppMap[jid] || this.xmppMap[this.defaultJid];
     } else {
       return this.xmppMap[this.defaultJid];
     }
@@ -86,6 +86,14 @@ export class Xmpp extends EventEmitter3 {
   }
   async getRoomMembers(room, ver, curJid) {
     let xmpp = this.getXmpp(curJid);
+    if (!xmpp) {
+      console.warn(`the xmpp connection of ${curJid} is not exist, maybe you just delete this account.`);
+      return {
+        mucAdmin: {
+          items: []
+        }
+      };
+    }
     return xmpp.getRoomMembers(room, ver);
   }
   async getRoomList(ver, curJid) {
@@ -152,10 +160,9 @@ export class XmppEx extends EventEmitter3 {
       this.client.enableKeepAlive({ timeout: 30, interval: 30 });
     });
     this.client.on('disconnected', () => {
-      console.log('disconnected');
+      console.warn('disconnected');
       this.isConnected = false;
       if (this.retryTimes == 0) {
-        console.log('connecting。。。');
         this.retryTimes++;
         setTimeout(() => this.connect(), 500);
       } else {
@@ -274,14 +281,25 @@ export class XmppEx extends EventEmitter3 {
     return this.client.createRoom(room, opts);
   }
   async getRoomMembers(room, ver) {
-    const members = await this.client.getRoomMembers(room, {
-      ver: ver,
-      items: [{
-        affiliation: 'member'
-      }]
-    });
-    this.emit('receive:members', members);
-    return members;
+    try {
+      const members = await this.client.getRoomMembers(room, {
+        ver: ver,
+        items: [{
+          affiliation: 'member'
+        }]
+      });
+      this.emit('receive:members', members);
+      return members;
+    } catch (err) {
+      console.warn('getRoomMembers failed, maybe you are not this room member', err);
+      const emptyEmebers = {
+        mucAdmin: {
+          items: []
+        }
+      }
+      this.emit('receive:members', emptyEmebers);
+      return emptyEmebers;
+    }
   }
   async getRoomList(ver) {
     return this.client.getRoomList(ver);
