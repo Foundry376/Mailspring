@@ -115,7 +115,7 @@ class ListTabular extends Component {
       );
     }
 
-    this._unlisten = () => {};
+    this._unlisten = () => { };
     this.state = this.buildStateForRange({ start: -1, end: -1 });
   }
 
@@ -128,6 +128,9 @@ class ListTabular extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.dataSource !== this.props.dataSource) {
       this.setupDataSource(nextProps.dataSource);
+    }
+    if (nextProps.itemHeight !== this.props.itemHeight) {
+      this.updateRangeState(nextProps);
     }
   }
 
@@ -209,7 +212,6 @@ class ListTabular extends Component {
       const itemProps = itemPropsProvider(record.item, idx / 1);
       rows.push({ item: record.item, idx: idx / 1, itemProps });
     });
-
     Utils.range(renderedRangeStart, renderedRangeEnd).forEach(idx => {
       const item = items[idx];
       if (item) {
@@ -236,12 +238,12 @@ class ListTabular extends Component {
     this._scrollRegion.scrollTop += height * direction;
   }
 
-  updateRangeState() {
+  updateRangeState(nextProps) {
     if (!this._scrollRegion) {
       return;
     }
     const { scrollTop } = this._scrollRegion;
-    const { itemHeight } = this.props;
+    const { itemHeight } = nextProps || this.props;
 
     // Determine the exact range of rows we want onscreen
     const rangeSize = Math.ceil(window.innerHeight / itemHeight);
