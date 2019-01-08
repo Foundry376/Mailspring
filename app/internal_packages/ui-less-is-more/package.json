@@ -3,7 +3,7 @@
   "displayName": "Less Is More",
   "theme": "ui",
   "version": "1.0.7",
-  "description": "A minimal approach to email in Mailspring",
+  "description": "A minimal approach to email in EdisonMail",
   "license": "MIT",
   "engines": {
     "mailspring": "*"

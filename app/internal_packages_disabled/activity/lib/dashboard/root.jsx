@@ -268,7 +268,7 @@ class RootWithTimespan extends React.Component {
         AppEnv.showErrorDialog({
           title: 'Export Failed',
           message:
-            `Mailspring was unable to write to the file location you specified (${filepath}).` +
+            `EdisonMail was unable to write to the file location you specified (${filepath}).` +
             `Try choosing another location.\n\n${err.toString()}`,
         });
         return;
@@ -354,7 +354,7 @@ class RootWithTimespan extends React.Component {
           <div className="usage-note">
             {`These features were ${lowTrackingPhrase} of the messages you sent
             in this time period, so these numbers do not reflect all of your activity. To enable
-            read receipts and link tracking on emails you send, click the 
+            read receipts and link tracking on emails you send, click the
             `}
             <RetinaImg
               name="icon-activity-mailopen.png"

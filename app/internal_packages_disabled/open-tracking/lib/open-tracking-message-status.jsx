@@ -55,7 +55,7 @@ export default class OpenTrackingMessageStatus extends React.Component {
       <RetinaImg
         className={this.state.opened ? 'opened' : 'unopened'}
         style={{ position: 'relative', top: -1 }}
-        url="mailspring://open-tracking/assets/InMessage-opened@2x.png"
+        url="edisonmail://open-tracking/assets/InMessage-opened@2x.png"
         mode={RetinaImg.Mode.ContentIsMask}
       />
     );

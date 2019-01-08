@@ -6,7 +6,7 @@ import ModeToggle from './mode-toggle';
 const ToggleWithTutorialTip = HasTutorialTip(ModeToggle, {
   title: 'Compose with context',
   instructions:
-    'Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.',
+    'EdisonMail shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.',
 });
 
 // NOTE: this is a hack to allow ComponentRegistry

@@ -95,7 +95,7 @@ module.exports = grunt => {
         linuxShareDir: '/usr/share/mailspring',
         arch: arch,
         section: 'mail',
-        maintainer: 'Mailspring Team <support@getmailspring.com>',
+        maintainer: 'EdisonMail Team <support@getmailspring.com>',
         installedSize: installedSize,
       };
       writeFromTemplate(path.join(linuxAssetsDir, 'debian', 'control.in'), data);

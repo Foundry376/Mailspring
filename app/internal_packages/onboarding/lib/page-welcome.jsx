@@ -19,7 +19,7 @@ export default class WelcomePage extends React.Component {
             </p>
             <RetinaImg
               className="icons"
-              url="mailspring://onboarding/assets/icons-bg@2x.png"
+              url="edisonmail://onboarding/assets/icons-bg@2x.png"
               mode={RetinaImg.Mode.ContentPreserve}
             />
           </div>

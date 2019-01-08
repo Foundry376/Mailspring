@@ -147,7 +147,7 @@ export default class Webview extends React.Component {
     }
     if (httpResponseCode >= 400) {
       const error = `
-        Could not reach Mailspring. Please try again or contact
+        Could not reach EdisonMail. Please try again or contact
         support@getmailspring.com if the issue persists.
         (${originalURL}: ${httpResponseCode})
       `;

@@ -37,7 +37,7 @@ export default class OpenTrackingButton extends React.Component {
 
     return (
       <MetadataComposerToggleButton
-        iconUrl="mailspring://open-tracking/assets/icon-composer-eye@2x.png"
+        iconUrl="edisonmail://open-tracking/assets/icon-composer-eye@2x.png"
         pluginId={PLUGIN_ID}
         pluginName={PLUGIN_NAME}
         metadataEnabledValue={enabledValue}

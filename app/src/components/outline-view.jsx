@@ -131,7 +131,7 @@ class OutlineView extends Component {
         onMouseUp={this._onCreateButtonClicked}
       >
         <RetinaImg
-          url="mailspring://account-sidebar/assets/icon-sidebar-addcategory@2x.png"
+          url="edisonmail://account-sidebar/assets/icon-sidebar-addcategory@2x.png"
           style={{ height: 15, width: 14 }}
           mode={RetinaImg.Mode.ContentIsMask}
         />

@@ -56,7 +56,7 @@ export default class ThreadSharingPopover extends React.Component {
           await FeatureUsageStore.markUsedOrUpgrade('thread-sharing', {
             usedUpHeader: 'All Sharing Links Used',
             usagePhrase: 'share',
-            iconUrl: 'mailspring://thread-sharing/assets/ic-modal-image@2x.png',
+            iconUrl: 'edisonmail://thread-sharing/assets/ic-modal-image@2x.png',
           });
         } catch (error) {
           if (error instanceof FeatureUsageStore.NoProAccessError) {
@@ -74,7 +74,7 @@ export default class ThreadSharingPopover extends React.Component {
     } catch (error) {
       AppEnv.reportError(error);
       AppEnv.showErrorDialog(
-        `Sorry, we were unable to contact the Mailspring servers to share this thread.\n\n${
+        `Sorry, we were unable to contact the EdisonMail servers to share this thread.\n\n${
           error.message
         }`
       );

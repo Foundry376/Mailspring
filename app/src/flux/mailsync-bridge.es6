@@ -131,7 +131,7 @@ export default class MailsyncBridge {
 
   toggleVerboseLogging() {
     const { configDirPath } = AppEnv.getLoadSettings();
-    let message = 'Thank you for helping debug Mailspring. Mailspring will now restart.';
+    let message = 'Thank you for helping debug EdisonMail. EdisonMail will now restart.';
     let phrase = 'disabled';
 
     if (AppEnv.config.get(VERBOSE_UNTIL_KEY)) {
@@ -141,9 +141,9 @@ export default class MailsyncBridge {
       phrase = 'enabled';
       message =
         `Verbose logging will be enabled for the next thirty minutes. This records ` +
-        `all network traffic to your mail providers and will be quite slow. Restart Mailspring ` +
+        `all network traffic to your mail providers and will be quite slow. Restart EdisonMail ` +
         `and wait for your problem to occur, and then submit mailsync-***.log files located ` +
-        `in the directory: \n\n${configDirPath}.\n\nMailspring will now restart.`;
+        `in the directory: \n\n${configDirPath}.\n\nEdisonMail will now restart.`;
     }
     AppEnv.showErrorDialog({
       title: `Verbose logging is now ${phrase}`,
@@ -196,7 +196,7 @@ export default class MailsyncBridge {
     if (!this._clients[accountId]) {
       const { emailAddress } = AccountStore.accountForId(accountId) || {};
       return AppEnv.showErrorDialog({
-        title: `Mailspring is unable to sync ${emailAddress}`,
+        title: `EdisonMail is unable to sync ${emailAddress}`,
         message: `In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.`,
       });
     }
@@ -228,7 +228,7 @@ export default class MailsyncBridge {
     if (!silent) {
       AppEnv.showErrorDialog({
         title: `Cleanup Started`,
-        message: `Mailspring is clearing it's cache for ${
+        message: `EdisonMail is clearing it's cache for ${
           account.emailAddress
           }. Depending on the size of the mailbox, this may take a few seconds or a few minutes. An alert will appear when cleanup is complete.`,
       });
@@ -242,7 +242,7 @@ export default class MailsyncBridge {
       if (!silent) {
         AppEnv.showErrorDialog({
           title: `Cleanup Complete`,
-          message: `Mailspring reset the local cache for ${account.emailAddress} in ${Math.ceil(
+          message: `EdisonMail reset the local cache for ${account.emailAddress} in ${Math.ceil(
             (Date.now() - start) / 1000
           )} seconds. Your mailbox will now begin to sync again.`,
         });
@@ -250,7 +250,7 @@ export default class MailsyncBridge {
     } catch (error) {
       AppEnv.showErrorDialog({
         title: `Cleanup Error`,
-        message: `Mailspring was unable to reset the local cache. ${error}`,
+        message: `EdisonMail was unable to reset the local cache. ${error}`,
       });
     } finally {
       delete this._clients[account.id];

@@ -135,7 +135,7 @@ class FeatureUsageStore extends MailspringStore {
     let rechargeText = '';
     if (!featureData.quota) {
       headerText = `Uhoh - that's a pro feature!`;
-      rechargeText = `Upgrade to Mailspring Pro to ${lexicon.usagePhrase}.`;
+      rechargeText = `Upgrade to EdisonMail Pro to ${lexicon.usagePhrase}.`;
     } else {
       headerText = lexicon.usedUpHeader || "You've reached your quota";
       let time = 'later';
@@ -152,7 +152,7 @@ class FeatureUsageStore extends MailspringStore {
       }
       rechargeText = `You can ${lexicon.usagePhrase} ${
         featureData.quota
-      } emails ${time} with Mailspring Basic. Upgrade to Pro today!`;
+      } emails ${time} with EdisonMail Basic. Upgrade to Pro today!`;
     }
     return { headerText, rechargeText };
   }

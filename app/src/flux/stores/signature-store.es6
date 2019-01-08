@@ -19,9 +19,9 @@ class SignatureStore extends MailspringStore {
         initial: {
           id: 'initial',
           title: 'Default',
-          body: `<div><div>Sent from <a href="https://getmailspring.com/">Mailspring</a>, the best free email app for work</div></div>`,
+          body: `<div><div>Sent from <a href="https://getmailspring.com/">EdisonMail</a>, the best free email app for work</div></div>`,
           data: {
-            title: 'Sent from Mailspring, the best free email app for work',
+            title: 'Sent from EdisonMail, the best free email app for work',
             templateName: 'SignatureB',
           },
         },

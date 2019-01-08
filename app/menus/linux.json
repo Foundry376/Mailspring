@@ -147,7 +147,7 @@
       "submenu": [
         { "label": "VERSION", "enabled": false },
         { "type": "separator" },
-        { "label": "Mailspring Help", "command": "application:view-help" }
+        { "label": "EdisonMail Help", "command": "application:view-help" }
       ]
     }
   ]

@@ -189,15 +189,15 @@ class PreferencesAccountDetails extends Component {
     switch (account.syncState) {
       case Account.SYNC_STATE_AUTH_FAILED:
         return this._renderErrorDetail(
-          `Mailspring can no longer authenticate with ${account.emailAddress}. The password
+          `EdisonMail can no longer authenticate with ${account.emailAddress}. The password
             or authentication may have changed.`,
           'Reconnect',
           this._onReconnect
         );
       case Account.SYNC_STATE_ERROR:
         return this._renderErrorDetail(
-          `Mailspring encountered errors syncing this account. Crash reports
-          have been sent to the Mailspring team and we'll work to fix these
+          `EdisonMail encountered errors syncing this account. Crash reports
+          have been sent to the EdisonMail team and we'll work to fix these
           errors in the next release.`,
           'Try Reconnecting',
           this._onReconnect

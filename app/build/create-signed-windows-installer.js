@@ -16,14 +16,14 @@ const config = {
   loadingGif: path.join(appDir, 'build', 'resources', 'win', 'loading.gif'),
   iconUrl: 'http://mailspring-builds.s3.amazonaws.com/assets/mailspring.ico',
   certificateFile: process.env.WINDOWS_CODESIGN_CERT,
-  description: 'Mailspring',
+  description: 'EdisonMail',
   version: version,
-  title: 'Mailspring',
+  title: 'EdisonMail',
   authors: 'Foundry 376, LLC',
   setupIcon: path.join(appDir, 'build', 'resources', 'win', 'mailspring.ico'),
   setupExe: 'MailspringSetup.exe',
   exe: 'mailspring.exe',
-  name: 'Mailspring',
+  name: 'EdisonMail',
 };
 
 console.log(config);

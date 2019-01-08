@@ -75,7 +75,7 @@ class SendLaterButton extends Component {
         await FeatureUsageStore.markUsedOrUpgrade('send-later', {
           usedUpHeader: 'All Scheduled Sends Used',
           usagePhrase: 'schedule sending of',
-          iconUrl: 'mailspring://send-later/assets/ic-send-later-modal@2x.png',
+          iconUrl: 'edisonmail://send-later/assets/ic-send-later-modal@2x.png',
         });
       } catch (error) {
         if (error instanceof FeatureUsageStore.NoProAccessError) {

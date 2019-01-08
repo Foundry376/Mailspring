@@ -119,7 +119,7 @@ class AccountStore extends MailspringStore {
 
     if (message && AppEnv.isMainWindow()) {
       AppEnv.showErrorDialog(
-        `Mailspring was unable to load your account preferences.\n\n${message}`
+        `EdisonMail was unable to load your account preferences.\n\n${message}`
       );
     }
   };

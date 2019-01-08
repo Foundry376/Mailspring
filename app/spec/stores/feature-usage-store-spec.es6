@@ -110,7 +110,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
           headerText: 'all test used',
           iconUrl: 'icon url',
           rechargeText:
-            'You can add a test to 10 emails a month with Mailspring Basic. Upgrade to Pro today!',
+            'You can add a test to 10 emails a month with EdisonMail Basic. Upgrade to Pro today!',
         });
       });
 

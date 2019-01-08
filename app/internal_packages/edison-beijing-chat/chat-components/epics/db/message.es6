@@ -88,7 +88,9 @@ export const retrieveSelectedConversationMessagesEpic = action$ =>
             .eq(jid)
             .$
             .takeUntil(action$.ofType(SELECT_CONVERSATION, DESELECT_CONVERSATION))
-            .map(messages => messages.sort((a, b) => a.sentTime - b.sentTime))
+            .map(messages => {
+              return messages.sort((a, b) => a.sentTime - b.sentTime);
+            })
             .mergeMap(messages => groupMessages(messages))
             .map(groupedMessages => {
               return updateSelectedConversationMessages(groupedMessages)

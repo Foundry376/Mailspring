@@ -77,7 +77,7 @@ class TemplateStore extends MailspringStore {
       if (err) {
         AppEnv.showErrorDialog({
           title: 'Cannot scan templates directory',
-          message: `Mailspring was unable to read the contents of your templates directory (${
+          message: `EdisonMail was unable to read the contents of your templates directory (${
             this._templatesDir
           }). You may want to delete this folder or ensure filesystem permissions are set correctly.`,
         });

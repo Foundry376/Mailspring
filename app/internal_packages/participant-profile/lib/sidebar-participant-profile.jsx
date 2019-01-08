@@ -104,7 +104,7 @@ class SocialProfileLink extends React.Component {
         href={`https://${service}.com/${handle}`}
       >
         <RetinaImg
-          url={`mailspring://participant-profile/assets/${service}-sidebar-icon@2x.png`}
+          url={`edisonmail://participant-profile/assets/${service}-sidebar-icon@2x.png`}
           mode={RetinaImg.Mode.ContentPreserve}
         />
       </a>
@@ -165,7 +165,7 @@ class IconRow extends React.Component {
     return (
       <div className={`icon-row ${icon}`}>
         <RetinaImg
-          url={`mailspring://participant-profile/assets/${icon}-icon@2x.png`}
+          url={`edisonmail://participant-profile/assets/${icon}-icon@2x.png`}
           mode={RetinaImg.Mode.ContentPreserve}
           style={{ float: 'left' }}
         />
@@ -248,7 +248,7 @@ export default class SidebarParticipantProfile extends React.Component {
       await FeatureUsageStore.markUsedOrUpgrade('contact-profiles', {
         usedUpHeader: 'All Contact Previews Used',
         usagePhrase: 'view contact profiles for',
-        iconUrl: 'mailspring://participant-profile/assets/ic-contact-profile-modal@2x.png',
+        iconUrl: 'edisonmail://participant-profile/assets/ic-contact-profile-modal@2x.png',
       });
     } catch (err) {
       // user does not have access to this feature

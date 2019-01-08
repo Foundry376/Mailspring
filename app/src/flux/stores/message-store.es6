@@ -188,7 +188,7 @@ class MessageStore extends MailspringStore {
   }
 
   _setWindowTitle() {
-    let title = 'Mailspring' + (this._thread ? ' · ' + this._thread.subject : '');
+    let title = 'EdisonMail' + (this._thread ? ' · ' + this._thread.subject : '');
     electron.remote.getCurrentWindow().setTitle(title);
   }
 

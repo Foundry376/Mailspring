@@ -239,7 +239,7 @@ class DraftFactory {
     }
 
     return this.createDraft({
-      from: [new Contact({ email: account.emailAddress, name: `${account.name} via Mailspring` })],
+      from: [new Contact({ email: account.emailAddress, name: `${account.name} via EdisonMail` })],
       to: [account.defaultMe()],
       cc: [],
       pristine: false,

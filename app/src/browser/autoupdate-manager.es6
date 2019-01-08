@@ -168,7 +168,7 @@ export default class AutoUpdateManager extends EventEmitter {
       icon: this.iconURL(),
       message: 'No update available.',
       title: 'No Update Available',
-      detail: `You're running the latest version of Mailspring (${this.version}).`,
+      detail: `You're running the latest version of EdisonMail (${this.version}).`,
     });
   };
 

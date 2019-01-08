@@ -77,7 +77,7 @@ class TabInstalled extends React.Component {
           These plugins are only loaded when you run the app with debug flags enabled (via the
           Developer menu).<br />
           <br />Learn more about building plugins with{' '}
-          <a href="http://Foundry376.github.io/Mailspring/">our docs</a>.
+          <a href="http://Foundry376.github.io/EdisonMail/">our docs</a>.
         </span>
       );
       devCTA = (

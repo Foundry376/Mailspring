@@ -15,7 +15,7 @@ let Utils = null;
 export const LocalizedErrorStrings = {
   ErrorConnection: 'Connection Error - Unable to connect to the server / port you provided.',
   ErrorInvalidAccount:
-    'This account is invalid or Mailspring could not find the Inbox or All Mail folder. http://support.getmailspring.com/hc/en-us/articles/115001881912',
+    'This account is invalid or EdisonMail could not find the Inbox or All Mail folder. http://support.getmailspring.com/hc/en-us/articles/115001881912',
   ErrorTLSNotAvailable: 'TLS Not Available',
   ErrorParse: 'Parsing Error',
   ErrorCertificate: 'Certificate Error',
@@ -46,7 +46,7 @@ export const LocalizedErrorStrings = {
   ErrorNoSender: 'The message has been blocked because no sender is configured.',
 
   ErrorIdentityMissingFields:
-    'Your Mailspring ID is missing required fields - you may need to reset Mailspring. http://support.getmailspring.com/hc/en-us/articles/115002012491',
+    'Your EdisonMail ID is missing required fields - you may need to reset EdisonMail. http://support.getmailspring.com/hc/en-us/articles/115002012491',
 };
 
 export default class MailsyncProcess extends EventEmitter {

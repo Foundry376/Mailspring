@@ -59,7 +59,7 @@ function downloadMailsync() {
 
       if (!distDir) {
         console.error(
-          `\nSorry, a Mailspring Mailsync build for your machine (${distKey}) is not yet available.`
+          `\nSorry, a EdisonMail Mailsync build for your machine (${distKey}) is not yet available.`
         );
         return;
       }
@@ -86,7 +86,7 @@ function downloadMailsync() {
           });
         } else {
           console.error(
-            `Sorry, an error occurred while fetching the Mailspring Mailsync build for your machine\n(${distS3URL})\n`
+            `Sorry, an error occurred while fetching the EdisonMail Mailsync build for your machine\n(${distS3URL})\n`
           );
           response.pipe(process.stderr);
           response.on('end', () => console.error('\n'));
@@ -121,7 +121,7 @@ npm('install', { cwd: './app', env: 'electron' }).then(() => {
       // if the user hasn't cloned the private mailsync module, download
       // the binary for their operating system that was shipped to S3.
       if (!fs.existsSync('./mailsync/build.sh')) {
-        console.log(`\n-- Downloading the last released version of Mailspring mailsync --`);
+        console.log(`\n-- Downloading the last released version of EdisonMail mailsync --`);
         downloadMailsync();
       }
     });

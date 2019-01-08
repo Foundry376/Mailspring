@@ -130,7 +130,7 @@ class TemplatePicker extends React.Component {
         title="Insert quick reply…"
       >
         <RetinaImg
-          url="mailspring://composer-templates/assets/icon-composer-templates@2x.png"
+          url="edisonmail://composer-templates/assets/icon-composer-templates@2x.png"
           mode={RetinaImg.Mode.ContentIsMask}
         />
         &nbsp;

@@ -51,7 +51,7 @@ module.exports = class MailspringWindow extends EventEmitter {
 
     const browserWindowOptions = {
       show: false,
-      title: title || 'Mailspring',
+      title: title || 'EdisonMail',
       frame,
       width,
       height,
@@ -242,7 +242,7 @@ module.exports = class MailspringWindow extends EventEmitter {
       const chosen = dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Close', 'Keep Waiting'],
-        message: 'Mailspring is not responding',
+        message: 'EdisonMail is not responding',
         detail: 'Would you like to force close it or keep waiting?',
       });
       if (chosen === 0) {
@@ -268,7 +268,7 @@ module.exports = class MailspringWindow extends EventEmitter {
         const chosen = dialog.showMessageBox(this.browserWindow, {
           type: 'warning',
           buttons: ['Close Window', 'Reload', 'Keep It Open'],
-          message: 'Mailspring has crashed',
+          message: 'EdisonMail has crashed',
           detail: 'Please report this issue to us at support@getmailspring.com.',
         });
         if (chosen === 0) {

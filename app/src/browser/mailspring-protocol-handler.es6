@@ -5,7 +5,7 @@ import path from 'path';
 // Handles requests with 'mailspring' protocol.
 //
 // It's created by {Application} upon instantiation and is used to create a
-// custom resource loader for 'mailspring://' URLs.
+// custom resource loader for 'edisonmail://' URLs.
 //
 // The following directories are searched in order:
 //   * <config-dir>/assets
@@ -28,7 +28,7 @@ export default class MailspringProtocolHandler {
 
   // Creates the 'Mailspring' custom protocol handler.
   registerProtocol() {
-    const scheme = 'mailspring';
+    const scheme = 'edisonmail';
     protocol.registerFileProtocol(scheme, (request, callback) => {
       const relativePath = path.normalize(request.url.substr(scheme.length + 1));
 

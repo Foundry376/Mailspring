@@ -1,9 +1,9 @@
 {
   "menu": [
   {
-    "label": "Mailspring",
+    "label": "EdisonMail",
     "submenu": [
-      { "label": "About Mailspring", "command": "application:about" },
+      { "label": "About EdisonMail", "command": "application:about" },
       { "type": "separator" },
       { "label": "Preferences", "command": "application:open-preferences" },
       { "label": "Change Theme...", "command": "window:launch-theme-picker" },
@@ -18,7 +18,7 @@
       { "type": "separator" },
       { "label": "Services", "submenu": [] },
       { "type": "separator" },
-      { "label": "Hide Mailspring", "command": "application:hide" },
+      { "label": "Hide EdisonMail", "command": "application:hide" },
       { "label": "Hide Others", "command": "application:hide-other-applications" },
       { "label": "Show All", "command": "application:unhide-all-applications" },
       { "type": "separator" },
@@ -170,7 +170,7 @@
   {
     "label": "Help",
     "submenu": [
-      { "label": "Mailspring Help", "command": "application:view-help" }
+      { "label": "EdisonMail Help", "command": "application:view-help" }
     ]
   }
   ]

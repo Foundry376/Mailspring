@@ -28,10 +28,10 @@ export default class PleaseSubscribeNotification extends React.Component {
 
     let msg = null;
     if (stripePlan === 'Basic' && accountCount > 4) {
-      msg = `You're syncing more than four accounts — please consider paying for Mailspring Pro!`;
+      msg = `You're syncing more than four accounts — please consider paying for EdisonMail Pro!`;
     }
     if (stripePlan !== stripePlanEffective) {
-      msg = `We're having trouble billing your Mailspring subscription.`;
+      msg = `We're having trouble billing your EdisonMail subscription.`;
     }
 
     return { msg };

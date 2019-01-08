@@ -131,7 +131,7 @@ export default class TutorialPage extends React.Component {
           </div>
           <div className="right">
             <img
-              src={`mailspring://onboarding/assets/${current.image}`}
+              src={`edisonmail://onboarding/assets/${current.image}`}
               style={{ zoom: 0.5, margin: 'auto' }}
               alt=""
             />

@@ -14,7 +14,7 @@ function _getMenuTemplate(platform, application) {
       type: 'separator',
     },
     {
-      label: 'Quit Mailspring',
+      label: 'Quit EdisonMail',
       click: () => application.emit('application:quit'),
     },
   ];
