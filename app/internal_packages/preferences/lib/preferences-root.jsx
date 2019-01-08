@@ -2,6 +2,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
+import RetinaImg from '../../../src/components/retina-img';
+import { Actions } from 'mailspring-exports';
+
 import {
   Flexbox,
   ScrollRegion,
@@ -74,6 +77,9 @@ class PreferencesRoot extends React.Component {
       node.focus();
     }
   }
+  onBack = () => {
+    Actions.popSheet();
+  };
 
   render() {
     const { tab, selection, tabs } = this.props;
@@ -86,6 +92,10 @@ class PreferencesRoot extends React.Component {
         localHandlers={this._localHandlers}
       >
         <Flexbox direction="column">
+          <div className="item-back" onClick={this.onBack}>
+            <RetinaImg name="sheet-back.png" mode={RetinaImg.Mode.ContentPreserve} />
+            <div className="item-back-title">back</div>
+          </div>
           <PreferencesTabsBar tabs={tabs} selection={selection} />
           <ScrollRegion className="preferences-content">
             <ConfigPropContainer
