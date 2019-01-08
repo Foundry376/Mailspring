@@ -96,7 +96,7 @@ export default class AppEnvConstructor {
     this.themes.activateThemePackage();
 
     this.spellchecker = require('./spellchecker').default;
-    this.menu = new MenuManager({ resourcePath });
+    this.menu = new MenuManager({ resourcePath, devMode });
     if (process.platform === 'win32') {
       this.getCurrentWindow().setMenuBarVisibility(false);
     }
