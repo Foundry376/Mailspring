@@ -351,6 +351,7 @@ export default class DraftEditingSession extends MailspringStore {
           replyTo: draft.replyTo,
           subject: draft.subject,
           headerMessageId: draft.headerMessageId,
+          hasNewID: draft.hasNewID,
           accountId: account.id,
           unread: false,
           starred: false,
@@ -431,16 +432,21 @@ export default class DraftEditingSession extends MailspringStore {
     }
     //if id is empty, we assign uuid to id;
     if (!this._draft.id || this._draft.id === '') {
-      console.log('draft id is empty', this._draft);
+      console.error('draft id is empty', this._draft);
       this._draft.id = uuid();
     }
-    if (this._draft.remoteUID && (!this._draft.msgOrigin || (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID))) {
+    if (
+      this._draft.remoteUID &&
+      (!this._draft.msgOrigin ||
+        (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID))
+    ) {
       this._draft.setOrigin(Message.EditExistingDraft);
       this._draft.referenceMessageId = this._draft.id;
       this._draft.id = uuid();
+      this._draft.headerMessageId = this._draft.id;
       this._draft.hasNewID = true;
     } else if (this._draft.remoteUID && (this._draft.msgOrigin !== Message.EditExistingDraft)) {
-      console.log('Message with remoteUID but origin is edit existing draft');
+      console.error('Message with remoteUID but origin is edit existing draft');
       this._draft.setOrigin(Message.EditExistingDraft);
     }
     if (arg === 'unload') {

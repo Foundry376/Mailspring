@@ -95,6 +95,7 @@ export default class MessageItemContainer extends React.Component {
           this._messageComponent = cm;
         }}
         headerMessageId={this.props.message.headerMessageId}
+        messageId={this.props.message.id}
         className={this._classNames()}
         mode={'inline'}
         threadId={this.props.thread.id}

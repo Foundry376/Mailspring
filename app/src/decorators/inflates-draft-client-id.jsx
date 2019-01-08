@@ -10,11 +10,13 @@ function InflatesDraftClientId(ComposedComponent) {
 
     static propTypes = {
       headerMessageId: PropTypes.string,
+      messageId: PropTypes.string,
       onDraftReady: PropTypes.func,
     };
 
     static defaultProps = {
-      onDraftReady: () => {},
+      onDraftReady: () => {
+      },
     };
 
     static containerRequired = false;
@@ -25,11 +27,12 @@ function InflatesDraftClientId(ComposedComponent) {
         session: null,
         draft: null,
       };
+      this._sessionUnlisten = null;
     }
 
     componentDidMount() {
       this._mounted = true;
-      this._prepareForDraft(this.props.headerMessageId);
+      this._prepareForDraft(this.props.headerMessageId, this.props.messageId);
     }
 
     componentWillUnmount() {
@@ -41,20 +44,26 @@ function InflatesDraftClientId(ComposedComponent) {
     componentWillReceiveProps(newProps) {
       if (newProps.headerMessageId !== this.props.headerMessageId) {
         this._teardownForDraft();
-        this._prepareForDraft(newProps.headerMessageId);
+        this._prepareForDraft(newProps.headerMessageId, newProps.messageId);
       }
     }
 
-    _prepareForDraft(headerMessageId) {
-      if (!headerMessageId) {
+    _prepareForDraft(headerMessageId, messageId) {
+      if (!headerMessageId && !messageId) {
+        console.log('not ids');
         return;
       }
       DraftStore.sessionForClientId(headerMessageId).then(session => {
-        const shouldSetState = () =>
-          this._mounted && session.headerMessageId === this.props.headerMessageId;
-
+        const shouldSetState = () => {
+          // const draft = session.draft();
+          return this._mounted &&
+            session.headerMessageId === this.props.headerMessageId;
+        };
         if (!shouldSetState()) {
           return;
+        }
+        if (this._sessionUnlisten) {
+          this._sessionUnlisten();
         }
         this._sessionUnlisten = session.listen(() => {
           if (!shouldSetState()) {
@@ -73,7 +82,11 @@ function InflatesDraftClientId(ComposedComponent) {
 
     _teardownForDraft() {
       if (this.state.session) {
-        this.state.session.changes.commit('unload');
+        if (this.state.draft && !this.state.draft.pristine) {
+          this.state.session.changes.commit();
+        } else {
+          this.state.session.changes.commit();
+        }
       }
       if (this._sessionUnlisten) {
         this._sessionUnlisten();
@@ -94,12 +107,13 @@ function InflatesDraftClientId(ComposedComponent) {
     focus() {
       return Utils.waitFor(() => this.refs.composed)
         .then(() => this.refs.composed.focus())
-        .catch(() => {});
+        .catch(() => {
+        });
     }
 
     render() {
       if (!this.state.draft) {
-        return <span />;
+        return <span/>;
       }
       return (
         <ComposedComponent
