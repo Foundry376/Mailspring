@@ -58,8 +58,8 @@ const addToAvatarMembers = (conv, contact) => {
     return conv;
   }
   conv.avatarMembers = conv.avatarMembers || [];
-  if (conv.avatarMembers[0]){
-    if(contact.jid !== conv.avatarMembers[0].jid) {
+  if (conv.avatarMembers[0]) {
+    if (contact.jid !== conv.avatarMembers[0].jid) {
       conv.avatarMembers[1] = conv.avatarMembers[0];
       contact = copyRxdbContact(contact);
       conv.avatarMembers[0] = contact;
@@ -443,12 +443,10 @@ export const convertReceivedMessageEpic = (action$, { getState }) =>
 export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE)
     .mergeMap(({ type, payload }) => {
-      let beAt = false;
       let name = payload.from.local;
-      return [{ type, payload, name, beAt }];
+      return [{ type, payload, name }];
     })
-    .mergeMap(({ payload, name, beAt }) => {
-      let at = false;
+    .mergeMap(({ payload, name }) => {
       return Observable.fromPromise(getLastMessageInfo(payload))
         .map(({ lastMessageTime, sender, lastMessageText }) => {
           const { timeSend } = JSON.parse(payload.body);
@@ -457,7 +455,6 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
           const { chat: { selectedConversation } } = getState();
           if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
             unreadMessages = 1;
-            at = beAt;
           }
           return {
             jid: payload.from.bare,
@@ -468,11 +465,11 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
             lastMessageTime,
             lastMessageText,
             lastMessageSender: sender || payload.from.bare,
-            at
+            at: false
           };
         })
     }).map(conversation => {
-    return beginStoringConversations([conversation])
+      return beginStoringConversations([conversation])
     });
 
 export const updateGroupMessageConversationEpic = (action$, { getState }) =>
