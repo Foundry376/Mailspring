@@ -1,12 +1,12 @@
 {
-  "name": "mailspring-root",
+  "name": "edisonmail-root",
   "version": "0.0.1",
-  "description": "Packages required to develop and build Mailspring",
-  "author": "Mailspring",
+  "description": "Packages required to develop and build EdisonMail",
+  "author": "EdisonMail",
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Foundry376/Mailspring.git"
+    "url": "git+https://github.com/agent8/Mailspring.git"
   },
   "engines": {
     "node": "6.9.x",

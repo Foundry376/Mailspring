@@ -45,7 +45,7 @@ class Package extends React.Component {
     if (this.props.package.icon) {
       icon = (
         <img
-          src={`mailspring://${this.props.package.name}/${this.props.package.icon}`}
+          src={`edisonmail://${this.props.package.name}/${this.props.package.icon}`}
           alt=""
           style={{ width: 27, alignContent: 'center', objectFit: 'scale-down' }}
         />

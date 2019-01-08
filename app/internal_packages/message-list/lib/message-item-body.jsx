@@ -129,7 +129,7 @@ export default class MessageItemBody extends React.Component {
         merged = merged.replace(
           inlineImgRegexp,
           () =>
-            '<img alt="spinner.gif" src="mailspring://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">'
+            '<img alt="spinner.gif" src="edisonmail://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">'
         );
       } else {
         const cidRegexp = new RegExp(`cid:${safeContentId}(@[^'"]+)?`, 'gi');

@@ -68,7 +68,7 @@ export default class Application extends EventEmitter {
         this._deleteDatabase(() => {
           app.relaunch();
           app.quit();
-        });
+        }, true);
       }
       return;
     }
@@ -278,8 +278,10 @@ export default class Application extends EventEmitter {
   _resetDatabaseAndRelaunch = ({ errorMessage } = {}) => {
     if (this._resettingAndRelaunching) return;
     this._resettingAndRelaunching = true;
+    let rebuild = false;
 
     if (errorMessage) {
+      rebuild = true;
       dialog.showMessageBox({
         type: 'warning',
         buttons: ['Okay'],
@@ -293,7 +295,7 @@ export default class Application extends EventEmitter {
       app.quit();
     };
     this.windowManager.destroyAllWindows();
-    this._deleteDatabase(done);
+    this._deleteDatabase(done, rebuild);
   };
 
   _relaunch = () => {
@@ -311,30 +313,34 @@ export default class Application extends EventEmitter {
     app.quit();
   }
 
-  _deleteDatabase = callback => {
-    const dbPath = path.join(this.configDirPath, 'edisonmail.db');
-    const newDbName = `edisonmail_backup_${new Date().getTime()}.db`;
-    const newDbPath = path.join(this.configDirPath, newDbName);
-    this.renameFileWithRetry(dbPath, newDbPath, () => {
-      // repair the database
-      if (process.platform === 'darwin') {
-        const sqlPath = 'data.sql';
-        execSync(`sqlite3 ${newDbName} .dump > ${sqlPath}`, {
-          cwd: this.configDirPath,
-        });
-        execSync(`sed -i '' 's/ROLLBACK/COMMIT/g' ${sqlPath}`, {
-          cwd: this.configDirPath,
-        });
-        execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
-          cwd: this.configDirPath,
-        });
-        fs.unlink(path.join(this.configDirPath, sqlPath));
-      } else {
-        // TODO in windows
-        console.warn('in this system does not implement yet');
-      }
-      callback();
-    });
+  _deleteDatabase = (callback, rebuild) => {
+    if (rebuild) {
+      const dbPath = path.join(this.configDirPath, 'edisonmail.db');
+      const newDbName = `edisonmail_backup_${new Date().getTime()}.db`;
+      const newDbPath = path.join(this.configDirPath, newDbName);
+      this.renameFileWithRetry(dbPath, newDbPath, () => {
+        // repair the database
+        if (process.platform === 'darwin') {
+          const sqlPath = 'data.sql';
+          execSync(`sqlite3 ${newDbName} .dump > ${sqlPath}`, {
+            cwd: this.configDirPath,
+          });
+          execSync(`sed -i '' 's/ROLLBACK/COMMIT/g' ${sqlPath}`, {
+            cwd: this.configDirPath,
+          });
+          execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
+            cwd: this.configDirPath,
+          });
+          fs.unlink(path.join(this.configDirPath, sqlPath));
+        } else {
+          // TODO in windows
+          console.warn('in this system does not implement yet');
+        }
+        callback();
+      });
+    } else {
+      this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db'));
+    }
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-wal'));
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'));
   };
@@ -818,7 +824,7 @@ export default class Application extends EventEmitter {
 
     if (parts.protocol === 'mailto:') {
       main.sendMessage('mailto', urlToOpen);
-    } else if (parts.protocol === 'mailspring:') {
+    } else if (parts.protocol === 'edisonmail:') {
       if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
       } else {

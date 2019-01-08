@@ -80,7 +80,7 @@ class PreferencesIdentity extends React.Component {
             a few times a week.{' '}
             <span className="platform-linux-only">
               Mailspring is independent{' '}
-              <a href="https://github.com/Foundry376/Mailspring/">open source</a> software, and
+              <a href="https://github.com/agent8/Mailspring/">open source</a> software, and
               subscription revenue allows us spend time maintaining and improving the product.
             </span>
             <br />
@@ -189,14 +189,14 @@ class PreferencesIdentity extends React.Component {
 
     const unpaidNote = effectivePlanName !== planName && (
       <p>
-        {`Note: Due to issues with your most recent payment, you've been temporarily downgraded to Mailspring ${effectivePlanName}. Click 'Billing' below to correct the issue.`}
+        {`Note: Due to issues with your most recent payment, you've been temporarily downgraded to EdisonMail ${effectivePlanName}. Click 'Billing' below to correct the issue.`}
       </p>
     );
     return (
       <div className="row padded">
         <div>
           Thank you for using{' '}
-          <strong style={{ textTransform: 'capitalize' }}>{`Mailspring ${planDisplayName}`}</strong>{' '}
+          <strong style={{ textTransform: 'capitalize' }}>{`EdisonMail ${planDisplayName}`}</strong>{' '}
           and supporting independent software. Get the most out of your subscription: visit the{' '}
           <a href="https://foundry376.zendesk.com/hc/en-us/sections/115000521592-Getting-Started">
             Help Center

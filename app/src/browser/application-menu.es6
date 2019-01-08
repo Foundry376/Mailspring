@@ -235,7 +235,7 @@ module.exports = class ApplicationMenu {
   getDefaultTemplate() {
     return [
       {
-        label: 'Mailspring',
+        label: 'EdisonMail',
         submenu: [
           { label: 'Check for Update', metadata: { autoUpdate: true } },
           {

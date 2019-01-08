@@ -18,7 +18,7 @@ let unlisten = null;
 const SendLaterButtonWithTip = HasTutorialTip(SendLaterButton, {
   title: 'Send on your own schedule',
   instructions:
-    'Schedule this message to send at the ideal time. Mailspring makes it easy to control the fabric of spacetime!',
+    'Schedule this message to send at the ideal time. EdisonMail makes it easy to control the fabric of spacetime!',
 });
 
 function handleMetadataExpiration(change) {

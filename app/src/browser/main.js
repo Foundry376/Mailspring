@@ -59,7 +59,7 @@ const declareOptions = argv => {
   const optimist = require('optimist');
   const options = optimist(argv);
   options.usage(
-    `Mailspring\n\nUsage: mailspring [options]\n\nRun Mailspring: The open source extensible email client\n\n\`mailspring --dev\` to start the client in dev mode.\n\n\`mailspring --test\` to run unit tests.`
+    `EdisonMail\n\nUsage: mailspring [options]\n\nRun EdisonMail: The open source extensible email client\n\n\`mailspring --dev\` to start the client in dev mode.\n\n\`mailspring --test\` to run unit tests.`
   );
   options
     .alias('d', 'dev')
@@ -86,7 +86,7 @@ const declareOptions = argv => {
   options
     .alias('c', 'config-dir-path')
     .string('c')
-    .describe('c', 'Override the path to the Mailspring configuration directory');
+    .describe('c', 'Override the path to the EdisonMail configuration directory');
   options
     .alias('s', 'spec-directory')
     .string('s')

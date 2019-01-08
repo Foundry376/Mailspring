@@ -6,7 +6,7 @@ export function sendActions() {
   return [
     {
       title: 'Send and Archive',
-      iconUrl: 'mailspring://send-and-archive/images/composer-archive@2x.png',
+      iconUrl: 'edisonmail://send-and-archive/images/composer-archive@2x.png',
       isAvailableForDraft({ draft }) {
         return draft.threadId != null;
       },

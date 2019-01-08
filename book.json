@@ -1,6 +1,6 @@
 {
     "gitbook": "3.2.2",
-    "title": "Mailspring Plugin SDK",
+    "title": "EdisonMail Plugin SDK",
     "root": "./app/build/docs_src/",
     "plugins": [
         "search",

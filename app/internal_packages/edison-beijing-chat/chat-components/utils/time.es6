@@ -43,19 +43,15 @@ export const buildTimeDescriptor = (currentTime = new Date().getTime()) => {
       throw Error('Invalid argument for param `timestamp`: must be a positive number');
     }
 
-    // return moment(timestamp).calendar(currentTime, longFormat ? LONG_FORMATS : SHORT_FORMATS);
+    if (longFormat) {
+      return moment(timestamp).calendar(currentTime, longFormat ? LONG_FORMATS : SHORT_FORMATS);
+    }
     // if yestoday, don't display
     var d = new Date();
     if (timestamp < d.setHours(0, 0, 0, 0)) {
-      const now = new Date().getTime();
-      const timegap = now - timestamp;
-      if (timegap < DAY) {
-        return Math.round(timegap / HOUR) + 'H';
-      } else {
-        return Math.round(timegap / HOUR) + 'D';
-      }
+      return moment(timestamp).fromNow();
     }
-    return moment(timestamp).format('hh:mm')
+    return moment(timestamp).format('HH:mm');
   };
 };
 

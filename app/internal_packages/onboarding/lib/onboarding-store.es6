@@ -133,7 +133,7 @@ class OnboardingStore extends MailspringStore {
       AppEnv.showErrorDialog({
         title: 'Unable to Add Account',
         message:
-          'Sorry, something went wrong when this account was added to Mailspring. ' +
+          'Sorry, something went wrong when this account was added to EdisonMail. ' +
           `If you do not see the account, try linking it again. ${e.toString()}`,
       });
     }

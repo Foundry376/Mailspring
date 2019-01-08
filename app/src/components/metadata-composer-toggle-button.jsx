@@ -100,7 +100,7 @@ export default class MetadataComposerToggleButton extends React.Component {
         await FeatureUsageStore.displayUpgradeModal(pluginId, {
           usedUpHeader: `All used up!`,
           usagePhrase: 'get open and click notifications for',
-          iconUrl: `mailspring://${pluginId}/assets/ic-modal-image@2x.png`,
+          iconUrl: `edisonmail://${pluginId}/assets/ic-modal-image@2x.png`,
         });
       } catch (err) {
         // user does not have access to this feature

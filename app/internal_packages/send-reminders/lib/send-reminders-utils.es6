@@ -12,7 +12,7 @@ import { PLUGIN_ID } from './send-reminders-constants';
 const FEATURE_LEXICON = {
   usedUpHeader: 'All Reminders Used',
   usagePhrase: 'add reminders to',
-  iconUrl: 'mailspring://send-reminders/assets/ic-send-reminders-modal@2x.png',
+  iconUrl: 'edisonmail://send-reminders/assets/ic-send-reminders-modal@2x.png',
 };
 
 export function reminderDateFor(draftOrThread) {

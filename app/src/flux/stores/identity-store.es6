@@ -8,7 +8,7 @@ import KeyManager from '../../key-manager';
 import { makeRequest, rootURLForServer } from '../mailspring-api-request';
 
 // Note this key name is used when migrating to Nylas Pro accounts from old N1.
-const KEYCHAIN_NAME = 'Mailspring Account';
+const KEYCHAIN_NAME = 'EdisonMail Account';
 
 class IdentityStore extends MailspringStore {
   constructor() {

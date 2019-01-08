@@ -6,7 +6,7 @@ const path = require('path');
 module.exports = grunt => {
   const { spawn } = grunt.config('taskHelpers');
 
-  grunt.registerTask('create-mac-zip', 'Zip up Mailspring', function pack() {
+  grunt.registerTask('create-mac-zip', 'Zip up EdisonMail', function pack() {
     const done = this.async();
     const zipPath = path.join(grunt.config('outputDir'), 'EdisonMail.zip');
 

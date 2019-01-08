@@ -1,7 +1,7 @@
 import { SoundRegistry } from 'mailspring-exports';
 
 export function activate() {
-  // FIXME: Use the mailspring:// protocol handlers once we upgrade Electron past
+  // FIXME: Use the edisonmail:// protocol handlers once we upgrade Electron past
   // v30.0
   // See: https://github.com/atom/electron/issues/1123
   SoundRegistry.register({

@@ -138,7 +138,7 @@ class TranslateButton extends React.Component {
       >
         <RetinaImg
           mode={RetinaImg.Mode.ContentIsMask}
-          url="mailspring://composer-translate/assets/icon-composer-translate@2x.png"
+          url="edisonmail://composer-translate/assets/icon-composer-translate@2x.png"
         />
         &nbsp;
         <RetinaImg name="icon-composer-dropdown.png" mode={RetinaImg.Mode.ContentIsMask} />

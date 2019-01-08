@@ -6,7 +6,7 @@ describe('"mailspring" protocol URL', () => {
       called = true;
       return;
     });
-    request.open('GET', 'mailspring://account-sidebar/package.json', true);
+    request.open('GET', 'edisonmail://account-sidebar/package.json', true);
     request.send();
 
     waitsFor('request to be done', () => called === true);

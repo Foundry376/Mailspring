@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import getDb from '../../db';
-import {groupMessages} from '../../utils/message';
+import { groupMessages } from '../../utils/message';
 
 
 import {
@@ -19,6 +19,7 @@ import {
 } from '../../actions/chat';
 
 import { copyRxdbMessage } from '../../utils/db-utils';
+const SEPARATOR = '$';
 
 const saveMessages = async messages => {
   const db = await getDb();
@@ -31,20 +32,26 @@ const saveMessages = async messages => {
         // it is necessary to rebuild the message one field by one field.
 
         let body = JSON.parse(msg1.body);
-        let localFile =  body.localFile;
+        let localFile = body.localFile;
         body = JSON.parse(msg.body);
         if (localFile && msg.status === 'MESSAGE_STATUS_RECEIVED') {
           body.localFile = localFile;
         }
         body = JSON.stringify(body);
         let msg2 = copyRxdbMessage(msg);
-        msg2.body  = body;
-        msg2.sentTime  = msg1.sentTime;
+        msg2.body = body;
+        msg2.sentTime = msg1.sentTime;
         if (msg1.updateTime && msg.status === 'MESSAGE_STATUS_RECEIVED') {
-          msg2.updateTime  = msg1.updateTime;
+          msg2.updateTime = msg1.updateTime;
         }
+        // update message id: uuid + conversationJid
+        msg2.id = msg2.id.split(SEPARATOR)[0] + SEPARATOR + msg.conversationJid;
         return db.messages.upsert(msg2);
       } else {
+        // update message id: uuid + conversationJid
+        if (msg.id.indexOf(SEPARATOR) === -1) {
+          msg.id += SEPARATOR + msg.conversationJid;
+        }
         return db.messages.upsert(msg);
       }
     }).catch((err) => {
@@ -88,7 +95,9 @@ export const retrieveSelectedConversationMessagesEpic = action$ =>
             .eq(jid)
             .$
             .takeUntil(action$.ofType(SELECT_CONVERSATION, DESELECT_CONVERSATION))
-            .map(messages => messages.sort((a, b) => a.sentTime - b.sentTime))
+            .map(messages => {
+              return messages.sort((a, b) => a.sentTime - b.sentTime);
+            })
             .mergeMap(messages => groupMessages(messages))
             .map(groupedMessages => {
               return updateSelectedConversationMessages(groupedMessages)

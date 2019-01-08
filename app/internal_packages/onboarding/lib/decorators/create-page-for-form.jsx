@@ -134,7 +134,7 @@ const CreatePageForForm = FormComponent => {
           message: 'Are you sure?',
           detail:
             `This looks like a Gmail account! While it's possible to setup an App ` +
-            `Password and connect to Gmail via IMAP, Mailspring also supports Google OAuth. Go ` +
+            `Password and connect to Gmail via IMAP, EdisonMail also supports Google OAuth. Go ` +
             `back and select "Gmail & Google Apps" from the provider screen.`,
         });
         if (buttonIndex === 0) {

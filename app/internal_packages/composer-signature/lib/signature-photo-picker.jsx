@@ -110,7 +110,7 @@ export default class SignaturePhotoPicker extends React.Component {
       link = await MailspringAPIRequest.postStaticAsset({ filename, blob });
     } catch (err) {
       AppEnv.showErrorDialog(
-        `Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\n\n(${err.toString()})`
+        `Sorry, we couldn't save your signature image to EdisonMail's servers. Please try again.\n\n(${err.toString()})`
       );
       return;
     } finally {

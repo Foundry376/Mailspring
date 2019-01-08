@@ -82,7 +82,7 @@ class PreferencesMailRules extends React.Component {
 
     if (this.state.rules.length === 0) {
       AppEnv.showErrorDialog(
-        "You haven't created any mail rules. To get started, define a new rule above and tell Mailspring how to process your inbox."
+        "You haven't created any mail rules. To get started, define a new rule above and tell EdisonMail how to process your inbox."
       );
     }
     Actions.startReprocessingMailRules(this.state.currentAccount.id);

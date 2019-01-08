@@ -35,7 +35,7 @@ class SnoozeStore extends MailspringStore {
       await FeatureUsageStore.markUsedOrUpgrade('snooze', {
         usedUpHeader: 'All Snoozes Used',
         usagePhrase: 'snooze',
-        iconUrl: 'mailspring://thread-snooze/assets/ic-snooze-modal@2x.png',
+        iconUrl: 'edisonmail://thread-snooze/assets/ic-snooze-modal@2x.png',
       });
 
       // move the threads to the snoozed folder

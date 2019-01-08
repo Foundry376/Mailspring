@@ -22,7 +22,7 @@ const DefaultClientNotification = patched.default;
 const SETTINGS_KEY = 'mailto.prompted-about-default';
 
 describe('DefaultClientNotif', function DefaultClientNotifTests() {
-  describe("when Mailspring isn't the default mail client", () => {
+  describe("when EdisonMail isn't the default mail client", () => {
     beforeEach(() => {
       stubIsRegistered = false;
     });
@@ -47,7 +47,7 @@ describe('DefaultClientNotif', function DefaultClientNotifTests() {
         expect(this.notif.find('.notification').exists()).toEqual(true);
       });
 
-      it('allows the user to set Mailspring as the default client', () => {
+      it('allows the user to set EdisonMail as the default client', () => {
         let scheme = null;
         stubRegister = urlScheme => {
           scheme = urlScheme;
@@ -64,7 +64,7 @@ describe('DefaultClientNotif', function DefaultClientNotifTests() {
     });
   });
 
-  describe('when Mailspring is the default mail client', () => {
+  describe('when EdisonMail is the default mail client', () => {
     beforeEach(() => {
       stubIsRegistered = true;
       this.notif = mount(<DefaultClientNotification />);

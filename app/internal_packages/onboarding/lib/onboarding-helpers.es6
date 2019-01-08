@@ -157,7 +157,7 @@ export async function expandAccountWithCommonSettings(account) {
     if (template.alias) {
       template = MailspringProviderSettings[template.alias];
     }
-    console.log(`Using Mailspring Template: ${JSON.stringify(template, null, 2)}`);
+    console.log(`Using EdisonMail Template: ${JSON.stringify(template, null, 2)}`);
   } else {
     console.log(`Using Empty Template`);
     template = {};

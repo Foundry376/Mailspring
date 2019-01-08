@@ -16,7 +16,7 @@ export default class PersonalLevelIcon extends React.Component {
     return (
       <div className="personal-level-icon">
         <RetinaImg
-          url={`mailspring://personal-level-indicators/assets/PLI-Level${level}@2x.png`}
+          url={`edisonmail://personal-level-indicators/assets/PLI-Level${level}@2x.png`}
           mode={RetinaImg.Mode.ContentDark}
         />
       </div>

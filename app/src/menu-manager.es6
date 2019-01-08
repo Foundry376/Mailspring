@@ -9,8 +9,9 @@ import Utils from './flux/models/utils';
 import MenuHelpers from './menu-helpers';
 
 export default class MenuManager {
-  constructor({ resourcePath }) {
+  constructor({ resourcePath, devMode }) {
     this.resourcePath = resourcePath;
+    this.devMode = devMode;
     this.template = [];
     this.loadPlatformItems();
 
@@ -84,7 +85,11 @@ export default class MenuManager {
   loadPlatformItems() {
     const menusDirPath = path.join(this.resourcePath, 'menus');
     const platformMenuPath = fs.resolve(menusDirPath, process.platform, ['json']);
-    const { menu } = require(platformMenuPath);
+    let { menu } = require(platformMenuPath);
+    // if release version, do not display developer menu
+    if (!this.devMode) {
+      menu = menu.filter(item => item.label !== 'Developer');
+    }
     this.add(menu);
   }
 

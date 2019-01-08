@@ -13,7 +13,7 @@ export default function moveToApplications() {
     cancelId: 1,
     title: 'Move to Applications?',
     message:
-      'Thanks for downloading Mailspring! Would you like to move it to your Applications folder?',
+      'Thanks for downloading EdisonMail! Would you like to move it to your Applications folder?',
   });
 
   // move ourselves to the applications folder. This throws errors as necessary,
