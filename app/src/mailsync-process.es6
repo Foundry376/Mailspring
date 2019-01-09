@@ -228,7 +228,7 @@ export default class MailsyncProcess extends EventEmitter {
         if (added.trim() === 'Waiting for Account JSON:') {
           return;
         }
-        const isIndexOfEnter = added && added.indexOf('\n') !== -1;
+        const isIndexOfEnter = added && added.indexOf('\n') === (added.length-1);
         outBuffer += added;
 
         if (isIndexOfEnter) {
