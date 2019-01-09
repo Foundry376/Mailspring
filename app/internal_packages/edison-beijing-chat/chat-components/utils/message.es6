@@ -40,8 +40,10 @@ export const getLastMessageInfo = async (message) => {
 
     if (messages.length) {
       messages.sort((a, b) => a.sentTime - b.sentTime);
-      let lastMessage = messages[messages.length - 1];
-      if (message.id != lastMessage.id) {
+      const lastMessage = messages[messages.length - 1];
+      const id = message.id.split('$')[0];
+      const lastid = lastMessage.id.split('$')[0];
+      if (id != lastid) {
         sender = lastMessage.sender;
         lastMessageTime = lastMessage.sentTime;
         lastMessageText = getMessageContent(lastMessage);
