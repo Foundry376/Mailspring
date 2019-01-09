@@ -38,9 +38,9 @@ export default class ConversationInfo extends Component {
 
   clearMessages = async () => {
     const db = await getDb();
-    let msgs = await db.messages.find().where('conversationJid').eq(this.props.conversation.jid).exec();
-    await db.messages.find().where('conversationJid').eq(this.props.conversation.jid).remove();
+    let msg = await db.messages.findOne().where('conversationJid').eq(this.props.conversation.jid).exec();
     if(msg){
+      await db.messages.find().where('conversationJid').eq(this.props.conversation.jid).remove();
       msg = copyRxdbMessage(msg);
       let body = msg.body;
       body = JSON.parse(body);
