@@ -7,7 +7,7 @@ import chatModel from '../../../store/model';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
-import { copyRxdbMessage } from '../../../utils/db-utils';
+import { clearMessages } from '../../../utils/message';
 
 const { primaryColor } = theme;
 
@@ -36,19 +36,9 @@ export default class ConversationInfo extends Component {
     }
   }
 
-  clearMessages = async () => {
-    const db = await getDb();
-    let msg = await db.messages.findOne().where('conversationJid').eq(this.props.conversation.jid).exec();
-    if(msg){
-      await db.messages.find().where('conversationJid').eq(this.props.conversation.jid).remove();
-      msg = copyRxdbMessage(msg);
-      let body = msg.body;
-      body = JSON.parse(body);
-      body.deleted = true;
-      body = JSON.stringify(body);
-      msg.body = body;
-      db.messages.upsert(msg);
-    }
+  clearMessages = () => {
+    clearMessages(this.props.conversation);
+    return;
   }
 
   hiddenNotifi = () => {

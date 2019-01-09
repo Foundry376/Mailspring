@@ -1,4 +1,5 @@
 import { isJsonStr } from './stringUtils';
+import { copyRxdbMessage } from './db-utils';
 
 import getDb from '../db';
 
@@ -40,8 +41,10 @@ export const getLastMessageInfo = async (message) => {
 
     if (messages.length) {
       messages.sort((a, b) => a.sentTime - b.sentTime);
-      let lastMessage = messages[messages.length - 1];
-      if (message.id != lastMessage.id) {
+      const lastMessage = messages[messages.length - 1];
+      const id = message.id.split('$')[0];
+      const lastid = lastMessage.id.split('$')[0];
+      if (id != lastid) {
         sender = lastMessage.sender;
         lastMessageTime = lastMessage.sentTime;
         lastMessageText = getMessageContent(lastMessage);
@@ -78,3 +81,19 @@ export const parseMessageBody = (body) => {
     return body;
   }
 }
+
+export const clearMessages = async (conversation) => {
+  const db = await getDb();
+  let msg = await db.messages.findOne().where('conversationJid').eq(conversation.jid).exec();
+  if (msg) {
+    await db.messages.find().where('conversationJid').eq(conversation.jid).remove();
+    msg = copyRxdbMessage(msg);
+    let body = msg.body;
+    body = JSON.parse(body);
+    body.deleted = true;
+    body = JSON.stringify(body);
+    msg.body = body;
+    db.messages.upsert(msg);
+  }
+}
+

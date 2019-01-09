@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
@@ -19,7 +19,7 @@ import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts'
 import Button from '../../common/Button';
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
-export default class MessagesPanel extends PureComponent {
+export default class MessagesPanel extends Component {
   static propTypes = {
     deselectConversation: PropTypes.func.isRequired,
     sendMessage: PropTypes.func.isRequired,
@@ -63,7 +63,8 @@ export default class MessagesPanel extends PureComponent {
     inviting: false,
     members: [],
     membersTemp: null,
-    online: true
+    online: true,
+    connecting: false
   }
 
   onUpdateGroup = async (contacts) => {
@@ -243,9 +244,22 @@ export default class MessagesPanel extends PureComponent {
     // if network status was became to online
     if (this.state.online === false && nextState.online === true) {
       // connect to chat server
-      registerLoginChatAccounts();
+      this.reconnect();
     }
     return true;
+  }
+
+  reconnect = () => {
+    registerLoginChatAccounts();
+    this.setState({
+      connecting: true
+    });
+    // connect timeout 30s
+    setTimeout(() => {
+      this.setState({
+        connecting: false
+      });
+    }, 30000)
   }
 
   render() {
@@ -365,7 +379,11 @@ export default class MessagesPanel extends PureComponent {
         {(!this.state.online || !this.props.chat_online) && (
           <div className="network-offline">
             {this.state.online ? (
-              <Button className="reconnect" onClick={registerLoginChatAccounts}>Reconnect</Button>
+              this.state.connecting ? (
+                <div className="reconnect">connecting...</div>
+              ) : (
+                  <Button className="reconnect" onClick={this.reconnect}>Reconnect</Button>
+                )
             ) : null}
           </div>
         )}

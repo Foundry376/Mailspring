@@ -8,6 +8,7 @@ import Actions from '../actions';
 import Account from '../models/account';
 import Utils from '../models/utils';
 import getDb from '../../../internal_packages/edison-beijing-chat/chat-components/db';
+import { clearMessages } from '../../../internal_packages/edison-beijing-chat/chat-components/utils/message';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
@@ -182,7 +183,12 @@ class AccountStore extends MailspringStore {
     if(chatAccount){//If there is an chat account
       let jid = chatAccount.userId + '@im.edison.tech';
       getDb().then(db => {
-        db.conversations.find().where('curJid').eq(jid).remove();
+        db.conversations.find().where('curJid').eq(jid).exec().then(conversations => {
+          conversations.forEach(conv =>{
+            clearMessages(conv);
+            conv.remove();
+          })
+        });
       });
     }
 
