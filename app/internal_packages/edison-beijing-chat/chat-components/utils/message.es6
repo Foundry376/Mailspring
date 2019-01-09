@@ -1,4 +1,5 @@
 import { isJsonStr } from './stringUtils';
+import { copyRxdbMessage } from './db-utils';
 
 import getDb from '../db';
 
@@ -80,3 +81,21 @@ export const parseMessageBody = (body) => {
     return body;
   }
 }
+
+export const clearMessages = async (conversation) => {
+  const db = await getDb();
+  let msgs = await db.messages.find().where('conversationJid').eq(conversation.jid).exec();
+  if (msgs && msgs.length) {
+    await db.messages.find().where('conversationJid').eq(conversation.jid).remove();
+    msgs.forEach(msg =>{
+      msg = copyRxdbMessage(msg);
+      let body = msg.body;
+      body = JSON.parse(body);
+      body.deleted = true;
+      body = JSON.stringify(body);
+      msg.body = body;
+      db.messages.upsert(msg);
+    })
+  }
+}
+

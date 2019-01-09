@@ -9,7 +9,7 @@ import { theme } from '../../../utils/colors';
 import chatModel from '../../../store/model';
 import { DESELECT_CONVERSATION, SELECT_CONVERSATION } from '../../../actions/chat';
 import messageModel from '../messages/messageModel';
-
+import { clearMessages } from '../../../utils/message';
 
 const { primaryColor } = theme;
 
@@ -45,6 +45,7 @@ export default class ConversationItem extends PureComponent {
     if (messageModel.imagePopup) {
       messageModel.imagePopup.hide();
     }
+    clearMessages(conversation);
     chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
   }
 

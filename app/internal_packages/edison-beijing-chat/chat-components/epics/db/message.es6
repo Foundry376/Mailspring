@@ -1,8 +1,7 @@
 import { Observable } from 'rxjs/Observable';
 import getDb from '../../db';
 import { groupMessages } from '../../utils/message';
-
-
+import { copyRxdbMessage } from '../../utils/db-utils';
 import {
   BEGIN_STORE_MESSAGE,
   RETRIEVE_SELECTED_CONVERSATION_MESSAGES,
@@ -18,7 +17,6 @@ import {
   DESELECT_CONVERSATION,
 } from '../../actions/chat';
 
-import { copyRxdbMessage } from '../../utils/db-utils';
 const SEPARATOR = '$';
 
 const saveMessages = async messages => {
