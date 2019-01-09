@@ -7,6 +7,7 @@ import chatModel from '../../../store/model';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
+import { copyRxdbMessage } from '../../../utils/db-utils';
 
 const { primaryColor } = theme;
 
@@ -35,17 +36,19 @@ export default class ConversationInfo extends Component {
     }
   }
 
-  clearMessages = () => {
-    (getDb()).then(db => {
-      db.messages
-        .find()
-        .where('conversationJid')
-        .eq(this.props.conversation.jid)
-        .remove()
-        .catch((error) => {
-          console.warn('remove message error', error);
-        })
-    });
+  clearMessages = async () => {
+    const db = await getDb();
+    let msgs = await db.messages.find().where('conversationJid').eq(this.props.conversation.jid).exec();
+    await db.messages.find().where('conversationJid').eq(this.props.conversation.jid).remove();
+    if(msg){
+      msg = copyRxdbMessage(msg);
+      let body = msg.body;
+      body = JSON.parse(body);
+      body.deleted = true;
+      body = JSON.stringify(body);
+      msg.body = body;
+      db.messages.upsert(msg);
+    }
   }
 
   hiddenNotifi = () => {
@@ -156,15 +159,6 @@ export default class ConversationInfo extends Component {
               )
             })
           }
-          {/* {
-            conversation.isGroup ? (
-              <div className="row add-to-group">
-                <Button onClick={this.props.toggleInvite}>
-                  Add to Group
-              </Button>
-              </div>
-            ) : null
-          } */}
           {
             conversation.isGroup ? (
               !this.currentUserIsOwner && <div className="row add-to-group">
@@ -175,11 +169,6 @@ export default class ConversationInfo extends Component {
             ) : null
           }
         </div>
-        {/* <div className="clear">
-          <Button className="clear-message" onClick={this.clearMessages}>
-            Clear Message History
-          </Button>
-        </div> */}
       </div>
     )
   };
