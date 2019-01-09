@@ -41,11 +41,11 @@ export default class ConversationItem extends PureComponent {
     event.stopPropagation();
     event.preventDefault();
     const { conversation, removeConversation } = this.props;
+    clearMessages(conversation);
     removeConversation(conversation.jid);
     if (messageModel.imagePopup) {
       messageModel.imagePopup.hide();
     }
-    clearMessages(conversation);
     chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
   }
 
