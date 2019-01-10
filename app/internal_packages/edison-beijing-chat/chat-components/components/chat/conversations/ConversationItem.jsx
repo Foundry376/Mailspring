@@ -41,12 +41,17 @@ export default class ConversationItem extends PureComponent {
     event.stopPropagation();
     event.preventDefault();
     const { conversation, removeConversation } = this.props;
-    clearMessages(conversation);
-    removeConversation(conversation.jid);
-    if (messageModel.imagePopup) {
-      messageModel.imagePopup.hide();
-    }
-    chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
+    clearMessages(conversation).then(() => {
+      setTimeout((() => {
+        // cxm: it's so weird, it's necessary to add th delay to make the messages history not to come back!
+        // but it really works, tested.
+        chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
+        removeConversation(conversation.jid);
+        if (messageModel.imagePopup) {
+          messageModel.imagePopup.hide();
+        }
+      }), 1000)
+      })
   }
 
   render() {
