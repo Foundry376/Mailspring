@@ -302,9 +302,13 @@ class WorkspaceStore extends MailspringStore {
   // Return to the root sheet. This method triggers, allowing observers
   // to update.
   popToRootSheet = () => {
+    const sheet = this.topSheet();
     if (this._sheetStack.length > 1) {
       this._sheetStack.length = 1;
       this.trigger();
+    }
+    if (Sheet.Thread && sheet === Sheet.Thread) {
+      Actions.setFocus({ collection: 'thread', item: null });
     }
   };
 }
