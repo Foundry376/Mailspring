@@ -1,9 +1,7 @@
 import { AccountStore, Account, IdentityStore } from 'mailspring-exports';
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
-import { connectChat } from './onboarding-helpers';
 import OnboardingActions from './onboarding-actions';
-import { register } from '../../edison-beijing-chat/chat-components/utils/restjs'
 
 class OnboardingStore extends MailspringStore {
   constructor() {

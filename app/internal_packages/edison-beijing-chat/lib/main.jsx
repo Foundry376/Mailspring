@@ -25,6 +25,11 @@ module.exports = {
   },
 
   deactivate() {
-    ComponentRegistry.unregister(ChatButton);
-  },
+    if (AppEnv.isMainWindow()) {
+      ComponentRegistry.unregister(ChatButton);
+      ComponentRegistry.unregister(ChatViewLeft);
+    } else {
+      ComponentRegistry.unregister(ChatView);
+    }
+  }
 };
