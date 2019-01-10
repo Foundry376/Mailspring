@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
@@ -19,7 +19,7 @@ import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts'
 import Button from '../../common/Button';
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
-export default class MessagesPanel extends Component {
+export default class MessagesPanel extends PureComponent {
   static propTypes = {
     deselectConversation: PropTypes.func.isRequired,
     sendMessage: PropTypes.func.isRequired,
@@ -106,6 +106,10 @@ export default class MessagesPanel extends Component {
   }
 
   onLine = () => {
+    // connect to chat server
+    if (!this.props.chat_online) {
+      this.reconnect();
+    }
     this.setState({
       online: true
     })
@@ -239,15 +243,6 @@ export default class MessagesPanel extends Component {
       this.setState(state);
     }
   };
-
-  shouldComponentUpdate(nextProps, nextState) {
-    // if network status was became to online
-    if (this.state.online === false && nextState.online === true) {
-      // connect to chat server
-      this.reconnect();
-    }
-    return true;
-  }
 
   reconnect = () => {
     registerLoginChatAccounts();
