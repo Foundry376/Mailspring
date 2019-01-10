@@ -1,0 +1,73 @@
+{
+  "_args": [
+    [
+      "is-hotkey@0.1.1",
+      "/Users/zsq/Documents/dev_quanzs/agent8/Mailspring/app"
+    ]
+  ],
+  "_from": "is-hotkey@0.1.1",
+  "_id": "is-hotkey@0.1.1",
+  "_inBundle": false,
+  "_integrity": "sha512-ebDPnsc4Lw9O7GpnJkpNIuEJVjsFg1X60+5omHfFg9y1S4r6qwddENg0vHqtmWxsu/D8DGbAb5jjLzRZs0NMbA==",
+  "_location": "/slate-react/is-hotkey",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "is-hotkey@0.1.1",
+    "name": "is-hotkey",
+    "escapedName": "is-hotkey",
+    "rawSpec": "0.1.1",
+    "saveSpec": null,
+    "fetchSpec": "0.1.1"
+  },
+  "_requiredBy": [
+    "/slate-react"
+  ],
+  "_resolved": "https://registry.npmjs.org/is-hotkey/-/is-hotkey-0.1.1.tgz",
+  "_spec": "0.1.1",
+  "_where": "/Users/zsq/Documents/dev_quanzs/agent8/Mailspring/app",
+  "bugs": {
+    "url": "https://github.com/ianstormtaylor/is-hotkey/issues"
+  },
+  "description": "Check whether a browser event matches a hotkey.",
+  "devDependencies": {
+    "babel-cli": "^6.10.1",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "mocha": "^3.2.0",
+    "np": "^2.13.1"
+  },
+  "homepage": "https://github.com/ianstormtaylor/is-hotkey#readme",
+  "keywords": [
+    "code",
+    "combo",
+    "event",
+    "hotkey",
+    "key",
+    "keycode",
+    "keycodes",
+    "keycombo",
+    "keydown",
+    "keyup",
+    "mousetrap",
+    "shortcut",
+    "which"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "name": "is-hotkey",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ianstormtaylor/is-hotkey.git"
+  },
+  "scripts": {
+    "build": "babel ./src --out-dir ./lib",
+    "clean": "rm -rf ./lib ./node_modules",
+    "prepublish": "yarn run build",
+    "release": "np",
+    "test": "yarn run build && mocha",
+    "watch": "babel ./lib --out-dir ./lib --watch"
+  },
+  "version": "0.1.1"
+}

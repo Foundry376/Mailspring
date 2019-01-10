@@ -1,5 +1,5 @@
 import React from 'react';
-import { Editor } from 'slate-react';
+import { Editor } from '../slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
 
 import KeyCommandsRegion from '../key-commands-region';
