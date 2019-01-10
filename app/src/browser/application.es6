@@ -339,7 +339,7 @@ export default class Application extends EventEmitter {
         callback();
       });
     } else {
-      this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db'));
+      this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db'), callback);
     }
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-wal'));
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'));
