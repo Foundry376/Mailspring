@@ -24,7 +24,6 @@ export default class ConversationInfo extends Component {
 
   componentDidMount = () => {
     this.props.getRoomMembers();
-
   }
 
   componentWillReceiveProps = (nextProps) => {
@@ -69,7 +68,8 @@ export default class ConversationInfo extends Component {
       {
         label: `Add to Group...`,
         click: () => {
-          this.props.toggleInvite();
+          const moreBtnEl = document.querySelector('.more');
+          this.props.toggleInvite(moreBtnEl);
         },
       },
       {

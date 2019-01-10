@@ -47,18 +47,21 @@ export default class MessagesTopBar extends Component {
               this.props.deselectConversation();
             }}
           >X</Button>
-          <span>To</span>
+          <span className="new-message-title">New Message</span>
         </div>
-        <Select
-          mode="tags"
-          style={{ width: '100%', height: '50px' }}
-          onChange={this.handleChange}
-          defaultOpen
-          multiple
-          tokenSeparators={[',']}
-        >
-          {children}
-        </Select>
+        <div style={{ display: 'flex' }}>
+          <Select
+            mode="tags"
+            style={{ width: '100%', flex: 1, height: '50px' }}
+            onChange={this.handleChange}
+            defaultOpen={true}
+            multiple
+            tokenSeparators={[',']}
+          >
+            {children}
+          </Select>
+          <Button className="go" onClick={this.props.createRoom}>Go</Button>
+        </div>
       </div>
     );
   }

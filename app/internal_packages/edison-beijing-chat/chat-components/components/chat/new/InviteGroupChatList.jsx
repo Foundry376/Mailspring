@@ -1,15 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import CheckBox from '../../common/icons/CheckBox';
 import ContactAvatar from '../../common/ContactAvatar';
 import { theme } from '../../../utils/colors';
 import getDb from '../../../db';
-import NewSelectedChips from './NewSelectedChips';
-import DoneIcon from '../../common/icons/DoneIcon';
-import CancelIcon from '../../common/icons/CancelIcon';
-import Button from '../../common/Button';
-
-const { primaryColor } = theme;
+import Select, { Option } from 'rc-select';
 
 export default class InviteGroupChatList extends Component {
   static propTypes = {
@@ -30,7 +24,6 @@ export default class InviteGroupChatList extends Component {
   }
 
   static defaultProps = {
-    onContactClicked: () => { },
     groupMode: false,
     contacts: [],
     selectedContacts: [],
@@ -38,90 +31,61 @@ export default class InviteGroupChatList extends Component {
 
   constructor() {
     super();
-    this.state = { contacts: [], selectedContacts: [] }
+    this.state = { contacts: [], selectedContacts: [], open: false };
   }
 
   componentDidMount() {
     getDb().then(db => {
-      db.contacts.find().exec().then(contacts => this.setState({ contacts }))
+      db.contacts.find().exec().then(contacts => {
+        setTimeout(() => {
+          this.setState({ contacts, open: true });
+        }, 300)
+      })
     })
   }
-  contactSelected(contact) {
-    const { selectedContacts } = this.state;
 
-    const enumeratedFilteredContacts = selectedContacts.map((c, idx) => [c, idx])
-      .filter(([c]) => c.jid === contact.jid);
-    const selectedContactsCopy = Array.from(selectedContacts);
-    if (enumeratedFilteredContacts.length) {
-      selectedContactsCopy.splice(enumeratedFilteredContacts[0][1], 1);
-      this.setState({ selectedContacts: selectedContactsCopy });
-    } else {
-      selectedContactsCopy.push(contact);
-      this.setState({ selectedContacts: selectedContactsCopy });
-    }
-  }
-
-  onCancel = () => {
-    this.setState({ selectedContacts: [], inviting: false });
-    this.props.onUpdateGroup([]);
-  }
-
-  onUpdateGroup = () => {
-    const { selectedContacts } = this.state;
-    this.setState({ selectedContacts: [], inviting: false });
-    this.props.onUpdateGroup(selectedContacts);
+  onUpdateGroup = (value, option) => {
+    this.setState({ selectedContacts: [], inviting: false, open: false });
+    this.props.onUpdateGroup([option.props.contact]);
   }
 
   render() {
     const {
       contacts,
-      selectedContacts,
+      open
     } = this.state;
-
-    const jids = new Set(selectedContacts.map(contact => contact.jid));
-    const getContactItemClasses = contact => {
-      const classes = ['contactItem'];
-      if (jids.has(contact.jid)) {
-        classes.push('selected');
-      }
-      return classes.join(' ');
-    };
-    const { onUpdateGroup } = this.props;
+    const children = open ? contacts.map(contact =>
+      <Option
+        key={contact.name}
+        contact={contact}
+        className="invite-contact-option"
+      >
+        <div className="chip">
+          <ContactAvatar jid={contact.jid} name={contact.name}
+            email={contact.email} avatar={contact.avatar} size={32} />
+          <span className="contact-name">{contact.name}</span>
+          <span className="contact-email">{contact.email}</span>
+        </div>
+      </Option>
+    ) : [];
 
     return (
       <div className="contactsList">
-        {/* <NewSelectedChips
-          selectedContacts={selectedContacts}
-          onContactClicked={this.contactSelected.bind(this)}
-        /> */}
-        <div style={{ padding: '5px 12px', overflow: 'hidden' }}>
-          <Button style={{ float: 'left' }} className="no-border" onClick={this.onCancel}>
-            <CancelIcon color={primaryColor} />
-          </Button>
-          <Button style={{ float: 'right' }} onClick={this.onUpdateGroup} className="update-group-button no-border">
-            <DoneIcon color={primaryColor} />
-          </Button>
-        </div>
+        <h2>Add to Group...</h2>
         <div style={{ overflowY: 'scroll', flex: 1 }}>
-          {
-            contacts.map(contact =>
-              <div
-                key={contact.jid}
-                className={getContactItemClasses(contact)}
-                onClick={() => this.contactSelected(contact)}
-              >
-                <ContactAvatar jid={contact.jid} name={contact.name}
-                  email={contact.email} avatar={contact.avatar} size={32} />
-                <span className="contactName">{contact.name}</span>
-                <CheckBox
-                  checked={jids.has(contact.jid)}
-                  checkColor={primaryColor}
-                  circleColor="#444"
-                  size={18}
-                />
-              </div>
-            )
-          }
+          <Select
+            ref="contacts"
+            mode="tags"
+            style={{ width: '100%', flex: 1, height: '50px' }}
+            onSelect={this.onUpdateGroup}
+            open={open}
+            defaultOpen={true}
+            multiple={true}
+            placeholder="Search"
+            tokenSeparators={[',']}
+          >
+            {children}
+          </Select>
         </div>
       </div>
     );

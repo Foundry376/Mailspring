@@ -1,15 +1,35 @@
 .chat-view-container {
-  .contactsList {
-    position: absolute;
-    height: 100%;
-    width: 300px;
-    right: 0;
-    top: 0;
-    flex: 1;
-    overflow-y: scroll;
-    background: rgba(255,255,255,0.98);
+  @width: 350px;
+  @height: 430px;
+  .fixed-popover-container {
+    .contactsList {
+      flex: 1;
+      overflow-y: visible;
+      height: @height;
+      background-color: #fff;
+      &>div{
+        overflow: auto !important;
+      }
+    }
+    .fixed-popover {
+      width: @width;
+      background-color: #fff;
+      padding: 0 10px;
+    }
+    width: @width;
+    margin-left: -300px;
+    height: @height;
+    overflow-y: auto;
+    overflow: visible;
+    position: fixed;
+    top: 84px !important;
+    .fixed-popover-pointer {
+      transform: translate(255px, 0px) rotateX(180deg) !important;
+    }
   }
-  .update-group-button {
-    position: relative;
+}
+.invite-contact-option {
+  .chip {
+    display: flex;
   }
 }

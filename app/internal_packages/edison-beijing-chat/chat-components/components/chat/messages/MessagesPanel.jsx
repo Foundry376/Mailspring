@@ -17,6 +17,7 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import Button from '../../common/Button';
+import FixedPopover from '../../../../../../src/components/fixed-popover';
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class MessagesPanel extends PureComponent {
@@ -64,7 +65,8 @@ export default class MessagesPanel extends PureComponent {
     members: [],
     membersTemp: null,
     online: true,
-    connecting: false
+    connecting: false,
+    moreBtnEl: null
   }
 
   onUpdateGroup = async (contacts) => {
@@ -139,8 +141,8 @@ export default class MessagesPanel extends PureComponent {
     this.setState({ membersTemp: members })
   }
 
-  toggleInvite = () => {
-    this.setState({ inviting: !this.state.inviting });
+  toggleInvite = (moreBtnEl) => {
+    this.setState({ inviting: !this.state.inviting, moreBtnEl });
   }
 
   onDragOver = (event) => {
@@ -179,6 +181,7 @@ export default class MessagesPanel extends PureComponent {
         content: 'sending...',
         email: selectedConversation.email,
         name: selectedConversation.name,
+        isUploading: true,
         mediaObjectId: '',
       };
       const messageId = uuid();
@@ -305,9 +308,6 @@ export default class MessagesPanel extends PureComponent {
       onMessageSubmitted: sendMessage,
       selectedConversation,
     };
-    if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {
-      sendBarProps.createRoom = this.createRoom;
-    }
     const infoProps = {
       conversation: selectedConversation,
       deselectConversation: this.props.deselectConversation,
@@ -319,7 +319,8 @@ export default class MessagesPanel extends PureComponent {
     const newConversationProps = {
       contacts,
       saveRoomMembersForTemp: this.saveRoomMembersForTemp,
-      deselectConversation
+      deselectConversation,
+      createRoom: this.createRoom
     }
 
     return (
@@ -332,20 +333,24 @@ export default class MessagesPanel extends PureComponent {
         {selectedConversation ?
           <div className="chat">
             <div className="splitPanel">
-              <div className="chatPanel">
-                {selectedConversation.jid === NEW_CONVERSATION ? (
-                  <NewConversationTopBar {...newConversationProps} />
+              {
+                selectedConversation.jid === NEW_CONVERSATION ? (
+                  <div className="chatPanel">
+                    <NewConversationTopBar {...newConversationProps} />
+                  </div>
                 ) : (
-                    <MessagesTopBar {...topBarProps} />
-                  )}
-                <Messages {...messagesProps} sendBarProps={sendBarProps} />
-                {this.state.dragover && (
-                  <div id="message-dragdrop-override"></div>
-                )}
-                <div>
-                  <MessagesSendBar {...sendBarProps} />
-                </div>
-              </div>
+                    <div className="chatPanel">
+                      <MessagesTopBar {...topBarProps} />
+                      <Messages {...messagesProps} sendBarProps={sendBarProps} />
+                      {this.state.dragover && (
+                        <div id="message-dragdrop-override"></div>
+                      )}
+                      <div>
+                        <MessagesSendBar {...sendBarProps} />
+                      </div>
+                    </div>
+                  )
+              }
               <Divider type="vertical" />
               <CSSTransitionGroup
                 transitionName="transition-slide"
@@ -357,13 +362,6 @@ export default class MessagesPanel extends PureComponent {
                     <ConversationInfo {...infoProps} />
                   </div>
                 )}
-              </CSSTransitionGroup>
-              <CSSTransitionGroup
-                transitionName="transition-slide"
-                transitionLeaveTimeout={250}
-                transitionEnterTimeout={250}
-              >
-                {inviting && selectedConversation.jid !== NEW_CONVERSATION && <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup}></InviteGroupChatList>}
               </CSSTransitionGroup>
             </div>
           </div> :
@@ -381,6 +379,23 @@ export default class MessagesPanel extends PureComponent {
                 )
             ) : null}
           </div>
+        )}
+        {inviting && selectedConversation.jid !== NEW_CONVERSATION && (
+          <FixedPopover {...{
+            direction: 'down',
+            originRect: {
+              width: 350,
+              height: 430,
+              top: this.state.moreBtnEl.getBoundingClientRect().top,
+              left: this.state.moreBtnEl.getBoundingClientRect().left,
+            },
+            closeOnAppBlur: false,
+            onClose: () => {
+              this.setState({ inviting: false });
+            },
+          }}>
+            <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup} />
+          </FixedPopover>
         )}
       </div>
     );

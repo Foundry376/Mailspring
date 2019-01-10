@@ -387,11 +387,11 @@ export default class MessagesSendBar extends PureComponent {
   render() {
     // const { suggestions, suggestionStyle } = this.state;
     const inputProps = {};
-    if (this.props.createRoom) {
-      inputProps.onFocus = () => {
-        this.props.createRoom();
-      }
-    }
+    // if (this.props.createRoom) {
+    //   inputProps.onFocus = () => {
+    //     this.props.createRoom();
+    //   }
+    // }
     return (
       <div className="sendBar" onDrop={this.onDrop}>
         {/* <Mention
