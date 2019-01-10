@@ -24,7 +24,8 @@ function findDOMNode(key) {
   var el = win.document.querySelector('[data-key="' + key + '"]');
 
   if (!el) {
-    throw new Error('Unable to find a DOM node for "' + key + '". This is often because of forgetting to add `props.attributes` to a custom component.');
+    return null;
+    // throw new Error('Unable to find a DOM node for "' + key + '". This is often because of forgetting to add `props.attributes` to a custom component.');
   }
 
   return el;

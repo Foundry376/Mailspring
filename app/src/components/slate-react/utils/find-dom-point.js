@@ -23,6 +23,9 @@ function findDOMPoint(key, offset) {
   var win = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : window;
 
   var el = (0, _findDomNode2.default)(key, win);
+  if(!el){
+    return null;
+  }
   var start = 0;
   var n = void 0;
 
