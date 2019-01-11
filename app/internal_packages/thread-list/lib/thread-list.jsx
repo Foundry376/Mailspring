@@ -109,7 +109,7 @@ class ThreadList extends React.Component {
               'thread-list:select-unread': this._onSelectUnread,
               'thread-list:select-starred': this._onSelectStarred,
               'thread-list:select-unstarred': this._onSelectUnstarred,
-              
+
             }}
             onDoubleClick={thread => Actions.popoutThread(thread)}
             onDragStart={this._onDragStart}
@@ -155,16 +155,16 @@ class ThreadList extends React.Component {
       return `swipe-${name}`;
     };
 
-    props.onSwipeRight = function(callback) {
-      const perspective = FocusedPerspectiveStore.current();
-      const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
-      if (tasks.length === 0) {
-        callback(false);
-      }
-      Actions.closePopover();
-      Actions.queueTasks(tasks);
-      callback(true);
-    };
+    // props.onSwipeRight = function (callback) {
+    //   const perspective = FocusedPerspectiveStore.current();
+    //   const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
+    //   if (tasks.length === 0) {
+    //     callback(false);
+    //   }
+    //   Actions.closePopover();
+    //   Actions.queueTasks(tasks);
+    //   callback(true);
+    // };
 
     const disabledPackages = AppEnv.config.get('core.disabledPackages') || [];
     if (disabledPackages.includes('thread-snooze')) {
@@ -176,18 +176,18 @@ class ThreadList extends React.Component {
       props.onSwipeCenter = () => {
         Actions.closePopover();
       };
-      props.onSwipeLeft = callback => {
-        // TODO this should be grabbed from elsewhere
-        const SnoozePopover = require('../../thread-snooze/lib/snooze-popover').default;
+      // props.onSwipeLeft = callback => {
+      //   // TODO this should be grabbed from elsewhere
+      //   const SnoozePopover = require('../../thread-snooze/lib/snooze-popover').default;
 
-        const element = document.querySelector(`[data-item-id="${item.id}"]`);
-        const originRect = element.getBoundingClientRect();
-        Actions.openPopover(<SnoozePopover threads={[item]} swipeCallback={callback} />, {
-          originRect,
-          direction: 'right',
-          fallbackDirection: 'down',
-        });
-      };
+      //   const element = document.querySelector(`[data-item-id="${item.id}"]`);
+      //   const originRect = element.getBoundingClientRect();
+      //   Actions.openPopover(<SnoozePopover threads={[item]} swipeCallback={callback} />, {
+      //     originRect,
+      //     direction: 'right',
+      //     fallbackDirection: 'down',
+      //   });
+      // };
     }
 
     return props;
@@ -247,7 +247,7 @@ class ThreadList extends React.Component {
     event.dataTransfer.setData(`nylas-accounts=${data.accountIds.join(',')}`, '1');
   };
 
-  _onDragEnd = event => {};
+  _onDragEnd = event => { };
 
   _onResize = event => {
     const current = this.state.style;
