@@ -20,14 +20,14 @@ export function activate() {
       order: 2,
     })
   );
-  PreferencesUIStore.registerPreferencesTab(
-    new PreferencesUIStore.TabItem({
-      tabId: 'Subscription',
-      displayName: 'Subscription',
-      componentClassFn: () => require('./tabs/preferences-identity').default,
-      order: 3,
-    })
-  );
+  // PreferencesUIStore.registerPreferencesTab(
+  //   new PreferencesUIStore.TabItem({
+  //     tabId: 'Subscription',
+  //     displayName: 'Subscription',
+  //     componentClassFn: () => require('./tabs/preferences-identity').default,
+  //     order: 3,
+  //   })
+  // );
   PreferencesUIStore.registerPreferencesTab(
     new PreferencesUIStore.TabItem({
       tabId: 'Appearance',
