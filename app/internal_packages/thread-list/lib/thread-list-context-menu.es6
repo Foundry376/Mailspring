@@ -48,7 +48,10 @@ export default class ThreadListContextMenu {
     if (this.threadIds.length !== 1) {
       return null;
     }
-    const from = this.threads[0].participants.find(p => !p.isMe());
+    let from = this.threads[0].participants.find(p => !p.isMe());
+    if (!from) {
+      from = this.threads[0].participants[0];
+    }
     return {
       label: `Search for ${from.email}`,
       click: () => {
@@ -173,7 +176,7 @@ export default class ThreadListContextMenu {
           TaskFactory.taskForInvertingUnread({
             source: 'Context Menu: Thread List',
             threads: this.threads,
-          })
+          }),
         );
       },
     };
@@ -196,7 +199,7 @@ export default class ThreadListContextMenu {
           TaskFactory.taskForInvertingStarred({
             source: 'Context Menu: Thread List',
             threads: this.threads,
-          })
+          }),
         );
       },
     };
