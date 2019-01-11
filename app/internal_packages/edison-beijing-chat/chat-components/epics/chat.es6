@@ -461,6 +461,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
             curJid: payload.curJid,
             name: name,
             isGroup: false,
+            occupants: [payload.from.bare, payload.curJid],
             unreadMessages: unreadMessages,
             lastMessageTime,
             lastMessageText,
