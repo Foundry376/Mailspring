@@ -184,6 +184,13 @@ export default class MessagesPanel extends PureComponent {
         isUploading: true,
         mediaObjectId: '',
       };
+      if (file.match(/.gif$/)) {
+        body.type = FILE_TYPE.GIF;
+      } else if (file.match(/(\.bmp|\.png|\.jpg\.jpeg)$/)) {
+        body.type = FILE_TYPE.IMAGE;
+      } else {
+        body.type = FILE_TYPE.OTHER_FILE;
+      }
       const messageId = uuid();
       onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
       uploadFile(jidLocal, null, file, (err, filename, myKey, size) => {
@@ -191,14 +198,8 @@ export default class MessagesPanel extends PureComponent {
           alert(`upload files failed because error: ${err}, filename: ${filename}`);
           return;
         }
-        if (filename.match(/.gif$/)) {
-          body.type = FILE_TYPE.GIF;
-        } else if (filename.match(/(\.bmp|\.png|\.jpg\.jpeg)$/)) {
-          body.type = FILE_TYPE.IMAGE;
-        } else {
-          body.type = FILE_TYPE.OTHER_FILE;
-        }
         body.content = " ";
+        body.isUploading = false;
         body.mediaObjectId = myKey;
         body.occupants = [];
         body.atJids = [];
