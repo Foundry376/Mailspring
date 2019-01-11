@@ -20,6 +20,7 @@ export function activate() {
       order: 2,
     })
   );
+  //TODO: edison feature disabled
   // PreferencesUIStore.registerPreferencesTab(
   //   new PreferencesUIStore.TabItem({
   //     tabId: 'Subscription',
