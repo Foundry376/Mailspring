@@ -400,6 +400,8 @@ class Actions {
   *Scope: Window*
   */
   static destroyDraft = ActionScopeWindow;
+  static destroyDraftSucceeded = ActionScopeMainWindow;
+  static destroyDraftFailed = ActionScopeMainWindow;
 
   /*
   Public: Submits the user's response to an RSVP event.

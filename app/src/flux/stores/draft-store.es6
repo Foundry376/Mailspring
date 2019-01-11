@@ -42,6 +42,8 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.draftDeliveryFailed, this._onSendDraftFailed);
     this.listenTo(Actions.draftDeliverySucceeded, this._onSendDraftSuccess);
     this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
+    this.listenTo(Actions.destroyDraftFailed,this._onDestroyDraftFailed);
+    this.listenTo(Actions.destroyDraftSucceeded, this._onDestroyDraftSuccess);
 
     if (AppEnv.isMainWindow()) {
       ipcRenderer.on('new-message', () => {
@@ -64,6 +66,7 @@ class DraftStore extends MailspringStore {
 
     this._draftSessions = {};
     this._draftsSending = {};
+    this._draftDeleting = {};
 
     ipcRenderer.on('mailto', this._onHandleMailtoLink);
     ipcRenderer.on('mailfiles', this._onHandleMailFiles);
@@ -125,13 +128,14 @@ class DraftStore extends MailspringStore {
       // main window we can't know if the draft session may also be open in
       // a popout and have content there.
       if (draft.pristine && !AppEnv.isMainWindow()) {
+        this._draftDeleting[draft.id] = draft.headerMessageId;
         Actions.queueTask(
           new DestroyDraftTask({
             messageIds: [draft.id],
             accountId: draft.accountId,
           })
         );
-      } else if (session.changes.isDirty()) {
+      } else if (session.changes.isDirty() && !this._draftDeleting[draft.id]) {
         promises.push(session.changes.commit('unload'));
       }
     });
@@ -370,12 +374,29 @@ class DraftStore extends MailspringStore {
 
     // Queue the task to destroy the draft
     if (id) {
-      Actions.queueTask(new DestroyDraftTask({ accountId, messageIds: [id] }));
+      this._draftDeleting[id] = headerMessageId;
+      this.trigger({ headerMessageId });
+      Actions.queueTask(new DestroyDraftTask({ accountId, messageIds: [id], headerMessageId: headerMessageId }));
     } else {
       console.warn('Tried to delete a draft that had no ID assigned yet.');
     }
     if (AppEnv.isComposerWindow()) {
       AppEnv.close();
+    }
+  };
+  _onDestroyDraftSuccess = ({ messageIds }) => {
+    if (Array.isArray(messageIds)) {
+      const headerMessageId = this._draftDeleting[messageIds[0]];
+      delete this._draftDeleting[messageIds[0]];
+      this.trigger({ headerMessageId });
+    }
+  };
+
+  _onDestroyDraftFailed = ({ messageIds }) => {
+    if (Array.isArray(messageIds)) {
+      const headerMessageId = this._draftDeleting[messageIds[0]];
+      delete this._draftDeleting[messageIds[0]];
+      this.trigger({ headerMessageId });
     }
   };
 
