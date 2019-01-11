@@ -232,7 +232,12 @@ export default class Messages extends PureComponent {
               if (msgBody.deleted) {
                 return null;
               }
-              msgBody.path = msgBody.localFile || msgBody.path;
+              if (msg.sender === currentUserId) {
+                msgBody.path = msgBody.localFile || msgBody.path;
+              } else {
+                msgBody.path = msgBody.path || msgBody.localFile;
+              }
+
               const color = colorForString(msg.sender);
               let msgFile;
 

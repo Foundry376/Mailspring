@@ -39,16 +39,22 @@ export function copyRxdbConversation(conv) {
   return result;
 }
 
-export function saveGroupMessages(groupedMessages) {
+export async function saveGroupMessages(groupedMessages) {
   const readTime = new Date().getTime();
-  getDb().then(db => {
-    groupedMessages && groupedMessages.map(group => {
-      group.messages.map((msg, idx) => {
-        msg = copyRxdbMessage(msg);
-        msg.readTime = readTime;
-        db.messages.upsert(msg);
-      })
-    })
-  })
+  if (groupedMessages) {
+    groupedMessages.reverse();
+    for (const { messages } of groupedMessages) {
+      messages.reverse();
+      for (const msg of messages) {
+        if (msg.updateTime && (!msg.readTime || msg.readTime < msg.updateTime)) {
+          await msg.update({
+            $set: {
+              readTime
+            }
+          })
+        }
+      }
+    }
+  }
 }
 

@@ -54,8 +54,8 @@ import messageModel, { FILE_TYPE } from '../components/chat/messages/messageMode
 
 
 const addToAvatarMembers = (conv, contact) => {
-  if（!contact) {
-    return
+  if (!contact) {
+    return conv;
   }
   if (!conv.isGroup) {
     return conv;
