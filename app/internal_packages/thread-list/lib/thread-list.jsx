@@ -155,6 +155,7 @@ class ThreadList extends React.Component {
       return `swipe-${name}`;
     };
 
+    // edison feature disabled
     // props.onSwipeRight = function (callback) {
     //   const perspective = FocusedPerspectiveStore.current();
     //   const tasks = perspective.tasksForRemovingItems([item], 'Swipe');
@@ -176,6 +177,7 @@ class ThreadList extends React.Component {
       props.onSwipeCenter = () => {
         Actions.closePopover();
       };
+      // edison feature disabled
       // props.onSwipeLeft = callback => {
       //   // TODO this should be grabbed from elsewhere
       //   const SnoozePopover = require('../../thread-snooze/lib/snooze-popover').default;
