@@ -57,6 +57,7 @@ function handleMetadataExpiration(change) {
 }
 
 export function activate() {
+  //TODO: edison feature disabled
   // ComponentRegistry.register(SendLaterButtonWithTip, { role: 'Composer:ActionButton' });
   // ComponentRegistry.register(SendLaterStatus, { role: 'DraftList:DraftStatus' });
 
