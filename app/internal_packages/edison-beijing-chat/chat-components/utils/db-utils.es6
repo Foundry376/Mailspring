@@ -46,14 +46,12 @@ export async function saveGroupMessages(groupedMessages) {
     for (const { messages } of groupedMessages) {
       messages.reverse();
       for (const msg of messages) {
-        if (!msg.readTime) {
+        if (msg.updateTime && (!msg.readTime || msg.readTime < msg.updateTime)) {
           await msg.update({
             $set: {
               readTime
             }
           })
-        } else {
-          return;
         }
       }
     }
