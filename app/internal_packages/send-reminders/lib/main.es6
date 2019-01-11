@@ -18,23 +18,23 @@ const ComposerButtonWithTip = HasTutorialTip(SendRemindersComposerButton, {
 });
 
 export function activate() {
-  ComponentRegistry.register(ComposerButtonWithTip, { role: 'Composer:ActionButton' });
-  ComponentRegistry.register(SendRemindersToolbarButton, { role: 'ThreadActionsToolbarButton' });
-  ComponentRegistry.register(SendRemindersThreadTimestamp, { role: 'ThreadListTimestamp' });
-  ComponentRegistry.register(NotificationExplanationMessageHeader, { role: 'MessageHeader' });
-  ComponentRegistry.register(ScheduledReminderThreadHeader, { role: 'MessageListHeaders' });
-  ExtensionRegistry.ThreadList.register(ThreadListExtension);
-  ExtensionRegistry.AccountSidebar.register(AccountSidebarExtension);
-  SendRemindersStore.activate();
+//   ComponentRegistry.register(ComposerButtonWithTip, { role: 'Composer:ActionButton' });
+//   ComponentRegistry.register(SendRemindersToolbarButton, { role: 'ThreadActionsToolbarButton' });
+//   ComponentRegistry.register(SendRemindersThreadTimestamp, { role: 'ThreadListTimestamp' });
+//   ComponentRegistry.register(NotificationExplanationMessageHeader, { role: 'MessageHeader' });
+//   ComponentRegistry.register(ScheduledReminderThreadHeader, { role: 'MessageListHeaders' });
+//   ExtensionRegistry.ThreadList.register(ThreadListExtension);
+//   ExtensionRegistry.AccountSidebar.register(AccountSidebarExtension);
+//   SendRemindersStore.activate();
 }
-
+//
 export function deactivate() {
-  ComponentRegistry.unregister(ComposerButtonWithTip);
-  ComponentRegistry.unregister(SendRemindersToolbarButton);
-  ComponentRegistry.unregister(SendRemindersThreadTimestamp);
-  ComponentRegistry.unregister(NotificationExplanationMessageHeader);
-  ComponentRegistry.unregister(ScheduledReminderThreadHeader);
-  ExtensionRegistry.ThreadList.unregister(ThreadListExtension);
-  ExtensionRegistry.AccountSidebar.unregister(AccountSidebarExtension);
-  SendRemindersStore.deactivate();
+//   ComponentRegistry.unregister(ComposerButtonWithTip);
+//   ComponentRegistry.unregister(SendRemindersToolbarButton);
+//   ComponentRegistry.unregister(SendRemindersThreadTimestamp);
+//   ComponentRegistry.unregister(NotificationExplanationMessageHeader);
+//   ComponentRegistry.unregister(ScheduledReminderThreadHeader);
+//   ExtensionRegistry.ThreadList.unregister(ThreadListExtension);
+//   ExtensionRegistry.AccountSidebar.unregister(AccountSidebarExtension);
+//   SendRemindersStore.deactivate();
 }
