@@ -130,12 +130,13 @@ class SignatureEditor extends React.Component {
                     />
                   </div>
                 ))}
-                <SignaturePhotoPicker
-                  id={signature.id}
-                  data={data}
-                  resolvedURL={resolvedData.photoURL}
-                  onChange={this._onDataFieldChange}
-                />
+                {/*TODO: edison feature disabled*/}
+                {/*<SignaturePhotoPicker*/}
+                  {/*id={signature.id}*/}
+                  {/*data={data}*/}
+                  {/*resolvedURL={resolvedData.photoURL}*/}
+                  {/*onChange={this._onDataFieldChange}*/}
+                {/*/>*/}
               </div>,
             ]}
       </div>
