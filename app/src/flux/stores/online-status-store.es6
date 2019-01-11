@@ -33,7 +33,6 @@ class OnlineStatusStore extends MailspringStore {
 
   _checkOnlineStatus = async () => {
     isOnlineModule = isOnlineModule || require('is-online'); //eslint-disable-line
-
     clearInterval(this._interval);
     clearTimeout(this._timeout);
 
@@ -73,6 +72,7 @@ class OnlineStatusStore extends MailspringStore {
     } else {
       // count down an inreasing delay and check again
       this._countdownSeconds = Math.ceil(this._backoffScheduler.nextDelay() / 1000);
+      clearInterval(this._interval)
       this._interval = setInterval(() => {
         const next = Math.max(0, this._countdownSeconds - 1);
         if (next === 0) {
