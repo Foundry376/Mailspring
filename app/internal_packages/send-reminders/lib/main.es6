@@ -18,6 +18,7 @@ const ComposerButtonWithTip = HasTutorialTip(SendRemindersComposerButton, {
 });
 
 export function activate() {
+  //TODO: edison feature disabled
 //   ComponentRegistry.register(ComposerButtonWithTip, { role: 'Composer:ActionButton' });
 //   ComponentRegistry.register(SendRemindersToolbarButton, { role: 'ThreadActionsToolbarButton' });
 //   ComponentRegistry.register(SendRemindersThreadTimestamp, { role: 'ThreadListTimestamp' });
