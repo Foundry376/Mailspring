@@ -56,7 +56,8 @@ export default class InviteGroupChatList extends Component {
     } = this.state;
     const children = open ? contacts.map(contact =>
       <Option
-        key={contact.name}
+        key={contact.jid}
+        value={contact.name}
         contact={contact}
         className="invite-contact-option"
       >
