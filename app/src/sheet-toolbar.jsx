@@ -24,7 +24,7 @@ class ToolbarSpacer extends React.Component {
   }
 }
 
-class WindowTitle extends React.Component {
+export class WindowTitle extends React.Component {
   static displayName = 'WindowTitle';
 
   constructor(props) {
@@ -361,7 +361,7 @@ export default class Toolbar extends React.Component {
 
     const toolbars = this.state.columns.map((components, idx) => (
       <div
-        style={{ position: 'absolute', top: 0, display: 'none' }}
+        style={{ position: 'absolute', top: 0, display: 'block' }}
         className={`toolbar-${this.state.columnNames[idx]}`}
         data-column={idx}
         key={idx}

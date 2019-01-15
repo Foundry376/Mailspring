@@ -5,6 +5,10 @@ import { Utils, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import InjectedComponentSet from './components/injected-component-set';
 import ResizableRegion from './components/resizable-region';
 import Flexbox from './components/flexbox';
+import Toolbar from './sheet-toolbar';
+import VerticalToolbar from './vertical-toolbar';
+import LeftToolbar from './left-toolbar';
+import ToolColumn from './sheet-tool-column';
 
 const FLEX = 10000;
 
@@ -62,16 +66,43 @@ export default class Sheet extends React.Component {
   }
 
   _columnFlexboxElements() {
+    let sheet = this.props.data;
     return this.state.columns.map((column, idx) => {
       const { maxWidth, minWidth, handle, location, width } = column;
+      let top = '0px';
 
-      if (minWidth !== maxWidth && maxWidth < FLEX) {
+      if (location.id === 'MessageList') {
+        top = '32px';
+      }
+
+      const style = {
+        position: 'relative',
+        height: '100%',
+        top: top,
+        minWidth: minWidth,
+      };
+
+      if (maxWidth < FLEX) {
+        style.width = maxWidth;
+      } else {
+        style.flex = 1;
+      }
+      const contentStyle = {
+        flexDirection: 'column',
+        position: 'relative',
+        display: 'flex',
+        height: '100%',
+        overflow: 'hidden',
+      }
+
+      // if (minWidth !== maxWidth && maxWidth < FLEX) {
+      if (1) {
         return (
           <ResizableRegion
             key={`${this.props.data.id}:${idx}`}
             name={`${this.props.data.id}:${idx}`}
             className={`column-${location.id}`}
-            style={{ height: '100%' }}
+            style={style}
             data-column={idx}
             onResize={w => this._onColumnResize(column, w)}
             initialWidth={width}
@@ -79,35 +110,41 @@ export default class Sheet extends React.Component {
             maxWidth={maxWidth}
             handle={handle}
           >
+            <ToolColumn
+              data={sheet}
+              loc = {location}
+              idx = {idx}
+              maxColumn={this.state.columns.length - 1}
+              key={`${sheet.id}:toolbar`}
+            />
+            { idx === 0 ?
+              <LeftToolbar loc={location}></LeftToolbar> :
+              null
+            }
             <InjectedComponentSet
               direction="column"
               matching={{ location: location, mode: this.state.mode }}
+              style={contentStyle}
             />
+            {location.id === 'MessageList' ?
+              <VerticalToolbar></VerticalToolbar>:
+              null
+            }
           </ResizableRegion>
         );
-      }
-
-      const style = {
-        height: '100%',
-        minWidth: minWidth,
-        overflow: 'hidden',
-      };
-      if (maxWidth < FLEX) {
-        style.width = maxWidth;
       } else {
-        style.flex = 1;
+        return (
+          <InjectedComponentSet
+            direction="column"
+            key={`${this.props.data.id}:${idx}`}
+            name={`${this.props.data.id}:${idx}`}
+            className={`column-${location.id}`}
+            data-column={idx}
+            style={style}
+            matching={{ location: location, mode: this.state.mode }}
+          />
+        );
       }
-      return (
-        <InjectedComponentSet
-          direction="column"
-          key={`${this.props.data.id}:${idx}`}
-          name={`${this.props.data.id}:${idx}`}
-          className={`column-${location.id}`}
-          data-column={idx}
-          style={style}
-          matching={{ location: location, mode: this.state.mode }}
-        />
-      );
     });
   }
 
