@@ -1,0 +1,17 @@
+{
+  "name": "quick-sidebar",
+  "version": "0.1.0",
+  "title": "Quick Sidebar",
+  "description": "Quick Sidebar",
+
+  "isOptional": false,
+
+  "main": "lib/main",
+  "windowTypes": {
+    "default": true
+  },
+  "engines": {
+    "mailspring": "*"
+  },
+  "license": "GPL-3.0"
+}
