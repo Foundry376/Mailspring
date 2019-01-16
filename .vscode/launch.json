@@ -4,13 +4,18 @@
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
+            "name": "Debug Main Process",
             "type": "node",
             "request": "launch",
-            "name": "Electron Main",
-            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-            "program": "${workspaceFolder}/app/src/browser/main.js",
-            "protocol": "inspector"
+            "cwd": "${workspaceRoot}",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+            "windows": {
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+            },
+            "args" : ["--dev"],
+            "program": "${workspaceFolder}/app/src/browser/main.js"
         }
     ]
 }

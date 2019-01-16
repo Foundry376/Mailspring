@@ -105,7 +105,7 @@ export default class SheetContainer extends React.Component {
         className={`layout-mode-${this.state.mode}`}
         style={{ overflow: 'hidden' }}
       >
-        {this._toolbarContainerElement()}
+        {/*{this._toolbarContainerElement()}*/}
 
         <div name="Header" style={{ order: 1, zIndex: 2 }}>
           <InjectedComponentSet

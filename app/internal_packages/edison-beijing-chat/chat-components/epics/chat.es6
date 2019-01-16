@@ -262,7 +262,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
         status: payload.isUploading ? MESSAGE_STATUS_FILE_UPLOADING : MESSAGE_STATUS_SENDING,
       };
       let body = parseMessageBody(payload.body);
-      if (body.updating) {
+      if (body && body.updating) {
         message.updateTime = (new Date()).getTime()
       } else {
         message.sentTime = (new Date()).getTime()

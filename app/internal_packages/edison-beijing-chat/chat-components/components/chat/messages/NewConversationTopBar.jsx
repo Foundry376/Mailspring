@@ -11,7 +11,7 @@ export default class MessagesTopBar extends Component {
   }
   handleChange = (value, options) => {
     const members = options.map(item => ({
-      name: item.key,
+      name: item.props.value,
       jid: item.props.jid,
       curJid: item.props.curjid
     }));
@@ -24,9 +24,10 @@ export default class MessagesTopBar extends Component {
 
     const children = contacts.map(contact =>
       <Option
-        key={contact.name}
+        key={contact.jid}
         jid={contact.jid}
         curjid={contact.curJid}
+        value={contact.name}
       >
         <div className="chip">
           <ContactAvatar jid={contact.jid} name={contact.name}
@@ -49,13 +50,18 @@ export default class MessagesTopBar extends Component {
           >X</Button>
           <span className="new-message-title">New Message</span>
         </div>
-        <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex' }} onClick={() => {
+          document.querySelector('#contact-select input').focus();
+        }}>
           <Select
             mode="tags"
+            id="contact-select"
             style={{ width: '100%', flex: 1, height: '50px' }}
             onChange={this.handleChange}
             defaultOpen={true}
             multiple
+            autoFocus
+            open
             tokenSeparators={[',']}
           >
             {children}

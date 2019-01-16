@@ -96,6 +96,7 @@ export default class MessagesTopBar extends Component {
               dangerouslySetInnerHTML={{ __html: conversation.name }}
               onKeyDown={this._onkeyDown}
               onBlur={this._onBlur}
+              spellcheck="false"
               className="conversationName">
             </div>
           }

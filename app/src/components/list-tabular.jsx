@@ -375,7 +375,8 @@ class ListTabular extends Component {
             onDragStart={onDragStart}
             onDoubleClick={onDoubleClick}
           />
-          <div className="footer">{footer}</div>
+          {/* when display EmptyComponent, do not display footer */}
+          <div className="footer">{!(loaded && empty) ? footer : null}</div>
         </ScrollRegion>
         <Spinner visible={!loaded && empty} />
         <EmptyComponent visible={loaded && empty} />
