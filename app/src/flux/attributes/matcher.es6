@@ -199,10 +199,6 @@ class Matcher {
       escaped = `(${escapedVals.join(',')})`;
     } else {
       escaped = val;
-      // Just in case none joinWhere also comes here
-      if (this.comparator !== 'joinWhere') {
-        console.warn('non joinWhere match');
-      }
     }
     let andSql = '';
     if (this.attr.joinOnWhere) {
