@@ -381,8 +381,15 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   }
 
   threads() {
+    const categoryIds = [];
+    this.categories().forEach(c => {
+      if (!c.state) {
+        //In case Category will also add state in future versions
+        categoryIds.push(c.id);
+      }
+    });
     const query = DatabaseStore.findAll(Thread)
-      .where([Thread.attributes.categories.containsAny(this.categories().map(c => c.id))])
+      .where([Thread.attributes.categories.containsAny(categoryIds)])
       .limit(0);
 
     if (this.isSent()) {

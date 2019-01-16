@@ -67,6 +67,7 @@ export default class Thread extends ModelWithMetadata {
       queryable: true,
       modelKey: 'categories',
       joinOnField: 'id',
+      joinOnWhere: { state: 0 },
       joinQueryableBy: [
         'inAllMail',
         'lastMessageReceivedTimestamp',

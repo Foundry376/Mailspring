@@ -2,7 +2,7 @@ import LocalSearchQueryBackend from '../../services/search/search-query-backend-
 
 // https://www.sqlite.org/faq.html#q14
 // That's right. Two single quotes in a row…
-const singleQuoteEscapeSequence = "''";
+const singleQuoteEscapeSequence = '\'\'';
 
 // https://www.sqlite.org/fts5.html#section_3
 const doubleQuoteEscapeSequence = '""';
@@ -40,13 +40,16 @@ isUnread.evaluate(threadB)
 Section: Database
 */
 class Matcher {
-  constructor(attr, comparator, val) {
+  constructor(attr, comparator, val, muid = null) {
     this.attr = attr;
     this.comparator = comparator;
     this.val = val;
-
-    this.muid = Matcher.muid;
-    Matcher.muid = (Matcher.muid + 1) % 50;
+    if (muid) {
+      this.muid = muid;
+    } else {
+      this.muid = Matcher.muid;
+      Matcher.muid = (Matcher.muid + 1) % 50;
+    }
   }
 
   attribute() {
@@ -99,7 +102,7 @@ class Matcher {
         return modelArrayContainsValue(modelValue, matcherValue);
       case 'containsAny':
         return !!matcherValue.find(submatcherValue =>
-          modelArrayContainsValue(modelValue, submatcherValue)
+          modelArrayContainsValue(modelValue, submatcherValue),
         );
       case 'startsWith':
         return modelValue.startsWith(matcherValue);
@@ -109,7 +112,7 @@ class Matcher {
         throw new Error(
           `Matcher.evaulate() not sure how to evaluate ${this.attr.modelKey} with comparator ${
             this.comparator
-          }`
+            }`,
         );
     }
   }
@@ -124,19 +127,59 @@ class Matcher {
       case 'containsAny': {
         const joinTable = this.attr.tableNameForJoinAgainst(klass);
         const joinTableRef = this.joinTableRef();
-        return `INNER JOIN \`${joinTable}\` AS \`${joinTableRef}\` ON \`${joinTableRef}\`.\`id\` = \`${
-          klass.name
-        }\`.\`id\``;
+        let andSql = '';
+        if (this.attr.joinOnWhere) {
+          const wheres = [];
+          let tmpVal = '';
+          let tmpKey = '';
+          for (const key of Object.keys(this.attr.joinOnWhere)) {
+            tmpVal = this._escapeValue(this.attr.joinOnWhere[key]);
+            tmpKey = key;
+            if (typeof tmpVal === 'string' && tmpVal.indexOf('(') === 0) {
+              wheres.push(` \`${joinTableRef}\`.\`${tmpKey}\` IN ${tmpVal} `);
+            } else if (tmpVal === null) {
+              wheres.push(` \`${joinTableRef}\`.\`${tmpKey}\` is NULL `);
+            } else {
+              wheres.push(` \`${joinTableRef}\`.\`${tmpKey}\` = ${tmpVal} `);
+            }
+          }
+          if (wheres.length > 0) {
+            andSql = ` AND ( ${wheres.join(' AND ')} ) `;
+          }
+        }
+        return `INNER JOIN \`${joinTable}\` AS \`${joinTableRef}\` ON \`${joinTableRef}\`.\`${this.attr.joinOnField}\` = \`${klass.name}\`.\`id\`${andSql}`;
       }
       default:
         return false;
     }
   }
 
+  _escapeValue(val) {
+    if (typeof val === 'string') {
+      return `'${val.replace(/'/g, singleQuoteEscapeSequence)}'`;
+    } else if (val === true) {
+      return 1;
+    } else if (val === false) {
+      return 0;
+    } else if (val instanceof Date) {
+      return val.getTime() / 1000;
+    } else if (val instanceof Array) {
+      const escapedVals = [];
+      for (const v of val) {
+        if (typeof v !== 'string') {
+          throw new Error(`${this.attr.tableColumn} value ${v} must be a string.`);
+        }
+        escapedVals.push(`'${v.replace(/'/g, singleQuoteEscapeSequence)}'`);
+      }
+      return `(${escapedVals.join(',')})`;
+    } else {
+      return val;
+    }
+  }
+
   whereSQL(klass) {
     const val = this.comparator === 'like' ? `%${this.val}%` : this.val;
     let escaped = null;
-
     if (typeof val === 'string') {
       escaped = `'${val.replace(/'/g, singleQuoteEscapeSequence)}'`;
     } else if (val === true) {
@@ -156,6 +199,28 @@ class Matcher {
       escaped = `(${escapedVals.join(',')})`;
     } else {
       escaped = val;
+      // Just in case none joinWhere also comes here
+      if (this.comparator !== 'joinWhere') {
+        console.warn('non joinWhere match');
+      }
+    }
+    let andSql = '';
+    if (this.attr.joinOnWhere) {
+      const wheres = [];
+      let tmpVal = '';
+      let tmpKey = '';
+      for (const key of Object.keys(this.attr.joinOnWhere)) {
+        tmpVal = this._escapeValue(this.attr.joinOnWhere[key]);
+        tmpKey = key;
+        if (typeof tmpVal === 'string' && tmpVal.indexOf('(') === 0) {
+          wheres.push(` \`${this.joinTableRef()}\`.\`${tmpKey}\` IN ${tmpVal} `);
+        } else if (tmpVal === null) {
+          wheres.push(` \`${this.joinTableRef()}\`.\`${tmpKey}\` is NULL `);
+        } else {
+          wheres.push(` \`${this.joinTableRef()}\`.\`${tmpKey}\` = ${tmpVal} `);
+        }
+      }
+      andSql = ` AND ( ${wheres.join(' AND ')} ) `;
     }
 
     switch (this.comparator) {
@@ -176,7 +241,7 @@ class Matcher {
       case 'contains':
         return `\`${this.joinTableRef()}\`.\`value\` = ${escaped}`;
       case 'containsAny':
-        return `\`${this.joinTableRef()}\`.\`value\` IN ${escaped}`;
+        return `\`${this.joinTableRef()}\`.\`value\` IN ${escaped} ${andSql}`;
       default:
         return `\`${klass.name}\`.\`${this.attr.tableColumn}\` ${this.comparator} ${escaped}`;
     }
@@ -322,9 +387,9 @@ class SearchMatcher extends Matcher {
     const searchTable = `${klass.name}Search`;
     return `\`${
       klass.name
-    }\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '"${
+      }\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '"${
       this.searchQuery
-    }"*' LIMIT 1000)`;
+      }"*' LIMIT 1000)`;
   }
 }
 

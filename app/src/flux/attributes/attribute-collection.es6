@@ -37,6 +37,7 @@ export default class AttributeCollection extends Attribute {
     joinOnField,
     joinQueryableBy,
     joinTableName,
+    joinOnWhere,
     queryable,
   }) {
     super({ modelKey, jsonKey, queryable });
@@ -44,6 +45,7 @@ export default class AttributeCollection extends Attribute {
     this.joinOnField = joinOnField;
     this.joinTableName = joinTableName;
     this.joinQueryableBy = joinQueryableBy || [];
+    this.joinOnWhere = joinOnWhere || {};
   }
 
   toJSON(vals) {
