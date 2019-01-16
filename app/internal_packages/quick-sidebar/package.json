@@ -3,9 +3,8 @@
   "version": "0.1.0",
   "title": "Quick Sidebar",
   "description": "Quick Sidebar",
-
   "isOptional": false,
-
+  "syncInit": true,
   "main": "lib/main",
   "windowTypes": {
     "default": true

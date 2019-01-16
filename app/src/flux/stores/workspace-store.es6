@@ -257,6 +257,10 @@ class WorkspaceStore extends MailspringStore {
         Left: { id: `Sheet:${id}:Toolbar:Left` },
         Right: { id: `Sheet:${id}:Toolbar:Right` },
       },
+      QuickToolbar: {
+        Top: { id: `Sheet:${id}:QuickToolbar:Top` },
+        Bottom: { id: `Sheet:${id}:QuickToolbar:Bottom` },
+      },
       Header: { id: `Sheet:${id}:Header` },
       Footer: { id: `Sheet:${id}:Footer` },
     };

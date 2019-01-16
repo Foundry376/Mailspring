@@ -4,7 +4,7 @@ import ChatPage from '../chat-components/containers/ChatPage';
 import chatModel from '../chat-components/store/model';
 import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'react-router-redux';
-
+import registerLoginChatAccounts from '../chat-components/utils/registerLoginChatAccounts';
 const { configureStore, history } = require('../chat-components/store/configureStore').default;
 
 export default class ChatView extends Component {
@@ -27,6 +27,7 @@ export default class ChatView extends Component {
   }
   componentDidMount() {
     document.querySelector('.chat-left-panel-container').style.height = AppEnv.config.get(`chatPanelHeight`) + 'px';
+    registerLoginChatAccounts();
   }
   resetHeight() {
     const leftPanel = document.querySelector('.chat-left-panel-container');
