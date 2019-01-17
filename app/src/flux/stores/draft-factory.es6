@@ -40,7 +40,7 @@ class DraftFactory {
       version: 0,
       unread: false,
       starred: false,
-      headerMessageId: `${uniqueId}@edison.tech`,
+      headerMessageId: `${uniqueId}`,
       id: uniqueId,
       from: [account.defaultMe()],
       date: new Date(),
