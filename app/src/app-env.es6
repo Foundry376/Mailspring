@@ -350,9 +350,18 @@ export default class AppEnvConstructor {
   // Essential: Close the current window.
   close(options) {
     if (options) {
+      if(!options.windowLevel){
+        if(this.isComposerWindow()){
+          options.windowLevel = 3;
+        }else if(this.isThreadWindow()){
+          options.windowLevel = 2;
+        }else{
+          options.windowLevel = 1;
+        }
+      }
       ipcRenderer.send('close-window', options);
     } else {
-      console.log('no options send for appenv.close');
+      // console.log('no options send for appenv.close');
     }
     return this.getCurrentWindow().close();
   }

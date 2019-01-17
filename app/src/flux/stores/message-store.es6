@@ -7,7 +7,7 @@ import TaskFactory from '../tasks/task-factory';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
-import electron from 'electron';
+import electron, { ipcRenderer } from 'electron';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
 
@@ -16,6 +16,13 @@ class MessageStore extends MailspringStore {
     super();
     this._setStoreDefaults();
     this._registerListeners();
+    if (AppEnv.isMainWindow()) {
+      this._currentWindowLevel = 1;
+    } else if (AppEnv.isThreadWindow()) {
+      this._currentWindowLevel = 2;
+    } else if (AppEnv.isComposerWindow()) {
+      this._currentWindowLevel = 3;
+    }
   }
 
   //########## PUBLIC #####################################################
@@ -62,6 +69,12 @@ class MessageStore extends MailspringStore {
     return this._itemsLoading;
   }
 
+  messageListUnmounting({ threadId }) {
+    if (AppEnv.isThreadWindow() && threadId) {
+      ipcRenderer.send('close-window', { threadId, windowLevel: this._currentWindowLevel });
+    }
+  }
+
   /*
   Message Store Extensions
   */
@@ -99,6 +112,7 @@ class MessageStore extends MailspringStore {
   }
 
   _onPerspectiveChanged() {
+    // console.log('on perspective change');
     return this.trigger();
   }
 
@@ -143,6 +157,7 @@ class MessageStore extends MailspringStore {
   }
 
   _onFocusChanged(change) {
+    // console.log('onFocus change');
     if (!change.impactsCollection('thread')) return;
 
     // This implements a debounce that fires on the leading and trailing edge.
@@ -216,7 +231,7 @@ class MessageStore extends MailspringStore {
             source: 'Thread Selected',
             canBeUndone: false,
             unread: false,
-          })
+          }),
         );
       }, markAsReadDelay);
     }
@@ -371,6 +386,8 @@ class MessageStore extends MailspringStore {
       hidden: false,
       windowKey: `thread-${thread.id}`,
       windowType: 'thread-popout',
+      threadId: thread.id,
+      windowLevel: this._currentWindowLevel,
       windowProps: {
         threadId: thread.id,
         perspectiveJSON: FocusedPerspectiveStore.current().toJSON(),

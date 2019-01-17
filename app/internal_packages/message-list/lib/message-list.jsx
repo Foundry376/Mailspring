@@ -97,9 +97,11 @@ class MessageList extends React.Component {
   }
 
   componentWillUnmount() {
+    // console.log('unmounting message-list');
     for (const unsubscribe of this._unsubscribers) {
       unsubscribe();
     }
+    MessageStore.messageListUnmounting({ threadId: this.state.currentThread.id });
   }
 
   _globalKeymapHandlers() {
@@ -177,7 +179,7 @@ class MessageList extends React.Component {
       return;
     }
     Actions.focusThreadMainWindow(this.state.currentThread);
-    AppEnv.close();
+    AppEnv.close({threadId: this.state.currentThread.id});
   };
 
   _onPopoutThread = () => {

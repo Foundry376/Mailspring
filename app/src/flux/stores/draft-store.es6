@@ -55,8 +55,10 @@ class DraftStore extends MailspringStore {
       });
 
       // popout closed
-      ipcRenderer.on('close-window', this._onPopoutClosed);
+      // ipcRenderer.on('close-window', this._onPopoutClosed);
     }
+      // popout closed
+      ipcRenderer.on('close-window', this._onPopoutClosed);
 
     // Remember that these two actions only fire in the current window and
     // are picked up by the instance of the DraftStore in the current
@@ -112,6 +114,7 @@ class DraftStore extends MailspringStore {
 
   _onPopoutClosed = (event, options = {}) => {
     if(options.headerMessageId && this._draftSessions[options.headerMessageId]){
+      // console.log(`popout closed with header ${options.headerMessageId}`);
       delete this._draftsPopedOut[options.headerMessageId];
       this._draftSessions[options.headerMessageId].setPopout(false);
     }
@@ -148,7 +151,13 @@ class DraftStore extends MailspringStore {
       } else if (session.changes.isDirty() && !this._draftsDeleting[draft.id]) {
         promises.push(session.changes.commit('unload'));
       }
-      ipcRenderer.send('close-window', { headerMessageId: draft.headerMessageId });
+      let windowLevel = 1;
+      if(AppEnv.isComposerWindow()){
+        windowLevel = 3;
+      }else if(AppEnv.isThreadWindow()){
+        windowLevel = 2;
+      }
+      ipcRenderer.send('close-window', { headerMessageId: draft.headerMessageId, threadId: draft.threadId, windowLevel: windowLevel});
     });
 
     if (promises.length > 0) {
@@ -333,6 +342,7 @@ class DraftStore extends MailspringStore {
       windowKey: `composer-${headerMessageId}`,
       windowProps: Object.assign(options, { headerMessageId, draftJSON }),
       title: options.newDraft ? 'New Message' : 'Message',
+      threadId: session.draft().threadId,
     });
   };
 
@@ -380,7 +390,7 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onDestroyDraft = ({ accountId, headerMessageId, id }) => {
+  _onDestroyDraft = ({ accountId, headerMessageId, id, threadId }) => {
     const session = this._draftSessions[headerMessageId];
 
     // Immediately reset any pending changes so no saves occur
@@ -401,7 +411,7 @@ class DraftStore extends MailspringStore {
       console.warn('Tried to delete a draft that had no ID assigned yet.');
     }
     if (AppEnv.isComposerWindow()) {
-      AppEnv.close({ headerMessageId });
+      AppEnv.close({ headerMessageId, threadId, windowLevel: 3 });
     }
   };
   _onDestroyDraftSuccess = ({ messageIds }) => {

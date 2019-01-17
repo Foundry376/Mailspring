@@ -569,19 +569,29 @@ export default class Application extends EventEmitter {
       } else {
         this.windowManager.newWindow(options);
         const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
-        if (!mainWindow || !mainWindow.browserWindow.webContents) {
-          return;
+        if (mainWindow && mainWindow.browserWindow.webContents) {
+          mainWindow.browserWindow.webContents.send('new-window', options);
         }
-        mainWindow.browserWindow.webContents.send('new-window', options);
+        if(options.threadId){
+          const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
+          if(threadWindow && threadWindow.browserWindow.webContents){
+            threadWindow.browserWindow.webContents.send('new-window', options);
+          }
+        }
       }
     });
 
     ipcMain.on('close-window', (event, options) => {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
-      if (!mainWindow || !mainWindow.browserWindow.webContents) {
-        return;
+      if (mainWindow && mainWindow.browserWindow.webContents) {
+        mainWindow.browserWindow.webContents.send('close-window', options);
       }
-      mainWindow.browserWindow.webContents.send('close-window', options);
+      if (options.threadId) {
+        const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
+        if (threadWindow && threadWindow.browserWindow.webContents) {
+          threadWindow.browserWindow.webContents.send('close-window', options);
+        }
+      }
     });
 
     // Theme Error Handling

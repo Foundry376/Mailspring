@@ -187,6 +187,14 @@ export default class DraftEditingSession extends MailspringStore {
     this._draft = false;
     this._destroyed = false;
     this._popedOut = popout;
+    this._popOutOrigin = {};
+    if (AppEnv.isMainWindow()) {
+      this._currentWindowLevel = 1;
+    } else if (AppEnv.isThreadWindow()) {
+      this._currentWindowLevel = 2;
+    } else if (AppEnv.isComposerWindow()) {
+      this._currentWindowLevel = 3;
+    }
 
     this.headerMessageId = headerMessageId;
     this.changes = new DraftChangeSet({
@@ -196,9 +204,40 @@ export default class DraftEditingSession extends MailspringStore {
 
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
-    ipcRenderer.on('close-window', (event, options={})=>{
-      if(options.headerMessageId && this.headerMessageId){
-        this.setPopout(false);
+    ipcRenderer.on('close-window', (event, options = {}) => {
+      // console.log('session on close window', options);
+      if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
+        if (this._currentWindowLevel === 2) {
+          delete this._popOutOrigin['composer'];
+          this.setPopout(false);
+        } else if (this._currentWindowLevel === 1) {
+          if (options.windowLevel === 3) {
+            delete this._popOutOrigin['composer'];
+          } else if (options.windowLevel === 2) {
+            delete this._popOutOrigin['threadPopout'];
+          }
+          this.setPopout(Object.keys(this._popOutOrigin).length > 0);
+        }
+      }
+    });
+    ipcRenderer.on('new-window', (event, options = {}) => {
+      if (
+        options.headerMessageId &&
+        this._currentWindowLevel < 3 &&
+        this.headerMessageId === options.headerMessageId
+      ) {
+        this._popOutOrigin['composer'] = true;
+        this.setPopout(true);
+      } else if (
+        !options.headerMessageId &&
+        options.threadId &&
+        this._draft &&
+        options.windowType === 'thread-popout' &&
+        this._draft.threadId === options.threadId &&
+        this._currentWindowLevel === 1
+      ) {
+        this._popOutOrigin['threadPopout'] = true;
+        this.setPopout(true);
       }
     });
 
@@ -237,12 +276,19 @@ export default class DraftEditingSession extends MailspringStore {
   prepare() {
     return this._draftPromise;
   }
-  isPopout(){
+
+  isPopout() {
     return this._popedOut;
   }
-  setPopout(val){
-    this._popedOut = val;
-    this.trigger();
+
+  setPopout(val) {
+    if (val && !this._popedOut && this.changes) {
+      this.changes.cancelCommit();
+    }
+    if (val !== this._popedOut) {
+      this._popedOut = val;
+      this.trigger();
+    }
   }
 
   teardown() {
@@ -449,6 +495,25 @@ export default class DraftEditingSession extends MailspringStore {
       console.error('draft id is empty', this._draft);
       this._draft.id = uuid();
     }
+    // if(this._popedOut){
+    //   if (
+    //     this._draft.remoteUID &&
+    //     (!this._draft.msgOrigin ||
+    //       (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID))
+    //   ){
+    //     this._draft.setOrigin(Message.EditExistingDraft);
+    //     this._draft.referenceMessageId = this._draft.id;
+    //     this._draft.hasNewID = true;
+    //     if(arg==='unload'){
+    //       this._draft.id = uuid();
+    //       this._draft.headerMessageId = this._draft.id;
+    //       this._draft.hasNewID = false;
+    //     }
+    //   } else if (this._draft.remoteUID && (this._draft.msgOrigin !== Message.EditExistingDraft)) {
+    //     console.error('Message with remoteUID but origin is edit existing draft');
+    //     this._draft.setOrigin(Message.EditExistingDraft);
+    //   }
+    // }else {
     if (
       this._draft.remoteUID &&
       (!this._draft.msgOrigin ||
@@ -466,6 +531,7 @@ export default class DraftEditingSession extends MailspringStore {
     if (arg === 'unload') {
       this._draft.hasNewID = false;
     }
+    // }
     const task = new SyncbackDraftTask({ draft: this._draft });
     task.saveOnRemote = arg === 'unload';
     Actions.queueTask(task);
