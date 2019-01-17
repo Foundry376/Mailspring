@@ -204,6 +204,20 @@ export default class DraftEditingSession extends MailspringStore {
 
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
+    ipcRenderer.on('draft-arp-reply', (event, options = {}) => {
+      if (
+        options.headerMessageId &&
+        this.headerMessageId === options.headerMessageId &&
+        options.windowLevel > this._currentWindowLevel
+      ) {
+        if (options.windowLevel === 2) {
+          this._popOutOrigin['threadPopout'] = true;
+        } else if (options.windowLevel === 3) {
+          this._popOutOrigin['composer'] = true;
+        }
+        this.setPopout(true);
+      }
+    });
     ipcRenderer.on('close-window', (event, options = {}) => {
       // console.log('session on close window', options);
       if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
@@ -262,6 +276,11 @@ export default class DraftEditingSession extends MailspringStore {
           }
           hotwireDraftBodyState(draft);
           this._draft = draft;
+          ipcRenderer.send('draft-arp', {
+            headerMessageId: this.headerMessageId,
+            threadId: draft.threadId,
+            windowLevel: this._currentWindowLevel,
+          });
           this.trigger();
         });
     }

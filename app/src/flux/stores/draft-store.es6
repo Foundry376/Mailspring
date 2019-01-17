@@ -59,6 +59,9 @@ class DraftStore extends MailspringStore {
     }
       // popout closed
       ipcRenderer.on('close-window', this._onPopoutClosed);
+    if(!AppEnv.isMainWindow()){
+      ipcRenderer.on('draft-arp', this._onDraftArp);
+    }
 
     // Remember that these two actions only fire in the current window and
     // are picked up by the instance of the DraftStore in the current
@@ -100,6 +103,28 @@ class DraftStore extends MailspringStore {
   isSendingDraft(headerMessageId) {
     return this._draftsSending[headerMessageId] || false;
   }
+
+  // Check if current store already have session
+  _onDraftArp = (event, options = {}) => {
+    if (options.headerMessageId && options.threadId && options.windowLevel) {
+      let currenttWindowsLevel = 1;
+      if (AppEnv.isComposerWindow()) {
+        currenttWindowsLevel = 3;
+      } else if (AppEnv.isThreadWindow()) {
+        currenttWindowsLevel = 2;
+      }
+      if (
+        currenttWindowsLevel > options.windowLevel &&
+        this._draftSessions[options.headerMessageId]
+      ) {
+        ipcRenderer.send('draft-arp-reply', {
+          headerMessageId: options.headerMessageId,
+          threadId: options.threadId,
+          windowLevel: currenttWindowsLevel,
+        });
+      }
+    }
+  };
 
   _doneWithSession(session) {
     session.teardown();
@@ -308,6 +333,7 @@ class DraftStore extends MailspringStore {
 
   _createSession(headerMessageId, draft) {
     this._draftSessions[headerMessageId] = new DraftEditingSession(headerMessageId, draft);
+    ipcRenderer.send('draft-arp', {headerMessageId});
     return this._draftSessions[headerMessageId];
   }
 

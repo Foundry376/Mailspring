@@ -194,7 +194,7 @@ export default class Application extends EventEmitter {
     if (!addedToDock && appPath.includes('/Applications/') && appPath.includes('.app/')) {
       const appBundlePath = appPath.split('.app/')[0];
       proc.exec(
-        `defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>${appBundlePath}.app/</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"`
+        `defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>${appBundlePath}.app/</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"`,
       );
       this.config.set('addedToDock', true);
     }
@@ -204,7 +204,8 @@ export default class Application extends EventEmitter {
   // we close windows and log out, we need to wait for these processes to completely
   // exit and then delete the file. It's hard to tell when this happens, so we just
   // retry the deletion a few times.
-  deleteFileWithRetry(filePath, callback = () => { }, retries = 5) {
+  deleteFileWithRetry(filePath, callback = () => {
+  }, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -228,7 +229,8 @@ export default class Application extends EventEmitter {
     }
   }
 
-  renameFileWithRetry(filePath, newPath, callback = () => { }, retries = 5) {
+  renameFileWithRetry(filePath, newPath, callback = () => {
+  }, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -311,7 +313,7 @@ export default class Application extends EventEmitter {
     });
     app.relaunch();
     app.quit();
-  }
+  };
 
   _deleteDatabase = (callback, rebuild) => {
     if (rebuild) {
@@ -378,7 +380,7 @@ export default class Application extends EventEmitter {
             resourcePath: this.resourcePath,
             specDirectory: filenames[0],
           });
-        }
+        },
       );
     });
 
@@ -560,6 +562,37 @@ export default class Application extends EventEmitter {
         app.setBadgeCount(value.length ? value.replace('+', '') / 1 : 0);
       }
     });
+    ipcMain.on('draft-arp', (event, options) => {
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow && mainWindow.browserWindow.webContents) {
+        mainWindow.browserWindow.webContents.send('draft-arp', options);
+      }
+      if (options.threadId) {
+        const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
+        if (threadWindow && threadWindow.browserWindow.webContents) {
+          threadWindow.browserWindow.webContents.send('draft-arp', options);
+        }
+      }
+      if (options.headerMessageId) {
+        const composerWindow = this.windowManager.get(`composer-${options.headerMessageId}`);
+        if (composerWindow && composerWindow.browserWindow.webContents) {
+          composerWindow.browserWindow.webContents.send('draft-arp', options);
+        }
+      }
+    });
+
+    ipcMain.on('draft-arp-reply', (event, options) => {
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow && mainWindow.browserWindow.webContents) {
+        mainWindow.browserWindow.webContents.send('draft-arp-reply', options);
+      }
+      if (options.threadId) {
+        const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
+        if (threadWindow && threadWindow.browserWindow.webContents) {
+          threadWindow.browserWindow.webContents.send('draft-arp-reply', options);
+        }
+      }
+    });
 
     ipcMain.on('new-window', (event, options) => {
       const win = options.windowKey ? this.windowManager.get(options.windowKey) : null;
@@ -572,9 +605,9 @@ export default class Application extends EventEmitter {
         if (mainWindow && mainWindow.browserWindow.webContents) {
           mainWindow.browserWindow.webContents.send('new-window', options);
         }
-        if(options.threadId){
+        if (options.threadId) {
           const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
-          if(threadWindow && threadWindow.browserWindow.webContents){
+          if (threadWindow && threadWindow.browserWindow.webContents) {
             threadWindow.browserWindow.webContents.send('new-window', options);
           }
         }
@@ -719,7 +752,7 @@ export default class Application extends EventEmitter {
         main: WindowManager.MAIN_WINDOW,
       }[params.window];
       if (!targetWindowKey) {
-        throw new Error("We don't support running in that window");
+        throw new Error('We don\'t support running in that window');
       }
 
       const targetWindow = this.windowManager.get(targetWindowKey);
@@ -888,11 +921,11 @@ export default class Application extends EventEmitter {
     let bootstrapScript = null;
     try {
       bootstrapScript = require.resolve(
-        path.resolve(this.resourcePath, 'spec', 'spec-runner', 'spec-bootstrap')
+        path.resolve(this.resourcePath, 'spec', 'spec-runner', 'spec-bootstrap'),
       );
     } catch (error) {
       bootstrapScript = require.resolve(
-        path.resolve(__dirname, '..', '..', 'spec', 'spec-runner', 'spec-bootstrap')
+        path.resolve(__dirname, '..', '..', 'spec', 'spec-runner', 'spec-bootstrap'),
       );
     }
 
