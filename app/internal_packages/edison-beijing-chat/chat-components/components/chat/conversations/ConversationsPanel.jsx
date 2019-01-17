@@ -1,11 +1,7 @@
 import React, { PureComponent } from 'react';
-import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Conversations from './Conversations';
 import ConversationsTopBar from './ConversationsTopBar';
-import Button from '../../common/Button';
-import Divider from '../../common/Divider';
-import { removeConversation } from '../../../actions/chat';
 
 export default class ConversationsPanel extends PureComponent {
   static propTypes = {

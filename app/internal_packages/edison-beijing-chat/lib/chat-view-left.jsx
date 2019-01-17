@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import ChatPage from '../chat-components/containers/ChatPage';
 import chatModel from '../chat-components/store/model';
 import { Provider } from 'react-redux';
-import { ConnectedRouter } from 'react-router-redux';
 import registerLoginChatAccounts from '../chat-components/utils/registerLoginChatAccounts';
 const { history } = require('../chat-components/store/configureStore').default;
 const BOTTOM_OFFSET = 5;
@@ -19,7 +18,7 @@ export default class ChatView extends Component {
     const onMouseMove = (e) => {
       distance = startY - e.clientY;
       const panelNewHeight = sidebarPanelHeight - (height + distance);
-      if(panelNewHeight < 10) {
+      if (panelNewHeight < 10) {
         return;
       }
       accSidebar.style.height = panelNewHeight - BOTTOM_OFFSET + 'px';
@@ -48,9 +47,7 @@ export default class ChatView extends Component {
     return (
       <div className="chat-view-container chat-left-panel-container">
         <Provider store={chatModel.store}>
-          <ConnectedRouter history={history}>
-            <ChatPage isLeft={true} onDragStart={this.onDragStart} resetHeight={this.resetHeight} />
-          </ConnectedRouter>
+          <ChatPage isLeft={true} onDragStart={this.onDragStart} resetHeight={this.resetHeight} />
         </Provider>
       </div>
     )

@@ -1,6 +1,5 @@
 import fs from 'fs'
 import { Observable } from 'rxjs/Observable';
-import { replace } from 'react-router-redux';
 import xmpp from '../xmpp';
 import getDb from '../db';
 import chatModel from '../store/model';
@@ -562,10 +561,6 @@ export const beginRetrievingMessagesEpic = action$ =>
       return retrieveSelectedConversationMessages(jid);
 
     });
-
-export const conversationCreatedEpic = action$ =>
-  action$.ofType(CREATE_PRIVATE_CONVERSATION, CREATE_GROUP_CONVERSATION)
-    .map(() => replace('/chat'));
 
 export const triggerPrivateNotificationEpic = action$ =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE)

@@ -1,8 +1,6 @@
 import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import { createEpicMiddleware } from 'redux-observable';
-import { createHashHistory } from 'history';
-import { routerMiddleware } from 'react-router-redux';
 import Mousetrap from 'mousetrap';
 import { createXmppMiddleware } from '../xmpp/redux/createXmppMiddleware';
 import { createMousetrapMiddleware } from '../shortcuts/createMousetrapMiddleware';
@@ -13,12 +11,10 @@ import rootEpic from '../epics';
 import rootReducer from '../reducers';
 import chatModel from './model';
 
-const history = createHashHistory();
-const router = routerMiddleware(history);
 const epics = createEpicMiddleware(rootEpic);
 const xmppMiddleware = createXmppMiddleware(xmpp, eventActions);
 const mousetrapMiddleware = createMousetrapMiddleware(Mousetrap, shortcutActions);
-const enhancer = applyMiddleware(thunk, router, epics, xmppMiddleware, mousetrapMiddleware);
+const enhancer = applyMiddleware(thunk, epics, xmppMiddleware, mousetrapMiddleware);
 
 function configureStore() {
   const store = createStore(rootReducer, enhancer);

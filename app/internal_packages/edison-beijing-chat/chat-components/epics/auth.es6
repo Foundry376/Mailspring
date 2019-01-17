@@ -1,6 +1,5 @@
 import uuid from 'uuid/v4';
 import { Observable } from 'rxjs/Observable';
-import { replace } from 'react-router-redux';
 import xmpp from '../xmpp';
 import {
   SUBMIT_AUTH,
@@ -82,12 +81,6 @@ export const successAuthEpic = action$ => action$.ofType(SUCCESS_CONNECTION_AUTH
  */
 export const failAuthEpic = action$ => action$.ofType(FAIL_CONNECTION_AUTH)
   .map(({ payload }) => failAuth(payload));
-
-/**
- * Replaces the current page after successful authentication
- */
-export const successAuthRedirectEpic = action$ => action$.ofType(SUCCESS_AUTH)
-  .mapTo(replace('/chat'));
 
 /**
  * Trigger enabling carbons after connection is established

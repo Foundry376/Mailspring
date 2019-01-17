@@ -12,7 +12,7 @@ export default class ChatView extends Component {
   render() {
     return (
       <div className="chat-view-container">
-        <Root store={chatModel.store} history={history} />
+        <Root store={chatModel.store} />
       </div>
     )
   }
