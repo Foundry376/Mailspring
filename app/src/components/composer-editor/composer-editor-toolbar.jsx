@@ -1,6 +1,9 @@
 import React from 'react';
 
 export default class ComposerEditorToolbar extends React.Component {
+  static defaultProps = {
+    readOnly: false
+  };
   constructor(props) {
     super(props);
     this.state = { visible: false };
@@ -57,7 +60,7 @@ export default class ComposerEditorToolbar extends React.Component {
   };
 
   render() {
-    const { value, onChange, plugins } = this.props;
+    const { value, onChange, plugins, readOnly } = this.props;
     let sectionItems = [];
 
     if (!this.state.visible) {
@@ -82,6 +85,7 @@ export default class ComposerEditorToolbar extends React.Component {
             value={value}
             onChange={onChange}
             className={toolbarSectionClass}
+            disabled={readOnly}
           />
         ))
       );

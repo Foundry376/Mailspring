@@ -10,6 +10,7 @@ class SendActionButton extends React.Component {
     draft: PropTypes.object,
     isValidDraft: PropTypes.func,
     sendActions: PropTypes.array,
+    disabled: PropTypes.bool,
   };
 
   /* This component is re-rendered constantly because `draft` changes in random ways.
@@ -17,7 +18,7 @@ class SendActionButton extends React.Component {
   shouldComponentUpdate(nextProps) {
     return (
       nextProps.sendActions.map(a => a.configKey).join(',') !==
-      this.props.sendActions.map(a => a.configKey).join(',')
+      this.props.sendActions.map(a => a.configKey).join(',') || (this.props.disabled !== nextProps.disabled)
     );
   }
 
@@ -62,7 +63,8 @@ class SendActionButton extends React.Component {
         tabIndex={-1}
         className={'btn btn-toolbar btn-normal btn-emphasis btn-text btn-send'}
         style={{ order: -100 }}
-        onClick={this._onPrimaryClick}
+        onClick={!this.props.disabled ? this._onPrimaryClick : null}
+        disabled={this.props.disabled}
       >
         {this._renderSendActionItem(this.props.sendActions[0])}
       </button>
@@ -86,7 +88,8 @@ class SendActionButton extends React.Component {
         style={{ order: -100 }}
         primaryItem={this._renderSendActionItem(sendActions[0])}
         primaryTitle={sendActions[0].title}
-        primaryClick={this._onPrimaryClick}
+        primaryClick={!this.props.disabled ? this._onPrimaryClick : null}
+        disabled={this.props.disabled}
         closeOnMenuClick
         menu={menu}
       />

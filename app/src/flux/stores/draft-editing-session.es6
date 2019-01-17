@@ -15,6 +15,7 @@ import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import DestroyDraftTask from '../tasks/destroy-draft-task';
 import uuid from 'uuid';
+import { ipcRenderer } from 'electron';
 
 const { convertFromHTML, convertToHTML } = Conversion;
 const MetadataChangePrefix = 'metadata.';
@@ -180,11 +181,12 @@ function fastCloneDraft(draft) {
 export default class DraftEditingSession extends MailspringStore {
   static DraftChangeSet = DraftChangeSet;
 
-  constructor(headerMessageId, draft = null) {
+  constructor(headerMessageId, draft = null, popout = false) {
     super();
 
     this._draft = false;
     this._destroyed = false;
+    this._popedOut = popout;
 
     this.headerMessageId = headerMessageId;
     this.changes = new DraftChangeSet({
@@ -194,6 +196,11 @@ export default class DraftEditingSession extends MailspringStore {
 
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
+    ipcRenderer.on('close-window', (event, options={})=>{
+      if(options.headerMessageId && this.headerMessageId){
+        this.setPopout(false);
+      }
+    });
 
     if (draft) {
       hotwireDraftBodyState(draft);
@@ -229,6 +236,13 @@ export default class DraftEditingSession extends MailspringStore {
 
   prepare() {
     return this._draftPromise;
+  }
+  isPopout(){
+    return this._popedOut;
+  }
+  setPopout(val){
+    this._popedOut = val;
+    this.trigger();
   }
 
   teardown() {
@@ -369,7 +383,7 @@ export default class DraftEditingSession extends MailspringStore {
       Actions.queueTask(create);
       await TaskQueue.waitForPerformLocal(create);
       if (destroy) {
-        Actions.queueTask(destroy);
+        Actions.destroyDraft(draft);
       }
     }
 

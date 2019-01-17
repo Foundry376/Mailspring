@@ -52,10 +52,12 @@ export default class ParticipantsTextField extends React.Component {
     draft: PropTypes.object,
 
     session: PropTypes.object,
+    disabled: PropTypes.bool,
   };
 
   static defaultProps = {
     visible: true,
+    disabled: false,
   };
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -233,6 +235,7 @@ export default class ParticipantsTextField extends React.Component {
           draft={this.props.draft}
           headerMessageId={headerMessageId}
           session={this.props.session}
+          disabled={this.props.disabled}
         />
       </div>
     );

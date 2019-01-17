@@ -231,6 +231,7 @@ export default class ComposerView extends React.Component {
         value={this.props.draft.bodyEditorState}
         onFileReceived={this._onFileReceived}
         onDrop={e => this._dropzone._onDrop(e)}
+        readOnly={this.props.session ? this.props.session.isPopout() : true}
         onChange={change => {
           // We minimize thrashing and support editors in multiple windows by ensuring
           // non-value changes (eg focus) to the editorState don't trigger database saves
@@ -326,6 +327,7 @@ export default class ComposerView extends React.Component {
           style={{ order: 100 }}
           title="Delete draft"
           onClick={this._onDestroyDraft}
+          disabled={this.props.session.isPopout()}
         >
           <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
         </button>
@@ -336,6 +338,7 @@ export default class ComposerView extends React.Component {
           style={{ order: 50 }}
           title="Attach file"
           onClick={this._onSelectAttachment}
+          disabled={this.props.session.isPopout()}
         >
           <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
         </button>
@@ -354,6 +357,7 @@ export default class ComposerView extends React.Component {
           headerMessageId={this.props.draft.headerMessageId}
           session={this.props.session}
           isValidDraft={this._isValidDraft}
+          disabled={this.props.session.isPopout()}
         />
       </div>
     );

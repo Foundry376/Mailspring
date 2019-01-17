@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Editor } from '../slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
 
@@ -9,6 +10,12 @@ import { lastUnquotedNode } from './base-block-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
 
 export default class ComposerEditor extends React.Component {
+  static propTypes = {
+    readOnly: PropTypes.bool
+  };
+  static defaultProps = {
+    readOnly: false
+  };
   // Public API
 
   constructor(props) {
@@ -198,7 +205,7 @@ export default class ComposerEditor extends React.Component {
         className={`RichEditor-root ${className || ''}`}
         localHandlers={this._pluginKeyHandlers}
       >
-        <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} />
+        <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} readOnly={this.props.readOnly}/>
         <div
           className="RichEditor-content"
           onClick={this.onFocusIfBlurred}
@@ -218,6 +225,7 @@ export default class ComposerEditor extends React.Component {
             onCopy={this.onCopy}
             onPaste={this.onPaste}
             spellCheck={false}
+            readOnly={this.props.readOnly}
             plugins={plugins}
             propsForPlugins={propsForPlugins}
           />

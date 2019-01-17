@@ -14,6 +14,7 @@ const propTypes = {
   draggable: PropTypes.bool,
   focusable: PropTypes.bool,
   previewable: PropTypes.bool,
+  disabled: PropTypes.bool,
   filePath: PropTypes.string,
   contentType: PropTypes.string,
   download: PropTypes.shape({
@@ -32,6 +33,7 @@ const propTypes = {
 
 const defaultProps = {
   draggable: true,
+  disabled: false,
 };
 
 const SPACE = ' ';
@@ -64,9 +66,10 @@ function AttachmentActionIcon(props) {
     onAbortDownload,
     onRemoveAttachment,
     onDownloadAttachment,
+    disabled,
   } = props;
 
-  const isRemovable = onRemoveAttachment != null;
+  const isRemovable = (onRemoveAttachment != null) && !disabled;
   const isDownloading = download ? download.state === 'downloading' : false;
   const actionIconName = isRemovable || isDownloading ? removeIcon : downloadIcon;
 
@@ -171,6 +174,7 @@ export class AttachmentItem extends Component {
       displaySize,
       fileIconName,
       filePreviewPath,
+      disabled,
       ...extraProps
     } = this.props;
     const classes = classnames({
@@ -188,10 +192,10 @@ export class AttachmentItem extends Component {
         style={style}
         className={classes}
         tabIndex={tabIndex}
-        onKeyDown={focusable ? this._onAttachmentKeyDown : null}
-        draggable={draggable}
-        onDoubleClick={this._onOpenAttachment}
-        onDragStart={this._onDragStart}
+        onKeyDown={focusable && !disabled ? this._onAttachmentKeyDown : null}
+        draggable={draggable && !disabled}
+        onDoubleClick={!disabled ? this._onOpenAttachment : null}
+        onDragStart={!disabled ? this._onDragStart : null}
         {...pickHTMLProps(extraProps)}
       >
         {filePreviewPath ? (
@@ -221,7 +225,7 @@ export class AttachmentItem extends Component {
                   className="quicklook-icon"
                   name="attachment-quicklook.png"
                   mode={RetinaImg.Mode.ContentIsMask}
-                  onClick={this._onClickQuicklookIcon}
+                  onClick={!disabled ? this._onClickQuicklookIcon : null}
                 />
               ) : null}
             </div>
@@ -283,7 +287,7 @@ export class ImageAttachmentItem extends Component {
   }
 
   render() {
-    const { className, displayName, download, ...extraProps } = this.props;
+    const { className, displayName, download, disabled, ...extraProps } = this.props;
     const classes = `nylas-attachment-item image-attachment-item ${className || ''}`;
     return (
       <div className={classes} {...pickHTMLProps(extraProps)}>
@@ -296,7 +300,7 @@ export class ImageAttachmentItem extends Component {
             retinaImgMode={RetinaImg.Mode.ContentPreserve}
             onAbortDownload={null}
           />
-          <div className="file-preview" onDoubleClick={this._onOpenAttachment}>
+          <div className="file-preview" onDoubleClick={!disabled ? this._onOpenAttachment : null}>
             <div className="file-name-container">
               <div className="file-name" title={displayName}>
                 {displayName}

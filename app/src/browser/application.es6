@@ -568,7 +568,20 @@ export default class Application extends EventEmitter {
         win.focus();
       } else {
         this.windowManager.newWindow(options);
+        const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+        if (!mainWindow || !mainWindow.browserWindow.webContents) {
+          return;
+        }
+        mainWindow.browserWindow.webContents.send('new-window', options);
       }
+    });
+
+    ipcMain.on('close-window', (event, options) => {
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (!mainWindow || !mainWindow.browserWindow.webContents) {
+        return;
+      }
+      mainWindow.browserWindow.webContents.send('close-window', options);
     });
 
     // Theme Error Handling

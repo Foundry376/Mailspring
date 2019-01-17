@@ -348,7 +348,12 @@ export default class AppEnvConstructor {
   */
 
   // Essential: Close the current window.
-  close() {
+  close(options) {
+    if (options) {
+      ipcRenderer.send('close-window', options);
+    } else {
+      console.log('no options send for appenv.close');
+    }
     return this.getCurrentWindow().close();
   }
 

@@ -134,6 +134,7 @@ export default class ComposerHeader extends React.Component {
           placeholder="Subject"
           value={this.props.draft.subject}
           onChange={this._onSubjectChange}
+          disabled={this.props.session.isPopout()}
         />
       </KeyCommandsRegion>
     );
@@ -160,6 +161,7 @@ export default class ComposerHeader extends React.Component {
         participants={{ to, cc, bcc }}
         draft={this.props.draft}
         session={this.props.session}
+        disabled={this.props.session.isPopout()}
       />
     );
 
@@ -179,6 +181,7 @@ export default class ComposerHeader extends React.Component {
           participants={{ to, cc, bcc }}
           draft={this.props.draft}
           session={this.props.session}
+          disabled={this.props.session.isPopout()}
         />
       );
     }
@@ -199,6 +202,7 @@ export default class ComposerHeader extends React.Component {
           participants={{ to, cc, bcc }}
           draft={this.props.draft}
           session={this.props.session}
+          disabled={this.props.session.isPopout()}
         />
       );
     }

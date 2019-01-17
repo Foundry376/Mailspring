@@ -12,11 +12,13 @@ class ButtonDropdown extends React.Component {
     style: PropTypes.object,
     closeOnMenuClick: PropTypes.bool,
     attachment: PropTypes.string,
+    disabled: PropTypes.bool,
   };
 
   static defaultProps = {
     style: {},
     attachment: 'left',
+    disabled: false
   };
 
   constructor(props) {
@@ -46,7 +48,7 @@ class ButtonDropdown extends React.Component {
           <div
             className="primary-item"
             title={this.props.primaryTitle || ''}
-            onClick={this.props.primaryClick}
+            onClick={!this.props.disabled ? this.props.primaryClick : null}
           >
             {this.props.primaryItem}
           </div>
@@ -93,7 +95,7 @@ class ButtonDropdown extends React.Component {
   toggleDropdown = () => {
     if (this.state.open !== false) {
       this.setState({ open: false });
-    } else {
+    } else if (!this.props.disabled) {
       const buttonBottom = ReactDOM.findDOMNode(this).getBoundingClientRect().bottom;
       if (buttonBottom + 200 > window.innerHeight) {
         this.setState({ open: 'up' });

@@ -16,7 +16,6 @@ import TaskQueue from './task-queue';
 import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
-import uuid from 'uuid';
 
 const { DefaultSendActionKey } = SendActionsStore;
 /*
@@ -54,6 +53,9 @@ class DraftStore extends MailspringStore {
       ipcRenderer.on('action-send-now', (event, headerMessageId, actionKey) => {
         Actions.sendDraft(headerMessageId, { actionKey, delay: 0 });
       });
+
+      // popout closed
+      ipcRenderer.on('close-window', this._onPopoutClosed);
     }
 
     // Remember that these two actions only fire in the current window and
@@ -66,7 +68,8 @@ class DraftStore extends MailspringStore {
 
     this._draftSessions = {};
     this._draftsSending = {};
-    this._draftDeleting = {};
+    this._draftsDeleting = {};
+    this._draftsPopedOut = {};
 
     ipcRenderer.on('mailto', this._onHandleMailtoLink);
     ipcRenderer.on('mailfiles', this._onHandleMailFiles);
@@ -107,6 +110,13 @@ class DraftStore extends MailspringStore {
     });
   }
 
+  _onPopoutClosed = (event, options = {}) => {
+    if(options.headerMessageId && this._draftSessions[options.headerMessageId]){
+      delete this._draftsPopedOut[options.headerMessageId];
+      this._draftSessions[options.headerMessageId].setPopout(false);
+    }
+  };
+
   _onBeforeUnload = readyToUnload => {
     const promises = [];
 
@@ -128,16 +138,17 @@ class DraftStore extends MailspringStore {
       // main window we can't know if the draft session may also be open in
       // a popout and have content there.
       if (draft.pristine && !AppEnv.isMainWindow()) {
-        this._draftDeleting[draft.id] = draft.headerMessageId;
-        Actions.queueTask(
-          new DestroyDraftTask({
-            messageIds: [draft.id],
-            accountId: draft.accountId,
-          })
-        );
-      } else if (session.changes.isDirty() && !this._draftDeleting[draft.id]) {
+        Actions.destroyDraft(draft);
+        // Actions.queueTask(
+        //   new DestroyDraftTask({
+        //     messageIds: [draft.id],
+        //     accountId: draft.accountId,
+        //   })
+        // );
+      } else if (session.changes.isDirty() && !this._draftsDeleting[draft.id]) {
         promises.push(session.changes.commit('unload'));
       }
+      ipcRenderer.send('close-window', { headerMessageId: draft.headerMessageId });
     });
 
     if (promises.length > 0) {
@@ -308,6 +319,8 @@ class DraftStore extends MailspringStore {
     }
 
     const session = await this.sessionForClientId(headerMessageId);
+    this._draftsPopedOut[headerMessageId] = true;
+    session.setPopout(true);
     await session.changes.commit();
     const draftJSON = session.draft().toJSON();
     // Since we pass a windowKey, if the popout composer draft already
@@ -315,6 +328,7 @@ class DraftStore extends MailspringStore {
     // window.
     AppEnv.newWindow({
       hidden: true, // We manually show in ComposerWithWindowProps::onDraftReady
+      headerMessageId: headerMessageId,
       windowType: 'composer',
       windowKey: `composer-${headerMessageId}`,
       windowProps: Object.assign(options, { headerMessageId, draftJSON }),
@@ -353,6 +367,18 @@ class DraftStore extends MailspringStore {
       });
     });
   };
+  cancelDraftTasks = ({ headerMessageId }) => {
+    if (headerMessageId) {
+      TaskQueue.queue().forEach(task => {
+        if (task instanceof SyncbackDraftTask && task.headerMessageId === headerMessageId) {
+          Actions.cancelTask(task);
+        }
+        if (task instanceof SendDraftTask && task.headerMessageId === headerMessageId) {
+          Actions.cancelTask(task);
+        }
+      });
+    }
+  };
 
   _onDestroyDraft = ({ accountId, headerMessageId, id }) => {
     const session = this._draftSessions[headerMessageId];
@@ -363,39 +389,33 @@ class DraftStore extends MailspringStore {
     }
 
     // Stop any pending tasks related to the draft
-    TaskQueue.queue().forEach(task => {
-      if (task instanceof SyncbackDraftTask && task.headerMessageId === headerMessageId) {
-        Actions.cancelTask(task);
-      }
-      if (task instanceof SendDraftTask && task.headerMessageId === headerMessageId) {
-        Actions.cancelTask(task);
-      }
-    });
+    this.cancelDraftTasks({ headerMessageId });
 
     // Queue the task to destroy the draft
     if (id) {
-      this._draftDeleting[id] = headerMessageId;
+      this._draftsDeleting[id] = headerMessageId;
+      delete this._draftsPopedOut[headerMessageId];
       this.trigger({ headerMessageId });
       Actions.queueTask(new DestroyDraftTask({ accountId, messageIds: [id], headerMessageId: headerMessageId }));
     } else {
       console.warn('Tried to delete a draft that had no ID assigned yet.');
     }
     if (AppEnv.isComposerWindow()) {
-      AppEnv.close();
+      AppEnv.close({ headerMessageId });
     }
   };
   _onDestroyDraftSuccess = ({ messageIds }) => {
     if (Array.isArray(messageIds)) {
-      const headerMessageId = this._draftDeleting[messageIds[0]];
-      delete this._draftDeleting[messageIds[0]];
+      const headerMessageId = this._draftsDeleting[messageIds[0]];
+      delete this._draftsDeleting[messageIds[0]];
       this.trigger({ headerMessageId });
     }
   };
 
   _onDestroyDraftFailed = ({ messageIds }) => {
     if (Array.isArray(messageIds)) {
-      const headerMessageId = this._draftDeleting[messageIds[0]];
-      delete this._draftDeleting[messageIds[0]];
+      const headerMessageId = this._draftsDeleting[messageIds[0]];
+      delete this._draftsDeleting[messageIds[0]];
       this.trigger({ headerMessageId });
     }
   };
@@ -475,7 +495,7 @@ class DraftStore extends MailspringStore {
     }
 
     if (AppEnv.isComposerWindow()) {
-      AppEnv.close();
+      AppEnv.close({ headerMessageId });
     }
   };
 
