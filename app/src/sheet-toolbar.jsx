@@ -269,10 +269,16 @@ export default class Toolbar extends React.Component {
       if (!columnEl) {
         continue;
       }
-
       columnToolbarEl.style.display = 'inherit';
       columnToolbarEl.style.left = `${columnEl.offsetLeft}px`;
       columnToolbarEl.style.width = `${columnEl.offsetWidth}px`;
+      // calc the left conversation panel's width
+      if(column === '0') {
+        const leftChatPanel = document.querySelector('.chat-left-panel-container');
+        if(leftChatPanel) {
+          leftChatPanel.style.width = `${columnEl.offsetWidth - 1}px`;
+        }
+      }
     }
 
     // Record our overall height for sheets

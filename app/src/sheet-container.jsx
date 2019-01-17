@@ -122,7 +122,7 @@ export default class SheetContainer extends React.Component {
           />
         </div> */}
 
-        <div name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
+        <div id="Center" name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
           {sheetComponents[0]}
           {this.state.mode === 'list' ? (
             sheetComponents.slice(1)

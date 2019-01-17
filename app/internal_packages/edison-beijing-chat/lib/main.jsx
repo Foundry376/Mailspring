@@ -14,7 +14,7 @@ module.exports = {
         location: WorkspaceStore.Location.RootSidebar.Toolbar,
       });
       ComponentRegistry.register(ChatViewLeft, {
-        location: WorkspaceStore.Location.RootSidebar,
+        location: WorkspaceStore.Sheet.Global.Footer,
       });
     } else {
       AppEnv.getCurrentWindow().setMinimumSize(800, 600);
