@@ -31,17 +31,25 @@ export default class ChatView extends Component {
       AppEnv.config.set(`chatPanelHeight`, leftPanel.offsetHeight);
     }
   }
-  componentDidMount() {
-    const height = AppEnv.config.get(`chatPanelHeight`);
+  calcPanel(h) {
+    const leftPanel = document.querySelector('.chat-left-panel-container');
+    const { devMode } = AppEnv.getLoadSettings();
+    if (devMode) {
+      leftPanel.style.bottom = '120px';
+    }
+
     const accSidebar = document.querySelector('.account-sidebar');
     const sidebarPanelHeight = accSidebar.parentNode.offsetHeight;
-    accSidebar.style.height = sidebarPanelHeight - height - BOTTOM_OFFSET + 'px';
-    document.querySelector('.chat-left-panel-container').style.height = height + 'px';
+    accSidebar.style.height = sidebarPanelHeight - h - BOTTOM_OFFSET + 'px';
+    leftPanel.style.height = h + 'px';
+  }
+  componentDidMount() {
+    const h = AppEnv.config.get(`chatPanelHeight`);
+    this.calcPanel(h);
     registerLoginChatAccounts();
   }
-  resetHeight() {
-    const leftPanel = document.querySelector('.chat-left-panel-container');
-    leftPanel.style.height = '300px';
+  resetHeight = () => {
+    this.calcPanel(300);
   }
   render() {
     return (
