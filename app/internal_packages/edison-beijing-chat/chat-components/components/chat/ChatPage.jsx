@@ -1,10 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Route } from 'react-router-dom';
 import ConversationsPanel from './conversations/ConversationsPanel';
-import NewConversationPanel from './new/NewPanel';
 import MessagesPanel from './messages/MessagesPanel';
-import Divider from '../common/Divider';
 
 export default class ChatPage extends PureComponent {
   static propTypes = {
@@ -12,7 +9,6 @@ export default class ChatPage extends PureComponent {
     createPrivateConversation: PropTypes.func.isRequired,
     deselectConversation: PropTypes.func.isRequired,
     fetchRoster: PropTypes.func.isRequired,
-    replace: PropTypes.func.isRequired,
     retrieveAllConversations: PropTypes.func.isRequired,
     retrieveContacts: PropTypes.func.isRequired,
     selectConversation: PropTypes.func.isRequired,
@@ -64,9 +60,7 @@ export default class ChatPage extends PureComponent {
   }
 
   componentDidMount() {
-    if (!this.props.currentUserId) {
-      this.props.replace('/');
-    } else {
+    if (this.props.currentUserId) {
       this.props.setReferenceTime();
     }
   }
@@ -76,9 +70,7 @@ export default class ChatPage extends PureComponent {
       createGroupConversation,
       createPrivateConversation,
       deselectConversation,
-      fetchRoster,
       retrieveAllConversations,
-      retrieveContacts,
       selectConversation,
       newConversation,
       sendMessage,
@@ -119,14 +111,6 @@ export default class ChatPage extends PureComponent {
       onPrivateConversationCompleted: createPrivateConversation,
       chat_online: online
     };
-    const newConversationPanelProps = {
-      onGroupConversationCompleted: createGroupConversation,
-      onPrivateConversationCompleted: createPrivateConversation,
-      onMount: () => {
-        retrieveContacts();
-      },
-      contacts,
-    };
 
     const rightPanelStyles = ['rightPanel'];
     if (selectedConversation) {
@@ -138,16 +122,7 @@ export default class ChatPage extends PureComponent {
       <div className="chatPageContainer">
         <div className="leftPanel" style={{ display: isLeft ? 'block' : 'none' }}>
           <div onDoubleClick={resetHeight} onMouseDown={onDragStart} className="resizeBar"></div>
-          <Route
-            exact
-            path="/chat"
-            render={() => (<ConversationsPanel {...conversationsPanelProps} />)}
-          />
-          <Route
-            exact
-            path="/chat/new"
-            render={() => (<NewConversationPanel {...newConversationPanelProps} />)}
-          />
+          <ConversationsPanel {...conversationsPanelProps} />
         </div>
         {
           !isLeft ? (

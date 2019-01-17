@@ -58,6 +58,7 @@ class PreferencesUIStore extends MailspringStore {
   openPreferences = () => {
     ipcRenderer.send('command', 'application:show-main-window');
     if (WorkspaceStore.topSheet() !== WorkspaceStore.Sheet.Preferences) {
+      document.querySelector('#Center').style.zIndex = 9;
       Actions.pushSheet(WorkspaceStore.Sheet.Preferences);
     }
   };

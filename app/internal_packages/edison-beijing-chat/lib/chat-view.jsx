@@ -9,14 +9,10 @@ import registerLoginChatAccounts from '../chat-components/utils/registerLoginCha
 export default class ChatView extends Component {
   static displayName = 'ChatView';
 
-  componentWillMount() {
-    registerLoginChatAccounts();
-  }
-
   render() {
     return (
       <div className="chat-view-container">
-        <Root store={chatModel.store} history={history} />
+        <Root store={chatModel.store} />
       </div>
     )
   }

@@ -1,6 +1,5 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { replace } from 'react-router-redux';
 import ChatPage from '../components/chat/ChatPage';
 import { setReferenceTime } from '../actions/time';
 import { fetchRoster } from '../actions/contact';
@@ -22,7 +21,6 @@ const actionCreators = {
   createGroupConversation,
   createPrivateConversation,
   fetchRoster,
-  replace,
   retrieveAllConversations,
   retrieveContacts,
   deselectConversation,

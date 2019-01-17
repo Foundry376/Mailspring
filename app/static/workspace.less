@@ -163,6 +163,7 @@ body.is-blurred {
     height: 35px;
     min-height: 35px;
     max-height: 35px;
+    position: relative !important;
 
     .btn-toolbar {
       margin-top: 6px;
@@ -177,16 +178,35 @@ body.is-blurred {
   position: relative;
   -webkit-app-region: drag;
   width: 100%;
-  height: 38px;
+  height: 0;
 
   // prevent flexbox from ever, ever resizing toolbars, no matter
   // how much it thinks other content is being squished
-  min-height: 38px;
-  max-height: 38px;
+  // min-height: 38px;
+  // max-height: 38px;
 
   // cover up the vertical resizing separators, so the toolbar appears
   // to be one continuous bar.
   z-index: 10;
+
+  .toolbar-ThreadList,
+  .toolbar-MessageList {
+    height: 56px;
+    border-bottom: 1px solid #e8ebed;
+    background: #fff;
+  }
+  .toolbar-MessageList {
+    .item-container {
+      top: 8px;
+    }
+  }
+
+  .mode-split .toolbar-ThreadList .item-container {
+    display: block !important;
+    .thread-search-bar {
+      width: 180%;
+    }
+  }
 
   .item-container > * {
     -webkit-app-region: no-drag;
@@ -540,4 +560,14 @@ body.platform-win32 {
 }
 .column-RootSidebar {
   border-right: 1px solid #e8ebed;
+  padding-top: 80px;
+}
+
+.column-ThreadList,
+.column-MessageList {
+  padding-top: 50px;
+}
+
+.mode-list .column-ThreadList {
+  flex: 1;
 }

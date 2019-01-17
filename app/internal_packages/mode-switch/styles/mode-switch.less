@@ -3,9 +3,21 @@
 .btn-toolbar.mode-toggle {
   z-index: 1000;
   position: relative;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  margin: 20px auto 0;
+  display: block;
+  border-radius: 50%;
+  img.content-mask {
+    margin-top: -3px;
+  }
 }
 .btn-toolbar.mode-toggle.mode-false {
   img.content-mask {
     background-color: @component-active-color;
   }
+}
+.btn-toolbar.mode-toggle.mode-true {
+  box-shadow: none;
 }

@@ -1,5 +1,4 @@
 import { combineReducers } from 'redux';
-import { routerReducer as router } from 'react-router-redux';
 import auth from './auth';
 import chat from './chat';
 import contact from './contact';
@@ -11,7 +10,6 @@ const rootReducer = combineReducers({
   chat,
   contact,
   time,
-  router,
   room,
 });
 

@@ -69,7 +69,14 @@ export default class SheetContainer extends React.Component {
       />
     ));
     return (
-      <div name="Toolbar" style={{ order: 0, zIndex: 3 }} className="sheet-toolbar">
+      <div name="Toolbar" style={{
+        order: 0,
+        zIndex: 3,
+        position: 'fixed',
+        width: '100%',
+        left: 0,
+        top: 0,
+      }} className="sheet-toolbar">
         {components[0]}
         <CSSTransitionGroup
           transitionLeaveTimeout={125}
@@ -87,7 +94,7 @@ export default class SheetContainer extends React.Component {
     const topSheet = this.state.stack[totalSheets - 1];
 
     if (!topSheet) {
-      return <div/>;
+      return <div />;
     }
 
     const sheetComponents = this.state.stack.map((sheet, index) => (
@@ -107,27 +114,27 @@ export default class SheetContainer extends React.Component {
       >
         {this._toolbarContainerElement()}
 
-        <div name="Header" style={{ order: 1, zIndex: 2 }}>
+        {/* <div name="Header" style={{ order: 1, zIndex: 2 }}>
           <InjectedComponentSet
-            matching={{ locations: [topSheet.Header, WorkspaceStore.Sheet.Global.Header] }}
+            matching={{ locations: [topSheet.Header] }}
             direction="column"
             id={topSheet.id}
           />
-        </div>
+        </div> */}
 
-        <div name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
+        <div id="Center" name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
           {sheetComponents[0]}
           {this.state.mode === 'list' ? (
             sheetComponents.slice(1)
           ) : (
-            <CSSTransitionGroup
-              transitionLeaveTimeout={125}
-              transitionEnterTimeout={125}
-              transitionName="sheet-stack"
-            >
-              {sheetComponents.slice(1)}
-            </CSSTransitionGroup>
-          )}
+              <CSSTransitionGroup
+                transitionLeaveTimeout={125}
+                transitionEnterTimeout={125}
+                transitionName="sheet-stack"
+              >
+                {sheetComponents.slice(1)}
+              </CSSTransitionGroup>
+            )}
         </div>
 
         <div name="Footer" style={{ order: 3, zIndex: 4 }}>
