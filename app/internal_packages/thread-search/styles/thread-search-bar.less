@@ -2,29 +2,31 @@
 @import 'ui-mixins';
 
 @token-color: @accent-primary;
-
+@search-bar-height: 34px;
 .thread-search-bar {
   position: relative;
   order: -100;
   overflow: visible;
   z-index: 100;
-  width: 100%;
-  height: 23px;
+  width: 90%;
+  height: @search-bar-height;
   font-weight: 400;
-  line-height: 23px;
-  background: @input-bg;
+  line-height: @search-bar-height;
+  background: @input-search-bg;
+  margin-left: 14px;
   color: @text-color;
-  margin-top: (38px - 23px) / 2;
+  margin-top: (56px - @search-bar-height) / 2;
   padding-left: @padding-xs-horizontal;
   padding-right: @padding-xs-horizontal;
   display: flex;
   align-items: center;
   -webkit-app-region: drag !important;
+  border-radius: 8px;
   // &:hover,
   &:focus {
     border: 0;
     // width: 100%;
-    border-radius: 0;
+    // border-radius: 0;
     box-shadow: 0 0 2px darken(@input-border-color, 20%);
   }
   &.placeholder {
@@ -37,6 +39,9 @@
     height: 15px;
     object-fit: contain;
     zoom: 1 !important;
+    &.search {
+      margin-left: 6px;
+    }
     &.clear {
       color: @text-color-subtle;
       width: 21px;
@@ -46,9 +51,10 @@
 
   .suggestions {
     left: 0;
-    top: 30px;
+    top: 50px;
     width: 100%;
     position: absolute;
+    line-height: 24px;
     background: @input-bg;
     box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
       0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 4px 7px rgba(0, 0, 0, 0.15);

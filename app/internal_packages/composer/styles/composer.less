@@ -9,6 +9,23 @@
 @blurred-primary-color: mix(@background-primary, #ffbb00, 96%);
 @blurred-off-primary-color: mix(@background-off-primary, #ffbb00, 96%);
 
+.btn-toolbar.item-compose {
+  position: absolute;
+  left: 10px;
+  top: 44px;
+  width: 120px;
+  height: 32px;
+  border-radius: 16px;
+  margin: 0;
+  font-weight: bold;
+  color: @accent-primary;
+  box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
+  transition: 0.5s;
+  &:hover {
+    box-shadow: -2px 2.5px 10px rgba(0, 0, 0, 0.35);
+  }
+}
+
 // Basic Rich Editor
 
 .RichEditor-root {

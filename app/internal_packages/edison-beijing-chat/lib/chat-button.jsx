@@ -19,7 +19,7 @@ export default class ChatButton extends Component {
   // }
   render() {
     return (
-      <div className="toolbar-chat">
+      <div className="toolbar-chat" style={{ display: 'none' }}>
         <button className="btn btn-toolbar" onClick={this.toggleChatPanel}>
           <RetinaImg name="toolbar-chat.png" mode={RetinaImg.Mode.ContentIsMask} />
         </button>
