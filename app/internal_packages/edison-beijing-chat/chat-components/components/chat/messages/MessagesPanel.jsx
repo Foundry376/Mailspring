@@ -75,7 +75,7 @@ export default class MessagesPanel extends PureComponent {
     if (contacts && contacts.length > 0) {
       if (selectedConversation.isGroup) {
         await Promise.all(contacts.map(contact => (
-          xmpp.addMember(selectedConversation.jid, contact.jid)
+          xmpp.addMember(selectedConversation.jid, contact.jid, selectedConversation.curJid)
         )));
         this.getRoomMembers();
       } else {
