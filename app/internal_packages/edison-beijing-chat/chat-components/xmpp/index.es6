@@ -160,7 +160,7 @@ export class XmppEx extends EventEmitter3 {
       this.client.enableKeepAlive({ timeout: 30, interval: 30 });
     });
     this.client.on('disconnected', () => {
-      console.warn('disconnected');
+      console.warn('disconnected', this.connectedJid);
       this.isConnected = false;
       if (this.retryTimes == 0) {
         this.retryTimes++;

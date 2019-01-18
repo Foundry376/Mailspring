@@ -156,7 +156,7 @@ export default class Messages extends PureComponent {
     }
   }
 
-  getContactInfoByJid(jid) {
+  getContactInfoByJid = jid => {
     if (this.props.selectedConversation.isGroup) {
       const members = this.props.members;
       if (!members || members.length === 0) {
@@ -436,7 +436,7 @@ export default class Messages extends PureComponent {
           </div>
         ))
         }
-        <MessageImagePopup />
+        <MessageImagePopup {...this.props} getContactInfoByJid={this.getContactInfoByJid} />
         <div ref={element => { this.messagePanelEnd = element; }} />
       </div>
     );

@@ -54,7 +54,7 @@ export default class ConversationInfo extends Component {
 
   exitGroup = () => {
     const { conversation } = this.props;
-    xmpp.leaveRoom(conversation.jid, chatModel.currentUser.jid);
+    xmpp.leaveRoom(conversation.jid, conversation.curJid);
     (getDb()).then(db => {
       db.conversations.findOne(conversation.jid).exec().then(conv => {
         conv.remove()
@@ -94,8 +94,9 @@ export default class ConversationInfo extends Component {
   render = () => {
     const { conversation, members } = this.props;
     for (let member of members) {
-      if (member.affiliation === 'owner' && member.jid.bare === chatModel.currentUser.jid) {
+      if (member.affiliation === 'owner' && member.jid.bare === conversation.curJid) {
         this.currentUserIsOwner = true;
+        break;
       }
     }
     members.sort((a, b) => a.affiliation > b.affiliation);
@@ -154,7 +155,7 @@ export default class ConversationInfo extends Component {
               !this.currentUserIsOwner && <div className="row add-to-group">
                 <Button onClick={this.exitGroup}>
                   Exit from Group
-              </Button>
+                </Button>
               </div>
             ) : null
           }

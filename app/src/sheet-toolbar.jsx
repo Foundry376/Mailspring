@@ -273,9 +273,9 @@ export default class Toolbar extends React.Component {
       columnToolbarEl.style.left = `${columnEl.offsetLeft}px`;
       columnToolbarEl.style.width = `${columnEl.offsetWidth}px`;
       // calc the left conversation panel's width
-      if(column === '0') {
+      if (column === '0' && columnEl.className === 'column-RootSidebar') {
         const leftChatPanel = document.querySelector('.chat-left-panel-container');
-        if(leftChatPanel) {
+        if (leftChatPanel) {
           leftChatPanel.style.width = `${columnEl.offsetWidth - 1}px`;
         }
       }
@@ -363,6 +363,7 @@ export default class Toolbar extends React.Component {
       width: '100%',
       height: '100%',
       zIndex: 1,
+      background: 'transparent'
     };
 
     const toolbars = this.state.columns.map((components, idx) => (
