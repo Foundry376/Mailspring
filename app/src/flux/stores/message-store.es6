@@ -270,6 +270,7 @@ class MessageStore extends MailspringStore {
   _expandItem(item) {
     this._itemsExpanded[item.id] = 'explicit';
     this._fetchExpandedAttachments([item]);
+    this._fetchMissingBodies([item]);
   }
 
   _collapseItem(item) {
@@ -315,7 +316,9 @@ class MessageStore extends MailspringStore {
   }
 
   _fetchMissingBodies(items) {
-    const missing = items.filter(i => i.body === null);
+    const missing = items.filter(
+      i => i.body === null || (typeof i.body === 'string' && i.body.length === 0)
+    );
     if (missing.length > 0) {
       return Actions.fetchBodies(missing);
     }

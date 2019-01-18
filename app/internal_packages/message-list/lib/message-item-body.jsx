@@ -151,7 +151,11 @@ export default class MessageItemBody extends React.Component {
     const { message } = this.props;
     const { showQuotedText, processedBody } = this.state;
 
-    if (typeof message.body === 'string' && typeof processedBody === 'string') {
+    if (
+      typeof message.body === 'string' &&
+      message.body.length > 0 &&
+      (typeof processedBody === 'string' && processedBody.length > 0)
+    ) {
       return (
         <EmailFrame
           showQuotedText={showQuotedText}
