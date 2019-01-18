@@ -296,12 +296,11 @@ class WorkspaceStore extends MailspringStore {
     if (this._sheetStack.length > 1) {
       this._sheetStack.pop();
       this.trigger();
-      // make toolbar display
-      setTimeout(()=>{
-        document.querySelector('#Center').style.zIndex = 1;
-      }, 150);
     }
-
+    // make toolbar display
+    setTimeout(() => {
+      document.querySelector('#Center').style.zIndex = 1;
+    }, 150);
     if (Sheet.Thread && sheet === Sheet.Thread) {
       Actions.setFocus({ collection: 'thread', item: null });
     }
@@ -315,6 +314,10 @@ class WorkspaceStore extends MailspringStore {
       this._sheetStack.length = 1;
       this.trigger();
     }
+    // make toolbar display
+    setTimeout(() => {
+      document.querySelector('#Center').style.zIndex = 1;
+    }, 150);
     if (Sheet.Thread && sheet === Sheet.Thread) {
       Actions.setFocus({ collection: 'thread', item: null });
     }
