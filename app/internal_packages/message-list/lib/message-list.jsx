@@ -101,7 +101,9 @@ class MessageList extends React.Component {
     for (const unsubscribe of this._unsubscribers) {
       unsubscribe();
     }
-    MessageStore.messageListUnmounting({ threadId: this.state.currentThread.id });
+    MessageStore.messageListUnmounting({
+      threadId: this.state.currentThread ? this.state.currentThread.id : '',
+    });
   }
 
   _globalKeymapHandlers() {
