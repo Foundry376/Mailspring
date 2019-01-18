@@ -100,7 +100,7 @@ const downloadAndTagImageFileInMessage = (aes, payload) => {
     path = downpath + name;
     msgBody.path = 'file://' + path;
     downloadFile(aes, msgBody.mediaObjectId, path, () => {
-      if (fs.existsSync(path)) {
+      if (fs.existsSync(path) && messageModel.messagesReactInstance) {
         messageModel.messagesReactInstance.update();
       }
     });
