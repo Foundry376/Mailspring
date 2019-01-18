@@ -103,6 +103,21 @@ const saveConversations = async conversations => {
       if (profile && profile.resultCode === 1) {
         conv.lastMessageSenderName = profile.data.name;
       }
+      if (!conv.avatarMembers){
+        conv.avatarMembers = []
+        let contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
+        if (contact) {
+          contact = copyRxdbContact(contact);
+          conv.avatarMembers.push(contact);
+        }
+      }
+      if (conv.avatarMembers.length < 2){
+        let contact = await db.contacts.findOne().where('jid').eq(conv.curJid).exec();
+        if (contact) {
+          contact = copyRxdbContact(contact);
+          conv.avatarMembers.push(contact);
+        }
+      }
       if (convInDB) {
          await convInDB.update({
           $set: {
@@ -237,7 +252,9 @@ export const selectConversationEpic = action$ =>
     .mergeMap(({ payload: jid }) => {
       clearConversationUnreadMessages(jid);
       return Observable.fromPromise(retriveConversation(jid))
-        .map(conversation => updateSelectedConversation(conversation))
+        .map(conversation => { 
+          return updateSelectedConversation(conversation)
+        })
         .catch(error => failedSelectingConversation(error, jid))
     });
 

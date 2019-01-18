@@ -157,6 +157,7 @@ export default class MessageImagePopup extends Component {
   }
 
   render() {
+    const props = messageModel.messagesReactInstance.props;
     const {
       referenceTime,
       getContactInfoByJid
