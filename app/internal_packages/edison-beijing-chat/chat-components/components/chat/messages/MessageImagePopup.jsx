@@ -26,7 +26,6 @@ export default class MessageImagePopup extends Component {
     this.node && this.node.focus();
   }
   getContactNameByJid(jid) {
-    this.props = messageModel.messagesReactInstance.props;
     if (this.props.selectedConversation.isGroup) {
       const members = this.props.members;
       if (!members || members.length === 0) {
@@ -40,11 +39,18 @@ export default class MessageImagePopup extends Component {
     }
     return null;
   }
+  getFileName(msgBody) {
+    return msgBody.localFile && path.basename(msgBody.localFile) || msgBody.mediaObjectId.replace(/\.encrypted$/, '');
+  }
   downloadImage = (event) => {
     event.stopPropagation();
     event.preventDefault();
-    const msgBody = messageModel.msgBody;
-    let path = dialog.showSaveDialog({ title: `download file` });
+    const { msgBody } = this.images[this.state.imgIndex];
+    const fileName = this.getFileName(msgBody);
+    const path = dialog.showSaveDialog({
+      title: `download file`,
+      defaultPath: fileName
+    });
     if (!path || typeof path !== 'string') {
       return;
     }
@@ -87,7 +93,7 @@ export default class MessageImagePopup extends Component {
   }
   getAllImages() {
     const imageData = []
-    const groupedMessages = messageModel.messagesReactInstance.props.groupedMessages;
+    const groupedMessages = this.props.groupedMessages;
     let index = 0;
     for (const groupedMessage of groupedMessages) {
       const { messages } = groupedMessage;
@@ -138,11 +144,13 @@ export default class MessageImagePopup extends Component {
     }
   }
   show = () => {
+    document.querySelector('#Center').style.zIndex = 9;
     this.setState({
       hidden: false
     });
   }
   hide = () => {
+    document.querySelector('#Center').style.zIndex = 1;
     this.setState({
       hidden: true
     });
@@ -151,6 +159,7 @@ export default class MessageImagePopup extends Component {
   render() {
     const {
       referenceTime,
+      getContactInfoByJid
     } = this.props;
 
     const timeDescriptor = buildTimeDescriptor(referenceTime);
@@ -161,6 +170,7 @@ export default class MessageImagePopup extends Component {
     const { msg, msgBody } = this.images[imgIndex];
     const isLeftEdge = imgIndex <= 0;
     const isRightEdge = imgIndex >= this.images.length - 1;
+    const fileName = this.getFileName(msgBody);
     return (
       <div>
         {imgIndex !== -1 && (
@@ -169,13 +179,13 @@ export default class MessageImagePopup extends Component {
               <Button id='close-button' className="no-border" onClick={this.hide}>
                 <CancelIcon color={"#787e80"} />
               </Button>
-              {true || msg.sender !== messageModel.currentUserId ?
+              {msg.sender !== messageModel.currentUserId ?
                 <div className="messageSender image-popup-avatar" className="inline-block">
-                  {messageModel.messagesReactInstance.getContactInfoByJid(msg.sender)}
+                  {getContactInfoByJid(msg.sender)}
                 </div> : null
               }
               <div className="inline-block">
-                <div>{msgBody.localFile && path.basename(msgBody.localFile) || msgBody.mediaObjectId.replace(/\.encrypted$/, '')}</div>
+                <div>{fileName}</div>
                 <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
               </div>
               <span className="download-img float-right" onClick={this.downloadImage}></span>
