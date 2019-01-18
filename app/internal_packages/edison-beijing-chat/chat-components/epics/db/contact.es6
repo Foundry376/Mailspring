@@ -14,35 +14,29 @@ import getDb from '../../db';
 
 const saveContacts = async contacts => {
   const db = await getDb();
-  return Promise.all(
-    contacts
-      .filter(({ name }) => !!name) // ignore the contact that the name is undefined
-      .map((contact) => {
-        const { jid: { bare: jid }, curJid, name, email, avatar } = contact;
-        return db.contacts
-          .upsert({
-            jid,
-            curJid,
-            name,
-            email,
-            avatar
-          })
-      })
-  );
+  for (const { jid: { bare: jid }, curJid, name, email, avatar } of contacts) {
+    if (!!name) {
+      await db.contacts
+        .upsert({
+          jid,
+          curJid,
+          name,
+          email,
+          avatar
+        })
+    }
+  }
 };
 const saveE2ees = async e2ees => {
   const db = await getDb();
-  return Promise.all(
-    e2ees.filter(({ devices }) => !!devices)
-      .map(({ jid, devices }) =>
-        db.e2ees
-          .upsert({
-            jid,
-            devices
-            //key
-          })
-      )
-  );
+  for (const { jid, devices } of e2ees) {
+    if (!!devices) {
+      await db.e2ees.upsert({
+        jid,
+        devices
+      })
+    }
+  }
 };
 
 export const storeContactsEpic = action$ =>
@@ -60,14 +54,14 @@ export const retrieveContactsEpic = action$ =>
   action$.ofType(RETRIEVE_STORED_CONTACTS)
     .mergeMap(() =>
       Observable.fromPromise(getDb())
-        .mergeMap(db =>{
-            return db.contacts
-              .find()
-              .$
-              .takeUntil(action$.ofType(RETRIEVE_STORED_CONTACTS))
-              .map(contacts => {
-                return updateStoredContacts(contacts)
-              })
+        .mergeMap(db => {
+          return db.contacts
+            .find()
+            .$
+            .takeUntil(action$.ofType(RETRIEVE_STORED_CONTACTS))
+            .map(contacts => {
+              return updateStoredContacts(contacts)
+            })
         }).catch(error => Observable.of(failedRetrievingContacts(error)))
     );
 
