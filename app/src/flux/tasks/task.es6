@@ -32,6 +32,9 @@ export default class Task extends Model {
     error: Attributes.Object({
       modelKey: 'error',
     }),
+    needToBroadcastBeforeSendTask: Attributes.Object({
+      modelKey: 'needToBroadcastBeforeSendTask',
+    })
   });
 
   // Public: Override the constructor to pass initial args to your Task and

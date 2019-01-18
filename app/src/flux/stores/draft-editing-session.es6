@@ -44,10 +44,13 @@ class DraftChangeSet extends EventEmitter {
   }
 
   cancelCommit() {
+    console.log('cancel commits');
     if (this._timer) {
       clearTimeout(this._timer);
       this._timerStarted = null;
       this._timer = null;
+    }else{
+      console.log('no timer');
     }
   }
 
@@ -204,56 +207,10 @@ export default class DraftEditingSession extends MailspringStore {
 
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
-    ipcRenderer.on('draft-arp-reply', (event, options = {}) => {
-      if (
-        options.headerMessageId &&
-        this.headerMessageId === options.headerMessageId &&
-        options.windowLevel > this._currentWindowLevel
-      ) {
-        if (options.windowLevel === 2) {
-          this._popOutOrigin['threadPopout'] = true;
-        } else if (options.windowLevel === 3) {
-          this._popOutOrigin['composer'] = true;
-        }
-        this.setPopout(true);
-      }
-    });
-    ipcRenderer.on('close-window', (event, options = {}) => {
-      // console.log('session on close window', options);
-      if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
-        if (this._currentWindowLevel === 2) {
-          delete this._popOutOrigin['composer'];
-          this.setPopout(false);
-        } else if (this._currentWindowLevel === 1) {
-          if (options.windowLevel === 3) {
-            delete this._popOutOrigin['composer'];
-          } else if (options.windowLevel === 2) {
-            delete this._popOutOrigin['threadPopout'];
-          }
-          this.setPopout(Object.keys(this._popOutOrigin).length > 0);
-        }
-      }
-    });
-    ipcRenderer.on('new-window', (event, options = {}) => {
-      if (
-        options.headerMessageId &&
-        this._currentWindowLevel < 3 &&
-        this.headerMessageId === options.headerMessageId
-      ) {
-        this._popOutOrigin['composer'] = true;
-        this.setPopout(true);
-      } else if (
-        !options.headerMessageId &&
-        options.threadId &&
-        this._draft &&
-        options.windowType === 'thread-popout' &&
-        this._draft.threadId === options.threadId &&
-        this._currentWindowLevel === 1
-      ) {
-        this._popOutOrigin['threadPopout'] = true;
-        this.setPopout(true);
-      }
-    });
+    ipcRenderer.on('draft-arp-reply', this._onDraftARPReply);
+    ipcRenderer.on('close-window', this._onDraftCloseWindow);
+    ipcRenderer.on('new-window', this._onDraftNewWindow);
+    ipcRenderer.on('draft-delete', this._onDraftDelete);
 
     if (draft) {
       hotwireDraftBodyState(draft);
@@ -301,10 +258,10 @@ export default class DraftEditingSession extends MailspringStore {
   }
 
   setPopout(val) {
-    if (val && !this._popedOut && this.changes) {
-      this.changes.cancelCommit();
-    }
     if (val !== this._popedOut) {
+      if(this.changes){
+        this.changes.cancelCommit();
+      }
       this._popedOut = val;
       this.trigger();
     }
@@ -314,6 +271,10 @@ export default class DraftEditingSession extends MailspringStore {
     this.stopListeningToAll();
     this.changes.cancelCommit();
     this._destroyed = true;
+    ipcRenderer.removeAllListeners('new-window');
+    ipcRenderer.removeAllListeners('close-window');
+    ipcRenderer.removeAllListeners('draft-arp-reply');
+    ipcRenderer.removeAllListeners('draft-delete');
   }
 
   validateDraftForSending() {
@@ -401,6 +362,10 @@ export default class DraftEditingSession extends MailspringStore {
   // address.
   //
   async ensureCorrectAccount() {
+    if(this._popedOut){
+      // We do nothing if session have popouts
+      return
+    }
     const draft = this.draft();
     const account = AccountStore.accountForEmail(draft.from[0].email);
     if (!account) {
@@ -444,7 +409,7 @@ export default class DraftEditingSession extends MailspringStore {
           messageIds: [draft.id],
           accountId: draft.accountId,
         });
-
+      // console.log('syncback draft from ensure account');
       Actions.queueTask(create);
       await TaskQueue.waitForPerformLocal(create);
       if (destroy) {
@@ -454,6 +419,69 @@ export default class DraftEditingSession extends MailspringStore {
 
     return this;
   }
+
+  _onDraftARPReply = (event, options = {}) => {
+    if (
+      options.headerMessageId &&
+      this.headerMessageId === options.headerMessageId &&
+      options.windowLevel > this._currentWindowLevel
+    ) {
+      if (options.windowLevel === 2) {
+        this._popOutOrigin['threadPopout'] = true;
+      } else if (options.windowLevel === 3) {
+        this._popOutOrigin['composer'] = true;
+      }
+      this.setPopout(true);
+    }
+  };
+
+  _onDraftCloseWindow = (event, options = {}) => {
+    // console.log('session on close window', options);
+    if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
+      if (this._currentWindowLevel === 2) {
+        delete this._popOutOrigin['composer'];
+        this.setPopout(false);
+      } else if (this._currentWindowLevel === 1) {
+        if (options.windowLevel === 3) {
+          delete this._popOutOrigin['composer'];
+        } else if (options.windowLevel === 2) {
+          delete this._popOutOrigin['threadPopout'];
+        }
+        this.setPopout(Object.keys(this._popOutOrigin).length > 0);
+      }
+      if(options.deleting){
+        this._destroyed = true;
+      }
+    }
+  };
+
+  _onDraftNewWindow = (event, options = {}) => {
+    if (
+      options.headerMessageId &&
+      this._currentWindowLevel < 3 &&
+      this.headerMessageId === options.headerMessageId
+    ) {
+      this._popOutOrigin['composer'] = true;
+      this.setPopout(true);
+    } else if (
+      !options.headerMessageId &&
+      options.threadId &&
+      this._draft &&
+      options.windowType === 'thread-popout' &&
+      this._draft.threadId === options.threadId &&
+      this._currentWindowLevel === 1
+    ) {
+      this._popOutOrigin['threadPopout'] = true;
+      this.setPopout(true);
+    }
+  };
+
+  _onDraftDelete = (event, options) => {
+    this.changes.cancelCommit();
+    if(options.headerMessageId && this.headerMessageId === options.headerMessageId){
+      this._destroyed = true;
+    }
+  };
 
   _onDraftChanged = change => {
     if (change === undefined || change.type !== 'persist') {
@@ -506,7 +534,7 @@ export default class DraftEditingSession extends MailspringStore {
   };
 
   async changeSetCommit(arg) {
-    if (this._destroyed || !this._draft) {
+    if (this._destroyed || !this._draft || this._popedOut) {
       return;
     }
     //if id is empty, we assign uuid to id;
@@ -551,6 +579,7 @@ export default class DraftEditingSession extends MailspringStore {
       this._draft.hasNewID = false;
     }
     // }
+    // console.error('commit sync back draft');
     const task = new SyncbackDraftTask({ draft: this._draft });
     task.saveOnRemote = arg === 'unload';
     Actions.queueTask(task);

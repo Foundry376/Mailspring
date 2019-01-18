@@ -562,6 +562,32 @@ export default class Application extends EventEmitter {
         app.setBadgeCount(value.length ? value.replace('+', '') / 1 : 0);
       }
     });
+    ipcMain.on('mainProcess-sync-call', (event, data) => {
+      // This was triggered by a sync call, make sure it's as fast as possible
+      if (!data.channel || typeof data.channel !== 'string' || !data.options) {
+        event.returnValue = '';
+        return;
+      }
+      const channel = data.channel;
+      const options = data.options;
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow && mainWindow.browserWindow.webContents) {
+        mainWindow.browserWindow.webContents.send(channel, options);
+      }
+      if (options.threadId) {
+        const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
+        if (threadWindow && threadWindow.browserWindow.webContents) {
+          threadWindow.browserWindow.webContents.send(channel, options);
+        }
+      }
+      if (options.headerMessageId) {
+        const composerWindow = this.windowManager.get(`composer-${options.headerMessageId}`);
+        if (composerWindow && composerWindow.browserWindow.webContents) {
+          composerWindow.browserWindow.webContents.send(channel, options);
+        }
+      }
+      event.returnValue = '';
+    });
     ipcMain.on('draft-arp', (event, options) => {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (mainWindow && mainWindow.browserWindow.webContents) {
@@ -590,6 +616,18 @@ export default class Application extends EventEmitter {
         const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
         if (threadWindow && threadWindow.browserWindow.webContents) {
           threadWindow.browserWindow.webContents.send('draft-arp-reply', options);
+        }
+      }
+    });
+    ipcMain.on('draft-delete', (event, options) => {
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow && mainWindow.browserWindow.webContents) {
+        mainWindow.browserWindow.webContents.send('draft-delete', options);
+      }
+      if (options.threadId) {
+        const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
+        if (threadWindow && threadWindow.browserWindow.webContents) {
+          threadWindow.browserWindow.webContents.send('draft-delete', options);
         }
       }
     });

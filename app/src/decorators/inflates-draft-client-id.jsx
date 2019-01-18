@@ -50,7 +50,6 @@ function InflatesDraftClientId(ComposedComponent) {
 
     _prepareForDraft(headerMessageId, messageId) {
       if (!headerMessageId && !messageId) {
-        console.log('not ids');
         return;
       }
       DraftStore.sessionForClientId(headerMessageId).then(session => {
@@ -85,7 +84,7 @@ function InflatesDraftClientId(ComposedComponent) {
         if (this.state.draft && !this.state.draft.pristine) {
           this.state.session.changes.commit();
         } else {
-          this.state.session.changes.commit();
+          // this.state.session.changes.commit();
         }
       }
       if (this._sessionUnlisten) {

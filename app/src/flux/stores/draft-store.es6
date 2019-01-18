@@ -126,6 +126,12 @@ class DraftStore extends MailspringStore {
     }
   };
 
+  _onReceivedDraftDeleteMessage = (event, options={})=>{
+    if(options.windowLevel && options.headerMessageId && this._draftSessions[options.headerMessageId]){
+      this._draftsDeleting[options.headerMessageId] = true;
+    }
+  }
+
   _doneWithSession(session) {
     session.teardown();
     delete this._draftSessions[session.headerMessageId];
@@ -246,6 +252,7 @@ class DraftStore extends MailspringStore {
         draft.body = `${body}\n\n${draft.body}`;
         draft.pristine = false;
         const t = new SyncbackDraftTask({ draft });
+        // console.log('send quickly');
         Actions.queueTask(t);
         TaskQueue.waitForPerformLocal(t).then(() => {
           Actions.sendDraft(draft.headerMessageId);
@@ -321,6 +328,7 @@ class DraftStore extends MailspringStore {
     // doesn't need to do a query for it a second from now when the composer wants it.
     this._createSession(draft.headerMessageId, draft);
     const task = new SyncbackDraftTask({ draft });
+    // console.log('sync back from finalize');
     Actions.queueTask(task);
 
     return TaskQueue.waitForPerformLocal(task).then(() => {
@@ -417,10 +425,15 @@ class DraftStore extends MailspringStore {
   };
 
   _onDestroyDraft = ({ accountId, headerMessageId, id, threadId }) => {
+    // console.error('on destroy draft');
     const session = this._draftSessions[headerMessageId];
 
     // Immediately reset any pending changes so no saves occur
     if (session) {
+      if (session.isPopout()) {
+        return;
+      }
+      // We do nothing if session have popouts
       this._doneWithSession(session);
     }
 
@@ -432,12 +445,27 @@ class DraftStore extends MailspringStore {
       this._draftsDeleting[id] = headerMessageId;
       delete this._draftsPopedOut[headerMessageId];
       this.trigger({ headerMessageId });
-      Actions.queueTask(new DestroyDraftTask({ accountId, messageIds: [id], headerMessageId: headerMessageId }));
+      Actions.queueTask(
+        new DestroyDraftTask({
+          accountId,
+          messageIds: [id],
+          headerMessageId,
+          needToBroadcastBeforeSendTask: {
+            channel: 'draft-delete',
+            options: {
+              accountId,
+              messageIds: [id],
+              headerMessageId: headerMessageId,
+              windowLevel: this._getCurrentWindowLevel(),
+            },
+          },
+        })
+      );
     } else {
       console.warn('Tried to delete a draft that had no ID assigned yet.');
     }
     if (AppEnv.isComposerWindow()) {
-      AppEnv.close({ headerMessageId, threadId, windowLevel: 3 });
+      AppEnv.close({ headerMessageId, threadId, windowLevel: 3 , deleting: true});
     }
   };
   _onDestroyDraftSuccess = ({ messageIds }) => {
@@ -478,6 +506,10 @@ class DraftStore extends MailspringStore {
     // We need to call `changes.commit` here to ensure the body of the draft is
     // completely saved and the user won't see old content briefly.
     const session = await this.sessionForClientId(headerMessageId);
+    if(session.isPopout()){
+      // Do nothing if session have popouts
+      return
+    }
 
     // move the draft to another account if necessary to match the from: field
     await session.ensureCorrectAccount();
@@ -561,6 +593,15 @@ class DraftStore extends MailspringStore {
       }, 300);
     }
   };
+  _getCurrentWindowLevel = ()=>{
+    if(AppEnv.isComposerWindow()){
+      return 3;
+    }else if(AppEnv.isThreadWindow()){
+      return 2;
+    }else{
+      return 1;
+    }
+  }
 }
 
 export default new DraftStore();

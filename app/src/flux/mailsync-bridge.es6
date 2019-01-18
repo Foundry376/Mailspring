@@ -346,6 +346,19 @@ export default class MailsyncBridge {
         `Tasks must have an accountId. Check your instance of ${task.constructor.name}.`
       );
     }
+    if (task.needToBroadcastBeforeSendTask) {
+      if (
+        task.needToBroadcastBeforeSendTask.channel &&
+        task.needToBroadcastBeforeSendTask.options
+      ) {
+        // Because we are using sync call, make sure the listener is very short
+        console.log('Making sync call, this better be time sensitive operation');
+        ipcRenderer.sendSync(
+          `mainProcess-sync-call`,
+          task.needToBroadcastBeforeSendTask
+        );
+      }
+    }
 
     task.willBeQueued();
 
