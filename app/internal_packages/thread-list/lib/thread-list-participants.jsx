@@ -72,7 +72,11 @@ class ThreadListParticipants extends React.Component {
       throw new Error('ThreadListParticipants requires __messages.');
     }
 
-    const messages = this.props.thread.__messages != null ? this.props.thread.__messages : [];
+    const messages =
+      this.props.thread.__messages != null
+        ? this.props.thread.__messages.filter(message => {
+            return message.state !== 1;
+    }) : [];
     if (messages.length > 1) {
       accumulate(` (${messages.length})`);
     }
