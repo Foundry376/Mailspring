@@ -7,7 +7,6 @@ import Badge from './ConversationBadge';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
 import chatModel from '../../../store/model';
-import { DESELECT_CONVERSATION, SELECT_CONVERSATION } from '../../../actions/chat';
 import messageModel from '../messages/messageModel';
 import { clearMessages } from '../../../utils/message';
 
@@ -51,7 +50,7 @@ export default class ConversationItem extends PureComponent {
           messageModel.imagePopup.hide();
         }
       }), 1000)
-      })
+    })
   }
 
   render() {

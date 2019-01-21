@@ -101,10 +101,27 @@ export const uploadContacts = (accessToken, contacts, cb) => {
  * @param {*} email 
  * @param {*} cb 
  */
-export const getavatar = (email, cb) => {
-    get('https://restxmpp.stag.easilydo.cc/public/getavatar?email=' + email, cb);
+const avatarCache = {};
+export const getAvatar = (email, cb) => {
+    if (avatarCache[email] !== undefined) {
+        cb(avatarCache[email]);
+        return avatarCache[email];
+    }
+    get('https://restxmpp.stag.easilydo.cc/public/getavatar?email=' + email, (error, data, res) => {
+        if (res && res.statusCode < 400) {
+            avatarCache[email] = res.headers.location;
+        } else {
+            avatarCache[email] = '';
+        }
+        if (cb) {
+            cb(avatarCache[email]);
+        }
+    });
+}
+export const getAvatarFromCache = email => {
+    return avatarCache[email];
 }
 
 export default {
-    register, unregister, queryProfile, setProfile, login, uploadContacts, getavatar
+    register, unregister, queryProfile, setProfile, login, uploadContacts, getAvatar, getAvatarFromCache
 }

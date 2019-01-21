@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { gradientColorForString } from '../../utils/colors';
-import { getavatar, queryProfile } from '../../utils/restjs';
+import { getAvatar, getAvatarFromCache, queryProfile } from '../../utils/restjs';
 import { connect } from 'react-redux';
 import keyMannager from '../../../../../src/key-manager';
+import _ from 'underscore';
 
 const getInitials = name => {
   const trimmedName = name ? name.trim() : '';
@@ -26,10 +27,15 @@ class ContactAvatar extends Component {
       isImgExist: false,
       userProfile: {}
     }
+    const imgUrl = getAvatarFromCache(this.props.email);
+    if (imgUrl) {
+      this.state.avatar = `url("${imgUrl}") center center / cover`;
+      this.state.isImgExist = true;
+    }
   }
   isOnline = () => {
     const { availableUsers, jid } = this.props;
-    return availableUsers && availableUsers.indexOf(jid) >= 0 ? 'online' : 'offline';
+    return availableUsers && availableUsers.indexOf(jid) !== -1 ? 'online' : 'offline';
   }
   getProfile = async () => {
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
@@ -48,43 +54,34 @@ class ContactAvatar extends Component {
     }
     return null;
   }
+  shouldComponentUpdate(nextProps, nextState) {
+    const { availableUsers, jid } = this.props;
+    if (_.isEqual(nextState, this.state)
+      && nextProps.jid === jid
+      && _.isEqual(nextProps.availableUsers, availableUsers)) {
+      return false;
+    }
+    return true;
+  }
   componentDidMount = async () => {
     let { email, conversation } = this.props;
     if (this.props.jid && !email && (!conversation || !conversation.isGroup)) {
       const { data: userProfile } = await this.getProfile();
       if (userProfile) {
         email = userProfile.email
-        this && this.setState({
+        this.setState({
           userProfile: userProfile || {}
         })
       }
     }
-    if (email && !this.props.avatar) {
-      getavatar(email, (error, data, res) => {
-        if (!res) {
-          return;
+    if (email && !this.props.avatar && !this.state.isImgExist) {
+      getAvatar(email, imgUrl => {
+        if (imgUrl) {
+          this.setState({
+            avatar: `url("${imgUrl}") center center / cover`,
+            isImgExist: true
+          })
         }
-        if (res.statusCode >= 400) {
-          return;
-        }
-        if (res.statusCode === 302) {
-          const img = new Image();
-          img.src = res.headers.location;
-          img.onload = () => {
-            this && this.setState({
-              avatar: `url("${res.headers.location}") center center / cover`,
-              isImgExist: true
-            })
-          }
-          img.onerror = () => {
-            console.warn(`avatar not exists. jid:${this.props.jid}`);
-          }
-          return;
-        }
-        this && this.setState({
-          avatar: `url("${res.headers.location}") center center / cover`,
-          isImgExist: true
-        })
       })
     }
   }
@@ -92,6 +89,7 @@ class ContactAvatar extends Component {
     const { name, size = 48, conversation } = this.props;
     const { avatar, isImgExist, userProfile } = this.state;
     const isGroup = conversation && conversation.isGroup;
+    const contactName = name || userProfile.name;
     return (
       <div
         className="chat-avatar"
@@ -104,8 +102,9 @@ class ContactAvatar extends Component {
           borderRadius: size / 2,
           background: avatar
         }}
+        title={contactName}
       >
-        {isImgExist ? null : getInitials(name || userProfile.name).toUpperCase()}
+        {isImgExist ? null : getInitials(contactName).toUpperCase()}
         {!isGroup ? (
           <div className={this.isOnline()}></div>
         ) : null}

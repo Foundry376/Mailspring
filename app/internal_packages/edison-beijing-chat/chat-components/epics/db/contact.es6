@@ -14,29 +14,36 @@ import getDb from '../../db';
 
 const saveContacts = async contacts => {
   const db = await getDb();
+  const dbContacts = [];
   for (const { jid: { bare: jid }, curJid, name, email, avatar } of contacts) {
     if (!!name) {
-      await db.contacts
-        .upsert({
-          jid,
-          curJid,
-          name,
-          email,
-          avatar
-        })
+      const contact = {
+        jid,
+        curJid,
+        name,
+        email,
+        avatar
+      }
+      await db.contacts.upsert(contact);
+      dbContacts.push(contact);
     }
   }
+  return dbContacts;
 };
 const saveE2ees = async e2ees => {
   const db = await getDb();
+  const dbE2ees = [];
   for (const { jid, devices } of e2ees) {
     if (!!devices) {
-      await db.e2ees.upsert({
+      const e2ee = {
         jid,
         devices
-      })
+      }
+      await db.e2ees.upsert(e2ee);
+      dbE2ees.push(e2ee);
     }
   }
+  return dbE2ees;
 };
 
 export const storeContactsEpic = action$ =>
