@@ -240,6 +240,7 @@ class MessageList extends React.Component {
           isMostRecent={isMostRecent}
           isBeforeReplyArea={isBeforeReplyArea}
           scrollTo={this._scrollTo}
+          threadPopedOut={this.state.popedOut}
         />
       );
 
@@ -349,6 +350,7 @@ class MessageList extends React.Component {
       hasCollapsedItems: MessageStore.hasCollapsedItems(),
       currentThread: MessageStore.thread(),
       loading: MessageStore.itemsLoading(),
+      popedOut: MessageStore.isPopedOut(),
     };
   }
 
@@ -428,7 +430,7 @@ class MessageList extends React.Component {
 
   _renderReplyArea() {
     return (
-      <div className="footer-reply-area-wrap" onClick={this._onClickReplyArea} key="reply-area">
+      <div className="footer-reply-area-wrap" onClick={this.state.popedOut ? this._onPopoutThread : this._onClickReplyArea} key="reply-area">
         <div className="footer-reply-area">
           <RetinaImg name={`${this._replyType()}-footer.png`} mode={RetinaImg.Mode.ContentIsMask} />
           <span className="reply-text">Write a reply…</span>

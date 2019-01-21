@@ -8,23 +8,24 @@ export default class MessageControls extends React.Component {
   static propTypes = {
     thread: PropTypes.object.isRequired,
     message: PropTypes.object.isRequired,
+    threadPopedOut: PropTypes.bool,
   };
 
   _items() {
     const reply = {
       name: 'Reply',
       image: 'ic-dropdown-reply.png',
-      select: this._onReply,
+      select: this.props.threadPopedOut? this._onPopoutThread : this._onReply,
     };
     const replyAll = {
       name: 'Reply All',
       image: 'ic-dropdown-replyall.png',
-      select: this._onReplyAll,
+      select: this.props.threadPopedOut? this._onPopoutThread : this._onReplyAll,
     };
     const forward = {
       name: 'Forward',
       image: 'ic-dropdown-forward.png',
-      select: this._onForward,
+      select: this.props.threadPopedOut? this._onPopoutThread : this._onForward,
     };
 
     if (!this.props.message.canReplyAll()) {
@@ -35,6 +36,15 @@ export default class MessageControls extends React.Component {
       ? [replyAll, reply, forward]
       : [reply, replyAll, forward];
   }
+  _onPopoutThread = () => {
+    if (!this.props.thread) {
+      return;
+    }
+    Actions.popoutThread(this.props.thread);
+    // This returns the single-pane view to the inbox, and does nothing for
+    // double-pane view because we're at the root sheet.
+    Actions.popSheet();
+  };
 
   _dropdownMenu(items) {
     const itemContent = item => (

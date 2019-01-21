@@ -19,6 +19,7 @@ export default class MessageItem extends React.Component {
     pending: PropTypes.bool,
     isMostRecent: PropTypes.bool,
     className: PropTypes.string,
+    threadPopedOut: PropTypes.bool,
   };
 
   constructor(props, context) {
@@ -173,7 +174,7 @@ export default class MessageItem extends React.Component {
               detailedHeaders: this.state.detailedHeaders,
             }}
           />
-          <MessageControls thread={thread} message={message} />
+          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut}/>
         </div>
         <MessageParticipants
           from={message.from}

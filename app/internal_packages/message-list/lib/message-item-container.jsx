@@ -14,6 +14,7 @@ export default class MessageItemContainer extends React.Component {
     isMostRecent: PropTypes.bool,
     isBeforeReplyArea: PropTypes.bool,
     scrollTo: PropTypes.func,
+    threadPopedOut: PropTypes.bool,
   };
 
   constructor(props, context) {
@@ -80,6 +81,7 @@ export default class MessageItemContainer extends React.Component {
         className={this._classNames()}
         collapsed={this.props.collapsed}
         isMostRecent={this.props.isMostRecent}
+        threadPopedOut={this.props.threadPopedOut}
       />
     );
   }

@@ -18,6 +18,7 @@ import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 
 const { DefaultSendActionKey } = SendActionsStore;
+
 /*
 Public: DraftStore responds to Actions that interact with Drafts and exposes
 public getter methods to return Draft objects and sessions.
@@ -41,7 +42,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.draftDeliveryFailed, this._onSendDraftFailed);
     this.listenTo(Actions.draftDeliverySucceeded, this._onSendDraftSuccess);
     this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
-    this.listenTo(Actions.destroyDraftFailed,this._onDestroyDraftFailed);
+    this.listenTo(Actions.destroyDraftFailed, this._onDestroyDraftFailed);
     this.listenTo(Actions.destroyDraftSucceeded, this._onDestroyDraftSuccess);
 
     if (AppEnv.isMainWindow()) {
@@ -53,13 +54,10 @@ class DraftStore extends MailspringStore {
       ipcRenderer.on('action-send-now', (event, headerMessageId, actionKey) => {
         Actions.sendDraft(headerMessageId, { actionKey, delay: 0 });
       });
-
-      // popout closed
-      // ipcRenderer.on('close-window', this._onPopoutClosed);
     }
-      // popout closed
-      ipcRenderer.on('close-window', this._onPopoutClosed);
-    if(!AppEnv.isMainWindow()){
+    // popout closed
+    ipcRenderer.on('draft-close-window', this._onPopoutClosed);
+    if (!AppEnv.isMainWindow()) {
       ipcRenderer.on('draft-arp', this._onDraftArp);
     }
 
@@ -81,12 +79,12 @@ class DraftStore extends MailspringStore {
   }
 
   /**
-  Fetch a {DraftEditingSession} for displaying and/or editing the
-  draft with `headerMessageId`.
+   Fetch a {DraftEditingSession} for displaying and/or editing the
+   draft with `headerMessageId`.
 
-  @param {String} headerMessageId - The headerMessageId of the draft.
-  @returns {Promise} - Resolves to an {DraftEditingSession} for the draft once it has been prepared
-  */
+   @param {String} headerMessageId - The headerMessageId of the draft.
+   @returns {Promise} - Resolves to an {DraftEditingSession} for the draft once it has been prepared
+   */
   async sessionForClientId(headerMessageId) {
     if (!headerMessageId) {
       throw new Error('DraftStore::sessionForClientId requires a headerMessageId');
@@ -126,11 +124,11 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onReceivedDraftDeleteMessage = (event, options={})=>{
-    if(options.windowLevel && options.headerMessageId && this._draftSessions[options.headerMessageId]){
+  _onReceivedDraftDeleteMessage = (event, options = {}) => {
+    if (options.windowLevel && options.headerMessageId && this._draftSessions[options.headerMessageId]) {
       this._draftsDeleting[options.headerMessageId] = true;
     }
-  }
+  };
 
   _doneWithSession(session) {
     session.teardown();
@@ -144,14 +142,15 @@ class DraftStore extends MailspringStore {
   }
 
   _onPopoutClosed = (event, options = {}) => {
-    if(options.headerMessageId && this._draftSessions[options.headerMessageId]){
-      // console.log(`popout closed with header ${options.headerMessageId}`);
+    if (options.headerMessageId && this._draftSessions[options.headerMessageId]) {
+      console.log(`popout closed with header ${options.headerMessageId}`);
       delete this._draftsPopedOut[options.headerMessageId];
       this._draftSessions[options.headerMessageId].setPopout(false);
     }
   };
 
   _onBeforeUnload = readyToUnload => {
+    console.log('draft store close window');
     const promises = [];
 
     // Normally we'd just append all promises, even the ones already
@@ -183,12 +182,17 @@ class DraftStore extends MailspringStore {
         promises.push(session.changes.commit('unload'));
       }
       let windowLevel = 1;
-      if(AppEnv.isComposerWindow()){
+      if (AppEnv.isComposerWindow()) {
         windowLevel = 3;
-      }else if(AppEnv.isThreadWindow()){
+      } else if (AppEnv.isThreadWindow()) {
         windowLevel = 2;
       }
-      ipcRenderer.send('close-window', { headerMessageId: draft.headerMessageId, threadId: draft.threadId, windowLevel: windowLevel});
+      ipcRenderer.send('close-window', {
+        headerMessageId: draft.headerMessageId,
+        threadId: draft.threadId,
+        windowLevel: windowLevel,
+        additionalChannelParam: 'draft',
+      });
     });
 
     if (promises.length > 0) {
@@ -285,7 +289,7 @@ class DraftStore extends MailspringStore {
     if (thread) {
       if (!(thread instanceof Thread)) {
         throw new Error(
-          'newMessageWithContext: `thread` present, expected a Model. Maybe you wanted to pass `threadId`?'
+          'newMessageWithContext: `thread` present, expected a Model. Maybe you wanted to pass `threadId`?',
         );
       }
       queries.thread = thread;
@@ -298,7 +302,7 @@ class DraftStore extends MailspringStore {
     if (message) {
       if (!(message instanceof Message)) {
         throw new Error(
-          'newMessageWithContext: `message` present, expected a Model. Maybe you wanted to pass `messageId`?'
+          'newMessageWithContext: `message` present, expected a Model. Maybe you wanted to pass `messageId`?',
         );
       }
       queries.message = message;
@@ -341,7 +345,7 @@ class DraftStore extends MailspringStore {
 
   _createSession(headerMessageId, draft) {
     this._draftSessions[headerMessageId] = new DraftEditingSession(headerMessageId, draft);
-    ipcRenderer.send('draft-arp', {headerMessageId});
+    ipcRenderer.send('draft-arp', { headerMessageId });
     return this._draftSessions[headerMessageId];
   }
 
@@ -459,13 +463,19 @@ class DraftStore extends MailspringStore {
               windowLevel: this._getCurrentWindowLevel(),
             },
           },
-        })
+        }),
       );
     } else {
       console.warn('Tried to delete a draft that had no ID assigned yet.');
     }
     if (AppEnv.isComposerWindow()) {
-      AppEnv.close({ headerMessageId, threadId, windowLevel: 3 , deleting: true});
+      AppEnv.close({
+        headerMessageId,
+        threadId,
+        windowLevel: this._getCurrentWindowLevel(),
+        additionalChannelParam: 'draft',
+        deleting: true,
+      });
     }
   };
   _onDestroyDraftSuccess = ({ messageIds }) => {
@@ -506,9 +516,9 @@ class DraftStore extends MailspringStore {
     // We need to call `changes.commit` here to ensure the body of the draft is
     // completely saved and the user won't see old content briefly.
     const session = await this.sessionForClientId(headerMessageId);
-    if(session.isPopout()){
+    if (session.isPopout()) {
       // Do nothing if session have popouts
-      return
+      return;
     }
 
     // move the draft to another account if necessary to match the from: field
@@ -533,7 +543,7 @@ class DraftStore extends MailspringStore {
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
     // we need to have the final object with it's final ID.
     draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true }).include(
-      Message.attributes.body
+      Message.attributes.body,
     );
     // Directly update the message body cache so the user immediately sees
     // the new message text (and never old draft text or blank text) sending.
@@ -554,7 +564,7 @@ class DraftStore extends MailspringStore {
           model: draft,
           value: sendLaterMetadataValue,
           undoValue: { expiration: null, isUndoSend: true },
-        })
+        }),
       );
       ipcRenderer.send('send-later-manager', 'send-later', headerMessageId, delay, actionKey);
     } else {
@@ -563,7 +573,7 @@ class DraftStore extends MailspringStore {
     }
 
     if (AppEnv.isComposerWindow()) {
-      AppEnv.close({ headerMessageId });
+      AppEnv.close({ headerMessageId, additionalChannelParam: 'draft' });
     }
   };
 
@@ -593,15 +603,15 @@ class DraftStore extends MailspringStore {
       }, 300);
     }
   };
-  _getCurrentWindowLevel = ()=>{
-    if(AppEnv.isComposerWindow()){
+  _getCurrentWindowLevel = () => {
+    if (AppEnv.isComposerWindow()) {
       return 3;
-    }else if(AppEnv.isThreadWindow()){
+    } else if (AppEnv.isThreadWindow()) {
       return 2;
-    }else{
+    } else {
       return 1;
     }
-  }
+  };
 }
 
 export default new DraftStore();

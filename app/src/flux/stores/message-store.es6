@@ -16,13 +16,6 @@ class MessageStore extends MailspringStore {
     super();
     this._setStoreDefaults();
     this._registerListeners();
-    if (AppEnv.isMainWindow()) {
-      this._currentWindowLevel = 1;
-    } else if (AppEnv.isThreadWindow()) {
-      this._currentWindowLevel = 2;
-    } else if (AppEnv.isComposerWindow()) {
-      this._currentWindowLevel = 3;
-    }
   }
 
   //########## PUBLIC #####################################################
@@ -70,10 +63,17 @@ class MessageStore extends MailspringStore {
   }
 
   messageListUnmounting({ threadId }) {
+    console.log(`unmounting is thread window ${AppEnv.isThreadWindow()}`);
     if (AppEnv.isThreadWindow() && threadId) {
-      ipcRenderer.send('close-window', { threadId, windowLevel: this._currentWindowLevel });
+      // ipcRenderer.send('close-window', { threadId, windowLevel: this._currentWindowLevel });
     }
   }
+
+  isPopedOut = () => {
+    // We only care for popout in main window
+    return AppEnv.isMainWindow() && this._popedOut;
+  };
+
 
   /*
   Message Store Extensions
@@ -92,14 +92,37 @@ class MessageStore extends MailspringStore {
   //########## PRIVATE ####################################################
 
   _setStoreDefaults() {
+    if(AppEnv.isThreadWindow()){
+      // ipcRenderer.removeListener('close-window', this._onPopoutClosed);
+      ipcRenderer.removeListener('thread-arp', this._onReceivedThreadARP);
+      AppEnv.removeUnloadCallback(this._onWindowClose);
+      // ipcRenderer.on('close-window', this._onPopoutClosed);
+      ipcRenderer.on('thread-arp', this._onReceivedThreadARP);
+      AppEnv.onBeforeUnload(this._onWindowClose);
+      // console.log('set listeners in thread window');
+    }
+    // console.log('set store default');
     this._items = [];
     this._itemsExpanded = {};
     this._itemsLoading = false;
     this._showingHiddenItems = false;
     this._thread = null;
+    this._popedOut = false;
   }
 
   _registerListeners() {
+    // console.log('register listerners');
+    AppEnv.onBeforeUnload(this._onWindowClose);
+    if (AppEnv.isMainWindow()) {
+      this._currentWindowLevel = 1;
+      ipcRenderer.on('thread-close-window', this._onPopoutClosed);
+      ipcRenderer.on('thread-arp-reply', this._onThreadARPReply);
+    } else if (AppEnv.isThreadWindow()) {
+      this._currentWindowLevel = 2;
+      ipcRenderer.on('thread-arp', this._onReceivedThreadARP);
+    } else if (AppEnv.isComposerWindow()) {
+      this._currentWindowLevel = 3;
+    }
     this.listenTo(ExtensionRegistry.MessageView, this._onExtensionsChanged);
     this.listenTo(DatabaseStore, this._onDataChanged);
     this.listenTo(FocusedContentStore, this._onFocusChanged);
@@ -110,6 +133,63 @@ class MessageStore extends MailspringStore {
     this.listenTo(Actions.popoutThread, this._onPopoutThread);
     return this.listenTo(Actions.focusThreadMainWindow, this._onFocusThreadMainWindow);
   }
+
+  _onThreadARPReply = (event, options) => {
+    console.log('received arp reply', options);
+    if (
+      options.threadId &&
+      options.windowLevel &&
+      options.windowLevel > this._getCurrentWindowLevel() &&
+      this._thread &&
+      options.threadId === this._thread.id
+    ) {
+      this._setPopout(true);
+    }
+  };
+  _onReceivedThreadARP = (event, options) => {
+    console.log('received arp request', options);
+    if (
+      options.threadId &&
+      this._thread &&
+      options.windowLevel &&
+      options.windowLevel < this._getCurrentWindowLevel() &&
+      options.threadId === this._thread.id
+    ) {
+      options.windowLevel = this._getCurrentWindowLevel();
+      ipcRenderer.send('arp-reply', options);
+    }
+  };
+  _getCurrentWindowLevel = () => {
+    if (AppEnv.isMainWindow()) {
+      return 1;
+    } else if (AppEnv.isThreadWindow()) {
+      return 2;
+    } else if (AppEnv.isComposerWindow()) {
+      return 3;
+    }
+  };
+  _onWindowClose = () => {
+    // console.log(`on thread window close, thread id: ${this._thread ? this._thread.id : 'null'}, windowLevel: ${this._getCurrentWindowLevel()}`);
+    ipcRenderer.send('close-window', {
+      threadId: this._thread ? this._thread.id : null,
+      additionalChannelParam: 'thread',
+      windowLevel: this._getCurrentWindowLevel(),
+    });
+    ipcRenderer.send('close-window', {
+      threadId: this._thread ? this._thread.id : null,
+      additionalChannelParam: 'draft',
+      windowLevel: this._getCurrentWindowLevel(),
+    });
+  };
+
+  _onPopoutClosed = (event, options) => {
+    // console.log(`window ${this._getCurrentWindowLevel()} message store popout closed with thread id ${options.threadId}, from windowLevel: ${options.windowLevel}`);
+    if (options.windowLevel && options.windowLevel > this._getCurrentWindowLevel()) {
+      if (options.threadId && this._thread && options.threadId === this._thread.id) {
+        this._setPopout(false);
+      }
+    }
+  };
 
   _onPerspectiveChanged() {
     // console.log('on perspective change');
@@ -150,11 +230,24 @@ class MessageStore extends MailspringStore {
     if (change.objectClass === Thread.name) {
       const updatedThread = change.objects.find(t => t.id === this._thread.id);
       if (updatedThread) {
-        this._thread = updatedThread;
+        // this._thread = updatedThread;
+        this._updateThread(updatedThread);
         this._fetchFromCache();
       }
     }
   }
+
+  _updateThread = thread => {
+    if (thread) {
+      this._thread = thread;
+      console.log('sending out thread arp');
+      ipcRenderer.send('arp', {
+        threadId: thread.id,
+        arpType: 'thread',
+        windowLevel: this._getCurrentWindowLevel(),
+      });
+    }
+  };
 
   _onFocusChanged(change) {
     // console.log('onFocus change');
@@ -189,12 +282,13 @@ class MessageStore extends MailspringStore {
 
     // if we already match the desired state, no need to trigger
     if (this.threadId() === (focused || {}).id) return;
-
-    this._thread = focused;
-    this._items = [];
-    this._itemsLoading = true;
-    this._showingHiddenItems = false;
-    this._itemsExpanded = {};
+    this._setStoreDefaults();
+    this._updateThread(focused);
+    // this._thread = focused;
+    // this._items = [];
+    // this._itemsLoading = true;
+    // this._showingHiddenItems = false;
+    // this._itemsExpanded = {};
     this.trigger();
 
     this._setWindowTitle();
@@ -317,7 +411,7 @@ class MessageStore extends MailspringStore {
 
   _fetchMissingBodies(items) {
     const missing = items.filter(
-      i => i.body === null || (typeof i.body === 'string' && i.body.length === 0)
+      i => i.body === null || (typeof i.body === 'string' && i.body.length === 0),
     );
     if (missing.length > 0) {
       return Actions.fetchBodies(missing);
@@ -383,7 +477,15 @@ class MessageStore extends MailspringStore {
     return items;
   }
 
+  _setPopout(val) {
+    if (val !== this._popedOut) {
+      this._popedOut = val;
+      this.trigger();
+    }
+  }
+
   _onPopoutThread(thread) {
+    this._setPopout(true);
     return AppEnv.newWindow({
       title: false, // MessageList already displays the thread subject
       hidden: false,
@@ -401,7 +503,10 @@ class MessageStore extends MailspringStore {
   _onFocusThreadMainWindow(thread) {
     if (AppEnv.isMainWindow()) {
       Actions.setFocus({ collection: 'thread', item: thread });
+      this._setPopout(false);
       return AppEnv.focus();
+    }else{
+      this._onWindowClose();
     }
   }
 }

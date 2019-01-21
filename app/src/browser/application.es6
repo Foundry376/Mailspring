@@ -588,6 +588,48 @@ export default class Application extends EventEmitter {
       }
       event.returnValue = '';
     });
+    ipcMain.on('arp', (event, options) => {
+      if (!options.arpType) {
+        return;
+      }
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow && mainWindow.browserWindow.webContents) {
+        mainWindow.browserWindow.webContents.send(`${options.arpType}-arp`, options);
+      }
+      if (options.threadId) {
+        const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
+        if (threadWindow && threadWindow.browserWindow.webContents) {
+          threadWindow.browserWindow.webContents.send(`${options.arpType}-arp`, options);
+        }
+      }
+      if (options.headerMessageId) {
+        const composerWindow = this.windowManager.get(`composer-${options.headerMessageId}`);
+        if (composerWindow && composerWindow.browserWindow.webContents) {
+          composerWindow.browserWindow.webContents.send(`${options.arpType}-arp`, options);
+        }
+      }
+    });
+    ipcMain.on('arp-reply', (event, options) => {
+      if(!options.arpType){
+        return;
+      }
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow && mainWindow.browserWindow.webContents) {
+        mainWindow.browserWindow.webContents.send(`${options.arpType}-arp-reply`, options);
+      }
+      if (options.threadId) {
+        const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
+        if (threadWindow && threadWindow.browserWindow.webContents) {
+          threadWindow.browserWindow.webContents.send(`${options.arpType}-arp-reply`, options);
+        }
+      }
+      if (options.headerMessageId) {
+        const composerWindow = this.windowManager.get(`composer-${options.headerMessageId}`);
+        if (composerWindow && composerWindow.browserWindow.webContents) {
+          composerWindow.browserWindow.webContents.send(`${options.arpType}-arp-reply`, options);
+        }
+      }
+    });
     ipcMain.on('draft-arp', (event, options) => {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (mainWindow && mainWindow.browserWindow.webContents) {
@@ -653,14 +695,24 @@ export default class Application extends EventEmitter {
     });
 
     ipcMain.on('close-window', (event, options) => {
+      let additionalChannelParam = '';
+      if(options.additionalChannelParam){
+        additionalChannelParam = `${options.additionalChannelParam}-`;
+      }
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (mainWindow && mainWindow.browserWindow.webContents) {
-        mainWindow.browserWindow.webContents.send('close-window', options);
+        mainWindow.browserWindow.webContents.send(
+          `${additionalChannelParam}close-window`,
+          options
+        );
       }
       if (options.threadId) {
         const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
         if (threadWindow && threadWindow.browserWindow.webContents) {
-          threadWindow.browserWindow.webContents.send('close-window', options);
+          threadWindow.browserWindow.webContents.send(
+            `${additionalChannelParam}close-window`,
+            options
+          );
         }
       }
     });

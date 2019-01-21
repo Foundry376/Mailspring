@@ -208,7 +208,7 @@ export default class DraftEditingSession extends MailspringStore {
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
     ipcRenderer.on('draft-arp-reply', this._onDraftARPReply);
-    ipcRenderer.on('close-window', this._onDraftCloseWindow);
+    ipcRenderer.on('draft-close-window', this._onDraftCloseWindow);
     ipcRenderer.on('new-window', this._onDraftNewWindow);
     ipcRenderer.on('draft-delete', this._onDraftDelete);
 
@@ -271,10 +271,10 @@ export default class DraftEditingSession extends MailspringStore {
     this.stopListeningToAll();
     this.changes.cancelCommit();
     this._destroyed = true;
-    ipcRenderer.removeAllListeners('new-window');
-    ipcRenderer.removeAllListeners('close-window');
-    ipcRenderer.removeAllListeners('draft-arp-reply');
-    ipcRenderer.removeAllListeners('draft-delete');
+    ipcRenderer.removeListener('new-window', this._onDraftNewWindow);
+    ipcRenderer.removeListener('draft-close-window', this._onDraftCloseWindow);
+    ipcRenderer.removeListener('draft-arp-reply', this._onDraftARPReply);
+    ipcRenderer.removeListener('draft-delete', this._onDraftDelete);
   }
 
   validateDraftForSending() {
