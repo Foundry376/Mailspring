@@ -1,23 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import Button from '../../common/Button';
 import TopBar from '../../common/TopBar';
 import ContactAvatar from '../../common/ContactAvatar';
-import BackIcon from '../../common/icons/BackIcon';
-import InfoIcon from '../../common/icons/InfoIcon';
-import { theme } from '../../../utils/colors';
 import xmpp from '../../../xmpp';
 import GroupChatAvatar from '../../common/GroupChatAvatar';
-
-const privateStatus = (availableUsers, conversationJid) =>
-  (availableUsers.indexOf(conversationJid) >= 0 ? 'Online' : 'Offline');
-
-const groupStatus = (availableUsers, occupants) => {
-  const available = new Set(availableUsers);
-  const onlineCount = occupants.map(occupant => (available.has(occupant) ? 1 : 0))
-    .reduce((total, current) => total + current, 0);
-  return `${onlineCount} Online`;
-};
 
 export default class MessagesTopBar extends Component {
   static propTypes = {
@@ -45,10 +31,6 @@ export default class MessagesTopBar extends Component {
     super();
     this.state = { inviting: false }
   }
-  onToggleInvite = () => {
-    this.props.toggleInvite();
-    this.setState({ inviting: !this.state.inviting });
-  }
   _onkeyDown = (e) => {
     if (e.keyCode === 13) {
       e.currentTarget.blur();
@@ -75,16 +57,9 @@ export default class MessagesTopBar extends Component {
 
   render() {
     const {
-      availableUsers,
-      infoActive,
       selectedConversation,
-      onBackPressed,
-      onInfoPressed,
-      inviting,
-      toggleInvite,
-      exitGroup,
+      onInfoPressed
     } = this.props;
-    const conversationJid = selectedConversation.jid;
     const conversation = selectedConversation;
 
     return (
@@ -100,28 +75,8 @@ export default class MessagesTopBar extends Component {
               className="conversationName">
             </div>
           }
-          // center={
-          //   <div className="chatTopBarCenter">
-          //     <div style={{ width: '100%' }}>
-          //       <div className="onlineIndicatior">
-          //         {selectedConversation.isGroup ?
-          //           groupStatus(availableUsers, selectedConversation.occupants) :
-          //           privateStatus(availableUsers, conversationJid)
-          //         }
-          //       </div>
-          //     </div>
-          //   </div>
-          // }
           right={
             <div className="avatarWrapper">
-              {/* {selectedConversation.isGroup && <div id="exit-button" onClick={exitGroup}>
-                exit
-              </div>
-              }
-              {selectedConversation.isGroup && <div id="invite-button" onClick={toggleInvite}>
-                {inviting ? "cancel" : "invite"}
-              </div>
-              } */}
               <div id="open-info" onClick={() => onInfoPressed()}>
                 {conversation.isGroup ?
                   <GroupChatAvatar conversation={conversation} size={26} /> :
