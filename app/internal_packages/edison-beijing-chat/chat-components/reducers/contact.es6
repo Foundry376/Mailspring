@@ -18,14 +18,14 @@ const addAvailableUser = (state, user) => {
   const { availableUsers } = state;
   const newAvailableUsers = new Set(availableUsers);
   newAvailableUsers.add(user);
-  return Object.assign({}, state, { availableUsers: Array.from(newAvailableUsers) });
+  return Object.assign({}, state, { availableUsers: Array.from(newAvailableUsers).sort() });
 };
 
 const removeAvailableUser = (state, user) => {
   const { availableUsers } = state;
   const newAvailableUsers = new Set(availableUsers);
   newAvailableUsers.delete(user);
-  return Object.assign({}, state, { availableUsers: Array.from(newAvailableUsers) });
+  return Object.assign({}, state, { availableUsers: Array.from(newAvailableUsers).sort() });
 };
 
 const concatContactsByJid = (oldContacts, newContacts) => {
