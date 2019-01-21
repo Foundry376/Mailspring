@@ -1,10 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { getavatar } from '../../utils/restjs';
-import getDb from '../../db';
-import xmpp from '../../xmpp/index';
-import { getContactInfo, findGroupChatOwner, getChatMembersFromDb } from '../../utils/contact-utils';
-import { groupMessages } from '../../utils/message';
 import ContactAvatar from './ContactAvatar';
 import chatModel from '../../store/model';
 
@@ -25,10 +20,7 @@ class GroupChatAvatar extends Component {
       this.refreshAvatar(nextProps);
     }
   }
-  shouldComponentUpdate(nextProps, nextState) {
-    return true;
-  }
-  refreshAvatar = async (props) => {
+  refreshAvatar = (props) => {
     const { conversation } = props;
     if (!conversation.isGroup) {
       return;

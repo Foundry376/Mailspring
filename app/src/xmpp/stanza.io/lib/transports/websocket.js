@@ -10,8 +10,8 @@ var WS = (require('faye-websocket') && require('faye-websocket').Client) ?
 
 var WS_OPEN = 1;
 
-let feature1='<stream:features xmlns:stream="http://etherx.jabber.org/streams"><auth xmlns="http://jabber.org/features/iq-auth"/><mechanisms xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><mechanism>PLAIN</mechanism></mechanisms><register xmlns="http://jabber.org/features/iq-register"/><ver xmlns="urn:xmpp:features:rosterver"/><starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls"/><compression xmlns="http://jabber.org/features/compress"><method>zlib</method></compression></stream:features>';
-let feature2='<stream:features xmlns:stream="http://etherx.jabber.org/streams"><register xmlns="http://jabber.org/features/iq-register"/><ver xmlns="urn:xmpp:features:rosterver"/><starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls"/><compression xmlns="http://jabber.org/features/compress"><method>zlib</method></compression><bind xmlns="urn:ietf:params:xml:ns:xmpp-bind"/><session xmlns="urn:ietf:params:xml:ns:xmpp-session"/></stream:features>';
+let feature1 = '<stream:features xmlns:stream="http://etherx.jabber.org/streams"><auth xmlns="http://jabber.org/features/iq-auth"/><mechanisms xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><mechanism>PLAIN</mechanism></mechanisms><register xmlns="http://jabber.org/features/iq-register"/><ver xmlns="urn:xmpp:features:rosterver"/><starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls"/><compression xmlns="http://jabber.org/features/compress"><method>zlib</method></compression></stream:features>';
+let feature2 = '<stream:features xmlns:stream="http://etherx.jabber.org/streams"><register xmlns="http://jabber.org/features/iq-register"/><ver xmlns="urn:xmpp:features:rosterver"/><starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls"/><compression xmlns="http://jabber.org/features/compress"><method>zlib</method></compression><bind xmlns="urn:ietf:params:xml:ns:xmpp-bind"/><session xmlns="urn:ietf:params:xml:ns:xmpp-session"/></stream:features>';
 
 function WSConnection(sm, stanzas) {
     var self = this;
@@ -20,7 +20,7 @@ function WSConnection(sm, stanzas) {
 
     self.sm = sm;
     self.closing = false;
- 
+
     self.stanzas = {
         Open: stanzas.getDefinition('open', 'urn:ietf:params:xml:ns:xmpp-framing', true),
         Close: stanzas.getDefinition('close', 'urn:ietf:params:xml:ns:xmpp-framing', true),
@@ -38,7 +38,8 @@ function WSConnection(sm, stanzas) {
             self.emit('raw:outgoing', data);
             //debugger;
             if (self.conn.readyState === WS_OPEN) {
-                console.log('websocket:raw:outgoing',data);
+                // commet out by quanzs
+                // console.log('websocket:raw:outgoing', data);
                 self.conn.send(data);
             }
         }
@@ -46,17 +47,18 @@ function WSConnection(sm, stanzas) {
     }, 1);
 
     self.on('connected', function () {
-        if(!self.isCache){
+        if (!self.isCache) {
             self.send(self.startHeader(''));// yazz
         }
-        else{
+        else {
             self.send(self.startHeader(self.config.sessionId));// yazz
         }
     });
 
     self.on('raw:incoming', function (data) {
         var stanzaObj, err;
-        console.log('websocket:raw:incoming',data);
+        // commet out by quanzs
+        // console.log('websocket:raw:incoming', data);
         //debugger;
         data = data.trim();
         if (data === '') {
@@ -113,7 +115,7 @@ WSConnection.prototype.connect = function (opts) {
 
     self.hasStream = false;
     self.closing = false;
-    self.isCache=opts.wsURL.substring(opts.wsURL.indexOf(":",10)+1)=='5291';
+    self.isCache = opts.wsURL.substring(opts.wsURL.indexOf(":", 10) + 1) == '5291';
     self.conn = new WS(opts.wsURL, 'xmpp', opts.wsOptions);
     self.conn.onerror = function (e) {
         e.preventDefault();
@@ -131,17 +133,17 @@ WSConnection.prototype.connect = function (opts) {
 
     self.conn.onmessage = function (wsMsg) {
         self.emit('raw:incoming', new Buffer(wsMsg.data, 'utf8').toString());
-        if(!self.isCache){
+        if (!self.isCache) {
             return;
         }
-        if(wsMsg.data.indexOf('<open')>=0){ // yazz
-            if(wsMsg.data.indexOf("serverTimestamp")>0){
-                setTimeout(function(){self.emit('session:started')},20);
+        if (wsMsg.data.indexOf('<open') >= 0) { // yazz
+            if (wsMsg.data.indexOf("serverTimestamp") > 0) {
+                setTimeout(function () { self.emit('session:started') }, 20);
             }
-            else if(wsMsg.data.indexOf("step='first'")>0){
+            else if (wsMsg.data.indexOf("step='first'") > 0) {
                 self.emit('raw:incoming', new Buffer(feature1, 'utf-8').toString());
             }
-            else{
+            else {
                 self.emit('raw:incoming', new Buffer(feature2, 'utf-8').toString());
             }
         }
