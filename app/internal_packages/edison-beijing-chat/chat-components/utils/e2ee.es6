@@ -2,28 +2,31 @@ import uuid from 'uuid/v4';
 import { generateKey } from './rsa';
 //import { encryptByAES } from './aes';
 import getDb from '../db';
+let deviceId = null;
 const iniE2ee = async () => {
     const db = await getDb();
     const datas = await db.configs.find({ key: { $in: ['deviceId', 'e2ee_prikey', 'e2ee_pubkey'] } }).exec();
-    let deviceId = null;
     if (datas.length < 3) {
         for (let data in datas) {
             if (data.key == 'deviceId') {
-                deviceId = data.value; break;
+                deviceId = data.value;
+                break;
             }
         }
         if (deviceId) {
             await setE2ee(db);
         } else if (datas.length == 2) {
-            deviceId = await setDeviceId(db);
+            deviceId = await generateDeviceId();
+            await setDeviceId(db, deviceId);
         } else {
-            deviceId = await setDeviceId(db);
+            deviceId = await generateDeviceId();
+            await setDeviceId(db, deviceId);
             await setE2ee(db);
         }
     }
     return deviceId;
 }
-const setDeviceId = (db) => {
+const generateDeviceId = () => {
     return new Promise((resolve) => {
         require('getmac').getMac(function (err, macAddress) {
             let deviceId;
@@ -35,11 +38,12 @@ const setDeviceId = (db) => {
                 deviceId = macAddress.replace(/:/g, '-');
             }
             resolve(deviceId);
-            db.configs.upsert({ key: 'deviceId', value: deviceId, time: Date.now() });
-            // console.log(macAddress);
-            // console.log(encryptByAES(macAddress, '75ab8e66395f').replace(/[=+]/g, ''));
         });
     })
+}
+const setDeviceId = async (db, deviceId) => {
+    await db.configs.upsert({ key: 'deviceId', value: deviceId, time: Date.now() });
+    return deviceId;
 }
 const setE2ee = async (db) => {
     let { pubkey, prikey } = generateKey();
@@ -86,7 +90,7 @@ export const getDeviceId = async (cb) => {
 }
 export const setE2eeJid = async (jidLocal, value) => {
     const db = await getDb();
-    db.configs.upsert({ key: 'e2ee_' + jidLocal, value, time: Date.now() });
+    await db.configs.upsert({ key: 'e2ee_' + jidLocal, value, time: Date.now() });
 }
 export const getE2ees = async (jidLocal) => {
     const db = await getDb();
