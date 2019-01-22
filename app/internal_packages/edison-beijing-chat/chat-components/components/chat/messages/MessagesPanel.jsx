@@ -1,4 +1,6 @@
 import React, { PureComponent } from 'react';
+import path from "path";
+const sqlite = require('better-sqlite3');
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
@@ -18,6 +20,7 @@ import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import Button from '../../common/Button';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
+import { login, queryProfile } from '../../../utils/restjs'
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class MessagesPanel extends PureComponent {
@@ -97,6 +100,9 @@ export default class MessagesPanel extends PureComponent {
     }
   }
 
+  componentWillMount() {
+    this.getEmailContacts();
+  }
   componentDidMount() {
     this.getRoomMembers();
     window.addEventListener("online", this.onLine);
@@ -105,6 +111,40 @@ export default class MessagesPanel extends PureComponent {
   componentWillUnmount() {
     window.removeEventListener("online", this.onLine);
     window.removeEventListener("offline", this.offLine);
+  }
+
+  getEmailContacts = () => {
+    let configDirPath = AppEnv.getConfigDirPath();
+    let dbpath = path.join(configDirPath, 'edisonmail.db');
+    const db = sqlite(dbpath);
+    const stmt = db.prepare('SELECT * FROM contactName where sendToCount > 1');
+    let emailContacts = stmt.all();
+    const curJid = chatModel.currentUser.jid;
+    login(chatModel.currentUser.email, chatModel.currentUser.password, (err, res) => {
+      if (!res) {
+        console.log('fail to login to queryProfile');
+        return;
+      }
+      res = JSON.parse(res);
+      const emails = emailContacts.map(contact => contact.email);
+      queryProfile({ accessToken: res.data.accessToken, emails }, (err, res) => {
+        emailContacts = emailContacts.map((contact, index) => {
+          contact = Object.assign(contact, res.data.users[index])
+          if (contact.userId) {
+            contact.jid = contact.userId + '@im.edison.tech'
+          } else {
+            contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
+          }
+          contact.curJid = curJid;
+          return contact;
+        });
+        const state = Object.assign({}, this.state, { emailContacts });
+        this.setState(state);
+      })
+    })
+
+
+    db.close();
   }
 
   onLine = () => {
@@ -317,8 +357,18 @@ export default class MessagesPanel extends PureComponent {
       getRoomMembers: this.getRoomMembers,
       removeMember: this.removeMember
     };
+    const emails = contacts.map(contact => contact.email);
+    let allContacts;
+    if (this.state.emailContacts) {
+      allContacts = contacts.concat(this.state.emailContacts.filter((contact => {
+        return emails.indexOf(contact.email) === -1;
+      })))
+    } else {
+      allContacts = contacts;
+    }
+
     const newConversationProps = {
-      contacts,
+      contacts: allContacts,
       saveRoomMembersForTemp: this.saveRoomMembersForTemp,
       deselectConversation,
       createRoom: this.createRoom
