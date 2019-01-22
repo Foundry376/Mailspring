@@ -37,6 +37,10 @@ export default {
         type: 'string'
       }
     },
+    roomMembers: { // group chat members
+      type: 'array',
+      default: []
+    },
     avatarMembers: {
       type: 'array',
       item: {

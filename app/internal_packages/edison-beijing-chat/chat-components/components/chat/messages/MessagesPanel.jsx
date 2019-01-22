@@ -77,7 +77,7 @@ export default class MessagesPanel extends PureComponent {
         await Promise.all(contacts.map(contact => (
           xmpp.addMember(selectedConversation.jid, contact.jid, selectedConversation.curJid)
         )));
-        this.getRoomMembers();
+        this.refreshRoomMembers();
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const db = await getDb();
@@ -98,7 +98,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   componentDidMount() {
-    this.getRoomMembers();
+    this.refreshRoomMembers();
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
   }
@@ -123,18 +123,32 @@ export default class MessagesPanel extends PureComponent {
     })
   }
 
-  componentWillReceiveProps() {
-    this.getRoomMembers();
-  }
+  // componentWillReceiveProps() {
+  //   this.refreshRoomMembers();
+  // }
 
-  getRoomMembers = () => {
+  refreshRoomMembers = async () => {
     const { selectedConversation: conversation } = this.props;
     if (conversation && conversation.isGroup) {
-      xmpp.getRoomMembers(conversation.jid, null, conversation.curJid).then((result) => {
-        const members = result.mucAdmin.items;
-        this.setState({ members });
-      });
+      const members = await this.getRoomMembers();
+      conversation.update({
+        $set: {
+          roomMembers: members
+        }
+      })
+      this.setState({ members });
     }
+  }
+
+  getRoomMembers = async () => {
+    const { selectedConversation: conversation } = this.props;
+    if (conversation && conversation.isGroup) {
+      const result = await xmpp.getRoomMembers(conversation.jid, null, conversation.curJid);
+      const members = result.mucAdmin.items;
+      this.setState({ members });
+      return members;
+    }
+    return [];
   }
 
   saveRoomMembersForTemp = (members) => {
@@ -231,8 +245,9 @@ export default class MessagesPanel extends PureComponent {
       alert('you can not remove the owner of the group chat!');
       return;
     }
-    xmpp.leaveRoom(conversation.jid, member.jid.bare);
-    if (member.jid.bare == chatModel.currentUser.jid) {
+    const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
+    xmpp.leaveRoom(conversation.jid, jid);
+    if (jid == conversation.curJid) {
       (getDb()).then(db => {
         db.conversations.findOne(conversation.jid).exec().then(conv => {
           conv.remove()
@@ -240,11 +255,7 @@ export default class MessagesPanel extends PureComponent {
       });
       this.props.deselectConversation();
     } else {
-      let index = this.state.members.indexOf(member);
-      this.state.members.splice(index, 1);
-      let members = this.state.members.slice();
-      const state = Object.assign({}, this.state, { members });
-      this.setState(state);
+      this.refreshRoomMembers();
     }
   };
 
@@ -262,7 +273,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   render() {
-    const { showConversationInfo, members, inviting } = this.state;
+    const { showConversationInfo, inviting } = this.state;
     const {
       deselectConversation,
       sendMessage,
@@ -302,7 +313,6 @@ export default class MessagesPanel extends PureComponent {
       groupedMessages,
       referenceTime,
       selectedConversation,
-      members,
       onMessageSubmitted: sendMessage,
     };
     const sendBarProps = {
@@ -310,11 +320,10 @@ export default class MessagesPanel extends PureComponent {
       selectedConversation,
     };
     const infoProps = {
-      conversation: selectedConversation,
+      selectedConversation,
       deselectConversation: this.props.deselectConversation,
-      members,
       toggleInvite: this.toggleInvite,
-      getRoomMembers: this.getRoomMembers,
+      members: this.state.members,
       removeMember: this.removeMember
     };
     const newConversationProps = {

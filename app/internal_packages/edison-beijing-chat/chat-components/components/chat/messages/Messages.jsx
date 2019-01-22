@@ -158,14 +158,15 @@ export default class Messages extends PureComponent {
 
   getContactInfoByJid = jid => {
     if (this.props.selectedConversation.isGroup) {
-      const members = this.props.members;
+      const members = this.props.selectedConversation.roomMembers;
       if (!members || members.length === 0) {
         return null;
       }
       for (const member of members) {
-        if (member.jid.bare === jid) {
+        const memberJid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
+        if (memberJid === jid) {
           return (
-            <ContactAvatar jid={member.jid.bare} name={member.name}
+            <ContactAvatar jid={memberJid} name={member.name}
               email={member.email} avatar={member.avatar} size={32} />
           )
         }
