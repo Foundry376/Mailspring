@@ -15,9 +15,6 @@ export default {
         time: {
             type: 'number'
         }
-        // key: {
-        //     type: 'string'
-        // }
     },
     required: [
         'key'// will cause a Rx Error does not match schema, while name field is null.
