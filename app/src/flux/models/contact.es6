@@ -437,6 +437,9 @@ export default class Contact extends Model {
     }
 
     const fallback = compact ? this.firstName() : this.fullName();
+    if (this.name === 'Draft') {
+      return this.name;
+    }
     return this.isMePhrase({ forceAccountLabel, includeAccountLabel }) || fallback;
   }
 

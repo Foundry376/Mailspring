@@ -4,6 +4,7 @@ import xmpp from '../xmpp';
 import getDb from '../db';
 import chatModel from '../store/model';
 import { copyRxdbContact, saveGroupMessages } from '../utils/db-utils';
+const { remote } = require('electron');
 
 import {
   MESSAGE_STATUS_FILE_UPLOADING,
@@ -579,10 +580,16 @@ export const triggerPrivateNotificationEpic = action$ =>
       // hide notifications
       return !conv || !conv.isHiddenNotification;
     })
-    .map(({ payload }) => {
+    .mergeMap(({ payload }) => {
       const { from: { bare: conversationJid, local: name }, body } = payload;
-      const { content } = JSON.parse(body);
-      return showConversationNotification(conversationJid, name, content);
+      let { content } = JSON.parse(body);
+      return Observable.fromPromise(getDb()).mergeMap(db => {
+        return Observable.fromPromise(db.contacts.findOne().where('jid').eq(payload.from.bare).exec())
+          .map(contact => {
+            content = `${contact.name}: ${content}`
+            return showConversationNotification(conversationJid, name || conv.name, content);
+          })
+      })
     });
 
 export const triggerGroupNotificationEpic = (action$, { getState }) =>
@@ -622,10 +629,17 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
       }
       return [{ conv, payload, name }];
     })
-    .map(({ conv, payload, name }) => {
+    .mergeMap(({ conv, payload, name }) => {
       const { from: { bare: conversationJid }, body } = payload;
-      const { content } = JSON.parse(body);
-      return showConversationNotification(conversationJid, name || conv.name, content);
+      let { content } = JSON.parse(body);
+      return Observable.fromPromise(getDb()).mergeMap(db => {
+        let msgFrom = payload.from.resource + '@im.edison.tech';
+        return Observable.fromPromise(db.contacts.findOne().where('jid').eq(msgFrom).exec())
+          .map(contact => {
+            content = `${contact.name}: ${content}`
+            return showConversationNotification(conversationJid, name || conv.name, content);
+          })
+      })
     });
 
 export const showConversationNotificationEpic = (action$, { getState }) =>
@@ -642,7 +656,12 @@ export const showConversationNotificationEpic = (action$, { getState }) =>
           const { chat: { selectedConversation } } = getState();
           return !selectedConversation || selectedConversation.jid !== jid;
         })
-        .map(() => selectConversation(jid)),
+        .map(() => {
+          const conv = selectConversation(jid);
+          const window = remote.getCurrentWindow();
+          window.show();
+          return conv
+        }),
     );
 
 export const goPrevConversationEpic = (action$, { getState }) =>

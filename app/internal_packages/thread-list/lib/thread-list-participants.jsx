@@ -96,9 +96,13 @@ class ThreadListParticipants extends React.Component {
     }
 
     for (let idx = 0; idx < messages.length; idx++) {
-      const message = messages[idx];
-      if (message.draft) {
-        continue;
+      const message = Object.assign({}, messages[idx]);
+      if (message.draft && message.unread) {
+        // If message is draft and unread, force contact from name to be 'Draft'
+        let tmp = message['from'];
+        if (Array.isArray(tmp) && tmp.length > 0) {
+          message['from'][0].name = 'Draft';
+        }
       }
 
       for (let contact of message[field]) {
