@@ -123,29 +123,34 @@ export default class MessagesPanel extends PureComponent {
     })
   }
 
-  // componentWillReceiveProps() {
-  //   this.refreshRoomMembers();
-  // }
+  componentWillReceiveProps = (nextProps) => {
+    if (nextProps.selectedConversation
+      && this.props.selectedConversation
+      && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid) {
+      this.refreshRoomMembers(nextProps);
+    }
+  }
 
-  refreshRoomMembers = async () => {
-    const { selectedConversation: conversation } = this.props;
+  refreshRoomMembers = async (nextProps) => {
+    const { selectedConversation: conversation } = (nextProps || this.props);
     if (conversation && conversation.isGroup) {
-      const members = await this.getRoomMembers();
-      conversation.update({
-        $set: {
-          roomMembers: members
-        }
-      })
+      const members = await this.getRoomMembers(nextProps);
+      if (conversation.update) {
+        conversation.update({
+          $set: {
+            roomMembers: members
+          }
+        })
+      }
       this.setState({ members });
     }
   }
 
-  getRoomMembers = async () => {
-    const { selectedConversation: conversation } = this.props;
+  getRoomMembers = async (nextProps) => {
+    const { selectedConversation: conversation } = (nextProps || this.props);
     if (conversation && conversation.isGroup) {
       const result = await xmpp.getRoomMembers(conversation.jid, null, conversation.curJid);
       const members = result.mucAdmin.items;
-      this.setState({ members });
       return members;
     }
     return [];
