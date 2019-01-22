@@ -4,6 +4,7 @@ import xmpp from '../xmpp';
 import getDb from '../db';
 import chatModel from '../store/model';
 import { copyRxdbContact, saveGroupMessages } from '../utils/db-utils';
+const { remote } = require('electron');
 
 import {
   MESSAGE_STATUS_FILE_UPLOADING,
@@ -582,8 +583,6 @@ export const triggerPrivateNotificationEpic = action$ =>
     .mergeMap(({ payload }) => {
       const { from: { bare: conversationJid, local: name }, body } = payload;
       let { content } = JSON.parse(body);
-      console.log('cxm*** showConversationNotification, payload: ', payload);
-      debugger;
       return Observable.fromPromise(getDb()).mergeMap(db => {
         return Observable.fromPromise(db.contacts.findOne().where('jid').eq(payload.from.bare).exec())
           .map(contact => {
@@ -657,7 +656,12 @@ export const showConversationNotificationEpic = (action$, { getState }) =>
           const { chat: { selectedConversation } } = getState();
           return !selectedConversation || selectedConversation.jid !== jid;
         })
-        .map(() => selectConversation(jid)),
+        .map(() => {
+          const conv = selectConversation(jid);
+          const window = remote.getCurrentWindow();
+          window.show();
+          return conv
+        }),
     );
 
 export const goPrevConversationEpic = (action$, { getState }) =>
