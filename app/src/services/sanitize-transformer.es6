@@ -334,6 +334,7 @@ const Preset = {
         'charset',
         'checked',
         'classid',
+        'class',
         'classname',
         'clear',
         'colspan',
