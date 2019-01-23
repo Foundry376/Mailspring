@@ -22,7 +22,7 @@ export default class MessagesTopBar extends Component {
       contacts,
     } = this.props;
 
-    const children = contacts.filter(contant => !!contant).map(contact =>
+    const children = contacts.filter(contant => !!contant).map((contact, index) =>
       <Option
         key={contact.jid}
         jid={contact.jid}

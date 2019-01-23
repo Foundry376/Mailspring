@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
 import getDb from '../../../db';
-import chatModel from '../../../store/model';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
@@ -13,36 +12,22 @@ const { primaryColor } = theme;
 
 
 export default class ConversationInfo extends Component {
-  static timer;
   constructor(props) {
     super();
     this.state = {
       visible: false,
-      isHiddenNotifi: props.conversation && !!props.conversation.isHiddenNotification
-    }
-  }
-
-  componentDidMount = () => {
-    this.props.getRoomMembers();
-  }
-
-  componentWillReceiveProps = (nextProps) => {
-    if (!this.props.conversation || nextProps.conversation.jid !== this.props.conversation.jid) {
-      this.props.getRoomMembers();
-      this.setState({
-        isHiddenNotifi: nextProps.conversation && !!nextProps.conversation.isHiddenNotification
-      })
+      isHiddenNotifi: props.selectedConversation && !!props.selectedConversation.isHiddenNotification
     }
   }
 
   clearMessages = () => {
-    clearMessages(this.props.conversation);
+    clearMessages(this.props.selectedConversation);
     return;
   }
 
   hiddenNotifi = () => {
-    const isHidden = !this.props.conversation.isHiddenNotification;
-    this.props.conversation.update({
+    const isHidden = !this.props.selectedConversation.isHiddenNotification;
+    this.props.selectedConversation.update({
       $set: {
         isHiddenNotification: isHidden
       }
@@ -53,7 +38,7 @@ export default class ConversationInfo extends Component {
   }
 
   exitGroup = () => {
-    const { conversation } = this.props;
+    const { selectedConversation: conversation } = this.props;
     xmpp.leaveRoom(conversation.jid, conversation.curJid);
     (getDb()).then(db => {
       db.conversations.findOne(conversation.jid).exec().then(conv => {
@@ -92,18 +77,21 @@ export default class ConversationInfo extends Component {
   }
 
   render = () => {
-    const { conversation, members } = this.props;
-    for (let member of members) {
-      if (member.affiliation === 'owner' && member.jid.bare === conversation.curJid) {
+    const { selectedConversation: conversation, members } = this.props;
+    const roomMembers = conversation.roomMembers && conversation.roomMembers.length > 0
+      ? conversation.roomMembers : members;
+    for (const member of roomMembers) {
+      const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
+      if (member.affiliation === 'owner' && jid === conversation.curJid) {
         this.currentUserIsOwner = true;
         break;
       }
     }
-    members.sort((a, b) => a.affiliation > b.affiliation);
+    roomMembers.sort((a, b) => a.affiliation + a.jid.bare > b.affiliation + b.jid.bare);
     return (
       <div className="info-panel">
         <div className="member-management">
-          <div className="member-count">{conversation.isGroup ? members.length + "People" : ""}</div>
+          <div className="member-count">{conversation.isGroup ? roomMembers.length + "People" : ""}</div>
           <Button className="more" onClick={this.showMenu}></Button>
         </div>
         <div>
@@ -124,15 +112,16 @@ export default class ConversationInfo extends Component {
             ) : null
           }
           {
-            conversation.isGroup && members && members.map(member => {
+            conversation.isGroup && roomMembers && roomMembers.map(member => {
               const onClickRemove = () => {
                 this.props.removeMember(member);
               };
+              const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
 
               return (
-                <div className="row item" key={member.jid.bare}>
+                <div className="row item" key={jid}>
                   <div id="avatar">
-                    <ContactAvatar jid={member.jid.bare} name={member.name}
+                    <ContactAvatar jid={jid} name={member.name}
                       email={member.email} avatar={member.avatar} size={30} />
                   </div>
                   <div className="info">
@@ -166,12 +155,12 @@ export default class ConversationInfo extends Component {
 }
 
 ConversationInfo.propTypes = {
-  conversation: PropTypes.shape({
+  selectedConversation: PropTypes.shape({
     jid: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     email: PropTypes.string,//.isRequired,
     avatar: PropTypes.string,
     isGroup: PropTypes.bool.isRequired,
-    occupants: PropTypes.arrayOf(PropTypes.string).isRequired,
+    roomMembers: PropTypes.array,
   }).isRequired,
 };

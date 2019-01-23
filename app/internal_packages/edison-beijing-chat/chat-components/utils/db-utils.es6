@@ -2,6 +2,9 @@ import getDb from '../db/index';
 
 export function copyRxdbContact(contact) {
   const result = {};
+  if (!contact) {
+    return result
+  }
   result.jid = contact.jid;
   result.curJid = contact.curJid;
   result.name = contact.name;

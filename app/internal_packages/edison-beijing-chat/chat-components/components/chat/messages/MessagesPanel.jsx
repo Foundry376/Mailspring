@@ -1,4 +1,6 @@
 import React, { PureComponent } from 'react';
+import path from "path";
+const sqlite = require('better-sqlite3');
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
@@ -18,6 +20,7 @@ import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import Button from '../../common/Button';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
+import { login, queryProfile } from '../../../utils/restjs'
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class MessagesPanel extends PureComponent {
@@ -77,7 +80,7 @@ export default class MessagesPanel extends PureComponent {
         await Promise.all(contacts.map(contact => (
           xmpp.addMember(selectedConversation.jid, contact.jid, selectedConversation.curJid)
         )));
-        this.getRoomMembers();
+        this.refreshRoomMembers();
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const db = await getDb();
@@ -97,14 +100,51 @@ export default class MessagesPanel extends PureComponent {
     }
   }
 
+  componentWillMount() {
+    this.getEmailContacts();
+  }
   componentDidMount() {
-    this.getRoomMembers();
+    this.refreshRoomMembers();
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
   }
   componentWillUnmount() {
     window.removeEventListener("online", this.onLine);
     window.removeEventListener("offline", this.offLine);
+  }
+
+  getEmailContacts = () => {
+    let configDirPath = AppEnv.getConfigDirPath();
+    let dbpath = path.join(configDirPath, 'edisonmail.db');
+    const db = sqlite(dbpath);
+    const stmt = db.prepare('SELECT * FROM contactName where sendToCount > 1');
+    let emailContacts = stmt.all();
+    const curJid = chatModel.currentUser.jid;
+    login(chatModel.currentUser.email, chatModel.currentUser.password, (err, res) => {
+      if (!res) {
+        console.log('fail to login to queryProfile');
+        return;
+      }
+      res = JSON.parse(res);
+      const emails = emailContacts.map(contact => contact.email);
+      queryProfile({ accessToken: res.data.accessToken, emails }, (err, res) => {
+        emailContacts = emailContacts.map((contact, index) => {
+          contact = Object.assign(contact, res.data.users[index])
+          if (contact.userId) {
+            contact.jid = contact.userId + '@im.edison.tech'
+          } else {
+            contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
+          }
+          contact.curJid = curJid;
+          return contact;
+        });
+        const state = Object.assign({}, this.state, { emailContacts });
+        this.setState(state);
+      })
+    })
+
+
+    db.close();
   }
 
   onLine = () => {
@@ -123,18 +163,37 @@ export default class MessagesPanel extends PureComponent {
     })
   }
 
-  componentWillReceiveProps() {
-    this.getRoomMembers();
+  componentWillReceiveProps = (nextProps) => {
+    if (nextProps.selectedConversation
+      && this.props.selectedConversation
+      && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid) {
+      this.refreshRoomMembers(nextProps);
+    }
   }
 
-  getRoomMembers = () => {
-    const { selectedConversation: conversation } = this.props;
+  refreshRoomMembers = async (nextProps) => {
+    const { selectedConversation: conversation } = (nextProps || this.props);
     if (conversation && conversation.isGroup) {
-      xmpp.getRoomMembers(conversation.jid, null, conversation.curJid).then((result) => {
-        const members = result.mucAdmin.items;
-        this.setState({ members });
-      });
+      const members = await this.getRoomMembers(nextProps);
+      if (conversation.update) {
+        conversation.update({
+          $set: {
+            roomMembers: members
+          }
+        })
+      }
+      this.setState({ members });
     }
+  }
+
+  getRoomMembers = async (nextProps) => {
+    const { selectedConversation: conversation } = (nextProps || this.props);
+    if (conversation && conversation.isGroup) {
+      const result = await xmpp.getRoomMembers(conversation.jid, null, conversation.curJid);
+      const members = result.mucAdmin.items;
+      return members;
+    }
+    return [];
   }
 
   saveRoomMembersForTemp = (members) => {
@@ -231,8 +290,9 @@ export default class MessagesPanel extends PureComponent {
       alert('you can not remove the owner of the group chat!');
       return;
     }
-    xmpp.leaveRoom(conversation.jid, member.jid.bare);
-    if (member.jid.bare == chatModel.currentUser.jid) {
+    const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
+    xmpp.leaveRoom(conversation.jid, jid);
+    if (jid == conversation.curJid) {
       (getDb()).then(db => {
         db.conversations.findOne(conversation.jid).exec().then(conv => {
           conv.remove()
@@ -240,11 +300,7 @@ export default class MessagesPanel extends PureComponent {
       });
       this.props.deselectConversation();
     } else {
-      let index = this.state.members.indexOf(member);
-      this.state.members.splice(index, 1);
-      let members = this.state.members.slice();
-      const state = Object.assign({}, this.state, { members });
-      this.setState(state);
+      this.refreshRoomMembers();
     }
   };
 
@@ -262,7 +318,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   render() {
-    const { showConversationInfo, members, inviting } = this.state;
+    const { showConversationInfo, inviting } = this.state;
     const {
       deselectConversation,
       sendMessage,
@@ -302,7 +358,6 @@ export default class MessagesPanel extends PureComponent {
       groupedMessages,
       referenceTime,
       selectedConversation,
-      members,
       onMessageSubmitted: sendMessage,
     };
     const sendBarProps = {
@@ -310,15 +365,24 @@ export default class MessagesPanel extends PureComponent {
       selectedConversation,
     };
     const infoProps = {
-      conversation: selectedConversation,
+      selectedConversation,
       deselectConversation: this.props.deselectConversation,
-      members,
       toggleInvite: this.toggleInvite,
-      getRoomMembers: this.getRoomMembers,
+      members: this.state.members,
       removeMember: this.removeMember
     };
+    const emails = contacts.map(contact => contact.email);
+    let allContacts;
+    if (this.state.emailContacts) {
+      allContacts = contacts.concat(this.state.emailContacts.filter((contact => {
+        return emails.indexOf(contact.email) === -1;
+      })))
+    } else {
+      allContacts = contacts;
+    }
+
     const newConversationProps = {
-      contacts,
+      contacts: allContacts,
       saveRoomMembersForTemp: this.saveRoomMembersForTemp,
       deselectConversation,
       createRoom: this.createRoom

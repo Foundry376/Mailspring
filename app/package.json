@@ -6,6 +6,9 @@
   "description": "The best email app for people and teams at work",
   "license": "GPL-3.0",
   "main": "./src/browser/main.js",
+  "scripts": {
+    "rebuild": "node_modules/.bin/electron-rebuild"
+  },
   "dependencies": {
     "alt-sasl-digest-md5": "^1.0.0",
     "async": "^2.5.0",

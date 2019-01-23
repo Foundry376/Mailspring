@@ -45,6 +45,8 @@ export default class HomePage extends Component {
           chatAccount = res.data;
           let jid = chatAccount.userId + '@im.edison.tech';
           chatModel.currentUser.jid = jid;
+          chatModel.currentUser.email = acc.emailAddress;
+          chatModel.currentUser.password = chatAccount.password;
           this.props.submitAuth(jid, chatAccount.password, acc.emailAddress);
           chatAccount.clone = () => Object.assign({}, chatAccount);
           keyMannager.extractChatAccountSecrets(chatAccount).then(chatAccount => {
@@ -60,6 +62,8 @@ export default class HomePage extends Component {
       chatAccount = keyMannager.insertChatAccountSecrets(chatAccount).then(chatAccount => {
         let jid = chatAccount.userId + '@im.edison.tech';
         chatModel.currentUser.jid = jid;
+        chatModel.currentUser.email = chatAccount.email;
+        chatModel.currentUser.password = chatAccount.password;
         this.props.submitAuth(jid, chatAccount.password, chatAccount.email);
       });
     }
