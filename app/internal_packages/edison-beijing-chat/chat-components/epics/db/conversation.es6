@@ -77,7 +77,7 @@ const getProfile = async (jid) => {
 const saveConversations = async conversations => {
   const db = await getDb();
   return Promise.all(conversations.map(async conv => {
-     const convInDB = await db.conversations.findOne(conv.jid).exec();
+    const convInDB = await db.conversations.findOne(conv.jid).exec();
     if (conv.unreadMessages === 1) {
       if (convInDB) {
         conv.unreadMessages = convInDB.unreadMessages + 1;
@@ -103,7 +103,7 @@ const saveConversations = async conversations => {
       if (profile && profile.resultCode === 1) {
         conv.lastMessageSenderName = profile.data.name;
       }
-      if (!conv.avatarMembers){
+      if (!conv.avatarMembers) {
         conv.avatarMembers = []
         let contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
         if (contact) {
@@ -111,7 +111,7 @@ const saveConversations = async conversations => {
           conv.avatarMembers.push(contact);
         }
       }
-      if (conv.avatarMembers.length < 2){
+      if (conv.avatarMembers.length < 2) {
         let contact = await db.contacts.findOne().where('jid').eq(conv.curJid).exec();
         if (contact) {
           contact = copyRxdbContact(contact);
@@ -119,7 +119,7 @@ const saveConversations = async conversations => {
         }
       }
       if (convInDB) {
-         await convInDB.update({
+        await convInDB.update({
           $set: {
             at: conv.at,
             unreadMessages: conv.unreadMessages,
@@ -130,8 +130,8 @@ const saveConversations = async conversations => {
             avatarMembers: conv.avatarMembers
           }
         });
-         chatModel.updateAvatars(conv.jid);
-         return;
+        chatModel.updateAvatars(conv.jid);
+        return;
       }
     }
     return db.conversations.upsert(conv)
@@ -252,7 +252,7 @@ export const selectConversationEpic = action$ =>
     .mergeMap(({ payload: jid }) => {
       clearConversationUnreadMessages(jid);
       return Observable.fromPromise(retriveConversation(jid))
-        .map(conversation => { 
+        .map(conversation => {
           return updateSelectedConversation(conversation)
         })
         .catch(error => failedSelectingConversation(error, jid))
@@ -385,7 +385,7 @@ export const createGroupMessageConversationEpic = (action$) =>
         isGroup: true,
         unreadMessages: 0,
         occupants: [
-          chatModel.currentUser.jid,
+          contacts[0].curJid,
           ...jidArr
         ],
         lastMessageTime: (new Date(timeSend)).getTime(),

@@ -32,6 +32,7 @@ export default function registerLoginChatAccounts() {
           chatModel.currentUser.jid = jid;
           chatModel.currentUser.email = acc.emailAddress;
           chatModel.currentUser.password = chatAccount.password;
+          chatModel.allSelfUsers[jid] = chatAccount;
           chatModel.store.dispatch({
             type: SUBMIT_AUTH,
             payload: { jid, password: chatAccount.password, email: acc.emailAddress }
@@ -50,6 +51,7 @@ export default function registerLoginChatAccounts() {
         chatModel.currentUser.jid = jid;
         chatModel.currentUser.password = chatAccount.password;
         chatModel.currentUser.email = chatAccount.email;
+        chatModel.allSelfUsers[jid] = chatAccount;
         chatModel.store.dispatch({
           type: SUBMIT_AUTH,
           payload: { jid, password: chatAccount.password, email: chatAccount.email }

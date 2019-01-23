@@ -16,7 +16,7 @@ const vertical = {
 };
 
 const Divider = ({ type }) => (
-  <div style={type === 'horizontal' ? horizontal : vertical} />
+  <div className="divider" style={type === 'horizontal' ? horizontal : vertical} />
 );
 
 Divider.propTypes = {

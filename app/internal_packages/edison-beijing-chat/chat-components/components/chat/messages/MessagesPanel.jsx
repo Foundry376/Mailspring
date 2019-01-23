@@ -31,7 +31,8 @@ export default class MessagesPanel extends PureComponent {
     currentUserId: PropTypes.string,
     groupedMessages: PropTypes.arrayOf(
       PropTypes.shape({
-        sender: PropTypes.string.isRequired,
+        // sender: PropTypes.string.isRequired,
+        time: PropTypes.string.isRequired,
         messages: PropTypes.arrayOf(
           PropTypes.shape({
             id: PropTypes.string.isRequired,
@@ -175,7 +176,7 @@ export default class MessagesPanel extends PureComponent {
     const { selectedConversation: conversation } = (nextProps || this.props);
     if (conversation && conversation.isGroup) {
       const members = await this.getRoomMembers(nextProps);
-      if (conversation.update) {
+      if (conversation.update && members && members.length > 0) {
         conversation.update({
           $set: {
             roomMembers: members
@@ -434,7 +435,7 @@ export default class MessagesPanel extends PureComponent {
             <span>Select a conversation to start messaging</span>
           </div>
         }
-        {(!this.state.online || !this.props.chat_online) && (
+        {/* {(!this.state.online || !this.props.chat_online) && (
           <div className="network-offline">
             {this.state.online ? (
               this.state.connecting ? (
@@ -444,7 +445,7 @@ export default class MessagesPanel extends PureComponent {
                 )
             ) : null}
           </div>
-        )}
+        )} */}
         {inviting && selectedConversation.jid !== NEW_CONVERSATION && (
           <FixedPopover {...{
             direction: 'down',

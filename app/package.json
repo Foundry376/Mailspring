@@ -37,6 +37,7 @@
     "fs-plus": "^2.3.2",
     "getmac": "^1.2.1",
     "graceful-fs": "^4.1.11",
+    "group-by-time": "^1.0.0",
     "hostmeta": "^2.0.0",
     "iana-hashes": "^1.0.2",
     "immutable": "^3.8.2",

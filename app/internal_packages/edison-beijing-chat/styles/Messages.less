@@ -4,8 +4,7 @@
     flex-grow: 1;
     overflow-y: scroll;
     &::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+      display: none;
     }
     &::-webkit-scrollbar-thumb {
       -webkit-border-radius: 2px;
@@ -22,13 +21,45 @@
   }
 
   .messageGroup {
-    margin: 8px 16px 8px 16px;
+    padding: 8px 16px 8px 16px;
     display: flex;
     flex-direction: column;
+    .day-label {
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      label {
+        display: block;
+        margin: 0 auto;
+        top: 28px;
+        transition: 0.2s;
+        .divider {
+          position: relative;
+          top: -15px;
+          z-index: -1;
+        }
+        span {
+          margin: 0 auto;
+          background: #fff;
+          display: inline-block;
+          padding: 0 14px;
+          border-radius: 20px;
+          text-align: center;
+        }
+      }
+    }
+  }
+  .messageGroup.time-label-fix {
+    .day-label label {
+      position: absolute;
+      z-index: 99;
+      top: 36px;
+      left: 16px;
+      right: 16px;
+    } 
   }
 
   .message {
-    max-width: 80%;
     margin: 1px 0 1px 0;
     padding: 8px 12px 8px 12px;
     display: flex;
@@ -40,91 +71,79 @@
     }
   }
 
-  .message.currentUser {
-    align-self: flex-end;
-    background-color: #2fa3fc;
-    padding: 12px;
-    border-radius: 15px;
-    color: white;
-    position: relative;
-    margin-right: 37px;
-    .messageSender {
-      display: none;
-    }
-  }
+  // .message.currentUser {
+  //   align-self: flex-end;
+  //   background-color: #2fa3fc;
+  //   padding: 12px;
+  //   border-radius: 15px;
+  //   color: white;
+  //   position: relative;
+  //   margin-right: 37px;
+  // }
 
+  .message.currentUser,
   .message.otherUser {
     align-self: flex-start;
     padding: 12px;
     border-radius: 15px;
     color: #000;
     position: relative;
-    margin-left: 37px;
-    background-color:  #f4f6f8;
-    .messageSender {
-      display: none;
-    }
+    // background-color: #f4f6f8;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
   }
 
   // .message.currentUser:first-child {
   //   border-top-right-radius: 12px;
   // }
 
-  .message.currentUser:last-child {
-    &:after {
-      content: '';
-      display: block;
-      width: 14px;
-      height: 12px;
-      background-image: url('data:image/svg+xml;utf8,<svg width="14px" height="12px" viewBox="0 0 27 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><path d="M26.2278446,17.4092324 L11.1870041,0 C12.1315883,11.8835969 8.40258689,19.8665561 0,23.9488774 C10.3997077,24.6521893 19.1423226,22.4723076 26.2278446,17.4092324 Z" id="Path-4" fill="#2fa3fc" transform="translate(13.113922, 12.038775) scale(-1, 1) translate(-13.113922, -12.038775) "></path></g></svg>');
-      background-repeat: no-repeat;
-      background-position: center center;
-      position: absolute;
-      right: -6px;
-      bottom: 0px;
-    }
-    .messageSender {
-      display: block;
-      position: absolute;
-      right: -42px;
-      bottom: 0;
-    }
-  }
+  // .message.currentUser {
+  //   &:after {
+  //     content: '';
+  //     display: block;
+  //     width: 14px;
+  //     height: 12px;
+  //     background-image: url('data:image/svg+xml;utf8,<svg width="14px" height="12px" viewBox="0 0 27 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><path d="M26.2278446,17.4092324 L11.1870041,0 C12.1315883,11.8835969 8.40258689,19.8665561 0,23.9488774 C10.3997077,24.6521893 19.1423226,22.4723076 26.2278446,17.4092324 Z" id="Path-4" fill="#2fa3fc" transform="translate(13.113922, 12.038775) scale(-1, 1) translate(-13.113922, -12.038775) "></path></g></svg>');
+  //     background-repeat: no-repeat;
+  //     background-position: center center;
+  //     position: absolute;
+  //     right: -6px;
+  //     bottom: 0px;
+  //   }
+  //   .messageSender {
+  //     display: block;
+  //     position: absolute;
+  //     right: -42px;
+  //     bottom: 0;
+  //   }
+  // }
 
-  .message.otherUser:last-child {
-    &:after {
-      content: '';
-      display: block;
-      width: 14px;
-      height: 12px;
-      background-image: url('data:image/svg+xml;utf8,<svg width="14px" height="12px" viewBox="0 0 27 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><path d="M26.8617391,18.1666791 L11.8208986,0.757446655 C12.7654827,12.6410436 9.03648138,20.6240027 0.633894483,24.706324 C11.0336022,25.4096359 19.7762171,23.2297543 26.8617391,18.1666791 Z" id="Path-4" fill="#f4f6f8"></path></g></svg>');
-      background-repeat: no-repeat;
-      background-position: center center;
-      position: absolute;
-      left: -6px;
-      bottom: 0px;
-    }
+  .message.currentUser,
+  .message.otherUser {
     .messageSender {
       display: block;
-      position: absolute;
-      left: -37px;
-      bottom: 0;
     }
   }
 
   .messageSender {
-    margin-top: 2px;
-    margin-bottom: 4px;
-    font-weight: bold;
+    padding: 2px 10px 4px 0;
   }
 
   .messageContent {
-    display: flex;
+    flex: 1;
     flex-flow: row wrap;
     align-items: baseline;
     justify-content: flex-end;
     overflow-x: hidden;
     user-select: text;
+    .username {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    .time {
+      font-size: 11px;
+    }
   }
 
   .messageBody {
@@ -138,7 +157,6 @@
   .messageMeta {
     margin: 4px 0 4px 6px;
     align-self: flex-end;
-    text-align: right;
     font-size: 0.7em;
     position: relative;
     max-width: 500px;
@@ -161,7 +179,7 @@
   .message-toolbar {
     display: none;
     position:absolute;
-    z-index: 99;
+    z-index: 8;
     opacity:1;
     top: 3px;
     right: 0;

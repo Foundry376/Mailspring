@@ -35,7 +35,6 @@ export const submitAuthEpic = action$ => action$.ofType(SUBMIT_AUTH)
 export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTION_AUTH)
   .mergeMap(({ payload }) => {
     return Observable.fromPromise(getDeviceId()).map((deviceId) => {
-      console.log(payload);
       return { payload, deviceId };
     });
   })

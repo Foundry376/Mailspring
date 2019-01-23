@@ -25,8 +25,6 @@ const LONG_FORMATS = {
  * @returns {number => string}    A function that converts
  */
 export const buildTimeDescriptor = (currentTime = new Date().getTime()) => {
-  const HOUR = 60 * 60 * 1000;
-  const DAY = 24 * HOUR;
   if (typeof currentTime !== 'number' || currentTime <= 0) {
     throw Error('Invalid argument type for param `currentDate`');
   }
@@ -55,6 +53,23 @@ export const buildTimeDescriptor = (currentTime = new Date().getTime()) => {
   };
 };
 
+const DAY_LABEL_FORMATS = {
+  sameDay: '[Today]',
+  lastDay: '[Yesterday]',
+  sameElse: 'dddd, MMMM Do YYYY',
+};
+export const dateFormat = (timestamp, format) => {
+  const currentTime = new Date().getTime();
+  if (typeof timestamp === 'string') {
+    timestamp = parseInt(timestamp);
+  }
+  if (format) {
+    return moment(timestamp).format(format);
+  }
+  return moment(timestamp).calendar(currentTime, DAY_LABEL_FORMATS);
+}
+
 export default {
-  buildTimeDescriptor
+  buildTimeDescriptor,
+  dateFormat
 };

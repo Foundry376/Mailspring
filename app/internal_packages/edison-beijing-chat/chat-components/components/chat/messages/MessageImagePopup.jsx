@@ -157,7 +157,6 @@ export default class MessageImagePopup extends Component {
   }
 
   render() {
-    const props = messageModel.messagesReactInstance.props;
     const {
       referenceTime,
       getContactInfoByJid
@@ -180,11 +179,9 @@ export default class MessageImagePopup extends Component {
               <Button id='close-button' className="no-border" onClick={this.hide}>
                 <CancelIcon color={"#787e80"} />
               </Button>
-              {msg.sender !== messageModel.currentUserId ?
-                <div className="messageSender image-popup-avatar" className="inline-block">
-                  {getContactInfoByJid(msg.sender)}
-                </div> : null
-              }
+              <div className="messageSender image-popup-avatar" className="inline-block">
+                {getContactInfoByJid(msg.sender)}
+              </div>
               <div className="inline-block">
                 <div>{fileName}</div>
                 <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>

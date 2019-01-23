@@ -35,7 +35,7 @@ export default class ChatView extends Component {
     const leftPanel = document.querySelector('.chat-left-panel-container');
     const { devMode } = AppEnv.getLoadSettings();
     if (devMode) {
-      leftPanel.style.bottom = '120px';
+      leftPanel.style.bottom = '115px';
     }
 
     const accSidebar = document.querySelector('.account-sidebar');

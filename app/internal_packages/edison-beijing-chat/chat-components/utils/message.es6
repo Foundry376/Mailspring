@@ -1,5 +1,6 @@
 import { isJsonStr } from './stringUtils';
 import { copyRxdbMessage } from './db-utils';
+import groupByTime from 'group-by-time';
 
 import getDb from '../db';
 
@@ -21,6 +22,18 @@ export const groupMessages = async messages => {
   return groupedMessages;
 }
 
+/* kind: day, week, month */
+export const groupMessagesByTime = async (messages, key, kind) => {
+  var groupedByDay = groupByTime(messages, key, kind);
+  const groupedMessages = []
+  if (groupedByDay) {
+    for (const time in groupedByDay) {
+      groupedMessages.push({ time, messages: groupedByDay[time] })
+    }
+  }
+  return groupedMessages;
+}
+
 export const getLastMessageInfo = async (message) => {
   let body, lastMessageText, sender = null, lastMessageTime = (new Date()).getTime();
   body = message.body;
@@ -31,11 +44,11 @@ export const getLastMessageInfo = async (message) => {
     let conv = message.conversation;
     let db = await getDb();
     if (!conv) {
-        conv = await db.conversations.findOne().where('jid').eq(message.from.bare).exec();
-        if (!conv) {
-          lastMessageText = getMessageContent(message);
-          return { sender, lastMessageTime, lastMessageText };
-        }
+      conv = await db.conversations.findOne().where('jid').eq(message.from.bare).exec();
+      if (!conv) {
+        lastMessageText = getMessageContent(message);
+        return { sender, lastMessageTime, lastMessageText };
+      }
     }
     let messages = await db.messages.find().where('conversationJid').eq(conv.jid).exec();
 

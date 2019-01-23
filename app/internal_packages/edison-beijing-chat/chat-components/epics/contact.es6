@@ -21,7 +21,6 @@ import { getE2ees, setE2eeJid } from '../utils/e2ee';
 export const triggerFetchRosterEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
     .map(({ payload }) => {
-      console.log('triggerFetchRosterEpic', payload, payload.bare);
       return fetchRoster(payload);
     });
 

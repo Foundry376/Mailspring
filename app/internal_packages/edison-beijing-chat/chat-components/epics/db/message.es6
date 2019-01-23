@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import getDb from '../../db';
-import { groupMessages } from '../../utils/message';
+import { groupMessages, groupMessagesByTime } from '../../utils/message';
 import { copyRxdbMessage } from '../../utils/db-utils';
 import {
   BEGIN_STORE_MESSAGE,
@@ -94,9 +94,13 @@ export const retrieveSelectedConversationMessagesEpic = action$ =>
             .$
             .takeUntil(action$.ofType(SELECT_CONVERSATION, DESELECT_CONVERSATION))
             .map(messages => {
-              return messages.sort((a, b) => a.sentTime - b.sentTime);
+              return messages
+                .filter(msg => msg.body.indexOf('"deleted":true') === -1)
+                .sort((a, b) => a.sentTime - b.sentTime);
             })
-            .mergeMap(messages => groupMessages(messages))
+            .mergeMap(messages => {
+              return groupMessagesByTime(messages, 'sentTime', 'day');
+            })
             .map(groupedMessages => {
               return updateSelectedConversationMessages(groupedMessages)
             })

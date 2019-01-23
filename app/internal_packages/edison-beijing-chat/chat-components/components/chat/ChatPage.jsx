@@ -25,7 +25,8 @@ export default class ChatPage extends PureComponent {
     })),
     groupedMessages: PropTypes.arrayOf(
       PropTypes.shape({
-        sender: PropTypes.string.isRequired,
+        // sender: PropTypes.string.isRequired,
+        time: PropTypes.string.isRequired,
         messages: PropTypes.arrayOf(
           PropTypes.shape({
             id: PropTypes.string.isRequired,
