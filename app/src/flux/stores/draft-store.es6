@@ -143,14 +143,14 @@ class DraftStore extends MailspringStore {
 
   _onPopoutClosed = (event, options = {}) => {
     if (options.headerMessageId && this._draftSessions[options.headerMessageId]) {
-      console.log(`popout closed with header ${options.headerMessageId}`);
+      // console.log(`popout closed with header ${options.headerMessageId}`);
       delete this._draftsPopedOut[options.headerMessageId];
       this._draftSessions[options.headerMessageId].setPopout(false);
     }
   };
 
   _onBeforeUnload = readyToUnload => {
-    console.log('draft store close window');
+    // console.log('draft store close window');
     const promises = [];
 
     // Normally we'd just append all promises, even the ones already
@@ -573,7 +573,12 @@ class DraftStore extends MailspringStore {
     }
 
     if (AppEnv.isComposerWindow()) {
-      AppEnv.close({ headerMessageId, additionalChannelParam: 'draft' });
+      AppEnv.close({
+        headerMessageId,
+        threadId: draft.threadId,
+        additionalChannelParam: 'draft',
+        windowLevel: this._getCurrentWindowLevel(),
+      });
     }
   };
 

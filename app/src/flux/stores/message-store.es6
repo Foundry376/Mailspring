@@ -92,7 +92,7 @@ class MessageStore extends MailspringStore {
   //########## PRIVATE ####################################################
 
   _setStoreDefaults() {
-    if(AppEnv.isThreadWindow()){
+    if (AppEnv.isThreadWindow()) {
       // ipcRenderer.removeListener('close-window', this._onPopoutClosed);
       ipcRenderer.removeListener('thread-arp', this._onReceivedThreadARP);
       AppEnv.removeUnloadCallback(this._onWindowClose);
@@ -170,16 +170,19 @@ class MessageStore extends MailspringStore {
   };
   _onWindowClose = () => {
     // console.log(`on thread window close, thread id: ${this._thread ? this._thread.id : 'null'}, windowLevel: ${this._getCurrentWindowLevel()}`);
-    ipcRenderer.send('close-window', {
-      threadId: this._thread ? this._thread.id : null,
-      additionalChannelParam: 'thread',
-      windowLevel: this._getCurrentWindowLevel(),
-    });
-    ipcRenderer.send('close-window', {
-      threadId: this._thread ? this._thread.id : null,
-      additionalChannelParam: 'draft',
-      windowLevel: this._getCurrentWindowLevel(),
-    });
+    if (this._thread) {
+      ipcRenderer.send('close-window', {
+        threadId: this._thread.id,
+        additionalChannelParam: 'thread',
+        windowLevel: this._getCurrentWindowLevel(),
+      });
+      ipcRenderer.send('close-window', {
+        threadId: this._thread.id,
+        additionalChannelParam: 'draft',
+        windowLevel: this._getCurrentWindowLevel(),
+      });
+    }
+    return true;
   };
 
   _onPopoutClosed = (event, options) => {
@@ -325,7 +328,7 @@ class MessageStore extends MailspringStore {
             source: 'Thread Selected',
             canBeUndone: false,
             unread: false,
-          }),
+          })
         );
       }, markAsReadDelay);
     }
@@ -505,7 +508,7 @@ class MessageStore extends MailspringStore {
       Actions.setFocus({ collection: 'thread', item: thread });
       this._setPopout(false);
       return AppEnv.focus();
-    }else{
+    } else {
       this._onWindowClose();
     }
   }

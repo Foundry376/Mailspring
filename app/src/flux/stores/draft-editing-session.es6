@@ -438,6 +438,9 @@ export default class DraftEditingSession extends MailspringStore {
   _onDraftCloseWindow = (event, options = {}) => {
     // console.log('session on close window', options);
     if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
+      if(options.deleting){
+        this._destroyed = true;
+      }
       if (this._currentWindowLevel === 2) {
         delete this._popOutOrigin['composer'];
         this.setPopout(false);
@@ -448,9 +451,6 @@ export default class DraftEditingSession extends MailspringStore {
           delete this._popOutOrigin['threadPopout'];
         }
         this.setPopout(Object.keys(this._popOutOrigin).length > 0);
-      }
-      if(options.deleting){
-        this._destroyed = true;
       }
     }
   };
