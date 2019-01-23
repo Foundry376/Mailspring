@@ -350,10 +350,6 @@ export default class AppEnvConstructor {
   // Essential: Close the current window.
   close(options) {
     if (options) {
-      let additionalChannelParam = '';
-      if(options.additionalChannelParam){
-        additionalChannelParam = `${options.additionalChannelParam}-`;
-      }
       if(!options.windowLevel){
         if(this.isComposerWindow()){
           options.windowLevel = 3;
@@ -363,7 +359,7 @@ export default class AppEnvConstructor {
           options.windowLevel = 1;
         }
       }
-      ipcRenderer.send(`${additionalChannelParam}close-window`, options);
+      ipcRenderer.send(`close-window`, options);
     } else {
       // console.log('no options send for appenv.close');
     }
