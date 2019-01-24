@@ -21,6 +21,10 @@ import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts'
 import Button from '../../common/Button';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
 import { login, queryProfile } from '../../../utils/restjs'
+import { isJsonStr } from '../../../utils/stringUtils';
+
+import keyMannager from '../../../../../../src/key-manager';
+import MemberProfile from '../conversations/MemberProfile';
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class MessagesPanel extends PureComponent {
@@ -118,17 +122,20 @@ export default class MessagesPanel extends PureComponent {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
     const db = sqlite(dbpath);
-    const stmt = db.prepare('SELECT * FROM contactName where sendToCount > 1');
+    const stmt = db.prepare('SELECT * FROM contactName where sendToCount > 1  and recvFromCount >= 1');
     let emailContacts = stmt.all();
     const curJid = chatModel.currentUser.jid;
-    login(chatModel.currentUser.email, chatModel.currentUser.password, (err, res) => {
-      if (!res) {
-        console.log('fail to login to queryProfile');
-        return;
-      }
-      res = JSON.parse(res);
+    const chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    keyMannager.getAccessTokenByEmail(Object.keys(chatAccounts)[0]).then(accessToken => {
       const emails = emailContacts.map(contact => contact.email);
-      queryProfile({ accessToken: res.data.accessToken, emails }, (err, res) => {
+      queryProfile({ accessToken, emails }, (err, res) => {
+        if (!res) {
+          console.log('fail to login to queryProfile');
+          return;
+        }
+        if (isJsonStr(res)) {
+          res = JSON.parse(res);
+        }
         emailContacts = emailContacts.map((contact, index) => {
           contact = Object.assign(contact, res.data.users[index])
           if (contact.userId) {
@@ -143,8 +150,6 @@ export default class MessagesPanel extends PureComponent {
         this.setState(state);
       })
     })
-
-
     db.close();
   }
 
@@ -280,6 +285,7 @@ export default class MessagesPanel extends PureComponent {
         onGroupConversationCompleted({ contacts: members, roomId, name: chatName });
       }
       else if (members.length == 1 && onPrivateConversationCompleted) {
+        console.log('cxm*** onPrivateConversationCompleted ', members[0]);
         onPrivateConversationCompleted(members[0]);
       }
     }
@@ -304,6 +310,26 @@ export default class MessagesPanel extends PureComponent {
       this.refreshRoomMembers();
     }
   };
+
+  editMemberProfile = member => {
+    const state = Object.assign({}, this.state, {editingMember:member});
+    this.setState(state);
+  }
+
+  exitMemberProfile = member => {
+    const state = Object.assign({}, this.state, {editingMember:null});
+    console.log('cxm*** exitMemberProfile ', member);
+    if (this.nicknameMap[member.jid] != member.nickname) {
+      this.nicknameMap[member.jid] = member.nickname;
+      const nicknames = Object.keys(this.nicknameMap).map(jid=>({ jid, nickname: this.nicknameMap[jid] }));
+      const conversation = this.props.selectedConversation;
+      conversation.update({
+        $set: { nicknames }
+      })
+      //cxm todo: save conversation to db;
+    }
+    this.setState(state);
+  }
 
   reconnect = () => {
     registerLoginChatAccounts();
@@ -370,17 +396,25 @@ export default class MessagesPanel extends PureComponent {
       deselectConversation: this.props.deselectConversation,
       toggleInvite: this.toggleInvite,
       members: this.state.members,
-      removeMember: this.removeMember
+      getRoomMembers: this.getRoomMembers,
+      removeMember: this.removeMember,
+      editMemberProfile: this.editMemberProfile,
+      exitMemberProfile: this.exitMemberProfile,
     };
-    const emails = contacts.map(contact => contact.email);
-    let allContacts;
-    if (this.state.emailContacts) {
-      allContacts = contacts.concat(this.state.emailContacts.filter((contact => {
-        return emails.indexOf(contact.email) === -1;
-      })))
-    } else {
-      allContacts = contacts;
-    }
+    const contactsSet = {};
+    contacts.forEach(contact => {
+      contactsSet[contact.email] = 1;
+      return
+    });
+    let allContacts = contacts.slice();
+    this.state.emailContacts && this.state.emailContacts.forEach(contact => {
+      if (contactsSet[contact.email]) {
+        return;
+      } else {
+        contactsSet[contact.email] = 1;
+        allContacts.push(contact);
+      }
+    });
 
     const newConversationProps = {
       contacts: allContacts,
@@ -463,6 +497,12 @@ export default class MessagesPanel extends PureComponent {
             <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup} />
           </FixedPopover>
         )}
+        {
+          (this.state.editingMember) ? (
+            <MemberProfile exitMemberProfile={this.exitMemberProfile} member={this.state.editingMember} onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
+            </MemberProfile>
+          ) : null
+        }
       </div>
     );
   }

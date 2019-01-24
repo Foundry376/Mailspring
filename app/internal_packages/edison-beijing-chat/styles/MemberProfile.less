@@ -1,0 +1,50 @@
+@import 'ui-variables';
+
+.member-profile-panel {
+  position: absolute;
+  top:100px;
+  right:300px;
+  border: 1px gray solid;
+  width:800px;
+  height:600px;
+  background-color: white;
+  .member-info-area {
+    .member-avatar {
+      width:200px;
+      height:200px;
+      overflow: hidden;
+      border-radius: 50%;
+      -moz-border-radius: 50%;
+      -webkit-border-radius: 50%;
+      float:left;
+    }
+    .member-fields{
+      width:500px;
+      height:240px;
+      margin: 0 0 0 5px;
+      float:left;
+    }
+    .member-field {
+      width: 100%;
+      height:14px;
+      input {
+        width: 300px;
+      }
+    }
+  }
+  .command-button {
+    width: 120px;
+    height: 32px;
+    margin: 0 auto;
+    border-radius: 16px;
+    margin: 0;
+    font-weight: bold;
+    color: @accent-primary;
+    box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
+    transition: 0.5s;
+    &:hover {
+      box-shadow: -2px 2.5px 10px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+}

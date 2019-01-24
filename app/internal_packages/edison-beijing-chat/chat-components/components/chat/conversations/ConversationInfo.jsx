@@ -7,6 +7,7 @@ import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
 import { clearMessages } from '../../../utils/message';
+import MemberProfile from './MemberProfile';
 
 const { primaryColor } = theme;
 
@@ -75,6 +76,10 @@ export default class ConversationInfo extends Component {
     ]
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
   }
+  exitEditMemberProfile = () => {
+    const state = Object.assign({}, this.state, {editingMember:null});
+    this.setState(state);
+  }
 
   render = () => {
     const { selectedConversation: conversation, members } = this.props;
@@ -118,8 +123,13 @@ export default class ConversationInfo extends Component {
               };
               const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
 
+              const onEditMemberProfile = () => {
+                this.props.editMemberProfile(member);
+                return;
+              }
+
               return (
-                <div className="row item" key={jid}>
+                <div className="row item" key={jid} onClick={onEditMemberProfile}>
                   <div id="avatar">
                     <ContactAvatar jid={jid} name={member.name}
                       email={member.email} avatar={member.avatar} size={30} />
