@@ -95,7 +95,9 @@ export default class MessageEditBar extends PureComponent {
       roomMembers,
       occupants
     })
-    this.textarea.focus();
+    if (this.textarea) {
+      this.textarea.focus();
+    }
   }
 
   getRoomMembers = async () => {

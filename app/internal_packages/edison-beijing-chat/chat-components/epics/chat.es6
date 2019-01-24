@@ -636,7 +636,7 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
         let msgFrom = payload.from.resource + '@im.edison.tech';
         return Observable.fromPromise(db.contacts.findOne().where('jid').eq(msgFrom).exec())
           .map(contact => {
-            content = `${contact.name}: ${content}`
+            content = contact ? `${contact.name}: ${content}` : content
             return showConversationNotification(conversationJid, name || conv.name, content);
           })
       })

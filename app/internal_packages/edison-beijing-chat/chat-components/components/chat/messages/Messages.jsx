@@ -185,7 +185,7 @@ export default class Messages extends PureComponent {
     if (convJid === jid) {
       return { jid, name, email };
     }
-    return { jid: '', name: '', email: '' };
+    return { jid, name: '', email: '' };
   }
 
   getContactAvatar = member => {
@@ -477,7 +477,11 @@ export default class Messages extends PureComponent {
           </div>
         ))
         }
-        <MessageImagePopup {...this.props} getContactInfoByJid={this.getContactInfoByJid} />
+        <MessageImagePopup
+          {...this.props}
+          getContactInfoByJid={this.getContactInfoByJid}
+          getContactAvatar={this.getContactAvatar}
+        />
         <div ref={element => { this.messagePanelEnd = element; }} />
       </div>
     );

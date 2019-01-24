@@ -435,7 +435,7 @@ export default class MessagesPanel extends PureComponent {
             <span>Select a conversation to start messaging</span>
           </div>
         }
-        {/* {(!this.state.online || !this.props.chat_online) && (
+        {(!this.state.online || !this.props.chat_online) && (
           <div className="network-offline">
             {this.state.online ? (
               this.state.connecting ? (
@@ -445,7 +445,7 @@ export default class MessagesPanel extends PureComponent {
                 )
             ) : null}
           </div>
-        )} */}
+        )}
         {inviting && selectedConversation.jid !== NEW_CONVERSATION && (
           <FixedPopover {...{
             direction: 'down',

@@ -159,7 +159,8 @@ export default class MessageImagePopup extends Component {
   render() {
     const {
       referenceTime,
-      getContactInfoByJid
+      getContactInfoByJid,
+      getContactAvatar
     } = this.props;
 
     const timeDescriptor = buildTimeDescriptor(referenceTime);
@@ -180,7 +181,7 @@ export default class MessageImagePopup extends Component {
                 <CancelIcon color={"#787e80"} />
               </Button>
               <div className="messageSender image-popup-avatar" className="inline-block">
-                {getContactInfoByJid(msg.sender)}
+                {getContactAvatar(getContactInfoByJid(msg.sender))}
               </div>
               <div className="inline-block">
                 <div>{fileName}</div>
