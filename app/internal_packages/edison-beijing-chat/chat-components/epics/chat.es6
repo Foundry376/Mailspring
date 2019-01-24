@@ -417,20 +417,14 @@ export const receiveGroupMessageEpic = action$ =>
       return receiveGroupMessage(payload)
     });
 
-export const convertReceivedMessageEpic = (action$, { getState }) =>
+export const convertReceivedMessageEpic = (action$) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
     .map(({ type, payload }) => {
       const { timeSend } = JSON.parse(payload.body);
       let sender = payload.from.bare;
       // if groupchat, display the sender name
       if (type === RECEIVE_GROUP_MESSAGE) {
-        const reduxStore = getState();
-        // If the sender is your self
-        if (payload.from.resource === reduxStore.auth.currentUser.local) {
-          sender = reduxStore.auth.currentUser.bare
-        } else {
-          sender = payload.from.resource + '@im.edison.tech';
-        }
+        sender = payload.from.resource + '@im.edison.tech';
       }
       return {
         id: payload.id,

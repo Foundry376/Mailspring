@@ -76,67 +76,73 @@ const getProfile = async (jid) => {
 
 const saveConversations = async conversations => {
   const db = await getDb();
-  return Promise.all(conversations.map(async conv => {
-    const convInDB = await db.conversations.findOne(conv.jid).exec();
-    if (conv.unreadMessages === 1) {
-      if (convInDB) {
-        conv.unreadMessages = convInDB.unreadMessages + 1;
-      }
-    }
-    // when private chat, update avatar
-    if (!conv.isGroup) {
-      const contact = await db.contacts.findOne(conv.jid).exec();
-      if (contact && contact.avatar) {
-        conv.avatar = contact.avatar;
-      }
-      if (convInDB) {
-        return convInDB.update({
-          $set: {
-            ...conv
-          }
-        })
-      }
-    }
-    // when group chat, if exists in db, do not update occupants
-    else {
-      const profile = await getProfile(conv.lastMessageSender);
-      if (profile && profile.resultCode === 1) {
-        conv.lastMessageSenderName = profile.data.name;
-      }
-      if (!conv.avatarMembers) {
-        conv.avatarMembers = []
-        let contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
-        if (contact) {
-          contact = copyRxdbContact(contact);
-          conv.avatarMembers.push(contact);
-        }
-      }
-      if (conv.avatarMembers.length < 2) {
-        let contact = await db.contacts.findOne().where('jid').eq(conv.curJid).exec();
-        if (contact) {
-          contact = copyRxdbContact(contact);
-          conv.avatarMembers.push(contact);
-        }
-      }
-      if (convInDB) {
-        await convInDB.update({
-          $set: {
-            at: conv.at,
-            unreadMessages: conv.unreadMessages,
-            lastMessageTime: conv.lastMessageTime,
-            lastMessageText: conv.lastMessageText,
-            lastMessageSender: conv.lastMessageSender,
-            lastMessageSenderName: conv.lastMessageSenderName,
-            avatarMembers: conv.avatarMembers
-          }
-        });
-        chatModel.updateAvatars(conv.jid);
-        return;
-      }
-    }
-    return db.conversations.upsert(conv)
-  }));
+  const convs = [];
+  for (const conv of conversations) {
+    const c = await saveConversation(db, conv);
+    convs.push(c);
+  }
+  return convs;
 };
+const saveConversation = async (db, conv) => {
+  const convInDB = await db.conversations.findOne(conv.jid).exec();
+  if (conv.unreadMessages === 1) {
+    if (convInDB) {
+      conv.unreadMessages = convInDB.unreadMessages + 1;
+    }
+  }
+  // when private chat, update avatar
+  if (!conv.isGroup) {
+    const contact = await db.contacts.findOne(conv.jid).exec();
+    if (contact && contact.avatar) {
+      conv.avatar = contact.avatar;
+    }
+    if (convInDB) {
+      return convInDB.update({
+        $set: {
+          ...conv
+        }
+      })
+    }
+  }
+  // when group chat, if exists in db, do not update occupants
+  else {
+    const profile = await getProfile(conv.lastMessageSender);
+    if (profile && profile.resultCode === 1) {
+      conv.lastMessageSenderName = profile.data.name;
+    }
+    if (!conv.avatarMembers) {
+      conv.avatarMembers = []
+      let contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
+      if (contact) {
+        contact = copyRxdbContact(contact);
+        conv.avatarMembers.push(contact);
+      }
+    }
+    if (conv.avatarMembers.length < 2) {
+      let contact = await db.contacts.findOne().where('jid').eq(conv.curJid).exec();
+      if (contact) {
+        contact = copyRxdbContact(contact);
+        conv.avatarMembers.push(contact);
+      }
+    }
+    if (convInDB) {
+      await convInDB.update({
+        $set: {
+          at: conv.at,
+          unreadMessages: conv.unreadMessages,
+          lastMessageTime: conv.lastMessageTime,
+          lastMessageText: conv.lastMessageText,
+          lastMessageSender: conv.lastMessageSender,
+          lastMessageSenderName: conv.lastMessageSenderName,
+          avatarMembers: conv.avatarMembers
+        }
+      });
+      chatModel.updateAvatars(conv.jid);
+      return convInDB;
+    }
+  }
+  return db.conversations.upsert(conv)
+}
 
 const retriveConversation = async jid => {
   const db = await getDb();
@@ -161,17 +167,29 @@ const clearConversationUnreadMessages = async jid => {
   });
 };
 
+let prevConvJid;
+let prevConvName;
 const saveConversationName = async payload => {
   const db = await getDb();
-  const conv = await db.conversations.findOne(payload.from.bare).exec();
+  // same payload may be cause [Document update conflict] error
+  const convJid = payload.from.bare;
+  const convName = convName;
+  if (prevConvJid === convJid
+    && prevConvName === convName) {
+    return [];
+  }
+  prevConvJid = convJid;
+  prevConvName = convName;
+  const conv = await db.conversations.findOne(convJid).exec();
   if (conv) {
-    return conv.update({
+    await conv.update({
       $set: {
-        name: payload.edimucevent.edimucconfig.name
+        name: convName
       }
     })
+    return conv;
   }
-  return null
+  return []
 };
 
 export const storeConversationNameEpic = action$ =>
@@ -196,6 +214,7 @@ export const beginStoreConversationsEpic = action$ =>
       Observable.fromPromise(saveConversations(conversations))
         .map(convs => successfullyStoredConversations(convs))
         .catch(err => {
+          console.log('failedStoringConversations', err);
           return Observable.of(failedStoringConversations(err, conversations))
         })
     );
