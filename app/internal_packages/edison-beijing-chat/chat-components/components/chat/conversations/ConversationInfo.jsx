@@ -78,8 +78,8 @@ export default class ConversationInfo extends Component {
 
   render = () => {
     const { selectedConversation: conversation, members } = this.props;
-    const roomMembers = conversation.roomMembers && conversation.roomMembers.length > 0
-      ? conversation.roomMembers : members;
+    const roomMembers = members && members.length > 0
+      ? members : conversation.roomMembers;
     for (const member of roomMembers) {
       const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
       if (member.affiliation === 'owner' && jid === conversation.curJid) {
