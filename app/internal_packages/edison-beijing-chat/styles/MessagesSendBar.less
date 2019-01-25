@@ -2,6 +2,31 @@
 @import '../node_modules/rc-editor-mention/assets/animation.css';
 
 .chat-view-container {
+  .editing {
+    .sendBar {
+      padding-bottom: 40px;
+    }
+    .edit-button-group {
+      position: absolute;
+      right: 16px;
+      bottom: 2px;
+      display: flex;
+      width: 300px;
+      justify-content: flex-end;
+      .button {
+        border-radius: 5px;
+        margin-left: 10px;
+        padding: 2px 10px;
+        &.cancel {
+          color: #ff355e;
+        }
+      }
+      .sendBarEmoji {
+        position: static;
+        margin: 0;
+      }
+    }
+  }
   .sendBar {
     position: relative;
     width: 100%;
@@ -114,25 +139,5 @@
   .chat-message-filelist {
     display:block;
     align-self: left;
-  }
-  .edit-button-group {
-    position: absolute;
-    right: 16px;
-    bottom: -15px;
-    display: flex;
-    width: 300px;
-    justify-content: flex-end;
-    .button {
-      border-radius: 5px;
-      margin-left: 10px;
-      padding: 2px 10px;
-      &.cancel {
-        color: #ff355e;
-      }
-    }
-    .sendBarEmoji {
-      position: static;
-      margin: 0;
-    }
   }
 }

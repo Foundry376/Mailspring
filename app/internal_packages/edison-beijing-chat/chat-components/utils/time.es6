@@ -56,7 +56,10 @@ export const buildTimeDescriptor = (currentTime = new Date().getTime()) => {
 const DAY_LABEL_FORMATS = {
   sameDay: '[Today]',
   lastDay: '[Yesterday]',
-  sameElse: 'dddd, MMMM Do YYYY',
+  sameWeek: 'ddd, MMMM Do YYYY',
+  lastWeek: 'ddd, MMMM Do YYYY',
+  nextWeek: 'ddd, MMMM Do YYYY',
+  sameElse: 'ddd, MMMM Do YYYY',
 };
 export const dateFormat = (timestamp, format) => {
   const currentTime = new Date().getTime();
