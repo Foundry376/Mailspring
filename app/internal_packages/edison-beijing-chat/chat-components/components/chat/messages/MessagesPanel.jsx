@@ -23,6 +23,7 @@ import FixedPopover from '../../../../../../src/components/fixed-popover';
 import { login, queryProfile } from '../../../utils/restjs'
 import { isJsonStr } from '../../../utils/stringUtils';
 
+
 import keyMannager from '../../../../../../src/key-manager';
 import MemberProfile from '../conversations/MemberProfile';
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -124,30 +125,36 @@ export default class MessagesPanel extends PureComponent {
     const db = sqlite(dbpath);
     const stmt = db.prepare('SELECT * FROM contactName where sendToCount > 1  and recvFromCount >= 1');
     let emailContacts = stmt.all();
-    const curJid = chatModel.currentUser.jid;
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
-    keyMannager.getAccessTokenByEmail(Object.keys(chatAccounts)[0]).then(accessToken => {
-      const emails = emailContacts.map(contact => contact.email);
-      queryProfile({ accessToken, emails }, (err, res) => {
-        if (!res) {
-          console.log('fail to login to queryProfile');
-          return;
-        }
-        if (isJsonStr(res)) {
-          res = JSON.parse(res);
-        }
-        emailContacts = emailContacts.map((contact, index) => {
-          contact = Object.assign(contact, res.data.users[index])
-          if (contact.userId) {
-            contact.jid = contact.userId + '@im.edison.tech'
-          } else {
-            contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
-          }
-          contact.curJid = curJid;
-          return contact;
-        });
-        const state = Object.assign({}, this.state, { emailContacts });
-        this.setState(state);
+    const email = Object.keys(chatAccounts)[0];
+    (getDb()).then(db => {
+      db.contacts.findOne().where('email').eq(email).exec().then(chatContact => {
+        // console.log('cxm*** chatContact ', chatContact);
+        keyMannager.getAccessTokenByEmail(email).then(accessToken => {
+          const emails = emailContacts.map(contact => contact.email);
+          queryProfile({ accessToken, emails }, (err, res) => {
+            if (!res) {
+              console.log('fail to login to queryProfile');
+              return;
+            }
+            if (isJsonStr(res)) {
+              res = JSON.parse(res);
+            }
+            emailContacts = emailContacts.map((contact, index) => {
+              contact = Object.assign(contact, res.data.users[index])
+              if (contact.userId) {
+                contact.jid = contact.userId + '@im.edison.tech'
+              } else {
+                contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
+              }
+              contact.curJid = chatContact.curJid;
+              return contact;
+            });
+            const state = Object.assign({}, this.state, { emailContacts });
+            // console.log('cxm*** emailContacts ', this.state.emailContacts);
+            this.setState(state);
+          })
+        })
       })
     })
     db.close();
@@ -297,7 +304,7 @@ export default class MessagesPanel extends PureComponent {
         onGroupConversationCompleted({ contacts: members, roomId, name: chatName });
       }
       else if (members.length == 1 && onPrivateConversationCompleted) {
-        //console.log('cxm*** onPrivateConversationCompleted ', members[0]);
+        // console.log('cxm*** onPrivateConversationCompleted ', members[0]);
         onPrivateConversationCompleted(members[0]);
       }
     }
@@ -430,6 +437,7 @@ export default class MessagesPanel extends PureComponent {
         allContacts.push(contact);
       }
     });
+    // console.log('cxm*** allContacts ', allContacts);
 
     const newConversationProps = {
       contacts: allContacts,
