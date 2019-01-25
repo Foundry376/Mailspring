@@ -89,7 +89,7 @@ export default class MessagesSendBar extends PureComponent {
 
   componentDidMount = async () => {
     const roomMembers = await this.getRoomMembers();
-    console.log('cxm*** sendbar getRoomMembers ', roomMembers);
+    //console.log('cxm*** sendbar getRoomMembers ', roomMembers);
     const occupants = roomMembers.map(item => item.jid.bare);
     this.setState({
       roomMembers,

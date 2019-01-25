@@ -39,7 +39,8 @@ export default {
     },
     roomMembers: { // group chat members
       type: 'array',
-      default: []
+      default: [],
+    },
     nicknames: { // array of jid with nickname
       type: 'array',
       items: {

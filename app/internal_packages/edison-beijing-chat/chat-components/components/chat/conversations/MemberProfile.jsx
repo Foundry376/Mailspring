@@ -28,12 +28,22 @@ export default class MemberProfie extends Component {
 
   componentDidMount = () => {
     this.queryProfile();
+    const rect = this.panel.getBoundingClientRect();
+    // console.log('cxm*** getBoundingClientRect ', rect);
+    this.panelRect = rect;
+    document.body.addEventListener('click', this.onClickWithMemberProfile);
+
+  };
+  componentwillUnmount = () => {
+    document.body.removeEventListener('click', this.onClickWithMemberProfile);
 
   };
   queryProfile = () => {
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    //console.log('cxm*** before queryProfile member ', this.props.member);
+    const userId = this.props.member.jid.local || this.props.member.jid.split('@')[0];
     keyMannager.getAccessTokenByEmail(Object.keys(chatAccounts)[0]).then(accessToken => {
-      queryProfile({ accessToken, userId: this.props.member.jid.local }, (err, res) => {
+      queryProfile({ accessToken, userId }, (err, res) => {
         if (!res) {
           console.log('fail to queryProfile');
           return;
@@ -41,7 +51,8 @@ export default class MemberProfie extends Component {
         if (isJsonStr(res)) {
           res = JSON.parse(res);
         }
-        const member = Object.assign({}, this.state.member, res.data);
+        //console.log('cxm*** queryProfile res ', res);
+        const member = Object.assign(this.state.member, res.data);
         const state = Object.assign({}, this.state, {member});
         this.setState(state);
         });
@@ -49,7 +60,7 @@ export default class MemberProfie extends Component {
   };
 
   componentWillReceiveProps = (nextProps) => {
-    console.log('cxm*** componentWillReceiveProps ', nextProps);
+    //console.log('cxm*** componentWillReceiveProps ', nextProps);
     if (!this.props.member || nextProps.member.email !== this.props.member.email) {
       this.props = nextProps;
       const member = nextProps.member;
@@ -87,14 +98,20 @@ export default class MemberProfie extends Component {
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
   };
 
-  onBlur = (e) => {
-    this.props.exitMemberProfile(this.state.member);
+  onClickWithMemberProfile = (e) => {
+    //  cxm:
+    // because onBlur on a div container does not work as expected
+    // so it's necessary to use this as a workaround
+    const rect = this.panelRect;
+    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+      this.props.exitMemberProfile(this.state.member);
+    }
   };
   startPrivateChat = (e) => {
     this.props.exitMemberProfile(this.props.member);
     const member = Object.assign({}, this.props.member);
     member.jid = member.jid.bare || member.jid;
-    console.log('cxm*** startPrivateChat ', member);
+    //console.log('cxm*** startPrivateChat ', member);
     member.name = member.name || member.jid.split('^at^')[0];
     this.props.onPrivateConversationCompleted(member);
   };
@@ -111,10 +128,12 @@ export default class MemberProfie extends Component {
 
   }
   onChangeNickname = (e) => {
+    // e.preventDefault();
+    // e.stopPropagation();
     const {member} = this.state;
-    this.state.member.nickname = e.target.value;
-    console.log('cxm*** onChangeNickname ', this.state.member);
-    const state = Object({}, this.state);
+    member.nickname = e.target.value;
+    //console.log('cxm*** onChangeNickname ', member);
+    const state = Object({}, this.state, {member});
     this.setState(state);
     return;
   }
@@ -125,11 +144,12 @@ export default class MemberProfie extends Component {
     if (member.avatar) {
       backgroundImage = `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${member.avatar})`;
     } else {
-      // backgroundImage = 'url(http://www.yanchao004.com/Uploads/Picture/2015-08-20/55d5857191524.jpg)'
+      backgroundImage = 'url(http://www.yanchao004.com/Uploads/Picture/2015-08-20/55d5857191524.jpg)'
     }
+    //console.log('cxm*** mem profile member ', member);
 
     return (
-      <div className="member-profile-panel" onBlur={this.onBlur} tabIndex={-1}>
+      <div className="member-profile-panel" ref = {(el)=> this.panel = el } tabIndex={1}>
         <div className="member-info-area">
           <div className="member-avatar" style={{backgroundImage}}></div>
           <div className="member-fields">
@@ -143,7 +163,7 @@ export default class MemberProfie extends Component {
             <div> <span>email</span> <span>{member.email}</span></div>
             <div className='member-field'>
               <span>nickname</span>
-              <input type='text' placeholder='input nickname here' value={member.nickname} onChange={this.onChangeNickname}></input></div>
+              <input type='text' placeholder='input nickname here' value={member.nickname} onChange={this.onChangeNickname} onBlur={this.onChangeNickname}></input></div>
           </div>
         </div>
       </div>
