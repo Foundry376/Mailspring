@@ -239,7 +239,6 @@ export default class Messages extends PureComponent {
       groupedMessages,
       selectedConversation: { isGroup, jid },
     } = this.props;
-    messageModel.messagesReactInstance = this;
     messageModel.currentUserId = currentUserId;
     if (groupedMessages.length) {
       chatModel.groupedMessages = groupedMessages;

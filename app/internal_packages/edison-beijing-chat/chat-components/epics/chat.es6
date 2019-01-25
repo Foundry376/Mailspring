@@ -38,6 +38,7 @@ import {
 } from '../actions/chat';
 import {
   UPDATE_SELECTED_CONVERSATION,
+  updateSelectedConversation,
   beginStoringConversations,
 } from '../actions/db/conversation';
 import {
@@ -77,7 +78,7 @@ const addToAvatarMembers = (conv, contact) => {
   }
 }
 
-const downloadAndTagImageFileInMessage = (aes, payload) => {
+const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
   let body;
   if (aes) {
     body = decryptByAES(aes, payload.payload);
@@ -101,8 +102,19 @@ const downloadAndTagImageFileInMessage = (aes, payload) => {
     path = downpath + name;
     msgBody.path = 'file://' + path;
     downloadFile(aes, msgBody.mediaObjectId, path, () => {
-      if (fs.existsSync(path) && messageModel.messagesReactInstance) {
-        messageModel.messagesReactInstance.update();
+      if (fs.existsSync(path)) {
+        // console.log('cxm*** chatType payload', chatType, payload);
+        let convJid;
+        if (chatType===RECEIVE_CHAT){
+          convJid = payload.from.bare;
+        } else {
+          convJid = payload.from.local;
+        }
+        (getDb()).then(db => {
+          db.conversations.findOne().where('jid').eq(convJid).exec().then(conv =>{
+            updateSelectedConversation(conv);
+          })
+        });
       }
     });
   }
@@ -110,6 +122,7 @@ const downloadAndTagImageFileInMessage = (aes, payload) => {
     msgBody.aes = aes;
   }
   payload.body = JSON.stringify(msgBody);
+
   return;
 }
 
@@ -365,11 +378,11 @@ export const receivePrivateMessageEpic = action$ =>
           let text = keys[jidLocal][deviceId];
           if (text) {
             let aes = decrypte(text, priKey); //window.localStorage.priKey);
-            downloadAndTagImageFileInMessage(aes, payload);
+            downloadAndTagImageFileInMessage(RECEIVE_CHAT, aes, payload);
           }
         }
       } else {
-        downloadAndTagImageFileInMessage(null, payload);
+        downloadAndTagImageFileInMessage(RECEIVE_CHAT, null, payload);
       }
       return payload.body;
     })
@@ -405,11 +418,11 @@ export const receiveGroupMessageEpic = action$ =>
           let text = keys[jidLocal][deviceId];
           if (text) {
             let aes = decrypte(text, priKey);//window.localStorage.priKey);
-            downloadAndTagImageFileInMessage(aes, payload);
+            downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, aes, payload);
           }
         }
       } else {
-        downloadAndTagImageFileInMessage(null, payload);
+        downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, null, payload);
       }
       return payload.body;
     })
