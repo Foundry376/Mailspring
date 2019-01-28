@@ -8,7 +8,7 @@
 
 Mailspring's UI is open source (GPLv3) and written in JavaScript with [Electron](https://github.com/atom/electron) and [React](https://facebook.github.io/react/) - it's built on a plugin architecture and was designed to be easy to extend. Check out [CONTRIBUTING.md](https://github.com/Foundry376/Mailspring/blob/master/CONTRIBUTING.md) to get started!
 
-Mailspring's sync engine is spawned by the Electron application and runs locally on your computer. It will be open-sourced in the future but is [currently closed source.](https://github.com/Foundry376/Mailspring/blob/master/ROADMAP.md#why-is-mailsync-closed-source) When you set up your development environment, Mailspring uses the latest version of the sync process we've shipped for your platform so you don't need to pull sources or install it's compile-time dependencies.
+Mailspring's sync engine is spawned by the Electron application and runs locally on your computer. It will be open-sourced in the future but is [currently closed source.](https://github.com/Foundry376/Mailspring/blob/master/ROADMAP.md#why-is-mailsync-closed-source) When you set up your development environment, Mailspring uses the latest version of the sync process we've shipped for your platform so you don't need to pull sources or install its compile-time dependencies.
 
 ![Mailspring Screenshot](https://github.com/Foundry376/Mailspring/raw/master/screenshots/hero_graphic_mac%402x.png)
 
