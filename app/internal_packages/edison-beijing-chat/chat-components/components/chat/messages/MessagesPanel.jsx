@@ -119,62 +119,51 @@ export default class MessagesPanel extends PureComponent {
     window.removeEventListener("offline", this.offLine);
   }
 
-  getEmailContacts = () => {
+  getEmailContacts = async () => {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
-    const db = sqlite(dbpath);
-    const stmt = db.prepare('SELECT * FROM contactName where sendToCount > 1  and recvFromCount >= 1');
+    const sqldb = sqlite(dbpath);
+    const stmt = sqldb.prepare('SELECT * FROM contactName where sendToCount > 1  and recvFromCount >= 1');
     let emailContacts = stmt.all();
+    sqldb.close();
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     const email = Object.keys(chatAccounts)[0];
-    (getDb()).then(db => {
-      db.contacts.findOne().where('email').eq(email).exec().then(chatContact => {
-        // console.log('cxm*** chatContact ', chatContact);
-        let  queryByToken;
-        keyMannager.getAccessTokenByEmail(email).then(accessToken => {
-          console.log('cxm *** keyMannager.getAccessTokenByEmail ', email, accessToken);
-          checkToken( accessToken,
-            (res) => {
-              // console.log('cxm*** success checktoken ', res);
-              queryByToken(accessToken)
-            },
-            (err, res) => {
-              // console.log('cxm*** fail checktoken ', res);
-              refreshChatAccountTokens().then(() =>
-                keyMannager.getAccessTokenByEmail(email).then(
-                  accessToken => queryByToken(accessToken)))
-            }
-          )
-        });
-        queryByToken = accessToken => {
-          console.log('cxm *** queryByToken ', accessToken);
-          const emails = emailContacts.map(contact => contact.email);
-          queryProfile({ accessToken, emails }, (err, res) => {
-            if (!res) {
-              console.log('fail to login to queryProfile');
-              return;
-            }
-            if (isJsonStr(res)) {
-              res = JSON.parse(res);
-            }
-            emailContacts = emailContacts.map((contact, index) => {
-              contact = Object.assign(contact, res.data ? res.data.users[index] : {})
-              if (contact.userId) {
-                contact.jid = contact.userId + '@im.edison.tech'
-              } else {
-                contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
-              }
-              contact.curJid = chatContact.curJid;
-              return contact;
-            });
-            const state = Object.assign({}, this.state, { emailContacts });
-            // console.log('cxm*** emailContacts ', this.state.emailContacts);
-            this.setState(state);
-          })
+    const db = await getDb();
+    let chatContact = await db.contacts.findOne().where('email').eq(email).exec();
+    // console.log('cxm*** chatContact ', chatContact);
+    let  queryByToken;
+    let accessToken = await keyMannager.getAccessTokenByEmail(email);
+    console.log('cxm *** keyMannager.getAccessTokenByEmail ', email, accessToken);
+    let {err, res} = await checkToken(accessToken);
+    if (err || !res || res.resultCode!==1) {
+      // console.log('cxm*** fail checktoken ', res);
+      await refreshChatAccountTokens()
+      accessToken = await keyMannager.getAccessTokenByEmail(email);
+    }
+    // console.log('cxm *** queryByToken ', accessToken);
+    const emails = emailContacts.map(contact => contact.email);
+    queryProfile({ accessToken, emails }, (err, res) => {
+      if (!res) {
+        console.log('fail to login to queryProfile');
+        return;
+      }
+      if (isJsonStr(res)) {
+        res = JSON.parse(res);
+      }
+      emailContacts = emailContacts.map((contact, index) => {
+        contact = Object.assign(contact, res.data ? res.data.users[index] : {})
+        if (contact.userId) {
+          contact.jid = contact.userId + '@im.edison.tech'
+        } else {
+          contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
         }
+        contact.curJid = chatContact.curJid;
+        return contact;
       });
-    });
-    db.close();
+      const state = Object.assign({}, this.state, { emailContacts });
+      // console.log('cxm*** emailContacts ', this.state.emailContacts);
+      this.setState(state);
+    })
   }
 
   onLine = () => {

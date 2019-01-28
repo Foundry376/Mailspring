@@ -38,48 +38,38 @@ export default class MemberProfie extends Component {
     document.body.removeEventListener('click', this.onClickWithMemberProfile);
 
   };
-  queryProfile = () => {
+  queryProfile = async () => {
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     //console.log('cxm*** before queryProfile member ', this.props.member);
     const userId = this.props.member.jid.local || this.props.member.jid.split('@')[0];
     const email = Object.keys(chatAccounts)[0];
-    let  queryByToken
-    keyMannager.getAccessTokenByEmail(email).then(accessToken => {
-      checkToken(accessToken,
-        (res) => queryByToken(accessToken),
-        (err, res) => {
-          refreshChatAccountTokens.then()(() =>
-            keyMannager.getAccessTokenByEmail(email).then(
-              accessToken => queryByToken(accessToken)))
-
-        }
-      )
-    })
-    queryByToken  = accessToken => {
-      queryProfile({ accessToken, userId }, (err, res) => {
-        if (!res) {
-          console.log('fail to queryProfile');
-          return;
-        }
-        if (isJsonStr(res)) {
-          res = JSON.parse(res);
-        }
-        //console.log('cxm*** queryProfile res ', res);
-        const member = Object.assign(this.state.member, res.data);
-        const state = Object.assign({}, this.state, {member});
-        this.setState(state);
-      });
-    };
-  }
-
-
+    let accessToken = keyMannager.getAccessTokenByEmail(email);
+    const { err, res } = await checkToken(accessToken);
+    if (err || !res || res.resultCode!==1) {
+      await refreshChatAccountTokens();
+      accessToken = keyMannager.getAccessTokenByEmail(email);
+    }
+    queryProfile({ accessToken, userId }, (err, res) => {
+      if (!res) {
+        console.log('fail to queryProfile');
+        return;
+      }
+      if (isJsonStr(res)) {
+        res = JSON.parse(res);
+      }
+      //console.log('cxm*** queryProfile res ', res);
+      const member = Object.assign(this.state.member, res.data);
+      const state = Object.assign({}, this.state, { member });
+      this.setState(state);
+    });
+  };
 
   componentWillReceiveProps = (nextProps) => {
     //console.log('cxm*** componentWillReceiveProps ', nextProps);
     if (!this.props.member || nextProps.member.email !== this.props.member.email) {
       this.props = nextProps;
       const member = nextProps.member;
-      const state = Object({}, this.state, {member});
+      const state = Object({}, this.state, { member });
       this.setState(state);
       this.queryProfile();
     }
@@ -136,8 +126,8 @@ export default class MemberProfie extends Component {
     const contact = new Contact({
       id: member.id,
       accountId: member.accountId,
-      name:member.name,
-      email:member.email
+      name: member.name,
+      email: member.email
     });
     Actions.composeNewDraftToRecipient(contact);
 
@@ -145,10 +135,10 @@ export default class MemberProfie extends Component {
   onChangeNickname = (e) => {
     // e.preventDefault();
     // e.stopPropagation();
-    const {member} = this.state;
+    const { member } = this.state;
     member.nickname = e.target.value;
     //console.log('cxm*** onChangeNickname ', member);
-    const state = Object({}, this.state, {member});
+    const state = Object({}, this.state, { member });
     this.setState(state);
     return;
   }
@@ -159,7 +149,7 @@ export default class MemberProfie extends Component {
     if (member.avatar) {
       backgroundImage = `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${member.avatar})`;
     } else {
-      backgroundImage = 'url(http://www.yanchao004.com/Uploads/Picture/2015-08-20/55d5857191524.jpg)'
+      backgroundImage = ''
     }
     console.log('cxm*** mem profile member ', member);
     let jid;
