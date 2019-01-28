@@ -1,7 +1,7 @@
 const { get, post } = require('./httpex');
 import { getPubKey } from './e2ee';
 var urlPre = 'https://restxmpp.stag.easilydo.cc/client/';
-export const register = (email, pwd, name, type, provider, setting, cb) => {
+export const register = (email, pwd, name, type, provider, setting) => {
     if (!setting) {
         return;
     }
@@ -9,34 +9,35 @@ export const register = (email, pwd, name, type, provider, setting, cb) => {
     let host = setting.imap_host;
     let ssl = setting.imap_allow_insecure_ssl ? true : (setting.imap_security === 'SSL / TLS' ? true : false);
     let port = setting.imap_port;
-
-    getPubKey((err, deviceId, pubKey) => {
-        if (!err) {
-            let data = {
-                "name": name,
-                "emailType": type,
-                "emailProvider": emailProvider,
-                "emailHost": host,
-                "emailSSL": ssl,
-                "emailPort": port,
-                "deviceType": "desktop",
-                "deviceModel": process.platform,
-                "pushToken": "",
-                "deviceId": deviceId,
-                "otherAccounts": [],
-                "e2eeKeys": [
-                    { 'id': '1', 'key': pubKey }
-                ],
-                "emailAddress": email,
-                "emailPassword": pwd,
-                "autoLogin": "true"
-            };
-            post(urlPre + 'register', data, cb);
-        } else {
-            console.warn(err);
-        }
-    })
-
+    return new Promise((resolve, reject) => {
+        getPubKey((err, deviceId, pubKey) => {
+            if (!err) {
+                let data = {
+                    "name": name,
+                    "emailType": type,
+                    "emailProvider": emailProvider,
+                    "emailHost": host,
+                    "emailSSL": ssl,
+                    "emailPort": port,
+                    "deviceType": "desktop",
+                    "deviceModel": process.platform,
+                    "pushToken": "",
+                    "deviceId": deviceId,
+                    "otherAccounts": [],
+                    "e2eeKeys": [
+                        { 'id': '1', 'key': pubKey }
+                    ],
+                    "emailAddress": email,
+                    "emailPassword": pwd,
+                    "autoLogin": "true"
+                };
+                post(urlPre + 'register', data, (err, res) => resolve({ err, res }));
+            } else {
+                console.warn(err);
+                reject(err);
+            }
+        })
+    });
 }
 export const unregister = (userId, password, cb) => {
     post(urlPre + 'unregisterV2',

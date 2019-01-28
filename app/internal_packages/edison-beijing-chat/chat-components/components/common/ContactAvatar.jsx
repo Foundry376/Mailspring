@@ -52,7 +52,7 @@ class ContactAvatar extends Component {
         })
       });
     }
-    return null;
+    return {};
   }
   shouldComponentUpdate(nextProps, nextState) {
     const { availableUsers, jid } = this.props;
