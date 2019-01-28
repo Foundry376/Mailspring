@@ -141,7 +141,7 @@ export default class MessagesPanel extends PureComponent {
               res = JSON.parse(res);
             }
             emailContacts = emailContacts.map((contact, index) => {
-              contact = Object.assign(contact, res.data.users[index])
+              contact = Object.assign(contact, res.data ? res.data.users[index] : {})
               if (contact.userId) {
                 contact.jid = contact.userId + '@im.edison.tech'
               } else {
@@ -332,16 +332,16 @@ export default class MessagesPanel extends PureComponent {
 
   editMemberProfile = member => {
     //console.log('cxm*** editMemberProfile member ', member);
-    const state = Object.assign({}, this.state, {editingMember:member});
+    const state = Object.assign({}, this.state, { editingMember: member });
     this.setState(state);
   }
 
   exitMemberProfile = member => {
-    const state = Object.assign({}, this.state, {editingMember:null});
+    const state = Object.assign({}, this.state, { editingMember: null });
     //console.log('cxm*** exitMemberProfile ', member);
     if (member.nickname && this.nicknameMap[member.jid] != member.nickname) {
       this.nicknameMap[member.jid] = member.nickname;
-      const nicknames = Object.keys(this.nicknameMap).map(jid=>({ jid, nickname: this.nicknameMap[jid] }));
+      const nicknames = Object.keys(this.nicknameMap).map(jid => ({ jid, nickname: this.nicknameMap[jid] }));
       const conversation = this.props.selectedConversation;
       conversation.update({
         $set: { nicknames }
