@@ -104,7 +104,7 @@ export default class ComposerView extends React.Component {
     // the same lifecycle as the composer view. For now, just make sure we free
     // up all the memory used for undo/redo.
     const { draft, session } = this.props;
-    session.changes.add({ bodyEditorState: draft.bodyEditorState.set('history', new History()) });
+    // session.changes.add({ bodyEditorState: draft.bodyEditorState.set('history', new History()) });
   }
 
   focus() {

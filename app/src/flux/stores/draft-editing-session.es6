@@ -41,21 +41,23 @@ class DraftChangeSet extends EventEmitter {
     this._timerTime = null;
     this._lastModifiedTimes = {};
     this._lastCommitTime = 0;
+    this._lastUploadTime = 0;
   }
 
   cancelCommit() {
-    console.log('cancel commits');
+    // console.log('cancel commits');
     if (this._timer) {
       clearTimeout(this._timer);
       this._timerStarted = null;
       this._timer = null;
-    }else{
+    } else {
       console.log('no timer');
     }
   }
 
   add(changes, { skipSaving = false } = {}) {
     if (!skipSaving) {
+      // console.error('added changes');
       changes.pristine = false;
 
       // update the per-attribute flags that track our dirty state
@@ -99,12 +101,13 @@ class DraftChangeSet extends EventEmitter {
   }
 
   async commit(arg) {
-    if (this.dirtyFields().length === 0 && (arg !== 'unload')) {
+    if (this.dirtyFields().length === 0) {
       return;
     }
     if (this._timer) clearTimeout(this._timer);
     await this.callbacks.onCommit(arg);
     this._lastCommitTime = Date.now();
+    this._lastModifiedTimes = {};
   }
 }
 
@@ -186,11 +189,11 @@ export default class DraftEditingSession extends MailspringStore {
 
   constructor(headerMessageId, draft = null, popout = false) {
     super();
-
     this._draft = false;
     this._destroyed = false;
     this._popedOut = popout;
     this._popOutOrigin = {};
+    this._inView = true;
     if (AppEnv.isMainWindow()) {
       this._currentWindowLevel = 1;
     } else if (AppEnv.isThreadWindow()) {
@@ -211,6 +214,9 @@ export default class DraftEditingSession extends MailspringStore {
     ipcRenderer.on('draft-close-window', this._onDraftCloseWindow);
     ipcRenderer.on('new-window', this._onDraftNewWindow);
     ipcRenderer.on('draft-delete', this._onDraftDelete);
+    if (AppEnv.isMainWindow()) {
+      ipcRenderer.on('thread-arp', this._onThreadChange);
+    }
 
     if (draft) {
       hotwireDraftBodyState(draft);
@@ -233,12 +239,15 @@ export default class DraftEditingSession extends MailspringStore {
           }
           hotwireDraftBodyState(draft);
           this._draft = draft;
+          this._threadId = draft.threadId;
+          // console.log(`sending out draft-arp @ windowLevel ${this._currentWindowLevel}`);
           ipcRenderer.send('draft-arp', {
             headerMessageId: this.headerMessageId,
+            referenceMessageId: draft.referenceMessageId,
             threadId: draft.threadId,
             windowLevel: this._currentWindowLevel,
           });
-          this.trigger();
+          this.trigger(); // will this cause a race condition between draft arp and trigger?
         });
     }
   }
@@ -247,6 +256,10 @@ export default class DraftEditingSession extends MailspringStore {
   //
   draft() {
     return this._draft;
+  }
+
+  threadId() {
+    return this._threadId;
   }
 
   prepare() {
@@ -259,7 +272,7 @@ export default class DraftEditingSession extends MailspringStore {
 
   setPopout(val) {
     if (val !== this._popedOut) {
-      if(this.changes){
+      if (this.changes) {
         this.changes.cancelCommit();
       }
       this._popedOut = val;
@@ -362,9 +375,9 @@ export default class DraftEditingSession extends MailspringStore {
   // address.
   //
   async ensureCorrectAccount() {
-    if(this._popedOut){
+    if (this._popedOut) {
       // We do nothing if session have popouts
-      return
+      return;
     }
     const draft = this.draft();
     const account = AccountStore.accountForEmail(draft.from[0].email);
@@ -438,7 +451,7 @@ export default class DraftEditingSession extends MailspringStore {
   _onDraftCloseWindow = (event, options = {}) => {
     // console.log('session on close window', options);
     if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
-      if(options.deleting){
+      if (options.deleting) {
         this._destroyed = true;
       }
       if (this._currentWindowLevel === 2) {
@@ -477,8 +490,8 @@ export default class DraftEditingSession extends MailspringStore {
   };
 
   _onDraftDelete = (event, options) => {
-    this.changes.cancelCommit();
-    if(options.headerMessageId && this.headerMessageId === options.headerMessageId){
+    if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
+      this.changes.cancelCommit();
       this._destroyed = true;
     }
   };
@@ -489,6 +502,7 @@ export default class DraftEditingSession extends MailspringStore {
     }
     if (!this._draft) {
       // We don't accept changes unless our draft object is loaded
+      console.log(`draft not ready @ windowLevel ${this._currentWindowLevel}`);
       return;
     }
 
@@ -496,7 +510,10 @@ export default class DraftEditingSession extends MailspringStore {
     // have changed and don't include a payload.
     if (change.headerMessageId) {
       if (change.headerMessageId === this.draft.headerMessageId) {
+        console.log('triggered data change');
         this.trigger();
+      } else {
+        console.log('header message id not equal');
       }
       return;
     }
@@ -513,6 +530,9 @@ export default class DraftEditingSession extends MailspringStore {
     // we don't accept changes from the database. All changes to the draft should
     // be made through the editing session and we don't want to overwrite the user's
     // work under any scenario.
+    // Above does not apply when current session is "poped out",
+    // meaning user is not changing session in current window,
+    // thus we should reflect all changes from database
     const lockedFields = this.changes.dirtyFields();
 
     let changed = false;
@@ -520,7 +540,7 @@ export default class DraftEditingSession extends MailspringStore {
       if (key === 'headerMessageId') continue;
       if (nextDraft[key] === undefined) continue;
       if (this._draft[key] === nextDraft[key]) continue;
-      if (lockedFields.includes(key)) continue;
+      if (lockedFields.includes(key) && !this.isPopout()) continue;
 
       if (changed === false) {
         this._draft = fastCloneDraft(this._draft);
@@ -529,7 +549,33 @@ export default class DraftEditingSession extends MailspringStore {
       this._draft[key] = nextDraft[key];
     }
     if (changed) {
+      // console.log('triggered data change');
       this.trigger();
+    } else {
+      // console.log('no changes');
+    }
+  };
+
+  // We assume that when thread changes, we are switching view
+  _onThreadChange = (event, options) => {
+    if (
+      this._draft &&
+      options.threadId &&
+      this._draft.threadId === options.threadId &&
+      !this._inView
+    ) {
+      this._inView = true;
+      this._destroyed = false;
+    } else if (
+      this._draft &&
+      options.threadId &&
+      this._draft.threadId !== options.threadId &&
+      this._inView &&
+      this._destroyed
+    ) {
+      this.changes.commit('unload');
+      this.teardown();
+      this._inView = false;
     }
   };
 
@@ -542,48 +588,48 @@ export default class DraftEditingSession extends MailspringStore {
       console.error('draft id is empty', this._draft);
       this._draft.id = uuid();
     }
-    // if(this._popedOut){
-    //   if (
-    //     this._draft.remoteUID &&
-    //     (!this._draft.msgOrigin ||
-    //       (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID))
-    //   ){
-    //     this._draft.setOrigin(Message.EditExistingDraft);
-    //     this._draft.referenceMessageId = this._draft.id;
-    //     this._draft.hasNewID = true;
-    //     if(arg==='unload'){
-    //       this._draft.id = uuid();
-    //       this._draft.headerMessageId = this._draft.id;
-    //       this._draft.hasNewID = false;
-    //     }
-    //   } else if (this._draft.remoteUID && (this._draft.msgOrigin !== Message.EditExistingDraft)) {
-    //     console.error('Message with remoteUID but origin is edit existing draft');
-    //     this._draft.setOrigin(Message.EditExistingDraft);
-    //   }
-    // }else {
     if (
       this._draft.remoteUID &&
       (!this._draft.msgOrigin ||
-        (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID))
+        (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID)) &&
+      arg === 'unload'
     ) {
       this._draft.setOrigin(Message.EditExistingDraft);
       this._draft.referenceMessageId = this._draft.id;
       this._draft.id = uuid();
+      const oldHMsgId = this._draft.headerMessageId;
       this._draft.headerMessageId = this._draft.id;
+      this.headerMessageId = this._draft.headerMessageId;
       this._draft.hasNewID = true;
-    } else if (this._draft.remoteUID && (this._draft.msgOrigin !== Message.EditExistingDraft)) {
-      console.error('Message with remoteUID but origin is edit existing draft');
+      ipcRenderer.send('draft-got-new-id', {
+        newHeaderMessageId: this._draft.headerMessageId,
+        oldHeaderMessageId: oldHMsgId,
+        newMessageId: this._draft.id,
+        referenceMessageId: this._draft.referenceMessageId,
+        threadId: this._draft.threadId,
+        windowLevel: this._currentWindowLevel,
+      });
+    } else if (this._draft.remoteUID && this._draft.msgOrigin !== Message.EditExistingDraft) {
+      // console.error('Message with remoteUID but origin is not edit existing draft');
       this._draft.setOrigin(Message.EditExistingDraft);
     }
     if (arg === 'unload') {
       this._draft.hasNewID = false;
     }
-    // }
     // console.error('commit sync back draft');
     const task = new SyncbackDraftTask({ draft: this._draft });
     task.saveOnRemote = arg === 'unload';
     Actions.queueTask(task);
     await TaskQueue.waitForPerformLocal(task);
+  }
+
+  needUpload() {
+    return (
+      this._draft.remoteUID &&
+      (!this._draft.msgOrigin ||
+        (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID)) &&
+      !this._draft.pristine
+    );
   }
 
   changeSetApplyChanges = changes => {

@@ -1,6 +1,7 @@
 /* eslint react/sort-comp: 0 */
 import _ from 'underscore';
 import React from 'react';
+import {ipcRenderer} from 'electron'
 import {
   Message,
   DraftStore,
@@ -29,12 +30,31 @@ class ComposerWithWindowProps extends React.Component {
     const draft = new Message().fromJSON(draftJSON);
     DraftStore._createSession(headerMessageId, draft);
     this.state = windowProps;
+    this.state.messageId = draft.id;
   }
+  componentWillMount() {
+    ipcRenderer.on('draft-got-new-id', this._onDraftGotNewId);
+  }
+
+  _onDraftGotNewId = (event, options) => {
+    if (
+      options.referenceMessageId &&
+      options.newHeaderMessageId &&
+      options.newMessageId &&
+      options.referenceMessageId === this.state.messageId
+    ) {
+      this.setState({
+        headerMessageId: options.newHeaderMessageId,
+        messageId: options.newMessageId,
+      });
+    }
+  };
 
   componentWillUnmount() {
     if (this._usub) {
       this._usub();
     }
+    ipcRenderer.removeListener('draft-got-new-id', this._onDraftGotNewId);
   }
 
   componentDidUpdate() {
@@ -59,6 +79,7 @@ class ComposerWithWindowProps extends React.Component {
         }}
         onDraftReady={this._onDraftReady}
         headerMessageId={this.state.headerMessageId}
+        messageId={this.state.messageId}
         className="composer-full-window"
       />
     );

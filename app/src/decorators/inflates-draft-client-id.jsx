@@ -6,7 +6,7 @@ import Utils from '../flux/models/utils';
 
 function InflatesDraftClientId(ComposedComponent) {
   return class extends React.Component {
-    static displayName = ComposedComponent.displayName;
+    static displayName = `${ComposedComponent.displayName}-inflate`;
 
     static propTypes = {
       headerMessageId: PropTypes.string,
@@ -43,10 +43,24 @@ function InflatesDraftClientId(ComposedComponent) {
 
     componentWillReceiveProps(newProps) {
       if (newProps.headerMessageId !== this.props.headerMessageId) {
+        // console.log(`new props: ${JSON.stringify(newProps)}`);
         this._teardownForDraft();
         this._prepareForDraft(newProps.headerMessageId, newProps.messageId);
       }
     }
+    _onDraftGotNewId = (event, options) => {
+      if (
+        options.referenceMessageId &&
+        options.newHeaderMessageId &&
+        options.newMessageId &&
+        options.referenceMessageId === this.state.messageId
+      ) {
+        this.setState({
+          headerMessageId: options.newHeaderMessageId,
+          messageId: options.newMessageId,
+        });
+      }
+    };
 
     _prepareForDraft(headerMessageId, messageId) {
       if (!headerMessageId && !messageId) {
@@ -54,18 +68,31 @@ function InflatesDraftClientId(ComposedComponent) {
       }
       DraftStore.sessionForClientId(headerMessageId).then(session => {
         const shouldSetState = () => {
-          // const draft = session.draft();
-          return this._mounted &&
-            session.headerMessageId === this.props.headerMessageId;
+          const draft = session.draft();
+          let sameDraftWithNewID = false; // account for when draft gets new id because of being from remote
+          if (draft.referenceMessageId) {
+            sameDraftWithNewID = draft.referenceMessageId === messageId;
+          }
+          return (
+            this._mounted &&
+            (session.headerMessageId === this.props.headerMessageId || sameDraftWithNewID)
+          );
         };
         if (!shouldSetState()) {
+          // console.log('-------------------inflate-draft-cilent-id--------------- ');
+          // console.log('did not update state')
+          // console.log('------------------------------------- ');
           return;
         }
-        if (this._sessionUnlisten) {
-          this._sessionUnlisten();
-        }
+        // if (this._sessionUnlisten) {
+        //   this._sessionUnlisten();
+        // }
         this._sessionUnlisten = session.listen(() => {
+          // console.log('inflates, data change');
           if (!shouldSetState()) {
+            // console.log('-------------------inflate-draft-cilent-id--------------- ');
+            // console.log('did not update state')
+            // console.log('------------------------------------- ');
             return;
           }
           this.setState({ draft: session.draft() });
@@ -82,7 +109,7 @@ function InflatesDraftClientId(ComposedComponent) {
     _teardownForDraft() {
       if (this.state.session) {
         if (this.state.draft && !this.state.draft.pristine) {
-          this.state.session.changes.commit();
+          // this.state.session.changes.commit();
         } else {
           // this.state.session.changes.commit();
         }
@@ -96,7 +123,8 @@ function InflatesDraftClientId(ComposedComponent) {
       if (!this.state.draft) {
         return;
       }
-      if (this.state.draft.pristine && !this.state.draft.remoteUID) {//making sure draft is not from remote
+      if (this.state.draft.pristine && !this.state.draft.remoteUID) {
+        //making sure draft is not from remote
         Actions.destroyDraft(this.state.draft);
       }
     }

@@ -193,6 +193,7 @@ export default class ComposerEditor extends React.Component {
     // This needs to be here because some composer plugins defer their calls to onChange
     // (like spellcheck and the context menu).
     if (!this._mounted) return;
+    // console.log('sending out changes');
     this.props.onChange(nextValue);
   };
 

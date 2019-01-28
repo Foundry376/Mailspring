@@ -588,6 +588,42 @@ export default class Application extends EventEmitter {
       }
       event.returnValue = '';
     });
+    ipcMain.on('draft-got-new-id', (event, options) => {
+      // console.log('----------------------------------------------------');
+      // console.log(`----------------draft got new id for ${options.oldHeaderMessageId}------------------`)
+      // console.log('----------------------------------------------------');
+      let additionalChannelParam = '';
+      if (options.additionalChannelParam) {
+        additionalChannelParam = `${options.additionalChannelParam}-`;
+      }
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (mainWindow && mainWindow.browserWindow.webContents) {
+        mainWindow.browserWindow.webContents.send(
+          `${additionalChannelParam}draft-got-new-id`,
+          options,
+        );
+      }
+      if (options.threadId) {
+        const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
+        if (threadWindow && threadWindow.browserWindow.webContents) {
+          threadWindow.browserWindow.webContents.send(
+            `${additionalChannelParam}draft-got-new-id`,
+            options
+          );
+        }
+      }
+      if (options.oldHeaderMessageId) {
+        const composerWindow = this.windowManager.get(`composer-${options.oldHeaderMessageId}`);
+        if (composerWindow && composerWindow.browserWindow.webContents) {
+          composerWindow.browserWindow.webContents.send(
+            `${options.arpType}draft-got-new-id`,
+            options
+          );
+        } else {
+          console.log(`draft got new id cannot find composer ${options.oldHeaderMessageId}`);
+        }
+      }
+    });
     ipcMain.on('arp', (event, options) => {
       if (!options.arpType) {
         return;
@@ -610,7 +646,7 @@ export default class Application extends EventEmitter {
       }
     });
     ipcMain.on('arp-reply', (event, options) => {
-      if(!options.arpType){
+      if (!options.arpType) {
         return;
       }
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
@@ -696,22 +732,19 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('close-window', (event, options) => {
       let additionalChannelParam = '';
-      if(options.additionalChannelParam){
+      if (options.additionalChannelParam) {
         additionalChannelParam = `${options.additionalChannelParam}-`;
       }
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (mainWindow && mainWindow.browserWindow.webContents) {
-        mainWindow.browserWindow.webContents.send(
-          `${additionalChannelParam}close-window`,
-          options
-        );
+        mainWindow.browserWindow.webContents.send(`${additionalChannelParam}close-window`, options);
       }
       if (options.threadId) {
         const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
         if (threadWindow && threadWindow.browserWindow.webContents) {
           threadWindow.browserWindow.webContents.send(
             `${additionalChannelParam}close-window`,
-            options
+            options,
           );
         }
       }
