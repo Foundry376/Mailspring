@@ -8,7 +8,9 @@ export default async function registerLoginChatAccounts() {
   let chatAccounts = AppEnv.config.get('chatAccounts') || {};
   for (let acc of accounts) {
     let chatAccount = chatAccounts[acc.emailAddress];
-    if (!chatAccount) {
+    let passedTime = ((new Date()).getTime() - chatAccount.refreshTime)/1000;// seconds
+    let leftTime = chatAccount.expiresIn - passedTime;
+    if (!chatAccount  || (leftTime<2*24*60*3600)) {
       acc.clone = () => Object.assign({}, acc);
       acc = await keyMannager.insertAccountSecrets(acc);
       let email = acc.emailAddress;

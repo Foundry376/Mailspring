@@ -1,6 +1,11 @@
+import keyMannager from '../../../../src/key-manager';
+
 const { get, post } = require('./httpex');
 import { getPubKey } from './e2ee';
+import { isJsonStr } from './stringUtils';
+
 var urlPre = 'https://restxmpp.stag.easilydo.cc/client/';
+
 export const register = (email, pwd, name, type, provider, setting) => {
     if (!setting) {
         return;
@@ -46,8 +51,8 @@ export const unregister = (userId, password, cb) => {
 
 const profileCache = {};
 /**
- * 
- * @param {{"accessToken":"cVAy1XCdQs6Y_xRvkDTNRg",userId:"601226"}} data 
+ *
+ * @param {{"accessToken":"cVAy1XCdQs6Y_xRvkDTNRg",userId:"601226"}} data
  */
 export const queryProfile = (data, cb) => {
     if (profileCache[data.userId]) {
@@ -55,26 +60,81 @@ export const queryProfile = (data, cb) => {
         return;
     }
     post(urlPre + 'queryProfile', data, (err, resData, ...args) => {
-        let userProfile = resData;
-        if (!err) {
-            try {
-                if (typeof userProfile === 'string') {
-                    userProfile = JSON.parse(userProfile);
-                }
-            } catch (err) {
-                console.warn('queryProfile error', err);
-            }
-            profileCache[data.userId] = userProfile;
+      let userProfile = resData;
+      if (!err) {
+        try {
+          if (typeof userProfile === 'string') {
+            userProfile = JSON.parse(userProfile);
+          }
+        } catch (err) {
+          console.warn('queryProfile error', err);
         }
-        if (cb) {
-            cb(err, userProfile, ...args);
-        }
+        profileCache[data.userId] = userProfile;
+      }
+      if (cb) {
+        cb(err, userProfile, ...args);
+      }
     });
+
 };
+
+export function checkToken(accessToken, onSuccess, onFail) {
+  let arg = {
+    accessToken: accessToken,
+    deviceType: 'desktop',
+    deviceModel: process.platform,
+    pushToken: "",
+  };
+  post(urlPre + 'checkToken', arg, (err, res)=>{
+    // console.log('cxm*** checkToken ', err, res, typeof res);
+    if(isJsonStr(res)){
+      res = JSON.parse(res);
+    }
+      if (res && res.resultCode===1){
+        onSuccess(res);
+      } else {
+        onFail(err, res);
+      }
+  });
+}
+
+export async function refreshChatAccountTokens(cb) {
+  let accounts = AppEnv.config.get('accounts');
+  let chatAccounts = AppEnv.config.get('chatAccounts') || {};
+  for (let acc of accounts) {
+      let chatAccount = chatAccounts[acc.emailAddress];
+      acc.clone = () => Object.assign({}, acc);
+      await keyMannager.insertAccountSecrets(acc);
+      // console.log('cxm*** refreshChatAccountTokens ', acc);
+      let email = acc.emailAddress;
+      let type = 0;
+      if (email.includes('gmail.com') || email.includes('edison.tech') || email.includes('mail.ru') || acc.provider === 'gmail') {
+        type = 1;
+      }
+      let {err, res} = await register(acc.emailAddress, acc.settings.imap_password || acc.settings.refresh_token, acc.name, type, acc.provider, acc.settings);
+      try {
+        res = JSON.parse(res);
+      } catch (e) {
+        console.log('response is not json');
+      }
+      if (err || !res || res.resultCode != 1) {
+        console.log('fail to register email: ', acc.emailAddress, res);
+        // this.setState({ errorMessage: "This email has not a chat account，need to be registered, but failed, please try later again" });
+        return;
+      }
+      chatAccount = res.data;
+      chatAccount.refreshTime = (new Date()).getTime();
+      chatAccount.clone = () => Object.assign({}, chatAccount);
+      chatAccount = await keyMannager.extractChatAccountSecrets(chatAccount);
+      chatAccounts[acc.emailAddress] = chatAccount;
+      AppEnv.config.set('chatAccounts', chatAccounts);
+  }
+}
+
 /**
- * 
- * @param {{"accessToken":"xxxxxxxxxx",name:"tom",avatar:"1000/3332"}} data 
- * @param {*} cb 
+ *
+ * @param {{"accessToken":"xxxxxxxxxx",name:"tom",avatar:"1000/3332"}} data
+ * @param {*} cb
  */
 export const setProfile = (data, cb) => {
     post(urlPre + 'setProfile', data, cb);
@@ -99,8 +159,8 @@ export const uploadContacts = (accessToken, contacts, cb) => {
 }
 /**
  * 获取头像，返回头像路径
- * @param {*} email 
- * @param {*} cb 
+ * @param {*} email
+ * @param {*} cb
  */
 const avatarCache = {};
 export const getAvatar = (email, cb) => {

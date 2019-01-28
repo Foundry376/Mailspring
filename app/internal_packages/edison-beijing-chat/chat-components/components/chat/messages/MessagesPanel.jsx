@@ -20,7 +20,7 @@ import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import Button from '../../common/Button';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
-import { login, queryProfile } from '../../../utils/restjs'
+import { checkToken, login, queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
 
 
@@ -130,7 +130,24 @@ export default class MessagesPanel extends PureComponent {
     (getDb()).then(db => {
       db.contacts.findOne().where('email').eq(email).exec().then(chatContact => {
         // console.log('cxm*** chatContact ', chatContact);
+        let  queryByToken;
         keyMannager.getAccessTokenByEmail(email).then(accessToken => {
+          console.log('cxm *** keyMannager.getAccessTokenByEmail ', email, accessToken);
+          checkToken( accessToken,
+            (res) => {
+              // console.log('cxm*** success checktoken ', res);
+              queryByToken(accessToken)
+            },
+            (err, res) => {
+              // console.log('cxm*** fail checktoken ', res);
+              refreshChatAccountTokens().then(() =>
+                keyMannager.getAccessTokenByEmail(email).then(
+                  accessToken => queryByToken(accessToken)))
+            }
+          )
+        });
+        queryByToken = accessToken => {
+          console.log('cxm *** queryByToken ', accessToken);
           const emails = emailContacts.map(contact => contact.email);
           queryProfile({ accessToken, emails }, (err, res) => {
             if (!res) {
@@ -154,9 +171,9 @@ export default class MessagesPanel extends PureComponent {
             // console.log('cxm*** emailContacts ', this.state.emailContacts);
             this.setState(state);
           })
-        })
-      })
-    })
+        }
+      });
+    });
     db.close();
   }
 
