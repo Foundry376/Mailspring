@@ -8,7 +8,7 @@ import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
 import { clearMessages } from '../../../utils/message';
-import { login, queryProfile } from '../../../utils/restjs';
+import { login, checkToken, refreshChatAccountTokens, queryProfile } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
 import { Actions } from 'mailspring-exports';
 import Contact from '../../../../../../src/flux/models/contact';
@@ -42,7 +42,20 @@ export default class MemberProfie extends Component {
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     //console.log('cxm*** before queryProfile member ', this.props.member);
     const userId = this.props.member.jid.local || this.props.member.jid.split('@')[0];
-    keyMannager.getAccessTokenByEmail(Object.keys(chatAccounts)[0]).then(accessToken => {
+    const email = Object.keys(chatAccounts)[0];
+    let  queryByToken
+    keyMannager.getAccessTokenByEmail(email).then(accessToken => {
+      checkToken(accessToken,
+        (res) => queryByToken(accessToken),
+        (err, res) => {
+          refreshChatAccountTokens.then()(() =>
+            keyMannager.getAccessTokenByEmail(email).then(
+              accessToken => queryByToken(accessToken)))
+
+        }
+      )
+    })
+    queryByToken  = accessToken => {
       queryProfile({ accessToken, userId }, (err, res) => {
         if (!res) {
           console.log('fail to queryProfile');
@@ -55,9 +68,11 @@ export default class MemberProfie extends Component {
         const member = Object.assign(this.state.member, res.data);
         const state = Object.assign({}, this.state, {member});
         this.setState(state);
-        });
-    });
-  };
+      });
+    };
+  }
+
+
 
   componentWillReceiveProps = (nextProps) => {
     //console.log('cxm*** componentWillReceiveProps ', nextProps);

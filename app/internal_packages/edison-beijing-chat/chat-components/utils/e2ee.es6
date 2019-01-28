@@ -50,7 +50,7 @@ const setE2ee = async (db) => {
     await db.configs.upsert({ key: 'e2ee_prikey', value: prikey, time: Date.now() });
     await db.configs.upsert({ key: 'e2ee_pubkey', value: pubkey, time: Date.now() });
 }
-iniE2ee();
+// iniE2ee();
 export const getPriKey = async (cb) => {
     const db = await getDb();
     let data = await db.configs.find({ key: { $in: ['deviceId', 'e2ee_prikey'] } }).exec();
@@ -65,15 +65,16 @@ export const getPriKey = async (cb) => {
 }
 export const getPubKey = async (cb) => {
     const db = await getDb();
-    db.configs.find({ key: { $in: ['deviceId', 'e2ee_pubkey'] } }).exec().then((data) => {
-        if (data.length == 2) {
-            cb(null, data[0].value, data[1].value);
-        }
-        else {
-            iniE2ee();
-            cb('please retry!');
-        }
-    });
+    const data = await db.configs.find({ key: { $in: ['deviceId', 'e2ee_pubkey'] } }).exec();
+    if (data.length == 2) {
+        cb(null, data[0].value, data[1].value);
+    }
+    else {
+        console.log('getPubKey retry');
+        await iniE2ee();
+        const data = await db.configs.find({ key: { $in: ['deviceId', 'e2ee_pubkey'] } }).exec();
+        cb(null, data[0].value, data[1].value);
+    }
 }
 export const getDeviceId = async (cb) => {
     const db = await getDb();

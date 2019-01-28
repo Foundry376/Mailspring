@@ -20,7 +20,7 @@ import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import Button from '../../common/Button';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
-import { login, queryProfile } from '../../../utils/restjs'
+import { checkToken, login, queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
 
 
@@ -130,7 +130,24 @@ export default class MessagesPanel extends PureComponent {
     (getDb()).then(db => {
       db.contacts.findOne().where('email').eq(email).exec().then(chatContact => {
         // console.log('cxm*** chatContact ', chatContact);
+        let  queryByToken;
         keyMannager.getAccessTokenByEmail(email).then(accessToken => {
+          console.log('cxm *** keyMannager.getAccessTokenByEmail ', email, accessToken);
+          checkToken( accessToken,
+            (res) => {
+              // console.log('cxm*** success checktoken ', res);
+              queryByToken(accessToken)
+            },
+            (err, res) => {
+              // console.log('cxm*** fail checktoken ', res);
+              refreshChatAccountTokens().then(() =>
+                keyMannager.getAccessTokenByEmail(email).then(
+                  accessToken => queryByToken(accessToken)))
+            }
+          )
+        });
+        queryByToken = accessToken => {
+          console.log('cxm *** queryByToken ', accessToken);
           const emails = emailContacts.map(contact => contact.email);
           queryProfile({ accessToken, emails }, (err, res) => {
             if (!res) {
@@ -141,7 +158,7 @@ export default class MessagesPanel extends PureComponent {
               res = JSON.parse(res);
             }
             emailContacts = emailContacts.map((contact, index) => {
-              contact = Object.assign(contact, res.data.users[index])
+              contact = Object.assign(contact, res.data ? res.data.users[index] : {})
               if (contact.userId) {
                 contact.jid = contact.userId + '@im.edison.tech'
               } else {
@@ -154,9 +171,9 @@ export default class MessagesPanel extends PureComponent {
             // console.log('cxm*** emailContacts ', this.state.emailContacts);
             this.setState(state);
           })
-        })
-      })
-    })
+        }
+      });
+    });
     db.close();
   }
 
@@ -332,16 +349,16 @@ export default class MessagesPanel extends PureComponent {
 
   editMemberProfile = member => {
     //console.log('cxm*** editMemberProfile member ', member);
-    const state = Object.assign({}, this.state, {editingMember:member});
+    const state = Object.assign({}, this.state, { editingMember: member });
     this.setState(state);
   }
 
   exitMemberProfile = member => {
-    const state = Object.assign({}, this.state, {editingMember:null});
+    const state = Object.assign({}, this.state, { editingMember: null });
     //console.log('cxm*** exitMemberProfile ', member);
     if (member.nickname && this.nicknameMap[member.jid] != member.nickname) {
       this.nicknameMap[member.jid] = member.nickname;
-      const nicknames = Object.keys(this.nicknameMap).map(jid=>({ jid, nickname: this.nicknameMap[jid] }));
+      const nicknames = Object.keys(this.nicknameMap).map(jid => ({ jid, nickname: this.nicknameMap[jid] }));
       const conversation = this.props.selectedConversation;
       conversation.update({
         $set: { nicknames }
@@ -419,6 +436,7 @@ export default class MessagesPanel extends PureComponent {
       toggleInvite: this.toggleInvite,
       members: this.state.members,
       getRoomMembers: this.getRoomMembers,
+      refreshRoomMembers: this.refreshRoomMembers,
       removeMember: this.removeMember,
       editMemberProfile: this.editMemberProfile,
       exitMemberProfile: this.exitMemberProfile,
