@@ -21,6 +21,15 @@ export default class ConversationInfo extends Component {
     }
   }
 
+  componentDidMount() {
+    if (this.props.selectedConversation.isGroup && (
+      !this.props.members ||
+      this.props.members.length === 0
+    )) {
+      this.props.refreshRoomMembers();
+    }
+  }
+
   clearMessages = () => {
     clearMessages(this.props.selectedConversation);
     return;

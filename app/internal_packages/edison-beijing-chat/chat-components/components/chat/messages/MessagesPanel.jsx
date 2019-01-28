@@ -419,6 +419,7 @@ export default class MessagesPanel extends PureComponent {
       toggleInvite: this.toggleInvite,
       members: this.state.members,
       getRoomMembers: this.getRoomMembers,
+      refreshRoomMembers: this.refreshRoomMembers,
       removeMember: this.removeMember,
       editMemberProfile: this.editMemberProfile,
       exitMemberProfile: this.exitMemberProfile,
