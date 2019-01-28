@@ -161,12 +161,21 @@ export default class MemberProfie extends Component {
     } else {
       backgroundImage = 'url(http://www.yanchao004.com/Uploads/Picture/2015-08-20/55d5857191524.jpg)'
     }
-    //console.log('cxm*** mem profile member ', member);
+    console.log('cxm*** mem profile member ', member);
+    let jid;
+    if (member.jid && typeof member.jid != 'string') {
+      jid = member.jid.bare;
+    } else {
+      jid = member.jid || '';
+    }
 
     return (
       <div className="member-profile-panel" ref = {(el)=> this.panel = el } tabIndex={1}>
         <div className="member-info-area">
-          <div className="member-avatar" style={{backgroundImage}}></div>
+          <div className="member-avatar">
+          <ContactAvatar jid={jid} name={member.name}
+                         email={member.email} avatar={member.avatar || ''} size={160} />
+          </div>
           <div className="member-fields">
             <h2>{member.name}</h2>
             <div>
