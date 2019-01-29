@@ -30,11 +30,12 @@ let key = 0;
 
 const shouldInlineImg = (msgBody) => {
   let path = msgBody.path;
-  return (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
+  return (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER)
+    && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId && !msgBody.path ||
-    msgBody.path && !(msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF)
+    msgBody.path && !(msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER)
 }
 
 // The number of pixels away from the bottom to be considered as being at the bottom
@@ -398,10 +399,8 @@ export default class Messages extends PureComponent {
               }
               let isEditing = false;
               if (msg.id === chatModel.editingMessageId) {
-                // border = 'dashed 2px red';
                 isEditing = true;
               } else if (isUnreadUpdatedMessage(msg)) {
-                // border = 'solid 2px red';
               }
               const isCurrentUser = msg.sender === currentUserId;
               const member = this.getContactInfoByJid(msg.sender);

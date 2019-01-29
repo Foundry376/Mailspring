@@ -107,10 +107,10 @@ export default class MessagesPanel extends PureComponent {
   }
 
   componentWillMount() {
-    this.getEmailContacts();
   }
   componentDidMount() {
     this.refreshRoomMembers();
+    this.getEmailContacts();
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
   }
@@ -130,6 +130,7 @@ export default class MessagesPanel extends PureComponent {
     const email = Object.keys(chatAccounts)[0];
     const db = await getDb();
     let chatContact = await db.contacts.findOne().where('email').eq(email).exec();
+    chatContact = chatContact || {};
     // console.log('cxm*** chatContact ', chatContact);
     let  queryByToken;
     let accessToken = await keyMannager.getAccessTokenByEmail(email);
@@ -157,7 +158,7 @@ export default class MessagesPanel extends PureComponent {
         } else {
           contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
         }
-        contact.curJid = chatContact.curJid;
+        contact.curJid = chatContact.curJid || contact.jid;
         return contact;
       });
       const state = Object.assign({}, this.state, { emailContacts });
@@ -185,14 +186,16 @@ export default class MessagesPanel extends PureComponent {
   componentWillReceiveProps = (nextProps) => {
     if (nextProps.selectedConversation
       && this.props.selectedConversation
-      && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid) {
+      && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid ||
+      nextProps.selectedConversation && !this.props.selectedConversation) {
       this.refreshRoomMembers(nextProps);
     }
   }
 
   refreshRoomMembers = async (nextProps) => {
     const { selectedConversation: conversation } = (nextProps || this.props);
-    //console.log('cxm*** get nicknames props ', nextProps, this.props);
+    // console.log('cxm*** get nicknames props ', nextProps, this.props);
+    debugger;
     if (conversation && conversation.isGroup) {
       const members = await this.getRoomMembers(nextProps);
       //console.log('cxm*** get nicknames ', conversation);
@@ -212,7 +215,7 @@ export default class MessagesPanel extends PureComponent {
         const jid = member.jid.bare || member.jid;
         member.nickname = nicknameMap[jid];
       });
-      //console.log('cxm***  refreshRoomMembers members ', members);
+      // console.log('cxm***  refreshRoomMembers members ', members);
       this.setState({ members });
     }
   }
@@ -382,7 +385,7 @@ export default class MessagesPanel extends PureComponent {
       referenceTime,
       contacts
     } = this.props;
-    //console.log('cxm*** msg panel render props', this.props);
+    // console.log('cxm*** msg panel render props', this.props);
     const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
 
     const topBarProps = {
@@ -430,6 +433,7 @@ export default class MessagesPanel extends PureComponent {
       editMemberProfile: this.editMemberProfile,
       exitMemberProfile: this.exitMemberProfile,
     };
+    // console.log('cxm*** msg panel ', this.state.members);
     const contactsSet = {};
     contacts.forEach(contact => {
       contactsSet[contact.email] = 1;

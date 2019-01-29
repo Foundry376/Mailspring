@@ -11,8 +11,6 @@ var http = require("http");
 var https = require("https");
 var fs = require("fs");
 const path = require('path');
-
-let key = 0;
 export default class MessageImagePopup extends Component {
   constructor() {
     super();
@@ -99,7 +97,7 @@ export default class MessageImagePopup extends Component {
       const { messages } = groupedMessage;
       for (const msg of messages) {
         let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
-        if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
+        if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER) {
           if (msg === messageModel.msg) {
             this.setState({
               imgIndex: index

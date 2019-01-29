@@ -46,16 +46,19 @@ const mapStateToProps = ({
     contacts,
   },
   time: referenceTime,
-}) => ({
-  availableUsers,
-  contacts,
-  conversations,
-  currentUserId: currentUser ? currentUser.bare : null,
-  groupedMessages,
-  referenceTime,
-  selectedConversation,
-  online
-});
+}) => {
+  console.log('cxm*** mapStateToProps ', selectedConversation);
+  return {
+    availableUsers,
+      contacts,
+      conversations,
+      currentUserId: currentUser ? currentUser.bare : null,
+    groupedMessages,
+    referenceTime,
+    selectedConversation,
+    online
+  }
+};
 
 const mapDispatchToProps = dispatch => bindActionCreators(actionCreators, dispatch);
 
