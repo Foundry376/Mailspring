@@ -151,7 +151,7 @@ export default class MemberProfie extends Component {
     } else {
       backgroundImage = ''
     }
-    console.log('cxm*** mem profile member ', member);
+    // console.log('cxm*** mem profile member ', member);
     let jid;
     if (member.jid && typeof member.jid != 'string') {
       jid = member.jid.bare;

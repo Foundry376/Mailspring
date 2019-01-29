@@ -8,8 +8,12 @@ export default async function registerLoginChatAccounts() {
   let chatAccounts = AppEnv.config.get('chatAccounts') || {};
   for (let acc of accounts) {
     let chatAccount = chatAccounts[acc.emailAddress];
-    let passedTime = ((new Date()).getTime() - chatAccount.refreshTime)/1000;// seconds
-    let leftTime = chatAccount.expiresIn - passedTime;
+    let leftTime = 0;
+    if (chatAccount) {
+      acc.email = acc.emailAddress;
+      let passedTime = ((new Date()).getTime() - chatAccount.refreshTime || 0)/1000;// seconds
+      leftTime = chatAccount.expiresIn - passedTime;
+    }
     if (!chatAccount  || (leftTime<2*24*60*3600)) {
       acc.clone = () => Object.assign({}, acc);
       acc = await keyMannager.insertAccountSecrets(acc);
@@ -26,10 +30,10 @@ export default async function registerLoginChatAccounts() {
         console.log('response is not json');
       }
       if (err || !res || res.resultCode != 1) {
-        // this.setState({ errorMessage: "This email has not a chat account，need to be registered, but failed, please try later again" });
-        return;
+        continue;
       }
       chatAccount = res.data;
+      chatAccount.refreshTime = (new Date()).getTime();
       let jid = chatAccount.userId + '@im.edison.tech';
       chatModel.currentUser.jid = jid;
       chatModel.currentUser.email = acc.emailAddress;

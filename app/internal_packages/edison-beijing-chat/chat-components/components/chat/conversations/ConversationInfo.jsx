@@ -95,6 +95,7 @@ export default class ConversationInfo extends Component {
     // const roomMembers = conversation.roomMembers && conversation.roomMembers.length > 0
     //   ? conversation.roomMembers : members;
     const roomMembers = members;
+    // console.log('cxm*** conv info .render ', members, conversation.roomMembers);
     for (const member of roomMembers) {
       const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
       if (member.affiliation === 'owner' && jid === conversation.curJid) {
