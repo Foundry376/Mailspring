@@ -111,7 +111,7 @@ const declareOptions = argv => {
 
 const parseCommandLine = argv => {
   const pkg = require('../../package.json');
-  const version = `${pkg.version}-${pkg.commitHash}`;
+  const version = `${pkg.version}`;
 
   const options = declareOptions(argv.slice(1));
   const args = options.argv;

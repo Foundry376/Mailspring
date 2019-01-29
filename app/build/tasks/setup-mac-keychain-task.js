@@ -108,10 +108,10 @@ module.exports = grunt => {
   getCertData = () => {
     const certs = path.resolve(path.join(grunt.config('buildDir'), 'resources', 'certs', 'mac'));
     const appleCert = path.join(certs, 'AppleWWDRCA.cer');
-    const nylasCert = path.join(certs, 'mac-codesigning.cer');
-    const nylasPrivateKey = path.join(certs, 'mac-codesigning.p12');
+    const nylasCert = path.join(certs, 'developerID_application.cer');
+    const nylasPrivateKey = path.join(certs, 'key.p12');
 
-    const keyPass = process.env.APPLE_CODESIGN_KEY_PASSWORD;
+    const keyPass = ''; //process.env.APPLE_CODESIGN_KEY_PASSWORD;
 
     if (!keyPass) {
       throw new Error('APPLE_CODESIGN_KEY_PASSWORD must be set');

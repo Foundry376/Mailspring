@@ -139,7 +139,7 @@ module.exports = grunt => {
         win32: 'EdisonMail',
         linux: 'EdisonMail',
       }[platform],
-      appCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
+      appCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Edison Software Inc. All rights reserved.`,
       derefSymlinks: false,
       asar: {
         unpack:
@@ -210,9 +210,9 @@ module.exports = grunt => {
        */
       osxSign: !!process.env.SIGN_BUILD,
       win32metadata: {
-        CompanyName: 'Foundry 376, LLC',
+        CompanyName: 'Edison Software Inc',
         FileDescription: 'EdisonMail',
-        LegalCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
+        LegalCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Edison Software Inc. All rights reserved.`,
         ProductName: 'EdisonMail',
       },
       // NOTE: The following plist keys can NOT be set in the

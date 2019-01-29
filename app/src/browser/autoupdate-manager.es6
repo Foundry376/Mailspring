@@ -40,14 +40,11 @@ export default class AutoUpdateManager extends EventEmitter {
       channel: this.preferredChannel,
     };
 
-    let host = `updates.getmailspring.com`;
-    if (this.config.get('env') === 'staging') {
-      host = `updates-staging.getmailspring.com`;
-    }
-
-    this.feedURL = `https://${host}/check/${params.platform}/${params.arch}/${params.version}/${
-      params.id
-    }/${params.channel}`;
+    let host = process.env.updateServer || `52.199.7.199`;
+    // if (this.config.get('env') === 'staging') {
+    //   host = `updates-staging.getmailspring.com`;
+    // }
+    this.feedURL = `http://${host}/update/${params.platform}/${this.version}/${params.channel}`;
     if (autoUpdater) {
       autoUpdater.setFeedURL(this.feedURL);
     }
