@@ -135,7 +135,7 @@ class MessageStore extends MailspringStore {
   }
 
   _onThreadARPReply = (event, options) => {
-    console.log('received arp reply', options);
+    // console.log('received arp reply', options);
     if (
       options.threadId &&
       options.windowLevel &&
@@ -147,7 +147,7 @@ class MessageStore extends MailspringStore {
     }
   };
   _onReceivedThreadARP = (event, options) => {
-    console.log('received arp request', options);
+    // console.log('received arp request', options);
     if (
       options.threadId &&
       this._thread &&
@@ -243,7 +243,7 @@ class MessageStore extends MailspringStore {
   _updateThread = thread => {
     if (thread) {
       this._thread = thread;
-      console.log('sending out thread arp');
+      // console.log('sending out thread arp');
       ipcRenderer.send('arp', {
         threadId: thread.id,
         arpType: 'thread',
@@ -394,9 +394,9 @@ class MessageStore extends MailspringStore {
 
       this._expandItemsToDefault();
 
-      if (this._itemsLoading) {
+      // if (this._itemsLoading) {
         this._fetchMissingBodies(this._items);
-      }
+      // }
 
       // Download the attachments on expanded messages.
       this._fetchExpandedAttachments(this._items);
@@ -413,12 +413,18 @@ class MessageStore extends MailspringStore {
   }
 
   _fetchMissingBodies(items) {
-    const missing = items.filter(
-      i => i.body === null || (typeof i.body === 'string' && i.body.length === 0),
-    );
+    const missing = items.filter(i =>{
+      return (
+        (i.body === null || (typeof i.body === 'string' && i.body.length === 0)) &&
+        this._itemsExpanded[i.id]
+      );
+    });
     if (missing.length > 0) {
       return Actions.fetchBodies(missing);
     }
+  }
+  _isMissingBody(item){
+    return item.body === null || (typeof item.body === 'string' && item.body.length === 0);
   }
 
   _fetchExpandedAttachments(items) {
