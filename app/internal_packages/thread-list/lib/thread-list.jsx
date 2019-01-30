@@ -33,7 +33,7 @@ class ThreadList extends React.Component {
   static displayName = 'ThreadList';
 
   static containerStyles = {
-    minWidth: 300,
+    minWidth: 375,
     maxWidth: 3000,
   };
 
@@ -253,7 +253,8 @@ class ThreadList extends React.Component {
 
   _onResize = event => {
     const current = this.state.style;
-    const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
+    // const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
+    const desired = ReactDOM.findDOMNode(this).offsetWidth < 580 ? 'narrow' : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }

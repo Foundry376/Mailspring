@@ -11,12 +11,12 @@ module.exports = function (client, stanzas, config) {
             type: 'set',
             bind: {
                 resource: config.resource,
-                deviceId:config.deviceId,
-                timestamp:config.timestamp,
-                deviceType:config.deviceType,
-                deviceModel:config.deviceModel,
-                clientVerCode:config.clientVerCode,
-                clientVerName:config.clientVerName
+                deviceId: config.deviceId,
+                timestamp: config.timestamp,
+                deviceType: config.deviceType,
+                deviceModel: config.deviceModel,
+                clientVerCode: config.clientVerCode,
+                clientVerName: config.clientVerName
             }
         }, function (err, resp) {
             if (err) {
@@ -25,7 +25,7 @@ module.exports = function (client, stanzas, config) {
             }
 
             self.features.negotiated.bind = true;
-            self.emit('session:prebind', resp.bind.jid);
+            self.emit('session:prebind', resp.bind);
 
             var canStartSession = !features.session || (features.session && features.session.optional);
             if (!self.sessionStarted && canStartSession) {
@@ -40,7 +40,7 @@ module.exports = function (client, stanzas, config) {
     });
 
     client.on('session:prebind', function (boundJID) {
-        client.jid = new JID(boundJID);
+        client.jid = new JID(boundJID.jid);
         client.emit('session:bound', client.jid);
     });
 

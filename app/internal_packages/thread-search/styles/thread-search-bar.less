@@ -2,7 +2,7 @@
 @import 'ui-mixins';
 
 @token-color: @accent-primary;
-@search-bar-height: 34px;
+@search-bar-height: 40px;
 .thread-search-bar {
   position: relative;
   order: -100;
@@ -10,12 +10,13 @@
   z-index: 100;
   width: 90%;
   height: @search-bar-height;
+  font-size: 15px;
   font-weight: 400;
   line-height: @search-bar-height;
   background: @input-search-bg;
-  margin-left: 14px;
-  color: @text-color;
-  margin-top: (56px - @search-bar-height) / 2;
+  margin-left: 16px;
+  color: @medium-grey;
+  margin-top: (68px - @search-bar-height) / 2;
   padding-left: @padding-xs-horizontal;
   padding-right: @padding-xs-horizontal;
   display: flex;

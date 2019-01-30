@@ -1,6 +1,7 @@
 import Stanza, { Client } from '../../../../src/xmpp/stanza.io';
 import EventEmitter3 from 'eventemitter3';
 import { Observable } from 'rxjs/Observable';
+import chatModel from '../store/model';
 
 /**
  * The interval between requests to join rooms
@@ -133,6 +134,7 @@ export class XmppEx extends EventEmitter3 {
   credentials = null;
   connectedJid = null;
   retryTimes = 0;
+  correctionTime = 0;
 
   /**
    * Initializes the QuickBlox instance's credentials.
@@ -158,6 +160,11 @@ export class XmppEx extends EventEmitter3 {
       this.isConnected = true;
       this.client.sendPresence();
       this.client.enableKeepAlive({ timeout: 30, interval: 30 });
+    });
+    this.client.on('session:prebind',  (bind) => {
+      chatModel.diffTime = parseInt(bind.serverTimestamp)
+        - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
+      console.log('session:prebind', bind, chatModel.diffTime);
     });
     this.client.on('disconnected', () => {
       console.warn('disconnected', this.connectedJid);

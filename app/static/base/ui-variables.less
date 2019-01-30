@@ -17,32 +17,51 @@
 //=============================== Colors ===============================//
 //== Color Definitions
 @black: #000000;
-@gray-base: #0a0b0c;
-@gray-darker: lighten(@gray-base, 13.5%); // #222
-@gray-dark: lighten(@gray-base, 20%); // #333
-@gray: lighten(@gray-base, 33.5%); // #555
-@gray-light: lighten(@gray-base, 46.7%); // #777
-@gray-lighter: lighten(@gray-base, 92.5%); // #eee
-@white: #ffffff;
+@gray-base: #797d80;
+@gray-darker: #333;
+@gray-dark: #333;
+@gray: #797d80;
+@gray-light: #b6bdc2;
+@gray-lighter: #e8ebed;
 
-@blue: #1188fd;;
+@dark-grey: @gray-dark;
+@medium-grey: @gray;
+@light-grey: @gray-light;
+@extra-light-grey: @gray-lighter;
+
+@white: #ffffff;
+@off-white: #f8f8fa;
+
+@blue: #1293fd;;
 @blue-dark: @blue;
 @blue-light: @blue;
+
+@red: #ff485f;
+
+@green: #31d76e;
+
+@yellow: #ffd41a;
+
+@orange: #ffa115;
+
+@purple: #755cf2;
+
+@teal: #59dce4;
 
 //== Color Descriptors
 @accent-primary: @blue;
 @accent-primary-dark: @blue-dark;
 
 @background-primary: @white;
-@background-off-primary: #f5f8fd;
+@background-off-primary: @off-white;
 @background-secondary: @background-off-primary;
 @background-tertiary: @background-off-primary;
 
 @color-info: @blue-dark;
-@color-success: #5cb346;
-@color-warning: #f0ad4e;
-@color-error: #d9534f;
-@color-danger: #d9534f;
+@color-success: @green;
+@color-warning: @yellow;
+@color-error: @red;
+@color-danger: @red;
 
 @component-active-color: @accent-primary-dark;
 @component-active-bg: @background-primary;
@@ -53,7 +72,7 @@
   rgba(253, 253, 253, 0.75) 100%
 );
 
-@border-color-primary: #d6dde2;
+@border-color-primary: @extra-light-grey;
 @border-color-secondary: @border-color-primary;
 @border-color-tertiary: @border-color-primary;
 @border-color-divider: @border-color-primary;
@@ -76,8 +95,8 @@
 
 @text-color-selected: @text-color-inverse;
 
-@text-color-search-match: #fff000;
-@text-color-search-current-match: #ff8b1a;
+@text-color-search-match: @yellow;
+@text-color-search-current-match: @orange;
 
 @font-family-sans-serif: 'Helvetica', sans-serif;
 @font-family-serif: Georgia, 'Times New Roman', Times, serif;
@@ -181,7 +200,7 @@
 //=============================== Inputs ===============================//
 
 @input-bg: @white;
-@input-search-bg: @gray-lighter;
+@input-search-bg: @off-white;
 @input-bg-disabled: @gray-lighter;
 
 @input-border-color: fadeout(@border-color-primary, 10%);
@@ -213,9 +232,9 @@
 
 //== Notifications
 @background-color-info: @blue-light;
-@background-color-success: #00ac6f;
-@background-color-warning: #ff4800;
-@background-color-error: #ca2541;
+@background-color-success: @green;
+@background-color-warning: @red;
+@background-color-error: @red;
 @background-color-pending: #b4babd;
 
 //== Menus

@@ -276,13 +276,12 @@ export const newTempMessageEpic = (action$, { getState }) =>
       };
       let body = parseMessageBody(payload.body);
       if (body && body.updating) {
-        message.updateTime = (new Date()).getTime()
+        message.updateTime = (new Date()).getTime()+chatModel.diffTime;
       } else {
-        message.sentTime = (new Date()).getTime()
+        message.sentTime = (new Date()).getTime()+chatModel.diffTime;
       }
       return message;
-    })
-    .map(newPayload => newMessage(newPayload));
+    }).map(newPayload => newMessage(newPayload));
 const getAes = (keys, curJid, deviceId) => {
   if (keys) {
     let text;
