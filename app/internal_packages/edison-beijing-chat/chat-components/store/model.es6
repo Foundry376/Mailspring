@@ -1,4 +1,5 @@
 const chatModel = {
+  diffTime: 0, //the diffTime to correct sentTime from xmpp server, see xmpp/index.es6 on 'session:prebind'
   allSelfUsers: {},
   currentUser: {},
   store: null, // will save the store instance in ConfigureStore
