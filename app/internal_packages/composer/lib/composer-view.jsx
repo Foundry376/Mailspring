@@ -57,7 +57,8 @@ export default class ComposerView extends React.Component {
       'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
       'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
       'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
-      'composer:show-and-focus-from': () => {},
+      'composer:show-and-focus-from': () => {
+      },
       'composer:select-attachment': () => this._onSelectAttachment(),
     };
 
@@ -80,7 +81,7 @@ export default class ComposerView extends React.Component {
     const isBrandNew = Date.now() - this.props.draft.date < 3 * 1000;
     if (isBrandNew) {
       ReactDOM.findDOMNode(this).scrollIntoView(false);
-      window.requestAnimationFrame(() => {
+      this._animationFrameTimer = window.requestAnimationFrame(() => {
         this.focus();
       });
     }
@@ -99,7 +100,9 @@ export default class ComposerView extends React.Component {
 
   componentWillUnmount() {
     this._mounted = false;
-
+    if (this._animationFrameTimer) {
+      window.cancelAnimationFrame(this._animationFrameTimer);
+    }
     // In the future, we should clean up the draft session entirely, or give it
     // the same lifecycle as the composer view. For now, just make sure we free
     // up all the memory used for undo/redo.
@@ -233,14 +236,20 @@ export default class ComposerView extends React.Component {
         onDrop={e => this._dropzone._onDrop(e)}
         readOnly={this.props.session ? this.props.session.isPopout() : true}
         onChange={change => {
-          // We minimize thrashing and support editors in multiple windows by ensuring
+          // We minimize thrashing and disable editors in multiple windows by ensuring
           // non-value changes (eg focus) to the editorState don't trigger database saves
-          const skipSaving = change.operations.every(
-            ({ type, properties }) =>
-              type === 'set_selection' ||
-              (type === 'set_value' && Object.keys(properties).every(k => k === 'decorations'))
-          );
-          this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
+          if (!this.props.session.isPopout()) {
+            const skipSaving = change.operations.every(
+              ({ type, properties }) => {
+               return type === 'set_selection' || (type === 'set_value' && Object.keys(properties).every(k => {
+                 if(k==='schema'){
+                   //In case we encountered more scheme change
+                   console.error('schema');
+                 }
+                 return (k === 'decorations' || k==='schema')}))
+              });
+            this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
+          }
         }}
       />
     );
@@ -329,7 +338,7 @@ export default class ComposerView extends React.Component {
           onClick={this._onDestroyDraft}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
 
         <button
@@ -340,10 +349,10 @@ export default class ComposerView extends React.Component {
           onClick={this._onSelectAttachment}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
 
-        <div style={{ order: 0, flex: 1 }} />
+        <div style={{ order: 0, flex: 1 }}/>
 
         <SendActionButton
           ref={el => {
@@ -560,7 +569,7 @@ export default class ComposerView extends React.Component {
               </div>
 
               <div className="composer-action-bar-wrap" data-tooltips-anchor>
-                <div className="tooltips-container" />
+                <div className="tooltips-container"/>
                 {this._renderActionsRegion()}
               </div>
             </DropZone>
