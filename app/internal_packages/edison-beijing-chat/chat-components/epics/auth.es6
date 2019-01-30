@@ -51,7 +51,7 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
       wsURL: 'ws://tigase.stag.easilydo.cc:5290',
       resource: deviceId && deviceId.replace(/-/g, ''),
       deviceId: deviceId,//'2b92e45c-2fde-48e3-9335-421c8c57777f"',
-      timespan: new Date().getTime(),
+      timestamp: new Date().getTime(),
       deviceType: 'desktop',
       deviceModel: process.platform,
       clientVerCode: '101',
