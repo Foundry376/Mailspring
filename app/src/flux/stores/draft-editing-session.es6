@@ -57,9 +57,8 @@ class DraftChangeSet extends EventEmitter {
 
   add(changes, { skipSaving = false } = {}) {
     if (!skipSaving) {
-      // console.error('added changes');
-      changes.pristine = false;
-
+        changes.pristine = false;
+        changes.needUpload = true;
       // update the per-attribute flags that track our dirty state
       for (const key of Object.keys(changes)) this._lastModifiedTimes[key] = Date.now();
       if (changes.bodyEditorState) this._lastModifiedTimes.body = Date.now();
@@ -288,6 +287,7 @@ export default class DraftEditingSession extends MailspringStore {
     ipcRenderer.removeListener('draft-close-window', this._onDraftCloseWindow);
     ipcRenderer.removeListener('draft-arp-reply', this._onDraftARPReply);
     ipcRenderer.removeListener('draft-delete', this._onDraftDelete);
+    ipcRenderer.removeListener('thread-arp', this._onThreadChange);
   }
 
   validateDraftForSending() {
@@ -558,22 +558,25 @@ export default class DraftEditingSession extends MailspringStore {
 
   // We assume that when thread changes, we are switching view
   _onThreadChange = (event, options) => {
+    console.log(`on thread change listener: ${this._threadId}`, options);
     if (
       this._draft &&
       options.threadId &&
       this._draft.threadId === options.threadId &&
-      !this._inView
+      !this._inView &&
+      !this._destroyed
     ) {
       this._inView = true;
-      this._destroyed = false;
     } else if (
       this._draft &&
       options.threadId &&
       this._draft.threadId !== options.threadId &&
       this._inView &&
-      this._destroyed
+      !this._destroyed
     ) {
-      this.changes.commit('unload');
+      if(this.needUpload()){
+        this.changeSetCommit('unload');
+      }
       this.teardown();
       this._inView = false;
     }
@@ -615,6 +618,7 @@ export default class DraftEditingSession extends MailspringStore {
     }
     if (arg === 'unload') {
       this._draft.hasNewID = false;
+      this._draft.needUpload = false;
     }
     // console.error('commit sync back draft');
     const task = new SyncbackDraftTask({ draft: this._draft });
@@ -624,12 +628,7 @@ export default class DraftEditingSession extends MailspringStore {
   }
 
   needUpload() {
-    return (
-      this._draft.remoteUID &&
-      (!this._draft.msgOrigin ||
-        (this._draft.msgOrigin === Message.EditExistingDraft && !this._draft.hasNewID)) &&
-      !this._draft.pristine
-    );
+    return this._draft.needUpload;
   }
 
   changeSetApplyChanges = changes => {

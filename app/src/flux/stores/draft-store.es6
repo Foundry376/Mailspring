@@ -180,7 +180,8 @@ class DraftStore extends MailspringStore {
       }
 
       // Only delete pristine drafts if we're in popouts and is not from server, aka remoteUID=0.
-      if (draft.pristine && !AppEnv.isMainWindow() && !draft.remoteUID) {
+      if (draft.pristine && !session.isPopout() && !draft.remoteUID) {
+        // console.log(`draft to be destroyed @ ${this._getCurrentWindowLevel()}`);
         Actions.destroyDraft(draft);
       } else if (
         AppEnv.isMainWindow() &&

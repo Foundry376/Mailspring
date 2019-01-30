@@ -107,13 +107,14 @@ function InflatesDraftClientId(ComposedComponent) {
     }
 
     _teardownForDraft() {
-      if (this.state.session) {
-        if (this.state.draft && !this.state.draft.pristine) {
-          // this.state.session.changes.commit();
-        } else {
-          // this.state.session.changes.commit();
-        }
-      }
+      // We have moved session management inside draft store and draft editing session
+      // if (this.state.session) {
+      //   if (this.state.draft && !this.state.draft.pristine) {
+      //     // this.state.session.changes.commit();
+      //   } else {
+      //     // this.state.session.changes.commit();
+      //   }
+      // }
       if (this._sessionUnlisten) {
         this._sessionUnlisten();
       }
