@@ -12,7 +12,7 @@ body {
   -webkit-font-smoothing: antialiased;
   touch-action: manipulation;
 }
-
+@search-bar-height: 68px;
 mailspring-workspace {
   display: block;
   height: 100%;
@@ -191,13 +191,14 @@ body.is-blurred {
 
   .toolbar-ThreadList,
   .toolbar-MessageList {
-    height: 56px;
-    border-bottom: 1px solid #e8ebed;
+    height: @search-bar-height;
+    border-bottom: 1px solid @extra-light-grey;
     background: #fff;
   }
   .toolbar-MessageList {
-    top: 50px !important;
+    top: @search-bar-height - 1px !important;
     border-bottom: none;
+    border-top: 1px solid @extra-light-grey;
     .item-container {
       top: 8px;
     }
@@ -206,7 +207,8 @@ body.is-blurred {
   .mode-split .toolbar-ThreadList .item-container {
     display: block !important;
     .thread-search-bar {
-      width: 180%;
+      width: 200%;
+      max-width: 700px;
     }
   }
 
@@ -558,16 +560,16 @@ body.platform-win32 {
 // left Panel right border
 .toolbar-RootSidebar {
   height: 100%;
-  border-right: 1px solid #e8ebed;
+  border-right: 1px solid @extra-light-grey;
 }
 .column-RootSidebar {
-  border-right: 1px solid #e8ebed;
+  border-right: 1px solid @extra-light-grey;
   padding-top: 80px;
 }
 
 .column-ThreadList,
 .column-MessageList {
-  padding-top: 55px;
+  padding-top: @search-bar-height;
 }
 
 .column-DraftList {

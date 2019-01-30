@@ -18,7 +18,7 @@ export default class Sheet extends React.Component {
   };
 
   static defaultProps = {
-    onColumnSizeChanged: () => {},
+    onColumnSizeChanged: () => { },
   };
 
   static childContextTypes = {
@@ -95,7 +95,11 @@ export default class Sheet extends React.Component {
       if (maxWidth < FLEX) {
         style.width = maxWidth;
       } else {
-        style.flex = 1;
+        if (location.id === 'ThreadList') {
+          style.flex = 1;
+        } else {
+          style.flex = 2;
+        }
       }
       return (
         <InjectedComponentSet
