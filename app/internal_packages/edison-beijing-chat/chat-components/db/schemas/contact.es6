@@ -15,6 +15,9 @@ export default {
       type: 'string',
       indexed: true,
     },
+    nickname: {
+      type: 'string',
+    },
     email: {
       type: 'string'
     },

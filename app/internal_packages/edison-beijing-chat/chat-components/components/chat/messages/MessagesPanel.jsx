@@ -195,7 +195,6 @@ export default class MessagesPanel extends PureComponent {
   refreshRoomMembers = async (nextProps) => {
     const { selectedConversation: conversation } = (nextProps || this.props);
     // console.log('cxm*** get nicknames props ', nextProps, this.props);
-    debugger;
     if (conversation && conversation.isGroup) {
       const members = await this.getRoomMembers(nextProps);
       //console.log('cxm*** get nicknames ', conversation);
