@@ -10,14 +10,16 @@ export const groupMessages = async messages => {
     sender: message.sender,
     messages: [message]
   });
-  messages.forEach((message, index) => {
+  const db = await getDb();
+  for (let index = 0; index < messages.length; index++) {
+    let message = messages[index];
     const lastIndex = groupedMessages.length - 1;
     if (index === 0 || groupedMessages[lastIndex].sender !== message.sender) {
       groupedMessages.push(createGroup(message));
     } else {
       groupedMessages[lastIndex].messages.push(message);
     }
-  });
+  };
 
   return groupedMessages;
 }
@@ -32,6 +34,14 @@ export const groupMessagesByTime = async (messages, key, kind) => {
     }
   }
   return groupedMessages;
+}
+
+export const addMessagesSenderContact = async (messages) => {
+  const db = await getDb();
+  for (let message of messages){
+    const contact = await db.contacts.findOne().where('jid').eq(message.sender).exec();
+    message.senderContact = contact;
+  }
 }
 
 export const getLastMessageInfo = async (message) => {

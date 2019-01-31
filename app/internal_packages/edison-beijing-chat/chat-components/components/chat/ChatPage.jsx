@@ -112,7 +112,6 @@ export default class ChatPage extends PureComponent {
       onPrivateConversationCompleted: createPrivateConversation,
       chat_online: online
     };
-    // console.log('cxm*** chatpage.jsx render ', this.props);
 
     const rightPanelStyles = ['rightPanel'];
     if (selectedConversation) {

@@ -41,20 +41,6 @@ export default {
       type: 'array',
       default: [],
     },
-    nicknames: { // array of jid with nickname
-      type: 'array',
-      items: {
-        type: 'object',
-        "properties": {
-          "jid": {
-            "type": "string"
-          },
-          "nickname": {
-            "type": "string"
-          }
-        }
-      }
-    },
     avatarMembers: {
       type: 'array',
       item: {
