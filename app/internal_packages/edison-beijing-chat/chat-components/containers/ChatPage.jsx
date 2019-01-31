@@ -47,7 +47,6 @@ const mapStateToProps = ({
   },
   time: referenceTime,
 }) => {
-  // console.log('cxm*** mapStateToProps ', selectedConversation);
   return {
     availableUsers,
       contacts,

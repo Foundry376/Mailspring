@@ -103,7 +103,6 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     msgBody.path = 'file://' + path;
     downloadFile(aes, msgBody.mediaObjectId, path, () => {
       if (fs.existsSync(path)) {
-        // console.log('cxm*** chatType payload', chatType, payload);
         let convJid;
         if (chatType===RECEIVE_CHAT){
           convJid = payload.from.bare;

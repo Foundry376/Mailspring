@@ -131,13 +131,11 @@ export default class MessagesPanel extends PureComponent {
     const db = await getDb();
     let chatContact = await db.contacts.findOne().where('email').eq(email).exec();
     chatContact = chatContact || {};
-    // console.log('cxm*** chatContact ', chatContact);
     let  queryByToken;
     let accessToken = await keyMannager.getAccessTokenByEmail(email);
     console.log('cxm *** keyMannager.getAccessTokenByEmail ', email, accessToken);
     let {err, res} = await checkToken(accessToken);
     if (err || !res || res.resultCode!==1) {
-      // console.log('cxm*** fail checktoken ', res);
       await refreshChatAccountTokens()
       accessToken = await keyMannager.getAccessTokenByEmail(email);
     }
@@ -162,7 +160,6 @@ export default class MessagesPanel extends PureComponent {
         return contact;
       });
       const state = Object.assign({}, this.state, { emailContacts });
-      // console.log('cxm*** emailContacts ', this.state.emailContacts);
       this.setState(state);
     })
   }
@@ -194,10 +191,8 @@ export default class MessagesPanel extends PureComponent {
 
   refreshRoomMembers = async (nextProps) => {
     const { selectedConversation: conversation } = (nextProps || this.props);
-    // console.log('cxm*** get nicknames props ', nextProps, this.props);
     if (conversation && conversation.isGroup) {
       const members = await this.getRoomMembers(nextProps);
-      //console.log('cxm*** get nicknames ', conversation);
       if (conversation.update && members && members.length > 0) {
         conversation.update({
           $set: {
@@ -209,7 +204,6 @@ export default class MessagesPanel extends PureComponent {
       for (let member of members) {
         const jid = member.jid.bare || member.jid;
         let contact = await db.contacts.findOne().where('jid').eq(jid).exec();
-        // console.log('cxm*** refreshRoomMembers ', member, contact);
         if (contact) {
           member.nickname = contact.nickname || '';
         } else {
@@ -223,7 +217,6 @@ export default class MessagesPanel extends PureComponent {
           })
         }
       };
-      // console.log('cxm***  refreshRoomMembers members ', members);
       this.setState({ members });
     }
   }
@@ -321,7 +314,6 @@ export default class MessagesPanel extends PureComponent {
         onGroupConversationCompleted({ contacts: members, roomId, name: chatName });
       }
       else if (members.length == 1 && onPrivateConversationCompleted) {
-        // console.log('cxm*** onPrivateConversationCompleted ', members[0]);
         onPrivateConversationCompleted(members[0]);
       }
     }
@@ -348,19 +340,14 @@ export default class MessagesPanel extends PureComponent {
   };
 
   editMemberProfile = member => {
-    //console.log('cxm*** editMemberProfile member ', member);
     const state = Object.assign({}, this.state, { editingMember: member });
     this.setState(state);
   }
 
   exitMemberProfile = async member => {
-
-    //console.log('cxm*** exitMemberProfile ', member);
     const db = await getDb();
     const jid = member.jid.bare || member.jid;
     const contact = await db.contacts.findOne().where('jid').eq(jid).exec();
-    // console.log('cxm*** exitMemberProfile 3 ', contact);
-    debugger;
     if (contact && contact.nickname != member.nickname) {
       await contact.update({
         $set: { nickname: member.nickname}
@@ -408,7 +395,6 @@ export default class MessagesPanel extends PureComponent {
         message.senderNickname = message.senderContact.nickname;
       }
     }));
-    // console.log('cxm*** msg panel render props', this.props);
     const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
 
     const topBarProps = {
@@ -456,7 +442,6 @@ export default class MessagesPanel extends PureComponent {
       editMemberProfile: this.editMemberProfile,
       exitMemberProfile: this.exitMemberProfile,
     };
-    // console.log('cxm*** msg panel ', this.state.members);
     const contactsSet = {};
     contacts.forEach(contact => {
       contactsSet[contact.email] = 1;
@@ -471,7 +456,6 @@ export default class MessagesPanel extends PureComponent {
         allContacts.push(contact);
       }
     });
-    // console.log('cxm*** allContacts ', allContacts);
 
     const newConversationProps = {
       contacts: allContacts,

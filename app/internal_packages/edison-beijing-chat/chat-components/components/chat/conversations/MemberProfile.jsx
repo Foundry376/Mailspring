@@ -29,7 +29,6 @@ export default class MemberProfie extends Component {
   componentDidMount = () => {
     this.queryProfile();
     const rect = this.panel.getBoundingClientRect();
-    // console.log('cxm*** getBoundingClientRect ', rect);
     this.panelRect = rect;
     document.body.addEventListener('click', this.onClickWithMemberProfile);
 
@@ -41,7 +40,6 @@ export default class MemberProfie extends Component {
   };
   queryProfile = async () => {
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
-    //console.log('cxm*** before queryProfile member ', this.props.member);
     const userId = this.props.member.jid.local || this.props.member.jid.split('@')[0];
     const email = Object.keys(chatAccounts)[0];
     let accessToken = keyMannager.getAccessTokenByEmail(email);
@@ -58,7 +56,6 @@ export default class MemberProfie extends Component {
       if (isJsonStr(res)) {
         res = JSON.parse(res);
       }
-      //console.log('cxm*** queryProfile res ', res);
       const member = Object.assign(this.state.member, res.data);
       const state = Object.assign({}, this.state, { member });
       this.setState(state);
@@ -66,7 +63,6 @@ export default class MemberProfie extends Component {
   };
 
   componentWillReceiveProps = (nextProps) => {
-    //console.log('cxm*** componentWillReceiveProps ', nextProps);
     if (!this.props.member || nextProps.member.email !== this.props.member.email) {
       this.props = nextProps;
       const member = nextProps.member;
@@ -108,7 +104,6 @@ export default class MemberProfie extends Component {
     //  cxm:
     // because onBlur on a div container does not work as expected
     // so it's necessary to use this as a workaround
-    // console.log('cxm*** onClickWithMemberProfile', e);
     const rect = this.panelRect;
     if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
       // document.body.removeEventListener('click', this.onClickWithMemberProfile);
@@ -119,7 +114,6 @@ export default class MemberProfie extends Component {
     this.props.exitMemberProfile(this.props.member);
     const member = Object.assign({}, this.props.member);
     member.jid = member.jid.bare || member.jid;
-    //console.log('cxm*** startPrivateChat ', member);
     member.name = member.name || member.jid.split('^at^')[0];
     this.props.onPrivateConversationCompleted(member);
   };
@@ -140,7 +134,6 @@ export default class MemberProfie extends Component {
     // e.stopPropagation();
     const { member } = this.state;
     member.nickname = e.target.value;
-    //console.log('cxm*** onChangeNickname ', member);
     const state = Object({}, this.state, { member });
     this.setState(state);
     return;
@@ -154,7 +147,6 @@ export default class MemberProfie extends Component {
     } else {
       backgroundImage = ''
     }
-    // console.log('cxm*** mem profile member ', member);
     let jid;
     if (member.jid && typeof member.jid != 'string') {
       jid = member.jid.bare;

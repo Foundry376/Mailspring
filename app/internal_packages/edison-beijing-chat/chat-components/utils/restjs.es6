@@ -87,7 +87,6 @@ export function checkToken(accessToken) {
     };
     return new Promise(resolve => {
         post(urlPre + 'checkToken', arg, (err, res) => {
-            // console.log('cxm*** checkToken ', err, res, typeof res);
             if (isJsonStr(res)) {
                 res = JSON.parse(res);
             }
@@ -107,7 +106,6 @@ export async function refreshChatAccountTokens(cb) {
         let chatAccount = chatAccounts[acc.emailAddress];
         acc.clone = () => Object.assign({}, acc);
         await keyMannager.insertAccountSecrets(acc);
-        // console.log('cxm*** refreshChatAccountTokens ', acc);
         let email = acc.emailAddress;
         let type = 0;
         if (email.includes('gmail.com') || email.includes('edison.tech') || email.includes('mail.ru') || acc.provider === 'gmail') {

@@ -40,7 +40,6 @@ export const addMessagesSenderContact = async (messages) => {
   const db = await getDb();
   for (let message of messages){
     const contact = await db.contacts.findOne().where('jid').eq(message.sender).exec();
-    // console.log('cxm*** addMessagesSenderContact message.sender', message.sender, contact);
     message.senderContact = contact;
   }
 }
