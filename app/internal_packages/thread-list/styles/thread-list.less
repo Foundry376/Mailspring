@@ -157,7 +157,7 @@ input:focus {
   }
 
   .participants {
-    font-size: @font-size-small;
+    font-size: @font-size;
     text-overflow: ellipsis;
     text-align: left;
     overflow: hidden;
@@ -173,7 +173,7 @@ input:focus {
     overflow: hidden;
 
     .subject {
-      font-size: @font-size-small;
+      font-size: @font-size;
       font-weight: @font-weight-normal;
       padding-right: @padding-base-horizontal;
       text-overflow: ellipsis;
@@ -183,7 +183,7 @@ input:focus {
       flex-shrink: 0.1;
     }
     .snippet {
-      font-size: @font-size-small;
+      font-size: @font-size;
       font-weight: @font-weight-normal;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -408,6 +408,15 @@ body.platform-win32 {
   background-size: 16px;
   -webkit-filter: brightness(90%);
 }
+.mode-split {
+  .thread-list .list-item .thread-icon-none {
+    width: 0;
+    transition-duration: 0.4s;
+  }
+  .thread-list .list-item:hover .thread-icon-none {
+    width: 25px;
+  }
+}
 .thread-list .list-item:hover .thread-icon-none:hover {
   background-image: url(../static/images/thread-list/icon-star-action-hover-@2x.png);
   background-size: 16px;
@@ -462,9 +471,9 @@ body.platform-win32 {
       background: @border-color-divider;
       position: absolute;
       bottom: 0;
-      left: 8%;
+      left: 0%;
       height: 1px;
-      width: 88%;
+      width: 100%;
     }
   }
 
@@ -475,7 +484,7 @@ body.platform-win32 {
     opacity: 1;
   }
   .participants {
-    font-size: @font-size-base;
+    font-size: @font-size-large;
   }
 
   .mail-important-icon {
@@ -510,10 +519,15 @@ body.platform-win32 {
       overflow: hidden;
       text-overflow: ellipsis;
       opacity: 1;
-      color: #838e96;
+      color: @medium-grey;
       text-align: left;
-      min-height: 21px;
+      height: 42px;
       margin-right: 4px;
+      word-break: break-word;
+      white-space: normal;
+      -webkit-line-clamp: 2;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
     }
   }
 }

@@ -19,7 +19,7 @@ const saveContacts = async contacts => {
     const contactInDb = await db.contacts.findOne().where('jid').eq(jid).exec();
     let nickname;
     if (contactInDb){
-      nickname = contactInDb;
+      nickname = contactInDb.nickname;
     }
     if (!!name) {
       const contact = {
@@ -34,6 +34,7 @@ const saveContacts = async contacts => {
       dbContacts.push(contact);
     }
   }
+  console.log('cxm*** saveContacts 2', contacts);
   return dbContacts;
 };
 const saveE2ees = async e2ees => {
