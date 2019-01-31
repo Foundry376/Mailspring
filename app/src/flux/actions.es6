@@ -423,6 +423,7 @@ class Actions {
   static selectAttachment = ActionScopeWindow;
   static removeAttachment = ActionScopeWindow;
 
+  static syncFolders = ActionScopeMainWindow;
   static fetchBodies = ActionScopeMainWindow;
   static fetchAndOpenFile = ActionScopeWindow;
   static fetchAndSaveFile = ActionScopeWindow;

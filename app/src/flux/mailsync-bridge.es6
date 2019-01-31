@@ -106,6 +106,7 @@ export default class MailsyncBridge {
     Actions.queueTasks.listen(this._onQueueTasks, this);
     Actions.cancelTask.listen(this._onCancelTask, this);
     Actions.fetchBodies.listen(this._onFetchBodies, this);
+    Actions.syncFolders.listen(this._onSyncFolders, this);
 
     this._crashTracker = new CrashTracker();
     this._clients = {};
@@ -468,6 +469,20 @@ export default class MailsyncBridge {
     }
     for (const accountId of Object.keys(byAccountId)) {
       this.sendMessageToAccount(accountId, { type: 'need-bodies', ids: byAccountId[accountId] });
+    }
+  }
+  _onSyncFolders(accountId, foldersIds){
+    if (this._syncFolderTimer){
+      clearTimeout(this._syncFolderTimer);
+    }
+    if(Array.isArray(foldersIds) && accountId){
+      this._syncFolderTimer = setTimeout(() => {
+        this.sendMessageToAccount(accountId, {
+          type: 'sync-folders',
+          aid: accountId,
+          ids: foldersIds,
+        })},
+        700);
     }
   }
 

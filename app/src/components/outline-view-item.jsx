@@ -67,7 +67,7 @@ const CounterStyles = {
  * @class OutlineViewItem
  */
 class OutlineViewItem extends Component {
-  static displayName = 'OutlineView';
+  static displayName = 'OutlineViewItem';
 
   /*
    * If provided, this function will be called when receiving a drop. It must

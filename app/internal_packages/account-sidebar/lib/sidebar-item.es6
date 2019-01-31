@@ -107,6 +107,9 @@ class SidebarItem {
     return Object.assign(
       {
         id,
+        // As we are not sure if 'Drafts-' as id have any special meaning, we are adding categoryIds
+        categoryIds: opts.categoryIds ? opts.categoryIds : undefined,
+        accountIds: perspective.accountIds,
         name: perspective.name,
         contextMenuLabel: perspective.name,
         count: countForItem(perspective),
@@ -152,6 +155,12 @@ class SidebarItem {
         },
 
         onSelect(item) {
+          if (item.children.length === 0 && (item.contextMenuLabel === 'Folder' || item.contextMenuLabel ==='Drafts')) {
+            Actions.syncFolders(
+              item.accountIds[0],
+              item.categoryIds ? item.categoryIds : [item.id]
+            );
+          }
           Actions.focusMailboxPerspective(item.perspective);
         },
       },
@@ -213,6 +222,16 @@ class SidebarItem {
 
   static forDrafts(accountIds, opts = {}) {
     const perspective = MailboxPerspective.forDrafts(accountIds);
+    const categoryIds = [];
+    for(let accountId of accountIds){
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'drafts');
+      if(tmp){
+        categoryIds.push(tmp.id);
+      }
+    }
+    if(categoryIds.length > 0){
+      opts.categoryIds = categoryIds.slice();
+    }
     const id = `Drafts-${opts.name}`;
     return this.forPerspective(id, perspective, opts);
   }
