@@ -35,6 +35,7 @@ export default class MemberProfie extends Component {
 
   };
   componentwillUnmount = () => {
+    console.log('cxm *** document.body.removeEventListener ');
     document.body.removeEventListener('click', this.onClickWithMemberProfile);
 
   };
@@ -69,8 +70,8 @@ export default class MemberProfie extends Component {
     if (!this.props.member || nextProps.member.email !== this.props.member.email) {
       this.props = nextProps;
       const member = nextProps.member;
-      const state = Object({}, this.state, { member });
-      this.setState(state);
+      // const state = Object({}, this.state, { member });
+      // this.setState(state);
       this.queryProfile();
     }
   }
@@ -107,8 +108,11 @@ export default class MemberProfie extends Component {
     //  cxm:
     // because onBlur on a div container does not work as expected
     // so it's necessary to use this as a workaround
+    console.log('cxm*** onClickWithMemberProfile', e);
+    debugger;
     const rect = this.panelRect;
     if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+      // document.body.removeEventListener('click', this.onClickWithMemberProfile);
       this.props.exitMemberProfile(this.state.member);
     }
   };

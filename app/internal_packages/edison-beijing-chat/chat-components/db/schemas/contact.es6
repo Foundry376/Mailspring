@@ -23,6 +23,9 @@ export default {
     },
     avatar: {
       type: 'string'
+    },
+    isMyContact: {
+      type: 'boolean',
     }
   },
   required: [

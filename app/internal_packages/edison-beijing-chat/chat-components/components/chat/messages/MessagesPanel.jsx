@@ -198,11 +198,6 @@ export default class MessagesPanel extends PureComponent {
     if (conversation && conversation.isGroup) {
       const members = await this.getRoomMembers(nextProps);
       //console.log('cxm*** get nicknames ', conversation);
-      const nicknameMap = this.nicknameMap = {};
-      const nicknames = conversation.nicknames || [];
-      nicknames.forEach(item => {
-        nicknameMap[item.jid] = item.nickname;
-      });
       if (conversation.update && members && members.length > 0) {
         conversation.update({
           $set: {
@@ -210,10 +205,23 @@ export default class MessagesPanel extends PureComponent {
           }
         })
       }
-      members.forEach(member => {
+      const db = await getDb();
+      for (let member of members) {
         const jid = member.jid.bare || member.jid;
-        member.nickname = nicknameMap[jid];
-      });
+        let contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+        if (contact) {
+          member.nickname = contact.nickname || '';
+        } else {
+          await db.contacts.upsert({
+            jid: member.jid,
+            curJid: conversation.curJid,
+            name: member.name,
+            email:member.email,
+            avatar: member.avatar,
+            isMyContact:false
+          })
+        }
+      };
       // console.log('cxm***  refreshRoomMembers members ', members);
       this.setState({ members });
     }
@@ -344,18 +352,17 @@ export default class MessagesPanel extends PureComponent {
     this.setState(state);
   }
 
-  exitMemberProfile = member => {
+  exitMemberProfile = async member => {
     const state = Object.assign({}, this.state, { editingMember: null });
     //console.log('cxm*** exitMemberProfile ', member);
-    if (member.nickname && this.nicknameMap[member.jid] != member.nickname) {
-      this.nicknameMap[member.jid] = member.nickname;
-      const nicknames = Object.keys(this.nicknameMap).map(jid => ({ jid, nickname: this.nicknameMap[jid] }));
-      const conversation = this.props.selectedConversation;
-      conversation.update({
-        $set: { nicknames }
+    const db = await getDb();
+    console.log('cxm*** exitMemberProfile 2 ', member);
+    const jid = member.jid.bare || member.jid;
+    const contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+    if (contact && contact.nickname != member.nickname) {
+      await contact.update({
+        $set: { nickname: member.nickname}
       })
-      //console.log('cxm*** conversation.update ', nicknames);
-      //cxm todo: save conversation to db;
     }
     this.setState(state);
   }
