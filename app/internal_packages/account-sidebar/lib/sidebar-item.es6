@@ -155,7 +155,10 @@ class SidebarItem {
         },
 
         onSelect(item) {
-          if (item.children.length === 0 && (item.contextMenuLabel === 'Folder' || item.contextMenuLabel ==='Drafts')) {
+          if (
+            item.accountIds.length === 0 &&
+            (item.contextMenuLabel === 'Folder' || item.contextMenuLabel === 'Drafts')
+          ) {
             Actions.syncFolders(
               item.accountIds[0],
               item.categoryIds ? item.categoryIds : [item.id]
