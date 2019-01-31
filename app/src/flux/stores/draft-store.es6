@@ -455,8 +455,8 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onDestroyDraft = ({ accountId, headerMessageId, id, threadId }) => {
-    // console.error('on destroy draft');
+  _onDestroyDraft = ({ accountId, headerMessageId, id, threadId }, opts={}) => {
+    // console.log('on destroy draft');
     const session = this._draftSessions[headerMessageId];
     // Immediately reset any pending changes so no saves occur
     if (session) {
@@ -495,7 +495,7 @@ class DraftStore extends MailspringStore {
     } else {
       console.warn('Tried to delete a draft that had no ID assigned yet.');
     }
-    if (AppEnv.isComposerWindow()) {
+    if (AppEnv.isComposerWindow() && !opts.switchingAccount) {
       AppEnv.close({
         headerMessageId,
         threadId,

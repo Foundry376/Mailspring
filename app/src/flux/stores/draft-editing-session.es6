@@ -377,6 +377,7 @@ export default class DraftEditingSession extends MailspringStore {
   async ensureCorrectAccount() {
     if (this._popedOut) {
       // We do nothing if session have popouts
+      // console.log('we are poped out');
       return;
     }
     const draft = this.draft();
@@ -395,9 +396,11 @@ export default class DraftEditingSession extends MailspringStore {
       // Then destroy the old one, since it may be synced to the server
       // and require cleanup!
       //
+      const newId = uuid();
       const create = new SyncbackDraftTask({
         headerMessageId: draft.headerMessageId,
         draft: new Message({
+          id: newId,
           from: draft.from,
           version: 0,
           to: draft.to,
@@ -407,9 +410,11 @@ export default class DraftEditingSession extends MailspringStore {
           files: draft.files,
           replyTo: draft.replyTo,
           subject: draft.subject,
-          headerMessageId: draft.headerMessageId,
+          headerMessageId: newId,
+          // referenceMessageId: draft.id,
           hasNewID: draft.hasNewID,
           accountId: account.id,
+          msgOrigin: draft.msgOrigin,
           unread: false,
           starred: false,
           draft: true,
@@ -426,10 +431,12 @@ export default class DraftEditingSession extends MailspringStore {
       Actions.queueTask(create);
       await TaskQueue.waitForPerformLocal(create);
       if (destroy) {
-        Actions.destroyDraft(draft);
+        // console.log('destroyed');
+        Actions.destroyDraft(draft, { switchingAccount: true });
+      }else{
+        // console.log('did not destroy', draft);
       }
     }
-
     return this;
   }
 
