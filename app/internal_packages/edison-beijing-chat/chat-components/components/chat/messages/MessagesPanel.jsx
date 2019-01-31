@@ -195,15 +195,9 @@ export default class MessagesPanel extends PureComponent {
   refreshRoomMembers = async (nextProps) => {
     const { selectedConversation: conversation } = (nextProps || this.props);
     // console.log('cxm*** get nicknames props ', nextProps, this.props);
-    debugger;
     if (conversation && conversation.isGroup) {
       const members = await this.getRoomMembers(nextProps);
       //console.log('cxm*** get nicknames ', conversation);
-      const nicknameMap = this.nicknameMap = {};
-      const nicknames = conversation.nicknames || [];
-      nicknames.forEach(item => {
-        nicknameMap[item.jid] = item.nickname;
-      });
       if (conversation.update && members && members.length > 0) {
         conversation.update({
           $set: {
@@ -211,10 +205,24 @@ export default class MessagesPanel extends PureComponent {
           }
         })
       }
-      members.forEach(member => {
+      const db = await getDb();
+      for (let member of members) {
         const jid = member.jid.bare || member.jid;
-        member.nickname = nicknameMap[jid];
-      });
+        let contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+        // console.log('cxm*** refreshRoomMembers ', member, contact);
+        if (contact) {
+          member.nickname = contact.nickname || '';
+        } else {
+          await db.contacts.upsert({
+            jid: member.jid,
+            curJid: conversation.curJid,
+            name: member.name,
+            email:member.email,
+            avatar: member.avatar,
+            isMyContact:false
+          })
+        }
+      };
       // console.log('cxm***  refreshRoomMembers members ', members);
       this.setState({ members });
     }
@@ -345,19 +353,20 @@ export default class MessagesPanel extends PureComponent {
     this.setState(state);
   }
 
-  exitMemberProfile = member => {
-    const state = Object.assign({}, this.state, { editingMember: null });
+  exitMemberProfile = async member => {
+
     //console.log('cxm*** exitMemberProfile ', member);
-    if (member.nickname && this.nicknameMap[member.jid] != member.nickname) {
-      this.nicknameMap[member.jid] = member.nickname;
-      const nicknames = Object.keys(this.nicknameMap).map(jid => ({ jid, nickname: this.nicknameMap[jid] }));
-      const conversation = this.props.selectedConversation;
-      conversation.update({
-        $set: { nicknames }
+    const db = await getDb();
+    const jid = member.jid.bare || member.jid;
+    const contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+    // console.log('cxm*** exitMemberProfile 3 ', contact);
+    debugger;
+    if (contact && contact.nickname != member.nickname) {
+      await contact.update({
+        $set: { nickname: member.nickname}
       })
-      //console.log('cxm*** conversation.update ', nicknames);
-      //cxm todo: save conversation to db;
     }
+    const state = Object.assign({}, this.state, { editingMember: null });
     this.setState(state);
   }
 
@@ -375,7 +384,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   render() {
-    const { showConversationInfo, inviting } = this.state;
+    const { showConversationInfo, inviting, members } = this.state;
     const {
       deselectConversation,
       sendMessage,
@@ -385,6 +394,20 @@ export default class MessagesPanel extends PureComponent {
       referenceTime,
       contacts
     } = this.props;
+    groupedMessages.map(group => group.messages.map(message=> {
+      members.map(member => {
+        console.log('cxm msgpanel.render message', message);
+        const jid = member.jid.bare || member.jid;
+        if (jid === message.sender){
+          if (member.nickname){
+            message.senderNickname = member.nickname;
+          }
+        }
+      });
+      if (!message.senderNickname && message.senderContact) {
+        message.senderNickname = message.senderContact.nickname;
+      }
+    }));
     // console.log('cxm*** msg panel render props', this.props);
     const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
 

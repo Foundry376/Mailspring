@@ -7,6 +7,7 @@ import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
 import { clearMessages } from '../../../utils/message';
+import _ from 'lodash';
 import MemberProfile from './MemberProfile';
 
 const { primaryColor } = theme;
@@ -85,10 +86,6 @@ export default class ConversationInfo extends Component {
     ]
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
   }
-  exitEditMemberProfile = () => {
-    const state = Object.assign({}, this.state, {editingMember:null});
-    this.setState(state);
-  }
 
   render = () => {
     const { selectedConversation: conversation, members } = this.props;
@@ -136,14 +133,20 @@ export default class ConversationInfo extends Component {
               const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
 
               const onEditMemberProfile = () => {
-                if (this.editingMember && member !== this.editingMember) {
-                  this.props.exitMemberProfile(this.editingMember);
-                }
-                setTimeout(()=>{
-                  this.props.editMemberProfile(member);
-                  this.editingMember = member;
-                }, 0);
-                return;
+                const fn = _.debounce(() => {
+                  setTimeout(()=>{
+                    if (this.editingMember && member !== this.editingMember) {
+                      this.props.exitMemberProfile(this.editingMember);
+                    }
+                    setTimeout(()=>{
+                      this.props.editMemberProfile(member);
+                      this.editingMember = member;
+                    }, 50);
+                  }, 50);
+
+                }, 1500);
+                fn();
+               return;
               }
 
               return (

@@ -16,13 +16,19 @@ const saveContacts = async contacts => {
   const db = await getDb();
   const dbContacts = [];
   for (const { jid: { bare: jid }, curJid, name, email, avatar } of contacts) {
+    const contactInDb = await db.contacts.findOne().where('jid').eq(jid).exec();
+    let nickname;
+    if (contactInDb){
+      nickname = contactInDb;
+    }
     if (!!name) {
       const contact = {
         jid,
         curJid,
         name,
         email,
-        avatar
+        avatar,
+        nickname
       }
       await db.contacts.upsert(contact);
       dbContacts.push(contact);
