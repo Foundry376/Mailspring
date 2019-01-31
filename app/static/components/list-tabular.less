@@ -76,7 +76,25 @@
   }
 }
 
+.mode-split {
+  .list-container {
+    .scroll-region {
+      border-right: 1px solid @extra-light-grey;
+    }
+  }
+}
+
 .list-container {
+  .list-header {
+    overflow: hidden;
+    h1 {
+      padding: 0;
+      font-size: 32px;
+      line-height: 32px;
+      margin: 15px auto 0 16px;
+      letter-spacing: 0.01;
+    }
+  }
   .list-rows > div {
     // Note: This allows rows to be animated in and out!
     transition: top ease-out 120ms;

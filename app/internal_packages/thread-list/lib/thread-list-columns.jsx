@@ -15,7 +15,7 @@ const ThreadListParticipants = require('./thread-list-participants');
 const ThreadListIcon = require('./thread-list-icon');
 
 // Get and format either last sent or last received timestamp depending on thread-list being viewed
-const ThreadListTimestamp = function({ thread }) {
+const ThreadListTimestamp = function ({ thread }) {
   let rawTimestamp = FocusedPerspectiveStore.current().isSent()
     ? thread.lastMessageSentTimestamp
     : thread.lastMessageReceivedTimestamp;
@@ -25,7 +25,7 @@ const ThreadListTimestamp = function({ thread }) {
 
 ThreadListTimestamp.containerRequired = false;
 
-const subject = function(subj) {
+const subject = function (subj) {
   if ((subj || '').trim().length === 0) {
     return <span className="no-subject">(No Subject)</span>;
   } else if (subj.split(/([\uD800-\uDBFF][\uDC00-\uDFFF])/g).length > 1) {
@@ -49,7 +49,7 @@ const subject = function(subj) {
   }
 };
 
-const getSnippet = function(thread) {
+const getSnippet = function (thread) {
   const messages = thread.__messages || [];
   if (messages.length === 0) {
     return thread.snippet;
@@ -101,7 +101,7 @@ const c2 = new ListTabular.Column({
     }
 
     let attachment = null;
-    const haveAttachments = 
+    const haveAttachments =
       thread.attachmentCount > 0 && messages.find(m => Utils.showIconForAttachments(m.files));
     if (haveAttachments) {
       attachment = <div className="thread-icon thread-icon-attachment" />;
@@ -201,7 +201,6 @@ const cNarrow = new ListTabular.Column({
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div className="icons-column">
-          <ThreadListIcon thread={thread} />
           <InjectedComponentSet
             inline={true}
             matchLimit={1}
@@ -216,6 +215,7 @@ const cNarrow = new ListTabular.Column({
         </div>
         <div className="thread-info-column">
           <div className="participants-wrapper">
+            <ThreadListIcon thread={thread} />
             <ThreadListParticipants thread={thread} />
             {attachment}
             {pencil}
