@@ -108,8 +108,7 @@ export default class MemberProfie extends Component {
     //  cxm:
     // because onBlur on a div container does not work as expected
     // so it's necessary to use this as a workaround
-    console.log('cxm*** onClickWithMemberProfile', e);
-    debugger;
+    // console.log('cxm*** onClickWithMemberProfile', e);
     const rect = this.panelRect;
     if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
       // document.body.removeEventListener('click', this.onClickWithMemberProfile);

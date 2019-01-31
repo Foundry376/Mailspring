@@ -209,6 +209,7 @@ export default class MessagesPanel extends PureComponent {
       for (let member of members) {
         const jid = member.jid.bare || member.jid;
         let contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+        // console.log('cxm*** refreshRoomMembers ', member, contact);
         if (contact) {
           member.nickname = contact.nickname || '';
         } else {
@@ -353,17 +354,19 @@ export default class MessagesPanel extends PureComponent {
   }
 
   exitMemberProfile = async member => {
-    const state = Object.assign({}, this.state, { editingMember: null });
+
     //console.log('cxm*** exitMemberProfile ', member);
     const db = await getDb();
-    console.log('cxm*** exitMemberProfile 2 ', member);
     const jid = member.jid.bare || member.jid;
     const contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+    // console.log('cxm*** exitMemberProfile 3 ', contact);
+    debugger;
     if (contact && contact.nickname != member.nickname) {
       await contact.update({
         $set: { nickname: member.nickname}
       })
     }
+    const state = Object.assign({}, this.state, { editingMember: null });
     this.setState(state);
   }
 
@@ -381,7 +384,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   render() {
-    const { showConversationInfo, inviting } = this.state;
+    const { showConversationInfo, inviting, members } = this.state;
     const {
       deselectConversation,
       sendMessage,
@@ -391,6 +394,20 @@ export default class MessagesPanel extends PureComponent {
       referenceTime,
       contacts
     } = this.props;
+    groupedMessages.map(group => group.messages.map(message=> {
+      members.map(member => {
+        console.log('cxm msgpanel.render message', message);
+        const jid = member.jid.bare || member.jid;
+        if (jid === message.sender){
+          if (member.nickname){
+            message.senderNickname = member.nickname;
+          }
+        }
+      });
+      if (!message.senderNickname && message.senderContact) {
+        message.senderNickname = message.senderContact.nickname;
+      }
+    }));
     // console.log('cxm*** msg panel render props', this.props);
     const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
 

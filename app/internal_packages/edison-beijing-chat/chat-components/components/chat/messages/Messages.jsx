@@ -404,6 +404,7 @@ export default class Messages extends PureComponent {
               }
               const isCurrentUser = msg.sender === currentUserId;
               const member = this.getContactInfoByJid(msg.sender);
+              const senderName = msg.senderNickname || member.name;
               return (
                 <div
                   key={msg.id}
@@ -417,7 +418,7 @@ export default class Messages extends PureComponent {
                   </div>
                   <div className="messageContent">
                     <div>
-                      <span className="username">{member.name}</span>
+                      <span className="username">{senderName}</span>
                       <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
                     </div>
                     {

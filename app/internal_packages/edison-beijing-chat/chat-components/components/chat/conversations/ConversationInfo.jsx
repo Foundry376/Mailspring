@@ -141,10 +141,10 @@ export default class ConversationInfo extends Component {
                     setTimeout(()=>{
                       this.props.editMemberProfile(member);
                       this.editingMember = member;
-                    }, 100);
-                  }, 100);
+                    }, 50);
+                  }, 50);
 
-                }, 1000);
+                }, 1500);
                 fn();
                return;
               }
