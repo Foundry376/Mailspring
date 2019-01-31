@@ -45,7 +45,10 @@ export default class ChatView extends Component {
   }
   componentDidMount() {
     const h = AppEnv.config.get(`chatPanelHeight`);
-    this.calcPanel(h);
+    // bug fix: the height calculation goes wrong if not wait some time
+    setTimeout(() => {
+      this.calcPanel(h);
+    }, 200);
     registerLoginChatAccounts();
   }
   resetHeight = () => {
