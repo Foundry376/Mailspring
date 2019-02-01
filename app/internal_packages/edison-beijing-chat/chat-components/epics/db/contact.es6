@@ -16,25 +16,18 @@ const saveContacts = async contacts => {
   const db = await getDb();
   const dbContacts = [];
   for (const { jid: { bare: jid }, curJid, name, email, avatar } of contacts) {
-    const contactInDb = await db.contacts.findOne().where('jid').eq(jid).exec();
-    let nickname;
-    if (contactInDb){
-      nickname = contactInDb.nickname;
-    }
     if (!!name) {
       const contact = {
         jid,
         curJid,
         name,
         email,
-        avatar,
-        nickname
+        avatar
       }
       await db.contacts.upsert(contact);
       dbContacts.push(contact);
     }
   }
-  console.log('cxm*** saveContacts 2', contacts);
   return dbContacts;
 };
 const saveE2ees = async e2ees => {

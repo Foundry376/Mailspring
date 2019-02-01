@@ -197,7 +197,7 @@ export const storeConversationNameEpic = action$ =>
     .mergeMap(({ payload }) =>
       Observable.fromPromise((saveConversationName(payload)))
         .map((conv) => successfullyStoredConversationName(conv))
-        .catch(err => console.log(err))
+        .catch(err => failStoredConversationName(err))
     );
 
 export const beginStoreOccupantsEpic = action$ =>

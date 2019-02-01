@@ -120,7 +120,7 @@ class OutlineViewItem extends Component {
       id: PropTypes.string.isRequired,
       children: PropTypes.array.isRequired,
       name: PropTypes.string.isRequired,
-      iconName: PropTypes.string.isRequired,
+      iconName: PropTypes.string,
       count: PropTypes.number,
       counterStyle: PropTypes.string,
       inputPlaceholder: PropTypes.string,

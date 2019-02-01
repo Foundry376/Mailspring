@@ -1,9 +1,10 @@
 import keyMannager from '../../../../src/key-manager';
 import { register } from './restjs';
-import chatModel from '../store/model';
+import chatModel, { loadFromLocalStorage } from '../store/model';
 import { SUBMIT_AUTH } from '../actions/auth';
 
 export default async function registerLoginChatAccounts() {
+  loadFromLocalStorage();
   let accounts = AppEnv.config.get('accounts')
   let chatAccounts = AppEnv.config.get('chatAccounts') || {};
   for (let acc of accounts) {
@@ -61,5 +62,5 @@ export default async function registerLoginChatAccounts() {
         payload: { jid, password: chatAccount.password, email: chatAccount.email }
       });
     }
-  }
+  };
 }

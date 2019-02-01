@@ -3,6 +3,7 @@ import { copyRxdbMessage } from './db-utils';
 import groupByTime from 'group-by-time';
 
 import getDb from '../db';
+import chatModel from '../store/model';
 
 export const groupMessages = async messages => {
   const groupedMessages = [];
@@ -36,11 +37,10 @@ export const groupMessagesByTime = async (messages, key, kind) => {
   return groupedMessages;
 }
 
-export const addMessagesSenderContact = async (messages) => {
-  const db = await getDb();
+export const addMessagesSenderNickname = async (messages) => {
+  const nicknames = chatModel.chatStorage.nicknames;
   for (let message of messages){
-    const contact = await db.contacts.findOne().where('jid').eq(message.sender).exec();
-    message.senderContact = contact;
+    message.senderNickname = nicknames[message.sender];
   }
 }
 

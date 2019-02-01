@@ -27,6 +27,7 @@ export default class MemberProfie extends Component {
   }
 
   componentDidMount = () => {
+    this.mounted = true;
     this.queryProfile();
     const rect = this.panel.getBoundingClientRect();
     this.panelRect = rect;
@@ -58,16 +59,17 @@ export default class MemberProfie extends Component {
       }
       const member = Object.assign(this.state.member, res.data);
       const state = Object.assign({}, this.state, { member });
-      this.setState(state);
+      if (this.mounted){
+        this.setState(state);
+      } else {
+        this.state = state;
+      }
     });
   };
 
   componentWillReceiveProps = (nextProps) => {
     if (!this.props.member || nextProps.member.email !== this.props.member.email) {
       this.props = nextProps;
-      const member = nextProps.member;
-      // const state = Object({}, this.state, { member });
-      // this.setState(state);
       this.queryProfile();
     }
   }

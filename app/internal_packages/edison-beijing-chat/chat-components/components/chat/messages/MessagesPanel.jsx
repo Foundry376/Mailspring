@@ -11,7 +11,7 @@ import ConversationInfo from '../conversations/ConversationInfo';
 import Divider from '../../common/Divider';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import xmpp from '../../../xmpp/index';
-import chatModel from '../../../store/model';
+import chatModel, { saveToLocalStorage } from '../../../store/model';
 import getDb from '../../../db';
 import { uploadFile } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
@@ -203,19 +203,22 @@ export default class MessagesPanel extends PureComponent {
       const db = await getDb();
       for (let member of members) {
         const jid = member.jid.bare || member.jid;
-        let contact = await db.contacts.findOne().where('jid').eq(jid).exec();
-        if (contact) {
-          member.nickname = contact.nickname || '';
-        } else {
-          await db.contacts.upsert({
-            jid: member.jid,
-            curJid: conversation.curJid,
-            name: member.name,
-            email:member.email,
-            avatar: member.avatar,
-            isMyContact:false
-          })
-        }
+        const nicknames = chatModel.chatStorage.nicknames;
+        // let contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+        member.nickname = nicknames[jid] || '';
+        // if (contact) {
+        //
+        // }
+        // else {
+        //   await db.contacts.upsert({
+        //     jid: member.jid,
+        //     curJid: conversation.curJid,
+        //     name: member.name,
+        //     email:member.email,
+        //     avatar: member.avatar,
+        //     isMyContact:false
+        //   })
+        // }
       };
       this.setState({ members });
     }
@@ -347,11 +350,11 @@ export default class MessagesPanel extends PureComponent {
   exitMemberProfile = async member => {
     const db = await getDb();
     const jid = member.jid.bare || member.jid;
-    const contact = await db.contacts.findOne().where('jid').eq(jid).exec();
-    if (contact && contact.nickname != member.nickname) {
-      await contact.update({
-        $set: { nickname: member.nickname}
-      })
+    const nicknames = chatModel.chatStorage.nicknames;
+    // const contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+    if (nicknames[jid] != member.nickname) {
+      nicknames[jid] = member.nickname;
+      saveToLocalStorage();
     }
     const state = Object.assign({}, this.state, { editingMember: null });
     this.setState(state);
@@ -383,17 +386,11 @@ export default class MessagesPanel extends PureComponent {
     } = this.props;
     groupedMessages.map(group => group.messages.map(message=> {
       members.map(member => {
-        console.log('cxm msgpanel.render message', message);
         const jid = member.jid.bare || member.jid;
-        if (jid === message.sender){
-          if (member.nickname){
-            message.senderNickname = member.nickname;
-          }
+        if (jid === message.sender) {
+            message.senderNickname = member.nickname || message.senderNickname;
         }
       });
-      if (!message.senderNickname && message.senderContact) {
-        message.senderNickname = message.senderContact.nickname;
-      }
     }));
     const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
 
