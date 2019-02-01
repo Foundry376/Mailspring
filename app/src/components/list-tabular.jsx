@@ -3,6 +3,9 @@ import React, { Component } from 'react';
 import { Utils } from 'mailspring-exports';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
+import {
+  FocusedPerspectiveStore,
+} from 'mailspring-exports';
 
 import ScrollRegion from './scroll-region';
 import Spinner from './spinner';
@@ -44,13 +47,13 @@ class ListTabularRows extends Component {
     if (!item) {
       return false;
     }
-    const { columns, itemHeight, onClick, onSelect, onDoubleClick } = this.props;
+    const { columns, itemHeight, onClick, onSelect, onDoubleClick, offsetHeight = 0 } = this.props;
     return (
       <ListTabularItem
         key={item.id || idx}
         item={item}
         itemProps={itemProps}
-        metrics={{ top: idx * itemHeight, height: itemHeight }}
+        metrics={{ top: idx * itemHeight + offsetHeight, height: itemHeight }}
         columns={columns}
         onSelect={onSelect}
         onClick={onClick}
@@ -282,7 +285,6 @@ class ListTabular extends Component {
 
     const items = {};
     let animatingOut = {};
-
     Utils.range(start, end).forEach(idx => {
       items[idx] = dataSource.get(idx);
     });
@@ -352,7 +354,13 @@ class ListTabular extends Component {
     const { count, loaded, empty } = this.state;
     const rows = this.getRowsToRender();
     const innerStyles = { height: count * itemHeight };
-
+    const headerHeight = 66;
+    let offsetHeight = 0;
+    let isHeaderShow = true;
+    if (isHeaderShow) {
+      offsetHeight = headerHeight;
+    }
+    const current = FocusedPerspectiveStore.current();
     return (
       <div className={`list-container list-tabular ${className}`}>
         <ScrollRegion
@@ -363,12 +371,20 @@ class ListTabular extends Component {
           tabIndex="-1"
           scrollTooltipComponent={scrollTooltipComponent}
         >
+          {isHeaderShow ? (
+            <div className="list-header" style={{
+              height: headerHeight
+            }}>
+              <h1>{current && current.name}</h1>
+            </div>
+          ) : null}
           <ListTabularRows
             rows={rows}
             columns={columns}
             draggable={draggable}
             itemHeight={itemHeight}
             innerStyles={innerStyles}
+            offsetHeight={offsetHeight}
             onClick={onClick}
             onSelect={onSelect}
             onDragEnd={onDragEnd}
