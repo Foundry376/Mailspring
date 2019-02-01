@@ -15,17 +15,11 @@ export default {
       type: 'string',
       indexed: true,
     },
-    nickname: {
-      type: 'string',
-    },
     email: {
       type: 'string'
     },
     avatar: {
       type: 'string'
-    },
-    isMyContact: {
-      type: 'boolean',
     }
   },
   required: [

@@ -20,6 +20,7 @@ import MailspringProtocolHandler from './mailspring-protocol-handler';
 import ConfigPersistenceManager from './config-persistence-manager';
 import moveToApplications from './move-to-applications';
 import MailsyncProcess from '../mailsync-process';
+import {saveToLocalStorage} from '../../../app/internal_packages/edison-beijing-chat/chat-components/store/model';
 
 let clipboard = null;
 
@@ -389,6 +390,7 @@ export default class Application extends EventEmitter {
     this.on('application:window-relaunch', this._relaunch);
 
     this.on('application:quit', () => {
+      saveToLocalStorage();
       app.quit();
     });
 
