@@ -408,14 +408,15 @@ body.platform-win32 {
   background-size: 16px;
   -webkit-filter: brightness(90%);
 }
+// quanzs comment out
 .mode-split {
   .thread-list .list-item .thread-icon-none {
     width: 0;
-    transition-duration: 0.4s;
+    // transition-duration: 0.4s;
   }
-  .thread-list .list-item:hover .thread-icon-none {
-    width: 25px;
-  }
+  // .thread-list .list-item:hover .thread-icon-none {
+  //   width: 25px;
+  // }
 }
 .thread-list .list-item:hover .thread-icon-none:hover {
   background-image: url(../static/images/thread-list/icon-star-action-hover-@2x.png);
@@ -438,9 +439,19 @@ body.platform-win32 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 25px;
-    margin-right: 5px;
-
+    // width: 25px;
+    margin-left: 20px;
+    margin-right: 15px;
+    .avatar-icon {
+      height: 40px;
+      width: 40px;
+      line-height: 40px;
+      text-align: center;
+      font-size: 24px;
+      color: @white;
+      border-radius: 50%;
+      background: red;
+    }
     .thread-injected-icons {
       align-items: center;
     }

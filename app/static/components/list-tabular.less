@@ -98,14 +98,20 @@
   .list-rows > div {
     // Note: This allows rows to be animated in and out!
     transition: top ease-out 120ms;
+    &:hover {
+      z-index: 9;
+    }
   }
   .list-item {
     font-size: @font-size-base;
     color: @text-color;
     background: @list-bg;
+    transition-duration: 0.4s;
 
     &:hover {
-      background: darken(@list-bg, 5%);
+      background-color: #FFF;
+      z-index: 9;
+      box-shadow: 2px 0 30px 0 rgba(0,0,0,0.15);
     }
 
     &.selected {

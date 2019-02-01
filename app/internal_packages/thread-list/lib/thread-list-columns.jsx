@@ -201,6 +201,11 @@ const cNarrow = new ListTabular.Column({
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div className="icons-column">
+          <InjectedComponent
+            key="thread-avatar"
+            exposedProps={{ thread: thread }}
+            matching={{ role: 'EmailAvatar' }}
+          />
           <InjectedComponentSet
             inline={true}
             matchLimit={1}

@@ -1,6 +1,7 @@
 import ChatButton from './chat-button';
 import ChatView from './chat-view';
 import ChatViewLeft from './chat-view-left';
+import EmailAvatar from './email-avatar';
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
 
 module.exports = {
@@ -14,6 +15,7 @@ module.exports = {
       ComponentRegistry.register(ChatViewLeft, {
         location: WorkspaceStore.Sheet.Global.Footer,
       });
+      ComponentRegistry.register(EmailAvatar, { role: 'EmailAvatar' });
     } else {
       AppEnv.getCurrentWindow().setMinimumSize(800, 600);
       ComponentRegistry.register(ChatView, {
@@ -26,6 +28,7 @@ module.exports = {
     if (AppEnv.isMainWindow()) {
       ComponentRegistry.unregister(ChatButton);
       ComponentRegistry.unregister(ChatViewLeft);
+      ComponentRegistry.unregister(EmailAvatar);
     } else {
       ComponentRegistry.unregister(ChatView);
     }
