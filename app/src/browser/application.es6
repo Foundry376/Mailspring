@@ -390,7 +390,6 @@ export default class Application extends EventEmitter {
     this.on('application:window-relaunch', this._relaunch);
 
     this.on('application:quit', () => {
-      saveToLocalStorage();
       app.quit();
     });
 
