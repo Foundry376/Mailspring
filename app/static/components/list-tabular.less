@@ -44,11 +44,13 @@
   -webkit-app-region: drag;
 
   .absolute {
+    background: #fff;
     position: absolute;
     left: -1px;
     right: -1px;
-    top: 0;
-    height: 37px;
+    top: 68px;
+    height: 55px;
+    border-bottom: 1px solid @border-color-primary;
     border-left: 1px solid @border-color-divider;
     border-right: 1px solid @border-color-divider;
     background-color: @background-primary;
@@ -66,7 +68,7 @@
         cursor: default;
         text-align: center;
         color: @text-color-subtle;
-        line-height: 38px;
+        line-height: 55px;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
@@ -106,6 +108,7 @@
     font-size: @font-size-base;
     color: @text-color;
     background: @list-bg;
+    transition-property: box-shadow;
     transition-duration: 0.4s;
 
     &:hover {

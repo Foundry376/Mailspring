@@ -20,7 +20,7 @@ import MailspringProtocolHandler from './mailspring-protocol-handler';
 import ConfigPersistenceManager from './config-persistence-manager';
 import moveToApplications from './move-to-applications';
 import MailsyncProcess from '../mailsync-process';
-import {saveToLocalStorage} from '../../../app/internal_packages/edison-beijing-chat/chat-components/store/model';
+import { saveToLocalStorage } from '../../internal_packages/edison-beijing-chat/chat-components/store/model';
 
 let clipboard = null;
 

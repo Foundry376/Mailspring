@@ -1,5 +1,5 @@
 const EdisonMailStorageKey = 'EdisonMail-Storage';
-
+const storage = require('electron-localstorage');
 const chatModel = {
   diffTime: 0, //the diffTime to correct sentTime from xmpp server, see xmpp/index.es6 on 'session:prebind'
   allSelfUsers: {},
@@ -18,19 +18,18 @@ const chatModel = {
 };
 
 export const loadFromLocalStorage = () => {
-  if (chatModel.chatStorage){
+  if (chatModel.chatStorage) {
     return;
   }
-  const storageString = localStorage[EdisonMailStorageKey] || '{"nicknames":{}}';
+  const storageString = storage.getItem(EdisonMailStorageKey) || '{"nicknames":{}}';
   const chatStorage = JSON.parse(storageString);
   chatModel.chatStorage = chatStorage;
-  };
+};
 
 export const saveToLocalStorage = () => {
-  const localStorage = window.localStorage;
   const chatStorage = chatModel.chatStorage;
   const storageString = JSON.stringify(chatStorage);
-  localStorage[EdisonMailStorageKey] = storageString;
+  storage.setItem(EdisonMailStorageKey, storageString);
 };
 
 export default chatModel;
