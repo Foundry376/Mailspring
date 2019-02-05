@@ -112,10 +112,58 @@ export const BLOCK_CONFIG = {
     button: {
       isActive: value => value.focusBlock && value.focusBlock.type === BLOCK_CONFIG.code.type,
       iconClass: 'fa fa-sticky-note-o',
-      onToggle: (value, active) =>
-        active
-          ? value.change().setBlock(BLOCK_CONFIG.div.type)
-          : value.change().setBlock(BLOCK_CONFIG.code.type),
+      onToggle: (value, active) => {
+        if (active) {
+          return value.change().setBlock(BLOCK_CONFIG.div.type);
+        } else if (value.selection.isCollapsed) {
+          return value.change().setBlock(BLOCK_CONFIG.code.type);
+        } else {
+          // Collect all the text fragments which are being converted to a code block
+          let texts = value.document
+            .getTextsAtRange(value.selection)
+            .toArray()
+            .map(t => {
+              if (t.key === value.selection.anchorKey) {
+                return value.selection.isBackward
+                  ? t.text.substr(0, value.selection.anchorOffset)
+                  : t.text.substr(value.selection.anchorOffset);
+              } else if (t.key === value.selection.focusKey) {
+                return value.selection.isBackward
+                  ? t.text.substr(value.selection.focusOffset)
+                  : t.text.substr(0, value.selection.focusOffset);
+              } else {
+                return t.text;
+              }
+            });
+
+          if (texts[0] === '') {
+            texts.shift();
+          }
+          if (texts[texts.length - 1] === '') {
+            texts.pop();
+          }
+          // Remove leading spaces that are present on every line
+          let minLeadingSpaces = 1000;
+          texts.filter(text => text.trim().length > 0).forEach(text => {
+            const match = /^ +/.exec(text);
+            if (match === null) {
+              minLeadingSpaces = 0;
+            } else {
+              minLeadingSpaces = Math.min(minLeadingSpaces, match[0].length);
+            }
+          });
+          // Join the text blocks together into a single string
+          const text = texts.map(t => t.substr(minLeadingSpaces)).join('\n');
+
+          // Delete the selection and insert a single code block with the text
+          return value
+            .change()
+            .delete()
+            .insertBlock(BLOCK_CONFIG.code.type)
+            .insertText(text)
+            .insertBlock(BLOCK_CONFIG.div.type);
+        }
+      },
     },
   },
   ol_list: {
