@@ -99,11 +99,6 @@ class SpecRunner {
     this._initializeDOM();
     this._extendJasmineMethods();
 
-    // On load, this will require "jasmine-focused" which looks up the
-    // global `jasmine` object and extends onto it:
-    // fdescribe, ffdescribe, fffdescribe, fit, ffit, fffit
-    require('jasmine-tagged');
-
     // On load this will extend jasmine's `beforeEach`
     require('jasmine-json');
   }

@@ -32,7 +32,6 @@
     "jasmine-json": "~0.0",
     "jasmine-react-helpers": "^0.2",
     "jasmine-reporters": "1.x.x",
-    "jasmine-tagged": "^1.1.2",
     "juice": "^1.4",
     "keytar": "4.3.0",
     "less-cache": "1.1.0",
