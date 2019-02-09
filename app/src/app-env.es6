@@ -619,7 +619,13 @@ export default class AppEnvConstructor {
   // gets fired.
   async startSecondaryWindow() {
     await this.startWindow();
-    ipcRenderer.on('load-settings-changed', (...args) => this.populateHotWindow(...args));
+    ipcRenderer.on('load-settings-changed', (event, loadSettings) => {
+      let url = window.location.href.substr(0, window.location.href.indexOf('loadSettings='));
+      url += `loadSettings=${encodeURIComponent(JSON.stringify(loadSettings))}`;
+      window.history.replaceState('', '', url);
+
+      this.populateHotWindow(loadSettings);
+    });
   }
 
   // We setup the initial Sheet for hot windows. This is the default title
@@ -644,7 +650,7 @@ export default class AppEnvConstructor {
   //
   // This also means that the windowType has changed and a different set of
   // plugins needs to be loaded.
-  populateHotWindow(event, loadSettings) {
+  populateHotWindow(loadSettings) {
     this.loadSettings = loadSettings;
     this.constructor.loadSettings = loadSettings;
 

@@ -356,6 +356,10 @@ export default class Application extends EventEmitter {
       }
     });
 
+    this.on('application:show-calendar', () => {
+      this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
+    });
+
     this.on('application:view-help', () => {
       const helpUrl = 'http://support.getmailspring.com/hc/en-us';
       shell.openExternal(helpUrl);
