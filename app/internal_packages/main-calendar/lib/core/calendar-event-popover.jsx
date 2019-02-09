@@ -14,7 +14,7 @@ import {
   TabGroupRegion,
   TimePicker,
 } from 'mailspring-component-kit';
-import EventParticipantsInput from './event-participants-input';
+import EventAttendeesInput from './event-attendees-input';
 
 export default class CalendarEventPopover extends React.Component {
   static propTypes = {
@@ -23,19 +23,19 @@ export default class CalendarEventPopover extends React.Component {
 
   constructor(props) {
     super(props);
-    const { description, start, end, location, participants } = this.props.event;
+    const { description, start, end, location, attendees } = this.props.event;
 
     this.state = { description, start, end, location };
     this.state.title = this.props.event.displayTitle();
     this.state.editing = false;
-    this.state.participants = participants || [];
+    this.state.attendees = attendees || [];
   }
 
   componentWillReceiveProps = nextProps => {
-    const { description, start, end, location, participants } = nextProps.event;
+    const { description, start, end, location, attendees } = nextProps.event;
     this.setState({ description, start, end, location });
     this.setState({
-      participants: participants || [],
+      attendees: attendees || [],
       title: nextProps.event.displayTitle(),
     });
   };
@@ -49,7 +49,7 @@ export default class CalendarEventPopover extends React.Component {
 
   saveEdits = () => {
     const event = this.props.event.clone();
-    const keys = ['title', 'description', 'location', 'participants'];
+    const keys = ['title', 'description', 'location', 'attendees'];
     for (const key of keys) {
       event[key] = this.state[key];
     }
@@ -99,8 +99,8 @@ export default class CalendarEventPopover extends React.Component {
     return momentTime.format('h:mm A');
   }
 
-  updateParticipants = participants => {
-    this.setState({ participants });
+  updateAttendees = attendees => {
+    this.setState({ attendees });
   };
 
   updateField = (key, value) => {
@@ -180,16 +180,8 @@ export default class CalendarEventPopover extends React.Component {
     );
   }
 
-  renderParticipants(participants) {
-    const names = [];
-    for (let i = 0; i < participants.length; i++) {
-      names.push(<div key={i}> {participants[i].name} </div>);
-    }
-    return names;
-  }
-
   renderEditable = () => {
-    const { title, description, start, end, location, participants } = this.state;
+    const { title, description, start, end, location, attendees } = this.state;
 
     const fragment = document.createDocumentFragment();
     const descriptionRoot = document.createElement('root');
@@ -222,11 +214,11 @@ export default class CalendarEventPopover extends React.Component {
           <div className="section">{this.renderEditableTime(start, end)}</div>
           <div className="section">
             <div className="label">Invitees: </div>
-            <EventParticipantsInput
+            <EventAttendeesInput
               className="event-participant-field"
-              participants={participants}
+              attendees={attendees}
               change={val => {
-                this.updateField('participants', val);
+                this.updateField('attendees', val);
               }}
             />
           </div>
@@ -251,7 +243,7 @@ export default class CalendarEventPopover extends React.Component {
     if (this.state.editing) {
       return this.renderEditable();
     }
-    const { title, description, location, participants } = this.state;
+    const { title, description, location, attendees } = this.state;
 
     const fragment = document.createDocumentFragment();
     const descriptionRoot = document.createElement('root');
@@ -276,7 +268,7 @@ export default class CalendarEventPopover extends React.Component {
         <div className="section">{this.renderTime()}</div>
         <div className="section">
           <div className="label">Invitees: </div>
-          {this.renderParticipants(participants)}
+          {attendees.map((a, idx) => <div key={idx}> {a.cn} </div>)}
         </div>
         <div className="section">
           <div className="description">

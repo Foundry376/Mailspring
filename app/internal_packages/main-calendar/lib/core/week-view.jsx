@@ -52,6 +52,8 @@ export default class WeekView extends React.Component {
     footerComponents: false,
   };
 
+  _waitingForShift = 0;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -60,29 +62,24 @@ export default class WeekView extends React.Component {
     };
   }
 
-  componentWillMount() {
-    this._initializeComponent(this.props);
-  }
-
   componentDidMount() {
     this._mounted = true;
     this._centerScrollRegion();
     this._setIntervalHeight();
-    const weekStart = moment(this.state.startMoment)
-      .add(BUFFER_DAYS, 'days')
-      .unix();
-    this._scrollTime = weekStart;
-    this._ensureHorizontalScrollPos();
     window.addEventListener('resize', this._setIntervalHeight, true);
+    const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap);
+    wrap.scrollLeft += wrap.clientWidth;
+    this.updateSubscription();
   }
 
-  componentWillReceiveProps(props) {
-    this._initializeComponent(props);
-  }
-
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
     this._setIntervalHeight();
-    this._ensureHorizontalScrollPos();
+    const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap);
+    wrap.scrollLeft += this._waitingForShift;
+    this._waitingForShift = 0;
+    if (prevProps.currentMoment !== this.props.currentMoment) {
+      this.updateSubscription();
+    }
   }
 
   componentWillUnmount() {
@@ -96,43 +93,26 @@ export default class WeekView extends React.Component {
     return moment();
   }
 
-  _initializeComponent(props) {
-    this.todayYear = this._now().year();
-    this.todayDayOfYear = this._now().dayOfYear();
-
+  updateSubscription() {
     if (this._sub) {
       this._sub.dispose();
     }
 
-    const startMoment = this._calculateStartMoment(props);
-    const endMoment = this._calculateEndMoment(props);
+    const { start, end } = this._calculateMomentRange();
 
     this._sub = this.props.dataSource
       .buildObservable({
-        disabledCalendars: props.disabledCalendars,
-        startTime: startMoment.unix(),
-        endTime: endMoment.unix(),
+        disabledCalendars: this.props.disabledCalendars,
+        startTime: start.unix(),
+        endTime: end.unix(),
       })
       .subscribe(state => {
         this.setState(state);
       });
-
-    this.setState({ startMoment, endMoment });
-
-    const percent =
-      (this._scrollTime - startMoment.unix()) / (endMoment.unix() - startMoment.unix());
-    if (percent < 0 || percent > 1) {
-      this._scrollTime = startMoment.unix();
-    } else {
-      const weekStart = moment(props.currentMoment)
-        .startOf('day')
-        .weekday(0)
-        .unix();
-      this._scrollTime = weekStart;
-    }
   }
 
-  _calculateStartMoment(props) {
+  _calculateMomentRange() {
+    const { currentMoment } = this.props;
     let start;
 
     // NOTE: Since we initialize a new time from one of the properties of
@@ -140,34 +120,32 @@ export default class WeekView extends React.Component {
     //
     // Other relative operations (like adding or subtracting time) are
     // independent of a timezone.
-    const tz = props.currentMoment.tz();
+    const tz = currentMoment.tz();
     if (tz) {
-      start = moment.tz([props.currentMoment.year()], tz);
+      start = moment.tz([currentMoment.year()], tz);
     } else {
-      start = moment([props.currentMoment.year()]);
+      start = moment([currentMoment.year()]);
     }
 
     start = start
       .weekday(0)
-      .week(props.currentMoment.week())
+      .week(currentMoment.week())
       .subtract(BUFFER_DAYS, 'days');
-    return start;
-  }
 
-  _calculateEndMoment(props) {
-    const end = moment(this._calculateStartMoment(props))
+    const end = moment(start)
       .add(BUFFER_DAYS * 2 + DAYS_IN_VIEW, 'days')
       .subtract(1, 'millisecond');
-    return end;
+
+    return { start, end };
   }
 
-  _renderDateLabel = day => {
+  _renderDateLabel = (day, idx) => {
     const className = classnames({
       'day-label-wrap': true,
       'is-today': this._isToday(day),
     });
     return (
-      <div className={className} key={day.valueOf()}>
+      <div className={className} key={idx}>
         <span className="date-label">{day.format('D')}</span>
         <span className="weekday-label">{day.format('ddd')}</span>
       </div>
@@ -175,7 +153,10 @@ export default class WeekView extends React.Component {
   };
 
   _isToday(day) {
-    return this.todayDayOfYear === day.dayOfYear() && this.todayYear === day.year();
+    const todayYear = this._now().year();
+    const todayDayOfYear = this._now().dayOfYear();
+
+    return todayDayOfYear === day.dayOfYear() && todayYear === day.year();
   }
 
   _renderEventColumn = (eventsByDay, day) => {
@@ -282,7 +263,7 @@ export default class WeekView extends React.Component {
   }
 
   _daysInView() {
-    const start = this.state.startMoment;
+    const { start } = this._calculateMomentRange();
     const days = [];
     for (let i = 0; i < DAYS_IN_VIEW + BUFFER_DAYS * 2; i++) {
       // moment::weekday is locale aware since some weeks start on diff
@@ -290,12 +271,6 @@ export default class WeekView extends React.Component {
       days.push(moment(start).weekday(i));
     }
     return days;
-  }
-
-  _currentWeekText() {
-    const start = moment(this.state.startMoment).add(BUFFER_DAYS, 'days');
-    const end = moment(this.state.endMoment).subtract(BUFFER_DAYS, 'days');
-    return `${start.format('MMMM D')} - ${end.format('MMMM D YYYY')}`;
   }
 
   _headerComponents() {
@@ -391,31 +366,23 @@ export default class WeekView extends React.Component {
   };
 
   _onScrollCalendarArea = event => {
-    if (!event.target.scrollLeft) {
+    if (!event.currentTarget.scrollLeft || this._waitingForShift) {
       return;
     }
-    const percent = event.target.scrollLeft / event.target.scrollWidth;
-    const weekStart = this.state.startMoment.unix();
-    const weekEnd = this.state.endMoment.unix();
-    this._scrollTime = weekStart + (weekEnd - weekStart) * percent;
 
-    if (percent < 0.25) {
+    const edgeWidth = event.currentTarget.clientWidth / DAYS_IN_VIEW * 2;
+
+    if (event.currentTarget.scrollLeft < edgeWidth) {
+      this._waitingForShift = event.currentTarget.clientWidth;
       this._onClickPrevWeek();
-    } else if (percent + DAYS_IN_VIEW / (BUFFER_DAYS * 2 + DAYS_IN_VIEW) > 0.95) {
+    } else if (
+      event.currentTarget.scrollLeft >
+      event.currentTarget.scrollWidth - event.currentTarget.clientWidth - edgeWidth
+    ) {
+      this._waitingForShift = -event.currentTarget.clientWidth;
       this._onClickNextWeek();
     }
-    this._ensureHorizontalScrollPos();
   };
-
-  _ensureHorizontalScrollPos() {
-    if (!this._scrollTime) return;
-    const weekStart = this.state.startMoment.unix();
-    const weekEnd = this.state.endMoment.unix();
-    let percent = (this._scrollTime - weekStart) / (weekEnd - weekStart);
-    percent = Math.min(Math.max(percent, 0), 1);
-    const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap);
-    wrap.scrollLeft = wrap.scrollWidth * percent;
-  }
 
   _renderEventGridLabels() {
     const labels = [];
@@ -472,6 +439,12 @@ export default class WeekView extends React.Component {
     const tickGen = this._tickGenerator.bind(this);
     const gridHeight = this._gridHeight();
 
+    const { start: startMoment, end: endMoment } = this._calculateMomentRange();
+
+    const start = moment(startMoment).add(BUFFER_DAYS, 'days');
+    const end = moment(endMoment).subtract(BUFFER_DAYS, 'days');
+    const headerText = `${start.format('MMMM D')} - ${end.format('MMMM D YYYY')}`;
+
     return (
       <div className="calendar-view week-view">
         <CalendarEventContainer
@@ -483,7 +456,7 @@ export default class WeekView extends React.Component {
           <TopBanner bannerComponents={this.props.bannerComponents} />
 
           <HeaderControls
-            title={this._currentWeekText()}
+            title={headerText}
             ref="headerControls"
             headerComponents={this._headerComponents()}
             nextAction={this._onClickNextWeek}
@@ -508,7 +481,7 @@ export default class WeekView extends React.Component {
             <div
               className="calendar-area-wrap"
               ref="calendarAreaWrap"
-              onScroll={this._onScrollCalendarArea}
+              onWheel={this._onScrollCalendarArea}
             >
               <div className="week-header" style={{ width: `${this._bufferRatio() * 100}%` }}>
                 <div className="date-labels">{days.map(this._renderDateLabel)}</div>
@@ -516,9 +489,9 @@ export default class WeekView extends React.Component {
                 <WeekViewAllDayEvents
                   ref="weekViewAllDayEvents"
                   minorDim={MIN_INTERVAL_HEIGHT}
-                  end={this.state.endMoment.unix()}
+                  end={endMoment.unix()}
                   height={this._allDayEventHeight(allDayOverlap)}
-                  start={this.state.startMoment.unix()}
+                  start={startMoment.unix()}
                   allDayEvents={eventsByDay.allDay}
                   allDayOverlap={allDayOverlap}
                 />

@@ -1,4 +1,6 @@
-import ical from 'ical';
+import ical from 'ical.js';
+import moment from 'moment';
+import 'moment-timezone';
 
 import Model from './model';
 import Attributes from '../attributes';
@@ -71,33 +73,29 @@ export default class Event extends Model {
   fromJSON(json) {
     super.fromJSON(json);
 
-    const ics = ical.parseICS(json.ics);
-    const event = ics[Object.keys(ics).find(key => ics[key].type === 'VEVENT')];
+    const [cal, calattrs, items] = ical.parse(json.ics);
+    const eventattrs = items.find(i => i[0] === 'vevent')[1];
+    if (eventattrs) {
+      const formatFieldVal = ([_, attrs, type, val] = []) => {
+        if (type === 'date-time') {
+          return moment.tz(val, attrs.tzid).toDate();
+        }
+        if (type === 'cal-address') {
+          return { ...attrs, email: val.replace('mailto:', '') };
+        }
+        return val;
+      };
+      const getFieldVal = key => {
+        return formatFieldVal(eventattrs.find(e => e[0] === key));
+      };
 
-    if (event) {
-      this.title = event.summary;
-      this.description = event.description;
-      this.status = event.status;
-      this.location = event.location;
-      this.busy = event.transparency === 'OPAQUE';
-      this.participants = [];
-      if (event.organizer) {
-        this.organizer = {
-          name: event.organizer.params ? event.organizer.params.CN : undefined,
-          email: event.organizer.val,
-        };
-      }
-      let attendees = event.attendee;
-      if (attendees && !(attendees instanceof Array)) {
-        attendees = [attendees];
-      }
-      (attendees || []).forEach(attendee => {
-        this.participants.push({
-          name: attendee.params ? attendee.params.CN : undefined,
-          status: attendee.params ? attendee.params.PARTSTAT : undefined,
-          email: attendee.val,
-        });
-      });
+      this.title = getFieldVal('summary');
+      this.description = getFieldVal('description');
+      this.status = getFieldVal('status');
+      this.location = getFieldVal('location');
+      this.busy = getFieldVal('transp') === 'OPAQUE';
+      this.organizer = getFieldVal('organizer');
+      this.attendees = eventattrs.filter(e => e[0] === 'attendee').map(formatFieldVal);
     }
 
     return this;

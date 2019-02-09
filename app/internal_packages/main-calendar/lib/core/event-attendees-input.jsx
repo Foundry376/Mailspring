@@ -4,10 +4,10 @@ import { React, PropTypes, Utils, Contact, ContactStore, RegExpUtils } from 'mai
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
 const TokenRenderer = props => {
-  const { email, name } = props.token;
+  const { email, cn } = props.token;
   let chipText = email;
-  if (name && name.length > 0 && name !== email) {
-    chipText = name;
+  if (cn && cn.length > 0 && cn !== email) {
+    chipText = cn;
   }
   return (
     <div className="participant">
@@ -26,11 +26,11 @@ TokenRenderer.propTypes = {
   token: PropTypes.object,
 };
 
-export default class EventParticipantsInput extends React.Component {
-  static displayName = 'EventParticipantsInput';
+export default class EventAttendeesInput extends React.Component {
+  static displayName = 'EventAttendeesInput';
 
   static propTypes = {
-    participants: PropTypes.array.isRequired,
+    attendees: PropTypes.array.isRequired,
     change: PropTypes.func.isRequired,
     className: PropTypes.string,
     onEmptied: PropTypes.func,
@@ -71,17 +71,17 @@ export default class EventParticipantsInput extends React.Component {
 
   _remove = values => {
     const updates = _.reject(
-      this.props.participants,
+      this.props.attendees,
       p => values.includes(p.email) || values.map(o => o.email).includes(p.email)
     );
     this.props.change(updates);
   };
 
   _edit = (token, replacementString) => {
-    const tokenIndex = this.props.participants.indexOf(token);
+    const tokenIndex = this.props.attendees.indexOf(token);
 
     this._tokensForString(replacementString).then(replacements => {
-      const updates = this.props.participants.slice(0);
+      const updates = this.props.attendees.slice(0);
       updates.splice(tokenIndex, 1, ...replacements);
       this.props.change(updates);
     });
@@ -102,11 +102,11 @@ export default class EventParticipantsInput extends React.Component {
       // Safety check: remove anything from the incoming tokens that isn't
       // a Contact. We should never receive anything else in the tokens array.
       const contactTokens = tokens.filter(value => value instanceof Contact);
-      let updates = this.props.participants.slice(0);
+      let updates = this.props.attendees.slice(0);
 
       for (const token of contactTokens) {
         // add the participant to field. _.union ensures that the token will
-        // only appear once, in case it already exists in the participants.
+        // only appear once, in case it already exists in the attendees.
         updates = _.union(updates, [token]);
       }
 
@@ -160,7 +160,7 @@ export default class EventParticipantsInput extends React.Component {
       <TokenizingTextField
         className={this.props.className}
         ref="textField"
-        tokens={this.props.participants}
+        tokens={this.props.attendees}
         tokenKey={p => p.email}
         tokenIsValid={p => ContactStore.isValidContact(p)}
         tokenRenderer={TokenRenderer}
