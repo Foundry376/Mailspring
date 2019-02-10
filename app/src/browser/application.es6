@@ -235,6 +235,7 @@ export default class Application extends EventEmitter {
 
   // Configures required javascript environment flags.
   setupJavaScriptArguments() {
+    app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
     app.commandLine.appendSwitch('js-flags', '--harmony');
   }
 

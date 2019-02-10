@@ -1,10 +1,13 @@
 import Rx from 'rx-lite';
 import { Event, Matcher, DatabaseStore } from 'mailspring-exports';
+import ical from 'ical.js';
+import IcalExpander from 'ical-expander';
+import { version } from 'punycode';
 
 export default class CalendarDataSource {
   buildObservable({ startTime, endTime, disabledCalendars }) {
-    const end = Event.attributes.end;
-    const start = Event.attributes.start;
+    const end = Event.attributes.occursBefore;
+    const start = Event.attributes.occursAfter;
 
     const matcher = new Matcher.And([
       new Matcher.Or([
@@ -18,7 +21,33 @@ export default class CalendarDataSource {
 
     const query = DatabaseStore.findAll(Event).where(matcher);
     this.observable = Rx.Observable.fromQuery(query).flatMapLatest(results => {
-      return Rx.Observable.from([{ events: results }]);
+      const events = [];
+      results.forEach(result => {
+        const icalExpander = new IcalExpander({ ics: result.ics, maxIterations: 100 });
+        const expanded = icalExpander.between(new Date(startTime * 1000), new Date(endTime * 1000));
+
+        [...expanded.events, ...expanded.occurrences].forEach((e, idx) => {
+          const start = e.startDate.toJSDate().getTime() / 1000;
+          const end = e.endDate.toJSDate().getTime() / 1000;
+          const item = e.item || e;
+          events.push({
+            start,
+            end,
+            id: `${result.id}-e${idx}`,
+            calendarId: result.calendarId,
+            title: item.summary,
+            displayTitle: item.summary,
+            description: item.description,
+            isAllDay: end - start >= 86400 - 1,
+            organizer: item.organizer ? { email: item.organizer } : null,
+            attendees: item.attendees.map(a => ({
+              ...a.jCal[1],
+              email: a.getFirstValue(),
+            })),
+          });
+        });
+      });
+      return Rx.Observable.from([{ events }]);
     });
     return this.observable;
   }

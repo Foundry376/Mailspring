@@ -26,7 +26,7 @@ export default class CalendarEventPopover extends React.Component {
     const { description, start, end, location, attendees } = this.props.event;
 
     this.state = { description, start, end, location };
-    this.state.title = this.props.event.displayTitle();
+    this.state.title = this.props.event.displayTitle;
     this.state.editing = false;
     this.state.attendees = attendees || [];
   }
@@ -36,7 +36,7 @@ export default class CalendarEventPopover extends React.Component {
     this.setState({ description, start, end, location });
     this.setState({
       attendees: attendees || [],
-      title: nextProps.event.displayTitle(),
+      title: nextProps.event.displayTitle,
     });
   };
 

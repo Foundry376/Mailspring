@@ -28,6 +28,7 @@
     "fs-plus": "^2.3.2",
     "getmac": "^1.2.1",
     "graceful-fs": "^4.1.11",
+    "ical-expander": "^2.0.0",
     "ical.js": "^1.3.0",
     "immutable": "^3.8.2",
     "is-online": "7.0.0",

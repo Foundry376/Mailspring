@@ -414,7 +414,7 @@ export default class WeekView extends React.Component {
       return;
     });
     for (const event of this.state.events) {
-      if (event.isAllDay()) {
+      if (event.isAllDay) {
         map.allDay.push(event);
       } else {
         for (const day of unixDays) {

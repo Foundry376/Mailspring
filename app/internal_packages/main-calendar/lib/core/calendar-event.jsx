@@ -111,7 +111,7 @@ export default class CalendarEvent extends React.Component {
         onDoubleClick={() => onDoubleClick(event)}
       >
         <span className="default-header" style={{ order: 0 }}>
-          {event.displayTitle()}
+          {event.displayTitle}
         </span>
         <InjectedComponentSet
           className="event-injected-components"
