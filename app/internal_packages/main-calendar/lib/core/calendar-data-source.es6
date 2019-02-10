@@ -1,23 +1,22 @@
 import Rx from 'rx-lite';
 import { Event, Matcher, DatabaseStore } from 'mailspring-exports';
-import ical from 'ical.js';
 import IcalExpander from 'ical-expander';
-import { version } from 'punycode';
 
 export default class CalendarDataSource {
   buildObservable({ startTime, endTime, disabledCalendars }) {
-    const end = Event.attributes.occursBefore;
-    const start = Event.attributes.occursAfter;
+    const end = Event.attributes.recurrenceEnd;
+    const start = Event.attributes.recurrenceStart;
 
-    const matcher = new Matcher.And([
-      new Matcher.Or([
-        new Matcher.And([start.lte(endTime), end.gte(startTime)]),
-        new Matcher.And([start.lte(endTime), start.gte(startTime)]),
-        new Matcher.And([end.gte(startTime), end.lte(endTime)]),
-        new Matcher.And([end.gte(endTime), start.lte(startTime)]),
-      ]),
-      Event.attributes.calendarId.notIn(disabledCalendars || []),
+    let matcher = new Matcher.Or([
+      new Matcher.And([start.lte(endTime), end.gte(startTime)]),
+      new Matcher.And([start.lte(endTime), start.gte(startTime)]),
+      new Matcher.And([end.gte(startTime), end.lte(endTime)]),
+      new Matcher.And([end.gte(endTime), start.lte(startTime)]),
     ]);
+
+    if (disabledCalendars && disabledCalendars.length) {
+      new Matcher.And([matcher, Event.attributes.calendarId.notIn(disabledCalendars)]);
+    }
 
     const query = DatabaseStore.findAll(Event).where(matcher);
     this.observable = Rx.Observable.fromQuery(query).flatMapLatest(results => {

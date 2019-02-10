@@ -1,4 +1,4 @@
-import { React, ReactDOM, PropTypes, Event } from 'mailspring-exports';
+import { React, ReactDOM, PropTypes } from 'mailspring-exports';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 import { calcColor } from './calendar-helpers';
 
@@ -6,7 +6,7 @@ export default class CalendarEvent extends React.Component {
   static displayName = 'CalendarEvent';
 
   static propTypes = {
-    event: PropTypes.instanceOf(Event).isRequired,
+    event: PropTypes.object.isRequired,
     order: PropTypes.number,
     selected: PropTypes.bool,
     scopeEnd: PropTypes.number.isRequired,

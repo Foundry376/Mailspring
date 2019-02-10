@@ -22,18 +22,18 @@ export default class Event extends Model {
 
     // The calculated Unix start time. See the implementation for how we
     // treat each type of "when" attribute.
-    occursAfter: Attributes.Number({
+    recurrenceStart: Attributes.Number({
       queryable: true,
-      modelKey: '_start',
-      jsonKey: '_start',
+      modelKey: 'recurrenceStart',
+      jsonKey: 'rs',
     }),
 
     // The calculated Unix end time. See the implementation for how we
     // treat each type of "when" attribute.
-    occursBefore: Attributes.Number({
+    recurrenceEnd: Attributes.Number({
       queryable: true,
-      modelKey: '_end',
-      jsonKey: '_end',
+      modelKey: 'recurrenceEnd',
+      jsonKey: 're',
     }),
 
     // This corresponds to the rowid in the FTS table. We need to use the FTS

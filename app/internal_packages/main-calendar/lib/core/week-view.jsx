@@ -77,7 +77,10 @@ export default class WeekView extends React.Component {
     const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap);
     wrap.scrollLeft += this._waitingForShift;
     this._waitingForShift = 0;
-    if (prevProps.currentMoment !== this.props.currentMoment) {
+    if (
+      prevProps.currentMoment !== this.props.currentMoment ||
+      prevProps.disabledCalendars !== this.props.disabledCalendars
+    ) {
       this.updateSubscription();
     }
   }
