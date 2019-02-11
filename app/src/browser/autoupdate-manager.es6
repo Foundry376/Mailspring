@@ -39,12 +39,15 @@ export default class AutoUpdateManager extends EventEmitter {
       id: this.config.get('identity.id') || 'anonymous',
       channel: this.preferredChannel,
     };
+    if (params.platform === 'darwin') {
+      params.platform = 'mac';
+    }
 
-    let host = process.env.updateServer || `52.199.7.199`;
+    let host = process.env.updateServer || `https://cp.stag.easilydo.cc/ota/api/checkUpdate`;
     // if (this.config.get('env') === 'staging') {
     //   host = `updates-staging.getmailspring.com`;
     // }
-    this.feedURL = `http://${host}/update/${params.platform}/${this.version}/${params.channel}`;
+    this.feedURL = `${host}?platform=desktop-${params.platform}-full&clientVersion=${this.version}`;
     if (autoUpdater) {
       autoUpdater.setFeedURL(this.feedURL);
     }
