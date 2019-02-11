@@ -434,13 +434,13 @@ class MessageStore extends MailspringStore {
     }
   }
 
-  // Expand all unread messages, all drafts, and the last message
+  // Expand all unread messages, drafts that have body, and the last message
   _expandItemsToDefault() {
     const visibleItems = this.items();
     let lastDraftIdx = -1;
 
     visibleItems.forEach((item, idx) => {
-      if (item.draft) {
+      if (item.draft && item.body) {
         lastDraftIdx = idx;
       }
     });

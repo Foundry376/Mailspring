@@ -110,7 +110,7 @@ export default class MessageItemContainer extends React.Component {
     if (this.state.isSending) {
       return this._renderMessage({ pending: true });
     }
-    if (this.props.message.draft && !this.props.collapsed) {
+    if (this.props.message.draft && !this.props.collapsed && this.props.message.body) {
       return this._renderComposer();
     }
     return this._renderMessage({ pending: false });
