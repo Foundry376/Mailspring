@@ -6,6 +6,7 @@ import { localized } from '../intl';
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
 const ONBOARDING_WINDOW = 'onboarding';
+const CALENDAR_WINDOW = 'calendar';
 
 export default class WindowManager {
   constructor({
@@ -252,6 +253,18 @@ export default class WindowManager {
     };
 
     // The SPEC_WINDOW gets passed its own bootstrapScript
+    coreWinOpts[WindowManager.CALENDAR_WINDOW] = {
+      windowKey: WindowManager.CALENDAR_WINDOW,
+      windowType: WindowManager.CALENDAR_WINDOW,
+      title: localized('Calendar Preview'),
+      width: 900,
+      height: 600,
+      frame: false,
+      toolbar: true,
+      hidden: false,
+    };
+
+    // The SPEC_WINDOW gets passed its own bootstrapScript
     coreWinOpts[WindowManager.SPEC_WINDOW] = {
       windowKey: WindowManager.SPEC_WINDOW,
       windowType: WindowManager.SPEC_WINDOW,
@@ -272,3 +285,4 @@ export default class WindowManager {
 WindowManager.MAIN_WINDOW = MAIN_WINDOW;
 WindowManager.SPEC_WINDOW = SPEC_WINDOW;
 WindowManager.ONBOARDING_WINDOW = ONBOARDING_WINDOW;
+WindowManager.CALENDAR_WINDOW = CALENDAR_WINDOW;

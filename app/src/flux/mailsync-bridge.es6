@@ -103,6 +103,13 @@ export default class MailsyncBridge {
       return;
     }
 
+    // Temporary: allow calendar sync to be manually invoked
+    ipcRenderer.on('run-calendar-sync', () => {
+      for (const client of Object.values(this._clients)) {
+        client.sendMessage({ type: 'sync-calendar' });
+      }
+    });
+
     Actions.queueTask.listen(this._onQueueTask, this);
     Actions.queueTasks.listen(this._onQueueTasks, this);
     Actions.cancelTask.listen(this._onCancelTask, this);

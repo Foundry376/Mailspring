@@ -1,0 +1,16 @@
+{
+  "name": "main-calendar",
+  "version": "0.1.0",
+  "main": "./lib/main",
+  "description": "Calendar",
+  "license": "GPL-3.0",
+  "private": true,
+  "scripts": {
+  },
+  "engines": {
+    "mailspring": "*"
+  },
+  "windowTypes": {
+    "calendar": true
+  }
+}

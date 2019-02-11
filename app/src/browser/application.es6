@@ -235,6 +235,7 @@ export default class Application extends EventEmitter {
 
   // Configures required javascript environment flags.
   setupJavaScriptArguments() {
+    app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
     app.commandLine.appendSwitch('js-flags', '--harmony');
   }
 
@@ -353,6 +354,14 @@ export default class Application extends EventEmitter {
       const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (main) {
         main.sendMessage('new-message');
+      }
+    });
+
+    this.on('application:show-calendar', () => {
+      this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main) {
+        main.sendMessage('run-calendar-sync');
       }
     });
 
