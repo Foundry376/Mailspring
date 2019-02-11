@@ -175,7 +175,7 @@ export default class UndoRedoToast extends React.Component {
   }
 
   _onMouseEnter = () => {
-    this._clearTimeout();
+    // this._clearTimeout();
   };
 
   _onMouseLeave = () => {
