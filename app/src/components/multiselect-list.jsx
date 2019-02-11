@@ -112,6 +112,10 @@ class MultiselectList extends React.Component {
     let { className } = this.props;
     if (this.props.dataSource && this.state.handler) {
       className += ` ${this.state.handler.cssClass()}`;
+      const selectedIds = this.props.dataSource.selection.ids();
+      if (selectedIds.length > 0) {
+        className += ` show-checkbox`;
+      }
 
       if (this.itemPropsProvider == null) {
         this.itemPropsProvider = (item, idx) => {
@@ -274,6 +278,8 @@ class MultiselectList extends React.Component {
     if (props.columns !== state.columns || layoutMode !== state.layoutMode) {
       computedColumns = [].concat(props.columns);
       if (layoutMode === 'list') {
+        computedColumns.splice(0, 0, this._getCheckmarkColumn());
+      } else if (layoutMode === 'split') {
         computedColumns.splice(0, 0, this._getCheckmarkColumn());
       }
     } else {

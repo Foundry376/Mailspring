@@ -46,7 +46,7 @@ module.exports = class MultiselectSplitInteractionHandler {
     this._checkSelectionAndFocusConsistency();
   };
 
-  onEnter = () => {};
+  onEnter = () => { };
   // This concept does not exist in split mode
 
   onDeselect = () => {
@@ -108,7 +108,7 @@ module.exports = class MultiselectSplitInteractionHandler {
 
     if (selection.count() === 1 && !focused) {
       this.onFocusItem(selection.items()[0]);
-      this.props.dataSource.selection.clear();
+      // this.props.dataSource.selection.clear();
     }
   }
 };

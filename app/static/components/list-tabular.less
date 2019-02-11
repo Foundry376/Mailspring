@@ -86,6 +86,69 @@
   }
 }
 
+.thread-list-narrow {
+  .list-item:hover,
+  &.show-checkbox {
+    .list-column-Check {
+      display: block !important;
+    }
+    .avatar-icon {
+      visibility: hidden;
+    }
+  }
+  .list-tabular-item {
+    &.selected.focused,
+    &.selected {
+      .checkmark .inner {
+        background-color: transparent;
+        background-image: url(../static/icons/check.svg);
+        background-position: center;
+        background-size: 140% auto;
+        border: none;
+        border-radius: 2px;
+      }
+    }
+  }
+
+  .list-column:first-child {
+    padding-left: 0;
+  }
+
+  .list-column.list-column-Check {
+    display: none;
+    left: 29px;
+    top: 15px;
+    width: 22px;
+    height: 22px;
+    position: absolute;
+    &::after {
+      display: none;
+    }
+    .checkmark {
+      padding: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      &::after {
+        display: none;
+      }
+      .inner {
+        width: 22px;
+        height: 22px;
+        border-radius: 50% !important;
+        border: 1px solid @list-border;
+        background: transparent;
+        background-size: 12px 9px;
+        background-repeat: no-repeat;
+        background-position: center;
+        &::after {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
 .list-container {
   .list-header {
     overflow: hidden;
@@ -152,25 +215,25 @@
       cursor: default;
     }
 
-    &.keyboard-cursor {
-      border-left: 4px solid @list-focused-bg;
-    }
+    // &.keyboard-cursor {
+    //   border-left: 4px solid @list-focused-bg;
+    // }
 
     &.selected {
       .checkmark .inner {
-        background-color: @accent-primary;
-        background-image: url(images/thread-list/checkbox-checkmark@2x.png);
+        background-color: transparent;
+        background-image: url(../static/icons/check.svg);
+        background-position: center;
+        background-size: 140% auto;
         border: none;
-        border-radius: 2px;
       }
     }
 
     &.selected.focused {
       .checkmark .inner {
-        background-color: @list-bg;
-        background-image: url(images/thread-list/checkbox-checkmark-activerow@2x.png);
+        background-color: transparent;
+        background-image: url(../static/icons/check.svg);
         border: none;
-        border-radius: 2px;
       }
     }
     &.focused {
