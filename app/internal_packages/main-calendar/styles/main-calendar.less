@@ -4,24 +4,22 @@
 
 .main-calendar {
   height: 100%;
-
-  .event-grid-legend {
-    border-left: 1px solid @border-color-divider;
-  }
 }
 
-.calendar-event-popover {
+.fixed-popover .calendar-event-popover {
   color: fadeout(@text-color, 20%);
   background-color: @background-primary;
   display: flex;
   flex-direction: column;
   font-size: @font-size-small;
+  max-height: 95vh;
   width: 300px;
 
   .location {
     color: @text-color-very-subtle;
     padding: @padding-base-vertical @padding-base-horizontal;
     word-wrap: break-word;
+    flex-shrink: 0;
   }
   .title-wrapper {
     color: @text-color-inverse;
@@ -31,14 +29,28 @@
     border-top-left-radius: @border-radius-base;
     border-top-right-radius: @border-radius-base;
     padding: @padding-base-vertical @padding-base-horizontal;
+    align-items: center;
+    flex-shrink: 0;
+    .title {
+      padding-right: @padding-base-vertical;
+    }
   }
   .edit-icon {
     background-color: @text-color-inverse;
     cursor: pointer;
   }
-  .description .scroll-region-content {
-    max-height: 300px;
+
+  .invitees .scroll-region-content {
+    max-height: 160px;
     word-wrap: break-word;
+    position: relative;
+  }
+  .description {
+    white-space: pre-line;
+    word-wrap: break-word;
+  }
+  .description .scroll-region-content {
+    max-height: 250px;
     position: relative;
   }
   .label {
@@ -64,4 +76,16 @@
 
 .quick-event-popover {
   width: 250px;
+}
+
+.preview-notice {
+  display: block;
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgb(235, 224, 204);
+  color: rgb(169, 136, 66);
+  background-color: rgb(242, 235, 222);
+  white-space: nowrap;
+  overflow: hidden;
 }

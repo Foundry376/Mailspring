@@ -1,66 +1,29 @@
-import { exec } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import React from 'react';
 import { WorkspaceStore, ComponentRegistry } from 'mailspring-exports';
 import CalendarWrapper from './calendar-wrapper';
 import QuickEventButton from './quick-event-button';
 
-//
-// function resolveHelperPath(callback) {
-//   const resourcesPath = AppEnv.getLoadSettings().resourcePath;
-//   let pathToCalendarApp = path.join(resourcesPath, '..', 'Nylas Calendar.app');
-//
-//   fs.exists(pathToCalendarApp, (exists) => {
-//     if (exists) {
-//       callback(pathToCalendarApp);
-//       return;
-//     }
-//
-//     pathToCalendarApp = path.join(resourcesPath, 'build', 'resources', 'mac', 'Nylas Calendar.app');
-//     fs.exists(pathToCalendarApp, (fallbackExists) => {
-//       if (fallbackExists) {
-//         callback(pathToCalendarApp);
-//         return;
-//       }
-//       callback(null);
-//     });
-//   });
-// }
+const Notice = () => (
+  <div className="preview-notice">
+    Calendar is launching later this year! This preview is read-only and only supports Google
+    calendar.
+  </div>
+);
+Notice.displayName = 'Notice';
 
 export function activate() {
-  // if (process.platform === 'darwin') {
-  //   resolveHelperPath((helperPath) => {
-  //     if (!helperPath) {
-  //       return;
-  //     }
-
-  //     exec(`chmod +x "${helperPath}/Contents/MacOS/Nylas Calendar"`, () => {
-  //       exec(`open "${helperPath}"`);
-  //     });
-
-  //     if (!AppEnv.config.get('addedToDockCalendar')) {
-  //       exec(`defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>${helperPath}/</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"`, () => {
-  //         AppEnv.config.set('addedToDockCalendar', true);
-  //         exec(`killall Dock`);
-  //       });
-  //     }
-  //   });
-
-  //   AppEnv.onBeforeUnload(() => {
-  //     exec('killall "Nylas Calendar"');
-  //     return true;
-  //   });
-  // }
-
   ComponentRegistry.register(CalendarWrapper, {
     location: WorkspaceStore.Location.Center,
   });
-  // ComponentRegistry.register(QuickEventButton, {
-  //   location: WorkspaceStore.Location.Center.Toolbar,
-  // });
+  ComponentRegistry.register(Notice, {
+    location: WorkspaceStore.Sheet.Main.Header,
+  });
+  ComponentRegistry.register(QuickEventButton, {
+    location: WorkspaceStore.Location.Center.Toolbar,
+  });
 }
 
 export function deactivate() {
   ComponentRegistry.unregister(CalendarWrapper);
-  // ComponentRegistry.unregister(QuickEventButton);
+  ComponentRegistry.unregister(QuickEventButton);
 }

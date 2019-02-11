@@ -266,18 +266,16 @@ export default class CalendarEventPopover extends React.Component {
         </div>
         <div className="location">{location}</div>
         <div className="section">{this.renderTime()}</div>
-        <div className="section">
+        <ScrollRegion className="section invitees">
           <div className="label">Invitees: </div>
-          {attendees.map((a, idx) => <div key={idx}> {a.cn} </div>)}
-        </div>
-        <div className="section">
+          <div>{attendees.map((a, idx) => <div key={idx}> {a.cn} </div>)}</div>
+        </ScrollRegion>
+        <ScrollRegion className="section description">
           <div className="description">
             <div className="label">Notes: </div>
-            <ScrollRegion>
-              <div>{notes}</div>
-            </ScrollRegion>
+            <div>{notes}</div>
           </div>
-        </div>
+        </ScrollRegion>
       </div>
     );
   }
