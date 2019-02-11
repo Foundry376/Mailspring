@@ -1,5 +1,29 @@
 # Mailspring Changelog
 
+### 1.5.6 (2/8/2019)
+
+Features:
+
+* Mailspring now generates quick attachment previews of common "code" file types using Prism, including .html, .json, .txt, .log.
+
+* Italian, Japanese and French translations have been improved (Thanks to @kometchtech, @ecavicc and @gooodmorningopenstack!)
+
+Fixes:
+
+* Mailspring now configures Yandex email accounts on custom domains correctly. #1337
+
+* Emails that use `<style>` tags and `class` attributes without any inline styles are now rendered correctly.
+
+* Selecting several lines of pasted text and enabling "Code Block" formatting now works correctly. #1346
+
+* Maispring now plays the "New Mail" sound correctly even if you haven't interacted with the window since the app was launched. (This was broken due to a recent new feature in Chromium blocking web pages from playing audio.)
+
+Development:
+
+* Mailspring now uses Electron 4.0.4 which fixes several memory leaks.
+
+* A preview of Mailspring's upcoming Calendar feature is available under the Developer menu. Right now, it only supports Google Calendar and the data shown on the calendar is read-only. Stay tuned! The UI was originally developed for Nylas Mail before it was shuttered and we'll be re-launching it this summer.
+
 ### 1.5.5 (1/3/2019)
 
 Features:
