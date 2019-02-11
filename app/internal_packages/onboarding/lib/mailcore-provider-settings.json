@@ -1070,6 +1070,9 @@
 				"ssl": true
 			}]
 		},
+		"mx-match": [
+			"mx\\.yandex\\.net(\\.)?"
+		],
 		"domain-match": [
 			"yandex\\.ru",
 			"yandex\\.ua",

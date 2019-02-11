@@ -6428,10 +6428,10 @@
     "imap_host": "imap.yandex.ru",
     "imap_port": "993",
     "imap_security": "SSL / TLS",
-    "imap_user_format": "email-without-domain",
+    "imap_user_format": "email",
     "smtp_host": "smtp.yandex.ru",
     "smtp_port": "465",
     "smtp_security": "SSL / TLS",
-    "smtp_user_format": "email-without-domain"
+    "smtp_user_format": "email"
   }
 }
