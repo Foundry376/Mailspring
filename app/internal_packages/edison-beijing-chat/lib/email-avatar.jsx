@@ -11,6 +11,7 @@ export default class EmailAvatar extends Component {
     if (messages && messages.length) {
       from = messages[0].from[0];
     }
+    from = from || {};
     this.state = {
       name: (from.name || from.email || ' ').substring(0, 1).toUpperCase(),
       bgColor: gradientColorForString(from.email || '')
