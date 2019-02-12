@@ -35,9 +35,25 @@ module.exports = class MultiselectSplitInteractionHandler {
   };
 
   onMetaClick = item => {
-    this._turnFocusIntoSelection();
-    this.props.dataSource.selection.toggle(item);
+    // if is focused and not selected, set it [selected]
+    let selectedIds = this.props.dataSource.selection.ids();
+    const selected = selectedIds.includes(item.id);
+    if (item.id === this.props.focusedId && !selected) {
+      this.props.dataSource.selection.expandTo(item);
+    } else {
+      this._turnFocusIntoSelection();
+      this.props.dataSource.selection.toggle(item);
+      if (selected) {
+        this.props.dataSource.selection.remove([item]);
+      }
+    }
     this._checkSelectionAndFocusConsistency();
+
+    // if none is selected, set the item to [focused]
+    selectedIds = this.props.dataSource.selection.ids();
+    if (!selectedIds || selectedIds.length === 0) {
+      this.onFocusItem(item);
+    }
   };
 
   onShiftClick = item => {

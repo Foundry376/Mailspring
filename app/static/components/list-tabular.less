@@ -86,6 +86,7 @@
   }
 }
 
+// split mode
 .thread-list-narrow {
   .list-item:hover,
   &.show-checkbox {
@@ -96,7 +97,7 @@
       visibility: hidden;
     }
   }
-  .list-tabular-item {
+  .list-tabular .list-tabular-item {
     &.selected.focused,
     &.selected {
       .checkmark .inner {
@@ -105,7 +106,6 @@
         background-position: center;
         background-size: 140% auto;
         border: none;
-        border-radius: 2px;
       }
     }
   }
