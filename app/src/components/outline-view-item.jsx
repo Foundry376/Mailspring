@@ -145,6 +145,7 @@ class OutlineViewItem extends Component {
     this.state = {
       isDropping: false,
       editing: props.item.editing || false,
+      renderMissingBackgroundBox: false,
     };
   }
 
@@ -152,6 +153,10 @@ class OutlineViewItem extends Component {
     if (this._shouldShowContextMenu()) {
       ReactDOM.findDOMNode(this).addEventListener('contextmenu', this._onShowContextMenu);
     }
+    this.setState({
+      renderMissingBackgroundBox: true,
+      targetDiv: ReactDOM.findDOMNode(this.refs[`${this.props.item.id}-div`]),
+    });
   }
 
   componentWillReceiveProps(newProps) {
@@ -267,7 +272,7 @@ class OutlineViewItem extends Component {
         new MenuItem({
           label: `Rename ${contextMenuLabel}`,
           click: this._onEdit,
-        })
+        }),
       );
     }
 
@@ -276,7 +281,7 @@ class OutlineViewItem extends Component {
         new MenuItem({
           label: `Delete ${contextMenuLabel}`,
           click: this._onDelete,
-        })
+        }),
       );
     }
     menu.popup({});
@@ -286,7 +291,7 @@ class OutlineViewItem extends Component {
 
   _renderCount(item = this.props.item) {
     if (!item.count) {
-      return <span />;
+      return <span/>;
     }
     const className = classnames({
       'item-count-box': true,
@@ -300,6 +305,8 @@ class OutlineViewItem extends Component {
       <div className="icon">
         <RetinaImg
           name={item.iconName}
+          isIcon={true}
+          style={{ width: 16, height: 16 }}
           fallback={'folder.png'}
           mode={RetinaImg.Mode.ContentIsMask}
         />
@@ -360,30 +367,43 @@ class OutlineViewItem extends Component {
     if (item.children.length > 0 && !item.collapsed) {
       return (
         <section className="item-children" key={`${item.id}-children`}>
-          {item.children.map(child => <OutlineViewItem key={child.id} item={child} />)}
+          {item.children.map(child => <OutlineViewItem key={child.id} item={child}/>)}
         </section>
       );
     }
-    return <span />;
+    return <span/>;
+  }
+
+  _renderMissingShadowBox() {
+    const style = {
+      top: this.state.targetDiv.offsetTop,
+      height: this.state.targetDiv.clientHeight,
+      width: this.state.targetDiv.offsetLeft,
+    };
+    return <div style={style} className="missing-shadow-patch"/>;
   }
 
   render() {
     const item = this.props.item;
     const containerClasses = classnames({
       'item-container': true,
+      selected: item.selected,
       dropping: this.state.isDropping,
     });
     return (
-      <div>
+      <div ref={`${item.id}-div`}>
         <span className={containerClasses}>
+          {this._renderItem()}
           <DisclosureTriangle
             collapsed={item.collapsed}
             visible={item.children.length > 0}
             onCollapseToggled={this._onCollapseToggled}
           />
-          {this._renderItem()}
         </span>
         {this._renderChildren()}
+        {item.selected && this.state.renderMissingBackgroundBox
+          ? this._renderMissingShadowBox()
+          : null}
       </div>
     );
   }

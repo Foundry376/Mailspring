@@ -153,7 +153,7 @@ class SidebarSection {
     const archiveMail = SidebarItem.forArchived(accountIds, {displayName: 'All Archive'});
     const spamMail = SidebarItem.forSpam(accountIds, {dispalyName: 'Spam'});
     const sentMail = SidebarItem.forSentMails(accountIds, {dispalyName: 'All Sent'});
-    const allInboxes = SidebarItem.forInbox(accountIds, {displayName: 'All Inboxes'});
+    const allInboxes = SidebarItem.forAllInbox(accountIds, {displayName: 'All Inboxes'});
     const starredItem = SidebarItem.forStarred(accountIds, {displayName: 'Flagged'});
     const unreadItem = SidebarItem.forUnread(accountIds, {displayName: 'Unread'});
     const draftsItem = SidebarItem.forDrafts(accountIds, {displayName: 'All Drafts'});
