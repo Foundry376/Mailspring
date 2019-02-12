@@ -96,7 +96,7 @@ class SidebarSection {
       //TODO for different unified inbox layout
       accounts.forEach(acc => {
         items.push(
-          SidebarItem.forSingleAccount(acc.id, {
+          SidebarItem.forInbox([acc.id], {
             name: acc.label,
             iconName: 'inbox.png',
             children: this.standardSectionForAccount(acc).items,
