@@ -102,6 +102,15 @@ export default class MailboxPerspective {
     ) {
       throw new Error(`${this.constructor.name}: You must provide an array of string "accountIds"`);
     }
+    this._displayName = null;
+  }
+
+  get displayName() {
+    return this._displayName;
+  }
+
+  set displayName(value) {
+    this._displayName = value;
   }
 
   toJSON() {

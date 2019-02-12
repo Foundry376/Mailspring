@@ -143,14 +143,14 @@ class SidebarStore extends MailspringStore {
     const multiAccount = accounts.length > 1;
 
     this._sections[Sections.Standard] = SidebarSection.standardSectionForAccounts(accounts);
-    this._sections[Sections.User] = accounts.map(function(acc) {
-      const opts = {};
-      if (multiAccount) {
-        opts.title = acc.label;
-        opts.collapsible = true;
-      }
-      return SidebarSection.forUserCategories(acc, opts);
-    });
+    // this._sections[Sections.User] = accounts.map(function(acc) {
+    //   const opts = {};
+    //   if (multiAccount) {
+    //     opts.title = acc.label;
+    //     opts.collapsible = true;
+    //   }
+    //   return SidebarSection.forUserCategories(acc, opts);
+    // });
     this.trigger();
   };
 }

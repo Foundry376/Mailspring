@@ -325,8 +325,8 @@ class OutlineViewItem extends Component {
       );
     }
     return (
-      <div className="name" title={item.name}>
-        {item.name}
+      <div className="name" title={item.displayName ? item.displayName : item.name}>
+        {item.displayName ? item.displayName : item.name}
       </div>
     );
   }

@@ -61,6 +61,7 @@ class SidebarSection {
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     items.splice(1, 0, unreadItem, starredItem);
     items.push(draftsItem);
+    items.push(...this.accountUserCategories(account));
 
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
@@ -93,67 +94,73 @@ class SidebarSection {
       return this.standardSectionForAccount(accounts[0]);
     } else {
       //TODO for different unified inbox layout
-      // accounts.forEach(acc => {
-      //   items.push(
-      //     SidebarItem.forSingleAccount(acc.id, {
-      //       name: acc.label,
-      //       iconName: 'inbox.png',
-      //       children: this.standardSectionForAccount(acc).items,
-      //     })
-      //   );
-      // });
-    }
-    const standardNames = [
-      'inbox',
-      'important',
-      'snoozed',
-      'sent',
-      ['archive', 'all'],
-      'spam',
-      'trash',
-    ];
-
-    for (var names of standardNames) {
-      names = Array.isArray(names) ? names : [names];
-      const categories = CategoryStore.getCategoriesWithRoles(accounts, ...names);
-      if (categories.length === 0) {
-        continue;
-      }
-
-      children = [];
-      // eslint-disable-next-line
       accounts.forEach(acc => {
-        const cat = _.first(
-          _.compact(names.map(role => CategoryStore.getCategoryByRole(acc, role)))
-        );
-        if (!cat) {
-          return;
-        }
-        children.push(
-          SidebarItem.forCategories([cat], { name: acc.label, editable: false, deletable: false })
+        items.push(
+          SidebarItem.forSingleAccount(acc.id, {
+            name: acc.label,
+            iconName: 'inbox.png',
+            children: this.standardSectionForAccount(acc).items,
+          })
         );
       });
-
-      items.push(
-        SidebarItem.forCategories(categories, { children, editable: false, deletable: false })
-      );
     }
+    // const standardNames = [
+    //   // 'inbox',
+    //   // 'important',
+    //   'snoozed',
+    //   // 'sent',
+    //   // ['archive', 'all'],
+    //   // 'spam',
+    //   // 'trash',
+    // ];
+    //
+    // for (var names of standardNames) {
+    //   names = Array.isArray(names) ? names : [names];
+    //   const categories = CategoryStore.getCategoriesWithRoles(accounts, ...names);
+    //   if (categories.length === 0) {
+    //     continue;
+    //   }
+    //   //
+    //   // children = [];
+    //   // // eslint-disable-next-line
+    //   // accounts.forEach(acc => {
+    //   //   const cat = _.first(
+    //   //     _.compact(names.map(role => CategoryStore.getCategoryByRole(acc, role)))
+    //   //   );
+    //   //   if (!cat) {
+    //   //     return;
+    //   //   }
+    //   //   children.push(
+    //   //     SidebarItem.forCategories([cat], { name: acc.label, editable: false, deletable: false })
+    //   //   );
+    //   // });
+    //
+    //   items.push(SidebarItem.forCategories(categories, {editable: false, deletable: false }));
+    // }
 
     const accountIds = _.pluck(accounts, 'id');
 
-    const starredItem = SidebarItem.forStarred(accountIds, {
-      children: accounts.map(acc => SidebarItem.forStarred([acc.id], { name: acc.label })),
-    });
-    const unreadItem = SidebarItem.forUnread(accountIds, {
-      children: accounts.map(acc => SidebarItem.forUnread([acc.id], { name: acc.label })),
-    });
-    const draftsItem = SidebarItem.forDrafts(accountIds, {
-      children: accounts.map(acc => SidebarItem.forDrafts([acc.id], { name: acc.label })),
-    });
-
-    // Order correctly: Inbox, Unread, Starred, rest... , Drafts
-    items.splice(1, 0, unreadItem, starredItem);
-    items.push(draftsItem);
+    // const starredItem = SidebarItem.forStarred(accountIds, {
+    //   children: accounts.map(acc => SidebarItem.forStarred([acc.id], { name: acc.label })),
+    // });
+    // const unreadItem = SidebarItem.forUnread(accountIds, {
+    //   children: accounts.map(acc => SidebarItem.forUnread([acc.id], { name: acc.label })),
+    // });
+    // const draftsItem = SidebarItem.forDrafts(accountIds, {
+    //   children: accounts.map(acc => SidebarItem.forDrafts([acc.id], { name: acc.label })),
+    // });
+    const snoozedMail = SidebarItem.forSnoozed(accountIds, {displayName: 'Snoozed'});
+    const archiveMail = SidebarItem.forArchived(accountIds, {displayName: 'All Archive'});
+    const spamMail = SidebarItem.forSpam(accountIds, {dispalyName: 'Spam'});
+    const sentMail = SidebarItem.forSentMails(accountIds, {dispalyName: 'All Sent'});
+    const allInboxes = SidebarItem.forInbox(accountIds, {displayName: 'All Inboxes'});
+    const starredItem = SidebarItem.forStarred(accountIds, {displayName: 'Flagged'});
+    const unreadItem = SidebarItem.forUnread(accountIds, {displayName: 'Unread'});
+    const draftsItem = SidebarItem.forDrafts(accountIds, {displayName: 'All Drafts'});
+    //
+    // // Order correctly: Inbox, Unread, Starred, rest... , Drafts
+    items.unshift(allInboxes);
+    items.push(starredItem, unreadItem, snoozedMail, spamMail, archiveMail, draftsItem, sentMail);
 
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)
@@ -181,6 +188,38 @@ class SidebarSection {
       title: 'All Accounts',
       items,
     };
+  }
+
+  static accountUserCategories(account, {title, collapsible } = {}){
+    const items = [];
+    const seenItems = {};
+    for (let category of CategoryStore.userCategories(account)) {
+      // https://regex101.com/r/jK8cC2/1
+      var item, parentKey;
+      const re = RegExpUtils.subcategorySplitRegex();
+      const itemKey = category.displayName.replace(re, '/');
+
+      let parent = null;
+      const parentComponents = itemKey.split('/');
+      for (let i = parentComponents.length; i >= 1; i--) {
+        parentKey = parentComponents.slice(0, i).join('/');
+        parent = seenItems[parentKey];
+        if (parent) {
+          break;
+        }
+      }
+
+      if (parent) {
+        const itemDisplayName = category.displayName.substr(parentKey.length + 1);
+        item = SidebarItem.forCategories([category], { name: itemDisplayName });
+        parent.children.push(item);
+      } else {
+        item = SidebarItem.forCategories([category]);
+        items.push(item);
+      }
+      seenItems[itemKey] = item;
+    }
+    return items;
   }
 
   static forUserCategories(account, { title, collapsible } = {}) {

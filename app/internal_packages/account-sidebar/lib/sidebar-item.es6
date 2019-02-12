@@ -101,6 +101,9 @@ class SidebarItem {
     if (perspective.isInbox()) {
       counterStyle = OutlineViewItem.CounterStyles.Alt;
     }
+    if(opts.displayName){
+      perspective.displayName = opts.displayName;
+    }
 
     const collapsed = isItemCollapsed(id);
 
@@ -111,6 +114,7 @@ class SidebarItem {
         categoryIds: opts.categoryIds ? opts.categoryIds : undefined,
         accountIds: perspective.accountIds,
         name: perspective.name,
+        displayName: opts.displayName,
         contextMenuLabel: perspective.name,
         count: countForItem(perspective),
         iconName: perspective.iconName,
@@ -187,6 +191,57 @@ class SidebarItem {
     opts.contextMenuLabel = contextMenuLabel;
     return this.forPerspective(id, perspective, opts);
   }
+  static forSentMails(accountIds, opts = {}){
+    let cats = [];
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'sent');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = MailboxPerspective.forCategories(cats);
+    const id = _.pluck(cats, 'id').join('-');
+    opts.categoryIds = this.getCategoryIds(accountIds, 'sent');
+    return this.forPerspective(id, perspective, opts);
+  }
+  static forSpam(accountIds, opts = {}){
+    let cats = [];
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'spam');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = MailboxPerspective.forCategories(cats);
+    const id = _.pluck(cats, 'id').join('-');
+    opts.categoryIds = this.getCategoryIds(accountIds, 'spam');
+    return this.forPerspective(id, perspective, opts);
+  }
+  static forArchived(accountIds, opts = {}){
+    let cats = [];
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'archive');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = MailboxPerspective.forCategories(cats);
+    const id = _.pluck(cats, 'id').join('-');
+    opts.categoryIds = this.getCategoryIds(accountIds, 'archive');
+    return this.forPerspective(id, perspective, opts);
+  }
+  static forSnoozed(accountIds, opts = {}){
+    let cats = [];
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'snoozed');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = MailboxPerspective.forCategories(cats);
+    const id = _.pluck(cats, 'id').join('-');
+    return this.forPerspective(id, perspective, opts);
+  }
 
   static forStarred(accountIds, opts = {}) {
     const perspective = MailboxPerspective.forStarred(accountIds);
@@ -216,6 +271,12 @@ class SidebarItem {
     }
     return this.forPerspective(id, perspective, opts);
   }
+  static forInbox(accountIds, opts ={} ){
+    const perspective = MailboxPerspective.forInbox(accountIds);
+    opts.categoryIds = this.getCategoryIds(accountIds, 'inbox');
+    const id = accountIds.join('-');
+    return this.forPerspective(id, perspective, opts);
+  }
 
   static forSingleAccount(accountId, opts={}){
     const perspective = MailboxPerspective.forSingleAccount(accountId);
@@ -225,18 +286,23 @@ class SidebarItem {
 
   static forDrafts(accountIds, opts = {}) {
     const perspective = MailboxPerspective.forDrafts(accountIds);
+    opts.categoryIds = this.getCategoryIds(accountIds, 'drafts');
+    const id = `Drafts-${opts.name}`;
+    return this.forPerspective(id, perspective, opts);
+  }
+  static getCategoryIds = (accountIds, categoryName) => {
     const categoryIds = [];
-    for(let accountId of accountIds){
-      let tmp = CategoryStore.getCategoryByRole(accountId, 'drafts');
-      if(tmp){
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, categoryName);
+      if (tmp) {
         categoryIds.push(tmp.id);
       }
     }
-    if(categoryIds.length > 0){
-      opts.categoryIds = categoryIds.slice();
+    if (categoryIds.length > 0) {
+      return categoryIds.slice();
+    } else {
+      return undefined;
     }
-    const id = `Drafts-${opts.name}`;
-    return this.forPerspective(id, perspective, opts);
   }
 }
 
