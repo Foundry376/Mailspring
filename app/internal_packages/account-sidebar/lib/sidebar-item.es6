@@ -238,7 +238,7 @@ class SidebarItem {
   }
 
   static forSnoozed(accountIds, opts = {}) {
-    opts.iconName = 'snooze.svg';
+    opts.iconName = 'snoozed.svg';
     let cats = [];
     for (let accountId of accountIds) {
       let tmp = CategoryStore.getCategoryByRole(accountId, 'snoozed');
@@ -301,6 +301,12 @@ class SidebarItem {
     const perspective = MailboxPerspective.forSingleAccount(accountId);
     const id = accountId;
     return this.forPerspective(id, perspective, opts);
+  }
+
+  static forAttachments(accountIds, opts = {}){
+    const perspetive = MailboxPerspective.forAttachments(accountIds);
+    const id = accountIds.join('-')+'attachments';
+    return this.forPerspective(id, perspetive, opts);
   }
 
   static forDrafts(accountIds, opts = {}) {
