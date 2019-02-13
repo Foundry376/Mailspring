@@ -35,9 +35,6 @@ export default class Task extends Model {
     needToBroadcastBeforeSendTask: Attributes.Object({
       modelKey: 'needToBroadcastBeforeSendTask',
     }),
-    referenceTaskId: Attributes.String({
-      modelKey: 'referenceTaskId',
-    }),
   });
 
   // Public: Override the constructor to pass initial args to your Task and
@@ -67,7 +64,6 @@ export default class Task extends Model {
   // Public: Return a deep-cloned task to be used for an undo task
   createIdenticalTask() {
     const json = this.toJSON();
-    json.referenceTaskId = json.id;
     delete json.status;
     delete json.version;
     delete json.id;

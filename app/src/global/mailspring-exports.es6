@@ -105,6 +105,7 @@ lazyLoadAndRegisterTask(`GetMessageRFC2822Task`, 'get-message-rfc2822-task');
 lazyLoadAndRegisterTask(`ExpungeAllInFolderTask`, 'expunge-all-in-folder-task');
 lazyLoadAndRegisterTask(`ChangeRoleMappingTask`, 'change-role-mapping-task');
 lazyLoadAndRegisterTask(`SendFeatureUsageEventTask`, 'send-feature-usage-event-task');
+lazyLoadAndRegisterTask(`UndoTask`, 'undo-task');
 
 // Stores
 // These need to be required immediately since some Stores are
