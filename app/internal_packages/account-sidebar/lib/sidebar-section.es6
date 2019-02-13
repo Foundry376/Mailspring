@@ -57,10 +57,11 @@ class SidebarSection {
     const unreadItem = SidebarItem.forUnread([account.id]);
     const starredItem = SidebarItem.forStarred([account.id]);
     const draftsItem = SidebarItem.forDrafts([account.id]);
+    const attachmentsMail = SidebarItem.forAttachments([account.id]);
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     items.splice(1, 0, unreadItem, starredItem);
-    items.push(draftsItem);
+    items.push(attachmentsMail, draftsItem);
     items.push(...this.accountUserCategories(account));
 
     ExtensionRegistry.AccountSidebar.extensions()
