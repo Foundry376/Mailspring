@@ -76,7 +76,7 @@ class SidebarSection {
       });
 
     return {
-      title: account.label,
+      title: 'MAILBOXES',
       items,
     };
   }
@@ -93,12 +93,10 @@ class SidebarSection {
     if (accounts.length === 1) {
       return this.standardSectionForAccount(accounts[0]);
     } else {
-      //TODO for different unified inbox layout
       accounts.forEach(acc => {
         items.push(
           SidebarItem.forInbox([acc.id], {
             name: acc.label,
-            iconName: 'inbox.png',
             children: this.standardSectionForAccount(acc).items,
           })
         );
@@ -185,7 +183,7 @@ class SidebarSection {
       });
 
     return {
-      title: 'All Accounts',
+      title: 'MAILBOXES',
       items,
     };
   }
