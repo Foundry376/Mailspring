@@ -49,7 +49,7 @@ const ContentsColumn = new ListTabular.Column({
     return (
       <span className="details">
         <span className="subject">{subject(draft.subject)}</span>
-        <span className="snippet">{snippet(draft.body)}</span>
+        <span className="snippet">{draft.snippet ? draft.snippet : snippet(draft.body)}</span>
         {attachments}
       </span>
     );
