@@ -303,6 +303,12 @@ class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
+  static forAttachments(accountIds, opts = {}){
+    const perspetive = MailboxPerspective.forAttachments(accountIds);
+    const id = accountIds.join('-')+'attachments';
+    return this.forPerspective(id, perspetive, opts);
+  }
+
   static forDrafts(accountIds, opts = {}) {
     opts.iconName = 'drafts.svg';
     const perspective = MailboxPerspective.forDrafts(accountIds);

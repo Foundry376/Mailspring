@@ -43,6 +43,10 @@ export default class MailboxPerspective {
     return new DraftsMailboxPerspective(accountsOrIds);
   }
 
+  static forAttachments(accountIds){
+    return new AttachementMailboxPerspective(accountIds);
+  }
+
   static forCategory(category) {
     return category ? new CategoryMailboxPerspective([category]) : this.forNothing();
   }
@@ -333,6 +337,24 @@ class StarredMailboxPerspective extends MailboxPerspective {
       source: 'Removed From List',
     });
     return tasks;
+  }
+}
+class AttachementMailboxPerspective extends MailboxPerspective{
+  constructor(accountIds){
+    super(accountIds);
+    this.hasAttachment = true;
+    this.name='Attachment';
+    this.iconName='attachments.svg';
+  }
+  threads(){
+    const query = DatabaseStore.findAll(Thread)
+      .where([Thread.attributes.hasAttachments.equal(true)], Thread.attributes.inAllMail.equal(true))
+      .limit(0);
+    return new MutableQuerySubscription(query, {emitResultSet: true});
+  }
+
+  canReceiveThreadsFromAccountIds() {
+    return false;
   }
 }
 

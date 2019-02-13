@@ -147,6 +147,7 @@ class SidebarSection {
     // const draftsItem = SidebarItem.forDrafts(accountIds, {
     //   children: accounts.map(acc => SidebarItem.forDrafts([acc.id], { name: acc.label })),
     // });
+    const attchmentsMail = SidebarItem.forAttachments(accountIds);
     const snoozedMail = SidebarItem.forSnoozed(accountIds, {displayName: 'Snoozed'});
     const archiveMail = SidebarItem.forArchived(accountIds, {displayName: 'All Archive'});
     const spamMail = SidebarItem.forSpam(accountIds, {dispalyName: 'Spam'});
@@ -158,7 +159,16 @@ class SidebarSection {
     //
     // // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     items.unshift(allInboxes);
-    items.push(starredItem, unreadItem, snoozedMail, spamMail, archiveMail, draftsItem, sentMail);
+    items.push(
+      starredItem,
+      unreadItem,
+      snoozedMail,
+      attchmentsMail,
+      spamMail,
+      archiveMail,
+      draftsItem,
+      sentMail
+    );
 
     ExtensionRegistry.AccountSidebar.extensions()
       .filter(ext => ext.sidebarItem != null)

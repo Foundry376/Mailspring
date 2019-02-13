@@ -103,6 +103,11 @@ export default class Thread extends ModelWithMetadata {
       modelKey: 'attachmentCount',
     }),
 
+    hasAttachments: Attributes.Boolean({
+      modelKey: 'hasAttachments',
+      queryable: true,
+    }),
+
     lastMessageReceivedTimestamp: Attributes.DateTime({
       queryable: true,
       jsonKey: 'lmrt',
