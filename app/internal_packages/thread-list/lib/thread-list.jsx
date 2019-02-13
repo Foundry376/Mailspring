@@ -254,7 +254,7 @@ class ThreadList extends React.Component {
   _onResize = event => {
     const current = this.state.style;
     // const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
-    const desired = ReactDOM.findDOMNode(this).offsetWidth < 800 ? 'narrow' : 'wide';
+    const desired = ReactDOM.findDOMNode(this).offsetWidth < 700 ? 'narrow' : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }

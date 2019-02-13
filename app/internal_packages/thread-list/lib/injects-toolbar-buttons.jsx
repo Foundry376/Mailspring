@@ -32,7 +32,7 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
         thread: items[0],
       };
       const injectedButtons = (
-        <InjectedComponentSet key="injected" matching={{ roles }} exposedProps={exposedProps} />
+        <InjectedComponentSet className="toolbar-buttons" key="injected" matching={{ roles }} exposedProps={exposedProps} />
       );
       return (
         <ToolbarComponent items={items} selection={selection} injectedButtons={injectedButtons} />
