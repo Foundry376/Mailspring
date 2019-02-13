@@ -238,7 +238,7 @@ class SidebarItem {
   }
 
   static forSnoozed(accountIds, opts = {}) {
-    opts.iconName = 'snooze.svg';
+    opts.iconName = 'snoozed.svg';
     let cats = [];
     for (let accountId of accountIds) {
       let tmp = CategoryStore.getCategoryByRole(accountId, 'snoozed');

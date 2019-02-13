@@ -307,7 +307,7 @@ class OutlineViewItem extends Component {
           name={item.iconName}
           isIcon={true}
           style={{ width: 16, height: 16 }}
-          fallback={'folder.png'}
+          fallback={'folder.svg'}
           mode={RetinaImg.Mode.ContentIsMask}
         />
       </div>
