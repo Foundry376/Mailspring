@@ -302,10 +302,18 @@ export default class Toolbar extends React.Component {
         if (WorkspaceStore.isLocationHidden(loc)) {
           continue;
         }
-        const entries = ComponentRegistry.findComponentsMatching({
+
+        let entries = ComponentRegistry.findComponentsMatching({
           location: loc.Toolbar,
           mode: state.mode,
         });
+        // display searchbar in draftlist
+        if (loc.Toolbar.id === 'DraftList:Toolbar') {
+          const searchBar = ComponentRegistry.findComponentsMatching({
+            role: 'Search-Bar'
+          });
+          entries = [...entries, ...searchBar];
+        }
         state.columns.push(entries);
         if (entries) {
           state.columnNames.push(loc.Toolbar.id.split(':')[0]);
