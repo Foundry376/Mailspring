@@ -90,6 +90,7 @@ class RetinaImg extends React.Component {
     selected: PropTypes.bool,
     active: PropTypes.bool,
     resourcePath: PropTypes.string,
+    isIcon: PropTypes.bool,
   };
 
   static Mode = Mode;
@@ -109,8 +110,11 @@ class RetinaImg extends React.Component {
     if (this.props.selected === true) {
       pathName = `${basename}-selected.${ext}`;
     }
-
-    return Utils.imageNamed(pathName, this.props.resourcePath);
+    if (this.props.isIcon) {
+      return Utils.iconNamed(pathName, this.props.resourcePath);
+    } else {
+      return Utils.imageNamed(pathName, this.props.resourcePath);
+    }
   };
 
   render() {

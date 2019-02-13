@@ -12,6 +12,7 @@ let DefaultResourcePath = null;
 const DatabaseObjectRegistry = require('../../registries/database-object-registry').default;
 
 let imageData = null;
+let iconsData = null;
 
 module.exports = Utils = {
   waitFor(latch, options = {}) {
@@ -220,7 +221,46 @@ module.exports = Utils = {
     }
     return id.slice(0, 6) === 'local-';
   },
+  iconNamed(fullname, resourcePath){
+    const [name, ext] = fullname.split('.');
 
+    if (DefaultResourcePath == null) {
+      DefaultResourcePath = AppEnv.getLoadSettings().resourcePath;
+    }
+    if (resourcePath == null) {
+      resourcePath = DefaultResourcePath;
+    }
+
+    if (!iconsData) {
+      iconsData = AppEnv.fileListCache().iconsData || '{}';
+      Utils.icons = JSON.parse(iconsData) || {};
+    }
+
+    if (!Utils.icons || !Utils.icons[resourcePath]) {
+      if (Utils.icons == null) {
+        Utils.icons = {};
+      }
+      if (Utils.icons[resourcePath] == null) {
+        Utils.icons[resourcePath] = {};
+      }
+      const iconsPath = path.join(resourcePath, 'static', 'icons');
+      const files = fs.listTreeSync(iconsPath);
+      for (let file of files) {
+        // On Windows, we get paths like C:\images\compose.png, but
+        // Chromium doesn't accept the backward slashes. Convert to
+        // C:/images/compose.png
+        file = file.replace(/\\/g, '/');
+        const basename = path.basename(file);
+        Utils.icons[resourcePath][basename] = file;
+      }
+      AppEnv.fileListCache().iconsData = JSON.stringify(Utils.icons);
+    }
+    let attempt = `${name}.${ext}`;
+    if (Utils.icons[resourcePath][attempt]) {
+      return Utils.icons[resourcePath][attempt];
+    }
+    return null;
+  },
   imageNamed(fullname, resourcePath) {
     const [name, ext] = fullname.split('.');
 

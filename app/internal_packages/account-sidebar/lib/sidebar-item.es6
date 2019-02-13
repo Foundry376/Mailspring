@@ -54,7 +54,7 @@ const onDeleteItem = function(item) {
     new DestroyCategoryTask({
       path: category.path,
       accountId: category.accountId,
-    })
+    }),
   );
 };
 
@@ -91,7 +91,7 @@ const onEditItem = function(item, value) {
       accountId: category.accountId,
       path: category.path,
       newName: newDisplayName,
-    })
+    }),
   );
 };
 
@@ -100,6 +100,9 @@ class SidebarItem {
     let counterStyle;
     if (perspective.isInbox()) {
       counterStyle = OutlineViewItem.CounterStyles.Alt;
+    }
+    if (opts.displayName) {
+      perspective.displayName = opts.displayName;
     }
 
     const collapsed = isItemCollapsed(id);
@@ -111,6 +114,7 @@ class SidebarItem {
         categoryIds: opts.categoryIds ? opts.categoryIds : undefined,
         accountIds: perspective.accountIds,
         name: perspective.name,
+        displayName: opts.displayName,
         contextMenuLabel: perspective.name,
         count: countForItem(perspective),
         iconName: perspective.iconName,
@@ -161,20 +165,20 @@ class SidebarItem {
           ) {
             Actions.syncFolders(
               item.accountIds[0],
-              item.categoryIds ? item.categoryIds : [item.id]
+              item.categoryIds ? item.categoryIds : [item.id],
             );
           }
           Actions.focusMailboxPerspective(item.perspective);
         },
       },
-      opts
+      opts,
     );
   }
 
   static forCategories(categories = [], opts = {}) {
     const id = idForCategories(categories);
     const contextMenuLabel = _str.capitalize(
-      categories[0] != null ? categories[0].displayType() : undefined
+      categories[0] != null ? categories[0].displayType() : undefined,
     );
     const perspective = MailboxPerspective.forCategories(categories);
 
@@ -188,7 +192,67 @@ class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
+  static forSentMails(accountIds, opts = {}) {
+    opts.iconName = 'sent.svg';
+    let cats = [];
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'sent');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = MailboxPerspective.forCategories(cats);
+    const id = _.pluck(cats, 'id').join('-');
+    opts.categoryIds = this.getCategoryIds(accountIds, 'sent');
+    return this.forPerspective(id, perspective, opts);
+  }
+
+  static forSpam(accountIds, opts = {}) {
+    opts.iconName = 'junk.svg';
+    let cats = [];
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'spam');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = MailboxPerspective.forCategories(cats);
+    const id = _.pluck(cats, 'id').join('-');
+    opts.categoryIds = this.getCategoryIds(accountIds, 'spam');
+    return this.forPerspective(id, perspective, opts);
+  }
+
+  static forArchived(accountIds, opts = {}) {
+    opts.iconName = 'archive.svg';
+    let cats = [];
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'archive');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = MailboxPerspective.forCategories(cats);
+    const id = _.pluck(cats, 'id').join('-');
+    opts.categoryIds = this.getCategoryIds(accountIds, 'archive');
+    return this.forPerspective(id, perspective, opts);
+  }
+
+  static forSnoozed(accountIds, opts = {}) {
+    opts.iconName = 'snooze.svg';
+    let cats = [];
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'snoozed');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = MailboxPerspective.forCategories(cats);
+    const id = _.pluck(cats, 'id').join('-');
+    return this.forPerspective(id, perspective, opts);
+  }
+
   static forStarred(accountIds, opts = {}) {
+    opts.iconName='flag.svg';
     const perspective = MailboxPerspective.forStarred(accountIds);
     let id = 'Starred';
     if (opts.name) {
@@ -208,7 +272,7 @@ class SidebarItem {
     // config. However, the API has not yet come back with the list of
     // `categories` for that account.
     categories = _.compact(categories);
-
+    opts.iconName = 'unread.svg';
     const perspective = MailboxPerspective.forUnread(categories);
     let id = 'Unread';
     if (opts.name) {
@@ -217,27 +281,50 @@ class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forSingleAccount(accountId, opts={}){
+  static forInbox(accountId, opts = {}) {
+    opts.iconName = 'inbox.svg';
+    const perspective = MailboxPerspective.forInbox([accountId]);
+    opts.categoryIds = this.getCategoryIds([accountId], 'inbox');
+    const id = [accountId].join('-');
+    return this.forPerspective(id, perspective, opts);
+  }
+
+  static forAllInbox(accountIds, opts = {}) {
+    opts.iconName = 'all-mail.svg';
+    const perspective = MailboxPerspective.forInbox(accountIds);
+    opts.categoryIds = this.getCategoryIds(accountIds, 'inbox');
+    const id = accountIds.join('-');
+    return this.forPerspective(id, perspective, opts);
+  }
+
+  static forSingleAccount(accountId, opts = {}) {
     const perspective = MailboxPerspective.forSingleAccount(accountId);
     const id = accountId;
     return this.forPerspective(id, perspective, opts);
   }
 
   static forDrafts(accountIds, opts = {}) {
+    opts.iconName = 'drafts.svg';
     const perspective = MailboxPerspective.forDrafts(accountIds);
-    const categoryIds = [];
-    for(let accountId of accountIds){
-      let tmp = CategoryStore.getCategoryByRole(accountId, 'drafts');
-      if(tmp){
-        categoryIds.push(tmp.id);
-      }
-    }
-    if(categoryIds.length > 0){
-      opts.categoryIds = categoryIds.slice();
-    }
+    opts.categoryIds = this.getCategoryIds(accountIds, 'drafts');
     const id = `Drafts-${opts.name}`;
     return this.forPerspective(id, perspective, opts);
   }
+
+  static getCategoryIds = (accountIds, categoryName) => {
+    const categoryIds = [];
+    for (let accountId of accountIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, categoryName);
+      if (tmp) {
+        categoryIds.push(tmp.id);
+      }
+    }
+    if (categoryIds.length > 0) {
+      return categoryIds.slice();
+    } else {
+      return undefined;
+    }
+  };
 }
 
 module.exports = SidebarItem;

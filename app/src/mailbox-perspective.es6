@@ -102,6 +102,15 @@ export default class MailboxPerspective {
     ) {
       throw new Error(`${this.constructor.name}: You must provide an array of string "accountIds"`);
     }
+    this._displayName = null;
+  }
+
+  get displayName() {
+    return this._displayName;
+  }
+
+  set displayName(value) {
+    this._displayName = value;
   }
 
   toJSON() {
@@ -361,9 +370,9 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     // perspective with Inbox and Sent or anything crazy like that... todo?
     this.name = this._categories[0].displayName;
     if (this._categories[0].role) {
-      this.iconName = `${this._categories[0].role}.png`;
+      this.iconName = `${this._categories[0].role}.svg`;
     } else {
-      this.iconName = this._categories[0] instanceof Label ? 'label.png' : 'folder.png';
+      this.iconName = this._categories[0] instanceof Label ? 'label.svg' : 'folder.svg';
     }
   }
 

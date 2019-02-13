@@ -375,7 +375,7 @@ class ListTabular extends Component {
             <div className="list-header" style={{
               height: headerHeight
             }}>
-              <h1>{current && current.name}</h1>
+              <h1>{current && (current.displayName ? current.displayName : current.name)}</h1>
             </div>
           ) : null}
           <ListTabularRows
