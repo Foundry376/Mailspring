@@ -189,6 +189,7 @@ body.is-blurred {
   // to be one continuous bar.
   z-index: 10;
 
+  .toolbar-DraftList,
   .toolbar-ThreadList,
   .toolbar-MessageList {
     height: @search-bar-height;
@@ -196,11 +197,34 @@ body.is-blurred {
     background: #fff;
   }
   .toolbar-MessageList {
+    height: 56px;
     top: @search-bar-height - 1px !important;
     border-bottom: none;
     border-top: 1px solid @extra-light-grey;
     .item-container {
-      top: 8px;
+      .item-spacer {
+        display: none;
+      }
+      .message-toolbar-items {
+        flex: 1;
+        border-bottom: 1px solid @extra-light-grey;
+        &:empty {
+          border-bottom: none;
+        }
+        .toolbar-buttons {
+          justify-content: flex-end;
+          align-items: center;
+          .key-commands-region {
+            height: auto;
+          }
+          .button-group {
+            align-items: center;
+          }
+          .btn-toolbar {
+            margin-top: 0;
+          }
+        }
+      }
     }
   }
 
@@ -573,7 +597,7 @@ body.platform-win32 {
 }
 
 .column-DraftList {
-  padding-top: 40px;
+  padding-top: 68px;
 }
 
 .mode-list .column-ThreadList {

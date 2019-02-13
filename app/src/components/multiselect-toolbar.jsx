@@ -1,4 +1,4 @@
-import { Utils } from 'mailspring-exports';
+import { Utils, WorkspaceStore } from 'mailspring-exports';
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
@@ -38,15 +38,15 @@ class MultiselectToolbar extends Component {
 
   renderToolbar() {
     const { toolbarElement, onClearSelection } = this.props;
+    const mode = WorkspaceStore.layoutMode();
     return (
       <div className="absolute" key="absolute">
         <div className="inner">
-          {toolbarElement}
-          <div className="centered">{this.selectionLabel()}</div>
-
-          <button style={{ order: 100 }} className="btn btn-toolbar" onClick={onClearSelection}>
+          <div className="selection-label">{this.selectionLabel()}</div>
+          <button className="btn btn-toggle-select-all" onClick={onClearSelection}>
             Clear Selection
           </button>
+          {mode === 'list' ? toolbarElement : null}
         </div>
       </div>
     );

@@ -16,6 +16,7 @@ const ThreadSearchBarWithTip = HasTutorialTip(ThreadSearchBar, {
 export function activate() {
   ComponentRegistry.register(ThreadSearchBarWithTip, {
     location: WorkspaceStore.Location.ThreadList.Toolbar,
+    role: 'Search-Bar'
   });
 }
 
