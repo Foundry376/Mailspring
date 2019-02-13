@@ -5,7 +5,8 @@ import ChangeStarredTask from './change-starred-task';
 import CategoryStore from '../stores/category-store';
 import Thread from '../models/thread';
 import Label from '../models/label';
-import _ from 'underscore'
+import _ from 'underscore';
+import UndoTask from './undo-task';
 
 const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {
@@ -133,6 +134,13 @@ const TaskFactory = {
     });
   },
 
+  taskForUndo({ task }) {
+    if (!task.id || !task.accountId) {
+      throw new Error('Task must have id and accountId');
+    }
+    return new UndoTask({ referenceTaskId: task.id, accountId: task.accountId });
+  },
+
   _splitByAccount(threads) {
     const accountIds = _.uniq(threads.map(({ accountId }) => accountId));
     const result = {};
@@ -147,23 +155,23 @@ const TaskFactory = {
     const arr = [];
     const folderIds = _.uniq(threads.map(({ id, folders }) => {
       if (folders && folders.length > 0) {
-        return folders[0].id
+        return folders[0].id;
       } else {
-        console.warn(`ThreadId: ${id} have no folder attribute`)
+        console.warn(`ThreadId: ${id} have no folder attribute`);
         return null;
       }
-    }))
+    }));
     for (const folderId of folderIds) {
       const threadGroup = threads.filter(({ folders }) => {
         if (folders && folders.length > 0 && folders[0].id === folderId) {
           return true;
         }
         return false;
-      })
+      });
       arr.push(threadGroup);
     }
     return arr;
-  }
+  },
 };
 
 export default TaskFactory;

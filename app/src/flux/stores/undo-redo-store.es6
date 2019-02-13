@@ -1,9 +1,11 @@
 import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
 import {
-  SyncbackMetadataTask
+  SyncbackMetadataTask,
+  TaskFactory,
 } from 'mailspring-exports';
 import { ipcRenderer } from 'electron';
+// import TaskFactory from '../tasks/task-factory';
 
 class UndoRedoStore extends MailspringStore {
   constructor() {
@@ -40,10 +42,10 @@ class UndoRedoStore extends MailspringStore {
           this._queueingTasks = true;
           Actions.queueTasks(tasks.map(t => {
             // undo send mail
-            if (t instanceof SyncbackMetadataTask && t.pluginId === "send-later") {
+            if (t instanceof SyncbackMetadataTask && t.pluginId === 'send-later') {
               ipcRenderer.send('send-later-manager', 'undo', t.modelHeaderMessageId);
             }
-            return t.createUndoTask()
+            return TaskFactory.taskForUndo({ task: t });
           }));
           this._queueingTasks = false;
         },
