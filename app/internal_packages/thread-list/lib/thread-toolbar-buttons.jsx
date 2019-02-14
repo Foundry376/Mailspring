@@ -85,7 +85,7 @@ export class TrashButton extends React.Component {
           title="Move to Trash"
           onClick={this._onRemove}
         >
-          <RetinaImg name="toolbar-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'trash.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -258,7 +258,7 @@ export class MarkAsSpamButton extends React.Component {
           title="Mark as Spam"
           onClick={this._onMarkAsSpam}
         >
-          <RetinaImg name="toolbar-spam.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'junk.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -289,12 +289,12 @@ export class ToggleStarredButton extends React.Component {
   render() {
     const postClickStarredState = this.props.items.every(t => t.starred === false);
     const title = postClickStarredState ? 'Star' : 'Unstar';
-    const imageName = postClickStarredState ? 'toolbar-star.png' : 'toolbar-star-selected.png';
+    const imageName = postClickStarredState ? 'flag-not-selected.svg' : 'flag.svg';
 
     return (
       <BindGlobalCommands commands={{ 'core:star-item': () => this._onStar() }}>
         <button tabIndex={-1} className="btn btn-toolbar" title={title} onClick={this._onStar}>
-          <RetinaImg name={imageName} mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={imageName} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -346,7 +346,7 @@ export class ToggleUnreadButton extends React.Component {
           title={`Mark as ${fragment}`}
           onClick={this._onClick}
         >
-          <RetinaImg name={`toolbar-markas${fragment}.png`} mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={`${fragment}.svg`} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );

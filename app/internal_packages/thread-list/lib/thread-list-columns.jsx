@@ -92,7 +92,13 @@ const c2 = new ListTabular.Column({
     const hasDraft = messages.find(m => m.draft);
     if (hasDraft) {
       draft = (
-        <div className="thread-icon thread-icon-pencil" />
+        <RetinaImg
+          name="pencil.svg"
+          isIcon
+          style={{ width: 16, height: 16 }}
+          className="thread-icon thread-icon-pencil"
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
       );
     }
 
@@ -184,7 +190,13 @@ const cNarrow = new ListTabular.Column({
     const hasDraft = messages.find(m => m.draft);
     if (hasDraft) {
       pencil = (
-        <div className="thread-icon thread-icon-pencil" />
+        <RetinaImg
+          name="pencil.svg"
+          isIcon
+          style={{ width: 16, height: 16 }}
+          className="thread-icon-pencil"
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
       );
     }
 

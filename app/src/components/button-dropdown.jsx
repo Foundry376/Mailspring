@@ -53,7 +53,12 @@ class ButtonDropdown extends React.Component {
             {this.props.primaryItem}
           </div>
           <div className="secondary-picker" onClick={this.toggleDropdown}>
-            <RetinaImg name={'icon-thread-disclosure.png'} mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg
+              name={'more.svg'}
+              isIcon
+              style={{ width: 24, height: 24 }}
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
           </div>
           <div className="secondary-items" onMouseDown={this._onMenuClick}>
             {menu}
@@ -76,8 +81,9 @@ class ButtonDropdown extends React.Component {
           >
             {this.props.primaryItem}
             <RetinaImg
-              name={'icon-thread-disclosure.png'}
-              style={{ marginLeft: 12 }}
+              name={'more.svg'}
+              isIcon
+              style={{ width: 24, height: 24 }}
               mode={RetinaImg.Mode.ContentIsMask}
             />
           </div>

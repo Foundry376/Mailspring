@@ -7,6 +7,15 @@
   &.open {
     .secondary-items {
       visibility: inherit;
+      .item {
+        &>span {
+          img {
+            float: left;
+          }
+          line-height: 24px;
+          padding-right: 24px;
+        }
+      }
     }
   }
 
@@ -50,6 +59,7 @@
   .primary-item,
   .only-item {
     .btn();
+    box-shadow: none;
     cursor: default;
     color: @btn-default-text-color;
   }
@@ -61,6 +71,7 @@
     .btn();
     box-shadow: @standard-shadow-color 0 0.5px 0, @standard-shadow-color 0 -0.5px 0,
       @standard-shadow-color 0.5px 0 0, @standard-shadow-color 0 0.5px 1px;
+    box-shadow: none;
     border-radius: 0 @border-radius-base @border-radius-base 0;
     border-left: 0;
     padding: 0 6px;

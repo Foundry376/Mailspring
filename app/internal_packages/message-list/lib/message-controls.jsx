@@ -14,18 +14,18 @@ export default class MessageControls extends React.Component {
   _items() {
     const reply = {
       name: 'Reply',
-      image: 'ic-dropdown-reply.png',
-      select: this.props.threadPopedOut? this._onPopoutThread : this._onReply,
+      image: 'reply.svg',
+      select: this.props.threadPopedOut ? this._onPopoutThread : this._onReply,
     };
     const replyAll = {
       name: 'Reply All',
-      image: 'ic-dropdown-replyall.png',
-      select: this.props.threadPopedOut? this._onPopoutThread : this._onReplyAll,
+      image: 'reply-all.svg',
+      select: this.props.threadPopedOut ? this._onPopoutThread : this._onReplyAll,
     };
     const forward = {
       name: 'Forward',
-      image: 'ic-dropdown-forward.png',
-      select: this.props.threadPopedOut? this._onPopoutThread : this._onForward,
+      image: 'forward.svg',
+      select: this.props.threadPopedOut ? this._onPopoutThread : this._onForward,
     };
 
     if (!this.props.message.canReplyAll()) {
@@ -49,7 +49,10 @@ export default class MessageControls extends React.Component {
   _dropdownMenu(items) {
     const itemContent = item => (
       <span>
-        <RetinaImg name={item.image} mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg name={item.image}
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
         &nbsp;&nbsp;{item.name}
       </span>
     );
@@ -147,7 +150,11 @@ export default class MessageControls extends React.Component {
     return (
       <div className="message-actions-wrap" onClick={e => e.stopPropagation()}>
         <ButtonDropdown
-          primaryItem={<RetinaImg name={items[0].image} mode={RetinaImg.Mode.ContentIsMask} />}
+          primaryItem={<RetinaImg
+            name={items[0].image}
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />}
           primaryTitle={items[0].name}
           primaryClick={items[0].select}
           closeOnMenuClick
