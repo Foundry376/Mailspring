@@ -55,7 +55,7 @@ class SidebarSection {
     );
 
     const unreadItem = SidebarItem.forUnread([account.id]);
-    const starredItem = SidebarItem.forStarred([account.id]);
+    const starredItem = SidebarItem.forStarred([account.id], { displayName: 'Flagged' });
     const draftsItem = SidebarItem.forDrafts([account.id]);
     const attachmentsMail = SidebarItem.forAttachments([account.id]);
 
