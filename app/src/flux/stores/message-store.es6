@@ -289,7 +289,7 @@ class MessageStore extends MailspringStore {
     this._updateThread(focused);
     // this._thread = focused;
     // this._items = [];
-    // this._itemsLoading = true;
+    this._itemsLoading = true;
     // this._showingHiddenItems = false;
     // this._itemsExpanded = {};
     this.trigger();

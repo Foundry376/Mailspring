@@ -447,7 +447,7 @@ export default class SidebarParticipantProfile extends React.Component {
 
         {this._renderCompanyInfo()}
 
-        {this._renderFindCTA()}
+        {/*{this._renderFindCTA()}*/}
       </div>
     );
   }
