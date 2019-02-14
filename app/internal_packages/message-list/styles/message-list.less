@@ -294,17 +294,32 @@ body.platform-win32 {
         color: @text-color-very-subtle;
       }
 
+      .icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 15px) {
+        -webkit-mask-image: url(@svg-url);
+        -webkit-mask-size: @bgSize;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        background-color: @bgColor;
+      }
+
       .collapsed-attachment {
         width: 15px;
         height: 15px;
-        background-size: 15px;
-        background-repeat: no-repeat;
-        background-position: center;
         padding: 12px;
         margin-left: 0.5em;
-        background-image: url(../static/images/message-list/icon-attachment-@2x.png);
         position: relative;
         top: -2px;
+        .icon-mixin('../static/icons/feed-attachments.svg');
+      }
+
+      .collapsed-pencil {
+        width: 15px;
+        height: 15px;
+        padding: 12px;
+        margin-left: 0.5em;
+        position: relative;
+        top: -2px;
+        .icon-mixin('../static/icons/pencil.svg', @red);
       }
 
       .collapsed-from {

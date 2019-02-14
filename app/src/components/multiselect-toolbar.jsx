@@ -20,7 +20,15 @@ class MultiselectToolbar extends Component {
     collection: PropTypes.string.isRequired,
     onClearSelection: PropTypes.func.isRequired,
     selectionCount: PropTypes.node,
+    dataSource: PropTypes.object
   };
+
+  constructor() {
+    super();
+    this.state = {
+      selectAll: true
+    }
+  }
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
@@ -36,14 +44,49 @@ class MultiselectToolbar extends Component {
     return '';
   };
 
+  onToggleSelectAll = () => {
+    const { onClearSelection } = this.props;
+    // select all
+    if (this.state.selectAll) {
+      this.selectAll();
+    }
+    // deselect all
+    else {
+      onClearSelection();
+      this.setState({
+        selectAll: true
+      })
+    }
+  }
+
+  selectAll = () => {
+    const { onClearSelection, dataSource } = this.props;
+    const items = this.props.dataSource.itemsCurrentlyInViewMatching(() => true);
+    if (items) {
+      onClearSelection();
+      dataSource.selection.set(items);
+    }
+    this.setState({
+      selectAll: false
+    })
+  }
+
   renderToolbar() {
-    const { toolbarElement, onClearSelection } = this.props;
+    const { toolbarElement, onClearSelection, dataSource } = this.props;
     const mode = WorkspaceStore.layoutMode();
+    let totalCount = 0;
+    if (dataSource) {
+      totalCount = dataSource.count();
+    }
     return (
       <div className="absolute" key="absolute">
         <div className="inner">
+          <div className={'checkmark' + (!this.state.selectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
           <div className="selection-label">{this.selectionLabel()}</div>
-          <button className="btn btn-toggle-select-all" onClick={onClearSelection}>
+          <button className="btn btn-toggle-select-all" onClick={this.selectAll}>
+            Select all {totalCount} messages
+          </button>
+          <button className="btn btn-clear-all" onClick={onClearSelection}>
             Clear Selection
           </button>
           {mode === 'list' ? toolbarElement : null}

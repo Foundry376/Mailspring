@@ -84,7 +84,7 @@ const c1 = new ListTabular.Column({
 
 const c2 = new ListTabular.Column({
   name: 'Participants',
-  width: 200,
+  maxWidth: 200,
   resolver: thread => {
     const messages = thread.__messages || [];
 
@@ -92,11 +92,7 @@ const c2 = new ListTabular.Column({
     const hasDraft = messages.find(m => m.draft);
     if (hasDraft) {
       draft = (
-        <RetinaImg
-          name="icon-draft-pencil.png"
-          className="draft-icon"
-          mode={RetinaImg.Mode.ContentPreserve}
-        />
+        <div className="thread-icon thread-icon-pencil" />
       );
     }
 
@@ -188,11 +184,7 @@ const cNarrow = new ListTabular.Column({
     const hasDraft = messages.find(m => m.draft);
     if (hasDraft) {
       pencil = (
-        <RetinaImg
-          name="icon-draft-pencil.png"
-          className="draft-icon"
-          mode={RetinaImg.Mode.ContentPreserve}
-        />
+        <div className="thread-icon thread-icon-pencil" />
       );
     }
 

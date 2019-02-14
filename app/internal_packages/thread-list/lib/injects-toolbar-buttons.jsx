@@ -23,6 +23,7 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
 
     render() {
       const { items } = this.props;
+      const dataSource = ThreadListStore.dataSource();
       const { selection } = ThreadListStore.dataSource();
 
       // Keep all of the exposed props from deprecated regions that now map to this one
@@ -30,12 +31,13 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
         items,
         selection,
         thread: items[0],
+        dataSource
       };
       const injectedButtons = (
         <InjectedComponentSet className="toolbar-buttons" key="injected" matching={{ roles }} exposedProps={exposedProps} />
       );
       return (
-        <ToolbarComponent items={items} selection={selection} injectedButtons={injectedButtons} />
+        <ToolbarComponent items={items} selection={selection} injectedButtons={injectedButtons} dataSource={dataSource} />
       );
     }
   }

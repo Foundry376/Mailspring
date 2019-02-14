@@ -66,6 +66,22 @@
       display: flex;
       -webkit-app-region: no-drag;
       transition: top 0.2s ease-in-out;
+      white-space: nowrap;
+
+      .checkmark.selected {
+        background-image: url(../static/icons/check.svg);
+        background-size: 140% auto;
+      }
+      .checkmark {
+        margin-left: 29px;
+        height: 22px;
+        min-width: 22px;
+        background-image: url(../static/icons/check-empty.svg);
+        background-position: center;
+        background-color: transparent;
+        background-size: 140% auto;
+        border: none;
+      }
 
       &>div {
         align-items: center;
@@ -85,9 +101,10 @@
 
       .selection-label {
         line-height: 22px;
-        margin-left: 74px;
+        margin-left: 40px;
       }
 
+      .btn-clear-all,
       .btn-toggle-select-all {
         margin-left: 11px;
         height: 22px;
@@ -248,7 +265,7 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid @list-border;
-    border-left: 4px solid transparent;
+    // border-left: 4px solid transparent;
 
     &:hover {
       cursor: default;
@@ -282,19 +299,19 @@
     }
 
     .checkmark {
-      padding: 11px;
+      padding: (55px - 1px - 22px) / 2;
+      padding-left: 30px;
       position: absolute;
       top: 0;
       left: 0;
       .inner {
-        width: 14px;
-        height: 14px;
-        border: 1px solid @list-border;
-        border-radius: 2px;
-        background: transparent;
-        background-size: 12px 9px;
-        background-repeat: no-repeat;
+        width: 22px;
+        height: 22px;
+        background-image: url(../static/icons/check-empty.svg);
         background-position: center;
+        background-color: transparent;
+        background-size: 140% auto;
+        border: none;
       }
     }
   }
@@ -302,14 +319,15 @@
   .list-column {
     // The width is set by React.
     display: inherit;
-    padding: 0 @padding-base-horizontal;
+    padding: 0 7px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     align-items: center;
 
     &:first-child {
-      padding-left: @padding-base-horizontal - 4;
+      // padding-left: @padding-base-horizontal - 4;
+      width: 51px;
     }
     &:last-child {
       text-align: right;
