@@ -174,7 +174,7 @@ export default class MessageItem extends React.Component {
               detailedHeaders: this.state.detailedHeaders,
             }}
           />
-          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut}/>
+          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut} />
         </div>
         <MessageParticipants
           from={message.from}
@@ -265,13 +265,7 @@ export default class MessageItem extends React.Component {
             </div>
             <div className="collapsed-snippet">{snippet}</div>
             {draft && (
-              <div className="Collapsed-draft">
-                <RetinaImg
-                  name="icon-draft-pencil.png"
-                  className="draft-icon"
-                  mode={RetinaImg.Mode.ContentPreserve}
-                />
-              </div>
+              <div className="collapsed-pencil" />
             )}
             <div className="collapsed-timestamp">
               <MessageTimestamp date={date} />

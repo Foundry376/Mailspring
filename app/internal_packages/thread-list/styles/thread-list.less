@@ -131,7 +131,7 @@ input:focus {
 
   .list-item {
     background-color: @white;
-    line-height: 36px;
+    line-height: 55px;
   }
 
   .mail-important-icon {
@@ -234,6 +234,15 @@ input:focus {
     }
   }
 
+  .unread {
+    // Never show any unread styles when the thread is focused.
+    // It will be marked as read and the delay from focus=>read
+    // is noticeable.
+    .participants {
+      font-weight: @font-weight-semi-bold;
+    }
+  }
+
   .focused {
     .inverseContent;
   }
@@ -253,21 +262,30 @@ input:focus {
     background-repeat: no-repeat;
     background-position: center;
 
+    .icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 16px 16px) {
+      -webkit-mask-image: url(@svg-url);
+      -webkit-mask-size: @bgSize;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      background-color: @bgColor;
+    }
+
+    &.thread-icon-pencil {
+      .icon-mixin('../static/icons/pencil.svg', @red);
+      margin: auto;
+    }
     &.thread-icon-attachment {
-      background-image: url(../static/icons/feed-attachments.svg);
-      background-size: 16px 16px;
+      .icon-mixin('../static/icons/feed-attachments.svg');
       margin: auto;
     }
     &.thread-icon-unread {
-      background-image: url(../static/images/thread-list/icon-unread-@2x.png);
+      .icon-mixin('../static/icons/menu-unread.svg', @blue, auto);
     }
     &.thread-icon-replied {
-      background-image: url(../static/icons/feed-reply.svg);
-      background-size: 16px 16px;
+      .icon-mixin('../static/icons/feed-reply.svg', #000);
     }
     &.thread-icon-forwarded {
-      background-image: url(../static/icons/feed-forward.svg);
-      background-size: 16px 16px;
+      .icon-mixin('../static/icons/feed-forward.svg', #000);
     }
     &.thread-icon-star {
       background-size: 16px;

@@ -12,6 +12,7 @@ class ThreadListToolbar extends Component {
       clear: PropTypes.func,
     }),
     injectedButtons: PropTypes.element,
+    dataSource: PropTypes.object
   };
 
   onClearSelection = () => {
@@ -19,7 +20,7 @@ class ThreadListToolbar extends Component {
   };
 
   render() {
-    const { injectedButtons, items } = this.props;
+    const { injectedButtons, items, dataSource } = this.props;
 
     return (
       <MultiselectToolbar
@@ -27,6 +28,7 @@ class ThreadListToolbar extends Component {
         selectionCount={items.length}
         toolbarElement={injectedButtons}
         onClearSelection={this.onClearSelection}
+        dataSource={dataSource}
       />
     );
   }

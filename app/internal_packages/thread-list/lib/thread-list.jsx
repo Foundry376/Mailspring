@@ -80,7 +80,7 @@ class ThreadList extends React.Component {
     let columns, itemHeight;
     if (this.state.style === 'wide') {
       columns = ThreadListColumns.Wide;
-      itemHeight = 36;
+      itemHeight = 55;
     } else {
       columns = ThreadListColumns.Narrow;
       itemHeight = 105;
