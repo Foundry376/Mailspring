@@ -202,8 +202,10 @@ export default class MailsyncProcess extends EventEmitter {
   }
 
   kill() {
-    console.warn('Terminating mailsync...');
+    const pid = this._proc.pid;
+    console.warn(`Terminating mailsync... @ pid ${this._proc.pid}`);
     this._proc.kill();
+    spawn(this.killNativeScript, [pid], { detached: true, stdio: 'ignore' });
   }
 
   _arrayTrim(arr) {
@@ -300,7 +302,7 @@ export default class MailsyncProcess extends EventEmitter {
         // The process probably already exited and we missed it somehow,
         // but try to kill it anyway and then force-emit a 'close' to trigger
         // the bridge to restart us.
-        this._proc.kill();
+        this.kill();
         AppEnv.debugLog('mailsync-process sendMessage error:' + error.message);
         this.emit('close', { code: -2, error, signal: null });
       }

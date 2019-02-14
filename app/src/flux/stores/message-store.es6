@@ -195,7 +195,7 @@ class MessageStore extends MailspringStore {
   };
 
   _onPerspectiveChanged() {
-    // console.log('on perspective change');
+    // console.log('on perspective change', arguments);
     return this.trigger();
   }
 
@@ -279,7 +279,7 @@ class MessageStore extends MailspringStore {
 
   _onApplyFocusChange() {
     const focused = FocusedContentStore.focused('thread');
-    if (focused === null) {
+    if (!focused) {
       this._lastMarkedAsReadThreadId = null;
     }
 
@@ -289,7 +289,7 @@ class MessageStore extends MailspringStore {
     this._updateThread(focused);
     // this._thread = focused;
     // this._items = [];
-    // this._itemsLoading = true;
+    this._itemsLoading = true;
     // this._showingHiddenItems = false;
     // this._itemsExpanded = {};
     this.trigger();

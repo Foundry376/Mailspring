@@ -17,8 +17,8 @@ import chatModel from '../../../store/model';
 import { FILE_TYPE } from './messageModel';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
-import EmojiPopup from '../../common/EmojiPopup'
-import EmailAttachmentPopup from '../../common/EmailAttachmentPopup'
+import EmojiPopup from '../../common/EmojiPopup';
+import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 const FAKE_SPACE = '\u00A0';
 
 const activeStyle = {
