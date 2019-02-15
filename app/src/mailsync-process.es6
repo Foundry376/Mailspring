@@ -294,8 +294,12 @@ export default class MailsyncProcess extends EventEmitter {
     if (!Utils) {
       Utils = require('mailspring-exports').Utils;
     }
-    console.log(`Sending to mailsync ${this.account.id}`, json);
     const msg = `${JSON.stringify(json)}\n`;
+    if (AppEnv.enabledToNativeLog) {
+      console.log('--------------------To native---------------');
+      console.log(`to native: ${this.account ? this.account.id : 'no account'} - ${msg}`);
+      console.log('-----------------------------To native END-----------------------');
+    }
     try {
       this._proc.stdin.write(msg, 'UTF8');
     } catch (error) {

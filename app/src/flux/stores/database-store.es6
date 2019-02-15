@@ -282,6 +282,12 @@ class DatabaseStore extends MailspringStore {
   }
 
   async _executeLocally(query, values) {
+    if (AppEnv.enabledLocalQueryLog) {
+      console.log(`-------------------local query----------------`);
+      console.log(`local query - ${query}`);
+      console.log('--------------------local query end---------------');
+    }
+
     const fn = query.startsWith('SELECT') ? 'all' : 'run';
     let results = null;
     const scheduler = new ExponentialBackoffScheduler({
@@ -359,6 +365,11 @@ class DatabaseStore extends MailspringStore {
   }
 
   _executeInBackground(query, values) {
+    if(AppEnv.enabledBackgroundQueryLog){
+      console.log('-------------------background query----------------');
+      console.log(`background query - ${query}`);
+      console.log('--------------------background end query---------------');
+    }
     if (!this._agent) {
       this._agentOpenQueries = {};
       this._agent = childProcess.fork(

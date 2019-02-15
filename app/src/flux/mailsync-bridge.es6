@@ -417,7 +417,11 @@ export default class MailsyncBridge {
 
       // dispatch the message to other windows
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);
-
+      if(AppEnv.enabledFromNativeLog){
+        console.log('----------------From native-------------------');
+        console.log(`from native : ${msg}`);
+        console.log('---------------------From native END------------------------');
+      }
       const models = modelJSONs.map(Utils.convertToModel);
       this._onIncomingChangeRecord(
         new DatabaseChangeRecord({

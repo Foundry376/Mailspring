@@ -71,6 +71,12 @@ export default class AppEnvConstructor {
     if (!devMode && process.env.NODE_ENV == null) {
       process.env.NODE_ENV = 'production';
     }
+    if(devMode){
+      this.enabledToNativeLog = true;
+      this.enabledFromNativeLog = true;
+      this.enabledBackgroundQueryLog = true;
+      this.enabledLocalQueryLog = true;
+    }
 
     // Setup config and load it immediately so it's available to our singletons
     // and doesn't emit events later when it loads
