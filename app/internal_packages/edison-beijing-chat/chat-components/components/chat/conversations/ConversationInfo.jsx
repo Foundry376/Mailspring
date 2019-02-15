@@ -101,7 +101,7 @@ export default class ConversationInfo extends Component {
     return (
       <div className="info-panel">
         <div className="member-management">
-          <div className="member-count">{conversation.isGroup ? roomMembers.length + "People" : ""}</div>
+          <div className="member-count">{conversation.isGroup ? roomMembers.length + " People" : ""}</div>
           <Button className="more" onClick={this.showMenu}></Button>
         </div>
         <div>
@@ -110,7 +110,7 @@ export default class ConversationInfo extends Component {
               <div className="row item">
                 <div id="avatar">
                   <ContactAvatar jid={conversation.jid} name={conversation.name}
-                    email={conversation.email} avatar={conversation.avatar} size={30} />
+                    email={conversation.email} avatar={conversation.avatar} size={35} />
                 </div>
                 <div className="info">
                   <div className="name">
@@ -146,7 +146,7 @@ export default class ConversationInfo extends Component {
               }
 
               return (
-                <div className="row item" key={jid} onClick={onEditMemberProfile}>
+                <div className="row" key={jid} onClick={onEditMemberProfile}>
                   <div id="avatar">
                     <ContactAvatar jid={jid} name={member.name}
                       email={member.email} avatar={member.avatar} size={30} />

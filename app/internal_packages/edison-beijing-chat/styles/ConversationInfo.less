@@ -1,5 +1,6 @@
 .chat-view-container {
-  @more-height: 26px;
+  @more-height: 20px;
+  @member-count-height:18px;
   .infoPanel {
     height: 100%;
     overflow-y: auto;
@@ -22,7 +23,8 @@
     }
     .member-management {
       overflow: hidden;
-      padding: 8px 0;
+      padding: 27px 0;
+      height: 70px;
     }
     .button.more {
       float: right;
@@ -38,8 +40,15 @@
     }
     .member-count {
       float: left;
+      width: 63px;
+      height: 18px;
+      alignment: left;
+      color: #000;
+      font-family: "SF UI Display";
       font-weight: bold;
-      line-height: @more-height;
+      size:15px;
+      line-height: @member-count-height;
+      letter-spacing: 0.21px;
     }
     .clear-message {
       color: #ff355e;
@@ -58,9 +67,8 @@
     height: 50px;
   }
 
-  .row.item,
+  .row,
   .add-to-group {
-    background: #f8f8fa;
     padding: 10px 8px;
     width: 100%;
     height: 50px;
@@ -69,22 +77,34 @@
   .row {
     display: flex;
     flex-direction: row;
+    height: 56px;
     #avatar {
       width: 40px;
+      margin: 0px 15px;
     }
     .info {
       flex: 1;
       text-align: left;
     }
     .name {
+      height: 16px;
+      color: #000;
+      font-family: "SF UI Display";
       font-size: 13px;
+      letter-spacing: 0.18px;
+      line-height: 16px;
     }
     .email {
-      font-size: 11px;
       color: #888c8f;
+      height: 13px;
+      color: #797D80;
+      font-family: "SF UI Display";
+      font-size: 11px;
+      letter-spacing: 0.15px;
+      line-height: 13px;
     }
-    border: 1px solid #e8ecee;
-    border-bottom-width: 0;
+    //border: 1px solid #e8ecee;
+    //border-bottom-width: 0;
   }
 
   .row:first-child {
@@ -95,9 +115,9 @@
   .row:last-child {
     border-bottom-left-radius: 3px;
     border-bottom-right-radius: 3px;
-    border-bottom: 1px solid #e8ecee;
+    //border-bottom: 1px solid #e8ecee;
   }
-  
+
   #remove-button {
     position: absolute;
     right: 2px;
