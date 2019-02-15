@@ -57,6 +57,7 @@ export default class MailsyncProcess extends EventEmitter {
     this.configDirPath = configDirPath;
     this.binaryPath = path.join(resourcePath, 'mailsync').replace('app.asar', 'app.asar.unpacked');
     // this.binaryPath = path.join('/Users/zsq/Library/Developer/Xcode/DerivedData/EdisonMailSync-gnxarlbpnlszfmgdglqxwrawejbo/Build/Products/Debug', 'mailsync').replace('app.asar', 'app.asar.unpacked');
+    this.killNativeScript = path.join(resourcePath, 'src', 'scripts', process.platform === 'darwin' ? 'mac' : process.platform, 'killNative').replace('app.asar', 'app.asar.unpacked');
     this._proc = null;
     this._win = null;
 
