@@ -66,7 +66,7 @@ class MovePicker extends React.Component {
     }
 
     return (
-      <div className="button-group" style={{ order: -103 }}>
+      <div className="button-group" style={{ order: -108 }}>
         <KeyCommandsRegion globalHandlers={handlers}>
           <button
             tabIndex={-1}

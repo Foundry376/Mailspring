@@ -240,9 +240,9 @@ body.platform-win32 {
 
     .scroll-region-content-inner {
       padding-top: 6px;
-      padding-right: 35px;
+      padding-right: 16px;
       padding-bottom: 6px;
-      padding-left: 35px;
+      padding-left: 20px;
     }
   }
 
@@ -255,6 +255,18 @@ body.platform-win32 {
     position: relative;
     max-width: @message-max-width;
     margin: 0 auto;
+    border-bottom: 1px solid @border-color-divider;
+
+    .avatar-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      color: @white;
+      line-height: 40px;
+      font-size: 24px;
+      text-align: center;
+      margin-right: 15px;
+    }
 
     .message-item-white-wrap {
       background: @background-primary;
@@ -280,10 +292,18 @@ body.platform-win32 {
     }
 
     &.collapsed .message-item-area {
-      padding-bottom: 10px;
+      padding: 15px;
       display: flex;
       flex-direction: row;
       font-size: @font-size-small;
+
+      .row {
+        display: flex;
+        .collapsed-timestamp {
+          text-align: right;
+          flex: 1;
+        }
+      }
 
       .collapsed-snippet {
         flex: 1;
@@ -292,6 +312,7 @@ body.platform-win32 {
         overflow: hidden;
         cursor: default;
         color: @text-color-very-subtle;
+        font-size: 13px;
       }
 
       .icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 15px) {
@@ -324,9 +345,10 @@ body.platform-win32 {
 
       .collapsed-from {
         font-weight: @font-weight-semi-bold;
-        color: @text-color-very-subtle;
+        color: @text-color;
         // min-width: 60px;
         margin-right: 1em;
+        font-size: 15px;
       }
 
       .collapsed-timestamp {
@@ -488,16 +510,19 @@ body.platform-win32 {
       align-items: baseline;
       height: 1em;
     }
+    .row {
+      display: flex;
+    }
   }
 
   .message-item-area {
     width: 100%;
     max-width: @message-max-width;
     margin: 0 auto;
-    padding: 0 20px @spacing-standard 20px;
+    padding: 0 15px @spacing-standard 15px;
 
     .iframe-container {
-      margin-top: 10px;
+      margin-top: 0px;
       width: 100%;
 
       iframe {
@@ -635,6 +660,7 @@ body.platform-win32 {
 
   .from-contact {
     font-weight: @headings-font-weight;
+    font-size: 15px;
     color: @text-color;
   }
   .from-label,
@@ -662,6 +688,7 @@ body.platform-win32 {
 
   &.to-participants {
     width: 100%;
+    margin-top: 10px;
 
     .collapsed-participants {
       width: 100%;

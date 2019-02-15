@@ -160,11 +160,6 @@ export default class MessageItem extends React.Component {
           <RetinaImg width={18} name="sending-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />
         </div>
         <div className="message-header-right">
-          <MessageTimestamp
-            className="message-time"
-            isDetailed={this.state.detailedHeaders}
-            date={message.date}
-          />
           <InjectedComponentSet
             className="message-header-status"
             matching={{ role: 'MessageHeaderStatus' }}
@@ -176,11 +171,27 @@ export default class MessageItem extends React.Component {
           />
           <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut} />
         </div>
-        <MessageParticipants
-          from={message.from}
-          onClick={this._onClickParticipants}
-          isDetailed={this.state.detailedHeaders}
-        />
+        <div className='row'>
+          <InjectedComponent
+            key="thread-avatar"
+            exposedProps={{
+              from: message.from && message.from[0]
+            }}
+            matching={{ role: 'EmailAvatar' }}
+          />
+          <div>
+            <MessageParticipants
+              from={message.from}
+              onClick={this._onClickParticipants}
+              isDetailed={this.state.detailedHeaders}
+            />
+            <MessageTimestamp
+              className="message-time"
+              isDetailed={this.state.detailedHeaders}
+              date={message.date}
+            />
+          </div>
+        </div>
         <MessageParticipants
           to={message.to}
           cc={message.cc}
@@ -260,17 +271,28 @@ export default class MessageItem extends React.Component {
       <div className={className} onClick={this._onToggleCollapsed}>
         <div className="message-item-white-wrap">
           <div className="message-item-area">
-            <div className="collapsed-from">
-              {from && from[0] && from[0].displayName({ compact: true })}
+            <InjectedComponent
+              key="thread-avatar"
+              exposedProps={{
+                from: from && from[0]
+              }}
+              matching={{ role: 'EmailAvatar' }}
+            />
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <div className="row">
+                <div className="collapsed-from">
+                  {from && from[0] && from[0].displayName({ compact: true })}
+                </div>
+                {draft && (
+                  <div className="collapsed-pencil" />
+                )}
+                {attachmentIcon}
+                <div className="collapsed-timestamp">
+                  <MessageTimestamp date={date} />
+                </div>
+              </div>
+              <div className="collapsed-snippet">{snippet}</div>
             </div>
-            <div className="collapsed-snippet">{snippet}</div>
-            {draft && (
-              <div className="collapsed-pencil" />
-            )}
-            <div className="collapsed-timestamp">
-              <MessageTimestamp date={date} />
-            </div>
-            {attachmentIcon}
           </div>
         </div>
       </div>
