@@ -13,6 +13,7 @@ import { isJsonStr } from '../../../utils/stringUtils';
 import { Actions } from 'mailspring-exports';
 import Contact from '../../../../../../src/flux/models/contact';
 import keyMannager from '../../../../../../src/key-manager';
+import { RetinaImg } from 'mailspring-component-kit';
 import uuid from 'uuid';
 const { primaryColor } = theme;
 
@@ -158,25 +159,28 @@ export default class MemberProfie extends Component {
 
     return (
       <div className="member-profile-panel" ref = {(el)=> this.panel = el } tabIndex={1}>
-        <div className="member-info-area">
+        <div className="avatar-area">
           <div className="member-avatar">
           <ContactAvatar jid={jid} name={member.name}
                          email={member.email} avatar={member.avatar || ''} size={160} />
           </div>
-          <div className="member-fields">
-            <h2>{member.name}</h2>
-            <div>
-              <button className="btn btn-toolbar command-button" onClick={this.startPrivateChat} title="starta private chat">Messages</button>
-            </div>
-            <div>
-              <button className="btn btn-toolbar command-button" onClick={this.composeEmail} title="Compose new message">Compose</button>
-            </div>
-            <div> <span>email</span> <span>{member.email}</span></div>
-            <div className='member-field'>
-              <span>nickname</span>
-              <input type='text' placeholder='input nickname here' value={member.nickname} onChange={this.onChangeNickname} onBlur={this.onChangeNickname}></input></div>
+          <div className="name-buttons">
+            <h2 className="member-name">{member.name}</h2>
+            <button className="btn btn-toolbar command-button" title="Start a private chat" onClick={this.startPrivateChat}>
+              <RetinaImg name={'chat.svg'} style={{ width: 12 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+              <span>Messages</span>
+            </button>
+              <button className="btn btn-toolbar command-button" title="Compose new message" onClick={this.composeEmail}>
+                <RetinaImg name={'email.svg'} style={{ width: 12 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+                <span>Compose</span>
+              </button>
           </div>
         </div>
+        <div className="email"><div className="email-row"> <span className="email-label">email</span> <span  className="member-email">{member.email}</span></div></div>
+        <div className="nickname"><div className='nickname-row'>
+          <span className="nickname-label">nickname</span>
+          <input className="nickname-input" type='text' placeholder='input nickname here' value={member.nickname} onChange={this.onChangeNickname} onBlur={this.onChangeNickname}></input>
+        </div></div>
       </div>
     );
   };
