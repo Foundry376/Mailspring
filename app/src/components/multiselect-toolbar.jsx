@@ -63,7 +63,6 @@ class MultiselectToolbar extends Component {
     const { onClearSelection, dataSource } = this.props;
     const items = this.props.dataSource.itemsCurrentlyInViewMatching(() => true);
     if (items) {
-      onClearSelection();
       dataSource.selection.set(items);
     }
     this.setState({

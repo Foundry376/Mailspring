@@ -1,0 +1,12 @@
+{
+  "name": "thread-reply-forward",
+  "version": "0.1.0",
+  "title": "Thread Replay and Forward",
+  "description": "Replay or Forward a thread through the web.",
+  "main": "./lib/main",
+  "private": true,
+  "engines": {
+    "mailspring": "*"
+  },
+  "license": "GPL-3.0"
+}

@@ -16,7 +16,11 @@ export default class ComposeButton extends React.Component {
         title="Compose new message"
         onClick={this._onNewCompose}
       >
-        Compose
+        <RetinaImg name={'email.svg'}
+          style={{ width: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
+        <span>Compose</span>
       </button>
     );
   }
