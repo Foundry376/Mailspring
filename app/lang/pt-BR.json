@@ -388,7 +388,7 @@
     "Mailspring não pode mais ser autenticado com %@. A senha ou autenticação pode ter mudado.",
   "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.":
     "Mailspring não consegue encontrar sua pasta Rascunhos. Para criar e enviar e-mails, visite Preferências > Pastas e escolha uma pasta Rascunhos.",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.":
+  "Mailspring could not find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.":
     "Mailspring poder encontrar o processo de mailsync. Se você estiver criando Mailspring a partir do código-fonte, certifique-se de que o mailsync.tar.gz tenha sido baixado e descompactado em sua cópia de trabalho.",
   "Mailspring could not save an attachment because you have run out of disk space.":
     "Mailspring não pôde salvar um anexo porque você ficou sem espaço em disco.",

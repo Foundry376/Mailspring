@@ -341,7 +341,7 @@
   "Mailspring Reminder": "Ntughari ncheta",
   "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspring enweghị ike ịmegharị ya na %@. Okwuntughe ma ọ bụ nyocha nwere ike gbanwere.",
   "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspring enweghị ike ịchọta folda Drafts gị. Iji mepụta ma zipụ ozi, gaa na Mmasị> Nchekwa ma họrọ nchekwa ederede.",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring nwere ike ịchọta usoro email. Ọ bụrụ na ị na-ewu Mailspring site na isi iyi, jide n'aka na mailsync.tar.gz ka ebudatara ma kpochapughị na mpempe ọrụ gị.",
+  "Mailspring could not find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring nwere ike ịchọta usoro email. Ọ bụrụ na ị na-ewu Mailspring site na isi iyi, jide n'aka na mailsync.tar.gz ka ebudatara ma kpochapughị na mpempe ọrụ gị.",
   "Mailspring could not save an attachment because you have run out of disk space.": "Mailspring enweghị ike ịchekwa mgbakwunye n'ihi na ị gbapụla na ohere diski.",
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring enweghị ike ịchekwa mgbakwunye. Lelee na a na-edozi ikikere ahụ ma gbalịa ịmalitegharịa Mailspring ma ọ bụrụ na nsogbu ahụ ka dị.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring enweghị ike ịmepụta ozi mailsync. %@",

@@ -341,7 +341,7 @@
   "Mailspring Reminder": "Mailspring эстеткич",
   "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspring мындан ары %@ менен аныктыгын текшере алат. жашыруун сөздү текшерүү же өзгөртүлүшү мүмкүн.",
   "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspring сиздин долбоорлору папканы таба албайт. түзүү жана жөнөтүү үчүн, Preferences> Папкалар барат жана долбоорлору папканы тандап.",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring mailsync жараянын таба алган жок. Сиз булактан Mailspring куруп жаткан болсо, анда сөзсүз mailsync.tar.gz жүктөп жана жумушчу нускада Топтомдон болуп калды.",
+  "Mailspring could not find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring mailsync жараянын таба алган жок. Сиз булактан Mailspring куруп жаткан болсо, анда сөзсүз mailsync.tar.gz жүктөп жана жумушчу нускада Топтомдон болуп калды.",
   "Mailspring could not save an attachment because you have run out of disk space.": "Mailspring сиз диск орун калбай калды, анткени Тиркемени сактай албай койдук.",
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring Тиркемени сактай албай койдук. уруксаттар туура коюлганын текшерип жана маселе чечилбесе, анда Mailspring кайра аракет.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring mailsync жараянын туудурган жок. %@",

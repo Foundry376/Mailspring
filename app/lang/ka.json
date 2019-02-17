@@ -341,7 +341,7 @@
   "Mailspring Reminder": "Mailspring შეხსენება",
   "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspring- ს აღარ შეუძლია დაადასტუროს %@. შეიძლება შეიცვალოს პაროლი ან ავტორიზაცია.",
   "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspring ვერ მოიძებნა თქვენი Drafts საქაღალდე. ფოსტის შექმნა და გამოგზავნა, ეწვიეთ Preferences> საქაღალდეებს და აირჩიეთ საქაღალდეების საქაღალდე.",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "MailSring- ის ფოსტის მოძიება შეიძლება. თუ შენ აშენებს Mailspring წყაროდან, დარწმუნდით, რომ mailsync.tar.gz გადმოწერილი და გაუქმებული თქვენი სამუშაო ასლიდან.",
+  "Mailspring could not find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "MailSring- ის ფოსტის მოძიება შეიძლება. თუ შენ აშენებს Mailspring წყაროდან, დარწმუნდით, რომ mailsync.tar.gz გადმოწერილი და გაუქმებული თქვენი სამუშაო ასლიდან.",
   "Mailspring could not save an attachment because you have run out of disk space.": "ფოსტა ვერ შეინახავს დანართს, რადგან დისკიდან გაქცევა გაქვს.",
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "ფოსტა ვერ შეინახავს დანართს. შეამოწმეთ, რომ ნებართვა სწორად არის დაყენებული და შეეცადეთ გადატვირთოთ Mailspring თუ ეს საკითხი რჩება.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring ვერ გააგზავნა mailsync პროცესი. %@",

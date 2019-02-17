@@ -341,7 +341,7 @@
   "Mailspring Reminder": "Mailspring Pripomenutie",
   "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspring už nemôže overiť s %@. Heslo alebo autentifikácia sa môžu zmeniť.",
   "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspring nemôže nájsť priečinok Koncepty. Ak chcete vytvárať a odosielať poštu, navštívte Predvoľby> Priečinky a vyberte priečinok Koncepty.",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring mohol nájsť proces mailsync. Ak budujete Mailspring zo zdroja, uistite sa, že mailsync.tar.gz bol stiahnutý a rozbalený vo vašej pracovnej kópii.",
+  "Mailspring could not find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring mohol nájsť proces mailsync. Ak budujete Mailspring zo zdroja, uistite sa, že mailsync.tar.gz bol stiahnutý a rozbalený vo vašej pracovnej kópii.",
   "Mailspring could not save an attachment because you have run out of disk space.": "Aplikácia Mailspring nemohla uložiť prílohu, pretože ste vyčerpali miesto na disku.",
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring nemohol uložiť prílohu. Skontrolujte, či sú oprávnenia správne nastavené a pokúste sa reštartovať službu Mailspring, ak problém pretrváva.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring nemohol spustiť proces mailsync. %@",

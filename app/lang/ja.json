@@ -341,7 +341,7 @@
   "Mailspring Reminder": "Mailspring Reminder",
   "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspringは%@で認証できません。パスワードまたは認証が変更されている可能性があります。",
   "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspringはあなたの下書きフォルダを見つけることができません。メールを作成して送信するには、「環境設定」>「フォルダ」にアクセスし、「下書き」フォルダを選択します。",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspringはmailsyncプロセスを見つけることができました。 Mailspringをソースからビルドする場合は、mailsync.tar.gzがダウンロードされ、作業コピーに展開されていることを確認してください。",
+  "Mailspring could not find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspringはmailsyncプロセスを見つけることができました。 Mailspringをソースからビルドする場合は、mailsync.tar.gzがダウンロードされ、作業コピーに展開されていることを確認してください。",
   "Mailspring could not save an attachment because you have run out of disk space.": "ディスクスペースが足りなくなったため、Mailspringは添付ファイルを保存できませんでした。",
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspringは添付ファイルを保存できませんでした。権限が正しく設定されていることを確認し、問題が解決しない場合はMailspringを再起動してみてください。",
   "Mailspring could not spawn the mailsync process. %@": "Mailspringはmailsyncプロセスを起動できませんでした。 %@",
