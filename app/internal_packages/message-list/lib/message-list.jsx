@@ -468,7 +468,7 @@ class MessageList extends React.Component {
 
   render() {
     if (!this.state.currentThread) {
-      return <span />;
+      return <div className="empty" />;
     }
 
     const wrapClass = classNames({
