@@ -159,11 +159,10 @@ export default class MemberProfie extends Component {
 
     return (
       <div className="member-profile-panel" ref = {(el)=> this.panel = el } tabIndex={1}>
+        <Button className="more" onClick={this.showMenu}></Button>
         <div className="avatar-area">
-          <div className="member-avatar">
           <ContactAvatar jid={jid} name={member.name}
-                         email={member.email} avatar={member.avatar || ''} size={160} />
-          </div>
+                         email={member.email} avatar={member.avatar || ''} size={140} />
           <div className="name-buttons">
             <h2 className="member-name">{member.name}</h2>
             <button className="btn btn-toolbar command-button" title="Start a private chat" onClick={this.startPrivateChat}>
@@ -176,11 +175,14 @@ export default class MemberProfie extends Component {
               </button>
           </div>
         </div>
-        <div className="email"><div className="email-row"> <span className="email-label">email</span> <span  className="member-email">{member.email}</span></div></div>
-        <div className="nickname"><div className='nickname-row'>
-          <span className="nickname-label">nickname</span>
+        <div className="email">
+            <div className="email-label">email</div>
+            <div  className="member-email">{member.email}</div>
+        </div>
+        <div className="nickname">
+          <div className="nickname-label">nickname</div>
           <input className="nickname-input" type='text' placeholder='input nickname here' value={member.nickname} onChange={this.onChangeNickname} onBlur={this.onChangeNickname}></input>
-        </div></div>
+        </div>
       </div>
     );
   };

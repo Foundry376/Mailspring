@@ -16,10 +16,11 @@
   box-shadow: 0 0 20px 0 rgba(0,0,0,0.1), 0 20px 30px 0 rgba(0,0,0,0.2);
   .avatar-area {
     position: relative;
+    display:flex;
     margin-top:22px;
     width:100%;
     overflow: hidden;
-    .member-avatar {
+    .chat-avatar {
       width:140px;
       height:140px;
       overflow: hidden;
@@ -27,12 +28,10 @@
       -moz-border-radius: 50%;
       -webkit-border-radius: 50%;
       margin: 0 20px;
-      float:left;
     }
     .name-buttons{
       width:220px;
       height:140px;
-      float:left;
     }
     .member-name {
         height: 24px;
@@ -54,10 +53,9 @@
     width: 150px;
     height: 35px;
     margin: 2px 15px 2px 5px;
-    border-radius: 16px;
+    border-radius: 4px;
     font-weight: bold;
     color: @accent-primary;
-    //background-color: @sidebar-text;
     box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
     transition: 0.5s;
     &:hover {
@@ -71,59 +69,53 @@
   }
 
   .email {
+    display: flex;
     height: 40px;
+    line-height: 40px;
     width:80%;
     margin: 0 10%;
     border-bottom:  1px solid lightgray;
-  }
-  .email-row {
-    width:100%;
-    position:relative;
-    top: 20px;
-    left: 100px;
   }
   .email-label {
-    color: #797D80;
+    color: @gray;
     font-size: 13px;
     letter-spacing: -0.17px;
-    line-height: 16px;
     text-align: right;
+    width:146px;
+    padding-right: 4px;
   }
   .member-email{
-    height: 16px;
-    color: #000;
+    color: @gray;
     font-size: 13px;
     letter-spacing: -0.17px;
-    line-height: 16px;
   }
   .nickname {
+    display: flex;
     height: 40px;
+    line-height: 40px;
     width:80%;
     margin: 0 10%;
     border-bottom:  1px solid lightgray;
   }
-  .nickname-row {
-    height: 32px;
-    width:100%;
-    position:relative;
-    top: 20px;
-    left: 80px;
-  }
   .nickname-label {
-    color: #797D80;
+    color: @gray;
     font-size: 13px;
     letter-spacing: -0.17px;
-    line-height: 16px;
     text-align: right;
+    width:146px;
+    padding-right: 4px;
   }
   .nickname-input {
-    height: 16px;
     width:200px;
     color: #797D80;
     font-size: 13px;
     letter-spacing: -0.17px;
-    line-height: 16px;
-    border:solid 0px;
+    border:none;
+    outline:none;
+  }
+  .nickname-input:focus {
+    outline:none;
+    border:none;
   }
 
 }
