@@ -201,10 +201,10 @@ export default class MemberProfie extends Component {
               <RetinaImg name={'chat.svg'} style={{ width: 12 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
               <span>Messages</span>
             </button>
-              <button className="btn btn-toolbar command-button" title="Compose new message" onClick={this.composeEmail}>
-                <RetinaImg name={'email.svg'} style={{ width: 12 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
-                <span>Compose</span>
-              </button>
+            <button className="btn btn-toolbar command-button" title="Compose new message" onClick={this.composeEmail}>
+              <RetinaImg name={'email.svg'} style={{ width: 12 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+              <span>Compose</span>
+            </button>
           </div>
         </div>
         <div className="email">
