@@ -29,7 +29,7 @@ class DraftList extends React.Component {
             EmptyComponent={EmptyListState}
             keymapHandlers={this._keymapHandlers()}
             itemPropsProvider={this._itemPropsProvider}
-            itemHeight={39}
+            itemHeight={55}
           />
         </FocusContainer>
       </FluxContainer>

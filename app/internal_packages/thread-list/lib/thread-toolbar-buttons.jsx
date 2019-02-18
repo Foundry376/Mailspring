@@ -234,10 +234,10 @@ export class MarkAsSpamButton extends React.Component {
           <button
             tabIndex={-1}
             className="btn btn-toolbar"
-            title="Not Spam"
+            title="Not Junk"
             onClick={this._onNotSpam}
           >
-            <RetinaImg name="toolbar-not-spam.png" mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg name="not-junk.svg" style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
           </button>
         </BindGlobalCommands>
       );
@@ -398,7 +398,11 @@ class ThreadArrowButton extends React.Component {
 
     return (
       <div className={`${classes} ${direction}`} onClick={this._onClick} title={title}>
-        <RetinaImg name={`toolbar-${direction}-arrow.png`} mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg
+          name={`${direction === 'up' ? 'back' : 'next'}.svg`}
+          isIcon
+          style={{ width: 24, height: 24 }}
+          mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
   }

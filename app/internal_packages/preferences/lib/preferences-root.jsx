@@ -93,8 +93,7 @@ class PreferencesRoot extends React.Component {
       >
         <Flexbox direction="column">
           <div className="item-back" onClick={this.onBack}>
-            <RetinaImg name="sheet-back.png" mode={RetinaImg.Mode.ContentPreserve} />
-            <div className="item-back-title">back</div>
+            <RetinaImg name={'arrow.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
           </div>
           <PreferencesTabsBar tabs={tabs} selection={selection} />
           <ScrollRegion className="preferences-content">

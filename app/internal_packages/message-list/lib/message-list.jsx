@@ -181,7 +181,7 @@ class MessageList extends React.Component {
       return;
     }
     Actions.focusThreadMainWindow(this.state.currentThread);
-    AppEnv.close({threadId: this.state.currentThread.id});
+    AppEnv.close({ threadId: this.state.currentThread.id });
   };
 
   _onPopoutThread = () => {
@@ -432,8 +432,14 @@ class MessageList extends React.Component {
     return (
       <div className="footer-reply-area-wrap" onClick={this.state.popedOut ? this._onPopoutThread : this._onClickReplyArea} key="reply-area">
         <div className="footer-reply-area">
-          <RetinaImg name={`${this._replyType()}-footer.png`} mode={RetinaImg.Mode.ContentIsMask} />
-          <span className="reply-text">Write a reply…</span>
+          <RetinaImg
+            name={`${this._replyType()}.svg`}
+            style={{ width: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
+          <span className="reply-text">
+            {this._replyType() === 'reply-all' ? 'Reply All' : 'Reply'}
+          </span>
         </div>
       </div>
     );

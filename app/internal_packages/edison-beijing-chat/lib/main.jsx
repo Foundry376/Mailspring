@@ -8,6 +8,7 @@ module.exports = {
   activate() {
     WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });
     ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
+    ComponentRegistry.register(EmailAvatar, { role: 'EmailAvatar' });
     if (AppEnv.isMainWindow()) {
       ComponentRegistry.register(ChatButton, {
         location: WorkspaceStore.Location.RootSidebar.Toolbar,
@@ -15,20 +16,20 @@ module.exports = {
       ComponentRegistry.register(ChatViewLeft, {
         location: WorkspaceStore.Sheet.Global.Footer,
       });
-      ComponentRegistry.register(EmailAvatar, { role: 'EmailAvatar' });
-    } else {
-      AppEnv.getCurrentWindow().setMinimumSize(800, 600);
-      ComponentRegistry.register(ChatView, {
-        location: WorkspaceStore.Location.Center,
-      });
     }
+    // else {
+    //   AppEnv.getCurrentWindow().setMinimumSize(800, 600);
+    //   ComponentRegistry.register(ChatView, {
+    //     location: WorkspaceStore.Location.Center,
+    //   });
+    // }
   },
 
   deactivate() {
+    ComponentRegistry.unregister(EmailAvatar);
     if (AppEnv.isMainWindow()) {
       ComponentRegistry.unregister(ChatButton);
       ComponentRegistry.unregister(ChatViewLeft);
-      ComponentRegistry.unregister(EmailAvatar);
     } else {
       ComponentRegistry.unregister(ChatView);
     }
