@@ -1,6 +1,8 @@
 @import 'ui-variables';
 
 .member-profile-panel {
+  @more-height: 20px;
+
   position: absolute;
   top:120px;
   right:240px;
@@ -14,6 +16,20 @@
   background-color: #FFF;
   border: 0.5px solid #E8EBED;
   box-shadow: 0 0 20px 0 rgba(0,0,0,0.1), 0 20px 30px 0 rgba(0,0,0,0.2);
+  .button.more {
+    position: absolute;
+    top:5px;
+    right: 4px;
+    width: @more-height;
+    height: @more-height;
+    border-radius: 50%;
+    background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 1);
+    background-size: 14px auto;
+    &:hover {
+      background: url(images/chat/more_active.png) no-repeat center center rgba(255, 255, 255, 1);
+      background-size: 14px auto;
+    }
+  }
   .avatar-area {
     position: relative;
     display:flex;

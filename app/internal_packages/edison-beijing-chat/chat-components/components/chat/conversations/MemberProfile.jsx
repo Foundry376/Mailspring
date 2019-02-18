@@ -4,18 +4,14 @@ import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
 import getDb from '../../../db';
 import chatModel from '../../../store/model';
-import CancelIcon from '../../common/icons/CancelIcon';
-import { theme } from '../../../utils/colors';
+import { uploadContacts } from '../../../utils/restjs';
 import { remote } from 'electron';
-import { clearMessages } from '../../../utils/message';
-import { login, checkToken, refreshChatAccountTokens, queryProfile } from '../../../utils/restjs';
+import { checkToken, refreshChatAccountTokens, queryProfile } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
 import { Actions } from 'mailspring-exports';
 import Contact from '../../../../../../src/flux/models/contact';
 import keyMannager from '../../../../../../src/key-manager';
 import { RetinaImg } from 'mailspring-component-kit';
-import uuid from 'uuid';
-const { primaryColor } = theme;
 
 export default class MemberProfie extends Component {
   static timer;
@@ -73,34 +69,6 @@ export default class MemberProfie extends Component {
       this.props = nextProps;
       this.queryProfile();
     }
-  }
-
-  showMenu = (e) => {
-    const menus = [
-      {
-        label: `Add to Group...`,
-        click: () => {
-          const moreBtnEl = document.querySelector('.more');
-          this.props.toggleInvite(moreBtnEl);
-        },
-      },
-      {
-        label: `Clear Message History`,
-        click: () => {
-          this.clearMessages();
-        },
-      },
-      { type: 'separator' },
-      {
-        label: `Hide notifications`,
-        type: 'checkbox',
-        checked: this.state.isHiddenNotifi,
-        click: () => {
-          this.hiddenNotifi();
-        },
-      },
-    ];
-    remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
   };
 
   onClickWithMemberProfile = (e) => {
@@ -131,7 +99,71 @@ export default class MemberProfie extends Component {
     });
     Actions.composeNewDraftToRecipient(contact);
 
-  }
+  };
+
+  showMenu = (e) => {
+    const menus = [
+      {
+        label: `Add to Contacts`,
+        click: () => {
+          const moreBtnEl = document.querySelector('.more');
+          this.addToContacts();
+        },
+      },
+      {
+        label: `Block this Contact`,
+        click: () => {
+          this.blockContact();
+        },
+      }
+    ]
+    remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
+  };
+
+  blockContact = async () => {
+    const member = this.state.member;
+    const jid = member.jid.bare || member.jid;
+    const store = chatModel.store;
+    const state = store.getState();
+    const currentUser = state.auth.currentUser;
+    const curJid = currentUser.bare;
+    const myXmpp = xmpp.getXmpp(curJid);
+    await myXmpp.block(jid);
+    alert(`You have blocked ${member.nickname || member.name}`);
+  };
+  addToContacts = async () => {
+    const member = this.state.member;
+    const jid = member.jid.bare || member.jid;
+    const db = await getDb();
+    let contacts = await db.contacts.find().exec();
+    console.log(contacts);
+    debugger;
+    if (contacts.some(item => item.email===member.email)) {
+      alert(`This contact(${member.nickname || member.name}) has been in the contacts.`);
+      return;
+    }
+    contacts = contacts.map(item => ({email:item.email, displayName:item.name}));
+    contacts.push({email:member.email, displayName:member.name ||member.nickname});
+    const chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    const email = Object.keys(chatAccounts)[0];
+    let accessToken = keyMannager.getAccessTokenByEmail(email);
+    const { err, res } = await checkToken(accessToken);
+    if (err || !res || res.resultCode!==1) {
+      await refreshChatAccountTokens();
+      accessToken = keyMannager.getAccessTokenByEmail(email);
+    }
+    await db.contacts.upsert({
+      jid,
+      curJid:member.curJid,
+      name: member.name || member.nickname || jid.split('@')[0],
+      email:member.email,
+      avatar:member.avatar
+    });
+    uploadContacts(accessToken, contacts, () => {
+      alert(`This contact(${member.nickname || member.name}) has been added into the contacts.`)
+    });
+  };
+
   onChangeNickname = (e) => {
     // e.preventDefault();
     // e.stopPropagation();

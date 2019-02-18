@@ -316,13 +316,13 @@ export class XmppEx extends EventEmitter3 {
 
   //----------------------block start
   async block(jid) {
-    return client.block(jid);
+    return this.client.block(jid);
   }
   async unblock(jid) {
-    return client.unblock(jid);
+    return this.client.unblock(jid);
   }
   async getBlocked(ver) {
-    return client.getBlocked(ver);
+    return this.client.getBlocked(ver);
   }
   //----------------------block end
 
