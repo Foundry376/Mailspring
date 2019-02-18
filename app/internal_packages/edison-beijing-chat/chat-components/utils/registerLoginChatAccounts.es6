@@ -25,6 +25,7 @@ export default async function registerLoginChatAccounts() {
       }
       //register = (email, pwd, name, type, provider, setting, cb) => {
       let { err, res } = await register(acc.emailAddress, acc.settings.imap_password || acc.settings.refresh_token, acc.name, type, acc.provider, acc.settings);
+      await keyMannager.extractAccountSecrets(acc);
       try {
         res = JSON.parse(res);
       } catch (e) {
