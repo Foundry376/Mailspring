@@ -2,11 +2,11 @@ import ChangeFolderTask from './change-folder-task';
 import ChangeLabelsTask from './change-labels-task';
 import ChangeUnreadTask from './change-unread-task';
 import ChangeStarredTask from './change-starred-task';
+import UndoTask from './undo-task';
 import CategoryStore from '../stores/category-store';
 import Thread from '../models/thread';
 import Label from '../models/label';
 import _ from 'underscore';
-import UndoTask from './undo-task';
 
 const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {

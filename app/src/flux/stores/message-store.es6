@@ -173,6 +173,7 @@ class MessageStore extends MailspringStore {
     if (this._thread) {
       ipcRenderer.send('close-window', {
         threadId: this._thread.id,
+        accountId: this._thread.accountId,
         additionalChannelParam: 'thread',
         windowLevel: this._getCurrentWindowLevel(),
       });
@@ -501,6 +502,7 @@ class MessageStore extends MailspringStore {
       windowKey: `thread-${thread.id}`,
       windowType: 'thread-popout',
       threadId: thread.id,
+      accountId: thread.accountId,
       windowLevel: this._currentWindowLevel,
       windowProps: {
         threadId: thread.id,

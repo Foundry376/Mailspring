@@ -9,6 +9,7 @@ const buildQuery = categoryIds => {
     Thread.attributes.categories.containsAny(categoryIds),
     Thread.attributes.unread.equal(true),
     Thread.attributes.inAllMail.equal(true),
+    Thread.attributes.state.equal(0),
   ]);
 
   const query = DatabaseStore.findAll(Thread).limit(0);

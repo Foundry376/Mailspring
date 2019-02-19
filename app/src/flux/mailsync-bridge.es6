@@ -4,6 +4,7 @@ import { ipcRenderer, remote } from 'electron';
 import _ from 'underscore';
 
 import Task from './tasks/task';
+import SetObervableRangeTask from './tasks/set-observable-range-task';
 import TaskQueue from './stores/task-queue';
 import IdentityStore from './stores/identity-store';
 
@@ -107,9 +108,16 @@ export default class MailsyncBridge {
     Actions.cancelTask.listen(this._onCancelTask, this);
     Actions.fetchBodies.listen(this._onFetchBodies, this);
     Actions.syncFolders.listen(this._onSyncFolders, this);
+    Actions.setObservableRange.listen(this._onSetObservableRange, this);
+    ipcRenderer.on('new-window', this._onNewWindowOpened);
+    ipcRenderer.on('thread-close-window', this._onNewWindowClose);
 
     this._crashTracker = new CrashTracker();
     this._clients = {};
+    this._setObservableRangeTimer = {};
+    this._cachedSetObservableRangeTask = {};
+    // Store threads that are opened in seperate window
+    this._additionalObservableThreads = {};
 
     AccountStore.listen(this.ensureClients, this);
     OnlineStatusStore.listen(this._onOnlineStatusChanged, this);
@@ -215,7 +223,8 @@ export default class MailsyncBridge {
 
     // no-op - do not allow us to kill this client - we may be reseting the cache of an
     // account which does not exist anymore, but we don't want to interrupt this process
-    resetClient.kill = () => { };
+    resetClient.kill = () => {
+    };
 
     this._clients[account.id] = resetClient;
 
@@ -244,7 +253,7 @@ export default class MailsyncBridge {
         AppEnv.showErrorDialog({
           title: `Cleanup Complete`,
           message: `EdisonMail reset the local cache for ${account.emailAddress} in ${Math.ceil(
-            (Date.now() - start) / 1000
+            (Date.now() - start) / 1000,
           )} seconds. Your mailbox will now begin to sync again.`,
         });
       }
@@ -280,7 +289,9 @@ export default class MailsyncBridge {
   async _launchClient(account, { force } = {}) {
     const client = new MailsyncProcess(this._getClientConfiguration());
     this._clients[account.id] = client; // set this synchornously so we never spawn two
-
+    delete this._setObservableRangeTimer[account.id];
+    delete this._cachedSetObservableRangeTask[account.id];
+    delete this._additionalObservableThreads[account.id];
     const fullAccountJSON = (await KeyManager.insertAccountSecrets(account)).toJSON();
 
     if (force) {
@@ -311,7 +322,6 @@ export default class MailsyncBridge {
         `${error}`.includes('ErrorAuthentication'); // mailcore
 
       if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
-        console.error('launchClient error:', error);
         Actions.updateAccount(account.id, {
           syncState: isAuthFailure ? Account.SYNC_STATE_AUTH_FAILED : Account.SYNC_STATE_ERROR,
           syncError: { code, error, signal },
@@ -334,18 +344,18 @@ export default class MailsyncBridge {
     if (!DatabaseObjectRegistry.isInRegistry(task.constructor.name)) {
       console.log(task);
       throw new Error(
-        'You must queue a `Task` instance which is registred with the DatabaseObjectRegistry'
+        'You must queue a `Task` instance which is registred with the DatabaseObjectRegistry',
       );
     }
     if (!task.id) {
       console.log(task);
       throw new Error(
-        'Tasks must have an ID prior to being queued. Check that your Task constructor is calling `super`'
+        'Tasks must have an ID prior to being queued. Check that your Task constructor is calling `super`',
       );
     }
     if (!task.accountId) {
       throw new Error(
-        `Tasks must have an accountId. Check your instance of ${task.constructor.name}.`
+        `Tasks must have an accountId. Check your instance of ${task.constructor.name}.`,
       );
     }
     if (task.needToBroadcastBeforeSendTask) {
@@ -357,7 +367,7 @@ export default class MailsyncBridge {
         console.log('Making sync call, this better be time sensitive operation');
         ipcRenderer.sendSync(
           `mainProcess-sync-call`,
-          task.needToBroadcastBeforeSendTask
+          task.needToBroadcastBeforeSendTask,
         );
       }
     }
@@ -429,7 +439,7 @@ export default class MailsyncBridge {
           type, // TODO BG move to "model" naming style, finding all uses might be tricky
           objectClass: modelClass,
           objects: models,
-        })
+        }),
       );
     }
   };
@@ -462,7 +472,7 @@ export default class MailsyncBridge {
         type,
         objectClass: modelClass,
         objects: models,
-      })
+      }),
     );
   };
 
@@ -476,18 +486,92 @@ export default class MailsyncBridge {
       this.sendMessageToAccount(accountId, { type: 'need-bodies', ids: byAccountId[accountId] });
     }
   }
+
+  _onNewWindowOpened = (event, options) => {
+    if (options.threadId && options.accountId) {
+      if (!this._additionalObservableThreads[options.accountId]) {
+        this._additionalObservableThreads[options.accountId] = {};
+      }
+      this._additionalObservableThreads[options.accountId][options.threadId] = options.threadId;
+      if(this._cachedSetObservableRangeTask[options.accountId]){
+        this._onSetObservableRange(
+          options.accountId,
+          this._cachedSetObservableRangeTask[options.accountId]
+        );
+      }
+    }
+  };
+  _onNewWindowClose = (event, options) => {
+    if (options.threadId && options.accountId) {
+      if (this._additionalObservableThreads[options.accountId]) {
+        delete this._additionalObservableThreads[options.accountId][options.threadId];
+        if (Object.keys(this._additionalObservableThreads[options.accountId]).length === 0) {
+          delete this._additionalObservableThreads[options.accountId];
+        }
+        if (this._cachedSetObservableRangeTask[options.accountId]) {
+          this._onSetObservableRange(
+            options.accountId,
+            this._cachedSetObservableRangeTask[options.accountId]
+          );
+        }
+      }
+    }
+  };
+
+  _onSetObservableRange= (accountId, task)=>{
+    if (this._setObservableRangeTimer[accountId]) {
+      if (Date.now() - this._setObservableRangeTimer[accountId].timestamp > 1000) {
+        this._cachedSetObservableRangeTask[accountId] = new SetObervableRangeTask(task);
+        if (this._additionalObservableThreads[accountId]) {
+          task.threadIds = task.threadIds.concat(
+            Object.values(this._additionalObservableThreads[accountId]),
+          );
+        }
+        this.sendMessageToAccount(accountId, task.toJSON());
+        this._setObservableRangeTimer[accountId].timestamp = Date.now();
+      } else {
+        clearTimeout(this._setObservableRangeTimer[accountId].id);
+        this._setObservableRangeTimer[accountId] = {
+          id: setTimeout(() => {
+            this._cachedSetObservableRangeTask[accountId] = new SetObervableRangeTask(task);
+            if (this._additionalObservableThreads[accountId]) {
+              task.threadIds = task.threadIds.concat(
+                Object.values(this._additionalObservableThreads[accountId]),
+              );
+            }
+            this.sendMessageToAccount(accountId, task.toJSON());
+          }, 1000),
+          timestamp: Date.now(),
+        };
+      }
+    } else {
+      this._setObservableRangeTimer[accountId] = {
+        id: setTimeout(() => {
+          this._cachedSetObservableRangeTask[accountId] = new SetObervableRangeTask(task);
+          if (this._additionalObservableThreads[accountId]) {
+            task.threadIds = task.threadIds.concat(
+              Object.values(this._additionalObservableThreads[accountId]),
+            );
+          }
+          this.sendMessageToAccount(accountId, task.toJSON());
+        }, 1000),
+        timestamp: Date.now(),
+      };
+    }
+  }
+
   _onSyncFolders(accountId, foldersIds) {
     if (this._syncFolderTimer) {
       clearTimeout(this._syncFolderTimer);
     }
     if (Array.isArray(foldersIds) && accountId) {
       this._syncFolderTimer = setTimeout(() => {
-        this.sendMessageToAccount(accountId, {
-          type: 'sync-folders',
-          aid: accountId,
-          ids: foldersIds,
-        })
-      },
+          this.sendMessageToAccount(accountId, {
+            type: 'sync-folders',
+            aid: accountId,
+            ids: foldersIds,
+          });
+        },
         700);
     }
   }
