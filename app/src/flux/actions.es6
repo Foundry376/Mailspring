@@ -220,6 +220,8 @@ class Actions {
   */
   static focusDefaultMailboxPerspectiveForAccounts = ActionScopeWindow;
 
+  static setObservableRange = ActionScopeMainWindow;
+
   /*
   Public: Focus the mailbox perspective for the given account id and category names
 

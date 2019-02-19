@@ -1,12 +1,15 @@
 import { ListTabular } from 'mailspring-component-kit';
+import Actions from '../actions';
+import SetObservableRangeTask from '../tasks/set-observable-range-task';
+import Message from '../models/message';
 
 /**
-This class takes an observable which vends QueryResultSets and adapts it so that
-you can make it the data source of a MultiselectList.
+ This class takes an observable which vends QueryResultSets and adapts it so that
+ you can make it the data source of a MultiselectList.
 
-When the MultiselectList is refactored to take an Observable, this class should
-go away!
-*/
+ When the MultiselectList is refactored to take an Observable, this class should
+ go away!
+ */
 export default class ObservableListDataSource extends ListTabular.DataSource {
   constructor(resultSetObservable, setRetainedRange) {
     super();
@@ -98,4 +101,31 @@ export default class ObservableListDataSource extends ListTabular.DataSource {
     }
     return super.cleanup();
   }
+
+  setObservableRangeTask = ({ items }) => {
+    let accounts = {};
+    let idKey = 'id';
+    if (items[Object.keys(items)[0]] instanceof Message) {
+      idKey = 'threadId';
+    }
+    Object.values(items).forEach(item => {
+      if (!item) {
+        return;
+      }
+      if (accounts[item.accountId]) {
+        accounts[item.accountId].ids[item[idKey]] = 1;
+      } else {
+        const tmp = {};
+        tmp[item[idKey]] = 1;
+        accounts[item.accountId] = { ids: tmp };
+      }
+    });
+    Object.keys(accounts).forEach(account => {
+      accounts[account].ids = Object.keys(accounts[account].ids);
+      Actions.setObservableRange(
+        account,
+        new SetObservableRangeTask({ accountId: account, threadIds: accounts[account].ids }),
+      );
+    });
+  };
 }

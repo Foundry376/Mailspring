@@ -114,12 +114,14 @@ class ListTabular extends Component {
     super(props);
     if (!props.itemHeight) {
       throw new Error(
-        'ListTabular: You must provide an itemHeight - raising to avoid divide by zero errors.'
+        'ListTabular: You must provide an itemHeight - raising to avoid divide by zero errors.',
       );
     }
 
-    this._unlisten = () => { };
+    this._unlisten = () => {
+    };
     this.state = this.buildStateForRange({ start: -1, end: -1 });
+    this._scrollTimer = null;
   }
 
   componentDidMount() {
@@ -161,6 +163,9 @@ class ListTabular extends Component {
     window.removeEventListener('resize', this.onWindowResize, true);
     if (this._cleanupAnimationTimeout) {
       window.clearTimeout(this._cleanupAnimationTimeout);
+    }
+    if (this._scrollTimer) {
+      window.clearTimeout(this._scrollTimer);
     }
     this._unlisten();
   }
@@ -324,7 +329,16 @@ class ListTabular extends Component {
         animatingOut = {};
       }
     }
-
+    // Sometimes setObservableRangeTask is undefined(I'm not sure why),
+    // so we check to make sure it is defined
+    if (dataSource.setObservableRangeTask) {
+      if (this._scrollTimer) {
+        clearTimeout(this._scrollTimer);
+      }
+      this._scrollTimer = setTimeout(() => {
+        dataSource.setObservableRangeTask({ items });
+      }, 700);
+    }
     return {
       items,
       animatingOut,
@@ -373,7 +387,7 @@ class ListTabular extends Component {
         >
           {isHeaderShow ? (
             <div className="list-header" style={{
-              height: headerHeight
+              height: headerHeight,
             }}>
               <h1>{current && (current.displayName ? current.displayName : current.name)}</h1>
             </div>
@@ -394,8 +408,8 @@ class ListTabular extends Component {
           {/* when display EmptyComponent, do not display footer */}
           <div className="footer">{!(loaded && empty) ? footer : null}</div>
         </ScrollRegion>
-        <Spinner visible={!loaded && empty} />
-        <EmptyComponent visible={loaded && empty} />
+        <Spinner visible={!loaded && empty}/>
+        <EmptyComponent visible={loaded && empty}/>
       </div>
     );
   }
