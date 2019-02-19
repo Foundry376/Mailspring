@@ -17,7 +17,10 @@ class DraftDeleteButton extends React.Component {
         title="Delete"
         onClick={this._onDestroySelected}
       >
-        <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg name={'trash.svg'}
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
       </button>
     );
   }

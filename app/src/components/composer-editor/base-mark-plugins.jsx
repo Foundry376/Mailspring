@@ -55,7 +55,7 @@ export const MARK_CONFIG = {
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.bold.type),
       onToggle: value => value.change().toggleMark(MARK_CONFIG.bold.type),
-      iconClass: 'fa fa-bold',
+      iconClass: 'dt-icon dt-icon-bold',
     },
   },
   italic: {
@@ -65,7 +65,7 @@ export const MARK_CONFIG = {
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.italic.type),
       onToggle: value => value.change().toggleMark(MARK_CONFIG.italic.type),
-      iconClass: 'fa fa-italic',
+      iconClass: 'dt-icon dt-icon-italic',
     },
   },
   underline: {
@@ -75,7 +75,7 @@ export const MARK_CONFIG = {
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.underline.type),
       onToggle: value => value.change().toggleMark(MARK_CONFIG.underline.type),
-      iconClass: 'fa fa-underline',
+      iconClass: 'dt-icon dt-icon-underline',
     },
   },
 
@@ -86,7 +86,7 @@ export const MARK_CONFIG = {
     button: {
       isActive: value => hasMark(value, MARK_CONFIG.strike.type),
       onToggle: value => value.change().toggleMark(MARK_CONFIG.strike.type),
-      iconClass: 'fa fa-strikethrough',
+      iconClass: 'dt-icon dt-icon-strikethrough',
     },
   },
 
@@ -117,8 +117,8 @@ export const MARK_CONFIG = {
       return typeof v === 'string' ? (
         <font style={{ fontSize: v }}>{children}</font>
       ) : (
-        <font size={v}>{children}</font>
-      );
+          <font size={v}>{children}</font>
+        );
     },
   },
   face: {
@@ -277,7 +277,7 @@ export default [
         }),
         BuildFontPicker({
           type: 'size',
-          iconClass: 'fa fa-text-height',
+          iconClass: 'dt-icon dt-icon-font-size',
           default: DEFAULT_FONT_SIZE,
           options: DEFAULT_FONT_OPTIONS,
           convert: provided => {

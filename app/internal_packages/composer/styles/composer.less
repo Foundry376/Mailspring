@@ -3,7 +3,7 @@
 @import 'ui-mixins';
 @import 'buttons';
 
-@compose-width: 800px;
+@compose-width: 1800px;
 @compose-min-height: 70px;
 
 @blurred-primary-color: mix(@background-primary, #ffbb00, 96%);
@@ -45,7 +45,7 @@
   min-height: @compose-min-height;
 
   .RichEditor-content {
-    padding-top: 12px;
+    padding: 12px 10px;
     position: relative; // needed for floating emoji picker
     color: @text-color;
   }
@@ -109,7 +109,14 @@
     border-bottom: 1px solid @border-color-divider;
     z-index: 2;
     width: 100%;
-    min-height: 29px;
+    min-height: 44px;
+    display: flex;
+    .fa,
+    .dt-icon {
+      font-size: 18px;
+      line-height: 24px;
+      color: @gray;
+    }
   }
 
   .inner {
@@ -122,6 +129,7 @@
   }
 
   .divider {
+    display: none;
     width: 1px;
     height: 22px;
     border-right: 1px solid @border-color-divider;
@@ -218,20 +226,27 @@ body.platform-win32 {
 
 // Used to allow the click targets to extend into the margins
 .composer-field-bottom-border() {
-  width: calc(~'100% - 44px');
+  // width: calc(~'100% - 44px');
+  width: 100%;
   height: 1px;
   position: absolute;
   bottom: 0;
-  left: 23px;
+  left: 0;
   content: ' ';
   background: @border-color-divider;
 }
 
 .composer-inner-wrap {
+  margin-top: 20px;
+  padding: 0 5px 0 5px;
   position: relative;
   height: 100%;
   display: flex;
   flex-direction: column;
+
+  .RichEditor-root {
+    padding: 0;
+  }
 
   .composer-drop-cover {
     position: absolute;
@@ -274,11 +289,9 @@ body.platform-win32 {
     @action-bar-bg: @background-off-primary;
     position: relative;
     width: 100%;
-    background: @action-bar-bg;
+    background: transparent;
     border-top: 1px solid @border-color-divider;
-    box-shadow: inset 0 2px 1px rgba(0, 0, 0, 0.03);
     border-bottom: 0;
-    border-radius: @border-radius-base;
 
     .action-bar-cover-gen;
 
@@ -306,9 +319,35 @@ body.platform-win32 {
       }
     }
 
-    .btn-send {
+    .btn.btn-toolbar.btn-send {
       margin-right: 10px;
       white-space: nowrap;
+      height: 27px;
+      background-color: transparent;
+      transition: all 0.2s;
+      span {
+        img.content-mask {
+          float: left;
+          background-color: @blue;
+        }
+        span {
+          float: left;
+          color: @blue;
+          font-size: 15px;
+          line-height: 27px;
+        }
+      }
+      &:hover {
+        background-color: @blue;
+        span {
+          img.content-mask {
+            background-color: @white;
+          }
+          span {
+            color: @white;
+          }
+        }
+      }
     }
 
     .composer-action-bar-content {
@@ -316,7 +355,7 @@ body.platform-win32 {
       margin: 0 auto;
       flex-direction: row;
       max-width: @compose-width;
-      padding: 9px 22.5px;
+      padding: 9px 0;
 
       .composer-action-bar-plugins {
         flex-wrap: wrap;
@@ -381,7 +420,7 @@ body.platform-win32 {
     float: right;
     z-index: 2;
     cursor: default;
-    padding-right: @spacing-standard + @spacing-half;
+    padding-right: 0;
     padding-top: 12px;
 
     .action {
@@ -403,6 +442,11 @@ body.platform-win32 {
           background-color: @text-color-link;
         }
         cursor: default;
+      }
+      &.show-popout {
+        position: absolute;
+        top: -24px;
+        right: 0;
       }
     }
   }
@@ -445,7 +489,7 @@ body.platform-win32 {
 
     input {
       display: inline-block;
-      padding: 13px 22px 9px 22px;
+      padding: 13px 10px 9px 10px;
       min-width: 5em;
       background-color: transparent;
       border: none;
@@ -549,16 +593,16 @@ body.platform-win32 {
   }
 
   .composer-inner-wrap {
+    margin-top: 0;
     .composer-action-bar-wrap {
       @action-bar-bg: darken(@background-primary, 1%);
-      background: @action-bar-bg;
+      background: transparent;
       border-top: 1px solid @border-color-divider;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
       .action-bar-cover-gen;
     }
 
     .composer-action-bar-content {
-      padding: 9px 13.5px 9px 22.5px;
+      padding: 9px 0;
     }
 
     .compose-body {
@@ -578,9 +622,6 @@ body.platform-win32 {
     .message-item-white-wrap.composer-outer-wrap {
       background: @blurred-primary-color;
 
-      .btn.btn-toolbar.btn-trash {
-        padding-right: 0;
-      }
       .show-more-fade {
         background: linear-gradient(
           to right,
@@ -590,7 +631,7 @@ body.platform-win32 {
       }
       .composer-action-bar-wrap {
         @action-bar-bg: @blurred-off-primary-color;
-        background: @action-bar-bg;
+        background: transparent;
         .action-bar-cover-gen;
       }
       .RichEditor-toolbar .inner {
@@ -598,8 +639,8 @@ body.platform-win32 {
       }
     }
     .message-item-white-wrap.composer-outer-wrap.focused {
-      box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.28), 0 1px 1.5px rgba(0, 0, 0, 0.08),
-        0 0 3px @accent-primary;
+      box-shadow: 0 4px 20px 0 rgba(0,0,0,0.1);
+      border-radius: 10px;
       background-color: @background-primary;
       .show-more-fade {
         background: linear-gradient(
@@ -610,7 +651,7 @@ body.platform-win32 {
       }
       .composer-action-bar-wrap {
         @action-bar-bg: @background-off-primary;
-        background: @action-bar-bg;
+        background: transparent;
         .action-bar-cover-gen;
       }
       .RichEditor-toolbar .inner {
@@ -627,11 +668,11 @@ body.platform-win32 {
   position: relative;
   margin: 0;
   flex-shrink: 0;
-  min-height: 46px;
+  min-height: 44px;
   color: @text-color;
 
   .tokenizing-field-wrap {
-    padding: 0 22px;
+    padding: 0 10px;
   }
   .content-container {
     margin-left: 22px;
@@ -648,7 +689,7 @@ body.platform-win32 {
   }
 
   &.from-field {
-    padding: 0 22px;
+    padding: 0 10px;
   }
 
   .from-single-name {

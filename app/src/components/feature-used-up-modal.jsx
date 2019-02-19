@@ -30,7 +30,7 @@ export default class FeatureUsedUpModal extends React.Component {
   }
 
   onGoToFeatures = () => {
-    shell.openExternal('https://getmailspring.com/pro');
+    shell.openExternal('https://www.edison.tech/');
   };
 
   onUpgrade = e => {

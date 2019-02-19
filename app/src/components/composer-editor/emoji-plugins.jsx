@@ -290,7 +290,7 @@ const ToolbarEmojiButton = ({ value, onChange }) => {
         });
       }}
     >
-      <i className="fa fa-smile-o" />
+      <i className="dt-icon dt-icon-emoji" />
     </button>
   );
 };

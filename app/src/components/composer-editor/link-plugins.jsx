@@ -23,7 +23,7 @@ function onPaste(event, change, editor) {
 }
 
 function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
-  return function(transform, e, matches) {
+  return function (transform, e, matches) {
     if (transform.value.activeMarks.find(m => m.type === LINK_TYPE))
       return transform.insertText(TriggerKeyValues[e.key]);
 
@@ -96,8 +96,8 @@ export default [
       BuildMarkButtonWithValuePicker({
         type: LINK_TYPE,
         field: 'href',
-        iconClassOn: 'fa fa-link',
-        iconClassOff: 'fa fa-link',
+        iconClassOn: 'dt-icon dt-icon-link',
+        iconClassOff: 'dt-icon dt-icon-link',
         placeholder: 'http://',
       }),
     ],
@@ -121,7 +121,7 @@ export default [
         // ensures we get the link button in the /current/ composer.
         const linkButton = event.target
           .closest('.RichEditor-root')
-          .querySelector('.fa.fa-link')
+          .querySelector('.dt-icon.dt-icon-link')
           .closest('button');
 
         // 2: click it.

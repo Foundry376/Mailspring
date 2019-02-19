@@ -311,6 +311,7 @@ export default class MailsyncBridge {
         `${error}`.includes('ErrorAuthentication'); // mailcore
 
       if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
+        console.error('launchClient error:', error);
         Actions.updateAccount(account.id, {
           syncState: isAuthFailure ? Account.SYNC_STATE_AUTH_FAILED : Account.SYNC_STATE_ERROR,
           syncError: { code, error, signal },
@@ -417,7 +418,7 @@ export default class MailsyncBridge {
 
       // dispatch the message to other windows
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);
-      if(AppEnv.enabledFromNativeLog){
+      if (AppEnv.enabledFromNativeLog) {
         console.log('----------------From native-------------------');
         console.log(`from native : ${msg}`);
         console.log('---------------------From native END------------------------');
@@ -475,17 +476,18 @@ export default class MailsyncBridge {
       this.sendMessageToAccount(accountId, { type: 'need-bodies', ids: byAccountId[accountId] });
     }
   }
-  _onSyncFolders(accountId, foldersIds){
-    if (this._syncFolderTimer){
+  _onSyncFolders(accountId, foldersIds) {
+    if (this._syncFolderTimer) {
       clearTimeout(this._syncFolderTimer);
     }
-    if(Array.isArray(foldersIds) && accountId){
+    if (Array.isArray(foldersIds) && accountId) {
       this._syncFolderTimer = setTimeout(() => {
         this.sendMessageToAccount(accountId, {
           type: 'sync-folders',
           aid: accountId,
           ids: foldersIds,
-        })},
+        })
+      },
         700);
     }
   }

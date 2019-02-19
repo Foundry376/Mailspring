@@ -53,11 +53,11 @@ export default class Application extends EventEmitter {
       let message = null;
       let buttons = ['Quit'];
       if (err.toString().includes('ENOENT')) {
-        message = `Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.`;
+        message = `EdisonMail could find the mailsync process. If you're building EdisonMail from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.`;
       } else if (err.toString().includes('spawn')) {
-        message = `Mailspring could not spawn the mailsync process. ${err.toString()}`;
+        message = `EdisonMail could not spawn the mailsync process. ${err.toString()}`;
       } else {
-        message = `We encountered a problem with your local email database. ${err.toString()}\n\nCheck that no other copies of Mailspring are running and click Rebuild to reset your local cache.`;
+        message = `We encountered a problem with your local email database. ${err.toString()}\n\nCheck that no other copies of EdisonMail are running and click Rebuild to reset your local cache.`;
         buttons = ['Quit', 'Rebuild'];
       }
 
@@ -113,9 +113,9 @@ export default class Application extends EventEmitter {
 
     if (process.platform === 'linux') {
       const helper = new DefaultClientHelper();
-      helper.registerForURLScheme('mailspring');
+      helper.registerForURLScheme('EdisonMail');
     } else {
-      app.setAsDefaultProtocolClient('mailspring');
+      app.setAsDefaultProtocolClient('EdisonMail');
     }
 
     this._draftsSendLater = {};
@@ -273,7 +273,7 @@ export default class Application extends EventEmitter {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
     } else {
       this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
-        title: 'Welcome to Mailspring',
+        title: 'Welcome to EdisonMail',
       });
     }
   }

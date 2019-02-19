@@ -105,7 +105,7 @@ export default class AccountContactField extends React.Component {
   render() {
     return (
       <div className="composer-participant-field from-field">
-        <div className="composer-field-label">From:</div>
+        <div className="composer-field-label">FROM</div>
         {this._renderAccountSelector()}
         {this._renderFromFieldComponents()}
       </div>

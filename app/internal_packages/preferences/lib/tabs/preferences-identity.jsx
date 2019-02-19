@@ -70,22 +70,22 @@ class PreferencesIdentity extends React.Component {
   };
 
   _renderBasic() {
-    const onLearnMore = () => shell.openExternal('https://getmailspring.com/pro');
+    const onLearnMore = () => shell.openExternal('https://www.edison.tech/');
     return (
       <div className="row padded">
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <div className="basic-explanation">
-            You are using <strong>Mailspring Basic</strong>, which is free! You can link up to four
+            You are using <strong>EdisonMail Basic</strong>, which is free! You can link up to four
             email accounts and try pro features like snooze, send later, read receipts and reminders
             a few times a week.{' '}
             <span className="platform-linux-only">
-              Mailspring is independent{' '}
+              EdisonMail is independent{' '}
               <a href="https://github.com/agent8/Mailspring/">open source</a> software, and
               subscription revenue allows us spend time maintaining and improving the product.
             </span>
             <br />
             <br />
-            Upgrade to <a onClick={onLearnMore}>Mailspring Pro</a> to use all these great features
+            Upgrade to <a onClick={onLearnMore}>EdisonMail Pro</a> to use all these great features
             permanently:
             <div className="features">
               <ul>
@@ -175,7 +175,7 @@ class PreferencesIdentity extends React.Component {
               onClick={this._onUpgrade}
               style={{ verticalAlign: 'top' }}
             >
-              <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} /> Get Mailspring
+              <RetinaImg name="ic-upgrade.png" mode={RetinaImg.Mode.ContentIsMask} /> Get EdisonMail
               Pro
             </div>
           </div>

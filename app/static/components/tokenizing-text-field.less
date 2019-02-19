@@ -80,19 +80,20 @@
   .token {
     display: inline-block;
     position: relative;
-    color: @text-color;
-    padding: 0 @spacing-three-quarters;
+    color: @blue;
+    padding: 0 2px;
     padding-right: 1.5em;
-    margin: 1px 5px 1px 1px;
+    margin: 1px;
     border-radius: @border-radius-base * 0.8;
     max-width: 100%;
     line-height: 1.9em;
 
-    background: linear-gradient(to bottom, @token-top 0%, @token-bottom 100%);
-    box-shadow: @base-box-shadow;
+    // background: linear-gradient(to bottom, @token-top 0%, @token-bottom 100%);
+    // box-shadow: @base-box-shadow;
     vertical-align: middle;
 
     .action {
+      display: none;
       position: absolute;
       padding: 0;
       border: 0;
@@ -111,6 +112,9 @@
         0 -0.5px 0 darken(@token-hover-top, 25%), 0.5px 0 0 darken(@token-hover-bottom, 25%),
         -0.5px 0 0 darken(@token-hover-bottom, 25%), 0 1px 1px rgba(0, 0, 0, 0.07);
       cursor: default;
+      .action {
+        display: block;
+      }
     }
     &.invalid {
       border-bottom: 1px dashed red;
@@ -148,6 +152,7 @@
 
       color: @text-color-inverse;
       .action {
+        display: block;
         color: @text-color-inverse-subtle;
         img {
           background-color: @text-color-inverse-subtle;

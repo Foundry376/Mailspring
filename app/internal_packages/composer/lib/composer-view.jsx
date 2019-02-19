@@ -340,23 +340,29 @@ export default class ComposerView extends React.Component {
         <button
           tabIndex={-1}
           className="btn btn-toolbar btn-trash"
-          style={{ order: 100 }}
+          style={{ order: -100 }}
           title="Delete draft"
           onClick={this._onDestroyDraft}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'trash.svg'}
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
 
         <button
           tabIndex={-1}
           className="btn btn-toolbar btn-attach"
-          style={{ order: 50 }}
+          style={{ order: -50 }}
           title="Attach file"
           onClick={this._onSelectAttachment}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'attachments.svg'}
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
 
         <div style={{ order: 0, flex: 1 }} />

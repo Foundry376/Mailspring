@@ -419,11 +419,10 @@ class MessageList extends React.Component {
     }
     return (
       <div onClick={this._onPopoutThread}>
-        <RetinaImg
-          name="thread-popout.png"
-          title="Popout thread"
-          mode={RetinaImg.Mode.ContentIsMask}
-        />
+        <RetinaImg name={'popout.svg'}
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
   }
