@@ -34,7 +34,13 @@ class ConditionalQuotedTextControl extends React.Component {
     }
     return (
       <a className="quoted-text-control" onClick={this.props.onClick}>
-        <span className="dots">&bull;&bull;&bull;</span>
+        <span className="dots">
+          <RetinaImg
+            name={'expand-more.svg'}
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
+        </span>
       </a>
     );
   }

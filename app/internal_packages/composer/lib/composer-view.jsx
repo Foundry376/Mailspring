@@ -199,7 +199,13 @@ export default class ComposerView extends React.Component {
           this.setState({ quotedTextHidden: false });
         }}
       >
-        <span className="dots">&bull;&bull;&bull;</span>
+        <span className="dots">
+          <RetinaImg
+            name={'expand-more.svg'}
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
+        </span>
         <span
           className="remove-quoted-text"
           onMouseUp={e => {
@@ -241,12 +247,13 @@ export default class ComposerView extends React.Component {
           if (!this.props.session.isPopout()) {
             const skipSaving = change.operations.every(
               ({ type, properties }) => {
-               return type === 'set_selection' || (type === 'set_value' && Object.keys(properties).every(k => {
-                 if(k==='schema'){
-                   //In case we encountered more scheme change
-                   console.error('schema');
-                 }
-                 return (k === 'decorations' || k==='schema')}))
+                return type === 'set_selection' || (type === 'set_value' && Object.keys(properties).every(k => {
+                  if (k === 'schema') {
+                    //In case we encountered more scheme change
+                    console.error('schema');
+                  }
+                  return (k === 'decorations' || k === 'schema')
+                }))
               });
             this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
           }
@@ -338,7 +345,7 @@ export default class ComposerView extends React.Component {
           onClick={this._onDestroyDraft}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
         </button>
 
         <button
@@ -349,10 +356,10 @@ export default class ComposerView extends React.Component {
           onClick={this._onSelectAttachment}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
         </button>
 
-        <div style={{ order: 0, flex: 1 }}/>
+        <div style={{ order: 0, flex: 1 }} />
 
         <SendActionButton
           ref={el => {
@@ -569,7 +576,7 @@ export default class ComposerView extends React.Component {
               </div>
 
               <div className="composer-action-bar-wrap" data-tooltips-anchor>
-                <div className="tooltips-container"/>
+                <div className="tooltips-container" />
                 {this._renderActionsRegion()}
               </div>
             </DropZone>

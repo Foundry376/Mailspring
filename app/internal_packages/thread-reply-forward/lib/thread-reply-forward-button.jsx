@@ -45,7 +45,7 @@ export default class ThreadReplyForwardButton extends React.Component {
           style={{ marginRight: 0 }}
           onClick={this._reply}
         >
-          <RetinaImg name={'reply.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'reply.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
         {
           this.canReplyAll() && (
@@ -55,7 +55,7 @@ export default class ThreadReplyForwardButton extends React.Component {
               style={{ marginRight: 0 }}
               onClick={this._replyAll}
             >
-              <RetinaImg name={'reply-all.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+              <RetinaImg name={'reply-all.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
             </button>
           )
         }
@@ -65,7 +65,7 @@ export default class ThreadReplyForwardButton extends React.Component {
           style={{ marginRight: 0 }}
           onClick={this._forward}
         >
-          <RetinaImg name={'forward.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'forward.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </div>
     );

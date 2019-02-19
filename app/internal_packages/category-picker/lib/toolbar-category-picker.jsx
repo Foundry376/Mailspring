@@ -75,7 +75,7 @@ class MovePicker extends React.Component {
             onClick={this._onOpenMovePopover}
             className={'btn btn-toolbar btn-category-picker'}
           >
-            <RetinaImg name={'folder.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg name={'folder.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
           </button>
           {this._account.usesLabels() && (
             <button
@@ -85,7 +85,7 @@ class MovePicker extends React.Component {
               onClick={this._onOpenLabelsPopover}
               className={'btn btn-toolbar btn-category-picker'}
             >
-              <RetinaImg name={'label.svg'} style={{ width: 22, height: 22 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+              <RetinaImg name={'label.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
             </button>
           )}
         </KeyCommandsRegion>

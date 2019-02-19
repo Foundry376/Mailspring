@@ -133,7 +133,6 @@ export default class MessagesPanel extends PureComponent {
     chatContact = chatContact || {};
     let  queryByToken;
     let accessToken = await keyMannager.getAccessTokenByEmail(email);
-    console.log('cxm *** keyMannager.getAccessTokenByEmail ', email, accessToken);
     let {err, res} = await checkToken(accessToken);
     if (err || !res || res.resultCode!==1) {
       await refreshChatAccountTokens()
@@ -200,27 +199,14 @@ export default class MessagesPanel extends PureComponent {
           }
         })
       }
-      const db = await getDb();
       for (let member of members) {
         const jid = member.jid.bare || member.jid;
         const nicknames = chatModel.chatStorage.nicknames;
-        // let contact = await db.contacts.findOne().where('jid').eq(jid).exec();
         member.nickname = nicknames[jid] || '';
-        // if (contact) {
-        //
-        // }
-        // else {
-        //   await db.contacts.upsert({
-        //     jid: member.jid,
-        //     curJid: conversation.curJid,
-        //     name: member.name,
-        //     email:member.email,
-        //     avatar: member.avatar,
-        //     isMyContact:false
-        //   })
-        // }
       };
-      this.setState({ members });
+      if (!this.state.members || !this.state.members.length || members && members.length) {
+        this.setState({ members });
+      }
     }
   }
 

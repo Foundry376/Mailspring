@@ -47,8 +47,7 @@ export default class ToolbarBack extends React.Component {
     }
     return (
       <div className="item-back" onClick={this._onClick} title={`Return to ${title}`}>
-        <RetinaImg name="sheet-back.png" mode={RetinaImg.Mode.ContentIsMask} />
-        <div className="item-back-title">{title}</div>
+        <RetinaImg name={'arrow.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
   }

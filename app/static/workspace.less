@@ -207,7 +207,7 @@ body.is-blurred {
       }
       .message-toolbar-items {
         flex: 1;
-        border-bottom: 1px solid @extra-light-grey;
+        // border-bottom: 1px solid @extra-light-grey;
         &:empty {
           border-bottom: none;
         }
@@ -221,7 +221,40 @@ body.is-blurred {
             align-items: center;
           }
           .btn-toolbar {
+            position: relative;
             margin-top: 0;
+            img {
+              position: relative;
+              z-index: 2;
+              transition: background-color 0.4s;
+            }
+            &:hover {
+              &:after {
+                content: '';
+                height: 36px;
+                width: 36px;
+                border-radius: 50%;
+                background: @source-list-active-bg;
+                display: block;
+                position: absolute;
+                top: -5px;
+                left: 8px;
+                animation: growUp 0.4s;
+              }
+              img {
+                background-color: @blue;
+              }
+              @keyframes growUp {
+                from {
+                  opacity: 0.7;
+                  transform: scale(0.5);
+                }
+                to {
+                  opacity: 1;
+                  transform: scale(1);
+                }
+              }
+            }
           }
         }
       }
@@ -268,6 +301,9 @@ body.is-blurred {
     }
     flex-grow: 0;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
 
     .item-back-title {
       cursor: default;
@@ -594,6 +630,14 @@ body.platform-win32 {
 .column-ThreadList,
 .column-MessageList {
   padding-top: @search-bar-height;
+}
+
+.column-MessageList {
+  &>div.empty {
+    height: 100%;
+    background: url(../static/images/chat/default-empty-mail.png) no-repeat center center;
+    background-size: 250px auto;
+  }
 }
 
 .column-DraftList {

@@ -4,7 +4,6 @@
 .quoted-text-control {
   color: @text-color-very-subtle;
   display: inline-block;
-  border: 1px solid fade(@text-color-very-subtle, 15%);
   border-radius: 3px;
   line-height: 11px;
   padding: 1px 5px;
@@ -15,7 +14,7 @@
   &:hover {
     cursor: pointer;
     color: @text-color-subtle;
-    border: 1px solid fade(@text-color-subtle, 35%);
+    // border: 1px solid fade(@text-color-subtle, 35%);
   }
 
   .dots {
@@ -23,6 +22,9 @@
     font-size: @font-size-smaller * 0.8;
     top: -1px;
     position: relative;
+    img {
+      background-color: @gray-light;
+    }
   }
 }
 
@@ -32,7 +34,7 @@ body.platform-win32 {
     .windows-btn-border;
     &:hover {
       color: @text-color-very-subtle;
-      .windows-btn-border;
+      // .windows-btn-border;
     }
   }
   .mail-label {

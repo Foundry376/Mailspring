@@ -1,7 +1,7 @@
 @import 'ui-variables';
 @import 'ui-mixins';
 
-@message-max-width: 800px;
+@message-max-width: 1800px;
 @message-spacing: 6px;
 
 .tag-picker {
@@ -80,16 +80,19 @@ body.platform-win32 {
     flex-grow: 0;
     flex-shrink: 0;
   }
-
+  .message-toolbar-arrow {
+    display: flex;
+    align-items: center;
+  }
   .message-toolbar-arrow.down {
-    order: 201;
+    order: 203;
     margin-right: 0;
-    margin-left: @spacing-standard * 1.5;
+    margin-right: @spacing-standard * 0.75;
   }
   .message-toolbar-arrow.up {
     order: 202;
+    margin-left: 0;
     // <1 because of hit region padding on the button
-    margin-right: @spacing-standard * 0.75;
   }
   .message-toolbar-arrow.disabled {
     opacity: 0.3;
@@ -121,6 +124,12 @@ body.platform-win32 {
 #message-list.height-fix {
   height: calc(~'100% - 35px');
   min-height: calc(~'100% - 35px');
+}
+
+.mode-popout {
+  #message-list {
+    padding-top: 0;
+  }
 }
 
 #message-list {
@@ -193,7 +202,8 @@ body.platform-win32 {
     flex-shrink: 0;
   }
   .message-subject {
-    font-size: @font-size-large;
+    font-size: 17px;
+    font-weight: bold;
     color: @text-color;
     margin-right: @spacing-standard;
   }
@@ -239,10 +249,10 @@ body.platform-win32 {
     }
 
     .scroll-region-content-inner {
-      padding-top: 6px;
-      padding-right: 16px;
+      padding-top: 0px;
+      padding-right: 15px;
       padding-bottom: 6px;
-      padding-left: 20px;
+      padding-left: 15px;
     }
   }
 
@@ -273,7 +283,7 @@ body.platform-win32 {
       border: 0;
     }
 
-    padding-bottom: @message-spacing * 2;
+    padding-bottom: 8px;
     &.before-reply-area {
       padding-bottom: 0;
     }
@@ -281,8 +291,8 @@ body.platform-win32 {
     &.collapsed {
       .message-item-white-wrap {
         background-color: @background-primary;
-        padding-top: 19px;
-        padding-bottom: 8px;
+        // padding-top: 19px;
+        // padding-bottom: 8px;
         margin-bottom: 0;
       }
 
@@ -409,7 +419,7 @@ body.platform-win32 {
     position: relative;
     font-size: @font-size-small;
     padding-bottom: 0;
-    padding-top: 19px;
+    padding-top: 15px;
 
     &.pending {
       .message-actions-wrap {
@@ -519,7 +529,7 @@ body.platform-win32 {
     width: 100%;
     max-width: @message-max-width;
     margin: 0 auto;
-    padding: 0 15px @spacing-standard 15px;
+    padding: 0 9px @spacing-standard 15px;
 
     .iframe-container {
       margin-top: 0px;
@@ -561,15 +571,16 @@ body.platform-win32 {
 
   .footer-reply-area-wrap {
     overflow: hidden;
-
+    height: 44px;
+    line-height: 42px;
     max-width: @message-max-width;
     margin: -3px auto 10px auto;
 
     position: relative;
     z-index: 2;
 
-    border: 0;
-    border-top: 1px dashed @border-color-divider;
+    border: 1px solid @border-color-divider;
+    border-radius: 8px;
     background: @background-primary;
 
     color: @text-color-very-subtle;
@@ -585,12 +596,13 @@ body.platform-win32 {
       width: 100%;
       max-width: @message-max-width;
       margin: 0 auto;
-      padding: 12px @spacing-standard * 1.5;
+      padding-left: 20px;
     }
     .reply-text {
       display: inline-block;
       vertical-align: middle;
-      margin-left: 0.5em;
+      margin-left: 15px;
+      font-size: 15px;
     }
   }
 }
