@@ -28,7 +28,8 @@ import {
   beginStoringConversations,
   successfullyStoredOccupants,
   failedStoringOccupants,
-  successfullyStoredConversationName
+  successfullyStoredConversationName,
+  failStoredConversationName
 } from '../../actions/db/conversation';
 import xmpp from '../../xmpp/index';
 import { ipcRenderer } from 'electron';
