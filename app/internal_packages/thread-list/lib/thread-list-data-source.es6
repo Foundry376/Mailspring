@@ -33,7 +33,7 @@ const _flatMapJoiningMessages = $threadsResultSet => {
         if (missingIds.length === 0) {
           promise = Promise.resolve([threadsResultSet, []]);
         } else {
-          promise = DatabaseStore.findAll(Message, { threadId: missingIds }).then(messages => {
+          promise = DatabaseStore.findAll(Message, { threadId: missingIds, state: 0 }).then(messages => {
             return Promise.resolve([threadsResultSet, messages]);
           });
         }

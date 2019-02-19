@@ -304,7 +304,7 @@ class StarredMailboxPerspective extends MailboxPerspective {
 
   threads() {
     const query = DatabaseStore.findAll(Thread)
-      .where([Thread.attributes.starred.equal(true), Thread.attributes.inAllMail.equal(true)])
+      .where([Thread.attributes.starred.equal(true), Thread.attributes.inAllMail.equal(true), Thread.attributes.state.equal(0)])
       .limit(0);
 
     // Adding a "account_id IN (a,b,c)" clause to our query can result in a full
