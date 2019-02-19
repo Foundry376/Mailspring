@@ -115,6 +115,12 @@ export default class MemberProfie extends Component {
         click: () => {
           this.blockContact();
         },
+      },
+      {
+        label: `Unblock this Contact`,
+        click: () => {
+          this.unblockContact();
+        },
       }
     ]
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
@@ -130,6 +136,17 @@ export default class MemberProfie extends Component {
     const myXmpp = xmpp.getXmpp(curJid);
     await myXmpp.block(jid);
     alert(`You have blocked ${member.nickname || member.name}`);
+  };
+  unblockContact = async () => {
+    const member = this.state.member;
+    const jid = member.jid.bare || member.jid;
+    const store = chatModel.store;
+    const state = store.getState();
+    const currentUser = state.auth.currentUser;
+    const curJid = currentUser.bare;
+    const myXmpp = xmpp.getXmpp(curJid);
+    await myXmpp.unblock(jid);
+    alert(`You have unblocked ${member.nickname || member.name}`);
   };
   addToContacts = async () => {
     const member = this.state.member;
