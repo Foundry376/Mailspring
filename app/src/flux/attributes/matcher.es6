@@ -86,6 +86,8 @@ class Matcher {
         return modelValue == matcherValue; // eslint-disable-line
       case '!=':
         return modelValue != matcherValue; // eslint-disable-line
+      case '<>':
+        return modelValue != matcherValue; // eslint-disable-line
       case '<':
         return modelValue < matcherValue;
       case '>':
@@ -231,6 +233,12 @@ class Matcher {
           return `\`${klass.name}\`.\`${this.attr.tableColumn}\` IS NOT NULL`;
         }
         return `\`${klass.name}\`.\`${this.attr.tableColumn}\` != ${escaped}`;
+      }
+      case '<>': {
+        if (escaped === null) {
+          return `\`${klass.name}\`.\`${this.attr.tableColumn}\` IS NOT NULL`;
+        }
+        return `\`${klass.name}\`.\`${this.attr.tableColumn}\` <> ${escaped}`;
       }
       case 'startsWith':
         return ' RAISE `TODO`; ';
