@@ -122,6 +122,24 @@ export default class Application extends EventEmitter {
     }
 
     this._draftsSendLater = {};
+
+    if (app.dock) {
+      const dockMenu = Menu.buildFromTemplate([
+        {
+          role: 'window',
+          submenu: [
+            {
+              role: 'minimize'
+            },
+            {
+              role: 'close'
+            }
+          ]
+        }
+      ])
+
+      app.dock.setMenu(dockMenu)
+    }
   }
 
   getMainWindow() {
