@@ -329,16 +329,7 @@ class ListTabular extends Component {
         animatingOut = {};
       }
     }
-    // Sometimes setObservableRangeTask is undefined(I'm not sure why),
-    // so we check to make sure it is defined
-    if (dataSource.setObservableRangeTask) {
-      if (this._scrollTimer) {
-        clearTimeout(this._scrollTimer);
-      }
-      this._scrollTimer = setTimeout(() => {
-        dataSource.setObservableRangeTask({ items });
-      }, 700);
-    }
+    this.sendObservableRangeTask(dataSource, items);
     return {
       items,
       animatingOut,
@@ -349,6 +340,18 @@ class ListTabular extends Component {
       empty: dataSource.empty(),
     };
   }
+  sendObservableRangeTask = (dataSource, items) => {
+    // Sometimes setObservableRangeTask is undefined(I'm not sure why),
+    // so we check to make sure it is defined
+    if (dataSource.setObservableRangeTask) {
+      if (this._scrollTimer) {
+        clearTimeout(this._scrollTimer);
+      }
+      this._scrollTimer = setTimeout(() => {
+        dataSource.setObservableRangeTask({ items });
+      }, 700);
+    }
+  };
 
   render() {
     const {
