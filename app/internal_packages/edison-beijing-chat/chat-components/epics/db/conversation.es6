@@ -174,7 +174,7 @@ const saveConversationName = async payload => {
   const db = await getDb();
   // same payload may be cause [Document update conflict] error
   const convJid = payload.from.bare;
-  const convName = payload.edimucdvent.edimucconfig.name;
+  const convName = payload.edimucevent && payload.edimucevent.edimucconfig.name;
   if (prevConvJid === convJid
     && prevConvName === convName) {
     return [];

@@ -154,7 +154,7 @@ export default class MemberProfie extends Component {
     const db = await getDb();
     let contacts = await db.contacts.find().exec();
     console.log(contacts);
-    debugger;
+    // debugger;
     if (contacts.some(item => item.email===member.email)) {
       alert(`This contact(${member.nickname || member.name}) has been in the contacts.`);
       return;
