@@ -291,8 +291,8 @@ export class ToggleStarredButton extends React.Component {
 
   render() {
     const postClickStarredState = this.props.items.every(t => t.starred === false);
-    const title = postClickStarredState ? 'Star' : 'Unstar';
-    const imageName = postClickStarredState ? 'flag-not-selected.svg' : 'flag.svg';
+    const title = postClickStarredState ? 'Flag' : 'Unflag';
+    const imageName = postClickStarredState ? 'flag.svg' : 'flag-not-selected.svg';
 
     return (
       <BindGlobalCommands commands={{ 'core:star-item': () => this._onStar() }}>

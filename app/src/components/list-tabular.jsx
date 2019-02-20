@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, { Component } from 'react';
-import { Utils } from 'mailspring-exports';
+import { Utils, ComponentRegistry } from 'mailspring-exports';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import {
@@ -364,17 +364,19 @@ class ListTabular extends Component {
       onDragEnd,
       onDragStart,
       onDoubleClick,
+      dataSource
     } = this.props;
     const { count, loaded, empty } = this.state;
     const rows = this.getRowsToRender();
     const innerStyles = { height: count * itemHeight };
-    const headerHeight = 66;
+    const headerHeight = 106;
     let offsetHeight = 0;
     let isHeaderShow = true;
     if (isHeaderShow) {
       offsetHeight = headerHeight;
     }
     const current = FocusedPerspectiveStore.current();
+    const Toolbar = ComponentRegistry.findComponentsMatching({ role: 'ThreadListToolbar' })[0];
     return (
       <div className={`list-container list-tabular ${className}`}>
         <ScrollRegion
@@ -390,6 +392,7 @@ class ListTabular extends Component {
               height: headerHeight,
             }}>
               <h1>{current && (current.displayName ? current.displayName : current.name)}</h1>
+              <Toolbar />
             </div>
           ) : null}
           <ListTabularRows
@@ -408,8 +411,8 @@ class ListTabular extends Component {
           {/* when display EmptyComponent, do not display footer */}
           <div className="footer">{!(loaded && empty) ? footer : null}</div>
         </ScrollRegion>
-        <Spinner visible={!loaded && empty}/>
-        <EmptyComponent visible={loaded && empty}/>
+        <Spinner visible={!loaded && empty} />
+        <EmptyComponent visible={loaded && empty} />
       </div>
     );
   }

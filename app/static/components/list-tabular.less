@@ -28,6 +28,7 @@
   // }
 }
 
+.list-tabular .selection-bar,
 .sheet-toolbar .selection-bar {
   // This item sits in the toolbar and takes up all the remaining
   // space from the toolbar-spacer divs, but flex-shrink means that
@@ -50,7 +51,7 @@
     position: absolute;
     left: -1px;
     right: -1px;
-    top: 68px;
+    top: 52px;
     height: 55px;
     border-bottom: 1px solid @border-color-primary;
     border-left: 1px solid @border-color-divider;
@@ -70,16 +71,16 @@
 
       .checkmark.selected {
         background-image: url(../static/icons/check.svg);
-        background-size: 140% auto;
+        background-size: 130% auto;
       }
       .checkmark {
-        margin-left: 29px;
-        height: 22px;
-        min-width: 22px;
+        margin: 0 35px 0 18px;
+        height: 18px;
+        min-width: 18px;
         background-image: url(../static/icons/check-empty.svg);
         background-position: center;
         background-color: transparent;
-        background-size: 140% auto;
+        background-size: 130% auto;
         border: none;
       }
 
@@ -101,7 +102,6 @@
 
       .selection-label {
         line-height: 22px;
-        margin-left: 40px;
       }
 
       .btn-clear-all,
@@ -117,16 +117,32 @@
       }
 
       .btn-toolbar {
+        padding: 0 5px;
         margin-top: 0;
+        box-shadow: none;
+        background: transparent;
+        img.content-mask {
+          background-color: @gray;
+        }
       }
 
       .toolbar-buttons {
         flex: 1;
-        justify-content: flex-end;
+        justify-content: flex-start;
         align-items: center;
         height: auto !important;
+        .btn {
+          height: auto;
+        }
       }
     }
+  }
+}
+
+.sheet-toolbar .selection-bar {
+  display: none;
+  .absolute {
+    top: 68px;
   }
 }
 
@@ -140,15 +156,6 @@
 
 // split mode
 .thread-list-narrow {
-  .list-item:hover,
-  &.show-checkbox {
-    .list-column-Check {
-      display: block !important;
-    }
-    .avatar-icon {
-      visibility: hidden;
-    }
-  }
   .list-tabular .list-tabular-item {
     &.selected.focused,
     &.selected {
@@ -156,10 +163,17 @@
         background-color: transparent;
         background-image: url(../static/icons/check.svg);
         background-position: center;
-        background-size: 140% auto;
+        background-size: 130% auto;
         border: none;
       }
     }
+  }
+
+
+  .selection-label,
+  .btn-clear-all,
+  .btn-toggle-select-all {
+    display: none;
   }
 
   .list-column:first-child {
@@ -167,11 +181,10 @@
   }
 
   .list-column.list-column-Check {
-    display: none;
-    left: 29px;
-    top: 15px;
-    width: 22px;
-    height: 22px;
+    left: 26px;
+    top: 61px;
+    width: 18px;
+    height: 18px;
     position: absolute;
     &::after {
       display: none;
@@ -185,12 +198,12 @@
         display: none;
       }
       .inner {
-        width: 22px;
-        height: 22px;
+        width: 18px;
+        height: 18px;
         border-radius: 50% !important;
-        border: 1px solid @list-border;
         background: transparent;
-        background-size: 12px 9px;
+        background-image: url(../static/icons/check-empty.svg);
+        background-size: 130% auto;
         background-repeat: no-repeat;
         background-position: center;
         &::after {
@@ -280,7 +293,7 @@
         background-color: transparent;
         background-image: url(../static/icons/check.svg);
         background-position: center;
-        background-size: 140% auto;
+        background-size: 130% auto;
         border: none;
       }
     }
@@ -299,18 +312,18 @@
     }
 
     .checkmark {
-      padding: (55px - 1px - 22px) / 2;
-      padding-left: 30px;
+      padding: (55px - 1px - 18px) / 2;
+      padding-left: 18px;
       position: absolute;
       top: 0;
       left: 0;
       .inner {
-        width: 22px;
-        height: 22px;
+        width: 18px;
+        height: 18px;
         background-image: url(../static/icons/check-empty.svg);
         background-position: center;
         background-color: transparent;
-        background-size: 140% auto;
+        background-size: 130% auto;
         border: none;
       }
     }
@@ -319,7 +332,7 @@
   .list-column {
     // The width is set by React.
     display: inherit;
-    padding: 0 7px;
+    padding-right: 7px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -327,7 +340,7 @@
 
     &:first-child {
       // padding-left: @padding-base-horizontal - 4;
-      width: 51px;
+      width: 47px;
     }
     &:last-child {
       text-align: right;

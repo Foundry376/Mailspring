@@ -71,7 +71,7 @@ class MultiselectToolbar extends Component {
   }
 
   renderToolbar() {
-    const { toolbarElement, onClearSelection, dataSource } = this.props;
+    const { toolbarElement, onClearSelection, dataSource, selectionCount } = this.props;
     const mode = WorkspaceStore.layoutMode();
     let totalCount = 0;
     if (dataSource) {
@@ -81,21 +81,26 @@ class MultiselectToolbar extends Component {
       <div className="absolute" key="absolute">
         <div className="inner">
           <div className={'checkmark' + (!this.state.selectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
-          <div className="selection-label">{this.selectionLabel()}</div>
-          <button className="btn btn-toggle-select-all" onClick={this.selectAll}>
-            Select all {totalCount} messages
-          </button>
-          <button className="btn btn-clear-all" onClick={onClearSelection}>
-            Clear Selection
-          </button>
-          {mode === 'list' ? toolbarElement : null}
+          {
+            selectionCount > 0 && (
+              <div style={{ display: 'flex' }}>
+                <div className="selection-label">{this.selectionLabel()}</div>
+                <button className="btn btn-toggle-select-all" onClick={this.selectAll}>
+                  Select all {totalCount && totalCount.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,')}
+                </button>
+                <button className="btn btn-clear-all" onClick={onClearSelection}>
+                  Clear Selection
+                </button>
+                {toolbarElement}
+              </div>
+            )
+          }
         </div>
       </div>
     );
   }
 
   render() {
-    const { selectionCount } = this.props;
     return (
       <CSSTransitionGroup
         className={'selection-bar'}
@@ -104,7 +109,8 @@ class MultiselectToolbar extends Component {
         transitionLeaveTimeout={200}
         transitionEnterTimeout={200}
       >
-        {selectionCount > 0 ? this.renderToolbar() : undefined}
+        {/* {selectionCount > 0 ? this.renderToolbar() : undefined} */}
+        {this.renderToolbar()}
       </CSSTransitionGroup>
     );
   }

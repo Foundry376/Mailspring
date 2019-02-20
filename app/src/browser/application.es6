@@ -20,7 +20,6 @@ import MailspringProtocolHandler from './mailspring-protocol-handler';
 import ConfigPersistenceManager from './config-persistence-manager';
 import moveToApplications from './move-to-applications';
 import MailsyncProcess from '../mailsync-process';
-import { saveToLocalStorage } from '../../internal_packages/edison-beijing-chat/chat-components/store/model';
 
 let clipboard = null;
 
@@ -38,6 +37,10 @@ export default class Application extends EventEmitter {
     this.devMode = devMode;
     this.specMode = specMode;
     this.safeMode = safeMode;
+
+    // if (devMode) {
+    //   require('electron-reload')(resourcePath);
+    // }
 
     this.fileListCache = new FileListCache();
     this.mailspringProtocolHandler = new MailspringProtocolHandler({

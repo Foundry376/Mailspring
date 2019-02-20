@@ -26,6 +26,7 @@ export function activate() {
   ComponentRegistry.register(ThreadListToolbar, {
     location: WorkspaceStore.Location.ThreadList.Toolbar,
     modes: ['list', 'split'],
+    role: 'ThreadListToolbar'
   });
 
   ComponentRegistry.register(MessageListToolbar, {
