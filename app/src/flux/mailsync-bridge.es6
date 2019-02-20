@@ -4,10 +4,11 @@ import { ipcRenderer, remote } from 'electron';
 import _ from 'underscore';
 
 import Task from './tasks/task';
-import SetObervableRangeTask from './tasks/set-observable-range-task';
+import SetObservableRangeTask from './tasks/set-observable-range-task';
 import TaskQueue from './stores/task-queue';
 import IdentityStore from './stores/identity-store';
 
+// import Thread from './models/thread';
 import Account from './models/account';
 import AccountStore from './stores/account-store';
 import DatabaseStore from './stores/database-store';
@@ -444,9 +445,23 @@ export default class MailsyncBridge {
     }
   };
 
+  // _isThreadIntresting= thread =>{
+  //   if (thread.accountId && thread.id){
+  //     if(this._cachedSetObservableRangeTask[thread.accountId]){
+  //       return this._cachedSetObservableRangeTask[thread.accountId].threadIds.includes(thread.id);
+  //     }
+  //   }
+  //   return true;
+  // };
+
   _onIncomingChangeRecord = record => {
     // Allow observers of the database to handle this change
-    DatabaseStore.trigger(record);
+    // if (
+    //   (record.objects[0] instanceof Thread && this._isThreadIntresting(record.objects[0])) ||
+    //   !(record.objects[0] instanceof Thread)
+    // ) {
+      DatabaseStore.trigger(record);
+    // }
 
     // Run task success / error handlers if the task is now complete
     // Note: cannot use `record.objectClass` because of subclass names
@@ -521,7 +536,7 @@ export default class MailsyncBridge {
   _onSetObservableRange= (accountId, task)=>{
     if (this._setObservableRangeTimer[accountId]) {
       if (Date.now() - this._setObservableRangeTimer[accountId].timestamp > 1000) {
-        this._cachedSetObservableRangeTask[accountId] = new SetObervableRangeTask(task);
+        this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
         if (this._additionalObservableThreads[accountId]) {
           task.threadIds = task.threadIds.concat(
             Object.values(this._additionalObservableThreads[accountId]),
@@ -533,7 +548,7 @@ export default class MailsyncBridge {
         clearTimeout(this._setObservableRangeTimer[accountId].id);
         this._setObservableRangeTimer[accountId] = {
           id: setTimeout(() => {
-            this._cachedSetObservableRangeTask[accountId] = new SetObervableRangeTask(task);
+            this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
             if (this._additionalObservableThreads[accountId]) {
               task.threadIds = task.threadIds.concat(
                 Object.values(this._additionalObservableThreads[accountId]),
@@ -547,7 +562,7 @@ export default class MailsyncBridge {
     } else {
       this._setObservableRangeTimer[accountId] = {
         id: setTimeout(() => {
-          this._cachedSetObservableRangeTask[accountId] = new SetObervableRangeTask(task);
+          this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
           if (this._additionalObservableThreads[accountId]) {
             task.threadIds = task.threadIds.concat(
               Object.values(this._additionalObservableThreads[accountId]),

@@ -28,6 +28,6 @@ export default class AttributeBoolean extends Attribute {
   equal(val) {
     // equal(true) matches all values != 0
     this._assertPresentAndQueryable('equal', val);
-    return new Matcher(this, val ? '!=' : '=', 0);
+    return new Matcher(this, val ? '<>' : '=', 0);
   }
 }
