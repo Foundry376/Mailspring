@@ -51,7 +51,7 @@ class PreferencesGeneral extends React.Component {
         />
 
         <div className="platform-note platform-linux-only">
-          Mailspring desktop notifications on Linux require Zenity. You may need to install it with
+          EdisonMail desktop notifications on Linux require Zenity. You may need to install it with
           your package manager (i.e., <code>sudo apt-get install zenity</code>).
         </div>
 

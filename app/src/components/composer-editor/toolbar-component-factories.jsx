@@ -227,10 +227,10 @@ export function BuildMarkButtonWithValuePicker(config) {
               <i className={config.iconClassOn} />
             </button>
           ) : (
-            <button onMouseDown={this.onPrompt}>
-              <i className={config.iconClassOff} />
-            </button>
-          )}
+              <button onMouseDown={this.onPrompt}>
+                <i className={config.iconClassOff} />
+              </button>
+            )}
           {expanded && (
             <div className="dropdown">
               <input
@@ -307,8 +307,9 @@ export function BuildColorPicker(config) {
             onClick={this._onToggleExpanded}
             style={{
               cursor: 'pointer',
-              width: 20,
+              width: 14,
               height: 14,
+              borderRadius: 3,
               backgroundColor: color,
               marginRight: 4,
               marginLeft: 4,

@@ -50,7 +50,10 @@ class SendActionButton extends React.Component {
 
     return (
       <span>
-        <RetinaImg name="icon-composer-send.png" mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg name={'sent.svg'}
+          style={{ width: 27, height: 27 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
         <span className="text">Send{plusHTML}</span>
         {additionalImg}
       </span>
@@ -61,8 +64,8 @@ class SendActionButton extends React.Component {
     return (
       <button
         tabIndex={-1}
-        className={'btn btn-toolbar btn-normal btn-emphasis btn-text btn-send'}
-        style={{ order: -100 }}
+        className={'btn btn-toolbar btn-normal btn-send'}
+        style={{ order: 100 }}
         onClick={!this.props.disabled ? this._onPrimaryClick : null}
         disabled={this.props.disabled}
       >
@@ -85,7 +88,7 @@ class SendActionButton extends React.Component {
     return (
       <ButtonDropdown
         className={'btn-send btn-emphasis btn-text'}
-        style={{ order: -100 }}
+        style={{ order: 100 }}
         primaryItem={this._renderSendActionItem(sendActions[0])}
         primaryTitle={sendActions[0].title}
         primaryClick={!this.props.disabled ? this._onPrimaryClick : null}
@@ -97,9 +100,10 @@ class SendActionButton extends React.Component {
   }
 
   render() {
-    return this.props.sendActions.length === 1
-      ? this._renderSingleButton()
-      : this._renderButtonDropdown();
+    // return this.props.sendActions.length === 1
+    //   ? this._renderSingleButton()
+    //   : this._renderButtonDropdown();
+    return this._renderSingleButton();
   }
 }
 

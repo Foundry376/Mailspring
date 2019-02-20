@@ -43,7 +43,10 @@ export class ArchiveButton extends React.Component {
     return (
       <BindGlobalCommands commands={{ 'core:archive-item': () => this._onArchive() }}>
         <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
-          <RetinaImg name="toolbar-archive.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'archive.svg'}
+            style={{ width: 26, height: 26 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );

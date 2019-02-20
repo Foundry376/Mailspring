@@ -876,7 +876,7 @@ export default class TokenizingTextField extends React.Component {
     if (!this.props.menuPrompt) {
       return false;
     }
-    return <div className="tokenizing-field-label">{`${this.props.menuPrompt}:`}</div>;
+    return <div className="tokenizing-field-label">{`${this.props.menuPrompt.toUpperCase()}`}</div>;
   }
 
   _fieldComponents() {

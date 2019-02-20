@@ -71,7 +71,7 @@ export default class AppEnvConstructor {
     if (!devMode && process.env.NODE_ENV == null) {
       process.env.NODE_ENV = 'production';
     }
-    if(devMode){
+    if (devMode) {
       this.enabledToNativeLog = true;
       this.enabledFromNativeLog = true;
       this.enabledBackgroundQueryLog = true;
@@ -128,9 +128,9 @@ export default class AppEnvConstructor {
     const MailsyncBridge = require('./flux/mailsync-bridge').default;
     this.mailsyncBridge = new MailsyncBridge();
 
-    process.title = `Mailspring ${this.getWindowType()}`;
+    process.title = `EdisonMail ${this.getWindowType()}`;
     this.onWindowPropsReceived(() => {
-      process.title = `Mailspring ${this.getWindowType()}`;
+      process.title = `EdisonMail ${this.getWindowType()}`;
     });
 
     if (this.isMainWindow()) {
@@ -356,12 +356,12 @@ export default class AppEnvConstructor {
   // Essential: Close the current window.
   close(options) {
     if (options) {
-      if(!options.windowLevel){
-        if(this.isComposerWindow()){
+      if (!options.windowLevel) {
+        if (this.isComposerWindow()) {
           options.windowLevel = 3;
-        }else if(this.isThreadWindow()){
+        } else if (this.isThreadWindow()) {
           options.windowLevel = 2;
-        }else{
+        } else {
           options.windowLevel = 1;
         }
       }

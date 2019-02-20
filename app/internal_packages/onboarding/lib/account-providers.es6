@@ -36,7 +36,7 @@ const AccountProviders = [
     note: (
       <span>
         <strong>Important:</strong> iCloud requires that you create a unique app password for email
-        apps like Mailspring. Follow{' '}
+        apps like EdisonMail. Follow{' '}
         <a href="https://support.apple.com/en-us/HT204397">these instructions</a> to create one and
         then paste it below.
       </span>
@@ -60,7 +60,7 @@ const AccountProviders = [
         Enter your email account credentials to get started.<br />
         <strong>Important:</strong> GMX requires that you{' '}
         <a href="https://support.gmx.com/pop-imap/toggle.html">enable IMAP</a> before using email
-        clients like Mailspring.
+        clients like EdisonMail.
       </span>
     ),
     icon: 'ic-settings-account-gmx.png',
@@ -78,7 +78,7 @@ const AccountProviders = [
         <a href="https://yandex.com/support/passport/authorization/app-passwords.html">
           App Password
         </a>{' '}
-        for Mailspring.
+        for EdisonMail.
       </span>
     ),
     icon: 'ic-settings-account-yandex.png',

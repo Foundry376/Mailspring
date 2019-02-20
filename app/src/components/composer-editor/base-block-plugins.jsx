@@ -85,7 +85,7 @@ export const BLOCK_CONFIG = {
     tagNames: ['blockquote'],
     render: props => <blockquote {...props.attributes}>{props.children}</blockquote>,
     button: {
-      iconClass: 'fa fa-quote-left',
+      iconClass: 'dt-icon dt-icon-quote',
       isActive: value => {
         return isBlockTypeOrWithinType(value, BLOCK_CONFIG.blockquote.type);
       },
@@ -123,7 +123,7 @@ export const BLOCK_CONFIG = {
     tagNames: ['ol'],
     render: props => <ol {...props.attributes}>{props.children}</ol>,
     button: {
-      iconClass: 'fa fa-list-ol',
+      iconClass: 'dt-icon dt-icon-num-list',
       isActive: value => {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ol_list.type;
@@ -139,7 +139,7 @@ export const BLOCK_CONFIG = {
     tagNames: ['ul'],
     render: props => <ul {...props.attributes}>{props.children}</ul>,
     button: {
-      iconClass: 'fa fa-list-ul',
+      iconClass: 'dt-icon dt-icon-bull-list',
       isActive: value => {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ul_list.type;

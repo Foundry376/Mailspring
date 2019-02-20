@@ -27,7 +27,7 @@ export default class ComposerHeaderActions extends React.Component {
           key="cc"
           onClick={() => this.props.onShowAndFocusField(Fields.Cc)}
         >
-          Cc
+          CC
         </span>
       );
     }
@@ -39,7 +39,7 @@ export default class ComposerHeaderActions extends React.Component {
           key="bcc"
           onClick={() => this.props.onShowAndFocusField(Fields.Bcc)}
         >
-          Bcc
+          BCC
         </span>
       );
     }
@@ -51,7 +51,7 @@ export default class ComposerHeaderActions extends React.Component {
           key="subject"
           onClick={() => this.props.onShowAndFocusField(Fields.Subject)}
         >
-          Subject
+          SUBJECT
         </span>
       );
     }
@@ -65,9 +65,10 @@ export default class ComposerHeaderActions extends React.Component {
           onClick={this._onPopoutComposer}
         >
           <RetinaImg
-            name="composer-popout.png"
+            name="popout.svg"
+            isIcon
             mode={RetinaImg.Mode.ContentIsMask}
-            style={{ position: 'relative', top: '-2px' }}
+            style={{ position: 'relative', top: '-2px', width: 20 }}
           />
         </span>
       );
