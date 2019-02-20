@@ -49,7 +49,7 @@ export default class MessagesTopBar extends Component {
       await xmpp.setRoomName(selectedConversation.jid, {
         name
       })
-      selectedConversation.update({
+      selectedConversation && selectedConversation.update && selectedConversation.update({
         $set: { name }
       })
     }
