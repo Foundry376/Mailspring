@@ -163,7 +163,7 @@ export class XmppEx extends EventEmitter3 {
       // the code below seems to be a more stable replacement:
       setInterval(() => {
         this.client.ping(this.connectedJid);
-      }, 30000);
+      }, 50000);
     });
     this.client.on('session:prebind',  (bind) => {
       chatModel.diffTime = parseInt(bind.serverTimestamp)
