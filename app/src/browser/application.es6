@@ -717,15 +717,22 @@ export default class Application extends EventEmitter {
         win.show();
         win.focus();
       } else {
+        let additionalChannelParam = '';
+        if (options.additionalChannelParam) {
+          additionalChannelParam = `${options.additionalChannelParam}-`;
+        }
         this.windowManager.newWindow(options);
         const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
         if (mainWindow && mainWindow.browserWindow.webContents) {
-          mainWindow.browserWindow.webContents.send('new-window', options);
+          mainWindow.browserWindow.webContents.send(`${additionalChannelParam}new-window`, options);
         }
         if (options.threadId) {
           const threadWindow = this.windowManager.get(`thread-${options.threadId}`);
           if (threadWindow && threadWindow.browserWindow.webContents) {
-            threadWindow.browserWindow.webContents.send('new-window', options);
+            threadWindow.browserWindow.webContents.send(
+              `${additionalChannelParam}new-window`,
+              options
+            );
           }
         }
       }
