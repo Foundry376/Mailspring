@@ -155,7 +155,7 @@ const parseCommandLine = argv => {
     if (path.resolve(arg) === resourcePath) {
       continue;
     }
-    if (arg.startsWith('mailto:') || arg.startsWith('mailspring:')) {
+    if (arg.startsWith('mailto:') || arg.startsWith('edisonmail:')) {
       urlsToOpen.push(arg);
     } else if (arg[0] !== '-' && /[/|\\]/.test(arg)) {
       pathsToOpen.push(arg);
