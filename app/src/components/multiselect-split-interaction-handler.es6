@@ -41,13 +41,13 @@ module.exports = class MultiselectSplitInteractionHandler {
     if (item.id === this.props.focusedId && !selected) {
       this.props.dataSource.selection.expandTo(item);
     } else {
-      this._turnFocusIntoSelection();
+      // this._turnFocusIntoSelection();
       this.props.dataSource.selection.toggle(item);
       if (selected) {
         this.props.dataSource.selection.remove([item]);
       }
     }
-    this._checkSelectionAndFocusConsistency();
+    // this._checkSelectionAndFocusConsistency();
 
     // if none is selected, set the item to [focused]
     selectedIds = this.props.dataSource.selection.ids();

@@ -68,11 +68,25 @@
     }
 
   }
+  .button.more {
+    width: @more-height;
+    height: @more-height;
+    border: none;
+    box-shadow: none;
+    border-radius: 50%;
+    background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 0);
+    background-size: 14px auto;
+    margin-right: 20px;
+    &:hover {
+      background: url(images/chat/more_active.png) no-repeat center center rgba(255, 255, 255, 1);
+      background-size: 14px auto;
+    }
+  }
   .command-button {
     width: 150px;
     height: 35px;
     margin: 6px 15px 6px 0px;
-    border-radius: 4px;
+    border-radius: 14px;
     font-weight: bold;
     color: @accent-primary;
     box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
@@ -88,15 +102,15 @@
     height: 20px;
     width: 20px;
     background-color: @accent-primary;
-    margin: 10px 15px 10px -4px;
+    margin: 10px 15px 10px -12px;
   }
 
   .email {
     display: flex;
     height: 40px;
     line-height: 40px;
-    width:80%;
-    margin: 0 10%;
+    width:90%;
+    margin: 0 5%;
     border-bottom:  1px solid lightgray;
   }
   .email-label {
@@ -104,7 +118,7 @@
     font-size: 13px;
     letter-spacing: -0.17px;
     text-align: right;
-    width:140px;
+    width:155px;
     padding-right: 4px;
   }
   .member-email{
@@ -116,8 +130,8 @@
     display: flex;
     height: 40px;
     line-height: 40px;
-    width:80%;
-    margin: 0 10%;
+    width:90%;
+    margin: 0 5%;
     border-bottom:  1px solid lightgray;
   }
   .nickname-label {
@@ -125,7 +139,7 @@
     font-size: 13px;
     letter-spacing: -0.17px;
     text-align: right;
-    width:140px;
+    width:155px;
   }
   .nickname-input {
     width:200px;
