@@ -99,7 +99,7 @@ class FixedPopover extends Component {
     _.defer(this.props.focusElementWithTabIndex);
   };
 
-  onWindowResize() {
+  onWindowResize = () => {
     Actions.closePopover(this.props.onClose);
   }
 

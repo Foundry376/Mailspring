@@ -19,6 +19,7 @@ import {
   MailImportantIcon,
   KeyCommandsRegion,
   InjectedComponentSet,
+  InjectedComponent
 } from 'mailspring-component-kit';
 
 import FindInThread from './find-in-thread';
@@ -451,9 +452,7 @@ class MessageList extends React.Component {
   }
 
   _renderMinifiedBundle(bundle) {
-    const BUNDLE_HEIGHT = 36;
-    const lines = bundle.messages.slice(0, 10);
-    const h = Math.round(BUNDLE_HEIGHT / lines.length);
+    const lines = bundle.messages.slice(0, 3);
 
     return (
       <div
@@ -461,12 +460,21 @@ class MessageList extends React.Component {
         onClick={() => this.setState({ minified: false })}
         key={Utils.generateTempId()}
       >
-        <div className="num-messages">{bundle.messages.length} older messages</div>
-        <div className="msg-lines" style={{ height: h * lines.length }}>
-          {lines.map((msg, i) => (
-            <div key={msg.id} style={{ height: h * 2, top: -h * i }} className="msg-line" />
-          ))}
+        <div className="msg-avatars">
+          {
+            lines.map((message, index) => (
+              <InjectedComponent
+                key={`thread-avatar-${index}`}
+                exposedProps={{
+                  from: message.from && message.from[0],
+                  styles: { marginLeft: 5 * index, border: '1px solid #fff' }
+                }}
+                matching={{ role: 'EmailAvatar' }}
+              />
+            ))
+          }
         </div>
+        <div className="num-messages">{bundle.messages.length} more emails</div>
       </div>
     );
   }

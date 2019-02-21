@@ -27,8 +27,12 @@ export default class EmailAvatar extends Component {
   }
   render() {
     const { name, bgColor } = this.state;
+    let styles = { background: bgColor };
+    if (this.props.styles) {
+      styles = Object.assign(styles, this.props.styles);
+    }
     return (
-      <div className="avatar-icon" style={{ background: bgColor }}>
+      <div className="avatar-icon" style={styles}>
         {name}
       </div>
     )
