@@ -18,6 +18,7 @@
     flex-direction: column;
     align-items: center;
     overflow-y: scroll;
+    height: 90%;
     .button {
       font-size: 12px;
       padding: 5px 0;
@@ -71,12 +72,24 @@
     height: 50px;
   }
 
-  .row, .add-to-group {
-    width: 80%;
-    height: 25px;
+  .row.add-to-group {
+    width: 60%;
+    height: 35px;
+    margin: 0 auto;
+    border-radius: 4px;
+    font-weight: bold;
+    padding-left: 35px;
+    color: @accent-primary;
+    box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
+    transition: 0.5s;
+    background: none;
+    &:hover {
+      box-shadow: -2px 2.5px 10px rgba(0, 0, 0, 0.35);
+    }
   }
 
   .row {
+    width: 100%;
     display: flex;
     padding: 10px 10px 10px 20px;
     flex-direction: row;
