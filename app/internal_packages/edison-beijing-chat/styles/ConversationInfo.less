@@ -28,15 +28,17 @@
     }
     .member-management {
       overflow: hidden;
-      padding: 20px 0 0 20px;
-      height: 70px;
+      padding: 30px 0 0 20px;
+      height: 60px;
     }
     .button.more {
       float: right;
       width: @more-height;
       height: @more-height;
+      border: none;
+      box-shadow: none;
       border-radius: 50%;
-      background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 1);
+      background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 0);
       background-size: 14px auto;
       margin-right: 20px;
       &:hover {
@@ -71,14 +73,11 @@
     width: 100%;
     height: 50px;
   }
-  .row #avatar {
-    width: auto;
-  }
 
   .row.add-to-group {
     width: 60%;
-    height: 35px;
-    margin: 0 auto;
+    height: 40px;
+    margin: 0px 0px 0 20px;
     border-radius: 4px;
     font-weight: bold;
     padding-left: 35px;
@@ -94,11 +93,13 @@
   .row {
     width: 100%;
     display: flex;
-    padding: 10px 10px 10px 20px;
+    padding: 10px 20px 10px 20px;
     flex-direction: row;
     height: 56px;
-    #avatar {
-      width: 40px;
+    .avatar {
+      margin-right:20px;
+    }
+    .avatar-icon {
       margin-right: 15px;
     }
     .info {

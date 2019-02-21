@@ -107,7 +107,7 @@ export default class ConversationInfo extends Component {
           {
             !conversation.isGroup ? (
               <div className="row item">
-                <div id="avatar">
+                <div className="avatar-icon">
                   <ContactAvatar jid={conversation.jid} name={conversation.name}
                     email={conversation.email} avatar={conversation.avatar} size={35} />
                 </div>
@@ -146,7 +146,7 @@ export default class ConversationInfo extends Component {
 
               return (
                 <div className="row" key={jid} onClick={onEditMemberProfile}>
-                  <div id="avatar">
+                  <div className="avatar">
                     <ContactAvatar jid={jid} name={member.name}
                       email={member.email} avatar={member.avatar} size={30} />
                   </div>
