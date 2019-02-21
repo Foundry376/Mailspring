@@ -8,7 +8,6 @@ import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
 import { clearMessages } from '../../../utils/message';
 import _ from 'lodash';
-import MemberProfile from './MemberProfile';
 
 const { primaryColor } = theme;
 
