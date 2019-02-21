@@ -154,7 +154,7 @@ export default class MemberProfie extends Component {
     const db = await getDb();
     let contacts = await db.contacts.find().exec();
     console.log(contacts);
-    debugger;
+    // debugger;
     if (contacts.some(item => item.email===member.email)) {
       alert(`This contact(${member.nickname || member.name}) has been in the contacts.`);
       return;
@@ -215,11 +215,11 @@ export default class MemberProfie extends Component {
           <div className="name-buttons">
             <h2 className="member-name">{member.name}</h2>
             <button className="btn btn-toolbar command-button" title="Start a private chat" onClick={this.startPrivateChat}>
-              <RetinaImg name={'chat.svg'} style={{ width: 12 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+              <RetinaImg name={'chat.svg'} style={{ width: 16 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
               <span>Messages</span>
             </button>
             <button className="btn btn-toolbar command-button" title="Compose new message" onClick={this.composeEmail}>
-              <RetinaImg name={'email.svg'} style={{ width: 12 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+              <RetinaImg name={'email.svg'} style={{ width: 16 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
               <span>Compose</span>
             </button>
           </div>
