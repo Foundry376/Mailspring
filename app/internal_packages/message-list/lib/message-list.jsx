@@ -382,7 +382,11 @@ class MessageList extends React.Component {
       <div className="message-icons-wrap">
         {this._renderExpandToggle()}
         <div onClick={this._onPrintThread}>
-          <RetinaImg name="print.png" title="Print Thread" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'print.svg'}
+            title="Print Thread"
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </div>
         {this._renderPopoutToggle()}
       </div>
@@ -397,8 +401,10 @@ class MessageList extends React.Component {
     return (
       <div onClick={this._onToggleAllMessagesExpanded}>
         <RetinaImg
-          name={this.state.hasCollapsedItems ? 'expand.png' : 'collapse.png'}
+          name={this.state.hasCollapsedItems ? 'expand.svg' : 'collapse.svg'}
           title={this.state.hasCollapsedItems ? 'Expand All' : 'Collapse All'}
+          style={{ width: 24, height: 24 }}
+          isIcon
           mode={RetinaImg.Mode.ContentIsMask}
         />
       </div>

@@ -61,7 +61,7 @@ class MultiselectToolbar extends Component {
 
   selectAll = () => {
     const { onClearSelection, dataSource } = this.props;
-    const items = this.props.dataSource.itemsCurrentlyInViewMatching(() => true);
+    const items = dataSource.itemsCurrentlyInViewMatching(() => true);
     if (items) {
       dataSource.selection.set(items);
     }
@@ -77,10 +77,12 @@ class MultiselectToolbar extends Component {
     if (dataSource) {
       totalCount = dataSource.count();
     }
+    const items = dataSource.itemsCurrentlyInViewMatching(() => true);
+    const isSelectAll = !this.state.selectAll && items && items.length && selectionCount === items.length;
     return (
       <div className="absolute" key="absolute">
         <div className="inner">
-          <div className={'checkmark' + (!this.state.selectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
+          <div className={'checkmark' + (isSelectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
           {
             selectionCount > 0 && (
               <div style={{ display: 'flex' }}>
