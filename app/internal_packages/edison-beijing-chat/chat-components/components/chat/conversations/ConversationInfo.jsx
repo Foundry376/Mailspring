@@ -8,7 +8,6 @@ import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
 import { clearMessages } from '../../../utils/message';
 import _ from 'lodash';
-import MemberProfile from './MemberProfile';
 
 const { primaryColor } = theme;
 
@@ -104,7 +103,7 @@ export default class ConversationInfo extends Component {
           <div className="member-count">{conversation.isGroup ? roomMembers.length + " People" : ""}</div>
           <Button className="more" onClick={this.showMenu}></Button>
         </div>
-        <div>
+        <div className="members">
           {
             !conversation.isGroup ? (
               <div className="row item">
@@ -168,10 +167,8 @@ export default class ConversationInfo extends Component {
           }
           {
             conversation.isGroup ? (
-              !this.currentUserIsOwner && <div className="row add-to-group">
-                <Button onClick={this.exitGroup}>
+              !this.currentUserIsOwner && <div className="row add-to-group"  onClick={this.exitGroup}>
                   Exit from Group
-                </Button>
               </div>
             ) : null
           }

@@ -21,10 +21,12 @@ export const STORE_CONVERSATION_NAME = 'STORE_CONVERSATION_NAME';
 export const SUCCESS_STORE_CONVERSATION_NAME = 'SUCCESS_STORE_CONVERSATION_NAME';
 export const FAIL_STORE_CONVERSATION_NAME = 'FAIL_STORE_CONVERSATION_NAME';
 
-export const storeConversationName = conversationInfo => ({
-  type: STORE_CONVERSATION_NAME,
-  payload: conversationInfo
-});
+export const storeConversationName = conversationInfo => {
+  return {
+    type: STORE_CONVERSATION_NAME,
+    payload: conversationInfo
+  }
+};
 
 export const successfullyStoredConversationName = conversation => ({
   type: SUCCESS_STORE_CONVERSATION_NAME,

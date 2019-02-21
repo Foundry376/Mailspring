@@ -28,7 +28,8 @@ import {
   beginStoringConversations,
   successfullyStoredOccupants,
   failedStoringOccupants,
-  successfullyStoredConversationName
+  successfullyStoredConversationName,
+  failStoredConversationName
 } from '../../actions/db/conversation';
 import xmpp from '../../xmpp/index';
 import { ipcRenderer } from 'electron';
@@ -173,7 +174,7 @@ const saveConversationName = async payload => {
   const db = await getDb();
   // same payload may be cause [Document update conflict] error
   const convJid = payload.from.bare;
-  const convName = convName;
+  const convName = payload.edimucevent && payload.edimucevent.edimucconfig.name;
   if (prevConvJid === convJid
     && prevConvName === convName) {
     return [];
@@ -181,7 +182,7 @@ const saveConversationName = async payload => {
   prevConvJid = convJid;
   prevConvName = convName;
   const conv = await db.conversations.findOne(convJid).exec();
-  if (conv) {
+  if (conv && conv.name != convName) {
     await conv.update({
       $set: {
         name: convName
@@ -197,7 +198,7 @@ export const storeConversationNameEpic = action$ =>
     .mergeMap(({ payload }) =>
       Observable.fromPromise((saveConversationName(payload)))
         .map((conv) => successfullyStoredConversationName(conv))
-        .catch(err => failStoredConversationName(err))
+        .catch(err => Observable.of(failStoredConversationName(err)))
     );
 
 export const beginStoreOccupantsEpic = action$ =>

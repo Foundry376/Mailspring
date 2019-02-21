@@ -10,7 +10,7 @@ const {
 
 const { FocusedPerspectiveStore, Utils, DateUtils } = require('mailspring-exports');
 
-const { ThreadArchiveQuickAction, ThreadTrashQuickAction } = require('./thread-list-quick-actions');
+const { ThreadUnreadQuickAction, ThreadStarQuickAction, ThreadArchiveQuickAction, ThreadTrashQuickAction } = require('./thread-list-quick-actions');
 const ThreadListParticipants = require('./thread-list-participants');
 const ThreadListIcon = require('./thread-list-icon');
 
@@ -64,6 +64,11 @@ const c1 = new ListTabular.Column({
   name: '★',
   resolver: thread => {
     return [
+      <InjectedComponent
+        key="thread-avatar"
+        exposedProps={{ thread: thread }}
+        matching={{ role: 'EmailAvatar' }}
+      />,
       <ThreadListIcon key="thread-list-icon" thread={thread} />,
       <MailImportantIcon
         key="mail-important-icon"
@@ -161,6 +166,8 @@ const c5 = new ListTabular.Column({
           inline={true}
           containersRequired={false}
           children={[
+            <ThreadUnreadQuickAction key="thread-unread-quick-action" thread={thread} />,
+            <ThreadStarQuickAction key="thread-star-quick-action" thread={thread} />,
             <ThreadTrashQuickAction key="thread-trash-quick-action" thread={thread} />,
             <ThreadArchiveQuickAction key="thread-archive-quick-action" thread={thread} />,
           ]}
@@ -210,17 +217,6 @@ const cNarrow = new ListTabular.Column({
             exposedProps={{ thread: thread }}
             matching={{ role: 'EmailAvatar' }}
           />
-          <InjectedComponentSet
-            inline={true}
-            matchLimit={1}
-            direction="column"
-            containersRequired={false}
-            key="injected-component-set"
-            exposedProps={{ thread: thread }}
-            matching={{ role: 'ThreadListIcon' }}
-            className="thread-injected-icons"
-          />
-          <MailImportantIcon thread={thread} showIfAvailableForAnyAccount={true} />
         </div>
         <div className="thread-info-column">
           <div className="participants-wrapper">
@@ -242,6 +238,19 @@ const cNarrow = new ListTabular.Column({
             <div className="snippet">{getSnippet(thread)}&nbsp;</div>
             <div style={{ flex: 1, flexShrink: 1 }} />
             <MailLabelSet thread={thread} />
+            <div>
+              <InjectedComponentSet
+                inline={true}
+                matchLimit={1}
+                direction="column"
+                containersRequired={false}
+                key="injected-component-set"
+                exposedProps={{ thread: thread }}
+                matching={{ role: 'ThreadListIcon' }}
+                className="thread-injected-icons"
+              />
+              <MailImportantIcon thread={thread} showIfAvailableForAnyAccount={true} />
+            </div>
           </div>
         </div>
       </div>

@@ -159,7 +159,11 @@ export class XmppEx extends EventEmitter3 {
       this.retryTimes = 0;
       this.isConnected = true;
       this.client.sendPresence();
-      this.client.enableKeepAlive({ timeout: 30, interval: 30 });
+      //this.client.enableKeepAlive({ timeout: 300, interval: 300 });
+      // the code below seems to be a more stable replacement:
+      setInterval(() => {
+        this.client.ping(this.connectedJid);
+      }, 50000);
     });
     this.client.on('session:prebind',  (bind) => {
       chatModel.diffTime = parseInt(bind.serverTimestamp)

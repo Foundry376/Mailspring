@@ -23,7 +23,7 @@ export default class PrintWindow {
     const content = `
       <html>
         <head>
-          <meta http-equiv="Content-Security-Policy" content="default-src * mailspring:; script-src 'self' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' mailspring:; img-src * data: mailspring: file:;">
+          <meta http-equiv="Content-Security-Policy" content="default-src * edisonmail:; script-src 'self' chrome-extension://react-developer-tools; style-src * 'unsafe-inline' edisonmail:; img-src * data: edisonmail: file:;">
           <meta charset="utf-8">
           ${styleTags}
           <link rel="stylesheet" type="text/css" href="${stylesPath}">

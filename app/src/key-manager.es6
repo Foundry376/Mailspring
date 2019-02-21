@@ -148,6 +148,7 @@ class KeyManager {
         AppEnv.config.unset(this.CONFIGKEY);
       } catch (err) {
         console.log('keychain access failed: ', err);
+        throw err;
       }
     }
     try {

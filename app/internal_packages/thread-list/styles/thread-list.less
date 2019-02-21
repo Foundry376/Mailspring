@@ -336,21 +336,26 @@ input:focus {
 @trash-img: '../static/images/thread-list-quick-actions/ic-quick-button-trash@2x.png';
 @snooze-img: '../static/images/thread-list-quick-actions/ic-quickaction-snooze@2x.png';
 
+@hoverActionsHeight: 55px;
 .thread-list .list-item .list-column-HoverActions {
   display: none;
+  height: @hoverActionsHeight;
   .action {
     display: inline-block;
-    background-size: 100%;
-    zoom: 0.5;
-    width: 81px;
-    height: 51px;
-    margin: 9px 16px 0 16px;
+    margin-left: 11px;
+    img {
+       background-color: @gray;
+    }
+  }
+  .dt-icon {
+    font-size: 24px;
+    line-height: @hoverActionsHeight;
   }
   .action.action-archive {
-    background: url(@archive-img) center no-repeat, @background-gradient;
+    //background: url(@archive-img) center no-repeat, @background-gradient;
   }
   .action.action-trash {
-    background: url(@trash-img) center no-repeat, @background-gradient;
+    //background: url(@trash-img) center no-repeat, @background-gradient;
   }
   .action.action-snooze {
     background: url(@snooze-img) center no-repeat, @background-gradient;
@@ -377,7 +382,7 @@ body.platform-win32 {
     height: 100%;
     left: -300px;
     .thread-injected-quick-actions {
-      margin-right: 10px;
+      margin-right: 30px;
     }
   }
 }
@@ -385,36 +390,36 @@ body.platform-win32 {
 .thread-list .list-item:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(
     left,
-    fade(darken(@list-bg, 5%), 0%) 0%,
-    darken(@list-bg, 5%) 50%,
-    darken(@list-bg, 5%) 100%
+    fade(@white, 0%) 0%,
+    @white 50%,
+    @white 100%
   );
 }
 
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(
     left,
-    fade(@list-selected-bg, 0%) 0%,
-    @list-selected-bg 50%,
-    @list-selected-bg 100%
+    fade(@white, 0%) 0%,
+    @white 50%,
+    @white 100%
   );
 }
 
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner {
   background-image: -webkit-linear-gradient(
     left,
-    fade(@list-focused-bg, 0%) 0%,
-    @list-focused-bg 50%,
-    @list-focused-bg 100%
+    fade(@white, 0%) 0%,
+    @white 50%,
+    @white 100%
   );
   .action {
     -webkit-filter: brightness(300%);
   }
   .action.action-archive {
-    background: url(@archive-img) center no-repeat;
+    //background: url(@archive-img) center no-repeat;
   }
   .action.action-trash {
-    background: url(@trash-img) center no-repeat;
+    //background: url(@trash-img) center no-repeat;
   }
   .action.action-snooze {
     background: url(@snooze-img) center no-repeat;
@@ -454,14 +459,23 @@ body.platform-win32 {
   background-size: 16px;
 }
 
+.thread-list .avatar-icon {
+  height: 30px;
+  width: 30px;
+  line-height: 31px;
+  text-align: center;
+  font-size: 20px;
+  color: @white;
+  border-radius: 50%;
+}
+
 .thread-list-narrow {
   .icons-column {
     display: flex;
     flex-direction: column;
     align-items: center;
     // width: 25px;
-    margin-left: 20px;
-    margin-right: 15px;
+    margin: 0 15px;
     .avatar-icon {
       height: 40px;
       width: 40px;
@@ -470,7 +484,6 @@ body.platform-win32 {
       font-size: 24px;
       color: @white;
       border-radius: 50%;
-      background: red;
     }
     .thread-injected-icons {
       align-items: center;
@@ -585,10 +598,10 @@ body.platform-win32 {
       -webkit-filter: brightness(300%);
     }
     .action.action-archive {
-      background: url(@archive-img) center no-repeat;
+      //background: url(@archive-img) center no-repeat;
     }
     .action.action-trash {
-      background: url(@trash-img) center no-repeat;
+      //background: url(@trash-img) center no-repeat;
     }
     .action.action-snooze {
       background: url(@snooze-img) center no-repeat;

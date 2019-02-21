@@ -18,7 +18,7 @@
     flex-direction: column;
     align-items: center;
     overflow-y: scroll;
-    padding: 8px 8px 240px 20px;
+    height: 90%;
     .button {
       font-size: 12px;
       padding: 5px 0;
@@ -28,7 +28,7 @@
     }
     .member-management {
       overflow: hidden;
-      padding: 27px 0;
+      padding: 20px 0 0 20px;
       height: 70px;
     }
     .button.more {
@@ -38,6 +38,7 @@
       border-radius: 50%;
       background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 1);
       background-size: 14px auto;
+      margin-right: 20px;
       &:hover {
         background: url(images/chat/more_active.png) no-repeat center center rgba(255, 255, 255, 1);
         background-size: 14px auto;
@@ -70,21 +71,35 @@
     width: 100%;
     height: 50px;
   }
+  .row #avatar {
+    width: auto;
+  }
 
-  .row,
-  .add-to-group {
-    padding: 0;
-    width: 100%;
-    height: 50px;
+  .row.add-to-group {
+    width: 60%;
+    height: 35px;
+    margin: 0 auto;
+    border-radius: 4px;
+    font-weight: bold;
+    padding-left: 35px;
+    color: @accent-primary;
+    box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
+    transition: 0.5s;
+    background: none;
+    &:hover {
+      box-shadow: -2px 2.5px 10px rgba(0, 0, 0, 0.35);
+    }
   }
 
   .row {
+    width: 100%;
     display: flex;
+    padding: 10px 10px 10px 20px;
     flex-direction: row;
     height: 56px;
     #avatar {
       width: 40px;
-      margin-right: 20px;
+      margin-right: 15px;
     }
     .info {
       flex: 1;
@@ -104,8 +119,6 @@
       letter-spacing: 0.15px;
       line-height: 13px;
     }
-    //border: 1px solid #e8ecee;
-    //border-bottom-width: 0;
   }
 
   .row:first-child {
@@ -116,7 +129,6 @@
   .row:last-child {
     border-bottom-left-radius: 3px;
     border-bottom-right-radius: 3px;
-    //border-bottom: 1px solid #e8ecee;
   }
 
   #remove-button {

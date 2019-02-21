@@ -22,14 +22,16 @@ const getInitials = name => {
 class ContactAvatar extends Component {
   constructor(props) {
     super(props);
+    const bgColor = gradientColorForString(props.jid);
     this.state = {
-      avatar: props.avatar ? `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${props.avatar})` : gradientColorForString(props.jid),
+      avatar: props.avatar ? `https://s3.us-east-2.amazonaws.com/edison-profile-stag/${props.avatar}` : bgColor,
       isImgExist: false,
-      userProfile: {}
+      userProfile: {},
+      bgColor
     }
     const imgUrl = getAvatarFromCache(this.props.email);
     if (imgUrl) {
-      this.state.avatar = `url("${imgUrl}") center center / cover`;
+      this.state.avatar = imgUrl;
       this.state.isImgExist = true;
     }
   }
@@ -78,7 +80,7 @@ class ContactAvatar extends Component {
       getAvatar(email, imgUrl => {
         if (imgUrl) {
           this.setState({
-            avatar: `url("${imgUrl}") center center / cover`,
+            avatar: imgUrl,
             isImgExist: true
           })
         }
@@ -87,21 +89,26 @@ class ContactAvatar extends Component {
   }
   render() {
     const { name, size = 48, conversation } = this.props;
-    const { avatar, isImgExist, userProfile } = this.state;
+    const { avatar, isImgExist, userProfile, bgColor } = this.state;
     const isGroup = conversation && conversation.isGroup;
     const contactName = name || userProfile.name;
+    const styles = {
+      height: size,
+      width: size,
+      minWidth: size,
+      minHeight: size,
+      fontSize: size / 2 - 1,
+      borderRadius: size / 2,
+      background: bgColor
+    }
+    if (isImgExist) {
+      styles.backgroundImage = `url(${avatar})`;
+      styles.backgroundSize = 'cover';
+    }
     return (
       <div
         className="chat-avatar"
-        style={{
-          height: size,
-          width: size,
-          minWidth: size,
-          minHeight: size,
-          fontSize: size / 2 - 1,
-          borderRadius: size / 2,
-          background: avatar
-        }}
+        style={styles}
         title={contactName}
       >
         {isImgExist ? null : getInitials(contactName).toUpperCase()}
