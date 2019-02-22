@@ -162,7 +162,9 @@ function hotwireDraftBodyState(draft) {
 function fastCloneDraft(draft) {
   const next = new Message();
   for (const key of Object.getOwnPropertyNames(draft)) {
-    if (key === 'body' || key === 'bodyEditorState') continue;
+    if (key === 'body' || key === 'bodyEditorState') {
+      continue;
+    }
     next[key] = draft[key];
   }
   Object.defineProperty(next, 'body', next.__bodyPropDescriptor);
@@ -213,9 +215,6 @@ export default class DraftEditingSession extends MailspringStore {
     ipcRenderer.on('draft-close-window', this._onDraftCloseWindow);
     ipcRenderer.on('new-window', this._onDraftNewWindow);
     ipcRenderer.on('draft-delete', this._onDraftDelete);
-    if (AppEnv.isMainWindow()) {
-      ipcRenderer.on('thread-arp', this._onThreadChange);
-    }
 
     if (draft) {
       hotwireDraftBodyState(draft);
@@ -280,14 +279,24 @@ export default class DraftEditingSession extends MailspringStore {
   }
 
   teardown() {
+    this._destroyed = true;
+    this._removeListeners();
+  }
+  _registerListeners = () => {
+    DraftStore = DraftStore || require('./draft-store').default;
+    this.listenTo(DraftStore, this._onDraftChanged);
+    ipcRenderer.on('draft-arp-reply', this._onDraftARPReply);
+    ipcRenderer.on('draft-close-window', this._onDraftCloseWindow);
+    ipcRenderer.on('new-window', this._onDraftNewWindow);
+    ipcRenderer.on('draft-delete', this._onDraftDelete);
+  }
+  _removeListeners = () => {
     this.stopListeningToAll();
     this.changes.cancelCommit();
-    this._destroyed = true;
     ipcRenderer.removeListener('new-window', this._onDraftNewWindow);
     ipcRenderer.removeListener('draft-close-window', this._onDraftCloseWindow);
     ipcRenderer.removeListener('draft-arp-reply', this._onDraftARPReply);
     ipcRenderer.removeListener('draft-delete', this._onDraftDelete);
-    ipcRenderer.removeListener('thread-arp', this._onThreadChange);
   }
 
   validateDraftForSending() {
@@ -517,10 +526,10 @@ export default class DraftEditingSession extends MailspringStore {
     // have changed and don't include a payload.
     if (change.headerMessageId) {
       if (change.headerMessageId === this.draft.headerMessageId) {
-        console.log('triggered data change');
+        // console.log('triggered data change');
         this.trigger();
       } else {
-        console.log('header message id not equal');
+        // console.log('header message id not equal');
       }
       return;
     }
@@ -564,8 +573,8 @@ export default class DraftEditingSession extends MailspringStore {
   };
 
   // We assume that when thread changes, we are switching view
-  _onThreadChange = (event, options) => {
-    console.log(`on thread change listener: ${this._threadId}`, options);
+  onThreadChange = (options) => {
+    // console.log(`on thread change listener: ${this._threadId}`, options);
     if (
       this._draft &&
       options.threadId &&
@@ -574,6 +583,7 @@ export default class DraftEditingSession extends MailspringStore {
       !this._destroyed
     ) {
       this._inView = true;
+      this._registerListeners();
     } else if (
       this._draft &&
       options.threadId &&
@@ -584,7 +594,7 @@ export default class DraftEditingSession extends MailspringStore {
       if(this.needUpload()){
         this.changeSetCommit('unload');
       }
-      this.teardown();
+      this._removeListeners();
       this._inView = false;
     }
   };

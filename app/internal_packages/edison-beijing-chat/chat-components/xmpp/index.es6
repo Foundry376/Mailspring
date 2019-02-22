@@ -118,6 +118,10 @@ export class Xmpp extends EventEmitter3 {
     let xmpp = this.getXmpp(curJid);
     return xmpp.joinRooms(...roomJids);
   }
+  async pullMessage(ts, curJid) {
+    let xmpp = this.getXmpp(curJid);
+    return xmpp.pullMessage(ts);
+  }
   sendMessage(message, curJid) {
     let xmpp = this.getXmpp(curJid);
     xmpp.sendMessage(message);
@@ -165,7 +169,7 @@ export class XmppEx extends EventEmitter3 {
         this.client.ping(this.connectedJid);
       }, 50000);
     });
-    this.client.on('session:prebind',  (bind) => {
+    this.client.on('session:prebind', (bind) => {
       chatModel.diffTime = parseInt(bind.serverTimestamp)
         - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
       console.log('session:prebind', bind, chatModel.diffTime);
@@ -370,6 +374,9 @@ export class XmppEx extends EventEmitter3 {
     });
   }
 
+  async pullMessage(ts) {
+    return this.client.pullMessage(ts);
+  }
   /**
    * Sends a message to the connected xmpp server
    * @param   {Object}  message   The message to be sent

@@ -135,6 +135,9 @@ var _e2ee2 = _interopRequireDefault(_e2ee);
 var _ediencrypted = require('./ediencrypted');
 var _ediencrypted2 = _interopRequireDefault(_ediencrypted);
 
+var _edipull = require('./edipull');
+var _edipull2 = _interopRequireDefault(_edipull);
+
 var _mood = require('./mood');
 
 var _mood2 = _interopRequireDefault(_mood);
@@ -330,6 +333,7 @@ exports['default'] = function (JXT) {
     JXT.use(_visibility2['default']);
     JXT.use(_e2ee2['default']);
     JXT.use(_ediencrypted2['default']);
+    JXT.use(_edipull['default']);
 };
 
 module.exports = exports['default'];
