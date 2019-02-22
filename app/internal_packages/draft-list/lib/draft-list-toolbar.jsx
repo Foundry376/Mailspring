@@ -45,6 +45,7 @@ class DraftListToolbar extends Component {
     return (
       <MultiselectToolbar
         collection="draft"
+        dataSource={DraftListStore.dataSource()}
         selectionCount={items.length}
         toolbarElement={toolbarElement}
         onClearSelection={this.onClearSelection}
