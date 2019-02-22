@@ -16,6 +16,7 @@ export function activate() {
   ComponentRegistry.register(DraftList, { location: WorkspaceStore.Location.DraftList });
   ComponentRegistry.register(DraftListToolbar, {
     location: WorkspaceStore.Location.DraftList.Toolbar,
+    role: 'DraftListToolbar'
   });
   ComponentRegistry.register(DraftDeleteButton, { role: 'DraftActionsToolbarButton' });
   ComponentRegistry.register(DraftListSendStatus, { role: 'DraftList:DraftStatus' });

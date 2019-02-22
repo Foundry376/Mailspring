@@ -79,7 +79,6 @@ class MultiselectToolbar extends Component {
     } else {
       return <span />
     }
-    console.log('******dataSource', dataSource);
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
     const isSelectAll = !this.state.selectAll && items && items.length && selectionCount === items.length;
     return (
