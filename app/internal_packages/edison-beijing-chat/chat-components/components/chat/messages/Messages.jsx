@@ -5,10 +5,11 @@ import path from 'path';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import CheckIcon from '../../common/icons/CheckIcon';
+import CancelIcon from '../../common/icons/CancelIcon';
 import Divider from '../../common/Divider';
 import {
   MESSAGE_STATUS_DELIVERED,
-  getStatusWeight,
+  getStatusWeight, MESSAGE_STATUS_UPLOAD_FAILED,
 } from '../../../db/schemas/message';
 import { colorForString } from '../../../utils/colors';
 import { buildTimeDescriptor, dateFormat } from '../../../utils/time';
@@ -371,9 +372,18 @@ export default class Messages extends PureComponent {
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
+                let extName = path.extname(msgBody.path).slice(1);
+                const extMap = {
+                  pdf:'pdf', xls:'xls', zip: 'zip', ppt:'ppt', doc:'doc', mp4:'video', mp3:'video', gz:'zip', tar:'zip', '7z':'zip',
+                  avi:'video', c:'code', cpp:'code', php:'code', rb:'code', java:'code', coffee:'code', pl:'code', js:'code', html:'code', htm:'code',
+                  py:'code', go:'code', ics:'calendar', ifb:'calendar', pkpass:'pass'
+                };
+                extName = extMap[extName.toLowerCase()] || 'doc';
                 msgFile = <div className="messageMeta">
-                  <div className="file-name">
-                    <h4>{fileName}</h4>
+                  <div className="file-info">
+                    <div className="file-icon"  style={{background:`url(icons/attachment-${extName}.svg) no-repeat left top blue`, width:'16px', height:'16px', float:'left'}}>
+                    </div>
+                    <h6>{fileName}</h6>
                   </div>
                   <div className='message-toolbar' onClick={download}>
                     <span
@@ -454,6 +464,7 @@ export default class Messages extends PureComponent {
                         <div style={{ background: "#fff" }}>{msgFile}</div>
                       </div>
                     )}
+
                     <div className="messageMeta">
                       {
                         getStatusWeight(msg.status) >= getStatusWeight(MESSAGE_STATUS_DELIVERED) ?
@@ -464,6 +475,16 @@ export default class Messages extends PureComponent {
                           /> : null
                       }
                     </div>
+                    {
+                      msg.status === MESSAGE_STATUS_UPLOAD_FAILED &&
+                      <div><span>File transfer failed!</span>
+                      <CancelIcon
+                        className="messageFailed"
+                        size={24}
+                        color="RED"
+                      />
+                      </div>
+                    }
                   </div>
                   {
                     !msgFile && isCurrentUser && !isEditing && <div className='message-toolbar' >

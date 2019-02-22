@@ -19,6 +19,9 @@ import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
 import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
+import { beginStoringMessage } from '../../../actions/db/message';
+import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
+import { updateSelectedConversation } from '../../../actions/db/conversation';
 const FAKE_SPACE = '\u00A0';
 
 const activeStyle = {
@@ -208,10 +211,6 @@ export default class MessagesSendBar extends PureComponent {
         }
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
         uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
-          if (err) {
-            alert(`upload files failed because error: ${err}, filepath: ${filepath}`);
-            return;
-          }
           if (filename.match(/.gif$/)) {
             body.type = FILE_TYPE.GIF;
           } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
@@ -219,13 +218,31 @@ export default class MessagesSendBar extends PureComponent {
           } else {
             body.type = FILE_TYPE.OTHER_FILE;
           }
+
           body.localFile = filepath;
           body.isUploading = false;
           body.content = message || " ";
           body.mediaObjectId = myKey;
           body.occupants = occupants;
           body.atJids = this.getAtTargetPersons();
-          onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
+          body = JSON.stringify(body);
+          if (err) {
+            alert(`${selectedConversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
+            const message = {
+              id: messageId,
+              conversationJid: selectedConversation.jid,
+              body,
+              sender: selectedConversation.curJid,
+              sentTime: (new Date()).getTime()+chatModel.diffTime,
+              status: MESSAGE_STATUS_UPLOAD_FAILED,
+            };
+            chatModel.store.dispatch(beginStoringMessage(message));
+            console.log('dbglog*** updateSelectedConversation ', selectedConversation);
+            chatModel.store.dispatch(updateSelectedConversation(selectedConversation));
+            return;
+          } else {
+            onMessageSubmitted(selectedConversation, body, messageId, false);
+          }
         });
       })
     } else {
