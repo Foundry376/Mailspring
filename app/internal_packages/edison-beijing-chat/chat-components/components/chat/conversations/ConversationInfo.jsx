@@ -98,7 +98,7 @@ export default class ConversationInfo extends Component {
     }
     roomMembers.sort((a, b) => a.affiliation + a.jid.bare > b.affiliation + b.jid.bare);
     return (
-      <div className="info-panel">
+      <div className="info-content">
         <div className="member-management">
           <div className="member-count">{conversation.isGroup ? roomMembers.length + " People" : ""}</div>
           <Button className="more" onClick={this.showMenu}></Button>
@@ -165,14 +165,12 @@ export default class ConversationInfo extends Component {
               )
             })
           }
-          {
-            conversation.isGroup ? (
-              !this.currentUserIsOwner && <div className="row add-to-group"  onClick={this.exitGroup}>
-                  Exit from Group
+          {  /*conversation.isGroup && !this.currentUserIsOwner &&*/ <div className="add-to-group"  onClick={this.exitGroup}>
+                Exit from Group
               </div>
-            ) : null
           }
         </div>
+
       </div>
     )
   };
