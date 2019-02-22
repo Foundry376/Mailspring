@@ -8,6 +8,7 @@ import Contact from './contact';
 import Folder from './folder';
 import Attributes from '../attributes';
 import ModelWithMetadata from './model-with-metadata';
+import AccountStore from '../stores/account-store.es6';
 
 /*
 Public: The Message model represents an email message or draft.
@@ -324,12 +325,11 @@ export default class Message extends ModelWithMetadata {
   participantsForReply() {
     let to = [];
     const cc = [];
-
     if (this.replyTo.length && !this.replyTo[0].isMe()) {
       // If a replyTo is specified and that replyTo would not result in you
       // sending the message to yourself, use it.
       to = this.replyTo;
-    } else if (this.isFromMe()) {
+    } else if (this.isExactFromMe()) {
       // If you sent the previous email, a "reply" should go to the same recipient.
       to = this.to;
     } else {
@@ -339,6 +339,16 @@ export default class Message extends ModelWithMetadata {
 
     to = _.uniq(to, p => Utils.toEquivalentEmailForm(p.email));
     return { to, cc };
+  }
+
+  isExactFromMe() {
+    if (this.from[0]) {
+      const me = AccountStore.accountForId(this.accountId);
+      if (me && me.emailAddress === this.from[0].email) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Public: Returns an {Array} of {File} IDs
@@ -411,7 +421,7 @@ export default class Message extends ModelWithMetadata {
 
     return isReminder || isDraftBeingDeleted;
   }
-  setOrigin(val){
+  setOrigin(val) {
     this.msgOrigin = val;
   }
 }
