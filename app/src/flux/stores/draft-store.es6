@@ -54,6 +54,7 @@ class DraftStore extends MailspringStore {
       ipcRenderer.on('action-send-now', (event, headerMessageId, actionKey) => {
         Actions.sendDraft(headerMessageId, { actionKey, delay: 0 });
       });
+      ipcRenderer.on('thread-arp', this._onThreadChange);
     }
     // popout closed
     ipcRenderer.on('draft-close-window', this._onPopoutClosed);
@@ -102,6 +103,24 @@ class DraftStore extends MailspringStore {
   isSendingDraft(headerMessageId) {
     return this._draftsSending[headerMessageId] || false;
   }
+
+  //on Thread changed
+  _onThreadChange = (event, options = {}) => {
+    if (options.threadId) {
+      for (let headerMessageId in this._draftSessions) {
+        if (this._draftsDeleting[headerMessageId] || this._draftsSending[headerMessageId]) {
+          // If draft is sending or deleting, we don't do anything
+          continue;
+        }
+        if (
+          this._draftSessions[headerMessageId] &&
+          this._draftSessions[headerMessageId].draft()
+        ) {
+          this._draftSessions[headerMessageId].onThreadChange(options);
+        }
+      }
+    }
+  };
 
   // Check if current store already have session
   _onDraftArp = (event, options = {}) => {
@@ -455,7 +474,7 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onDestroyDraft = ({ accountId, headerMessageId, id, threadId }, opts={}) => {
+  _onDestroyDraft = ({ accountId, headerMessageId, id, threadId }, opts = {}) => {
     // console.log('on destroy draft');
     const session = this._draftSessions[headerMessageId];
     // Immediately reset any pending changes so no saves occur
