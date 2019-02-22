@@ -18,6 +18,10 @@ export default async function registerLoginChatAccounts() {
     if (!chatAccount  || (leftTime<2*24*60*3600)) {
       acc.clone = () => Object.assign({}, acc);
       acc = await keyMannager.insertAccountSecrets(acc);
+      if (acc.settings && !acc.settings.imap_password && !acc.settings.refresh_token) {
+        console.error('email account passwords in keychain lost! ', acc);
+        continue;
+      }
       let email = acc.emailAddress;
       let type = 0;
       if (email.includes('gmail.com') || email.includes('edison.tech') || email.includes('mail.ru') || acc.provider === 'gmail') {
@@ -32,6 +36,7 @@ export default async function registerLoginChatAccounts() {
         console.log('response is not json');
       }
       if (err || !res || res.resultCode != 1) {
+        console.error('email account fail to register chat: ', acc, err, res);
         continue;
       }
       chatAccount = res.data;
