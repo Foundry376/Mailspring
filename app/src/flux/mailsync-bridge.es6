@@ -110,7 +110,7 @@ export default class MailsyncBridge {
     Actions.fetchBodies.listen(this._onFetchBodies, this);
     Actions.syncFolders.listen(this._onSyncFolders, this);
     Actions.setObservableRange.listen(this._onSetObservableRange, this);
-    ipcRenderer.on('new-window', this._onNewWindowOpened);
+    ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
     ipcRenderer.on('thread-close-window', this._onNewWindowClose);
 
     this._crashTracker = new CrashTracker();
@@ -460,7 +460,7 @@ export default class MailsyncBridge {
     //   (record.objects[0] instanceof Thread && this._isThreadIntresting(record.objects[0])) ||
     //   !(record.objects[0] instanceof Thread)
     // ) {
-      DatabaseStore.trigger(record);
+    DatabaseStore.trigger(record);
     // }
 
     // Run task success / error handlers if the task is now complete
@@ -508,10 +508,13 @@ export default class MailsyncBridge {
         this._additionalObservableThreads[options.accountId] = {};
       }
       this._additionalObservableThreads[options.accountId][options.threadId] = options.threadId;
-      if(this._cachedSetObservableRangeTask[options.accountId]){
+      if (
+        this._cachedSetObservableRangeTask[options.accountId] &&
+        !this._isThreadIdWithinRange(options.accountId, options.threadId)
+      ) {
         this._onSetObservableRange(
           options.accountId,
-          this._cachedSetObservableRangeTask[options.accountId]
+          this._cachedSetObservableRangeTask[options.accountId],
         );
       }
     }
@@ -523,23 +526,34 @@ export default class MailsyncBridge {
         if (Object.keys(this._additionalObservableThreads[options.accountId]).length === 0) {
           delete this._additionalObservableThreads[options.accountId];
         }
-        if (this._cachedSetObservableRangeTask[options.accountId]) {
+        if (
+          this._cachedSetObservableRangeTask[options.accountId] &&
+          !this._isThreadIdWithinRange(options.accountId, options.threadId)
+        ) {
           this._onSetObservableRange(
             options.accountId,
-            this._cachedSetObservableRangeTask[options.accountId]
+            this._cachedSetObservableRangeTask[options.accountId],
           );
         }
       }
     }
   };
+  _isThreadIdWithinRange = (accountId, threadId) => {
+    if (!this._cachedSetObservableRangeTask[accountId]) {
+      return false;
+    }
+    return this._cachedSetObservableRangeTask[accountId].threadIds.includes(threadId);
+  };
 
-  _onSetObservableRange= (accountId, task)=>{
+  _onSetObservableRange = (accountId, task) => {
     if (this._setObservableRangeTimer[accountId]) {
       if (Date.now() - this._setObservableRangeTimer[accountId].timestamp > 1000) {
         this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
         if (this._additionalObservableThreads[accountId]) {
           task.threadIds = task.threadIds.concat(
-            Object.values(this._additionalObservableThreads[accountId]),
+            Object.values(this._additionalObservableThreads[accountId]).filter(threadId => {
+              return !task.threadIds.includes(threadId);
+            }),
           );
         }
         this.sendMessageToAccount(accountId, task.toJSON());
@@ -551,7 +565,9 @@ export default class MailsyncBridge {
             this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
             if (this._additionalObservableThreads[accountId]) {
               task.threadIds = task.threadIds.concat(
-                Object.values(this._additionalObservableThreads[accountId]),
+                Object.values(this._additionalObservableThreads[accountId]).filter(threadId => {
+                  return !task.threadIds.includes(threadId);
+                }),
               );
             }
             this.sendMessageToAccount(accountId, task.toJSON());
@@ -565,7 +581,9 @@ export default class MailsyncBridge {
           this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
           if (this._additionalObservableThreads[accountId]) {
             task.threadIds = task.threadIds.concat(
-              Object.values(this._additionalObservableThreads[accountId]),
+              Object.values(this._additionalObservableThreads[accountId]).filter(threadId => {
+                return !task.threadIds.includes(threadId);
+              }),
             );
           }
           this.sendMessageToAccount(accountId, task.toJSON());
@@ -573,7 +591,7 @@ export default class MailsyncBridge {
         timestamp: Date.now(),
       };
     }
-  }
+  };
 
   _onSyncFolders(accountId, foldersIds) {
     if (this._syncFolderTimer) {

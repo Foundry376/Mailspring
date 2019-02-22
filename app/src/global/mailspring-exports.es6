@@ -72,6 +72,7 @@ lazyLoadAndRegisterModel(`Event`, 'event');
 lazyLoadAndRegisterModel(`Label`, 'label');
 lazyLoadAndRegisterModel(`Folder`, 'folder');
 lazyLoadAndRegisterModel(`Thread`, 'thread');
+lazyLoadAndRegisterModel('ThreadCounts', 'thread-counts');
 lazyLoadAndRegisterModel(`Account`, 'account');
 lazyLoadAndRegisterModel(`Message`, 'message');
 lazyLoadAndRegisterModel(`Contact`, 'contact');

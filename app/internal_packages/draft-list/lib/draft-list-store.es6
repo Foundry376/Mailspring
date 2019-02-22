@@ -47,7 +47,7 @@ class DraftListStore extends MailspringStore {
       const query = DatabaseStore.findAll(Message)
         .include(Message.attributes.body)
         .order(Message.attributes.date.descending())
-        .where({ draft: true })
+        .where({ draft: true, state: 0 })
         .page(0, 1);
 
       // Adding a "account_id IN (a,b,c)" clause to our query can result in a full
