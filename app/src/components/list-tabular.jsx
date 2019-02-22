@@ -379,7 +379,13 @@ class ListTabular extends Component {
       offsetHeight = headerHeight;
     }
     const current = FocusedPerspectiveStore.current();
-    const Toolbar = ComponentRegistry.findComponentsMatching({ role: 'ThreadListToolbar' })[0];
+    let Toolbar;
+    if (current.drafts) {
+      Toolbar = ComponentRegistry.findComponentsMatching({ role: 'DraftListToolbar' })[0];
+    } else {
+      Toolbar = ComponentRegistry.findComponentsMatching({ role: 'ThreadListToolbar' })[0];
+    }
+
     return (
       <div className={`list-container list-tabular ${className}`}>
         <ScrollRegion
@@ -395,7 +401,7 @@ class ListTabular extends Component {
               height: headerHeight,
             }}>
               <h1>{current && (current.displayName ? current.displayName : current.name)}</h1>
-              <Toolbar />
+              {Toolbar && <Toolbar />}
             </div>
           ) : null}
           <ListTabularRows
