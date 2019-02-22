@@ -220,6 +220,9 @@ export default class Messages extends PureComponent {
   calcTimeLabel = () => {
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
+      if (!this.messagesPanel) {
+        return;
+      }
       const top = this.messagesPanel.scrollTop;
       const messageGroups = this.messagesPanel.children;
       for (const msgGrp of messageGroups) {

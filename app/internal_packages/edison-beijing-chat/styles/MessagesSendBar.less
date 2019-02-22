@@ -1,5 +1,6 @@
 @import '../node_modules/rc-editor-mention/assets/index.css';
 @import '../node_modules/rc-editor-mention/assets/animation.css';
+@import 'ui-variables';
 
 .chat-view-container {
   .editing {
@@ -57,41 +58,28 @@
     }
   }
 
-  .sendBarEmoji{
+  .chat-tool-bar {
     position: absolute;
-    bottom: 0;
-    right: 36px;
-    margin: 18px;
+    top: -15px;
+    left: 0;
+    padding-left: 20px;
+    height: 40px;
+    width: 100%;
+    background: @white;
+    img.content-mask {
+      background-color: @gray;
+      transition-duration: 0.3s;
+    }
     .button {
-      padding: 6px;
+      border: none;
+      box-shadow: none;
+      float: left;
+      margin-right: 15px;
     }
-    .icon {
-      fill: #787d80;
-      transition: transform 0.3s;
-    }
-    .button:hover {
-      .icon {
-        fill: #0096ff;
-        transform: scale(1.2);
-      }
-    }
-  }
 
-  .sendBarActions {
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
-    margin: 18px;
-    .button {
-      padding: 6px;
-    }
-    .icon {
-      fill: #787d80;
-      transition: transform 0.3s;
-    }
     .button:hover {
-      .icon {
-        fill: #0096ff;
+      img.content-mask {
+        background-color: @blue;
         transform: scale(1.2);
       }
     }

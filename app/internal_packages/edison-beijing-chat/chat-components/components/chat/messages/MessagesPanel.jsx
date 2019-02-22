@@ -131,10 +131,10 @@ export default class MessagesPanel extends PureComponent {
     const db = await getDb();
     let chatContact = await db.contacts.findOne().where('email').eq(email).exec();
     chatContact = chatContact || {};
-    let  queryByToken;
+    let queryByToken;
     let accessToken = await keyMannager.getAccessTokenByEmail(email);
-    let {err, res} = await checkToken(accessToken);
-    if (err || !res || res.resultCode!==1) {
+    let { err, res } = await checkToken(accessToken);
+    if (err || !res || res.resultCode !== 1) {
       await refreshChatAccountTokens()
       accessToken = await keyMannager.getAccessTokenByEmail(email);
     }
@@ -370,11 +370,11 @@ export default class MessagesPanel extends PureComponent {
       referenceTime,
       contacts
     } = this.props;
-    groupedMessages.map(group => group.messages.map(message=> {
+    groupedMessages.map(group => group.messages.map(message => {
       members.map(member => {
         const jid = member.jid.bare || member.jid;
         if (jid === message.sender) {
-            message.senderNickname = member.nickname || message.senderNickname;
+          message.senderNickname = member.nickname || message.senderNickname;
         }
       });
     }));
@@ -497,7 +497,7 @@ export default class MessagesPanel extends PureComponent {
           <div className="network-offline">
             {this.state.online ? (
               this.state.connecting ? (
-                <div className="reconnect">connecting...</div>
+                <div>Your computer appears to be offline. Edison Mail is trying to reconnect. </div>
               ) : (
                   <Button className="reconnect" onClick={this.reconnect}>Reconnect</Button>
                 )

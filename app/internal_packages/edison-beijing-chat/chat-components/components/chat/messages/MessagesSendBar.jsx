@@ -8,7 +8,7 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import { uploadFile } from '../../../utils/awss3';
-import RetinaImg from '../../../../../../src/components/retina-img';
+import { RetinaImg } from 'mailspring-component-kit';
 
 import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
@@ -446,25 +446,22 @@ export default class MessagesSendBar extends PureComponent {
             null
           }
         </div>
-        <div key='attachments' className="sendbar-attacment" ref={(el) => { this.attachmentRef = el }}>
+        {/* <div key='attachments' className="sendbar-attacment" ref={(el) => { this.attachmentRef = el }}>
           <Button className='no-border' onClick={this.onEmailAttachmentTouch}>
             <InfoIcon className="icon" />
           </Button>
-        </div>
+        </div> */}
 
-        <div key='emoji' className="sendBarEmoji" ref={(emoji) => { this.emojiRef = emoji }}>
-          <Button className='no-border' onClick={this.onEmojiTouch}>
-            <EmojiIcon className="icon" />
-          </Button>
-        </div>
-        <div key='attacheFile' className="sendBarActions">
+        <div className="chat-tool-bar" ref={emoji => { this.emojiRef = emoji }}>
           <Button
-            className='no-border'
             onClick={() => {
               this.fileInput.click();
             }}
           >
-            <FilePlusIcon className="icon" />
+            <RetinaImg name={'attachments.svg'}
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
             <input
               style={{ display: 'none' }}
               ref={element => { this.fileInput = element; }}
@@ -472,6 +469,12 @@ export default class MessagesSendBar extends PureComponent {
               multiple
               onChange={this.onFileChange}
             />
+          </Button>
+          <Button onClick={this.onEmojiTouch}>
+            <RetinaImg name={'emoji.svg'}
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
           </Button>
         </div>
       </div>
