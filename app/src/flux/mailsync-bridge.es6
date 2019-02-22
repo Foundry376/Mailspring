@@ -503,7 +503,7 @@ export default class MailsyncBridge {
   }
 
   _onNewWindowOpened = (event, options) => {
-    if (options.threadId && options.accountId) {
+    if (options.threadId && options.accountId && this._clients[options.accountId]) {
       if (!this._additionalObservableThreads[options.accountId]) {
         this._additionalObservableThreads[options.accountId] = {};
       }
@@ -520,7 +520,7 @@ export default class MailsyncBridge {
     }
   };
   _onNewWindowClose = (event, options) => {
-    if (options.threadId && options.accountId) {
+    if (options.threadId && options.accountId && this._clients[options.accountId]) {
       if (this._additionalObservableThreads[options.accountId]) {
         delete this._additionalObservableThreads[options.accountId][options.threadId];
         if (Object.keys(this._additionalObservableThreads[options.accountId]).length === 0) {
@@ -546,6 +546,10 @@ export default class MailsyncBridge {
   };
 
   _onSetObservableRange = (accountId, task) => {
+    if (!this._clients[accountId]) {
+      //account shouldn't exist
+      return;
+    }
     if (this._setObservableRangeTimer[accountId]) {
       if (Date.now() - this._setObservableRangeTimer[accountId].timestamp > 1000) {
         this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
