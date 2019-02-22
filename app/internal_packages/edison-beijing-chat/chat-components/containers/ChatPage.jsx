@@ -34,7 +34,8 @@ const actionCreators = {
 const mapStateToProps = ({
   auth: {
     currentUser,
-    online
+    online,
+    isAuthenticating
   },
   chat: {
     groupedMessages,
@@ -49,13 +50,14 @@ const mapStateToProps = ({
 }) => {
   return {
     availableUsers,
-      contacts,
-      conversations,
-      currentUserId: currentUser ? currentUser.bare : null,
+    contacts,
+    conversations,
+    currentUserId: currentUser ? currentUser.bare : null,
     groupedMessages,
     referenceTime,
     selectedConversation,
-    online
+    online,
+    isAuthenticating
   }
 };
 

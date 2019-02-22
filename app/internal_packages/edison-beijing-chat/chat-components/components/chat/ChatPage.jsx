@@ -86,7 +86,8 @@ export default class ChatPage extends PureComponent {
       isLeft,
       resetHeight,
       onDragStart,
-      online
+      online,
+      isAuthenticating
     } = this.props;
     const selectedConversationJid = selectedConversation ? selectedConversation.jid : null;
 
@@ -110,7 +111,8 @@ export default class ChatPage extends PureComponent {
       contacts,
       onGroupConversationCompleted: createGroupConversation,
       onPrivateConversationCompleted: createPrivateConversation,
-      chat_online: online
+      chat_online: online,
+      isAuthenticating
     };
 
     const rightPanelStyles = ['rightPanel'];

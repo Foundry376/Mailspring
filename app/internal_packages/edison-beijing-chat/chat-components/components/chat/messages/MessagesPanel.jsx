@@ -131,14 +131,12 @@ export default class MessagesPanel extends PureComponent {
     const db = await getDb();
     let chatContact = await db.contacts.findOne().where('email').eq(email).exec();
     chatContact = chatContact || {};
-    let queryByToken;
     let accessToken = await keyMannager.getAccessTokenByEmail(email);
     let { err, res } = await checkToken(accessToken);
     if (err || !res || res.resultCode !== 1) {
       await refreshChatAccountTokens()
       accessToken = await keyMannager.getAccessTokenByEmail(email);
     }
-    // console.log('cxm *** queryByToken ', accessToken);
     const emails = emailContacts.map(contact => contact.email);
     queryProfile({ accessToken, emails }, (err, res) => {
       if (!res) {
@@ -348,15 +346,6 @@ export default class MessagesPanel extends PureComponent {
 
   reconnect = () => {
     registerLoginChatAccounts();
-    this.setState({
-      connecting: true
-    });
-    // connect timeout 30s
-    setTimeout(() => {
-      this.setState({
-        connecting: false
-      });
-    }, 30000)
   }
 
   render() {
@@ -496,7 +485,7 @@ export default class MessagesPanel extends PureComponent {
         {(!this.state.online || !this.props.chat_online) && (
           <div className="network-offline">
             {this.state.online ? (
-              this.state.connecting ? (
+              this.props.isAuthenticating ? (
                 <div>Your computer appears to be offline. Edison Mail is trying to reconnect. </div>
               ) : (
                   <Button className="reconnect" onClick={this.reconnect}>Reconnect</Button>
