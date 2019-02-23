@@ -341,7 +341,7 @@
   "Mailspring Reminder": "Mailspring සිහිගැන්වීම",
   "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspring තව දුරටත් තහවුරු කරගත නොහැක. මුරපදය හෝ අනන්යතාවය වෙනස් විය හැකිය.",
   "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspring ඔබේ කෙටුම්පත් ෆෝල්ඩරය සොයා ගත නොහැක. තැපැල් සෑදීම සහ යැවීම සඳහා අභිප්රේත> ෆොල්ඩර සහ කෙටුම්පත් ෆෝල්ඩරය තෝරන්න.",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring mailsync ක්රියාවලිය සොයා ගත හැකි විය. ඔබ මූලාශ්රයෙන් Mailspring ගොඩනගන්නේ නම්, mailsync.tar.gz බාගත කර ඇති අතර ඔබගේ වැඩ කරන පිටපතේ නොඑකි.",
+  "Mailspring could not find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring mailsync ක්රියාවලිය සොයා ගත හැකි විය. ඔබ මූලාශ්රයෙන් Mailspring ගොඩනගන්නේ නම්, mailsync.tar.gz බාගත කර ඇති අතර ඔබගේ වැඩ කරන පිටපතේ නොඑකි.",
   "Mailspring could not save an attachment because you have run out of disk space.": "ඔබ ඩිස්ක් අවකාශයෙන් ධාවනය කර ඇති නිසා Mailspring ඇමිණුම සුරැකිය නොහැක.",
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "ඇමුණුමක් සුරැකිය නොහැකි විය. අවසරයන් නිවැරදිව සකසා ඇති අතර ගැටළුව නොනැවතී ඇත්නම් Mailspring නැවත ආරම්භ කරන්න.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring mailsync ක්රියාවලිය නංවන්නට නොහැකි විය. %@",

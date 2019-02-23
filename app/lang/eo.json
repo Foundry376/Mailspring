@@ -341,7 +341,7 @@
   "Mailspring Reminder": "Mailspring Reminder",
   "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspring ne plu rajtas aŭtentigi kun %@. La pasvorto aŭ aŭtentigo eble ŝanĝiĝis.",
   "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspring ne trovos vian dosierujon. Por krei kaj sendi retpoŝton, vizitu Preferojn> Dosierujojn kaj elekti Dokumentajn dosierujojn.",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring povus trovi la procezon de mailsync. Se vi konstruas Mailspring el fonto, certigu, ke mailsync.tar.gz estis elŝutita kaj senakmpigita en via funkcia kopio.",
+  "Mailspring could not find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring povus trovi la procezon de mailsync. Se vi konstruas Mailspring el fonto, certigu, ke mailsync.tar.gz estis elŝutita kaj senakmpigita en via funkcia kopio.",
   "Mailspring could not save an attachment because you have run out of disk space.": "Mailspring ne povis konservi korinklinon ĉar vi forkuris el disko.",
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring ne povis ŝpari korinklinon. Kontrolu, ke la permesoj estas agorditaj ĝuste kaj provu rekomenci Mailspring se la afero persistas.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring ne povis krei la procezon de mailsync. %@",

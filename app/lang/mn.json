@@ -341,7 +341,7 @@
   "Mailspring Reminder": "Mailspring сануулагч",
   "Mailspring can no longer authenticate with %@. The password or authentication may have changed.": "Mailspring нь [үүдийг] ашиглан нууцлах боломжгүй болсон. Нууц үг буюу нэвтрэлт танилтыг өөрчилж болно.",
   "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.": "Mailspring нь таны Drafts фолдерыг олох боломжгүй байна. Захидал үүсгэх, илгээх, Тохиргоо> Фолдерууд руу очиж Drafts фолдерыг сонгоно уу.",
-  "Mailspring could find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring нь mailsync процессыг олж чадна. Хэрэв та эх сурвалжаас Mailspring-ийг барьж байгаа бол mailsync.tar.gz-г татаж авч задалсан байгаа эсэхийг шалгаарай.",
+  "Mailspring could not find the mailsync process. If you're building Mailspring from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.": "Mailspring нь mailsync процессыг олж чадна. Хэрэв та эх сурвалжаас Mailspring-ийг барьж байгаа бол mailsync.tar.gz-г татаж авч задалсан байгаа эсэхийг шалгаарай.",
   "Mailspring could not save an attachment because you have run out of disk space.": "Mailspring нь дискний зайгүй болсон учир хавсралтыг хадгалж чадсангүй.",
   "Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.": "Mailspring хавсралтыг хадгалж чадсангүй. Зөвшөөрөл зөв заагдсан эсэхийг шалгаад асуудал гарч ирвэл Mailspring-г дахин эхлүүлэхийг оролдоорой.",
   "Mailspring could not spawn the mailsync process. %@": "Mailspring нь mailsync процессыг үүсгэж чадсангүй. [Болгосон]",
