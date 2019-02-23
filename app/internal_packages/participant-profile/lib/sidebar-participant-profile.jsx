@@ -446,7 +446,7 @@ export default class SidebarParticipantProfile extends React.Component {
 
           <div className="social-profiles-wrap">
             <SocialProfileLink service="facebook" handle={facebook && facebook.handle} />
-            <SocialProfileLink service="linkedin" handle={linkedin && linkedin.handle} />
+            <SocialProfileLink service="linkedin" handle={linkedin && `in/${linkedin.handle}`} />
             <SocialProfileLink service="twitter" handle={twitter && twitter.handle} />
           </div>
         </div>
