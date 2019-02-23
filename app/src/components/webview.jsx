@@ -88,6 +88,21 @@ export default class Webview extends React.Component {
   componentDidMount() {
     this._mounted = true;
     this._setupWebview(this.props);
+
+    // Workaround: The webview doesn't receive any of the standard commands - they're
+    // caught in the parent page and not forwarded into the focused <webview />, so
+    // we're attaching listeners to the <webview /> node in our DOM and forwarding the
+    // events into the child DOM manually.
+    const webview = ReactDOM.findDOMNode(this.refs.webview);
+    this._disposable = AppEnv.commands.add(webview, {
+      'core:copy': () => webview.getWebContents().copy(),
+      'core:cut': () => webview.getWebContents().cut(),
+      'core:paste': () => webview.getWebContents().paste(),
+      'core:paste-and-match-style': () => webview.getWebContents().pasteAndMatchStyle(),
+      'core:undo': e => webview.getWebContents().undo(),
+      'core:redo': e => webview.getWebContents().redo(),
+      'core:select-all': e => webview.getWebContents().selectAll(),
+    });
   }
 
   componentWillReceiveProps(nextProps = {}) {
@@ -99,6 +114,10 @@ export default class Webview extends React.Component {
 
   componentWillUnmount() {
     this._mounted = false;
+    if (this._disposable) {
+      this._disposable.dispose();
+      this._disposable = null;
+    }
   }
 
   _setupWebview(props) {
@@ -110,6 +129,10 @@ export default class Webview extends React.Component {
       'did-get-response-details': this._webviewDidGetResponseDetails,
       'console-message': this._onConsoleMessage,
       'new-window': this._onNewWindow,
+
+      // Workaround: When a webview changes pages, it's focus state seems to get out of
+      // sync and the text insertion cursor disappears until you blur it and focus it again.
+      'did-navigate': () => webview.blur(),
     };
     for (const event of Object.keys(listeners)) {
       webview.removeEventListener(event, listeners[event]);
@@ -193,7 +216,7 @@ export default class Webview extends React.Component {
   render() {
     return (
       <div className="webview-wrap">
-        <webview ref="webview" is partition="in-memory-only" />
+        <webview ref="webview" partition="in-memory-only" />
         <div className={`webview-loading-spinner loading-${this.state.webviewLoading}`}>
           <RetinaImg
             style={{ width: 20, height: 20 }}
