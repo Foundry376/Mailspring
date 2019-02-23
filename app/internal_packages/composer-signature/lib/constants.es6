@@ -40,6 +40,10 @@ export const DataShape = [
     label: localized('Facebook URL'),
   },
   {
+    key: 'linkedinURL',
+    label: localized('LinkedIn URL'),
+  },
+  {
     key: 'twitterHandle',
     label: localized('Twitter Handle'),
   },
@@ -58,6 +62,13 @@ export const ResolveSignatureData = data => {
       data[key] = `http://${data[key]}`;
     }
   });
+
+  // sanitize linkedin handle
+  if (data.linkedinURL) {
+    if (!data.linkedinURL.includes('linkedin.com')) {
+      data.linkedinURL = `https://www.linkedin.com/in/${data.linkedinURL}`;
+    }
+  }
 
   // sanitize twitter handle
   if (data.twitterHandle) {

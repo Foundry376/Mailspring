@@ -19,6 +19,14 @@ const TWITTER_SHARE = (
     alt="Twitter"
   />
 );
+const LINKEDIN_SHARE = (
+  <img
+    src="https://www.getmailspring.com/signature-assets/linkedin.gif"
+    width="13"
+    height="13"
+    alt="LinkedIn"
+  />
+);
 
 function widthAndHeightForPhotoURL(photoURL, { maxWidth, maxHeight } = {}) {
   if (!photoURL) {
@@ -118,6 +126,15 @@ function GenericInfoBlock(props, prefixStyle = PrefixStyles.None) {
             style={{ marginRight: 8, color: props.tintColor }}
           >
             {FB_SHARE}
+          </a>
+        )}
+        {props.linkedinURL && (
+          <a
+            href={props.linkedinURL}
+            title="LinkedIn"
+            style={{ marginRight: 8, color: props.tintColor }}
+          >
+            {LINKEDIN_SHARE}
           </a>
         )}
         {props.twitterHandle && (
@@ -390,6 +407,15 @@ const Templates = [
                       style={{ marginRight: 8, color: props.tintColor }}
                     >
                       {FB_SHARE}
+                    </a>
+                  )}
+                  {props.linkedinURL && (
+                    <a
+                      href={props.linkedinURL}
+                      title="LinkedIn"
+                      style={{ marginRight: 8, color: props.tintColor }}
+                    >
+                      {LINKEDIN_SHARE}
                     </a>
                   )}
                   {props.twitterHandle && (
