@@ -67,7 +67,7 @@ class IdentityStore extends MailspringStore {
   async saveIdentity(identity) {
     if (!identity) {
       this._identity = null;
-      KeyManager.deletePassword(KEYCHAIN_NAME);
+      await KeyManager.deletePassword(KEYCHAIN_NAME);
       AppEnv.config.set('identity', null);
       return;
     }
