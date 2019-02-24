@@ -229,10 +229,12 @@ export default class SidebarParticipantProfile extends React.Component {
   constructor(props) {
     super(props);
 
+    const trialing = !IdentityStore.hasProFeatures();
+
     this.state = {
+      trialing,
       loaded: false,
-      loading: false,
-      trialing: !IdentityStore.hasProFeatures(),
+      loading: !trialing,
     };
     const contactState = ParticipantProfileDataSource.getCache(props.contact.email);
     if (contactState) {
@@ -242,10 +244,10 @@ export default class SidebarParticipantProfile extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
-    if (!this.state.loaded && !this.state.trialing) {
+
+    if (this.state.loading) {
       // Wait until we know they've "settled" on this email to reduce the number of
       // requests to the contact search endpoint.
-      this.setState({ loading: true });
       setTimeout(this._onFindContact, 2000);
     }
   }
