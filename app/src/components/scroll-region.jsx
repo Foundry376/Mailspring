@@ -21,6 +21,7 @@ class Scrollbar extends React.Component {
 
   constructor(props) {
     super(props);
+    this._heightObserver = null;
     this.state = {
       totalHeight: 0,
       trackHeight: 0,
@@ -33,24 +34,25 @@ class Scrollbar extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.scrollbarTickProvider && this.props.scrollbarTickProvider.listenx) {
+    const trackEl = ReactDOM.findDOMNode(this.refs.track);
+
+    if (this.props.scrollbarTickProvider && this.props.scrollbarTickProvider.listen) {
       this._tickUnsub = this.props.scrollbarTickProvider.listen(this._onTickProviderChange);
     }
-  }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
+    // Set and then monitor our trackHeight via a ResizeObserver
+    this._heightObserver = new ResizeObserver(entries => {
+      if (entries[0] && this.state.trackHeight === entries[0].contentRect.height) return;
+      this.setState({ trackHeight: entries[0].contentRect.height });
+    });
+    this._heightObserver.observe(trackEl);
+    this.setState({ trackHeight: trackEl.clientHeight });
   }
 
   componentWillUnmount() {
     this._onHandleUp({ preventDefault() {} });
-    if (this._tickUnsub) {
-      this._tickUnsub();
-    }
-  }
-
-  setStateFromScrollRegion(state) {
-    this.setState(state);
+    if (this._heightObserver) this._heightObserver.disconnect();
+    if (this._tickUnsub) this._tickUnsub();
   }
 
   render() {
@@ -72,11 +74,7 @@ class Scrollbar extends React.Component {
     }
 
     return (
-      <div
-        className={containerClasses}
-        style={this._scrollbarWrapStyles()}
-        onMouseEnter={this.recomputeDimensions}
-      >
+      <div className={containerClasses} style={this._scrollbarWrapStyles()}>
         <div className="scrollbar-track-inner" ref="track" onClick={this._onScrollJump}>
           {this._renderScrollbarTicks()}
           <div
@@ -92,13 +90,6 @@ class Scrollbar extends React.Component {
       </div>
     );
   }
-
-  recomputeDimensions = (options = {}) => {
-    if (this.props.getScrollRegion != null) {
-      this.props.getScrollRegion()._recomputeDimensions(options);
-    }
-    this._recomputeDimensions(options);
-  };
 
   _onTickProviderChange = () => {
     if (
@@ -117,19 +108,6 @@ class Scrollbar extends React.Component {
     }
     return <ScrollbarTicks ticks={this.state.scrollbarTicks} />;
   }
-
-  _recomputeDimensions = ({ useCachedValues }) => {
-    if (!useCachedValues) {
-      const trackNode = ReactDOM.findDOMNode(this.refs.track);
-      if (!trackNode) {
-        return;
-      }
-      const trackHeight = trackNode.clientHeight;
-      if (trackHeight !== this.state.trackHeight) {
-        this.setState({ trackHeight });
-      }
-    }
-  };
 
   _scrollbarHandleStyles = () => {
     const handleHeight = this._getHandleHeight();
@@ -242,6 +220,8 @@ class ScrollRegion extends React.Component {
 
     this._scrollToTaskId = 0;
     this._scrollbarComponent = null;
+    this._totalHeightObserver = null;
+    this._viewportHeightObserver = null;
     this.state = {
       totalHeight: 0,
       viewportHeight: 0,
@@ -261,32 +241,31 @@ class ScrollRegion extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
-    this.recomputeDimensions();
 
-    this._heightObserver = new MutationObserver(mutations => {
-      let recompute = false;
-      mutations.forEach(
-        mutation =>
-          recompute ||
-          (recompute = !mutation.oldValue || mutation.oldValue.indexOf('height:') !== -1)
-      );
-      if (recompute) {
-        this.recomputeDimensions({ useCachedValues: false });
+    const viewportEl = ReactDOM.findDOMNode(this.refs.content);
+    const innerWrapperEl = ReactDOM.findDOMNode(this.refs.inner);
+
+    this._viewportHeightObserver = new ResizeObserver(entries => {
+      if (entries[0] && entries[0].contentRect.height !== this.state.viewportHeight) {
+        this._setSharedState({ viewportHeight: entries[0].contentRect.height });
+      }
+    });
+    this._totalHeightObserver = new ResizeObserver(entries => {
+      // Note: we need to use target.clientHeight because the inner element can have padding
+      // and the contentRect.height is the inner padded size, not the bounding box size.
+      if (entries[0] && entries[0].contentRect.height !== this.state.totalHeight) {
+        this._setSharedState({ totalHeight: entries[0].target.clientHeight });
       }
     });
 
-    this._heightObserver.observe(ReactDOM.findDOMNode(this.refs.content), {
-      subtree: true,
-      attributes: true,
-      attributeOldValue: true,
-      attributeFilter: ['style'],
-    });
-  }
+    this._totalHeightObserver.observe(innerWrapperEl);
+    this._viewportHeightObserver.observe(viewportEl);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (!this.state.scrolling && this.props.children !== prevProps.children) {
-      this.recomputeDimensions();
-    }
+    this._setSharedState({
+      viewportScrollTop: 0,
+      viewportHeight: viewportEl.clientHeight,
+      totalHeight: innerWrapperEl.clientHeight,
+    });
   }
 
   componentWillReceiveProps(props) {
@@ -296,15 +275,9 @@ class ScrollRegion extends React.Component {
   }
 
   componentWillUnmount() {
-    this._heightObserver.disconnect();
+    if (this._totalHeightObserver) this._totalHeightObserver.disconnect();
+    if (this._viewportHeightObserver) this._viewportHeightObserver.disconnect();
     this._mounted = false;
-  }
-
-  shouldComponentUpdate(newProps, newState) {
-    // Because this component renders this.props.children, it needs to update
-    // on props.children changes. Unfortunately, computing isEqual on the
-    // this.props.children tree extremely expensive. Just let React's algorithm do it's work.
-    return true;
   }
 
   shouldInvalidateScrollbarComponent = newProps => {
@@ -345,7 +318,9 @@ class ScrollRegion extends React.Component {
       <div className={containerClasses} {...otherProps}>
         {this._scrollbarComponent}
         <div className="scroll-region-content" onScroll={this._onScroll} ref="content">
-          <div className="scroll-region-content-inner">{this.props.children}</div>
+          <div className="scroll-region-content-inner" ref="inner">
+            {this.props.children}
+          </div>
         </div>
       </div>
     );
@@ -464,54 +439,9 @@ class ScrollRegion extends React.Component {
     scrollIfSettled();
   };
 
-  recomputeDimensions(options = {}) {
-    const scrollbar = this.props.getScrollbar ? this.props.getScrollbar() : this.refs.scrollbar;
-    if (scrollbar) {
-      scrollbar._recomputeDimensions(options);
-    }
-    this._recomputeDimensions(options);
-  }
-
-  _recomputeDimensions = ({ useCachedValues }) => {
-    let totalHeight, viewportHeight;
-    if (!this.refs.content) {
-      return;
-    }
-    const contentNode = ReactDOM.findDOMNode(this.refs.content);
-    if (!contentNode) {
-      return;
-    }
-
-    const viewportScrollTop = contentNode.scrollTop;
-
-    // While we're scrolling, calls to contentNode.scrollHeight / clientHeight
-    // force the browser to immediately flush any DOM changes and compute the
-    // height of the node. This hurts performance and also kind of unnecessary,
-    // since it's unlikely these values will change while scrolling.
-    if (useCachedValues) {
-      totalHeight =
-        this.state.totalHeight != null ? this.state.totalHeight : contentNode.scrollHeight;
-      viewportHeight =
-        this.state.viewportHeight != null ? this.state.viewportHeight : contentNode.clientHeight;
-    } else {
-      totalHeight = contentNode.scrollHeight;
-      viewportHeight = contentNode.clientHeight;
-    }
-
-    if (
-      this.state.totalHeight !== totalHeight ||
-      this.state.viewportHeight !== viewportHeight ||
-      this.state.viewportScrollTop !== viewportScrollTop
-    ) {
-      this._setSharedState({ totalHeight, viewportScrollTop, viewportHeight });
-    }
-  };
-
   _setSharedState(state) {
     const scrollbar = this.props.getScrollbar ? this.props.getScrollbar() : this.refs.scrollbar;
-    if (scrollbar) {
-      scrollbar.setStateFromScrollRegion(state);
-    }
+    if (scrollbar) scrollbar.setState(state);
     this.setState(state);
   }
 
@@ -523,12 +453,7 @@ class ScrollRegion extends React.Component {
       return;
     }
 
-    if (this.state.scrolling) {
-      this.recomputeDimensions({ useCachedValues: true });
-    } else {
-      this.recomputeDimensions();
-      this._setSharedState({ scrolling: true });
-    }
+    this._setSharedState({ scrolling: true, viewportScrollTop: event.target.scrollTop });
 
     if (typeof this.props.onScroll === 'function') {
       this.props.onScroll(event);
@@ -537,7 +462,6 @@ class ScrollRegion extends React.Component {
     if (this._onScrollEnd == null) {
       this._onScrollEnd = _.debounce(() => {
         this._setSharedState({ scrolling: false });
-        this.recomputeDimensions();
         if (this.props.onScrollEnd) {
           this.props.onScrollEnd(event);
         }
