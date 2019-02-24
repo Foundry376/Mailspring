@@ -221,6 +221,11 @@ export default class QuerySubscription {
 
   _fetchRange(range, { version, fetchEntireModels }) {
     const rangeQuery = this._getQueryForRange(range, fetchEntireModels);
+    const haveModels = this._set && this._set.modelCacheCount() > 0;
+
+    if (haveModels && this._options.updateOnSeparateThread) {
+      rangeQuery.background();
+    }
 
     DatabaseStore.run(rangeQuery, { format: false }).then(results => {
       if (this._queryVersion !== version) {

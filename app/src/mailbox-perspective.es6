@@ -290,7 +290,10 @@ class StarredMailboxPerspective extends MailboxPerspective {
       query.where(Thread.attributes.accountId.in(this.accountIds));
     }
 
-    return new MutableQuerySubscription(query, { emitResultSet: true });
+    return new MutableQuerySubscription(query, {
+      emitResultSet: true,
+      updateOnSeparateThread: true,
+    });
   }
 
   canReceiveThreadsFromAccountIds(...args) {
@@ -330,7 +333,10 @@ class EmptyMailboxPerspective extends MailboxPerspective {
     const query = DatabaseStore.findAll(Thread)
       .where({ lastMessageReceivedTimestamp: -1 })
       .limit(0);
-    return new MutableQuerySubscription(query, { emitResultSet: true });
+    return new MutableQuerySubscription(query, {
+      emitResultSet: true,
+      updateOnSeparateThread: true,
+    });
   }
 
   canReceiveThreadsFromAccountIds() {
@@ -391,7 +397,10 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       query.distinct();
     }
 
-    return new MutableQuerySubscription(query, { emitResultSet: true });
+    return new MutableQuerySubscription(query, {
+      emitResultSet: true,
+      updateOnSeparateThread: true,
+    });
   }
 
   unreadCount() {
