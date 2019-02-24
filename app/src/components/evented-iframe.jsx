@@ -87,8 +87,11 @@ class EventedIFrame extends React.Component {
   }
 
   setHeightQuietly(height) {
-    this._ignoreNextResize = true;
-    ReactDOM.findDOMNode(this).height = `${height}px`;
+    const el = ReactDOM.findDOMNode(this);
+    if (el.style.height !== `${height}px`) {
+      this._ignoreNextResize = true;
+      el.style.height = `${height}px`;
+    }
   }
 
   _onSearchableStoreChange = () => {

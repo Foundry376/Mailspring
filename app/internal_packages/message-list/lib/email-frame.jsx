@@ -24,6 +24,12 @@ export default class EmailFrame extends React.Component {
     this._mounted = true;
     this._writeContent();
     this._unlisten = EmailFrameStylesStore.listen(this._writeContent);
+
+    // Update the iframe's size whenever it's content size changes. Doing this
+    // with ResizeObserver is /so/ elegant compared to polling for it's height.
+    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent);
+    this._iframeDocObserver = new ResizeObserver(this._onReevaluateContentSize);
+    this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
   }
 
   shouldComponentUpdate(nextProps) {
@@ -31,9 +37,9 @@ export default class EmailFrame extends React.Component {
     const nextMessage = nextProps.message || {};
 
     return (
+      message.id !== nextMessage.id ||
       content !== nextProps.content ||
       showQuotedText !== nextProps.showQuotedText ||
-      message.id !== nextMessage.id ||
       !Utils.isEqualReact(message.pluginMetadata, nextMessage.pluginMetadata)
     );
   }
@@ -44,9 +50,8 @@ export default class EmailFrame extends React.Component {
 
   componentWillUnmount() {
     this._mounted = false;
-    if (this._unlisten) {
-      this._unlisten();
-    }
+    if (this._iframeDocObserver) this._iframeDocObserver.disconnect();
+    if (this._unlisten) this._unlisten();
   }
 
   _emailContent = () => {
@@ -60,71 +65,60 @@ export default class EmailFrame extends React.Component {
   };
 
   _writeContent = () => {
-    const iframeNode = ReactDOM.findDOMNode(this._iframeComponent);
-    const doc = iframeNode.contentDocument;
-    if (!doc) {
-      return;
-    }
-    doc.open();
+    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent);
+    const doc = iframeEl.contentDocument;
+    if (!doc) return;
 
     // NOTE: The iframe must have a modern DOCTYPE. The lack of this line
     // will cause some bizzare non-standards compliant rendering with the
     // message bodies. This is particularly felt with <table> elements use
     // the `border-collapse: collapse` css property while setting a
     // `padding`.
-    doc.write('<!DOCTYPE html>');
     const styles = EmailFrameStylesStore.styles();
-    if (styles) {
-      doc.write(`<style>${styles}</style>`);
-    }
+    doc.open();
     doc.write(
-      `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent()}</div>`
+      `<!DOCTYPE html>` +
+        (styles ? `<style>${styles}</style>` : '') +
+        `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent()}</div>`
     );
     doc.close();
-
-    iframeNode.addEventListener('load', this._onLoad);
-
-    autolink(doc, { async: true });
-    adjustImages(doc);
-
-    for (const extension of MessageStore.extensions()) {
-      if (!extension.renderedMessageBodyIntoDocument) {
-        continue;
-      }
-      try {
-        extension.renderedMessageBodyIntoDocument({
-          document: doc,
-          message: this.props.message,
-          iframe: iframeNode,
-        });
-      } catch (e) {
-        AppEnv.reportError(e);
-      }
-    }
 
     // Notify the EventedIFrame that we've replaced it's document (with `open`)
     // so it can attach event listeners again.
     this._iframeComponent.didReplaceDocument();
-    this._onMustRecalculateFrameHeight();
+
+    window.requestAnimationFrame(() => {
+      autolink(doc, { async: true });
+      adjustImages(doc);
+
+      for (const extension of MessageStore.extensions()) {
+        if (!extension.renderedMessageBodyIntoDocument) {
+          continue;
+        }
+        try {
+          extension.renderedMessageBodyIntoDocument({
+            document: doc,
+            message: this.props.message,
+            iframe: iframeEl,
+          });
+        } catch (e) {
+          AppEnv.reportError(e);
+        }
+      }
+    });
   };
 
-  _onLoad = () => {
-    const iframeNode = ReactDOM.findDOMNode(this._iframeComponent);
-    iframeNode.removeEventListener('load', this._onLoad);
-    this._setFrameHeight();
-  };
+  _onReevaluateContentSize = () => {
+    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent);
+    const doc = iframeEl && iframeEl.contentDocument;
 
-  _onMustRecalculateFrameHeight = () => {
+    // We must set the height to zero in order to get a valid scrollHeight
+    // if the document is wider and has a lower height now.
     this._iframeComponent.setHeightQuietly(0);
-    this._lastComputedHeight = 0;
-    this._setFrameHeight();
-  };
-
-  _getFrameHeight = doc => {
-    let height = 0;
 
     // If documentElement has a scroll height, prioritize that as height
     // If not, fall back to body scroll height by setting it to auto
+    let height = 0;
     if (doc && doc.documentElement && doc.documentElement.scrollHeight > 0) {
       height = doc.documentElement.scrollHeight;
     } else if (doc && doc.body) {
@@ -134,59 +128,28 @@ export default class EmailFrame extends React.Component {
       }
       height = doc.body.scrollHeight;
     }
-    return height;
+
+    this._iframeComponent.setHeightQuietly(height);
   };
 
-  _setFrameHeight = () => {
-    if (!this._mounted) {
-      return;
-    }
-
-    // Q: What's up with this holder?
-    // A: If you resize the window, or do something to trigger setFrameHeight
-    // on an already-loaded message view, all the heights go to zero for a brief
-    // second while the heights are recomputed. This causes the ScrollRegion to
-    // reset it's scrollTop to ~0 (the new combined heiht of all children).
-    // To prevent this, the holderNode holds the last computed height until
-    // the new height is computed.
-    const iframeNode = ReactDOM.findDOMNode(this._iframeComponent);
-    let height = this._getFrameHeight(iframeNode.contentDocument);
-
-    // Why 5px? Some emails have elements with a height of 100%, and then put
-    // tracking pixels beneath that. In these scenarios, the scrollHeight of the
-    // message is always <100% + 1px>, which leads us to resize them constantly.
-    // This is a hack, but I'm not sure of a better solution.
-    if (Math.abs(height - this._lastComputedHeight) > 5) {
-      this._iframeComponent.setHeightQuietly(height);
-      this._iframeHeightHolderEl.style.height = `${height}px`;
-      this._lastComputedHeight = height;
-    }
-
-    if (iframeNode.contentDocument.readyState !== 'complete') {
-      window.requestAnimationFrame(() => {
-        this._setFrameHeight();
-      });
-    }
+  _onResize = () => {
+    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent);
+    if (!iframeEl) return;
+    this._iframeDocObserver.disconnect();
+    this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
   };
 
   render() {
     return (
-      <div
-        className="iframe-container"
-        ref={el => {
-          this._iframeHeightHolderEl = el;
+      <EventedIFrame
+        searchable
+        onResize={this._onResize}
+        seamless="seamless"
+        style={{ height: 0 }}
+        ref={cm => {
+          this._iframeComponent = cm;
         }}
-        style={{ height: this._lastComputedHeight }}
-      >
-        <EventedIFrame
-          ref={cm => {
-            this._iframeComponent = cm;
-          }}
-          seamless="seamless"
-          searchable
-          onResize={this._onMustRecalculateFrameHeight}
-        />
-      </div>
+      />
     );
   }
 }
