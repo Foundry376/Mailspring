@@ -131,7 +131,7 @@ class ListTabular extends Component {
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     if (this.props.onComponentDidUpdate) {
       this.props.onComponentDidUpdate();
     }
@@ -140,11 +140,14 @@ class ListTabular extends Component {
     if (prevProps.dataSource !== this.props.dataSource) {
       this._scrollRegion.scrollTop = 0;
     }
-
-    if (!this.updateRangeStateFiring) {
+    if (this.updateRangeStateFiring) {
+      this.updateRangeStateFiring = false;
+    } else if (
+      prevState.count !== this.state.count ||
+      prevProps.itemHeight !== this.props.itemHeight
+    ) {
       this.updateRangeState();
     }
-    this.updateRangeStateFiring = false;
 
     if (!this._cleanupAnimationTimeout) {
       this._cleanupAnimationTimeout = window.setTimeout(this.onCleanupAnimatingItems, 50);
