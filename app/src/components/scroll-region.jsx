@@ -338,7 +338,9 @@ class ScrollRegion extends React.Component {
         'ScrollRegion.scrollTo: requires a DOM node or React element. Maybe you meant scrollToRect?'
       );
     }
-    this._scroll({ position, settle, done }, () => node.getBoundingClientRect());
+    window.requestAnimationFrame(() => {
+      this._scroll({ position, settle, done }, () => node.getBoundingClientRect());
+    });
   };
 
   // Public: Scroll to the client rectangle provided. Note: This method expects
@@ -355,7 +357,9 @@ class ScrollRegion extends React.Component {
         'ScrollRegion.scrollToRect: requires a rect with `top` and `height` attributes.'
       );
     }
-    this._scroll({ position, settle, done }, () => rect);
+    window.requestAnimationFrame(() => {
+      this._scroll({ position, settle, done }, () => rect);
+    });
   }
 
   _scroll({ position, settle, done }, clientRectProviderCallback) {
@@ -376,12 +380,13 @@ class ScrollRegion extends React.Component {
 
     settleFn(() => {
       // If another scroll call has been made since ours, don't do anything.
-      if (this._scrollToTaskId !== taskId) {
+      if (this._scrollToTaskId !== taskId || !contentNode) {
         return typeof done === 'function' ? done(false) : undefined;
       }
 
       const contentClientRect = contentNode.getBoundingClientRect();
       const rect = _.clone(clientRectProviderCallback());
+      if (!rect || !contentClientRect) return;
 
       // For sanity's sake, convert the client rectangle we get into a rect
       // relative to the contentRect of our scroll region.
