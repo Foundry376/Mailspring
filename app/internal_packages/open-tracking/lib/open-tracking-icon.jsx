@@ -10,28 +10,20 @@ export default class OpenTrackingIcon extends React.Component {
     thread: PropTypes.object.isRequired,
   };
 
-  constructor(props) {
-    super(props);
-    this.state = this._getStateFromThread(props.thread);
-  }
-
-  componentWillReceiveProps(newProps) {
-    this.setState(this._getStateFromThread(newProps.thread));
-  }
-
   onMouseDown = () => {
     const rect = ReactDOM.findDOMNode(this).getBoundingClientRect();
+    const { message } = this._getDataFromThread();
     Actions.openPopover(
       <OpenTrackingMessagePopover
-        message={this.state.message}
-        openMetadata={this.state.message.metadataForPluginId(PLUGIN_ID)}
+        message={message}
+        openMetadata={message.metadataForPluginId(PLUGIN_ID)}
       />,
       { originRect: rect, direction: 'down' }
     );
   };
 
-  _getStateFromThread(thread) {
-    const messages = thread.__messages || [];
+  _getDataFromThread() {
+    const messages = this.props.thread.__messages || [];
 
     let lastMessage = null;
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -61,29 +53,25 @@ export default class OpenTrackingIcon extends React.Component {
     };
   }
 
-  _renderImage() {
-    return (
-      <RetinaImg
-        className={this.state.opened ? 'opened' : 'unopened'}
-        url="mailspring://open-tracking/assets/icon-tracking-opened@2x.png"
-        mode={RetinaImg.Mode.ContentIsMask}
-      />
-    );
-  }
-
   render() {
-    if (!this.state.hasMetadata) return <span style={{ width: '19px' }} />;
-    const noun = this.state.openCount === 1 ? localized('Open') : localized('Opens');
-    const title = this.state.opened
-      ? `${this.state.openCount} ${noun.toLocaleLowerCase()}`
+    const { hasMetadata, opened, openCount } = this._getDataFromThread();
+
+    if (!hasMetadata) return <span style={{ width: '19px' }} />;
+    const noun = openCount === 1 ? localized('Open') : localized('Opens');
+    const title = opened
+      ? `${openCount} ${noun.toLocaleLowerCase()}`
       : localized('This message has not been opened');
     return (
       <div
         title={title}
         className="open-tracking-icon"
-        onMouseDown={this.state.opened ? this.onMouseDown : null}
+        onMouseDown={opened ? this.onMouseDown : null}
       >
-        {this._renderImage()}
+        <RetinaImg
+          className={opened ? 'opened' : 'unopened'}
+          url="mailspring://open-tracking/assets/icon-tracking-opened@2x.png"
+          mode={RetinaImg.Mode.ContentIsMask}
+        />
       </div>
     );
   }

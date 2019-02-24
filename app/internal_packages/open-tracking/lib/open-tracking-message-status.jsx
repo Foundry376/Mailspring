@@ -14,15 +14,6 @@ export default class OpenTrackingMessageStatus extends React.Component {
     paddingTop: 4,
   };
 
-  constructor(props) {
-    super(props);
-    this.state = this._getStateFromMessage(props.message);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.setState(this._getStateFromMessage(nextProps.message));
-  }
-
   onMouseDown = () => {
     const rect = ReactDOM.findDOMNode(this).getBoundingClientRect();
     Actions.openPopover(
@@ -34,8 +25,8 @@ export default class OpenTrackingMessageStatus extends React.Component {
     );
   };
 
-  _getStateFromMessage(message) {
-    const metadata = message.metadataForPluginId(PLUGIN_ID);
+  _getDataFromMessage() {
+    const metadata = this.props.message.metadataForPluginId(PLUGIN_ID);
     if (!metadata || metadata.open_count == null) {
       return {
         hasMetadata: false,
@@ -50,32 +41,30 @@ export default class OpenTrackingMessageStatus extends React.Component {
     };
   }
 
-  renderImage() {
-    return (
-      <RetinaImg
-        className={this.state.opened ? 'opened' : 'unopened'}
-        style={{ position: 'relative', top: -1 }}
-        url="mailspring://open-tracking/assets/InMessage-opened@2x.png"
-        mode={RetinaImg.Mode.ContentIsMask}
-      />
-    );
-  }
-
   render() {
-    if (!this.state.hasMetadata) return false;
-    const noun = this.state.openCount === 1 ? localized('Open') : localized('Opens');
-    let count = this.state.openCount;
-    if (this.state.openCount > 999) {
+    const { hasMetadata, openCount, opened } = this._getDataFromMessage();
+
+    if (!hasMetadata) return false;
+    const noun = openCount === 1 ? localized('Open') : localized('Opens');
+    let count = openCount;
+    if (openCount > 999) {
       count = '999+';
     }
 
-    const text = this.state.opened ? `${count} ${noun.toLocaleLowerCase()}` : localized('No opens');
+    const text = opened ? `${count} ${noun.toLocaleLowerCase()}` : localized('No opens');
     return (
       <span
-        className={`open-tracking-message-status ${this.state.opened ? 'opened' : 'unopened'}`}
-        onMouseDown={this.state.opened ? this.onMouseDown : null}
+        className={`open-tracking-message-status ${opened ? 'opened' : 'unopened'}`}
+        onMouseDown={opened ? this.onMouseDown : null}
       >
-        {this.renderImage()}&nbsp;&nbsp;{text}
+        {
+          <RetinaImg
+            className={opened ? 'opened' : 'unopened'}
+            style={{ position: 'relative', top: -1 }}
+            url="mailspring://open-tracking/assets/InMessage-opened@2x.png"
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
+        }&nbsp;&nbsp;{text}
       </span>
     );
   }
