@@ -217,8 +217,11 @@ export default class MessagesPanel extends PureComponent {
     const { selectedConversation: conversation } = (nextProps || this.props);
     if (conversation && conversation.isGroup) {
       const result = await xmpp.getRoomMembers(conversation.jid, null, conversation.curJid);
-      const members = result.mucAdmin.items;
-      return members;
+      if (result && result.mucAdmin) {
+        return result.mucAdmin.items;
+      } else {
+        return [];
+      }
     }
     return [];
   }
