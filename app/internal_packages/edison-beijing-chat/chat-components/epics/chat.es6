@@ -85,7 +85,13 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
   } else {
     body = payload.body;
   }
-  let msgBody = JSON.parse(body);
+  let msgBody;
+  try {
+    msgBody = JSON.parse(body);
+  } catch (e) {
+    console.log('downloadAndTagImageFileInMessage msg.body: ', body);
+    return;
+  }
   if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
     // a img link
     msgBody.path = msgBody.mediaObjectId;
