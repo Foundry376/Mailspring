@@ -8,6 +8,7 @@ import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
 import { clearMessages } from '../../../utils/message';
 import _ from 'lodash';
+import RetinaImg from '../../../../../../src/components/retina-img';
 
 const { primaryColor } = theme;
 
@@ -48,6 +49,10 @@ export default class ConversationInfo extends Component {
   }
 
   exitGroup = () => {
+    if(!confirm('Are you sure to exit from this group?')) {
+      return;
+    }
+
     const { selectedConversation: conversation } = this.props;
     xmpp.leaveRoom(conversation.jid, conversation.curJid);
     (getDb()).then(db => {
@@ -87,7 +92,7 @@ export default class ConversationInfo extends Component {
   }
 
   render = () => {
-    const { selectedConversation: conversation, members } = this.props;
+    const { selectedConversation: conversation, members,loadingMembers } = this.props;
     const roomMembers = members;
     for (const member of roomMembers) {
       const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
@@ -100,7 +105,15 @@ export default class ConversationInfo extends Component {
     return (
       <div className="info-content">
         <div className="member-management">
-          <div className="member-count">{conversation.isGroup ? roomMembers.length + " People" : ""}</div>
+          { loadingMembers ?
+            <RetinaImg
+              name="inline-loading-spinner.gif"
+              mode={RetinaImg.Mode.ContentPreserve}
+            /> :
+            <div className="member-count">{conversation.isGroup ? roomMembers.length + " People" : ""}
+            </div>
+          }
+
           <Button className="more" onClick={this.showMenu}></Button>
         </div>
         <div className="members">
@@ -109,7 +122,7 @@ export default class ConversationInfo extends Component {
               <div className="row item">
                 <div className="avatar-icon">
                   <ContactAvatar jid={conversation.jid} name={conversation.name}
-                    email={conversation.email} avatar={conversation.avatar} size={35} />
+                                 email={conversation.email} avatar={conversation.avatar} size={35}/>
                 </div>
                 <div className="info">
                   <div className="name">
@@ -121,19 +134,20 @@ export default class ConversationInfo extends Component {
             ) : null
           }
           {
-            conversation.isGroup && roomMembers && roomMembers.map(member => {
+            conversation.isGroup && !loadingMembers && roomMembers && roomMembers.map(member => {
               const onClickRemove = () => {
+                debugger;
                 this.props.removeMember(member);
               };
               const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
 
               const onEditMemberProfile = () => {
                 const fn = _.debounce(() => {
-                  setTimeout(()=>{
+                  setTimeout(() => {
                     if (this.editingMember && member !== this.editingMember) {
                       this.props.exitMemberProfile(this.editingMember);
                     }
-                    setTimeout(()=>{
+                    setTimeout(() => {
                       this.props.editMemberProfile(member);
                       this.editingMember = member;
                     }, 30);
@@ -141,14 +155,14 @@ export default class ConversationInfo extends Component {
 
                 }, 300);
                 fn();
-               return;
+                return;
               }
 
               return (
                 <div className="row" key={jid} onClick={onEditMemberProfile}>
                   <div className="avatar">
                     <ContactAvatar jid={jid} name={member.name}
-                      email={member.email} avatar={member.avatar} size={30} />
+                                   email={member.email} avatar={member.avatar} size={30}/>
                   </div>
                   <div className="info">
                     <div className="name">
@@ -157,20 +171,21 @@ export default class ConversationInfo extends Component {
                     </div>
                     <div className="email">{member.email}</div>
                   </div>
-                  {this.currentUserIsOwner && member.affiliation !== 'owner' && <span id="remove-button" onClick={onClickRemove}>
-                    <CancelIcon color={primaryColor} />
+                  {this.currentUserIsOwner && member.affiliation !== 'owner' &&
+                  <span className="remove-button" onClick={onClickRemove}>
+                    <CancelIcon color={primaryColor}/>
                   </span>
                   }
                 </div>
               )
             })
           }
-          {  /*conversation.isGroup && !this.currentUserIsOwner &&*/ <div className="add-to-group"  onClick={this.exitGroup}>
-                Exit from Group
-              </div>
+          { conversation.isGroup && !this.currentUserIsOwner && <div className="add-to-group"
+                                                                        onClick={this.exitGroup}>
+            Exit from Group
+          </div>
           }
         </div>
-
       </div>
     )
   };
