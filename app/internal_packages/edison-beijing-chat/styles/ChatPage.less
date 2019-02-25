@@ -1,3 +1,5 @@
+@dragBarBg:#E1E4E6;
+
 .chat-view-container {
   height: 100%;
   overflow: hidden;
@@ -27,13 +29,13 @@
     position: relative;
     .resizeBar {
       position: absolute;
-      background: #999;
+      background: @dragBarBg;
       border-radius: 3px;
-      width: 50px;
+      width: 40px;
       height: 4px;
       top: 4px;
       left: 50%;
-      margin-left: -25px;
+      margin-left: -20px;
       cursor: row-resize;
       opacity: 0.2;
       transition-property: opacity;

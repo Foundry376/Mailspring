@@ -44,13 +44,12 @@ import {
 import {
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
-import { isJsonString } from '../utils/stringUtils';
 import { getLastMessageInfo, parseMessageBody } from '../utils/message';
-import { encryptByAES, decryptByAES, encryptByAESFile, decryptByAESFile, generateAESKey } from '../utils/aes';
+import { encryptByAES, decryptByAES, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
-import messageModel, { FILE_TYPE } from '../components/chat/messages/messageModel';
+import { FILE_TYPE } from '../components/chat/messages/messageModel';
 
 
 
@@ -110,13 +109,13 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     downloadFile(aes, msgBody.mediaObjectId, path, () => {
       if (fs.existsSync(path)) {
         let convJid;
-        if (chatType===RECEIVE_CHAT){
+        if (chatType === RECEIVE_CHAT) {
           convJid = payload.from.bare;
         } else {
           convJid = payload.from.local;
         }
         (getDb()).then(db => {
-          db.conversations.findOne().where('jid').eq(convJid).exec().then(conv =>{
+          db.conversations.findOne().where('jid').eq(convJid).exec().then(conv => {
             updateSelectedConversation(conv);
           })
         });
@@ -281,9 +280,9 @@ export const newTempMessageEpic = (action$, { getState }) =>
       };
       let body = parseMessageBody(payload.body);
       if (body && body.updating) {
-        message.updateTime = (new Date()).getTime()+chatModel.diffTime;
+        message.updateTime = (new Date()).getTime() + chatModel.diffTime;
       } else {
-        message.sentTime = (new Date()).getTime()+chatModel.diffTime;
+        message.sentTime = (new Date()).getTime() + chatModel.diffTime;
       }
       return message;
     }).map(newPayload => newMessage(newPayload));

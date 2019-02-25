@@ -1,9 +1,11 @@
+@import 'ui-variables';
+
 .chat-view-container {
+  @topBarHeight: 65px;
   .top-bar-container {
-    height: 52px;
+    height: @topBarHeight;
     width: 100%;
-    min-height: 52px;
-    background: white;
+    min-height: @topBarHeight;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -27,8 +29,9 @@
     justify-content: flex-start;
     .conversationName {
       overflow: hidden;
-      height: 52px;
-      line-height: 52px;
+      height: @topBarHeight;
+      line-height: @topBarHeight;
+      font-size: 28px;
     }
   }
 
@@ -50,11 +53,22 @@
     .avatarWrapper {
       height: 100%;
       position: relative;
-      margin-right: 10px;
       .groupAvatar {
-        .chat-avatar:nth-child(1),
+        .chat-avatar {
+          transform: scale(1);
+        }
+        .chat-avatar:nth-child(1) {
+          width: 35px;
+          height: 35px;
+          right: 15px;
+          top: 17px;
+          border: 1px solid @white;
+        }
         .chat-avatar:nth-child(2) {
-          margin-top: 5px;
+          width: 20px;
+          height: 20px;
+          right: 35px;
+          top: 12px;
         }
       }
     }
@@ -104,14 +118,17 @@
     text-decoration: none;
   }
   .new-message {
-    width: 60px;
-    height: 22px;
+    min-width: 56px;
+    height: 20px;
     line-height: 20px;
-    border-radius: 11px;
+    border-radius: 10px;
     text-align: center;
-    font-size: 12px;
-    font-weight: bold;
-    margin-right: 10px;
-    padding: 0 8px;
+    font-size: 10px;
+    margin-right: 18px;
+    box-shadow: 0 2px 7px 0 rgba(0,0,0,0.1);
+    img.content-mask {
+      background: @blue;
+      margin-right: 3px;
+    }
   }
 }

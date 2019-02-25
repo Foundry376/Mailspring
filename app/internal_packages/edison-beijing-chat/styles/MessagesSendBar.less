@@ -19,7 +19,7 @@
         margin-left: 10px;
         padding: 2px 10px;
         &.cancel {
-          color: #ff355e;
+          color: @red;
         }
       }
       .sendBarEmoji {
@@ -34,53 +34,34 @@
     display: flex;
     flex-direction: row;
     align-items: flex-end;
-    padding: 16px;
+    padding: 34px 17px 15px 20px;
     height: auto;
-  }
-
-  .sendbar-attacment {
-    position: absolute;
-    bottom: 0;
-    right: 72px;
-    margin: 18px;
-    .button {
-      padding: 6px;
-    }
-    .icon {
-      fill: #787d80;
-      transition: transform 0.3s;
-    }
-    .button:hover {
-      .icon {
-        fill: #0096ff;
-        transform: scale(1.2);
-      }
-    }
+    background: @white;
   }
 
   .chat-tool-bar {
     position: absolute;
-    top: -15px;
+    top: 0;
     left: 0;
-    padding-left: 20px;
-    height: 40px;
+    padding-left: 30px;
     width: 100%;
-    background: @white;
+    display: flex;
+    align-items: flex-end;
     img.content-mask {
       background-color: @gray;
-      transition-duration: 0.3s;
+      transition-duration: 0.2s;
     }
     .button {
       border: none;
       box-shadow: none;
       float: left;
-      margin-right: 15px;
+      margin-right: 12px;
     }
 
     .button:hover {
       img.content-mask {
         background-color: @blue;
-        transform: scale(1.2);
+        transform: scale(1.1);
       }
     }
   }

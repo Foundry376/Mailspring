@@ -41,7 +41,7 @@ class GroupChatAvatar extends Component {
               jid={item.jid && item.jid.bare || item.jid || ''}
               name={item && item.name || ''}
               email={item.email || ''}
-              size={30}
+              size={index === 0 ? 35 : 20}
             />)
           })
         }

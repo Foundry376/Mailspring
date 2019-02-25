@@ -1,5 +1,38 @@
+@import 'ui-variables';
+
 @border-radius: 4px;
+@timeColor: #8a8a8f;
 .chat-view-container {
+  .secure-private {
+    margin: 110px 0 20px 20px;
+    display: flex;
+    .lock-icon {
+      height: 34px;
+      width: 34px;
+      border-radius: 50%;
+      background: @gray-lightest;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      img.content-mask {
+        background-color: @gray;
+      }
+    }
+    .secure-detail {
+      flex: 1;
+      font-size: 13px;
+      line-height: 18px;
+      .subtitle {
+        font-weight: bold;
+      }
+      .private-detail {
+        color: @gray-dark;
+      }
+    }
+  }
+
   .messages {
     flex-grow: 1;
     overflow-y: scroll;
@@ -20,8 +53,8 @@
     }
   }
 
-  .messageGroup {
-    padding: 8px 16px 8px 16px;
+  .message-group {
+    padding: 0 15px 8px 15px;
     display: flex;
     flex-direction: column;
     .day-label {
@@ -37,19 +70,22 @@
           position: relative;
           top: -15px;
           z-index: -1;
+          background-color: @gray-lighter;
         }
         span {
           margin: 0 auto;
-          background: #fff;
+          background: @white;
           display: inline-block;
           padding: 0 14px;
           border-radius: 20px;
           text-align: center;
+          font-size: 10px;
+          color: @timeColor;
         }
       }
     }
   }
-  .messageGroup.time-label-fix {
+  .message-group.time-label-fix {
     .day-label label {
       position: absolute;
       z-index: 99;
@@ -84,11 +120,10 @@
   .message.currentUser,
   .message.otherUser {
     align-self: flex-start;
-    padding: 12px;
+    padding: 0 0 30px 5px;
     border-radius: 15px;
     color: #000;
     position: relative;
-    // background-color: #f4f6f8;
     display: flex;
     flex-direction: row;
     width: 100%;
@@ -137,12 +172,15 @@
     justify-content: flex-end;
     overflow-x: hidden;
     user-select: text;
+    font-size: 13px;
+    line-height: 18px;
     .username {
       font-weight: bold;
       margin-right: 10px;
     }
     .time {
-      font-size: 11px;
+      font-size: 10px;
+      color: @timeColor;
     }
   }
 
@@ -232,7 +270,7 @@
   }
   .message.editing {
     width: 100%;
-    background: #f4f6f8;
+    background: @gray-lightest;
     &:after {
       display: none!important;
     }
