@@ -1,14 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../../common/Button';
-import FilePlusIcon from '../../common/icons/FilePlusIcon';
 import EmojiIcon from '../../common/icons/EmojiIcon';
-import InfoIcon from '../../common/icons/InfoIcon';
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import { uploadFile } from '../../../utils/awss3';
-import RetinaImg from '../../../../../../src/components/retina-img';
+import { RetinaImg } from 'mailspring-component-kit';
 
 import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
@@ -452,7 +450,7 @@ export default class MessageEditBar extends PureComponent {
                 />
                 <div id='remove-file-inner' title="remove this file from the list">
                   -
-                  </div>
+                </div>
               </div>
             );
           })
@@ -462,34 +460,6 @@ export default class MessageEditBar extends PureComponent {
             null
           }
         </div>
-        {/* <div key='attachments' className="sendbar-attacment" ref={(el) => { this.attachmentRef = el }}>
-          <Button className='no-border' onClick={this.onEmailAttachmentTouch}>
-            <InfoIcon className="icon" />
-          </Button>
-        </div> */}
-
-        {/* <div key='emoji' className="sendBarEmoji" ref={(emoji) => { this.emojiRef = emoji }}>
-          <Button className='no-border' onClick={this.onEmojiTouch}>
-            <EmojiIcon className="icon" />
-          </Button>
-        </div>
-        <div key='attacheFile' className="sendBarActions">
-          <Button
-            className='no-border'
-            onClick={() => {
-              this.fileInput.click();
-            }}
-          >
-            <FilePlusIcon className="icon" />
-            <input
-              style={{ display: 'none' }}
-              ref={element => { this.fileInput = element; }}
-              type="file"
-              multiple
-              onChange={this.onFileChange}
-            />
-          </Button>
-        </div> */}
       </div>
     );
   }

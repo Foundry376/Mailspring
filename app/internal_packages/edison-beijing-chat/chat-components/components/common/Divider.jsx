@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const divider = { backgroundColor: '#DCDCDC' };
+const divider = { backgroundColor: '#e8e8ed' };
 
 const horizontal = {
   ...divider,

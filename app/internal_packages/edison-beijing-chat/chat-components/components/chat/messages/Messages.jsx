@@ -26,6 +26,7 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 import MessageEditBar from './MessageEditBar';
+import SecurePrivate from './SecurePrivate'
 
 let key = 0;
 
@@ -227,15 +228,53 @@ export default class Messages extends PureComponent {
       const top = this.messagesPanel.scrollTop;
       const messageGroups = this.messagesPanel.children;
       for (const msgGrp of messageGroups) {
-        if (msgGrp.className.indexOf('messageGroup') !== -1) {
+        if (msgGrp.className.indexOf('message-group') !== -1) {
           if (msgGrp.offsetTop - 50 < top && top < msgGrp.offsetTop + msgGrp.offsetHeight - 70) {
-            msgGrp.className = 'messageGroup time-label-fix';
+            msgGrp.className = 'message-group time-label-fix';
           } else {
-            msgGrp.className = 'messageGroup';
+            msgGrp.className = 'message-group';
           }
         }
       }
     }, 10);
+  }
+
+  download = (event, msgBody) => {
+    event.stopPropagation();
+    event.preventDefault();
+    let path = dialog.showSaveDialog({ title: `download file` });
+    if (!path || typeof path !== 'string') {
+      return;
+    }
+    if (msgBody.path.match(/^file:\/\//)) {
+      let imgpath = msgBody.path.replace('file://', '');
+      fs.copyFileSync(imgpath, path);
+    } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
+      // the file is on aws
+      downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+    } else {
+      let request;
+      if (msgBody.mediaObjectId.match(/^https/)) {
+        request = https;
+      } else {
+        request = http;
+      }
+      request.get(msgBody.mediaObjectId, function (res) {
+        var imgData = '';
+        res.setEncoding('binary');
+        res.on('data', function (chunk) {
+          imgData += chunk;
+        });
+        res.on('end', function () {
+          fs.writeFile(path, imgData, 'binary', function (err) {
+            if (err) {
+              console.log('down fail');
+            }
+            console.log('down success');
+          });
+        });
+      });
+    }
   }
 
   render() {
@@ -258,6 +297,20 @@ export default class Messages extends PureComponent {
       return messageStyles.join(' ');
     };
 
+    const messageToolbar = (msg, msgBody) => (
+      <div className='message-toolbar' >
+        <span
+          className="download-img"
+          title={msgBody.path}
+          onClick={() => this.download(msgBody)}
+        />
+        {msg.sender === currentUserId && <span
+          className="inplace-edit-img"
+          onClick={showPopupMenu}
+          onContextMenu={showPopupMenu}
+        />}
+      </div>
+    )
 
     return (
       <div
@@ -267,8 +320,9 @@ export default class Messages extends PureComponent {
         onScroll={this.calcTimeLabel}
         tabIndex="0"
       >
+        <SecurePrivate />
         {jid !== NEW_CONVERSATION && groupedMessages.map((group, index) => (
-          <div className="messageGroup" key={index}>
+          <div className="message-group" key={index}>
             <div className="day-label">
               <label>
                 <span>{dateFormat(group.time)}</span>
@@ -296,44 +350,6 @@ export default class Messages extends PureComponent {
                 event.preventDefault();
                 this.menu.popup({ x: event.clientX, y: event.clientY });
               };
-
-              let download = (event) => {
-                event.stopPropagation();
-                event.preventDefault();
-                let path = dialog.showSaveDialog({ title: `download file` });
-                if (!path || typeof path !== 'string') {
-                  return;
-                }
-                if (msgBody.path.match(/^file:\/\//)) {
-                  let imgpath = msgBody.path.replace('file://', '');
-                  fs.copyFileSync(imgpath, path);
-                } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
-                  // the file is on aws
-                  downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
-                } else {
-                  let request;
-                  if (msgBody.mediaObjectId.match(/^https/)) {
-                    request = https;
-                  } else {
-                    request = http;
-                  }
-                  request.get(msgBody.mediaObjectId, function (res) {
-                    var imgData = '';
-                    res.setEncoding('binary');
-                    res.on('data', function (chunk) {
-                      imgData += chunk;
-                    });
-                    res.on('end', function () {
-                      fs.writeFile(path, imgData, 'binary', function (err) {
-                        if (err) {
-                          console.log('down fail');
-                        }
-                        console.log('down success');
-                      });
-                    });
-                  });
-                }
-              };
               let onClickImage = () => {
                 msg.zoomin = true;
                 if (msg.height < 1600) {
@@ -357,46 +373,24 @@ export default class Messages extends PureComponent {
                     title={msgBody.localFile || msgBody.mediaObjectId}
                     style={{ height: '220px', cursor }}
                   />
-                  <div className='message-toolbar' >
-                    <span
-                      className="download-img"
-                      title={msgBody.path}
-                      onClick={download}
-                    />
-                    {msg.sender === currentUserId && <span
-                      className="inplace-edit-img"
-                      onClick={showPopupMenu}
-                      onContextMenu={showPopupMenu}
-                    />}
-                  </div>
+                  {messageToolbar(msg, msgBody)}
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
                 let extName = path.extname(msgBody.path).slice(1);
                 const extMap = {
-                  pdf:'pdf', xls:'xls', zip: 'zip', ppt:'ppt', doc:'doc', mp4:'video', mp3:'video', gz:'zip', tar:'zip', '7z':'zip',
-                  avi:'video', c:'code', cpp:'code', php:'code', rb:'code', java:'code', coffee:'code', pl:'code', js:'code', html:'code', htm:'code',
-                  py:'code', go:'code', ics:'calendar', ifb:'calendar', pkpass:'pass'
+                  pdf: 'pdf', xls: 'xls', zip: 'zip', ppt: 'ppt', doc: 'doc', mp4: 'video', mp3: 'video', gz: 'zip', tar: 'zip', '7z': 'zip',
+                  avi: 'video', c: 'code', cpp: 'code', php: 'code', rb: 'code', java: 'code', coffee: 'code', pl: 'code', js: 'code', html: 'code', htm: 'code',
+                  py: 'code', go: 'code', ics: 'calendar', ifb: 'calendar', pkpass: 'pass'
                 };
                 extName = extMap[extName.toLowerCase()] || 'doc';
                 msgFile = <div className="messageMeta">
                   <div className="file-info">
-                    <div className="file-icon"  style={{background:`url(icons/attachment-${extName}.svg) no-repeat left top blue`, width:'16px', height:'16px', float:'left'}}>
+                    <div className="file-icon" style={{ background: `url(icons/attachment-${extName}.svg) no-repeat left top blue`, width: '16px', height: '16px', float: 'left' }}>
                     </div>
                     <h6>{fileName}</h6>
                   </div>
-                  <div className='message-toolbar' onClick={download}>
-                    <span
-                      className="download-img"
-                      title={fileName}
-                      onClick={download}
-                    />
-                    {msg.sender === currentUserId && <span
-                      className="inplace-edit-img"
-                      onClick={showPopupMenu}
-                      onContextMenu={showPopupMenu}
-                    />}
-                  </div>
+                  {messageToolbar(msg, msgBody)}
                 </div>
               } else {
                 msgFile = null;
@@ -478,11 +472,11 @@ export default class Messages extends PureComponent {
                     {
                       msg.status === MESSAGE_STATUS_UPLOAD_FAILED &&
                       <div><span>File transfer failed!</span>
-                      <CancelIcon
-                        className="messageFailed"
-                        size={24}
-                        color="RED"
-                      />
+                        <CancelIcon
+                          className="messageFailed"
+                          size={24}
+                          color="RED"
+                        />
                       </div>
                     }
                   </div>

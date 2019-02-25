@@ -522,11 +522,14 @@ Client.prototype.sendIq = function (data, cb) {
             cb(null, result);
         }
         return result;
-    }, function (err) {
+    }).catch(function (err) {
         if (cb) {
             return cb(err);
+        } else {
+            const stackError = new Error();
+            console.warn('stanza.io/lib/client.js: timeoutRequest: err:', err, stackError);
+            // throw err;
         }
-        throw err;
     });
 };
 

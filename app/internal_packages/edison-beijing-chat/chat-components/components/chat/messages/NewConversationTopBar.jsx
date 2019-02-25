@@ -27,7 +27,7 @@ export default class MessagesTopBar extends Component {
         key={contact.jid}
         jid={contact.jid}
         curjid={contact.curJid}
-        value={contact.name}
+        value={contact.name + contact.email}
       >
         <div className="chip">
           <ContactAvatar jid={contact.jid} name={contact.name}
