@@ -9,22 +9,82 @@ export default class MessageControls extends React.Component {
     thread: PropTypes.object.isRequired,
     message: PropTypes.object.isRequired,
     threadPopedOut: PropTypes.bool,
+    buttonTimeout: PropTypes.number,
+  };
+  static default = {
+    buttonTimeout: 700, // in milliseconds
+  };
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      isReplying: false,
+      isReplyAlling: false,
+      isForwarding: false,
+    };
+    this._mounted = false;
+    this._replyTimer = null;
+    this._replyAllTimer = null;
+    this._forwardTimer = null;
+    this._unlisten = Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this);
+  }
+
+  componentDidMount() {
+    this._mounted = true;
+  }
+
+  componentWillUnmount() {
+    this._mounted = false;
+    this._unlisten();
+    clearTimeout(this._forwardTimer);
+    clearTimeout(this._replyAllTimer);
+    clearTimeout(this._replyTimer);
+  }
+
+  _onDraftCreated = ({ messageId, type = '' }) => {
+    if (messageId && messageId === this.props.message.id && this._mounted) {
+      if (type === 'reply') {
+        clearTimeout(this._replyTimer);
+        this._replyTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isReplying: false });
+          }
+        }, this.props.buttonTimeout);
+      } else if (type === 'reply-all') {
+        clearTimeout(this._replyAllTimer);
+        this._replyAllTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isReplyAlling: false });
+          }
+        }, this.props.buttonTimeout);
+      } else {
+        clearTimeout(this._forwardTimer);
+        this._forwardTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isForwarding: false });
+          }
+        }, this.props.buttonTimeout);
+      }
+    }
   };
 
   _items() {
     const reply = {
       name: 'Reply',
-      image: 'reply.svg',
+      image: this.state.isReplying ? 'sending-spinner.gif' : 'reply.svg',
+      disabled: this.state.isReplying,
       select: this.props.threadPopedOut ? this._onPopoutThread : this._onReply,
     };
     const replyAll = {
       name: 'Reply All',
-      image: 'reply-all.svg',
+      image: this.state.isReplyAlling ? 'sending-spinner.gif' : 'reply-all.svg',
+      disabled: this.state.isReplyAlling,
       select: this.props.threadPopedOut ? this._onPopoutThread : this._onReplyAll,
     };
     const forward = {
       name: 'Forward',
-      image: 'forward.svg',
+      image: this.state.isForwarding ? 'sending-spinner.gif' : 'forward.svg',
+      disabled: this.state.isForwarding,
       select: this.props.threadPopedOut ? this._onPopoutThread : this._onForward,
     };
 
@@ -36,6 +96,7 @@ export default class MessageControls extends React.Component {
       ? [replyAll, reply, forward]
       : [reply, replyAll, forward];
   }
+
   _onPopoutThread = () => {
     if (!this.props.thread) {
       return;
@@ -50,9 +111,9 @@ export default class MessageControls extends React.Component {
     const itemContent = item => (
       <span>
         <RetinaImg name={item.image}
-          style={{ width: 24, height: 24 }}
-          isIcon
-          mode={RetinaImg.Mode.ContentIsMask} />
+                   style={{ width: 24, height: 24 }}
+                   isIcon={!item.disabled}
+                   mode={RetinaImg.Mode.ContentIsMask}/>
         &nbsp;&nbsp;{item.name}
       </span>
     );
@@ -69,27 +130,36 @@ export default class MessageControls extends React.Component {
 
   _onReply = () => {
     const { thread, message } = this.props;
-    Actions.composeReply({
-      thread,
-      message,
-      type: 'reply',
-      behavior: 'prefer-existing-if-pristine',
-    });
+    if (!this.state.isReplying) {
+      this.setState({ isReplying: true });
+      Actions.composeReply({
+        thread,
+        message,
+        type: 'reply',
+        behavior: 'prefer-existing-if-pristine',
+      });
+    }
   };
 
   _onReplyAll = () => {
     const { thread, message } = this.props;
-    Actions.composeReply({
-      thread,
-      message,
-      type: 'reply-all',
-      behavior: 'prefer-existing-if-pristine',
-    });
+    if (!this.state.isReplyAlling) {
+      this.setState({ isReplyAlling: true });
+      Actions.composeReply({
+        thread,
+        message,
+        type: 'reply-all',
+        behavior: 'prefer-existing-if-pristine',
+      });
+    }
   };
 
   _onForward = () => {
     const { thread, message } = this.props;
-    Actions.composeForward({ thread, message });
+    if (!this.state.isForwarding) {
+      this.setState({ isForwarding: true });
+      Actions.composeForward({ thread, message });
+    }
   };
 
   _onShowActionsMenu = () => {
@@ -102,7 +172,7 @@ export default class MessageControls extends React.Component {
     menu.append(new SystemMenuItem({ label: 'Log Data', click: this._onLogData }));
     menu.append(new SystemMenuItem({ label: 'Show Original', click: this._onShowOriginal }));
     menu.append(
-      new SystemMenuItem({ label: 'Copy Debug Info to Clipboard', click: this._onCopyToClipboard })
+      new SystemMenuItem({ label: 'Copy Debug Info to Clipboard', click: this._onCopyToClipboard }),
     );
     menu.popup({});
   };
@@ -153,15 +223,15 @@ export default class MessageControls extends React.Component {
           primaryItem={<RetinaImg
             name={items[0].image}
             style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />}
+            isIcon={!items[0].disabled}
+            mode={RetinaImg.Mode.ContentIsMask}/>}
           primaryTitle={items[0].name}
           primaryClick={items[0].select}
           closeOnMenuClick
           menu={this._dropdownMenu(items.slice(1))}
         />
         <div className="message-actions-ellipsis" onClick={this._onShowActionsMenu}>
-          <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask}/>
         </div>
       </div>
     );

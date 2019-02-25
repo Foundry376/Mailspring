@@ -560,10 +560,10 @@ export default class Application extends EventEmitter {
     });
 
     ipcMain.on('send-later-manager', (event, action, headerMessageId, delay, actionKey) => {
+      const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (action === 'send-later') {
         const timer = setTimeout(() => {
           delete this._draftsSendLater[headerMessageId];
-          const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
           if (!mainWindow || !mainWindow.browserWindow.webContents) {
             return;
           }
@@ -574,6 +574,11 @@ export default class Application extends EventEmitter {
         const timer = this._draftsSendLater[headerMessageId];
         clearTimeout(timer);
         delete this._draftsSendLater[headerMessageId];
+        mainWindow.browserWindow.webContents.send(
+          'action-send-canceled',
+          headerMessageId,
+          actionKey
+        );
       }
     });
 

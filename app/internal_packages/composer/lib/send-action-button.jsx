@@ -11,14 +11,44 @@ class SendActionButton extends React.Component {
     isValidDraft: PropTypes.func,
     sendActions: PropTypes.array,
     disabled: PropTypes.bool,
+    sendButtonTimeout: PropTypes.number,
   };
+  static default = {
+    sendButtonTimeout: 1000, // in milliseconds
+  };
+
+  constructor(props) {
+    super(props);
+    this.state = { isSending: false, mounted: false };
+    this._sendButtonTimer = null;
+    this._mounted = false;
+    this._unlisten = [
+      Actions.draftDeliveryFailed.listen(this._onSendDraftProcessCompleted, this),
+      Actions.draftDeliveryCancelled.listen(this._onSendDraftProcessCompleted, this),
+    ]
+  }
+
+  componentDidMount() {
+    this._mounted = true;
+  }
+
+  componentWillUnmount() {
+    this._mounted = false;
+    clearTimeout(this._sendButtonTimer);
+    this._unlisten.forEach(unlisten => {
+      unlisten();
+    });
+  }
+
 
   /* This component is re-rendered constantly because `draft` changes in random ways.
   We only use the draft prop when you click send, so update with more discretion. */
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps, nextState) {
     return (
       nextProps.sendActions.map(a => a.configKey).join(',') !==
-      this.props.sendActions.map(a => a.configKey).join(',') || (this.props.disabled !== nextProps.disabled)
+        this.props.sendActions.map(a => a.configKey).join(',') ||
+      this.props.disabled !== nextProps.disabled ||
+      this.state.isSending !== nextState.isSending
     );
   }
 
@@ -31,11 +61,20 @@ class SendActionButton extends React.Component {
   };
 
   _onSendWithAction = sendAction => {
-    if (this.props.isValidDraft()) {
+    if (this.props.isValidDraft() && !this.state.isSending) {
+      this.setState({ isSending: true });
       if (AppEnv.config.get('core.sending.sounds')) {
         SoundRegistry.playSound('hit-send');
       }
       Actions.sendDraft(this.props.draft.headerMessageId, { actionKey: sendAction.configKey });
+    }
+  };
+  _onSendDraftProcessCompleted = ({ headerMessageId }) => {
+    if (this._mounted && headerMessageId && headerMessageId === this.props.draft.headerMessageId) {
+      clearTimeout(this._sendButtonTimer);
+      this._sendButtonTimer = setTimeout(() => {
+        this.setState({ isSending: false });
+      }, this.props.sendButtonTimeout);
     }
   };
 
@@ -45,15 +84,15 @@ class SendActionButton extends React.Component {
 
     if (iconUrl) {
       plusHTML = <span>&nbsp;+&nbsp;</span>;
-      additionalImg = <RetinaImg url={iconUrl} mode={RetinaImg.Mode.ContentIsMask} />;
+      additionalImg = <RetinaImg url={iconUrl} mode={RetinaImg.Mode.ContentIsMask}/>;
     }
 
     return (
       <span>
-        <RetinaImg name={'sent.svg'}
-          style={{ width: 27, height: 27 }}
-          isIcon
-          mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg name={!this.state.isSending ? 'sent.svg' : 'sending-spinner.gif'}
+                   style={{ width: 27, height: 27 }}
+                   isIcon={!this.state.isSending}
+                   mode={RetinaImg.Mode.ContentIsMask}/>
         <span className="text">Send{plusHTML}</span>
         {additionalImg}
       </span>
@@ -64,7 +103,7 @@ class SendActionButton extends React.Component {
     return (
       <button
         tabIndex={-1}
-        className={'btn btn-toolbar btn-normal btn-send'}
+        className={`btn btn-toolbar btn-normal btn-send ${this.state.isSending ? 'btn-disabled' : ''}`}
         style={{ order: 100 }}
         onClick={!this.props.disabled ? this._onPrimaryClick : null}
         disabled={this.props.disabled}

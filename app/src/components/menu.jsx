@@ -18,11 +18,17 @@ class MenuItem extends React.Component {
      - `key` (optional) Pass a {String} to be the React key to optimize rendering lists of items.
      - `selected` (optional) Pass a {Boolean} to specify whether the item is selected.
      - `checked` (optional) Pass a {Boolean} to specify whether the item is checked.
+     - `disabled` (optional) Pass a {Boolean} to specify whether the item is disabled, default is false.
     */
   static propTypes = {
     divider: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     selected: PropTypes.bool,
     checked: PropTypes.bool,
+    disabled: PropTypes.bool,
+  };
+
+  static default = {
+    disabled: false,
   };
 
   render() {
@@ -34,6 +40,7 @@ class MenuItem extends React.Component {
         item: true,
         selected: this.props.selected,
         checked: this.props.checked,
+        disabled: this.props.disabled,
       });
       return (
         <div className={className} onMouseDown={this.props.onMouseDown}>
@@ -282,6 +289,9 @@ class Menu extends React.Component {
 
       const onMouseDown = event => {
         event.preventDefault();
+        if(item.disabled){
+          return;
+        }
         this.setState({ selectedIndex: i });
         if (this.props.onSelect) {
           return this.props.onSelect(item);

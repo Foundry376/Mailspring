@@ -54,6 +54,9 @@ class DraftStore extends MailspringStore {
       ipcRenderer.on('action-send-now', (event, headerMessageId, actionKey) => {
         Actions.sendDraft(headerMessageId, { actionKey, delay: 0 });
       });
+      ipcRenderer.on('action-send-cancelled', (event, headerMessageId, actionKey)=>{
+        Actions.draftDeliveryCancelled({ headerMessageId, actionKey });
+      });
       ipcRenderer.on('thread-arp', this._onThreadChange);
     }
     // popout closed
@@ -300,7 +303,7 @@ class DraftStore extends MailspringStore {
         return DraftFactory.createOrUpdateDraftForReply({ message: m, thread: t, type, behavior });
       })
       .then(draft => {
-        return this._finalizeAndPersistNewMessage(draft, { popout });
+        return this._finalizeAndPersistNewMessage(draft, { popout }, {originalMessageId: message.id, messageType: type});
       });
   };
 
@@ -310,7 +313,7 @@ class DraftStore extends MailspringStore {
         return DraftFactory.createDraftForForward({ thread: t, message: m });
       })
       .then(draft => {
-        return this._finalizeAndPersistNewMessage(draft, { popout });
+        return this._finalizeAndPersistNewMessage(draft, { popout }, {originalMessageId: message.id, messageType: 'forward'});
       });
   };
 
@@ -349,7 +352,7 @@ class DraftStore extends MailspringStore {
     return queries;
   }
 
-  _finalizeAndPersistNewMessage(draft, { popout } = {}) {
+  _finalizeAndPersistNewMessage(draft, { popout } = {}, {originalMessageId, messageType} = {}) {
     // Give extensions an opportunity to perform additional setup to the draft
     ExtensionRegistry.Composer.extensions().forEach(extension => {
       if (!extension.prepareNewDraft) {
@@ -368,6 +371,9 @@ class DraftStore extends MailspringStore {
     return TaskQueue.waitForPerformLocal(task).then(() => {
       if (popout) {
         this._onPopoutDraft(draft.headerMessageId);
+      }
+      if(originalMessageId){
+        Actions.draftReplyForwardCreated({ messageId: originalMessageId, type: messageType});
       }
       return { headerMessageId: draft.headerMessageId, draft };
     });
@@ -388,6 +394,7 @@ class DraftStore extends MailspringStore {
     const draft = await DraftFactory.createDraft();
     const { headerMessageId } = await this._finalizeAndPersistNewMessage(draft);
     await this._onPopoutDraft(headerMessageId, { newDraft: true });
+    Actions.composedNewBlankDraft();
   };
 
   _onPopoutDraft = async (headerMessageId, options = {}) => {

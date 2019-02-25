@@ -339,6 +339,16 @@ class Actions {
   static composeForward = ActionScopeWindow;
 
   /*
+  Public: Send a draft created action back to components, so disabled buttons can be enabled.
+  parameters: {
+    messageId,
+    type(optional, to distinguish between reply and replyAll)
+  }
+  */
+
+  static draftReplyForwardCreated = ActionScopeWindow;
+
+  /*
   Public: Pop out the draft with the provided ID so the user can edit it in another
   window.
 
@@ -361,6 +371,7 @@ class Actions {
   ```
   */
   static composeNewBlankDraft = ActionScopeWindow;
+  static composedNewBlankDraft = ActionScopeWindow;
 
   /*
   Public: Open a new composer window for a new draft addressed to the given recipient
@@ -392,6 +403,7 @@ class Actions {
 
   Recieves the id of the message that was sent
   */
+  static draftDeliveryCancelled = ActionScopeMainWindow;
   static draftDeliverySucceeded = ActionScopeMainWindow;
   static draftDeliveryFailed = ActionScopeMainWindow;
 

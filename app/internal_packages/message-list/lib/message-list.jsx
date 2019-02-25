@@ -19,7 +19,7 @@ import {
   MailImportantIcon,
   KeyCommandsRegion,
   InjectedComponentSet,
-  InjectedComponent
+  InjectedComponent,
 } from 'mailspring-component-kit';
 
 import FindInThread from './find-in-thread';
@@ -76,17 +76,30 @@ class MessageList extends React.Component {
     maxWidth: 999999,
   };
 
+  static default = {
+    buttonTimeout: 700, // in milliseconds
+  };
+
   constructor(props) {
     super(props);
     this.state = this._getStateFromStores();
     this.state.minified = true;
+    this.state.isReplyAlling = false;
+    this.state.isReplying = false;
+    this.state.isForwarding = false;
+    this._replyTimer = null;
+    this._replyAllTimer = null;
+    this._forwardTimer = null;
+    this._mounted = false;
     this._draftScrollInProgress = false;
     this.MINIFY_THRESHOLD = 3;
   }
 
   componentDidMount() {
-    this._unsubscribers = [];
-    this._unsubscribers.push(MessageStore.listen(this._onChange));
+    this._mounted = true;
+    this._unsubscribers = [MessageStore.listen(this._onChange),
+      Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this),
+      Actions.composeReply.listen(this._onCreatingDraft, this)];
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -105,24 +118,74 @@ class MessageList extends React.Component {
     MessageStore.messageListUnmounting({
       threadId: this.state.currentThread ? this.state.currentThread.id : '',
     });
+    clearTimeout(this._forwardTimer);
+    clearTimeout(this._replyAllTimer);
+    clearTimeout(this._replyTimer);
   }
+
+  _onCreatingDraft = ({ message, type = '' }) => {
+    if (message.id === this._lastMessage().id) {
+      if (type === 'reply') {
+        this.setState({ isReplying: true });
+      } else if (type === 'reply-all') {
+        this.setState({ isReplyAlling: true });
+      } else {
+        this.setState({ isForwarding: true });
+      }
+    }
+  };
+
+  _onDraftCreated = ({ messageId, type = '' }) => {
+    if (messageId && messageId === this._lastMessage().id && this._mounted) {
+      if (type === 'reply') {
+        clearTimeout(this._replyTimer);
+        this._replyTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isReplying: false });
+          }
+        }, this.props.buttonTimeout);
+      } else if (type === 'reply-all') {
+        clearTimeout(this._replyAllTimer);
+        this._replyAllTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isReplyAlling: false });
+          }
+        }, this.props.buttonTimeout);
+      } else {
+        clearTimeout(this._forwardTimer);
+        this._forwardTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isForwarding: false });
+          }
+        }, this.props.buttonTimeout);
+      }
+    }
+  };
 
   _globalKeymapHandlers() {
     const handlers = {
-      'core:reply': () =>
-        Actions.composeReply({
-          thread: this.state.currentThread,
-          message: this._lastMessage(),
-          type: 'reply',
-          behavior: 'prefer-existing',
-        }),
-      'core:reply-all': () =>
-        Actions.composeReply({
-          thread: this.state.currentThread,
-          message: this._lastMessage(),
-          type: 'reply-all',
-          behavior: 'prefer-existing',
-        }),
+      'core:reply': () => {
+        if (this._mounted && !this.state.isReplying) {
+          this.setState({ isReplying: true });
+          Actions.composeReply({
+            thread: this.state.currentThread,
+            message: this._lastMessage(),
+            type: 'reply',
+            behavior: 'prefer-existing',
+          });
+        }
+      },
+      'core:reply-all': () => {
+        if (this._mounted && !this.state.isReplyAlling) {
+          this.setState({ isReplyAlling: true });
+          Actions.composeReply({
+            thread: this.state.currentThread,
+            message: this._lastMessage(),
+            type: 'reply-all',
+            behavior: 'prefer-existing',
+          });
+        }
+      },
       'core:forward': () => this._onForward(),
       'core:print-thread': () => this._onPrintThread(),
       'core:messages-page-up': () => this._onScrollByPage(-1),
@@ -141,9 +204,10 @@ class MessageList extends React.Component {
   }
 
   _onForward = () => {
-    if (!this.state.currentThread) {
+    if (!this.state.currentThread || this.state.isForwarding || !this._mounted) {
       return;
     }
+    this.setState({ isForwarding: true });
     Actions.composeForward({
       thread: this.state.currentThread,
       message: this._lastMessage(),
@@ -196,8 +260,13 @@ class MessageList extends React.Component {
   };
 
   _onClickReplyArea = () => {
-    if (!this.state.currentThread) {
+    if (!this.state.currentThread || this.state.isReplying || this.state.isReplyAlling || !this._mounted) {
       return;
+    }
+    if (this._replyType() === 'reply-all') {
+      this.setState({ isReplyAlling: true });
+    } else {
+      this.setState({ isReplying: true });
     }
     Actions.composeReply({
       thread: this.state.currentThread,
@@ -242,7 +311,7 @@ class MessageList extends React.Component {
           isBeforeReplyArea={isBeforeReplyArea}
           scrollTo={this._scrollTo}
           threadPopedOut={this.state.popedOut}
-        />
+        />,
       );
 
       if (isBeforeReplyArea) {
@@ -363,7 +432,7 @@ class MessageList extends React.Component {
 
     return (
       <div className="message-subject-wrap">
-        <MailImportantIcon thread={this.state.currentThread} />
+        <MailImportantIcon thread={this.state.currentThread}/>
         <div style={{ flex: 1 }}>
           <span className="message-subject">{subject}</span>
           <MailLabelSet
@@ -384,10 +453,10 @@ class MessageList extends React.Component {
         {this._renderExpandToggle()}
         <div onClick={this._onPrintThread}>
           <RetinaImg name={'print.svg'}
-            title="Print Thread"
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+                     title="Print Thread"
+                     style={{ width: 24, height: 24 }}
+                     isIcon
+                     mode={RetinaImg.Mode.ContentIsMask}/>
         </div>
         {this._renderPopoutToggle()}
       </div>
@@ -396,7 +465,7 @@ class MessageList extends React.Component {
 
   _renderExpandToggle() {
     if (!this.state.canCollapse) {
-      return <span />;
+      return <span/>;
     }
 
     return (
@@ -427,22 +496,25 @@ class MessageList extends React.Component {
     return (
       <div onClick={this._onPopoutThread}>
         <RetinaImg name={'popout.svg'}
-          style={{ width: 24, height: 24 }}
-          isIcon
-          mode={RetinaImg.Mode.ContentIsMask} />
+                   style={{ width: 24, height: 24 }}
+                   isIcon
+                   mode={RetinaImg.Mode.ContentIsMask}/>
       </div>
     );
   }
 
   _renderReplyArea() {
+    const isReplyAll = this._replyType() === 'reply-all';
+    const disabled = isReplyAll ? this.state.isReplyAlling : this.state.isReplying;
     return (
-      <div className="footer-reply-area-wrap" onClick={this.state.popedOut ? this._onPopoutThread : this._onClickReplyArea} key="reply-area">
+      <div className="footer-reply-area-wrap"
+           onClick={this.state.popedOut ? this._onPopoutThread : this._onClickReplyArea} key="reply-area">
         <div className="footer-reply-area">
           <RetinaImg
-            name={`${this._replyType()}.svg`}
+            name={disabled ? 'sending-spinner.gif' : `${this._replyType()}.svg`}
             style={{ width: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            isIcon={!disabled}
+            mode={RetinaImg.Mode.ContentIsMask}/>
           <span className="reply-text">
             {this._replyType() === 'reply-all' ? 'Reply All' : 'Reply'}
           </span>
@@ -467,7 +539,7 @@ class MessageList extends React.Component {
                 key={`thread-avatar-${index}`}
                 exposedProps={{
                   from: message.from && message.from[0],
-                  styles: { marginLeft: 5 * index, border: '1px solid #fff' }
+                  styles: { marginLeft: 5 * index, border: '1px solid #fff' },
                 }}
                 matching={{ role: 'EmailAvatar' }}
               />
@@ -481,7 +553,7 @@ class MessageList extends React.Component {
 
   render() {
     if (!this.state.currentThread) {
-      return <div className="empty" />;
+      return <div className="empty"/>;
     }
 
     const wrapClass = classNames({
@@ -496,7 +568,7 @@ class MessageList extends React.Component {
 
     return (
       <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()}>
-        <FindInThread />
+        <FindInThread/>
         <div className={messageListClass} id="message-list">
           <ScrollRegion
             tabIndex="-1"
@@ -518,7 +590,7 @@ class MessageList extends React.Component {
             </div>
             {this._messageElements()}
           </ScrollRegion>
-          <Spinner visible={this.state.loading} />
+          <Spinner visible={this.state.loading}/>
         </div>
       </KeyCommandsRegion>
     );
