@@ -55,7 +55,11 @@ export default class ModeToggle extends React.Component {
         title={this.state.hidden ? 'Show sidebar' : 'Hide sidebar'}
         onClick={this._onToggleMode}
       >
-        <RetinaImg name="toolbar-person-sidebar.png" mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg
+          isIcon
+          style={{ width: 22 }}
+          name="contacts.svg"
+          mode={RetinaImg.Mode.ContentIsMask} />
       </button>
     );
   }

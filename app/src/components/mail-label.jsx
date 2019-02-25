@@ -56,8 +56,9 @@ export class MailLabel extends React.Component {
       x = (
         <RetinaImg
           className="x"
-          name="label-x.png"
-          style={{ backgroundColor: LabelColorizer.color(this.props.label) }}
+          isIcon
+          name="close_1.svg"
+          style={{ width: 10, backgroundColor: LabelColorizer.color(this.props.label) }}
           mode={RetinaImg.Mode.ContentIsMask}
           onClick={this.props.onRemove}
         />
