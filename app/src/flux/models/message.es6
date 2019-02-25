@@ -8,7 +8,7 @@ import Contact from './contact';
 import Folder from './folder';
 import Attributes from '../attributes';
 import ModelWithMetadata from './model-with-metadata';
-import AccountStore from '../stores/account-store.es6';
+import AccountStore from '../stores/account-store';
 
 /*
 Public: The Message model represents an email message or draft.
