@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import uuidv4 from 'uuid/v4';
 import Actions from '../actions';
 import DatabaseStore from './database-store';
 import AccountStore from './account-store';
@@ -31,14 +32,13 @@ async function prepareBodyForQuoting(body) {
 class DraftFactory {
   async createDraft(fields = {}) {
     const account = this._accountForNewDraft();
-    const uniqueId = `${Math.floor(Date.now() / 1000)}.${Utils.generateTempId()}`;
     const defaults = {
       body: '<br/>',
       subject: '',
       version: 0,
       unread: false,
       starred: false,
-      headerMessageId: `${uniqueId}-v${AppEnv.getVersion()}@getmailspring.com`,
+      headerMessageId: `${uuidv4().toUpperCase()}@getmailspring.com`,
       from: [account.defaultMe()],
       date: new Date(),
       draft: true,
