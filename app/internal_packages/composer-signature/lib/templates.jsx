@@ -1,4 +1,4 @@
-import { React } from 'mailspring-exports';
+import React from 'react';
 import querystring from 'querystring';
 
 // Static components

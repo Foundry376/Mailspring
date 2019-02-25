@@ -1,5 +1,5 @@
 import { mount } from 'enzyme';
-import { React } from 'mailspring-exports';
+import React from 'react';
 import DevModeNotification from '../lib/items/dev-mode-notif';
 
 describe('DevModeNotif', function DevModeNotifTests() {

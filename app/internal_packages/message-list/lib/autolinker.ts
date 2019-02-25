@@ -51,7 +51,7 @@ function _runOnTextNode(node, matchers) {
   }
 }
 
-export function autolink(doc, { async } = {}) {
+export function autolink(doc, { async } = { async: false }) {
   // Traverse the new DOM tree and make things that look like links clickable,
   // and ensure anything with an href has a title attribute.
   const textWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
