@@ -118,12 +118,14 @@ module.exports = function (client) {
                 cb(null, mamRes);
             }
             return mamRes;
-        }, function (err) {
+        }).catch(function (err) {
             self.off('mam:item:' + queryid);
             if (cb) {
                 cb(err);
             } else {
-                throw err;
+                const stackError = new Error();
+                console.warn('stanza.io/lib/plugins/mam.js: timeoutPromise: err: ', err, stackError);
+                //throw err;
             }
         });
     };
