@@ -189,7 +189,11 @@ export default class MessagesPanel extends PureComponent {
   refreshRoomMembers = async (nextProps) => {
     const { selectedConversation: conversation } = (nextProps || this.props);
     if (conversation && conversation.isGroup) {
+      let state = Object.assign({}, this.state, { loadingMembers: true });
+      this.setState(state);
       const members = await this.getRoomMembers(nextProps);
+      state = Object.assign({}, this.state, { loadingMembers: false });
+      this.setState(state);
       if (conversation.update && members && members.length > 0) {
         conversation.update({
           $set: {
@@ -203,7 +207,8 @@ export default class MessagesPanel extends PureComponent {
         member.nickname = nicknames[jid] || '';
       };
       if (!this.state.members || !this.state.members.length || members && members.length) {
-        this.setState({ members });
+        const state = Object.assign({}, this.state, { members });
+        this.setState(state);
       }
     }
   }
@@ -408,6 +413,7 @@ export default class MessagesPanel extends PureComponent {
       deselectConversation: this.props.deselectConversation,
       toggleInvite: this.toggleInvite,
       members: this.state.members,
+      loadingMembers: this.state.loadingMembers,
       getRoomMembers: this.getRoomMembers,
       refreshRoomMembers: this.refreshRoomMembers,
       removeMember: this.removeMember,
