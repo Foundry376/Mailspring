@@ -49,6 +49,10 @@ export default class ConversationInfo extends Component {
   }
 
   exitGroup = () => {
+    if(!confirm('Are you sure to exit from this group?')) {
+      return;
+    }
+
     const { selectedConversation: conversation } = this.props;
     xmpp.leaveRoom(conversation.jid, conversation.curJid);
     (getDb()).then(db => {
@@ -176,7 +180,7 @@ export default class ConversationInfo extends Component {
               )
             })
           }
-          {conversation.isGroup && !this.currentUserIsOwner && <div className="add-to-group"
+          { conversation.isGroup && !this.currentUserIsOwner && <div className="add-to-group"
                                                                         onClick={this.exitGroup}>
             Exit from Group
           </div>
