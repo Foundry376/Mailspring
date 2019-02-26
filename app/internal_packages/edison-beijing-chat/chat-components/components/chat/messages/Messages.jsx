@@ -13,7 +13,7 @@ import {
 } from '../../../db/schemas/message';
 import { colorForString } from '../../../utils/colors';
 import { buildTimeDescriptor, dateFormat } from '../../../utils/time';
-import RetinaImg from '../../../../../../src/components/retina-img';
+import { RetinaImg } from 'mailspring-component-kit';
 import { downloadFile } from '../../../utils/awss3';
 
 const remote = require('electron').remote;
@@ -277,6 +277,14 @@ export default class Messages extends PureComponent {
     }
   }
 
+  showPopupMenu = (msg, msgBody) => {
+    this.activeMsg = msg;
+    this.activeMsgBody = msgBody;
+    event.stopPropagation();
+    event.preventDefault();
+    this.menu.popup({ x: event.clientX, y: event.clientY });
+  };
+
   render() {
     const {
       currentUserId,
@@ -304,11 +312,18 @@ export default class Messages extends PureComponent {
           title={msgBody.path}
           onClick={() => this.download(msgBody)}
         />
-        {msg.sender === currentUserId && <span
-          className="inplace-edit-img"
-          onClick={showPopupMenu}
-          onContextMenu={showPopupMenu}
-        />}
+        {msg.sender === currentUserId && (
+          <span
+            className="inplace-edit-img"
+            onClick={() => this.showPopupMenu(msg, msgBody)}
+            onContextMenu={() => this.showPopupMenu(msg, msgBody)}
+          >
+            <RetinaImg name={'expand-more.svg'}
+              style={{ width: 26, height: 26 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
+          </span>
+        )}
       </div>
     )
 
@@ -342,14 +357,6 @@ export default class Messages extends PureComponent {
 
               const color = colorForString(msg.sender);
               let msgFile;
-
-              let showPopupMenu = (event) => {
-                this.activeMsg = msg;
-                this.activeMsgBody = msgBody;
-                event.stopPropagation();
-                event.preventDefault();
-                this.menu.popup({ x: event.clientX, y: event.clientY });
-              };
               let onClickImage = () => {
                 msg.zoomin = true;
                 if (msg.height < 1600) {
@@ -481,13 +488,20 @@ export default class Messages extends PureComponent {
                     }
                   </div>
                   {
-                    !msgFile && isCurrentUser && !isEditing && <div className='message-toolbar' >
-                      <span
-                        className="inplace-edit-img"
-                        onClick={showPopupMenu}
-                        onContextMenu={showPopupMenu}
-                      /></div>
-                  }
+                    !msgFile && isCurrentUser && !isEditing && (
+                      <div className='message-toolbar' >
+                        <span
+                          className="inplace-edit-img"
+                          onClick={() => this.showPopupMenu(msg, msgBody)}
+                          onContextMenu={() => this.showPopupMenu(msg, msgBody)}
+                        >
+                          <RetinaImg name={'expand-more.svg'}
+                            style={{ width: 26, height: 26 }}
+                            isIcon
+                            mode={RetinaImg.Mode.ContentIsMask} />
+                        </span>
+                      </div>
+                    )}
                 </div>
               );
             })}

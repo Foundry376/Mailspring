@@ -79,9 +79,9 @@ export default class MessagesTopBar extends Component {
             <div className="avatarWrapper">
               <div id="open-info" onClick={() => onInfoPressed()}>
                 {conversation.isGroup ?
-                  <GroupChatAvatar conversation={conversation} size={26} /> :
+                  <GroupChatAvatar conversation={conversation} size={35} /> :
                   <ContactAvatar conversation={conversation} jid={conversation.jid} name={conversation.name}
-                    email={conversation.email} avatar={conversation.avatar} size={26} />
+                    email={conversation.email} avatar={conversation.avatar} size={35} />
                 }
               </div>
             </div>

@@ -1,5 +1,6 @@
 @import 'ui-variables';
 
+
 .chat-view-container {
   @topBarHeight: 65px;
   .top-bar-container {
@@ -12,7 +13,7 @@
   }
   .left-title,
   .mid-title {
-    font-size: 13px;
+    font-size: 11px;
     text-align: center;
     font-weight: bold;
   }
@@ -55,7 +56,7 @@
       position: relative;
       .groupAvatar {
         .chat-avatar {
-          transform: scale(1);
+          position: absolute;
         }
         .chat-avatar:nth-child(1) {
           width: 35px;
@@ -63,6 +64,7 @@
           right: 15px;
           top: 17px;
           border: 1px solid @white;
+          z-index: 2;
         }
         .chat-avatar:nth-child(2) {
           width: 20px;
@@ -112,6 +114,7 @@
 
   #open-info {
     cursor: pointer;
+    padding: 15px 16px;
   }
 
   a {

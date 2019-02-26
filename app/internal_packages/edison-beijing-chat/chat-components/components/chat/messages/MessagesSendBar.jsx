@@ -237,7 +237,7 @@ export default class MessagesSendBar extends PureComponent {
               conversationJid: selectedConversation.jid,
               body,
               sender: selectedConversation.curJid,
-              sentTime: (new Date()).getTime()+chatModel.diffTime,
+              sentTime: (new Date()).getTime() + chatModel.diffTime,
               status: MESSAGE_STATUS_UPLOAD_FAILED,
             };
             chatModel.store.dispatch(beginStoringMessage(message));
@@ -406,13 +406,7 @@ export default class MessagesSendBar extends PureComponent {
   }
 
   render() {
-    // const { suggestions, suggestionStyle } = this.state;
     const inputProps = {};
-    // if (this.props.createRoom) {
-    //   inputProps.onFocus = () => {
-    //     this.props.createRoom();
-    //   }
-    // }
     return (
       <div className="sendBar" onDrop={this.onDrop}>
         {/* <Mention

@@ -23,6 +23,7 @@
   background: #fff;
   height: 300px;
   min-height: 50px;
+  box-shadow:  -1px -1px 2px rgba(0, 0, 0, 0.1);
   .leftPanel {
     height: 100%;
     width: 100%;
@@ -33,13 +34,18 @@
       border-radius: 3px;
       width: 40px;
       height: 4px;
-      top: 4px;
+      top: 6px;
       left: 50%;
       margin-left: -20px;
       cursor: row-resize;
       opacity: 0.2;
       transition-property: opacity;
       transition-duration: 1s;
+    }
+    .top-bar-container {
+      height: 20px;
+      min-height: 20px;
+      margin: 23px 0 11px 0;
     }
   }
   .leftPanel:hover {
