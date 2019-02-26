@@ -43,6 +43,10 @@ export default class ComposerView extends React.Component {
     session: PropTypes.object.isRequired,
     draft: PropTypes.object.isRequired,
     className: PropTypes.string,
+    buttonTimer: PropTypes.number,
+  };
+  static default = {
+    buttonTimer: 700, // in milliseconds
   };
 
   constructor(props) {
@@ -67,7 +71,13 @@ export default class ComposerView extends React.Component {
       isDropping: false,
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
       quotedTextHidden: hideQuotedTextByDefault(draft),
+      isDeleting: false,
     };
+    this._deleteTimer = null;
+    this._unlisten = [
+      Actions.destroyDraftFailed.listen(this._onDestroyedDraftProcessed, this),
+      Actions.destroyDraftSucceeded.listen(this._onDestroyedDraftProcessed, this)
+    ];
   }
 
   componentDidMount() {
@@ -102,6 +112,9 @@ export default class ComposerView extends React.Component {
     this._mounted = false;
     if (this._animationFrameTimer) {
       window.cancelAnimationFrame(this._animationFrameTimer);
+    }
+    for(let unlisten in this._unlisten){
+      unlisten();
     }
     // In the future, we should clean up the draft session entirely, or give it
     // the same lifecycle as the composer view. For now, just make sure we free
@@ -345,10 +358,11 @@ export default class ComposerView extends React.Component {
           onClick={this._onDestroyDraft}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name={'trash.svg'}
+          <RetinaImg name={this.state.isDeleting ? 'sending-spinner.gif' : 'trash.svg'}
             style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            isIcon={!this.state.isDeleting}
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
         </button>
 
         <button
@@ -534,8 +548,22 @@ export default class ComposerView extends React.Component {
     this._els.sendActionButton.primarySend();
   };
 
+  _onDestroyedDraftProcessed = ({ messageId }) => {
+    if( messageId === this.props.draft.id ){
+      clearTimeout(this._deleteTimer);
+      this._deleteTimer = setTimeout(() => {
+        if(this._mounted){
+          this.setState({ isDeleting: false });
+        }
+      }, this.props.buttonTimer);
+    }
+  };
+
   _onDestroyDraft = () => {
-    Actions.destroyDraft(this.props.draft);
+    if (!this.state.isDeleting) {
+      this.setState({ isDeleting: true });
+      Actions.destroyDraft(this.props.draft);
+    }
   };
 
   _onSelectAttachment = () => {
