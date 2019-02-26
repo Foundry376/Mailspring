@@ -92,10 +92,10 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     return;
   }
   if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
-    // a img link
+    // a link
     msgBody.path = msgBody.mediaObjectId;
-  } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
-    // image file on aws
+  } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE) {
+    // file on aws
     let name = msgBody.mediaObjectId;
     name = name.split('/')[1]
     name = name.replace(/\.encrypted$/, '');
