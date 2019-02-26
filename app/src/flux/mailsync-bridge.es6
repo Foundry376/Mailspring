@@ -556,11 +556,10 @@ export default class MailsyncBridge {
       if (Date.now() - this._setObservableRangeTimer[accountId].timestamp > 1000) {
         this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
         if (this._additionalObservableThreads[accountId]) {
-          task.threadIds = task.threadIds.concat(
-            Object.values(this._additionalObservableThreads[accountId]).filter(threadId => {
-              return !task.threadIds.includes(threadId);
-            }),
-          );
+          task.threadIds = [
+            ...new Set(
+              task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId]))
+          )];
         }
         this._setObservableRangeTimer[accountId].timestamp = Date.now();
         // DC-46
@@ -573,11 +572,10 @@ export default class MailsyncBridge {
           id: setTimeout(() => {
             this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
             if (this._additionalObservableThreads[accountId]) {
-              task.threadIds = task.threadIds.concat(
-                Object.values(this._additionalObservableThreads[accountId]).filter(threadId => {
-                  return !task.threadIds.includes(threadId);
-                }),
-              );
+              task.threadIds = [
+                ...new Set(
+                  task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId]))
+                )];
             }
             this.sendMessageToAccount(accountId, task.toJSON());
           }, 1000),
@@ -589,11 +587,11 @@ export default class MailsyncBridge {
         id: setTimeout(() => {
           this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
           if (this._additionalObservableThreads[accountId]) {
-            task.threadIds = task.threadIds.concat(
-              Object.values(this._additionalObservableThreads[accountId]).filter(threadId => {
-                return !task.threadIds.includes(threadId);
-              }),
-            );
+            task.threadIds = [
+              ...new Set(
+                task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId]))
+              ),
+            ];
           }
           this.sendMessageToAccount(accountId, task.toJSON());
         }, 1000),
