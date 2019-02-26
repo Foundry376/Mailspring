@@ -391,16 +391,6 @@ export default class MessagesPanel extends PureComponent {
       onInfoPressed: () =>
         this.setState({ showConversationInfo: !this.state.showConversationInfo }),
       toggleInvite: this.toggleInvite,
-      exitGroup: () => {
-        xmpp.leaveRoom(selectedConversation.jid, chatModel.currentUser.jid);
-        (getDb()).then(db => {
-          db.conversations.findOne(selectedConversation.jid).exec().then(conv => {
-            conv.remove()
-          }).catch((error) => {
-          })
-        });
-        deselectConversation();
-      },
       availableUsers,
       infoActive: showConversationInfo,
       selectedConversation,

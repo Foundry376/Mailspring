@@ -54,7 +54,7 @@
   }
 
   .message-group {
-    padding: 0 15px 8px 15px;
+    padding-bottom: 8px;
     display: flex;
     flex-direction: column;
     .day-label {
@@ -95,7 +95,6 @@
 
   .message {
     margin: 1px 0 1px 0;
-    padding: 8px 12px 8px 12px;
     display: flex;
     flex-direction: column;
     border-width: 2px;
@@ -105,26 +104,25 @@
     }
   }
 
-  // .message.currentUser {
-  //   align-self: flex-end;
-  //   background-color: #2fa3fc;
-  //   padding: 12px;
-  //   border-radius: 15px;
-  //   color: white;
-  //   position: relative;
-  //   margin-right: 37px;
-  // }
-
   .message.currentUser,
   .message.otherUser {
     align-self: flex-start;
-    padding: 0 0 30px 5px;
-    border-radius: 15px;
-    color: #000;
+    padding: 0 15px 30px 20px;
+    color: @text-color;
     position: relative;
     display: flex;
     flex-direction: row;
     width: 100%;
+  }
+
+  .message.editing {
+    padding-top: 15px;
+    padding-bottom: 0;
+    .sendBar {
+      background: transparent;
+      padding: 5px 0 40px 0;
+      margin-bottom: 15px;
+    }
   }
 
   .message.currentUser,
@@ -157,6 +155,10 @@
     }
   }
 
+  .messageContent {
+      overflow: visible;
+  }
+
   .messageBody {
     align-self: flex-start;
     flex-grow: 1;
@@ -164,6 +166,11 @@
     white-space: pre-line;
     word-break: break-word;
     display: inline-block;
+    .text-content {
+      position: relative;
+      padding-right: 50px;
+      line-height: 22px;
+    }
   }
 
   .messageMeta {
@@ -200,7 +207,7 @@
     position:absolute;
     z-index: 8;
     opacity:1;
-    top: 3px;
+    top: -7px;
     right: 0;
   }
   .download-img,
@@ -247,7 +254,7 @@
   }
   .message.editing {
     width: 100%;
-    background: @gray-lightest;
+    background: @off-white;
     &:after {
       display: none!important;
     }

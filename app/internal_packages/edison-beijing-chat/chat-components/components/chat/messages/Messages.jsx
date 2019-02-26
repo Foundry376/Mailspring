@@ -239,7 +239,7 @@ export default class Messages extends PureComponent {
     }, 10);
   }
 
-  download = (event, msgBody) => {
+  download = (msgBody) => {
     event.stopPropagation();
     event.preventDefault();
     let path = dialog.showSaveDialog({ title: `download file` });
@@ -305,13 +305,15 @@ export default class Messages extends PureComponent {
       return messageStyles.join(' ');
     };
 
-    const messageToolbar = (msg, msgBody) => (
+    const messageToolbar = (msg, msgBody, isFile) => (
       <div className='message-toolbar' >
-        <span
-          className="download-img"
-          title={msgBody.path}
-          onClick={() => this.download(msgBody)}
-        />
+        {isFile && (
+          <span
+            className="download-img"
+            title={msgBody.path}
+            onClick={() => this.download(msgBody)}
+          />
+        )}
         {msg.sender === currentUserId && (
           <span
             className="inplace-edit-img"
@@ -374,13 +376,14 @@ export default class Messages extends PureComponent {
 
               if (shouldInlineImg(msgBody)) {
                 msg.height = msg.height || 220;
-                msgFile = (<div className="messageMeta" onClick={onClickImage}>
+                msgFile = (<div className="messageMeta">
                   <img
                     src={msgBody.path}
                     title={msgBody.localFile || msgBody.mediaObjectId}
                     style={{ height: '220px', cursor }}
+                    onClick={onClickImage}
                   />
-                  {messageToolbar(msg, msgBody)}
+                  {messageToolbar(msg, msgBody, true)}
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
@@ -450,7 +453,15 @@ export default class Messages extends PureComponent {
                               <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} {...this.props.sendBarProps} />
                             </div>
                           ) : (
-                              <div className="messageBody">{msgBody.content || msgBody}</div>
+                              <div className="messageBody">
+                                <div className="text-content">
+                                  {msgBody.content || msgBody}
+                                  {
+                                    !msgFile && isCurrentUser && !isEditing && (
+                                      messageToolbar(msg, msgBody, false)
+                                    )}
+                                </div>
+                              </div>
                             )
                         )
                     }
@@ -487,21 +498,6 @@ export default class Messages extends PureComponent {
                       </div>
                     }
                   </div>
-                  {
-                    !msgFile && isCurrentUser && !isEditing && (
-                      <div className='message-toolbar' >
-                        <span
-                          className="inplace-edit-img"
-                          onClick={() => this.showPopupMenu(msg, msgBody)}
-                          onContextMenu={() => this.showPopupMenu(msg, msgBody)}
-                        >
-                          <RetinaImg name={'expand-more.svg'}
-                            style={{ width: 26, height: 26 }}
-                            isIcon
-                            mode={RetinaImg.Mode.ContentIsMask} />
-                        </span>
-                      </div>
-                    )}
                 </div>
               );
             })}
