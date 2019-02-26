@@ -19,6 +19,10 @@ export class PluginMetadata extends Model {
     }),
   };
 
+  public pluginId: string;
+  public version: number;
+  public value: any;
+
   constructor(...args) {
     super(...args);
     this.version = this.version || 0;
@@ -57,6 +61,8 @@ export default class ModelWithMetadata extends Model {
   static naturalSortOrder() {
     return null;
   }
+
+  public pluginMetadata: PluginMetadata[];
 
   constructor(...args) {
     super(...args);

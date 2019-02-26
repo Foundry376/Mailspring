@@ -130,6 +130,19 @@ export default class Thread extends ModelWithMetadata {
     return Thread.sortOrderAttribute().descending();
   };
 
+  public snippet: string;
+  public subject: string;
+  public unread: boolean;
+  public starred: boolean;
+  public version: number;
+  public folders: Folder[];
+  public labels: Label[];
+  public participants: Contact[];
+  public attachmentCount: number;
+  public lastMessageReceivedTimestamp: Date;
+  public lastMessageSentTimestamp: Date;
+  public inAllMail: boolean;
+
   async messages({ includeHidden } = {}) {
     const messages = await DatabaseStore.findAll(Message)
       .where({ threadId: this.id })

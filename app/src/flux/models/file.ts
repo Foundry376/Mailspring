@@ -43,6 +43,12 @@ export default class File extends Model {
     }),
   });
 
+  public filename: string;
+  public size: number;
+  public contentType: string;
+  public messageId: string;
+  public contentId: string;
+
   // Public: Files can have empty names, or no name. `displayName` returns the file's
   // name if one is present, and falls back to appropriate default name based on
   // the contentType. It will always return a non-empty string.

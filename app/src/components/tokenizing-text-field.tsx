@@ -8,11 +8,10 @@ import RetinaImg from './retina-img';
 import KeyCommandsRegion from './key-commands-region';
 
 type SizeToFitInputProps = {
-  value?: string
+  value?: string;
 };
 
 class SizeToFitInput extends React.Component<SizeToFitInputProps> {
-
   constructor(props) {
     super(props);
     this.state = {};
@@ -212,39 +211,38 @@ class Token extends React.Component {
   }
 }
 
-
 type TokenizingTextFieldProps = {
-  className?: string,
-  disabled?: boolean,
-  placeholder?: React.ReactNode,
-  tokens?: object[],
-  maxTokens?: number,
-  defaultValue?: string,
-  tokenKey: (...args: any[]) => any,
-  tokenIsValid?: (...args: any[]) => any,
-  tokenRenderer: (...args: any[]) => any,
-  tokenClassNames?: (...args: any[]) => any,
-  onRequestCompletions: (...args: any[]) => any,
-  completionNode: (...args: any[]) => any,
-  onAdd: (...args: any[]) => any,
-  onInputTrySubmit?: (...args: any[]) => any,
-  shouldBreakOnKeydown?: (...args: any[]) => any,
-  onRemove: (...args: any[]) => any,
-  onEdit?: (...args: any[]) => any,
-  onEditMotion?: (...args: any[]) => any,
-  onEmptied?: (...args: any[]) => any,
-  onTokenAction?: ((...args: any[]) => any) | boolean,
-  onFocus?: (...args: any[]) => any,
-  menuPrompt?: string,
-  menuClassSet?: object,
-  tabIndex?: number
+  className?: string;
+  disabled?: boolean;
+  placeholder?: React.ReactNode;
+  tokens?: object[];
+  maxTokens?: number;
+  defaultValue?: string;
+  tokenKey: (...args: any[]) => any;
+  tokenIsValid?: (...args: any[]) => any;
+  tokenRenderer: (...args: any[]) => any;
+  tokenClassNames?: (...args: any[]) => any;
+  onRequestCompletions: (...args: any[]) => any;
+  completionNode: (...args: any[]) => any;
+  onAdd: (...args: any[]) => any;
+  onInputTrySubmit?: (...args: any[]) => any;
+  shouldBreakOnKeydown?: (...args: any[]) => any;
+  onRemove: (...args: any[]) => any;
+  onEdit?: (...args: any[]) => any;
+  onEditMotion?: (...args: any[]) => any;
+  onEmptied?: (...args: any[]) => any;
+  onTokenAction?: ((...args: any[]) => any) | boolean;
+  onFocus?: (...args: any[]) => any;
+  menuPrompt?: string;
+  menuClassSet?: object;
+  tabIndex?: number;
 };
 type TokenizingTextFieldState = {
-  inputValue: any,
-  inputValue: string,
-  inputValue: any,
-  completions: undefined[],
-  selectedKeys: undefined[]
+  inputValue: any;
+  inputValue: string;
+  inputValue: any;
+  completions: undefined[];
+  selectedKeys: undefined[];
 };
 
 /*
@@ -257,7 +255,10 @@ See documentation on the propTypes for usage info.
 
 Section: Component Kit
 */
-export default class TokenizingTextField extends React.Component<TokenizingTextFieldProps, TokenizingTextFieldState> {
+export default class TokenizingTextField extends React.Component<
+  TokenizingTextFieldProps,
+  TokenizingTextFieldState
+> {
   static displayName = 'TokenizingTextField';
 
   static containerRequired = false;
@@ -404,6 +405,8 @@ export default class TokenizingTextField extends React.Component<TokenizingTextF
     defaultValue: '',
     tokenClassNames: () => '',
   };
+
+  _mounted: boolean = false;
 
   constructor(props) {
     super(props);

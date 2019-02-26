@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs-plus';
 import { localized } from './intl';
 import LessCompileCache from './less-compile-cache';
+import PackageManager from './package-manager';
 
 const CONFIG_THEME_KEY = 'core.theme';
 
@@ -26,6 +27,7 @@ export default class ThemeManager {
   private emitter = new Emitter();
   private styleSheetDisposablesBySourcePath = {};
   private lessCache: LessCompileCache;
+  private packageManager: PackageManager;
 
   constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
     this.packageManager = packageManager;

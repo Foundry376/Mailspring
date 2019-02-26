@@ -5,14 +5,14 @@ import { localized } from './intl';
 import Package from './package';
 
 export default class PackageManager {
+  packageDirectories: string[] = [];
+  waiting: Package[] = [];
+  available: { [packageName: string]: Package } = {};
+  active: { [packageName: string]: Package } = {};
+
   constructor({ configDirPath, devMode, safeMode, resourcePath, specMode }) {
-    this.packageDirectories = [];
     this.resourcePath = resourcePath;
     this.configDirPath = configDirPath;
-
-    this.available = {};
-    this.active = {};
-    this.waiting = [];
 
     if (specMode) {
       this.packageDirectories.push(path.join(resourcePath, 'spec', 'fixtures', 'packages'));

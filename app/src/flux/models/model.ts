@@ -34,6 +34,9 @@ export default class Model {
 
   static naturalSortOrder = () => null;
 
+  public id: string;
+  public accountId: string;
+
   constructor(data) {
     if (data) {
       if (data.__cls) {
@@ -75,7 +78,7 @@ export default class Model {
   // Returns an {Object} with the JSON representation of the model.
   //
   toJSON() {
-    const json = {};
+    const json: any = {};
     for (const key of Object.keys(this.constructor.attributes)) {
       const attr = this.constructor.attributes[key];
       const attrValue = this[key];

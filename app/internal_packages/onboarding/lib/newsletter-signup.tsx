@@ -11,6 +11,8 @@ export default class NewsletterSignup extends React.Component {
     emailAddress: PropTypes.string,
   };
 
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
     this.state = { status: 'Pending' };

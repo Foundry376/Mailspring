@@ -123,10 +123,11 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
     static containerRequired = ComposedComponent.containerRequired;
     static containerStyles = ComposedComponent.containerStyles;
 
+    _mounted: boolean = false;
+    _unlisteners = [];
+
     constructor(props) {
       super(props);
-      this._unlisteners = [];
-      this._mounted = false;
       this.state = { visible: false };
     }
 

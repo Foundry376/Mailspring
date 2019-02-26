@@ -9,12 +9,12 @@ import PropTypes from 'prop-types';
   ```
 */
 type SwitchProps = {
-  checked?: boolean,
-  onChange: (...args: any[]) => any,
-  className?: string
+  checked?: boolean;
+  onChange: (...args: any[]) => any;
+  className?: string;
 };
 
-const Switch = React.SFC<SwitchProps>(props) => {
+const Switch: React.SFC<SwitchProps> = props => {
   let classnames = `${props.className || ''} slide-switch`;
   if (props.checked) {
     classnames += ' active';

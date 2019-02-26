@@ -29,4 +29,8 @@ export default class Calendar extends Model {
       jsonKey: 'read_only',
     }),
   });
+
+  public name: string;
+  public description: string;
+  public readOnly: boolean;
 }

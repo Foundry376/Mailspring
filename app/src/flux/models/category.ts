@@ -133,6 +133,10 @@ export default class Category extends Model {
     return role;
   }
 
+  public role: string;
+  public path: string;
+  public localStatus: object;
+
   displayType() {
     throw new Error('Base class');
   }

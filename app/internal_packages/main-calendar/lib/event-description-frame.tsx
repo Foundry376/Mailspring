@@ -8,6 +8,8 @@ export default class EmailFrame extends React.Component {
     content: PropTypes.string.isRequired,
   };
 
+  _mounted: boolean = false;
+
   componentDidMount() {
     this._mounted = true;
     this._writeContent();

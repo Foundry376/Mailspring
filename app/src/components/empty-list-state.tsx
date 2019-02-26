@@ -10,8 +10,8 @@ import { SyncingListState } from 'mailspring-component-kit';
 const INBOX_ZERO_ANIMATIONS = ['gem', 'oasis', 'tron', 'airstrip', 'galaxy'];
 
 type EmptyPerspectiveStateProps = {
-  perspective?: object,
-  messageContent?: React.ReactNode
+  perspective?: object;
+  messageContent?: React.ReactNode;
 };
 
 class EmptyPerspectiveState extends React.Component<EmptyPerspectiveStateProps> {
@@ -96,9 +96,10 @@ class EmptyListState extends React.Component {
   static displayName = 'EmptyListState';
   static propTypes = { visible: PropTypes.bool.isRequired };
 
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
-    this._mounted = false;
     this.state = Object.assign(
       {
         active: false,

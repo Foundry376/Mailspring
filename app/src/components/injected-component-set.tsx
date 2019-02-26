@@ -5,16 +5,16 @@ import InjectedComponentErrorBoundary from './injected-component-error-boundary'
 import InjectedComponentLabel from './injected-component-label';
 
 type InjectedComponentSetProps = {
-  matching: object,
-  className?: string,
-  matchLimit?: number,
-  exposedProps?: object,
-  containersRequired?: boolean,
-  deferred?: boolean
+  matching: object;
+  className?: string;
+  matchLimit?: number;
+  exposedProps?: object;
+  containersRequired?: boolean;
+  deferred?: boolean;
 };
 type InjectedComponentSetState = {
-  components: any,
-  visible: any
+  components: any;
+  visible: any;
 };
 
 /**
@@ -42,7 +42,10 @@ If no matching components is found, the InjectedComponent renders an empty span.
 
 Section: Component Kit
  */
-export default class InjectedComponentSet extends React.Component<InjectedComponentSetProps, InjectedComponentSetState> {
+export default class InjectedComponentSet extends React.Component<
+  InjectedComponentSetProps,
+  InjectedComponentSetState
+> {
   static displayName = 'InjectedComponentSet';
 
   /*
@@ -81,6 +84,8 @@ export default class InjectedComponentSet extends React.Component<InjectedCompon
     exposedProps: {},
     containersRequired: true,
   };
+
+  _mounted: boolean = false;
 
   constructor(props, context) {
     super(props, context);

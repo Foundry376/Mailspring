@@ -53,6 +53,7 @@ export default class WeekView extends React.Component {
   };
 
   _waitingForShift = 0;
+  _mounted: boolean = false;
 
   constructor(props) {
     super(props);

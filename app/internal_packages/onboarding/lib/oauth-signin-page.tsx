@@ -25,6 +25,8 @@ export default class OAuthSignInPage extends React.Component {
     serviceName: PropTypes.string,
   };
 
+  _mounted: boolean = false;
+
   constructor() {
     super();
     this._mounted = false;

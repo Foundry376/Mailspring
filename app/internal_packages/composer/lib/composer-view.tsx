@@ -46,11 +46,12 @@ export default class ComposerView extends React.Component {
     className: PropTypes.string,
   };
 
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
 
     this._els = {};
-    this._mounted = false;
 
     this._keymapHandlers = {
       'composer:send-message': () => this._onPrimarySend(),

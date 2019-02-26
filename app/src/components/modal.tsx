@@ -6,14 +6,14 @@ import Actions from '../flux/actions';
 import RetinaImg from './retina-img';
 
 type ModalProps = {
-  className?: string,
-  height?: number,
-  width?: number
+  className?: string;
+  height?: number;
+  width?: number;
 };
 type ModalState = {
-  animateClass: boolean,
-  offset: number,
-  dimensions: {},
+  animateClass: boolean;
+  offset: number;
+  dimensions: {};
 };
 
 class Modal extends React.Component<ModalProps, ModalState> {
@@ -23,6 +23,8 @@ class Modal extends React.Component<ModalProps, ModalState> {
     height: PropTypes.number,
     width: PropTypes.number,
   };
+
+  _mounted: boolean = false;
 
   constructor(props) {
     super(props);

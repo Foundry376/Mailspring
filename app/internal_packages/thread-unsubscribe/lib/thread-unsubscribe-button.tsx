@@ -25,6 +25,8 @@ export default class ThreadUnsubscribeButton extends React.Component {
     v: 0,
   };
 
+  _mounted: boolean = false;
+
   componentDidMount() {
     this._mounted = true;
   }

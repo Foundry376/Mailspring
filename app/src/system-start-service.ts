@@ -5,7 +5,7 @@ import { exec } from 'child_process';
 import ws from 'windows-shortcuts';
 
 class SystemStartServiceBase {
-  checkAvailability() {
+  checkAvailability(): Promise<boolean> {
     return Promise.resolve(false);
   }
 
@@ -25,7 +25,7 @@ class SystemStartServiceBase {
 class SystemStartServiceDarwin extends SystemStartServiceBase {
   checkAvailability() {
     return new Promise(resolve => {
-      fs.access(this._launcherPath(), fs.R_OK | fs.W_OK, err => {
+      fs.access(this._launcherPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
         if (err) {
           resolve(false);
         } else {
@@ -37,7 +37,7 @@ class SystemStartServiceDarwin extends SystemStartServiceBase {
 
   doesLaunchOnSystemStart() {
     return new Promise(resolve => {
-      fs.access(this._plistPath(), fs.R_OK | fs.W_OK, err => {
+      fs.access(this._plistPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
         if (err) {
           resolve(false);
         } else {
@@ -80,7 +80,7 @@ class SystemStartServiceDarwin extends SystemStartServiceBase {
 class SystemStartServiceWin32 extends SystemStartServiceBase {
   checkAvailability() {
     return new Promise(resolve => {
-      fs.access(this._launcherPath(), fs.R_OK | fs.W_OK, err => {
+      fs.access(this._launcherPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
         if (err) {
           resolve(false);
         } else {
@@ -92,7 +92,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
 
   doesLaunchOnSystemStart() {
     return new Promise(resolve => {
-      fs.access(this._shortcutPath(), fs.R_OK | fs.W_OK, err => {
+      fs.access(this._shortcutPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
         if (err) {
           resolve(false);
         } else {
@@ -141,7 +141,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
 class SystemStartServiceLinux extends SystemStartServiceBase {
   checkAvailability() {
     return new Promise(resolve => {
-      fs.access(this._launcherPath(), fs.R_OK, err => {
+      fs.access(this._launcherPath(), fs.constants.R_OK, err => {
         if (err) {
           resolve(false);
         } else {
@@ -153,7 +153,7 @@ class SystemStartServiceLinux extends SystemStartServiceBase {
 
   doesLaunchOnSystemStart() {
     return new Promise(resolve => {
-      fs.access(this._shortcutPath(), fs.R_OK | fs.W_OK, err => {
+      fs.access(this._shortcutPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
         if (err) {
           resolve(false);
         } else {

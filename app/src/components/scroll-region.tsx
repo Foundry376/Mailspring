@@ -1,21 +1,21 @@
 import _ from 'underscore';
-import { React, ReactDOM, PropTypes, Utils, isRTL } from 'mailspring-exports';;
+import { React, ReactDOM, PropTypes, Utils, isRTL } from 'mailspring-exports';
 import classNames from 'classnames';
 import ScrollbarTicks from './scrollbar-ticks';
 
 type ScrollbarProps = {
-  scrollTooltipComponent?: (...args: any[]) => any,
-  scrollbarTickProvider?: object,
-  getScrollRegion?: (...args: any[]) => any
+  scrollTooltipComponent?: (...args: any[]) => any;
+  scrollbarTickProvider?: object;
+  getScrollRegion?: (...args: any[]) => any;
 };
 type ScrollbarState = {
-  totalHeight: number,
-  trackHeight: number,
-  viewportHeight: number,
-  viewportScrollTop: number,
-  dragging: boolean,
-  scrolling: boolean,
-  scrollbarTicks: undefined[]
+  totalHeight: number;
+  trackHeight: number;
+  viewportHeight: number;
+  viewportScrollTop: number;
+  dragging: boolean;
+  scrolling: boolean;
+  scrollbarTicks: undefined[];
 };
 
 class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
@@ -197,26 +197,25 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   };
 }
 
-
 type ScrollRegionProps = {
-  onScroll?: (...args: any[]) => any,
-  onScrollEnd?: (...args: any[]) => any,
-  className?: string,
-  scrollTooltipComponent?: (...args: any[]) => any,
-  scrollbarTickProvider?: object,
-  getScrollbar?: (...args: any[]) => any
+  onScroll?: (...args: any[]) => any;
+  onScrollEnd?: (...args: any[]) => any;
+  className?: string;
+  scrollTooltipComponent?: (...args: any[]) => any;
+  scrollbarTickProvider?: object;
+  getScrollbar?: (...args: any[]) => any;
 };
 type ScrollRegionState = {
-  totalHeight: number,
-  viewportHeight: number,
-  viewportScrollTop: number,
-  scrolling: boolean
+  totalHeight: number;
+  viewportHeight: number;
+  viewportScrollTop: number;
+  scrolling: boolean;
 };
 
 /*
 The ScrollRegion component attaches a custom scrollbar.
 */
-class ScrollRegion extends React.Component<ScrollRegionProps,  ScrollRegionState> {
+class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState> {
   static displayName = 'ScrollRegion';
 
   static propTypes = {
@@ -246,13 +245,15 @@ class ScrollRegion extends React.Component<ScrollRegionProps,  ScrollRegionState
     CenterIfInvisible: 'CenterIfInvisible',
   };
 
+  _mounted: boolean = false;
+  _scrollToTaskId = 0;
+  _scrollbarComponent = null;
+  _totalHeightObserver = null;
+  _viewportHeightObserver = null;
+
   constructor(props) {
     super(props);
 
-    this._scrollToTaskId = 0;
-    this._scrollbarComponent = null;
-    this._totalHeightObserver = null;
-    this._viewportHeightObserver = null;
     this.state = {
       totalHeight: 0,
       viewportHeight: 0,

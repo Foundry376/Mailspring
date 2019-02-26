@@ -21,6 +21,8 @@ const LocalizedCategoryNames = {
 export default class EmojiToolbarPopover extends React.Component {
   static displayName = 'EmojiToolbarPopover';
 
+  _mounted: boolean = false;
+
   constructor() {
     super();
     const { categoryNames, categorizedEmoji, categoryPositions } = this.getStateFromStore();

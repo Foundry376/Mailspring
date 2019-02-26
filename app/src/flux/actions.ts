@@ -495,7 +495,7 @@ class Actions {
   static searchQueryChanged = ActionScopeWindow;
   static searchCompleted = ActionScopeWindow;
 
-  // TEmplates
+  // Templates
   static insertTemplateId = ActionScopeWindow;
   static createTemplate = ActionScopeWindow;
   static showTemplates = ActionScopeWindow;

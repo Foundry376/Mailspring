@@ -342,6 +342,13 @@ export default class Contact extends Model {
     });
   }
 
+  public name: string;
+  public email: string;
+  public refs: number;
+  public title: string;
+  public phone: string;
+  public company: string;
+
   constructor(data) {
     super(data);
     this.thirdPartyData = this.thirdPartyData || {};

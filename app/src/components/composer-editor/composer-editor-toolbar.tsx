@@ -1,6 +1,8 @@
 import React from 'react';
 
 export default class ComposerEditorToolbar extends React.Component {
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
     this.state = { visible: false };

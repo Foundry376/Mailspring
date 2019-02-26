@@ -20,6 +20,8 @@ export default class ThreadSharingPopover extends React.Component {
     accountId: PropTypes.string,
   };
 
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
     this.state = {

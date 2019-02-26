@@ -14,6 +14,8 @@ class Spellchecker {
 
   private _customDict = {};
 
+  public handler: typeof import('electron-spellchecker').SpellCheckHandler;
+
   constructor() {
     this.handler = null;
 

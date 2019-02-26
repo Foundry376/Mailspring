@@ -6,6 +6,14 @@ class NoPackageJSONError extends Error {}
 export default class Package {
   static NoPackageJSONError = NoPackageJSONError;
 
+  public disposables = [];
+  public directory: string;
+  public name: string;
+  public displayName: string;
+  public syncInit: boolean;
+  public windowTypes: { [windowName: string]: boolean };
+  private json: any;
+
   constructor(dir) {
     this.directory = dir;
 
@@ -22,7 +30,6 @@ export default class Package {
     this.json = JSON.parse(jsonString);
     this.name = this.json.name;
     this.displayName = this.json.displayName || this.json.name;
-    this.disposables = [];
     this.syncInit = this.json.syncInit;
     this.windowTypes = this.json.windowTypes || { default: true };
   }
@@ -95,7 +102,7 @@ export default class Package {
     }
 
     for (const keymapPath of keymapPaths) {
-      const content = JSON.parse(fs.readFileSync(keymapPath));
+      const content = JSON.parse(fs.readFileSync(keymapPath).toString());
       this.disposables.push(AppEnv.keymaps.loadKeymap(keymapPath, content));
     }
   }
@@ -142,7 +149,7 @@ export default class Package {
     }
 
     for (const menuPath of menuPaths) {
-      const content = JSON.parse(fs.readFileSync(menuPath));
+      const content = JSON.parse(fs.readFileSync(menuPath).toString());
       if (content.menu) {
         this.disposables.push(AppEnv.menu.add(content.menu));
       }

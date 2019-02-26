@@ -19,6 +19,8 @@ function InflatesDraftClientId(ComposedComponent) {
 
     static containerRequired = false;
 
+    _mounted: boolean = false;
+
     constructor(props) {
       super(props);
       this.state = {

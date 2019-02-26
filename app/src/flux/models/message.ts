@@ -171,6 +171,25 @@ export default class Message extends ModelWithMetadata {
     }),
   });
 
+  public subject: string;
+  public to: Contact[];
+  public cc: Contact[];
+  public bcc: Contact[];
+  public from: Contact[];
+  public replyTo: Contact[];
+  public files: File[];
+  public events: Event[];
+  public headerMessageId: string;
+  public threadId: string;
+  public snippet: string;
+  public starred: boolean;
+  public unread: boolean;
+  public pristine: boolean;
+  public draft: boolean;
+  public replyToHeaderMessageId: string;
+  public forwardedHeaderMessageId: string;
+  public folder: Folder;
+
   static naturalSortOrder() {
     return Message.attributes.date.ascending();
   }
@@ -187,8 +206,8 @@ export default class Message extends ModelWithMetadata {
     this.events = this.events || [];
   }
 
-  toJSON(options) {
-    const json = super.toJSON(options);
+  toJSON() {
+    const json = super.toJSON();
     json.file_ids = this.fileIds();
     if (this.draft) {
       json.object = 'draft';

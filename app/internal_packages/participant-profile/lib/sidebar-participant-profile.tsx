@@ -226,6 +226,8 @@ export default class SidebarParticipantProfile extends React.Component {
     order: 0,
   };
 
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
 

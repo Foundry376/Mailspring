@@ -6,6 +6,8 @@ import { shell } from 'electron';
 import ConfigSchemaItem from './config-schema-item';
 
 class DefaultMailClientItem extends React.Component {
+  _mounted: boolean = false;
+
   constructor() {
     super();
     this._helper = new DefaultClientHelper();

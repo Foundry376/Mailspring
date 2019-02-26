@@ -40,6 +40,8 @@ function buildShareHTML(htmlEl, styleEl) {
 }
 
 export default class ShareButton extends React.Component {
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
     this.state = {

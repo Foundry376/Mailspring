@@ -16,6 +16,8 @@ export default class BillingModal extends React.Component<BillingModalProps, Bil
   static IntrinsicWidth = 412;
   static IntrinsicHeight = 540;
 
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
     this.state = {

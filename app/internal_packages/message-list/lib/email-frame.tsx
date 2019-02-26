@@ -20,6 +20,8 @@ export default class EmailFrame extends React.Component {
     showQuotedText: PropTypes.bool,
   };
 
+  _mounted: boolean = false;
+
   componentDidMount() {
     this._mounted = true;
     this._writeContent();

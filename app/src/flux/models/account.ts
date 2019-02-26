@@ -73,6 +73,17 @@ export default class Account extends ModelWithMetadata {
     }),
   });
 
+  public name: string;
+  public provider: string;
+  public emailAddress: string;
+  public settings: object;
+  public label: string;
+  public autoaddress: object;
+  public aliases: object;
+  public defaultAlias: object;
+  public syncState: string;
+  public syncError: string;
+
   constructor(args) {
     super(args);
     this.aliases = this.aliases || [];

@@ -38,6 +38,8 @@ class RootWithTimespan extends React.Component {
     accountIds: PropTypes.arrayOf(PropTypes.string),
   };
 
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
     this.state = this.getLoadingState(props);

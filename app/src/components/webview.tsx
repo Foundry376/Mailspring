@@ -11,16 +11,18 @@ import { rootURLForServer } from '../flux/mailspring-api-request';
 import RetinaImg from './retina-img';
 
 type InitialLoadingCoverProps = {
-  ready?: boolean,
-  error?: string,
-  onTryAgain?: (...args: any[]) => any
+  ready?: boolean;
+  error?: string;
+  onTryAgain?: (...args: any[]) => any;
 };
 type InitialLoadingCoverState = {
-  slow: boolean
+  slow: boolean;
 };
 
-class InitialLoadingCover extends React.Component<InitialLoadingCoverProps, InitialLoadingCoverState> {
-
+class InitialLoadingCover extends React.Component<
+  InitialLoadingCoverProps,
+  InitialLoadingCoverState
+> {
   constructor(props) {
     super(props);
     this.state = {};
@@ -74,19 +76,21 @@ class InitialLoadingCover extends React.Component<InitialLoadingCoverProps, Init
 }
 
 type WebviewProps = {
-  src?: string,
-  onDidFinishLoad?: (...args: any[]) => any
+  src?: string;
+  onDidFinishLoad?: (...args: any[]) => any;
 };
 type WebviewState = {
-  error: null,
-  webviewLoading: boolean,
-  ready: boolean,
-  ready: boolean,
-  error: null
+  error: null;
+  webviewLoading: boolean;
+  ready: boolean;
+  ready: boolean;
+  error: null;
 };
 
 export default class Webview extends React.Component<WebviewProps, WebviewState> {
   static displayName = 'Webview';
+
+  _mounted: boolean = false;
 
   constructor(props) {
     super(props);

@@ -1,37 +1,35 @@
 import classNames from 'classnames';
 import _ from 'underscore';
-import { React, ReactDOM, PropTypes, DOMUtils } from 'mailspring-exports';;
-
-
+import { React, ReactDOM, PropTypes, DOMUtils } from 'mailspring-exports';
 
 type MenuItemProps = {
-  divider?: string | boolean,
-  selected?: boolean,
-  checked?: boolean
+  divider?: string | boolean;
+  selected?: boolean;
+  checked?: boolean;
 };
 
 type MenuNameEmailItemProps = {
-  name?: string,
-  email?: string
+  name?: string;
+  email?: string;
 };
 
 type MenuProps = {
-  className?: string,
-  footerComponents?: React.ReactNode,
-  headerComponents?: React.ReactNode,
-  itemContext?: object,
-  itemContent: (...args: any[]) => any,
-  itemKey: (...args: any[]) => any,
-  itemChecked?: (...args: any[]) => any,
-  items: any[],
-  onSelect: (...args: any[]) => any,
-  onEscape?: (...args: any[]) => any,
-  defaultSelectedIndex?: number
+  className?: string;
+  footerComponents?: React.ReactNode;
+  headerComponents?: React.ReactNode;
+  itemContext?: object;
+  itemContent: (...args: any[]) => any;
+  itemKey: (...args: any[]) => any;
+  itemChecked?: (...args: any[]) => any;
+  items: any[];
+  onSelect: (...args: any[]) => any;
+  onEscape?: (...args: any[]) => any;
+  defaultSelectedIndex?: number;
 };
 
 type MenuState = {
-  selectedIndex: any,
-  selectedIndex: any
+  selectedIndex: any;
+  selectedIndex: any;
 };
 
 /*
@@ -198,9 +196,10 @@ class Menu extends React.Component<MenuProps, MenuState> {
 
   static defaultProps = { onEscape() {} };
 
+  _mounted: boolean = false;
+
   constructor(props) {
     super(props);
-    this._mounted = false;
     this.state = {
       selectedIndex: this.props.defaultSelectedIndex || 0,
     };
