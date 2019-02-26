@@ -113,7 +113,7 @@ export default class ComposerView extends React.Component {
     if (this._animationFrameTimer) {
       window.cancelAnimationFrame(this._animationFrameTimer);
     }
-    for(let unlisten in this._unlisten){
+    for(let unlisten of this._unlisten){
       unlisten();
     }
     // In the future, we should clean up the draft session entirely, or give it
