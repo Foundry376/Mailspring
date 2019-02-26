@@ -1,10 +1,8 @@
 class ServiceRegistry {
-  constructor() {
-    this._waitingForServices = {};
-    this._services = {};
-  }
+  private _waitingForServices = {};
+  private _services = {};
 
-  withService(name, callback) {
+  withService(name: string, callback) {
     if (this._services[name]) {
       setTimeout(() => callback(this._services[name]), 0);
     } else {
@@ -13,7 +11,7 @@ class ServiceRegistry {
     }
   }
 
-  registerService(name, obj) {
+  registerService(name: string, obj) {
     this._services[name] = obj;
     if (this._waitingForServices[name]) {
       for (const callback of this._waitingForServices[name]) {
@@ -23,7 +21,7 @@ class ServiceRegistry {
     }
   }
 
-  unregisterService(name) {
+  unregisterService(name: string) {
     delete this._services[name];
   }
 }

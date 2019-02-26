@@ -1,11 +1,9 @@
 import path from 'path';
 
 class SoundRegistry {
-  constructor() {
-    this._sounds = {};
-  }
+  private _sounds = {};
 
-  playSound(name) {
+  playSound(name: string) {
     if (AppEnv.inSpecMode()) {
       return;
     }

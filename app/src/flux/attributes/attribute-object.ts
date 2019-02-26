@@ -1,11 +1,13 @@
 import Attribute from './attribute';
 import Utils from '../models/utils';
-
+import Model from '../models/model';
 /*
 Public: An object that can be cast to `itemClass`
 Section: Database
 */
 export default class AttributeObject extends Attribute {
+  private itemClass: Model;
+
   constructor({ modelKey, jsonKey, itemClass, queryable }) {
     super({ modelKey, jsonKey, queryable });
     this.itemClass = itemClass;

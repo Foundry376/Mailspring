@@ -25,15 +25,14 @@ class ActionBridge {
   static Role = Role;
   static TargetWindows = TargetWindows;
 
+  globalActions = [];
+  ipc: any;
+  ipcLastSendTime = null;
+  initiatorId = AppEnv.getWindowType();
+  role = AppEnv.isMainWindow() ? Role.MAIN : Role.SECONDARY;
+
   constructor(ipc) {
-    this.onIPCMessage = this.onIPCMessage.bind(this);
-    this.onRebroadcast = this.onRebroadcast.bind(this);
-    this.onBeforeUnload = this.onBeforeUnload.bind(this);
-    this.globalActions = [];
     this.ipc = ipc;
-    this.ipcLastSendTime = null;
-    this.initiatorId = AppEnv.getWindowType();
-    this.role = AppEnv.isMainWindow() ? Role.MAIN : Role.SECONDARY;
 
     AppEnv.onBeforeUnload(this.onBeforeUnload);
 
@@ -56,7 +55,7 @@ class ActionBridge {
     }
   }
 
-  onIPCMessage(event, initiatorId, name, json) {
+  onIPCMessage = (event, initiatorId, name, json) => {
     if (AppEnv.isEmptyWindow()) {
       throw new Error("Empty windows shouldn't receive IPC messages");
     }
@@ -82,9 +81,9 @@ class ActionBridge {
         throw new Error(`${this.initiatorId} received unknown action-bridge event: ${name}`);
       }
     }, 0);
-  }
+  };
 
-  onRebroadcast(target, name, args) {
+  onRebroadcast = (target, name, args) => {
     if (Actions[name] && Actions[name].firing) {
       Actions[name].firing = false;
       return;
@@ -108,9 +107,9 @@ class ActionBridge {
     );
     this.ipc.send(`action-bridge-rebroadcast-to-${target}`, this.initiatorId, name, json);
     this.ipcLastSendTime = Date.now();
-  }
+  };
 
-  onBeforeUnload(readyToUnload) {
+  onBeforeUnload = readyToUnload => {
     // Unfortunately, if you call ipc.send and then immediately close the window,
     // Electron won't actually send the message. To work around this, we wait an
     // arbitrary amount of time before closing the window after the last IPC event
@@ -120,7 +119,7 @@ class ActionBridge {
       return false;
     }
     return true;
-  }
+  };
 }
 
 export default ActionBridge;

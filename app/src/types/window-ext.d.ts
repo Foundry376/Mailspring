@@ -10,6 +10,8 @@ type RequestIdleCallbackDeadline = {
 export {};
 
 declare global {
+  var AppEnv: any;
+
   interface Window {
     $m: any;
 
