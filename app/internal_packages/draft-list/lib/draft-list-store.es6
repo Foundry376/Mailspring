@@ -55,6 +55,9 @@ class DraftListStore extends MailspringStore {
       if (mailboxPerspective.accountIds.length < AccountStore.accounts().length) {
         query.where({ accountId: mailboxPerspective.accountIds });
       }
+      if (mailboxPerspective.accountIds.length === 1) {
+        query.where({ accountId: mailboxPerspective.accountIds[0] });
+      }
 
       const subscription = new MutableQuerySubscription(query, { emitResultSet: true });
       let $resultSet = Rx.Observable.fromNamedQuerySubscription('draft-list', subscription);
@@ -80,7 +83,7 @@ class DraftListStore extends MailspringStore {
           });
 
           return resultSetWithTasks.immutableClone();
-        }
+        },
       );
 
       this._dataSource = new ObservableListDataSource($resultSet, subscription.replaceRange);
