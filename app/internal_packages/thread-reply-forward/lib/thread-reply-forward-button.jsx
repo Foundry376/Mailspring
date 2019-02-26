@@ -18,6 +18,7 @@ export default class ThreadReplyForwardButton extends React.Component {
 
   constructor(props) {
     super(props);
+    this.state ={};
     this.state.isReplyAlling = false;
     this.state.isReplying = false;
     this.state.isForwarding = false;
