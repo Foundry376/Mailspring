@@ -547,7 +547,9 @@ export default class MailsyncBridge {
 
   _onSetObservableRange = (accountId, task) => {
     if (!this._clients[accountId]) {
-      //account shouldn't exist
+      //account doesn't exist, we clear observable cache
+      delete this._setObservableRangeTimer[accountId];
+      delete this._cachedSetObservableRangeTask[accountId];
       return;
     }
     if (this._setObservableRangeTimer[accountId]) {
@@ -560,8 +562,11 @@ export default class MailsyncBridge {
             }),
           );
         }
-        this.sendMessageToAccount(accountId, task.toJSON());
         this._setObservableRangeTimer[accountId].timestamp = Date.now();
+        // DC-46
+        // We call sendMessageToAccount last on the off chance that mailsync have died,
+        // we want to avoid triggering client.kill() before setting observable cache
+        this.sendMessageToAccount(accountId, task.toJSON());
       } else {
         clearTimeout(this._setObservableRangeTimer[accountId].id);
         this._setObservableRangeTimer[accountId] = {
