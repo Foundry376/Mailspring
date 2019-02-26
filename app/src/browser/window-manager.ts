@@ -1,7 +1,8 @@
 import _ from 'underscore';
-import { app } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import WindowLauncher from './window-launcher';
 import { localized } from '../intl';
+import MailspringWindow from './mailspring-window';
 
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
@@ -9,6 +10,15 @@ const ONBOARDING_WINDOW = 'onboarding';
 const CALENDAR_WINDOW = 'calendar';
 
 export default class WindowManager {
+  static MAIN_WINDOW = MAIN_WINDOW;
+  static SPEC_WINDOW = SPEC_WINDOW;
+  static ONBOARDING_WINDOW = ONBOARDING_WINDOW;
+  static CALENDAR_WINDOW = CALENDAR_WINDOW;
+
+  initializeInBackground: boolean;
+  _windows: { [key: string]: MailspringWindow } = {};
+  windowLauncher: WindowLauncher;
+
   constructor({
     devMode,
     safeMode,
@@ -19,7 +29,6 @@ export default class WindowManager {
     config,
   }) {
     this.initializeInBackground = initializeInBackground;
-    this._windows = {};
 
     const onCreatedHotWindow = win => {
       this._registerWindow(win);
@@ -145,7 +154,7 @@ export default class WindowManager {
     return null;
   };
 
-  ensureWindow(windowKey, extraOpts) {
+  ensureWindow(windowKey, extraOpts = {}) {
     const win = this._windows[windowKey];
 
     if (!win) {
@@ -167,7 +176,7 @@ export default class WindowManager {
     }
   }
 
-  sendToAllWindows(msg, { except }, ...args) {
+  sendToAllWindows(msg, { except }: { except?: BrowserWindow }, ...args) {
     for (const windowKey of Object.keys(this._windows)) {
       const win = this._windows[windowKey];
       if (win.browserWindow === except) {
@@ -207,19 +216,18 @@ export default class WindowManager {
     // would be to pull up the Task Manager. Ew.
 
     if (['win32', 'linux'].includes(process.platform)) {
-      this.quitCheck =
-        this.quitCheck ||
-        _.debounce(() => {
-          const visibleWindows = _.filter(this._windows, win => win.isVisible());
-          const mainWindow = this.get(WindowManager.MAIN_WINDOW);
-          const noMainWindowLoaded = !mainWindow || !mainWindow.isLoaded();
-          if (visibleWindows.length === 0 && noMainWindowLoaded) {
-            app.quit();
-          }
-        }, 25000);
       this.quitCheck();
     }
   }
+
+  quitCheck = _.debounce(() => {
+    const visibleWindows = _.filter(this._windows, win => win.isVisible());
+    const mainWindow = this.get(WindowManager.MAIN_WINDOW);
+    const noMainWindowLoaded = !mainWindow || !mainWindow.isLoaded();
+    if (visibleWindows.length === 0 && noMainWindowLoaded) {
+      app.quit();
+    }
+  }, 25000);
 
   focusedWindow() {
     return _.find(this._windows, win => win.isFocused());
@@ -281,8 +289,3 @@ export default class WindowManager {
     return Object.assign({}, defaultOptions, extraOpts);
   }
 }
-
-WindowManager.MAIN_WINDOW = MAIN_WINDOW;
-WindowManager.SPEC_WINDOW = SPEC_WINDOW;
-WindowManager.ONBOARDING_WINDOW = ONBOARDING_WINDOW;
-WindowManager.CALENDAR_WINDOW = CALENDAR_WINDOW;

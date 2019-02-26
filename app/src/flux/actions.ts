@@ -55,7 +55,26 @@ teardown() {
 
 Section: General
 */
-class Actions {
+
+const scopes = {
+  window: [],
+  global: [],
+  main: [],
+};
+
+const create = (name, scope: 'window' | 'global' | 'main') => {
+  const obj = Reflux.createAction(name);
+  obj.scope = scope;
+  obj.sync = true;
+  scopes[scope].push(obj);
+  return obj as (...args: any[]) => void;
+};
+
+export default class Actions {
+  static windowActions = scopes.window;
+  static mainWindowActions = scopes.main;
+  static globalActions = scopes.global;
+
   /*
   Public: Fired when the Nylas API Connector receives new data from the API.
 
@@ -70,14 +89,14 @@ class Actions {
   }
   ```
   */
-  static downloadStateChanged = ActionScopeGlobal;
+  static downloadStateChanged = create('downloadStateChanged', ActionScopeGlobal);
 
   /*
   Public: Queue a {Task} object to the {TaskQueue}.
 
   *Scope: Main Window*
   */
-  static queueTask = ActionScopeMainWindow;
+  static queueTask = create('queueTask', ActionScopeMainWindow);
 
   /*
   Public: Queue multiple {Task} objects to the {TaskQueue}, which should be
@@ -85,52 +104,52 @@ class Actions {
 
   *Scope: Main Window*
   */
-  static queueTasks = ActionScopeMainWindow;
+  static queueTasks = create('queueTasks', ActionScopeMainWindow);
   /*
   Public: Cancel a specific {Task} in the {TaskQueue}.
 
   *Scope: Main Window*
   */
-  static cancelTask = ActionScopeMainWindow;
+  static cancelTask = create('cancelTask', ActionScopeMainWindow);
 
   /*
   Public: Queue a task that does not require processing, placing it on the undo stack only.
   *Scope: Main Window*
   */
-  static queueUndoOnlyTask = ActionScopeMainWindow;
+  static queueUndoOnlyTask = create('queueUndoOnlyTask', ActionScopeMainWindow);
 
   /*
   Public: Dequeue a {Task} matching the description provided.
 
   *Scope: Main Window*
   */
-  static checkOnlineStatus = ActionScopeWindow;
+  static checkOnlineStatus = create('checkOnlineStatus', ActionScopeWindow);
 
   /*
   Public: Open the preferences view.
 
   *Scope: Global*
   */
-  static openPreferences = ActionScopeGlobal;
+  static openPreferences = create('openPreferences', ActionScopeGlobal);
 
   /*
   Public: Switch to the preferences tab with the specific name
 
   *Scope: Global*
   */
-  static switchPreferencesTab = ActionScopeGlobal;
+  static switchPreferencesTab = create('switchPreferencesTab', ActionScopeGlobal);
 
   /*
   Public: Manage the Nylas identity
   */
-  static logoutNylasIdentity = ActionScopeWindow;
+  static logoutNylasIdentity = create('logoutNylasIdentity', ActionScopeWindow);
 
   /*
   Public: Remove the selected account
 
   *Scope: Window*
   */
-  static removeAccount = ActionScopeWindow;
+  static removeAccount = create('removeAccount', ActionScopeWindow);
 
   /*
   Public: Update the provided account
@@ -141,7 +160,7 @@ class Actions {
   Actions.updateAccount(account.id, {accountName: 'new'})
   ```
   */
-  static updateAccount = ActionScopeWindow;
+  static updateAccount = create('updateAccount', ActionScopeWindow);
 
   /*
   Public: Re-order the provided account in the account list.
@@ -152,7 +171,7 @@ class Actions {
   Actions.reorderAccount(account.id, newIndex)
   ```
   */
-  static reorderAccount = ActionScopeWindow;
+  static reorderAccount = create('reorderAccount', ActionScopeWindow);
 
   /*
   Public: Select the provided sheet in the current window. This action changes
@@ -164,7 +183,7 @@ class Actions {
   Actions.selectRootSheet(WorkspaceStore.Sheet.Threads)
   ```
   */
-  static selectRootSheet = ActionScopeWindow;
+  static selectRootSheet = create('selectRootSheet', ActionScopeWindow);
 
   /*
   Public: Toggle whether a particular column is visible. Call this action
@@ -174,7 +193,7 @@ class Actions {
   Actions.toggleWorkspaceLocationHidden(WorkspaceStore.Location.MessageListSidebar)
   ```
   */
-  static toggleWorkspaceLocationHidden = ActionScopeWindow;
+  static toggleWorkspaceLocationHidden = create('toggleWorkspaceLocationHidden', ActionScopeWindow);
 
   /*
   Public: Focus the keyboard on an item in a collection. This action moves the
@@ -187,7 +206,7 @@ class Actions {
   Actions.setCursorPosition(collection: 'thread', item: <Thread>)
   ```
   */
-  static setCursorPosition = ActionScopeWindow;
+  static setCursorPosition = create('setCursorPosition', ActionScopeWindow);
 
   /*
   Public: Focus on an item in a collection. This action changes the selection
@@ -199,7 +218,7 @@ class Actions {
   Actions.setFocus(collection: 'thread', item: <Thread>)
   ```
   */
-  static setFocus = ActionScopeWindow;
+  static setFocus = create('setFocus', ActionScopeWindow);
 
   /*
   Public: Focus the interface on a specific {MailboxPerspective}.
@@ -210,7 +229,7 @@ class Actions {
   Actions.focusMailboxPerspective(<Category>)
   ```
   */
-  static focusMailboxPerspective = ActionScopeWindow;
+  static focusMailboxPerspective = create('focusMailboxPerspective', ActionScopeWindow);
 
   /*
   Public: Focus the interface on the default mailbox perspective for the provided
@@ -218,7 +237,10 @@ class Actions {
 
   *Scope: Window*
   */
-  static focusDefaultMailboxPerspectiveForAccounts = ActionScopeWindow;
+  static focusDefaultMailboxPerspectiveForAccounts = create(
+    'focusDefaultMailboxPerspectiveForAccounts',
+    ActionScopeWindow
+  );
 
   /*
   Public: Focus the mailbox perspective for the given account id and category names
@@ -229,7 +251,7 @@ class Actions {
   Actions.ensureCategoryIsFocused(accountIds, categoryName)
   ```
   */
-  static ensureCategoryIsFocused = ActionScopeWindow;
+  static ensureCategoryIsFocused = create('ensureCategoryIsFocused', ActionScopeWindow);
 
   /*
   Public: If the message with the provided id is currently beign displayed in the
@@ -242,13 +264,13 @@ class Actions {
   Actions.toggleMessageIdExpanded(message.id)
   ```
   */
-  static toggleMessageIdExpanded = ActionScopeWindow;
+  static toggleMessageIdExpanded = create('toggleMessageIdExpanded', ActionScopeWindow);
 
   /*
   Public: Toggle whether messages from trash and spam are shown in the current
   message view.
   */
-  static toggleHiddenMessages = ActionScopeWindow;
+  static toggleHiddenMessages = create('toggleHiddenMessages', ActionScopeWindow);
 
   /*
   Public: This action toggles wether to collapse or expand all messages in a
@@ -260,7 +282,7 @@ class Actions {
   Actions.toggleAllMessagesExpanded()
   ```
   */
-  static toggleAllMessagesExpanded = ActionScopeWindow;
+  static toggleAllMessagesExpanded = create('toggleAllMessagesExpanded', ActionScopeWindow);
 
   /*
   Public: Print the currently selected thread.
@@ -272,7 +294,7 @@ class Actions {
   Actions.printThread(thread)
   ```
   */
-  static printThread = ActionScopeWindow;
+  static printThread = create('printThread', ActionScopeWindow);
 
   /*
   Public: Display the thread in a new popout window
@@ -284,7 +306,7 @@ class Actions {
   Actions.popoutThread(thread)
   ```
   */
-  static popoutThread = ActionScopeWindow;
+  static popoutThread = create('popoutThread', ActionScopeWindow);
 
   /*
   Public: Display the thread in the main window
@@ -296,7 +318,7 @@ class Actions {
   Actions.focusThreadMainWindow(thread)
   ```
   */
-  static focusThreadMainWindow = ActionScopeGlobal;
+  static focusThreadMainWindow = create('focusThreadMainWindow', ActionScopeGlobal);
 
   /*
   Public: Create a new reply to the provided threadId and messageId and populate
@@ -309,7 +331,7 @@ class Actions {
   Actions.sendQuickReply({threadId: '123', messageId: '234'}, "Thanks Ben!")
   ```
   */
-  static sendQuickReply = ActionScopeWindow;
+  static sendQuickReply = create('sendQuickReply', ActionScopeWindow);
 
   /*
   Public: Create a new reply to the provided threadId and messageId. Note that
@@ -326,7 +348,7 @@ class Actions {
   Actions.composeReply({threadId: '123', messageId: '123'})
   ```
   */
-  static composeReply = ActionScopeWindow;
+  static composeReply = create('composeReply', ActionScopeWindow);
 
   /*
   Public: Create a new draft for forwarding the provided threadId and messageId. See
@@ -334,7 +356,7 @@ class Actions {
 
   *Scope: Window*
   */
-  static composeForward = ActionScopeWindow;
+  static composeForward = create('composeForward', ActionScopeWindow);
 
   /*
   Public: Pop out the draft with the provided ID so the user can edit it in another
@@ -347,7 +369,7 @@ class Actions {
   Actions.composePopoutDraft(messageId)
   ```
   */
-  static composePopoutDraft = ActionScopeWindow;
+  static composePopoutDraft = create('composePopoutDraft', ActionScopeWindow);
 
   /*
   Public: Open a new composer window for creating a new draft from scratch.
@@ -358,7 +380,7 @@ class Actions {
   Actions.composeNewBlankDraft()
   ```
   */
-  static composeNewBlankDraft = ActionScopeWindow;
+  static composeNewBlankDraft = create('composeNewBlankDraft', ActionScopeWindow);
 
   /*
   Public: Open a new composer window for a new draft addressed to the given recipient
@@ -369,7 +391,7 @@ class Actions {
   Actions.composeNewDraftToRecipient(contact)
   ```
   */
-  static composeNewDraftToRecipient = ActionScopeWindow;
+  static composeNewDraftToRecipient = create('composeNewDraftToRecipient', ActionScopeWindow);
 
   /*
   Public: Send the draft with the given ID. This Action is handled by the {DraftStore},
@@ -383,15 +405,15 @@ class Actions {
   Actions.sendDraft('123', {actionKey})
   ```
   */
-  static sendDraft = ActionScopeWindow;
+  static sendDraft = create('sendDraft', ActionScopeWindow);
   /*
   Public: Fired when a draft is successfully sent
   *Scope: Global*
 
   Recieves the id of the message that was sent
   */
-  static draftDeliverySucceeded = ActionScopeMainWindow;
-  static draftDeliveryFailed = ActionScopeMainWindow;
+  static draftDeliverySucceeded = create('draftDeliverySucceeded', ActionScopeMainWindow);
+  static draftDeliveryFailed = create('draftDeliveryFailed', ActionScopeMainWindow);
 
   /*
   Public: Destroys the draft with the given ID. This Action is handled by the {DraftStore},
@@ -399,35 +421,35 @@ class Actions {
 
   *Scope: Window*
   */
-  static destroyDraft = ActionScopeWindow;
+  static destroyDraft = create('destroyDraft', ActionScopeWindow);
 
   /*
   Public: Submits the user's response to an RSVP event.
 
   *Scope: Window*
   */
-  static RSVPEvent = ActionScopeWindow;
+  static RSVPEvent = create('RSVPEvent', ActionScopeWindow);
 
   // FullContact Sidebar
-  static getFullContactDetails = ActionScopeWindow;
-  static focusContact = ActionScopeWindow;
+  static getFullContactDetails = create('getFullContactDetails', ActionScopeWindow);
+  static focusContact = create('focusContact', ActionScopeWindow);
 
   // Account Sidebar
-  static setCollapsedSidebarItem = ActionScopeWindow;
+  static setCollapsedSidebarItem = create('setCollapsedSidebarItem', ActionScopeWindow);
 
   // File Actions
   // Some file actions only need to be processed in their current window
-  static addAttachment = ActionScopeWindow;
-  static selectAttachment = ActionScopeWindow;
-  static removeAttachment = ActionScopeWindow;
+  static addAttachment = create('addAttachment', ActionScopeWindow);
+  static selectAttachment = create('selectAttachment', ActionScopeWindow);
+  static removeAttachment = create('removeAttachment', ActionScopeWindow);
 
-  static fetchBodies = ActionScopeMainWindow;
-  static fetchAndOpenFile = ActionScopeWindow;
-  static fetchAndSaveFile = ActionScopeWindow;
-  static fetchAndSaveAllFiles = ActionScopeWindow;
-  static fetchFile = ActionScopeWindow;
-  static abortFetchFile = ActionScopeWindow;
-  static quickPreviewFile = ActionScopeWindow;
+  static fetchBodies = create('fetchBodies', ActionScopeMainWindow);
+  static fetchAndOpenFile = create('fetchAndOpenFile', ActionScopeWindow);
+  static fetchAndSaveFile = create('fetchAndSaveFile', ActionScopeWindow);
+  static fetchAndSaveAllFiles = create('fetchAndSaveAllFiles', ActionScopeWindow);
+  static fetchFile = create('fetchFile', ActionScopeWindow);
+  static abortFetchFile = create('abortFetchFile', ActionScopeWindow);
+  static quickPreviewFile = create('quickPreviewFile', ActionScopeWindow);
 
   /*
   Public: Pop the current sheet off the Sheet stack maintained by the {WorkspaceStore}.
@@ -435,14 +457,14 @@ class Actions {
 
   *Scope: Window*
   */
-  static popSheet = ActionScopeWindow;
+  static popSheet = create('popSheet', ActionScopeWindow);
 
   /*
   Public: Pop the to the root sheet currently selected.
 
   *Scope: Window*
   */
-  static popToRootSheet = ActionScopeWindow;
+  static popToRootSheet = create('popToRootSheet', ActionScopeWindow);
 
   /*
   Public: Push a sheet of a specific type onto the Sheet stack maintained by the
@@ -454,92 +476,51 @@ class Actions {
   ```javascript
   WorkspaceStore.defineSheet('Thread', {}, {
     list: ['MessageList', 'MessageListSidebar'],
-  });
+  }));
 
   ...
 
   this.pushSheet(WorkspaceStore.Sheet.Thread)
   ```
   */
-  static pushSheet = ActionScopeWindow;
+  static pushSheet = create('pushSheet', ActionScopeWindow);
 
-  static addMailRule = ActionScopeWindow;
-  static reorderMailRule = ActionScopeWindow;
-  static updateMailRule = ActionScopeWindow;
-  static deleteMailRule = ActionScopeWindow;
-  static disableMailRule = ActionScopeWindow;
-  static startReprocessingMailRules = ActionScopeWindow;
-  static stopReprocessingMailRules = ActionScopeWindow;
+  static addMailRule = create('addMailRule', ActionScopeWindow);
+  static reorderMailRule = create('reorderMailRule', ActionScopeWindow);
+  static updateMailRule = create('updateMailRule', ActionScopeWindow);
+  static deleteMailRule = create('deleteMailRule', ActionScopeWindow);
+  static disableMailRule = create('disableMailRule', ActionScopeWindow);
+  static startReprocessingMailRules = create('startReprocessingMailRules', ActionScopeWindow);
+  static stopReprocessingMailRules = create('stopReprocessingMailRules', ActionScopeWindow);
 
-  static openPopover = ActionScopeWindow;
-  static closePopover = ActionScopeWindow;
+  static openPopover = create('openPopover', ActionScopeWindow);
+  static closePopover = create('closePopover', ActionScopeWindow);
 
-  static openModal = ActionScopeWindow;
-  static closeModal = ActionScopeWindow;
+  static openModal = create('openModal', ActionScopeWindow);
+  static closeModal = create('closeModal', ActionScopeWindow);
 
-  static draftParticipantsChanged = ActionScopeWindow;
+  static draftParticipantsChanged = create('draftParticipantsChanged', ActionScopeWindow);
 
-  static findInThread = ActionScopeWindow;
-  static nextSearchResult = ActionScopeWindow;
-  static previousSearchResult = ActionScopeWindow;
+  static findInThread = create('findInThread', ActionScopeWindow);
+  static nextSearchResult = create('nextSearchResult', ActionScopeWindow);
+  static previousSearchResult = create('previousSearchResult', ActionScopeWindow);
 
   // Actions for the signature preferences and shared with the composer
-  static upsertSignature = ActionScopeWindow;
-  static removeSignature = ActionScopeWindow;
-  static selectSignature = ActionScopeWindow;
-  static toggleAccount = ActionScopeWindow;
+  static upsertSignature = create('upsertSignature', ActionScopeWindow);
+  static removeSignature = create('removeSignature', ActionScopeWindow);
+  static selectSignature = create('selectSignature', ActionScopeWindow);
+  static toggleAccount = create('toggleAccount', ActionScopeWindow);
 
-  static expandSyncState = ActionScopeWindow;
+  static expandSyncState = create('expandSyncState', ActionScopeWindow);
 
-  static searchQuerySubmitted = ActionScopeWindow;
-  static searchQueryChanged = ActionScopeWindow;
-  static searchCompleted = ActionScopeWindow;
+  static searchQuerySubmitted = create('searchQuerySubmitted', ActionScopeWindow);
+  static searchQueryChanged = create('searchQueryChanged', ActionScopeWindow);
+  static searchCompleted = create('searchCompleted', ActionScopeWindow);
 
   // Templates
-  static insertTemplateId = ActionScopeWindow;
-  static createTemplate = ActionScopeWindow;
-  static showTemplates = ActionScopeWindow;
-  static deleteTemplate = ActionScopeWindow;
-  static renameTemplate = ActionScopeWindow;
+  static insertTemplateId = create('insertTemplateId', ActionScopeWindow);
+  static createTemplate = create('createTemplate', ActionScopeWindow);
+  static showTemplates = create('showTemplates', ActionScopeWindow);
+  static deleteTemplate = create('deleteTemplate', ActionScopeWindow);
+  static renameTemplate = create('renameTemplate', ActionScopeWindow);
 }
-
-// Read the actions we declared on the dummy Actions object above
-// and translate them into Reflux Actions
-
-// This helper method exists to trick the Donna lexer so it doesn't
-// try to understand what we're doing to the Actions object.
-const create = (obj, name, scope) => {
-  obj[name] = Reflux.createAction(name);
-  obj[name].scope = scope;
-  obj[name].sync = true;
-};
-
-const scopes = {
-  window: [],
-  global: [],
-  main: [],
-};
-
-for (const name of Object.getOwnPropertyNames(Actions)) {
-  if (
-    name === 'length' ||
-    name === 'name' ||
-    name === 'arguments' ||
-    name === 'caller' ||
-    name === 'prototype'
-  ) {
-    continue;
-  }
-  if (Actions[name] !== 'window' && Actions[name] !== 'global' && Actions[name] !== 'main') {
-    continue;
-  }
-  const scope = Actions[name];
-  scopes[scope].push(name);
-  create(Actions, name, scope);
-}
-
-Actions.windowActions = scopes.window;
-Actions.mainWindowActions = scopes.main;
-Actions.globalActions = scopes.global;
-
-export default Actions;

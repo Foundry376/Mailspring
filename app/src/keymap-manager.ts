@@ -45,17 +45,20 @@ mousetrap.prototype.stopCallback = (e, element, combo) => {
 };
 
 class KeymapFile {
+  _bindings = {};
+  _disposable = null;
+  _path: string;
+  _manager: KeymapManager;
+
   constructor(manager, filePath) {
     this._manager = manager;
     this._path = filePath;
-    this._bindings = {};
-    this._disposable = null;
   }
 
   load = () => {
     let keymaps = null;
     try {
-      keymaps = JSON.parse(fs.readFileSync(this._path));
+      keymaps = JSON.parse(fs.readFileSync(this._path).toString());
     } catch (e) {
       if (e.code === 'ENOENT') {
         return;
@@ -94,12 +97,20 @@ class KeymapFile {
 }
 
 export default class KeymapManager {
+  _emitter = new Emitter();
+  _registered = {};
+  _files = [];
+  configDirPath: string;
+  resourcePath: string;
+  userKeymap?: KeymapFile;
+  _unobserveTemplate?: Disposable;
+  _removeTemplate?: Disposable;
+  _bindingsCache: {};
+  _commandsCache: {};
+
   constructor({ configDirPath, resourcePath }) {
     this.configDirPath = configDirPath;
     this.resourcePath = resourcePath;
-    this._emitter = new Emitter();
-    this._registered = {};
-    this._files = [];
   }
 
   getUserKeymapPath() {

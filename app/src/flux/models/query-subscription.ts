@@ -1,18 +1,29 @@
 import DatabaseStore from '../stores/database-store';
 import QueryRange from './query-range';
 import MutableQueryResultSet from './mutable-query-result-set';
+import ModelQuery from './query';
+import Model from './model';
 
 export default class QuerySubscription {
-  constructor(query, options = {}) {
+  _set = null;
+  _callbacks = [];
+  _lastResult = undefined; // null is a valid result!
+  _updateInFlight = false;
+  _queuedChangeRecords = [];
+  _queryVersion = 1;
+  _query: ModelQuery;
+  _options: any;
+
+  constructor(
+    query,
+    options: {
+      initialModels?: Model[];
+      emitResultSet?: boolean;
+      updateOnSeparateThread?: boolean;
+    } = {}
+  ) {
     this._query = query;
     this._options = options;
-
-    this._set = null;
-    this._callbacks = [];
-    this._lastResult = undefined; // null is a valid result!
-    this._updateInFlight = false;
-    this._queuedChangeRecords = [];
-    this._queryVersion = 1;
 
     if (this._query) {
       if (this._query._count) {
@@ -171,7 +182,7 @@ export default class QuerySubscription {
     return false;
   }
 
-  update({ mustRefetchEntireRange } = {}) {
+  update({ mustRefetchEntireRange }: { mustRefetchEntireRange?: boolean } = {}) {
     this._updateInFlight = true;
 
     const desiredRange = this._query.range();

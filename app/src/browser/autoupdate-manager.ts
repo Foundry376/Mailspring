@@ -17,10 +17,18 @@ const ErrorState = 'error';
 const preferredChannel = 'stable';
 
 export default class AutoUpdateManager extends EventEmitter {
+  state = IdleState;
+  version: string;
+  config: import('../config').default;
+  specMode: boolean;
+  preferredChannel: string;
+  feedURL: string;
+  releaseNotes: string;
+  releaseVersion: string;
+
   constructor(version, config, specMode) {
     super();
 
-    this.state = IdleState;
     this.version = version;
     this.config = config;
     this.specMode = specMode;
@@ -140,7 +148,7 @@ export default class AutoUpdateManager extends EventEmitter {
     };
   }
 
-  check({ hidePopups } = {}) {
+  check({ hidePopups }: {hidePopups?: boolean} = {}) {
     this.updateFeedURL();
     if (!hidePopups) {
       autoUpdater.once('update-not-available', this.onUpdateNotAvailable);

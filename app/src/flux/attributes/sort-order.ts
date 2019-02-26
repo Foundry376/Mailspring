@@ -1,3 +1,5 @@
+import Attribute from './attribute';
+
 /*
 Public: Represents a particular sort direction on a particular column. You should not
 instantiate SortOrders manually. Instead, call {Attribute::ascending} or
@@ -13,7 +15,10 @@ DatabaseStore.findBy(Message)
 Section: Database
 */
 export default class SortOrder {
-  constructor(attr, direction = 'DESC') {
+  public attr: Attribute;
+  public direction: 'ASC' | 'DESC';
+
+  constructor(attr, direction: 'ASC' | 'DESC' = 'DESC') {
     this.attr = attr;
     this.direction = direction;
   }

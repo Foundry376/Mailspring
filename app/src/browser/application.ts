@@ -21,12 +21,35 @@ import MailspringProtocolHandler from './mailspring-protocol-handler';
 import ConfigPersistenceManager from './config-persistence-manager';
 import moveToApplications from './move-to-applications';
 import MailsyncProcess from '../mailsync-process';
+import Config from '../config';
 
 let clipboard = null;
 
 // The application's singleton class.
 //
 export default class Application extends EventEmitter {
+  resourcePath: string;
+  configDirPath: string;
+  config: Config;
+  version: string;
+  devMode: boolean;
+  specMode: boolean;
+  safeMode: boolean;
+  quitting: boolean;
+
+  configMigrator: ConfigMigrator;
+  configPersistenceManager: ConfigPersistenceManager;
+  touchBar: ApplicationTouchBar;
+  fileListCache: FileListCache;
+  applicationMenu: ApplicationMenu;
+  mailspringProtocolHandler: MailspringProtocolHandler;
+  windowManager: WindowManager;
+  autoUpdateManager: AutoUpdateManager;
+  systemTrayManager: SystemTrayManager;
+
+  _sourceWindows: { [taskId: string]: BrowserWindow } = {};
+  _resettingAndRelaunching: boolean;
+
   async start(options) {
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
 
@@ -217,12 +240,12 @@ export default class Application extends EventEmitter {
           this.deleteFileWithRetry(filePath, callback, retries - 1);
         }, 150);
       } else {
-        callback(null);
+        callback();
       }
     };
 
     if (!fs.existsSync(filePath)) {
-      callback(null);
+      callback();
       return;
     }
 
@@ -257,7 +280,7 @@ export default class Application extends EventEmitter {
     }
   }
 
-  _resetDatabaseAndRelaunch = ({ errorMessage } = {}) => {
+  _resetDatabaseAndRelaunch = ({ errorMessage }: { errorMessage?: string } = {}) => {
     if (this._resettingAndRelaunching) return;
     this._resettingAndRelaunching = true;
 
@@ -478,8 +501,8 @@ export default class Application extends EventEmitter {
     });
 
     // System Tray
-    ipcMain.on('update-system-tray', (event, ...args) => {
-      this.systemTrayManager.updateTraySettings(...args);
+    ipcMain.on('update-system-tray', (event, iconPath, unreadString, isTemplateImg) => {
+      this.systemTrayManager.updateTraySettings(iconPath, unreadString, isTemplateImg);
     });
 
     ipcMain.on('set-badge-value', (event, value) => {
@@ -624,7 +647,6 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('run-in-window', (event, params) => {
       const sourceWindow = BrowserWindow.fromWebContents(event.sender);
-      this._sourceWindows = this._sourceWindows || {};
       this._sourceWindows[params.taskId] = sourceWindow;
 
       const targetWindowKey = {
@@ -647,7 +669,7 @@ export default class Application extends EventEmitter {
       delete this._sourceWindows[params.taskId];
     });
 
-    ipcMain.on('report-error', (event, params = {}) => {
+    ipcMain.on('report-error', (event, params: { extra?: string; errorJSON?: string } = {}) => {
       try {
         const errorParams = JSON.parse(params.errorJSON || '{}');
         const extra = JSON.parse(params.extra || '{}');
@@ -691,7 +713,7 @@ export default class Application extends EventEmitter {
             focusedBrowserWindow.reload();
             break;
           case 'window:toggle-dev-tools':
-            focusedBrowserWindow.toggleDevTools();
+            focusedBrowserWindow.webContents.toggleDevTools();
             break;
           case 'window:close':
             focusedBrowserWindow.close();

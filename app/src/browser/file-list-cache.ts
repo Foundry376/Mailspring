@@ -3,8 +3,6 @@
 // on the backend process. That way any new windows don't need to spend
 // their precious load time performing the same expensive operation.
 export default class FileListCache {
-  constructor() {
-    this.imageData = '{}'; // A JSON stringified hash
-    this.packagePaths = [];
-  }
+  public imageData = '{}'; // A JSON stringified hash
+  public packagePaths = [];
 }

@@ -17,6 +17,10 @@ import fs from 'fs';
 const INVALID_TEMPLATE_NAME_REGEX = /[^a-zA-Z\u00C0-\u017F0-9_\- ]+/g;
 
 class TemplateStore extends MailspringStore {
+  private _items = [];
+  private _templatesDir = path.join(AppEnv.getConfigDirPath(), 'templates');
+  private _watcher = null;
+
   constructor() {
     super();
 
@@ -26,11 +30,8 @@ class TemplateStore extends MailspringStore {
     this.listenTo(Actions.deleteTemplate, this._onDeleteTemplate);
     this.listenTo(Actions.renameTemplate, this._onRenameTemplate);
 
-    this._items = [];
-    this._templatesDir = path.join(AppEnv.getConfigDirPath(), 'templates');
-    this._welcomeName = 'Welcome to Templates.html';
-    this._welcomePath = path.join(__dirname, '..', 'assets', this._welcomeName);
-    this._watcher = null;
+    const welcomeName = 'Welcome to Templates.html';
+    const welcomePath = path.join(__dirname, '..', 'assets', welcomeName);
 
     // I know this is a bit of pain but don't do anything that
     // could possibly slow down app launch
@@ -40,8 +41,8 @@ class TemplateStore extends MailspringStore {
         this.watch();
       } else {
         fs.mkdir(this._templatesDir, () => {
-          fs.readFile(this._welcomePath, (err, welcome) => {
-            fs.writeFile(path.join(this._templatesDir, this._welcomeName), welcome, () => {
+          fs.readFile(welcomePath, (err, welcome) => {
+            fs.writeFile(path.join(this._templatesDir, welcomeName), welcome, () => {
               this.watch();
             });
           });

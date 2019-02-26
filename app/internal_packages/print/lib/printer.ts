@@ -2,9 +2,7 @@ import { AccountStore, Actions } from 'mailspring-exports';
 import PrintWindow from './print-window';
 
 class Printer {
-  constructor() {
-    this.unsub = Actions.printThread.listen(this._printThread);
-  }
+  public unsub = Actions.printThread.listen(this._printThread);
 
   _printThread(thread, htmlContent) {
     if (!thread) throw new Error('Printing: No thread active!');

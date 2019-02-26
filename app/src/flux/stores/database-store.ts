@@ -431,7 +431,7 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  findAll(klass, predicates = []) {
+  findAll(klass, predicates: any[] | any = []) {
     if (!klass) {
       throw new Error(`DatabaseStore::findAll - You must provide a class`);
     }

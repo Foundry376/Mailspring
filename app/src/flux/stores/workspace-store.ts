@@ -7,9 +7,42 @@ import _ from 'underscore';
 import { webFrame } from 'electron';
 import Actions from '../actions';
 import MailspringStore from 'mailspring-store';
+import { Disposable } from 'event-kit';
 
-let Sheet = {};
+let Sheet = {} as SheetSet;
 let Location = {};
+
+// Total TypeScript hack - expose sheet constants that we know will exist
+// and that the app commonly relies on eg: WorkspaceStore.Sheet.Bla, even
+// though this is built dynamically and assembled via plugin injection.
+interface SheetSet {
+  Thread: SheetDeclaration;
+  File: SheetDeclaration;
+  Preferences: SheetDeclaration;
+  Activity: SheetDeclaration;
+  Drafts: SheetDeclaration;
+  Main: SheetDeclaration;
+  Threads: SheetDeclaration;
+  Global: SheetDeclaration;
+}
+
+interface SheetDeclaration {
+  id: string;
+  columns: string[];
+  supportedModes: string[];
+
+  icon: string;
+  name: string;
+  root: boolean;
+  sidebarComponent: any;
+
+  Toolbar: {
+    Left: { id: string };
+    Right: { id: string };
+  };
+  Header: { id: string };
+  Footer: { id: string };
+}
 
 /*
 Public: The WorkspaceStore manages Sheets and layout modes in the application.
@@ -20,6 +53,14 @@ documentation.
 Section: Stores
 */
 class WorkspaceStore extends MailspringStore {
+  Location = (Location = {});
+  Sheet: SheetSet = (Sheet = {} as SheetSet);
+
+  private _preferredLayoutMode: string;
+  private _hiddenLocations: {};
+  private _sheetStack: SheetDeclaration[];
+  private _shortcuts?: Disposable;
+
   constructor() {
     super();
 
@@ -54,7 +95,7 @@ class WorkspaceStore extends MailspringStore {
 
   _resetInstanceVars() {
     this.Location = Location = {};
-    this.Sheet = Sheet = {};
+    this.Sheet = Sheet = {} as SheetSet;
 
     this._hiddenLocations = AppEnv.config.get('core.workspace.hiddenLocations') || {};
     this._sheetStack = [];
@@ -235,7 +276,7 @@ class WorkspaceStore extends MailspringStore {
   // *`columns` An {Object} with keys for each layout mode the Sheet
   //      supports. For each key, provide an array of column names.
   //
-  defineSheet(id, options = {}, columns = {}) {
+  defineSheet(id, options: Partial<SheetDeclaration> = {}, columns = {}) {
     // Make sure all the locations have definitions so that packages
     // can register things into these locations and their toolbars.
     for (let layout in columns) {
@@ -267,7 +308,7 @@ class WorkspaceStore extends MailspringStore {
       Footer: { id: `Sheet:${id}:Footer` },
     };
 
-    if (options.root && !this.rootSheet() && !options.silent) {
+    if (options.root && !this.rootSheet() && !(options as any).silent) {
       this._onSelectRootSheet(Sheet[id]);
     }
 

@@ -3,6 +3,9 @@ import { EventEmitter } from 'events';
 // A very, very simple Flux implementation
 
 export default class MailspringStore {
+  _emitter: EventEmitter;
+  subscriptions: Array<{ stop: () => void; listenable: { hasListener?: (a: any) => boolean } }>;
+
   hasListener(listenable) {
     for (const sub of this.subscriptions || []) {
       if (
@@ -29,7 +32,7 @@ export default class MailspringStore {
     }
   }
 
-  listenTo(listenable, callback, defaultCallback) {
+  listenTo(listenable, callback, defaultCallback? = null) {
     this.subscriptions = this.subscriptions || [];
 
     const err = this.validateListening(listenable);
@@ -86,7 +89,7 @@ export default class MailspringStore {
     }
   }
 
-  fetchInitialState(listenable, defaultCallback) {
+  fetchInitialState(listenable, defaultCallback? = null) {
     defaultCallback = (defaultCallback && this[defaultCallback]) || defaultCallback;
     const me = this;
     if (defaultCallback instanceof Function && listenable.getInitialState instanceof Function) {
@@ -133,8 +136,8 @@ export default class MailspringStore {
     };
   }
 
-  trigger() {
+  trigger(...args) {
     this.setupEmitter();
-    return this._emitter.emit('trigger', arguments);
+    return this._emitter.emit('trigger', ...args);
   }
 }

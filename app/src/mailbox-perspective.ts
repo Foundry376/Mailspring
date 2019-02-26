@@ -90,6 +90,11 @@ export default class MailboxPerspective {
 
   // Instance Methods
 
+  accountIds: string[];
+  name: string;
+  iconName: string;
+  _categoriesSharedRole?: string;
+
   constructor(accountIds) {
     this.accountIds = accountIds;
     if (
@@ -240,12 +245,9 @@ export default class MailboxPerspective {
 }
 
 class DraftsMailboxPerspective extends MailboxPerspective {
-  constructor(accountIds) {
-    super(accountIds);
-    this.name = localized('Drafts');
-    this.iconName = 'drafts.png';
-    this.drafts = true; // The DraftListStore looks for this
-  }
+  name = localized('Drafts');
+  iconName = 'drafts.png';
+  drafts = true; // The DraftListStore looks for this
 
   threads() {
     return null;
@@ -272,12 +274,9 @@ class DraftsMailboxPerspective extends MailboxPerspective {
 }
 
 class StarredMailboxPerspective extends MailboxPerspective {
-  constructor(accountIds) {
-    super(accountIds);
-    this.starred = true;
-    this.name = localized('Starred');
-    this.iconName = 'starred.png';
-  }
+  starred = true;
+  name = localized('Starred');
+  iconName = 'starred.png';
 
   threads() {
     const query = DatabaseStore.findAll(Thread)
@@ -296,8 +295,8 @@ class StarredMailboxPerspective extends MailboxPerspective {
     });
   }
 
-  canReceiveThreadsFromAccountIds(...args) {
-    return super.canReceiveThreadsFromAccountIds(...args);
+  canReceiveThreadsFromAccountIds(threads) {
+    return super.canReceiveThreadsFromAccountIds(threads);
   }
 
   actionsForReceivingThreads(threads, accountId) {
@@ -345,6 +344,8 @@ class EmptyMailboxPerspective extends MailboxPerspective {
 }
 
 class CategoryMailboxPerspective extends MailboxPerspective {
+  _categories: Category[];
+
   constructor(_categories) {
     super(_.uniq(_categories.map(c => c.accountId)));
     this._categories = _categories;
@@ -364,7 +365,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   }
 
   toJSON() {
-    const json = super.toJSON();
+    const json: any = super.toJSON();
     json.serializedCategories = JSON.stringify(this._categories);
     return json;
   }
@@ -430,9 +431,9 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     return this._categories.every(cat => cat.isArchive());
   }
 
-  canReceiveThreadsFromAccountIds(...args) {
+  canReceiveThreadsFromAccountIds(threads) {
     return (
-      super.canReceiveThreadsFromAccountIds(...args) &&
+      super.canReceiveThreadsFromAccountIds(threads) &&
       !this._categories.some(c => c.isLockedCategory())
     );
   }
@@ -563,12 +564,9 @@ class CategoryMailboxPerspective extends MailboxPerspective {
 }
 
 class UnreadMailboxPerspective extends CategoryMailboxPerspective {
-  constructor(categories) {
-    super(categories);
-    this.unread = true;
-    this.name = localized('Unread');
-    this.iconName = 'unread.png';
-  }
+  unread = true;
+  name = localized('Unread');
+  iconName = 'unread.png';
 
   threads() {
     return new UnreadQuerySubscription(this.categories().map(c => c.id));
@@ -591,10 +589,10 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
     return tasks;
   }
 
-  tasksForRemovingItems(threads, ruleset, source) {
+  tasksForRemovingItems(threads, source) {
     ChangeUnreadTask = ChangeUnreadTask || require('./flux/tasks/change-unread-task').default;
 
-    const tasks = super.tasksForRemovingItems(threads, ruleset, source);
+    const tasks = super.tasksForRemovingItems(threads, source);
     tasks.push(
       new ChangeUnreadTask({ threads, unread: false, source: source || 'Removed From List' })
     );

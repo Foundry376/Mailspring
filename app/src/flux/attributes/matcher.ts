@@ -1,4 +1,6 @@
 import LocalSearchQueryBackend from '../../services/search/search-query-backend-local';
+import Attribute from './attribute';
+import AttributeCollection from './attribute-collection';
 
 // https://www.sqlite.org/faq.html#q14
 // That's right. Two single quotes in a row…
@@ -40,7 +42,30 @@ isUnread.evaluate(threadB)
 Section: Database
 */
 class Matcher {
-  constructor(attr, comparator, val) {
+  static get Or() {
+    return OrCompositeMatcher;
+  }
+  static get And() {
+    return AndCompositeMatcher;
+  }
+  static get Not() {
+    return NotCompositeMatcher;
+  }
+  static get Search() {
+    return SearchMatcher;
+  }
+  static get StructuredSearch() {
+    return StructuredSearchMatcher;
+  }
+
+  static muid = 0;
+
+  attr: Attribute;
+  comparator: string;
+  val: any;
+  muid: number;
+
+  constructor(attr?: Attribute, comparator?: string, val?: any) {
     this.attr = attr;
     this.comparator = comparator;
     this.val = val;
@@ -118,11 +143,11 @@ class Matcher {
     return `M${this.muid}`;
   }
 
-  joinSQL(klass) {
+  joinSQL(klass): string | false {
     switch (this.comparator) {
       case 'contains':
       case 'containsAny': {
-        const joinTable = this.attr.tableNameForJoinAgainst(klass);
+        const joinTable = (this.attr as AttributeCollection).tableNameForJoinAgainst(klass);
         const joinTableRef = this.joinTableRef();
         return `INNER JOIN \`${joinTable}\` AS \`${joinTableRef}\` ON \`${joinTableRef}\`.\`id\` = \`${
           klass.name
@@ -183,9 +208,9 @@ class Matcher {
   }
 }
 
-Matcher.muid = 0;
-
 class OrCompositeMatcher extends Matcher {
+  children: Matcher[];
+
   constructor(children) {
     super();
     this.children = children;
@@ -221,6 +246,8 @@ class OrCompositeMatcher extends Matcher {
 }
 
 class AndCompositeMatcher extends Matcher {
+  children: Matcher[];
+
   constructor(children) {
     super();
     this.children = children;
@@ -246,7 +273,7 @@ class AndCompositeMatcher extends Matcher {
         joins.push(join);
       }
     }
-    return joins;
+    return joins.join(' ');
   }
 
   whereSQL(klass) {
@@ -262,6 +289,8 @@ class NotCompositeMatcher extends AndCompositeMatcher {
 }
 
 class StructuredSearchMatcher extends Matcher {
+  _searchQuery: string;
+
   constructor(searchQuery) {
     super(null, null, null);
     this._searchQuery = searchQuery;
@@ -289,6 +318,8 @@ class StructuredSearchMatcher extends Matcher {
 }
 
 class SearchMatcher extends Matcher {
+  searchQuery: string;
+
   constructor(searchQuery) {
     if (typeof searchQuery !== 'string' || searchQuery.length === 0) {
       throw new Error('You must pass a string with non-zero length to search.');
@@ -327,11 +358,5 @@ class SearchMatcher extends Matcher {
     }"*' LIMIT 1000)`;
   }
 }
-
-Matcher.Or = OrCompositeMatcher;
-Matcher.And = AndCompositeMatcher;
-Matcher.Not = NotCompositeMatcher;
-Matcher.Search = SearchMatcher;
-Matcher.StructuredSearch = StructuredSearchMatcher;
 
 export default Matcher;

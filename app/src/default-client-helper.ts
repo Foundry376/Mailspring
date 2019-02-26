@@ -125,9 +125,7 @@ export class Linux {
 }
 
 export class Mac {
-  constructor() {
-    this.secure = false;
-  }
+  secure = false;
 
   available() {
     return true;

@@ -99,7 +99,7 @@ class ActionBridge {
       return params.push(arg);
     });
 
-    const json = JSON.stringify(params, Utils.registeredObjectReplacer);
+    const json = JSON.stringify(params);
 
     console.debug(
       printToConsole,

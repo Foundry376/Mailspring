@@ -1,6 +1,7 @@
 import MailspringWindow from './mailspring-window';
+import { MailspringWindowSettings } from './mailspring-window';
 
-const DEBUG_SHOW_HOT_WINDOW = process.env.SHOW_HOT_WINDOW || false;
+const DEBUG_SHOW_HOT_WINDOW = process.env.SHOW_HOT_WINDOW === 'true';
 let winNum = 0;
 
 /**
@@ -15,6 +16,12 @@ let winNum = 0;
  */
 export default class WindowLauncher {
   static EMPTY_WINDOW = 'emptyWindow';
+
+  public hotWindow?: MailspringWindow;
+
+  private defaultWindowOpts: MailspringWindowSettings;
+  private config: typeof import('../config').default;
+  private onCreatedHotWindow: (win: MailspringWindow) => void;
 
   constructor({
     devMode,

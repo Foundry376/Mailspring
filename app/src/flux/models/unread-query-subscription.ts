@@ -27,6 +27,9 @@ const buildQuery = categoryIds => {
 };
 
 export default class UnreadQuerySubscription extends MutableQuerySubscription {
+  _categoryIds: string[];
+  _unlisten: () => void;
+
   constructor(categoryIds) {
     super(buildQuery(categoryIds), { emitResultSet: true });
     this._categoryIds = categoryIds;

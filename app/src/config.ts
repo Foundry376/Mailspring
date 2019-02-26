@@ -8,7 +8,7 @@
  */
 let app, errorLogger, webContentsId;
 import _ from 'underscore';
-Object.assign(_, require('./config-utils'));
+import { valueForKeyPath, setValueForKeyPath, remove } from './config-utils';
 import { remote } from 'electron';
 import { Emitter } from 'event-kit';
 
@@ -280,7 +280,7 @@ if (process.type === 'renderer') {
 //
 // * Don't depend on (or write to) configuration keys outside of your keypath.
 //
-class Config {
+export default class Config {
   static schemaEnforcers = {};
 
   static addSchemaEnforcer(typeName, enforcerFunction) {
@@ -326,18 +326,17 @@ class Config {
     return value;
   }
 
+  settings = {};
+  defaultSettings = {};
+  transactDepth = 0;
+  emitter = new Emitter();
+  schema = {
+    type: 'object',
+    properties: {},
+  };
+
   // Created during initialization, available as `AppEnv.config`
   constructor() {
-    this.emitter = new Emitter();
-    this.schema = {
-      type: 'object',
-      properties: {},
-    };
-
-    this.settings = {};
-    this.defaultSettings = {};
-    this.transactDepth = 0;
-
     if (process.type === 'renderer') {
       const { ipcRenderer } = require('electron');
       // If new Config() has already been called, unmount it's listener when
@@ -400,12 +399,12 @@ class Config {
   //
   // Returns a {Disposable} with the following keys on which you can call
   // `.dispose()` to unsubscribe.
-  onDidChange() {
+  onDidChange(...args) {
     let callback, keyPath;
-    if (arguments.length === 1) {
-      [callback] = arguments;
-    } else if (arguments.length === 2) {
-      [keyPath, callback] = arguments;
+    if (args.length === 1) {
+      [callback] = args;
+    } else if (args.length === 2) {
+      [keyPath, callback] = args;
     }
     return this.onDidChangeKeyPath(keyPath, callback);
   }
@@ -428,7 +427,7 @@ class Config {
   //
   // Returns the value from N1's default settings, the user's configuration
   // file in the type specified by the configuration schema.
-  get(keyPath) {
+  get(keyPath: string) {
     return this.getRawValue(keyPath);
   }
 
@@ -453,7 +452,7 @@ class Config {
   // * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set(keyPath, value) {
     if (value === undefined) {
-      value = _.valueForKeyPath(this.defaultSettings, keyPath);
+      value = valueForKeyPath(this.defaultSettings, keyPath);
     } else {
       try {
         value = this.makeValueConformToSchema(keyPath, value);
@@ -479,7 +478,7 @@ class Config {
   // * `keyPath` The {String} name of the key.
   // * `options` (optional) {Object}
   unset(keyPath) {
-    this.set(keyPath, _.valueForKeyPath(this.defaultSettings, keyPath));
+    this.set(keyPath, valueForKeyPath(this.defaultSettings, keyPath));
   }
 
   // Extended: Retrieve the schema for a specific key path. The schema will tell
@@ -558,7 +557,7 @@ class Config {
         )} is not an array.`
       );
     }
-    const result = _.remove(arrayValue, value);
+    const result = remove(arrayValue, value);
     this.set(keyPath, arrayValue);
     return result;
   }
@@ -607,8 +606,8 @@ class Config {
   };
 
   getRawValue(keyPath) {
-    let value = _.valueForKeyPath(this.settings, keyPath);
-    const defaultValue = _.valueForKeyPath(this.defaultSettings, keyPath);
+    let value = valueForKeyPath(this.settings, keyPath);
+    const defaultValue = valueForKeyPath(this.defaultSettings, keyPath);
 
     if (value != null) {
       value = this.deepClone(value);
@@ -644,7 +643,7 @@ class Config {
   }
 
   setRawDefault(keyPath, value) {
-    _.setValueForKeyPath(this.defaultSettings, keyPath, value);
+    setValueForKeyPath(this.defaultSettings, keyPath, value);
     this.emitChangeEvent();
   }
 
@@ -702,7 +701,7 @@ class Config {
   makeValueConformToSchema(keyPath, value) {
     let schema = this.getSchema(keyPath);
     if (schema) {
-      value = this.constructor.executeSchemaEnforcers(keyPath, value, schema);
+      value = Config.executeSchemaEnforcers(keyPath, value, schema);
     }
     return value;
   }
@@ -961,5 +960,3 @@ var withoutEmptyObjects = function(object) {
   }
   return resultObject;
 };
-
-export default Config;

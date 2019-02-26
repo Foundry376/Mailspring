@@ -21,10 +21,11 @@ function makeCommandButton(options) {
 }
 
 export default class ApplicationTouchBar {
-  constructor(resourcePath) {
-    this._touchbar = null;
-    this._hash = '';
+  _touchbar = null;
+  _hash = '';
+  _items: Array<Electron.TouchBarButton | Electron.TouchBarSpacer>;
 
+  constructor(resourcePath) {
     const iconRoot = path.join(resourcePath, 'static', 'images', 'touchbar');
 
     this._items = [
@@ -117,13 +118,13 @@ export default class ApplicationTouchBar {
     // Take a single linear pass through the touch bar items and place
     // consecutive items with the same `group` key into touchbar groups.
     // This results in /very slightly/ tighter spacing in the touchbar.
-    const final = [];
-    let group = [];
+    const final: Electron.TouchBarGroup[] = [];
+    let group: Array<Electron.TouchBarButton | Electron.TouchBarSpacer> = [];
     let groupName = null;
 
     const flushGroupIfPresent = () => {
       if (!group.length) return;
-      final.push(new TouchBarGroup({ items: new TouchBar(group) }));
+      final.push(new TouchBarGroup({ items: new TouchBar({ items: group }) }));
       groupName = null;
       group = [];
     };
@@ -145,6 +146,6 @@ export default class ApplicationTouchBar {
 
     const win = global.application.getMainWindow();
     if (!win) return;
-    win.setTouchBar(new TouchBar(final));
+    win.setTouchBar(new TouchBar({ items: final }));
   }
 }

@@ -179,6 +179,7 @@ export default class Message extends ModelWithMetadata {
   public replyTo: Contact[];
   public files: File[];
   public events: Event[];
+  public date: Date;
   public headerMessageId: string;
   public threadId: string;
   public snippet: string;
@@ -189,6 +190,8 @@ export default class Message extends ModelWithMetadata {
   public replyToHeaderMessageId: string;
   public forwardedHeaderMessageId: string;
   public folder: Folder;
+
+  public body?: string;
 
   static naturalSortOrder() {
     return Message.attributes.date.ascending();
@@ -220,7 +223,7 @@ export default class Message extends ModelWithMetadata {
     return json;
   }
 
-  fromJSON(json = {}) {
+  fromJSON(json: any = {}) {
     super.fromJSON(json);
 
     // Only change the `draft` bit if the incoming json has an `object`
@@ -274,14 +277,14 @@ export default class Message extends ModelWithMetadata {
   participantsForReplyAll() {
     const excludedFroms = this.from.map(c => Utils.toEquivalentEmailForm(c.email));
 
-    const excludeMeAndFroms = cc =>
+    const excludeMeAndFroms = (cc: Contact[]) =>
       _.reject(
         cc,
         p => p.isMe() || _.contains(excludedFroms, Utils.toEquivalentEmailForm(p.email))
       );
 
-    let to = null;
-    let cc = null;
+    let to: Contact[] = null;
+    let cc: Contact[] = null;
 
     if (this.replyTo.length && !this.replyTo[0].isMe()) {
       // If a replyTo is specified and that replyTo would not result in you

@@ -57,6 +57,13 @@ export default class Event extends Model {
     return Event.sortOrderAttribute().descending();
   };
 
+  calendarId: string;
+  ics: string;
+  recurrenceEnd: number;
+  recurrenceStart: number;
+  title: string;
+  participants: any[];
+
   displayTitle() {
     const displayTitle = this.title.replace(/.*Invitation: /, '');
     const [displayTitleWithoutDate, date] = displayTitle.split(' @ ');

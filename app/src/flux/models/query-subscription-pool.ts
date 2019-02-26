@@ -8,9 +8,10 @@ subscriptions in the app. In the future, this class will monitor performance,
 merge equivalent subscriptions, etc.
 */
 class QuerySubscriptionPool {
+  _subscriptions = {};
+  _cleanupChecks = [];
+
   constructor() {
-    this._subscriptions = {};
-    this._cleanupChecks = [];
     this._setup();
   }
 

@@ -1,4 +1,6 @@
 import QueryRange from './query-range';
+import Model from './model';
+import ModelQuery from './query';
 
 /*
 Public: Instances of QueryResultSet hold a set of models retrieved
@@ -18,6 +20,12 @@ array, and "offset" refers to it's position in the query result set. For example
 an item might be at index 20 in the _ids array, but at offset 120 in the result.
 */
 export default class QueryResultSet {
+  _offset: number;
+  _query: ModelQuery;
+  _idToIndexHash?: { [id: string]: number };
+  _modelsHash?: { [id: string]: Model };
+  _ids: string[];
+
   static setByApplyingModels(set, models) {
     if (models instanceof Array) {
       throw new Error('setByApplyingModels: A hash of models is required.');
@@ -28,7 +36,7 @@ export default class QueryResultSet {
     return out;
   }
 
-  constructor(other = {}) {
+  constructor(other: Partial<QueryResultSet> = {}) {
     this._offset = other._offset !== undefined ? other._offset : null;
     this._query = other._query !== undefined ? other._query : null;
     this._idToIndexHash = other._idToIndexHash !== undefined ? other._idToIndexHash : null;
@@ -38,7 +46,7 @@ export default class QueryResultSet {
   }
 
   clone() {
-    return new this.constructor({
+    return new (this.constructor as any)({
       _ids: [].concat(this._ids),
       _modelsHash: Object.assign({}, this._modelsHash),
       _idToIndexHash: Object.assign({}, this._idToIndexHash),
@@ -48,7 +56,7 @@ export default class QueryResultSet {
   }
 
   isComplete() {
-    return this._ids.every(id => this._modelsHash[id]);
+    return this._ids.every(id => !!this._modelsHash[id]);
   }
 
   range() {

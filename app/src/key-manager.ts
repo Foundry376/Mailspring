@@ -11,10 +11,8 @@ import { localized } from './intl';
  * and every key we want to access.
  */
 class KeyManager {
-  constructor() {
-    this.SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
-    this.KEY_NAME = 'Mailspring Keys';
-  }
+  SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
+  KEY_NAME = 'Mailspring Keys';
 
   async deleteAccountSecrets(account) {
     try {

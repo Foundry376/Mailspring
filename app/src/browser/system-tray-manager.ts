@@ -1,5 +1,6 @@
 import { Tray, Menu, nativeImage } from 'electron';
 import { localized } from '../intl';
+import Application from './application';
 
 function _getMenuTemplate(platform, application) {
   const template = [
@@ -34,7 +35,7 @@ function _getTooltip(unreadString) {
   return unreadString ? `${unreadString} unread messages` : '';
 }
 
-function _getIcon(iconPath, isTemplateImg) {
+function _getIcon(iconPath, isTemplateImg = false) {
   if (!iconPath) {
     return nativeImage.createEmpty();
   }
@@ -46,12 +47,15 @@ function _getIcon(iconPath, isTemplateImg) {
 }
 
 class SystemTrayManager {
+  _iconPath = null;
+  _unreadString = null;
+  _tray = null;
+  _platform: string = null;
+  _application: Application;
+
   constructor(platform, application) {
     this._platform = platform;
     this._application = application;
-    this._iconPath = null;
-    this._unreadString = null;
-    this._tray = null;
     this.initTray();
 
     this._application.config.onDidChange('core.workspace.systemTray', ({ newValue }) => {
@@ -72,7 +76,7 @@ class SystemTrayManager {
       this._tray.setToolTip(_getTooltip(this._unreadString));
       this._tray.addListener('click', this._onClick);
       this._tray.setContextMenu(
-        Menu.buildFromTemplate(_getMenuTemplate(this._platform, this._application))
+        Menu.buildFromTemplate(_getMenuTemplate(this._platform, this._application) as any)
       );
     }
   }

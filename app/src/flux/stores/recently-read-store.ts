@@ -10,9 +10,10 @@ import Actions from '../actions';
 // whitelisting them in the query.
 
 class RecentlyReadStore extends MailspringStore {
+  ids = [];
+
   constructor() {
     super();
-    this.ids = [];
     this.listenTo(Actions.focusMailboxPerspective, () => {
       this.ids = [];
       this.trigger();

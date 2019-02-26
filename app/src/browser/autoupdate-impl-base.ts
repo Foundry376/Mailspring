@@ -4,6 +4,9 @@ import { shell } from 'electron';
 import url from 'url';
 
 export default class AutoupdateImplBase extends EventEmitter {
+  feedURL: string;
+  lastRetrievedUpdateURL?: string;
+
   supportsUpdates() {
     // If we're packaged into a Snapcraft distribution, we don't need
     // autoupdates within the app because they're handled transparently.

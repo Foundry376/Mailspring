@@ -7,6 +7,9 @@ import { isRTL } from './intl';
 
 // {LessCache} wrapper used by {ThemeManager} to read stylesheets.
 export default class LessCompileCache {
+  lessSearchPaths: string[];
+  cache: LessCache;
+
   constructor({ configDirPath, resourcePath, importPaths = [] }) {
     this.lessSearchPaths = [
       path.join(resourcePath, 'static', 'base'),

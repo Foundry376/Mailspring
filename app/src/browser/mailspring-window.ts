@@ -7,16 +7,53 @@ import { EventEmitter } from 'events';
 let WindowIconPath = null;
 let idNum = 0;
 
+export interface MailspringWindowSettings {
+  frame?: boolean;
+  title?: string;
+  width?: number;
+  height?: number;
+  hidden?: boolean;
+  toolbar?: boolean;
+  resizable?: boolean;
+  pathToOpen?: string;
+  isSpec?: boolean;
+  devMode?: boolean;
+  windowKey?: string;
+  safeMode?: boolean;
+  neverClose?: boolean;
+  mainWindow?: boolean;
+  windowType?: string;
+  initialPath?: string;
+  resourcePath?: string;
+  exitWhenDone?: boolean;
+  configDirPath?: string;
+  autoHideMenuBar?: boolean;
+  bootstrapScript?: string;
+}
+
 export default class MailspringWindow extends EventEmitter {
   static includeShellLoadTime = true;
 
-  constructor(settings = {}) {
+  public windowType: string;
+  public browserWindow: BrowserWindow = null;
+  public devMode: boolean;
+  public safeMode: boolean;
+
+  private loaded: boolean;
+  private isSpec: boolean;
+  private windowKey: string;
+  private neverClose: boolean;
+  private mainWindow: boolean;
+  private resourcePath: string;
+  private exitWhenDone: boolean;
+  private configDirPath: string;
+
+  private isWindowClosing: boolean;
+
+  constructor(settings: MailspringWindowSettings = {}) {
     super();
 
     let frame, height, pathToOpen, resizable, title, width, autoHideMenuBar;
-    this.browserWindow = null;
-    this.loaded = null;
-    this.isSpec = null;
 
     ({
       frame,
@@ -49,7 +86,8 @@ export default class MailspringWindow extends EventEmitter {
       this.resourcePath = path.normalize(this.resourcePath);
     }
 
-    const browserWindowOptions = {
+    type GetConstructorArgs<T> = T extends new (options: infer U) => any ? U : never;
+    const browserWindowOptions: GetConstructorArgs<typeof BrowserWindow> = {
       show: false,
       title: title || 'Mailspring',
       frame,
@@ -154,7 +192,7 @@ export default class MailspringWindow extends EventEmitter {
     this.setLoadSettings(Object.assign({}, this.browserWindow.loadSettings, newSettings));
   };
 
-  loadSettings() {
+  loadSettings(): MailspringWindowSettings {
     return this.browserWindow.loadSettings;
   }
 
@@ -301,7 +339,7 @@ export default class MailspringWindow extends EventEmitter {
     }
   }
 
-  sendMessage(message, detail) {
+  sendMessage(message, detail?) {
     this.waitForLoad(() => this.browserWindow.webContents.send(message, detail));
   }
 
@@ -397,7 +435,7 @@ export default class MailspringWindow extends EventEmitter {
   }
 
   isWebViewFocused() {
-    return this.browserWindow.isWebViewFocused();
+    return this.browserWindow.webContents.isFocused();
   }
 
   isSpecWindow() {
@@ -409,6 +447,6 @@ export default class MailspringWindow extends EventEmitter {
   }
 
   toggleDevTools() {
-    this.browserWindow.toggleDevTools();
+    this.browserWindow.webContents.toggleDevTools();
   }
 }

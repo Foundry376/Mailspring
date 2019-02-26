@@ -44,7 +44,15 @@ export default class QueryRange {
     return this.offset + this.limit;
   }
 
-  constructor({ limit, offset, start, end } = {}) {
+  offset: number;
+  limit: number;
+
+  constructor({
+    limit,
+    offset,
+    start,
+    end,
+  }: { limit?: number; offset?: number; start?: number; end?: number } = {}) {
     this.limit = limit;
     this.offset = offset;
 

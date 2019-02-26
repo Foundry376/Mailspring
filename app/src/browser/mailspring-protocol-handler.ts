@@ -14,9 +14,9 @@ import path from 'path';
 //   * RESOURCE_PATH/node_modules
 //
 export default class MailspringProtocolHandler {
-  constructor({ configDirPath, resourcePath, safeMode }) {
-    this.loadPaths = [];
+  loadPaths: string[] = [];
 
+  constructor({ configDirPath, resourcePath, safeMode }) {
     if (!safeMode) {
       this.loadPaths.push(path.join(configDirPath, 'dev', 'packages'));
     }

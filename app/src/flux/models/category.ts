@@ -154,7 +154,7 @@ export default class Category extends Model {
     return hue;
   }
 
-  isStandardCategory(forceShowImportant) {
+  isStandardCategory(forceShowImportant = undefined) {
     let showImportant = forceShowImportant;
     if (showImportant === undefined) {
       showImportant = AppEnv.config.get('core.workspace.showImportant');

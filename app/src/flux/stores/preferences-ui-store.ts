@@ -8,30 +8,48 @@ import Actions from '../actions';
 const MAIN_TAB_ITEM_ID = 'General';
 
 class TabItem {
-  constructor(opts = {}) {
-    opts.order = opts.order || Infinity;
-    Object.assign(this, opts);
+  order: number;
+  tabId: string;
+  displayName: string;
+  componentClassFn: () => any;
+
+  constructor(opts: {
+    tabId: string;
+    displayName: string;
+    componentClassFn: () => any;
+    order?: number;
+  }) {
+    this.tabId = opts.tabId;
+    this.componentClassFn = opts.componentClassFn;
+    this.displayName = opts.displayName;
+    this.order = opts.order || Infinity;
   }
 }
 
 class PreferencesUIStore extends MailspringStore {
+  _tabs: TabItem[] = [];
+  _selection = {
+    tabId: null,
+    accountId: null,
+  };
+
   constructor() {
     super();
 
     const perspective = FocusedPerspectiveStore.current();
-    this._tabs = [];
     this._selection = {
       tabId: null,
       accountId: perspective.account ? perspective.account.id : null,
     };
 
-    this._triggerDebounced = _.debounce(() => this.trigger(), 20);
     this.setupListeners();
   }
 
   get TabItem() {
     return TabItem;
   }
+
+  _triggerDebounced = _.debounce(() => this.trigger(), 20);
 
   setupListeners() {
     if (AppEnv.isMainWindow()) {
@@ -62,7 +80,7 @@ class PreferencesUIStore extends MailspringStore {
     }
   };
 
-  switchPreferencesTab = (tabId, options = {}) => {
+  switchPreferencesTab = (tabId, options: { accountId?: string } = {}) => {
     this._selection.tabId = tabId;
     if (options.accountId) {
       this._selection.accountId = options.accountId;
@@ -84,7 +102,7 @@ class PreferencesUIStore extends MailspringStore {
   into {PreferencesUIStore::registerPreferences}
 
   */
-  registerPreferencesTab = tabItem => {
+  registerPreferencesTab = (tabItem: TabItem) => {
     this._tabs.push(tabItem);
     this._tabs.sort((a, b) => a.order > b.order);
     if (tabItem.tabId === MAIN_TAB_ITEM_ID) {

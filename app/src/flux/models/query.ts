@@ -2,6 +2,7 @@
 import Attributes from '../attributes';
 import QueryRange from './query-range';
 import * as Utils from './utils';
+import Model from './model';
 
 const { Matcher, AttributeJoinedData, AttributeCollection } = Attributes;
 
@@ -47,8 +48,10 @@ export default class ModelQuery {
   private _returnOne = false;
   private _returnIds = false;
   private _includeJoinedData = [];
-  private _count = false;
   private _logQueryPlanDebugOutput = true;
+  _count = false;
+  _klass: typeof Model;
+  _finalized = false;
 
   // Public
   // - `class` A {Model} class to query
@@ -275,7 +278,7 @@ export default class ModelQuery {
   // query, or rejects with an error from the Database layer.
   //
   then(next) {
-    return this.run(this).then(next);
+    return this.run().then(next);
   }
 
   // Public: Returns a {Promise} that resolves with the Models returned by the

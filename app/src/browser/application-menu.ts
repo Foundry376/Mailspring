@@ -4,7 +4,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const { BrowserWindow, Menu, app } = require('electron');
+import { BrowserWindow, Menu, app } from 'electron';
 const Utils = require('../flux/models/utils');
 const { localized } = require('../intl');
 
@@ -13,9 +13,14 @@ const { localized } = require('../intl');
 // It's created by {Application} upon instantiation and used to add, remove
 // and maintain the state of all menu items.
 export default class ApplicationMenu {
+  windowTemplates = new WeakMap();
+  version: string;
+  lastFocusedWindow: BrowserWindow;
+  activeTemplate: any;
+  menu: Electron.Menu;
+
   constructor(version) {
     this.version = version;
-    this.windowTemplates = new WeakMap();
     this.setActiveTemplate(this.getDefaultTemplate());
     global.application.autoUpdateManager.on('state-changed', state => {
       this.updateAutoupdateMenuItem(state);
@@ -255,7 +260,8 @@ export default class ApplicationMenu {
             label: localized('Toggle Dev Tools'),
             accelerator: 'CmdOrCtrl+Alt+I',
             click: () =>
-              BrowserWindow.getFocusedWindow() && BrowserWindow.getFocusedWindow().toggleDevTools(),
+              BrowserWindow.getFocusedWindow() &&
+              BrowserWindow.getFocusedWindow().webContents.toggleDevTools(),
           },
           {
             label: localized('Quit'),
