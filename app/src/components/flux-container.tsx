@@ -1,6 +1,11 @@
 import { React, PropTypes, Utils } from 'mailspring-exports';
 
-class FluxContainer extends React.Component {
+type FluxContainerProps = {
+  stores: any[],
+  getStateFromStores: (...args: any[]) => any
+};
+
+class FluxContainer extends React.Component<FluxContainerProps> {
   static displayName = 'FluxContainer';
   static propTypes = {
     children: PropTypes.element,

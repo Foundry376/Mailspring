@@ -7,15 +7,15 @@ const { app, MenuItem } = remote;
 const customDictFilePath = path.join(AppEnv.getConfigDirPath(), 'custom-dict.json');
 
 class Spellchecker {
+  private _customDictLoaded = false;
+  private _saveOnLoad = false;
+  private _savingCustomDict = false;
+  private _saveAgain = false;
+
+  private _customDict = {};
+
   constructor() {
     this.handler = null;
-
-    this._customDictLoaded = false;
-    this._saveOnLoad = false;
-    this._savingCustomDict = false;
-    this._saveAgain = false;
-
-    this._customDict = {};
 
     // Nobody will notice if spellcheck isn't available for a few seconds and it
     // takes a considerable amount of time to startup (212ms in dev mode on my 2017 MBP)

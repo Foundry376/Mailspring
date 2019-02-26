@@ -3,14 +3,17 @@ import classnames from 'classnames';
 import { React, PropTypes, DateUtils } from 'mailspring-exports';
 import { MiniMonthView } from 'mailspring-component-kit';
 
-export default class DatePicker extends React.Component {
-  static displayName = 'DatePicker';
+type DatePickerProps = {
+  value?: number,
+  onChange?: (...args: any[]) => any,
+  dateFormat?: string
+};
+type DatePickerState = {
+  focused: boolean
+};
 
-  static propTypes = {
-    value: PropTypes.number,
-    onChange: PropTypes.func,
-    dateFormat: PropTypes.string,
-  };
+export default class DatePicker extends React.Component<DatePickerProps, DatePickerState> {
+  static displayName = 'DatePicker';
 
   static contextTypes = {
     parentTabGroup: PropTypes.object,

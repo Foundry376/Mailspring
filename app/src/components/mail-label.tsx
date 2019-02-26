@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import RetinaImg from './retina-img';
 
+type MailLabelProps = {
+  label: object,
+  onRemove?: (...args: any[]) => any
+};
+
 export const LabelColorizer = {
   color(label) {
     return `hsl(${label.hue()}, 50%, 34%)`;
@@ -28,7 +33,7 @@ export const LabelColorizer = {
   },
 };
 
-export class MailLabel extends React.Component {
+export class MailLabel extends React.Component<MailLabelProps> {
   static propTypes = {
     label: PropTypes.object.isRequired,
     onRemove: PropTypes.func,

@@ -6,17 +6,22 @@ const Attachment = {
   RightEdge: 'RightEdge',
 };
 
-export default class DropdownMenu extends React.Component {
-  static Attachment = Attachment;
+type DropdownMenuProps = {
+  className?: string,
+  intitialSelectionItem?: object,
+  attachment?: string,
+  onSelect?: (...args: any[]) => any,
+  itemContent?: (...args: any[]) => any,
+  headerComponents?: React.ReactNode
+};
+type DropdownMenuState = {
+  currentSelection: any,
+  expanded: boolean,
+  currentSelection: any
+};
 
-  static propTypes = {
-    className: PropTypes.string,
-    intitialSelectionItem: PropTypes.object,
-    attachment: PropTypes.string,
-    onSelect: PropTypes.func,
-    itemContent: PropTypes.func,
-    headerComponents: PropTypes.node,
-  };
+export default class DropdownMenu extends React.Component<DropdownMenuProps, DropdownMenuState> {
+  static Attachment = Attachment;
 
   constructor(props) {
     super(props);

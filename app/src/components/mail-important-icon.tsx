@@ -13,7 +13,17 @@ import {
 
 const ShowImportantKey = 'core.workspace.showImportant';
 
-class MailImportantIcon extends React.Component {
+type MailImportantIconProps = {
+  thread?: object,
+  showIfAvailableForAnyAccount?: boolean
+};
+type MailImportantIconState = {
+  visible: boolean,
+  category: any,
+  isImportant: boolean,
+};
+
+class MailImportantIcon extends React.Component<MailImportantIconProps, MailImportantIconState> {
   static displayName = 'MailImportantIcon';
   static propTypes = {
     thread: PropTypes.object,

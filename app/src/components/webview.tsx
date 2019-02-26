@@ -10,12 +10,16 @@ import { localized } from 'mailspring-exports';
 import { rootURLForServer } from '../flux/mailspring-api-request';
 import RetinaImg from './retina-img';
 
-class InitialLoadingCover extends React.Component {
-  static propTypes = {
-    ready: PropTypes.bool,
-    error: PropTypes.string,
-    onTryAgain: PropTypes.func,
-  };
+type InitialLoadingCoverProps = {
+  ready?: boolean,
+  error?: string,
+  onTryAgain?: (...args: any[]) => any
+};
+type InitialLoadingCoverState = {
+  slow: boolean
+};
+
+class InitialLoadingCover extends React.Component<InitialLoadingCoverProps, InitialLoadingCoverState> {
 
   constructor(props) {
     super(props);
@@ -69,13 +73,20 @@ class InitialLoadingCover extends React.Component {
   }
 }
 
-export default class Webview extends React.Component {
-  static displayName = 'Webview';
+type WebviewProps = {
+  src?: string,
+  onDidFinishLoad?: (...args: any[]) => any
+};
+type WebviewState = {
+  error: null,
+  webviewLoading: boolean,
+  ready: boolean,
+  ready: boolean,
+  error: null
+};
 
-  static propTypes = {
-    src: PropTypes.string,
-    onDidFinishLoad: PropTypes.func,
-  };
+export default class Webview extends React.Component<WebviewProps, WebviewState> {
+  static displayName = 'Webview';
 
   constructor(props) {
     super(props);

@@ -5,7 +5,18 @@ import PropTypes from 'prop-types';
 import Actions from '../flux/actions';
 import RetinaImg from './retina-img';
 
-class Modal extends React.Component {
+type ModalProps = {
+  className?: string,
+  height?: number,
+  width?: number
+};
+type ModalState = {
+  animateClass: boolean,
+  offset: number,
+  dimensions: {},
+};
+
+class Modal extends React.Component<ModalProps, ModalState> {
   static propTypes = {
     className: PropTypes.string,
     children: PropTypes.element,

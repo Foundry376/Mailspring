@@ -8,7 +8,17 @@ require('moment-round'); // overrides moment
 
 const INTERVAL = [30, 'minutes'];
 
-export default class TimePicker extends React.Component {
+type TimePickerProps = {
+  value?: number,
+  onChange?: (...args: any[]) => any,
+  relativeTo?: number
+};
+type TimePickerState = {
+  rawText: any,
+  focused: boolean,
+};
+
+export default class TimePicker extends React.Component<TimePickerProps, TimePickerState> {
   static displayName = 'TimePicker';
 
   static propTypes = {

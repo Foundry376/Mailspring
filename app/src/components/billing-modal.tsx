@@ -5,16 +5,18 @@ import Webview from './webview';
 import Actions from '../flux/actions';
 import IdentityStore from '../flux/stores/identity-store';
 
-export default class BillingModal extends React.Component {
+type BillingModalProps = {
+  upgradeUrl?: string;
+  source?: string;
+};
+type BillingModalState = {
+  src: string | any;
+};
+export default class BillingModal extends React.Component<BillingModalProps, BillingModalState> {
   static IntrinsicWidth = 412;
   static IntrinsicHeight = 540;
 
-  static propTypes = {
-    upgradeUrl: PropTypes.string,
-    source: PropTypes.string,
-  };
-
-  constructor(props = {}) {
+  constructor(props) {
     super(props);
     this.state = {
       src: props.upgradeUrl,

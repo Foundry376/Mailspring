@@ -73,7 +73,17 @@ move the selection. E.g. 1, -2.
 @param {string} selectionDeltas.key - string that represents the key used to
 shift the selection
  */
-export class SelectableTableCell extends Component {
+ type SelectableTableCellProps = {
+  className?: string,
+  tableDataSource?: any,
+  rowIdx?: number | string,
+  colIdx?: number | string,
+  selection?: object,
+  onSetSelection: (...args: any[]) => any
+};
+
+
+export class SelectableTableCell extends Component<SelectableTableCellProps> {
   static propTypes = {
     className: PropTypes.string,
     tableDataSource: Table.propTypes.tableDataSource,
@@ -131,7 +141,14 @@ export class SelectableTableCell extends Component {
   }
 }
 
-export class SelectableTableRow extends Component {
+type SelectableTableRowProps = {
+  className?: string,
+  tableDataSource?: any,
+  selection?: object,
+  rowIdx?: any
+};
+
+export class SelectableTableRow extends Component<SelectableTableRowProps> {
   static propTypes = {
     className: PropTypes.string,
     tableDataSource: Table.propTypes.tableDataSource,
@@ -173,7 +190,20 @@ export class SelectableTableRow extends Component {
   }
 }
 
-class SelectableTable extends Component {
+type SelectableTableProps = {
+  tableDataSource?: any,
+  extraProps?: object,
+  RowRenderer?: any,
+  CellRenderer?: any,
+  selection: {
+    rowIdx?: number,
+    colIdx?: number
+  },
+  onSetSelection: (...args: any[]) => any,
+  onShiftSelection: (...args: any[]) => any
+};
+
+class SelectableTable extends Component<SelectableTableProps> {
   static displayName = 'SelectableTable';
 
   static propTypes = {

@@ -8,6 +8,24 @@ import { KeyCommandsRegion } from 'mailspring-component-kit';;
 import MultiselectListInteractionHandler from './multiselect-list-interaction-handler';
 import MultiselectSplitInteractionHandler from './multiselect-split-interaction-handler';
 
+type MultiselectListProps = {
+  dataSource?: object,
+  className: string,
+  columns: any[],
+  itemPropsProvider: (...args: any[]) => any,
+  keymapHandlers?: object,
+  onComponentDidUpdate?: (...args: any[]) => any
+};
+type MultiselectListState = {
+  handler: any,
+  columns: any,
+  computedColumns: any,
+  layoutMode: any,
+  handler: any,
+  columns: any,
+  computedColumns: any,
+  layoutMode: any
+};
 /*
 Public: MultiselectList wraps {ListTabular} and makes it easy to present a
 {ListDataSource} with selection support. It adds a checkbox column to the columns
@@ -19,7 +37,7 @@ you provide, and also handles:
 
 Section: Component Kit
 */
-export default class MultiselectList extends React.Component {
+export default class MultiselectList extends React.Component<MultiselectListProps, MultiselectListState> {
   static displayName = 'MultiselectList';
 
   static propTypes = {

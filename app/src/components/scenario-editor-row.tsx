@@ -7,7 +7,16 @@ import { Template } from './scenario-editor-models';
 
 const SOURCE_SELECT_NULL = 'NULL';
 
-class SourceSelect extends React.Component {
+type SourceSelectProps = {
+  value?: string,
+  onChange: (...args: any[]) => any,
+  options: object | any[]
+};
+type SourceSelectState = {
+  options: any[]
+};
+
+class SourceSelect extends React.Component<SourceSelectProps,  SourceSelectState> {
   static displayName = 'SourceSelect';
   static propTypes = {
     value: PropTypes.string,

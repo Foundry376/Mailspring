@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import { React, PropTypes, Utils } from 'mailspring-exports';
+import { React, Utils } from 'mailspring-exports';
 
 const StylesImpactedByZoom = [
   'top',
@@ -64,10 +64,8 @@ developers to properly adjust it. The four modes are described below:
 
 Section: Component Kit
 */
-class RetinaImg extends React.Component {
-  static displayName = 'RetinaImg';
 
-  /*
+/*
   Public: React `props` supported by RetinaImg:
 
    - `mode` (required) One of the RetinaImg.Mode constants. See above for details.
@@ -80,18 +78,20 @@ class RetinaImg extends React.Component {
    - `style` (optional) An {Object} with additional styles to apply to the image.
    - `resourcePath` (options) Changes the default lookup location used to find the images.
   */
-  static propTypes = {
-    mode: PropTypes.string.isRequired,
-    name: PropTypes.string,
-    url: PropTypes.string,
-    className: PropTypes.string,
-    style: PropTypes.object,
-    fallback: PropTypes.string,
-    selected: PropTypes.bool,
-    active: PropTypes.bool,
-    resourcePath: PropTypes.string,
-  };
+type RetinaImgProps = {
+  mode: string;
+  name?: string;
+  url?: string;
+  className?: string;
+  style?: object;
+  fallback?: string;
+  selected?: boolean;
+  active?: boolean;
+  resourcePath?: string;
+};
 
+class RetinaImg extends React.Component<RetinaImgProps> {
+  static displayName = 'RetinaImg';
   static Mode = Mode;
 
   shouldComponentUpdate = nextProps => {

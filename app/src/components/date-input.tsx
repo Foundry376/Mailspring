@@ -4,7 +4,15 @@ import React, { Component } from 'react';
 import { localized, DateUtils } from 'mailspring-exports';
 import PropTypes from 'prop-types';
 
-class DateInput extends Component {
+type DateInputProps = {
+  className?: string,
+  dateFormat: string,
+  onDateInterpreted?: (...args: any[]) => any,
+  onDateSubmitted?: (...args: any[]) => any
+};
+type DateInputState = { inputValue: string, inputDate: null } & any;
+
+class DateInput extends Component<DateInputProps, DateInputState> {
   static displayName = 'DateInput';
 
   static propTypes = {

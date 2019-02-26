@@ -52,18 +52,35 @@ const ResizableHandle = {
   },
 };
 
+type ResizableRegionProps = {
+  handle: object,
+  onResize?: (...args: any[]) => any,
+  initialWidth?: number,
+  minWidth?: number,
+  maxWidth?: number,
+  initialHeight?: number,
+  minHeight?: number,
+  maxHeight?: number,
+  style?: object
+};
+type ResizableRegionState = {
+  height: any,
+  width: any,
+  dragging: boolean,
+};
+
 /*
 Public: ResizableRegion wraps it's `children` in a div with a fixed width or height, and a
 draggable edge. It is used throughout N1 to implement resizable columns, trays, etc.
 
 Section: Component Kit
 */
-class ResizableRegion extends React.Component {
+class ResizableRegion extends React.Component<ResizableRegionProps, ResizableRegionState> {
   static displayName = 'ResizableRegion';
 
   /*
     Public: React `props` supported by ResizableRegion:
-  
+
      - `handle` Provide a {ResizableHandle} to indicate which edge of the
        region should be draggable.
      - `onResize` A {Function} that will be called continuously as the region is resized.

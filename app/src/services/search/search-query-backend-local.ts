@@ -15,6 +15,8 @@ import { DateUtils } from 'mailspring-exports';
  * MatchQueryExpression.
  */
 class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
+  private _result: string;
+
   visit(root) {
     const result = this.visitAndGetResult(root);
     return new MatchQueryExpression(`${result}`);
@@ -89,10 +91,8 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
  * MatchQueryExpressions.
  */
 class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
-  constructor() {
-    super();
-    this._matchVisitor = new MatchQueryExpressionVisitor();
-  }
+  private _matchVisitor = new MatchQueryExpressionVisitor();
+  private _result;
 
   visit(root) {
     return this.visitAndGetResult(root);
@@ -167,6 +167,9 @@ class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
  * uses a MATCH clause.
  */
 class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
+  private _className: string;
+  private _result: string;
+
   constructor(className) {
     super();
     this._className = className;
@@ -255,6 +258,8 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
 }
 
 export default class LocalSearchQueryBackend {
+  private _modelClassName: string;
+
   constructor(modelClassName) {
     this._modelClassName = modelClassName;
   }

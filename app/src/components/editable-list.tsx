@@ -10,6 +10,71 @@ import ScrollRegion from './scroll-region';
 import KeyCommandsRegion from './key-commands-region';
 import RetinaImg from './retina-img';
 
+
+/**
+* If provided, this function will be called when the add button is clicked,
+* and will prevent an input to be added at the end of the list
+* @callback props.onCreateItem
+*/
+/**
+* If provided, this function will be called when the delete button is clicked.
+* @callback props.onDeleteItem
+* @param {(Component|string|number)} selectedItem - The selected item.
+* @param {number} idx - The selected item idx
+*/
+/**
+* If provided, this function will be called when an item has been edited. This only
+* applies to items that are not React Components.
+* @callback props.onItemEdited
+* @param {string} newValue - The new value for the item
+* @param {(string|number)} originalValue - The original value for the item
+* @param {number} idx - The index of the edited item
+*/
+/**
+* If provided, this function will be called when an item is selected via click or arrow
+* keys. If the selection is cleared, it will receive null.
+* @callback props.onSelectItem
+* @param {(Component|string|number)} selectedItem - The selected item or null
+* when selection cleared
+* @param {number} idx - The index of the selected item or null when selection
+* cleared
+*/
+/**
+* If provided, this function will be called when the user has entered a value to create
+* a new item in the new item input. This function will be called when the
+* user presses Enter or when the input is blurred.
+* @callback props.onItemCreated
+* @param {string} value - The value for the new item
+*/
+/**
+ * If provided, the user will be able to drag and drop items to re-arrange them
+ * within the list. Note that dragging between lists is not supported.
+ * @callback props.onReorderItem
+ * @param {Object} item - The item that was dragged
+ * @param {number} startIdx - The index the item was dragged from
+ * @param {number} endIdx - The new index of the item, assuming it was
+   already removed from startIdx.
+ */
+ type EditableListProps = {
+  items: any[],
+  itemContent?: (...args: any[]) => any,
+  className?: string,
+  showEditIcon?: boolean,
+  createInputProps?: object,
+  onCreateItem?: (...args: any[]) => any,
+  onDeleteItem?: (...args: any[]) => any,
+  onReorderItem?: (...args: any[]) => any,
+  onItemEdited?: (...args: any[]) => any,
+  onItemCreated?: (...args: any[]) => any,
+  selected?: string | object,
+  onSelectItem?: (...args: any[]) => any
+};
+type EditableListState = {
+  dropInsertionIndex: number,
+  editingIndex: number,
+  creatingItem: boolean
+};
+
 /*
 Renders a list of items and renders controls to add/edit/remove items.
 It resembles OS X's default list component.
@@ -42,69 +107,11 @@ override the default props that EditableList will pass to the input.
 @param {props.onItemCreated} props.onItemCreated
 @class EditableList
  */
-class EditableList extends Component {
+
+
+
+class EditableList extends Component<EditableListProps, EditableListState> {
   static displayName = 'EditableList';
-
-  /**
-   * If provided, this function will be called when the add button is clicked,
-   * and will prevent an input to be added at the end of the list
-   * @callback props.onCreateItem
-   */
-  /**
-   * If provided, this function will be called when the delete button is clicked.
-   * @callback props.onDeleteItem
-   * @param {(Component|string|number)} selectedItem - The selected item.
-   * @param {number} idx - The selected item idx
-   */
-  /**
-   * If provided, this function will be called when an item has been edited. This only
-   * applies to items that are not React Components.
-   * @callback props.onItemEdited
-   * @param {string} newValue - The new value for the item
-   * @param {(string|number)} originalValue - The original value for the item
-   * @param {number} idx - The index of the edited item
-   */
-  /**
-   * If provided, this function will be called when an item is selected via click or arrow
-   * keys. If the selection is cleared, it will receive null.
-   * @callback props.onSelectItem
-   * @param {(Component|string|number)} selectedItem - The selected item or null
-   * when selection cleared
-   * @param {number} idx - The index of the selected item or null when selection
-   * cleared
-   */
-  /**
-   * If provided, this function will be called when the user has entered a value to create
-   * a new item in the new item input. This function will be called when the
-   * user presses Enter or when the input is blurred.
-   * @callback props.onItemCreated
-   * @param {string} value - The value for the new item
-   */
-  /**
-    * If provided, the user will be able to drag and drop items to re-arrange them
-    * within the list. Note that dragging between lists is not supported.
-    * @callback props.onReorderItem
-    * @param {Object} item - The item that was dragged
-    * @param {number} startIdx - The index the item was dragged from
-    * @param {number} endIdx - The new index of the item, assuming it was
-      already removed from startIdx.
-    */
-  static propTypes = {
-    items: PropTypes.array.isRequired,
-    itemContent: PropTypes.func,
-    className: PropTypes.string,
-    showEditIcon: PropTypes.bool,
-    createInputProps: PropTypes.object,
-    onCreateItem: PropTypes.func,
-    onDeleteItem: PropTypes.func,
-    onReorderItem: PropTypes.func,
-    onItemEdited: PropTypes.func,
-    onItemCreated: PropTypes.func,
-
-    /* Optional, if you choose to control selection externally */
-    selected: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-    onSelectItem: PropTypes.func,
-  };
 
   static defaultProps = {
     items: [],

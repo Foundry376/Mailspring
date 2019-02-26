@@ -3,6 +3,20 @@ import { React, ReactDOM, PropTypes, Utils, ComponentRegistry } from 'mailspring
 import InjectedComponentErrorBoundary from './injected-component-error-boundary';
 import InjectedComponentLabel from './injected-component-label';
 
+type InjectedComponentProps = {
+  matching: object,
+  className?: string,
+  exposedProps?: object,
+  fallback?: (...args: any[]) => any,
+  style?: object,
+  requiredMethods?: string[],
+  onComponentDidChange?: (...args: any[]) => any
+};
+type InjectedComponentState = {
+  component: any,
+  visible: any,
+};
+
 /**
 Public: InjectedComponent makes it easy to include dynamically registered
 components inside of your React render method. Rather than explicitly render
@@ -22,7 +36,7 @@ If no matching component is found, the InjectedComponent renders an empty div.
 
 Section: Component Kit
  */
-export default class InjectedComponent extends React.Component {
+export default class InjectedComponent extends React.Component<InjectedComponentProps, InjectedComponentState> {
   static displayName = 'InjectedComponent';
 
   /*

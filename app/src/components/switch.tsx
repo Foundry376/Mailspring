@@ -8,8 +8,13 @@ import PropTypes from 'prop-types';
   <Switch onChange={this._onToggleChecked} checked={this.state.form.isChecked} />
   ```
 */
+type SwitchProps = {
+  checked?: boolean,
+  onChange: (...args: any[]) => any,
+  className?: string
+};
 
-const Switch = props => {
+const Switch = React.SFC<SwitchProps>(props) => {
   let classnames = `${props.className || ''} slide-switch`;
   if (props.checked) {
     classnames += ' active';
@@ -20,12 +25,6 @@ const Switch = props => {
       <div className="handle" />
     </div>
   );
-};
-
-Switch.propTypes = {
-  checked: PropTypes.bool,
-  onChange: PropTypes.func.isRequired,
-  className: PropTypes.string,
 };
 
 export default Switch;

@@ -4,6 +4,19 @@ import Flexbox from './flexbox';
 import InjectedComponentErrorBoundary from './injected-component-error-boundary';
 import InjectedComponentLabel from './injected-component-label';
 
+type InjectedComponentSetProps = {
+  matching: object,
+  className?: string,
+  matchLimit?: number,
+  exposedProps?: object,
+  containersRequired?: boolean,
+  deferred?: boolean
+};
+type InjectedComponentSetState = {
+  components: any,
+  visible: any
+};
+
 /**
 Public: InjectedComponent makes it easy to include a set of dynamically registered
 components inside of your React render method. Rather than explicitly render
@@ -29,7 +42,7 @@ If no matching components is found, the InjectedComponent renders an empty span.
 
 Section: Component Kit
  */
-export default class InjectedComponentSet extends React.Component {
+export default class InjectedComponentSet extends React.Component<InjectedComponentSetProps, InjectedComponentSetState> {
   static displayName = 'InjectedComponentSet';
 
   /*

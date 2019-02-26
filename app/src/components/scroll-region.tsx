@@ -3,7 +3,22 @@ import { React, ReactDOM, PropTypes, Utils, isRTL } from 'mailspring-exports';;
 import classNames from 'classnames';
 import ScrollbarTicks from './scrollbar-ticks';
 
-class Scrollbar extends React.Component {
+type ScrollbarProps = {
+  scrollTooltipComponent?: (...args: any[]) => any,
+  scrollbarTickProvider?: object,
+  getScrollRegion?: (...args: any[]) => any
+};
+type ScrollbarState = {
+  totalHeight: number,
+  trackHeight: number,
+  viewportHeight: number,
+  viewportScrollTop: number,
+  dragging: boolean,
+  scrolling: boolean,
+  scrollbarTicks: undefined[]
+};
+
+class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   static displayName = 'Scrollbar';
   static propTypes = {
     scrollTooltipComponent: PropTypes.func,
@@ -182,10 +197,26 @@ class Scrollbar extends React.Component {
   };
 }
 
+
+type ScrollRegionProps = {
+  onScroll?: (...args: any[]) => any,
+  onScrollEnd?: (...args: any[]) => any,
+  className?: string,
+  scrollTooltipComponent?: (...args: any[]) => any,
+  scrollbarTickProvider?: object,
+  getScrollbar?: (...args: any[]) => any
+};
+type ScrollRegionState = {
+  totalHeight: number,
+  viewportHeight: number,
+  viewportScrollTop: number,
+  scrolling: boolean
+};
+
 /*
 The ScrollRegion component attaches a custom scrollbar.
 */
-class ScrollRegion extends React.Component {
+class ScrollRegion extends React.Component<ScrollRegionProps,  ScrollRegionState> {
   static displayName = 'ScrollRegion';
 
   static propTypes = {

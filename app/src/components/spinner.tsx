@@ -3,16 +3,28 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import classNames from 'classnames';
 
+type SpinnerProps = {
+  visible?: boolean,
+  withCover?: boolean,
+  style?: object
+};
+type SpinnerState = {
+  hidden: boolean,
+  hidden: boolean,
+  hidden: boolean,
+  paused: boolean
+};
+
 /*
 Public: Displays an indeterminate progress indicator in the center of it's
 parent component.
 
 Section: Component Kit
 */
-class Spinner extends React.Component {
+class Spinner extends React.Component<SpinnerProps, SpinnerState> {
   /*
     Public: React `props` supported by Spinner:
-  
+
      - `visible` (optional) Pass true to display the spinner and false to hide it.
      - `withCover` (optiona) Pass true to dim the content behind the spinner.
      - `style` (optional) Additional styles to apply to the spinner.

@@ -8,14 +8,29 @@ import Flexbox from './components/flexbox';
 
 const FLEX = 10000;
 
-export default class Sheet extends React.Component {
-  static displayName = 'Sheet';
-
-  static propTypes = {
-    data: PropTypes.object.isRequired,
-    depth: PropTypes.number.isRequired,
-    onColumnSizeChanged: PropTypes.func,
+interface SheetProps {
+  data: {
+    columns: {
+      [mode: string]: string[];
+    };
   };
+  depth: number;
+  onColumnSizeChanged?: (sheet: Sheet) => void;
+}
+interface SheetColumn {
+  maxWidth: number;
+  minWidth: number;
+  handle: any;
+  location: string;
+  width: number;
+}
+interface SheetState {
+  mode: string;
+  columns: SheetColumn[];
+}
+
+export default class Sheet extends React.Component<SheetProps, SheetState> {
+  static displayName = 'Sheet';
 
   static defaultProps = {
     onColumnSizeChanged: () => {},
@@ -25,9 +40,10 @@ export default class Sheet extends React.Component {
     sheetDepth: PropTypes.number,
   };
 
+  private unlisteners = [];
+
   constructor(props) {
     super(props);
-    this.unlisteners = [];
     this.state = this._getStateFromStores();
   }
 

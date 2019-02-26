@@ -63,8 +63,18 @@ import SelectableTable, { SelectableTableCell } from './selectable-table';
  * This function will be called when the last column needs to be removed
  * @callback props.onRemoveColumn
  */
+ type EditableTableCellProps = {
+   tableDataSource?: any,
+   rowIdx?: any,
+   colIdx?: any,
+   isHeader?: boolean,
+   inputProps?: object,
+   InputRenderer?: any,
+   onAddRow?: (...args: any[]) => any,
+   onCellEdited: (...args: any[]) => any
+ };
 
-export class EditableTableCell extends Component {
+export class EditableTableCell extends Component<EditableTableCellProps> {
   static propTypes = {
     tableDataSource: SelectableTableCell.propTypes.tableDataSource,
     rowIdx: SelectableTableCell.propTypes.colIdx,
@@ -153,7 +163,18 @@ export class EditableTableCell extends Component {
   }
 }
 
-function EditableTable(props) {
+type EditableTableProps = {
+  tableDataSource?: any,
+  inputProps?: object,
+  InputRenderer?: any,
+  onCellEdited: (...args: any[]) => any,
+  onAddColumn?: (...args: any[]) => any,
+  onRemoveColumn?: (...args: any[]) => any,
+  onAddRow?: (...args: any[]) => any,
+  onRemoveRow?: (...args: any[]) => any
+};
+
+function EditableTable(props: EditableTableProps) {
   const {
     inputProps,
     InputRenderer,

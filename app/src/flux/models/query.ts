@@ -37,6 +37,19 @@ query.where([Thread.attributes.categories.contains('label-id')])
 Section: Database
 */
 export default class ModelQuery {
+  private _database: typeof import('mailspring-exports').DatabaseStore;
+  private _matchers = [];
+  private _orders = [];
+  private _background = false;
+  private _backgroundable = true;
+  private _distinct = false;
+  private _range = QueryRange.infinite();
+  private _returnOne = false;
+  private _returnIds = false;
+  private _includeJoinedData = [];
+  private _count = false;
+  private _logQueryPlanDebugOutput = true;
+
   // Public
   // - `class` A {Model} class to query
   // - `database` (optional) An optional reference to a {DatabaseStore} the
@@ -45,17 +58,6 @@ export default class ModelQuery {
   constructor(klass, database) {
     this._klass = klass.SubclassesUseModelTable || klass;
     this._database = database || require('./database-store').default;
-    this._matchers = [];
-    this._orders = [];
-    this._background = false;
-    this._backgroundable = true;
-    this._distinct = false;
-    this._range = QueryRange.infinite();
-    this._returnOne = false;
-    this._returnIds = false;
-    this._includeJoinedData = [];
-    this._count = false;
-    this._logQueryPlanDebugOutput = true;
   }
 
   clone() {

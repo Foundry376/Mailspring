@@ -1,9 +1,9 @@
 import { Disposable } from 'event-kit';
 
 export default class StyleManager {
-  constructor() {
-    this.styleElementsBySourcePath = {};
+  private styleElementsBySourcePath = {};
 
+  constructor() {
     this.el = document.createElement('managed-styles');
     document.head.appendChild(this.el);
   }

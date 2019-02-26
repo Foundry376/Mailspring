@@ -21,6 +21,33 @@ const CounterStyles = {
   Alt: 'alt',
 };
 
+
+type OutlineViewItemProps = {
+  item: {
+    className?: string,
+    id: string,
+    name: string,
+    iconName: string,
+    count?: number,
+    counterStyle?: string,
+    inputPlaceholder?: string,
+    collapsed?: boolean,
+    editing?: boolean,
+    selected?: boolean,
+    shouldAcceptDrop?: (...args: any[]) => any,
+    onCollapseToggled?: (...args: any[]) => any,
+    onInputCleared?: (...args: any[]) => any,
+    onDrop?: (...args: any[]) => any,
+    onSelect?: (...args: any[]) => any,
+    onDelete?: (...args: any[]) => any,
+    onEdited?: (...args: any[]) => any
+  }
+};
+type OutlineViewItemState = {
+  editing: any,
+  isDropping: boolean,
+  editing: any
+};
 /*
  * Renders an item that may contain more arbitrarily nested items
  * This component resembles OS X's default OutlineView or Sourcelist
@@ -66,7 +93,7 @@ const CounterStyles = {
  * @param {props.item.onEdited} props.item.onEdited
  * @class OutlineViewItem
  */
-class OutlineViewItem extends Component {
+class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemState> {
   static displayName = 'OutlineView';
 
   /*

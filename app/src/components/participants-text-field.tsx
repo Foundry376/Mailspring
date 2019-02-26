@@ -33,7 +33,19 @@ TokenRenderer.propTypes = {
   token: PropTypes.object,
 };
 
-export default class ParticipantsTextField extends React.Component {
+type ParticipantsTextFieldProps = {
+  field?: string;
+  menuPrompt?: string;
+  participants: object;
+  change: (...args: any[]) => any;
+  className?: string;
+  onEmptied?: (...args: any[]) => any;
+  onFocus?: (...args: any[]) => any;
+  draft?: object;
+  session?: object;
+};
+
+export default class ParticipantsTextField extends React.Component<ParticipantsTextFieldProps> {
   static displayName = 'ParticipantsTextField';
 
   static propTypes = {

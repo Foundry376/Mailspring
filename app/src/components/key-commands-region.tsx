@@ -4,6 +4,17 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+type KeyCommandsRegionProps = {
+  className?: string,
+  localHandlers?: object,
+  globalHandlers?: object,
+  onFocusIn?: (...args: any[]) => any,
+  onFocusOut?: (...args: any[]) => any
+};
+type KeyCommandsRegionState = {
+  focused: boolean
+};
+
 /*
 Public: Easily respond to keyboard shortcuts
 
@@ -82,7 +93,7 @@ In `my-package/keymaps/my-package.cson`:
   "command+enter": "sendMessage"
 ```
 */
-export default class KeyCommandsRegion extends React.Component {
+export default class KeyCommandsRegion extends React.Component<KeyCommandsRegionProps, KeyCommandsRegionState> {
   static displayName = 'KeyCommandsRegion';
 
   static propTypes = {

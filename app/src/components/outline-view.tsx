@@ -5,6 +5,18 @@ import RetinaImg from './retina-img';
 import OutlineViewItem from './outline-view-item';
 import PropTypes from 'prop-types';
 
+type OutlineViewProps = {
+  title?: string,
+  iconName?: string,
+  items?: any[],
+  collapsed?: boolean,
+  onItemCreated?: (...args: any[]) => any,
+  onCollapseToggled?: (...args: any[]) => any
+};
+type OutlineViewState = {
+  showCreateInput: boolean
+};
+
 /*
  * Renders a section that contains a list of {@link OutlineViewItem}s. These items can
  * be arbitrarily nested. See docs for {@link OutlineViewItem}.
@@ -30,7 +42,7 @@ import PropTypes from 'prop-types';
  * @param {props.onCollapseToggled} props.onCollapseToggled
  * @class OutlineView
  */
-class OutlineView extends Component {
+class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
   static displayName = 'OutlineView';
 
   /*

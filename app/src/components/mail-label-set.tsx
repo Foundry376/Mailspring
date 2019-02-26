@@ -11,7 +11,14 @@ import InjectedComponentSet from './injected-component-set';
 
 const LabelComponentCache = {};
 
-export default class MailLabelSet extends React.Component {
+type MailLabelSetProps = {
+  thread: object,
+  messages?: any[],
+  includeCurrentCategories?: boolean,
+  removable?: boolean
+};
+
+export default class MailLabelSet extends React.Component<MailLabelSetProps> {
   static displayName = 'MailLabelSet';
 
   static propTypes = {

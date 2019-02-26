@@ -3,6 +3,14 @@ import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 
+type MultiselectToolbarProps = {
+  toolbarElement: JSX.Element,
+  collection: string,
+  onClearSelection: (...args: any[]) => any,
+  selectionCount?: React.ReactNode
+};
+
+
 /*
  * MultiselectToolbar renders a toolbar inside a horizontal bar and displays
  * a selection count and a button to clear the selection.
@@ -12,7 +20,7 @@ import PropTypes from 'prop-types';
  * It will also animate its mounting and unmounting
  * @class MultiselectToolbar
  */
-class MultiselectToolbar extends Component {
+class MultiselectToolbar extends Component<MultiselectToolbarProps> {
   static displayName = 'MultiselectToolbar';
 
   static propTypes = {

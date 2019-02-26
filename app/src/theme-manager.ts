@@ -21,17 +21,17 @@ const CONFIG_THEME_KEY = 'core.theme';
  *  - ThemeManager directly updates <style> tags when recompiling LESS.
  */
 export default class ThemeManager {
-  constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
-    this.baseThemeOnly = false;
+  private activeThemePackage = null;
+  private baseThemeOnly = false;
+  private emitter = new Emitter();
+  private styleSheetDisposablesBySourcePath = {};
+  private lessCache: LessCompileCache;
 
-    this.activeThemePackage = null;
+  constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
     this.packageManager = packageManager;
     this.resourcePath = resourcePath;
     this.configDirPath = configDirPath;
     this.safeMode = safeMode;
-
-    this.emitter = new Emitter();
-    this.styleSheetDisposablesBySourcePath = {};
     this.lessCache = new LessCompileCache({
       configDirPath: this.configDirPath,
       resourcePath: this.resourcePath,

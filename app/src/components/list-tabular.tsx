@@ -20,7 +20,20 @@ class ListColumn {
   }
 }
 
-class ListTabularRows extends Component {
+type ListTabularRowsProps = {
+  rows?: any[],
+  columns: any[],
+  draggable?: boolean,
+  itemHeight?: number,
+  innerStyles?: object,
+  onSelect?: (...args: any[]) => any,
+  onClick?: (...args: any[]) => any,
+  onDoubleClick?: (...args: any[]) => any,
+  onDragStart?: (...args: any[]) => any,
+  onDragEnd?: (...args: any[]) => any
+};
+
+class ListTabularRows extends Component<ListTabularRowsProps> {
   static displayName = 'ListTabularRows';
 
   static propTypes = {
@@ -75,7 +88,34 @@ class ListTabularRows extends Component {
   }
 }
 
-class ListTabular extends Component {
+type ListTabularProps = {
+  footer?: React.ReactNode,
+  draggable?: boolean,
+  className?: string,
+  columns: any[],
+  dataSource?: object,
+  itemPropsProvider?: (...args: any[]) => any,
+  itemHeight?: number,
+  EmptyComponent?: (...args: any[]) => any,
+  scrollTooltipComponent?: (...args: any[]) => any,
+  onClick?: (...args: any[]) => any,
+  onSelect?: (...args: any[]) => any,
+  onDoubleClick?: (...args: any[]) => any,
+  onDragStart?: (...args: any[]) => any,
+  onDragEnd?: (...args: any[]) => any,
+  onComponentDidUpdate?: (...args: any[]) => any
+};
+type ListTabularState = {
+  items: {},
+  animatingOut: {},
+  renderedRangeStart: any,
+  renderedRangeEnd: any,
+  count: any,
+  loaded: any,
+  empty: any,
+};
+
+class ListTabular extends Component<ListTabularProps, ListTabularState> {
   static displayName = 'ListTabular';
 
   static propTypes = {

@@ -23,6 +23,28 @@ const InverseDirections = {
 
 const OFFSET_PADDING = 11.5;
 
+type FixedPopoverProps = {
+  direction?: string,
+  fallbackDirection?: string,
+  closeOnAppBlur?: boolean,
+  originRect?: {
+    bottom?: number,
+    top?: number,
+    right?: number,
+    left?: number,
+    height?: number,
+    width?: number
+  },
+  focusElementWithTabIndex?: (...args: any[]) => any
+};
+
+type FixedPopoverState = {
+  direction: any,
+  offset: {},
+  direction: any,
+  visible: boolean
+};
+
 /*
  * Renders a popover absultely positioned in the window next to the provided
  * rect.
@@ -30,7 +52,7 @@ const OFFSET_PADDING = 11.5;
  * close the previous one and open the new one.
  * @class FixedPopover
  **/
-class FixedPopover extends Component {
+class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   static Directions = Directions;
 
   static propTypes = {

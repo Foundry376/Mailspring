@@ -22,6 +22,11 @@ import fs from 'fs';
 
 const { rootURLForServer } = MailspringAPIRequest;
 
+type EventedIFrameProps = {
+  searchable?: boolean,
+  onResize?: (...args: any[]) => any
+};
+
 /*
 Public: EventedIFrame is a thin wrapper around the DOM's standard `<iframe>` element.
 You should always use EventedIFrame, because it provides important event hooks that
@@ -39,7 +44,7 @@ Any `props` added to the <EventedIFrame> are passed to the iFrame it renders.
 
 Section: Component Kit
 */
-class EventedIFrame extends React.Component {
+class EventedIFrame extends React.Component<EventedIFrameProps> {
   static displayName = 'EventedIFrame';
 
   static propTypes = {

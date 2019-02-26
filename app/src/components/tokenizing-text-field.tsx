@@ -7,10 +7,11 @@ import { Menu } from 'mailspring-component-kit';
 import RetinaImg from './retina-img';
 import KeyCommandsRegion from './key-commands-region';
 
-class SizeToFitInput extends React.Component {
-  static propTypes = {
-    value: PropTypes.string,
-  };
+type SizeToFitInputProps = {
+  value?: string
+};
+
+class SizeToFitInput extends React.Component<SizeToFitInputProps> {
 
   constructor(props) {
     super(props);
@@ -211,6 +212,41 @@ class Token extends React.Component {
   }
 }
 
+
+type TokenizingTextFieldProps = {
+  className?: string,
+  disabled?: boolean,
+  placeholder?: React.ReactNode,
+  tokens?: object[],
+  maxTokens?: number,
+  defaultValue?: string,
+  tokenKey: (...args: any[]) => any,
+  tokenIsValid?: (...args: any[]) => any,
+  tokenRenderer: (...args: any[]) => any,
+  tokenClassNames?: (...args: any[]) => any,
+  onRequestCompletions: (...args: any[]) => any,
+  completionNode: (...args: any[]) => any,
+  onAdd: (...args: any[]) => any,
+  onInputTrySubmit?: (...args: any[]) => any,
+  shouldBreakOnKeydown?: (...args: any[]) => any,
+  onRemove: (...args: any[]) => any,
+  onEdit?: (...args: any[]) => any,
+  onEditMotion?: (...args: any[]) => any,
+  onEmptied?: (...args: any[]) => any,
+  onTokenAction?: ((...args: any[]) => any) | boolean,
+  onFocus?: (...args: any[]) => any,
+  menuPrompt?: string,
+  menuClassSet?: object,
+  tabIndex?: number
+};
+type TokenizingTextFieldState = {
+  inputValue: any,
+  inputValue: string,
+  inputValue: any,
+  completions: undefined[],
+  selectedKeys: undefined[]
+};
+
 /*
 Public: The TokenizingTextField component displays a list of options as you type and converts them into stylable tokens.
 
@@ -221,7 +257,7 @@ See documentation on the propTypes for usage info.
 
 Section: Component Kit
 */
-export default class TokenizingTextField extends React.Component {
+export default class TokenizingTextField extends React.Component<TokenizingTextFieldProps, TokenizingTextFieldState> {
   static displayName = 'TokenizingTextField';
 
   static containerRequired = false;

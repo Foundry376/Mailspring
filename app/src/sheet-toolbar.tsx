@@ -27,6 +27,8 @@ class ToolbarSpacer extends React.Component {
 class WindowTitle extends React.Component {
   static displayName = 'WindowTitle';
 
+  private disposable?: { dispose: () => {} };
+
   constructor(props) {
     super(props);
     this.state = AppEnv.getLoadSettings();

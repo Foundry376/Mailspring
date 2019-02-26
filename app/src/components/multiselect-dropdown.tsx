@@ -3,6 +3,16 @@ import { ButtonDropdown, Menu } from 'mailspring-component-kit';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
+type MultiselectDropdownProps = {
+  className?: string,
+  items: any[],
+  itemChecked?: (...args: any[]) => any,
+  onToggleItem?: (...args: any[]) => any,
+  itemKey?: (...args: any[]) => any,
+  buttonText?: string,
+  itemContent?: (...args: any[]) => any,
+  attachment?: string
+};
 /*
 Renders a drop down of items that can have multiple selected
 Item can be string or object
@@ -16,7 +26,7 @@ Item can be string or object
 @param {props.buttonText} - props.buttonText -- string to be rendered in the button
 **/
 
-class MultiselectDropdown extends Component {
+class MultiselectDropdown extends Component<MultiselectDropdownProps> {
   static displayName = 'MultiselectDropdown';
 
   static propTypes = {

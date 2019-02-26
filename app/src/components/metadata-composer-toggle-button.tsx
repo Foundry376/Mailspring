@@ -10,7 +10,23 @@ import { RetinaImg } from 'mailspring-component-kit';
 import classnames from 'classnames';
 import _ from 'underscore';
 
-export default class MetadataComposerToggleButton extends React.Component {
+type MetadataComposerToggleButtonProps = {
+  iconUrl?: string,
+  iconName?: string,
+  pluginId: string,
+  pluginName: string,
+  metadataEnabledValue: object,
+  errorMessage: (...args: any[]) => any,
+  draft: object,
+  session: object
+};
+type MetadataComposerToggleButtonState = {
+  pending: boolean,
+  onByDefaultButUsedUp: boolean
+};
+
+
+export default class MetadataComposerToggleButton extends React.Component<MetadataComposerToggleButtonProps, MetadataComposerToggleButtonState> {
   static displayName = 'MetadataComposerToggleButton';
 
   static propTypes = {

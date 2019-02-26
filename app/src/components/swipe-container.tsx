@@ -44,7 +44,30 @@ if (process.platform === 'darwin') {
   // vertical, not horizontal, behavior.
 }
 
-export default class SwipeContainer extends React.Component {
+
+type SwipeContainerProps = {
+  shouldEnableSwipe?: (...args: any[]) => any,
+  onSwipeLeft?: (...args: any[]) => any,
+  onSwipeLeftClass?: string | ((...args: any[]) => any),
+  onSwipeRight?: (...args: any[]) => any,
+  onSwipeRightClass?: string | ((...args: any[]) => any),
+  onSwipeCenter?: (...args: any[]) => any
+};
+type SwipeContainerState = {
+  targetX: number,
+  settleStartTime: number,
+  currentX: any,
+  targetX: any,
+  thresholdDistance: string,
+  fullDistance: string,
+  currentX: any,
+  lastDragX: any,
+  fullDistance: string,
+  currentX: number,
+  targetX: number
+};
+
+export default class SwipeContainer extends React.Component<SwipeContainerProps, SwipeContainerState> {
   static displayName = 'SwipeContainer';
 
   static propTypes = {

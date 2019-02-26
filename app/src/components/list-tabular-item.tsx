@@ -1,7 +1,18 @@
 import SwipeContainer from './swipe-container';
 import { React, PropTypes, Utils } from 'mailspring-exports';
 
-export default class ListTabularItem extends React.Component {
+type ListTabularItemProps = {
+  metrics?: object,
+  columns: object[],
+  item: object,
+  itemProps?: object,
+  onSelect?: (...args: any[]) => any,
+  onClick?: (...args: any[]) => any,
+  onDoubleClick?: (...args: any[]) => any
+};
+
+
+export default class ListTabularItem extends React.Component<ListTabularItemProps> {
   static displayName = 'ListTabularItem';
   static propTypes = {
     metrics: PropTypes.object,

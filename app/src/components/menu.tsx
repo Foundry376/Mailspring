@@ -2,18 +2,50 @@ import classNames from 'classnames';
 import _ from 'underscore';
 import { React, ReactDOM, PropTypes, DOMUtils } from 'mailspring-exports';;
 
+
+
+type MenuItemProps = {
+  divider?: string | boolean,
+  selected?: boolean,
+  checked?: boolean
+};
+
+type MenuNameEmailItemProps = {
+  name?: string,
+  email?: string
+};
+
+type MenuProps = {
+  className?: string,
+  footerComponents?: React.ReactNode,
+  headerComponents?: React.ReactNode,
+  itemContext?: object,
+  itemContent: (...args: any[]) => any,
+  itemKey: (...args: any[]) => any,
+  itemChecked?: (...args: any[]) => any,
+  items: any[],
+  onSelect: (...args: any[]) => any,
+  onEscape?: (...args: any[]) => any,
+  defaultSelectedIndex?: number
+};
+
+type MenuState = {
+  selectedIndex: any,
+  selectedIndex: any
+};
+
 /*
 Public: `MenuItem` components can be provided to the {Menu} by the `itemContent` function.
 MenuItem's props allow you to display dividers as well as standard items.
 
 Section: Component Kit
 */
-class MenuItem extends React.Component {
+class MenuItem extends React.Component<MenuItemProps> {
   static displayName = 'MenuItem';
 
   /*
     Public: React `props` supported by MenuItem:
-  
+
      - `divider` (optional) Pass a {Boolean} to render the menu item as a section divider.
      - `key` (optional) Pass a {String} to be the React key to optimize rendering lists of items.
      - `selected` (optional) Pass a {Boolean} to specify whether the item is selected.
@@ -49,12 +81,12 @@ Public: React component for a {Menu} item that displays a name and email address
 
 Section: Component Kit
 */
-class MenuNameEmailItem extends React.Component {
+class MenuNameEmailItem extends React.Component<MenuNameEmailItemProps> {
   static displayName = 'MenuNameEmailItem';
 
   /*
     Public: React `props` supported by MenuNameEmailItem:
-  
+
      - `name` (optional) The {String} name to be displayed.
      - `email` (optional) The {String} email address to be displayed.
     */
@@ -105,46 +137,46 @@ component's Menu instance:
 
 Section: Component Kit
 */
-class Menu extends React.Component {
+class Menu extends React.Component<MenuProps, MenuState> {
   static displayName = 'Menu';
 
   /*
     Public: React `props` supported by Menu:
-  
+
      - `className` (optional) The {String} class name applied to the Menu
-  
+
      - `itemContent` A {Function} that returns a {MenuItem}, {String}, or
        React component for the given `item`.
-  
+
        If you return a {MenuItem}, your item is injected into the list directly.
-  
+
        If you return a string or React component, the result is placed within a
        {MenuItem}, resulting in the following DOM:
        `<div className="item [selected]">{your content}</div>`.
-  
+
        To create dividers and other special menu items, return an instance of:
-  
+
        <Menu.Item divider="Label">
-  
+
      - `itemKey` A {Function} that returns a unique string key for the given `item`.
        Keys are important for efficient React rendering when `items` is changed, and a
        key function is required.
-  
+
      - `itemChecked` A {Function} that returns true if the given item should be shown
        with a checkmark. If you don't provide an implementation for `itemChecked`, no
        checkmarks are ever shown.
-  
+
      - `items` An {Array} of arbitrary objects the menu should display.
-  
+
      - `onSelect` A {Function} called with the selected item when the user clicks
        an item in the menu or confirms their selection with the Enter key.
-  
+
      - `onEscape` A {Function} called when a user presses escape in the input.
-  
+
      - `defaultSelectedIndex` The index of the item first selected if there
      was no other previous index. Defaults to 0. Set to -1 if you want
      nothing selected.
-  
+
     */
   static propTypes = {
     className: PropTypes.string,

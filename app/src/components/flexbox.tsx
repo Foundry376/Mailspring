@@ -1,12 +1,18 @@
 import { React, PropTypes, Utils } from 'mailspring-exports';
 
+type FlexboxProps = {
+  direction?: string,
+  inline?: boolean,
+  style?: object,
+  height?: string
+};
 /*
 Public: A simple wrapper that provides a Flexbox layout with the given direction and style.
 Any additional props you set on the Flexbox are rendered.
 
 Section: Component Kit
 */
-export default class Flexbox extends React.Component {
+export default class Flexbox extends React.Component<FlexboxProps> {
   static displayName = 'Flexbox';
 
   /*

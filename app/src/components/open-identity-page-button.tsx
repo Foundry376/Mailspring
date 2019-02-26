@@ -5,7 +5,20 @@ import classnames from 'classnames';
 import RetinaImg from './retina-img';
 import IdentityStore from '../flux/stores/identity-store';
 
-export default class OpenIdentityPageButton extends React.Component {
+type OpenIdentityPageButtonProps = {
+  path?: string,
+  label?: string,
+  source?: string,
+  campaign?: string,
+  img?: string,
+  isCTA?: boolean
+};
+type OpenIdentityPageButtonState = {
+  loading: boolean
+};
+
+
+export default class OpenIdentityPageButton extends React.Component<OpenIdentityPageButtonProps, OpenIdentityPageButtonState> {
   static propTypes = {
     path: PropTypes.string,
     label: PropTypes.string,

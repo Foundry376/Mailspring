@@ -1,22 +1,21 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { localized, Actions, DateUtils } from 'mailspring-exports';
 import DateInput from './date-input';
 import Menu from './menu';
 
 const { DATE_FORMAT_SHORT, DATE_FORMAT_LONG } = DateUtils;
 
-class DatePickerPopover extends Component {
-  static displayName = 'DatePickerPopover';
+type DatePickerPopoverProps = {
+  className?: string,
+  footer?: React.ReactNode,
+  onSelectDate?: (...args: any[]) => any,
+  header: React.ReactNode,
+  dateOptions: object,
+  shouldSelectDateWhenInterpreted?: boolean
+};
 
-  static propTypes = {
-    className: PropTypes.string,
-    footer: PropTypes.node,
-    onSelectDate: PropTypes.func,
-    header: PropTypes.node.isRequired,
-    dateOptions: PropTypes.object.isRequired,
-    shouldSelectDateWhenInterpreted: PropTypes.bool,
-  };
+class DatePickerPopover extends Component<DatePickerPopoverProps> {
+  static displayName = 'DatePickerPopover';
 
   static defaultProps = {
     shouldSelectDateWhenInterpreted: false,

@@ -2,7 +2,11 @@ import RetinaImg from './retina-img';
 import { React, ReactDOM, PropTypes } from 'mailspring-exports';;
 import classnames from 'classnames';
 
-class ButtonDropdown extends React.Component {
+type ButtonDropdownState = {
+  open: boolean
+};
+
+class ButtonDropdown extends React.Component<{}, ButtonDropdownState> {
   static displayName = 'ButtonDropdown';
   static propTypes = {
     primaryItem: PropTypes.element,

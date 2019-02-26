@@ -3,6 +3,15 @@ import PropTypes from 'prop-types';
 import { Comparator, Template } from './scenario-editor-models';
 import ScenarioEditorRow from './scenario-editor-row';
 
+type ScenarioEditorProps = {
+  instances?: any[],
+  className?: string,
+  onChange?: (...args: any[]) => any,
+  templates?: any[]
+};
+type ScenarioEditorState = {
+  collapsed: boolean
+};
 /**
 The ScenarioEditor takes an array of ScenarioTemplate objects which define the
 scenario value space. Each ScenarioTemplate defines a `key` and it's valid
@@ -31,7 +40,7 @@ For example:
     }]
 */
 
-export default class ScenarioEditor extends React.Component {
+export default class ScenarioEditor extends React.Component<ScenarioEditorProps, ScenarioEditorState> {
   static displayName = 'ScenarioEditor';
 
   static propTypes = {
