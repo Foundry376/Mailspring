@@ -5,9 +5,9 @@
  * DS206: Consider reworking classes to avoid initClass
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const React = require('react');
-const ReactDOM = require('react-dom');
-const PropTypes = require('prop-types');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 
 class TabGroupRegion extends React.Component {
   static childContextTypes = { parentTabGroup: PropTypes.object };
@@ -70,4 +70,4 @@ class TabGroupRegion extends React.Component {
   }
 }
 
-module.exports = TabGroupRegion;
+export default TabGroupRegion;

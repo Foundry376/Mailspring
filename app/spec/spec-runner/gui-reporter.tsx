@@ -5,10 +5,10 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const path = require('path');
-const React = require('react');
-const ReactDOM = require('react-dom');
-const PropTypes = require('prop-types');
+import path from 'path';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 
 const formatStackTrace = function(spec, message, stackTrace, indent) {
   if (message == null) {
@@ -305,56 +305,54 @@ const update = () => {
   return ReactDOM.render(component, el);
 };
 
-module.exports = {
-  reportRunnerStarting(runner) {
-    specs = runner.specs();
-    startedAt = Date.now();
-    update();
-  },
+export function reportRunnerStarting(runner) {
+  specs = runner.specs();
+  startedAt = Date.now();
+  update();
+}
 
-  reportRunnerResults(runner) {
-    update();
-  },
+export function reportRunnerResults(runner) {
+  update();
+}
 
-  reportSuiteResults(suite) {},
+export function reportSuiteResults(suite) {}
 
-  reportSpecResults(spec) {
-    spec.endedAt = Date.now();
-    update();
-  },
+export function reportSpecResults(spec) {
+  spec.endedAt = Date.now();
+  update();
+}
 
-  reportPlainTextSpecResult(spec) {
-    let str = '';
-    if (spec.results().failedCount > 0) {
-      str += suiteString(spec) + '\n';
-      const indent = indentationString(spec.suite, 1);
-      const stackIndent = indentationString(spec.suite, 2);
+export function reportPlainTextSpecResult(spec) {
+  let str = '';
+  if (spec.results().failedCount > 0) {
+    str += suiteString(spec) + '\n';
+    const indent = indentationString(spec.suite, 1);
+    const stackIndent = indentationString(spec.suite, 2);
 
-      let { description } = spec;
-      if (description.indexOf('it ') !== 0) {
-        description = `it ${description}`;
-      }
-      str += indent + description + '\n';
-
-      for (let result of spec.results().getItems()) {
-        if (result.passed()) {
-          continue;
-        }
-        str += indent + result.message + '\n';
-        const stackTrace = formatStackTrace(spec, result.message, result.trace.stack, stackIndent);
-        str += stackTrace + '\n';
-      }
-      str += '\n\n';
+    let { description } = spec;
+    if (description.indexOf('it ') !== 0) {
+      description = `it ${description}`;
     }
+    str += indent + description + '\n';
 
-    plainTextOutput = plainTextOutput + str;
-    update();
-  },
+    for (let result of spec.results().getItems()) {
+      if (result.passed()) {
+        continue;
+      }
+      str += indent + result.message + '\n';
+      const stackTrace = formatStackTrace(spec, result.message, result.trace.stack, stackIndent);
+      str += stackTrace + '\n';
+    }
+    str += '\n\n';
+  }
 
-  reportSpecStarting(spec) {
-    update();
-  },
-};
+  plainTextOutput = plainTextOutput + str;
+  update();
+}
+
+export function reportSpecStarting(spec) {
+  update();
+}
 
 function __range__(left, right, inclusive) {
   let range = [];

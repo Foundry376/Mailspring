@@ -80,7 +80,7 @@ export default class Application extends EventEmitter {
       return;
     }
 
-    const Config = require('../config');
+    const Config = require('../config').default;
     const config = new Config();
     this.config = config;
     this.configPersistenceManager = new ConfigPersistenceManager({ configDirPath, resourcePath });

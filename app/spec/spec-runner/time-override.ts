@@ -5,7 +5,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const _ = require('underscore');
+import _ from 'underscore';
 
 // Public: To make specs easier to test, we make all asynchronous behavior
 // actually synchronous. We do this by overriding all global timeout and
@@ -127,5 +127,4 @@ class TimeOverride {
   }
 }
 TimeOverride.initClass();
-
-module.exports = TimeOverride;
+export default TimeOverride;

@@ -1,6 +1,6 @@
-const Contact = require('../../src/flux/models/contact').default;
-const AccountStore = require('../../src/flux/stores/account-store').default;
-const Account = require('../../src/flux/models/account').default;
+import Contact from '../../src/flux/models/contact';
+import AccountStore from '../../src/flux/stores/account-store';
+import Account from '../../src/flux/models/account';
 
 const contact_1 = {
   name: 'Evan Morikawa',

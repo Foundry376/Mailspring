@@ -8,8 +8,8 @@ const {
 } = require('mailspring-exports');
 const { RetinaImg, KeyCommandsRegion } = require('mailspring-component-kit');
 
-const MovePickerPopover = require('./move-picker-popover').default;
-const LabelPickerPopover = require('./label-picker-popover').default;
+import MovePickerPopover from './move-picker-popover';
+import LabelPickerPopover from './label-picker-popover';
 
 // This sets the folder / label on one or more threads.
 class MovePicker extends React.Component {
@@ -101,4 +101,4 @@ class MovePicker extends React.Component {
   }
 }
 
-module.exports = MovePicker;
+export default MovePicker;

@@ -1,4 +1,4 @@
-class SearchQueryExpressionVisitor {
+export class SearchQueryExpressionVisitor {
   constructor() {
     this._result = null;
   }
@@ -51,7 +51,7 @@ class SearchQueryExpressionVisitor {
   }
 }
 
-class QueryExpression {
+export class QueryExpression {
   constructor() {
     this._isMatchCompatible = null;
   }
@@ -76,7 +76,7 @@ class QueryExpression {
   }
 }
 
-class AndQueryExpression extends QueryExpression {
+export class AndQueryExpression extends QueryExpression {
   constructor(e1, e2) {
     super();
     this.e1 = e1;
@@ -102,7 +102,7 @@ class AndQueryExpression extends QueryExpression {
   }
 }
 
-class OrQueryExpression extends QueryExpression {
+export class OrQueryExpression extends QueryExpression {
   constructor(e1, e2) {
     super();
     this.e1 = e1;
@@ -128,7 +128,7 @@ class OrQueryExpression extends QueryExpression {
   }
 }
 
-class FromQueryExpression extends QueryExpression {
+export class FromQueryExpression extends QueryExpression {
   constructor(text) {
     super();
     this.text = text;
@@ -150,7 +150,7 @@ class FromQueryExpression extends QueryExpression {
   }
 }
 
-class DateQueryExpression extends QueryExpression {
+export class DateQueryExpression extends QueryExpression {
   constructor(text, direction = 'before') {
     super();
     this.text = text;
@@ -173,7 +173,7 @@ class DateQueryExpression extends QueryExpression {
   }
 }
 
-class ToQueryExpression extends QueryExpression {
+export class ToQueryExpression extends QueryExpression {
   constructor(text) {
     super();
     this.text = text;
@@ -195,7 +195,7 @@ class ToQueryExpression extends QueryExpression {
   }
 }
 
-class SubjectQueryExpression extends QueryExpression {
+export class SubjectQueryExpression extends QueryExpression {
   constructor(text) {
     super();
     this.text = text;
@@ -217,7 +217,7 @@ class SubjectQueryExpression extends QueryExpression {
   }
 }
 
-class UnreadStatusQueryExpression extends QueryExpression {
+export class UnreadStatusQueryExpression extends QueryExpression {
   constructor(status) {
     super();
     this.status = status;
@@ -239,7 +239,7 @@ class UnreadStatusQueryExpression extends QueryExpression {
   }
 }
 
-class StarredStatusQueryExpression extends QueryExpression {
+export class StarredStatusQueryExpression extends QueryExpression {
   constructor(status) {
     super();
     this.status = status;
@@ -261,7 +261,7 @@ class StarredStatusQueryExpression extends QueryExpression {
   }
 }
 
-class GenericQueryExpression extends QueryExpression {
+export class GenericQueryExpression extends QueryExpression {
   constructor(text) {
     super();
     this.text = text;
@@ -283,7 +283,7 @@ class GenericQueryExpression extends QueryExpression {
   }
 }
 
-class TextQueryExpression extends QueryExpression {
+export class TextQueryExpression extends QueryExpression {
   constructor(text) {
     super();
     this.token = text;
@@ -305,7 +305,7 @@ class TextQueryExpression extends QueryExpression {
   }
 }
 
-class InQueryExpression extends QueryExpression {
+export class InQueryExpression extends QueryExpression {
   constructor(text) {
     super();
     this.text = text;
@@ -327,7 +327,7 @@ class InQueryExpression extends QueryExpression {
   }
 }
 
-class HasAttachmentQueryExpression extends QueryExpression {
+export class HasAttachmentQueryExpression extends QueryExpression {
   accept(visitor) {
     visitor.visitHasAttachment(this);
   }
@@ -341,7 +341,7 @@ class HasAttachmentQueryExpression extends QueryExpression {
  * Intermediate representation for multiple match-compatible nodes. Used when
  * translating the initial query AST into the proper SQL-compatible query.
  */
-class MatchQueryExpression extends QueryExpression {
+export class MatchQueryExpression extends QueryExpression {
   constructor(rawMatchQuery) {
     super();
     this.rawQuery = rawMatchQuery;
@@ -367,7 +367,7 @@ class MatchQueryExpression extends QueryExpression {
   }
 }
 
-class SearchQueryToken {
+export class SearchQueryToken {
   constructor(s) {
     this.s = s;
   }
@@ -379,21 +379,3 @@ class SearchQueryToken {
     return this.s === other.s;
   }
 }
-
-module.exports = {
-  SearchQueryExpressionVisitor,
-  SearchQueryToken,
-  OrQueryExpression,
-  AndQueryExpression,
-  FromQueryExpression,
-  ToQueryExpression,
-  SubjectQueryExpression,
-  GenericQueryExpression,
-  TextQueryExpression,
-  UnreadStatusQueryExpression,
-  StarredStatusQueryExpression,
-  MatchQueryExpression,
-  InQueryExpression,
-  DateQueryExpression,
-  HasAttachmentQueryExpression,
-};

@@ -4,9 +4,9 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 const moment = require('moment');
-const React = require('react');
-const ReactTestUtils = require('react-dom/test-utils');
-const MessageTimestamp = require('../lib/message-timestamp').default;
+import React from 'react';
+import ReactTestUtils from 'react-dom/test-utils';
+import MessageTimestamp from '../lib/message-timestamp';
 
 const msgTime = () => moment([2010, 1, 14, 15, 25, 50, 125]);
 

@@ -1,4 +1,4 @@
-const MailspringStore = require('mailspring-store').default;
+import MailspringStore from 'mailspring-store';
 
 const {
   Rx,
@@ -9,7 +9,7 @@ const {
 } = require('mailspring-exports');
 const { ListTabular } = require('mailspring-component-kit');
 
-const ThreadListDataSource = require('./thread-list-data-source').default;
+import ThreadListDataSource from './thread-list-data-source';
 
 class ThreadListStore extends MailspringStore {
   constructor() {
@@ -111,4 +111,4 @@ class ThreadListStore extends MailspringStore {
   };
 }
 
-module.exports = new ThreadListStore();
+export default new ThreadListStore();

@@ -1,5 +1,5 @@
 const { localized, React, PropTypes, DateUtils } = require('mailspring-exports');
-const ThreadListStore = require('./thread-list-store');
+import ThreadListStore from './thread-list-store';
 
 class ThreadListScrollTooltip extends React.Component {
   static displayName = 'ThreadListScrollTooltip';
@@ -41,4 +41,4 @@ class ThreadListScrollTooltip extends React.Component {
   }
 }
 
-module.exports = ThreadListScrollTooltip;
+export default ThreadListScrollTooltip;

@@ -1,6 +1,6 @@
-const RetinaImg = require('./retina-img').default;
+import RetinaImg from './retina-img';
 const { React, ReactDOM, PropTypes } = require('mailspring-exports');
-const classnames = require('classnames');
+import classnames from 'classnames';
 
 class ButtonDropdown extends React.Component {
   static displayName = 'ButtonDropdown';
@@ -118,4 +118,4 @@ class ButtonDropdown extends React.Component {
   };
 }
 
-module.exports = ButtonDropdown;
+export default ButtonDropdown;

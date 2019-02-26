@@ -20,4 +20,4 @@ class SendingProgressBar extends React.Component {
     }
   }
 }
-module.exports = SendingProgressBar;
+export default SendingProgressBar;

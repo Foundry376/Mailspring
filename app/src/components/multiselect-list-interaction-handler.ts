@@ -6,7 +6,7 @@
  */
 const { WorkspaceStore } = require('mailspring-exports');
 
-module.exports = class MultiselectListInteractionHandler {
+export default class MultiselectListInteractionHandler {
   constructor(props) {
     this.props = props;
     this.onFocusItem = props.onFocusItem;
@@ -88,4 +88,4 @@ module.exports = class MultiselectListInteractionHandler {
       return { id: this.props.focusedId, action: this.onFocusItem };
     }
   };
-};
+}

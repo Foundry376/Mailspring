@@ -71,6 +71,4 @@ const StatusColumn = new ListTabular.Column({
   },
 });
 
-module.exports = {
-  Wide: [ParticipantsColumn, ContentsColumn, StatusColumn],
-};
+export const Wide = [ParticipantsColumn, ContentsColumn, StatusColumn];

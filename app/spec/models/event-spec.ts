@@ -1,4 +1,4 @@
-const Event = require('../../src/flux/models/event').default;
+import Event from '../../src/flux/models/event';
 
 const json_event = {
   __cls: 'Event',

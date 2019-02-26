@@ -1,7 +1,7 @@
-const React = require('react');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactTestUtils from 'react-dom/test-utils';
 
-const _ = require('underscore');
+import _ from 'underscore';
 const { AccountStore, Thread, Contact, Message } = require('mailspring-exports');
 const ThreadListParticipants = require('../lib/thread-list-participants');
 

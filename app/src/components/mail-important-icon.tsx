@@ -1,5 +1,5 @@
-const _ = require('underscore');
-const classNames = require('classnames');
+import _ from 'underscore';
+import classNames from 'classnames';
 const {
   localized,
   React,
@@ -135,4 +135,4 @@ class MailImportantIcon extends React.Component {
   };
 }
 
-module.exports = MailImportantIcon;
+export default MailImportantIcon;

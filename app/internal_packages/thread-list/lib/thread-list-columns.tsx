@@ -1,4 +1,4 @@
-const React = require('react');
+import React from 'react';
 const {
   ListTabular,
   RetinaImg,
@@ -10,9 +10,9 @@ const {
 
 const { localized, FocusedPerspectiveStore, Utils, DateUtils } = require('mailspring-exports');
 
-const { ThreadArchiveQuickAction, ThreadTrashQuickAction } = require('./thread-list-quick-actions');
-const ThreadListParticipants = require('./thread-list-participants');
-const ThreadListIcon = require('./thread-list-icon');
+import { ThreadArchiveQuickAction, ThreadTrashQuickAction } from './thread-list-quick-actions';
+import ThreadListParticipants from './thread-list-participants';
+import ThreadListIcon from './thread-list-icon';
 
 // Get and format either last sent or last received timestamp depending on thread-list being viewed
 const ThreadListTimestamp = function({ thread }) {
@@ -241,7 +241,5 @@ const cNarrow = new ListTabular.Column({
   },
 });
 
-module.exports = {
-  Narrow: [cNarrow],
-  Wide: [c1, c2, c3, c4, c5],
-};
+export const Narrow = [cNarrow];
+export const Wide = [c1, c2, c3, c4, c5];

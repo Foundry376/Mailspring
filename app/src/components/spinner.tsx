@@ -1,7 +1,7 @@
-const React = require('react');
-const PropTypes = require('prop-types');
-const _ = require('underscore');
-const classNames = require('classnames');
+import React from 'react';
+import PropTypes from 'prop-types';
+import _ from 'underscore';
+import classNames from 'classnames';
 
 /*
 Public: Displays an indeterminate progress indicator in the center of it's
@@ -151,4 +151,4 @@ class Spinner extends React.Component {
   }
 }
 
-module.exports = Spinner;
+export default Spinner;

@@ -1,4 +1,4 @@
-const React = require('react');
+import React from 'react';
 const { mount } = require('enzyme');
 
 const { Contact } = require('mailspring-exports');

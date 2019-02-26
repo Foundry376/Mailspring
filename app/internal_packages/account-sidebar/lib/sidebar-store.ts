@@ -1,5 +1,5 @@
-const _ = require('underscore');
-const MailspringStore = require('mailspring-store').default;
+import _ from 'underscore';
+import MailspringStore from 'mailspring-store';
 const {
   Actions,
   AccountStore,
@@ -10,9 +10,9 @@ const {
   CategoryStore,
 } = require('mailspring-exports');
 
-const SidebarSection = require('./sidebar-section');
-const SidebarActions = require('./sidebar-actions');
-const AccountCommands = require('./account-commands');
+import SidebarSection from './sidebar-section';
+import * as SidebarActions from './sidebar-actions';
+import * as AccountCommands from './account-commands';
 
 const Sections = {
   Standard: 'Standard',
@@ -155,4 +155,4 @@ class SidebarStore extends MailspringStore {
   };
 }
 
-module.exports = new SidebarStore();
+export default new SidebarStore();

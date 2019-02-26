@@ -1,16 +1,10 @@
-const AccountSidebar = require('./components/account-sidebar');
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
+import AccountSidebar from './components/account-sidebar';
 
-module.exports = {
-  item: null, // The DOM item the main React component renders into
+export function activate(state) {
+  ComponentRegistry.register(AccountSidebar, { location: WorkspaceStore.Location.RootSidebar });
+}
 
-  activate(state) {
-    this.state = state;
-    ComponentRegistry.register(AccountSidebar, { location: WorkspaceStore.Location.RootSidebar });
-  },
-
-  deactivate(state) {
-    this.state = state;
-    ComponentRegistry.unregister(AccountSidebar);
-  },
-};
+export function deactivate(state) {
+  ComponentRegistry.unregister(AccountSidebar);
+}

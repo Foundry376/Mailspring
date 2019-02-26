@@ -1,4 +1,2 @@
-module.exports = {
-  activate() {},
-  deactivate() {},
-};
+export function activate() {}
+export function deactivate() {}

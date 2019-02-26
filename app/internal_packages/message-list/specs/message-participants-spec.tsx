@@ -1,8 +1,8 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
 const { Message } = require('mailspring-exports');
-const MessageParticipants = require('../lib/message-participants').default;
+import MessageParticipants from '../lib/message-participants';
 
 const user_1 = {
   name: 'User One',

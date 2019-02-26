@@ -1,4 +1,4 @@
-const _ = require('underscore');
+import _ from 'underscore';
 
 var DOMUtils = {
   findLastTextNode(node) {
@@ -198,5 +198,4 @@ var DOMUtils = {
     return ['BR', 'P', 'BLOCKQUOTE', 'DIV', 'TABLE'].includes(node.nodeName);
   },
 };
-
-module.exports = DOMUtils;
+export default DOMUtils;

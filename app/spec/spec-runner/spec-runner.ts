@@ -7,7 +7,7 @@ import ReactTestUtils from 'react-dom/test-utils';
 import Config from '../../src/config';
 import SpecLoader from './spec-loader';
 import TimeReporter from './time-reporter';
-import GuiReporter from './gui-reporter';
+import * as GuiReporter from './gui-reporter';
 import jasmineExports from './jasmine';
 import ConsoleReporter from './console-reporter';
 import MasterAfterEach from './master-after-each';
@@ -152,7 +152,7 @@ class SpecRunner {
       // NOTE: this reporter MUST be added last as it exits the test process
       // when complete, which may result in e.g. your XML output not getting
       // written to disk if that reporter is added afterward.
-      const TerminalReporter = require('./terminal-reporter').default;
+      import TerminalReporter from './terminal-reporter';
 
       const terminalReporter = new TerminalReporter();
       this.jasmineEnv.addReporter(terminalReporter);

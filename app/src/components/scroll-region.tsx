@@ -1,7 +1,7 @@
-const _ = require('underscore');
+import _ from 'underscore';
 const { React, ReactDOM, PropTypes, Utils, isRTL } = require('mailspring-exports');
-const classNames = require('classnames');
-const ScrollbarTicks = require('./scrollbar-ticks').default;
+import classNames from 'classnames';
+import ScrollbarTicks from './scrollbar-ticks';
 
 class Scrollbar extends React.Component {
   static displayName = 'Scrollbar';
@@ -482,4 +482,4 @@ class ScrollRegion extends React.Component {
 
 ScrollRegion.Scrollbar = Scrollbar;
 
-module.exports = ScrollRegion;
+export default ScrollRegion;

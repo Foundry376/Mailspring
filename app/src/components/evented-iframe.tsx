@@ -14,9 +14,11 @@ const {
   MailspringAPIRequest,
   SearchableComponentStore,
 } = require('mailspring-exports');
-const IFrameSearcher = require('../searchable-components/iframe-searcher').default;
-const url = require('url');
-const _ = require('underscore');
+import IFrameSearcher from '../searchable-components/iframe-searcher';
+import url from 'url';
+import _ from 'underscore';
+import path from 'path';
+import fs from 'fs';
 
 const { rootURLForServer } = MailspringAPIRequest;
 
@@ -301,8 +303,6 @@ class EventedIFrame extends React.Component {
 
     const { remote, clipboard, shell, ipcRenderer } = require('electron');
     const { Menu, MenuItem } = remote;
-    const path = require('path');
-    const fs = require('fs');
     const menu = new Menu();
 
     // Menu actions for links
@@ -452,4 +452,4 @@ class EventedIFrame extends React.Component {
   };
 }
 
-module.exports = EventedIFrame;
+export default EventedIFrame;

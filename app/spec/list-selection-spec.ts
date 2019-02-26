@@ -1,4 +1,4 @@
-const _ = require('underscore');
+import _ from 'underscore';
 
 const { Thread } = require('mailspring-exports');
 const { ListTabular } = require('mailspring-component-kit');

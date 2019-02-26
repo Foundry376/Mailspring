@@ -7,7 +7,7 @@ const { Actions, MenuHelpers } = require('mailspring-exports');
 
 let _commandsDisposable = null;
 
-function _isSelected(account, sidebarAccountIds) {
+export function _isSelected(account, sidebarAccountIds) {
   if (sidebarAccountIds.length > 1) {
     return account instanceof Array;
   } else if (sidebarAccountIds.length === 1) {
@@ -17,7 +17,7 @@ function _isSelected(account, sidebarAccountIds) {
   }
 }
 
-function menuItem(account, idx, { isSelected, clickHandlers } = {}) {
+export function menuItem(account, idx, { isSelected, clickHandlers } = {}) {
   const item = {
     label: account.label != null ? account.label : 'All Accounts',
     command: `window:select-account-${idx}`,
@@ -35,7 +35,7 @@ function menuItem(account, idx, { isSelected, clickHandlers } = {}) {
   return item;
 }
 
-function menuTemplate(accounts, sidebarAccountIds, { clickHandlers } = {}) {
+export function menuTemplate(accounts, sidebarAccountIds, { clickHandlers } = {}) {
   let isSelected;
   let template = [];
   const multiAccount = accounts.length > 1;
@@ -56,14 +56,14 @@ function menuTemplate(accounts, sidebarAccountIds, { clickHandlers } = {}) {
   return template;
 }
 
-function _focusAccounts(accounts) {
+export function _focusAccounts(accounts) {
   Actions.focusDefaultMailboxPerspectiveForAccounts(accounts);
   if (!AppEnv.isVisible()) {
     AppEnv.show();
   }
 }
 
-function registerCommands(accounts) {
+export function registerCommands(accounts) {
   if (_commandsDisposable != null) {
     _commandsDisposable.dispose();
   }
@@ -84,7 +84,7 @@ function registerCommands(accounts) {
   _commandsDisposable = AppEnv.commands.add(document.body, commands);
 }
 
-function registerMenuItems(accounts, sidebarAccountIds) {
+export function registerMenuItems(accounts, sidebarAccountIds) {
   const windowMenu = AppEnv.menu.template.find(
     ({ label }) => MenuHelpers.normalizeLabel(label) === 'Window'
   );
@@ -108,15 +108,7 @@ function registerMenuItems(accounts, sidebarAccountIds) {
   AppEnv.menu.update();
 }
 
-function register(accounts, sidebarAccountIds) {
+export function register(accounts, sidebarAccountIds) {
   registerCommands(accounts);
   registerMenuItems(accounts, sidebarAccountIds);
 }
-
-module.exports = {
-  register,
-  registerCommands,
-  registerMenuItems,
-  menuTemplate,
-  menuItem,
-};

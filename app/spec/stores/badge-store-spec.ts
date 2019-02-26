@@ -1,4 +1,4 @@
-const BadgeStore = require('../../src/flux/stores/badge-store').default;
+import BadgeStore from '../../src/flux/stores/badge-store';
 
 describe('BadgeStore', () =>
   describe('_setBadgeForCount', () =>

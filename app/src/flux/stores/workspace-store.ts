@@ -3,10 +3,10 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const _ = require('underscore');
-const { webFrame } = require('electron');
-const Actions = require('../actions').default;
-const MailspringStore = require('mailspring-store').default;
+import _ from 'underscore';
+import { webFrame } from 'electron';
+import Actions from '../actions';
+import MailspringStore from 'mailspring-store';
 
 let Sheet = {};
 let Location = {};
@@ -315,4 +315,4 @@ class WorkspaceStore extends MailspringStore {
   };
 }
 
-module.exports = new WorkspaceStore();
+export default new WorkspaceStore();

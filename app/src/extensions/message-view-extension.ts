@@ -38,4 +38,4 @@ class MessageViewExtension {
   static renderedMessageBodyIntoDocument({ document, message, iframe }) {}
 }
 
-module.exports = MessageViewExtension;
+export default MessageViewExtension;

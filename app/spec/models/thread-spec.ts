@@ -1,6 +1,6 @@
-const Thread = require('../../src/flux/models/thread').default;
-const Folder = require('../../src/flux/models/folder').default;
-const _ = require('underscore');
+import Thread from '../../src/flux/models/thread';
+import Folder from '../../src/flux/models/folder';
+import _ from 'underscore';
 
 describe('Thread', function() {
   describe('serialization performance', () =>

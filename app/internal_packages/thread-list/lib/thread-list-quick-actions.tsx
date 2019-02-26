@@ -7,7 +7,7 @@ const {
   FocusedPerspectiveStore,
 } = require('mailspring-exports');
 
-class ThreadArchiveQuickAction extends React.Component {
+export class ThreadArchiveQuickAction extends React.Component {
   static displayName = 'ThreadArchiveQuickAction';
   static propTypes = { thread: PropTypes.object };
 
@@ -44,7 +44,7 @@ class ThreadArchiveQuickAction extends React.Component {
   };
 }
 
-class ThreadTrashQuickAction extends React.Component {
+export class ThreadTrashQuickAction extends React.Component {
   static displayName = 'ThreadTrashQuickAction';
   static propTypes = { thread: PropTypes.object };
 
@@ -83,5 +83,3 @@ class ThreadTrashQuickAction extends React.Component {
     event.stopPropagation();
   };
 }
-
-module.exports = { ThreadArchiveQuickAction, ThreadTrashQuickAction };

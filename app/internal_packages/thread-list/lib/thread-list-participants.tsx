@@ -166,4 +166,4 @@ class ThreadListParticipants extends React.Component {
   };
 }
 
-module.exports = ThreadListParticipants;
+export default ThreadListParticipants;

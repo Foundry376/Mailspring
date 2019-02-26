@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   config: {
     numbers: {
       type: 'object',

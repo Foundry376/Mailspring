@@ -58,7 +58,7 @@ export default class AppEnvConstructor {
 
     this.loadTime = null;
 
-    const Config = require('./config');
+    const Config = require('./config').default;
     const KeymapManager = require('./keymap-manager').default;
     const CommandRegistry = require('./registries/command-registry').default;
     const PackageManager = require('./package-manager').default;
@@ -632,7 +632,7 @@ export default class AppEnvConstructor {
   // bar, stoplights, etc. This saves ~100ms when populating the hot
   // windows.
   initializeBasicSheet() {
-    const WorkspaceStore = require('../src/flux/stores/workspace-store');
+    const WorkspaceStore = require('../src/flux/stores/workspace-store').default;
     if (!WorkspaceStore.Sheet.Main) {
       WorkspaceStore.defineSheet(
         'Main',

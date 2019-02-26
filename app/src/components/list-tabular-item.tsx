@@ -1,7 +1,7 @@
-const SwipeContainer = require('./swipe-container').default;
-const { React, PropTypes, Utils } = require('mailspring-exports');
+import SwipeContainer from './swipe-container';
+import { React, PropTypes, Utils } from 'mailspring-exports';
 
-class ListTabularItem extends React.Component {
+export default class ListTabularItem extends React.Component {
   static displayName = 'ListTabularItem';
   static propTypes = {
     metrics: PropTypes.object,
@@ -102,5 +102,3 @@ class ListTabularItem extends React.Component {
     this._lastClickTime = Date.now();
   };
 }
-
-module.exports = ListTabularItem;

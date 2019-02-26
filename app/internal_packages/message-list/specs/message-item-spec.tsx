@@ -1,7 +1,7 @@
 const proxyquire = require('proxyquire');
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
 
 const {
   Contact,
@@ -95,7 +95,7 @@ const user_4 = new Contact({
 
 const MessageItem = proxyquire('../lib/message-item', { './message-item-body': MessageItemBody });
 
-const MessageTimestamp = require('../lib/message-timestamp').default;
+import MessageTimestamp from '../lib/message-timestamp';
 
 xdescribe('MessageItem', function() {
   beforeEach(function() {

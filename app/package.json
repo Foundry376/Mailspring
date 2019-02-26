@@ -78,5 +78,8 @@
     "macos-notification-state": "^1.1.0",
     "node-mac-notifier": "1.1.0",
     "windows-quiet-hours": "^1.2.5"
+  },
+  "devDependencies": {
+    "@types/underscore": "^1.8.9"
   }
 }

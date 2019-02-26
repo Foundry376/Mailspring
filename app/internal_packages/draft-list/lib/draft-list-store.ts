@@ -1,4 +1,4 @@
-const MailspringStore = require('mailspring-store').default;
+import MailspringStore from 'mailspring-store';
 const {
   Rx,
   Message,
@@ -92,4 +92,4 @@ class DraftListStore extends MailspringStore {
   };
 }
 
-module.exports = new DraftListStore();
+export default new DraftListStore();

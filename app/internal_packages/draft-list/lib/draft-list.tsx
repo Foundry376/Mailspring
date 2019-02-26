@@ -7,7 +7,7 @@ import {
   MultiselectList,
 } from 'mailspring-component-kit';
 import DraftListStore from './draft-list-store';
-import DraftListColumns from './draft-list-columns';
+import * as DraftListColumns from './draft-list-columns';
 
 class DraftList extends React.Component {
   static displayName = 'DraftList';
@@ -64,4 +64,4 @@ class DraftList extends React.Component {
   };
 }
 
-module.exports = DraftList;
+export default DraftList;

@@ -1,6 +1,6 @@
 const proxyquire = require('proxyquire');
-const React = require('react');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactTestUtils from 'react-dom/test-utils';
 
 const {
   Contact,

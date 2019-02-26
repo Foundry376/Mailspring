@@ -1,7 +1,7 @@
-const _ = require('underscore');
-const React = require('react');
-const ReactDOM = require('react-dom');
-const classnames = require('classnames');
+import _ from 'underscore';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import classnames from 'classnames';
 
 const {
   MultiselectList,
@@ -24,10 +24,10 @@ const {
   FolderSyncProgressStore,
 } = require('mailspring-exports');
 
-const ThreadListColumns = require('./thread-list-columns');
-const ThreadListScrollTooltip = require('./thread-list-scroll-tooltip');
-const ThreadListStore = require('./thread-list-store');
-const ThreadListContextMenu = require('./thread-list-context-menu').default;
+import * as ThreadListColumns from './thread-list-columns';
+import ThreadListScrollTooltip from './thread-list-scroll-tooltip';
+import ThreadListStore from './thread-list-store';
+import ThreadListContextMenu from './thread-list-context-menu';
 
 class ThreadList extends React.Component {
   static displayName = 'ThreadList';
@@ -295,4 +295,4 @@ class ThreadList extends React.Component {
   };
 }
 
-module.exports = ThreadList;
+export default ThreadList;

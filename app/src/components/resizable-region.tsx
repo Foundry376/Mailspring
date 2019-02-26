@@ -1,4 +1,4 @@
-const _ = require('underscore');
+import _ from 'underscore';
 const { React, ReactDOM, PropTypes, Utils } = require('mailspring-exports');
 
 const ResizableHandle = {
@@ -211,4 +211,4 @@ class ResizableRegion extends React.Component {
 
 ResizableRegion.Handle = ResizableHandle;
 
-module.exports = ResizableRegion;
+export default ResizableRegion;

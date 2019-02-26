@@ -1,12 +1,12 @@
-const _ = require('underscore');
-const classNames = require('classnames');
-const ListTabular = require('./list-tabular').default;
-const Spinner = require('./spinner');
+import _ from 'underscore';
+import classNames from 'classnames';
+import ListTabular from './list-tabular';
+import Spinner from './spinner';
 const { React, ReactDOM, PropTypes, Utils, WorkspaceStore } = require('mailspring-exports');
 const { KeyCommandsRegion } = require('mailspring-component-kit');
 
-const MultiselectListInteractionHandler = require('./multiselect-list-interaction-handler');
-const MultiselectSplitInteractionHandler = require('./multiselect-split-interaction-handler');
+import MultiselectListInteractionHandler from './multiselect-list-interaction-handler';
+import MultiselectSplitInteractionHandler from './multiselect-split-interaction-handler';
 
 /*
 Public: MultiselectList wraps {ListTabular} and makes it easy to present a
@@ -19,7 +19,7 @@ you provide, and also handles:
 
 Section: Component Kit
 */
-class MultiselectList extends React.Component {
+export default class MultiselectList extends React.Component {
   static displayName = 'MultiselectList';
 
   static propTypes = {
@@ -298,5 +298,3 @@ class MultiselectList extends React.Component {
     return item.dataset.itemId;
   }
 }
-
-module.exports = MultiselectList;

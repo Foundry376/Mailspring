@@ -4,11 +4,11 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const _ = require('underscore');
+import _ from 'underscore';
 
 const ItemSpecificities = new WeakMap();
 
-var merge = function(menu, item, itemSpecificity) {
+export function merge(menu, item, itemSpecificity) {
   let matchingItem;
   if (itemSpecificity == null) {
     itemSpecificity = Infinity;
@@ -35,9 +35,9 @@ var merge = function(menu, item, itemSpecificity) {
   } else if (item.type !== 'separator' || (_.last(menu) || {}).type !== 'separator') {
     return menu.push(item);
   }
-};
+}
 
-var unmerge = function(menu, item) {
+export function unmerge(menu, item) {
   let matchingItem;
   const matchingItemIndex = findMatchingItemIndex(menu, item);
   if (matchingItemIndex !== -1) {
@@ -58,9 +58,9 @@ var unmerge = function(menu, item) {
       return menu.splice(matchingItemIndex, 1);
     }
   }
-};
+}
 
-var findMatchingItemIndex = function(menu, { type, label, submenu }) {
+export function findMatchingItemIndex(menu, { type, label, submenu }) {
   if (type === 'separator') {
     return -1;
   }
@@ -74,9 +74,9 @@ var findMatchingItemIndex = function(menu, { type, label, submenu }) {
     }
   }
   return -1;
-};
+}
 
-var normalizeLabel = function(label) {
+export function normalizeLabel(label) {
   if (label == null) {
     return undefined;
   }
@@ -86,26 +86,23 @@ var normalizeLabel = function(label) {
   } else {
     return label.replace(/&/g, '');
   }
-};
+}
 
-var cloneMenuItem = function(item) {
+export function cloneMenuItem(item) {
   item = Object.assign({}, item);
   if (item.submenu != null) {
     item.submenu = item.submenu.map(submenuItem => cloneMenuItem(submenuItem));
   }
   return item;
-};
+}
 
-var forEachMenuItem = (menu, callback) =>
-  (() => {
-    const result = [];
-    for (let item of Array.from(menu)) {
-      if (item.submenu != null) {
-        forEachMenuItem(item.submenu, callback);
-      }
-      result.push(callback(item));
+export function forEachMenuItem(menu, callback) {
+  const result = [];
+  for (let item of Array.from(menu)) {
+    if (item.submenu != null) {
+      forEachMenuItem(item.submenu, callback);
     }
-    return result;
-  })();
-
-module.exports = { merge, unmerge, normalizeLabel, cloneMenuItem, forEachMenuItem };
+    result.push(callback(item));
+  }
+  return result;
+}

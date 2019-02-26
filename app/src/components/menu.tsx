@@ -1,5 +1,5 @@
-const classNames = require('classnames');
-const _ = require('underscore');
+import classNames from 'classnames';
+import _ from 'underscore';
 const { React, ReactDOM, PropTypes, DOMUtils } = require('mailspring-exports');
 
 /*
@@ -364,4 +364,4 @@ class Menu extends React.Component {
 Menu.Item = MenuItem;
 Menu.NameEmailItem = MenuNameEmailItem;
 
-module.exports = Menu;
+export default Menu;

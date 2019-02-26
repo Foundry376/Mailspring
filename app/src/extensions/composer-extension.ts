@@ -117,4 +117,4 @@ class ComposerExtension {
   static applyTransformsForSending({ draft, draftBodyRootNode }) {}
 }
 
-module.exports = ComposerExtension;
+export default ComposerExtension;

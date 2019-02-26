@@ -6,11 +6,11 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const _ = require('underscore');
+import _ from 'underscore';
 const _str = require('underscore.string');
 const { jasmine } = require('./jasmine');
 
-module.exports = class TimeReporter extends jasmine.Reporter {
+export default class TimeReporter extends jasmine.Reporter {
   constructor() {
     super();
 
@@ -104,4 +104,4 @@ module.exports = class TimeReporter extends jasmine.Reporter {
     this.time = null;
     this.description = null;
   }
-};
+}

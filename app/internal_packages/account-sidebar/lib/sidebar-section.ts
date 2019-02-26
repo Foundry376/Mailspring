@@ -4,7 +4,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const _ = require('underscore');
+import _ from 'underscore';
 const {
   Actions,
   SyncbackCategoryTask,
@@ -15,8 +15,8 @@ const {
   localized,
 } = require('mailspring-exports');
 
-const SidebarItem = require('./sidebar-item');
-const SidebarActions = require('./sidebar-actions');
+import SidebarItem from './sidebar-item';
+import * as SidebarActions from './sidebar-actions';
 
 function isSectionCollapsed(title) {
   if (AppEnv.savedState.sidebarKeysCollapsed[title] !== undefined) {
@@ -256,4 +256,4 @@ class SidebarSection {
   }
 }
 
-module.exports = SidebarSection;
+export default SidebarSection;

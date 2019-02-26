@@ -130,4 +130,4 @@ class EventHeader extends React.Component {
   };
 }
 
-module.exports = EventHeader;
+export default EventHeader;

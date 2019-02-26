@@ -1,17 +1,10 @@
 const { ComponentRegistry } = require('mailspring-exports');
-const EventHeader = require('./event-header');
+import EventHeader from './event-header';
 
-module.exports = {
-  activate(state = {}) {
-    this.state = state;
-    ComponentRegistry.register(EventHeader, { role: 'message:BodyHeader' });
-  },
+export function activate() {
+  ComponentRegistry.register(EventHeader, { role: 'message:BodyHeader' });
+}
 
-  deactivate() {
-    ComponentRegistry.unregister(EventHeader);
-  },
-
-  serialize() {
-    return this.state;
-  },
-};
+export function deactivate() {
+  ComponentRegistry.unregister(EventHeader);
+}

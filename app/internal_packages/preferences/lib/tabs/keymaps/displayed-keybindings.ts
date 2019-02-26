@@ -1,6 +1,6 @@
 import { localized } from 'mailspring-exports';
 
-module.exports = [
+export default [
   {
     title: localized('Application'),
     items: [

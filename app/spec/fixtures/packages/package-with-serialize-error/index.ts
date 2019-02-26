@@ -1,9 +1,7 @@
-module.exports = {
-  activate() {},
+export function activate() {}
 
-  deactivate() {},
+export function deactivate() {}
 
-  serialize() {
-    throw new Error("I'm no good at this.");
-  },
-};
+export function serialize() {
+  throw new Error("I'm no good at this.");
+}

@@ -1,6 +1,6 @@
-const _ = require('underscore');
-const Contact = require('../../src/flux/models/contact').default;
-const ContactStore = require('../../src/flux/stores/contact-store').default;
+import _ from 'underscore';
+import Contact from '../../src/flux/models/contact';
+import ContactStore from '../../src/flux/stores/contact-store';
 
 xdescribe('ContactStore', function() {
   beforeEach(function() {

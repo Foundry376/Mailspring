@@ -1,9 +1,7 @@
-module.exports = {
-  activate({ someNumber }) {
-    this.someNumber = someNumber || 1;
-  },
+export function activate({ someNumber }) {
+  this.someNumber = someNumber || 1;
+}
 
-  serialize() {
-    return { someNumber: this.someNumber };
-  },
-};
+export function serialize() {
+  return { someNumber: this.someNumber };
+}

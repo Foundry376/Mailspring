@@ -1,9 +1,9 @@
-const _ = require('underscore');
-const React = require('react');
-const ReactDOM = require('react-dom');
-const PropTypes = require('prop-types');
-const classNames = require('classnames');
-const RetinaImg = require('./retina-img').default;
+import _ from 'underscore';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import RetinaImg from './retina-img';
 const {
   localized,
   FolderSyncProgressStore,
@@ -202,4 +202,4 @@ class EmptyListState extends React.Component {
   }
 }
 
-module.exports = EmptyListState;
+export default EmptyListState;

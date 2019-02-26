@@ -3,9 +3,9 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Model = require('../../src/flux/models/model').default;
-const Category = require('../../src/flux/models/category').default;
-const Attributes = require('../../src/flux/attributes').default;
+import Model from '../../src/flux/models/model';
+import Category from '../../src/flux/models/category';
+import Attributes from '../../src/flux/attributes';
 
 class TestModel extends Model {
   static attributes = {
@@ -141,4 +141,4 @@ TestModel.configureWithJoinedDataAttribute = function() {
   };
 };
 
-module.exports = TestModel;
+export default TestModel;

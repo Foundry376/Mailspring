@@ -5,8 +5,7 @@ import fs from 'fs-plus';
 import { ipcRenderer } from 'electron';
 import { Disposable } from 'event-kit';
 import * as Utils from './flux/models/utils';
-
-import MenuHelpers from './menu-helpers';
+import * as MenuHelpers from './menu-helpers';
 
 export default class MenuManager {
   constructor({ resourcePath }) {

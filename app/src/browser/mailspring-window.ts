@@ -1,13 +1,13 @@
-const { BrowserWindow, app, dialog } = require('electron');
-const path = require('path');
-const fs = require('fs');
-const url = require('url');
-const { EventEmitter } = require('events');
+import { BrowserWindow, app, dialog } from 'electron';
+import path from 'path';
+import fs from 'fs';
+import url from 'url';
+import { EventEmitter } from 'events';
 
 let WindowIconPath = null;
 let idNum = 0;
 
-module.exports = class MailspringWindow extends EventEmitter {
+export default class MailspringWindow extends EventEmitter {
   static includeShellLoadTime = true;
 
   constructor(settings = {}) {
@@ -411,4 +411,4 @@ module.exports = class MailspringWindow extends EventEmitter {
   toggleDevTools() {
     this.browserWindow.toggleDevTools();
   }
-};
+}

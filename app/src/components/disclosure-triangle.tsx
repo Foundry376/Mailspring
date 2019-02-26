@@ -1,5 +1,5 @@
-const React = require('react');
-const PropTypes = require('prop-types');
+import React from 'react';
+import PropTypes from 'prop-types';
 
 class DisclosureTriangle extends React.Component {
   static displayName = 'DisclosureTriangle';
@@ -28,4 +28,4 @@ class DisclosureTriangle extends React.Component {
   }
 }
 
-module.exports = DisclosureTriangle;
+export default DisclosureTriangle;

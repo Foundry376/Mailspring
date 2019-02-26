@@ -1,7 +1,7 @@
 /* eslint import/first: 0 */
 
 // TODO: Remove when upgrading to Electron 4
-const fs = require('fs');
+import fs from 'fs';
 fs.statSyncNoException = function(...args) {
   try {
     return fs.statSync.apply(fs, args);

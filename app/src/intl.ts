@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 const React = process.type === 'renderer' ? require('react') : null;
 
 const RTL_LANGS = [

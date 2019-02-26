@@ -7,10 +7,10 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 let app, errorLogger, webContentsId;
-let _ = require('underscore');
-_ = Object.assign(_, require('./config-utils'));
-const { remote } = require('electron');
-const { Emitter } = require('event-kit');
+import _ from 'underscore';
+Object.assign(_, require('./config-utils'));
+import { remote } from 'electron';
+import { Emitter } from 'event-kit';
 
 if (process.type === 'renderer') {
   app = remote.getGlobal('application');
@@ -962,4 +962,4 @@ var withoutEmptyObjects = function(object) {
   return resultObject;
 };
 
-module.exports = Config;
+export default Config;

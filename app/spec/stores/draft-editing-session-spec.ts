@@ -3,12 +3,12 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Message = require('../../src/flux/models/message').default;
-const Actions = require('../../src/flux/actions').default;
-const DatabaseStore = require('../../src/flux/stores/database-store').default;
-const DraftEditingSession = require('../../src/flux/stores/draft-editing-session').default;
+import Message from '../../src/flux/models/message';
+import Actions from '../../src/flux/actions';
+import DatabaseStore from '../../src/flux/stores/database-store';
+import DraftEditingSession from '../../src/flux/stores/draft-editing-session';
 const { DraftChangeSet } = DraftEditingSession;
-const _ = require('underscore');
+import _ from 'underscore';
 
 xdescribe('DraftEditingSession Specs', function() {
   describe('DraftChangeSet', function() {

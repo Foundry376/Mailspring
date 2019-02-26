@@ -3,8 +3,8 @@
  * DS001: Remove Babel/TypeScript constructor workaround
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const React = require('react');
-const ComponentRegistry = require('../../src/registries/component-registry').default;
+import React from 'react';
+import ComponentRegistry from '../../src/registries/component-registry';
 
 class TestComponent extends React.Component {
   static displayName = 'TestComponent';

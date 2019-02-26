@@ -1,4 +1,4 @@
-import MailspringObservables from 'mailspring-observables';
+import { Categories } from 'mailspring-observables';
 import { Template } from './components/scenario-editor-models';
 import { localized } from './intl';
 
@@ -89,7 +89,7 @@ export function ActionTemplatesForAccount(account) {
 
   const templates = [].concat(ActionTemplates);
 
-  const CategoryNamesObservable = MailspringObservables.Categories.forAccount(account)
+  const CategoryNamesObservable = Categories.forAccount(account)
     .sort()
     .map(cats => cats.filter(cat => !cat.isLockedCategory()))
     .map(cats =>

@@ -1,5 +1,5 @@
-const React = require('react');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactTestUtils from 'react-dom/test-utils';
 const EventedIFrame = require('../../src/components/evented-iframe');
 
 describe('EventedIFrame', () =>

@@ -5,7 +5,7 @@ import { localized } from './intl';
 
 const bundleIdentifier = 'com.mailspring.mailspring';
 
-class Windows {
+export class Windows {
   available() {
     return true;
   }
@@ -95,7 +95,7 @@ class Windows {
   }
 }
 
-class Linux {
+export class Linux {
   available() {
     return !process.env.SNAP;
   }
@@ -124,7 +124,7 @@ class Linux {
   }
 }
 
-class Mac {
+export class Mac {
   constructor() {
     this.secure = false;
   }
@@ -245,15 +245,14 @@ class Mac {
   }
 }
 
+let Default: any = null;
 if (process.platform === 'darwin') {
-  module.exports = Mac;
+  Default = Mac;
 } else if (process.platform === 'linux') {
-  module.exports = Linux;
+  Default = Linux;
 } else if (process.platform === 'win32') {
-  module.exports = Windows;
+  Default = Windows;
 } else {
-  module.exports = {};
+  Default = {};
 }
-module.exports.Mac = Mac;
-module.exports.Linux = Linux;
-module.exports.Windows = Windows;
+export default Default;

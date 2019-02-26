@@ -3,12 +3,12 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
 
-const ThreadSearchBar = require('../lib/thread-search-bar').default;
-const SearchActions = require('../lib/search-actions').default;
+import ThreadSearchBar from '../lib/thread-search-bar';
+import SearchActions from '../lib/search-actions';
 
 describe('ThreadSearchBar', function() {
   beforeEach(function() {

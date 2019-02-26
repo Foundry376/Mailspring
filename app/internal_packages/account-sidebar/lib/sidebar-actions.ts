@@ -5,11 +5,8 @@
  */
 const Reflux = require('reflux');
 
-const Actions = ['focusAccounts', 'setKeyCollapsed'];
+export const focusAccounts = Reflux.createAction('focusAccounts');
+focusAccounts.sync = true;
 
-for (let idx of Array.from(Actions)) {
-  Actions[idx] = Reflux.createAction(Actions[idx]);
-  Actions[idx].sync = true;
-}
-
-module.exports = Actions;
+export const setKeyCollapsed = Reflux.createAction('setKeyCollapsed');
+setKeyCollapsed.sync = true;

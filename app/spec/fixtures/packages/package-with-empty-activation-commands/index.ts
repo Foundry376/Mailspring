@@ -1,1 +1,1 @@
-module.exports = { activate() {} };
+export function activate() {}

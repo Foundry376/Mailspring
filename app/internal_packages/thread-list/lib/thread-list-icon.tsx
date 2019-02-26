@@ -88,4 +88,4 @@ class ThreadListIcon extends React.Component {
   };
 }
 
-module.exports = ThreadListIcon;
+export default ThreadListIcon;

@@ -1,10 +1,10 @@
-const React = require('react');
+import React from 'React';
 const { Utils, AccountStore } = require('mailspring-exports');
 const { OutlineView, ScrollRegion, Flexbox } = require('mailspring-component-kit');
-const AccountSwitcher = require('./account-switcher');
-const SidebarStore = require('../sidebar-store');
+import AccountSwitcher from './account-switcher';
+import SidebarStore from '../sidebar-store';
 
-class AccountSidebar extends React.Component {
+export default class AccountSidebar extends React.Component {
   static displayName = 'AccountSidebar';
 
   static containerRequired = false;
@@ -66,5 +66,3 @@ class AccountSidebar extends React.Component {
     );
   }
 }
-
-module.exports = AccountSidebar;

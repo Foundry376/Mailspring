@@ -1,7 +1,7 @@
 const MultiselectListInteractionHandler = require('../../src/components/multiselect-list-interaction-handler');
-const WorkspaceStore = require('../../src/flux/stores/workspace-store');
-const Thread = require('../../src/flux/models/thread').default;
-const _ = require('underscore');
+import WorkspaceStore from '../../src/flux/stores/workspace-store';
+import Thread from '../../src/flux/models/thread';
+import _ from 'underscore';
 
 describe('MultiselectListInteractionHandler', function() {
   beforeEach(function() {

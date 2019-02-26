@@ -3,14 +3,12 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const _ = require('underscore');
-const fs = require('fs-plus');
-const path = require('path');
+import _ from 'underscore';
+import fs from 'fs-plus';
+import path from 'path';
 
 let DefaultResourcePath = null;
-const DatabaseObjectRegistry = require('../../registries/database-object-registry').default;
-
-let imageData = null;
+import DatabaseObjectRegistry from '../../registries/database-object-registry';
 
 export function waitFor(latch, options: { timeout?: number } = {}) {
   const timeout = options.timeout || 400;
@@ -108,7 +106,7 @@ export function range(left, right, inclusive = true) {
 // See regex explanation and test here:
 // https://regex101.com/r/zG7aW4/2
 export function wordSearchRegExp(str = '') {
-  return new RegExp(`((?:^|\\W|$)${Utils.escapeRegExp(str.trim())})`, 'ig');
+  return new RegExp(`((?:^|\\W|$)${escapeRegExp(str.trim())})`, 'ig');
 }
 
 // Takes an optional customizer. The customizer is passed the key and the
@@ -145,7 +143,7 @@ export function deepClone(object, customizer, stackSeen = [], stackRefs = []) {
   // It's important to use getOwnPropertyNames instead of Object.keys to
   // get the non-enumerable items as well.
   for (let key of Object.getOwnPropertyNames(object)) {
-    const newVal = Utils.deepClone(object[key], customizer, stackSeen, stackRefs);
+    const newVal = deepClone(object[key], customizer, stackSeen, stackRefs);
     if (_.isFunction(customizer)) {
       newObject[key] = customizer(key, newVal);
     } else {
@@ -230,6 +228,9 @@ export function isTempId(id) {
   return id.slice(0, 6) === 'local-';
 }
 
+let _imageData = null;
+let _imageCache = {};
+
 export function imageNamed(fullname, resourcePath) {
   const [name, ext] = fullname.split('.');
 
@@ -240,17 +241,17 @@ export function imageNamed(fullname, resourcePath) {
     resourcePath = DefaultResourcePath;
   }
 
-  if (!imageData) {
-    imageData = AppEnv.fileListCache().imageData || '{}';
-    Utils.images = JSON.parse(imageData) || {};
+  if (!_imageData) {
+    _imageData = AppEnv.fileListCache().imageData || '{}';
+    _imageCache = JSON.parse(_imageData) || {};
   }
 
-  if (!Utils.images || !Utils.images[resourcePath]) {
-    if (Utils.images == null) {
-      Utils.images = {};
+  if (!_imageCache || !_imageCache[resourcePath]) {
+    if (_imageCache == null) {
+      _imageCache = {};
     }
-    if (Utils.images[resourcePath] == null) {
-      Utils.images[resourcePath] = {};
+    if (_imageCache[resourcePath] == null) {
+      _imageCache[resourcePath] = {};
     }
     const imagesPath = path.join(resourcePath, 'static', 'images');
     const files = fs.listTreeSync(imagesPath);
@@ -260,45 +261,45 @@ export function imageNamed(fullname, resourcePath) {
       // C:/images/compose.png
       file = file.replace(/\\/g, '/');
       const basename = path.basename(file);
-      Utils.images[resourcePath][basename] = file;
+      _imageCache[resourcePath][basename] = file;
     }
-    AppEnv.fileListCache().imageData = JSON.stringify(Utils.images);
+    AppEnv.fileListCache().imageData = JSON.stringify(_imageCache);
   }
 
   const plat = process.platform != null ? process.platform : '';
   const ratio = window.devicePixelRatio != null ? window.devicePixelRatio : 1;
 
   let attempt = `${name}-${plat}@${ratio}x.${ext}`;
-  if (Utils.images[resourcePath][attempt]) {
-    return Utils.images[resourcePath][attempt];
+  if (_imageCache[resourcePath][attempt]) {
+    return _imageCache[resourcePath][attempt];
   }
   attempt = `${name}@${ratio}x.${ext}`;
-  if (Utils.images[resourcePath][attempt]) {
-    return Utils.images[resourcePath][attempt];
+  if (_imageCache[resourcePath][attempt]) {
+    return _imageCache[resourcePath][attempt];
   }
   attempt = `${name}-${plat}.${ext}`;
-  if (Utils.images[resourcePath][attempt]) {
-    return Utils.images[resourcePath][attempt];
+  if (_imageCache[resourcePath][attempt]) {
+    return _imageCache[resourcePath][attempt];
   }
   attempt = `${name}.${ext}`;
-  if (Utils.images[resourcePath][attempt]) {
-    return Utils.images[resourcePath][attempt];
+  if (_imageCache[resourcePath][attempt]) {
+    return _imageCache[resourcePath][attempt];
   }
   attempt = `${name}-${plat}@2x.${ext}`;
-  if (Utils.images[resourcePath][attempt]) {
-    return Utils.images[resourcePath][attempt];
+  if (_imageCache[resourcePath][attempt]) {
+    return _imageCache[resourcePath][attempt];
   }
   attempt = `${name}@2x.${ext}`;
-  if (Utils.images[resourcePath][attempt]) {
-    return Utils.images[resourcePath][attempt];
+  if (_imageCache[resourcePath][attempt]) {
+    return _imageCache[resourcePath][attempt];
   }
   attempt = `${name}-${plat}@1x.${ext}`;
-  if (Utils.images[resourcePath][attempt]) {
-    return Utils.images[resourcePath][attempt];
+  if (_imageCache[resourcePath][attempt]) {
+    return _imageCache[resourcePath][attempt];
   }
   attempt = `${name}@1x.${ext}`;
-  if (Utils.images[resourcePath][attempt]) {
-    return Utils.images[resourcePath][attempt];
+  if (_imageCache[resourcePath][attempt]) {
+    return _imageCache[resourcePath][attempt];
   }
   return null;
 }
@@ -337,7 +338,7 @@ export function emailHasCommonDomain(email = '') {
       .trim()
       .split('@')
   );
-  return Utils.commonDomains[domain] != null ? Utils.commonDomains[domain] : false;
+  return commonDomains[domain] != null ? commonDomains[domain] : false;
 }
 
 // This looks for and removes plus-ing, it taks a VERY liberal approach
@@ -361,8 +362,8 @@ export function emailIsEquivalent(email1, email2) {
   if (email1 === email2) {
     return true;
   }
-  email1 = Utils.toEquivalentEmailForm(email1);
-  email2 = Utils.toEquivalentEmailForm(email2);
+  email1 = toEquivalentEmailForm(email1);
+  email2 = toEquivalentEmailForm(email2);
   return email1 === email2;
 }
 
@@ -371,7 +372,7 @@ export function rectVisibleInRect(r1, r2) {
 }
 
 export function isEqualReact(a, b, options: { ignoreKeys?: []; functionsAreEqual?: boolean } = {}) {
-  return Utils.isEqual(a, b, {
+  return isEqual(a, b, {
     functionsAreEqual: true,
     ignoreKeys: (options.ignoreKeys != null ? options.ignoreKeys : []).concat(['id']),
   });
@@ -382,8 +383,12 @@ export function isEqualReact(a, b, options: { ignoreKeys?: []; functionsAreEqual
 //   - functionsAreEqual: if true then all functions are equal
 //   - keysToIgnore: an array of object keys to ignore checks on
 //   - logWhenFalse: logs when isEqual returns false
-export function isEqual(a, b, options: { logWhenFalse?: boolean } = {}) {
-  const value = Utils._isEqual(a, b, [], [], options);
+export function isEqual(
+  a,
+  b,
+  options: { functionsAreEqual?: boolean; logWhenFalse?: boolean; ignoreKeys?: string[] } = {}
+) {
+  const value = _isEqual(a, b, [], [], options);
   if (options.logWhenFalse) {
     if (value === false) {
       console.log('isEqual is false', a, b, options);
@@ -514,7 +519,7 @@ export function _isEqual(
     }
     // Deep compare the contents, ignoring non-numeric properties.
     while (length--) {
-      if (!Utils._isEqual(a[length], b[length], aStack, bStack, options)) {
+      if (!_isEqual(a[length], b[length], aStack, bStack, options)) {
         return false;
       }
     }
@@ -540,7 +545,7 @@ export function _isEqual(
       if (key in keysToIgnore) {
         continue;
       }
-      if (!(_.has(b, key) && Utils._isEqual(a[key], b[key], aStack, bStack, options))) {
+      if (!(_.has(b, key) && _isEqual(a[key], b[key], aStack, bStack, options))) {
         return false;
       }
     }

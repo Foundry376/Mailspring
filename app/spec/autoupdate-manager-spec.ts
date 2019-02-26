@@ -1,4 +1,4 @@
-const AutoUpdateManager = require('../src/browser/autoupdate-manager').default;
+import AutoUpdateManager from '../src/browser/autoupdate-manager';
 
 describe('AutoUpdateManager', function() {
   beforeEach(function() {

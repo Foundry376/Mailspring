@@ -1,11 +1,11 @@
-const React = require('react');
-const PropTypes = require('prop-types');
-const path = require('path');
-const fs = require('fs');
+import React from 'react';
+import PropTypes from 'prop-types';
+import path from 'path';
+import fs from 'fs';
 const { RetinaImg, Flexbox, ConfigPropContainer } = require('mailspring-component-kit');
 const { localized, AccountStore, IdentityStore } = require('mailspring-exports');
-const OnboardingActions = require('./onboarding-actions').default;
-const NewsletterSignup = require('./newsletter-signup').default;
+import OnboardingActions from './onboarding-actions';
+import NewsletterSignup from './newsletter-signup';
 
 // NOTE: Temporarily copied from preferences module
 class AppearanceModeOption extends React.Component {
@@ -201,4 +201,4 @@ class InitialPreferencesPage extends React.Component {
   };
 }
 
-module.exports = InitialPreferencesPage;
+export default InitialPreferencesPage;

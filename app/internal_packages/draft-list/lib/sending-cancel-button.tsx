@@ -35,4 +35,4 @@ class SendingCancelButton extends React.Component {
   };
 }
 
-module.exports = SendingCancelButton;
+export default SendingCancelButton;

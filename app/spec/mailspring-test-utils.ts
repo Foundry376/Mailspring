@@ -6,9 +6,9 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 // Utils for testing.
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
 
 const MailspringTestUtils = {
   loadKeymap: path => {
@@ -74,5 +74,4 @@ const MailspringTestUtils = {
     };
   },
 };
-
-module.exports = MailspringTestUtils;
+export default MailspringTestUtils;

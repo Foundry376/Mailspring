@@ -4,8 +4,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-
-module.exports = class MultiselectSplitInteractionHandler {
+export default class MultiselectSplitInteractionHandler {
   constructor(props) {
     this.props = props;
     this.onFocusItem = props.onFocusItem;
@@ -111,4 +110,4 @@ module.exports = class MultiselectSplitInteractionHandler {
       this.props.dataSource.selection.clear();
     }
   }
-};
+}

@@ -3,7 +3,7 @@ import path from 'path';
 import Model from './model';
 import Attributes from '../attributes';
 import { localized } from '../../intl';
-let RegExpUtils = null;
+import RegExpUtils from '../../regexp-utils';
 
 /**
 Public: File model represents an email attachment.
@@ -66,7 +66,6 @@ export default class File extends Model {
   }
 
   safeDisplayName() {
-    RegExpUtils = RegExpUtils || require('../../regexp-utils');
     return this.displayName().replace(RegExpUtils.illegalPathCharactersRegexp(), '-');
   }
 

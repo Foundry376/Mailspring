@@ -75,9 +75,7 @@ const CategoryObservables = {
   },
 };
 
-module.exports = {
-  Categories: CategoryObservables,
-};
+export const Categories = CategoryObservables;
 
 // Attach a few global helpers
 

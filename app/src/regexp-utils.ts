@@ -1,4 +1,4 @@
-const _ = require('underscore');
+import _ from 'underscore';
 
 let EmojiData = null;
 
@@ -306,4 +306,4 @@ const RegExpUtils = {
   },
 };
 
-module.exports = RegExpUtils;
+export default RegExpUtils;

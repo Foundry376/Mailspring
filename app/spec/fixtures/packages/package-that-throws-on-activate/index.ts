@@ -1,7 +1,4 @@
-module.exports = {
-  activate() {
-    throw new Error('Top that');
-  },
-  deactivate() {},
-  serialize() {},
-};
+export function activate() {
+  throw new Error('Top that');
+}
+export function deactivate() {}

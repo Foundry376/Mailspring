@@ -1,8 +1,9 @@
 const { localized, Actions, React, PropTypes } = require('mailspring-exports');
 const { RetinaImg } = require('mailspring-component-kit');
-const AccountCommands = require('../account-commands');
+import { ipcRenderer, remote } from 'electron';
+import * as AccountCommands from '../account-commands';
 
-class AccountSwitcher extends React.Component {
+export default class AccountSwitcher extends React.Component {
   static displayName = 'AccountSwitcher';
 
   static propTypes = {
@@ -25,8 +26,7 @@ class AccountSwitcher extends React.Component {
   // Handlers
 
   _onAddAccount = () => {
-    const ipc = require('electron').ipcRenderer;
-    ipc.send('command', 'application:add-account');
+    ipcRenderer.send('command', 'application:add-account');
   };
 
   _onManageAccounts = () => {
@@ -35,9 +35,7 @@ class AccountSwitcher extends React.Component {
   };
 
   _onShowMenu = () => {
-    const { remote } = require('electron');
-    const { Menu } = remote;
-    const menu = Menu.buildFromTemplate(this._makeMenuTemplate());
+    const menu = remote.Menu.buildFromTemplate(this._makeMenuTemplate());
     menu.popup({});
   };
 
@@ -53,5 +51,3 @@ class AccountSwitcher extends React.Component {
     );
   }
 }
-
-module.exports = AccountSwitcher;

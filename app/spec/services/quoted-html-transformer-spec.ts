@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const QuotedHTMLTransformer = require('../../src/services/quoted-html-transformer').default;
+import fs from 'fs';
+import path from 'path';
+import QuotedHTMLTransformer from '../../src/services/quoted-html-transformer';
 
 describe('QuotedHTMLTransformer', function() {
   const readFile = function(fname) {

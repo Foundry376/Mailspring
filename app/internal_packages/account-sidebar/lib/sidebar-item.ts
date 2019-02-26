@@ -1,5 +1,5 @@
-const _ = require('underscore');
-const _str = require('underscore.string');
+import _ from 'underscore';
+import _str from 'underscore.string';
 const { OutlineViewItem } = require('mailspring-component-kit');
 const {
   MailboxPerspective,
@@ -11,7 +11,7 @@ const {
   RegExpUtils,
 } = require('mailspring-exports');
 
-const SidebarActions = require('./sidebar-actions');
+import * as SidebarActions from './sidebar-actions';
 
 const idForCategories = categories => _.pluck(categories, 'id').join('-');
 
@@ -95,7 +95,7 @@ const onEditItem = function(item, value) {
   );
 };
 
-class SidebarItem {
+export default class SidebarItem {
   static forPerspective(id, perspective, opts = {}) {
     let counterStyle;
     if (perspective.isInbox()) {
@@ -211,5 +211,3 @@ class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 }
-
-module.exports = SidebarItem;

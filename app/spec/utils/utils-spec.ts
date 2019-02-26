@@ -1,8 +1,8 @@
 /* eslint no-new-wrappers: 0 */
 /* eslint no-new-object: 0 */
 const Utils = require('../../src/flux/models/utils');
-const Thread = require('../../src/flux/models/thread').default;
-const Contact = require('../../src/flux/models/contact').default;
+import Thread from '../../src/flux/models/thread';
+import Contact from '../../src/flux/models/contact';
 
 class Foo {
   static initClass() {

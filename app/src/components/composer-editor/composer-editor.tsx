@@ -1,6 +1,8 @@
 import React from 'react';
 import { Editor } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
+import path from 'path';
+import fs from 'fs';
 
 import KeyCommandsRegion from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
@@ -117,8 +119,6 @@ export default class ComposerEditor extends React.Component {
 
     if (item.kind === 'file') {
       const temp = require('temp');
-      const path = require('path');
-      const fs = require('fs');
       const blob = item.getAsFile();
       const ext =
         {

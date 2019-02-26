@@ -1,5 +1,5 @@
 const { TouchBar, nativeImage } = require('electron');
-const path = require('path');
+import path from 'path';
 
 const { TouchBarGroup, TouchBarButton, TouchBarSpacer } = TouchBar;
 

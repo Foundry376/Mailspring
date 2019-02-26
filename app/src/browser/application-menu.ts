@@ -12,7 +12,7 @@ const { localized } = require('../intl');
 //
 // It's created by {Application} upon instantiation and used to add, remove
 // and maintain the state of all menu items.
-module.exports = class ApplicationMenu {
+export default class ApplicationMenu {
   constructor(version) {
     this.version = version;
     this.windowTemplates = new WeakMap();
@@ -332,4 +332,4 @@ module.exports = class ApplicationMenu {
     const keys = modifiers.concat([key.toUpperCase()]);
     return keys.join('+');
   }
-};
+}
