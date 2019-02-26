@@ -119,8 +119,15 @@ const saveConversation = async (db, conv) => {
         conv.avatarMembers.push(contact);
       }
     }
-    if (conv.avatarMembers.length < 2) {
+    if (!conv.avatarMembers.length) {
       let contact = await db.contacts.findOne().where('jid').eq(conv.curJid).exec();
+      if (contact) {
+        contact = copyRxdbContact(contact);
+        conv.avatarMembers.push(contact);
+      }
+    }
+    if (conv.avatarMembers.length < 2) {
+      let contact = await db.contacts.findOne().where('jid').ne(conv.curJid).exec();
       if (contact) {
         contact = copyRxdbContact(contact);
         conv.avatarMembers.push(contact);
