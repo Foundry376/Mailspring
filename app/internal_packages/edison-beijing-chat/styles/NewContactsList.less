@@ -1,3 +1,5 @@
+@import 'ui-variables';
+
 .chat-view-container {
   .contactsList {
     flex: 1;
@@ -5,7 +7,6 @@
   }
 
   .contactItem {
-    // height: 36px;
     max-width: 100%;
     padding: 8px;
     cursor: pointer;
@@ -20,7 +21,7 @@
   }
 
   .selected {
-    background-color: #DCDCDC !important;
+    background-color: @source-list-active-bg;
   }
 
   .contactName {

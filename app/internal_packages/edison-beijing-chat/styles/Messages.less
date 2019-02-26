@@ -64,8 +64,6 @@
       label {
         display: block;
         margin: 0 auto;
-        top: 28px;
-        transition: 0.2s;
         .divider {
           position: relative;
           top: -15px;
@@ -89,7 +87,7 @@
     .day-label label {
       position: absolute;
       z-index: 99;
-      top: 36px;
+      top: 50px;
       left: 16px;
       right: 16px;
     }
@@ -129,31 +127,6 @@
     width: 100%;
   }
 
-  // .message.currentUser:first-child {
-  //   border-top-right-radius: 12px;
-  // }
-
-  // .message.currentUser {
-  //   &:after {
-  //     content: '';
-  //     display: block;
-  //     width: 14px;
-  //     height: 12px;
-  //     background-image: url('data:image/svg+xml;utf8,<svg width="14px" height="12px" viewBox="0 0 27 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><path d="M26.2278446,17.4092324 L11.1870041,0 C12.1315883,11.8835969 8.40258689,19.8665561 0,23.9488774 C10.3997077,24.6521893 19.1423226,22.4723076 26.2278446,17.4092324 Z" id="Path-4" fill="#2fa3fc" transform="translate(13.113922, 12.038775) scale(-1, 1) translate(-13.113922, -12.038775) "></path></g></svg>');
-  //     background-repeat: no-repeat;
-  //     background-position: center center;
-  //     position: absolute;
-  //     right: -6px;
-  //     bottom: 0px;
-  //   }
-  //   .messageSender {
-  //     display: block;
-  //     position: absolute;
-  //     right: -42px;
-  //     bottom: 0;
-  //   }
-  // }
-
   .message.currentUser,
   .message.otherUser {
     .messageSender {
@@ -190,6 +163,7 @@
     text-align: left;
     white-space: pre-line;
     word-break: break-word;
+    display: inline-block;
   }
 
   .messageMeta {
@@ -233,11 +207,18 @@
   .inplace-edit-img {
     margin-right: 6px;
     display: inline-block;
-    width: 36px;
-    height: 36px;
-    box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
-    0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15),
-    0 0.5px 1px rgba(0, 0, 0, 0.15);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &:hover {
+      background-color: @off-white;
+      img.content-mask {
+        background-color: @blue;
+      }
+    }
   }
   .download-img {
     background: url(images/chat/download.png) no-repeat center center rgba(255, 255, 255, 0.95);
@@ -249,13 +230,9 @@
     background-size: 30px auto;
   }
   .inplace-edit-img {
-    background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 0.95);
-    background-size: 22px auto;
-    border-radius: @border-radius;
-  }
-  .inplace-edit-img:hover {
-    background: url(images/chat/more_active.png) no-repeat center center rgba(255, 255, 255, 1);
-    background-size: 22px auto;
+    img.content-mask {
+      background-color: @gray;
+    }
   }
   .cancel-zoomin-button {
     position: absolute;

@@ -1,12 +1,43 @@
+@import 'ui-variables';
+
 .chat-view-container {
   .item {
-    height: 44px;
-    padding: 4px 8px 0px 22px;
+    height: 35px;
+    padding: 6px 8px 6px 20px;
     cursor: pointer;
     display: flex;
     flex-direction: row;
     position: relative;
     font-size: 13px;
+
+    .avatarWrapper {
+      position: relative;
+      float: left;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+    }
+    .groupAvatar {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      transform-origin: left top;
+      transform: scale(0.6);
+      .chat-avatar {
+        position: absolute;
+      }
+      .chat-avatar:nth-child(1) {
+        left: 5px;
+        top: 5px;
+        z-index: 2;
+      }
+      .chat-avatar:nth-child(2) {
+        left: 0;
+        top: 0;
+        z-index: 1;
+      }
+    }
   }
 
   .item:hover {
@@ -14,8 +45,8 @@
   }
 
   .selected {
-    background-color: #f8f8fa !important;
-    color: #1293fd;
+    background-color: @source-list-active-bg !important;
+    color: @blue;
   }
 
   .avatar-icon {
@@ -23,9 +54,8 @@
   }
 
   .content {
-    margin-top: 4px;
-    margin-bottom: 4px;
     margin-left: 12px;
+    line-height: 23px;
     flex: 1;
     min-width: 0;
     float: left;
@@ -48,7 +78,7 @@
 
   .headerText {
     flex-grow: 1;
-    font-size: 14px;
+    font-size: 12px;
     line-height: 14px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -67,33 +97,7 @@
     white-space: nowrap;
     overflow: hidden;
     color: #333;
-  }
-
-  .avatarWrapper {
-    position: relative;
-    float: left;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-  }
-
-  .groupAvatar {
-    .chat-avatar {
-      position: absolute;
-    }
-    .chat-avatar:nth-child(1) {
-      right: -3px;
-      top: 5px;
-      z-index: 2;
-      transform: scale(0.8);
-    }
-    .chat-avatar:nth-child(2) {
-      right: 6px;
-      top: -1px;
-      z-index: 1;
-      transform: scale(0.6);
-    }
+    display: none;
   }
 
   .badge {
@@ -111,15 +115,18 @@
     transform: scale(0.7);
   }
 
-  #remove-button {
+  .remove-button {
     position: absolute;
-    right: 2px;
+    left: 0;
     top: 50%;
     margin-top: -12px;
     display: none;
-    transform: scale(0.8);
+    transform: scale(0.5);
   }
-  .item:hover #remove-button {
+  .item:hover .remove-button {
     display: block;
+    img.content-mask {
+      background-color: @blue;
+    }
   }
 }

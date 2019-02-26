@@ -11,7 +11,7 @@ export default class MessagesTopBar extends Component {
   }
   handleChange = (value, options) => {
     const members = options.map(item => ({
-      name: item.props.value,
+      name: item.props.label,
       jid: item.props.jid,
       curJid: item.props.curjid
     }));
@@ -28,6 +28,7 @@ export default class MessagesTopBar extends Component {
         jid={contact.jid}
         curjid={contact.curJid}
         value={contact.name + contact.email}
+        label={contact.name}
       >
         <div className="chip">
           <ContactAvatar jid={contact.jid} name={contact.name}
@@ -63,6 +64,7 @@ export default class MessagesTopBar extends Component {
             autoFocus
             open
             tokenSeparators={[',']}
+            optionLabelProp="label"
           >
             {children}
           </Select>

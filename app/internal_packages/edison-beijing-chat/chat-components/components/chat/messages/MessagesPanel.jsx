@@ -302,7 +302,13 @@ export default class MessagesPanel extends PureComponent {
     const members = this.state.membersTemp;
     if (members && members.length) {
       const { onGroupConversationCompleted, onPrivateConversationCompleted } = this.props;
-      if (members.length > 1 && onGroupConversationCompleted) {
+      if (members.length > 4 && onGroupConversationCompleted) {
+        const roomId = uuid() + GROUP_CHAT_DOMAIN;
+        const names = members.map(item => item.name);
+        const chatName = names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others`;
+        onGroupConversationCompleted({ contacts: members, roomId, name: chatName });
+      }
+      else if (members.length > 1 && onGroupConversationCompleted) {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const names = members.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(' , ') + ' & ' + names[names.length - 1];

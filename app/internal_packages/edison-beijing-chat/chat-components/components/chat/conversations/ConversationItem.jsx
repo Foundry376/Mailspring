@@ -4,13 +4,10 @@ import { buildTimeDescriptor } from '../../../utils/time';
 import ContactAvatar from '../../common/ContactAvatar';
 import GroupChatAvatar from '../../common/GroupChatAvatar';
 import Badge from './ConversationBadge';
-import CancelIcon from '../../common/icons/CancelIcon';
-import { theme } from '../../../utils/colors';
 import chatModel from '../../../store/model';
 import messageModel from '../messages/messageModel';
 import { clearMessages } from '../../../utils/message';
-
-const { primaryColor } = theme;
+import { RetinaImg } from 'mailspring-component-kit';
 
 export default class ConversationItem extends PureComponent {
 
@@ -61,9 +58,9 @@ export default class ConversationItem extends PureComponent {
         <div style={{ width: '100%', display: 'flex' }} onClick={onClick}>
           <div className="avatarWrapper">
             {conversation.isGroup ?
-              <GroupChatAvatar conversation={conversation} size={26} /> :
+              <GroupChatAvatar conversation={conversation} size={23} /> :
               <ContactAvatar conversation={conversation} jid={conversation.jid} name={conversation.name}
-                email={conversation.email} avatar={conversation.avatar} size={26} />
+                email={conversation.email} avatar={conversation.avatar} size={23} />
             }
             {!conversation.isHiddenNotification ? <Badge count={conversation.unreadMessages} /> : null}
           </div>
@@ -82,7 +79,12 @@ export default class ConversationItem extends PureComponent {
             </div>
           </div>
         </div>
-        <span id="remove-button" onClick={this.onClickRemove}> <CancelIcon color={primaryColor} /> </span>
+        <span className="remove-button" onClick={this.onClickRemove}>
+          <RetinaImg name={'close_1.svg'}
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
+        </span>
       </div >
     );
   }

@@ -92,10 +92,10 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     return;
   }
   if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
-    // a img link
+    // a link
     msgBody.path = msgBody.mediaObjectId;
-  } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
-    // image file on aws
+  } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE) {
+    // file on aws
     let name = msgBody.mediaObjectId;
     name = name.split('/')[1]
     name = name.replace(/\.encrypted$/, '');
@@ -373,6 +373,7 @@ export const receivePrivateMessageEpic = action$ =>
       });
     })
     .filter(({ payload, deviceId, priKey }) => {
+      debugger;
       if (payload.payload) {
         let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
@@ -492,9 +493,9 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
       let beAt = false;
       let name = payload.from.local;
       // get the room name and whether you are '@'
-      const { room: { rooms }, auth } = getState();
+      const { room: { rooms } } = getState();
       const body = JSON.parse(payload.body);
-      beAt = !body.atJids || body.atJids.indexOf(auth.currentUser.bare) === -1 ? false : true;
+      beAt = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
       if (rooms[payload.from.bare]) {
         name = rooms[payload.from.bare];
       } else {
