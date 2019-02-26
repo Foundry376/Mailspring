@@ -282,6 +282,12 @@ export default class DraftEditingSession extends MailspringStore {
     this._destroyed = true;
     this._removeListeners();
   }
+  freezeSession(){
+    this._removeListeners();
+  }
+  resumeSession(){
+    this._registerListeners();
+  }
   _registerListeners = () => {
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);

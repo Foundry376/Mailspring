@@ -44,6 +44,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
     this.listenTo(Actions.destroyDraftFailed, this._onDestroyDraftFailed);
     this.listenTo(Actions.destroyDraftSucceeded, this._onDestroyDraftSuccess);
+    this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);
 
     if (AppEnv.isMainWindow()) {
       ipcRenderer.on('new-message', () => {
@@ -106,6 +107,35 @@ class DraftStore extends MailspringStore {
   isSendingDraft(headerMessageId) {
     return this._draftsSending[headerMessageId] || false;
   }
+
+  _onDraftAccountChange = async ({
+    originalMessageId,
+    originalHeaderMessageId,
+    newParticipants,
+  }) => {
+    const session = this._draftSessions[originalHeaderMessageId];
+    await session.changes.commit();
+    session.freezeSession();
+    const oldDraft = session.draft();
+    if(!oldDraft){
+      console.error('How can old not available');
+      return;
+    }
+    oldDraft.cc = newParticipants.cc;
+    oldDraft.bcc = newParticipants.bcc;
+    const newDraft = await DraftFactory.copyDraftToAccount(oldDraft, newParticipants.from);
+    await this._finalizeAndPersistNewMessage(newDraft);
+    Actions.changeDraftAccountComplete({newDraftJSON: newDraft.toJSON()});
+    this._onDestroyDraft(
+      {
+        accountId: oldDraft.accountId,
+        headerMessageId: originalHeaderMessageId,
+        id: originalMessageId,
+        threadId: oldDraft.threadId,
+      },
+      { switchingAccount: true }
+    );
+  };
 
   //on Thread changed
   _onThreadChange = (event, options = {}) => {
@@ -289,7 +319,7 @@ class DraftStore extends MailspringStore {
         draft.body = `${body}\n\n${draft.body}`;
         draft.pristine = false;
         const t = new SyncbackDraftTask({ draft });
-        // console.log('send quickly');
+        // console.error('send quickly');
         Actions.queueTask(t);
         TaskQueue.waitForPerformLocal(t).then(() => {
           Actions.sendDraft(draft.headerMessageId);
@@ -365,7 +395,7 @@ class DraftStore extends MailspringStore {
     // doesn't need to do a query for it a second from now when the composer wants it.
     this._createSession(draft.headerMessageId, draft);
     const task = new SyncbackDraftTask({ draft });
-    // console.log('sync back from finalize');
+    // console.error('sync back from finalize');
     Actions.queueTask(task);
 
     return TaskQueue.waitForPerformLocal(task).then(() => {

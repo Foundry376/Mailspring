@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { AccountStore, ContactStore } from 'mailspring-exports';
+import { AccountStore, ContactStore, Actions } from 'mailspring-exports';
 import { Menu, ButtonDropdown, InjectedComponentSet } from 'mailspring-component-kit';
 
 export default class AccountContactField extends React.Component {
@@ -24,13 +24,20 @@ export default class AccountContactField extends React.Component {
     autocontacts = autocontacts.filter(c => !existing.includes(c.email));
 
     this._dropdownComponent.toggleDropdown();
-
+    const from = [contact];
+    const cc = [].concat(draft.cc).concat(autoaddress.type === 'cc' ? autocontacts : []);
+    const bcc = [].concat(draft.bcc).concat(autoaddress.type === 'bcc' ? autocontacts : []);
     onChange({
-      from: [contact],
-      cc: [].concat(draft.cc).concat(autoaddress.type === 'cc' ? autocontacts : []),
-      bcc: [].concat(draft.bcc).concat(autoaddress.type === 'bcc' ? autocontacts : []),
+      from: from,
+      cc: cc,
+      bcc: bcc,
     });
-    session.ensureCorrectAccount();
+    // session.ensureCorrectAccount();
+    Actions.changeDraftAccount({
+      originalHeaderMessageId: draft.headerMessageId,
+      originalMessageId: draft.id,
+      newParticipants: { from, cc, bcc },
+    });
   };
 
   _renderAccountSelector() {

@@ -8,6 +8,7 @@ import {
   WorkspaceStore,
   ComponentRegistry,
   InflatesDraftClientId,
+  Actions,
 } from 'mailspring-exports';
 import ComposeButton from './compose-button';
 import ComposerView from './composer-view';
@@ -31,10 +32,21 @@ class ComposerWithWindowProps extends React.Component {
     DraftStore._createSession(headerMessageId, draft);
     this.state = windowProps;
     this.state.messageId = draft.id;
+    this._mounted = false;
+    this._unlisten = Actions.changeDraftAccountComplete.listen(this._onDraftChangeAccountComplete, this);
   }
   componentWillMount() {
     ipcRenderer.on('draft-got-new-id', this._onDraftGotNewId);
   }
+  componentDidMount() {
+    this._mounted = true;
+  }
+
+  _onDraftChangeAccountComplete = ({ newDraftJSON }) => {
+    const draft = new Message().fromJSON(newDraftJSON);
+    DraftStore._createSession(draft.headerMessageId);
+    this.setState({ headerMessageId: draft.headerMessageId, messageId: draft.id });
+  };
 
   _onDraftGotNewId = (event, options) => {
     if (
@@ -51,9 +63,11 @@ class ComposerWithWindowProps extends React.Component {
   };
 
   componentWillUnmount() {
+    this._mounted = false;
     if (this._usub) {
       this._usub();
     }
+    this._unlisten();
     ipcRenderer.removeListener('draft-got-new-id', this._onDraftGotNewId);
   }
 

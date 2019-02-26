@@ -331,6 +331,25 @@ class Actions {
   static composeReply = ActionScopeWindow;
 
   /*
+  Change the account of current draft.
+  Parameters: {
+    originalHeaderMessageId, required
+    originalMessageId, required
+    newParticipants: {from, cc, bcc} , required
+  }
+   */
+
+  static changeDraftAccount = ActionScopeWindow;
+
+  /*
+  Change the account of current draft complete.
+  Parameters: {
+    newDraftJSON
+  }
+   */
+  static changeDraftAccountComplete = ActionScopeWindow;
+
+  /*
   Public: Create a new draft for forwarding the provided threadId and messageId. See
   {::composeReply} for parameters and behavior.
 

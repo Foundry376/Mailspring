@@ -68,6 +68,38 @@ class DraftFactory {
 
     return new Message(merged);
   }
+  async copyDraftToAccount(draft, from){
+    const uniqueId = uuid();
+    const account = AccountStore.accountForEmail(from[0].email);
+    if (!account) {
+      throw new Error(
+        'DraftEditingSession::ensureCorrectAccount - you can only send drafts from a configured account.',
+      );
+    }
+    const defaults = Object.assign({}, draft, {
+      body: draft.body,
+      version: 0,
+      from: from,
+      unread: false,
+      starred: false,
+      headerMessageId: `${uniqueId}`,
+      id: uniqueId,
+      date: new Date(),
+      draft: true,
+      pristine: true,
+      msgOrigin: Message.NewDraft,
+      hasNewID: false,
+      accountId: account.id,
+    });
+    const autoContacts = await ContactStore.parseContactsInString(account.autoaddress.value);
+    if (account.autoaddress.type === 'cc') {
+      defaults.cc = (defaults.cc || []).concat(autoContacts);
+    }
+    if (account.autoaddress.type === 'bcc') {
+      defaults.bcc = (defaults.bcc || []).concat(autoContacts);
+    }
+    return new Message(defaults);
+  }
 
   async createDraftForMailto(urlString) {
     try {
