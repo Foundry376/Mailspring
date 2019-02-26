@@ -321,12 +321,23 @@ exports['default'] = function (JXT) {
         name: 'memberschange',
         element: 'memberschange',
         fields: {
-            type: Utils.attribute('type'),
-            userJid: Utils.subAttribute('memberschange', 'member', 'userjid'),
-            userEmail: Utils.subAttribute('memberschange', 'member', 'useremail'),
-            actorJid: Utils.subAttribute('memberschange', 'member', 'actorjid'),
-            actorName: Utils.subAttribute('memberschange', 'member', 'actorname'),
-            ver: Utils.subAttribute('memberschange', 'member', 'ver')
+            ver: Utils.attribute('ver'),
+            userJid: Utils.subAttribute('', 'member', 'userjid'),
+            userEmail: Utils.subAttribute('', 'member', 'useremail'),
+            actorJid: Utils.subAttribute('', 'member', 'actorjid'),
+            actorName: Utils.subAttribute('', 'member', 'actorname'),
+            type: Utils.subAttribute('', 'member', 'type')
+        }
+    });
+    var ChangeItem = JXT.define({
+        name: '_changeItem',
+        element: 'member',
+        fields: {
+            userjid: Utils.attribute('userjid'),
+            useremail: Utils.attribute('useremail'),
+            actorjid: Utils.jidAttribute('actorjid'),
+            actorname: Utils.attribute('actorname'),
+            type: Utils.attribute('type')
         }
     });
     var EdimucProfile = JXT.define({
@@ -368,6 +379,7 @@ exports['default'] = function (JXT) {
     JXT.extendMessage(DirectInvite);
 
     JXT.extend(EdimucEvent, EdimucConfig);
+    JXT.extend(MembersChange, ChangeItem);
     JXT.extend(EdimucEvent, MembersChange);
     JXT.extendMessage(EdimucEvent);
 
