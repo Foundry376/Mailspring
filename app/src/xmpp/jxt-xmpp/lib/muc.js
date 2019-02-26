@@ -317,6 +317,18 @@ exports['default'] = function (JXT) {
             actorJid: Utils.subAttribute('edimucconfig', 'actor', 'jid')
         }
     });
+    var MembersChange = JXT.define({
+        name: 'memberschange',
+        element: 'memberschange',
+        fields: {
+            type: Utils.attribute('type'),
+            userJid: Utils.subAttribute('memberschange', 'member', 'userjid'),
+            userEmail: Utils.subAttribute('memberschange', 'member', 'useremail'),
+            actorJid: Utils.subAttribute('memberschange', 'member', 'actorjid'),
+            actorName: Utils.subAttribute('memberschange', 'member', 'actorname'),
+            ver: Utils.subAttribute('memberschange', 'member', 'ver')
+        }
+    });
     var EdimucProfile = JXT.define({
         name: 'edimucprofile',
         namespace: 'edimucprofile',
@@ -356,10 +368,10 @@ exports['default'] = function (JXT) {
     JXT.extendMessage(DirectInvite);
 
     JXT.extend(EdimucEvent, EdimucConfig);
+    JXT.extend(EdimucEvent, MembersChange);
     JXT.extendMessage(EdimucEvent);
 
     JXT.withIQ(function (IQ) {
-
         JXT.add(IQ, 'mucUnique', Utils.textSub(_xmppConstants.Namespace.MUC_UNIQUE, 'unique'));
         JXT.extend(IQ, MUCAdmin);
         JXT.extend(IQ, MUCOwner);

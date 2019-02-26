@@ -37,7 +37,7 @@ const shouldInlineImg = (msgBody) => {
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId && !msgBody.path ||
-    msgBody.path && !(msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER)
+    msgBody.path && !(msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER || msgBody.type === FILE_TYPE.OTHER_FILE)
 }
 
 // The number of pixels away from the bottom to be considered as being at the bottom
