@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
 import MovePickerPopover from '../lib/move-picker-popover';
 
-const {
+import {
   Category,
   Folder,
   Thread,
@@ -17,9 +17,9 @@ const {
   MailboxPerspective,
   MailspringTestUtils,
   TaskQueue,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
-const { Categories } = require('mailspring-observables');
+import { Categories } from 'mailspring-observables';
 
 describe('MovePickerPopover', function() {
   beforeEach(() => (CategoryStore._categoryCache = {}));

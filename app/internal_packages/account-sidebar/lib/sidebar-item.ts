@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import _str from 'underscore.string';
-const { OutlineViewItem } = require('mailspring-component-kit');
-const {
+import { OutlineViewItem } from 'mailspring-component-kit';
+import {
   MailboxPerspective,
   FocusedPerspectiveStore,
   SyncbackCategoryTask,
@@ -9,7 +9,7 @@ const {
   CategoryStore,
   Actions,
   RegExpUtils,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
 import * as SidebarActions from './sidebar-actions';
 

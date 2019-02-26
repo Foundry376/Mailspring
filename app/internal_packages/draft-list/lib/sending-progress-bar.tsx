@@ -1,4 +1,4 @@
-const { React, PropTypes, Utils } = require('mailspring-exports');
+import { React, PropTypes, Utils } from 'mailspring-exports';;
 
 class SendingProgressBar extends React.Component {
   static propTypes = { progress: PropTypes.number.isRequired };

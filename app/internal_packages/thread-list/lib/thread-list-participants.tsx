@@ -1,4 +1,4 @@
-const { React, PropTypes, Utils } = require('mailspring-exports');
+import { React, PropTypes, Utils } from 'mailspring-exports';;
 
 class ThreadListParticipants extends React.Component {
   static displayName = 'ThreadListParticipants';

@@ -1,4 +1,4 @@
-const { localized, React, PropTypes, DateUtils } = require('mailspring-exports');
+import { localized, React, PropTypes, DateUtils } from 'mailspring-exports';;
 import ThreadListStore from './thread-list-store';
 
 class ThreadListScrollTooltip extends React.Component {

@@ -5,7 +5,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import _ from 'underscore';
-const {
+import {
   Actions,
   SyncbackCategoryTask,
   CategoryStore,
@@ -13,7 +13,7 @@ const {
   ExtensionRegistry,
   RegExpUtils,
   localized,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
 import SidebarItem from './sidebar-item';
 import * as SidebarActions from './sidebar-actions';

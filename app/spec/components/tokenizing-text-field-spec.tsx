@@ -1,8 +1,8 @@
 import React from 'react';
 const { mount } = require('enzyme');
 
-const { Contact } = require('mailspring-exports');
-const { KeyCommandsRegion, TokenizingTextField, Menu } = require('mailspring-component-kit');
+import { Contact } from 'mailspring-exports';;
+import { KeyCommandsRegion, TokenizingTextField, Menu } from 'mailspring-component-kit';;
 
 class CustomToken extends React.Component {
   render() {

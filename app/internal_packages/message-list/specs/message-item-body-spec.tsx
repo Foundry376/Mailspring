@@ -2,13 +2,7 @@ const proxyquire = require('proxyquire');
 import React from 'react';
 import ReactTestUtils from 'react-dom/test-utils';
 
-const {
-  Contact,
-  Message,
-  File,
-  AttachmentStore,
-  MessageBodyProcessor,
-} = require('mailspring-exports');
+import { Contact, Message, File, AttachmentStore, MessageBodyProcessor } from 'mailspring-exports';
 
 class EmailFrameStub extends React.Component {
   render() {

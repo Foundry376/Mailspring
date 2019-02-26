@@ -1,5 +1,5 @@
 import RetinaImg from './retina-img';
-const { React, ReactDOM, PropTypes } = require('mailspring-exports');
+import { React, ReactDOM, PropTypes } from 'mailspring-exports';;
 import classnames from 'classnames';
 
 class ButtonDropdown extends React.Component {

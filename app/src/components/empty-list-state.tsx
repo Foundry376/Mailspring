@@ -4,12 +4,8 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import RetinaImg from './retina-img';
-const {
-  localized,
-  FolderSyncProgressStore,
-  FocusedPerspectiveStore,
-} = require('mailspring-exports');
-const { SyncingListState } = require('mailspring-component-kit');
+import { localized, FolderSyncProgressStore, FocusedPerspectiveStore } from 'mailspring-exports';
+import { SyncingListState } from 'mailspring-component-kit';
 
 const INBOX_ZERO_ANIMATIONS = ['gem', 'oasis', 'tron', 'airstrip', 'galaxy'];
 

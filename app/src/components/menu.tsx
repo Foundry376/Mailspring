@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import _ from 'underscore';
-const { React, ReactDOM, PropTypes, DOMUtils } = require('mailspring-exports');
+import { React, ReactDOM, PropTypes, DOMUtils } from 'mailspring-exports';;
 
 /*
 Public: `MenuItem` components can be provided to the {Menu} by the `itemContent` function.

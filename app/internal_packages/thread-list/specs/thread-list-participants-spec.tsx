@@ -2,7 +2,7 @@ import React from 'react';
 import ReactTestUtils from 'react-dom/test-utils';
 
 import _ from 'underscore';
-const { AccountStore, Thread, Contact, Message } = require('mailspring-exports');
+import { AccountStore, Thread, Contact, Message } from 'mailspring-exports';;
 const ThreadListParticipants = require('../lib/thread-list-participants');
 
 describe('ThreadListParticipants', function() {

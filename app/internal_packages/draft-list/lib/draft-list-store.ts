@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-const {
+import {
   Rx,
   Message,
   OutboxStore,
@@ -9,8 +9,8 @@ const {
   ObservableListDataSource,
   FocusedPerspectiveStore,
   DatabaseStore,
-} = require('mailspring-exports');
-const { ListTabular } = require('mailspring-component-kit');
+} from 'mailspring-exports';
+import { ListTabular } from 'mailspring-component-kit';
 
 class DraftListStore extends MailspringStore {
   constructor() {

@@ -3,14 +3,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
 
-const {
+import {
   Contact,
   Message,
   File,
   Thread,
   AttachmentStore,
   MessageBodyProcessor,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
 class MessageItemBody extends React.Component {
   render() {
@@ -18,7 +18,7 @@ class MessageItemBody extends React.Component {
   }
 }
 
-const { InjectedComponent } = require('mailspring-component-kit');
+import { InjectedComponent } from 'mailspring-component-kit';
 
 const file = new File({
   id: 'file_1_id',

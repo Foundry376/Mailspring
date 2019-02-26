@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import ComposerHeaderActions from '../lib/composer-header-actions';
 import Fields from '../lib/fields';
 import ReactTestUtils from 'react-dom/test-utils';
-const { Actions } = require('mailspring-exports');
+import { Actions } from 'mailspring-exports';;
 
 describe('ComposerHeaderActions', function() {
   const makeField = function(props) {

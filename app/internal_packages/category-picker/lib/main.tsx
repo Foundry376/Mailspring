@@ -1,5 +1,5 @@
 import ToolbarCategoryPicker from './toolbar-category-picker';
-const { ComponentRegistry } = require('mailspring-exports');
+import { ComponentRegistry } from 'mailspring-exports';;
 
 export function activate() {
   ComponentRegistry.register(ToolbarCategoryPicker, { role: 'ThreadActionsToolbarButton' });

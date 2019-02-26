@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
-const {
+import {
   Actions,
   AccountStore,
   ThreadCountsStore,
@@ -8,7 +8,7 @@ const {
   OutboxStore,
   FocusedPerspectiveStore,
   CategoryStore,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
 import SidebarSection from './sidebar-section';
 import * as SidebarActions from './sidebar-actions';

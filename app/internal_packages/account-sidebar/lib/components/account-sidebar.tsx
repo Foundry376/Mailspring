@@ -1,6 +1,6 @@
 import React from 'React';
-const { Utils, AccountStore } = require('mailspring-exports');
-const { OutlineView, ScrollRegion, Flexbox } = require('mailspring-component-kit');
+import { Utils, AccountStore } from 'mailspring-exports';;
+import { OutlineView, ScrollRegion, Flexbox } from 'mailspring-component-kit';;
 import AccountSwitcher from './account-switcher';
 import SidebarStore from '../sidebar-store';
 

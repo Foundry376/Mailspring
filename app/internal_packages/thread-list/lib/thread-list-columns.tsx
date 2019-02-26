@@ -1,14 +1,14 @@
 import React from 'react';
-const {
+import {
   ListTabular,
   RetinaImg,
   MailLabelSet,
   MailImportantIcon,
   InjectedComponent,
   InjectedComponentSet,
-} = require('mailspring-component-kit');
+} from 'mailspring-component-kit';
 
-const { localized, FocusedPerspectiveStore, Utils, DateUtils } = require('mailspring-exports');
+import { localized, FocusedPerspectiveStore, Utils, DateUtils } from 'mailspring-exports';
 
 import { ThreadArchiveQuickAction, ThreadTrashQuickAction } from './thread-list-quick-actions';
 import ThreadListParticipants from './thread-list-participants';

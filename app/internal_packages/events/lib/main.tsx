@@ -1,4 +1,4 @@
-const { ComponentRegistry } = require('mailspring-exports');
+import { ComponentRegistry } from 'mailspring-exports';;
 import EventHeader from './event-header';
 
 export function activate() {

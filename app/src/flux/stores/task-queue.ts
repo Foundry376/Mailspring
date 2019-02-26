@@ -1,10 +1,10 @@
 import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
-import { Rx } from 'mailspring-exports';
+import { Rx, SyncbackDraftTask } from 'mailspring-exports';
 import Task from '../tasks/task';
 import DatabaseStore from './database-store';
 
-/**
+/*
 Public: The TaskQueue is a Flux-compatible Store that manages a queue of {Task}
 objects. Each {Task} represents an individual API action, like sending a draft
 or marking a thread as "read". Tasks optimistically make changes to the app's

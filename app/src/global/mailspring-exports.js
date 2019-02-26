@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 /* eslint import/no-dynamic-require: 0 */
-import DatabaseObjectRegistry from '../registries/database-object-registry';
+const DatabaseObjectRegistry = require('../registries/database-object-registry').default;
 
 // This module exports an empty object, with a ton of defined properties that
 // `require` files the first time they're called.

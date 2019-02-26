@@ -2,8 +2,8 @@ import _ from 'underscore';
 import classNames from 'classnames';
 import ListTabular from './list-tabular';
 import Spinner from './spinner';
-const { React, ReactDOM, PropTypes, Utils, WorkspaceStore } = require('mailspring-exports');
-const { KeyCommandsRegion } = require('mailspring-component-kit');
+import { React, ReactDOM, PropTypes, Utils, WorkspaceStore } from 'mailspring-exports';;
+import { KeyCommandsRegion } from 'mailspring-component-kit';;
 
 import MultiselectListInteractionHandler from './multiselect-list-interaction-handler';
 import MultiselectSplitInteractionHandler from './multiselect-split-interaction-handler';

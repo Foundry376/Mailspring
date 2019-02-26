@@ -7,8 +7,8 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import _ from 'underscore';
-const _str = require('underscore.string');
-const { jasmine } = require('./jasmine');
+import _str from 'underscore.string';
+import { jasmine } from './jasmine';
 
 export default class TimeReporter extends jasmine.Reporter {
   constructor() {

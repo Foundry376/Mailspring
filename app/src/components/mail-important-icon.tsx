@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import classNames from 'classnames';
-const {
+import {
   localized,
   React,
   PropTypes,
@@ -9,7 +9,7 @@ const {
   CategoryStore,
   FocusedPerspectiveStore,
   AccountStore,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
 const ShowImportantKey = 'core.workspace.showImportant';
 

@@ -1,11 +1,11 @@
-const {
+import {
   localized,
   Actions,
   React,
   PropTypes,
   TaskFactory,
   FocusedPerspectiveStore,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
 export class ThreadArchiveQuickAction extends React.Component {
   static displayName = 'ThreadArchiveQuickAction';

@@ -1,12 +1,12 @@
-const {
+import {
   localized,
   Actions,
   React,
   PropTypes,
   AccountStore,
   WorkspaceStore,
-} = require('mailspring-exports');
-const { RetinaImg, KeyCommandsRegion } = require('mailspring-component-kit');
+} from 'mailspring-exports';
+import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
 import MovePickerPopover from './move-picker-popover';
 import LabelPickerPopover from './label-picker-popover';

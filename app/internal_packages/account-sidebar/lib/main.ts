@@ -1,4 +1,4 @@
-const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
+import { ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import AccountSidebar from './components/account-sidebar';
 
 export function activate(state) {

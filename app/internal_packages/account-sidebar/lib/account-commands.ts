@@ -3,7 +3,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const { Actions, MenuHelpers } = require('mailspring-exports');
+import { Actions, MenuHelpers } from 'mailspring-exports';
 
 let _commandsDisposable = null;
 

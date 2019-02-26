@@ -1,5 +1,5 @@
 import _ from 'underscore';
-const { React, ReactDOM, PropTypes, Utils, isRTL } = require('mailspring-exports');
+import { React, ReactDOM, PropTypes, Utils, isRTL } from 'mailspring-exports';;
 import classNames from 'classnames';
 import ScrollbarTicks from './scrollbar-ticks';
 

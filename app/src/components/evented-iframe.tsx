@@ -4,7 +4,7 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const {
+import {
   React,
   ReactDOM,
   PropTypes,
@@ -13,7 +13,7 @@ const {
   IdentityStore,
   MailspringAPIRequest,
   SearchableComponentStore,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 import IFrameSearcher from '../searchable-components/iframe-searcher';
 import url from 'url';
 import _ from 'underscore';

@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import path from 'path';
 import fs from 'fs';
-const { RetinaImg, Flexbox, ConfigPropContainer } = require('mailspring-component-kit');
-const { localized, AccountStore, IdentityStore } = require('mailspring-exports');
+import { RetinaImg, Flexbox, ConfigPropContainer } from 'mailspring-component-kit';;
+import { localized, AccountStore, IdentityStore } from 'mailspring-exports';;
 import OnboardingActions from './onboarding-actions';
 import NewsletterSignup from './newsletter-signup';
 

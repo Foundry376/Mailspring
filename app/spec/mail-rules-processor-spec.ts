@@ -1,4 +1,4 @@
-const {
+import {
   Message,
   Contact,
   Thread,
@@ -6,7 +6,7 @@ const {
   DatabaseStore,
   TaskQueue,
   Actions,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
 const MailRulesProcessor = require('../src/mail-rules-processor');
 

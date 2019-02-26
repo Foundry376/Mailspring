@@ -1,5 +1,5 @@
-const { localized, Actions, React, PropTypes } = require('mailspring-exports');
-const { RetinaImg } = require('mailspring-component-kit');
+import { localized, Actions, React, PropTypes } from 'mailspring-exports';;
+import { RetinaImg } from 'mailspring-component-kit';;
 import { ipcRenderer, remote } from 'electron';
 import * as AccountCommands from '../account-commands';
 

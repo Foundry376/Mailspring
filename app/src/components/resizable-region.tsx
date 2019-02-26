@@ -1,5 +1,5 @@
 import _ from 'underscore';
-const { React, ReactDOM, PropTypes, Utils } = require('mailspring-exports');
+import { React, ReactDOM, PropTypes, Utils } from 'mailspring-exports';;
 
 const ResizableHandle = {
   Top: {

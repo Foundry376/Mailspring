@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
-const { Thread } = require('mailspring-exports');
-const { ListTabular } = require('mailspring-component-kit');
+import { Thread } from 'mailspring-exports';;
+import { ListTabular } from 'mailspring-component-kit';;
 
 const ListDataSource = ListTabular.DataSource;
 const ListSelection = ListTabular.Selection;

@@ -3,15 +3,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
 
-const {
+import {
   MultiselectList,
   FocusContainer,
   EmptyListState,
   FluxContainer,
   SyncingListState,
-} = require('mailspring-component-kit');
+} from 'mailspring-component-kit';
 
-const {
+import {
   Actions,
   Utils,
   CanvasUtils,
@@ -22,7 +22,7 @@ const {
   FocusedContentStore,
   FocusedPerspectiveStore,
   FolderSyncProgressStore,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
 import * as ThreadListColumns from './thread-list-columns';
 import ThreadListScrollTooltip from './thread-list-scroll-tooltip';

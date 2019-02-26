@@ -1,5 +1,5 @@
-const { RetinaImg } = require('mailspring-component-kit');
-const {
+import { RetinaImg } from 'mailspring-component-kit';
+import {
   Actions,
   localized,
   React,
@@ -9,7 +9,7 @@ const {
   Event,
   EventRSVPTask,
   DatabaseStore,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 const moment = require('moment-timezone');
 
 class EventHeader extends React.Component {

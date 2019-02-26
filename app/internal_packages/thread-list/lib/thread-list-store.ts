@@ -1,13 +1,13 @@
 import MailspringStore from 'mailspring-store';
 
-const {
+import {
   Rx,
   Actions,
   WorkspaceStore,
   FocusedContentStore,
   FocusedPerspectiveStore,
-} = require('mailspring-exports');
-const { ListTabular } = require('mailspring-component-kit');
+} from 'mailspring-exports';
+import { ListTabular } from 'mailspring-component-kit';
 
 import ThreadListDataSource from './thread-list-data-source';
 
