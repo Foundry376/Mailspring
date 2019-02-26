@@ -7,7 +7,8 @@ import {
   SUCCESS_FETCH_ROOM,
   fetchRoom,
   succesfullyFetchedRoom,
-  failedFetchingRoom
+  failedFetchingRoom,
+  failedStoreRoom
 } from '../actions/room';
 
 import {
@@ -40,5 +41,6 @@ export const triggerStoreRoomsEpic = action$ =>
       }
       return false;
     })
-    .map(({ payload: { discoItems: { items } } }) => storeRooms(items));
+    .map(({ payload: { discoItems: { items } } }) => storeRooms(items))
+    .catch(err => Observable.of(failedStoreRoom(err)));
 
