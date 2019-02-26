@@ -6,7 +6,7 @@ import { localized } from '../../intl';
 
 import TaskQueue from './task-queue';
 import Message from '../models/message';
-import Utils from '../models/utils';
+import * as Utils from '../models/utils';
 import Actions from '../actions';
 import AccountStore from './account-store';
 import ContactStore from './contact-store';

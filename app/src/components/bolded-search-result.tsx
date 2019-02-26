@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Utils from '../flux/models/utils';
+import * as Utils from '../flux/models/utils';
 
 export default function BoldedSearchResult({ query = '', value = '' } = {}) {
   const searchTerm = (query || '').trim();

@@ -17,7 +17,7 @@ import DatabaseObjectRegistry from '../registries/database-object-registry';
 import MailsyncProcess from '../mailsync-process';
 import KeyManager from '../key-manager';
 import Actions from './actions';
-import Utils from './models/utils';
+import * as Utils from './models/utils';
 
 const MAX_CRASH_HISTORY = 10;
 

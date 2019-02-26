@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 import Attributes from '../attributes';
 import QueryRange from './query-range';
-import Utils from './utils';
+import * as Utils from './utils';
 
 const { Matcher, AttributeJoinedData, AttributeCollection } = Attributes;
 

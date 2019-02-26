@@ -8,7 +8,7 @@ import { remote } from 'electron';
 import { ExponentialBackoffScheduler } from '../../backoff-schedulers';
 
 import MailspringStore from '../../global/mailspring-store';
-import Utils from '../models/utils';
+import * as Utils from '../models/utils';
 import Query from '../models/query';
 import DatabaseChangeRecord from './database-change-record';
 

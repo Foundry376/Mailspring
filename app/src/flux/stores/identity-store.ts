@@ -2,7 +2,7 @@ import MailspringStore from 'mailspring-store';
 import { remote } from 'electron';
 import url from 'url';
 
-import Utils from '../models/utils';
+import * as Utils from '../models/utils';
 import Actions from '../actions';
 import KeyManager from '../../key-manager';
 import { makeRequest, rootURLForServer } from '../mailspring-api-request';

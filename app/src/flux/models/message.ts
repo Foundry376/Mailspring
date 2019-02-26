@@ -2,7 +2,7 @@ import _ from 'underscore';
 import moment from 'moment';
 
 import File from './file';
-import Utils from './utils';
+import * as Utils from './utils';
 import Event from './event';
 import Contact from './contact';
 import Folder from './folder';

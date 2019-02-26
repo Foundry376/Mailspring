@@ -6,7 +6,7 @@ import MailspringStore from 'mailspring-store';
 import KeyManager from '../../key-manager';
 import Actions from '../actions';
 import Account from '../models/account';
-import Utils from '../models/utils';
+import * as Utils from '../models/utils';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';

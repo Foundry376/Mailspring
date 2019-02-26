@@ -2,7 +2,7 @@
 import _str from 'underscore.string';
 import Model from './model';
 import Attributes from '../attributes';
-import Utils from './utils';
+import * as Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
 import AccountStore from '../stores/account-store';
 import { localized } from '../../intl';

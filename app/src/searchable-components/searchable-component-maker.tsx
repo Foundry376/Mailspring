@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import ReactDOM from 'react-dom';
-import Utils from '../flux/models/utils';
+import * as Utils from '../flux/models/utils';
 import VirtualDOMParser from './virtual-dom-parser';
 import SearchableComponentStore from '../flux/stores/searchable-component-store';
 

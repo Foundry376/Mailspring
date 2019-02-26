@@ -7,7 +7,7 @@ import MailspringStore from 'mailspring-store';
 import DraftStore from './draft-store';
 import Actions from '../actions';
 import File from '../models/file';
-import Utils from '../models/utils';
+import * as Utils from '../models/utils';
 import { localized } from '../../intl';
 import {
   generatePreview,

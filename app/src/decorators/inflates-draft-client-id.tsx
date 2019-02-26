@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import DraftStore from '../flux/stores/draft-store';
 import Actions from '../flux/actions';
-import Utils from '../flux/models/utils';
+import * as Utils from '../flux/models/utils';
 
 function InflatesDraftClientId(ComposedComponent) {
   return class extends React.Component {

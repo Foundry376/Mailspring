@@ -4,7 +4,7 @@ import QueryRange from '../../src/flux/models/query-range';
 import MutableQueryResultSet from '../../src/flux/models/mutable-query-result-set';
 import QuerySubscription from '../../src/flux/models/query-subscription';
 import Thread from '../../src/flux/models/thread';
-import Utils from '../../src/flux/models/utils';
+import * as Utils from '../../src/flux/models/utils';
 
 describe('QuerySubscription', function QuerySubscriptionSpecs() {
   describe('constructor', () =>

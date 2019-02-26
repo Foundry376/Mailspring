@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs-plus';
 import { ipcRenderer } from 'electron';
 import { Disposable } from 'event-kit';
-import Utils from './flux/models/utils';
+import * as Utils from './flux/models/utils';
 
 import MenuHelpers from './menu-helpers';
 

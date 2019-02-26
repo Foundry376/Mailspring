@@ -8,7 +8,7 @@ import { localized, isRTL, Actions, ComponentRegistry, WorkspaceStore } from 'ma
 
 import Flexbox from './components/flexbox';
 import RetinaImg from './components/retina-img';
-import Utils from './flux/models/utils';
+import * as Utils from './flux/models/utils';
 
 let Category = null;
 let FocusedPerspectiveStore = null;

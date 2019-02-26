@@ -1,5 +1,5 @@
 import Actions from './actions';
-import Utils from './models/utils';
+import * as Utils from './models/utils';
 
 const Role = {
   MAIN: 'default',

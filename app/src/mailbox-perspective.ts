@@ -3,7 +3,7 @@
 import _ from 'underscore';
 
 import { localized } from './intl';
-import Utils from './flux/models/utils';
+import * as Utils from './flux/models/utils';
 import TaskFactory from './flux/tasks/task-factory';
 import AccountStore from './flux/stores/account-store';
 import CategoryStore from './flux/stores/category-store';

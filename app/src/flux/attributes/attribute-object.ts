@@ -1,5 +1,5 @@
 import Attribute from './attribute';
-import Utils from '../models/utils';
+import * as Utils from '../models/utils';
 import Model from '../models/model';
 /*
 Public: An object that can be cast to `itemClass`
