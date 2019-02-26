@@ -321,23 +321,60 @@ exports['default'] = function (JXT) {
         name: 'memberschange',
         element: 'memberschange',
         fields: {
-            ver: Utils.attribute('ver'),
-            userJid: Utils.subAttribute('', 'member', 'userjid'),
-            userEmail: Utils.subAttribute('', 'member', 'useremail'),
-            actorJid: Utils.subAttribute('', 'member', 'actorjid'),
-            actorName: Utils.subAttribute('', 'member', 'actorname'),
-            type: Utils.subAttribute('', 'member', 'type')
-        }
-    });
-    var ChangeItem = JXT.define({
-        name: '_changeItem',
-        element: 'member',
-        fields: {
-            userjid: Utils.attribute('userjid'),
-            useremail: Utils.attribute('useremail'),
-            actorjid: Utils.jidAttribute('actorjid'),
-            actorname: Utils.attribute('actorname'),
-            type: Utils.attribute('type')
+            ver: {
+                get: function get() {
+                    var e = this.xml.parent.children[0];
+                    if (this.xml.parent.children.length > 1) {
+                        e = this.xml.parent.children[1];
+                    }
+                    return Utils.getAttribute(e, 'ver');
+                }
+            },
+            userJid: {
+                get: function get() {
+                    var e = this.xml.parent.children[0];
+                    if (this.xml.parent.children.length > 1) {
+                        e = this.xml.parent.children[1];
+                    }
+                    return Utils.getSubAttribute(e, '', 'member', 'userjid');
+                }
+            },
+            userEmail: {
+                get: function get() {
+                    var e = this.xml.parent.children[0];
+                    if (this.xml.parent.children.length > 1) {
+                        e = this.xml.parent.children[1];
+                    }
+                    return Utils.getSubAttribute(e, '', 'member', 'useremail');
+                }
+            },
+            actorJid: {
+                get: function get() {
+                    var e = this.xml.parent.children[0];
+                    if (this.xml.parent.children.length > 1) {
+                        e = this.xml.parent.children[1];
+                    }
+                    return Utils.getSubAttribute(e, '', 'member', 'actorjid');
+                }
+            },
+            actorName: {
+                get: function get() {
+                    var e = this.xml.parent.children[0];
+                    if (this.xml.parent.children.length > 1) {
+                        e = this.xml.parent.children[1];
+                    }
+                    return Utils.getSubAttribute(e, '', 'member', 'actorname');
+                }
+            },
+            type: {
+                get: function get() {
+                    var e = this.xml.parent.children[0];
+                    if (this.xml.parent.children.length > 1) {
+                        e = this.xml.parent.children[1];
+                    }
+                    return Utils.getSubAttribute(e, '', 'member', 'type');
+                }
+            },
         }
     });
     var EdimucProfile = JXT.define({
@@ -379,7 +416,6 @@ exports['default'] = function (JXT) {
     JXT.extendMessage(DirectInvite);
 
     JXT.extend(EdimucEvent, EdimucConfig);
-    JXT.extend(MembersChange, ChangeItem);
     JXT.extend(EdimucEvent, MembersChange);
     JXT.extendMessage(EdimucEvent);
 
