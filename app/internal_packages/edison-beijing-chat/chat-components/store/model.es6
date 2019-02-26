@@ -3,7 +3,6 @@ const storage = require('electron-localstorage');
 const chatModel = {
   diffTime: 0, //the diffTime to correct sentTime from xmpp server, see xmpp/index.es6 on 'session:prebind'
   allSelfUsers: {},
-  currentUser: {},
   chatStorage: null, // {"nicknames":{}} // data in window.localStorage for chat
   store: null, // will save the store instance in ConfigureStore
   editingMessageId: null, //inplace editing message's id

@@ -8,7 +8,6 @@ import {
   REMOVE_CONVERSATION,
   selectConversation,
 } from '../../actions/chat';
-// import { beginJoiningRooms } from '../../actions/auth';
 import {
   BEGIN_STORE_CONVERSATIONS,
   BEGIN_STORE_OCCUPANTS,
@@ -309,7 +308,6 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
             return selectConversation(conv.jid);
           }
 
-          const { auth: { currentUser } } = getState();
           return updateSelectedConversation({
             jid: contact.jid,
             curJid: contact.curJid,
@@ -319,7 +317,7 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
             isGroup: false,
             unreadMessages: 0,
             occupants: [
-              currentUser.bare,
+              contact.curJid,
               contact.jid,
             ]
           });

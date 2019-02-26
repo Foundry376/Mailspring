@@ -12,10 +12,10 @@ export default async function registerLoginChatAccounts() {
     let leftTime = 0;
     if (chatAccount) {
       acc.email = acc.emailAddress;
-      let passedTime = ((new Date()).getTime() - chatAccount.refreshTime || 0)/1000;// seconds
+      let passedTime = ((new Date()).getTime() - chatAccount.refreshTime || 0) / 1000;// seconds
       leftTime = chatAccount.expiresIn - passedTime;
     }
-    if (!chatAccount  || (leftTime<2*24*60*3600)) {
+    if (!chatAccount || (leftTime < 2 * 24 * 60 * 3600)) {
       acc.clone = () => Object.assign({}, acc);
       acc = await keyMannager.insertAccountSecrets(acc);
       if (acc.settings && !acc.settings.imap_password && !acc.settings.refresh_token) {
@@ -42,9 +42,6 @@ export default async function registerLoginChatAccounts() {
       chatAccount = res.data;
       chatAccount.refreshTime = (new Date()).getTime();
       let jid = chatAccount.userId + '@im.edison.tech';
-      chatModel.currentUser.jid = jid;
-      chatModel.currentUser.email = acc.emailAddress;
-      chatModel.currentUser.password = chatAccount.password;
       chatModel.allSelfUsers[jid] = chatAccount;
       chatModel.store.dispatch({
         type: SUBMIT_AUTH,
@@ -59,9 +56,6 @@ export default async function registerLoginChatAccounts() {
       chatAccount.clone = () => Object.assign({}, chatAccount);
       chatAccount = await keyMannager.insertChatAccountSecrets(chatAccount);
       let jid = chatAccount.userId + '@im.edison.tech';
-      chatModel.currentUser.jid = jid;
-      chatModel.currentUser.password = chatAccount.password;
-      chatModel.currentUser.email = chatAccount.email;
       chatModel.allSelfUsers[jid] = chatAccount;
       chatModel.store.dispatch({
         type: SUBMIT_AUTH,
