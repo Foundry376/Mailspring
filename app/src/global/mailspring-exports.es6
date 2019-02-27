@@ -79,6 +79,7 @@ lazyLoadAndRegisterModel(`Contact`, 'contact');
 lazyLoadAndRegisterModel(`Category`, 'category');
 lazyLoadAndRegisterModel(`Calendar`, 'calendar');
 lazyLoadAndRegisterModel(`ProviderSyncbackRequest`, 'provider-syncback-request');
+lazyLoadAndRegisterTask('SetObservableRangeTask', 'set-observable-range-task');
 
 // Search Query Interfaces
 lazyLoad(`SearchQueryAST`, 'services/search/search-query-ast');
@@ -107,7 +108,6 @@ lazyLoadAndRegisterTask(`ExpungeAllInFolderTask`, 'expunge-all-in-folder-task');
 lazyLoadAndRegisterTask(`ChangeRoleMappingTask`, 'change-role-mapping-task');
 lazyLoadAndRegisterTask(`SendFeatureUsageEventTask`, 'send-feature-usage-event-task');
 lazyLoadAndRegisterTask(`UndoTask`, 'undo-task');
-lazyLoadAndRegisterTask('SetObservableRangeTask', 'set-observable-range-task');
 
 // Stores
 // These need to be required immediately since some Stores are

@@ -3,16 +3,13 @@ import { remote } from 'electron';
 import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 
+const buttonTimeout = 700;
 export default class MessageControls extends React.Component {
   static displayName = 'MessageControls';
   static propTypes = {
     thread: PropTypes.object.isRequired,
     message: PropTypes.object.isRequired,
     threadPopedOut: PropTypes.bool,
-    buttonTimeout: PropTypes.number,
-  };
-  static default = {
-    buttonTimeout: 700, // in milliseconds
   };
 
   constructor(props) {
@@ -41,29 +38,69 @@ export default class MessageControls extends React.Component {
     clearTimeout(this._replyTimer);
   }
 
+  _timeoutButton = (type) => {
+    if (type === 'reply') {
+      if (!this._replyTimer) {
+        this._replyTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isReplying: false });
+            this._replyTimer = null;
+          }
+        }, buttonTimeout);
+      }
+    } else if (type === 'reply-all') {
+      if (!this._replyAllTimer) {
+        this._replyAllTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isReplyAlling: false });
+            this._replyAllTimer = null;
+          }
+        }, buttonTimeout);
+      }
+    } else {
+      if (!this._forwardTimer) {
+        this._forwardTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isForwarding: false });
+            this._forwardTimer = null;
+          }
+        }, buttonTimeout);
+      }
+    }
+  };
+
   _onDraftCreated = ({ messageId, type = '' }) => {
     if (messageId && messageId === this.props.message.id && this._mounted) {
       if (type === 'reply') {
-        clearTimeout(this._replyTimer);
+        if (this._replyTimer) {
+          return;
+        }
         this._replyTimer = setTimeout(() => {
           if (this._mounted) {
             this.setState({ isReplying: false });
           }
-        }, this.props.buttonTimeout);
+          this._replyTimer = null;
+        }, buttonTimeout);
       } else if (type === 'reply-all') {
-        clearTimeout(this._replyAllTimer);
+        if (this._replyAllTimer) {
+          return;
+        }
         this._replyAllTimer = setTimeout(() => {
           if (this._mounted) {
             this.setState({ isReplyAlling: false });
           }
-        }, this.props.buttonTimeout);
+          this._replyAllTimer = null;
+        }, buttonTimeout);
       } else {
-        clearTimeout(this._forwardTimer);
+        if (this._forwardTimer) {
+          return;
+        }
         this._forwardTimer = setTimeout(() => {
           if (this._mounted) {
             this.setState({ isForwarding: false });
           }
-        }, this.props.buttonTimeout);
+          this._forwardTimer = null;
+        }, buttonTimeout);
       }
     }
   };
@@ -130,7 +167,8 @@ export default class MessageControls extends React.Component {
 
   _onReply = () => {
     const { thread, message } = this.props;
-    if (!this.state.isReplying) {
+    if (!this.state.isReplying && !this._replyTimer) {
+      this._timeoutButton('reply');
       this.setState({ isReplying: true });
       Actions.composeReply({
         thread,
@@ -143,7 +181,8 @@ export default class MessageControls extends React.Component {
 
   _onReplyAll = () => {
     const { thread, message } = this.props;
-    if (!this.state.isReplyAlling) {
+    if (!this.state.isReplyAlling && !this._replyAllTimer) {
+      this._timeoutButton('reply-all');
       this.setState({ isReplyAlling: true });
       Actions.composeReply({
         thread,
@@ -156,7 +195,8 @@ export default class MessageControls extends React.Component {
 
   _onForward = () => {
     const { thread, message } = this.props;
-    if (!this.state.isForwarding) {
+    if (!this.state.isForwarding && !this._forwardTimer) {
+      this._timeoutButton('forward');
       this.setState({ isForwarding: true });
       Actions.composeForward({ thread, message });
     }

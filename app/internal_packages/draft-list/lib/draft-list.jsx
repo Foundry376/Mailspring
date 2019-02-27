@@ -9,12 +9,10 @@ import {
 import DraftListStore from './draft-list-store';
 import DraftListColumns from './draft-list-columns';
 
+const buttonTimer = 500;
 class DraftList extends React.Component {
   static displayName = 'DraftList';
   static containerRequired = false;
-  static default = {
-    buttonTimer: 500, //in milliseconds
-  };
 
   constructor(props) {
     super(props);
@@ -23,7 +21,6 @@ class DraftList extends React.Component {
     };
     this._mounted = false;
     this._deletingTimer = false;
-    this._deleteTimestamp = 0;
   }
   componentDidMount() {
     this._mounted = true;
@@ -78,20 +75,21 @@ class DraftList extends React.Component {
     }
   };
   _changeBackToNotDeleting = () => {
-    if (Date.now() - this._deleteTimestamp > this.props.buttonTimer) {
-      clearTimeout(this._deletingTimer);
-      this._deletingTimer = setTimeout(() => {
-        if(this._mounted){
-          this.setState({ isDeleting: false });
-        }
-      }, this.props.buttonTimer);
-      this._deleteTimestamp = Date.now();
+    if (this._deletingTimer) {
+      return;
     }
+    this._deletingTimer = setTimeout(() => {
+      if (this._mounted) {
+        this.setState({ isDeleting: false });
+      }
+      this._deletingTimer = null;
+    }, buttonTimer);
   };
 
   _onRemoveFromView = () => {
-    if (!this.state.isDeleting) {
-      this.setState({ isDeleting: true }, this._changeBackToNotDeleting);
+    if (!this.state.isDeleting && !this._deletingTimer) {
+      this._changeBackToNotDeleting();
+      this.setState({ isDeleting: true });
       for (const draft of DraftListStore.dataSource().selection.items()) {
         Actions.destroyDraft(draft);
       }
