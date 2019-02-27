@@ -186,12 +186,21 @@
     .message-file {
       position: relative;
       .message-toolbar {
+        width: 90px;
         top: 15px;
-        right: 5px;
+        right: 10px;
+        justify-content: flex-end;
+        .inplace-edit-img {
+          display: none;
+        }
       }
     }
     .message-image {
       padding-right: 120px;
+      .message-toolbar {
+        top: 0px;
+        justify-content: flex-start;
+      }
     }
     .file-info {
       display: flex;

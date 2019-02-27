@@ -410,15 +410,17 @@ export default class Messages extends PureComponent {
 
               if (shouldInlineImg(msgBody)) {
                 msg.height = msg.height || 220;
-                msgFile = (<div className="message-image">
-                  <img
-                    src={msgBody.path}
-                    title={msgBody.localFile || msgBody.mediaObjectId}
-                    style={{ height: '220px', cursor }}
-                    onClick={onClickImage}
-                  />
-                  {messageToolbar(msg, msgBody, true)}
-                </div>)
+                msgFile = (
+                  <div className="message-image">
+                    <img
+                      src={msgBody.path}
+                      title={msgBody.localFile || msgBody.mediaObjectId}
+                      style={{ height: '220px', cursor }}
+                      onClick={onClickImage}
+                    />
+                    {messageToolbar(msg, msgBody, true)}
+                  </div>
+                )
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
                 let extName = path.extname(msgBody.path).slice(1);
