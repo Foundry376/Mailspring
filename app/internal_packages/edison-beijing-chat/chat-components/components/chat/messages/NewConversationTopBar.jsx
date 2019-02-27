@@ -13,7 +13,8 @@ export default class MessagesTopBar extends Component {
     const members = options.map(item => ({
       name: item.props.label,
       jid: item.props.jid,
-      curJid: item.props.curjid
+      curJid: item.props.curjid,
+      email: item.props.email,
     }));
     this.props.saveRoomMembersForTemp(members)
   }
@@ -28,6 +29,7 @@ export default class MessagesTopBar extends Component {
         jid={contact.jid}
         curjid={contact.curJid}
         value={contact.name + contact.email}
+        email={contact.email}
         label={contact.name}
       >
         <div className="chip">

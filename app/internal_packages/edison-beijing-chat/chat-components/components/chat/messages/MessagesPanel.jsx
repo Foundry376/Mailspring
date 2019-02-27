@@ -22,7 +22,7 @@ import Button from '../../common/Button';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
 import { checkToken, login, queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
-
+import { AccountStore } from 'mailspring-exports';
 
 import keyMannager from '../../../../../../src/key-manager';
 import MemberProfile from '../conversations/MemberProfile';
@@ -128,9 +128,6 @@ export default class MessagesPanel extends PureComponent {
     sqldb.close();
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     const email = Object.keys(chatAccounts)[0];
-    const db = await getDb();
-    let chatContact = await db.contacts.findOne().where('email').eq(email).exec();
-    chatContact = chatContact || {};
     let accessToken = await keyMannager.getAccessTokenByEmail(email);
     let { err, res } = await checkToken(accessToken);
     if (err || !res || res.resultCode !== 1) {
@@ -153,12 +150,19 @@ export default class MessagesPanel extends PureComponent {
         } else {
           contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
         }
-        contact.curJid = chatContact.curJid || contact.jid;
+        contact.curJid = this.getCurJidByAccountId(contact.accountId, chatAccounts);
         return contact;
       });
+      emailContacts = emailContacts.filter(contact => !!contact.curJid);
       const state = Object.assign({}, this.state, { emailContacts });
       this.setState(state);
     })
+  }
+
+  getCurJidByAccountId(aid, chatAccounts) {
+    const contact = AccountStore.accountForId(aid);
+    const chatAcc = contact ? chatAccounts[contact.emailAddress] : null;
+    return chatAcc ? chatAcc.userId + '@im.edison.tech' : null;
   }
 
   onLine = () => {
