@@ -100,8 +100,8 @@ class MessageList extends React.Component {
   componentDidMount() {
     this._mounted = true;
     this._unsubscribers = [MessageStore.listen(this._onChange),
-      Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this),
-      Actions.composeReply.listen(this._onCreatingDraft, this)];
+    Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this),
+    Actions.composeReply.listen(this._onCreatingDraft, this)];
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -499,10 +499,10 @@ class MessageList extends React.Component {
         {this._renderExpandToggle()}
         <div onClick={this._onPrintThread}>
           <RetinaImg name={'print.svg'}
-                     title="Print Thread"
-                     style={{ width: 24, height: 24 }}
-                     isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            title="Print Thread"
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </div>
         {this._renderPopoutToggle()}
       </div>
@@ -511,7 +511,7 @@ class MessageList extends React.Component {
 
   _renderExpandToggle() {
     if (!this.state.canCollapse) {
-      return <span/>;
+      return <span />;
     }
 
     return (
@@ -531,20 +531,19 @@ class MessageList extends React.Component {
     if (AppEnv.isThreadWindow()) {
       return (
         <div onClick={this._onPopThreadIn}>
-          <RetinaImg
-            name="thread-popin.png"
-            title="Pop thread in"
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
+          <RetinaImg name={'pop-in.svg'}
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </div>
       );
     }
     return (
       <div onClick={this._onPopoutThread}>
         <RetinaImg name={'popout.svg'}
-                   style={{ width: 24, height: 24 }}
-                   isIcon
-                   mode={RetinaImg.Mode.ContentIsMask}/>
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
   }
@@ -554,13 +553,13 @@ class MessageList extends React.Component {
     const disabled = isReplyAll ? this.state.isReplyAlling : this.state.isReplying;
     return (
       <div className="footer-reply-area-wrap"
-           onClick={this.state.popedOut ? this._onPopoutThread : this._onClickReplyArea} key="reply-area">
+        onClick={this.state.popedOut ? this._onPopoutThread : this._onClickReplyArea} key="reply-area">
         <div className="footer-reply-area">
           <RetinaImg
             name={disabled ? 'sending-spinner.gif' : `${this._replyType()}.svg`}
             style={{ width: 24 }}
             isIcon={!disabled}
-            mode={RetinaImg.Mode.ContentIsMask}/>
+            mode={RetinaImg.Mode.ContentIsMask} />
           <span className="reply-text">
             {this._replyType() === 'reply-all' ? 'Reply All' : 'Reply'}
           </span>
@@ -599,7 +598,7 @@ class MessageList extends React.Component {
 
   render() {
     if (!this.state.currentThread) {
-      return <div className="empty"/>;
+      return <div className="empty" />;
     }
 
     const wrapClass = classNames({
@@ -614,7 +613,7 @@ class MessageList extends React.Component {
 
     return (
       <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()}>
-        <FindInThread/>
+        <FindInThread />
         <div className={messageListClass} id="message-list">
           <ScrollRegion
             tabIndex="-1"
@@ -636,7 +635,7 @@ class MessageList extends React.Component {
             </div>
             {this._messageElements()}
           </ScrollRegion>
-          <Spinner visible={this.state.loading}/>
+          <Spinner visible={this.state.loading} />
         </div>
       </KeyCommandsRegion>
     );

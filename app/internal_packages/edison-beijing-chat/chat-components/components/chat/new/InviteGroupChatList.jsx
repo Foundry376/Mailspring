@@ -57,7 +57,11 @@ export default class InviteGroupChatList extends Component {
     const children = open ? contacts.map(contact =>
       <Option
         key={contact.jid}
-        value={contact.name}
+        jid={contact.jid}
+        curjid={contact.curJid}
+        value={contact.name + contact.email}
+        email={contact.email}
+        label={contact.name}
         contact={contact}
         className="invite-contact-option"
       >
@@ -84,6 +88,7 @@ export default class InviteGroupChatList extends Component {
             multiple={true}
             placeholder="Search"
             tokenSeparators={[',']}
+            optionLabelProp="label"
           >
             {children}
           </Select>

@@ -275,16 +275,17 @@ export default class Messages extends PureComponent {
   download = (msgBody) => {
     event.stopPropagation();
     event.preventDefault();
-    let path = dialog.showSaveDialog({ title: `download file` });
-    if (!path || typeof path !== 'string') {
+    const fileName = msgBody.path ? path.basename(msgBody.path) : '';
+    let pathForSave = dialog.showSaveDialog({ title: `download file`, defaultPath: fileName });
+    if (!pathForSave || typeof pathForSave !== 'string') {
       return;
     }
     if (msgBody.path.match(/^file:\/\//)) {
       let imgpath = msgBody.path.replace('file://', '');
-      fs.copyFileSync(imgpath, path);
+      fs.copyFileSync(imgpath, pathForSave);
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
-      downloadFile(msgBody.aes, msgBody.mediaObjectId, path);
+      downloadFile(msgBody.aes, msgBody.mediaObjectId, pathForSave);
     } else {
       let request;
       if (msgBody.mediaObjectId.match(/^https/)) {
@@ -299,7 +300,7 @@ export default class Messages extends PureComponent {
           imgData += chunk;
         });
         res.on('end', function () {
-          fs.writeFile(path, imgData, 'binary', function (err) {
+          fs.writeFile(pathForSave, imgData, 'binary', function (err) {
             if (err) {
               console.log('down fail');
             }
@@ -409,15 +410,17 @@ export default class Messages extends PureComponent {
 
               if (shouldInlineImg(msgBody)) {
                 msg.height = msg.height || 220;
-                msgFile = (<div className="message-image">
-                  <img
-                    src={msgBody.path}
-                    title={msgBody.localFile || msgBody.mediaObjectId}
-                    style={{ height: '220px', cursor }}
-                    onClick={onClickImage}
-                  />
-                  {messageToolbar(msg, msgBody, true)}
-                </div>)
+                msgFile = (
+                  <div className="message-image">
+                    <img
+                      src={msgBody.path}
+                      title={msgBody.localFile || msgBody.mediaObjectId}
+                      style={{ height: '220px', cursor }}
+                      onClick={onClickImage}
+                    />
+                    {messageToolbar(msg, msgBody, true)}
+                  </div>
+                )
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
                 let extName = path.extname(msgBody.path).slice(1);

@@ -177,29 +177,43 @@
     align-self: flex-end;
     font-size: 0.7em;
     position: relative;
-    max-width: 500px;
+    display: flex;
+    max-width: 80%;
     &:hover .message-toolbar {
-      display: block;
+      display: flex;
     }
+    .message-image,
     .message-file {
-      display: relative;
+      position: relative;
       .message-toolbar {
+        width: 90px;
         top: 15px;
-        right: 5px;
+        right: 10px;
+        justify-content: flex-end;
+        .inplace-edit-img {
+          display: none;
+        }
+      }
+    }
+    .message-image {
+      padding-right: 120px;
+      .message-toolbar {
+        top: 0px;
+        justify-content: flex-start;
       }
     }
     .file-info {
       display: flex;
       flex-direction: row;
       background: @gray-lightest;
-      padding: 15px;
+      padding: 15px 120px 15px 15px;
       border-radius: 15px;
       .file-icon {
         height: 50px;
         width: 50px;
         border-radius: 50%;
         background: @white;
-        margin-right: 30px;
+        margin-right: 15px;
         img.content-mask {
           width: 56%;
           margin: 22%;

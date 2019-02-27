@@ -90,8 +90,11 @@
     }
   }
   .members {
-    overflow-y: scroll;
+    overflow-y: auto;
     height:80%;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .row {
