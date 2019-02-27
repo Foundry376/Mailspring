@@ -128,10 +128,7 @@ export default class MemberProfie extends Component {
   blockContact = async () => {
     const member = this.state.member;
     const jid = member.jid.bare || member.jid;
-    const store = chatModel.store;
-    const state = store.getState();
-    const currentUser = state.auth.currentUser;
-    const curJid = currentUser.bare;
+    const curJid = this.props.conversation.curJid;
     const myXmpp = xmpp.getXmpp(curJid);
     await myXmpp.block(jid);
     alert(`You have blocked ${member.nickname || member.name}`);
@@ -139,10 +136,7 @@ export default class MemberProfie extends Component {
   unblockContact = async () => {
     const member = this.state.member;
     const jid = member.jid.bare || member.jid;
-    const store = chatModel.store;
-    const state = store.getState();
-    const currentUser = state.auth.currentUser;
-    const curJid = currentUser.bare;
+    const curJid = this.props.conversation.curJid;
     const myXmpp = xmpp.getXmpp(curJid);
     await myXmpp.unblock(jid);
     alert(`You have unblocked ${member.nickname || member.name}`);

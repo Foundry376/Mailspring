@@ -521,7 +521,7 @@ export default class MessagesPanel extends PureComponent {
         )}
         {
           (this.state.editingMember) ? (
-            <MemberProfile exitMemberProfile={this.exitMemberProfile} member={this.state.editingMember} onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
+            <MemberProfile conversation={selectedConversation} exitMemberProfile={this.exitMemberProfile} member={this.state.editingMember} onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
             </MemberProfile>
           ) : null
         }
