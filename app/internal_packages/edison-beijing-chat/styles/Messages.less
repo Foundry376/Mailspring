@@ -100,7 +100,7 @@
     border-width: 2px;
     font-size: 12px;
     &:hover .message-toolbar {
-      display: block;
+      display: flex;
     }
   }
 
@@ -174,13 +174,49 @@
   }
 
   .messageMeta {
-    margin: 4px 0 4px 6px;
     align-self: flex-end;
     font-size: 0.7em;
     position: relative;
     max-width: 500px;
     &:hover .message-toolbar {
       display: block;
+    }
+    .message-file {
+      display: relative;
+      .message-toolbar {
+        top: 15px;
+        right: 5px;
+      }
+    }
+    .file-info {
+      display: flex;
+      flex-direction: row;
+      background: @gray-lightest;
+      padding: 15px;
+      border-radius: 15px;
+      .file-icon {
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+        background: @white;
+        margin-right: 30px;
+        img.content-mask {
+          width: 56%;
+          margin: 22%;
+          background-color: @orange;
+          border-radius: 50%;
+        }
+      }
+      .file-name {
+        font-size: 15px;
+        font-weight: bold;
+        line-height: 26px;
+      }
+      .ext {
+        font-size: 13px;
+        color: @gray;
+        line-height: 20px;
+      }
     }
   }
   .messageFailed {
@@ -191,14 +227,6 @@
     overflow:hidden;
   }
 
-  .file-name {
-    height: 65px;
-    max-width: 350px;
-    background: url(images/chat-messages/file-icon.png) no-repeat left top;
-    background-size: 65px auto;
-    text-align: left;
-    padding: 4px 0 0 68px;
-  }
   .messageStatus {
     margin-right: 2px;
   }
