@@ -49,7 +49,7 @@ export default class ConversationInfo extends Component {
   }
 
   exitGroup = () => {
-    if(!confirm('Are you sure to exit from this group?')) {
+    if (!confirm('Are you sure to exit from this group?')) {
       return;
     }
 
@@ -92,7 +92,7 @@ export default class ConversationInfo extends Component {
   }
 
   render = () => {
-    const { selectedConversation: conversation, members,loadingMembers } = this.props;
+    const { selectedConversation: conversation, members, loadingMembers } = this.props;
     const roomMembers = members;
     for (const member of roomMembers) {
       const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
@@ -102,10 +102,18 @@ export default class ConversationInfo extends Component {
       }
     }
     roomMembers.sort((a, b) => a.affiliation + a.jid.bare > b.affiliation + b.jid.bare);
+    let privateChatMember = {};
+    if (!conversation.isGroup) {
+      if (conversation.roomMembers && conversation.roomMembers.length > 0) {
+        privateChatMember = conversation.roomMembers[0];
+      } else {
+        privateChatMember = conversation;
+      }
+    }
     return (
       <div className="info-content">
         <div className="member-management">
-          { loadingMembers ?
+          {loadingMembers ?
             <RetinaImg
               name="inline-loading-spinner.gif"
               mode={RetinaImg.Mode.ContentPreserve}
@@ -119,16 +127,16 @@ export default class ConversationInfo extends Component {
         <div className="members">
           {
             !conversation.isGroup ? (
-              <div className="row item">
+              <div className="row">
                 <div className="avatar-icon">
-                  <ContactAvatar jid={conversation.jid} name={conversation.name}
-                                 email={conversation.email} avatar={conversation.avatar} size={35}/>
+                  <ContactAvatar jid={privateChatMember.jid} name={privateChatMember.name}
+                    email={privateChatMember.email} avatar={privateChatMember.avatar} size={30} />
                 </div>
                 <div className="info">
                   <div className="name">
-                    {conversation.name}
+                    {privateChatMember.name}
                   </div>
-                  <div className="email">{conversation.email}</div>
+                  <div className="email">{privateChatMember.email}</div>
                 </div>
               </div>
             ) : null
@@ -162,7 +170,7 @@ export default class ConversationInfo extends Component {
                 <div className="row" key={jid} onClick={onEditMemberProfile}>
                   <div className="avatar">
                     <ContactAvatar jid={jid} name={member.name}
-                                   email={member.email} avatar={member.avatar} size={30}/>
+                      email={member.email} avatar={member.avatar} size={30} />
                   </div>
                   <div className="info">
                     <div className="name">
@@ -172,19 +180,20 @@ export default class ConversationInfo extends Component {
                     <div className="email">{member.email}</div>
                   </div>
                   {this.currentUserIsOwner && member.affiliation !== 'owner' &&
-                  <span className="remove-button" onClick={onClickRemove}>
-                    <CancelIcon color={primaryColor}/>
-                  </span>
+                    <span className="remove-button" onClick={onClickRemove}>
+                      <CancelIcon color={primaryColor} />
+                    </span>
                   }
                 </div>
               )
             })
           }
-          { conversation.isGroup && !this.currentUserIsOwner && <div className="add-to-group"
-                                                                        onClick={this.exitGroup}>
-            Exit from Group
+          {conversation.isGroup && !this.currentUserIsOwner && (
+            <div className="add-to-group"
+              onClick={this.exitGroup}>
+              Exit from Group
           </div>
-          }
+          )}
         </div>
       </div>
     )

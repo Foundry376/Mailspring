@@ -30,14 +30,47 @@ import SecurePrivate from './SecurePrivate'
 
 let key = 0;
 
+const extMap = {
+  pdf: 'pdf',
+  xls: 'xls',
+  xlsx: 'xls',
+  zip: 'zip',
+  ppt: 'ppt',
+  pptx: 'ppt',
+  doc: 'doc',
+  docx: 'doc',
+  mp4: 'video',
+  mp3: 'video',
+  avi: 'video',
+  gz: 'zip',
+  tar: 'zip',
+  '7z': 'zip',
+  c: 'code',
+  cpp: 'code',
+  php: 'code',
+  rb: 'code',
+  java: 'code',
+  coffee: 'code',
+  pl: 'code',
+  js: 'code',
+  html: 'code',
+  htm: 'code',
+  py: 'code',
+  go: 'code',
+  ics: 'calendar',
+  ifb: 'calendar',
+  pkpass: 'pass'
+};
+
 const shouldInlineImg = (msgBody) => {
   let path = msgBody.path;
   return (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER)
     && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
 }
 const shouldDisplayFileIcon = (msgBody) => {
-  return msgBody.mediaObjectId && !msgBody.path ||
-    msgBody.path && !(msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER || msgBody.type === FILE_TYPE.OTHER_FILE)
+  return msgBody.mediaObjectId
+    && msgBody.path
+    && !(msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER)
 }
 
 // The number of pixels away from the bottom to be considered as being at the bottom
@@ -239,7 +272,7 @@ export default class Messages extends PureComponent {
     }, 10);
   }
 
-  download = (event, msgBody) => {
+  download = (msgBody) => {
     event.stopPropagation();
     event.preventDefault();
     let path = dialog.showSaveDialog({ title: `download file` });
@@ -305,13 +338,15 @@ export default class Messages extends PureComponent {
       return messageStyles.join(' ');
     };
 
-    const messageToolbar = (msg, msgBody) => (
+    const messageToolbar = (msg, msgBody, isFile) => (
       <div className='message-toolbar' >
-        <span
-          className="download-img"
-          title={msgBody.path}
-          onClick={() => this.download(msgBody)}
-        />
+        {isFile && (
+          <span
+            className="download-img"
+            title={msgBody.path}
+            onClick={() => this.download(msgBody)}
+          />
+        )}
         {msg.sender === currentUserId && (
           <span
             className="inplace-edit-img"
@@ -374,31 +409,35 @@ export default class Messages extends PureComponent {
 
               if (shouldInlineImg(msgBody)) {
                 msg.height = msg.height || 220;
-                msgFile = (<div className="messageMeta" onClick={onClickImage}>
+                msgFile = (<div className="message-image">
                   <img
                     src={msgBody.path}
                     title={msgBody.localFile || msgBody.mediaObjectId}
                     style={{ height: '220px', cursor }}
+                    onClick={onClickImage}
                   />
-                  {messageToolbar(msg, msgBody)}
+                  {messageToolbar(msg, msgBody, true)}
                 </div>)
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
                 let extName = path.extname(msgBody.path).slice(1);
-                const extMap = {
-                  pdf: 'pdf', xls: 'xls', zip: 'zip', ppt: 'ppt', doc: 'doc', mp4: 'video', mp3: 'video', gz: 'zip', tar: 'zip', '7z': 'zip',
-                  avi: 'video', c: 'code', cpp: 'code', php: 'code', rb: 'code', java: 'code', coffee: 'code', pl: 'code', js: 'code', html: 'code', htm: 'code',
-                  py: 'code', go: 'code', ics: 'calendar', ifb: 'calendar', pkpass: 'pass'
-                };
                 extName = extMap[extName.toLowerCase()] || 'doc';
-                msgFile = <div className="messageMeta">
-                  <div className="file-info">
-                    <div className="file-icon" style={{ background: `url(icons/attachment-${extName}.svg) no-repeat left top blue`, width: '16px', height: '16px', float: 'left' }}>
+                msgFile = (
+                  <div className="message-file">
+                    <div className="file-info">
+                      <div className="file-icon">
+                        <RetinaImg name={`attachment-${extName}.svg`}
+                          isIcon
+                          mode={RetinaImg.Mode.ContentIsMask} />
+                      </div>
+                      <div>
+                        <div className="file-name">{fileName}</div>
+                        <div className="ext">{extName.toUpperCase()}</div>
+                      </div>
                     </div>
-                    <h6>{fileName}</h6>
+                    {messageToolbar(msg, msgBody, true)}
                   </div>
-                  {messageToolbar(msg, msgBody)}
-                </div>
+                )
               } else {
                 msgFile = null;
               }
@@ -450,7 +489,15 @@ export default class Messages extends PureComponent {
                               <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} {...this.props.sendBarProps} />
                             </div>
                           ) : (
-                              <div className="messageBody">{msgBody.content || msgBody}</div>
+                              <div className="messageBody">
+                                <div className="text-content">
+                                  {msgBody.content || msgBody}
+                                  {
+                                    !msgFile && isCurrentUser && !isEditing && (
+                                      messageToolbar(msg, msgBody, false)
+                                    )}
+                                </div>
+                              </div>
                             )
                         )
                     }
@@ -487,21 +534,6 @@ export default class Messages extends PureComponent {
                       </div>
                     }
                   </div>
-                  {
-                    !msgFile && isCurrentUser && !isEditing && (
-                      <div className='message-toolbar' >
-                        <span
-                          className="inplace-edit-img"
-                          onClick={() => this.showPopupMenu(msg, msgBody)}
-                          onContextMenu={() => this.showPopupMenu(msg, msgBody)}
-                        >
-                          <RetinaImg name={'expand-more.svg'}
-                            style={{ width: 26, height: 26 }}
-                            isIcon
-                            mode={RetinaImg.Mode.ContentIsMask} />
-                        </span>
-                      </div>
-                    )}
                 </div>
               );
             })}

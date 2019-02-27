@@ -9,22 +9,35 @@
     }
     .edit-button-group {
       position: absolute;
-      right: 16px;
-      bottom: 2px;
+      right: 0;
+      bottom: 0;
       display: flex;
       width: 300px;
       justify-content: flex-end;
       .button {
-        border-radius: 5px;
+        border-radius: 10px;
         margin-left: 10px;
-        padding: 2px 10px;
+        height: 34px;
+        line-height: 34px;
+        padding: 0 16px;
+        font-size: 11px;
         &.cancel {
           color: @red;
         }
       }
-      .sendBarEmoji {
-        position: static;
+      .emoji {
+        background: transparent;
+        border: none;
         margin: 0;
+        padding: 0;
+        img.content-mask {
+          background-color: @gray;
+        }
+      }
+      .emoji:hover {
+        img.content-mask {
+          background-color: @blue;
+        }
       }
     }
   }

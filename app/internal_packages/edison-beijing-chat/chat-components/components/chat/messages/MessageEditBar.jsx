@@ -415,7 +415,7 @@ export default class MessageEditBar extends PureComponent {
           className="messageTextField"
           placeholder="Edison Chat"
           rows={1}
-          maxRows={5}
+          maxRows={20}
           value={this.state.messageBody}
           onChange={this.onMessageBodyChanged.bind(this)}
           onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
@@ -424,13 +424,16 @@ export default class MessageEditBar extends PureComponent {
           {...inputProps}
         />
         <div className="edit-button-group">
-          <div key='emoji' className="sendBarEmoji" ref={(emoji) => { this.emojiRef = emoji }}>
-            <Button className='no-border' onClick={this.onEmojiTouch}>
-              <EmojiIcon className="icon" />
-            </Button>
-          </div>
+          <Button onClick={this.onEmojiTouch} className="emoji">
+            <RetinaImg name={'emoji.svg'}
+              style={{ width: 20, height: 20 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
+          </Button>
           <Button className="cancel" onClick={this.props.cancelEdit}>Cancel</Button>
-          <Button onClick={this.sendMessage}>Save Changes</Button>
+          <Button onClick={this.sendMessage}>
+            Save Changes
+          </Button>
         </div>
         <div className="chat-message-filelist">
           {this.state.files.map((file, index) => {

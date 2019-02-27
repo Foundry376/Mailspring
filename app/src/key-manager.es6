@@ -18,6 +18,7 @@ class KeyManager {
     this.SERVICE_NAME = AppEnv.inDevMode() ? 'EdisonMail Dev' : 'EdisonMail';
     this.KEY_NAME = 'EdisonMail Keys';
     this.CONFIGKEY = 'accountCredentials';
+    this.CHAT_PREFIX = 'CHAT-';
   }
 
   async deleteAccountSecrets(account) {
@@ -66,7 +67,7 @@ class KeyManager {
       return this.accTokenCache[email];
     }
     try {
-      const keys = await this._getKeyHash();
+      const keys = await this._getKeyHash(this.CHAT_PREFIX);
       accToken = keys[`${email}-accessToken`];
       this.accTokenCache[email] = accToken;
     } catch (err) {
@@ -77,10 +78,10 @@ class KeyManager {
 
   async extractChatAccountSecrets(account) {
     try {
-      const keys = await this._getKeyHash();
+      const keys = await this._getKeyHash(this.CHAT_PREFIX);
       keys[`${account.email}-password`] = account.password;
       keys[`${account.email}-accessToken`] = account.accessToken;
-      await this._writeKeyHash(keys);
+      await this._writeKeyHash(keys, this.CHAT_PREFIX);
     } catch (err) {
       this._reportFatalError(err);
     }
@@ -92,7 +93,7 @@ class KeyManager {
 
   async insertChatAccountSecrets(account) {
     const next = account.clone();
-    const keys = await this._getKeyHash();
+    const keys = await this._getKeyHash(this.CHAT_PREFIX);
     if (keys[`${account.email}-password`]) {
       next.password = keys[`${account.email}-password`];
     }
@@ -131,9 +132,9 @@ class KeyManager {
     }
   }
 
-  async _getKeyHash() {
+  async _getKeyHash(prefix = '') {
     let raw = '{}';
-    const cipherText = AppEnv.config.get(this.CONFIGKEY);
+    const cipherText = AppEnv.config.get(prefix + this.CONFIGKEY);
     if (cipherText && cipherText.length > 0) {
       try {
         let bytes = aes.decrypt(cipherText, weakPassword);
@@ -144,8 +145,8 @@ class KeyManager {
     }
     if (raw === '{}') {
       try {
-        raw = (await keytar.getPassword(this.SERVICE_NAME, this.KEY_NAME)) || '{}';
-        AppEnv.config.unset(this.CONFIGKEY);
+        raw = (await keytar.getPassword(this.SERVICE_NAME, prefix + this.KEY_NAME)) || '{}';
+        AppEnv.config.unset(prefix + this.CONFIGKEY);
       } catch (err) {
         console.log('keychain access failed: ', err);
         throw err;
@@ -158,15 +159,15 @@ class KeyManager {
     }
   }
 
-  async _writeKeyHash(keys) {
+  async _writeKeyHash(keys, prefix = '') {
     try {
-      await keytar.setPassword(this.SERVICE_NAME, this.KEY_NAME, JSON.stringify(keys));
-      AppEnv.config.unset(this.CONFIGKEY);
+      await keytar.setPassword(this.SERVICE_NAME, prefix + this.KEY_NAME, JSON.stringify(keys));
+      AppEnv.config.unset(prefix + this.CONFIGKEY);
     } catch (err) {
       console.log('Failed to write to keychain: ', err);
       try {
         const encryptedText = aes.encrypt(JSON.stringify(keys), weakPassword).toString();
-        AppEnv.config.set(this.CONFIGKEY, encryptedText);
+        AppEnv.config.set(prefix + this.CONFIGKEY, encryptedText);
       } catch (err) {
         return Promise.reject('Storing credentials failed');
       }

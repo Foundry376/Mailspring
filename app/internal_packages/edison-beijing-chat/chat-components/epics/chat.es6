@@ -22,8 +22,6 @@ import {
   RECEIVE_GROUP_MESSAGE,
   SENDING_MESSAGE,
   SUCCESS_SEND_MESSAGE,
-  CREATE_PRIVATE_CONVERSATION,
-  CREATE_GROUP_CONVERSATION,
   SHOW_CONVERSATION_NOTIFICATION,
   GO_PREV_CONVERSATION,
   GO_NEXT_CONVERSATION,
@@ -373,7 +371,6 @@ export const receivePrivateMessageEpic = action$ =>
       });
     })
     .filter(({ payload, deviceId, priKey }) => {
-      debugger;
       if (payload.payload) {
         let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
