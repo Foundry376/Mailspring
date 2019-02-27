@@ -107,8 +107,8 @@ function Client(opts) {
             //console.log(json);//yazz
             if (json.edimucevent && json.edimucevent.edimucconfig) {
                 self.emit('edimucconfig', json);
-            } else if (json.edimucevent && json.edimucevent.memberschange) {
-                self.emit('memberschange', json);
+                // } else if (json.edimucevent && json.edimucevent.memberschange) {
+                //     self.emit('memberschange', json);
             } else {
                 self.emit('stanza', json);
             }
