@@ -506,6 +506,9 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
               }
             }
             return { payload, name, beAt };
+          }).catch(err => {
+            console.error('error in updateGroupMessageConversationEpic: ', err);
+            return { payload, name, beAt };
           });
       }
       return [{ payload, name, beAt }];
