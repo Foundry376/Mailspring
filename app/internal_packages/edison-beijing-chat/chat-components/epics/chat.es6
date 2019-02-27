@@ -371,7 +371,6 @@ export const receivePrivateMessageEpic = action$ =>
       });
     })
     .filter(({ payload, deviceId, priKey }) => {
-      debugger;
       if (payload.payload) {
         let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
