@@ -15,7 +15,19 @@ export default async function registerLoginChatAccounts() {
       let passedTime = ((new Date()).getTime() - chatAccount.refreshTime || 0) / 1000;// seconds
       leftTime = chatAccount.expiresIn - passedTime;
     }
-    if (!chatAccount || (leftTime < 2 * 24 * 60 * 3600)) {
+
+    chatAccount.clone = () => Object.assign({}, chatAccount);
+    // get chat password from cache
+    if (chatAccount && chatAccount.userId) {
+      let jid = chatAccount.userId + '@im.edison.tech';
+      chatAccount = chatModel.allSelfUsers[jid];
+    }
+    // get chat password from keychain
+    else {
+      chatAccount = await keyMannager.insertChatAccountSecrets(chatAccount);
+    }
+
+    if (!chatAccount || !chatAccount.password || (leftTime < 2 * 24 * 3600)) {
       acc.clone = () => Object.assign({}, acc);
       acc = await keyMannager.insertAccountSecrets(acc);
       if (acc.settings && !acc.settings.imap_password && !acc.settings.refresh_token) {
@@ -29,11 +41,11 @@ export default async function registerLoginChatAccounts() {
       }
       //register = (email, pwd, name, type, provider, setting, cb) => {
       let { err, res } = await register(acc.emailAddress, acc.settings.imap_password || acc.settings.refresh_token, acc.name, type, acc.provider, acc.settings);
-      await keyMannager.extractAccountSecrets(acc);
       try {
         res = JSON.parse(res);
       } catch (e) {
-        console.log('response is not json');
+        console.error('email account fail to register chat: response is not json');
+        continue;
       }
       if (err || !res || res.resultCode != 1) {
         console.error('email account fail to register chat: ', acc, err, res);
@@ -53,8 +65,6 @@ export default async function registerLoginChatAccounts() {
         AppEnv.config.set('chatAccounts', chatAccounts);
       })
     } else {
-      chatAccount.clone = () => Object.assign({}, chatAccount);
-      chatAccount = await keyMannager.insertChatAccountSecrets(chatAccount);
       let jid = chatAccount.userId + '@im.edison.tech';
       chatModel.allSelfUsers[jid] = chatAccount;
       chatModel.store.dispatch({
