@@ -450,7 +450,7 @@ const Preset = {
 class SanitizeTransformer {
   Preset = Preset;
 
-  sanitizeNode(node, settings) {
+  sanitizeNode(node: Element, settings) {
     let nodeName = node.nodeName.toLowerCase();
     if (nodeName === '#text') {
       return true; // text nodes are always safe, don't need to clone them
@@ -507,7 +507,7 @@ class SanitizeTransformer {
 
     // recursively sanitize child nodes
     for (let i = node.childNodes.length - 1; i >= 0; i--) {
-      if (!this.sanitizeNode(node.childNodes[i], settings)) {
+      if (!this.sanitizeNode(node.childNodes[i] as Element, settings)) {
         node.childNodes[i].remove();
       }
     }

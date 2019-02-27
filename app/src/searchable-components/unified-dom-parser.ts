@@ -2,6 +2,9 @@ import { Utils } from 'mailspring-exports';
 import { MAX_MATCHES, CHAR_THRESHOLD } from './search-constants';
 
 export default class UnifiedDOMParser {
+  regionId: number;
+  matchRenderIndex: number;
+
   constructor(regionId) {
     this.regionId = regionId;
     this.matchRenderIndex = 0;
@@ -31,7 +34,7 @@ export default class UnifiedDOMParser {
 
     for (const node of walker) {
       if (this.isTextNode(node)) {
-        node.fullStringIndex = stringIndex;
+        (node as any).fullStringIndex = stringIndex;
         textElementAccumulator.push(node);
         stringIndex += this.textNodeLength(node);
       } else if (this.looksLikeBlockElement(node)) {
@@ -49,11 +52,22 @@ export default class UnifiedDOMParser {
     return fullStrings;
   }
   // OVERRIDE ME
-  getWalker() {}
-  isTextNode() {}
-  textNodeLength() {}
-  looksLikeBlockElement() {}
-  textNodeContents() {}
+
+  getWalker(dom: any): Iterable<HTMLElement> {
+    throw new Error('unimplemented');
+  }
+  isTextNode(node: any): boolean {
+    throw new Error('unimplemented');
+  }
+  textNodeLength(textNode: any): number {
+    throw new Error('unimplemented');
+  }
+  textNodeContents(textNode: any): string {
+    throw new Error('unimplemented');
+  }
+  looksLikeBlockElement(node: any): boolean {
+    throw new Error('unimplemented');
+  }
 
   matchesFromFullString(fullString, searchTerm) {
     const re = this.searchRE(searchTerm);
@@ -73,7 +87,7 @@ export default class UnifiedDOMParser {
     }
     return matches;
   }
-  getRawFullString() {}
+  getRawFullString(fullString: any) {}
 
   searchRE(searchTerm) {
     let re;
@@ -94,7 +108,7 @@ export default class UnifiedDOMParser {
   }
 
   // OVERRIDE ME
-  removeMatchesAndNormalize() {}
+  removeMatchesAndNormalize(element: any) {}
 
   getElementsWithNewMatchNodes(rootNode, searchTerm, currentMatchRenderIndex) {
     const fullStrings = this.buildNormalizedText(rootNode);
@@ -199,10 +213,11 @@ export default class UnifiedDOMParser {
     };
   }
   // OVERRIDE ME
-  createTextNode() {}
-  createMatchNode() {}
-  textNodeKey() {}
+
+  createTextNode({ rawText }: any) {}
+  createMatchNode({ matchText, regionId, isCurrentMatch, renderIndex }: any) {}
+  textNodeKey(textElement: any) {}
 
   // OVERRIDE ME
-  highlightSearch() {}
+  highlightSearch(element: any, matchNodeMap: any) {}
 }

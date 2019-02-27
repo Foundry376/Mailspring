@@ -1,4 +1,6 @@
-import { React, ReactDOM, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes } from 'mailspring-exports';
 import { Menu, RetinaImg } from 'mailspring-component-kit';
 
 const Attachment = {
@@ -7,17 +9,17 @@ const Attachment = {
 };
 
 type DropdownMenuProps = {
-  className?: string,
-  intitialSelectionItem?: object,
-  attachment?: string,
-  onSelect?: (...args: any[]) => any,
-  itemContent?: (...args: any[]) => any,
-  headerComponents?: React.ReactNode
+  className?: string;
+  intitialSelectionItem?: object;
+  attachment?: string;
+  onSelect?: (...args: any[]) => any;
+  itemContent?: (...args: any[]) => any;
+  headerComponents?: React.ReactNode;
 };
 type DropdownMenuState = {
-  currentSelection: any,
-  expanded: boolean,
-  currentSelection: any
+  currentSelection: any;
+  expanded: boolean;
+  currentSelection: any;
 };
 
 export default class DropdownMenu extends React.Component<DropdownMenuProps, DropdownMenuState> {
@@ -89,7 +91,7 @@ export default class DropdownMenu extends React.Component<DropdownMenuProps, Dro
     return (
       <div
         className={`btn dropdown-menu ${this.props.className}`}
-        tabIndex="-1"
+        tabIndex={-1}
         onBlur={this._onBlur}
         style={{ display: 'inline-block', position: 'relative' }}
       >

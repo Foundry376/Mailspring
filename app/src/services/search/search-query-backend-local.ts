@@ -15,8 +15,6 @@ import { DateUtils } from 'mailspring-exports';
  * MatchQueryExpression.
  */
 class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
-  private _result: string;
-
   visit(root) {
     const result = this.visitAndGetResult(root);
     return new MatchQueryExpression(`${result}`);
@@ -92,7 +90,6 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
  */
 class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
   private _matchVisitor = new MatchQueryExpressionVisitor();
-  private _result;
 
   visit(root) {
     return this.visitAndGetResult(root);
@@ -168,7 +165,6 @@ class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
  */
 class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
   private _className: string;
-  private _result: string;
 
   constructor(className) {
     super();
@@ -192,27 +188,27 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitFrom(node) {
-    throw new Error('Unreachable', node);
+    throw new Error(`Unreachable: ${node}`);
   }
 
   visitTo(node) {
-    throw new Error('Unreachable', node);
+    throw new Error(`Unreachable: ${node}`);
   }
 
   visitSubject(node) {
-    throw new Error('Unreachable', node);
+    throw new Error(`Unreachable: ${node}`);
   }
 
   visitGeneric(node) {
-    throw new Error('Unreachable', node);
+    throw new Error(`Unreachable: ${node}`);
   }
 
   visitText(node) {
-    throw new Error('Unreachable', node);
+    throw new Error(`Unreachable: ${node}`);
   }
 
   visitIn(node) {
-    throw new Error('Unreachable', node);
+    throw new Error(`Unreachable: ${node}`);
   }
 
   visitUnread(node) {

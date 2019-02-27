@@ -1,15 +1,16 @@
 import moment from 'moment';
 import classnames from 'classnames';
-import { React, PropTypes, DateUtils } from 'mailspring-exports';
+import React from 'react';
+import { PropTypes, DateUtils } from 'mailspring-exports';
 import { MiniMonthView } from 'mailspring-component-kit';
 
 type DatePickerProps = {
-  value?: number,
-  onChange?: (...args: any[]) => any,
-  dateFormat?: string
+  value?: number;
+  onChange?: (...args: any[]) => any;
+  dateFormat?: string;
 };
 type DatePickerState = {
-  focused: boolean
+  focused: boolean;
 };
 
 export default class DatePicker extends React.Component<DatePickerProps, DatePickerState> {

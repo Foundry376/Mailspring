@@ -28,7 +28,7 @@ class QuotedHTMLTransformer {
   removeQuotedHTML(html, options = { keepIfWholeBodyIsQuote: true }) {
     const doc = this._parseHTML(html);
 
-    for (const el of this._findQuoteElements(doc, options)) {
+    for (const el of this._findQuoteElements(doc)) {
       if (el) {
         el.remove();
       }
@@ -170,7 +170,7 @@ class QuotedHTMLTransformer {
     return doc;
   }
 
-  _outputHTMLFor(doc, { initialHTML } = {}) {
+  _outputHTMLFor(doc, { initialHTML }: { initialHTML?: string } = {}) {
     if (!doc.body) {
       doc = this._parseHTML('');
     }
@@ -303,7 +303,7 @@ class QuotedHTMLTransformer {
       const headerContainer = dateMarker.parentElement;
       let matches = 0;
       for (const node of Array.from(headerContainer.children)) {
-        const tc = node.textContent.trim();
+        const tc = (node as any).textContent.trim();
         if (tc === 'To:' || tc === 'Subject:') {
           matches++;
         }

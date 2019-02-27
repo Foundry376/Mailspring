@@ -314,7 +314,7 @@ export default class EmojiToolbarPopover extends React.Component {
 
   render() {
     return (
-      <div className="emoji-button-popover" tabIndex="-1">
+      <div className="emoji-button-popover" tabIndex={-1}>
         <div className="emoji-tabs">{this.renderTabs()}</div>
         <ScrollRegion className="emoji-finder-container" onScroll={this.onScroll}>
           <div className="emoji-search-container">

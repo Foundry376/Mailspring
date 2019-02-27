@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import RetinaImg from './retina-img';
 
 type MailLabelProps = {
-  label: object,
-  onRemove?: (...args: any[]) => any
+  label: object;
+  onRemove?: (...args: any[]) => any;
 };
 
 export const LabelColorizer = {
@@ -21,7 +21,7 @@ export const LabelColorizer = {
   },
 
   styles(label) {
-    const styles = {
+    const styles: any = {
       color: LabelColorizer.color(label),
       backgroundColor: LabelColorizer.backgroundColor(label),
       boxShadow: `inset 0 0 1px hsl(${label.hue()}, 62%, 47%), inset 0 1px 1px rgba(255,255,255,0.5), 0 0.5px 0 rgba(255,255,255,0.5)`,

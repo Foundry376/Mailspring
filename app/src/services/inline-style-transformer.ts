@@ -7,15 +7,14 @@ import RegExpUtils from '../regexp-utils';
 let userAgentDefault = null;
 
 class InlineStyleTransformer {
+  _inlineStylePromises = {};
+  _inlineStyleResolvers = {};
+
   constructor() {
-    this.run = this.run.bind(this);
-    this._onInlineStylesResult = this._onInlineStylesResult.bind(this);
-    this._inlineStylePromises = {};
-    this._inlineStyleResolvers = {};
     ipcRenderer.on('inline-styles-result', this._onInlineStylesResult);
   }
 
-  run(html) {
+  run = html => {
     if (!html || typeof html !== 'string' || html.length <= 0) {
       return Promise.resolve(html);
     }
@@ -44,7 +43,7 @@ class InlineStyleTransformer {
       });
     }
     return this._inlineStylePromises[key];
-  }
+  };
 
   // This will prepend the user agent stylesheet so we can apply it to the
   // styles properly.
@@ -61,11 +60,11 @@ class InlineStyleTransformer {
     return `${body.slice(0, i)}<style>${userAgentDefault}</style>${body.slice(i)}`;
   }
 
-  _onInlineStylesResult(event, { html, key }) {
+  _onInlineStylesResult = (event, { html, key }) => {
     delete this._inlineStylePromises[key];
     this._inlineStyleResolvers[key](html);
     delete this._inlineStyleResolvers[key];
-  }
+  };
 }
 
 export default new InlineStyleTransformer();

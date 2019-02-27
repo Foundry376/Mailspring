@@ -5,17 +5,28 @@ function exponentialBackoff(base, numTries) {
   return base * 2 ** numTries;
 }
 
+interface BackoffSchedulerOptions {
+  baseDelay?: number;
+  maxDelay?: number;
+  getNextBackoffDelay: (baseDelay: number, numTries: number) => number;
+  jitter?: boolean;
+}
 export class BackoffScheduler {
-  constructor({ baseDelay, maxDelay, getNextBackoffDelay, jitter = true } = {}) {
-    this._numTries = 0;
-    this._currentDelay = 0;
-    this._jitter = jitter;
-    this._maxDelay = maxDelay || MAX_TIMEOUT;
-    this._baseDelay = baseDelay || BASE_TIMEOUT;
-    if (!getNextBackoffDelay) {
+  _numTries = 0;
+  _currentDelay = 0;
+  _jitter: boolean;
+  _maxDelay: number;
+  _baseDelay: number;
+  _getNextBackoffDelay: (baseDelay: number, numTries: number) => number;
+
+  constructor(opts: BackoffSchedulerOptions) {
+    this._jitter = opts.jitter !== undefined ? opts.jitter : true;
+    this._maxDelay = opts.maxDelay || MAX_TIMEOUT;
+    this._baseDelay = opts.baseDelay || BASE_TIMEOUT;
+    if (!opts.getNextBackoffDelay) {
       throw new Error('BackoffScheduler: Must pass `getNextBackoffDelay` function');
     }
-    this._getNextBackoffDelay = getNextBackoffDelay;
+    this._getNextBackoffDelay = opts.getNextBackoffDelay;
   }
 
   numTries() {

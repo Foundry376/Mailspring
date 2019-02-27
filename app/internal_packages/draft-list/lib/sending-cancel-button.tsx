@@ -1,5 +1,6 @@
-import { React, PropTypes, Actions } from 'mailspring-exports';;
-import { RetinaImg } from 'mailspring-component-kit';;
+import React from 'react';
+import { PropTypes, Actions } from 'mailspring-exports';
+import { RetinaImg } from 'mailspring-component-kit';
 
 class SendingCancelButton extends React.Component {
   static displayName = 'SendingCancelButton';

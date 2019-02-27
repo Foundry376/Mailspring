@@ -1,9 +1,11 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
 import RetinaImg from './retina-img';
-import { React, ReactDOM, PropTypes } from 'mailspring-exports';;
+import { PropTypes } from 'mailspring-exports';
 import classnames from 'classnames';
 
 type ButtonDropdownState = {
-  open: boolean
+  open: boolean;
 };
 
 class ButtonDropdown extends React.Component<{}, ButtonDropdownState> {

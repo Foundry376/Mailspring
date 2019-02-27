@@ -1,5 +1,7 @@
 import _ from 'underscore';
-import { React, ReactDOM, PropTypes, Utils } from 'mailspring-exports';;
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes, Utils } from 'mailspring-exports';
 
 const ResizableHandle = {
   Top: {
@@ -53,20 +55,20 @@ const ResizableHandle = {
 };
 
 type ResizableRegionProps = {
-  handle: object,
-  onResize?: (...args: any[]) => any,
-  initialWidth?: number,
-  minWidth?: number,
-  maxWidth?: number,
-  initialHeight?: number,
-  minHeight?: number,
-  maxHeight?: number,
-  style?: object
+  handle: object;
+  onResize?: (...args: any[]) => any;
+  initialWidth?: number;
+  minWidth?: number;
+  maxWidth?: number;
+  initialHeight?: number;
+  minHeight?: number;
+  maxHeight?: number;
+  style?: object;
 };
 type ResizableRegionState = {
-  height: any,
-  width: any,
-  dragging: boolean,
+  height: any;
+  width: any;
+  dragging: boolean;
 };
 
 /*

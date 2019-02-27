@@ -1,8 +1,9 @@
-import { React, PropTypes, FocusedContentStore, Actions } from 'mailspring-exports';
+import React from 'react';
+import { PropTypes, FocusedContentStore, Actions } from 'mailspring-exports';
 import { FluxContainer } from 'mailspring-component-kit';
 
 type FocusContainerProps = {
-  collection?: string
+  collection?: string;
 };
 export default class FocusContainer extends React.Component<FocusContainerProps> {
   static displayName = 'FocusContainer';

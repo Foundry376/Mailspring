@@ -17,7 +17,10 @@ const RegExpUtils = {
   // See http://tools.ietf.org/html/rfc5322#section-3.4 and
   // https://tools.ietf.org/html/rfc6531 and
   // https://en.wikipedia.org/wiki/Email_address#Local_part
-  emailRegex({ requireStartOrWhitespace, matchTailOfString } = {}) {
+  emailRegex({
+    requireStartOrWhitespace,
+    matchTailOfString,
+  }: { requireStartOrWhitespace?: boolean; matchTailOfString?: boolean } = {}) {
     const parts = [
       `(`,
       `[a-z.A-Z${UnicodeEmailChars}0-9!#$%&\\'*+\\-/=?^_\`{|}~]+`,
@@ -70,7 +73,10 @@ const RegExpUtils = {
   },
 
   // Test cases: https://regex101.com/r/pD7iS5/4
-  urlRegex({ matchStartOfString, matchTailOfString } = {}) {
+  urlRegex({
+    matchStartOfString,
+    matchTailOfString,
+  }: { matchStartOfString?: boolean; matchTailOfString?: boolean } = {}) {
     const commonTlds = [
       'com',
       'org',
@@ -218,7 +224,7 @@ const RegExpUtils = {
     return /["|']https:\/\/link\.getmailspring\.com\/link\/.*?\?.*?redirect=([^&"']*).*?["|']/g;
   },
 
-  punctuation({ exclude } = {}) {
+  punctuation({ exclude }: { exclude?: [] } = {}) {
     if (exclude == null) {
       exclude = [];
     }
@@ -253,8 +259,8 @@ const RegExpUtils = {
       '\\]',
       '+',
     ];
-    punctuation = _.difference(punctuation, exclude).join('');
-    return new RegExp(`[${punctuation}]`, 'g');
+    punctuation = _.difference(punctuation, exclude);
+    return new RegExp(`[${punctuation.join('')}]`, 'g');
   },
 
   // This tests for valid schemes as per RFC 3986

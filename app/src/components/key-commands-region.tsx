@@ -3,16 +3,17 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import { Disposable } from 'rx-core';
 
 type KeyCommandsRegionProps = {
-  className?: string,
-  localHandlers?: object,
-  globalHandlers?: object,
-  onFocusIn?: (...args: any[]) => any,
-  onFocusOut?: (...args: any[]) => any
+  className?: string;
+  localHandlers?: object;
+  globalHandlers?: object;
+  onFocusIn?: (...args: any[]) => any;
+  onFocusOut?: (...args: any[]) => any;
 };
 type KeyCommandsRegionState = {
-  focused: boolean
+  focused: boolean;
 };
 
 /*
@@ -93,7 +94,10 @@ In `my-package/keymaps/my-package.cson`:
   "command+enter": "sendMessage"
 ```
 */
-export default class KeyCommandsRegion extends React.Component<KeyCommandsRegionProps, KeyCommandsRegionState> {
+export default class KeyCommandsRegion extends React.Component<
+  KeyCommandsRegionProps & React.HTMLProps<HTMLDivElement>,
+  KeyCommandsRegionState
+> {
   static displayName = 'KeyCommandsRegion';
 
   static propTypes = {
@@ -112,9 +116,16 @@ export default class KeyCommandsRegion extends React.Component<KeyCommandsRegion
     onFocusOut: () => {},
   };
 
+  _lastFocusElement: HTMLElement = null;
+  _losingFocusToElement: HTMLElement = null;
+  _losingFocusFrames: number = 0;
+  _lostFocusToElement: HTMLElement = null;
+  _localDisposable?: Disposable;
+  _globalDisposable?: Disposable;
+  _goingout: boolean = false;
+
   constructor(props) {
     super(props);
-    this._lostFocusToElement = null;
     this.state = {
       focused: false,
     };
@@ -148,8 +159,11 @@ export default class KeyCommandsRegion extends React.Component<KeyCommandsRegion
   // determine which keymappings can fire a particular command in a
   // particular scope, we simply need to listen at the root window level
   // here for all commands coming in.
-  _setupListeners({ localHandlers, globalHandlers } = {}) {
-    const $el = ReactDOM.findDOMNode(this);
+  _setupListeners({
+    localHandlers,
+    globalHandlers,
+  }: { localHandlers?: any; globalHandlers?: any } = {}) {
+    const $el = ReactDOM.findDOMNode(this) as Element;
     $el.addEventListener('focusin', this._onFocusIn);
     $el.addEventListener('focusout', this._onFocusOut);
 
@@ -174,7 +188,7 @@ export default class KeyCommandsRegion extends React.Component<KeyCommandsRegion
     }
     const $el = ReactDOM.findDOMNode(this);
     $el.removeEventListener('focusin', this._onFocusIn);
-    $el.removeEventListener('focusout', this._onDidFocusOut);
+    $el.removeEventListener('focusout', this._onFocusOut);
     window.removeEventListener('browser-window-blur', this._onWindowBlur);
     this._goingout = false;
   }
@@ -256,7 +270,7 @@ export default class KeyCommandsRegion extends React.Component<KeyCommandsRegion
       'key-commands-region': true,
       focused: this.state.focused,
     });
-    const otherProps = _.omit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = _.omit(this.props, Object.keys(KeyCommandsRegion.propTypes));
 
     return (
       <div className={`${classname} ${this.props.className}`} {...otherProps}>

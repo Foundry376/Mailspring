@@ -34,10 +34,8 @@ and won't relaunch it until:
 
 */
 class CrashTracker {
-  constructor() {
-    this._timestamps = {};
-    this._tooManyFailures = {};
-  }
+  _timestamps = {};
+  _tooManyFailures = {};
 
   forgetCrashes(fullAccountJSON) {
     const key = this._keyFor(fullAccountJSON);
@@ -97,6 +95,10 @@ class CrashTracker {
 }
 
 export default class MailsyncBridge {
+  _crashTracker = new CrashTracker();
+  _clients: { [accountId: string]: MailsyncProcess } = {};
+  _lastWait: number;
+
   constructor() {
     if (!AppEnv.isMainWindow() || AppEnv.inSpecMode()) {
       ipcRenderer.on('mailsync-bridge-message', this._onIncomingRebroadcastMessage);
@@ -114,9 +116,6 @@ export default class MailsyncBridge {
     Actions.queueTasks.listen(this._onQueueTasks, this);
     Actions.cancelTask.listen(this._onCancelTask, this);
     Actions.fetchBodies.listen(this._onFetchBodies, this);
-
-    this._crashTracker = new CrashTracker();
-    this._clients = {};
 
     AccountStore.listen(this.ensureClients, this);
     OnlineStatusStore.listen(this._onOnlineStatusChanged, this);
@@ -199,7 +198,7 @@ export default class MailsyncBridge {
 
   sendMessageToAccount(accountId, json) {
     if (!this._clients[accountId]) {
-      const { emailAddress } = AccountStore.accountForId(accountId) || {};
+      const { emailAddress } = AccountStore.accountForId(accountId) || { emailAddress: undefined };
       return AppEnv.showErrorDialog({
         title: localized(`Mailspring is unable to sync %@`, emailAddress),
         message: localized(
@@ -210,7 +209,7 @@ export default class MailsyncBridge {
     this._clients[accountId].sendMessage(json);
   }
 
-  async resetCacheForAccount(account, { silent } = {}) {
+  async resetCacheForAccount(account, { silent }: { silent?: boolean } = {}) {
     // grab the existing client, if there is one
     const syncingClient = this._clients[account.id];
 
@@ -271,7 +270,7 @@ export default class MailsyncBridge {
 
   // Private
 
-  _getClientConfiguration(account) {
+  _getClientConfiguration() {
     const { configDirPath, resourcePath } = AppEnv.getLoadSettings();
     const verboseUntil = AppEnv.config.get(VERBOSE_UNTIL_KEY) || 0;
     const verbose = verboseUntil && verboseUntil / 1 > Date.now();
@@ -281,7 +280,7 @@ export default class MailsyncBridge {
     return { configDirPath, resourcePath, verbose };
   }
 
-  async _launchClient(account, { force } = {}) {
+  async _launchClient(account, { force }: { force?: boolean } = {}) {
     const client = new MailsyncProcess(this._getClientConfiguration());
     this._clients[account.id] = client; // set this synchornously so we never spawn two
 
@@ -482,7 +481,7 @@ export default class MailsyncBridge {
     for (const client of Object.values(this._clients)) {
       client.kill();
     }
-    this._clients = [];
+    this._clients = {};
   };
 
   _onOnlineStatusChanged = ({ onlineDidChange, wakingFromSleep }) => {

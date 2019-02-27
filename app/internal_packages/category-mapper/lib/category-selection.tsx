@@ -82,7 +82,7 @@ export default class CategorySelection extends React.Component {
     const headerComponents = [
       <input
         type="text"
-        tabIndex="-1"
+        tabIndex={-1}
         key="textfield"
         className="search"
         placeholder={placeholder}

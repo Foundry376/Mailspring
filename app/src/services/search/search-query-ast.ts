@@ -1,7 +1,5 @@
 export class SearchQueryExpressionVisitor {
-  constructor() {
-    this._result = null;
-  }
+  _result = null;
 
   visitAndGetResult(node) {
     node.accept(this);
@@ -11,53 +9,51 @@ export class SearchQueryExpressionVisitor {
   }
 
   visitAnd(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitOr(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitFrom(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitDate(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitTo(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitSubject(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitGeneric(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitText(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitUnread(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitStarred(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitMatch(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitIn(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
   visitHasAttachment(node) {
-    throw new Error('Abstract function not implemented!', node);
+    throw new Error(`Abstract function not implemented!: ${node}`);
   }
 }
 
 export class QueryExpression {
-  constructor() {
-    this._isMatchCompatible = null;
-  }
+  _isMatchCompatible = null;
 
   accept(visitor) {
-    throw new Error('Abstract function not implemented!', visitor);
+    throw new Error(`Abstract function not implemented!: ${visitor}`);
   }
 
   isMatchCompatible() {
@@ -71,12 +67,15 @@ export class QueryExpression {
     throw new Error('Abstract function not implemented!');
   }
 
-  equals(other) {
-    throw new Error('Abstract function not implemented!', other);
+  equals(other): boolean {
+    throw new Error(`Abstract function not implemented!: ${other}`);
   }
 }
 
 export class AndQueryExpression extends QueryExpression {
+  e1: QueryExpression;
+  e2: QueryExpression;
+
   constructor(e1, e2) {
     super();
     this.e1 = e1;
@@ -103,6 +102,9 @@ export class AndQueryExpression extends QueryExpression {
 }
 
 export class OrQueryExpression extends QueryExpression {
+  e1: QueryExpression;
+  e2: QueryExpression;
+
   constructor(e1, e2) {
     super();
     this.e1 = e1;
@@ -129,6 +131,8 @@ export class OrQueryExpression extends QueryExpression {
 }
 
 export class FromQueryExpression extends QueryExpression {
+  text: SearchQueryToken;
+
   constructor(text) {
     super();
     this.text = text;
@@ -151,7 +155,10 @@ export class FromQueryExpression extends QueryExpression {
 }
 
 export class DateQueryExpression extends QueryExpression {
-  constructor(text, direction = 'before') {
+  text: SearchQueryToken;
+  direction: 'before' | 'after';
+
+  constructor(text, direction: 'before' | 'after' = 'before') {
     super();
     this.text = text;
     this.direction = direction;
@@ -174,6 +181,8 @@ export class DateQueryExpression extends QueryExpression {
 }
 
 export class ToQueryExpression extends QueryExpression {
+  text: SearchQueryToken;
+
   constructor(text) {
     super();
     this.text = text;
@@ -196,6 +205,8 @@ export class ToQueryExpression extends QueryExpression {
 }
 
 export class SubjectQueryExpression extends QueryExpression {
+  text: SearchQueryToken;
+
   constructor(text) {
     super();
     this.text = text;
@@ -218,6 +229,8 @@ export class SubjectQueryExpression extends QueryExpression {
 }
 
 export class UnreadStatusQueryExpression extends QueryExpression {
+  status: boolean;
+
   constructor(status) {
     super();
     this.status = status;
@@ -240,6 +253,8 @@ export class UnreadStatusQueryExpression extends QueryExpression {
 }
 
 export class StarredStatusQueryExpression extends QueryExpression {
+  status: boolean;
+
   constructor(status) {
     super();
     this.status = status;
@@ -262,6 +277,8 @@ export class StarredStatusQueryExpression extends QueryExpression {
 }
 
 export class GenericQueryExpression extends QueryExpression {
+  text: SearchQueryToken;
+
   constructor(text) {
     super();
     this.text = text;
@@ -284,6 +301,8 @@ export class GenericQueryExpression extends QueryExpression {
 }
 
 export class TextQueryExpression extends QueryExpression {
+  token: SearchQueryToken;
+
   constructor(text) {
     super();
     this.token = text;
@@ -306,6 +325,8 @@ export class TextQueryExpression extends QueryExpression {
 }
 
 export class InQueryExpression extends QueryExpression {
+  text: SearchQueryToken;
+
   constructor(text) {
     super();
     this.text = text;
@@ -342,6 +363,8 @@ export class HasAttachmentQueryExpression extends QueryExpression {
  * translating the initial query AST into the proper SQL-compatible query.
  */
 export class MatchQueryExpression extends QueryExpression {
+  rawQuery: string;
+
   constructor(rawMatchQuery) {
     super();
     this.rawQuery = rawMatchQuery;
@@ -368,6 +391,8 @@ export class MatchQueryExpression extends QueryExpression {
 }
 
 export class SearchQueryToken {
+  s: string;
+
   constructor(s) {
     this.s = s;
   }

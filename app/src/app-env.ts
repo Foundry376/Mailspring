@@ -23,6 +23,7 @@ function ensureInteger(f, fallback) {
 // The singleton of this class is always available as the `AppEnv` global.
 export default class AppEnvConstructor {
   // Returns the load settings hash associated with the current window.
+  static loadSettings: any;
   static getLoadSettings() {
     if (this.loadSettings == null) {
       this.loadSettings = JSON.parse(decodeURIComponent(window.location.search.substr(14)));
@@ -34,6 +35,25 @@ export default class AppEnvConstructor {
     return remote.getCurrentWindow();
   }
 
+  emitter = new Emitter();
+  loadTime: number = null;
+  config: import('./config').default;
+  keymaps: import('./keymap-manager').default;
+  commands: import('./registries/command-registry').default;
+  packages: import('./package-manager').default;
+  styles: import('./style-manager').default;
+  themes: import('./theme-manager').default;
+  spellchecker: typeof import('./spellchecker');
+  menu: import('./menu-manager').default;
+  windowEventHandler: import('./window-event-handler').default;
+  actionBridge: import('./flux/action-bridge').default;
+  mailsyncBridge: import('./flux/mailsync-bridge').default
+  errorLogger: import('./error-logger');
+  savedState: any;
+  isReloading: boolean;
+  loadSettings: any;
+
+
   /*
   Section: Construction and Destruction
   */
@@ -42,7 +62,6 @@ export default class AppEnvConstructor {
     // window.AppEnv early.
     window.AppEnv = this;
 
-    this.emitter = new Emitter();
     this.enhanceEventObject();
     this.setupErrorLogger();
     this.restoreWindowState();
@@ -55,8 +74,6 @@ export default class AppEnvConstructor {
     // Add 'src/global/' to module search path.
     const globalPath = path.join(resourcePath, 'src', 'global');
     require('module').globalPaths.push(globalPath);
-
-    this.loadTime = null;
 
     const Config = require('./config').default;
     const KeymapManager = require('./keymap-manager').default;
@@ -183,8 +200,8 @@ export default class AppEnvConstructor {
         this._onUnhandledRejection(error, sourceMapCache);
         return;
       }
-      if (e.detail && e.detail.reason) {
-        const error = e.detail.reason;
+      if ((e as any).detail && (e as any).detail.reason) {
+        const error = (e as any).detail.reason;
         this._onUnhandledRejection(error, sourceMapCache);
         return;
       }
@@ -208,7 +225,7 @@ export default class AppEnvConstructor {
   // The difference between this and `ErrorLogger.reportError` is that
   // `AppEnv.reportError` hooks into test failures and dev tool popups.
   //
-  reportError(error, extra = {}, { noWindows } = {}) {
+  reportError(error, extra: any = {}, { noWindows }: {noWindows?: boolean} = {}) {
     try {
       extra.pluginIds = this._findPluginsFromError(error);
     } catch (err) {
@@ -223,7 +240,8 @@ export default class AppEnvConstructor {
     }
 
     if (this.inSpecMode()) {
-      if (global.jasmine || window.jasmine) {
+      const jasmine = global.jasmine || window.jasmine;
+      if (jasmine) {
         jasmine.getEnv().currentSpec.fail(error);
       }
     } else if (this.inDevMode() && !noWindows) {
@@ -294,6 +312,8 @@ export default class AppEnvConstructor {
   // Public: Get the version of Mailspring.
   //
   // Returns the version text {String}.
+  private appVersion;
+
   getVersion() {
     return this.appVersion != null
       ? this.appVersion
@@ -326,7 +346,7 @@ export default class AppEnvConstructor {
   //
   // Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings() {
-    return this.constructor.getLoadSettings();
+    return AppEnv.getLoadSettings();
   }
 
   /*
@@ -392,7 +412,7 @@ export default class AppEnvConstructor {
 
   // Extended: Get the current window
   getCurrentWindow() {
-    return this.constructor.getCurrentWindow();
+    return AppEnv.getCurrentWindow();
   }
 
   // Extended: Move current window to the center of the screen.
@@ -525,7 +545,7 @@ export default class AppEnvConstructor {
 
   // Returns true if the dimensions are useable, false if they should be ignored.
   // Work around for https://github.com/atom/electron/issues/473
-  isValidDimensions({ x, y, width, height } = {}) {
+  isValidDimensions({ x, y, width, height }: {x?: number, y?:number, width?: number, height?: number} = {}) {
     return width > 0 && height > 0 && x + width > 0 && y + height > 0;
   }
 
@@ -652,7 +672,7 @@ export default class AppEnvConstructor {
   // plugins needs to be loaded.
   populateHotWindow(loadSettings) {
     this.loadSettings = loadSettings;
-    this.constructor.loadSettings = loadSettings;
+    AppEnv.loadSettings = loadSettings;
 
     this.packages.activatePackages(loadSettings.windowType);
 
@@ -693,7 +713,7 @@ export default class AppEnvConstructor {
   Section: Messaging the User
   */
 
-  displayWindow({ maximize } = {}) {
+  displayWindow({ maximize }: {maximize?: boolean} = {}) {
     if (this.inSpecMode()) {
       return;
     }
@@ -731,23 +751,23 @@ export default class AppEnvConstructor {
 
   initializeReactRoot() {
     // Put state back into sheet-container? Restore app state here
-    this.item = document.createElement('mailspring-workspace');
-    this.item.setAttribute('id', 'sheet-container');
-    this.item.setAttribute('class', 'sheet-container');
-    this.item.setAttribute('tabIndex', '-1');
+    const item = document.createElement('mailspring-workspace');
+    item.setAttribute('id', 'sheet-container');
+    item.setAttribute('class', 'sheet-container');
+    item.setAttribute('tabIndex', '-1');
     if (isRTL) {
-      this.item.setAttribute('dir', 'rtl');
+      item.setAttribute('dir', 'rtl');
     }
 
     const React = require('react');
     const ReactDOM = require('react-dom');
     const SheetContainer = require('./sheet-container').default;
-    ReactDOM.render(React.createElement(SheetContainer), this.item);
+    ReactDOM.render(React.createElement(SheetContainer), item);
 
     if (this.inSpecMode()) {
-      document.querySelector('#jasmine-content').appendChild(this.item);
+      document.querySelector('#jasmine-content').appendChild(item);
     } else {
-      document.body.appendChild(this.item);
+      document.body.appendChild(item);
     }
   }
 
@@ -775,7 +795,7 @@ export default class AppEnvConstructor {
     return callback(remote.dialog.showSaveDialog(this.getCurrentWindow(), options));
   }
 
-  showErrorDialog(messageData, { showInMainWindow, detail } = {}) {
+  showErrorDialog(messageData, { showInMainWindow, detail }: {showInMainWindow?: boolean, detail?: string} = {}) {
     let message;
     let title;
     if (_.isString(messageData) || _.isNumber(messageData)) {
@@ -785,7 +805,7 @@ export default class AppEnvConstructor {
       ({ message } = messageData);
       ({ title } = messageData);
     } else {
-      throw new Error('Must pass a valid message to show dialog', message);
+      throw new Error(`Must pass a valid message to show dialog: ${message}`);
     }
 
     let winToShow = null;
@@ -894,7 +914,7 @@ export default class AppEnvConstructor {
       this.propagationStopped = true;
       return overriddenStop.apply(this, args);
     };
-    Event.prototype.isPropagationStopped = function isPropagationStopped() {
+    (Event.prototype as any).isPropagationStopped = function isPropagationStopped() {
       return this.propagationStopped;
     };
   }

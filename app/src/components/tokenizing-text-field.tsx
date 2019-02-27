@@ -1,7 +1,9 @@
 import classNames from 'classnames';
 import _ from 'underscore';
 import { remote } from 'electron';
-import { localized, React, ReactDOM, PropTypes, Utils, RegExpUtils } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { localized, PropTypes, Utils, RegExpUtils } from 'mailspring-exports';
 import { Menu } from 'mailspring-component-kit';
 
 import RetinaImg from './retina-img';
@@ -11,7 +13,9 @@ type SizeToFitInputProps = {
   value?: string;
 };
 
-class SizeToFitInput extends React.Component<SizeToFitInputProps> {
+class SizeToFitInput extends React.Component<
+  SizeToFitInputProps & React.HTMLProps<HTMLInputElement>
+> {
   constructor(props) {
     super(props);
     this.state = {};
@@ -25,36 +29,38 @@ class SizeToFitInput extends React.Component<SizeToFitInputProps> {
     this._sizeToFit();
   }
 
+  get inputEl() {
+    return ReactDOM.findDOMNode(this.refs.input) as HTMLInputElement;
+  }
+
   _sizeToFit() {
     if (this.props.value.length === 0) {
       return;
     }
     // Measure the width of the text in the input and
     // resize the input field to fit.
-    const inputEl = ReactDOM.findDOMNode(this.refs.input);
-    const measureEl = ReactDOM.findDOMNode(this.refs.measure);
-    measureEl.innerText = inputEl.value;
-    measureEl.style.top = `${inputEl.offsetTop}px`;
-    measureEl.style.left = `${inputEl.offsetLeft}px`;
+    const measureEl = ReactDOM.findDOMNode(this.refs.measure) as HTMLElement;
+    measureEl.innerText = this.inputEl.value;
+    measureEl.style.top = `${this.inputEl.offsetTop}px`;
+    measureEl.style.left = `${this.inputEl.offsetLeft}px`;
     // The 10px comes from the 7.5px left padding and 2.5px more of
     // breathing room.
-    inputEl.style.width = `${measureEl.offsetWidth + 10}px`;
+    this.inputEl.style.width = `${measureEl.offsetWidth + 10}px`;
   }
 
   select() {
-    ReactDOM.findDOMNode(this.refs.input).select();
+    this.inputEl.select();
   }
 
   selectionRange() {
-    const inputEl = ReactDOM.findDOMNode(this.refs.input);
     return {
-      start: inputEl.selectionStart,
-      end: inputEl.selectionEnd,
+      start: this.inputEl.selectionStart,
+      end: this.inputEl.selectionEnd,
     };
   }
 
   focus() {
-    ReactDOM.findDOMNode(this.refs.input).focus();
+    this.inputEl.focus();
   }
 
   render() {
@@ -67,7 +73,26 @@ class SizeToFitInput extends React.Component<SizeToFitInputProps> {
   }
 }
 
-class Token extends React.Component {
+interface TokenState {
+  editing: boolean;
+  editingValue: string;
+  dragging: boolean;
+}
+
+interface TokenProps {
+  className: string;
+  selected: boolean;
+  valid: boolean;
+  item: any;
+  onClick: (event: any, item: any) => void;
+  onDragStart: (event: any, item: any) => void;
+  onEdited?: (event: any, item: any) => void;
+  onAction: (item: any) => void;
+  disabled?: boolean;
+  onEditMotion?: (item: any) => void;
+}
+
+class Token extends React.Component<TokenProps, TokenState> {
   static displayName = 'Token';
 
   static propTypes = {
@@ -91,6 +116,7 @@ class Token extends React.Component {
     super(props);
     this.state = {
       editing: false,
+      dragging: false,
       editingValue: this.props.item.toString(),
     };
   }
@@ -105,7 +131,7 @@ class Token extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.state.editing && !prevState.editing) {
-      this.refs.input.select();
+      (this.refs.input as SizeToFitInput).select();
     }
   }
 
@@ -114,11 +140,11 @@ class Token extends React.Component {
       <SizeToFitInput
         ref="input"
         className="token-editing-input"
-        spellCheck="false"
+        spellCheck={false}
         value={this.state.editingValue}
         onKeyDown={this._onEditKeydown}
         onBlur={this._onEditFinished}
-        onChange={event => this.setState({ editingValue: event.target.value })}
+        onChange={event => this.setState({ editingValue: event.currentTarget.value })}
       />
     );
   }
@@ -238,11 +264,10 @@ type TokenizingTextFieldProps = {
   tabIndex?: number;
 };
 type TokenizingTextFieldState = {
-  inputValue: any;
   inputValue: string;
-  inputValue: any;
+  focus: boolean;
   completions: undefined[];
-  selectedKeys: undefined[];
+  selectedKeys: string[];
 };
 
 /*
@@ -411,6 +436,7 @@ export default class TokenizingTextField extends React.Component<
   constructor(props) {
     super(props);
     this.state = {
+      focus: false,
       inputValue: props.defaultValue || '',
       completions: [],
       selectedKeys: [],
@@ -475,7 +501,7 @@ export default class TokenizingTextField extends React.Component<
     }
   };
 
-  _onInputFocused = ({ noCompletions } = {}) => {
+  _onInputFocused = ({ noCompletions }: { noCompletions?: boolean } = {}) => {
     this.setState({ focus: true });
     if (this.props.onFocus) {
       this.props.onFocus();
@@ -494,7 +520,7 @@ export default class TokenizingTextField extends React.Component<
       this._onInputTrySubmit(event);
     } else if (['ArrowLeft', 'ArrowRight'].includes(event.key)) {
       const delta = event.key === 'ArrowLeft' ? -1 : 1;
-      const { start } = this.refs.input.selectionRange();
+      const { start } = (this.refs.input as SizeToFitInput).selectionRange();
 
       // with tokens selected, arrow keys manipulate the selection
       if (this.state.selectedKeys.length > 0) {
@@ -585,7 +611,7 @@ export default class TokenizingTextField extends React.Component<
     // default behavior
     let token = null;
     if (completions.length > 0) {
-      token = this.refs.completions.getSelectedItem() || completions[0];
+      token = (this.refs.completions as Menu).getSelectedItem() || completions[0];
     }
 
     // allow our container to override behavior
@@ -639,7 +665,7 @@ export default class TokenizingTextField extends React.Component<
   }
 
   focus() {
-    this.refs.input.focus();
+    (this.refs.input as HTMLElement).focus();
   }
 
   // Managing Tokens
@@ -801,7 +827,7 @@ export default class TokenizingTextField extends React.Component<
       event.clipboardData.setData('text/plain', text);
       event.clipboardData.setData('nylas-token-items', json);
 
-      const range = this.refs.input.selectionRange();
+      const range = (this.refs.input as SizeToFitInput).selectionRange();
       if (range.end > 0) {
         const inputSelection = this.state.inputValue.substr(range.start, range.end - range.start);
         event.clipboardData.setData('nylas-token-input', inputSelection);
@@ -881,6 +907,7 @@ export default class TokenizingTextField extends React.Component<
       disabled: this.props.disabled,
       tabIndex: this.props.tabIndex || 0,
       value: this.state.inputValue,
+      className: '',
     };
 
     // If we can't accept additional tokens, override the events that would

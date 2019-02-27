@@ -1,4 +1,5 @@
-import { React, PropTypes, MailspringAPIRequest } from 'mailspring-exports';
+import React from 'react';
+import { PropTypes, MailspringAPIRequest } from 'mailspring-exports';
 import { Webview } from 'mailspring-component-kit';
 import OnboardingActions from './onboarding-actions';
 

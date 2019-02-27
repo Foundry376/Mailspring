@@ -4,9 +4,9 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import React from 'react';
+import ReactDOM from 'react-dom';
 import {
-  React,
-  ReactDOM,
   PropTypes,
   Utils,
   localized,
@@ -23,8 +23,8 @@ import fs from 'fs';
 const { rootURLForServer } = MailspringAPIRequest;
 
 type EventedIFrameProps = {
-  searchable?: boolean,
-  onResize?: (...args: any[]) => any
+  searchable?: boolean;
+  onResize?: (...args: any[]) => any;
 };
 
 /*
@@ -52,8 +52,12 @@ class EventedIFrame extends React.Component<EventedIFrameProps> {
     onResize: PropTypes.func,
   };
 
+  _regionId: string;
+  _ignoreNextResize: boolean;
+  _searchUsub: () => void;
+
   render() {
-    const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = Utils.fastOmit(this.props, Object.keys(EventedIFrame.propTypes));
     return <iframe title="iframe" seamless="seamless" {...otherProps} />;
   }
 
@@ -94,7 +98,7 @@ class EventedIFrame extends React.Component<EventedIFrameProps> {
   }
 
   setHeightQuietly(height) {
-    const el = ReactDOM.findDOMNode(this);
+    const el = ReactDOM.findDOMNode(this) as HTMLIFrameElement;
     if (el.style.height !== `${height}px`) {
       this._ignoreNextResize = true;
       el.style.height = `${height}px`;
@@ -105,7 +109,7 @@ class EventedIFrame extends React.Component<EventedIFrameProps> {
     if (!this.props.searchable) {
       return;
     }
-    const node = ReactDOM.findDOMNode(this);
+    const node = ReactDOM.findDOMNode(this) as HTMLIFrameElement;
     const doc =
       (node.contentDocument != null ? node.contentDocument.body : undefined) != null
         ? node.contentDocument != null ? node.contentDocument.body : undefined
@@ -120,7 +124,7 @@ class EventedIFrame extends React.Component<EventedIFrameProps> {
   };
 
   _unsubscribeFromIFrameEvents() {
-    const node = ReactDOM.findDOMNode(this);
+    const node = ReactDOM.findDOMNode(this) as HTMLIFrameElement;
     const doc = node.contentDocument;
     if (!doc) {
       return;
@@ -141,7 +145,7 @@ class EventedIFrame extends React.Component<EventedIFrameProps> {
   }
 
   _subscribeToIFrameEvents() {
-    const node = ReactDOM.findDOMNode(this);
+    const node = ReactDOM.findDOMNode(this) as HTMLIFrameElement;
     const doc = node.contentDocument;
     _.defer(() => {
       doc.addEventListener('click', this._onIFrameClick);
@@ -174,7 +178,7 @@ class EventedIFrame extends React.Component<EventedIFrameProps> {
   }
 
   _onIFrameBlur = event => {
-    const node = ReactDOM.findDOMNode(this);
+    const node = ReactDOM.findDOMNode(this) as HTMLIFrameElement;
     node.contentWindow.getSelection().empty();
   };
 
@@ -249,7 +253,7 @@ class EventedIFrame extends React.Component<EventedIFrameProps> {
   }
 
   _onIFrameMouseEvent = event => {
-    const node = ReactDOM.findDOMNode(this);
+    const node = ReactDOM.findDOMNode(this) as HTMLIFrameElement;
     const nodeRect = node.getBoundingClientRect();
 
     const eventAttrs = {};

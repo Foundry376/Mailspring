@@ -4,15 +4,13 @@ import _ from 'underscore';
 import classNames from 'classnames';
 
 type SpinnerProps = {
-  visible?: boolean,
-  withCover?: boolean,
-  style?: object
+  visible?: boolean;
+  withCover?: boolean;
+  style?: object;
 };
 type SpinnerState = {
-  hidden: boolean,
-  hidden: boolean,
-  hidden: boolean,
-  paused: boolean
+  hidden: boolean;
+  paused: boolean;
 };
 
 /*
@@ -35,14 +33,11 @@ class Spinner extends React.Component<SpinnerProps, SpinnerState> {
     style: PropTypes.object,
   };
 
-  constructor(props) {
-    super(props);
-    this.timer = null;
-    this.state = {
-      hidden: true,
-      paused: true,
-    };
-  }
+  timer = null;
+  state = {
+    hidden: true,
+    paused: true,
+  };
 
   componentDidMount() {
     // The spinner always starts hidden. After it's mounted, it unhides itself
@@ -151,7 +146,7 @@ class Spinner extends React.Component<SpinnerProps, SpinnerState> {
       transform: 'translate(-50%,-50%)',
     });
 
-    const otherProps = _.omit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = _.omit(this.props, Object.keys(Spinner.propTypes));
     return (
       <div className={spinnerClass} {...otherProps} style={style}>
         <div className="bounce1" />

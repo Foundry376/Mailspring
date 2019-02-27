@@ -53,7 +53,7 @@ export class Windows {
     );
   }
 
-  registerForURLScheme(scheme, callback = () => {}) {
+  registerForURLScheme(scheme, callback = (error?: Error, result?: null) => {}) {
     // Ensure that our registry entires are present
     const WindowsUpdater = remote.require('./windows-updater');
     WindowsUpdater.createRegistryEntries(
@@ -110,13 +110,13 @@ export class Linux {
     );
   }
 
-  resetURLScheme(scheme, callback = () => {}) {
+  resetURLScheme(scheme, callback = (error?: Error, result?: null) => {}) {
     exec(
       `xdg-mime default thunderbird.desktop x-scheme-handler/${scheme}`,
       err => (err ? callback(err) : callback(null, null))
     );
   }
-  registerForURLScheme(scheme, callback = () => {}) {
+  registerForURLScheme(scheme, callback = (error?: Error, result?: null) => {}) {
     exec(
       `xdg-mime default mailspring.desktop x-scheme-handler/${scheme}`,
       err => (err ? callback(err) : callback(null, null))
@@ -140,7 +140,7 @@ export class Mac {
     fs.exists(secure, exists => (exists ? callback(secure) : callback(insecure)));
   }
 
-  readDefaults(callback = () => {}) {
+  readDefaults(callback = (result: Error | any, json?: any) => {}) {
     this.getLaunchServicesPlistPath(plistPath => {
       const tmpPath = `${plistPath}.${Math.random()}`;
       exec(`plutil -convert json "${plistPath}" -o "${tmpPath}"`, err => {
@@ -154,7 +154,7 @@ export class Mac {
             return;
           }
           try {
-            const json = JSON.parse(data);
+            const json = JSON.parse(data.toString());
             callback(json.LSHandlers, json);
             fs.unlink(tmpPath, () => {});
           } catch (e) {
@@ -165,7 +165,7 @@ export class Mac {
     });
   }
 
-  writeDefaults(defaults, callback = () => {}) {
+  writeDefaults(defaults, callback = (error?: Error) => {}) {
     this.getLaunchServicesPlistPath(plistPath => {
       const tmpPath = `${plistPath}.${Math.random()}`;
       exec(`plutil -convert json "${plistPath}" -o "${tmpPath}"`, err => {
@@ -174,9 +174,9 @@ export class Mac {
           return;
         }
         try {
-          let data = fs.readFileSync(tmpPath);
+          let data = fs.readFileSync(tmpPath).toString();
           data = JSON.parse(data);
-          data.LSHandlers = defaults;
+          (data as any).LSHandlers = defaults;
           data = JSON.stringify(data);
           fs.writeFileSync(tmpPath, data);
         } catch (e) {

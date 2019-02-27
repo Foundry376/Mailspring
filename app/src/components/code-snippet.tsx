@@ -1,4 +1,5 @@
-import { React, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import { PropTypes } from 'mailspring-exports';
 
 export default function CodeSnippet(props) {
   return (

@@ -1,4 +1,5 @@
 import { ListTabular } from 'mailspring-component-kit';
+import { Disposable } from 'event-kit';
 
 /**
 This class takes an observable which vends QueryResultSets and adapts it so that
@@ -8,13 +9,17 @@ When the MultiselectList is refactored to take an Observable, this class should
 go away!
 */
 export default class ObservableListDataSource extends ListTabular.DataSource {
+  _countEstimate = -1;
+  _resultSet = null;
+  _resultDesiredLast = null;
+  _$resultSetObservable: Rx.Observable<any>;
+  _setRetainedRange: (args: { start: number; end: number }) => void;
+  _subscription?: Rx.Disposable;
+
   constructor(resultSetObservable, setRetainedRange) {
     super();
     this._$resultSetObservable = resultSetObservable;
     this._setRetainedRange = setRetainedRange;
-    this._countEstimate = -1;
-    this._resultSet = null;
-    this._resultDesiredLast = null;
 
     // Wait until a retained range is set before subscribing to result sets
   }

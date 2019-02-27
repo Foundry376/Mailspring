@@ -89,7 +89,7 @@ function promisifyAll(target) {
 
     const promisifiedKey = `${key}Async`;
 
-    target[promisifiedKey] = promisify(target[key]);
+    target[promisifiedKey] = promisify(target[key], {});
 
     [key, promisifiedKey].forEach(rkey => {
       Object.defineProperty(target[rkey], MAGIC_KEY, {
@@ -152,8 +152,8 @@ global.Promise.prototype.getState = getState;
 global.Promise.prototype.isResolved = isResolved;
 global.Promise.prototype.isRejected = isRejected;
 
-global.Promise.each = each;
-global.Promise.delay = delay;
-global.Promise.props = props;
-global.Promise.promisify = promisify;
-global.Promise.promisifyAll = promisifyAll;
+(global.Promise as any).each = each;
+(global.Promise as any).delay = delay;
+(global.Promise as any).props = props;
+(global.Promise as any).promisify = promisify;
+(global.Promise as any).promisifyAll = promisifyAll;

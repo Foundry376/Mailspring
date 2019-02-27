@@ -1,5 +1,6 @@
 import { mount } from 'enzyme';
-import { React, AccountStore, Account, Actions, MailRulesStore } from 'mailspring-exports';
+import React from 'react';
+import { AccountStore, Account, Actions, MailRulesStore } from 'mailspring-exports';
 import DisabledMailRulesNotification from '../lib/items/disabled-mail-rules-notif';
 
 describe('DisabledMailRulesNotification', function DisabledMailRulesNotifTests() {

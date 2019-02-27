@@ -3,15 +3,15 @@ ThreadDragImage.src = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAY
 
 const DragCanvas = document.createElement('canvas');
 DragCanvas.style.position = 'absolute';
-DragCanvas.style.zIndex = 0;
-DragCanvas.style.top = 0;
+DragCanvas.style.zIndex = '0';
+DragCanvas.style.top = '0';
 document.body.appendChild(DragCanvas);
 
 const PercentLoadedCache = {};
 const PercentLoadedCanvas = document.createElement('canvas');
 PercentLoadedCanvas.style.position = 'absolute';
-PercentLoadedCanvas.style.zIndex = 0;
-PercentLoadedCanvas.style.top = 0;
+PercentLoadedCanvas.style.zIndex = '0';
+PercentLoadedCanvas.style.top = '0';
 document.body.appendChild(PercentLoadedCanvas);
 
 const SystemTrayCanvas = document.createElement('canvas');

@@ -1,6 +1,7 @@
+import React from 'react';
 import _ from 'underscore';
 import { remote, clipboard } from 'electron';
-import { React, PropTypes, Utils, Contact, ContactStore, RegExpUtils } from 'mailspring-exports';
+import { PropTypes, Utils, Contact, ContactStore, RegExpUtils } from 'mailspring-exports';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
 const TokenRenderer = props => {

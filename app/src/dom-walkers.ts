@@ -1,6 +1,6 @@
 const DOMWalkers = {
-  *walk(...treeWalkerArgs) {
-    const walker = document.createTreeWalker(...treeWalkerArgs);
+  *walk(rootNode, ...treeWalkerArgs) {
+    const walker = document.createTreeWalker(rootNode, ...treeWalkerArgs);
     let node = walker.nextNode();
     while (node) {
       yield node;

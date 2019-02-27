@@ -2,7 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
-export default class ScrollbarTicks extends React.Component {
+interface ScrollbarTicksProps {
+  ticks: Array<number | { percent: number; className: string }>;
+}
+
+export default class ScrollbarTicks extends React.Component<ScrollbarTicksProps> {
   static displayName = 'ScrollbarTicks';
 
   static propTypes = {
@@ -31,7 +35,7 @@ export default class ScrollbarTicks extends React.Component {
         return `<div class="t${className}" style="top: ${percent * 100}%" />`;
       })
       .join('');
-    ReactDOM.findDOMNode(this).innerHTML = html;
+    (ReactDOM.findDOMNode(this) as HTMLElement).innerHTML = html;
   }
 
   render() {

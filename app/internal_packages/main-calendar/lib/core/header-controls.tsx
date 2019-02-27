@@ -1,4 +1,6 @@
-import { React, PropTypes, Utils } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes, Utils } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
 export default class HeaderControls extends React.Component {

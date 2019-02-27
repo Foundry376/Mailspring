@@ -1,4 +1,5 @@
-import { React, PropTypes, Utils, ComponentRegistry } from 'mailspring-exports';
+import React from 'react';
+import { PropTypes, Utils, ComponentRegistry } from 'mailspring-exports';
 
 import Flexbox from './flexbox';
 import InjectedComponentErrorBoundary from './injected-component-error-boundary';

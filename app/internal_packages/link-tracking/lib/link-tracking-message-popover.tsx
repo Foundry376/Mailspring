@@ -35,7 +35,7 @@ class LinkTrackingMessagePopover extends React.Component {
 
   render() {
     return (
-      <div className="link-tracking-message-popover" tabIndex="-1">
+      <div className="link-tracking-message-popover" tabIndex={-1}>
         <div className="link-tracking-header">{localized('Clicked by:')}</div>
         <div className="click-history-container">{this.renderClickActions()}</div>
       </div>

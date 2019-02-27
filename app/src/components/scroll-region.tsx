@@ -1,13 +1,23 @@
 import _ from 'underscore';
-import { React, ReactDOM, PropTypes, Utils, isRTL } from 'mailspring-exports';
+import React, { CSSProperties } from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes, Utils, isRTL } from 'mailspring-exports';
 import classNames from 'classnames';
 import ScrollbarTicks from './scrollbar-ticks';
 
+type Ticks = Array<number | { percent: number; className: string }>;
+
+interface TicksProvider {
+  scrollbarTicks: () => Ticks;
+  listen: (callback: (Ticks) => void) => () => void;
+}
+
 type ScrollbarProps = {
   scrollTooltipComponent?: (...args: any[]) => any;
-  scrollbarTickProvider?: object;
+  scrollbarTickProvider?: TicksProvider;
   getScrollRegion?: (...args: any[]) => any;
 };
+
 type ScrollbarState = {
   totalHeight: number;
   trackHeight: number;
@@ -15,7 +25,7 @@ type ScrollbarState = {
   viewportScrollTop: number;
   dragging: boolean;
   scrolling: boolean;
-  scrollbarTicks: undefined[];
+  scrollbarTicks?: Ticks;
 };
 
 class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
@@ -34,6 +44,11 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     getScrollRegion: PropTypes.func,
   };
 
+  _heightObserver: ResizeObserver;
+  _tickUnsub?: () => void;
+  _trackOffset: number;
+  _mouseOffsetWithinHandle: number;
+
   constructor(props) {
     super(props);
     this._heightObserver = null;
@@ -49,14 +64,14 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   }
 
   componentDidMount() {
-    const trackEl = ReactDOM.findDOMNode(this.refs.track);
+    const trackEl = ReactDOM.findDOMNode(this.refs.track) as HTMLElement;
 
     if (this.props.scrollbarTickProvider && this.props.scrollbarTickProvider.listen) {
       this._tickUnsub = this.props.scrollbarTickProvider.listen(this._onTickProviderChange);
     }
 
     // Set and then monitor our trackHeight via a ResizeObserver
-    this._heightObserver = new ResizeObserver(entries => {
+    this._heightObserver = new window.ResizeObserver(entries => {
       if (entries[0] && this.state.trackHeight === entries[0].contentRect.height) return;
       this.setState({ trackHeight: entries[0].contentRect.height });
     });
@@ -78,7 +93,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
       'with-ticks': this.state.scrollbarTicks.length > 0,
     });
 
-    let tooltip = [];
+    let tooltip: React.ReactChild = null;
     if (this.props.scrollTooltipComponent && this.state.dragging) {
       tooltip = (
         <this.props.scrollTooltipComponent
@@ -124,7 +139,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     return <ScrollbarTicks ticks={this.state.scrollbarTicks} />;
   }
 
-  _scrollbarHandleStyles = () => {
+  _scrollbarHandleStyles = (): CSSProperties => {
     const handleHeight = this._getHandleHeight();
     const handleTop =
       this.state.viewportScrollTop /
@@ -138,7 +153,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
     };
   };
 
-  _scrollbarWrapStyles = () => {
+  _scrollbarWrapStyles = (): React.CSSProperties => {
     return {
       position: 'absolute',
       top: 0,
@@ -153,8 +168,9 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   };
 
   _onHandleDown = event => {
-    const handleNode = ReactDOM.findDOMNode(this.refs.handle);
-    this._trackOffset = ReactDOM.findDOMNode(this.refs.track).getBoundingClientRect().top;
+    const trackNode = ReactDOM.findDOMNode(this.refs.track) as HTMLElement;
+    const handleNode = ReactDOM.findDOMNode(this.refs.handle) as HTMLElement;
+    this._trackOffset = trackNode.getBoundingClientRect().top;
     this._mouseOffsetWithinHandle = event.pageY - handleNode.getBoundingClientRect().top;
     window.addEventListener('mousemove', this._onHandleMove);
     window.addEventListener('mouseup', this._onHandleUp);
@@ -184,7 +200,8 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   };
 
   _onScrollJump = event => {
-    this._trackOffset = ReactDOM.findDOMNode(this.refs.track).getBoundingClientRect().top;
+    const trackEl = ReactDOM.findDOMNode(this.refs.track) as HTMLElement;
+    this._trackOffset = trackEl.getBoundingClientRect().top;
     this._mouseOffsetWithinHandle = this._getHandleHeight() / 2;
     this._onHandleMove(event);
   };
@@ -202,20 +219,31 @@ type ScrollRegionProps = {
   onScrollEnd?: (...args: any[]) => any;
   className?: string;
   scrollTooltipComponent?: (...args: any[]) => any;
-  scrollbarTickProvider?: object;
+  scrollbarTickProvider?: TicksProvider;
   getScrollbar?: (...args: any[]) => any;
 };
+
 type ScrollRegionState = {
   totalHeight: number;
   viewportHeight: number;
   viewportScrollTop: number;
   scrolling: boolean;
+  dragging: boolean;
 };
+
+interface ScrollToOptions {
+  position?: string;
+  settle?: boolean;
+  done?: () => any;
+}
 
 /*
 The ScrollRegion component attaches a custom scrollbar.
 */
-class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState> {
+class ScrollRegion extends React.Component<
+  ScrollRegionProps & React.HTMLProps<HTMLDivElement>,
+  ScrollRegionState
+> {
   static displayName = 'ScrollRegion';
 
   static propTypes = {
@@ -229,6 +257,7 @@ class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState>
   };
 
   // Concept from https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UITableView_Class/#//apple_ref/c/tdef/UITableViewScrollPosition
+  static Scrollbar = Scrollbar;
 
   static ScrollPosition = {
     // Scroll so that the desired region is at the top of the viewport
@@ -250,39 +279,36 @@ class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState>
   _scrollbarComponent = null;
   _totalHeightObserver = null;
   _viewportHeightObserver = null;
+  _onScrollEnd: () => void;
 
-  constructor(props) {
-    super(props);
+  state = {
+    totalHeight: 0,
+    viewportHeight: 0,
+    viewportScrollTop: 0,
+    dragging: false,
+    scrolling: false,
+  };
 
-    this.state = {
-      totalHeight: 0,
-      viewportHeight: 0,
-      viewportScrollTop: 0,
-      scrolling: false,
-    };
+  get scrollTop() {
+    return (ReactDOM.findDOMNode(this.refs.content) as HTMLElement).scrollTop;
+  }
 
-    Object.defineProperty(this, 'scrollTop', {
-      get() {
-        return ReactDOM.findDOMNode(this.refs.content).scrollTop;
-      },
-      set(val) {
-        ReactDOM.findDOMNode(this.refs.content).scrollTop = val;
-      },
-    });
+  set scrollTop(val) {
+    (ReactDOM.findDOMNode(this.refs.content) as HTMLElement).scrollTop = val;
   }
 
   componentDidMount() {
     this._mounted = true;
 
-    const viewportEl = ReactDOM.findDOMNode(this.refs.content);
-    const innerWrapperEl = ReactDOM.findDOMNode(this.refs.inner);
+    const viewportEl = ReactDOM.findDOMNode(this.refs.content) as HTMLElement;
+    const innerWrapperEl = ReactDOM.findDOMNode(this.refs.inner) as HTMLElement;
 
-    this._viewportHeightObserver = new ResizeObserver(entries => {
+    this._viewportHeightObserver = new window.ResizeObserver(entries => {
       if (entries[0] && entries[0].contentRect.height !== this.state.viewportHeight) {
         this._setSharedState({ viewportHeight: entries[0].contentRect.height });
       }
     });
-    this._totalHeightObserver = new ResizeObserver(entries => {
+    this._totalHeightObserver = new window.ResizeObserver(entries => {
       // Note: we need to use target.clientHeight because the inner element can have padding
       // and the contentRect.height is the inner padded size, not the bounding box size.
       if (entries[0] && entries[0].contentRect.height !== this.state.totalHeight) {
@@ -344,7 +370,7 @@ class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState>
       }
     }
 
-    const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = Utils.fastOmit(this.props, Object.keys(ScrollRegion.propTypes));
 
     return (
       <div className={containerClasses} {...otherProps}>
@@ -360,7 +386,7 @@ class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState>
 
   // Public: Scroll to the DOM Node provided.
   //
-  scrollTo = (node, param = {}) => {
+  scrollTo = (node, param: ScrollToOptions = {}) => {
     const { position, settle, done } = param;
     if (node instanceof React.Component) {
       node = ReactDOM.findDOMNode(node);
@@ -379,7 +405,7 @@ class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState>
   // a ClientRect or similar object with top, left, width, height relative to the
   // window, not the scroll region. This is designed to make it easy to use with
   // node.getBoundingClientRect()
-  scrollToRect(rect, param = {}) {
+  scrollToRect(rect, param: ScrollToOptions = {}) {
     const { position, settle, done } = param;
     if (rect instanceof Node) {
       throw new Error('ScrollRegion.scrollToRect: requires a rect. Maybe you meant scrollTo?');
@@ -396,7 +422,7 @@ class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState>
 
   _scroll({ position, settle, done }, clientRectProviderCallback) {
     let settleFn;
-    const contentNode = ReactDOM.findDOMNode(this.refs.content);
+    const contentNode = ReactDOM.findDOMNode(this.refs.content) as HTMLElement;
     if (position == null) {
       position = ScrollRegion.ScrollPosition.Visible;
     }
@@ -427,7 +453,7 @@ class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState>
 
       // Also give ourselves a representation of the visible region, in the same
       // coordinate space as `rect`
-      const contentVisibleRect = _.clone(contentClientRect);
+      const contentVisibleRect = _.clone(contentClientRect) as any;
       contentVisibleRect.top += contentNode.scrollTop;
       contentVisibleRect.bottom += contentNode.scrollTop;
 
@@ -459,7 +485,7 @@ class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState>
   }
 
   _settleHeight = callback => {
-    const contentNode = ReactDOM.findDOMNode(this.refs.content);
+    const contentNode = ReactDOM.findDOMNode(this.refs.content) as HTMLElement;
     let lastContentHeight = -1;
     var scrollIfSettled = () => {
       if (!this._mounted) {
@@ -511,7 +537,5 @@ class ScrollRegion extends React.Component<ScrollRegionProps, ScrollRegionState>
     return this;
   };
 }
-
-ScrollRegion.Scrollbar = Scrollbar;
 
 export default ScrollRegion;

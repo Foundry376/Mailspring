@@ -1,5 +1,6 @@
 import _ from 'underscore';
-import { React, ReactDOM } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 
 const ROLE = 'RootSidebar:Notifications';

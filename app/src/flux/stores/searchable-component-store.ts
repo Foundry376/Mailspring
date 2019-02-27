@@ -4,21 +4,24 @@ import DOMUtils from '../../dom-utils';
 import Actions from '../actions';
 import { MAX_MATCHES, CHAR_THRESHOLD } from '../../searchable-components/search-constants';
 import FocusedContentStore from './focused-content-store';
+import Thread from '../models/thread';
 
 class SearchableComponentStore extends MailspringStore {
+  currentMatch = null;
+  matches = [];
+  globalIndex = null; // null means nothing is selected
+  scrollAncestor = null;
+
+  // null and empty string are different. Null means that search isn't
+  // even activated. Empty string means we're active but just not
+  // searching anything.
+  searchTerm = null;
+  searchRegions: { [key: string]: HTMLElement } = {};
+
+  _lastThread?: Thread;
+
   constructor() {
     super();
-    this.currentMatch = null;
-    this.matches = [];
-    this.globalIndex = null; // null means nothing is selected
-    this.scrollAncestor = null;
-
-    // null and empty string are different. Null means that search isn't
-    // even activated. Empty string means we're active but just not
-    // searching anything.
-    this.searchTerm = null;
-
-    this.searchRegions = {};
 
     this._lastThread = FocusedContentStore.focused('thread');
 
@@ -102,9 +105,9 @@ class SearchableComponentStore extends MailspringStore {
           const iframeRect = node.getBoundingClientRect();
           topOffset = iframeRect.top;
           leftOffset = iframeRect.left;
-          refNode = node.contentDocument.body;
+          refNode = (node as HTMLIFrameElement).contentDocument.body;
           if (!refNode) {
-            refNode = node.contentDocument;
+            refNode = (node as HTMLIFrameElement).contentDocument;
           }
         } else {
           refNode = node;

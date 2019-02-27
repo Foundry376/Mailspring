@@ -6,14 +6,19 @@ import SearchMatch from './search-match';
 import UnifiedDOMParser from './unified-dom-parser';
 
 export default class VirtualDOMParser extends UnifiedDOMParser {
-  getWalker(dom) {
+  getWalker(dom): Iterable<HTMLElement> {
     const pruneFn = node => {
       return node.type === 'style';
     };
-    return VirtualDOMUtils.walk({ element: dom, pruneFn });
+    return VirtualDOMUtils.walk({
+      element: dom,
+      pruneFn,
+      parentNode: undefined,
+      childOffset: undefined,
+    });
   }
 
-  isTextNode({ element }) {
+  isTextNode({ element }): boolean {
     return typeof element === 'string';
   }
 
@@ -42,7 +47,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
     return _.pluck(fullString, 'element').join('');
   }
 
-  removeMatchesAndNormalize(element) {
+  removeMatchesAndNormalize(element: any) {
     let newChildren = [];
     let strAccumulator = [];
 
@@ -59,13 +64,13 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
       if (_.isArray(element)) {
         children = element;
       } else {
-        children = element.props.children;
+        children = (element.props as any).children;
       }
 
       if (!children) {
         newChildren = null;
       } else if (React.isValidElement(children)) {
-        newChildren = children;
+        newChildren = children as any;
       } else if (typeof children === 'string') {
         strAccumulator.push(children);
       } else if (children.length > 0) {
@@ -117,7 +122,7 @@ export default class VirtualDOMParser extends UnifiedDOMParser {
       if (_.isArray(element)) {
         children = element;
       } else {
-        children = element.props.children;
+        children = (element.props as any).children;
       }
 
       const matchNode = matchNodeMap.get(element);

@@ -34,7 +34,7 @@ class OpenTrackingMessagePopover extends React.Component {
 
   render() {
     return (
-      <div className="open-tracking-message-popover" tabIndex="-1">
+      <div className="open-tracking-message-popover" tabIndex={-1}>
         <div className="open-tracking-header">{localized('Opened by')}:</div>
         <div className="open-history-container">{this.renderOpenActions()}</div>
       </div>

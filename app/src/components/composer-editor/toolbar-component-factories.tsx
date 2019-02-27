@@ -297,7 +297,7 @@ export function BuildColorPicker(config) {
 
       return (
         <div
-          tabIndex="-1"
+          tabIndex={-1}
           onBlur={this._onBlur}
           ref={el => (this._el = el)}
           className={this.props.className}

@@ -16,9 +16,7 @@
  * Note that there is one registry per window.
  */
 export default class SerializableRegistry {
-  constructor() {
-    this._constructorFactories = {};
-  }
+  _constructorFactories = {};
 
   get(name) {
     return this._constructorFactories[name].call(null);

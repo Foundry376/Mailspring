@@ -531,7 +531,7 @@ export default class ComposerView extends React.Component {
               this._els.composerWrap = el;
             }
           }}
-          tabIndex="-1"
+          tabIndex={-1}
         >
           <TabGroupRegion className="composer-inner-wrap">
             <DropZone

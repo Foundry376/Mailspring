@@ -1,10 +1,11 @@
-import { React, PropTypes, Utils } from 'mailspring-exports';
+import { PropTypes, Utils } from 'mailspring-exports';
+import React from 'react';
 
 type FlexboxProps = {
-  direction?: string,
-  inline?: boolean,
-  style?: object,
-  height?: string
+  direction?: string;
+  inline?: boolean;
+  style?: object;
+  height?: string;
 };
 /*
 Public: A simple wrapper that provides a Flexbox layout with the given direction and style.
@@ -12,7 +13,9 @@ Any additional props you set on the Flexbox are rendered.
 
 Section: Component Kit
 */
-export default class Flexbox extends React.Component<FlexboxProps> {
+export default class Flexbox extends React.Component<
+  FlexboxProps & React.HTMLProps<HTMLDivElement>
+> {
   static displayName = 'Flexbox';
 
   /*
@@ -49,7 +52,7 @@ export default class Flexbox extends React.Component<FlexboxProps> {
       style.display = 'inline-flex';
     }
 
-    const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = Utils.fastOmit(this.props, Object.keys(Flexbox.propTypes));
 
     return (
       <div style={style} {...otherProps}>

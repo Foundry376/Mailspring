@@ -1,6 +1,7 @@
+import React from 'react';
 import moment from 'moment';
 import classnames from 'classnames';
-import { React, PropTypes, Utils } from 'mailspring-exports';
+import { PropTypes, Utils } from 'mailspring-exports';
 import CalendarEvent from './calendar-event';
 
 /*

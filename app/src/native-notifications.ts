@@ -12,10 +12,15 @@ if (platform === 'darwin') {
   }
 }
 
+type INotificationCallback = (
+  args: { response: string | null; activationType: 'replied' | 'clicked' }
+) => any;
+
 class NativeNotifications {
+  _macNotificationsByTag = {};
+
   constructor() {
     if (MacNotifierNotification) {
-      this._macNotificationsByTag = {};
       AppEnv.onBeforeUnload(() => {
         Object.keys(this._macNotificationsByTag).forEach(key => {
           this._macNotificationsByTag[key].close();
@@ -35,7 +40,21 @@ class NativeNotifications {
     return false;
   }
 
-  displayNotification({ title, subtitle, body, tag, canReply, onActivate = () => {} } = {}) {
+  displayNotification({
+    title,
+    subtitle,
+    body,
+    tag,
+    canReply,
+    onActivate = args => {},
+  }: {
+    title?: string;
+    subtitle?: string;
+    body?: string;
+    tag?: string;
+    canReply?: boolean;
+    onActivate?: INotificationCallback;
+  } = {}) {
     let notif = null;
 
     if (this.doNotDisturb()) {

@@ -2,6 +2,20 @@ import _ from 'underscore';
 import { localized } from 'mailspring-exports';
 
 export class Comparator {
+  name: string;
+  arrayMatchFn: any;
+  fn: any;
+
+  static get Default() {
+    return new Comparator(
+      {
+        name: 'Default',
+        arrayMatchFn: Array.prototype.some,
+      },
+      ({ actual, desired }) => _.isEqual(actual, desired)
+    );
+  }
+
   constructor({ name, arrayMatchFn }, fn) {
     this.name = name;
     this.fn = fn;
@@ -15,14 +29,6 @@ export class Comparator {
     return this.fn({ actual, desired });
   }
 }
-
-Comparator.Default = new Comparator(
-  {
-    name: 'Default',
-    arrayMatchFn: Array.prototype.some,
-  },
-  ({ actual, desired }) => _.isEqual(actual, desired)
-);
 
 const Types = {
   None: 'None',
@@ -111,6 +117,13 @@ export class Template {
   static Type = Types;
   static Comparator = Comparator;
   static Comparators = Comparators;
+
+  key: string;
+  name: string;
+  type: string;
+  values: string[] | undefined;
+  valueLabel: string | undefined;
+  comparators: {};
 
   constructor(key, type, options = {}) {
     this.key = key;

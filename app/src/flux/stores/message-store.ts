@@ -12,6 +12,16 @@ import electron from 'electron';
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
 
 class MessageStore extends MailspringStore {
+  static FolderNamesHiddenByDefault = FolderNamesHiddenByDefault;
+
+  _showingHiddenItems: boolean = false;
+  _items?: Message[];
+  _thread?: Thread;
+  _itemsExpanded: { [messageId: string]: 'explicit' | 'default' };
+  _itemsLoading: boolean;
+  _lastMarkedAsReadThreadId?: string;
+  _onFocusChangedTimer?: NodeJS.Timeout;
+
   constructor() {
     super();
     this._setStoreDefaults();
@@ -215,7 +225,6 @@ class MessageStore extends MailspringStore {
             threads: [this._thread],
             source: 'Thread Selected',
             canBeUndone: false,
-            unread: false,
           })
         );
       }, markAsReadDelay);
@@ -261,7 +270,7 @@ class MessageStore extends MailspringStore {
     delete this._itemsExpanded[item.id];
   }
 
-  _fetchFromCache(options) {
+  _fetchFromCache(options = null) {
     if (options == null) options = {};
     if (!this._thread) return;
 
@@ -386,6 +395,4 @@ class MessageStore extends MailspringStore {
   }
 }
 
-const store = new MessageStore();
-store.FolderNamesHiddenByDefault = FolderNamesHiddenByDefault;
-export default store;
+export default new MessageStore();

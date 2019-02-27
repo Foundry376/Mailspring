@@ -10,11 +10,13 @@ type RequestIdleCallbackDeadline = {
 export {};
 
 declare global {
-  var AppEnv: any;
-
+  var AppEnv: import('../app-env').default;
+  
   interface Window {
     $m: any;
-
+    AppEnv: import('../app-env').default;
+    jasmine: any;
+    
     requestIdleCallback: ((
       callback: ((deadline: RequestIdleCallbackDeadline) => void),
       opts?: RequestIdleCallbackOptions

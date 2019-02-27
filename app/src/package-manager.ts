@@ -9,6 +9,8 @@ export default class PackageManager {
   waiting: Package[] = [];
   available: { [packageName: string]: Package } = {};
   active: { [packageName: string]: Package } = {};
+  resourcePath: string;
+  configDirPath: string;
 
   constructor({ configDirPath, devMode, safeMode, resourcePath, specMode }) {
     this.resourcePath = resourcePath;

@@ -112,7 +112,7 @@ export function wordSearchRegExp(str = '') {
 // Takes an optional customizer. The customizer is passed the key and the
 // new cloned value for that key. The customizer is expected to either
 // modify the value and return it or simply be the identity function.
-export function deepClone(object, customizer, stackSeen = [], stackRefs = []) {
+export function deepClone(object, customizer?, stackSeen = [], stackRefs = []) {
   let newObject;
   if (!_.isObject(object)) {
     return object;
@@ -315,7 +315,7 @@ export function subjectWithPrefix(subject, prefix) {
 }
 
 // True of all arguments have the same domains
-export function emailsHaveSameDomain(...args) {
+export function emailsHaveSameDomain(...args: string[]) {
   if (args.length < 2) {
     return false;
   }

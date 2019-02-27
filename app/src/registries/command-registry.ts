@@ -1,13 +1,12 @@
 import { Emitter, Disposable, CompositeDisposable } from 'event-kit';
 
 export default class CommandRegistry {
-  constructor() {
-    this.emitter = new Emitter();
-    this.listenerCounts = {};
-    this.listenerCountChanges = {};
-  }
+  emitter = new Emitter();
+  listenerCounts = {};
+  listenerCountChanges = {};
+  pendingEmit: boolean = false;
 
-  add(target, commandName, callback) {
+  add(target: Element, commandName: string | object, callback?) {
     if (typeof commandName === 'object') {
       const commands = commandName;
       const disposable = new CompositeDisposable();
@@ -39,7 +38,7 @@ export default class CommandRegistry {
     });
   }
 
-  listenerCountForCommand(commandName) {
+  listenerCountForCommand(commandName: string) {
     return (this.listenerCounts[commandName] || 0) + (this.listenerCountChanges[commandName] || 0);
   }
 
@@ -52,7 +51,7 @@ export default class CommandRegistry {
   //
   // * `target` The DOM node at which to start bubbling the command event.
   // * `commandName` {String} indicating the name of the command to dispatch.
-  dispatch(commandName, detail) {
+  dispatch(commandName: string, detail?) {
     const event = new CustomEvent(commandName, { bubbles: true, detail });
     return document.activeElement.dispatchEvent(event);
   }

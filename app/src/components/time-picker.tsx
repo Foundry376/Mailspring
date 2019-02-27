@@ -6,16 +6,16 @@ import classnames from 'classnames';
 
 require('moment-round'); // overrides moment
 
-const INTERVAL = [30, 'minutes'];
+const INTERVAL: [any, string] = [30, 'minutes'];
 
 type TimePickerProps = {
-  value?: number,
-  onChange?: (...args: any[]) => any,
-  relativeTo?: number
+  value?: number;
+  onChange?: (...args: any[]) => any;
+  relativeTo?: number;
 };
 type TimePickerState = {
-  rawText: any,
-  focused: boolean,
+  rawText: any;
+  focused: boolean;
 };
 
 export default class TimePicker extends React.Component<TimePickerProps, TimePickerState> {
@@ -35,6 +35,8 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     value: moment().valueOf(),
     onChange: () => {},
   };
+
+  _gotoScrollStartOnUpdate: boolean = false;
 
   constructor(props) {
     super(props);
@@ -92,7 +94,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   _onFocus = () => {
     this.setState({ focused: true });
     this._gotoScrollStartOnUpdate = true;
-    const el = ReactDOM.findDOMNode(this.refs.input);
+    const el = ReactDOM.findDOMNode(this.refs.input) as HTMLInputElement;
     el.setSelectionRange(0, el.value.length);
   };
 
@@ -137,8 +139,8 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
 
   _fixTimeOptionScroll() {
     this._gotoScrollStartOnUpdate = false;
-    const el = ReactDOM.findDOMNode(this);
-    const scrollTo = el.querySelector('.scroll-start');
+    const el = ReactDOM.findDOMNode(this) as HTMLElement;
+    const scrollTo = el.querySelector('.scroll-start') as HTMLElement;
     const scrollWrap = el.querySelector('.time-options');
     if (scrollTo && scrollWrap) {
       scrollWrap.scrollTop = scrollTo.offsetTop;
@@ -184,7 +186,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
         'scroll-start': timeIter.isSame(firstVisibleMoment),
       });
 
-      let relTxt = false;
+      let relTxt: React.ReactElement | null = null;
       if (this.props.relativeTo) {
         relTxt = (
           <span className="rel-text">{`(${timeIter.diff(relStart, 'hours', true)}hr)`}</span>

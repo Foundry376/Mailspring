@@ -1,20 +1,22 @@
-import { React, ReactDOM, PropTypes, Utils, ComponentRegistry } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes, Utils, ComponentRegistry } from 'mailspring-exports';
 
 import InjectedComponentErrorBoundary from './injected-component-error-boundary';
 import InjectedComponentLabel from './injected-component-label';
 
 type InjectedComponentProps = {
-  matching: object,
-  className?: string,
-  exposedProps?: object,
-  fallback?: (...args: any[]) => any,
-  style?: object,
-  requiredMethods?: string[],
-  onComponentDidChange?: (...args: any[]) => any
+  matching: object;
+  className?: string;
+  exposedProps?: object;
+  fallback?: (...args: any[]) => any;
+  style?: object;
+  requiredMethods?: string[];
+  onComponentDidChange?: (...args: any[]) => any;
 };
 type InjectedComponentState = {
-  component: any,
-  visible: any,
+  component: any;
+  visible: any;
 };
 
 /**
@@ -36,7 +38,10 @@ If no matching component is found, the InjectedComponent renders an empty div.
 
 Section: Component Kit
  */
-export default class InjectedComponent extends React.Component<InjectedComponentProps, InjectedComponentState> {
+export default class InjectedComponent extends React.Component<
+  InjectedComponentProps,
+  InjectedComponentState
+> {
   static displayName = 'InjectedComponent';
 
   /*

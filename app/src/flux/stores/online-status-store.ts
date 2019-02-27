@@ -7,15 +7,16 @@ let isOnlineModule = null;
 const CHECK_ONLINE_INTERVAL = 30 * 1000;
 
 class OnlineStatusStore extends MailspringStore {
+  _online = true;
+  _countdownSeconds = 0;
+
+  _interval = null;
+  _timeout = null;
+  _timeoutTargetTime = null;
+  _backoffScheduler = new ExponentialBackoffScheduler({ jitter: false });
+
   constructor() {
     super();
-    this._online = true;
-    this._countdownSeconds = 0;
-
-    this._interval = null;
-    this._timeout = null;
-    this._timeoutTargetTime = null;
-    this._backoffScheduler = new ExponentialBackoffScheduler({ jitter: false });
 
     if (AppEnv.isMainWindow()) {
       Actions.checkOnlineStatus.listen(this._checkOnlineStatus);

@@ -7,12 +7,19 @@ import Toolbar from './sheet-toolbar';
 import Flexbox from './components/flexbox';
 import InjectedComponentSet from './components/injected-component-set';
 
-export default class SheetContainer extends React.Component {
+interface SheetContainerState {
+  stack: SheetDeclaration[];
+  mode: string;
+}
+
+export default class SheetContainer extends React.Component<{}, SheetContainerState> {
   static displayName = 'SheetContainer';
+
+  _toolbarComponents = {};
+  unsubscribe?: () => void;
 
   constructor(props) {
     super(props);
-    this._toolbarComponents = {};
     this.state = this._getStateFromStores();
   }
 
@@ -69,7 +76,7 @@ export default class SheetContainer extends React.Component {
       />
     ));
     return (
-      <div name="Toolbar" style={{ order: 0, zIndex: 3 }} className="sheet-toolbar">
+      <div style={{ order: 0, zIndex: 3 }} className="sheet-toolbar">
         {components[0]}
         <CSSTransitionGroup
           transitionLeaveTimeout={125}

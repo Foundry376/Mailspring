@@ -14,9 +14,11 @@ function createContainer(id) {
 }
 
 class ModalStore extends MailspringStore {
+  isOpen = false;
+  container: HTMLElement;
+  
   constructor(containerId = CONTAINER_ID) {
     super();
-    this.isOpen = false;
     this.container = createContainer(containerId);
     ReactDOM.render(<span />, this.container);
 

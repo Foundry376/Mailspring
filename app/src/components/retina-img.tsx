@@ -1,5 +1,6 @@
 import _ from 'underscore';
-import { React, Utils } from 'mailspring-exports';
+import React from 'react';
+import { Utils, PropTypes } from 'mailspring-exports';
 
 const StylesImpactedByZoom = [
   'top',
@@ -90,9 +91,21 @@ type RetinaImgProps = {
   resourcePath?: string;
 };
 
-class RetinaImg extends React.Component<RetinaImgProps> {
+class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<HTMLImageElement>> {
   static displayName = 'RetinaImg';
   static Mode = Mode;
+
+  static propTypes = {
+    mode: PropTypes.string.isRequired,
+    name: PropTypes.string,
+    url: PropTypes.string,
+    className: PropTypes.string,
+    style: PropTypes.object,
+    fallback: PropTypes.string,
+    selected: PropTypes.bool,
+    active: PropTypes.bool,
+    resourcePath: PropTypes.string,
+  };
 
   shouldComponentUpdate = nextProps => {
     return !_.isEqual(this.props, nextProps);
@@ -120,10 +133,10 @@ class RetinaImg extends React.Component<RetinaImgProps> {
     let className = this.props.className || '';
 
     const style = this.props.style || {};
-    style.WebkitUserDrag = 'none';
+    (style as any).WebkitUserDrag = 'none';
     style.zoom = pathIsRetina ? 0.5 : 1;
-    if (style.width) style.width /= style.zoom;
-    if (style.height) style.height /= style.zoom;
+    if (style.width) style.width = Number(style.width) / style.zoom;
+    if (style.height) style.height = Number(style.height) / style.zoom;
 
     if (this.props.mode === Mode.ContentIsMask) {
       style.WebkitMaskImage = `url('${path}')`;
@@ -143,7 +156,7 @@ class RetinaImg extends React.Component<RetinaImgProps> {
       }
     }
 
-    const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = Utils.fastOmit(this.props, Object.keys(RetinaImg.propTypes));
     return (
       <img alt={this.props.name} className={className} src={path} style={style} {...otherProps} />
     );

@@ -99,7 +99,7 @@ class SnoozePopover extends Component {
     const rows = SnoozeOptions.map(this.renderRow);
 
     return (
-      <div className="snooze-popover" tabIndex="-1">
+      <div className="snooze-popover" tabIndex={-1}>
         {rows}
         <DateInput
           className="snooze-input"

@@ -1,28 +1,34 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Rx from 'rx-lite';
+import Rx, { Disposable } from 'rx-lite';
 import { Flexbox } from 'mailspring-component-kit';
 
 import { Template } from './scenario-editor-models';
 
 const SOURCE_SELECT_NULL = 'NULL';
 
+interface Item {
+  value: string;
+  name: string;
+}
 type SourceSelectProps = {
-  value?: string,
-  onChange: (...args: any[]) => any,
-  options: object | any[]
+  value?: string;
+  onChange: (...args: any[]) => any;
+  options: Rx.Observable<Item[]> | Item[];
 };
 type SourceSelectState = {
-  options: any[]
+  options: Item[];
 };
 
-class SourceSelect extends React.Component<SourceSelectProps,  SourceSelectState> {
+class SourceSelect extends React.Component<SourceSelectProps, SourceSelectState> {
   static displayName = 'SourceSelect';
   static propTypes = {
     value: PropTypes.string,
     onChange: PropTypes.func.isRequired,
     options: PropTypes.oneOfType([PropTypes.object, PropTypes.array]).isRequired,
   };
+
+  _subscription?: Disposable;
 
   constructor(props) {
     super(props);
@@ -51,10 +57,12 @@ class SourceSelect extends React.Component<SourceSelectProps,  SourceSelectState
       this._subscription.dispose();
     }
     this._subscription = null;
-    if (props.options instanceof Rx.Observable) {
-      this._subscription = props.options.subscribe(options => this.setState({ options }));
+    if (props.options instanceof (Rx.Observable as any)) {
+      this._subscription = (props.options as Rx.Observable<Item[]>).subscribe(options =>
+        this.setState({ options })
+      );
     } else {
-      this.setState({ options: props.options });
+      this.setState({ options: props.options as Item[] });
     }
   }
 
@@ -84,7 +92,15 @@ class SourceSelect extends React.Component<SourceSelectProps,  SourceSelectState
   }
 }
 
-export default class ScenarioEditorRow extends React.Component {
+interface ScenarioEditorRowProps {
+  instance: { templateKey: string; comparatorKey: string; value: string };
+  removable: boolean;
+  templates: Template[];
+  onChange: (item: object) => void;
+  onInsert: (item: object) => void;
+  onRemove: () => void;
+}
+export default class ScenarioEditorRow extends React.Component<ScenarioEditorRowProps> {
   static displayName = 'ScenarioEditorRow';
   static propTypes = {
     instance: PropTypes.object.isRequired,
@@ -184,7 +200,7 @@ export default class ScenarioEditorRow extends React.Component {
     return (
       <Flexbox direction="row" className="well-row">
         <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap' }}>
-          {this._renderTemplateSelect(template)}
+          {this._renderTemplateSelect()}
           {this._renderComparator(template)}
           <span>{template.valueLabel}</span>
           {this._renderValue(template)}

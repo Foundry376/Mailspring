@@ -1,5 +1,6 @@
 import classNames from 'classnames';
-import { React, PropTypes, Utils, DraftStore, ComponentRegistry } from 'mailspring-exports';
+import React from 'react';
+import { PropTypes, Utils, DraftStore, ComponentRegistry } from 'mailspring-exports';
 
 import MessageItem from './message-item';
 

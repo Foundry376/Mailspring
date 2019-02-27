@@ -46,7 +46,7 @@ class LazyRenderedList extends Component {
   }
 
   updateRangeState(props) {
-    const { scrollTop } = findDOMNode(this);
+    const { scrollTop } = findDOMNode(this) as HTMLElement;
     this.setState(this.getRangeState({ ...props, scrollTop }));
   }
 

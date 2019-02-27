@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import { exec } from 'child_process';
-import { React, PropTypes, ReactDOM, Utils } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes, Utils } from 'mailspring-exports';
 
 // This is a stripped down version of
 // https://github.com/michaelvillar/dynamics.js/blob/master/src/dynamics.coffee#L1179,
@@ -44,30 +46,32 @@ if (process.platform === 'darwin') {
   // vertical, not horizontal, behavior.
 }
 
-
 type SwipeContainerProps = {
-  shouldEnableSwipe?: (...args: any[]) => any,
-  onSwipeLeft?: (...args: any[]) => any,
-  onSwipeLeftClass?: string | ((...args: any[]) => any),
-  onSwipeRight?: (...args: any[]) => any,
-  onSwipeRightClass?: string | ((...args: any[]) => any),
-  onSwipeCenter?: (...args: any[]) => any
+  shouldEnableSwipe?: (...args: any[]) => any;
+  onSwipeLeft?: (...args: any[]) => any;
+  onSwipeLeftClass?: string | ((...args: any[]) => any);
+  onSwipeRight?: (...args: any[]) => any;
+  onSwipeRightClass?: string | ((...args: any[]) => any);
+  onSwipeCenter?: (...args: any[]) => any;
 };
 type SwipeContainerState = {
-  targetX: number,
-  settleStartTime: number,
-  currentX: any,
-  targetX: any,
-  thresholdDistance: string,
-  fullDistance: string,
-  currentX: any,
-  lastDragX: any,
-  fullDistance: string,
-  currentX: number,
-  targetX: number
+  targetX: number;
+  settleStartTime: number;
+  currentX: any;
+  targetX: any;
+  thresholdDistance: string;
+  fullDistance: string;
+  currentX: any;
+  lastDragX: any;
+  fullDistance: string;
+  currentX: number;
+  targetX: number;
 };
 
-export default class SwipeContainer extends React.Component<SwipeContainerProps, SwipeContainerState> {
+export default class SwipeContainer extends React.Component<
+  SwipeContainerProps,
+  SwipeContainerState
+> {
   static displayName = 'SwipeContainer';
 
   static propTypes = {

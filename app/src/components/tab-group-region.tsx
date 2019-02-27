@@ -22,7 +22,7 @@ class TabGroupRegion extends React.Component {
   };
 
   shiftFocus = dir => {
-    const nodes = ReactDOM.findDOMNode(this).querySelectorAll(
+    const nodes = (ReactDOM.findDOMNode(this) as Element).querySelectorAll(
       'input, textarea, [contenteditable], [tabIndex]'
     );
     const current = document.activeElement;

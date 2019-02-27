@@ -1,5 +1,7 @@
 import { EventedIFrame } from 'mailspring-component-kit';
-import { React, ReactDOM, PropTypes, Utils } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes, Utils } from 'mailspring-exports';
 
 export default class EmailFrame extends React.Component {
   static displayName = 'EmailFrame';

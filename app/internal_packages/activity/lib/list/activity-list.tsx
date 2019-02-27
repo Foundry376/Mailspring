@@ -90,7 +90,7 @@ class ActivityList extends React.Component {
       empty: empty,
     });
     return (
-      <Flexbox direction="column" height="none" className={classes} tabIndex="-1">
+      <Flexbox direction="column" height="none" className={classes} tabIndex={-1}>
         <ScrollRegion style={{ height: '100%' }}>{this.renderActions()}</ScrollRegion>
         {!empty && (
           <a className="activity-summary-cta" onClick={this._onViewSummary}>

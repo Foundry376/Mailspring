@@ -39,10 +39,10 @@ const isSelectionPresent = () => {
 
 // Handles low-level events related to the window.
 export default class WindowEventHandler {
-  constructor() {
-    this.unloadCallbacks = [];
-    this.unloadCompleteCallbacks = [];
+  unloadCallbacks = [];
+  unloadCompleteCallbacks = [];
 
+  constructor() {
     setTimeout(() => this.showDevModeMessages(), 1);
 
     ipcRenderer.on('update-available', (event, detail) => AppEnv.updateAvailable(detail));
@@ -150,7 +150,7 @@ export default class WindowEventHandler {
     // "Pinch to zoom" on the Mac gets translated by the system into a
     // "scroll with ctrl key down". To prevent the page from zooming in,
     // prevent default when the ctrlKey is detected.
-    document.addEventListener('mousewheel', event => {
+    document.addEventListener('mousewheel', (event: WheelEvent) => {
       if (event.ctrlKey) {
         event.preventDefault();
       }
@@ -160,21 +160,21 @@ export default class WindowEventHandler {
 
     document.addEventListener('dragover', this.onDragOver);
 
-    document.addEventListener('click', event => {
-      if (event.target.closest('[href]')) {
+    document.addEventListener('click', (event: UIEvent) => {
+      if ((event.target as HTMLElement).closest('[href]')) {
         this.openLink(event);
       }
     });
 
     document.addEventListener('contextmenu', event => {
-      if (event.target.nodeName === 'INPUT') {
+      if ((event.target as HTMLElement).nodeName === 'INPUT') {
         this.openContextualMenuForInput(event);
       }
     });
 
     // Prevent form submits from changing the current window's URL
     document.addEventListener('submit', event => {
-      if (event.target.nodeName === 'FORM') {
+      if ((event.target as HTMLElement).nodeName === 'FORM') {
         event.preventDefault();
       }
     });
@@ -267,7 +267,17 @@ export default class WindowEventHandler {
     return closestHrefEl ? closestHrefEl.getAttribute('href') : null;
   }
 
-  openLink({ href, target, currentTarget, metaKey }) {
+  openLink({
+    href,
+    target,
+    currentTarget,
+    metaKey,
+  }: {
+    href?: string;
+    target?: HTMLElement;
+    currentTarget?: HTMLElement;
+    metaKey?: boolean;
+  }) {
     let resolved = href || this.resolveHref(target || currentTarget);
     if (!resolved) {
       return;
@@ -328,7 +338,7 @@ export default class WindowEventHandler {
     const word = event.target.value.substr(wordStart, wordEnd - wordStart);
 
     this.openSpellingMenuFor(word, hasSelectedText, {
-      onCorrect: correction => {
+      onCorrect: (correction: string) => {
         const insertionPoint = wordStart + correction.length;
         event.target.value = event.target.value.replace(word, correction);
         event.target.setSelectionRange(insertionPoint, insertionPoint);
@@ -336,7 +346,14 @@ export default class WindowEventHandler {
     });
   }
 
-  openSpellingMenuFor(word, hasSelectedText, { onCorrect, onRestoreSelection = () => {} }) {
+  openSpellingMenuFor(
+    word,
+    hasSelectedText,
+    {
+      onCorrect,
+      onRestoreSelection = () => {},
+    }: { onCorrect?: (correction: string) => void; onRestoreSelection?: () => void }
+  ) {
     const { Menu, MenuItem } = remote;
     const menu = new Menu();
 

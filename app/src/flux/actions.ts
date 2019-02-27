@@ -62,12 +62,17 @@ const scopes = {
   main: [],
 };
 
+type ActionFn = (...args: any[]) => void;
+interface Action extends ActionFn {
+  listen: (callback: (...args: any[]) => any, thisObj?: object) => () => void;
+}
+
 const create = (name, scope: 'window' | 'global' | 'main') => {
   const obj = Reflux.createAction(name);
   obj.scope = scope;
   obj.sync = true;
   scopes[scope].push(obj);
-  return obj as (...args: any[]) => void;
+  return obj as Action;
 };
 
 export default class Actions {

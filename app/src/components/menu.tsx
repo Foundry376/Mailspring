@@ -1,11 +1,15 @@
 import classNames from 'classnames';
 import _ from 'underscore';
-import { React, ReactDOM, PropTypes, DOMUtils } from 'mailspring-exports';
+import React, { HTMLProps } from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes, DOMUtils } from 'mailspring-exports';
 
 type MenuItemProps = {
+  onMouseDown?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   divider?: string | boolean;
   selected?: boolean;
   checked?: boolean;
+  content: any;
 };
 
 type MenuNameEmailItemProps = {
@@ -28,8 +32,7 @@ type MenuProps = {
 };
 
 type MenuState = {
-  selectedIndex: any;
-  selectedIndex: any;
+  selectedIndex: number;
 };
 
 /*
@@ -135,8 +138,11 @@ component's Menu instance:
 
 Section: Component Kit
 */
-class Menu extends React.Component<MenuProps, MenuState> {
+class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>, MenuState> {
   static displayName = 'Menu';
+
+  static Item = MenuItem;
+  static NameEmailItem = MenuNameEmailItem;
 
   /*
     Public: React `props` supported by Menu:
@@ -262,8 +268,9 @@ class Menu extends React.Component<MenuProps, MenuState> {
     if ((this.props.items || []).length === 0) {
       return;
     }
-    const item = ReactDOM.findDOMNode(this).querySelector('.selected');
-    const container = ReactDOM.findDOMNode(this).querySelector('.content-container');
+    const el = ReactDOM.findDOMNode(this) as HTMLElement;
+    const item = el.querySelector('.selected');
+    const container = el.querySelector('.content-container');
     const adjustment = DOMUtils.scrollAdjustmentToMakeNodeVisibleInContainer(item, container);
     if (adjustment !== 0) {
       container.scrollTop += adjustment;
@@ -275,7 +282,7 @@ class Menu extends React.Component<MenuProps, MenuState> {
     const fc = this.props.footerComponents || <span />;
     const className = this.props.className ? this.props.className : '';
     return (
-      <div onKeyDown={this._onKeyDown} className={`menu ${className}`} tabIndex="-1">
+      <div onKeyDown={this._onKeyDown} className={`menu ${className}`} tabIndex={-1}>
         <div className="header-container">{hc}</div>
         {this._contentContainer()}
         <div className="footer-container">{fc}</div>
@@ -391,8 +398,5 @@ class Menu extends React.Component<MenuProps, MenuState> {
     this.props.onEscape();
   };
 }
-
-Menu.Item = MenuItem;
-Menu.NameEmailItem = MenuNameEmailItem;
 
 export default Menu;

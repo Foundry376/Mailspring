@@ -1,10 +1,10 @@
 import React from 'react';
 
 const VirtualDOMUtils = {
-  *walk({ element, parentNode, childOffset, pruneFn = () => {} }) {
+  *walk({ element, parentNode, childOffset, pruneFn = (element: any) => true }) {
     yield { element, parentNode, childOffset };
     if (React.isValidElement(element) && !pruneFn(element)) {
-      const children = element.props.children;
+      const children = (element.props as any).children;
       if (!children) {
         return;
       } else if (typeof children === 'string') {

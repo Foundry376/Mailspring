@@ -6,11 +6,15 @@ import { ipcRenderer } from 'electron';
 import { Disposable } from 'event-kit';
 import * as Utils from './flux/models/utils';
 import * as MenuHelpers from './menu-helpers';
+import { IMenuItem } from './menu-helpers';
 
 export default class MenuManager {
+  resourcePath: string;
+  template: IMenuItem[] = [];
+  pendingUpdateOperation: boolean;
+
   constructor({ resourcePath }) {
     this.resourcePath = resourcePath;
-    this.template = [];
     this.loadPlatformItems();
 
     AppEnv.keymaps.onDidReloadKeymap(() => this.update());

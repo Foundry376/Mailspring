@@ -1,4 +1,6 @@
-import { React, ReactDOM, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes } from 'mailspring-exports';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 import { calcColor } from './calendar-helpers';
 

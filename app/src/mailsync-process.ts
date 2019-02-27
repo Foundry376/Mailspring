@@ -3,7 +3,7 @@
 /*
 Warning! This file is imported from the main process as well as the renderer process
 */
-import { spawn, exec } from 'child_process';
+import { spawn, exec, ChildProcess } from 'child_process';
 import { Readable } from 'stream';
 import path from 'path';
 import os from 'os';
@@ -71,18 +71,24 @@ export const LocalizedErrorStrings = {
 };
 
 export default class MailsyncProcess extends EventEmitter {
+  _proc: ChildProcess = null;
+  _win = null;
+
+  // these must be set before you use the process
+  account = null;
+  identity = null;
+
+  verbose: boolean;
+  resourcePath: string;
+  configDirPath: string;
+  binaryPath: string;
+
   constructor({ configDirPath, resourcePath, verbose }) {
     super();
     this.verbose = verbose;
     this.resourcePath = resourcePath;
     this.configDirPath = configDirPath;
     this.binaryPath = path.join(resourcePath, 'mailsync').replace('app.asar', 'app.asar.unpacked');
-    this._proc = null;
-    this._win = null;
-
-    // these must be set before you use the process
-    this.account = null;
-    this.identity = null;
   }
 
   _showStatusWindow(mode) {
@@ -145,7 +151,7 @@ export default class MailsyncProcess extends EventEmitter {
     the channel. */
     if (this._proc.stdin) {
       this._proc.stdin.setDefaultEncoding('utf-8');
-      this._proc.stdin.highWaterMark = 1024 * 1024;
+      (this._proc.stdin as any).highWaterMark = 1024 * 1024;
     }
 
     // stdout may not be present if an error occurred. Error handler hasn't been
@@ -160,8 +166,8 @@ export default class MailsyncProcess extends EventEmitter {
     }
   }
 
-  _spawnAndWait(mode, { onData } = {}) {
-    return new Promise((resolve, reject) => {
+  _spawnAndWait(mode, { onData }: { onData?: (data: any) => void } = {}) {
+    return new Promise<{ response: any; buffer: Buffer }>((resolve, reject) => {
       this._spawnProcess(mode);
       let buffer = Buffer.from([]);
 
@@ -208,14 +214,14 @@ export default class MailsyncProcess extends EventEmitter {
               msg = `${msg} (${response.error_service.toUpperCase()})`;
             }
             const error = new Error(msg);
-            error.rawLog = stripSecrets(response.log);
+            (error as any).rawLog = stripSecrets(response.log);
             reject(error);
           }
         } catch (err) {
           const error = new Error(
             `${localized(`An unknown error has occurred`)} (mailsync: ${code})`
           );
-          error.rawLog = stripSecrets(buffer.toString());
+          (error as any).rawLog = stripSecrets(buffer.toString());
           reject(error);
         }
       });

@@ -481,7 +481,7 @@ class MessageList extends React.Component {
         <FindInThread />
         <div className={messageListClass} id="message-list">
           <ScrollRegion
-            tabIndex="-1"
+            tabIndex={-1}
             className={wrapClass}
             scrollbarTickProvider={SearchableComponentStore}
             scrollTooltipComponent={MessageListScrollTooltip}

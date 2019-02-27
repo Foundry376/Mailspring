@@ -4,9 +4,10 @@ import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import TaskQueue from './task-queue';
 
 class OutboxStore extends MailspringStore {
+  _tasks = [];
+
   constructor() {
     super();
-    this._tasks = [];
     this.listenTo(TaskQueue, this._populate);
     this._populate();
   }

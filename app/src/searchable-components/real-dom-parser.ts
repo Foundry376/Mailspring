@@ -15,7 +15,7 @@ export default class RealDOMParser extends UnifiedDOMParser {
     return;
   }
 
-  getWalker(dom) {
+  getWalker(dom: any): Iterable<HTMLElement> {
     const filterFn = node => {
       return node.nodeType === Node.TEXT_NODE;
     };
@@ -25,27 +25,27 @@ export default class RealDOMParser extends UnifiedDOMParser {
     return this._pruningDOMWalker({ node: dom, pruneFn, filterFn });
   }
 
-  isTextNode(node) {
+  isTextNode(node: any) {
     return node.nodeType === Node.TEXT_NODE;
   }
 
-  textNodeLength(textNode) {
+  textNodeLength(textNode: any) {
     return (textNode.data || '').length;
   }
 
-  textNodeContents(textNode) {
+  textNodeContents(textNode: any) {
     return textNode.data;
   }
 
-  looksLikeBlockElement(node) {
+  looksLikeBlockElement(node: any) {
     return DOMUtils.looksLikeBlockElement(node);
   }
 
-  getRawFullString(fullString) {
+  getRawFullString(fullString: any) {
     return _.pluck(fullString, 'data').join('');
   }
 
-  removeMatchesAndNormalize(element) {
+  removeMatchesAndNormalize(element: any) {
     const matches = element.querySelectorAll('search-match');
     if (matches.length === 0) {
       return null;
@@ -58,10 +58,10 @@ export default class RealDOMParser extends UnifiedDOMParser {
     return element;
   }
 
-  createTextNode({ rawText }) {
+  createTextNode({ rawText }: any) {
     return document.createTextNode(rawText);
   }
-  createMatchNode({ matchText, regionId, isCurrentMatch, renderIndex }) {
+  createMatchNode({ matchText, regionId, isCurrentMatch, renderIndex }: any) {
     const text = document.createTextNode(matchText);
     const newNode = document.createElement('search-match');
     const className = isCurrentMatch ? 'current-match' : '';
@@ -71,11 +71,11 @@ export default class RealDOMParser extends UnifiedDOMParser {
     newNode.appendChild(text);
     return newNode;
   }
-  textNodeKey(textElement) {
+  textNodeKey(textElement: any) {
     return textElement;
   }
 
-  highlightSearch(element, matchNodeMap) {
+  highlightSearch(element: any, matchNodeMap: any) {
     const walker = this.getWalker(element);
     // We have to expand the whole generator because we're mutating in
     // place

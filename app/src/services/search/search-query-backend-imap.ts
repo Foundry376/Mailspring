@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import { AndQueryExpression, SearchQueryExpressionVisitor } from './search-query-ast';
+import Folder from 'src/flux/models/folder';
 
 const TOP = 'top';
 
@@ -75,6 +76,8 @@ class IMAPSearchQueryFolderFinderVisitor extends SearchQueryExpressionVisitor {
 }
 
 class IMAPSearchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
+  _folder: Folder;
+
   constructor(folder) {
     super();
     this._folder = folder;
@@ -117,7 +120,7 @@ class IMAPSearchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitDate(node) {
-    throw new Error('Function not implemented!', node);
+    throw new Error(`Function not implemented!: ${node}`);
   }
 
   visitTo(node) {
