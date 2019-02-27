@@ -4,7 +4,7 @@ import { ipcRenderer, remote } from 'electron';
 import _ from 'underscore';
 
 import Task from './tasks/task';
-import SetObservableRangeTask from './tasks/set-observable-range-task';
+import SetObservableRangeTask from './models/set-observable-range-task';
 import TaskQueue from './stores/task-queue';
 import IdentityStore from './stores/identity-store';
 
@@ -366,6 +366,10 @@ export default class MailsyncBridge {
       ) {
         // Because we are using sync call, make sure the listener is very short
         console.log('Making sync call, this better be time sensitive operation');
+        if(!this._clients[task.accountId]){
+          console.log('client is already dead, we are ignoring this sync call');
+          return;
+        }
         ipcRenderer.sendSync(
           `mainProcess-sync-call`,
           task.needToBroadcastBeforeSendTask,
