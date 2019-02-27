@@ -25,6 +25,8 @@ import {
 import FindInThread from './find-in-thread';
 import MessageItemContainer from './message-item-container';
 
+const buttonTimeout = 700;
+
 class MessageListScrollTooltip extends React.Component {
   static displayName = 'MessageListScrollTooltip';
   static propTypes = {
@@ -118,46 +120,87 @@ class MessageList extends React.Component {
     MessageStore.messageListUnmounting({
       threadId: this.state.currentThread ? this.state.currentThread.id : '',
     });
+    this._mounted = false;
     clearTimeout(this._forwardTimer);
     clearTimeout(this._replyAllTimer);
     clearTimeout(this._replyTimer);
   }
 
+  _timeoutButton = (type) => {
+    if (type === 'reply') {
+      if (!this._replyTimer) {
+        this._replyTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isReplying: false });
+            this._replyTimer = null;
+          }
+        }, buttonTimeout);
+      }
+    } else if (type === 'reply-all') {
+      if (!this._replyAllTimer) {
+        this._replyAllTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isReplyAlling: false });
+            this._replyAllTimer = null;
+          }
+        }, buttonTimeout);
+      }
+    } else {
+      if (!this._forwardTimer) {
+        this._forwardTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ isForwarding: false });
+            this._forwardTimer = null;
+          }
+        }, buttonTimeout);
+      }
+    }
+  };
+
   _onCreatingDraft = ({ message, type = '' }) => {
-    if (message.id === this._lastMessage().id) {
+    if (this._mounted && (!this._lastMessage() || message.id === this._lastMessage().id)) {
       if (type === 'reply') {
-        this.setState({ isReplying: true });
+        this.setState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
       } else if (type === 'reply-all') {
-        this.setState({ isReplyAlling: true });
+        this.setState({ isReplyAlling: true }, this._timeoutButton.bind(this, 'reply-all'));
       } else {
-        this.setState({ isForwarding: true });
+        this.setState({ isForwarding: true }, this._timeoutButton.bind(this, 'forward'));
       }
     }
   };
 
   _onDraftCreated = ({ messageId, type = '' }) => {
-    if (messageId && messageId === this._lastMessage().id && this._mounted) {
+    if (this._mounted && (!this._lastMessage() || messageId && messageId === this._lastMessage().id)) {
       if (type === 'reply') {
-        clearTimeout(this._replyTimer);
+        if (this._replyTimer) {
+          return;
+        }
         this._replyTimer = setTimeout(() => {
           if (this._mounted) {
             this.setState({ isReplying: false });
           }
-        }, this.props.buttonTimeout);
+          this._replyTimer = null;
+        }, buttonTimeout);
       } else if (type === 'reply-all') {
-        clearTimeout(this._replyAllTimer);
+        if (this._replyAllTimer) {
+          return;
+        }
         this._replyAllTimer = setTimeout(() => {
           if (this._mounted) {
             this.setState({ isReplyAlling: false });
           }
-        }, this.props.buttonTimeout);
+          this._replyAllTimer = null;
+        }, buttonTimeout);
       } else {
-        clearTimeout(this._forwardTimer);
+        if (this._forwardTimer) {
+          return;
+        }
         this._forwardTimer = setTimeout(() => {
           if (this._mounted) {
             this.setState({ isForwarding: false });
           }
-        }, this.props.buttonTimeout);
+          this._forwardTimer = null;
+        }, buttonTimeout);
       }
     }
   };
@@ -165,7 +208,8 @@ class MessageList extends React.Component {
   _globalKeymapHandlers() {
     const handlers = {
       'core:reply': () => {
-        if (this._mounted && !this.state.isReplying) {
+        if (this._mounted && !this.state.isReplying && !this._replyTimer) {
+          this._timeoutButton('reply');
           this.setState({ isReplying: true });
           Actions.composeReply({
             thread: this.state.currentThread,
@@ -176,7 +220,8 @@ class MessageList extends React.Component {
         }
       },
       'core:reply-all': () => {
-        if (this._mounted && !this.state.isReplyAlling) {
+        if (this._mounted && !this.state.isReplyAlling && !this._replyAllTimer) {
+          this._timeoutButton('reply-all');
           this.setState({ isReplyAlling: true });
           Actions.composeReply({
             thread: this.state.currentThread,
@@ -204,9 +249,10 @@ class MessageList extends React.Component {
   }
 
   _onForward = () => {
-    if (!this.state.currentThread || this.state.isForwarding || !this._mounted) {
+    if (!this.state.currentThread || this.state.isForwarding || !this._mounted || this._forwardTimer) {
       return;
     }
+    this._timeoutButton('forward');
     this.setState({ isForwarding: true });
     Actions.composeForward({
       thread: this.state.currentThread,
@@ -264,9 +310,9 @@ class MessageList extends React.Component {
       return;
     }
     if (this._replyType() === 'reply-all') {
-      this.setState({ isReplyAlling: true });
+      this.setState({ isReplyAlling: true }, this._timeoutButton.bind(this, 'reply-all'));
     } else {
-      this.setState({ isReplying: true });
+      this.setState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
     }
     Actions.composeReply({
       thread: this.state.currentThread,
@@ -434,7 +480,7 @@ class MessageList extends React.Component {
       <div className="message-subject-wrap">
         <div style={{ flex: 1 }}>
           <span className="message-subject">{subject}</span>
-          <MailImportantIcon thread={this.state.currentThread} />
+          <MailImportantIcon thread={this.state.currentThread}/>
           <MailLabelSet
             removable
             includeCurrentCategories

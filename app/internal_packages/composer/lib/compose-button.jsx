@@ -2,16 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Actions } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
-
+const buttonTimeout = 700;
 export default class ComposeButton extends React.Component {
   static displayName = 'ComposeButton';
-  static propTypes = {
-    composeButtonTimeout: PropTypes.number,
-  };
-
-  static default = {
-    composeButtonTimeout: 700, // milliseconds
-  };
 
   constructor(props) {
     super(props);
@@ -31,23 +24,38 @@ export default class ComposeButton extends React.Component {
     this._unlisten();
   }
 
+  _timoutButton = () => {
+    if (!this._sendButtonClickedTimer) {
+      this._sendButtonClickedTimer = setTimeout(() => {
+        if (this._mounted) {
+          this.setState({ creatingNewDraft: false });
+        }
+        this._sendButtonClickedTimer = null;
+      }, buttonTimeout);
+    }
+  };
+
   _onNewDraftCreated = () => {
     if (!this._mounted) {
       return;
     }
     if (this._sendButtonClickedTimer) {
-      clearTimeout(this._sendButtonClickedTimer);
+      return;
     }
     this._sendButtonClickedTimer = setTimeout(() => {
-      this.setState({ creatingNewDraft: false });
-    }, this.props.composeButtonTimeout);
+      if (this._mounted) {
+        this.setState({ creatingNewDraft: false });
+      }
+      this._sendButtonClickedTimer = null;
+    }, buttonTimeout);
   };
 
   _onNewCompose = () => {
-    if (!this.state.creatingNewDraft) {
+    if (!this.state.creatingNewDraft && !this._sendButtonClickedTimer) {
+      this._timoutButton();
+      this.setState({ creatingNewDraft: true });
       Actions.composeNewBlankDraft();
     }
-    this.setState({ creatingNewDraft: true });
   };
 
   render() {

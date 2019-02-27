@@ -1,6 +1,8 @@
 import { React, PropTypes, Actions, SendActionsStore, SoundRegistry } from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
 
+const sendButtonTimeout = 700;
+
 class SendActionButton extends React.Component {
   static displayName = 'SendActionButton';
 
@@ -11,10 +13,6 @@ class SendActionButton extends React.Component {
     isValidDraft: PropTypes.func,
     sendActions: PropTypes.array,
     disabled: PropTypes.bool,
-    sendButtonTimeout: PropTypes.number,
-  };
-  static default = {
-    sendButtonTimeout: 1000, // in milliseconds
   };
 
   constructor(props) {
@@ -25,7 +23,7 @@ class SendActionButton extends React.Component {
     this._unlisten = [
       Actions.draftDeliveryFailed.listen(this._onSendDraftProcessCompleted, this),
       Actions.draftDeliveryCancelled.listen(this._onSendDraftProcessCompleted, this),
-    ]
+    ];
   }
 
   componentDidMount() {
@@ -46,7 +44,7 @@ class SendActionButton extends React.Component {
   shouldComponentUpdate(nextProps, nextState) {
     return (
       nextProps.sendActions.map(a => a.configKey).join(',') !==
-        this.props.sendActions.map(a => a.configKey).join(',') ||
+      this.props.sendActions.map(a => a.configKey).join(',') ||
       this.props.disabled !== nextProps.disabled ||
       this.state.isSending !== nextState.isSending
     );
@@ -59,9 +57,20 @@ class SendActionButton extends React.Component {
   _onPrimaryClick = () => {
     this._onSendWithAction(this.props.sendActions[0]);
   };
+  _timoutButton = () => {
+    if (!this._sendButtonTimer) {
+      this._sendButtonTimer = setTimeout(() => {
+        if (this._mounted) {
+          this.setState({ isSending: false });
+        }
+        this._sendButtonTimer = null;
+      }, sendButtonTimeout);
+    }
+  };
 
   _onSendWithAction = sendAction => {
-    if (this.props.isValidDraft() && !this.state.isSending) {
+    if (this.props.isValidDraft() && !this.state.isSending && !this._sendButtonTimer) {
+      this._timoutButton();
       this.setState({ isSending: true });
       if (AppEnv.config.get('core.sending.sounds')) {
         SoundRegistry.playSound('hit-send');
@@ -71,10 +80,15 @@ class SendActionButton extends React.Component {
   };
   _onSendDraftProcessCompleted = ({ headerMessageId }) => {
     if (this._mounted && headerMessageId && headerMessageId === this.props.draft.headerMessageId) {
-      clearTimeout(this._sendButtonTimer);
+      if (this._sendButtonTimer) {
+        return;
+      }
       this._sendButtonTimer = setTimeout(() => {
-        this.setState({ isSending: false });
-      }, this.props.sendButtonTimeout);
+        if (this._mounted) {
+          this.setState({ isSending: false });
+        }
+        this._sendButtonTimer = null;
+      }, sendButtonTimeout);
     }
   };
 

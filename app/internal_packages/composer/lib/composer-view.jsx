@@ -32,7 +32,7 @@ const {
   hideQuotedTextByDefault,
   removeQuotedText,
 } = ComposerSupport.BaseBlockPlugins;
-
+const buttonTimer = 700;
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
 // Composer with new props.
@@ -43,10 +43,6 @@ export default class ComposerView extends React.Component {
     session: PropTypes.object.isRequired,
     draft: PropTypes.object.isRequired,
     className: PropTypes.string,
-    buttonTimer: PropTypes.number,
-  };
-  static default = {
-    buttonTimer: 700, // in milliseconds
   };
 
   constructor(props) {
@@ -76,7 +72,7 @@ export default class ComposerView extends React.Component {
     this._deleteTimer = null;
     this._unlisten = [
       Actions.destroyDraftFailed.listen(this._onDestroyedDraftProcessed, this),
-      Actions.destroyDraftSucceeded.listen(this._onDestroyedDraftProcessed, this)
+      Actions.destroyDraftSucceeded.listen(this._onDestroyedDraftProcessed, this),
     ];
   }
 
@@ -113,7 +109,7 @@ export default class ComposerView extends React.Component {
     if (this._animationFrameTimer) {
       window.cancelAnimationFrame(this._animationFrameTimer);
     }
-    for(let unlisten of this._unlisten){
+    for (let unlisten of this._unlisten) {
       unlisten();
     }
     // In the future, we should clean up the draft session entirely, or give it
@@ -217,7 +213,7 @@ export default class ComposerView extends React.Component {
             name={'expand-more.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            mode={RetinaImg.Mode.ContentIsMask}/>
         </span>
         <span
           className="remove-quoted-text"
@@ -265,8 +261,8 @@ export default class ComposerView extends React.Component {
                     //In case we encountered more scheme change
                     console.error('schema');
                   }
-                  return (k === 'decorations' || k === 'schema')
-                }))
+                  return (k === 'decorations' || k === 'schema');
+                }));
               });
             this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
           }
@@ -359,9 +355,9 @@ export default class ComposerView extends React.Component {
           disabled={this.props.session.isPopout()}
         >
           <RetinaImg name={this.state.isDeleting ? 'sending-spinner.gif' : 'trash.svg'}
-            style={{ width: 24, height: 24 }}
-            isIcon={!this.state.isDeleting}
-            mode={RetinaImg.Mode.ContentIsMask}
+                     style={{ width: 24, height: 24 }}
+                     isIcon={!this.state.isDeleting}
+                     mode={RetinaImg.Mode.ContentIsMask}
           />
         </button>
 
@@ -374,12 +370,12 @@ export default class ComposerView extends React.Component {
           disabled={this.props.session.isPopout()}
         >
           <RetinaImg name={'attachments.svg'}
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+                     style={{ width: 24, height: 24 }}
+                     isIcon
+                     mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
 
-        <div style={{ order: 0, flex: 1 }} />
+        <div style={{ order: 0, flex: 1 }}/>
 
         <SendActionButton
           ref={el => {
@@ -547,20 +543,37 @@ export default class ComposerView extends React.Component {
   _onPrimarySend = () => {
     this._els.sendActionButton.primarySend();
   };
-
-  _onDestroyedDraftProcessed = ({ messageId }) => {
-    if( messageId === this.props.draft.id ){
-      clearTimeout(this._deleteTimer);
+  _timoutButton = () => {
+    if (!this._deleteTimer) {
       this._deleteTimer = setTimeout(() => {
-        if(this._mounted){
+        if (this._mounted) {
           this.setState({ isDeleting: false });
         }
-      }, this.props.buttonTimer);
+        this._deleteTimer = null;
+      }, buttonTimer);
+    }
+  };
+
+  _onDestroyedDraftProcessed = ({ messageId }) => {
+    if (!this.props.draft) {
+      return;
+    }
+    if (messageId === this.props.draft.id) {
+      if (this._deleteTimer) {
+        return;
+      }
+      this._deleteTimer = setTimeout(() => {
+        if (this._mounted) {
+          this.setState({ isDeleting: false });
+        }
+        this._deleteTimer = null;
+      }, buttonTimer);
     }
   };
 
   _onDestroyDraft = () => {
-    if (!this.state.isDeleting) {
+    if (!this.state.isDeleting && !this._deleteTimer) {
+      this._timoutButton();
       this.setState({ isDeleting: true });
       Actions.destroyDraft(this.props.draft);
     }
@@ -610,7 +623,7 @@ export default class ComposerView extends React.Component {
               </div>
 
               <div className="composer-action-bar-wrap" data-tooltips-anchor>
-                <div className="tooltips-container" />
+                <div className="tooltips-container"/>
                 {this._renderActionsRegion()}
               </div>
             </DropZone>
