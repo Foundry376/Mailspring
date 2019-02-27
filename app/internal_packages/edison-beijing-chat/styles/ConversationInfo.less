@@ -129,13 +129,22 @@
     }
   }
 
-  .remove-button {
+  .row:first-child {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+  }
+
+  .row:last-child {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+  }
+
+  .remove-member {
     display: none;
     float:right;
-    margin-top: -12px;
     transform: scale(0.8);
   }
-  .row:hover .remove-button {
+  .row:hover .remove-member {
     display: block;
   }
 }

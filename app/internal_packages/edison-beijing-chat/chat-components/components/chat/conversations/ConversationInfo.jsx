@@ -143,8 +143,9 @@ export default class ConversationInfo extends Component {
           }
           {
             conversation.isGroup && !loadingMembers && roomMembers && roomMembers.map(member => {
-              const onClickRemove = () => {
-                debugger;
+              const onClickRemove = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
                 this.props.removeMember(member);
               };
               const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
@@ -180,9 +181,9 @@ export default class ConversationInfo extends Component {
                     <div className="email">{member.email}</div>
                   </div>
                   {this.currentUserIsOwner && member.affiliation !== 'owner' &&
-                    <span className="remove-button" onClick={onClickRemove}>
-                      <CancelIcon color={primaryColor} />
-                    </span>
+                  <span className="remove-member" onClick={onClickRemove}>
+                    <CancelIcon color={primaryColor}/>
+                  </span>
                   }
                 </div>
               )

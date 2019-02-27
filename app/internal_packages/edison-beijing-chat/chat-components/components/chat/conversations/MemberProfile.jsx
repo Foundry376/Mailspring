@@ -29,7 +29,6 @@ export default class MemberProfie extends Component {
     const rect = this.panel.getBoundingClientRect();
     this.panelRect = rect;
     document.body.addEventListener('click', this.onClickWithMemberProfile);
-
   };
   componentwillUnmount = () => {
     console.log('cxm *** document.body.removeEventListener ');
