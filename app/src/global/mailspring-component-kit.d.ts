@@ -51,8 +51,8 @@ export const SelectableTableCell: typeof import('../components/selectable-table'
 export const EditableTable: typeof import('../components/editable-table').default;
 export const EditableTableCell: typeof import('../components/editable-table').EditableTableCell;
 export const LazyRenderedList: typeof import('../components/lazy-rendered-list').default;
-export const AttachmentItem: typeof import('../components/attachment-items');
-export const ImageAttachmentItem: typeof import('../components/attachment-items');
+export const AttachmentItem: typeof import('../components/attachment-items').AttachmentItem;
+export const ImageAttachmentItem: typeof import('../components/attachment-items').ImageAttachmentItem;
 export const CodeSnippet: typeof import('../components/code-snippet').default;
 
 export const ComposerEditor: typeof import('../components/composer-editor/composer-editor').default;

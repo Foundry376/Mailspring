@@ -1,4 +1,5 @@
-import { localized, React, PropTypes, Actions, DateUtils } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes, Actions, DateUtils } from 'mailspring-exports';
 
 export default class RelatedThreads extends React.Component {
   static displayName = 'RelatedThreads';

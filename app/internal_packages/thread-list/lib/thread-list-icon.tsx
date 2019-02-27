@@ -1,11 +1,5 @@
-import {
-  localized,
-  React,
-  PropTypes,
-  Actions,
-  TaskFactory,
-  ExtensionRegistry,
-} from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes, Actions, TaskFactory, ExtensionRegistry } from 'mailspring-exports';
 
 class ThreadListIcon extends React.Component {
   static displayName = 'ThreadListIcon';

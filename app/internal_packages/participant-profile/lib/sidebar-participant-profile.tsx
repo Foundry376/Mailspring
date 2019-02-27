@@ -1,8 +1,8 @@
+import React from 'react';
 import {
   localized,
   IdentityStore,
   FeatureUsageStore,
-  React,
   PropTypes,
   DOMUtils,
   RegExpUtils,

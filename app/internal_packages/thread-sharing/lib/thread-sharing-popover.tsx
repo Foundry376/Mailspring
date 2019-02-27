@@ -1,8 +1,8 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
+import React from 'react';
+import ReactDOM from 'react-dom';
 import {
   Rx,
-  React,
-  ReactDOM,
   PropTypes,
   Thread,
   DatabaseStore,

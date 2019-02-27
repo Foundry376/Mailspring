@@ -1,4 +1,5 @@
-import { localized, React, PropTypes, Message } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes, Message } from 'mailspring-exports';
 
 import AutoloadImagesStore from './autoload-images-store';
 import Actions from './autoload-images-actions';

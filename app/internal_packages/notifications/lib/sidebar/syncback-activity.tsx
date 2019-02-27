@@ -1,4 +1,5 @@
-import { localized, React, Utils, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import { localized, Utils, PropTypes } from 'mailspring-exports';
 
 export default class SyncbackActivity extends React.Component {
   static propTypes = {

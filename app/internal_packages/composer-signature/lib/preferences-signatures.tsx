@@ -1,6 +1,6 @@
 import { remote } from 'electron';
+import React from 'react';
 import {
-  React,
   localized,
   AccountStore,
   SignatureStore,

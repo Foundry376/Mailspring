@@ -1,5 +1,6 @@
+import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
-import { localized, React, PropTypes, Actions } from 'mailspring-exports';
+import { localized, PropTypes, Actions } from 'mailspring-exports';
 
 export class DraftDeleteButton extends React.Component {
   static displayName = 'DraftDeleteButton';

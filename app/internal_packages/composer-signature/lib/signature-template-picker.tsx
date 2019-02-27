@@ -1,4 +1,5 @@
-import { localized, React, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes } from 'mailspring-exports';
 import Templates from './templates';
 
 export default class SignatureTemplatePicker extends React.Component {

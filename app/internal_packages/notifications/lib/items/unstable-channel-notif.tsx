@@ -1,4 +1,5 @@
-import { localized, React, UpdateChannelStore } from 'mailspring-exports';
+import React from 'react';
+import { localized, UpdateChannelStore } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 export default class UnstableChannelNotification extends React.Component {

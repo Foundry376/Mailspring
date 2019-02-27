@@ -1,15 +1,9 @@
 /* eslint react/no-danger: 0 */
 import _ from 'underscore';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-import {
-  localized,
-  React,
-  ReactDOM,
-  PropTypes,
-  Actions,
-  WorkspaceStore,
-  DOMUtils,
-} from 'mailspring-exports';
+import { localized, PropTypes, Actions, WorkspaceStore, DOMUtils } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 
 const TipsBackgroundEl = document.createElement('tutorial-tip-background');

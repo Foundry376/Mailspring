@@ -16,14 +16,26 @@ export default class SyncbackCategoryTask extends Task {
     }),
   });
 
-  static forCreating({ name, accountId }) {
+  path: string;
+  existingPath: string;
+  created: object;
+
+  static forCreating({ name, accountId }: { name: string; accountId: string }) {
     return new SyncbackCategoryTask({
       path: utf7.imap.encode(name),
       accountId: accountId,
     });
   }
 
-  static forRenaming({ path, accountId, newName }) {
+  static forRenaming({
+    path,
+    accountId,
+    newName,
+  }: {
+    path: string;
+    accountId: string;
+    newName: string;
+  }) {
     return new SyncbackCategoryTask({
       existingPath: path,
       path: utf7.imap.encode(newName),

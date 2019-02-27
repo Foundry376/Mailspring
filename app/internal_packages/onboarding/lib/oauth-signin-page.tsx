@@ -1,5 +1,6 @@
 import { shell, clipboard } from 'electron';
-import { localized, localizedReactFragment, React, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import { localized, localizedReactFragment, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import http from 'http';
 import url from 'url';

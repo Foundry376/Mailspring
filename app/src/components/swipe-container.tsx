@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import { exec } from 'child_process';
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import { PropTypes, Utils } from 'mailspring-exports';
 
@@ -54,18 +54,14 @@ type SwipeContainerProps = {
   onSwipeRightClass?: string | ((...args: any[]) => any);
   onSwipeCenter?: (...args: any[]) => any;
 };
+
 type SwipeContainerState = {
   targetX: number;
   settleStartTime: number;
-  currentX: any;
-  targetX: any;
-  thresholdDistance: string;
-  fullDistance: string;
-  currentX: any;
-  lastDragX: any;
-  fullDistance: string;
+  thresholdDistance: number | 'unknown';
+  fullDistance: number | 'unknown';
+  lastDragX: number;
   currentX: number;
-  targetX: number;
 };
 
 export default class SwipeContainer extends React.Component<
@@ -88,21 +84,25 @@ export default class SwipeContainer extends React.Component<
     shouldEnableSwipe: () => true,
   };
 
-  constructor(props) {
-    super(props);
-    this.mounted = false;
-    this.tracking = false;
-    this.trackingInitialTargetX = 0;
-    this.trackingTouchIdentifier = null;
-    this.phase = Phase.None;
-    this.fired = false;
-    this.isEnabled = null;
-    this.state = {
-      fullDistance: 'unknown',
-      currentX: 0,
-      targetX: 0,
-    };
-  }
+  mounted = false;
+  tracking = false;
+  trackingTouchX = 0;
+  trackingTouchY = 0;
+  trackingStartX = 0;
+  trackingStartY = 0;
+  trackingInitialTargetX = 0;
+  trackingTouchIdentifier = null;
+  phase = Phase.None;
+  fired = false;
+  isEnabled = null;
+  state: SwipeContainerState = {
+    fullDistance: 'unknown',
+    thresholdDistance: 'unknown',
+    settleStartTime: 0,
+    lastDragX: 0,
+    currentX: 0,
+    targetX: 0,
+  };
 
   componentDidMount() {
     this.mounted = true;
@@ -170,11 +170,11 @@ export default class SwipeContainer extends React.Component<
     let { fullDistance, thresholdDistance } = this.state;
 
     if (fullDistance === 'unknown') {
-      fullDistance = ReactDOM.findDOMNode(this).clientWidth;
+      fullDistance = (ReactDOM.findDOMNode(this) as HTMLElement).clientWidth;
       thresholdDistance = 110;
     }
 
-    const clipToMax = v => Math.max(-fullDistance, Math.min(fullDistance, v));
+    const clipToMax = v => Math.max(-fullDistance, Math.min(Number(fullDistance), v));
     const currentX = clipToMax(this.state.currentX + velocityX);
     const estimatedSettleX = clipToMax(currentX + velocityX * 8);
     const lastDragX = currentX;
@@ -342,8 +342,8 @@ export default class SwipeContainer extends React.Component<
 
   render() {
     const { currentX, targetX } = this.state;
-    const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
-    const backingStyles = { top: 0, bottom: 0, position: 'absolute' };
+    const otherProps = Utils.fastOmit(this.props, Object.keys(SwipeContainer.propTypes));
+    const backingStyles: CSSProperties = { top: 0, bottom: 0, position: 'absolute' };
     let backingClass = 'swipe-backing';
 
     if (currentX < 0 && this.trackingInitialTargetX <= 0) {

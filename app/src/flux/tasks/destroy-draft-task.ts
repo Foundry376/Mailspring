@@ -9,6 +9,8 @@ export default class DestroyDraftTask extends Task {
     }),
   });
 
+  messageIds: string[];
+
   label() {
     return localized('Deleting draft');
   }

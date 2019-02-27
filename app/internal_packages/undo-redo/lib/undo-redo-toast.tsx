@@ -1,4 +1,5 @@
-import { localized, React, UndoRedoStore, SyncbackMetadataTask } from 'mailspring-exports';
+import React from 'react';
+import { localized, UndoRedoStore, SyncbackMetadataTask } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CSSTransitionGroup } from 'react-transition-group';
 

@@ -1,13 +1,18 @@
 /* eslint no-unused-vars: 0 */
 import { EventEmitter } from 'events';
 import ListSelection from './list-selection';
+import Model from '../flux/models/model';
 
 export default class ListDataSource {
-  constructor() {
-    this._emitter = new EventEmitter();
-    this._cleanedup = false;
-    this.selection = new ListSelection(this, this.trigger);
+  static get Empty() {
+    return EmptyListDataSource;
   }
+
+  _emitter = new EventEmitter();
+  _cleanedup = false;
+  selection = new ListSelection(this, arg => {
+    this._emitter.emit('trigger', arg);
+  });
 
   // Accessing Data
 
@@ -35,31 +40,31 @@ export default class ListDataSource {
     };
   }
 
-  loaded() {
+  loaded(): boolean {
     throw new Error('ListDataSource base class does not implement loaded()');
   }
 
-  empty() {
+  empty(): boolean {
     throw new Error('ListDataSource base class does not implement empty()');
   }
 
-  get(idx) {
+  get(idx): Model {
     throw new Error('ListDataSource base class does not implement get()');
   }
 
-  getById(id) {
+  getById(id): Model {
     throw new Error('ListDataSource base class does not implement getById()');
   }
 
-  indexOfId(id) {
+  indexOfId(id): number {
     throw new Error('ListDataSource base class does not implement indexOfId()');
   }
 
-  count() {
+  count(): number {
     throw new Error('ListDataSource base class does not implement count()');
   }
 
-  itemsCurrentlyInViewMatching(matchFn) {
+  itemsCurrentlyInViewMatching(matchFn): Model[] {
     throw new Error('ListDataSource base class does not implement itemsCurrentlyInViewMatching()');
   }
 
@@ -99,5 +104,3 @@ class EmptyListDataSource extends ListDataSource {
     return;
   }
 }
-
-ListDataSource.Empty = EmptyListDataSource;

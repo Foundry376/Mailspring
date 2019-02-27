@@ -1,10 +1,6 @@
-import {
-  localized,
-  React,
-  Actions,
-  MessageStore,
-  FocusedPerspectiveStore,
-} from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { localized, Actions, MessageStore, FocusedPerspectiveStore } from 'mailspring-exports';
 
 export default class MessageListHiddenMessagesToggle extends React.Component {
   static displayName = 'MessageListHiddenMessagesToggle';

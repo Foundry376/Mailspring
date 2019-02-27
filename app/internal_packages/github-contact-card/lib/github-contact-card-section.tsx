@@ -1,4 +1,5 @@
-import { localized, React, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes } from 'mailspring-exports';
 import GithubUserStore from './github-user-store';
 
 // Small React component that renders a single Github repository

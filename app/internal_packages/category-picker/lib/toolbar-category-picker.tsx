@@ -1,11 +1,5 @@
-import {
-  localized,
-  Actions,
-  React,
-  PropTypes,
-  AccountStore,
-  WorkspaceStore,
-} from 'mailspring-exports';
+import React from 'react';
+import { localized, Actions, PropTypes, AccountStore, WorkspaceStore } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
 import MovePickerPopover from './move-picker-popover';

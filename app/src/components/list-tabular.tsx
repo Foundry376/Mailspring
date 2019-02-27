@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, { Component } from 'react';
-import { Utils } from 'mailspring-exports';
+import { Utils, Model } from 'mailspring-exports';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
@@ -11,13 +11,23 @@ import ListDataSource from './list-data-source';
 import ListSelection from './list-selection';
 import ListTabularItem from './list-tabular-item';
 
-class ListColumn {
+export class ListTabularColumn {
   name: string;
   flex?: number;
   width?: number;
   resolver: any;
 
-  constructor({ name, resolver, flex, width }) {
+  constructor({
+    name,
+    resolver,
+    flex,
+    width,
+  }: {
+    name: string;
+    flex?: number;
+    width?: number;
+    resolver: any;
+  }) {
     this.name = name;
     this.resolver = resolver;
     this.flex = flex;
@@ -38,7 +48,7 @@ type ListTabularRowsProps = {
   onDragEnd?: (...args: any[]) => any;
 };
 
-class ListTabularRows extends Component<ListTabularRowsProps> {
+export class ListTabularRows extends Component<ListTabularRowsProps> {
   static displayName = 'ListTabularRows';
 
   static propTypes = {
@@ -58,7 +68,7 @@ class ListTabularRows extends Component<ListTabularRowsProps> {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
-  renderRow({ item, idx, itemProps = {} } = {}) {
+  renderRow({ item, idx, itemProps = {} }: { item: Model; idx: number; itemProps?: object }) {
     if (!item) {
       return false;
     }
@@ -97,8 +107,8 @@ type ListTabularProps = {
   footer?: React.ReactNode;
   draggable?: boolean;
   className?: string;
-  columns: any[];
-  dataSource?: object;
+  columns: ListTabularColumn[];
+  dataSource?: ListDataSource;
   itemPropsProvider?: (...args: any[]) => any;
   itemHeight?: number;
   EmptyComponent?: (...args: any[]) => any;
@@ -112,7 +122,9 @@ type ListTabularProps = {
 };
 type ListTabularState = {
   items: {};
-  animatingOut: {};
+  animatingOut: {
+    [index: string]: Model;
+  };
   renderedRangeStart: any;
   renderedRangeEnd: any;
   count: any;
@@ -120,7 +132,7 @@ type ListTabularState = {
   empty: any;
 };
 
-class ListTabular extends Component<ListTabularProps, ListTabularState> {
+export default class ListTabular extends Component<ListTabularProps, ListTabularState> {
   static displayName = 'ListTabular';
 
   static propTypes = {
@@ -148,7 +160,7 @@ class ListTabular extends Component<ListTabularProps, ListTabularState> {
   };
 
   static Item = ListTabularItem;
-  static Column = ListColumn;
+  static Column = ListTabularColumn;
   static Selection = ListSelection;
   static DataSource = ListDataSource;
 
@@ -259,8 +271,8 @@ class ListTabular extends Component<ListTabularProps, ListTabularState> {
     // slide over rows which are animating out, so we need to render them last.
     const rows = [];
     Object.entries(animatingOut).forEach(([idx, record]) => {
-      const itemProps = itemPropsProvider(record.item, idx / 1);
-      rows.push({ item: record.item, idx: idx / 1, itemProps });
+      const itemProps = itemPropsProvider(record.item, Number(idx));
+      rows.push({ item: record.item, idx: Number(idx) / 1, itemProps });
     });
 
     Utils.range(renderedRangeStart, renderedRangeEnd).forEach(idx => {
@@ -285,7 +297,7 @@ class ListTabular extends Component<ListTabularProps, ListTabularState> {
     if (!this._scrollRegion) {
       return;
     }
-    const height = ReactDOM.findDOMNode(this._scrollRegion).clientHeight;
+    const height = (ReactDOM.findDOMNode(this._scrollRegion) as HTMLElement).clientHeight;
     this._scrollRegion.scrollTop += height * direction;
   }
 
@@ -331,7 +343,7 @@ class ListTabular extends Component<ListTabularProps, ListTabularState> {
       dataSource = this.props.dataSource,
     } = args;
 
-    const items = {};
+    const items: { [id: string]: Model } = {};
     let animatingOut = {};
 
     Utils.range(start, end).forEach(idx => {
@@ -436,5 +448,3 @@ class ListTabular extends Component<ListTabularProps, ListTabularState> {
     );
   }
 }
-
-export default ListTabular;

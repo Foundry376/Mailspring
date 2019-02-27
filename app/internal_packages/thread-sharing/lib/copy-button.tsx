@@ -1,4 +1,5 @@
-import { localized, React, PropTypes, Utils } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes, Utils } from 'mailspring-exports';
 import { clipboard } from 'electron';
 
 class CopyButton extends React.Component {

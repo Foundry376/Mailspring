@@ -1,5 +1,6 @@
 import moment from 'moment';
-import { Rx, React, PropTypes, DatabaseStore, AccountStore, Calendar } from 'mailspring-exports';
+import React from 'react';
+import { Rx, PropTypes, DatabaseStore, AccountStore, Calendar } from 'mailspring-exports';
 import { ScrollRegion, ResizableRegion } from 'mailspring-component-kit';
 import WeekView from './week-view';
 import MonthView from './month-view';

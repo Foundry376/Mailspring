@@ -6,7 +6,7 @@ type FluxContainerProps = {
   getStateFromStores: (...args: any[]) => any;
 };
 
-class FluxContainer extends React.Component<FluxContainerProps> {
+class FluxContainer extends React.Component<FluxContainerProps & React.HTMLProps<HTMLDivElement>> {
   static displayName = 'FluxContainer';
   static propTypes = {
     children: PropTypes.element,
@@ -14,9 +14,10 @@ class FluxContainer extends React.Component<FluxContainerProps> {
     getStateFromStores: PropTypes.func.isRequired,
   };
 
+  _unlisteners = [];
+
   constructor(props) {
     super(props);
-    this._unlisteners = [];
     this.state = this.props.getStateFromStores();
   }
 
@@ -47,7 +48,7 @@ class FluxContainer extends React.Component<FluxContainerProps> {
   }
 
   render() {
-    const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = Utils.fastOmit(this.props, Object.keys(FluxContainer.propTypes));
     return React.cloneElement(this.props.children, Object.assign({}, otherProps, this.state));
   }
 }

@@ -1,8 +1,8 @@
+import React from 'react';
 import _ from 'underscore';
 import classNames from 'classnames';
 import {
   localized,
-  React,
   PropTypes,
   Actions,
   ChangeLabelsTask,
@@ -14,13 +14,13 @@ import {
 const ShowImportantKey = 'core.workspace.showImportant';
 
 type MailImportantIconProps = {
-  thread?: object,
-  showIfAvailableForAnyAccount?: boolean
+  thread?: object;
+  showIfAvailableForAnyAccount?: boolean;
 };
 type MailImportantIconState = {
-  visible: boolean,
-  category: any,
-  isImportant: boolean,
+  visible: boolean;
+  category: any;
+  isImportant: boolean;
 };
 
 class MailImportantIcon extends React.Component<MailImportantIconProps, MailImportantIconState> {

@@ -1,4 +1,5 @@
-import { localized, Actions, React, AccountStore, IdentityStore } from 'mailspring-exports';
+import React from 'react';
+import { localized, Actions, AccountStore, IdentityStore } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 export default class PleaseSubscribeNotification extends React.Component {

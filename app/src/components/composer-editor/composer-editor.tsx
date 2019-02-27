@@ -10,8 +10,20 @@ import { plugins, convertFromHTML, convertToHTML } from './conversion';
 import { lastUnquotedNode } from './base-block-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
 
-export default class ComposerEditor extends React.Component {
+interface ComposerEditorProps {
+  value: any;
+  className: string;
+  onBlur: () => void;
+  onDrop: (e: Event) => void;
+  propsForPlugins: any;
+  onChange: (change: any) => void;
+  onFileReceived: (path: string) => void;
+}
+export default class ComposerEditor extends React.Component<ComposerEditorProps> {
   // Public API
+
+  _pluginKeyHandlers = {};
+  _mounted = false;
 
   constructor(props) {
     super(props);
@@ -21,16 +33,19 @@ export default class ComposerEditor extends React.Component {
     // every render.
     this._pluginKeyHandlers = {};
     plugins.forEach(plugin => {
-      Object.entries(plugin.commands || {}).forEach(([command, handler]) => {
-        this._pluginKeyHandlers[command] = event => {
-          if (!this._mounted) return;
-          const { onChange, value } = this.props;
-          const change = handler(event, value);
-          if (change) {
-            onChange(change);
-          }
-        };
-      });
+      if (!plugin.commands) return;
+      Object.entries(plugin.commands).forEach(
+        ([command, handler]: [string, (event: any, val: any) => any]) => {
+          this._pluginKeyHandlers[command] = event => {
+            if (!this._mounted) return;
+            const { onChange, value } = this.props;
+            const change = handler(event, value);
+            if (change) {
+              onChange(change);
+            }
+          };
+        }
+      );
     });
   }
 
@@ -129,7 +144,7 @@ export default class ComposerEditor extends React.Component {
 
       const reader = new FileReader();
       reader.addEventListener('loadend', () => {
-        const buffer = Buffer.from(new Uint8Array(reader.result));
+        const buffer = Buffer.from(new Uint8Array(reader.result as any));
         const tmpFolder = temp.path('-nylas-attachment');
         const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
         fs.mkdir(tmpFolder, () => {

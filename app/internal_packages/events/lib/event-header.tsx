@@ -1,8 +1,8 @@
 import { RetinaImg } from 'mailspring-component-kit';
+import React from 'react';
 import {
   Actions,
   localized,
-  React,
   PropTypes,
   DateUtils,
   Message,

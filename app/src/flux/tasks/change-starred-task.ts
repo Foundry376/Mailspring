@@ -14,6 +14,8 @@ export default class ChangeStarredTask extends ChangeMailTask {
     }),
   });
 
+  starred: boolean;
+
   label() {
     return this.starred ? localized('Starring') : localized('Unstarring');
   }

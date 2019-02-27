@@ -1,4 +1,5 @@
-import { localized, React, Actions, PropTypes, SignatureStore } from 'mailspring-exports';
+import React from 'react';
+import { localized, Actions, PropTypes, SignatureStore } from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown } from 'mailspring-component-kit';
 
 import { applySignature, currentSignatureId } from './signature-utils';

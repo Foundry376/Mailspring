@@ -1,8 +1,8 @@
 /* eslint global-require: 0 */
 import { remote } from 'electron';
+import React from 'react';
 import {
   localized,
-  React,
   PropTypes,
   Actions,
   TaskQueue,

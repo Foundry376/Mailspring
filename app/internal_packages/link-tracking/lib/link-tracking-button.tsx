@@ -1,4 +1,5 @@
-import { localized, React, PropTypes, APIError, MailspringAPIRequest } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes, APIError, MailspringAPIRequest } from 'mailspring-exports';
 import { MetadataComposerToggleButton } from 'mailspring-component-kit';
 import { PLUGIN_ID, PLUGIN_NAME } from './link-tracking-constants';
 

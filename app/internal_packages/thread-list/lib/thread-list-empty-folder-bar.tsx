@@ -1,8 +1,8 @@
+import React from 'react';
 import { ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
 import {
   localized,
   Actions,
-  React,
   Folder,
   PropTypes,
   TaskQueue,

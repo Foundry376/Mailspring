@@ -1,5 +1,7 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
-import { localized, React, ReactDOM, PropTypes, Actions } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { localized, PropTypes, Actions } from 'mailspring-exports';
 import { Menu, RetinaImg } from 'mailspring-component-kit';
 import TemplateStore from './template-store';
 

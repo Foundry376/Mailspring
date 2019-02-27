@@ -1,4 +1,5 @@
-import { Message, localized, React, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import { Message, localized, PropTypes } from 'mailspring-exports';
 import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 
 function unsubscribe(message) {

@@ -1,5 +1,6 @@
-import { localized, Actions, React, PropTypes } from 'mailspring-exports';;
-import { RetinaImg } from 'mailspring-component-kit';;
+import React from 'react';
+import { localized, Actions, PropTypes } from 'mailspring-exports';
+import { RetinaImg } from 'mailspring-component-kit';
 import { ipcRenderer, remote } from 'electron';
 import * as AccountCommands from '../account-commands';
 

@@ -1,4 +1,5 @@
-import { localized, React, PropTypes, MailspringAPIRequest } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes, MailspringAPIRequest } from 'mailspring-exports';
 import { RetinaImg, DropZone } from 'mailspring-component-kit';
 
 const MAX_IMAGE_RES = 250;

@@ -23,6 +23,9 @@ export default class ChangeLabelsTask extends ChangeMailTask {
     }),
   });
 
+  labelsToAdd: Label[];
+  labelsToRemove: Label[];
+
   label() {
     return localized('Applying labels');
   }

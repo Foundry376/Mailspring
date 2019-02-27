@@ -7,7 +7,7 @@ fs
   .split('\n')
   .forEach(line => {
     console.log(line);
-    const parts = line.split('.ts(');
+    const parts = line.split(/\.tsx?\(/);
     if (parts.length > 1) {
       hash[parts[0]] = (hash[parts[0]] || 0) + 1;
       sum += 1;

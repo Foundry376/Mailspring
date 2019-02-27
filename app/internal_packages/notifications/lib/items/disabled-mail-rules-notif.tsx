@@ -1,4 +1,5 @@
-import { localized, React, MailRulesStore, Actions } from 'mailspring-exports';
+import React from 'react';
+import { localized, MailRulesStore, Actions } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 export default class DisabledMailRulesNotification extends React.Component {

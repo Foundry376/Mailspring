@@ -1,4 +1,5 @@
-import { localized, React, PropTypes, AccountStore, SendActionsStore } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes, AccountStore, SendActionsStore } from 'mailspring-exports';
 import { ListensToFluxStore } from 'mailspring-component-kit';
 import ConfigSchemaItem from './config-schema-item';
 

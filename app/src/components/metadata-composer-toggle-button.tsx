@@ -1,5 +1,5 @@
+import React from 'react';
 import {
-  React,
   PropTypes,
   MailspringAPIRequest,
   APIError,
@@ -11,22 +11,24 @@ import classnames from 'classnames';
 import _ from 'underscore';
 
 type MetadataComposerToggleButtonProps = {
-  iconUrl?: string,
-  iconName?: string,
-  pluginId: string,
-  pluginName: string,
-  metadataEnabledValue: object,
-  errorMessage: (...args: any[]) => any,
-  draft: object,
-  session: object
+  iconUrl?: string;
+  iconName?: string;
+  pluginId: string;
+  pluginName: string;
+  metadataEnabledValue: object;
+  errorMessage: (...args: any[]) => any;
+  draft: object;
+  session: object;
 };
 type MetadataComposerToggleButtonState = {
-  pending: boolean,
-  onByDefaultButUsedUp: boolean
+  pending: boolean;
+  onByDefaultButUsedUp: boolean;
 };
 
-
-export default class MetadataComposerToggleButton extends React.Component<MetadataComposerToggleButtonProps, MetadataComposerToggleButtonState> {
+export default class MetadataComposerToggleButton extends React.Component<
+  MetadataComposerToggleButtonProps,
+  MetadataComposerToggleButtonState
+> {
   static displayName = 'MetadataComposerToggleButton';
 
   static propTypes = {

@@ -1,7 +1,7 @@
+import React from 'react';
 import { remote, clipboard } from 'electron';
 import {
   localized,
-  React,
   PropTypes,
   Utils,
   Contact,

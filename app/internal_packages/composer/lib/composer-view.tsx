@@ -1,13 +1,15 @@
 import { remote } from 'electron';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import {
-  React,
-  ReactDOM,
   localized,
   PropTypes,
   Utils,
   Actions,
   DraftStore,
   AttachmentStore,
+  Message,
+  DraftEditingSession,
 } from 'mailspring-exports';
 import {
   DropZone,
@@ -34,10 +36,20 @@ const {
   removeQuotedText,
 } = ComposerSupport.BaseBlockPlugins;
 
+interface ComposerViewProps {
+  draft: Message;
+  session: DraftEditingSession;
+  className?: string;
+}
+interface ComposerViewState {
+  quotedTextHidden: boolean;
+  quotedTextPresent: boolean;
+  isDropping: boolean;
+}
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
 // Composer with new props.
-export default class ComposerView extends React.Component {
+export default class ComposerView extends React.Component<ComposerViewProps, ComposerViewState> {
   static displayName = 'ComposerView';
 
   static propTypes = {
@@ -47,21 +59,28 @@ export default class ComposerView extends React.Component {
   };
 
   _mounted: boolean = false;
+  _mouseDownTarget: HTMLElement = null;
+  _dropzone: DropZone;
+
+  _els: { [key: string]: any } = {
+    composerWrap: null,
+    sendActionButton: SendActionButton,
+    [Fields.Body]: ComposerEditor,
+    header: ComposerHeader,
+  };
+
+  _keymapHandlers = {
+    'composer:send-message': () => this._onPrimarySend(),
+    'composer:delete-empty-draft': () => this.props.draft.pristine && this._onDestroyDraft(),
+    'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
+    'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
+    'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
+    'composer:show-and-focus-from': () => {},
+    'composer:select-attachment': () => this._onSelectAttachment(),
+  };
 
   constructor(props) {
     super(props);
-
-    this._els = {};
-
-    this._keymapHandlers = {
-      'composer:send-message': () => this._onPrimarySend(),
-      'composer:delete-empty-draft': () => this.props.draft.pristine && this._onDestroyDraft(),
-      'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
-      'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
-      'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
-      'composer:show-and-focus-from': () => {},
-      'composer:select-attachment': () => this._onSelectAttachment(),
-    };
 
     const draft = props.session.draft();
     this.state = {
@@ -81,7 +100,7 @@ export default class ComposerView extends React.Component {
 
     const isBrandNew = Date.now() - this.props.draft.date < 3 * 1000;
     if (isBrandNew) {
-      ReactDOM.findDOMNode(this).scrollIntoView(false);
+      (ReactDOM.findDOMNode(this) as HTMLElement).scrollIntoView(false);
       window.requestAnimationFrame(() => {
         this.focus();
       });
@@ -192,7 +211,7 @@ export default class ComposerView extends React.Component {
       <a
         className="quoted-text-control"
         onMouseDown={e => {
-          if (e.target.closest('.remove-quoted-text')) return;
+          if (e.currentTarget.closest('.remove-quoted-text')) return;
           e.preventDefault();
           e.stopPropagation();
           this.setState({ quotedTextHidden: false });
@@ -385,7 +404,10 @@ export default class ComposerView extends React.Component {
     if (event.target === this._mouseDownTarget && !this._inFooterRegion(event.target)) {
       // We don't set state directly here because we want the native
       // contenteditable focus behavior. When the contenteditable gets focused
-      const bodyRect = ReactDOM.findDOMNode(this._els[Fields.Body]).getBoundingClientRect();
+      const bodyRect = (ReactDOM.findDOMNode(
+        this._els[Fields.Body]
+      ) as HTMLElement).getBoundingClientRect();
+
       if (event.pageY < bodyRect.top) {
         this._els[Fields.Body].focus();
       } else {
@@ -431,7 +453,7 @@ export default class ComposerView extends React.Component {
   _onDrop = event => {
     // Accept drops of real files from other applications
     for (const file of Array.from(event.dataTransfer.files)) {
-      this._onFileReceived(file.path);
+      this._onFileReceived((file as any).path);
       event.preventDefault();
     }
 
@@ -467,7 +489,7 @@ export default class ComposerView extends React.Component {
     });
   };
 
-  _isValidDraft = (options = {}) => {
+  _isValidDraft = (options: { force?: boolean } = {}) => {
     // We need to check the `DraftStore` because the `DraftStore` is
     // immediately and synchronously updated as soon as this function
     // fires. Since `setState` is asynchronous, if we used that as our only

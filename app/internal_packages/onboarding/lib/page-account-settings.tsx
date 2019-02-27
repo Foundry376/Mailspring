@@ -1,4 +1,5 @@
-import { localized, Account, React, PropTypes, RegExpUtils } from 'mailspring-exports';
+import React from 'react';
+import { localized, Account, PropTypes, RegExpUtils } from 'mailspring-exports';
 
 import OnboardingActions from './onboarding-actions';
 import CreatePageForForm from './decorators/create-page-for-form';

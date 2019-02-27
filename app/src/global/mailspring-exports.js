@@ -118,6 +118,7 @@ lazyLoadAndRegisterTask(`SendFeatureUsageEventTask`, 'send-feature-usage-event-t
 load(`TaskQueue`, 'flux/stores/task-queue');
 load(`BadgeStore`, 'flux/stores/badge-store');
 load(`DraftStore`, 'flux/stores/draft-store');
+load(`DraftEditingSession`, 'flux/stores/draft-editing-session');
 load(`DraftFactory`, 'flux/stores/draft-factory');
 load(`ModalStore`, 'flux/stores/modal-store');
 load(`OutboxStore`, 'flux/stores/outbox-store');

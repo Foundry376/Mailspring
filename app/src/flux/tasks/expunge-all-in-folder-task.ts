@@ -11,6 +11,8 @@ export default class ExpungeAllInFolderTask extends Task {
     }),
   });
 
+  folder: Folder;
+
   label() {
     return localized(
       `Deleting all messages in %@`,

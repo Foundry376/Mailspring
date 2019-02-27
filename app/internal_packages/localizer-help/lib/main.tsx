@@ -1,7 +1,7 @@
+import React from 'react';
 import {
   localized,
   MailspringAPIRequest,
-  React,
   WorkspaceStore,
   ComponentRegistry,
 } from 'mailspring-exports';

@@ -87,6 +87,7 @@ export default class InjectedComponentSet extends React.Component<
   };
 
   _mounted: boolean = false;
+  _componentUnlistener?: () => void;
 
   constructor(props, context) {
     super(props, context);
@@ -140,7 +141,7 @@ export default class InjectedComponentSet extends React.Component<
     const { exposedProps, containersRequired, matching, children } = this.props;
     let { className } = this.props;
 
-    const flexboxProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    const flexboxProps = Utils.fastOmit(this.props, Object.keys(InjectedComponentSet.propTypes));
 
     const elements = components.map(Component => {
       if (containersRequired === false || Component.containerRequired === false) {

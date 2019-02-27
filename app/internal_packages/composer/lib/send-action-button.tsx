@@ -1,11 +1,5 @@
-import {
-  localized,
-  React,
-  PropTypes,
-  Actions,
-  SendActionsStore,
-  SoundRegistry,
-} from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes, Actions, SendActionsStore, SoundRegistry } from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
 
 class SendActionButton extends React.Component {

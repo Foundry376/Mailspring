@@ -1,4 +1,6 @@
-import { localized, React, ReactDOM, Actions, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { localized, Actions, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import OpenTrackingMessagePopover from './open-tracking-message-popover';
 import { PLUGIN_ID } from './open-tracking-constants';

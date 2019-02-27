@@ -1,6 +1,6 @@
+import React from 'react';
 import {
   localized,
-  React,
   // The ComponentRegistry manages all React components in N1.
   ComponentRegistry,
   // A `Store` is a Flux component which contains all business logic and data

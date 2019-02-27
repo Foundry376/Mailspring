@@ -1,4 +1,5 @@
-import { Actions, React, PropTypes, localized } from 'mailspring-exports';
+import React from 'react';
+import { Actions, PropTypes, localized } from 'mailspring-exports';
 
 function SyncingListState(props) {
   let message = localized('Looking for more messages');

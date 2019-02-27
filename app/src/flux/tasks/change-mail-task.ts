@@ -29,6 +29,12 @@ export default class ChangeMailTask extends Task {
     }),
   });
 
+  threadIds: string[];
+  messageIds: string[];
+  isUndo: boolean;
+  canBeUndone: boolean;
+  taskDescription: string;
+
   constructor({ threads = [], messages = [], ...rest } = {}) {
     super(rest);
 

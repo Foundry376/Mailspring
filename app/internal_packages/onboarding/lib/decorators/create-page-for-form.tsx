@@ -1,6 +1,8 @@
 import { shell, remote } from 'electron';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import { RetinaImg } from 'mailspring-component-kit';
-import { localized, React, ReactDOM, PropTypes } from 'mailspring-exports';
+import { localized, PropTypes } from 'mailspring-exports';
 
 import OnboardingActions from '../onboarding-actions';
 import { finalizeAndValidateAccount } from '../onboarding-helpers';

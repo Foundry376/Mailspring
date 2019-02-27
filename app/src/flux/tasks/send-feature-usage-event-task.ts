@@ -9,6 +9,8 @@ export default class SendFeatureUsageEventTask extends Task {
     }),
   });
 
+  feature: string;
+
   constructor(data) {
     super(data);
 

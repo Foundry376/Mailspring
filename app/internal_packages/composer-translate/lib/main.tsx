@@ -6,9 +6,9 @@
 // TranslateButton is a simple React component that allows you to select
 // a language from a popup menu and translates draft text into that language.
 
+import React from 'react';
+import ReactDOM from 'react-dom';
 import {
-  React,
-  ReactDOM,
   PropTypes,
   ComponentRegistry,
   QuotedHTMLTransformer,

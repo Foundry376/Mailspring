@@ -10,4 +10,7 @@ export default class GetMessageRFC2822Task extends Task {
       modelKey: 'filepath',
     }),
   });
+
+  messageId: string;
+  filepath: string;
 }

@@ -1,11 +1,11 @@
 import React from 'react';
 import { PropTypes, Utils } from 'mailspring-exports';
 
-class SendingProgressBar extends React.Component {
+class SendingProgressBar extends React.Component<{ progress: number }> {
   static propTypes = { progress: PropTypes.number.isRequired };
 
   render() {
-    const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = Utils.fastOmit(this.props, Object.keys(SendingProgressBar.propTypes));
     if (0 < this.props.progress && this.props.progress < 99) {
       return (
         <div className="sending-progress" {...otherProps}>

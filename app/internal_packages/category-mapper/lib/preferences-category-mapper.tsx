@@ -1,7 +1,7 @@
+import React from 'react';
 import {
   AccountStore,
   CategoryStore,
-  React,
   Category,
   Actions,
   ChangeRoleMappingTask,

@@ -1,4 +1,5 @@
-import { localized, React, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes } from 'mailspring-exports';
 
 class TemplateStatusBar extends React.Component {
   static displayName = 'TemplateStatusBar';

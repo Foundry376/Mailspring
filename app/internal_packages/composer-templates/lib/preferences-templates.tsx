@@ -1,6 +1,8 @@
 import fs from 'fs';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
-import { Actions, localized, localizedReactFragment, React, ReactDOM } from 'mailspring-exports';
+import { Actions, localized, localizedReactFragment } from 'mailspring-exports';
 import { shell } from 'electron';
 
 import TemplateStore from './template-store';

@@ -34,6 +34,11 @@ export default class Task extends Model {
     }),
   });
 
+  version: string;
+  status: string;
+  source: string;
+  error: string;
+
   // Public: Override the constructor to pass initial args to your Task and
   // initialize instance variables.
   //

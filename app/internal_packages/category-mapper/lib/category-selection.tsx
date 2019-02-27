@@ -1,3 +1,4 @@
+import React from 'react';
 import utf7 from 'utf7';
 import {
   RetinaImg,
@@ -5,7 +6,7 @@ import {
   LabelColorizer,
   BoldedSearchResult,
 } from 'mailspring-component-kit';
-import { localized, Label, Utils, React, PropTypes } from 'mailspring-exports';
+import { localized, Label, Utils, PropTypes } from 'mailspring-exports';
 
 export default class CategorySelection extends React.Component {
   static propTypes = {

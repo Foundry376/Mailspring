@@ -1,4 +1,6 @@
-import { localized, React, ReactDOM, PropTypes, Actions, AccountStore } from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { localized, PropTypes, Actions, AccountStore } from 'mailspring-exports';
 import {
   KeyCommandsRegion,
   ParticipantsTextField,

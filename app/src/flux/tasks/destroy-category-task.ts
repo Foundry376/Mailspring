@@ -10,6 +10,8 @@ export default class DestroyCategoryTask extends Task {
     }),
   });
 
+  path: string;
+
   label() {
     return localized(`Deleting %@`, utf7.imap.decode(this.path));
   }

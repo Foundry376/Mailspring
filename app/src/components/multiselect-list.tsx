@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import classNames from 'classnames';
-import ListTabular from './list-tabular';
+import ListTabular, { ListTabularColumn } from './list-tabular';
 import Spinner from './spinner';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -9,24 +9,24 @@ import { KeyCommandsRegion } from 'mailspring-component-kit';
 
 import MultiselectListInteractionHandler from './multiselect-list-interaction-handler';
 import MultiselectSplitInteractionHandler from './multiselect-split-interaction-handler';
+import ListDataSource from './list-data-source';
 
 type MultiselectListProps = {
-  dataSource?: object;
+  focusedId: string;
+  keyboardCursorId: string;
+  dataSource?: ListDataSource;
   className: string;
-  columns: any[];
+  columns: ListTabularColumn[];
   itemPropsProvider: (...args: any[]) => any;
   keymapHandlers?: object;
   onComponentDidUpdate?: (...args: any[]) => any;
 };
+
 type MultiselectListState = {
   handler: any;
-  columns: any;
-  computedColumns: any;
-  layoutMode: any;
-  handler: any;
-  columns: any;
-  computedColumns: any;
-  layoutMode: any;
+  columns: ListTabularColumn[];
+  computedColumns: ListTabularColumn[];
+  layoutMode: string;
 };
 /*
 Public: MultiselectList wraps {ListTabular} and makes it easy to present a
@@ -52,6 +52,12 @@ export default class MultiselectList extends React.Component<
     itemPropsProvider: PropTypes.func.isRequired,
     keymapHandlers: PropTypes.object,
     onComponentDidUpdate: PropTypes.func,
+  };
+
+  unsubscribers: (() => void)[];
+  itemPropsProvider: (item: any, idx: number) => object;
+  refs: {
+    list: ListTabular;
   };
 
   constructor(props) {
@@ -80,9 +86,8 @@ export default class MultiselectList extends React.Component<
       prevProps.focusedId !== this.props.focusedId ||
       prevProps.keyboardCursorId !== this.props.keyboardCursorId
     ) {
-      const item =
-        ReactDOM.findDOMNode(this).querySelector('.focused') ||
-        ReactDOM.findDOMNode(this).querySelector('.keyboard-cursor');
+      const el = ReactDOM.findDOMNode(this) as HTMLElement;
+      const item = el.querySelector('.focused') || el.querySelector('.keyboard-cursor');
       if (!(item instanceof Node)) {
         return;
       }
@@ -130,7 +135,7 @@ export default class MultiselectList extends React.Component<
     // BAD:   onSelect={ (item) -> Actions.focusThread(item) }
     // GOOD:  onSelect={this._onSelectItem}
     //
-    const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = Utils.fastOmit(this.props, Object.keys(MultiselectList.propTypes));
 
     let { className } = this.props;
     if (this.props.dataSource && this.state.handler) {
@@ -254,7 +259,7 @@ export default class MultiselectList extends React.Component<
   };
 
   _getCheckmarkColumn = () => {
-    return new ListTabular.Column({
+    return new ListTabularColumn({
       name: 'Check',
       resolver: item => {
         const toggle = event => {
@@ -276,7 +281,7 @@ export default class MultiselectList extends React.Component<
 
   _getStateFromStores(props = this.props) {
     let computedColumns, handler;
-    const state = this.state || {};
+    const state: Partial<MultiselectListState> = this.state || {};
 
     const layoutMode = WorkspaceStore.layoutMode();
 
@@ -314,7 +319,7 @@ export default class MultiselectList extends React.Component<
   }
 
   itemIdAtPoint(x, y) {
-    const item = document.elementFromPoint(x, y).closest('[data-item-id]');
+    const item = document.elementFromPoint(x, y).closest('[data-item-id]') as HTMLElement;
     if (!item) {
       return null;
     }

@@ -4,8 +4,8 @@
 // phishing scam.
 
 // You can access Mailspring dependencies by requiring 'mailspring-exports'
+import React from 'react';
 import {
-  React,
   PropTypes,
   // The ComponentRegistry manages all React components in N1.
   ComponentRegistry,

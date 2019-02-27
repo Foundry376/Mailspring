@@ -1,8 +1,8 @@
 import fs from 'fs';
 import { remote } from 'electron';
+import React from 'react';
 import {
   Utils,
-  React,
   PropTypes,
   MessageUtils,
   MessageBodyProcessor,

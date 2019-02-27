@@ -1,12 +1,7 @@
 import { EventedIFrame } from 'mailspring-component-kit';
-import {
-  React,
-  ReactDOM,
-  PropTypes,
-  Utils,
-  QuotedHTMLTransformer,
-  MessageStore,
-} from 'mailspring-exports';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { PropTypes, Utils, QuotedHTMLTransformer, MessageStore } from 'mailspring-exports';
 import { autolink } from './autolinker';
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';

@@ -2,13 +2,21 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
-export default class DropZone extends React.Component {
+interface DropZoneProps {
+  shouldAcceptDrop: (e: Event) => boolean;
+  onDrop: (e: Event) => void;
+  onDragOver: (e: Event) => void;
+  onDragStateChange: ({ isDropping: boolean }) => void;
+}
+export default class DropZone extends React.Component<DropZoneProps> {
   static propTypes = {
     shouldAcceptDrop: PropTypes.func.isRequired,
     onDrop: PropTypes.func.isRequired,
     onDragOver: PropTypes.func,
     onDragStateChange: PropTypes.func,
   };
+
+  _dragCounter = 0;
 
   static defaultProps = {
     onDragOver: () => {},
@@ -23,9 +31,6 @@ export default class DropZone extends React.Component {
   _onDragEnter = e => {
     if (!this.props.shouldAcceptDrop(e)) {
       return;
-    }
-    if (this._dragCounter === undefined) {
-      this._dragCounter = 0;
     }
     this._dragCounter += 1;
     if (this._dragCounter === 1 && this.props.onDragStateChange) {
@@ -61,7 +66,7 @@ export default class DropZone extends React.Component {
   };
 
   render() {
-    const otherProps = _.omit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = _.omit(this.props, Object.keys(DropZone.propTypes));
     return (
       <div
         {...otherProps}

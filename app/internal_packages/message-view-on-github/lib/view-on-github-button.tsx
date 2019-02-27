@@ -1,5 +1,6 @@
 import { shell } from 'electron';
-import { localized, React, PropTypes } from 'mailspring-exports';
+import React from 'react';
+import { localized, PropTypes } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
 import GithubStore from './github-store';

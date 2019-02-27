@@ -1,6 +1,6 @@
 import moment from 'moment';
+import React from 'react';
 import {
-  React,
   PropTypes,
   Actions,
   DatabaseStore,

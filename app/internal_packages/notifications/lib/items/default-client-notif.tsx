@@ -1,4 +1,5 @@
-import { localized, React, DefaultClientHelper } from 'mailspring-exports';
+import React from 'react';
+import { localized, DefaultClientHelper } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
 const SETTINGS_KEY = 'mailto.prompted-about-default';

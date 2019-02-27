@@ -151,7 +151,7 @@ class ResizableRegion extends React.Component<ResizableRegionProps, ResizableReg
       }
     }
 
-    const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    const otherProps = Utils.fastOmit(this.props, Object.keys(ResizableRegion.propTypes));
 
     return (
       <div style={containerStyle} {...otherProps}>

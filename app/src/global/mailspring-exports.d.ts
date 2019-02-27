@@ -13,29 +13,29 @@ declare module "mailspring-exports" {
   export const MailsyncProcess: typeof import('../mailsync-process').default; 
 
   // The Database
-  export const Matcher: typeof import('../flux/attributes/matcher').default; 
+  export const Matcher: import('../flux/attributes/matcher').default; 
   export const DatabaseStore: typeof import('../flux/stores/database-store').default; 
-  export const QueryResultSet: typeof import('../flux/models/query-result-set').default; 
-  export const QuerySubscription: typeof import('../flux/models/query-subscription').default; 
-  export const MutableQueryResultSet: typeof import('../flux/models/mutable-query-result-set').default; 
+  export const QueryResultSet: import('../flux/models/query-result-set').default; 
+  export const QuerySubscription: import('../flux/models/query-subscription').default; 
+  export const MutableQueryResultSet: import('../flux/models/mutable-query-result-set').default; 
   export const QuerySubscriptionPool: typeof import('../flux/models/query-subscription-pool').default; 
-  export const ObservableListDataSource: typeof import('../flux/stores/observable-list-data-source').default; 
-  export const MutableQuerySubscription: typeof import('../flux/models/mutable-query-subscription').default; 
+  export const ObservableListDataSource: import('../flux/stores/observable-list-data-source').default; 
+  export const MutableQuerySubscription: import('../flux/models/mutable-query-subscription').default; 
   
   // Database Objects
   export const DatabaseObjectRegistry: typeof import('../registries/database-object-registry').default; 
-  export const Model: typeof import('../flux/models/model').default; 
-  export const Attributes: typeof import('../flux/attributes').default; 
-  export const File: typeof import('../flux/models/file').default; 
-  export const Event: typeof import('../flux/models/event').default; 
-  export const Label: typeof import('../flux/models/label').default; 
-  export const Folder: typeof import('../flux/models/folder').default; 
-  export const Thread: typeof import('../flux/models/thread').default; 
-  export const Account: typeof import('../flux/models/account').default; 
-  export const Message: typeof import('../flux/models/message').default; 
-  export const Contact: typeof import('../flux/models/contact').default; 
-  export const Category: typeof import('../flux/models/category').default; 
-  export const Calendar: typeof import('../flux/models/calendar').default; 
+  export type Model = import('../flux/models/model').default
+  export const Attributes: typeof import('../flux/attributes'); 
+  export const File: import('../flux/models/file').default; 
+  export const Event: import('../flux/models/event').default; 
+  export const Label: import('../flux/models/label').default; 
+  export const Folder: import('../flux/models/folder').default; 
+  export const Thread: import('../flux/models/thread').default; 
+  export const Account: import('../flux/models/account').default; 
+  export const Message: import('../flux/models/message').default; 
+  export const Contact: import('../flux/models/contact').default; 
+  export const Category: import('../flux/models/category').default; 
+  export const Calendar: import('../flux/models/calendar').default; 
   export const ProviderSyncbackRequest: typeof import('../flux/models/provider-syncback-request').default; 
   
   // Search Query Interfaces
@@ -72,6 +72,7 @@ declare module "mailspring-exports" {
   export const TaskQueue: typeof import('../flux/stores/task-queue').default;
   export const BadgeStore: typeof import('../flux/stores/badge-store').default;
   export const DraftStore: typeof import('../flux/stores/draft-store').default;
+  export const DraftEditingSession: typeof import('../flux/stores/draft-editing-session').default;
   export const DraftFactory: typeof import('../flux/stores/draft-factory').default;
   export const ModalStore: typeof import('../flux/stores/modal-store').default;
   export const OutboxStore: typeof import('../flux/stores/outbox-store').default;
@@ -110,11 +111,11 @@ declare module "mailspring-exports" {
   export const ComposerExtension: typeof import('../extensions/composer-extension').default;
   
   // 3rd party libraries
-  export const Rx: typeof import('rx-lite').default;
-  export const React: typeof import('react').default;
-  export const ReactDOM: typeof import('react-dom').default;
-  export const ReactTestUtils: typeof import('react-dom/test-utils').default;
-  export const PropTypes: typeof import('prop-types').default;
+  export const Rx: typeof import('rx-lite');
+  export const React: typeof import('react');
+  export const ReactDOM: typeof import('react-dom');
+  export const ReactTestUtils: typeof import('react-dom/test-utils');
+  export const PropTypes: typeof import('prop-types');
   
   // React Components
   export const ComponentRegistry: typeof import('../registries/component-registry').default;

@@ -14,6 +14,8 @@ export default class ChangeUnreadTask extends ChangeMailTask {
     }),
   });
 
+  unread: boolean;
+
   label() {
     return this.unread ? localized('Marking as unread') : localized('Marking as read');
   }

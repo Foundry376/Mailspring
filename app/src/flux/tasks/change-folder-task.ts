@@ -2,6 +2,8 @@ import ChangeMailTask from './change-mail-task';
 import Attributes from '../attributes';
 import Folder from '../models/folder';
 import { localized } from '../../intl';
+import Message from '../models/Message';
+import Thread from '../models/Thread';
 
 // Public: Create a new task to apply labels to a message or thread.
 //
@@ -26,7 +28,18 @@ export default class ChangeFolderTask extends ChangeMailTask {
     }),
   });
 
-  constructor(data = {}) {
+  previousFolder: Folder;
+  folder: Folder;
+
+  constructor(
+    data: {
+      folder?: Folder;
+      previousFolder?: Folder;
+      messages?: Message[];
+      threads?: Thread[];
+      canBeUndone?: boolean;
+    } = {}
+  ) {
     if (!data.previousFolder) {
       const folders = [];
       for (const t of data.threads || []) {
