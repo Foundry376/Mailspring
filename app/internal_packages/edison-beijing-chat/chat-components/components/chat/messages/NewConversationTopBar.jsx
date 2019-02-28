@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import { RetinaImg } from 'mailspring-component-kit';
 import Select, { Option } from 'rc-select';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
@@ -45,12 +45,16 @@ export default class MessagesTopBar extends Component {
     return (
       <div className="new-conversation-header">
         <div className="to">
-          <Button
-            className='no-border'
+          <span
             onClick={() => {
               this.props.deselectConversation();
             }}
-          >X</Button>
+          >
+            <RetinaImg name={'close_1.svg'}
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
+          </span>
           <span className="new-message-title">New Message</span>
         </div>
         <div style={{ display: 'flex' }} onClick={() => {

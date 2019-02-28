@@ -1,12 +1,14 @@
+@import 'ui-variables';
+
 .message-image-popup {
   position: fixed;
   left: 0;
   top: 0px;
-  padding-top: 20px;
+  padding-top: 10px;
   width: 100%;
   height: 100%;
   background-color: rgba(255,255,255,0.95);
-  z-index: 9;
+  z-index: 100;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -20,11 +22,19 @@
       height: 48px;
       width: 48px;
     }
-    #close-button {
+    .close-button {
       display: inline-block;
       width: 24px;
       height: 24px;
       margin: 0 10px 0 20px;
+      img.content-mask {
+        background-color: @gray;
+      }
+      &:hover {
+        img.content-mask {
+          background-color: @blue;
+        } 
+      }
     }
   }
   .message-image-popup-content {
@@ -48,13 +58,17 @@
     .left-arrow-button,
     .right-arrow-button {
       display: block;
-      height: 48px;
-    }
-    .left-arrow-button {
-      background: url(images/chat/left-arrow.png) no-repeat center center;
-    }
-    .right-arrow-button {
-      background: url(images/chat/right-arrow.png) no-repeat center center;
+      text-align: center;
+      opacity: 0.5;
+      img.content-mask {
+        background-color: @gray;
+      }
+      &:hover {
+        opacity: 1;
+        img.content-mask {
+          background-color: @blue;
+        } 
+      }
     }
     .left-span,
     .right-span {

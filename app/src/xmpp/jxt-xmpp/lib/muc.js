@@ -319,54 +319,15 @@ exports['default'] = function (JXT) {
     });
     var MembersChange = JXT.define({
         name: 'memberschange',
+        namespace: '',
         element: 'memberschange',
         fields: {
-            ver: {
-                get: () => {
-                    var e = this.xml.parent.children[0];
-                    return Utils.getAttribute(e, 'ver');
-                }
-            },
-            userJid: {
-                get: () => {
-                    if (this.xml.parent.children[0].children.length > 0) {
-                        var e = this.xml.parent.children[0].children[0];
-                        return Utils.getAttribute(e, 'userjid');
-                    }
-                }
-            },
-            userEmail: {
-                get: () => {
-                    if (this.xml.parent.children[0].children.length > 0) {
-                        var e = this.xml.parent.children[0].children[0];
-                        return Utils.getAttribute(e, 'useremail');
-                    }
-                }
-            },
-            actorJid: {
-                get: function get() {
-                    if (this.xml.parent.children[0].children.length > 0) {
-                        var e = this.xml.parent.children[0].children[0];
-                        return Utils.getAttribute(e, 'actorjid');
-                    }
-                }
-            },
-            actorName: {
-                get: () => {
-                    if (this.xml.parent.children[0].children.length > 0) {
-                        var e = this.xml.parent.children[0].children[0];
-                        return Utils.getAttribute(e, 'actorname');
-                    }
-                }
-            },
-            type: {
-                get: () => {
-                    if (this.xml.parent.children[0].children.length > 0) {
-                        var e = this.xml.parent.children[0].children[0];
-                        return Utils.getAttribute(e, 'type');
-                    }
-                }
-            },
+            ver: Utils.attribute('ver'),
+            userJid: Utils.subAttribute('', 'member', 'userjid'),
+            userEmail: Utils.subAttribute('', 'member', 'useremail'),
+            actorJid: Utils.subAttribute('', 'member', 'actorjid'),
+            actorName: Utils.subAttribute('', 'member', 'actorname'),
+            type: Utils.subAttribute('', 'member', 'type')
         }
     });
     var EdimucProfile = JXT.define({

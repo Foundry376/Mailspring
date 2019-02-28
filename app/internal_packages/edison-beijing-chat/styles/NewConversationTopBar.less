@@ -30,9 +30,16 @@
         font-size: 16px;
       }
       .button {
-        color:#797d80;
+        img.content-mask {
+          background-color: @gray;
+        }
         justify-content: left;
         width: 20px;
+        &:hover {
+          img.content-mask {
+            background-color: @blue;
+          }
+        }
       }
     }
     .go {

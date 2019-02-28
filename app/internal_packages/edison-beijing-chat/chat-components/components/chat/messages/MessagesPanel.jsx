@@ -18,7 +18,7 @@ import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
-import Button from '../../common/Button';
+import { RetinaImg } from 'mailspring-component-kit';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
 import { checkToken, login, queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
@@ -495,9 +495,15 @@ export default class MessagesPanel extends PureComponent {
           <div className="network-offline">
             {this.state.online ? (
               this.props.isAuthenticating ? (
-                <div>Your computer appears to be offline. Edison Mail is trying to reconnect. </div>
+                <div>
+                  <RetinaImg name={'no-network.svg'}
+                    style={{ width: 15 }}
+                    isIcon
+                    mode={RetinaImg.Mode.ContentIsMask} />
+                  <span>Your computer appears to be offline. Edison Mail is trying to reconnect. </span>
+                </div>
               ) : (
-                  <Button className="reconnect" onClick={this.reconnect}>Reconnect</Button>
+                  <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
                 )
             ) : null}
           </div>

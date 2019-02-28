@@ -6,6 +6,7 @@ import { isJsonString } from '../../../utils/stringUtils';
 import CancelIcon from '../../common/icons/CancelIcon';
 import Button from '../../common/Button';
 const { dialog } = require('electron').remote;
+import { RetinaImg } from 'mailspring-component-kit';
 
 var http = require("http");
 var https = require("https");
@@ -175,9 +176,12 @@ export default class MessageImagePopup extends Component {
         {imgIndex !== -1 && (
           <div className='message-image-popup' onKeyUp={this.onKeyUp} tabIndex='0' ref={(el) => this.node = el}>
             <div className='message-image-popup-toolbar'>
-              <Button id='close-button' className="no-border" onClick={this.hide}>
-                <CancelIcon color={"#787e80"} />
-              </Button>
+              <span className='close-button' onClick={this.hide}>
+                <RetinaImg name={'close_1.svg'}
+                  style={{ width: 24, height: 24 }}
+                  isIcon
+                  mode={RetinaImg.Mode.ContentIsMask} />
+              </span>
               <div className="messageSender image-popup-avatar" className="inline-block">
                 {getContactAvatar(getContactInfoByJid(msg.sender))}
               </div>
@@ -185,17 +189,36 @@ export default class MessageImagePopup extends Component {
                 <div>{fileName}</div>
                 <span>{this.getContactNameByJid(msg.sender)} &nbsp; {timeDescriptor(msg.sentTime, true)}</span>
               </div>
-              <span className="download-img float-right" onClick={this.downloadImage}></span>
+              <span className="download-img float-right" onClick={this.downloadImage}>
+                <RetinaImg name={'download.svg'}
+                  style={{ width: 24, height: 24 }}
+                  isIcon
+                  mode={RetinaImg.Mode.ContentIsMask} />
+              </span>
             </div>
             <div className='message-image-popup-content'>
               <div className="left-span">
-                {!isLeftEdge && <span className='left-arrow-button' onClick={this.gotoPrevImage}></span>}
+                {!isLeftEdge && (
+                  <span className='left-arrow-button' onClick={this.gotoPrevImage}>
+                    <RetinaImg name={'back.svg'}
+                      style={{ width: 60, height: 60 }}
+                      isIcon
+                      mode={RetinaImg.Mode.ContentIsMask} />
+                  </span>
+                )}
               </div>
               <div className="img-container">
                 <img src={msgBody.path || msgBody.localFile} />
               </div>
               <div className="right-span">
-                {!isRightEdge && <span className='right-arrow-button' onClick={this.gotoNextImage}></span>}
+                {!isRightEdge && (
+                  <span className='right-arrow-button' onClick={this.gotoNextImage}>
+                    <RetinaImg name={'next.svg'}
+                      style={{ width: 60, height: 60 }}
+                      isIcon
+                      mode={RetinaImg.Mode.ContentIsMask} />
+                  </span>
+                )}
               </div>
             </div>
           </div>
