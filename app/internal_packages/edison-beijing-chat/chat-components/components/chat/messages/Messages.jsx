@@ -346,7 +346,12 @@ export default class Messages extends PureComponent {
             className="download-img"
             title={msgBody.path}
             onClick={() => this.download(msgBody)}
-          />
+          >
+            <RetinaImg name={'download.svg'}
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
+          </span>
         )}
         {msg.sender === currentUserId && (
           <span

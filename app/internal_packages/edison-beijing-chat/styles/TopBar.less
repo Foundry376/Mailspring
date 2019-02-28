@@ -30,8 +30,6 @@
     justify-content: flex-start;
     .conversationName {
       overflow: hidden;
-      height: @topBarHeight;
-      line-height: @topBarHeight;
       font-size: 28px;
     }
   }
@@ -75,42 +73,6 @@
       }
     }
   }
-  #input-group-name-dialog {
-    position: absolute;
-    width: 100%;
-    top: 40px;
-    left: 0px;
-    padding: 10px 8px;
-    background: #fff;
-    input {
-      width: 100%;
-      height: 26px;
-      border-radius: 3px;
-      margin-bottom: 5px;
-    }
-  }
-
-  #input-group-name-dialog-title {
-    line-height: 20px;
-    margin:0;
-  }
-
-  #invite-button {
-    float:left;
-    border:1px solid black;
-    background-color:lightgray;
-    position:relative;
-    top: 15px;
-  }
-
-  #exit-button {
-    float:left;
-    border:1px solid black;
-    background-color:lightgray;
-    position:relative;
-    top:15px;
-    margin-right:5px;
-  }
 
   #open-info {
     cursor: pointer;
@@ -129,9 +91,13 @@
     font-size: 10px;
     margin-right: 18px;
     box-shadow: 0 2px 7px 0 rgba(0,0,0,0.1);
+    transition: 0.5s;
     img.content-mask {
       background: @blue;
       margin-right: 3px;
+    }
+    &:hover {
+      box-shadow:  -2px 2.5px 10px rgba(0, 0, 0, 0.35);
     }
   }
 }

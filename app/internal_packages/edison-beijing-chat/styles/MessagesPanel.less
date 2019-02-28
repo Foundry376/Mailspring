@@ -88,15 +88,16 @@
     box-shadow: 0 2px 7px 0 rgba(0,0,0,0.2);
     color: @white;
     text-align: center;
+    img.content-mask {
+      background-color: @white;
+    }
     .reconnect {
       width: 120px;
       height: 76%;
       text-align: center;
       margin: 3px auto;
-      &:hover {
-        background: @blue;
-        color: @white;
-      }
+      cursor: pointer;
+      text-decoration: underline;
     }
   }
 }

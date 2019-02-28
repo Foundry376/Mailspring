@@ -196,10 +196,11 @@
       }
     }
     .message-image {
-      padding-right: 120px;
+      padding-right: 0;
+      border-radius: 10px;
+      overflow: hidden;
       .message-toolbar {
-        top: 0px;
-        justify-content: flex-start;
+        top: 10px;
       }
     }
     .file-info {
@@ -270,13 +271,16 @@
     }
   }
   .download-img {
-    background: url(images/chat/download.png) no-repeat center center rgba(255, 255, 255, 0.95);
-    background-size: 30px auto;
     border-radius: @border-radius;
-  }
-  .download-img:hover {
-    background: url(images/chat/download-active.png) no-repeat center center rgba(255, 255, 255, 1);
-    background-size: 30px auto;
+    background: rgba(255, 255, 255, 0.9);
+    img.content-mask {
+      background-color: @gray;
+    }
+    &:hover {
+      img.content-mask {
+        background-color: @blue;
+      }
+    }
   }
   .inplace-edit-img {
     img.content-mask {
