@@ -24,7 +24,7 @@ class SystemStartServiceBase {
 
 class SystemStartServiceDarwin extends SystemStartServiceBase {
   checkAvailability() {
-    return new Promise(resolve => {
+    return new Promise<boolean>(resolve => {
       fs.access(this._launcherPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
         if (err) {
           resolve(false);
@@ -79,7 +79,7 @@ class SystemStartServiceDarwin extends SystemStartServiceBase {
 
 class SystemStartServiceWin32 extends SystemStartServiceBase {
   checkAvailability() {
-    return new Promise(resolve => {
+    return new Promise<boolean>(resolve => {
       fs.access(this._launcherPath(), fs.constants.R_OK | fs.constants.W_OK, err => {
         if (err) {
           resolve(false);
@@ -140,7 +140,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
 
 class SystemStartServiceLinux extends SystemStartServiceBase {
   checkAvailability() {
-    return new Promise(resolve => {
+    return new Promise<boolean>(resolve => {
       fs.access(this._launcherPath(), fs.constants.R_OK, err => {
         if (err) {
           resolve(false);

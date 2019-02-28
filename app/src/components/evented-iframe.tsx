@@ -44,7 +44,7 @@ Any `props` added to the <EventedIFrame> are passed to the iFrame it renders.
 
 Section: Component Kit
 */
-class EventedIFrame extends React.Component<EventedIFrameProps> {
+class EventedIFrame extends React.Component<EventedIFrameProps & React.HTMLProps<HTMLDivElement>> {
   static displayName = 'EventedIFrame';
 
   static propTypes = {
@@ -104,6 +104,9 @@ class EventedIFrame extends React.Component<EventedIFrameProps> {
       el.style.height = `${height}px`;
     }
   }
+
+  lastSearchIndex: string;
+  lastSearchTerm: string;
 
   _onSearchableStoreChange = () => {
     if (!this.props.searchable) {

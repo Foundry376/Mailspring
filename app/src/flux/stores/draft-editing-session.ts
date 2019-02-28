@@ -33,13 +33,23 @@ const SaveAfterIdleMSec = 10000;
 const SaveAfterIdleSlushMSec = 2000;
 
 class DraftChangeSet extends EventEmitter {
+  callbacks = {
+    onAddChanges: null,
+    onCommit: null,
+  };
+  _timer = null;
+  _timerTime = null;
+  _timerStarted = null;
+  _lastModifiedTimes: {
+    body?: number;
+    bodyEditorState?: number;
+    pluginMetadata?: number;
+  } = {};
+  _lastCommitTime = 0;
+
   constructor(callbacks) {
     super();
     this.callbacks = callbacks;
-    this._timer = null;
-    this._timerTime = null;
-    this._lastModifiedTimes = {};
-    this._lastCommitTime = 0;
   }
 
   cancelCommit() {
@@ -152,13 +162,13 @@ function hotwireDraftBodyState(draft) {
 }
 
 function fastCloneDraft(draft) {
-  const next = new Message();
+  const next = new Message({});
   for (const key of Object.getOwnPropertyNames(draft)) {
     if (key === 'body' || key === 'bodyEditorState') continue;
     next[key] = draft[key];
   }
-  Object.defineProperty(next, 'body', next.__bodyPropDescriptor);
-  Object.defineProperty(next, 'bodyEditorState', next.__bodyEditorStatePropDescriptor);
+  Object.defineProperty(next, 'body', (next as any).__bodyPropDescriptor);
+  Object.defineProperty(next, 'bodyEditorState', (next as any).__bodyEditorStatePropDescriptor);
   return next;
 }
 
@@ -178,17 +188,20 @@ Section: Drafts
 export default class DraftEditingSession extends MailspringStore {
   static DraftChangeSet = DraftChangeSet;
 
+  _draft: Message = null;
+  _draftPromise: Promise<Message> = null;
+  _destroyed: boolean = false;
+
+  headerMessageId: string;
+  changes = new DraftChangeSet({
+    onAddChanges: changes => this.changeSetApplyChanges(changes),
+    onCommit: () => this.changeSetCommit(), // for specs
+  });
+
   constructor(headerMessageId, draft = null) {
     super();
 
-    this._draft = false;
-    this._destroyed = false;
-
     this.headerMessageId = headerMessageId;
-    this.changes = new DraftChangeSet({
-      onAddChanges: changes => this.changeSetApplyChanges(changes),
-      onCommit: () => this.changeSetCommit(), // for specs
-    });
 
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
@@ -388,7 +401,7 @@ export default class DraftEditingSession extends MailspringStore {
     // Some change events just tell us that the state of the draft (eg sending state)
     // have changed and don't include a payload.
     if (change.headerMessageId) {
-      if (change.headerMessageId === this.draft.headerMessageId) {
+      if (change.headerMessageId === this._draft.headerMessageId) {
         this.trigger();
       }
       return;

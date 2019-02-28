@@ -3,6 +3,24 @@ import MailspringStore from 'mailspring-store';
 import _ from 'underscore';
 
 class SignatureStore extends MailspringStore {
+  signatures: {
+    [key: string]: {
+      id: string;
+      title: string;
+      body: string;
+      data: {
+        title: string;
+        templateName: string;
+      };
+    };
+  };
+
+  defaultSignatures: {
+    [accountId: string]: string;
+  };
+
+  unsubscribers: Array<() => void>;
+
   constructor() {
     super();
     this.activate(); // for specs

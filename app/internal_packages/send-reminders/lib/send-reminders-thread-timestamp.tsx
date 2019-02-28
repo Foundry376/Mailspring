@@ -3,11 +3,16 @@ import PropTypes from 'prop-types';
 import { RetinaImg } from 'mailspring-component-kit';
 import moment from 'moment';
 
-import { localized, FocusedPerspectiveStore } from 'mailspring-exports';
+import { Thread, localized, FocusedPerspectiveStore } from 'mailspring-exports';
 import { updateReminderMetadata } from './send-reminders-utils';
 import { PLUGIN_ID } from './send-reminders-constants';
 
-class SendRemindersThreadTimestamp extends Component {
+interface SendRemindersThreadTimestampProps {
+  thread: Thread;
+  fallback: typeof React.Component;
+}
+
+class SendRemindersThreadTimestamp extends Component<SendRemindersThreadTimestampProps> {
   static displayName = 'SendRemindersThreadTimestamp';
 
   static propTypes = {

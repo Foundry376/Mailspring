@@ -29,7 +29,7 @@ class DateInput extends Component<DateInputProps, DateInputState> {
 
   _mounted: boolean = false;
 
-  constructor(props = {}) {
+  constructor(props) {
     super(props);
     this.state = props.initialTestState || {
       inputDate: null,

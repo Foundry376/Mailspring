@@ -9,11 +9,12 @@ import {
 import { PLUGIN_ID } from './send-reminders-constants';
 
 class SendRemindersMailboxPerspective extends MailboxPerspective {
-  constructor(accountIds) {
+  name = localized('Reminders');
+  iconName = 'reminders.png';
+
+  constructor(accountIds: string[]) {
     super(accountIds);
     this.accountIds = accountIds;
-    this.name = localized('Reminders');
-    this.iconName = 'reminders.png';
   }
 
   get isReminders() {

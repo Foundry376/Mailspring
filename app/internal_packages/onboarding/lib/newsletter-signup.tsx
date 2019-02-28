@@ -4,7 +4,19 @@ import PropTypes from 'prop-types';
 import { RetinaImg, Flexbox } from 'mailspring-component-kit';
 import { localized, MailspringAPIRequest } from 'mailspring-exports';
 
-export default class NewsletterSignup extends React.Component {
+interface NewsletterSignupProps {
+  name: string;
+  emailAddress: string;
+}
+
+interface NewsletterSignupState {
+  status: 'Pending' | 'Error' | 'Never Subscribed' | 'Subscribed';
+}
+
+export default class NewsletterSignup extends React.Component<
+  NewsletterSignupProps,
+  NewsletterSignupState
+> {
   static displayName = 'NewsletterSignup';
   static propTypes = {
     name: PropTypes.string,
@@ -72,10 +84,10 @@ export default class NewsletterSignup extends React.Component {
     }
   };
 
-  _onUnsubscribe = () => {
+  _onUnsubscribe = async () => {
     this._setState({ status: 'Pending' });
     try {
-      const { status } = MailspringAPIRequest.makeRequest({
+      const { status } = await MailspringAPIRequest.makeRequest({
         server: 'identity',
         method: 'DELETE',
         path: this._path(),

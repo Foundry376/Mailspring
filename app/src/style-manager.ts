@@ -2,6 +2,7 @@ import { Disposable } from 'event-kit';
 
 export default class StyleManager {
   private styleElementsBySourcePath = {};
+  private el: HTMLElement;
 
   constructor() {
     this.el = document.createElement('managed-styles');
@@ -12,7 +13,7 @@ export default class StyleManager {
     return Array.from(this.el.children);
   }
 
-  addStyleSheet(source, { sourcePath, priority } = {}) {
+  addStyleSheet(source, { sourcePath, priority }: { sourcePath: string; priority: number }) {
     let styleElement = sourcePath ? this.styleElementsBySourcePath[sourcePath] : null;
 
     if (styleElement) {
@@ -38,7 +39,7 @@ export default class StyleManager {
   insertStyleElementIntoDOM(styleElement) {
     const { priority } = styleElement;
     const beforeEl =
-      priority !== undefined && this.getStyleElements().find(el => el.priority > priority);
+      priority !== undefined && this.getStyleElements().find(el => (el as any).priority > priority);
     if (!beforeEl) {
       this.el.appendChild(styleElement);
     } else {

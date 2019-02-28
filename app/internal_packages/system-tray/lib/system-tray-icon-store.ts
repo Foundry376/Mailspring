@@ -22,9 +22,8 @@ class SystemTrayIconStore {
 
   static INBOX_UNREAD_ALT_ICON = INBOX_UNREAD_ALT_ICON;
 
-  constructor() {
-    this._windowBlurred = false;
-  }
+  _windowBlurred = false;
+  _unsubscribers: (() => void)[];
 
   activate() {
     setTimeout(() => {

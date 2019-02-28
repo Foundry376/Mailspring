@@ -26,14 +26,20 @@ import { localized } from '../../intl';
  *   }
  *
  */
+interface FolderProgress {
+  busy: boolean;
+  scanProgress: number;
+  bodyProgress: number;
+}
 class FolderSyncProgressStore extends MailspringStore {
+  _statesByAccount: { [accountId: string]: FolderProgress[] } = {};
+  _stateSummary = {
+    phrase: null,
+    progress: 100,
+  };
+
   constructor() {
     super();
-    this._statesByAccount = {};
-    this._stateSummary = {
-      phrase: null,
-      percent: 100,
-    };
     this._triggerDebounced = _.debounce(this.trigger, 100);
 
     this.listenTo(AccountStore, () => this._onRefresh());

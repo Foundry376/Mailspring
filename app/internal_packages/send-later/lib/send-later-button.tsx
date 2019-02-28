@@ -2,7 +2,13 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
-import { localized, Actions, FeatureUsageStore } from 'mailspring-exports';
+import {
+  localized,
+  Actions,
+  FeatureUsageStore,
+  Message,
+  DraftEditingSession,
+} from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
 import SendLaterPopover from './send-later-popover';
@@ -12,7 +18,17 @@ function sendLaterDateForDraft(draft) {
   return ((draft && draft.metadataForPluginId(PLUGIN_ID)) || {}).expiration;
 }
 
-class SendLaterButton extends Component {
+interface SendLaterButtonProps {
+  draft: Message;
+  session: DraftEditingSession;
+  isValidDraft: () => boolean;
+}
+
+interface SendLaterButtonState {
+  saving: boolean;
+}
+
+class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonState> {
   static displayName = 'SendLaterButton';
 
   static containerRequired = false;

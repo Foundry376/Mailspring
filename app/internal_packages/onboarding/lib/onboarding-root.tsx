@@ -27,9 +27,17 @@ const PageComponents = {
   'initial-subscription': InitialSubscriptionPage,
 };
 
-export default class OnboardingRoot extends React.Component {
+interface OnboardingRootState {
+  pageDepth: number;
+  page: string;
+  account: Account;
+}
+
+export default class OnboardingRoot extends React.Component<{}, OnboardingRootState> {
   static displayName = 'OnboardingRoot';
   static containerRequired = false;
+
+  unsubscribe?: () => void;
 
   constructor(props) {
     super(props);

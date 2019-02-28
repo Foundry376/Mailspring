@@ -160,7 +160,7 @@ export default class WindowEventHandler {
 
     document.addEventListener('dragover', this.onDragOver);
 
-    document.addEventListener('click', (event: UIEvent) => {
+    document.addEventListener('click', (event: MouseEvent) => {
       if ((event.target as HTMLElement).closest('[href]')) {
         this.openLink(event);
       }
@@ -274,15 +274,15 @@ export default class WindowEventHandler {
     metaKey,
   }: {
     href?: string;
-    target?: HTMLElement;
-    currentTarget?: HTMLElement;
+    target?: EventTarget;
+    currentTarget?: EventTarget;
     metaKey?: boolean;
   }) {
     let resolved = href || this.resolveHref(target || currentTarget);
     if (!resolved) {
       return;
     }
-    if (target && target.closest('.no-open-link-events')) {
+    if (target instanceof HTMLElement && target.closest('.no-open-link-events')) {
       return;
     }
 
@@ -346,7 +346,7 @@ export default class WindowEventHandler {
     });
   }
 
-  openSpellingMenuFor(
+  async openSpellingMenuFor(
     word,
     hasSelectedText,
     {
@@ -359,7 +359,7 @@ export default class WindowEventHandler {
 
     if (word) {
       Spellchecker = Spellchecker || require('./spellchecker').default;
-      Spellchecker.appendSpellingItemsToMenu({ menu, word, onCorrect });
+      await Spellchecker.appendSpellingItemsToMenu({ menu, word, onCorrect });
     }
 
     menu.append(

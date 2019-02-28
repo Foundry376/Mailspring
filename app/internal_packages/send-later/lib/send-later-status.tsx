@@ -5,6 +5,7 @@ import {
   localized,
   DateUtils,
   Actions,
+  Message,
   SyncbackMetadataTask,
   TaskQueue,
   SendDraftTask,
@@ -14,7 +15,14 @@ import { PLUGIN_ID } from './send-later-constants';
 
 const { DATE_FORMAT_SHORT } = DateUtils;
 
-export default class SendLaterStatus extends Component {
+interface SendLaterStatusProps {
+  draft: Message;
+}
+interface SendLaterStatusState {
+  task: SendDraftTask;
+}
+
+export default class SendLaterStatus extends Component<SendLaterStatusProps, SendLaterStatusState> {
   static displayName = 'SendLaterStatus';
 
   static propTypes = {

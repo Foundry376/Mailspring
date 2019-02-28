@@ -49,10 +49,13 @@ const UsageRecordedServerSide = ['contact-profiles'];
  * 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'unlimited'
  */
 class FeatureUsageStore extends MailspringStore {
+  _waitForModalClose = [];
+  NoProAccessError = NoProAccessError;
+  _disp: Disposable;
+  _usub: () => void;
+
   constructor() {
     super();
-    this._waitForModalClose = [];
-    this.NoProAccessError = NoProAccessError;
 
     /**
      * The IdentityStore triggers both after we update it, and when it

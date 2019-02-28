@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { PropTypes, Utils } from 'mailspring-exports';
 
-const ResizableHandle = {
+const ResizableHandle: { [side: string]: IResizeHandle } = {
   Top: {
     axis: 'vertical',
     className: 'flexbox-handle-vertical flexbox-handle-top',
@@ -54,8 +54,18 @@ const ResizableHandle = {
   },
 };
 
+interface IResizeHandle {
+  axis: string;
+  className: string;
+  transform(
+    state: ResizableRegionState,
+    props: ResizableRegionProps,
+    event: MouseEvent
+  ): { width?: number; height?: number };
+}
+
 type ResizableRegionProps = {
-  handle: object;
+  handle: IResizeHandle;
   onResize?: (...args: any[]) => any;
   initialWidth?: number;
   minWidth?: number;
@@ -65,10 +75,12 @@ type ResizableRegionProps = {
   maxHeight?: number;
   style?: object;
 };
+
 type ResizableRegionState = {
-  height: any;
-  width: any;
+  height?: number;
+  width?: number;
   dragging: boolean;
+  bcr?: ClientRect;
 };
 
 /*
@@ -77,8 +89,12 @@ draggable edge. It is used throughout N1 to implement resizable columns, trays, 
 
 Section: Component Kit
 */
-class ResizableRegion extends React.Component<ResizableRegionProps, ResizableRegionState> {
+class ResizableRegion extends React.Component<
+  ResizableRegionProps & React.HTMLProps<HTMLDivElement>,
+  ResizableRegionState
+> {
   static displayName = 'ResizableRegion';
+  static Handle = ResizableHandle;
 
   /*
     Public: React `props` supported by ResizableRegion:
@@ -112,7 +128,7 @@ class ResizableRegion extends React.Component<ResizableRegionProps, ResizableReg
     handle: ResizableHandle.Right,
   };
 
-  constructor(props = {}) {
+  constructor(props) {
     super(props);
 
     this.state = {
@@ -192,7 +208,7 @@ class ResizableRegion extends React.Component<ResizableRegionProps, ResizableReg
     if (event.button !== 0) {
       return;
     }
-    const bcr = ReactDOM.findDOMNode(this).getBoundingClientRect();
+    const bcr = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
     this.setState({
       dragging: true,
       bcr,
@@ -227,7 +243,5 @@ class ResizableRegion extends React.Component<ResizableRegionProps, ResizableReg
     event.preventDefault();
   };
 }
-
-ResizableRegion.Handle = ResizableHandle;
 
 export default ResizableRegion;

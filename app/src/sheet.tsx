@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import PropTypes from 'prop-types';
 
 import { Utils, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
@@ -8,8 +8,12 @@ import Flexbox from './components/flexbox';
 
 const FLEX = 10000;
 
+interface SheetLocation {
+  id: string;
+}
 interface SheetProps {
   data: {
+    id: string;
     columns: {
       [mode: string]: string[];
     };
@@ -21,7 +25,7 @@ interface SheetColumn {
   maxWidth: number;
   minWidth: number;
   handle: any;
-  location: string;
+  location: SheetLocation;
   width: number;
 }
 interface SheetState {
@@ -103,7 +107,7 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
         );
       }
 
-      const style = {
+      const style: CSSProperties = {
         height: '100%',
         minWidth: minWidth,
         overflow: 'hidden',
@@ -141,9 +145,9 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
     let widest = -1;
     let widestWidth = -1;
 
-    const data = this.props.data || {};
+    const data = this.props.data;
 
-    if (data.columns[state.mode]) {
+    if (data && data.columns[state.mode]) {
       data.columns[state.mode].forEach((location, idx) => {
         if (WorkspaceStore.isLocationHidden(location)) {
           return;

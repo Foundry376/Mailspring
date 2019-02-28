@@ -14,7 +14,18 @@ import { ConditionMode, ConditionTemplates, ActionTemplates } from '../../mail-r
 const RulesJSONKey = 'MailRules-V2';
 const AutoSinceJSONKey = 'MailRules-Auto-Since';
 
+interface MailRule {
+  id: string;
+  accountId: string;
+  disabled?: boolean;
+  disabledReason?: string;
+}
+
 class MailRulesStore extends MailspringStore {
+  _autoSince = Number(window.localStorage.getItem(AutoSinceJSONKey) || 0);
+  _reprocessing: {};
+  _rules: MailRule[];
+
   constructor() {
     super();
 
@@ -22,14 +33,10 @@ class MailRulesStore extends MailspringStore {
     expect rules to be applied to "new" mail. Not "new" mail as in just created,
     since that includes old mail we're syncing for the first time. Just "new"
     mail that has arrived since they last ran Mailspring. So, we keep a date. */
-    this._autoSince = (window.localStorage.getItem(AutoSinceJSONKey) || 0) / 1;
     if (this._autoSince === 0) {
-      window.localStorage.setItem(AutoSinceJSONKey, Date.now());
+      window.localStorage.setItem(AutoSinceJSONKey, `${Date.now()}`);
       this._autoSince = Date.now();
     }
-
-    this._reprocessing = {};
-    this._rules = [];
 
     try {
       const txt = window.localStorage.getItem(RulesJSONKey);
@@ -144,6 +151,7 @@ class MailRulesStore extends MailspringStore {
     this.trigger();
   };
 
+  _saveMailRulesDebounced?: () => void;
   _saveMailRules() {
     this._saveMailRulesDebounced =
       this._saveMailRulesDebounced ||
@@ -180,7 +188,7 @@ class MailRulesStore extends MailspringStore {
     this.trigger();
   };
 
-  _reprocessSome = (accountId, callback) => {
+  _reprocessSome = (accountId, callback?) => {
     if (!this._reprocessing[accountId]) {
       return;
     }

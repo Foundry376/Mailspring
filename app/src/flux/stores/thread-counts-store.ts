@@ -4,19 +4,20 @@ import DatabaseStore from './database-store';
 import Thread from '../models/thread';
 
 class ThreadCountsStore extends MailspringStore {
+  _counts = {};
+
   constructor() {
     super();
-    this._counts = {};
 
     if (AppEnv.isMainWindow()) {
       // For now, unread counts are only retrieved in the main window.
-      this._onCountsChangedDebounced = _.throttle(this._onCountsChanged, 1000);
+      const onCountsChangedDebounced = _.throttle(this._onCountsChanged, 1000);
       DatabaseStore.listen(change => {
         if (change.objectClass === Thread.name) {
-          this._onCountsChangedDebounced();
+          onCountsChangedDebounced();
         }
       });
-      this._onCountsChangedDebounced();
+      onCountsChangedDebounced();
     }
   }
 

@@ -6,10 +6,12 @@ import Sheet from './sheet';
 import Toolbar from './sheet-toolbar';
 import Flexbox from './components/flexbox';
 import InjectedComponentSet from './components/injected-component-set';
+import { SheetDeclaration } from './flux/stores/workspace-store';
 
 interface SheetContainerState {
   stack: SheetDeclaration[];
   mode: string;
+  error?: string;
 }
 
 export default class SheetContainer extends React.Component<{}, SheetContainerState> {
@@ -114,7 +116,7 @@ export default class SheetContainer extends React.Component<{}, SheetContainerSt
       >
         {this._toolbarContainerElement()}
 
-        <div name="Header" style={{ order: 1, zIndex: 2 }}>
+        <div style={{ order: 1, zIndex: 2 }}>
           <InjectedComponentSet
             matching={{ locations: [topSheet.Header, WorkspaceStore.Sheet.Global.Header] }}
             direction="column"
@@ -122,7 +124,7 @@ export default class SheetContainer extends React.Component<{}, SheetContainerSt
           />
         </div>
 
-        <div name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
+        <div style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
           {sheetComponents[0]}
           <CSSTransitionGroup
             transitionLeaveTimeout={125}
@@ -133,7 +135,7 @@ export default class SheetContainer extends React.Component<{}, SheetContainerSt
           </CSSTransitionGroup>
         </div>
 
-        <div name="Footer" style={{ order: 3, zIndex: 4 }}>
+        <div style={{ order: 3, zIndex: 4 }}>
           <InjectedComponentSet
             matching={{ locations: [topSheet.Footer, WorkspaceStore.Sheet.Global.Footer] }}
             direction="column"

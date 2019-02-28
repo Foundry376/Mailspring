@@ -26,7 +26,19 @@ interface SheetSet {
   Global: SheetDeclaration;
 }
 
-interface SheetDeclaration {
+interface SheetLocations {
+  [locationKey: string]: {
+    id: string;
+    Toolbar: SheetToolbarDeclaration;
+  };
+}
+
+interface SheetToolbarDeclaration {
+  Left: { id: string };
+  Right: { id: string };
+}
+
+export interface SheetDeclaration {
   id: string;
   columns: string[];
   supportedModes: string[];
@@ -36,12 +48,10 @@ interface SheetDeclaration {
   root: boolean;
   sidebarComponent: any;
 
-  Toolbar: {
-    Left: { id: string };
-    Right: { id: string };
-  };
+  Toolbar: SheetToolbarDeclaration;
   Header: { id: string };
   Footer: { id: string };
+  Center: { id: string };
 }
 
 /*
@@ -53,7 +63,7 @@ documentation.
 Section: Stores
 */
 class WorkspaceStore extends MailspringStore {
-  Location = (Location = {});
+  Location: SheetLocations = (Location = {} as SheetLocations);
   Sheet: SheetSet = (Sheet = {} as SheetSet);
 
   private _preferredLayoutMode: string;

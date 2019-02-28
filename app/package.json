@@ -107,7 +107,7 @@
     "@types/react-color": "^2.14.1",
     "@types/react-dom": "^16.8.2",
     "@types/react-test-renderer": "^16.8.1",
-    "@types/react-transition-group": "^2.0.16",
+    "@types/react-transition-group": "^1.1.6",
     "@types/reflux": "^6.4.2",
     "@types/rimraf": "^2.0.2",
     "@types/rx-lite": "^4.0.6",

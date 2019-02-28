@@ -14,11 +14,15 @@ export default class SyncbackDraftTask extends Task {
     }),
   });
 
-  constructor({ draft, ...rest } = {}) {
+  draft: Message;
+  accountId: string;
+  headerMessageId: string;
+
+  constructor({ draft, ...rest }: { draft?: Message; headerMessageId?: string } = {}) {
     super(rest);
     this.draft = draft;
-    this.accountId = (draft || {}).accountId;
-    this.headerMessageId = (draft || {}).headerMessageId;
+    this.accountId = draft ? draft.accountId : undefined;
+    this.headerMessageId = draft ? draft.headerMessageId : undefined;
   }
 
   onError({ key, debuginfo }) {

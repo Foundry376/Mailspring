@@ -5,15 +5,16 @@ import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { remote } from 'electron';
 import { localized, isRTL, Actions, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
-
+import { SheetDeclaration } from './flux/stores/workspace-store';
 import Flexbox from './components/flexbox';
 import RetinaImg from './components/retina-img';
 import * as Utils from './flux/models/utils';
+import { Disposable } from 'rx-core';
 
 let Category = null;
 let FocusedPerspectiveStore = null;
 
-class ToolbarSpacer extends React.Component {
+class ToolbarSpacer extends React.Component<{ order: number }> {
   static displayName = 'ToolbarSpacer';
   static propTypes = {
     order: PropTypes.number,
@@ -24,10 +25,10 @@ class ToolbarSpacer extends React.Component {
   }
 }
 
-class WindowTitle extends React.Component {
+class WindowTitle extends React.Component<{}, { title: string }> {
   static displayName = 'WindowTitle';
 
-  private disposable?: { dispose: () => {} };
+  private disposable?: Disposable;
 
   constructor(props) {
     super(props);
@@ -49,7 +50,7 @@ class WindowTitle extends React.Component {
   }
 }
 
-class ToolbarBack extends React.Component {
+class ToolbarBack extends React.Component<{}, { categoryName: string }> {
   static displayName = 'ToolbarBack';
 
   // These stores are only required when this Toolbar is actually needed.
@@ -59,10 +60,13 @@ class ToolbarBack extends React.Component {
     Category = Category || require('./flux/models/category').default;
     FocusedPerspectiveStore =
       FocusedPerspectiveStore || require('./flux/stores/focused-perspective-store').default;
+
     this.state = {
       categoryName: FocusedPerspectiveStore.current().name,
     };
   }
+
+  _unsubscriber?: () => void;
 
   componentDidMount() {
     this._unsubscriber = FocusedPerspectiveStore.listen(() =>
@@ -102,7 +106,7 @@ class ToolbarBack extends React.Component {
   }
 }
 
-class ToolbarWindowControls extends React.Component {
+class ToolbarWindowControls extends React.Component<{}, { alt: boolean }> {
   static displayName = 'ToolbarWindowControls';
 
   constructor(props) {
@@ -149,7 +153,7 @@ class ToolbarWindowControls extends React.Component {
     }
 
     return (
-      <div name="ToolbarWindowControls" className={`toolbar-window-controls alt-${this.state.alt}`}>
+      <div className={`toolbar-window-controls alt-${this.state.alt}`}>
         <button tabIndex={-1} className="close" onClick={() => AppEnv.close()} />
         <button tabIndex={-1} className="minimize" onClick={() => AppEnv.minimize()} />
         <button tabIndex={-1} className="maximize" onClick={this._onMaximize} />
@@ -201,7 +205,18 @@ ComponentRegistry.register(ToolbarMenuControl, {
     : WorkspaceStore.Sheet.Global.Toolbar.Right,
 });
 
-export default class Toolbar extends React.Component {
+interface ToolbarProps {
+  data: SheetDeclaration;
+  depth: number;
+}
+
+interface ToolbarState {
+  mode: string;
+  columns: Array<Array<typeof React.Component>>;
+  columnNames: string[];
+}
+
+export default class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
   static displayName = 'Toolbar';
 
   static propTypes = {
@@ -212,6 +227,9 @@ export default class Toolbar extends React.Component {
   static childContextTypes = {
     sheetDepth: PropTypes.number,
   };
+
+  mounted: boolean = false;
+  unlisteners: Array<() => void> = [];
 
   constructor(props) {
     super(props);
@@ -265,7 +283,7 @@ export default class Toolbar extends React.Component {
     }
 
     // Find our item containers that are tied to specific columns
-    const el = ReactDOM.findDOMNode(this);
+    const el = ReactDOM.findDOMNode(this) as HTMLElement;
     const columnToolbarEls = el.querySelectorAll('[data-column]');
 
     // Find the top sheet in the stack
@@ -276,9 +294,9 @@ export default class Toolbar extends React.Component {
 
     // Position item containers so they have the position and width
     // as their respective columns in the top sheet
-    for (const columnToolbarEl of columnToolbarEls) {
+    for (const columnToolbarEl of Array.from(columnToolbarEls) as HTMLElement[]) {
       const column = columnToolbarEl.dataset.column;
-      const columnEl = sheet.querySelector(`[data-column='${column}']`);
+      const columnEl = sheet.querySelector(`[data-column='${column}']`) as HTMLElement;
       if (!columnEl) {
         continue;
       }
@@ -297,7 +315,7 @@ export default class Toolbar extends React.Component {
   };
 
   _getStateFromStores(props = this.props) {
-    const state = {
+    const state: ToolbarState = {
       mode: WorkspaceStore.layoutMode(),
       columns: [],
       columnNames: [],
@@ -364,13 +382,6 @@ export default class Toolbar extends React.Component {
   }
 
   render() {
-    const style = {
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-      zIndex: 1,
-    };
-
     const toolbars = this.state.columns.map((components, idx) => (
       <div
         style={{ position: 'absolute', top: 0, display: 'none' }}
@@ -384,7 +395,12 @@ export default class Toolbar extends React.Component {
 
     return (
       <div
-        style={style}
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          zIndex: 1,
+        }}
         className={`sheet-toolbar-container mode-${this.state.mode}`}
         data-id={this.props.data.id}
       >

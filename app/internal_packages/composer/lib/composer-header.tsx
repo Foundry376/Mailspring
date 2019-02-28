@@ -1,6 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { localized, PropTypes, Actions, AccountStore } from 'mailspring-exports';
+import {
+  localized,
+  PropTypes,
+  Actions,
+  AccountStore,
+  Message,
+  DraftEditingSession,
+} from 'mailspring-exports';
 import {
   KeyCommandsRegion,
   ParticipantsTextField,
@@ -21,7 +28,18 @@ const ScopedFromField = ListensToFluxStore(AccountContactField, {
   },
 });
 
-export default class ComposerHeader extends React.Component {
+interface ComposerHeaderProps {
+  draft: Message;
+  session: DraftEditingSession;
+}
+interface ComposerHeaderState {
+  enabledFields: string[];
+}
+
+export default class ComposerHeader extends React.Component<
+  ComposerHeaderProps,
+  ComposerHeaderState
+> {
   static displayName = 'ComposerHeader';
 
   static propTypes = {
@@ -33,7 +51,9 @@ export default class ComposerHeader extends React.Component {
     parentTabGroup: PropTypes.object,
   };
 
-  constructor(props = {}) {
+  private _els = {};
+
+  constructor(props) {
     super(props);
     this._els = {};
     this.state = this._initialStateForDraft(this.props.draft, props);

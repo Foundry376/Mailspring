@@ -6,14 +6,17 @@ import * as Utils from '../models/utils';
 import Actions from '../actions';
 import KeyManager from '../../key-manager';
 import { makeRequest, rootURLForServer } from '../mailspring-api-request';
+import { Disposable } from 'event-kit';
 
 // Note this key name is used when migrating to Nylas Pro accounts from old N1.
 const KEYCHAIN_NAME = 'Mailspring Account';
 
 class IdentityStore extends MailspringStore {
+  _identity = null;
+  _disp: Disposable;
+
   constructor() {
     super();
-    this._identity = null;
 
     if (AppEnv.isEmptyWindow()) {
       /*
@@ -119,12 +122,15 @@ class IdentityStore extends MailspringStore {
    * https://paper.dropbox.com/doc/Analytics-ID-Unification-oVDTkakFsiBBbk9aeuiA3
    * for the full list of utm_ labels.
    */
-  async fetchSingleSignOnURL(path, { source, campaign, content } = {}) {
+  async fetchSingleSignOnURL(
+    path,
+    { source, campaign, content }: { source?: string; campaign?: string; content?: string } = {}
+  ) {
     if (!this._identity) {
       return Promise.reject(new Error('fetchSingleSignOnURL: no identity set.'));
     }
 
-    const qs = { utm_medium: 'N1' };
+    const qs: any = { utm_medium: 'N1' };
     if (source) {
       qs.utm_source = source;
     }
@@ -137,12 +143,13 @@ class IdentityStore extends MailspringStore {
 
     let pathWithUtm = url.parse(path, true);
     pathWithUtm.query = Object.assign({}, qs, pathWithUtm.query || {});
-    pathWithUtm = url.format({
+
+    const pathWithUtmString = url.format({
       pathname: pathWithUtm.pathname,
       query: pathWithUtm.query,
     });
 
-    if (!pathWithUtm.startsWith('/')) {
+    if (!pathWithUtmString.startsWith('/')) {
       throw new Error('fetchSingleSignOnURL: path must start with a leading slash.');
     }
 
@@ -150,7 +157,7 @@ class IdentityStore extends MailspringStore {
     for (const key of Object.keys(qs)) {
       body.append(key, qs[key]);
     }
-    body.append('next_path', pathWithUtm);
+    body.append('next_path', pathWithUtmString);
 
     try {
       const json = await makeRequest({

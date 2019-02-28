@@ -1,14 +1,25 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
-import { localized, Actions } from 'mailspring-exports';
+import { localized, Actions, Message, DraftEditingSession } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import moment from 'moment';
 
 import SendRemindersPopover from './send-reminders-popover';
 import { reminderDateFor, updateDraftReminderMetadata } from './send-reminders-utils';
 
-export default class SendRemindersComposerButton extends Component {
+interface SendRemindersComposerButtonProps {
+  draft: Message;
+  session: DraftEditingSession;
+}
+interface SendRemindersComposerButtonState {
+  saving: boolean;
+}
+
+export default class SendRemindersComposerButton extends Component<
+  SendRemindersComposerButtonProps,
+  SendRemindersComposerButtonState
+> {
   static displayName = 'SendRemindersComposerButton';
 
   static containerRequired = false;
@@ -49,7 +60,7 @@ export default class SendRemindersComposerButton extends Component {
 
   onClick = () => {
     const { draft } = this.props;
-    const buttonRect = ReactDOM.findDOMNode(this).getBoundingClientRect();
+    const buttonRect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
     Actions.openPopover(
       <SendRemindersPopover
         reminderDate={reminderDateFor(draft)}

@@ -44,7 +44,7 @@ If no matching components is found, the InjectedComponent renders an empty span.
 Section: Component Kit
  */
 export default class InjectedComponentSet extends React.Component<
-  InjectedComponentSetProps,
+  InjectedComponentSetProps & React.HTMLProps<HTMLDivElement>,
   InjectedComponentSetState
 > {
   static displayName = 'InjectedComponentSet';

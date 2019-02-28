@@ -15,10 +15,8 @@ import {
 } from './send-reminders-utils';
 
 class SendRemindersStore extends MailspringStore {
-  constructor() {
-    super();
-    this._lastFocusedThread = null;
-  }
+  _lastFocusedThread = null;
+  _unsubscribers: (() => void)[] = [];
 
   activate() {
     this._unsubscribers = [

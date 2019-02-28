@@ -14,7 +14,7 @@ class Spellchecker {
 
   private _customDict = {};
 
-  public handler: typeof import('electron-spellchecker').SpellCheckHandler;
+  public handler: import('electron-spellchecker').SpellCheckHandler;
 
   constructor() {
     this.handler = null;
@@ -51,7 +51,7 @@ class Spellchecker {
 
   _loadCustomDict = () => {
     fs.readFile(customDictFilePath, (err, data) => {
-      let fileData = data;
+      let fileData = data.toString();
       if (err) {
         if (err.code === 'ENOENT') {
           // File doesn't exist, we haven't saved any words yet
@@ -112,7 +112,7 @@ class Spellchecker {
     if ({}.hasOwnProperty.call(this._customDict, word)) {
       return false;
     }
-    return !this.handler.handleElectronSpellCheck(word);
+    return !(this.handler as any).handleElectronSpellCheck(word);
   };
 
   learnWord = word => {
@@ -127,9 +127,9 @@ class Spellchecker {
     }
   };
 
-  appendSpellingItemsToMenu = ({ menu, word, onCorrect, onDidLearn }) => {
+  appendSpellingItemsToMenu = async ({ menu, word, onCorrect, onDidLearn }) => {
     if (this.isMisspelled(word)) {
-      const corrections = this.handler.currentSpellchecker.getCorrectionsForMisspelling(word);
+      const corrections = await this.handler.currentSpellchecker.getCorrectionsForMisspelling(word);
       if (corrections.length > 0) {
         corrections.forEach(correction => {
           menu.append(

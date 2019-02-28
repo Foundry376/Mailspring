@@ -6,6 +6,9 @@ import { localized } from 'mailspring-exports';
 const { app, BrowserWindow } = remote;
 
 export default class PrintWindow {
+  browserWin: BrowserWindow;
+  tmpFile: string;
+
   constructor({ subject, account, participants, styleTags, htmlContent, printMessages }) {
     // This script will create the print prompt when loaded. We can also call
     // print directly from this process, but inside print.js we can make sure to

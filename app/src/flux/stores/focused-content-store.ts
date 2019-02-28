@@ -47,6 +47,11 @@ _onFocusChanged: =>
 Section: Stores
 */
 class FocusedContentStore extends MailspringStore {
+  _focused: object;
+  _focusedUsingClick: object;
+  _keyboardCursor: object;
+  _keyboardCursorEnabled: boolean;
+
   constructor() {
     super();
     this._resetInstanceVars();
@@ -57,7 +62,7 @@ class FocusedContentStore extends MailspringStore {
     this.listenTo(Actions.setCursorPosition, this._onFocusKeyboard);
   }
 
-  triggerAfterAnimationFrame(payload) {
+  triggerAfterAnimationFrame(payload: any) {
     window.requestAnimationFrame(() => this.trigger(payload));
   }
 
@@ -108,7 +113,15 @@ class FocusedContentStore extends MailspringStore {
     this.triggerAfterAnimationFrame({ impactsCollection: c => c === collection });
   };
 
-  _onFocus = ({ collection, item, usingClick }) => {
+  _onFocus = ({
+    collection,
+    item,
+    usingClick,
+  }: {
+    collection: string;
+    item: Model;
+    usingClick?: boolean;
+  }) => {
     if (item && !(item instanceof Model)) {
       throw new Error('focus() requires a Model or null');
     }
@@ -192,7 +205,7 @@ class FocusedContentStore extends MailspringStore {
   - `collection` The {String} name of a collection. Standard collections are
     listed above.
   */
-  focused(collection) {
+  focused(collection: string) {
     return this._focused[collection];
   }
 
@@ -203,7 +216,7 @@ class FocusedContentStore extends MailspringStore {
   - `collection` The {String} name of a collection. Standard collections are
     listed above.
   */
-  focusedId(collection) {
+  focusedId(collection: string) {
     return this._focused[collection] && this._focused[collection].id;
   }
 
@@ -214,7 +227,7 @@ class FocusedContentStore extends MailspringStore {
   - `collection` The {String} name of a collection. Standard collections are
     listed above.
   */
-  didFocusUsingClick(collection) {
+  didFocusUsingClick(collection: string) {
     return this._focusedUsingClick[collection] || false;
   }
 
@@ -227,7 +240,7 @@ class FocusedContentStore extends MailspringStore {
   - `collection` The {String} name of a collection. Standard collections are
     listed above.
   */
-  keyboardCursor(collection) {
+  keyboardCursor(collection: string) {
     return this._keyboardCursor[collection];
   }
 
@@ -240,7 +253,7 @@ class FocusedContentStore extends MailspringStore {
   - `collection` The {String} name of a collection. Standard collections are
     listed above.
   */
-  keyboardCursorId(collection) {
+  keyboardCursorId(collection: string) {
     return this._keyboardCursor[collection] && this._keyboardCursor[collection].id;
   }
 

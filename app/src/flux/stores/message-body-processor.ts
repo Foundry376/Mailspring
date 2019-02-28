@@ -4,14 +4,23 @@ import MessageStore from './message-store';
 import DatabaseStore from './database-store';
 import SanitizeTransformer from '../../services/sanitize-transformer';
 
+interface ProcessorResult {
+  key: string;
+  body: string;
+  clipped: boolean;
+}
+
 class MessageBodyProcessor {
   MAX_DISPLAY_LENGTH = 300000;
 
-  constructor() {
-    this._subscriptions = [];
-    this.resetCache();
+  _subscriptions = [];
+  _timeouts = {};
+  _recentlyProcessedD: { [key: string]: ProcessorResult };
+  _recentlyProcessedA: ProcessorResult[];
+  _version = 0;
 
-    this._timeouts = {};
+  constructor() {
+    this.resetCache();
 
     DatabaseStore.listen(change => {
       if (change.objectClass === Message.name) {
@@ -111,7 +120,7 @@ class MessageBodyProcessor {
   async retrieve(message) {
     const key = this._key(message);
     if (this._recentlyProcessedD[key]) {
-      return this._recentlyProcessedD[key].body;
+      return this._recentlyProcessedD[key];
     }
 
     const output = await this._process(message);

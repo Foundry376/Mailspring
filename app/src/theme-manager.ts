@@ -28,6 +28,9 @@ export default class ThemeManager {
   private styleSheetDisposablesBySourcePath = {};
   private lessCache: LessCompileCache;
   private packageManager: PackageManager;
+  private configDirPath: string;
+  private resourcePath: string;
+  private safeMode: boolean;
 
   constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
     this.packageManager = packageManager;
@@ -57,8 +60,8 @@ export default class ThemeManager {
     }
     // reload all stylesheets attached to the dom
     for (const styleEl of Array.from(document.head.querySelectorAll('[source-path]'))) {
-      if (styleEl.sourcePath.endsWith('.less')) {
-        styleEl.textContent = this.cssContentsOfStylesheet(styleEl.sourcePath);
+      if ((styleEl as any).sourcePath.endsWith('.less')) {
+        styleEl.textContent = this.cssContentsOfStylesheet((styleEl as any).sourcePath);
       }
     }
     this.emitter.emit('did-change-active-themes');

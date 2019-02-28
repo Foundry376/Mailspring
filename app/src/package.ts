@@ -102,8 +102,7 @@ export default class Package {
     }
 
     for (const keymapPath of keymapPaths) {
-      const content = JSON.parse(fs.readFileSync(keymapPath).toString());
-      this.disposables.push(AppEnv.keymaps.loadKeymap(keymapPath, content));
+      this.disposables.push(AppEnv.keymaps.loadKeymap(keymapPath));
     }
   }
 
@@ -124,12 +123,11 @@ export default class Package {
       // styles directory not found
     }
     for (const sourcePath of stylesheets) {
-      const content = AppEnv.themes.cssContentsOfStylesheet(sourcePath, true);
+      const content = AppEnv.themes.cssContentsOfStylesheet(sourcePath);
       this.disposables.push(
         AppEnv.styles.addStyleSheet(content, {
           sourcePath,
           priority: this.isTheme() ? 1 : 0,
-          context: null,
         })
       );
     }

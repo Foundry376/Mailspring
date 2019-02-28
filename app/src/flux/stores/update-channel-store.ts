@@ -6,11 +6,11 @@ const autoUpdater = remote.getGlobal('application').autoUpdateManager;
 const preferredChannel = autoUpdater.preferredChannel;
 
 class UpdateChannelStore extends MailspringStore {
+  _current = { name: 'Loading...' };
+  _available = [{ name: 'Loading...' }];
+
   constructor() {
     super();
-    this._current = { name: 'Loading...' };
-    this._available = [{ name: 'Loading...' }];
-
     if (AppEnv.isMainWindow()) {
       this.refreshChannel();
     }

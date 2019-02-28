@@ -7,10 +7,11 @@ import CategoryStore from './category-store';
 import Actions from '../actions';
 
 class FocusedPerspectiveStore extends MailspringStore {
+  _current = MailboxPerspective.forNothing();
+  _initialized = false;
+
   constructor() {
     super();
-    this._current = MailboxPerspective.forNothing();
-    this._initialized = false;
 
     this.listenTo(CategoryStore, this._onCategoryStoreChanged);
     this.listenTo(Actions.focusMailboxPerspective, this._onFocusPerspective);
@@ -132,7 +133,10 @@ class FocusedPerspectiveStore extends MailspringStore {
   * set the sidebarAccountIds to the perspective's accounts if no value is
   * provided
   */
-  _onFocusDefaultPerspectiveForAccounts = (accountsOrIds, { sidebarAccountIds } = {}) => {
+  _onFocusDefaultPerspectiveForAccounts = (
+    accountsOrIds,
+    { sidebarAccountIds }: { sidebarAccountIds?: string[] } = {}
+  ) => {
     if (!accountsOrIds) {
       return;
     }
@@ -159,7 +163,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     return perspective;
   }
 
-  _setPerspective(perspective, sidebarAccountIds) {
+  _setPerspective(perspective, sidebarAccountIds?: string[]) {
     let shouldTrigger = false;
 
     if (!perspective.isEqual(this._current)) {

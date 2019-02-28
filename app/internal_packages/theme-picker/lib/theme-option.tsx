@@ -5,19 +5,23 @@ import fs from 'fs-plus';
 import path from 'path';
 
 import { EventedIFrame } from 'mailspring-component-kit';
+import Package from '../../../src/package';
 import LessCompileCache from '../../../src/less-compile-cache';
 
-class ThemeOption extends React.Component {
+interface ThemeOptionProps {
+  theme: Package;
+  active: boolean;
+  onSelect: () => void;
+}
+
+class ThemeOption extends React.Component<ThemeOptionProps> {
   static propTypes = {
     theme: PropTypes.object.isRequired,
     active: PropTypes.bool.isRequired,
     onSelect: PropTypes.func.isRequired,
   };
 
-  constructor(props) {
-    super(props);
-    this.lessCache = null;
-  }
+  lessCache = null;
 
   componentDidMount() {
     this._writeContent();
