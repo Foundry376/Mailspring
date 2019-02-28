@@ -1,0 +1,90 @@
+@import 'ui-variables';
+
+.move-folder-container {
+  height: 192px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: fixed;
+  box-sizing: border-box;
+  background-color: @white;
+  box-shadow: 0 0 20px 0 rgba(0,0,0,0.1), 0 20px 30px 0 rgba(0,0,0,0.2);
+  padding: 30px;
+  &.hide {
+    display: none;
+  }
+  .header-row{
+    line-height: 20px;
+    position: absolute;
+    left: 360px;
+    top: 15px;
+    display: block;
+    .content-mask{
+      background-color: @black;
+    }
+  }
+  .header-text-container {
+    flex: 46px 0 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    .header-text {
+      flex: 24px 0 0;
+      font-size: 20px;
+      line-height: 24px;
+      color: @black;
+      font-weight: bold;
+      letter-spacing: 0.01px;
+      alignment: left;
+    }
+    .header-subtext {
+      margin-top: 6px;
+      flex: 16px 0 0;
+      font-size: 13px;
+      line-height: 16px;
+      color: @black;
+      font-weight: normal;
+      letter-spacing: 0.18px;
+    }
+  }
+  .folder-input {
+    padding: unset;
+    padding-bottom: 5px;
+    flex: 46px 0 0;
+    font-size: 13px;
+    line-height: 46px;
+    color: @black;
+    font-weight: normal;
+    letter-spacing: 0px;
+    border: none;
+    outline: none;
+  }
+  .button-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex: 35px 0 0;
+    width: 100%;
+    button {
+      flex: 160px 0 0;
+      height: 35px;
+      border-radius: 20px;
+      border: 1px solid @accent-primary;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      text-align: center;
+      opacity: 0.98;
+      &.create-folder-btn-cancel {
+        color: @accent-primary;
+        background-color: @white;
+      }
+      &.create-folder-btn-create {
+        background-color: @accent-primary;
+        color: @white
+      }
+    }
+  }
+}

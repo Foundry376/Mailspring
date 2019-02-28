@@ -20,6 +20,7 @@ export default class MovePickerPopover extends Component {
   static propTypes = {
     threads: PropTypes.array.isRequired,
     account: PropTypes.object.isRequired,
+    onCreate: PropTypes.func.isRequired,
   };
 
   constructor(props) {
@@ -74,7 +75,7 @@ export default class MovePickerPopover extends Component {
 
     const categoryData = []
       .concat(this._standardFolders)
-      .concat([{ divider: true, id: 'category-divider' }])
+      // .concat([{ divider: true, id: 'category-divider' }])
       .concat(this._userCategories)
       .filter(
         cat =>
@@ -93,15 +94,22 @@ export default class MovePickerPopover extends Component {
           backgroundColor: LabelColorizer.backgroundColorDark(cat),
         };
       });
-
-    if (searchValue.length > 0) {
-      const newItemData = {
-        searchValue: searchValue,
-        newCategoryItem: true,
-        id: 'category-create-new',
-      };
-      categoryData.push(newItemData);
-    }
+    // categoryData.push({ divider: true, id: 'category-divider' });
+    // if (searchValue.length > 0) {
+    //   const newItemData = {
+    //     searchValue: searchValue,
+    //     newCategoryItem: true,
+    //     id: 'category-create-new',
+    //   };
+    //   categoryData.push(newItemData);
+    // }else{
+    //   const newItemData = {
+    //     searchValue: '',
+    //     newCategoryItem: true,
+    //     id: 'category-create-new',
+    //   }
+    //   categoryData.push(newItemData);
+    // }
     return { categoryData, searchValue };
   };
 
@@ -183,29 +191,30 @@ export default class MovePickerPopover extends Component {
   };
 
   _renderCreateNewItem = ({ searchValue }) => {
-    const icon =
-      CategoryStore.getInboxCategory(this.props.account) instanceof Folder ? 'folder' : 'tag';
-
+    const isFolder = CategoryStore.getInboxCategory(this.props.account) instanceof Folder;
+    const icon = isFolder ? 'folder' : 'tag';
+    let displayText = isFolder ? 'New Folder' : 'New Label';
+    if(searchValue.length > 0){
+      displayText = `"${searchValue}" (create new)`;
+    }
     return (
-      <div className="category-item category-create-new">
+      <div className="category-item category-create-new" onClick={this.props.onCreate}>
         <RetinaImg
           name={`${icon}.png`}
           className={`category-create-new-${icon}`}
           mode={RetinaImg.Mode.ContentIsMask}
         />
-        <div className="category-display-name">
-          <strong>&ldquo;{searchValue}&rdquo;</strong> (create new)
-        </div>
+        <div className="category-display-name">{displayText}</div>
       </div>
     );
   };
 
   _renderItem = item => {
-    if (item.divider) {
-      return <Menu.Item key={item.id} divider={item.divider} />;
-    } else if (item.newCategoryItem) {
-      return this._renderCreateNewItem(item);
-    }
+    // if (item.divider) {
+    //   return <Menu.Item key={item.id} divider={item.divider} />;
+    // } else if (item.newCategoryItem) {
+    //   return this._renderCreateNewItem(item);
+    // }
 
     const icon =
       item.category instanceof Folder ? (
@@ -227,6 +236,12 @@ export default class MovePickerPopover extends Component {
       </div>
     );
   };
+  _renderNewItem=()=>{
+      return [
+        <Menu.Item key={'category-divider'} divider={true}/>,
+        this._renderCreateNewItem({searchValue: this.state.searchValue})
+      ];
+  };
 
   render() {
     const headerComponents = [
@@ -245,7 +260,7 @@ export default class MovePickerPopover extends Component {
       <div className="category-picker-popover">
         <Menu
           headerComponents={headerComponents}
-          footerComponents={[]}
+          footerComponents={this._renderNewItem()}
           items={this.state.categoryData}
           itemKey={item => item.id}
           itemContent={this._renderItem}
