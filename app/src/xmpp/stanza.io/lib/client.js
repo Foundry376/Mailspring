@@ -104,11 +104,11 @@ function Client(opts) {
         if (data._name === 'message' || data._name === 'presence' || data._name === 'iq') {
             self.sm.handle(json);
             //console.log(json);//yazz
-            if (json.edimucevent && json.edimucevent.edimucconfig.actorJid) {
+            if (json.edimucevent && json.edimucevent.edimucconfig && json.edimucevent.edimucconfig.actorJid) {
                 self.emit('edimucconfig', json);
-            } else if (json.edimucevent && json.edimucevent.memberschange.userJid) {
+            } else if (json.edimucevent && json.edimucevent.memberschange && json.edimucevent.memberschange.userJid) {
                 self.emit('memberschange', json);
-                console.log('memberschange', json);
+                //console.log('memberschange', json);
             } else {
                 self.emit('stanza', json);
             }
