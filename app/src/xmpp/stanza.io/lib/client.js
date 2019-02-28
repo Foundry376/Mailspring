@@ -80,7 +80,6 @@ function Client(opts) {
             return;
         }
         // console.log('2');
-        // console.log(json);
         // if(data._extensions&&data._extensions.roster){ // yazz
         //     self.emit('rosterex',data._extensions.roster.items);
         //     //console.log(data._extensions.roster.items.toJSON());
@@ -105,10 +104,11 @@ function Client(opts) {
         if (data._name === 'message' || data._name === 'presence' || data._name === 'iq') {
             self.sm.handle(json);
             //console.log(json);//yazz
-            if (json.edimucevent && json.edimucevent.edimucconfig) {
+            if (json.edimucevent && json.edimucevent.edimucconfig.actorJid) {
                 self.emit('edimucconfig', json);
-                // } else if (json.edimucevent && json.edimucevent.memberschange) {
-                //     self.emit('memberschange', json);
+            } else if (json.edimucevent && json.edimucevent.memberschange.userJid) {
+                self.emit('memberschange', json);
+                console.log('memberschange', json);
             } else {
                 self.emit('stanza', json);
             }

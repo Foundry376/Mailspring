@@ -324,55 +324,47 @@ exports['default'] = function (JXT) {
             ver: {
                 get: function get() {
                     var e = this.xml.parent.children[0];
-                    if (this.xml.parent.children.length > 1) {
-                        e = this.xml.parent.children[1];
-                    }
                     return Utils.getAttribute(e, 'ver');
                 }
             },
             userJid: {
                 get: function get() {
-                    var e = this.xml.parent.children[0];
-                    if (this.xml.parent.children.length > 1) {
-                        e = this.xml.parent.children[1];
+                    if (this.xml.parent.children[0].children.length > 0) {
+                        var e = this.xml.parent.children[0].children[0];
+                        return Utils.getAttribute(e, 'userjid');
                     }
-                    return Utils.getSubAttribute(e, '', 'member', 'userjid');
                 }
             },
             userEmail: {
                 get: function get() {
-                    var e = this.xml.parent.children[0];
-                    if (this.xml.parent.children.length > 1) {
-                        e = this.xml.parent.children[1];
+                    if (this.xml.parent.children[0].children.length > 0) {
+                        var e = this.xml.parent.children[0].children[0];
+                        return Utils.getAttribute(e, 'useremail');
                     }
-                    return Utils.getSubAttribute(e, '', 'member', 'useremail');
                 }
             },
             actorJid: {
                 get: function get() {
-                    var e = this.xml.parent.children[0];
-                    if (this.xml.parent.children.length > 1) {
-                        e = this.xml.parent.children[1];
+                    if (this.xml.parent.children[0].children.length > 0) {
+                        var e = this.xml.parent.children[0].children[0];
+                        return Utils.getAttribute(e, 'actorjid');
                     }
-                    return Utils.getSubAttribute(e, '', 'member', 'actorjid');
                 }
             },
             actorName: {
                 get: function get() {
-                    var e = this.xml.parent.children[0];
-                    if (this.xml.parent.children.length > 1) {
-                        e = this.xml.parent.children[1];
+                    if (this.xml.parent.children[0].children.length > 0) {
+                        var e = this.xml.parent.children[0].children[0];
+                        return Utils.getAttribute(e, 'actorname');
                     }
-                    return Utils.getSubAttribute(e, '', 'member', 'actorname');
                 }
             },
             type: {
                 get: function get() {
-                    var e = this.xml.parent.children[0];
-                    if (this.xml.parent.children.length > 1) {
-                        e = this.xml.parent.children[1];
+                    if (this.xml.parent.children[0].children.length > 0) {
+                        var e = this.xml.parent.children[0].children[0];
+                        return Utils.getAttribute(e, 'type');
                     }
-                    return Utils.getSubAttribute(e, '', 'member', 'type');
                 }
             },
         }
