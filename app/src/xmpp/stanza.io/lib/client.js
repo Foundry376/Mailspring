@@ -74,12 +74,14 @@ function Client(opts) {
     this.transports = {};
 
     this.on('stream:data', function (data) {
-        //debugger;
+        var memberschange;
+        if (data.edimucevent && data.edimucevent.memberschange && data.edimucevent.memberschange.userJid) {
+            memberschange = data.edimucevent.memberschange.toJSON();
+        }
         var json = data ? data.toJSON() : null;
         if (!json) {
             return;
         }
-        // console.log('2');
         // if(data._extensions&&data._extensions.roster){ // yazz
         //     self.emit('rosterex',data._extensions.roster.items);
         //     //console.log(data._extensions.roster.items.toJSON());
@@ -103,12 +105,11 @@ function Client(opts) {
         }
         if (data._name === 'message' || data._name === 'presence' || data._name === 'iq') {
             self.sm.handle(json);
-            //console.log(json);//yazz
+            // console.log(json);//yazz
             if (json.edimucevent && json.edimucevent.edimucconfig && json.edimucevent.edimucconfig.actorJid) {
                 self.emit('edimucconfig', json);
-            } else if (json.edimucevent && json.edimucevent.memberschange && json.edimucevent.memberschange.userJid) {
-                self.emit('memberschange', json);
-                //console.log('memberschange', json);
+            } else if (memberschange) {
+                self.emit('memberschange', memberschange);
             } else {
                 self.emit('stanza', json);
             }
