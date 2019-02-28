@@ -27,12 +27,12 @@ export default class PleaseSubscribeNotification extends React.Component {
     const accountCount = AccountStore.accounts().length;
 
     let msg = null;
-    if (stripePlan === 'Basic' && accountCount > 4) {
-      msg = `You're syncing more than four accounts — please consider paying for EdisonMail Pro!`;
-    }
-    if (stripePlan !== stripePlanEffective) {
-      msg = `We're having trouble billing your EdisonMail subscription.`;
-    }
+    // if (stripePlan === 'Basic' && accountCount > 4) {
+    //   msg = `You're syncing more than four accounts — please consider paying for EdisonMail Pro!`;
+    // }
+    // if (stripePlan !== stripePlanEffective) {
+    //   msg = `We're having trouble billing your EdisonMail subscription.`;
+    // }
 
     return { msg };
   }
