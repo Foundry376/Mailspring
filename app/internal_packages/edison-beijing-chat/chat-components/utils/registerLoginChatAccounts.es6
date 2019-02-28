@@ -8,26 +8,22 @@ export default async function registerLoginChatAccounts() {
   let accounts = AppEnv.config.get('accounts')
   let chatAccounts = AppEnv.config.get('chatAccounts') || {};
   for (let acc of accounts) {
-    let chatAccount = chatAccounts[acc.emailAddress];
-    let leftTime = 0;
-    if (chatAccount) {
-      acc.email = acc.emailAddress;
-      let passedTime = ((new Date()).getTime() - chatAccount.refreshTime || 0) / 1000;// seconds
-      leftTime = chatAccount.expiresIn - passedTime;
-    }
+    let chatAccount = chatAccounts[acc.emailAddress] || {};
 
-    chatAccount.clone = () => Object.assign({}, chatAccount);
     // get chat password from cache
-    if (chatAccount && chatAccount.userId) {
+    if (chatAccount.userId) {
       let jid = chatAccount.userId + '@im.edison.tech';
-      chatAccount = chatModel.allSelfUsers[jid];
+      chatAccount = chatModel.allSelfUsers[jid] || chatAccount;
     }
     // get chat password from keychain
-    else {
-      chatAccount = await keyMannager.insertChatAccountSecrets(chatAccount);
-    }
+    chatAccount.clone = () => Object.assign({}, chatAccount);
+    chatAccount = await keyMannager.insertChatAccountSecrets(chatAccount);
 
-    if (!chatAccount || !chatAccount.password || (leftTime < 2 * 24 * 3600)) {
+    let leftTime = 0;
+    let passedTime = ((new Date()).getTime() - chatAccount.refreshTime || 0) / 1000;// seconds
+    leftTime = chatAccount.expiresIn - passedTime;
+
+    if (!chatAccount.password || (leftTime < 2 * 24 * 3600)) {
       acc.clone = () => Object.assign({}, acc);
       acc = await keyMannager.insertAccountSecrets(acc);
       if (acc.settings && !acc.settings.imap_password && !acc.settings.refresh_token) {
