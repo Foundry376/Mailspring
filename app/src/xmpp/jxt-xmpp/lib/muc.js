@@ -323,7 +323,6 @@ exports['default'] = function (JXT) {
         element: 'memberschange',
         fields: {
             ver: Utils.attribute('ver'),
-            actorJid: Utils.subAttribute('', 'member', 'jid'),
             userJid: Utils.subAttribute('', 'member', 'userjid'),
             userEmail: Utils.subAttribute('', 'member', 'useremail'),
             actorJid: Utils.subAttribute('', 'member', 'actorjid'),
