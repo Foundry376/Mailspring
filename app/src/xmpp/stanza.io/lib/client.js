@@ -109,6 +109,7 @@ function Client(opts) {
             if (json.edimucevent && json.edimucevent.edimucconfig && json.edimucevent.edimucconfig.actorJid) {
                 self.emit('edimucconfig', json);
             } else if (memberschange) {
+                memberschange.from = json.from;
                 self.emit('memberschange', memberschange);
             } else {
                 self.emit('stanza', json);
