@@ -14,8 +14,11 @@ import * as Utils from '../models/utils';
 import InlineStyleTransformer from '../../services/inline-style-transformer';
 import SanitizeTransformer from '../../services/sanitize-transformer';
 import DOMUtils from '../../dom-utils';
+import Thread from '../models/Thread';
 
-let DraftStore = null;
+let DraftStore: typeof import('./draft-store').default = null;
+
+type ReplyType = 'reply' | 'reply-all'
 
 async function prepareBodyForQuoting(body) {
   // TODO: Fix inline images
@@ -44,6 +47,8 @@ class DraftFactory {
       draft: true,
       pristine: true,
       accountId: account.id,
+      cc: [],
+      bcc: [],
     };
 
     const merged = Object.assign(defaults, fields);
@@ -87,7 +92,7 @@ class DraftFactory {
     // URL encoded. (In the above example, decoding the body would cause the URL
     // to fall apart.)
     //
-    const query = {};
+    const query: any = {};
     query.to = to;
 
     const querySplit = /[&|?](subject|body|cc|to|from|bcc)+\s*=/gi;
@@ -132,14 +137,24 @@ class DraftFactory {
     return this.createDraft(Object.assign(query, await Promise.props(contacts)));
   }
 
-  async createOrUpdateDraftForReply({ message, thread, type, behavior }) {
+  async createOrUpdateDraftForReply({
+    message,
+    thread,
+    type,
+    behavior,
+  }: {
+    message: Message;
+    thread: Thread;
+    type: ReplyType;
+    behavior: string;
+  }) {
     if (!['reply', 'reply-all'].includes(type)) {
       throw new Error(`createOrUpdateDraftForReply called with ${type}, not reply or reply-all`);
     }
 
     const existingDraft = await this.candidateDraftForUpdating(message, behavior);
     if (existingDraft) {
-      return this.updateDraftForReply(existingDraft, { message, thread, type });
+      return this.updateDraftForReply(existingDraft, { message, type });
     }
     return this.createDraftForReply({ message, thread, type });
   }
@@ -217,7 +232,7 @@ class DraftFactory {
     let replyToHeaderMessageId = threadMessageId;
 
     if (!replyToHeaderMessageId) {
-      const msg = await DatabaseStore.findBy(Message, {
+      const msg = await DatabaseStore.findBy<Message>(Message, {
         accountId: thread.accountId,
         threadId: thread.id,
       })
@@ -247,7 +262,7 @@ class DraftFactory {
     const messages =
       message.threadId === MessageStore.threadId()
         ? MessageStore.items()
-        : await DatabaseStore.findAll(Message, { threadId: message.threadId });
+        : await DatabaseStore.findAll<Message>(Message, { threadId: message.threadId });
 
     const candidateDrafts = messages.filter(
       other => other.replyToHeaderMessageId === message.headerMessageId && other.draft === true
@@ -276,12 +291,12 @@ class DraftFactory {
     }
   }
 
-  updateDraftForReply(draft, { type, message }) {
+  updateDraftForReply(draft: Message, { type, message }: {type: ReplyType, message: Message}) {
     if (!(message && draft)) {
       throw new Error('updateDraftForReply: Expected message and existing draft.');
     }
 
-    const updated = { to: [].concat(draft.to), cc: [].concat(draft.cc) };
+    const updated: {to: Contact[], cc: Contact[]} = { to: [].concat(draft.to), cc: [].concat(draft.cc) };
     const replySet = message.participantsForReply();
     const replyAllSet = message.participantsForReplyAll();
     let targetSet = null;
@@ -291,7 +306,7 @@ class DraftFactory {
 
       // Remove participants present in the reply-all set and not the reply set
       for (const key of ['to', 'cc']) {
-        updated[key] = _.reject(updated[key], contact => {
+        updated[key] = _.reject<Contact>(updated[key], contact => {
           const inReplySet = _.findWhere(replySet[key], { email: contact.email });
           const inReplyAllSet = _.findWhere(replyAllSet[key], { email: contact.email });
           return inReplyAllSet && !inReplySet;

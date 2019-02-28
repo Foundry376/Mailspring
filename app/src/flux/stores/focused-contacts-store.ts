@@ -10,9 +10,18 @@ import MessageStore from './message-store';
 import AccountStore from './account-store';
 import DatabaseStore from './database-store';
 import SearchQueryParser from '../../services/search/search-query-parser';
+import { Disposable } from 'event-kit';
 
 // A store that handles the focuses collections of and individual contacts
 class FocusedContactsStore extends MailspringStore {
+  _unsubFocusedContact?: Rx.Disposable;
+  _contactScores: { [key: string]: { score: number; contact: Contact } } = {};
+  _currentContacts = [];
+  _currentFocusedContact?: Contact;
+  _currentThread?: Thread;
+  _currentParticipantThreads = [];
+  _triggerLater: () => void;
+
   constructor() {
     super();
     this.listenTo(MessageStore, this._onMessageStoreChanged);
@@ -50,7 +59,7 @@ class FocusedContactsStore extends MailspringStore {
     // important because the FocusedContactStore powers tons of third-party extensions,
     // which could do /horrible/ things when we trigger.
     const thread = MessageStore.itemsLoading() ? null : MessageStore.thread();
-    if (thread && thread.id !== (this._currentThread || {}).id) {
+    if (thread && (!this._currentThread || thread.id !== this._currentThread.id)) {
       this._currentThread = thread;
       this._populateCurrentParticipants();
     }
@@ -86,7 +95,7 @@ class FocusedContactsStore extends MailspringStore {
     this._currentParticipantThreads = [];
 
     if (contact && contact.email) {
-      const query = DatabaseStore.findBy(Contact, {
+      const query = DatabaseStore.findBy<Contact>(Contact, {
         accountId: this._currentThread.accountId,
         email: contact.email,
       });
@@ -105,7 +114,7 @@ class FocusedContactsStore extends MailspringStore {
   };
 
   _loadCurrentParticipantThreads() {
-    const currentContact = this._currentFocusedContact || {};
+    const currentContact = this._currentFocusedContact || { email: undefined };
     const email = currentContact.email;
     if (!email) {
       return;
@@ -172,7 +181,7 @@ class FocusedContactsStore extends MailspringStore {
     let penalties = 0;
     const email = contact.email.toLowerCase().trim();
 
-    const accountId = (this._currentThread || {}).accountId;
+    const accountId = this._currentThread && this._currentThread.accountId;
     const account = AccountStore.accountForId(accountId) || {};
     const myEmail = account.emailAddress;
 

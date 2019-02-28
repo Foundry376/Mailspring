@@ -26,8 +26,8 @@ function applyExtensionTransforms(draft, recipient) {
 }
 
 export default class SendDraftTask extends Task {
-  static forSending(d, { silent } = {}) {
-    const task = new SendDraftTask();
+  static forSending(d: Message, { silent }: { silent?: boolean } = {}) {
+    const task = new SendDraftTask({});
     task.draft = d.clone();
     task.headerMessageId = task.draft.headerMessageId;
     task.silent = silent;
@@ -66,6 +66,10 @@ export default class SendDraftTask extends Task {
       modelKey: 'silent',
     }),
   });
+
+  draft: Message;
+  perRecipientBodies: { [email: string]: string };
+  silent: boolean;
 
   get accountId() {
     return this.draft.accountId;

@@ -37,18 +37,18 @@ query.where([Thread.attributes.categories.contains('label-id')])
 
 Section: Database
 */
-export default class ModelQuery {
+export default class ModelQuery<T> {
   private _database: typeof import('mailspring-exports').DatabaseStore;
   private _matchers = [];
   private _orders = [];
-  private _background = false;
   private _backgroundable = true;
   private _distinct = false;
   private _range = QueryRange.infinite();
   private _returnOne = false;
   private _returnIds = false;
   private _includeJoinedData = [];
-  private _logQueryPlanDebugOutput = true;
+
+  _background = false;
   _count = false;
   _klass: typeof Model;
   _finalized = false;
@@ -95,18 +95,13 @@ export default class ModelQuery {
     return this;
   }
 
-  silenceQueryPlanDebugOutput() {
-    this._logQueryPlanDebugOutput = false;
-    return this;
-  }
-
   // Public: Add one or more where clauses to the query
   //
   // - `matchers` An {Array} of {Matcher} objects that add where clauses to the underlying query.
   //
   // This method is chainable.
   //
-  where(matchers) {
+  where(matchers: any[] | any) {
     this._assertNotFinalized();
 
     if (matchers instanceof Matcher) {
@@ -277,7 +272,7 @@ export default class ModelQuery {
   // Returns a {Promise} that resolves with the Models returned by the
   // query, or rejects with an error from the Database layer.
   //
-  then(next) {
+  then<U>(next: (arg0: T) => U ): Promise<U> {
     return this.run().then(next);
   }
 
@@ -285,7 +280,7 @@ export default class ModelQuery {
   // query, or rejects with an error from the Database layer.
   //
   run() {
-    return this._database.run(this);
+    return this._database.run<T>(this);
   }
 
   inflateResult(result) {

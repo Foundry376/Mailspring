@@ -1,12 +1,12 @@
 /* eslint global-require: 0 */
 import path from 'path';
 import createDebug from 'debug';
-import childProcess from 'child_process';
+import childProcess, { ChildProcess } from 'child_process';
 import LRU from 'lru-cache';
 import Sqlite3 from 'better-sqlite3';
-import { remote } from 'electron';
+import { remote, EventEmitter } from 'electron';
 import { ExponentialBackoffScheduler } from '../../backoff-schedulers';
-
+import Model from '../models/model';
 import MailspringStore from '../../global/mailspring-store';
 import * as Utils from '../models/utils';
 import Query from '../models/query';
@@ -20,9 +20,9 @@ const DEBUG_QUERY_PLANS = AppEnv.inDevMode();
 const BASE_RETRY_LOCK_DELAY = 50;
 const MAX_RETRY_LOCK_DELAY = 500;
 
-function trimTo(str, size) {
+function trimTo(str: string, size?: number) {
   const g = window || global || {};
-  const TRIM_SIZE = size || process.env.TRIM_SIZE || g.TRIM_SIZE || 256;
+  const TRIM_SIZE = size || process.env.TRIM_SIZE || (g as any).TRIM_SIZE || 256;
   let trimed = str;
   if (str.length >= TRIM_SIZE) {
     trimed = `${str.slice(0, TRIM_SIZE / 2)}…${str.slice(str.length - TRIM_SIZE / 2, str.length)}`;
@@ -46,8 +46,8 @@ function handleUnrecoverableDatabaseError(
 
 async function openDatabase(dbPath) {
   try {
-    const database = await new Promise((resolve, reject) => {
-      const db = new Sqlite3(dbPath, { readonly: true });
+    const database = await new Promise<Sqlite3.Database>((resolve, reject) => {
+      const db = new Sqlite3(dbPath, { readonly: true }) as Sqlite3.Database & EventEmitter;
       db.on('close', reject);
       db.on('open', () => {
         // https://www.sqlite.org/wal.html
@@ -133,16 +133,16 @@ Section: Database
 class DatabaseStore extends MailspringStore {
   static ChangeRecord = DatabaseChangeRecord;
 
+  _open = false;
+  _waiting = [];
+  _preparedStatementCache = new LRU({ max: 500 });
+  _databasePath = databasePath(AppEnv.getConfigDirPath(), AppEnv.inSpecMode());
+  _db?: Sqlite3.Database;
+
   constructor() {
     super();
 
-    this._open = false;
-    this._waiting = [];
-    this._preparedStatementCache = LRU({ max: 500 });
-
     this.setupEmitter();
-
-    this._databasePath = databasePath(AppEnv.getConfigDirPath(), AppEnv.inSpecMode());
 
     if (!AppEnv.inSpecMode()) {
       this.open();
@@ -340,6 +340,8 @@ class DatabaseStore extends MailspringStore {
     return results;
   }
 
+  _agent?: ChildProcess;
+  _agentOpenQueries: { [id: string]: (args: { results: Model[]; backgroundTime: number }) => void };
   _executeInBackground(query, values) {
     if (!this._agent) {
       this._agentOpenQueries = {};
@@ -415,11 +417,11 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  findBy(klass, predicates = []) {
+  findBy<T>(klass, predicates: any[] | any = []): Query<T> {
     if (!klass) {
       throw new Error(`DatabaseStore::findBy - You must provide a class`);
     }
-    return new Query(klass, this).where(predicates).one();
+    return new Query<T>(klass, this).where(predicates).one();
   }
 
   // Public: Creates a new Model Query for retrieving all models matching the
@@ -431,11 +433,11 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  findAll(klass, predicates: any[] | any = []) {
+  findAll<T>(klass, predicates: any[] | any = []) {
     if (!klass) {
       throw new Error(`DatabaseStore::findAll - You must provide a class`);
     }
-    return new Query(klass, this).where(predicates);
+    return new Query<T[]>(klass, this).where(predicates);
   }
 
   // Public: Creates a new Model Query that returns the {Number} of models matching
@@ -447,11 +449,11 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  count(klass, predicates = []) {
+  count<T>(klass, predicates = []) {
     if (!klass) {
       throw new Error(`DatabaseStore::count - You must provide a class`);
     }
-    return new Query(klass, this).where(predicates).count();
+    return new Query<T>(klass, this).where(predicates).count();
   }
 
   // Public: Modelify converts the provided array of IDs or models (or a mix of
@@ -482,7 +484,7 @@ class DatabaseStore extends MailspringStore {
       return Promise.resolve(arr);
     }
 
-    return this.findAll(klass)
+    return this.findAll<Model>(klass)
       .where(klass.attributes.id.in(ids))
       .markNotBackgroundable()
       .then(modelsFromIds => {
@@ -503,13 +505,8 @@ class DatabaseStore extends MailspringStore {
   // Returns a {Promise} that
   //   - resolves with the result of the database query.
   //
-  run(modelQuery, options = { format: true }) {
-    return this._query(
-      modelQuery.sql(),
-      [],
-      modelQuery._background,
-      modelQuery._logQueryPlanDebugOutput
-    ).then(result => {
+  run<T>(modelQuery: Query<T>, options = { format: true }): Promise<T> {
+    return this._query(modelQuery.sql(), [], modelQuery._background).then(result => {
       let transformed = modelQuery.inflateResult(result);
       if (options.format !== false) {
         transformed = modelQuery.formatResult(transformed);

@@ -6,8 +6,8 @@ const DatabaseObjectRegistry = require('../registries/database-object-registry')
 // `require` files the first time they're called.
 module.exports = exports = window.$m = {};
 
-const resolveExport = requireValue => {
-  return requireValue.default || requireValue;
+const resolveExport = (prop, requireValue) => {
+  return requireValue.default || requireValue[prop] || requireValue;
 };
 
 const lazyLoadWithGetter = (prop, getter) => {
@@ -28,7 +28,7 @@ const lazyLoadWithGetter = (prop, getter) => {
 };
 
 const lazyLoad = (prop, path) => {
-  lazyLoadWithGetter(prop, () => resolveExport(require(`../${path}`)));
+  lazyLoadWithGetter(prop, () => resolveExport(prop, require(`../${path}`)));
 };
 
 const _resolveNow = [];

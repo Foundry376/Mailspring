@@ -9,12 +9,16 @@ to dynamically render components registered with the ComponentRegistry.
 Section: Stores
 */
 class ComponentRegistry extends MailspringStore {
-  constructor() {
-    super();
-    this._registry = {};
-    this._cache = {};
-    this._showComponentRegions = false;
-  }
+  _registry: {
+    [displayName: string]: {
+      modes?: string[];
+      locations?: string[];
+      roles?: string[];
+      component: React.Component;
+    };
+  } = {};
+  _cache = {};
+  _showComponentRegions: boolean = false;
 
   // Public: Register a new component with the Component Registry.
   // Typically, packages call this method from their main `activate` method

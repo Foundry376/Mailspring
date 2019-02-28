@@ -1,4 +1,3 @@
-declare module "mailspring-component-kit" {
 export const Menu: typeof import('../components/menu').default;
 export const DropZone: typeof import('../components/drop-zone').default;
 export const Spinner: typeof import('../components/spinner').default;
@@ -17,7 +16,8 @@ export const FluxContainer: typeof import('../components/flux-container').defaul
 export const FocusContainer: typeof import('../components/focus-container').default;
 export const SyncingListState: typeof import('../components/syncing-list-state').default;
 export const EmptyListState: typeof import('../components/empty-list-state').default;
-export const ListTabular: typeof import('../components/list-tabular').default;
+export * from '../components/list-tabular';
+// export const ListTabular: typeof import('../components/list-tabular').default;
 export const Notification: typeof import('../components/notification').default;
 export const EventedIFrame: typeof import('../components/evented-iframe').default;
 export const ButtonDropdown: typeof import('../components/button-dropdown').default;
@@ -74,4 +74,3 @@ export const ListensToFluxStore: typeof import('../components/decorators/listens
 export const ListensToMovementKeys: typeof import('../components/decorators/listens-to-movement-keys').default;
 export const HasTutorialTip: typeof import('../components/decorators/has-tutorial-tip').default;
 export const CreateButtonGroup: typeof import('../components/decorators/create-button-group').default;
-}

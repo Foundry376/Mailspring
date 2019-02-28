@@ -18,8 +18,12 @@ the database and exposes the currently active Account via {::current}
 Section: Stores
 */
 class AccountStore extends MailspringStore {
-  constructor(props) {
-    super(props);
+  private _version: number;
+  private _accounts: Account[];
+  private _caches: {};
+
+  constructor() {
+    super();
     this._loadAccounts();
     this.listenTo(Actions.removeAccount, this._onRemoveAccount);
     this.listenTo(Actions.updateAccount, this._onUpdateAccount);
@@ -76,7 +80,7 @@ class AccountStore extends MailspringStore {
       this._version = AppEnv.config.get(configVersionKey) || 0;
       this._accounts = [];
       for (const json of AppEnv.config.get(configAccountsKey) || []) {
-        this._accounts.push(new Account().fromJSON(json));
+        this._accounts.push(new Account({}).fromJSON(json));
       }
 
       // Run a few checks on account consistency. We want to display useful error

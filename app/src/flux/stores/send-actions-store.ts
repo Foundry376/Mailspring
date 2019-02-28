@@ -1,12 +1,21 @@
 import _str from 'underscore.string';
 import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
+import Message from '../models/message';
 import SendDraftTask from '../tasks/send-draft-task';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 
+interface ISendAction {
+  title: string;
+  iconUrl: string | null;
+  configKey: string;
+  isAvailableForDraft: ({ draft }: { draft: Message }) => boolean;
+  performSendAction: ({ draft }: { draft: Message }) => void;
+}
+
 const ACTION_CONFIG_KEY = 'core.sending.defaultSendType';
 const DefaultSendActionKey = 'send';
-const DefaultSendAction = {
+const DefaultSendAction: ISendAction = {
   title: 'Send',
   iconUrl: null,
   configKey: DefaultSendActionKey,
@@ -14,7 +23,7 @@ const DefaultSendAction = {
   performSendAction: ({ draft }) => Actions.queueTask(SendDraftTask.forSending(draft)),
 };
 
-function verifySendAction(sendAction = {}, extension = {}) {
+function verifySendAction(sendAction: ISendAction, extension: { name?: string } = {}) {
   const { name } = extension;
   if (typeof sendAction.title !== 'string') {
     throw new Error(`${name}.sendActions must return objects containing a string "title"`);
@@ -28,11 +37,13 @@ function verifySendAction(sendAction = {}, extension = {}) {
 }
 
 class SendActionsStore extends MailspringStore {
+  _sendActions: ISendAction[] = [];
+  _unsubscribers = [];
+
   constructor() {
     super();
-    this._sendActions = [];
-    this._onComposerExtensionsChanged();
     this._unsubscribers = [ExtensionRegistry.Composer.listen(this._onComposerExtensionsChanged)];
+    this._onComposerExtensionsChanged();
   }
 
   get DefaultSendActionKey() {
@@ -69,7 +80,7 @@ class SendActionsStore extends MailspringStore {
   }
 
   orderedSendActionsForDraft(draft) {
-    const configKeys = this._sendActions.map(({ configKey } = {}) => configKey);
+    const configKeys = this._sendActions.map(({ configKey }) => configKey);
 
     let preferredKey = AppEnv.config.get(ACTION_CONFIG_KEY);
     if (!preferredKey || !configKeys.includes(preferredKey)) {

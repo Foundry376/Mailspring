@@ -79,7 +79,7 @@ export default class Account extends ModelWithMetadata {
   public settings: object;
   public label: string;
   public autoaddress: object;
-  public aliases: object;
+  public aliases: string[];
   public defaultAlias: object;
   public syncState: string;
   public syncError: string;

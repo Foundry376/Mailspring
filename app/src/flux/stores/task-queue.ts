@@ -42,15 +42,15 @@ Actions.dequeueMatchingTask({
 */
 
 class TaskQueue extends MailspringStore {
+  _queue = [];
+  _completed = [];
+  _currentSequentialId = Date.now();
+
+  _waitingForLocal = [];
+  _waitingForRemote = [];
+
   constructor() {
     super();
-    this._queue = [];
-    this._completed = [];
-    this._currentSequentialId = Date.now();
-
-    this._waitingForLocal = [];
-    this._waitingForRemote = [];
-
     Rx.Observable.fromQuery(DatabaseStore.findAll(Task)).subscribe(this._onQueueChangedDebounced);
   }
 
@@ -93,7 +93,7 @@ class TaskQueue extends MailspringStore {
     return [].concat(this._queue, this._completed);
   }
 
-  findTasks(typeOrClass, matching = {}, { includeCompleted } = {}) {
+  findTasks(typeOrClass, matching = {}, { includeCompleted }: { includeCompleted?: boolean } = {}) {
     const type = typeOrClass instanceof String ? typeOrClass : typeOrClass.name;
     const tasks = includeCompleted ? [].concat(this._queue, this._completed) : this._queue;
 

@@ -54,8 +54,8 @@ export default class AttributeDateTime extends Attribute {
     return new Matcher(this, '<=', val);
   }
 
-  gt = AttributeDateTime.greaterThan;
-  lt = AttributeDateTime.lessThan;
-  gte = AttributeDateTime.greaterThanOrEqualTo;
-  lte = AttributeDateTime.lessThanOrEqualTo;
+  gt = AttributeDateTime.prototype.greaterThan;
+  lt = AttributeDateTime.prototype.lessThan;
+  gte = AttributeDateTime.prototype.greaterThanOrEqualTo;
+  lte = AttributeDateTime.prototype.lessThanOrEqualTo;
 }

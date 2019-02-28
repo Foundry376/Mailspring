@@ -5,6 +5,9 @@ import ThreadCountsStore from './thread-counts-store';
 import CategoryStore from './category-store';
 
 class BadgeStore extends MailspringStore {
+  private _unread: number;
+  private _total: number;
+
   constructor() {
     super();
 

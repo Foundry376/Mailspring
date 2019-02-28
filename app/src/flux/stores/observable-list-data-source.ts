@@ -8,7 +8,7 @@ you can make it the data source of a MultiselectList.
 When the MultiselectList is refactored to take an Observable, this class should
 go away!
 */
-export default class ObservableListDataSource extends ListTabular.DataSource {
+export class ObservableListDataSource extends ListTabular.DataSource {
   _countEstimate = -1;
   _resultSet = null;
   _resultDesiredLast = null;

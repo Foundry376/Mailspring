@@ -29,6 +29,10 @@ const fileAccessibleAtPath = async filePath => {
 };
 
 class AttachmentStore extends MailspringStore {
+  _filePreviewPaths = {};
+  _filesDirectory: string = path.join(AppEnv.getConfigDirPath(), 'files');
+  _lastDownloadDirectory: string;
+
   constructor() {
     super();
 
@@ -45,9 +49,7 @@ class AttachmentStore extends MailspringStore {
     this.listenTo(Actions.selectAttachment, this._onSelectAttachment);
     this.listenTo(Actions.removeAttachment, this._onRemoveAttachment);
 
-    this._filePreviewPaths = {};
-    this._filesDirectory = path.join(AppEnv.getConfigDirPath(), 'files');
-    mkdirp(this._filesDirectory);
+    mkdirp(this._filesDirectory, () => {});
   }
 
   // Returns a path on disk for saving the file. Note that we must account
@@ -68,8 +70,7 @@ class AttachmentStore extends MailspringStore {
     );
   }
 
-  getDownloadDataForFile() {
-    // fileId
+  getDownloadDataForFile(fileId: string) {
     // if we ever support downloads again, put this back
     return null;
   }
@@ -292,7 +293,7 @@ class AttachmentStore extends MailspringStore {
     return path.join(downloadDir, file.safeDisplayName());
   }
 
-  _presentError({ file, error } = {}) {
+  _presentError({ file, error }: { file?: File; error?: Error } = {}) {
     const name = file ? file.displayName() : localized('one or more files');
     const errorString = error ? error.toString() : '';
 
@@ -404,7 +405,7 @@ class AttachmentStore extends MailspringStore {
     headerMessageId,
     filePath,
     inline = false,
-    onCreated = () => {},
+    onCreated = (file: File) => {},
   }) => {
     this._assertIdPresent(headerMessageId);
 

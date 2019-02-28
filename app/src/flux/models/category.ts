@@ -135,7 +135,13 @@ export default class Category extends Model {
 
   public role: string;
   public path: string;
-  public localStatus: object;
+  public localStatus: {
+    syncedMinUID: number;
+    bodiesPresent: number;
+    bodiesWanted: number;
+    uidnext: number;
+    busy: boolean;
+  };
 
   displayType() {
     throw new Error('Base class');

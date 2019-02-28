@@ -312,8 +312,8 @@ export default class Message extends ModelWithMetadata {
   // "reply" to this message. This method takes into account whether the
   // message is from the current user, && also looks at the replyTo field.
   participantsForReply() {
-    let to = [];
-    const cc = [];
+    let to: Contact[] = [];
+    const cc: Contact[] = [];
 
     if (this.replyTo.length && !this.replyTo[0].isMe()) {
       // If a replyTo is specified and that replyTo would not result in you

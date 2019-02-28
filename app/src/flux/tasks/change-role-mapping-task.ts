@@ -12,6 +12,9 @@ export default class ChangeRoleMappingTask extends Task {
     }),
   });
 
+  path: string;
+  role: string;
+
   label() {
     return localized(`Changing folder mapping...`);
   }

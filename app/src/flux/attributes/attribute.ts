@@ -16,7 +16,17 @@ export default class Attribute {
   public queryable: boolean;
   public loadFromColumn: boolean;
 
-  constructor({ modelKey, queryable, jsonKey, loadFromColumn }) {
+  constructor({
+    modelKey,
+    queryable,
+    jsonKey,
+    loadFromColumn,
+  }: {
+    modelKey: string;
+    queryable: boolean;
+    jsonKey: string;
+    loadFromColumn?: boolean;
+  }) {
     this.modelKey = modelKey;
     this.tableColumn = modelKey;
     this.jsonKey = jsonKey || modelKey;
@@ -45,7 +55,7 @@ export default class Attribute {
   }
 
   // Public: Returns a {Matcher} for objects `=` to the provided value.
-  in(val, { notIn } = {}) {
+  in(val, { notIn }: { notIn?: boolean } = {}) {
     this._assertPresentAndQueryable('in', val);
 
     if (!(val instanceof Array)) {

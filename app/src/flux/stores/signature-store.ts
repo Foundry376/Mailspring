@@ -21,6 +21,8 @@ class SignatureStore extends MailspringStore {
 
   unsubscribers: Array<() => void>;
 
+  selectedSignatureId: string;
+
   constructor() {
     super();
     this.activate(); // for specs
@@ -54,7 +56,9 @@ class SignatureStore extends MailspringStore {
     }
 
     // migrate signatures that didn't have a `data` property
-    Object.values(this.signatures).forEach(sig => (sig.data = sig.data || {}));
+    Object.values(this.signatures).forEach(
+      sig => (sig.data = sig.data || { title: '', templateName: '' })
+    );
 
     this._autoselectSignatureId();
 
@@ -98,11 +102,11 @@ class SignatureStore extends MailspringStore {
   };
 
   _saveSignatures() {
-    _.debounce(AppEnv.config.set(`signatures`, this.signatures), 500);
+    AppEnv.config.set(`signatures`, this.signatures);
   }
 
   _saveDefaultSignatures() {
-    _.debounce(AppEnv.config.set(`defaultSignatures`, this.defaultSignatures), 500);
+    AppEnv.config.set(`defaultSignatures`, this.defaultSignatures);
   }
 
   _onSelectSignature = id => {

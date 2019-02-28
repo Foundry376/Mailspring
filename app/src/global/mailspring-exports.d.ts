@@ -1,5 +1,4 @@
 
-declare module "mailspring-exports" {
   export type localized = typeof import('../intl').localized;
   export const localized: localized; 
   export type localizedReactFragment = typeof import('../intl').localizedReactFragment;
@@ -23,16 +22,14 @@ declare module "mailspring-exports" {
   export const Matcher: import('../flux/attributes/matcher').default; 
   export type DatabaseStore = typeof import('../flux/stores/database-store').default;
   export const DatabaseStore: DatabaseStore; 
-  export type QueryResultSet = import('../flux/models/query-result-set').default;
-  export const QueryResultSet: QueryResultSet; 
+  export * from '../flux/models/query-result-set';
   export type QuerySubscription = import('../flux/models/query-subscription').default;
   export const QuerySubscription: QuerySubscription; 
   export type MutableQueryResultSet = import('../flux/models/mutable-query-result-set').default;
   export const MutableQueryResultSet: MutableQueryResultSet; 
   export type QuerySubscriptionPool = typeof import('../flux/models/query-subscription-pool').default;
   export const QuerySubscriptionPool: QuerySubscriptionPool; 
-  export type ObservableListDataSource = import('../flux/stores/observable-list-data-source').default;
-  export const ObservableListDataSource: ObservableListDataSource; 
+  export * from '../flux/stores/observable-list-data-source';
   export type MutableQuerySubscription = import('../flux/models/mutable-query-subscription').default;
   export const MutableQuerySubscription: MutableQuerySubscription; 
 
@@ -269,4 +266,3 @@ declare module "mailspring-exports" {
   // Testing
   export type MailspringTestUtils = typeof import('../../spec/mailspring-test-utils').default;
   export const MailspringTestUtils: MailspringTestUtils;
-}

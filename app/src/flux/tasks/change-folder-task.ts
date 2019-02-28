@@ -38,6 +38,7 @@ export default class ChangeFolderTask extends ChangeMailTask {
       messages?: Message[];
       threads?: Thread[];
       canBeUndone?: boolean;
+      source?: string;
     } = {}
   ) {
     if (!data.previousFolder) {

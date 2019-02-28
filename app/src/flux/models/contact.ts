@@ -320,7 +320,7 @@ export default class Contact extends Model {
     return Contact.sortOrderAttribute().descending();
   };
 
-  static fromString(string, { accountId } = {}) {
+  static fromString(string, { accountId }: { accountId?: string } = {}) {
     const emailRegex = RegExpUtils.emailRegex();
     const match = emailRegex.exec(string);
     if (emailRegex.exec(string)) {
@@ -348,6 +348,7 @@ export default class Contact extends Model {
   public title: string;
   public phone: string;
   public company: string;
+  public thirdPartyData: object;
 
   constructor(data) {
     super(data);
@@ -397,7 +398,10 @@ export default class Contact extends Model {
     return false;
   }
 
-  isMePhrase({ includeAccountLabel, forceAccountLabel } = {}) {
+  isMePhrase({
+    includeAccountLabel,
+    forceAccountLabel,
+  }: { includeAccountLabel?: boolean; forceAccountLabel?: boolean } = {}) {
     const account = AccountStore.accountForEmail(this.email);
     if (!account) {
       return null;
@@ -427,7 +431,9 @@ export default class Contact extends Model {
   // - forceAccountLabel: Always include the account label
   // - compact: If the contact has a name, make the name as short as possible
   //   (generally returns just the first name.)
-  displayName(options = {}) {
+  displayName(
+    options: { includeAccountLabel?: boolean; forceAccountLabel?: boolean; compact?: boolean } = {}
+  ) {
     let includeAccountLabel = options.includeAccountLabel;
     const forceAccountLabel = options.forceAccountLabel;
     const compact = options.compact || false;

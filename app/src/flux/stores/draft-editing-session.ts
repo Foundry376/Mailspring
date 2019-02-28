@@ -198,7 +198,7 @@ export default class DraftEditingSession extends MailspringStore {
     onCommit: () => this.changeSetCommit(), // for specs
   });
 
-  constructor(headerMessageId, draft = null) {
+  constructor(headerMessageId: string, draft: Message = null) {
     super();
 
     this.headerMessageId = headerMessageId;

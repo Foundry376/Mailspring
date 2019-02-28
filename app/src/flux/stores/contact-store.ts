@@ -24,7 +24,7 @@ class ContactStore extends MailspringStore {
   //
   // Returns an {Array} of matching {Contact} models
   //
-  searchContacts(_search, options = {}) {
+  searchContacts(_search, options: { limit?: number } = {}) {
     const limit = Math.max(options.limit ? options.limit : 5, 0);
     const search = _search.toLowerCase();
 
@@ -42,12 +42,12 @@ class ContactStore extends MailspringStore {
     // return contacts with distinct email addresses, and the same contact
     // could exist in every account. Rather than make SQLite do a SELECT DISTINCT
     // (which is very slow), we just ask for more items.
-    const query = DatabaseStore.findAll(Contact)
+    const query = DatabaseStore.findAll<Contact>(Contact)
       .search(search)
       .limit(limit * accountCount)
       .order(Contact.attributes.refs.descending());
 
-    return query.then(async _results => {
+    return (query.then(async _results => {
       // remove query results that were already found in ranked contacts
       let results = this._distinctByEmail(_results);
       for (const ext of extensions) {
@@ -57,12 +57,12 @@ class ContactStore extends MailspringStore {
         results.length = limit;
       }
       return results;
-    });
+    }) as any) as Promise<Contact[]>;
   }
 
   topContacts({ limit = 5 } = {}) {
     const accountCount = AccountStore.accounts().length;
-    return DatabaseStore.findAll(Contact)
+    return DatabaseStore.findAll<Contact>(Contact)
       .limit(limit * accountCount)
       .order(Contact.attributes.refs.descending())
       .then(async _results => {
@@ -78,7 +78,7 @@ class ContactStore extends MailspringStore {
     return contact instanceof Contact ? contact.isValid() : false;
   }
 
-  parseContactsInString(contactString, { skipNameLookup } = {}) {
+  parseContactsInString(contactString, { skipNameLookup }: { skipNameLookup?: boolean } = {}) {
     const detected = [];
     const emailRegex = RegExpUtils.emailRegex();
     let lastMatchEnd = 0;
@@ -142,9 +142,9 @@ class ContactStore extends MailspringStore {
     );
   }
 
-  _distinctByEmail(contacts) {
+  _distinctByEmail(contacts: Contact[]) {
     // remove query results that are duplicates, prefering ones that have names
-    const uniq = {};
+    const uniq: { [email: string]: Contact } = {};
     for (const contact of contacts) {
       if (!contact.email) {
         continue;

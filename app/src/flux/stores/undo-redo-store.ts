@@ -2,13 +2,13 @@ import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
 
 class UndoRedoStore extends MailspringStore {
+  _undo = [];
+  _redo = [];
+  _mostRecentBlock = null;
+  _queueingTasks = false;
+
   constructor() {
     super();
-    this._undo = [];
-    this._redo = [];
-
-    this._mostRecentBlock = null;
-    this._queueingTasks = false;
 
     this.listenTo(Actions.queueTask, this._onQueue);
     this.listenTo(Actions.queueTasks, this._onQueue);

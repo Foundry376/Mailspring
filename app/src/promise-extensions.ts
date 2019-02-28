@@ -157,3 +157,18 @@ global.Promise.prototype.isRejected = isRejected;
 (global.Promise as any).props = props;
 (global.Promise as any).promisify = promisify;
 (global.Promise as any).promisifyAll = promisifyAll;
+
+type ResolvableProps<T> = object & { [K in keyof T]: T[K] | Promise<T[K]> };
+type IterateFunction<T, R> = (item: T, index: number, arrayLength: number) => Promise<R>;
+
+interface PromiseConstructor {
+  delay(ms: number): Promise<void>;
+  props<T>(object: ResolvableProps<T>): Promise<T>;
+  each<Q>(this: Promise<Iterable<Q>>, iterator: IterateFunction<Q, any>): Promise<any>;
+}
+
+interface Promise<T> {
+  getState(): 'pending' | 'fulfilled' | 'rejected';
+  isResolved(): Promise<boolean>;
+  isRejected(): Promise<boolean>;
+}

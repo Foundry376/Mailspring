@@ -53,7 +53,7 @@ interface ResizeObserverEntry {
 }
 
 interface DOMRectReadOnly {
-  static fromRect(other: DOMRectInit | undefined): DOMRectReadOnly;
+  fromRect(other: DOMRectInit | undefined): DOMRectReadOnly;
 
   readonly x: number;
   readonly y: number;

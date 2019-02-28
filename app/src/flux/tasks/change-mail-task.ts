@@ -1,5 +1,7 @@
 import Task from './task';
 import Attributes from '../attributes';
+import Thread from '../models/thread';
+import Message from '../models/message';
 
 /*
 Public: The ChangeMailTask is a base class for all tasks that modify sets
@@ -35,7 +37,7 @@ export default class ChangeMailTask extends Task {
   canBeUndone: boolean;
   taskDescription: string;
 
-  constructor({ threads = [], messages = [], ...rest } = {}) {
+  constructor({ threads = [], messages = [], ...rest }: any = {}) {
     super(rest);
 
     // we actually only keep a small bit of data now

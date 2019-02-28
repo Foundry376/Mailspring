@@ -17,6 +17,14 @@ import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import { localized } from '../../intl';
+import ModelQuery from '../models/query';
+
+interface IThreadMessageModelOrId {
+  thread?: Thread;
+  threadId?: string;
+  message?: Message;
+  messageId?: string;
+}
 
 const { DefaultSendActionKey } = SendActionsStore;
 /*
@@ -31,6 +39,9 @@ Remember that a "Draft" is actually just a "Message" with `draft: true`.
 Section: Drafts
 */
 class DraftStore extends MailspringStore {
+  _draftSessions: { [headerMessageId: string]: DraftEditingSession } = {};
+  _draftsSending: { [headerMessageId: string]: boolean } = {};
+
   constructor() {
     super();
     this.listenTo(DatabaseStore, this._onDataChanged);
@@ -56,9 +67,6 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.destroyDraft, this._onDestroyDraft);
 
     AppEnv.onBeforeUnload(this._onBeforeUnload);
-
-    this._draftSessions = {};
-    this._draftsSending = {};
 
     ipcRenderer.on('mailto', this._onHandleMailtoLink);
     ipcRenderer.on('mailfiles', this._onHandleMailFiles);
@@ -176,7 +184,10 @@ class DraftStore extends MailspringStore {
     this.trigger(change);
   };
 
-  _onSendQuickReply = ({ thread, threadId, message, messageId }, body) => {
+  _onSendQuickReply = (
+    { thread, threadId, message, messageId }: IThreadMessageModelOrId,
+    body: string
+  ) => {
     if (AppEnv.config.get('core.sending.sounds')) {
       SoundRegistry.playSound('hit-send');
     }
@@ -196,7 +207,15 @@ class DraftStore extends MailspringStore {
       });
   };
 
-  _onComposeReply = ({ thread, threadId, message, messageId, popout, type, behavior }) => {
+  _onComposeReply = ({
+    thread,
+    threadId,
+    message,
+    messageId,
+    popout,
+    type,
+    behavior,
+  }: IThreadMessageModelOrId & { popout?: boolean; type: string; behavior: string }) => {
     return Promise.props(this._modelifyContext({ thread, threadId, message, messageId }))
       .then(({ message: m, thread: t }) => {
         return DraftFactory.createOrUpdateDraftForReply({ message: m, thread: t, type, behavior });
@@ -206,7 +225,13 @@ class DraftStore extends MailspringStore {
       });
   };
 
-  _onComposeForward = async ({ thread, threadId, message, messageId, popout }) => {
+  _onComposeForward = async ({
+    thread,
+    threadId,
+    message,
+    messageId,
+    popout,
+  }: IThreadMessageModelOrId & { popout?: boolean }) => {
     return Promise.props(this._modelifyContext({ thread, threadId, message, messageId }))
       .then(({ thread: t, message: m }) => {
         return DraftFactory.createDraftForForward({ thread: t, message: m });
@@ -216,8 +241,12 @@ class DraftStore extends MailspringStore {
       });
   };
 
-  _modelifyContext({ thread, threadId, message, messageId }) {
-    const queries = {};
+  _modelifyContext({ thread, threadId, message, messageId }: IThreadMessageModelOrId) {
+    const queries: {
+      thread?: Thread | { then: (next: any) => Promise<{}> };
+      message?: Message | { then: (next: any) => Promise<{}> };
+    } = {};
+
     if (thread) {
       if (!(thread instanceof Thread)) {
         throw new Error(
@@ -251,7 +280,7 @@ class DraftStore extends MailspringStore {
     return queries;
   }
 
-  _finalizeAndPersistNewMessage(draft, { popout } = {}) {
+  _finalizeAndPersistNewMessage(draft, { popout }: { popout?: boolean } = {}) {
     // Give extensions an opportunity to perform additional setup to the draft
     ExtensionRegistry.Composer.extensions().forEach(extension => {
       if (!extension.prepareNewDraft) {
@@ -275,7 +304,7 @@ class DraftStore extends MailspringStore {
     });
   }
 
-  _createSession(headerMessageId, draft) {
+  _createSession(headerMessageId: string, draft?: Message) {
     this._draftSessions[headerMessageId] = new DraftEditingSession(headerMessageId, draft);
     return this._draftSessions[headerMessageId];
   }
@@ -291,7 +320,7 @@ class DraftStore extends MailspringStore {
     await this._onPopoutDraft(headerMessageId, { newDraft: true });
   };
 
-  _onPopoutDraft = async (headerMessageId, options = {}) => {
+  _onPopoutDraft = async (headerMessageId, options: { newDraft?: boolean } = {}) => {
     if (headerMessageId == null) {
       throw new Error('DraftStore::onPopoutDraftId - You must provide a headerMessageId');
     }
@@ -373,7 +402,7 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onSendDraft = async (headerMessageId, options = {}) => {
+  _onSendDraft = async (headerMessageId, options: { delay?: number; actionKey?: string } = {}) => {
     const {
       delay = AppEnv.config.get('core.sending.undoSend'),
       actionKey = DefaultSendActionKey,

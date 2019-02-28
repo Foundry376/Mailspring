@@ -3,6 +3,12 @@ import MailspringStore from 'mailspring-store';
 import DatabaseStore from './database-store';
 import Thread from '../models/thread';
 
+interface ThreadCountRow {
+  categoryId: string;
+  unread: number;
+  total: number;
+}
+
 class ThreadCountsStore extends MailspringStore {
   _counts = {};
 
@@ -22,7 +28,7 @@ class ThreadCountsStore extends MailspringStore {
   }
 
   _onCountsChanged = () => {
-    DatabaseStore._query('SELECT * FROM `ThreadCounts`').then(results => {
+    DatabaseStore._query('SELECT * FROM `ThreadCounts`').then((results: ThreadCountRow[]) => {
       const nextCounts = {};
       for (const { categoryId, unread, total } of results) {
         nextCounts[categoryId] = { unread, total };

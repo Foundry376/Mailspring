@@ -51,7 +51,7 @@ const UsageRecordedServerSide = ['contact-profiles'];
 class FeatureUsageStore extends MailspringStore {
   _waitForModalClose = [];
   NoProAccessError = NoProAccessError;
-  _disp: Disposable;
+  _disp: Rx.Disposable;
   _usub: () => void;
 
   constructor() {

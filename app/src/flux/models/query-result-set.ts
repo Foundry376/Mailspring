@@ -19,11 +19,11 @@ To avoid confusion, "index" refers to an item's position in an
 array, and "offset" refers to it's position in the query result set. For example,
 an item might be at index 20 in the _ids array, but at offset 120 in the result.
 */
-export default class QueryResultSet {
+export class QueryResultSet<T extends Model> {
   _offset: number;
-  _query: ModelQuery;
+  _query: ModelQuery<T>;
   _idToIndexHash?: { [id: string]: number };
-  _modelsHash?: { [id: string]: Model };
+  _modelsHash?: { [id: string]: T };
   _ids: string[];
 
   static setByApplyingModels(set, models) {
@@ -36,7 +36,7 @@ export default class QueryResultSet {
     return out;
   }
 
-  constructor(other: Partial<QueryResultSet> = {}) {
+  constructor(other: Partial<QueryResultSet<T>> = {}) {
     this._offset = other._offset !== undefined ? other._offset : null;
     this._query = other._query !== undefined ? other._query : null;
     this._idToIndexHash = other._idToIndexHash !== undefined ? other._idToIndexHash : null;

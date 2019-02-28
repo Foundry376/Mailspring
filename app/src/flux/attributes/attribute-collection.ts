@@ -1,5 +1,6 @@
 import Attribute from './attribute';
 import Matcher from './matcher';
+import Model from '../models/model';
 
 /*
 Public: Collection attributes provide basic support for one-to-many relationships.
@@ -30,6 +31,11 @@ The value of this attribute is always an array of other model objects.
 Section: Database
 */
 export default class AttributeCollection extends Attribute {
+  itemClass: typeof Model;
+  joinOnField: string;
+  joinTableName: string;
+  joinQueryableBy: string[];
+
   constructor({
     modelKey,
     jsonKey,
@@ -38,6 +44,14 @@ export default class AttributeCollection extends Attribute {
     joinQueryableBy,
     joinTableName,
     queryable,
+  }: {
+    modelKey: string;
+    jsonKey: string;
+    queryable: boolean;
+    itemClass: typeof Model;
+    joinOnField: string;
+    joinTableName: string;
+    joinQueryableBy: string[];
   }) {
     super({ modelKey, jsonKey, queryable });
     this.itemClass = itemClass;

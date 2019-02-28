@@ -1,8 +1,13 @@
 import Task from './task';
+import Event from '../models/event';
 
 export default class EventRSVPTask extends Task {
-  constructor(event, RSVPEmail, RSVPResponse) {
-    super();
+  event: Event;
+  RSVPEmail: string;
+  RSVPResponse: string;
+
+  constructor(event: Event, RSVPEmail: string, RSVPResponse: string) {
+    super({});
     this.event = event;
     this.RSVPEmail = RSVPEmail;
     this.RSVPResponse = RSVPResponse;

@@ -2,6 +2,9 @@ import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
 
 export class Registry extends MailspringStore {
+  name: string;
+  _registry: { name: string; extension: any; priority: number }[];
+
   constructor(name) {
     super();
     this.name = name;

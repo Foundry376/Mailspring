@@ -3,15 +3,19 @@ import MailspringStore from 'mailspring-store';
 import {
   Rx,
   Actions,
+  Thread,
+  QueryResultSet,
   WorkspaceStore,
   FocusedContentStore,
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
-import { ListTabular } from 'mailspring-component-kit';
-
+import { ListTabular, ListDataSource } from 'mailspring-component-kit';
 import ThreadListDataSource from './thread-list-data-source';
 
 class ThreadListStore extends MailspringStore {
+  _dataSource?: ListDataSource;
+  _dataSourceUnlisten: () => void;
+
   constructor() {
     super();
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
@@ -54,7 +58,10 @@ class ThreadListStore extends MailspringStore {
     this.createListDataSource();
   };
 
-  _onDataChanged = ({ previous, next } = {}) => {
+  _onDataChanged = ({
+    previous,
+    next,
+  }: { previous?: QueryResultSet<Thread>; next?: QueryResultSet<Thread> } = {}) => {
     // This code keeps the focus and keyboard cursor in sync with the thread list.
     // When the thread list changes, it looks to see if the focused thread is gone,
     // or no longer matches the query criteria and advances the focus to the next

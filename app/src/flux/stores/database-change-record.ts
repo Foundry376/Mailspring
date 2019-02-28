@@ -5,6 +5,10 @@ and references to the new model values. All mutations to the database produce th
 change records.
 */
 export default class DatabaseChangeRecord {
+  objects: object[];
+  type: string;
+  objectClass: any;
+
   constructor({ type, objectClass, objects }) {
     this.objects = objects;
     this.type = type;
@@ -15,7 +19,7 @@ export default class DatabaseChangeRecord {
     return {
       type: this.type,
       objectClass: this.objectClass,
-      objectsString: this._objectsString,
+      // objectsString: this._objectsString,
     };
   }
 }

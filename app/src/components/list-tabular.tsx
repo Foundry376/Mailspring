@@ -121,9 +121,12 @@ type ListTabularProps = {
   onComponentDidUpdate?: (...args: any[]) => any;
 };
 type ListTabularState = {
-  items: {};
+  items: { [id: number]: Model };
   animatingOut: {
-    [index: string]: Model;
+    [index: string]: {
+      end: number;
+      item: Model;
+    };
   };
   renderedRangeStart: any;
   renderedRangeEnd: any;
@@ -132,7 +135,9 @@ type ListTabularState = {
   empty: any;
 };
 
-export default class ListTabular extends Component<ListTabularProps, ListTabularState> {
+export type ListDataSource = ListDataSource;
+
+export class ListTabular extends Component<ListTabularProps, ListTabularState> {
   static displayName = 'ListTabular';
 
   static propTypes = {
@@ -336,14 +341,14 @@ export default class ListTabular extends Component<ListTabularProps, ListTabular
     this.setState(nextState);
   }
 
-  buildStateForRange(args = {}) {
+  buildStateForRange(args: { start?: number; end?: number; dataSource?: ListDataSource } = {}) {
     const {
       start = this.state.renderedRangeStart,
       end = this.state.renderedRangeEnd,
       dataSource = this.props.dataSource,
     } = args;
 
-    const items: { [id: string]: Model } = {};
+    const items: { [id: number]: Model } = {};
     let animatingOut = {};
 
     Utils.range(start, end).forEach(idx => {

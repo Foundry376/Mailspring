@@ -16,7 +16,7 @@ function getStateFromObservable(selectionCount) {
   return { selectionCount };
 }
 
-class SelectedItemsStack extends Component {
+class SelectedItemsStack extends Component<{ selectionCount: number }> {
   static displayName = 'SelectedItemsStack';
 
   static propTypes = {

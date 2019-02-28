@@ -2,8 +2,18 @@
 import Task from './task';
 
 export default class DestroyModelTask extends Task {
-  constructor({ clientId, modelName, endpoint, accountId } = {}) {
-    super();
+  clientId: string;
+  endpoint: string;
+  modelName: string;
+  accountId: string;
+
+  constructor({
+    clientId,
+    modelName,
+    endpoint,
+    accountId,
+  }: { clientId?: string; modelName?: string; endpoint?: string; accountId?: string } = {}) {
+    super({});
     this.clientId = clientId;
     this.endpoint = endpoint;
     this.modelName = modelName;

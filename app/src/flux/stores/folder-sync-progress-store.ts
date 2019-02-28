@@ -32,7 +32,8 @@ interface FolderProgress {
   bodyProgress: number;
 }
 class FolderSyncProgressStore extends MailspringStore {
-  _statesByAccount: { [accountId: string]: FolderProgress[] } = {};
+  _triggerDebounced: () => void;
+  _statesByAccount: { [accountId: string]: { [folderPath: string]: FolderProgress } } = {};
   _stateSummary = {
     phrase: null,
     progress: 100,
@@ -63,7 +64,13 @@ class FolderSyncProgressStore extends MailspringStore {
       implementation changes.
       */
       for (const folder of folders) {
-        const { uidnext = 1, busy = true, syncedMinUID, bodiesPresent, bodiesWanted } =
+        const {
+          uidnext = 1,
+          busy = true,
+          syncedMinUID = undefined,
+          bodiesPresent = undefined,
+          bodiesWanted = undefined,
+        } =
           folder.localStatus || {};
 
         state[folder.path] = {
@@ -140,7 +147,7 @@ class FolderSyncProgressStore extends MailspringStore {
    * since mailsync doesn't start folder sync until it has fetched the whole list
    * of folders and labels.
    */
-  isCategoryListSynced(accountId) {
+  isCategoryListSynced(accountId: string) {
     const state = this._statesByAccount[accountId];
     if (!state) {
       return false;
@@ -148,7 +155,7 @@ class FolderSyncProgressStore extends MailspringStore {
     return Object.values(state).some(i => i.scanProgress > 0);
   }
 
-  whenCategoryListSynced(accountId) {
+  whenCategoryListSynced(accountId: string) {
     if (this.isCategoryListSynced(accountId)) {
       return Promise.resolve();
     }
@@ -162,7 +169,7 @@ class FolderSyncProgressStore extends MailspringStore {
     });
   }
 
-  isSyncingAccount(accountId, folderPath) {
+  isSyncingAccount(accountId: string, folderPath?: string) {
     const state = this._statesByAccount[accountId];
 
     if (!state || !this.isCategoryListSynced(accountId)) {

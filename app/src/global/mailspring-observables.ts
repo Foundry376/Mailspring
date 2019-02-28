@@ -1,8 +1,18 @@
-import Rx from 'rx-lite';
+import Rx, { Disposable, Observable } from 'rx-lite';
 import Folder from '../flux/models/folder';
 import Label from '../flux/models/label';
 import QuerySubscriptionPool from '../flux/models/query-subscription-pool';
 import DatabaseStore from '../flux/stores/database-store';
+import QuerySubscription from '../flux/models/query-subscription';
+import Model from '../flux/models/model';
+import ModelQuery from '../flux/models/query';
+import MailspringStore from 'mailspring-store';
+import Category from '../flux/models/category';
+
+interface ICategoryOperators {
+  sort(): Observable<Category[]> & ICategoryOperators;
+  categoryFilter(filter: (Category) => boolean): Observable<Category[]> & ICategoryOperators;
+}
 
 const CategoryOperators = {
   sort() {
@@ -25,7 +35,7 @@ const CategoryOperators = {
     return Object.assign(obs, CategoryOperators);
   },
 
-  categoryFilter(filter) {
+  categoryFilter(filter: (Category) => boolean) {
     const obs = this.map(categories => categories.filter(filter));
     return Object.assign(obs, CategoryOperators);
   },
@@ -33,11 +43,15 @@ const CategoryOperators = {
 
 const CategoryObservables = {
   forAllAccounts() {
-    const folders = Rx.Observable.fromQuery(DatabaseStore.findAll(Folder));
-    const labels = Rx.Observable.fromQuery(DatabaseStore.findAll(Label));
-    const joined = Rx.Observable.combineLatest(folders, labels, (f, l) => [].concat(f, l));
+    const folders = Rx.Observable.fromQuery<Category[]>(DatabaseStore.findAll(Folder));
+    const labels = Rx.Observable.fromQuery<Category[]>(DatabaseStore.findAll(Label));
+    const joined = Rx.Observable.combineLatest<Category[], Category[], Category[]>(
+      folders,
+      labels,
+      (f, l) => [].concat(f, l)
+    );
     Object.assign(joined, CategoryOperators);
-    return joined;
+    return joined as Observable<Category[]> & ICategoryOperators;
   },
 
   forAccount(account) {
@@ -47,10 +61,10 @@ const CategoryObservables = {
     const labels = Rx.Observable.fromQuery(scoped(DatabaseStore.findAll(Label)));
     const joined = Rx.Observable.combineLatest(folders, labels, (f, l) => [].concat(f, l));
     Object.assign(joined, CategoryOperators);
-    return joined;
+    return joined as Observable<Category[]> & ICategoryOperators;
   },
 
-  standard(account) {
+  standard(account): Observable<Category[]> & ICategoryOperators {
     const observable = Rx.Observable.fromConfig('core.workspace.showImportant').flatMapLatest(
       showImportant => {
         return CategoryObservables.forAccount(account)
@@ -59,7 +73,7 @@ const CategoryObservables = {
       }
     );
     Object.assign(observable, CategoryOperators);
-    return observable;
+    return observable as Observable<Category[]> & ICategoryOperators;
   },
 
   user(account) {
@@ -119,7 +133,7 @@ Rx.Observable.fromListSelection = originStore => {
   });
 };
 
-Rx.Observable.fromConfig = configKey => {
+Rx.Observable.fromConfig = (configKey: string) => {
   return Rx.Observable.create(observer => {
     const disposable = AppEnv.config.onDidChange(configKey, () =>
       observer.onNext(AppEnv.config.get(configKey))
@@ -129,21 +143,21 @@ Rx.Observable.fromConfig = configKey => {
   });
 };
 
-Rx.Observable.fromAction = action => {
+Rx.Observable.fromAction = (action: any) => {
   return Rx.Observable.create(observer => {
-    const unsubscribe = action.listen((...args) => observer.onNext(...args));
+    const unsubscribe = action.listen(arg => observer.onNext(arg));
     return Rx.Disposable.create(unsubscribe);
   });
 };
 
-Rx.Observable.fromQuery = query => {
+Rx.Observable.fromQuery = <T>(query: ModelQuery<T>) => {
   return Rx.Observable.create(observer => {
     const unsubscribe = QuerySubscriptionPool.add(query, result => observer.onNext(result));
     return Rx.Disposable.create(unsubscribe);
   });
 };
 
-Rx.Observable.fromNamedQuerySubscription = (name, subscription) => {
+Rx.Observable.fromNamedQuerySubscription = (name: string, subscription: QuerySubscription) => {
   return Rx.Observable.create(observer => {
     const unsubscribe = QuerySubscriptionPool.addPrivateSubscription(name, subscription, result =>
       observer.onNext(result)
@@ -151,3 +165,16 @@ Rx.Observable.fromNamedQuerySubscription = (name, subscription) => {
     return Rx.Disposable.create(unsubscribe);
   });
 };
+
+declare global {
+  namespace Rx {
+    export interface ObservableStatic {
+      fromStore(store: MailspringStore): Observable<MailspringStore>;
+      fromListSelection<T>(store: MailspringStore & { dataSource(): any }): Observable<T[]>;
+      fromConfig<T>(configKey: string): Observable<T>;
+      fromAction<T>(action: any): Observable<T>;
+      fromQuery<T>(query: ModelQuery<T>): Observable<T>;
+      fromNamedQuerySubscription(name: string, sub: QuerySubscription): Observable<Model[]>;
+    }
+  }
+}

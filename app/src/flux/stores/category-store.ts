@@ -20,12 +20,14 @@ const asAccountId = a => {
 };
 
 class CategoryStore extends MailspringStore {
+  _categoryCache = {};
+  _standardCategories: { [accountId: string]: Category[] } = {};
+  _userCategories: { [accountId: string]: Category[] } = {};
+  _hiddenCategories: { [accountId: string]: Category[] } = {};
+  _categoryResult;
+
   constructor() {
     super();
-    this._categoryCache = {};
-    this._standardCategories = {};
-    this._userCategories = {};
-    this._hiddenCategories = {};
 
     AppEnv.config.onDidChange('core.workspace.showImportant', () => {
       if (this._categoryResult) {

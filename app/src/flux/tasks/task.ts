@@ -46,7 +46,7 @@ export default class Task extends Model {
   // `super`.
   //
   // On construction, all Tasks instances are given a unique `id`.
-  constructor(data) {
+  constructor(data: { version?: string; status?: string; source?: string; error?: string } = {}) {
     super(data);
     this.status = this.status || Status.Local;
     this.id = this.id || generateTempId();
