@@ -29,7 +29,7 @@ var find = exports.find = function (xml, NS, selector) {
     var children = xml.getElementsByTagName(selector);
     for (var i = 0, len = children.length; i < len; i++) {
         var child = children[i];
-        if (child.namespaceURI === NS && child.parentNode === xml) {
+        if ((child.namespaceURI === NS || !NS) && child.parentNode === xml) {
             results.push(child);
         }
     }
@@ -196,11 +196,11 @@ exports.setMultiSubText = function (xml, NS, element, value, builder) {
     }
 
     var i, len;
-    for(i = 0, len = subs.length; i < len; i++) {
+    for (i = 0, len = subs.length; i < len; i++) {
         xml.removeChild(subs[i]);
     }
 
-    for(i = 0, len = values.length; i < len; i++) {
+    for (i = 0, len = values.length; i < len; i++) {
         builder(values[i]);
     }
 };
@@ -219,7 +219,7 @@ exports.setMultiSubAttribute = function (xml, NS, element, attr, value) {
     });
 };
 
-exports.getElements=function(xml,NS,element){
+exports.getElements = function (xml, NS, element) {
     var subs = find(xml, NS, element);
     if (!subs.length) {
         return {};
@@ -240,7 +240,7 @@ exports.getSubLangTextEx = function (xml, NS, element, attr) {
         sub = subs[i];
         lang = sub.getAttribute(attr);
         //langs.push(lang);
-        if(lang){
+        if (lang) {
             results[lang] = sub.textContent || '';
         }
     }

@@ -1,6 +1,8 @@
-const { Actions, React, PropTypes, AccountStore, WorkspaceStore } = require('mailspring-exports');
-const { RetinaImg, KeyCommandsRegion } = require('mailspring-component-kit');
+import CreateNewFolderPopover from './create-new-folder-popover';
 
+const { Actions, React, PropTypes, AccountStore, WorkspaceStore } = require('mailspring-exports');
+
+const { RetinaImg, KeyCommandsRegion } = require('mailspring-component-kit');
 const MovePickerPopover = require('./move-picker-popover').default;
 const LabelPickerPopover = require('./label-picker-popover').default;
 
@@ -16,6 +18,9 @@ class MovePicker extends React.Component {
     super(props);
 
     this._account = AccountStore.accountForItems(this.props.items);
+    this.state = {
+      createFolderPopoverVisible: false,
+    };
   }
 
   // If the threads we're picking categories for change, (like when they
@@ -32,10 +37,16 @@ class MovePicker extends React.Component {
     if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
-    Actions.openPopover(<LabelPickerPopover threads={this.props.items} account={this._account} />, {
+    Actions.openPopover(<LabelPickerPopover threads={this.props.items} account={this._account}/>, {
       originRect: this._labelEl.getBoundingClientRect(),
       direction: 'down',
     });
+  };
+  _onCreateFolder = () => {
+    this.setState({ createFolderPopoverVisible: true });
+  };
+  _onCancelCreate = () => {
+    this.setState({ createFolderPopoverVisible: false });
   };
 
   _onOpenMovePopover = () => {
@@ -45,15 +56,17 @@ class MovePicker extends React.Component {
     if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
-    Actions.openPopover(<MovePickerPopover threads={this.props.items} account={this._account} />, {
+    Actions.openPopover(<MovePickerPopover threads={this.props.items} account={this._account}
+                                           onCreate={this._onCreateFolder}/>, {
       originRect: this._moveEl.getBoundingClientRect(),
       direction: 'down',
+      closeOnAppBlur: false,
     });
   };
 
   render() {
     if (!this._account) {
-      return <span />;
+      return <span/>;
     }
 
     const handlers = {
@@ -75,7 +88,8 @@ class MovePicker extends React.Component {
             onClick={this._onOpenMovePopover}
             className={'btn btn-toolbar btn-category-picker'}
           >
-            <RetinaImg name={'folder.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg name={'folder.svg'} style={{ width: 26, height: 26 }} isIcon
+                       mode={RetinaImg.Mode.ContentIsMask}/>
           </button>
           {this._account.usesLabels() && (
             <button
@@ -85,10 +99,16 @@ class MovePicker extends React.Component {
               onClick={this._onOpenLabelsPopover}
               className={'btn btn-toolbar btn-category-picker'}
             >
-              <RetinaImg name={'label.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+              <RetinaImg name={'label.svg'} style={{ width: 26, height: 26 }} isIcon
+                         mode={RetinaImg.Mode.ContentIsMask}/>
             </button>
           )}
         </KeyCommandsRegion>
+        {this.state.createFolderPopoverVisible ?
+          <CreateNewFolderPopover
+            threads={this.props.items}
+            account={this._account}
+            onCancel={this._onCancelCreate}/> : null }
       </div>
     );
   }
