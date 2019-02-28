@@ -20,6 +20,7 @@ class MovePicker extends React.Component {
     this._account = AccountStore.accountForItems(this.props.items);
     this.state = {
       createFolderPopoverVisible: false,
+      moveFolderPopoutVisible: false,
     };
   }
 
@@ -43,7 +44,7 @@ class MovePicker extends React.Component {
     });
   };
   _onCreateFolder = () => {
-    this.setState({ createFolderPopoverVisible: true });
+    this.setState({ createFolderPopoverVisible: true, moveFolderPopoutVisible: false });
   };
   _onCancelCreate = () => {
     this.setState({ createFolderPopoverVisible: false });
@@ -56,13 +57,11 @@ class MovePicker extends React.Component {
     if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
-    Actions.openPopover(<MovePickerPopover threads={this.props.items} account={this._account}
-                                           onCreate={this._onCreateFolder}/>, {
-      originRect: this._moveEl.getBoundingClientRect(),
-      direction: 'down',
-      closeOnAppBlur: false,
-    });
+    this.setState({ moveFolderPopoutVisible: true });
   };
+  _onCloseMoveFolderPopout = ()=>{
+    this.setState({moveFolderPopoutVisible: false});
+  }
 
   render() {
     if (!this._account) {
@@ -108,7 +107,13 @@ class MovePicker extends React.Component {
           <CreateNewFolderPopover
             threads={this.props.items}
             account={this._account}
-            onCancel={this._onCancelCreate}/> : null }
+            onCancel={this._onCancelCreate}/> : null}
+        {this.state.moveFolderPopoutVisible ?
+          <MovePickerPopover threads={this.props.items}
+                             account={this._account}
+                             originEl={this._moveEl ? this._moveEl.getBoundingClientRect() : null}
+                             onClose={this._onCloseMoveFolderPopout}
+                             onCreate={this._onCreateFolder}/> : null}
       </div>
     );
   }

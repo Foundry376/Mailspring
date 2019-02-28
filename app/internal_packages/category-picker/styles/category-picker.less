@@ -1,6 +1,6 @@
 @import 'ui-variables';
 
-@popover-width: 250px;
+@popover-width: 172px;
 
 body.platform-win32 {
   .category-picker-popover {
@@ -14,13 +14,57 @@ body.platform-win32 {
 
 .category-picker-popover,
 .category-picker-dropdown {
+  position: fixed;
   .menu {
-    background: @background-secondary;
+    background: @background-primary;
     width: @popover-width;
-    max-height: 400px;
-
+    max-height: 254px;
+    box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
+    .content-container{
+      background-color: inherit;
+      ::-webkit-scrollbar{
+        display: none;
+      }
+      ::-webkit-scrollbar-thumb{
+        border-radius: 7px;
+        width: 4px;
+        height: 83px;
+        background-color: @input-search-bg;
+      }
+      ::-webkit-scrollbar-track{
+        background: none;
+        border: none;
+        outline: none;
+      }
+    }
+    .footer-container {
+      background-color: inherit;
+    }
     .header-container {
+      padding-left: 21px;
       border-bottom: 0;
+      background-color: inherit;
+      .header-text {
+        height: 19.5px;
+        width: 65px;
+        color: rgba(0, 0, 0, 0.85);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: -0.08px;
+        line-height: 19.5px;
+      }
+
+      input.search {
+        margin-left: -8.5px;
+        outline: none;
+        -webkit-border-radius: 3px;
+        -moz-border-radius: 3px;
+        border-radius: 3px;
+        background-color: @input-search-bg;
+      }
+    }
+    .item{
+      padding: unset;
     }
 
     .item.divider {
@@ -51,6 +95,7 @@ body.platform-win32 {
       background-color: @text-color-subtle;
     }
   }
+
   .item.selected,
   .item.active {
     img.content-mask {
@@ -63,9 +108,15 @@ body.platform-win32 {
   }
 
   .category-item {
-    font-size: 14px;
+    padding-left: 21px;
+    font-size: 13px;
     display: flex;
     align-items: center;
+    height: 19.5px;
+  }
+  .category-create-new{
+    height: 26px;
+    line-height: 26px;
   }
 
   .category-create-new-tag {
@@ -74,9 +125,10 @@ body.platform-win32 {
 
   .category-display-name {
     display: inline-block;
-    margin-left: 10px;
     margin-right: 5px;
-    word-break: break-word;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
     flex: 1;
   }
 }

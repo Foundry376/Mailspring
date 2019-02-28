@@ -98,7 +98,7 @@ export default class CreateNewFolderPopover extends Component {
   render() {
     return <div ref={(el) => this.container = el}
                 style={{ left: this.props.left, top: this.props.top }}
-                className={`move-folder-container ${this.props.visible ? 'hide' : ''}`}>
+                className={`create-folder-container ${this.props.visible ? 'hide' : ''}`}>
       <div className={'header-row'}>
         <RetinaImg name={'close_1.svg'} onClick={this.onCancel}
                    isIcon={true}

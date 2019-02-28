@@ -12,7 +12,7 @@ import {
   ChangeFolderTask,
   ChangeLabelsTask,
   FocusedPerspectiveStore,
-  TaskFactory
+  TaskFactory,
 } from 'mailspring-exports';
 import { Categories } from 'mailspring-observables';
 
@@ -21,6 +21,7 @@ export default class MovePickerPopover extends Component {
     threads: PropTypes.array.isRequired,
     account: PropTypes.object.isRequired,
     onCreate: PropTypes.func.isRequired,
+    originEl: PropTypes.object.isRequired,
   };
 
   constructor(props) {
@@ -32,6 +33,7 @@ export default class MovePickerPopover extends Component {
 
   componentDidMount() {
     this._registerObservables();
+    document.body.addEventListener('click', this.onBlur);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -41,7 +43,21 @@ export default class MovePickerPopover extends Component {
 
   componentWillUnmount() {
     this._unregisterObservables();
+    document.body.removeEventListener('click', this.onBlur);
   }
+
+  onCancel = () => {
+    if (this.props.onClose) {
+      this.props.onClose();
+    }
+  };
+
+  onBlur = (e) => {
+    const rect = this.container.getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+      this.onCancel();
+    }
+  };
 
   _registerObservables = (props = this.props) => {
     this._unregisterObservables();
@@ -80,7 +96,7 @@ export default class MovePickerPopover extends Component {
       .filter(
         cat =>
           // remove categories that are part of the current perspective or locked
-          !hidden.includes(cat.role) && !currentCategoryIds.includes(cat.id)
+          !hidden.includes(cat.role) && !currentCategoryIds.includes(cat.id),
       )
       .filter(cat => Utils.wordSearchRegExp(searchValue).test(cat.displayName))
       .map(cat => {
@@ -94,23 +110,15 @@ export default class MovePickerPopover extends Component {
           backgroundColor: LabelColorizer.backgroundColorDark(cat),
         };
       });
-    // categoryData.push({ divider: true, id: 'category-divider' });
-    // if (searchValue.length > 0) {
-    //   const newItemData = {
-    //     searchValue: searchValue,
-    //     newCategoryItem: true,
-    //     id: 'category-create-new',
-    //   };
-    //   categoryData.push(newItemData);
-    // }else{
-    //   const newItemData = {
-    //     searchValue: '',
-    //     newCategoryItem: true,
-    //     id: 'category-create-new',
-    //   }
-    //   categoryData.push(newItemData);
-    // }
-    return { categoryData, searchValue };
+    if (props.originEl) {
+      return {
+        left: (props.originEl.left > 0) * (props.originEl.left - 138),
+        top: props.originEl.top + 23,
+        categoryData,
+        searchValue,
+      };
+    }
+    return { left: 0, top: 0, categoryData, searchValue };
   };
 
   _onCategoriesChanged = categories => {
@@ -135,6 +143,12 @@ export default class MovePickerPopover extends Component {
     }
     Actions.popSheet();
     Actions.closePopover();
+  };
+  onCreate = (data) => {
+    if (this.props.onCreate) {
+      this.props.onCreate(data);
+    }
+   this.onCancel();
   };
 
   _onCreateCategory = () => {
@@ -163,7 +177,7 @@ export default class MovePickerPopover extends Component {
           source: 'Category Picker: New Category',
           threads: threads,
           folder: category,
-        })
+        }),
       );
     } else {
       const all = [];
@@ -181,7 +195,7 @@ export default class MovePickerPopover extends Component {
           labelsToRemove: [],
           labelsToAdd: [category],
           threads: threads,
-        })
+        }),
       ]);
     }
   };
@@ -194,16 +208,11 @@ export default class MovePickerPopover extends Component {
     const isFolder = CategoryStore.getInboxCategory(this.props.account) instanceof Folder;
     const icon = isFolder ? 'folder' : 'tag';
     let displayText = isFolder ? 'New Folder' : 'New Label';
-    if(searchValue.length > 0){
+    if (searchValue.length > 0) {
       displayText = `"${searchValue}" (create new)`;
     }
     return (
-      <div className="category-item category-create-new" onClick={this.props.onCreate}>
-        <RetinaImg
-          name={`${icon}.png`}
-          className={`category-create-new-${icon}`}
-          mode={RetinaImg.Mode.ContentIsMask}
-        />
+      <div className="category-item category-create-new" onClick={this.onCreate}>
         <div className="category-display-name">{displayText}</div>
       </div>
     );
@@ -215,49 +224,37 @@ export default class MovePickerPopover extends Component {
     // } else if (item.newCategoryItem) {
     //   return this._renderCreateNewItem(item);
     // }
-
-    const icon =
-      item.category instanceof Folder ? (
-        <RetinaImg
-          name={`${item.name}.png`}
-          fallback={'folder.png'}
-          mode={RetinaImg.Mode.ContentIsMask}
-        />
-      ) : (
-          <RetinaImg name={`tag.png`} mode={RetinaImg.Mode.ContentIsMask} />
-        );
-
     return (
       <div className="category-item">
-        {icon}
         <div className="category-display-name">
-          <BoldedSearchResult value={item.displayName} query={this.state.searchValue || ''} />
+          <BoldedSearchResult value={item.displayName} query={this.state.searchValue || ''}/>
         </div>
       </div>
     );
   };
-  _renderNewItem=()=>{
-      return [
-        <Menu.Item key={'category-divider'} divider={true}/>,
-        this._renderCreateNewItem({searchValue: this.state.searchValue})
-      ];
+  _renderNewItem = () => {
+    return [
+      <Menu.Item key={'category-divider'} divider={true}/>,
+      this._renderCreateNewItem({ searchValue: this.state.searchValue }),
+    ];
   };
 
   render() {
     const headerComponents = [
+      <div className="header-text">Move to ...</div>,
       <input
         type="text"
         tabIndex="1"
         key="textfield"
         className="search"
-        placeholder={'Move to...'}
+        placeholder={'Search'}
         value={this.state.searchValue}
         onChange={this._onSearchValueChange}
       />,
     ];
 
     return (
-      <div className="category-picker-popover">
+      <div className="category-picker-popover" style={{top: this.state.top, left: this.state.left}} ref={(el) => this.container = el}>
         <Menu
           headerComponents={headerComponents}
           footerComponents={this._renderNewItem()}
