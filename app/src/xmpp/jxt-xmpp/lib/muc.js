@@ -322,13 +322,13 @@ exports['default'] = function (JXT) {
         element: 'memberschange',
         fields: {
             ver: {
-                get: function get() {
+                get: () => {
                     var e = this.xml.parent.children[0];
                     return Utils.getAttribute(e, 'ver');
                 }
             },
             userJid: {
-                get: function get() {
+                get: () => {
                     if (this.xml.parent.children[0].children.length > 0) {
                         var e = this.xml.parent.children[0].children[0];
                         return Utils.getAttribute(e, 'userjid');
@@ -336,7 +336,7 @@ exports['default'] = function (JXT) {
                 }
             },
             userEmail: {
-                get: function get() {
+                get: () => {
                     if (this.xml.parent.children[0].children.length > 0) {
                         var e = this.xml.parent.children[0].children[0];
                         return Utils.getAttribute(e, 'useremail');
@@ -352,7 +352,7 @@ exports['default'] = function (JXT) {
                 }
             },
             actorName: {
-                get: function get() {
+                get: () => {
                     if (this.xml.parent.children[0].children.length > 0) {
                         var e = this.xml.parent.children[0].children[0];
                         return Utils.getAttribute(e, 'actorname');
@@ -360,7 +360,7 @@ exports['default'] = function (JXT) {
                 }
             },
             type: {
-                get: function get() {
+                get: () => {
                     if (this.xml.parent.children[0].children.length > 0) {
                         var e = this.xml.parent.children[0].children[0];
                         return Utils.getAttribute(e, 'type');
