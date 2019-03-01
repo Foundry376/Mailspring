@@ -9,6 +9,7 @@ import { remote } from 'electron';
 import { clearMessages } from '../../../utils/message';
 import _ from 'lodash';
 import RetinaImg from '../../../../../../src/components/retina-img';
+import chatModel, { saveToLocalStorage } from '../../../store/model';
 
 const { primaryColor } = theme;
 
@@ -32,7 +33,12 @@ export default class ConversationInfo extends Component {
   }
 
   clearMessages = () => {
-    clearMessages(this.props.selectedConversation);
+    let conversation = this.props.selectedConversation;
+    let jid = conversation.jid;
+    let notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
+    delete notifications[jid];
+    saveToLocalStorage();
+    clearMessages(conversation);
     return;
   }
 

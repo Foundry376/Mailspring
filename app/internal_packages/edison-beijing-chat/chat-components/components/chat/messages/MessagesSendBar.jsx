@@ -241,7 +241,6 @@ export default class MessagesSendBar extends PureComponent {
               status: MESSAGE_STATUS_UPLOAD_FAILED,
             };
             chatModel.store.dispatch(beginStoringMessage(message));
-            console.log('dbglog*** updateSelectedConversation ', selectedConversation);
             chatModel.store.dispatch(updateSelectedConversation(selectedConversation));
             return;
           } else {
