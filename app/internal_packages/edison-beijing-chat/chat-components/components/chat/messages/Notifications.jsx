@@ -1,38 +1,7 @@
-import http from 'http';
-import https from 'https';
-import fs from 'fs';
-import path from 'path';
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
-import CheckIcon from '../../common/icons/CheckIcon';
-import CancelIcon from '../../common/icons/CancelIcon';
-import Divider from '../../common/Divider';
-import { colorForString } from '../../../utils/colors';
-import { dateFormat } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
 
-const remote = require('electron').remote;
-const { dialog, Menu, MenuItem } = remote;
-import { isJsonString } from '../../../utils/stringUtils';
-import chatModel from '../../../store/model';
-
-
 export default class Notifications extends PureComponent {
-  static state = {
-    shouldScrollBottom: true,
-  }
-
-  static timer;
-
-  componentWillReceiveProps(nextProps) {
-  }
-  componentDidMount() {
-  }
-  componentDidUpdate() {
-  }
-  componentWillUnmount() {
-  }
-
   render() {
     const {
       notifications,
@@ -40,7 +9,7 @@ export default class Notifications extends PureComponent {
     return (
       <div
         className="group-notifications"
-        style = {{height:notifications.length*24+'px'}}
+        style={{ height: notifications.length * 18 + 'px' }}
       >
         {notifications.map((item, idx) => {
           const from = item.from;
@@ -50,20 +19,20 @@ export default class Notifications extends PureComponent {
               className='group-notification'
               key={idx}
             >
-                <span className="group-notification-from">
-                  {from.nickname || from.name || from.email || from.jid}
-                </span>
+              <span className="group-notification-from">
+                {from.nickname || from.name || from.email || from.jid}
+              </span>
               <span className="group-notification-content">
-                  {item.type} group  {item.type==='join'? 'invited': 'operated'} by
-                </span>
+                  {item.type} group {item.type === 'join' ? 'invited' : 'operated'} by
+              </span>
               <span className="group-notification-by">
                   {by.nickname || by.name || by.email || by.jid}
-                </span>
+              </span>
               <span className="group-notification-time">
                   {(' at ' + new Date(item.time || '2019/2/28')).toLocaleString()}
-                </span>
+              </span>
             </div>
-          )
+          );
         })
         }
       </div>
