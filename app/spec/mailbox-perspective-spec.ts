@@ -20,7 +20,7 @@ describe('MailboxPerspective', function mailboxPerspective() {
       },
     };
     this.perspective = new MailboxPerspective(this.accountIds);
-    spyOn(AccountStore, 'accountForId').andCallFake(accId => this.accounts[accId]);
+    spyOn(AccountStore, 'accountForId').and.callFake(accId => this.accounts[accId]);
   });
 
   describe('isEqual', () => {
@@ -107,7 +107,7 @@ describe('MailboxPerspective', function mailboxPerspective() {
       };
       this.threads = [{ accountId: 'a1' }, { accountId: 'a2' }];
       spyOn(TaskFactory, 'tasksForApplyingCategories');
-      spyOn(CategoryStore, 'getTrashCategory').andCallFake(accId => {
+      spyOn(CategoryStore, 'getTrashCategory').and.callFake(accId => {
         return this.categories[accId].trash;
       });
     });

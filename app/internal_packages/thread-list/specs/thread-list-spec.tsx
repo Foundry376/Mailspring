@@ -210,13 +210,13 @@
 //   beforeEach(function() {
 //     MailspringTestUtils.loadKeymap('internal_packages/thread-list/keymaps/thread-list');
 //     spyOn(ThreadStore, '_onAccountChanged');
-//     spyOn(DatabaseStore, 'findAll').andCallFake(
+//     spyOn(DatabaseStore, 'findAll').and.callFake(
 //       () =>
 //         new Promise(function(resolve, reject) {
 //           return resolve(test_threads());
 //         })
 //     );
-//     ReactTestUtils.spyOnClass(ThreadList, '_prepareColumns').andCallFake(function() {
+//     ReactTestUtils.spyOnClass(ThreadList, '_prepareColumns').and.callFake(function() {
 //       return (this._columns = columns);
 //     });
 
@@ -245,7 +245,7 @@
 //     });
 
 //     it("allows reply only when the sheet type is 'Thread'", function() {
-//       spyOn(WorkspaceStore, 'sheet').andCallFake(() => ({ type: 'Thread' }));
+//       spyOn(WorkspaceStore, 'sheet').and.callFake(() => ({ type: 'Thread' }));
 //       spyOn(Actions, 'composeReply');
 //       this.thread_list._onReply();
 //       expect(Actions.composeReply).toHaveBeenCalled();
@@ -253,7 +253,7 @@
 //     });
 
 //     it("doesn't reply only when the sheet type isnt 'Thread'", function() {
-//       spyOn(WorkspaceStore, 'sheet').andCallFake(() => ({ type: 'Root' }));
+//       spyOn(WorkspaceStore, 'sheet').and.callFake(() => ({ type: 'Root' }));
 //       spyOn(Actions, 'composeReply');
 //       this.thread_list._onReply();
 //       expect(Actions.composeReply).not.toHaveBeenCalled();
@@ -268,7 +268,7 @@
 //     });
 
 //     it('allows reply and reply-all regardless of sheet type', function() {
-//       spyOn(WorkspaceStore, 'sheet').andCallFake(() => ({ type: 'anything' }));
+//       spyOn(WorkspaceStore, 'sheet').and.callFake(() => ({ type: 'anything' }));
 //       spyOn(Actions, 'composeReply');
 //       this.thread_list._onReply();
 //       expect(Actions.composeReply).toHaveBeenCalled();

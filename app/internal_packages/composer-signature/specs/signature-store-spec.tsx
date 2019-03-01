@@ -22,13 +22,13 @@ const DEFAULTS = {
 
 describe('SignatureStore', function signatureStore() {
   beforeEach(() => {
-    spyOn(AppEnv.config, 'get').andCallFake(key => (key === 'signatures' ? SIGNATURES : null));
+    spyOn(AppEnv.config, 'get').and.callFake(key => (key === 'signatures' ? SIGNATURES : null));
 
-    spyOn(SignatureStore, '_saveSignatures').andCallFake(() => {
+    spyOn(SignatureStore, '_saveSignatures').and.callFake(() => {
       AppEnv.config.set(`signatures`, SignatureStore.signatures);
     });
-    spyOn(SignatureStore, 'signatureForEmail').andCallFake(email => SIGNATURES[DEFAULTS[email]]);
-    spyOn(SignatureStore, 'selectedSignature').andCallFake(() => SIGNATURES['1']);
+    spyOn(SignatureStore, 'signatureForEmail').and.callFake(email => SIGNATURES[DEFAULTS[email]]);
+    spyOn(SignatureStore, 'selectedSignature').and.callFake(() => SIGNATURES['1']);
     SignatureStore.activate();
   });
 
@@ -43,7 +43,7 @@ describe('SignatureStore', function signatureStore() {
 
   describe('removeSignature', () => {
     beforeEach(() => {
-      spyOn(AppEnv.config, 'set').andCallFake((key, newObject) => {
+      spyOn(AppEnv.config, 'set').and.callFake((key, newObject) => {
         if (key === 'signatures') {
           SIGNATURES = newObject;
         }

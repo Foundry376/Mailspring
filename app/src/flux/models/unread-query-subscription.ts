@@ -2,7 +2,7 @@ import MutableQuerySubscription from './mutable-query-subscription';
 import DatabaseStore from '../stores/database-store';
 import RecentlyReadStore from '../stores/recently-read-store';
 import Matcher from '../attributes/matcher';
-import Thread from '../models/thread';
+import { Thread } from '../models/thread';
 
 const buildQuery = categoryIds => {
   const unreadMatchers = new Matcher.And([
@@ -11,7 +11,7 @@ const buildQuery = categoryIds => {
     Thread.attributes.inAllMail.equal(true),
   ]);
 
-  const query = DatabaseStore.findAll(Thread).limit(0);
+  const query = DatabaseStore.findAll<Thread>(Thread).limit(0);
 
   // The "Unread" view shows all threads which are unread. When you read a thread,
   // it doesn't disappear until you leave the view and come back. This behavior

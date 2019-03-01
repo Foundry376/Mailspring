@@ -69,5 +69,8 @@
     "build-docs": "grunt docs --gruntfile=app/build/Gruntfile.js --base=./ && mkdir -p app/dist-docs && cp README.md ./app/build/docs_src/README.md && gitbook --gitbook=latest build . ./app/dist-docs --log=debug --debug && rm ./app/build/docs_src/README.md && rm -rf ./app/build/docs_src/classes",
     "build-licenses-file": "cat ./app/static/all_licenses_preamble.html | ./node_modules/.bin/marked > ./app/static/all_licenses.html && licext --source ./app --mode output | ./node_modules/.bin/marked >> ./app/static/all_licenses.html",
     "ci-setup-mac-keychain": "grunt setup-mac-keychain --gruntfile=app/build/Gruntfile.js --base=./"
+  },
+  "dependencies": {
+    "@types/jasmine": "^2.8.16"
   }
 }

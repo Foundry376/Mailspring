@@ -7,8 +7,12 @@ import ConfigSchemaItem from './config-schema-item';
 import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
 import LanguageSection from './language-section';
+import { ConfigLike, ConfigSchemaLike } from '../types';
 
-class PreferencesGeneral extends React.Component {
+class PreferencesGeneral extends React.Component<{
+  config: ConfigLike;
+  configSchema: ConfigSchemaLike;
+}> {
   static displayName = 'PreferencesGeneral';
 
   static propTypes = {

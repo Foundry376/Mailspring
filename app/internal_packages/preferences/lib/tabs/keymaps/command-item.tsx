@@ -8,7 +8,22 @@ import fs from 'fs';
 
 import { keyAndModifiersForEvent } from './mousetrap-keybinding-helpers';
 
-export default class CommandKeybinding extends React.Component {
+interface CommandKeybindingProps {
+  bindings: string[];
+  label: string;
+  command: string;
+}
+interface CommandKeybindingState {
+  editing: boolean;
+  editingBinding?: string;
+  modifiers?: string[];
+  keys?: string[];
+}
+
+export default class CommandKeybinding extends React.Component<
+  CommandKeybindingProps,
+  CommandKeybindingState
+> {
   static propTypes = {
     bindings: PropTypes.array,
     label: PropTypes.string,
@@ -27,7 +42,7 @@ export default class CommandKeybinding extends React.Component {
     if (editing) {
       const finished = (modifiers.length > 0 && keys.length > 0) || keys.length >= 2;
       if (finished) {
-        ReactDOM.findDOMNode(this).blur();
+        (ReactDOM.findDOMNode(this) as HTMLElement).blur();
       }
     }
   }
@@ -96,7 +111,7 @@ export default class CommandKeybinding extends React.Component {
       try {
         const exists = fs.existsSync(keymapPath);
         if (exists) {
-          keymaps = JSON.parse(fs.readFileSync(keymapPath));
+          keymaps = JSON.parse(fs.readFileSync(keymapPath).toString());
         }
       } catch (err) {
         console.error(err);
@@ -148,7 +163,7 @@ export default class CommandKeybinding extends React.Component {
     const { editing, editingBinding } = this.state;
     const bindings = editingBinding ? [editingBinding] : this.props.bindings;
 
-    let value = 'None';
+    let value: React.ReactChild | React.ReactChild[] = 'None';
     if (bindings.length > 0) {
       value = _.uniq(bindings).map(this._renderKeystrokes);
     }

@@ -18,7 +18,7 @@ export default class CalendarDataSource {
       new Matcher.And([matcher, Event.attributes.calendarId.notIn(disabledCalendars)]);
     }
 
-    const query = DatabaseStore.findAll(Event).where(matcher);
+    const query = DatabaseStore.findAll<Event>(Event).where(matcher);
     this.observable = Rx.Observable.fromQuery(query).flatMapLatest(results => {
       const events = [];
       results.forEach(result => {

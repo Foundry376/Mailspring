@@ -1,12 +1,12 @@
-import ChangeFolderTask from './change-folder-task';
+import { ChangeFolderTask } from './change-folder-task';
 import ChangeLabelsTask from './change-labels-task';
 import ChangeUnreadTask from './change-unread-task';
-import ChangeStarredTask from './change-starred-task';
+import { ChangeStarredTask } from './change-starred-task';
 import CategoryStore from '../stores/category-store';
-import Thread from '../models/thread';
-import Label from '../models/label';
+import { Thread } from '../models/thread';
+import { Label } from '../models/label';
 
-const TaskFactory = {
+export const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {
     const byAccount = {};
     threads.forEach(thread => {
@@ -103,5 +103,3 @@ const TaskFactory = {
     return new ChangeStarredTask({ threads, starred, source });
   },
 };
-
-export default TaskFactory;

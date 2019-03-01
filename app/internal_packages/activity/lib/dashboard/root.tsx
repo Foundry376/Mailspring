@@ -26,11 +26,57 @@ import { LINK_TRACKING_ID, OPEN_TRACKING_ID } from '../plugin-helpers';
 import { DEFAULT_TIMESPAN_ID, getTimespanStartEnd } from './timespan';
 import TimespanSelector from './timespan-selector';
 import LoadingCover from './loading-cover';
+import { Moment } from 'moment';
 
 const CHUNK_SIZE = 500;
 const MINIMUM_THINKING_TIME = 2000;
 
-class RootWithTimespan extends React.Component {
+export interface Timespan {
+  id: string;
+  startDate: Moment;
+  endDate: Moment;
+  days: number;
+}
+
+export interface ThreadStatEntry {
+  outbound: boolean;
+  subject?: string;
+  tracked?: boolean;
+  hasReply?: boolean;
+  opened?: boolean;
+  clicked?: boolean;
+}
+
+export interface SubjectStatsEntry {
+  subject: string;
+  count: number;
+  opens: number;
+  clicks: number;
+  replies: number;
+}
+
+interface RootState {
+  loading: boolean;
+  version: number;
+  metricsBySubjectLine: SubjectStatsEntry[];
+  metrics: {
+    receivedByDay: number[];
+    receivedTimeOfDay: number[];
+    sentByDay: number[];
+    percentUsingTracking: number;
+    percentOpened: number;
+    percentLinkClicked: number;
+    percentReplied: number;
+  };
+}
+
+class RootWithTimespan extends React.Component<
+  {
+    timespan: Timespan;
+    accountIds: string[];
+  },
+  RootState
+> {
   static displayName = 'ActivityDashboardRootWithTimespan';
 
   static propTypes = {
@@ -112,7 +158,7 @@ class RootWithTimespan extends React.Component {
     let openTrackingTriggered = 0;
     let linkTrackingEnabled = 0;
     let linkTrackingTriggered = 0;
-    const threadStats = {};
+    const threadStats: { [threadId: string]: ThreadStatEntry } = {};
 
     await this._forEachMessageIn(accountIds, startUnix, endUnix, (message, messageUnix) => {
       const dayIdx = Math.floor((messageUnix - startUnix) / dayUnix);
@@ -185,7 +231,7 @@ class RootWithTimespan extends React.Component {
     }
 
     // Aggregate open/link tracking of outbound threads by subject line
-    let bySubject = {};
+    let bySubject: { [subject: string]: SubjectStatsEntry } = {};
     for (const stats of outboundThreadStats) {
       if (!stats.tracked) {
         continue;
@@ -240,9 +286,9 @@ class RootWithTimespan extends React.Component {
   };
 
   _onFetchChunk(accountIds, startUnix, endUnix) {
-    return new Promise(resolve => {
+    return new Promise<Message[]>(resolve => {
       window.requestAnimationFrame(() => {
-        DatabaseStore.findAll(Message)
+        DatabaseStore.findAll<Message>(Message)
           .background()
           .where(Message.attributes.accountId.in(accountIds))
           .where(Message.attributes.date.greaterThan(startUnix))
@@ -443,7 +489,7 @@ class RootWithTimespan extends React.Component {
   }
 }
 
-class Root extends React.Component {
+class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespan }> {
   static displayName = 'ActivityDashboardRoot';
 
   static propTypes = {

@@ -3,8 +3,8 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import Model from '../../src/flux/models/model';
-import Category from '../../src/flux/models/category';
+import { Model } from '../../src/flux/models/model';
+import { Category } from '../../src/flux/models/category';
 import Attributes from '../../src/flux/attributes';
 
 class TestModel extends Model {

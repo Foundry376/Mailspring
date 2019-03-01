@@ -35,7 +35,7 @@ const testDraft = new Message({ id: 'd1', draft: true, unread: true, accountId: 
 xdescribe('MessageItemContainer', function() {
   beforeEach(function() {
     this.isSendingDraft = false;
-    spyOn(DraftStore, 'isSendingDraft').andCallFake(() => this.isSendingDraft);
+    spyOn(DraftStore, 'isSendingDraft').and.callFake(() => this.isSendingDraft);
     return ComponentRegistry.register(StubComposer, { role: 'Composer' });
   });
 

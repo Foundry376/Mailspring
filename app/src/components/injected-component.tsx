@@ -82,6 +82,8 @@ export default class InjectedComponent extends React.Component<
     onComponentDidChange: () => {},
   };
 
+  private _componentUnlistener: () => void;
+
   constructor(props) {
     super(props);
     this.state = this._getStateFromStores();
@@ -201,7 +203,7 @@ export default class InjectedComponent extends React.Component<
     const Component = this.state.component;
     let element = null;
 
-    const privateProps = {};
+    const privateProps: any = {};
     if (Object.prototype.isPrototypeOf.call(React.Component, Component)) {
       privateProps.ref = 'inner';
     }

@@ -160,7 +160,7 @@ describe('MessageList', function() {
   beforeEach(function() {
     MessageStore._items = [];
     MessageStore._threadId = null;
-    spyOn(MessageStore, 'itemsLoading').andCallFake(() => false);
+    spyOn(MessageStore, 'itemsLoading').and.callFake(() => false);
 
     this.messageList = ReactTestUtils.renderIntoDocument(<MessageList />);
     this.messageList_node = ReactDOM.findDOMNode(this.messageList);

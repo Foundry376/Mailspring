@@ -1,8 +1,9 @@
 import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
 import { localized, isRTL } from 'mailspring-exports';
+import { SubjectStatsEntry } from './root';
 
-export class MetricContainer extends React.Component {
+export class MetricContainer extends React.Component<{ name: string }> {
   render() {
     return (
       <div className="metric-container">
@@ -13,7 +14,14 @@ export class MetricContainer extends React.Component {
   }
 }
 
-export class MetricStat extends React.Component {
+export class MetricStat extends React.Component<{
+  name: string;
+  units: string;
+  value: number;
+  loading: boolean;
+}> {
+  _el: HTMLDivElement;
+
   render() {
     const { value, units, name } = this.props;
 
@@ -42,7 +50,14 @@ export class MetricStat extends React.Component {
   }
 }
 
-export class MetricHistogram extends React.Component {
+export class MetricHistogram extends React.Component<{
+  loading: boolean;
+  values: number[];
+  left: React.ReactChild;
+  right: React.ReactChild;
+}> {
+  _el: HTMLDivElement;
+
   componentDidMount() {
     if (!this.props.loading) {
       window.requestAnimationFrame(() => this._el && this._el.classList.add('visible'));
@@ -82,7 +97,9 @@ export class MetricHistogram extends React.Component {
   }
 }
 
-export class MetricGraph extends React.Component {
+export class MetricGraph extends React.Component<{ loading: boolean; values: number[] }> {
+  _el: HTMLDivElement;
+
   componentDidMount() {
     if (!this.props.loading) {
       window.setTimeout(() => this._el && this._el.classList.add('visible'), 50);
@@ -147,7 +164,7 @@ export class MetricGraph extends React.Component {
   }
 }
 
-export class MetricsBySubjectTable extends React.Component {
+export class MetricsBySubjectTable extends React.Component<{ data: SubjectStatsEntry[] }> {
   render() {
     const { data } = this.props;
 

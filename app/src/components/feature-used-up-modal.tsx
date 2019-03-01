@@ -7,13 +7,18 @@ import RetinaImg from './retina-img';
 import BillingModal from './billing-modal';
 import IdentityStore from '../flux/stores/identity-store';
 
-export default class FeatureUsedUpModal extends React.Component {
+export default class FeatureUsedUpModal extends React.Component<
+  { modalClass: string; iconUrl: string; rechargeText: string; headerText: string },
+  { upgradeUrl: string }
+> {
   static propTypes = {
     modalClass: PropTypes.string.isRequired,
     headerText: PropTypes.string.isRequired,
     rechargeText: PropTypes.string.isRequired,
     iconUrl: PropTypes.string.isRequired,
   };
+
+  private _mounted = false;
 
   componentDidMount() {
     this._mounted = true;

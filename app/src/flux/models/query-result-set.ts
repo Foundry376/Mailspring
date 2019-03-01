@@ -1,5 +1,5 @@
 import QueryRange from './query-range';
-import Model from './model';
+import { Model } from './model';
 import ModelQuery from './query';
 
 /*

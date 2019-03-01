@@ -22,7 +22,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
       },
     };
     spyOn(IdentityStore, 'identity').andReturn(this.fakeIdentity);
-    spyOn(IdentityStore, 'saveIdentity').andCallFake(async ident => {
+    spyOn(IdentityStore, 'saveIdentity').and.callFake(async ident => {
       this.fakeIdentity = ident;
     });
   });

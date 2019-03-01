@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import utf7 from 'utf7';
-import Model from './model';
+import { Model } from './model';
 import Attributes from '../attributes';
 import { localized } from '../../intl';
 
@@ -73,7 +73,7 @@ Folders and Labels have different semantics. The `Category` class only exists to
 
 Section: Models
 */
-export default class Category extends Model {
+export class Category extends Model {
   get displayName() {
     const decoded = utf7.imap.decode(this.path);
 

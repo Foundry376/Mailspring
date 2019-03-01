@@ -7,8 +7,8 @@ import ReactDOM from 'react-dom';
 import Actions from '../flux/actions';
 import { pickHTMLProps } from 'pick-react-known-prop';
 import RetinaImg from './retina-img';
-import Flexbox from './flexbox';
-import Spinner from './spinner';
+import { Flexbox } from './flexbox';
+import { Spinner } from './spinner';
 
 const propTypes = {
   className: PropTypes.string,

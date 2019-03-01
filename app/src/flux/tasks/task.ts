@@ -1,6 +1,6 @@
 /* eslint no-unused-vars: 0*/
 import _ from 'underscore';
-import Model from '../models/model';
+import { Model } from '../models/model';
 import Attributes from '../attributes';
 import { generateTempId } from '../models/utils';
 import { PermanentErrorCodes } from '../mailspring-api-request';
@@ -12,7 +12,7 @@ const Status = {
   Cancelled: 'cancelled',
 };
 
-export default class Task extends Model {
+export class Task extends Model {
   static Status = Status;
   static SubclassesUseModelTable = Task;
 

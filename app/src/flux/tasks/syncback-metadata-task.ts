@@ -1,4 +1,4 @@
-import Task from './task';
+import { Task } from './task';
 import Attributes from '../attributes';
 
 export default class SyncbackMetadataTask extends Task {

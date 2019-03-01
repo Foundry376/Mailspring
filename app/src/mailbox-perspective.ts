@@ -4,7 +4,7 @@ import _ from 'underscore';
 
 import { localized } from './intl';
 import * as Utils from './flux/models/utils';
-import TaskFactory from './flux/tasks/task-factory';
+import { TaskFactory } from './flux/tasks/task-factory';
 import AccountStore from './flux/stores/account-store';
 import CategoryStore from './flux/stores/category-store';
 import DatabaseStore from './flux/stores/database-store';
@@ -13,10 +13,10 @@ import ThreadCountsStore from './flux/stores/thread-counts-store';
 import FolderSyncProgressStore from './flux/stores/folder-sync-progress-store';
 import MutableQuerySubscription from './flux/models/mutable-query-subscription';
 import UnreadQuerySubscription from './flux/models/unread-query-subscription';
-import Thread from './flux/models/thread';
-import Category from './flux/models/category';
-import Label from './flux/models/label';
-import Folder from './flux/models/folder';
+import { Thread } from './flux/models/thread';
+import { Category } from './flux/models/category';
+import { Label } from './flux/models/label';
+import { Folder } from './flux/models/folder';
 import Actions from './flux/actions';
 
 let WorkspaceStore = null;
@@ -29,7 +29,7 @@ let FocusedPerspectiveStore = null;
 // This is a class cluster. Subclasses are not for external use!
 // https://developer.apple.com/library/ios/documentation/General/Conceptual/CocoaEncyclopedia/ClassClusters/ClassClusters.html
 
-export default class MailboxPerspective {
+export class MailboxPerspective {
   // Factory Methods
   static forNothing() {
     return new EmptyMailboxPerspective();
@@ -199,8 +199,8 @@ export default class MailboxPerspective {
     return areIncomingIdsInCurrent;
   }
 
-  receiveThreadIds(threadIds) {
-    DatabaseStore.modelify(Thread, threadIds).then(threads => {
+  receiveThreadIds(threadIds: Array<Thread | string>) {
+    DatabaseStore.modelify<Thread>(Thread, threadIds).then(threads => {
       const tasks = TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
         return this.actionsForReceivingThreads(accountThreads, accountId);
       });
@@ -279,7 +279,7 @@ class StarredMailboxPerspective extends MailboxPerspective {
   iconName = 'starred.png';
 
   threads() {
-    const query = DatabaseStore.findAll(Thread)
+    const query = DatabaseStore.findAll<Thread>(Thread)
       .where([Thread.attributes.starred.equal(true), Thread.attributes.inAllMail.equal(true)])
       .limit(0);
 
@@ -329,7 +329,7 @@ class EmptyMailboxPerspective extends MailboxPerspective {
     // We use lastMessageReceivedTimestamp because it is the first column on an
     // index so this returns zero items nearly instantly. In the future, we might
     // want to make a Query.forNothing() to go along with MailboxPerspective.forNothing()
-    const query = DatabaseStore.findAll(Thread)
+    const query = DatabaseStore.findAll<Thread>(Thread)
       .where({ lastMessageReceivedTimestamp: -1 })
       .limit(0);
     return new MutableQuerySubscription(query, {
@@ -378,7 +378,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   }
 
   threads() {
-    const query = DatabaseStore.findAll(Thread)
+    const query = DatabaseStore.findAll<Thread>(Thread)
       .where([Thread.attributes.categories.containsAny(this.categories().map(c => c.id))])
       .limit(0);
 

@@ -8,6 +8,8 @@ import {
   Utils,
   Actions,
   MessageStore,
+  Message,
+  Thread,
   SearchableComponentStore,
   SearchableComponentMaker,
 } from 'mailspring-exports';
@@ -17,6 +19,7 @@ import {
   RetinaImg,
   MailLabelSet,
   ScrollRegion,
+  ScrollPosition,
   MailImportantIcon,
   KeyCommandsRegion,
   InjectedComponentSet,
@@ -25,7 +28,10 @@ import {
 import FindInThread from './find-in-thread';
 import MessageItemContainer from './message-item-container';
 
-class MessageListScrollTooltip extends React.Component {
+class MessageListScrollTooltip extends React.Component<
+  { viewportCenter: number; totalHeight: number },
+  { idx: number; count: number }
+> {
   static displayName = 'MessageListScrollTooltip';
   static propTypes = {
     viewportCenter: PropTypes.number.isRequired,
@@ -49,7 +55,7 @@ class MessageListScrollTooltip extends React.Component {
     // item index, but the DOM approach is simple and self-contained.
     //
     const els = document.querySelectorAll('.message-item-wrap');
-    let idx = Array.from(els).findIndex(el => el.offsetTop > props.viewportCenter);
+    let idx = Array.from(els).findIndex(el => (el as HTMLElement).offsetTop > props.viewportCenter);
     if (idx === -1) {
       idx = els.length;
     }
@@ -69,19 +75,33 @@ class MessageListScrollTooltip extends React.Component {
   }
 }
 
-class MessageList extends React.Component {
+interface MessageListState {
+  messages: Message[];
+  messagesExpandedState: {
+    [messageId: string]: 'explicit' | 'default';
+  };
+  canCollapse: boolean;
+  hasCollapsedItems: boolean;
+  currentThread: Thread | null;
+  loading: boolean;
+  minified: boolean;
+}
+
+class MessageList extends React.Component<{}, MessageListState> {
   static displayName = 'MessageList';
   static containerStyles = {
     minWidth: 500,
     maxWidth: 999999,
   };
 
+  _unsubscribers = [];
+  _messageWrapEl: ScrollRegion;
+  _draftScrollInProgress = false;
+  MINIFY_THRESHOLD = 3;
+
   constructor(props) {
     super(props);
-    this.state = this._getStateFromStores();
-    this.state.minified = true;
-    this._draftScrollInProgress = false;
-    this.MINIFY_THRESHOLD = 3;
+    this.state = Object.assign(this._getStateFromStores(), { minified: true });
   }
 
   componentDidMount() {
@@ -169,7 +189,7 @@ class MessageList extends React.Component {
   };
 
   _onPrintThread = () => {
-    const node = ReactDOM.findDOMNode(this);
+    const node = ReactDOM.findDOMNode(this) as HTMLElement;
     Actions.printThread(this.state.currentThread, node.innerHTML);
   };
 
@@ -304,21 +324,28 @@ class MessageList extends React.Component {
   //
   // If messageId and location are defined, that means we want to scroll
   // smoothly to the top of a particular message.
-  _scrollTo = ({ headerMessageId, rect, position } = {}) => {
+  _scrollTo = ({
+    headerMessageId,
+    rect,
+    position,
+  }: {
+    headerMessageId?: string;
+    rect?: ClientRect;
+    position?: ScrollPosition;
+  } = {}) => {
     if (this._draftScrollInProgress) {
       return;
     }
     if (headerMessageId) {
       const messageElement = this._getMessageContainer(headerMessageId);
-      if (!messageElement) {
-        return;
-      }
+      if (!messageElement) return;
+
       this._messageWrapEl.scrollTo(messageElement, {
-        position: position !== undefined ? position : ScrollRegion.ScrollPosition.Visible,
+        position: position !== undefined ? position : ScrollPosition.Visible,
       });
     } else if (rect) {
       this._messageWrapEl.scrollToRect(rect, {
-        position: ScrollRegion.ScrollPosition.CenterIfInvisible,
+        position: ScrollPosition.CenterIfInvisible,
       });
     } else {
       throw new Error('onChildScrollRequest: expected id or rect');
@@ -326,13 +353,15 @@ class MessageList extends React.Component {
   };
 
   _onScrollByPage = direction => {
-    const height = ReactDOM.findDOMNode(this._messageWrapEl).clientHeight;
+    const height = (ReactDOM.findDOMNode(this._messageWrapEl) as HTMLElement).clientHeight;
     this._messageWrapEl.scrollTop += height * direction;
   };
 
   _onChange = () => {
-    const newState = this._getStateFromStores();
-    if ((this.state.currentThread || {}).id !== (newState.currentThread || {}).id) {
+    const newState: any = this._getStateFromStores();
+    const threadId = this.state.currentThread && this.state.currentThread.id;
+    const nextThreadId = newState.currentThread && newState.currentThread.id;
+    if (threadId !== nextThreadId) {
       newState.minified = true;
     }
     this.setState(newState);

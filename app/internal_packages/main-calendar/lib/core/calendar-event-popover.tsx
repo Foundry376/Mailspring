@@ -191,7 +191,7 @@ export default class CalendarEventPopover extends React.Component {
     const notes = this.extractNotesFromDescription(descriptionRoot);
 
     return (
-      <div className="calendar-event-popover" tabIndex="0">
+      <div className="calendar-event-popover" tabIndex={0}>
         <TabGroupRegion>
           <div className="title-wrapper">
             <input
@@ -253,7 +253,7 @@ export default class CalendarEventPopover extends React.Component {
     const notes = this.extractNotesFromDescription(descriptionRoot);
 
     return (
-      <div className="calendar-event-popover" tabIndex="0">
+      <div className="calendar-event-popover" tabIndex={0}>
         <div className="title-wrapper">
           <div className="title">{title}</div>
           <RetinaImg

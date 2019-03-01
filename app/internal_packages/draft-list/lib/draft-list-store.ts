@@ -44,7 +44,7 @@ class DraftListStore extends MailspringStore {
     }
 
     if (mailboxPerspective.drafts) {
-      const query = DatabaseStore.findAll(Message)
+      const query = DatabaseStore.findAll<Message>(Message)
         .include(Message.attributes.body)
         .order(Message.attributes.date.descending())
         .where({ draft: true })

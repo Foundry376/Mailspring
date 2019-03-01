@@ -9,6 +9,7 @@ import { localized } from 'mailspring-exports';
 
 import { rootURLForServer } from '../flux/mailspring-api-request';
 import RetinaImg from './retina-img';
+import { Disposable } from 'event-kit';
 
 type InitialLoadingCoverProps = {
   ready?: boolean;
@@ -23,9 +24,13 @@ class InitialLoadingCover extends React.Component<
   InitialLoadingCoverProps,
   InitialLoadingCoverState
 > {
+  state = {
+    slow: false,
+  };
+  _slowTimeout: NodeJS.Timeout;
+
   constructor(props) {
     super(props);
-    this.state = {};
   }
 
   componentDidMount() {
@@ -80,9 +85,7 @@ type WebviewProps = {
   onDidFinishLoad?: (...args: any[]) => any;
 };
 type WebviewState = {
-  error: null;
   webviewLoading: boolean;
-  ready: boolean;
   ready: boolean;
   error: null;
 };
@@ -91,14 +94,13 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
   static displayName = 'Webview';
 
   _mounted: boolean = false;
+  _disposable?: Disposable;
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      ready: false,
-      error: null,
-    };
-  }
+  state: WebviewState = {
+    webviewLoading: false,
+    ready: false,
+    error: null,
+  };
 
   componentDidMount() {
     this._mounted = true;
@@ -108,7 +110,7 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
     // caught in the parent page and not forwarded into the focused <webview />, so
     // we're attaching listeners to the <webview /> node in our DOM and forwarding the
     // events into the child DOM manually.
-    const webview = ReactDOM.findDOMNode(this.refs.webview);
+    const webview = ReactDOM.findDOMNode(this.refs.webview) as Electron.WebviewTag;
     this._disposable = AppEnv.commands.add(webview, {
       'core:copy': () => webview.getWebContents().copy(),
       'core:cut': () => webview.getWebContents().cut(),
@@ -120,7 +122,7 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
     });
   }
 
-  componentWillReceiveProps(nextProps = {}) {
+  componentWillReceiveProps(nextProps: WebviewProps) {
     if (this.props.src !== nextProps.src) {
       this.setState({ error: null, webviewLoading: true, ready: false });
       this._setupWebview(nextProps);
@@ -137,7 +139,7 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
 
   _setupWebview(props) {
     if (!props.src) return;
-    const webview = ReactDOM.findDOMNode(this.refs.webview);
+    const webview = ReactDOM.findDOMNode(this.refs.webview) as Electron.WebviewTag;
     const listeners = {
       'did-fail-load': this._webviewDidFailLoad,
       'did-finish-load': this._webviewDidFinishLoad,
@@ -160,7 +162,7 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
   }
 
   _onTryAgain = () => {
-    const webview = ReactDOM.findDOMNode(this.refs.webview);
+    const webview = ReactDOM.findDOMNode(this.refs.webview) as Electron.WebviewTag;
     webview.reload();
   };
 
@@ -216,7 +218,7 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
     this.setState({ ready: true, webviewLoading: false });
 
     if (!this.props.onDidFinishLoad) return;
-    const webview = ReactDOM.findDOMNode(this.refs.webview);
+    const webview = ReactDOM.findDOMNode(this.refs.webview) as Electron.WebviewTag;
     this.props.onDidFinishLoad(webview);
 
     // tweak the size of the webview to ensure it's contents have laid out

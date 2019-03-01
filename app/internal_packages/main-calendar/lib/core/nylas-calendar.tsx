@@ -108,7 +108,7 @@ export default class NylasCalendar extends React.Component {
   }
 
   _subscribeToCalendars() {
-    const calQuery = DatabaseStore.findAll(Calendar);
+    const calQuery = DatabaseStore.findAll<Calendar>(Calendar);
     const calQueryObs = Rx.Observable.fromQuery(calQuery);
     const accQueryObs = Rx.Observable.fromStore(AccountStore);
     const configObs = Rx.Observable.fromConfig(DISABLED_CALENDARS);

@@ -1,13 +1,13 @@
 import Rx, { Disposable, Observable } from 'rx-lite';
-import Folder from '../flux/models/folder';
-import Label from '../flux/models/label';
+import { Folder } from '../flux/models/folder';
+import { Label } from '../flux/models/label';
 import QuerySubscriptionPool from '../flux/models/query-subscription-pool';
 import DatabaseStore from '../flux/stores/database-store';
 import QuerySubscription from '../flux/models/query-subscription';
-import Model from '../flux/models/model';
+import { Model } from '../flux/models/model';
 import ModelQuery from '../flux/models/query';
 import MailspringStore from 'mailspring-store';
-import Category from '../flux/models/category';
+import { Category } from '../flux/models/category';
 
 interface ICategoryOperators {
   sort(): Observable<Category[]> & ICategoryOperators;
@@ -43,8 +43,8 @@ const CategoryOperators = {
 
 const CategoryObservables = {
   forAllAccounts() {
-    const folders = Rx.Observable.fromQuery<Category[]>(DatabaseStore.findAll(Folder));
-    const labels = Rx.Observable.fromQuery<Category[]>(DatabaseStore.findAll(Label));
+    const folders = Rx.Observable.fromQuery<Category[]>(DatabaseStore.findAll<Folder>(Folder));
+    const labels = Rx.Observable.fromQuery<Category[]>(DatabaseStore.findAll<Label>(Label));
     const joined = Rx.Observable.combineLatest<Category[], Category[], Category[]>(
       folders,
       labels,
@@ -57,8 +57,8 @@ const CategoryObservables = {
   forAccount(account) {
     const scoped = account ? q => q.where({ accountId: account.id }) : q => q;
 
-    const folders = Rx.Observable.fromQuery(scoped(DatabaseStore.findAll(Folder)));
-    const labels = Rx.Observable.fromQuery(scoped(DatabaseStore.findAll(Label)));
+    const folders = Rx.Observable.fromQuery(scoped(DatabaseStore.findAll<Folder>(Folder)));
+    const labels = Rx.Observable.fromQuery(scoped(DatabaseStore.findAll<Label>(Label)));
     const joined = Rx.Observable.combineLatest(folders, labels, (f, l) => [].concat(f, l));
     Object.assign(joined, CategoryOperators);
     return joined as Observable<Category[]> & ICategoryOperators;

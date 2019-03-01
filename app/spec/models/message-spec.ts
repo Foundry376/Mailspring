@@ -1,6 +1,6 @@
 const Utils = require('../../src/flux/models/utils');
-import Message from '../../src/flux/models/message';
-import Contact from '../../src/flux/models/contact';
+import { Message } from '../../src/flux/models/message';
+import { Contact } from '../../src/flux/models/contact';
 
 const evan = new Contact({
   name: 'Evan Morikawa',

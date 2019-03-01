@@ -3,7 +3,7 @@ import { Actions, IdentityStore, localized, localizedReactFragment } from 'mails
 import { OpenIdentityPageButton, BillingModal, RetinaImg } from 'mailspring-component-kit';
 import { shell } from 'electron';
 
-class RefreshButton extends React.Component {
+class RefreshButton extends React.Component<{}, { refreshing: boolean }> {
   constructor(props) {
     super(props);
     this.state = { refreshing: false };
@@ -122,11 +122,13 @@ const ProTourFeatures = [
   },
 ];
 
-class PreferencesIdentity extends React.Component {
+class PreferencesIdentity extends React.Component<{}, { identity: object }> {
   static displayName = 'PreferencesIdentity';
 
-  constructor() {
-    super();
+  unsubscribe: () => void;
+
+  constructor(props) {
+    super(props);
     this.state = this._getStateFromStores();
   }
 

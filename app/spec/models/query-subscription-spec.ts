@@ -3,14 +3,14 @@ import DatabaseStore from '../../src/flux/stores/database-store';
 import QueryRange from '../../src/flux/models/query-range';
 import MutableQueryResultSet from '../../src/flux/models/mutable-query-result-set';
 import QuerySubscription from '../../src/flux/models/query-subscription';
-import Thread from '../../src/flux/models/thread';
+import { Thread } from '../../src/flux/models/thread';
 import * as Utils from '../../src/flux/models/utils';
 
 describe('QuerySubscription', function QuerySubscriptionSpecs() {
   describe('constructor', () =>
     describe('when a query is provided', () => {
       it('should finalize the query', () => {
-        const query = DatabaseStore.findAll(Thread);
+        const query = DatabaseStore.findAll<Thread>(Thread);
         const subscription = new QuerySubscription(query);
         expect(subscription).toBeDefined();
         expect(query._finalized).toBe(true);
@@ -25,7 +25,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
       });
 
       it('should call `update` to initialize the result set', () => {
-        const query = DatabaseStore.findAll(Thread);
+        const query = DatabaseStore.findAll<Thread>(Thread);
         spyOn(QuerySubscription.prototype, 'update');
         const subscription = new QuerySubscription(query);
         expect(subscription).toBeDefined();
@@ -34,7 +34,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
 
       describe('when initialModels are provided', () =>
         it('should apply the models and trigger', () => {
-          const query = DatabaseStore.findAll(Thread);
+          const query = DatabaseStore.findAll<Thread>(Thread);
           const threads = [1, 2, 3, 4, 5].map(i => new Thread({ id: i }));
           const subscription = new QuerySubscription(query, { initialModels: threads });
           expect(subscription._set).not.toBe(null);
@@ -43,7 +43,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
 
   describe('query', () =>
     it('should return the query', () => {
-      const query = DatabaseStore.findAll(Thread);
+      const query = DatabaseStore.findAll<Thread>(Thread);
       const subscription = new QuerySubscription(query);
       expect(subscription.query()).toBe(query);
     }));
@@ -52,7 +52,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
     it('should emit the last result to the new callback if one is available', () => {
       const cb = jasmine.createSpy('callback');
       spyOn(QuerySubscription.prototype, 'update').andReturn();
-      const subscription = new QuerySubscription(DatabaseStore.findAll(Thread));
+      const subscription = new QuerySubscription(DatabaseStore.findAll<Thread>(Thread));
       subscription._lastResult = 'something';
       runs(() => {
         subscription.addCallback(cb);
@@ -63,12 +63,12 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
     }));
 
   describe('applyChangeRecord', () => {
-    spyOn(Utils, 'generateTempId').andCallFake(() => undefined);
+    spyOn(Utils, 'generateTempId').and.callFake(() => undefined);
 
     const scenarios = [
       {
         name: 'query with full set of objects (4)',
-        query: DatabaseStore.findAll(Thread)
+        query: DatabaseStore.findAll<Thread>(Thread)
           .where(Thread.attributes.accountId.equal('a'))
           .limit(4)
           .offset(2),
@@ -184,7 +184,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
       },
       {
         name: 'query with multiple sort orders',
-        query: DatabaseStore.findAll(Thread)
+        query: DatabaseStore.findAll<Thread>(Thread)
           .where(Thread.attributes.accountId.equal('a'))
           .limit(4)
           .offset(2)
@@ -255,7 +255,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
 
   describe('update', () => {
     beforeEach(() =>
-      spyOn(QuerySubscription.prototype, '_fetchRange').andCallFake(() => {
+      spyOn(QuerySubscription.prototype, '_fetchRange').and.callFake(() => {
         if (this._set == null) {
           this._set = new MutableQueryResultSet();
         }
@@ -265,7 +265,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
 
     describe('when the query has an infinite range', () => {
       it('should call _fetchRange for the entire range', () => {
-        const subscription = new QuerySubscription(DatabaseStore.findAll(Thread));
+        const subscription = new QuerySubscription(DatabaseStore.findAll<Thread>(Thread));
         subscription.update();
         advanceClock();
         expect(subscription._fetchRange).toHaveBeenCalledWith(QueryRange.infinite(), {
@@ -275,7 +275,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
       });
 
       it('should fetch full full models only when the previous set is empty', () => {
-        const subscription = new QuerySubscription(DatabaseStore.findAll(Thread));
+        const subscription = new QuerySubscription(DatabaseStore.findAll<Thread>(Thread));
         subscription._set = new MutableQueryResultSet();
         subscription._set.addModelsInRange([new Thread()], new QueryRange({ start: 0, end: 1 }));
         subscription.update();
@@ -289,7 +289,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
 
     describe('when the query has a range', () => {
       beforeEach(() => {
-        this.query = DatabaseStore.findAll(Thread).limit(10);
+        this.query = DatabaseStore.findAll<Thread>(Thread).limit(10);
       });
 
       describe('when we have no current range', () =>

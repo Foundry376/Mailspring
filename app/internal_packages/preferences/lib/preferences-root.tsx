@@ -82,7 +82,7 @@ class PreferencesRoot extends React.Component {
     return (
       <KeyCommandsRegion
         className="preferences-wrap"
-        tabIndex="1"
+        tabIndex={1}
         localHandlers={this._localHandlers}
       >
         <Flexbox direction="column">

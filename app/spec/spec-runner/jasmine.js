@@ -262,7 +262,7 @@ jasmine.objectContaining = function (sample) {
  * }
  *
  * // foo.not(val) will return val
- * spyOn(foo, 'not').andCallFake(function(value) {return value;});
+ * spyOn(foo, 'not').and.callFake(function(value) {return value;});
  *
  * // mock example
  * foo.not(7 == 7);
@@ -379,7 +379,7 @@ jasmine.Spy.prototype.andThrow = function(exceptionMsg) {
  *
  * @param {Function} fakeFunc
  */
-jasmine.Spy.prototype.andCallFake = function(fakeFunc) {
+jasmine.Spy.prototype.and.callFake = function(fakeFunc) {
   this.plan = fakeFunc;
   return this;
 };

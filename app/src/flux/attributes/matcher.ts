@@ -25,7 +25,7 @@ hasLabel = Thread.attributes.categories.contains('label-id-123')
 
 // Using Matchers in Database Queries
 
-DatabaseStore.findAll(Thread).where(isUnread)...
+DatabaseStore.findAll<Thread>(Thread).where(isUnread)...
 
 // Using Matchers to test Models
 

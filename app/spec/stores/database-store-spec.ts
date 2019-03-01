@@ -1,5 +1,5 @@
 /* eslint quote-props: 0 */
-import Thread from '../../src/flux/models/thread';
+import { Thread } from '../../src/flux/models/thread';
 import TestModel from '../fixtures/db-test-model';
 import ModelQuery from '../../src/flux/models/query';
 import DatabaseStore from '../../src/flux/stores/database-store';
@@ -16,7 +16,7 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
     // Note: We spy on _query and test all of the convenience methods that sit above
     // it. None of these tests evaluate whether _query works!
     jasmine.unspy(DatabaseStore, '_query');
-    spyOn(DatabaseStore, '_query').andCallFake((query, values = []) => {
+    spyOn(DatabaseStore, '_query').and.callFake((query, values = []) => {
       this.performed.push({ query, values });
       return Promise.resolve([]);
     });
@@ -32,12 +32,12 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
 
   describe('findBy', () => {
     it('should pass the provided predicates on to the ModelQuery', () => {
-      DatabaseStore.findBy(TestModel, testMatchers);
+      DatabaseStore.findBy<TestModel>(TestModel, testMatchers);
       expect(ModelQuery.prototype.where).toHaveBeenCalledWith(testMatchers);
     });
 
     it('should return a ModelQuery ready to be executed', () => {
-      const q = DatabaseStore.findBy(TestModel, testMatchers);
+      const q = DatabaseStore.findBy<TestModel>(TestModel, testMatchers);
       expect(q.sql()).toBe(
         "SELECT `TestModel`.`data` FROM `TestModel`  WHERE `TestModel`.`id` = 'b'  LIMIT 1"
       );
@@ -46,12 +46,12 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
 
   describe('findAll', () => {
     it('should pass the provided predicates on to the ModelQuery', () => {
-      DatabaseStore.findAll(TestModel, testMatchers);
+      DatabaseStore.findAll<TestModel>(TestModel, testMatchers);
       expect(ModelQuery.prototype.where).toHaveBeenCalledWith(testMatchers);
     });
 
     it('should return a ModelQuery ready to be executed', () => {
-      const q = DatabaseStore.findAll(TestModel, testMatchers);
+      const q = DatabaseStore.findAll<TestModel>(TestModel, testMatchers);
       expect(q.sql()).toBe(
         "SELECT `TestModel`.`data` FROM `TestModel`  WHERE `TestModel`.`id` = 'b'  "
       );
@@ -71,7 +71,7 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
       ];
       // Actually returns correct sets for queries, since matchers can evaluate
       // themselves against models in memory
-      spyOn(DatabaseStore, 'run').andCallFake(query => {
+      spyOn(DatabaseStore, 'run').and.callFake(query => {
         const results = this.models.filter(model =>
           query._matchers.every(matcher => matcher.evaluate(model))
         );
@@ -129,12 +129,12 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
 
   describe('count', () => {
     it('should pass the provided predicates on to the ModelQuery', () => {
-      DatabaseStore.findAll(TestModel, testMatchers);
+      DatabaseStore.findAll<TestModel>(TestModel, testMatchers);
       expect(ModelQuery.prototype.where).toHaveBeenCalledWith(testMatchers);
     });
 
     it('should return a ModelQuery configured for COUNT ready to be executed', () => {
-      const q = DatabaseStore.findAll(TestModel, testMatchers);
+      const q = DatabaseStore.findAll<TestModel>(TestModel, testMatchers);
       expect(q.sql()).toBe(
         "SELECT `TestModel`.`data` FROM `TestModel`  WHERE `TestModel`.`id` = 'b'  "
       );

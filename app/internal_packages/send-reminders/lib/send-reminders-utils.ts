@@ -81,12 +81,12 @@ export async function updateDraftReminderMetadata(draftSession, metadataValue) {
 }
 
 export async function transferReminderMetadataFromDraftToThread({ accountId, headerMessageId }) {
-  let message = await DatabaseStore.findBy(Message, { accountId, headerMessageId });
+  let message = await DatabaseStore.findBy<Message>(Message, { accountId, headerMessageId });
   if (!message) {
     // The task has just completed, wait a moment to see if the message appears. Testing to
     // see whether this resolves https://sentry.io/foundry-376-llc/mailspring/issues/363208698/
     await Promise.delay(1500);
-    message = await DatabaseStore.findBy(Message, { accountId, headerMessageId });
+    message = await DatabaseStore.findBy<Message>(Message, { accountId, headerMessageId });
     if (!message) {
       throw new Error('SendReminders: Could not find message to update');
     }

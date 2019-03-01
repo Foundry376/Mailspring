@@ -36,7 +36,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
 
     it('allows the user to reconnect the account', () => {
       const notif = mount(<AccountErrorNotification />);
-      spyOn(KeyManager, 'insertAccountSecrets').andCallFake(acct => acct);
+      spyOn(KeyManager, 'insertAccountSecrets').and.callFake(acct => acct);
       spyOn(ipcRenderer, 'send');
       notif.find('#action-1').simulate('click'); // Expects second action to be the reconnect action
 

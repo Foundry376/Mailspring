@@ -18,7 +18,7 @@ getter that resolves to the id first, and then the id.
 Section: Models
  */
 
-export default class Model {
+export class Model {
   static attributes = {
     id: Attributes.String({
       queryable: true,

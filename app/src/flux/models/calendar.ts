@@ -1,4 +1,4 @@
-import Model from './model';
+import { Model } from './model';
 import Attributes from '../attributes';
 
 /**
@@ -14,7 +14,7 @@ This class also inherits attributes from {Model}
 
 Section: Models
 */
-export default class Calendar extends Model {
+export class Calendar extends Model {
   static attributes = Object.assign({}, Model.attributes, {
     name: Attributes.String({
       modelKey: 'name',

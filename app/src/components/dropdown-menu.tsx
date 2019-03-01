@@ -1,23 +1,21 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import { PropTypes } from 'mailspring-exports';
-import { Menu, RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg } from 'mailspring-component-kit';
+import { Menu, MenuProps } from './menu';
 
 const Attachment = {
   LeftEdge: 'LeftEdge',
   RightEdge: 'RightEdge',
 };
 
-type DropdownMenuProps = {
+interface DropdownMenuProps extends MenuProps {
   className?: string;
   intitialSelectionItem?: object;
   attachment?: string;
-  onSelect?: (...args: any[]) => any;
-  itemContent?: (...args: any[]) => any;
   headerComponents?: React.ReactNode;
-};
+}
 type DropdownMenuState = {
-  currentSelection: any;
   expanded: boolean;
   currentSelection: any;
 };
@@ -40,7 +38,7 @@ export default class DropdownMenu extends React.Component<DropdownMenuProps, Dro
   _toggleExpanded = () => {
     this.setState({ expanded: !this.state.expanded }, () => {
       if (this.state.expanded) {
-        const searchInput = ReactDOM.findDOMNode(this).querySelector('input');
+        const searchInput = (ReactDOM.findDOMNode(this) as HTMLElement).querySelector('input');
         if (searchInput) {
           searchInput.focus();
         }
@@ -78,12 +76,12 @@ export default class DropdownMenu extends React.Component<DropdownMenuProps, Dro
   };
 
   render() {
-    let dropdown = <span />;
+    let dropdown: React.ReactElement = <span />;
     if (this.state.expanded) {
       dropdown = <Menu {...this.props} onEscape={this._close} onSelect={this._onSelect} />;
     }
 
-    let dropdownContainerStyles = { position: 'absolute', left: 0, zIndex: 10 };
+    let dropdownContainerStyles: CSSProperties = { position: 'absolute', left: 0, zIndex: 10 };
     if (this.props.attachment === Attachment.RightEdge) {
       dropdownContainerStyles = { position: 'absolute', right: 0, zIndex: 10 };
     }

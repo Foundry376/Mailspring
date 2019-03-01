@@ -1,5 +1,5 @@
-import Label from '../models/label';
-import ChangeMailTask from './change-mail-task';
+import { Label } from '../models/label';
+import { ChangeMailTask } from './change-mail-task';
 import Attributes from '../attributes';
 import { localized } from '../../intl';
 
@@ -11,7 +11,7 @@ import { localized } from '../../intl';
 // - threads: An {Array} of {Thread}s or {Thread} ids
 // - messages: An {Array} of {Message}s or {Message} ids
 //
-export default class ChangeLabelsTask extends ChangeMailTask {
+export class ChangeLabelsTask extends ChangeMailTask {
   static attributes = Object.assign({}, ChangeMailTask.attributes, {
     labelsToAdd: Attributes.Collection({
       modelKey: 'labelsToAdd',

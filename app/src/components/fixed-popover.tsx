@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, { Component } from 'react';
+import React, { Component, CSSProperties } from 'react';
 import { findDOMNode } from 'react-dom';
 import PropTypes from 'prop-types';
 
@@ -7,42 +7,41 @@ import Actions from '../flux/actions';
 import compose from './decorators/compose';
 import AutoFocuses from './decorators/auto-focuses';
 
-const Directions = {
-  Up: 'up',
-  Down: 'down',
-  Left: 'left',
-  Right: 'right',
-};
+enum Direction {
+  Up = 'up',
+  Down = 'down',
+  Left = 'left',
+  Right = 'right',
+}
 
 const InverseDirections = {
-  [Directions.Up]: Directions.Down,
-  [Directions.Down]: Directions.Up,
-  [Directions.Left]: Directions.Right,
-  [Directions.Right]: Directions.Left,
+  [Direction.Up]: Direction.Down,
+  [Direction.Down]: Direction.Up,
+  [Direction.Left]: Direction.Right,
+  [Direction.Right]: Direction.Left,
 };
 
 const OFFSET_PADDING = 11.5;
 
 type FixedPopoverProps = {
-  direction?: string,
-  fallbackDirection?: string,
-  closeOnAppBlur?: boolean,
+  direction?: Direction;
+  fallbackDirection?: Direction;
+  closeOnAppBlur?: boolean;
   originRect?: {
-    bottom?: number,
-    top?: number,
-    right?: number,
-    left?: number,
-    height?: number,
-    width?: number
-  },
-  focusElementWithTabIndex?: (...args: any[]) => any
+    bottom?: number;
+    top?: number;
+    right?: number;
+    left?: number;
+    height?: number;
+    width?: number;
+  };
+  focusElementWithTabIndex?: (...args: any[]) => any;
 };
 
 type FixedPopoverState = {
-  direction: any,
-  offset: {},
-  direction: any,
-  visible: boolean
+  offset: {};
+  direction: any;
+  visible: boolean;
 };
 
 /*
@@ -53,7 +52,7 @@ type FixedPopoverState = {
  * @class FixedPopover
  **/
 class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
-  static Directions = Directions;
+  static Directions = Direction;
 
   static propTypes = {
     children: PropTypes.element,
@@ -75,10 +74,12 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
     closeOnAppBlur: true,
   };
 
+  mounted = false;
+  updateCount = 0;
+  fallback: Direction;
+
   constructor(props) {
     super(props);
-    this.mounted = false;
-    this.updateCount = 0;
     this.fallback = this.props.fallbackDirection;
     this.state = {
       offset: {},
@@ -169,7 +170,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   };
 
   getCurrentRect = () => {
-    return findDOMNode(this.refs.popover).getBoundingClientRect();
+    return (findDOMNode(this.refs.popover) as HTMLElement).getBoundingClientRect();
   };
 
   getWindowDimensions = () => {
@@ -210,12 +211,12 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
         return { direction: fallback, offset: {} };
       }
 
-      const isHorizontalDirection = [Directions.Left, Directions.Right].includes(direction);
-      const isVerticalDirection = [Directions.Up, Directions.Down].includes(direction);
+      const isHorizontalDirection = [Direction.Left, Direction.Right].includes(direction);
+      const isVerticalDirection = [Direction.Up, Direction.Down].includes(direction);
       const shouldInvertDirection =
         (isHorizontalDirection && (overflows.left || overflows.right)) ||
         (isVerticalDirection && (overflows.top || overflows.bottom));
-      const offset = {};
+      const offset: { x?: number; y?: number } = {};
       let newDirection = direction;
 
       if (shouldInvertDirection) {
@@ -242,10 +243,10 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   };
 
   computePopoverStyles = ({ originRect, direction, offset }) => {
-    const { Up, Down, Left, Right } = Directions;
-    let containerStyle = {};
-    let popoverStyle = {};
-    let pointerStyle = {};
+    const { Up, Down, Left, Right } = Direction;
+    let containerStyle: CSSProperties = {};
+    let popoverStyle: CSSProperties = {};
+    let pointerStyle: CSSProperties = {};
 
     switch (direction) {
       case Up:

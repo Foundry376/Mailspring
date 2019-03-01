@@ -28,9 +28,9 @@ xdescribe('DraftStore', function draftStore() {
     this.fakeThread = new Thread({ id: 'fake-thread', headerMessageId: 'fake-thread' });
     this.fakeMessage = new Message({ id: 'fake-message', headerMessageId: 'fake-message' });
 
-    spyOn(AppEnv, 'newWindow').andCallFake(() => {});
+    spyOn(AppEnv, 'newWindow').and.callFake(() => {});
     spyOn(DatabaseWriter.prototype, 'persistModel').andReturn(Promise.resolve());
-    spyOn(DatabaseStore, 'run').andCallFake(query => {
+    spyOn(DatabaseStore, 'run').and.callFake(query => {
       if (query._klass === Thread) {
         return Promise.resolve(this.fakeThread);
       }
@@ -552,7 +552,7 @@ xdescribe('DraftStore', function draftStore() {
       const defaultMe = new Contact();
       spyOn(DraftStore, '_onPopoutDraft');
       spyOn(Account.prototype, 'defaultMe').andReturn(defaultMe);
-      spyOn(Actions, 'addAttachment').andCallFake(({ onCreated }) => onCreated());
+      spyOn(Actions, 'addAttachment').and.callFake(({ onCreated }) => onCreated());
       DraftStore._onHandleMailFiles({}, ['/Users/ben/file1.png', '/Users/ben/file2.png']);
       waitsFor(() => DatabaseWriter.prototype.persistModel.callCount > 0);
       runs(() => {

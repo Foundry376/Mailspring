@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import Contact from '../models/contact';
+import { Contact } from '../models/contact';
 import RegExpUtils from '../../regexp-utils';
 import DatabaseStore from './database-store';
 import AccountStore from './account-store';

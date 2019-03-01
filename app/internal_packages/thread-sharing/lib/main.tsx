@@ -35,7 +35,7 @@ const _parseOpenThreadUrl = nylasUrlString => {
 };
 
 const _findCorrespondingThread = ({ subject, lastDate }, dateEpsilon = DATE_EPSILON) => {
-  return DatabaseStore.findBy(Thread).where([
+  return DatabaseStore.findBy<Thread>(Thread).where([
     Thread.attributes.subject.equal(subject),
     new Matcher.Or([
       new Matcher.And([
@@ -116,7 +116,7 @@ const syncThreadToWebSoon = thread => {
 export const syncThreadToWeb = async thread => {
   const metadata = thread.metadataForPluginId(PLUGIN_ID) || {};
 
-  let messages = await DatabaseStore.findAll(Message, {
+  let messages = await DatabaseStore.findAll<Message>(Message, {
     threadId: thread.id,
     accountId: thread.accountId,
   }).include(Message.attributes.body);

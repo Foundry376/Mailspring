@@ -1,7 +1,7 @@
 import React from 'react';
 import { PropTypes, Utils, ComponentRegistry } from 'mailspring-exports';
 
-import Flexbox from './flexbox';
+import { Flexbox } from './flexbox';
 import InjectedComponentErrorBoundary from './injected-component-error-boundary';
 import InjectedComponentLabel from './injected-component-label';
 
@@ -43,7 +43,7 @@ If no matching components is found, the InjectedComponent renders an empty span.
 
 Section: Component Kit
  */
-export default class InjectedComponentSet extends React.Component<
+export class InjectedComponentSet extends React.Component<
   InjectedComponentSetProps & React.HTMLProps<HTMLDivElement>,
   InjectedComponentSetState
 > {

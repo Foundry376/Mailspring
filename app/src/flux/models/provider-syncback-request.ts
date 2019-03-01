@@ -1,4 +1,4 @@
-import Model from './model';
+import { Model } from './model';
 import Attributes from '../attributes';
 
 export default class ProviderSyncbackRequest extends Model {

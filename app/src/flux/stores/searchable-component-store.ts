@@ -4,7 +4,7 @@ import DOMUtils from '../../dom-utils';
 import Actions from '../actions';
 import { MAX_MATCHES, CHAR_THRESHOLD } from '../../searchable-components/search-constants';
 import FocusedContentStore from './focused-content-store';
-import Thread from '../models/thread';
+import { Thread } from '../models/thread';
 
 class SearchableComponentStore extends MailspringStore {
   currentMatch = null;

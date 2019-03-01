@@ -6,7 +6,7 @@ instantiate SortOrders manually. Instead, call {Attribute::ascending} or
 {Attribute::descending} to obtain a sort order instance:
 
 ```javascript
-DatabaseStore.findBy(Message)
+DatabaseStore.findBy<Message>(Message)
   .where({threadId: threadId, draft: false})
   .order(Message.attributes.date.descending()).then((messages) =>
 

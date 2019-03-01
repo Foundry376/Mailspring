@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import _str from 'underscore.string';
-import Model from './model';
+import { Model } from './model';
 import Attributes from '../attributes';
 import * as Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
@@ -262,7 +262,7 @@ This class also inherits attributes from {Model}
 
 Section: Models
 */
-export default class Contact extends Model {
+export class Contact extends Model {
   static attributes = Object.assign({}, Model.attributes, {
     name: Attributes.String({
       modelKey: 'name',

@@ -3,7 +3,7 @@ import { Categories } from 'mailspring-observables';
 import MailspringStore from 'mailspring-store';
 import AccountStore from './account-store';
 import Account from '../models/account';
-import Category from '../models/category';
+import { Category } from '../models/category';
 
 const asAccount = a => {
   if (!a) {

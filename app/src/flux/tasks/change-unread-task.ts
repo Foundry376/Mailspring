@@ -1,13 +1,13 @@
 /* eslint no-unused-vars: 0*/
 import _ from 'underscore';
-import Thread from '../models/thread';
+import { Thread } from '../models/thread';
 import Actions from '../actions';
 import Attributes from '../attributes';
 import DatabaseStore from '../stores/database-store';
-import ChangeMailTask from './change-mail-task';
+import { ChangeMailTask } from './change-mail-task';
 import { localized } from '../../intl';
 
-export default class ChangeUnreadTask extends ChangeMailTask {
+export class ChangeUnreadTask extends ChangeMailTask {
   static attributes = Object.assign({}, ChangeMailTask.attributes, {
     unread: Attributes.Boolean({
       modelKey: 'unread',

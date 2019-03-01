@@ -83,7 +83,7 @@ describe('IdentityStore', function identityStoreSpec() {
     it('saves the identity returned', async () => {
       const resp = Utils.deepClone(this.identityJSON);
       resp.featureUsage.feat.quota = 5;
-      spyOn(MailspringAPIRequest, 'makeRequest').andCallFake(() => {
+      spyOn(MailspringAPIRequest, 'makeRequest').and.callFake(() => {
         return Promise.resolve(resp);
       });
       await IdentityStore.fetchIdentity();
@@ -97,7 +97,7 @@ describe('IdentityStore', function identityStoreSpec() {
     });
 
     it('errors if the json is invalid', async () => {
-      spyOn(MailspringAPIRequest, 'makeRequest').andCallFake(() => {
+      spyOn(MailspringAPIRequest, 'makeRequest').and.callFake(() => {
         return Promise.resolve({});
       });
       await IdentityStore.fetchIdentity();

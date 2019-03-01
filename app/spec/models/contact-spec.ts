@@ -1,4 +1,4 @@
-import Contact from '../../src/flux/models/contact';
+import { Contact } from '../../src/flux/models/contact';
 import AccountStore from '../../src/flux/stores/account-store';
 import Account from '../../src/flux/models/account';
 

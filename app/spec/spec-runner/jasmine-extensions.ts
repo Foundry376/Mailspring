@@ -6,6 +6,17 @@ import 'moment-round';
 
 import TestConstants from './test-constants';
 
+declare global {
+  interface Window {
+    a: number;
+
+    waitsForPromise: (
+      opts: { shouldReject?: boolean; timeout?: number },
+      fn: () => Promise<any>
+    ) => Promise<any>;
+  }
+}
+
 export function waitsForPromise(...args) {
   let shouldReject;
   let timeout;

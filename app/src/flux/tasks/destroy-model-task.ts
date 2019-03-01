@@ -1,7 +1,7 @@
 /* eslint global-require:0 */
-import Task from './task';
+import { Task } from './task';
 
-export default class DestroyModelTask extends Task {
+export class DestroyModelTask extends Task {
   clientId: string;
   endpoint: string;
   modelName: string;

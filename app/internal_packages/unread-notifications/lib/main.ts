@@ -13,12 +13,13 @@ import {
 const WAIT_FOR_CHANGES_DELAY = 400;
 
 export class Notifier {
-  constructor() {
-    this.activationTime = Date.now();
-    this.unnotifiedQueue = [];
-    this.hasScheduledNotify = false;
+  activationTime = Date.now();
+  unnotifiedQueue = [];
+  hasScheduledNotify = false;
+  unlisteners: Array<() => void>;
+  activeNotifications = {};
 
-    this.activeNotifications = {};
+  constructor() {
     this.unlisteners = [DatabaseStore.listen(this._onDatabaseChanged, this)];
   }
 
@@ -199,31 +200,32 @@ export class Notifier {
 
     // TODO: Use xGMLabels + folder on message to identify which ones
     // are in the inbox to avoid needing threads here.
-    return DatabaseStore.findAll(Thread, Thread.attributes.id.in(Object.keys(threadIds))).then(
-      threadsArray => {
-        const threads = {};
-        for (const t of threadsArray) {
-          threads[t.id] = t;
-        }
-
-        // Filter new messages to just the ones in the inbox
-        const newMessagesInInbox = newMessages.filter(({ threadId }) => {
-          return threads[threadId] && threads[threadId].categories.find(c => c.role === 'inbox');
-        });
-
-        if (newMessagesInInbox.length === 0) {
-          return;
-        }
-
-        for (const msg of newMessagesInInbox) {
-          this.unnotifiedQueue.push({ message: msg, thread: threads[msg.threadId] });
-        }
-        if (!this.hasScheduledNotify) {
-          this._playNewMailSound();
-          this._notifyMessages();
-        }
+    return DatabaseStore.findAll<Thread>(
+      Thread,
+      Thread.attributes.id.in(Object.keys(threadIds))
+    ).then(threadsArray => {
+      const threads = {};
+      for (const t of threadsArray) {
+        threads[t.id] = t;
       }
-    );
+
+      // Filter new messages to just the ones in the inbox
+      const newMessagesInInbox = newMessages.filter(({ threadId }) => {
+        return threads[threadId] && threads[threadId].categories.find(c => c.role === 'inbox');
+      });
+
+      if (newMessagesInInbox.length === 0) {
+        return;
+      }
+
+      for (const msg of newMessagesInInbox) {
+        this.unnotifiedQueue.push({ message: msg, thread: threads[msg.threadId] });
+      }
+      if (!this.hasScheduledNotify) {
+        this._playNewMailSound();
+        this._notifyMessages();
+      }
+    });
   }
 }
 

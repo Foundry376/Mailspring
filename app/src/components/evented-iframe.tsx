@@ -410,7 +410,9 @@ class EventedIFrame extends React.Component<EventedIFrameProps & React.HTMLProps
 
     // Menu actions for text
     let text = '';
-    const selection = ReactDOM.findDOMNode(this).contentDocument.getSelection();
+    const selection = (ReactDOM.findDOMNode(
+      this
+    ) as HTMLIFrameElement).contentDocument.getSelection();
     if (selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       text = range.toString();

@@ -1,13 +1,13 @@
 import _ from 'underscore';
 import moment from 'moment';
 
-import File from './file';
+import { File } from './file';
 import * as Utils from './utils';
-import Event from './event';
-import Contact from './contact';
-import Folder from './folder';
+import { Event } from './event';
+import { Contact } from './contact';
+import { Folder } from './folder';
 import Attributes from '../attributes';
-import ModelWithMetadata from './model-with-metadata';
+import { ModelWithMetadata } from './model-with-metadata';
 
 /*
 Public: The Message model represents an email message or draft.
@@ -62,7 +62,7 @@ This class also inherits attributes from {Model}
 
 Section: Models
 */
-export default class Message extends ModelWithMetadata {
+export class Message extends ModelWithMetadata {
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
     to: Attributes.Collection({
       modelKey: 'to',

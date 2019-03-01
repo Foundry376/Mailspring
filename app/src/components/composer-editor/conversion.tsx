@@ -61,7 +61,7 @@ function parseHtml(html) {
   // remove any display:none nodes. This is commonly used in HTML email to
   // send a plaintext "summary" sentence
   Array.from(tree.querySelectorAll('[style]')).forEach(m => {
-    if (m.style.display === 'none') {
+    if ((m as HTMLElement).style.display === 'none') {
       m.remove();
     }
   });
@@ -86,7 +86,7 @@ function parseHtml(html) {
   });
 
   while (pWalker.nextNode()) {
-    const p = pWalker.currentNode;
+    const p = pWalker.currentNode as HTMLElement;
 
     // if the <p> is followed by an empty <p> and then another <p>, remove the empty
     // because <p>'s margins almost always collapse during display.
@@ -98,7 +98,7 @@ function parseHtml(html) {
       p.nextSibling.nextSibling.nodeName === 'P' &&
       nodeIsEmpty(p.nextSibling.nextSibling)
     ) {
-      p.nextSibling.remove();
+      (p.nextSibling as HTMLElement).remove();
     }
 
     const prHasExplicitZeroMargin =
@@ -173,14 +173,14 @@ const HtmlSerializer = new Html({
 /* Patch: The HTML Serializer doesn't properly handle nested marks
 because when it discovers another mark it fails to call applyMark
 on the result. */
-HtmlSerializer.deserializeMark = function(mark) {
+(HtmlSerializer as any).deserializeMark = function(mark) {
   const type = mark.type;
   const data = mark.data;
 
   const applyMark = function applyMark(node) {
     if (node.object === 'mark') {
       // THIS LINE CONTAINS THE CHANGE. +map
-      let result = HtmlSerializer.deserializeMark(node);
+      let result = (HtmlSerializer as any).deserializeMark(node);
       if (result && result instanceof Array) {
         result = result.map(applyMark);
       }

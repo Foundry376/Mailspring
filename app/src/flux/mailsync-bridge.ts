@@ -4,7 +4,7 @@ import { ipcRenderer, remote } from 'electron';
 import { localized } from '../intl';
 import _ from 'underscore';
 
-import Task from './tasks/task';
+import { Task } from './tasks/task';
 import TaskQueue from './stores/task-queue';
 import IdentityStore from './stores/identity-store';
 

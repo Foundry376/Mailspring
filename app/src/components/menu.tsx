@@ -4,20 +4,20 @@ import React, { HTMLProps } from 'react';
 import ReactDOM from 'react-dom';
 import { PropTypes, DOMUtils } from 'mailspring-exports';
 
-type MenuItemProps = {
+export interface MenuItemProps {
   onMouseDown?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   divider?: string | boolean;
   selected?: boolean;
   checked?: boolean;
-  content: any;
-};
+  content?: any;
+}
 
-type MenuNameEmailItemProps = {
+export interface MenuNameEmailItemProps {
   name?: string;
   email?: string;
-};
+}
 
-type MenuProps = {
+export interface MenuProps {
   className?: string;
   footerComponents?: React.ReactNode;
   headerComponents?: React.ReactNode;
@@ -29,11 +29,11 @@ type MenuProps = {
   onSelect: (...args: any[]) => any;
   onEscape?: (...args: any[]) => any;
   defaultSelectedIndex?: number;
-};
+}
 
-type MenuState = {
+interface MenuState {
   selectedIndex: number;
-};
+}
 
 /*
 Public: `MenuItem` components can be provided to the {Menu} by the `itemContent` function.
@@ -138,7 +138,7 @@ component's Menu instance:
 
 Section: Component Kit
 */
-class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>, MenuState> {
+export class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>, MenuState> {
   static displayName = 'Menu';
 
   static Item = MenuItem;
@@ -398,5 +398,3 @@ class Menu extends React.Component<MenuProps & HTMLProps<HTMLDivElement>, MenuSt
     this.props.onEscape();
   };
 }
-
-export default Menu;

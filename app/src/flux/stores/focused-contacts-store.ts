@@ -3,9 +3,9 @@ import Rx from 'rx-lite';
 import MailspringStore from 'mailspring-store';
 
 import * as Utils from '../models/utils';
-import Thread from '../models/thread';
+import { Thread } from '../models/thread';
 import Actions from '../actions';
-import Contact from '../models/contact';
+import { Contact } from '../models/contact';
 import MessageStore from './message-store';
 import AccountStore from './account-store';
 import DatabaseStore from './database-store';
@@ -119,7 +119,7 @@ class FocusedContactsStore extends MailspringStore {
     if (!email) {
       return;
     }
-    DatabaseStore.findAll(Thread)
+    DatabaseStore.findAll<Thread>(Thread)
       .structuredSearch(SearchQueryParser.parse(`from:${email}`))
       .limit(100)
       .background()

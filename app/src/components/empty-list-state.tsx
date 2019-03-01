@@ -4,13 +4,18 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import RetinaImg from './retina-img';
-import { localized, FolderSyncProgressStore, FocusedPerspectiveStore } from 'mailspring-exports';
+import {
+  localized,
+  MailboxPerspective,
+  FolderSyncProgressStore,
+  FocusedPerspectiveStore,
+} from 'mailspring-exports';
 import { SyncingListState } from 'mailspring-component-kit';
 
 const INBOX_ZERO_ANIMATIONS = ['gem', 'oasis', 'tron', 'airstrip', 'galaxy'];
 
 type EmptyPerspectiveStateProps = {
-  perspective?: object;
+  perspective?: MailboxPerspective;
   messageContent?: React.ReactNode;
 };
 
@@ -46,7 +51,7 @@ class EmptyPerspectiveState extends React.Component<EmptyPerspectiveStateProps> 
   }
 }
 
-class EmptyInboxState extends React.Component {
+class EmptyInboxState extends React.Component<{ containerRect: { width: number } }> {
   static displayName = 'EmptyInboxState';
 
   static propTypes = { containerRect: PropTypes.object };
@@ -62,7 +67,7 @@ class EmptyInboxState extends React.Component {
     return (width + 100) / 1000;
   };
 
-  _getAnimationName = now => {
+  _getAnimationName = (now?: Date) => {
     if (now == null) {
       now = new Date();
     }
@@ -92,11 +97,15 @@ class EmptyInboxState extends React.Component {
   }
 }
 
-class EmptyListState extends React.Component {
+class EmptyListState extends React.Component<
+  { visible: boolean },
+  { active: boolean; rect: object; syncing: boolean }
+> {
   static displayName = 'EmptyListState';
   static propTypes = { visible: PropTypes.bool.isRequired };
 
   _mounted: boolean = false;
+  _unlisteners = [];
 
   constructor(props) {
     super(props);
@@ -111,7 +120,6 @@ class EmptyListState extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
-    this._unlisteners = [];
     this._unlisteners.push(
       FolderSyncProgressStore.listen(() => this.setState(this._getStateFromStores()), this)
     );
@@ -157,7 +165,7 @@ class EmptyListState extends React.Component {
     if (!this.props.visible) {
       return <span />;
     }
-    let ContentComponent = EmptyPerspectiveState;
+    let ContentComponent: React.ComponentType<any> = EmptyPerspectiveState;
     const current = FocusedPerspectiveStore.current();
 
     let messageContent = current.emptyMessage();
@@ -187,7 +195,7 @@ class EmptyListState extends React.Component {
     if (!this._mounted) {
       return null;
     }
-    const node = ReactDOM.findDOMNode(this);
+    const node = ReactDOM.findDOMNode(this) as HTMLElement;
     const rect = node.getBoundingClientRect();
     return { width: rect.width, height: rect.height };
   }

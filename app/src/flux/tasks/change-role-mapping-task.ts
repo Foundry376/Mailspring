@@ -1,8 +1,8 @@
-import Task from './task';
+import { Task } from './task';
 import Attributes from '../attributes';
 import { localized } from '../../intl';
 
-export default class ChangeRoleMappingTask extends Task {
+export class ChangeRoleMappingTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
     path: Attributes.String({
       modelKey: 'path',

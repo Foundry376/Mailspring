@@ -5,7 +5,7 @@ describe('InlineStyleTransformer', function specs() {
   describe('run', () => {
     beforeEach(() => {
       spyOn(ipcRenderer, 'send');
-      spyOn(InlineStyleTransformer, '_injectUserAgentStyles').andCallFake(input => input);
+      spyOn(InlineStyleTransformer, '_injectUserAgentStyles').and.callFake(input => input);
       InlineStyleTransformer._inlineStylePromises = {};
     });
     it('should return a Promise', () => {

@@ -3,7 +3,7 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import Message from '../../src/flux/models/message';
+import { Message } from '../../src/flux/models/message';
 import Actions from '../../src/flux/actions';
 import DatabaseStore from '../../src/flux/stores/database-store';
 import DraftEditingSession from '../../src/flux/stores/draft-editing-session';
@@ -17,7 +17,7 @@ xdescribe('DraftEditingSession Specs', function() {
       this.onWillAddChanges = jasmine.createSpy('onWillAddChanges');
       this.commitResolve = null;
       this.commitResolves = [];
-      this.onCommit = jasmine.createSpy('commit').andCallFake(() => {
+      this.onCommit = jasmine.createSpy('commit').and.callFake(() => {
         new Promise((resolve, reject) => {
           this.commitResolves.push(resolve);
           this.commitResolve = resolve;
@@ -120,7 +120,7 @@ xdescribe('DraftEditingSession Specs', function() {
   describe('DraftEditingSession', function() {
     describe('constructor', function() {
       it('should make a query to fetch the draft', function() {
-        spyOn(DatabaseStore, 'run').andCallFake(() => {
+        spyOn(DatabaseStore, 'run').and.callFake(() => {
           return new Promise((resolve, reject) => {});
         });
         const session = new DraftEditingSession('client-id');
@@ -154,7 +154,7 @@ xdescribe('DraftEditingSession Specs', function() {
         spyOn(DraftEditingSession.prototype, 'prepare');
         this.session = new DraftEditingSession('client-id');
         spyOn(this.session, '_setDraft').andCallThrough();
-        spyOn(DatabaseStore, 'run').andCallFake(modelQuery => {
+        spyOn(DatabaseStore, 'run').and.callFake(modelQuery => {
           return Promise.resolve(this.draft);
         });
         jasmine.unspy(DraftEditingSession.prototype, 'prepare');

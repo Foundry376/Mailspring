@@ -11,6 +11,10 @@ import {
 import SearchQuerySubscription from './search-query-subscription';
 
 class SearchMailboxPerspective extends MailboxPerspective {
+  searchQuery: string;
+  sourcePerspective: MailboxPerspective;
+  name: string;
+  
   constructor(sourcePerspective, searchQuery) {
     super(sourcePerspective.accountIds);
     if (typeof searchQuery !== 'string') {

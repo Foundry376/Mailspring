@@ -4,8 +4,8 @@ import { WorkspaceStore } from 'mailspring-exports';
 
 import Sheet from './sheet';
 import Toolbar from './sheet-toolbar';
-import Flexbox from './components/flexbox';
-import InjectedComponentSet from './components/injected-component-set';
+import { Flexbox } from './components/flexbox';
+import { InjectedComponentSet } from './components/injected-component-set';
 import { SheetDeclaration } from './flux/stores/workspace-store';
 
 interface SheetContainerState {

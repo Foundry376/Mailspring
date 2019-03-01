@@ -1,7 +1,7 @@
-import Task from './task';
-import Event from '../models/event';
+import { Task } from './task';
+import { Event } from '../models/event';
 
-export default class EventRSVPTask extends Task {
+export class EventRSVPTask extends Task {
   event: Event;
   RSVPEmail: string;
   RSVPResponse: string;

@@ -1,7 +1,7 @@
-import Task from './task';
+import { Task } from './task';
 import Attributes from '../attributes';
 
-export default class GetMessageRFC2822Task extends Task {
+export class GetMessageRFC2822Task extends Task {
   static attributes = Object.assign({}, Task.attributes, {
     messageId: Attributes.String({
       modelKey: 'messageId',

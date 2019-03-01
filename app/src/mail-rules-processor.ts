@@ -1,10 +1,10 @@
 import _ from 'underscore';
 
-import Task from './flux/tasks/task';
+import { Task } from './flux/tasks/task';
 import Actions from './flux/actions';
-import Thread from './flux/models/thread';
-import Folder from './flux/models/folder';
-import Label from './flux/models/label';
+import { Thread } from './flux/models/thread';
+import { Folder } from './flux/models/folder';
+import { Label } from './flux/models/label';
 import CategoryStore from './flux/stores/category-store';
 import DatabaseStore from './flux/stores/database-store';
 import TaskQueue from './flux/stores/task-queue';
@@ -12,8 +12,8 @@ import TaskQueue from './flux/stores/task-queue';
 import { ConditionMode, ConditionTemplates } from './mail-rules-templates';
 
 import ChangeUnreadTask from './flux/tasks/change-unread-task';
-import ChangeFolderTask from './flux/tasks/change-folder-task';
-import ChangeStarredTask from './flux/tasks/change-starred-task';
+import { ChangeFolderTask } from './flux/tasks/change-folder-task';
+import { ChangeStarredTask } from './flux/tasks/change-starred-task';
 import ChangeLabelsTask from './flux/tasks/change-labels-task';
 let MailRulesStore = null;
 

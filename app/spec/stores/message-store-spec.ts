@@ -1,7 +1,7 @@
-import Thread from '../../src/flux/models/thread';
-import Folder from '../../src/flux/models/folder';
-import Label from '../../src/flux/models/label';
-import Message from '../../src/flux/models/message';
+import { Thread } from '../../src/flux/models/thread';
+import { Folder } from '../../src/flux/models/folder';
+import { Label } from '../../src/flux/models/label';
+import { Message } from '../../src/flux/models/message';
 import FocusedContentStore from '../../src/flux/stores/focused-content-store';
 import FocusedPerspectiveStore from '../../src/flux/stores/focused-perspective-store';
 import MessageStore from '../../src/flux/stores/message-store';
@@ -167,7 +167,7 @@ describe('MessageStore', function() {
       MessageStore._lastLoadedThreadId = null;
 
       this.focus = null;
-      spyOn(FocusedContentStore, 'focused').andCallFake(collection => {
+      spyOn(FocusedContentStore, 'focused').and.callFake(collection => {
         if (collection === 'thread') {
           return this.focus;
         } else {
@@ -175,7 +175,7 @@ describe('MessageStore', function() {
         }
       });
 
-      spyOn(FocusedContentStore, 'focusedId').andCallFake(collection => {
+      spyOn(FocusedContentStore, 'focusedId').and.callFake(collection => {
         if (collection === 'thread') {
           return this.focus != null ? this.focus.id : undefined;
         } else {
@@ -183,7 +183,7 @@ describe('MessageStore', function() {
         }
       });
 
-      spyOn(DatabaseStore, 'findAll').andCallFake(function() {
+      spyOn(DatabaseStore, 'findAll').and.callFake(function() {
         return {
           include() {
             return this;
@@ -220,7 +220,7 @@ describe('MessageStore', function() {
         MessageStore._onApplyFocusChange();
         testThread.unread = true;
         spyOn(Actions, 'queueTask');
-        spyOn(AppEnv.config, 'get').andCallFake(key => {
+        spyOn(AppEnv.config, 'get').and.callFake(key => {
           if (key === 'core.reading.markAsReadDelay') {
             return 600;
           }

@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom';
 
 import { localized, PropTypes, Actions, WorkspaceStore, DOMUtils } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
+import { Disposable } from 'event-kit';
 
 const TipsBackgroundEl = document.createElement('tutorial-tip-background');
 
@@ -13,11 +14,7 @@ TipsContainerEl.classList.add('tooltips-container');
 document.body.insertBefore(TipsContainerEl, document.body.children[0]);
 
 class TipsStoreCls extends MailspringStore {
-  constructor() {
-    super();
-
-    this._tipKeys = [];
-  }
+  _tipKeys = [];
 
   isTipVisible(key) {
     const seen = AppEnv.config.get('core.tutorial.seen') || [];
@@ -52,7 +49,14 @@ class TipsStoreCls extends MailspringStore {
 
 const TipsStore = new TipsStoreCls();
 
-class TipPopoverContents extends React.Component {
+interface TipPopoverContentsProps {
+  title: string;
+  tipKey: string;
+  instructions: string | React.ComponentType;
+  onDismissed: () => void;
+}
+
+class TipPopoverContents extends React.Component<TipPopoverContentsProps> {
   static propTypes = {
     title: PropTypes.string,
     tipKey: PropTypes.string,
@@ -112,12 +116,18 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
     return ComposedComponent;
   }
 
-  return class extends React.Component {
+  return class extends React.Component<{}, { visible: boolean }> {
     static displayName = ComposedComponent.displayName;
     static containerRequired = ComposedComponent.containerRequired;
     static containerStyles = ComposedComponent.containerStyles;
 
+    tipNode: HTMLElement;
+    tipAnchor: Element;
+
+    _workspaceTimer?: NodeJS.Timeout;
+    _themesTimer?: NodeJS.Timeout;
     _mounted: boolean = false;
+    _disposables: Disposable[];
     _unlisteners = [];
 
     constructor(props) {
@@ -147,7 +157,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
       // without modifying the DOM tree and messing with things like flexbox.
       // Instead, we leave render() unchanged and attach the bubble and hover
       // listeners to the DOM manually.
-      const el = ReactDOM.findDOMNode(this);
+      const el = ReactDOM.findDOMNode(this) as HTMLElement;
 
       this.tipNode = document.createElement('div');
       this.tipNode.classList.add('tutorial-tip');
@@ -219,7 +229,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
 
       const tipRect = this.tipNode.getBoundingClientRect();
       const tipFocusCircleRadius = 64;
-      const rect = ReactDOM.findDOMNode(this).getBoundingClientRect();
+      const rect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
       if (rect.width > 250 || rect.height > 250) {
         // Focus the gradient on the center of the pusling dot because the element is too large
         const rectCX = Math.round(tipRect.left + tipRect.width / 2 - tipFocusCircleRadius);
@@ -251,7 +261,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
 
     _onRecomputeTooltipPosition = () => {
       if (!this._mounted) return;
-      const el = ReactDOM.findDOMNode(this);
+      const el = ReactDOM.findDOMNode(this) as HTMLElement;
       let settled = 0;
       let last = {};
       const attempt = () => {

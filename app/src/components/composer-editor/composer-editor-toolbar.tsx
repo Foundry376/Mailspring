@@ -1,7 +1,19 @@
 import React from 'react';
 
-export default class ComposerEditorToolbar extends React.Component {
+interface ComposerEditorToolbarProps {
+  value;
+  onChange;
+  plugins;
+}
+
+export default class ComposerEditorToolbar extends React.Component<
+  ComposerEditorToolbarProps,
+  { visible: boolean }
+> {
   _mounted: boolean = false;
+  _topClip: number = 0;
+  _el: HTMLElement;
+  _floatingEl: HTMLElement;
 
   constructor(props) {
     super(props);
@@ -15,7 +27,7 @@ export default class ComposerEditorToolbar extends React.Component {
       if (!this._mounted) return;
       this.setState({ visible: true }, () => {
         if (!this._mounted) return;
-        for (const el of document.querySelectorAll('.scroll-region-content')) {
+        for (const el of Array.from(document.querySelectorAll('.scroll-region-content'))) {
           el.addEventListener('scroll', this._onScroll);
         }
 
@@ -40,7 +52,7 @@ export default class ComposerEditorToolbar extends React.Component {
 
   componentWillUnmount() {
     this._mounted = false;
-    for (const el of document.querySelectorAll('.scroll-region-content')) {
+    for (const el of Array.from(document.querySelectorAll('.scroll-region-content'))) {
       el.removeEventListener('scroll', this._onScroll);
     }
   }

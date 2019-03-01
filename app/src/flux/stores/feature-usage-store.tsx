@@ -4,7 +4,7 @@ import MailspringStore from 'mailspring-store';
 import { FeatureUsedUpModal } from 'mailspring-component-kit';
 import Actions from '../actions';
 import IdentityStore from './identity-store';
-import SendFeatureUsageEventTask from '../tasks/send-feature-usage-event-task';
+import { SendFeatureUsageEventTask } from '../tasks/send-feature-usage-event-task';
 import { localized } from '../../intl';
 
 class NoProAccessError extends Error {}

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
 import { Rx, SyncbackDraftTask } from 'mailspring-exports';
-import Task from '../tasks/task';
+import { Task } from '../tasks/task';
 import DatabaseStore from './database-store';
 
 /*
@@ -51,7 +51,9 @@ class TaskQueue extends MailspringStore {
 
   constructor() {
     super();
-    Rx.Observable.fromQuery(DatabaseStore.findAll(Task)).subscribe(this._onQueueChangedDebounced);
+    Rx.Observable.fromQuery(DatabaseStore.findAll<Task>(Task)).subscribe(
+      this._onQueueChangedDebounced
+    );
   }
 
   _onQueueChangedDebounced = _.throttle(tasks => {

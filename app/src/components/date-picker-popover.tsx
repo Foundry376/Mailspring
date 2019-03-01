@@ -6,12 +6,12 @@ import Menu from './menu';
 const { DATE_FORMAT_SHORT, DATE_FORMAT_LONG } = DateUtils;
 
 type DatePickerPopoverProps = {
-  className?: string,
-  footer?: React.ReactNode,
-  onSelectDate?: (...args: any[]) => any,
-  header: React.ReactNode,
-  dateOptions: object,
-  shouldSelectDateWhenInterpreted?: boolean
+  className?: string;
+  footer?: React.ReactNode;
+  onSelectDate?: (...args: any[]) => any;
+  header: React.ReactNode;
+  dateOptions: object;
+  shouldSelectDateWhenInterpreted?: boolean;
 };
 
 class DatePickerPopover extends Component<DatePickerPopoverProps> {
@@ -20,6 +20,9 @@ class DatePickerPopover extends Component<DatePickerPopoverProps> {
   static defaultProps = {
     shouldSelectDateWhenInterpreted: false,
   };
+
+  private _dateInputComponent: DateInput;
+  private _menuComponent: Menu;
 
   onEscape() {
     Actions.closePopover();
@@ -71,7 +74,7 @@ class DatePickerPopover extends Component<DatePickerPopoverProps> {
   render() {
     const { className, header, footer, dateOptions } = this.props;
 
-    let footerComponents = [
+    let footerComponents: React.ReactNode[] = [
       <div key="divider" className="divider" />,
       <DateInput
         ref={cm => {

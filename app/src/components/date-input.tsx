@@ -90,7 +90,7 @@ class DateInput extends Component<DateInputProps, DateInputState> {
     return (
       <div className={classes}>
         <input
-          tabIndex="1"
+          tabIndex={1}
           type="text"
           value={inputValue}
           placeholder={localized("Or, 'next Monday at 2PM'")}

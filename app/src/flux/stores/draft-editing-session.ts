@@ -5,7 +5,7 @@ import RegExpUtils from '../../regexp-utils';
 import { localized } from '../../intl';
 
 import TaskQueue from './task-queue';
-import Message from '../models/message';
+import { Message } from '../models/message';
 import * as Utils from '../models/utils';
 import Actions from '../actions';
 import AccountStore from './account-store';
@@ -211,7 +211,7 @@ export default class DraftEditingSession extends MailspringStore {
       this._draft = draft;
       this._draftPromise = Promise.resolve(draft);
     } else {
-      this._draftPromise = DatabaseStore.findBy(Message, {
+      this._draftPromise = DatabaseStore.findBy<Message>(Message, {
         headerMessageId: this.headerMessageId,
         draft: true,
       })

@@ -2,10 +2,12 @@ import React from 'react';
 import {
   localized,
   IdentityStore,
+  Contact,
   FeatureUsageStore,
   PropTypes,
   DOMUtils,
   RegExpUtils,
+  Thread,
   Utils,
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
@@ -14,11 +16,13 @@ import moment from 'moment-timezone';
 
 import ParticipantProfileDataSource from './participant-profile-data-source';
 
-class TimeInTimezone extends React.Component {
+class TimeInTimezone extends React.Component<{ timeZone: string }, { tick: number }> {
   constructor(props) {
     super(props);
     this.state = { tick: 0 };
   }
+
+  _timer: NodeJS.Timer;
 
   componentDidMount() {
     this.scheduleTick();
@@ -45,7 +49,11 @@ class TimeInTimezone extends React.Component {
     );
   }
 }
-class ProfilePictureOrColorBox extends React.Component {
+class ProfilePictureOrColorBox extends React.Component<{
+  contact: Contact;
+  loading: boolean;
+  avatar: string;
+}> {
   static propTypes = {
     loading: PropTypes.bool,
     contact: PropTypes.object,
@@ -96,7 +104,7 @@ class ProfilePictureOrColorBox extends React.Component {
     );
   }
 }
-class SocialProfileLink extends React.Component {
+class SocialProfileLink extends React.Component<{ handle: string; service: string }> {
   static propTypes = {
     service: PropTypes.string,
     handle: PropTypes.string,
@@ -123,7 +131,7 @@ class SocialProfileLink extends React.Component {
   }
 }
 
-class TextBlockWithAutolinkedElements extends React.Component {
+class TextBlockWithAutolinkedElements extends React.Component<{ text: string; className: string }> {
   static propTypes = {
     className: PropTypes.string,
     text: PropTypes.string,
@@ -161,7 +169,7 @@ class TextBlockWithAutolinkedElements extends React.Component {
   }
 }
 
-class IconRow extends React.Component {
+class IconRow extends React.Component<{ node: React.ReactChild; icon: string }> {
   static propTypes = {
     node: PropTypes.node,
     icon: PropTypes.string,
@@ -188,7 +196,7 @@ class IconRow extends React.Component {
   }
 }
 
-class LocationRow extends React.Component {
+class LocationRow extends React.Component<{ location: string }> {
   static propTypes = {
     location: PropTypes.string,
   };
@@ -214,7 +222,62 @@ class LocationRow extends React.Component {
   }
 }
 
-export default class SidebarParticipantProfile extends React.Component {
+interface SidebarParticipantProfileProps {
+  contact: Contact;
+  contactThreads: Thread[];
+}
+
+interface SidebarParticipantProfileState {
+  trialing: boolean;
+  loading: boolean;
+  loaded: boolean;
+  avatar?: string;
+  company?: ICompany;
+  person?: IPerson;
+}
+
+interface ICompany {
+  name: string;
+  domain: string;
+  category?: {
+    industry?: string;
+    sector?: string;
+  };
+  description: string;
+  location: string;
+  timeZone: string;
+  logo: string;
+  facebook?: { handle: string };
+  twitter?: { handle: string };
+  linkedin?: { handle: string };
+  crunchbase?: { handle: string };
+  type: string;
+  ticker: string;
+  phone: string;
+  metrics: {
+    raised?: string;
+    marketCap?: string;
+    employees?: string;
+    employeesRange?: string;
+  };
+}
+
+interface IPerson {
+  facebook?: { handle: string };
+  twitter?: { handle: string };
+  linkedin?: { handle: string };
+  employment?: {
+    title: string;
+    name: string;
+  };
+  location?: string;
+  bio?: string;
+}
+
+export default class SidebarParticipantProfile extends React.Component<
+  SidebarParticipantProfileProps,
+  SidebarParticipantProfileState
+> {
   static displayName = 'SidebarParticipantProfile';
 
   static propTypes = {
@@ -228,16 +291,15 @@ export default class SidebarParticipantProfile extends React.Component {
 
   _mounted: boolean = false;
 
+  state: SidebarParticipantProfileState = {
+    trialing: !IdentityStore.hasProFeatures(),
+    loading: IdentityStore.hasProFeatures(),
+    loaded: false,
+  };
+
   constructor(props) {
     super(props);
 
-    const trialing = !IdentityStore.hasProFeatures();
-
-    this.state = {
-      trialing,
-      loaded: false,
-      loading: !trialing,
-    };
     const contactState = ParticipantProfileDataSource.getCache(props.contact.email);
     if (contactState) {
       this.state = Object.assign(this.state, { loaded: true }, contactState);
@@ -325,6 +387,10 @@ export default class SidebarParticipantProfile extends React.Component {
   }
 
   _renderCompanyInfo() {
+    if (!this.state.company || !this.state.company.name) {
+      return;
+    }
+
     const {
       name,
       domain,
@@ -341,25 +407,24 @@ export default class SidebarParticipantProfile extends React.Component {
       ticker,
       phone,
       metrics,
-    } =
-      this.state.company || {};
-
-    if (!name) {
-      return;
-    }
+    } = this.state.company;
 
     let employees = null;
     let funding = null;
 
     if (metrics) {
       if (metrics.raised) {
-        funding = `${localized(`Raised`)} ${(metrics.raised / 1 || 0).toLocaleString()}`;
+        funding = `${localized(`Raised`)} ${(Number(metrics.raised) || 0).toLocaleString()}`;
       } else if (metrics.marketCap) {
-        funding = `${localized(`Market Cap`)} $${(metrics.marketCap / 1 || 0).toLocaleString()}`;
+        funding = `${localized(`Market Cap`)} $${(
+          Number(metrics.marketCap) || 0
+        ).toLocaleString()}`;
       }
 
       if (metrics.employees) {
-        employees = `${(metrics.employees / 1 || 0).toLocaleString()} ${localized(`employees`)}`;
+        employees = `${(Number(metrics.employees) || 0).toLocaleString()} ${localized(
+          `employees`
+        )}`;
       } else if (metrics.employeesRange) {
         employees = `${metrics.employeesRange} ${localized(`employees`)}`;
       }
@@ -421,7 +486,8 @@ export default class SidebarParticipantProfile extends React.Component {
   }
 
   _renderPersonInfo() {
-    const { facebook, linkedin, twitter, employment, location, bio } = this.state.person || {};
+    const { facebook, linkedin, twitter, employment, location, bio } =
+      this.state.person || ({} as IPerson);
 
     return (
       <div className="participant-profile">

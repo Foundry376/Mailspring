@@ -7,13 +7,15 @@ import ScrollbarTicks from './scrollbar-ticks';
 
 type Ticks = Array<number | { percent: number; className: string }>;
 
+type ScrollTooltipComponent = React.ComponentType<{ viewportCenter: number; totalHeight: number }>;
+
 interface TicksProvider {
   scrollbarTicks: () => Ticks;
   listen: (callback: (Ticks) => void) => () => void;
 }
 
 type ScrollbarProps = {
-  scrollTooltipComponent?: (...args: any[]) => any;
+  scrollTooltipComponent?: ScrollTooltipComponent;
   scrollbarTickProvider?: TicksProvider;
   getScrollRegion?: (...args: any[]) => any;
 };
@@ -218,7 +220,7 @@ type ScrollRegionProps = {
   onScroll?: (...args: any[]) => any;
   onScrollEnd?: (...args: any[]) => any;
   className?: string;
-  scrollTooltipComponent?: (...args: any[]) => any;
+  scrollTooltipComponent?: ScrollTooltipComponent;
   scrollbarTickProvider?: TicksProvider;
   getScrollbar?: (...args: any[]) => any;
 };
@@ -237,10 +239,25 @@ interface ScrollToOptions {
   done?: () => any;
 }
 
+export enum ScrollPosition {
+  // Scroll so that the desired region is at the top of the viewport
+  Top = 'Top',
+  // Scroll so that the desired region is at the bottom of the viewport
+  Bottom = 'Bottom',
+  // Scroll so that the desired region is visible in the viewport, with the
+  // least movement possible.
+  Visible = 'Visible',
+  // Scroll so that the desired region is centered in the viewport
+  Center = 'Center',
+  // Scroll so that the desired region is centered in the viewport, only if it
+  // is currently not visible
+  CenterIfInvisible = 'CenterIfInvisible',
+}
+
 /*
 The ScrollRegion component attaches a custom scrollbar.
 */
-class ScrollRegion extends React.Component<
+export class ScrollRegion extends React.Component<
   ScrollRegionProps & React.HTMLProps<HTMLDivElement>,
   ScrollRegionState
 > {
@@ -256,23 +273,9 @@ class ScrollRegion extends React.Component<
     getScrollbar: PropTypes.func,
   };
 
+  static ScrollPosition = ScrollPosition;
   // Concept from https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UITableView_Class/#//apple_ref/c/tdef/UITableViewScrollPosition
   static Scrollbar = Scrollbar;
-
-  static ScrollPosition = {
-    // Scroll so that the desired region is at the top of the viewport
-    Top: 'Top',
-    // Scroll so that the desired region is at the bottom of the viewport
-    Bottom: 'Bottom',
-    // Scroll so that the desired region is visible in the viewport, with the
-    // least movement possible.
-    Visible: 'Visible',
-    // Scroll so that the desired region is centered in the viewport
-    Center: 'Center',
-    // Scroll so that the desired region is centered in the viewport, only if it
-    // is currently not visible
-    CenterIfInvisible: 'CenterIfInvisible',
-  };
 
   _mounted: boolean = false;
   _scrollToTaskId = 0;
@@ -537,5 +540,3 @@ class ScrollRegion extends React.Component<
     return this;
   };
 }
-
-export default ScrollRegion;

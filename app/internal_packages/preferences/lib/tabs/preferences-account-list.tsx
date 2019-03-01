@@ -4,7 +4,16 @@ import { RetinaImg, Flexbox, EditableList } from 'mailspring-component-kit';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
 
-class PreferencesAccountList extends Component {
+interface PreferencesAccountListProps {
+  accounts: Account[];
+  selected: Account;
+  onAddAccount: () => void;
+  onReorderAccount: (account: Account, oldIndex: number, newIndex: number) => void;
+  onSelectAccount: (account: Account) => void;
+  onRemoveAccount: (account: Account) => void;
+}
+
+class PreferencesAccountList extends Component<PreferencesAccountListProps> {
   static propTypes = {
     accounts: PropTypes.array,
     selected: PropTypes.object,

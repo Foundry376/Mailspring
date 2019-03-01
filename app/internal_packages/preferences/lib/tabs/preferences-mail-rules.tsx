@@ -20,16 +20,22 @@ import {
 
 const { ActionTemplatesForAccount, ConditionTemplatesForAccount } = MailRulesTemplates;
 
-class PreferencesMailRules extends React.Component {
+interface MailRule {}
+
+class PreferencesMailRules extends React.Component<
+  {},
+  { currentAccount: Account; rules: MailRule[]; selectedRule: MailRule }
+> {
   static displayName = 'PreferencesMailRules';
 
-  constructor() {
-    super();
+  _unsubscribers = [];
+
+  constructor(props) {
+    super(props);
     this.state = this._getStateFromStores();
   }
 
   componentDidMount() {
-    this._unsubscribers = [];
     this._unsubscribers.push(MailRulesStore.listen(this._onRulesChanged));
   }
 

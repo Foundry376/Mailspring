@@ -14,7 +14,7 @@ class ComponentRegistry extends MailspringStore {
       modes?: string[];
       locations?: string[];
       roles?: string[];
-      component: React.Component;
+      component: React.ComponentType;
     };
   } = {};
   _cache = {};

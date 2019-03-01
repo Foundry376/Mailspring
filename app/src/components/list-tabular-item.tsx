@@ -1,12 +1,18 @@
 import SwipeContainer from './swipe-container';
 import React from 'react';
 import { PropTypes, Utils } from 'mailspring-exports';
+import { ListTabularColumn } from './list-tabular';
 
 type ListTabularItemProps = {
-  metrics?: object;
-  columns: object[];
+  metrics?: {
+    top: number;
+    height: number;
+  };
+  columns: ListTabularColumn[];
   item: object;
-  itemProps?: object;
+  itemProps?: {
+    className?: string;
+  };
   onSelect?: (...args: any[]) => any;
   onClick?: (...args: any[]) => any;
   onDoubleClick?: (...args: any[]) => any;
@@ -23,6 +29,9 @@ export default class ListTabularItem extends React.Component<ListTabularItemProp
     onClick: PropTypes.func,
     onDoubleClick: PropTypes.func,
   };
+
+  _columnCache: JSX.Element[] | null = null;
+  _lastClickTime: number;
 
   // DO NOT DELETE unless you know what you're doing! This method cuts
   // React.Perf.wasted-time from ~300msec to 20msec by doing a deep

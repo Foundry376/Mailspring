@@ -1,7 +1,18 @@
 import React, { Component } from 'react';
 import { TokenAndTermRegexp } from './search-bar-util';
 
-export default class TokenizingContenteditable extends Component {
+interface TokenizingContenteditableProps {
+  value: string;
+  onChange: (value: string) => void;
+  onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => void;
+  onFocus: (event: React.FocusEvent<HTMLDivElement>) => void;
+  onBlur: (event: React.FocusEvent<HTMLDivElement>) => void;
+}
+
+export default class TokenizingContenteditable extends Component<TokenizingContenteditableProps> {
+  _textEl: HTMLDivElement;
+  _tokensEl: HTMLDivElement;
+
   shouldComponentUpdate(nextProps) {
     if (nextProps.value !== this._textEl.innerText.replace(/\s/g, ' ')) {
       this._textEl.innerHTML = nextProps.value.replace(/\s/g, '&nbsp;');
@@ -93,8 +104,8 @@ export default class TokenizingContenteditable extends Component {
 
     if (document.activeElement === this._textEl) {
       const sel = window.getSelection();
-      const x = sel.getRangeAt(0).getBoundingClientRect().x;
-      const parent = this._textEl.parentNode;
+      const x = (sel.getRangeAt(0).getBoundingClientRect() as DOMRect).x;
+      const parent = this._textEl.parentNode as HTMLElement;
       const w = parent.getBoundingClientRect().width;
       if (x > w) {
         parent.scrollLeft += x - w;

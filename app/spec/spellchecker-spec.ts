@@ -8,11 +8,11 @@ describe('Spellchecker', function spellcheckerTests() {
     // rely on this method
     expect(Spellchecker.handler.handleElectronSpellCheck).toBeDefined();
     this.customDict = '{}';
-    spyOn(fs, 'writeFile').andCallFake((path, customDict, cb) => {
+    spyOn(fs, 'writeFile').and.callFake((path, customDict, cb) => {
       this.customDict = customDict;
       cb();
     });
-    spyOn(fs, 'readFile').andCallFake((path, cb) => {
+    spyOn(fs, 'readFile').and.callFake((path, cb) => {
       cb(null, this.customDict);
     });
     // Apparently handleElectronSpellCheck returns !misspelled

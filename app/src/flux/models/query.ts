@@ -2,7 +2,7 @@
 import Attributes from '../attributes';
 import QueryRange from './query-range';
 import * as Utils from './utils';
-import Model from './model';
+import { Model } from './model';
 
 const { Matcher, AttributeJoinedData, AttributeCollection } = Attributes;
 
@@ -27,7 +27,7 @@ query.then((thread) => ...
 **Advanced Example:** Fetch 50 threads in the inbox, in descending order
 
 ```javascript
-query = DatabaseStore.findAll(Thread)
+query = DatabaseStore.findAll<Thread>(Thread)
 query.where([Thread.attributes.categories.contains('label-id')])
      .order([Thread.attributes.lastMessageReceivedTimestamp.descending()])
      .limit(100).offset(50)

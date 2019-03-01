@@ -26,7 +26,7 @@ export default class QuickEventPopover extends React.Component {
   };
 
   createEvent = async ({ leftoverText, start, end }) => {
-    const allCalendars = await DatabaseStore.findAll(Calendar);
+    const allCalendars = await DatabaseStore.findAll<Calendar>(Calendar);
     if (allCalendars.length === 0) {
       throw new Error("Can't create an event, you have no calendars");
     }
@@ -78,7 +78,7 @@ export default class QuickEventPopover extends React.Component {
     return (
       <div className="quick-event-popover nylas-date-input">
         <input
-          tabIndex="0"
+          tabIndex={0}
           type="text"
           placeholder="Coffee next Monday at 9AM'"
           onKeyDown={this.onInputKeyDown}

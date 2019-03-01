@@ -1,6 +1,6 @@
 const MultiselectListInteractionHandler = require('../../src/components/multiselect-list-interaction-handler');
 import WorkspaceStore from '../../src/flux/stores/workspace-store';
-import Thread from '../../src/flux/models/thread';
+import { Thread } from '../../src/flux/models/thread';
 import _ from 'underscore';
 
 describe('MultiselectListInteractionHandler', function() {
@@ -53,7 +53,7 @@ describe('MultiselectListInteractionHandler', function() {
     this.isRootSheet = true;
     this.handler = new MultiselectListInteractionHandler(this.props);
 
-    spyOn(WorkspaceStore, 'topSheet').andCallFake(() => ({ root: this.isRootSheet }));
+    spyOn(WorkspaceStore, 'topSheet').and.callFake(() => ({ root: this.isRootSheet }));
   });
 
   it('should never show focus', function() {

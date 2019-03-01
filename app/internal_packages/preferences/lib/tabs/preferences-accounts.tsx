@@ -1,14 +1,21 @@
 import React from 'react';
 import { ipcRenderer } from 'electron';
-import { AccountStore, Actions } from 'mailspring-exports';
+import { AccountStore, Actions, Account } from 'mailspring-exports';
 import PreferencesAccountList from './preferences-account-list';
 import PreferencesAccountDetails from './preferences-account-details';
 
-class PreferencesAccounts extends React.Component {
+interface PreferencesAccountsState {
+  accounts: Account[];
+  selected: Account;
+}
+
+class PreferencesAccounts extends React.Component<{}, PreferencesAccountsState> {
   static displayName = 'PreferencesAccounts';
 
-  constructor() {
-    super();
+  unsubscribe: () => void;
+
+  constructor(props) {
+    super(props);
     this.state = this.getStateFromStores();
   }
 
@@ -22,7 +29,7 @@ class PreferencesAccounts extends React.Component {
     }
   }
 
-  getStateFromStores({ selected } = {}) {
+  getStateFromStores({ selected }: { selected?: Account } = {}) {
     const accounts = AccountStore.accounts();
     let selectedAccount;
     if (selected) {
@@ -48,20 +55,20 @@ class PreferencesAccounts extends React.Component {
     ipcRenderer.send('command', 'application:add-account');
   }
 
-  _onReorderAccount(account, oldIdx, newIdx) {
+  _onReorderAccount(account: Account, oldIdx: number, newIdx: number) {
     Actions.reorderAccount(account.id, newIdx);
   }
 
-  _onSelectAccount = account => {
+  _onSelectAccount = (account: Account) => {
     this.setState({ selected: account });
   };
 
-  _onRemoveAccount(account) {
+  _onRemoveAccount(account: Account) {
     Actions.removeAccount(account.id);
   }
 
   // Update account actions
-  _onAccountUpdated(account, updates) {
+  _onAccountUpdated(account: Account, updates: Partial<Account>) {
     Actions.updateAccount(account.id, updates);
   }
 

@@ -5,7 +5,8 @@ import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
 import KeyManager from '../../key-manager';
 import Actions from '../actions';
-import Account from '../models/account';
+import { Account } from '../models/account';
+import { Thread } from '../models/thread';
 import * as Utils from '../models/utils';
 
 const configAccountsKey = 'accounts';
@@ -60,12 +61,10 @@ class AccountStore extends MailspringStore {
     });
   }
 
-  isMyEmail(emailOrEmails = []) {
+  isMyEmail(emailOrEmails: string | string[] = []) {
     const myEmails = this.emailAddresses();
-    let emails = emailOrEmails;
-    if (typeof emails === 'string') {
-      emails = [emailOrEmails];
-    }
+    const emails = typeof emailOrEmails === 'string' ? [emailOrEmails] : emailOrEmails;
+
     for (const email of emails) {
       if (myEmails.find(myEmail => Utils.emailIsEquivalent(myEmail, email))) {
         return true;
@@ -246,9 +245,9 @@ class AccountStore extends MailspringStore {
     this._save();
   };
 
-  _cachedGetter(key, fn) {
+  _cachedGetter<T>(key: string, fn: () => T) {
     this._caches[key] = this._caches[key] || fn();
-    return this._caches[key];
+    return this._caches[key] as T;
   }
 
   // Public: Returns an {Array} of {Account} objects
@@ -260,15 +259,15 @@ class AccountStore extends MailspringStore {
     return this._accounts.map(a => a.id);
   };
 
-  accountsForItems = items => {
-    const accounts = {};
+  accountsForItems = (items: Thread[]) => {
+    const accounts: { [id: string]: Account } = {};
     items.forEach(({ accountId }) => {
       accounts[accountId] = accounts[accountId] || this.accountForId(accountId);
     });
     return _.compact(Object.values(accounts));
   };
 
-  accountForItems = items => {
+  accountForItems = (items: Thread[]) => {
     const accounts = this.accountsForItems(items);
     if (accounts.length > 1) {
       return null;
@@ -277,7 +276,7 @@ class AccountStore extends MailspringStore {
   };
 
   // Public: Returns the {Account} for the given email address, or null.
-  accountForEmail = email => {
+  accountForEmail = (email: string) => {
     for (const account of this.accounts()) {
       if (Utils.emailIsEquivalent(email, account.emailAddress)) {
         return account;
@@ -292,7 +291,7 @@ class AccountStore extends MailspringStore {
   };
 
   // Public: Returns the {Account} for the given account id, or null.
-  accountForId(id) {
+  accountForId(id: string) {
     return this._cachedGetter(`accountForId:${id}`, () => this._accounts.find(a => a.id === id));
   }
 
@@ -317,7 +316,7 @@ class AccountStore extends MailspringStore {
     });
   }
 
-  aliasesFor(accountsOrIds) {
+  aliasesFor(accountsOrIds: Array<Account | string>) {
     const ids = accountsOrIds.map(accOrId => {
       return accOrId instanceof Account ? accOrId.id : accOrId;
     });

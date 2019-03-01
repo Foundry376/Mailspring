@@ -1,4 +1,4 @@
-import Event from '../../src/flux/models/event';
+import { Event } from '../../src/flux/models/event';
 
 const json_event = {
   __cls: 'Event',

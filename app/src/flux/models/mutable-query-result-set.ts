@@ -1,6 +1,6 @@
 import QueryResultSet from './query-result-set';
 import AttributeJoinedData from '../attributes/attribute-joined-data';
-import Model from './model';
+import { Model } from './model';
 import ModelQuery from './query';
 
 // TODO: Make mutator methods QueryResultSet.join(), QueryResultSet.clip...
@@ -10,7 +10,7 @@ export default class MutableQueryResultSet extends QueryResultSet {
   _modelsHash: { [id: string]: Model };
   _idToIndexHash: { [id: string]: number };
   _query: ModelQuery;
-  
+
   immutableClone() {
     const set = new QueryResultSet({
       _ids: [].concat(this._ids),

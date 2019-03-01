@@ -19,7 +19,7 @@ parent component.
 
 Section: Component Kit
 */
-class Spinner extends React.Component<SpinnerProps, SpinnerState> {
+export class Spinner extends React.Component<SpinnerProps, SpinnerState> {
   /*
     Public: React `props` supported by Spinner:
 
@@ -157,5 +157,3 @@ class Spinner extends React.Component<SpinnerProps, SpinnerState> {
     );
   }
 }
-
-export default Spinner;

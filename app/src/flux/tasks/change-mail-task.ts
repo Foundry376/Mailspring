@@ -1,7 +1,7 @@
-import Task from './task';
+import { Task } from './task';
 import Attributes from '../attributes';
-import Thread from '../models/thread';
-import Message from '../models/message';
+import { Thread } from '../models/thread';
+import { Message } from '../models/message';
 
 /*
 Public: The ChangeMailTask is a base class for all tasks that modify sets
@@ -12,7 +12,7 @@ Subclasses implement {ChangeMailTask::changesToModel} and
 they provide, and override {ChangeMailTask::performLocal} to perform
 additional consistency checks.
 */
-export default class ChangeMailTask extends Task {
+export class ChangeMailTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
     taskDescription: Attributes.String({
       modelKey: 'taskDescription',

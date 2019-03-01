@@ -6,7 +6,7 @@ import LRU from 'lru-cache';
 import Sqlite3 from 'better-sqlite3';
 import { remote, EventEmitter } from 'electron';
 import { ExponentialBackoffScheduler } from '../../backoff-schedulers';
-import Model from '../models/model';
+import { Model } from '../models/model';
 import MailspringStore from '../../global/mailspring-store';
 import * as Utils from '../models/utils';
 import Query from '../models/query';
@@ -396,7 +396,7 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  find(klass, id) {
+  find<T extends Model>(klass, id) {
     if (!klass) {
       throw new Error(`DatabaseStore::find - You must provide a class`);
     }
@@ -405,7 +405,7 @@ class DatabaseStore extends MailspringStore {
         `DatabaseStore::find - You must provide a string id. You may have intended to use findBy.`
       );
     }
-    return new Query(klass, this).where({ id }).one();
+    return new Query<T>(klass, this).where({ id }).one();
   }
 
   // Public: Creates a new Model Query for retrieving a single model matching the
@@ -417,7 +417,7 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  findBy<T>(klass, predicates: any[] | any = []): Query<T> {
+  findBy<T extends Model>(klass, predicates: any[] | any = []): Query<T> {
     if (!klass) {
       throw new Error(`DatabaseStore::findBy - You must provide a class`);
     }
@@ -433,7 +433,7 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  findAll<T>(klass, predicates: any[] | any = []) {
+  findAll<T extends Model>(klass, predicates: any[] | any = []) {
     if (!klass) {
       throw new Error(`DatabaseStore::findAll - You must provide a class`);
     }
@@ -449,7 +449,7 @@ class DatabaseStore extends MailspringStore {
   //
   // Returns a {Query}
   //
-  count<T>(klass, predicates = []) {
+  count<T extends Model>(klass, predicates = []) {
     if (!klass) {
       throw new Error(`DatabaseStore::count - You must provide a class`);
     }
@@ -465,9 +465,9 @@ class DatabaseStore extends MailspringStore {
   // - \`class\` The {Model} class desired.
   // - 'arr' An {Array} with a mix of string model IDs and/or models.
   //
-  modelify(klass, arr) {
+  modelify<T extends Model>(klass, arr: Array<T | string>): Promise<T[]> {
     if (!(arr instanceof Array) || arr.length === 0) {
-      return Promise.resolve([]);
+      return Promise.resolve([]) as any;
     }
 
     const ids = [];
@@ -481,20 +481,20 @@ class DatabaseStore extends MailspringStore {
       }
     }
     if (ids.length === 0) {
-      return Promise.resolve(arr);
+      return Promise.resolve(arr) as any;
     }
 
-    return this.findAll<Model>(klass)
+    return this.findAll<T>(klass)
       .where(klass.attributes.id.in(ids))
       .markNotBackgroundable()
-      .then(modelsFromIds => {
-        const modelsByString = {};
+      .then((modelsFromIds: T[]) => {
+        const modelsByString: { [id: string]: T } = {};
         for (const model of modelsFromIds) {
           modelsByString[model.id] = model;
         }
         return Promise.resolve(
-          arr.map(item => (item instanceof klass ? item : modelsByString[item]))
-        );
+          arr.map(item => (item instanceof klass ? item : modelsByString[item as any]))
+        ) as any;
       });
   }
 
@@ -505,7 +505,7 @@ class DatabaseStore extends MailspringStore {
   // Returns a {Promise} that
   //   - resolves with the result of the database query.
   //
-  run<T>(modelQuery: Query<T>, options = { format: true }): Promise<T> {
+  run<T extends Model>(modelQuery: Query<T>, options = { format: true }): Promise<T> {
     return this._query(modelQuery.sql(), [], modelQuery._background).then(result => {
       let transformed = modelQuery.inflateResult(result);
       if (options.format !== false) {

@@ -89,7 +89,7 @@ const MessageItemBody = proxyquire('../lib/message-item-body', {
 
 xdescribe('MessageItem', function() {
   beforeEach(function() {
-    spyOn(AttachmentStore, 'pathForFile').andCallFake(function(f) {
+    spyOn(AttachmentStore, 'pathForFile').and.callFake(function(f) {
       if (f.id === file.id) {
         return '/fake/path.png';
       }
@@ -101,7 +101,7 @@ xdescribe('MessageItem', function() {
       }
       return null;
     });
-    spyOn(MessageBodyProcessor, '_addToCache').andCallFake(function() {});
+    spyOn(MessageBodyProcessor, '_addToCache').and.callFake(function() {});
 
     this.downloads = {
       file_1_id: download,

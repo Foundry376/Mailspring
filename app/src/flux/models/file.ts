@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import path from 'path';
-import Model from './model';
+import { Model } from './model';
 import Attributes from '../attributes';
 import { localized } from '../../intl';
 import RegExpUtils from '../../regexp-utils';
@@ -23,7 +23,7 @@ This class also inherits attributes from {Model}
 
 Section: Models
 */
-export default class File extends Model {
+export class File extends Model {
   static attributes = Object.assign({}, Model.attributes, {
     filename: Attributes.String({
       modelKey: 'filename',

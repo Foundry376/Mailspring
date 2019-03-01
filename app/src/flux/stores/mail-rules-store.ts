@@ -2,8 +2,8 @@ import MailspringStore from 'mailspring-store';
 import _ from 'underscore';
 import * as Utils from '../models/utils';
 import Actions from '../actions';
-import Thread from '../models/thread';
-import Message from '../models/message';
+import { Thread } from '../models/thread';
+import { Message } from '../models/message';
 import DatabaseStore from '../stores/database-store';
 import CategoryStore from '../stores/category-store';
 import MailRulesProcessor from '../../mail-rules-processor';
@@ -199,7 +199,7 @@ class MailRulesStore extends MailspringStore {
 
     // Note that we look for "50 after X" rather than "offset 150", because
     // running mail rules can move things out of the inbox!
-    const query = DatabaseStore.findAll(Thread, { accountId })
+    const query = DatabaseStore.findAll<Thread>(Thread, { accountId })
       .where(Thread.attributes.categories.contains(inboxCategoryId))
       .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
       .limit(50);
@@ -217,7 +217,7 @@ class MailRulesStore extends MailspringStore {
         return;
       }
 
-      DatabaseStore.findAll(Message, {
+      DatabaseStore.findAll<Message>(Message, {
         threadId: threads.map(t => t.id),
       }).then(messages => {
         if (!this._reprocessing[accountId]) {

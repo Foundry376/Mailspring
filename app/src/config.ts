@@ -427,7 +427,7 @@ export default class Config {
   //
   // Returns the value from N1's default settings, the user's configuration
   // file in the type specified by the configuration schema.
-  get(keyPath: string) {
+  get(keyPath?: string) {
     return this.getRawValue(keyPath);
   }
 
@@ -605,7 +605,7 @@ export default class Config {
     this.emitChangeEvent();
   };
 
-  getRawValue(keyPath) {
+  getRawValue(keyPath?: string) {
     let value = valueForKeyPath(this.settings, keyPath);
     const defaultValue = valueForKeyPath(this.defaultSettings, keyPath);
 
@@ -621,7 +621,7 @@ export default class Config {
     return value;
   }
 
-  onDidChangeKeyPath(keyPath, callback) {
+  onDidChangeKeyPath(keyPath: string, callback) {
     let oldValue = this.get(keyPath);
     return this.emitter.on('did-change', () => {
       const newValue = this.get(keyPath);
@@ -633,7 +633,7 @@ export default class Config {
     });
   }
 
-  isSubKeyPath(keyPath, subKeyPath) {
+  isSubKeyPath(keyPath?: string, subKeyPath?: string) {
     if (keyPath == null || subKeyPath == null) {
       return false;
     }
@@ -647,7 +647,7 @@ export default class Config {
     this.emitChangeEvent();
   }
 
-  setDefaults(keyPath, defaults) {
+  setDefaults(keyPath: string, defaults) {
     if (defaults != null && isPlainObject(defaults)) {
       const keys = splitKeyPath(keyPath);
       for (let key in defaults) {

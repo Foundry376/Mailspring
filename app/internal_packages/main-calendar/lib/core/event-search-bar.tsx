@@ -31,7 +31,7 @@ class EventSearchBar extends Component {
       this.onClearSearchSuggestions();
       return;
     }
-    let dbQuery = DatabaseStore.findAll(Event).distinct(); // eslint-disable-line
+    let dbQuery = DatabaseStore.findAll<Event>(Event).distinct(); // eslint-disable-line
     if (disabledCalendars.length > 0) {
       dbQuery = dbQuery.where(Event.attributes.calendarId.notIn(disabledCalendars));
     }

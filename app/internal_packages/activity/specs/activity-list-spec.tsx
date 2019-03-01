@@ -126,7 +126,7 @@ describe('ActivityList', function activityList() {
     this.testSource = new TestDataSource();
     spyOn(ActivityEventStore, '_dataSource').andReturn(this.testSource);
     spyOn(FocusedPerspectiveStore, 'sidebarAccountIds').andReturn(['0000000000000000000000000']);
-    spyOn(DatabaseStore, 'run').andCallFake(query => {
+    spyOn(DatabaseStore, 'run').and.callFake(query => {
       if (query._klass === Thread) {
         const thread = new Thread({
           id: '0000000000000000000000000',

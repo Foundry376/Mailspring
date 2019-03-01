@@ -1,10 +1,10 @@
 import QuerySubscriptionPool from '../../src/flux/models/query-subscription-pool';
 import DatabaseStore from '../../src/flux/stores/database-store';
-import Label from '../../src/flux/models/label';
+import { Label } from '../../src/flux/models/label';
 
 describe('QuerySubscriptionPool', function QuerySubscriptionPoolSpecs() {
   beforeEach(() => {
-    this.query = DatabaseStore.findAll(Label);
+    this.query = DatabaseStore.findAll<Label>(Label);
     this.queryKey = this.query.sql();
     QuerySubscriptionPool._subscriptions = {};
     QuerySubscriptionPool._cleanupChecks = [];

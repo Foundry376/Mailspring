@@ -1,4 +1,4 @@
-import Model from './model';
+import { Model } from './model';
 import Attributes from '../attributes';
 
 /**
@@ -46,7 +46,7 @@ export class PluginMetadata extends Model {
  Reading the metadata of other plugins is discouraged and may become impossible
  in the future.
 */
-export default class ModelWithMetadata extends Model {
+export class ModelWithMetadata extends Model {
   static attributes = Object.assign({}, Model.attributes, {
     pluginMetadata: Attributes.Collection({
       queryable: true,

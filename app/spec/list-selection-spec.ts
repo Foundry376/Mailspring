@@ -16,10 +16,10 @@ describe('ListSelection', function() {
     }
 
     this.view = new ListDataSource();
-    this.view.indexOfId = jasmine.createSpy('indexOfId').andCallFake(id => {
+    this.view.indexOfId = jasmine.createSpy('indexOfId').and.callFake(id => {
       return _.findIndex(this.items, _.matcher({ id }));
     });
-    this.view.get = jasmine.createSpy('get').andCallFake(idx => {
+    this.view.get = jasmine.createSpy('get').and.callFake(idx => {
       return this.items[idx];
     });
 

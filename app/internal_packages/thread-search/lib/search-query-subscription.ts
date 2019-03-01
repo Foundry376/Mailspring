@@ -6,17 +6,21 @@ import {
   SearchQueryParser,
   ComponentRegistry,
   MutableQuerySubscription,
+  QueryResultSet,
 } from 'mailspring-exports';
 
 class SearchQuerySubscription extends MutableQuerySubscription {
+  _searchQuery: string;
+  _accountIds: string[];
+  _connections = [];
+  _extDisposables = [];
+  _searching = false;
+  _set?: QueryResultSet<Thread>;
+
   constructor(searchQuery, accountIds) {
     super(null, { emitResultSet: true });
     this._searchQuery = searchQuery;
     this._accountIds = accountIds;
-
-    this._connections = [];
-    this._extDisposables = [];
-    this._searching = false;
 
     _.defer(() => this.performSearch());
   }
@@ -32,7 +36,7 @@ class SearchQuerySubscription extends MutableQuerySubscription {
   }
 
   performLocalSearch() {
-    let dbQuery = DatabaseStore.findAll(Thread);
+    let dbQuery = DatabaseStore.findAll<Thread>(Thread);
     if (this._accountIds.length === 1) {
       dbQuery = dbQuery.where({ accountId: this._accountIds[0] });
     }
@@ -67,7 +71,7 @@ class SearchQuerySubscription extends MutableQuerySubscription {
       const currentResultIds = this._set.ids();
       searchIds = _.uniq(currentResultIds.concat(ids));
     }
-    const dbQuery = DatabaseStore.findAll(Thread)
+    const dbQuery = DatabaseStore.findAll<Thread>(Thread)
       .where({ id: searchIds })
       .order(Thread.attributes.lastMessageReceivedTimestamp.descending());
     this.replaceQuery(dbQuery);

@@ -63,16 +63,16 @@ import SelectableTable, { SelectableTableCell } from './selectable-table';
  * This function will be called when the last column needs to be removed
  * @callback props.onRemoveColumn
  */
- type EditableTableCellProps = {
-   tableDataSource?: any,
-   rowIdx?: any,
-   colIdx?: any,
-   isHeader?: boolean,
-   inputProps?: object,
-   InputRenderer?: any,
-   onAddRow?: (...args: any[]) => any,
-   onCellEdited: (...args: any[]) => any
- };
+type EditableTableCellProps = {
+  tableDataSource?: any;
+  rowIdx?: any;
+  colIdx?: any;
+  isHeader?: boolean;
+  inputProps?: object;
+  InputRenderer?: any;
+  onAddRow?: (...args: any[]) => any;
+  onCellEdited: (...args: any[]) => any;
+};
 
 export class EditableTableCell extends Component<EditableTableCellProps> {
   static propTypes = {
@@ -145,7 +145,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
 
     return (
       <SelectableTableCell ref="cell" {...this.props}>
-        <div ref="inputContainer" tabIndex="0">
+        <div ref="inputContainer" tabIndex={0}>
           <InputRenderer
             type="text"
             rowIdx={rowIdx}
@@ -164,14 +164,14 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
 }
 
 type EditableTableProps = {
-  tableDataSource?: any,
-  inputProps?: object,
-  InputRenderer?: any,
-  onCellEdited: (...args: any[]) => any,
-  onAddColumn?: (...args: any[]) => any,
-  onRemoveColumn?: (...args: any[]) => any,
-  onAddRow?: (...args: any[]) => any,
-  onRemoveRow?: (...args: any[]) => any
+  tableDataSource?: any;
+  inputProps?: object;
+  InputRenderer?: any;
+  onCellEdited: (...args: any[]) => any;
+  onAddColumn?: (...args: any[]) => any;
+  onRemoveColumn?: (...args: any[]) => any;
+  onAddRow?: (...args: any[]) => any;
+  onRemoveRow?: (...args: any[]) => any;
 };
 
 function EditableTable(props: EditableTableProps) {

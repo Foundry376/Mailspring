@@ -1,9 +1,9 @@
 import MailspringStore from 'mailspring-store';
 import Actions from '../actions';
-import Message from '../models/message';
-import Thread from '../models/thread';
+import { Message } from '../models/message';
+import { Thread } from '../models/thread';
 import DatabaseStore from './database-store';
-import TaskFactory from '../tasks/task-factory';
+import { TaskFactory } from '../tasks/task-factory';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
@@ -276,7 +276,7 @@ class MessageStore extends MailspringStore {
 
     const loadedThreadId = this._thread.id;
 
-    const query = DatabaseStore.findAll(Message);
+    const query = DatabaseStore.findAll<Message>(Message);
     query.where({ threadId: loadedThreadId });
     query.include(Message.attributes.body);
 

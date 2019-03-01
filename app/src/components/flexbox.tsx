@@ -13,9 +13,7 @@ Any additional props you set on the Flexbox are rendered.
 
 Section: Component Kit
 */
-export default class Flexbox extends React.Component<
-  FlexboxProps & React.HTMLProps<HTMLDivElement>
-> {
+export class Flexbox extends React.Component<FlexboxProps & React.HTMLProps<HTMLDivElement>> {
   static displayName = 'Flexbox';
 
   /*

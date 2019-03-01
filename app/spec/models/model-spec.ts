@@ -1,5 +1,5 @@
 /* eslint quote-props: 0 */
-import Model from '../../src/flux/models/model';
+import { Model } from '../../src/flux/models/model';
 import Attributes from '../../src/flux/attributes';
 
 describe('Model', function modelSpecs() {
@@ -101,7 +101,7 @@ describe('Model', function modelSpecs() {
     });
 
     it('should assign attribute values by calling through to attribute fromJSON functions', () => {
-      spyOn(Model.attributes.accountId, 'fromJSON').andCallFake(() => 'inflated value!');
+      spyOn(Model.attributes.accountId, 'fromJSON').and.callFake(() => 'inflated value!');
       this.m.fromJSON(this.json);
       expect(Model.attributes.accountId.fromJSON.callCount).toBe(1);
       expect(this.m.accountId).toBe('inflated value!');
@@ -212,7 +212,7 @@ describe('Model', function modelSpecs() {
     });
 
     it('should return a JSON object and call attribute toJSON functions to map values', () => {
-      spyOn(Model.attributes.accountId, 'toJSON').andCallFake(() => 'inflated value!');
+      spyOn(Model.attributes.accountId, 'toJSON').and.callFake(() => 'inflated value!');
 
       const json = this.model.toJSON();
       expect(json instanceof Object).toBe(true);
@@ -221,7 +221,7 @@ describe('Model', function modelSpecs() {
     });
 
     it('should surface any exception one of the attribute toJSON functions raises', () => {
-      spyOn(Model.attributes.accountId, 'toJSON').andCallFake(() => {
+      spyOn(Model.attributes.accountId, 'toJSON').and.callFake(() => {
         throw new Error("Can't convert value into JSON format");
       });
       expect(() => {
@@ -256,7 +256,7 @@ describe('Model', function modelSpecs() {
     });
 
     it('should pass itself as an argument to the matchers', () => {
-      spyOn(this.truthyMatcher, 'evaluate').andCallFake(param => {
+      spyOn(this.truthyMatcher, 'evaluate').and.callFake(param => {
         expect(param).toBe(this.model);
       });
       this.model.matches([this.truthyMatcher]);

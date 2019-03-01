@@ -1,23 +1,31 @@
 import _ from 'underscore';
 
-import Model from '../flux/models/model';
+import { Model } from '../flux/models/model';
 import DatabaseStore from '../flux/stores/database-store';
+import ListDataSource from './list-data-source';
 
 export default class ListSelection {
+  _caches: {
+    ids?: string[];
+  } = {};
+  _items = [];
+  _view: ListDataSource;
+  _callback: () => void;
+  _unlisten: () => void;
+
   constructor(_view, callback) {
     this._view = _view;
+    this._callback = callback;
     if (!this._view) {
       throw new Error('new ListSelection(): You must provide a view.');
     }
     this._unlisten = DatabaseStore.listen(this._applyChangeRecord, this);
-    this._caches = {};
-    this._items = [];
-
-    this.trigger = () => {
-      this._caches = {};
-      callback();
-    };
   }
+
+  trigger = () => {
+    this._caches = {};
+    this._callback();
+  };
 
   cleanup() {
     this._unlisten();
@@ -55,7 +63,7 @@ export default class ListSelection {
       }
       this._items.push(item);
     }
-    this.trigger(this);
+    this.trigger();
   }
 
   toggle(item) {
@@ -72,7 +80,7 @@ export default class ListSelection {
     } else {
       this._items.push(item);
     }
-    this.trigger(this);
+    this.trigger();
   }
 
   add(item) {
@@ -88,7 +96,7 @@ export default class ListSelection {
 
     if (updated.length !== this._items.length) {
       this._items = updated;
-      this.trigger(this);
+      this.trigger();
     }
   }
 
@@ -112,7 +120,7 @@ export default class ListSelection {
     const nextItems = this._items.filter(t => !itemIds.includes(t.id));
     if (nextItems.length < this._items.length) {
       this._items = nextItems;
-      this.trigger(this);
+      this.trigger();
     }
   }
 
@@ -120,7 +128,7 @@ export default class ListSelection {
     const count = this._items.length;
     this._items = this._items.filter(t => t.matches(matchers));
     if (this._items.length !== count) {
-      this.trigger(this);
+      this.trigger();
     }
   }
 
@@ -222,7 +230,7 @@ export default class ListSelection {
         }
       }
       if (touched > 0) {
-        this.trigger(this);
+        this.trigger();
       }
     }
   }

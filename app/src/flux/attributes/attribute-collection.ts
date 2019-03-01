@@ -1,6 +1,6 @@
 import Attribute from './attribute';
 import Matcher from './matcher';
-import Model from '../models/model';
+import { Model } from '../models/model';
 
 /*
 Public: Collection attributes provide basic support for one-to-many relationships.
@@ -14,7 +14,7 @@ join table associating the ID of the model with the IDs of models in the collect
 Collection attributes have an additional clause builder, `contains`:
 
 ```javascript
-DatabaseStore.findAll(Thread).where([Thread.attributes.categories.contains('inbox')])
+DatabaseStore.findAll<Thread>(Thread).where([Thread.attributes.categories.contains('inbox')])
 ```
 
 This is equivalent to writing the following SQL:

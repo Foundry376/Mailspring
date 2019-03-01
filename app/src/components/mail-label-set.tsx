@@ -7,15 +7,15 @@ import AccountStore from '../flux/stores/account-store';
 import { MailLabel } from './mail-label';
 import Actions from '../flux/actions';
 import ChangeLabelsTask from '../flux/tasks/change-labels-task';
-import InjectedComponentSet from './injected-component-set';
+import { InjectedComponentSet } from './injected-component-set';
 
 const LabelComponentCache = {};
 
 type MailLabelSetProps = {
-  thread: object,
-  messages?: any[],
-  includeCurrentCategories?: boolean,
-  removable?: boolean
+  thread: object;
+  messages?: any[];
+  includeCurrentCategories?: boolean;
+  removable?: boolean;
 };
 
 export default class MailLabelSet extends React.Component<MailLabelSetProps> {

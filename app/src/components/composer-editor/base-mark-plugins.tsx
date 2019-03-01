@@ -286,14 +286,14 @@ export default [
               let size = 2;
               if (provided.endsWith('px')) {
                 // 16px = 12pt
-                size = PT_TO_SIZE[Math.round(provided.replace('px', '') / 1 * 0.75)];
+                size = PT_TO_SIZE[Math.round(Number(provided.replace('px', '')) / 1 * 0.75)];
               }
               if (provided.endsWith('em')) {
                 // 1em = 12pt
-                size = PT_TO_SIZE[Math.round(provided.replace('em', '') * 12)];
+                size = PT_TO_SIZE[Math.round(Number(provided.replace('em', '')) * 12)];
               }
               if (provided.endsWith('pt')) {
-                size = PT_TO_SIZE[Math.round(provided.replace('pt', '') * 1)];
+                size = PT_TO_SIZE[Math.round(Number(provided.replace('pt', '')) * 1)];
               }
               const opt = DEFAULT_FONT_OPTIONS.find(({ value }) => value >= size);
               return opt ? opt.value : 2;

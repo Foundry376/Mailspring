@@ -1,7 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ListensToFluxStore, RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
-import { localized, Actions, FocusedPerspectiveStore, WorkspaceStore } from 'mailspring-exports';
+import {
+  localized,
+  Actions,
+  FocusedPerspectiveStore,
+  WorkspaceStore,
+  MailboxPerspective,
+} from 'mailspring-exports';
 import SearchStore from './search-store';
 import TokenizingContenteditable from './tokenizing-contenteditable';
 
@@ -16,7 +22,24 @@ import {
   wrapInQuotes,
 } from './search-bar-util';
 
-class ThreadSearchBar extends Component {
+class ThreadSearchBar extends Component<
+  {
+    query: string;
+    isSearching: boolean;
+    perspective: MailboxPerspective;
+  },
+  {
+    suggestions: {
+      token: string;
+      term: string;
+      description: string;
+      termSuggestions: (term: string, accountIds: string[]) => Promise<any>;
+    }[];
+    focused: boolean;
+    selected: object;
+    selectedIdx: number;
+  }
+> {
   static displayName = 'ThreadSearchBar';
 
   static propTypes = {
@@ -24,6 +47,8 @@ class ThreadSearchBar extends Component {
     isSearching: PropTypes.bool,
     perspective: PropTypes.object,
   };
+
+  _fieldEl: TokenizingContenteditable;
 
   constructor(props) {
     super(props);
@@ -46,10 +71,10 @@ class ThreadSearchBar extends Component {
 
     // When the inbox is focused we don't specify a folder scope. If the user
     // wants to search just the inbox then they have to specify it explicitly.
-    if (perspective.starred) {
+    if ('starred' in perspective) {
       return 'is:starred ';
     }
-    if (perspective.unread) {
+    if ('unread' in perspective) {
       return 'is:unread in:inbox ';
     }
     if (perspective.isInbox()) {
@@ -265,7 +290,7 @@ class ThreadSearchBar extends Component {
     this._fieldEl.blur();
   };
 
-  _onClearSearchQuery = e => {
+  _onClearSearchQuery = (e?: React.UIEvent) => {
     if (this.props.query !== '') {
       Actions.searchQuerySubmitted('');
     } else {

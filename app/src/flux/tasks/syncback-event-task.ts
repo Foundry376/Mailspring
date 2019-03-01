@@ -1,6 +1,6 @@
 import { Event } from 'mailspring-exports';
 
-export default class SyncbackEventTask {
+export class SyncbackEventTask {
   constructor() {
     // id
     throw new Error('Unimplemented!');

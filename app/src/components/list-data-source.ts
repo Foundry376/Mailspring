@@ -1,7 +1,7 @@
 /* eslint no-unused-vars: 0 */
 import { EventEmitter } from 'events';
 import ListSelection from './list-selection';
-import Model from '../flux/models/model';
+import { Model } from '../flux/models/model';
 
 export default class ListDataSource {
   static get Empty() {

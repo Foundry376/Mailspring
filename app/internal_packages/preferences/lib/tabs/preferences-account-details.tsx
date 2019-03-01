@@ -3,9 +3,21 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { shell, ipcRenderer } from 'electron';
 import { EditableList } from 'mailspring-component-kit';
-import { localized, RegExpUtils, KeyManager, Account } from 'mailspring-exports';
+import {
+  localized,
+  RegExpUtils,
+  KeyManager,
+  Account,
+  AccountAutoaddress,
+} from 'mailspring-exports';
 
-class AutoaddressControl extends Component {
+interface AutoaddressControlProps {
+  autoaddress: AccountAutoaddress;
+  onChange: (obj: AccountAutoaddress) => void;
+  onSaveChanges: () => void;
+}
+
+class AutoaddressControl extends Component<AutoaddressControlProps> {
   render() {
     const { autoaddress, onChange, onSaveChanges } = this.props;
 
@@ -34,7 +46,16 @@ class AutoaddressControl extends Component {
     );
   }
 }
-class PreferencesAccountDetails extends Component {
+
+class PreferencesAccountDetails extends Component<
+  {
+    account: Account;
+    onAccountUpdated: (account: Account, newAccount: Account) => void;
+  },
+  {
+    account: Account;
+  }
+> {
   static propTypes = {
     account: PropTypes.object,
     onAccountUpdated: PropTypes.func.isRequired,

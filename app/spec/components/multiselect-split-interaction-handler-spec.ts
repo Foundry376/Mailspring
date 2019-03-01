@@ -1,6 +1,6 @@
 import MultiselectSplitInteractionHandler from '../../src/components/multiselect-split-interaction-handler';
 import WorkspaceStore from '../../src/flux/stores/workspace-store';
-import Thread from '../../src/flux/models/thread';
+import { Thread } from '../../src/flux/models/thread';
 import _ from 'underscore';
 
 describe('MultiselectSplitInteractionHandler', function() {
@@ -61,7 +61,7 @@ describe('MultiselectSplitInteractionHandler', function() {
     this.isRootSheet = true;
     this.handler = new MultiselectSplitInteractionHandler(this.props);
 
-    spyOn(WorkspaceStore, 'topSheet').andCallFake(() => ({ root: this.isRootSheet }));
+    spyOn(WorkspaceStore, 'topSheet').and.callFake(() => ({ root: this.isRootSheet }));
   });
 
   it('should always show focus', function() {

@@ -1,6 +1,6 @@
-import Category from './category';
+import { Category } from './category';
 
-export default class Label extends Category {
+export class Label extends Category {
   displayType() {
     return 'label';
   }

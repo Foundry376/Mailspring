@@ -3,7 +3,7 @@ import { OPEN_TRACKING_ID, LINK_TRACKING_ID } from './plugin-helpers';
 
 export default class ActivityDataSource {
   buildObservable({ messageLimit }) {
-    const query = DatabaseStore.findAll(Message)
+    const query = DatabaseStore.findAll<Message>(Message)
       .order(Message.attributes.date.descending())
       .where(Message.attributes.pluginMetadata.contains(OPEN_TRACKING_ID, LINK_TRACKING_ID))
       .limit(messageLimit);

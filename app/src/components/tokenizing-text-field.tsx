@@ -257,7 +257,7 @@ type TokenizingTextFieldProps = {
   onEdit?: (...args: any[]) => any;
   onEditMotion?: (...args: any[]) => any;
   onEmptied?: (...args: any[]) => any;
-  onTokenAction?: ((...args: any[]) => any) | boolean;
+  onTokenAction?: ((...args: any[]) => any) | false;
   onFocus?: (...args: any[]) => any;
   menuPrompt?: string;
   menuClassSet?: object;
@@ -501,7 +501,10 @@ export default class TokenizingTextField extends React.Component<
     }
   };
 
-  _onInputFocused = ({ noCompletions }: { noCompletions?: boolean } = {}) => {
+  _onInputFocused = (
+    e: React.FocusEvent<HTMLInputElement>,
+    { noCompletions }: { noCompletions?: boolean } = {}
+  ) => {
     this.setState({ focus: true });
     if (this.props.onFocus) {
       this.props.onFocus();
@@ -868,7 +871,7 @@ export default class TokenizingTextField extends React.Component<
   // current inputValue. Since `onRequestCompletions` can be asynchronous,
   // this function will handle calling `setState` on `completions` when
   // `onRequestCompletions` returns.
-  _refreshCompletions = (val = this.state.inputValue, { clear } = {}) => {
+  _refreshCompletions = (val = this.state.inputValue, { clear }: { clear?: boolean } = {}) => {
     const usedKeys = this.props.tokens.map(this.props.tokenKey);
     const removeUsedTokens = tokens => {
       return tokens.filter(t => !usedKeys.includes(this.props.tokenKey(t)));
@@ -914,12 +917,12 @@ export default class TokenizingTextField extends React.Component<
     // enable additional items to be inserted
     if (this._atMaxTokens()) {
       props.className = 'noop-input';
-      props.onFocus = () => this._onInputFocused({ noCompletions: true });
+      props.onFocus = e => this._onInputFocused(e, { noCompletions: true });
       props.onPaste = () => 'noop-input';
       props.onChange = () => 'noop';
       props.value = '';
     }
-    return <SizeToFitInput ref="input" spellCheck="false" {...props} />;
+    return <SizeToFitInput ref="input" spellCheck={false} {...props} />;
   }
 
   _placeholderComponent() {

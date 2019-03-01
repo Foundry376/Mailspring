@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
 import DatabaseStore from './database-store';
-import Thread from '../models/thread';
+import { Thread } from '../models/thread';
 
 interface ThreadCountRow {
   categoryId: string;

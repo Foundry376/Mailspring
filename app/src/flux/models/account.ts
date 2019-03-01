@@ -1,10 +1,14 @@
 /* eslint global-require:0 */
 import Attributes from '../attributes';
-import ModelWithMetadata from './model-with-metadata';
+import { ModelWithMetadata } from './model-with-metadata';
 
 let CategoryStore = null;
 let Contact = null;
 
+export interface AccountAutoaddress {
+  value: string;
+  type: 'cc' | 'bcc';
+}
 /*
  * Public: The Account model represents a Account served by the Nylas Platform API.
  * Every object on the Nylas platform exists within a Account, which typically represents
@@ -23,7 +27,7 @@ let Contact = null;
  *
  * Section: Models
  */
-export default class Account extends ModelWithMetadata {
+export class Account extends ModelWithMetadata {
   static SYNC_STATE_OK = 'ok';
 
   static SYNC_STATE_AUTH_FAILED = 'invalid';
@@ -78,9 +82,9 @@ export default class Account extends ModelWithMetadata {
   public emailAddress: string;
   public settings: object;
   public label: string;
-  public autoaddress: object;
+  public autoaddress: AccountAutoaddress;
   public aliases: string[];
-  public defaultAlias: object;
+  public defaultAlias: string;
   public syncState: string;
   public syncError: string;
 

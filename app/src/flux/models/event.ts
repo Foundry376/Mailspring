@@ -1,11 +1,11 @@
-import Model from './model';
+import { Model } from './model';
 import Attributes from '../attributes';
-import Contact from './contact';
+import { Contact } from './contact';
 
 // the Chrono node module is huge
 let chrono = null;
 
-export default class Event extends Model {
+export class Event extends Model {
   // Note: This class doesn't have many table-level attributes. We store the ICS
   // data for the event in the model JSON and parse it when we pull it out.
   static attributes = Object.assign({}, Model.attributes, {

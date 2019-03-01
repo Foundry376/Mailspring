@@ -1,6 +1,6 @@
-import Category from './category';
+import { Category } from './category';
 
-export default class Folder extends Category {
+export class Folder extends Category {
   displayType() {
     return 'folder';
   }

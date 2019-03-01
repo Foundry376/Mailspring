@@ -4,7 +4,17 @@ import PropTypes from 'prop-types';
 
 const MIN_RANGE_SIZE = 2;
 
-function getRange({ total, itemHeight, containerHeight, scrollTop = 0 } = {}) {
+function getRange({
+  total,
+  itemHeight,
+  containerHeight,
+  scrollTop = 0,
+}: {
+  total: number;
+  itemHeight: number;
+  containerHeight: number;
+  scrollTop?: number;
+}) {
   const itemsPerBody = Math.floor(containerHeight / itemHeight);
   const start = Math.max(0, Math.floor(scrollTop / itemHeight) - itemsPerBody * 2);
   const end = Math.max(MIN_RANGE_SIZE, Math.min(start + 4 * itemsPerBody, total));

@@ -3,7 +3,7 @@ import AccountStore from './account-store';
 import WorkspaceStore from './workspace-store';
 import DatabaseStore from './database-store';
 import Actions from '../actions';
-import Model from '../models/model';
+import { Model } from '../models/model';
 
 /**
 Public: The FocusedContentStore provides access to the objects currently selected

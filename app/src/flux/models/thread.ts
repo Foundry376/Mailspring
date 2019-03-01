@@ -1,11 +1,11 @@
-import Message from './message';
-import Contact from './contact';
-import Folder from './folder';
-import Label from './label';
-import Category from './category';
+import { Message } from './message';
+import { Contact } from './contact';
+import { Folder } from './folder';
+import { Label } from './label';
+import { Category } from './category';
 import Attributes from '../attributes';
 import DatabaseStore from '../stores/database-store';
-import ModelWithMetadata from './model-with-metadata';
+import { ModelWithMetadata } from './model-with-metadata';
 
 /*
 Public: The Thread model represents an email thread.
@@ -35,7 +35,7 @@ This class also inherits attributes from {Model}
 Section: Models
 @class Thread
 */
-export default class Thread extends ModelWithMetadata {
+export class Thread extends ModelWithMetadata {
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
     snippet: Attributes.String({
       // TODO NONFUNCTIONAL
@@ -143,8 +143,8 @@ export default class Thread extends ModelWithMetadata {
   public lastMessageSentTimestamp: Date;
   public inAllMail: boolean;
 
-  async messages({ includeHidden } = {}) {
-    const messages = await DatabaseStore.findAll(Message)
+  async messages({ includeHidden }: { includeHidden?: boolean } = {}) {
+    const messages = await DatabaseStore.findAll<Message>(Message)
       .where({ threadId: this.id })
       .include(Message.attributes.body);
     if (!includeHidden) {

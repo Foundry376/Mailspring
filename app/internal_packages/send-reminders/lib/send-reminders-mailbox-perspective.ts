@@ -12,6 +12,8 @@ class SendRemindersMailboxPerspective extends MailboxPerspective {
   name = localized('Reminders');
   iconName = 'reminders.png';
 
+  accountIds: string[];
+
   constructor(accountIds: string[]) {
     super(accountIds);
     this.accountIds = accountIds;
@@ -26,7 +28,7 @@ class SendRemindersMailboxPerspective extends MailboxPerspective {
   }
 
   threads() {
-    let query = DatabaseStore.findAll(Thread)
+    let query = DatabaseStore.findAll<Thread>(Thread)
       .where(Thread.attributes.pluginMetadata.contains(PLUGIN_ID))
       .order(Thread.attributes.lastMessageReceivedTimestamp.descending());
 

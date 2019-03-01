@@ -75,7 +75,7 @@ class TemplatePopover extends React.Component {
     const headerComponents = [
       <input
         type="text"
-        tabIndex="1"
+        tabIndex={1}
         key="textfield"
         className="search"
         value={this.state.searchValue}

@@ -48,7 +48,7 @@ xdescribe('SnoozeStore', function snoozeStore() {
 
   describe('groupUpdatedThreads', () => {
     it('groups the threads correctly by account id, with their snooze and inbox categories', () => {
-      spyOn(CategoryStore, 'getInboxCategory').andCallFake(accId => this.inboxCatsByAccount[accId]);
+      spyOn(CategoryStore, 'getInboxCategory').and.callFake(accId => this.inboxCatsByAccount[accId]);
 
       waitsForPromise(() => {
         return this.store

@@ -9,11 +9,12 @@ import SearchMailboxPerspective from './search-mailbox-perspective';
 // and vends up the array used for that view.
 
 class SearchStore extends MailspringStore {
+  _searchQuery = (FocusedPerspectiveStore.current() as any).searchQuery || '';
+  _isSearching = false;
+  _perspectiveBeforeSearch = null;
+
   constructor() {
     super();
-
-    this._searchQuery = FocusedPerspectiveStore.current().searchQuery || '';
-    this._isSearching = false;
 
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
     this.listenTo(Actions.searchQuerySubmitted, this._onQuerySubmitted);
@@ -39,7 +40,7 @@ class SearchStore extends MailspringStore {
   };
 
   _onPerspectiveChanged = () => {
-    this._searchQuery = FocusedPerspectiveStore.current().searchQuery || '';
+    this._searchQuery = (FocusedPerspectiveStore.current() as any).searchQuery || '';
     this.trigger();
   };
 

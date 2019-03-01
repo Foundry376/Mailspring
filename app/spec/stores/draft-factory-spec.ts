@@ -33,9 +33,9 @@ const expectContactsEqual = (a, b) => {
 describe('DraftFactory', function draftFactory() {
   beforeEach(() => {
     // Out of the scope of these specs
-    spyOn(InlineStyleTransformer, 'run').andCallFake(input => Promise.resolve(input));
-    spyOn(SanitizeTransformer, 'run').andCallFake(input => Promise.resolve(input));
-    spyOn(AttachmentStore, 'getDownloadDataForFile').andCallFake(fid => {
+    spyOn(InlineStyleTransformer, 'run').and.callFake(input => Promise.resolve(input));
+    spyOn(SanitizeTransformer, 'run').and.callFake(input => Promise.resolve(input));
+    spyOn(AttachmentStore, 'getDownloadDataForFile').and.callFake(fid => {
       return downloadData[fid];
     });
 
@@ -609,7 +609,7 @@ describe('DraftFactory', function draftFactory() {
 
     describe('when there is not an existing draft at the bottom of the thread', () => {
       beforeEach(() => {
-        spyOn(DatabaseStore, 'run').andCallFake(() => [fakeMessage1]);
+        spyOn(DatabaseStore, 'run').and.callFake(() => [fakeMessage1]);
         spyOn(DraftFactory, 'createDraftForReply');
       });
 
@@ -698,31 +698,31 @@ describe('DraftFactory', function draftFactory() {
 
       it('works for lowercase', () => {
         waitsForPromise(() => {
-          return DraftFactory.createDraftForMailto(
-            `mailto:asdf@asdf.com?subject=${expected}`
-          ).then(draft => {
-            expect(draft.subject).toBe(expected);
-          });
+          return DraftFactory.createDraftForMailto(`mailto:asdf@asdf.com?subject=${expected}`).then(
+            draft => {
+              expect(draft.subject).toBe(expected);
+            }
+          );
         });
       });
 
       it('works for title case', () => {
         waitsForPromise(() => {
-          return DraftFactory.createDraftForMailto(
-            `mailto:asdf@asdf.com?Subject=${expected}`
-          ).then(draft => {
-            expect(draft.subject).toBe(expected);
-          });
+          return DraftFactory.createDraftForMailto(`mailto:asdf@asdf.com?Subject=${expected}`).then(
+            draft => {
+              expect(draft.subject).toBe(expected);
+            }
+          );
         });
       });
 
       it('works for uppercase', () => {
         waitsForPromise(() => {
-          return DraftFactory.createDraftForMailto(
-            `mailto:asdf@asdf.com?SUBJECT=${expected}`
-          ).then(draft => {
-            expect(draft.subject).toBe(expected);
-          });
+          return DraftFactory.createDraftForMailto(`mailto:asdf@asdf.com?SUBJECT=${expected}`).then(
+            draft => {
+              expect(draft.subject).toBe(expected);
+            }
+          );
         });
       });
       ['mailto', 'mail', ''].forEach(url => {

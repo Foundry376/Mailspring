@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import { AndQueryExpression, SearchQueryExpressionVisitor } from './search-query-ast';
-import Folder from '../../flux/models/folder';
+import { Folder } from '../../flux/models/folder';
 
 const TOP = 'top';
 

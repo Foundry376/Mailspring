@@ -70,7 +70,7 @@ function ListensToMovementKeys(ComposedComponent) {
     render() {
       return (
         <KeyCommandsRegion
-          tabIndex="0"
+          tabIndex={0}
           localHandlers={this.localKeyHandlers()}
           onKeyDown={this.onKeyDown}
         >

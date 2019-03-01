@@ -1,6 +1,6 @@
-import Task from './task';
+import { Task } from './task';
 import Attributes from '../attributes';
-import Message from '../models/message';
+import { Message } from '../models/message';
 import { localized } from '../../intl';
 
 export default class SyncbackDraftTask extends Task {

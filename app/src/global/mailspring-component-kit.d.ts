@@ -1,6 +1,6 @@
-export const Menu: typeof import('../components/menu').default;
+export * from '../components/menu';
 export const DropZone: typeof import('../components/drop-zone').default;
-export const Spinner: typeof import('../components/spinner').default;
+export * from '../components/spinner'
 export const Switch: typeof import('../components/switch').default;
 export const FixedPopover: typeof import('../components/fixed-popover').default;
 export const DatePickerPopover: typeof import('../components/date-picker-popover').default;
@@ -9,7 +9,8 @@ export const Webview: typeof import('../components/webview').default;
 export const FeatureUsedUpModal: typeof import('../components/feature-used-up-modal').default;
 export const BillingModal: typeof import('../components/billing-modal').default;
 export const OpenIdentityPageButton: typeof import('../components/open-identity-page-button').default;
-export const Flexbox: typeof import('../components/flexbox').default;
+export * from '../components/flexbox'
+
 export const RetinaImg: typeof import('../components/retina-img').default;
 export const SwipeContainer: typeof import('../components/swipe-container').default;
 export const FluxContainer: typeof import('../components/flux-container').default;
@@ -31,7 +32,7 @@ export const InjectedComponent: typeof import('../components/injected-component'
 export const TokenizingTextField: typeof import('../components/tokenizing-text-field').default;
 export const ParticipantsTextField: typeof import('../components/participants-text-field').default;
 export const MultiselectToolbar: typeof import('../components/multiselect-toolbar').default;
-export const InjectedComponentSet: typeof import('../components/injected-component-set').default;
+export * from '../components/injected-component-set';
 export const MetadataComposerToggleButton: typeof import('../components/metadata-composer-toggle-button').default;
 export const ConfigPropContainer: typeof import('../components/config-prop-container').default;
 export const DisclosureTriangle: typeof import('../components/disclosure-triangle').default;
@@ -58,8 +59,8 @@ export const CodeSnippet: typeof import('../components/code-snippet').default;
 export const ComposerEditor: typeof import('../components/composer-editor/composer-editor').default;
 export const ComposerSupport: typeof import('../components/composer-editor/composer-support');
 
-export const ScrollRegion: typeof import('../components/scroll-region').default;
-export const ResizableRegion: typeof import('../components/resizable-region').default;
+export * from '../components/scroll-region'
+export * from '../components/resizable-region'
 
 export const MailLabel: typeof import('../components/mail-label');
 export const LabelColorizer: typeof import('../components/mail-label');

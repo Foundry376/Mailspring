@@ -7,10 +7,10 @@ import SendActionsStore from './send-actions-store';
 import FocusedContentStore from './focused-content-store';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import SyncbackMetadataTask from '../tasks/syncback-metadata-task';
-import SendDraftTask from '../tasks/send-draft-task';
+import { SendDraftTask } from '../tasks/send-draft-task';
 import DestroyDraftTask from '../tasks/destroy-draft-task';
-import Thread from '../models/thread';
-import Message from '../models/message';
+import { Thread } from '../models/thread';
+import { Message } from '../models/message';
 import Actions from '../actions';
 import TaskQueue from './task-queue';
 import MessageBodyProcessor from './message-body-processor';
@@ -270,7 +270,7 @@ class DraftStore extends MailspringStore {
     } else if (messageId && messageId.length) {
       queries.message = DatabaseStore.find(Message, messageId).include(Message.attributes.body);
     } else {
-      queries.message = DatabaseStore.findAll(Message, { threadId: threadId || thread.id })
+      queries.message = DatabaseStore.findAll<Message>(Message, { threadId: threadId || thread.id })
         .order(Message.attributes.date.descending())
         .include(Message.attributes.body)
         .limit(10)
@@ -448,7 +448,7 @@ class DraftStore extends MailspringStore {
 
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
     // we need to have the final object with it's final ID.
-    draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true }).include(
+    draft = await DatabaseStore.findBy<Message>(Message, { headerMessageId, draft: true }).include(
       Message.attributes.body
     );
 

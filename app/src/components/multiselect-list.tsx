@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import classNames from 'classnames';
-import ListTabular, { ListTabularColumn } from './list-tabular';
-import Spinner from './spinner';
+import { ListTabular, ListTabularColumn } from './list-tabular';
+import { Spinner } from './spinner';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { PropTypes, Utils, WorkspaceStore } from 'mailspring-exports';

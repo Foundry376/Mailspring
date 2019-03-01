@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import ChangeUnreadTask from '../tasks/change-unread-task';
 import ChangeLabelsTask from '../tasks/change-labels-task';
-import ChangeFolderTask from '../tasks/change-folder-task';
+import { ChangeFolderTask } from '../tasks/change-folder-task';
 import Actions from '../actions';
 
 // The "Unread" view shows all threads which are unread. When you read a thread,

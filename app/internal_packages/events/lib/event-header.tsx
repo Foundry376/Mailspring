@@ -12,10 +12,17 @@ import {
 } from 'mailspring-exports';
 const moment = require('moment-timezone');
 
-class EventHeader extends React.Component {
+class EventHeader extends React.Component<
+  {
+    message: Message;
+  },
+  { event: Event }
+> {
   static displayName = 'EventHeader';
 
   static propTypes = { message: PropTypes.instanceOf(Message).isRequired };
+
+  _unlisten: () => void;
 
   constructor(props) {
     super(props);
@@ -26,7 +33,7 @@ class EventHeader extends React.Component {
     if (!this.state.event) {
       return;
     }
-    DatabaseStore.find(Event, this.state.event.id).then(event => {
+    DatabaseStore.find<Event>(Event, this.state.event.id).then(event => {
       if (!event) {
         return;
       }

@@ -222,7 +222,7 @@ export default class LabelPickerPopover extends Component {
     const headerComponents = [
       <input
         type="text"
-        tabIndex="1"
+        tabIndex={1}
         key="textfield"
         className="search"
         placeholder={localized('Label as...')}

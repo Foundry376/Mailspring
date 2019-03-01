@@ -3,8 +3,8 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import Folder from '../../src/flux/models/folder';
-import MailboxPerspective from '../../src/mailbox-perspective';
+import { Folder } from '../../src/flux/models/folder';
+import { MailboxPerspective } from '../../src/mailbox-perspective';
 
 import CategoryStore from '../../src/flux/stores/category-store';
 import AccountStore from '../../src/flux/stores/account-store';
@@ -32,7 +32,7 @@ describe('FocusedPerspectiveStore', function() {
     this.userPerspective = MailboxPerspective.forCategory(this.userCategory);
 
     spyOn(CategoryStore, 'getCategoryByRole').andReturn(this.inboxCategory);
-    spyOn(CategoryStore, 'byId').andCallFake((aid, cid) => {
+    spyOn(CategoryStore, 'byId').and.callFake((aid, cid) => {
       if (aid === 1 && cid === 'A') {
         return { id: 'A' };
       }
@@ -50,7 +50,7 @@ describe('FocusedPerspectiveStore', function() {
     beforeEach(function() {
       this.default = MailboxPerspective.forCategory(this.inboxCategory);
       spyOn(AccountStore, 'accountIds').andReturn([1, 2]);
-      spyOn(MailboxPerspective, 'fromJSON').andCallFake(json => json);
+      spyOn(MailboxPerspective, 'fromJSON').and.callFake(json => json);
       spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(this.default);
       spyOn(FocusedPerspectiveStore, '_setPerspective');
     });

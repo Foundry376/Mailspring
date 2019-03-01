@@ -1,7 +1,15 @@
 import React from 'react';
+import { Disposable } from 'rx-core';
 
-export default class ConfigPropContainer extends React.Component {
+export default class ConfigPropContainer extends React.Component<
+  {
+    children: React.ReactElement<any>;
+  },
+  { config: any }
+> {
   static displayName = 'ConfigPropContainer';
+
+  subscription?: Disposable;
 
   constructor(props) {
     super(props);

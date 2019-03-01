@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import _str from 'underscore.string';
+import { ConfigLike, ConfigSchemaLike } from '../types';
 
 /*
 This component renders input controls for a subtree of the Mailspring config-schema
@@ -10,7 +11,14 @@ be an instance of the config provided by `ConfigPropContainer`.
 
 The config schema follows the JSON Schema standard: http://json-schema.org/
 */
-class ConfigSchemaItem extends React.Component {
+interface ConfigSchemaItemProps {
+  keyName: string;
+  keyPath: string;
+  config: ConfigLike;
+  configSchema: ConfigSchemaLike;
+}
+
+class ConfigSchemaItem extends React.Component<ConfigSchemaItemProps> {
   static displayName = 'ConfigSchemaItem';
 
   static propTypes = {
@@ -88,7 +96,7 @@ class ConfigSchemaItem extends React.Component {
             id={this.props.keyPath}
             type="checkbox"
             onChange={this._onChangeChecked}
-            checked={this.props.config.get(this.props.keyPath)}
+            checked={!!this.props.config.get(this.props.keyPath)}
           />
           <label htmlFor={this.props.keyPath}>{this.props.configSchema.title}</label>
           {note}

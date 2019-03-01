@@ -8,6 +8,7 @@ interface DropZoneProps {
   onDragOver: (e: Event) => void;
   onDragStateChange: ({ isDropping: boolean }) => void;
 }
+
 export default class DropZone extends React.Component<DropZoneProps> {
   static propTypes = {
     shouldAcceptDrop: PropTypes.func.isRequired,

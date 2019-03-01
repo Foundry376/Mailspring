@@ -2,8 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { RetinaImg, Flexbox } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
+import { ConfigLike } from '../types';
 
-class AppearanceScaleSlider extends React.Component {
+class AppearanceScaleSlider extends React.Component<
+  { id: string; config: ConfigLike },
+  { value: string }
+> {
   static displayName = 'AppearanceScaleSlider';
 
   static propTypes = {
@@ -11,9 +15,10 @@ class AppearanceScaleSlider extends React.Component {
     config: PropTypes.object.isRequired,
   };
 
+  kp = `core.workspace.interfaceZoom`;
+
   constructor(props) {
-    super();
-    this.kp = `core.workspace.interfaceZoom`;
+    super(props);
     this.state = { value: props.config.get(this.kp) };
   }
 
@@ -46,11 +51,8 @@ class AppearanceScaleSlider extends React.Component {
   }
 }
 
-class MenubarStylePicker extends React.Component {
-  constructor(props) {
-    super(props);
-    this.kp = 'core.workspace.menubarStyle';
-  }
+class MenubarStylePicker extends React.Component<{ config: ConfigLike }> {
+  kp = 'core.workspace.menubarStyle';
 
   onChangeMenubarStyle = e => {
     this.props.config.set(this.kp, e.target.value);
@@ -71,7 +73,7 @@ class MenubarStylePicker extends React.Component {
 
     return (
       <section className="platform-linux-only">
-        <h6 htmlFor="change-layout">{localized('Window Controls and Menus')}</h6>
+        <h6>{localized('Window Controls and Menus')}</h6>
         {options.map(([enumValue, description, comment], idx) => (
           <div key={enumValue} style={{ marginBottom: 10 }}>
             <label htmlFor={`radio${idx}`}>
@@ -108,7 +110,10 @@ class MenubarStylePicker extends React.Component {
   }
 }
 
-class AppearanceModeSwitch extends React.Component {
+class AppearanceModeSwitch extends React.Component<
+  { id: string; config: ConfigLike },
+  { value: string }
+> {
   static displayName = 'AppearanceModeSwitch';
 
   static propTypes = {
@@ -117,7 +122,7 @@ class AppearanceModeSwitch extends React.Component {
   };
 
   constructor(props) {
-    super();
+    super(props);
     this.state = {
       value: props.config.get('core.workspace.mode'),
     };
@@ -184,7 +189,7 @@ AppearanceModeOption.propTypes = {
   onClick: PropTypes.func,
 };
 
-class PreferencesAppearance extends React.Component {
+class PreferencesAppearance extends React.Component<{ config: ConfigLike; configSchema: any }> {
   static displayName = 'PreferencesAppearance';
 
   static propTypes = {
@@ -200,13 +205,11 @@ class PreferencesAppearance extends React.Component {
     return (
       <div className="container-appearance">
         <section>
-          <h6 htmlFor="change-layout">{localized('Layout')}</h6>
+          <h6>{localized('Layout')}</h6>
           <AppearanceModeSwitch id="change-layout" config={this.props.config} />
         </section>
         <section>
-          <h6 htmlFor="change-layout" style={{ marginTop: 10 }}>
-            {localized('Theme and Style')}
-          </h6>
+          <h6 style={{ marginTop: 10 }}>{localized('Theme and Style')}</h6>
           <div>
             <button className="btn btn-large" onClick={this.onPickTheme}>
               {localized('Change Theme...')}
@@ -215,7 +218,7 @@ class PreferencesAppearance extends React.Component {
         </section>
         <MenubarStylePicker config={this.props.config} />
         <section>
-          <h6 htmlFor="change-scale">{localized('Scaling')}</h6>
+          <h6>{localized('Scaling')}</h6>
           <AppearanceScaleSlider id="change-scale" config={this.props.config} />
           <div className="platform-note">
             {localized(

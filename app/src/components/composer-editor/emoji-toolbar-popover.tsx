@@ -18,13 +18,34 @@ const LocalizedCategoryNames = {
   'Search Results': localized('Search Results'),
 };
 
-export default class EmojiToolbarPopover extends React.Component {
+interface EmojiToolbarPopoverProps {
+  onInsertEmoji: (emoji: string) => void;
+}
+
+type EmojiDict = {
+  [category: string]: string[];
+};
+
+interface EmojiToolbarPopoverState {
+  emojiName: string;
+  categoryNames: string[];
+  categoryPositions: any;
+  searchValue: string;
+  activeTab: string;
+  categorizedEmoji: EmojiDict;
+}
+export default class EmojiToolbarPopover extends React.Component<
+  EmojiToolbarPopoverProps,
+  EmojiToolbarPopoverState
+> {
   static displayName = 'EmojiToolbarPopover';
 
+  _canvasEl: HTMLCanvasElement;
   _mounted: boolean = false;
+  _emojiPreloadImage = new Image();
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     const { categoryNames, categorizedEmoji, categoryPositions } = this.getStateFromStore();
     this.state = {
       emojiName: 'Emoji Picker',
@@ -38,7 +59,6 @@ export default class EmojiToolbarPopover extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
-    this._emojiPreloadImage = new Image();
     this.renderCanvas();
   }
 
@@ -56,8 +76,10 @@ export default class EmojiToolbarPopover extends React.Component {
   };
 
   onScroll = () => {
-    const emojiContainer = document.querySelector('.emoji-finder-container .scroll-region-content');
-    const tabContainer = document.querySelector('.emoji-tabs');
+    const emojiContainer = document.querySelector(
+      '.emoji-finder-container .scroll-region-content'
+    ) as HTMLElement;
+    const tabContainer = document.querySelector('.emoji-tabs') as HTMLElement;
     tabContainer.className = emojiContainer.scrollTop ? 'emoji-tabs shadow' : 'emoji-tabs';
     if (emojiContainer.scrollTop === 0) {
       this.setState({ activeTab: Object.keys(this.state.categorizedEmoji)[0] });
@@ -120,7 +142,7 @@ export default class EmojiToolbarPopover extends React.Component {
   };
 
   getStateFromStore = () => {
-    let categorizedEmoji = categorizedEmojiList;
+    let categorizedEmoji = categorizedEmojiList as EmojiDict;
     const categoryPositions = {};
     let categoryNames = [
       'People',
@@ -132,7 +154,7 @@ export default class EmojiToolbarPopover extends React.Component {
       'Symbols',
       'Flags',
     ];
-    const frequentlyUsedEmoji = []; //EmojiStore.frequentlyUsedEmoji();
+    const frequentlyUsedEmoji: string[] = []; //EmojiStore.frequentlyUsedEmoji();
     if (frequentlyUsedEmoji.length > 0) {
       categorizedEmoji = { 'Frequently Used': frequentlyUsedEmoji };
       for (const category of Object.keys(categorizedEmojiList)) {
@@ -293,7 +315,7 @@ export default class EmojiToolbarPopover extends React.Component {
       return { src, x, y };
     });
 
-    const drawEmojiAt = ({ src, x, y } = {}) => {
+    const drawEmojiAt = ({ src, x, y }: { src?: string; x?: number; y?: number } = {}) => {
       if (!src) {
         return;
       }

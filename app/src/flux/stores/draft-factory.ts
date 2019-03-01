@@ -7,14 +7,14 @@ import ContactStore from './contact-store';
 import MessageStore from './message-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import { localized } from '../../intl';
-import Contact from '../models/contact';
-import Message from '../models/message';
+import { Contact } from '../models/contact';
+import { Message } from '../models/message';
 import MessageUtils from '../models/message-utils';
 import * as Utils from '../models/utils';
 import InlineStyleTransformer from '../../services/inline-style-transformer';
 import SanitizeTransformer from '../../services/sanitize-transformer';
 import DOMUtils from '../../dom-utils';
-import Thread from '../models/Thread';
+import { Thread } from '../models/Thread';
 
 let DraftStore: typeof import('./draft-store').default = null;
 

@@ -10,18 +10,29 @@ import {
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
+type TemplateItem =
+  | {
+      label: string;
+      click: () => void;
+    }
+  | { type: 'separator' };
+
 export default class ThreadListContextMenu {
+  threadIds: string[];
+  accountIds: string[];
+  threads?: Thread[];
+
   constructor({ threadIds = [], accountIds = [] }) {
     this.threadIds = threadIds;
     this.accountIds = accountIds;
   }
 
   menuItemTemplate() {
-    return DatabaseStore.modelify(Thread, this.threadIds)
+    return DatabaseStore.modelify<Thread>(Thread, this.threadIds)
       .then(threads => {
         this.threads = threads;
 
-        return Promise.all([
+        return Promise.all<TemplateItem>([
           this.findWithFrom(),
           this.findWithSubject(),
           { type: 'separator' },
@@ -38,7 +49,10 @@ export default class ThreadListContextMenu {
       })
       .then(menuItems => {
         return _.filter(_.compact(menuItems), (item, index) => {
-          if ((index === 0 || index === menuItems.length - 1) && item.type === 'separator') {
+          if (
+            (index === 0 || index === menuItems.length - 1) &&
+            (item as any).type === 'separator'
+          ) {
             return false;
           }
           return true;
@@ -46,7 +60,7 @@ export default class ThreadListContextMenu {
       });
   }
 
-  findWithFrom() {
+  findWithFrom(): TemplateItem | null {
     if (this.threadIds.length !== 1) {
       return null;
     }
@@ -61,7 +75,7 @@ export default class ThreadListContextMenu {
     };
   }
 
-  findWithSubject() {
+  findWithSubject(): TemplateItem | null {
     if (this.threadIds.length !== 1) {
       return null;
     }
@@ -78,7 +92,7 @@ export default class ThreadListContextMenu {
     };
   }
 
-  replyItem() {
+  replyItem(): TemplateItem | null {
     if (this.threadIds.length !== 1) {
       return null;
     }
@@ -95,12 +109,12 @@ export default class ThreadListContextMenu {
     };
   }
 
-  replyAllItem() {
+  replyAllItem(): Promise<TemplateItem> | null {
     if (this.threadIds.length !== 1) {
       return null;
     }
 
-    return DatabaseStore.findBy(Message, { threadId: this.threadIds[0] })
+    return DatabaseStore.findBy<Message>(Message, { threadId: this.threadIds[0] })
       .order(Message.attributes.date.descending())
       .limit(1)
       .then(message => {
@@ -121,7 +135,7 @@ export default class ThreadListContextMenu {
       });
   }
 
-  forwardItem() {
+  forwardItem(): TemplateItem | null {
     if (this.threadIds.length !== 1) {
       return null;
     }
@@ -133,7 +147,7 @@ export default class ThreadListContextMenu {
     };
   }
 
-  archiveItem() {
+  archiveItem(): TemplateItem | null {
     const perspective = FocusedPerspectiveStore.current();
     const allowed = perspective.canArchiveThreads(this.threads);
     if (!allowed) {
@@ -151,7 +165,7 @@ export default class ThreadListContextMenu {
     };
   }
 
-  trashItem() {
+  trashItem(): TemplateItem | null {
     const perspective = FocusedPerspectiveStore.current();
     const allowed = perspective.canMoveThreadsTo(this.threads, 'trash');
     if (!allowed) {
@@ -169,7 +183,7 @@ export default class ThreadListContextMenu {
     };
   }
 
-  markAsReadItem() {
+  markAsReadItem(): TemplateItem | null {
     const unread = this.threads.every(t => t.unread === false);
     const dir = unread ? localized('Unread') : localized('Read');
 
@@ -186,8 +200,8 @@ export default class ThreadListContextMenu {
     };
   }
 
-  markAsSpamItem() {
-    const allInSpam = this.threads.every(item => item.folders.find(c => c.role === 'spam'));
+  markAsSpamItem(): TemplateItem | null {
+    const allInSpam = this.threads.every(item => !!item.folders.find(c => c.role === 'spam'));
     const dir = allInSpam ? localized('Not Spam') : localized('Spam');
 
     return {
@@ -208,7 +222,7 @@ export default class ThreadListContextMenu {
     };
   }
 
-  starItem() {
+  starItem(): TemplateItem | null {
     const starred = this.threads.every(t => t.starred === false);
 
     let label = localized('Star');
@@ -232,7 +246,7 @@ export default class ThreadListContextMenu {
   displayMenu() {
     const { remote } = require('electron');
     this.menuItemTemplate().then(template => {
-      remote.Menu.buildFromTemplate(template).popup(remote.getCurrentWindow());
+      remote.Menu.buildFromTemplate(template).popup({});
     });
   }
 }

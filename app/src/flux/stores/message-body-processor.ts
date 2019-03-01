@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import Message from '../models/message';
+import { Message } from '../models/message';
 import MessageStore from './message-store';
 import DatabaseStore from './database-store';
 import SanitizeTransformer from '../../services/sanitize-transformer';

@@ -4,8 +4,8 @@ import { Utils, Model } from 'mailspring-exports';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
-import ScrollRegion from './scroll-region';
-import Spinner from './spinner';
+import { ScrollRegion } from './scroll-region';
+import { Spinner } from './spinner';
 
 import ListDataSource from './list-data-source';
 import ListSelection from './list-selection';

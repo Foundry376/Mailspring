@@ -62,7 +62,7 @@ describe('MovePickerPopover', function() {
 
     // By default we're going to set to "inbox". This has implications for
     // what categories get filtered out of the list.
-    spyOn(FocusedPerspectiveStore, 'current').andCallFake(() => {
+    spyOn(FocusedPerspectiveStore, 'current').and.callFake(() => {
       return MailboxPerspective.forCategory(this.inboxCategory);
     });
   };
@@ -215,14 +215,14 @@ describe('MovePickerPopover', function() {
       it('queues a task for applying the category after it has saved', function() {
         let category = false;
         let resolveSave = false;
-        spyOn(TaskQueue, 'waitForPerformRemote').andCallFake(function(task) {
+        spyOn(TaskQueue, 'waitForPerformRemote').and.callFake(function(task) {
           expect(task instanceof SyncbackCategoryTask).toBe(true);
           return new Promise(function(resolve, reject) {
             resolveSave = resolve;
           });
         });
 
-        spyOn(DatabaseStore, 'findBy').andCallFake(function(klass, { id }) {
+        spyOn(DatabaseStore, 'findBy').and.callFake(function(klass, { id }) {
           expect(klass).toBe(Category);
           expect(typeof id).toBe('string');
           Promise.resolve(category);

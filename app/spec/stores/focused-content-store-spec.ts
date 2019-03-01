@@ -1,4 +1,4 @@
-import Thread from '../../src/flux/models/thread';
+import { Thread } from '../../src/flux/models/thread';
 import FocusedContentStore from '../../src/flux/stores/focused-content-store';
 
 const testThread = new Thread({ id: '123', accountId: TEST_ACCOUNT_ID });

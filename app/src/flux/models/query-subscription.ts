@@ -2,7 +2,7 @@ import DatabaseStore from '../stores/database-store';
 import QueryRange from './query-range';
 import MutableQueryResultSet from './mutable-query-result-set';
 import ModelQuery from './query';
-import Model from './model';
+import { Model } from './model';
 
 export default class QuerySubscription {
   _set = null;
