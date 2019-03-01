@@ -21,7 +21,17 @@
     top: 15px;
     display: block;
     .content-mask{
-      background-color: @black;
+      height: 20px;
+      width: 20px;
+      fill: @black;
+      #x-mark{
+        fill: @black;
+      }
+      &:hover {
+        .svg-close-circle {
+          fill: @gray-lighter;
+        }
+      }
     }
   }
   .header-text-container {
@@ -77,13 +87,20 @@
       letter-spacing: 0.2px;
       text-align: center;
       opacity: 0.98;
+      &:hover{
+        box-shadow: 0 2px 5px 0 rgba(0,0,0,0.15);
+      }
       &.create-folder-btn-cancel {
         color: @accent-primary;
         background-color: @white;
       }
       &.create-folder-btn-create {
         background-color: @accent-primary;
-        color: @white
+        color: @white;
+        &:disabled {
+          border: 1px solid @gray-light;
+          background-color: @gray-light;
+        }
       }
     }
   }

@@ -89,7 +89,8 @@ export default class CreateNewFolderPopover extends Component {
       <button className="create-folder-btn-cancel" title="Cancel" onClick={this.onCancel}>
         <span>Cancel</span>
       </button>
-      <button className="create-folder-btn-create" title="Compose new message" onClick={this._onCreateCategory}>
+      <button className="create-folder-btn-create" title="Compose new message"
+              disabled={this.state.newName.length === 0} onClick={this._onCreateCategory}>
         <span>Create Folder</span>
       </button>
     </div>;
@@ -100,11 +101,21 @@ export default class CreateNewFolderPopover extends Component {
                 style={{ left: this.props.left, top: this.props.top }}
                 className={`create-folder-container ${this.props.visible ? 'hide' : ''}`}>
       <div className={'header-row'}>
-        <RetinaImg name={'close_1.svg'} onClick={this.onCancel}
-                   isIcon={true}
-                   style={{ width: 20, height: 20 }}
-                   mode={RetinaImg.Mode.ContentIsMask}
-        />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" className={'content-mask'}>
+          <title>close_1</title>
+          <circle id="circle" cx="48" cy="48" r="48" fill={'none'} className="svg-close-circle"/>
+          <path id={'x-mark'}
+            d="M76.93,24.85,71.08,19,48,42.19,24.84,19,19,24.85,42.16,48,19,71.15,24.84,77,48,53.81,71.16,77,77,71.15,53.84,48Z"
+            fill="none"/>
+        </svg>
+        {/*<button className={'btn btn-toolbar btn-category-picker'}>*/}
+        {/*<RetinaImg name={'close_1.svg'} onClick={this.onCancel}*/}
+                   {/*className={'svg-close-circle'}*/}
+                   {/*isIcon={true}*/}
+                   {/*style={{ width: 20, height: 20 }}*/}
+                   {/*mode={RetinaImg.Mode.ContentIsMask}*/}
+        {/*/>*/}
+        {/*</button>*/}
       </div>
       <div className='header-text-container'>
         <div className='header-text'>New Folder</div>

@@ -206,14 +206,13 @@ export default class MovePickerPopover extends Component {
 
   _renderCreateNewItem = ({ searchValue }) => {
     const isFolder = CategoryStore.getInboxCategory(this.props.account) instanceof Folder;
-    const icon = isFolder ? 'folder' : 'tag';
     let displayText = isFolder ? 'New Folder' : 'New Label';
     if (searchValue.length > 0) {
       displayText = `"${searchValue}" (create new)`;
     }
     return (
-      <div className="category-item category-create-new" onClick={this.onCreate}>
-        <div className="category-display-name">{displayText}</div>
+      <div className="category-item category-create-new" onMouseDown={this.onCreate}>
+        {displayText}
       </div>
     );
   };

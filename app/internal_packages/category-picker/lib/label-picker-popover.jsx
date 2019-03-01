@@ -231,7 +231,7 @@ export default class LabelPickerPopover extends Component {
     ];
 
     return (
-      <div className="category-picker-popover">
+      <div className="label-picker-popover">
         <Menu
           headerComponents={headerComponents}
           footerComponents={[]}
