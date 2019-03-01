@@ -2,7 +2,7 @@ import fs from 'fs'
 import { Observable } from 'rxjs/Observable';
 import xmpp from '../xmpp';
 import getDb from '../db';
-import chatModel from '../store/model';
+import chatModel, { saveToLocalStorage } from '../store/model';
 import { copyRxdbContact, saveGroupMessages } from '../utils/db-utils';
 const { remote } = require('electron');
 
@@ -17,6 +17,7 @@ import {
   BEGIN_SEND_MESSAGE,
   RECEIVE_CHAT,
   RECEIVE_GROUPCHAT,
+  MEMBERS_CHANGE,
   MESSAGE_SENT,
   RECEIVE_PRIVATE_MESSAGE,
   RECEIVE_GROUP_MESSAGE,
@@ -48,8 +49,6 @@ import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 import { FILE_TYPE } from '../components/chat/messages/messageModel';
-
-
 
 const addToAvatarMembers = (conv, contact) => {
   if (!contact) {
@@ -132,6 +131,45 @@ export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
     .filter(({ payload }) => payload.receipt && !payload.body)
     .map(({ payload }) => receiptSent(payload.id));
+
+export const membersChangeEpic = action$ =>
+  action$.ofType(MEMBERS_CHANGE)
+    .mergeMap(({ payload }) =>  Observable.fromPromise(asyncMembersChangeEpic(payload)));
+
+const asyncMembersChangeEpic = async payload => {
+  // console.log('dbg*** membersChangeEpic: ', payload);
+  const notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
+  const items = notifications[payload.from] || (notifications[payload.from]=[]);
+  const nicknames = chatModel.chatStorage.nicknames;
+  const fromjid = payload.userJid;
+  const db = await getDb();
+  const contacts = db.contacts;
+  const fromcontact = await contacts.findOne().where('jid').eq(fromjid).exec();
+  const byjid = payload.actorJid;
+  const bycontact = await contacts.findOne().where('jid').eq(byjid).exec();
+  const time = (new Date()).getTime();
+  const item = {
+    from: {
+      jid: fromjid,
+      email: payload.userEmail,
+      name: fromcontact && fromcontact.name,
+      nickname: nicknames[fromjid]
+    },
+    type: payload.type,
+    by: {
+      jid: byjid,
+      email:bycontact && bycontact.email,
+      name:bycontact && bycontact.name,
+      nickname: nicknames[byjid]
+    },
+    time,
+  }
+
+  items.push(item);
+  saveToLocalStorage();
+  const conv = await db.conversations.findOne().where('jid').eq(payload.from.bare).exec();
+  return updateSelectedConversation(conv);
+}
 
 export const successSendMessageEpic = action$ =>
   action$.ofType(MESSAGE_SENT)

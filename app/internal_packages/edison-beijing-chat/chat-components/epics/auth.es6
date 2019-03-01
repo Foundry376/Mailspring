@@ -27,7 +27,9 @@ import { getDeviceId } from '../utils/e2ee';
  * Starts the authentication process by starting session creation
  */
 export const submitAuthEpic = action$ => action$.ofType(SUBMIT_AUTH)
-  .map(({ payload: { jid, password } }) => beginConnectionAuth(jid, password));
+  .map(({ payload: { jid, password } }) => {
+    return beginConnectionAuth(jid, password)
+  });
 
 /**
  * Creates a XMPP Connection and outputs success or failure
@@ -43,6 +45,8 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
     // if (!window.localStorage.deviceId) {
     //   window.localStorage.deviceId = uuid();
     // }
+    // console.log('dbg*** createXmppConnectionEpic ', jid);
+    // debugger;
     xmpp.init({
       jid,
       password,
@@ -64,6 +68,8 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
     //   window.localStorage.jid = jid;//{ jid, local: jid.substring(0, jid.indexOf('@')) };
     // }
     // window.localStorage.jidLocal = jid.substring(0, jid.indexOf('@'));
+    // console.log('dbg*** before xmpp.connect: ', jid);
+
     return Observable.fromPromise(xmpp.connect(jid))
       .map(res => successfulConnectionAuth(res))
       .catch(error => Observable.of(failConnectionAuth(error)));
