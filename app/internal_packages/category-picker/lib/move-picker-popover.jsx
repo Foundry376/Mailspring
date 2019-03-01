@@ -1,7 +1,7 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
+import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult, ScrollRegion } from 'mailspring-component-kit';
 import {
   Utils,
   Actions,
@@ -260,6 +260,10 @@ export default class MovePickerPopover extends Component {
           footerComponents={this._renderNewItem()}
           items={this.state.categoryData}
           itemKey={item => item.id}
+          maxHeight={
+            (this.state.categoryData.length > 10) * 210 +
+            (this.state.categoryData <= 10) * this.state.categoryData.length * 20
+          }
           itemContent={this._renderItem}
           onSelect={this._onSelectCategory}
           onEscape={this._onEscape}
