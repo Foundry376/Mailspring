@@ -137,7 +137,7 @@ export const membersChangeEpic = action$ =>
     .mergeMap(({ payload }) =>  Observable.fromPromise(asyncMembersChangeEpic(payload)));
 
 const asyncMembersChangeEpic = async payload => {
-  console.log('dbg*** membersChangeEpic: ', payload);
+  // console.log('dbg*** membersChangeEpic: ', payload);
   const notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
   const items = notifications[payload.from] || (notifications[payload.from]=[]);
   const nicknames = chatModel.chatStorage.nicknames;

@@ -58,8 +58,8 @@ function WSConnection(sm, stanzas) {
     self.on('raw:incoming', function (data) {
         var stanzaObj, err;
         // commet out by quanzs
-        console.log('websocket:raw:incoming', data);
-        //debugger;
+        // console.log('websocket:raw:incoming', data);
+        // debugger;
         data = data.trim();
         if (data === '') {
             return;

@@ -30,7 +30,7 @@ export class Xmpp extends EventEmitter3 {
       this.emit(name, data);
     });
     xmpp.client.on('memberschange', (data) => {
-      console.log('dbg*** xmpp memberschange: ', data);
+      // console.log('dbg*** xmpp memberschange: ', data);
       this.emit(name, data);
     });
   }
