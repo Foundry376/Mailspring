@@ -24,6 +24,9 @@ export default class CategorySelection extends React.Component {
   }
 
   _itemsForCategories() {
+    if (!this.props.all) {
+      return [];
+    }
     return this.props.all
       .sort((a, b) => {
         var pathA = utf7.imap.decode(a.path).toUpperCase();
