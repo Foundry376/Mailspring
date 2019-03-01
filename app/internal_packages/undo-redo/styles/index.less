@@ -1,58 +1,77 @@
 @import 'ui-variables';
 
 .undo-redo-toast {
-  position: absolute;
-  bottom: 10px;
+  position: fixed;
+  top: 86px;
   z-index: 100;
   width: 100%;
   text-align: center;
   pointer-events: none;
 
   .content {
-    height: 45px;
-    display: inline-block;
-    opacity: 0.9;
-    border-radius: @border-radius-base;
-    background: @gray-darker;
+    height: 36px;
+    opacity: 0.97;
+    border-radius: @border-radius-toast;
+    background: @blue-light;
     white-space: nowrap;
     cursor: default;
     pointer-events: initial;
     display: inline-flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
     max-width: 90%;
+    box-shadow: 0 2px 7px 0 rgba(0,0,0,0.2);
+    padding: 11.5px 17.5px 11.5px 20px;
   }
 
   .message {
     flex: 1;
     flex-shrink: 1;
-    margin-left: 16px;
-    margin-right: 30px;
-    color: @background-primary;
+    color: @white;
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: left;
+    font-size: 12px;
+    letter-spacing: 0.34px;
+    height: 13px;
+    line-height: 13px;
+
   }
 
   .action {
     flex-shrink: 0;
-    margin-right: 8px;
     white-space: nowrap;
-    background: fade(@black, 20%);
-    padding: 3px 8px;
-    border-radius: 4px;
-    border: 1px solid fade(@background-primary, 20%);
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    align-items: center;
+    padding-left: 20.5px;
+    //background: fade(@black, 20%);
+    //padding: 3px 8px;
+    //border-radius: 4px;
+    //border: 1px solid fade(@background-primary, 20%);
 
-    img {
-      background-color: @background-primary;
-    }
-    &:hover {
-      background: fade(@black, 30%);
-      border: 1px solid fade(@background-primary, 30%);
-    }
+    //img {
+    //  background-color: @background-primary;
+    //}
+    //&:hover {
+    //  background: fade(@black, 30%);
+    //  border: 1px solid fade(@background-primary, 30%);
+    //}
     .undo-action-text {
-      margin-left: 5px;
-      color: @background-primary;
+      color: @white;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.34px;
+      line-height: 13px;
+      height: 13px;
+      padding-right: 14.5px;
+    }
+    .content-mask{
+      height: 10px;
+      width: 10px;
+      background-color: @gray;
     }
   }
 }

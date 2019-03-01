@@ -4,7 +4,7 @@ import {
   SyncbackMetadataTask,
   ChangeUnreadTask,
   ChangeStarredTask,
-  ChangeFolderTask
+  ChangeFolderTask,
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CSSTransitionGroup } from 'react-transition-group';
@@ -56,7 +56,7 @@ class Countdown extends React.Component {
     // subtract a few ms so we never round up to start time + 1 by accident
     let diff = Math.min(
       Math.max(0, this.props.expiration - Date.now()),
-      AppEnv.config.get('core.sending.undoSend')
+      AppEnv.config.get('core.sending.undoSend'),
     );
 
     return (
@@ -64,7 +64,7 @@ class Countdown extends React.Component {
         <div className="countdown-number">{Math.ceil(diff / 1000)}</div>
         {diff > 0 && (
           <svg>
-            <circle r="14" cx="15" cy="15" style={{ animationDuration: this.animationDuration }} />
+            <circle r="14" cx="15" cy="15" style={{ animationDuration: this.animationDuration }}/>
           </svg>
         )}
       </div>
@@ -72,20 +72,21 @@ class Countdown extends React.Component {
   }
 }
 
-const UndoSendContent = ({ block, onMouseEnter, onMouseLeave }) => {
+const UndoSendContent = ({ block, onMouseEnter, onMouseLeave, onClose }) => {
   return (
     <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      <Countdown expiration={getUndoSendExpiration(block)} />
+      <Countdown expiration={getUndoSendExpiration(block)}/>
       <div className="message">Sending soon...</div>
       <div className="action" onClick={() => AppEnv.commands.dispatch('core:undo')}>
-        <RetinaImg name="undo-icon@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
+        onClick={onClose}/>
         <span className="undo-action-text">Undo</span>
       </div>
     </div>
   );
 };
 
-const BasicContent = ({ block, onMouseEnter, onMouseLeave }) => {
+const BasicContent = ({ block, onMouseEnter, onMouseLeave, onClose }) => {
   let description = block.description;
   if (block.tasks.length >= 2) {
     const tasks = block.tasks;
@@ -115,7 +116,8 @@ const BasicContent = ({ block, onMouseEnter, onMouseLeave }) => {
     <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <div className="message">{description}</div>
       <div className="action" onClick={() => AppEnv.commands.dispatch('core:undo')}>
-        <RetinaImg name="undo-icon@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
+        onClick={onClose}/>
         <span className="undo-action-text">Undo</span>
       </div>
     </div>
@@ -164,6 +166,11 @@ export default class UndoRedoToast extends React.Component {
     this._timeout = null;
   }
 
+  _closeToaster = () => {
+    this._clearTimeout();
+    this.setState({ block: null });
+  };
+
   _ensureTimeout() {
     this._clearTimeout();
 
@@ -175,7 +182,7 @@ export default class UndoRedoToast extends React.Component {
   }
 
   _onMouseEnter = () => {
-    // this._clearTimeout();
+    this._clearTimeout();
   };
 
   _onMouseLeave = () => {
@@ -198,6 +205,7 @@ export default class UndoRedoToast extends React.Component {
             block={block}
             onMouseEnter={this._onMouseEnter}
             onMouseLeave={this._onMouseLeave}
+            onClose={this._closeToaster}
           />
         ) : null}
       </CSSTransitionGroup>
