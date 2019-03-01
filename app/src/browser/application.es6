@@ -338,6 +338,8 @@ export default class Application extends EventEmitter {
   };
 
   _deleteDatabase = (callback, rebuild) => {
+    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-wal'));
+    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'));
     if (rebuild) {
       const dbPath = path.join(this.configDirPath, 'edisonmail.db');
       const newDbName = `edisonmail_backup_${new Date().getTime()}.db`;
@@ -365,8 +367,6 @@ export default class Application extends EventEmitter {
     } else {
       this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db'), callback);
     }
-    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-wal'));
-    this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'));
   };
 
   // Registers basic application commands, non-idempotent.
