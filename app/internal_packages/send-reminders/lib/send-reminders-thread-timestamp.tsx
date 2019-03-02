@@ -30,7 +30,7 @@ class SendRemindersThreadTimestamp extends Component<SendRemindersThreadTimestam
     const Fallback = this.props.fallback;
     const current = FocusedPerspectiveStore.current();
 
-    if (!current.isReminders) {
+    if (!(current as any).isReminders) {
       return <Fallback {...this.props} />;
     }
 

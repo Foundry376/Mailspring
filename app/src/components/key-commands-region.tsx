@@ -94,7 +94,7 @@ In `my-package/keymaps/my-package.cson`:
   "command+enter": "sendMessage"
 ```
 */
-export default class KeyCommandsRegion extends React.Component<
+export class KeyCommandsRegion extends React.Component<
   KeyCommandsRegionProps & React.HTMLProps<HTMLDivElement>,
   KeyCommandsRegionState
 > {

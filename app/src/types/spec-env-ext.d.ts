@@ -1,4 +1,5 @@
 import { any } from 'prop-types';
+import { Moment } from 'moment';
 
 export {};
 
@@ -19,4 +20,8 @@ declare global {
   export const advanceClock: (delta?: number) => void;
   export const resetTime: () => void;
   export const enableSpies: () => void;
+
+  export interface Window {
+    testNowMoment: () => Moment;
+  }
 }

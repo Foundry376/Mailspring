@@ -29,7 +29,7 @@ const _readFile = Promise.promisify(fs.readFile);
 
 const _parseOpenThreadUrl = nylasUrlString => {
   const parsedUrl = url.parse(nylasUrlString);
-  const params = querystring.parse(parsedUrl.query);
+  const params: any = querystring.parse(parsedUrl.query);
   params.lastDate = parseInt(params.lastDate, 10);
   return params;
 };
@@ -94,7 +94,7 @@ export function sharingURLForThread(thread) {
 
 let soon = {};
 let soonTimer = null;
-const syncThreadToWebSoon = thread => {
+const syncThreadToWebSoon = (thread: Thread) => {
   soon[thread.id] = thread;
   if (!soonTimer) {
     soonTimer = setTimeout(() => {
@@ -102,7 +102,7 @@ const syncThreadToWebSoon = thread => {
       soon = {};
       soonTimer = null;
 
-      processing.forEach(async thread => {
+      processing.forEach(async (thread: Thread) => {
         try {
           await syncThreadToWeb(thread);
         } catch (err) {

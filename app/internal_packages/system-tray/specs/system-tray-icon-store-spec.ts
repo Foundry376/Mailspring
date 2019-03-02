@@ -11,7 +11,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
   });
 
   function getCallData() {
-    const { args } = ipcRenderer.send.calls[0];
+    const { args } = (ipcRenderer.send as any).calls[0];
     return { iconPath: args[1], isTemplateImg: args[3] };
   }
 

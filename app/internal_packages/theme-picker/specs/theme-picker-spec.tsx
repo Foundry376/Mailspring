@@ -17,12 +17,12 @@ describe('ThemePicker', function themePicker() {
   });
 
   it('changes the active theme when a theme is clicked', () => {
-    spyOn(ThemePicker.prototype, '_setActiveTheme').andCallThrough();
+    spyOn(ThemePicker.prototype, '_setActiveTheme').and.callThrough();
     spyOn(ThemePicker.prototype, '_rewriteIFrame');
     const themeOption = ReactDOM.findDOMNode(
       ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'clickable-theme-option')[1]
     );
-    ReactTestUtils.Simulate.mouseDown(themeOption);
+    ReactTestUtils.Simulate.mouseDown(themeOption as any);
     expect(ThemePicker.prototype._setActiveTheme).toHaveBeenCalled();
   });
 });

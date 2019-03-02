@@ -91,7 +91,7 @@ type RetinaImgProps = {
   resourcePath?: string;
 };
 
-class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<HTMLImageElement>> {
+export class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<HTMLImageElement>> {
   static displayName = 'RetinaImg';
   static Mode = Mode;
 
@@ -162,5 +162,3 @@ class RetinaImg extends React.Component<RetinaImgProps & React.HTMLProps<HTMLIma
     );
   }
 }
-
-export default RetinaImg;

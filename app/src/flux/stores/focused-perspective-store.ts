@@ -23,7 +23,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     this._listenToCommands();
   }
 
-  current() {
+  current(): MailboxPerspective {
     return this._current;
   }
 

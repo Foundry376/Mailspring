@@ -55,8 +55,8 @@ describe('TokenizingTextField', function() {
     this.propCompletionNode = p => <CustomSuggestion item={p} />;
     this.propCompletionsForInput = input => this.completions;
 
-    spyOn(this, 'propCompletionNode').andCallThrough();
-    spyOn(this, 'propCompletionsForInput').andCallThrough();
+    spyOn(this, 'propCompletionNode').and.callThrough();
+    spyOn(this, 'propCompletionsForInput').and.callThrough();
 
     this.tokens = [participant1, participant2, participant3];
 

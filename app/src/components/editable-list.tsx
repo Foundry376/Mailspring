@@ -3,12 +3,11 @@ import _ from 'underscore';
 import classNames from 'classnames';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import { Utils, localized } from 'mailspring-exports';
 
 import { ScrollRegion } from './scroll-region';
-import KeyCommandsRegion from './key-commands-region';
-import RetinaImg from './retina-img';
+import { KeyCommandsRegion } from './key-commands-region';
+import { RetinaImg } from './retina-img';
 
 /**
  * If provided, this function will be called when the add button is clicked,

@@ -1,12 +1,14 @@
 import React from 'react';
-import { localized, Actions, AccountStore, IdentityStore } from 'mailspring-exports';
+import { localized, Actions, AccountStore, IdentityStore, IIdentity } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
-export default class PleaseSubscribeNotification extends React.Component {
+export default class PleaseSubscribeNotification extends React.Component<{}, { msg: string }> {
   static displayName = 'PleaseSubscribeNotification';
 
-  constructor() {
-    super();
+  unlisteners: Array<() => void>;
+
+  constructor(props) {
+    super(props);
     this.state = this.getStateFromStores();
   }
 
@@ -24,7 +26,7 @@ export default class PleaseSubscribeNotification extends React.Component {
   }
 
   getStateFromStores() {
-    const { stripePlanEffective, stripePlan } = IdentityStore.identity() || {};
+    const { stripePlanEffective, stripePlan } = (IdentityStore.identity() || {}) as IIdentity;
     const accountCount = AccountStore.accounts().length;
 
     let msg = null;

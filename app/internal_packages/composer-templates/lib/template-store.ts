@@ -106,7 +106,11 @@ class TemplateStore extends MailspringStore {
     });
   }
 
-  _onCreateTemplate({ headerMessageId, name, contents } = {}) {
+  _onCreateTemplate({
+    headerMessageId,
+    name,
+    contents,
+  }: { headerMessageId?: string; name?: string; contents?: string } = {}) {
     if (headerMessageId) {
       this._onCreateTemplateFromDraft(headerMessageId);
       return;
@@ -262,7 +266,10 @@ class TemplateStore extends MailspringStore {
     });
   }
 
-  _onInsertTemplateId({ templateId, headerMessageId } = {}) {
+  _onInsertTemplateId({
+    templateId,
+    headerMessageId,
+  }: { templateId?: string; headerMessageId?: string } = {}) {
     const template = this._items.find(t => t.id === templateId);
     const templateBody = fs.readFileSync(template.path).toString();
     DraftStore.sessionForClientId(headerMessageId).then(session => {

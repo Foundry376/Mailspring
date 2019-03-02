@@ -11,15 +11,15 @@ import {
   ThreadCountsStore,
 } from 'mailspring-exports';
 
-class ThreadListEmptyFolderBar extends React.Component {
-  static displayName = 'ThreadListEmptyFolderBar';
+interface ThreadListEmptyFolderBarProps {
+  role: string;
+  folders: Folder[];
+  count: number;
+  busy: boolean;
+}
 
-  static propTypes = {
-    role: PropTypes.string,
-    folders: PropTypes.array,
-    count: PropTypes.number,
-    busy: PropTypes.bool,
-  };
+class ThreadListEmptyFolderBar extends React.Component<ThreadListEmptyFolderBarProps> {
+  static displayName = 'ThreadListEmptyFolderBar';
 
   _onClick = () => {
     const { folders } = this.props;
@@ -83,10 +83,9 @@ export default ListensToFluxStore(ThreadListEmptyFolderBar, {
     return {
       folders,
       role: folders[0].role,
-      busy:
-        TaskQueue.findTasks(ExpungeAllInFolderTask).some(t =>
-          folders.map(f => f.accountId).includes(t.accountId)
-        ) > 0,
+      busy: TaskQueue.findTasks(ExpungeAllInFolderTask).some(t =>
+        folders.map(f => f.accountId).includes(t.accountId)
+      ),
       count: folders.reduce(
         (sum, { id }) => sum + ThreadCountsStore.totalCountForCategoryId(id),
         0

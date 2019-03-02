@@ -3,7 +3,7 @@ import { PLUGIN_ID, PLUGIN_URL } from './link-tracking-constants';
 
 function forEachATagInBody(draftBodyRootNode, callback) {
   const treeWalker = document.createTreeWalker(draftBodyRootNode, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: node => {
+    acceptNode: (node: HTMLElement) => {
       if (node.classList.contains('gmail_quote')) {
         return NodeFilter.FILTER_REJECT; // skips the entire subtree
       }

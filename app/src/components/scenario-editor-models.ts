@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import { localized } from 'mailspring-exports';
+import { localized, Message } from 'mailspring-exports';
 
 export class Comparator {
   name: string;
@@ -123,9 +123,14 @@ export class Template {
   type: string;
   values: string[] | undefined;
   valueLabel: string | undefined;
+  valueForMessage?: (message: Message) => any;
   comparators: {};
 
-  constructor(key, type, options = {}) {
+  constructor(
+    key,
+    type,
+    options: { name?: string; valueForMessage?: (message: Message) => any } = {}
+  ) {
     this.key = key;
     this.type = type;
 

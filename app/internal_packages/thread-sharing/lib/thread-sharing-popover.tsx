@@ -14,13 +14,20 @@ import { RetinaImg } from 'mailspring-component-kit';
 import CopyButton from './copy-button';
 import { sharingURLForThread, syncThreadToWeb, unsyncThread } from './main';
 
-export default class ThreadSharingPopover extends React.Component {
+export default class ThreadSharingPopover extends React.Component<
+  {
+    thread: Thread;
+    accountId: string;
+  },
+  { saving: boolean; url: string }
+> {
   static propTypes = {
     thread: PropTypes.object,
     accountId: PropTypes.string,
   };
 
   _mounted: boolean = false;
+  _disposable?: any;
 
   constructor(props) {
     super(props);
@@ -40,7 +47,7 @@ export default class ThreadSharingPopover extends React.Component {
   }
 
   componentDidUpdate() {
-    ReactDOM.findDOMNode(this).focus();
+    (ReactDOM.findDOMNode(this) as HTMLElement).focus();
   }
 
   componentWillUnmount() {
@@ -151,9 +158,11 @@ export default class ThreadSharingPopover extends React.Component {
           />
         </div>
         <div className="share-controls">
-          <button href={url} className="btn" disabled={!url}>
-            {localized('Open In Browser')}
-          </button>
+          <a href={url}>
+            <button className="btn" disabled={!url}>
+              {localized('Open In Browser')}
+            </button>
+          </a>
           <CopyButton
             className="btn"
             disabled={!url}

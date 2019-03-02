@@ -83,7 +83,10 @@ export class Account extends ModelWithMetadata {
   public settings: {
     imap_host: string;
     imap_password: string;
+    imap_security: 'SSL / TLS' | 'STARTTLS' | 'none';
     smtp_host: string;
+    smtp_password: string;
+    smtp_security: 'SSL / TLS' | 'STARTTLS' | 'none';
   };
   public label: string;
   public autoaddress: AccountAutoaddress;

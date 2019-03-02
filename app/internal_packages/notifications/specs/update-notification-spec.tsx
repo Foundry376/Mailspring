@@ -55,7 +55,7 @@ describe('UpdateNotification', function describeBlock() {
     });
 
     it('should listen for `window:update-available`', () => {
-      spyOn(AppEnv, 'onUpdateAvailable').andCallThrough();
+      spyOn(AppEnv, 'onUpdateAvailable').and.callThrough();
       mount(<UpdateNotification />);
       expect(AppEnv.onUpdateAvailable).toHaveBeenCalled();
     });

@@ -1,7 +1,10 @@
 import React from 'react';
-import { localized, PropTypes, Actions, DateUtils } from 'mailspring-exports';
+import { localized, PropTypes, Actions, DateUtils, Contact, Thread } from 'mailspring-exports';
 
-export default class RelatedThreads extends React.Component {
+export default class RelatedThreads extends React.Component<{
+  contact: Contact;
+  contactThreads: Thread[];
+}> {
   static displayName = 'RelatedThreads';
 
   static propTypes = {

@@ -1,12 +1,21 @@
 import { localized, React } from 'mailspring-exports';
 import { ipcRenderer, remote, shell } from 'electron';
 import { Notification } from 'mailspring-component-kit';
+import { Disposable } from 'event-kit';
 
-export default class UpdateNotification extends React.Component {
+interface UpdateNotificationState {
+  updateAvailable: boolean;
+  version: string;
+  updateIsManual: boolean;
+}
+
+export default class UpdateNotification extends React.Component<{}, UpdateNotificationState> {
   static displayName = 'UpdateNotification';
 
-  constructor() {
-    super();
+  disposable?: Disposable;
+
+  constructor(props) {
+    super(props);
     this.state = this.getStateFromStores();
   }
 

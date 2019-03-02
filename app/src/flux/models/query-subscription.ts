@@ -1,6 +1,6 @@
 import DatabaseStore from '../stores/database-store';
 import { QueryRange } from './query-range';
-import MutableQueryResultSet from './mutable-query-result-set';
+import { MutableQueryResultSet } from './mutable-query-result-set';
 import ModelQuery from './query';
 import { Model } from './model';
 
@@ -11,7 +11,7 @@ export class QuerySubscription<T extends Model> {
   _updateInFlight = false;
   _queuedChangeRecords = [];
   _queryVersion = 1;
-  _query: ModelQuery<T>;
+  _query: ModelQuery<T[]>;
   _options: any;
 
   constructor(
@@ -238,7 +238,7 @@ export class QuerySubscription<T extends Model> {
       rangeQuery.background();
     }
 
-    DatabaseStore.run(rangeQuery, { format: false }).then(results => {
+    DatabaseStore.run(rangeQuery, { format: false }).then(async results => {
       if (this._queryVersion !== version) {
         return;
       }
@@ -257,22 +257,21 @@ export class QuerySubscription<T extends Model> {
       this._set.clipToRange(this._query.range());
 
       // todo: this is returning fewer objects because they're being deleted immediately after being saved
-      this._fetchMissingModels().then(models => {
-        if (this._queryVersion !== version) {
-          return;
-        }
-        for (const m of models) {
-          this._set.updateModel(m);
-        }
-        this._createResultAndTrigger();
-      });
+      const models = await this._fetchMissingModels();
+      if (this._queryVersion !== version) {
+        return;
+      }
+      for (const m of models) {
+        this._set.updateModel(m);
+      }
+      this._createResultAndTrigger();
     });
   }
 
-  _fetchMissingModels() {
+  async _fetchMissingModels() {
     const missingIds = this._set.ids().filter(id => !this._set.modelWithId(id));
     if (missingIds.length === 0) {
-      return Promise.resolve([]);
+      return [];
     }
     return DatabaseStore.findAll<T>(this._query._klass, { id: missingIds });
   }

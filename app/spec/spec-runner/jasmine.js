@@ -254,7 +254,7 @@ jasmine.objectContaining = function (sample) {
  * spyOn(foo, 'not');
 
  // foo.not spied upon, execution will continue to implementation
- * spyOn(foo, 'not').andCallThrough();
+ * spyOn(foo, 'not').and.callThrough();
  *
  * // fake example
  * var foo = {
@@ -319,9 +319,9 @@ jasmine.Spy = function(name) {
  * }
  *
  * // defining a spy on an existing property: foo.bar
- * spyOn(foo, 'bar').andCallThrough();
+ * spyOn(foo, 'bar').and.callThrough();
  */
-jasmine.Spy.prototype.andCallThrough = function() {
+jasmine.Spy.prototype.and.callThrough = function() {
   this.plan = this.originalValue;
   return this;
 };

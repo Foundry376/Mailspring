@@ -56,7 +56,7 @@ class SubmitLocalizationsBar extends React.Component {
 
   onSelectionMouseDown = event => {
     let text = null;
-    const element = document.elementFromPoint(event.clientX, event.clientY);
+    const element = document.elementFromPoint(event.clientX, event.clientY) as any;
 
     if (element) {
       if (element.nodeName === 'INPUT') {

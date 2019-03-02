@@ -6,6 +6,7 @@ import {
   // A `Store` is a Flux component which contains all business logic and data
   // models to be consumed by React components to render markup.
   MessageStore,
+  Message,
 } from 'mailspring-exports';
 
 const tld = require('tld');
@@ -13,12 +14,14 @@ const tld = require('tld');
 // Notice that this file is `main.jsx` rather than `main.es6`. We use the
 // `.jsx` filetype because we use the JSX DSL to describe markup for React to
 // render. Without the JSX, we could just name this file `main.es6` instead.
-class PhishingIndicator extends React.Component {
+class PhishingIndicator extends React.Component<{}, { message: Message }> {
   // Adding a displayName to a React component helps for debugging.
   static displayName = 'PhishingIndicator';
 
-  constructor() {
-    super();
+  _unlisten?: () => void;
+
+  constructor(props) {
+    super(props);
     this.state = {
       message: MessageStore.items()[0],
     };

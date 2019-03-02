@@ -2,7 +2,10 @@ import React from 'react';
 import { localized, PropTypes, Utils } from 'mailspring-exports';
 import { clipboard } from 'electron';
 
-class CopyButton extends React.Component<{ copyValue: string }, { btnLabel: string }> {
+class CopyButton extends React.Component<
+  { copyValue: string; btnLabel: string } & React.HTMLProps<HTMLButtonElement>,
+  { btnLabel: string }
+> {
   static propTypes = {
     btnLabel: PropTypes.string,
     copyValue: PropTypes.string,

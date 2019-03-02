@@ -1,5 +1,5 @@
 /* eslint global-require: 0*/
-import { dialog } from 'electron';
+import { dialog, NativeImage } from 'electron';
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs';
@@ -174,7 +174,7 @@ export default class AutoUpdateManager extends EventEmitter {
     dialog.showMessageBox({
       type: 'info',
       buttons: [localized('OK')],
-      icon: this.iconURL(),
+      icon: NativeImage.createFromPath(this.iconURL()),
       message: localized('No update available.'),
       title: localized('No update available.'),
       detail: localized(`You're running the latest version of Mailspring (%@).`, this.version),
@@ -186,7 +186,7 @@ export default class AutoUpdateManager extends EventEmitter {
     dialog.showMessageBox({
       type: 'warning',
       buttons: [localized('OK')],
-      icon: this.iconURL(),
+      icon: NativeImage.createFromPath(this.iconURL()),
       message: localized('There was an error checking for updates.'),
       title: localized('Update Error'),
       detail: message,

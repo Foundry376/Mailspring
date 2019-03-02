@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import RetinaImg from './retina-img';
+import { RetinaImg } from './retina-img';
 import {
   localized,
   MailboxPerspective,

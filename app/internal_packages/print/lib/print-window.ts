@@ -6,7 +6,7 @@ import { localized } from 'mailspring-exports';
 const { app, BrowserWindow } = remote;
 
 export default class PrintWindow {
-  browserWin: BrowserWindow;
+  browserWin: Electron.BrowserWindow;
   tmpFile: string;
 
   constructor({ subject, account, participants, styleTags, htmlContent, printMessages }) {

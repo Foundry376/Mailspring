@@ -3,7 +3,7 @@ import MailspringStore from 'mailspring-store';
 import DraftEditingSession from './draft-editing-session';
 import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
-import SendActionsStore from './send-actions-store';
+import { SendActionsStore } from './send-actions-store';
 import FocusedContentStore from './focused-content-store';
 import { SyncbackDraftTask } from '../tasks/syncback-draft-task';
 import { SyncbackMetadataTask } from '../tasks/syncback-metadata-task';

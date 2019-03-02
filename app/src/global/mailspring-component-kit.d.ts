@@ -1,5 +1,5 @@
 export * from '../components/menu';
-export const DropZone: typeof import('../components/drop-zone').default;
+export * from '../components/drop-zone';
 export * from '../components/spinner'
 export const Switch: typeof import('../components/switch').default;
 export const FixedPopover: typeof import('../components/fixed-popover').default;
@@ -11,7 +11,7 @@ export const BillingModal: typeof import('../components/billing-modal').default;
 export const OpenIdentityPageButton: typeof import('../components/open-identity-page-button').default;
 export * from '../components/flexbox'
 
-export const RetinaImg: typeof import('../components/retina-img').default;
+export * from '../components/retina-img';
 export const SwipeContainer: typeof import('../components/swipe-container').default;
 export const FluxContainer: typeof import('../components/flux-container').default;
 export const FocusContainer: typeof import('../components/focus-container').default;
@@ -25,9 +25,9 @@ export * from '../components/button-dropdown';
 export * from '../components/multiselect-list'
 export const BoldedSearchResult: typeof import('../components/bolded-search-result').default;
 export const MultiselectDropdown: typeof import('../components/multiselect-dropdown').default;
-export const KeyCommandsRegion: typeof import('../components/key-commands-region').default;
+export * from '../components/key-commands-region';
 export const BindGlobalCommands: typeof import('../components/bind-global-commands').default;
-export const TabGroupRegion: typeof import('../components/tab-group-region').default;
+export * from '../components/tab-group-region'
 export const InjectedComponent: typeof import('../components/injected-component').default;
 export * from '../components/tokenizing-text-field';
 export const ParticipantsTextField: typeof import('../components/participants-text-field').default;
@@ -35,7 +35,7 @@ export const MultiselectToolbar: typeof import('../components/multiselect-toolba
 export * from '../components/injected-component-set';
 export const MetadataComposerToggleButton: typeof import('../components/metadata-composer-toggle-button').default;
 export * from '../components/config-prop-container';
-export const DisclosureTriangle: typeof import('../components/disclosure-triangle').default;
+export * from '../components/disclosure-triangle';
 export const EditableList: typeof import('../components/editable-list').default;
 export const DropdownMenu: typeof import('../components/dropdown-menu').default;
 export const OutlineViewItem: typeof import('../components/outline-view-item').default;
@@ -52,8 +52,7 @@ export const SelectableTableCell: typeof import('../components/selectable-table'
 export const EditableTable: typeof import('../components/editable-table').default;
 export const EditableTableCell: typeof import('../components/editable-table').EditableTableCell;
 export * from '../components/lazy-rendered-list';
-export const AttachmentItem: typeof import('../components/attachment-items').AttachmentItem;
-export const ImageAttachmentItem: typeof import('../components/attachment-items').ImageAttachmentItem;
+export * from '../components/attachment-items';
 export const CodeSnippet: typeof import('../components/code-snippet').default;
 
 export * from '../components/composer-editor/composer-editor'

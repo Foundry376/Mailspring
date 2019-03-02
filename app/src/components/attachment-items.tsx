@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Actions from '../flux/actions';
 import { pickHTMLProps } from 'pick-react-known-prop';
-import RetinaImg from './retina-img';
+import { RetinaImg } from './retina-img';
 import { Flexbox } from './flexbox';
 import { Spinner } from './spinner';
 
@@ -96,21 +96,21 @@ AttachmentActionIcon.propTypes = {
 
 interface AttachmentItemProps {
   className: string;
-  draggable: boolean;
-  focusable: boolean;
+  draggable?: boolean;
+  focusable?: boolean;
   filePath: string;
-  contentType: string;
-  download: {
+  contentType?: string;
+  download?: {
     state: string;
     percent: number;
   };
-  displayName: string;
-  displaySize: string;
-  fileIconName: string;
-  filePreviewPath: string;
-  onOpenAttachment: () => void;
+  displayName?: string;
+  displaySize?: string;
+  fileIconName?: string;
+  filePreviewPath?: string;
+  onOpenAttachment?: () => void;
   onRemoveAttachment: () => void;
-  onDownloadAttachment: () => void;
+  onDownloadAttachment?: () => void;
 }
 
 export class AttachmentItem extends Component<AttachmentItemProps> {
@@ -246,7 +246,7 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
   }
 }
 
-export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgProps: any }> {
+export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgProps?: any }> {
   static displayName = 'ImageAttachmentItem';
 
   static propTypes = {

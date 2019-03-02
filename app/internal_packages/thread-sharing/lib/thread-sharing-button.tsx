@@ -1,18 +1,13 @@
 import React from 'react';
-import { localized, Actions, ReactDOM, PropTypes } from 'mailspring-exports';
+import { localized, Actions, ReactDOM, Thread } from 'mailspring-exports';
 import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 import ThreadSharingPopover from './thread-sharing-popover';
 import { isShared } from './main';
 
-export default class ThreadSharingButton extends React.Component {
+export default class ThreadSharingButton extends React.Component<{ items: any[]; thread: Thread }> {
   static displayName = 'ThreadSharingButton';
 
   static containerRequired = false;
-
-  static propTypes = {
-    items: PropTypes.array,
-    thread: PropTypes.object,
-  };
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.thread.id !== this.props.thread.id) {
@@ -23,17 +18,10 @@ export default class ThreadSharingButton extends React.Component {
   _onClick = () => {
     const { thread } = this.props;
 
-    Actions.openPopover(
-      <ThreadSharingPopover
-        thread={thread}
-        accountId={thread.accountId}
-        closePopover={Actions.closePopover}
-      />,
-      {
-        originRect: ReactDOM.findDOMNode(this).getBoundingClientRect(),
-        direction: 'down',
-      }
-    );
+    Actions.openPopover(<ThreadSharingPopover thread={thread} accountId={thread.accountId} />, {
+      originRect: (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect(),
+      direction: 'down',
+    });
   };
 
   render() {

@@ -5,6 +5,9 @@ import MailspringStore from 'mailspring-store';
 import OnboardingActions from './onboarding-actions';
 
 class OnboardingStore extends MailspringStore {
+  _account: Account;
+  _pageStack: string[];
+
   constructor() {
     super();
 

@@ -1,23 +1,25 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { localized } from 'mailspring-exports';
+import { localized, Account } from 'mailspring-exports';
 import CreatePageForForm from './decorators/create-page-for-form';
 import FormField from './form-field';
 
 const StandardIMAPPorts = [143, 993];
 const StandardSMTPPorts = [25, 465, 587];
 
-class AccountIMAPSettingsForm extends React.Component {
-  static displayName = 'AccountIMAPSettingsForm';
+interface AccountIMAPSettingsFormProps {
+  account: Account;
+  errorFieldNames: string[];
+  submitting: boolean;
+  onConnect: () => void;
+  onFieldChange: (
+    e: { target: { value: string; id: string } },
+    opts?: { afterSetState: () => void }
+  ) => void;
+  onFieldKeyPress: () => void;
+}
 
-  static propTypes = {
-    account: PropTypes.object,
-    errorFieldNames: PropTypes.array,
-    submitting: PropTypes.bool,
-    onConnect: PropTypes.func,
-    onFieldChange: PropTypes.func,
-    onFieldKeyPress: PropTypes.func,
-  };
+class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormProps> {
+  static displayName = 'AccountIMAPSettingsForm';
 
   static submitLabel = () => {
     return localized('Connect Account');

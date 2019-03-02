@@ -4,16 +4,18 @@ import { clipboard as ElectronClipboard } from 'electron';
 import path from 'path';
 import fs from 'fs';
 
-import KeyCommandsRegion from '../key-commands-region';
+import { KeyCommandsRegion } from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
 import { plugins, convertFromHTML, convertToHTML } from './conversion';
 import { lastUnquotedNode } from './base-block-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
 
+const AEditor = Editor as any;
+
 interface ComposerEditorProps {
   value: any;
   className: string;
-  onBlur: () => void;
+  onBlur?: () => void;
   onDrop: (e: Event) => void;
   propsForPlugins: any;
   onChange: (change: any) => void;
@@ -225,7 +227,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
             .map((p, idx) => (
               <p.topLevelComponent key={idx} value={value} onChange={this.onChange} />
             ))}
-          <Editor
+          <AEditor
             value={value}
             onChange={this.onChange}
             onBlur={onBlur}

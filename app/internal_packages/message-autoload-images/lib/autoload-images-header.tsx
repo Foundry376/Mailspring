@@ -4,12 +4,17 @@ import { localized, PropTypes, Message } from 'mailspring-exports';
 import AutoloadImagesStore from './autoload-images-store';
 import Actions from './autoload-images-actions';
 
-export default class AutoloadImagesHeader extends React.Component {
+export default class AutoloadImagesHeader extends React.Component<
+  { message: Message },
+  { blocking: boolean }
+> {
   static displayName = 'AutoloadImagesHeader';
 
   static propTypes = {
     message: PropTypes.instanceOf(Message).isRequired,
   };
+
+  _unlisten?: () => void;
 
   constructor(props) {
     super(props);

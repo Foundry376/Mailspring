@@ -17,13 +17,16 @@ import { ChangeStarredTask } from './flux/tasks/change-starred-task';
 import { ChangeLabelsTask } from './flux/tasks/change-labels-task';
 import { Message } from 'mailspring-exports';
 let MailRulesStore: typeof import('./flux/stores/mail-rules-store').default = null;
+type MailRule = import('./flux/stores/mail-rules-store').MailRule;
 
 /**
 Note: At first glance, it seems like these task factory methods should use the
 TaskFactory. Unfortunately, the TaskFactory uses the CategoryStore and other
 information about the current view. Maybe after the unified inbox refactor...
 */
-const MailRulesActions = {
+const MailRulesActions: {
+  [action: string]: (message: Message, thread: Thread, value: string) => undefined | Task | Promise<undefined> | Promise<Task>
+} = {
   markAsImportant: async (message, thread) => {
     const important = CategoryStore.getCategoryByRole(thread.accountId, 'important');
     if (!important) {
@@ -86,7 +89,7 @@ const MailRulesActions = {
     });
   },
 
-  applyLabel: async (message: Message, thread: Thread, value) => {
+  applyLabel: async (message, thread, value) => {
     if (!value) {
       throw new Error('A label is required.');
     }
@@ -166,7 +169,7 @@ class MailRulesProcessor {
     }
   }
 
-  _checkRuleForMessage(rule, message: Message) {
+  _checkRuleForMessage(rule: MailRule, message: Message) {
     const fn =
       rule.conditionMode === ConditionMode.All ? Array.prototype.every : Array.prototype.some;
     if (message.accountId !== rule.accountId) {
@@ -180,7 +183,7 @@ class MailRulesProcessor {
     });
   }
 
-  async _applyRuleToMessage(rule, message: Message, thread: Thread) {
+  async _applyRuleToMessage(rule: MailRule, message: Message, thread: Thread) {
     try {
       const actionPromises = rule.actions.map(action => {
         const actionFn = MailRulesActions[action.templateKey];
@@ -190,12 +193,12 @@ class MailRulesProcessor {
         return actionFn(message, thread, action.value);
       });
 
-      const actionResults = await Promise.all(actionPromises);
+      const actionResults = await Promise.all<Task | undefined>(actionPromises);
       const actionTasks = actionResults.filter(r => r instanceof Task);
 
       // mark that none of these tasks are undoable
       actionTasks.forEach(t => {
-        t.canBeUndone = false;
+        (t as any).canBeUndone = false;
       });
 
       const performLocalPromises = actionTasks.map(t => TaskQueue.waitForPerformLocal(t));

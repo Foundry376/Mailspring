@@ -4,6 +4,17 @@ import { CompactPicker } from 'react-color';
 
 // Helper Functions
 
+export interface IEditorToolbarConfigItem {
+  type: string;
+  tagNames: string[];
+  render: (props) => React.ReactChild;
+  button?: {
+    isActive: (value: any) => boolean;
+    onToggle: (value: any, active: boolean) => any;
+    iconClass: string;
+  };
+}
+
 function removeMarksOfTypeInRange(change, range, type) {
   if (range.isCollapsed) {
     const active = change.value.activeMarks.find(m => m.type === type);
@@ -103,8 +114,19 @@ export function applyValueForMark(value, type, markValue) {
 
 // React Component Factories
 
-export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle } }) {
-  return ({ value, onChange, className }) => {
+export function BuildToggleButton({
+  type,
+  button: { iconClass, isActive, onToggle },
+}: IEditorToolbarConfigItem) {
+  return ({
+    value,
+    onChange,
+    className,
+  }: {
+    value: any;
+    onChange: (value: any) => void;
+    className: string;
+  }) => {
     const active = isActive(value);
     const onMouseDown = e => {
       onChange(onToggle(value, active));

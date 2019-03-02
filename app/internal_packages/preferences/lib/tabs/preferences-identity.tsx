@@ -1,5 +1,11 @@
 import React from 'react';
-import { Actions, IdentityStore, localized, localizedReactFragment } from 'mailspring-exports';
+import {
+  Actions,
+  IdentityStore,
+  localized,
+  localizedReactFragment,
+  IIdentity,
+} from 'mailspring-exports';
 import { OpenIdentityPageButton, BillingModal, RetinaImg } from 'mailspring-component-kit';
 import { shell } from 'electron';
 
@@ -122,7 +128,7 @@ const ProTourFeatures = [
   },
 ];
 
-class PreferencesIdentity extends React.Component<{}, { identity: object }> {
+class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
   static displayName = 'PreferencesIdentity';
 
   unsubscribe: () => void;

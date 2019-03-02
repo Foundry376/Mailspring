@@ -28,11 +28,14 @@ const LINKEDIN_SHARE = (
   />
 );
 
-function widthAndHeightForPhotoURL(photoURL, { maxWidth, maxHeight } = {}) {
+function widthAndHeightForPhotoURL(
+  photoURL,
+  { maxWidth, maxHeight }: { maxWidth?: number; maxHeight?: number } = {}
+) {
   if (!photoURL) {
     return {};
   }
-  let q = {};
+  let q: any = {};
   try {
     q = querystring.parse(photoURL.split('?').pop());
   } catch (err) {
@@ -71,7 +74,7 @@ const PrefixStyles = {
   },
 };
 
-function GenericInfoBlock(props, prefixStyle = PrefixStyles.None) {
+function GenericInfoBlock(props, prefixStyle: any = PrefixStyles.None) {
   return (
     <div>
       {props.email && (
@@ -199,7 +202,7 @@ const Templates = [
         <table cellPadding={0} cellSpacing={0}>
           <tbody>
             <tr>
-              <td colSpan="2">
+              <td colSpan={2}>
                 <div style={{ paddingBottom: 15 }}>
                   {props.name && (
                     <div>
@@ -365,7 +368,7 @@ const Templates = [
             </td>
           </tr>
           <tr>
-            <td colSpan="2">
+            <td colSpan={2}>
               <div
                 style={{
                   fontSize: '0.9em',

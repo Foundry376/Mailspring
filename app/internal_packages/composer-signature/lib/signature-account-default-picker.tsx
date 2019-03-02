@@ -1,14 +1,23 @@
 import React from 'react';
-import { localized, PropTypes, Actions } from 'mailspring-exports';
+import {
+  localized,
+  PropTypes,
+  Actions,
+  IAliasSet,
+  ISignature,
+  IDefaultSignatures,
+} from 'mailspring-exports';
 import { MultiselectDropdown } from 'mailspring-component-kit';
 
-export default class SignatureAccountDefaultPicker extends React.Component {
-  static propTypes = {
-    defaults: PropTypes.object,
-    signature: PropTypes.object,
-    accountsAndAliases: PropTypes.array,
-  };
+interface SignatureAccountDefaultPickerProps {
+  defaults: IDefaultSignatures;
+  signature: ISignature;
+  accountsAndAliases: IAliasSet;
+}
 
+export default class SignatureAccountDefaultPicker extends React.Component<
+  SignatureAccountDefaultPickerProps
+> {
   _onToggleAccount = account => {
     Actions.toggleAccount(account.email);
   };
@@ -30,7 +39,6 @@ export default class SignatureAccountDefaultPicker extends React.Component {
           itemChecked={isChecked}
           itemContent={accountOrAlias => accountOrAlias.email}
           itemKey={a => a.id}
-          current={signature}
           attachment={'right'}
           buttonText={`${checked.length} ${noun}`}
           onToggleItem={this._onToggleAccount}

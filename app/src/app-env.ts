@@ -43,7 +43,7 @@ export default class AppEnvConstructor {
   packages: import('./package-manager').default;
   styles: import('./style-manager').default;
   themes: import('./theme-manager').default;
-  spellchecker: typeof import('./spellchecker');
+  spellchecker: typeof import('./spellchecker').default;
   menu: import('./menu-manager').default;
   windowEventHandler: import('./window-event-handler').default;
   actionBridge: import('./flux/action-bridge').default;

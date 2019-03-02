@@ -108,7 +108,7 @@ const c3 = new ListTabular.Column({
   name: 'Message',
   flex: 4,
   resolver: thread => {
-    let attachment = false;
+    let attachment: JSX.Element = null;
     const messages = thread.__messages || [];
 
     const hasAttachments =
@@ -172,8 +172,8 @@ const cNarrow = new ListTabular.Column({
   name: 'Item',
   flex: 1,
   resolver: thread => {
-    let pencil = false;
-    let attachment = false;
+    let pencil: JSX.Element = null;
+    let attachment: JSX.Element = null;
     const messages = thread.__messages || [];
 
     const hasAttachments =

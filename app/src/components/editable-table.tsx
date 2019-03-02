@@ -3,7 +3,7 @@ import { pickHTMLProps } from 'pick-react-known-prop';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
-import RetinaImg from './retina-img';
+import { RetinaImg } from './retina-img';
 import SelectableTable, { SelectableTableCell } from './selectable-table';
 
 /*

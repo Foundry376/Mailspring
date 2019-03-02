@@ -7,7 +7,7 @@ import { remote } from 'electron';
 import { localized, isRTL, Actions, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import { SheetDeclaration } from './flux/stores/workspace-store';
 import { Flexbox } from './components/flexbox';
-import RetinaImg from './components/retina-img';
+import { RetinaImg } from './components/retina-img';
 import * as Utils from './flux/models/utils';
 import { Disposable } from 'rx-core';
 

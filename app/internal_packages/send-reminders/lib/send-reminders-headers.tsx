@@ -6,9 +6,11 @@ import { localized, DateUtils } from 'mailspring-exports';
 
 import { updateReminderMetadata } from './send-reminders-utils';
 import { PLUGIN_ID } from './send-reminders-constants';
+import { SendRemindersMetadata } from './types';
 
 export function NotificationExplanationMessageHeader({ thread, message }) {
-  const { shouldNotify, sentHeaderMessageId } = thread.metadataForPluginId(PLUGIN_ID) || {};
+  const { shouldNotify, sentHeaderMessageId } =
+    thread.metadataForPluginId(PLUGIN_ID) || ({} as SendRemindersMetadata);
 
   if (!shouldNotify) {
     return <span />;

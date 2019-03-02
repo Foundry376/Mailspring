@@ -1,7 +1,13 @@
 import React from 'react';
 import { Actions, Calendar, DatabaseStore, DateUtils, Event } from 'mailspring-exports';
+import { Moment } from 'moment';
 
-export default class QuickEventPopover extends React.Component {
+interface QuickEventPopoverSttae {
+  start: Moment | null;
+  end: Moment | null;
+  leftoverText: string | null;
+}
+export default class QuickEventPopover extends React.Component<{}, QuickEventPopoverSttae> {
   constructor(props) {
     super(props);
     this.state = {

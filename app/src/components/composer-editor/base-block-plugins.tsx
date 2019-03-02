@@ -3,7 +3,7 @@ import SoftBreak from 'slate-soft-break';
 import EditList from 'slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
 
-import { BuildToggleButton } from './toolbar-component-factories';
+import { BuildToggleButton, IEditorToolbarConfigItem } from './toolbar-component-factories';
 
 function nodeIsEmpty(node) {
   if (node.text !== '') {
@@ -52,7 +52,9 @@ function toggleBlockTypeWithBreakout(value, change, type) {
   return change;
 }
 
-export const BLOCK_CONFIG = {
+export const BLOCK_CONFIG: {
+  [key: string]: IEditorToolbarConfigItem;
+} = {
   div: {
     type: 'div',
     tagNames: ['div', 'br', 'p'],

@@ -1,3 +1,5 @@
+import { Message } from 'mailspring-exports';
+
 /*
  * decaffeinate suggestions:
  * DS102: Remove unnecessary code created because of implicit returns
@@ -48,7 +50,7 @@ export class ComposerExtension {
   Returns a list of warning strings, or an empty array if no warnings need
   to be displayed.
   */
-  static warningsForSending({ draft }) {
+  static warningsForSending(args: { draft: Message }) {
     return [];
   }
 
@@ -89,7 +91,7 @@ export class ComposerExtension {
   valuable way, you should set `draft.pristine = false` so the draft
   saves, even if no further changes are made.
   */
-  static prepareNewDraft({ draft }) {}
+  static prepareNewDraft(args: { draft: Message }) {}
 
   /*
   Public: applyTransformsToDraft is called when a draft the user is editing
@@ -114,5 +116,9 @@ export class ComposerExtension {
 
   - `draft`: A {Message} the user is about to finish editing.
   */
-  static applyTransformsForSending({ draft, draftBodyRootNode }) {}
+  static applyTransformsForSending(args: {
+    draft: Message;
+    draftBodyRootNode: HTMLElement;
+    recipient?: string;
+  }) {}
 }

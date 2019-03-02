@@ -3,7 +3,7 @@ import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import Actions from '../flux/actions';
-import RetinaImg from './retina-img';
+import { RetinaImg } from './retina-img';
 
 type ModalProps = {
   className?: string;

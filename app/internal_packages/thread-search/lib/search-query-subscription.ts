@@ -6,16 +6,14 @@ import {
   SearchQueryParser,
   ComponentRegistry,
   MutableQuerySubscription,
-  QueryResultSet,
 } from 'mailspring-exports';
 
-class SearchQuerySubscription extends MutableQuerySubscription {
+class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _searchQuery: string;
   _accountIds: string[];
   _connections = [];
   _extDisposables = [];
   _searching = false;
-  _set?: QueryResultSet<Thread>;
 
   constructor(searchQuery, accountIds) {
     super(null, { emitResultSet: true });

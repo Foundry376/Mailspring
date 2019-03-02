@@ -156,8 +156,8 @@ describe('MovePickerPopover', function() {
   describe('_onSelectCategory', function() {
     beforeEach(function() {
       setupForCreateNew.call(this);
-      spyOn(TaskFactory, 'taskForRemovingCategory').andCallThrough();
-      spyOn(TaskFactory, 'tasK').andCallThrough();
+      spyOn(TaskFactory, 'taskForRemovingCategory').and.callThrough();
+      spyOn(TaskFactory, 'tasK').and.callThrough();
       spyOn(Actions, 'queueTask');
     });
 

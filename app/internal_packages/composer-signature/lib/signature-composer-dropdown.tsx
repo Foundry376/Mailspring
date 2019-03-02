@@ -1,10 +1,27 @@
 import React from 'react';
-import { localized, Actions, PropTypes, SignatureStore } from 'mailspring-exports';
+import {
+  localized,
+  Actions,
+  PropTypes,
+  SignatureStore,
+  Message,
+  DraftEditingSession,
+  Account,
+  ISignatureSet,
+} from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown } from 'mailspring-component-kit';
 
 import { applySignature, currentSignatureId } from './signature-utils';
 
-export default class SignatureComposerDropdown extends React.Component {
+export default class SignatureComposerDropdown extends React.Component<
+  {
+    draft: Message;
+    draftFromEmail: string;
+    session: DraftEditingSession;
+    accounts: Account[];
+  },
+  { signatures: ISignatureSet }
+> {
   static displayName = 'SignatureComposerDropdown';
 
   static containerRequired = false;
@@ -16,27 +33,29 @@ export default class SignatureComposerDropdown extends React.Component {
     accounts: PropTypes.array,
   };
 
+  _staticIcon = (
+    <RetinaImg
+      className="signature-button"
+      name="top-signature-dropdown.png"
+      mode={RetinaImg.Mode.ContentIsMask}
+    />
+  );
+  _staticHeaderItems = [
+    <div className="item item-none" key="none" onMouseDown={this._onClickNoSignature}>
+      <span>{localized('No signature')}</span>
+    </div>,
+  ];
+  _staticFooterItems = [
+    <div className="item item-edit" key="edit" onMouseDown={this._onClickEditSignatures}>
+      <span>{localized('Edit Signatures...')}</span>
+    </div>,
+  ];
+
+  unsubscribers: Array<() => void>;
+
   constructor(props) {
     super(props);
     this.state = this._getStateFromStores();
-
-    this._staticIcon = (
-      <RetinaImg
-        className="signature-button"
-        name="top-signature-dropdown.png"
-        mode={RetinaImg.Mode.ContentIsMask}
-      />
-    );
-    this._staticHeaderItems = [
-      <div className="item item-none" key="none" onMouseDown={this._onClickNoSignature}>
-        <span>{localized('No signature')}</span>
-      </div>,
-    ];
-    this._staticFooterItems = [
-      <div className="item item-edit" key="edit" onMouseDown={this._onClickEditSignatures}>
-        <span>{localized('Edit Signatures...')}</span>
-      </div>,
-    ];
   }
 
   componentDidMount = () => {

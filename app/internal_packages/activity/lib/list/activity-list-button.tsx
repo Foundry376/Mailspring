@@ -5,11 +5,13 @@ import { RetinaImg } from 'mailspring-component-kit';
 import ActivityList from './activity-list';
 import ActivityEventStore from '../activity-event-store';
 
-class ActivityListButton extends React.Component {
+class ActivityListButton extends React.Component<{}, { unreadCount: number | string }> {
   static displayName = 'ActivityListButton';
 
-  constructor() {
-    super();
+  _unsub: () => void;
+
+  constructor(props) {
+    super(props);
     this.state = this._getStateFromStores();
   }
 
@@ -22,7 +24,7 @@ class ActivityListButton extends React.Component {
   }
 
   onClick = () => {
-    const buttonRect = ReactDOM.findDOMNode(this).getBoundingClientRect();
+    const buttonRect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
     Actions.openPopover(<ActivityList />, { originRect: buttonRect, direction: 'down' });
   };
 

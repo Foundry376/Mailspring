@@ -39,12 +39,11 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
     isValidDraft: PropTypes.func,
   };
 
-  constructor() {
-    super();
-    this.state = {
-      saving: false,
-    };
-  }
+  mounted = false;
+
+  state = {
+    saving: false,
+  };
 
   componentDidMount() {
     this.mounted = true;
@@ -121,7 +120,7 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
   };
 
   onClick = () => {
-    const buttonRect = ReactDOM.findDOMNode(this).getBoundingClientRect();
+    const buttonRect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
     Actions.openPopover(
       <SendLaterPopover
         sendLaterDate={sendLaterDateForDraft(this.props.draft)}
@@ -152,7 +151,7 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
       );
     }
 
-    let sendLaterLabel = false;
+    let sendLaterLabel: JSX.Element = null;
     const sendLaterDate = sendLaterDateForDraft(this.props.draft);
 
     if (sendLaterDate) {

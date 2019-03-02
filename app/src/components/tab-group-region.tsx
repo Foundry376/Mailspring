@@ -9,7 +9,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
-class TabGroupRegion extends React.Component {
+export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivElement>> {
   static childContextTypes = { parentTabGroup: PropTypes.object };
 
   _onKeyDown = event => {
@@ -71,5 +71,3 @@ class TabGroupRegion extends React.Component {
     );
   }
 }
-
-export default TabGroupRegion;

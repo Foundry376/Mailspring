@@ -27,7 +27,7 @@ const MailspringTestUtils = {
     const node = ReactTestUtils.renderIntoDocument(component);
     const $node = ReactDOM.findDOMNode(node);
     if (!document.body.contains($node)) {
-      let parent = $node;
+      let parent: any = $node;
       while (parent.parentNode != null) {
         parent = parent.parentNode;
       }
@@ -37,9 +37,9 @@ const MailspringTestUtils = {
   },
 
   removeFromDocument(reactElement) {
-    const $el = ReactDOM.findDOMNode(reactElement);
+    const $el = ReactDOM.findDOMNode(reactElement) as HTMLElement;
     if (document.body.contains($el)) {
-      for (let child of Array.from(Array.prototype.slice.call(document.body.childNodes))) {
+      for (let child of Array.from(document.body.childNodes)) {
         if (child.contains($el)) {
           document.body.removeChild(child);
           return;
@@ -58,7 +58,7 @@ const MailspringTestUtils = {
     if (dispose == null) {
       dispose = function() {};
     }
-    let func = function() {};
+    let func = function(data) {};
     return {
       subscribe(fn) {
         func = fn;

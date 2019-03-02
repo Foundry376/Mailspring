@@ -29,6 +29,8 @@ export default class SendLaterStatus extends Component<SendLaterStatusProps, Sen
     draft: PropTypes.object,
   };
 
+  _unlisten?: () => void;
+
   constructor(props) {
     super(props);
     this.state = this.getStateFromStores(props);

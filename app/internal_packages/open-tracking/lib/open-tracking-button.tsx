@@ -1,10 +1,22 @@
 import React from 'react';
-import { localized, PropTypes, APIError, MailspringAPIRequest } from 'mailspring-exports';
+import {
+  Message,
+  DraftEditingSession,
+  localized,
+  PropTypes,
+  APIError,
+  MailspringAPIRequest,
+} from 'mailspring-exports';
 import { MetadataComposerToggleButton } from 'mailspring-component-kit';
 import { PLUGIN_ID, PLUGIN_NAME } from './open-tracking-constants';
 
-export default class OpenTrackingButton extends React.Component {
+export default class OpenTrackingButton extends React.Component<{
+  draft: Message;
+  session: DraftEditingSession;
+}> {
   static displayName = 'OpenTrackingButton';
+
+  static containerRequired = false;
 
   static propTypes = {
     draft: PropTypes.object.isRequired,
@@ -52,5 +64,3 @@ export default class OpenTrackingButton extends React.Component {
     );
   }
 }
-
-OpenTrackingButton.containerRequired = false;

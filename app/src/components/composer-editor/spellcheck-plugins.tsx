@@ -52,7 +52,7 @@ function renderMark(props) {
                 focusKey: node.key,
                 focusOffset: offset + text.length,
                 isFocused: true,
-              })
+              } as any)
             )
           );
         }}
@@ -94,7 +94,7 @@ function decorationsForNode(node, value) {
         focusKey: key,
         focusOffset: match.index + match[0].length,
         marks: [{ type: MISSPELLED_TYPE }],
-      });
+      } as any);
 
       // If this text range has marks (it's part of a link, template variable,
       // inline code fragment, etc.) don't mark it as misspelled.

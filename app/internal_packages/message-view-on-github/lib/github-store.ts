@@ -3,6 +3,9 @@ import MailspringStore from 'mailspring-store';
 import { MessageStore } from 'mailspring-exports';
 
 class GithubStore extends MailspringStore {
+  _link: string = null;
+  _lastItemIds: string[];
+
   // It's very common practive for {MailspringStore}s to listen to other parts of N1.
   // Since Stores are singletons and constructed once on `require`, there is no
   // teardown step to turn off listeners.

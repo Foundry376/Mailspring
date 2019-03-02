@@ -7,7 +7,7 @@ import Actions from '../actions';
 
 const MAIN_TAB_ITEM_ID = 'General';
 
-class TabItem {
+export class PreferencesUIStoreTab {
   order: number;
   tabId: string;
   displayName: string;
@@ -26,8 +26,8 @@ class TabItem {
   }
 }
 
-class PreferencesUIStore extends MailspringStore {
-  _tabs: TabItem[] = [];
+class _PreferencesUIStore extends MailspringStore {
+  _tabs: PreferencesUIStoreTab[] = [];
   _selection = {
     tabId: null,
     accountId: null,
@@ -39,14 +39,14 @@ class PreferencesUIStore extends MailspringStore {
     const perspective = FocusedPerspectiveStore.current();
     this._selection = {
       tabId: null,
-      accountId: perspective.account ? perspective.account.id : null,
+      accountId: perspective['account'] ? perspective['account'].id : null,
     };
 
     this.setupListeners();
   }
 
   get TabItem() {
-    return TabItem;
+    return PreferencesUIStoreTab;
   }
 
   _triggerDebounced = _.debounce(() => this.trigger(), 20);
@@ -102,9 +102,9 @@ class PreferencesUIStore extends MailspringStore {
   into {PreferencesUIStore::registerPreferences}
 
   */
-  registerPreferencesTab = (tabItem: TabItem) => {
+  registerPreferencesTab = (tabItem: PreferencesUIStoreTab) => {
     this._tabs.push(tabItem);
-    this._tabs.sort((a, b) => a.order > b.order);
+    this._tabs.sort((a, b) => (a.order > b.order) as any);
     if (tabItem.tabId === MAIN_TAB_ITEM_ID) {
       this._selection.tabId = tabItem.tabId;
     }
@@ -117,4 +117,4 @@ class PreferencesUIStore extends MailspringStore {
   };
 }
 
-export default new PreferencesUIStore();
+export const PreferencesUIStore = new _PreferencesUIStore();

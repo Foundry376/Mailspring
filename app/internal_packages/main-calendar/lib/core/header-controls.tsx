@@ -4,7 +4,7 @@ import { RetinaImg } from 'mailspring-component-kit';
 
 export default class HeaderControls extends React.Component<{
   title: string;
-  headerComponents: React.ReactChildren;
+  headerComponents: React.ReactNode;
   nextAction: () => void;
   prevAction: () => void;
 }> {

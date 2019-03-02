@@ -1,11 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { localized, PropTypes, Actions } from 'mailspring-exports';
+import { localized, PropTypes, Actions, Message, Thread } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import OpenTrackingMessagePopover from './open-tracking-message-popover';
 import { PLUGIN_ID } from './open-tracking-constants';
 
-export default class OpenTrackingIcon extends React.Component {
+export default class OpenTrackingIcon extends React.Component<{
+  thread: Thread & { __messages: Message[] };
+}> {
   static displayName = 'OpenTrackingIcon';
 
   static propTypes = {
@@ -13,7 +15,7 @@ export default class OpenTrackingIcon extends React.Component {
   };
 
   onMouseDown = () => {
-    const rect = ReactDOM.findDOMNode(this).getBoundingClientRect();
+    const rect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
     const { message } = this._getDataFromThread();
     Actions.openPopover(
       <OpenTrackingMessagePopover

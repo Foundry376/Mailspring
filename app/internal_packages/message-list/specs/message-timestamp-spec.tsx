@@ -12,7 +12,9 @@ const msgTime = () => moment([2010, 1, 14, 15, 25, 50, 125]);
 
 describe('MessageTimestamp', function() {
   beforeEach(function() {
-    return (this.item = ReactTestUtils.renderIntoDocument(<MessageTimestamp date={msgTime()} />));
+    return (this.item = ReactTestUtils.renderIntoDocument(
+      <MessageTimestamp isDetailed={false} date={msgTime()} onClick={() => {}} />
+    ));
   });
 
   return it('still processes one day, even if it crosses a month divider', function() {

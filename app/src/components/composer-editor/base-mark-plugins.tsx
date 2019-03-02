@@ -2,6 +2,7 @@ import React from 'react';
 import { localized } from 'mailspring-exports';
 
 import {
+  IEditorToolbarConfigItem,
   BuildToggleButton,
   BuildColorPicker,
   BuildFontPicker,
@@ -48,7 +49,9 @@ function isMeaningfulFontStyle(style) {
   return style && style !== '14px';
 }
 
-export const MARK_CONFIG = {
+export const MARK_CONFIG: {
+  [key: string]: IEditorToolbarConfigItem;
+} = {
   bold: {
     type: 'bold',
     tagNames: ['b', 'strong'],
@@ -254,9 +257,12 @@ const rules = [
 
 export default [
   {
-    toolbarComponents: Object.values(MARK_CONFIG)
-      .filter(m => m.button)
-      .map(BuildToggleButton)
+    toolbarComponents: []
+      .concat(
+        Object.values(MARK_CONFIG)
+          .filter(m => m.button)
+          .map(BuildToggleButton)
+      )
       .concat([
         BuildColorPicker({ type: 'color', default: '#000000' }),
         BuildFontPicker({

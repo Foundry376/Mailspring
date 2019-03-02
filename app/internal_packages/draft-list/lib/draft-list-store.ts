@@ -9,8 +9,9 @@ import {
   ObservableListDataSource,
   FocusedPerspectiveStore,
   DatabaseStore,
+  QueryResultSet,
 } from 'mailspring-exports';
-import { ListTabular } from 'mailspring-component-kit';
+import { ListTabular, ListDataSource } from 'mailspring-component-kit';
 
 class DraftListStore extends MailspringStore {
   constructor() {
@@ -18,6 +19,8 @@ class DraftListStore extends MailspringStore {
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
     this._createListDataSource();
   }
+
+  _dataSource: ListDataSource;
 
   dataSource = () => {
     return this._dataSource;
@@ -43,7 +46,7 @@ class DraftListStore extends MailspringStore {
       this._dataSource = null;
     }
 
-    if (mailboxPerspective.drafts) {
+    if ((mailboxPerspective as any).drafts) {
       const query = DatabaseStore.findAll<Message>(Message)
         .include(Message.attributes.body)
         .order(Message.attributes.date.descending())
@@ -57,10 +60,12 @@ class DraftListStore extends MailspringStore {
       }
 
       const subscription = new MutableQuerySubscription(query, { emitResultSet: true });
-      let $resultSet = Rx.Observable.fromNamedQuerySubscription('draft-list', subscription);
-      $resultSet = Rx.Observable.combineLatest(
-        [$resultSet, Rx.Observable.fromStore(OutboxStore)],
-        (resultSet, outbox) => {
+      const $resultSet = Rx.Observable.combineLatest(
+        [
+          Rx.Observable.fromNamedQuerySubscription('draft-list', subscription),
+          Rx.Observable.fromStore(OutboxStore) as any,
+        ],
+        (resultSet: QueryResultSet<Message>, outbox) => {
           // Generate a new result set that includes additional information on
           // the draft objects. This is similar to what we do in the thread-list,
           // where we set thread.__messages to the message array.
@@ -69,7 +74,7 @@ class DraftListStore extends MailspringStore {
           // TODO BG modelWithId: task.headerMessageId does not work
           mailboxPerspective.accountIds.forEach(aid => {
             OutboxStore.itemsForAccount(aid).forEach(task => {
-              let draft = resultSet.modelWithId(task.headerMessageId);
+              let draft = resultSet.modelWithId(task.headerMessageId) as any;
               if (draft) {
                 draft = draft.clone();
                 draft.uploadTaskId = task.id;

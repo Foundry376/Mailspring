@@ -9,9 +9,7 @@ interface DropZoneProps {
   onDragStateChange: ({ isDropping: boolean }) => void;
 }
 
-export default class DropZone extends React.Component<
-  DropZoneProps & React.HTMLProps<HTMLDivElement>
-> {
+export class DropZone extends React.Component<DropZoneProps & React.HTMLProps<HTMLDivElement>> {
   static propTypes = {
     shouldAcceptDrop: PropTypes.func.isRequired,
     onDrop: PropTypes.func.isRequired,

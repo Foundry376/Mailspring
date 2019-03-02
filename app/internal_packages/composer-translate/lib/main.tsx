@@ -14,6 +14,8 @@ import {
   QuotedHTMLTransformer,
   localized,
   Actions,
+  Message,
+  DraftEditingSession,
 } from 'mailspring-exports';
 
 import { Menu, RetinaImg } from 'mailspring-component-kit';
@@ -34,7 +36,7 @@ const YandexLanguages = {
   Korean: 'ko',
 };
 
-class TranslateButton extends React.Component {
+class TranslateButton extends React.Component<{ draft: Message; session: DraftEditingSession }> {
   // Adding a `displayName` makes debugging React easier
   static displayName = 'TranslateButton';
 
@@ -96,7 +98,7 @@ class TranslateButton extends React.Component {
   };
 
   _onClickTranslateButton = () => {
-    const buttonRect = ReactDOM.findDOMNode(this).getBoundingClientRect();
+    const buttonRect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
     Actions.openPopover(this._renderPopover(), { originRect: buttonRect, direction: 'up' });
   };
 

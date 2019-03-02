@@ -231,7 +231,7 @@ export function isTempId(id) {
 let _imageData = null;
 let _imageCache = {};
 
-export function imageNamed(fullname, resourcePath) {
+export function imageNamed(fullname, resourcePath?) {
   const [name, ext] = fullname.split('.');
 
   if (DefaultResourcePath == null) {

@@ -11,8 +11,18 @@ import { Disposable } from 'event-kit';
 // Note this key name is used when migrating to Nylas Pro accounts from old N1.
 const KEYCHAIN_NAME = 'Mailspring Account';
 
-class IdentityStore extends MailspringStore {
-  _identity = null;
+export interface IIdentity {
+  id: string;
+  token: string;
+  firstName: string;
+  lastName: string;
+  emailAddress: string;
+  stripePlan: string;
+  stripePlanEffective: string;
+}
+
+class _IdentityStore extends MailspringStore {
+  _identity: IIdentity = null;
   _disp: Disposable;
 
   constructor() {
@@ -200,4 +210,4 @@ class IdentityStore extends MailspringStore {
   }
 }
 
-export default new IdentityStore();
+export const IdentityStore = new _IdentityStore();

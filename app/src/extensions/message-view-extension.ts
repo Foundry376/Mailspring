@@ -23,7 +23,7 @@ is not possible with the current API, please let us know.
 
 Section: Extensions
 */
-class MessageViewExtension {
+export class MessageViewExtension {
   /*
   Public: Modify the body of the message provided. Note that you're provided
   the entire message object, but you can only change `message.body`.
@@ -37,5 +37,3 @@ class MessageViewExtension {
   */
   static renderedMessageBodyIntoDocument({ document, message, iframe }) {}
 }
-
-export default MessageViewExtension;

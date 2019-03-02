@@ -2,11 +2,16 @@ import React from 'react';
 import { localized, PropTypes } from 'mailspring-exports';
 import Templates from './templates';
 
-export default class SignatureTemplatePicker extends React.Component {
+export default class SignatureTemplatePicker extends React.Component<{
+  resolvedData: any;
+  onChange: (e: { target: { id: string; value: string } }) => void;
+}> {
   static propTypes = {
     resolvedData: PropTypes.object,
     onChange: PropTypes.func,
   };
+
+  _el: HTMLElement;
 
   _onClickItem = event => {
     const value = event.currentTarget.dataset.value;
@@ -22,7 +27,7 @@ export default class SignatureTemplatePicker extends React.Component {
   }
 
   ensureSelectionVisible() {
-    const item = this._el.querySelector('.active');
+    const item = this._el.querySelector('.active') as HTMLElement;
     if (item) {
       const left = item.offsetLeft - 5;
       const right = item.offsetLeft + item.clientWidth + 5;

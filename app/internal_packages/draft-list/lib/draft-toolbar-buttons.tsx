@@ -2,7 +2,7 @@ import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
 import { localized, PropTypes, Actions } from 'mailspring-exports';
 
-export class DraftDeleteButton extends React.Component {
+export class DraftDeleteButton extends React.Component<{ selection: any }> {
   static displayName = 'DraftDeleteButton';
   static containerRequired = false;
 

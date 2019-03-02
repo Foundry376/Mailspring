@@ -31,7 +31,10 @@ export function snoozedUntilMessage(snoozeDate, now = moment()) {
   return message;
 }
 
-export function moveThreads(threads, { snooze, description } = {}) {
+export function moveThreads(
+  threads,
+  { snooze, description }: { snooze?: boolean; description?: string } = {}
+) {
   const tasks = TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
     const snoozeCat = CategoryStore.getCategoryByRole(accountId, 'snoozed');
     const inboxCat = CategoryStore.getInboxCategory(accountId);

@@ -1,11 +1,18 @@
 import classnames from 'classnames';
 import React from 'react';
-import { PropTypes, ComponentRegistry } from 'mailspring-exports';
+import { PropTypes, ComponentRegistry, Message, DraftEditingSession } from 'mailspring-exports';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 
 const ROLE = 'Composer:ActionButton';
 
-export default class ActionBarPlugins extends React.Component {
+export default class ActionBarPlugins extends React.Component<
+  {
+    draft: Message;
+    session: DraftEditingSession;
+    isValidDraft: () => boolean;
+  },
+  { pluginsLoaded: boolean }
+> {
   static displayName = 'ActionBarPlugins';
 
   static propTypes = {
@@ -13,6 +20,8 @@ export default class ActionBarPlugins extends React.Component {
     session: PropTypes.object,
     isValidDraft: PropTypes.func,
   };
+
+  _usub: () => void;
 
   constructor(props) {
     super(props);

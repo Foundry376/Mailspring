@@ -294,7 +294,7 @@
 //       ThreadStore._focusedId = null;
 //       ThreadStore.trigger(ThreadStore);
 //       this.thread_list_node = ReactDOM.findDOMNode(this.thread_list);
-//       spyOn(this.thread_list, 'setState').andCallThrough();
+//       spyOn(this.thread_list, 'setState').and.callThrough();
 //     });
 
 //     it('renders all of the thread list items', function() {

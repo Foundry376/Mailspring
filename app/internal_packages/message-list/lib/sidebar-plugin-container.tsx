@@ -1,9 +1,14 @@
 import React from 'react';
-import { PropTypes, FocusedContactsStore } from 'mailspring-exports';
+import { PropTypes, FocusedContactsStore, Contact } from 'mailspring-exports';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 
-class FocusedContactStorePropsContainer extends React.Component {
+class FocusedContactStorePropsContainer extends React.Component<
+  { children: React.ReactElement<any> },
+  { focusedContact: Contact }
+> {
   static displayName = 'FocusedContactStorePropsContainer';
+
+  unsubscribe: () => void;
 
   constructor(props) {
     super(props);

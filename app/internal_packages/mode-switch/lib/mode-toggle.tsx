@@ -2,14 +2,15 @@ import { localized, WorkspaceStore, Actions } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import React from 'react';
 
-export default class ModeToggle extends React.Component {
+export default class ModeToggle extends React.Component<{}, { hidden: boolean }> {
   static displayName = 'ModeToggle';
 
   _mounted: boolean = false;
+  _unsubscriber: () => void;
+  column = WorkspaceStore.Location.MessageListSidebar;
 
   constructor(props) {
     super(props);
-    this.column = WorkspaceStore.Location.MessageListSidebar;
     this.state = this._getStateFromStores();
   }
 

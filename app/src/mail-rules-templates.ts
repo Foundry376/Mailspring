@@ -78,11 +78,11 @@ export const ConditionMode = {
   All: 'all',
 };
 
-export function ConditionTemplatesForAccount(account) {
+export function ConditionTemplatesForAccount(account): Template[] {
   return account ? ConditionTemplates : [];
 }
 
-export function ActionTemplatesForAccount(account) {
+export function ActionTemplatesForAccount(account): Template[] {
   if (!account) {
     return [];
   }

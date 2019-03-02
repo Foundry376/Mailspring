@@ -32,8 +32,8 @@ describe('ThreadToolbarButtons', function() {
   beforeEach(function() {
     spyOn(Actions, 'queueTask');
     spyOn(Actions, 'queueTasks');
-    spyOn(TaskFactory, 'taskForInvertingStarred').andCallThrough();
-    spyOn(TaskFactory, 'taskForInvertingUnread').andCallThrough();
+    spyOn(TaskFactory, 'taskForInvertingStarred').and.callThrough();
+    spyOn(TaskFactory, 'taskForInvertingUnread').and.callThrough();
   });
 
   describe('Starring', function() {

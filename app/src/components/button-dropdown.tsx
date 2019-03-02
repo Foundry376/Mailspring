@@ -1,6 +1,6 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import RetinaImg from './retina-img';
+import { RetinaImg } from './retina-img';
 import { PropTypes } from 'mailspring-exports';
 import classnames from 'classnames';
 

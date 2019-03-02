@@ -49,12 +49,17 @@ GithubProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
 
-export default class GithubContactCardSection extends React.Component {
+export default class GithubContactCardSection extends React.Component<
+  {},
+  { loading: boolean; profile: any }
+> {
   static displayName = 'GithubContactCardSection';
 
   static containerStyles = {
     order: 10,
   };
+
+  _unsubscribe?: () => void;
 
   constructor(props) {
     super(props);

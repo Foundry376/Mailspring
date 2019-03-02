@@ -6,6 +6,8 @@ const CACHE_INDEX_KEY = 'pp-cache-v3-keys';
 const CACHE_KEY_PREFIX = 'pp-cache-v3-';
 
 class ParticipantProfileDataSource {
+  _cacheIndex: string[];
+
   constructor() {
     try {
       this._cacheIndex = JSON.parse(window.localStorage.getItem(CACHE_INDEX_KEY) || `[]`);

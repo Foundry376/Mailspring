@@ -3,12 +3,17 @@ import React from 'react';
 import { localized, Account, AccountStore, Actions, KeyManager } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
-export default class AccountErrorNotification extends React.Component {
+export default class AccountErrorNotification extends React.Component<
+  {},
+  { accounts: Account[]; checking: boolean; debugKeyPressed: boolean }
+> {
   static displayName = 'AccountErrorNotification';
 
-  constructor() {
-    super();
-    this._checkingTimeout = null;
+  _checkingTimeout = null;
+  unlisten?: () => void;
+
+  constructor(props) {
+    super(props);
     this.state = {
       checking: false,
       debugKeyPressed: false,

@@ -1,7 +1,7 @@
-import MutableQuerySubscription from './mutable-query-subscription';
+import { MutableQuerySubscription } from './mutable-query-subscription';
 import DatabaseStore from '../stores/database-store';
 import RecentlyReadStore from '../stores/recently-read-store';
-import Matcher from '../attributes/matcher';
+import { Matcher } from '../attributes/matcher';
 import { Thread } from '../models/thread';
 import { Model } from '../models/model';
 import ModelQuery from './query';

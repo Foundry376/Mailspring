@@ -2,7 +2,14 @@ import utf7 from 'utf7';
 import React from 'react';
 import { localized, AccountStore, PropTypes } from 'mailspring-exports';
 
-export class SyncActivity extends React.Component {
+interface SyncActivityProps {
+  syncState: {
+    [accountId: string]: {
+      [folderId: string]: { bodyProgress: number; scanProgress: number; busy: boolean };
+    };
+  };
+}
+export class SyncActivity extends React.Component<SyncActivityProps> {
   static displayName = 'ExpandedSyncActivity';
 
   static propTypes = {
@@ -34,16 +41,18 @@ export class SyncActivity extends React.Component {
   }
 
   render() {
-    let accountComponents = Object.entries(this.props.syncState).map(
+    let accountComponents: JSX.Element[] | JSX.Element = Object.entries(this.props.syncState).map(
       ([accountId, accountSyncState]) => {
         const account = AccountStore.accountForId(accountId);
         if (!account) {
-          return false;
+          return null;
         }
 
-        let folderComponents = Object.entries(accountSyncState).map(([folderPath, folderState]) => {
-          return this.renderFolderProgress(folderPath, folderState);
-        });
+        let folderComponents: JSX.Element[] | JSX.Element = Object.entries(accountSyncState).map(
+          ([folderPath, folderState]) => {
+            return this.renderFolderProgress(folderPath, folderState);
+          }
+        );
 
         if (folderComponents.length === 0) {
           folderComponents = <div>Gathering folders...</div>;

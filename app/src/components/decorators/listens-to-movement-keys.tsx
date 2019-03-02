@@ -1,5 +1,5 @@
 import React from 'react';
-import KeyCommandsRegion from '../key-commands-region';
+import { KeyCommandsRegion } from '../key-commands-region';
 
 function ListensToMovementKeys(ComposedComponent) {
   return class extends ComposedComponent {

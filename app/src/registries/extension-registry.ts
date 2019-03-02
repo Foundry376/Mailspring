@@ -21,7 +21,7 @@ export class Registry extends MailspringStore {
     }
 
     this._registry.push({ name: extension.name, extension, priority });
-    this._registry.sort((a, b) => a.priority < b.priority);
+    this._registry.sort((a, b) => (a.priority < b.priority) as any);
     this.triggerDebounced();
     return this;
   }

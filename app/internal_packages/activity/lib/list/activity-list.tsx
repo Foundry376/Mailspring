@@ -9,11 +9,16 @@ import ActivityMailboxPerspective from '../activity-mailbox-perspective';
 import ActivityListItemContainer from './activity-list-item-container';
 import ActivityListEmptyState from './activity-list-empty-state';
 
-class ActivityList extends React.Component {
+class ActivityList extends React.Component<
+  {},
+  { collapsedToggles: {}; empty: boolean; actions: any[] }
+> {
   static displayName = 'ActivityList';
 
-  constructor() {
-    super();
+  _unsub: () => void;
+
+  constructor(props) {
+    super(props);
     this.state = this._getStateFromStores();
   }
 
@@ -31,7 +36,7 @@ class ActivityList extends React.Component {
   };
 
   _onViewSummary = () => {
-    if (document.activeElement) {
+    if (document.activeElement && document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
     const aids = FocusedPerspectiveStore.sidebarAccountIds();

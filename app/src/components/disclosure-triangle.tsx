@@ -2,12 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 type DisclosureTriangleProps = {
-  collapsed?: boolean,
-  visible?: boolean,
-  onCollapseToggled?: (...args: any[]) => any
+  collapsed?: boolean;
+  visible?: boolean;
+  onCollapseToggled?: (...args: any[]) => any;
 };
 
-class DisclosureTriangle extends React.Component<DisclosureTriangleProps> {
+export class DisclosureTriangle extends React.Component<DisclosureTriangleProps> {
   static displayName = 'DisclosureTriangle';
 
   static defaultProps = { onCollapseToggled() {} };
@@ -27,5 +27,3 @@ class DisclosureTriangle extends React.Component<DisclosureTriangleProps> {
     );
   }
 }
-
-export default DisclosureTriangle;

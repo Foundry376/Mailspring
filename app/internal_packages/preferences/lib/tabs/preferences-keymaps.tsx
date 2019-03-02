@@ -8,16 +8,22 @@ import { localized } from 'mailspring-exports';
 
 import displayedKeybindings from './keymaps/displayed-keybindings';
 import CommandItem from './keymaps/command-item';
+import { Disposable } from 'event-kit';
 
-export default class PreferencesKeymaps extends React.Component {
+export default class PreferencesKeymaps extends React.Component<
+  { config: any },
+  { templates: string[]; bindings: { [command: string]: [] } }
+> {
   static displayName = 'PreferencesKeymaps';
 
   static propTypes = {
     config: PropTypes.object,
   };
 
-  constructor() {
-    super();
+  _disposable?: Disposable;
+
+  constructor(props) {
+    super(props);
     this.state = {
       templates: [],
       bindings: this._getStateFromKeymaps(),
@@ -36,7 +42,7 @@ export default class PreferencesKeymaps extends React.Component {
   }
 
   _getStateFromKeymaps() {
-    const bindings = {};
+    const bindings: { [command: string]: [] } = {};
     for (const section of displayedKeybindings) {
       for (const [command] of section.items) {
         bindings[command] = AppEnv.keymaps.getBindingsForCommand(command) || [];

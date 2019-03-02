@@ -1,9 +1,13 @@
 import React from 'react';
-import { localized, PropTypes, DateUtils } from 'mailspring-exports';
+import { localized, PropTypes, DateUtils, Message } from 'mailspring-exports';
 import { Flexbox } from 'mailspring-component-kit';
 import { pluckByEmail } from '../../activity/lib/activity-event-store';
+import { OpenTrackingMetadata } from './types';
 
-class OpenTrackingMessagePopover extends React.Component {
+class OpenTrackingMessagePopover extends React.Component<{
+  message: Message;
+  openMetadata: OpenTrackingMetadata;
+}> {
   static displayName = 'OpenTrackingMessagePopover';
 
   static propTypes = {

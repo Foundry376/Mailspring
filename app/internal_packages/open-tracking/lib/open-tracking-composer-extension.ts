@@ -1,15 +1,24 @@
-import { ComposerExtension, FeatureUsageStore } from 'mailspring-exports';
+import { ComposerExtension, FeatureUsageStore, Message, Contact } from 'mailspring-exports';
 import { PLUGIN_ID, PLUGIN_URL } from './open-tracking-constants';
+import { OpenTrackingMetadata } from './types';
 
 export default class OpenTrackingComposerExtension extends ComposerExtension {
   static needsPerRecipientBodies(draft) {
     return !!draft.metadataForPluginId(PLUGIN_ID);
   }
 
-  static applyTransformsForSending({ draftBodyRootNode, draft, recipient }) {
+  static applyTransformsForSending({
+    draftBodyRootNode,
+    draft,
+    recipient,
+  }: {
+    draftBodyRootNode: HTMLElement;
+    draft: Message;
+    recipient?: Contact;
+  }) {
     // grab message metadata, if any
     const messageUid = draft.clientId;
-    const metadata = draft.metadataForPluginId(PLUGIN_ID);
+    const metadata = draft.metadataForPluginId(PLUGIN_ID) as OpenTrackingMetadata;
     if (!metadata) {
       return;
     }

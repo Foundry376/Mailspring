@@ -4,7 +4,12 @@ import { localized, Actions } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import Fields from './fields';
 
-export default class ComposerHeaderActions extends React.Component {
+interface ComposerHeaderActionsProps {
+  headerMessageId: string;
+  enabledFields: string[];
+  onShowAndFocusField: (f: string) => void;
+}
+export default class ComposerHeaderActions extends React.Component<ComposerHeaderActionsProps> {
   static displayName = 'ComposerHeaderActions';
 
   static propTypes = {

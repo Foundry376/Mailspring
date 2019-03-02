@@ -8,6 +8,8 @@ const ROLE = 'RootSidebar:Notifications';
 export default class NotifWrapper extends React.Component {
   static displayName = 'NotifWrapper';
 
+  observer: MutationObserver;
+
   componentDidMount() {
     this.observer = new MutationObserver(this.update);
     this.observer.observe(ReactDOM.findDOMNode(this), { childList: true });
@@ -20,10 +22,10 @@ export default class NotifWrapper extends React.Component {
 
   update = () => {
     const className = 'highest-priority';
-    const node = ReactDOM.findDOMNode(this);
+    const node = ReactDOM.findDOMNode(this) as HTMLElement;
 
     const oldHighestPriorityElems = node.querySelectorAll(`.${className}`);
-    for (const oldElem of oldHighestPriorityElems) {
+    for (const oldElem of Array.from(oldHighestPriorityElems)) {
       oldElem.classList.remove(className);
     }
 
@@ -33,7 +35,7 @@ export default class NotifWrapper extends React.Component {
     }
 
     const highestPriorityElem = _.max(elemsWithPriority, elem =>
-      parseInt(elem.dataset.priority, 10)
+      parseInt((elem as HTMLElement).dataset.priority, 10)
     );
 
     highestPriorityElem.classList.add(className);

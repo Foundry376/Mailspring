@@ -102,8 +102,7 @@
   export * from '../flux/stores/message-store'
   export type ContactStore = typeof import('../flux/stores/contact-store').default;
   export const ContactStore: ContactStore;
-  export type IdentityStore = typeof import('../flux/stores/identity-store').default;
-  export const IdentityStore: IdentityStore;
+  export * from '../flux/stores/identity-store';
   export type CategoryStore = typeof import('../flux/stores/category-store').default;
   export const CategoryStore: CategoryStore;
   export type UndoRedoStore = typeof import('../flux/stores/undo-redo-store').default;
@@ -112,8 +111,7 @@
   export const WorkspaceStore: WorkspaceStore;
   export type MailRulesStore = typeof import('../flux/stores/mail-rules-store').default;
   export const MailRulesStore: MailRulesStore;
-  export type SendActionsStore = typeof import('../flux/stores/send-actions-store').default;
-  export const SendActionsStore: SendActionsStore;
+  export * from '../flux/stores/send-actions-store'
   export type FeatureUsageStore = typeof import('../flux/stores/feature-usage-store').default;
   export const FeatureUsageStore: FeatureUsageStore;
   export type ThreadCountsStore = typeof import('../flux/stores/thread-counts-store').default;
@@ -124,8 +122,7 @@
   export const OnlineStatusStore: OnlineStatusStore;
   export type UpdateChannelStore = typeof import('../flux/stores/update-channel-store').default;
   export const UpdateChannelStore: UpdateChannelStore;
-  export type PreferencesUIStore = typeof import('../flux/stores/preferences-ui-store').default;
-  export const PreferencesUIStore: PreferencesUIStore;
+  export * from '../flux/stores/preferences-ui-store'
   export type FocusedContentStore = typeof import('../flux/stores/focused-content-store').default;
   export const FocusedContentStore: FocusedContentStore;
   export type MessageBodyProcessor = typeof import('../flux/stores/message-body-processor').default;
@@ -149,8 +146,7 @@
   // Extensions
   export type ExtensionRegistry = typeof import('../registries/extension-registry');
   export const ExtensionRegistry: ExtensionRegistry;
-  export type MessageViewExtension = import('../extensions/message-view-extension').default;
-  export const MessageViewExtension: MessageViewExtension;
+  export * from '../extensions/message-view-extension'
   export * from '../extensions/composer-extension'
   
   // 3rd party libraries

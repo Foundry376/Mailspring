@@ -1,7 +1,7 @@
 import { Utils, localized } from 'mailspring-exports';
 import React, { Component } from 'react';
-import DropZone from './drop-zone';
-import RetinaImg from './retina-img';
+import { DropZone } from './drop-zone';
+import { RetinaImg } from './retina-img';
 import OutlineViewItem from './outline-view-item';
 import PropTypes from 'prop-types';
 

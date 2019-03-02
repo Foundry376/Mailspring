@@ -5,6 +5,8 @@ const Fields = {
   From: 'fromField',
   Subject: 'textFieldSubject',
   Body: 'contentBody',
+  ParticipantFields: [],
+  Order: {},
 };
 
 Fields.ParticipantFields = [Fields.To, Fields.Cc, Fields.Bcc];

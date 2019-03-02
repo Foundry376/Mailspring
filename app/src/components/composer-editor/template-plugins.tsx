@@ -1,11 +1,25 @@
 import React from 'react';
-import { Inline } from 'slate';
+import { Inline, Editor } from 'slate';
 import AutoReplace from 'slate-auto-replace';
 import { BuildToggleButton } from './toolbar-component-factories';
 
 export const VARIABLE_TYPE = 'templatevar';
 
-function renderNode({ attributes, node, editor, isSelected }) {
+function renderNode({
+  attributes,
+  node,
+  editor,
+  children,
+  isSelected,
+  targetIsHTML,
+}: {
+  attributes?: any;
+  node: any;
+  editor?: Editor;
+  children: any;
+  isSelected?: boolean;
+  targetIsHTML: boolean;
+}) {
   if (node.type === VARIABLE_TYPE) {
     const name = node.data.name || node.data.get('name');
 
@@ -120,7 +134,7 @@ export default [
                 type: VARIABLE_TYPE,
                 data: { name: value.selection.isCollapsed ? 'variable' : value.fragment.text },
                 isVoid: true,
-              });
+              } as any);
               return value
                 .change()
                 .insertInlineAtRange(value.selection, node)
@@ -143,7 +157,7 @@ export default [
         type: VARIABLE_TYPE,
         data: { name },
         isVoid: true,
-      });
+      } as any);
       transform.insertInlineAtRange(transform.value.selection, node).collapseToEnd();
     },
   }),

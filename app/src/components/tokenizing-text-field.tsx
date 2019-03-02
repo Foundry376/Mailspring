@@ -6,8 +6,8 @@ import ReactDOM from 'react-dom';
 import { localized, PropTypes, Utils, RegExpUtils } from 'mailspring-exports';
 import { Menu } from 'mailspring-component-kit';
 
-import RetinaImg from './retina-img';
-import KeyCommandsRegion from './key-commands-region';
+import { RetinaImg } from './retina-img';
+import { KeyCommandsRegion } from './key-commands-region';
 
 type SizeToFitInputProps = {
   value?: string;

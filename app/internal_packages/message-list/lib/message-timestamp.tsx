@@ -5,7 +5,7 @@ interface MessageTimestampProps {
   date: Date;
   className?: string;
   isDetailed: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 }
 class MessageTimestamp extends React.Component<MessageTimestampProps> {
   static displayName = 'MessageTimestamp';

@@ -51,7 +51,9 @@ export default class ComposerHeader extends React.Component<
     parentTabGroup: PropTypes.object,
   };
 
-  private _els = {};
+  private _els: {
+    participantsContainer?: KeyCommandsRegion;
+  } = {};
 
   constructor(props) {
     super(props);

@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import { shell } from 'electron';
 import { localized } from 'mailspring-exports';
 import Actions from '../flux/actions';
-import RetinaImg from './retina-img';
+import { RetinaImg } from './retina-img';
 import BillingModal from './billing-modal';
-import IdentityStore from '../flux/stores/identity-store';
+import { IdentityStore } from '../flux/stores/identity-store';
 
 export default class FeatureUsedUpModal extends React.Component<
   { modalClass: string; iconUrl: string; rechargeText: string; headerText: string },

@@ -7,16 +7,14 @@ import AutoloadImagesActions from './autoload-images-actions';
 const ImagesRegexp = /((?:src|background|placeholder|icon|background|poster|srcset)\s*=\s*['"]?(?=\w*:\/\/)|:\s*url\()+([^"')]*)/gi;
 
 class AutoloadImagesStore extends MailspringStore {
+  ImagesRegexp = ImagesRegexp;
+
+  _whitelistEmails = {};
+  _whitelistMessageIds = {};
+  _whitelistEmailsPath = path.join(AppEnv.getConfigDirPath(), 'autoload-images-whitelist.txt');
+
   constructor() {
     super();
-
-    this.ImagesRegexp = ImagesRegexp;
-
-    this._whitelistEmails = {};
-    this._whitelistMessageIds = {};
-
-    const filename = 'autoload-images-whitelist.txt';
-    this._whitelistEmailsPath = path.join(AppEnv.getConfigDirPath(), filename);
 
     this._loadWhitelist();
 
@@ -29,7 +27,8 @@ class AutoloadImagesStore extends MailspringStore {
   }
 
   shouldBlockImagesIn = message => {
-    const spamFolderId = (CategoryStore.getSpamCategory(message.accountId) || {}).id;
+    const spam = CategoryStore.getSpamCategory(message.accountId);
+    const spamFolderId = spam ? spam.id : undefined;
 
     if (AppEnv.config.get('core.reading.autoloadImages') && message.folder.id !== spamFolderId) {
       return false;

@@ -2,11 +2,16 @@ import React from 'react';
 import { localized, UpdateChannelStore } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
-export default class UnstableChannelNotification extends React.Component {
+export default class UnstableChannelNotification extends React.Component<
+  {},
+  { isUnstableChannel: boolean }
+> {
   static displayName = 'UnstableChannelNotification';
 
-  constructor() {
-    super();
+  _unsub?: () => void;
+
+  constructor(props) {
+    super(props);
     this.state = {
       isUnstableChannel: UpdateChannelStore.currentIsUnstable(),
     };

@@ -165,6 +165,8 @@ interface PromiseConstructor {
   delay(ms: number): Promise<void>;
   props<T>(object: ResolvableProps<T>): Promise<any>;
   each<Q>(this: Promise<Iterable<Q>>, iterator: IterateFunction<Q, any>): Promise<any>;
+  promisify(fn: any): any;
+  promisifyAll(library: any): void;
 }
 
 interface Promise<T> {

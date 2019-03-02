@@ -1,11 +1,11 @@
 import { localized, React } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
 
-export default class DevModeNotification extends React.Component {
+export default class DevModeNotification extends React.Component<{}, { inDevMode: boolean }> {
   static displayName = 'DevModeNotification';
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     // Don't need listeners to update this, since toggling dev mode reloads
     // the entire window anyway
     this.state = {

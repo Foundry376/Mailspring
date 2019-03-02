@@ -39,8 +39,9 @@ function buildShareHTML(htmlEl, styleEl) {
 `;
 }
 
-export default class ShareButton extends React.Component {
+export default class ShareButton extends React.Component<{}, { link: string; loading: boolean }> {
   _mounted: boolean = false;
+  _linkEl: HTMLInputElement;
 
   constructor(props) {
     super(props);

@@ -5,7 +5,7 @@ import { Message } from '../models/message';
 import { SendDraftTask } from '../tasks/send-draft-task';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 
-interface ISendAction {
+export interface ISendAction {
   title: string;
   iconUrl: string | null;
   configKey: string;
@@ -36,7 +36,7 @@ function verifySendAction(sendAction: ISendAction, extension: { name?: string } 
   return true;
 }
 
-class SendActionsStore extends MailspringStore {
+class _SendActionsStore extends MailspringStore {
   _sendActions: ISendAction[] = [];
   _unsubscribers = [];
 
@@ -104,4 +104,4 @@ class SendActionsStore extends MailspringStore {
   };
 }
 
-export default new SendActionsStore();
+export const SendActionsStore = new _SendActionsStore();

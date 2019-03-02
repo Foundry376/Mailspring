@@ -67,7 +67,7 @@ export function autolink(doc, { async } = { async: false }) {
     ],
     ['tel:', RegExpUtils.phoneRegex()],
     ['', RegExpUtils.mailspringCommandRegex()],
-    ['', RegExpUtils.urlRegex({ matchEntireString: false })],
+    ['', RegExpUtils.urlRegex()],
   ];
 
   if (async) {
@@ -89,9 +89,11 @@ export function autolink(doc, { async } = { async: false }) {
 
   // Traverse the new DOM tree and make sure everything with an href has a title.
   const aTagWalker = document.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: node => (node.href ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP),
+    acceptNode: node =>
+      (node as HTMLLinkElement).href ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP,
   });
   while (aTagWalker.nextNode()) {
-    aTagWalker.currentNode.title = aTagWalker.currentNode.getAttribute('href');
+    const n = aTagWalker.currentNode as HTMLElement;
+    n.title = n.getAttribute('href');
   }
 }

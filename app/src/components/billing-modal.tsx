@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { webFrame } from 'electron';
 import Webview from './webview';
 import Actions from '../flux/actions';
-import IdentityStore from '../flux/stores/identity-store';
+import { IdentityStore } from '../flux/stores/identity-store';
 
 type BillingModalProps = {
   upgradeUrl?: string;
@@ -17,6 +17,7 @@ export default class BillingModal extends React.Component<BillingModalProps, Bil
   static IntrinsicHeight = 540;
 
   _mounted: boolean = false;
+  _initialZoom: number;
 
   constructor(props) {
     super(props);

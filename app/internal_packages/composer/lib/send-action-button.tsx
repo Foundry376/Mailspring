@@ -1,17 +1,23 @@
 import React from 'react';
-import { localized, PropTypes, Actions, SendActionsStore, SoundRegistry } from 'mailspring-exports';
+import {
+  localized,
+  ISendAction,
+  Actions,
+  SendActionsStore,
+  SoundRegistry,
+  Message,
+} from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
 
-class SendActionButton extends React.Component {
+interface SendActionButtonProps {
+  draft: Message;
+  isValidDraft: () => boolean;
+  sendActions: ISendAction[];
+}
+class SendActionButton extends React.Component<SendActionButtonProps> {
   static displayName = 'SendActionButton';
 
   static containerRequired = false;
-
-  static propTypes = {
-    draft: PropTypes.object,
-    isValidDraft: PropTypes.func,
-    sendActions: PropTypes.array,
-  };
 
   /* This component is re-rendered constantly because `draft` changes in random ways.
   We only use the draft prop when you click send, so update with more discretion. */
@@ -40,8 +46,8 @@ class SendActionButton extends React.Component {
   };
 
   _renderSendActionItem = ({ iconUrl }) => {
-    let plusHTML = '';
-    let additionalImg = false;
+    let plusHTML: React.ReactChild = '';
+    let additionalImg: React.ReactChild = null;
 
     if (iconUrl) {
       plusHTML = <span>&nbsp;+&nbsp;</span>;
@@ -128,6 +134,6 @@ Object.assign(EnhancedSendActionButton.prototype, {
   },
 });
 
-EnhancedSendActionButton.UndecoratedSendActionButton = SendActionButton;
+(EnhancedSendActionButton as any).UndecoratedSendActionButton = SendActionButton;
 
 export default EnhancedSendActionButton;

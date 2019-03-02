@@ -5,6 +5,7 @@ import {
   localized,
   localizedReactFragment,
   Actions,
+  Account,
   AccountStore,
   MailRulesStore,
   MailRulesTemplates,
@@ -20,12 +21,17 @@ import {
 
 const { ActionTemplatesForAccount, ConditionTemplatesForAccount } = MailRulesTemplates;
 
-interface MailRule {}
+interface PreferencesMailRulesState {
+  accounts: Account[];
+  currentAccount: Account;
+  rules: ReturnType<typeof MailRulesStore.rulesForAccountId>;
+  selectedRule?: ReturnType<typeof MailRulesStore.rulesForAccountId>[0];
+  reprocessing?: ReturnType<typeof MailRulesStore.reprocessState>;
+  actionTemplates: ReturnType<typeof ActionTemplatesForAccount>;
+  conditionTemplates: ReturnType<typeof ConditionTemplatesForAccount>;
+}
 
-class PreferencesMailRules extends React.Component<
-  {},
-  { currentAccount: Account; rules: MailRule[]; selectedRule: MailRule }
-> {
+class PreferencesMailRules extends React.Component<{}, PreferencesMailRulesState> {
   static displayName = 'PreferencesMailRules';
 
   _unsubscribers = [];
@@ -43,13 +49,14 @@ class PreferencesMailRules extends React.Component<
     this._unsubscribers.forEach(unsubscribe => unsubscribe());
   }
 
-  _getStateFromStores() {
+  _getStateFromStores(): PreferencesMailRulesState {
     const accounts = AccountStore.accounts();
-    const state = this.state || {};
-    let { currentAccount } = state;
+
+    let currentAccount = this.state ? this.state.currentAccount : null;
     if (!accounts.find(acct => acct === currentAccount)) {
       currentAccount = accounts[0];
     }
+
     const rules = MailRulesStore.rulesForAccountId(currentAccount.id);
     const selectedRule =
       this.state && this.state.selectedRule
@@ -310,7 +317,7 @@ class PreferencesMailRules extends React.Component<
           <Flexbox style={{ marginTop: 40, maxWidth: 600 }}>
             <div>
               <button
-                disabled={this.state.reprocessing[this.state.currentAccount.id]}
+                disabled={!!this.state.reprocessing[this.state.currentAccount.id]}
                 className="btn"
                 style={{ float: 'right' }}
                 onClick={this._onReprocessRules}

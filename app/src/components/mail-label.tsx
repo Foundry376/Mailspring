@@ -1,10 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import RetinaImg from './retina-img';
+import { RetinaImg } from './retina-img';
 import { Label } from 'mailspring-exports';
 
 type MailLabelProps = {
-  label: Label;
+  label: {
+    id?: string;
+    displayName: React.ReactElement | string;
+    isLockedCategory: () => boolean;
+    hue: () => number;
+  };
   onRemove?: (...args: any[]) => any;
 };
 
@@ -53,7 +58,7 @@ export class MailLabel extends React.Component<MailLabelProps> {
 
   render() {
     let classname = 'mail-label';
-    let content = this.props.label.displayName;
+    let content: JSX.Element | string = this.props.label.displayName;
 
     let x = null;
     if (this._removable()) {

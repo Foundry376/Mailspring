@@ -1,10 +1,22 @@
 import React from 'react';
-import { localized, PropTypes, APIError, MailspringAPIRequest } from 'mailspring-exports';
+import {
+  localized,
+  PropTypes,
+  APIError,
+  MailspringAPIRequest,
+  Message,
+  DraftEditingSession,
+} from 'mailspring-exports';
 import { MetadataComposerToggleButton } from 'mailspring-component-kit';
 import { PLUGIN_ID, PLUGIN_NAME } from './link-tracking-constants';
 
-export default class LinkTrackingButton extends React.Component {
+export default class LinkTrackingButton extends React.Component<{
+  draft: Message;
+  session: DraftEditingSession;
+}> {
   static displayName = 'LinkTrackingButton';
+
+  static containersRequired: false;
 
   static propTypes = {
     draft: PropTypes.object.isRequired,
@@ -47,5 +59,3 @@ export default class LinkTrackingButton extends React.Component {
     );
   }
 }
-
-LinkTrackingButton.containerRequired = false;

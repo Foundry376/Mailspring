@@ -2,23 +2,25 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { shell } from 'electron';
 import classnames from 'classnames';
-import RetinaImg from './retina-img';
-import IdentityStore from '../flux/stores/identity-store';
+import { RetinaImg } from './retina-img';
+import { IdentityStore } from '../flux/stores/identity-store';
 
 type OpenIdentityPageButtonProps = {
-  path?: string,
-  label?: string,
-  source?: string,
-  campaign?: string,
-  img?: string,
-  isCTA?: boolean
+  path?: string;
+  label?: string;
+  source?: string;
+  campaign?: string;
+  img?: string;
+  isCTA?: boolean;
 };
 type OpenIdentityPageButtonState = {
-  loading: boolean
+  loading: boolean;
 };
 
-
-export default class OpenIdentityPageButton extends React.Component<OpenIdentityPageButtonProps, OpenIdentityPageButtonState> {
+export default class OpenIdentityPageButton extends React.Component<
+  OpenIdentityPageButtonProps,
+  OpenIdentityPageButtonState
+> {
   static propTypes = {
     path: PropTypes.string,
     label: PropTypes.string,

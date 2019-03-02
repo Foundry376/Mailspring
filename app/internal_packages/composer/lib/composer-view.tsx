@@ -37,7 +37,7 @@ const {
 } = ComposerSupport.BaseBlockPlugins;
 
 interface ComposerViewProps {
-  draft: Message;
+  draft: Message & { bodyEditorState: any };
   session: DraftEditingSession;
   className?: string;
 }
@@ -98,7 +98,8 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       }
     });
 
-    const isBrandNew = Date.now() - this.props.draft.date < 3 * 1000;
+    const d = this.props.draft.date;
+    const isBrandNew = Date.now() - (d instanceof Date ? d.getTime() : Number(d)) < 3 * 1000;
     if (isBrandNew) {
       (ReactDOM.findDOMNode(this) as HTMLElement).scrollIntoView(false);
       window.requestAnimationFrame(() => {
@@ -174,7 +175,6 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
           }}
           draft={this.props.draft}
           session={this.props.session}
-          initiallyFocused={this.props.draft.to.length === 0}
         />
         <div
           className="compose-body"
@@ -296,7 +296,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
           draggable={false}
           filePath={AttachmentStore.pathForFile(file)}
           displayName={file.filename}
-          fileIconName={`file-${file.extension}.png`}
+          fileIconName={`file-${file.displayExtension()}.png`}
           onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
         />
       ));

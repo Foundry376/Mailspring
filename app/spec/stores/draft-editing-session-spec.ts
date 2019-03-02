@@ -153,7 +153,7 @@ xdescribe('DraftEditingSession Specs', function() {
         this.draft = new Message({ draft: true, body: '123', id: 'client-id' });
         spyOn(DraftEditingSession.prototype, 'prepare');
         this.session = new DraftEditingSession('client-id');
-        spyOn(this.session, '_setDraft').andCallThrough();
+        spyOn(this.session, '_setDraft').and.callThrough();
         spyOn(DatabaseStore, 'run').and.callFake(modelQuery => {
           return Promise.resolve(this.draft);
         });
@@ -236,7 +236,7 @@ xdescribe('DraftEditingSession Specs', function() {
 
       it('atomically commits changes', function() {
         spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(this.draft));
-        spyOn(DatabaseStore, 'inTransaction').andCallThrough();
+        spyOn(DatabaseStore, 'inTransaction').and.callThrough();
         this.session.changes.add({ body: '123' });
         waitsForPromise(() => {
           return this.session.changes.commit().then(() => {
@@ -269,7 +269,7 @@ xdescribe('DraftEditingSession Specs', function() {
 
       it('does nothing if the draft is marked as destroyed', function() {
         spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(this.draft));
-        spyOn(DatabaseStore, 'inTransaction').andCallThrough();
+        spyOn(DatabaseStore, 'inTransaction').and.callThrough();
         return waitsForPromise(() => {
           this.session.changes.add({ body: '123' });
           return this.session.changes.commit().then(() => {

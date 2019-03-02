@@ -105,7 +105,7 @@ class Spellchecker {
     this.handler.provideHintText(text);
   };
 
-  isMisspelled = word => {
+  isMisspelled = (word: string) => {
     if (!this.handler) {
       return false;
     }

@@ -1,5 +1,5 @@
 import os from 'os';
-import fs from 'fs';
+import _fs from 'fs';
 import path from 'path';
 import { remote, shell } from 'electron';
 import mkdirp from 'mkdirp';
@@ -15,7 +15,8 @@ import {
   displayQuickPreviewWindow,
 } from '../../quickpreview';
 
-Promise.promisifyAll(fs);
+Promise.promisifyAll(_fs);
+const fs = _fs as any;
 
 const mkdirpAsync = Promise.promisify(mkdirp);
 

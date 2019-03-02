@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { PropTypes, Utils } from 'mailspring-exports';
 
-export default class EmailFrame extends React.Component {
+export default class EmailFrame extends React.Component<{ content: string }> {
   static displayName = 'EmailFrame';
 
   static propTypes = {
@@ -11,6 +11,10 @@ export default class EmailFrame extends React.Component {
   };
 
   _mounted: boolean = false;
+  _unlisten?: () => void;
+  _iframeComponent: EventedIFrame;
+  _iframeHeightHolderEl: HTMLDivElement;
+  _lastComputedHeight: number;
 
   componentDidMount() {
     this._mounted = true;
@@ -33,7 +37,7 @@ export default class EmailFrame extends React.Component {
   }
 
   _writeContent = () => {
-    const doc = ReactDOM.findDOMNode(this._iframeComponent).contentDocument;
+    const doc = (ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement).contentDocument;
     if (!doc) {
       return;
     }
@@ -100,7 +104,7 @@ export default class EmailFrame extends React.Component {
     // reset it's scrollTop to ~0 (the new combined heiht of all children).
     // To prevent this, the holderNode holds the last computed height until
     // the new height is computed.
-    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent);
+    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
     const height = this._getFrameHeight(iframeEl.contentDocument);
 
     // Why 5px? Some emails have elements with a height of 100%, and then put
@@ -131,7 +135,7 @@ export default class EmailFrame extends React.Component {
           ref={cm => {
             this._iframeComponent = cm;
           }}
-          seamless="seamless"
+          seamless={true}
           searchable
           onResize={this._onMustRecalculateFrameHeight}
         />

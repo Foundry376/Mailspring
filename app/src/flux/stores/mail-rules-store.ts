@@ -9,21 +9,43 @@ import CategoryStore from '../stores/category-store';
 import MailRulesProcessor from '../../mail-rules-processor';
 import { localized } from '../../intl';
 
+import { Template } from '../../components/scenario-editor-models';
 import { ConditionMode, ConditionTemplates, ActionTemplates } from '../../mail-rules-templates';
 
 const RulesJSONKey = 'MailRules-V2';
 const AutoSinceJSONKey = 'MailRules-Auto-Since';
 
-interface MailRule {
+export interface MailRule extends Template {
   id: string;
   accountId: string;
   disabled?: boolean;
   disabledReason?: string;
+  name: string;
+  conditions: [
+    {
+      templateKey: string;
+      comparatorKey: string;
+      value: string;
+    }
+  ];
+  conditionMode: 'any' | 'all';
+  actions: [
+    {
+      value: string;
+      templateKey: string;
+    }
+  ];
 }
 
 class MailRulesStore extends MailspringStore {
   _autoSince = Number(window.localStorage.getItem(AutoSinceJSONKey) || 0);
-  _reprocessing: {};
+  _reprocessing: {
+    [accountId: string]: {
+      count: number;
+      lastTimestamp: number;
+      inboxCategoryId: string;
+    };
+  } = {};
   _rules: MailRule[];
 
   constructor() {
@@ -62,12 +84,12 @@ class MailRulesStore extends MailspringStore {
     return this._rules;
   }
 
-  rulesForAccountId(accountId) {
+  rulesForAccountId(accountId: string) {
     return this._rules.filter(f => f.accountId === accountId);
   }
 
-  disabledRules(accountId) {
-    return this._rules.filter(f => f.accountId === accountId && f.disabled);
+  disabledRules(accountId?: string) {
+    return this._rules.filter(f => (!accountId || f.accountId === accountId) && f.disabled);
   }
 
   reprocessState() {

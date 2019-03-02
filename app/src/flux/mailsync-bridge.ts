@@ -6,7 +6,7 @@ import _ from 'underscore';
 
 import { Task } from './tasks/task';
 import TaskQueue from './stores/task-queue';
-import IdentityStore from './stores/identity-store';
+import { IdentityStore } from './stores/identity-store';
 
 import { Account } from './models/account';
 import { AccountStore } from './stores/account-store';

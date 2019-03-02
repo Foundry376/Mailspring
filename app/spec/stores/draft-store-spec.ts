@@ -328,7 +328,7 @@ xdescribe('DraftStore', function draftStore() {
       };
 
       DraftStore._draftSessions[this.draft.headerMessageId] = session;
-      spyOn(DraftStore, '_doneWithSession').andCallThrough();
+      spyOn(DraftStore, '_doneWithSession').and.callThrough();
       spyOn(DraftStore, 'trigger');
       spyOn(SoundRegistry, 'playSound');
       spyOn(Actions, 'queueTask');
@@ -403,7 +403,7 @@ xdescribe('DraftStore', function draftStore() {
       spyOn(AppEnv, 'getWindowType').and.returnValue('other');
       spyOn(AppEnv, 'isMainWindow').and.returnValue(false);
       spyOn(AppEnv, 'close');
-      spyOn(AppEnv, 'isComposerWindow').andCallThrough();
+      spyOn(AppEnv, 'isComposerWindow').and.callThrough();
       runs(() => {
         DraftStore._onSendDraft(this.draft.headerMessageId);
       });

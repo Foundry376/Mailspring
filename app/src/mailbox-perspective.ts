@@ -11,7 +11,7 @@ import DatabaseStore from './flux/stores/database-store';
 import OutboxStore from './flux/stores/outbox-store';
 import ThreadCountsStore from './flux/stores/thread-counts-store';
 import FolderSyncProgressStore from './flux/stores/folder-sync-progress-store';
-import MutableQuerySubscription from './flux/models/mutable-query-subscription';
+import { MutableQuerySubscription } from './flux/models/mutable-query-subscription';
 import UnreadQuerySubscription from './flux/models/unread-query-subscription';
 import { Thread } from './flux/models/thread';
 import { Category } from './flux/models/category';
@@ -19,6 +19,7 @@ import { Label } from './flux/models/label';
 import { Folder } from './flux/models/folder';
 import { Task } from './flux/tasks/task';
 import Actions from './flux/actions';
+import { QuerySubscription } from 'mailspring-exports';
 
 let WorkspaceStore = null;
 let ChangeStarredTask = null;
@@ -377,7 +378,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     );
   }
 
-  threads() {
+  threads(): QuerySubscription<Thread> {
     const query = DatabaseStore.findAll<Thread>(Thread)
       .where([Thread.attributes.categories.containsAny(this.categories().map(c => c.id))])
       .limit(0);
@@ -526,7 +527,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   // - if finished category === "archive" remove the label
   // - if finished category === "trash" move to trash folder, keep labels intact
   //
-  tasksForRemovingItems(threads, source?: string = 'Removed from list') {
+  tasksForRemovingItems(threads, source: string = 'Removed from list') {
     ChangeLabelsTask = ChangeLabelsTask || require('./flux/tasks/change-labels-task').default;
     ChangeFolderTask = ChangeFolderTask || require('./flux/tasks/change-folder-task').default;
 
@@ -568,7 +569,7 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
   name = localized('Unread');
   iconName = 'unread.png';
 
-  threads() {
+  threads(): QuerySubscription<Thread> {
     return new UnreadQuerySubscription(this.categories().map(c => c.id));
   }
 

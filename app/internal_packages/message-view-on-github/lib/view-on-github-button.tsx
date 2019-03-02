@@ -1,6 +1,6 @@
 import { shell } from 'electron';
 import React from 'react';
-import { localized, PropTypes } from 'mailspring-exports';
+import { localized, PropTypes, Thread } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
 import GithubStore from './github-store';
@@ -47,7 +47,10 @@ simple button with a GitHub logo in it.
 
 We'll also display nothing if there is no link.
 */
-export default class ViewOnGithubButton extends React.Component {
+export default class ViewOnGithubButton extends React.Component<
+  { items: Thread[] },
+  { link: string }
+> {
   static displayName = 'ViewOnGithubButton';
 
   static containerRequired = false;
@@ -60,6 +63,10 @@ export default class ViewOnGithubButton extends React.Component {
    * The following methods are React methods that we override. See {React}
    * documentation for more info
    */
+  _unlisten: () => void;
+  _keymapHandlers: {
+    [command: string]: () => void;
+  };
 
   constructor(props) {
     super(props);
