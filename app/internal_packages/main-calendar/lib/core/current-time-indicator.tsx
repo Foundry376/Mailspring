@@ -4,17 +4,19 @@ import PropTypes from 'prop-types';
 import Moment from 'moment';
 import classNames from 'classnames';
 
-export default class CurrentTimeIndicator extends React.Component {
-  static propTypes = {
-    gridHeight: PropTypes.number,
-    numColumns: PropTypes.number,
-    todayColumnIdx: PropTypes.number,
-    visible: PropTypes.bool,
-  };
+export default class CurrentTimeIndicator extends React.Component<
+  {
+    gridHeight: number;
+    numColumns: number;
+    todayColumnIdx: number;
+    visible: boolean;
+  },
+  { msecIntoDay: number }
+> {
+  _movementTimer = null;
 
   constructor(props) {
     super(props);
-    this._movementTimer = null;
     this.state = this.getStateFromTime();
   }
 
@@ -23,7 +25,7 @@ export default class CurrentTimeIndicator extends React.Component {
     this._movementTimer = setInterval(() => {
       this.setState(this.getStateFromTime());
     }, 60 * 1000);
-    ReactDOM.findDOMNode(this).scrollIntoViewIfNeeded(true);
+    (ReactDOM.findDOMNode(this) as any).scrollIntoViewIfNeeded(true);
   }
 
   componentWillUnmount() {

@@ -81,7 +81,7 @@ class ActivityEventStore extends MailspringStore {
   focusThread(threadId) {
     AppEnv.displayWindow();
     Actions.closePopover();
-    DatabaseStore.find(Thread, threadId).then(thread => {
+    DatabaseStore.find<Thread>(Thread, threadId).then(thread => {
       if (!thread) {
         AppEnv.reportError(
           new Error(`ActivityEventStore::focusThread: Can't find thread: ${threadId}`)

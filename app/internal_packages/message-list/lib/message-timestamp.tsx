@@ -1,15 +1,14 @@
 import React from 'react';
-import { PropTypes, DateUtils } from 'mailspring-exports';
+import { DateUtils } from 'mailspring-exports';
 
-class MessageTimestamp extends React.Component {
+interface MessageTimestampProps {
+  date: Date;
+  className?: string;
+  isDetailed: boolean;
+  onClick: () => void;
+}
+class MessageTimestamp extends React.Component<MessageTimestampProps> {
   static displayName = 'MessageTimestamp';
-
-  static propTypes = {
-    date: PropTypes.object.isRequired,
-    className: PropTypes.string,
-    isDetailed: PropTypes.bool,
-    onClick: PropTypes.func,
-  };
 
   shouldComponentUpdate(nextProps) {
     return nextProps.date !== this.props.date || nextProps.isDetailed !== this.props.isDetailed;

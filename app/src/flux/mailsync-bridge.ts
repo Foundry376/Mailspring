@@ -8,13 +8,13 @@ import { Task } from './tasks/task';
 import TaskQueue from './stores/task-queue';
 import IdentityStore from './stores/identity-store';
 
-import Account from './models/account';
+import { Account } from './models/account';
 import { AccountStore } from './stores/account-store';
 import DatabaseStore from './stores/database-store';
 import OnlineStatusStore from './stores/online-status-store';
 import DatabaseChangeRecord from './stores/database-change-record';
 import DatabaseObjectRegistry from '../registries/database-object-registry';
-import MailsyncProcess from '../mailsync-process';
+import { MailsyncProcess } from '../mailsync-process';
 import KeyManager from '../key-manager';
 import Actions from './actions';
 import * as Utils from './models/utils';

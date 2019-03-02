@@ -1,17 +1,14 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { Utils } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
-export default class HeaderControls extends React.Component {
+export default class HeaderControls extends React.Component<{
+  title: string;
+  headerComponents: React.ReactChildren;
+  nextAction: () => void;
+  prevAction: () => void;
+}> {
   static displayName = 'HeaderControls';
-
-  static propTypes = {
-    title: PropTypes.string,
-    headerComponents: PropTypes.node,
-    nextAction: PropTypes.func,
-    prevAction: PropTypes.func,
-  };
 
   static defaultProps = {
     headerComonents: false,

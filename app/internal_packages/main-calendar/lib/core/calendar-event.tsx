@@ -1,26 +1,26 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes } from 'mailspring-exports';
+import { Event } from 'mailspring-exports';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 import { calcColor } from './calendar-helpers';
 
-export default class CalendarEvent extends React.Component {
-  static displayName = 'CalendarEvent';
+interface CalendarEventProps {
+  event: Event;
+  order: number;
+  selected?: boolean;
+  scopeEnd: number;
+  scopeStart: number;
+  direction: 'horizontal' | 'vertical';
+  fixedSize: number;
+  focused: boolean;
+  concurrentEvents: number;
+  onClick: (e: React.MouseEvent<any>, event: Event) => void;
+  onDoubleClick: (event: Event) => void;
+  onFocused: (event: Event) => void;
+}
 
-  static propTypes = {
-    event: PropTypes.object.isRequired,
-    order: PropTypes.number,
-    selected: PropTypes.bool,
-    scopeEnd: PropTypes.number.isRequired,
-    scopeStart: PropTypes.number.isRequired,
-    direction: PropTypes.oneOf(['horizontal', 'vertical']),
-    fixedSize: PropTypes.number,
-    focused: PropTypes.bool,
-    concurrentEvents: PropTypes.number,
-    onClick: PropTypes.func,
-    onDoubleClick: PropTypes.func,
-    onFocused: PropTypes.func,
-  };
+export default class CalendarEvent extends React.Component<CalendarEventProps> {
+  static displayName = 'CalendarEvent';
 
   static defaultProps = {
     order: 1,
@@ -50,7 +50,7 @@ export default class CalendarEvent extends React.Component {
       return;
     }
     const { event, onFocused } = this.props;
-    eventNode.scrollIntoViewIfNeeded(true);
+    (eventNode as any).scrollIntoViewIfNeeded(true);
     onFocused(event);
   }
 
@@ -58,11 +58,14 @@ export default class CalendarEvent extends React.Component {
     const scopeLen = this.props.scopeEnd - this.props.scopeStart;
     const duration = this.props.event.end - this.props.event.start;
 
-    let top = Math.max((this.props.event.start - this.props.scopeStart) / scopeLen, 0);
-    let height = Math.min((duration - this._overflowBefore()) / scopeLen, 1);
+    let top: number | string = Math.max(
+      (this.props.event.start - this.props.scopeStart) / scopeLen,
+      0
+    );
+    let height: number | string = Math.min((duration - this._overflowBefore()) / scopeLen, 1);
 
-    let width = 1;
-    let left;
+    let width: number | string = 1;
+    let left: number | string;
     if (this.props.fixedSize === -1) {
       width = 1 / this.props.concurrentEvents;
       left = width * (this.props.order - 1);
@@ -80,7 +83,7 @@ export default class CalendarEvent extends React.Component {
   }
 
   _getStyles() {
-    let styles = {};
+    let styles: CSSProperties = {};
     if (this.props.direction === 'vertical') {
       styles = this._getDimensions();
     } else if (this.props.direction === 'horizontal') {

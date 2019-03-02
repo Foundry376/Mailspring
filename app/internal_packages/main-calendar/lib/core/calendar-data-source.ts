@@ -3,6 +3,8 @@ import { Event, Matcher, DatabaseStore } from 'mailspring-exports';
 import IcalExpander from 'ical-expander';
 
 export default class CalendarDataSource {
+  observable: Rx.Observable<{ events: Event[] }>;
+
   buildObservable({ startTime, endTime, disabledCalendars }) {
     const end = Event.attributes.recurrenceEnd;
     const start = Event.attributes.recurrenceStart;

@@ -4,7 +4,10 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import classnames from 'classnames';
 
-export default class MiniMonthView extends React.Component {
+export default class MiniMonthView extends React.Component<
+  { value: number; onChange: (val: number) => void },
+  { shownYear: number; shownMonth: number }
+> {
   static displayName = 'MiniMonthView';
 
   static propTypes = {
@@ -17,9 +20,10 @@ export default class MiniMonthView extends React.Component {
     onChange: () => {},
   };
 
+  today = moment();
+
   constructor(props) {
     super(props);
-    this.today = moment();
     this.state = this._stateFromProps(props);
   }
 

@@ -22,7 +22,7 @@ export default class AttributeBoolean extends Attribute {
     return val >= 1 || false;
   }
   columnSQL() {
-    const defaultValue = this.defaultValue ? 1 : 0;
+    const defaultValue = (this as any).defaultValue ? 1 : 0;
     return `${this.tableColumn} INTEGER DEFAULT ${defaultValue}`;
   }
   equal(val) {

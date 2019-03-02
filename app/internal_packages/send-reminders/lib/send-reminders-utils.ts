@@ -97,7 +97,7 @@ export async function transferReminderMetadataFromDraftToThread({ accountId, hea
     return;
   }
 
-  const thread = await DatabaseStore.find(Thread, message.threadId);
+  const thread = await DatabaseStore.find<Thread>(Thread, message.threadId);
   if (!thread) {
     throw new Error('SendReminders: Could not find thread to update');
   }

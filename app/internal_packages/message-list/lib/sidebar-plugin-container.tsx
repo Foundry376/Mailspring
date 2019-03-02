@@ -61,7 +61,7 @@ SidebarPluginContainerInner.propTypes = {
   focusedContactThreads: PropTypes.array,
 };
 
-export default class SidebarPluginContainer extends React.Component {
+export class SidebarPluginContainer extends React.Component {
   static displayName = 'SidebarPluginContainer';
 
   static containerStyles = {

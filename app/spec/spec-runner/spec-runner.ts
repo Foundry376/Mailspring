@@ -17,6 +17,9 @@ import * as jasmineExtensions from './jasmine-extensions';
 import * as reactTestUtilsExtensions from './react-test-utils-extensions';
 
 class SpecRunner {
+  jasmineEnv: any;
+  loadSettings: any;
+
   runSpecs(loadSettings) {
     this.loadSettings = loadSettings;
 

@@ -5,6 +5,8 @@ import {
   APIError,
   localized,
   FeatureUsageStore,
+  Message,
+  DraftEditingSession,
 } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import classnames from 'classnames';
@@ -17,8 +19,8 @@ type MetadataComposerToggleButtonProps = {
   pluginName: string;
   metadataEnabledValue: object;
   errorMessage: (...args: any[]) => any;
-  draft: object;
-  session: object;
+  draft: Message;
+  session: DraftEditingSession;
 };
 type MetadataComposerToggleButtonState = {
   pending: boolean;
@@ -146,7 +148,7 @@ export default class MetadataComposerToggleButton extends React.Component<
       'btn-enabled': enabled,
     });
 
-    const attrs = {};
+    const attrs: any = {};
     if (this.props.iconUrl) {
       attrs.url = this.props.iconUrl;
     } else if (this.props.iconName) {

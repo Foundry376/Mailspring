@@ -3,6 +3,8 @@ import DatabaseStore from '../stores/database-store';
 import RecentlyReadStore from '../stores/recently-read-store';
 import Matcher from '../attributes/matcher';
 import { Thread } from '../models/thread';
+import { Model } from '../models/model';
+import ModelQuery from './query';
 
 const buildQuery = categoryIds => {
   const unreadMatchers = new Matcher.And([
@@ -26,7 +28,7 @@ const buildQuery = categoryIds => {
   return query;
 };
 
-export default class UnreadQuerySubscription extends MutableQuerySubscription {
+export default class UnreadQuerySubscription extends MutableQuerySubscription<Thread> {
   _categoryIds: string[];
   _unlisten: () => void;
 

@@ -6,7 +6,7 @@ import { localized, DateUtils } from 'mailspring-exports';
 import ActivityEventStore from '../activity-event-store';
 import { configForPluginId } from '../plugin-helpers';
 
-class ActivityListItemContainer extends React.Component {
+class ActivityListItemContainer extends React.Component<{ group: any }, { collapsed: boolean }> {
   static displayName = 'ActivityListItemContainer';
 
   static propTypes = {

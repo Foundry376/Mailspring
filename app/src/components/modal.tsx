@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import Actions from '../flux/actions';
@@ -51,24 +51,24 @@ class Modal extends React.Component<ModalProps, ModalState> {
   }
 
   _focusImportantElement = () => {
-    const modalNode = ReactDOM.findDOMNode(this);
+    const modalNode = ReactDOM.findDOMNode(this) as HTMLElement;
 
     const focusable = modalNode.querySelectorAll('[tabIndex], input');
     const matches = _.sortBy(focusable, node => {
-      if (node.tabIndex > 0) {
-        return node.tabIndex;
+      if ((node as HTMLElement).tabIndex > 0) {
+        return (node as HTMLElement).tabIndex;
       } else if (node.nodeName === 'INPUT') {
         return 1000000;
       }
       return 1000001;
     });
     if (matches[0]) {
-      matches[0].focus();
+      (matches[0] as HTMLElement).focus();
     }
   };
 
   _computeModalStyles = (height, width) => {
-    const modalStyle = {
+    const modalStyle: CSSProperties = {
       height: height,
       maxHeight: '95%',
       width: width,
@@ -101,7 +101,7 @@ class Modal extends React.Component<ModalProps, ModalState> {
         <div className="modal" style={modalStyle} onClick={event => event.stopPropagation()}>
           <RetinaImg
             className="modal-close"
-            style={{ width: '14', WebkitFilter: 'none', zIndex: '1', position: 'relative' }}
+            style={{ width: '14', WebkitFilter: 'none', zIndex: 1, position: 'relative' }}
             name="modal-close.png"
             mode={RetinaImg.Mode.ContentDark}
             onClick={event => {

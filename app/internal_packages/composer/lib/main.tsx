@@ -14,9 +14,15 @@ import ComposerView from './composer-view';
 
 const ComposerViewForDraftClientId = InflatesDraftClientId(ComposerView);
 
-class ComposerWithWindowProps extends React.Component {
+class ComposerWithWindowProps extends React.Component<
+  {},
+  { headerMessageId: string; errorMessage?: string; errorDetail?: string }
+> {
   static displayName = 'ComposerWithWindowProps';
   static containerRequired = false;
+
+  _usub?: () => void;
+  _composerComponent?: any;
 
   constructor(props) {
     super(props);
@@ -27,7 +33,7 @@ class ComposerWithWindowProps extends React.Component {
     if (!draftJSON) {
       throw new Error('Initialize popout composer windows with valid draftJSON');
     }
-    const draft = new Message().fromJSON(draftJSON);
+    const draft = new Message({}).fromJSON(draftJSON);
     DraftStore._createSession(headerMessageId, draft);
     this.state = windowProps;
   }
@@ -100,7 +106,7 @@ export function activate() {
     const i = document.createElement('i');
     i.className = 'fa fa-list';
     i.style.position = 'absolute';
-    i.style.top = 0;
+    i.style.top = '0';
     document.body.appendChild(i);
   }, 1000);
 }

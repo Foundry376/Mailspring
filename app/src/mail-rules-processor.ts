@@ -11,11 +11,12 @@ import TaskQueue from './flux/stores/task-queue';
 
 import { ConditionMode, ConditionTemplates } from './mail-rules-templates';
 
-import ChangeUnreadTask from './flux/tasks/change-unread-task';
+import { ChangeUnreadTask } from './flux/tasks/change-unread-task';
 import { ChangeFolderTask } from './flux/tasks/change-folder-task';
 import { ChangeStarredTask } from './flux/tasks/change-starred-task';
-import ChangeLabelsTask from './flux/tasks/change-labels-task';
-let MailRulesStore = null;
+import { ChangeLabelsTask } from './flux/tasks/change-labels-task';
+import { Message } from 'mailspring-exports';
+let MailRulesStore: typeof import('./flux/stores/mail-rules-store').default = null;
 
 /**
 Note: At first glance, it seems like these task factory methods should use the
@@ -85,7 +86,7 @@ const MailRulesActions = {
     });
   },
 
-  applyLabel: async (message, thread, value) => {
+  applyLabel: async (message: Message, thread: Thread, value) => {
     if (!value) {
       throw new Error('A label is required.');
     }
@@ -134,7 +135,7 @@ const MailRulesActions = {
 };
 
 class MailRulesProcessor {
-  async processMessages(messages) {
+  async processMessages(messages: Message[]) {
     MailRulesStore = MailRulesStore || require('./flux/stores/mail-rules-store').default; //eslint-disable-line
     if (messages.length === 0) {
       return;
@@ -155,7 +156,7 @@ class MailRulesProcessor {
       for (const message of matching) {
         // We always pull the thread from the database, even though it may be in
         // `incoming.thread`, because rules may be modifying it as they run!
-        const thread = await DatabaseStore.find(Thread, message.threadId);
+        const thread = await DatabaseStore.find<Thread>(Thread, message.threadId);
         if (!thread) {
           console.warn(`Cannot find thread ${message.threadId} to process mail rules.`);
           continue;
@@ -165,7 +166,7 @@ class MailRulesProcessor {
     }
   }
 
-  _checkRuleForMessage(rule, message) {
+  _checkRuleForMessage(rule, message: Message) {
     const fn =
       rule.conditionMode === ConditionMode.All ? Array.prototype.every : Array.prototype.some;
     if (message.accountId !== rule.accountId) {
@@ -179,7 +180,7 @@ class MailRulesProcessor {
     });
   }
 
-  async _applyRuleToMessage(rule, message, thread) {
+  async _applyRuleToMessage(rule, message: Message, thread: Thread) {
     try {
       const actionPromises = rule.actions.map(action => {
         const actionFn = MailRulesActions[action.templateKey];

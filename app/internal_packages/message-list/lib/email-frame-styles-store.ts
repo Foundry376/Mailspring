@@ -1,6 +1,9 @@
 import MailspringStore from 'mailspring-store';
 
 class EmailFrameStylesStore extends MailspringStore {
+  _styles?: string;
+  _mutationObserver: MutationObserver;
+
   styles() {
     if (!this._styles) {
       this._findStyles();
@@ -14,7 +17,7 @@ class EmailFrameStylesStore extends MailspringStore {
     for (const sheet of Array.from(
       document.querySelectorAll('[source-path*="email-frame.less"]')
     )) {
-      this._styles += `\n${sheet.innerText}`;
+      this._styles += `\n${(sheet as HTMLElement).innerText}`;
     }
     this._styles = this._styles.replace(/.ignore-in-parent-frame/g, '');
     this.trigger();

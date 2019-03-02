@@ -4,13 +4,16 @@ import React from 'react';
 import { Flexbox, ScrollRegion } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
 import ThemeOption from './theme-option';
+import { Disposable } from 'event-kit';
 
-class ThemePicker extends React.Component {
+class ThemePicker extends React.Component<{}, { themes: any[]; activeTheme: string }> {
   static displayName = 'ThemePicker';
+
+  themes = AppEnv.themes;
+  disposable?: Disposable;
 
   constructor(props) {
     super(props);
-    this.themes = AppEnv.themes;
     this.state = this._getState();
   }
 
@@ -38,14 +41,14 @@ class ThemePicker extends React.Component {
   }
 
   _rewriteIFrame(prevActiveTheme, activeTheme) {
-    const prevActiveThemeDoc = document.querySelector(
+    const prevActiveThemeDoc = (document.querySelector(
       `.theme-preview-${prevActiveTheme.replace(/\./g, '-')}`
-    ).contentDocument;
+    ) as HTMLIFrameElement).contentDocument;
     const prevActiveElement = prevActiveThemeDoc.querySelector('.theme-option.active-true');
     if (prevActiveElement) prevActiveElement.className = 'theme-option active-false';
-    const activeThemeDoc = document.querySelector(
+    const activeThemeDoc = (document.querySelector(
       `.theme-preview-${activeTheme.replace(/\./g, '-')}`
-    ).contentDocument;
+    ) as HTMLIFrameElement).contentDocument;
     const activeElement = activeThemeDoc.querySelector('.theme-option.active-false');
     if (activeElement) activeElement.className = 'theme-option active-true';
   }

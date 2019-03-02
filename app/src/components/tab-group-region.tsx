@@ -40,12 +40,14 @@ class TabGroupRegion extends React.Component {
         idx = idx % nodes.length;
       }
 
-      if (nodes[idx].tabIndex === -1) {
+      const node = nodes[idx] as HTMLInputElement;
+
+      if (node.tabIndex === -1) {
         continue;
       }
-      nodes[idx].focus();
-      if (this._shouldSelectEnd(nodes[idx])) {
-        nodes[idx].setSelectionRange(nodes[idx].value.length, nodes[idx].value.length);
+      node.focus();
+      if (this._shouldSelectEnd(node)) {
+        node.setSelectionRange(node.value.length, node.value.length);
       }
       return;
     }

@@ -11,8 +11,8 @@ import electron from 'electron';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
 
-class MessageStore extends MailspringStore {
-  static FolderNamesHiddenByDefault = FolderNamesHiddenByDefault;
+class _MessageStore extends MailspringStore {
+  FolderNamesHiddenByDefault = FolderNamesHiddenByDefault;
 
   _showingHiddenItems: boolean = false;
   _items?: Message[];
@@ -395,4 +395,4 @@ class MessageStore extends MailspringStore {
   }
 }
 
-export default new MessageStore();
+export const MessageStore = new _MessageStore();

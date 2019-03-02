@@ -1,24 +1,23 @@
 import _ from 'underscore';
 import classnames from 'classnames';
 import React from 'react';
-import { localized, PropTypes, Actions } from 'mailspring-exports';
+import { localized, Actions, Contact } from 'mailspring-exports';
 import { remote } from 'electron';
 
 const { Menu, MenuItem } = remote;
 const MAX_COLLAPSED = 5;
 
-export default class MessageParticipants extends React.Component {
+interface MessageParticipantsProps {
+  to: Contact[];
+  cc: Contact[];
+  bcc: Contact[];
+  replyTo: Contact[];
+  from: Contact[];
+  onClick: () => void;
+  isDetailed: boolean;
+}
+export default class MessageParticipants extends React.Component<MessageParticipantsProps> {
   static displayName = 'MessageParticipants';
-
-  static propTypes = {
-    to: PropTypes.array,
-    cc: PropTypes.array,
-    bcc: PropTypes.array,
-    replyTo: PropTypes.array,
-    from: PropTypes.array,
-    onClick: PropTypes.func,
-    isDetailed: PropTypes.bool,
-  };
 
   static defaultProps = {
     to: [],

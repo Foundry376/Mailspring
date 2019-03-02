@@ -3,17 +3,18 @@ import { Event, DatabaseStore } from 'mailspring-exports';
 import { SearchBar } from 'mailspring-component-kit';
 import PropTypes from 'prop-types';
 
-class EventSearchBar extends Component {
+class EventSearchBar extends Component<
+  {
+    disabledCalendars: string[];
+    onSelectEvent: (event: Event) => void;
+  },
+  { query: string; suggestions: Event[] }
+> {
   static displayName = 'EventSearchBar';
-
-  static propTypes = {
-    disabledCalendars: PropTypes.array,
-    onSelectEvent: PropTypes.func,
-  };
 
   static defaultProps = {
     disabledCalendars: [],
-    onSelectEvent: () => {},
+    onSelectEvent: (event: Event) => {},
   };
 
   constructor(props) {
@@ -35,7 +36,7 @@ class EventSearchBar extends Component {
     if (disabledCalendars.length > 0) {
       dbQuery = dbQuery.where(Event.attributes.calendarId.notIn(disabledCalendars));
     }
-    dbQuery = dbQuery
+    dbQuery
       .search(query)
       .limit(10)
       .then(events => {
@@ -54,8 +55,7 @@ class EventSearchBar extends Component {
   onSelectEvent = event => {
     this.onClearSearchQuery();
     setImmediate(() => {
-      const { onSelectEvent } = this.props;
-      onSelectEvent(event);
+      this.props.onSelectEvent(event);
     });
   };
 

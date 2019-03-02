@@ -9,6 +9,7 @@
     "experimentalDecorators": true,
     "lib": ["es2017", "dom"],
     "removeComments": true,
+    "resolveJsonModule": true,
     "inlineSourceMap": true,
     "outDir": "lib",
     "baseUrl": ".",

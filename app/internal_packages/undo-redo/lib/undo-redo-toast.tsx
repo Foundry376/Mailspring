@@ -19,7 +19,11 @@ function getDisplayDuration(block) {
   return isUndoSend(block) ? Math.max(400, getUndoSendExpiration(block) - Date.now()) : 3000;
 }
 
-class Countdown extends React.Component {
+class Countdown extends React.Component<{ expiration: number }, { x: number }> {
+  animationDuration: string;
+  _tickStart: NodeJS.Timeout;
+  _tick: NodeJS.Timeout;
+
   constructor(props) {
     super(props);
     this.animationDuration = `${props.expiration - Date.now()}ms`;
@@ -91,9 +95,12 @@ const BasicContent = ({ block, onMouseEnter, onMouseLeave }) => {
   );
 };
 
-export default class UndoRedoToast extends React.Component {
+export default class UndoRedoToast extends React.Component<{}, { block: any }> {
   static displayName = 'UndoRedoToast';
   static containerRequired = false;
+
+  _timeout: NodeJS.Timeout;
+  _unlisten?: () => void;
 
   constructor(props) {
     super(props);

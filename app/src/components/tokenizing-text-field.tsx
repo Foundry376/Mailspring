@@ -280,7 +280,7 @@ See documentation on the propTypes for usage info.
 
 Section: Component Kit
 */
-export default class TokenizingTextField extends React.Component<
+export class TokenizingTextField extends React.Component<
   TokenizingTextFieldProps,
   TokenizingTextFieldState
 > {

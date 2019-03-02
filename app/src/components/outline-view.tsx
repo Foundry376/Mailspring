@@ -10,6 +10,9 @@ export interface IOutlineViewItem {
   title?: string;
   iconName?: string;
   items?: IOutlineViewItem[];
+  name?: string;
+  children?: any[];
+  contextMenuLabel?: string;
   collapsed?: boolean;
   className?: string;
   count?: number;

@@ -7,6 +7,8 @@ import {
   Contact,
   ContactStore,
   RegExpUtils,
+  Message,
+  DraftEditingSession,
 } from 'mailspring-exports';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
@@ -41,8 +43,8 @@ type ParticipantsTextFieldProps = {
   className?: string;
   onEmptied?: (...args: any[]) => any;
   onFocus?: (...args: any[]) => any;
-  draft?: object;
-  session?: object;
+  draft?: Message;
+  session?: DraftEditingSession;
 };
 
 export default class ParticipantsTextField extends React.Component<ParticipantsTextFieldProps> {
@@ -76,6 +78,8 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
 
     session: PropTypes.object,
   };
+
+  _textfieldEl?: TokenizingTextField;
 
   static defaultProps = {
     visible: true,
@@ -252,10 +256,6 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
           onTokenAction={this._onShowContextMenu}
           menuClassSet={classSet}
           menuPrompt={this.props.menuPrompt}
-          field={this.props.field}
-          draft={this.props.draft}
-          headerMessageId={headerMessageId}
-          session={this.props.session}
         />
       </div>
     );

@@ -73,15 +73,17 @@ move the selection. E.g. 1, -2.
 @param {string} selectionDeltas.key - string that represents the key used to
 shift the selection
  */
- type SelectableTableCellProps = {
-  className?: string,
-  tableDataSource?: any,
-  rowIdx?: number | string,
-  colIdx?: number | string,
-  selection?: object,
-  onSetSelection: (...args: any[]) => any
+type SelectableTableCellProps = {
+  className?: string;
+  tableDataSource?: any;
+  rowIdx?: number | string;
+  colIdx?: number | string;
+  selection?: {
+    rowIdx: number;
+    colIdx: number;
+  };
+  onSetSelection?: (...args: any[]) => any;
 };
-
 
 export class SelectableTableCell extends Component<SelectableTableCellProps> {
   static propTypes = {
@@ -142,10 +144,10 @@ export class SelectableTableCell extends Component<SelectableTableCellProps> {
 }
 
 type SelectableTableRowProps = {
-  className?: string,
-  tableDataSource?: any,
-  selection?: object,
-  rowIdx?: any
+  className?: string;
+  tableDataSource?: any;
+  selection?: object;
+  rowIdx?: any;
 };
 
 export class SelectableTableRow extends Component<SelectableTableRowProps> {
@@ -191,16 +193,16 @@ export class SelectableTableRow extends Component<SelectableTableRowProps> {
 }
 
 type SelectableTableProps = {
-  tableDataSource?: any,
-  extraProps?: object,
-  RowRenderer?: any,
-  CellRenderer?: any,
+  tableDataSource?: any;
+  extraProps?: object;
+  RowRenderer?: any;
+  CellRenderer?: any;
   selection: {
-    rowIdx?: number,
-    colIdx?: number
-  },
-  onSetSelection: (...args: any[]) => any,
-  onShiftSelection: (...args: any[]) => any
+    rowIdx?: number;
+    colIdx?: number;
+  };
+  onSetSelection: (...args: any[]) => any;
+  onShiftSelection: (...args: any[]) => any;
 };
 
 class SelectableTable extends Component<SelectableTableProps> {

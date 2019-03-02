@@ -33,10 +33,12 @@ class ThreadSearchBar extends Component<
       token: string;
       term: string;
       description: string;
-      termSuggestions: (term: string, accountIds: string[]) => Promise<any>;
+      termSuggestions: string[] | ((term: string, accountIds: string[]) => Promise<any>);
     }[];
     focused: boolean;
-    selected: object;
+    selected?: {
+      description: any;
+    };
     selectedIdx: number;
   }
 > {
@@ -290,7 +292,7 @@ class ThreadSearchBar extends Component<
     this._fieldEl.blur();
   };
 
-  _onClearSearchQuery = (e?: React.UIEvent) => {
+  _onClearSearchQuery = (e?: React.MouseEvent) => {
     if (this.props.query !== '') {
       Actions.searchQuerySubmitted('');
     } else {
@@ -314,7 +316,7 @@ class ThreadSearchBar extends Component<
     const { suggestions, selectedIdx } = this.state;
 
     const showPlaceholder = !this.state.focused && !query;
-    const showX = this.state.focused || !!perspective.searchQuery;
+    const showX = this.state.focused || !!(perspective as any).searchQuery;
 
     return (
       <KeyCommandsRegion

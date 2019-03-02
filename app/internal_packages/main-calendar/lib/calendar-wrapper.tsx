@@ -1,4 +1,4 @@
-import { Actions, DestroyModelTask } from 'mailspring-exports';
+import { Actions, DestroyModelTask, Event } from 'mailspring-exports';
 import React from 'react';
 import { remote } from 'electron';
 
@@ -7,17 +7,18 @@ import CalendarDataSource from './core/calendar-data-source';
 import CalendarEventPopover from './core/calendar-event-popover';
 import NylasCalendar from './core/nylas-calendar';
 
-export default class CalendarWrapper extends React.Component {
+export default class CalendarWrapper extends React.Component<{}, { selectedEvents: Event[] }> {
   static displayName = 'CalendarWrapper';
   static containerRequired = false;
 
+  _dataSource = new CalendarDataSource();
+
   constructor(props) {
     super(props);
-    this._dataSource = new CalendarDataSource();
     this.state = { selectedEvents: [] };
   }
 
-  _openEventPopover(eventModel) {
+  _openEventPopover(eventModel: Event) {
     const eventEl = document.getElementById(eventModel.id);
     if (!eventEl) {
       return;
@@ -31,7 +32,7 @@ export default class CalendarWrapper extends React.Component {
     });
   }
 
-  _onEventClick = (e, event) => {
+  _onEventClick = (e: React.MouseEvent, event: Event) => {
     let next = [].concat(this.state.selectedEvents);
 
     if (e.shiftKey || e.metaKey) {
@@ -50,11 +51,11 @@ export default class CalendarWrapper extends React.Component {
     });
   };
 
-  _onEventDoubleClick = eventModel => {
+  _onEventDoubleClick = (eventModel: Event) => {
     this._openEventPopover(eventModel);
   };
 
-  _onEventFocused = eventModel => {
+  _onEventFocused = (eventModel: Event) => {
     this._openEventPopover(eventModel);
   };
 

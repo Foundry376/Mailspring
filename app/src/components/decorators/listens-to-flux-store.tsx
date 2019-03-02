@@ -9,9 +9,11 @@ function ListensToFluxStore(ComposedComponent, { stores, getStateFromStores }) {
 
     static propTypes = ComposedComponent.propTypes;
 
+    _unlisteners = [];
+    _composedComponent: any;
+
     constructor(props) {
       super(props);
-      this._unlisteners = [];
       this.state = getStateFromStores(props);
     }
 
@@ -37,7 +39,7 @@ function ListensToFluxStore(ComposedComponent, { stores, getStateFromStores }) {
     }
 
     render() {
-      const props = {
+      const props: any = {
         ...this.props,
         ...this.state,
       };

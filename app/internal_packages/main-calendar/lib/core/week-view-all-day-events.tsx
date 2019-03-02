@@ -1,5 +1,5 @@
 import React from 'react';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { Event, Utils } from 'mailspring-exports';
 import CalendarEvent from './calendar-event';
 
 /*
@@ -9,17 +9,17 @@ import CalendarEvent from './calendar-event';
  * we can use `shouldComponentUpdate` to selectively re-render these
  * events.
  */
-export default class WeekViewAllDayEvents extends React.Component {
-  static displayName = 'WeekViewAllDayEvents';
+interface WeekViewAllDayEventsProps {
+  end: number;
+  start: number;
+  height: number;
+  minorDim: number;
+  allDayEvents: Event[];
+  allDayOverlap: any;
+}
 
-  static propTypes = {
-    end: PropTypes.number,
-    start: PropTypes.number,
-    height: PropTypes.number,
-    minorDim: PropTypes.number,
-    allDayEvents: PropTypes.array,
-    allDayOverlap: PropTypes.object,
-  };
+export default class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsProps> {
+  static displayName = 'WeekViewAllDayEvents';
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);

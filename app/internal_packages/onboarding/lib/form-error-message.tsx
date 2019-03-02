@@ -4,13 +4,19 @@ import { shell } from 'electron';
 import React from 'react';
 import { PropTypes, RegExpUtils } from 'mailspring-exports';
 
-const FormErrorMessage = props => {
+interface FormErrorProps {
+  message: string;
+  log: string;
+  empty: boolean;
+}
+
+const FormErrorMessage = (props: FormErrorProps) => {
   const { message, log, empty } = props;
   if (!message) {
     return <div className="message empty">{empty}</div>;
   }
 
-  let rawLogLink = false;
+  let rawLogLink: React.ReactChild = null;
   if (log && log.length > 0) {
     const onViewLog = () => {
       const logPath = temp.path({ suffix: '.log' });
@@ -25,7 +31,7 @@ const FormErrorMessage = props => {
   }
 
   if (typeof message === 'string') {
-    const linkMatch = RegExpUtils.urlRegex({ matchEntireString: false }).exec(message);
+    const linkMatch = RegExpUtils.urlRegex().exec(message);
     if (linkMatch) {
       const link = linkMatch[0];
       return (

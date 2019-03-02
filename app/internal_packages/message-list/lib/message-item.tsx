@@ -20,7 +20,9 @@ interface MessageItemProps {
 
 interface MessageItemState {
   filePreviewPaths: { [fileId: string]: string };
-  downloads: any[];
+  downloads: {
+    [fileId: string]: null;
+  };
   detailedHeaders: boolean;
 }
 
@@ -36,6 +38,8 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
     isMostRecent: PropTypes.bool,
     className: PropTypes.string,
   };
+
+  _headerEl: HTMLElement;
 
   constructor(props, context) {
     super(props, context);

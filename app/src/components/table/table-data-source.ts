@@ -9,6 +9,11 @@
  * @class TableDataSource
  */
 export default class TableDataSource {
+  _tableData: {
+    columns: string[];
+    rows: Array<Array<any>>;
+  };
+
   /**
    * Takes an Object of the form:
    *
@@ -27,7 +32,7 @@ export default class TableDataSource {
    * @param {array} tableData.rows - Array of rows
    * @method constructor
    */
-  constructor(tableData) {
+  constructor(tableData?: any) {
     this._tableData = tableData || {
       columns: [],
       rows: [[]],
@@ -85,7 +90,7 @@ export default class TableDataSource {
    * @return {any} - value for cell at given indices or null if it does not exist
    * @method cellAt
    */
-  cellAt({ rowIdx, colIdx } = {}) {
+  cellAt({ rowIdx, colIdx }: { rowIdx?: number; colIdx?: number } = {}) {
     if (rowIdx == null) {
       return this.colAt(colIdx);
     }
@@ -107,7 +112,7 @@ export default class TableDataSource {
    * @return {any} - value for cell at given indices or null if it does not exist
    * @method cellAt
    */
-  isEmpty({ rowIdx, colIdx } = {}) {
+  isEmpty({ rowIdx, colIdx }: { rowIdx?: number; colIdx?: number } = {}) {
     if (rowIdx == null && colIdx == null) {
       throw new Error('TableDataSource::isEmpty - Must provide rowIdx and/or colIdx');
     }
@@ -224,7 +229,12 @@ export default class TableDataSource {
    * @return {TableDataSource} - updated data source instance
    * @method updateCell
    */
-  updateCell({ rowIdx, colIdx, isHeader, value } = {}) {
+  updateCell({
+    rowIdx,
+    colIdx,
+    isHeader,
+    value,
+  }: { rowIdx?: number; colIdx?: number; isHeader?: boolean; value?: any } = {}) {
     if (isHeader) {
       const nextColumns = this.columns().slice();
       nextColumns.splice(colIdx, 1, value);

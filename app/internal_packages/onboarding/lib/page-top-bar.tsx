@@ -10,7 +10,7 @@ const PageTopBar = props => {
   const closeClass = pageDepth > 1 ? 'back' : 'close';
   const closeIcon = pageDepth > 1 ? 'onboarding-back.png' : 'onboarding-close.png';
   const closeAction = () => {
-    const webview = document.querySelector('webview');
+    const webview = document.querySelector('webview') as Electron.WebviewTag;
     if (webview && webview.canGoBack()) {
       webview.goBack();
     } else if (pageDepth > 1) {

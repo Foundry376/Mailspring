@@ -12,6 +12,7 @@ type InjectedComponentSetProps = {
   exposedProps?: object;
   containersRequired?: boolean;
   deferred?: boolean;
+  inline?: boolean;
 };
 type InjectedComponentSetState = {
   components: any;

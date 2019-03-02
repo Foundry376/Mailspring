@@ -4,14 +4,14 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
 type MultiselectDropdownProps = {
-  className?: string,
-  items: any[],
-  itemChecked?: (...args: any[]) => any,
-  onToggleItem?: (...args: any[]) => any,
-  itemKey?: (...args: any[]) => any,
-  buttonText?: string,
-  itemContent?: (...args: any[]) => any,
-  attachment?: string
+  className?: string;
+  items: any[];
+  itemChecked?: (...args: any[]) => any;
+  onToggleItem?: (...args: any[]) => any;
+  itemKey?: (...args: any[]) => any;
+  buttonText?: string;
+  itemContent?: (...args: any[]) => any;
+  attachment?: string;
 };
 /*
 Renders a drop down of items that can have multiple selected
@@ -49,12 +49,6 @@ class MultiselectDropdown extends Component<MultiselectDropdownProps> {
     buttonText: '',
     itemContent: () => {},
   };
-
-  componentDidUpdate() {
-    if (ReactDOM.findDOMNode(this.refs.select)) {
-      ReactDOM.findDOMNode(this.refs.select).focus();
-    }
-  }
 
   _onItemClick = item => {
     this.props.onToggleItem(item);

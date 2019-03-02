@@ -4,11 +4,18 @@ import { findDOMNode } from 'react-dom';
 
 const FOCUSABLE_SELECTOR = 'input, textarea, [contenteditable], [tabIndex]';
 
-function AutoFocuses(ComposedComponent, { onMount = true, onUpdate = true } = {}) {
+function AutoFocuses(
+  ComposedComponent: React.ComponentClass<{ focusElementWithTabIndex }> & {
+    containerRequired?;
+    containerStyles?;
+  },
+  { onMount = true, onUpdate = true } = {}
+) {
   return class extends ComposedComponent {
     static displayName = ComposedComponent.displayName;
     static containerRequired = ComposedComponent.containerRequired;
     static containerStyles = ComposedComponent.containerStyles;
+    mounted = false;
 
     componentDidMount() {
       this.mounted = true;
@@ -28,7 +35,7 @@ function AutoFocuses(ComposedComponent, { onMount = true, onUpdate = true } = {}
     }
 
     isFocusable(currentNode = findDOMNode(this)) {
-      currentNode.focus();
+      (currentNode as HTMLElement).focus();
       return document.activeElement === currentNode;
     }
 
@@ -37,7 +44,7 @@ function AutoFocuses(ComposedComponent, { onMount = true, onUpdate = true } = {}
         return;
       }
       // Automatically focus the element inside us with the lowest tab index
-      const currentNode = findDOMNode(this);
+      const currentNode = findDOMNode(this) as HTMLElement;
       if (currentNode.contains(document.activeElement)) {
         return;
       }
@@ -49,7 +56,8 @@ function AutoFocuses(ComposedComponent, { onMount = true, onUpdate = true } = {}
 
       // _.sortBy ranks in ascending numerical order.
       const focusable = currentNode.querySelectorAll(FOCUSABLE_SELECTOR);
-      const matches = _.sortBy(focusable, node => {
+      const matches = _.sortBy(focusable, _node => {
+        const node = _node as HTMLElement;
         if (node.tabIndex > 0) {
           return node.tabIndex;
         } else if (node.nodeName === 'INPUT') {
@@ -58,7 +66,7 @@ function AutoFocuses(ComposedComponent, { onMount = true, onUpdate = true } = {}
         return 1000001;
       });
       if (matches[0]) {
-        matches[0].focus();
+        (matches[0] as HTMLElement).focus();
       }
     };
 

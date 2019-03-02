@@ -13,8 +13,8 @@ import ContactStore from './contact-store';
 import DatabaseStore from './database-store';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
-import SyncbackDraftTask from '../tasks/syncback-draft-task';
-import DestroyDraftTask from '../tasks/destroy-draft-task';
+import { SyncbackDraftTask } from '../tasks/syncback-draft-task';
+import { DestroyDraftTask } from '../tasks/destroy-draft-task';
 
 const { convertFromHTML, convertToHTML } = Conversion;
 const MetadataChangePrefix = 'metadata.';
@@ -228,6 +228,7 @@ export default class DraftEditingSession extends MailspringStore {
           hotwireDraftBodyState(draft);
           this._draft = draft;
           this.trigger();
+          return draft;
         });
     }
   }

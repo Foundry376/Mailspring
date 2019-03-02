@@ -97,13 +97,13 @@ export default class MultiselectSplitInteractionHandler {
   };
 
   _turnFocusIntoSelection() {
-    const { focused } = this.props;
+    const { focused } = this.props as any;
     this.onFocusItem(null);
     this.props.dataSource.selection.add(focused);
   }
 
   _checkSelectionAndFocusConsistency() {
-    const { focused } = this.props;
+    const { focused } = this.props as any;
     const { selection } = this.props.dataSource;
 
     if (focused && selection.count() > 0) {

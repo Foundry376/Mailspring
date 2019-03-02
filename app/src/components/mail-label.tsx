@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import RetinaImg from './retina-img';
+import { Label } from 'mailspring-exports';
 
 type MailLabelProps = {
-  label: object;
+  label: Label;
   onRemove?: (...args: any[]) => any;
 };
 

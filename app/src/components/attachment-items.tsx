@@ -94,7 +94,26 @@ AttachmentActionIcon.propTypes = {
   ...propTypes,
 };
 
-export class AttachmentItem extends Component {
+interface AttachmentItemProps {
+  className: string;
+  draggable: boolean;
+  focusable: boolean;
+  filePath: string;
+  contentType: string;
+  download: {
+    state: string;
+    percent: number;
+  };
+  displayName: string;
+  displaySize: string;
+  fileIconName: string;
+  filePreviewPath: string;
+  onOpenAttachment: () => void;
+  onRemoveAttachment: () => void;
+  onDownloadAttachment: () => void;
+}
+
+export class AttachmentItem extends Component<AttachmentItemProps> {
   static displayName = 'AttachmentItem';
 
   static containerRequired = false;
@@ -102,6 +121,8 @@ export class AttachmentItem extends Component {
   static propTypes = propTypes;
 
   static defaultProps = defaultProps;
+
+  _fileIconComponent: RetinaImg;
 
   _onDragStart = event => {
     const { contentType, filePath } = this.props;
@@ -111,7 +132,7 @@ export class AttachmentItem extends Component {
       const downloadURL = `${contentType}:${path.basename(filePath)}:file://${filePath}`;
       event.dataTransfer.setData('DownloadURL', downloadURL);
       event.dataTransfer.setData('text/nylas-file-url', downloadURL);
-      const el = ReactDOM.findDOMNode(this._fileIconComponent);
+      const el = ReactDOM.findDOMNode(this._fileIconComponent) as HTMLElement;
       const rect = el.getBoundingClientRect();
       const x = window.devicePixelRatio === 2 ? rect.height / 2 : rect.height;
       const y = window.devicePixelRatio === 2 ? rect.width / 2 : rect.width;
@@ -135,7 +156,7 @@ export class AttachmentItem extends Component {
       Actions.quickPreviewFile(this.props.filePath);
     }
     if (event.key === 'Escape') {
-      const attachmentNode = ReactDOM.findDOMNode(this);
+      const attachmentNode = ReactDOM.findDOMNode(this) as HTMLElement;
       if (attachmentNode) {
         attachmentNode.blur();
       }
@@ -225,7 +246,7 @@ export class AttachmentItem extends Component {
   }
 }
 
-export class ImageAttachmentItem extends Component {
+export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgProps: any }> {
   static displayName = 'ImageAttachmentItem';
 
   static propTypes = {
@@ -249,7 +270,7 @@ export class ImageAttachmentItem extends Component {
     // watching the DOM to trigger. This is a good thing, because the image may
     // change dimensions. (We use this to reflow the draft body when this component
     // is within an OverlaidComponent)
-    const el = ReactDOM.findDOMNode(this);
+    const el = ReactDOM.findDOMNode(this) as HTMLElement;
     if (el) {
       el.classList.add('loaded');
     }

@@ -9,17 +9,20 @@ import {
   CategoryStore,
   FocusedPerspectiveStore,
   AccountStore,
+  Thread,
+  Category,
 } from 'mailspring-exports';
+import { Disposable } from 'rx-core';
 
 const ShowImportantKey = 'core.workspace.showImportant';
 
 type MailImportantIconProps = {
-  thread?: object;
+  thread?: Thread;
   showIfAvailableForAnyAccount?: boolean;
 };
 type MailImportantIconState = {
   visible: boolean;
-  category: any;
+  category: Category;
   isImportant: boolean;
 };
 
@@ -29,6 +32,9 @@ class MailImportantIcon extends React.Component<MailImportantIconProps, MailImpo
     thread: PropTypes.object,
     showIfAvailableForAnyAccount: PropTypes.bool,
   };
+
+  unsubscribe?: () => void;
+  subscription?: Disposable;
 
   constructor(props) {
     super(props);

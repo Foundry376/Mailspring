@@ -4,13 +4,13 @@ import { Comparator, Template } from './scenario-editor-models';
 import ScenarioEditorRow from './scenario-editor-row';
 
 type ScenarioEditorProps = {
-  instances?: any[],
-  className?: string,
-  onChange?: (...args: any[]) => any,
-  templates?: any[]
+  instances?: any[];
+  className?: string;
+  onChange?: (...args: any[]) => any;
+  templates?: any[];
 };
 type ScenarioEditorState = {
-  collapsed: boolean
+  collapsed: boolean;
 };
 /**
 The ScenarioEditor takes an array of ScenarioTemplate objects which define the
@@ -40,7 +40,10 @@ For example:
     }]
 */
 
-export default class ScenarioEditor extends React.Component<ScenarioEditorProps, ScenarioEditorState> {
+export default class ScenarioEditor extends React.Component<
+  ScenarioEditorProps,
+  ScenarioEditorState
+> {
   static displayName = 'ScenarioEditor';
 
   static propTypes = {
@@ -96,7 +99,7 @@ export default class ScenarioEditor extends React.Component<ScenarioEditorProps,
             removable={this.props.instances.length > 1}
             templates={this.props.templates}
             onRemove={() => this._onRemoveRule(idx)}
-            onInsert={() => this._onInsertRule(idx)}
+            onInsert={() => this._onInsertRule()}
             onChange={updatedInstance => this._onChangeRowValue(updatedInstance, idx)}
           />
         ))}

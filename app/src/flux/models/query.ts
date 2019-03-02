@@ -19,7 +19,7 @@ and {DatabaseStore::unpersistModel}.
 **Simple Example:** Fetch a thread
 
 ```v
-query = DatabaseStore.find(Thread, '123a2sc1ef4131')
+query = DatabaseStore.find<Thread>(Thread, '123a2sc1ef4131')
 query.then((thread) => ...
   // thread or null
 ```

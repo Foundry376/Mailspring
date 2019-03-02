@@ -223,7 +223,7 @@ export interface ScrollRegionProps {
   onScroll?: (...args: any[]) => any;
   onScrollEnd?: (...args: any[]) => any;
   className?: string;
-  scrollTooltipComponent?: ScrollTooltipComponent;
+  scrollTooltipComponent?: React.ComponentType<ScrollRegionTooltipComponentProps>;
   scrollbarTickProvider?: TicksProvider;
   getScrollbar?: (...args: any[]) => any;
 }

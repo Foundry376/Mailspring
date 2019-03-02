@@ -1,6 +1,6 @@
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import React from 'react';
-import { Rx, PropTypes, DatabaseStore, AccountStore, Calendar } from 'mailspring-exports';
+import { Rx, DatabaseStore, AccountStore, Calendar, Account, Event } from 'mailspring-exports';
 import { ScrollRegion, ResizableRegion } from 'mailspring-component-kit';
 import WeekView from './week-view';
 import MonthView from './month-view';
@@ -9,73 +9,85 @@ import CalendarToggles from './calendar-toggles';
 import CalendarDataSource from './calendar-data-source';
 import { WEEK_VIEW, MONTH_VIEW } from './calendar-constants';
 import MiniMonthView from './mini-month-view';
+import { Disposable } from 'rx-core';
 
 const DISABLED_CALENDARS = 'nylas.disabledCalendars';
 
 /*
  * Nylas Calendar
  */
-export default class NylasCalendar extends React.Component {
-  static displayName = 'NylasCalendar';
-
-  static propTypes = {
-    /*
+interface NylasCalendarProps {
+  /*
      * The data source that powers all of the views of the NylasCalendar
      */
-    dataSource: PropTypes.instanceOf(CalendarDataSource).isRequired,
+  dataSource: CalendarDataSource;
 
-    currentMoment: PropTypes.instanceOf(moment),
+  currentMoment?: Moment;
 
-    /*
+  /*
      * Any extra info you want to display on the top banner of calendar
      * components
      */
-    bannerComponents: PropTypes.shape({
-      day: PropTypes.node,
-      week: PropTypes.node,
-      month: PropTypes.node,
-      year: PropTypes.node,
-    }),
+  bannerComponents?: {
+    day: React.ReactChild;
+    week: React.ReactChild;
+    month: React.ReactChild;
+    year: React.ReactChild;
+  };
 
-    /*
+  /*
      * Any extra header components for each of the supported View types of
      * the NylasCalendar
      */
-    headerComponents: PropTypes.shape({
-      day: PropTypes.node,
-      week: PropTypes.node,
-      month: PropTypes.node,
-      year: PropTypes.node,
-    }),
+  headerComponents?: {
+    day: React.ReactChild;
+    week: React.ReactChild;
+    month: React.ReactChild;
+    year: React.ReactChild;
+  };
 
-    /*
+  /*
      * Any extra footer components for each of the supported View types of
      * the NylasCalendar
      */
-    footerComponents: PropTypes.shape({
-      day: PropTypes.node,
-      week: PropTypes.node,
-      month: PropTypes.node,
-      year: PropTypes.node,
-    }),
+  footerComponents?: {
+    day: React.ReactChild;
+    week: React.ReactChild;
+    month: React.ReactChild;
+    year: React.ReactChild;
+  };
 
-    /*
+  /*
      * The following are a set of supported interaction handlers.
      *
      * These are passed a custom set of arguments in a single object that
      * includes the `currentView` as well as things like the `time` at the
      * click coordinate.
      */
-    onCalendarMouseUp: PropTypes.func,
-    onCalendarMouseDown: PropTypes.func,
-    onCalendarMouseMove: PropTypes.func,
+  onCalendarMouseUp?: () => void;
+  onCalendarMouseDown?: () => void;
+  onCalendarMouseMove?: () => void;
 
-    onEventClick: PropTypes.func,
-    onEventDoubleClick: PropTypes.func,
-    onEventFocused: PropTypes.func,
+  onEventClick: (e: React.MouseEvent, event: Event) => void;
+  onEventDoubleClick: (event: Event) => void;
+  onEventFocused: (event: Event) => void;
 
-    selectedEvents: PropTypes.arrayOf(PropTypes.object),
-  };
+  selectedEvents: Event[];
+}
+
+interface NylasCalendarState {
+  currentView: string;
+  focusedEvent: Event | null;
+  accounts?: Account[];
+  calendars: Calendar[];
+  currentMoment: Moment;
+  disabledCalendars: string[];
+}
+
+export default class NylasCalendar extends React.Component<NylasCalendarProps, NylasCalendarState> {
+  static displayName = 'NylasCalendar';
+
+  static WeekView = WeekView;
 
   static defaultProps = {
     bannerComponents: { day: false, week: false, month: false, year: false },
@@ -87,6 +99,8 @@ export default class NylasCalendar extends React.Component {
   static containerStyles = {
     height: '100%',
   };
+
+  _disposable?: Disposable;
 
   constructor(props) {
     super(props);
@@ -111,13 +125,13 @@ export default class NylasCalendar extends React.Component {
     const calQuery = DatabaseStore.findAll<Calendar>(Calendar);
     const calQueryObs = Rx.Observable.fromQuery(calQuery);
     const accQueryObs = Rx.Observable.fromStore(AccountStore);
-    const configObs = Rx.Observable.fromConfig(DISABLED_CALENDARS);
-    return Rx.Observable.combineLatest([calQueryObs, accQueryObs, configObs]).subscribe(
-      ([calendars, accountStore, disabledCalendars]) => {
+    const configObs = Rx.Observable.fromConfig<string[]>(DISABLED_CALENDARS);
+    return Rx.Observable.combineLatest<any>([calQueryObs, accQueryObs, configObs]).subscribe(
+      ([calendars, accountStore, disabledCalendars]: [Calendar[], any, string[]]) => {
         this.setState({
-          accounts: accountStore.accounts() || [],
-          calendars: calendars || [],
-          disabledCalendars: disabledCalendars || [],
+          accounts: accountStore.accounts() as Account[],
+          calendars: calendars,
+          disabledCalendars: disabledCalendars,
         });
       }
     );
@@ -203,5 +217,3 @@ export default class NylasCalendar extends React.Component {
     );
   }
 }
-
-NylasCalendar.WeekView = WeekView;

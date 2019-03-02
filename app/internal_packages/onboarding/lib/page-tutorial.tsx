@@ -54,8 +54,13 @@ const Steps = [
   // },
 ];
 
-export default class TutorialPage extends React.Component {
+export default class TutorialPage extends React.Component<
+  {},
+  { appeared: boolean; seen: any[]; current: any }
+> {
   static displayName = 'TutorialPage';
+
+  _timer: NodeJS.Timeout;
 
   constructor(props) {
     super(props);

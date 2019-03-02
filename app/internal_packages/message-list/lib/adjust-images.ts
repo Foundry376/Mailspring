@@ -11,7 +11,7 @@ function _getDimension(node, dim) {
 
   const value = match[1];
   const units = match[2] || 'px';
-  return [value / 1, units];
+  return [Number(value), units];
 }
 
 function _correctMalformedSrc(node) {
@@ -36,7 +36,7 @@ function _applyMaxWidthAndHeight(node) {
   // https://web-design-weekly.com/2014/11/18/viewport-units-vw-vh-vmin-vmax/
   if (width && height && widthUnits === heightUnits) {
     node.style.maxWidth = '100vw';
-    node.style.maxHeight = `${100 * height / width}vw`;
+    node.style.maxHeight = `${100 * Number(height) / Number(width)}vw`;
   } else if (!height) {
     node.style.maxWidth = '100vw';
   } else {

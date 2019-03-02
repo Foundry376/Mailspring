@@ -43,7 +43,7 @@ class AppearanceModeOption extends React.Component<{
 }
 
 class InitialPreferencesOptions extends React.Component<
-  { account: Account; config: any },
+  { account: Account; config?: any },
   { templates: any[] }
 > {
   static propTypes = { config: PropTypes.object };
@@ -159,7 +159,7 @@ class InitialPreferencesOptions extends React.Component<
   }
 }
 
-class InitialPreferencesPage extends React.Component {
+class InitialPreferencesPage extends React.Component<{}, { account: Account }> {
   static displayName = 'InitialPreferencesPage';
 
   _unlisten?: () => void;

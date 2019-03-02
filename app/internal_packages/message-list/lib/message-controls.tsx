@@ -7,10 +7,17 @@ import {
   Actions,
   TaskQueue,
   GetMessageRFC2822Task,
+  Thread,
+  Message,
 } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 
-export default class MessageControls extends React.Component {
+interface MessageControlsProps {
+  thread: Thread;
+  message: Message;
+}
+
+export default class MessageControls extends React.Component<MessageControlsProps> {
   static displayName = 'MessageControls';
   static propTypes = {
     thread: PropTypes.object.isRequired,
@@ -130,8 +137,8 @@ export default class MessageControls extends React.Component {
 
   _onLogData = () => {
     console.log(this.props.message);
-    window.__message = this.props.message;
-    window.__thread = this.props.thread;
+    (window as any).__message = this.props.message;
+    (window as any).__thread = this.props.thread;
     console.log('Also now available in window.__message and window.__thread');
   };
 

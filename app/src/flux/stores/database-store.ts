@@ -389,7 +389,7 @@ class DatabaseStore extends MailspringStore {
   //
   // Example:
   // ```javascript
-  // DatabaseStore.find(Thread, 'id-123').then((thread) => {
+  // DatabaseStore.find<Thread>(Thread, 'id-123').then((thread) => {
   //   // thread is a Thread object, or null if no match was found.
   // }
   // ```
@@ -505,7 +505,7 @@ class DatabaseStore extends MailspringStore {
   // Returns a {Promise} that
   //   - resolves with the result of the database query.
   //
-  run<T extends Model>(modelQuery: Query<T>, options = { format: true }): Promise<T> {
+  run<T>(modelQuery: Query<T>, options = { format: true }): Promise<T> {
     return this._query(modelQuery.sql(), [], modelQuery._background).then(result => {
       let transformed = modelQuery.inflateResult(result);
       if (options.format !== false) {

@@ -22,6 +22,7 @@ class ThemeOption extends React.Component<ThemeOptionProps> {
   };
 
   lessCache = null;
+  _iframeComponent: EventedIFrame;
 
   componentDidMount() {
     this._writeContent();
@@ -65,7 +66,7 @@ class ThemeOption extends React.Component<ThemeOptionProps> {
   }
 
   _writeContent() {
-    const doc = ReactDOM.findDOMNode(this._iframeComponent).contentDocument;
+    const doc = (ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement).contentDocument;
     if (!doc) return;
 
     const { resourcePath } = AppEnv.getLoadSettings();

@@ -29,6 +29,8 @@ export interface MailspringWindowSettings {
   configDirPath?: string;
   autoHideMenuBar?: boolean;
   bootstrapScript?: string;
+  appVersion?: string;
+  shellLoadTime?: number;
 }
 
 export default class MailspringWindow extends EventEmitter {
@@ -95,7 +97,6 @@ export default class MailspringWindow extends EventEmitter {
       height,
       resizable,
       webPreferences: {
-        directWrite: true,
         nodeIntegration: true,
         contextIsolation: false,
       },
@@ -105,11 +106,7 @@ export default class MailspringWindow extends EventEmitter {
     if (this.neverClose) {
       // Prevents DOM timers from being suspended when the main window is hidden.
       // Means there's not an awkward catch-up when you re-show the main window.
-      // TODO
-      // This option is no longer working according to
-      // https://github.com/atom/electron/issues/3225
-      // Look into using option --disable-renderer-backgrounding
-      browserWindowOptions.webPreferences.pageVisibility = true;
+      browserWindowOptions.webPreferences.backgroundThrottling = false;
     }
 
     // Don't set icon on Windows so the exe's ico will be used as window and
@@ -133,7 +130,7 @@ export default class MailspringWindow extends EventEmitter {
     }
 
     this.browserWindow = new BrowserWindow(browserWindowOptions);
-    this.browserWindow.updateLoadSettings = this.updateLoadSettings;
+    (this.browserWindow as any).updateLoadSettings = this.updateLoadSettings;
 
     this.handleEvents();
 
@@ -154,8 +151,8 @@ export default class MailspringWindow extends EventEmitter {
     }
 
     // Only send to the first non-spec window created
-    if (this.constructor.includeShellLoadTime && !this.isSpec) {
-      this.constructor.includeShellLoadTime = false;
+    if (MailspringWindow.includeShellLoadTime && !this.isSpec) {
+      MailspringWindow.includeShellLoadTime = false;
       if (loadSettings.shellLoadTime == null) {
         loadSettings.shellLoadTime = Date.now() - global.shellStartTime;
       }
@@ -170,7 +167,7 @@ export default class MailspringWindow extends EventEmitter {
 
     this.browserWindow.loadSettings = loadSettings;
 
-    this.browserWindow.once('window:loaded', () => {
+    (this.browserWindow.once as any)('window:loaded', () => {
       this.loaded = true;
       if (this.browserWindow.loadSettingsChangedSinceGetURL) {
         this.browserWindow.webContents.send(

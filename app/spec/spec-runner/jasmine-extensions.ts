@@ -6,22 +6,6 @@ import 'moment-round';
 
 import TestConstants from './test-constants';
 
-declare global {
-  const TEST_TIME_ZONE: string;
-  const TEST_PLUGIN_ID: string;
-  const TEST_ACCOUNT_ID: string;
-  const TEST_ACCOUNT_NAME: string;
-  const TEST_ACCOUNT_EMAIL: string;
-  const TEST_ACCOUNT_CLIENT_ID: string;
-  const TEST_ACCOUNT_ALIAS_EMAIL: string;
-
-  export const waitsForPromise: (fn: () => Promise<any>) => Promise<any>;
-  export const waitsForPromise: (
-    opts: { shouldReject?: boolean; timeout?: number },
-    fn: () => Promise<any>
-  ) => Promise<any>;
-}
-
 export function waitsForPromise(...args) {
   let shouldReject;
   let timeout;

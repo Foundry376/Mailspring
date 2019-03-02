@@ -4,21 +4,21 @@ import { localized } from 'mailspring-exports';
 import RetinaImg from './retina-img';
 
 type NotificationProps = {
-  className?: string,
-  displayName?: string,
-  title?: string,
-  subtitle?: string,
-  subtitleAction?: (...args: any[]) => any,
-  actions?: any[],
-  icon?: string,
-  priority?: string,
-  isError?: boolean,
-  isDismissable?: boolean,
-  isPermanentlyDismissable?: boolean
+  className?: string;
+  displayName?: string;
+  title?: string;
+  subtitle?: string;
+  subtitleAction?: (...args: any[]) => any;
+  actions?: any[];
+  icon?: string;
+  priority?: string;
+  isError?: boolean;
+  isDismissable?: boolean;
+  isPermanentlyDismissable?: boolean;
 };
 type NotificationState = {
-  loadingActions: any[],
-  isDismissed: boolean
+  loadingActions: any[];
+  isDismissed: boolean;
 };
 
 export default class Notification extends React.Component<NotificationProps, NotificationState> {
@@ -41,6 +41,8 @@ export default class Notification extends React.Component<NotificationProps, Not
   static defaultProps = {
     className: '',
   };
+
+  mounted: boolean;
 
   constructor(props) {
     super(props);

@@ -9,7 +9,7 @@ type ButtonDropdownState = {
 };
 
 type ButtonDropdownProps = {
-  bordered: boolean;
+  bordered?: boolean;
   primaryTitle?: string;
   primaryItem: React.ReactElement;
   primaryClick?: () => void;

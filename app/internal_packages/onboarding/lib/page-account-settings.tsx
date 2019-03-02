@@ -6,17 +6,16 @@ import CreatePageForForm from './decorators/create-page-for-form';
 import { expandAccountWithCommonSettings } from './onboarding-helpers';
 import FormField from './form-field';
 
-class AccountBasicSettingsForm extends React.Component {
+interface AccountBasicSettingsFormProps {
+  account: Account;
+  errorFieldNames: string[];
+  submitting: boolean;
+  onConnect: (account: Account) => void;
+  onFieldChange: () => void;
+  onFieldKeyPress: () => void;
+}
+class AccountBasicSettingsForm extends React.Component<AccountBasicSettingsFormProps> {
   static displayName = 'AccountBasicSettingsForm';
-
-  static propTypes = {
-    account: PropTypes.object,
-    errorFieldNames: PropTypes.array,
-    submitting: PropTypes.bool,
-    onConnect: PropTypes.func,
-    onFieldChange: PropTypes.func,
-    onFieldKeyPress: PropTypes.func,
-  };
 
   static submitLabel = account => {
     return account.provider === 'imap' ? localized('Continue') : localized('Connect Account');

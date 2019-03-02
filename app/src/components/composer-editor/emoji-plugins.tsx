@@ -82,12 +82,13 @@ function FloatingEmojiPicker({ value, onChange }) {
   const target = range.endContainer.parentElement.closest('[data-emoji-typing]');
   if (!target) return false;
 
-  const relativePositionedParent = target.closest('.RichEditor-content');
+  const relativePositionedParent = target.closest('.RichEditor-content') as HTMLElement;
   const intrinsicPos = relativePositionedParent.getBoundingClientRect();
-  const targetPos = target.getBoundingClientRect();
+  const targetPos = target.getBoundingClientRect() as ClientRect;
+  const relativeParentW = (relativePositionedParent as any).width;
 
-  if (targetPos.left + 150 > relativePositionedParent.width) {
-    targetPos.left = relativePositionedParent.width - 150;
+  if (targetPos.left + 150 > relativeParentW) {
+    targetPos.left = relativeParentW - 150;
   }
 
   const delta = {
@@ -122,7 +123,17 @@ function FloatingEmojiPicker({ value, onChange }) {
   );
 }
 
-function renderNode({ node, attributes, children, targetIsHTML }) {
+function renderNode({
+  node,
+  attributes,
+  children,
+  targetIsHTML,
+}: {
+  node?: any;
+  attributes?: any;
+  children: any;
+  targetIsHTML?: boolean;
+}) {
   if (node.type === EMOJI_TYPE) {
     const name = node.data.name || node.data.get('name');
     return (
@@ -133,7 +144,15 @@ function renderNode({ node, attributes, children, targetIsHTML }) {
   }
 }
 
-function renderMark({ mark, children }) {
+function renderMark({
+  mark,
+  children,
+  targetIsHTML,
+}: {
+  mark: any;
+  children: any;
+  targetIsHTML?: boolean;
+}) {
   if (mark.type === EMOJI_TYPING_TYPE) {
     return <span data-emoji-typing={true}>{children}</span>;
   }
@@ -255,7 +274,7 @@ function onKeyUp(event, change, editor) {
 
     if (typed.length >= 3) {
       const typedEmoji = typed.replace(':', '');
-      const isNumeric = `${typedEmoji / 1}` === typedEmoji;
+      const isNumeric = `${Number(typedEmoji)}` === typedEmoji;
       if (!isNumeric || typedEmoji.length >= 3) {
         suggestions = getEmojiSuggestions(typedEmoji);
         const pickedIdx = suggestions.indexOf(picked);
@@ -290,7 +309,7 @@ const ToolbarEmojiButton = ({ value, onChange }) => {
     <button
       onClick={e => {
         Actions.openPopover(<EmojiToolbarPopover onInsertEmoji={onInsertEmoji} />, {
-          originRect: e.target.getBoundingClientRect(),
+          originRect: (e.target as HTMLElement).getBoundingClientRect(),
           direction: 'up',
         });
       }}

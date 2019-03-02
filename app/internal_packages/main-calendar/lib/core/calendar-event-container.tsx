@@ -13,10 +13,15 @@ export default class CalendarEventContainer extends React.Component {
     onCalendarMouseMove: PropTypes.func,
   };
 
-  constructor() {
-    super();
-    this._DOMCache = {};
-  }
+  _DOMCache: {
+    eventColumn?: any;
+    gridWrap?: any;
+    calWrap?: any;
+    calWrapRect?: any;
+    rect?: any;
+  } = {};
+
+  _mouseIsDown: boolean;
 
   componentDidMount() {
     window.addEventListener('mouseup', this._onWindowMouseUp);

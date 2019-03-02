@@ -70,7 +70,7 @@ export const LocalizedErrorStrings = {
   ),
 };
 
-export default class MailsyncProcess extends EventEmitter {
+export class MailsyncProcess extends EventEmitter {
   _proc: ChildProcess = null;
   _win = null;
 

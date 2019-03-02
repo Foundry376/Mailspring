@@ -80,7 +80,11 @@ export class Account extends ModelWithMetadata {
   public name: string;
   public provider: string;
   public emailAddress: string;
-  public settings: object;
+  public settings: {
+    imap_host: string;
+    imap_password: string;
+    smtp_host: string;
+  };
   public label: string;
   public autoaddress: AccountAutoaddress;
   public aliases: string[];
@@ -99,9 +103,9 @@ export class Account extends ModelWithMetadata {
     };
   }
 
-  toJSON(...args) {
+  toJSON() {
     // ensure we deep-copy our settings object into the JSON
-    const json = super.toJSON(...args);
+    const json = super.toJSON();
     json.settings = Object.assign({}, json.settings);
     return json;
   }

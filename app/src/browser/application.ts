@@ -16,11 +16,11 @@ import ApplicationMenu from './application-menu';
 import ApplicationTouchBar from './application-touch-bar';
 import AutoUpdateManager from './autoupdate-manager';
 import SystemTrayManager from './system-tray-manager';
-import DefaultClientHelper from '../default-client-helper';
+import { DefaultClientHelper } from '../default-client-helper';
 import MailspringProtocolHandler from './mailspring-protocol-handler';
 import ConfigPersistenceManager from './config-persistence-manager';
 import moveToApplications from './move-to-applications';
-import MailsyncProcess from '../mailsync-process';
+import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 
 let clipboard = null;

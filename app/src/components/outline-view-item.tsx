@@ -147,9 +147,10 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
 
   static CounterStyles = CounterStyles;
 
+  _expandTimeout?: NodeJS.Timeout;
+
   constructor(props) {
     super(props);
-    this._expandTimeout = null;
     this.state = {
       isDropping: false,
       editing: props.item.editing || false,

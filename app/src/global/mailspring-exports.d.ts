@@ -14,23 +14,20 @@
 
   // API Endpoints
   export type MailspringAPIRequest = typeof import('../flux/mailspring-api-request').default;
-  export const MailspringAPIRequest: MailspringAPIRequest; 
-  export type MailsyncProcess = import('../mailsync-process').default;
-  export const MailsyncProcess: MailsyncProcess; 
+  export const MailspringAPIRequest: MailspringAPIRequest;
+  export * from '../mailsync-process' 
 
   // The Database
-  export const Matcher: import('../flux/attributes/matcher').default; 
+  export * from '../flux/attributes/matcher'; 
   export type DatabaseStore = typeof import('../flux/stores/database-store').default;
   export const DatabaseStore: DatabaseStore; 
   export * from '../flux/models/query-result-set';
   export * from '../flux/models/query-subscription';
-  export type MutableQueryResultSet = import('../flux/models/mutable-query-result-set').default;
-  export const MutableQueryResultSet: MutableQueryResultSet; 
+  export * from '../flux/models/mutable-query-result-set'
   export type QuerySubscriptionPool = typeof import('../flux/models/query-subscription-pool').default;
   export const QuerySubscriptionPool: QuerySubscriptionPool; 
   export * from '../flux/stores/observable-list-data-source';
-  export type MutableQuerySubscription = import('../flux/models/mutable-query-subscription').default;
-  export const MutableQuerySubscription: MutableQuerySubscription; 
+  export * from '../flux/models/mutable-query-subscription'
 
   // Database Objects
   export type DatabaseObjectRegistry = typeof import('../registries/database-object-registry').default;
@@ -102,8 +99,7 @@
   export const PopoverStore: PopoverStore;
   export * from '../flux/stores/account-store'
   export * from '../flux/stores/signature-store'
-  export type MessageStore = typeof import('../flux/stores/message-store').default;
-  export const MessageStore: MessageStore;
+  export * from '../flux/stores/message-store'
   export type ContactStore = typeof import('../flux/stores/contact-store').default;
   export const ContactStore: ContactStore;
   export type IdentityStore = typeof import('../flux/stores/identity-store').default;
@@ -217,8 +213,7 @@
   export const SearchableComponentMaker: SearchableComponentMaker;
 
   // Errors
-  export type APIError = import('../flux/errors').APIError;
-  export const APIError: APIError;
+  export * from '../flux/errors';
 
   // Process Internals
   export * from '../default-client-helper'

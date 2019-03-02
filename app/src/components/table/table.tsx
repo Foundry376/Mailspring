@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { pickHTMLProps } from 'pick-react-known-prop';
-import LazyRenderedList from '../lazy-rendered-list';
+import { LazyRenderedList } from '../lazy-rendered-list';
 import TableDataSource from './table-data-source';
 
 /*
@@ -60,7 +60,13 @@ const TablePropTypes = {
   tableDataSource: PropTypes.instanceOf(TableDataSource),
 };
 
-export function TableCell(props) {
+interface TableCellProps {
+  children: React.ReactChildren | React.ReactChild;
+  className?: string;
+  isHeader?: boolean;
+}
+
+export function TableCell(props: TableCellProps) {
   const { className, isHeader, children, ...extraProps } = props;
   const CellTag = isHeader ? 'th' : 'td';
   return (
@@ -75,7 +81,17 @@ TableCell.propTypes = {
   className: PropTypes.string,
 };
 
-export class TableRow extends Component {
+interface TableRowProps {
+  className: string;
+  isHeader: boolean;
+  displayNumbers: boolean;
+  tableDataSource: TableDataSource;
+  rowIdx: number;
+  extraProps: object;
+  CellRenderer: any;
+}
+
+export class TableRow extends Component<TableRowProps> {
   static propTypes = {
     className: PropTypes.string,
     isHeader: PropTypes.bool,
@@ -129,7 +145,19 @@ export class TableRow extends Component {
   }
 }
 
-export default class Table extends Component {
+interface TableProps {
+  className: string;
+  displayHeader: boolean;
+  displayNumbers: boolean;
+  rowHeight: number;
+  bodyHeight: number;
+  tableDataSource: TableDataSource;
+  extraProps: object;
+  RowRenderer: any;
+  CellRenderer: any;
+}
+
+export default class Table extends Component<TableProps> {
   static displayName = 'Table';
 
   static propTypes = {

@@ -4,9 +4,9 @@ import { Label } from '../../src/flux/models/label';
 import { Message } from '../../src/flux/models/message';
 import FocusedContentStore from '../../src/flux/stores/focused-content-store';
 import FocusedPerspectiveStore from '../../src/flux/stores/focused-perspective-store';
-import MessageStore from '../../src/flux/stores/message-store';
+import { MessageStore } from '../../src/flux/stores/message-store';
 import DatabaseStore from '../../src/flux/stores/database-store';
-import ChangeUnreadTask from '../../src/flux/tasks/change-unread-task';
+import { ChangeUnreadTask } from '../../src/flux/tasks/change-unread-task';
 import Actions from '../../src/flux/actions';
 
 const testThread = new Thread({ id: '123', accountId: TEST_ACCOUNT_ID });

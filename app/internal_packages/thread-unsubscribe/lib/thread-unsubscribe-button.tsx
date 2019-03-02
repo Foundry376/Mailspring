@@ -1,5 +1,5 @@
 import React from 'react';
-import { Message, localized, PropTypes } from 'mailspring-exports';
+import { Message, localized, PropTypes, Thread } from 'mailspring-exports';
 import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 
 function unsubscribe(message) {
@@ -15,7 +15,10 @@ function canUnsubscribe(message) {
   }
 }
 
-export default class ThreadUnsubscribeButton extends React.Component {
+export default class ThreadUnsubscribeButton extends React.Component<{
+  items: Thread[];
+  message: Message;
+}> {
   static displayName = 'ThreadUnsubscribeButton';
 
   static containerRequired = false;

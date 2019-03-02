@@ -4,7 +4,7 @@ import Actions from '../actions';
 import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
 import ContactStore from './contact-store';
-import MessageStore from './message-store';
+import { MessageStore } from './message-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import { localized } from '../../intl';
 import { Contact } from '../models/contact';

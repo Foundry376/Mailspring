@@ -4,7 +4,7 @@ import { Model } from './model';
 import ModelQuery from './query';
 
 // TODO: Make mutator methods QueryResultSet.join(), QueryResultSet.clip...
-export default class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
+export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
   _ids: string[];
   _offset: number;
   _modelsHash: { [id: string]: T };

@@ -42,12 +42,12 @@ Actions.dequeueMatchingTask({
 */
 
 class TaskQueue extends MailspringStore {
-  _queue = [];
-  _completed = [];
+  _queue: Task[] = [];
+  _completed: Task[] = [];
   _currentSequentialId = Date.now();
 
-  _waitingForLocal = [];
-  _waitingForRemote = [];
+  _waitingForLocal: Array<{ task: Task; resolve: (arg: Task) => void }> = [];
+  _waitingForRemote: Array<{ task: Task; resolve: (arg: Task) => void }> = [];
 
   constructor() {
     super();

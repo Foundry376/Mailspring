@@ -2,20 +2,17 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { PropTypes, Utils } from 'mailspring-exports';
 
-export default class EventGridBackground extends React.Component {
+interface EventGridBackgroundProps {
+  height: number;
+  numColumns: number;
+  tickGenerator: (arg: { type: string }) => Array<{ yPos }>;
+  intervalHeight: number;
+}
+
+export default class EventGridBackground extends React.Component<EventGridBackgroundProps> {
   static displayName = 'EventGridBackground';
 
-  static propTypes = {
-    height: PropTypes.number,
-    numColumns: PropTypes.number,
-    tickGenerator: PropTypes.func,
-    intervalHeight: PropTypes.number,
-  };
-
-  constructor() {
-    super();
-    this._lastHoverRect = {};
-  }
+  _lastHoverRect: { x?; y?; width?; height? } = {};
 
   componentDidMount() {
     this._renderEventGridBackground();
@@ -30,7 +27,7 @@ export default class EventGridBackground extends React.Component {
   }
 
   _renderEventGridBackground() {
-    const canvas = ReactDOM.findDOMNode(this.refs.canvas);
+    const canvas = ReactDOM.findDOMNode(this.refs.canvas) as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const height = this.props.height;
@@ -67,7 +64,7 @@ export default class EventGridBackground extends React.Component {
       return;
     }
     this._lastHoverRect = r;
-    const cursor = ReactDOM.findDOMNode(this.refs.cursor);
+    const cursor = ReactDOM.findDOMNode(this.refs.cursor) as HTMLElement;
     cursor.style.left = `${r.x}px`;
     cursor.style.top = `${r.y}px`;
     cursor.style.width = `${r.width}px`;

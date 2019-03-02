@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { findDOMNode } from 'react-dom';
 import PropTypes from 'prop-types';
 
@@ -21,16 +21,19 @@ function getRange({
   return { start, end };
 }
 
-class LazyRenderedList extends Component {
-  static propTypes = {
-    items: PropTypes.array,
-    itemHeight: PropTypes.number,
-    containerHeight: PropTypes.number,
-    BufferTag: PropTypes.string,
-    ItemRenderer: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
-    RootRenderer: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
-  };
+interface LazyRenderedListProps {
+  items: any[];
+  itemHeight: number;
+  containerHeight: number;
+  BufferTag: string | React.ComponentType<{ style: React.CSSProperties }>;
+  ItemRenderer: string | ((...args: any[]) => any);
+  RootRenderer: string | ((...args: any[]) => any);
+}
 
+export class LazyRenderedList extends React.Component<
+  LazyRenderedListProps,
+  { start: number; end: number }
+> {
   static defaultProps = {
     items: [],
     itemHeight: 30,
@@ -91,5 +94,3 @@ class LazyRenderedList extends Component {
     );
   }
 }
-
-export default LazyRenderedList;

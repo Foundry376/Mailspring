@@ -4,20 +4,20 @@ import MutableQueryResultSet from './mutable-query-result-set';
 import ModelQuery from './query';
 import { Model } from './model';
 
-export class QuerySubscription {
-  _set = null;
+export class QuerySubscription<T extends Model> {
+  _set: MutableQueryResultSet<T> = null;
   _callbacks = [];
   _lastResult = undefined; // null is a valid result!
   _updateInFlight = false;
   _queuedChangeRecords = [];
   _queryVersion = 1;
-  _query: ModelQuery;
+  _query: ModelQuery<T>;
   _options: any;
 
   constructor(
     query,
     options: {
-      initialModels?: Model[];
+      initialModels?: T[];
       emitResultSet?: boolean;
       updateOnSeparateThread?: boolean;
     } = {}
@@ -274,7 +274,7 @@ export class QuerySubscription {
     if (missingIds.length === 0) {
       return Promise.resolve([]);
     }
-    return DatabaseStore.findAll(this._query._klass, { id: missingIds });
+    return DatabaseStore.findAll<T>(this._query._klass, { id: missingIds });
   }
 
   _createResultAndTrigger() {

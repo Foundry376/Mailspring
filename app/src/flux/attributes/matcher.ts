@@ -41,7 +41,7 @@ isUnread.evaluate(threadB)
 
 Section: Database
 */
-class Matcher {
+export class Matcher {
   static get Or() {
     return OrCompositeMatcher;
   }
@@ -358,5 +358,3 @@ class SearchMatcher extends Matcher {
     }"*' LIMIT 1000)`;
   }
 }
-
-export default Matcher;

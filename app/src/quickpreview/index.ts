@@ -1,6 +1,7 @@
 import { remote } from 'electron';
 import { exec } from 'child_process';
 import path from 'path';
+import { File } from 'mailspring-exports';
 
 let quickPreviewWindow = null;
 let captureWindow = null;
@@ -96,7 +97,7 @@ function strategyForPreviewing(ext) {
   return strategy;
 }
 
-const PreviewWindowMenuTemplate = [
+const PreviewWindowMenuTemplate: Electron.MenuItemConstructorOptions[] = [
   {
     label: 'File',
     role: 'window',
@@ -178,7 +179,7 @@ const PreviewWindowMenuTemplate = [
           else return 'Ctrl+Shift+I';
         })(),
         click: function(item, focusedWindow) {
-          if (focusedWindow) focusedWindow.toggleDevTools();
+          if (focusedWindow) focusedWindow.webContents.toggleDevTools();
         },
       },
     ],
@@ -234,11 +235,19 @@ export function displayQuickPreviewWindow(filePath) {
   }
 }
 
-export async function generatePreview({ file, filePath, previewPath }) {
+export async function generatePreview({
+  file,
+  filePath,
+  previewPath,
+}: {
+  file: File;
+  filePath: string;
+  previewPath: string;
+}) {
   const strategy = strategyForPreviewing(file.displayExtension());
 
   if (strategy === 'quicklook') {
-    return await _generateQuicklookPreview({ file, filePath, previewPath });
+    return await _generateQuicklookPreview({ filePath });
   } else if (strategy) {
     return await _generateCrossplatformPreview({ file, filePath, previewPath, strategy });
   } else {
@@ -322,7 +331,7 @@ function _generateNextCrossplatformPreview() {
   captureWindow.once('page-title-updated', onRendererSuccess);
 }
 
-async function _generateQuicklookPreview({ filePath }) {
+async function _generateQuicklookPreview({ filePath }: { filePath: string }) {
   const dirQuoted = `"${path.dirname(filePath).replace(/"/g, '\\"')}"`;
   const pathQuoted = `"${filePath.replace(/"/g, '\\"')}"`;
 

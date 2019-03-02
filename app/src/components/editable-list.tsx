@@ -72,6 +72,7 @@ type EditableListState = {
   dropInsertionIndex: number;
   editingIndex: number;
   creatingItem: boolean;
+  selected?: string | object;
 };
 
 /*
@@ -121,15 +122,15 @@ class EditableList extends Component<EditableListProps, EditableListState> {
     onItemCreated: () => {},
   };
 
-  constructor(props) {
-    super(props);
-    this.listId = Utils.generateTempId();
-    this.state = {
-      dropInsertionIndex: -1,
-      editingIndex: -1,
-      creatingItem: false,
-    };
-  }
+  listId = Utils.generateTempId();
+
+  state: EditableListState = {
+    dropInsertionIndex: -1,
+    editingIndex: -1,
+    creatingItem: false,
+  };
+
+  _itemsWrapperEl: HTMLElement;
 
   // Helpers
 
@@ -162,11 +163,11 @@ class EditableList extends Component<EditableListProps, EditableListState> {
     }
   };
 
-  _clearEditingState = callback => {
+  _clearEditingState = (callback?) => {
     this._setStateAndFocus({ editingIndex: -1 }, callback);
   };
 
-  _clearCreatingState = callback => {
+  _clearCreatingState = (callback?) => {
     this._setStateAndFocus({ creatingItem: false }, callback);
   };
 
@@ -178,7 +179,7 @@ class EditableList extends Component<EditableListProps, EditableListState> {
   };
 
   _focusSelf = () => {
-    ReactDOM.findDOMNode(this).focus();
+    (ReactDOM.findDOMNode(this) as HTMLElement).focus();
   };
 
   /**
@@ -187,9 +188,9 @@ class EditableList extends Component<EditableListProps, EditableListState> {
    */
   _scrollTo = idx => {
     if (!idx) return;
-    const wrapperNode = ReactDOM.findDOMNode(this._itemsWrapperEl);
+    const wrapperNode = ReactDOM.findDOMNode(this._itemsWrapperEl) as HTMLElement;
     const nodes = wrapperNode.querySelectorAll('.list-item');
-    this._itemsWrapperEl.scrollTo(nodes[idx]);
+    this._itemsWrapperEl.scrollTo(nodes[idx] as any);
   };
 
   // Handlers
@@ -301,7 +302,7 @@ class EditableList extends Component<EditableListProps, EditableListState> {
   };
 
   _onDragOver = event => {
-    const wrapperNode = ReactDOM.findDOMNode(this._itemsWrapperEl);
+    const wrapperNode = ReactDOM.findDOMNode(this._itemsWrapperEl) as HTMLElement;
 
     // As of Chromium 53, we cannot access the contents of the drag pasteboard
     // until the user drops for security reasons. Pull the list id from the
@@ -314,10 +315,10 @@ class EditableList extends Component<EditableListProps, EditableListState> {
     if (event.currentTarget === wrapperNode && originSameList) {
       const itemNodes = wrapperNode.querySelectorAll('[data-item-idx]');
       for (let i = 0; i < itemNodes.length; i++) {
-        const itemNode = itemNodes[i];
+        const itemNode = itemNodes[i] as HTMLElement;
         const rect = itemNode.getBoundingClientRect();
         if (event.clientY > rect.top + rect.height / 2) {
-          dropInsertionIndex = itemNode.dataset.itemIdx / 1 + 1;
+          dropInsertionIndex = Number(itemNode.dataset.itemIdx) + 1;
         } else {
           break;
         }
@@ -354,7 +355,7 @@ class EditableList extends Component<EditableListProps, EditableListState> {
 
   // Renderers
 
-  _renderEditInput = (item, itemContent, idx, handlers = {}) => {
+  _renderEditInput = (item, itemContent, idx, handlers: any = {}) => {
     const onInputBlur = handlers.onInputBlur || this._onEditInputBlur;
     const onInputFocus = handlers.onInputFocus || this._onEditInputFocus;
     const onInputKeyDown = handlers.onInputKeyDown || this._onEditInputKeyDown;
@@ -393,7 +394,7 @@ class EditableList extends Component<EditableListProps, EditableListState> {
   };
 
   // handlers object for testing
-  _renderItem = (item, idx, { editingIndex } = this.state, handlers = {}) => {
+  _renderItem = (item, idx, { editingIndex } = this.state, handlers: any = {}) => {
     const onClick = handlers.onClick || this._onItemClick;
     const onEdit = handlers.onEdit || this._onItemEdit;
 

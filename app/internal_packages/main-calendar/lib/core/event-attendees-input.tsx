@@ -27,16 +27,16 @@ TokenRenderer.propTypes = {
   token: PropTypes.object,
 };
 
-export default class EventAttendeesInput extends React.Component {
-  static displayName = 'EventAttendeesInput';
+interface EventAttendeesInputProps {
+  attendees: any[];
+  change: (next: any[]) => void;
+  className: string;
+  onEmptied?: () => void;
+  onFocus?: () => void;
+}
 
-  static propTypes = {
-    attendees: PropTypes.array.isRequired,
-    change: PropTypes.func.isRequired,
-    className: PropTypes.string,
-    onEmptied: PropTypes.func,
-    onFocus: PropTypes.func,
-  };
+export default class EventAttendeesInput extends React.Component<EventAttendeesInputProps> {
+  static displayName = 'EventAttendeesInput';
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
@@ -45,7 +45,7 @@ export default class EventAttendeesInput extends React.Component {
   // Public. Can be called by any component that has a ref to this one to
   // focus the input field.
   focus = () => {
-    this.refs.textField.focus();
+    (this.refs.textField as HTMLInputElement).focus();
   };
 
   _completionNode = p => {
@@ -138,7 +138,7 @@ export default class EventAttendeesInput extends React.Component {
         click: () => this._remove([participant]),
       })
     );
-    menu.popup(remote.getCurrentWindow());
+    menu.popup();
   };
 
   _onInputTrySubmit = (inputValue, completions = [], selectedItem) => {

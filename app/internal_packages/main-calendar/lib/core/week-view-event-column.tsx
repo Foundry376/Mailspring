@@ -1,7 +1,7 @@
 import React from 'react';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import classnames from 'classnames';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { PropTypes, Utils, Event } from 'mailspring-exports';
 import CalendarEvent from './calendar-event';
 
 /*
@@ -10,20 +10,20 @@ import CalendarEvent from './calendar-event';
  * performance since we can run `shouldComponentUpdate` on a
  * column-by-column basis.
  */
-export default class WeekViewEventColumn extends React.Component {
-  static displayName = 'WeekViewEventColumn';
+interface WeekViewEventColumnProps {
+  events: Event[];
+  day: Moment;
+  dayEnd: number;
+  focusedEvent: Event;
+  eventOverlap: any;
+  onEventClick: () => void;
+  onEventDoubleClick: () => void;
+  onEventFocused: () => void;
+  selectedEvents: Event[];
+}
 
-  static propTypes = {
-    events: PropTypes.array.isRequired,
-    day: PropTypes.instanceOf(moment),
-    dayEnd: PropTypes.number,
-    focusedEvent: PropTypes.object,
-    eventOverlap: PropTypes.object,
-    onEventClick: PropTypes.func,
-    onEventDoubleClick: PropTypes.func,
-    onEventFocused: PropTypes.func,
-    selectedEvents: PropTypes.arrayOf(PropTypes.object),
-  };
+export default class WeekViewEventColumn extends React.Component<WeekViewEventColumnProps> {
+  static displayName = 'WeekViewEventColumn';
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);

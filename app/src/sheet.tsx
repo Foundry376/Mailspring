@@ -5,6 +5,7 @@ import { Utils, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import { InjectedComponentSet } from './components/injected-component-set';
 import { ResizableRegion } from './components/resizable-region';
 import { Flexbox } from './components/flexbox';
+import { SheetDeclaration } from './flux/stores/workspace-store';
 
 const FLEX = 10000;
 
@@ -12,12 +13,7 @@ interface SheetLocation {
   id: string;
 }
 interface SheetProps {
-  data: {
-    id: string;
-    columns: {
-      [mode: string]: SheetLocation[];
-    };
-  };
+  data: SheetDeclaration;
   depth: number;
   onColumnSizeChanged?: (sheet: Sheet) => void;
 }

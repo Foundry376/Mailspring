@@ -43,8 +43,8 @@ const CategoryOperators = {
 
 const CategoryObservables = {
   forAllAccounts() {
-    const folders = Rx.Observable.fromQuery<Category[]>(DatabaseStore.findAll<Folder>(Folder));
-    const labels = Rx.Observable.fromQuery<Category[]>(DatabaseStore.findAll<Label>(Label));
+    const folders = Rx.Observable.fromQuery<Folder[]>(DatabaseStore.findAll<Folder>(Folder));
+    const labels = Rx.Observable.fromQuery(DatabaseStore.findAll<Label>(Label));
     const joined = Rx.Observable.combineLatest<Category[], Category[], Category[]>(
       folders,
       labels,
@@ -150,14 +150,17 @@ Rx.Observable.fromAction = (action: any) => {
   });
 };
 
-Rx.Observable.fromQuery = <T>(query: ModelQuery<T>) => {
+Rx.Observable.fromQuery = <T extends Model>(query: ModelQuery<T>) => {
   return Rx.Observable.create(observer => {
     const unsubscribe = QuerySubscriptionPool.add(query, result => observer.onNext(result));
     return Rx.Disposable.create(unsubscribe);
   });
 };
 
-Rx.Observable.fromNamedQuerySubscription = (name: string, subscription: QuerySubscription) => {
+Rx.Observable.fromNamedQuerySubscription = <T extends Model>(
+  name: string,
+  subscription: QuerySubscription<T>
+) => {
   return Rx.Observable.create(observer => {
     const unsubscribe = QuerySubscriptionPool.addPrivateSubscription(name, subscription, result =>
       observer.onNext(result)
@@ -174,7 +177,10 @@ declare global {
       fromConfig<T>(configKey: string): Observable<T>;
       fromAction<T>(action: any): Observable<T>;
       fromQuery<T>(query: ModelQuery<T>): Observable<T>;
-      fromNamedQuerySubscription(name: string, sub: QuerySubscription): Observable<Model[]>;
+      fromNamedQuerySubscription<T extends Model>(
+        name: string,
+        sub: QuerySubscription<T>
+      ): Observable<Model[]>;
     }
   }
 }

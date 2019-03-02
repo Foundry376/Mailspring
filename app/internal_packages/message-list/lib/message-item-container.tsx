@@ -1,21 +1,34 @@
 import classNames from 'classnames';
 import React from 'react';
-import { PropTypes, Utils, DraftStore, ComponentRegistry } from 'mailspring-exports';
+import {
+  PropTypes,
+  Utils,
+  DraftStore,
+  ComponentRegistry,
+  Thread,
+  Message,
+} from 'mailspring-exports';
 
 import MessageItem from './message-item';
 
-export default class MessageItemContainer extends React.Component {
+interface MessageItemContainerProps {
+  thread: Thread;
+  message: Message;
+  messages: Message[];
+  collapsed: boolean;
+  isMostRecent: boolean;
+  isBeforeReplyArea: boolean;
+  scrollTo: () => void;
+}
+
+export default class MessageItemContainer extends React.Component<
+  MessageItemContainerProps,
+  { isSending: boolean }
+> {
   static displayName = 'MessageItemContainer';
 
-  static propTypes = {
-    thread: PropTypes.object.isRequired,
-    message: PropTypes.object.isRequired,
-    messages: PropTypes.array.isRequired,
-    collapsed: PropTypes.bool,
-    isMostRecent: PropTypes.bool,
-    isBeforeReplyArea: PropTypes.bool,
-    scrollTo: PropTypes.func,
-  };
+  _unlisten: () => void;
+  _messageComponent: MessageItem;
 
   constructor(props, context) {
     super(props, context);

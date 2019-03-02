@@ -2,7 +2,7 @@ import utf7 from 'utf7';
 import React from 'react';
 import { localized, AccountStore, PropTypes } from 'mailspring-exports';
 
-export default class SyncActivity extends React.Component {
+export class SyncActivity extends React.Component {
   static displayName = 'ExpandedSyncActivity';
 
   static propTypes = {

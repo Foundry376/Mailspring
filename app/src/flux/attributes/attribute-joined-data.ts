@@ -16,11 +16,11 @@ The query builder will automatically perform a `LEFT OUTER JOIN` with
 the secondary table to retrieve the attribute:
 
 ```javascript
-DatabaseStore.find(Message, '123').then((message) => {
+DatabaseStore.find<Message>(Message, '123').then((message) => {
   // message.body is undefined
 });
 
-DatabaseStore.find(Message, '123').include(Message.attributes.body).then((message) =>
+DatabaseStore.find<Message>(Message, '123').include(Message.attributes.body).then((message) =>
   // message.body is defined
 });
 ```
@@ -34,6 +34,8 @@ Section: Database
 */
 export default class AttributeJoinedData extends Attribute {
   static NullPlaceholder = NullPlaceholder;
+
+  modelTable: string;
 
   constructor({ modelKey, jsonKey, modelTable, queryable }) {
     super({ modelKey, jsonKey, queryable });

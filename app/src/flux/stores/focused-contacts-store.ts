@@ -6,7 +6,7 @@ import * as Utils from '../models/utils';
 import { Thread } from '../models/thread';
 import Actions from '../actions';
 import { Contact } from '../models/contact';
-import MessageStore from './message-store';
+import { MessageStore } from './message-store';
 import { AccountStore } from './account-store';
 import DatabaseStore from './database-store';
 import { SearchQueryParser } from '../../services/search/search-query-parser';

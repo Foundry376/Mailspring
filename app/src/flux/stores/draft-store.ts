@@ -5,10 +5,10 @@ import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
 import SendActionsStore from './send-actions-store';
 import FocusedContentStore from './focused-content-store';
-import SyncbackDraftTask from '../tasks/syncback-draft-task';
-import SyncbackMetadataTask from '../tasks/syncback-metadata-task';
+import { SyncbackDraftTask } from '../tasks/syncback-draft-task';
+import { SyncbackMetadataTask } from '../tasks/syncback-metadata-task';
 import { SendDraftTask } from '../tasks/send-draft-task';
-import DestroyDraftTask from '../tasks/destroy-draft-task';
+import { DestroyDraftTask } from '../tasks/destroy-draft-task';
 import { Thread } from '../models/thread';
 import { Message } from '../models/message';
 import Actions from '../actions';
@@ -215,7 +215,11 @@ class DraftStore extends MailspringStore {
     popout,
     type,
     behavior,
-  }: IThreadMessageModelOrId & { popout?: boolean; type: string; behavior: string }) => {
+  }: IThreadMessageModelOrId & {
+    popout?: boolean;
+    type: 'reply' | 'reply-all';
+    behavior: string;
+  }) => {
     return Promise.props(this._modelifyContext({ thread, threadId, message, messageId }))
       .then(({ message: m, thread: t }) => {
         return DraftFactory.createOrUpdateDraftForReply({ message: m, thread: t, type, behavior });
@@ -255,7 +259,7 @@ class DraftStore extends MailspringStore {
       }
       queries.thread = thread;
     } else if (threadId && threadId.length) {
-      queries.thread = DatabaseStore.find(Thread, threadId);
+      queries.thread = DatabaseStore.find<Thread>(Thread, threadId);
     } else {
       throw new Error('newMessageWithContext: `thread` or `threadId` is required.');
     }
@@ -268,7 +272,9 @@ class DraftStore extends MailspringStore {
       }
       queries.message = message;
     } else if (messageId && messageId.length) {
-      queries.message = DatabaseStore.find(Message, messageId).include(Message.attributes.body);
+      queries.message = DatabaseStore.find<Message>(Message, messageId).include(
+        Message.attributes.body
+      );
     } else {
       queries.message = DatabaseStore.findAll<Message>(Message, { threadId: threadId || thread.id })
         .order(Message.attributes.date.descending())

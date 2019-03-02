@@ -1,12 +1,7 @@
 import { QuerySubscription } from './query-subscription';
-import ModelQuery from './query';
 import { Model } from './model';
-import { QueryResultSet } from './query-result-set';
 
-class MutableQuerySubscription<T extends Model> extends QuerySubscription {
-  _query: ModelQuery<T>;
-  _set: QueryResultSet<T>;
-
+export class MutableQuerySubscription<T extends Model> extends QuerySubscription<T> {
   replaceQuery(nextQuery) {
     if (this._query && this._query.sql() === nextQuery.sql()) {
       return;
@@ -48,5 +43,3 @@ class MutableQuerySubscription<T extends Model> extends QuerySubscription {
     }
   };
 }
-
-export default MutableQuerySubscription;

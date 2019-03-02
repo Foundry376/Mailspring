@@ -2,7 +2,7 @@ import { shell, remote } from 'electron';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { RetinaImg } from 'mailspring-component-kit';
-import { localized, PropTypes } from 'mailspring-exports';
+import { localized, Account } from 'mailspring-exports';
 
 import OnboardingActions from '../onboarding-actions';
 import { finalizeAndValidateAccount } from '../onboarding-helpers';
@@ -12,12 +12,21 @@ import AccountProviders from '../account-providers';
 let didWarnAboutGmailIMAP = false;
 
 const CreatePageForForm = FormComponent => {
-  return class Composed extends React.Component {
+  return class Composed extends React.Component<
+    { account: Account },
+    {
+      account: Account;
+      submitting?: boolean;
+      populated?: boolean;
+      errorMessage?: string;
+      errorStatusCode: number;
+      errorFieldNames: string[];
+      errorLog: string;
+    }
+  > {
     static displayName = FormComponent.displayName;
 
-    static propTypes = {
-      account: PropTypes.object,
-    };
+    _formEl: HTMLFormElement;
 
     constructor(props) {
       super(props);
@@ -46,7 +55,9 @@ const CreatePageForForm = FormComponent => {
         return;
       }
 
-      const inputs = Array.from(ReactDOM.findDOMNode(this).querySelectorAll('input'));
+      const inputs = Array.from(
+        (ReactDOM.findDOMNode(this) as HTMLElement).querySelectorAll('input')
+      );
       if (inputs.length === 0) {
         return;
       }
@@ -65,7 +76,7 @@ const CreatePageForForm = FormComponent => {
       return errorFieldNames.length === 0 && populated;
     }
 
-    onFieldChange = (event, { afterSetState } = {}) => {
+    onFieldChange = (event, { afterSetState }: { afterSetState?: () => void } = {}) => {
       const next = this.state.account.clone();
 
       let val = event.target.value;
@@ -121,7 +132,7 @@ const CreatePageForForm = FormComponent => {
       OnboardingActions.moveToPreviousPage();
     };
 
-    onConnect = updatedAccount => {
+    onConnect = (updatedAccount?: Account) => {
       const account = updatedAccount || this.state.account;
       const providerConfig = AccountProviders.find(({ provider }) => provider === account.provider);
 

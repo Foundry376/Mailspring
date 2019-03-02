@@ -3,9 +3,17 @@ import PropTypes from 'prop-types';
 import DraftStore from '../flux/stores/draft-store';
 import Actions from '../flux/actions';
 import * as Utils from '../flux/models/utils';
+import { Message, DraftEditingSession } from 'mailspring-exports';
 
-function InflatesDraftClientId(ComposedComponent) {
-  return class extends React.Component {
+function InflatesDraftClientId(
+  ComposedComponent
+): React.ComponentType<
+  { headerMessageId: string; onDraftReady: () => void } & React.HTMLProps<HTMLElement>
+> {
+  return class extends React.Component<
+    { headerMessageId: string; onDraftReady: () => void } & React.HTMLProps<HTMLElement>,
+    { draft: Message; session: DraftEditingSession }
+  > {
     static displayName = ComposedComponent.displayName;
 
     static propTypes = {
@@ -20,6 +28,7 @@ function InflatesDraftClientId(ComposedComponent) {
     static containerRequired = false;
 
     _mounted: boolean = false;
+    _sessionUnlisten?: () => void;
 
     constructor(props) {
       super(props);
@@ -95,7 +104,7 @@ function InflatesDraftClientId(ComposedComponent) {
     // once the composer is rendered and focused.
     focus() {
       return Utils.waitFor(() => this.refs.composed)
-        .then(() => this.refs.composed.focus())
+        .then(() => (this.refs.composed as any).focus())
         .catch(() => {});
     }
 

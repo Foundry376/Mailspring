@@ -2,6 +2,7 @@ import moment from 'moment';
 import React from 'react';
 import {
   PropTypes,
+  Event,
   Actions,
   DatabaseStore,
   DateUtils,
@@ -16,7 +17,24 @@ import {
 } from 'mailspring-component-kit';
 import EventAttendeesInput from './event-attendees-input';
 
-export default class CalendarEventPopover extends React.Component {
+interface CalendarEventPopoverProps {
+  event: Event;
+}
+
+interface CalendarEventPopoverState {
+  description: string;
+  start: number;
+  end: number;
+  location: string;
+  attendees: any[];
+  editing: boolean;
+  title: string;
+}
+
+export default class CalendarEventPopover extends React.Component<
+  CalendarEventPopoverProps,
+  CalendarEventPopoverState
+> {
   static propTypes = {
     event: PropTypes.object.isRequired,
   };
@@ -25,10 +43,15 @@ export default class CalendarEventPopover extends React.Component {
     super(props);
     const { description, start, end, location, attendees } = this.props.event;
 
-    this.state = { description, start, end, location };
-    this.state.title = this.props.event.displayTitle;
-    this.state.editing = false;
-    this.state.attendees = attendees || [];
+    this.state = {
+      description,
+      start,
+      end,
+      location,
+      title: this.props.event.displayTitle,
+      editing: false,
+      attendees: attendees || [],
+    };
   }
 
   componentWillReceiveProps = nextProps => {
@@ -61,21 +84,17 @@ export default class CalendarEventPopover extends React.Component {
     event.when.start_time = this.state.start;
     event.when.end_time = this.state.end;
 
-    DatabaseStore.inTransaction(t => {
-      this.setState({ editing: false }); // TODO: where's the best place to put this?
-      return t.persistModel(event);
-    }).then(() => {
-      const task = new SyncbackEventTask(event.id);
-      Actions.queueTask(task);
-    });
+    this.setState({ editing: false }); // TODO: where's the best place to put this?
+    const task = new SyncbackEventTask(event.id);
+    Actions.queueTask(task);
   };
 
   extractNotesFromDescription(node) {
     const els = node.querySelectorAll('meta[itemprop=description]');
-    let notes = null;
+    let notes: string = null;
     if (els.length) {
       notes = Array.from(els)
-        .map(el => el.content)
+        .map((el: any) => el.content)
         .join('\n');
     } else {
       notes = node.innerText;
@@ -211,7 +230,7 @@ export default class CalendarEventPopover extends React.Component {
               this.updateField('location', e.target.value);
             }}
           />
-          <div className="section">{this.renderEditableTime(start, end)}</div>
+          <div className="section">{this.renderEditableTime()}</div>
           <div className="section">
             <div className="label">Invitees: </div>
             <EventAttendeesInput

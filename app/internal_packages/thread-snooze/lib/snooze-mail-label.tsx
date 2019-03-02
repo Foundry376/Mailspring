@@ -5,7 +5,7 @@ import { RetinaImg, MailLabel } from 'mailspring-component-kit';
 import { PLUGIN_ID } from './snooze-constants';
 import { snoozedUntilMessage } from './snooze-utils';
 
-class SnoozeMailLabel extends Component {
+export class SnoozeMailLabel extends Component {
   static displayName = 'SnoozeMailLabel';
 
   static propTypes = {
@@ -50,5 +50,3 @@ class SnoozeMailLabel extends Component {
     return <MailLabel label={label} key={`snooze-message-${thread.id}`} />;
   }
 }
-
-export default SnoozeMailLabel;

@@ -1,10 +1,10 @@
 /* eslint react/jsx-no-bind: 0 */
 import _ from 'underscore';
-import moment from 'moment-timezone';
+import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, Utils } from 'mailspring-exports';
+import { PropTypes, Utils, Event } from 'mailspring-exports';
 import { ScrollRegion } from 'mailspring-component-kit';
 import TopBanner from './top-banner';
 import HeaderControls from './header-controls';
@@ -15,6 +15,7 @@ import WeekViewEventColumn from './week-view-event-column';
 import WeekViewAllDayEvents from './week-view-all-day-events';
 import CalendarEventContainer from './calendar-event-container';
 import CurrentTimeIndicator from './current-time-indicator';
+import { Disposable } from 'rx-core';
 
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
@@ -25,27 +26,30 @@ const INTERVAL_TIME = moment.duration(30, 'minutes').as('seconds');
 // This pre-fetches from Utils to prevent constant disc access
 const overlapsBounds = Utils.overlapsBounds;
 
-export default class WeekView extends React.Component {
-  static displayName = 'WeekView';
+interface WeekViewProps {
+  dataSource: CalendarDataSource;
+  currentMoment: Moment;
+  focusedEvent: Event;
+  bannerComponents: React.ReactChildren;
+  headerComponents: React.ReactChildren;
+  footerComponents: React.ReactChildren;
+  disabledCalendars: string[];
+  changeCurrentView: () => void;
+  changeCurrentMoment: (moment: Moment) => void;
+  onCalendarMouseUp: () => void;
+  onCalendarMouseDown: () => void;
+  onCalendarMouseMove: () => void;
+  onEventClick: () => void;
+  onEventDoubleClick: () => void;
+  onEventFocused: () => void;
+  selectedEvents: Event[];
+}
 
-  static propTypes = {
-    dataSource: PropTypes.instanceOf(CalendarDataSource).isRequired,
-    currentMoment: PropTypes.instanceOf(moment).isRequired,
-    focusedEvent: PropTypes.object,
-    bannerComponents: PropTypes.node,
-    headerComponents: PropTypes.node,
-    footerComponents: PropTypes.node,
-    disabledCalendars: PropTypes.array,
-    changeCurrentView: PropTypes.func,
-    changeCurrentMoment: PropTypes.func,
-    onCalendarMouseUp: PropTypes.func,
-    onCalendarMouseDown: PropTypes.func,
-    onCalendarMouseMove: PropTypes.func,
-    onEventClick: PropTypes.func,
-    onEventDoubleClick: PropTypes.func,
-    onEventFocused: PropTypes.func,
-    selectedEvents: PropTypes.arrayOf(PropTypes.object),
-  };
+export default class WeekView extends React.Component<
+  WeekViewProps,
+  { intervalHeight: number; events: Event[] }
+> {
+  static displayName = 'WeekView';
 
   static defaultProps = {
     changeCurrentView: () => {},
@@ -56,6 +60,8 @@ export default class WeekView extends React.Component {
 
   _waitingForShift = 0;
   _mounted: boolean = false;
+  _sub?: Disposable;
+  _lastWrapHeight: number;
 
   constructor(props) {
     super(props);
@@ -70,14 +76,14 @@ export default class WeekView extends React.Component {
     this._centerScrollRegion();
     this._setIntervalHeight();
     window.addEventListener('resize', this._setIntervalHeight, true);
-    const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap);
+    const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap) as HTMLElement;
     wrap.scrollLeft += wrap.clientWidth;
     this.updateSubscription();
   }
 
   componentDidUpdate(prevProps) {
     this._setIntervalHeight();
-    const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap);
+    const wrap = ReactDOM.findDOMNode(this.refs.calendarAreaWrap) as HTMLElement;
     wrap.scrollLeft += this._waitingForShift;
     this._waitingForShift = 0;
     if (
@@ -314,7 +320,7 @@ export default class WeekView extends React.Component {
   }
 
   _centerScrollRegion() {
-    const wrap = ReactDOM.findDOMNode(this.refs.eventGridWrap);
+    const wrap = ReactDOM.findDOMNode(this.refs.eventGridWrap) as HTMLElement;
     wrap.scrollTop = this._gridHeight() / 2 - wrap.getBoundingClientRect().height / 2;
   }
 
@@ -354,21 +360,24 @@ export default class WeekView extends React.Component {
     if (!this._mounted) {
       return;
     } // Resize unmounting is delayed in tests
-    const wrap = ReactDOM.findDOMNode(this.refs.eventGridWrap);
+    const wrap = ReactDOM.findDOMNode(this.refs.eventGridWrap) as HTMLElement;
     const wrapHeight = wrap.getBoundingClientRect().height;
     if (this._lastWrapHeight === wrapHeight) {
       return;
     }
     this._lastWrapHeight = wrapHeight;
     const numIntervals = Math.floor(DAY_DUR / INTERVAL_TIME);
-    ReactDOM.findDOMNode(this.refs.eventGridLegendWrap).style.height = `${wrapHeight}px`;
+    (ReactDOM.findDOMNode(
+      this.refs.eventGridLegendWrap
+    ) as HTMLElement).style.height = `${wrapHeight}px`;
     this.setState({
       intervalHeight: Math.max(wrapHeight / numIntervals, MIN_INTERVAL_HEIGHT),
     });
   };
 
   _onScrollGrid = event => {
-    ReactDOM.findDOMNode(this.refs.eventGridLegendWrap).scrollTop = event.target.scrollTop;
+    (ReactDOM.findDOMNode(this.refs.eventGridLegendWrap) as HTMLElement).scrollTop =
+      event.target.scrollTop;
   };
 
   _onScrollCalendarArea = event => {

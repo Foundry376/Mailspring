@@ -1,7 +1,7 @@
 import React from 'react';
 import { Disposable } from 'rx-core';
 
-export default class ConfigPropContainer extends React.Component<
+export class ConfigPropContainer extends React.Component<
   {
     children: React.ReactElement<any>;
   },

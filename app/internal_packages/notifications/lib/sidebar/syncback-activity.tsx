@@ -1,7 +1,7 @@
 import React from 'react';
 import { localized, Utils, PropTypes } from 'mailspring-exports';
 
-export default class SyncbackActivity extends React.Component {
+export class SyncbackActivity extends React.Component<{ tasks: any[] }> {
   static propTypes = {
     tasks: PropTypes.array,
   };

@@ -12,49 +12,41 @@ import {
 import { PreferencesUIStore } from 'mailspring-exports';
 import PreferencesTabsBar from './preferences-tabs-bar';
 
-class PreferencesRoot extends React.Component {
+const stopPropagation = e => {
+  e.stopPropagation();
+};
+
+class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection: any }> {
   static displayName = 'PreferencesRoot';
 
-  static propTypes = {
-    tab: PropTypes.object,
-    tabs: PropTypes.array,
-    selection: PropTypes.object,
+  // This prevents some basic commands from propagating to the threads list and
+  // producing unexpected results
+
+  // TODO This is a partial/temporary solution and should go away when we do the
+  // Keymap/Commands/Menu refactor
+  _localHandlers = {
+    'core:next-item': stopPropagation,
+    'core:previous-item': stopPropagation,
+    'core:select-up': stopPropagation,
+    'core:select-down': stopPropagation,
+    'core:select-item': stopPropagation,
+    'core:messages-page-up': stopPropagation,
+    'core:messages-page-down': stopPropagation,
+    'core:list-page-up': stopPropagation,
+    'core:list-page-down': stopPropagation,
+    'core:remove-from-view': stopPropagation,
+    'core:gmail-remove-from-view': stopPropagation,
+    'core:remove-and-previous': stopPropagation,
+    'core:remove-and-next': stopPropagation,
+    'core:archive-item': stopPropagation,
+    'core:delete-item': stopPropagation,
+    'core:print-thread': stopPropagation,
   };
 
-  constructor(props) {
-    super(props);
-
-    const stopPropagation = e => {
-      e.stopPropagation();
-    };
-
-    // This prevents some basic commands from propagating to the threads list and
-    // producing unexpected results
-
-    // TODO This is a partial/temporary solution and should go away when we do the
-    // Keymap/Commands/Menu refactor
-    this._localHandlers = {
-      'core:next-item': stopPropagation,
-      'core:previous-item': stopPropagation,
-      'core:select-up': stopPropagation,
-      'core:select-down': stopPropagation,
-      'core:select-item': stopPropagation,
-      'core:messages-page-up': stopPropagation,
-      'core:messages-page-down': stopPropagation,
-      'core:list-page-up': stopPropagation,
-      'core:list-page-down': stopPropagation,
-      'core:remove-from-view': stopPropagation,
-      'core:gmail-remove-from-view': stopPropagation,
-      'core:remove-and-previous': stopPropagation,
-      'core:remove-and-next': stopPropagation,
-      'core:archive-item': stopPropagation,
-      'core:delete-item': stopPropagation,
-      'core:print-thread': stopPropagation,
-    };
-  }
+  _contentComponent: ConfigPropContainer;
 
   componentDidMount() {
-    ReactDOM.findDOMNode(this).focus();
+    (ReactDOM.findDOMNode(this) as HTMLElement).focus();
     this._focusContent();
   }
 
@@ -69,7 +61,8 @@ class PreferencesRoot extends React.Component {
   // Focus the first thing with a tabindex when we update.
   // inside the content area. This makes it way easier to interact with prefs.
   _focusContent() {
-    const node = ReactDOM.findDOMNode(this._contentComponent).querySelector('[tabindex]');
+    const contentEl = ReactDOM.findDOMNode(this._contentComponent) as HTMLElement;
+    const node = contentEl.querySelector('[tabindex]') as HTMLElement;
     if (node) {
       node.focus();
     }
@@ -93,7 +86,7 @@ class PreferencesRoot extends React.Component {
                 this._contentComponent = el;
               }}
             >
-              {tab ? <TabComponent accountId={selection.accountId} /> : false}
+              {tab ? <TabComponent accountId={selection.accountId} /> : null}
             </ConfigPropContainer>
           </ScrollRegion>
         </Flexbox>

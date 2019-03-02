@@ -29,12 +29,12 @@ export const KeyCommandsRegion: typeof import('../components/key-commands-region
 export const BindGlobalCommands: typeof import('../components/bind-global-commands').default;
 export const TabGroupRegion: typeof import('../components/tab-group-region').default;
 export const InjectedComponent: typeof import('../components/injected-component').default;
-export const TokenizingTextField: typeof import('../components/tokenizing-text-field').default;
+export * from '../components/tokenizing-text-field';
 export const ParticipantsTextField: typeof import('../components/participants-text-field').default;
 export const MultiselectToolbar: typeof import('../components/multiselect-toolbar').default;
 export * from '../components/injected-component-set';
 export const MetadataComposerToggleButton: typeof import('../components/metadata-composer-toggle-button').default;
-export const ConfigPropContainer: typeof import('../components/config-prop-container').default;
+export * from '../components/config-prop-container';
 export const DisclosureTriangle: typeof import('../components/disclosure-triangle').default;
 export const EditableList: typeof import('../components/editable-list').default;
 export const DropdownMenu: typeof import('../components/dropdown-menu').default;
@@ -51,7 +51,7 @@ export const SelectableTableRow: typeof import('../components/selectable-table')
 export const SelectableTableCell: typeof import('../components/selectable-table').SelectableTableCell;
 export const EditableTable: typeof import('../components/editable-table').default;
 export const EditableTableCell: typeof import('../components/editable-table').EditableTableCell;
-export const LazyRenderedList: typeof import('../components/lazy-rendered-list').default;
+export * from '../components/lazy-rendered-list';
 export const AttachmentItem: typeof import('../components/attachment-items').AttachmentItem;
 export const ImageAttachmentItem: typeof import('../components/attachment-items').ImageAttachmentItem;
 export const CodeSnippet: typeof import('../components/code-snippet').default;

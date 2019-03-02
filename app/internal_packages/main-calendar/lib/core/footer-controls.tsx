@@ -1,12 +1,10 @@
 import React from 'react';
 import { PropTypes, Utils } from 'mailspring-exports';
 
-export default class FooterControls extends React.Component {
+export default class FooterControls extends React.Component<{
+  footerComponents: React.ReactChildren;
+}> {
   static displayName = 'FooterControls';
-
-  static propTypes = {
-    footerComponents: PropTypes.node,
-  };
 
   static defaultProps = {
     footerComponents: false,

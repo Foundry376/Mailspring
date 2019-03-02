@@ -8,6 +8,7 @@ import {
   MessageBodyProcessor,
   QuotedHTMLTransformer,
   AttachmentStore,
+  Message,
 } from 'mailspring-exports';
 import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 
@@ -16,7 +17,7 @@ import EmailFrame from './email-frame';
 const TransparentPixel =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNikAQAACIAHF/uBd8AAAAASUVORK5CYII=';
 
-class ConditionalQuotedTextControl extends React.Component {
+class ConditionalQuotedTextControl extends React.Component<{ body: string; onClick?: () => void }> {
   static displayName = 'ConditionalQuotedTextControl';
 
   static propTypes = {
@@ -40,16 +41,32 @@ class ConditionalQuotedTextControl extends React.Component {
   }
 }
 
-export default class MessageItemBody extends React.Component {
+interface MessageItemBodyProps {
+  message: Message;
+  downloads: any;
+}
+
+interface MessageItemBodyState {
+  processedBody: string;
+  clipped: boolean;
+  showQuotedText: boolean;
+}
+
+export default class MessageItemBody extends React.Component<
+  MessageItemBodyProps,
+  MessageItemBodyState
+> {
   static displayName = 'MessageItemBody';
   static propTypes = {
     message: PropTypes.object.isRequired,
     downloads: PropTypes.object.isRequired,
   };
 
+  _mounted = false;
+  _unsub: () => void;
+
   constructor(props, context) {
     super(props, context);
-    this._mounted = false;
 
     const cached = MessageBodyProcessor.retrieveCached(props.message);
 

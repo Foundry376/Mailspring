@@ -1,6 +1,6 @@
 import { AccountStore, CategoryStore, Thread, Actions, Folder } from 'mailspring-exports';
 import * as SnoozeUtils from '../lib/snooze-utils';
-import SnoozeStore from '../lib/snooze-store';
+import { SnoozeStore } from '../lib/snooze-store';
 
 xdescribe('SnoozeStore', function snoozeStore() {
   beforeEach(() => {
