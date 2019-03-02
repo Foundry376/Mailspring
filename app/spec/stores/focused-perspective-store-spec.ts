@@ -7,7 +7,7 @@ import { Folder } from '../../src/flux/models/folder';
 import { MailboxPerspective } from '../../src/mailbox-perspective';
 
 import CategoryStore from '../../src/flux/stores/category-store';
-import AccountStore from '../../src/flux/stores/account-store';
+import { AccountStore } from '../../src/flux/stores/account-store';
 import FocusedPerspectiveStore from '../../src/flux/stores/focused-perspective-store';
 
 describe('FocusedPerspectiveStore', function() {
@@ -31,7 +31,7 @@ describe('FocusedPerspectiveStore', function() {
     });
     this.userPerspective = MailboxPerspective.forCategory(this.userCategory);
 
-    spyOn(CategoryStore, 'getCategoryByRole').andReturn(this.inboxCategory);
+    spyOn(CategoryStore, 'getCategoryByRole').and.returnValue(this.inboxCategory);
     spyOn(CategoryStore, 'byId').and.callFake((aid, cid) => {
       if (aid === 1 && cid === 'A') {
         return { id: 'A' };
@@ -49,9 +49,9 @@ describe('FocusedPerspectiveStore', function() {
   describe('_initializeFromSavedState', function() {
     beforeEach(function() {
       this.default = MailboxPerspective.forCategory(this.inboxCategory);
-      spyOn(AccountStore, 'accountIds').andReturn([1, 2]);
+      spyOn(AccountStore, 'accountIds').and.returnValue([1, 2]);
       spyOn(MailboxPerspective, 'fromJSON').and.callFake(json => json);
-      spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(this.default);
+      spyOn(FocusedPerspectiveStore, '_defaultPerspective').and.returnValue(this.default);
       spyOn(FocusedPerspectiveStore, '_setPerspective');
     });
 
@@ -173,7 +173,7 @@ describe('FocusedPerspectiveStore', function() {
     it('should set the current category to default when the current category no longer exists in the CategoryStore', function() {
       const defaultPerspective = this.inboxPerspective;
       FocusedPerspectiveStore._initialized = true;
-      spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(defaultPerspective);
+      spyOn(FocusedPerspectiveStore, '_defaultPerspective').and.returnValue(defaultPerspective);
 
       const otherAccountInbox = this.inboxCategory.clone();
       otherAccountInbox.id = 'other-id';

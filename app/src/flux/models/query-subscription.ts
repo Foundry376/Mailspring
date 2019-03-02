@@ -1,10 +1,10 @@
 import DatabaseStore from '../stores/database-store';
-import QueryRange from './query-range';
+import { QueryRange } from './query-range';
 import MutableQueryResultSet from './mutable-query-result-set';
 import ModelQuery from './query';
 import { Model } from './model';
 
-export default class QuerySubscription {
+export class QuerySubscription {
   _set = null;
   _callbacks = [];
   _lastResult = undefined; // null is a valid result!

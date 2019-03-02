@@ -1,6 +1,6 @@
 import { shell, clipboard } from 'electron';
 import React from 'react';
-import { localized, localizedReactFragment, PropTypes } from 'mailspring-exports';
+import { localized, localizedReactFragment, PropTypes, Account } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import http from 'http';
 import url from 'url';
@@ -8,7 +8,27 @@ import url from 'url';
 import FormErrorMessage from './form-error-message';
 import { LOCAL_SERVER_PORT } from './onboarding-helpers';
 
-export default class OAuthSignInPage extends React.Component {
+interface OAuthSignInPageProps {
+  providerAuthPageUrl: string;
+  buildAccountFromAuthResponse: (rep: any) => Account;
+  onSuccess: (account: Account) => void;
+  onTryAgain: () => void;
+  iconName: string;
+  sessionKey: string;
+  serviceName: string;
+}
+
+interface OAuthSignInPageState {
+  authStage: string;
+  showAlternative: boolean;
+  errorMessage?: string;
+  pressed?: boolean;
+}
+
+export default class OAuthSignInPage extends React.Component<
+  OAuthSignInPageProps,
+  OAuthSignInPageState
+> {
   static displayName = 'OAuthSignInPage';
 
   static propTypes = {
@@ -26,16 +46,15 @@ export default class OAuthSignInPage extends React.Component {
     serviceName: PropTypes.string,
   };
 
+  _server?: http.Server;
+  _startTimer: NodeJS.Timeout;
+  _warnTimer: NodeJS.Timeout;
   _mounted: boolean = false;
 
-  constructor() {
-    super();
-    this._mounted = false;
-    this.state = {
-      authStage: 'initial',
-      showAlternative: false,
-    };
-  }
+  state: OAuthSignInPageState = {
+    authStage: 'initial',
+    showAlternative: false,
+  };
 
   componentDidMount() {
     // Show the "Sign in to ..." prompt for a moment before bouncing
@@ -53,7 +72,7 @@ export default class OAuthSignInPage extends React.Component {
     // launch a web server
     this._server = http.createServer((request, response) => {
       if (!this._mounted) return;
-      const { query } = url.parse(request.url, { querystring: true });
+      const { query } = url.parse(request.url, true);
       if (query.code) {
         this._onReceivedCode(query.code);
         response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });

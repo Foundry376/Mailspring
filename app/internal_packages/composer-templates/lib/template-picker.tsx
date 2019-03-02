@@ -5,20 +5,19 @@ import { localized, PropTypes, Actions } from 'mailspring-exports';
 import { Menu, RetinaImg } from 'mailspring-component-kit';
 import TemplateStore from './template-store';
 
-class TemplatePopover extends React.Component {
+class TemplatePopover extends React.Component<{ headerMessageId: string }> {
   static displayName = 'TemplatePopover';
 
   static propTypes = {
     headerMessageId: PropTypes.string,
   };
 
-  constructor() {
-    super();
-    this.state = {
-      searchValue: '',
-      templates: TemplateStore.items(),
-    };
-  }
+  unsubscribe?: () => void;
+
+  state = {
+    searchValue: '',
+    templates: TemplateStore.items(),
+  };
 
   componentDidMount() {
     this.unsubscribe = TemplateStore.listen(() => {
@@ -64,11 +63,6 @@ class TemplatePopover extends React.Component {
     Actions.createTemplate({ headerMessageId: this.props.headerMessageId });
   };
 
-  _onClickButton = () => {
-    const buttonRect = ReactDOM.findDOMNode(this).getBoundingClientRect();
-    Actions.openPopover(this._renderPopover(), { originRect: buttonRect, direction: 'up' });
-  };
-
   render() {
     const filteredTemplates = this._filteredTemplates();
 
@@ -107,7 +101,7 @@ class TemplatePopover extends React.Component {
   }
 }
 
-class TemplatePicker extends React.Component {
+class TemplatePicker extends React.Component<{ headerMessageId: string }> {
   static displayName = 'TemplatePicker';
 
   static propTypes = {
@@ -115,7 +109,7 @@ class TemplatePicker extends React.Component {
   };
 
   _onClickButton = () => {
-    const buttonRect = ReactDOM.findDOMNode(this).getBoundingClientRect();
+    const buttonRect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
     Actions.openPopover(<TemplatePopover headerMessageId={this.props.headerMessageId} />, {
       originRect: buttonRect,
       direction: 'up',

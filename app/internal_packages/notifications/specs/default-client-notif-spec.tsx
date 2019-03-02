@@ -28,7 +28,7 @@ describe('DefaultClientNotif', function DefaultClientNotifTests() {
     });
     describe('when the user has already responded', () => {
       beforeEach(() => {
-        spyOn(AppEnv.config, 'get').andReturn(true);
+        spyOn(AppEnv.config, 'get').and.returnValue(true);
         this.notif = mount(<DefaultClientNotification />);
         expect(AppEnv.config.get).toHaveBeenCalledWith(SETTINGS_KEY);
       });
@@ -39,7 +39,7 @@ describe('DefaultClientNotif', function DefaultClientNotifTests() {
 
     describe('when the user has yet to respond', () => {
       beforeEach(() => {
-        spyOn(AppEnv.config, 'get').andReturn(false);
+        spyOn(AppEnv.config, 'get').and.returnValue(false);
         this.notif = mount(<DefaultClientNotification />);
         expect(AppEnv.config.get).toHaveBeenCalledWith(SETTINGS_KEY);
       });

@@ -542,8 +542,8 @@ describe('DraftFactory', function draftFactory() {
             add: jasmine.createSpy('add'),
           },
         };
-        spyOn(DatabaseStore, 'run').andReturn(Promise.resolve([fakeMessage1, this.existingDraft]));
-        spyOn(DraftStore, 'sessionForClientId').andReturn(Promise.resolve(this.sessionStub));
+        spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve([fakeMessage1, this.existingDraft]));
+        spyOn(DraftStore, 'sessionForClientId').and.returnValue(Promise.resolve(this.sessionStub));
       });
 
       describe('when reply-all is passed', () => {

@@ -1,10 +1,18 @@
 import React from 'React';
-import { Utils, AccountStore } from 'mailspring-exports';;
-import { OutlineView, ScrollRegion, Flexbox } from 'mailspring-component-kit';;
+import { Utils, Account, AccountStore } from 'mailspring-exports';
+import { OutlineView, ScrollRegion, Flexbox } from 'mailspring-component-kit';
 import AccountSwitcher from './account-switcher';
 import SidebarStore from '../sidebar-store';
+import { ISidebarSection, ISidebarItem } from '../types';
 
-export default class AccountSidebar extends React.Component {
+interface AccountSidebarState {
+  accounts: Account[];
+  sidebarAccountIds: string[];
+  userSections: ISidebarSection[];
+  standardSection: ISidebarSection;
+}
+
+export default class AccountSidebar extends React.Component<{}, AccountSidebarState> {
   static displayName = 'AccountSidebar';
 
   static containerRequired = false;
@@ -13,6 +21,8 @@ export default class AccountSidebar extends React.Component {
     maxWidth: 250,
   };
 
+  unsubscribers = [];
+
   constructor(props) {
     super(props);
 
@@ -20,7 +30,6 @@ export default class AccountSidebar extends React.Component {
   }
 
   componentDidMount() {
-    this.unsubscribers = [];
     this.unsubscribers.push(SidebarStore.listen(this._onStoreChange));
     return this.unsubscribers.push(AccountStore.listen(this._onStoreChange));
   }

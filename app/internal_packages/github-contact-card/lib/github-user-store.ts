@@ -7,13 +7,13 @@ import { FocusedContactsStore } from 'mailspring-exports';
 // component. If the user could interact with the GithubSidebar, this store
 // would also listen for `Actions` emitted by our React components.
 class GithubUserStore extends MailspringStore {
+  _profile = null;
+  _cache = {};
+  _loading = false;
+  _error = null;
+
   constructor() {
     super();
-
-    this._profile = null;
-    this._cache = {};
-    this._loading = false;
-    this._error = null;
 
     // Register a callback with the FocusedContactsStore. This will tell us
     // whenever the selected person has changed so we can refresh our data.
@@ -69,7 +69,7 @@ class GithubUserStore extends MailspringStore {
 
       // Sometimes we get rate limit errors, etc., so we need to check and make
       // sure we've gotten items before pulling the first one.
-      let profile = false;
+      let profile: any = false;
       if (data && data.items && data.items[0]) {
         profile = data.items[0];
       }

@@ -4,10 +4,15 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import { WorkspaceStore } from 'mailspring-exports';;
+import { WorkspaceStore } from 'mailspring-exports';
+import { MultiselectListProps } from './multiselect-list';
 
 export default class MultiselectListInteractionHandler {
-  constructor(props) {
+  props: MultiselectListProps;
+  onFocusItem: (item: any) => void;
+  onSetCursorPosition: (item: any) => void;
+
+  constructor(props: MultiselectListProps) {
     this.props = props;
     this.onFocusItem = props.onFocusItem;
     this.onSetCursorPosition = props.onSetCursorPosition;

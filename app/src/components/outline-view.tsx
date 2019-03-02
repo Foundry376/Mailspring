@@ -5,17 +5,33 @@ import RetinaImg from './retina-img';
 import OutlineViewItem from './outline-view-item';
 import PropTypes from 'prop-types';
 
-type OutlineViewProps = {
-  title?: string,
-  iconName?: string,
-  items?: any[],
-  collapsed?: boolean,
-  onItemCreated?: (...args: any[]) => any,
-  onCollapseToggled?: (...args: any[]) => any
-};
-type OutlineViewState = {
-  showCreateInput: boolean
-};
+export interface IOutlineViewItem {
+  id?: string;
+  title?: string;
+  iconName?: string;
+  items?: IOutlineViewItem[];
+  collapsed?: boolean;
+  className?: string;
+  count?: number;
+  counterStyle?: string;
+  inputPlaceholder?: string;
+  editing?: boolean;
+  selected?: boolean;
+  onItemCreated?: (...args: any[]) => any;
+  onCollapseToggled?: (...args: any[]) => any;
+  shouldAcceptDrop?: (...args: any[]) => any;
+  onInputCleared?: (...args: any[]) => any;
+  onDrop?: (...args: any[]) => any;
+  onSelect?: (...args: any[]) => any;
+  onDelete?: (...args: any[]) => any;
+  onEdited?: (...args: any[]) => any;
+}
+
+interface OutlineViewProps extends IOutlineViewItem {}
+
+interface OutlineViewState {
+  showCreateInput: boolean;
+}
 
 /*
  * Renders a section that contains a list of {@link OutlineViewItem}s. These items can
@@ -73,6 +89,9 @@ class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
   state = {
     showCreateInput: false,
   };
+
+  _clickingCreateButton: boolean;
+  _expandTimeout?: NodeJS.Timer;
 
   shouldComponentUpdate(nextProps, nextState) {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);

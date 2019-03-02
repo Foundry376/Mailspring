@@ -19,7 +19,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
     const inbox = new Folder({ id: 'l1', role: 'inbox', path: 'Inbox' });
     const archive = new Folder({ id: 'l2', role: 'archive', path: 'Archive' });
 
-    spyOn(CategoryStore, 'getCategoryByRole').andReturn(inbox);
+    spyOn(CategoryStore, 'getCategoryByRole').and.returnValue(inbox);
 
     const account = AccountStore.accounts()[0];
 
@@ -170,7 +170,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
     });
 
     this.notification = jasmine.createSpyObj('notification', ['close']);
-    spyOn(NativeNotifications, 'displayNotification').andReturn(this.notification);
+    spyOn(NativeNotifications, 'displayNotification').and.returnValue(this.notification);
 
     spyOn(Promise, 'props').and.callFake(dict => {
       const dictOut = {};

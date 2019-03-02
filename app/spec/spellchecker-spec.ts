@@ -16,7 +16,7 @@ describe('Spellchecker', function spellcheckerTests() {
       cb(null, this.customDict);
     });
     // Apparently handleElectronSpellCheck returns !misspelled
-    spyOn(Spellchecker.handler, 'handleElectronSpellCheck').andReturn(false);
+    spyOn(Spellchecker.handler, 'handleElectronSpellCheck').and.returnValue(false);
     Spellchecker.isMisspelledCache = {};
   });
 

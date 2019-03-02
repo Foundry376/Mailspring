@@ -1,5 +1,5 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
-import React, { Component } from 'react';
+import React, { Component, CSSProperties } from 'react';
 import PropTypes from 'prop-types';
 import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
 import {
@@ -8,20 +8,38 @@ import {
   Actions,
   TaskQueue,
   Label,
+  Account,
   SyncbackCategoryTask,
   ChangeLabelsTask,
+  Thread,
 } from 'mailspring-exports';
 import { Categories } from 'mailspring-observables';
+import { CategoryData } from './types';
 
-export default class LabelPickerPopover extends Component {
+interface LabelPickerPopoverProps {
+  threads: Thread[];
+  account: Account;
+}
+
+interface LabelPickerPopoverState {
+  searchValue: string;
+  categoryData: CategoryData[];
+}
+
+export default class LabelPickerPopover extends Component<
+  LabelPickerPopoverProps,
+  LabelPickerPopoverState
+> {
   static propTypes = {
     threads: PropTypes.array.isRequired,
     account: PropTypes.object.isRequired,
   };
 
+  _labels: Label[] = [];
+  disposables: Rx.Disposable[];
+
   constructor(props) {
     super(props);
-    this._labels = [];
     this.state = this._recalculateState(this.props, { searchValue: '' });
   }
 
@@ -62,7 +80,7 @@ export default class LabelPickerPopover extends Component {
 
     const categoryData = this._labels
       .filter(label => Utils.wordSearchRegExp(searchValue).test(label.displayName))
-      .map(label => {
+      .map<CategoryData>(label => {
         return {
           id: label.id,
           category: label,
@@ -147,7 +165,7 @@ export default class LabelPickerPopover extends Component {
   };
 
   _renderCheckbox = item => {
-    const styles = {};
+    const styles: CSSProperties = {};
     let checkStatus;
     styles.backgroundColor = item.backgroundColor;
 

@@ -7,14 +7,19 @@ import 'moment-round';
 import TestConstants from './test-constants';
 
 declare global {
-  interface Window {
-    a: number;
+  const TEST_TIME_ZONE: string;
+  const TEST_PLUGIN_ID: string;
+  const TEST_ACCOUNT_ID: string;
+  const TEST_ACCOUNT_NAME: string;
+  const TEST_ACCOUNT_EMAIL: string;
+  const TEST_ACCOUNT_CLIENT_ID: string;
+  const TEST_ACCOUNT_ALIAS_EMAIL: string;
 
-    waitsForPromise: (
-      opts: { shouldReject?: boolean; timeout?: number },
-      fn: () => Promise<any>
-    ) => Promise<any>;
-  }
+  export const waitsForPromise: (fn: () => Promise<any>) => Promise<any>;
+  export const waitsForPromise: (
+    opts: { shouldReject?: boolean; timeout?: number },
+    fn: () => Promise<any>
+  ) => Promise<any>;
 }
 
 export function waitsForPromise(...args) {
@@ -28,7 +33,7 @@ export function waitsForPromise(...args) {
   }
   const fn = _.last(args);
 
-  return window.waitsFor(timeout, moveOn => {
+  return (window as any).waitsFor(timeout, moveOn => {
     const promise = fn();
     // Keep in mind we can't check `promise instanceof Promise` because parts of
     // the app still use other Promise libraries Just see if it looks

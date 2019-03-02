@@ -32,7 +32,7 @@ const makeButton = (initialState, metadataValue) => {
 
 xdescribe('SendLaterButton', function sendLaterButton() {
   beforeEach(() => {
-    spyOn(DateUtils, 'format').andReturn('formatted');
+    spyOn(DateUtils, 'format').and.returnValue('formatted');
   });
 
   describe('onSendLater', () => {
@@ -67,7 +67,7 @@ xdescribe('SendLaterButton', function sendLaterButton() {
       const button = makeButton(null, { sendLaterDate: 'date' });
       spyOn(button, 'setState');
       spyOn(AppEnv, 'close');
-      spyOn(AppEnv, 'isComposerWindow').andReturn(true);
+      spyOn(AppEnv, 'isComposerWindow').and.returnValue(true);
       spyOn(Actions, 'finalizeDraftAndSyncbackMetadata');
       button.onSendLater({ utc: () => 'utc' });
       advanceClock();
@@ -82,7 +82,7 @@ xdescribe('SendLaterButton', function sendLaterButton() {
     });
 
     it('renders date if message is scheduled', () => {
-      spyOn(DateUtils, 'futureDateFromString').andReturn({ fromNow: () => '5 minutes' });
+      spyOn(DateUtils, 'futureDateFromString').and.returnValue({ fromNow: () => '5 minutes' });
       const button = makeButton({ saving: false }, { sendLaterDate: 'date' });
       const span = ReactDOM.findDOMNode(findRenderedDOMComponentWithClass(button, 'at'));
       expect(span.textContent).toEqual('Sending in 5 minutes');

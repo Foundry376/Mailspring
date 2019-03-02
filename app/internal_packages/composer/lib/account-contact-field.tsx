@@ -1,10 +1,25 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { localized, AccountStore, ContactStore } from 'mailspring-exports';
+import {
+  localized,
+  AccountStore,
+  ContactStore,
+  Account,
+  Contact,
+  DraftEditingSession,
+  Message,
+} from 'mailspring-exports';
 import { Menu, ButtonDropdown, InjectedComponentSet } from 'mailspring-component-kit';
 
-export default class AccountContactField extends React.Component {
+interface AccountContactFieldProps {
+  accounts: Account[];
+  value: Contact;
+  session: DraftEditingSession;
+  draft: Message;
+  onChange: (val: { from: Contact[]; cc: Contact[]; bcc: Contact[] }) => void;
+}
+export default class AccountContactField extends React.Component<AccountContactFieldProps> {
   static displayName = 'AccountContactField';
 
   static propTypes = {
@@ -14,6 +29,8 @@ export default class AccountContactField extends React.Component {
     draft: PropTypes.object.isRequired,
     onChange: PropTypes.func.isRequired,
   };
+
+  _dropdownComponent: ButtonDropdown;
 
   _onChooseContact = async contact => {
     const { draft, session, onChange } = this.props;
@@ -96,7 +113,7 @@ export default class AccountContactField extends React.Component {
           draft,
           session,
           accounts,
-          draftFromEmail: (draft.from[0] || {}).email,
+          draftFromEmail: draft.from[0] ? draft.from[0].email : undefined,
         }}
       />
     );

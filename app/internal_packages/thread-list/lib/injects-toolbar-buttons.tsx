@@ -9,10 +9,16 @@ function defaultObservable() {
   return ThreadListStore.selectionObservable();
 }
 
-function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [] }) {
+function InjectsToolbarButtons(
+  ToolbarComponent,
+  {
+    getObservable,
+    extraRoles = [],
+  }: { getObservable?: () => Rx.Observable<any>; extraRoles: string[] }
+) {
   const roles = [ToolbarRole].concat(extraRoles);
 
-  class ComposedComponent extends Component {
+  class ComposedComponent extends Component<{ items: object[] }> {
     static displayName = ToolbarComponent.displayName;
 
     static propTypes = {

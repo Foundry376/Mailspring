@@ -124,8 +124,8 @@ messages[2].directlyAttachMetadata(LINK_TRACKING_ID, pluginValue);
 describe('ActivityList', function activityList() {
   beforeEach(() => {
     this.testSource = new TestDataSource();
-    spyOn(ActivityEventStore, '_dataSource').andReturn(this.testSource);
-    spyOn(FocusedPerspectiveStore, 'sidebarAccountIds').andReturn(['0000000000000000000000000']);
+    spyOn(ActivityEventStore, '_dataSource').and.returnValue(this.testSource);
+    spyOn(FocusedPerspectiveStore, 'sidebarAccountIds').and.returnValue(['0000000000000000000000000']);
     spyOn(DatabaseStore, 'run').and.callFake(query => {
       if (query._klass === Thread) {
         const thread = new Thread({

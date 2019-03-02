@@ -1,6 +1,6 @@
 import { Task } from './task';
 import Attributes from '../attributes';
-import AccountStore from '../stores/account-store';
+import { AccountStore } from '../stores/account-store';
 
 export class SendFeatureUsageEventTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {

@@ -1,12 +1,18 @@
 import { EventedIFrame } from 'mailspring-component-kit';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { PropTypes, Utils, QuotedHTMLTransformer, MessageStore } from 'mailspring-exports';
+import { PropTypes, Utils, QuotedHTMLTransformer, MessageStore, Message } from 'mailspring-exports';
 import { autolink } from './autolinker';
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';
 
-export default class EmailFrame extends React.Component {
+interface EmailFrameProps {
+  content: string;
+  showQuotedText: boolean;
+  message: Message;
+}
+
+export default class EmailFrame extends React.Component<EmailFrameProps> {
   static displayName = 'EmailFrame';
 
   static propTypes = {
@@ -16,6 +22,9 @@ export default class EmailFrame extends React.Component {
   };
 
   _mounted: boolean = false;
+  _unlisten: () => void;
+  _iframeComponent: EventedIFrame;
+  _iframeDocObserver: ResizeObserver;
 
   componentDidMount() {
     this._mounted = true;
@@ -24,20 +33,23 @@ export default class EmailFrame extends React.Component {
 
     // Update the iframe's size whenever it's content size changes. Doing this
     // with ResizeObserver is /so/ elegant compared to polling for it's height.
-    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent);
-    this._iframeDocObserver = new ResizeObserver(this._onReevaluateContentSize);
+    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
+    this._iframeDocObserver = new window.ResizeObserver(this._onReevaluateContentSize);
     this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
   }
 
-  shouldComponentUpdate(nextProps) {
-    const { content, showQuotedText, message = {} } = this.props;
-    const nextMessage = nextProps.message || {};
+  shouldComponentUpdate(nextProps: EmailFrameProps) {
+    const { content, showQuotedText, message } = this.props;
+    const nextMessage = nextProps.message;
 
     return (
-      message.id !== nextMessage.id ||
+      (message ? message.id : '') !== (nextMessage ? nextMessage.id : '') ||
       content !== nextProps.content ||
       showQuotedText !== nextProps.showQuotedText ||
-      !Utils.isEqualReact(message.pluginMetadata, nextMessage.pluginMetadata)
+      !Utils.isEqualReact(
+        message && message.pluginMetadata,
+        nextMessage && nextMessage.pluginMetadata
+      )
     );
   }
 
@@ -62,7 +74,7 @@ export default class EmailFrame extends React.Component {
   };
 
   _writeContent = () => {
-    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent);
+    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
     const doc = iframeEl.contentDocument;
     if (!doc) return;
 
@@ -106,7 +118,7 @@ export default class EmailFrame extends React.Component {
   };
 
   _onReevaluateContentSize = () => {
-    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent);
+    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
     const doc = iframeEl && iframeEl.contentDocument;
 
     // We must set the height to zero in order to get a valid scrollHeight
@@ -130,7 +142,7 @@ export default class EmailFrame extends React.Component {
   };
 
   _onResize = () => {
-    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent);
+    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
     if (!iframeEl) return;
     this._iframeDocObserver.disconnect();
     this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
@@ -141,7 +153,7 @@ export default class EmailFrame extends React.Component {
       <EventedIFrame
         searchable
         onResize={this._onResize}
-        seamless="seamless"
+        seamless={true}
         style={{ height: 0 }}
         ref={cm => {
           this._iframeComponent = cm;

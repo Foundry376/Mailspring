@@ -1,8 +1,8 @@
 import DatabaseStore from '../../src/flux/stores/database-store';
 
-import QueryRange from '../../src/flux/models/query-range';
+import { QueryRange } from '../../src/flux/models/query-range';
 import MutableQueryResultSet from '../../src/flux/models/mutable-query-result-set';
-import QuerySubscription from '../../src/flux/models/query-subscription';
+import { QuerySubscription } from '../../src/flux/models/query-subscription';
 import { Thread } from '../../src/flux/models/thread';
 import * as Utils from '../../src/flux/models/utils';
 
@@ -51,7 +51,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
   describe('addCallback', () =>
     it('should emit the last result to the new callback if one is available', () => {
       const cb = jasmine.createSpy('callback');
-      spyOn(QuerySubscription.prototype, 'update').andReturn();
+      spyOn(QuerySubscription.prototype, 'update').and.returnValue();
       const subscription = new QuerySubscription(DatabaseStore.findAll<Thread>(Thread));
       subscription._lastResult = 'something';
       runs(() => {
@@ -307,7 +307,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
       describe('when we have a previous range', () => {
         it('should call _fetchRange with the missingRange', () => {
           const customRange = jasmine.createSpy('customRange1');
-          spyOn(QueryRange, 'rangesBySubtracting').andReturn([customRange]);
+          spyOn(QueryRange, 'rangesBySubtracting').and.returnValue([customRange]);
           const subscription = new QuerySubscription(this.query);
           subscription._set = new MutableQueryResultSet();
           subscription._set.addModelsInRange([new Thread()], new QueryRange({ start: 0, end: 1 }));
@@ -327,7 +327,7 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
         it('should call _fetchRange for the entire query range when the missing range encompasses more than one range', () => {
           const customRange1 = jasmine.createSpy('customRange1');
           const customRange2 = jasmine.createSpy('customRange2');
-          spyOn(QueryRange, 'rangesBySubtracting').andReturn([customRange1, customRange2]);
+          spyOn(QueryRange, 'rangesBySubtracting').and.returnValue([customRange1, customRange2]);
 
           const range = new QueryRange({ start: 0, end: 1 });
           const subscription = new QuerySubscription(this.query);

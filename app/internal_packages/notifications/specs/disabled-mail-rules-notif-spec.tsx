@@ -5,13 +5,13 @@ import DisabledMailRulesNotification from '../lib/items/disabled-mail-rules-noti
 
 describe('DisabledMailRulesNotification', function DisabledMailRulesNotifTests() {
   beforeEach(() => {
-    spyOn(AccountStore, 'accounts').andReturn([
+    spyOn(AccountStore, 'accounts').and.returnValue([
       new Account({ id: 'A', syncState: Account.SYNC_STATE_OK, emailAddress: '123@gmail.com' }),
     ]);
   });
   describe('When there is one disabled mail rule', () => {
     beforeEach(() => {
-      spyOn(MailRulesStore, 'disabledRules').andReturn([{ accountId: 'A' }]);
+      spyOn(MailRulesStore, 'disabledRules').and.returnValue([{ accountId: 'A' }]);
       this.notif = mount(<DisabledMailRulesNotification />);
     });
     it('displays a notification', () => {
@@ -29,7 +29,7 @@ describe('DisabledMailRulesNotification', function DisabledMailRulesNotifTests()
 
   describe('When there are multiple disabled mail rules', () => {
     beforeEach(() => {
-      spyOn(MailRulesStore, 'disabledRules').andReturn([{ accountId: 'A' }, { accountId: 'A' }]);
+      spyOn(MailRulesStore, 'disabledRules').and.returnValue([{ accountId: 'A' }, { accountId: 'A' }]);
       this.notif = mount(<DisabledMailRulesNotification />);
     });
     it('displays a notification', () => {
@@ -47,7 +47,7 @@ describe('DisabledMailRulesNotification', function DisabledMailRulesNotifTests()
 
   describe('When there are no disabled mail rules', () => {
     beforeEach(() => {
-      spyOn(MailRulesStore, 'disabledRules').andReturn([]);
+      spyOn(MailRulesStore, 'disabledRules').and.returnValue([]);
       this.notif = mount(<DisabledMailRulesNotification />);
     });
     it('does not display a notification', () => {

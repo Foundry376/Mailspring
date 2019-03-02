@@ -16,5 +16,5 @@
       "*": ["node_modules/*", "src/global/*"]
     }
   },
-  "include": ["src/**/*", "internal_packages/**/*"]
+  "include": ["src/**/*", "spec/**/*"]
 }

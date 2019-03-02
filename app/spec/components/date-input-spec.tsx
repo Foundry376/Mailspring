@@ -7,7 +7,7 @@ import DateInput from '../../src/components/date-input';
 describe('DateInput', function dateInput() {
   describe('onInputKeyDown', () => {
     it('should submit the input if Enter or Return pressed', () => {
-      spyOn(DateUtils, 'futureDateFromString').andReturn('someday');
+      spyOn(DateUtils, 'futureDateFromString').and.returnValue('someday');
 
       ['Enter', 'Return'].forEach(key => {
         const onDateSubmitted = jasmine.createSpy('onDateSubmitted');
@@ -25,7 +25,7 @@ describe('DateInput', function dateInput() {
 
   describe('render', () => {
     beforeEach(() => {
-      spyOn(DateUtils, 'format').andReturn('formatted');
+      spyOn(DateUtils, 'format').and.returnValue('formatted');
     });
 
     it('should render a date interpretation if a date has been inputted', () => {

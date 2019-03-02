@@ -50,8 +50,11 @@ export function activate() {
     location: WorkspaceStore.Location.ActivityContent,
   });
 
-  const { perspective } = AppEnv.savedState || {};
-  if (perspective && perspective.type === 'ActivityMailboxPerspective') {
+  if (
+    AppEnv.savedState &&
+    AppEnv.savedState.perspective &&
+    AppEnv.savedState.perspective.type === 'ActivityMailboxPerspective'
+  ) {
     Actions.selectRootSheet(WorkspaceStore.Sheet.Activity);
   }
 }

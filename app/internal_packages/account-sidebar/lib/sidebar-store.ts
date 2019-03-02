@@ -2,6 +2,7 @@ import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
 import {
   Actions,
+  Account,
   AccountStore,
   ThreadCountsStore,
   WorkspaceStore,
@@ -13,6 +14,8 @@ import {
 import SidebarSection from './sidebar-section';
 import * as SidebarActions from './sidebar-actions';
 import * as AccountCommands from './account-commands';
+import { Disposable } from 'event-kit';
+import { ISidebarItem, ISidebarSection } from './types';
 
 const Sections = {
   Standard: 'Standard',
@@ -20,16 +23,21 @@ const Sections = {
 };
 
 class SidebarStore extends MailspringStore {
+  _sections: {
+    Standard: ISidebarSection;
+    User: ISidebarSection[];
+  } = {
+    Standard: { title: '', items: [] },
+    User: [],
+  };
+  configSubscription: Disposable;
+
   constructor() {
     super();
 
     if (AppEnv.savedState.sidebarKeysCollapsed == null) {
       AppEnv.savedState.sidebarKeysCollapsed = {};
     }
-
-    this._sections = {};
-    this._sections[Sections.Standard] = {};
-    this._sections[Sections.User] = [];
     this._registerCommands();
     this._registerMenuItems();
     this._registerListeners();
@@ -45,11 +53,11 @@ class SidebarStore extends MailspringStore {
   }
 
   standardSection() {
-    return this._sections[Sections.Standard];
+    return this._sections.Standard;
   }
 
   userSections() {
-    return this._sections[Sections.User];
+    return this._sections.User;
   }
 
   _registerListeners() {
@@ -68,7 +76,7 @@ class SidebarStore extends MailspringStore {
     );
   }
 
-  _onSetCollapsedByKey = (itemKey, collapsed) => {
+  _onSetCollapsedByKey = (itemKey: string, collapsed: boolean) => {
     const currentValue = AppEnv.savedState.sidebarKeysCollapsed[itemKey];
     if (currentValue !== collapsed) {
       AppEnv.savedState.sidebarKeysCollapsed[itemKey] = collapsed;
@@ -76,8 +84,8 @@ class SidebarStore extends MailspringStore {
     }
   };
 
-  _onSetCollapsedByName = (itemName, collapsed) => {
-    let item = _.findWhere(this.standardSection().items, { name: itemName });
+  _onSetCollapsedByName = (itemName: string, collapsed: boolean) => {
+    let item = this.standardSection().items.find(i => i.name === itemName);
     if (!item) {
       for (let section of this.userSections()) {
         item = _.findWhere(section.items, { name: itemName });
@@ -92,14 +100,14 @@ class SidebarStore extends MailspringStore {
     this._onSetCollapsedByKey(item.id, collapsed);
   };
 
-  _registerCommands = accounts => {
+  _registerCommands = (accounts: Account[] = null) => {
     if (accounts == null) {
       accounts = AccountStore.accounts();
     }
     AccountCommands.registerCommands(accounts);
   };
 
-  _registerMenuItems = accounts => {
+  _registerMenuItems = (accounts: Account[] = null) => {
     if (accounts == null) {
       accounts = AccountStore.accounts();
     }
@@ -144,7 +152,7 @@ class SidebarStore extends MailspringStore {
 
     this._sections[Sections.Standard] = SidebarSection.standardSectionForAccounts(accounts);
     this._sections[Sections.User] = accounts.map(function(acc) {
-      const opts = {};
+      const opts: { title?: string; collapsible?: boolean } = {};
       if (multiAccount) {
         opts.title = acc.label;
         opts.collapsible = true;

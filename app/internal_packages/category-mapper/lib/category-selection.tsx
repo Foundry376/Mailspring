@@ -8,7 +8,28 @@ import {
 } from 'mailspring-component-kit';
 import { localized, Label, Utils, PropTypes } from 'mailspring-exports';
 
-export default class CategorySelection extends React.Component {
+interface CategorySelectionProps {
+  accountUsesLabels: boolean;
+  all: CategoryItem[];
+  current: CategoryItem;
+  onSelect: (item: CategoryItem) => void;
+}
+
+interface CategorySelectionState {
+  searchValue: string;
+}
+
+type CategoryItem = {
+  backgroundColor?: string;
+  empty?: boolean;
+  path?: string;
+  name?: string;
+};
+
+export default class CategorySelection extends React.Component<
+  CategorySelectionProps,
+  CategorySelectionState
+> {
   static propTypes = {
     accountUsesLabels: PropTypes.bool,
     all: PropTypes.array,
@@ -16,15 +37,13 @@ export default class CategorySelection extends React.Component {
     onSelect: PropTypes.func,
   };
 
-  constructor(props) {
-    super(props);
-    this._categories = [];
-    this.state = {
-      searchValue: '',
-    };
-  }
+  _categories = [];
 
-  _itemsForCategories() {
+  state = {
+    searchValue: '',
+  };
+
+  _itemsForCategories(): CategoryItem[] {
     return this.props.all
       .sort((a, b) => {
         var pathA = utf7.imap.decode(a.path).toUpperCase();
@@ -48,7 +67,7 @@ export default class CategorySelection extends React.Component {
     this.setState({ searchValue: event.target.value });
   };
 
-  _renderItem = (item = { empty: true }) => {
+  _renderItem = (item: CategoryItem = { empty: true }) => {
     let icon;
     if (item.empty) {
       icon = <div className="empty-icon" />;

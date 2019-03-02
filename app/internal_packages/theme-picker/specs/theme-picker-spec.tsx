@@ -11,8 +11,8 @@ const dark = new Package(`${resourcePath}/internal_packages/ui-dark`);
 
 describe('ThemePicker', function themePicker() {
   beforeEach(() => {
-    spyOn(AppEnv.themes, 'getAvailableThemes').andReturn([light, dark]);
-    spyOn(AppEnv.themes, 'getActiveTheme').andReturn(light);
+    spyOn(AppEnv.themes, 'getAvailableThemes').and.returnValue([light, dark]);
+    spyOn(AppEnv.themes, 'getActiveTheme').and.returnValue(light);
     this.component = ReactTestUtils.renderIntoDocument(<ThemePicker />);
   });
 

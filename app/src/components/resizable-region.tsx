@@ -89,7 +89,7 @@ draggable edge. It is used throughout N1 to implement resizable columns, trays, 
 
 Section: Component Kit
 */
-class ResizableRegion extends React.Component<
+export class ResizableRegion extends React.Component<
   ResizableRegionProps & React.HTMLProps<HTMLDivElement>,
   ResizableRegionState
 > {
@@ -243,5 +243,3 @@ class ResizableRegion extends React.Component<
     event.preventDefault();
   };
 }
-
-export default ResizableRegion;

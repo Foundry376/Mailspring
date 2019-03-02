@@ -56,7 +56,7 @@ class AttachmentStore extends MailspringStore {
   // for files that don't have a name and avoid returning <downloads/dir/"">
   // which causes operations to happen on the directory (badness!)
   //
-  pathForFile(file) {
+  pathForFile(file: File) {
     if (!file) {
       return null;
     }
@@ -70,33 +70,33 @@ class AttachmentStore extends MailspringStore {
     );
   }
 
-  getDownloadDataForFile(fileId: string) {
+  getDownloadDataForFile(fileId: string): null {
     // if we ever support downloads again, put this back
     return null;
   }
 
   // Returns a hash of download objects keyed by fileId
-  getDownloadDataForFiles(fileIds = []) {
-    const downloadData = {};
+  getDownloadDataForFiles(fileIds: string[] = []) {
+    const downloadData: { [fileId: string]: null } = {};
     fileIds.forEach(fileId => {
       downloadData[fileId] = this.getDownloadDataForFile(fileId);
     });
     return downloadData;
   }
 
-  previewPathsForFiles(fileIds = []) {
-    const previewPaths = {};
+  previewPathsForFiles(fileIds: string[] = []) {
+    const previewPaths: { [fileId: string]: string } = {};
     fileIds.forEach(fileId => {
       previewPaths[fileId] = this.previewPathForFile(fileId);
     });
     return previewPaths;
   }
 
-  previewPathForFile(fileId) {
+  previewPathForFile(fileId: string): string {
     return this._filePreviewPaths[fileId];
   }
 
-  async _prepareAndResolveFilePath(file) {
+  async _prepareAndResolveFilePath(file: File) {
     let filePath = this.pathForFile(file);
 
     if (await fileAccessibleAtPath(filePath)) {
@@ -288,7 +288,7 @@ class AttachmentStore extends MailspringStore {
     return downloadDir;
   }
 
-  _defaultSavePath(file) {
+  _defaultSavePath(file: File) {
     const downloadDir = this._defaultSaveDir();
     return path.join(downloadDir, file.safeDisplayName());
   }
@@ -352,7 +352,7 @@ class AttachmentStore extends MailspringStore {
       );
   }
 
-  _copyToInternalPath(originPath, targetPath) {
+  _copyToInternalPath(originPath: string, targetPath: string) {
     return new Promise((resolve, reject) => {
       const readStream = fs.createReadStream(originPath);
       const writeStream = fs.createWriteStream(targetPath);
@@ -366,7 +366,7 @@ class AttachmentStore extends MailspringStore {
     });
   }
 
-  async _deleteFile(file) {
+  async _deleteFile(file: File) {
     try {
       // Delete the file and it's containing folder. Todo: possibly other empty dirs?
       await fs.unlinkAsync(this.pathForFile(file));
@@ -376,7 +376,7 @@ class AttachmentStore extends MailspringStore {
     }
   }
 
-  async _applySessionChanges(headerMessageId, changeFunction) {
+  async _applySessionChanges(headerMessageId: string, changeFunction) {
     const session = await DraftStore.sessionForClientId(headerMessageId);
     const files = changeFunction(session.draft().files);
     session.changes.add({ files });

@@ -7,6 +7,8 @@ import {
   localized,
   Actions,
   TaskQueue,
+  Thread,
+  Account,
   CategoryStore,
   Folder,
   SyncbackCategoryTask,
@@ -15,17 +17,33 @@ import {
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 import { Categories } from 'mailspring-observables';
+import { CategoryData } from './types';
 
-export default class MovePickerPopover extends Component {
+interface MovePickerPopoverProps {
+  threads: Thread[];
+  account: Account;
+}
+
+interface MovePickerPopoverState {
+  searchValue: string;
+  categoryData: CategoryData[];
+}
+
+export default class MovePickerPopover extends Component<
+  MovePickerPopoverProps,
+  MovePickerPopoverState
+> {
   static propTypes = {
     threads: PropTypes.array.isRequired,
     account: PropTypes.object.isRequired,
   };
 
+  _standardFolders = [];
+  _userCategories = [];
+  disposables: Rx.Disposable[];
+
   constructor(props) {
     super(props);
-    this._standardFolders = [];
-    this._userCategories = [];
     this.state = this._recalculateState(this.props, { searchValue: '' });
   }
 
@@ -121,7 +139,7 @@ export default class MovePickerPopover extends Component {
     }
 
     if (item.newCategoryItem) {
-      this._onCreateCategory(item);
+      this._onCreateCategory();
     } else {
       this._onMoveToCategory(item);
     }

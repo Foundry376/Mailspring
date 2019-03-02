@@ -7,6 +7,11 @@
  */
 import _ from 'underscore';
 
+declare global {
+  export const advanceClock: (delta?: number) => void;
+  export const resetTime: () => void;
+  export const enableSpies: () => void;
+}
 // Public: To make specs easier to test, we make all asynchronous behavior
 // actually synchronous. We do this by overriding all global timeout and
 // Promise functions.

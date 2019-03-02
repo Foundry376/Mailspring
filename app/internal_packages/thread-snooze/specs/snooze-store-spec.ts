@@ -35,11 +35,11 @@ xdescribe('SnoozeStore', function snoozeStore() {
     };
     this.store.snoozeCategoriesPromise = Promise.resolve();
     spyOn(this.store, 'recordSnoozeEvent');
-    spyOn(this.store, 'groupUpdatedThreads').andReturn(
+    spyOn(this.store, 'groupUpdatedThreads').and.returnValue(
       Promise.resolve(this.updatedThreadsByAccountId)
     );
 
-    spyOn(AccountStore, 'accountsForItems').andReturn(this.accounts);
+    spyOn(AccountStore, 'accountsForItems').and.returnValue(this.accounts);
     spyOn(SnoozeUtils, 'moveThreads');
     spyOn(Actions, 'closePopover');
     spyOn(AppEnv, 'reportError');
@@ -48,7 +48,9 @@ xdescribe('SnoozeStore', function snoozeStore() {
 
   describe('groupUpdatedThreads', () => {
     it('groups the threads correctly by account id, with their snooze and inbox categories', () => {
-      spyOn(CategoryStore, 'getInboxCategory').and.callFake(accId => this.inboxCatsByAccount[accId]);
+      spyOn(CategoryStore, 'getInboxCategory').and.callFake(
+        accId => this.inboxCatsByAccount[accId]
+      );
 
       waitsForPromise(() => {
         return this.store
@@ -97,7 +99,7 @@ xdescribe('SnoozeStore', function snoozeStore() {
 
     it('displays dialog on error', () => {
       jasmine.unspy(SnoozeUtils, 'moveThreads');
-      spyOn(SnoozeUtils, 'moveThreads').andReturn(Promise.reject(new Error('Oh no!')));
+      spyOn(SnoozeUtils, 'moveThreads').and.returnValue(Promise.reject(new Error('Oh no!')));
 
       waitsForPromise(async () => {
         try {

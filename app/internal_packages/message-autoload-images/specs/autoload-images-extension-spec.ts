@@ -22,7 +22,7 @@ describe('AutoloadImagesExtension', function autoloadImagesExtension() {
 
     scenarios.forEach(scenario => {
       it(`should process ${scenario.name}`, () => {
-        spyOn(AutoloadImagesStore, 'shouldBlockImagesIn').andReturn(true);
+        spyOn(AutoloadImagesStore, 'shouldBlockImagesIn').and.returnValue(true);
 
         const message = {
           body: scenario.in,

@@ -1,8 +1,12 @@
 import React from 'react';
-import { localized, PropTypes, DateUtils } from 'mailspring-exports';
+import { localized, PropTypes, DateUtils, Thread } from 'mailspring-exports';
+import { ScrollRegionTooltipComponentProps } from 'mailspring-component-kit';
 import ThreadListStore from './thread-list-store';
 
-class ThreadListScrollTooltip extends React.Component {
+class ThreadListScrollTooltip extends React.Component<
+  ScrollRegionTooltipComponentProps,
+  { item?: Thread; idx: number }
+> {
   static displayName = 'ThreadListScrollTooltip';
   static propTypes = {
     viewportCenter: PropTypes.number.isRequired,
@@ -27,7 +31,7 @@ class ThreadListScrollTooltip extends React.Component {
     );
     this.setState({
       idx,
-      item: ThreadListStore.dataSource().get(idx),
+      item: ThreadListStore.dataSource().get(idx) as any,
     });
   }
 

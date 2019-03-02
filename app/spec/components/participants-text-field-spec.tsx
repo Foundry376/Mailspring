@@ -21,7 +21,7 @@ const participant3 = new Contact({
 
 xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
   beforeEach(() => {
-    spyOn(AppEnv, 'isMainWindow').andReturn(true);
+    spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
     this.propChange = jasmine.createSpy('change');
 
     this.fieldName = 'to';

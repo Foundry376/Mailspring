@@ -5,6 +5,7 @@ import { RetinaImg, CreateButtonGroup, BindGlobalCommands } from 'mailspring-com
 import {
   localized,
   Actions,
+  Thread,
   TaskFactory,
   ChangeLabelsTask,
   CategoryStore,
@@ -14,7 +15,7 @@ import {
 
 import ThreadListStore from './thread-list-store';
 
-export class ArchiveButton extends React.Component {
+export class ArchiveButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'ArchiveButton';
   static containerRequired = false;
 
@@ -22,7 +23,7 @@ export class ArchiveButton extends React.Component {
     items: PropTypes.array.isRequired,
   };
 
-  _onArchive = event => {
+  _onArchive = (event?: React.MouseEvent) => {
     const tasks = TaskFactory.tasksForArchiving({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
@@ -56,7 +57,7 @@ export class ArchiveButton extends React.Component {
   }
 }
 
-export class TrashButton extends React.Component {
+export class TrashButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'TrashButton';
   static containerRequired = false;
 
@@ -64,7 +65,7 @@ export class TrashButton extends React.Component {
     items: PropTypes.array.isRequired,
   };
 
-  _onRemove = event => {
+  _onRemove = (event?: React.MouseEvent) => {
     const tasks = TaskFactory.tasksForMovingToTrash({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
@@ -98,7 +99,7 @@ export class TrashButton extends React.Component {
   }
 }
 
-class HiddenGenericRemoveButton extends React.Component {
+class HiddenGenericRemoveButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'HiddenGenericRemoveButton';
 
   _onRemoveAndShift = ({ offset }) => {
@@ -113,7 +114,7 @@ class HiddenGenericRemoveButton extends React.Component {
     Actions.setFocus({ collection: 'thread', item });
   };
 
-  _onRemoveFromView = ruleset => {
+  _onRemoveFromView = () => {
     const current = FocusedPerspectiveStore.current();
     const tasks = current.tasksForRemovingItems(this.props.items, 'Keyboard Shortcut');
     Actions.queueTasks(tasks);
@@ -136,7 +137,7 @@ class HiddenGenericRemoveButton extends React.Component {
   }
 }
 
-class HiddenToggleImportantButton extends React.Component {
+class HiddenToggleImportantButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'HiddenToggleImportantButton';
 
   _onSetImportant = important => {
@@ -166,8 +167,8 @@ class HiddenToggleImportantButton extends React.Component {
       return false;
     }
 
-    const allImportant = this.props.items.every(item =>
-      item.labels.find(c => c.role === 'important')
+    const allImportant = this.props.items.every(
+      item => !!item.labels.find(c => c.role === 'important')
     );
 
     return (
@@ -185,7 +186,7 @@ class HiddenToggleImportantButton extends React.Component {
   }
 }
 
-export class MarkAsSpamButton extends React.Component {
+export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'MarkAsSpamButton';
   static containerRequired = false;
 
@@ -193,7 +194,7 @@ export class MarkAsSpamButton extends React.Component {
     items: PropTypes.array.isRequired,
   };
 
-  _onNotSpam = event => {
+  _onNotSpam = (event?: React.MouseEvent) => {
     // TODO BG REPLACE TASK FACTORY
     const tasks = TaskFactory.tasksForMarkingNotSpam({
       source: 'Toolbar Button: Thread List',
@@ -207,7 +208,7 @@ export class MarkAsSpamButton extends React.Component {
     return;
   };
 
-  _onMarkAsSpam = event => {
+  _onMarkAsSpam = (event?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const tasks = TaskFactory.tasksForMarkingAsSpam({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
@@ -221,7 +222,7 @@ export class MarkAsSpamButton extends React.Component {
   };
 
   render() {
-    const allInSpam = this.props.items.every(item => item.folders.find(c => c.role === 'spam'));
+    const allInSpam = this.props.items.every(item => !!item.folders.find(c => c.role === 'spam'));
 
     if (allInSpam) {
       return (
@@ -263,7 +264,7 @@ export class MarkAsSpamButton extends React.Component {
   }
 }
 
-export class ToggleStarredButton extends React.Component {
+export class ToggleStarredButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'ToggleStarredButton';
   static containerRequired = false;
 
@@ -271,7 +272,7 @@ export class ToggleStarredButton extends React.Component {
     items: PropTypes.array.isRequired,
   };
 
-  _onStar = event => {
+  _onStar = (event?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     Actions.queueTask(
       TaskFactory.taskForInvertingStarred({
         threads: this.props.items,
@@ -299,7 +300,7 @@ export class ToggleStarredButton extends React.Component {
   }
 }
 
-export class ToggleUnreadButton extends React.Component {
+export class ToggleUnreadButton extends React.Component<{ items: Thread[] }> {
   static displayName = 'ToggleUnreadButton';
   static containerRequired = false;
 
@@ -352,13 +353,27 @@ export class ToggleUnreadButton extends React.Component {
   }
 }
 
-class ThreadArrowButton extends React.Component {
+interface ThreadArrowButtonState {
+  disabled: boolean;
+}
+class ThreadArrowButton extends React.Component<
+  {
+    command: string;
+    direction: string;
+    title: string;
+    getStateFromStores: () => ThreadArrowButtonState;
+  },
+  ThreadArrowButtonState
+> {
   static propTypes = {
     getStateFromStores: PropTypes.func,
     direction: PropTypes.string,
     command: PropTypes.string,
     title: PropTypes.string,
   };
+
+  _unsubscribe?: () => void;
+  _unsubscribe_focus?: () => void;
 
   constructor(props) {
     super(props);

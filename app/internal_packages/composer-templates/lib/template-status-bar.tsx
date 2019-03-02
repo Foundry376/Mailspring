@@ -1,8 +1,14 @@
 import React from 'react';
-import { localized, PropTypes } from 'mailspring-exports';
+import { localized, PropTypes, Message } from 'mailspring-exports';
 
-class TemplateStatusBar extends React.Component {
+class TemplateStatusBar extends React.Component<{ draft: Message }> {
   static displayName = 'TemplateStatusBar';
+
+  static containerStyles = {
+    textAlign: 'center',
+    width: 580,
+    margin: 'auto',
+  };
 
   static propTypes = {
     draft: PropTypes.object.isRequired,
@@ -29,11 +35,5 @@ class TemplateStatusBar extends React.Component {
     );
   }
 }
-
-TemplateStatusBar.containerStyles = {
-  textAlign: 'center',
-  width: 580,
-  margin: 'auto',
-};
 
 export default TemplateStatusBar;

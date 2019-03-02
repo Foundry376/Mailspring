@@ -1,9 +1,15 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { Thread } from 'mailspring-exports';
 import { MultiselectToolbar } from 'mailspring-component-kit';
 import InjectsToolbarButtons, { ToolbarRole } from './injects-toolbar-buttons';
 
-class ThreadListToolbar extends Component {
+interface ThreadListToolbarProps {
+  items: Thread[];
+  injectedButtons: any;
+  selection: { clear: () => void };
+}
+class ThreadListToolbar extends Component<ThreadListToolbarProps> {
   static displayName = 'ThreadListToolbar';
 
   static propTypes = {

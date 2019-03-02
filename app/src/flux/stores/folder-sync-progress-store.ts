@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
-import AccountStore from './account-store';
+import { AccountStore } from './account-store';
 import CategoryStore from './category-store';
 import { Folder } from '../models/folder';
 import { localized } from '../../intl';

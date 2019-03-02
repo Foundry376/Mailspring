@@ -14,7 +14,7 @@ xdescribe('Snooze Utils', function snoozeUtils() {
   beforeEach(() => {
     this.name = 'Snoozed Folder';
     this.accId = 123;
-    spyOn(FolderSyncProgressStore, 'whenCategoryListSynced').andReturn(Promise.resolve());
+    spyOn(FolderSyncProgressStore, 'whenCategoryListSynced').and.returnValue(Promise.resolve());
   });
 
   describe('snoozedUntilMessage', () => {
@@ -100,9 +100,9 @@ xdescribe('Snooze Utils', function snoozeUtils() {
       this.getInboxCat = accId => [this.inboxCatsByAccount[accId]];
       this.getSnoozeCat = accId => [this.snoozeCatsByAccount[accId]];
 
-      spyOn(DatabaseStore, 'modelify').andReturn(Promise.resolve(this.threads));
-      spyOn(TaskFactory, 'tasksForApplyingCategories').andReturn([]);
-      spyOn(TaskQueue, 'waitForPerformRemote').andReturn(Promise.resolve());
+      spyOn(DatabaseStore, 'modelify').and.returnValue(Promise.resolve(this.threads));
+      spyOn(TaskFactory, 'tasksForApplyingCategories').and.returnValue([]);
+      spyOn(TaskQueue, 'waitForPerformRemote').and.returnValue(Promise.resolve());
       spyOn(Actions, 'queueTasks');
     });
 

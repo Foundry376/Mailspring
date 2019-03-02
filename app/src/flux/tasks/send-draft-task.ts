@@ -1,5 +1,5 @@
 /* eslint global-require: 0 */
-import AccountStore from '../stores/account-store';
+import { AccountStore } from '../stores/account-store';
 import { Task } from './task';
 import Actions from '../actions';
 import Attributes from '../attributes';

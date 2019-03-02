@@ -1,7 +1,8 @@
 import React from 'react';
 import { PropTypes, Utils } from 'mailspring-exports';
+import { ThreadWithMessagesMetadata } from './types';
 
-class ThreadListParticipants extends React.Component {
+class ThreadListParticipants extends React.Component<{ thread: ThreadWithMessagesMetadata }> {
   static displayName = 'ThreadListParticipants';
 
   static propTypes = { thread: PropTypes.object.isRequired };
@@ -39,7 +40,7 @@ class ThreadListParticipants extends React.Component {
       accumulatedUnread = false;
     };
 
-    const accumulate = function(text, unread) {
+    const accumulate = function(text, unread?: boolean) {
       if (accumulated && unread && accumulatedUnread !== unread) {
         flush();
       }

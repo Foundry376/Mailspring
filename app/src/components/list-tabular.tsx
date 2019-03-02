@@ -4,7 +4,7 @@ import { Utils, Model } from 'mailspring-exports';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
-import { ScrollRegion } from './scroll-region';
+import { ScrollRegion, ScrollRegionProps } from './scroll-region';
 import { Spinner } from './spinner';
 
 import ListDataSource from './list-data-source';
@@ -103,7 +103,7 @@ export class ListTabularRows extends Component<ListTabularRowsProps> {
   }
 }
 
-type ListTabularProps = {
+export interface ListTabularProps extends ScrollRegionProps {
   footer?: React.ReactNode;
   draggable?: boolean;
   className?: string;
@@ -111,16 +111,16 @@ type ListTabularProps = {
   dataSource?: ListDataSource;
   itemPropsProvider?: (...args: any[]) => any;
   itemHeight?: number;
-  EmptyComponent?: (...args: any[]) => any;
-  scrollTooltipComponent?: (...args: any[]) => any;
+  EmptyComponent?: React.ComponentType<{ visible: boolean }>;
   onClick?: (...args: any[]) => any;
   onSelect?: (...args: any[]) => any;
   onDoubleClick?: (...args: any[]) => any;
   onDragStart?: (...args: any[]) => any;
   onDragEnd?: (...args: any[]) => any;
   onComponentDidUpdate?: (...args: any[]) => any;
-};
-type ListTabularState = {
+}
+
+interface ListTabularState {
   items: { [id: number]: Model };
   animatingOut: {
     [index: string]: {
@@ -133,7 +133,7 @@ type ListTabularState = {
   count: any;
   loaded: any;
   empty: any;
-};
+}
 
 export type ListDataSource = ListDataSource;
 

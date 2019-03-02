@@ -1,5 +1,5 @@
 /* eslint global-require: 0 */
-import QuerySubscription from './query-subscription';
+import { QuerySubscription } from './query-subscription';
 let DatabaseStore = null;
 
 /*

@@ -4,7 +4,7 @@ import ContactStore from '../../src/flux/stores/contact-store';
 
 xdescribe('ContactStore', function() {
   beforeEach(function() {
-    spyOn(AppEnv, 'isMainWindow').andReturn(true);
+    spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
     ContactStore._contactCache = [];
     ContactStore._fetchOffset = 0;
     ContactStore._accountId = null;
@@ -86,7 +86,7 @@ xdescribe('ContactStore', function() {
   describe('isValidContact', function() {
     it('should call contact.isValid', function() {
       const contact = new Contact();
-      spyOn(contact, 'isValid').andReturn(true);
+      spyOn(contact, 'isValid').and.returnValue(true);
       expect(ContactStore.isValidContact(contact)).toBe(true);
     });
 

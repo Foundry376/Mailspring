@@ -1,13 +1,17 @@
 import { ChangeFolderTask } from './change-folder-task';
-import ChangeLabelsTask from './change-labels-task';
-import ChangeUnreadTask from './change-unread-task';
+import { ChangeLabelsTask } from './change-labels-task';
+import { ChangeUnreadTask } from './change-unread-task';
 import { ChangeStarredTask } from './change-starred-task';
 import CategoryStore from '../stores/category-store';
 import { Thread } from '../models/thread';
 import { Label } from '../models/label';
+import { Task } from '../tasks/task';
 
 export const TaskFactory = {
-  tasksForThreadsByAccountId(threads, callback) {
+  tasksForThreadsByAccountId(
+    threads: Thread[],
+    callback: (accountThreads: Thread[], accountId: string) => Task | Task[]
+  ) {
     const byAccount = {};
     threads.forEach(thread => {
       if (!(thread instanceof Thread)) {
@@ -32,7 +36,7 @@ export const TaskFactory = {
     return tasks;
   },
 
-  tasksForMarkingAsSpam({ threads, source }) {
+  tasksForMarkingAsSpam({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       return new ChangeFolderTask({
         folder: CategoryStore.getSpamCategory(accountId),
@@ -42,12 +46,12 @@ export const TaskFactory = {
     });
   },
 
-  tasksForMarkingNotSpam({ threads, source }) {
+  tasksForMarkingNotSpam({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
       if (inbox instanceof Label) {
         return new ChangeFolderTask({
-          folder: CategoryStore.getAllMailCategory(accountId),
+          folder: CategoryStore.getAllMailCategory(accountId) as any,
           threads: accountThreads,
           source,
         });
@@ -60,7 +64,7 @@ export const TaskFactory = {
     });
   },
 
-  tasksForArchiving({ threads, source }) {
+  tasksForArchiving({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
       if (inbox instanceof Label) {
@@ -79,26 +83,44 @@ export const TaskFactory = {
     });
   },
 
-  tasksForMovingToTrash({ threads, source }) {
+  tasksForMovingToTrash({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       return new ChangeFolderTask({
-        folder: CategoryStore.getTrashCategory(accountId),
+        folder: CategoryStore.getTrashCategory(accountId) as any,
         threads: accountThreads,
         source,
       });
     });
   },
 
-  taskForInvertingUnread({ threads, source, canBeUndone }) {
+  taskForInvertingUnread({
+    threads,
+    source,
+    canBeUndone,
+  }: {
+    threads: Thread[];
+    source: string;
+    canBeUndone?: boolean;
+  }) {
     const unread = threads.every(t => t.unread === false);
     return new ChangeUnreadTask({ threads, unread, source, canBeUndone });
   },
 
-  taskForSettingUnread({ threads, unread, source, canBeUndone }) {
+  taskForSettingUnread({
+    threads,
+    unread,
+    source,
+    canBeUndone,
+  }: {
+    threads: Thread[];
+    source: string;
+    unread: boolean;
+    canBeUndone?: boolean;
+  }) {
     return new ChangeUnreadTask({ threads, unread, source, canBeUndone });
   },
 
-  taskForInvertingStarred({ threads, source }) {
+  taskForInvertingStarred({ threads, source }: { threads: Thread[]; source: string }) {
     const starred = threads.every(t => t.starred === false);
     return new ChangeStarredTask({ threads, starred, source });
   },

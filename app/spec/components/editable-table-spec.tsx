@@ -57,7 +57,7 @@ describe('EditableTable Components', function describeBlock() {
 
       it('stops event propagation and blurs input if Escape pressed', () => {
         const focusSpy = jasmine.createSpy('focusSpy');
-        spyOn(ReactDOM, 'findDOMNode').andReturn({
+        spyOn(ReactDOM, 'findDOMNode').and.returnValue({
           focus: focusSpy,
         });
         const event = {

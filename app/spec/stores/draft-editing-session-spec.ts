@@ -212,7 +212,7 @@ xdescribe('DraftEditingSession Specs', function() {
         this.session = new DraftEditingSession('client-id', this.draft);
         advanceClock();
 
-        spyOn(Actions, 'queueTask').andReturn(Promise.resolve());
+        spyOn(Actions, 'queueTask').and.returnValue(Promise.resolve());
       });
 
       it('should ignore the update unless it applies to the current draft', function() {
@@ -235,7 +235,7 @@ xdescribe('DraftEditingSession Specs', function() {
       });
 
       it('atomically commits changes', function() {
-        spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(this.draft));
+        spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(this.draft));
         spyOn(DatabaseStore, 'inTransaction').andCallThrough();
         this.session.changes.add({ body: '123' });
         waitsForPromise(() => {
@@ -247,7 +247,7 @@ xdescribe('DraftEditingSession Specs', function() {
       });
 
       it('persist the applied changes', function() {
-        spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(this.draft));
+        spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(this.draft));
         this.session.changes.add({ body: '123' });
         waitsForPromise(() => {
           return this.session.changes.commit().then(() => {
@@ -258,7 +258,7 @@ xdescribe('DraftEditingSession Specs', function() {
 
       describe('when findBy does not return a draft', () =>
         it("continues and persists it's local draft reference, so it is resaved and draft editing can continue", function() {
-          spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(null));
+          spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(null));
           this.session.changes.add({ body: '123' });
           waitsForPromise(() => {
             return this.session.changes.commit().then(() => {
@@ -268,7 +268,7 @@ xdescribe('DraftEditingSession Specs', function() {
         }));
 
       it('does nothing if the draft is marked as destroyed', function() {
-        spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(this.draft));
+        spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(this.draft));
         spyOn(DatabaseStore, 'inTransaction').andCallThrough();
         return waitsForPromise(() => {
           this.session.changes.add({ body: '123' });

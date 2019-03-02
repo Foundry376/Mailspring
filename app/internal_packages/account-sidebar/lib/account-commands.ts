@@ -3,9 +3,14 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-import { Actions, MenuHelpers } from 'mailspring-exports';
+import { Actions, Account, MenuHelpers } from 'mailspring-exports';
 
 let _commandsDisposable = null;
+
+interface IAccountMenuItem extends Electron.MenuItemConstructorOptions {
+  command?: string;
+  account?: boolean;
+}
 
 export function _isSelected(account, sidebarAccountIds) {
   if (sidebarAccountIds.length > 1) {
@@ -17,8 +22,12 @@ export function _isSelected(account, sidebarAccountIds) {
   }
 }
 
-export function menuItem(account, idx, { isSelected, clickHandlers } = {}) {
-  const item = {
+export function menuItem(
+  account: Account,
+  idx: number,
+  { isSelected, clickHandlers }: { isSelected?: boolean; clickHandlers?: boolean } = {}
+) {
+  const item: IAccountMenuItem = {
     label: account.label != null ? account.label : 'All Accounts',
     command: `window:select-account-${idx}`,
     account: true,
@@ -35,7 +44,11 @@ export function menuItem(account, idx, { isSelected, clickHandlers } = {}) {
   return item;
 }
 
-export function menuTemplate(accounts, sidebarAccountIds, { clickHandlers } = {}) {
+export function menuTemplate(
+  accounts,
+  sidebarAccountIds,
+  { clickHandlers }: { clickHandlers?: boolean } = {}
+) {
   let isSelected;
   let template = [];
   const multiAccount = accounts.length > 1;
@@ -84,7 +97,7 @@ export function registerCommands(accounts) {
   _commandsDisposable = AppEnv.commands.add(document.body, commands);
 }
 
-export function registerMenuItems(accounts, sidebarAccountIds) {
+export function registerMenuItems(accounts: Account[], sidebarAccountIds: string[]) {
   const windowMenu = AppEnv.menu.template.find(
     ({ label }) => MenuHelpers.normalizeLabel(label) === 'Window'
   );
@@ -92,7 +105,7 @@ export function registerMenuItems(accounts, sidebarAccountIds) {
     return;
   }
 
-  const submenu = windowMenu.submenu.filter(item => !item.account);
+  const submenu = windowMenu.submenu.filter(item => !(item as any).account);
   if (!submenu) {
     return;
   }
@@ -108,7 +121,7 @@ export function registerMenuItems(accounts, sidebarAccountIds) {
   AppEnv.menu.update();
 }
 
-export function register(accounts, sidebarAccountIds) {
+export function register(accounts: Account[], sidebarAccountIds: string[]) {
   registerCommands(accounts);
   registerMenuItems(accounts, sidebarAccountIds);
 }

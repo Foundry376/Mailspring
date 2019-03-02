@@ -53,7 +53,7 @@ describe('IdentityStore', function identityStoreSpec() {
 
   describe('returning the identity object', () => {
     beforeEach(() => {
-      spyOn(IdentityStore, 'saveIdentity').andReturn(Promise.resolve());
+      spyOn(IdentityStore, 'saveIdentity').and.returnValue(Promise.resolve());
     });
     it('returns the identity as null if it looks blank', () => {
       IdentityStore._identity = null;

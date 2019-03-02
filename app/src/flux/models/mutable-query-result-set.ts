@@ -1,15 +1,15 @@
-import QueryResultSet from './query-result-set';
+import { QueryResultSet } from './query-result-set';
 import AttributeJoinedData from '../attributes/attribute-joined-data';
 import { Model } from './model';
 import ModelQuery from './query';
 
 // TODO: Make mutator methods QueryResultSet.join(), QueryResultSet.clip...
-export default class MutableQueryResultSet extends QueryResultSet {
+export default class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
   _ids: string[];
   _offset: number;
-  _modelsHash: { [id: string]: Model };
+  _modelsHash: { [id: string]: T };
   _idToIndexHash: { [id: string]: number };
-  _query: ModelQuery;
+  _query: ModelQuery<T>;
 
   immutableClone() {
     const set = new QueryResultSet({

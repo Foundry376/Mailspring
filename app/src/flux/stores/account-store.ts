@@ -7,18 +7,20 @@ import KeyManager from '../../key-manager';
 import Actions from '../actions';
 import { Account } from '../models/account';
 import { Thread } from '../models/thread';
+import { Contact } from '../models/contact';
 import * as Utils from '../models/utils';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
 
+export type IAliasSet = Array<Contact & { isAlias?: boolean }>;
 /*
 Public: The AccountStore listens to changes to the available accounts in
 the database and exposes the currently active Account via {::current}
 
 Section: Stores
 */
-class AccountStore extends MailspringStore {
+class _AccountStore extends MailspringStore {
   private _version: number;
   private _accounts: Account[];
   private _caches: {};
@@ -301,8 +303,8 @@ class AccountStore extends MailspringStore {
     return _.unique(addresses);
   }
 
-  aliases() {
-    return this._cachedGetter('aliases', () => {
+  aliases(): IAliasSet {
+    return this._cachedGetter<IAliasSet>('aliases', () => {
       const aliases = [];
       for (const acc of this._accounts) {
         aliases.push(acc.me());
@@ -312,11 +314,11 @@ class AccountStore extends MailspringStore {
           aliases.push(aliasContact);
         }
       }
-      return aliases;
+      return aliases as IAliasSet;
     });
   }
 
-  aliasesFor(accountsOrIds: Array<Account | string>) {
+  aliasesFor(accountsOrIds: Array<Account | string>): IAliasSet {
     const ids = accountsOrIds.map(accOrId => {
       return accOrId instanceof Account ? accOrId.id : accOrId;
     });
@@ -329,4 +331,4 @@ class AccountStore extends MailspringStore {
   }
 }
 
-export default new AccountStore();
+export const AccountStore = new _AccountStore();

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Disposable } from 'event-kit';
 
 /*
 A simple component that, when placed in the render tree, registers
@@ -15,7 +16,10 @@ BG: I wrote this rather than using KeyCommandRegion because the region
 class is ancient and actually creates a <div> which disrupts the toolbar
 layout.
 */
-export default class BindGlobalCommands extends React.Component {
+export default class BindGlobalCommands extends React.Component<{
+  commands: { [command: string]: () => void };
+}> {
+  _shortcutDisposable?: Disposable;
   componentDidMount() {
     this._shortcutDisposable = AppEnv.commands.add(document.body, this.props.commands);
   }

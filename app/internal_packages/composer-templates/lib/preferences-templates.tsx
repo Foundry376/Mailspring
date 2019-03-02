@@ -4,12 +4,26 @@ import ReactDOM from 'react-dom';
 import { Flexbox, EditableList, ComposerEditor, ComposerSupport } from 'mailspring-component-kit';
 import { Actions, localized, localizedReactFragment } from 'mailspring-exports';
 import { shell } from 'electron';
+import { Value } from 'slate';
 
 import TemplateStore from './template-store';
 
+interface ITemplate {
+  path: string;
+  name: string;
+}
 const { Conversion: { convertFromHTML, convertToHTML } } = ComposerSupport;
 
-class TemplateEditor extends React.Component {
+interface TemplateEditorProps {
+  template: ITemplate;
+  onEditTitle: (title: string) => void;
+}
+class TemplateEditor extends React.Component<
+  TemplateEditorProps,
+  { readOnly: boolean; editorState: Value }
+> {
+  _composer: ComposerEditor;
+
   constructor(props) {
     super(props);
 
@@ -79,11 +93,16 @@ class TemplateEditor extends React.Component {
   }
 }
 
-export default class PreferencesTemplates extends React.Component {
+export default class PreferencesTemplates extends React.Component<
+  {},
+  { selected: ITemplate; templates: ITemplate[] }
+> {
   static displayName = 'PreferencesTemplates';
 
-  constructor() {
-    super();
+  unsubscribers: Array<() => void>;
+
+  constructor(props) {
+    super(props);
     this.state = this._getStateFromStores();
   }
 

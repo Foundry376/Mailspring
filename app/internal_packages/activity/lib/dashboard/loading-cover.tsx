@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { RetinaImg } from 'mailspring-component-kit';
 
-export default class LoadingCover extends React.Component {
+export default class LoadingCover extends React.Component<{ active: boolean }> {
   static propTypes = {
     active: PropTypes.bool,
   };

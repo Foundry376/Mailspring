@@ -1,5 +1,5 @@
 import { Contact } from '../../src/flux/models/contact';
-import AccountStore from '../../src/flux/stores/account-store';
+import { AccountStore } from '../../src/flux/stores/account-store';
 import Account from '../../src/flux/models/account';
 
 const contact_1 = {
@@ -162,7 +162,7 @@ describe('Contact', function() {
     it('it calls through to accountForEmail', function() {
       const c1 = new Contact({ email: this.account.emailAddress });
       const acct = new Account();
-      spyOn(AccountStore, 'accountForEmail').andReturn(acct);
+      spyOn(AccountStore, 'accountForEmail').and.returnValue(acct);
       expect(c1.isMe()).toBe(true);
       expect(AccountStore.accountForEmail).toHaveBeenCalled();
     });

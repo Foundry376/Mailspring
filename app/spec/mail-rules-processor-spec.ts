@@ -182,7 +182,7 @@ xdescribe('MailRulesProcessor', function() {
     it('should queue tasks for messages', function() {
       spyOn(TaskQueue, 'waitForPerformLocal');
       spyOn(Actions, 'queueTask');
-      spyOn(DatabaseStore, 'findBy').andReturn(Promise.resolve({}));
+      spyOn(DatabaseStore, 'findBy').and.returnValue(Promise.resolve({}));
       Tests.forEach(({ rule }) => {
         TaskQueue.waitForPerformLocal.reset();
         Actions.queueTask.reset();

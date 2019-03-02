@@ -1,10 +1,13 @@
 import React from 'react';
-import { localized, Actions, PropTypes } from 'mailspring-exports';
+import { Account, localized, Actions, PropTypes } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ipcRenderer, remote } from 'electron';
 import * as AccountCommands from '../account-commands';
 
-export default class AccountSwitcher extends React.Component {
+export default class AccountSwitcher extends React.Component<{
+  accounts: Account[];
+  sidebarAccountIds: string[];
+}> {
   static displayName = 'AccountSwitcher';
 
   static propTypes = {

@@ -4,7 +4,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 
-class ComposerExtension {
+export class ComposerExtension {
   /*
   Public: Allows the addition of new types of send actions such as "Send
   Later"
@@ -116,5 +116,3 @@ class ComposerExtension {
   */
   static applyTransformsForSending({ draft, draftBodyRootNode }) {}
 }
-
-export default ComposerExtension;

@@ -19,7 +19,8 @@ interface ComposerEditorProps {
   onChange: (change: any) => void;
   onFileReceived: (path: string) => void;
 }
-export default class ComposerEditor extends React.Component<ComposerEditorProps> {
+
+export class ComposerEditor extends React.Component<ComposerEditorProps> {
   // Public API
 
   _pluginKeyHandlers = {};

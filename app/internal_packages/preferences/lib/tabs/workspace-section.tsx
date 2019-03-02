@@ -5,12 +5,13 @@ import { shell } from 'electron';
 
 import ConfigSchemaItem from './config-schema-item';
 
-class DefaultMailClientItem extends React.Component {
+class DefaultMailClientItem extends React.Component<{}, { defaultClient: boolean | 'unknown' }> {
   _mounted: boolean = false;
 
-  constructor() {
-    super();
-    this._helper = new DefaultClientHelper();
+  _helper = new DefaultClientHelper();
+
+  constructor(props) {
+    super(props);
     if (this._helper.available()) {
       this.state = { defaultClient: false };
       this._helper.isRegisteredForURLScheme('mailto', registered => {
@@ -72,14 +73,13 @@ class DefaultMailClientItem extends React.Component {
 }
 
 class LaunchSystemStartItem extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      available: false,
-      launchOnStart: false,
-    };
-    this._service = new SystemStartService();
-  }
+  _service = new SystemStartService();
+  state = {
+    available: false,
+    launchOnStart: false,
+  };
+
+  _mounted: boolean;
 
   componentDidMount() {
     this._mounted = true;

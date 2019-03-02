@@ -7,10 +7,9 @@ import { Thread } from '../models/thread';
 import Actions from '../actions';
 import { Contact } from '../models/contact';
 import MessageStore from './message-store';
-import AccountStore from './account-store';
+import { AccountStore } from './account-store';
 import DatabaseStore from './database-store';
-import SearchQueryParser from '../../services/search/search-query-parser';
-import { Disposable } from 'event-kit';
+import { SearchQueryParser } from '../../services/search/search-query-parser';
 
 // A store that handles the focuses collections of and individual contacts
 class FocusedContactsStore extends MailspringStore {
@@ -182,8 +181,8 @@ class FocusedContactsStore extends MailspringStore {
     const email = contact.email.toLowerCase().trim();
 
     const accountId = this._currentThread && this._currentThread.accountId;
-    const account = AccountStore.accountForId(accountId) || {};
-    const myEmail = account.emailAddress;
+    const account = AccountStore.accountForId(accountId);
+    const myEmail = account ? account.emailAddress : undefined;
 
     if (email === myEmail) {
       // The whole thing which will penalize to zero

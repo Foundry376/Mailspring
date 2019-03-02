@@ -18,7 +18,7 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
         spyOn(AppEnv.config, 'get').and.callFake(
           key => (key === 'signatures' ? TEST_SIGNATURES : null)
         );
-        spyOn(SignatureStore, 'signatureForEmail').andReturn(TEST_SIGNATURE);
+        spyOn(SignatureStore, 'signatureForEmail').and.returnValue(TEST_SIGNATURE);
         SignatureStore.activate();
       });
 

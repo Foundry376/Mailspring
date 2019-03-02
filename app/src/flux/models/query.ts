@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import Attributes from '../attributes';
-import QueryRange from './query-range';
+import { QueryRange } from './query-range';
 import * as Utils from './utils';
 import { Model } from './model';
 

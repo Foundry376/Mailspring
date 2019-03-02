@@ -1,9 +1,19 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Actions, Utils, AttachmentStore } from 'mailspring-exports';
+import { Actions, Utils, AttachmentStore, File } from 'mailspring-exports';
 import { AttachmentItem, ImageAttachmentItem } from 'mailspring-component-kit';
 
-class MessageAttachments extends Component {
+interface MessageAttachmentsProps {
+  files: File[];
+  downloads: object;
+  headerMessageId: string;
+  filePreviewPaths: {
+    [fileId: string]: string;
+  };
+  canRemoveAttachments: boolean;
+}
+
+class MessageAttachments extends Component<MessageAttachmentsProps> {
   static displayName = 'MessageAttachments';
 
   static containerRequired = false;
@@ -42,7 +52,7 @@ class MessageAttachments extends Component {
   };
 
   renderAttachment(AttachmentRenderer, file) {
-    const { canRemoveAttachments, downloads, filePreviewPaths, headerMessageId } = this.props;
+    const { canRemoveAttachments, downloads, filePreviewPaths } = this.props;
     const download = downloads[file.id];
     const filePath = AttachmentStore.pathForFile(file);
     const fileIconName = `file-${file.displayExtension()}.png`;
@@ -66,9 +76,7 @@ class MessageAttachments extends Component {
         onOpenAttachment={() => this.onOpenAttachment(file)}
         onDownloadAttachment={() => this.onDownloadAttachment(file)}
         onAbortDownload={() => this.onAbortDownload(file)}
-        onRemoveAttachment={
-          canRemoveAttachments ? () => this.onRemoveAttachment(headerMessageId, file) : null
-        }
+        onRemoveAttachment={canRemoveAttachments ? () => this.onRemoveAttachment(file) : null}
       />
     );
   }

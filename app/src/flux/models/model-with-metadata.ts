@@ -23,8 +23,8 @@ export class PluginMetadata extends Model {
   public version: number;
   public value: any;
 
-  constructor(...args) {
-    super(...args);
+  constructor(fields) {
+    super(fields);
     this.version = this.version || 0;
   }
 
@@ -64,8 +64,8 @@ export class ModelWithMetadata extends Model {
 
   public pluginMetadata: PluginMetadata[];
 
-  constructor(...args) {
-    super(...args);
+  constructor(fields) {
+    super(fields);
     this.pluginMetadata = this.pluginMetadata || [];
   }
 
@@ -113,7 +113,7 @@ export class ModelWithMetadata extends Model {
 
   metadataObjectForPluginId(pluginId) {
     if (typeof pluginId !== 'string') {
-      throw new Error(`Invalid pluginId. Must be a valid string: '${pluginId}'`, pluginId);
+      throw new Error(`Invalid pluginId. Must be a valid string: '${pluginId}'`);
     }
     return this.pluginMetadata.find(metadata => metadata.pluginId === pluginId);
   }

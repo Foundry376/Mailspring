@@ -3,11 +3,12 @@ import {
   localized,
   Actions,
   PropTypes,
+  Thread,
   TaskFactory,
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
-export class ThreadArchiveQuickAction extends React.Component {
+export class ThreadArchiveQuickAction extends React.Component<{ thread: Thread }> {
   static displayName = 'ThreadArchiveQuickAction';
   static propTypes = { thread: PropTypes.object };
 
@@ -44,7 +45,7 @@ export class ThreadArchiveQuickAction extends React.Component {
   };
 }
 
-export class ThreadTrashQuickAction extends React.Component {
+export class ThreadTrashQuickAction extends React.Component<{ thread: Thread }> {
   static displayName = 'ThreadTrashQuickAction';
   static propTypes = { thread: PropTypes.object };
 

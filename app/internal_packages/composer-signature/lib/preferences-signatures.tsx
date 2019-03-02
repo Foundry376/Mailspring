@@ -7,6 +7,10 @@ import {
   Actions,
   FocusedPerspectiveStore,
   Utils,
+  ISignatureSet,
+  ISignature,
+  IDefaultSignatures,
+  IAliasSet,
 } from 'mailspring-exports';
 import { Flexbox, EditableList } from 'mailspring-component-kit';
 
@@ -16,7 +20,15 @@ import SignatureTemplatePicker from './signature-template-picker';
 import SignaturePhotoPicker from './signature-photo-picker';
 import Templates from './templates';
 
-class SignatureEditor extends React.Component {
+interface SignatureEditorProps {
+  signature: ISignature;
+  defaults: IDefaultSignatures;
+  accountsAndAliases: IAliasSet;
+}
+
+interface SignatureEditorState {}
+
+class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEditorState> {
   _onBaseFieldChange = event => {
     const { id, value } = event.target;
     const sig = this.props.signature;
@@ -68,7 +80,12 @@ class SignatureEditor extends React.Component {
     let signature = this.props.signature;
     let empty = false;
     if (!signature) {
-      signature = { data: { templateName: Templates[0].name } };
+      signature = {
+        id: '',
+        body: '',
+        title: '',
+        data: { title: '', templateName: Templates[0].name },
+      };
       empty = true;
     }
     const data = signature.data || {};
@@ -145,11 +162,20 @@ class SignatureEditor extends React.Component {
   }
 }
 
-export default class PreferencesSignatures extends React.Component {
+interface PreferencesSignaturesState {
+  signatures: ISignatureSet;
+  selectedSignature: ISignature;
+  defaults: IDefaultSignatures;
+  accountsAndAliases: IAliasSet;
+}
+
+export default class PreferencesSignatures extends React.Component<{}, PreferencesSignaturesState> {
   static displayName = 'PreferencesSignatures';
 
-  constructor() {
-    super();
+  unsubscribers = [];
+
+  constructor(props) {
+    super(props);
     this.state = this._getStateFromStores();
   }
 

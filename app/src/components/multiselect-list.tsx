@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import classNames from 'classnames';
-import { ListTabular, ListTabularColumn } from './list-tabular';
+import { ListTabular, ListTabularProps, ListTabularColumn } from './list-tabular';
 import { Spinner } from './spinner';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -11,16 +11,18 @@ import MultiselectListInteractionHandler from './multiselect-list-interaction-ha
 import MultiselectSplitInteractionHandler from './multiselect-split-interaction-handler';
 import ListDataSource from './list-data-source';
 
-type MultiselectListProps = {
-  focusedId: string;
-  keyboardCursorId: string;
+export interface MultiselectListProps extends ListTabularProps {
+  focusedId?: string;
+  keyboardCursorId?: string;
   dataSource?: ListDataSource;
   className: string;
   columns: ListTabularColumn[];
   itemPropsProvider: (...args: any[]) => any;
   keymapHandlers?: object;
+  onFocusItem?: (item: any) => void;
+  onSetCursorPosition?: (item: any) => void;
   onComponentDidUpdate?: (...args: any[]) => any;
-};
+}
 
 type MultiselectListState = {
   handler: any;
@@ -39,10 +41,7 @@ you provide, and also handles:
 
 Section: Component Kit
 */
-export default class MultiselectList extends React.Component<
-  MultiselectListProps,
-  MultiselectListState
-> {
+export class MultiselectList extends React.Component<MultiselectListProps, MultiselectListState> {
   static displayName = 'MultiselectList';
 
   static propTypes = {

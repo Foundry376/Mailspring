@@ -10,14 +10,19 @@ _ = Object.assign(_, require('../config-utils'));
 const RETRY_SAVES = 3;
 
 export default class ConfigPersistenceManager {
-  constructor({ configDirPath, resourcePath } = {}) {
+  userWantsToPreserveErrors = false;
+  saveRetries = 0;
+  settings = {};
+  configDirPath: string;
+  configFilePath: string;
+  resourcePath: string;
+  lastSaveTimestamp?: number;
+
+  constructor({ configDirPath, resourcePath }: { configDirPath: string; resourcePath: string }) {
     this.configDirPath = configDirPath;
     this.resourcePath = resourcePath;
 
-    this.userWantsToPreserveErrors = false;
-    this.saveRetries = 0;
     this.configFilePath = path.join(this.configDirPath, 'config.json');
-    this.settings = {};
 
     this.initializeConfigDirectory();
     this.load();
@@ -47,7 +52,7 @@ export default class ConfigPersistenceManager {
 
   writeTemplateConfigFile() {
     const templateConfigPath = path.join(this.resourcePath, 'dot-nylas', 'config.json');
-    const templateConfig = fs.readFileSync(templateConfigPath);
+    const templateConfig = fs.readFileSync(templateConfigPath).toString();
     fs.writeFileSync(this.configFilePath, templateConfig);
   }
 
@@ -88,7 +93,7 @@ export default class ConfigPersistenceManager {
     this.userWantsToPreserveErrors = false;
 
     try {
-      const json = JSON.parse(fs.readFileSync(this.configFilePath));
+      const json = JSON.parse(fs.readFileSync(this.configFilePath).toString());
       if (!json || !json['*']) {
         throw new Error('config json appears empty');
       }
@@ -183,7 +188,7 @@ export default class ConfigPersistenceManager {
     this.save();
   };
 
-  emitChangeEvent = ({ sourceWebcontentsId } = {}) => {
+  emitChangeEvent = ({ sourceWebcontentsId }: { sourceWebcontentsId?: number } = {}) => {
     global.application.config.updateSettings(this.settings);
 
     BrowserWindow.getAllWindows().forEach(win => {

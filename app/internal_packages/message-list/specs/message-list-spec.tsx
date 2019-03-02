@@ -239,7 +239,7 @@ describe('MessageList', function() {
     });
 
     it("prompts for a reply-all when there's more than one participant and the default is reply-all", function() {
-      spyOn(AppEnv.config, 'get').andReturn('reply-all');
+      spyOn(AppEnv.config, 'get').and.returnValue('reply-all');
       MessageStore._items = [m5, m3];
       MessageStore._thread = testThread;
       MessageStore.trigger();
@@ -252,7 +252,7 @@ describe('MessageList', function() {
     });
 
     it("prompts for a reply-all when there's more than one participant and the default is reply", function() {
-      spyOn(AppEnv.config, 'get').andReturn('reply');
+      spyOn(AppEnv.config, 'get').and.returnValue('reply');
       MessageStore._items = [m5, m3];
       MessageStore._thread = testThread;
       MessageStore.trigger();

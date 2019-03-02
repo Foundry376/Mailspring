@@ -20,9 +20,9 @@ export const EmptyListState: typeof import('../components/empty-list-state').def
 export * from '../components/list-tabular';
 // export const ListTabular: typeof import('../components/list-tabular').default;
 export const Notification: typeof import('../components/notification').default;
-export const EventedIFrame: typeof import('../components/evented-iframe').default;
-export const ButtonDropdown: typeof import('../components/button-dropdown').default;
-export const MultiselectList: typeof import('../components/multiselect-list').default;
+export * from '../components/evented-iframe'
+export * from '../components/button-dropdown';
+export * from '../components/multiselect-list'
 export const BoldedSearchResult: typeof import('../components/bolded-search-result').default;
 export const MultiselectDropdown: typeof import('../components/multiselect-dropdown').default;
 export const KeyCommandsRegion: typeof import('../components/key-commands-region').default;
@@ -56,14 +56,14 @@ export const AttachmentItem: typeof import('../components/attachment-items').Att
 export const ImageAttachmentItem: typeof import('../components/attachment-items').ImageAttachmentItem;
 export const CodeSnippet: typeof import('../components/code-snippet').default;
 
-export const ComposerEditor: typeof import('../components/composer-editor/composer-editor').default;
+export * from '../components/composer-editor/composer-editor'
+
 export const ComposerSupport: typeof import('../components/composer-editor/composer-support');
 
 export * from '../components/scroll-region'
 export * from '../components/resizable-region'
+export * from '../components/mail-label'
 
-export const MailLabel: typeof import('../components/mail-label');
-export const LabelColorizer: typeof import('../components/mail-label');
 export const MailLabelSet: typeof import('../components/mail-label-set').default;
 export const MailImportantIcon: typeof import('../components/mail-important-icon').default;
 

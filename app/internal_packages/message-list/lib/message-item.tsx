@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { localized, Utils, Actions, AttachmentStore } from 'mailspring-exports';
+import { Thread, Message, localized, Utils, Actions, AttachmentStore } from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
@@ -8,7 +8,23 @@ import MessageItemBody from './message-item-body';
 import MessageTimestamp from './message-timestamp';
 import MessageControls from './message-controls';
 
-export default class MessageItem extends React.Component {
+interface MessageItemProps {
+  thread: Thread;
+  message: Message;
+  messages: Message[];
+  collapsed: boolean;
+  pending: boolean;
+  isMostRecent: boolean;
+  className: string;
+}
+
+interface MessageItemState {
+  filePreviewPaths: { [fileId: string]: string };
+  downloads: any[];
+  detailedHeaders: boolean;
+}
+
+export default class MessageItem extends React.Component<MessageItemProps, MessageItemState> {
   static displayName = 'MessageItem';
 
   static propTypes = {
@@ -33,6 +49,8 @@ export default class MessageItem extends React.Component {
       detailedHeaders: false,
     };
   }
+
+  private _storeUnlisten?: () => void;
 
   componentDidMount() {
     this._storeUnlisten = AttachmentStore.listen(this._onDownloadStoreChange);

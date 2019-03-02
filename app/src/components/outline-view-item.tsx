@@ -10,6 +10,7 @@ import DisclosureTriangle from './disclosure-triangle';
 import DropZone from './drop-zone';
 import RetinaImg from './retina-img';
 import PropTypes from 'prop-types';
+import { IOutlineViewItem } from './outline-view';
 
 /*
  * Enum for counter styles
@@ -22,30 +23,11 @@ const CounterStyles = {
 };
 
 type OutlineViewItemProps = {
-  item: {
-    className?: string;
-    id: string;
-    name: string;
-    iconName: string;
-    count?: number;
-    counterStyle?: string;
-    inputPlaceholder?: string;
-    collapsed?: boolean;
-    editing?: boolean;
-    selected?: boolean;
-    shouldAcceptDrop?: (...args: any[]) => any;
-    onCollapseToggled?: (...args: any[]) => any;
-    onInputCleared?: (...args: any[]) => any;
-    onDrop?: (...args: any[]) => any;
-    onSelect?: (...args: any[]) => any;
-    onDelete?: (...args: any[]) => any;
-    onEdited?: (...args: any[]) => any;
-  };
+  item: IOutlineViewItem;
 };
 type OutlineViewItemState = {
-  editing: any;
+  editing: boolean;
   isDropping: boolean;
-  editing: any;
 };
 /*
  * Renders an item that may contain more arbitrarily nested items

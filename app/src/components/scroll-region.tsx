@@ -7,7 +7,10 @@ import ScrollbarTicks from './scrollbar-ticks';
 
 type Ticks = Array<number | { percent: number; className: string }>;
 
-type ScrollTooltipComponent = React.ComponentType<{ viewportCenter: number; totalHeight: number }>;
+export interface ScrollRegionTooltipComponentProps {
+  viewportCenter: number;
+  totalHeight: number;
+}
 
 interface TicksProvider {
   scrollbarTicks: () => Ticks;
@@ -15,7 +18,7 @@ interface TicksProvider {
 }
 
 type ScrollbarProps = {
-  scrollTooltipComponent?: ScrollTooltipComponent;
+  scrollTooltipComponent?: React.ComponentType<ScrollRegionTooltipComponentProps>;
   scrollbarTickProvider?: TicksProvider;
   getScrollRegion?: (...args: any[]) => any;
 };
@@ -216,14 +219,14 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   };
 }
 
-type ScrollRegionProps = {
+export interface ScrollRegionProps {
   onScroll?: (...args: any[]) => any;
   onScrollEnd?: (...args: any[]) => any;
   className?: string;
   scrollTooltipComponent?: ScrollTooltipComponent;
   scrollbarTickProvider?: TicksProvider;
   getScrollbar?: (...args: any[]) => any;
-};
+}
 
 type ScrollRegionState = {
   totalHeight: number;

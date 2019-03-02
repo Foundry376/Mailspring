@@ -1,8 +1,13 @@
 import React from 'react';
 import { localized, UpdateChannelStore } from 'mailspring-exports';
 
-class UpdateChannelSection extends React.Component {
+class UpdateChannelSection extends React.Component<
+  {},
+  { current: { name: string }; available: { name: string }[]; saving?: boolean }
+> {
   static displayName = 'UpdateChannelSection';
+
+  _unsub?: () => void;
 
   constructor(props) {
     super(props);

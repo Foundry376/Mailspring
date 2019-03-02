@@ -16,7 +16,7 @@ const makePopover = (props = {}) => {
 
 describe('DatePickerPopover', function sendLaterPopover() {
   beforeEach(() => {
-    spyOn(DateUtils, 'format').andReturn('formatted');
+    spyOn(DateUtils, 'format').and.returnValue('formatted');
   });
 
   describe('selectDate', () => {

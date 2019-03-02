@@ -2,13 +2,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import path from 'path';
 import fs from 'fs';
-import { RetinaImg, Flexbox, ConfigPropContainer } from 'mailspring-component-kit';;
-import { localized, AccountStore, IdentityStore } from 'mailspring-exports';;
+import { RetinaImg, Flexbox, ConfigPropContainer } from 'mailspring-component-kit';
+import { localized, AccountStore, IdentityStore, Account } from 'mailspring-exports';
 import OnboardingActions from './onboarding-actions';
 import NewsletterSignup from './newsletter-signup';
 
 // NOTE: Temporarily copied from preferences module
-class AppearanceModeOption extends React.Component {
+class AppearanceModeOption extends React.Component<{
+  mode: string;
+  active: boolean;
+  onClick: (e: React.MouseEvent<any>) => void;
+}> {
   static propTypes = {
     mode: PropTypes.string.isRequired,
     active: PropTypes.bool,
@@ -38,7 +42,10 @@ class AppearanceModeOption extends React.Component {
   }
 }
 
-class InitialPreferencesOptions extends React.Component {
+class InitialPreferencesOptions extends React.Component<
+  { account: Account; config: any },
+  { templates: any[] }
+> {
   static propTypes = { config: PropTypes.object };
 
   constructor(props) {
@@ -154,6 +161,8 @@ class InitialPreferencesOptions extends React.Component {
 
 class InitialPreferencesPage extends React.Component {
   static displayName = 'InitialPreferencesPage';
+
+  _unlisten?: () => void;
 
   constructor(props) {
     super(props);

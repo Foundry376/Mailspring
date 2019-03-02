@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { localized, DateUtils, Actions } from 'mailspring-exports';
+import { localized, DateUtils, Actions, Thread } from 'mailspring-exports';
 import { RetinaImg, DateInput } from 'mailspring-component-kit';
 import SnoozeActions from './snooze-actions';
 
@@ -29,7 +29,10 @@ const SnoozeIconNames = {
   [localized('Next Month')]: 'month',
 };
 
-class SnoozePopover extends Component {
+class SnoozePopover extends Component<{
+  threads: Thread[];
+  swipeCallback: (didSnooze: boolean) => void;
+}> {
   static displayName = 'SnoozePopover';
 
   static propTypes = {
@@ -41,10 +44,7 @@ class SnoozePopover extends Component {
     swipeCallback: () => {},
   };
 
-  constructor() {
-    super();
-    this.didSnooze = false;
-  }
+  didSnooze: boolean = false;
 
   componentWillUnmount() {
     this.props.swipeCallback(this.didSnooze);

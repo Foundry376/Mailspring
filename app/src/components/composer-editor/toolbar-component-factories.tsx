@@ -118,8 +118,20 @@ export function BuildToggleButton({ type, button: { iconClass, isActive, onToggl
   };
 }
 
+interface ToolbarButtonProps {
+  value: any;
+  onChange: (value: any) => void;
+  className: string;
+}
+
 export function BuildMarkButtonWithValuePicker(config) {
-  return class ToolbarMarkDataPicker extends React.Component {
+  return class ToolbarMarkDataPicker extends React.Component<
+    ToolbarButtonProps,
+    { expanded: boolean; fieldValue: string }
+  > {
+    _inputEl: HTMLInputElement;
+    _el: HTMLDivElement;
+
     constructor(props) {
       super(props);
 
@@ -256,7 +268,12 @@ export function BuildMarkButtonWithValuePicker(config) {
 }
 
 export function BuildColorPicker(config) {
-  return class ToolbarColorPicker extends React.Component {
+  return class ToolbarColorPicker extends React.Component<
+    ToolbarButtonProps,
+    { expanded: boolean }
+  > {
+    _el: HTMLElement;
+
     constructor(props) {
       super(props);
       this.state = {
@@ -328,7 +345,7 @@ export function BuildColorPicker(config) {
 }
 
 export function BuildFontPicker(config) {
-  return class FontPicker extends React.Component {
+  return class FontPicker extends React.Component<ToolbarButtonProps> {
     _onSetValue = e => {
       const { onChange, value } = this.props;
       let markValue = e.target.value !== config.default ? e.target.value : null;
@@ -355,12 +372,7 @@ export function BuildFontPicker(config) {
           className={`${this.props.className} with-select`}
         >
           <i className={config.iconClass} />
-          <select
-            onFocus={this._onFocus}
-            value={displayed}
-            onChange={this._onSetValue}
-            tabIndex={-1}
-          >
+          <select value={displayed} onChange={this._onSetValue} tabIndex={-1}>
             {config.options.map(({ name, value }) => (
               <option key={value} value={value}>
                 {name}

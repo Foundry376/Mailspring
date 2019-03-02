@@ -3,8 +3,18 @@ import classnames from 'classnames';
 import { localized, Actions, MessageStore, SearchableComponentStore } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
-export default class FindInThread extends React.Component {
+interface FindInThreadProps {
+  searchTerm: string;
+  globalIndex: number;
+  resultsLength: number;
+}
+export default class FindInThread extends React.Component<{}, FindInThreadProps> {
   static displayName = 'FindInThread';
+
+  _usub: () => void;
+  _searchBoxEl: HTMLElement;
+  _controlsWrapEl: HTMLElement;
+  _globalKeymapHandlers: { [command: string]: () => void };
 
   constructor(props) {
     super(props);
@@ -79,8 +89,8 @@ export default class FindInThread extends React.Component {
     Actions.findInThread(null);
   };
 
-  _focusSearch = event => {
-    if (!event || !(this._controlsWrapEl && this._controlsWrapEl.contains(event.target))) {
+  _focusSearch = (event?: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (!event || !(this._controlsWrapEl && this._controlsWrapEl.contains(event.currentTarget))) {
       this._searchBoxEl.focus();
     }
   };

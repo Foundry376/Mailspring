@@ -12,7 +12,7 @@ be an instance of the config provided by `ConfigPropContainer`.
 The config schema follows the JSON Schema standard: http://json-schema.org/
 */
 interface ConfigSchemaItemProps {
-  keyName: string;
+  keyName?: string;
   keyPath: string;
   config: ConfigLike;
   configSchema: ConfigSchemaLike;

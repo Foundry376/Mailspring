@@ -14,7 +14,7 @@ class SearchMailboxPerspective extends MailboxPerspective {
   searchQuery: string;
   sourcePerspective: MailboxPerspective;
   name: string;
-  
+
   constructor(sourcePerspective, searchQuery) {
     super(sourcePerspective.accountIds);
     if (typeof searchQuery !== 'string') {
@@ -47,7 +47,7 @@ class SearchMailboxPerspective extends MailboxPerspective {
     return false;
   }
 
-  tasksForRemovingItems(threads) {
+  tasksForRemovingItems(threads, source?: string) {
     return TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const account = AccountStore.accountForId(accountId);
       if (!account) {

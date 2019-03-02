@@ -2,26 +2,30 @@ import { localized, Actions, AccountStore } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 import _ from 'underscore';
 
-class SignatureStore extends MailspringStore {
-  signatures: {
-    [key: string]: {
-      id: string;
-      title: string;
-      body: string;
-      data: {
-        title: string;
-        templateName: string;
-      };
-    };
-  };
+export interface IDefaultSignatures {
+  [accountId: string]: string;
+}
 
-  defaultSignatures: {
-    [accountId: string]: string;
+export interface ISignature {
+  id: string;
+  title: string;
+  body: string;
+  data: {
+    title: string;
+    templateName: string;
   };
+}
+
+export interface ISignatureSet {
+  [key: string]: ISignature;
+}
+
+class _SignatureStore extends MailspringStore {
+  signatures: ISignatureSet;
+  defaultSignatures: IDefaultSignatures;
+  selectedSignatureId: string;
 
   unsubscribers: Array<() => void>;
-
-  selectedSignatureId: string;
 
   constructor() {
     super();
@@ -145,4 +149,4 @@ class SignatureStore extends MailspringStore {
   };
 }
 
-export default new SignatureStore();
+export const SignatureStore = new _SignatureStore();

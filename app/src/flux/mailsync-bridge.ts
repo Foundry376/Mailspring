@@ -9,7 +9,7 @@ import TaskQueue from './stores/task-queue';
 import IdentityStore from './stores/identity-store';
 
 import Account from './models/account';
-import AccountStore from './stores/account-store';
+import { AccountStore } from './stores/account-store';
 import DatabaseStore from './stores/database-store';
 import OnlineStatusStore from './stores/online-status-store';
 import DatabaseChangeRecord from './stores/database-change-record';

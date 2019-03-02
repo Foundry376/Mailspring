@@ -1,11 +1,19 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
-import { Actions, FocusedPerspectiveStore } from 'mailspring-exports';
+import { Actions, FocusedPerspectiveStore, Thread } from 'mailspring-exports';
 import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 import SnoozePopover from './snooze-popover';
 
-class SnoozeButton extends Component {
+interface SnoozeButtonProps {
+  className: string;
+  threads: Thread[];
+  direction: string;
+  shouldRenderIconImg: boolean;
+  getBoundingClientRect: (inst: any) => ClientRect;
+}
+
+class SnoozeButton extends Component<SnoozeButtonProps> {
   static propTypes = {
     className: PropTypes.string,
     threads: PropTypes.array,
@@ -18,16 +26,17 @@ class SnoozeButton extends Component {
     className: 'btn btn-toolbar',
     direction: 'down',
     shouldRenderIconImg: true,
-    getBoundingClientRect: inst => ReactDOM.findDOMNode(inst).getBoundingClientRect(),
+    getBoundingClientRect: inst =>
+      (ReactDOM.findDOMNode(inst) as HTMLElement).getBoundingClientRect(),
   };
 
-  onClick = event => {
+  onClick = (event?: React.MouseEvent<any>) => {
     if (event) {
       event.stopPropagation();
     }
     const { threads, direction, getBoundingClientRect } = this.props;
     const buttonRect = getBoundingClientRect(this);
-    Actions.openPopover(<SnoozePopover threads={threads} closePopover={Actions.closePopover} />, {
+    Actions.openPopover(<SnoozePopover threads={threads} />, {
       originRect: buttonRect,
       direction: direction,
     });
@@ -49,7 +58,7 @@ class SnoozeButton extends Component {
   }
 }
 
-export class QuickActionSnooze extends Component {
+export class QuickActionSnooze extends Component<{ thread: Thread }> {
   static displayName = 'QuickActionSnooze';
 
   static propTypes = {
@@ -61,7 +70,7 @@ export class QuickActionSnooze extends Component {
   getBoundingClientRect = () => {
     // Grab the parent node because of the zoom applied to this button. If we
     // took this element directly, we'd have to divide everything by 2
-    const element = ReactDOM.findDOMNode(this).parentNode;
+    const element = ReactDOM.findDOMNode(this).parentNode as HTMLElement;
     const { height, width, top, bottom, left, right } = element.getBoundingClientRect();
 
     // The parent node is a bit too much to the left, lets adjust this.
@@ -84,7 +93,7 @@ export class QuickActionSnooze extends Component {
   }
 }
 
-export class ToolbarSnooze extends Component {
+export class ToolbarSnooze extends Component<{ items: Thread[] }> {
   static displayName = 'ToolbarSnooze';
 
   static propTypes = {
@@ -92,6 +101,8 @@ export class ToolbarSnooze extends Component {
   };
 
   static containerRequired = false;
+
+  _btn: SnoozeButton;
 
   render() {
     if (!FocusedPerspectiveStore.current().isInbox()) {

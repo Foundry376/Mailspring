@@ -331,14 +331,14 @@ jasmine.Spy.prototype.andCallThrough = function() {
  *
  * @example
  * // defining a spy from scratch: foo() returns 'baz'
- * var foo = jasmine.createSpy('spy on foo').andReturn('baz');
+ * var foo = jasmine.createSpy('spy on foo').and.returnValue('baz');
  *
  * // defining a spy on an existing property: foo.bar() returns 'baz'
- * spyOn(foo, 'bar').andReturn('baz');
+ * spyOn(foo, 'bar').and.returnValue('baz');
  *
  * @param {Object} value
  */
-jasmine.Spy.prototype.andReturn = function(value) {
+jasmine.Spy.prototype.and.returnValue = function(value) {
   this.plan = function() {
     return value;
   };

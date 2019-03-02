@@ -23,8 +23,7 @@
   export type DatabaseStore = typeof import('../flux/stores/database-store').default;
   export const DatabaseStore: DatabaseStore; 
   export * from '../flux/models/query-result-set';
-  export type QuerySubscription = import('../flux/models/query-subscription').default;
-  export const QuerySubscription: QuerySubscription; 
+  export * from '../flux/models/query-subscription';
   export type MutableQueryResultSet = import('../flux/models/mutable-query-result-set').default;
   export const MutableQueryResultSet: MutableQueryResultSet; 
   export type QuerySubscriptionPool = typeof import('../flux/models/query-subscription-pool').default;
@@ -55,8 +54,7 @@
   // Search Query Interfaces
   export type SearchQueryAST = typeof import('../services/search/search-query-ast');
   export const SearchQueryAST: SearchQueryAST;
-  export type SearchQueryParser = import('../services/search/search-query-parser').default;
-  export const SearchQueryParser: SearchQueryParser;
+  export * from '../services/search/search-query-parser';
   export type IMAPSearchQueryBackend = import('../services/search/search-query-backend-imap').default;
   export const IMAPSearchQueryBackend: IMAPSearchQueryBackend;
 
@@ -102,10 +100,8 @@
   export const OutboxStore: OutboxStore;
   export type PopoverStore = typeof import('../flux/stores/popover-store').default;
   export const PopoverStore: PopoverStore;
-  export type AccountStore = typeof import('../flux/stores/account-store').default;
-  export const AccountStore: AccountStore;
-  export type SignatureStore = typeof import('../flux/stores/signature-store').default;
-  export const SignatureStore: SignatureStore;
+  export * from '../flux/stores/account-store'
+  export * from '../flux/stores/signature-store'
   export type MessageStore = typeof import('../flux/stores/message-store').default;
   export const MessageStore: MessageStore;
   export type ContactStore = typeof import('../flux/stores/contact-store').default;
@@ -159,9 +155,8 @@
   export const ExtensionRegistry: ExtensionRegistry;
   export type MessageViewExtension = import('../extensions/message-view-extension').default;
   export const MessageViewExtension: MessageViewExtension;
-  export type ComposerExtension = import('../extensions/composer-extension').default;
-  export const ComposerExtension: ComposerExtension;
-
+  export * from '../extensions/composer-extension'
+  
   // 3rd party libraries
   export type Rx = typeof import('rx-lite');
   export const Rx: Rx;
@@ -226,8 +221,7 @@
   export const APIError: APIError;
 
   // Process Internals
-  export type DefaultClientHelper = typeof import('../default-client-helper');
-  export const DefaultClientHelper: DefaultClientHelper;
+  export * from '../default-client-helper'
   export type SystemStartService = typeof import('../system-start-service').default;
   export const SystemStartService: SystemStartService;
 

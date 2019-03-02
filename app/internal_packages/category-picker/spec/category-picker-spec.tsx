@@ -55,9 +55,9 @@ describe('MovePickerPopover', function() {
     ]);
     observable.sort = () => observable;
 
-    spyOn(Categories, 'forAccount').andReturn(observable);
-    spyOn(CategoryStore, 'getCategoryByRole').andReturn(this.inboxCategory);
-    spyOn(AccountStore, 'accountForItems').andReturn(this.account);
+    spyOn(Categories, 'forAccount').and.returnValue(observable);
+    spyOn(CategoryStore, 'getCategoryByRole').and.returnValue(this.inboxCategory);
+    spyOn(AccountStore, 'accountForItems').and.returnValue(this.account);
     spyOn(Actions, 'closePopover');
 
     // By default we're going to set to "inbox". This has implications for

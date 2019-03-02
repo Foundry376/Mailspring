@@ -21,7 +21,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
         },
       },
     };
-    spyOn(IdentityStore, 'identity').andReturn(this.fakeIdentity);
+    spyOn(IdentityStore, 'identity').and.returnValue(this.fakeIdentity);
     spyOn(IdentityStore, 'saveIdentity').and.callFake(async ident => {
       this.fakeIdentity = ident;
     });
@@ -67,7 +67,7 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
 
   describe('markUsedOrUpgrade', () => {
     beforeEach(() => {
-      spyOn(FeatureUsageStore, 'markUsed').andReturn(Promise.resolve());
+      spyOn(FeatureUsageStore, 'markUsed').and.returnValue(Promise.resolve());
       spyOn(Actions, 'openModal');
     });
 

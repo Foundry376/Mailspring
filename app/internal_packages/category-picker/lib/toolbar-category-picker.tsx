@@ -1,17 +1,29 @@
 import React from 'react';
-import { localized, Actions, PropTypes, AccountStore, WorkspaceStore } from 'mailspring-exports';
+import {
+  localized,
+  Actions,
+  Account,
+  PropTypes,
+  AccountStore,
+  WorkspaceStore,
+  Thread,
+} from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 
 import MovePickerPopover from './move-picker-popover';
 import LabelPickerPopover from './label-picker-popover';
 
 // This sets the folder / label on one or more threads.
-class MovePicker extends React.Component {
+class MovePicker extends React.Component<{ items: Thread[] }> {
   static displayName = 'MovePicker';
   static containerRequired = false;
 
   static propTypes = { items: PropTypes.array };
   static contextTypes = { sheetDepth: PropTypes.number };
+
+  _account: Account;
+  _labelEl: HTMLElement;
+  _moveEl: HTMLButtonElement;
 
   constructor(props) {
     super(props);

@@ -2,7 +2,7 @@ import _ from 'underscore';
 import uuidv4 from 'uuid/v4';
 import Actions from '../actions';
 import DatabaseStore from './database-store';
-import AccountStore from './account-store';
+import { AccountStore } from './account-store';
 import ContactStore from './contact-store';
 import MessageStore from './message-store';
 import FocusedPerspectiveStore from './focused-perspective-store';

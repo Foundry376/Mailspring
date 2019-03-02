@@ -5,7 +5,7 @@ import _ from 'underscore';
 import { localized } from './intl';
 import * as Utils from './flux/models/utils';
 import { TaskFactory } from './flux/tasks/task-factory';
-import AccountStore from './flux/stores/account-store';
+import { AccountStore } from './flux/stores/account-store';
 import CategoryStore from './flux/stores/category-store';
 import DatabaseStore from './flux/stores/database-store';
 import OutboxStore from './flux/stores/outbox-store';
@@ -17,6 +17,7 @@ import { Thread } from './flux/models/thread';
 import { Category } from './flux/models/category';
 import { Label } from './flux/models/label';
 import { Folder } from './flux/models/folder';
+import { Task } from './flux/tasks/task';
 import Actions from './flux/actions';
 
 let WorkspaceStore = null;
@@ -210,7 +211,7 @@ export class MailboxPerspective {
     });
   }
 
-  actionsForReceivingThreads(threads, accountId) {
+  actionsForReceivingThreads(threads, accountId): Task | Task[] {
     // eslint-disable-line
     throw new Error('actionsForReceivingThreads: Not implemented in base class.');
   }
@@ -236,7 +237,7 @@ export class MailboxPerspective {
     );
   }
 
-  tasksForRemovingItems(threads) {
+  tasksForRemovingItems(threads: Thread[], source?: string) {
     if (!(threads instanceof Array)) {
       throw new Error('tasksForRemovingItems: you must pass an array of threads or thread ids');
     }
@@ -301,16 +302,15 @@ class StarredMailboxPerspective extends MailboxPerspective {
 
   actionsForReceivingThreads(threads, accountId) {
     ChangeStarredTask = ChangeStarredTask || require('./flux/tasks/change-starred-task').default;
-    const task = new ChangeStarredTask({
+    return new ChangeStarredTask({
       accountId,
       threads,
       starred: true,
       source: 'Dragged Into List',
     });
-    Actions.queueTask(task);
   }
 
-  tasksForRemovingItems(threads) {
+  tasksForRemovingItems(threads, source?: string) {
     const task = TaskFactory.taskForInvertingStarred({
       threads: threads,
       source: 'Removed From List',
@@ -526,7 +526,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   // - if finished category === "archive" remove the label
   // - if finished category === "trash" move to trash folder, keep labels intact
   //
-  tasksForRemovingItems(threads, source = 'Removed from list') {
+  tasksForRemovingItems(threads, source?: string = 'Removed from list') {
     ChangeLabelsTask = ChangeLabelsTask || require('./flux/tasks/change-labels-task').default;
     ChangeFolderTask = ChangeFolderTask || require('./flux/tasks/change-folder-task').default;
 
@@ -589,7 +589,7 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
     return tasks;
   }
 
-  tasksForRemovingItems(threads, source) {
+  tasksForRemovingItems(threads, source?: string) {
     ChangeUnreadTask = ChangeUnreadTask || require('./flux/tasks/change-unread-task').default;
 
     const tasks = super.tasksForRemovingItems(threads, source);

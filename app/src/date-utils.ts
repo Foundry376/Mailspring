@@ -159,7 +159,7 @@ const DateUtils = {
 
   timeZone: tz,
 
-  format(momentDate, formatString) {
+  format(momentDate, formatString?) {
     if (!momentDate) return null;
     return momentDate.format(formatString);
   },

@@ -3,6 +3,7 @@ import {
   localized,
   Actions,
   Thread,
+  Message,
   DatabaseStore,
   NativeNotifications,
   FocusedPerspectiveStore,
@@ -22,13 +23,15 @@ export function pluckByEmail(recipients, email) {
 }
 
 class ActivityEventStore extends MailspringStore {
+  _throttlingTimestamps = {};
+  _actions = [];
+  _unreadCount = 0;
+  _messages?: Message[];
+  _subscription: Rx.IDisposable;
+
   activate() {
     this.listenTo(ActivityActions.markViewed, this._onMarkViewed);
     this.listenTo(FocusedPerspectiveStore, this._onUpdateActivity);
-
-    this._throttlingTimestamps = {};
-    this._actions = [];
-    this._unreadCount = 0;
 
     const start = () => {
       this._subscription = new ActivityDataSource()
@@ -81,7 +84,7 @@ class ActivityEventStore extends MailspringStore {
     DatabaseStore.find(Thread, threadId).then(thread => {
       if (!thread) {
         AppEnv.reportError(
-          new Error(`ActivityEventStore::focusThread: Can't find thread`, { threadId })
+          new Error(`ActivityEventStore::focusThread: Can't find thread: ${threadId}`)
         );
         AppEnv.showErrorDialog(localized(`Can't find the selected thread in your mailbox`));
         return;

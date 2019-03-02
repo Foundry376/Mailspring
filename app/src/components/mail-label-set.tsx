@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import FocusedPerspectiveStore from '../flux/stores/focused-perspective-store';
 import CategoryStore from '../flux/stores/category-store';
 import MessageStore from '../flux/stores/message-store';
-import AccountStore from '../flux/stores/account-store';
+import { AccountStore } from '../flux/stores/account-store';
 import { MailLabel } from './mail-label';
 import Actions from '../flux/actions';
 import ChangeLabelsTask from '../flux/tasks/change-labels-task';

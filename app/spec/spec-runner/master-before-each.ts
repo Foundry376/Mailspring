@@ -10,12 +10,14 @@ import {
 import { clipboard } from 'electron';
 
 import Config from '../../src/config';
-import configUtils from '../../src/config-utils';
+import * as configUtils from '../../src/config-utils';
 import TimeOverride from './time-override';
 import TestConstants from './test-constants';
 import * as jasmineExtensions from './jasmine-extensions';
 
 class MasterBeforeEach {
+  loadSettings: any;
+
   setup(loadSettings, beforeEach) {
     this.loadSettings = loadSettings;
     const self = this;

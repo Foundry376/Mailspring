@@ -7,6 +7,7 @@
 import _ from 'underscore';
 import {
   Actions,
+  Account,
   SyncbackCategoryTask,
   CategoryStore,
   Label,
@@ -17,6 +18,7 @@ import {
 
 import SidebarItem from './sidebar-item';
 import * as SidebarActions from './sidebar-actions';
+import { ISidebarSection } from './types';
 
 function isSectionCollapsed(title) {
   if (AppEnv.savedState.sidebarKeysCollapsed[title] !== undefined) {
@@ -34,14 +36,14 @@ function toggleSectionCollapsed(section) {
 }
 
 class SidebarSection {
-  static empty(title) {
+  static empty(title): ISidebarSection {
     return {
       title,
       items: [],
     };
   }
 
-  static standardSectionForAccount(account) {
+  static standardSectionForAccount(account): ISidebarSection {
     if (!account) {
       throw new Error('standardSectionForAccount: You must pass an account.');
     }
@@ -81,7 +83,7 @@ class SidebarSection {
     };
   }
 
-  static standardSectionForAccounts(accounts) {
+  static standardSectionForAccounts(accounts?: Account[]): ISidebarSection {
     let children;
     if (!accounts || accounts.length === 0) {
       return this.empty(localized('All Accounts'));
@@ -115,7 +117,7 @@ class SidebarSection {
       // eslint-disable-next-line
       accounts.forEach(acc => {
         const cat = _.first(
-          _.compact(names.map(name => CategoryStore.getCategoryByRole(acc, name)))
+          _.compact((names as string[]).map(name => CategoryStore.getCategoryByRole(acc, name)))
         );
         if (!cat) {
           return;
@@ -174,7 +176,10 @@ class SidebarSection {
     };
   }
 
-  static forUserCategories(account, { title, collapsible } = {}) {
+  static forUserCategories(
+    account,
+    { title, collapsible }: { title?: string; collapsible?: boolean } = {}
+  ): ISidebarSection {
     let onCollapseToggled;
     if (!account) {
       return;

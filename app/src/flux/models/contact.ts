@@ -4,7 +4,7 @@ import { Model } from './model';
 import Attributes from '../attributes';
 import * as Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
-import AccountStore from '../stores/account-store';
+import { AccountStore } from '../stores/account-store';
 import { localized } from '../../intl';
 
 let FocusedPerspectiveStore = null; // Circular Dependency

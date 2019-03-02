@@ -1,4 +1,4 @@
-import QueryRange from '../../src/flux/models/query-range';
+import { QueryRange } from '../../src/flux/models/query-range';
 
 describe('QueryRange', function QueryRangeSpecs() {
   describe('@infinite', () =>

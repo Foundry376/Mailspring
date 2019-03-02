@@ -240,7 +240,7 @@
 
 //   describe('when the workspace is in list mode', function() {
 //     beforeEach(function() {
-//       spyOn(WorkspaceStore, 'layoutMode').andReturn('list');
+//       spyOn(WorkspaceStore, 'layoutMode').and.returnValue('list');
 //       this.thread_list.setState({ focusedId: 't111' });
 //     });
 
@@ -263,7 +263,7 @@
 
 //   describe('when the workspace is in split mode', function() {
 //     beforeEach(function() {
-//       spyOn(WorkspaceStore, 'layoutMode').andReturn('split');
+//       spyOn(WorkspaceStore, 'layoutMode').and.returnValue('split');
 //       this.thread_list.setState({ focusedId: 't111' });
 //     });
 

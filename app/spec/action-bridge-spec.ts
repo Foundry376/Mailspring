@@ -10,8 +10,8 @@ const ipc = {
 describe('ActionBridge', function() {
   describe('in the main window', function() {
     beforeEach(function() {
-      spyOn(AppEnv, 'getWindowType').andReturn('default');
-      spyOn(AppEnv, 'isMainWindow').andReturn(true);
+      spyOn(AppEnv, 'getWindowType').and.returnValue('default');
+      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
       this.bridge = new ActionBridge(ipc);
     });
 
@@ -43,8 +43,8 @@ describe('ActionBridge', function() {
 
   describe('in another window', function() {
     beforeEach(function() {
-      spyOn(AppEnv, 'getWindowType').andReturn('popout');
-      spyOn(AppEnv, 'isMainWindow').andReturn(false);
+      spyOn(AppEnv, 'getWindowType').and.returnValue('popout');
+      spyOn(AppEnv, 'isMainWindow').and.returnValue(false);
       this.bridge = new ActionBridge(ipc);
       this.message = new Message({
         id: 'test-id',
@@ -80,8 +80,8 @@ describe('ActionBridge', function() {
 
   describe('onRebroadcast', function() {
     beforeEach(function() {
-      spyOn(AppEnv, 'getWindowType').andReturn('popout');
-      spyOn(AppEnv, 'isMainWindow').andReturn(false);
+      spyOn(AppEnv, 'getWindowType').and.returnValue('popout');
+      spyOn(AppEnv, 'isMainWindow').and.returnValue(false);
       this.bridge = new ActionBridge(ipc);
     });
 

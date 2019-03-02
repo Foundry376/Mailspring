@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import RetinaImg from './retina-img';
 import { PropTypes } from 'mailspring-exports';
 import classnames from 'classnames';
 
 type ButtonDropdownState = {
-  open: boolean;
+  open: 'up' | 'down' | false;
 };
 
-class ButtonDropdown extends React.Component<{}, ButtonDropdownState> {
+type ButtonDropdownProps = {
+  bordered: boolean;
+  primaryTitle?: string;
+  primaryItem: React.ReactElement;
+  primaryClick?: () => void;
+  menu: React.ReactElement;
+  style?: CSSProperties;
+  closeOnMenuClick?: boolean;
+  attachment?: string;
+  className?: string;
+};
+
+export class ButtonDropdown extends React.Component<ButtonDropdownProps, ButtonDropdownState> {
   static displayName = 'ButtonDropdown';
   static propTypes = {
     primaryItem: PropTypes.element,
@@ -100,7 +112,8 @@ class ButtonDropdown extends React.Component<{}, ButtonDropdownState> {
     if (this.state.open !== false) {
       this.setState({ open: false });
     } else {
-      const buttonBottom = ReactDOM.findDOMNode(this).getBoundingClientRect().bottom;
+      const buttonBottom = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect()
+        .bottom;
       if (buttonBottom + 200 > window.innerHeight) {
         this.setState({ open: 'up' });
       } else {
@@ -123,5 +136,3 @@ class ButtonDropdown extends React.Component<{}, ButtonDropdownState> {
     this.setState({ open: false });
   };
 }
-
-export default ButtonDropdown;

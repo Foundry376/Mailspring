@@ -8,7 +8,7 @@ export default class ListSelection {
   _caches: {
     ids?: string[];
   } = {};
-  _items = [];
+  _items: Model[] = [];
   _view: ListDataSource;
   _callback: () => void;
   _unlisten: () => void;
@@ -31,11 +31,11 @@ export default class ListSelection {
     this._unlisten();
   }
 
-  count() {
+  count(): number {
     return this._items.length;
   }
 
-  ids() {
+  ids(): string[] {
     // ListTabular asks for ids /a lot/. Cache this value and clear it on trigger.
     if (this._caches.ids == null) {
       this._caches.ids = this._items.map(i => i.id);
@@ -43,11 +43,11 @@ export default class ListSelection {
     return this._caches.ids;
   }
 
-  items() {
+  items(): Model[] {
     return _.clone(this._items);
   }
 
-  top() {
+  top(): Model | undefined {
     return this._items[this._items.length - 1];
   }
 
@@ -66,7 +66,7 @@ export default class ListSelection {
     this.trigger();
   }
 
-  toggle(item) {
+  toggle(item?: Model) {
     if (!item) {
       return;
     }
@@ -83,7 +83,7 @@ export default class ListSelection {
     this.trigger();
   }
 
-  add(item) {
+  add(item?: Model) {
     if (!item) {
       return;
     }
@@ -100,7 +100,7 @@ export default class ListSelection {
     }
   }
 
-  remove(itemOrItems) {
+  remove(itemOrItems: Model | Model[]) {
     if (!itemOrItems) {
       return;
     }
@@ -132,7 +132,7 @@ export default class ListSelection {
     }
   }
 
-  expandTo(item) {
+  expandTo(item: Model) {
     if (!item) {
       return;
     }

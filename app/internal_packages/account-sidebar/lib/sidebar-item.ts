@@ -12,6 +12,7 @@ import {
 } from 'mailspring-exports';
 
 import * as SidebarActions from './sidebar-actions';
+import { ISidebarItem } from './types';
 
 const idForCategories = categories => _.pluck(categories, 'id').join('-');
 
@@ -96,7 +97,7 @@ const onEditItem = function(item, value) {
 };
 
 export default class SidebarItem {
-  static forPerspective(id, perspective, opts = {}) {
+  static forPerspective(id, perspective, opts: Partial<ISidebarItem> = {}): ISidebarItem {
     let counterStyle;
     if (perspective.isInbox()) {
       counterStyle = OutlineViewItem.CounterStyles.Alt;
@@ -159,7 +160,7 @@ export default class SidebarItem {
     );
   }
 
-  static forCategories(categories = [], opts = {}) {
+  static forCategories(categories = [], opts: Partial<ISidebarItem> = {}) {
     const id = idForCategories(categories);
     const contextMenuLabel = _str.capitalize(
       categories[0] != null ? categories[0].displayType() : undefined
@@ -176,7 +177,7 @@ export default class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forStarred(accountIds, opts = {}) {
+  static forStarred(accountIds, opts: Partial<ISidebarItem> = {}) {
     const perspective = MailboxPerspective.forStarred(accountIds);
     let id = 'Starred';
     if (opts.name) {
@@ -185,7 +186,7 @@ export default class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forUnread(accountIds, opts = {}) {
+  static forUnread(accountIds, opts: Partial<ISidebarItem> = {}) {
     let categories = accountIds.map(accId => {
       return CategoryStore.getCategoryByRole(accId, 'inbox');
     });
@@ -205,7 +206,7 @@ export default class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forDrafts(accountIds, opts = {}) {
+  static forDrafts(accountIds, opts: Partial<ISidebarItem> = {}) {
     const perspective = MailboxPerspective.forDrafts(accountIds);
     const id = `Drafts-${opts.name}`;
     return this.forPerspective(id, perspective, opts);

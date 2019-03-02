@@ -37,7 +37,7 @@ describe('SendActionButton', function describeBlock() {
   });
 
   const render = (draft, { isValid = true, sendActions } = {}) => {
-    this.isValidDraft.andReturn(isValid);
+    this.isValidDraft.and.returnValue(isValid);
     return mount(
       <UndecoratedSendActionButton
         draft={draft}

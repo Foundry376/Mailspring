@@ -12,7 +12,7 @@ import SearchActions from '../lib/search-actions';
 
 describe('ThreadSearchBar', function() {
   beforeEach(function() {
-    spyOn(AppEnv, 'isMainWindow').andReturn(true);
+    spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
     this.searchBar = ReactTestUtils.renderIntoDocument(<ThreadSearchBar />);
     this.input = ReactDOM.findDOMNode(this.searchBar).querySelector('input');
   });

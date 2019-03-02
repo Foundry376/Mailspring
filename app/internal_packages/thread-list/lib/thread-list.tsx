@@ -29,13 +29,19 @@ import ThreadListScrollTooltip from './thread-list-scroll-tooltip';
 import ThreadListStore from './thread-list-store';
 import ThreadListContextMenu from './thread-list-context-menu';
 
-class ThreadList extends React.Component {
+class ThreadList extends React.Component<{}, { style: string; syncing: boolean }> {
   static displayName = 'ThreadList';
 
   static containerStyles = {
     minWidth: 300,
     maxWidth: 3000,
   };
+
+  refs: {
+    list: MultiselectList;
+  };
+
+  unsub?: () => void;
 
   constructor(props) {
     super(props);
@@ -88,7 +94,6 @@ class ThreadList extends React.Component {
 
     return (
       <FluxContainer
-        footer={this._getFooter()}
         stores={[ThreadListStore]}
         getStateFromStores={() => {
           return { dataSource: ThreadListStore.dataSource() };
@@ -97,6 +102,7 @@ class ThreadList extends React.Component {
         <FocusContainer collection="thread">
           <MultiselectList
             ref="list"
+            footer={this._getFooter()}
             draggable
             columns={columns}
             itemPropsProvider={this._threadPropsProvider}
@@ -127,7 +133,7 @@ class ThreadList extends React.Component {
       .filter(ext => ext.cssClassNamesForThreadListItem != null)
       .reduce((prev, ext) => prev + ' ' + ext.cssClassNamesForThreadListItem(item), ' ');
 
-    const props = { className: classes };
+    const props: any = { className: classes };
 
     props.shouldEnableSwipe = () => {
       const perspective = FocusedPerspectiveStore.current();
@@ -248,9 +254,10 @@ class ThreadList extends React.Component {
 
   _onDragEnd = event => {};
 
-  _onResize = event => {
+  _onResize = (event?: any) => {
     const current = this.state.style;
-    const desired = ReactDOM.findDOMNode(this).offsetWidth < 540 ? 'narrow' : 'wide';
+    const desired =
+      (ReactDOM.findDOMNode(this) as HTMLElement).offsetWidth < 540 ? 'narrow' : 'wide';
     if (current !== desired) {
       this.setState({ style: desired });
     }

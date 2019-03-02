@@ -21,7 +21,7 @@ const SIGNATURES = {
 
 describe('SignatureComposerDropdown', function signatureComposerDropdown() {
   beforeEach(() => {
-    spyOn(SignatureStore, 'getSignatures').andReturn(SIGNATURES);
+    spyOn(SignatureStore, 'getSignatures').and.returnValue(SIGNATURES);
     spyOn(SignatureStore, 'selectedSignature');
     this.session = {
       changes: {

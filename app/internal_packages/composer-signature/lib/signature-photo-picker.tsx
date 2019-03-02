@@ -4,13 +4,26 @@ import { RetinaImg, DropZone } from 'mailspring-component-kit';
 
 const MAX_IMAGE_RES = 250;
 
-export default class SignaturePhotoPicker extends React.Component {
+export default class SignaturePhotoPicker extends React.Component<
+  {
+    id: string;
+    data: any;
+    resolvedURL: string;
+    onChange: (e: { target: { value: string; id?: string } }) => void;
+  },
+  {
+    isDropping?: boolean;
+    isUploading?: boolean;
+  }
+> {
   static propTypes = {
     id: PropTypes.string,
     data: PropTypes.object,
     resolvedURL: PropTypes.string,
     onChange: PropTypes.func,
   };
+
+  _isMounted: boolean;
 
   constructor(props) {
     super(props);
@@ -62,7 +75,7 @@ export default class SignaturePhotoPicker extends React.Component {
     img.onload = () => {
       let scale = Math.min(MAX_IMAGE_RES / img.width, MAX_IMAGE_RES / img.height, 1);
       let scaleDesired = scale;
-      let source = img;
+      let source: any = img;
 
       let times = 0;
       while (true) {
@@ -161,7 +174,7 @@ export default class SignaturePhotoPicker extends React.Component {
               onClick={this._onChooseImage}
               onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
               onDrop={e => this._onChooseImageFilePath(e.dataTransfer.files[0].path)}
-              shouldAcceptDrop={e => e.dataTransfer.types.includes('Files')}
+              shouldAcceptDrop={e => (e as any).dataTransfer.types.includes('Files')}
               style={{
                 backgroundImage: !isUploading && `url(${resolvedURL || emptyPlaceholderURL})`,
               }}

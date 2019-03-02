@@ -1,9 +1,11 @@
 import _ from 'underscore';
 import { Categories } from 'mailspring-observables';
 import MailspringStore from 'mailspring-store';
-import AccountStore from './account-store';
-import Account from '../models/account';
+import { AccountStore } from './account-store';
+import { Account } from '../models/account';
 import { Category } from '../models/category';
+import { Folder } from '../models/folder';
+import { Label } from '../models/label';
 
 const asAccount = a => {
   if (!a) {
@@ -21,9 +23,9 @@ const asAccountId = a => {
 
 class CategoryStore extends MailspringStore {
   _categoryCache = {};
-  _standardCategories: { [accountId: string]: Category[] } = {};
-  _userCategories: { [accountId: string]: Category[] } = {};
-  _hiddenCategories: { [accountId: string]: Category[] } = {};
+  _standardCategories: { [accountId: string]: Array<Folder | Label> } = {};
+  _userCategories: { [accountId: string]: Array<Folder | Label> } = {};
+  _hiddenCategories: { [accountId: string]: Array<Folder | Label> } = {};
   _categoryResult;
 
   constructor() {

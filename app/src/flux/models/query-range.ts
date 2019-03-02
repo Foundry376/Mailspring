@@ -1,4 +1,4 @@
-export default class QueryRange {
+export class QueryRange {
   static infinite() {
     return new QueryRange({ limit: null, offset: null });
   }

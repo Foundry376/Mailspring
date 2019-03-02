@@ -3,6 +3,8 @@ export default class TestDataSource {
     return this;
   }
 
+  onNext: (result: any) => void;
+
   manuallyTrigger = (messages = []) => {
     this.onNext(messages);
   };
@@ -10,9 +12,7 @@ export default class TestDataSource {
   subscribe(onNext) {
     this.onNext = onNext;
     this.manuallyTrigger();
-    const dispose = () => {
-      this._unsub();
-    };
+    const dispose = () => {};
     return { dispose };
   }
 }

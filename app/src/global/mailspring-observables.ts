@@ -3,7 +3,7 @@ import { Folder } from '../flux/models/folder';
 import { Label } from '../flux/models/label';
 import QuerySubscriptionPool from '../flux/models/query-subscription-pool';
 import DatabaseStore from '../flux/stores/database-store';
-import QuerySubscription from '../flux/models/query-subscription';
+import { QuerySubscription } from '../flux/models/query-subscription';
 import { Model } from '../flux/models/model';
 import ModelQuery from '../flux/models/query';
 import MailspringStore from 'mailspring-store';

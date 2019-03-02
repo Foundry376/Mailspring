@@ -7,7 +7,7 @@ import AccountErrorNotification from '../lib/items/account-error-notif';
 describe('AccountErrorNotif', function AccountErrorNotifTests() {
   describe('when one account is in the `invalid` state', () => {
     beforeEach(() => {
-      spyOn(AccountStore, 'accounts').andReturn([
+      spyOn(AccountStore, 'accounts').and.returnValue([
         new Account({
           id: 'A',
           syncState: Account.SYNC_STATE_AUTH_FAILED,
@@ -28,7 +28,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
     });
 
     it('allows the user to refresh the account', () => {
-      spyOn(AppEnv.mailsyncBridge, 'forceRelaunchClient').andReturn(Promise.resolve());
+      spyOn(AppEnv.mailsyncBridge, 'forceRelaunchClient').and.returnValue(Promise.resolve());
       const notif = mount(<AccountErrorNotification />);
       notif.find('#action-0').simulate('click'); // Expects first action to be the refresh action
       expect(AppEnv.mailsyncBridge.forceRelaunchClient).toHaveBeenCalled();
@@ -53,7 +53,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
 
   describe('when more than one account is in the `invalid` state', () => {
     beforeEach(() => {
-      spyOn(AccountStore, 'accounts').andReturn([
+      spyOn(AccountStore, 'accounts').and.returnValue([
         new Account({
           id: 'A',
           syncState: Account.SYNC_STATE_AUTH_FAILED,
@@ -73,7 +73,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
     });
 
     it('allows the user to refresh the accounts', () => {
-      spyOn(AppEnv.mailsyncBridge, 'forceRelaunchClient').andReturn(Promise.resolve());
+      spyOn(AppEnv.mailsyncBridge, 'forceRelaunchClient').and.returnValue(Promise.resolve());
       const notif = mount(<AccountErrorNotification />);
       notif.find('#action-0').simulate('click'); // Expects first action to be the refresh action
       expect(AppEnv.mailsyncBridge.forceRelaunchClient).toHaveBeenCalled();
@@ -91,7 +91,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
 
   describe('when all accounts are fine', () => {
     beforeEach(() => {
-      spyOn(AccountStore, 'accounts').andReturn([
+      spyOn(AccountStore, 'accounts').and.returnValue([
         new Account({ id: 'A', syncState: Account.SYNC_STATE_OK, emailAddress: '123@gmail.com' }),
         new Account({ id: 'B', syncState: Account.SYNC_STATE_OK, emailAddress: 'other@gmail.com' }),
       ]);

@@ -2,10 +2,12 @@ import { Rx, Message, DatabaseStore } from 'mailspring-exports';
 import { OPEN_TRACKING_ID, LINK_TRACKING_ID } from './plugin-helpers';
 
 export default class ActivityDataSource {
+  observable: Rx.Observable<Message[]>;
+
   buildObservable({ messageLimit }) {
     const query = DatabaseStore.findAll<Message>(Message)
       .order(Message.attributes.date.descending())
-      .where(Message.attributes.pluginMetadata.contains(OPEN_TRACKING_ID, LINK_TRACKING_ID))
+      .where(Message.attributes.pluginMetadata.in([OPEN_TRACKING_ID, LINK_TRACKING_ID])) // TODO BG VERIFY
       .limit(messageLimit);
     this.observable = Rx.Observable.fromQuery(query);
     return this.observable;

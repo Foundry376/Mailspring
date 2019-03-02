@@ -1,19 +1,23 @@
 import React from 'react';
 import { localized, DefaultClientHelper } from 'mailspring-exports';
 import { Notification } from 'mailspring-component-kit';
+import { IDisposable } from 'rx-core';
 
 const SETTINGS_KEY = 'mailto.prompted-about-default';
 
-export default class DefaultClientNotification extends React.Component {
+interface State {
+  initializing: boolean;
+  alreadyPrompted: boolean;
+  registered?: boolean;
+}
+
+export default class DefaultClientNotification extends React.Component<{}, State> {
   static displayName = 'DefaultClientNotification';
 
-  constructor() {
-    super();
-    this.helper = new DefaultClientHelper();
-    this.state = this.getStateFromStores();
-    this.state.initializing = true;
-    this.mounted = false;
-  }
+  helper = new DefaultClientHelper();
+  state: State = Object.assign(this.getStateFromStores(), { initializing: true });
+  mounted = false;
+  disposable?: IDisposable;
 
   componentDidMount() {
     this.mounted = true;
