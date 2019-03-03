@@ -67,7 +67,6 @@
     "source-map-support": "^0.3.2",
     "temp": "^0.8",
     "tld": "^0.0.2",
-    "typescript": "^3.3.3333",
     "underscore": "1.8.x",
     "underscore.string": "^3.3.5",
     "utf7": "^1.0.2",
