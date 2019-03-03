@@ -168,6 +168,13 @@ export default class MailsyncBridge {
   }
 
   ensureClients = _.throttle((kind) => {
+    if(!kind){
+      AppEnv.debugLog(`kind is missing value in ensureClients`);
+      AppEnv.reportError({
+        type: 'man-made',
+        message: `kind is missing value, ignoring ensureClients`,
+      });
+    }
     const clientsWithoutAccounts = Object.assign({}, this._clients);
 
     for (const acct of AccountStore.accounts()) {
@@ -184,8 +191,12 @@ export default class MailsyncBridge {
     // through and deleted one for each accountId are ones representing
     // deleted accounts.
     for (const client of Object.values(clientsWithoutAccounts)) {
+      let id='';
+      if(client._proc && client._proc.pid){
+        id = client._proc.pid;
+      }
       client.kill();
-      AppEnv.debugLog('mailsync-bridge ensureClients:' + kind);
+      AppEnv.debugLog(`pid@${id} mailsync-bridge ensureClients: ${kind}`);
     }
   }, 100);
 
@@ -637,8 +648,12 @@ export default class MailsyncBridge {
 
   _onReadyToUnload = () => {
     for (const client of Object.values(this._clients)) {
+      let id='';
+      if(client._proc && client._proc.pid){
+        id = client._proc.pid;
+      }
       client.kill();
-      AppEnv.debugLog('mailsync-bridge _onReadyToUnload: page refresh');
+      AppEnv.debugLog(`pid@${id} mailsync-bridge _onReadyToUnload: page refresh`);
     }
     this._clients = [];
   };

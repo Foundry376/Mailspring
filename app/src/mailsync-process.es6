@@ -307,8 +307,12 @@ export default class MailsyncProcess extends EventEmitter {
         // The process probably already exited and we missed it somehow,
         // but try to kill it anyway and then force-emit a 'close' to trigger
         // the bridge to restart us.
+        let id='';
+        if(this._proc && this._proc.pid){
+          id = this._proc.pid;
+        }
         this.kill();
-        AppEnv.debugLog('mailsync-process sendMessage error:' + error.message);
+        AppEnv.debugLog(`pid@${id} mailsync-process sendMessage error:  ${error.message}`);
         this.emit('close', { code: -2, error, signal: null });
       }
     }

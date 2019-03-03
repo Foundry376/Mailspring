@@ -1,6 +1,7 @@
 const classNames = require('classnames');
 const _ = require('underscore');
 const { React, ReactDOM, PropTypes, DOMUtils } = require('mailspring-exports');
+import ScrollRegion from './scroll-region';
 
 /*
 Public: `MenuItem` components can be provided to the {Menu} by the `itemContent` function.
@@ -169,9 +170,10 @@ class Menu extends React.Component {
     onEscape: PropTypes.func,
 
     defaultSelectedIndex: PropTypes.number,
+    maxHeight: PropTypes.number,
   };
 
-  static defaultProps = { onEscape() {} };
+  static defaultProps = { onEscape() {}, maxHeight: 0 };
 
   constructor(props) {
     super(props);
@@ -322,6 +324,9 @@ class Menu extends React.Component {
       'content-container': true,
       empty: items.length === 0,
     });
+    if(this.props.maxHeight>0){
+      return <ScrollRegion className={contentClass} style={{height: this.props.maxHeight}}>{items}</ScrollRegion>;
+    }
 
     return <div className={contentClass}>{items}</div>;
   };

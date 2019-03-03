@@ -1,7 +1,7 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-component-kit';
+import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult, ScrollRegion } from 'mailspring-component-kit';
 import {
   Utils,
   Actions,
@@ -206,14 +206,13 @@ export default class MovePickerPopover extends Component {
 
   _renderCreateNewItem = ({ searchValue }) => {
     const isFolder = CategoryStore.getInboxCategory(this.props.account) instanceof Folder;
-    const icon = isFolder ? 'folder' : 'tag';
     let displayText = isFolder ? 'New Folder' : 'New Label';
     if (searchValue.length > 0) {
       displayText = `"${searchValue}" (create new)`;
     }
     return (
-      <div className="category-item category-create-new" onClick={this.onCreate}>
-        <div className="category-display-name">{displayText}</div>
+      <div className="category-item category-create-new" onMouseDown={this.onCreate}>
+        {displayText}
       </div>
     );
   };
@@ -260,6 +259,10 @@ export default class MovePickerPopover extends Component {
           footerComponents={this._renderNewItem()}
           items={this.state.categoryData}
           itemKey={item => item.id}
+          maxHeight={
+            (this.state.categoryData.length > 10) * 210 +
+            (this.state.categoryData <= 10) * this.state.categoryData.length * 20
+          }
           itemContent={this._renderItem}
           onSelect={this._onSelectCategory}
           onEscape={this._onEscape}

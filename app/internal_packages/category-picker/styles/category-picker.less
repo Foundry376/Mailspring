@@ -12,38 +12,115 @@ body.platform-win32 {
   margin-right: 0;
 }
 
-.category-picker-popover,
+.label-picker-popover,
 .category-picker-dropdown {
+  .menu {
+    background: @background-secondary;
+    width: @popover-width;
+    max-height: 400px;
+
+    .header-container {
+      border-bottom: 0;
+    }
+
+    .item.divider {
+      background-color: #e0e0e0;
+      margin: 4px 0;
+      height: 2px;
+      padding: 0;
+    }
+  }
+
+  .btn.btn-toolbar {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .check-wrap {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    display: inline-block;
+    position: relative;
+    flex-shrink: 0;
+    top: 2px;
+  }
+
+  .item {
+    img.content-mask {
+      background-color: @text-color-subtle;
+    }
+  }
+
+  .item.selected,
+  .item.active {
+    img.content-mask {
+      background-color: @text-color-inverse;
+    }
+  }
+
+  img.check-img {
+    position: absolute;
+  }
+
+  .category-item {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+  }
+
+  .category-create-new-tag {
+    flex-shrink: 0;
+  }
+
+  .category-display-name {
+    display: inline-block;
+    margin-left: 10px;
+    margin-right: 5px;
+    word-break: break-word;
+    flex: 1;
+  }
+}
+
+.category-picker-popover {
+  max-height: 280px;
   position: fixed;
+
   .menu {
     background: @background-primary;
     width: @popover-width;
-    max-height: 254px;
     box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
-    .content-container{
+
+    .content-container {
       background-color: inherit;
-      ::-webkit-scrollbar{
+
+      ::-webkit-scrollbar {
         display: none;
       }
-      ::-webkit-scrollbar-thumb{
+
+      ::-webkit-scrollbar-thumb {
         border-radius: 7px;
         width: 4px;
         height: 83px;
         background-color: @input-search-bg;
       }
-      ::-webkit-scrollbar-track{
+
+      ::-webkit-scrollbar-track {
         background: none;
         border: none;
         outline: none;
       }
     }
+
     .footer-container {
       background-color: inherit;
     }
+
     .header-container {
       padding-left: 21px;
       border-bottom: 0;
       background-color: inherit;
+
       .header-text {
         height: 19.5px;
         width: 65px;
@@ -63,7 +140,8 @@ body.platform-win32 {
         background-color: @input-search-bg;
       }
     }
-    .item{
+
+    .item {
       padding: unset;
     }
 
@@ -114,9 +192,19 @@ body.platform-win32 {
     align-items: center;
     height: 19.5px;
   }
-  .category-create-new{
+
+  .category-create-new {
     height: 26px;
     line-height: 26px;
+    cursor: default;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    flex: 1;
+    &:hover {
+      text-decoration: none;
+      background-color: rgba(0, 0, 0, 0.03);
+    }
   }
 
   .category-create-new-tag {
@@ -125,10 +213,5 @@ body.platform-win32 {
 
   .category-display-name {
     display: inline-block;
-    margin-right: 5px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    flex: 1;
   }
 }
