@@ -38,12 +38,12 @@ export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
     models.forEach(m => this.updateModel(m));
   }
 
-  addModelsInRange(rangeModels, range) {
+  addModelsInRange(rangeModels: T[], range) {
     this.addIdsInRange(rangeModels.map(m => m.id), range);
     rangeModels.forEach(m => this.updateModel(m));
   }
 
-  addIdsInRange(rangeIds, range) {
+  addIdsInRange(rangeIds: string[], range) {
     if (this._offset === null || range.isInfinite()) {
       this._ids = rangeIds;
       this._idToIndexHash = null;
@@ -79,7 +79,7 @@ export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
     }
   }
 
-  updateModel(item) {
+  updateModel(item: T) {
     if (!item) {
       return;
     }
@@ -101,14 +101,14 @@ export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
     this._modelsHash[item.id] = item;
   }
 
-  removeModelAtOffset(item, offset) {
+  removeModelAtOffset(item: T, offset) {
     const idx = offset - this._offset;
     delete this._modelsHash[item.id];
     this._ids.splice(idx, 1);
     this._idToIndexHash = null;
   }
 
-  setQuery(query) {
+  setQuery(query: ModelQuery<T>) {
     this._query = query.clone();
     this._query.finalize();
   }

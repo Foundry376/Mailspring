@@ -58,6 +58,9 @@ Section: General
 
 type ActionFn = (...args: any[]) => void;
 interface Action extends ActionFn {
+  actionName: string;
+  scope: 'window' | 'global' | 'main';
+  sync: boolean;
   listen: (callback: (...args: any[]) => any, thisObj?: object) => () => void;
 }
 
@@ -72,9 +75,10 @@ const scopes: {
 };
 
 const create = (name, scope: 'window' | 'global' | 'main') => {
-  const obj = Reflux.createAction(name);
+  const obj = Reflux.createAction(name) as Action;
   obj.scope = scope;
   obj.sync = true;
+  obj.actionName = name;
   scopes[scope].push(obj);
   return obj as Action;
 };

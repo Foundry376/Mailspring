@@ -82,11 +82,16 @@ export class Account extends ModelWithMetadata {
   public emailAddress: string;
   public settings: {
     imap_host: string;
+    imap_username: string;
     imap_password: string;
+    imap_allow_insecure_ssl: boolean;
     imap_security: 'SSL / TLS' | 'STARTTLS' | 'none';
     smtp_host: string;
+    smtp_username: string;
     smtp_password: string;
+    smtp_allow_insecure_ssl: boolean;
     smtp_security: 'SSL / TLS' | 'STARTTLS' | 'none';
+    refresh_token: string;
   };
   public label: string;
   public autoaddress: AccountAutoaddress;

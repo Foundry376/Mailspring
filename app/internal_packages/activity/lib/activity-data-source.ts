@@ -8,6 +8,7 @@ export default class ActivityDataSource {
     const query = DatabaseStore.findAll<Message>(Message)
       .order(Message.attributes.date.descending())
       .where(Message.attributes.pluginMetadata.containsAny([OPEN_TRACKING_ID, LINK_TRACKING_ID]))
+      .distinct()
       .limit(messageLimit);
     this.observable = Rx.Observable.fromQuery(query);
     return this.observable;

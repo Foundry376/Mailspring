@@ -12,7 +12,7 @@ export class QuerySubscription<T extends Model> {
   _updateInFlight = false;
   _queuedChangeRecords = [];
   _queryVersion = 1;
-  _query: ModelQuery<T[]>;
+  _query: ModelQuery<T>;
   _options: any;
 
   constructor(
@@ -217,7 +217,7 @@ export class QuerySubscription<T extends Model> {
     return desiredRange;
   };
 
-  _getQueryForRange = (range, fetchEntireModels) => {
+  _getQueryForRange = (range, fetchEntireModels: boolean) => {
     let rangeQuery = null;
     if (!range.isInfinite()) {
       rangeQuery = rangeQuery || this._query.clone();
@@ -239,7 +239,7 @@ export class QuerySubscription<T extends Model> {
       rangeQuery.background();
     }
 
-    DatabaseStore.run(rangeQuery, { format: false }).then(async results => {
+    DatabaseStore.run<T[] | string[]>(rangeQuery, { format: false }).then(async results => {
       if (this._queryVersion !== version) {
         return;
       }
@@ -250,9 +250,9 @@ export class QuerySubscription<T extends Model> {
       this._set = this._set || new MutableQueryResultSet();
 
       if (fetchEntireModels) {
-        this._set.addModelsInRange(results, range);
+        this._set.addModelsInRange(results as T[], range);
       } else {
-        this._set.addIdsInRange(results, range);
+        this._set.addIdsInRange(results as string[], range);
       }
 
       this._set.clipToRange(this._query.range());
@@ -297,9 +297,9 @@ export class QuerySubscription<T extends Model> {
 
     if (error) {
       console.warn(error);
-      this._set = null;
-      this.update();
-      return;
+      // this._set = null;
+      // this.update();
+      // return;
     }
 
     if (this._options.emitResultSet) {

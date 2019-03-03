@@ -63,8 +63,8 @@ export default class ModelQuery<T> {
     this._database = database || require('./database-store').default;
   }
 
-  clone() {
-    const q = new ModelQuery(this._klass, this._database).where(this._matchers).order(this._orders);
+  clone(): ModelQuery<T> {
+    const q = new ModelQuery<T>(this._klass, this._database).where(this._matchers).order(this._orders);
     q._orders = [].concat(this._orders);
     q._includeJoinedData = [].concat(this._includeJoinedData);
     q._range = this._range.clone();

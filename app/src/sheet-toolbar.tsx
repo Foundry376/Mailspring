@@ -57,7 +57,7 @@ class ToolbarBack extends React.Component<{}, { categoryName: string }> {
   // This is because loading these stores has database side effects.
   constructor(props) {
     super(props);
-    Category = Category || require('./flux/models/category').default;
+    Category = Category || require('./flux/models/category').Category;
     FocusedPerspectiveStore =
       FocusedPerspectiveStore || require('./flux/stores/focused-perspective-store').default;
 
@@ -287,7 +287,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     const columnToolbarEls = el.querySelectorAll('[data-column]');
 
     // Find the top sheet in the stack
-    const sheet = document.querySelectorAll("[name='Sheet']")[this.props.depth];
+    const sheet = document.querySelectorAll("[data-role='Sheet']")[this.props.depth];
     if (!sheet) {
       return;
     }

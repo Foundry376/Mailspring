@@ -220,7 +220,12 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
     // http://philipwalton.com/articles/what-no-one-told-you-about-z-index/
 
     return (
-      <div style={style} className={`sheet mode-${this.state.mode}`} data-id={this.props.data.id}>
+      <div
+        data-role="Sheet"
+        style={style}
+        className={`sheet mode-${this.state.mode}`}
+        data-id={this.props.data.id}
+      >
         <Flexbox direction="row" style={{ overflow: 'hidden' }}>
           {this._columnFlexboxElements()}
         </Flexbox>

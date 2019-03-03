@@ -79,7 +79,7 @@ export class QueryResultSet<T extends Model> {
     return this._ids;
   }
 
-  idAtOffset(offset) {
+  idAtOffset(offset: number) {
     return this._ids[offset - this._offset];
   }
 
@@ -91,7 +91,7 @@ export class QueryResultSet<T extends Model> {
     return Object.keys(this._modelsHash).length;
   }
 
-  modelAtOffset(offset) {
+  modelAtOffset(offset: number) {
     if (!Number.isInteger(offset)) {
       throw new Error(
         'QueryResultSet.modelAtOffset() takes a numeric index. Maybe you meant modelWithId()?'
@@ -100,7 +100,7 @@ export class QueryResultSet<T extends Model> {
     return this._modelsHash[this._ids[offset - this._offset]];
   }
 
-  modelWithId(id) {
+  modelWithId(id: string): T {
     return this._modelsHash[id];
   }
 
@@ -111,7 +111,7 @@ export class QueryResultSet<T extends Model> {
     });
   }
 
-  offsetOfId(id) {
+  offsetOfId(id: string) {
     if (this._idToIndexHash === null) {
       this.buildIdToIndexHash();
     }

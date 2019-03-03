@@ -39,8 +39,8 @@ export class ChangeMailTask extends Task {
   taskDescription: string;
 
   constructor({
-    threads,
-    messages,
+    threads = [],
+    messages = [],
     ...rest
   }: AttributeValues<typeof ChangeMailTask.attributes> & {
     threads?: Thread[];
@@ -48,15 +48,10 @@ export class ChangeMailTask extends Task {
   } = {}) {
     super(rest);
 
-    // we actually only keep a small bit of data now
-    if (threads && !this.threadIds) {
-      this.threadIds = threads.map(i => i.id);
-      this.accountId = this.accountId || threads[0] ? threads[0].accountId : undefined;
-    }
-    if (messages && !this.messageIds) {
-      this.messageIds = messages.map(i => i.id);
-      this.accountId = this.accountId || messages[0] ? messages[0].accountId : undefined;
-    }
+    this.threadIds = this.threadIds || threads.map(i => i.id);
+    this.messageIds = this.messageIds || messages.map(i => i.id);
+    this.accountId =
+      this.accountId || (threads[0] || messages[0] || { accountId: undefined }).accountId;
 
     if (this.canBeUndone === undefined) {
       this.canBeUndone = true;

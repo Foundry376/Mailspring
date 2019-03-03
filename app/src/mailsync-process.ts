@@ -10,6 +10,7 @@ import os from 'os';
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import { localized } from './intl';
+import { IIdentity, Account } from 'mailspring-exports';
 
 let Utils = null;
 
@@ -75,8 +76,8 @@ export class MailsyncProcess extends EventEmitter {
   _win = null;
 
   // these must be set before you use the process
-  account = null;
-  identity = null;
+  account: Account = null;
+  identity: IIdentity = null;
 
   verbose: boolean;
   resourcePath: string;
@@ -190,7 +191,11 @@ export class MailsyncProcess extends EventEmitter {
 
       this._proc.on('close', code => {
         const stripSecrets = text => {
-          const settings = (this.account && this.account.settings) || {};
+          const settings = (this.account && this.account.settings) || {
+            refresh_token: undefined,
+            imap_password: undefined,
+            smtp_password: undefined,
+          };
           const { refresh_token, imap_password, smtp_password } = settings;
 
           const escape = string => string.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');

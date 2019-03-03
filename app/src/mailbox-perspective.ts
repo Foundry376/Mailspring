@@ -150,7 +150,7 @@ export class MailboxPerspective {
 
   sheet() {
     if (!WorkspaceStore || !WorkspaceStore.Sheet) {
-      WorkspaceStore = require('./flux/stores/workspace-store');
+      WorkspaceStore = require('./flux/stores/workspace-store').default;
     }
     return WorkspaceStore.Sheet && WorkspaceStore.Sheet.Threads;
   }
@@ -269,7 +269,7 @@ class DraftsMailboxPerspective extends MailboxPerspective {
 
   sheet() {
     if (!WorkspaceStore || !WorkspaceStore.Sheet) {
-      WorkspaceStore = require('./flux/stores/workspace-store');
+      WorkspaceStore = require('./flux/stores/workspace-store').default;
     }
     return WorkspaceStore.Sheet && WorkspaceStore.Sheet.Drafts;
   }
@@ -302,7 +302,8 @@ class StarredMailboxPerspective extends MailboxPerspective {
   }
 
   actionsForReceivingThreads(threads, accountId) {
-    ChangeStarredTask = ChangeStarredTask || require('./flux/tasks/change-starred-task').default;
+    ChangeStarredTask =
+      ChangeStarredTask || require('./flux/tasks/change-starred-task').ChangeStarredTask;
     return new ChangeStarredTask({
       accountId,
       threads,
@@ -442,8 +443,10 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   actionsForReceivingThreads(threads, accountId) {
     FocusedPerspectiveStore =
       FocusedPerspectiveStore || require('./flux/stores/focused-perspective-store').default;
-    ChangeLabelsTask = ChangeLabelsTask || require('./flux/tasks/change-labels-task').default;
-    ChangeFolderTask = ChangeFolderTask || require('./flux/tasks/change-folder-task').default;
+    ChangeLabelsTask =
+      ChangeLabelsTask || require('./flux/tasks/change-labels-task').ChangeLabelsTask;
+    ChangeFolderTask =
+      ChangeFolderTask || require('./flux/tasks/change-folder-task').ChangeFolderTask;
 
     const current = FocusedPerspectiveStore.current();
 
@@ -528,8 +531,10 @@ class CategoryMailboxPerspective extends MailboxPerspective {
   // - if finished category === "trash" move to trash folder, keep labels intact
   //
   tasksForRemovingItems(threads, source: string = 'Removed from list') {
-    ChangeLabelsTask = ChangeLabelsTask || require('./flux/tasks/change-labels-task').default;
-    ChangeFolderTask = ChangeFolderTask || require('./flux/tasks/change-folder-task').default;
+    ChangeLabelsTask =
+      ChangeLabelsTask || require('./flux/tasks/change-labels-task').ChangeLabelsTask;
+    ChangeFolderTask =
+      ChangeFolderTask || require('./flux/tasks/change-folder-task').ChangeFolderTask;
 
     // TODO this is an awful hack
     const role = this.isArchive() ? 'archive' : this.categoriesSharedRole();
@@ -578,7 +583,8 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
   }
 
   actionsForReceivingThreads(threads, accountId) {
-    ChangeUnreadTask = ChangeUnreadTask || require('./flux/tasks/change-unread-task').default;
+    ChangeUnreadTask =
+      ChangeUnreadTask || require('./flux/tasks/change-unread-task').ChangeUnreadTask;
     const tasks = super.actionsForReceivingThreads(threads, accountId);
     tasks.push(
       new ChangeUnreadTask({
@@ -591,7 +597,8 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
   }
 
   tasksForRemovingItems(threads, source?: string) {
-    ChangeUnreadTask = ChangeUnreadTask || require('./flux/tasks/change-unread-task').default;
+    ChangeUnreadTask =
+      ChangeUnreadTask || require('./flux/tasks/change-unread-task').ChangeUnreadTask;
 
     const tasks = super.tasksForRemovingItems(threads, source);
     tasks.push(
