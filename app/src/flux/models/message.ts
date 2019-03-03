@@ -14,7 +14,7 @@ import { AttributeValues } from './model';
 Public: The Message model represents an email message or draft.
 
 Messages are a sub-object of threads. The content of a message === immutable (with the
-exception being drafts). Nylas does not support operations such as move || delete on
+exception being drafts). Mailspring does not support operations such as move || delete on
 individual messages; those operations should be performed on the message’s thread.
 All messages are part of a thread, even if that thread has only one message.
 

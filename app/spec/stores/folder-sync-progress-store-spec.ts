@@ -1,1 +1,1 @@
-xdescribe('FolderSyncProgressStore', function nylasSyncStatusStore() {});
+xdescribe('FolderSyncProgressStore', function mailspringSyncStatusStore() {});

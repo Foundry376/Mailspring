@@ -162,7 +162,7 @@ export function removeTrackingPixels(message) {
       }
     }
 
-    // Remove Nylas read receipt pixels for the current account. If this is a
+    // Remove Mailspring read receipt pixels for the current account. If this is a
     // reply, our read receipt could still be in the body and could trigger
     // additional opens. (isFromMe is not sufficient!)
     if (imageURL.indexOf(`getmailspring.com/open/${message.accountId}`) >= 0) {

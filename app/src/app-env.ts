@@ -341,7 +341,7 @@ export default class AppEnvConstructor {
   }
 
   /*
-  Section: Managing The Nylas Window
+  Section: Managing The Mailspring Window
   */
 
   // Essential: Close the current window.
@@ -882,7 +882,7 @@ export default class AppEnvConstructor {
   //
   // Note: If you return false to cancel the window close, you /must/ perform
   // work and then call finishUnload. We do not support cancelling quit!
-  // https://phab.nylas.com/D1932#inline-11722
+  // https://phab.mailspring.com/D1932#inline-11722
   //
   // Also see logic in browser/MailspringWindow::handleEvents where we listen
   // to the browserWindow.on 'close' event to catch "unclosable" windows.

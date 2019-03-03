@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 
 import { calcColor } from './calendar-helpers';
 
-const DISABLED_CALENDARS = 'nylas.disabledCalendars';
+const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
 function renderCalendarToggles(calendars, disabledCalendars) {
   return calendars.map(calendar => {

@@ -148,7 +148,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
       const reader = new FileReader();
       reader.addEventListener('loadend', () => {
         const buffer = Buffer.from(new Uint8Array(reader.result as any));
-        const tmpFolder = temp.path('-nylas-attachment');
+        const tmpFolder = temp.path('-mailspring-attachment');
         const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
         fs.mkdir(tmpFolder, () => {
           fs.writeFile(tmpPath, buffer, () => {

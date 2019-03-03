@@ -5,7 +5,7 @@ import { remote } from 'electron';
 import { KeyCommandsRegion } from 'mailspring-component-kit';
 import CalendarDataSource from './core/calendar-data-source';
 import CalendarEventPopover from './core/calendar-event-popover';
-import NylasCalendar from './core/nylas-calendar';
+import MailspringCalendar from './core/mailspring-calendar';
 
 export default class CalendarWrapper extends React.Component<{}, { selectedEvents: Event[] }> {
   static displayName = 'CalendarWrapper';
@@ -91,7 +91,7 @@ export default class CalendarWrapper extends React.Component<{}, { selectedEvent
           'core:remove-from-view': this._onDeleteSelectedEvents,
         }}
       >
-        <NylasCalendar
+        <MailspringCalendar
           dataSource={this._dataSource}
           onEventClick={this._onEventClick}
           onEventDoubleClick={this._onEventDoubleClick}

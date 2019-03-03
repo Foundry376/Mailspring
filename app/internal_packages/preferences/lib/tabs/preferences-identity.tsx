@@ -357,7 +357,7 @@ class PreferencesIdentity extends React.Component<{}, { identity: IIdentity }> {
       stripePlanEffective = '',
     } = identity;
 
-    const logout = () => Actions.logoutNylasIdentity();
+    const logout = () => Actions.logoutMailspringIdentity();
 
     return (
       <div className="container-identity">

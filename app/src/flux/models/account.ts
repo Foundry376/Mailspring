@@ -10,8 +10,8 @@ export interface AccountAutoaddress {
   type: 'cc' | 'bcc';
 }
 /*
- * Public: The Account model represents a Account served by the Nylas Platform API.
- * Every object on the Nylas platform exists within a Account, which typically represents
+ * Public: The Account model represents a Account served by the Mailspring Platform API.
+ * Every object on the Mailspring platform exists within a Account, which typically represents
  * an email account.
  *
  * ## Attributes
@@ -21,7 +21,7 @@ export interface AccountAutoaddress {
  * `provider`: {AttributeString} The Account's mail provider  (ie: `gmail`)
  *
  * `emailAddress`: {AttributeString} The Account's email address
- * (ie: `ben@nylas.com`). Queryable.
+ * (ie: `ben@mailspring.com`). Queryable.
  *
  * This class also inherits attributes from {Model}
  *

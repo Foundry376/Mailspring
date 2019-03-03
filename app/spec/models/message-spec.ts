@@ -4,19 +4,19 @@ import { Contact } from '../../src/flux/models/contact';
 
 const evan = new Contact({
   name: 'Evan Morikawa',
-  email: 'evan@nylas.com',
+  email: 'evan@mailspring.com',
 });
 const ben = new Contact({
   name: 'Ben Gotow',
-  email: 'ben@nylas.com',
+  email: 'ben@mailspring.com',
 });
 const team = new Contact({
-  name: 'Nylas Team',
-  email: 'team@nylas.com',
+  name: 'Mailspring Team',
+  email: 'team@mailspring.com',
 });
 const edgehill = new Contact({
   name: 'Edgehill',
-  email: 'edgehill@nylas.com',
+  email: 'edgehill@mailspring.com',
 });
 const noEmail = new Contact({
   name: 'Edgehill',
@@ -28,7 +28,7 @@ const me = new Contact({
 });
 const almost_me = new Contact({
   name: TEST_ACCOUNT_NAME,
-  email: 'tester+12345@nylas.com',
+  email: 'tester+12345@mailspring.com',
 });
 
 describe('Message', function() {

@@ -23,7 +23,7 @@ describe('TrackingPixelsExtension', function trackingPixelsExtension() {
     expect(message.body).toEqual(expected);
   });
 
-  it('should always splice Nylas read receipts for the current account id ', () => {
+  it('should always splice Mailspring read receipts for the current account id ', () => {
     const before = readFixture('b-before.txt');
     const expected = readFixture('b-after.txt');
 

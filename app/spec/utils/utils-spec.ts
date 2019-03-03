@@ -35,8 +35,8 @@ describe('Utils', function() {
         accountId: '1',
         pluginMetadata: [],
         participants: [
-          new Contact({ id: 'local-a', name: 'Juan', email: 'juan@nylas.com', accountId: '1' }),
-          new Contact({ id: 'local-b', name: 'Ben', email: 'ben@nylas.com', accountId: '1' }),
+          new Contact({ id: 'local-a', name: 'Juan', email: 'juan@mailspring.com', accountId: '1' }),
+          new Contact({ id: 'local-b', name: 'Ben', email: 'ben@mailspring.com', accountId: '1' }),
         ],
         subject: 'Test 1234',
       });
@@ -44,7 +44,7 @@ describe('Utils', function() {
 
     it('should serialize and de-serialize models correctly', function() {
       const expectedString =
-        '[{"id":"local-1","aid":"1","metadata":[],"subject":"Test 1234","categories":[],"participants":[{"id":"local-a","aid":"1","name":"Juan","email":"juan@nylas.com","thirdPartyData":{},"__cls":"Contact"},{"id":"local-b","aid":"1","name":"Ben","email":"ben@nylas.com","thirdPartyData":{},"__cls":"Contact"}],"__cls":"Thread"}]';
+        '[{"id":"local-1","aid":"1","metadata":[],"subject":"Test 1234","categories":[],"participants":[{"id":"local-a","aid":"1","name":"Juan","email":"juan@mailspring.com","thirdPartyData":{},"__cls":"Contact"},{"id":"local-b","aid":"1","name":"Ben","email":"ben@mailspring.com","thirdPartyData":{},"__cls":"Contact"}],"__cls":"Thread"}]';
 
       const jsonString = JSON.stringify([this.testThread]);
       expect(jsonString).toEqual(expectedString);
@@ -56,7 +56,7 @@ describe('Utils', function() {
       const b = { id: 'ThreadsToProcess', json: [this.testThread] };
       const jsonString = JSON.stringify(b);
       const expectedString =
-        '{"id":"ThreadsToProcess","json":[{"id":"local-1","aid":"1","metadata":[],"subject":"Test 1234","categories":[],"participants":[{"id":"local-a","aid":"1","name":"Juan","email":"juan@nylas.com","thirdPartyData":{},"__cls":"Contact"},{"id":"local-b","aid":"1","name":"Ben","email":"ben@nylas.com","thirdPartyData":{},"__cls":"Contact"}],"__cls":"Thread"}]}';
+        '{"id":"ThreadsToProcess","json":[{"id":"local-1","aid":"1","metadata":[],"subject":"Test 1234","categories":[],"participants":[{"id":"local-a","aid":"1","name":"Juan","email":"juan@mailspring.com","thirdPartyData":{},"__cls":"Contact"},{"id":"local-b","aid":"1","name":"Ben","email":"ben@mailspring.com","thirdPartyData":{},"__cls":"Contact"}],"__cls":"Thread"}]}';
 
       expect(jsonString).toEqual(expectedString);
       const revived = JSON.parse(jsonString, Utils.modelTypesReviver);

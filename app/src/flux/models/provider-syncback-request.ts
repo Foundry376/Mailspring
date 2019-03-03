@@ -23,7 +23,7 @@ export default class ProviderSyncbackRequest extends Model {
 
     // The following are "normalized" fields that we can use to consolidate
     // various thirdPartyData source. These list of attributes should
-    // always be optional and may change as the needs of a Nylas contact
+    // always be optional and may change as the needs of a Mailspring contact
     // change over time.
     status: Attributes.String({
       modelKey: 'status',

@@ -88,7 +88,7 @@ export const mainWindowActions = scopes.main;
 export const globalActions = scopes.global;
 
 /*
-  Public: Fired when the Nylas API Connector receives new data from the API.
+  Public: Fired when the Mailspring API Connector receives new data from the API.
 
   *Scope: Global*
 
@@ -152,9 +152,9 @@ export const openPreferences = create('openPreferences', ActionScopeGlobal);
 export const switchPreferencesTab = create('switchPreferencesTab', ActionScopeGlobal);
 
 /*
-  Public: Manage the Nylas identity
+  Public: Manage the Mailspring identity
   */
-export const logoutNylasIdentity = create('logoutNylasIdentity', ActionScopeWindow);
+export const logoutMailspringIdentity = create('logoutMailspringIdentity', ActionScopeWindow);
 
 /*
   Public: Remove the selected account

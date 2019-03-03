@@ -61,9 +61,9 @@ describe('DraftFactory', function draftFactory() {
       id: 'fake-message-1',
       headerMessageId: 'fake-message-1@localhost',
       accountId: account.id,
-      to: [new Contact({ email: 'ben@nylas.com' }), new Contact({ email: 'evan@nylas.com' })],
-      cc: [new Contact({ email: 'mg@nylas.com' }), account.me()],
-      bcc: [new Contact({ email: 'recruiting@nylas.com' })],
+      to: [new Contact({ email: 'ben@mailspring.com' }), new Contact({ email: 'evan@mailspring.com' })],
+      cc: [new Contact({ email: 'mg@mailspring.com' }), account.me()],
+      bcc: [new Contact({ email: 'recruiting@mailspring.com' })],
       from: [new Contact({ email: 'customer@example.com', name: 'Customer' })],
       threadId: 'fake-thread-id',
       body: 'Fake Message 1',
@@ -75,9 +75,9 @@ describe('DraftFactory', function draftFactory() {
       id: 'fake-message-with-files',
       headerMessageId: 'fake-message-with-files@localhost',
       accountId: account.id,
-      to: [new Contact({ email: 'ben@nylas.com' }), new Contact({ email: 'evan@nylas.com' })],
-      cc: [new Contact({ email: 'mg@nylas.com' }), account.me()],
-      bcc: [new Contact({ email: 'recruiting@nylas.com' })],
+      to: [new Contact({ email: 'ben@mailspring.com' }), new Contact({ email: 'evan@mailspring.com' })],
+      cc: [new Contact({ email: 'mg@mailspring.com' }), account.me()],
+      bcc: [new Contact({ email: 'recruiting@mailspring.com' })],
       from: [new Contact({ email: 'customer@example.com', name: 'Customer' })],
       files: files,
       threadId: 'fake-thread-id',
@@ -181,7 +181,7 @@ describe('DraftFactory', function draftFactory() {
           const secondAccount = AccountStore.accounts()[1];
           fakeMessage1.to = [
             new Contact({ email: secondAccount.emailAddress }),
-            new Contact({ email: 'evan@nylas.com' }),
+            new Contact({ email: 'evan@mailspring.com' }),
           ];
           fakeMessage1.accountId = secondAccount.id;
           fakeThread.accountId = secondAccount.id;
@@ -202,7 +202,7 @@ describe('DraftFactory', function draftFactory() {
           waitsForPromise(() => {
             fakeMessage1.to = [
               new Contact({ email: TEST_ACCOUNT_ALIAS_EMAIL }),
-              new Contact({ email: 'evan@nylas.com' }),
+              new Contact({ email: 'evan@mailspring.com' }),
             ];
 
             return DraftFactory.createDraftForReply({
@@ -220,10 +220,10 @@ describe('DraftFactory', function draftFactory() {
       describe("when the email is CC'd to an alias", () => {
         it('should use the alias as the from address', () => {
           waitsForPromise(() => {
-            fakeMessage1.to = [new Contact({ email: 'juan@nylas.com' })];
+            fakeMessage1.to = [new Contact({ email: 'juan@mailspring.com' })];
             fakeMessage1.cc = [
               new Contact({ email: TEST_ACCOUNT_ALIAS_EMAIL }),
-              new Contact({ email: 'evan@nylas.com' }),
+              new Contact({ email: 'evan@mailspring.com' }),
             ];
 
             return DraftFactory.createDraftForReply({
@@ -322,7 +322,7 @@ describe('DraftFactory', function draftFactory() {
             type: 'reply-all',
           }).then(draft => {
             const ccEmails = draft.cc.map(cc => cc.email);
-            expect(ccEmails.sort()).toEqual(['ben@nylas.com', 'evan@nylas.com', 'mg@nylas.com']);
+            expect(ccEmails.sort()).toEqual(['ben@mailspring.com', 'evan@mailspring.com', 'mg@mailspring.com']);
           });
         });
       });
@@ -448,14 +448,14 @@ describe('DraftFactory', function draftFactory() {
           true
         );
         expect(this.model.body.indexOf('Subject: Fake Subject') > 0).toBe(true);
-        expect(this.model.body.indexOf('To: ben@nylas.com, evan@nylas.com') > 0).toBe(true);
+        expect(this.model.body.indexOf('To: ben@mailspring.com, evan@mailspring.com') > 0).toBe(true);
         expect(
-          this.model.body.indexOf('Cc: mg@nylas.com, Nylas Test &lt;tester@nylas.com&gt;') > 0
+          this.model.body.indexOf('Cc: mg@mailspring.com, Mailspring Test &lt;tester@mailspring.com&gt;') > 0
         ).toBe(true);
       });
 
       it("should not mention BCC'd recipients in the forwarded message header", () => {
-        expect(this.model.body.indexOf('recruiting@nylas.com') > 0).toBe(false);
+        expect(this.model.body.indexOf('recruiting@mailspring.com') > 0).toBe(false);
       });
       it('should not address the message to anyone', () => {
         expect(this.model.to).toEqual([]);
@@ -645,7 +645,7 @@ describe('DraftFactory', function draftFactory() {
       account = AccountStore.accounts()[1];
       const cases = [
         {
-          to: [new Contact({ name: 'Ben', email: 'ben@nylas.com' })], // user is not present, must have been BCC'd
+          to: [new Contact({ name: 'Ben', email: 'ben@mailspring.com' })], // user is not present, must have been BCC'd
           cc: [],
           expected: account.defaultMe(),
         },
@@ -670,7 +670,7 @@ describe('DraftFactory', function draftFactory() {
           expected: new Contact({ name: 'Second', email: 'second+third@gmail.com' }),
         },
         {
-          to: [new Contact({ email: 'ben@nylas.com' })],
+          to: [new Contact({ email: 'ben@mailspring.com' })],
           cc: [new Contact({ email: 'second+third@gmail.com' })], // exact alias match, but in CC
           expected: new Contact({ name: 'Second', email: 'second+third@gmail.com' }),
         },
@@ -743,18 +743,18 @@ describe('DraftFactory', function draftFactory() {
         'mailto:',
         'mailto://bengotow@gmail.com',
         'mailto:bengotow@gmail.com',
-        'mailto:mg%40nylas.com',
+        'mailto:mg%40mailspring.com',
         'mailto:?subject=%1z2a', // fails uriDecode
         'mailto:?subject=%52z2a', // passes uriDecode
         'mailto:?subject=Martha Stewart',
-        'mailto:?subject=Martha Stewart&cc=cc@nylas.com',
-        'mailto:?subject=Martha Stewart&cc=cc@nylas.com;bengotow@gmail.com',
-        'mailto:bengotow@gmail.com&subject=Martha Stewart&cc=cc@nylas.com',
-        'mailto:bengotow@gmail.com?subject=Martha%20Stewart&cc=cc@nylas.com&bcc=bcc@nylas.com',
-        'mailto:bengotow@gmail.com?subject=Martha%20Stewart&cc=cc@nylas.com&bcc=Ben <bcc@nylas.com>',
-        'mailto:bengotow@gmail.com?subject=Martha%20Stewart&cc=cc@nylas.com&bcc=Ben <bcc@nylas.com>;Shawn <shawn@nylas.com>',
-        'mailto:Ben Gotow <bengotow@gmail.com>,Shawn <shawn@nylas.com>?subject=Yes this is really valid',
-        'mailto:Ben%20Gotow%20<bengotow@gmail.com>,Shawn%20<shawn@nylas.com>?subject=Yes%20this%20is%20really%20valid',
+        'mailto:?subject=Martha Stewart&cc=cc@mailspring.com',
+        'mailto:?subject=Martha Stewart&cc=cc@mailspring.com;bengotow@gmail.com',
+        'mailto:bengotow@gmail.com&subject=Martha Stewart&cc=cc@mailspring.com',
+        'mailto:bengotow@gmail.com?subject=Martha%20Stewart&cc=cc@mailspring.com&bcc=bcc@mailspring.com',
+        'mailto:bengotow@gmail.com?subject=Martha%20Stewart&cc=cc@mailspring.com&bcc=Ben <bcc@mailspring.com>',
+        'mailto:bengotow@gmail.com?subject=Martha%20Stewart&cc=cc@mailspring.com&bcc=Ben <bcc@mailspring.com>;Shawn <shawn@mailspring.com>',
+        'mailto:Ben Gotow <bengotow@gmail.com>,Shawn <shawn@mailspring.com>?subject=Yes this is really valid',
+        'mailto:Ben%20Gotow%20<bengotow@gmail.com>,Shawn%20<shawn@mailspring.com>?subject=Yes%20this%20is%20really%20valid',
         'mailto:Reply <d+AORGpRdj0KXKUPBE1LoI0a30F10Ahj3wu3olS-aDk5_7K5Wu6WqqqG8t1HxxhlZ4KEEw3WmrSdtobgUq57SkwsYAH6tG57IrNqcQR0K6XaqLM2nGNZ22D2k@docs.google.com>?subject=Nilas%20Message%20to%20Customers',
         'mailto:email@address.com?&subject=test&body=type%20your%0Amessage%20here',
         'mailto:?body=type%20your%0D%0Amessage%0D%0Ahere',
@@ -768,58 +768,58 @@ describe('DraftFactory', function draftFactory() {
         new Message({
           to: [new Contact({ name: 'bengotow@gmail.com', email: 'bengotow@gmail.com' })],
         }),
-        new Message({ to: [new Contact({ name: 'mg@nylas.com', email: 'mg@nylas.com' })] }),
+        new Message({ to: [new Contact({ name: 'mg@mailspring.com', email: 'mg@mailspring.com' })] }),
         new Message({ subject: '%1z2a' }),
         new Message({ subject: 'Rz2a' }),
         new Message({ subject: 'Martha Stewart' }),
         new Message({
-          cc: [new Contact({ name: 'cc@nylas.com', email: 'cc@nylas.com' })],
+          cc: [new Contact({ name: 'cc@mailspring.com', email: 'cc@mailspring.com' })],
           subject: 'Martha Stewart',
         }),
         new Message({
           cc: [
-            new Contact({ name: 'cc@nylas.com', email: 'cc@nylas.com' }),
+            new Contact({ name: 'cc@mailspring.com', email: 'cc@mailspring.com' }),
             new Contact({ name: 'bengotow@gmail.com', email: 'bengotow@gmail.com' }),
           ],
           subject: 'Martha Stewart',
         }),
         new Message({
           to: [new Contact({ name: 'bengotow@gmail.com', email: 'bengotow@gmail.com' })],
-          cc: [new Contact({ name: 'cc@nylas.com', email: 'cc@nylas.com' })],
+          cc: [new Contact({ name: 'cc@mailspring.com', email: 'cc@mailspring.com' })],
           subject: 'Martha Stewart',
         }),
         new Message({
           to: [new Contact({ name: 'bengotow@gmail.com', email: 'bengotow@gmail.com' })],
-          cc: [new Contact({ name: 'cc@nylas.com', email: 'cc@nylas.com' })],
-          bcc: [new Contact({ name: 'bcc@nylas.com', email: 'bcc@nylas.com' })],
+          cc: [new Contact({ name: 'cc@mailspring.com', email: 'cc@mailspring.com' })],
+          bcc: [new Contact({ name: 'bcc@mailspring.com', email: 'bcc@mailspring.com' })],
           subject: 'Martha Stewart',
         }),
         new Message({
           to: [new Contact({ name: 'bengotow@gmail.com', email: 'bengotow@gmail.com' })],
-          cc: [new Contact({ name: 'cc@nylas.com', email: 'cc@nylas.com' })],
-          bcc: [new Contact({ name: 'Ben', email: 'bcc@nylas.com' })],
+          cc: [new Contact({ name: 'cc@mailspring.com', email: 'cc@mailspring.com' })],
+          bcc: [new Contact({ name: 'Ben', email: 'bcc@mailspring.com' })],
           subject: 'Martha Stewart',
         }),
         new Message({
           to: [new Contact({ name: 'bengotow@gmail.com', email: 'bengotow@gmail.com' })],
-          cc: [new Contact({ name: 'cc@nylas.com', email: 'cc@nylas.com' })],
+          cc: [new Contact({ name: 'cc@mailspring.com', email: 'cc@mailspring.com' })],
           bcc: [
-            new Contact({ name: 'Ben', email: 'bcc@nylas.com' }),
-            new Contact({ name: 'Shawn', email: 'shawn@nylas.com' }),
+            new Contact({ name: 'Ben', email: 'bcc@mailspring.com' }),
+            new Contact({ name: 'Shawn', email: 'shawn@mailspring.com' }),
           ],
           subject: 'Martha Stewart',
         }),
         new Message({
           to: [
             new Contact({ name: 'Ben Gotow', email: 'bengotow@gmail.com' }),
-            new Contact({ name: 'Shawn', email: 'shawn@nylas.com' }),
+            new Contact({ name: 'Shawn', email: 'shawn@mailspring.com' }),
           ],
           subject: 'Yes this is really valid',
         }),
         new Message({
           to: [
             new Contact({ name: 'Ben Gotow', email: 'bengotow@gmail.com' }),
-            new Contact({ name: 'Shawn', email: 'shawn@nylas.com' }),
+            new Contact({ name: 'Shawn', email: 'shawn@mailspring.com' }),
           ],
           subject: 'Yes this is really valid',
         }),

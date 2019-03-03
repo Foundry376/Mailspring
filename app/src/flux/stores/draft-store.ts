@@ -31,7 +31,7 @@ const { DefaultSendActionKey } = SendActionsStore;
 Public: DraftStore responds to Actions that interact with Drafts and exposes
 public getter methods to return Draft objects and sessions.
 
-It also creates and queues {Task} objects to persist changes to the Nylas
+It also creates and queues {Task} objects to persist changes to the Mailspring
 API.
 
 Remember that a "Draft" is actually just a "Message" with `draft: true`.

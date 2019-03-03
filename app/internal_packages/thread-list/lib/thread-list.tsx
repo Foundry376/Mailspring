@@ -248,8 +248,8 @@ class ThreadList extends React.Component<{}, { style: string; syncing: boolean }
 
     const canvas = CanvasUtils.canvasWithThreadDragImage(data.threadIds.length);
     event.dataTransfer.setDragImage(canvas, 10, 10);
-    event.dataTransfer.setData('nylas-threads-data', JSON.stringify(data));
-    event.dataTransfer.setData(`nylas-accounts=${data.accountIds.join(',')}`, '1');
+    event.dataTransfer.setData('mailspring-threads-data', JSON.stringify(data));
+    event.dataTransfer.setData(`mailspring-accounts=${data.accountIds.join(',')}`, '1');
   };
 
   _onDragEnd = event => {};

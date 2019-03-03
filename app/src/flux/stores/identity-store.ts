@@ -8,7 +8,7 @@ import KeyManager from '../../key-manager';
 import { makeRequest, rootURLForServer } from '../mailspring-api-request';
 import { Disposable } from 'event-kit';
 
-// Note this key name is used when migrating to Nylas Pro accounts from old N1.
+// Note this key name is used when migrating to Mailspring Pro accounts from old N1.
 const KEYCHAIN_NAME = 'Mailspring Account';
 
 export interface IIdentity {
@@ -42,7 +42,7 @@ class _IdentityStore extends MailspringStore {
     AppEnv.config.onDidChange('identity', this._onIdentityChanged);
     this._onIdentityChanged();
 
-    this.listenTo(Actions.logoutNylasIdentity, this._onLogoutNylasIdentity);
+    this.listenTo(Actions.logoutMailspringIdentity, this._onLogoutMailspringIdentity);
     this._fetchAndPollRemoteIdentity();
   }
 
@@ -118,10 +118,10 @@ class _IdentityStore extends MailspringStore {
     this.trigger();
   };
 
-  _onLogoutNylasIdentity = async () => {
+  _onLogoutMailspringIdentity = async () => {
     await this.saveIdentity(null);
     // We need to relaunch the app to clear the webview session
-    // and prevent the webview from re signing in with the same NylasID
+    // and prevent the webview from re signing in with the same MailspringID
     remote.app.relaunch();
     remote.app.quit();
   };

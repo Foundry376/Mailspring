@@ -27,8 +27,8 @@ const DATE_EPSILON = 60; // Seconds
 
 const _readFile = Promise.promisify(fs.readFile);
 
-const _parseOpenThreadUrl = nylasUrlString => {
-  const parsedUrl = url.parse(nylasUrlString);
+const _parseOpenThreadUrl = mailspringUrlString => {
+  const parsedUrl = url.parse(mailspringUrlString);
   const params: any = querystring.parse(parsedUrl.query);
   params.lastDate = parseInt(params.lastDate, 10);
   return params;
@@ -50,8 +50,8 @@ const _findCorrespondingThread = ({ subject, lastDate }, dateEpsilon = DATE_EPSI
   ]);
 };
 
-const _onOpenThreadFromWeb = (event, nylasUrl) => {
-  const { subject, lastDate } = _parseOpenThreadUrl(nylasUrl);
+const _onOpenThreadFromWeb = (event, mailspringUrl) => {
+  const { subject, lastDate } = _parseOpenThreadUrl(mailspringUrl);
 
   _findCorrespondingThread({ subject, lastDate })
     .then(thread => {

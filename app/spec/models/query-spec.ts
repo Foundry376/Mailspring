@@ -153,10 +153,10 @@ describe('ModelQuery', function ModelQuerySpecs() {
 
     it('should correctly generate queries with multiple where clauses', () => {
       this.runScenario(Account, {
-        builder: q => q.where({ emailAddress: 'ben@nylas.com' }).where({ id: 2 }),
+        builder: q => q.where({ emailAddress: 'ben@mailspring.com' }).where({ id: 2 }),
         sql:
           'SELECT `Account`.`data` FROM `Account`  ' +
-          "WHERE `Account`.`emailAddress` = 'ben@nylas.com' AND `Account`.`id` = 2",
+          "WHERE `Account`.`emailAddress` = 'ben@mailspring.com' AND `Account`.`id` = 2",
       });
     });
 

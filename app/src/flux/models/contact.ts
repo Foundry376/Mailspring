@@ -287,7 +287,7 @@ export class Contact extends Model {
 
     // The following are "normalized" fields that we can use to consolidate
     // various thirdPartyData source. These list of attributes should
-    // always be optional and may change as the needs of a Nylas contact
+    // always be optional and may change as the needs of a Mailspring contact
     // change over time.
     title: Attributes.String({
       modelKey: 'title',
@@ -360,7 +360,7 @@ export class Contact extends Model {
   // the contact has a populated name, just the email address otherwise.
   toString() {
     // Note: This is used as the drag-drop text of a Contact token, in the
-    // creation of message bylines "From Ben Gotow <ben@nylas>", and several other
+    // creation of message bylines "From Ben Gotow <ben@mailspring>", and several other
     // places. Change with care.
     return this.name && this.name !== this.email ? `${this.name} <${this.email}>` : this.email;
   }

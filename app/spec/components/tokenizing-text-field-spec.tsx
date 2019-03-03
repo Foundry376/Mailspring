@@ -18,16 +18,16 @@ class CustomSuggestion extends React.Component {
 
 const participant1 = new Contact({
   id: '1',
-  email: 'ben@nylas.com',
+  email: 'ben@mailspring.com',
 });
 const participant2 = new Contact({
   id: '2',
-  email: 'burgers@nylas.com',
-  name: 'Nylas Burger Basket',
+  email: 'burgers@mailspring.com',
+  name: 'Mailspring Burger Basket',
 });
 const participant3 = new Contact({
   id: '3',
-  email: 'evan@nylas.com',
+  email: 'evan@mailspring.com',
   name: 'Evan',
 });
 const participant4 = new Contact({
@@ -152,9 +152,9 @@ describe('TokenizingTextField', function() {
       token.simulate('dragStart', dragStartEvent);
 
       expect(dragStartEventData).toEqual({
-        'nylas-token-items':
-          '[{"id":"2","name":"Nylas Burger Basket","email":"burgers@nylas.com","thirdPartyData":{},"__cls":"Contact"}]',
-        'text/plain': 'Nylas Burger Basket <burgers@nylas.com>',
+        'mailspring-token-items':
+          '[{"id":"2","name":"Mailspring Burger Basket","email":"burgers@mailspring.com","thirdPartyData":{},"__cls":"Contact"}]',
+        'text/plain': 'Mailspring Burger Basket <burgers@mailspring.com>',
       });
 
       const dropEvent = {

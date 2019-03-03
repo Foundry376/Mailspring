@@ -131,7 +131,7 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
       // same as the last component of the filePath URL, or the download fails.
       const downloadURL = `${contentType}:${path.basename(filePath)}:file://${filePath}`;
       event.dataTransfer.setData('DownloadURL', downloadURL);
-      event.dataTransfer.setData('text/nylas-file-url', downloadURL);
+      event.dataTransfer.setData('text/mailspring-file-url', downloadURL);
       const el = ReactDOM.findDOMNode(this._fileIconComponent) as HTMLElement;
       const rect = el.getBoundingClientRect();
       const x = window.devicePixelRatio === 2 ? rect.height / 2 : rect.height;

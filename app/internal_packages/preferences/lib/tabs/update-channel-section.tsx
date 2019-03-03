@@ -44,7 +44,7 @@ class UpdateChannelSection extends React.Component<
 
     // HACK: Temporarily do not allow users to move on to the Salesforce channel.
     // In the future we could implement this server-side via a "public" flag.
-    const allowedNames = ['stable', 'nylas-mail', 'beta'];
+    const allowedNames = ['stable', 'mailspring-mail', 'beta'];
 
     if (AppEnv.config.get('salesforce')) {
       allowedNames.push('salesforce');

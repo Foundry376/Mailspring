@@ -122,7 +122,7 @@ export default class SidebarItem {
         onCollapseToggled: toggleItemCollapsed,
 
         onDrop(item, event) {
-          const jsonString = event.dataTransfer.getData('nylas-threads-data');
+          const jsonString = event.dataTransfer.getData('mailspring-threads-data');
           let jsonData = null;
           try {
             jsonData = JSON.parse(jsonString);
@@ -138,7 +138,7 @@ export default class SidebarItem {
         shouldAcceptDrop(item, event) {
           const target = item.perspective;
           const current = FocusedPerspectiveStore.current();
-          if (!event.dataTransfer.types.includes('nylas-threads-data')) {
+          if (!event.dataTransfer.types.includes('mailspring-threads-data')) {
             return false;
           }
           if (target.isEqual(current)) {
@@ -147,8 +147,8 @@ export default class SidebarItem {
 
           // We can't inspect the drag payload until drop, so we use a dataTransfer
           // type to encode the account IDs of threads currently being dragged.
-          const accountsType = event.dataTransfer.types.find(t => t.startsWith('nylas-accounts='));
-          const accountIds = (accountsType || '').replace('nylas-accounts=', '').split(',');
+          const accountsType = event.dataTransfer.types.find(t => t.startsWith('mailspring-accounts='));
+          const accountIds = (accountsType || '').replace('mailspring-accounts=', '').split(',');
           return target.canReceiveThreadsFromAccountIds(accountIds);
         },
 

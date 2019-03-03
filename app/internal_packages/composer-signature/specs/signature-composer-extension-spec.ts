@@ -25,13 +25,13 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
       it('should insert the signature at the end of the message or before the first quoted text block and have a newline', () => {
         const a = new Message({
           draft: true,
-          from: ['one@nylas.com'],
+          from: ['one@mailspring.com'],
           accountId: TEST_ACCOUNT_ID,
           body: 'This is a test! <div class="gmail_quote">Hello world</div>',
         });
         const b = new Message({
           draft: true,
-          from: ['one@nylas.com'],
+          from: ['one@mailspring.com'],
           accountId: TEST_ACCOUNT_ID,
           body: 'This is a another test.',
         });
@@ -79,7 +79,7 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
         })`, () => {
           const message = new Message({
             draft: true,
-            from: ['one@nylas.com'],
+            from: ['one@mailspring.com'],
             body: scenario.body,
             accountId: TEST_ACCOUNT_ID,
           });

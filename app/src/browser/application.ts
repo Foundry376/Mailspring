@@ -830,9 +830,9 @@ export default class Application extends EventEmitter {
       );
     }
 
-    // Important: Use .nylas-spec instead of .nylas-mail to avoid overwriting the
+    // Important: Use .mailspring-spec instead of .mailspring-mail to avoid overwriting the
     // user's real email config!
-    const configDirPath = path.join(app.getPath('home'), '.nylas-spec');
+    const configDirPath = path.join(app.getPath('home'), '.mailspring-spec');
 
     specWindowOptions.resourcePath = resourcePath;
     specWindowOptions.configDirPath = configDirPath;

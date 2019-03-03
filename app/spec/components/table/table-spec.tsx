@@ -121,7 +121,7 @@ describe('Table Components', function describeBlock() {
 
     it('renders extra classNames', () => {
       const table = renderTable({className: 'my-table'})
-      expect(table.hasClass('nylas-table')).toBe(true)
+      expect(table.hasClass('mailspring-table')).toBe(true)
       expect(table.hasClass('my-table')).toBe(true)
     });
 

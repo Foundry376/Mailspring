@@ -34,11 +34,11 @@ describe('EventedIFrame', () =>
 
     it('works for acceptable link types', function() {
       const hrefs = [
-        'http://nylas.com',
-        'https://www.nylas.com',
-        'mailto:evan@nylas.com',
+        'http://mailspring.com',
+        'https://www.mailspring.com',
+        'mailto:evan@mailspring.com',
         'tel:8585311718',
-        'custom:www.nylas.com',
+        'custom:www.mailspring.com',
       ];
       for (let i = 0; i < hrefs.length; i++) {
         const href = hrefs[i];
@@ -53,7 +53,7 @@ describe('EventedIFrame', () =>
     });
 
     it('corrects relative uris', function() {
-      const hrefs = ['nylas.com', 'www.nylas.com'];
+      const hrefs = ['mailspring.com', 'www.mailspring.com'];
       for (let i = 0; i < hrefs.length; i++) {
         const href = hrefs[i];
         this.frame._onIFrameClick(this.fakeEvent(href));
@@ -64,7 +64,7 @@ describe('EventedIFrame', () =>
     });
 
     it('corrects protocol-relative uris', function() {
-      const hrefs = ['//nylas.com', '//www.nylas.com'];
+      const hrefs = ['//mailspring.com', '//www.mailspring.com'];
       for (let i = 0; i < hrefs.length; i++) {
         const href = hrefs[i];
         this.frame._onIFrameClick(this.fakeEvent(href));

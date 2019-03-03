@@ -11,14 +11,14 @@ import { WEEK_VIEW, MONTH_VIEW } from './calendar-constants';
 import MiniMonthView from './mini-month-view';
 import { Disposable } from 'rx-core';
 
-const DISABLED_CALENDARS = 'nylas.disabledCalendars';
+const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
 /*
- * Nylas Calendar
+ * Mailspring Calendar
  */
-interface NylasCalendarProps {
+interface MailspringCalendarProps {
   /*
-     * The data source that powers all of the views of the NylasCalendar
+     * The data source that powers all of the views of the MailspringCalendar
      */
   dataSource: CalendarDataSource;
 
@@ -37,7 +37,7 @@ interface NylasCalendarProps {
 
   /*
      * Any extra header components for each of the supported View types of
-     * the NylasCalendar
+     * the MailspringCalendar
      */
   headerComponents?: {
     day: React.ReactChild;
@@ -48,7 +48,7 @@ interface NylasCalendarProps {
 
   /*
      * Any extra footer components for each of the supported View types of
-     * the NylasCalendar
+     * the MailspringCalendar
      */
   footerComponents?: {
     day: React.ReactChild;
@@ -75,7 +75,7 @@ interface NylasCalendarProps {
   selectedEvents: Event[];
 }
 
-interface NylasCalendarState {
+interface MailspringCalendarState {
   currentView: string;
   focusedEvent: Event | null;
   accounts?: Account[];
@@ -84,8 +84,8 @@ interface NylasCalendarState {
   disabledCalendars: string[];
 }
 
-export default class NylasCalendar extends React.Component<NylasCalendarProps, NylasCalendarState> {
-  static displayName = 'NylasCalendar';
+export default class MailspringCalendar extends React.Component<MailspringCalendarProps, MailspringCalendarState> {
+  static displayName = 'MailspringCalendar';
 
   static WeekView = WeekView;
 
@@ -168,7 +168,7 @@ export default class NylasCalendar extends React.Component<NylasCalendarProps, N
   render() {
     const CurrentView = this._getCurrentViewComponent();
     return (
-      <div className="nylas-calendar">
+      <div className="mailspring-calendar">
         <ResizableRegion
           className="calendar-toggles"
           initialWidth={200}

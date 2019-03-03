@@ -5,7 +5,7 @@ const DEBUG_SHOW_HOT_WINDOW = process.env.SHOW_HOT_WINDOW === 'true';
 let winNum = 0;
 
 /**
- * It takes a full second or more to bootup a Nylas window. Most of this
+ * It takes a full second or more to bootup a Mailspring window. Most of this
  * is due to sheer amount of time it takes to parse all of the javascript
  * and follow the require tree.
  *
@@ -126,7 +126,7 @@ export default class WindowLauncher {
   // Note: This method calls `browserWindow.destroy()` which closes
   // windows without waiting for them to load or firing window lifecycle
   // events.  This is necessary for the app to quit promptly on Linux.
-  // https://phab.nylas.com/T1282
+  // https://phab.mailspring.com/T1282
   cleanupBeforeAppQuit() {
     if (this.hotWindow != null) {
       this.hotWindow.browserWindow.destroy();

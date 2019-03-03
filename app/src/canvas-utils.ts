@@ -128,7 +128,7 @@ export function canvasWithSystemTrayIconAndText(img, text) {
   const canvas = SystemTrayCanvas;
   const w = img.width;
   const h = img.height;
-  const font = '26px Nylas-Pro, sans-serif';
+  const font = '26px Mailspring-Pro, sans-serif';
 
   const textWidth = text.length > 0 ? measureTextInCanvas(text, font) + 2 : 0;
   canvas.width = w + textWidth;

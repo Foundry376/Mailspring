@@ -33,7 +33,7 @@ const when_1 = {
 const participant_1 = {
   name: 'Ethan Blackburn',
   status: 'yes',
-  email: 'ethan@nylas.com',
+  email: 'ethan@mailspring.com',
 };
 
 const participant_2 = {
@@ -69,7 +69,7 @@ describe('Event', function() {
     expect(e1.start).toBe(1408120200);
     expect(e1.end).toBe(1408123800);
     expect(e1.participants[0].name).toBe('Ethan Blackburn');
-    expect(e1.participants[0].email).toBe('ethan@nylas.com');
+    expect(e1.participants[0].email).toBe('ethan@mailspring.com');
     expect(e1.participants[0].status).toBe('yes');
     expect(e1.participants[1].name).toBe('Other Person');
     expect(e1.participants[1].email).toBe('other@person.com');

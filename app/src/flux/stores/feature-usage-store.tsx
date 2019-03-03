@@ -20,7 +20,7 @@ const UsageRecordedServerSide = ['contact-profiles'];
  *
  * The final schema looks like (Feb 7, 2017):
  *
- * NylasID = {
+ * MailspringID = {
  *   ...
  *   "featureUsage": {
  *     "snooze": {

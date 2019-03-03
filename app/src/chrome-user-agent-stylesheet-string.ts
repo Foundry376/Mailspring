@@ -1,7 +1,7 @@
 /**
 This is the Chrome (Blink) default user-agent stylesheet. We need this
 when we use `automatic/juice` to inline CSS since emails will be
-assuming they're based off the default stylesheet instead of the Nylas
+assuming they're based off the default stylesheet instead of the Mailspring
 stylesheet.
 
 From: https://chromium.googlesource.com/chromium/blink/+/master/Source/core/css/html.css

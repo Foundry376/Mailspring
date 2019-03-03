@@ -5,7 +5,7 @@ import MailspringStore from 'mailspring-store';
 
 import * as Actions from '../actions';
 
-const CONTAINER_ID = 'nylas-modal-container';
+const CONTAINER_ID = 'mailspring-modal-container';
 
 function createContainer(id) {
   const element = document.createElement(id);

@@ -19,7 +19,7 @@ const Tests = [
         {
           templateKey: 'from',
           comparatorKey: 'contains',
-          value: '@nylas.com',
+          value: '@mailspring.com',
         },
         {
           templateKey: 'from',
@@ -36,8 +36,8 @@ const Tests = [
       accountId: 'b5djvgcuhj6i3x8nm53d0vnjm',
     },
     good: [
-      new Message({ from: [new Contact({ email: 'ben@nylas.com' })] }),
-      new Message({ from: [new Contact({ email: 'ben@nylas.com.jp' })] }),
+      new Message({ from: [new Contact({ email: 'ben@mailspring.com' })] }),
+      new Message({ from: [new Contact({ email: 'ben@mailspring.com.jp' })] }),
       new Message({ from: [new Contact({ email: 'oldschool@nilas.com' })] }),
     ],
     bad: [
@@ -72,13 +72,13 @@ const Tests = [
       accountId: 'b5djvgcuhj6i3x8nm53d0vnjm',
     },
     good: [
-      new Message({ cc: [new Contact({ email: 'ben@nylas.org' })], subject: '[TEST] ABCD' }),
-      new Message({ cc: [new Contact({ email: 'ben@nylas.org' })], subject: '[test] ABCD' }),
-      new Message({ cc: [new Contact({ email: 'ben@nylas.com' })], subject: 'Whatever' }),
+      new Message({ cc: [new Contact({ email: 'ben@mailspring.org' })], subject: '[TEST] ABCD' }),
+      new Message({ cc: [new Contact({ email: 'ben@mailspring.org' })], subject: '[test] ABCD' }),
+      new Message({ cc: [new Contact({ email: 'ben@mailspring.com' })], subject: 'Whatever' }),
       new Message({ cc: [new Contact({ email: 'a@test.com' })], subject: 'Whatever' }),
       new Message({ cc: [new Contact({ email: 'a@hasacom.com' })], subject: '[test] Whatever' }),
       new Message({
-        cc: [new Contact({ email: 'a@hasacom.org' }), new Contact({ email: 'b@nylas.com' })],
+        cc: [new Contact({ email: 'a@hasacom.org' }), new Contact({ email: 'b@mailspring.com' })],
         subject: 'Whatever',
       }),
     ],
@@ -104,7 +104,7 @@ const Tests = [
         {
           templateKey: 'anyRecipient',
           comparatorKey: 'equals',
-          value: 'files@nylas.com',
+          value: 'files@mailspring.com',
         },
       ],
       conditionMode: 'any',
@@ -119,26 +119,26 @@ const Tests = [
     good: [
       new Message({
         files: [new File({ filename: 'bengotow.pdf' })],
-        to: [new Contact({ email: 'ben@nylas.org' })],
+        to: [new Contact({ email: 'ben@mailspring.org' })],
       }),
-      new Message({ to: [new Contact({ email: 'files@nylas.com' })] }),
+      new Message({ to: [new Contact({ email: 'files@mailspring.com' })] }),
       new Message({
-        to: [new Contact({ email: 'ben@nylas.com' })],
-        cc: [new Contact({ email: 'ben@test.com' }), new Contact({ email: 'files@nylas.com' })],
+        to: [new Contact({ email: 'ben@mailspring.com' })],
+        cc: [new Contact({ email: 'ben@test.com' }), new Contact({ email: 'files@mailspring.com' })],
       }),
     ],
     bad: [
-      new Message({ to: [new Contact({ email: 'ben@nylas.org' })] }),
+      new Message({ to: [new Contact({ email: 'ben@mailspring.org' })] }),
       new Message({
         files: [new File({ filename: 'bengotow.pdfz' })],
-        to: [new Contact({ email: 'ben@nylas.org' })],
+        to: [new Contact({ email: 'ben@mailspring.org' })],
       }),
       new Message({
         files: [new File({ filename: 'bengotowpdf' })],
-        to: [new Contact({ email: 'ben@nylas.org' })],
+        to: [new Contact({ email: 'ben@mailspring.org' })],
       }),
-      new Message({ to: [new Contact({ email: 'afiles@nylas.com' })] }),
-      new Message({ to: [new Contact({ email: 'files@nylas.coma' })] }),
+      new Message({ to: [new Contact({ email: 'afiles@mailspring.com' })] }),
+      new Message({ to: [new Contact({ email: 'files@mailspring.coma' })] }),
     ],
   },
 ];

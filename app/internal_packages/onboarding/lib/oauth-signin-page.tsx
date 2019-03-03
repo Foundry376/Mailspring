@@ -34,7 +34,7 @@ export default class OAuthSignInPage extends React.Component<
     /**
      * Step 1: Open a webpage in the user's browser letting them login on
      * the native provider's website. We pass along a key and a redirect
-     * url to a Nylas-owned server
+     * url to a Mailspring-owned server
      */
     providerAuthPageUrl: PropTypes.string,
     buildAccountFromAuthResponse: PropTypes.func,

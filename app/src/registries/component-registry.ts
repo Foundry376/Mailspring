@@ -3,7 +3,7 @@ import MailspringStore from 'mailspring-store';
 
 /**
 Public: The ComponentRegistry maintains an index of React components registered
-by Nylas packages. Components can use {InjectedComponent} and {InjectedComponentSet}
+by Mailspring packages. Components can use {InjectedComponent} and {InjectedComponentSet}
 to dynamically render components registered with the ComponentRegistry.
 
 Section: Stores
@@ -22,7 +22,7 @@ class ComponentRegistry extends MailspringStore {
 
   // Public: Register a new component with the Component Registry.
   // Typically, packages call this method from their main `activate` method
-  // to extend the Nylas user interface, and call the corresponding `unregister`
+  // to extend the Mailspring user interface, and call the corresponding `unregister`
   // method in `deactivate`.
   //
   // * `component` {Object} A React Component with a `displayName`

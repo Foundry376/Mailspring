@@ -65,7 +65,7 @@ class ActionBridge {
     // often refuses to stop at breakpoints immediately inside IPC callbacks.
 
     // These issues go away when you add a setTimeout. So here's that.
-    // I believe this resolves issues like https://sentry.nylas.com/sentry/edgehill/group/2735/,
+    // I believe this resolves issues like https://sentry.mailspring.com/sentry/edgehill/group/2735/,
     // which are React exceptions in a direct stack (no next ticks) from an IPC event.
     setTimeout(() => {
       console.debug(

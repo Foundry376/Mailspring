@@ -268,7 +268,7 @@ export default class EmojiToolbarPopover extends React.Component<
     const keys = Object.keys(this.state.categoryPositions);
     this._canvasEl.height = this.state.categoryPositions[keys[keys.length - 1]].bottom * 2;
     const ctx = this._canvasEl.getContext('2d');
-    ctx.font = '24px Nylas-Pro';
+    ctx.font = '24px Mailspring-Pro';
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.clearRect(0, 0, this._canvasEl.width, this._canvasEl.height);
     const position = {

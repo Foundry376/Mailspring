@@ -4,7 +4,7 @@ import MailspringStore from 'mailspring-store';
 import * as Actions from '../actions';
 import FixedPopover from '../../components/fixed-popover';
 
-const CONTAINER_ID = 'nylas-popover-container';
+const CONTAINER_ID = 'mailspring-popover-container';
 
 function createContainer(id) {
   const element = document.createElement(id);
