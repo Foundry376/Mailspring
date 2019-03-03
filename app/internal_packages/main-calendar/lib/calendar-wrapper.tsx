@@ -73,7 +73,7 @@ export default class CalendarWrapper extends React.Component<{}, { selectedEvent
       // response is button array index
       for (const event of this.state.selectedEvents) {
         const task = new DestroyModelTask({
-          id: event.id,
+          modelId: event.id,
           modelName: event.constructor.name,
           endpoint: '/events',
           accountId: event.accountId,

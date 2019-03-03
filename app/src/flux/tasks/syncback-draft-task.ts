@@ -2,6 +2,7 @@ import { Task } from './task';
 import Attributes from '../attributes';
 import { Message } from '../models/message';
 import { localized } from '../../intl';
+import { AttributeValues } from '../models/model';
 
 export class SyncbackDraftTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -15,10 +16,9 @@ export class SyncbackDraftTask extends Task {
   });
 
   draft: Message;
-  accountId: string;
   headerMessageId: string;
 
-  constructor({ draft, ...rest }: { draft?: Message; headerMessageId?: string } = {}) {
+  constructor({ draft, ...rest }: AttributeValues<typeof SyncbackDraftTask.attributes>) {
     super(rest);
     this.draft = draft;
     this.accountId = draft ? draft.accountId : undefined;

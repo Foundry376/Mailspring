@@ -14,12 +14,12 @@ const AEditor = Editor as any;
 
 interface ComposerEditorProps {
   value: any;
-  className: string;
-  onBlur?: () => void;
-  onDrop: (e: Event) => void;
   propsForPlugins: any;
   onChange: (change: any) => void;
-  onFileReceived: (path: string) => void;
+  className?: string;
+  onBlur?: () => void;
+  onDrop?: (e: Event) => void;
+  onFileReceived?: (path: string) => void;
 }
 
 export class ComposerEditor extends React.Component<ComposerEditorProps> {

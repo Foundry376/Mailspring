@@ -86,6 +86,11 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
     onCellEdited: PropTypes.func.isRequired,
   };
 
+  refs: {
+    cell: SelectableTableCell;
+    inputContainer: HTMLDivElement;
+  };
+
   static defaultProps = {
     inputProps: {},
     InputRenderer: props => <input {...pickHTMLProps(props)} defaultValue={props.defaultValue} />,
@@ -93,7 +98,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
 
   componentDidMount() {
     if (this.shouldFocusInput()) {
-      ReactDOM.findDOMNode(this.refs.inputContainer)
+      (ReactDOM.findDOMNode(this.refs.inputContainer) as HTMLElement)
         .querySelector('input')
         .focus();
     }
@@ -101,7 +106,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
 
   componentDidUpdate() {
     if (this.shouldFocusInput()) {
-      ReactDOM.findDOMNode(this.refs.inputContainer)
+      (ReactDOM.findDOMNode(this.refs.inputContainer) as HTMLElement)
         .querySelector('input')
         .focus();
     }
@@ -127,7 +132,7 @@ export class EditableTableCell extends Component<EditableTableCellProps> {
       }
     } else if (key === 'Escape') {
       event.stopPropagation();
-      ReactDOM.findDOMNode(this.refs.inputContainer).focus();
+      (ReactDOM.findDOMNode(this.refs.inputContainer) as HTMLDivElement).focus();
     }
   };
 

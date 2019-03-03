@@ -1,11 +1,9 @@
 /* eslint no-unused-vars: 0*/
 import _ from 'underscore';
-import { Thread } from '../models/thread';
-import Actions from '../actions';
 import Attributes from '../attributes';
-import DatabaseStore from '../stores/database-store';
 import { ChangeMailTask } from './change-mail-task';
 import { localized } from '../../intl';
+import { AttributeValues } from '../models/model';
 
 export class ChangeUnreadTask extends ChangeMailTask {
   static attributes = Object.assign({}, ChangeMailTask.attributes, {
@@ -15,6 +13,10 @@ export class ChangeUnreadTask extends ChangeMailTask {
   });
 
   unread: boolean;
+
+  constructor(data: AttributeValues<typeof ChangeUnreadTask.attributes>) {
+    super(data);
+  }
 
   label() {
     return this.unread ? localized('Marking as unread') : localized('Marking as read');

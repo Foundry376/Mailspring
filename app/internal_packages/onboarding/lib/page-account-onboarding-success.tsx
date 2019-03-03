@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { localized } from 'mailspring-exports';
+import { localized, Account } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import AccountProviders from './account-providers';
 
-class AccountOnboardingSuccess extends Component {
+class AccountOnboardingSuccess extends Component<{ account: Account }> {
   // eslint-disable-line
   static displayName = 'AccountOnboardingSuccess';
 

@@ -6,8 +6,8 @@ import { CompactPicker } from 'react-color';
 
 export interface IEditorToolbarConfigItem {
   type: string;
-  tagNames: string[];
-  render: (props) => React.ReactChild;
+  tagNames?: string[];
+  render?: (props) => React.ReactChild;
   button?: {
     isActive: (value: any) => boolean;
     onToggle: (value: any, active: boolean) => any;

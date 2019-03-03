@@ -1,4 +1,4 @@
-import { Model } from './model';
+import { Model, AttributeValues } from './model';
 import Attributes from '../attributes';
 
 /**
@@ -23,7 +23,7 @@ export class PluginMetadata extends Model {
   public version: number;
   public value: any;
 
-  constructor(fields) {
+  constructor(fields: AttributeValues<typeof PluginMetadata.attributes>) {
     super(fields);
     this.version = this.version || 0;
   }

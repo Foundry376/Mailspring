@@ -1,4 +1,4 @@
-import Matcher from './attributes/matcher';
+import { Matcher } from './attributes/matcher';
 import SortOrder from './attributes/sort-order';
 import AttributeNumber from './attributes/attribute-number';
 import AttributeString from './attributes/attribute-string';

@@ -20,7 +20,7 @@ export default class WindowLauncher {
   public hotWindow?: MailspringWindow;
 
   private defaultWindowOpts: MailspringWindowSettings;
-  private config: typeof import('../config').default;
+  private config: import('../config').default;
   private onCreatedHotWindow: (win: MailspringWindow) => void;
 
   constructor({

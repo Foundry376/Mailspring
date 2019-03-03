@@ -13,7 +13,7 @@ interface MessageParticipantsProps {
   bcc: Contact[];
   replyTo: Contact[];
   from: Contact[];
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<any>) => void;
   isDetailed: boolean;
 }
 export default class MessageParticipants extends React.Component<MessageParticipantsProps> {

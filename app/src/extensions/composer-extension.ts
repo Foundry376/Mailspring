@@ -1,4 +1,4 @@
-import { Message } from 'mailspring-exports';
+import { Message, Contact } from 'mailspring-exports';
 
 /*
  * decaffeinate suggestions:
@@ -119,6 +119,6 @@ export class ComposerExtension {
   static applyTransformsForSending(args: {
     draft: Message;
     draftBodyRootNode: HTMLElement;
-    recipient?: string;
+    recipient?: Contact;
   }) {}
 }

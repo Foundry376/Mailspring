@@ -1,6 +1,7 @@
 import { Task } from './task';
 import Attributes from '../attributes';
 import { localized } from '../../intl';
+import { AttributeValues } from '../models/model';
 
 export class ChangeRoleMappingTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -14,6 +15,10 @@ export class ChangeRoleMappingTask extends Task {
 
   path: string;
   role: string;
+
+  constructor(data: AttributeValues<typeof ChangeRoleMappingTask.attributes>) {
+    super(data);
+  }
 
   label() {
     return localized(`Changing folder mapping...`);

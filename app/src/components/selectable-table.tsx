@@ -5,8 +5,9 @@ import classnames from 'classnames';
 import compose from './decorators/compose';
 import AutoFocuses from './decorators/auto-focuses';
 import ListensToMovementKeys from './decorators/listens-to-movement-keys';
-import Table, { TableRow, TableCell } from './table/table';
+import Table, { TableProps, TableRowProps, TableRow, TableCell } from './table/table';
 import PropTypes from 'prop-types';
+import TableDataSource from './table/table-data-source';
 
 /*
 SelectableTable component which renders a {Table} that supports selecting
@@ -73,16 +74,19 @@ move the selection. E.g. 1, -2.
 @param {string} selectionDeltas.key - string that represents the key used to
 shift the selection
  */
+interface SelectableTableSelection {
+  key: string;
+  rowIdx: number;
+  colIdx: number;
+}
 type SelectableTableCellProps = {
   className?: string;
   tableDataSource?: any;
   rowIdx?: number | string;
   colIdx?: number | string;
-  selection?: {
-    rowIdx: number;
-    colIdx: number;
-  };
+  selection?: SelectableTableSelection;
   onSetSelection?: (...args: any[]) => any;
+  children: React.ReactNode;
 };
 
 export class SelectableTableCell extends Component<SelectableTableCellProps> {
@@ -118,7 +122,7 @@ export class SelectableTableCell extends Component<SelectableTableCellProps> {
     onSetSelection({ rowIdx, colIdx, key: null });
   };
 
-  isSelected({ selection, rowIdx, colIdx }) {
+  isSelected({ selection, rowIdx, colIdx }: SelectableTableCellProps) {
     return selection && selection.rowIdx === rowIdx && selection.colIdx === colIdx;
   }
 
@@ -143,21 +147,11 @@ export class SelectableTableCell extends Component<SelectableTableCellProps> {
   }
 }
 
-type SelectableTableRowProps = {
-  className?: string;
-  tableDataSource?: any;
-  selection?: object;
-  rowIdx?: any;
-};
+interface SelectableTableRowProps extends TableRowProps {
+  selection?: SelectableTableSelection;
+}
 
 export class SelectableTableRow extends Component<SelectableTableRowProps> {
-  static propTypes = {
-    className: PropTypes.string,
-    tableDataSource: Table.propTypes.tableDataSource,
-    selection: PropTypes.object,
-    rowIdx: TableRow.propTypes.rowIdx,
-  };
-
   static defaultProps = {
     className: '',
   };
@@ -174,11 +168,11 @@ export class SelectableTableRow extends Component<SelectableTableRowProps> {
 
   componentDidUpdate() {
     if (this.isSelected(this.props)) {
-      ReactDOM.findDOMNode(this).scrollIntoViewIfNeeded(false);
+      (ReactDOM.findDOMNode(this) as any).scrollIntoViewIfNeeded(false);
     }
   }
 
-  isSelected({ selection, rowIdx }) {
+  isSelected({ selection, rowIdx }: SelectableTableRowProps) {
     return selection && selection.rowIdx === rowIdx;
   }
 
@@ -192,18 +186,14 @@ export class SelectableTableRow extends Component<SelectableTableRowProps> {
   }
 }
 
-type SelectableTableProps = {
-  tableDataSource?: any;
-  extraProps?: object;
-  RowRenderer?: any;
-  CellRenderer?: any;
+interface SelectableTableProps extends TableProps {
   selection: {
     rowIdx?: number;
     colIdx?: number;
   };
   onSetSelection: (...args: any[]) => any;
   onShiftSelection: (...args: any[]) => any;
-};
+}
 
 class SelectableTable extends Component<SelectableTableProps> {
   static displayName = 'SelectableTable';

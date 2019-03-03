@@ -116,7 +116,7 @@ class EventHeader extends React.Component<
 
     return (
       <div className="event-actions">
-        {actions.mapx(([status, label]) => {
+        {actions.map(([status, label]) => {
           let classes = 'btn-rsvp ';
           if (me.status === status) {
             classes += status;

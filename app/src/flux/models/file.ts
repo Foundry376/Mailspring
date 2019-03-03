@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import path from 'path';
-import { Model } from './model';
+import { Model, AttributeValues } from './model';
 import Attributes from '../attributes';
 import { localized } from '../../intl';
 import RegExpUtils from '../../regexp-utils';
@@ -48,6 +48,10 @@ export class File extends Model {
   public contentType: string;
   public messageId: string;
   public contentId: string;
+
+  constructor(data: AttributeValues<typeof File.attributes>) {
+    super(data);
+  }
 
   // Public: Files can have empty names, or no name. `displayName` returns the file's
   // name if one is present, and falls back to appropriate default name based on

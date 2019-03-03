@@ -85,7 +85,7 @@ class SearchableComponent {
 /**
  * Takes a React component and makes it searchable
  */
-export default class SearchableComponentMaker {
+export class SearchableComponentMaker {
   static extend(component) {
     const proto = SearchableComponent.prototype;
     for (const propName of Object.getOwnPropertyNames(proto)) {

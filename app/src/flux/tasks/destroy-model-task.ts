@@ -2,19 +2,19 @@
 import { Task } from './task';
 
 export class DestroyModelTask extends Task {
-  clientId: string;
+  modelId: string;
   endpoint: string;
   modelName: string;
   accountId: string;
 
   constructor({
-    clientId,
+    modelId,
     modelName,
     endpoint,
     accountId,
-  }: { clientId?: string; modelName?: string; endpoint?: string; accountId?: string } = {}) {
+  }: { modelId?: string; modelName?: string; endpoint?: string; accountId?: string } = {}) {
     super({});
-    this.clientId = clientId;
+    this.modelId = modelId;
     this.endpoint = endpoint;
     this.modelName = modelName;
     this.accountId = accountId;
@@ -26,7 +26,7 @@ export class DestroyModelTask extends Task {
       this.modelName === other.modelName &&
       this.accountId === other.accountId &&
       this.endpoint === other.endpoint &&
-      this.clientId === other.clientId
+      this.modelId === other.modelId
     );
   }
 

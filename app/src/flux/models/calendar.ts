@@ -1,4 +1,4 @@
-import { Model } from './model';
+import { Model, AttributeValues } from './model';
 import Attributes from '../attributes';
 
 /**
@@ -33,4 +33,8 @@ export class Calendar extends Model {
   public name: string;
   public description: string;
   public readOnly: boolean;
+
+  constructor(data: AttributeValues<typeof Calendar.attributes>) {
+    super(data);
+  }
 }

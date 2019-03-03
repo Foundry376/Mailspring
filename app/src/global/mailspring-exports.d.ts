@@ -205,8 +205,7 @@
   export const QuotedHTMLTransformer: QuotedHTMLTransformer;
   export type InlineStyleTransformer = typeof import('../services/inline-style-transformer').default;
   export const InlineStyleTransformer: InlineStyleTransformer;
-  export type SearchableComponentMaker = import('../searchable-components/searchable-component-maker').default;
-  export const SearchableComponentMaker: SearchableComponentMaker;
+  export * from '../searchable-components/searchable-component-maker'
 
   // Errors
   export * from '../flux/errors';

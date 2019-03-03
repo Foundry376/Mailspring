@@ -15,8 +15,8 @@ export class SyncbackEventTask {
   // necessary because the current events API doesn't accept requests
   // when this field is defined.
   getRequestData(model) {
-    const data = super.getRequestData(model);
-    delete data.body.when.object;
-    return data;
+    // const data = super.getRequestData(model);
+    // delete data.body.when.object;
+    // return data;
   }
 }

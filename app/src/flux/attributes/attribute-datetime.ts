@@ -1,5 +1,5 @@
 import Attribute from './attribute';
-import Matcher from './matcher';
+import { Matcher } from './matcher';
 
 /*
 Public: The value of this attribute is always a Javascript `Date`, or `null`.

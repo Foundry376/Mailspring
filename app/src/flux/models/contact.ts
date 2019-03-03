@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import _str from 'underscore.string';
-import { Model } from './model';
+import { Model, AttributeValues } from './model';
 import Attributes from '../attributes';
 import * as Utils from './utils';
 import RegExpUtils from '../../regexp-utils';
@@ -262,6 +262,7 @@ This class also inherits attributes from {Model}
 
 Section: Models
 */
+
 export class Contact extends Model {
   static attributes = Object.assign({}, Model.attributes, {
     name: Attributes.String({
@@ -350,7 +351,7 @@ export class Contact extends Model {
   public company: string;
   public thirdPartyData: object;
 
-  constructor(data) {
+  constructor(data: AttributeValues<typeof Contact.attributes>) {
     super(data);
     this.thirdPartyData = this.thirdPartyData || {};
   }

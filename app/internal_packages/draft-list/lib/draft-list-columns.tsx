@@ -42,7 +42,7 @@ const ContentsColumn = new ListTabular.Column({
   name: 'Contents',
   flex: 4,
   resolver: draft => {
-    let attachments = [];
+    let attachments: JSX.Element[] | JSX.Element = [];
     if (draft.files && draft.files.length > 0) {
       attachments = <div className="thread-icon thread-icon-attachment" />;
     }

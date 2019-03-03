@@ -1,6 +1,7 @@
 import { Task } from './task';
 import Attributes from '../attributes';
 import { AccountStore } from '../stores/account-store';
+import { AttributeValues } from '../models/model';
 
 export class SendFeatureUsageEventTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -11,7 +12,7 @@ export class SendFeatureUsageEventTask extends Task {
 
   feature: string;
 
-  constructor(data) {
+  constructor(data: AttributeValues<typeof SendFeatureUsageEventTask.attributes>) {
     super(data);
 
     // Tasks must have an accountId so they can be assigned to a sync worker.

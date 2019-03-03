@@ -43,7 +43,7 @@ export default class LinkTrackingComposerExtension extends ComposerExtension {
     if (!metadata) {
       return;
     }
-    const messageUid = draft.clientId;
+    const messageUid = draft.headerMessageId;
     const links = [];
 
     forEachATagInBody(draftBodyRootNode, el => {

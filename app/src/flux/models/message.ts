@@ -8,6 +8,7 @@ import { Contact } from './contact';
 import { Folder } from './folder';
 import Attributes from '../attributes';
 import { ModelWithMetadata } from './model-with-metadata';
+import { AttributeValues } from './model';
 
 /*
 Public: The Message model represents an email message or draft.
@@ -197,7 +198,7 @@ export class Message extends ModelWithMetadata {
     return Message.attributes.date.ascending();
   }
 
-  constructor(data) {
+  constructor(data: AttributeValues<typeof Message.attributes>) {
     super(data);
     this.subject = this.subject || '';
     this.to = this.to || [];

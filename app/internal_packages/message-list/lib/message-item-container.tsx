@@ -28,7 +28,7 @@ export default class MessageItemContainer extends React.Component<
   static displayName = 'MessageItemContainer';
 
   _unlisten: () => void;
-  _messageComponent: MessageItem;
+  _messageComponent: MessageItem | React.ComponentType<any>;
 
   constructor(props, context) {
     super(props, context);
@@ -56,7 +56,7 @@ export default class MessageItemContainer extends React.Component<
   }
 
   focus = () => {
-    this._messageComponent.focus();
+    this._messageComponent['focus'] && this._messageComponent['focus']();
   };
 
   _classNames() {

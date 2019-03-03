@@ -6,7 +6,7 @@ import { LinkTrackingMetadata } from './types';
 
 class LinkTrackingMessagePopover extends React.Component<{
   message: Message;
-  openMetadata: LinkTrackingMetadata;
+  linkMetadata: LinkTrackingMetadata;
 }> {
   static displayName = 'LinkTrackingMessagePopover';
 

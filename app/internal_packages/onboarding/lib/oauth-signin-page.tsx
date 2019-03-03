@@ -10,11 +10,10 @@ import { LOCAL_SERVER_PORT } from './onboarding-helpers';
 
 interface OAuthSignInPageProps {
   providerAuthPageUrl: string;
-  buildAccountFromAuthResponse: (rep: any) => Account;
+  buildAccountFromAuthResponse: (rep: any) => Account | Promise<Account>;
   onSuccess: (account: Account) => void;
   onTryAgain: () => void;
   iconName: string;
-  sessionKey: string;
   serviceName: string;
 }
 
@@ -42,7 +41,6 @@ export default class OAuthSignInPage extends React.Component<
     onSuccess: PropTypes.func,
     onTryAgain: PropTypes.func,
     iconName: PropTypes.string,
-    sessionKey: PropTypes.string,
     serviceName: PropTypes.string,
   };
 

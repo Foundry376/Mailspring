@@ -12,7 +12,7 @@ interface CalendarEventProps {
   scopeStart: number;
   direction: 'horizontal' | 'vertical';
   fixedSize: number;
-  focused: boolean;
+  focused?: boolean;
   concurrentEvents: number;
   onClick: (e: React.MouseEvent<any>, event: Event) => void;
   onDoubleClick: (event: Event) => void;

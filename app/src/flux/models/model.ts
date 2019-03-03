@@ -1,4 +1,5 @@
 import Attributes from '../attributes';
+import Attribute from '../attributes/attribute';
 
 /**
 Public: A base class for API objects that provides abstract support for
@@ -18,8 +19,20 @@ getter that resolves to the id first, and then the id.
 Section: Models
  */
 
-export class Model {
-  static attributes = {
+interface HasStaticAttributes {
+  constructor: {
+    attributes: {
+      [attribute: string]: Attribute;
+    };
+  };
+}
+
+export type AttributeValues<T> = { [P in keyof T]?: any } & { __cls?: string };
+
+export class Model implements HasStaticAttributes {
+  'constructor': typeof Model; // prettier-ignore
+
+  static attributes: { [attribute: string]: Attribute } = {
     id: Attributes.String({
       queryable: true,
       modelKey: 'id',
@@ -30,14 +43,21 @@ export class Model {
       jsonKey: 'aid',
       modelKey: 'accountId',
     }),
+
+    version: Attributes.Number({
+      queryable: false,
+      jsonKey: 'v',
+      modelKey: 'version',
+    }),
   };
 
   static naturalSortOrder = () => null;
 
   public id: string;
   public accountId: string;
+  public version: number;
 
-  constructor(data) {
+  constructor(data: AttributeValues<typeof Model.attributes>) {
     if (data) {
       if (data.__cls) {
         this.fromJSON(data);
@@ -51,8 +71,8 @@ export class Model {
     }
   }
 
-  clone() {
-    return new this.constructor(this.toJSON());
+  clone(): this {
+    return new this.constructor(this.toJSON()) as any;
   }
 
   // Public: Inflates the model object from JSON, using the defined attributes to

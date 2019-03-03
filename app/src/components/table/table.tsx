@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import React, { Component } from 'react';
+import React, { Component, HTMLProps } from 'react';
 import PropTypes from 'prop-types';
 import { pickHTMLProps } from 'pick-react-known-prop';
 import { LazyRenderedList } from '../lazy-rendered-list';
@@ -61,12 +61,12 @@ const TablePropTypes = {
 };
 
 interface TableCellProps {
-  children: React.ReactChildren | React.ReactChild;
+  children: React.ReactNode;
   className?: string;
   isHeader?: boolean;
 }
 
-export function TableCell(props: TableCellProps) {
+export function TableCell(props: TableCellProps & HTMLProps<HTMLTableHeaderCellElement>) {
   const { className, isHeader, children, ...extraProps } = props;
   const CellTag = isHeader ? 'th' : 'td';
   return (
@@ -81,10 +81,10 @@ TableCell.propTypes = {
   className: PropTypes.string,
 };
 
-interface TableRowProps {
+export interface TableRowProps {
   className: string;
-  isHeader: boolean;
-  displayNumbers: boolean;
+  isHeader?: boolean;
+  displayNumbers?: boolean;
   tableDataSource: TableDataSource;
   rowIdx: number;
   extraProps: object;
@@ -145,7 +145,7 @@ export class TableRow extends Component<TableRowProps> {
   }
 }
 
-interface TableProps {
+export interface TableProps {
   className: string;
   displayHeader: boolean;
   displayNumbers: boolean;

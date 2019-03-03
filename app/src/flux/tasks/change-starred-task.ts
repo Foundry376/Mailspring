@@ -1,11 +1,9 @@
 /* eslint no-unused-vars: 0*/
 import _ from 'underscore';
 import Attributes from '../attributes';
-import { Thread } from '../models/thread';
-import Actions from '../actions';
-import DatabaseStore from '../stores/database-store';
 import { ChangeMailTask } from './change-mail-task';
 import { localized } from '../../intl';
+import { AttributeValues } from '../models/model';
 
 export class ChangeStarredTask extends ChangeMailTask {
   static attributes = Object.assign({}, ChangeMailTask.attributes, {
@@ -15,6 +13,10 @@ export class ChangeStarredTask extends ChangeMailTask {
   });
 
   starred: boolean;
+
+  constructor(data: AttributeValues<typeof ChangeStarredTask.attributes>) {
+    super(data);
+  }
 
   label() {
     return this.starred ? localized('Starring') : localized('Unstarring');

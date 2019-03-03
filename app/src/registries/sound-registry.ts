@@ -29,7 +29,7 @@ class SoundRegistry {
     a.play();
   }
 
-  register(name, rpath) {
+  register(name: string | { [key: string]: string[] }, rpath?: string) {
     if (typeof name === 'object') {
       for (const [key, kpath] of Object.entries(name)) {
         this._sounds[key] = kpath;
@@ -39,7 +39,7 @@ class SoundRegistry {
     }
   }
 
-  unregister(name) {
+  unregister(name: string[] | string) {
     if (name instanceof Array) {
       for (const key of name) {
         delete this._sounds[key];

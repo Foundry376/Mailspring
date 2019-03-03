@@ -1,5 +1,5 @@
 import Attribute from './attribute';
-import Matcher from './matcher';
+import { Matcher } from './matcher';
 import { Model } from '../models/model';
 
 /*

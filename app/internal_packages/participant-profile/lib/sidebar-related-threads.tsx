@@ -16,11 +16,9 @@ export default class RelatedThreads extends React.Component<{
     order: 99,
   };
 
-  constructor(props) {
-    super(props);
-    this.state = { expanded: false };
-    this.DEFAULT_NUM = 3;
-  }
+  DEFAULT_NUM = 3;
+
+  state = { expanded: false };
 
   _onClick(thread) {
     Actions.setFocus({ collection: 'thread', item: thread });

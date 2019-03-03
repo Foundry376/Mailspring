@@ -2,7 +2,7 @@ import React from 'react';
 import { PropTypes, Actions } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
-class SendingCancelButton extends React.Component {
+class SendingCancelButton extends React.Component<{ taskId: string }, { cancelling: boolean }> {
   static displayName = 'SendingCancelButton';
 
   static propTypes = { taskId: PropTypes.string.isRequired };

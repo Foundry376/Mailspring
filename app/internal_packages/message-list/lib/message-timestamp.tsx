@@ -4,7 +4,7 @@ import { DateUtils } from 'mailspring-exports';
 interface MessageTimestampProps {
   date: Date;
   className?: string;
-  isDetailed: boolean;
+  isDetailed?: boolean;
   onClick?: () => void;
 }
 class MessageTimestamp extends React.Component<MessageTimestampProps> {

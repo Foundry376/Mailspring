@@ -1,4 +1,4 @@
-import Matcher from './matcher';
+import { Matcher } from './matcher';
 import SortOrder from './sort-order';
 
 /*
@@ -108,7 +108,11 @@ export default class Attribute {
     return this.fromJSON(val);
   }
 
+  columnSQL(): string | null {
+    return null;
+  }
+
   needsColumn() {
-    return this.queryable && this.columnSQL && this.jsonKey !== 'id';
+    return this.queryable && this.columnSQL() != null && this.jsonKey !== 'id';
   }
 }

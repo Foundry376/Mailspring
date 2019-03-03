@@ -70,8 +70,8 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
     }
   }
 
-  _onClickParticipants = e => {
-    let el = e.target;
+  _onClickParticipants = (e: React.MouseEvent<any>) => {
+    let el = e.target as HTMLElement;
     while (el !== e.currentTarget) {
       if (el.classList.contains('collapsed-participants')) {
         this.setState({ detailedHeaders: true });

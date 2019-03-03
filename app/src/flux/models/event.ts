@@ -1,4 +1,4 @@
-import { Model } from './model';
+import { Model, AttributeValues } from './model';
 import Attributes from '../attributes';
 import { Contact } from './contact';
 
@@ -63,6 +63,10 @@ export class Event extends Model {
   recurrenceStart: number;
   title: string;
   participants: any[];
+
+  constructor(data: AttributeValues<typeof Event.attributes>) {
+    super(data);
+  }
 
   displayTitle() {
     const displayTitle = this.title.replace(/.*Invitation: /, '');

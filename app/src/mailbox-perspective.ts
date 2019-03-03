@@ -156,25 +156,25 @@ export class MailboxPerspective {
   }
 
   // overwritten in CategoryMailboxPerspective
-  hasSyncingCategories() {
+  hasSyncingCategories(): boolean {
     return false;
   }
 
-  categoriesSharedRole() {
+  categoriesSharedRole(): string {
     this._categoriesSharedRole =
       this._categoriesSharedRole || Category.categoriesSharedRole(this.categories());
     return this._categoriesSharedRole;
   }
 
-  category() {
+  category(): Category | null {
     return this.categories().length === 1 ? this.categories()[0] : null;
   }
 
-  threads() {
+  threads(): QuerySubscription<Thread> {
     throw new Error('threads: Not implemented in base class.');
   }
 
-  unreadCount() {
+  unreadCount(): number {
     return 0;
   }
 
@@ -193,7 +193,7 @@ export class MailboxPerspective {
   //
   // perspective.canReceiveThreadsFromAccountIds([a2, a3]) -> false -> I cant move those threads to Starred
   // perspective.canReceiveThreadsFromAccountIds([a2]) -> true -> I can move that thread to Starred
-  canReceiveThreadsFromAccountIds(accountIds) {
+  canReceiveThreadsFromAccountIds(accountIds): boolean {
     if (!accountIds || accountIds.length === 0) {
       return false;
     }
@@ -212,12 +212,12 @@ export class MailboxPerspective {
     });
   }
 
-  actionsForReceivingThreads(threads, accountId): Task | Task[] {
+  actionsForReceivingThreads(threads: Thread[], accountId: string): Task | Task[] {
     // eslint-disable-line
     throw new Error('actionsForReceivingThreads: Not implemented in base class.');
   }
 
-  canArchiveThreads(threads) {
+  canArchiveThreads(threads: Thread[]) {
     if (this.isArchive()) {
       return false;
     }
@@ -225,11 +225,11 @@ export class MailboxPerspective {
     return accounts.every(acc => acc.canArchiveThreads());
   }
 
-  canTrashThreads(threads) {
+  canTrashThreads(threads: Thread[]) {
     return this.canMoveThreadsTo(threads, 'trash');
   }
 
-  canMoveThreadsTo(threads, standardCategoryName) {
+  canMoveThreadsTo(threads: Thread[], standardCategoryName) {
     if (this.categoriesSharedRole() === standardCategoryName) {
       return false;
     }
@@ -291,7 +291,7 @@ class StarredMailboxPerspective extends MailboxPerspective {
       query.where(Thread.attributes.accountId.in(this.accountIds));
     }
 
-    return new MutableQuerySubscription(query, {
+    return new MutableQuerySubscription<Thread>(query, {
       emitResultSet: true,
       updateOnSeparateThread: true,
     });
@@ -333,7 +333,7 @@ class EmptyMailboxPerspective extends MailboxPerspective {
     const query = DatabaseStore.findAll<Thread>(Thread)
       .where({ lastMessageReceivedTimestamp: -1 })
       .limit(0);
-    return new MutableQuerySubscription(query, {
+    return new MutableQuerySubscription<Thread>(query, {
       emitResultSet: true,
       updateOnSeparateThread: true,
     });
@@ -399,7 +399,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       query.distinct();
     }
 
-    return new MutableQuerySubscription(query, {
+    return new MutableQuerySubscription<Thread>(query, {
       emitResultSet: true,
       updateOnSeparateThread: true,
     });

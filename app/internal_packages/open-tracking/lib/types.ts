@@ -7,12 +7,3 @@ export interface OpenTrackingMetadata {
     }
   ];
 }
-export interface LinkTrackingMetadata {
-  uid: string;
-  click_data: [
-    {
-      timestamp: number;
-      recipient: string;
-    }
-  ];
-}

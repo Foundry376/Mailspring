@@ -57,7 +57,7 @@ export class Notifier {
       if (!msg.date || msg.date.valueOf() < this.activationTime) continue;
       // ensure the message is not a loopback
       const account = msg.from[0] && AccountStore.accountForEmail(msg.from[0].email);
-      if (msg.accountId === (account || {}).id) continue;
+      if (msg.accountId === (account || { id: undefined }).id) continue;
 
       notifworthy[msg.id] = msg;
     }

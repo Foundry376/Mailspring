@@ -620,7 +620,7 @@ export default class Application extends EventEmitter {
       if (!mainWindow || !mainWindow.browserWindow.webContents) {
         return;
       }
-      if (BrowserWindow.fromWebContents(event.sender) === mainWindow) {
+      if (BrowserWindow.fromWebContents(event.sender) === mainWindow.browserWindow) {
         return;
       }
       mainWindow.browserWindow.webContents.send('action-bridge-message', ...args);

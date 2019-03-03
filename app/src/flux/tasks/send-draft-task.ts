@@ -8,6 +8,7 @@ import SoundRegistry from '../../registries/sound-registry';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import { LocalizedErrorStrings } from '../../mailsync-process';
 import { localized } from '../../intl';
+import { AttributeValues } from '../models/model';
 
 function applyExtensionTransforms(draft, recipient) {
   const extensions = ComposerExtensionRegistry.extensions();
@@ -70,6 +71,10 @@ export class SendDraftTask extends Task {
   draft: Message;
   perRecipientBodies: { [email: string]: string };
   silent: boolean;
+
+  constructor(data: AttributeValues<typeof SendDraftTask.attributes>) {
+    super(data);
+  }
 
   get accountId() {
     return this.draft.accountId;

@@ -8,7 +8,7 @@ export default class QuickEventButton extends React.Component {
 
   onClick = event => {
     event.stopPropagation();
-    const buttonRect = ReactDOM.findDOMNode(this).getBoundingClientRect();
+    const buttonRect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
     Actions.openPopover(<QuickEventPopover />, { originRect: buttonRect, direction: 'down' });
   };
 

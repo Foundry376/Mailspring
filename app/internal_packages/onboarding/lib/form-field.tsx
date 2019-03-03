@@ -17,7 +17,7 @@ const FormField = props => {
         style={props.style}
         className={val && props.errorFieldNames.includes(props.field) ? 'error' : ''}
         disabled={props.submitting}
-        spellCheck="false"
+        spellCheck={false}
         value={val || ''}
         onKeyPress={props.onFieldKeyPress}
         onChange={props.onFieldChange}

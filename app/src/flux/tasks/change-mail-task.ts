@@ -2,6 +2,7 @@ import { Task } from './task';
 import Attributes from '../attributes';
 import { Thread } from '../models/thread';
 import { Message } from '../models/message';
+import { AttributeValues } from '../models/model';
 
 /*
 Public: The ChangeMailTask is a base class for all tasks that modify sets
@@ -37,13 +38,21 @@ export class ChangeMailTask extends Task {
   canBeUndone: boolean;
   taskDescription: string;
 
-  constructor({ threads = [], messages = [], ...rest }: any = {}) {
+  constructor({
+    threads,
+    messages,
+    ...rest
+  }: AttributeValues<typeof ChangeMailTask.attributes> & {
+    threads?: Thread[];
+    messages?: Message[];
+  }) {
     super(rest);
 
     // we actually only keep a small bit of data now
     this.threadIds = this.threadIds || threads.map(i => i.id);
     this.messageIds = this.messageIds || messages.map(i => i.id);
-    this.accountId = this.accountId || (threads[0] || messages[0] || {}).accountId;
+    this.accountId =
+      this.accountId || (threads[0] || messages[0] || { accountId: undefined }).accountId;
 
     if (this.canBeUndone === undefined) {
       this.canBeUndone = true;
@@ -52,7 +61,7 @@ export class ChangeMailTask extends Task {
 
   // Task lifecycle
 
-  createUndoTask() {
+  createUndoTask(): this {
     if (this.isUndo) {
       throw new Error(
         'ChangeMailTask::createUndoTask Cannot create an undo task from an undo task.'

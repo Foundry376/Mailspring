@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import { localized, Message } from 'mailspring-exports';
+import { Observable } from 'rx-core';
 
 export class Comparator {
   name: string;
@@ -113,6 +114,11 @@ export const Comparators = {
   },
 };
 
+interface TemplateEnumValue {
+  name: string;
+  value: string;
+}
+
 export class Template {
   static Type = Types;
   static Comparator = Comparator;
@@ -121,16 +127,12 @@ export class Template {
   key: string;
   name: string;
   type: string;
-  values: string[] | undefined;
+  values: Observable<TemplateEnumValue[]> | TemplateEnumValue[] | undefined;
   valueLabel: string | undefined;
   valueForMessage?: (message: Message) => any;
   comparators: {};
 
-  constructor(
-    key,
-    type,
-    options: { name?: string; valueForMessage?: (message: Message) => any } = {}
-  ) {
+  constructor(key, type, options: Partial<Template> = {}) {
     this.key = key;
     this.type = type;
 

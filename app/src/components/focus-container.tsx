@@ -4,6 +4,7 @@ import { FluxContainer } from 'mailspring-component-kit';
 
 type FocusContainerProps = {
   collection?: string;
+  children: React.ReactElement<any>;
 };
 export default class FocusContainer extends React.Component<FocusContainerProps> {
   static displayName = 'FocusContainer';

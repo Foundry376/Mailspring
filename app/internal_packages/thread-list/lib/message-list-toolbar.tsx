@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { CSSTransitionGroup } from 'react-transition-group';
-import { Rx, FocusedContentStore } from 'mailspring-exports';
+import { Rx, FocusedContentStore, Thread } from 'mailspring-exports';
 import ThreadListStore from './thread-list-store';
 import InjectsToolbarButtons, { ToolbarRole } from './injects-toolbar-buttons';
 
@@ -9,7 +9,10 @@ function getObservable() {
   return Rx.Observable.combineLatest(
     Rx.Observable.fromStore(FocusedContentStore),
     ThreadListStore.selectionObservable(),
-    (store, items) => ({ focusedThread: store.focused('thread'), items })
+    (store: FocusedContentStore, items: Thread[]) => ({
+      focusedThread: store.focused('thread'),
+      items,
+    })
   ).map(({ focusedThread, items }) => {
     if (focusedThread) {
       return [focusedThread];

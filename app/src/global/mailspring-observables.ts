@@ -150,7 +150,7 @@ Rx.Observable.fromAction = (action: any) => {
   });
 };
 
-Rx.Observable.fromQuery = <T extends Model>(query: ModelQuery<T>) => {
+Rx.Observable.fromQuery = <T>(query: ModelQuery<T>) => {
   return Rx.Observable.create(observer => {
     const unsubscribe = QuerySubscriptionPool.add(query, result => observer.onNext(result));
     return Rx.Disposable.create(unsubscribe);

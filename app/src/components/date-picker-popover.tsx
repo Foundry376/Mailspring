@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { localized, Actions, DateUtils } from 'mailspring-exports';
 import DateInput from './date-input';
-import Menu from './menu';
+import { Menu } from './menu';
 
 const { DATE_FORMAT_SHORT, DATE_FORMAT_LONG } = DateUtils;
 

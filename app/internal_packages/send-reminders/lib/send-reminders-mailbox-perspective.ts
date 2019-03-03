@@ -36,7 +36,7 @@ class SendRemindersMailboxPerspective extends MailboxPerspective {
       query = query.where({ accountId: this.accountIds[0] });
     }
 
-    return new MutableQuerySubscription(query, { emitResultSet: true });
+    return new MutableQuerySubscription<Thread>(query, { emitResultSet: true });
   }
 
   canReceiveThreadsFromAccountIds() {

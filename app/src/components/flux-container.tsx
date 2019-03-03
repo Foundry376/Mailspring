@@ -3,7 +3,7 @@ import { PropTypes, Utils } from 'mailspring-exports';
 
 type FluxContainerProps = {
   stores: any[];
-  getStateFromStores: (...args: any[]) => any;
+  getStateFromStores: (...args: any[]) => object;
   children: React.ReactElement<any>;
 };
 

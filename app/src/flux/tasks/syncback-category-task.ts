@@ -2,6 +2,7 @@ import utf7 from 'utf7';
 import { Task } from './task';
 import Attributes from '../attributes';
 import { localized } from '../../intl';
+import { AttributeValues } from '../models/model';
 
 export class SyncbackCategoryTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -41,6 +42,10 @@ export class SyncbackCategoryTask extends Task {
       path: utf7.imap.encode(newName),
       accountId: accountId,
     });
+  }
+
+  constructor(data: AttributeValues<typeof SyncbackCategoryTask.attributes>) {
+    super(data);
   }
 
   label() {

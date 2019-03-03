@@ -17,7 +17,7 @@ export default class OpenTrackingComposerExtension extends ComposerExtension {
     recipient?: Contact;
   }) {
     // grab message metadata, if any
-    const messageUid = draft.clientId;
+    const messageUid = draft.headerMessageId;
     const metadata = draft.metadataForPluginId(PLUGIN_ID) as OpenTrackingMetadata;
     if (!metadata) {
       return;

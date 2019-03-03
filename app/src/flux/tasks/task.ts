@@ -17,11 +17,6 @@ export class Task extends Model {
   static SubclassesUseModelTable = Task;
 
   static attributes = Object.assign({}, Model.attributes, {
-    version: Attributes.String({
-      queryable: true,
-      jsonKey: 'v',
-      modelKey: 'version',
-    }),
     status: Attributes.String({
       queryable: true,
       modelKey: 'status',
@@ -34,7 +29,6 @@ export class Task extends Model {
     }),
   });
 
-  version: string;
   status: string;
   source: string;
   error: string;
@@ -71,12 +65,12 @@ export class Task extends Model {
   }
 
   // Public: Return a deep-cloned task to be used for an undo task
-  createIdenticalTask() {
+  createIdenticalTask(): this {
     const json = this.toJSON();
     delete json.status;
     delete json.version;
     delete json.id;
-    return new this.constructor(json);
+    return new this.constructor(json) as this;
   }
 
   // Public: code to run if (someone tries to dequeue your task while it is)

@@ -36,7 +36,7 @@ class DraftList extends React.Component {
     );
   }
   _itemPropsProvider = draft => {
-    const props = {};
+    const props: any = {};
     if (draft.uploadTaskId) {
       props.className = 'sending';
     }

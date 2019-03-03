@@ -6,8 +6,8 @@ import { PropTypes, RegExpUtils } from 'mailspring-exports';
 
 interface FormErrorProps {
   message: string;
-  log: string;
-  empty: boolean;
+  log?: string;
+  empty?: boolean;
 }
 
 const FormErrorMessage = (props: FormErrorProps) => {

@@ -73,7 +73,6 @@ class TemplateEditor extends React.Component<
         <div className="section editor" onClick={this._onFocusEditor}>
           <ComposerEditor
             ref={c => (this._composer = c)}
-            readOnly={readOnly}
             value={editorState}
             propsForPlugins={{ inTemplateEditor: true }}
             onChange={change => this.setState({ editorState: change.value })}

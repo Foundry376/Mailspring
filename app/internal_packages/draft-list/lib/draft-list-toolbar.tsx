@@ -7,6 +7,7 @@ import {
 import PropTypes from 'prop-types';
 
 import DraftListStore from './draft-list-store';
+import { Message } from 'mailspring-exports';
 
 function getObservable() {
   return DraftListStore.selectionObservable();
@@ -19,7 +20,7 @@ function getStateFromObservable(items) {
   return { items };
 }
 
-class DraftListToolbar extends Component {
+class DraftListToolbar extends Component<{ items: Message[] }> {
   static displayName = 'DraftListToolbar';
 
   static propTypes = {
