@@ -5,12 +5,6 @@ import ModelQuery from './query';
 
 // TODO: Make mutator methods QueryResultSet.join(), QueryResultSet.clip...
 export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
-  _ids: string[];
-  _offset: number;
-  _modelsHash: { [id: string]: T };
-  _idToIndexHash: { [id: string]: number };
-  _query: ModelQuery<T>;
-
   immutableClone() {
     const set = new QueryResultSet({
       _ids: [].concat(this._ids),

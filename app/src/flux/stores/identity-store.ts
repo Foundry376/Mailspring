@@ -3,7 +3,7 @@ import { remote } from 'electron';
 import url from 'url';
 
 import * as Utils from '../models/utils';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import KeyManager from '../../key-manager';
 import { makeRequest, rootURLForServer } from '../mailspring-api-request';
 import { Disposable } from 'event-kit';

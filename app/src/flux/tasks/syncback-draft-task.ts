@@ -18,7 +18,7 @@ export class SyncbackDraftTask extends Task {
   draft: Message;
   headerMessageId: string;
 
-  constructor({ draft, ...rest }: AttributeValues<typeof SyncbackDraftTask.attributes>) {
+  constructor({ draft, ...rest }: AttributeValues<typeof SyncbackDraftTask.attributes> = {}) {
     super(rest);
     this.draft = draft;
     this.accountId = draft ? draft.accountId : undefined;

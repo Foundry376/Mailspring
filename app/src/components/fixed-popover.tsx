@@ -3,7 +3,7 @@ import React, { Component, CSSProperties } from 'react';
 import { findDOMNode } from 'react-dom';
 import PropTypes from 'prop-types';
 
-import Actions from '../flux/actions';
+import * as Actions from '../flux/actions';
 import compose from './decorators/compose';
 import AutoFocuses from './decorators/auto-focuses';
 

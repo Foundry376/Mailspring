@@ -9,7 +9,7 @@ import {
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
-import ActivityActions from './activity-actions';
+import * as ActivityActions from './activity-actions';
 import ActivityDataSource from './activity-data-source';
 import { configForPluginId, LINK_TRACKING_ID, OPEN_TRACKING_ID } from './plugin-helpers';
 

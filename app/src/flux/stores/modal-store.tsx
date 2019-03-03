@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Modal } from 'mailspring-component-kit';
 import MailspringStore from 'mailspring-store';
 
-import Actions from '../actions';
+import * as Actions from '../actions';
 
 const CONTAINER_ID = 'nylas-modal-container';
 

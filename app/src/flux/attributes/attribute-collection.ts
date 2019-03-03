@@ -102,12 +102,12 @@ export default class AttributeCollection extends Attribute {
   }
 
   // Public: Returns a {Matcher} for objects containing the provided value.
-  contains(val) {
+  contains(val: string) {
     this._assertPresentAndQueryable('contains', val);
     return new Matcher(this, 'contains', val);
   }
 
-  containsAny(vals) {
+  containsAny(vals: string[]) {
     this._assertPresentAndQueryable('contains', vals);
     return new Matcher(this, 'containsAny', vals);
   }

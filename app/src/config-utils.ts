@@ -1,3 +1,4 @@
+const _ = require('underscore');
 var isPlainObject, plus, splitKeyPath;
 splitKeyPath = function(keyPath) {
   var char, i, keyPathArray, startIndex, _i, _len;

@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { RetinaImg, Flexbox, ConfigPropContainer } from 'mailspring-component-kit';
 import { localized, AccountStore, IdentityStore, Account } from 'mailspring-exports';
-import OnboardingActions from './onboarding-actions';
+import * as OnboardingActions from './onboarding-actions';
 import NewsletterSignup from './newsletter-signup';
 
 // NOTE: Temporarily copied from preferences module

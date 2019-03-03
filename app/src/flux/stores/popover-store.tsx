@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import MailspringStore from 'mailspring-store';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import FixedPopover from '../../components/fixed-popover';
 
 const CONTAINER_ID = 'nylas-popover-container';

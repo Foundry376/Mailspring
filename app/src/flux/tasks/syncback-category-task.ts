@@ -44,7 +44,7 @@ export class SyncbackCategoryTask extends Task {
     });
   }
 
-  constructor(data: AttributeValues<typeof SyncbackCategoryTask.attributes>) {
+  constructor(data: AttributeValues<typeof SyncbackCategoryTask.attributes> = {}) {
     super(data);
   }
 

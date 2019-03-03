@@ -1,7 +1,7 @@
 import React from 'react';
 import { PropTypes, MailspringAPIRequest } from 'mailspring-exports';
 import { Webview } from 'mailspring-component-kit';
-import OnboardingActions from './onboarding-actions';
+import * as OnboardingActions from './onboarding-actions';
 
 export default class AuthenticatePage extends React.Component {
   static displayName = 'AuthenticatePage';

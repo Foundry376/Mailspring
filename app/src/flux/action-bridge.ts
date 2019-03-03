@@ -1,4 +1,4 @@
-import Actions from './actions';
+import * as Actions from './actions';
 import * as Utils from './models/utils';
 
 const Role = {
@@ -40,17 +40,17 @@ class ActionBridge {
     this.ipc.on('action-bridge-message', this.onIPCMessage);
 
     // Observe all global actions and re-broadcast them to other windows
-    Actions.globalActions.forEach(name => {
-      const callback = (...args) => this.onRebroadcast(TargetWindows.ALL, name, args);
-      return Actions[name].listen(callback, this);
+    Actions.globalActions.forEach(action => {
+      const callback = (...args) => this.onRebroadcast(TargetWindows.ALL, action.name, args);
+      return action.listen(callback, this);
     });
 
     if (this.role !== Role.MAIN) {
       // Observe actions for the main window fired in this window and re-broadcast
       // them to the main window.
-      Actions.mainWindowActions.forEach(name => {
-        const callback = (...args) => this.onRebroadcast(TargetWindows.MAIN, name, args);
-        return Actions[name].listen(callback, this);
+      Actions.mainWindowActions.forEach(action => {
+        const callback = (...args) => this.onRebroadcast(TargetWindows.MAIN, action.name, args);
+        return action.listen(callback, this);
       });
     }
   }

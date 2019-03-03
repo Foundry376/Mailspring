@@ -67,7 +67,7 @@ export class SyncbackMetadataTask extends Task {
   value: object;
   undoValue: object;
 
-  constructor(data: AttributeValues<typeof SyncbackMetadataTask.attributes>) {
+  constructor(data: AttributeValues<typeof SyncbackMetadataTask.attributes> = {}) {
     super(data);
   }
 

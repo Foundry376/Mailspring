@@ -4,7 +4,7 @@ import MailspringStore from 'mailspring-store';
 
 import * as Utils from '../models/utils';
 import { Thread } from '../models/thread';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import { Contact } from '../models/contact';
 import { MessageStore } from './message-store';
 import { AccountStore } from './account-store';

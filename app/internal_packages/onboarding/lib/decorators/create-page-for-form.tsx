@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import { RetinaImg } from 'mailspring-component-kit';
 import { localized, Account } from 'mailspring-exports';
 
-import OnboardingActions from '../onboarding-actions';
+import * as OnboardingActions from '../onboarding-actions';
 import { finalizeAndValidateAccount } from '../onboarding-helpers';
 import FormErrorMessage from '../form-error-message';
 import AccountProviders from '../account-providers';

@@ -45,14 +45,18 @@ export class ChangeMailTask extends Task {
   }: AttributeValues<typeof ChangeMailTask.attributes> & {
     threads?: Thread[];
     messages?: Message[];
-  }) {
+  } = {}) {
     super(rest);
 
     // we actually only keep a small bit of data now
-    this.threadIds = this.threadIds || threads.map(i => i.id);
-    this.messageIds = this.messageIds || messages.map(i => i.id);
-    this.accountId =
-      this.accountId || (threads[0] || messages[0] || { accountId: undefined }).accountId;
+    if (threads && !this.threadIds) {
+      this.threadIds = threads.map(i => i.id);
+      this.accountId = this.accountId || threads[0] ? threads[0].accountId : undefined;
+    }
+    if (messages && !this.messageIds) {
+      this.messageIds = messages.map(i => i.id);
+      this.accountId = this.accountId || messages[0] ? messages[0].accountId : undefined;
+    }
 
     if (this.canBeUndone === undefined) {
       this.canBeUndone = true;

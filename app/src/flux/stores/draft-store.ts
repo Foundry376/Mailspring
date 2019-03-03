@@ -11,7 +11,7 @@ import { SendDraftTask } from '../tasks/send-draft-task';
 import { DestroyDraftTask } from '../tasks/destroy-draft-task';
 import { Thread } from '../models/thread';
 import { Message } from '../models/message';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import TaskQueue from './task-queue';
 import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';

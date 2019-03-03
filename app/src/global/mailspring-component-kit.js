@@ -23,8 +23,8 @@ setTimeout(() => {
   window.requestIdleCallback(fn, { timeout: 5000 });
 }, 500);
 
-const resolveExport = requireValue => {
-  return requireValue.default || requireValue;
+const resolveExport = (requireValue, name) => {
+  return requireValue.default || requireValue[name] || requireValue;
 };
 
 const lazyLoadWithGetter = (prop, getter) => {
@@ -45,7 +45,7 @@ const lazyLoadWithGetter = (prop, getter) => {
 };
 
 const lazyLoad = (prop, path) => {
-  lazyLoadWithGetter(prop, () => resolveExport(require(`../components/${path}`)));
+  lazyLoadWithGetter(prop, () => resolveExport(require(`../components/${path}`), prop));
 };
 
 const lazyLoadFrom = (prop, path) => {

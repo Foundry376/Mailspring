@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { AccountStore } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
-import OnboardingActions from './onboarding-actions';
+import * as OnboardingActions from './onboarding-actions';
 
 const PageTopBar = props => {
   const { pageDepth } = props;

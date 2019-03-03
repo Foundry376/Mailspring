@@ -2,7 +2,7 @@ import { localized, AccountStore, Account, IdentityStore } from 'mailspring-expo
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 
-import OnboardingActions from './onboarding-actions';
+import * as OnboardingActions from './onboarding-actions';
 
 class OnboardingStore extends MailspringStore {
   _account: Account;

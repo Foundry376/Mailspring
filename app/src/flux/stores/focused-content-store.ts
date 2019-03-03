@@ -2,7 +2,7 @@ import MailspringStore from 'mailspring-store';
 import { AccountStore } from './account-store';
 import WorkspaceStore from './workspace-store';
 import DatabaseStore from './database-store';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import { Model } from '../models/model';
 
 /**

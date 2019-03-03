@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import Actions from '../actions';
+import * as Actions from '../actions';
 
 class UndoRedoStore extends MailspringStore {
   _undo = [];

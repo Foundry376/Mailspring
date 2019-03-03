@@ -36,7 +36,7 @@ export class ChangeFolderTask extends ChangeMailTask {
     data: AttributeValues<typeof ChangeFolderTask.attributes> & {
       threads?: Thread[];
       messages?: Message[];
-    }
+    } = {}
   ) {
     if (!data.previousFolder) {
       const folders = [];

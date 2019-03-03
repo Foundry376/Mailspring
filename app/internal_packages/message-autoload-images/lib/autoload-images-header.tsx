@@ -2,7 +2,7 @@ import React from 'react';
 import { localized, PropTypes, Message } from 'mailspring-exports';
 
 import AutoloadImagesStore from './autoload-images-store';
-import Actions from './autoload-images-actions';
+import * as Actions from './autoload-images-actions';
 
 export default class AutoloadImagesHeader extends React.Component<
   { message: Message },

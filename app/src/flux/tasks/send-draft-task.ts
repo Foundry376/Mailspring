@@ -1,7 +1,7 @@
 /* eslint global-require: 0 */
 import { AccountStore } from '../stores/account-store';
 import { Task } from './task';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import Attributes from '../attributes';
 import { Message } from '../models/message';
 import SoundRegistry from '../../registries/sound-registry';
@@ -72,7 +72,7 @@ export class SendDraftTask extends Task {
   perRecipientBodies: { [email: string]: string };
   silent: boolean;
 
-  constructor(data: AttributeValues<typeof SendDraftTask.attributes>) {
+  constructor(data: AttributeValues<typeof SendDraftTask.attributes> = {}) {
     super(data);
   }
 

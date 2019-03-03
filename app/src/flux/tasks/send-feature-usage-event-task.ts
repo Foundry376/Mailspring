@@ -12,7 +12,7 @@ export class SendFeatureUsageEventTask extends Task {
 
   feature: string;
 
-  constructor(data: AttributeValues<typeof SendFeatureUsageEventTask.attributes>) {
+  constructor(data: AttributeValues<typeof SendFeatureUsageEventTask.attributes> = {}) {
     super(data);
 
     // Tasks must have an accountId so they can be assigned to a sync worker.

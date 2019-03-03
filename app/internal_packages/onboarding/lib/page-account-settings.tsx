@@ -1,7 +1,7 @@
 import React from 'react';
 import { localized, Account, PropTypes, RegExpUtils } from 'mailspring-exports';
 
-import OnboardingActions from './onboarding-actions';
+import * as OnboardingActions from './onboarding-actions';
 import CreatePageForForm from './decorators/create-page-for-form';
 import { expandAccountWithCommonSettings } from './onboarding-helpers';
 import FormField from './form-field';

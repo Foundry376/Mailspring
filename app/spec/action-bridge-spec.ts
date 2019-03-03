@@ -1,4 +1,4 @@
-import Actions from '../src/flux/actions';
+import * as Actions from '../src/flux/actions';
 import { Message } from '../src/flux/models/message';
 import ActionBridge from '../src/flux/action-bridge';
 

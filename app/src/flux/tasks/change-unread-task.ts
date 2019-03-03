@@ -14,7 +14,7 @@ export class ChangeUnreadTask extends ChangeMailTask {
 
   unread: boolean;
 
-  constructor(data: AttributeValues<typeof ChangeUnreadTask.attributes>) {
+  constructor(data: AttributeValues<typeof ChangeUnreadTask.attributes> = {}) {
     super(data);
   }
 

@@ -1,10 +1,7 @@
 import Reflux from 'reflux';
 
-const ActionNames = ['temporarilyEnableImages', 'permanentlyEnableImages'];
+export const temporarilyEnableImages = Reflux.createAction('temporarilyEnableImages');
+temporarilyEnableImages.sync = true;
 
-const Actions = Reflux.createActions(ActionNames);
-ActionNames.forEach(name => {
-  Actions[name].sync = true;
-});
-
-export default Actions;
+export const permanentlyEnableImages = Reflux.createAction('permanentlyEnableImages');
+permanentlyEnableImages.sync = true;

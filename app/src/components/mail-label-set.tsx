@@ -5,7 +5,7 @@ import CategoryStore from '../flux/stores/category-store';
 import { MessageStore } from '../flux/stores/message-store';
 import { AccountStore } from '../flux/stores/account-store';
 import { MailLabel } from './mail-label';
-import Actions from '../flux/actions';
+import * as Actions from '../flux/actions';
 import { ChangeLabelsTask } from '../flux/tasks/change-labels-task';
 import { InjectedComponentSet } from './injected-component-set';
 import { Thread } from 'mailspring-exports';

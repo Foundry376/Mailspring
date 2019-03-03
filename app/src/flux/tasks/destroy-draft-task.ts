@@ -12,7 +12,7 @@ export class DestroyDraftTask extends Task {
 
   messageIds: string[];
 
-  constructor(data: AttributeValues<typeof DestroyDraftTask.attributes>) {
+  constructor(data: AttributeValues<typeof DestroyDraftTask.attributes> = {}) {
     super(data);
   }
 

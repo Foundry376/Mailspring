@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import _ from 'underscore';
 import * as Utils from '../models/utils';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import { Thread } from '../models/thread';
 import { Message } from '../models/message';
 import DatabaseStore from '../stores/database-store';

@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import { Message } from '../models/message';
 import { Thread } from '../models/thread';
 import DatabaseStore from './database-store';
@@ -8,6 +8,7 @@ import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import electron from 'electron';
+import DatabaseChangeRecord from './database-change-record';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
 
@@ -152,7 +153,7 @@ class _MessageStore extends MailspringStore {
     }
   }
 
-  _onFocusChanged(change) {
+  _onFocusChanged(change: { impactsCollection: (collection: string) => boolean }) {
     if (!change.impactsCollection('thread')) return;
 
     // This implements a debounce that fires on the leading and trailing edge.

@@ -1,9 +1,4 @@
 import Reflux from 'reflux';
 
-const SnoozeActions = Reflux.createActions(['snoozeThreads']);
-
-for (const key of Object.keys(SnoozeActions)) {
-  SnoozeActions[key].sync = true;
-}
-
-export default SnoozeActions;
+export const snoozeThreads = Reflux.createAction('snoozeThreads');
+snoozeThreads.sync = true;

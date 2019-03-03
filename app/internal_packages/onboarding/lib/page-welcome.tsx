@@ -1,6 +1,6 @@
 import { localized, React } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
-import OnboardingActions from './onboarding-actions';
+import * as OnboardingActions from './onboarding-actions';
 
 export default class WelcomePage extends React.Component {
   static displayName = 'WelcomePage';

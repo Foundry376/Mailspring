@@ -89,7 +89,7 @@ export async function makeRequest(options) {
 
   if (!options.auth && options.auth !== false) {
     if (options.server === 'identity') {
-      IdentityStore = IdentityStore || require('./stores/identity-store').default;
+      IdentityStore = IdentityStore || require('./stores/identity-store').IdentityStore;
       const username = IdentityStore.identity().token;
       options.headers.set('Authorization', `Basic ${btoa(`${username}:`)}`);
     }

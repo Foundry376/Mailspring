@@ -4,7 +4,7 @@ import _ from 'underscore';
 
 import MailspringStore from 'mailspring-store';
 import KeyManager from '../../key-manager';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import { Account } from '../models/account';
 import { Thread } from '../models/thread';
 import { Contact } from '../models/contact';

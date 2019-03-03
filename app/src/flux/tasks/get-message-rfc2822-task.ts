@@ -15,7 +15,7 @@ export class GetMessageRFC2822Task extends Task {
   messageId: string;
   filepath: string;
 
-  constructor(data: AttributeValues<typeof GetMessageRFC2822Task.attributes>) {
+  constructor(data: AttributeValues<typeof GetMessageRFC2822Task.attributes> = {}) {
     super(data);
   }
 }

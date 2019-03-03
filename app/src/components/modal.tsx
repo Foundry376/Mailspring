@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-import Actions from '../flux/actions';
+import * as Actions from '../flux/actions';
 import { RetinaImg } from './retina-img';
 
 type ModalProps = {

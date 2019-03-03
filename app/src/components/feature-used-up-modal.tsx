@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { shell } from 'electron';
 import { localized } from 'mailspring-exports';
-import Actions from '../flux/actions';
+import * as Actions from '../flux/actions';
 import { RetinaImg } from './retina-img';
 import BillingModal from './billing-modal';
 import { IdentityStore } from '../flux/stores/identity-store';

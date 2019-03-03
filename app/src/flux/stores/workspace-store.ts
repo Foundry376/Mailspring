@@ -5,7 +5,7 @@
  */
 import _ from 'underscore';
 import { webFrame } from 'electron';
-import Actions from '../actions';
+import * as Actions from '../actions';
 import MailspringStore from 'mailspring-store';
 import { Disposable } from 'event-kit';
 

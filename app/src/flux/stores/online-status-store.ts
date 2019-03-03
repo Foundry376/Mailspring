@@ -1,6 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import { ExponentialBackoffScheduler } from '../../backoff-schedulers';
-import Actions from '../actions';
+import * as Actions from '../actions';
 
 let isOnlineModule = null;
 

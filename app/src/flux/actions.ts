@@ -56,16 +56,20 @@ teardown() {
 Section: General
 */
 
-const scopes = {
-  window: [],
-  global: [],
-  main: [],
-};
-
 type ActionFn = (...args: any[]) => void;
 interface Action extends ActionFn {
   listen: (callback: (...args: any[]) => any, thisObj?: object) => () => void;
 }
+
+const scopes: {
+  window: Action[];
+  global: Action[];
+  main: Action[];
+} = {
+  window: [],
+  global: [],
+  main: [],
+};
 
 const create = (name, scope: 'window' | 'global' | 'main') => {
   const obj = Reflux.createAction(name);
@@ -75,12 +79,11 @@ const create = (name, scope: 'window' | 'global' | 'main') => {
   return obj as Action;
 };
 
-export default class Actions {
-  static windowActions = scopes.window;
-  static mainWindowActions = scopes.main;
-  static globalActions = scopes.global;
+export const windowActions = scopes.window;
+export const mainWindowActions = scopes.main;
+export const globalActions = scopes.global;
 
-  /*
+/*
   Public: Fired when the Nylas API Connector receives new data from the API.
 
   *Scope: Global*
@@ -94,69 +97,69 @@ export default class Actions {
   }
   ```
   */
-  static downloadStateChanged = create('downloadStateChanged', ActionScopeGlobal);
+export const downloadStateChanged = create('downloadStateChanged', ActionScopeGlobal);
 
-  /*
+/*
   Public: Queue a {Task} object to the {TaskQueue}.
 
   *Scope: Main Window*
   */
-  static queueTask = create('queueTask', ActionScopeMainWindow);
+export const queueTask = create('queueTask', ActionScopeMainWindow);
 
-  /*
+/*
   Public: Queue multiple {Task} objects to the {TaskQueue}, which should be
   undone as a single user action.
 
   *Scope: Main Window*
   */
-  static queueTasks = create('queueTasks', ActionScopeMainWindow);
-  /*
+export const queueTasks = create('queueTasks', ActionScopeMainWindow);
+/*
   Public: Cancel a specific {Task} in the {TaskQueue}.
 
   *Scope: Main Window*
   */
-  static cancelTask = create('cancelTask', ActionScopeMainWindow);
+export const cancelTask = create('cancelTask', ActionScopeMainWindow);
 
-  /*
+/*
   Public: Queue a task that does not require processing, placing it on the undo stack only.
   *Scope: Main Window*
   */
-  static queueUndoOnlyTask = create('queueUndoOnlyTask', ActionScopeMainWindow);
+export const queueUndoOnlyTask = create('queueUndoOnlyTask', ActionScopeMainWindow);
 
-  /*
+/*
   Public: Dequeue a {Task} matching the description provided.
 
   *Scope: Main Window*
   */
-  static checkOnlineStatus = create('checkOnlineStatus', ActionScopeWindow);
+export const checkOnlineStatus = create('checkOnlineStatus', ActionScopeWindow);
 
-  /*
+/*
   Public: Open the preferences view.
 
   *Scope: Global*
   */
-  static openPreferences = create('openPreferences', ActionScopeGlobal);
+export const openPreferences = create('openPreferences', ActionScopeGlobal);
 
-  /*
+/*
   Public: Switch to the preferences tab with the specific name
 
   *Scope: Global*
   */
-  static switchPreferencesTab = create('switchPreferencesTab', ActionScopeGlobal);
+export const switchPreferencesTab = create('switchPreferencesTab', ActionScopeGlobal);
 
-  /*
+/*
   Public: Manage the Nylas identity
   */
-  static logoutNylasIdentity = create('logoutNylasIdentity', ActionScopeWindow);
+export const logoutNylasIdentity = create('logoutNylasIdentity', ActionScopeWindow);
 
-  /*
+/*
   Public: Remove the selected account
 
   *Scope: Window*
   */
-  static removeAccount = create('removeAccount', ActionScopeWindow);
+export const removeAccount = create('removeAccount', ActionScopeWindow);
 
-  /*
+/*
   Public: Update the provided account
 
   *Scope: Window*
@@ -165,9 +168,9 @@ export default class Actions {
   Actions.updateAccount(account.id, {accountName: 'new'})
   ```
   */
-  static updateAccount = create('updateAccount', ActionScopeWindow);
+export const updateAccount = create('updateAccount', ActionScopeWindow);
 
-  /*
+/*
   Public: Re-order the provided account in the account list.
 
   *Scope: Window*
@@ -176,9 +179,9 @@ export default class Actions {
   Actions.reorderAccount(account.id, newIndex)
   ```
   */
-  static reorderAccount = create('reorderAccount', ActionScopeWindow);
+export const reorderAccount = create('reorderAccount', ActionScopeWindow);
 
-  /*
+/*
   Public: Select the provided sheet in the current window. This action changes
   the top level sheet.
 
@@ -188,9 +191,9 @@ export default class Actions {
   Actions.selectRootSheet(WorkspaceStore.Sheet.Threads)
   ```
   */
-  static selectRootSheet = create('selectRootSheet', ActionScopeWindow);
+export const selectRootSheet = create('selectRootSheet', ActionScopeWindow);
 
-  /*
+/*
   Public: Toggle whether a particular column is visible. Call this action
   with one of the Sheet location constants:
 
@@ -198,9 +201,12 @@ export default class Actions {
   Actions.toggleWorkspaceLocationHidden(WorkspaceStore.Location.MessageListSidebar)
   ```
   */
-  static toggleWorkspaceLocationHidden = create('toggleWorkspaceLocationHidden', ActionScopeWindow);
+export const toggleWorkspaceLocationHidden = create(
+  'toggleWorkspaceLocationHidden',
+  ActionScopeWindow
+);
 
-  /*
+/*
   Public: Focus the keyboard on an item in a collection. This action moves the
   `keyboard focus` element in lists and other components,  but does not change
   the focused DOM element.
@@ -211,9 +217,9 @@ export default class Actions {
   Actions.setCursorPosition(collection: 'thread', item: <Thread>)
   ```
   */
-  static setCursorPosition = create('setCursorPosition', ActionScopeWindow);
+export const setCursorPosition = create('setCursorPosition', ActionScopeWindow);
 
-  /*
+/*
   Public: Focus on an item in a collection. This action changes the selection
   in lists and other components, but does not change the focused DOM element.
 
@@ -223,9 +229,9 @@ export default class Actions {
   Actions.setFocus(collection: 'thread', item: <Thread>)
   ```
   */
-  static setFocus = create('setFocus', ActionScopeWindow);
+export const setFocus = create('setFocus', ActionScopeWindow);
 
-  /*
+/*
   Public: Focus the interface on a specific {MailboxPerspective}.
 
   *Scope: Window*
@@ -234,20 +240,20 @@ export default class Actions {
   Actions.focusMailboxPerspective(<Category>)
   ```
   */
-  static focusMailboxPerspective = create('focusMailboxPerspective', ActionScopeWindow);
+export const focusMailboxPerspective = create('focusMailboxPerspective', ActionScopeWindow);
 
-  /*
+/*
   Public: Focus the interface on the default mailbox perspective for the provided
   account id.
 
   *Scope: Window*
   */
-  static focusDefaultMailboxPerspectiveForAccounts = create(
-    'focusDefaultMailboxPerspectiveForAccounts',
-    ActionScopeWindow
-  );
+export const focusDefaultMailboxPerspectiveForAccounts = create(
+  'focusDefaultMailboxPerspectiveForAccounts',
+  ActionScopeWindow
+);
 
-  /*
+/*
   Public: Focus the mailbox perspective for the given account id and category names
 
   *Scope: Window*
@@ -256,9 +262,9 @@ export default class Actions {
   Actions.ensureCategoryIsFocused(accountIds, categoryName)
   ```
   */
-  static ensureCategoryIsFocused = create('ensureCategoryIsFocused', ActionScopeWindow);
+export const ensureCategoryIsFocused = create('ensureCategoryIsFocused', ActionScopeWindow);
 
-  /*
+/*
   Public: If the message with the provided id is currently beign displayed in the
   thread view, this action toggles whether it's full content or snippet is shown.
 
@@ -269,15 +275,15 @@ export default class Actions {
   Actions.toggleMessageIdExpanded(message.id)
   ```
   */
-  static toggleMessageIdExpanded = create('toggleMessageIdExpanded', ActionScopeWindow);
+export const toggleMessageIdExpanded = create('toggleMessageIdExpanded', ActionScopeWindow);
 
-  /*
+/*
   Public: Toggle whether messages from trash and spam are shown in the current
   message view.
   */
-  static toggleHiddenMessages = create('toggleHiddenMessages', ActionScopeWindow);
+export const toggleHiddenMessages = create('toggleHiddenMessages', ActionScopeWindow);
 
-  /*
+/*
   Public: This action toggles wether to collapse or expand all messages in a
   thread depending on if there are currently collapsed messages.
 
@@ -287,9 +293,9 @@ export default class Actions {
   Actions.toggleAllMessagesExpanded()
   ```
   */
-  static toggleAllMessagesExpanded = create('toggleAllMessagesExpanded', ActionScopeWindow);
+export const toggleAllMessagesExpanded = create('toggleAllMessagesExpanded', ActionScopeWindow);
 
-  /*
+/*
   Public: Print the currently selected thread.
 
   *Scope: Window*
@@ -299,9 +305,9 @@ export default class Actions {
   Actions.printThread(thread)
   ```
   */
-  static printThread = create('printThread', ActionScopeWindow);
+export const printThread = create('printThread', ActionScopeWindow);
 
-  /*
+/*
   Public: Display the thread in a new popout window
 
   *Scope: Window*
@@ -311,9 +317,9 @@ export default class Actions {
   Actions.popoutThread(thread)
   ```
   */
-  static popoutThread = create('popoutThread', ActionScopeWindow);
+export const popoutThread = create('popoutThread', ActionScopeWindow);
 
-  /*
+/*
   Public: Display the thread in the main window
 
   *Scope: Global*
@@ -323,9 +329,9 @@ export default class Actions {
   Actions.focusThreadMainWindow(thread)
   ```
   */
-  static focusThreadMainWindow = create('focusThreadMainWindow', ActionScopeGlobal);
+export const focusThreadMainWindow = create('focusThreadMainWindow', ActionScopeGlobal);
 
-  /*
+/*
   Public: Create a new reply to the provided threadId and messageId and populate
   it with the body provided.
 
@@ -336,9 +342,9 @@ export default class Actions {
   Actions.sendQuickReply({threadId: '123', messageId: '234'}, "Thanks Ben!")
   ```
   */
-  static sendQuickReply = create('sendQuickReply', ActionScopeWindow);
+export const sendQuickReply = create('sendQuickReply', ActionScopeWindow);
 
-  /*
+/*
   Public: Create a new reply to the provided threadId and messageId. Note that
   this action does not focus on the thread, so you may not be able to see the new draft
   unless you also call {::setFocus}.
@@ -353,17 +359,17 @@ export default class Actions {
   Actions.composeReply({threadId: '123', messageId: '123'})
   ```
   */
-  static composeReply = create('composeReply', ActionScopeWindow);
+export const composeReply = create('composeReply', ActionScopeWindow);
 
-  /*
+/*
   Public: Create a new draft for forwarding the provided threadId and messageId. See
   {::composeReply} for parameters and behavior.
 
   *Scope: Window*
   */
-  static composeForward = create('composeForward', ActionScopeWindow);
+export const composeForward = create('composeForward', ActionScopeWindow);
 
-  /*
+/*
   Public: Pop out the draft with the provided ID so the user can edit it in another
   window.
 
@@ -374,9 +380,9 @@ export default class Actions {
   Actions.composePopoutDraft(messageId)
   ```
   */
-  static composePopoutDraft = create('composePopoutDraft', ActionScopeWindow);
+export const composePopoutDraft = create('composePopoutDraft', ActionScopeWindow);
 
-  /*
+/*
   Public: Open a new composer window for creating a new draft from scratch.
 
   *Scope: Window*
@@ -385,9 +391,9 @@ export default class Actions {
   Actions.composeNewBlankDraft()
   ```
   */
-  static composeNewBlankDraft = create('composeNewBlankDraft', ActionScopeWindow);
+export const composeNewBlankDraft = create('composeNewBlankDraft', ActionScopeWindow);
 
-  /*
+/*
   Public: Open a new composer window for a new draft addressed to the given recipient
 
   *Scope: Window*
@@ -396,9 +402,9 @@ export default class Actions {
   Actions.composeNewDraftToRecipient(contact)
   ```
   */
-  static composeNewDraftToRecipient = create('composeNewDraftToRecipient', ActionScopeWindow);
+export const composeNewDraftToRecipient = create('composeNewDraftToRecipient', ActionScopeWindow);
 
-  /*
+/*
   Public: Send the draft with the given ID. This Action is handled by the {DraftStore},
   which finalizes the {DraftChangeSet} and allows {ComposerExtension}s to display
   warnings and do post-processing. To change send behavior, you should consider using
@@ -410,68 +416,68 @@ export default class Actions {
   Actions.sendDraft('123', {actionKey})
   ```
   */
-  static sendDraft = create('sendDraft', ActionScopeWindow);
-  /*
+export const sendDraft = create('sendDraft', ActionScopeWindow);
+/*
   Public: Fired when a draft is successfully sent
   *Scope: Global*
 
   Recieves the id of the message that was sent
   */
-  static draftDeliverySucceeded = create('draftDeliverySucceeded', ActionScopeMainWindow);
-  static draftDeliveryFailed = create('draftDeliveryFailed', ActionScopeMainWindow);
+export const draftDeliverySucceeded = create('draftDeliverySucceeded', ActionScopeMainWindow);
+export const draftDeliveryFailed = create('draftDeliveryFailed', ActionScopeMainWindow);
 
-  /*
+/*
   Public: Destroys the draft with the given ID. This Action is handled by the {DraftStore},
   and does not display any confirmation UI.
 
   *Scope: Window*
   */
-  static destroyDraft = create('destroyDraft', ActionScopeWindow);
+export const destroyDraft = create('destroyDraft', ActionScopeWindow);
 
-  /*
+/*
   Public: Submits the user's response to an RSVP event.
 
   *Scope: Window*
   */
-  static RSVPEvent = create('RSVPEvent', ActionScopeWindow);
+export const RSVPEvent = create('RSVPEvent', ActionScopeWindow);
 
-  // FullContact Sidebar
-  static getFullContactDetails = create('getFullContactDetails', ActionScopeWindow);
-  static focusContact = create('focusContact', ActionScopeWindow);
+// FullContact Sidebar
+export const getFullContactDetails = create('getFullContactDetails', ActionScopeWindow);
+export const focusContact = create('focusContact', ActionScopeWindow);
 
-  // Account Sidebar
-  static setCollapsedSidebarItem = create('setCollapsedSidebarItem', ActionScopeWindow);
+// Account Sidebar
+export const setCollapsedSidebarItem = create('setCollapsedSidebarItem', ActionScopeWindow);
 
-  // File Actions
-  // Some file actions only need to be processed in their current window
-  static addAttachment = create('addAttachment', ActionScopeWindow);
-  static selectAttachment = create('selectAttachment', ActionScopeWindow);
-  static removeAttachment = create('removeAttachment', ActionScopeWindow);
+// File Actions
+// Some file actions only need to be processed in their current window
+export const addAttachment = create('addAttachment', ActionScopeWindow);
+export const selectAttachment = create('selectAttachment', ActionScopeWindow);
+export const removeAttachment = create('removeAttachment', ActionScopeWindow);
 
-  static fetchBodies = create('fetchBodies', ActionScopeMainWindow);
-  static fetchAndOpenFile = create('fetchAndOpenFile', ActionScopeWindow);
-  static fetchAndSaveFile = create('fetchAndSaveFile', ActionScopeWindow);
-  static fetchAndSaveAllFiles = create('fetchAndSaveAllFiles', ActionScopeWindow);
-  static fetchFile = create('fetchFile', ActionScopeWindow);
-  static abortFetchFile = create('abortFetchFile', ActionScopeWindow);
-  static quickPreviewFile = create('quickPreviewFile', ActionScopeWindow);
+export const fetchBodies = create('fetchBodies', ActionScopeMainWindow);
+export const fetchAndOpenFile = create('fetchAndOpenFile', ActionScopeWindow);
+export const fetchAndSaveFile = create('fetchAndSaveFile', ActionScopeWindow);
+export const fetchAndSaveAllFiles = create('fetchAndSaveAllFiles', ActionScopeWindow);
+export const fetchFile = create('fetchFile', ActionScopeWindow);
+export const abortFetchFile = create('abortFetchFile', ActionScopeWindow);
+export const quickPreviewFile = create('quickPreviewFile', ActionScopeWindow);
 
-  /*
+/*
   Public: Pop the current sheet off the Sheet stack maintained by the {WorkspaceStore}.
   This action has no effect if the window is currently showing a root sheet.
 
   *Scope: Window*
   */
-  static popSheet = create('popSheet', ActionScopeWindow);
+export const popSheet = create('popSheet', ActionScopeWindow);
 
-  /*
+/*
   Public: Pop the to the root sheet currently selected.
 
   *Scope: Window*
   */
-  static popToRootSheet = create('popToRootSheet', ActionScopeWindow);
+export const popToRootSheet = create('popToRootSheet', ActionScopeWindow);
 
-  /*
+/*
   Public: Push a sheet of a specific type onto the Sheet stack maintained by the
   {WorkspaceStore}. Note that sheets have no state. To show a *specific* thread,
   you should push a Thread sheet and call `setFocus` to select the thread.
@@ -488,44 +494,43 @@ export default class Actions {
   this.pushSheet(WorkspaceStore.Sheet.Thread)
   ```
   */
-  static pushSheet = create('pushSheet', ActionScopeWindow);
+export const pushSheet = create('pushSheet', ActionScopeWindow);
 
-  static addMailRule = create('addMailRule', ActionScopeWindow);
-  static reorderMailRule = create('reorderMailRule', ActionScopeWindow);
-  static updateMailRule = create('updateMailRule', ActionScopeWindow);
-  static deleteMailRule = create('deleteMailRule', ActionScopeWindow);
-  static disableMailRule = create('disableMailRule', ActionScopeWindow);
-  static startReprocessingMailRules = create('startReprocessingMailRules', ActionScopeWindow);
-  static stopReprocessingMailRules = create('stopReprocessingMailRules', ActionScopeWindow);
+export const addMailRule = create('addMailRule', ActionScopeWindow);
+export const reorderMailRule = create('reorderMailRule', ActionScopeWindow);
+export const updateMailRule = create('updateMailRule', ActionScopeWindow);
+export const deleteMailRule = create('deleteMailRule', ActionScopeWindow);
+export const disableMailRule = create('disableMailRule', ActionScopeWindow);
+export const startReprocessingMailRules = create('startReprocessingMailRules', ActionScopeWindow);
+export const stopReprocessingMailRules = create('stopReprocessingMailRules', ActionScopeWindow);
 
-  static openPopover = create('openPopover', ActionScopeWindow);
-  static closePopover = create('closePopover', ActionScopeWindow);
+export const openPopover = create('openPopover', ActionScopeWindow);
+export const closePopover = create('closePopover', ActionScopeWindow);
 
-  static openModal = create('openModal', ActionScopeWindow);
-  static closeModal = create('closeModal', ActionScopeWindow);
+export const openModal = create('openModal', ActionScopeWindow);
+export const closeModal = create('closeModal', ActionScopeWindow);
 
-  static draftParticipantsChanged = create('draftParticipantsChanged', ActionScopeWindow);
+export const draftParticipantsChanged = create('draftParticipantsChanged', ActionScopeWindow);
 
-  static findInThread = create('findInThread', ActionScopeWindow);
-  static nextSearchResult = create('nextSearchResult', ActionScopeWindow);
-  static previousSearchResult = create('previousSearchResult', ActionScopeWindow);
+export const findInThread = create('findInThread', ActionScopeWindow);
+export const nextSearchResult = create('nextSearchResult', ActionScopeWindow);
+export const previousSearchResult = create('previousSearchResult', ActionScopeWindow);
 
-  // Actions for the signature preferences and shared with the composer
-  static upsertSignature = create('upsertSignature', ActionScopeWindow);
-  static removeSignature = create('removeSignature', ActionScopeWindow);
-  static selectSignature = create('selectSignature', ActionScopeWindow);
-  static toggleAccount = create('toggleAccount', ActionScopeWindow);
+// Actions for the signature preferences and shared with the composer
+export const upsertSignature = create('upsertSignature', ActionScopeWindow);
+export const removeSignature = create('removeSignature', ActionScopeWindow);
+export const selectSignature = create('selectSignature', ActionScopeWindow);
+export const toggleAccount = create('toggleAccount', ActionScopeWindow);
 
-  static expandSyncState = create('expandSyncState', ActionScopeWindow);
+export const expandSyncState = create('expandSyncState', ActionScopeWindow);
 
-  static searchQuerySubmitted = create('searchQuerySubmitted', ActionScopeWindow);
-  static searchQueryChanged = create('searchQueryChanged', ActionScopeWindow);
-  static searchCompleted = create('searchCompleted', ActionScopeWindow);
+export const searchQuerySubmitted = create('searchQuerySubmitted', ActionScopeWindow);
+export const searchQueryChanged = create('searchQueryChanged', ActionScopeWindow);
+export const searchCompleted = create('searchCompleted', ActionScopeWindow);
 
-  // Templates
-  static insertTemplateId = create('insertTemplateId', ActionScopeWindow);
-  static createTemplate = create('createTemplate', ActionScopeWindow);
-  static showTemplates = create('showTemplates', ActionScopeWindow);
-  static deleteTemplate = create('deleteTemplate', ActionScopeWindow);
-  static renameTemplate = create('renameTemplate', ActionScopeWindow);
-}
+// Templates
+export const insertTemplateId = create('insertTemplateId', ActionScopeWindow);
+export const createTemplate = create('createTemplate', ActionScopeWindow);
+export const showTemplates = create('showTemplates', ActionScopeWindow);
+export const deleteTemplate = create('deleteTemplate', ActionScopeWindow);
+export const renameTemplate = create('renameTemplate', ActionScopeWindow);

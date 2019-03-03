@@ -4,7 +4,7 @@ import { AccountStore } from './account-store';
 import WorkspaceStore from './workspace-store';
 import { MailboxPerspective } from '../../mailbox-perspective';
 import CategoryStore from './category-store';
-import Actions from '../actions';
+import * as Actions from '../actions';
 
 class FocusedPerspectiveStore extends MailspringStore {
   _current = MailboxPerspective.forNothing();

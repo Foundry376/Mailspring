@@ -18,22 +18,14 @@ function ensureInteger(f, fallback) {
   return Math.round(int);
 }
 
+let loadSettings = JSON.parse(decodeURIComponent(window.location.search.substr(14)));
+
 // Essential: AppEnv global for dealing with packages, themes, menus, and the window.
 //
 // The singleton of this class is always available as the `AppEnv` global.
 export default class AppEnvConstructor {
   // Returns the load settings hash associated with the current window.
-  static loadSettings: any;
-  static getLoadSettings() {
-    if (this.loadSettings == null) {
-      this.loadSettings = JSON.parse(decodeURIComponent(window.location.search.substr(14)));
-    }
-    return this.loadSettings;
-  }
 
-  static getCurrentWindow() {
-    return remote.getCurrentWindow();
-  }
 
   emitter = new Emitter();
   loadTime: number = null;
@@ -51,7 +43,6 @@ export default class AppEnvConstructor {
   errorLogger: import('./error-logger');
   savedState: any;
   isReloading: boolean;
-  loadSettings: any;
 
 
   /*
@@ -346,7 +337,7 @@ export default class AppEnvConstructor {
   //
   // Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings() {
-    return AppEnv.getLoadSettings();
+    return loadSettings;
   }
 
   /*
@@ -412,7 +403,7 @@ export default class AppEnvConstructor {
 
   // Extended: Get the current window
   getCurrentWindow() {
-    return AppEnv.getCurrentWindow();
+    return remote.getCurrentWindow();
   }
 
   // Extended: Move current window to the center of the screen.
@@ -670,9 +661,8 @@ export default class AppEnvConstructor {
   //
   // This also means that the windowType has changed and a different set of
   // plugins needs to be loaded.
-  populateHotWindow(loadSettings) {
-    this.loadSettings = loadSettings;
-    AppEnv.loadSettings = loadSettings;
+  populateHotWindow(newLoadSettings) {
+    loadSettings = newLoadSettings;
 
     this.packages.activatePackages(loadSettings.windowType);
 

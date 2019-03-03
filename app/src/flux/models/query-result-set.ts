@@ -24,7 +24,7 @@ export class QueryResultSet<T extends Model> {
   _query: ModelQuery<T>;
   _idToIndexHash?: { [id: string]: number };
   _modelsHash?: { [id: string]: T };
-  _ids: string[];
+  _ids: string[] = [];
 
   static setByApplyingModels(set, models) {
     if (models instanceof Array) {

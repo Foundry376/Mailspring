@@ -112,7 +112,7 @@ export default class MailspringStore {
     return this._emitter.setMaxListeners(250);
   }
 
-  listen(callback, bindContext: object = this) {
+  listen(callback: (...args: any[]) => void, bindContext: object = this) {
     if (!callback) {
       throw new Error('@listen called with undefined callback');
     }
@@ -121,7 +121,7 @@ export default class MailspringStore {
 
     let aborted = false;
 
-    const eventHandler = args => {
+    const eventHandler = (...args) => {
       if (aborted) {
         return;
       }

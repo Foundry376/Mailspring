@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 import { Task } from './flux/tasks/task';
-import Actions from './flux/actions';
+import * as Actions from './flux/actions';
 import { Thread } from './flux/models/thread';
 import { Folder } from './flux/models/folder';
 import { Label } from './flux/models/label';

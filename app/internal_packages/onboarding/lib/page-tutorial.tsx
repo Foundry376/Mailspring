@@ -1,5 +1,5 @@
 import { localized, React } from 'mailspring-exports';
-import OnboardingActions from './onboarding-actions';
+import * as OnboardingActions from './onboarding-actions';
 
 const Steps = [
   {

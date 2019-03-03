@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { webFrame } from 'electron';
 import Webview from './webview';
-import Actions from '../flux/actions';
+import * as Actions from '../flux/actions';
 import { IdentityStore } from '../flux/stores/identity-store';
 
 type BillingModalProps = {

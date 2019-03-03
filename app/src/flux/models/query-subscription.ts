@@ -3,6 +3,7 @@ import { QueryRange } from './query-range';
 import { MutableQueryResultSet } from './mutable-query-result-set';
 import ModelQuery from './query';
 import { Model } from './model';
+import DatabaseChangeRecord from '../stores/database-change-record';
 
 export class QuerySubscription<T extends Model> {
   _set: MutableQueryResultSet<T> = null;
@@ -84,7 +85,7 @@ export class QuerySubscription<T extends Model> {
     return this._callbacks.length;
   };
 
-  applyChangeRecord = record => {
+  applyChangeRecord = (record: DatabaseChangeRecord) => {
     if (!this._query || record.objectClass !== this._query.objectClass()) {
       return;
     }

@@ -4,7 +4,7 @@ import classnames from 'classnames';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
-import Actions from '../flux/actions';
+import * as Actions from '../flux/actions';
 import { pickHTMLProps } from 'pick-react-known-prop';
 import { RetinaImg } from './retina-img';
 import { Flexbox } from './flexbox';

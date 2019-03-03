@@ -7,7 +7,7 @@ export default class ActivityDataSource {
   buildObservable({ messageLimit }) {
     const query = DatabaseStore.findAll<Message>(Message)
       .order(Message.attributes.date.descending())
-      .where(Message.attributes.pluginMetadata.in([OPEN_TRACKING_ID, LINK_TRACKING_ID])) // TODO BG VERIFY
+      .where(Message.attributes.pluginMetadata.containsAny([OPEN_TRACKING_ID, LINK_TRACKING_ID]))
       .limit(messageLimit);
     this.observable = Rx.Observable.fromQuery(query);
     return this.observable;

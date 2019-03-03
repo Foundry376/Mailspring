@@ -3,7 +3,7 @@ import _ from 'underscore';
 import MailspringStore from 'mailspring-store';
 import WorkspaceStore from './workspace-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
-import Actions from '../actions';
+import * as Actions from '../actions';
 
 const MAIN_TAB_ITEM_ID = 'General';
 

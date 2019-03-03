@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { localized, DateUtils, Actions, Thread } from 'mailspring-exports';
 import { RetinaImg, DateInput } from 'mailspring-component-kit';
-import SnoozeActions from './snooze-actions';
+import * as SnoozeActions from './snooze-actions';
 
 const { DATE_FORMAT_LONG } = DateUtils;
 

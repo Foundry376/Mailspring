@@ -4,7 +4,7 @@ import { Account } from 'mailspring-exports';
 import { buildGmailAccountFromAuthResponse, buildGmailAuthURL } from './onboarding-helpers';
 
 import OAuthSignInPage from './oauth-signin-page';
-import OnboardingActions from './onboarding-actions';
+import * as OnboardingActions from './onboarding-actions';
 import AccountProviders from './account-providers';
 
 export default class AccountSettingsPageGmail extends React.Component<{ account: Account }> {

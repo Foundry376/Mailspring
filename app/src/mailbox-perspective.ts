@@ -18,7 +18,7 @@ import { Category } from './flux/models/category';
 import { Label } from './flux/models/label';
 import { Folder } from './flux/models/folder';
 import { Task } from './flux/tasks/task';
-import Actions from './flux/actions';
+import * as Actions from './flux/actions';
 import { QuerySubscription } from 'mailspring-exports';
 
 let WorkspaceStore = null;

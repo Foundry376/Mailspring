@@ -1,5 +1,7 @@
 /* eslint global-require: 0 */
 import { QuerySubscription } from './query-subscription';
+import DatabaseChangeRecord from '../stores/database-change-record';
+import ModelQuery from './query';
 let DatabaseStore = null;
 
 /*
@@ -15,7 +17,7 @@ class QuerySubscriptionPool {
     this._setup();
   }
 
-  add(query, callback) {
+  add(query: ModelQuery<any>, callback) {
     if (AppEnv.inDevMode()) {
       callback._registrationPoint = this._formatRegistrationPoint(new Error().stack);
     }
@@ -34,7 +36,7 @@ class QuerySubscriptionPool {
     };
   }
 
-  addPrivateSubscription(key, subscription, callback) {
+  addPrivateSubscription(key: string, subscription: QuerySubscription<any>, callback) {
     this._subscriptions[key] = subscription;
     subscription.addCallback(callback);
     return () => {
@@ -60,7 +62,7 @@ class QuerySubscriptionPool {
     }
   }
 
-  _scheduleCleanupCheckForSubscription(key) {
+  _scheduleCleanupCheckForSubscription(key: string) {
     // We unlisten / relisten to lots of subscriptions and setTimeout is actually
     // /not/ that fast. Create one timeout for all checks, not one for each.
     if (this._cleanupChecks.length === 0) {
@@ -79,7 +81,7 @@ class QuerySubscriptionPool {
     this._cleanupChecks = [];
   }
 
-  _formatRegistrationPoint(stackString) {
+  _formatRegistrationPoint(stackString: string) {
     const stack = stackString.split('\n');
     let ii = 0;
     let seenRx = false;
@@ -95,7 +97,7 @@ class QuerySubscriptionPool {
     return stack.slice(ii, ii + 4).join('\n');
   }
 
-  _keyForQuery(query) {
+  _keyForQuery<T>(query: ModelQuery<T>) {
     return query.sql();
   }
 
@@ -104,7 +106,7 @@ class QuerySubscriptionPool {
     DatabaseStore.listen(this._onChange);
   }
 
-  _onChange = record => {
+  _onChange = (record: DatabaseChangeRecord) => {
     for (const key of Object.keys(this._subscriptions)) {
       const subscription = this._subscriptions[key];
       subscription.applyChangeRecord(record);

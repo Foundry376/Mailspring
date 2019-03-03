@@ -1,16 +1,19 @@
 import Reflux from 'reflux';
 
-const OnboardingActions = Reflux.createActions([
-  'moveToPreviousPage',
-  'moveToPage',
-  'setAccount',
-  'chooseAccountProvider',
-  'identityJSONReceived',
-  'finishAndAddAccount',
-]);
+export const moveToPreviousPage = Reflux.createAction('moveToPreviousPage');
+moveToPreviousPage.sync = true;
 
-for (const key of Object.keys(OnboardingActions)) {
-  OnboardingActions[key].sync = true;
-}
+export const moveToPage = Reflux.createAction('moveToPage');
+moveToPage.sync = true;
 
-export default OnboardingActions;
+export const setAccount = Reflux.createAction('setAccount');
+setAccount.sync = true;
+
+export const chooseAccountProvider = Reflux.createAction('chooseAccountProvider');
+chooseAccountProvider.sync = true;
+
+export const identityJSONReceived = Reflux.createAction('identityJSONReceived');
+identityJSONReceived.sync = true;
+
+export const finishAndAddAccount = Reflux.createAction('finishAndAddAccount');
+finishAndAddAccount.sync = true;

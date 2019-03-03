@@ -11,7 +11,7 @@ import {
 
 import { markUnreadOrResurfaceThreads, moveThreads, snoozedUntilMessage } from './snooze-utils';
 import { PLUGIN_ID } from './snooze-constants';
-import SnoozeActions from './snooze-actions';
+import * as SnoozeActions from './snooze-actions';
 
 class _SnoozeStore extends MailspringStore {
   unsubscribers: Array<() => void>;

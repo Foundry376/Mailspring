@@ -123,7 +123,7 @@ export class Account extends ModelWithMetadata {
 
   // Returns a {Contact} model that represents the current user.
   me() {
-    Contact = Contact || require('./contact').default;
+    Contact = Contact || require('./contact').Contact;
 
     return new Contact({
       // used to give them random strings, let's try for something consistent
@@ -135,7 +135,7 @@ export class Account extends ModelWithMetadata {
   }
 
   meUsingAlias(alias) {
-    Contact = Contact || require('./contact').default;
+    Contact = Contact || require('./contact').Contact;
 
     if (!alias) {
       return this.me();

@@ -2,7 +2,7 @@ import MailspringStore from 'mailspring-store';
 import fs from 'fs';
 import path from 'path';
 import { Utils, MessageBodyProcessor, CategoryStore } from 'mailspring-exports';
-import AutoloadImagesActions from './autoload-images-actions';
+import * as AutoloadImagesActions from './autoload-images-actions';
 
 const ImagesRegexp = /((?:src|background|placeholder|icon|background|poster|srcset)\s*=\s*['"]?(?=\w*:\/\/)|:\s*url\()+([^"')]*)/gi;
 

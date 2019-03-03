@@ -16,7 +16,7 @@ import DatabaseChangeRecord from './stores/database-change-record';
 import DatabaseObjectRegistry from '../registries/database-object-registry';
 import { MailsyncProcess } from '../mailsync-process';
 import KeyManager from '../key-manager';
-import Actions from './actions';
+import * as Actions from './actions';
 import * as Utils from './models/utils';
 
 const MAX_CRASH_HISTORY = 10;
@@ -419,14 +419,15 @@ export default class MailsyncBridge {
     }
   };
 
-  _onIncomingChangeRecord = record => {
+  _onIncomingChangeRecord = (record: DatabaseChangeRecord) => {
     // Allow observers of the database to handle this change
     DatabaseStore.trigger(record);
 
     // Run task success / error handlers if the task is now complete
     // Note: cannot use `record.objectClass` because of subclass names
     if (record.type === 'persist' && record.objects[0] instanceof Task) {
-      for (const task of record.objects) {
+      for (const obj of record.objects) {
+        const task = obj as Task;
         if (task.status !== 'complete') {
           continue;
         }

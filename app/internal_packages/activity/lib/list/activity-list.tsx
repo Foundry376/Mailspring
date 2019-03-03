@@ -4,7 +4,7 @@ import { localized, Actions, FocusedPerspectiveStore } from 'mailspring-exports'
 import { Flexbox, ScrollRegion, RetinaImg } from 'mailspring-component-kit';
 
 import ActivityEventStore from '../activity-event-store';
-import ActivityActions from '../activity-actions';
+import * as ActivityActions from '../activity-actions';
 import ActivityMailboxPerspective from '../activity-mailbox-perspective';
 import ActivityListItemContainer from './activity-list-item-container';
 import ActivityListEmptyState from './activity-list-empty-state';

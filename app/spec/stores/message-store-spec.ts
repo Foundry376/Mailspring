@@ -7,7 +7,7 @@ import FocusedPerspectiveStore from '../../src/flux/stores/focused-perspective-s
 import { MessageStore } from '../../src/flux/stores/message-store';
 import DatabaseStore from '../../src/flux/stores/database-store';
 import { ChangeUnreadTask } from '../../src/flux/tasks/change-unread-task';
-import Actions from '../../src/flux/actions';
+import * as Actions from '../../src/flux/actions';
 
 const testThread = new Thread({ id: '123', accountId: TEST_ACCOUNT_ID });
 const testMessage1 = new Message({
