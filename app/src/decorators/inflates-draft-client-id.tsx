@@ -100,7 +100,7 @@ function InflatesDraftClientId(
       }
     }
 
-    // Returns a promise for use in composer/main.es6, to show the window
+    // Returns a promise for use in composer/main.ts, to show the window
     // once the composer is rendered and focused.
     focus() {
       return Utils.waitFor(() => this.refs.composed)

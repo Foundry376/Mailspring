@@ -11,9 +11,9 @@ import {
 
 const tld = require('tld');
 
-// Notice that this file is `main.jsx` rather than `main.es6`. We use the
-// `.jsx` filetype because we use the JSX DSL to describe markup for React to
-// render. Without the JSX, we could just name this file `main.es6` instead.
+// Notice that this file is `main.tsx` rather than `main.ts`. We use the
+// `.tsx` filetype because we use the TSX DSL to describe markup for React to
+// render. Without the TSX, we could just name this file `main.ts` instead.
 class PhishingIndicator extends React.Component<{}, { message: Message }> {
   // Adding a displayName to a React component helps for debugging.
   static displayName = 'PhishingIndicator';

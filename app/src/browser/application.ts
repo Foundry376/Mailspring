@@ -312,7 +312,7 @@ export default class Application extends EventEmitter {
   // Registers basic application commands, non-idempotent.
   // Note: If these events are triggered while an application window is open, the window
   // needs to manually bubble them up to the Application instance via IPC or they won't be
-  // handled. This happens in workspace-element.es6
+  // handled. This happens in workspace-element.ts
   handleEvents() {
     this.on('application:run-all-specs', () => {
       const win = this.windowManager.focusedWindow();

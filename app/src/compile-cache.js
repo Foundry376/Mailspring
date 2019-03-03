@@ -6,7 +6,6 @@ const typescriptCompiler = require('./compile-support/typescript');
 
 const COMPILERS = {
   '.jsx': typescriptCompiler,
-  '.es6': typescriptCompiler,
   '.ts': typescriptCompiler,
   '.tsx': typescriptCompiler,
 };

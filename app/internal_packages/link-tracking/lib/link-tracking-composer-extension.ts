@@ -24,7 +24,7 @@ function forEachATagInBody(draftBodyRootNode, callback) {
  * substantial post processing just before send. This happens in iso-core
  * since sending can happen immediately or later in cloud-workers.
  *
- * See isomorphic-core tracking-utils.es6
+ * See isomorphic-core tracking-utils.ts
  *
  * We also need to add individualized recipients to each tracking pixel
  * for each message sent to each person.
