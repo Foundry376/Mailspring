@@ -62,15 +62,19 @@ const extMap = {
   pkpass: 'pass'
 };
 
+const isImage = (type) => {
+  return type === FILE_TYPE.IMAGE || type === FILE_TYPE.GIF || type === FILE_TYPE.STICKER;
+}
+
 const shouldInlineImg = (msgBody) => {
   let path = msgBody.path;
-  return (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER)
+  return isImage(msgBody.type)
     && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId
     && msgBody.path
-    && !(msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER)
+    && !isImage(msgBody.type)
 }
 
 // The number of pixels away from the bottom to be considered as being at the bottom
@@ -414,13 +418,11 @@ export default class Messages extends PureComponent {
               let cursor = 'zoom-in';
 
               if (shouldInlineImg(msgBody)) {
-                msg.height = msg.height || 220;
                 msgFile = (
                   <div className="message-image">
                     <img
                       src={msgBody.path}
                       title={msgBody.localFile || msgBody.mediaObjectId}
-                      style={{ height: '220px', cursor }}
                       onClick={onClickImage}
                     />
                     {messageToolbar(msg, msgBody, true)}
@@ -489,6 +491,15 @@ export default class Messages extends PureComponent {
                             name="inline-loading-spinner.gif"
                             mode={RetinaImg.Mode.ContentPreserve}
                           />
+                          {isImage(msgBody.type) && (
+                            <div className="message-image">
+                              <img
+                                src={msgBody.localFile}
+                                title={msgBody.localFile || msgBody.mediaObjectId}
+                                onClick={onClickImage}
+                              />
+                            </div>
+                          )}
                           <div>Uploading {msgBody.localFile && path.basename(msgBody.localFile)}</div>
                         </div>
                       ) : (
@@ -510,14 +521,9 @@ export default class Messages extends PureComponent {
                         )
                     }
 
-                    {msgBody.mediaObjectId && msgBody.type === FILE_TYPE.OTHER_FILE && (
+                    {msgBody.mediaObjectId && (
                       <div className="messageMeta">
-                        {msgFile}
-                      </div>
-                    )}
-                    {msgBody.mediaObjectId && msgBody.type !== FILE_TYPE.OTHER_FILE && (
-                      <div className="messageMeta">
-                        <div style={{ background: "#fff" }}>{msgFile}</div>
+                        <div>{msgFile}</div>
                       </div>
                     )}
 
@@ -533,12 +539,14 @@ export default class Messages extends PureComponent {
                     </div>
                     {
                       msg.status === MESSAGE_STATUS_UPLOAD_FAILED &&
-                      <div><span>File transfer failed!</span>
-                        <CancelIcon
-                          className="messageFailed"
-                          size={24}
-                          color="RED"
-                        />
+                      <div className="upload-error">
+                        <span>
+                          <RetinaImg name={'close_1.svg'}
+                            style={{ width: 20, height: 20 }}
+                            isIcon
+                            mode={RetinaImg.Mode.ContentIsMask} />
+                        </span>
+                        <span> File transfer failed!</span>
                       </div>
                     }
                   </div>

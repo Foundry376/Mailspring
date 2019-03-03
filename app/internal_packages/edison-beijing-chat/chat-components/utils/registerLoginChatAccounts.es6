@@ -40,7 +40,7 @@ export default async function registerLoginChatAccounts() {
       try {
         res = JSON.parse(res);
       } catch (e) {
-        console.error('email account fail to register chat: response is not json');
+        console.error('email account fail to register chat: response is not json. response:' + res);
         continue;
       }
       if (err || !res || res.resultCode != 1) {

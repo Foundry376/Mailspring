@@ -53,6 +53,14 @@
     }
   }
 
+  .upload-error {
+    color: @red;
+    img.content-mask {
+      vertical-align: bottom;
+      background-color: @red;
+    }
+  }
+
   .message-group {
     padding-bottom: 8px;
     display: flex;
@@ -201,6 +209,10 @@
       overflow: hidden;
       .message-toolbar {
         top: 10px;
+      }
+      &>img {
+        height: 220px;
+        cursor: zoom-in;
       }
     }
     .file-info {

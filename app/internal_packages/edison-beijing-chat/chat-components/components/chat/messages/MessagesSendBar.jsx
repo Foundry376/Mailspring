@@ -231,7 +231,7 @@ export default class MessagesSendBar extends PureComponent {
           body.atJids = this.getAtTargetPersons();
           body = JSON.stringify(body);
           if (err) {
-            alert(`${selectedConversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
+            console.error(`${selectedConversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
             const message = {
               id: messageId,
               conversationJid: selectedConversation.jid,
@@ -241,7 +241,6 @@ export default class MessagesSendBar extends PureComponent {
               status: MESSAGE_STATUS_UPLOAD_FAILED,
             };
             chatModel.store.dispatch(beginStoringMessage(message));
-            console.log('dbglog*** updateSelectedConversation ', selectedConversation);
             chatModel.store.dispatch(updateSelectedConversation(selectedConversation));
             return;
           } else {
