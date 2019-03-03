@@ -46,7 +46,8 @@ class MailRulesStore extends MailspringStore {
       inboxCategoryId: string;
     };
   } = {};
-  _rules: MailRule[];
+
+  _rules: MailRule[] = [];
 
   constructor() {
     super();

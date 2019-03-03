@@ -1,4 +1,4 @@
-import React from 'React';
+import React from 'react';
 import { Utils, Account, AccountStore } from 'mailspring-exports';
 import { OutlineView, ScrollRegion, Flexbox } from 'mailspring-component-kit';
 import AccountSwitcher from './account-switcher';

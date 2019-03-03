@@ -28,11 +28,12 @@ module.exports = grunt => {
     appJSON: grunt.file.readJSON(path.join(appDir, 'package.json')),
     'source:es6': [
       'internal_packages/**/*.ts',
-      'internal_packages/**/*.jsx',
       'internal_packages/**/*.tsx',
+      'internal_packages/**/*.jsx',
       'src/**/*.ts',
       'src/**/*.tsx',
       'src/**/*.jsx',
+
       '!src/**/node_modules/**/*.ts',
       '!src/**/node_modules/**/*.tsx',
       '!src/**/node_modules/**/*.jsx',

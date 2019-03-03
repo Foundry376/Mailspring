@@ -77,6 +77,7 @@ module.exports = grunt => {
         const tsPath = path.join(buildPath, relPath);
         const tsCode = fs.readFileSync(tsPath).toString();
         if (/(node_modules|\.js$)/.test(tsPath)) return;
+        if (tsPath.endsWith('.d.ts')) return;
         const outPath = tsPath.replace(path.extname(tsPath), '.js');
         console.log(`  ---> Compiling ${tsPath.slice(tsPath.indexOf('/app') + 4)}`);
         const res = TypeScript.transpileModule(tsCode, { compilerOptions, fileName: tsPath });
@@ -174,7 +175,6 @@ module.exports = grunt => {
         /\.pdb$/,
         /\.h$/,
         /\.cc$/,
-        /\.ts$/,
         /\.flow$/,
         /\.gyp/,
         /\.mk/,
