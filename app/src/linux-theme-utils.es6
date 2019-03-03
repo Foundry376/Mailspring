@@ -68,6 +68,7 @@ function __getDesktopSettingsPath() {
     case 'MATE':
       return 'org.mate.interface';
     case 'GNOME':
+    case 'Budgie:GNOME':
       return 'org.gnome.desktop.interface';
     default:
       return null;
