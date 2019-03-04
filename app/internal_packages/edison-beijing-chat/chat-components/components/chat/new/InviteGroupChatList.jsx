@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
-import { theme } from '../../../utils/colors';
 import getDb from '../../../db';
 import Select, { Option } from 'rc-select';
 
@@ -35,13 +34,7 @@ export default class InviteGroupChatList extends Component {
   }
 
   componentDidMount() {
-    getDb().then(db => {
-      db.contacts.find().exec().then(contacts => {
-        setTimeout(() => {
-          this.setState({ contacts, open: true });
-        }, 300)
-      })
-    })
+    this.setState({ open: true });
   }
 
   onUpdateGroup = (value, option) => {
@@ -50,10 +43,8 @@ export default class InviteGroupChatList extends Component {
   }
 
   render() {
-    const {
-      contacts,
-      open
-    } = this.state;
+    const { open } = this.state;
+    const { contacts } = this.props;
     const children = open ? contacts.map(contact =>
       <Option
         key={contact.jid}

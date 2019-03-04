@@ -15,6 +15,7 @@ const { primaryColor } = theme;
 
 
 export default class ConversationInfo extends Component {
+  currentUserIsOwner = false;
   constructor(props) {
     super();
     this.state = {
@@ -172,7 +173,6 @@ export default class ConversationInfo extends Component {
                 fn();
                 return;
               }
-
               return (
                 <div className="row" key={jid} onClick={onEditMemberProfile}>
                   <div className="avatar">
@@ -187,9 +187,9 @@ export default class ConversationInfo extends Component {
                     <div className="email">{member.email}</div>
                   </div>
                   {this.currentUserIsOwner && member.affiliation !== 'owner' &&
-                  <span className="remove-member" onClick={onClickRemove}>
-                    <CancelIcon color={primaryColor}/>
-                  </span>
+                    <span className="remove-member" onClick={onClickRemove}>
+                      <CancelIcon color={primaryColor} />
+                    </span>
                   }
                 </div>
               )

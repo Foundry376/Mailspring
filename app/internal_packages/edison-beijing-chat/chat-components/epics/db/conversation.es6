@@ -369,7 +369,7 @@ export const groupConversationCreatedEpic = (action$) =>
           jid: jidArr
         }
       }
-      return Observable.fromPromise(xmpp.createRoom(roomId, opt))
+      return Observable.fromPromise(xmpp.createRoom(roomId, opt, contacts[0].jid))
         .map(() => {
           return { payload: { contacts, roomId, name } }
         });

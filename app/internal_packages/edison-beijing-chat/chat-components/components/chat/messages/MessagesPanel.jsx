@@ -94,12 +94,12 @@ export default class MessagesPanel extends PureComponent {
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const db = await getDb();
-        if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
-          const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
-          contacts.unshift(other);
-        }
+        // if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
+        //   const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
+        //   contacts.unshift(other);
+        // }
         if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
-          const owner = await db.contacts.findOne().where('jid').eq(selectedConversation.curJid).exec();
+          const owner = await db.contacts.findOne().where('jid').eq(contacts[0].curJid).exec();
           contacts.unshift(owner);
         }
         const names = contacts.map(item => item.name);
@@ -548,7 +548,7 @@ export default class MessagesPanel extends PureComponent {
               this.setState({ inviting: false });
             },
           }}>
-            <InviteGroupChatList groupMode={true} onUpdateGroup={this.onUpdateGroup} />
+            <InviteGroupChatList contacts={allContacts} groupMode={true} onUpdateGroup={this.onUpdateGroup} />
           </FixedPopover>
         )}
         {
