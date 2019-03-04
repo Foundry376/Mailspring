@@ -70,10 +70,15 @@ module.exports = class ApplicationMenu {
         this.setActiveTemplate(template);
       }
     };
+    const onScreenModeChange = () => {
+      this.updateFullscreenMenuItem(
+        this.lastFocusedWindow != null && this.lastFocusedWindow.isFullScreen()
+      );
+    };
 
     window.on('focus', focusHandler);
-    window.on('enter-full-screen', focusHandler);
-    window.on('leave-full-screen', focusHandler);
+    window.on('enter-full-screen', onScreenModeChange);
+    window.on('leave-full-screen', onScreenModeChange);
     window.once('closed', () => {
       if (window === this.lastFocusedWindow) {
         this.lastFocusedWindow = null;
@@ -208,10 +213,10 @@ module.exports = class ApplicationMenu {
 
   updateFullscreenMenuItem(fullscreen) {
     const enterItem = this.flattenMenuItems(this.menu).find(
-      ({ label }) => label === 'Enter Full Screen'
+      ({ key }) => key === 'enterFullScreen'
     );
     const exitItem = this.flattenMenuItems(this.menu).find(
-      ({ label }) => label === 'Exit Full Screen'
+      ({ key }) => key === 'exitFullScreen'
     );
     if (!enterItem || !exitItem) {
       return;
