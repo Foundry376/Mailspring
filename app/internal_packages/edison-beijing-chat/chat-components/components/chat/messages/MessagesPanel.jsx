@@ -105,7 +105,7 @@ export default class MessagesPanel extends PureComponent {
         const names = contacts.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
         const { onGroupConversationCompleted } = this.props;
-        onGroupConversationCompleted({ contacts, roomId, name: chatName });
+        onGroupConversationCompleted({ contacts, roomId, name: chatName, curJid: contacts[0].curJid });
       }
     }
   }
@@ -330,13 +330,13 @@ export default class MessagesPanel extends PureComponent {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const names = members.map(item => item.name);
         const chatName = names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others`;
-        onGroupConversationCompleted({ contacts: members, roomId, name: chatName });
+        onGroupConversationCompleted({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
       }
       else if (members.length > 1 && onGroupConversationCompleted) {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const names = members.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
-        onGroupConversationCompleted({ contacts: members, roomId, name: chatName });
+        onGroupConversationCompleted({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
       }
       else if (members.length == 1 && onPrivateConversationCompleted) {
         onPrivateConversationCompleted(members[0]);

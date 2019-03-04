@@ -358,7 +358,7 @@ export const createInitiatedPrivateConversationEpic = (action$) =>
 
 export const groupConversationCreatedEpic = (action$) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
-    .mergeMap(({ payload: { contacts, roomId, name } }) => {
+    .mergeMap(({ payload: { contacts, roomId, name, curJid } }) => {
       const jidArr = contacts.map(contact => contact.jid).sort();
       const opt = {
         type: 'create',
@@ -369,7 +369,7 @@ export const groupConversationCreatedEpic = (action$) =>
           jid: jidArr
         }
       }
-      return Observable.fromPromise(xmpp.createRoom(roomId, opt, contacts[0].jid))
+      return Observable.fromPromise(xmpp.createRoom(roomId, opt, curJid))
         .map(() => {
           return { payload: { contacts, roomId, name } }
         });

@@ -34,7 +34,9 @@ export default class InviteGroupChatList extends Component {
   }
 
   componentDidMount() {
-    this.setState({ open: true });
+    setTimeout(() => {
+      this.setState({ open: true });
+    }, 300);
   }
 
   onUpdateGroup = (value, option) => {
