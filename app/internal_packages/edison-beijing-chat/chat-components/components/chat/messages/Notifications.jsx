@@ -9,7 +9,7 @@ export default class Notifications extends PureComponent {
     return (
       <div
         className="group-notifications"
-        style={{ height: notifications.length * 28 + 'px' }}
+        style={{ height: notifications.length * 32 + 'px' }}
       >
         {notifications.map((item, idx) => {
           const from = item.from;
