@@ -101,7 +101,7 @@ export default class InjectedComponent extends React.Component<
   }
 
   componentWillReceiveProps(newProps) {
-    if (!Utils.isEqualReact(newProps.matching, this.props && this.props.matching)) {
+    if (!Utils.isEqual(newProps.matching, this.props && this.props.matching)) {
       this.setState(this._getStateFromStores(newProps));
     }
   }

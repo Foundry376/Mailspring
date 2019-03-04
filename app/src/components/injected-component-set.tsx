@@ -102,6 +102,7 @@ export class InjectedComponentSet extends React.Component<
       this.listen();
     } else {
       setTimeout(() => {
+        if (!this._mounted) return;
         this.setState(this._getStateFromStores());
         this.listen();
       }, 400);
@@ -115,7 +116,7 @@ export class InjectedComponentSet extends React.Component<
   }
 
   componentWillReceiveProps(newProps) {
-    if (!this.props || !Utils.isEqualReact(newProps.matching, this.props.matching)) {
+    if (!this.props || !Utils.isEqual(newProps.matching, this.props.matching)) {
       this.setState(this._getStateFromStores(newProps));
     }
   }
