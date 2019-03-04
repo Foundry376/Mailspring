@@ -13,6 +13,8 @@ import { Menu, RetinaImg, ButtonDropdown } from 'mailspring-component-kit';
 
 import { applySignature, currentSignatureId } from './signature-utils';
 
+const MenuItem = Menu.Item;
+
 export default class SignatureComposerDropdown extends React.Component<
   {
     draft: Message;
@@ -40,13 +42,16 @@ export default class SignatureComposerDropdown extends React.Component<
       mode={RetinaImg.Mode.ContentIsMask}
     />
   );
-  _staticHeaderItems = [
-    <div className="item item-none" key="none" onMouseDown={this._onClickNoSignature}>
-      <span>{localized('No signature')}</span>
-    </div>,
-  ];
+
   _staticFooterItems = [
-    <div className="item item-edit" key="edit" onMouseDown={this._onClickEditSignatures}>
+    <div
+      key="edit"
+      className="item item-edit"
+      onMouseDown={() => {
+        Actions.switchPreferencesTab('Signatures');
+        Actions.openPreferences();
+      }}
+    >
       <span>{localized('Edit Signatures...')}</span>
     </div>,
   ];
@@ -95,21 +100,19 @@ export default class SignatureComposerDropdown extends React.Component<
     this.props.session.changes.add({ body });
   };
 
-  _onClickNoSignature = () => {
-    this._onChangeSignature(null);
-  };
-
-  _onClickEditSignatures() {
-    Actions.switchPreferencesTab('Signatures');
-    Actions.openPreferences();
-  }
-
   _renderSignatures() {
     // note: these are using onMouseDown to avoid clearing focus in the composer (I think)
 
     return (
       <Menu
-        headerComponents={this._staticHeaderItems}
+        headerComponents={[
+          <MenuItem
+            key={'none'}
+            onMouseDown={() => this._onChangeSignature(null)}
+            checked={!currentSignatureId(this.props.draft.body)}
+            content={localized('No signature')}
+          />,
+        ]}
         footerComponents={this._staticFooterItems}
         items={Object.values(this.state.signatures)}
         itemKey={sig => sig.id}
