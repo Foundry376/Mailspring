@@ -32,7 +32,7 @@ export default class ScrollbarTicks extends React.Component<ScrollbarTicksProps>
           percent = percentData.percent;
           className = ` ${percentData.className}`;
         }
-        return `<div class="t${className}" style="top: ${percent * 100}%" />`;
+        return `<div class="t${className}" style="top: ${percent * 100}%"></div>`;
       })
       .join('');
     (ReactDOM.findDOMNode(this) as HTMLElement).innerHTML = html;
