@@ -95,18 +95,18 @@ export default class MessagesPanel extends PureComponent {
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const db = await getDb();
-        // if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
-        //   const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
-        //   contacts.unshift(other);
-        // }
+        if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
+          const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
+          contacts.unshift(other);
+        }
         if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
-          const owner = await db.contacts.findOne().where('jid').eq(contacts[0].curJid).exec();
+          const owner = await db.contacts.findOne().where('jid').eq(selectedConversation.curJid).exec();
           contacts.unshift(owner);
         }
         const names = contacts.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
         const { onGroupConversationCompleted } = this.props;
-        onGroupConversationCompleted({ contacts, roomId, name: chatName, curJid: contacts[0].curJid });
+        onGroupConversationCompleted({ contacts, roomId, name: chatName, curJid: selectedConversation.curJid });
       }
     }
   }
