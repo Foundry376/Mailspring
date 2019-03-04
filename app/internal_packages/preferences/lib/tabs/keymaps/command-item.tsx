@@ -30,6 +30,8 @@ export default class CommandKeybinding extends React.Component<
     command: PropTypes.string,
   };
 
+  _mounted = false;
+
   constructor(props) {
     super(props);
 
@@ -37,6 +39,11 @@ export default class CommandKeybinding extends React.Component<
       editing: false,
     };
   }
+
+  componentDidMount() {
+    this._mounted = true;
+  }
+
   componentDidUpdate() {
     const { modifiers, keys, editing } = this.state;
     if (editing) {
@@ -45,6 +52,10 @@ export default class CommandKeybinding extends React.Component<
         (ReactDOM.findDOMNode(this) as HTMLElement).blur();
       }
     }
+  }
+
+  componentWillUnmount() {
+    this._mounted = false;
   }
 
   _formatKeystrokes(original) {
@@ -129,8 +140,13 @@ export default class CommandKeybinding extends React.Component<
         );
       }
     }
-    this.setState({ editing: false, editingBinding: null });
+
     AppEnv.keymaps.resumeAllKeymaps();
+
+    setTimeout(() => {
+      if (!this._mounted) return;
+      this.setState({ editing: false, editingBinding: null });
+    }, 100);
   };
 
   _onKey = event => {
