@@ -159,8 +159,11 @@ const retriveConversation = async jid => {
 const removeConversation = async jid => {
   const db = await getDb();
   return (db.conversations.findOne(jid).exec()).then((conv) => {
-    conv.remove();
-
+    if (conv) {
+      conv.remove();
+    } else {
+      console.error('error: no conversation exists for removing conversation, jid:', jid);
+    }
   });
 };
 
