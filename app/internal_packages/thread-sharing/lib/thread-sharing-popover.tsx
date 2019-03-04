@@ -158,7 +158,7 @@ export default class ThreadSharingPopover extends React.Component<
           />
         </div>
         <div className="share-controls">
-          <a href={url}>
+          <a href={url} style={{ marginRight: 10 }}>
             <button className="btn" disabled={!url}>
               {localized('Open In Browser')}
             </button>
