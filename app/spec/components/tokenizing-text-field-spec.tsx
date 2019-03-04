@@ -48,15 +48,15 @@ describe('TokenizingTextField', function() {
     this.propEdit = jasmine.createSpy('edit');
     this.propRemove = jasmine.createSpy('remove');
     this.propEmptied = jasmine.createSpy('emptied');
-    this.propTokenKey = jasmine.createSpy('tokenKey').and.callFake(p => p.email);
-    this.propTokenIsValid = jasmine.createSpy('tokenIsValid').and.returnValue(true);
+    this.propTokenKey = jasmine.createSpy('tokenKey').andCallFake(p => p.email);
+    this.propTokenIsValid = jasmine.createSpy('tokenIsValid').andReturn(true);
     this.propTokenRenderer = CustomToken;
     this.propOnTokenAction = jasmine.createSpy('tokenAction');
     this.propCompletionNode = p => <CustomSuggestion item={p} />;
     this.propCompletionsForInput = input => this.completions;
 
-    spyOn(this, 'propCompletionNode').and.callThrough();
-    spyOn(this, 'propCompletionsForInput').and.callThrough();
+    spyOn(this, 'propCompletionNode').andCallThrough();
+    spyOn(this, 'propCompletionsForInput').andCallThrough();
 
     this.tokens = [participant1, participant2, participant3];
 
@@ -105,7 +105,7 @@ describe('TokenizingTextField', function() {
 
   describe('prop: tokenIsValid', function() {
     it("should be evaluated for each token when it's provided", function() {
-      this.propTokenIsValid = jasmine.createSpy('tokenIsValid').and.callFake(p => {
+      this.propTokenIsValid = jasmine.createSpy('tokenIsValid').andCallFake(p => {
         if (p === participant2) {
           return true;
         } else {

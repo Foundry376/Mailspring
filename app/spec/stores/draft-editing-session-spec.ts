@@ -17,7 +17,7 @@ xdescribe('DraftEditingSession Specs', function() {
       this.onWillAddChanges = jasmine.createSpy('onWillAddChanges');
       this.commitResolve = null;
       this.commitResolves = [];
-      this.onCommit = jasmine.createSpy('commit').and.callFake(() => {
+      this.onCommit = jasmine.createSpy('commit').andCallFake(() => {
         new Promise((resolve, reject) => {
           this.commitResolves.push(resolve);
           this.commitResolve = resolve;
@@ -120,7 +120,7 @@ xdescribe('DraftEditingSession Specs', function() {
   describe('DraftEditingSession', function() {
     describe('constructor', function() {
       it('should make a query to fetch the draft', function() {
-        spyOn(DatabaseStore, 'run').and.callFake(() => {
+        spyOn(DatabaseStore, 'run').andCallFake(() => {
           return new Promise((resolve, reject) => {});
         });
         const session = new DraftEditingSession('client-id');
@@ -153,8 +153,8 @@ xdescribe('DraftEditingSession Specs', function() {
         this.draft = new Message({ draft: true, body: '123', id: 'client-id' });
         spyOn(DraftEditingSession.prototype, 'prepare');
         this.session = new DraftEditingSession('client-id');
-        spyOn(this.session, '_setDraft').and.callThrough();
-        spyOn(DatabaseStore, 'run').and.callFake(modelQuery => {
+        spyOn(this.session, '_setDraft').andCallThrough();
+        spyOn(DatabaseStore, 'run').andCallFake(modelQuery => {
           return Promise.resolve(this.draft);
         });
         jasmine.unspy(DraftEditingSession.prototype, 'prepare');
@@ -212,7 +212,7 @@ xdescribe('DraftEditingSession Specs', function() {
         this.session = new DraftEditingSession('client-id', this.draft);
         advanceClock();
 
-        spyOn(Actions, 'queueTask').and.returnValue(Promise.resolve());
+        spyOn(Actions, 'queueTask').andReturn(Promise.resolve());
       });
 
       it('should ignore the update unless it applies to the current draft', function() {
@@ -235,8 +235,8 @@ xdescribe('DraftEditingSession Specs', function() {
       });
 
       it('atomically commits changes', function() {
-        spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(this.draft));
-        spyOn(DatabaseStore, 'inTransaction').and.callThrough();
+        spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(this.draft));
+        spyOn(DatabaseStore, 'inTransaction').andCallThrough();
         this.session.changes.add({ body: '123' });
         waitsForPromise(() => {
           return this.session.changes.commit().then(() => {
@@ -247,7 +247,7 @@ xdescribe('DraftEditingSession Specs', function() {
       });
 
       it('persist the applied changes', function() {
-        spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(this.draft));
+        spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(this.draft));
         this.session.changes.add({ body: '123' });
         waitsForPromise(() => {
           return this.session.changes.commit().then(() => {
@@ -258,7 +258,7 @@ xdescribe('DraftEditingSession Specs', function() {
 
       describe('when findBy does not return a draft', () =>
         it("continues and persists it's local draft reference, so it is resaved and draft editing can continue", function() {
-          spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(null));
+          spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(null));
           this.session.changes.add({ body: '123' });
           waitsForPromise(() => {
             return this.session.changes.commit().then(() => {
@@ -268,8 +268,8 @@ xdescribe('DraftEditingSession Specs', function() {
         }));
 
       it('does nothing if the draft is marked as destroyed', function() {
-        spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve(this.draft));
-        spyOn(DatabaseStore, 'inTransaction').and.callThrough();
+        spyOn(DatabaseStore, 'run').andReturn(Promise.resolve(this.draft));
+        spyOn(DatabaseStore, 'inTransaction').andCallThrough();
         return waitsForPromise(() => {
           this.session.changes.add({ body: '123' });
           return this.session.changes.commit().then(() => {

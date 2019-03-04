@@ -21,7 +21,7 @@ const participant3 = new Contact({
 
 xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
   beforeEach(() => {
-    spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
+    spyOn(AppEnv, 'isMainWindow').andReturn(true);
     this.propChange = jasmine.createSpy('change');
 
     this.fieldName = 'to';
@@ -104,7 +104,7 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
     });
 
     it('should use the name of an existing contact in the ContactStore if possible', () => {
-      spyOn(ContactStore, 'searchContacts').and.callFake(val => {
+      spyOn(ContactStore, 'searchContacts').andCallFake(val => {
         if (val === participant3.name) {
           return Promise.resolve([participant3]);
         }
@@ -119,7 +119,7 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
     });
 
     it("should use the plain email if that's what's entered", () => {
-      spyOn(ContactStore, 'searchContacts').and.callFake(val => {
+      spyOn(ContactStore, 'searchContacts').andCallFake(val => {
         if (val === participant3.name) {
           return Promise.resolve([participant3]);
         }
@@ -134,7 +134,7 @@ xdescribe('ParticipantsTextField', function ParticipantsTextFieldSpecs() {
     });
 
     it('should not have the same contact auto-picked multiple times', () => {
-      spyOn(ContactStore, 'searchContacts').and.callFake(val => {
+      spyOn(ContactStore, 'searchContacts').andCallFake(val => {
         if (val === participant2.name) {
           return Promise.resolve([participant2]);
         }

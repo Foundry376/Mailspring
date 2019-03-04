@@ -1,12 +1,14 @@
 import React from 'react';
 import FixedPopover from '../../src/components/fixed-popover';
-import { renderIntoDocument } from '../mailspring-test-utils';
+import MTestUtils from '../mailspring-test-utils';
 
 const { Directions: { Up, Down, Left, Right } } = FixedPopover;
 
 const makePopover = (props = {}) => {
   const originRect = props.originRect ? props.originRect : {};
-  const popover = renderIntoDocument(<FixedPopover {...props} originRect={originRect} />);
+  const popover = MTestUtils.renderIntoDocument(
+    <FixedPopover {...props} originRect={originRect} />
+  );
   if (props.initialState) {
     popover.setState(props.initialState);
   }

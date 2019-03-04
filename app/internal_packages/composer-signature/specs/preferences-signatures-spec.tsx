@@ -31,9 +31,9 @@ describe('PreferencesSignatures', function preferencesSignatures() {
 
   describe('when there are signatures', () => {
     beforeEach(() => {
-      spyOn(SignatureStore, 'getSignatures').and.returnValue(SIGNATURES);
-      spyOn(SignatureStore, 'selectedSignature').and.returnValue(SIGNATURES['1']);
-      spyOn(SignatureStore, 'getDefaults').and.returnValue(DEFAULTS);
+      spyOn(SignatureStore, 'getSignatures').andReturn(SIGNATURES);
+      spyOn(SignatureStore, 'selectedSignature').andReturn(SIGNATURES['1']);
+      spyOn(SignatureStore, 'getDefaults').andReturn(DEFAULTS);
       this.component = makeComponent();
     });
     it('should add a signature when you click the plus button', () => {

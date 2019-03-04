@@ -124,11 +124,11 @@ messages[2].directlyAttachMetadata(LINK_TRACKING_ID, pluginValue);
 describe('ActivityList', function activityList() {
   beforeEach(() => {
     this.testSource = new TestDataSource();
-    spyOn(ActivityEventStore, '_dataSource').and.returnValue(this.testSource);
-    spyOn(FocusedPerspectiveStore, 'sidebarAccountIds').and.returnValue([
+    spyOn(ActivityEventStore, '_dataSource').andReturn(this.testSource);
+    spyOn(FocusedPerspectiveStore, 'sidebarAccountIds').andReturn([
       '0000000000000000000000000',
     ]);
-    spyOn(DatabaseStore, 'run').and.callFake(query => {
+    spyOn(DatabaseStore, 'run').andCallFake(query => {
       if (query._klass === Thread) {
         const thread = new Thread({
           id: '0000000000000000000000000',
@@ -138,7 +138,7 @@ describe('ActivityList', function activityList() {
       }
       return null;
     });
-    spyOn(ActivityEventStore, 'focusThread').and.callThrough();
+    spyOn(ActivityEventStore, 'focusThread').andCallThrough();
     spyOn(AppEnv, 'displayWindow');
     spyOn(Actions, 'closePopover');
     spyOn(Actions, 'setFocus');

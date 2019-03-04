@@ -9,14 +9,14 @@ const testMatchers = { id: 'b' };
 describe('DatabaseStore', function DatabaseStoreSpecs() {
   beforeEach(() => {
     TestModel.configureBasic();
-    spyOn(ModelQuery.prototype, 'where').and.callThrough();
+    spyOn(ModelQuery.prototype, 'where').andCallThrough();
 
     this.performed = [];
 
     // Note: We spy on _query and test all of the convenience methods that sit above
     // it. None of these tests evaluate whether _query works!
     jasmine.unspy(DatabaseStore, '_query');
-    spyOn(DatabaseStore, '_query').and.callFake((query, values = []) => {
+    spyOn(DatabaseStore, '_query').andCallFake((query, values = []) => {
       this.performed.push({ query, values });
       return Promise.resolve([]);
     });
@@ -71,7 +71,7 @@ describe('DatabaseStore', function DatabaseStoreSpecs() {
       ];
       // Actually returns correct sets for queries, since matchers can evaluate
       // themselves against models in memory
-      spyOn(DatabaseStore, 'run').and.callFake(query => {
+      spyOn(DatabaseStore, 'run').andCallFake(query => {
         const results = this.models.filter(model =>
           query._matchers.every(matcher => matcher.evaluate(model))
         );

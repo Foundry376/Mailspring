@@ -15,10 +15,10 @@ describe('SignatureComposerExtension', function signatureComposerExtension() {
   describe('prepareNewDraft', () => {
     describe('when a signature is defined', () => {
       beforeEach(() => {
-        spyOn(AppEnv.config, 'get').and.callFake(
+        spyOn(AppEnv.config, 'get').andCallFake(
           key => (key === 'signatures' ? TEST_SIGNATURES : null)
         );
-        spyOn(SignatureStore, 'signatureForEmail').and.returnValue(TEST_SIGNATURE);
+        spyOn(SignatureStore, 'signatureForEmail').andReturn(TEST_SIGNATURE);
         SignatureStore.activate();
       });
 

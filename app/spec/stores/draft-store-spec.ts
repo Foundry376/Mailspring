@@ -27,8 +27,8 @@ xdescribe('DraftStore', function draftStore() {
     this.fakeThread = new Thread({ id: 'fake-thread', headerMessageId: 'fake-thread' });
     this.fakeMessage = new Message({ id: 'fake-message', headerMessageId: 'fake-message' });
 
-    spyOn(AppEnv, 'newWindow').and.callFake(() => {});
-    spyOn(DatabaseStore, 'run').and.callFake(query => {
+    spyOn(AppEnv, 'newWindow').andCallFake(() => {});
+    spyOn(DatabaseStore, 'run').andCallFake(query => {
       if (query._klass === Thread) {
         return Promise.resolve(this.fakeThread);
       }
@@ -54,10 +54,10 @@ xdescribe('DraftStore', function draftStore() {
     beforeEach(() => {
       const draft = new Message({ id: 'A', subject: 'B', headerMessageId: 'A', body: '123' });
       this.newDraft = draft;
-      spyOn(DraftFactory, 'createDraftForReply').and.returnValue(Promise.resolve(draft));
-      spyOn(DraftFactory, 'createOrUpdateDraftForReply').and.returnValue(Promise.resolve(draft));
-      spyOn(DraftFactory, 'createDraftForForward').and.returnValue(Promise.resolve(draft));
-      spyOn(DraftFactory, 'createDraft').and.returnValue(Promise.resolve(draft));
+      spyOn(DraftFactory, 'createDraftForReply').andReturn(Promise.resolve(draft));
+      spyOn(DraftFactory, 'createOrUpdateDraftForReply').andReturn(Promise.resolve(draft));
+      spyOn(DraftFactory, 'createDraftForForward').andReturn(Promise.resolve(draft));
+      spyOn(DraftFactory, 'createDraft').andReturn(Promise.resolve(draft));
     });
 
     it('should always attempt to focus the new draft', () => {
@@ -210,14 +210,14 @@ xdescribe('DraftStore', function draftStore() {
 
     it("should close the window if it's a popout", () => {
       spyOn(AppEnv, 'close');
-      spyOn(AppEnv, 'isComposerWindow').and.returnValue(true);
+      spyOn(AppEnv, 'isComposerWindow').andReturn(true);
       DraftStore._onDestroyDraft('abc');
       expect(AppEnv.close).toHaveBeenCalled();
     });
 
     it("should NOT close the window if isn't a popout", () => {
       spyOn(AppEnv, 'close');
-      spyOn(AppEnv, 'isComposerWindow').and.returnValue(false);
+      spyOn(AppEnv, 'isComposerWindow').andReturn(false);
       DraftStore._onDestroyDraft('abc');
       expect(AppEnv.close).not.toHaveBeenCalled();
     });
@@ -328,14 +328,14 @@ xdescribe('DraftStore', function draftStore() {
       };
 
       DraftStore._draftSessions[this.draft.headerMessageId] = session;
-      spyOn(DraftStore, '_doneWithSession').and.callThrough();
+      spyOn(DraftStore, '_doneWithSession').andCallThrough();
       spyOn(DraftStore, 'trigger');
       spyOn(SoundRegistry, 'playSound');
       spyOn(Actions, 'queueTask');
     });
 
     it('plays a sound immediately when sending draft', () => {
-      spyOn(AppEnv.config, 'get').and.returnValue(true);
+      spyOn(AppEnv.config, 'get').andReturn(true);
       DraftStore._onSendDraft(this.draft.headerMessageId);
       advanceClock();
       expect(AppEnv.config.get).toHaveBeenCalledWith('core.sending.sounds');
@@ -343,7 +343,7 @@ xdescribe('DraftStore', function draftStore() {
     });
 
     it("doesn't plays a sound if the setting is off", () => {
-      spyOn(AppEnv.config, 'get').and.returnValue(false);
+      spyOn(AppEnv.config, 'get').andReturn(false);
       DraftStore._onSendDraft(this.draft.headerMessageId);
       advanceClock();
       expect(AppEnv.config.get).toHaveBeenCalledWith('core.sending.sounds');
@@ -351,7 +351,7 @@ xdescribe('DraftStore', function draftStore() {
     });
 
     it('sets the sending state when sending', () => {
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
+      spyOn(AppEnv, 'isMainWindow').andReturn(true);
       DraftStore._onSendDraft(this.draft.headerMessageId);
       advanceClock();
       expect(DraftStore.isSendingDraft(this.draft.headerMessageId)).toBe(true);
@@ -361,7 +361,7 @@ xdescribe('DraftStore', function draftStore() {
     // no view of the draft renders the draft as if its sending, but with
     // the wrong text.
     it('does NOT trigger until the latest changes have been applied', () => {
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
+      spyOn(AppEnv, 'isMainWindow').andReturn(true);
       runs(() => {
         DraftStore._onSendDraft(this.draft.headerMessageId);
         expect(DraftStore.trigger).not.toHaveBeenCalled();
@@ -385,13 +385,13 @@ xdescribe('DraftStore', function draftStore() {
     });
 
     it("returns false if the draft hasn't been seen", () => {
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
+      spyOn(AppEnv, 'isMainWindow').andReturn(true);
       expect(DraftStore.isSendingDraft(this.draft.headerMessageId)).toBe(false);
     });
 
     it("closes the window if it's a popout", () => {
-      spyOn(AppEnv, 'getWindowType').and.returnValue('composer');
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(false);
+      spyOn(AppEnv, 'getWindowType').andReturn('composer');
+      spyOn(AppEnv, 'isMainWindow').andReturn(false);
       spyOn(AppEnv, 'close');
       runs(() => {
         return DraftStore._onSendDraft(this.draft.headerMessageId);
@@ -400,10 +400,10 @@ xdescribe('DraftStore', function draftStore() {
     });
 
     it("doesn't close the window if it's inline", () => {
-      spyOn(AppEnv, 'getWindowType').and.returnValue('other');
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(false);
+      spyOn(AppEnv, 'getWindowType').andReturn('other');
+      spyOn(AppEnv, 'isMainWindow').andReturn(false);
       spyOn(AppEnv, 'close');
-      spyOn(AppEnv, 'isComposerWindow').and.callThrough();
+      spyOn(AppEnv, 'isComposerWindow').andCallThrough();
       runs(() => {
         DraftStore._onSendDraft(this.draft.headerMessageId);
       });
@@ -414,7 +414,7 @@ xdescribe('DraftStore', function draftStore() {
     });
 
     it("resets the sending state if there's an error", () => {
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(false);
+      spyOn(AppEnv, 'isMainWindow').andReturn(false);
       DraftStore._draftsSending[this.draft.headerMessageId] = true;
       Actions.draftDeliveryFailed({
         errorMessage: 'boohoo',
@@ -425,8 +425,8 @@ xdescribe('DraftStore', function draftStore() {
     });
 
     it("displays a popup in the main window if there's an error", () => {
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
-      spyOn(FocusedContentStore, 'focused').and.returnValue({ id: 't1' });
+      spyOn(AppEnv, 'isMainWindow').andReturn(true);
+      spyOn(FocusedContentStore, 'focused').andReturn({ id: 't1' });
       spyOn(remote.dialog, 'showMessageBox');
       spyOn(Actions, 'composePopoutDraft');
       DraftStore._draftsSending[this.draft.headerMessageId] = true;
@@ -445,8 +445,8 @@ xdescribe('DraftStore', function draftStore() {
     });
 
     it("re-opens the draft if you're not looking at the thread", () => {
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
-      spyOn(FocusedContentStore, 'focused').and.returnValue({ id: 't1' });
+      spyOn(AppEnv, 'isMainWindow').andReturn(true);
+      spyOn(FocusedContentStore, 'focused').andReturn({ id: 't1' });
       spyOn(Actions, 'composePopoutDraft');
       DraftStore._draftsSending[this.draft.headerMessageId] = true;
       Actions.draftDeliveryFailed({
@@ -462,10 +462,10 @@ xdescribe('DraftStore', function draftStore() {
     });
 
     it('re-opens the draft if there is no thread id', () => {
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
+      spyOn(AppEnv, 'isMainWindow').andReturn(true);
       spyOn(Actions, 'composePopoutDraft');
       DraftStore._draftsSending[this.draft.headerMessageId] = true;
-      spyOn(FocusedContentStore, 'focused').and.returnValue(null);
+      spyOn(FocusedContentStore, 'focused').andReturn(null);
       Actions.draftDeliveryFailed({
         errorMessage: 'boohoo',
         draftheaderMessageId: this.draft.headerMessageId,
@@ -480,7 +480,7 @@ xdescribe('DraftStore', function draftStore() {
 
   describe('session teardown', () => {
     beforeEach(() => {
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
+      spyOn(AppEnv, 'isMainWindow').andReturn(true);
       this.draftTeardown = jasmine.createSpy('draft teardown');
       this.session = {
         headerMessageId: 'abc',
@@ -510,7 +510,7 @@ xdescribe('DraftStore', function draftStore() {
 
   describe('mailto handling', () => {
     beforeEach(() => {
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
+      spyOn(AppEnv, 'isMainWindow').andReturn(true);
     });
 
     describe('extensions', () => {
@@ -533,7 +533,7 @@ xdescribe('DraftStore', function draftStore() {
 
     it('should call through to DraftFactory and popout a new draft', () => {
       const draft = new Message({ headerMessageId: 'A', body: '123' });
-      spyOn(DraftFactory, 'createDraftForMailto').and.returnValue(Promise.resolve(draft));
+      spyOn(DraftFactory, 'createDraftForMailto').andReturn(Promise.resolve(draft));
       spyOn(DraftStore, '_onPopoutDraft');
       waitsForPromise(() => {
         return DraftStore._onHandleMailtoLink({}, 'mailto:bengotow@gmail.com').then(() => {
@@ -549,8 +549,8 @@ xdescribe('DraftStore', function draftStore() {
     it('should popout a new draft', () => {
       const defaultMe = new Contact();
       spyOn(DraftStore, '_onPopoutDraft');
-      spyOn(Account.prototype, 'defaultMe').and.returnValue(defaultMe);
-      spyOn(Actions, 'addAttachment').and.callFake(({ onCreated }) => onCreated());
+      spyOn(Account.prototype, 'defaultMe').andReturn(defaultMe);
+      spyOn(Actions, 'addAttachment').andCallFake(({ onCreated }) => onCreated());
       DraftStore._onHandleMailFiles({}, ['/Users/ben/file1.png', '/Users/ben/file2.png']);
       waitsFor(() => DatabaseWriter.prototype.persistModel.callCount > 0);
       runs(() => {

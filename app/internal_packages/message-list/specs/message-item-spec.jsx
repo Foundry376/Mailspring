@@ -99,7 +99,7 @@ import MessageTimestamp from '../lib/message-timestamp';
 
 xdescribe('MessageItem', function() {
   beforeEach(function() {
-    spyOn(AttachmentStore, 'pathForFile').and.callFake(function(f) {
+    spyOn(AttachmentStore, 'pathForFile').andCallFake(function(f) {
       if (f.id === file.id) {
         return '/fake/path.png';
       }
@@ -111,12 +111,12 @@ xdescribe('MessageItem', function() {
       }
       return null;
     });
-    spyOn(AttachmentStore, 'getDownloadDataForFiles').and.callFake(ids => ({
+    spyOn(AttachmentStore, 'getDownloadDataForFiles').andCallFake(ids => ({
       file_1_id: download,
       file_inline_downloading_id: download_inline,
     }));
 
-    spyOn(MessageBodyProcessor, '_addToCache').and.callFake(function() {});
+    spyOn(MessageBodyProcessor, '_addToCache').andCallFake(function() {});
 
     this.message = new Message({
       id: '111',

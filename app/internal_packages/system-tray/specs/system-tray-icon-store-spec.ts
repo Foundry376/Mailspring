@@ -43,7 +43,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
 
   describe('updating the icon based on focus and blur', () => {
     it('always shows inbox full icon when the window gets focused', () => {
-      spyOn(BadgeStore, 'total').and.returnValue(1);
+      spyOn(BadgeStore, 'total').andReturn(1);
       this.iconStore._onWindowFocus();
       const { iconPath } = getCallData();
       expect(iconPath).toBe(INBOX_UNREAD_ICON);
@@ -55,7 +55,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       expect(ipcRenderer.send).not.toHaveBeenCalled();
 
       // BadgeStore triggers a change
-      spyOn(BadgeStore, 'total').and.returnValue(1);
+      spyOn(BadgeStore, 'total').andReturn(1);
       this.iconStore._updateIcon();
 
       const { iconPath } = getCallData();
@@ -66,7 +66,7 @@ describe('SystemTrayIconStore', function systemTrayIconStore() {
       this.iconStore._windowBlurred = false;
 
       // BadgeStore triggers a change
-      spyOn(BadgeStore, 'total').and.returnValue(1);
+      spyOn(BadgeStore, 'total').andReturn(1);
       this.iconStore._updateIcon();
 
       const { iconPath } = getCallData();

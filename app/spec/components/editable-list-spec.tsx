@@ -7,12 +7,12 @@ import {
 } from 'react-dom/test-utils';
 
 import EditableList from '../../src/components/editable-list';
-import { renderIntoDocument, simulateCommand } from '../mailspring-test-utils';
+import MTestUtils from '../mailspring-test-utils';
 
 const { findDOMNode } = ReactDOM;
 
 const makeList = (items = [], props = {}) => {
-  const list = renderIntoDocument(<EditableList {...props} items={items} />);
+  const list = MTestUtils.renderIntoDocument(<EditableList {...props} items={items} />);
   if (props.initialState) {
     list.setState(props.initialState);
   }
@@ -60,7 +60,7 @@ describe('EditableList', function editableList() {
       const list = makeList(['1', '2'], { selected: '1', onSelectItem });
       const innerList = findRenderedDOMComponentWithClass(list, 'items-wrapper');
 
-      simulateCommand(innerList, 'core:next-item');
+      MTestUtils.simulateCommand(innerList, 'core:next-item');
 
       expect(onSelectItem).toHaveBeenCalledWith('2', 1);
     });
@@ -70,7 +70,7 @@ describe('EditableList', function editableList() {
       const list = makeList(['1', '2'], { selected: '2', onSelectItem });
       const innerList = findRenderedDOMComponentWithClass(list, 'items-wrapper');
 
-      simulateCommand(innerList, 'core:next-item');
+      MTestUtils.simulateCommand(innerList, 'core:next-item');
 
       expect(onSelectItem).not.toHaveBeenCalled();
     });
@@ -80,7 +80,7 @@ describe('EditableList', function editableList() {
       const list = makeList(['1', '2'], { selected: '1', onSelectItem });
       const innerList = findRenderedDOMComponentWithClass(list, 'items-wrapper');
 
-      simulateCommand(innerList, 'core:previous-item');
+      MTestUtils.simulateCommand(innerList, 'core:previous-item');
 
       expect(onSelectItem).not.toHaveBeenCalled();
     });
@@ -182,7 +182,7 @@ describe('EditableList', function editableList() {
   describe('_renderItem', () => {
     const makeItem = (item, idx, state = {}, handlers = {}) => {
       const list = makeList([], { initialState: state });
-      return renderIntoDocument(list._renderItem(item, idx, state, handlers));
+      return MTestUtils.renderIntoDocument(list._renderItem(item, idx, state, handlers));
     };
 
     it('binds correct click callbacks', () => {

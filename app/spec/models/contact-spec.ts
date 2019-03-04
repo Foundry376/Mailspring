@@ -1,6 +1,6 @@
 import { Contact } from '../../src/flux/models/contact';
 import { AccountStore } from '../../src/flux/stores/account-store';
-import Account from '../../src/flux/models/account';
+import { Account } from '../../src/flux/models/account';
 
 const contact_1 = {
   name: 'Evan Morikawa',
@@ -19,7 +19,7 @@ describe('Contact', function() {
   });
 
   it('accepts a JSON response', function() {
-    const c1 = new Contact().fromJSON(contact_1);
+    const c1 = new Contact({}).fromJSON(contact_1);
     expect(c1.name).toBe('Evan Morikawa');
     expect(c1.email).toBe('evan@mailspring.com');
   });
@@ -161,8 +161,8 @@ describe('Contact', function() {
 
     it('it calls through to accountForEmail', function() {
       const c1 = new Contact({ email: this.account.emailAddress });
-      const acct = new Account();
-      spyOn(AccountStore, 'accountForEmail').and.returnValue(acct);
+      const acct = new Account({});
+      spyOn(AccountStore, 'accountForEmail').andReturn(acct);
       expect(c1.isMe()).toBe(true);
       expect(AccountStore.accountForEmail).toHaveBeenCalled();
     });

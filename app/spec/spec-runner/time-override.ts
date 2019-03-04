@@ -53,15 +53,15 @@ class TimeOverride {
 
       window.originalSetTimeout = window.setTimeout;
       window.originalSetInterval = window.setInterval;
-      spyOn(window, 'setTimeout').and.callFake(this._fakeSetTimeout);
-      spyOn(window, 'clearTimeout').and.callFake(this._fakeClearTimeout);
-      spyOn(window, 'setInterval').and.callFake(this._fakeSetInterval);
-      spyOn(window, 'clearInterval').and.callFake(this._fakeClearInterval);
-      spyOn(_._, 'now').and.callFake(() => this.now);
+      spyOn(window, 'setTimeout').andCallFake(this._fakeSetTimeout);
+      spyOn(window, 'clearTimeout').andCallFake(this._fakeClearTimeout);
+      spyOn(window, 'setInterval').andCallFake(this._fakeSetInterval);
+      spyOn(window, 'clearInterval').andCallFake(this._fakeClearInterval);
+      spyOn(_._, 'now').andCallFake(() => this.now);
     };
 
-    // spyOn(Date, "now").and.callFake => @now
-    // spyOn(Date.prototype, "getTime").and.callFake => @now
+    // spyOn(Date, "now").andCallFake => @now
+    // spyOn(Date.prototype, "getTime").andCallFake => @now
 
     this.disableSpies = () => {
       window.advanceClock = null;

@@ -254,7 +254,7 @@ jasmine.objectContaining = function (sample) {
  * spyOn(foo, 'not');
 
  // foo.not spied upon, execution will continue to implementation
- * spyOn(foo, 'not').and.callThrough();
+ * spyOn(foo, 'not').andCallThrough();
  *
  * // fake example
  * var foo = {
@@ -262,7 +262,7 @@ jasmine.objectContaining = function (sample) {
  * }
  *
  * // foo.not(val) will return val
- * spyOn(foo, 'not').and.callFake(function(value) {return value;});
+ * spyOn(foo, 'not').andCallFake(function(value) {return value;});
  *
  * // mock example
  * foo.not(7 == 7);
@@ -319,9 +319,9 @@ jasmine.Spy = function(name) {
  * }
  *
  * // defining a spy on an existing property: foo.bar
- * spyOn(foo, 'bar').and.callThrough();
+ * spyOn(foo, 'bar').andCallThrough();
  */
-jasmine.Spy.prototype.and.callThrough = function() {
+jasmine.Spy.prototype.andCallThrough = function() {
   this.plan = this.originalValue;
   return this;
 };
@@ -331,14 +331,14 @@ jasmine.Spy.prototype.and.callThrough = function() {
  *
  * @example
  * // defining a spy from scratch: foo() returns 'baz'
- * var foo = jasmine.createSpy('spy on foo').and.returnValue('baz');
+ * var foo = jasmine.createSpy('spy on foo').andReturn('baz');
  *
  * // defining a spy on an existing property: foo.bar() returns 'baz'
- * spyOn(foo, 'bar').and.returnValue('baz');
+ * spyOn(foo, 'bar').andReturn('baz');
  *
  * @param {Object} value
  */
-jasmine.Spy.prototype.and.returnValue = function(value) {
+jasmine.Spy.prototype.andReturn = function(value) {
   this.plan = function() {
     return value;
   };
@@ -379,7 +379,7 @@ jasmine.Spy.prototype.andThrow = function(exceptionMsg) {
  *
  * @param {Function} fakeFunc
  */
-jasmine.Spy.prototype.and.callFake = function(fakeFunc) {
+jasmine.Spy.prototype.andCallFake = function(fakeFunc) {
   this.plan = fakeFunc;
   return this;
 };

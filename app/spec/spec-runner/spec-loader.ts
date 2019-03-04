@@ -67,7 +67,7 @@ class N1SpecLoader {
   _loadSpecsInDir(specDirectory) {
     const { specFilePattern } = this.loadSettings;
 
-    let regex = /-spec\.(js|jsx|es6|es)$/;
+    let regex = /-spec\.(js|jsx|es6|es|ts|tsx)$/;
     if (typeof specFilePattern === 'string' && specFilePattern.length > 0) {
       regex = new RegExp(specFilePattern);
     }

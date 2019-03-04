@@ -11,13 +11,13 @@ const dark = new Package(`${resourcePath}/internal_packages/ui-dark`);
 
 describe('ThemePicker', function themePicker() {
   beforeEach(() => {
-    spyOn(AppEnv.themes, 'getAvailableThemes').and.returnValue([light, dark]);
-    spyOn(AppEnv.themes, 'getActiveTheme').and.returnValue(light);
+    spyOn(AppEnv.themes, 'getAvailableThemes').andReturn([light, dark]);
+    spyOn(AppEnv.themes, 'getActiveTheme').andReturn(light);
     this.component = ReactTestUtils.renderIntoDocument(<ThemePicker />);
   });
 
   it('changes the active theme when a theme is clicked', () => {
-    spyOn(ThemePicker.prototype, '_setActiveTheme').and.callThrough();
+    spyOn(ThemePicker.prototype, '_setActiveTheme').andCallThrough();
     spyOn(ThemePicker.prototype, '_rewriteIFrame');
     const themeOption = ReactDOM.findDOMNode(
       ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'clickable-theme-option')[1]

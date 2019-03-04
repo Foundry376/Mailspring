@@ -31,8 +31,8 @@ describe('FocusedPerspectiveStore', function() {
     });
     this.userPerspective = MailboxPerspective.forCategory(this.userCategory);
 
-    spyOn(CategoryStore, 'getCategoryByRole').and.returnValue(this.inboxCategory);
-    spyOn(CategoryStore, 'byId').and.callFake((aid, cid) => {
+    spyOn(CategoryStore, 'getCategoryByRole').andReturn(this.inboxCategory);
+    spyOn(CategoryStore, 'byId').andCallFake((aid, cid) => {
       if (aid === 1 && cid === 'A') {
         return { id: 'A' };
       }
@@ -49,9 +49,9 @@ describe('FocusedPerspectiveStore', function() {
   describe('_initializeFromSavedState', function() {
     beforeEach(function() {
       this.default = MailboxPerspective.forCategory(this.inboxCategory);
-      spyOn(AccountStore, 'accountIds').and.returnValue([1, 2]);
-      spyOn(MailboxPerspective, 'fromJSON').and.callFake(json => json);
-      spyOn(FocusedPerspectiveStore, '_defaultPerspective').and.returnValue(this.default);
+      spyOn(AccountStore, 'accountIds').andReturn([1, 2]);
+      spyOn(MailboxPerspective, 'fromJSON').andCallFake(json => json);
+      spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(this.default);
       spyOn(FocusedPerspectiveStore, '_setPerspective');
     });
 
@@ -173,7 +173,7 @@ describe('FocusedPerspectiveStore', function() {
     it('should set the current category to default when the current category no longer exists in the CategoryStore', function() {
       const defaultPerspective = this.inboxPerspective;
       FocusedPerspectiveStore._initialized = true;
-      spyOn(FocusedPerspectiveStore, '_defaultPerspective').and.returnValue(defaultPerspective);
+      spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(defaultPerspective);
 
       const otherAccountInbox = this.inboxCategory.clone();
       otherAccountInbox.id = 'other-id';

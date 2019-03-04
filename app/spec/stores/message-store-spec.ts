@@ -139,7 +139,7 @@ describe('MessageStore', function() {
 
     describe('when in trash or spam', () =>
       it('should show only the message which are in trash or spam, and drafts', function() {
-        spyOn(FocusedPerspectiveStore, 'current').and.returnValue({
+        spyOn(FocusedPerspectiveStore, 'current').andReturn({
           categoriesSharedRole: () => 'trash',
         });
         expect(MessageStore.items()).toEqual([
@@ -151,7 +151,7 @@ describe('MessageStore', function() {
 
     describe('when in another folder', () =>
       it('should hide all of the messages which are in trash or spam', function() {
-        spyOn(FocusedPerspectiveStore, 'current').and.returnValue({
+        spyOn(FocusedPerspectiveStore, 'current').andReturn({
           categoriesSharedRole: () => 'inbox',
         });
         expect(MessageStore.items()).toEqual([
@@ -167,7 +167,7 @@ describe('MessageStore', function() {
       MessageStore._lastLoadedThreadId = null;
 
       this.focus = null;
-      spyOn(FocusedContentStore, 'focused').and.callFake(collection => {
+      spyOn(FocusedContentStore, 'focused').andCallFake(collection => {
         if (collection === 'thread') {
           return this.focus;
         } else {
@@ -175,7 +175,7 @@ describe('MessageStore', function() {
         }
       });
 
-      spyOn(FocusedContentStore, 'focusedId').and.callFake(collection => {
+      spyOn(FocusedContentStore, 'focusedId').andCallFake(collection => {
         if (collection === 'thread') {
           return this.focus != null ? this.focus.id : undefined;
         } else {
@@ -183,7 +183,7 @@ describe('MessageStore', function() {
         }
       });
 
-      spyOn(DatabaseStore, 'findAll').and.callFake(function() {
+      spyOn(DatabaseStore, 'findAll').andCallFake(function() {
         return {
           include() {
             return this;
@@ -220,7 +220,7 @@ describe('MessageStore', function() {
         MessageStore._onApplyFocusChange();
         testThread.unread = true;
         spyOn(Actions, 'queueTask');
-        spyOn(AppEnv.config, 'get').and.callFake(key => {
+        spyOn(AppEnv.config, 'get').andCallFake(key => {
           if (key === 'core.reading.markAsReadDelay') {
             return 600;
           }

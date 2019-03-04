@@ -198,7 +198,10 @@ lazyLoad(`DefaultClientHelper`, 'default-client-helper');
 lazyLoad(`SystemStartService`, 'system-start-service');
 
 // Testing
-lazyLoadWithGetter(`MailspringTestUtils`, () => require('../../spec/mailspring-test-utils'));
+lazyLoadWithGetter(
+  `MailspringTestUtils`,
+  () => require('../../spec/mailspring-test-utils').default
+);
 
 process.nextTick(() => {
   let c = 0;

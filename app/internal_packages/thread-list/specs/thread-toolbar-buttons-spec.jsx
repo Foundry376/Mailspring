@@ -32,8 +32,8 @@ describe('ThreadToolbarButtons', function() {
   beforeEach(function() {
     spyOn(Actions, 'queueTask');
     spyOn(Actions, 'queueTasks');
-    spyOn(TaskFactory, 'taskForInvertingStarred').and.callThrough();
-    spyOn(TaskFactory, 'taskForInvertingUnread').and.callThrough();
+    spyOn(TaskFactory, 'taskForInvertingStarred').andCallThrough();
+    spyOn(TaskFactory, 'taskForInvertingUnread').andCallThrough();
   });
 
   describe('Starring', function() {
@@ -100,7 +100,7 @@ describe('ThreadToolbarButtons', function() {
 
       it('queues a task to remove spam', function() {
         spyOn(TaskFactory, 'tasksForMarkingNotSpam');
-        spyOn(CategoryStore, 'getSpamCategory').and.returnValue(thread.folders[0]);
+        spyOn(CategoryStore, 'getSpamCategory').andReturn(thread.folders[0]);
         ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(markSpamButton));
         expect(TaskFactory.tasksForMarkingNotSpam.mostRecentCall.args[0].threads).toEqual([thread]);
         expect(Actions.queueTasks).toHaveBeenCalled();
@@ -109,7 +109,7 @@ describe('ThreadToolbarButtons', function() {
 
     describe('when the thread can be moved to spam', function() {
       beforeEach(function() {
-        spyOn(MailboxPerspective.prototype, 'canMoveThreadsTo').and.returnValue(true);
+        spyOn(MailboxPerspective.prototype, 'canMoveThreadsTo').andReturn(true);
         thread = new Thread({ id: 'thread-id-lol-123', accountId: TEST_ACCOUNT_ID, folders: [] });
         markSpamButton = ReactTestUtils.renderIntoDocument(<MarkAsSpamButton items={[thread]} />);
       });

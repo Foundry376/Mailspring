@@ -8,15 +8,15 @@ describe('Spellchecker', function spellcheckerTests() {
     // rely on this method
     expect(Spellchecker.handler.handleElectronSpellCheck).toBeDefined();
     this.customDict = '{}';
-    spyOn(fs, 'writeFile').and.callFake((path, customDict, cb) => {
+    spyOn(fs, 'writeFile').andCallFake((path, customDict, cb) => {
       this.customDict = customDict;
       cb();
     });
-    spyOn(fs, 'readFile').and.callFake((path, cb) => {
+    spyOn(fs, 'readFile').andCallFake((path, cb) => {
       cb(null, this.customDict);
     });
     // Apparently handleElectronSpellCheck returns !misspelled
-    spyOn(Spellchecker.handler, 'handleElectronSpellCheck').and.returnValue(false);
+    spyOn(Spellchecker.handler, 'handleElectronSpellCheck').andReturn(false);
     Spellchecker.isMisspelledCache = {};
   });
 

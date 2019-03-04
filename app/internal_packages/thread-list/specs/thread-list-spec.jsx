@@ -210,13 +210,13 @@
 //   beforeEach(function() {
 //     MailspringTestUtils.loadKeymap('internal_packages/thread-list/keymaps/thread-list');
 //     spyOn(ThreadStore, '_onAccountChanged');
-//     spyOn(DatabaseStore, 'findAll').and.callFake(
+//     spyOn(DatabaseStore, 'findAll').andCallFake(
 //       () =>
 //         new Promise(function(resolve, reject) {
 //           return resolve(test_threads());
 //         })
 //     );
-//     ReactTestUtils.spyOnClass(ThreadList, '_prepareColumns').and.callFake(function() {
+//     ReactTestUtils.spyOnClass(ThreadList, '_prepareColumns').andCallFake(function() {
 //       return (this._columns = columns);
 //     });
 
@@ -240,12 +240,12 @@
 
 //   describe('when the workspace is in list mode', function() {
 //     beforeEach(function() {
-//       spyOn(WorkspaceStore, 'layoutMode').and.returnValue('list');
+//       spyOn(WorkspaceStore, 'layoutMode').andReturn('list');
 //       this.thread_list.setState({ focusedId: 't111' });
 //     });
 
 //     it("allows reply only when the sheet type is 'Thread'", function() {
-//       spyOn(WorkspaceStore, 'sheet').and.callFake(() => ({ type: 'Thread' }));
+//       spyOn(WorkspaceStore, 'sheet').andCallFake(() => ({ type: 'Thread' }));
 //       spyOn(Actions, 'composeReply');
 //       this.thread_list._onReply();
 //       expect(Actions.composeReply).toHaveBeenCalled();
@@ -253,7 +253,7 @@
 //     });
 
 //     it("doesn't reply only when the sheet type isnt 'Thread'", function() {
-//       spyOn(WorkspaceStore, 'sheet').and.callFake(() => ({ type: 'Root' }));
+//       spyOn(WorkspaceStore, 'sheet').andCallFake(() => ({ type: 'Root' }));
 //       spyOn(Actions, 'composeReply');
 //       this.thread_list._onReply();
 //       expect(Actions.composeReply).not.toHaveBeenCalled();
@@ -263,12 +263,12 @@
 
 //   describe('when the workspace is in split mode', function() {
 //     beforeEach(function() {
-//       spyOn(WorkspaceStore, 'layoutMode').and.returnValue('split');
+//       spyOn(WorkspaceStore, 'layoutMode').andReturn('split');
 //       this.thread_list.setState({ focusedId: 't111' });
 //     });
 
 //     it('allows reply and reply-all regardless of sheet type', function() {
-//       spyOn(WorkspaceStore, 'sheet').and.callFake(() => ({ type: 'anything' }));
+//       spyOn(WorkspaceStore, 'sheet').andCallFake(() => ({ type: 'anything' }));
 //       spyOn(Actions, 'composeReply');
 //       this.thread_list._onReply();
 //       expect(Actions.composeReply).toHaveBeenCalled();
@@ -294,7 +294,7 @@
 //       ThreadStore._focusedId = null;
 //       ThreadStore.trigger(ThreadStore);
 //       this.thread_list_node = ReactDOM.findDOMNode(this.thread_list);
-//       spyOn(this.thread_list, 'setState').and.callThrough();
+//       spyOn(this.thread_list, 'setState').andCallThrough();
 //     });
 
 //     it('renders all of the thread list items', function() {

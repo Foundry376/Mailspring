@@ -6,7 +6,7 @@ describe('sidebar-item', function sidebarItemSpec() {
     spyOn(Actions, 'queueTask');
     const categories = [new Folder({ path: 'a.b/c', accountId: window.TEST_ACCOUNT_ID })];
     AppEnv.savedState.sidebarKeysCollapsed = {};
-    const item = SidebarItem.forCategories(categories);
+    const item = SidebarItem.forCategories(categories) as any;
     item.onEdited(item, 'd');
 
     const task = Actions.queueTask.calls[0].args[0];
@@ -19,7 +19,7 @@ describe('sidebar-item', function sidebarItemSpec() {
     const categories = [new Folder({ path: 'a', accountId: window.TEST_ACCOUNT_ID })];
     AppEnv.savedState.sidebarKeysCollapsed = {};
     const item = SidebarItem.forCategories(categories);
-    item.onEdited(item, 'b');
+    item.onEdited(item, 'b') as any;
 
     const task = Actions.queueTask.calls[0].args[0];
     const { existingPath, path } = task;

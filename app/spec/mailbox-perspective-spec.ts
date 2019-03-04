@@ -20,7 +20,7 @@ describe('MailboxPerspective', function mailboxPerspective() {
       },
     };
     this.perspective = new MailboxPerspective(this.accountIds);
-    spyOn(AccountStore, 'accountForId').and.callFake(accId => this.accounts[accId]);
+    spyOn(AccountStore, 'accountForId').andCallFake(accId => this.accounts[accId]);
   });
 
   describe('isEqual', () => {
@@ -30,22 +30,22 @@ describe('MailboxPerspective', function mailboxPerspective() {
   describe('canArchiveThreads', () => {
     it('returns false if the perspective is archive', () => {
       const accounts = [{ canArchiveThreads: () => true }, { canArchiveThreads: () => true }];
-      spyOn(AccountStore, 'accountsForItems').and.returnValue(accounts);
-      spyOn(this.perspective, 'isArchive').and.returnValue(true);
+      spyOn(AccountStore, 'accountsForItems').andReturn(accounts);
+      spyOn(this.perspective, 'isArchive').andReturn(true);
       expect(this.perspective.canArchiveThreads()).toBe(false);
     });
 
     it('returns false if one of the accounts associated with the threads cannot archive', () => {
       const accounts = [{ canArchiveThreads: () => true }, { canArchiveThreads: () => false }];
-      spyOn(AccountStore, 'accountsForItems').and.returnValue(accounts);
-      spyOn(this.perspective, 'isArchive').and.returnValue(false);
+      spyOn(AccountStore, 'accountsForItems').andReturn(accounts);
+      spyOn(this.perspective, 'isArchive').andReturn(false);
       expect(this.perspective.canArchiveThreads()).toBe(false);
     });
 
     it('returns true otherwise', () => {
       const accounts = [{ canArchiveThreads: () => true }, { canArchiveThreads: () => true }];
-      spyOn(AccountStore, 'accountsForItems').and.returnValue(accounts);
-      spyOn(this.perspective, 'isArchive').and.returnValue(false);
+      spyOn(AccountStore, 'accountsForItems').andReturn(accounts);
+      spyOn(this.perspective, 'isArchive').andReturn(false);
       expect(this.perspective.canArchiveThreads()).toBe(true);
     });
   });
@@ -53,25 +53,25 @@ describe('MailboxPerspective', function mailboxPerspective() {
   describe('canMoveThreadsTo', () => {
     it('returns false if the perspective is the target folder', () => {
       const accounts = [{ id: 'a' }, { id: 'b' }];
-      spyOn(AccountStore, 'accountsForItems').and.returnValue(accounts);
-      spyOn(this.perspective, 'categoriesSharedRole').and.returnValue('trash');
+      spyOn(AccountStore, 'accountsForItems').andReturn(accounts);
+      spyOn(this.perspective, 'categoriesSharedRole').andReturn('trash');
       expect(this.perspective.canMoveThreadsTo([], 'trash')).toBe(false);
     });
 
     it('returns false if one of the accounts associated with the threads does not have the folder', () => {
       const accounts = [{ id: 'a' }, { id: 'b' }];
-      spyOn(CategoryStore, 'getCategoryByRole').and.returnValue(null);
-      spyOn(AccountStore, 'accountsForItems').and.returnValue(accounts);
-      spyOn(this.perspective, 'categoriesSharedRole').and.returnValue('inbox');
+      spyOn(CategoryStore, 'getCategoryByRole').andReturn(null);
+      spyOn(AccountStore, 'accountsForItems').andReturn(accounts);
+      spyOn(this.perspective, 'categoriesSharedRole').andReturn('inbox');
       expect(this.perspective.canMoveThreadsTo([], 'trash')).toBe(false);
     });
 
     it('returns true otherwise', () => {
       const accounts = [{ id: 'a' }, { id: 'b' }];
       const category = { id: 'cat' };
-      spyOn(CategoryStore, 'getCategoryByRole').and.returnValue(category);
-      spyOn(AccountStore, 'accountsForItems').and.returnValue(accounts);
-      spyOn(this.perspective, 'categoriesSharedRole').and.returnValue('inbox');
+      spyOn(CategoryStore, 'getCategoryByRole').andReturn(category);
+      spyOn(AccountStore, 'accountsForItems').andReturn(accounts);
+      spyOn(this.perspective, 'categoriesSharedRole').andReturn('inbox');
       expect(this.perspective.canMoveThreadsTo([], 'trash')).toBe(true);
     });
   });
@@ -107,7 +107,7 @@ describe('MailboxPerspective', function mailboxPerspective() {
       };
       this.threads = [{ accountId: 'a1' }, { accountId: 'a2' }];
       spyOn(TaskFactory, 'tasksForApplyingCategories');
-      spyOn(CategoryStore, 'getTrashCategory').and.callFake(accId => {
+      spyOn(CategoryStore, 'getTrashCategory').andCallFake(accId => {
         return this.categories[accId].trash;
       });
     });
@@ -178,7 +178,7 @@ describe('MailboxPerspective', function mailboxPerspective() {
     });
 
     it('unstars if viewing starred', () => {
-      spyOn(TaskFactory, 'taskForInvertingStarred').and.returnValue({ some: 'task' });
+      spyOn(TaskFactory, 'taskForInvertingStarred').andReturn({ some: 'task' });
       const perspective = MailboxPerspective.forStarred(this.accountIds);
       const tasks = perspective.tasksForRemovingItems(this.threads);
       expect(tasks).toEqual([{ some: 'task' }]);
@@ -199,7 +199,7 @@ describe('MailboxPerspective', function mailboxPerspective() {
     describe('when perspective is category perspective', () => {
       it('does not create tasks if any name in the ruleset is null', () => {
         const perspective = MailboxPerspective.forCategories([this.categories.a1.category]);
-        spyOn(perspective, 'categoriesSharedRole').and.returnValue('all');
+        spyOn(perspective, 'categoriesSharedRole').andReturn('all');
         const tasks = perspective.tasksForRemovingItems(this.threads);
         expect(tasks).toEqual([]);
       });

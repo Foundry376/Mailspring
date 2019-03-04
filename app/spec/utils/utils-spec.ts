@@ -1,6 +1,6 @@
 /* eslint no-new-wrappers: 0 */
 /* eslint no-new-object: 0 */
-const Utils = require('../../src/flux/models/utils');
+import * as Utils from '../../src/flux/models/utils';
 import { Thread } from '../../src/flux/models/thread';
 import { Contact } from '../../src/flux/models/contact';
 
@@ -35,7 +35,12 @@ describe('Utils', function() {
         accountId: '1',
         pluginMetadata: [],
         participants: [
-          new Contact({ id: 'local-a', name: 'Juan', email: 'juan@mailspring.com', accountId: '1' }),
+          new Contact({
+            id: 'local-a',
+            name: 'Juan',
+            email: 'juan@mailspring.com',
+            accountId: '1',
+          }),
           new Contact({ id: 'local-b', name: 'Ben', email: 'ben@mailspring.com', accountId: '1' }),
         ],
         subject: 'Test 1234',

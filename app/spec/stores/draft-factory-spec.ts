@@ -33,9 +33,9 @@ const expectContactsEqual = (a, b) => {
 describe('DraftFactory', function draftFactory() {
   beforeEach(() => {
     // Out of the scope of these specs
-    spyOn(InlineStyleTransformer, 'run').and.callFake(input => Promise.resolve(input));
-    spyOn(SanitizeTransformer, 'run').and.callFake(input => Promise.resolve(input));
-    spyOn(AttachmentStore, 'getDownloadDataForFile').and.callFake(fid => {
+    spyOn(InlineStyleTransformer, 'run').andCallFake(input => Promise.resolve(input));
+    spyOn(SanitizeTransformer, 'run').andCallFake(input => Promise.resolve(input));
+    spyOn(AttachmentStore, 'getDownloadDataForFile').andCallFake(fid => {
       return downloadData[fid];
     });
 
@@ -542,8 +542,8 @@ describe('DraftFactory', function draftFactory() {
             add: jasmine.createSpy('add'),
           },
         };
-        spyOn(DatabaseStore, 'run').and.returnValue(Promise.resolve([fakeMessage1, this.existingDraft]));
-        spyOn(DraftStore, 'sessionForClientId').and.returnValue(Promise.resolve(this.sessionStub));
+        spyOn(DatabaseStore, 'run').andReturn(Promise.resolve([fakeMessage1, this.existingDraft]));
+        spyOn(DraftStore, 'sessionForClientId').andReturn(Promise.resolve(this.sessionStub));
       });
 
       describe('when reply-all is passed', () => {
@@ -609,7 +609,7 @@ describe('DraftFactory', function draftFactory() {
 
     describe('when there is not an existing draft at the bottom of the thread', () => {
       beforeEach(() => {
-        spyOn(DatabaseStore, 'run').and.callFake(() => [fakeMessage1]);
+        spyOn(DatabaseStore, 'run').andCallFake(() => [fakeMessage1]);
         spyOn(DraftFactory, 'createDraftForReply');
       });
 

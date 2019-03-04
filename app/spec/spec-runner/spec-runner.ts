@@ -155,8 +155,7 @@ class SpecRunner {
       // NOTE: this reporter MUST be added last as it exits the test process
       // when complete, which may result in e.g. your XML output not getting
       // written to disk if that reporter is added afterward.
-      import TerminalReporter from './terminal-reporter';
-
+      const TerminalReporter = require('./terminal-reporter').default;
       const terminalReporter = new TerminalReporter();
       this.jasmineEnv.addReporter(terminalReporter);
     }

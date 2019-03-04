@@ -10,8 +10,8 @@ const ipc = {
 describe('ActionBridge', function() {
   describe('in the main window', function() {
     beforeEach(function() {
-      spyOn(AppEnv, 'getWindowType').and.returnValue('default');
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
+      spyOn(AppEnv, 'getWindowType').andReturn('default');
+      spyOn(AppEnv, 'isMainWindow').andReturn(true);
       this.bridge = new ActionBridge(ipc);
     });
 
@@ -21,7 +21,7 @@ describe('ActionBridge', function() {
 
     it('should rebroadcast global actions', function() {
       spyOn(this.bridge, 'onRebroadcast');
-      const testAction = Actions[Actions.globalActions[0]];
+      const testAction = Actions.globalActions[0];
       testAction('bla');
       expect(this.bridge.onRebroadcast).toHaveBeenCalled();
     });
@@ -35,7 +35,7 @@ describe('ActionBridge', function() {
 
     it('should not rebroadcast window actions', function() {
       spyOn(this.bridge, 'onRebroadcast');
-      const testAction = Actions[Actions.windowActions[0]];
+      const testAction = Actions.windowActions[0];
       testAction('bla');
       expect(this.bridge.onRebroadcast).not.toHaveBeenCalled();
     });
@@ -43,8 +43,8 @@ describe('ActionBridge', function() {
 
   describe('in another window', function() {
     beforeEach(function() {
-      spyOn(AppEnv, 'getWindowType').and.returnValue('popout');
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(false);
+      spyOn(AppEnv, 'getWindowType').andReturn('popout');
+      spyOn(AppEnv, 'isMainWindow').andReturn(false);
       this.bridge = new ActionBridge(ipc);
       this.message = new Message({
         id: 'test-id',
@@ -58,7 +58,7 @@ describe('ActionBridge', function() {
 
     it('should rebroadcast global actions', function() {
       spyOn(this.bridge, 'onRebroadcast');
-      const testAction = Actions[Actions.globalActions[0]];
+      const testAction = Actions.globalActions[0];
       testAction('bla');
       expect(this.bridge.onRebroadcast).toHaveBeenCalled();
     });
@@ -72,7 +72,7 @@ describe('ActionBridge', function() {
 
     it('should not rebroadcast window actions', function() {
       spyOn(this.bridge, 'onRebroadcast');
-      const testAction = Actions[Actions.windowActions[0]];
+      const testAction = Actions.windowActions[0];
       testAction('bla');
       expect(this.bridge.onRebroadcast).not.toHaveBeenCalled();
     });
@@ -80,8 +80,8 @@ describe('ActionBridge', function() {
 
   describe('onRebroadcast', function() {
     beforeEach(function() {
-      spyOn(AppEnv, 'getWindowType').and.returnValue('popout');
-      spyOn(AppEnv, 'isMainWindow').and.returnValue(false);
+      spyOn(AppEnv, 'getWindowType').andReturn('popout');
+      spyOn(AppEnv, 'isMainWindow').andReturn(false);
       this.bridge = new ActionBridge(ipc);
     });
 

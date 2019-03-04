@@ -64,7 +64,7 @@ class MasterBeforeEach {
     // DatabaseStore._query never runs because the @_open flag is always
     // false because we never setup the DB when `AppEnv.inSpecMode` is
     // true.
-    spyOn(DatabaseStore, '_query').and.callFake(() => Promise.resolve([]));
+    spyOn(DatabaseStore, '_query').andCallFake(() => Promise.resolve([]));
   }
 
   _resetTaskQueue() {
@@ -113,11 +113,11 @@ class MasterBeforeEach {
       env: 'production',
     };
 
-    spyOn(Config.prototype, 'getRawValues').and.callFake(() => {
+    spyOn(Config.prototype, 'getRawValues').andCallFake(() => {
       return fakePersistedConfig;
     });
 
-    spyOn(Config.prototype, 'setRawValue').and.callFake(function setRawValue(keyPath, value) {
+    spyOn(Config.prototype, 'setRawValue').andCallFake(function setRawValue(keyPath, value) {
       if (keyPath) {
         configUtils.setValueForKeyPath(fakePersistedConfig, keyPath, value);
       } else {
@@ -132,10 +132,10 @@ class MasterBeforeEach {
 
   _resetClipboard() {
     let clipboardContent = 'initial clipboard content';
-    spyOn(clipboard, 'writeText').and.callFake(text => {
+    spyOn(clipboard, 'writeText').andCallFake(text => {
       clipboardContent = text;
     });
-    spyOn(clipboard, 'readText').and.callFake(() => clipboardContent);
+    spyOn(clipboard, 'readText').andCallFake(() => clipboardContent);
   }
 }
 export default new MasterBeforeEach();

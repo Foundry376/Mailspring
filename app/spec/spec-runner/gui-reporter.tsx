@@ -90,11 +90,9 @@ class N1GuiReporter extends React.Component {
   render() {
     return (
       <div className="spec-reporter">
-        <div className="padded pull-right">
-          <button className="btn reload-button" onClick={this.onReloadSpecs}>
-            Reload Specs
-          </button>
-        </div>
+        <button className="btn reload-button" onClick={this.onReloadSpecs}>
+          Reload Specs
+        </button>
         <div className="symbol-area">
           <div className="symbol-header">Core</div>
           <div className="symbol-summary list-unstyled">{this._renderSpecsOfType('core')}</div>

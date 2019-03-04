@@ -19,7 +19,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
     const inbox = new Folder({ id: 'l1', role: 'inbox', path: 'Inbox' });
     const archive = new Folder({ id: 'l2', role: 'archive', path: 'Archive' });
 
-    spyOn(CategoryStore, 'getCategoryByRole').and.returnValue(inbox);
+    spyOn(CategoryStore, 'getCategoryByRole').andReturn(inbox);
 
     const account = AccountStore.accounts()[0];
 
@@ -155,7 +155,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
       version: 2,
     });
 
-    spyOn(DatabaseStore, 'find').and.callFake((klass, id) => {
+    spyOn(DatabaseStore, 'find').andCallFake((klass, id) => {
       if (id === 'A') {
         return Promise.resolve(this.threadA);
       }
@@ -165,14 +165,14 @@ describe('UnreadNotifications', function UnreadNotifications() {
       return Promise.resolve(null);
     });
 
-    spyOn(DatabaseStore, 'findAll').and.callFake(() => {
+    spyOn(DatabaseStore, 'findAll').andCallFake(() => {
       return Promise.resolve([this.threadA, this.threadB]);
     });
 
     this.notification = jasmine.createSpyObj('notification', ['close']);
-    spyOn(NativeNotifications, 'displayNotification').and.returnValue(this.notification);
+    spyOn(NativeNotifications, 'displayNotification').andReturn(this.notification);
 
-    spyOn(Promise, 'props').and.callFake(dict => {
+    spyOn(Promise, 'props').andCallFake(dict => {
       const dictOut = {};
       for (const key of Object.keys(dict)) {
         const val = dict[key];
@@ -381,7 +381,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
   });
 
   it('should play a sound when it gets new mail', () => {
-    spyOn(AppEnv.config, 'get').and.callFake(config => {
+    spyOn(AppEnv.config, 'get').andCallFake(config => {
       if (config === 'core.notifications.enabled') return true;
       if (config === 'core.notifications.sounds') return true;
       return undefined;
@@ -399,7 +399,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
   });
 
   it('should not play a sound if the config is off', () => {
-    spyOn(AppEnv.config, 'get').and.callFake(config => {
+    spyOn(AppEnv.config, 'get').andCallFake(config => {
       if (config === 'core.notifications.enabled') return true;
       if (config === 'core.notifications.sounds') return false;
       return undefined;
@@ -416,7 +416,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
   });
 
   it('should not play a sound if other notiications are still in flight', () => {
-    spyOn(AppEnv.config, 'get').and.callFake(config => {
+    spyOn(AppEnv.config, 'get').andCallFake(config => {
       if (config === 'core.notifications.enabled') return true;
       if (config === 'core.notifications.sounds') return true;
       return undefined;

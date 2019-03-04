@@ -7,7 +7,7 @@ import AccountErrorNotification from '../lib/items/account-error-notif';
 describe('AccountErrorNotif', function AccountErrorNotifTests() {
   describe('when one account is in the `invalid` state', () => {
     beforeEach(() => {
-      spyOn(AccountStore, 'accounts').and.returnValue([
+      spyOn(AccountStore, 'accounts').andReturn([
         new Account({
           id: 'A',
           syncState: Account.SYNC_STATE_AUTH_FAILED,
@@ -28,7 +28,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
     });
 
     it('allows the user to refresh the account', () => {
-      spyOn(AppEnv.mailsyncBridge, 'forceRelaunchClient').and.returnValue(Promise.resolve());
+      spyOn(AppEnv.mailsyncBridge, 'forceRelaunchClient').andReturn(Promise.resolve());
       const notif = mount(<AccountErrorNotification />);
       notif.find('#action-0').simulate('click'); // Expects first action to be the refresh action
       expect(AppEnv.mailsyncBridge.forceRelaunchClient).toHaveBeenCalled();
@@ -36,7 +36,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
 
     it('allows the user to reconnect the account', () => {
       const notif = mount(<AccountErrorNotification />);
-      spyOn(KeyManager, 'insertAccountSecrets').and.callFake(acct => acct);
+      spyOn(KeyManager, 'insertAccountSecrets').andCallFake(acct => acct);
       spyOn(ipcRenderer, 'send');
       notif.find('#action-1').simulate('click'); // Expects second action to be the reconnect action
 
@@ -53,7 +53,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
 
   describe('when more than one account is in the `invalid` state', () => {
     beforeEach(() => {
-      spyOn(AccountStore, 'accounts').and.returnValue([
+      spyOn(AccountStore, 'accounts').andReturn([
         new Account({
           id: 'A',
           syncState: Account.SYNC_STATE_AUTH_FAILED,
@@ -73,7 +73,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
     });
 
     it('allows the user to refresh the accounts', () => {
-      spyOn(AppEnv.mailsyncBridge, 'forceRelaunchClient').and.returnValue(Promise.resolve());
+      spyOn(AppEnv.mailsyncBridge, 'forceRelaunchClient').andReturn(Promise.resolve());
       const notif = mount(<AccountErrorNotification />);
       notif.find('#action-0').simulate('click'); // Expects first action to be the refresh action
       expect(AppEnv.mailsyncBridge.forceRelaunchClient).toHaveBeenCalled();
@@ -91,7 +91,7 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
 
   describe('when all accounts are fine', () => {
     beforeEach(() => {
-      spyOn(AccountStore, 'accounts').and.returnValue([
+      spyOn(AccountStore, 'accounts').andReturn([
         new Account({ id: 'A', syncState: Account.SYNC_STATE_OK, emailAddress: '123@gmail.com' }),
         new Account({ id: 'B', syncState: Account.SYNC_STATE_OK, emailAddress: 'other@gmail.com' }),
       ]);

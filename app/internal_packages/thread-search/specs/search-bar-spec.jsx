@@ -8,20 +8,12 @@ import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
 
 import ThreadSearchBar from '../lib/thread-search-bar';
-import SearchActions from '../lib/search-actions';
 
 describe('ThreadSearchBar', function() {
   beforeEach(function() {
-    spyOn(AppEnv, 'isMainWindow').and.returnValue(true);
+    spyOn(AppEnv, 'isMainWindow').andReturn(true);
     this.searchBar = ReactTestUtils.renderIntoDocument(<ThreadSearchBar />);
     this.input = ReactDOM.findDOMNode(this.searchBar).querySelector('input');
-  });
-
-  it('supports search queries with a colon character', function() {
-    spyOn(SearchActions, 'searchQueryChanged');
-    const test = '::Hello: World::';
-    ReactTestUtils.Simulate.change(this.input, { target: { value: test } });
-    expect(SearchActions.searchQueryChanged).toHaveBeenCalledWith(test);
   });
 
   it('preserves capitalization on searches', function() {

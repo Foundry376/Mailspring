@@ -61,7 +61,7 @@ describe('MultiselectSplitInteractionHandler', function() {
     this.isRootSheet = true;
     this.handler = new MultiselectSplitInteractionHandler(this.props);
 
-    spyOn(WorkspaceStore, 'topSheet').and.callFake(() => ({ root: this.isRootSheet }));
+    spyOn(WorkspaceStore, 'topSheet').andCallFake(() => ({ root: this.isRootSheet }));
   });
 
   it('should always show focus', function() {

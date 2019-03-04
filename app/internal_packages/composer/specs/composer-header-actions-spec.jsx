@@ -52,7 +52,7 @@ describe('ComposerHeaderActions', function() {
   });
 
   it("doesn't render 'popout composer' if in a composer window", function() {
-    spyOn(AppEnv, 'isComposerWindow').and.returnValue(true);
+    spyOn(AppEnv, 'isComposerWindow').andReturn(true);
     makeField.call(this, { enabledFields: [Fields.To] });
     const els = ReactTestUtils.scryRenderedDOMComponentsWithClass(this.component, 'show-popout');
     expect(els.length).toBe(0);

@@ -1,5 +1,5 @@
 /* eslint quote-props: 0 */
-import MutableQueryResultSet from '../../src/flux/models/mutable-query-result-set';
+import { MutableQueryResultSet } from '../../src/flux/models/mutable-query-result-set';
 import { QueryRange } from '../../src/flux/models/query-range';
 
 describe('MutableQueryResultSet', function MutableQueryResultSetSpecs() {

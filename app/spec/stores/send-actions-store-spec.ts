@@ -98,13 +98,13 @@ describe('SendActionsStore', function describeBlock() {
 
   describe('sendActions', () => {
     it('returns default action when no extensions registered', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([]);
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([]);
       SendActionsStore._onComposerExtensionsChanged();
       expect(sendActionKeys()).toEqual([DefaultSendActionKey]);
     });
 
     it('returns correct send actions', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([GoodExtension, OtherExtension]);
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([GoodExtension, OtherExtension]);
       SendActionsStore._onComposerExtensionsChanged();
       expect(sendActionKeys()).toEqual([
         DefaultSendActionKey,
@@ -115,26 +115,26 @@ describe('SendActionsStore', function describeBlock() {
     });
 
     it('handles extensions that return null for `sendActions`', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([GoodExtension, NullExtension]);
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([GoodExtension, NullExtension]);
       SendActionsStore._onComposerExtensionsChanged();
       expect(sendActionKeys()).toEqual([DefaultSendActionKey, 'send-action-1']);
     });
 
     it('handles extensions that return null actions', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([GoodExtension, BadExtension]);
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([GoodExtension, BadExtension]);
       SendActionsStore._onComposerExtensionsChanged();
       expect(sendActionKeys()).toEqual([DefaultSendActionKey, 'send-action-1']);
     });
 
     it('omits and reports when action is missing a title', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([GoodExtension, NoTitleExtension]);
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([GoodExtension, NoTitleExtension]);
       SendActionsStore._onComposerExtensionsChanged();
       expect(sendActionKeys()).toEqual([DefaultSendActionKey, 'send-action-1']);
       expect(AppEnv.reportError).toHaveBeenCalled();
     });
 
     it('omits reports when action is missing performSendAction', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([
         GoodExtension,
         NoPerformExtension,
       ]);
@@ -144,7 +144,7 @@ describe('SendActionsStore', function describeBlock() {
     });
 
     it('includes not available actions', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([
         GoodExtension,
         NotAvailableExtension,
       ]);
@@ -155,7 +155,7 @@ describe('SendActionsStore', function describeBlock() {
 
   describe('orderedSendActionsForDraft', () => {
     it('returns default action when no extensions registered', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([]);
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([]);
       SendActionsStore._onComposerExtensionsChanged();
       const [preferred, ...rest] = SendActionsStore.orderedSendActionsForDraft();
       expect(preferred.configKey).toBe(DefaultSendActionKey);
@@ -163,12 +163,12 @@ describe('SendActionsStore', function describeBlock() {
     });
 
     it('returns actions in correct grouping', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([
         GoodExtension,
         OtherExtension,
         NotAvailableExtension,
       ]);
-      spyOn(AppEnv.config, 'get').and.returnValue('send-action-1');
+      spyOn(AppEnv.config, 'get').andReturn('send-action-1');
       SendActionsStore._onComposerExtensionsChanged();
       const [preferred, ...rest] = SendActionsStore.orderedSendActionsForDraft();
       const restKeys = rest.map(({ configKey }) => configKey);
@@ -177,27 +177,27 @@ describe('SendActionsStore', function describeBlock() {
     });
 
     it('falls back to a default if value in config not present', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([GoodExtension, OtherExtension]);
-      spyOn(AppEnv.config, 'get').and.returnValue(null);
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([GoodExtension, OtherExtension]);
+      spyOn(AppEnv.config, 'get').andReturn(null);
       SendActionsStore._onComposerExtensionsChanged();
       const [preferred] = SendActionsStore.orderedSendActionsForDraft();
       expect(preferred.configKey).toBe(DefaultSendActionKey);
     });
 
     it("falls back to a default if the primary item can't be found", () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([GoodExtension, OtherExtension]);
-      spyOn(AppEnv.config, 'get').and.returnValue('does-not-exist');
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([GoodExtension, OtherExtension]);
+      spyOn(AppEnv.config, 'get').andReturn('does-not-exist');
       SendActionsStore._onComposerExtensionsChanged();
       const [preferred] = SendActionsStore.orderedSendActionsForDraft();
       expect(preferred.configKey).toBe(DefaultSendActionKey);
     });
 
     it('falls back to a default if the primary item is not available for draft', () => {
-      spyOn(ExtensionRegistry.Composer, 'extensions').and.returnValue([
+      spyOn(ExtensionRegistry.Composer, 'extensions').andReturn([
         GoodExtension,
         NotAvailableExtension,
       ]);
-      spyOn(AppEnv.config, 'get').and.returnValue('not-available');
+      spyOn(AppEnv.config, 'get').andReturn('not-available');
       SendActionsStore._onComposerExtensionsChanged();
       const [preferred] = SendActionsStore.orderedSendActionsForDraft();
       expect(preferred.configKey).toBe(DefaultSendActionKey);

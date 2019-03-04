@@ -14,8 +14,8 @@
     "outDir": "lib",
     "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*", "src/global/*"]
+      "*": ["../node_modules/*", "../src/global/*"]
     }
   },
-  "include": ["src/**/*", "spec/**/*"]
+  "include": ["../src/**/*", "../src/types/*", "../**/*"]
 }

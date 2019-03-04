@@ -53,7 +53,7 @@ describe('IdentityStore', function identityStoreSpec() {
 
   describe('returning the identity object', () => {
     beforeEach(() => {
-      spyOn(IdentityStore, 'saveIdentity').and.returnValue(Promise.resolve());
+      spyOn(IdentityStore, 'saveIdentity').andReturn(Promise.resolve());
     });
     it('returns the identity as null if it looks blank', () => {
       IdentityStore._identity = null;
@@ -83,7 +83,7 @@ describe('IdentityStore', function identityStoreSpec() {
     it('saves the identity returned', async () => {
       const resp = Utils.deepClone(this.identityJSON);
       resp.featureUsage.feat.quota = 5;
-      spyOn(MailspringAPIRequest, 'makeRequest').and.callFake(() => {
+      spyOn(MailspringAPIRequest, 'makeRequest').andCallFake(() => {
         return Promise.resolve(resp);
       });
       await IdentityStore.fetchIdentity();
@@ -97,7 +97,7 @@ describe('IdentityStore', function identityStoreSpec() {
     });
 
     it('errors if the json is invalid', async () => {
-      spyOn(MailspringAPIRequest, 'makeRequest').and.callFake(() => {
+      spyOn(MailspringAPIRequest, 'makeRequest').andCallFake(() => {
         return Promise.resolve({});
       });
       await IdentityStore.fetchIdentity();
