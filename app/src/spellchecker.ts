@@ -51,7 +51,7 @@ class Spellchecker {
 
   _loadCustomDict = () => {
     fs.readFile(customDictFilePath, (err, data) => {
-      let fileData = data.toString();
+      let fileData: any = data;
       if (err) {
         if (err.code === 'ENOENT') {
           // File doesn't exist, we haven't saved any words yet

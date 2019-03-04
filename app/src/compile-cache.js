@@ -8,6 +8,7 @@ const COMPILERS = {
   '.jsx': typescriptCompiler,
   '.ts': typescriptCompiler,
   '.tsx': typescriptCompiler,
+  '.es6': typescriptCompiler,
 };
 
 const cacheStats = {};
