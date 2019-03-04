@@ -1,9 +1,9 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ComposerHeaderActions = require('../lib/composer-header-actions').default;
-const Fields = require('../lib/fields').default;
-const ReactTestUtils = require('react-dom/test-utils');
-const { Actions } = require('mailspring-exports');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ComposerHeaderActions from '../lib/composer-header-actions';
+import Fields from '../lib/fields';
+import ReactTestUtils from 'react-dom/test-utils';
+import { Actions } from 'mailspring-exports';;
 
 describe('ComposerHeaderActions', function() {
   const makeField = function(props) {

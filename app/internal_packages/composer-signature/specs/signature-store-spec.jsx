@@ -57,7 +57,7 @@ describe('SignatureStore', function signatureStore() {
     it('should reset selectedSignatureId to a different signature', () => {
       const toRemove = SIGNATURES[SignatureStore.selectedSignatureId];
       SignatureStore._onRemoveSignature(toRemove);
-      expect(SignatureStore.selectedSignatureId).toNotEqual('1');
+      expect(SignatureStore.selectedSignatureId).not.toEqual('1');
     });
   });
 });

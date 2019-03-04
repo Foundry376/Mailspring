@@ -1,1309 +1,1309 @@
 {
-	"pobox": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "mail.pobox.com",
-				"ssl": true
-			}],
-			"pop": [{
-				"port": 995,
-				"hostname": "mail.pobox.com",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 587,
-				"hostname": "smtp.pobox.com",
-				"starttls": true
-			}]
-		},
-		"mx-match": [
-			"mx-1\\.pobox\\.com",
-			"mx-2\\.pobox\\.com",
-			"mx-3\\.pobox\\.com",
-			"mx-1\\.rightbox\\.com",
-			"mx-2\\.rightbox\\.com",
-			"mx-3\\.rightbox\\.com"
-		],
-		"domain-match": [
-			"pobox\\.com"
-		]
-	},
-	"hushmail": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.hushmail.com",
-				"ssl": true
-			}],
-			"pop": [{
-				"port": 995,
-				"hostname": "pop.hushmail.com",
-				"ssl": true
-			}],
-			"smtp": [{
-					"port": 587,
-					"hostname": "smtp.hushmail.com",
-					"ssl": true
-				},
-				{
-					"port": 465,
-					"hostname": "smtp.hushmail.com",
-					"ssl": true
-				},
-				{
-					"port": 25,
-					"hostname": "smtp.hushmail.com",
-					"starttls": true
-				}
-			]
-		},
-		"domain-match": [
-			"hushmail\\.com"
-		]
-	},
-	"mail": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.mail.com",
-				"ssl": true
-			}],
-			"pop": [{
-				"port": 995,
-				"hostname": "pop.mail.com",
-				"ssl": true
-			}],
-			"smtp": [{
-					"port": 587,
-					"hostname": "smtp.mail.com",
-					"ssl": true
-				},
-				{
-					"port": 465,
-					"hostname": "smtp.mail.com",
-					"ssl": true
-				},
-				{
-					"port": 25,
-					"hostname": "smtp.mail.com",
-					"ssl": true
-				}
-			]
-		},
-		"domain-match": [
-			"mail\\.com"
-		]
-	},
-	"secureserver": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.secureserver.net",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtpout.secureserver.net",
-				"ssl": true
-			}]
-		},
-		"mx-match": [
-			"mailstore[0-9]?\\.secureserver\\.net",
-			"mailstore[0-9]?\\.asia\\.secureserver\\.net",
-			"smtp\\.asia\\.secureserver\\.net",
-			"smtp\\.secureserver\\.net"
-		],
-		"domain-match": [
-			"secureserver\\.net"
-		]
-	},
-	"zoho": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.zoho.com",
-				"ssl": true
-			}],
-			"pop": [{
-				"port": 995,
-				"hostname": "pop.zoho.com",
-				"ssl": true
-			}],
-			"smtp": [{
-					"port": 465,
-					"hostname": "smtp.zoho.com",
-					"ssl": true
-				},
-				{
-					"port": 587,
-					"hostname": "smtp.zoho.com",
-					"starttls": true
-				}
-			]
-		},
-		"mx-match": [
-			"mx\\.zoho\\.com", "mx[0-9]*\\.zoho\\.com"
-		],
-		"domain-match": [
-			"zoho\\.com"
-		]
-	},
-	"juno": {
-		"servers": {
-			"pop": [{
-				"port": 995,
-				"hostname": "pop.juno.com",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.juno.com",
-				"starttls": true
-			}]
-		},
-		"domain-match": [
-			"juno\\.com"
-		]
-	},
-	"mobileme": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"hostname": "imap.mail.me.com",
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"hostname": "imap.mail.me.com",
-					"starttls": true
-				}
-			],
-			"smtp": [{
-				"port": 587,
-				"hostname": "smtp.mail.me.com",
-				"starttls": true
-			}]
-		},
-		"domain-match": [
-			"me\\.com",
-			"mac\\.com",
-			"icloud\\.com"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"dreamhost": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"hostname": "mail.{domain}",
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"hostname": "mail.{domain}",
-					"starttls": true
-				}
-			],
-			"smtp": [{
-					"port": 465,
-					"hostname": "mail.{domain}",
-					"ssl": true
-				},
-				{
-					"port": 587,
-					"hostname": "mail.{domain}",
-					"starttls": true
-				},
-				{
-					"port": 25,
-					"hostname": "mail.{domain}",
-					"starttls": true
-				}
-			]
-		},
-		"mx-match": [
-			"mx1\\.sub3\\.homie\\.mail\\.dreamhost\\.com",
-			"mx2\\.sub3\\.homie\\.mail\\.dreamhost\\.com",
-			"mx1\\.sub4\\.homie\\.mail\\.dreamhost\\.com",
-			"mx2\\.sub4\\.homie\\.mail\\.dreamhost\\.com",
-			"mx1\\.sub5\\.homie\\.mail\\.dreamhost\\.com",
-			"mx2\\.sub5\\.homie\\.mail\\.dreamhost\\.com",
-			"mx1\\.balanced\\.homie\\.mail\\.dreamhost\\.com",
-			"mx2\\.balanced\\.homie\\.mail\\.dreamhost\\.com"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"insecure-default": {
-		"servers": {
-			"imap": [{
-					"port": 143,
-					"starttls": true
-				},
-				{
-					"port": 143
-				}
-			],
-			"smtp": [{
-					"port": 587,
-					"starttls": true
-				},
-				{
-					"port": 25,
-					"starttls": true
-				},
-				{
-					"port": 587
-				},
-				{
-					"port": 25
-				}
-			]
-		},
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"euro-apple": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "phonehome.euro.apple.com",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 587,
-				"hostname": "phonehome.apple.com",
-				"starttls": true
-			}]
-		},
-		"domain-match": [
-			"euro\\.apple\\.com"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"default": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"starttls": true
-				}
-			],
-			"smtp": [{
-					"port": 465,
-					"ssl": true
-				},
-				{
-					"port": 587,
-					"starttls": true
-				},
-				{
-					"port": 25,
-					"starttls": true
-				}
-			]
-		},
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"insecure-fixed-port": {
-		"servers": {
-			"imap": [{
-					"starttls": true
-				},
-				{}
-			],
-			"smtp": [{
-					"starttls": true
-				},
-				{}
-			]
-		},
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"aol": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"hostname": "imap.aol.com",
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"hostname": "imap.aol.com",
-					"starttls": true
-				}
-			],
-			"smtp": [{
-					"port": 587,
-					"hostname": "smtp.aol.com",
-					"starttls": true
-				},
-				{
-					"port": 465,
-					"hostname": "smtp.aol.com",
-					"ssl": true
-				},
-				{
-					"port": 25,
-					"hostname": "smtp.aol.com",
-					"starttls": true
-				}
-			]
-		},
-		"domain-match": [
-			"aim\\.com",
-			"aol\\..*",
-			"jp\\.aol\\.com"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Saved",
-			"spam": "Spam",
-			"sentmail": "Sent",
-			"trash": "Trash"
-		}
-	},
-	"yahoo.co.jp": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.mail.yahoo.co.jp",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.mail.yahoo.co.jp",
-				"ssl": true
-			}]
-		},
-		"domain-match": [
-			"yahoo\\.co\\.jp"
-		],
-		"mailboxes": {
-			"drafts": "Draft",
-			"allmail": "Archive",
-			"spam": "Bulk Mail",
-			"sentmail": "Sent",
-			"trash": "Trash"
-		}
-	},
-	"yahoo": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"hostname": "imap.mail.yahoo.com",
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"hostname": "imap.mail.yahoo.com",
-					"starttls": true
-				}
-			],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.mail.yahoo.com",
-				"ssl": true
-			}]
-		},
-		"mx-match": [
-			"mta5\\.am0\\.yahoodns\\.net",
-			"mta6\\.am0\\.yahoodns\\.net",
-			"mta7\\.am0\\.yahoodns\\.net"
-		],
-		"domain-match": [
-			"yahoo\\..*",
-			"ymail\\.com",
-			"rocketmail\\.com",
-			"xtra\\.co\\.nz"
-		],
-		"domain-exclude": [
-			"yahoo\\.co\\.jp"
-		],
-		"mailboxes": {
-			"drafts": "Draft",
-			"allmail": "Archive",
-			"spam": "Bulk Mail",
-			"sentmail": "Sent",
-			"trash": "Trash"
-		}
-	},
-	"gmail": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.gmail.com",
-				"ssl": true
-			}],
-			"smtp": [{
-					"port": 587,
-					"hostname": "smtp.gmail.com",
-					"starttls": true
-				},
-				{
-					"port": 465,
-					"hostname": "smtp.gmail.com",
-					"ssl": true
-				},
-				{
-					"port": 25,
-					"hostname": "smtp.gmail.com",
-					"starttls": true
-				}
-			]
-		},
-		"mx-match": [
-			"aspmx2\\.googlemail\\.com",
-			"aspmx\\.l\\.google\\.com",
-			"aspmx3\\.googlemail\\.com",
-			"alt1\\.aspmx\\.l\\.google\\.com",
-			"alt2\\.aspmx\\.l\\.google\\.com",
-			"alt1\\.gmail-smtp-in\\.l\\.google\\.com",
-			"alt2\\.gmail-smtp-in\\.l\\.google\\.com",
-			"alt3\\.gmail-smtp-in\\.l\\.google\\.com",
-			"alt4\\.gmail-smtp-in\\.l\\.google\\.com",
-			"gmail-smtp-in\\.l\\.google\\.com"
-		],
-		"domain-match": [
-			"googlemail\\.com",
-			"gmail\\.com"
-		],
-		"mailboxes": {
-			"sentmail": "[Gmail]/Sent Mail",
-			"allmail": "[Gmail]/All Mail",
-			"starred": "[Gmail]/Starred",
-			"trash": "[Gmail]/Trash",
-			"drafts": "[Gmail]/Drafts",
-			"spam": "[Gmail]/Spam",
-			"important": "[Gmail]/Important"
-		}
-	},
-	"gmx": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"hostname": "imap.gmx.com",
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"hostname": "imap.gmx.com",
-					"starttls": true
-				}
-			],
-			"smtp": [{
-					"port": 587,
-					"hostname": "mail.gmx.com",
-					"starttls": true
-				},
-				{
-					"port": 465,
-					"hostname": "mail.gmx.com",
-					"ssl": true
-				},
-				{
-					"port": 25,
-					"hostname": "mail.gmx.com",
-					"starttls": true
-				}
-			]
-		},
-		"domain-match": [
-			"gmx\\..*",
-			"caramail\\..*"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Spam",
-			"sentmail": "Sent",
-			"trash": "Trash"
-		}
-	},
-	"fastmail": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"hostname": "imap.fastmail.com",
-					"ssl": true
-				}
-			],
-			"smtp": [{
-					"port": 465,
-					"hostname": "smtp.fastmail.com",
-					"ssl": true
-				}
-			]
-		},
-		"domain-match": [
-			"123mail\\.org",
-			"fastmail\\..*",
-			"airpost\\.net",
-			"eml\\.cc",
-			"fmail\\.co\\.uk",
-			"fmgirl\\.com",
-			"fmguy\\.com",
-			"mailbolt\\.com",
-			"mailcan\\.com",
-			"mailhaven\\.com",
-			"mailmight\\.com",
-			"ml1\\.net",
-			"mm\\.st",
-			"myfastmail\\.com",
-			"proinbox\\.com",
-			"promessage\\.com",
-			"rushpost\\.com",
-			"sent\\.as",
-			"sent\\.at",
-			"sent\\.com",
-			"speedymail\\.org",
-			"warpmail\\.net",
-			"xsmail\\.com",
-			"150mail\\.com",
-			"150ml\\.com",
-			"16mail\\.com",
-			"2-mail\\.com",
-			"4email\\.net",
-			"50mail\\.com",
-			"allmail\\.net",
-			"bestmail\\.us",
-			"cluemail\\.com",
-			"elitemail\\.org",
-			"emailcorner\\.net",
-			"emailengine\\.net",
-			"emailengine\\.org",
-			"emailgroups\\.net",
-			"emailplus\\.org",
-			"emailuser\\.net",
-			"f-m\\.fm",
-			"fast-email\\.com",
-			"fast-mail\\.org",
-			"fastem\\.com",
-			"fastemail\\.us",
-			"fastemailer\\.com",
-			"fastest\\.cc",
-			"fastimap\\.com",
-			"fastmailbox\\.net",
-			"fastmessaging\\.com",
-			"fea\\.st",
-			"fmailbox\\.com",
-			"ftml\\.net",
-			"h-mail\\.us",
-			"hailmail\\.net",
-			"imap-mail\\.com",
-			"imap\\.cc",
-			"imapmail\\.org",
-			"inoutbox\\.com",
-			"internet-e-mail\\.com",
-			"internet-mail\\.org",
-			"internetemails\\.net",
-			"internetmailing\\.net",
-			"jetemail\\.net",
-			"justemail\\.net",
-			"letterboxes\\.org",
-			"mail-central\\.com",
-			"mail-page\\.com",
-			"mailandftp\\.com",
-			"mailas\\.com",
-			"mailc\\.net",
-			"mailforce\\.net",
-			"mailftp\\.com",
-			"mailingaddress\\.org",
-			"mailite\\.com",
-			"mailnew\\.com",
-			"mailsent\\.net",
-			"mailservice\\.ms",
-			"mailup\\.net",
-			"mailworks\\.org",
-			"mymacmail\\.com",
-			"nospammail\\.net",
-			"ownmail\\.net",
-			"petml\\.com",
-			"postinbox\\.com",
-			"postpro\\.net",
-			"realemail\\.net",
-			"reallyfast\\.biz",
-			"reallyfast\\.info",
-			"speedpost\\.net",
-			"ssl-mail\\.com",
-			"swift-mail\\.com",
-			"the-fastest\\.net",
-			"the-quickest\\.com",
-			"theinternetemail\\.com",
-			"veryfast\\.biz",
-			"veryspeedy\\.net",
-			"yepmail\\.net",
-			"your-mail\\.com",
-			"operamail\\.com"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk Mail",
-			"sentmail": "Sent Items",
-			"trash": "Trash"
-		},
-		"mx-match": [
-			"in1.smtp.messagingengine.com",
-			"in2.smtp.messagingengine.com",
-			"in1-smtp.messagingengine.com",
-			"in2-smtp.messagingengine.com"
-		]
-	},
-	"apple": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "phonehome.apple.com",
-				"ssl": true
-			}],
-			"smtp": [{
-					"port": 465,
-					"tls": true,
-					"hostname": "phonehome.apple.com"
-				},
-				{
-					"port": 587,
-					"hostname": "phonehome.apple.com",
-					"starttls": true
-				}
-			]
-		},
-		"domain-match": [
-			"apple\\.com"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"asia-apple": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "phonehome.asia.apple.com",
-				"ssl": true
-			}],
-			"smtp": [{
-					"port": 465,
-					"tls": true,
-					"hostname": "phonehome.asia.apple.com"
-				},
-				{
-					"port": 587,
-					"hostname": "phonehome.asia.apple.com",
-					"starttls": true
-				}
-			]
-		},
-		"domain-match": [
-			"asia\\.apple\\.com"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"rackspace": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"hostname": "secure.emailsrvr.com",
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"hostname": "secure.emailsrvr.com",
-					"starttls": true
-				},
-				{
-					"port": 143,
-					"hostname": "secure.emailsrvr.com"
-				}
-			],
-			"smtp": [{
-					"port": 465,
-					"hostname": "secure.emailsrvr.com",
-					"ssl": true
-				},
-				{
-					"port": 587,
-					"hostname": "secure.emailsrvr.com",
-					"starttls": true
-				},
-				{
-					"port": 25,
-					"hostname": "secure.emailsrvr.com",
-					"starttls": true
-				},
-				{
-					"port": 587,
-					"hostname": "secure.emailsrvr.com"
-				},
-				{
-					"port": 25,
-					"hostname": "secure.emailsrvr.com"
-				}
-			]
-		},
-		"mx-match": [
-			"mx1\\.emailsrvr\\.com",
-			"mx2\\.emailsrvr\\.com"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"zimbra": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"starttls": true
-				}
-			],
-			"smtp": [{
-					"port": 587,
-					"starttls": true
-				},
-				{
-					"port": 465,
-					"ssl": true
-				},
-				{
-					"port": 25,
-					"starttls": true
-				}
-			]
-		},
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent",
-			"trash": "Trash"
-		}
-	},
-	"ovh": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"hostname": "mail.{domain}",
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"hostname": "mail.{domain}"
-				}
-			],
-			"smtp": [{
-					"port": 465,
-					"hostname": "mail.{domain}",
-					"ssl": true
-				},
-				{
-					"port": 587,
-					"hostname": "mail.{domain}"
-				},
-				{
-					"port": 25,
-					"hostname": "mail.{domain}"
-				}
-			]
-		},
-		"mx-match": [
-			"mx\\d\\.ovh\\.net"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"fixed-port": {
-		"servers": {
-			"imap": [{
-					"ssl": true
-				},
-				{
-					"starttls": true
-				}
-			],
-			"smtp": [{
-					"starttls": true
-				},
-				{
-					"ssl": true
-				}
-			]
-		},
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"outlook": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap-mail.outlook.com",
-				"ssl": true
-			}],
-			"smtp": [{
-					"port": 587,
-					"hostname": "smtp-mail.outlook.com",
-					"starttls": true
-				},
-				{
-					"port": 25,
-					"hostname": "smtp-mail.outlook.com",
-					"starttls": true
-				}
-			]
-		},
-		"mx-match": [
-			".*\\.mail\\.outlook\\.com"
-		],
-		"domain-match": [
-			"outlook\\.com",
-			"outlook\\.com\\.ar",
-			"outlook\\.com\\.au",
-			"outlook\\.at",
-			"outlook\\.be",
-			"outlook\\.com\\.br",
-			"outlook\\.cl",
-			"outlook\\.cz",
-			"outlook\\.dk",
-			"outlook\\.fr",
-			"outlook\\.de",
-			"outlook\\.com\\.gr",
-			"outlook\\.co\\.id",
-			"outlook\\.ie",
-			"outlook\\.it",
-			"outlook\\.hu",
-			"outlook\\.jp",
-			"outlook\\.kr",
-			"outlook\\.lv",
-			"outlook\\.my",
-			"outlook\\.co\\.nz",
-			"outlook\\.com\\.pe",
-			"outlook\\.ph",
-			"outlook\\.pt",
-			"outlook\\.sa",
-			"outlook\\.sg",
-			"outlook\\.sk",
-			"outlook\\.es",
-			"outlook\\.co\\.th",
-			"outlook\\.com\\.tr",
-			"outlook\\.com\\.vn",
-			"hotmail\\.com",
-			"hotmail\\.co\\.uk",
-			"hotmail\\.fr",
-			"hotmail\\.de",
-			"hotmail\\.be",
-			"hotmail\\.com\\.ar",
-			"hotmail\\.es",
-			"hotmail\\.com\\.mx",
-			"hotmail\\.com",
-			"live\\.com",
-			"live\\.fr",
-			"live\\.de",
-			"live\\.be",
-			"live\\.com\\.ar",
-			"live\\.com\\.mx",
-			"live\\.co\\.uk"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted"
-		}
-	},
-	"qq": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.exmail.qq.com",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.exmail.qq.com",
-				"ssl": true
-			}]
-		},
-		"domain-match": [
-			"qq\\.com"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"spam": "Junk",
-			"sentmail": "Sent Messages",
-			"trash": "Deleted Messages"
-		}
-	},
-	"openmailbox": {
-		"servers": {
-			"imap": [{
-				"port": 143,
-				"hostname": "imap.openmailbox.org",
-				"starttls": true
-			}],
-			"smtp": [{
-				"port": 587,
-				"hostname": "smtp.openmailbox.org",
-				"starttls": true
-			}]
-		},
-		"domain-match": [
-			"openmailbox\\.org"
-		],
-		"mailboxes": {
-			"drafts": "Drafts",
-			"allmail": "Archive",
-			"spam": "Spam",
-			"sentmail": "Sent",
-			"trash": "Trash"
-		}
-	},
-	"mailru": {
-		"servers": {
-			"imap": [{
-					"port": 143,
-					"hostname": "imap.mail.ru",
-					"starttls": true
-				},
-				{
-					"port": 993,
-					"hostname": "imap.mail.ru",
-					"ssl": true
-				}
-			],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.mail.ru",
-				"ssl": true
-			}]
-		},
-		"domain-match": [
-			"mail\\.ru",
-			"inbox\\.ru",
-			"list\\.ru",
-			"bk\\.ru",
-			"mail\\.ua"
-		],
-		"mailboxes": {
-			"drafts": "Черновики",
-			"spam": "Спам",
-			"sentmail": "Отправленные",
-			"trash": "Корзина"
-		}
-	},
-	"yandex": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.yandex.com",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.yandex.com",
-				"ssl": true
-			}]
-		},
-		"mx-match": [
-			"mx\\.yandex\\.net(\\.)?"
-		],
-		"domain-match": [
-			"yandex\\.ru",
-			"yandex\\.ua",
-			"yandex\\.kz",
-			"yandex\\.by",
-			"yandex\\.com",
-			"yandex\\.com\\.tr"
-		],
-		"mailboxes": {
-			"drafts": "Черновики",
-			"spam": "Спам",
-			"sentmail": "Отправленные",
-			"trash": "Удалённые"
-		}
-	},
-	"comcast": {
-		"servers": {
-			"imap": [{
-					"port": 993,
-					"hostname": "imap.comcast.net",
-					"ssl": true
-				},
-				{
-					"port": 143,
-					"hostname": "imap.comcast.net",
-					"starttls": true
-				}
-			],
-			"pop": [{
-					"port": 995,
-					"hostname": "mail.comcast.net",
-					"ssl": true
-				},
-				{
-					"port": 110,
-					"hostname": "mail.comcast.net",
-					"ssl": true
-				}
-			],
-			"smtp": [{
-					"port": 587,
-					"hostname": "smtp.comcast.net",
-					"starttls": true
-				},
-				{
-					"port": 465,
-					"hostname": "smtp.comcast.net",
-					"ssl": true
-				}
-			]
-		},
-		"mx-match": [
-			"mx1\\.comcast\\.net",
-			"mx2\\.comcast\\.net"
-		]
-	},
-	"verizon": {
-		"servers": {
-			"pop": [{
-				"port": 995,
-				"hostname": "pop.verizon.net",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.verizon.net",
-				"ssl": true
-			}]
-		},
-		"mx-match": [
-			"relay\\.verizon\\.net"
-		]
-	},
-	"rcn": {
-		"servers": {
-			"pop": [{
-				"port": 110,
-				"hostname": "pop.rcn.com",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 25,
-				"hostname": "smtp.rcn.com",
-				"ssl": true
-			}]
-		},
-		"mx-match": [
-			"mx\\.rcn\\.com"
-		]
-	},
-	"ukrnet": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.ukr.net",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.ukr.net",
-				"ssl": true
-			}]
-		},
-		"domain-match": [
-			"ukr\\.net"
-		],
-		"mailboxes": {
-			"drafts": "Черновики",
-			"spam": "Спам",
-			"sentmail": "Отправленные",
-			"trash": "Удаленные"
-		}
-	},
-	"rambler": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.rambler.ru",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.rambler.ru",
-				"ssl": true
-			}]
-		},
-		"domain-match": [
-			"rambler\\.ru",
-			"lenta\\.ru",
-			"autorambler\\.ru",
-			"myrambler\\.ru",
-			"ro\\.ru",
-			"r0\\.ru"
-		],
-		"mailboxes": {
-			"drafts": "DraftBox",
-			"spam": "Spam",
-			"sentmail": "SentBox",
-			"trash": "Trash"
-		}
-	},
-	"office365": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "outlook.office365.com",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 587,
-				"hostname": "smtp.office365.com",
-				"starttls": true
-			}]
-		},
-		"mailboxes": {
-			"drafts": "Drafts",
-			"spam": "Junk Email",
-			"sentmail": "Sent Items",
-			"trash": "Deleted Items"
-		}
-	},
-	"wp.pl": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "imap.wp.pl",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "smtp.wp.pl",
-				"ssl": true
-			}]
-		},
-		"domain-match": [
-			"wp\\.pl"
-		],
-		"mailboxes": {
-			"spam": "SPAM",
-			"sentmail": "Wys&AUI-ane",
-			"trash": "Kosz",
-			"drafts": "Robocze",
-			"allmail": "Archive"
-		}
-	},
-	"o2.pl": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "poczta.o2.pl",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 465,
-				"hostname": "poczta.o2.pl",
-				"ssl": true
-			}]
-		},
-		"domain-match": [
-			"o2\\.pl"
-		],
-		"mailboxes": {
-			"spam": "Spam",
-			"sentmail": "Sent",
-			"trash": "Trash",
-			"drafts": "Drafts",
-			"allmail": "Archive"
-		}
-	},
-	"facebook": {
-		"servers": {
-			"imap": [{
-				"port": 993,
-				"hostname": "outlook.office365.com",
-				"ssl": true
-			}],
-			"smtp": [{
-				"port": 587,
-				"hostname": "smtp.office365.com",
-				"starttls": true
-			}]
-		},
-		"domain-match": [
-			"fb\\.com"
-		],
-		"mailboxes": {
-			"allmail": "Archive",
-			"drafts": "Drafts",
-			"spam": "Junk Email",
-			"sentmail": "Sent Items",
-			"trash": "Deleted Items"
-		}
-	}
+  "pobox": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "mail.pobox.com",
+          "ssl": true
+        }
+      ],
+      "pop": [
+        {
+          "port": 995,
+          "hostname": "mail.pobox.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.pobox.com",
+          "starttls": true
+        }
+      ]
+    },
+    "mx-match": [
+      "mx-1\\.pobox\\.com",
+      "mx-2\\.pobox\\.com",
+      "mx-3\\.pobox\\.com",
+      "mx-1\\.rightbox\\.com",
+      "mx-2\\.rightbox\\.com",
+      "mx-3\\.rightbox\\.com"
+    ],
+    "domain-match": ["pobox\\.com"]
+  },
+  "hushmail": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.hushmail.com",
+          "ssl": true
+        }
+      ],
+      "pop": [
+        {
+          "port": 995,
+          "hostname": "pop.hushmail.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.hushmail.com",
+          "ssl": true
+        },
+        {
+          "port": 465,
+          "hostname": "smtp.hushmail.com",
+          "ssl": true
+        },
+        {
+          "port": 25,
+          "hostname": "smtp.hushmail.com",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["hushmail\\.com"]
+  },
+  "mail": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.mail.com",
+          "ssl": true
+        }
+      ],
+      "pop": [
+        {
+          "port": 995,
+          "hostname": "pop.mail.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.mail.com",
+          "ssl": true
+        },
+        {
+          "port": 465,
+          "hostname": "smtp.mail.com",
+          "ssl": true
+        },
+        {
+          "port": 25,
+          "hostname": "smtp.mail.com",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": ["mail\\.com"]
+  },
+  "secureserver": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.secureserver.net",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtpout.secureserver.net",
+          "ssl": true
+        }
+      ]
+    },
+    "mx-match": [
+      "mailstore[0-9]?\\.secureserver\\.net",
+      "mailstore[0-9]?\\.asia\\.secureserver\\.net",
+      "smtp\\.asia\\.secureserver\\.net",
+      "smtp\\.secureserver\\.net"
+    ],
+    "domain-match": ["secureserver\\.net"]
+  },
+  "zoho": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.zoho.com",
+          "ssl": true
+        }
+      ],
+      "pop": [
+        {
+          "port": 995,
+          "hostname": "pop.zoho.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.zoho.com",
+          "ssl": true
+        },
+        {
+          "port": 587,
+          "hostname": "smtp.zoho.com",
+          "starttls": true
+        }
+      ]
+    },
+    "mx-match": ["mx\\.zoho\\.com", "mx[0-9]*\\.zoho\\.com"],
+    "domain-match": ["zoho\\.com"]
+  },
+  "juno": {
+    "servers": {
+      "pop": [
+        {
+          "port": 995,
+          "hostname": "pop.juno.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.juno.com",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["juno\\.com"]
+  },
+  "mobileme": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.mail.me.com",
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "hostname": "imap.mail.me.com",
+          "starttls": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.mail.me.com",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["me\\.com", "mac\\.com", "icloud\\.com"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "dreamhost": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "mail.{domain}",
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "hostname": "mail.{domain}",
+          "starttls": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "mail.{domain}",
+          "ssl": true
+        },
+        {
+          "port": 587,
+          "hostname": "mail.{domain}",
+          "starttls": true
+        },
+        {
+          "port": 25,
+          "hostname": "mail.{domain}",
+          "starttls": true
+        }
+      ]
+    },
+    "mx-match": [
+      "mx1\\.sub3\\.homie\\.mail\\.dreamhost\\.com",
+      "mx2\\.sub3\\.homie\\.mail\\.dreamhost\\.com",
+      "mx1\\.sub4\\.homie\\.mail\\.dreamhost\\.com",
+      "mx2\\.sub4\\.homie\\.mail\\.dreamhost\\.com",
+      "mx1\\.sub5\\.homie\\.mail\\.dreamhost\\.com",
+      "mx2\\.sub5\\.homie\\.mail\\.dreamhost\\.com",
+      "mx1\\.balanced\\.homie\\.mail\\.dreamhost\\.com",
+      "mx2\\.balanced\\.homie\\.mail\\.dreamhost\\.com"
+    ],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "insecure-default": {
+    "servers": {
+      "imap": [
+        {
+          "port": 143,
+          "starttls": true
+        },
+        {
+          "port": 143
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "starttls": true
+        },
+        {
+          "port": 25,
+          "starttls": true
+        },
+        {
+          "port": 587
+        },
+        {
+          "port": 25
+        }
+      ]
+    },
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "euro-apple": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "phonehome.euro.apple.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "phonehome.apple.com",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["euro\\.apple\\.com"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "default": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "starttls": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "ssl": true
+        },
+        {
+          "port": 587,
+          "starttls": true
+        },
+        {
+          "port": 25,
+          "starttls": true
+        }
+      ]
+    },
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "aol": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.aol.com",
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "hostname": "imap.aol.com",
+          "starttls": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.aol.com",
+          "starttls": true
+        },
+        {
+          "port": 465,
+          "hostname": "smtp.aol.com",
+          "ssl": true
+        },
+        {
+          "port": 25,
+          "hostname": "smtp.aol.com",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["aim\\.com", "aol\\..*", "jp\\.aol\\.com"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Saved",
+      "spam": "Spam",
+      "sentmail": "Sent",
+      "trash": "Trash"
+    }
+  },
+  "yahoo.co.jp": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.mail.yahoo.co.jp",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.mail.yahoo.co.jp",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": ["yahoo\\.co\\.jp"],
+    "mailboxes": {
+      "drafts": "Draft",
+      "allmail": "Archive",
+      "spam": "Bulk Mail",
+      "sentmail": "Sent",
+      "trash": "Trash"
+    }
+  },
+  "yahoo": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.mail.yahoo.com",
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "hostname": "imap.mail.yahoo.com",
+          "starttls": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.mail.yahoo.com",
+          "ssl": true
+        }
+      ]
+    },
+    "mx-match": [
+      "mta5\\.am0\\.yahoodns\\.net",
+      "mta6\\.am0\\.yahoodns\\.net",
+      "mta7\\.am0\\.yahoodns\\.net"
+    ],
+    "domain-match": ["yahoo\\..*", "ymail\\.com", "rocketmail\\.com", "xtra\\.co\\.nz"],
+    "domain-exclude": ["yahoo\\.co\\.jp"],
+    "mailboxes": {
+      "drafts": "Draft",
+      "allmail": "Archive",
+      "spam": "Bulk Mail",
+      "sentmail": "Sent",
+      "trash": "Trash"
+    }
+  },
+  "gmail": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.gmail.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.gmail.com",
+          "starttls": true
+        },
+        {
+          "port": 465,
+          "hostname": "smtp.gmail.com",
+          "ssl": true
+        },
+        {
+          "port": 25,
+          "hostname": "smtp.gmail.com",
+          "starttls": true
+        }
+      ]
+    },
+    "mx-match": [
+      "aspmx2\\.googlemail\\.com",
+      "aspmx\\.l\\.google\\.com",
+      "aspmx3\\.googlemail\\.com",
+      "alt1\\.aspmx\\.l\\.google\\.com",
+      "alt2\\.aspmx\\.l\\.google\\.com",
+      "alt1\\.gmail-smtp-in\\.l\\.google\\.com",
+      "alt2\\.gmail-smtp-in\\.l\\.google\\.com",
+      "alt3\\.gmail-smtp-in\\.l\\.google\\.com",
+      "alt4\\.gmail-smtp-in\\.l\\.google\\.com",
+      "gmail-smtp-in\\.l\\.google\\.com"
+    ],
+    "domain-match": ["googlemail\\.com", "gmail\\.com"],
+    "mailboxes": {
+      "sentmail": "[Gmail]/Sent Mail",
+      "allmail": "[Gmail]/All Mail",
+      "starred": "[Gmail]/Starred",
+      "trash": "[Gmail]/Trash",
+      "drafts": "[Gmail]/Drafts",
+      "spam": "[Gmail]/Spam",
+      "important": "[Gmail]/Important"
+    }
+  },
+  "gmx": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.gmx.com",
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "hostname": "imap.gmx.com",
+          "starttls": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "mail.gmx.com",
+          "starttls": true
+        },
+        {
+          "port": 465,
+          "hostname": "mail.gmx.com",
+          "ssl": true
+        },
+        {
+          "port": 25,
+          "hostname": "mail.gmx.com",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["gmx\\..*", "caramail\\..*"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Spam",
+      "sentmail": "Sent",
+      "trash": "Trash"
+    }
+  },
+  "fastmail": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.fastmail.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.fastmail.com",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": [
+      "123mail\\.org",
+      "fastmail\\..*",
+      "airpost\\.net",
+      "eml\\.cc",
+      "fmail\\.co\\.uk",
+      "fmgirl\\.com",
+      "fmguy\\.com",
+      "mailbolt\\.com",
+      "mailcan\\.com",
+      "mailhaven\\.com",
+      "mailmight\\.com",
+      "ml1\\.net",
+      "mm\\.st",
+      "myfastmail\\.com",
+      "proinbox\\.com",
+      "promessage\\.com",
+      "rushpost\\.com",
+      "sent\\.as",
+      "sent\\.at",
+      "sent\\.com",
+      "speedymail\\.org",
+      "warpmail\\.net",
+      "xsmail\\.com",
+      "150mail\\.com",
+      "150ml\\.com",
+      "16mail\\.com",
+      "2-mail\\.com",
+      "4email\\.net",
+      "50mail\\.com",
+      "allmail\\.net",
+      "bestmail\\.us",
+      "cluemail\\.com",
+      "elitemail\\.org",
+      "emailcorner\\.net",
+      "emailengine\\.net",
+      "emailengine\\.org",
+      "emailgroups\\.net",
+      "emailplus\\.org",
+      "emailuser\\.net",
+      "f-m\\.fm",
+      "fast-email\\.com",
+      "fast-mail\\.org",
+      "fastem\\.com",
+      "fastemail\\.us",
+      "fastemailer\\.com",
+      "fastest\\.cc",
+      "fastimap\\.com",
+      "fastmailbox\\.net",
+      "fastmessaging\\.com",
+      "fea\\.st",
+      "fmailbox\\.com",
+      "ftml\\.net",
+      "h-mail\\.us",
+      "hailmail\\.net",
+      "imap-mail\\.com",
+      "imap\\.cc",
+      "imapmail\\.org",
+      "inoutbox\\.com",
+      "internet-e-mail\\.com",
+      "internet-mail\\.org",
+      "internetemails\\.net",
+      "internetmailing\\.net",
+      "jetemail\\.net",
+      "justemail\\.net",
+      "letterboxes\\.org",
+      "mail-central\\.com",
+      "mail-page\\.com",
+      "mailandftp\\.com",
+      "mailas\\.com",
+      "mailc\\.net",
+      "mailforce\\.net",
+      "mailftp\\.com",
+      "mailingaddress\\.org",
+      "mailite\\.com",
+      "mailnew\\.com",
+      "mailsent\\.net",
+      "mailservice\\.ms",
+      "mailup\\.net",
+      "mailworks\\.org",
+      "mymacmail\\.com",
+      "nospammail\\.net",
+      "ownmail\\.net",
+      "petml\\.com",
+      "postinbox\\.com",
+      "postpro\\.net",
+      "realemail\\.net",
+      "reallyfast\\.biz",
+      "reallyfast\\.info",
+      "speedpost\\.net",
+      "ssl-mail\\.com",
+      "swift-mail\\.com",
+      "the-fastest\\.net",
+      "the-quickest\\.com",
+      "theinternetemail\\.com",
+      "veryfast\\.biz",
+      "veryspeedy\\.net",
+      "yepmail\\.net",
+      "your-mail\\.com",
+      "operamail\\.com"
+    ],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk Mail",
+      "sentmail": "Sent Items",
+      "trash": "Trash"
+    },
+    "mx-match": [
+      "in1.smtp.messagingengine.com",
+      "in2.smtp.messagingengine.com",
+      "in1-smtp.messagingengine.com",
+      "in2-smtp.messagingengine.com"
+    ]
+  },
+  "apple": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "phonehome.apple.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "tls": true,
+          "hostname": "phonehome.apple.com"
+        },
+        {
+          "port": 587,
+          "hostname": "phonehome.apple.com",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["apple\\.com"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "asia-apple": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "phonehome.asia.apple.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "tls": true,
+          "hostname": "phonehome.asia.apple.com"
+        },
+        {
+          "port": 587,
+          "hostname": "phonehome.asia.apple.com",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["asia\\.apple\\.com"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "rackspace": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "secure.emailsrvr.com",
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "hostname": "secure.emailsrvr.com",
+          "starttls": true
+        },
+        {
+          "port": 143,
+          "hostname": "secure.emailsrvr.com"
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "secure.emailsrvr.com",
+          "ssl": true
+        },
+        {
+          "port": 587,
+          "hostname": "secure.emailsrvr.com",
+          "starttls": true
+        },
+        {
+          "port": 25,
+          "hostname": "secure.emailsrvr.com",
+          "starttls": true
+        },
+        {
+          "port": 587,
+          "hostname": "secure.emailsrvr.com"
+        },
+        {
+          "port": 25,
+          "hostname": "secure.emailsrvr.com"
+        }
+      ]
+    },
+    "mx-match": ["mx1\\.emailsrvr\\.com", "mx2\\.emailsrvr\\.com"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "zimbra": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "starttls": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "starttls": true
+        },
+        {
+          "port": 465,
+          "ssl": true
+        },
+        {
+          "port": 25,
+          "starttls": true
+        }
+      ]
+    },
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent",
+      "trash": "Trash"
+    }
+  },
+  "ovh": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "mail.{domain}",
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "hostname": "mail.{domain}"
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "mail.{domain}",
+          "ssl": true
+        },
+        {
+          "port": 587,
+          "hostname": "mail.{domain}"
+        },
+        {
+          "port": 25,
+          "hostname": "mail.{domain}"
+        }
+      ]
+    },
+    "mx-match": ["mx\\d\\.ovh\\.net"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "outlook": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap-mail.outlook.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp-mail.outlook.com",
+          "starttls": true
+        },
+        {
+          "port": 25,
+          "hostname": "smtp-mail.outlook.com",
+          "starttls": true
+        }
+      ]
+    },
+    "mx-match": [".*\\.mail\\.outlook\\.com"],
+    "domain-match": [
+      "outlook\\.com",
+      "outlook\\.com\\.ar",
+      "outlook\\.com\\.au",
+      "outlook\\.at",
+      "outlook\\.be",
+      "outlook\\.com\\.br",
+      "outlook\\.cl",
+      "outlook\\.cz",
+      "outlook\\.dk",
+      "outlook\\.fr",
+      "outlook\\.de",
+      "outlook\\.com\\.gr",
+      "outlook\\.co\\.id",
+      "outlook\\.ie",
+      "outlook\\.it",
+      "outlook\\.hu",
+      "outlook\\.jp",
+      "outlook\\.kr",
+      "outlook\\.lv",
+      "outlook\\.my",
+      "outlook\\.co\\.nz",
+      "outlook\\.com\\.pe",
+      "outlook\\.ph",
+      "outlook\\.pt",
+      "outlook\\.sa",
+      "outlook\\.sg",
+      "outlook\\.sk",
+      "outlook\\.es",
+      "outlook\\.co\\.th",
+      "outlook\\.com\\.tr",
+      "outlook\\.com\\.vn",
+      "hotmail\\.com",
+      "hotmail\\.co\\.uk",
+      "hotmail\\.fr",
+      "hotmail\\.de",
+      "hotmail\\.be",
+      "hotmail\\.com\\.ar",
+      "hotmail\\.es",
+      "hotmail\\.com\\.mx",
+      "hotmail\\.com",
+      "live\\.com",
+      "live\\.fr",
+      "live\\.de",
+      "live\\.be",
+      "live\\.com\\.ar",
+      "live\\.com\\.mx",
+      "live\\.co\\.uk"
+    ],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted"
+    }
+  },
+  "qq": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.exmail.qq.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.exmail.qq.com",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": ["qq\\.com"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "spam": "Junk",
+      "sentmail": "Sent Messages",
+      "trash": "Deleted Messages"
+    }
+  },
+  "openmailbox": {
+    "servers": {
+      "imap": [
+        {
+          "port": 143,
+          "hostname": "imap.openmailbox.org",
+          "starttls": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.openmailbox.org",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["openmailbox\\.org"],
+    "mailboxes": {
+      "drafts": "Drafts",
+      "allmail": "Archive",
+      "spam": "Spam",
+      "sentmail": "Sent",
+      "trash": "Trash"
+    }
+  },
+  "mailru": {
+    "servers": {
+      "imap": [
+        {
+          "port": 143,
+          "hostname": "imap.mail.ru",
+          "starttls": true
+        },
+        {
+          "port": 993,
+          "hostname": "imap.mail.ru",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.mail.ru",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": ["mail\\.ru", "inbox\\.ru", "list\\.ru", "bk\\.ru", "mail\\.ua"],
+    "mailboxes": {
+      "drafts": "Черновики",
+      "spam": "Спам",
+      "sentmail": "Отправленные",
+      "trash": "Корзина"
+    }
+  },
+  "yandex": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.yandex.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.yandex.com",
+          "ssl": true
+        }
+      ]
+    },
+    "mx-match": ["mx\\.yandex\\.net(\\.)?"],
+    "domain-match": [
+      "yandex\\.ru",
+      "yandex\\.ua",
+      "yandex\\.kz",
+      "yandex\\.by",
+      "yandex\\.com",
+      "yandex\\.com\\.tr"
+    ],
+    "mailboxes": {
+      "drafts": "Черновики",
+      "spam": "Спам",
+      "sentmail": "Отправленные",
+      "trash": "Удалённые"
+    }
+  },
+  "comcast": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.comcast.net",
+          "ssl": true
+        },
+        {
+          "port": 143,
+          "hostname": "imap.comcast.net",
+          "starttls": true
+        }
+      ],
+      "pop": [
+        {
+          "port": 995,
+          "hostname": "mail.comcast.net",
+          "ssl": true
+        },
+        {
+          "port": 110,
+          "hostname": "mail.comcast.net",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.comcast.net",
+          "starttls": true
+        },
+        {
+          "port": 465,
+          "hostname": "smtp.comcast.net",
+          "ssl": true
+        }
+      ]
+    },
+    "mx-match": ["mx1\\.comcast\\.net", "mx2\\.comcast\\.net"]
+  },
+  "verizon": {
+    "servers": {
+      "pop": [
+        {
+          "port": 995,
+          "hostname": "pop.verizon.net",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.verizon.net",
+          "ssl": true
+        }
+      ]
+    },
+    "mx-match": ["relay\\.verizon\\.net"]
+  },
+  "rcn": {
+    "servers": {
+      "pop": [
+        {
+          "port": 110,
+          "hostname": "pop.rcn.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 25,
+          "hostname": "smtp.rcn.com",
+          "ssl": true
+        }
+      ]
+    },
+    "mx-match": ["mx\\.rcn\\.com"]
+  },
+  "ukrnet": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.ukr.net",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.ukr.net",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": ["ukr\\.net"],
+    "mailboxes": {
+      "drafts": "Черновики",
+      "spam": "Спам",
+      "sentmail": "Отправленные",
+      "trash": "Удаленные"
+    }
+  },
+  "rambler": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.rambler.ru",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.rambler.ru",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": [
+      "rambler\\.ru",
+      "lenta\\.ru",
+      "autorambler\\.ru",
+      "myrambler\\.ru",
+      "ro\\.ru",
+      "r0\\.ru"
+    ],
+    "mailboxes": {
+      "drafts": "DraftBox",
+      "spam": "Spam",
+      "sentmail": "SentBox",
+      "trash": "Trash"
+    }
+  },
+  "office365": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "outlook.office365.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.office365.com",
+          "starttls": true
+        }
+      ]
+    },
+    "mailboxes": {
+      "drafts": "Drafts",
+      "spam": "Junk Email",
+      "sentmail": "Sent Items",
+      "trash": "Deleted Items"
+    }
+  },
+  "wp.pl": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "imap.wp.pl",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "smtp.wp.pl",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": ["wp\\.pl"],
+    "mailboxes": {
+      "spam": "SPAM",
+      "sentmail": "Wys&AUI-ane",
+      "trash": "Kosz",
+      "drafts": "Robocze",
+      "allmail": "Archive"
+    }
+  },
+  "o2.pl": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "poczta.o2.pl",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 465,
+          "hostname": "poczta.o2.pl",
+          "ssl": true
+        }
+      ]
+    },
+    "domain-match": ["o2\\.pl"],
+    "mailboxes": {
+      "spam": "Spam",
+      "sentmail": "Sent",
+      "trash": "Trash",
+      "drafts": "Drafts",
+      "allmail": "Archive"
+    }
+  },
+  "facebook": {
+    "servers": {
+      "imap": [
+        {
+          "port": 993,
+          "hostname": "outlook.office365.com",
+          "ssl": true
+        }
+      ],
+      "smtp": [
+        {
+          "port": 587,
+          "hostname": "smtp.office365.com",
+          "starttls": true
+        }
+      ]
+    },
+    "domain-match": ["fb\\.com"],
+    "mailboxes": {
+      "allmail": "Archive",
+      "drafts": "Drafts",
+      "spam": "Junk Email",
+      "sentmail": "Sent Items",
+      "trash": "Deleted Items"
+    }
+  }
 }

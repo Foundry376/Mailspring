@@ -1,6 +1,6 @@
 import { mount } from 'enzyme';
 import proxyquire from 'proxyquire';
-import { React } from 'mailspring-exports';
+import React from 'react';
 
 let stubIsRegistered = null;
 let stubRegister = () => {};

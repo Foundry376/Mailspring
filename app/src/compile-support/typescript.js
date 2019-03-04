@@ -1,17 +1,12 @@
 'use strict';
 
-var _ = require('underscore');
 var crypto = require('crypto');
 var path = require('path');
 
-var defaultOptions = {
-  target: 1,
-  module: 'commonjs',
-  sourceMap: true,
-};
-
-var TypeScriptSimple = null;
+var TypeScript = null;
 var typescriptVersionDir = null;
+
+var compilerOptions = require('../../tsconfig.json').compilerOptions;
 
 exports.shouldCompile = function() {
   return true;
@@ -19,8 +14,8 @@ exports.shouldCompile = function() {
 
 exports.getCachePath = function(sourceCode) {
   if (typescriptVersionDir == null) {
-    var version = require('typescript-simple/package.json').version;
-    typescriptVersionDir = path.join('ts', createVersionAndOptionsDigest(version, defaultOptions));
+    var version = '3.3'; // todo
+    typescriptVersionDir = path.join('ts', createVersionAndOptionsDigest(version, compilerOptions));
   }
 
   return path.join(
@@ -33,18 +28,16 @@ exports.getCachePath = function(sourceCode) {
 };
 
 exports.compile = function(sourceCode, filePath) {
-  if (!TypeScriptSimple) {
-    TypeScriptSimple = require('typescript-simple').TypeScriptSimple;
+  if (!TypeScript) {
+    TypeScript = require('typescript');
   }
-
-  var options = _.defaults({ filename: filePath }, defaultOptions);
-  return new TypeScriptSimple(options, false).compile(sourceCode, filePath);
+  return TypeScript.transpileModule(sourceCode, { compilerOptions, fileName: filePath }).outputText;
 };
 
 function createVersionAndOptionsDigest(version, options) {
   return crypto
     .createHash('sha1')
-    .update('typescript', 'utf8')
+    .update('ts', 'utf8')
     .update('\0', 'utf8')
     .update(version, 'utf8')
     .update('\0', 'utf8')

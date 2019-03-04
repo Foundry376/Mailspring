@@ -11,7 +11,7 @@ function collectFiles(dir) {
     const p = path.join(dir, file);
     if (fs.lstatSync(p).isDirectory()) {
       collectFiles(p);
-    } else if (p.endsWith('.js') || p.endsWith('.jsx') || p.endsWith('.es6')) {
+    } else if (p.endsWith('.js') || p.endsWith('.jsx') || p.endsWith('.ts') || p.endsWith('.tsx')) {
       files.push(p);
     }
   });

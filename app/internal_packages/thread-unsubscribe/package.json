@@ -1,0 +1,12 @@
+{
+  "name": "thread-unsubscribe",
+  "version": "0.1.0",
+  "title": "Thread Unsubscribe",
+  "description": "Unsubscribe from a thread directly from the toolbar.",
+  "main": "./lib/main",
+  "private": true,
+  "engines": {
+    "mailspring": "*"
+  },
+  "license": "GPL-3.0"
+}

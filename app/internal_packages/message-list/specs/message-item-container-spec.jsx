@@ -1,8 +1,8 @@
-const React = require('react');
+import React from 'react';
 const proxyquire = require('proxyquire').noPreserveCache();
-const ReactTestUtils = require('react-dom/test-utils');
+import ReactTestUtils from 'react-dom/test-utils';
 
-const { Thread, Message, ComponentRegistry, DraftStore } = require('mailspring-exports');
+import { Thread, Message, ComponentRegistry, DraftStore } from 'mailspring-exports';;
 
 class StubMessageItem extends React.Component {
   static displayName = 'StubMessageItem';

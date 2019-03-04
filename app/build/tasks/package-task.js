@@ -6,14 +6,13 @@ const util = require('util');
 const tmpdir = path.resolve(require('os').tmpdir(), 'nylas-build');
 const fs = require('fs-plus');
 const glob = require('glob');
-const babel = require('babel-core');
+const TypeScript = require('typescript');
 const { execSync } = require('child_process');
 const symlinkedPackages = [];
 
 module.exports = grunt => {
   const packageJSON = grunt.config('appJSON');
-  const babelPath = path.join(grunt.config('rootDir'), '.babelrc');
-  const babelOptions = JSON.parse(fs.readFileSync(babelPath));
+  const { compilerOptions } = require(path.join(grunt.config('appDir'), 'tsconfig.json'));
 
   function runCopyPlatformSpecificResources(buildPath, electronVersion, platform, arch, callback) {
     // these files (like nylas-mailto-default.reg) go alongside the ASAR,
@@ -71,29 +70,19 @@ module.exports = grunt => {
   }
 
   function runTranspilers(buildPath, electronVersion, platform, arch, callback) {
-    console.log('---> Running Babel');
+    console.log('---> Running TypeScript Compiler');
 
     grunt.config('source:es6').forEach(pattern => {
       glob.sync(pattern, { cwd: buildPath }).forEach(relPath => {
-        const es6Path = path.join(buildPath, relPath);
-        if (/(node_modules|\.js$)/.test(es6Path)) return;
-        const outPath = es6Path.replace(path.extname(es6Path), '.js');
-        console.log(`  ---> Compiling ${es6Path.slice(es6Path.indexOf('/app') + 4)}`);
-        const res = babel.transformFileSync(
-          es6Path,
-          Object.assign(babelOptions, {
-            sourceMaps: true,
-            sourceRoot: '/',
-            sourceMapTarget: path.relative(buildPath, outPath),
-            sourceFileName: path.relative(buildPath, es6Path),
-          })
-        );
-        grunt.file.write(
-          outPath,
-          `${res.code}\n//# sourceMappingURL=${path.basename(outPath)}.map\n`
-        );
-        grunt.file.write(`${outPath}.map`, JSON.stringify(res.map));
-        fs.unlinkSync(es6Path);
+        const tsPath = path.join(buildPath, relPath);
+        const tsCode = fs.readFileSync(tsPath).toString();
+        if (/(node_modules|\.js$)/.test(tsPath)) return;
+        if (tsPath.endsWith('.d.ts')) return;
+        const outPath = tsPath.replace(path.extname(tsPath), '.js');
+        console.log(`  ---> Compiling ${tsPath.slice(tsPath.indexOf('/app') + 4)}`);
+        const res = TypeScript.transpileModule(tsCode, { compilerOptions, fileName: tsPath });
+        grunt.file.write(outPath, res.outputText);
+        fs.unlinkSync(tsPath);
       });
     });
 
@@ -186,7 +175,6 @@ module.exports = grunt => {
         /\.pdb$/,
         /\.h$/,
         /\.cc$/,
-        /\.ts$/,
         /\.flow$/,
         /\.gyp/,
         /\.mk/,

@@ -17,7 +17,7 @@ describe('ComposerHeader', function composerHeader() {
         },
       };
       this.component = ReactTestUtils.renderIntoDocument(
-        <ComposerHeader draft={draft} initiallyFocused={false} session={session} />
+        <ComposerHeader draft={draft} session={session} />
       );
     };
     advanceClock();

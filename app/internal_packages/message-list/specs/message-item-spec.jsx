@@ -1,16 +1,16 @@
 const proxyquire = require('proxyquire');
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
 
-const {
+import {
   Contact,
   Message,
   File,
   Thread,
   AttachmentStore,
   MessageBodyProcessor,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
 class MessageItemBody extends React.Component {
   render() {
@@ -18,7 +18,7 @@ class MessageItemBody extends React.Component {
   }
 }
 
-const { InjectedComponent } = require('mailspring-component-kit');
+import { InjectedComponent } from 'mailspring-component-kit';
 
 const file = new File({
   id: 'file_1_id',
@@ -95,7 +95,7 @@ const user_4 = new Contact({
 
 const MessageItem = proxyquire('../lib/message-item', { './message-item-body': MessageItemBody });
 
-const MessageTimestamp = require('../lib/message-timestamp').default;
+import MessageTimestamp from '../lib/message-timestamp';
 
 xdescribe('MessageItem', function() {
   beforeEach(function() {

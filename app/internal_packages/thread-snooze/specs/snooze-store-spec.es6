@@ -1,6 +1,6 @@
 import { AccountStore, CategoryStore, Thread, Actions, Folder } from 'mailspring-exports';
 import * as SnoozeUtils from '../lib/snooze-utils';
-import SnoozeStore from '../lib/snooze-store';
+import { SnoozeStore } from '../lib/snooze-store';
 
 xdescribe('SnoozeStore', function snoozeStore() {
   beforeEach(() => {
@@ -48,7 +48,9 @@ xdescribe('SnoozeStore', function snoozeStore() {
 
   describe('groupUpdatedThreads', () => {
     it('groups the threads correctly by account id, with their snooze and inbox categories', () => {
-      spyOn(CategoryStore, 'getInboxCategory').andCallFake(accId => this.inboxCatsByAccount[accId]);
+      spyOn(CategoryStore, 'getInboxCategory').andCallFake(
+        accId => this.inboxCatsByAccount[accId]
+      );
 
       waitsForPromise(() => {
         return this.store

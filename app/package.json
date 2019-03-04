@@ -7,12 +7,6 @@
   "license": "GPL-3.0",
   "main": "./src/browser/main.js",
   "dependencies": {
-    "babel-core": "6.26.3",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-react": "6.24.1",
-    "babel-regenerator-runtime": "6.5.0",
     "better-sqlite3": "bengotow/better-sqlite3#dcd5b6e73c9a5329fd72c85be3316131fcfb83ab",
     "chromium-net-errors": "1.0.3",
     "chrono-node": "^1.1.2",
@@ -75,8 +69,8 @@
     "tld": "^0.0.2",
     "underscore": "1.8.x",
     "underscore.string": "^3.3.5",
-    "uuid": "^3.0.0",
     "utf7": "^1.0.2",
+    "uuid": "^3.0.0",
     "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7",
     "xlsx": "0.14.1"
   },

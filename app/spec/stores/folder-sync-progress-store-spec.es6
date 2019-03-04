@@ -1,1 +1,0 @@
-xdescribe('FolderSyncProgressStore', function nylasSyncStatusStore() {});

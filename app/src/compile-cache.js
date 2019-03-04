@@ -2,13 +2,13 @@ const path = require('path');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 
-const babelCompiler = require('./compile-support/babel');
 const typescriptCompiler = require('./compile-support/typescript');
 
 const COMPILERS = {
-  '.jsx': babelCompiler,
-  '.es6': babelCompiler,
+  '.jsx': typescriptCompiler,
   '.ts': typescriptCompiler,
+  '.tsx': typescriptCompiler,
+  '.es6': typescriptCompiler,
 };
 
 const cacheStats = {};

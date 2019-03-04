@@ -1,9 +1,9 @@
-const React = require('react');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactTestUtils from 'react-dom/test-utils';
 
-const _ = require('underscore');
-const { AccountStore, Thread, Contact, Message } = require('mailspring-exports');
-const ThreadListParticipants = require('../lib/thread-list-participants');
+import _ from 'underscore';
+import { AccountStore, Thread, Contact, Message } from 'mailspring-exports';
+import ThreadListParticipants from '../lib/thread-list-participants';
 
 describe('ThreadListParticipants', function() {
   beforeEach(function() {
