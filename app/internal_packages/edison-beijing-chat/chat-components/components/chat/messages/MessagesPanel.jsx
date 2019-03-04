@@ -28,6 +28,7 @@ import { AccountStore } from 'mailspring-exports';
 import keyMannager from '../../../../../../src/key-manager';
 import MemberProfile from '../conversations/MemberProfile';
 import Notification from '../../../../../../src/components/notification';
+import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 window.registerLoginChatAccounts = registerLoginChatAccounts;
@@ -478,6 +479,7 @@ export default class MessagesPanel extends PureComponent {
       >
         {selectedConversation ?
           <div className="chat">
+            <ThreadSearchBar></ThreadSearchBar>
             <div className="splitPanel">
               {
                 selectedConversation.jid === NEW_CONVERSATION ? (
