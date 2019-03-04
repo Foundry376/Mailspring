@@ -740,6 +740,7 @@ export default class Application extends EventEmitter {
     ipcMain.on('new-window', (event, options) => {
       const win = options.windowKey ? this.windowManager.get(options.windowKey) : null;
       if (win) {
+
         win.show();
         win.focus();
       } else {

@@ -3,17 +3,12 @@
   {
     "label": "EdisonMail",
     "submenu": [
-      { "label": "About EdisonMail", "command": "application:about" },
+      { "label": "About", "command": "application:about" },
+      { "label": "VERSION", "enabled": false },
       { "type": "separator" },
       { "label": "Preferences", "command": "application:open-preferences" },
-      { "label": "Change Theme...", "command": "window:launch-theme-picker" },
-      { "label": "Install Theme...", "command": "window:install-package" },
-      { "type": "separator" },
       { "label": "Add Account...", "command": "application:add-account", "args": {"source": "Menu"}},
-      { "label": "VERSION", "enabled": false },
-      { "label": "Restart and Install Update", "command": "application:install-update", "visible": false},
-      { "label": "Check for Update", "command": "application:check-for-update", "visible": false},
-      { "label": "Downloading Update", "enabled": false, "visible": false},
+      { "type": "separator" },
       { "type": "separator" },
       { "type": "separator" },
       { "label": "Services", "submenu": [] },
@@ -22,38 +17,44 @@
       { "label": "Hide Others", "command": "application:hide-other-applications" },
       { "label": "Show All", "command": "application:unhide-all-applications" },
       { "type": "separator" },
-      { "label": "Quit", "command": "application:quit" }
+      { "label": "Quit Edison Mail", "command": "application:quit" }
     ]
   },
   {
     "label": "File",
     "submenu": [
-      { "label": "Sync New Mail Now", "command": "window:sync-mail-now" },
+      { "label": "New Email", "command": "application:new-message" },
+      { "label": "New Message(Chat)", "command": "application:new-chat" },
       { "type": "separator" },
-      { "label": "New Message", "command": "application:new-message" },
+      { "label": "Check for Mail...", "command": "window:sync-mail-now" },
+      { "type": "separator" },
+      {"label": "Save",
+        "enabled": false
+      },
+      {"label": "Save As...",
+        "enabled": false
+      },
+      {"label": "Attach Files...",
+        "enabled": false
+      },
+      {"label": "Save Attachments...",
+        "enabled": false
+      },
       { "type": "separator" },
       { "label": "Close Window", "command": "window:close" },
       { "type": "separator" },
-      { "label": "Print Current Thread", "command": "core:print-thread" }
+      { "label": "Print", "command": "core:print-thread" }
     ]
   },
 
   {
     "label": "Edit",
     "submenu": [
-      { "label": "Undo", "command": "core:undo" },
-      { "label": "Redo", "command": "core:redo" },
-      { "type": "separator" },
       { "label": "Cut", "command": "core:cut" },
       { "label": "Copy", "command": "core:copy" },
       { "label": "Paste", "command": "core:paste" },
       { "label": "Paste and Match Style", "command": "core:paste-and-match-style" },
       { "label": "Select All", "command": "core:select-all" },
-      { "type": "separator" },
-      { "label": "Select All Read", "command": "thread-list:select-read" },
-      { "label": "Select All Unread", "command": "thread-list:select-unread" },
-      { "label": "Select All Starred", "command": "thread-list:select-starred" },
-      { "label": "Select All Unstarred", "command": "thread-list:select-unstarred" },
       { "type": "separator" },
       { "label": "Find", "submenu": [
         { "label": "Find in Mailbox...", "command": "core:focus-search" },
@@ -98,44 +99,45 @@
       {
         "type": "separator"
       },
-      { "label": "Go to Inbox", "command": "navigation:go-to-inbox", "id": "first" },
-      { "label": "Go to Starred", "command": "navigation:go-to-starred" },
-      { "label": "Go to Sent", "command": "navigation:go-to-sent" },
-      { "label": "Go to Drafts", "command": "navigation:go-to-drafts" },
-      { "label": "Go to All mail", "command": "navigation:go-to-all" },
+      { "label": "Previous Message", "command": "core:show-previous", "key": "showPrevious" },
+      { "label": "Next Message", "command": "core:show-next", "key": "showNext" },
       { "type": "separator" },
-      { "label": "Enter Full Screen", "command": "window:toggle-full-screen" },
-      { "label": "Exit Full Screen", "command": "window:toggle-full-screen", "visible": false }
+      { "label": "Go to All Inbox", "command": "navigation:go-to-all-inbox", "id": "first" },
+      { "label": "Go to Unread", "command": "navigation:go-to-all-unread", "key": "allUnread" },
+      { "label": "Go to All Sent", "command": "navigation:go-to-sent" },
+      { "label": "Go to Attachments", "command": "navigation:go-to-attachments" },
+      { "type": "separator" },
+      {"label": "Show Assistant"},
+      {"label": "Hide Assistant"},
+      { "type": "separator" },
+      { "label": "Enter Full Screen", "command": "window:toggle-full-screen",
+        "hideWhenDisabled": true, "key": "enterFullScreen"
+      },
+      { "label": "Exit Full Screen", "command": "window:toggle-full-screen",
+        "hideWhenDisabled": true, "key": "exitFullScreen"}
     ]
   },
 
   {
     "label": "Thread",
     "submenu": [
+      { "label": "Check for Mail...", "command": "window:sync-mail-now" },
+      { "type": "separator" },
       { "label": "Reply", "command": "core:reply" },
       { "label": "Reply All", "command": "core:reply-all" },
       { "label": "Forward", "command": "core:forward" },
       { "type": "separator" },
-      { "label": "Mark as Unread", "command": "core:mark-as-unread" },
-      { "label": "Mark as Read", "command": "core:mark-as-read" },
-      { "label": "Mark as Spam", "command": "core:report-as-spam" },
-      { "label": "Mark as Not Spam", "command": "core:report-not-spam" },
-      { "label": "Mark as Important", "command": "core:mark-important", "hideWhenDisabled": true },
-      { "label": "Mark as Unimportant", "command": "core:mark-unimportant", "hideWhenDisabled": true },
-      { "label": "Star", "command": "core:star-item" },
+      { "label": "Flag", "command": "core:star-item" },
+      { "label": "Trash", "command": "core:delete-item" },
+      { "label": "Archive", "command": "core:archive-item", "hideWhenDisabled": true },
+      { "label": "Move to...", "command": "core:change-folders" },
       { "label": "Snooze...", "command": "core:snooze-item" },
-      { "label": "Share Link...", "command": "core:share-item-link" },
       { "type": "separator" },
-      { "label": "Remove from view", "command": "core:remove-from-view" },
-      { "label": "Remove and show next", "command": "core:remove-and-next" },
-      { "label": "Remove and show previous", "command": "core:remove-and-previous" },
+
+      { "label": "Mark as Unread", "command": "core:mark-as-unread" },
+      { "label": "Mark as Spam", "command": "core:report-as-spam" },
       { "type": "separator" },
-      { "label": "Move to Trash", "command": "core:delete-item" },
-      { "label": "Move to Archive", "command": "core:archive-item", "hideWhenDisabled": true },
-      { "label": "Move to Folder...", "command": "core:change-folders" },
-      { "label": "Apply Labels...", "command": "core:change-labels", "hideWhenDisabled": true },
-      { "type": "separator" },
-      { "label": "Expand / collapse conversation", "command": "message-list:toggle-expanded"}
+      { "label": "Export to PDF", "command": "pdf:export"}
     ]
   },
 
@@ -162,6 +164,7 @@
       { "label": "Minimize", "command": "application:minimize" },
       { "label": "Zoom", "command": "application:zoom" },
       { "type": "separator", "id": "window-list-separator" },
+      { "label": "Add Account...", "command": "application:add-account", "args": {"source": "Menu"}},
       { "type": "separator" },
       { "label": "Bring All to Front", "command": "application:bring-all-windows-to-front" }
     ]
@@ -170,7 +173,17 @@
   {
     "label": "Help",
     "submenu": [
-      { "label": "EdisonMail Help", "command": "application:view-help" }
+      { "label": "Help Center", "command": "application:view-help" },
+      { "label": "Send Feedback...", "command": "application:view-help" },
+      {"type":  "separator"},
+      { "label": "Restart and Install Update", "command": "application:install-update", "visible": false},
+      { "label": "Check for Update", "command": "application:check-for-update", "visible": false},
+      { "label": "Downloading Update", "enabled": false, "visible": false},
+      {"type":  "separator"},
+      { "label": "Privacy Policy", "command": "application:view-help" },
+      { "label": "Terms of Use", "command": "application:view-help" },
+      {"type":  "separator"},
+      {"label": "What's New...", "command": "application:view-help"}
     ]
   }
   ]

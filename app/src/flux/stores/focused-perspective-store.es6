@@ -42,6 +42,9 @@ class FocusedPerspectiveStore extends MailspringStore {
 
   _listenToCommands() {
     AppEnv.commands.add(document.body, {
+      'navigation:go-to-all-unread': () => {
+        this._setPerspective(MailboxPerspective.forUnreadByAccounts(this.sidebarAccountIds()));
+      },
       'navigation:go-to-inbox': () => this._setPerspectiveByName('inbox'),
       'navigation:go-to-sent': () => this._setPerspectiveByName('sent'),
       'navigation:go-to-starred': () =>
