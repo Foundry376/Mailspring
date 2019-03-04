@@ -211,7 +211,8 @@ export class ListTabular extends Component<ListTabularProps, ListTabularState> {
       this.updateRangeStateFiring = false;
     } else if (
       prevState.count !== this.state.count ||
-      prevProps.itemHeight !== this.props.itemHeight
+      prevProps.itemHeight !== this.props.itemHeight ||
+      prevProps.dataSource !== this.props.dataSource
     ) {
       this.updateRangeState();
     }
