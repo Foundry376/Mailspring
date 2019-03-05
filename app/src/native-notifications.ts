@@ -7,25 +7,33 @@ import os from 'os';
 const platform = process.platform;
 const DEFAULT_ICON = path.resolve(__dirname, '..', 'build', 'resources', 'mailspring.png');
 
-const ICON_CACHE = {};
-
 let MacNotifierNotification = null;
 if (platform === 'darwin') {
   try {
     MacNotifierNotification = require('node-mac-notifier');
   } catch (err) {
     console.error(
-      'node-mac-notifier (a platform-specific optionalDependency) was not installed correctly! Check the Travis build log for errors.'
+      'node-mac-notifier (a platform-specific optionalDependency) was not installed correctly! Check the Travis build log for errors.',
     );
   }
 }
 
 type INotificationCallback = (
-  args: { response: string | null; activationType: 'replied' | 'clicked' }
+  args: { response: string | null; activationType: 'replied' | 'clicked' },
 ) => any;
+
+type INotificationOptions = {
+  title?: string;
+  subtitle?: string;
+  body?: string;
+  tag?: string;
+  canReply?: boolean;
+  onActivate?: INotificationCallback;
+}
 
 class NativeNotifications {
   _macNotificationsByTag = {};
+  private resolvedIcon: string = null;
 
   constructor() {
     if (MacNotifierNotification) {
@@ -36,6 +44,7 @@ class NativeNotifications {
         return true;
       });
     }
+    this.resolvedIcon = this.getIcon();
   }
 
   doNotDisturb() {
@@ -53,8 +62,9 @@ class NativeNotifications {
    *
    * @param {string} filePath to the desktop file
    * @returns {string} icon from the desktop file
+   * @private
    */
-  readIconFromDesktopFile(filePath) {
+  private readIconFromDesktopFile(filePath) {
     if (fs.existsSync(filePath)) {
       const ini = require('ini');
       const content = ini.parse(fs.readFileSync(filePath, 'utf-8'));
@@ -74,7 +84,7 @@ class NativeNotifications {
    * @returns {string} path to the icon
    * @private
    */
-  __getIcon() {
+  private getIcon() {
     if (platform === 'linux') {
       const desktopBaseDirs = [
         os.homedir() + '/.local/share/applications/',
@@ -93,22 +103,14 @@ class NativeNotifications {
               return desktopIcon;
             }
             // icon is a name and we need to get it from the icon theme
-            const iconPath = getIcon(desktopIcon || 'mailspring', 64, Context.APPLICATIONS, 2);
+            const iconPath = getIcon(desktopIcon, 64, Context.APPLICATIONS, 2);
             if (iconPath != null) {
               // only .png icons work with notifications
               if (path.extname(iconPath) === '.png') {
                 return iconPath;
               }
-              // try to read it from cache
-              if (ICON_CACHE.hasOwnProperty(iconPath)) {
-                if (fs.existsSync(ICON_CACHE[iconPath])) {
-                  return ICON_CACHE[iconPath];
-                }
-              }
               const converted = convertToPNG(desktopIcon, iconPath);
               if (converted != null) {
-                // save the icon to a cache so we do not create a new tmp file for each notification
-                ICON_CACHE[iconPath] = converted;
                 return converted;
               }
             }
@@ -119,12 +121,20 @@ class NativeNotifications {
     return DEFAULT_ICON;
   }
 
-  displayNotification({ title, subtitle, body, tag, canReply, onActivate = () => {} } = {}) {
+  displayNotification({
+    title,
+    subtitle,
+    body,
+    tag,
+    canReply,
+    onActivate = args => { },
+  }: INotificationOptions = {}) {
     let notif = null;
 
     if (this.doNotDisturb()) {
       return null;
     }
+
     if (MacNotifierNotification) {
       if (tag && this._macNotificationsByTag[tag]) {
         this._macNotificationsByTag[tag].close();
@@ -135,7 +145,7 @@ class NativeNotifications {
         subtitle: subtitle,
         body: body,
         id: tag,
-        icon: this.__getIcon(),
+        icon: this.resolvedIcon,
       });
       notif.addEventListener('reply', ({ response }) => {
         onActivate({ response, activationType: 'replied' });
@@ -151,7 +161,7 @@ class NativeNotifications {
         silent: true,
         body: subtitle,
         tag: tag,
-        icon: this.__getIcon(),
+        icon: this.resolvedIcon,
       });
       notif.onclick = onActivate;
     }
