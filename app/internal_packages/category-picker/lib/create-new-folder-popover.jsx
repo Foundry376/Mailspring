@@ -89,7 +89,7 @@ export default class CreateNewFolderPopover extends Component {
       <button className="create-folder-btn-cancel" title="Cancel" onClick={this.onCancel}>
         <span>Cancel</span>
       </button>
-      <button className="create-folder-btn-create" title="Compose new message"
+      <button className="create-folder-btn-create" title="Create Folder"
               disabled={this.state.newName.length === 0} onClick={this._onCreateCategory}>
         <span>Create Folder</span>
       </button>
