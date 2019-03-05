@@ -183,7 +183,7 @@ export default class MailsyncBridge {
     // Any clients left in the `clientsWithoutAccounts` after we looped
     // through and deleted one for each accountId are ones representing
     // deleted accounts.
-    for (const client of Object.values(clientsWithoutAccounts).filter( c=>!c.isRemoving)) {
+    for (const client of Object.values(clientsWithoutAccounts)) {
       let id = '';
       if (client._proc && client._proc.pid) {
         id = client._proc.pid;

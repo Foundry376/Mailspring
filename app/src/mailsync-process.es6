@@ -152,7 +152,6 @@ export default class MailsyncProcess extends EventEmitter {
       this._spawnProcess(mode);
       let buffer = Buffer.from([]);
       if (this._proc.stdout) {
-        console.log(`spawned process with pid ${this._proc.pid}`);
         this._proc.stdout.on('data', data => {
           buffer += data;
           if (onData) onData(data);
