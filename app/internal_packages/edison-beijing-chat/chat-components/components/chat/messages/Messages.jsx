@@ -485,7 +485,7 @@ export default class Messages extends PureComponent {
                       <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
                     </div>
                     {
-                      msgBody && msgBody.isUploading ? (
+                      (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgBody.path.replace('file://', '')))) ? (
                         <div className="messageBody loading">
                           <RetinaImg
                             name="inline-loading-spinner.gif"
@@ -495,12 +495,14 @@ export default class Messages extends PureComponent {
                             <div className="message-image">
                               <img
                                 src={msgBody.localFile}
-                                title={msgBody.localFile || msgBody.mediaObjectId}
+                                title={msgBody.isUploading && msgBody.localFile || ''}
                                 onClick={onClickImage}
                               />
                             </div>
                           )}
-                          <div>Uploading {msgBody.localFile && path.basename(msgBody.localFile)}</div>
+                          {msgBody.isUploading &&
+                            <div>Uploading {msgBody.localFile && path.basename(msgBody.localFile)}</div>
+                          }
                         </div>
                       ) : (
                           isEditing ? (
