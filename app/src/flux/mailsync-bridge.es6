@@ -168,13 +168,6 @@ export default class MailsyncBridge {
   }
 
   ensureClients = _.throttle((kind) => {
-    if(!kind){
-      AppEnv.debugLog(`kind is missing value in ensureClients`);
-      AppEnv.reportError({
-        type: 'man-made',
-        message: `kind is missing value, ignoring ensureClients`,
-      });
-    }
     const clientsWithoutAccounts = Object.assign({}, this._clients);
 
     for (const acct of AccountStore.accounts()) {
@@ -190,12 +183,15 @@ export default class MailsyncBridge {
     // Any clients left in the `clientsWithoutAccounts` after we looped
     // through and deleted one for each accountId are ones representing
     // deleted accounts.
-    for (const client of Object.values(clientsWithoutAccounts)) {
-      let id='';
-      if(client._proc && client._proc.pid){
+    for (const client of Object.values(clientsWithoutAccounts).filter( c=>!c.isRemoving)) {
+      let id = '';
+      if (client._proc && client._proc.pid) {
         id = client._proc.pid;
       }
       client.kill();
+      if (!kind) {
+        AppEnv.debugLog(`@pid ${id} kind is missing value in ensureClients`);
+      }
       AppEnv.debugLog(`pid@${id} mailsync-bridge ensureClients: ${kind}`);
     }
   }, 100);
@@ -227,11 +223,23 @@ export default class MailsyncBridge {
   async resetCacheForAccount(account, { silent } = {}) {
     // grab the existing client, if there is one
     const syncingClient = this._clients[account.id];
+    if (syncingClient) {
+      // mark client as removing;
+      syncingClient.isRemoving = true;
+      let id = '';
+      if (syncingClient._proc && syncingClient._proc.pid) {
+        id = syncingClient._proc.pid;
+      }
+      syncingClient.kill();
+      AppEnv.debugLog(`pid @ ${id} mailsync-bridge resetCacheForAccount`);
+      delete this._clients[account.id];
+    }
 
     // create a new client that will perform the reset
     const resetClient = new MailsyncProcess(this._getClientConfiguration());
     resetClient.account = (await KeyManager.insertAccountSecrets(account)).toJSON();
     resetClient.identity = IdentityStore.identity();
+    resetClient.isRemoving = true;
 
     // no-op - do not allow us to kill this client - we may be reseting the cache of an
     // account which does not exist anymore, but we don't want to interrupt this process
@@ -242,10 +250,6 @@ export default class MailsyncBridge {
 
     // kill the old client, ensureClients will be a no-op because the
     // client has already been replaced in our lookup table.
-    if (syncingClient) {
-      syncingClient.kill();
-      AppEnv.debugLog('mailsync-bridge resetCacheForAccount');
-    }
 
     if (!silent) {
       AppEnv.showErrorDialog({
@@ -377,7 +381,7 @@ export default class MailsyncBridge {
       ) {
         // Because we are using sync call, make sure the listener is very short
         console.log('Making sync call, this better be time sensitive operation');
-        if(!this._clients[task.accountId]){
+        if (!this._clients[task.accountId]) {
           console.log('client is already dead, we are ignoring this sync call');
           return;
         }
@@ -573,8 +577,8 @@ export default class MailsyncBridge {
         if (this._additionalObservableThreads[accountId]) {
           task.threadIds = [
             ...new Set(
-              task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId]))
-          )];
+              task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
+            )];
         }
         this._setObservableRangeTimer[accountId].timestamp = Date.now();
         // DC-46
@@ -589,7 +593,7 @@ export default class MailsyncBridge {
             if (this._additionalObservableThreads[accountId]) {
               task.threadIds = [
                 ...new Set(
-                  task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId]))
+                  task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
                 )];
             }
             this.sendMessageToAccount(accountId, task.toJSON());
@@ -604,7 +608,7 @@ export default class MailsyncBridge {
           if (this._additionalObservableThreads[accountId]) {
             task.threadIds = [
               ...new Set(
-                task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId]))
+                task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
               ),
             ];
           }
@@ -648,8 +652,8 @@ export default class MailsyncBridge {
 
   _onReadyToUnload = () => {
     for (const client of Object.values(this._clients)) {
-      let id='';
-      if(client._proc && client._proc.pid){
+      let id = '';
+      if (client._proc && client._proc.pid) {
         id = client._proc.pid;
       }
       client.kill();

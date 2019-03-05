@@ -125,7 +125,7 @@ class AccountStore extends MailspringStore {
     }
   };
 
-  _trigger() {
+  _trigger(reason) {
     for (const account of this._accounts) {
       if (!account || !account.id) {
         const err = new Error('An invalid account was added to `this._accounts`');
@@ -133,10 +133,10 @@ class AccountStore extends MailspringStore {
         this._accounts = _.compact(this._accounts);
       }
     }
-    this.trigger();
+    this.trigger(reason);
   }
 
-  _save = () => {
+  _save = (reason) => {
     this._version += 1;
     const configAccounts = this._accounts.map(a => a.toJSON());
     configAccounts.forEach(a => {
@@ -150,7 +150,7 @@ class AccountStore extends MailspringStore {
     });
     AppEnv.config.set(configAccountsKey, configAccounts);
     AppEnv.config.set(configVersionKey, this._version);
-    this._trigger();
+    this._trigger(reason);
   };
 
   /**
@@ -206,7 +206,7 @@ class AccountStore extends MailspringStore {
     });
 
     this._accounts = remainingAccounts;
-    this._save();
+    this._save('removeAccount');
 
     if (remainingAccounts.length === 0) {
       // Clear everything and logout
