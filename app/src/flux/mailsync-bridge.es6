@@ -534,6 +534,7 @@ export default class MailsyncBridge {
         this._onSetObservableRange(
           options.accountId,
           this._cachedSetObservableRangeTask[options.accountId],
+          true,
         );
       }
     }
@@ -552,6 +553,7 @@ export default class MailsyncBridge {
           this._onSetObservableRange(
             options.accountId,
             this._cachedSetObservableRangeTask[options.accountId],
+            true,
           );
         }
       }
@@ -563,8 +565,25 @@ export default class MailsyncBridge {
     }
     return this._cachedSetObservableRangeTask[accountId].threadIds.includes(threadId);
   };
+  _updatedCacheObservableRangeTask = (accountId, task) => {
+    if (!this._cachedSetObservableRangeTask[accountId]) {
+      this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
+      return true;
+    }
+    if (this._cachedSetObservableRangeTask[accountId].threadIds.length !== task.threadIds.length) {
+      this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
+      return true;
+    }
+    for (let threadId of task.threadIds) {
+      if (!this._cachedSetObservableRangeTask[accountId].threadIds.includes(threadId)) {
+        this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
+        return true;
+      }
+    }
+    return false;
+  };
 
-  _onSetObservableRange = (accountId, task) => {
+  _onSetObservableRange = (accountId, task, isManualTrigger=false) => {
     if (!this._clients[accountId]) {
       //account doesn't exist, we clear observable cache
       delete this._setObservableRangeTimer[accountId];
@@ -573,30 +592,37 @@ export default class MailsyncBridge {
     }
     if (this._setObservableRangeTimer[accountId]) {
       if (Date.now() - this._setObservableRangeTimer[accountId].timestamp > 1000) {
-        this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-        if (this._additionalObservableThreads[accountId]) {
-          task.threadIds = [
+        if (!this._updatedCacheObservableRangeTask(accountId, task) && !isManualTrigger) {
+          return;
+        }
+        const tmpTask = this._cachedSetObservableRangeTask[accountId];
+        if (isManualTrigger) {
+
+          tmpTask.threadIds = [
             ...new Set(
-              task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
+              tmpTask.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
             )];
         }
         this._setObservableRangeTimer[accountId].timestamp = Date.now();
         // DC-46
         // We call sendMessageToAccount last on the off chance that mailsync have died,
         // we want to avoid triggering client.kill() before setting observable cache
-        this.sendMessageToAccount(accountId, task.toJSON());
+        this.sendMessageToAccount(accountId, tmpTask.toJSON());
       } else {
         clearTimeout(this._setObservableRangeTimer[accountId].id);
         this._setObservableRangeTimer[accountId] = {
           id: setTimeout(() => {
-            this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-            if (this._additionalObservableThreads[accountId]) {
-              task.threadIds = [
+            if (!this._updatedCacheObservableRangeTask(accountId, task) && !isManualTrigger) {
+              return;
+            }
+            const tmpTask = this._cachedSetObservableRangeTask[accountId];
+            if (isManualTrigger) {
+              tmpTask.threadIds = [
                 ...new Set(
-                  task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
+                  tmpTask.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
                 )];
             }
-            this.sendMessageToAccount(accountId, task.toJSON());
+            this.sendMessageToAccount(accountId, tmpTask.toJSON());
           }, 1000),
           timestamp: Date.now(),
         };
@@ -604,15 +630,17 @@ export default class MailsyncBridge {
     } else {
       this._setObservableRangeTimer[accountId] = {
         id: setTimeout(() => {
-          this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-          if (this._additionalObservableThreads[accountId]) {
-            task.threadIds = [
-              ...new Set(
-                task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
-              ),
-            ];
+          if (!this._updatedCacheObservableRangeTask(accountId, task) && !isManualTrigger) {
+            return;
           }
-          this.sendMessageToAccount(accountId, task.toJSON());
+          const tmpTask = this._cachedSetObservableRangeTask[accountId];
+          if (isManualTrigger) {
+            tmpTask.threadIds = [
+              ...new Set(
+                tmpTask.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
+              )];
+          }
+          this.sendMessageToAccount(accountId, tmpTask.toJSON());
         }, 1000),
         timestamp: Date.now(),
       };
