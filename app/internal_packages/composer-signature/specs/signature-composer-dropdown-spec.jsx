@@ -4,7 +4,7 @@ import React from 'react';
 import ReactTestUtils from 'react-dom/test-utils';
 import { SignatureStore } from 'mailspring-exports';
 import SignatureComposerDropdown from '../lib/signature-composer-dropdown';
-import { renderIntoDocument } from '../../../spec/mailspring-test-utils';
+import MTestUtils from '../../../spec/mailspring-test-utils';
 
 const SIGNATURES = {
   '1': {
@@ -31,7 +31,7 @@ describe('SignatureComposerDropdown', function signatureComposerDropdown() {
     this.draft = {
       body: 'draft body',
     };
-    this.button = renderIntoDocument(
+    this.button = MTestUtils.renderIntoDocument(
       <SignatureComposerDropdown draft={this.draft} session={this.session} />
     );
   });

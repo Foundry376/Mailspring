@@ -1,6 +1,6 @@
 // const moment = require('moment');
-// const _ = require('underscore');
-// const React = require('react');
+// import _ from 'underscore';
+// import React from 'react';
 // let ReactTestUtils = require('react-dom/test-utils');
 // ReactTestUtils = _.extend(ReactTestUtils, require('jasmine-react-helpers'));
 
@@ -14,7 +14,7 @@
 //   AccountStore,
 //   ComponentRegistry,
 // } = require('mailspring-exports');
-// const { ListTabular } = require('mailspring-component-kit');
+// import { ListTabular } from 'mailspring-component-kit';;
 
 // const ThreadStore = require('../lib/thread-store');
 // const ThreadList = require('../lib/thread-list');

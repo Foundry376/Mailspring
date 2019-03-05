@@ -1,14 +1,8 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 6,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "modules": true,
-      "jsx": true
-    }
+    "project": "./tsconfig.json"
   },
-  "extends": ["react-app", "prettier", "prettier/react"],
   "globals": {
     "AppEnv": false,
     "$m": false,
@@ -24,10 +18,25 @@
     "node": true,
     "jasmine": true
   },
-  "plugins": ["prettier"],
+  "plugins": ["@typescript-eslint"],
+  "extends": ["plugin:@typescript-eslint/recommended", "prettier", "prettier/@typescript-eslint"],
   "rules": {
     "no-cond-assign": 0,
-    "prettier/prettier": "error"
+    "@typescript-eslint/explicit-member-accessibility": 0,
+    "@typescript-eslint/no-explicit-any": 0,
+    "@typescript-eslint/explicit-function-return-type": 0,
+    "@typescript-eslint/prefer-interface": 0,
+    "@typescript-eslint/no-unused-vars": 0,
+    "@typescript-eslint/camelcase": 0,
+    "@typescript-eslint/no-namespace": 0,
+    "@typescript-eslint/no-use-before-define": 0,
+    "@typescript-eslint/interface-name-prefix": 0,
+    "@typescript-eslint/no-var-requires": 0,
+    "@typescript-eslint/no-empty-interface": 0,
+    "@typescript-eslint/class-name-casing": 0,
+    "@typescript-eslint/prefer-namespace-keyword": 0,
+    "@typescript-eslint/no-object-literal-type-assertion": 0,
+    "@typescript-eslint/array-type": 0
   },
   "settings": {
     "import/core-modules": [
@@ -36,9 +45,6 @@
       "electron",
       "mailspring-store",
       "mailspring-observables"
-    ],
-    "import/resolver": {
-      "node": { "extensions": [".es6", ".jsx", ".json", ".js"] }
-    }
+    ]
   }
 }

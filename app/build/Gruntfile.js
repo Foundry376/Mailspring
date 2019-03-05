@@ -27,19 +27,18 @@ module.exports = grunt => {
     outputDir: path.join(appDir, 'dist'),
     appJSON: grunt.file.readJSON(path.join(appDir, 'package.json')),
     'source:es6': [
+      'internal_packages/**/*.ts',
+      'internal_packages/**/*.tsx',
       'internal_packages/**/*.jsx',
-      'internal_packages/**/*.es6',
-      'internal_packages/**/*.es',
-      'dot-nylas/**/*.es6',
-      'dot-nylas/**/*.es',
-      'src/**/*.es6',
-      'src/**/*.es',
+      'src/**/*.ts',
+      'src/**/*.tsx',
       'src/**/*.jsx',
-      '!src/**/node_modules/**/*.es6',
-      '!src/**/node_modules/**/*.es',
+
+      '!src/**/node_modules/**/*.ts',
+      '!src/**/node_modules/**/*.tsx',
       '!src/**/node_modules/**/*.jsx',
-      '!internal_packages/**/node_modules/**/*.es6',
-      '!internal_packages/**/node_modules/**/*.es',
+      '!internal_packages/**/node_modules/**/*.ts',
+      '!internal_packages/**/node_modules/**/*.tsx',
       '!internal_packages/**/node_modules/**/*.jsx',
     ],
   });
@@ -49,7 +48,7 @@ module.exports = grunt => {
 
   grunt.registerTask('docs', ['docs-build', 'docs-render']);
 
-  grunt.registerTask('lint', ['eslint', 'lesslint', 'nylaslint', 'csslint']);
+  grunt.registerTask('lint', ['eslint', 'lesslint', 'csslint']);
 
   if (grunt.option('platform') === 'win32') {
     grunt.registerTask('build-client', [

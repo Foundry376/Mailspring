@@ -10,10 +10,6 @@ module.exports = grunt => {
       },
       target: grunt.config('source:es6'),
     },
-
-    eslintFixer: {
-      src: grunt.config('source:es6'),
-    },
   });
 
   grunt.registerMultiTask('eslint', 'Validate files with ESLint', function task() {

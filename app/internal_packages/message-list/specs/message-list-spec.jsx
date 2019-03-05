@@ -1,19 +1,19 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-dom/test-utils');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
 
-const {
+import {
   Thread,
   Contact,
   Folder,
   Message,
   MessageStore,
   MailspringTestUtils,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
-const MessageParticipants = require('../lib/message-participants').default;
-const MessageItemContainer = require('../lib/message-item-container').default;
-const MessageList = require('../lib/message-list').default;
+import MessageParticipants from '../lib/message-participants';
+import MessageItemContainer from '../lib/message-item-container';
+import MessageList from '../lib/message-list';
 
 // User_1 needs to be "me" so that when we calculate who we should reply
 // to, it properly matches the AccountStore

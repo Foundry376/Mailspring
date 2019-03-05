@@ -1,0 +1,129 @@
+internal_packages/composer-templates/lib/preferences-templates.tsx(74,12): error TS2322: Type '{ ref: (c: ComposerEditor) => ComposerEditor; readOnly: boolean; value: Value; propsForPlugins: { inTemplateEditor: boolean; }; onChange: (change: any) => void; onBlur: () => void; }' is not assignable to type 'IntrinsicAttributes & IntrinsicClassAttributes<ComposerEditor> & Readonly<PropsWithChildren<ComposerEditorProps>>'.
+  Property 'readOnly' does not exist on type 'IntrinsicAttributes & IntrinsicClassAttributes<ComposerEditor> & Readonly<PropsWithChildren<ComposerEditorProps>>'.
+internal_packages/composer/lib/composer-view.tsx(26,10): error TS2305: Module '"../../../../../../../../../../../Users/bengotow/Work/F376/Projects/Mailspring/client/app/node_modules/@types/slate"' has no exported member 'History'.
+internal_packages/custom-sounds/lib/main.ts(7,3): error TS2554: Expected 2 arguments, but got 1.
+internal_packages/draft-list/lib/draft-list-columns.tsx(47,7): error TS2740: Type 'Element' is missing the following properties from type 'any[]': length, pop, push, concat, and 26 more.
+internal_packages/draft-list/lib/draft-list-toolbar.tsx(35,13): error TS2339: Property 'items' does not exist on type 'Readonly<{ children?: ReactNode; }>'.
+internal_packages/draft-list/lib/draft-list.tsx(41,13): error TS2339: Property 'className' does not exist on type '{}'.
+internal_packages/draft-list/lib/sending-cancel-button.tsx(16,20): error TS2339: Property 'cancelling' does not exist on type 'Readonly<{}>'.
+internal_packages/draft-list/lib/sending-cancel-button.tsx(34,35): error TS2339: Property 'taskId' does not exist on type 'Readonly<{ children?: ReactNode; }>'.
+internal_packages/events/lib/event-header.tsx(84,42): error TS2339: Property 'start' does not exist on type 'Event'.
+internal_packages/events/lib/event-header.tsx(90,44): error TS2339: Property 'start' does not exist on type 'Event'.
+internal_packages/events/lib/event-header.tsx(119,18): error TS2551: Property 'mapx' does not exist on type 'any[][]'. Did you mean 'map'?
+internal_packages/github-contact-card/lib/github-user-store.ts(85,61): error TS2339: Property 'stargazers_count' does not exist on type '{}'.
+internal_packages/link-tracking/lib/link-tracking-message-extension.tsx(56,14): error TS2741: Property 'openMetadata' is missing in type '{ message: any; linkMetadata: any; }' but required in type '{ readonly message: Message; readonly openMetadata: any; readonly children?: ReactNode; }'.
+internal_packages/link-tracking/lib/link-tracking-message-popover.tsx(5,38): error TS2307: Cannot find module './types'.
+internal_packages/link-tracking/lib/link-tracking-message-popover.tsx(19,31): error TS2339: Property 'linkMetadata' does not exist on type 'Readonly<PropsWithChildren<{ message: Message; openMetadata: any; }>>'.
+internal_packages/main-calendar/lib/calendar-wrapper.tsx(76,11): error TS2345: Argument of type '{ id: string; modelName: string; endpoint: string; accountId: string; }' is not assignable to parameter of type '{ clientId?: string; modelName?: string; endpoint?: string; accountId?: string; }'.
+  Object literal may only specify known properties, and 'id' does not exist in type '{ clientId?: string; modelName?: string; endpoint?: string; accountId?: string; }'.
+internal_packages/main-calendar/lib/core/calendar-event-popover.tsx(44,13): error TS2339: Property 'description' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event-popover.tsx(44,26): error TS2339: Property 'start' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event-popover.tsx(44,33): error TS2339: Property 'end' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event-popover.tsx(44,38): error TS2339: Property 'location' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event-popover.tsx(44,48): error TS2339: Property 'attendees' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event-popover.tsx(51,14): error TS2322: Type '() => string' is not assignable to type 'string'.
+internal_packages/main-calendar/lib/core/calendar-event-popover.tsx(84,11): error TS2339: Property 'when' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event-popover.tsx(85,11): error TS2339: Property 'when' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event-popover.tsx(88,18): error TS2554: Expected 0 arguments, but got 1.
+internal_packages/main-calendar/lib/core/calendar-event.tsx(59,39): error TS2339: Property 'end' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event.tsx(59,62): error TS2339: Property 'start' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event.tsx(62,25): error TS2339: Property 'start' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/calendar-event.tsx(103,62): error TS2339: Property 'start' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/core/event-search-bar.tsx(3,10): error TS2305: Module '"../../../../../../../../../../../../Users/bengotow/Work/F376/Projects/Mailspring/client/app/src/global/mailspring-component-kit"' has no exported member 'SearchBar'.
+internal_packages/main-calendar/lib/core/week-view-all-day-events.tsx(31,10): error TS2741: Property 'focused' is missing in type '{ event: Event; order: any; key: string; scopeStart: number; scopeEnd: number; direction: "horizontal"; fixedSize: number; concurrentEvents: any; }' but required in type 'Pick<Readonly<PropsWithChildren<CalendarEventProps>>, "selected" | "children" | "focused" | "event" | "scopeEnd" | "scopeStart">'.
+internal_packages/main-calendar/lib/core/week-view.tsx(432,17): error TS2339: Property 'isAllDay' does not exist on type 'Event'.
+internal_packages/main-calendar/lib/quick-event-button.tsx(11,51): error TS2339: Property 'getBoundingClientRect' does not exist on type 'Element | Text'.
+  Property 'getBoundingClientRect' does not exist on type 'Text'.
+internal_packages/message-list/lib/message-item-container.tsx(59,28): error TS2339: Property 'focus' does not exist on type 'MessageItem'.
+internal_packages/message-list/lib/message-item.tsx(202,11): error TS2322: Type '(e: any) => void' is not assignable to type '() => void'.
+internal_packages/message-list/lib/message-item.tsx(210,11): error TS2322: Type '(e: any) => void' is not assignable to type '() => void'.
+internal_packages/message-list/lib/message-item.tsx(298,16): error TS2741: Property 'isDetailed' is missing in type '{ date: Date; }' but required in type 'Readonly<PropsWithChildren<MessageTimestampProps>>'.
+internal_packages/onboarding/lib/page-account-settings-gmail.tsx(25,8): error TS2741: Property 'sessionKey' is missing in type '{ serviceName: string; providerAuthPageUrl: string; buildAccountFromAuthResponse: (code: string) => Promise<Account>; iconName: string; onSuccess: (account: any) => void; onTryAgain: () => any; }' but required in type '{ readonly providerAuthPageUrl: string; readonly buildAccountFromAuthResponse: (rep: any) => Account | Promise<Account>; readonly onSuccess: (account: Account) => void; readonly onTryAgain: () => void; readonly iconName: string; readonly sessionKey: string; readonly serviceName: string; readonly children?: ReactNode...'.
+internal_packages/open-tracking/lib/open-tracking-composer-extension.ts(5,22): error TS2417: Class static side 'typeof OpenTrackingComposerExtension' incorrectly extends base class static side 'typeof ComposerExtension'.
+  Types of property 'applyTransformsForSending' are incompatible.
+    Type '({ draftBodyRootNode, draft, recipient, }: { draftBodyRootNode: HTMLElement; draft: Message; recipient?: Contact; }) => void' is not assignable to type '(args: { draft: Message; draftBodyRootNode: HTMLElement; recipient?: string; }) => void'.
+      Types of parameters '__0' and 'args' are incompatible.
+        Type '{ draft: Message; draftBodyRootNode: HTMLElement; recipient?: string; }' is not assignable to type '{ draftBodyRootNode: HTMLElement; draft: Message; recipient?: Contact; }'.
+          Types of property 'recipient' are incompatible.
+            Type 'string' is not assignable to type 'Contact'.
+internal_packages/open-tracking/lib/open-tracking-composer-extension.ts(20,30): error TS2339: Property 'clientId' does not exist on type 'Message'.
+internal_packages/send-later/lib/main.ts(39,40): error TS2345: Argument of type '{ model: any; pluginId: string; value: { expiration: null; }; }' is not assignable to parameter of type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+  Property 'undoValue' is missing in type '{ model: any; pluginId: string; value: { expiration: null; }; }' but required in type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+internal_packages/send-later/lib/send-later-status.tsx(57,38): error TS2345: Argument of type '{ model: Message; pluginId: string; value: { expiration: null; }; }' is not assignable to parameter of type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+  Property 'undoValue' is missing in type '{ model: Message; pluginId: string; value: { expiration: null; }; }' but required in type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+internal_packages/send-reminders/lib/send-reminders-utils.ts(65,36): error TS2345: Argument of type '{ model: any; pluginId: string; value: any; }' is not assignable to parameter of type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+  Property 'undoValue' is missing in type '{ model: any; pluginId: string; value: any; }' but required in type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+internal_packages/thread-list/lib/message-list-toolbar.tsx(12,47): error TS2339: Property 'focused' does not exist on type 'MailspringStore'.
+internal_packages/thread-list/lib/thread-list-store.ts(40,9): error TS1345: An expression of type 'void' cannot be tested for truthiness
+internal_packages/thread-sharing/lib/main.tsx(127,51): error TS2339: Property 'version' does not exist on type 'Message'.
+internal_packages/thread-sharing/lib/main.tsx(181,36): error TS2345: Argument of type '{ model: any; pluginId: string; value: any; }' is not assignable to parameter of type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+  Property 'undoValue' is missing in type '{ model: any; pluginId: string; value: any; }' but required in type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+internal_packages/thread-sharing/lib/main.tsx(197,36): error TS2345: Argument of type '{ model: any; pluginId: string; value: { shared: boolean; key: any; }; }' is not assignable to parameter of type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+  Property 'undoValue' is missing in type '{ model: any; pluginId: string; value: { shared: boolean; key: any; }; }' but required in type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+internal_packages/thread-snooze/lib/snooze-store.ts(55,42): error TS2345: Argument of type '{ model: any; pluginId: string; value: { expiration: any; }; }' is not assignable to parameter of type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+  Property 'undoValue' is missing in type '{ model: any; pluginId: string; value: { expiration: any; }; }' but required in type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+internal_packages/thread-snooze/lib/snooze-store.ts(99,42): error TS2345: Argument of type '{ model: any; pluginId: string; value: { expiration: null; }; }' is not assignable to parameter of type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+  Property 'undoValue' is missing in type '{ model: any; pluginId: string; value: { expiration: null; }; }' but required in type '{ model: Model; pluginId: string; value: object; undoValue: object; }'.
+internal_packages/thread-snooze/lib/snooze-utils.ts(55,7): error TS2345: Argument of type '{ source: string; threads: Thread[]; taskDescription: string; folder: Folder | Label; canBeUndone: boolean; }' is not assignable to parameter of type '{ folder?: Folder; previousFolder?: Folder; messages?: Message[]; threads?: Thread[]; canBeUndone?: boolean; source?: string; }'.
+  Object literal may only specify known properties, and 'taskDescription' does not exist in type '{ folder?: Folder; previousFolder?: Folder; messages?: Message[]; threads?: Thread[]; canBeUndone?: boolean; source?: string; }'.
+internal_packages/unread-notifications/lib/main.ts(60,45): error TS2339: Property 'id' does not exist on type 'Account | {}'.
+  Property 'id' does not exist on type '{}'.
+node_modules/@types/slate-react/index.d.ts(126,14): error TS2420: Class 'Editor' incorrectly implements interface 'Controller'.
+  Property 'moveToRangeOf' is missing in type 'Editor' but required in type 'Controller'.
+node_modules/@types/slate-react/index.d.ts(292,35): error TS2339: Property 'moveToRangeOfNode' does not exist on type 'Editor'.
+src/browser/application.ts(623,11): error TS2367: This condition will always return 'false' since the types 'BrowserWindow' and 'MailspringWindow' have no overlap.
+src/browser/window-launcher.ts(58,33): error TS2339: Property 'get' does not exist on type 'typeof Config'.
+src/components/composer-editor/template-plugins.tsx(120,25): error TS2345: Argument of type '{ type: string; button: { iconClass: string; isActive: (value: any) => any; onToggle: (value: any, active: boolean) => any; }; }' is not assignable to parameter of type 'IEditorToolbarConfigItem'.
+  Type '{ type: string; button: { iconClass: string; isActive: (value: any) => any; onToggle: (value: any, active: boolean) => any; }; }' is missing the following properties from type 'IEditorToolbarConfigItem': tagNames, render
+src/components/date-picker-popover.tsx(4,8): error TS1192: Module '"/Users/bengotow/Work/F376/Projects/Mailspring/client/app/src/components/menu"' has no default export.
+src/components/date-picker.tsx(5,10): error TS2305: Module '"../../../../../../../../../../Users/bengotow/Work/F376/Projects/Mailspring/client/app/src/global/mailspring-component-kit"' has no exported member 'MiniMonthView'.
+src/components/editable-table.tsx(97,10): error TS2339: Property 'querySelector' does not exist on type 'Element | Text'.
+  Property 'querySelector' does not exist on type 'Text'.
+src/components/editable-table.tsx(105,10): error TS2339: Property 'querySelector' does not exist on type 'Element | Text'.
+  Property 'querySelector' does not exist on type 'Text'.
+src/components/editable-table.tsx(124,26): error TS2339: Property 'isInLastRow' does not exist on type 'ReactInstance'.
+  Property 'isInLastRow' does not exist on type 'Element'.
+src/components/editable-table.tsx(130,54): error TS2339: Property 'focus' does not exist on type 'Element | Text'.
+  Property 'focus' does not exist on type 'Element'.
+src/components/editable-table.tsx(136,22): error TS2339: Property 'isSelectedUsingKey' does not exist on type 'ReactInstance'.
+  Property 'isSelectedUsingKey' does not exist on type 'Element'.
+src/components/editable-table.tsx(137,22): error TS2339: Property 'isSelectedUsingKey' does not exist on type 'ReactInstance'.
+  Property 'isSelectedUsingKey' does not exist on type 'Element'.
+src/components/editable-table.tsx(138,22): error TS2339: Property 'isSelectedUsingKey' does not exist on type 'ReactInstance'.
+  Property 'isSelectedUsingKey' does not exist on type 'Element'.
+src/components/focus-container.tsx(30,8): error TS2322: Type '{ children: ReactNode; stores: FocusedContentStore[]; getStateFromStores: () => { focused: any; focusedId: any; keyboardCursor: any; keyboardCursorId: any; onFocusItem: (item: any) => void; onSetCursorPosition: (item: any) => void; }; collection?: string; }' is not assignable to type '{ readonly stores: any[]; readonly getStateFromStores: (...args: any[]) => any; readonly children: ReactElement<any, string | ((props: any) => ReactElement<any, string | ... | (new (props: any) => Component<any, any, any>)>) | (new (props: any) => Component<...>)> | ... 5 more ... | (ReactElement<...> & ReactPortal)...'.
+  Types of property 'children' are incompatible.
+    Type 'ReactNode' is not assignable to type 'ReactElement<any, string | ((props: any) => ReactElement<any, string | ... | (new (props: any) => Component<any, any, any>)>) | (new (props: any) => Component<any, any, any>)> | ... 5 more ... | (ReactElement<...> & ReactPortal)'.
+      Type 'string' is not assignable to type 'ReactElement<any, string | ((props: any) => ReactElement<any, string | ... | (new (props: any) => Component<any, any, any>)>) | (new (props: any) => Component<any, any, any>)> | ... 5 more ... | (ReactElement<...> & ReactPortal)'.
+src/components/multiselect-list-interaction-handler.ts(84,17): error TS2339: Property 'select' does not exist on type '{}'.
+src/components/selectable-table.tsx(109,51): error TS2345: Argument of type 'Readonly<PropsWithChildren<SelectableTableCellProps>>' is not assignable to parameter of type '{ selection: any; rowIdx: any; colIdx: any; }'.
+  Property 'selection' is optional in type 'Readonly<PropsWithChildren<SelectableTableCellProps>>' but required in type '{ selection: any; rowIdx: any; colIdx: any; }'.
+src/components/selectable-table.tsx(127,28): error TS2345: Argument of type 'Readonly<PropsWithChildren<SelectableTableCellProps>>' is not assignable to parameter of type '{ selection: any; rowIdx: any; colIdx: any; }'.
+src/components/selectable-table.tsx(127,53): error TS2339: Property 'key' does not exist on type '{ rowIdx: number; colIdx: number; }'.
+src/components/selectable-table.tsx(140,33): error TS2345: Argument of type 'Readonly<PropsWithChildren<SelectableTableCellProps>>' is not assignable to parameter of type '{ selection: any; rowIdx: any; colIdx: any; }'.
+src/components/selectable-table.tsx(142,13): error TS2322: Type '{ className: string; onClick: () => void; tableDataSource?: any; rowIdx?: string | number; colIdx?: string | number; selection?: { rowIdx: number; colIdx: number; }; onSetSelection?: (...args: any[]) => any; children?: ReactNode; }' is not assignable to type 'IntrinsicAttributes & { children: string | number | ReactElement<any, string | ((props: any) => ReactElement<any, string | ... | (new (props: any) => Component<any, any, any>)>) | (new (props: any) => Component<...>)> | ReactChildren; className?: string; isHeader?: boolean; } & Pick<...>'.
+  Property 'onClick' does not exist on type 'IntrinsicAttributes & { children: string | number | ReactElement<any, string | ((props: any) => ReactElement<any, string | ... | (new (props: any) => Component<any, any, any>)>) | (new (props: any) => Component<...>)> | ReactChildren; className?: string; isHeader?: boolean; } & Pick<...>'.
+src/components/selectable-table.tsx(169,51): error TS2345: Argument of type 'Readonly<PropsWithChildren<SelectableTableRowProps>>' is not assignable to parameter of type '{ selection: any; rowIdx: any; }'.
+  Property 'selection' is optional in type 'Readonly<PropsWithChildren<SelectableTableRowProps>>' but required in type '{ selection: any; rowIdx: any; }'.
+src/components/selectable-table.tsx(170,53): error TS2339: Property 'colIdx' does not exist on type 'object'.
+src/components/selectable-table.tsx(176,25): error TS2345: Argument of type 'Readonly<PropsWithChildren<SelectableTableRowProps>>' is not assignable to parameter of type '{ selection: any; rowIdx: any; }'.
+src/components/selectable-table.tsx(177,34): error TS2339: Property 'scrollIntoViewIfNeeded' does not exist on type 'Element | Text'.
+  Property 'scrollIntoViewIfNeeded' does not exist on type 'Element'.
+src/components/selectable-table.tsx(189,33): error TS2345: Argument of type 'Readonly<PropsWithChildren<SelectableTableRowProps>>' is not assignable to parameter of type '{ selection: any; rowIdx: any; }'.
+src/components/selectable-table.tsx(191,13): error TS2739: Type '{ className: string; tableDataSource?: any; selection?: object; rowIdx?: any; children?: ReactNode; }' is missing the following properties from type 'Pick<{ readonly className: string; readonly isHeader: boolean; readonly displayNumbers: boolean; readonly tableDataSource: TableDataSource; readonly rowIdx: number; readonly extraProps: object; readonly CellRenderer: string | ((...args: any[]) => any); readonly children?: ReactNode; } & Pick<...>, "children" | ... 3...': isHeader, displayNumbers
+src/components/selectable-table.tsx(298,8): error TS2739: Type '{ extraProps: { selection: { rowIdx?: number; colIdx?: number; }; onSetSelection: (...args: any[]) => any; onShiftSelection: (...args: any[]) => any; }; RowRenderer: any; CellRenderer: any; tableDataSource?: any; selection: { ...; }; onSetSelection: (...args: any[]) => any; onShiftSelection: (...args: any[]) => any;...' is missing the following properties from type 'Pick<{ readonly className: string; readonly displayHeader: boolean; readonly displayNumbers: boolean; readonly rowHeight: number; readonly bodyHeight: number; readonly tableDataSource: TableDataSource; readonly extraProps: object; readonly RowRenderer: string | ((...args: any[]) => any); readonly CellRenderer: strin...': displayNumbers, displayHeader, rowHeight, bodyHeight
+src/flux/attributes/attribute-object.ts(22,42): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+src/flux/attributes/attribute-object.ts(26,14): error TS2351: Cannot use 'new' with an expression whose type lacks a call or construct signature.
+src/flux/attributes/attribute.ts(112,35): error TS2339: Property 'columnSQL' does not exist on type 'Attribute'.
+src/global/mailspring-observables.ts(153,1): error TS2322: Type '<T extends Model>(query: ModelQuery<T>) => Observable<T>' is not assignable to type '<T>(query: ModelQuery<T>) => Observable<T>'.
+  Types of parameters 'query' and 'query' are incompatible.
+    Type 'ModelQuery<T>' is not assignable to type 'ModelQuery<Model>'.
+      Type 'T' is not assignable to type 'Model'.
+src/mail-rules-templates.ts(45,5): error TS2345: Argument of type '{ name: any; values: { name: any; value: string; }[]; valueLabel: string; valueForMessage: (message: Message) => "true" | "false"; }' is not assignable to parameter of type '{ name?: string; valueForMessage?: (message: Message) => any; }'.
+  Object literal may only specify known properties, and 'values' does not exist in type '{ name?: string; valueForMessage?: (message: Message) => any; }'.
+src/mail-rules-templates.ts(118,9): error TS2345: Argument of type '{ name: any; values: Observable<{ name: any; value: string; }[]>; }' is not assignable to parameter of type '{ name?: string; valueForMessage?: (message: Message) => any; }'.
+  Object literal may only specify known properties, and 'values' does not exist in type '{ name?: string; valueForMessage?: (message: Message) => any; }'.
+src/mail-rules-templates.ts(124,9): error TS2345: Argument of type '{ name: any; values: Observable<{ name: any; value: string; }[]>; }' is not assignable to parameter of type '{ name?: string; valueForMessage?: (message: Message) => any; }'.
+  Object literal may only specify known properties, and 'values' does not exist in type '{ name?: string; valueForMessage?: (message: Message) => any; }'.
+src/mail-rules-templates.ts(131,9): error TS2345: Argument of type '{ name: any; valueLabel: string; values: Observable<{ name: any; value: string; }[]>; }' is not assignable to parameter of type '{ name?: string; valueForMessage?: (message: Message) => any; }'.
+  Object literal may only specify known properties, and 'valueLabel' does not exist in type '{ name?: string; valueForMessage?: (message: Message) => any; }'.

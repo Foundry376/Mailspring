@@ -1,18 +1,18 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-dom/test-utils');
-const {
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
+import {
   Thread,
   Actions,
   CategoryStore,
   TaskFactory,
   MailboxPerspective,
-} = require('mailspring-exports');
-const {
+} from 'mailspring-exports';
+import {
   ToggleStarredButton,
   ToggleUnreadButton,
   MarkAsSpamButton,
-} = require('../lib/thread-toolbar-buttons');
+} from '../lib/thread-toolbar-buttons';
 
 const test_thread = new Thread().fromJSON({
   id: 'thread_12345',

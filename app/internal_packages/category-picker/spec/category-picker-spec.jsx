@@ -1,9 +1,9 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-dom/test-utils');
-const MovePickerPopover = require('../lib/move-picker-popover').default;
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
+import MovePickerPopover from '../lib/move-picker-popover';
 
-const {
+import {
   Category,
   Folder,
   Thread,
@@ -17,9 +17,9 @@ const {
   MailboxPerspective,
   MailspringTestUtils,
   TaskQueue,
-} = require('mailspring-exports');
+} from 'mailspring-exports';
 
-const { Categories } = require('mailspring-observables');
+import { Categories } from 'mailspring-observables';
 
 describe('MovePickerPopover', function() {
   beforeEach(() => (CategoryStore._categoryCache = {}));

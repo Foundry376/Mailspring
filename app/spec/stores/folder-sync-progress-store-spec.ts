@@ -1,0 +1,1 @@
+xdescribe('FolderSyncProgressStore', function mailspringSyncStatusStore() {});
