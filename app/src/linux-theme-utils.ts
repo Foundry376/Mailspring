@@ -42,7 +42,7 @@ const ICON_EXTENSION = ['.png', '.svg'];
 function __getGsettingsIconThemeCMD(): string {
   const path = __getDesktopSettingsPath();
   const key = 'icon-theme';
-  return `gsettings get ${path} ${key}`;
+  return path != null ? `gsettings get ${path} ${key}` : null;
 }
 
 /**
@@ -54,7 +54,7 @@ function __getGsettingsIconThemeCMD(): string {
 function __getGsettingsGtkThemeCMD(): string {
   const path = __getDesktopSettingsPath();
   const key = 'gtk-theme';
-  return `gsettings ${path} ${key}`;
+  return path != null ? `gsettings ${path} ${key}` : null;
 }
 
 /**
@@ -84,7 +84,7 @@ function __getDesktopSettingsPath(): string {
  */
 function __exec(cmd: string): string {
   try {
-    return execSync(cmd)
+    return cmd == null ? null : execSync(cmd)
       .toString()
       .trim()
       .replace(/'/g, '');
