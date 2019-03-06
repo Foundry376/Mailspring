@@ -204,12 +204,12 @@ export default class LabelPickerPopover extends Component {
 
     return (
       <div className="check-wrap" style={styles}>
-        <RetinaImg
+        {/* <RetinaImg
           className="check-img check"
           name="tagging-checkbox.png"
           mode={RetinaImg.Mode.ContentPreserve}
           onClick={() => this._onSelectLabel(item)}
-        />
+        /> */}
         {checkStatus}
       </div>
     );
@@ -299,6 +299,7 @@ export default class LabelPickerPopover extends Component {
           onEscape={this._onEscape}
           defaultSelectedIndex={this.state.searchValue === '' ? -1 : 0}
         />
+        {this._renderColorPlate()}
       </div>
     );
   }
