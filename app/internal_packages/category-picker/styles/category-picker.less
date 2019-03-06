@@ -15,7 +15,7 @@ body.platform-win32 {
 .label-picker-popover,
 .category-picker-dropdown {
   .menu {
-    background: @background-secondary;
+    background: @white;
     width: @popover-width;
     max-height: 400px;
 
@@ -77,11 +77,14 @@ body.platform-win32 {
     display: inline-block;
     margin-left: 10px;
     margin-right: 5px;
-    word-break: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     flex: 1;
   }
 }
 
+.fixed-popover-container .fixed-popover .label-picker-popover,
 .category-picker-popover {
   max-height: 280px;
   position: fixed;
@@ -89,6 +92,7 @@ body.platform-win32 {
   .menu {
     background: @background-primary;
     width: @popover-width;
+    border-radius: 10px;
     box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
 
     .content-container {
@@ -213,5 +217,14 @@ body.platform-win32 {
 
   .category-display-name {
     display: inline-block;
+  }
+}
+
+.fixed-popover-container .fixed-popover .label-picker-popover {
+  .category-item {
+    padding-left: 5px;
+    .check-wrap {
+      background-color: transparent;
+    }
   }
 }
