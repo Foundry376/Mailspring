@@ -90,8 +90,8 @@ export const failAuthEpic = action$ => action$.ofType(FAIL_CONNECTION_AUTH)
 /**
  * Trigger enabling carbons after connection is established
  */
-export const triggerEnableCarbonsEpic = action$ => action$.ofType(CONNECTION_ESTABLISHED)
-  .mapTo(beginEnablingCarbons());
+// export const triggerEnableCarbonsEpic = action$ => action$.ofType(CONNECTION_ESTABLISHED)
+//   .mapTo(beginEnablingCarbons());
 
 /**
  * Enable carbons
