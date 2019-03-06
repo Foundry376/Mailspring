@@ -110,7 +110,7 @@ module.exports = grunt => {
       protocols: [
         {
           name: 'EdisonMail Protocol',
-          schemes: ['mailspring'],
+          schemes: ['EdisonMail'],
         },
         {
           name: 'Mailto Protocol',
@@ -131,7 +131,7 @@ module.exports = grunt => {
           'mac',
           'edisonMail.icns'
         ),
-        win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'mailspring.ico'),
+        win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'edisonmail.ico'),
         linux: undefined,
       }[platform],
       name: {
@@ -156,7 +156,7 @@ module.exports = grunt => {
             '**/vendor/**',
             'examples/**',
             '**/src/tasks/**',
-            '**/src/scripts/**',　
+            '**/src/scripts/**',
             '**/node_modules/spellchecker/**',
             '**/node_modules/windows-shortcuts/**',
           ].join(',') +
@@ -231,7 +231,7 @@ module.exports = grunt => {
       // Electron.app/Contents/Info.plist. A majority of the defaults are
       // left in the Electron Info.plist file
       extendInfo: path.resolve(grunt.config('appDir'), 'build', 'resources', 'mac', 'extra.plist'),
-      appBundleId: 'com.mailspring.mailspring',
+      appBundleId: 'com.edisonmail.edisonmail',
       afterCopy: [
         runCopyPlatformSpecificResources,
         runWriteCommitHashIntoPackage,
