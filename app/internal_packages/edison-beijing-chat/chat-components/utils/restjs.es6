@@ -28,7 +28,6 @@ export const register = (email, pwd, name, type, provider, setting) => {
                     "deviceModel": process.platform,
                     "pushToken": "",
                     "deviceId": deviceId,
-                    "otherAccounts": [],
                     "e2eeKeys": [
                         { 'id': '1', 'key': pubKey }
                     ],
