@@ -13,6 +13,7 @@ import {
 import { Categories } from 'mailspring-observables';
 
 export default class LabelPickerPopover extends Component {
+  tasks = {};
   static propTypes = {
     threads: PropTypes.array.isRequired,
     account: PropTypes.object.isRequired,
@@ -97,7 +98,6 @@ export default class LabelPickerPopover extends Component {
     const { account, threads } = this.props;
 
     if (threads.length === 0) return;
-
     if (item.newCategoryItem) {
       const syncbackTask = SyncbackCategoryTask.forCreating({
         name: this.state.searchValue,
@@ -119,24 +119,54 @@ export default class LabelPickerPopover extends Component {
         );
       });
       Actions.queueTask(syncbackTask);
+      Actions.closePopover();
     } else if (item.usage === threads.length) {
-      Actions.queueTask(
-        new ChangeLabelsTask({
-          source: 'Category Picker: Existing Category',
-          threads: threads,
-          labelsToRemove: [item.category],
-          labelsToAdd: [],
-        })
-      );
+      const task = new ChangeLabelsTask({
+        source: 'Category Picker: Existing Category',
+        threads: threads,
+        labelsToRemove: [item.category],
+        labelsToAdd: [],
+      });
+      this.tasks[item.category.path] = {
+        task,
+        action: 'Remove'
+      };
+      item.usage = 0;
     } else {
-      Actions.queueTask(
-        new ChangeLabelsTask({
-          source: 'Category Picker: Existing Category',
-          threads: threads,
-          labelsToRemove: [],
-          labelsToAdd: [item.category],
-        })
-      );
+      const task = new ChangeLabelsTask({
+        source: 'Category Picker: Existing Category',
+        threads: threads,
+        labelsToRemove: [],
+        labelsToAdd: [item.category],
+      });
+      this.tasks[item.category.path] = {
+        task,
+        action: 'Add'
+      }
+      item.usage = threads.length;
+    }
+  };
+
+  _onApplyChanges = () => {
+    if (Object.keys(this.tasks)) {
+      const addTasks = [];
+      const removeTasks = [];
+      const tasks = this.tasks;
+      // get remove label tasks and add label tasks
+      for (const k in tasks) {
+        if (tasks[k].action === 'Add') {
+          addTasks.push(tasks[k].task);
+        }
+        else if (tasks[k].action === 'Remove') {
+          removeTasks.push(tasks[k].task);
+        }
+      }
+      if (removeTasks.length) {
+        Actions.queueTasks(removeTasks);
+      }
+      if (addTasks.length) {
+        Actions.queueTasks(addTasks);
+      }
     }
     Actions.closePopover();
   };
@@ -194,7 +224,7 @@ export default class LabelPickerPopover extends Component {
           mode={RetinaImg.Mode.ContentIsMask}
         />
         <div className="category-display-name">
-          <strong>&ldquo;{searchValue}&rdquo;</strong> (create new)
+          <strong>&ldquo;{searchValue}&rdquo;</strong> (new label)
         </div>
       </div>
     );
@@ -204,11 +234,19 @@ export default class LabelPickerPopover extends Component {
     if (item.divider) {
       return <Menu.Item key={item.id} divider={item.divider} />;
     } else if (item.newCategoryItem) {
+      const { categoryData } = this.state;
+      const { searchValue } = item;
+      for (const data of categoryData) {
+        // if exist in list, don't display [create new]
+        if (data.displayName === searchValue) {
+          return null;
+        }
+      }
       return this._renderCreateNewItem(item);
     }
 
     return (
-      <div className="category-item">
+      <div className="category-item" key={item.id}>
         {this._renderCheckbox(item)}
         <div className="category-display-name">
           <BoldedSearchResult value={item.displayName} query={this.state.searchValue || ''} />
@@ -218,7 +256,9 @@ export default class LabelPickerPopover extends Component {
   };
 
   render() {
+    const { categoryData } = this.state;
     const headerComponents = [
+      <div className="header-text">Add label...</div>,
       <input
         type="text"
         tabIndex="1"
@@ -230,11 +270,20 @@ export default class LabelPickerPopover extends Component {
       />,
     ];
 
+    let footerComponents = [
+      <div className="category-item category-create-new" onClick={this._onApplyChanges}>Save Changes</div>
+    ];
+
+    if (!categoryData
+      || (categoryData.length === 1 && categoryData[0].id === 'category-create-new')) {
+      footerComponents = [];
+    }
+
     return (
       <div className="label-picker-popover">
         <Menu
           headerComponents={headerComponents}
-          footerComponents={[]}
+          footerComponents={footerComponents}
           items={this.state.categoryData}
           itemKey={item => item.id}
           itemContent={this._renderItem}
