@@ -21,6 +21,7 @@ export default class CreateNewFolderPopover extends Component {
   static defaultProps = {
     left: 490,
     top: 107,
+    buttonTimeout: 700,// timeout
   };
 
   constructor(props) {
@@ -28,15 +29,22 @@ export default class CreateNewFolderPopover extends Component {
     this.state = {
       newName: '',
       alsoMove: true,
+      isBusy: false,
     };
+    this._mounted = false;
+    this._buttonTimer = null;
+    this._buttonTimestamp = 0;
   }
 
   componentDidMount() {
+    this._mounted = true;
     document.body.addEventListener('click', this.onBlur);
   }
 
   componentWillUnmount() {
+    this._mounted = false;
     document.body.removeEventListener('click', this.onBlur);
+    clearTimeout(this._buttonTimer);
   }
 
   onCancel = () => {
@@ -51,14 +59,55 @@ export default class CreateNewFolderPopover extends Component {
       this.onCancel();
     }
   };
+
+  _onBusyTimeout = () => {
+    if (!this._mounted) {
+      return;
+    }
+    if (!this._buttonTimer) {
+      this._buttonTimestamp = Date.now();
+      this._buttonTimer = setTimeout(() => {
+        this.setState({ isBusy: false });
+        this._buttonTimer = null;
+      }, this.props.buttonTimeout * 2);
+    }
+  };
+  _onResultReturned = ()=>{
+    if(!this._mounted){
+      return;
+    }
+    if (!this._buttonTimer) {
+      this._buttonTimestamp = Date.now();
+      this._buttonTimer = setTimeout(() => {
+        this.setState({ isBusy: false });
+        this._buttonTimer = null;
+      }, this.props.buttonTimeout);
+    } else {
+      const now = Date.now();
+      clearTimeout(this._buttonTimer);
+      if (now - this._buttonTimestamp < this.props.buttonTimeout) {
+        this._buttonTimestamp = Date.now();
+        this._buttonTimer = setTimeout(() => {
+          this.setState({ isBusy: false });
+          this._buttonTimer = null;
+        }, this.props.buttonTimeout);
+      } else {
+        this._buttonTimer = null;
+        this.setState({ isBusy: false });
+      }
+    }
+  };
   _onCreateCategory = () => {
+    this.setState({ isBusy: true });
     const syncbackTask = SyncbackCategoryTask.forCreating({
       name: this.state.newName,
       accountId: this.props.account.id,
     });
-
+    this._onResultReturned();
     TaskQueue.waitForPerformRemote(syncbackTask).then(finishedTask => {
       if (!finishedTask.created) {
+        this._onBusyTimeout();
+        this.setState({ newName: '' });
         AppEnv.showErrorDialog({ title: 'Error', message: `Could not create folder.` });
         return;
       }
@@ -78,10 +127,13 @@ export default class CreateNewFolderPopover extends Component {
         }),
       );
       this.onCancel();
+      this._onResultReturned();
     }
   };
   _onNameChange = (e) => {
-    this.setState({ newName: e.target.value });
+    if(!this.state.isBusy){
+      this.setState({ newName: e.target.value });
+    }
   };
 
   renderButtons() {
@@ -91,7 +143,11 @@ export default class CreateNewFolderPopover extends Component {
       </button>
       <button className="create-folder-btn-create" title="Create Folder"
               disabled={this.state.newName.length === 0} onClick={this._onCreateCategory}>
-        <span>Create Folder</span>
+        {(this.state.isBusy || this._buttonTimer) ?
+          <RetinaImg name={'sending-spinner.gif'}
+                     style={{ width: 24 }}
+                     mode={RetinaImg.Mode.ContentIsMask}/> :
+          <span>Create Folder</span>}
       </button>
     </div>;
   }
@@ -105,15 +161,15 @@ export default class CreateNewFolderPopover extends Component {
           <title>close_1</title>
           <circle id="circle" cx="48" cy="48" r="48" fill={'none'} className="svg-close-circle"/>
           <path id={'x-mark'}
-            d="M76.93,24.85,71.08,19,48,42.19,24.84,19,19,24.85,42.16,48,19,71.15,24.84,77,48,53.81,71.16,77,77,71.15,53.84,48Z"
-            fill="none"/>
+                d="M76.93,24.85,71.08,19,48,42.19,24.84,19,19,24.85,42.16,48,19,71.15,24.84,77,48,53.81,71.16,77,77,71.15,53.84,48Z"
+                fill="none"/>
         </svg>
         {/*<button className={'btn btn-toolbar btn-category-picker'}>*/}
         {/*<RetinaImg name={'close_1.svg'} onClick={this.onCancel}*/}
-                   {/*className={'svg-close-circle'}*/}
-                   {/*isIcon={true}*/}
-                   {/*style={{ width: 20, height: 20 }}*/}
-                   {/*mode={RetinaImg.Mode.ContentIsMask}*/}
+        {/*className={'svg-close-circle'}*/}
+        {/*isIcon={true}*/}
+        {/*style={{ width: 20, height: 20 }}*/}
+        {/*mode={RetinaImg.Mode.ContentIsMask}*/}
         {/*/>*/}
         {/*</button>*/}
       </div>
@@ -123,6 +179,7 @@ export default class CreateNewFolderPopover extends Component {
       </div>
       <input className='folder-input'
              value={this.state.newName} placeholder={'Name'}
+             disabled={this.state.isBusy}
              onChange={this._onNameChange}/>
       {this.renderButtons()}
     </div>;
