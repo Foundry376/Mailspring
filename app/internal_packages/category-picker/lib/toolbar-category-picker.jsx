@@ -38,9 +38,10 @@ class MovePicker extends React.Component {
     if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
-    Actions.openPopover(<LabelPickerPopover threads={this.props.items} account={this._account}/>, {
+    Actions.openPopover(<LabelPickerPopover threads={this.props.items} account={this._account} />, {
       originRect: this._labelEl.getBoundingClientRect(),
       direction: 'down',
+      disablePointer: true
     });
   };
   _onCreateFolder = () => {
@@ -59,13 +60,13 @@ class MovePicker extends React.Component {
     }
     this.setState({ moveFolderPopoutVisible: true });
   };
-  _onCloseMoveFolderPopout = ()=>{
-    this.setState({moveFolderPopoutVisible: false});
+  _onCloseMoveFolderPopout = () => {
+    this.setState({ moveFolderPopoutVisible: false });
   }
 
   render() {
     if (!this._account) {
-      return <span/>;
+      return <span />;
     }
 
     const handlers = {
@@ -88,7 +89,7 @@ class MovePicker extends React.Component {
             className={'btn btn-toolbar btn-category-picker'}
           >
             <RetinaImg name={'folder.svg'} style={{ width: 26, height: 26 }} isIcon
-                       mode={RetinaImg.Mode.ContentIsMask}/>
+              mode={RetinaImg.Mode.ContentIsMask} />
           </button>
           {this._account.usesLabels() && (
             <button
@@ -99,7 +100,7 @@ class MovePicker extends React.Component {
               className={'btn btn-toolbar btn-category-picker'}
             >
               <RetinaImg name={'label.svg'} style={{ width: 26, height: 26 }} isIcon
-                         mode={RetinaImg.Mode.ContentIsMask}/>
+                mode={RetinaImg.Mode.ContentIsMask} />
             </button>
           )}
         </KeyCommandsRegion>
@@ -107,13 +108,13 @@ class MovePicker extends React.Component {
           <CreateNewFolderPopover
             threads={this.props.items}
             account={this._account}
-            onCancel={this._onCancelCreate}/> : null}
+            onCancel={this._onCancelCreate} /> : null}
         {this.state.moveFolderPopoutVisible ?
           <MovePickerPopover threads={this.props.items}
-                             account={this._account}
-                             originEl={this._moveEl ? this._moveEl.getBoundingClientRect() : null}
-                             onClose={this._onCloseMoveFolderPopout}
-                             onCreate={this._onCreateFolder}/> : null}
+            account={this._account}
+            originEl={this._moveEl ? this._moveEl.getBoundingClientRect() : null}
+            onClose={this._onCloseMoveFolderPopout}
+            onCreate={this._onCreateFolder} /> : null}
       </div>
     );
   }

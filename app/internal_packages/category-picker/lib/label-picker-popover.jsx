@@ -255,10 +255,18 @@ export default class LabelPickerPopover extends Component {
     );
   };
 
+  _renderColorPlate() {
+    return (
+      <div>
+
+      </div>
+    )
+  }
+
   render() {
     const { categoryData } = this.state;
     const headerComponents = [
-      <div className="header-text">Add label...</div>,
+      <div key="headerText" className="header-text">Add label...</div>,
       <input
         type="text"
         tabIndex="1"
@@ -271,7 +279,7 @@ export default class LabelPickerPopover extends Component {
     ];
 
     let footerComponents = [
-      <div className="category-item category-create-new" onClick={this._onApplyChanges}>Save Changes</div>
+      <div key="footer" className="category-item category-create-new" onClick={this._onApplyChanges}>Save Changes</div>
     ];
 
     if (!categoryData
