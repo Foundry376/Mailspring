@@ -25,10 +25,17 @@
     removeClassFromNodes(scrollContentInners, 'scroll-region-content-inner');
   }
 
+  function replaceRelativeDates() {
+    var dates = document.querySelectorAll('.message-time');
+    dates.forEach(d => {
+      d.innerText = d.getAttribute('title');
+    });
+  }
   var messageNodes = document.querySelectorAll('.message-item-area>span');
 
   removeScrollClasses();
   rebuildMessages(messageNodes, window.printMessages);
+  replaceRelativeDates();
 
   document.getElementById('print-button').addEventListener('click', () => {
     setTimeout(function() {
