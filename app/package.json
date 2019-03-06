@@ -12,7 +12,7 @@
   "dependencies": {
     "alt-sasl-digest-md5": "^1.0.0",
     "async": "^2.5.0",
-    "aws-sdk": "^2.374.0",
+    "aws-sdk": "latest",
     "babel-core": "6.22.0",
     "babel-preset-electron": "bengotow/babel-preset-electron#00783dfc438f122997993ae597a41ec315ba121b",
     "babel-preset-react": "6.22.0",
