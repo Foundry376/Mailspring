@@ -110,15 +110,7 @@ export default class MovePickerPopover extends Component {
           backgroundColor: LabelColorizer.backgroundColorDark(cat),
         };
       });
-    if (props.originEl) {
-      return {
-        left: (props.originEl.left > 0) * (props.originEl.left - 138),
-        top: props.originEl.top + 23,
-        categoryData,
-        searchValue,
-      };
-    }
-    return { left: 0, top: 0, categoryData, searchValue };
+    return { categoryData, searchValue };
   };
 
   _onCategoriesChanged = categories => {
@@ -253,7 +245,7 @@ export default class MovePickerPopover extends Component {
     ];
 
     return (
-      <div className="category-picker-popover" style={{top: this.state.top, left: this.state.left}} ref={(el) => this.container = el}>
+      <div className="category-picker-popover" ref={(el) => this.container = el}>
         <Menu
           headerComponents={headerComponents}
           footerComponents={this._renderNewItem()}

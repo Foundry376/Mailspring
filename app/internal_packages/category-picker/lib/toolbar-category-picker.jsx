@@ -45,10 +45,16 @@ class MovePicker extends React.Component {
     });
   };
   _onCreateFolder = () => {
-    this.setState({ createFolderPopoverVisible: true, moveFolderPopoutVisible: false });
+    Actions.openPopover(<CreateNewFolderPopover threads={this.props.items} account={this._account}
+                                                onCancel={this._onCancelCreate}/>, {
+      isFixedToWindow: true,
+      originRect: this._moveEl.getBoundingClientRect(),
+        position: { top: 0.13, left: 0.49 },
+      disablePointer: true,
+    });
   };
   _onCancelCreate = () => {
-    this.setState({ createFolderPopoverVisible: false });
+    Actions.closePopover();
   };
 
   _onOpenMovePopover = () => {
@@ -58,15 +64,22 @@ class MovePicker extends React.Component {
     if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
-    this.setState({ moveFolderPopoutVisible: true });
+    Actions.openPopover(<MovePickerPopover threads={this.props.items}
+                                           account={this._account}
+                                           onClose={this._onCloseMoveFolderPopout}
+                                           onCreate={this._onCreateFolder}/>, {
+      originRect: this._moveEl.getBoundingClientRect(),
+        direction: 'down',
+      disablePointer: true,
+    });
   };
   _onCloseMoveFolderPopout = () => {
-    this.setState({ moveFolderPopoutVisible: false });
-  }
+    Actions.closePopover();
+  };
 
   render() {
     if (!this._account) {
-      return <span />;
+      return <span/>;
     }
 
     const handlers = {
@@ -104,17 +117,6 @@ class MovePicker extends React.Component {
             </button>
           )}
         </KeyCommandsRegion>
-        {this.state.createFolderPopoverVisible ?
-          <CreateNewFolderPopover
-            threads={this.props.items}
-            account={this._account}
-            onCancel={this._onCancelCreate} /> : null}
-        {this.state.moveFolderPopoutVisible ?
-          <MovePickerPopover threads={this.props.items}
-            account={this._account}
-            originEl={this._moveEl ? this._moveEl.getBoundingClientRect() : null}
-            onClose={this._onCloseMoveFolderPopout}
-            onCreate={this._onCreateFolder} /> : null}
       </div>
     );
   }

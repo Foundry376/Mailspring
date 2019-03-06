@@ -17,13 +17,21 @@ class PopoverStore extends MailspringStore {
     super();
     this.isOpen = false;
     this.container = createContainer(containerId);
-    ReactDOM.render(<span />, this.container);
+    ReactDOM.render(<span/>, this.container);
 
     this.listenTo(Actions.openPopover, this.openPopover);
     this.listenTo(Actions.closePopover, this.closePopover);
   }
 
-  renderPopover = (child, props, callback) => {
+  renderPopover = (
+    child,
+    props,
+    callback,
+    opts = { isFixedToWindow: false, position: { left: 0, top: 0 } },
+  ) => {
+    if (opts.isFixedToWindow) {
+      props.position = opts.position;
+    }
     const popover = <FixedPopover {...props}>{child}</FixedPopover>;
 
     ReactDOM.render(popover, this.container, () => {
@@ -35,7 +43,11 @@ class PopoverStore extends MailspringStore {
 
   openPopover = (
     element,
-    { originRect, direction, fallbackDirection, closeOnAppBlur, disablePointer, onClose = () => { }, callback = () => { } }
+    {
+      originRect, direction, fallbackDirection, closeOnAppBlur, disablePointer, isFixedToWindow = false, position = {}, onClose = () => {
+    }, callback = () => {
+    },
+    },
   ) => {
     const props = {
       direction,
@@ -43,20 +55,22 @@ class PopoverStore extends MailspringStore {
       fallbackDirection,
       closeOnAppBlur,
       onClose,
-      disablePointer
+      disablePointer,
+      isFixedToWindow,
     };
 
     if (this.isOpen) {
       this.closePopover(() => {
-        this.renderPopover(element, props, callback);
+        this.renderPopover(element, props, callback, { isFixedToWindow, position });
       });
     } else {
-      this.renderPopover(element, props, callback);
+      this.renderPopover(element, props, callback, { isFixedToWindow, position });
     }
   };
 
-  closePopover = (callback = () => { }) => {
-    ReactDOM.render(<span />, this.container, () => {
+  closePopover = (callback = () => {
+  }) => {
+    ReactDOM.render(<span/>, this.container, () => {
       this.isOpen = false;
       this.trigger();
       callback();

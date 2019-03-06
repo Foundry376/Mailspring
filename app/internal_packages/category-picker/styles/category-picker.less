@@ -85,15 +85,13 @@ body.platform-win32 {
 }
 
 .fixed-popover-container .fixed-popover .label-picker-popover,
-.category-picker-popover {
-  max-height: 280px;
-  position: fixed;
-
+.fixed-popover-container .fixed-popover .category-picker-popover {
+  max-height: 284px;
+  padding-top: 4px;
   .menu {
     background: @background-primary;
     width: @popover-width;
     border-radius: 10px;
-    box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
 
     .content-container {
       background-color: inherit;
@@ -121,7 +119,7 @@ body.platform-win32 {
     }
 
     .header-container {
-      padding-left: 21px;
+      padding: 0px 0px 0px 21px;
       border-bottom: 0;
       background-color: inherit;
 
@@ -135,13 +133,15 @@ body.platform-win32 {
         line-height: 19.5px;
       }
 
-      input.search {
+      input[type='text'].search {
         margin-left: -8.5px;
         outline: none;
+        border: none;
         -webkit-border-radius: 3px;
         -moz-border-radius: 3px;
         border-radius: 3px;
         background-color: @input-search-bg;
+        box-shadow: none;
       }
     }
 
@@ -191,6 +191,7 @@ body.platform-win32 {
 
   .category-item {
     padding-left: 21px;
+    padding-right: 12.5px;
     font-size: 13px;
     display: flex;
     align-items: center;

@@ -154,7 +154,6 @@ export default class CreateNewFolderPopover extends Component {
 
   render() {
     return <div ref={(el) => this.container = el}
-                style={{ left: this.props.left, top: this.props.top }}
                 className={`create-folder-container ${this.props.visible ? 'hide' : ''}`}>
       <div className={'header-row'}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" className={'content-mask'} onClick={this.onCancel}>
