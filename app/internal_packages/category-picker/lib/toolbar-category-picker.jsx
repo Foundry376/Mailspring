@@ -49,7 +49,7 @@ class MovePicker extends React.Component {
                                                 onCancel={this._onCancelCreate}/>, {
       isFixedToWindow: true,
       originRect: this._moveEl.getBoundingClientRect(),
-        position: { top: 0.13, left: 0.49 },
+        position: { top: '13%', left: '49%' },
       disablePointer: true,
     });
   };

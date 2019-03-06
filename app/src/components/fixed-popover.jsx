@@ -47,8 +47,8 @@ class FixedPopover extends Component {
       width: PropTypes.number,
     }),
     position: PropTypes.shape({
-      top: PropTypes.number,
-      left: PropTypes.left,
+      top: PropTypes.string,
+      left: PropTypes.string,
     }),
     isFixedToWindow: PropTypes.bool,
     focusElementWithTabIndex: PropTypes.func,
@@ -234,8 +234,8 @@ class FixedPopover extends Component {
     let pointerStyle = {};
     if (isFixedToWindow) {
       containerStyle = {
-        top: `${Math.floor(position.top*100)}%`,
-        left: `${Math.floor(position.left*100)}%`,
+        top: position.top,
+        left: position.left,
       };
       popoverStyle = {
         transform: `translate(${offset.x || 0}px) translate(-50%, 10px)`
