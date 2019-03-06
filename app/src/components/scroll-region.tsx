@@ -205,10 +205,9 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   };
 
   _onScrollJump = event => {
-    const trackEl = ReactDOM.findDOMNode(this.refs.track) as HTMLElement;
-    this._trackOffset = trackEl.getBoundingClientRect().top;
-    this._mouseOffsetWithinHandle = this._getHandleHeight() / 2;
-    this._onHandleMove(event);
+    const handleNode = ReactDOM.findDOMNode(this.refs.handle) as HTMLElement;
+    const direction = event.pageY < handleNode.getBoundingClientRect().top ? -1 : 1;
+    this.props.getScrollRegion().scrollTop += direction * this.state.viewportHeight;
   };
 
   _getHandleHeight = () => {
