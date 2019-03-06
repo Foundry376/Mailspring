@@ -208,7 +208,7 @@ export const sendMessageEpic = action$ =>
         return Observable.fromPromise(db.e2ees.findOne(payload.conversation.jid).exec())
           .map(e2ee => {
             if (e2ee) {
-              payload.devices = e2ee.devices;
+              //payload.devices = e2ee.devices;
             }
             return { db, payload };
           });
@@ -218,7 +218,7 @@ export const sendMessageEpic = action$ =>
       return Observable.fromPromise(db.e2ees.findOne(payload.conversation.curJid).exec())
         .map(e2ee => {
           if (e2ee) {
-            payload.selfDevices = e2ee.devices;
+            //payload.selfDevices = e2ee.devices;
           }
           return { payload };
         });

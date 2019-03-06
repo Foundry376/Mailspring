@@ -213,8 +213,14 @@ export default class MessagesSendBar extends PureComponent {
           body.emailSubject = file.subject;
           body.emailMessageId = file.messageId;
         }
+        // debugger;
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
+        let once = false;
         uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
+          if (once) {
+            return;
+          }
+          once = true;
           if (filename.match(/.gif$/)) {
             body.type = FILE_TYPE.GIF;
           } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
