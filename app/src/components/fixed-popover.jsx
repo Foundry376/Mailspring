@@ -312,7 +312,7 @@ class FixedPopover extends Component {
 
   render() {
     const { offset, direction, visible } = this.state;
-    const { children, originRect } = this.props;
+    const { children, originRect, disablePointer } = this.props;
     const blurTrapStyle = {
       top: originRect.top,
       left: originRect.left,
@@ -340,8 +340,8 @@ class FixedPopover extends Component {
           <div ref="popover" className={`fixed-popover`} style={popoverStyle}>
             {children}
           </div>
-          <div className={`fixed-popover-pointer`} style={pointerStyle} />
-          <div className={`fixed-popover-pointer shadow`} style={pointerStyle} />
+          {!disablePointer && <div className={`fixed-popover-pointer`} style={pointerStyle} />}
+          {!disablePointer && <div className={`fixed-popover-pointer shadow`} style={pointerStyle} />}
         </div>
       </div>
     );
