@@ -46,12 +46,19 @@ class FixedPopover extends Component {
       height: PropTypes.number,
       width: PropTypes.number,
     }),
+    position: PropTypes.shape({
+      top: PropTypes.string,
+      left: PropTypes.string,
+    }),
+    isFixedToWindow: PropTypes.bool,
     focusElementWithTabIndex: PropTypes.func,
-    onClose: PropTypes.func
+    onClose: PropTypes.func,
   };
 
   static defaultProps = {
     closeOnAppBlur: true,
+    isFixedToWindow: false,
+    position: {},
   };
 
   constructor(props) {
@@ -220,12 +227,22 @@ class FixedPopover extends Component {
     return null;
   };
 
-  computePopoverStyles = ({ originRect, direction, offset }) => {
+  computePopoverStyles = ({ originRect, direction, offset, isFixedToWindow, position={} }) => {
     const { Up, Down, Left, Right } = Directions;
     let containerStyle = {};
     let popoverStyle = {};
     let pointerStyle = {};
-
+    if (isFixedToWindow) {
+      containerStyle = {
+        top: position.top,
+        left: position.left,
+      };
+      popoverStyle = {
+        transform: `translate(${offset.x || 0}px) translate(-50%, 10px)`
+      };
+      pointerStyle.zoom = 0.5;
+      return { containerStyle, popoverStyle, pointerStyle };
+    }
     switch (direction) {
       case Up:
         containerStyle = {
@@ -312,7 +329,7 @@ class FixedPopover extends Component {
 
   render() {
     const { offset, direction, visible } = this.state;
-    const { children, originRect, disablePointer } = this.props;
+    const { children, originRect, disablePointer, isFixedToWindow, position } = this.props;
     const blurTrapStyle = {
       top: originRect.top,
       left: originRect.left,
@@ -323,6 +340,8 @@ class FixedPopover extends Component {
       originRect,
       direction,
       offset,
+      isFixedToWindow,
+      position,
     });
     const animateClass = visible ? ' popout' : '';
 

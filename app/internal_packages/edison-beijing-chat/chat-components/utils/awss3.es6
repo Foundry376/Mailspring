@@ -27,23 +27,38 @@ export const downloadFile = (aes, key, name, callback) => {
         Bucket: myBucket,
         Key: key
     };
-    s3.getObject(params, function (err, data) {
-        if (err) console.log(err, err.stack);
-        else {
-            // console.log(data);           // successful response
-            //console.log('data.Body', data.Body);
-            if (aes) {
-                //fs.writeFileSync('./files/src' + name, data.Body);
-                fs.writeFileSync(name, decryptByAESFile(aes, data.Body));
-            } else {
-                fs.writeFileSync(name, data.Body);
-            }
-            if (callback) {
+    const request = s3.getObject(params);
+    // console.log('dbg*** s3 downloadFile request:', request);
+    request.on('httpDownloadProgress', function (progress) {
+        console.log(progress.loaded + " of " + progress.total + " bytes", progress);
+        if (+progress.loaded == +progress.total) {
+          console.log(`finish downloadFile aws3 file ${key} to ${name}`, request);
+          const err = request.response.error;
+          if (err) {
+            console.log(err, err.stack);
+          } else {
+              let res = request.response;
+              let data = res.data;
+              res = res.httpResponse;
+              const buffers = res && res.buffers;
+              let body;
+              if (data) {
+                body = data && data.body;
+              } else if (buffers) {
+                body = Buffer.concat(buffers);
+              }
+              if (aes) {
+                body = decryptByAESFile(aes, body);
+              }
+              fs.writeFileSync(name, body);
+              if (callback) {
                 callback();
-            }
-            console.log(`succeed downloadFile aws3 file ${key} to ${name}`);
+              }
+            console.log(`succeed downloading aws3 file ${key} to ${name}`);
+          }
         }
     });
+    request.send();
 }
 
 export const uploadFile = (oid, aes, file, callback) => {
@@ -73,14 +88,16 @@ export const uploadFile = (oid, aes, file, callback) => {
         }
 
         var uploadParams = { Bucket: myBucket, Key: myKey, Body: fileStream };//,ACL: 'public-read'};
-        s3.upload(uploadParams, function (err, data) {
-            callback(err, filename, myKey, size);
-            if (err) {
-                console.log("Error", err);
-            } if (data) {
-                console.log("Upload Success", data);
-            }
+        const request = s3.putObject(uploadParams);
+        // console.log('dbg*** upload request: ', request);
+        request.on('httpUploadProgress', function (progress) {
+          console.log(progress.loaded + " of " + progress.total + " bytes");
+          if (callback && +progress.loaded == +progress.total) {
+            callback(null, filename, myKey, size);
+            console.log("Upload Success", data);
+          }
         });
+        request.send();
     })
 }
 
