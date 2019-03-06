@@ -89,7 +89,7 @@ export default class CreateNewFolderPopover extends Component {
       <button className="create-folder-btn-cancel" title="Cancel" onClick={this.onCancel}>
         <span>Cancel</span>
       </button>
-      <button className="create-folder-btn-create" title="Compose new message"
+      <button className="create-folder-btn-create" title="Create Folder"
               disabled={this.state.newName.length === 0} onClick={this._onCreateCategory}>
         <span>Create Folder</span>
       </button>
@@ -101,7 +101,7 @@ export default class CreateNewFolderPopover extends Component {
                 style={{ left: this.props.left, top: this.props.top }}
                 className={`create-folder-container ${this.props.visible ? 'hide' : ''}`}>
       <div className={'header-row'}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" className={'content-mask'}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" className={'content-mask'} onClick={this.onCancel}>
           <title>close_1</title>
           <circle id="circle" cx="48" cy="48" r="48" fill={'none'} className="svg-close-circle"/>
           <path id={'x-mark'}

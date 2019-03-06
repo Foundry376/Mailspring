@@ -76,6 +76,13 @@ const addToAvatarMembers = (conv, contact) => {
 
 const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
   let body;
+  let convJid;
+  if (chatType === RECEIVE_CHAT) {
+    convJid = payload.from.bare;
+  } else {
+    convJid = payload.from.local;
+  }
+  const msgid = payload.id;
   if (aes) {
     body = decryptByAES(aes, payload.payload);
   } else {
@@ -85,7 +92,6 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
   try {
     msgBody = JSON.parse(body);
   } catch (e) {
-    console.log('downloadAndTagImageFileInMessage msg.body: ', body);
     return;
   }
   if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
@@ -103,27 +109,26 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     }
     path = downpath + name;
     msgBody.path = 'file://' + path;
+    msgBody.downloading = true;
     downloadFile(aes, msgBody.mediaObjectId, path, () => {
       if (fs.existsSync(path)) {
-        let convJid;
-        if (chatType === RECEIVE_CHAT) {
-          convJid = payload.from.bare;
-        } else {
-          convJid = payload.from.local;
-        }
         (getDb()).then(db => {
           db.conversations.findOne().where('jid').eq(convJid).exec().then(conv => {
             updateSelectedConversation(conv);
           })
         });
       }
-    });
+    })
   }
   if (aes) {
     msgBody.aes = aes;
   }
   payload.body = JSON.stringify(msgBody);
-
+  (getDb()).then(db => {
+    db.conversations.findOne().where('jid').eq(convJid).exec().then(conv => {
+      updateSelectedConversation(conv);
+    })
+  });
   return;
 }
 
@@ -137,7 +142,6 @@ export const membersChangeEpic = action$ =>
     .mergeMap(({ payload }) =>  Observable.fromPromise(asyncMembersChangeEpic(payload)));
 
 const asyncMembersChangeEpic = async payload => {
-  // console.log('dbg*** membersChangeEpic: ', payload);
   const notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
   const items = notifications[payload.from] || (notifications[payload.from]=[]);
   const nicknames = chatModel.chatStorage.nicknames;

@@ -49,6 +49,11 @@ export const LocalizedErrorStrings = {
     'Your EdisonMail ID is missing required fields - you may need to reset EdisonMail. http://support.getmailspring.com/hc/en-us/articles/115002012491',
 };
 
+export const mailSyncModes = {
+  RESET: 'reset',
+  SYNC: 'sync',
+};
+
 export default class MailsyncProcess extends EventEmitter {
   constructor({ configDirPath, resourcePath, verbose }) {
     super();
@@ -59,6 +64,7 @@ export default class MailsyncProcess extends EventEmitter {
     // this.binaryPath = path.join('/Users/zsq/Library/Developer/Xcode/DerivedData/EdisonMailSync-gnxarlbpnlszfmgdglqxwrawejbo/Build/Products/Debug', 'mailsync').replace('app.asar', 'app.asar.unpacked');
     this.killNativeScript = path.join(resourcePath, 'src', 'scripts', process.platform === 'darwin' ? 'mac' : process.platform, 'killNative').replace('app.asar', 'app.asar.unpacked');
     this._proc = null;
+    this.isRemoving = false;
     this._win = null;
 
     // these must be set before you use the process
@@ -131,7 +137,7 @@ export default class MailsyncProcess extends EventEmitter {
 
     // stdout may not be present if an error occurred. Error handler hasn't been
     // attached yet, but will be by the caller of spawnProcess.
-    if (this.account && this._proc.stdout) {
+    if (this.account && this._proc.stdout && mode !== mailSyncModes.RESET) {
       this._proc.stdout.once('data', () => {
         var rs = new Readable();
         rs.push(`${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`);
@@ -145,7 +151,6 @@ export default class MailsyncProcess extends EventEmitter {
     return new Promise((resolve, reject) => {
       this._spawnProcess(mode);
       let buffer = Buffer.from([]);
-
       if (this._proc.stdout) {
         this._proc.stdout.on('data', data => {
           buffer += data;
@@ -291,6 +296,10 @@ export default class MailsyncProcess extends EventEmitter {
   }
 
   sendMessage(json) {
+    if (this.isRemoving) {
+      console.log('marked for remove, ignoring messages');
+      return;
+    }
     if (!Utils) {
       Utils = require('mailspring-exports').Utils;
     }
@@ -301,16 +310,18 @@ export default class MailsyncProcess extends EventEmitter {
       console.log('-----------------------------To native END-----------------------');
     }
     try {
-      this._proc.stdin.write(msg, 'UTF8');
+            this._proc.stdin.write(msg, 'UTF8');
     } catch (error) {
+      let id = '';
+      if (this._proc && this._proc.pid) {
+        id = this._proc.pid;
+      }
+      AppEnv.debugLog(`@pid ${id} mailsync write error`);
       if (error && error.message.includes('socket has been ended')) {
-        // The process probably already exited and we missed it somehow,
         // but try to kill it anyway and then force-emit a 'close' to trigger
         // the bridge to restart us.
-        let id='';
-        if(this._proc && this._proc.pid){
-          id = this._proc.pid;
-        }
+        // The process probably already exited and we missed it somehow,
+
         this.kill();
         AppEnv.debugLog(`pid@${id} mailsync-process sendMessage error:  ${error.message}`);
         this.emit('close', { code: -2, error, signal: null });

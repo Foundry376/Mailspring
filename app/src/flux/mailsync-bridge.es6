@@ -168,13 +168,6 @@ export default class MailsyncBridge {
   }
 
   ensureClients = _.throttle((kind) => {
-    if(!kind){
-      AppEnv.debugLog(`kind is missing value in ensureClients`);
-      AppEnv.reportError({
-        type: 'man-made',
-        message: `kind is missing value, ignoring ensureClients`,
-      });
-    }
     const clientsWithoutAccounts = Object.assign({}, this._clients);
 
     for (const acct of AccountStore.accounts()) {
@@ -191,11 +184,14 @@ export default class MailsyncBridge {
     // through and deleted one for each accountId are ones representing
     // deleted accounts.
     for (const client of Object.values(clientsWithoutAccounts)) {
-      let id='';
-      if(client._proc && client._proc.pid){
+      let id = '';
+      if (client._proc && client._proc.pid) {
         id = client._proc.pid;
       }
       client.kill();
+      if (!kind) {
+        AppEnv.debugLog(`@pid ${id} kind is missing value in ensureClients`);
+      }
       AppEnv.debugLog(`pid@${id} mailsync-bridge ensureClients: ${kind}`);
     }
   }, 100);
@@ -227,11 +223,23 @@ export default class MailsyncBridge {
   async resetCacheForAccount(account, { silent } = {}) {
     // grab the existing client, if there is one
     const syncingClient = this._clients[account.id];
+    if (syncingClient) {
+      // mark client as removing;
+      syncingClient.isRemoving = true;
+      let id = '';
+      if (syncingClient._proc && syncingClient._proc.pid) {
+        id = syncingClient._proc.pid;
+      }
+      syncingClient.kill();
+      AppEnv.debugLog(`pid @ ${id} mailsync-bridge resetCacheForAccount`);
+      delete this._clients[account.id];
+    }
 
     // create a new client that will perform the reset
     const resetClient = new MailsyncProcess(this._getClientConfiguration());
     resetClient.account = (await KeyManager.insertAccountSecrets(account)).toJSON();
     resetClient.identity = IdentityStore.identity();
+    resetClient.isRemoving = true;
 
     // no-op - do not allow us to kill this client - we may be reseting the cache of an
     // account which does not exist anymore, but we don't want to interrupt this process
@@ -242,10 +250,6 @@ export default class MailsyncBridge {
 
     // kill the old client, ensureClients will be a no-op because the
     // client has already been replaced in our lookup table.
-    if (syncingClient) {
-      syncingClient.kill();
-      AppEnv.debugLog('mailsync-bridge resetCacheForAccount');
-    }
 
     if (!silent) {
       AppEnv.showErrorDialog({
@@ -377,7 +381,7 @@ export default class MailsyncBridge {
       ) {
         // Because we are using sync call, make sure the listener is very short
         console.log('Making sync call, this better be time sensitive operation');
-        if(!this._clients[task.accountId]){
+        if (!this._clients[task.accountId]) {
           console.log('client is already dead, we are ignoring this sync call');
           return;
         }
@@ -530,6 +534,7 @@ export default class MailsyncBridge {
         this._onSetObservableRange(
           options.accountId,
           this._cachedSetObservableRangeTask[options.accountId],
+          true,
         );
       }
     }
@@ -548,6 +553,7 @@ export default class MailsyncBridge {
           this._onSetObservableRange(
             options.accountId,
             this._cachedSetObservableRangeTask[options.accountId],
+            true,
           );
         }
       }
@@ -559,8 +565,25 @@ export default class MailsyncBridge {
     }
     return this._cachedSetObservableRangeTask[accountId].threadIds.includes(threadId);
   };
+  _updatedCacheObservableRangeTask = (accountId, task) => {
+    if (!this._cachedSetObservableRangeTask[accountId]) {
+      this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
+      return true;
+    }
+    if (this._cachedSetObservableRangeTask[accountId].threadIds.length !== task.threadIds.length) {
+      this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
+      return true;
+    }
+    for (let threadId of task.threadIds) {
+      if (!this._cachedSetObservableRangeTask[accountId].threadIds.includes(threadId)) {
+        this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
+        return true;
+      }
+    }
+    return false;
+  };
 
-  _onSetObservableRange = (accountId, task) => {
+  _onSetObservableRange = (accountId, task, isManualTrigger=false) => {
     if (!this._clients[accountId]) {
       //account doesn't exist, we clear observable cache
       delete this._setObservableRangeTimer[accountId];
@@ -569,30 +592,37 @@ export default class MailsyncBridge {
     }
     if (this._setObservableRangeTimer[accountId]) {
       if (Date.now() - this._setObservableRangeTimer[accountId].timestamp > 1000) {
-        this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-        if (this._additionalObservableThreads[accountId]) {
-          task.threadIds = [
+        if (!this._updatedCacheObservableRangeTask(accountId, task) && !isManualTrigger) {
+          return;
+        }
+        const tmpTask = this._cachedSetObservableRangeTask[accountId];
+        if (isManualTrigger) {
+
+          tmpTask.threadIds = [
             ...new Set(
-              task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId]))
-          )];
+              tmpTask.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
+            )];
         }
         this._setObservableRangeTimer[accountId].timestamp = Date.now();
         // DC-46
         // We call sendMessageToAccount last on the off chance that mailsync have died,
         // we want to avoid triggering client.kill() before setting observable cache
-        this.sendMessageToAccount(accountId, task.toJSON());
+        this.sendMessageToAccount(accountId, tmpTask.toJSON());
       } else {
         clearTimeout(this._setObservableRangeTimer[accountId].id);
         this._setObservableRangeTimer[accountId] = {
           id: setTimeout(() => {
-            this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-            if (this._additionalObservableThreads[accountId]) {
-              task.threadIds = [
+            if (!this._updatedCacheObservableRangeTask(accountId, task) && !isManualTrigger) {
+              return;
+            }
+            const tmpTask = this._cachedSetObservableRangeTask[accountId];
+            if (isManualTrigger) {
+              tmpTask.threadIds = [
                 ...new Set(
-                  task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId]))
+                  tmpTask.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
                 )];
             }
-            this.sendMessageToAccount(accountId, task.toJSON());
+            this.sendMessageToAccount(accountId, tmpTask.toJSON());
           }, 1000),
           timestamp: Date.now(),
         };
@@ -600,15 +630,17 @@ export default class MailsyncBridge {
     } else {
       this._setObservableRangeTimer[accountId] = {
         id: setTimeout(() => {
-          this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-          if (this._additionalObservableThreads[accountId]) {
-            task.threadIds = [
-              ...new Set(
-                task.threadIds.concat(Object.values(this._additionalObservableThreads[accountId]))
-              ),
-            ];
+          if (!this._updatedCacheObservableRangeTask(accountId, task) && !isManualTrigger) {
+            return;
           }
-          this.sendMessageToAccount(accountId, task.toJSON());
+          const tmpTask = this._cachedSetObservableRangeTask[accountId];
+          if (isManualTrigger) {
+            tmpTask.threadIds = [
+              ...new Set(
+                tmpTask.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
+              )];
+          }
+          this.sendMessageToAccount(accountId, tmpTask.toJSON());
         }, 1000),
         timestamp: Date.now(),
       };
@@ -648,8 +680,8 @@ export default class MailsyncBridge {
 
   _onReadyToUnload = () => {
     for (const client of Object.values(this._clients)) {
-      let id='';
-      if(client._proc && client._proc.pid){
+      let id = '';
+      if (client._proc && client._proc.pid) {
         id = client._proc.pid;
       }
       client.kill();
