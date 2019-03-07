@@ -59,7 +59,7 @@ export default class PreferencesCategoryMapper extends React.Component {
       return false;
     }
     return (
-      <div className="role-section" key={`${account.id}-${role}`}>
+      <div className={"role-section " + role} key={`${account.id}-${role}`}>
         <div className="col-left">{`${role[0].toUpperCase()}${role.substr(1)}`}:</div>
         <div className="col-right">
           <CategorySelection
