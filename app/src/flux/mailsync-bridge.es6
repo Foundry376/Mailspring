@@ -486,6 +486,9 @@ export default class MailsyncBridge {
     // Note: cannot use `record.objectClass` because of subclass names
     if (record.type === 'persist' && record.objects[0] instanceof Task) {
       for (const task of record.objects) {
+        if (task.error != null) {
+          task.onError(task.error);
+        }
         if (task.status !== 'complete') {
           continue;
         }
@@ -583,7 +586,7 @@ export default class MailsyncBridge {
     return false;
   };
 
-  _onSetObservableRange = (accountId, task, isManualTrigger=false) => {
+  _onSetObservableRange = (accountId, task, isManualTrigger = false) => {
     if (!this._clients[accountId]) {
       //account doesn't exist, we clear observable cache
       delete this._setObservableRangeTimer[accountId];

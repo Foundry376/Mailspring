@@ -28,8 +28,10 @@ export default class SyncbackDraftTask extends Task {
       AppEnv.showErrorDialog({
         title: 'Drafts folder not found',
         message:
-          "Mailspring can't find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.",
+          'Mailspring can\'t find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.',
       });
+    } else {
+      AppEnv.showErrorDialog('Draft processing failed', { detail: debuginfo });
     }
   }
 }

@@ -146,7 +146,7 @@ export const login = (email, password, cb) => {
             deviceModel: "mac",
             password: password,
             emailAddress: email,
-            otherAccounts: []
+            //otherAccounts: []
         }, cb);
 }
 export const uploadContacts = (accessToken, contacts, cb) => {
