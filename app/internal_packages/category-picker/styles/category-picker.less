@@ -1,6 +1,7 @@
 @import 'ui-variables';
 
 @popover-width: 172px;
+@menu-height: 284px;
 
 body.platform-win32 {
   .category-picker-popover {
@@ -86,7 +87,7 @@ body.platform-win32 {
 
 .fixed-popover-container .fixed-popover .label-picker-popover,
 .fixed-popover-container .fixed-popover .category-picker-popover {
-  max-height: 284px;
+  max-height: @menu-height;
   padding-top: 4px;
   .menu {
     background: @background-primary;
@@ -224,6 +225,9 @@ body.platform-win32 {
 
 .fixed-popover-container .fixed-popover .label-picker-popover {
   position: relative;
+  .menu {
+    max-height: @menu-height;
+  }
   .category-item {
     padding-left: 5px;
     .check-wrap {

@@ -1,4 +1,5 @@
 import CreateNewFolderPopover from './create-new-folder-popover';
+import CreateNewLabelPopover from './create-new-label-popover';
 
 const { Actions, React, PropTypes, AccountStore, WorkspaceStore } = require('mailspring-exports');
 
@@ -38,20 +39,33 @@ class MovePicker extends React.Component {
     if (this.context.sheetDepth !== WorkspaceStore.sheetStack().length - 1) {
       return;
     }
-    Actions.openPopover(<LabelPickerPopover threads={this.props.items} account={this._account} />, {
-      originRect: this._labelEl.getBoundingClientRect(),
-      direction: 'down',
-      disablePointer: true
-    });
+    Actions.openPopover(<LabelPickerPopover threads={this.props.items}
+      account={this._account}
+      onCreate={this._onCreateLabel} />, {
+        originRect: this._labelEl.getBoundingClientRect(),
+        direction: 'down',
+        disablePointer: true,
+      });
+  };
+  _onCreateLabel = (data) => {
+    Actions.openPopover(<CreateNewLabelPopover threads={this.props.items}
+      account={this._account}
+      name={data}
+      onCancel={this._onCancelCreate} />, {
+        isFixedToWindow: true,
+        originRect: this._moveEl.getBoundingClientRect(),
+        position: { top: '13%', left: '49%' },
+        disablePointer: true,
+      });
   };
   _onCreateFolder = () => {
     Actions.openPopover(<CreateNewFolderPopover threads={this.props.items} account={this._account}
-                                                onCancel={this._onCancelCreate}/>, {
-      isFixedToWindow: true,
-      originRect: this._moveEl.getBoundingClientRect(),
+      onCancel={this._onCancelCreate} />, {
+        isFixedToWindow: true,
+        originRect: this._moveEl.getBoundingClientRect(),
         position: { top: '13%', left: '49%' },
-      disablePointer: true,
-    });
+        disablePointer: true,
+      });
   };
   _onCancelCreate = () => {
     Actions.closePopover();
@@ -65,13 +79,13 @@ class MovePicker extends React.Component {
       return;
     }
     Actions.openPopover(<MovePickerPopover threads={this.props.items}
-                                           account={this._account}
-                                           onClose={this._onCloseMoveFolderPopout}
-                                           onCreate={this._onCreateFolder}/>, {
-      originRect: this._moveEl.getBoundingClientRect(),
+      account={this._account}
+      onClose={this._onCloseMoveFolderPopout}
+      onCreate={this._onCreateFolder} />, {
+        originRect: this._moveEl.getBoundingClientRect(),
         direction: 'down',
-      disablePointer: true,
-    });
+        disablePointer: true,
+      });
   };
   _onCloseMoveFolderPopout = () => {
     Actions.closePopover();
@@ -79,7 +93,7 @@ class MovePicker extends React.Component {
 
   render() {
     if (!this._account) {
-      return <span/>;
+      return <span />;
     }
 
     const handlers = {

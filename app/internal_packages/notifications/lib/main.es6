@@ -26,14 +26,14 @@ const notifications = [
 
 export function activate() {
   ComponentRegistry.register(ActivitySidebar, { location: WorkspaceStore.Location.RootSidebar });
-  ComponentRegistry.register(NotifWrapper, { location: WorkspaceStore.Location.RootSidebar });
+  ComponentRegistry.register(NotifWrapper, { location: WorkspaceStore.Sheet.Global.Footer });
 
   for (const notification of notifications) {
     ComponentRegistry.register(notification, { role: 'RootSidebar:Notifications' });
   }
 }
 
-export function serialize() {}
+export function serialize() { }
 
 export function deactivate() {
   ComponentRegistry.unregister(ActivitySidebar);

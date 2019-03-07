@@ -208,7 +208,7 @@ export const sendMessageEpic = action$ =>
         return Observable.fromPromise(db.e2ees.findOne(payload.conversation.jid).exec())
           .map(e2ee => {
             if (e2ee) {
-              //payload.devices = e2ee.devices;
+              payload.devices = e2ee.devices;
             }
             return { db, payload };
           });
@@ -218,7 +218,7 @@ export const sendMessageEpic = action$ =>
       return Observable.fromPromise(db.e2ees.findOne(payload.conversation.curJid).exec())
         .map(e2ee => {
           if (e2ee) {
-            //payload.selfDevices = e2ee.devices;
+            payload.selfDevices = e2ee.devices;
           }
           return { payload };
         });
@@ -697,10 +697,12 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
 
 export const showConversationNotificationEpic = (action$, { getState }) =>
   action$.ofType(SHOW_CONVERSATION_NOTIFICATION)
-    .map(({ payload: { conversationJid, title, body } }) => ({
+    .map(({ payload: { conversationJid, title, body } }) => {
+      console.log('dbg*** SHOW_CONVERSATION_NOTIFICATION: ', conversationJid, title, body);
+      return ({
       jid: conversationJid,
       notification: postNotification(title, body),
-    }))
+    })})
     .filter(({ notification }) => notification !== null)
     .mergeMap(({ jid, notification }) =>
       Observable.fromEvent(notification, 'click')

@@ -42,6 +42,10 @@ export default class NotifWrapper extends React.Component {
     return (
       <InjectedComponentSet
         className="notifications"
+        style={{
+          position: 'absolute',
+          bottom: 37
+        }}
         height=""
         matching={{ role: ROLE }}
         direction="column"

@@ -278,6 +278,10 @@ export default class Toolbar extends React.Component {
         if (leftChatPanel) {
           leftChatPanel.style.width = `${columnEl.offsetWidth - 1}px`;
         }
+        const notifications = document.querySelector('.notifications');
+        if (notifications) {
+          notifications.style.width = `${columnEl.offsetWidth - 1}px`;
+        }
       }
     }
 
