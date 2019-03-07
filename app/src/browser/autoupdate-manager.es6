@@ -153,7 +153,7 @@ export default class AutoUpdateManager extends EventEmitter {
   }
 
   iconURL() {
-    const url = path.join(process.resourcesPath, 'app', 'mailspring.png');
+    const url = path.join(process.resourcesPath, 'app', 'edisonmail.png');
     if (!fs.existsSync(url)) {
       return undefined;
     }
