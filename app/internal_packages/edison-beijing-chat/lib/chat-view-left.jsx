@@ -5,7 +5,7 @@ import chatModel from '../chat-components/store/model';
 import { Provider } from 'react-redux';
 import registerLoginChatAccounts from '../chat-components/utils/registerLoginChatAccounts';
 const { history } = require('../chat-components/store/configureStore').default;
-const BOTTOM_OFFSET = 5;
+const BOTTOM_OFFSET = 0;
 export default class ChatView extends Component {
   static displayName = 'ChatViewLeft';
   onDragStart(e) {
