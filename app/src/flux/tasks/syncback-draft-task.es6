@@ -1,6 +1,7 @@
 import Task from './task';
 import Attributes from '../attributes';
 import Message from '../models/message';
+import Account from '../models/account';
 
 export default class SyncbackDraftTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -31,7 +32,25 @@ export default class SyncbackDraftTask extends Task {
           'Mailspring can\'t find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.',
       });
     } else {
-      AppEnv.showErrorDialog('Draft processing failed', { detail: debuginfo });
+      if (key === 'ErrorAccountNotConnected') {
+        let accounts = AppEnv.config.get('accounts');
+        if (Array.isArray(accounts)) {
+          let errorAccount = { emailAddress: '' };
+          let newAccounts = accounts.map(account => {
+            if (account.id === this.accountId) {
+              account.syncState = Account.SYNC_STATE_AUTH_FAILED;
+              errorAccount.emailAddress = account.emailAddress;
+              return account;
+            } else {
+              return account;
+            }
+          });
+          AppEnv.config.set('accounts', newAccounts);
+          AppEnv.showErrorDialog(`Cannot authenticate with ${errorAccount.emailAddress}`, { detail: debuginfo });
+        }
+      } else {
+        AppEnv.showErrorDialog('Draft processing failed', { detail: debuginfo });
+      }
     }
   }
 }
