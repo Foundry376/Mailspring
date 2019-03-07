@@ -140,7 +140,7 @@ export default class MovePickerPopover extends Component {
     if (this.props.onCreate) {
       this.props.onCreate(data);
     }
-   this.onCancel();
+    this.onCancel();
   };
 
   _onCreateCategory = () => {
@@ -161,7 +161,6 @@ export default class MovePickerPopover extends Component {
 
   _onMoveToCategory = ({ category }) => {
     const { threads } = this.props;
-    console.log('****_onMoveToCategory', threads, category);
 
     if (category instanceof Folder) {
       Actions.queueTasks(
@@ -203,7 +202,7 @@ export default class MovePickerPopover extends Component {
       displayText = `"${searchValue}" (create new)`;
     }
     return (
-      <div className="category-item category-create-new" onMouseDown={this.onCreate}>
+      <div key="createNew" className="category-item category-create-new" onMouseDown={this.onCreate}>
         {displayText}
       </div>
     );
@@ -216,23 +215,23 @@ export default class MovePickerPopover extends Component {
     //   return this._renderCreateNewItem(item);
     // }
     return (
-      <div className="category-item">
+      <div key={item.id} className="category-item">
         <div className="category-display-name">
-          <BoldedSearchResult value={item.displayName} query={this.state.searchValue || ''}/>
+          <BoldedSearchResult value={item.displayName} query={this.state.searchValue || ''} />
         </div>
       </div>
     );
   };
   _renderNewItem = () => {
     return [
-      <Menu.Item key={'category-divider'} divider={true}/>,
+      <Menu.Item key={'category-divider'} divider={true} />,
       this._renderCreateNewItem({ searchValue: this.state.searchValue }),
     ];
   };
 
   render() {
     const headerComponents = [
-      <div className="header-text">Move to ...</div>,
+      <div className="header-text" key="headerText">Move to ...</div>,
       <input
         type="text"
         tabIndex="1"

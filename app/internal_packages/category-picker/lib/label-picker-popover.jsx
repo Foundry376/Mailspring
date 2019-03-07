@@ -94,32 +94,21 @@ export default class LabelPickerPopover extends Component {
     Actions.closePopover();
   };
 
+  onCancel = () => {
+    if (this.props.onClose) {
+      this.props.onClose();
+    }
+  };
+
   _onSelectLabel = item => {
     const { account, threads } = this.props;
 
     if (threads.length === 0) return;
     if (item.newCategoryItem) {
-      const syncbackTask = SyncbackCategoryTask.forCreating({
-        name: this.state.searchValue,
-        accountId: account.id,
-      });
-
-      TaskQueue.waitForPerformRemote(syncbackTask).then(finishedTask => {
-        if (finishedTask.error) {
-          AppEnv.showErrorDialog({ title: 'Error', message: `Could not create label.${finishedTask.error && finishedTask.error.debuginfo}` });
-          return;
-        }
-        Actions.queueTask(
-          new ChangeLabelsTask({
-            source: 'Category Picker: New Category',
-            threads: threads,
-            labelsToRemove: [],
-            labelsToAdd: [finishedTask.created],
-          })
-        );
-      });
-      Actions.queueTask(syncbackTask);
-      Actions.closePopover();
+      if (this.props.onCreate) {
+        this.props.onCreate(this.state.searchValue);
+      }
+      this.onCancel();
     } else if (item.usage === threads.length) {
       const task = new ChangeLabelsTask({
         source: 'Category Picker: Existing Category',
@@ -255,14 +244,6 @@ export default class LabelPickerPopover extends Component {
     );
   };
 
-  _renderColorPlate() {
-    return (
-      <div>
-
-      </div>
-    )
-  }
-
   render() {
     const { categoryData } = this.state;
     const headerComponents = [
@@ -299,7 +280,6 @@ export default class LabelPickerPopover extends Component {
           onEscape={this._onEscape}
           defaultSelectedIndex={this.state.searchValue === '' ? -1 : 0}
         />
-        {this._renderColorPlate()}
       </div>
     );
   }
