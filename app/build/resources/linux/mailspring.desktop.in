@@ -2,10 +2,10 @@
 Name=<%= productName %>
 Comment=<%= description %>
 GenericName=<%= productName %>
-Exec=/usr/bin/mailspring %U
-Icon=mailspring
+Exec=/usr/bin/edisonmail %U
+Icon=edisonmail
 Type=Application
 StartupNotify=true
 StartupWMClass=<%= productName %>
 Categories=GNOME;GTK;Network;Email;
-MimeType=x-scheme-handler/mailto;x-scheme-handler/mailspring;
+MimeType=x-scheme-handler/mailto;x-scheme-handler/edisonmail;

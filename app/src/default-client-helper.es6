@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import fs from 'fs';
 import { remote, shell } from 'electron';
 
-const bundleIdentifier = 'com.mailspring.mailspring';
+const bundleIdentifier = 'com.edisonmail.edisonmail';
 
 class Windows {
   available() {
@@ -50,7 +50,7 @@ class Windows {
     );
   }
 
-  registerForURLScheme(scheme, callback = () => {}) {
+  registerForURLScheme(scheme, callback = () => { }) {
     // Ensure that our registry entires are present
     const WindowsUpdater = remote.require('./windows-updater');
     WindowsUpdater.createRegistryEntries(
@@ -101,19 +101,19 @@ class Linux {
     }
     exec(
       `xdg-mime query default x-scheme-handler/${scheme}`,
-      (err, stdout) => (err ? callback(err) : callback(stdout.trim() === 'mailspring.desktop'))
+      (err, stdout) => (err ? callback(err) : callback(stdout.trim() === 'edisonmail.desktop'))
     );
   }
 
-  resetURLScheme(scheme, callback = () => {}) {
+  resetURLScheme(scheme, callback = () => { }) {
     exec(
       `xdg-mime default thunderbird.desktop x-scheme-handler/${scheme}`,
       err => (err ? callback(err) : callback(null, null))
     );
   }
-  registerForURLScheme(scheme, callback = () => {}) {
+  registerForURLScheme(scheme, callback = () => { }) {
     exec(
-      `xdg-mime default mailspring.desktop x-scheme-handler/${scheme}`,
+      `xdg-mime default edisonmail.desktop x-scheme-handler/${scheme}`,
       err => (err ? callback(err) : callback(null, null))
     );
   }
@@ -131,13 +131,13 @@ class Mac {
   getLaunchServicesPlistPath(callback) {
     const secure = `${
       process.env.HOME
-    }/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist`;
+      }/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist`;
     const insecure = `${process.env.HOME}/Library/Preferences/com.apple.LaunchServices.plist`;
 
     fs.exists(secure, exists => (exists ? callback(secure) : callback(insecure)));
   }
 
-  readDefaults(callback = () => {}) {
+  readDefaults(callback = () => { }) {
     this.getLaunchServicesPlistPath(plistPath => {
       const tmpPath = `${plistPath}.${Math.random()}`;
       exec(`plutil -convert json "${plistPath}" -o "${tmpPath}"`, err => {
@@ -153,7 +153,7 @@ class Mac {
           try {
             const json = JSON.parse(data);
             callback(json.LSHandlers, json);
-            fs.unlink(tmpPath, () => {});
+            fs.unlink(tmpPath, () => { });
           } catch (e) {
             callback(e);
           }
@@ -162,7 +162,7 @@ class Mac {
     });
   }
 
-  writeDefaults(defaults, callback = () => {}) {
+  writeDefaults(defaults, callback = () => { }) {
     this.getLaunchServicesPlistPath(plistPath => {
       const tmpPath = `${plistPath}.${Math.random()}`;
       exec(`plutil -convert json "${plistPath}" -o "${tmpPath}"`, err => {
@@ -181,7 +181,7 @@ class Mac {
           return;
         }
         exec(`plutil -convert binary1 "${tmpPath}" -o "${plistPath}"`, () => {
-          fs.unlink(tmpPath, () => {});
+          fs.unlink(tmpPath, () => { });
           exec(
             '/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user',
             registerErr => {

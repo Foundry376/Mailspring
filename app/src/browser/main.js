@@ -59,7 +59,7 @@ const declareOptions = argv => {
   const optimist = require('optimist');
   const options = optimist(argv);
   options.usage(
-    `EdisonMail\n\nUsage: mailspring [options]\n\nRun EdisonMail: The open source extensible email client\n\n\`mailspring --dev\` to start the client in dev mode.\n\n\`mailspring --test\` to run unit tests.`
+    `EdisonMail\n\nUsage: edisonmail [options]\n\nRun EdisonMail: The open source extensible email client\n\n\`edisonmail --dev\` to start the client in dev mode.\n\n\`edisonmail --test\` to run unit tests.`
   );
   options
     .alias('d', 'dev')
@@ -224,7 +224,7 @@ const handleStartupEventWithSquirrel = () => {
 };
 
 const start = () => {
-  app.setAppUserModelId('com.squirrel.mailspring.mailspring');
+  app.setAppUserModelId('com.squirrel.edisonmail.edisonmail');
   if (handleStartupEventWithSquirrel()) {
     return;
   }

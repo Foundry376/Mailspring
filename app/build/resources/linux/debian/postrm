@@ -46,7 +46,7 @@ clean_sources_lists() {
   find_apt_sources
 
   if [ -d "$APT_SOURCESDIR" ]; then
-    rm -f "$APT_SOURCESDIR/mailspring.list"
+    rm -f "$APT_SOURCESDIR/edisonmail.list"
   fi
 
   return 0

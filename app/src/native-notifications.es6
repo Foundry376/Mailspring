@@ -22,7 +22,7 @@ class NativeNotifications {
       });
     }
   }
-  displayNotification({ title, subtitle, body, tag, canReply, onActivate = () => {} } = {}) {
+  displayNotification({ title, subtitle, body, tag, canReply, onActivate = () => { } } = {}) {
     let notif = null;
 
     if (MacNotifierNotification) {
@@ -30,7 +30,7 @@ class NativeNotifications {
         this._macNotificationsByTag[tag].close();
       }
       notif = new MacNotifierNotification(title, {
-        bundleId: 'com.mailspring.mailspring',
+        bundleId: 'com.edisonmail.edisonmail',
         canReply: canReply,
         subtitle: subtitle,
         body: body,
