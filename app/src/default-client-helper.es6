@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import fs from 'fs';
 import { remote, shell } from 'electron';
 
-const bundleIdentifier = 'com.mailspring.mailspring';
+const bundleIdentifier = 'com.edisonmail.edisonmail';
 
 class Windows {
   available() {
