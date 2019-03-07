@@ -92,22 +92,21 @@ body.platform-win32 {
     background: @background-primary;
     width: @popover-width;
     border-radius: 10px;
+    padding-right: 4px;
 
     .content-container {
       background-color: inherit;
 
-      ::-webkit-scrollbar {
-        display: none;
-      }
-
-      ::-webkit-scrollbar-thumb {
-        border-radius: 7px;
+      &::-webkit-scrollbar {
         width: 4px;
-        height: 83px;
-        background-color: @input-search-bg;
+        height: 1px;
       }
 
-      ::-webkit-scrollbar-track {
+      &::-webkit-scrollbar-thumb {
+        background-color: @gray-lighter;
+      }
+
+      &::-webkit-scrollbar-track {
         background: none;
         border: none;
         outline: none;
@@ -125,7 +124,6 @@ body.platform-win32 {
 
       .header-text {
         height: 19.5px;
-        width: 65px;
         color: rgba(0, 0, 0, 0.85);
         font-size: 13px;
         font-weight: 700;
@@ -229,10 +227,18 @@ body.platform-win32 {
   .category-item {
     padding-left: 5px;
     .check-wrap {
-      background-color: transparent;
+      background-color: transparent !important;
+    }
+    .category-display-name {
+      margin-left: 4px;
     }
   }
-  .category-create-new {
-    padding-left: 21px;
+  .footer-container {
+    border-top: 1px solid @border-color-divider;
+    .category-create-new {
+      padding-left: 21px;
+      height: 26px;
+      line-height: 26px;
+    }
   }
 }

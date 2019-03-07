@@ -56,15 +56,15 @@ class SystemStartServiceDarwin extends SystemStartServiceBase {
   }
 
   dontLaunchOnSystemStart() {
-    return fs.unlink(this._plistPath(), () => {});
+    return fs.unlink(this._plistPath(), () => { });
   }
 
   _launcherPath() {
-    return path.join('/', 'Applications', 'Mailspring.app', 'Contents', 'MacOS', 'Mailspring');
+    return path.join('/', 'Applications', 'EdisonMail.app', 'Contents', 'MacOS', 'EdisonMail');
   }
 
   _plistPath() {
-    return path.join(process.env.HOME, 'Library', 'LaunchAgents', 'com.mailspring.plist');
+    return path.join(process.env.HOME, 'Library', 'LaunchAgents', 'com.edisonmail.plist');
   }
 
   _launchdPlist() {
@@ -107,7 +107,7 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
       this._shortcutPath(),
       {
         target: this._launcherPath(),
-        args: '--processStart=mailspring.exe --process-start-args=--background',
+        args: '--processStart=edisonmail.exe --process-start-args=--background',
         runStyle: ws.MIN,
         desc: 'An extensible, open-source mail client built on the modern web.',
       },
@@ -118,11 +118,11 @@ class SystemStartServiceWin32 extends SystemStartServiceBase {
   }
 
   dontLaunchOnSystemStart() {
-    return fs.unlink(this._shortcutPath(), () => {});
+    return fs.unlink(this._shortcutPath(), () => { });
   }
 
   _launcherPath() {
-    return path.join(process.env.LOCALAPPDATA, 'mailspring', 'Update.exe');
+    return path.join(process.env.LOCALAPPDATA, 'edisonmail', 'Update.exe');
   }
 
   _shortcutPath() {
@@ -168,21 +168,21 @@ class SystemStartServiceLinux extends SystemStartServiceBase {
       // Append the --background flag before the Exec key
       const parsedData = data.replace('%U', '--background %U');
 
-      fs.writeFile(this._shortcutPath(), parsedData, () => {});
+      fs.writeFile(this._shortcutPath(), parsedData, () => { });
     });
   }
 
   dontLaunchOnSystemStart() {
-    return fs.unlink(this._shortcutPath(), () => {});
+    return fs.unlink(this._shortcutPath(), () => { });
   }
 
   _launcherPath() {
-    return path.join('/', 'usr', 'share', 'applications', 'mailspring.desktop');
+    return path.join('/', 'usr', 'share', 'applications', 'edisonmail.desktop');
   }
 
   _shortcutPath() {
     const configDir = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
-    return path.join(configDir, 'autostart', 'mailspring.desktop');
+    return path.join(configDir, 'autostart', 'edisonmail.desktop');
   }
 }
 

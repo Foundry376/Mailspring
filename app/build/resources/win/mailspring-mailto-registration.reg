@@ -1,60 +1,60 @@
 Windows Registry Editor Version 5.00
 
-[{{HKEY_ROOT}}\SOFTWARE\Classes\Mailspring.Url.mailto]
-"FriendlyTypeName"="Mailspring Url"
+[{{HKEY_ROOT}}\SOFTWARE\Classes\EdisonMail.Url.mailto]
+"FriendlyTypeName"="EdisonMail Url"
 
-[{{HKEY_ROOT}}\SOFTWARE\Classes\Mailspring.Url.mailto\shell]
+[{{HKEY_ROOT}}\SOFTWARE\Classes\EdisonMail.Url.mailto\shell]
 
-[{{HKEY_ROOT}}\SOFTWARE\Classes\Mailspring.Url.mailto\shell\open]
+[{{HKEY_ROOT}}\SOFTWARE\Classes\EdisonMail.Url.mailto\shell\open]
 
-[{{HKEY_ROOT}}\SOFTWARE\Classes\Mailspring.Url.mailto\shell\open\command]
-@="\"{{PATH_TO_ROOT_FOLDER}}\\Update.exe\" --processStart mailspring.exe --process-start-args %1"
+[{{HKEY_ROOT}}\SOFTWARE\Classes\EdisonMail.Url.mailto\shell\open\command]
+@="\"{{PATH_TO_ROOT_FOLDER}}\\Update.exe\" --processStart edisonmail.exe --process-start-args %1"
 
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring]
-@="Mailspring"
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail]
+@="EdisonMail"
 "LocalizedString"="@{{PATH_TO_ROOT_FOLDER}}\\Update.exe,-123"
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\DefaultIcon]
-@="{{PATH_TO_APP_FOLDER}}\\mailspring.exe,1"
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\DefaultIcon]
+@="{{PATH_TO_APP_FOLDER}}\\edisonmail.exe,1"
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\Capabilities]
-"ApplicationName"="Mailspring"
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\Capabilities]
+"ApplicationName"="EdisonMail"
 "ApplicationDescription"="A fast, modern mail client designed to help you boost your productivity."
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\Capabilities\StartMenu]
-"Mail"="Mailspring"
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\Capabilities\StartMenu]
+"Mail"="EdisonMail"
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\Capabilities\URLAssociations]
-"mailto"="Mailspring.Url.mailto"
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\Capabilities\URLAssociations]
+"mailto"="EdisonMail.Url.mailto"
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\Protocols]
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\Protocols]
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\Protocols\mailto]
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\Protocols\mailto]
 @="URL:MailTo Protocol"
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\Protocols\mailto\DefaultIcon]
-@="{{PATH_TO_APP_FOLDER}}\\mailspring.exe,1"
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\Protocols\mailto\DefaultIcon]
+@="{{PATH_TO_APP_FOLDER}}\\edisonmail.exe,1"
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\Protocols\mailto\shell]
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\Protocols\mailto\shell]
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\Protocols\mailto\shell\open]
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\Protocols\mailto\shell\open]
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\Protocols\mailto\shell\open\command]
-@="\"{{PATH_TO_ROOT_FOLDER}}\\Update.exe\" --processStart mailspring.exe --process-start-args %1"
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\Protocols\mailto\shell\open\command]
+@="\"{{PATH_TO_ROOT_FOLDER}}\\Update.exe\" --processStart edisonmail.exe --process-start-args %1"
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\shell]
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\shell]
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\shell\open]
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\shell\open]
 
-[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\Mailspring\shell\open\command]
-@="\"{{PATH_TO_ROOT_FOLDER}}\\Update.exe\" --processStart mailspring.exe"
+[{{HKEY_ROOT}}\SOFTWARE\Clients\Mail\EdisonMail\shell\open\command]
+@="\"{{PATH_TO_ROOT_FOLDER}}\\Update.exe\" --processStart edisonmail.exe"
 
 [{{HKEY_ROOT}}\SOFTWARE\RegisteredApplications]
-"Mailspring"="Software\\Clients\\Mail\\Mailspring\\Capabilities"
+"EdisonMail"="Software\\Clients\\Mail\\EdisonMail\\Capabilities"
 
 
 [HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache]
-"{{PATH_TO_ROOT_FOLDER}}\\Update.exe"="Mailspring"
-"{{PATH_TO_ROOT_FOLDER}}\\Update.exe.FriendlyAppName"="Mailspring"
-"{{PATH_TO_ROOT_FOLDER}}\\Update.exe.ApplicationCompany"="Mailspring"
+"{{PATH_TO_ROOT_FOLDER}}\\Update.exe"="EdisonMail"
+"{{PATH_TO_ROOT_FOLDER}}\\Update.exe.FriendlyAppName"="EdisonMail"
+"{{PATH_TO_ROOT_FOLDER}}\\Update.exe.ApplicationCompany"="EdisonMail"

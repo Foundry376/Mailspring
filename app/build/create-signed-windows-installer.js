@@ -12,7 +12,7 @@ const { version } = require(path.join(appDir, 'package.json'));
 const config = {
   usePackageJson: false,
   outputDirectory: path.join(appDir, 'dist'),
-  appDirectory: path.join(appDir, 'dist', 'mailspring-win32-ia32'),
+  appDirectory: path.join(appDir, 'dist', 'edisonmail-win32-ia32'),
   loadingGif: path.join(appDir, 'build', 'resources', 'win', 'loading.gif'),
   iconUrl: 'http://mailspring-builds.s3.amazonaws.com/assets/mailspring.ico',
   certificateFile: process.env.WINDOWS_CODESIGN_CERT,
@@ -20,9 +20,9 @@ const config = {
   version: version,
   title: 'EdisonMail',
   authors: 'Foundry 376, LLC',
-  setupIcon: path.join(appDir, 'build', 'resources', 'win', 'mailspring.ico'),
-  setupExe: 'MailspringSetup.exe',
-  exe: 'mailspring.exe',
+  setupIcon: path.join(appDir, 'build', 'resources', 'win', 'edisonmail.ico'),
+  setupExe: 'EdisonMailSetup.exe',
+  exe: 'edisonmail.exe',
   name: 'EdisonMail',
 };
 
