@@ -554,11 +554,11 @@ export default class ComposerView extends React.Component {
     }
   };
 
-  _onDestroyedDraftProcessed = ({ messageId }) => {
+  _onDestroyedDraftProcessed = ({ messageIds }) => {
     if (!this.props.draft) {
       return;
     }
-    if (messageId === this.props.draft.id) {
+    if (messageIds.includes(this.props.draft.id)) {
       if (this._deleteTimer) {
         return;
       }

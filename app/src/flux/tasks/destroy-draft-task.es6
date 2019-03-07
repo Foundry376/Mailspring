@@ -22,6 +22,7 @@ export default class DestroyDraftTask extends Task {
   }
   onError({key, debuginfo}){
     Actions.destroyDraftFailed({
+      key, debuginfo,
       messageIds: this.messageIds,
     });
   }
