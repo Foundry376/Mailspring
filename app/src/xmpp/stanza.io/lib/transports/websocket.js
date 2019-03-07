@@ -39,7 +39,7 @@ function WSConnection(sm, stanzas) {
             //debugger;
             if (self.conn.readyState === WS_OPEN) {
                 // commet out by quanzs
-                console.log('websocket:raw:outgoing', data);
+                // console.log('websocket:raw:outgoing', data);
                 self.conn.send(data);
             }
         }
