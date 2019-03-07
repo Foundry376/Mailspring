@@ -18,11 +18,11 @@ FILE_MODE=755
 
 TARGET_ROOT="`mktemp -d`"
 chmod $FILE_MODE "$TARGET_ROOT"
-TARGET="$TARGET_ROOT/mailspring-$VERSION-$ARCH"
+TARGET="$TARGET_ROOT/edisonmail-$VERSION-$ARCH"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr"
 mkdir -m $FILE_MODE -p "$TARGET/usr/share"
-cp -r "$APP_CONTENTS_DIRECTORY" "$TARGET/usr/share/mailspring"
+cp -r "$APP_CONTENTS_DIRECTORY" "$TARGET/usr/share/edisonmail"
 
 mkdir -m $FILE_MODE -p "$TARGET/DEBIAN"
 cp "$OUTPUT_PATH/control" "$TARGET/DEBIAN/control"
@@ -31,38 +31,38 @@ cp "$LINUX_ASSETS_DIRECTORY/debian/postinst" "$TARGET/DEBIAN/postinst"
 cp "$LINUX_ASSETS_DIRECTORY/debian/postrm" "$TARGET/DEBIAN/postrm"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr/bin"
-ln -s "../share/mailspring/mailspring" "$TARGET/usr/bin/mailspring"
-chmod +x "$TARGET/usr/bin/mailspring"
+ln -s "../share/edisonmail/edisonmail" "$TARGET/usr/bin/edisonmail"
+chmod +x "$TARGET/usr/bin/edisonmail"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/applications"
-cp "$OUTPUT_PATH/mailspring.desktop" "$TARGET/usr/share/applications"
+cp "$OUTPUT_PATH/edisonmail.desktop" "$TARGET/usr/share/applications"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/pixmaps"
-cp "$ICON_FILE" "$TARGET/usr/share/pixmaps/mailspring.png"
+cp "$ICON_FILE" "$TARGET/usr/share/pixmaps/edisonmail.png"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/icons/hicolor"
 for i in 256 128 64 32 16; do
   mkdir -p "$TARGET/usr/share/icons/hicolor/${i}x${i}/apps"
-  cp "$LINUX_ASSETS_DIRECTORY/icons/${i}.png" "$TARGET/usr/share/icons/hicolor/${i}x${i}/apps/mailspring.png"
+  cp "$LINUX_ASSETS_DIRECTORY/icons/${i}.png" "$TARGET/usr/share/icons/hicolor/${i}x${i}/apps/edisonmail.png"
 done
 
-# Copy generated LICENSE.md to /usr/share/doc/mailspring/copyright
-mkdir -m $FILE_MODE -p "$TARGET/usr/share/doc/mailspring"
-cp "$TARGET/usr/share/mailspring/LICENSE" "$TARGET/usr/share/doc/mailspring/copyright"
+# Copy generated LICENSE.md to /usr/share/doc/edisonmail/copyright
+mkdir -m $FILE_MODE -p "$TARGET/usr/share/doc/edisonmail"
+cp "$TARGET/usr/share/edisonmail/LICENSE" "$TARGET/usr/share/doc/edisonmail/copyright"
 
 # Add lintian overrides
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/lintian/overrides"
-cp "$ROOT/build/resources/linux/debian/lintian-overrides" "$TARGET/usr/share/lintian/overrides/mailspring"
+cp "$ROOT/build/resources/linux/debian/lintian-overrides" "$TARGET/usr/share/lintian/overrides/edisonmail"
 
 # Remove group write from all files
 chmod -R g-w "$TARGET";
 
-# Remove execstack bit from mailspring executable
-execstack --clear-execstack "$TARGET/usr/share/mailspring/mailspring"
+# Remove execstack bit from edisonmail executable
+execstack --clear-execstack "$TARGET/usr/share/edisonmail/edisonmail"
 
 # Remove executable bit from .node files
 find "$TARGET" -type f -name "*.node" -exec chmod a-x {} \;
 
 fakeroot dpkg-deb -b "$TARGET"
-mv "$TARGET_ROOT/mailspring-$VERSION-$ARCH.deb" "$OUTPUT_PATH"
+mv "$TARGET_ROOT/edisonmail-$VERSION-$ARCH.deb" "$OUTPUT_PATH"
 rm -rf "$TARGET_ROOT"
