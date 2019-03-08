@@ -5,9 +5,7 @@ import { Menu, RetinaImg, LabelColorizer, BoldedSearchResult } from 'mailspring-
 import {
   Utils,
   Actions,
-  TaskQueue,
   Label,
-  SyncbackCategoryTask,
   ChangeLabelsTask,
 } from 'mailspring-exports';
 import { Categories } from 'mailspring-observables';
@@ -193,12 +191,6 @@ export default class LabelPickerPopover extends Component {
 
     return (
       <div className="check-wrap" style={styles}>
-        {/* <RetinaImg
-          className="check-img check"
-          name="tagging-checkbox.png"
-          mode={RetinaImg.Mode.ContentPreserve}
-          onClick={() => this._onSelectLabel(item)}
-        /> */}
         {checkStatus}
       </div>
     );

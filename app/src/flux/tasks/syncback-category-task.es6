@@ -7,6 +7,9 @@ export default class SyncbackCategoryTask extends Task {
     path: Attributes.String({
       modelKey: 'path',
     }),
+    bgColor: Attributes.String({
+      modelKey: 'bgColor',
+    }),
     existingPath: Attributes.String({
       modelKey: 'existingPath',
     }),
@@ -15,9 +18,10 @@ export default class SyncbackCategoryTask extends Task {
     }),
   });
 
-  static forCreating({ name, accountId }) {
+  static forCreating({ name, accountId, bgColor = 0 }) {
     return new SyncbackCategoryTask({
       path: utf7.imap.encode(name),
+      bgColor: bgColor,
       accountId: accountId,
     });
   }

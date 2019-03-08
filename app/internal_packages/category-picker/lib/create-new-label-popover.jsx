@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Flexbox, RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, LabelColorizer } from 'mailspring-component-kit';
 import {
   Actions,
   SyncbackCategoryTask,
@@ -28,6 +28,7 @@ export default class CreateNewFolderPopover extends Component {
       newName: this.props.name || '',
       alsoMove: true,
       isBusy: false,
+      bgColor: 0
     };
     this._mounted = false;
     this._buttonTimer = null;
@@ -99,6 +100,7 @@ export default class CreateNewFolderPopover extends Component {
     this.setState({ isBusy: true });
     const syncbackTask = SyncbackCategoryTask.forCreating({
       name: this.state.newName,
+      bgColor: this.state.bgColor,
       accountId: this.props.account.id,
     });
     this._onResultReturned();
@@ -110,7 +112,7 @@ export default class CreateNewFolderPopover extends Component {
       Actions.queueTask(
         new ChangeLabelsTask({
           source: 'Category Picker: New Category',
-          threads: threads,
+          threads: this.props.threads,
           labelsToRemove: [],
           labelsToAdd: [finishedTask.created],
         })
@@ -125,6 +127,12 @@ export default class CreateNewFolderPopover extends Component {
       this.setState({ newName: e.target.value });
     }
   };
+
+  onCheckColor = (bgColor) => {
+    this.setState({
+      bgColor
+    })
+  }
 
   renderButtons() {
     return <div className='button-row'>
@@ -144,23 +152,16 @@ export default class CreateNewFolderPopover extends Component {
 
   render() {
     return <div ref={(el) => this.container = el}
-      className={`create-folder-container ${this.props.visible ? 'hide' : ''}`}>
+      className={`create-folder-container has-color-choice ${this.props.visible ? 'hide' : ''}`}>
       <div className={'header-row'}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" className={'content-mask'} onClick={this.onCancel}>
-          <title>close_1</title>
-          <circle id="circle" cx="48" cy="48" r="48" fill={'none'} className="svg-close-circle" />
-          <path id={'x-mark'}
-            d="M76.93,24.85,71.08,19,48,42.19,24.84,19,19,24.85,42.16,48,19,71.15,24.84,77,48,53.81,71.16,77,77,71.15,53.84,48Z"
-            fill="none" />
-        </svg>
-        {/*<button className={'btn btn-toolbar btn-category-picker'}>*/}
-        {/*<RetinaImg name={'close_1.svg'} onClick={this.onCancel}*/}
-        {/*className={'svg-close-circle'}*/}
-        {/*isIcon={true}*/}
-        {/*style={{ width: 20, height: 20 }}*/}
-        {/*mode={RetinaImg.Mode.ContentIsMask}*/}
-        {/*/>*/}
-        {/*</button>*/}
+        <span className="close" onClick={this.onCancel}>
+          <RetinaImg
+            name="close_1.svg"
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask}
+            style={{ width: 20 }}
+          />
+        </span>
       </div>
       <div className='header-text-container'>
         <div className='header-text'>New Label</div>
@@ -170,6 +171,23 @@ export default class CreateNewFolderPopover extends Component {
         value={this.state.newName} placeholder={'Name'}
         disabled={this.state.isBusy}
         onChange={this._onNameChange} />
+      <div className="color-choice">
+        {
+          LabelColorizer.colors.map((color, idx) => {
+            const className = this.state.bgColor === idx ? 'checked' : '';
+            return (
+              <div key={color} className={className} style={{ background: color }} onClick={() => this.onCheckColor(idx)} >
+                <RetinaImg
+                  className="check-img check"
+                  name="tagging-checkmark.png"
+                  mode={RetinaImg.Mode.ContentPreserve}
+                  onClick={() => this._onSelectLabel(item)}
+                />
+              </div>
+            )
+          })
+        }
+      </div>
       {this.renderButtons()}
     </div>;
   }

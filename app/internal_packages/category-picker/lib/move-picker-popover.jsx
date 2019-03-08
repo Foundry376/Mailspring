@@ -9,7 +9,6 @@ import {
   CategoryStore,
   Folder,
   SyncbackCategoryTask,
-  ChangeFolderTask,
   ChangeLabelsTask,
   FocusedPerspectiveStore,
   TaskFactory,

@@ -1,8 +1,12 @@
 @import 'ui-variables';
 
 .create-folder-container {
+  &.has-color-choice {
+    height: 192px + 70px;
+  }
   height: 192px;
   width: 400px;
+  border-radius: 5px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -23,6 +27,7 @@
       height: 20px;
       width: 20px;
       fill: @black;
+      background-color: @black;
       #x-mark{
         fill: @black;
       }
@@ -30,6 +35,7 @@
         .svg-close-circle {
           fill: @gray-lighter;
         }
+        background-color: @blue;
       }
     }
   }
@@ -102,6 +108,28 @@
         &:disabled {
           border: 1px solid @gray-light;
           background-color: @gray-light;
+        }
+      }
+    }
+  }
+  .color-choice {
+    display: flex;
+    flex-flow: row wrap;
+    margin-bottom: 70px;
+    &>div {
+      flex: 0 1 22px;
+      height: 22px;
+      width: 20px;
+      margin: 3px;
+      border-radius: 50%;
+      text-align: center;
+      img {
+        visibility: hidden;
+        margin-top: 2px;
+      }
+      &.checked {
+        img {
+          visibility: visible;
         }
       }
     }

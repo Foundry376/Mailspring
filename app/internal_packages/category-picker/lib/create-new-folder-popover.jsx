@@ -72,8 +72,8 @@ export default class CreateNewFolderPopover extends Component {
       }, this.props.buttonTimeout * 2);
     }
   };
-  _onResultReturned = ()=>{
-    if(!this._mounted){
+  _onResultReturned = () => {
+    if (!this._mounted) {
       return;
     }
     if (!this._buttonTimer) {
@@ -131,7 +131,7 @@ export default class CreateNewFolderPopover extends Component {
     }
   };
   _onNameChange = (e) => {
-    if(!this.state.isBusy){
+    if (!this.state.isBusy) {
       this.setState({ newName: e.target.value });
     }
   };
@@ -142,11 +142,11 @@ export default class CreateNewFolderPopover extends Component {
         <span>Cancel</span>
       </button>
       <button className="create-folder-btn-create" title="Create Folder"
-              disabled={this.state.newName.length === 0} onClick={this._onCreateCategory}>
+        disabled={this.state.newName.length === 0} onClick={this._onCreateCategory}>
         {(this.state.isBusy || this._buttonTimer) ?
           <RetinaImg name={'sending-spinner.gif'}
-                     style={{ width: 24 }}
-                     mode={RetinaImg.Mode.ContentIsMask}/> :
+            style={{ width: 24 }}
+            mode={RetinaImg.Mode.ContentIsMask} /> :
           <span>Create Folder</span>}
       </button>
     </div>;
@@ -154,32 +154,25 @@ export default class CreateNewFolderPopover extends Component {
 
   render() {
     return <div ref={(el) => this.container = el}
-                className={`create-folder-container ${this.props.visible ? 'hide' : ''}`}>
+      className={`create-folder-container ${this.props.visible ? 'hide' : ''}`}>
       <div className={'header-row'}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" className={'content-mask'} onClick={this.onCancel}>
-          <title>close_1</title>
-          <circle id="circle" cx="48" cy="48" r="48" fill={'none'} className="svg-close-circle"/>
-          <path id={'x-mark'}
-                d="M76.93,24.85,71.08,19,48,42.19,24.84,19,19,24.85,42.16,48,19,71.15,24.84,77,48,53.81,71.16,77,77,71.15,53.84,48Z"
-                fill="none"/>
-        </svg>
-        {/*<button className={'btn btn-toolbar btn-category-picker'}>*/}
-        {/*<RetinaImg name={'close_1.svg'} onClick={this.onCancel}*/}
-        {/*className={'svg-close-circle'}*/}
-        {/*isIcon={true}*/}
-        {/*style={{ width: 20, height: 20 }}*/}
-        {/*mode={RetinaImg.Mode.ContentIsMask}*/}
-        {/*/>*/}
-        {/*</button>*/}
+        <span className="close" onClick={this.onCancel}>
+          <RetinaImg
+            name="close_1.svg"
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask}
+            style={{ width: 20 }}
+          />
+        </span>
       </div>
       <div className='header-text-container'>
         <div className='header-text'>New Folder</div>
         <div className='header-subtext'>What do you want to name it?</div>
       </div>
       <input className='folder-input'
-             value={this.state.newName} placeholder={'Name'}
-             disabled={this.state.isBusy}
-             onChange={this._onNameChange}/>
+        value={this.state.newName} placeholder={'Name'}
+        disabled={this.state.isBusy}
+        onChange={this._onNameChange} />
       {this.renderButtons()}
     </div>;
   }

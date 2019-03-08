@@ -3,6 +3,33 @@ import PropTypes from 'prop-types';
 import RetinaImg from './retina-img';
 
 export const LabelColorizer = {
+  colors: [
+    '#e4e3e4',
+    '#aec9f1',
+    '#8fd1bf',
+    '#dfd3fe',
+    '#ff0400',
+    '#f9cddc',
+    '#efa99f',
+    '#bababa',
+    '#427de0',
+    '#2e96b0',
+    '#f297a9',
+    '#f74431',
+    '#fec1a8',
+    '#fed8ae',
+    '#f9e47e',
+    '#fce9bb',
+    '#acebcd',
+    '#9ad6b9',
+    '#fd6a3a',
+    '#fda248',
+    '#e8d6d9',
+    '#c49ca2',
+    '#41ce89',
+    '#209c5c',
+  ],
+
   color(label) {
     return `hsl(${label.hue()}, 50%, 34%)`;
   },
