@@ -29,7 +29,9 @@ var find = exports.find = function (xml, NS, selector) {
     var children = xml.getElementsByTagName(selector);
     for (var i = 0, len = children.length; i < len; i++) {
         var child = children[i];
-        if ((child.namespaceURI === NS || !NS) && child.parentNode === xml) {
+        if ((child.namespaceURI === NS
+            || (!NS && (selector == 'memberschange' || selector == 'member')))
+            && child.parentNode === xml) {
             results.push(child);
         }
     }
