@@ -202,7 +202,7 @@ export default class MovePickerPopover extends Component {
       displayText = `"${searchValue}" (create new)`;
     }
     return (
-      <div key="createNew" className="category-item category-create-new" onMouseDown={this.onCreate}>
+      <div key="createNew" className="category-item category-create-new" onMouseDown={this.onCreate.bind(this, searchValue)}>
         {displayText}
       </div>
     );

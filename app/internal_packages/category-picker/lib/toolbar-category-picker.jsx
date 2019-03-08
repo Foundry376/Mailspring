@@ -58,8 +58,11 @@ class MovePicker extends React.Component {
         disablePointer: true,
       });
   };
-  _onCreateFolder = () => {
-    Actions.openPopover(<CreateNewFolderPopover threads={this.props.items} account={this._account}
+  _onCreateFolder = (data) => {
+    Actions.openPopover(<CreateNewFolderPopover
+      threads={this.props.items}
+      account={this._account}
+      defaultValue={data}
       onCancel={this._onCancelCreate} />, {
         isFixedToWindow: true,
         originRect: this._moveEl.getBoundingClientRect(),
