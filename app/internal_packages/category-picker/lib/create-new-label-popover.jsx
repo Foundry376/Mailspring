@@ -104,22 +104,48 @@ export default class CreateNewFolderPopover extends Component {
       accountId: this.props.account.id,
     });
     this._onResultReturned();
+    Actions.queueTask(syncbackTask);
     TaskQueue.waitForPerformRemote(syncbackTask).then(finishedTask => {
       if (finishedTask.error) {
         AppEnv.showErrorDialog({ title: 'Error', message: `Could not create label.${finishedTask.error && finishedTask.error.debuginfo}` });
         return;
       }
-      Actions.queueTask(
-        new ChangeLabelsTask({
-          source: 'Category Picker: New Category',
-          threads: this.props.threads,
-          labelsToRemove: [],
-          labelsToAdd: [finishedTask.created],
-        })
-      );
+      if (this.props.isMoveAction) {
+        this._onMoveToCategory(finishedTask.created);
+      }
+      else {
+        Actions.queueTask(
+          new ChangeLabelsTask({
+            source: 'Category Picker: New Category',
+            threads: this.props.threads,
+            labelsToRemove: [],
+            labelsToAdd: [finishedTask.created],
+          })
+        );
+      }
     });
-    Actions.queueTask(syncbackTask);
     Actions.closePopover();
+  };
+
+  _onMoveToCategory = (category) => {
+    const { threads } = this.props;
+    const all = [];
+    threads.forEach(({ labels }) => all.push(...labels));
+
+    Actions.queueTasks([
+      new ChangeLabelsTask({
+        source: 'Category Picker: New Category',
+        labelsToRemove: all,
+        labelsToAdd: [],
+        threads: threads,
+      }),
+      new ChangeLabelsTask({
+        source: 'Category Picker: New Category',
+        labelsToRemove: [],
+        labelsToAdd: [category],
+        threads: threads,
+      }),
+    ]);
   };
 
   _onNameChange = (e) => {

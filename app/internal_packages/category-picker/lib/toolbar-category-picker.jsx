@@ -1,7 +1,7 @@
 import CreateNewFolderPopover from './create-new-folder-popover';
 import CreateNewLabelPopover from './create-new-label-popover';
 
-const { Actions, React, PropTypes, AccountStore, WorkspaceStore } = require('mailspring-exports');
+const { Actions, React, PropTypes, AccountStore, WorkspaceStore, Folder, CategoryStore } = require('mailspring-exports');
 
 const { RetinaImg, KeyCommandsRegion } = require('mailspring-component-kit');
 const MovePickerPopover = require('./move-picker-popover').default;
@@ -17,11 +17,11 @@ class MovePicker extends React.Component {
 
   constructor(props) {
     super(props);
-
     this._account = AccountStore.accountForItems(this.props.items);
     this.state = {
       createFolderPopoverVisible: false,
       moveFolderPopoutVisible: false,
+      isFolder: CategoryStore.getInboxCategory(this._account) instanceof Folder
     };
   }
 
@@ -47,10 +47,11 @@ class MovePicker extends React.Component {
         disablePointer: true,
       });
   };
-  _onCreateLabel = (data) => {
+  _onCreateLabel = (data, isMoveAction) => {
     Actions.openPopover(<CreateNewLabelPopover threads={this.props.items}
       account={this._account}
       name={data}
+      isMoveAction={isMoveAction}
       onCancel={this._onCancelCreate} />, {
         isFixedToWindow: true,
         originRect: this._moveEl.getBoundingClientRect(),
@@ -84,7 +85,7 @@ class MovePicker extends React.Component {
     Actions.openPopover(<MovePickerPopover threads={this.props.items}
       account={this._account}
       onClose={this._onCloseMoveFolderPopout}
-      onCreate={this._onCreateFolder} />, {
+      onCreate={this.state.isFolder ? this._onCreateFolder : this._onCreateLabel} />, {
         originRect: this._moveEl.getBoundingClientRect(),
         direction: 'down',
         disablePointer: true,

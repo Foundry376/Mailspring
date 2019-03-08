@@ -20,7 +20,6 @@ export default class MovePickerPopover extends Component {
     threads: PropTypes.array.isRequired,
     account: PropTypes.object.isRequired,
     onCreate: PropTypes.func.isRequired,
-    originEl: PropTypes.object.isRequired,
   };
 
   constructor(props) {
@@ -137,7 +136,7 @@ export default class MovePickerPopover extends Component {
   };
   onCreate = (data) => {
     if (this.props.onCreate) {
-      this.props.onCreate(data);
+      this.props.onCreate(data, true);
     }
     this.onCancel();
   };
