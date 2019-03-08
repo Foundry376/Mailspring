@@ -17,11 +17,13 @@ export default class CreateNewFolderPopover extends Component {
     onCancel: PropTypes.func,
     left: PropTypes.number,
     top: PropTypes.number,
+    defaultValue: PropTypes.string,
   };
   static defaultProps = {
     left: 490,
     top: 107,
-    buttonTimeout: 700,// timeout
+    buttonTimeout: 700, // timeout in ms
+    defaultValue: '',
   };
 
   constructor(props) {
@@ -34,6 +36,11 @@ export default class CreateNewFolderPopover extends Component {
     this._mounted = false;
     this._buttonTimer = null;
     this._buttonTimestamp = 0;
+  }
+  componentWillMount() {
+    if(this.props.defaultValue && this.props.defaultValue.length>0){
+      this.setState({newName: this.props.defaultValue});
+    }
   }
 
   componentDidMount() {
