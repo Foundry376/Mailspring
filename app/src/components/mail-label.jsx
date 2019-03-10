@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import RetinaImg from './retina-img';
+const Colr = require('colr');
 
 export const LabelColorizer = {
   colors: [
@@ -31,22 +32,30 @@ export const LabelColorizer = {
   ],
 
   color(label) {
-    return `hsl(${label.hue()}, 50%, 34%)`;
+    const bgColor = LabelColorizer.colors[label.bgColor || 0];
+    console.log('****bgColor', bgColor);
+    var colr = Colr.fromHex(bgColor).darken(20);
+    return colr.toHex();
   },
 
   backgroundColor(label) {
-    return `hsl(${label.hue()}, 62%, 87%)`;
+    const bgColor = LabelColorizer.colors[label.bgColor || 0];
+    return bgColor;
   },
 
   backgroundColorDark(label) {
-    return `hsl(${label.hue()}, 62%, 57%)`;
+    const bgColor = LabelColorizer.colors[label.bgColor || 0];
+    var colr = Colr.fromHex(bgColor).darken(30);
+    return colr.toHex();
   },
 
   styles(label) {
+    const bgColor = LabelColorizer.colors[label.bgColor || 0];
+    var colr = Colr.fromHex(bgColor).darken(15);
     const styles = {
       color: LabelColorizer.color(label),
       backgroundColor: LabelColorizer.backgroundColor(label),
-      boxShadow: `inset 0 0 1px hsl(${label.hue()}, 62%, 47%), inset 0 1px 1px rgba(255,255,255,0.5), 0 0.5px 0 rgba(255,255,255,0.5)`,
+      boxShadow: `inset 0 0 1px ${colr.toHex()}, inset 0 1px 1px rgba(255,255,255,0.5), 0 0.5px 0 rgba(255,255,255,0.5)`,
     };
     if (process.platform !== 'win32') {
       styles.backgroundImage = 'linear-gradient(rgba(255,255,255, 0.4), rgba(255,255,255,0))';
