@@ -18,6 +18,7 @@ import Label from './flux/models/label';
 import Folder from './flux/models/folder';
 import Actions from './flux/actions';
 import Matcher from './flux/attributes/matcher';
+import { LabelColorizer } from 'mailspring-component-kit';
 
 let WorkspaceStore = null;
 let ChangeStarredTask = null;
@@ -35,7 +36,7 @@ export default class MailboxPerspective {
     return new EmptyMailboxPerspective();
   }
 
-  static forSingleAccount(accountId){
+  static forSingleAccount(accountId) {
     return new SingleAccountMailboxPerspective(accountId);
   }
 
@@ -43,7 +44,7 @@ export default class MailboxPerspective {
     return new DraftsMailboxPerspective(accountsOrIds);
   }
 
-  static forAttachments(accountIds){
+  static forAttachments(accountIds) {
     return new AttachementMailboxPerspective(accountIds);
   }
 
@@ -255,8 +256,8 @@ export default class MailboxPerspective {
     return [];
   }
 }
-class SingleAccountMailboxPerspective extends MailboxPerspective{
-  constructor(accountId){
+class SingleAccountMailboxPerspective extends MailboxPerspective {
+  constructor(accountId) {
     super([accountId]);
     this.iconName = 'inbox.png';
   }
@@ -339,18 +340,18 @@ class StarredMailboxPerspective extends MailboxPerspective {
     return tasks;
   }
 }
-class AttachementMailboxPerspective extends MailboxPerspective{
-  constructor(accountIds){
+class AttachementMailboxPerspective extends MailboxPerspective {
+  constructor(accountIds) {
     super(accountIds);
     this.hasAttachment = true;
-    this.name='Attachment';
-    this.iconName='attachments.svg';
+    this.name = 'Attachment';
+    this.iconName = 'attachments.svg';
   }
-  threads(){
+  threads() {
     const query = DatabaseStore.findAll(Thread)
       .where([Thread.attributes.hasAttachments.equal(true)], Thread.attributes.inAllMail.equal(true))
       .limit(0);
-    return new MutableQuerySubscription(query, {emitResultSet: true});
+    return new MutableQuerySubscription(query, { emitResultSet: true });
   }
 
   canReceiveThreadsFromAccountIds() {
@@ -395,6 +396,10 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       this.iconName = `${this._categories[0].role}.svg`;
     } else {
       this.iconName = this._categories[0] instanceof Label ? 'label.svg' : 'folder.svg';
+      if (this.iconName === 'label.svg') {
+        const bgColor = LabelColorizer.backgroundColor(this._categories[0]);
+        this.bgColor = bgColor;
+      }
     }
   }
 
@@ -428,7 +433,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     }
 
     if (!['spam', 'trash'].includes(this.categoriesSharedRole())) {
-      query.where({ inAllMail: true, state: 0});
+      query.where({ inAllMail: true, state: 0 });
     }
 
 

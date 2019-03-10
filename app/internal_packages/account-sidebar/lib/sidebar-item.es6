@@ -15,7 +15,7 @@ const SidebarActions = require('./sidebar-actions');
 
 const idForCategories = categories => _.pluck(categories, 'id').join('-');
 
-const countForItem = function(perspective) {
+const countForItem = function (perspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
   if (perspective.isInbox() || unreadCountEnabled) {
     return perspective.unreadCount();
@@ -25,7 +25,7 @@ const countForItem = function(perspective) {
 
 const isItemSelected = perspective => FocusedPerspectiveStore.current().isEqual(perspective);
 
-const isItemCollapsed = function(id) {
+const isItemCollapsed = function (id) {
   if (AppEnv.savedState.sidebarKeysCollapsed[id] !== undefined) {
     return AppEnv.savedState.sidebarKeysCollapsed[id];
   } else {
@@ -33,14 +33,14 @@ const isItemCollapsed = function(id) {
   }
 };
 
-const toggleItemCollapsed = function(item) {
+const toggleItemCollapsed = function (item) {
   if (!(item.children.length > 0)) {
     return;
   }
   SidebarActions.setKeyCollapsed(item.id, !isItemCollapsed(item.id));
 };
 
-const onDeleteItem = function(item) {
+const onDeleteItem = function (item) {
   // TODO Delete multiple categories at once
   if (item.deleted === true) {
     return;
@@ -58,7 +58,7 @@ const onDeleteItem = function(item) {
   );
 };
 
-const onEditItem = function(item, value) {
+const onEditItem = function (item, value) {
   let newDisplayName;
   if (!value) {
     return;
@@ -118,6 +118,7 @@ class SidebarItem {
         contextMenuLabel: perspective.name,
         count: countForItem(perspective),
         iconName: perspective.iconName,
+        bgColor: perspective.bgColor,
         children: [],
         perspective,
         selected: isItemSelected(perspective),
@@ -252,7 +253,7 @@ class SidebarItem {
   }
 
   static forStarred(accountIds, opts = {}) {
-    opts.iconName='flag.svg';
+    opts.iconName = 'flag.svg';
     const perspective = MailboxPerspective.forStarred(accountIds);
     let id = 'Starred';
     if (opts.name) {
@@ -303,9 +304,9 @@ class SidebarItem {
     return this.forPerspective(id, perspective, opts);
   }
 
-  static forAttachments(accountIds, opts = {}){
+  static forAttachments(accountIds, opts = {}) {
     const perspetive = MailboxPerspective.forAttachments(accountIds);
-    const id = accountIds.join('-')+'attachments';
+    const id = accountIds.join('-') + 'attachments';
     return this.forPerspective(id, perspetive, opts);
   }
 

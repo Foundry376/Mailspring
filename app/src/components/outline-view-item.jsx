@@ -291,7 +291,7 @@ class OutlineViewItem extends Component {
 
   _renderCount(item = this.props.item) {
     if (!item.count) {
-      return <span/>;
+      return <span />;
     }
     const className = classnames({
       'item-count-box': true,
@@ -301,12 +301,16 @@ class OutlineViewItem extends Component {
   }
 
   _renderIcon(item = this.props.item) {
+    const styles = { width: 16, height: 16 };
+    if (item.bgColor) {
+      styles.backgroundColor = item.bgColor;
+    }
     return (
       <div className="icon">
         <RetinaImg
           name={item.iconName}
           isIcon={true}
-          style={{ width: 16, height: 16 }}
+          style={styles}
           fallback={'folder.svg'}
           mode={RetinaImg.Mode.ContentIsMask}
         />
@@ -367,11 +371,11 @@ class OutlineViewItem extends Component {
     if (item.children.length > 0 && !item.collapsed) {
       return (
         <section className="item-children" key={`${item.id}-children`}>
-          {item.children.map(child => <OutlineViewItem key={child.id} item={child}/>)}
+          {item.children.map(child => <OutlineViewItem key={child.id} item={child} />)}
         </section>
       );
     }
-    return <span/>;
+    return <span />;
   }
 
   _renderMissingShadowBox() {
@@ -380,7 +384,7 @@ class OutlineViewItem extends Component {
       height: this.state.targetDiv.clientHeight,
       width: this.state.targetDiv.offsetLeft,
     };
-    return <div style={style} className="missing-shadow-patch"/>;
+    return <div style={style} className="missing-shadow-patch" />;
   }
 
   render() {
