@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Flexbox, RetinaImg } from 'mailspring-component-kit';
+import { Flexbox, RetinaImg, LottieImg } from 'mailspring-component-kit';
 import {
   Actions,
   SyncbackCategoryTask,
@@ -151,9 +151,9 @@ export default class CreateNewFolderPopover extends Component {
       <button className="create-folder-btn-create" title="Create Folder"
         disabled={this.state.newName.length === 0} onClick={this._onCreateCategory}>
         {(this.state.isBusy || this._buttonTimer) ?
-          <RetinaImg name={'sending-spinner.gif'}
-            style={{ width: 24 }}
-            mode={RetinaImg.Mode.ContentIsMask} /> :
+          <LottieImg name={'loading-spinner-white'}
+                     height={24} width={24}
+            style={{ width: 24, height: 24 }} /> :
           <span>Create Folder</span>}
       </button>
     </div>;
