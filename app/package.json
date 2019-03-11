@@ -83,6 +83,7 @@
     "react-bootstrap": "^0.32.4",
     "react-color": "^2.13.8",
     "react-dom": "16.2.0",
+    "react-lottie": "^1.2.3",
     "react-redux": "^5.0.4",
     "react-test-renderer": "16.2.0",
     "react-transition-group": "1.2.1",

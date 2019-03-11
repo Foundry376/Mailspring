@@ -13,6 +13,7 @@ const DatabaseObjectRegistry = require('../../registries/database-object-registr
 
 let imageData = null;
 let iconsData = null;
+let lottieData = null;
 
 module.exports = Utils = {
   waitFor(latch, options = {}) {
@@ -220,6 +221,46 @@ module.exports = Utils = {
       return false;
     }
     return id.slice(0, 6) === 'local-';
+  },
+  lottieNamed(fullname, resourcePath){
+    const [name, ext] = fullname.split('.');
+
+    if (DefaultResourcePath == null) {
+      DefaultResourcePath = AppEnv.getLoadSettings().resourcePath;
+    }
+    if (resourcePath == null) {
+      resourcePath = DefaultResourcePath;
+    }
+
+    if (!lottieData) {
+      lottieData = AppEnv.fileListCache().lottieData || '{}';
+      Utils.lottie = JSON.parse(lottieData) || {};
+    }
+
+    if (!Utils.lottie || !Utils.lottie[resourcePath]) {
+      if (Utils.lottie == null) {
+        Utils.lottie = {};
+      }
+      if (Utils.lottie[resourcePath] == null) {
+        Utils.lottie[resourcePath] = {};
+      }
+      const lottieData = path.join(resourcePath, 'static', 'lottie');
+      const files = fs.listTreeSync(lottieData);
+      for (let file of files) {
+        // On Windows, we get paths like C:\images\compose.png, but
+        // Chromium doesn't accept the backward slashes. Convert to
+        // C:/images/compose.png
+        file = file.replace(/\\/g, '/');
+        const basename = path.basename(file);
+        Utils.lottie[resourcePath][basename] = file;
+      }
+      AppEnv.fileListCache().lottieData = JSON.stringify(Utils.lottie);
+    }
+    let attempt = `${name}.${ext}`;
+    if (Utils.lottie[resourcePath][attempt]) {
+      return Utils.lottie[resourcePath][attempt];
+    }
+    return null;
   },
   iconNamed(fullname, resourcePath){
     const [name, ext] = fullname.split('.');

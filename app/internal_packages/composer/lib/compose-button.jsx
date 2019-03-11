@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Actions } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, LottieImg } from 'mailspring-component-kit';
+
 const buttonTimeout = 700;
 export default class ComposeButton extends React.Component {
   static displayName = 'ComposeButton';
@@ -68,10 +69,15 @@ export default class ComposeButton extends React.Component {
         disabled={this.state.creatingNewDraft}
         onClick={this._onNewCompose}
       >
-        <RetinaImg name={this.state.creatingNewDraft ? 'sending-spinner.gif' : 'email.svg'}
-                   style={{ width: 24 }}
-                   isIcon={!this.state.creatingNewDraft}
-                   mode={RetinaImg.Mode.ContentIsMask}/>
+        {this.state.creatingNewDraft ?
+          <LottieImg name='loading-spinner-blue'
+                     size={{ width: 24, height: 24 }}
+                     style={{ margin: 'none' }}/> :
+          <RetinaImg name='email.svg'
+                     style={{ width: 24 }}
+                     isIcon={true}
+                     mode={RetinaImg.Mode.ContentIsMask}/>
+        }
         <span>Compose</span>
       </button>
     );

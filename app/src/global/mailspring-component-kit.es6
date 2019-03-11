@@ -68,6 +68,7 @@ lazyLoad('BillingModal', 'billing-modal');
 lazyLoad('OpenIdentityPageButton', 'open-identity-page-button');
 lazyLoad('Flexbox', 'flexbox');
 lazyLoad('RetinaImg', 'retina-img');
+lazyLoad('LottieImg', 'lottie-img');
 lazyLoad('SwipeContainer', 'swipe-container');
 lazyLoad('FluxContainer', 'flux-container');
 lazyLoad('FocusContainer', 'focus-container');
