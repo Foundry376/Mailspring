@@ -1,25 +1,14 @@
 import { React, ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
-import { HasTutorialTip } from 'mailspring-component-kit';
 
-import ThreadSearchBar from './thread-search-bar';
-
-const ThreadSearchBarWithTip = HasTutorialTip(ThreadSearchBar, {
-  title: 'Search with ease',
-  instructions: (
-    <span>
-      Combine your search queries with Gmail-style terms like <strong>in: folder</strong> and{' '}
-      <strong>since: "last month"</strong> to find anything in your mailbox.
-    </span>
-  ),
-});
+import TitleSearchBar from './title-search-bar';
 
 export function activate() {
-  ComponentRegistry.register(ThreadSearchBarWithTip, {
+  ComponentRegistry.register(TitleSearchBar, {
     location: WorkspaceStore.Location.ThreadList.Toolbar,
     role: 'Search-Bar'
   });
 }
 
 export function deactivate() {
-  ComponentRegistry.unregister(ThreadSearchBarWithTip);
+  ComponentRegistry.unregister(TitleSearchBar);
 }

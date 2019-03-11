@@ -538,6 +538,7 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
       if (rooms[payload.from.bare]) {
         name = rooms[payload.from.bare];
       } else {
+        console.log('dbg*** updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
         return Observable.fromPromise(xmpp.getRoomList(null, payload.curJid))
           .map(({ discoItems: { items } }) => {
             if (items) {
@@ -668,6 +669,7 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
       if (rooms[payload.from.bare]) {
         name = rooms[payload.from.bare];
       } else {
+        console.log('dbg*** triggerGroupNotificationEpic xmpp.getRoomList payload.curJid 2: ', payload.curJid);
         return Observable.fromPromise(xmpp.getRoomList(null, payload.curJid))
           .map(({ discoItems: { items } }) => {
             if (items) {
