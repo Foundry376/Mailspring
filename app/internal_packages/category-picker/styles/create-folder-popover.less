@@ -2,7 +2,7 @@
 
 .create-folder-container {
   &.has-color-choice {
-    height: 192px + 70px;
+    height: 310px;
   }
   height: 192px;
   width: 400px;
@@ -20,7 +20,7 @@
   .header-row{
     line-height: 20px;
     position: absolute;
-    left: 360px;
+    right: 20px;
     top: 15px;
     display: block;
     .content-mask{
@@ -53,15 +53,14 @@
       letter-spacing: 0.01px;
       alignment: left;
     }
-    .header-subtext {
-      margin-top: 6px;
-      flex: 16px 0 0;
-      font-size: 13px;
-      line-height: 16px;
-      color: @black;
-      font-weight: normal;
-      letter-spacing: 0.18px;
-    }
+  }
+  .header-subtext {
+    margin-top: 6px;
+    flex: 16px 0 0;
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: normal;
+    color: @gray;
   }
   .folder-input {
     padding: unset;
@@ -84,7 +83,7 @@
     width: 100%;
     button {
       flex: 160px 0 0;
-      height: 35px;
+      height: 36px;
       border-radius: 20px;
       border: 1px solid @accent-primary;
       font-size: 11px;
@@ -115,12 +114,12 @@
   .color-choice {
     display: flex;
     flex-flow: row wrap;
-    margin-bottom: 70px;
+    margin: 8px 0 30px 0;
     &>div {
-      flex: 0 1 22px;
-      height: 22px;
+      flex: 0 1 20px;
+      height: 20px;
       width: 20px;
-      margin: 3px;
+      margin: 4.5px;
       border-radius: 50%;
       text-align: center;
       img {
@@ -131,6 +130,12 @@
         img {
           visibility: visible;
         }
+      }
+      &:nth-child(12n+1) {
+        margin-left: 0;
+      }
+      &:nth-child(12n+12) {
+        margin-right: 0;
       }
     }
   }

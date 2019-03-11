@@ -33,7 +33,6 @@ export const LabelColorizer = {
 
   color(label) {
     const bgColor = LabelColorizer.colors[label.bgColor || 0];
-    console.log('****bgColor', bgColor);
     var colr = Colr.fromHex(bgColor).darken(20);
     return colr.toHex();
   },
