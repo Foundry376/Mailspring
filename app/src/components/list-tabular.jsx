@@ -372,7 +372,7 @@ class ListTabular extends Component {
     const { count, loaded, empty } = this.state;
     const rows = this.getRowsToRender();
     const innerStyles = { height: count * itemHeight };
-    const headerHeight = 106;
+    const headerHeight = 32;
     let offsetHeight = 0;
     let isHeaderShow = true;
     if (isHeaderShow) {
@@ -396,14 +396,7 @@ class ListTabular extends Component {
           tabIndex="-1"
           scrollTooltipComponent={scrollTooltipComponent}
         >
-          {isHeaderShow ? (
-            <div className="list-header" style={{
-              height: headerHeight,
-            }}>
-              <h1>{current && (current.displayName ? current.displayName : current.name)}</h1>
-              {Toolbar && <Toolbar />}
-            </div>
-          ) : null}
+          <Toolbar />
           <ListTabularRows
             rows={rows}
             columns={columns}
