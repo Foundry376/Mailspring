@@ -194,8 +194,8 @@ export class Notifier {
         }
 
         // Filter new messages to just the ones in the inbox
-        const newMessagesInInbox = newMessages.filter(({ threadId }) => {
-          return threads[threadId] && threads[threadId].categories.find(c => c.role === 'inbox');
+        const newMessagesInInbox = newMessages.filter(({ folder }) => {
+            return folder.role === 'inbox' || folder.role === 'all'
         });
 
         if (newMessagesInInbox.length === 0) {
