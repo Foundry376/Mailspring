@@ -197,22 +197,25 @@ export default class CreateNewFolderPopover extends Component {
         value={this.state.newName} placeholder={'Name'}
         disabled={this.state.isBusy}
         onChange={this._onNameChange} />
-      <div className="color-choice">
-        {
-          LabelColorizer.colors.map((color, idx) => {
-            const className = this.state.bgColor === idx ? 'checked' : '';
-            return (
-              <div key={color} className={className} style={{ background: color }} onClick={() => this.onCheckColor(idx)} >
-                <RetinaImg
-                  className="check-img check"
-                  name="tagging-checkmark.png"
-                  mode={RetinaImg.Mode.ContentPreserve}
-                  onClick={() => this._onSelectLabel(item)}
-                />
-              </div>
-            )
-          })
-        }
+      <div>
+        <div className='header-subtext'>Pick a color for your new label:</div>
+        <div className="color-choice">
+          {
+            LabelColorizer.colors.map((color, idx) => {
+              const className = this.state.bgColor === idx ? 'checked' : '';
+              return (
+                <div key={color} className={className} style={{ background: color }} onClick={() => this.onCheckColor(idx)} >
+                  <RetinaImg
+                    className="check-img check"
+                    name="tagging-checkmark.png"
+                    mode={RetinaImg.Mode.ContentPreserve}
+                    onClick={() => this._onSelectLabel(item)}
+                  />
+                </div>
+              )
+            })
+          }
+        </div>
       </div>
       {this.renderButtons()}
     </div>;
