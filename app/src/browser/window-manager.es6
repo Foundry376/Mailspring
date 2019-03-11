@@ -239,7 +239,8 @@ export default class WindowManager {
       windowKey: WindowManager.ONBOARDING_WINDOW,
       windowType: WindowManager.ONBOARDING_WINDOW,
       title: 'Account Setup',
-      hidden: true, // Displayed by PageRouter::_initializeWindowSize
+      // hidden: true, // Displayed by PageRouter::_initializeWindowSize
+      hidden: false,
       frame: false, // Always false on Mac, explicitly set for Win & Linux
       toolbar: false,
       resizable: false,
