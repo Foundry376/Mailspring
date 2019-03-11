@@ -1,5 +1,5 @@
 import { React, PropTypes, Actions, SendActionsStore, SoundRegistry } from 'mailspring-exports';
-import { Menu, RetinaImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
+import { Menu, RetinaImg, LottieImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
 
 const sendButtonTimeout = 700;
 
@@ -103,10 +103,13 @@ class SendActionButton extends React.Component {
 
     return (
       <span>
-        <RetinaImg name={!this.state.isSending ? 'sent.svg' : 'sending-spinner.gif'}
-                   style={{ width: 27, height: 27 }}
-                   isIcon={!this.state.isSending}
-                   mode={RetinaImg.Mode.ContentIsMask}/>
+        {this.state.isSending ?
+          <LottieImg name='loading-spinner-white' size={{ width: 27, height: 27 }}/> :
+          <RetinaImg name={'sent.svg'}
+                     style={{ width: 27, height: 27 }}
+                     isIcon={true}
+                     mode={RetinaImg.Mode.ContentIsMask}/>
+        }
         <span className="text">Send{plusHTML}</span>
         {additionalImg}
       </span>
