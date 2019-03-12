@@ -25,6 +25,7 @@ import ComposerHeader from './composer-header';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
 import Fields from './fields';
+import LottieImg from '../../../src/components/lottie-img';
 
 const {
   hasBlockquote,
@@ -354,11 +355,14 @@ export default class ComposerView extends React.Component {
           onClick={this._onDestroyDraft}
           disabled={this.props.session.isPopout()}
         >
-          <RetinaImg name={this.state.isDeleting ? 'sending-spinner.gif' : 'trash.svg'}
+          {this.state.isDeleting?
+          <LottieImg name={'loading-spinner-blue'}
+                     size={{ width: 24, height: 24 }}/> :
+          <RetinaImg name={'trash.svg'}
                      style={{ width: 24, height: 24 }}
-                     isIcon={!this.state.isDeleting}
+                     isIcon
                      mode={RetinaImg.Mode.ContentIsMask}
-          />
+          />}
         </button>
 
         <button

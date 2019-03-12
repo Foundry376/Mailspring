@@ -44,7 +44,7 @@ class ComposerWithWindowProps extends React.Component {
 
   _onDraftChangeAccountComplete = ({ newDraftJSON }) => {
     const draft = new Message().fromJSON(newDraftJSON);
-    DraftStore._createSession(draft.headerMessageId);
+    DraftStore._createSession(draft.headerMessageId, draft);
     this.setState({ headerMessageId: draft.headerMessageId, messageId: draft.id });
   };
 

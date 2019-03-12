@@ -25,7 +25,7 @@ export default class LottieImg extends React.Component {
       }
     },
     resourcePath: null,
-    style: null
+    style: {margin: 'none'}
   };
 
   constructor(props) {
