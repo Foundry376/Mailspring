@@ -244,8 +244,8 @@ export default class WindowManager {
       frame: false, // Always false on Mac, explicitly set for Win & Linux
       toolbar: false,
       resizable: false,
-      width: 900,
-      height: 670,
+      width: 550,
+      height: 700,
     };
 
     // The SPEC_WINDOW gets passed its own bootstrapScript

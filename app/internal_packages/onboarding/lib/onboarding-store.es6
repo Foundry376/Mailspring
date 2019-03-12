@@ -17,7 +17,9 @@ class OnboardingStore extends MailspringStore {
     const { existingAccountJSON, addingAccount } = AppEnv.getWindowProps();
 
     const hasAccounts = AccountStore.accounts().length > 0;
-    const identity = IdentityStore.identity();
+    // we don't have edison account for now.
+    // const identity = IdentityStore.identity();
+    const identity = null;
 
     this._account = new Account({
       name: identity ? `${identity.firstName || ''} ${identity.lastName || ''}` : '',
@@ -51,7 +53,7 @@ class OnboardingStore extends MailspringStore {
       this._pageStack = ['authenticate'];
     } else {
       // Standard new user onboarding flow.
-      this._pageStack = ['welcome'];
+      this._pageStack = ['tutorial', 'account-choose'];
     }
   }
 

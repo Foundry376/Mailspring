@@ -29,7 +29,8 @@ export default class AccountChoosePage extends React.Component {
   render() {
     return (
       <div className="page account-choose">
-        <h2>Connect an email account</h2>
+        <h2>Login to Your Email</h2>
+        <h3>Add an account to get started</h3>
         <div className="provider-list">{this._renderProviders()}</div>
       </div>
     );

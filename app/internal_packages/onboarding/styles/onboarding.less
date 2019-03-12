@@ -1,4 +1,66 @@
 @import 'onboarding-reset';
+@import '../node_modules/swiper/dist/css/swiper.min.css';
+
+.tutorial-container.swiper-container {
+  color: #fff;
+  width: 550px;
+  height: 385px;
+  img {
+    width: 100%;
+  }
+  .swiper-pagination,
+  .swiper-button-prev,
+  .swiper-button-next
+   {
+    bottom: 10px;
+    top: initial;
+  }
+  .swiper-button-prev {
+    left: 208px;
+  }
+  .swiper-button-next {
+    right: 208px;
+  }
+
+  .swiper-button-prev,
+  .swiper-button-next {
+    background-image: none;
+    height: 24px;
+    width: 24px;
+    font-size: 24px;
+    color: #39F;
+    text-align: center;
+  }
+  .swiper-button-disabled {
+    color: #E0E0E0;
+  }
+  .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+  }
+  .swiper-pagination-bullet {
+    background: rgba(51,153,255,0.15);
+    opacity: 1;
+  }
+  .swiper-pagination-bullet-active {
+    background: #39F;
+  }
+  .swiper-pagination-bullets .swiper-pagination-bullet {
+    margin: 0 6px;
+  }
+  h2 {
+    font-size: 22px;
+    line-height: 22px;
+    margin: 27px auto 17px;
+    font-weight: bold;
+    color: #000;
+  }
+  p {
+    font-size: 17px;
+    color: #000;
+    line-height: 20px;
+  }
+}
 
 @-webkit-keyframes fadein {
   from {
@@ -261,7 +323,10 @@
 
   .provider-list {
     margin: auto;
-    width: 570px;
+    width: 310px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
   }
   .cloud-sync-note {
     margin-bottom: 20px;
@@ -278,12 +343,13 @@
     text-align: left;
     cursor: default;
     line-height: 63px;
-    width: 280px;
+    width: 70px;
+    height: 100px;
     display: inline-block;
     border: 1px solid rgba(35, 31, 32, 0.1);
     border-radius: 4px;
-    margin-left: 2.5px;
-    margin-right: 2.5px;
+    margin-left: 25px;
+    margin-right: 2.25px;
     margin-bottom: 5px;
     background: rgba(255, 255, 255, 0.4);
 
@@ -389,7 +455,7 @@
   }
 
   .tutorial-container {
-    background-color: #f9f9f9;
+    background-color: #fff;
     display: flex;
     flex-direction: row;
     flex: 1;
@@ -525,21 +591,20 @@
 .page.tutorial {
   .footer {
     text-align: center;
-    background-color: #ececec;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 1px 1px solid rgba(255, 255, 255, 0.25);
+    background-color: #fff;
 
     .btn-next,
     .btn-prev {
-      width: 160px;
-      margin: 20px 10px;
-    }
-    .btn-continue {
-      font-weight: 300;
-      margin: 20px 0;
-      width: 296px;
-      line-height: 2.5em;
-      height: 2.5em;
+      width: 300px;
+      margin: 40px 0 50px;
+      height: 50px;
+      background-color: #39F;
+      border-radius: 25px;
+      font-size: 17px;
+      line-height: 50px;
+      color: #fff;
+      box-shadow: none;
+      font-weight: bold;
     }
   }
 }
