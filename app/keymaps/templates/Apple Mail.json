@@ -1,9 +1,9 @@
 {
   "application:new-message": "mod+n",
 
-  "navigation:go-to-inbox": "command+ctrl+1",
+  "navigation:go-to-all-inbox": "command+ctrl+1",
   "navigation:go-to-starred": "command+ctrl+2",
-  "navigation:go-to-sent": "command+ctrl+3",
+  "navigation:go-to-all-sent": "command+ctrl+3",
   "navigation:go-to-drafts": "command+ctrl+4",
   "navigation:go-to-all": "command+ctrl+5",
   "navigation:go-to-contacts": "command+ctrl+6",

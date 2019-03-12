@@ -70,8 +70,56 @@ export default class MailboxPerspective {
     return categories.length > 0 ? new UnreadMailboxPerspective(categories) : this.forNothing();
   }
 
+  static forUnreadByAccounts(accountIds){
+    let categories = accountIds.map(accId => {
+      return CategoryStore.getCategoryByRole(accId, 'inbox');
+    });
+
+    // NOTE: It's possible for an account to not yet have an `inbox`
+    // category. Since the `SidebarStore` triggers on `AccountStore`
+    // changes, it'll trigger the exact moment an account is added to the
+    // config. However, the API has not yet come back with the list of
+    // `categories` for that account.
+    categories = _.compact(categories);
+    return MailboxPerspective.forUnread(categories);
+  }
+  static getCategoryIds = (accountsOrIds, categoryName) => {
+    const categoryIds = [];
+    for (let accountId of accountsOrIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountsOrIds, categoryName);
+      if (tmp) {
+        categoryIds.push(tmp.id);
+      }
+    }
+    if (categoryIds.length > 0) {
+      return categoryIds.slice();
+    } else {
+      return undefined;
+    }
+  };
+  static forSent(accountsOrIds){
+    let cats = [];
+    for (let accountId of accountsOrIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'sent');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = this.forCategories(cats);
+
+    perspective.iconName='sent.svg';
+    perspective.categoryIds = this.getCategoryIds(accountsOrIds, 'sent');
+    return perspective;
+  }
+
   static forInbox(accountsOrIds) {
-    return this.forStandardCategories(accountsOrIds, 'inbox');
+    const perspective = this.forStandardCategories(accountsOrIds, 'inbox');
+    perspective.iconName='all-mail.svg';
+    if(accountsOrIds.length > 1){
+      perspective.displayName = 'All Inboxes';
+    }
+    perspective.categoryIds = this.getCategoryIds(accountsOrIds, 'inbox');
+    return perspective;
   }
 
   static fromJSON(json) {
@@ -267,7 +315,7 @@ class DraftsMailboxPerspective extends MailboxPerspective {
   constructor(accountIds) {
     super(accountIds);
     this.name = 'Drafts';
-    this.iconName = 'drafts.png';
+    this.iconName = 'drafts.svg';
     this.drafts = true; // The DraftListStore looks for this
   }
 
@@ -299,8 +347,8 @@ class StarredMailboxPerspective extends MailboxPerspective {
   constructor(accountIds) {
     super(accountIds);
     this.starred = true;
-    this.name = 'Starred';
-    this.iconName = 'starred.png';
+    this.name = 'Flagged';
+    this.iconName = 'flag.svg';
   }
 
   threads() {
@@ -619,7 +667,7 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
     super(categories);
     this.unread = true;
     this.name = 'Unread';
-    this.iconName = 'unread.png';
+    this.iconName = 'unread.svg';
   }
 
   threads() {

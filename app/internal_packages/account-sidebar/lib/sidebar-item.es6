@@ -114,7 +114,7 @@ class SidebarItem {
         categoryIds: opts.categoryIds ? opts.categoryIds : undefined,
         accountIds: perspective.accountIds,
         name: perspective.name,
-        displayName: opts.displayName,
+        displayName: perspective.displayName,
         contextMenuLabel: perspective.name,
         count: countForItem(perspective),
         iconName: perspective.iconName,
@@ -291,7 +291,6 @@ class SidebarItem {
   }
 
   static forAllInbox(accountIds, opts = {}) {
-    opts.iconName = 'all-mail.svg';
     const perspective = MailboxPerspective.forInbox(accountIds);
     opts.categoryIds = this.getCategoryIds(accountIds, 'inbox');
     const id = accountIds.join('-');

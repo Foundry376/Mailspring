@@ -3,7 +3,7 @@ import Button from '../../common/Button';
 import TopBar from '../../common/TopBar';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import { WorkspaceStore, Actions } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 
 export default class ConversationsTopBar extends PureComponent {
   newConversation = () => {
@@ -14,7 +14,10 @@ export default class ConversationsTopBar extends PureComponent {
     return (
       <TopBar
         left={
-          <div className="left-title">MESSAGES</div>
+          [<div key='title' className="left-title">MESSAGES</div>,
+          <BindGlobalCommands key='bindKey' commands={{
+            "application:new-chat": this.newConversation
+          }}><span/></BindGlobalCommands>]
         }
         right={
           <Button className="button new-message" onClick={this.newConversation}>
