@@ -6,33 +6,37 @@ import OnboardingActions from './onboarding-actions';
 
 const PageTopBar = props => {
   const { pageDepth } = props;
-
-  const closeClass = pageDepth > 1 ? 'back' : 'close';
-  const closeIcon = pageDepth > 1 ? 'onboarding-back.png' : 'onboarding-close.png';
   const closeAction = () => {
+    if (AccountStore.accounts().length === 0) {
+      AppEnv.quit();
+    } else {
+      AppEnv.close();
+    }
+  };
+  const backAction = () => {
     const webview = document.querySelector('webview');
     if (webview && webview.canGoBack()) {
       webview.goBack();
     } else if (pageDepth > 1) {
       OnboardingActions.moveToPreviousPage();
-    } else {
-      if (AccountStore.accounts().length === 0) {
-        AppEnv.quit();
-      } else {
-        AppEnv.close();
-      }
     }
   };
 
-  let backButton = (
-    <div className={closeClass} onClick={closeAction}>
-      <RetinaImg name={closeIcon} mode={RetinaImg.Mode.ContentPreserve} />
+  let closeButton = (
+    <div className='close' onClick={closeAction}>
+      <RetinaImg name='onboarding-close.png' mode={RetinaImg.Mode.ContentPreserve} />
     </div>
   );
-  if (props.pageDepth > 1 && !props.allowMoveBack) {
+
+  let backButton = (
+    <div className='back' onClick={backAction}>
+      <RetinaImg name='onboarding-back.png' mode={RetinaImg.Mode.ContentPreserve} />
+    </div>
+  );
+
+  if (!props.allowMoveBack) {
     backButton = null;
   }
-
   return (
     <div
       className="dragRegion"
@@ -46,6 +50,7 @@ const PageTopBar = props => {
         WebkitAppRegion: 'drag',
       }}
     >
+      {closeButton}
       {backButton}
     </div>
   );

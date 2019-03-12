@@ -116,6 +116,7 @@
     "slate-soft-break": "0.6.0",
     "source-map-support": "^0.3.2",
     "sqlite3": "^4.0.6",
+    "swiper": "^4.5.0",
     "temp": "^0.8",
     "tld": "^0.0.2",
     "underscore": "1.8.x",
