@@ -17,8 +17,9 @@ class SendActionButton extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { isSending: false, mounted: false };
+    this.state = { isSending: false, mounted: false, showLoading: false };
     this._sendButtonTimer = null;
+    this._delayLoadingTimer = null;
     this._mounted = false;
     this._unlisten = [
       Actions.draftDeliveryFailed.listen(this._onSendDraftProcessCompleted, this),
@@ -33,6 +34,7 @@ class SendActionButton extends React.Component {
   componentWillUnmount() {
     this._mounted = false;
     clearTimeout(this._sendButtonTimer);
+    clearTimeout(this._delayLoadingTimer);
     this._unlisten.forEach(unlisten => {
       unlisten();
     });
@@ -60,17 +62,27 @@ class SendActionButton extends React.Component {
   _timoutButton = () => {
     if (!this._sendButtonTimer) {
       this._sendButtonTimer = setTimeout(() => {
+        clearTimeout(this._delayLoadingTimer);
         if (this._mounted) {
-          this.setState({ isSending: false });
+          this.setState({ isSending: false, showLoading: false });
         }
         this._sendButtonTimer = null;
       }, sendButtonTimeout);
     }
   };
+  _delayShowLoading=()=>{
+    clearTimeout(this._delayLoadingTimer);
+    this._delayLoadingTimer = setTimeout(()=>{
+      if(this._mounted){
+        this.setState({showLoading: true});
+      }
+    }, sendButtonTimeout);
+  };
 
   _onSendWithAction = sendAction => {
     if (this.props.isValidDraft() && !this.state.isSending && !this._sendButtonTimer) {
       this._timoutButton();
+      this._delayShowLoading();
       this.setState({ isSending: true });
       if (AppEnv.config.get('core.sending.sounds')) {
         SoundRegistry.playSound('hit-send');
@@ -80,12 +92,13 @@ class SendActionButton extends React.Component {
   };
   _onSendDraftProcessCompleted = ({ headerMessageId }) => {
     if (this._mounted && headerMessageId && headerMessageId === this.props.draft.headerMessageId) {
+      clearTimeout(this._delayLoadingTimer);
       if (this._sendButtonTimer) {
         return;
       }
       this._sendButtonTimer = setTimeout(() => {
         if (this._mounted) {
-          this.setState({ isSending: false });
+          this.setState({ isSending: false, showLoading: false });
         }
         this._sendButtonTimer = null;
       }, sendButtonTimeout);
@@ -103,7 +116,7 @@ class SendActionButton extends React.Component {
 
     return (
       <span>
-        {this.state.isSending ?
+        {this.state.showLoading ?
           <LottieImg name='loading-spinner-white' size={{ width: 27, height: 27 }}/> :
           <RetinaImg name={'sent.svg'}
                      style={{ width: 27, height: 27 }}

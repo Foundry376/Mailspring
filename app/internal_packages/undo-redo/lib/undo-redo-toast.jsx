@@ -75,7 +75,6 @@ class Countdown extends React.Component {
 const UndoSendContent = ({ block, onMouseEnter, onMouseLeave, onClose }) => {
   return (
     <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      <Countdown expiration={getUndoSendExpiration(block)}/>
       <div className="message">Sending soon...</div>
       <div className="action" onClick={() => AppEnv.commands.dispatch('core:undo')}>
         <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}

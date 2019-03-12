@@ -1,7 +1,8 @@
 import { React, PropTypes, Actions } from 'mailspring-exports';
-import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
+import { RetinaImg, LottieImg } from 'mailspring-component-kit';
 
 const buttonTimeout = 700;
+const delayTimeout = 400;
 export default class ThreadReplyForwardButton extends React.Component {
   static displayName = 'ThreadReplyForwardButton';
 
@@ -20,8 +21,11 @@ export default class ThreadReplyForwardButton extends React.Component {
     this.state.isReplying = false;
     this.state.isForwarding = false;
     this._replyTimer = null;
+    this._delayReplyTimer = null;
     this._replyAllTimer = null;
+    this._delayReplyAllTimer = null;
     this._forwardTimer = null;
+    this._delayForwardTimer = null;
     this._mounted = false;
   }
 
@@ -39,11 +43,15 @@ export default class ThreadReplyForwardButton extends React.Component {
       unlisten();
     }
     clearTimeout(this._forwardTimer);
+    clearTimeout(this._delayForwardTimer);
     clearTimeout(this._replyAllTimer);
+    clearTimeout(this._delayReplyAllTimer);
     clearTimeout(this._replyTimer);
+    clearTimeout(this._delayReplyTimer);
   }
 
   _timeoutButton = (type) => {
+    this._delayTimeout(type);
     if (type === 'reply') {
       if (!this._replyTimer) {
         this._replyTimer = setTimeout(() => {
@@ -73,6 +81,30 @@ export default class ThreadReplyForwardButton extends React.Component {
       }
     }
   };
+  _delayTimeout = (type)=>{
+    if (type === 'reply'){
+      clearTimeout(this._delayReplyTimer);
+      this._delayReplyTimer= setTimeout(()=>{
+        if(this._mounted){
+          this.setState({showReplyLoading: true});
+        }
+      }, delayTimeout);
+    }else if(type==='reply-all'){
+      clearTimeout(this._delayReplyAllTimer);
+      this._delayReplyAllTimer = setTimeout(()=>{
+        if(this._mounted){
+          this.setState({showReplyAllLoading: true});
+        }
+      }, delayTimeout);
+    } else{
+      clearTimeout(this._delayForwardTimer);
+      this._delayForwardTimer= setTimeout(()=>{
+        if(this._mounted){
+          this.setState({showForwardLoading: true});
+        }
+      }, delayTimeout);
+    }
+  };
 
   _onCreatingDraft = ({ message, type = '' }) => {
     if (this._mounted) {
@@ -89,32 +121,35 @@ export default class ThreadReplyForwardButton extends React.Component {
   _onDraftCreated = ({ messageId, type = '' }) => {
     if (this._mounted) {
       if (type === 'reply') {
+        clearTimeout(this._delayReplyTimer);
         if (this._replyTimer) {
           return;
         }
         this._replyTimer = setTimeout(() => {
           if (this._mounted) {
-            this.setState({ isReplying: false });
+            this.setState({ isReplying: false, showReplyLoading: false });
             this._replyTimer = null;
           }
         }, buttonTimeout);
       } else if (type === 'reply-all') {
+        clearTimeout(this._delayReplyAllTimer);
         if (this._replyAllTimer) {
           return;
         }
         this._replyAllTimer = setTimeout(() => {
           if (this._mounted) {
-            this.setState({ isReplyAlling: false });
+            this.setState({ isReplyAlling: false, showReplyAllLoading: false });
             this._replyAllTimer = null;
           }
         }, buttonTimeout);
       } else {
+        clearTimeout(this._delayForwardTimer);
         if (this._forwardTimer) {
           return;
         }
         this._forwardTimer = setTimeout(() => {
           if (this._mounted) {
-            this.setState({ isForwarding: false });
+            this.setState({ isForwarding: false, showForwardLoading: false });
             this._forwardTimer = null;
           }
         }, buttonTimeout);
@@ -167,11 +202,12 @@ export default class ThreadReplyForwardButton extends React.Component {
           title="Reply"
           style={{ marginRight: 0 }}
           onClick={this._reply}
-        >
-          <RetinaImg name={this.state.isReplying ? 'sending-spinner.gif' : 'reply.svg'}
+        >{this.state.showReplyLoading ?
+        <LottieImg size={{width: 26, height: 26}} name='loading-spinner-blue'/> :
+          <RetinaImg name={'reply.svg'}
                      style={{ width: 26, height: 26 }}
-                     isIcon={!this.state.isReplying}
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+                     isIcon={true}
+                     mode={RetinaImg.Mode.ContentIsMask}/>}
         </button>
         {
           this.canReplyAll() && (
@@ -180,11 +216,12 @@ export default class ThreadReplyForwardButton extends React.Component {
               title="Reply All"
               style={{ marginRight: 0 }}
               onClick={this._replyAll}
-            >
-              <RetinaImg name={this.state.isReplyAlling ? 'sending-spinner.gif' : 'reply-all.svg'}
+            >{this.state.showReplyAllLoading ?
+              <LottieImg size={{width: 26, height: 26}} name='loading-spinner-blue'/> :
+              <RetinaImg name={'reply-all.svg'}
                          style={{ width: 26, height: 26 }}
-                         isIcon={!this.state.isReplyAlling}
-                         mode={RetinaImg.Mode.ContentIsMask}/>
+                         isIcon={true}
+                         mode={RetinaImg.Mode.ContentIsMask}/>}
             </button>
           )
         }
@@ -194,10 +231,12 @@ export default class ThreadReplyForwardButton extends React.Component {
           style={{ marginRight: 0 }}
           onClick={this._forward}
         >
-          <RetinaImg name={this.state.isForwarding ? 'sending-spinner.gif' : 'forward.svg'}
-                     style={{ width: 26, height: 26 }}
-                     isIcon={!this.state.isForwarding}
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+          {this.state.showForwardLoading ?
+            <LottieImg size={{width: 26, height: 26}} name='loading-spinner-blue'/> :
+            <RetinaImg name={'forward.svg'}
+                       style={{ width: 26, height: 26 }}
+                       isIcon={true}
+                       mode={RetinaImg.Mode.ContentIsMask}/>}
         </button>
       </div>
     );
