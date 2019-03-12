@@ -68,7 +68,13 @@ class ContactAvatar extends Component {
   componentDidMount = async () => {
     let { email, conversation } = this.props;
     if (this.props.jid && !email && (!conversation || !conversation.isGroup)) {
-      const { data: userProfile } = await this.getProfile();
+      let userProfile;
+      try{
+         const { data } = await this.getProfile();
+         userProfile = data;
+      } catch (e) {
+        console.log('error in getProfile:', e);
+      }
       if (userProfile) {
         email = userProfile.email
         this.setState({

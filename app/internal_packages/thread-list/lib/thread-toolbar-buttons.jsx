@@ -44,9 +44,9 @@ export class ArchiveButton extends React.Component {
       <BindGlobalCommands commands={{ 'core:archive-item': () => this._onArchive() }}>
         <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
           <RetinaImg name={'archive.svg'}
-            style={{ width: 26, height: 26 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+                     style={{ width: 26, height: 26 }}
+                     isIcon
+                     mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -88,7 +88,7 @@ export class TrashButton extends React.Component {
           title="Move to Trash"
           onClick={this._onRemove}
         >
-          <RetinaImg name={'trash.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'trash.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -99,14 +99,17 @@ class HiddenGenericRemoveButton extends React.Component {
   static displayName = 'HiddenGenericRemoveButton';
 
   _onRemoveAndShift = ({ offset }) => {
+    this._onShift({ offset });
+    this._onRemoveFromView();
+  };
+  _onShift = ({ offset }) => {
     const dataSource = ThreadListStore.dataSource();
     const focusedId = FocusedContentStore.focusedId('thread');
     const focusedIdx = Math.min(
       dataSource.count() - 1,
-      Math.max(0, dataSource.indexOfId(focusedId) + offset)
+      Math.max(0, dataSource.indexOfId(focusedId) + offset),
     );
     const item = dataSource.get(focusedIdx);
-    this._onRemoveFromView();
     Actions.setFocus({ collection: 'thread', item });
   };
 
@@ -125,9 +128,11 @@ class HiddenGenericRemoveButton extends React.Component {
           'core:remove-from-view': this._onRemoveFromView,
           'core:remove-and-previous': () => this._onRemoveAndShift({ offset: -1 }),
           'core:remove-and-next': () => this._onRemoveAndShift({ offset: 1 }),
+          'core:show-previous': () => this._onShift({offset: -1}),
+          'core:show-next': () => this._onShift({offset: 1}),
         }}
       >
-        <span />
+        <span/>
       </BindGlobalCommands>
     );
   }
@@ -155,7 +160,7 @@ class HiddenToggleImportantButton extends React.Component {
             labelsToRemove: [],
           }),
         ];
-      })
+      }),
     );
   };
 
@@ -165,14 +170,14 @@ class HiddenToggleImportantButton extends React.Component {
     }
     const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
       this.props.items,
-      'important'
+      'important',
     );
     if (!allowed) {
       return false;
     }
 
     const allImportant = this.props.items.every(item =>
-      item.labels.find(c => c.role === 'important')
+      item.labels.find(c => c.role === 'important'),
     );
 
     return (
@@ -184,7 +189,7 @@ class HiddenToggleImportantButton extends React.Component {
             : { 'core:mark-important': () => this._onSetImportant(true) }
         }
       >
-        <span />
+        <span/>
       </BindGlobalCommands>
     );
   }
@@ -240,7 +245,8 @@ export class MarkAsSpamButton extends React.Component {
             title="Not Junk"
             onClick={this._onNotSpam}
           >
-            <RetinaImg name="not-junk.svg" style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+            <RetinaImg name="not-junk.svg" style={{ width: 26, height: 26 }} isIcon
+                       mode={RetinaImg.Mode.ContentIsMask}/>
           </button>
         </BindGlobalCommands>
       );
@@ -261,7 +267,7 @@ export class MarkAsSpamButton extends React.Component {
           title="Mark as Spam"
           onClick={this._onMarkAsSpam}
         >
-          <RetinaImg name={'junk.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'junk.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -281,7 +287,7 @@ export class ToggleStarredButton extends React.Component {
       TaskFactory.taskForInvertingStarred({
         threads: this.props.items,
         source: 'Toolbar Button: Thread List',
-      })
+      }),
     );
     if (event) {
       event.stopPropagation();
@@ -297,7 +303,7 @@ export class ToggleStarredButton extends React.Component {
     return (
       <BindGlobalCommands commands={{ 'core:star-item': () => this._onStar() }}>
         <button tabIndex={-1} className="btn btn-toolbar" title={title} onClick={this._onStar}>
-          <RetinaImg name={imageName} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={imageName} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -325,7 +331,7 @@ export class ToggleUnreadButton extends React.Component {
         threads: this.props.items,
         unread: targetUnread,
         source: 'Toolbar Button: Thread List',
-      })
+      }),
     );
     Actions.popSheet();
   };
@@ -349,7 +355,8 @@ export class ToggleUnreadButton extends React.Component {
           title={`Mark as ${fragment}`}
           onClick={this._onClick}
         >
-          <RetinaImg name={`${fragment}.svg`} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={`${fragment}.svg`} style={{ width: 26, height: 26 }} isIcon
+                     mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -405,7 +412,7 @@ class ThreadArrowButton extends React.Component {
           name={`${direction === 'up' ? 'back' : 'next'}.svg`}
           isIcon
           style={{ width: 24, height: 24 }}
-          mode={RetinaImg.Mode.ContentIsMask} />
+          mode={RetinaImg.Mode.ContentIsMask}/>
       </div>
     );
   }
@@ -414,13 +421,13 @@ class ThreadArrowButton extends React.Component {
 export const FlagButtons = CreateButtonGroup(
   'FlagButtons',
   [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton],
-  { order: -103 }
+  { order: -103 },
 );
 
 export const MoveButtons = CreateButtonGroup(
   'MoveButtons',
   [ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton],
-  { order: -107 }
+  { order: -107 },
 );
 
 export const DownButton = () => {
