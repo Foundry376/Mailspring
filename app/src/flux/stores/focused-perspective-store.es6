@@ -45,8 +45,9 @@ class FocusedPerspectiveStore extends MailspringStore {
       'navigation:go-to-all-unread': () => {
         this._setPerspective(MailboxPerspective.forUnreadByAccounts(this.sidebarAccountIds()));
       },
-      'navigation:go-to-inbox': () => this._setPerspectiveByName('inbox'),
-      'navigation:go-to-sent': () => this._setPerspectiveByName('sent'),
+      'navigation:go-to-all-inbox': () =>
+        this._setPerspective(MailboxPerspective.forInbox(this.sidebarAccountIds())),
+      'navigation:go-to-all-sent': () => this._setPerspective(MailboxPerspective.forSent(this.sidebarAccountIds())),
       'navigation:go-to-starred': () =>
         this._setPerspective(MailboxPerspective.forStarred(this._current.accountIds)),
       'navigation:go-to-drafts': () =>

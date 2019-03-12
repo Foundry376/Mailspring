@@ -29,16 +29,20 @@
       { "label": "Check for Mail...", "command": "window:sync-mail-now" },
       { "type": "separator" },
       {"label": "Save",
-        "enabled": false
+        "enabled": false,
+        "hideWhenDisabled": true
       },
       {"label": "Save As...",
-        "enabled": false
+        "enabled": false,
+        "hideWhenDisabled": true
       },
       {"label": "Attach Files...",
-        "enabled": false
+        "enabled": false,
+        "hideWhenDisabled": true
       },
       {"label": "Save Attachments...",
-        "enabled": false
+        "enabled": false,
+        "hideWhenDisabled": true
       },
       { "type": "separator" },
       { "label": "Close Window", "command": "window:close" },
@@ -102,13 +106,13 @@
       { "label": "Previous Message", "command": "core:show-previous", "key": "showPrevious" },
       { "label": "Next Message", "command": "core:show-next", "key": "showNext" },
       { "type": "separator" },
-      { "label": "Go to All Inbox", "command": "navigation:go-to-all-inbox", "id": "first" },
+      { "label": "Go to All Inbox", "command": "navigation:go-to-all-inbox", "id": "first", "key": "allInbox" },
       { "label": "Go to Unread", "command": "navigation:go-to-all-unread", "key": "allUnread" },
-      { "label": "Go to All Sent", "command": "navigation:go-to-sent" },
-      { "label": "Go to Attachments", "command": "navigation:go-to-attachments" },
+      { "label": "Go to All Sent", "command": "navigation:go-to-all-sent","key": "allSent" },
+      { "label": "Go to Attachments", "command": "navigation:go-to-attachments", "hideWhenDisabled": true },
       { "type": "separator" },
-      {"label": "Show Assistant"},
-      {"label": "Hide Assistant"},
+      {"label": "Show Assistant","enabled": false, "hideWhenDisabled": true},
+      {"label": "Hide Assistant", "enabled": false,"hideWhenDisabled": true},
       { "type": "separator" },
       { "label": "Enter Full Screen", "command": "window:toggle-full-screen",
         "hideWhenDisabled": true, "key": "enterFullScreen"
@@ -131,13 +135,13 @@
       { "label": "Trash", "command": "core:delete-item" },
       { "label": "Archive", "command": "core:archive-item", "hideWhenDisabled": true },
       { "label": "Move to...", "command": "core:change-folders" },
-      { "label": "Snooze...", "command": "core:snooze-item" },
+      { "label": "Snooze...", "command": "core:snooze-item","enabled": true,"hideWhenDisabled": true },
       { "type": "separator" },
 
       { "label": "Mark as Unread", "command": "core:mark-as-unread" },
       { "label": "Mark as Spam", "command": "core:report-as-spam" },
       { "type": "separator" },
-      { "label": "Export to PDF", "command": "pdf:export"}
+      { "label": "Export to PDF", "command": "pdf:export", "hideWhenDisabled":  true}
     ]
   },
 

@@ -83,9 +83,43 @@ export default class MailboxPerspective {
     categories = _.compact(categories);
     return MailboxPerspective.forUnread(categories);
   }
+  static getCategoryIds = (accountsOrIds, categoryName) => {
+    const categoryIds = [];
+    for (let accountId of accountsOrIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountsOrIds, categoryName);
+      if (tmp) {
+        categoryIds.push(tmp.id);
+      }
+    }
+    if (categoryIds.length > 0) {
+      return categoryIds.slice();
+    } else {
+      return undefined;
+    }
+  };
+  static forSent(accountsOrIds){
+    let cats = [];
+    for (let accountId of accountsOrIds) {
+      let tmp = CategoryStore.getCategoryByRole(accountId, 'sent');
+      if (tmp) {
+        cats.push(tmp);
+      }
+    }
+    const perspective = this.forCategories(cats);
+
+    perspective.iconName='sent.svg';
+    perspective.categoryIds = this.getCategoryIds(accountsOrIds, 'sent');
+    return perspective;
+  }
 
   static forInbox(accountsOrIds) {
-    return this.forStandardCategories(accountsOrIds, 'inbox');
+    const perspective = this.forStandardCategories(accountsOrIds, 'inbox');
+    perspective.iconName='all-mail.svg';
+    if(accountsOrIds.length > 1){
+      perspective.displayName = 'All Inboxes';
+    }
+    perspective.categoryIds = this.getCategoryIds(accountsOrIds, 'inbox');
+    return perspective;
   }
 
   static fromJSON(json) {
