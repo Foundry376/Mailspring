@@ -372,7 +372,7 @@ class ListTabular extends Component {
     const { count, loaded, empty } = this.state;
     const rows = this.getRowsToRender();
     const innerStyles = { height: count * itemHeight };
-    const headerHeight = 32;
+    const headerHeight = 40;
     let offsetHeight = 0;
     let isHeaderShow = true;
     if (isHeaderShow) {
