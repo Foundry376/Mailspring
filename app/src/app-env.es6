@@ -139,9 +139,13 @@ export default class AppEnvConstructor {
         clearInterval(this.timer);
       }
       this.timer = setInterval(() => {
-        console.log(`sync mail:` + new Date().toISOString());
-        this.mailsyncBridge.sendSyncMailNow();
-      }, 1000 * 60 * 5); // 5 minutes
+        if (navigator.onLine) {
+          console.log(`sync mail:` + new Date().toISOString());
+          this.mailsyncBridge.sendSyncMailNow();
+        } else {
+          console.log(`network is offline. skip sync.`);
+        }
+      }, 1000 * 5); // 5 minutes
     }
   }
 
