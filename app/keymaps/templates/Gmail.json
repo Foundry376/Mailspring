@@ -41,7 +41,7 @@
   "core:focus-toolbar": ",",
   "core:star-item": "mod+s",
   "core:gmail-remove-from-view": "y",
-  "core:archive-item": "ctr+mod+a",
+  "core:archive-item": "ctrl+mod+a",
   "core:report-as-spam": "mod+shift+j",
   "core:delete-item": "shift+backspace",
 
