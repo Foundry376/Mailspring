@@ -479,7 +479,6 @@ export default class MessagesPanel extends PureComponent {
       >
         {selectedConversation ?
           <div className="chat">
-            <ThreadSearchBar></ThreadSearchBar>
             <div className="splitPanel">
               {
                 selectedConversation.jid === NEW_CONVERSATION ? (

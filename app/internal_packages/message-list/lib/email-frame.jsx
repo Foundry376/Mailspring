@@ -167,6 +167,12 @@ export default class EmailFrame extends React.Component {
         this._setFrameHeight();
       });
     }
+    // all images are loaded
+    iframeNode.contentWindow.onload = () => {
+      window.requestAnimationFrame(() => {
+        this._setFrameHeight();
+      });
+    }
   };
 
   render() {

@@ -5,6 +5,7 @@ import getDb from '../db';
 import chatModel, { saveToLocalStorage } from '../store/model';
 import { copyRxdbContact, saveGroupMessages } from '../utils/db-utils';
 const { remote } = require('electron');
+const { Actions } = require('mailspring-exports');
 
 import {
   MESSAGE_STATUS_FILE_UPLOADING,
@@ -110,15 +111,17 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     path = downpath + name;
     msgBody.path = 'file://' + path;
     msgBody.downloading = true;
+    // console.log('dbg*** downloading file', payload);
     downloadFile(aes, msgBody.mediaObjectId, path, () => {
       if (fs.existsSync(path)) {
-        (getDb()).then(db => {
-          db.conversations.findOne().where('jid').eq(convJid).exec().then(conv => {
-            updateSelectedConversation(conv);
-          })
-        });
+        Actions.updateDownloadPorgress();
       }
-    })
+    }, progress => {
+        const percent = Math.ceil(100.0*progress.loaded/+progress.total);
+        chatModel.loadProgressMap[msgBody.path] = percent;
+        // console.log('dbg*** downloading file updateSelectedConversation: ', percent, convJid, msgBody.path);
+        Actions.updateDownloadPorgress();
+      })
   }
   if (aes) {
     msgBody.aes = aes;
@@ -538,7 +541,7 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
       if (rooms[payload.from.bare]) {
         name = rooms[payload.from.bare];
       } else {
-        console.log('dbg*** updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
+        console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
         return Observable.fromPromise(xmpp.getRoomList(null, payload.curJid))
           .map(({ discoItems: { items } }) => {
             if (items) {
@@ -669,7 +672,7 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
       if (rooms[payload.from.bare]) {
         name = rooms[payload.from.bare];
       } else {
-        console.log('dbg*** triggerGroupNotificationEpic xmpp.getRoomList payload.curJid 2: ', payload.curJid);
+        console.log('triggerGroupNotificationEpic xmpp.getRoomList payload.curJid 2: ', payload.curJid);
         return Observable.fromPromise(xmpp.getRoomList(null, payload.curJid))
           .map(({ discoItems: { items } }) => {
             if (items) {
@@ -700,7 +703,7 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
 export const showConversationNotificationEpic = (action$, { getState }) =>
   action$.ofType(SHOW_CONVERSATION_NOTIFICATION)
     .map(({ payload: { conversationJid, title, body } }) => {
-      console.log('dbg*** SHOW_CONVERSATION_NOTIFICATION: ', conversationJid, title, body);
+      console.log('SHOW_CONVERSATION_NOTIFICATION: ', conversationJid, title, body);
       return ({
       jid: conversationJid,
       notification: postNotification(title, body),
