@@ -2,9 +2,19 @@
 
 ### 1.6.0 (TBD)
 
-Development:
-
 **Mailspring now uses the TypeScript compiler instead of Babel, and the entire project (92,000 LOC!) has been converted to TypeScript. 🎉** This took an enormous amount of effort - 9,800 TypeScript errors were resolved by hand - but will make the project more stable, easier to maintain, and easier to contribute to in the future.
+
+* The German translation has been improved (Thanks @ahahn94!)
+
+* The Linux system tray icon is now larger and brighter when unread, which looks better on most Linux distros. (#1386)
+
+* Mailspring now shows it's icon in notifications and correctly resolves the icon from your current theme is only supported for Gnome, Mate and Budgie. (Thanks @arkraft!)
+
+* When clicking the track of a scrollbar, the view is scrolled by one page up or down rather than scrolling to the clicked position.
+
+* Preferences styling has been slightly improved.
+
+* Mailspring now uses Electron 4.0.8 which includes a recent security patch and is recommended for all users.
 
 ### 1.5.7 (2/25/2019)
 
