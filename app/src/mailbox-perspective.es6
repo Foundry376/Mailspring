@@ -547,9 +547,11 @@ class CategoryMailboxPerspective extends MailboxPerspective {
 
     // This assumes that the we don't have more than one category per
     // accountId attached to this perspective
-    if (Category.LockedRoles.includes(current.categoriesSharedRole())) {
-      return [];
-    }
+    // Even though most of the time it doesn't make much sense to move "send/draft"
+    // mails around to other folder/labels, but if the user want to they should be able to
+    // if (Category.LockedRoles.includes(current.categoriesSharedRole())) {
+    //   return [];
+    // }
 
     const myCat = this.categories().find(c => c.accountId === accountId);
     const currentCat = current.categories().find(c => c.accountId === accountId);

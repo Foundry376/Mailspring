@@ -22,7 +22,7 @@ var path = require('path');
 var myBucket = 'edison-media-stag';
 var ENCRYPTED_SUFFIX = ".encrypted";
 
-export const downloadFile = (aes, key, name, callback) => {
+export const downloadFile = (aes, key, name, callback, progressBack) => {
     var params = {
         Bucket: myBucket,
         Key: key
@@ -31,6 +31,9 @@ export const downloadFile = (aes, key, name, callback) => {
     // console.log('dbg*** s3 downloadFile request:', request);
     request.on('httpDownloadProgress', function (progress) {
         console.log(progress.loaded + " of " + progress.total + " bytes", progress);
+        if (progressBack) {
+          progressBack(progress);
+        }
         if (+progress.loaded == +progress.total) {
           console.log(`finish downloadFile aws3 file ${key} to ${name}`, request);
           const err = request.response.error;
