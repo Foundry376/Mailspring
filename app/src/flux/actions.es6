@@ -529,6 +529,8 @@ class Actions {
   static searchQuerySubmitted = ActionScopeWindow;
   static searchQueryChanged = ActionScopeWindow;
   static searchCompleted = ActionScopeWindow;
+
+  static updateDownloadPorgress = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above

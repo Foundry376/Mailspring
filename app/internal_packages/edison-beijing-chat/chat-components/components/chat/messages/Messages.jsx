@@ -15,6 +15,8 @@ import { colorForString } from '../../../utils/colors';
 import { buildTimeDescriptor, dateFormat } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
 import { downloadFile } from '../../../utils/awss3';
+import ProgressBar from '../../common/ProgressBar';
+const { Actions } = require('mailspring-exports');
 
 const remote = require('electron').remote;
 const { dialog, Menu, MenuItem } = remote;
@@ -27,6 +29,7 @@ import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 import MessageEditBar from './MessageEditBar';
 import SecurePrivate from './SecurePrivate'
+import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 
 let key = 0;
 
@@ -177,13 +180,17 @@ export default class Messages extends PureComponent {
       }
     });
     this.menu.append(menuItem);
+
+    this.unlisten = Actions.updateDownloadPorgress.listen(this.onUpdataDownloadProgress, this);
   }
+
   componentDidUpdate() {
     if (this.state.shouldScrollBottom) {
       this.scrollToMessagesBottom();
     }
   }
   componentWillUnmount() {
+    this.unlisten();
     const {
       groupedMessages
     } = this.props;
@@ -200,6 +207,12 @@ export default class Messages extends PureComponent {
     }
   }
 
+  onUpdataDownloadProgress = () => {
+    // console.log('dbg*** onUpdataDownloadProgress');
+    key++
+    const state = Object.assign({}, this.state, { key });
+    this.setState(state);
+  }
   getContactInfoByJid = jid => {
     const members = this.props.selectedConversation.roomMembers;
     if (this.props.selectedConversation.isGroup && members && members.length > 0) {
@@ -380,6 +393,7 @@ export default class Messages extends PureComponent {
         onScroll={this.calcTimeLabel}
         tabIndex="0"
       >
+
         <SecurePrivate />
         {jid !== NEW_CONVERSATION && groupedMessages.map((group, index) => (
           <div className="message-group" key={index}>
@@ -451,6 +465,8 @@ export default class Messages extends PureComponent {
               } else {
                 msgFile = null;
               }
+              // console.log('dbg*** render message: ', jid, msgBody.path, chatModel.loadProgressMap[msgBody.path]);
+              let percent = chatModel.loadProgressMap[msgBody.path] || 0;
               let border = null;
               const isUnreadUpdatedMessage = (msg) => {
                 if (!msg.updateTime) {
@@ -487,19 +503,8 @@ export default class Messages extends PureComponent {
                     {
                       (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgBody.path.replace('file://', '')))) ? (
                         <div className="messageBody loading">
-                          <RetinaImg
-                            name="inline-loading-spinner.gif"
-                            mode={RetinaImg.Mode.ContentPreserve}
-                          />
-                          {isImage(msgBody.type) && (
-                            <div className="message-image">
-                              <img
-                                src={msgBody.localFile}
-                                title={msgBody.isUploading && msgBody.localFile || ''}
-                                onClick={onClickImage}
-                              />
-                            </div>
-                          )}
+                          <div> loading... </div>
+                          <ProgressBar percent={percent}/>
                           {msgBody.isUploading &&
                             <div>Uploading {msgBody.localFile && path.basename(msgBody.localFile)}</div>
                           }
@@ -512,7 +517,7 @@ export default class Messages extends PureComponent {
                           ) : (
                               <div className="messageBody">
                                 <div className="text-content">
-                                  {msgBody.content || msgBody}
+                                  {msgBody.path && path.basename(msgBody.path) || msgBody.content || msgBody}
                                   {
                                     !msgFile && isCurrentUser && !isEditing && (
                                       messageToolbar(msg, msgBody, false)
