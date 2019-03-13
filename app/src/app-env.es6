@@ -145,7 +145,7 @@ export default class AppEnvConstructor {
         } else {
           console.log(`network is offline. skip sync.`);
         }
-      }, 1000 * 5); // 5 minutes
+      }, 1000 * 60 * 5); // 5 minutes
     }
   }
 
