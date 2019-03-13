@@ -29,10 +29,11 @@ class AccountBasicSettingsForm extends React.Component {
   };
 
   static subtitleLabel = providerConfig => {
-    return (
-      providerConfig.note ||
-      `Enter your email account credentials to get started. Edison Mail\nstores your email password securely and it is never sent to our servers.`
-    );
+    // return (
+    //   providerConfig.note ||
+    //   `Enter your email account credentials to get started. Edison Mail\nstores your email password securely and it is never sent to our servers.`
+    // );
+    return providerConfig.note;
   };
 
   static validateAccount = account => {
@@ -47,10 +48,10 @@ class AccountBasicSettingsForm extends React.Component {
       errorFieldNames.push('email');
       errorMessage = 'Please provide a valid email address.';
     }
-    if (!account.name) {
-      errorFieldNames.push('name');
-      errorMessage = 'Please provide your name.';
-    }
+    // if (!account.name) {
+    //   errorFieldNames.push('name');
+    //   errorMessage = 'Please provide your name.';
+    // }
     if (!account.settings.imap_password) {
       errorFieldNames.push('password');
       errorMessage = 'Please provide a password for your account.';
@@ -83,7 +84,6 @@ class AccountBasicSettingsForm extends React.Component {
     const { provider } = this.props.account;
     return (
       <form className="settings">
-        <FormField field="name" title="Name" {...this.props} />
         <FormField field="emailAddress" title="Email" {...this.props} />
         <FormField
           field="settings.imap_password"

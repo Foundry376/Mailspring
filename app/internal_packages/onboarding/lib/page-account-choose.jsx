@@ -30,7 +30,7 @@ export default class AccountChoosePage extends React.Component {
     return (
       <div className="page account-choose">
         <h2>Login to Your Email</h2>
-        <h3>Add an account to get started</h3>
+        <p>Add an account to get started</p>
         <div className="provider-list">{this._renderProviders()}</div>
       </div>
     );

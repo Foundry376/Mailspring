@@ -1,5 +1,5 @@
 import { shell, remote } from 'electron';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, LottieImg } from 'mailspring-component-kit';
 import { React, ReactDOM, PropTypes } from 'mailspring-exports';
 
 import OnboardingActions from '../onboarding-actions';
@@ -79,6 +79,10 @@ const CreatePageForForm = FormComponent => {
         next[parent][key] = val;
       } else {
         next[event.target.id] = val;
+        // fill name field
+        if (event.target.id === 'emailAddress') {
+          next['name'] = val;
+        }
       }
 
       const { errorFieldNames, errorMessage, populated } = FormComponent.validateAccount(next);
@@ -183,19 +187,13 @@ const CreatePageForForm = FormComponent => {
 
     _renderButton() {
       const { account, submitting } = this.state;
-      const buttonLabel = FormComponent.submitLabel(account);
+      const buttonLabel = 'Sign In';
 
       // We're not on the last page.
       if (submitting) {
         return (
           <button className="btn btn-large btn-disabled btn-add-account spinning">
-            <RetinaImg
-              name="sending-spinner.gif"
-              width={15}
-              height={15}
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
-            Adding account&hellip;
+            {buttonLabel}
           </button>
         );
       }
@@ -266,23 +264,15 @@ const CreatePageForForm = FormComponent => {
         <div className={`page account-setup ${FormComponent.displayName}`}>
           <div className="logo-container">
             <RetinaImg
-              style={{ backgroundColor: providerConfig.color, borderRadius: 44 }}
-              name={providerConfig.headerIcon}
+              name={providerConfig.icon}
               mode={RetinaImg.Mode.ContentPreserve}
               className="logo"
             />
+            <h2>{providerConfig.displayName}</h2>
           </div>
-          {hideTitle ? (
-            <div style={{ height: 20 }} />
-          ) : (
-            <h2>{FormComponent.titleLabel(providerConfig)}</h2>
-          )}
           <FormErrorMessage
-            log={errorLog}
-            message={errorMessage}
             empty={FormComponent.subtitleLabel(providerConfig)}
           />
-          {this._renderCredentialsNote()}
           <FormComponent
             ref={el => {
               this._formEl = el;
@@ -294,12 +284,22 @@ const CreatePageForForm = FormComponent => {
             onFieldKeyPress={this.onFieldKeyPress}
             onConnect={this.onConnect}
           />
+          <FormErrorMessage
+            log={errorLog}
+            message={errorMessage}
+          />
+          {this._renderCredentialsNote()}
           <div>
-            <div className="btn btn-large btn-gradient" onClick={this.onBack}>
-              Back
-            </div>
             {this._renderButton()}
           </div>
+          {providerConfig.twoStep}
+          {
+            submitting && (
+              <LottieImg name='loading-spinner-blue'
+                size={{ width: 24, height: 24 }}
+                style={{ margin: '20px auto 0' }} />
+            )
+          }
         </div>
       );
     }

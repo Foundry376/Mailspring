@@ -1,63 +1,71 @@
 import { React } from 'mailspring-exports';
-
+const twoStep = (<div className="two-step">
+  <span>Use two-step verification on your account? make sure to enter your
+app-specific password or check with your mail provider about your
+app-specific password. </span>
+  <br /><br />
+  <span>POP accounts are not supported in this version. </span>
+</div>);
 const AccountProviders = [
   {
     provider: 'gmail',
-    displayName: 'Gmail or G Suite',
-    icon: 'ic-settings-account-gmail.png',
+    displayName: 'Gmail',
+    icon: 'account-logo-google.png',
     headerIcon: 'setup-icon-provider-gmail.png',
     color: '#e99999',
   },
   {
-    provider: 'office365',
-    displayName: 'Office 365',
-    icon: 'ic-settings-account-office365.png',
-    headerIcon: 'setup-icon-provider-office365.png',
-    color: '#D83B01',
-  },
-  {
     provider: 'yahoo',
     displayName: 'Yahoo',
-    icon: 'ic-settings-account-yahoo.png',
+    icon: 'account-logo-yahoo.png',
     headerIcon: 'setup-icon-provider-yahoo.png',
     color: '#a76ead',
-  },
-  {
-    provider: 'outlook',
-    displayName: 'Outlook.com / Hotmail',
-    displayNameShort: 'Outlook',
-    icon: 'ic-settings-account-outlook.png',
-    headerIcon: 'setup-icon-provider-outlook.png',
-    color: '#0078d7',
   },
   {
     provider: 'icloud',
     displayName: 'iCloud',
     note: (
       <span>
-        <strong>Important:</strong> iCloud requires that you create a unique app password for email
-        apps like EdisonMail. Follow{' '}
-        <a href="https://support.apple.com/en-us/HT204397">these instructions</a> to create one and
-        then paste it below.
+        Apple requires all third-party apps that access iCloud information to utilize app-specific passwords, this includes our Email app.
+        <br /><br />
+        <a href="https://support.apple.com/en-us/HT204397"><strong>iCloud App-Specific Passwords Help</strong></a>
       </span>
     ),
-    icon: 'ic-settings-account-icloud.png',
+    icon: 'account-logo-icloud.png',
     headerIcon: 'setup-icon-provider-icloud.png',
     color: '#61bfe9',
+  },
+  {
+    provider: 'outlook',
+    displayName: 'Outlook',
+    displayNameShort: 'Outlook',
+    icon: 'account-logo-outlook.png',
+    headerIcon: 'setup-icon-provider-outlook.png',
+    color: '#0078d7',
+    twoStep
+  },
+  {
+    provider: 'office365',
+    displayName: 'Office365',
+    icon: 'account-logo-office365.png',
+    headerIcon: 'setup-icon-provider-office365.png',
+    color: '#D83B01',
+    twoStep
   },
   // {
   //   provider: 'fastmail',
   //   displayName: 'FastMail',
-  //   icon: 'ic-settings-account-fastmail.png',
+  //   icon: 'account-logo-fastmail.png',
   //   headerIcon: 'setup-icon-provider-fastmail.png',
   //   color: '#24345a',
   // },
   {
     provider: 'aol',
     displayName: 'Aol',
-    icon: 'ic-settings-account-yahoo.png',
+    icon: 'account-logo-aol.png',
     headerIcon: 'setup-icon-provider-yahoo.png',
     color: '#a76ead',
+    twoStep
   },
   // {
   //   provider: 'yandex',
@@ -73,7 +81,7 @@ const AccountProviders = [
   //       for EdisonMail.
   //     </span>
   //   ),
-  //   icon: 'ic-settings-account-yandex.png',
+  //   icon: 'account-logo-yandex.png',
   //   headerIcon: 'setup-icon-provider-yandex.png',
   //   color: '#fff',
   // },
@@ -81,7 +89,7 @@ const AccountProviders = [
   //   provider: 'exchange',
   //   displayName: 'EXCHANGE',
   //   displayNameShort: 'EXCHANGE',
-  //   icon: 'ic-settings-account-exchange.png',
+  //   icon: 'account-logo-exchange.png',
   //   headerIcon: 'setup-icon-provider-exchange.png',
   //   color: '#0078d7',
   // },
@@ -89,7 +97,7 @@ const AccountProviders = [
     provider: 'imap',
     displayName: 'Other',
     displayNameShort: 'IMAP',
-    icon: 'ic-settings-account-imap.png',
+    icon: 'account-logo-other.png',
     headerIcon: 'setup-icon-provider-imap.png',
     color: '#aaa',
   },
