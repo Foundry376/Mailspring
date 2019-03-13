@@ -235,9 +235,9 @@ export async function buildOffice365AccountFromAuthResponse(code) {
 
   // test the account locally to ensure the All Mail folder is enabled
   // and the refresh token can be exchanged for an account token.
-  await finalizeAndValidateAccount(account);
+  return await finalizeAndValidateAccount(account);
 
-  return account;
+  // return account;
 }
 
 export async function buildGmailAccountFromAuthResponse(code) {
@@ -293,9 +293,9 @@ export async function buildGmailAccountFromAuthResponse(code) {
 
   // test the account locally to ensure the All Mail folder is enabled
   // and the refresh token can be exchanged for an account token.
-  await finalizeAndValidateAccount(account);
+  return await finalizeAndValidateAccount(account);
 
-  return account;
+  // return account;
 }
 
 export async function connectChat(account) {
@@ -411,9 +411,9 @@ export async function buildYahooAccountFromAuthResponse(code) {
 
   // test the account locally to ensure the All Mail folder is enabled
   // and the refresh token can be exchanged for an account token.
-  await finalizeAndValidateAccount(account);
+  return await finalizeAndValidateAccount(account);
 
-  return account;
+  // return account;
 }
 
 export function buildOffice365AuthURL() {
@@ -473,5 +473,6 @@ export async function finalizeAndValidateAccount(account) {
   proc.identity = IdentityStore.identity();
   proc.account = account;
   const { response } = await proc.test();
-  return new Account(response.account);
+  const newAccount = response.account;
+  return new Account(newAccount);
 }
