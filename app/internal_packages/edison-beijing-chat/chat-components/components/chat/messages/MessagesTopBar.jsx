@@ -4,6 +4,7 @@ import TopBar from '../../common/TopBar';
 import ContactAvatar from '../../common/ContactAvatar';
 import xmpp from '../../../xmpp';
 import GroupChatAvatar from '../../common/GroupChatAvatar';
+import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 
 export default class MessagesTopBar extends Component {
   static propTypes = {
@@ -75,6 +76,7 @@ export default class MessagesTopBar extends Component {
               className="conversationName">
             </div>
           }
+          center = {<ThreadSearchBar></ThreadSearchBar>}
           right={
             <div className="avatarWrapper">
               <div id="open-info" onClick={() => onInfoPressed()}>
