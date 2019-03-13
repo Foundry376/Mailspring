@@ -114,16 +114,8 @@ export default class MailspringWindow extends EventEmitter {
     if (process.platform === 'linux') {
       if (!WindowIconPath) {
         WindowIconPath = path.resolve('/usr', 'share', 'pixmaps', 'mailspring.png');
-        // Provides icon when running from npm start / development mode.
         if (!fs.existsSync(WindowIconPath)) {
-          WindowIconPath = path.resolve(
-            __dirname,
-            '..',
-            '..',
-            'build',
-            'resources',
-            'mailspring.png'
-          );
+          WindowIconPath = path.resolve(this.resourcePath, 'static', 'images', 'mailspring.png');
         }
       }
       browserWindowOptions.icon = WindowIconPath;

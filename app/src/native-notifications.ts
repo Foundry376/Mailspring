@@ -5,7 +5,12 @@ import fs from 'fs';
 import os from 'os';
 
 const platform = process.platform;
-const DEFAULT_ICON = path.resolve(__dirname, '..', 'build', 'resources', 'mailspring.png');
+const DEFAULT_ICON = path.resolve(
+  AppEnv.getLoadSettings().resourcePath,
+  'static',
+  'images',
+  'mailspring.png'
+);
 
 let MacNotifierNotification = null;
 if (platform === 'darwin') {
@@ -13,13 +18,13 @@ if (platform === 'darwin') {
     MacNotifierNotification = require('node-mac-notifier');
   } catch (err) {
     console.error(
-      'node-mac-notifier (a platform-specific optionalDependency) was not installed correctly! Check the Travis build log for errors.',
+      'node-mac-notifier (a platform-specific optionalDependency) was not installed correctly! Check the Travis build log for errors.'
     );
   }
 }
 
 type INotificationCallback = (
-  args: { response: string | null; activationType: 'replied' | 'clicked' },
+  args: { response: string | null; activationType: 'replied' | 'clicked' }
 ) => any;
 
 type INotificationOptions = {
@@ -29,7 +34,7 @@ type INotificationOptions = {
   tag?: string;
   canReply?: boolean;
   onActivate?: INotificationCallback;
-}
+};
 
 class NativeNotifications {
   _macNotificationsByTag = {};
@@ -127,7 +132,7 @@ class NativeNotifications {
     body,
     tag,
     canReply,
-    onActivate = args => { },
+    onActivate = args => {},
   }: INotificationOptions = {}) {
     let notif = null;
 

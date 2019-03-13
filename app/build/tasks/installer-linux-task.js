@@ -106,7 +106,14 @@ module.exports = grunt => {
       writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.desktop.in'), data);
       writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.appdata.xml.in'), data);
 
-      const icon = path.join(grunt.config('appDir'), 'build', 'resources', 'mailspring.png');
+      const icon = path.join(
+        grunt.config('appDir'),
+        'build',
+        'resources',
+        'linux',
+        'icons',
+        '512.png'
+      );
       const cmd = path.join(grunt.config('appDir'), 'script', 'mkdeb');
       const args = [version, arch, icon, linuxAssetsDir, contentsDir, outputDir];
       spawn({ cmd, args }, spawnError => {
