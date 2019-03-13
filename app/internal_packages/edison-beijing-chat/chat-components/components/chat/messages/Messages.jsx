@@ -503,13 +503,30 @@ export default class Messages extends PureComponent {
                     {
                       (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgBody.path.replace('file://', '')))) ? (
                         <div className="messageBody loading">
-                          <div> loading... </div>
-                          <ProgressBar percent={percent}/>
-                          {msgBody.isUploading &&
-                            <div>Uploading {msgBody.localFile && path.basename(msgBody.localFile)}</div>
-                          }
-                        </div>
-                      ) : (
+                          {msgBody.downloading && (
+                            <div> Downloading...
+                              <ProgressBar percent={percent}/>
+                            </div>
+                            )}
+                          {msgBody.isUploading && (
+                            <div>
+                              Uploading {msgBody.localFile && path.basename(msgBody.localFile)}
+                              <RetinaImg
+                                name="inline-loading-spinner.gif"
+                                mode={RetinaImg.Mode.ContentPreserve}
+                                />
+                              {isImage(msgBody.type) && (
+                                <div className="message-image">
+                                  <img
+                                  src={msgBody.localFile}
+                                  title={msgBody.isUploading && msgBody.localFile || ''}
+                                  onClick={onClickImage}
+                                  />
+                                </div>
+                                )}
+                            </div>
+                          )}
+                        </div>) : (
                           isEditing ? (
                             <div>
                               <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} {...this.props.sendBarProps} />
