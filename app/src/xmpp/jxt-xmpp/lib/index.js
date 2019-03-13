@@ -34,9 +34,9 @@ var _bosh = require('./bosh');
 
 var _bosh2 = _interopRequireDefault(_bosh);
 
-var _carbons = require('./carbons');
+// var _carbons = require('./carbons');
 
-var _carbons2 = _interopRequireDefault(_carbons);
+// var _carbons2 = _interopRequireDefault(_carbons);
 
 var _command = require('./command');
 
@@ -275,7 +275,7 @@ exports['default'] = function (JXT) {
     JXT.use(_bob2['default']);
     JXT.use(_bookmarks2['default']);
     JXT.use(_bosh2['default']);
-    JXT.use(_carbons2['default']);
+    // JXT.use(_carbons2['default']);
     JXT.use(_command2['default']);
     JXT.use(_csi2['default']);
     JXT.use(_dataforms2['default']);
