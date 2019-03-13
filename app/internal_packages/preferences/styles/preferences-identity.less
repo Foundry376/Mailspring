@@ -34,9 +34,6 @@
     flex-direction: column;
     align-items: flex-start;
     color: @text-color-subtle;
-    border-radius: @border-radius-large;
-    border: 1px solid @border-color-primary;
-    background-color: @background-secondary;
 
     .row {
       display: flex;
@@ -47,6 +44,10 @@
     .padded {
       display: block;
       padding: 20px;
+      padding-top: 0;
+    }
+    .padded:last-child {
+      padding-top: 20px;
       border-top: 1px solid @border-color-primary;
     }
 

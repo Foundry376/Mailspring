@@ -173,7 +173,11 @@ export default class PreferencesTemplates extends React.Component<
                 selected={this.state.selected}
               />
               <a
-                style={{ marginTop: 10, display: 'block' }}
+                style={{
+                  marginTop: 10,
+                  display: 'block',
+                  fontSize: '0.9em',
+                }}
                 onClick={() => shell.showItemInFolder(TemplateStore.directory())}
               >
                 {localized('Show Templates Folder...')}
