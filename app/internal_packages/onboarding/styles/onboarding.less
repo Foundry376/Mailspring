@@ -102,7 +102,7 @@
   }
 
   .page {
-    background-color: #f3f3f3;
+    background-color: #fff;
     flex: 1;
   }
 
@@ -124,17 +124,59 @@
   }
 
   .logo-container {
-    width: 117px;
-    height: 117px;
+    width: 73px;
+    height: 73px;
     display: inline-block;
-    padding-top: 40px;
+    padding-top: 50px;
     box-sizing: content-box;
+    img {
+      width: 100%;
+      margin-bottom: 21px;
+    }
+    h2 {
+      color: #000;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 22px;
+      margin: 0;
+      text-align: center;
+    }
+  }
+  .message.empty {
+    margin-top: 12px;
+    width: 347px;
+    word-break: break-word;
+    color: #828282;
+    font-size: 11px;
+    line-height: 13px;
+    span {
+      margin-top: 12px;
+    }
+    a {
+      margin-top: 8px;
+      color: #39F;
+      font-weight: 700;
+      text-decoration: none;
+    }
   }
 
   .btn-add-account {
-    width: 170px;
-    margin-left: 10px;
+    width: 350px;
+    height: 50px;
+    border-radius: 25px;
+    margin: 50px auto 0 -12px;
+    background-color: #39F;
+    color: #fff;
     transition: width 150ms ease-in-out;
+    font-size: 17px;
+    font-weight: 700;
+    &:active {
+      background-color: #39F;
+      opacity: 0.85;
+    }
+    &.btn-disabled {
+      opacity: 0.25;
+    }
   }
   .btn-add-account.spinning {
     img {
@@ -155,15 +197,17 @@
   .close {
     position: fixed;
     z-index: 100;
-    top: 1px;
-    left: 6px;
+    top: 15px;
+    left: 15px;
   }
 
   .back {
     position: fixed;
-    top: 15px;
-    left: 15px;
-    padding: 10px;
+    top: 41px;
+    left: 11px;
+    img {
+      background-color: #B6BDC2;
+    }
   }
 
   .message {
@@ -173,20 +217,19 @@
     white-space: pre-wrap;
 
     &.error {
-      color: #a33;
+      color: #F36;
+      font-size: 11px;
+      line-height: 13px;
       -webkit-user-select: text;
       a {
-        color: #a33;
+        color: #F36;
       }
-    }
-    &.empty {
-      color: gray;
     }
   }
 
   form.settings {
     padding: 0 20px;
-    padding-bottom: 20px;
+    padding-bottom: 8px;
     span:last-child input {
       margin-bottom: 0;
     }
@@ -196,17 +239,19 @@
   }
 
   input {
-    display: inline-block;
-    width: 100%;
-    padding: 7px;
-    margin-bottom: 8px;
-    background: #fff;
-    color: #333;
-    text-align: left;
-    border: 1px solid #aaa;
+    box-sizing: border-box;
+    height: 50px;
+    width: 350px;
+    border-radius: 10px;
+    background-color: #FFF;
+    border: 2px solid #E8EBED;
+    border-radius: 8px;
+    margin-bottom: 27px;
+    padding: 0 20px;
+    margin-left: -12px;
 
     &::-webkit-input-placeholder {
-      color: #c6c6c6;
+      color: #B6BDC2;
     }
 
     &[type='checkbox'] {
@@ -218,7 +263,7 @@
       background: fadeout(@input-bg, 40%);
     }
     &.error {
-      border: 1px solid #a33;
+      border: 1px solid #F36;
     }
   }
 
@@ -226,9 +271,12 @@
     display: inline-block;
     white-space: nowrap;
     width: 100%;
-    color: #888;
+    color: #000;
     text-align: left;
-    padding: 3px 0;
+    padding-bottom: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 18px;
   }
 
   label[for='subscribe-check'] {
@@ -246,6 +294,14 @@
     font-size: 0.94em;
     text-align: right;
     padding: 0;
+  }
+  .two-step {
+    width: 347px;
+    color: #828282;
+    font-size: 11px;
+    line-height: 13px;
+    text-align: center;
+    margin: 26px auto 22px;
   }
 }
 
@@ -316,9 +372,19 @@
 }
 
 .page.account-choose {
+  background: #fff;
   h2 {
-    margin-top: 90px;
-    margin-bottom: 20px;
+    color: #000;
+    font-weight: bold;
+    font-size: 22px;
+    margin-top: 99px;
+    margin-bottom: 11px;
+  }
+  p {
+    font-size: 17px;
+    line-height: 20px;
+    margin: 0;
+    margin-bottom: 48px;
   }
 
   .provider-list {
@@ -326,7 +392,7 @@
     width: 310px;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: space-around;
   }
   .cloud-sync-note {
     margin-bottom: 20px;
@@ -334,33 +400,38 @@
     color: @text-color-very-subtle;
   }
   .provider-name {
-    font-size: 18px;
+    margin-top: 14px;
+    font-size: 15px;
+    line-height: 17px;
     font-weight: 300;
-    color: rgba(0, 0, 0, 0.7);
+    color: #828282;
   }
 
   .provider {
-    text-align: left;
+    text-align: center;
     cursor: default;
     line-height: 63px;
     width: 70px;
     height: 100px;
-    display: inline-block;
-    border: 1px solid rgba(35, 31, 32, 0.1);
+    display: flex;
+    flex-direction: column;
     border-radius: 4px;
-    margin-left: 25px;
-    margin-right: 2.25px;
-    margin-bottom: 5px;
-    background: rgba(255, 255, 255, 0.4);
+    margin-left: 50px;
+    margin-right: 0;
+    margin-bottom: 50px;
+    &:nth-child(3n+1) {
+      margin-left: 0;
+    }
 
     .icon-container {
-      width: 50px;
-      height: 50px;
+      width: 70px;
+      height: 70px;
       display: inline-block;
       box-sizing: content-box;
-      padding: 0 15px 0 20px;
       vertical-align: top;
-      zoom: 0.9;
+      img {
+        width: 100%;
+      }
     }
   }
   .provider:hover {
@@ -371,7 +442,7 @@
 .page.account-setup {
   form {
     width: 400px;
-    padding-top: 20px;
+    padding-top: 50px;
     margin: auto;
   }
   .twocol {

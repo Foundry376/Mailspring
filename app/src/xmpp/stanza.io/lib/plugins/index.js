@@ -9,7 +9,7 @@ module.exports = function (client) {
     client.use(require('./blocking'));
     client.use(require('./bob'));
     client.use(require('./bookmarks'));
-    client.use(require('./carbons'));
+    //client.use(require('./carbons'));
     client.use(require('./chatstates'));
     client.use(require('./command'));
     client.use(require('./correction'));
