@@ -1,6 +1,6 @@
 import { shell, clipboard } from 'electron';
-import { React, PropTypes } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { React, ReactDOM, PropTypes } from 'mailspring-exports';
+import { RetinaImg, LottieImg } from 'mailspring-component-kit';
 import http from 'http';
 import url from 'url';
 
@@ -31,16 +31,29 @@ export default class OAuthSignInPage extends React.Component {
     this.state = {
       authStage: 'initial',
       showAlternative: false,
+      open: false,
+      url: null,
+      loading: true
     };
   }
 
+  _openInWebView(url) {
+    this.setState({
+      open: true,
+      url
+    });
+  }
+
   componentDidMount() {
+    this._setupWebview();
+
     // Show the "Sign in to ..." prompt for a moment before bouncing
     // to URL. (400msec animation + 200msec to read)
     this._mounted = true;
     this._startTimer = setTimeout(() => {
       if (!this._mounted) return;
-      shell.openExternal(this.props.providerAuthPageUrl);
+      // shell.openExternal(this.props.providerAuthPageUrl);
+      this._openInWebView(this.props.providerAuthPageUrl)
     }, 600);
     this._warnTimer = setTimeout(() => {
       if (!this._mounted) return;
@@ -169,18 +182,69 @@ export default class OAuthSignInPage extends React.Component {
     );
   }
 
+  _setupWebview() {
+    const webview = ReactDOM.findDOMNode(this.refs.webview);
+    if (!webview) {
+      return;
+    }
+    const listeners = {
+      // 'did-fail-load': this._webviewDidFailLoad,
+      'did-finish-load': this._loaded,
+      // 'did-get-response-details': this._webviewDidGetResponseDetails,
+      // 'console-message': this._onConsoleMessage,
+    };
+
+    for (const event of Object.keys(listeners)) {
+      webview.removeEventListener(event, listeners[event]);
+    }
+    for (const event of Object.keys(listeners)) {
+      webview.addEventListener(event, listeners[event]);
+    }
+  }
+
+  _loaded = () => {
+    this.setState({
+      loading: false
+    });
+  }
+
   render() {
+    const { authStage, loading } = this.state;
     return (
-      <div className={`page account-setup ${this.props.serviceName.toLowerCase()}`}>
-        <div className="logo-container">
-          <RetinaImg
-            name={this.props.iconName}
-            mode={RetinaImg.Mode.ContentPreserve}
-            className="logo"
-          />
-        </div>
-        {this._renderHeader()}
-        {this._renderAlternative()}
+      <div className={`page account-setup oauth ${this.props.serviceName.toLowerCase()}`}>
+        {authStage === 'buildingAccount' || authStage === 'accountSuccess' ? (
+          <div className="validating">
+            <h2>Validating...</h2>
+            <p>Please wait while we validate<br />
+              your account.</p>
+            <LottieImg name='loading-spinner-blue'
+              size={{ width: 65, height: 65 }}
+              style={{ margin: '0 auto' }} />
+          </div>
+        ) : (
+            <webview ref='webview' src={this.state.url} partition="in-memory-only" style={{
+              height: '100%',
+              width: '100%',
+              position: 'fixed',
+              top: 75,
+              bottom: 0,
+              zIndex: 2,
+              visibility: loading ? 'hidden' : 'visible'
+            }} />
+          )}
+        {loading && (
+          <LottieImg name='loading-spinner-blue'
+            size={{ width: 65, height: 65 }}
+            style={{ margin: '200px auto 0' }} />
+        )}
+        {authStage === 'error' && (
+          <div style={{ marginTop: 100 }} >
+            <h2>Sorry, we had trouble logging you in</h2>
+            <div className="error-region">
+              <FormErrorMessage message={this.state.errorMessage} />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
