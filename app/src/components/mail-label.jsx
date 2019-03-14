@@ -44,7 +44,7 @@ export const LabelColorizer = {
 
   backgroundColorDark(label) {
     const bgColor = LabelColorizer.colors[label.bgColor || 0];
-    var colr = Colr.fromHex(bgColor).darken(30);
+    var colr = Colr.fromHex(bgColor).darken(40);
     return colr.toHex();
   },
 
