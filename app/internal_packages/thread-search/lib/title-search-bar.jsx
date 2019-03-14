@@ -24,8 +24,6 @@ class TitleSearchBar extends Component {
         <div className='thread-title'>
           <h1>{current && (current.displayName ? current.displayName : current.name)}</h1>
         </div>
-        <ThreadSearchBarWithTip>
-        </ThreadSearchBarWithTip>
       </div>
     )
   }
