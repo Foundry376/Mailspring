@@ -540,7 +540,7 @@ const asyncUpdateGroupMessageConversationEpic = async ({payload}, getState) => {
     const { room: { rooms } } = getState();
     const body = JSON.parse(payload.body);
     beAt = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
-    if (false && rooms[payload.from.bare]) {
+    if (rooms[payload.from.bare]) {
       name = rooms[payload.from.bare];
     } else {
       console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
