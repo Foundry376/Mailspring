@@ -277,7 +277,7 @@ exports['default'] = function (JXT) {
             jid: {
                 set: function setJid(values) {
                     for (let i in values) {
-                        Utils.setSubAttribute(this.xml, '', 'member', 'jid', values[i]);
+                        Utils.setSubAttribute2(this.xml, '', 'member', 'jid', values[i]);
                     }
                 },
                 get: function getJid() {
@@ -286,7 +286,21 @@ exports['default'] = function (JXT) {
             }
         }
     });
-
+    var MemberItem = JXT.define({
+        name: '_mucMemberItem',
+        element: 'member',
+        fields: {
+            jid: Utils.jidAttribute('jid')
+        }
+    });
+    var MemberItems = JXT.define({
+        name: 'mucMemberItems',
+        namespace: _xmppConstants.Namespace.MUC_ADMIN,
+        element: 'members',
+        fields: {
+            jid: proxy('_mucMemberItem', 'jid'),
+        }
+    });
     var Edimuc = JXT.define({//yazz
         name: 'edimuc',
         element: 'edimuc',

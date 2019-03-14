@@ -5,7 +5,7 @@ import Blocking from './blocking';
 import BOB from './bob';
 import Bookmarks from './bookmarks';
 import BOSH from './bosh';
-import Carbons from './carbons';
+//import Carbons from './carbons';
 import Command from './command';
 import CSI from './csi';
 import Dataforms from './dataforms';
@@ -75,7 +75,7 @@ export default function (JXT) {
     JXT.use(BOB);
     JXT.use(Bookmarks);
     JXT.use(BOSH);
-    JXT.use(Carbons);
+    //JXT.use(Carbons);
     JXT.use(Command);
     JXT.use(CSI);
     JXT.use(Dataforms);

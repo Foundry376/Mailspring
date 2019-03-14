@@ -99,6 +99,12 @@ exports.getSubAttribute = function (xml, NS, sub, attr, defaultVal) {
     return '';
 };
 
+exports.setSubAttribute2 = function (xml, NS, sub, attr, value) {
+    var subs = find(xml, NS, sub);
+    sub = exports.createElement(NS, sub, xml.namespaceURI);
+    sub.setAttribute(attr, value);
+    xml.appendChild(sub);
+};
 exports.setSubAttribute = function (xml, NS, sub, attr, value) {
     var subs = find(xml, NS, sub);
     if (!subs.length) {
