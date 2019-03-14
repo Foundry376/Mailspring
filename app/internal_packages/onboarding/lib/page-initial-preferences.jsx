@@ -2,7 +2,7 @@ const React = require('react');
 const PropTypes = require('prop-types');
 const path = require('path');
 const fs = require('fs');
-const { RetinaImg, Flexbox, ConfigPropContainer } = require('mailspring-component-kit');
+const { RetinaImg, Flexbox, ConfigPropContainer, LottieImg } = require('mailspring-component-kit');
 const { AccountStore, IdentityStore } = require('mailspring-exports');
 const OnboardingActions = require('./onboarding-actions').default;
 
@@ -147,7 +147,7 @@ class InitialPreferencesPage extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { account: AccountStore.accounts()[0] };
+    this.state = { account: AccountStore.accounts()[0], submitting: false };
   }
 
   componentDidMount() {
@@ -168,6 +168,7 @@ class InitialPreferencesPage extends React.Component {
     if (!this.state.account) {
       return <div />;
     }
+    const { submitting } = this.state;
     return (
       <div className="page opaque" style={{ width: 900, height: '100%' }}>
         <img
@@ -181,14 +182,28 @@ class InitialPreferencesPage extends React.Component {
             <InitialPreferencesOptions account={this.state.account} />
           </ConfigPropContainer>
         </div>
-        <button className="btn btn-large" style={{ marginBottom: 60 }} onClick={this._onFinished}>
+        <button className={'btn btn-large ' + (submitting && 'btn-disabled')} style={{ marginBottom: 60 }} onClick={this._onFinished}>
           Let's Go
         </button>
+        {
+          submitting && (
+            <LottieImg name='loading-spinner-blue'
+              size={{ width: 24, height: 24 }}
+              style={{
+                margin: '20px auto 0',
+                position: 'relative',
+                bottom: '170px'
+              }} />
+          )
+        }
       </div>
     );
   }
 
   _onFinished = () => {
+    this.setState({
+      submitting: true
+    });
     require('electron').ipcRenderer.send('account-setup-successful');
   };
 }

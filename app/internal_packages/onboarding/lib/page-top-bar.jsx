@@ -23,8 +23,8 @@ const PageTopBar = props => {
   };
 
   let closeButton = (
-    <div className='close' onClick={closeAction}>
-      <RetinaImg name='onboarding-close.png' mode={RetinaImg.Mode.ContentPreserve} />
+    <div name="ToolbarWindowControls" className={`toolbar-window-controls`}>
+      <button tabIndex={-1} className="close" onClick={closeAction} />
     </div>
   );
 

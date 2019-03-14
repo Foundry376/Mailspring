@@ -897,7 +897,9 @@ export default class Application extends EventEmitter {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
       const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
       if (onboarding) {
-        onboarding.close();
+        setTimeout(() => {
+          onboarding.close();
+        }, 3000);
       }
     });
 

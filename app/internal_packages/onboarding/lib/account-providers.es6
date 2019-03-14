@@ -100,6 +100,7 @@ const AccountProviders = [
     icon: 'account-logo-other.png',
     headerIcon: 'setup-icon-provider-imap.png',
     color: '#aaa',
+    twoStep
   },
 ];
 
