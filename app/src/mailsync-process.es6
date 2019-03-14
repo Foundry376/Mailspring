@@ -352,6 +352,7 @@ export default class MailsyncProcess extends EventEmitter {
   }
 
   test() {
+    console.log('Running mailsync in test account mode');
     return this._spawnAndWait('test');
   }
 

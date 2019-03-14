@@ -88,7 +88,7 @@ class AccountStore extends MailspringStore {
       AppEnv.reportError(error);
     }
 
-    this._trigger();
+    this._trigger(arguments);
   };
 
   _enforceAccountsValidity = () => {
@@ -125,7 +125,7 @@ class AccountStore extends MailspringStore {
     }
   };
 
-  _trigger(reason) {
+  _trigger() {
     for (const account of this._accounts) {
       if (!account || !account.id) {
         const err = new Error('An invalid account was added to `this._accounts`');
@@ -133,7 +133,7 @@ class AccountStore extends MailspringStore {
         this._accounts = _.compact(this._accounts);
       }
     }
-    this.trigger(reason);
+    this.trigger(arguments);
   }
 
   _save = (reason) => {
@@ -256,7 +256,7 @@ class AccountStore extends MailspringStore {
       existing.settings = cleanAccount.settings;
     }
 
-    this._save();
+    this._save('add account');
   };
 
   _cachedGetter(key, fn) {
