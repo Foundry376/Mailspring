@@ -71,6 +71,9 @@ export default class Account extends ModelWithMetadata {
     syncError: Attributes.Object({
       modelKey: 'syncError',
     }),
+    lastVerified: Attributes.Number({
+      modelkey: 'lastVerified',
+    }),
   });
 
   constructor(args) {
@@ -82,6 +85,7 @@ export default class Account extends ModelWithMetadata {
       type: 'bcc',
       value: '',
     };
+    this.lastVerified = this.lastVerified || 0;
   }
 
   toJSON(...args) {

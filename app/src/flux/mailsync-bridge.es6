@@ -127,6 +127,7 @@ export default class MailsyncBridge {
     AppEnv.onReadyToUnload(this._onReadyToUnload);
 
     process.nextTick(() => {
+      console.log('constructor launching clients');
       this.ensureClients('constructor');
     });
   }
@@ -168,6 +169,7 @@ export default class MailsyncBridge {
   }
 
   ensureClients = _.throttle((kind) => {
+    console.log(`ensuring account ${kind}`);
     const clientsWithoutAccounts = Object.assign({}, this._clients);
 
     for (const acct of AccountStore.accounts()) {
@@ -464,23 +466,8 @@ export default class MailsyncBridge {
     }
   };
 
-  // _isThreadIntresting= thread =>{
-  //   if (thread.accountId && thread.id){
-  //     if(this._cachedSetObservableRangeTask[thread.accountId]){
-  //       return this._cachedSetObservableRangeTask[thread.accountId].threadIds.includes(thread.id);
-  //     }
-  //   }
-  //   return true;
-  // };
-
   _onIncomingChangeRecord = record => {
-    // Allow observers of the database to handle this change
-    // if (
-    //   (record.objects[0] instanceof Thread && this._isThreadIntresting(record.objects[0])) ||
-    //   !(record.objects[0] instanceof Thread)
-    // ) {
     DatabaseStore.trigger(record);
-    // }
 
     // Run task success / error handlers if the task is now complete
     // Note: cannot use `record.objectClass` because of subclass names
@@ -690,7 +677,7 @@ export default class MailsyncBridge {
       client.kill();
       AppEnv.debugLog(`pid@${id} mailsync-bridge _onReadyToUnload: page refresh`);
     }
-    this._clients = [];
+    this._clients = {};
   };
 
   _onOnlineStatusChanged = ({ onlineDidChange, wakingFromSleep }) => {
