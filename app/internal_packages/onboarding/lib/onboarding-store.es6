@@ -53,7 +53,7 @@ class OnboardingStore extends MailspringStore {
       this._pageStack = ['authenticate'];
     } else {
       // Standard new user onboarding flow.
-      this._pageStack = ['tutorial', 'account-choose'];
+      this._pageStack = ['tutorial'];
     }
   }
 
@@ -96,7 +96,10 @@ class OnboardingStore extends MailspringStore {
   };
 
   _onMoveToPreviousPage = () => {
-    this._pageStack.pop();
+    const p = this._pageStack.pop();
+    if (p === 'account-choose') {
+      this._onMoveToPage('tutorial');
+    }
     this.trigger();
   };
 

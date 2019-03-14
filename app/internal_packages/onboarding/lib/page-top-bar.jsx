@@ -39,7 +39,7 @@ const PageTopBar = props => {
     </div>
   );
 
-  if (!props.allowMoveBack) {
+  if (pageDepth <= 1 || !props.allowMoveBack) {
     backButton = null;
   }
   return (
