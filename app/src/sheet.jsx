@@ -92,6 +92,9 @@ export default class Sheet extends React.Component {
         minWidth: minWidth,
         overflow: 'hidden',
       };
+      if (location.id === 'QuickSidebar') {
+        style.overflow = 'visible';
+      }
       if (maxWidth < FLEX) {
         style.width = maxWidth;
       } else {
