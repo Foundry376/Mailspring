@@ -15,6 +15,9 @@
     bottom: 10px;
     top: initial;
   }
+  .swiper-pagination {
+    margin-bottom: -2px;
+  }
   .swiper-button-prev {
     left: 208px;
   }
@@ -371,6 +374,42 @@
   }
 }
 
+.page.opaque {
+  img {
+    width: 100%;
+  }
+  h1 {
+    color: #000;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: center;
+    margin-top: 27px;
+  }
+  h4 {
+    margin: 17px auto 110px;
+    width: 305px;
+    color: #000;
+    font-size: 17px;
+    line-height: 20px;
+    text-align: center;
+  }
+  .configure {
+    display: none;
+  }
+  .btn.btn-large {
+    height: 50px;
+    width: 300px;
+    border-radius: 100px;
+    background-color: #39F;
+    color: #FFF;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: center;
+  }
+}
+
 .page.account-choose {
   background: #fff;
   h2 {
@@ -489,6 +528,10 @@
 }
 
 .page.account-setup.AccountIMAPSettingsForm {
+  overflow: auto;
+  &::-webkit-scrollbar {
+    display: none;
+  }
   h2 {
     padding-top: 36px;
   }

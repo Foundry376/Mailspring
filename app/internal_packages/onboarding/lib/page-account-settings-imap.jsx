@@ -186,13 +186,13 @@ class AccountIMAPSettingsForm extends React.Component {
 
   render() {
     return (
-      <div className="twocol">
+      <div className="advance-settings">
         <div className="col">
-          <div className="col-heading">Incoming Mail (IMAP):</div>
+          <div className="col-heading">INCOMING MAIL SERVER (IMAP)</div>
           {this.renderFieldsForType('imap')}
         </div>
         <div className="col">
-          <div className="col-heading">Outgoing Mail (SMTP):</div>
+          <div className="col-heading">OUTGOING MAIL SERVER (SMTP)</div>
           {this.renderFieldsForType('smtp')}
         </div>
       </div>

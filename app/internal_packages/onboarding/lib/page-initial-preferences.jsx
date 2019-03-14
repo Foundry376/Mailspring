@@ -170,13 +170,19 @@ class InitialPreferencesPage extends React.Component {
     }
     return (
       <div className="page opaque" style={{ width: 900, height: '100%' }}>
-        <h1 style={{ paddingTop: 100 }}>Welcome to Edison Mail</h1>
-        <h4 style={{ marginBottom: 60 }}>Let's set things up to your liking.</h4>
-        <ConfigPropContainer>
-          <InitialPreferencesOptions account={this.state.account} />
-        </ConfigPropContainer>
+        <img
+          src={`edisonmail://onboarding/assets/onboarding-done@2x.png`}
+          alt=""
+        />
+        <h1>You're all Set!</h1>
+        <h4>We couldn't be happier to have you using Edison Mail for Mac.</h4>
+        <div className="configure">
+          <ConfigPropContainer>
+            <InitialPreferencesOptions account={this.state.account} />
+          </ConfigPropContainer>
+        </div>
         <button className="btn btn-large" style={{ marginBottom: 60 }} onClick={this._onFinished}>
-          Let's get rad!
+          Let's Go
         </button>
       </div>
     );
