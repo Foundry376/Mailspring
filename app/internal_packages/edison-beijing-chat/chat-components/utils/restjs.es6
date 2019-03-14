@@ -138,7 +138,35 @@ export async function refreshChatAccountTokens(cb) {
 export const setProfile = (data, cb) => {
     post(urlPre + 'setProfile', data, cb);
 }
-
+//--------------for chat platform------------
+const appBaseUrl = 'https://cs.stag.easilydo.cc';
+export const xmpplogin = (userId, token, cb) => {
+    var url = appBaseUrl + '/auth/public/xmpplogin';
+    post(url, { userId, token }, cb);
+}
+export const listApp = (userId, token, cb) => {
+    var url = appBaseUrl + '/xmpp/client/listApps';
+    post(url, { userId, token }, cb);
+}
+export const listKeywordApps = (userId, token, cb) => {
+    var url = appBaseUrl + '/xmpp/client/listKeywordApps';
+    post(url, { userId, token }, cb);
+}
+export const sendMsg2App = (data, cb) => {
+    var url = appBaseUrl + '/xmpp/client/sendMessage';
+    post(url, data, cb);
+}
+export const sendMsg2App2 = (userId, userName, token, appId, content, cb) => {
+    sendMsg2App({ userId, userName, token, appId, content }, cb);
+}
+export const sendCmd2App = (data, cb) => {
+    var url = appBaseUrl + '/xmpp/client/sendCommand';
+    post(url, data, cb);
+}
+export const sendCmd2App2 = (userId, userName, token, appId, command, peerUserId, roomId, cb) => {
+    sendCmd2App({ userId, userName, token, appId, command, peerUserId, roomId }, cb);
+}
+//--------------for chat platform------------
 export const login = (email, password, cb) => {
     post(urlPre + 'login',
         {
@@ -183,5 +211,6 @@ export const getAvatarFromCache = email => {
 }
 
 export default {
-    register, unregister, queryProfile, setProfile, login, uploadContacts, getAvatar, getAvatarFromCache
+    register, unregister, queryProfile, setProfile, login, uploadContacts, getAvatar, getAvatarFromCache,
+    xmpplogin, listApp, listKeywordApps, sendMsg2App, sendMsg2App2, sendCmd2App, sendCmd2App2
 }

@@ -102,7 +102,9 @@ export class Xmpp extends EventEmitter3 {
   }
   async getRoomList(ver, curJid) {
     let xmpp = this.getXmpp(curJid);
-    return xmpp.getRoomList(ver);
+    const result = xmpp.getRoomList(ver);
+    console.log('dbg*** xmpp.getRoomList: ', result);
+    return result;
   }
   async block(jid, curJid) {
     let xmpp = this.getXmpp(curJid);

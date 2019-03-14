@@ -531,83 +531,68 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
 
 export const updateGroupMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_GROUP_MESSAGE)
-    .mergeMap(({ payload }) => {
-      let beAt = false;
-      let name = payload.from.local;
-      // get the room name and whether you are '@'
-      const { room: { rooms } } = getState();
-      const body = JSON.parse(payload.body);
-      beAt = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
-      if (rooms[payload.from.bare]) {
-        name = rooms[payload.from.bare];
-      } else {
-        console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
-        return Observable.fromPromise(xmpp.getRoomList(null, payload.curJid))
-          .map(({ discoItems: { items } }) => {
-            if (items) {
-              for (const item of items) {
-                if (payload.from.local === item.jid.local) {
-                  return { payload, name: item.name, beAt };
-                }
-              }
-            }
-            return { payload, name, beAt };
-          }).catch(err => {
-            console.error('error in updateGroupMessageConversationEpic: ', err);
-            return { payload, name, beAt };
-          });
-      }
-      return [{ payload, name, beAt }];
-    })
-    .mergeMap(({ payload, name, beAt }) => {
-      let at = false;
-      return Observable.fromPromise(getLastMessageInfo(payload))
-        .map(({ lastMessageTime, sender, lastMessageText }) => {
-          const { timeSend } = JSON.parse(payload.body);
-          // if not current conversation, unreadMessages + 1
-          let unreadMessages = 0;
-          const { chat: { selectedConversation } } = getState();
-          if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
-            unreadMessages = 1;
-            at = beAt;
+    .mergeMap(payload => Observable.fromPromise(asyncUpdateGroupMessageConversationEpic(payload, getState)));
+
+const asyncUpdateGroupMessageConversationEpic = async ({payload}, getState) => {
+    let beAt = false;
+    let name = payload.from.local;
+    // get the room name and whether you are '@'
+    const { room: { rooms } } = getState();
+    const body = JSON.parse(payload.body);
+    beAt = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
+    if (rooms[payload.from.bare]) {
+      name = rooms[payload.from.bare];
+    } else {
+      console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
+      let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
+      console.log('dbg*** asyncUpdateGroupMessageConversationEpic xmpp.getRoomList roomsInfo: ', roomsInfo);
+      roomsInfo = roomsInfo || {
+        curJid: payload.curJid,
+        discoItems: {items:[]},
+      };
+      const { discoItems: { items }} = roomsInfo;
+      if (items) {
+        for (const item of items) {
+          if (payload.from.local === item.jid.local) {
+            name = item.name;
+            break;
           }
-          return {
-            jid: payload.from.bare,
-            curJid: payload.curJid,
-            name: name,
-            isGroup: true,
-            unreadMessages: unreadMessages,
-            lastMessageTime,
-            lastMessageText,
-            lastMessageSender: sender || payload.from.resource + '@im.edison.tech',
-            at
-          };
-        })
-    })
-    .mergeMap(conv => {
-      return Observable.fromPromise(getDb())
-        .mergeMap(db => {
-          return Observable.fromPromise(db.conversations.findOne().where('jid').eq(conv.jid).exec())
-            .map(convInDb => {
-              if (convInDb) {
-                conv.occupants = convInDb.occupants;
-                conv.avatarMembers = convInDb.avatarMembers;
-              } else {
-                conv.occupants = [];
-              }
-              return conv;
-            })
-            .mergeMap(conv => {
-              return Observable.fromPromise(db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec())
-                .map(contact => {
-                  addToAvatarMembers(conv, contact);
-                  return conv;
-                })
-            })
-        })
-    }).map(conversation => {
-      return beginStoringConversations([conversation]);
-    });
+        }
+      }
+    }
+    let at = false;
+    const  { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
+    const { timeSend } = JSON.parse(payload.body);
+    // if not current conversation, unreadMessages + 1
+    let unreadMessages = 0;
+    const { chat: { selectedConversation } } = getState();
+    if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
+      unreadMessages = 1;
+      at = beAt;
+    }
+    let conv = {
+      jid: payload.from.bare,
+      curJid: payload.curJid,
+      name: name,
+      isGroup: true,
+      unreadMessages: unreadMessages,
+      lastMessageTime,
+      lastMessageText,
+      lastMessageSender: sender || payload.from.resource + '@im.edison.tech',
+      at
+    };
+    const db = await getDb();
+    const convInDb = await db.conversations.findOne().where('jid').eq(conv.jid).exec();
+    if (convInDb) {
+      conv.occupants = convInDb.occupants;
+      conv.avatarMembers = convInDb.avatarMembers;
+    } else {
+      conv.occupants = [];
+    }
+    const contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
+    addToAvatarMembers(conv, contact);
+    return beginStoringConversations([conv]);
+}
 
 export const beginRetrievingMessagesEpic = action$ =>
   action$.ofType(UPDATE_SELECTED_CONVERSATION)
