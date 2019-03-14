@@ -17,7 +17,7 @@ class SendActionButton extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { isSending: false, mounted: false, showLoading: false };
+    this.state = { isSending: false, mounted: false, showLoading: true };
     this._sendButtonTimer = null;
     this._delayLoadingTimer = null;
     this._mounted = false;
@@ -117,7 +117,9 @@ class SendActionButton extends React.Component {
     return (
       <span>
         {this.state.showLoading ?
-          <LottieImg name='loading-spinner-white' size={{ width: 27, height: 27 }}/> :
+          <LottieImg name='loading-spinner-transparent'
+                     size={{ width: 27, height: 27 }}
+          style={{margin: '0', display: 'inline-block', float: 'left'}}/> :
           <RetinaImg name={'sent.svg'}
                      style={{ width: 27, height: 27 }}
                      isIcon={true}
@@ -133,10 +135,9 @@ class SendActionButton extends React.Component {
     return (
       <button
         tabIndex={-1}
-        className={`btn btn-toolbar btn-normal btn-send ${this.state.isSending ? 'btn-disabled' : ''}`}
+        className={`btn btn-toolbar btn-normal btn-send`}
         style={{ order: 100 }}
         onClick={!this.props.disabled ? this._onPrimaryClick : null}
-        disabled={this.props.disabled}
       >
         {this._renderSendActionItem(this.props.sendActions[0])}
       </button>

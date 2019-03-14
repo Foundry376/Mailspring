@@ -326,6 +326,14 @@ body.platform-win32 {
       background-color: transparent;
       transition: all 0.2s;
       span {
+        div[role='button']{
+          float: left;
+          svg{
+            path{
+              stroke: @blue;
+            }
+          }
+        }
         img.content-mask {
           float: left;
           background-color: @blue;
@@ -340,6 +348,14 @@ body.platform-win32 {
       &:hover {
         background-color: @blue;
         span {
+          div[role='button']{
+            float: left;
+            svg{
+              path{
+                stroke: @white;
+              }
+            }
+          }
           img.content-mask {
             background-color: @white;
           }
