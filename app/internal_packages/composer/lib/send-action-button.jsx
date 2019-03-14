@@ -17,7 +17,7 @@ class SendActionButton extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { isSending: false, mounted: false, showLoading: true };
+    this.state = { isSending: false, mounted: false, showLoading: false };
     this._sendButtonTimer = null;
     this._delayLoadingTimer = null;
     this._mounted = false;
