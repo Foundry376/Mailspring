@@ -42,9 +42,9 @@ class PreferencesAccountList extends Component {
               name={
                 syncError
                   ? 'ic-settings-account-error.png'
-                  : `ic-settings-account-${account.provider}.png`
+                  : `account-logo-${account.provider}.png`
               }
-              fallback="ic-settings-account-imap.png"
+              fallback="account-logo-other.png"
               mode={RetinaImg.Mode.ContentPreserve}
             />
           </div>

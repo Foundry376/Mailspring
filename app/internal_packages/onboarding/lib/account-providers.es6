@@ -10,7 +10,7 @@ const AccountProviders = [
   {
     provider: 'gmail',
     displayName: 'Gmail',
-    icon: 'account-logo-google.png',
+    icon: 'account-logo-gmail.png',
     headerIcon: 'setup-icon-provider-gmail.png',
     color: '#e99999',
   },
