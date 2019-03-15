@@ -228,8 +228,7 @@ export default class OAuthSignInPage extends React.Component {
               position: 'fixed',
               top: 75,
               bottom: 0,
-              zIndex: 2,
-              visibility: loading ? 'hidden' : 'visible'
+              zIndex: 2
             }} />
           )}
         {loading && (
