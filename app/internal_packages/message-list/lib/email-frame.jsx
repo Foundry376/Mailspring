@@ -118,6 +118,8 @@ export default class EmailFrame extends React.Component {
     this._iframeComponent.setHeightQuietly(0);
     this._lastComputedHeight = 0;
     this._setFrameHeight();
+    // 10 seconds later, force execute it again;
+    setTimeout(this._setFrameHeight, 10 * 1000);
   };
 
   _getFrameHeight = doc => {
