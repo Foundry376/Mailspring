@@ -72,7 +72,7 @@ export default class ComposeButton extends React.Component {
   };
 
   render() {
-    return <div className='sheet-toolbar' style={{position: 'unset', height: 'unset', padddingLeft: 15, paddingTop: 41}}>
+    return <div className='sheet-toolbar' style={{position: 'unset', height: 'unset', padddingLeft: 15, paddingTop: 40}}>
       <button
         className={`btn btn-toolbar item-compose ${
           this.state.creatingNewDraft ? 'btn-disabled' : ''
