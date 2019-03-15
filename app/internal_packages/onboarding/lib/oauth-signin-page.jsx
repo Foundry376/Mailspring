@@ -1,4 +1,5 @@
-import { shell, clipboard } from 'electron';
+import { clipboard } from 'electron';
+import OnboardingActions from './onboarding-actions';
 import { React, ReactDOM, PropTypes } from 'mailspring-exports';
 import { RetinaImg, LottieImg } from 'mailspring-component-kit';
 import http from 'http';
@@ -69,7 +70,12 @@ export default class OAuthSignInPage extends React.Component {
         // when oauth succeed, display Edison homepage
         response.writeHead(302, { Location: 'http://email.easilydo.com' });
         response.end();
-      } else {
+      }
+      else if (query.error === 'access_denied') {
+        OnboardingActions.moveToPage('account-choose');
+        return;
+      }
+      else {
         response.end('Unknown Request');
       }
     });
@@ -182,7 +188,14 @@ export default class OAuthSignInPage extends React.Component {
     );
   }
 
-  _setupWebview() {
+  _onConsoleMessage = e => {
+    // console.log('*****webview: ' + e.message);
+    if (e.message === 'move-to-account-choose') {
+      OnboardingActions.moveToPage('account-choose');
+    }
+  }
+
+  _setupWebview = () => {
     const webview = ReactDOM.findDOMNode(this.refs.webview);
     if (!webview) {
       return;
@@ -191,7 +204,7 @@ export default class OAuthSignInPage extends React.Component {
       // 'did-fail-load': this._webviewDidFailLoad,
       'did-finish-load': this._loaded,
       // 'did-get-response-details': this._webviewDidGetResponseDetails,
-      // 'console-message': this._onConsoleMessage,
+      'console-message': this._onConsoleMessage,
     };
 
     for (const event of Object.keys(listeners)) {
@@ -199,6 +212,10 @@ export default class OAuthSignInPage extends React.Component {
     }
     for (const event of Object.keys(listeners)) {
       webview.addEventListener(event, listeners[event]);
+    }
+
+    if (/yahoo/g.test(this.props.providerAuthPageUrl)) {
+      webview.setAttribute('preload', '../internal_packages/onboarding/lib/oauth-inject-yahoo.js');
     }
   }
 
