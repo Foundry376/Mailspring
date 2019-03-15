@@ -29,17 +29,24 @@
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
+    max-width: 600px;
+    overflow:hidden;
+    text-overflow: ellipsis;
+    z-index: 1;
+    &:focus, &:hover {
+      max-width:1000px;
+      z-index: 200;
+    }
     .conversationName {
-      width: 400px;
+      max-width: 600px;
       white-space: nowrap;
       text-overflow: ellipsis;
+      overflow:hidden;
       font-size: 28px;
-      max-width: 500px;
+      &:focus, &:hover {
+        max-width:1000px;
+      }
     }
-    z-index: 1;
-  }
-  .left:hover {
-    z-index: 200;
   }
 
   .center {
