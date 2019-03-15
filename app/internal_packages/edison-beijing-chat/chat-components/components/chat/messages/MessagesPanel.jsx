@@ -532,7 +532,13 @@ export default class MessagesPanel extends PureComponent {
               ) : (
                   <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
                 )
-            ) : null}
+            ) : (<div>
+              <RetinaImg name={'no-network.svg'}
+                         style={{ width: 15 }}
+                         isIcon
+                         mode={RetinaImg.Mode.ContentIsMask} />
+              <span>Your computer appears to be offline.</span>
+            </div>)}
           </div>
         )}
         {inviting && selectedConversation.jid !== NEW_CONVERSATION && (
