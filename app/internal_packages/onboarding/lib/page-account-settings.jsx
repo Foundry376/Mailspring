@@ -92,6 +92,9 @@ class AccountBasicSettingsForm extends React.Component {
           {...this.props}
         />
         {provider === 'exchange' ? <FormField field="settings.exchangeServer" title="Exchange Server" {...this.props} /> : null}
+        {provider === 'imap' && (
+          <a className="go-to-Advanced" onClick={() => OnboardingActions.moveToPage('account-settings-imap')}>Advanced Settings</a>
+        )}
       </form>
     );
   }

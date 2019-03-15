@@ -28,6 +28,15 @@
   // }
 }
 
+.thread-list-wide {
+  .list-tabular .selection-bar,
+  .sheet-toolbar .selection-bar {
+    .absolute {
+      right: -1px;
+    }
+  }
+}
+
 .list-tabular .selection-bar,
 .sheet-toolbar .selection-bar {
   // This item sits in the toolbar and takes up all the remaining
@@ -50,11 +59,12 @@
     background: #fff;
     position: absolute;
     left: -1px;
-    right: -1px;
+    right: 0px;
     top: 0px;
     height: 40px;
     border-bottom: 1px solid @border-color-primary;
     border-left: 1px solid @border-color-divider;
+    border-right: 1px solid @border-color-divider;
     // border-right: 1px solid @border-color-divider;
     background-color: @background-primary;
     transition: opacity 0.2s ease-in-out;

@@ -161,6 +161,9 @@
       font-weight: 700;
       text-decoration: none;
     }
+    &:empty {
+      display: none;
+    }
   }
 
   .btn-add-account {
@@ -200,8 +203,8 @@
   .close {
     position: fixed;
     z-index: 100;
-    top: 15px;
-    left: 15px;
+    top: 12px;
+    left: 12px;
   }
 
   .back {
@@ -236,6 +239,13 @@
     span:last-child input {
       margin-bottom: 0;
     }
+    .go-to-Advanced {
+      float: left;
+      color: #39F;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 18px;
+    }
   }
   select {
     margin-bottom: 8px;
@@ -248,7 +258,6 @@
     border-radius: 10px;
     background-color: #FFF;
     border: 2px solid #E8EBED;
-    border-radius: 8px;
     margin-bottom: 27px;
     padding: 0 20px;
     margin-left: -12px;
@@ -407,6 +416,9 @@
     font-weight: 700;
     line-height: 20px;
     text-align: center;
+    &.btn-disabled {
+      opacity: 0.25;
+    }
   }
 }
 
@@ -478,6 +490,29 @@
   }
 }
 
+.page.oauth {
+  .validating {
+    margin-top: 245px;
+    h2 {
+      color: #000;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 22px;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    p {
+      height: 40px;
+      width: 305px;
+      color: #000;
+      font-size: 17px;
+      line-height: 20px;
+      text-align: center;
+      margin: 0 auto 73px;
+    }
+  }
+}
+
 .page.account-setup {
   form {
     width: 400px;
@@ -529,6 +564,7 @@
 
 .page.account-setup.AccountIMAPSettingsForm {
   overflow: auto;
+  padding-bottom: 100px;
   &::-webkit-scrollbar {
     display: none;
   }
@@ -541,6 +577,57 @@
   .twocol {
     padding-top: 20px;
     padding-bottom: 20px;
+  }
+  .advance-settings {
+    padding-top: 55px;
+  }
+  .col-heading {
+    color: #8B8B8F;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 13px;
+    position: relative;
+    text-align: center;
+    padding-bottom: 25px;
+    span {
+      position: relative;
+      z-index: 2;
+      padding: 4px 10px;
+      background: #fff;
+    }
+    &:after {
+      content: '';
+      display: block;
+      height: 2px;
+      background: #E8EBED;
+      position: absolute;
+      z-index: 1;
+      width: 100%;
+      left: 0;
+      top: 5px;
+    }
+  }
+  .col {
+    width: 370px;
+    padding: 0 10px;
+    margin: 0 auto;
+    border-left: none;
+    input {
+      margin-left: -5px;
+      margin-bottom: 25px;
+    }
+    input[type=checkbox] {
+      height: auto;
+      margin-left: 20px;
+    }
+    select {
+      height: 50px;
+      width: 350px;
+      border-radius: 10px;
+      background-color: #FFF;
+      border: 2px solid #E8EBED;
+      margin-bottom: 25px;
+    }
   }
 }
 

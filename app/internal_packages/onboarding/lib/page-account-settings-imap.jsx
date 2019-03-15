@@ -59,8 +59,14 @@ class AccountIMAPSettingsForm extends React.Component {
       throw new Error(`Can't render port dropdown for protocol '${protocol}'`);
     }
     const { account: { settings }, submitting, onFieldKeyPress, onFieldChange } = this.props;
-
     const field = `${protocol}_port`;
+    // set default port
+    if (!settings[field] && field === 'imap_port') {
+      settings.imap_port = 993;
+    }
+    if (!settings[field] && field === 'smtp_port') {
+      settings.smtp_port = 587;
+    }
     const values = protocol === 'imap' ? StandardIMAPPorts : StandardSMTPPorts;
     const isStandard = values.includes(settings[field] / 1);
     const customValue = isStandard ? '0' : settings[field];
@@ -69,7 +75,8 @@ class AccountIMAPSettingsForm extends React.Component {
     // the standard for that port. Lots of people don't update that field and
     // are getting confused.
     const onPortChange = event => {
-      onFieldChange(event);
+      const data = { target: { value: event.target.value, id: event.target.id } };
+      setTimeout(() => onFieldChange(data), 0);
       if (event.target.value / 1 === 143 && settings.imap_security !== 'none') {
         onFieldChange({ target: { value: 'none', id: 'settings.imap_security' } });
       }
@@ -83,10 +90,9 @@ class AccountIMAPSettingsForm extends React.Component {
         onFieldChange({ target: { value: 'STARTTLS', id: 'settings.smtp_security' } });
       }
     };
-
     return (
       <span>
-        <label htmlFor={`settings.${field}`}>Port:</label>
+        <label htmlFor={`settings.${field}`}>Port Number</label>
         <select
           id={`settings.${field}`}
           tabIndex={0}
@@ -148,7 +154,10 @@ class AccountIMAPSettingsForm extends React.Component {
             </option>
           </select>
         </span>
-        <span style={{ paddingLeft: '20px', paddingTop: '10px' }}>
+        <span style={{ paddingTop: '10px' }}>
+          <label htmlFor={`settings.${protocol}_allow_insecure_ssl"`} className="checkbox">
+            Allow insecure SSL
+          </label>
           <input
             type="checkbox"
             id={`settings.${protocol}_allow_insecure_ssl`}
@@ -157,9 +166,6 @@ class AccountIMAPSettingsForm extends React.Component {
             onKeyPress={onFieldKeyPress}
             onChange={onFieldChange}
           />
-          <label htmlFor={`${protocol}_allow_insecure_ssl"`} className="checkbox">
-            Allow insecure SSL
-          </label>
         </span>
       </div>
     );
@@ -168,7 +174,7 @@ class AccountIMAPSettingsForm extends React.Component {
   renderFieldsForType(type) {
     return (
       <div>
-        <FormField field={`settings.${type}_host`} title={'Server'} {...this.props} />
+        <FormField field={`settings.${type}_host`} title={'Hostname'} {...this.props} />
         <div style={{ textAlign: 'left' }}>
           {this.renderPortDropdown(type)}
           {this.renderSecurityDropdown(type)}
@@ -188,11 +194,11 @@ class AccountIMAPSettingsForm extends React.Component {
     return (
       <div className="advance-settings">
         <div className="col">
-          <div className="col-heading">INCOMING MAIL SERVER (IMAP)</div>
+          <div className="col-heading"><span>INCOMING MAIL SERVER (IMAP)</span></div>
           {this.renderFieldsForType('imap')}
         </div>
         <div className="col">
-          <div className="col-heading">OUTGOING MAIL SERVER (SMTP)</div>
+          <div className="col-heading"><span>OUTGOING MAIL SERVER (SMTP)</span></div>
           {this.renderFieldsForType('smtp')}
         </div>
       </div>

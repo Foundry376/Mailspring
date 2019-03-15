@@ -388,6 +388,7 @@ class ListTabular extends Component {
 
     return (
       <div className={`list-container list-tabular ${className}`}>
+        <Toolbar />
         <ScrollRegion
           ref={cm => {
             this._scrollRegion = cm;
@@ -396,7 +397,6 @@ class ListTabular extends Component {
           tabIndex="-1"
           scrollTooltipComponent={scrollTooltipComponent}
         >
-          <Toolbar />
           <ListTabularRows
             rows={rows}
             columns={columns}
