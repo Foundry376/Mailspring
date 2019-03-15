@@ -1,4 +1,5 @@
 import { shell, clipboard } from 'electron';
+import OnboardingActions from './onboarding-actions';
 import { React, ReactDOM, PropTypes } from 'mailspring-exports';
 import { RetinaImg, LottieImg } from 'mailspring-component-kit';
 import http from 'http';
@@ -69,7 +70,12 @@ export default class OAuthSignInPage extends React.Component {
         // when oauth succeed, display Edison homepage
         response.writeHead(302, { Location: 'http://email.easilydo.com' });
         response.end();
-      } else {
+      }
+      else if (query.error === 'access_denied') {
+        OnboardingActions.moveToPage('account-choose');
+        return;
+      }
+      else {
         response.end('Unknown Request');
       }
     });
