@@ -10,9 +10,9 @@
 @blurred-off-primary-color: mix(@background-off-primary, #ffbb00, 96%);
 
 .sheet-toolbar .btn-toolbar.item-compose {
-  position: absolute;
+  position: relative;
   left: 15px;
-  top: 39px;
+  //top: 39px;
   width: 129px;
   height: 40px;
   border-radius: 20px;
@@ -25,6 +25,10 @@
   text-align: left;
   display: flex;
   align-items: center;
+  order: 0;
+  flex-shrink: 0;
+  flex-grow: 0;
+  -webkit-app-region: no-drag;
   span {
     margin-left: 12px;
     float: left;
