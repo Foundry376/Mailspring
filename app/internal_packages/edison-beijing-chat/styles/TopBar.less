@@ -23,16 +23,23 @@
   }
 
   .left {
+    position:relative;
     flex: 1;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
     .conversationName {
-      overflow: hidden;
+      width: 400px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
       font-size: 28px;
+      max-width: 500px;
     }
-    z-index: 99999;
+    z-index: 1;
+  }
+  .left:hover {
+    z-index: 200;
   }
 
   .center {
@@ -41,6 +48,10 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    z-index: 100;
+  }
+  .center:hover {
+    z-index: 200;
   }
 
   .right {
