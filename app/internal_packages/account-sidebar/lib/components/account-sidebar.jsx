@@ -54,7 +54,7 @@ class AccountSidebar extends React.Component {
     const { accounts, sidebarAccountIds, userSections, standardSection } = this.state;
 
     return (
-      <Flexbox direction="column" style={{ order: 0, flexShrink: 1, flex: 1 }}>
+      <Flexbox direction="column" style={{ order: 1, flexShrink: 1, flex: 1 }}>
         <ScrollRegion className="account-sidebar" style={{ order: 2 }}>
           {/*<AccountSwitcher accounts={accounts} sidebarAccountIds={sidebarAccountIds} />*/}
           <div className="account-sidebar-sections">

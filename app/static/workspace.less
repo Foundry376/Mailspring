@@ -19,14 +19,26 @@ mailspring-workspace {
   overflow: hidden;
   position: relative;
   font-family: @font-family;
+  //-webkit-app-region: drag;
 
   // Important: This attribute is used in the theme-manager-specs to check that
   // themes load and override each other correctly. Do not remove!
   background-color: @background-primary;
 }
-
+.layout-mode-popout{
+  -webkit-app-region: no-drag;
+}
+.layout-mode-list{
+  -webkit-app-region: drag;
+}
+.layout-mode-split{
+  -webkit-app-region: drag;
+}
 .sheet-container {
   height: 100%;
+  div[contenteditable]{
+    -webkit-app-region: no-drag;
+  }
 }
 
 .sheet {
@@ -627,12 +639,13 @@ body.platform-win32 {
 }
 .column-RootSidebar {
   border-right: 1px solid @extra-light-grey;
-  padding-top: 80px;
+  -webkit-app-region: no-drag;
 }
 
 .column-ThreadList,
 .column-MessageList {
-  padding-top: @search-bar-height;
+  margin-top: @search-bar-height;
+  -webkit-app-region: no-drag;
 }
 
 .column-MessageList {
@@ -644,7 +657,8 @@ body.platform-win32 {
 }
 
 .column-DraftList {
-  padding-top: 68px;
+  margin-top: @search-bar-height;
+  -webkit-app-region: no-drag;
 }
 
 .mode-list .column-ThreadList {
