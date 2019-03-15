@@ -281,12 +281,21 @@
     color: @text-color;
     background: @list-bg;
     transition-property: box-shadow;
-    transition-duration: 0.4s;
+    transition-duration: 0.3s;
 
     &:hover {
       background-color: #FFF;
       z-index: 9;
       box-shadow: 2px 0 30px 0 rgba(0,0,0,0.15);
+      &:after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        top: -1px;
+        height: 1px;
+        display:block;
+        background: @white;
+      }
     }
 
     &.selected {
