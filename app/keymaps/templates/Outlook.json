@@ -8,9 +8,11 @@
   "core:reply": "mod+r",
   "core:reply-all": "mod+shift+r",
   "application:new-message": ["mod+n", "mod+shift+m"],
-  "core:find-in-thread": "f4",
+
+  "core:find-in-thread": ["mod+shift+f", "f4"],
   "core:find-in-thread-next": "shift+f4",
-  "core:find-in-thread-previous": "ctrl+shift+f4",
+  "core:find-in-thread-previous": "mod+shift+f4",
+
   "core:focus-item": "ctrl+o",
   "core:mark-as-read": "ctrl+q",
   "core:mark-as-unread": "ctrl+u",

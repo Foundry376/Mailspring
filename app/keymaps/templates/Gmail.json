@@ -16,6 +16,10 @@
   "thread-list:select-starred": "* s",
   "thread-list:select-unstarred": "* t",
 
+  "core:find-in-thread": "mod+f",
+  "core:find-in-thread-next": "mod+g",
+  "core:find-in-thread-previous": "mod+shift+g",
+
   "core:pop-sheet": "u",
   "core:previous-item": "k",
   "core:select-up": "shift+k",

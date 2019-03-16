@@ -12,6 +12,10 @@
 
   "multiselect-list:select-all": "command+a",
 
+  "core:find-in-thread": "mod+f",
+  "core:find-in-thread-next": "mod+g",
+  "core:find-in-thread-previous": "mod+shift+g",
+
   "core:previous-item": "command+[",
   "core:select-up": "shift+command+[",
   "core:next-item": "command+]",

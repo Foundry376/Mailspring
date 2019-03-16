@@ -58,6 +58,7 @@ export default [
       ['core:focus-item', localized('Open selected conversation')],
       ['core:previous-item', localized('Move to newer conversation')],
       ['core:next-item', localized('Move to older conversation')],
+      ['core:find-in-thread', localized('Find in thread')],
     ],
   },
   {

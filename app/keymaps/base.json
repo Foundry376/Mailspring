@@ -42,10 +42,6 @@
   "window:select-account-7": "mod+8",
   "window:select-account-8": "mod+9",
 
-  "core:find-in-thread": "mod+f",
-  "core:find-in-thread-next": "mod+g",
-  "core:find-in-thread-previous": "mod+shift+g",
-
   "contenteditable:underline": "mod+u",
   "contenteditable:bold": "mod+b",
   "contenteditable:italic": "mod+i",

@@ -14,6 +14,10 @@
   "message-list:previous-message": "p",
   "message-list:next-message": "n",
 
+  "core:find-in-thread": "mod+f",
+  "core:find-in-thread-next": "mod+g",
+  "core:find-in-thread-previous": "mod+shift+g",
+
   "core:mute-conversation": "m",
   "core:focus-search": "/",
   "core:change-category": ".",
