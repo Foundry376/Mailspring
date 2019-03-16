@@ -428,7 +428,7 @@ export class Contact extends Model {
 
   // You can pass several options to customize the name:
   // - includeAccountLabel: If the contact represents the current user, include
-  //   the account label afer "You"
+  //   the account label after "You"
   // - forceAccountLabel: Always include the account label
   // - compact: If the contact has a name, make the name as short as possible
   //   (generally returns just the first name.)
@@ -501,6 +501,14 @@ export class Contact extends Model {
       if (name.indexOf('@') > 0) {
         name = name.split('@').shift();
       }
+    }
+
+    // If the name is in single or double quotes, strip the quotes off
+    if (
+      (name.startsWith("'") && name.endsWith("'")) ||
+      (name.startsWith('"') && name.endsWith('"'))
+    ) {
+      name = name.substr(1, name.length - 2);
     }
 
     // Take care of phrases like "Mike Kaylor via LinkedIn" that should be displayed

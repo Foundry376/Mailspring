@@ -79,7 +79,7 @@ class ContactStore extends MailspringStore {
   }
 
   parseContactsInString(contactString, { skipNameLookup }: { skipNameLookup?: boolean } = {}) {
-    const detected = [];
+    const detected: Contact[] = [];
     const emailRegex = RegExpUtils.emailRegex();
     let lastMatchEnd = 0;
     let match = null;
@@ -130,7 +130,7 @@ class ContactStore extends MailspringStore {
       return Promise.resolve(detected);
     }
 
-    return Promise.all(
+    return Promise.all<Contact>(
       detected.map(contact => {
         if (contact.name !== contact.email) {
           return contact;

@@ -13,10 +13,10 @@ import {
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 
 const TokenRenderer = props => {
-  const { email, name } = props.token;
-  let chipText = email;
-  if (name && name.length > 0 && name !== email) {
-    chipText = name;
+  const contact = props.token as Contact;
+  let chipText = contact.email;
+  if (contact.name && contact.name.length > 0 && contact.name !== contact.email) {
+    chipText = contact.fullName();
   }
   return (
     <div className="participant">
@@ -98,25 +98,25 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
   _completionNode = p => {
     const CustomComponent = p.customComponent;
     if (CustomComponent) return <CustomComponent token={p} />;
-    return <Menu.NameEmailItem name={p.name} email={p.email} key={p.id} />;
+    return <Menu.NameEmailItem name={p.fullName()} email={p.email} key={p.id} />;
   };
 
-  _tokensForString = (string, options = {}) => {
+  _tokensForString = async (string, options = {}) => {
     // If the input is a string, parse out email addresses and build
     // an array of contact objects. For each email address wrapped in
     // parentheses, look for a preceding name, if one exists.
     if (string.length === 0) {
-      return Promise.resolve([]);
+      return [];
     }
 
-    return ContactStore.parseContactsInString(string, options).then(contacts => {
-      if (contacts.length > 0) {
-        return Promise.resolve(contacts);
-      }
-      // If no contacts are returned, treat the entire string as a single
-      // (malformed) contact object.
-      return [new Contact({ email: string, name: null })];
-    });
+    const contacts = await ContactStore.parseContactsInString(string, options);
+    if (contacts.length > 0) {
+      return contacts;
+    }
+
+    // If no contacts are returned, treat the entire string as a single
+    // (malformed) contact object.
+    return [new Contact({ email: string, name: null })];
   };
 
   _remove = values => {
@@ -128,16 +128,15 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     this.props.change(updates);
   };
 
-  _edit = (token, replacementString) => {
+  _edit = async (token, replacementString) => {
     const field = this.props.field;
     const tokenIndex = this.props.participants[field].indexOf(token);
 
-    this._tokensForString(replacementString).then(replacements => {
-      const updates = {};
-      updates[field] = [].concat(this.props.participants[field]);
-      updates[field].splice(tokenIndex, 1, ...replacements);
-      this.props.change(updates);
-    });
+    const replacements = await this._tokensForString(replacementString);
+    const updates = {};
+    updates[field] = [].concat(this.props.participants[field]);
+    updates[field].splice(tokenIndex, 1, ...replacements);
+    this.props.change(updates);
   };
 
   _add = (values, options = {}) => {
@@ -231,9 +230,6 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
     const classSet = {
       [this.props.field]: true,
     };
-    const headerMessageId = this.props.draft ? this.props.draft.headerMessageId : null;
-    // TODO Ahh now that this component is part of the component kit this
-    // injected region feels out of place
     return (
       <div className={this.props.className}>
         <TokenizingTextField
