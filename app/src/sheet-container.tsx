@@ -61,6 +61,26 @@ export default class SheetContainer extends React.Component<{}, SheetContainerSt
     this.setState(this._getStateFromStores());
   };
 
+  _lastToolbarClickTime: number = 0;
+
+  _onToolbarDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (process.platform !== 'darwin') return;
+    if (e.target instanceof HTMLElement) {
+      if (['INPUT', 'A', 'BUTTON'].includes(e.target.tagName)) return;
+      if (e.target.hasAttribute('contenteditable')) return;
+    }
+
+    if (Date.now() - this._lastToolbarClickTime < 350) {
+      const win = AppEnv.getCurrentWindow();
+      if (win.isMaximized()) {
+        win.unmaximize();
+      } else {
+        win.maximize();
+      }
+    }
+    this._lastToolbarClickTime = Date.now();
+  };
+
   _toolbarContainerElement() {
     const { toolbar } = AppEnv.getLoadSettings();
     if (!toolbar) {
@@ -77,8 +97,13 @@ export default class SheetContainer extends React.Component<{}, SheetContainerSt
         depth={index}
       />
     ));
+
     return (
-      <div style={{ order: 0, zIndex: 3 }} className="sheet-toolbar">
+      <div
+        className="sheet-toolbar"
+        style={{ order: 0, zIndex: 3 }}
+        onClick={this._onToolbarDoubleClick}
+      >
         {components[0]}
         <CSSTransitionGroup
           transitionLeaveTimeout={125}
