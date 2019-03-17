@@ -19,3 +19,8 @@ jobs:
             - node_modules
             - app/node_modules
       - run: npm run lint
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
