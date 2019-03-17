@@ -1,0 +1,21 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: circleci/node:lts
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Package Cache
+          keys:
+            - npm-packages-{{ checksum "package-lock.json" }}-{{ checksum "app/package-lock.json" }}
+      - run:
+          name: Install Dependencies
+          command: npm install
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: npm-packages-{{ checksum "package-lock.json" }}-{{ checksum "app/package-lock.json" }}
+          paths:
+            - node_modules
+            - app/node_modules
+      - run: npm run lint
