@@ -22,7 +22,7 @@
     "devtron": "^1.4.0",
     "electron": "^3.1.6",
     "electron-installer-dmg": "^2.0.0",
-    "electron-packager": "8.7.x",
+    "electron-packager": "^13.1.1",
     "electron-rebuild": "^1.8.2",
     "electron-winstaller": "2.x.x",
     "eslint": "^4.7.2",
@@ -51,9 +51,8 @@
     "handlebars": "^4.0.10",
     "jasmine": "2.x.x",
     "joanna": "0.0.9",
-    "load-grunt-parent-tasks": "0.1.1",
+    "load-grunt-parent-tasks": "^0.1.2",
     "meta-marked": "^0.4.2",
-    "mkdirp": "^0.5.1",
     "prettier": "^1.10.0",
     "request": "2.x.x",
     "rimraf": "^2.6.1",
@@ -62,7 +61,6 @@
     "underscore": "1.8.x"
   },
   "scripts": {
-    "postinstall": "node scripts/postinstall.js",
     "start": "node_modules/.bin/electron ./app --enable-logging --dev",
     "lint": "grunt lint --gruntfile=app/build/Gruntfile.js --base=./",
     "test": "node_modules/.bin/electron ./app --enable-logging --test",
@@ -74,6 +72,7 @@
     "ci-setup-mac-keychain": "grunt setup-mac-keychain --gruntfile=app/build/Gruntfile.js --base=./"
   },
   "dependencies": {
+    "mkdirp": "^0.5.1",
     "appdmg": "^0.5.2",
     "aws-sdk": "^2.336.0",
     "electron-platform": "^1.2.0",
