@@ -82,7 +82,7 @@
     "grunt-contrib-csslint": "0.5.x",
     "grunt-contrib-less": "0.8.x",
     "grunt-lesslint": "0.13.x",
-    "handlebars": "^4.0.10",
+    "handlebars": "^4.1.1",
     "jasmine": "2.x.x",
     "joanna": "0.0.9",
     "license-extractor": "^1.0.4",
