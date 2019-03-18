@@ -18,7 +18,7 @@
     "babel-preset-react": "6.22.0",
     "babel-regenerator-runtime": "6.5.0",
     "babel-runtime": "^5.6.15",
-    "better-sqlite3": "5.4.0",
+    "better-sqlite3": "^5.4.0",
     "browserify-versionify": "^1.0.4",
     "chromium-net-errors": "1.0.3",
     "chrono-node": "^1.1.2",
@@ -51,7 +51,7 @@
     "jingle": "^3.0.0",
     "juice": "^1.4",
     "jxt-xmpp-types": "^3.0.0",
-    "keytar": "^4.1.0",
+    "keytar": "^4.4.1",
     "less-cache": "1.1.0",
     "leveldown": "^4.0.1",
     "lodash.assign": "^3.0.0",
@@ -133,6 +133,9 @@
     "node-mac-notifier": "0.0.13"
   },
   "devDependencies": {
-    "electron-rebuild": "^1.8.2"
+    "electron-rebuild": "^1.8.4"
+  },
+  "resolutions": {
+    "**/nan": "2.11.1"
   }
 }
