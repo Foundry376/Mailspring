@@ -19,10 +19,14 @@ import MailsyncProcess from '../mailsync-process';
 import KeyManager from '../key-manager';
 import Actions from './actions';
 import Utils from './models/utils';
+import AnalyzeDBTask from './tasks/analyze-db-task';
 
 const MAX_CRASH_HISTORY = 10;
 
 const VERBOSE_UNTIL_KEY = 'core.sync.verboseUntil';
+
+const MAX_ANALYZE_INTERVAL = 30 * 24 * 60 * 60 * 1000;
+const ANALYZE_CHECK_INTERVAL = 60 * 60 * 1000;
 
 /*
 This class keeps track of how often Mailsync workers crash. If a mailsync
@@ -119,6 +123,13 @@ export default class MailsyncBridge {
     this._cachedSetObservableRangeTask = {};
     // Store threads that are opened in seperate window
     this._additionalObservableThreads = {};
+    this._analyzeDBTimer = null;
+
+
+    if (AppEnv.isMainWindow()) {
+      Actions.analyzeDB.listen(this.analyzeDataBase, this);
+      this._analyzeDBTimer = setTimeout(this.analyzeDataBase, ANALYZE_CHECK_INTERVAL);
+    }
 
     AccountStore.listen(this.ensureClients, this);
     OnlineStatusStore.listen(this._onOnlineStatusChanged, this);
@@ -201,6 +212,23 @@ export default class MailsyncBridge {
   forceRelaunchClient(account) {
     this._launchClient(account, { force: true });
   }
+
+  analyzeDataBase = () => {
+    if (!AppEnv.isMainWindow()) {
+      return;
+    }
+    const lastAnalyzed = AppEnv.config.get('lastDBAnalyzed') || 0;
+    if (Date.now() - lastAnalyzed >= MAX_ANALYZE_INTERVAL) {
+      const task = new AnalyzeDBTask();
+      const accountIds = Object.keys(this._clients);
+      if (accountIds.length > 0) {
+        this.sendMessageToAccount(accountIds[0], task.toJSON());
+        AppEnv.config.set('lastDBAnalyzed', Date.now());
+      }
+    }
+    this._analyzeDBTimer = setTimeout(this.analyzeDataBase, ANALYZE_CHECK_INTERVAL);
+
+  };
 
   sendSyncMailNow() {
     console.warn('Sending `wake` to all mailsync workers...');
