@@ -1,6 +1,6 @@
 # Mailspring Changelog
 
-### 1.6.0 (TBD)
+### 1.6.0 (3/18/2019)
 
 **Mailspring now uses the TypeScript compiler instead of Babel, and the entire project (92,000 LOC!) has been converted to TypeScript. 🎉** This took an enormous amount of effort - 9,800 TypeScript errors were resolved by hand - but will make the project more stable, easier to maintain, and easier to contribute to in the future.
 
