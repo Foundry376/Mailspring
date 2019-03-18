@@ -4,7 +4,7 @@
 
 **Mailspring now uses the TypeScript compiler instead of Babel, and the entire project (92,000 LOC!) has been converted to TypeScript. 🎉** This took an enormous amount of effort - 9,800 TypeScript errors were resolved by hand - but will make the project more stable, easier to maintain, and easier to contribute to in the future.
 
-* The German translation has been improved (Thanks @ahahn94!)
+* The German translation has been improved (Thanks @ahahn94!) and Japanese is now listed as a fully reviewed language!
 
 * The Linux system tray icon is now larger and brighter when unread, which looks better on most Linux distros. (#1386)
 
@@ -12,9 +12,19 @@
 
 * When clicking the track of a scrollbar, the view is scrolled by one page up or down rather than scrolling to the clicked position.
 
+* When switching between a mailbox and "Drafts" or "Activity" the left sidebar no longer scrolls back to the top.
+
 * Preferences styling has been slightly improved.
 
 * Mailspring now uses Electron 4.0.8 which includes a recent security patch and is recommended for all users.
+
+* Window controls are no longer “squished” in the darkside theme on Linux #1104
+
+* Double-clicking the window toolbar on macOS correctly maximizes / unmaximizes the window. #1388
+
+* When using the Outlook keybindings, Ctrl-F is no longer tied to both "Forward" and "Find in thread". "Find in thread" has been changed to Ctrl-Shift-F for consistency with Outlook.
+
+* Mailspring strips surrounding quotes from displayed contact namess. #1397
 
 ### 1.5.7 (2/25/2019)
 
