@@ -413,6 +413,7 @@ export default class Messages extends PureComponent {
               } else {
                 msgBody.path = msgBody.path || msgBody.localFile;
               }
+              const msgImgPath = msgBody.path;
 
               const color = colorForString(msg.sender);
               let msgFile;
@@ -430,6 +431,7 @@ export default class Messages extends PureComponent {
                 this.update();
               }
               let cursor = 'zoom-in';
+              console.log('dbg*** msgFile: ', msgBody.path);
 
               if (shouldInlineImg(msgBody)) {
                 msgFile = (
@@ -484,6 +486,7 @@ export default class Messages extends PureComponent {
               const isCurrentUser = msg.sender === currentUserId;
               const member = this.getContactInfoByJid(msg.sender);
               const senderName = msg.senderNickname || member.name;
+              console.log('dbg*** Messages.jsx render', msgBody, msgImgPath);
               return (
                 <div
                   key={msg.id}
@@ -501,7 +504,7 @@ export default class Messages extends PureComponent {
                       <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
                     </div>
                     {
-                      (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgBody.path.replace('file://', '')))) ? (
+                      (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgImgPath.replace('file://', '')))) ? (
                         <div className="messageBody loading">
                           {msgBody.downloading && (
                             <div> Downloading...

@@ -95,10 +95,12 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
   } catch (e) {
     return;
   }
+  console.log('downlod receiving msgBody: ', msgBody);
   if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
     // a link
     msgBody.path = msgBody.mediaObjectId;
-  } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE) {
+  // } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE) {
+    } else if (msgBody.type === FILE_TYPE.IMAGE) {
     // file on aws
     let name = msgBody.mediaObjectId;
     name = name.split('/')[1]
@@ -108,20 +110,28 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     if (!fs.existsSync(downpath)) {
       fs.mkdirSync(downpath);
     }
-    path = downpath + name;
-    msgBody.path = 'file://' + path;
+    const thumbPath = downpath + name;
+    msgBody.path = 'file://' + thumbPath;
     msgBody.downloading = true;
-    // console.log('dbg*** downloading file', payload);
-    downloadFile(aes, msgBody.mediaObjectId, path, () => {
-      if (fs.existsSync(path)) {
+    console.log('dbg*** downloading file', payload);
+    downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
+      if (fs.existsSync(thumbPath)) {
+        debugger;
         Actions.updateDownloadPorgress();
+        console.log('downloaded thumb: ', msgBody);
+        debugger;
+        setTimeout(() => {
+          downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
+            if (fs.existsSync(thumbPath)) {
+              debugger;
+              Actions.updateDownloadPorgress();
+              console.log('downloaded image: ', msgBody);
+              debugger;
+            }
+          })
+        }, 300);
       }
-    }, progress => {
-        const percent = Math.ceil(100.0*progress.loaded/+progress.total);
-        chatModel.loadProgressMap[msgBody.path] = percent;
-        // console.log('dbg*** downloading file updateSelectedConversation: ', percent, convJid, msgBody.path);
-        Actions.updateDownloadPorgress();
-      })
+    })
   }
   if (aes) {
     msgBody.aes = aes;

@@ -28,8 +28,9 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
         Key: key
     };
     const request = s3.getObject(params);
-    // console.log('dbg*** s3 downloadFile request:', request);
+    console.log('dbg*** s3 downloadFile request:', request);
     request.on('httpDownloadProgress', function (progress) {
+      console.log('dbg*** httpDownloadProgress: ', request, progress);
         console.log(progress.loaded + " of " + progress.total + " bytes", progress);
         if (progressBack) {
           progressBack(progress);
