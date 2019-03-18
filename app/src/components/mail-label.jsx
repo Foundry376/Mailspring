@@ -32,24 +32,40 @@ export const LabelColorizer = {
   ],
 
   color(label) {
-    const bgColor = LabelColorizer.colors[label.bgColor || 0];
+    let colorIndex = label.bgColor || 0;
+    if(colorIndex >= LabelColorizer.colors.length) {
+      colorIndex = 0;
+    }
+    const bgColor = LabelColorizer.colors[colorIndex || 0];
     var colr = Colr.fromHex(bgColor).darken(30);
     return colr.toHex();
   },
 
   backgroundColor(label) {
-    const bgColor = LabelColorizer.colors[label.bgColor || 0];
+    let colorIndex = label.bgColor || 0;
+    if(colorIndex >= LabelColorizer.colors.length) {
+      colorIndex = 0;
+    }
+    const bgColor = LabelColorizer.colors[colorIndex || 0];
     return bgColor;
   },
 
   backgroundColorDark(label) {
-    const bgColor = LabelColorizer.colors[label.bgColor || 0];
+    let colorIndex = label.bgColor || 0;
+    if(colorIndex >= LabelColorizer.colors.length) {
+      colorIndex = 0;
+    }
+    const bgColor = LabelColorizer.colors[colorIndex || 0];
     var colr = Colr.fromHex(bgColor).darken(30);
     return colr.toHex();
   },
 
   styles(label) {
-    const bgColor = LabelColorizer.colors[label.bgColor || 0];
+    let colorIndex = label.bgColor || 0;
+    if(colorIndex >= LabelColorizer.colors.length) {
+      colorIndex = 0;
+    }
+    const bgColor = LabelColorizer.colors[colorIndex || 0];
     var colr = Colr.fromHex(bgColor).darken(15);
     const styles = {
       color: LabelColorizer.color(label),
