@@ -30,42 +30,39 @@ export const LabelColorizer = {
     '#41ce89',
     '#209c5c',
   ],
+  sanitize(label) {
+    if (label.bgColor && (label.bgColor < 0 || label.bgColor >= LabelColorizer.colors.length)) {
+      console.warn(`Label bgColor incorrect ${label.bgColor}, setting to 0`);
+      label.bgColor = 0;
+    }
+    if (!label.bgColor) {
+      label.bgColor = 0;
+    }
+  },
 
   color(label) {
-    let colorIndex = label.bgColor || 0;
-    if(colorIndex >= LabelColorizer.colors.length) {
-      colorIndex = 0;
-    }
-    const bgColor = LabelColorizer.colors[colorIndex || 0];
+    LabelColorizer.sanitize(label);
+    const bgColor = LabelColorizer.colors[label.bgColor];
     var colr = Colr.fromHex(bgColor).darken(30);
     return colr.toHex();
   },
 
   backgroundColor(label) {
-    let colorIndex = label.bgColor || 0;
-    if(colorIndex >= LabelColorizer.colors.length) {
-      colorIndex = 0;
-    }
-    const bgColor = LabelColorizer.colors[colorIndex || 0];
+    LabelColorizer.sanitize(label);
+    const bgColor = LabelColorizer.colors[label.bgColor];
     return bgColor;
   },
 
   backgroundColorDark(label) {
-    let colorIndex = label.bgColor || 0;
-    if(colorIndex >= LabelColorizer.colors.length) {
-      colorIndex = 0;
-    }
-    const bgColor = LabelColorizer.colors[colorIndex || 0];
+    LabelColorizer.sanitize(label);
+    const bgColor = LabelColorizer.colors[label.bgColor];
     var colr = Colr.fromHex(bgColor).darken(30);
     return colr.toHex();
   },
 
   styles(label) {
-    let colorIndex = label.bgColor || 0;
-    if(colorIndex >= LabelColorizer.colors.length) {
-      colorIndex = 0;
-    }
-    const bgColor = LabelColorizer.colors[colorIndex || 0];
+    LabelColorizer.sanitize(label);
+    const bgColor = LabelColorizer.colors[label.bgColor];
     var colr = Colr.fromHex(bgColor).darken(15);
     const styles = {
       color: LabelColorizer.color(label),
