@@ -219,10 +219,10 @@ export default class MailsyncBridge {
     }
     const lastAnalyzed = AppEnv.config.get('lastDBAnalyzed') || 0;
     if (Date.now() - lastAnalyzed >= MAX_ANALYZE_INTERVAL) {
-      const task = new AnalyzeDBTask();
       const accountIds = Object.keys(this._clients);
       if (accountIds.length > 0) {
-        this.sendMessageToAccount(accountIds[0], task.toJSON());
+        const task = new AnalyzeDBTask({accountId: accountIds[0]});
+        this._onQueueTask(task);
         AppEnv.config.set('lastDBAnalyzed', Date.now());
       }
     }
