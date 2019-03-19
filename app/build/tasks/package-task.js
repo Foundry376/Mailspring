@@ -255,14 +255,16 @@ module.exports = grunt => {
 
     resolveRealSymlinkPaths(grunt.config('appDir'));
 
-    packager(grunt.config.get('packager'), (err, appPaths) => {
+    packager(grunt.config.get('packager')).then(appPaths => {
       clearInterval(ongoing);
-      if (err) {
-        grunt.fail.fatal(err);
-        return done(err);
-      }
       console.log(`---> Done Successfully. Built into: ${appPaths}`);
       return done();
     });
+  }, err => {
+    clearInterval(ongoing);
+    if (err) {
+      grunt.fail.fatal(err);
+      return done(err);
+    }
   });
 };
