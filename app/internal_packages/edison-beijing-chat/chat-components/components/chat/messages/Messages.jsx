@@ -5,7 +5,6 @@ import path from 'path';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import CheckIcon from '../../common/icons/CheckIcon';
-import CancelIcon from '../../common/icons/CancelIcon';
 import Divider from '../../common/Divider';
 import {
   MESSAGE_STATUS_DELIVERED,
@@ -72,11 +71,11 @@ const isImage = (type) => {
 const shouldInlineImg = (msgBody) => {
   let path = msgBody.path;
   return isImage(msgBody.type)
-    && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
+    && ((path && path.match(/^https?:\/\//) ||  fs.existsSync(path && path.replace('file://', ''))));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId
-    && msgBody.path
+    && msgBody.type == FILE_TYPE.OTHER_FILE
     && !isImage(msgBody.type)
 }
 
@@ -302,7 +301,13 @@ export default class Messages extends PureComponent {
       fs.copyFileSync(imgpath, pathForSave);
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
-      downloadFile(msgBody.aes, msgBody.mediaObjectId, pathForSave);
+      const downloadCallback = () => {
+
+      }
+      const downloadProgressCallback = progress => {
+
+      }
+      downloadFile(msgBody.aes, msgBody.mediaObjectId, pathForSave, downloadCallback, downloadProgressCallback);
     } else {
       let request;
       if (msgBody.mediaObjectId.match(/^https/)) {
@@ -393,7 +398,7 @@ export default class Messages extends PureComponent {
         onScroll={this.calcTimeLabel}
         tabIndex="0"
       >
-
+        <ProgressBar filename={'download-file.mp4'} onCancel={this.onCancelDownload} percent={0} visible={true}/>
         <SecurePrivate />
         {jid !== NEW_CONVERSATION && groupedMessages.map((group, index) => (
           <div className="message-group" key={index}>
@@ -432,6 +437,7 @@ export default class Messages extends PureComponent {
               }
               let cursor = 'zoom-in';
               console.log('dbg*** msgFile: ', msgBody.path);
+              debugger;
 
               if (shouldInlineImg(msgBody)) {
                 msgFile = (
@@ -446,7 +452,7 @@ export default class Messages extends PureComponent {
                 )
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
-                let extName = path.extname(msgBody.path).slice(1);
+                let extName = path.extname(msgBody.path||'x.doc').slice(1);
                 extName = extMap[extName.toLowerCase()] || 'doc';
                 msgFile = (
                   <div className="message-file">
@@ -487,6 +493,7 @@ export default class Messages extends PureComponent {
               const member = this.getContactInfoByJid(msg.sender);
               const senderName = msg.senderNickname || member.name;
               console.log('dbg*** Messages.jsx render', msgBody, msgImgPath);
+              debugger;
               return (
                 <div
                   key={msg.id}
@@ -508,7 +515,10 @@ export default class Messages extends PureComponent {
                         <div className="messageBody loading">
                           {msgBody.downloading && (
                             <div> Downloading...
-                              <ProgressBar percent={percent}/>
+                              <RetinaImg
+                                name="inline-loading-spinner.gif"
+                                mode={RetinaImg.Mode.ContentPreserve}
+                              />
                             </div>
                             )}
                           {msgBody.isUploading && (

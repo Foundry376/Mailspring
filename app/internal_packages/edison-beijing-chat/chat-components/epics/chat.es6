@@ -99,8 +99,8 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
   if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
     // a link
     msgBody.path = msgBody.mediaObjectId;
-  // } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE) {
-    } else if (msgBody.type === FILE_TYPE.IMAGE) {
+    // } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE) {
+  } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
     // file on aws
     let name = msgBody.mediaObjectId;
     name = name.split('/')[1]
@@ -116,22 +116,16 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     console.log('dbg*** downloading file', payload);
     downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
       if (fs.existsSync(thumbPath)) {
-        debugger;
         Actions.updateDownloadPorgress();
         console.log('downloaded thumb: ', msgBody);
-        debugger;
-        setTimeout(() => {
-          downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
-            if (fs.existsSync(thumbPath)) {
-              debugger;
-              Actions.updateDownloadPorgress();
-              console.log('downloaded image: ', msgBody);
-              debugger;
-            }
-          })
-        }, 300);
+        downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
+          if (fs.existsSync(thumbPath)) {
+            Actions.updateDownloadPorgress();
+            console.log('downloaded image: ', msgBody);
+          }
+        });
       }
-    })
+    });
   }
   if (aes) {
     msgBody.aes = aes;
