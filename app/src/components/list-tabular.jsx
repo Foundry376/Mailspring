@@ -385,10 +385,10 @@ class ListTabular extends Component {
     } else {
       Toolbar = ComponentRegistry.findComponentsMatching({ role: 'ThreadListToolbar' })[0];
     }
-
+    console.log(`toolbar present: ${!!Toolbar}`);
     return (
       <div className={`list-container list-tabular ${className}`}>
-        <Toolbar />
+        {Toolbar ? <Toolbar /> : null}
         <ScrollRegion
           ref={cm => {
             this._scrollRegion = cm;
