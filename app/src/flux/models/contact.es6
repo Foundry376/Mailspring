@@ -279,13 +279,17 @@ export default class Contact extends Model {
     }),
 
     email: Attributes.String({
-      queryable: true,
       modelKey: 'email',
+      jsonKey: 'email',
+      queryable: true,
+      loadFromColumn: true
     }),
 
     refs: Attributes.Number({
-      queryable: true,
       modelKey: 'refs',
+      jsonKey: 'refs',
+      queryable: true,
+      loadFromColumn: true
     }),
 
     // Contains the raw thirdPartyData (keyed by the vendor name) about
