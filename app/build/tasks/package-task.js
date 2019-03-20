@@ -135,9 +135,9 @@ module.exports = grunt => {
         linux: undefined,
       }[platform],
       name: {
-        darwin: 'EdisonMail',
-        win32: 'EdisonMail',
-        linux: 'EdisonMail',
+        darwin: 'Edison Mail',
+        win32: 'Edison Mail',
+        linux: 'Edison Mail',
       }[platform],
       appCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Edison Software Inc. All rights reserved.`,
       derefSymlinks: false,
@@ -212,9 +212,9 @@ module.exports = grunt => {
       osxSign: !!process.env.SIGN_BUILD,
       win32metadata: {
         CompanyName: 'Edison Software Inc',
-        FileDescription: 'EdisonMail',
+        FileDescription: 'Edison Mail',
         LegalCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Edison Software Inc. All rights reserved.`,
-        ProductName: 'EdisonMail',
+        ProductName: 'Edison Mail',
       },
       // NOTE: The following plist keys can NOT be set in the
       // extra.plist since they are manually overridden by

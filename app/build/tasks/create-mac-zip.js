@@ -15,12 +15,12 @@ module.exports = grunt => {
     }
 
     const orig = process.cwd();
-    process.chdir(path.join(grunt.config('outputDir'), 'EdisonMail-darwin-x64'));
+    process.chdir(path.join(grunt.config('outputDir'), 'Edison Mail-darwin-x64'));
 
     spawn(
       {
         cmd: 'zip',
-        args: ['-9', '-y', '-r', '-9', '-X', zipPath, 'EdisonMail.app'],
+        args: ['-9', '-y', '-r', '-9', '-X', zipPath, 'Edison Mail.app'],
       },
       error => {
         process.chdir(orig);

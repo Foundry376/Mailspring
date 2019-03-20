@@ -61,6 +61,7 @@
     "underscore": "1.8.x"
   },
   "scripts": {
+    "postinstall": "node scripts/postinstall.js",
     "start": "node_modules/.bin/electron ./app --enable-logging --dev",
     "lint": "grunt lint --gruntfile=app/build/Gruntfile.js --base=./",
     "test": "node_modules/.bin/electron ./app --enable-logging --test",
