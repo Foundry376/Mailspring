@@ -270,9 +270,12 @@ export default class Contact extends Model {
       modelKey: 'id',
       loadFromColumn: true
     }),
-
+    // load name column into json
     name: Attributes.String({
       modelKey: 'name',
+      jsonKey: 'name',
+      queryable: true,
+      loadFromColumn: true
     }),
 
     email: Attributes.String({
