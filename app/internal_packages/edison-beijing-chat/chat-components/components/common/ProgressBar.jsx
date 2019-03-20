@@ -2,20 +2,29 @@ import React, { PureComponent } from 'react';
 import CancelIcon from './icons/CancelIcon';
 
 export default function ProgressBar(props) {
-  const { percent, filename, onCancel, visible } = props;
+  const { progress, onCancel } = props;
+  const { savedFiles, downQueue, percent, filename, visible } = progress;
+  console.log('dbg*** ProgressBar progress: ', progress);
   return (visible ?
       (<div className='progress-banner'>
-        <div className={'progress-prompt'}>
+        <div>
+          {savedFiles && savedFiles.map((name, index) => <p key={index}> {name} was saved to your computer</p>)
+          }
+        </div>
+        {(downQueue && downQueue.length)? <div className={'progress-prompt'}>
           <span>Downloading:&nbsp;</span>
           <span>{filename}</span>
-        </div>
-        <div className='msg-progress-bar-wrap'>
-          <div className="progress"  style={{backGroundColor: '#63a2ff',
-            width: `${100-Math.min(percent, 100)}%`,
+        </div>: null}
+        {(downQueue && downQueue.length)? <div className='msg-progress-bar-wrap'>
+          <div className='progress-background'/>
+          <div className='progress-foreground' style={{
+            backGroundColor: '#1b08ff',
+            width: `${Math.min(percent, 100)}%`,
           }}/>
-        </div>
+        </div>:null
+        }
         <div className='progressButtons' onClick={onCancel}>
-          <div className='textButton'>cancel</div>
+          {(downQueue && downQueue.length)? <div className='textButton'>cancel</div>:null}
           <CancelIcon color={'gray'}></CancelIcon>
         </div>
       </div>) : null

@@ -329,7 +329,9 @@
     position:absolute;
     top: 60px;
     left:300px;
-    height: 40px;
+    padding: 5px 5px 10px 10px;
+    height: auto;
+    min-height: 40px;
     width:500px;
     font-color: white;
     color:white;
@@ -344,10 +346,19 @@
       height: 5px;
       width: 400px;
       margin-left:5px;
-      .progress {
+      .progress-background {
         position: absolute;
         top:0;
-        right:0;
+        left:0;
+        height: 5px;
+        width:100%;
+        background-color: lightgray;
+        z-index:100;
+      }
+      .progress-foreground {
+        position: absolute;
+        top:0;
+        left:0;
         height: 5px;
         background-color: white;
         z-index:100;
