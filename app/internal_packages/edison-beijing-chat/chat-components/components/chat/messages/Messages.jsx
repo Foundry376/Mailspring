@@ -213,7 +213,6 @@ export default class Messages extends PureComponent {
   }
 
   onUpdataDownloadProgress = () => {
-    // console.log('dbg*** onUpdataDownloadProgress');
     key++
     const state = Object.assign({}, this.state, { key });
     this.setState(state);
@@ -333,7 +332,6 @@ export default class Messages extends PureComponent {
   }
 
   downloadMessageFile = (downConfig) => {
-    console.log('dbg*** downloadMessageFile: ', downConfig);
     this.downConfig = downConfig;
     const {msgBody, pathForSave} = downConfig;
     const filename = path.basename(pathForSave);
@@ -347,7 +345,6 @@ export default class Messages extends PureComponent {
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
       const downloadCallback = () => {
-        console.log('dbg*** downloadCallback: ', this.downQueue);
         let downConfig = this.downQueue.shift();
         this.savedFiles.push(path.basename(downConfig.pathForSave));
         if (!this.downQueue.length) {
@@ -358,7 +355,6 @@ export default class Messages extends PureComponent {
             savedFiles: this.savedFiles,
             downQueue: []
           };
-          console.log('dbg*** after downloadCallback progress: ', progress);
           const state = Object.assign({}, this.state, {progress});
           this.setState(state);
         } else {
@@ -376,14 +372,12 @@ export default class Messages extends PureComponent {
       }
       const downloadProgressCallback = progress => {
         const {loaded, total} = progress;
-        console.log('dbg*** downloadProgressCallback: ', loaded, total);
         const percent = Math.floor(+loaded*100.0/(+total));
         progress = Object.assign({}, this.state.progress, { percent });
         const state = Object.assign({}, this.state, {progress});
         this.setState(state);
       }
       this.downConfig.request = downloadFile(msgBody.aes, msgBody.mediaObjectId, pathForSave, downloadCallback, downloadProgressCallback);
-      console.log('dbg*** this.downConfig.request', this.downConfig.request);
     } else {
       // the file is a link to the web outside aws
       let request;

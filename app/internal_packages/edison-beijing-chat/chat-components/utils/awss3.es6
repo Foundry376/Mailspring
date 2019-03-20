@@ -48,7 +48,6 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
       });
     } else {
       request = s3.getObject(params);
-      console.log('dbg*** s3 downloadFile request:', request);
       request.on('httpDownloadProgress', function (progress) {
         if (progressBack) {
           progressBack(progress);
@@ -113,7 +112,6 @@ export const uploadFile = (oid, aes, file, callback) => {
 
         var uploadParams = { Bucket: myBucket, Key: myKey, Body: fileStream };//,ACL: 'public-read'};
         const request = s3.putObject(uploadParams);
-        // console.log('dbg*** upload request: ', request);
         request.on('httpUploadProgress', function (progress) {
           console.log(progress.loaded + " of " + progress.total + " bytes");
           if (callback && +progress.loaded == +progress.total) {

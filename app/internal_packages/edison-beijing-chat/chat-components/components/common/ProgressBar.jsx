@@ -4,7 +4,6 @@ import CancelIcon from './icons/CancelIcon';
 export default function ProgressBar(props) {
   const { progress, onCancel } = props;
   const { savedFiles, downQueue, percent, filename, visible } = progress;
-  console.log('dbg*** ProgressBar progress: ', progress);
   return (visible ?
       (<div className='progress-banner'>
         <div>

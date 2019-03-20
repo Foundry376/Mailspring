@@ -113,7 +113,6 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     const thumbPath = downpath + name;
     msgBody.path = 'file://' + thumbPath;
     msgBody.downloading = true;
-    console.log('dbg*** downloading file', payload);
     downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
       if (fs.existsSync(thumbPath)) {
         Actions.updateDownloadPorgress();
@@ -549,7 +548,6 @@ const asyncUpdateGroupMessageConversationEpic = async ({payload}, getState) => {
     } else {
       console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
       let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
-      console.log('dbg*** asyncUpdateGroupMessageConversationEpic xmpp.getRoomList roomsInfo: ', roomsInfo);
       roomsInfo = roomsInfo || {
         curJid: payload.curJid,
         discoItems: {items:[]},
