@@ -11,7 +11,7 @@ import {
   getStatusWeight, MESSAGE_STATUS_UPLOAD_FAILED,
 } from '../../../db/schemas/message';
 import { colorForString } from '../../../utils/colors';
-import { buildTimeDescriptor, dateFormat } from '../../../utils/time';
+import { buildTimeDescriptor, dateFormat, dateFormatDigit } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
 import { downloadFile } from '../../../utils/awss3';
 import ProgressBar from '../../common/ProgressBar';
@@ -475,9 +475,12 @@ export default class Messages extends PureComponent {
           <div className="message-group" key={index}>
             <div className="day-label">
               <label>
-                <span>{dateFormat(group.time)}</span>
                 <Divider type="horizontal" />
               </label>
+              <div className="day-label-text">
+                <span className='span1'>{dateFormat(group.time)}</span>
+                <span className='span2'>{dateFormatDigit(group.time)}</span>
+              </div>
             </div>
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
