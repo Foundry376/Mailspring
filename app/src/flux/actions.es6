@@ -72,6 +72,8 @@ class Actions {
   */
   static downloadStateChanged = ActionScopeGlobal;
 
+  static analyzeDB = ActionScopeMainWindow;
+
   /*
   Public: Queue a {Task} object to the {TaskQueue}.
 

@@ -113,7 +113,8 @@ class DraftChangeSet extends EventEmitter {
 function hotwireDraftBodyState(draft) {
   // Populate the bodyEditorState and override the draft properties
   // so that they're kept in sync with minimal recomputation
-  let _bodyHTMLCache = draft.body;
+  // DC-107 work around when draft doesn't have body
+  let _bodyHTMLCache = draft.body || '';
   let _bodyEditorState = null;
 
   draft.__bodyPropDescriptor = {

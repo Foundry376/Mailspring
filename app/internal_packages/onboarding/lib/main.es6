@@ -18,11 +18,11 @@ export function activate() {
       if (!available) {
         return;
       }
-      startService.doesLaunchOnSystemStart().then(launchesOnStart => {
-        if (!launchesOnStart) {
-          startService.configureToLaunchOnSystemStart();
-        }
-      });
+      // startService.doesLaunchOnSystemStart().then(launchesOnStart => {
+      //   if (!launchesOnStart) {
+      //     startService.configureToLaunchOnSystemStart();
+      //   }
+      // });
     });
   }
 }
