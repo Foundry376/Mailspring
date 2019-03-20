@@ -54,24 +54,6 @@
     }
   }
 
-  .progress-bar-wrap {
-    height: 10px;
-    width: 100px;
-    border: solid 1px blue;
-    .progress-background {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-    }
-    .progress-foreground {
-      height: 100%;
-      background-color: blue;
-    }
-  }
-
-
-
-
   .upload-error {
     color: @red;
     img.content-mask {
@@ -108,6 +90,23 @@
           color: @timeColor;
         }
       }
+      .day-label-text {
+        display:block;
+        positin:relative;
+        top:-40px;
+        width:100px;
+        height:12px;
+        line-height: 12px;
+        margin:-10px auto 0;
+        font-size: 8px;
+        background-color: #f0f0f0;
+        border-radius: 20px;
+        .span1 {
+          display:inline-block;
+          padding-right:5px;
+          font-weight: bold;
+        }
+      }
     }
   }
   .message-group.time-label-fix {
@@ -134,7 +133,7 @@
   .message.currentUser,
   .message.otherUser {
     align-self: flex-start;
-    padding: 0 15px 30px 20px;
+    padding: 0 0px 30px 0;
     color: @text-color;
     position: relative;
     display: flex;
@@ -342,4 +341,57 @@
       color: #000;
     }
   }
+
+  .progress-banner {
+    position:absolute;
+    top: 60px;
+    left:300px;
+    padding: 5px 5px 10px 10px;
+    height: auto;
+    min-height: 40px;
+    width:500px;
+    font-color: white;
+    color:white;
+    background-color: #63a2ff;
+    border-radius: 12px;
+    z-index:400;
+    .progress-prompt {
+      margin-left:5px;
+    }
+    .msg-progress-bar-wrap {
+      position:relative;
+      height: 5px;
+      width: 400px;
+      margin-left:5px;
+      .progress-background {
+        position: absolute;
+        top:0;
+        left:0;
+        height: 5px;
+        width:100%;
+        background-color: lightgray;
+        z-index:100;
+      }
+      .progress-foreground {
+        position: absolute;
+        top:0;
+        left:0;
+        height: 5px;
+        background-color: white;
+        z-index:100;
+      }
+    }
+    .progressButtons {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-color: white;
+      .textButton {
+        display: inline-block;
+        position: relative;
+        top:-5px;
+      }
+    }
+  }
+
 }

@@ -69,7 +69,22 @@ export const dateFormat = (timestamp, format) => {
   if (format) {
     return moment(timestamp).format(format);
   }
-  return moment(timestamp).calendar(currentTime, DAY_LABEL_FORMATS);
+  const str =  moment(timestamp).calendar(currentTime, DAY_LABEL_FORMATS);
+  console.log('dbg*** dateFormat str: ', currentTime, str);
+  return str;
+
+}
+export const dateFormatDigit = (timestamp, format) => {
+  const currentTime = new Date().getTime();
+  if (typeof timestamp === 'string') {
+    timestamp = parseInt(timestamp);
+  }
+  if (format) {
+    return moment(timestamp).format(format);
+  }
+  const str = moment(timestamp).format('MMM d');
+  console.log('dbg*** dateFormatDigit str: ', currentTime, str);
+  return str;
 }
 
 export default {

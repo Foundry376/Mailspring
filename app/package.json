@@ -68,6 +68,7 @@
     "mousetrap": "^1.5.3",
     "node-emoji": "^1.2.1",
     "node-rsa": "^1.0.1",
+    "node-thumbnail": "^0.15.0",
     "optimist": "0.4.0",
     "pick-react-known-prop": "0.x.x",
     "plist": "^3.0.1",

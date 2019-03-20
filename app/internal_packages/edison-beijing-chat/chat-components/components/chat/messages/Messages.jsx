@@ -5,14 +5,13 @@ import path from 'path';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import CheckIcon from '../../common/icons/CheckIcon';
-import CancelIcon from '../../common/icons/CancelIcon';
 import Divider from '../../common/Divider';
 import {
   MESSAGE_STATUS_DELIVERED,
   getStatusWeight, MESSAGE_STATUS_UPLOAD_FAILED,
 } from '../../../db/schemas/message';
 import { colorForString } from '../../../utils/colors';
-import { buildTimeDescriptor, dateFormat } from '../../../utils/time';
+import { buildTimeDescriptor, dateFormat, dateFormatDigit } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
 import { downloadFile } from '../../../utils/awss3';
 import ProgressBar from '../../common/ProgressBar';
@@ -72,11 +71,11 @@ const isImage = (type) => {
 const shouldInlineImg = (msgBody) => {
   let path = msgBody.path;
   return isImage(msgBody.type)
-    && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
+    && ((path && path.match(/^https?:\/\//) ||  fs.existsSync(path && path.replace('file://', ''))));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId
-    && msgBody.path
+    && msgBody.type == FILE_TYPE.OTHER_FILE
     && !isImage(msgBody.type)
 }
 
@@ -124,8 +123,14 @@ export default class Messages extends PureComponent {
     selectedConversation: { isGroup: false },
   };
 
-  static state = {
+  state = {
     shouldScrollBottom: true,
+    progress: {
+      savedFiles: [],
+      downQueue: [],
+      visible: false,
+      percent: 0,
+    },
   }
 
   static timer;
@@ -208,7 +213,6 @@ export default class Messages extends PureComponent {
   }
 
   onUpdataDownloadProgress = () => {
-    // console.log('dbg*** onUpdataDownloadProgress');
     key++
     const state = Object.assign({}, this.state, { key });
     this.setState(state);
@@ -288,22 +292,92 @@ export default class Messages extends PureComponent {
       }
     }, 10);
   }
+  downQueue = [];
+  savedFiles = [];
+  downConfig = null;
 
   download = (msgBody) => {
     event.stopPropagation();
     event.preventDefault();
+    this.savedFiles = [];
     const fileName = msgBody.path ? path.basename(msgBody.path) : '';
     let pathForSave = dialog.showSaveDialog({ title: `download file`, defaultPath: fileName });
     if (!pathForSave || typeof pathForSave !== 'string') {
       return;
     }
-    if (msgBody.path.match(/^file:\/\//)) {
+    const downConfig = {
+      msgBody,
+      pathForSave,
+    }
+    if (this.downQueue.length) {
+      this.downQueue.push(downConfig)
+    } else {
+      this.downQueue = [downConfig];
+      this.downloadMessageFile(downConfig);
+    }
+  };
+
+  cancelDownloadMessageFile  = () => {
+    if (this.downConfig && this.downConfig.request && this.downConfig.request.abort) {
+      this.downConfig.request.abort();
+    }
+    this.downConfig = null;
+    this.downQueue = [];
+    const progress = {visible:false, downQueue: this.downQueue};
+    const state = Object.assign({}, this.state, {progress});
+    this.setState(state);
+  }
+
+  downloadMessageFile = (downConfig) => {
+    this.downConfig = downConfig;
+    const {msgBody, pathForSave} = downConfig;
+    const filename = path.basename(pathForSave);
+    const progress = Object.assign({}, this.state.progress, {filename, percent:0, downQueue:this.downQueue, visible:true});
+    const state = Object.assign({}, this.state, {progress});
+    this.setState(state);
+    const downloadCallback = () => {
+      let downConfig = this.downQueue.shift();
+      this.savedFiles.push(path.basename(downConfig.pathForSave));
+      if (!this.downQueue.length) {
+        this.downConfig = null;
+        const progress = {
+          percent: 100,
+          visible: true,
+          savedFiles: this.savedFiles,
+          downQueue: []
+        };
+        const state = Object.assign({}, this.state, { progress });
+        this.setState(state);
+      } else {
+        const progress = {
+          percent: 100,
+          visible: true,
+          savedFiles: this.savedFiles,
+          downQueue: this.downQueue
+        };
+        const state = Object.assign({}, this.state, { progress });
+        this.setState(state);
+        downConfig = this.downQueue[0];
+        this.downloadMessageFile(downConfig);
+      }
+    }
+    if (msgBody.path && msgBody.path.match(/^file:\/\//)) {
+      // the file is an image and it has been downloaded to local while the message was received
       let imgpath = msgBody.path.replace('file://', '');
       fs.copyFileSync(imgpath, pathForSave);
+      downloadCallback();
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
-      downloadFile(msgBody.aes, msgBody.mediaObjectId, pathForSave);
+      const downloadProgressCallback = progress => {
+        const {loaded, total} = progress;
+        const percent = Math.floor(+loaded*100.0/(+total));
+        progress = Object.assign({}, this.state.progress, { percent });
+        const state = Object.assign({}, this.state, {progress});
+        this.setState(state);
+      }
+      this.downConfig.request = downloadFile(msgBody.aes, msgBody.mediaObjectId, pathForSave, downloadCallback, downloadProgressCallback);
     } else {
+      // the file is a link to the web outside aws
       let request;
       if (msgBody.mediaObjectId.match(/^https/)) {
         request = https;
@@ -322,6 +396,7 @@ export default class Messages extends PureComponent {
               console.log('down fail');
             }
             console.log('down success');
+            downloadCallback();
           });
         });
       });
@@ -393,15 +468,18 @@ export default class Messages extends PureComponent {
         onScroll={this.calcTimeLabel}
         tabIndex="0"
       >
-
+        <ProgressBar progress={this.state.progress} onCancel={this.cancelDownloadMessageFile}/>
         <SecurePrivate />
         {jid !== NEW_CONVERSATION && groupedMessages.map((group, index) => (
           <div className="message-group" key={index}>
             <div className="day-label">
               <label>
-                <span>{dateFormat(group.time)}</span>
                 <Divider type="horizontal" />
               </label>
+              <div className="day-label-text">
+                <span className='span1'>{dateFormat(group.time)}</span>
+                <span className='span2'>{dateFormatDigit(group.time)}</span>
+              </div>
             </div>
             {group.messages.map((msg, idx) => {
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
@@ -413,6 +491,7 @@ export default class Messages extends PureComponent {
               } else {
                 msgBody.path = msgBody.path || msgBody.localFile;
               }
+              const msgImgPath = msgBody.path;
 
               const color = colorForString(msg.sender);
               let msgFile;
@@ -444,7 +523,7 @@ export default class Messages extends PureComponent {
                 )
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
-                let extName = path.extname(msgBody.path).slice(1);
+                let extName = path.extname(msgBody.path||'x.doc').slice(1);
                 extName = extMap[extName.toLowerCase()] || 'doc';
                 msgFile = (
                   <div className="message-file">
@@ -465,7 +544,6 @@ export default class Messages extends PureComponent {
               } else {
                 msgFile = null;
               }
-              // console.log('dbg*** render message: ', jid, msgBody.path, chatModel.loadProgressMap[msgBody.path]);
               let percent = chatModel.loadProgressMap[msgBody.path] || 0;
               let border = null;
               const isUnreadUpdatedMessage = (msg) => {
@@ -501,11 +579,14 @@ export default class Messages extends PureComponent {
                       <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
                     </div>
                     {
-                      (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgBody.path.replace('file://', '')))) ? (
+                      (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgImgPath.replace('file://', '')))) ? (
                         <div className="messageBody loading">
                           {msgBody.downloading && (
                             <div> Downloading...
-                              <ProgressBar percent={percent}/>
+                              <RetinaImg
+                                name="inline-loading-spinner.gif"
+                                mode={RetinaImg.Mode.ContentPreserve}
+                              />
                             </div>
                             )}
                           {msgBody.isUploading && (

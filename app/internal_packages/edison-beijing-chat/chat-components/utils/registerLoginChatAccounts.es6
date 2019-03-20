@@ -35,8 +35,6 @@ export default async function registerLoginChatAccounts() {
       if (email.includes('gmail.com') || email.includes('edison.tech') || email.includes('mail.ru') || acc.provider === 'gmail') {
         type = 1;
       }
-      // debugger;
-      //register = (email, pwd, name, type, provider, setting, cb) => {
       let { err, res } = await register(acc.emailAddress, acc.settings.imap_password || acc.settings.refresh_token, acc.name, type, acc.provider, acc.settings);
       try {
         res = JSON.parse(res);

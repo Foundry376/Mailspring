@@ -22,6 +22,7 @@ import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
+var thumb = require('node-thumbnail').thumb;
 const FAKE_SPACE = '\u00A0';
 
 const activeStyle = {
@@ -213,7 +214,6 @@ export default class MessagesSendBar extends PureComponent {
           body.emailSubject = file.subject;
           body.emailMessageId = file.messageId;
         }
-        // debugger;
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
         let once = false;
         uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
@@ -221,36 +221,55 @@ export default class MessagesSendBar extends PureComponent {
             return;
           }
           once = true;
+          const sendUploadMessage = thumbKey => {
+            body.localFile = filepath;
+            body.isUploading = false;
+            body.content = message || " ";
+            body.mediaObjectId = myKey;
+            if (thumbKey){
+              body.thumbObjectId = thumbKey;
+            }
+            body.occupants = occupants;
+            body.atJids = this.getAtTargetPersons();
+            body = JSON.stringify(body);
+            if (err) {
+              console.error(`${selectedConversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
+              const message = {
+                id: messageId,
+                conversationJid: selectedConversation.jid,
+                body,
+                sender: selectedConversation.curJid,
+                sentTime: (new Date()).getTime() + chatModel.diffTime,
+                status: MESSAGE_STATUS_UPLOAD_FAILED,
+              };
+              chatModel.store.dispatch(beginStoringMessage(message));
+              chatModel.store.dispatch(updateSelectedConversation(selectedConversation));
+              return;
+            } else {
+              onMessageSubmitted(selectedConversation, body, messageId, false);
+            }
+          }
           if (filename.match(/.gif$/)) {
             body.type = FILE_TYPE.GIF;
+            sendUploadMessage(myKey, null);
           } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
             body.type = FILE_TYPE.IMAGE;
+            thumb({
+              source: filepath,
+              destination: path.dirname(filepath),
+              width: 200,
+              concurrency: 4
+            }, function(files, err, stdout, stderr) {
+              let thumbPath = path.join(path.dirname(filepath), path.basename(filepath).replace(/\.\w*$/, '_thumb')+path.extname(filepath));
+              const thumbExist = fs.existsSync(thumbPath);
+              uploadFile(jidLocal, null, thumbPath, (err, filename, thumbKey, size) => {
+                sendUploadMessage(myKey, thumbKey);
+                fs.unlinkSync(thumbPath);
+              });
+            });
           } else {
             body.type = FILE_TYPE.OTHER_FILE;
-          }
-
-          body.localFile = filepath;
-          body.isUploading = false;
-          body.content = message || " ";
-          body.mediaObjectId = myKey;
-          body.occupants = occupants;
-          body.atJids = this.getAtTargetPersons();
-          body = JSON.stringify(body);
-          if (err) {
-            console.error(`${selectedConversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
-            const message = {
-              id: messageId,
-              conversationJid: selectedConversation.jid,
-              body,
-              sender: selectedConversation.curJid,
-              sentTime: (new Date()).getTime() + chatModel.diffTime,
-              status: MESSAGE_STATUS_UPLOAD_FAILED,
-            };
-            chatModel.store.dispatch(beginStoringMessage(message));
-            chatModel.store.dispatch(updateSelectedConversation(selectedConversation));
-            return;
-          } else {
-            onMessageSubmitted(selectedConversation, body, messageId, false);
+            sendUploadMessage(myKey, null);
           }
         });
       })
