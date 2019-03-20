@@ -228,7 +228,7 @@ export default class MessagesSendBar extends PureComponent {
             body.content = message || " ";
             body.mediaObjectId = myKey;
             if (thumbKey){
-              body.thumbnailObjectId = thumbKey;
+              body.thumbObjectId = thumbKey;
             }
             body.occupants = occupants;
             body.atJids = this.getAtTargetPersons();
