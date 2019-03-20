@@ -338,38 +338,39 @@ export default class Messages extends PureComponent {
     const progress = Object.assign({}, this.state.progress, {filename, percent:0, downQueue:this.downQueue, visible:true});
     const state = Object.assign({}, this.state, {progress});
     this.setState(state);
+    const downloadCallback = () => {
+      let downConfig = this.downQueue.shift();
+      this.savedFiles.push(path.basename(downConfig.pathForSave));
+      if (!this.downQueue.length) {
+        this.downConfig = null;
+        const progress = {
+          percent: 100,
+          visible: true,
+          savedFiles: this.savedFiles,
+          downQueue: []
+        };
+        const state = Object.assign({}, this.state, { progress });
+        this.setState(state);
+      } else {
+        const progress = {
+          percent: 100,
+          visible: true,
+          savedFiles: this.savedFiles,
+          downQueue: this.downQueue
+        };
+        const state = Object.assign({}, this.state, { progress });
+        this.setState(state);
+        downConfig = this.downQueue[0];
+        this.downloadMessageFile(downConfig);
+      }
+    }
     if (msgBody.path && msgBody.path.match(/^file:\/\//)) {
       // the file is an image and it has been downloaded to local while the message was received
       let imgpath = msgBody.path.replace('file://', '');
       fs.copyFileSync(imgpath, pathForSave);
+      downloadCallback();
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
-      const downloadCallback = () => {
-        let downConfig = this.downQueue.shift();
-        this.savedFiles.push(path.basename(downConfig.pathForSave));
-        if (!this.downQueue.length) {
-          this.downConfig = null;
-          const progress = {
-            percent: 100,
-            visible: true,
-            savedFiles: this.savedFiles,
-            downQueue: []
-          };
-          const state = Object.assign({}, this.state, {progress});
-          this.setState(state);
-        } else {
-          const progress = {
-            percent: 100,
-            visible: true,
-            savedFiles: this.savedFiles,
-            downQueue: this.downQueue
-          };
-          const state = Object.assign({}, this.state, {progress});
-          this.setState(state);
-          downConfig = this.downQueue[0];
-          this.downloadMessageFile(downConfig);
-        }
-      }
       const downloadProgressCallback = progress => {
         const {loaded, total} = progress;
         const percent = Math.floor(+loaded*100.0/(+total));
@@ -398,6 +399,7 @@ export default class Messages extends PureComponent {
               console.log('down fail');
             }
             console.log('down success');
+            downloadCallback();
           });
         });
       });
