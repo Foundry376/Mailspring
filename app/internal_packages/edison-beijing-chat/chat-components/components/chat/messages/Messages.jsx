@@ -321,9 +321,6 @@ export default class Messages extends PureComponent {
     if (this.downConfig && this.downConfig.request && this.downConfig.request.abort) {
       this.downConfig.request.abort();
     }
-    if (this.downConfig && fs.existsSync(this.downConfig.pathForsave)){
-      fs.removeSync(this.downConfig.pathForsave);
-    }
     this.downConfig = null;
     this.downQueue = [];
     const progress = {visible:false, downQueue: this.downQueue};
