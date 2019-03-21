@@ -344,6 +344,7 @@ const DateUtils = {
     const now = moment();
     const diff = now.diff(datetime, 'days', true);
     const isSameDay = now.isSame(datetime, 'days');
+    const isSameYear = now.isSame(datetime, 'years');
     let format = null;
 
     if (diff <= 1 && isSameDay) {
@@ -352,7 +353,7 @@ const DateUtils = {
     } else if (diff < 2 && !isSameDay) {
       // Month and day with time if up to 2 days ago
       format = `MMM D, ${DateUtils.getTimeFormat(null)}`;
-    } else if (diff >= 2 && diff < 365) {
+    } else if (isSameYear) {
       // Month and day up to 1 year old
       format = 'MMM D';
     } else {
