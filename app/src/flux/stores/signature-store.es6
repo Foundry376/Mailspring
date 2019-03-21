@@ -27,7 +27,8 @@ class SignatureStore extends MailspringStore {
         },
       };
       AccountStore.accounts().forEach(a => {
-        this.defaultSignatures[a.emailAddress] = 'initial';
+        // this.defaultSignatures[a.emailAddress] = 'initial';
+        this.defaultSignatures[a.emailAddress] = null;
       });
     }
 
