@@ -1,5 +1,6 @@
 window.onload = function () {
     setTimeout(injectedAction, 2000);
+    document.body.style.overflow = 'hidden';
 }
 
 function injectedAction() {

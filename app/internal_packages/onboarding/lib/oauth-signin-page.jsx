@@ -227,6 +227,23 @@ export default class OAuthSignInPage extends React.Component {
 
   render() {
     const { authStage, loading } = this.state;
+    const defaultOptions = {
+      height: '100%',
+      width: '100%',
+      position: 'fixed',
+      top: 75,
+      bottom: 0,
+      zIndex: 2
+    };
+    const yahooOptions = {
+      position: 'fixed',
+      width: '100%',
+      height: '100%',
+      top: 0,
+      left: 0,
+      zIndex: 2,
+    }
+    const isYahoo = /yahoo/g.test(this.props.providerAuthPageUrl);
     return (
       <div className={`page account-setup oauth ${this.props.serviceName.toLowerCase()}`}>
         {authStage === 'buildingAccount' || authStage === 'accountSuccess' ? (
@@ -239,14 +256,9 @@ export default class OAuthSignInPage extends React.Component {
               style={{ margin: '0 auto' }} />
           </div>
         ) : (
-            <webview ref='webview' src={this.state.url} partition="in-memory-only" style={{
-              height: '100%',
-              width: '100%',
-              position: 'fixed',
-              top: 75,
-              bottom: 0,
-              zIndex: 2
-            }} />
+            <webview ref='webview' src={this.state.url} partition="in-memory-only" style={
+              isYahoo ? yahooOptions : defaultOptions
+            } />
           )}
         {loading && (
           <LottieImg name='loading-spinner-blue'
