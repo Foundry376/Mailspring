@@ -251,7 +251,7 @@ export default class MessagesSendBar extends PureComponent {
           }
           if (filename.match(/.gif$/)) {
             body.type = FILE_TYPE.GIF;
-            sendUploadMessage(myKey, null);
+            sendUploadMessage(null);
           } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
             body.type = FILE_TYPE.IMAGE;
             thumb({
@@ -263,13 +263,13 @@ export default class MessagesSendBar extends PureComponent {
               let thumbPath = path.join(path.dirname(filepath), path.basename(filepath).replace(/\.\w*$/, '_thumb')+path.extname(filepath));
               const thumbExist = fs.existsSync(thumbPath);
               uploadFile(jidLocal, null, thumbPath, (err, filename, thumbKey, size) => {
-                sendUploadMessage(myKey, thumbKey);
+                sendUploadMessage(thumbKey);
                 fs.unlinkSync(thumbPath);
               });
             });
           } else {
             body.type = FILE_TYPE.OTHER_FILE;
-            sendUploadMessage(myKey, null);
+            sendUploadMessage(null);
           }
         });
       })
