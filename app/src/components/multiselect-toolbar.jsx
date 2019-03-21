@@ -125,7 +125,9 @@ class MultiselectToolbar extends Component {
             ) : (
                 <span className="updated-time">
                   {this._renderLastUpdateLabel(lastUpdate)}
-                  ({this._formatNumber(threadCounts)})
+                  {threadCounts > 0 && (
+                    <span>({this._formatNumber(threadCounts)})</span>
+                  )}
                 </span>
               )
           }
