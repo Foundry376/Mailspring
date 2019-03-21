@@ -6,6 +6,12 @@ export default class Label extends Category {
     bgColor: Attributes.String({
       modelKey: 'bgColor',
     }),
+    updatedAt: Attributes.DateTime({
+      queryable: true,
+      modelKey: 'updatedAt',
+      jsonKey: 'updatedAt',
+      loadFromColumn: true
+    }),
   });
   displayType() {
     return 'label';

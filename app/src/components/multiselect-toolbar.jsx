@@ -1,7 +1,8 @@
-import { Utils, WorkspaceStore } from 'mailspring-exports';
+import { Utils, WorkspaceStore, ThreadCountsStore, FocusedPerspectiveStore, CategoryStore } from 'mailspring-exports';
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
+import moment from 'moment';
 
 /*
  * MultiselectToolbar renders a toolbar inside a horizontal bar and displays
@@ -59,6 +60,22 @@ class MultiselectToolbar extends Component {
     }
   }
 
+  _renderLastUpdateLabel(lastUpdate) {
+    if (!lastUpdate) {
+      return null;
+    }
+    if (Date.now() - lastUpdate.getTime() < 2 * 60 * 1000) {
+      return <span>Updated Just Now</span>;
+    }
+    return (
+      <span>Updated {moment(lastUpdate).fromNow()}</span>
+    )
+  }
+
+  _formatNumber(num) {
+    return num && num.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+  }
+
   selectAll = () => {
     const { onClearSelection, dataSource } = this.props;
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
@@ -81,23 +98,36 @@ class MultiselectToolbar extends Component {
     }
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
     const isSelectAll = !this.state.selectAll && items && items.length && selectionCount === items.length;
+    const current = FocusedPerspectiveStore.current();
+    let threadCounts = 0;
+    let lastUpdate = 0;
+    if (current && current._categories && current._categories.length) {
+      threadCounts = ThreadCountsStore.totalCountForCategoryId(current._categories[0].id);
+      const category = CategoryStore.byId(current._categories[0].accountId, current._categories[0].id);
+      lastUpdate = category.updatedAt;
+    }
     return (
       <div className="absolute" key="absolute">
         <div className="inner">
           <div className={'checkmark' + (isSelectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
           {
-            selectionCount > 0 && (
+            selectionCount > 0 ? (
               <div style={{ display: 'flex' }}>
                 <div className="selection-label">{this.selectionLabel()}</div>
                 <button className="btn btn-toggle-select-all" onClick={this.selectAll}>
-                  Select all {totalCount && totalCount.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,')}
+                  Select all {this._formatNumber(totalCount)}
                 </button>
                 <button className="btn btn-clear-all" onClick={onClearSelection}>
                   Clear Selection
                 </button>
                 {toolbarElement}
               </div>
-            )
+            ) : (
+                <span className="updated-time">
+                  {this._renderLastUpdateLabel(lastUpdate)}
+                  ({this._formatNumber(threadCounts)})
+                </span>
+              )
           }
         </div>
       </div>
