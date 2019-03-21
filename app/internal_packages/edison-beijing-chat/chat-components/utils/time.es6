@@ -74,20 +74,34 @@ export const dateFormat = (timestamp, format) => {
   return str;
 
 }
-export const dateFormatDigit = (timestamp, format) => {
+export const dateFormatDigit = (timestamp) => {
   const currentTime = new Date().getTime();
   if (typeof timestamp === 'string') {
     timestamp = parseInt(timestamp);
-  }
-  if (format) {
-    return moment(timestamp).format(format);
   }
   const str = moment(timestamp).format('MMM d');
   console.log('dbg*** dateFormatDigit str: ', currentTime, str);
   return str;
 }
 
+export const weekDayFormat = (timestamp) => {
+  if (typeof timestamp === 'string') {
+    timestamp = parseInt(timestamp);
+  }
+  const str = moment(timestamp).format('ddd');
+  console.log('dbg*** weekDayFormat str: ', str);
+  return str;
+}
+
+export const nearDays = (timestamp) => {
+  const currentTime = new Date().getTime();
+  return Math.abs(timestamp - currentTime) < 2*24*3600*1000
+}
+
 export default {
   buildTimeDescriptor,
-  dateFormat
+  dateFormat,
+  dateFormatDigit,
+  weekDayFormat,
+  nearDays
 };
