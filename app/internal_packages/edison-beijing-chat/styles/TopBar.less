@@ -39,12 +39,31 @@
     }
     .conversationName {
       max-width: 600px;
+      padding-right:30px;
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow:hidden;
       font-size: 28px;
       &:focus, &:hover {
         max-width:1000px;
+      }
+    }
+    .conv-name {
+      width: 100%;
+      height:100%;
+      .conv-pencil {
+        display: none;
+        position:absolute;
+        top:20px;
+        right:0px;
+        font-size:16px;
+        color:#23c0fa;
+      }
+      &:hover {
+        border-bottom: 1px solid #23c0fa;
+      }
+      &:hover > .conv-pencil {
+        display: inline-block;
       }
     }
   }

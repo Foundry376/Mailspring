@@ -659,9 +659,12 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
       if (rooms[payload.from.bare]) {
         name = rooms[payload.from.bare];
       } else {
-        console.log('triggerGroupNotificationEpic xmpp.getRoomList payload.curJid 2: ', payload.curJid);
         return Observable.fromPromise(xmpp.getRoomList(null, payload.curJid))
-          .map(({ discoItems: { items } }) => {
+          .map((result) => {
+            if (!result) {
+              return { conv, payload, name };
+            }
+            const { discoItems: { items } } = result;
             if (items) {
               for (const item of items) {
                 if (payload.from.local === item.jid.local) {
