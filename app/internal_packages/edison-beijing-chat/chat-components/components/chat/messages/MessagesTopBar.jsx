@@ -67,13 +67,16 @@ export default class MessagesTopBar extends Component {
       <div>
         <TopBar
           left={
-            <div
-              contentEditable={conversation.isGroup}
-              dangerouslySetInnerHTML={{ __html: conversation.name }}
-              onKeyDown={this._onkeyDown}
-              onBlur={this._onBlur}
-              spellCheck="false"
-              className="conversationName">
+            <div className='conv-name'>
+              <div
+                contentEditable={conversation.isGroup}
+                dangerouslySetInnerHTML={{ __html: conversation.name }}
+                onKeyDown={this._onkeyDown}
+                onBlur={this._onBlur}
+                spellCheck="false"
+                className="conversationName">
+              </div>
+              <span className="dt-icon-pencil conv-pencil"></span>
             </div>
           }
           center = {<ThreadSearchBar></ThreadSearchBar>}
