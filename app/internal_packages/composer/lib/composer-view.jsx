@@ -19,6 +19,7 @@ import {
   InjectedComponentSet,
   ComposerEditor,
   ComposerSupport,
+  Spinner
 } from 'mailspring-component-kit';
 import { History } from 'slate';
 import ComposerHeader from './composer-header';
@@ -178,7 +179,7 @@ export default class ComposerView extends React.Component {
           onMouseUp={this._onMouseUpComposerBody}
           onMouseDown={this._onMouseDownComposerBody}
         >
-          {this._renderBodyRegions()}
+          {(this.props.draft && this.props.draft.waitingForBody)? <Spinner visible={true} /> :  this._renderBodyRegions()}
           {this._renderFooterRegions()}
         </div>
       </div>

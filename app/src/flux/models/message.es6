@@ -202,13 +202,17 @@ export default class Message extends ModelWithMetadata {
     hasNewID: Attributes.Boolean({
       modelKey: 'hasNewID',
     }),
+    waitingForBody: Attributes.Boolean({
+      modelKey: 'waitingForBody',
+      queryable: false,
+    })
   });
 
   static naturalSortOrder() {
     return Message.attributes.date.ascending();
   }
 
-  constructor(data) {
+  constructor(data={}) {
     super(data);
     this.subject = this.subject || '';
     this.to = this.to || [];
@@ -218,6 +222,7 @@ export default class Message extends ModelWithMetadata {
     this.replyTo = this.replyTo || [];
     this.files = this.files || [];
     this.events = this.events || [];
+    this.waitingForBody = data.waitingForBody || false;
   }
 
   toJSON(options) {
