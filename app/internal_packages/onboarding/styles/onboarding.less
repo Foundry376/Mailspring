@@ -246,6 +246,22 @@
       font-weight: 700;
       line-height: 18px;
     }
+    .form-field {
+      position: relative;
+      .show-password {
+        position: absolute;
+        top: 41px;
+        right: 18px;
+        img.content-mask {
+          background-color: #B6BDC2;
+        }
+        &.show {
+          img.content-mask {
+            background-color: #39F;
+          }
+        }
+      }
+    }
   }
   select {
     margin-bottom: 8px;
