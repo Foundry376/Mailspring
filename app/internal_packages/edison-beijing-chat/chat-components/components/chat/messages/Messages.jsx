@@ -77,7 +77,7 @@ const isImage = (type) => {
 const shouldInlineImg = (msgBody) => {
   let path = msgBody.path;
   return isImage(msgBody.type)
-    && ((path && path.match(/^https?:\/\//) ||  fs.existsSync(path && path.replace('file://', ''))));
+    && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
 }
 const shouldDisplayFileIcon = (msgBody) => {
   return msgBody.mediaObjectId
@@ -213,7 +213,8 @@ export default class Messages extends PureComponent {
 
   scrollToMessagesBottom() {
     if (this.messagePanelEnd) {
-      this.messagePanelEnd.scrollIntoView({ behavior: 'smooth' });
+      // this.messagePanelEnd.scrollIntoView({ behavior: 'smooth' });
+      this.messagePanelEnd.scrollIntoView();
       this.setState({ shouldScrollBottom: false });
     }
   }
@@ -323,23 +324,23 @@ export default class Messages extends PureComponent {
     }
   };
 
-  cancelDownloadMessageFile  = () => {
+  cancelDownloadMessageFile = () => {
     if (this.downConfig && this.downConfig.request && this.downConfig.request.abort) {
       this.downConfig.request.abort();
     }
     this.downConfig = null;
     this.downQueue = [];
-    const progress = {visible:false, downQueue: this.downQueue};
-    const state = Object.assign({}, this.state, {progress});
+    const progress = { visible: false, downQueue: this.downQueue };
+    const state = Object.assign({}, this.state, { progress });
     this.setState(state);
   }
 
   downloadMessageFile = (downConfig) => {
     this.downConfig = downConfig;
-    const {msgBody, pathForSave} = downConfig;
+    const { msgBody, pathForSave } = downConfig;
     const filename = path.basename(pathForSave);
-    const progress = Object.assign({}, this.state.progress, {filename, percent:0, downQueue:this.downQueue, visible:true});
-    const state = Object.assign({}, this.state, {progress});
+    const progress = Object.assign({}, this.state.progress, { filename, percent: 0, downQueue: this.downQueue, visible: true });
+    const state = Object.assign({}, this.state, { progress });
     this.setState(state);
     const downloadCallback = () => {
       let downConfig = this.downQueue.shift();
@@ -375,10 +376,10 @@ export default class Messages extends PureComponent {
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
       const downloadProgressCallback = progress => {
-        const {loaded, total} = progress;
-        const percent = Math.floor(+loaded*100.0/(+total));
+        const { loaded, total } = progress;
+        const percent = Math.floor(+loaded * 100.0 / (+total));
         progress = Object.assign({}, this.state.progress, { percent });
-        const state = Object.assign({}, this.state, {progress});
+        const state = Object.assign({}, this.state, { progress });
         this.setState(state);
       }
       this.downConfig.request = downloadFile(msgBody.aes, msgBody.mediaObjectId, pathForSave, downloadCallback, downloadProgressCallback);
@@ -474,18 +475,18 @@ export default class Messages extends PureComponent {
         onScroll={this.calcTimeLabel}
         tabIndex="0"
       >
-        <ProgressBar progress={this.state.progress} onCancel={this.cancelDownloadMessageFile}/>
+        <ProgressBar progress={this.state.progress} onCancel={this.cancelDownloadMessageFile} />
         <SecurePrivate />
         {jid !== NEW_CONVERSATION && groupedMessages.map((group, index) => (
           <div className="message-group" key={index}>
             <div className="day-label">
               <label>
-                <Divider type="horizontal"/>
+                <Divider type="horizontal" />
                 {nearDays(group.time) ? (
-                    <div className="day-label-text">
-                      <span className='span1'>{dateFormat(group.time)}</span>
-                      <span className='span2'>{dateFormatDigit(group.time)}</span>
-                    </div>) :
+                  <div className="day-label-text">
+                    <span className='span1'>{dateFormat(group.time)}</span>
+                    <span className='span2'>{dateFormatDigit(group.time)}</span>
+                  </div>) :
                   (
                     <div className="day-label-text">
                       <span className='span1'>{weekDayFormat(group.time)}</span>
@@ -537,7 +538,7 @@ export default class Messages extends PureComponent {
                 )
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
-                let extName = path.extname(msgBody.path||'x.doc').slice(1);
+                let extName = path.extname(msgBody.path || 'x.doc').slice(1);
                 extName = extMap[extName.toLowerCase()] || 'doc';
                 msgFile = (
                   <div className="message-file">
@@ -602,23 +603,23 @@ export default class Messages extends PureComponent {
                                 mode={RetinaImg.Mode.ContentPreserve}
                               />
                             </div>
-                            )}
+                          )}
                           {msgBody.isUploading && (
                             <div>
                               Uploading {msgBody.localFile && path.basename(msgBody.localFile)}
                               <RetinaImg
                                 name="inline-loading-spinner.gif"
                                 mode={RetinaImg.Mode.ContentPreserve}
-                                />
+                              />
                               {isImage(msgBody.type) && (
                                 <div className="message-image">
                                   <img
-                                  src={msgBody.localFile}
-                                  title={msgBody.isUploading && msgBody.localFile || ''}
-                                  onClick={onClickImage}
+                                    src={msgBody.localFile}
+                                    title={msgBody.isUploading && msgBody.localFile || ''}
+                                    onClick={onClickImage}
                                   />
                                 </div>
-                                )}
+                              )}
                             </div>
                           )}
                         </div>) : (
