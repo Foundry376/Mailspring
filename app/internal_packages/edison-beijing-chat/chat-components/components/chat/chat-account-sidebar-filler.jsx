@@ -8,9 +8,12 @@ export default class ChatAccountSidebarFiller extends PureComponent {
     this.selfNode = null;
     this.state = {
       selfHeight: 300,
-      devMode: AppEnv.getLoadSettings()
+      expand: 1,
     };
-    this.unlistener = Actions.updateChatPanelHeight.listen(this.setHeight, this);
+    this.unlisteners = [
+      Actions.updateChatPanelHeight.listen(this.setHeight, this),
+      Actions.expandChatPanelFiller.listen(this.expandFiller, this)
+    ];
   }
 
   componentDidMount() {
@@ -22,16 +25,21 @@ export default class ChatAccountSidebarFiller extends PureComponent {
     }
   }
   componentWillUnmount() {
-    this.unlistener();
+    for(let unlisten of this.unlisteners){
+      unlisten();
+    }
+  }
+  expandFiller=(expand)=>{
+    this.setState({expand: expand ? 1 : 0});
   }
 
-  setHeight(top) {
+  setHeight=(top)=> {
     const body = document.querySelector('mailspring-workspace');
-    this.setState({ selfHeight: body.getBoundingClientRect().height-top });
+    this.setState({ selfHeight: ((body.getBoundingClientRect().height-top)>0)* (body.getBoundingClientRect().height-top)});
   }
 
   render() {
     return <div className='chat-account-sidebar-filler' ref={ref => this.selfNode = ref}
-                style={{ height: this.state.selfHeight }}/>;
+                style={{ height: this.state.expand * this.state.selfHeight }}/>;
   }
 }

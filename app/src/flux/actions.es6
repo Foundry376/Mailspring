@@ -535,6 +535,7 @@ class Actions {
   static updateDownloadPorgress = ActionScopeWindow;
 
   static updateChatPanelHeight = ActionScopeMainWindow;
+  static expandChatPanelFiller = ActionScopeMainWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above

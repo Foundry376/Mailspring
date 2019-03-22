@@ -56,10 +56,12 @@ export default class ActivitySidebar extends React.Component {
 
   _onExpand = () => {
     this.setState(Object.assign({ expanded: true }, this._getStateFromStores(true)));
+    Actions.expandChatPanelFiller(false);
   };
 
   _onCollapse = () => {
     this.setState(Object.assign({ expanded: false, syncState: {} }));
+    Actions.expandChatPanelFiller(true);
   };
 
   componentWillUnmount() {
