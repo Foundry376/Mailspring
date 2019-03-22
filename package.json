@@ -62,7 +62,7 @@
   },
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
-    "start": "node_modules/.bin/electron ./app --enable-logging --dev",
+    "start": "node_modules/.bin/electron ./app --enable-logging --dev --inspect 5858",
     "lint": "grunt lint --gruntfile=app/build/Gruntfile.js --base=./",
     "test": "node_modules/.bin/electron ./app --enable-logging --test",
     "test-window": "node_modules/.bin/electron ./app --enable-logging --test=window",
