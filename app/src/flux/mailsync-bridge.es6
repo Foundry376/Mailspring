@@ -128,7 +128,7 @@ export default class MailsyncBridge {
 
     if (AppEnv.isMainWindow()) {
       Actions.analyzeDB.listen(this.analyzeDataBase, this);
-      this._analyzeDBTimer = setTimeout(this.analyzeDataBase, ANALYZE_CHECK_INTERVAL);
+      this._analyzeDBTimer = setTimeout(this.analyzeDataBase, 5000);
     }
 
     AccountStore.listen(this.ensureClients, this);
@@ -217,17 +217,25 @@ export default class MailsyncBridge {
     if (!AppEnv.isMainWindow()) {
       return;
     }
-    const lastAnalyzed = AppEnv.config.get('lastDBAnalyzed') || 0;
-    if (Date.now() - lastAnalyzed >= MAX_ANALYZE_INTERVAL) {
+    const analyzeOptions = AppEnv.config.get('analyzeDBOptions') || {};
+    const {
+      lastAnalyzed = 0,
+      analyzeInterval = MAX_ANALYZE_INTERVAL,
+      checkInterval = ANALYZE_CHECK_INTERVAL,
+    } = analyzeOptions;
+    if (Date.now() - lastAnalyzed >= analyzeInterval) {
       const accountIds = Object.keys(this._clients);
       if (accountIds.length > 0) {
-        const task = new AnalyzeDBTask({accountId: accountIds[0]});
+        const task = new AnalyzeDBTask({ accountId: accountIds[0] });
         this._onQueueTask(task);
-        AppEnv.config.set('lastDBAnalyzed', Date.now());
+        AppEnv.config.set('analyzeDBOptions', {
+          lastAnalyzed: Date.now(),
+          analyzeInterval,
+          checkInterval,
+        });
       }
     }
-    this._analyzeDBTimer = setTimeout(this.analyzeDataBase, ANALYZE_CHECK_INTERVAL);
-
+    this._analyzeDBTimer = setTimeout(this.analyzeDataBase, checkInterval);
   };
 
   sendSyncMailNow() {
