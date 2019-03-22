@@ -26,9 +26,12 @@ export default class ActivitySidebar extends React.Component {
     super(props);
     this.state = Object.assign({ expanded: false }, this._getStateFromStores(false));
   }
+  triggerAccountFiller=()=>{
+    Actions.expandChatPanelFiller(!this.state.expanded || !this.state.syncSummary.phrase);
+  };
 
   _onDataChanged = () => {
-    this.setState(this._getStateFromStores(this.state.expanded));
+    this.setState(this._getStateFromStores(this.state.expanded), this.triggerAccountFiller);
   };
 
   _getStateFromStores = isExpanded => {
@@ -55,13 +58,11 @@ export default class ActivitySidebar extends React.Component {
   }
 
   _onExpand = () => {
-    this.setState(Object.assign({ expanded: true }, this._getStateFromStores(true)));
-    Actions.expandChatPanelFiller(false);
+    this.setState(Object.assign({ expanded: true }, this._getStateFromStores(true)), this.triggerAccountFiller);
   };
 
   _onCollapse = () => {
-    this.setState(Object.assign({ expanded: false, syncState: {} }));
-    Actions.expandChatPanelFiller(true);
+    this.setState(Object.assign({ expanded: false, syncState: {} }), this.triggerAccountFiller);
   };
 
   componentWillUnmount() {
