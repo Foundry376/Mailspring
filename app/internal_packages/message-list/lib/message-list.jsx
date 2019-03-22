@@ -478,9 +478,9 @@ class MessageList extends React.Component {
 
     return (
       <div className="message-subject-wrap">
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, flexWrap: 'wrap' }}>
           <span className="message-subject">{subject}</span>
-          <MailImportantIcon thread={this.state.currentThread}/>
+          <MailImportantIcon thread={this.state.currentThread} />
           <MailLabelSet
             removable
             includeCurrentCategories
