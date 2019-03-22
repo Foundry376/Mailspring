@@ -417,10 +417,10 @@ export default class Contact extends Model {
         account &&
         (FocusedPerspectiveStore.current().accountIds.length > 1 || forceAccountLabel)
       ) {
-        return `You (${account.label})`;
+        return `Me (${account.label})`;
       }
     }
-    return 'You';
+    return 'Me';
   }
 
   // Returns a {String} display name.
