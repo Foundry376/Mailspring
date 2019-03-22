@@ -64,7 +64,7 @@ class Countdown extends React.Component {
         <div className="countdown-number">{Math.ceil(diff / 1000)}</div>
         {diff > 0 && (
           <svg>
-            <circle r="14" cx="15" cy="15" style={{ animationDuration: this.animationDuration }}/>
+            <circle r="14" cx="15" cy="15" style={{ animationDuration: this.animationDuration }} />
           </svg>
         )}
       </div>
@@ -78,7 +78,7 @@ const UndoSendContent = ({ block, onMouseEnter, onMouseLeave, onClose }) => {
       <div className="message">Sending soon...</div>
       <div className="action" onClick={() => AppEnv.commands.dispatch('core:undo')}>
         <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
-        onClick={onClose}/>
+          onClick={onClose} />
         <span className="undo-action-text">Undo</span>
       </div>
     </div>
@@ -100,7 +100,7 @@ const BasicContent = ({ block, onMouseEnter, onMouseLeave, onClose }) => {
     else if (tasks[0] instanceof ChangeStarredTask && tasks[tasks.length - 1] instanceof ChangeStarredTask) {
       let total = 0;
       tasks.forEach(item => (total += item.threadIds.length));
-      const verb = tasks[0].starred ? 'Starred' : 'Unstarred';
+      const verb = tasks[0].starred ? 'Flagged' : 'Unflagged';
       description = `${verb} ${total} threads`;
     }
     // if all ChangeFolderTask
@@ -116,7 +116,7 @@ const BasicContent = ({ block, onMouseEnter, onMouseLeave, onClose }) => {
       <div className="message">{description}</div>
       <div className="action" onClick={() => AppEnv.commands.dispatch('core:undo')}>
         <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
-        onClick={onClose}/>
+          onClick={onClose} />
         <span className="undo-action-text">Undo</span>
       </div>
     </div>

@@ -533,6 +533,7 @@ class MessageList extends React.Component {
         <div onClick={this._onPopThreadIn}>
           <RetinaImg name={'pop-in.svg'}
             style={{ width: 24, height: 24 }}
+            title="Pop thread in"
             isIcon
             mode={RetinaImg.Mode.ContentIsMask} />
         </div>
@@ -542,6 +543,7 @@ class MessageList extends React.Component {
       <div onClick={this._onPopoutThread}>
         <RetinaImg name={'popout.svg'}
           style={{ width: 24, height: 24 }}
+          title="Pop thread out"
           isIcon
           mode={RetinaImg.Mode.ContentIsMask} />
       </div>

@@ -25,7 +25,7 @@ export default class ChangeStarredTask extends ChangeMailTask {
       return `Undoing changes to ${count} ${type}`;
     }
 
-    const verb = this.starred ? 'Starred' : 'Unstarred';
+    const verb = this.starred ? 'Flagged' : 'Unflagged';
     if (count > 1) {
       return `${verb} ${count} ${type}`;
     }
