@@ -79,7 +79,7 @@ export const dateFormatDigit = (timestamp) => {
   if (typeof timestamp === 'string') {
     timestamp = parseInt(timestamp);
   }
-  const str = moment(timestamp).format('MMM d');
+  const str = moment(timestamp).format('MMM D');
   console.log('dbg*** dateFormatDigit str: ', currentTime, str);
   return str;
 }

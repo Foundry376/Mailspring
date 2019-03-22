@@ -100,7 +100,7 @@ export const uploadFile = (oid, aes, file, callback) => {
         arr.push(chunk);
     });
     readStream.on('end', () => {
-        let data = Buffer.concat(arr);
+        let data = Buffer.concat(arr);Ï
         size = getSize(data.length);
         if (aes) {
             fileStream = encryptByAESFile(aes, data);

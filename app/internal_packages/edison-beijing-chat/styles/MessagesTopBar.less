@@ -1,17 +1,10 @@
+@import 'ui-variables';
 .top-bar-container {
   .chatTopBarCenter {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-  }
-  .center {
-    position: relative;
-    #thread-search-bar {
-      position: absolute;
-      top: -20px;
-      right: 10px;
-    }
   }
 
   .onlineIndicatior {
@@ -29,9 +22,48 @@
     transition-duration: 0.5s;
     transition-property: padding-left;
   }
+  .left {
+    position:relative;
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    max-width: 600px;
+    overflow:hidden;
+    text-overflow: ellipsis;
+    z-index: 1;
+    &:focus, &:hover {
+      max-width:1000px;
+      z-index: 200;
+    }
+    .conversationName {
+      max-width: 450px;
+      padding:auto 30px auto 8px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow:hidden;
+      font-size: 28px;
+    }
+    .conv-name {
+      width: 100%;
+      height:100%;
+      .conv-pencil {
+        display: none;
+        position:absolute;
+        top:20px;
+        right:0px;
+        font-size:16px;
+        color:#23c0fa;
+      }
+      &:hover > .conv-pencil {
+        display: inline-block;
+      }
+    }
+  }
 
-  div[contenteditable]:focus,
-  .contenteditable {
+  .left div[contenteditable]:focus,
+  .left div.contenteditable {
     padding-left: 6px;
     white-space: nowrap;
     border: 1px solid #23c0fa;
@@ -41,4 +73,62 @@
       cursor: text;
     }
   }
+  .right {
+    overflow: visible;
+
+    .avatar-search {
+      height: 100%;
+      width:400px;
+      &:hover{
+        z-index:1000;
+      }
+      display:inline-block;
+      position:absolute;
+      overflow: visible;
+      top:0;
+      right:0;
+      #open-info {
+        position:absolute;
+        display:inline-block;
+        top: 0;
+        left: 0;
+        cursor: pointer;
+        padding: 15px 16px;
+        width:35px;
+        height:35px;
+        -webkit-app-region: drag;
+      }
+      #thread-search-bar {
+        position:absolute;
+        display:inline-block;
+        top: 10px;
+        left: 40px;
+        width:350px;
+      }
+      .chat-avatar {
+        position: absolute;
+        top:17px;
+        left:0px;
+        padding: 15px 0px;
+
+      }
+      .groupAvatar {
+        .chat-avatar:nth-child(1) {
+          width: 35px;
+          height: 35px;
+          right: 0px;
+          top: 17px;
+          border: 1px solid @white;
+          z-index: 2;
+        }
+        .chat-avatar:nth-child(2) {
+          width: 20px;
+          height: 20px;
+          right: 0px;
+          top: 12px;
+        }
+      }
+    }
+  }
+
 }
