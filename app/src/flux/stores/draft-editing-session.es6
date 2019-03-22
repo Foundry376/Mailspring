@@ -236,6 +236,11 @@ export default class DraftEditingSession extends MailspringStore {
             console.warn(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
             return;
           }
+          if(!draft.body){
+            console.log('draft have no body, ');
+            draft.waitingForBody = true;
+            Actions.fetchBodies([draft]);
+          }
           hotwireDraftBodyState(draft);
           this._draft = draft;
           this._threadId = draft.threadId;
@@ -548,6 +553,27 @@ export default class DraftEditingSession extends MailspringStore {
     if (!nextDraft) {
       return;
     }
+    if (this._draft.waitingForBody) {
+      DatabaseStore.findBy(Message, {
+        headerMessageId: this.headerMessageId,
+        draft: true,
+      })
+        .include(Message.attributes.body)
+        .then(draft => {
+          if (this._destroyed) {
+            console.warn(`Draft loaded but session has been torn down.`);
+            return;
+          }
+          if (!draft) {
+            console.warn(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
+            return;
+          }
+          hotwireDraftBodyState(draft);
+          this._draft = draft;
+          this.trigger();
+        });
+      return;
+    }
 
     // If the session has unsaved changes for a given field (eg: 'to' or 'body'),
     // we don't accept changes from the database. All changes to the draft should
@@ -571,6 +597,7 @@ export default class DraftEditingSession extends MailspringStore {
       }
       this._draft[key] = nextDraft[key];
     }
+
     if (changed) {
       // console.log('triggered data change');
       this.trigger();
