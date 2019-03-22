@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import ChatPage from '../chat-components/containers/ChatPage';
 import chatModel from '../chat-components/store/model';
 import { Provider } from 'react-redux';
+import { Actions } from 'mailspring-exports';
 import registerLoginChatAccounts from '../chat-components/utils/registerLoginChatAccounts';
 const { history } = require('../chat-components/store/configureStore').default;
 const BOTTOM_OFFSET = 0;
@@ -21,8 +22,9 @@ export default class ChatView extends Component {
       if (panelNewHeight < 10) {
         return;
       }
-      accSidebar.style.height = panelNewHeight - BOTTOM_OFFSET + 'px';
+      // accSidebar.style.height = panelNewHeight - BOTTOM_OFFSET + 'px';
       leftPanel.style.height = height + distance + 'px';
+      Actions.updateChatPanelHeight(leftPanel.getBoundingClientRect().top);
     }
     window.onmousemove = onMouseMove;
     window.onmouseup = () => {
@@ -40,8 +42,9 @@ export default class ChatView extends Component {
 
     const accSidebar = document.querySelector('.account-sidebar');
     const sidebarPanelHeight = accSidebar.parentNode.offsetHeight;
-    accSidebar.style.height = sidebarPanelHeight - h - BOTTOM_OFFSET + 'px';
+    // accSidebar.style.height = sidebarPanelHeight - h - BOTTOM_OFFSET + 'px';
     leftPanel.style.height = h + 'px';
+    Actions.updateChatPanelHeight(leftPanel.getBoundingClientRect().top);
   }
   componentDidMount() {
     const h = AppEnv.config.get(`chatPanelHeight`);

@@ -533,6 +533,8 @@ class Actions {
   static searchCompleted = ActionScopeWindow;
 
   static updateDownloadPorgress = ActionScopeWindow;
+
+  static updateChatPanelHeight = ActionScopeMainWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above
