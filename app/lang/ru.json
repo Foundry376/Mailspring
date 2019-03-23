@@ -199,7 +199,7 @@
   "Email": "Электронная почта",
   "Email Address": "Адрес электронной почты",
   "Empty": "Пусто",
-  "Empty %@ now": "%@ пуст сейчас",
+  "Empty %@ now": "%@ сейчас пуста",
   "Enable": "Включить",
   "Enable read receipts %@ or link tracking %@ to see notifications here.": "Включите уведомление о чтении %@ или отслеживание ссылок %@, чтобы увидеть уведомления здесь.",
   "Enable verbose IMAP / SMTP logging": "Включить подробное протоколирование IMAP / SMTP",
