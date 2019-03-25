@@ -93,31 +93,34 @@
       .day-label-text {
         display:inline-block;
         position:relative;
-        padding: 2px 5px;
+        padding: 2px 11px;
         height:20px;
         line-height: 20px;
         margin:-10px auto 0;
         font-size: 8px;
-        background-color: #f0f0f0;
+        background-color: @gray-lightest;
         border-radius: 20px;
+        span {
+          color: @gray;
+        }
         .span1 {
           padding:0;
           margin: 0 2px;
-          background-color: #f0f0f0;
           font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.07px;
           line-height: 12px;
           text-align: center;
+          background-color: @gray-lightest;
         }
         .span2 {
           padding:0;
           margin: 0 2px;
-          background-color: #f0f0f0;
           font-size: 10px;
           letter-spacing: 0.07px;
           line-height: 12px;
           text-align: center;
+          background-color: @gray-lightest;
         }
       }
     }
