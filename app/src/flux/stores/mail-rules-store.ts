@@ -98,18 +98,23 @@ class MailRulesStore extends MailspringStore {
   }
 
   _onDatabaseChanged = record => {
-    // If the record contains new emails, process mail rules immediately.
-    // This is necessary to avoid emails from bouncing through the inbox.
-    if (record.type === 'persist' && record.objectClass === Message.name) {
-      const newMessages = record.objects.filter(msg => {
-        if (msg.version !== 1) return false;
-        if (msg.draft) return false;
-        if (!msg.date || msg.date.valueOf() < this._autoSince) return false;
-        return true;
-      });
-      if (newMessages.length > 0) {
-        MailRulesProcessor.processMessages(newMessages);
-      }
+    if (record.type !== 'persist' || record.objectClass !== Message.name) return;
+
+    // Note: Mailsync processes incoming new emails in two phases. First it fetches the
+    // message metadata (headers, etc.) and then it fetches the body separately. We want
+    // to run mail rules when the BODY is ready. To ensure we wait for the body and
+    // that the mail rules only run once on the message (and not in subsequent updates,
+    // eg: marking as read), the sync engine attaches a custom `fullSyncComplete` flag
+    // that is only true once when both parts are ready.
+    const newIds = record.objectsRawJSON.filter(json => json.fullSyncComplete).map(json => json.id);
+    if (newIds.length === 0) return;
+
+    const newMessages = record.objects.filter(
+      m => newIds.includes(m.id) && !m.draft && m.date && m.date.valueOf() > this._autoSince
+    );
+
+    if (newMessages.length > 0) {
+      MailRulesProcessor.processMessages(newMessages);
     }
   };
 

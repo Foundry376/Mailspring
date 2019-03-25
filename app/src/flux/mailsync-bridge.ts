@@ -414,6 +414,7 @@ export default class MailsyncBridge {
           type, // TODO BG move to "model" naming style, finding all uses might be tricky
           objectClass: modelClass,
           objects: models,
+          objectsRawJSON: modelJSONs,
         })
       );
     }
@@ -448,6 +449,7 @@ export default class MailsyncBridge {
         type,
         objectClass: modelClass,
         objects: models,
+        objectsRawJSON: modelJSONs,
       })
     );
   };
