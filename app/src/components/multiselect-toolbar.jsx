@@ -107,7 +107,7 @@ class MultiselectToolbar extends Component {
       lastUpdate = category.updatedAt;
     }
     return (
-      <div className="absolute" key="absolute">
+      <div className="multiselect-toolbar-root" key="absolute">
         <div className="inner">
           <div className={'checkmark' + (isSelectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
           {

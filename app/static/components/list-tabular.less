@@ -48,12 +48,133 @@
   // 0px wide!
 
   width: 100%;
-  flex-shrink: 100;
+  // If this value changes,
+  // we must change thread-list .scroll-region-content,
+  // and list-tabular.jsx offset height
+  height: 40px;
   z-index: 99;
-  -webkit-app-region: drag;
-  position: absolute;
-  left: 0;
-  top: 0;
+  flex: 0 0 40px;
+  .multiselect-toolbar-root {
+    position: relative;
+    height: 40px;
+    border-bottom: 1px solid @border-color-primary;
+    border-right: 1px solid @border-color-divider;
+    background-color: @background-primary;
+    transition: opacity 0.2s ease-in-out;
+
+    .inner {
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      display: flex;
+      -webkit-app-region: no-drag;
+      transition: top 0.2s ease-in-out;
+      white-space: nowrap;
+
+      .checkmark.selected {
+        background-image: url(../static/icons/check.svg);
+        background-size: 130% auto;
+      }
+      .checkmark {
+        margin: 0 35px 0 18px;
+        height: 18px;
+        min-width: 18px;
+        background-image: url(../static/icons/check-empty.svg);
+        background-position: center;
+        background-color: transparent;
+        background-size: 130% auto;
+        border: none;
+      }
+
+      &>div {
+        align-items: center;
+      }
+
+      .centered {
+        flex: 1;
+        cursor: default;
+        text-align: center;
+        color: @text-color-subtle;
+        line-height: 55px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        -webkit-app-region: drag;
+      }
+
+      .selection-label {
+        line-height: 22px;
+      }
+
+      .updated-time {
+        color: @gray;
+        font-size: 11px;
+        line-height: 13px;
+      }
+
+      .btn-clear-all,
+      .btn-toggle-select-all {
+        margin-left: 11px;
+        height: 22px;
+        border-radius: 11px;
+        line-height: 22px;
+        background: @off-white;
+        padding: 0 12px;
+        box-shadow: none;
+        color: @blue;
+      }
+
+      .btn-toolbar {
+        position: relative;
+        padding: 0 5px;
+        margin-top: 0;
+        box-shadow: none;
+        background: transparent;
+        img.content-mask {
+          background-color: @gray;
+          position: relative;
+          z-index: 2;
+        }
+        &:hover {
+          &:after {
+            content: '';
+            height: 36px;
+            width: 36px;
+            border-radius: 50%;
+            background: @source-list-active-bg;
+            display: block;
+            position: absolute;
+            top: -5px;
+            left: 0;
+            animation: growUp 0.4s;
+          }
+          img {
+            background-color: @blue;
+          }
+          @keyframes growUp {
+            from {
+              opacity: 0.7;
+              transform: scale(0.5);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+        }
+      }
+
+      .toolbar-buttons {
+        flex: 1;
+        justify-content: flex-start;
+        align-items: center;
+        height: auto !important;
+        .btn {
+          height: auto;
+        }
+      }
+    }
+  }
 
   .absolute {
     background: #fff;
@@ -70,7 +191,7 @@
     transition: opacity 0.2s ease-in-out;
 
     .inner {
-      position: absolute;
+      //position: absolute;
       width: 100%;
       height: 100%;
       align-items: center;
