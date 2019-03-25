@@ -4,7 +4,7 @@
 @timeColor: #8a8a8f;
 .chat-view-container {
   .secure-private {
-    margin: 110px 0 20px 20px;
+    margin: 110px 0 40px 20px;
     display: flex;
     .lock-icon {
       height: 34px;
@@ -75,7 +75,7 @@
         margin: 0 auto;
         .divider {
           position: relative;
-          top: -15px;
+          top: -5px;
           z-index: -1;
           background-color: @gray-lighter;
         }
@@ -91,10 +91,9 @@
         }
       }
       .day-label-text {
-        display:block;
-        positin:relative;
-        top:-40px;
-        width:110px;
+        display:inline-block;
+        position:relative;
+        padding: 2px 5px;
         height:20px;
         line-height: 20px;
         margin:-10px auto 0;
@@ -104,7 +103,6 @@
         .span1 {
           padding:0;
           margin: 0 2px;
-          font-family: "SF UI Text";
           background-color: #f0f0f0;
           font-size: 10px;
           font-weight: 700;
@@ -115,7 +113,6 @@
         .span2 {
           padding:0;
           margin: 0 2px;
-          font-family: "SF UI Text";
           background-color: #f0f0f0;
           font-size: 10px;
           letter-spacing: 0.07px;
@@ -370,7 +367,10 @@
     color:white;
     background-color: #63a2ff;
     border-radius: 12px;
-    z-index:400;
+    z-index:9000;
+    &:hover {
+      z-index:9000;
+    }
     .progress-prompt {
       margin-left:5px;
     }
@@ -401,13 +401,21 @@
       position: absolute;
       top: 5px;
       right: 5px;
+      width:80px;
+      height:40px;
       font-color: white;
       .textButton {
         display: inline-block;
         position: relative;
-        top:-5px;
+      }
+      svg {
+        position: absolute;
+        right: 0px;
       }
     }
+  }
+  &:hover {
+
   }
 
 }

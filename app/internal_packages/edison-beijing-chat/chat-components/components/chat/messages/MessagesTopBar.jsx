@@ -79,9 +79,8 @@ export default class MessagesTopBar extends Component {
               <span className="dt-icon-pencil conv-pencil"></span>
             </div>
           }
-          center = {<ThreadSearchBar></ThreadSearchBar>}
           right={
-            <div className="avatarWrapper">
+            <div className="avatar-search">
               <div id="open-info" onClick={() => onInfoPressed()}>
                 {conversation.isGroup ?
                   <GroupChatAvatar conversation={conversation} size={35} /> :
@@ -89,6 +88,7 @@ export default class MessagesTopBar extends Component {
                     email={conversation.email} avatar={conversation.avatar} size={35} />
                 }
               </div>
+              <ThreadSearchBar></ThreadSearchBar>
             </div>
           }
         />

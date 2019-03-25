@@ -1,4 +1,5 @@
 var AWS = require('aws-sdk');
+let hls3 = require('s3');
 const { decryptByAESFile } = require('./aes');
 import fs from 'fs';
 import uuid from 'uuid';
@@ -6,12 +7,15 @@ import uuid from 'uuid';
 // import AWS object without services
 //var AWS = require('aws-sdk/global');
 // Set the region
-AWS.config.update({
-    region: "us-east-2",
-    accessKeyId: "AKIAJPPBMFBNHSNZ5ELA",
-    secretAccessKey: "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",
-    Endpoint: "http://s3.us-east-2.amazonaws.com"
-});
+
+let s3options = {
+  region: "us-east-2",
+  accessKeyId: "AKIAJPPBMFBNHSNZ5ELA",
+  secretAccessKey: "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",
+  Endpoint: "http://s3.us-east-2.amazonaws.com"
+}
+
+AWS.config.update(s3options);
 // import individual service
 //var S3 = require('aws-sdk/clients/s3');
 var s3 = new AWS.S3();
@@ -122,6 +126,58 @@ export const uploadFile = (oid, aes, file, callback) => {
         request.send();
         return request;
     })
+}
+
+export const uploadProgressly = (oid, aes, file, callback, progressCallBack) => {
+
+  let myKey = oid + '/' + uuid.v4() + path.extname(file);
+  if (1/*aes*/) {
+    let data = fs.readFileSync(file);
+    // data = encryptByAESFile(aes, data);
+    fs.writeFileSync(file, data);
+    let data2 = fs.readFileSync(file);
+    console.log('dbg*** original and writed data: ', data, data2);
+    myKey = myKey + ENCRYPTED_SUFFIX;
+  }
+    var params = {
+      localFile: file,
+      s3Params: {
+        Bucket: myBucket+' wrong bucket',
+        Key: myKey,
+      },
+    };
+    debugger
+    let  client = hls3.createClient({s3options});
+    console.log('dbg*** uploadProgressly client: ', client);
+
+    var uploader = client.uploadFile(params);
+    uploader.on('error', function(err) {
+      console.error("dbg*** unable to upload:", err.stack);
+    });
+    uploader.on('progress', function() {
+      console.log("dbg*** upload progress", uploader.progressAmount, uploader.progressTotal);
+      if ( +uploader.progressAmount === +uploader.progressTotal ) {
+        setTimeout(() => {
+          params.localFile += '-2';
+          var downloader = client.downloadFile(params);
+          downloader.on('error', function(err) {
+            console.error("dbg*** error: unable to download:", err.stack);
+          });
+          downloader.on('progress', function() {
+            console.log("dbg*** download progress", downloader.progressAmount, downloader.progressTotal);
+          });
+          downloader.on('end', function() {
+            console.log("dbg*** done downloading");
+          }, 10000);
+        })
+      }
+    });
+    uploader.on('end', function() {
+      console.log("dbg*** done uploading");
+    });
+    console.log('dbg*** uploadProgressly uploader: ', uploader);
+    debugger
+    return uploader;
 }
 
 function getSize(len) {

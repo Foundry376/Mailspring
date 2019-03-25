@@ -22,6 +22,8 @@ import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
+import {isImageFilePath} from '../../../utils/stringUtils';
+
 var thumb = require('node-thumbnail').thumb;
 const FAKE_SPACE = '\u00A0';
 
@@ -254,18 +256,20 @@ export default class MessagesSendBar extends PureComponent {
             sendUploadMessage(null);
           } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
             body.type = FILE_TYPE.IMAGE;
+            let thumbPath = path.join(path.dirname(filepath), path.basename(filepath).replace(/\.\w*$/, '_thumb')+path.extname(filepath));
             thumb({
               source: filepath,
-              destination: path.dirname(filepath),
-              width: 200,
-              concurrency: 4
+              destination: path.dirname(filepath)
             }, function(files, err, stdout, stderr) {
-              let thumbPath = path.join(path.dirname(filepath), path.basename(filepath).replace(/\.\w*$/, '_thumb')+path.extname(filepath));
               const thumbExist = fs.existsSync(thumbPath);
-              uploadFile(jidLocal, null, thumbPath, (err, filename, thumbKey, size) => {
-                sendUploadMessage(thumbKey);
-                fs.unlinkSync(thumbPath);
-              });
+              if (thumbExist) {
+                uploadFile(jidLocal, null, thumbPath, (err, filename, thumbKey, size) => {
+                  sendUploadMessage(thumbKey);
+                  fs.unlinkSync(thumbPath);
+                });
+              } else {
+                sendUploadMessage(null);
+              }
             });
           } else {
             body.type = FILE_TYPE.OTHER_FILE;

@@ -32,3 +32,7 @@ export function isJsonStr(str) {
       return false;
   }
 }
+
+export function isImageFilePath(str) {
+  str.match(/(\.gif|\.bmp|\.png|\.jpg|\.jpeg)$/)
+}
