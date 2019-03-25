@@ -7,6 +7,7 @@ import CategoryStore from '../stores/category-store';
 import Thread from '../models/thread';
 import Label from '../models/label';
 import _ from 'underscore';
+import ExpungeThreadsTask from './expunge-threads-task';
 
 const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {
@@ -89,6 +90,15 @@ const TaskFactory = {
       return new ChangeFolderTask({
         folder: CategoryStore.getTrashCategory(accountId),
         threads: accountThreads,
+        source,
+      });
+    });
+  },
+  tasksForExpungingThreads({ threads, source }) {
+    return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+      return new ExpungeThreadsTask({
+        accountId: accountId,
+        threadIds: accountThreads.map(thread => thread.id),
         source,
       });
     });

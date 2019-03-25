@@ -296,6 +296,11 @@ export default class MailboxPerspective {
       acc => CategoryStore.getCategoryByRole(acc, standardCategoryName) !== null
     );
   }
+  canExpungeThreads(threads){
+    if(this.categoriesSharedRole() === 'trash'){
+      return true;
+    }
+  }
 
   tasksForRemovingItems(threads) {
     if (!(threads instanceof Array)) {

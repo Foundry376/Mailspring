@@ -73,20 +73,39 @@ export class TrashButton extends React.Component {
     }
     return;
   };
+  _onExpunge = event =>{
+    const tasks = TaskFactory.tasksForExpungingThreads({
+      threads: this.props.items,
+      source: 'Toolbar Button: Thread List',
+    });
+    Actions.queueTasks(tasks);
+    Actions.popSheet();
+    if (event) {
+      event.stopPropagation();
+    }
+    return;
+  }
 
   render() {
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'trash');
-    if (!allowed) {
+    const canMove = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'trash');
+    const canExpunge = FocusedPerspectiveStore.current().canExpungeThreads(this.props.items);
+    if (!canMove && !canExpunge) {
       return false;
+    }
+    let actionCallBack = null;
+    if(canMove){
+      actionCallBack = this._onRemove;
+    }else if(canExpunge){
+      actionCallBack = this._onExpunge;
     }
 
     return (
-      <BindGlobalCommands commands={{ 'core:delete-item': () => this._onRemove() }}>
+      <BindGlobalCommands commands={{ 'core:delete-item': () => actionCallBack() }}>
         <button
           tabIndex={-1}
           className="btn btn-toolbar"
           title="Move to Trash"
-          onClick={this._onRemove}
+          onClick={actionCallBack}
         >
           <RetinaImg name={'trash.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
         </button>

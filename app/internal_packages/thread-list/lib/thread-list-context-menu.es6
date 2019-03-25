@@ -149,8 +149,20 @@ export default class ThreadListContextMenu {
 
   trashItem() {
     const perspective = FocusedPerspectiveStore.current();
-    const allowed = perspective.canMoveThreadsTo(this.threads, 'trash');
-    if (!allowed) {
+    const canMoveToTrash = perspective.canTrashThreads(this.threads, 'trash');
+    if (!canMoveToTrash) {
+      if (perspective.canExpungeThreads(this.threads)) {
+        return {
+          label: 'Expunge',
+          click: () => {
+            const tasks = TaskFactory.tasksForExpungingThreads({
+              source: 'Context Menu: Thread List',
+              threads: this.threads,
+            });
+            Actions.queueTasks(tasks);
+          },
+        };
+      }
       return null;
     }
     return {
