@@ -133,7 +133,7 @@ class AccountIMAPSettingsForm extends React.Component {
 
     return (
       <div>
-        <span>
+        <div>
           <label htmlFor={`settings.${protocol}_security`}>Security:</label>
           <select
             id={`settings.${protocol}_security`}
@@ -153,11 +153,8 @@ class AccountIMAPSettingsForm extends React.Component {
               None
             </option>
           </select>
-        </span>
-        <span style={{ paddingTop: '10px' }}>
-          <label htmlFor={`settings.${protocol}_allow_insecure_ssl"`} className="checkbox">
-            Allow insecure SSL
-          </label>
+        </div>
+        <div style={{ paddingBottom: '13px' }}>
           <input
             type="checkbox"
             id={`settings.${protocol}_allow_insecure_ssl`}
@@ -166,7 +163,10 @@ class AccountIMAPSettingsForm extends React.Component {
             onKeyPress={onFieldKeyPress}
             onChange={onFieldChange}
           />
-        </span>
+          <label htmlFor={`settings.${protocol}_allow_insecure_ssl"`} className="checkbox">
+            Allow insecure SSL
+          </label>
+        </div>
       </div>
     );
   }
@@ -174,7 +174,7 @@ class AccountIMAPSettingsForm extends React.Component {
   renderFieldsForType(type) {
     return (
       <div>
-        <FormField field={`settings.${type}_host`} title={'Hostname'} {...this.props} />
+        <FormField field={`settings.${type}_host`} title={'Server'} {...this.props} />
         <div style={{ textAlign: 'left' }}>
           {this.renderPortDropdown(type)}
           {this.renderSecurityDropdown(type)}
@@ -192,7 +192,7 @@ class AccountIMAPSettingsForm extends React.Component {
 
   render() {
     return (
-      <div className="advance-settings">
+      <div className="twocol advance-settings">
         <div className="col">
           <div className="col-heading"><span>INCOMING MAIL SERVER (IMAP)</span></div>
           {this.renderFieldsForType('imap')}

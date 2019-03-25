@@ -538,7 +538,7 @@
   .twocol {
     display: flex;
     flex-direction: row;
-    width: 700px;
+    width: 600px;
     margin: auto;
     transition: width 400ms ease-in-out;
   }
@@ -603,25 +603,7 @@
     font-weight: 700;
     line-height: 13px;
     position: relative;
-    text-align: center;
-    padding-bottom: 25px;
-    span {
-      position: relative;
-      z-index: 2;
-      padding: 4px 10px;
-      background: #fff;
-    }
-    &:after {
-      content: '';
-      display: block;
-      height: 2px;
-      background: #E8EBED;
-      position: absolute;
-      z-index: 1;
-      width: 100%;
-      left: 0;
-      top: 5px;
-    }
+    text-align: left;
   }
   .col {
     width: 370px;
@@ -631,14 +613,31 @@
     input {
       margin-left: -5px;
       margin-bottom: 25px;
+      width: 280px;
     }
     input[type=checkbox] {
       height: auto;
-      margin-left: 20px;
+      width: auto;
+      margin: 0 15px 0 5px;
+      // & + label {
+      //   &:before {
+      //     width: auto;
+      //     font-size: 21px;
+      //     margin-right: 15px;
+      //     content: "\e91b";
+      //     color: #e8ebed;
+      //   }
+      // }
+      // &:checked + label {
+      //   &:before {
+      //     content: "\e91c";
+      //     color: #1293fd;
+      //   }
+      // }
     }
     select {
       height: 50px;
-      width: 350px;
+      width: 140px;
       border-radius: 10px;
       background-color: #FFF;
       border: 2px solid #E8EBED;

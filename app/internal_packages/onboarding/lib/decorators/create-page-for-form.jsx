@@ -187,7 +187,10 @@ const CreatePageForForm = FormComponent => {
 
     _renderButton() {
       const { account, submitting } = this.state;
-      const buttonLabel = 'Sign In';
+      let buttonLabel = 'Sign In';
+      if (account.provider === 'imap' && FormComponent.displayName !== 'AccountIMAPSettingsForm') {
+        buttonLabel = 'Continue'
+      }
 
       // We're not on the last page.
       if (submitting) {

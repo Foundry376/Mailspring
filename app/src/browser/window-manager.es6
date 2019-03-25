@@ -244,7 +244,7 @@ export default class WindowManager {
       frame: false, // Always false on Mac, explicitly set for Win & Linux
       toolbar: false,
       resizable: false,
-      width: 550,
+      width: 685,
       height: 700,
     };
 
