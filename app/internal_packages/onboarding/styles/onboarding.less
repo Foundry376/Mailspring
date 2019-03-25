@@ -246,27 +246,26 @@
       font-weight: 700;
       line-height: 18px;
     }
-    .form-field {
-      position: relative;
-      .show-password {
-        position: absolute;
-        top: 41px;
-        right: 18px;
-        img.content-mask {
-          background-color: #B6BDC2;
-        }
-        &.show {
-          img.content-mask {
-            background-color: #39F;
-          }
-        }
-      }
-    }
   }
   select {
     margin-bottom: 8px;
   }
-
+  .form-field {
+    position: relative;
+    .show-password {
+      position: absolute;
+      top: 41px;
+      right: 18px;
+      img.content-mask {
+        background-color: #B6BDC2;
+      }
+      &.show {
+        img.content-mask {
+          background-color: #39F;
+        }
+      }
+    }
+  }
   input {
     box-sizing: border-box;
     height: 50px;
@@ -401,7 +400,7 @@
 
 .page.opaque {
   img {
-    width: 100%;
+    width: 550px;
   }
   h1 {
     color: #000;
@@ -642,6 +641,22 @@
       background-color: #FFF;
       border: 2px solid #E8EBED;
       margin-bottom: 25px;
+    }
+    .form-field {
+      position: relative;
+      .show-password {
+        position: absolute;
+        top: 41px;
+        right: 18px;
+        img.content-mask {
+          background-color: #B6BDC2;
+        }
+        &.show {
+          img.content-mask {
+            background-color: #39F;
+          }
+        }
+      }
     }
   }
 }

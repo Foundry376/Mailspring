@@ -33,7 +33,7 @@ export default {
           },
           showUnreadForAllCategories: {
             type: 'boolean',
-            default: false,
+            default: true,
             title: 'Show unread counts for all folders / labels',
           },
           use24HourClock: {

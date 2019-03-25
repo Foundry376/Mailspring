@@ -299,116 +299,23 @@ export default class Messages extends PureComponent {
       }
     }, 10);
   }
-  downQueue = [];
-  savedFiles = [];
-  downConfig = null;
 
   download = (msgBody) => {
     event.stopPropagation();
     event.preventDefault();
-    this.savedFiles = [];
     const fileName = msgBody.path ? path.basename(msgBody.path) : '';
     let pathForSave = dialog.showSaveDialog({ title: `download file`, defaultPath: fileName });
     if (!pathForSave || typeof pathForSave !== 'string') {
       return;
     }
-    const downConfig = {
+    const loadConfig = {
       msgBody,
-      pathForSave,
+      filepath: pathForSave,
+      type:'download'
     }
-    if (this.downQueue.length) {
-      this.downQueue.push(downConfig)
-    } else {
-      this.downQueue = [downConfig];
-      this.downloadMessageFile(downConfig);
-    }
+    const { queueLoadMessage } = this.props;
+    queueLoadMessage(loadConfig);
   };
-
-  cancelDownloadMessageFile = () => {
-    if (this.downConfig && this.downConfig.request && this.downConfig.request.abort) {
-      this.downConfig.request.abort();
-    }
-    this.downConfig = null;
-    this.downQueue = [];
-    const progress = { visible: false, downQueue: this.downQueue };
-    const state = Object.assign({}, this.state, { progress });
-    this.setState(state);
-  }
-
-  downloadMessageFile = (downConfig) => {
-    this.downConfig = downConfig;
-    const { msgBody, pathForSave } = downConfig;
-    const filename = path.basename(pathForSave);
-    const progress = Object.assign({}, this.state.progress, { filename, percent: 0, downQueue: this.downQueue, visible: true });
-    const state = Object.assign({}, this.state, { progress });
-    this.setState(state);
-    const downloadCallback = () => {
-      let downConfig = this.downQueue.shift();
-      this.savedFiles.push(path.basename(downConfig.pathForSave));
-      if (!this.downQueue.length) {
-        this.downConfig = null;
-        const progress = {
-          percent: 100,
-          visible: true,
-          savedFiles: this.savedFiles,
-          downQueue: []
-        };
-        const state = Object.assign({}, this.state, { progress });
-        this.setState(state);
-      } else {
-        const progress = {
-          percent: 100,
-          visible: true,
-          savedFiles: this.savedFiles,
-          downQueue: this.downQueue
-        };
-        const state = Object.assign({}, this.state, { progress });
-        this.setState(state);
-        downConfig = this.downQueue[0];
-        this.downloadMessageFile(downConfig);
-      }
-    }
-    if (msgBody.path && msgBody.path.match(/^file:\/\//)) {
-      // the file is an image and it has been downloaded to local while the message was received
-      let imgpath = msgBody.path.replace('file://', '');
-      fs.copyFileSync(imgpath, pathForSave);
-      downloadCallback();
-    } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
-      // the file is on aws
-      const downloadProgressCallback = progress => {
-        const { loaded, total } = progress;
-        const percent = Math.floor(+loaded * 100.0 / (+total));
-        progress = Object.assign({}, this.state.progress, { percent });
-        const state = Object.assign({}, this.state, { progress });
-        this.setState(state);
-      }
-      this.downConfig.request = downloadFile(msgBody.aes, msgBody.mediaObjectId, pathForSave, downloadCallback, downloadProgressCallback);
-    } else {
-      // the file is a link to the web outside aws
-      let request;
-      if (msgBody.mediaObjectId.match(/^https/)) {
-        request = https;
-      } else {
-        request = http;
-      }
-      request.get(msgBody.mediaObjectId, function (res) {
-        var imgData = '';
-        res.setEncoding('binary');
-        res.on('data', function (chunk) {
-          imgData += chunk;
-        });
-        res.on('end', function () {
-          fs.writeFile(pathForSave, imgData, 'binary', function (err) {
-            if (err) {
-              console.log('down fail');
-            }
-            console.log('down success');
-            downloadCallback();
-          });
-        });
-      });
-    }
-  }
 
   showPopupMenu = (msg, msgBody) => {
     this.activeMsg = msg;
@@ -475,18 +382,17 @@ export default class Messages extends PureComponent {
         onScroll={this.calcTimeLabel}
         tabIndex="0"
       >
-        <ProgressBar progress={this.state.progress} onCancel={this.cancelDownloadMessageFile} />
         <SecurePrivate />
         {jid !== NEW_CONVERSATION && groupedMessages.map((group, index) => (
           <div className="message-group" key={index}>
             <div className="day-label">
               <label>
-                <Divider type="horizontal" />
+                <Divider type="horizontal"/>
                 {nearDays(group.time) ? (
-                  <div className="day-label-text">
-                    <span className='span1'>{dateFormat(group.time)}</span>
-                    <span className='span2'>{dateFormatDigit(group.time)}</span>
-                  </div>) :
+                    <div className="day-label-text">
+                      <span className='span1'>{dateFormat(group.time)}</span>
+                      <span className='span2'>{dateFormatDigit(group.time)}</span>
+                    </div>) :
                   (
                     <div className="day-label-text">
                       <span className='span1'>{weekDayFormat(group.time)}</span>

@@ -70,7 +70,6 @@ export const dateFormat = (timestamp, format) => {
     return moment(timestamp).format(format);
   }
   const str =  moment(timestamp).calendar(currentTime, DAY_LABEL_FORMATS);
-  console.log('dbg*** dateFormat str: ', currentTime, str);
   return str;
 
 }
@@ -79,8 +78,7 @@ export const dateFormatDigit = (timestamp) => {
   if (typeof timestamp === 'string') {
     timestamp = parseInt(timestamp);
   }
-  const str = moment(timestamp).format('MMM d');
-  console.log('dbg*** dateFormatDigit str: ', currentTime, str);
+  const str = moment(timestamp).format('MMM D');
   return str;
 }
 
@@ -89,7 +87,6 @@ export const weekDayFormat = (timestamp) => {
     timestamp = parseInt(timestamp);
   }
   const str = moment(timestamp).format('ddd');
-  console.log('dbg*** weekDayFormat str: ', str);
   return str;
 }
 

@@ -100,6 +100,7 @@
     "rxdb": "^8.0.1",
     "rxjs": "^6.3.3",
     "rxjs-compat": "^6.3.3",
+    "s3": "^4.4.0",
     "sasl-anonymous": "^0.1.0",
     "sasl-external": "^0.1.0",
     "sasl-plain": "^0.1.0",
