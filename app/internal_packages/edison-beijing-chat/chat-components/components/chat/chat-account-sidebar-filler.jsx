@@ -39,7 +39,8 @@ export default class ChatAccountSidebarFiller extends PureComponent {
   }
 
   render() {
+    const height =this.state.expand * this.state.selfHeight;
     return <div className='chat-account-sidebar-filler' ref={ref => this.selfNode = ref}
-                style={{ height: this.state.expand * this.state.selfHeight }}/>;
+                style={{ height: isFinite(height) ? height: 0}}/>;
   }
 }
