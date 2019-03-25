@@ -26,15 +26,16 @@ export default class OAuthSignInPage extends React.Component {
     serviceName: PropTypes.string,
   };
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this._mounted = false;
     this.state = {
       authStage: 'initial',
       showAlternative: false,
       open: false,
       url: null,
-      loading: true
+      loading: true,
+      isYahoo: /yahoo/g.test(props.providerAuthPageUrl)
     };
   }
 
@@ -214,7 +215,24 @@ export default class OAuthSignInPage extends React.Component {
       webview.addEventListener(event, listeners[event]);
     }
 
-    if (/yahoo/g.test(this.props.providerAuthPageUrl)) {
+    if (this.state.isYahoo) {
+      webview.getWebContents().executeJavaScript(`
+      function deleteAllCookies() {
+          var cookies = document.cookie.split(";");
+          if (cookies.length > 0) {
+              for (var i = 0; i < cookies.length; i++) {
+                  var cookie = cookies[i];
+                  var eqPos = cookie.indexOf("=");
+                  var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                  name = name.trim();
+                  document.cookie = name + "=;expires=" + new Date(0).toUTCString() + "; path=/; domain=.yahoo.com";
+              }
+          }
+      }
+      deleteAllCookies();
+    `, false, () => {
+          webview.reload();
+        });
       webview.setAttribute('preload', '../internal_packages/onboarding/lib/oauth-inject-yahoo.js');
     }
   }
@@ -226,7 +244,7 @@ export default class OAuthSignInPage extends React.Component {
   }
 
   render() {
-    const { authStage, loading } = this.state;
+    const { authStage, loading, isYahoo } = this.state;
     const defaultOptions = {
       height: '100%',
       width: '100%',
@@ -243,7 +261,6 @@ export default class OAuthSignInPage extends React.Component {
       left: 0,
       zIndex: 2,
     }
-    const isYahoo = /yahoo/g.test(this.props.providerAuthPageUrl);
     return (
       <div className={`page account-setup oauth ${this.props.serviceName.toLowerCase()}`}>
         {authStage === 'buildingAccount' || authStage === 'accountSuccess' ? (
