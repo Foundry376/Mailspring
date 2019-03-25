@@ -367,7 +367,10 @@
     color:white;
     background-color: #63a2ff;
     border-radius: 12px;
-    z-index:400;
+    z-index:9000;
+    &:hover {
+      z-index:9000;
+    }
     .progress-prompt {
       margin-left:5px;
     }
@@ -398,13 +401,21 @@
       position: absolute;
       top: 5px;
       right: 5px;
+      width:80px;
+      height:40px;
       font-color: white;
       .textButton {
         display: inline-block;
         position: relative;
-        top:-5px;
+      }
+      svg {
+        position: absolute;
+        right: 0px;
       }
     }
+  }
+  &:hover {
+
   }
 
 }

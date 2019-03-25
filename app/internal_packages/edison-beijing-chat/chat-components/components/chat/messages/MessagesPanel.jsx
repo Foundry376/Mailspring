@@ -14,7 +14,7 @@ import InviteGroupChatList from '../new/InviteGroupChatList';
 import xmpp from '../../../xmpp/index';
 import chatModel, { saveToLocalStorage } from '../../../store/model';
 import getDb from '../../../db';
-import { uploadFile } from '../../../utils/awss3';
+import { downloadFile, uploadFile, uploadProgressly } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
@@ -29,6 +29,15 @@ import keyMannager from '../../../../../../src/key-manager';
 import MemberProfile from '../conversations/MemberProfile';
 import Notification from '../../../../../../src/components/notification';
 import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
+import fs from "fs";
+import https from "https";
+import http from "http";
+import ProgressBar from '../../common/ProgressBar';
+import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
+import { beginStoringMessage } from '../../../actions/db/message';
+import { updateSelectedConversation } from '../../../actions/db/conversation';
+const remote = require('electron').remote;
+const { dialog } = remote;
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 window.registerLoginChatAccounts = registerLoginChatAccounts;
@@ -80,7 +89,10 @@ export default class MessagesPanel extends PureComponent {
     membersTemp: null,
     online: true,
     connecting: false,
-    moreBtnEl: null
+    moreBtnEl: null,
+    progress: {
+      loadQueue: null
+    },
   }
 
   onUpdateGroup = async (contacts) => {
@@ -387,6 +399,144 @@ export default class MessagesPanel extends PureComponent {
     registerLoginChatAccounts();
   }
 
+  loadQueue = null;
+  loading = false;
+  loadIndex = 0;
+
+  queueLoadMessage = (loadConfig) => {
+    console.log('dbg*** queueLoadMessage: ', loadConfig);
+    this.loadQueue = this.loadQueue || [];
+    this.loadQueue.push(loadConfig);
+    if (!this.loading) {
+      this.loadMessageFile();
+    }
+  };
+
+  cancelLoadMessageFile  = () => {
+    const loadConfig = this.loadQueue[this.loadIndex];
+    console.log('dbg*** cancelLoadMessageFile: ', loadConfig, this.loadQueue);
+    if (loadConfig && loadConfig.request && loadConfig.request.abort) {
+      loadConfig.request.abort();
+    }
+    this.loadQueue = null;
+    this.loadIndex = 0;
+    this.loading = false;
+    const progress = {loadQueue: this.loadQueue};
+    const state = Object.assign({}, this.state, {progress});
+    this.setState(state);
+  }
+
+  loadMessageFile = () => {
+    this.loading = true;
+    const loadConfig = this.loadQueue[this.loadIndex];
+    const {msgBody, filepath} = loadConfig;
+    const progress = Object.assign({}, this.state.progress, {loadQueue:this.loadQueue, loadIndex: this.loadIndex, percent:0});
+    const state = Object.assign({}, this.state, {progress});
+    this.setState(state);
+
+    const loadCallback = (...args) => {
+      const loadConfig = this.loadQueue[this.loadIndex];
+      console.log('dbg*** loadCallback: ', loadConfig);
+      this.loadIndex++;
+      if (this.loadIndex === this.loadQueue.length) {
+        const progress = Object.assign({}, this.state.progress, {loadQueue:this.loadQueue, loadIndex: this.loadIndex});
+        const state = Object.assign({}, this.state, { progress });
+        this.setState(state);
+        this.loading = false;
+      } else {
+        this.loadMessageFile();
+      }
+      if (loadConfig.type==='upload'){
+        const onMessageSubmitted = this.props.sendMessage;
+        const [err, _, myKey, size] = args;
+        const conversation = loadConfig.conversation;
+        const messageId = loadConfig.messageId;
+        let body = loadConfig.msgBody;
+        body.type = FILE_TYPE.OTHER_FILE;
+        body.isUploading = false;
+        body.mediaObjectId = myKey;
+        console.log('dbg*** before onMessageSubmitted body: ', body);
+        debugger;
+        body = JSON.stringify(body);
+        if (err) {
+          console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
+          const message = {
+            id: messageId,
+            conversationJid: conversation.jid,
+            body,
+            sender: conversation.curJid,
+            sentTime: (new Date()).getTime() + chatModel.diffTime,
+            status: MESSAGE_STATUS_UPLOAD_FAILED,
+          };
+          chatModel.store.dispatch(beginStoringMessage(message));
+          chatModel.store.dispatch(updateSelectedConversation(conversation));
+          return;
+        } else {
+          onMessageSubmitted(conversation, body, messageId, false);
+        }
+      }
+    }
+
+    const loadProgressCallback = progress => {
+      const {loaded, total} = progress;
+      console.log('dbg*** loadProgressCallback: ', loaded, total);
+      const percent = Math.floor(+loaded*100.0/(+total));
+      progress = Object.assign({}, this.state.progress, { percent });
+      const state = Object.assign({}, this.state, {progress});
+      this.setState(state);
+    }
+    console.log('dbg*** loadMessageFile: ', loadConfig, msgBody);
+    if ( loadConfig.type === 'upload') {
+      const conversation = loadConfig.conversation;
+      const atIndex = conversation.jid.indexOf('@');
+      let jidLocal = conversation.jid.slice(0, atIndex);
+      debugger;
+      uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
+    } else if (msgBody.path && msgBody.path.match(/^file:\/\//)) {
+      // the file is an image and it has been downloaded to local while the message was received
+      let imgpath = msgBody.path.replace('file://', '');
+      fs.copyFileSync(imgpath, filepath);
+      loadCallback();
+    } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
+      // the file is on aws
+      loadConfig.request = downloadFile(msgBody.aes, msgBody.mediaObjectId, filepath, loadCallback, loadProgressCallback);
+    } else {
+      // the file is a link to the web outside aws
+      let request;
+      if (msgBody.mediaObjectId.match(/^https/)) {
+        request = https;
+      } else {
+        request = http;
+      }
+      request.get(msgBody.mediaObjectId, function (res) {
+        var imgData = '';
+        res.setEncoding('binary');
+        res.on('data', function (chunk) {
+          imgData += chunk;
+        });
+        res.on('end', function () {
+          fs.writeFile(filepath, imgData, 'binary', function (err) {
+            if (err) {
+              console.log('down fail');
+            } else {
+              console.log('down success');
+            }
+            loadCallback();
+          });
+        });
+      });
+    }
+  }
+  testUpload() {
+    let filepath = dialog.showOpenDialog({ title: `upload file`})[0];
+    debugger;
+    if (!filepath || typeof filepath !== 'string') {
+      return;
+    }
+    // uploadFile('400382', null, filepath);
+    uploadProgressly('400382', null, filepath);
+  }
+
   render() {
     const { showConversationInfo, inviting, members } = this.state;
     const {
@@ -427,6 +577,7 @@ export default class MessagesPanel extends PureComponent {
       referenceTime,
       selectedConversation,
       onMessageSubmitted: sendMessage,
+      queueLoadMessage: this.queueLoadMessage,
     };
     const notifications = this.getNotifications() || [];
     const notificationsProps = {
@@ -435,6 +586,7 @@ export default class MessagesPanel extends PureComponent {
     const sendBarProps = {
       onMessageSubmitted: sendMessage,
       selectedConversation,
+      queueLoadMessage: this.queueLoadMessage,
     };
     const infoProps = {
       selectedConversation,
@@ -488,6 +640,8 @@ export default class MessagesPanel extends PureComponent {
                 ) : (
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
+                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile}/>
+                      <div onClick={this.testUpload} style={{zIndex:99999, display:'none'}}> test upload </div>
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       <Notifications {...notificationsProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (
