@@ -88,7 +88,7 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
     return request;
 }
 
-export const uploadFile = (oid, aes, file, callback) => {
+export const uploadFile = (oid, aes, file, callback, progressCallback) => {
 
     let filename = path.basename(file);
     let size;
@@ -115,9 +115,13 @@ export const uploadFile = (oid, aes, file, callback) => {
         }
 
         var uploadParams = { Bucket: myBucket, Key: myKey, Body: fileStream };//,ACL: 'public-read'};
-        const request = s3.putObject(uploadParams);
+        const request = s3.upload(uploadParams);
+        //console.log("dbg*** uploadFile: ", request, uploadParams, aes, file, fileStream);
         request.on('httpUploadProgress', function (progress) {
-          console.log(progress.loaded + " of " + progress.total + " bytes");
+          //console.log("dbg*** uploadFile: progress:", progress.loaded + " of " + progress.total + " bytes");
+          if (progressCallback) {
+            progressCallback(progress)
+          }
           if (callback && +progress.loaded == +progress.total) {
             callback(null, filename, myKey, size);
             console.log("Upload Success", data);
@@ -142,7 +146,7 @@ export const uploadProgressly = (oid, aes, file, callback, progressCallBack) => 
     var params = {
       localFile: file,
       s3Params: {
-        Bucket: myBucket+' wrong bucket',
+        Bucket: myBucket,
         Key: myKey,
       },
     };

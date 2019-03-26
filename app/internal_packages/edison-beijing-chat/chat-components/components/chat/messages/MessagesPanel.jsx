@@ -36,6 +36,7 @@ import ProgressBar from '../../common/ProgressBar';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
+import { sendFileMessage } from '../../../utils/message';
 const remote = require('electron').remote;
 const { dialog } = remote;
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -146,11 +147,11 @@ export default class MessagesPanel extends PureComponent {
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     const email = Object.keys(chatAccounts)[0];
     let accessToken = await keyMannager.getAccessTokenByEmail(email);
-    let { err, res } = await checkToken(accessToken);
-    if (err || !res || res.resultCode !== 1) {
-      await refreshChatAccountTokens()
-      accessToken = await keyMannager.getAccessTokenByEmail(email);
-    }
+    // let { err, res } = await checkToken(accessToken);
+    // if (err || !res || res.resultCode !== 1) {
+    await refreshChatAccountTokens()
+    accessToken = await keyMannager.getAccessTokenByEmail(email);
+    // }
     const emails = emailContacts.map(contact => contact.email);
     queryProfile({ accessToken, emails }, (err, res) => {
       if (!res) {
@@ -299,40 +300,7 @@ export default class MessagesPanel extends PureComponent {
 
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
 
-    files.map((file, index) => {
-      let message = 'file received';
-      let body = {
-        type: 1,
-        timeSend: new Date().getTime(),
-        content: 'sending...',
-        email: selectedConversation.email,
-        name: selectedConversation.name,
-        isUploading: true,
-        mediaObjectId: '',
-      };
-      if (file.match(/.gif$/)) {
-        body.type = FILE_TYPE.GIF;
-      } else if (file.match(/(\.bmp|\.png|\.jpg\.jpeg)$/)) {
-        body.type = FILE_TYPE.IMAGE;
-      } else {
-        body.type = FILE_TYPE.OTHER_FILE;
-      }
-      const messageId = uuid();
-      onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
-      uploadFile(jidLocal, null, file, (err, filename, myKey, size) => {
-        if (err) {
-          alert(`upload files failed because error: ${err}, filename: ${filename}`);
-          return;
-        }
-        body.content = " ";
-        body.isUploading = false;
-        body.mediaObjectId = myKey;
-        body.occupants = [];
-        body.atJids = [];
-        body.localFile = file;
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
-      });
-    })
+    files.map((file, index) => sendFileMessage(file, index, this, ' '));
   }
 
   createRoom = () => {
@@ -404,7 +372,7 @@ export default class MessagesPanel extends PureComponent {
   loadIndex = 0;
 
   queueLoadMessage = (loadConfig) => {
-    console.log('dbg*** queueLoadMessage: ', loadConfig);
+    // console.log('dbg*** queueLoadMessage: ', loadConfig);
     this.loadQueue = this.loadQueue || [];
     this.loadQueue.push(loadConfig);
     if (!this.loading) {
@@ -412,41 +380,41 @@ export default class MessagesPanel extends PureComponent {
     }
   };
 
-  cancelLoadMessageFile  = () => {
+  cancelLoadMessageFile = () => {
     const loadConfig = this.loadQueue[this.loadIndex];
-    console.log('dbg*** cancelLoadMessageFile: ', loadConfig, this.loadQueue);
+    // console.log('dbg*** cancelLoadMessageFile: ', loadConfig, this.loadQueue);
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
       loadConfig.request.abort();
     }
     this.loadQueue = null;
     this.loadIndex = 0;
     this.loading = false;
-    const progress = {loadQueue: this.loadQueue};
-    const state = Object.assign({}, this.state, {progress});
+    const progress = { loadQueue: this.loadQueue };
+    const state = Object.assign({}, this.state, { progress });
     this.setState(state);
   }
 
   loadMessageFile = () => {
     this.loading = true;
     const loadConfig = this.loadQueue[this.loadIndex];
-    const {msgBody, filepath} = loadConfig;
-    const progress = Object.assign({}, this.state.progress, {loadQueue:this.loadQueue, loadIndex: this.loadIndex, percent:0});
-    const state = Object.assign({}, this.state, {progress});
+    const { msgBody, filepath } = loadConfig;
+    const progress = Object.assign({}, this.state.progress, { loadQueue: this.loadQueue, loadIndex: this.loadIndex, percent: 0 });
+    const state = Object.assign({}, this.state, { progress });
     this.setState(state);
 
     const loadCallback = (...args) => {
       const loadConfig = this.loadQueue[this.loadIndex];
-      console.log('dbg*** loadCallback: ', loadConfig);
+      // console.log('dbg*** loadCallback: ', loadConfig);
       this.loadIndex++;
       if (this.loadIndex === this.loadQueue.length) {
-        const progress = Object.assign({}, this.state.progress, {loadQueue:this.loadQueue, loadIndex: this.loadIndex});
+        const progress = Object.assign({}, this.state.progress, { loadQueue: this.loadQueue, loadIndex: this.loadIndex });
         const state = Object.assign({}, this.state, { progress });
         this.setState(state);
         this.loading = false;
       } else {
         this.loadMessageFile();
       }
-      if (loadConfig.type==='upload'){
+      if (loadConfig.type === 'upload') {
         const onMessageSubmitted = this.props.sendMessage;
         const [err, _, myKey, size] = args;
         const conversation = loadConfig.conversation;
@@ -455,7 +423,7 @@ export default class MessagesPanel extends PureComponent {
         body.type = FILE_TYPE.OTHER_FILE;
         body.isUploading = false;
         body.mediaObjectId = myKey;
-        console.log('dbg*** before onMessageSubmitted body: ', body);
+        // console.log('dbg*** before onMessageSubmitted body: ', body);
         body = JSON.stringify(body);
         if (err) {
           console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
@@ -478,13 +446,13 @@ export default class MessagesPanel extends PureComponent {
 
     const loadProgressCallback = progress => {
       const {loaded, total} = progress;
-      console.log('dbg*** loadProgressCallback: ', loaded, total);
+      // console.log('dbg*** loadProgressCallback: ', loaded, total);
       const percent = Math.floor(+loaded*100.0/(+total));
       progress = Object.assign({}, this.state.progress, { percent });
-      const state = Object.assign({}, this.state, {progress});
+      const state = Object.assign({}, this.state, { progress });
       this.setState(state);
     }
-    console.log('dbg*** loadMessageFile: ', loadConfig, msgBody);
+    // console.log('dbg*** loadMessageFile: ', loadConfig, msgBody);
     if ( loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
@@ -524,14 +492,6 @@ export default class MessagesPanel extends PureComponent {
         });
       });
     }
-  }
-  testUpload() {
-    let filepath = dialog.showOpenDialog({ title: `upload file`})[0];
-    if (!filepath || typeof filepath !== 'string') {
-      return;
-    }
-    // uploadFile('400382', null, filepath);
-    uploadProgressly('400382', null, filepath);
   }
 
   render() {
@@ -638,7 +598,6 @@ export default class MessagesPanel extends PureComponent {
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
                       <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile}/>
-                      <div onClick={this.testUpload} style={{zIndex:99999}}> test upload </div>
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       <Notifications {...notificationsProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (
@@ -665,7 +624,9 @@ export default class MessagesPanel extends PureComponent {
             </div>
           </div> :
           <div className="unselectedHint">
-            <span>Select a conversation to start messaging</span>
+            <span>
+              <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
+            </span>
           </div>
         }
         {(!this.state.online || !this.props.chat_online) && (
@@ -685,9 +646,9 @@ export default class MessagesPanel extends PureComponent {
                 )
             ) : (<div>
               <RetinaImg name={'no-network.svg'}
-                         style={{ width: 15 }}
-                         isIcon
-                         mode={RetinaImg.Mode.ContentIsMask} />
+                style={{ width: 15 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask} />
               <span>Your computer appears to be offline.</span>
             </div>)}
           </div>

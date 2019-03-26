@@ -1,9 +1,18 @@
-import { isJsonStr } from './stringUtils';
+import { isImageFilePath, isJsonStr } from './stringUtils';
 import { copyRxdbMessage } from './db-utils';
 import groupByTime from 'group-by-time';
 
 import getDb from '../db';
 import chatModel from '../store/model';
+import path from "path";
+import fs from "fs";
+import uuid from 'uuid/v4';
+import { FILE_TYPE } from '../components/chat/messages/messageModel';
+import { uploadFile } from './awss3';
+import { MESSAGE_STATUS_UPLOAD_FAILED } from '../db/schemas/message';
+import { beginStoringMessage } from '../actions/db/message';
+import { updateSelectedConversation } from '../actions/db/conversation';
+var thumb = require('node-thumbnail').thumb;
 
 export const groupMessages = async messages => {
   const groupedMessages = [];
@@ -119,4 +128,119 @@ export const clearMessages = async (conversation) => {
     db.messages.upsert(msg);
   }
 }
+
+export const sendFileMessage = (file, index, reactInstance, messageBody) => {
+  const props = reactInstance.props;
+  const conversation = props.selectedConversation;
+  const onMessageSubmitted = props.onMessageSubmitted || props.sendMessage;
+  const queueLoadMessage = reactInstance.queueLoadMessage || props.queueLoadMessage;
+  let filepath;
+  if (typeof file === 'object') {
+    let id = file.id;
+    let configDirPath = AppEnv.getConfigDirPath();
+    filepath = path.join(configDirPath, 'files', id.slice(0, 2), id.slice(2, 4), id, file.filename);
+    if (!fs.existsSync(filepath)) {
+      alert(`the selected file to be sent is not downloaded  to this computer: ${filepath}, ${file.id}, ${file.filename}`);
+      return;
+    }
+  } else {
+    filepath = file;
+  }
+  let messageId, updating = false;
+  if (chatModel.editingMessageId) {
+    messageId = chatModel.editingMessageId;
+    updating = true;
+    chatModel.editingMessageId = null;
+  } else {
+    messageId = uuid();
+  }
+  let message;
+  if (index === 0) {
+    message = messageBody.trim();
+  } else {
+    message = '📄';
+  }
+  let body = {
+    type: FILE_TYPE.TEXT,
+    timeSend: new Date().getTime(),
+    isUploading: true,
+    content: 'sending...',
+    email: conversation.email,
+    name: conversation.name,
+    mediaObjectId: '',
+    localFile: filepath,
+    updating
+  };
+  if (file !== filepath) {
+    body.emailSubject = file.subject;
+    body.emailMessageId = file.messageId;
+  }
+  onMessageSubmitted(conversation, JSON.stringify(body), messageId, true);
+  if (!isImageFilePath(filepath)){
+    const loadConfig = {
+      conversation,
+      messageId,
+      msgBody: body,
+      filepath,
+      type:'upload',
+    }
+
+    queueLoadMessage(loadConfig);
+  } else {
+    const atIndex = conversation.jid.indexOf('@')
+    let jidLocal = conversation.jid.slice(0, atIndex);
+    uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
+      const sendUploadMessage = thumbKey => {
+        body.localFile = filepath;
+        body.isUploading = false;
+        body.content = message || " ";
+        body.mediaObjectId = myKey;
+        if (thumbKey){
+          body.thumbObjectId = thumbKey;
+        }
+        body.occupants = reactInstance.state.occupants || [];
+        body.atJids = reactInstance.getAtTargetPersons && reactInstance.getAtTargetPersons() || [];
+        body = JSON.stringify(body);
+        if (err) {
+          console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
+          const message = {
+            id: messageId,
+            conversationJid: conversation.jid,
+            body,
+            sender: conversation.curJid,
+            sentTime: (new Date()).getTime() + chatModel.diffTime,
+            status: MESSAGE_STATUS_UPLOAD_FAILED,
+          };
+          chatModel.store.dispatch(beginStoringMessage(message));
+          chatModel.store.dispatch(updateSelectedConversation(conversation));
+          return;
+        } else {
+          onMessageSubmitted(conversation, body, messageId, false);
+        }
+      }
+      if (filename.match(/.gif$/)) {
+        body.type = FILE_TYPE.GIF;
+        sendUploadMessage(null);
+      } else {
+        body.type = FILE_TYPE.IMAGE;
+        let thumbPath = path.join(path.dirname(filepath), path.basename(filepath).replace(/\.\w*$/, '_thumb')+path.extname(filepath));
+        thumb({
+          source: filepath,
+          destination: path.dirname(filepath)
+        }, function(files, err, stdout, stderr) {
+          const thumbExist = fs.existsSync(thumbPath);
+          if (thumbExist) {
+            uploadFile(jidLocal, null, thumbPath, (err, filename, thumbKey, size) => {
+              sendUploadMessage(thumbKey);
+              fs.unlinkSync(thumbPath);
+            });
+          } else {
+            sendUploadMessage(null);
+          }
+        });
+      }
+    });
+  }
+}
+
 

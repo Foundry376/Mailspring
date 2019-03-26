@@ -33,7 +33,7 @@ class EmptyPerspectiveState extends React.Component {
     return (
       <div className="perspective-empty-state">
         {name && (
-          <RetinaImg name={`ic-emptystate-${name}.png`} mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={`ic-emptystate-${name}.png`} mode={RetinaImg.Mode.ContentPreserve} />
         )}
         <div className="message">{messageContent}</div>
       </div>

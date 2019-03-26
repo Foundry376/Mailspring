@@ -47,7 +47,7 @@ class FormField extends React.Component {
               onClick={this.toggleShowPassword}
             >
               <RetinaImg
-                name="show-password.svg"
+                name={this.state.show_password ? 'show-password.svg' : 'readReceipts.svg'}
                 isIcon
                 mode={RetinaImg.Mode.ContentIsMask}
                 style={{ width: 20 }}
