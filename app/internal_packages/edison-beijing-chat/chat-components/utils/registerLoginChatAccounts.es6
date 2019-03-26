@@ -22,7 +22,7 @@ export default async function registerLoginChatAccounts() {
     let leftTime = 0;
     let passedTime = ((new Date()).getTime() - chatAccount.refreshTime || 0) / 1000;// seconds
     leftTime = chatAccount.expiresIn - passedTime;
-    console.log('dbg*** after await register 0: ');
+    // console.log('dbg*** after await register 0: ');
 
     if (!chatAccount.password || (leftTime < 2 * 24 * 3600)) {
       acc.clone = () => Object.assign({}, acc);
@@ -37,7 +37,7 @@ export default async function registerLoginChatAccounts() {
         type = 1;
       }
       let { err, res } = await register(acc.emailAddress, acc.settings.imap_password || acc.settings.refresh_token, acc.name, type, acc.provider, acc.settings);
-      console.log('dbg*** after await register acc, type, acc.provider: ', acc, type, acc.provider, err, res);
+      // console.log('dbg*** after await register acc, type, acc.provider: ', acc, type, acc.provider, err, res);
       try {
         res = JSON.parse(res);
       } catch (e) {

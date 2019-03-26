@@ -23,6 +23,7 @@ import { beginStoringMessage } from '../../../actions/db/message';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import {isImageFilePath} from '../../../utils/stringUtils';
+import { sendFileMessage } from '../../../utils/message';
 
 var thumb = require('node-thumbnail').thumb;
 const FAKE_SPACE = '\u00A0';
@@ -174,109 +175,7 @@ export default class MessagesSendBar extends PureComponent {
 
 
     if (this.state.files.length) {
-      this.state.files.map((file, index) => {
-        let filepath;
-        if (typeof file === 'object') {
-          let id = file.id;
-          let configDirPath = AppEnv.getConfigDirPath();
-          filepath = path.join(configDirPath, 'files', id.slice(0, 2), id.slice(2, 4), id, file.filename);
-          if (!fs.existsSync(filepath)) {
-            alert(`the selected file to be sent is not downloaded  to this computer: ${filepath}, ${file.id}, ${file.filename}`);
-            return;
-          }
-        } else {
-          filepath = file;
-        }
-        let messageId, updating = false;
-        if (chatModel.editingMessageId) {
-          messageId = chatModel.editingMessageId;
-          updating = true;
-          chatModel.editingMessageId = null;
-        } else {
-          messageId = uuid();
-        }
-        let message;
-        if (index === 0) {
-          message = messageBody.trim();
-        } else {
-          message = '📄';
-        }
-        let body = {
-          type: FILE_TYPE.TEXT,
-          timeSend: new Date().getTime(),
-          isUploading: true,
-          content: 'sending...',
-          email: selectedConversation.email,
-          name: selectedConversation.name,
-          mediaObjectId: '',
-          localFile: filepath,
-          updating
-        };
-        if (file !== filepath) {
-          body.emailSubject = file.subject;
-          body.emailMessageId = file.messageId;
-        }
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
-        let once = false;
-        uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
-          if (once) {
-            return;
-          }
-          once = true;
-          const sendUploadMessage = thumbKey => {
-            body.localFile = filepath;
-            body.isUploading = false;
-            body.content = message || " ";
-            body.mediaObjectId = myKey;
-            if (thumbKey){
-              body.thumbObjectId = thumbKey;
-            }
-            body.occupants = occupants;
-            body.atJids = this.getAtTargetPersons();
-            body = JSON.stringify(body);
-            if (err) {
-              console.error(`${selectedConversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
-              const message = {
-                id: messageId,
-                conversationJid: selectedConversation.jid,
-                body,
-                sender: selectedConversation.curJid,
-                sentTime: (new Date()).getTime() + chatModel.diffTime,
-                status: MESSAGE_STATUS_UPLOAD_FAILED,
-              };
-              chatModel.store.dispatch(beginStoringMessage(message));
-              chatModel.store.dispatch(updateSelectedConversation(selectedConversation));
-              return;
-            } else {
-              onMessageSubmitted(selectedConversation, body, messageId, false);
-            }
-          }
-          if (filename.match(/.gif$/)) {
-            body.type = FILE_TYPE.GIF;
-            sendUploadMessage(null);
-          } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
-            body.type = FILE_TYPE.IMAGE;
-            let thumbPath = path.join(path.dirname(filepath), path.basename(filepath).replace(/\.\w*$/, '_thumb')+path.extname(filepath));
-            thumb({
-              source: filepath,
-              destination: path.dirname(filepath)
-            }, function(files, err, stdout, stderr) {
-              const thumbExist = fs.existsSync(thumbPath);
-              if (thumbExist) {
-                uploadFile(jidLocal, null, thumbPath, (err, filename, thumbKey, size) => {
-                  sendUploadMessage(thumbKey);
-                  fs.unlinkSync(thumbPath);
-                });
-              } else {
-                sendUploadMessage(null);
-              }
-            });
-          } else {
-            body.type = FILE_TYPE.OTHER_FILE;
-            sendUploadMessage(null);
-          }
-        });
-      })
+      this.state.files.map((file, index) => sendFileMessage(file, index, this, messageBody));
     } else {
       let message = messageBody.trim();
       if (message) {
@@ -299,10 +198,8 @@ export default class MessagesSendBar extends PureComponent {
         }
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
       }
-
     }
     this.setState({ messageBody: '', files: [] });
-    // this.refs.mention.reset();
   }
 
   onFileChange = event => {
