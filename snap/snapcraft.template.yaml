@@ -26,12 +26,11 @@ parts:
     source: ./app/dist/mailspring-MAILSPRING_VERSION-amd64.deb
     source-type: deb
     # Correct path to icon.
-    prepare: |
-      sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' usr/share/applications/mailspring.desktop
     after:
       - desktop-gtk3
     override-build: |
       set -ex
+      sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' usr/share/applications/mailspring.desktop
       snapcraftctl build
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/themes
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/icons
