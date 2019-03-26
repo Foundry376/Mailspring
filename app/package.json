@@ -132,7 +132,7 @@
     "xmpp-jid": "^1.0.0"
   },
   "optionalDependencies": {
-    "node-mac-notifier": "0.0.13"
+    "node-mac-notifier": "^1.1.0"
   },
   "devDependencies": {
     "electron-rebuild": "^1.8.4"
