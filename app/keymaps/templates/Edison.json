@@ -37,13 +37,13 @@
   "core:mute-conversation": "m",
   "core:focus-search": "/",
   "core:change-labels": "l",
-  "core:change-folders": "v",
+  "core:change-folders": "shift+mod+m",
   "core:focus-toolbar": ",",
-  "core:star-item": "s",
+  "core:star-item": "mod+s",
   "core:gmail-remove-from-view": "y",
-  "core:archive-item": "e",
-  "core:report-as-spam": "!",
-  "core:delete-item": "#",
+  "core:archive-item": "ctrl+mod+a",
+  "core:report-as-spam": "mod+shift+j",
+  "core:delete-item": "shift+backspace",
 
   "core:reply": ["r", "mod+r"],
   "core:reply-new-window": "shift+r",
@@ -56,7 +56,7 @@
   "core:remove-and-next": ["{", "["],
 
   "core:mark-as-read": "shift+i",
-  "core:mark-as-unread": ["shift+u", "_"],
+  "core:mark-as-unread": ["shift+mod+u", "_"],
   "core:mark-important": ["+", "="],
   "core:mark-unimportant": "-"
 }

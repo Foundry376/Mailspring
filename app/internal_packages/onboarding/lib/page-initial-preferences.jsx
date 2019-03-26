@@ -70,19 +70,19 @@ class InitialPreferencesOptions extends React.Component {
 
     if (this.props.account.provider === 'gmail') {
       this.props.config.set('core.workspace.mode', 'list');
-      this.props.config.set('core.keymapTemplate', templateWithBasename('Gmail'));
+      this.props.config.set('core.keymapTemplate', templateWithBasename('Edison'));
     } else if (
       this.props.account.provider === 'eas' ||
       this.props.account.provider === 'office365'
     ) {
       this.props.config.set('core.workspace.mode', 'split');
-      this.props.config.set('core.keymapTemplate', templateWithBasename('Outlook'));
+      this.props.config.set('core.keymapTemplate', templateWithBasename('Edison'));
     } else {
       this.props.config.set('core.workspace.mode', 'split');
       if (process.platform === 'darwin') {
-        this.props.config.set('core.keymapTemplate', templateWithBasename('Apple Mail'));
+        this.props.config.set('core.keymapTemplate', templateWithBasename('Edison'));
       } else {
-        this.props.config.set('core.keymapTemplate', templateWithBasename('Outlook'));
+        this.props.config.set('core.keymapTemplate', templateWithBasename('Edison'));
       }
     }
   };

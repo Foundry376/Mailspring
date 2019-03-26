@@ -22,7 +22,7 @@
   "core:forward": "mod+shift+f",
   "core:report-as-spam": "mod+shift+j",
   "core:mark-as-unread": "mod+shift+u",
-  "core:star-item": "mod+s",
+  "core:star-item": "mod+shift+l",
   "core:focus-search": "mod+alt+f",
   "core:archive-item": "command+ctrl+a",
 
