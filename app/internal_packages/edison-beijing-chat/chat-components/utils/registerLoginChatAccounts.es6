@@ -5,7 +5,7 @@ import { SUBMIT_AUTH } from '../actions/auth';
 
 export default async function registerLoginChatAccounts() {
   loadFromLocalStorage();
-  let accounts = AppEnv.config.get('accounts')
+  let accounts = AppEnv.config.get('accounts');
   let chatAccounts = AppEnv.config.get('chatAccounts') || {};
   for (let acc of accounts) {
     let chatAccount = chatAccounts[acc.emailAddress] || {};
@@ -22,22 +22,24 @@ export default async function registerLoginChatAccounts() {
     let leftTime = 0;
     let passedTime = ((new Date()).getTime() - chatAccount.refreshTime || 0) / 1000;// seconds
     leftTime = chatAccount.expiresIn - passedTime;
-    // console.log('dbg*** after await register 0: ');
 
     if (!chatAccount.password || (leftTime < 2 * 24 * 3600)) {
       acc.clone = () => Object.assign({}, acc);
       acc = await keyMannager.insertAccountSecrets(acc);
+      console.log("registerLoginChatAccounts acc.settings.refresh_token, acc.settings.imap_password, acc: ", acc.settings.refresh_token, acc.settings.imap_password, acc);
       if (acc.settings && !acc.settings.imap_password && !acc.settings.refresh_token) {
         console.error('email account passwords in keychain lost! ', acc);
         continue;
       }
       let email = acc.emailAddress;
-      let type = 0;
-      if (email.includes('gmail.com') || email.includes('edison.tech') || email.includes('mail.ru') || acc.provider === 'gmail') {
-        type = 1;
+      let type;
+      if (acc.settings.refresh_token) {
+        type = 1
+      } else {
+        type = 0
       }
-      let { err, res } = await register(acc.emailAddress, acc.settings.imap_password || acc.settings.refresh_token, acc.name, type, acc.provider, acc.settings);
-      // console.log('dbg*** after await register acc, type, acc.provider: ', acc, type, acc.provider, err, res);
+      let { err, res } = await register(acc.emailAddress, acc.settings.refresh_token || acc.settings.imap_password, acc.name, type, acc.provider, acc.settings);
+      console.log('after await register acc, type, acc.provider acc, type, acc.provider, err, res: ', acc, type, acc.provider, err, res);
       try {
         res = JSON.parse(res);
       } catch (e) {
