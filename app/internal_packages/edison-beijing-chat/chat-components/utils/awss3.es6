@@ -131,9 +131,9 @@ export const uploadFile = (oid, aes, file, callback) => {
 export const uploadProgressly = (oid, aes, file, callback, progressCallBack) => {
 
   let myKey = oid + '/' + uuid.v4() + path.extname(file);
-  if (1/*aes*/) {
+  if (aes) {
     let data = fs.readFileSync(file);
-    // data = encryptByAESFile(aes, data);
+    data = encryptByAESFile(aes, data);
     fs.writeFileSync(file, data);
     let data2 = fs.readFileSync(file);
     console.log('dbg*** original and writed data: ', data, data2);
@@ -146,7 +146,6 @@ export const uploadProgressly = (oid, aes, file, callback, progressCallBack) => 
         Key: myKey,
       },
     };
-    debugger
     let  client = hls3.createClient({s3options});
     console.log('dbg*** uploadProgressly client: ', client);
 
@@ -156,27 +155,11 @@ export const uploadProgressly = (oid, aes, file, callback, progressCallBack) => 
     });
     uploader.on('progress', function() {
       console.log("dbg*** upload progress", uploader.progressAmount, uploader.progressTotal);
-      if ( +uploader.progressAmount === +uploader.progressTotal ) {
-        setTimeout(() => {
-          params.localFile += '-2';
-          var downloader = client.downloadFile(params);
-          downloader.on('error', function(err) {
-            console.error("dbg*** error: unable to download:", err.stack);
-          });
-          downloader.on('progress', function() {
-            console.log("dbg*** download progress", downloader.progressAmount, downloader.progressTotal);
-          });
-          downloader.on('end', function() {
-            console.log("dbg*** done downloading");
-          }, 10000);
-        })
-      }
     });
     uploader.on('end', function() {
       console.log("dbg*** done uploading");
     });
     console.log('dbg*** uploadProgressly uploader: ', uploader);
-    debugger
     return uploader;
 }
 

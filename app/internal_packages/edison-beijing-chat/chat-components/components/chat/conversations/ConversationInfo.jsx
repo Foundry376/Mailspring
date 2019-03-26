@@ -195,7 +195,7 @@ export default class ConversationInfo extends Component {
               )
             })
           }
-          {conversation.isGroup && !this.currentUserIsOwner && (
+          {(conversation.isGroup && !this.currentUserIsOwner) && (
             <div className="add-to-group"
               onClick={this.exitGroup}>
               Exit from Group

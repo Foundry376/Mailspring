@@ -456,7 +456,6 @@ export default class MessagesPanel extends PureComponent {
         body.isUploading = false;
         body.mediaObjectId = myKey;
         console.log('dbg*** before onMessageSubmitted body: ', body);
-        debugger;
         body = JSON.stringify(body);
         if (err) {
           console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
@@ -490,7 +489,6 @@ export default class MessagesPanel extends PureComponent {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
-      debugger;
       uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
     } else if (msgBody.path && msgBody.path.match(/^file:\/\//)) {
       // the file is an image and it has been downloaded to local while the message was received
@@ -529,7 +527,6 @@ export default class MessagesPanel extends PureComponent {
   }
   testUpload() {
     let filepath = dialog.showOpenDialog({ title: `upload file`})[0];
-    debugger;
     if (!filepath || typeof filepath !== 'string') {
       return;
     }
@@ -641,7 +638,7 @@ export default class MessagesPanel extends PureComponent {
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
                       <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile}/>
-                      <div onClick={this.testUpload} style={{zIndex:99999, display:'none'}}> test upload </div>
+                      <div onClick={this.testUpload} style={{zIndex:99999}}> test upload </div>
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       <Notifications {...notificationsProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (
