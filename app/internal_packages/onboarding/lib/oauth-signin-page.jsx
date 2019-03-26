@@ -198,6 +198,10 @@ export default class OAuthSignInPage extends React.Component {
       this.refs.webview.blur();
     }
   }
+  _pasteIntoWebview = () =>{
+    const contents = this.refs.webview;
+    contents.insertText(clipboard.readText());
+  }
 
   _setupWebview = () => {
     const webview = ReactDOM.findDOMNode(this.refs.webview);
@@ -209,6 +213,7 @@ export default class OAuthSignInPage extends React.Component {
       'did-finish-load': this._loaded,
       // 'did-get-response-details': this._webviewDidGetResponseDetails,
       'console-message': this._onConsoleMessage,
+      'core:paste': this._pasteIntoWebview
     };
 
     for (const event of Object.keys(listeners)) {

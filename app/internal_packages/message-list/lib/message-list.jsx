@@ -24,6 +24,8 @@ import {
 
 import FindInThread from './find-in-thread';
 import MessageItemContainer from './message-item-container';
+import { remote } from 'electron';
+const { Menu, MenuItem } = remote;
 
 const buttonTimeout = 700;
 
@@ -469,6 +471,29 @@ class MessageList extends React.Component {
       popedOut: MessageStore.isPopedOut(),
     };
   }
+  _onSelectText= e =>{
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const textNode = e.currentTarget.childNodes[0];
+    const range = document.createRange();
+    range.setStart(textNode, 0);
+    range.setEnd(textNode, textNode.length);
+    const selection = document.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
+  _onContactContextMenu = (subject) => {
+    const menu = new Menu();
+    menu.append(new MenuItem({ role: 'copy' }));
+    menu.append(new MenuItem({
+        label: `Search for "${subject}`,
+        click: () => Actions.searchQuerySubmitted(`subject:"${subject}"`),
+      })
+    );
+    menu.popup({});
+  };
 
   _renderSubject() {
     let subject = this.state.currentThread.subject;
@@ -479,7 +504,10 @@ class MessageList extends React.Component {
     return (
       <div className="message-subject-wrap">
         <div style={{ flex: 1, flexWrap: 'wrap' }}>
-          <span className="message-subject">{subject}</span>
+          <span className="message-subject"
+                onClick={this._onSelectText}
+                onContextMenu={this._onContactContextMenu.bind(this, subject)}
+          >{subject}</span>
           <MailImportantIcon thread={this.state.currentThread} />
           <MailLabelSet
             removable
