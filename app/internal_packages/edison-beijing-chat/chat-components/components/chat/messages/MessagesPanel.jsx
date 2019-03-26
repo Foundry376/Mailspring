@@ -146,11 +146,11 @@ export default class MessagesPanel extends PureComponent {
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     const email = Object.keys(chatAccounts)[0];
     let accessToken = await keyMannager.getAccessTokenByEmail(email);
-    let { err, res } = await checkToken(accessToken);
-    if (err || !res || res.resultCode !== 1) {
-      await refreshChatAccountTokens()
-      accessToken = await keyMannager.getAccessTokenByEmail(email);
-    }
+    // let { err, res } = await checkToken(accessToken);
+    // if (err || !res || res.resultCode !== 1) {
+    await refreshChatAccountTokens()
+    accessToken = await keyMannager.getAccessTokenByEmail(email);
+    // }
     const emails = emailContacts.map(contact => contact.email);
     queryProfile({ accessToken, emails }, (err, res) => {
       if (!res) {
@@ -412,7 +412,7 @@ export default class MessagesPanel extends PureComponent {
     }
   };
 
-  cancelLoadMessageFile  = () => {
+  cancelLoadMessageFile = () => {
     const loadConfig = this.loadQueue[this.loadIndex];
     console.log('dbg*** cancelLoadMessageFile: ', loadConfig, this.loadQueue);
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
@@ -421,17 +421,17 @@ export default class MessagesPanel extends PureComponent {
     this.loadQueue = null;
     this.loadIndex = 0;
     this.loading = false;
-    const progress = {loadQueue: this.loadQueue};
-    const state = Object.assign({}, this.state, {progress});
+    const progress = { loadQueue: this.loadQueue };
+    const state = Object.assign({}, this.state, { progress });
     this.setState(state);
   }
 
   loadMessageFile = () => {
     this.loading = true;
     const loadConfig = this.loadQueue[this.loadIndex];
-    const {msgBody, filepath} = loadConfig;
-    const progress = Object.assign({}, this.state.progress, {loadQueue:this.loadQueue, loadIndex: this.loadIndex, percent:0});
-    const state = Object.assign({}, this.state, {progress});
+    const { msgBody, filepath } = loadConfig;
+    const progress = Object.assign({}, this.state.progress, { loadQueue: this.loadQueue, loadIndex: this.loadIndex, percent: 0 });
+    const state = Object.assign({}, this.state, { progress });
     this.setState(state);
 
     const loadCallback = (...args) => {
@@ -439,14 +439,14 @@ export default class MessagesPanel extends PureComponent {
       console.log('dbg*** loadCallback: ', loadConfig);
       this.loadIndex++;
       if (this.loadIndex === this.loadQueue.length) {
-        const progress = Object.assign({}, this.state.progress, {loadQueue:this.loadQueue, loadIndex: this.loadIndex});
+        const progress = Object.assign({}, this.state.progress, { loadQueue: this.loadQueue, loadIndex: this.loadIndex });
         const state = Object.assign({}, this.state, { progress });
         this.setState(state);
         this.loading = false;
       } else {
         this.loadMessageFile();
       }
-      if (loadConfig.type==='upload'){
+      if (loadConfig.type === 'upload') {
         const onMessageSubmitted = this.props.sendMessage;
         const [err, _, myKey, size] = args;
         const conversation = loadConfig.conversation;
@@ -477,15 +477,15 @@ export default class MessagesPanel extends PureComponent {
     }
 
     const loadProgressCallback = progress => {
-      const {loaded, total} = progress;
+      const { loaded, total } = progress;
       console.log('dbg*** loadProgressCallback: ', loaded, total);
-      const percent = Math.floor(+loaded*100.0/(+total));
+      const percent = Math.floor(+loaded * 100.0 / (+total));
       progress = Object.assign({}, this.state.progress, { percent });
-      const state = Object.assign({}, this.state, {progress});
+      const state = Object.assign({}, this.state, { progress });
       this.setState(state);
     }
     console.log('dbg*** loadMessageFile: ', loadConfig, msgBody);
-    if ( loadConfig.type === 'upload') {
+    if (loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
@@ -526,7 +526,7 @@ export default class MessagesPanel extends PureComponent {
     }
   }
   testUpload() {
-    let filepath = dialog.showOpenDialog({ title: `upload file`})[0];
+    let filepath = dialog.showOpenDialog({ title: `upload file` })[0];
     if (!filepath || typeof filepath !== 'string') {
       return;
     }
@@ -637,8 +637,8 @@ export default class MessagesPanel extends PureComponent {
                 ) : (
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
-                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile}/>
-                      <div onClick={this.testUpload} style={{zIndex:99999}}> test upload </div>
+                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile} />
+                      <div onClick={this.testUpload} style={{ zIndex: 99999 }}> test upload </div>
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       <Notifications {...notificationsProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (
@@ -665,7 +665,9 @@ export default class MessagesPanel extends PureComponent {
             </div>
           </div> :
           <div className="unselectedHint">
-            <span>Select a conversation to start messaging</span>
+            <span>
+              <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
+            </span>
           </div>
         }
         {(!this.state.online || !this.props.chat_online) && (
@@ -685,9 +687,9 @@ export default class MessagesPanel extends PureComponent {
                 )
             ) : (<div>
               <RetinaImg name={'no-network.svg'}
-                         style={{ width: 15 }}
-                         isIcon
-                         mode={RetinaImg.Mode.ContentIsMask} />
+                style={{ width: 15 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask} />
               <span>Your computer appears to be offline.</span>
             </div>)}
           </div>

@@ -148,6 +148,9 @@ class RetinaImg extends React.Component {
     }
 
     const otherProps = Utils.fastOmit(this.props, Object.keys(this.constructor.propTypes));
+    if (!path) {
+      return null;
+    }
     return (
       <img alt={this.props.name} className={className} src={path} style={style} {...otherProps} />
     );
