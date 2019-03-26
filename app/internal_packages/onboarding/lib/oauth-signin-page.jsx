@@ -194,6 +194,9 @@ export default class OAuthSignInPage extends React.Component {
     if (e.message === 'move-to-account-choose') {
       OnboardingActions.moveToPage('account-choose');
     }
+    else if (e.message === 'oauth page go to blur') {
+      this.refs.webview.blur();
+    }
   }
 
   _setupWebview = () => {
@@ -216,6 +219,7 @@ export default class OAuthSignInPage extends React.Component {
     }
 
     if (this.state.isYahoo) {
+      webview.setAttribute('preload', '../internal_packages/onboarding/lib/oauth-inject-yahoo.js');
       webview.getWebContents().executeJavaScript(`
       function deleteAllCookies() {
           var cookies = document.cookie.split(";");
@@ -233,7 +237,6 @@ export default class OAuthSignInPage extends React.Component {
     `, false, () => {
           webview.reload();
         });
-      webview.setAttribute('preload', '../internal_packages/onboarding/lib/oauth-inject-yahoo.js');
     }
   }
 
