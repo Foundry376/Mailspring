@@ -50,15 +50,14 @@ const subject = function (subj) {
 };
 
 const getSnippet = function (thread) {
-  // const messages = thread.__messages || [];
-  //
-  // if (messages.length === 0) {
-  //   return thread.snippet;
-  // }
-  // for (let ii = messages.length - 1; ii >= 0; ii--) {
-  //   if (messages[ii].snippet) return messages[ii].snippet;
-  // }
-  return thread.snippet;
+  const messages = thread.__messages || [];
+  if (thread.snippet) {
+    return thread.snippet;
+  }
+  for (let ii = messages.length - 1; ii >= 0; ii--) {
+    if (messages[ii].snippet) return messages[ii].snippet;
+  }
+  return '';
 };
 
 const c1 = new ListTabular.Column({
