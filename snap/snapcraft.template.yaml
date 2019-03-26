@@ -2,9 +2,23 @@ name: mailspring
 version: MAILSPRING_VERSION
 summary: The best email app for people and teams at work
 description: |
- An extensible desktop mail app built on the modern web.
+  An extensible desktop mail app built on the modern web.
 
 confinement: strict
+
+plugs:
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/share/themes
+    default-provider: gtk-common-themes:gtk-3-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/share/icons
+    default-provider: gtk-common-themes:icon-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/share/sounds
+    default-provider: gtk-common-themes:sounds-themes
 
 parts:
   mailspring:
@@ -16,6 +30,16 @@ parts:
       sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' usr/share/applications/mailspring.desktop
     after:
       - desktop-gtk3
+    override-build: |
+      set -ex
+      snapcraftctl build
+      mkdir -p $SNAPCRAFT_PART_INSTALL/share/themes
+      mkdir -p $SNAPCRAFT_PART_INSTALL/share/icons
+      mkdir -p $SNAPCRAFT_PART_INSTALL/share/sounds
+    stage:
+      - share/icons
+      - share/themes
+      - share/sounds
     stage-packages:
       - gir1.2-gnomekeyring-1.0
       - libcanberra-gtk-module
@@ -48,21 +72,21 @@ apps:
       # or disappear completely.
       XDG_CURRENT_DESKTOP: Unity
     plugs:
-     - avahi-observe
-     - browser-support
-     - cups-control
-     - gsettings
-     - opengl
-     - home
-     - desktop
-     - desktop-legacy
-     - mount-observe
-     - network
-     - network-bind
-     - network-observe
-     - password-manager-service
-     - pulseaudio
-     - removable-media
-     - screen-inhibit-control
-     - unity7
-     - x11
+      - avahi-observe
+      - browser-support
+      - cups-control
+      - gsettings
+      - opengl
+      - home
+      - desktop
+      - desktop-legacy
+      - mount-observe
+      - network
+      - network-bind
+      - network-observe
+      - password-manager-service
+      - pulseaudio
+      - removable-media
+      - screen-inhibit-control
+      - unity7
+      - x11
