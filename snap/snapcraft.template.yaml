@@ -30,8 +30,8 @@ parts:
       - desktop-gtk3
     override-build: |
       set -ex
-      sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' $SNAPCRAFT_PART_INSTALL/usr/share/applications/mailspring.desktop
       snapcraftctl build
+      sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' usr/share/applications/mailspring.desktop
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/themes
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/icons
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/sounds

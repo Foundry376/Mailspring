@@ -6,7 +6,7 @@ git:
 language: node_js
 
 node_js:
-- '6.9'
+  - '6.9'
 
 addons:
   artifacts:
@@ -14,55 +14,55 @@ addons:
     target_paths: client/${TRAVIS_COMMIT:0:8}/${TRAVIS_OS_NAME}
     permissions: public-read
     paths:
-    - mailsync.tar.gz
-    - Mailspring.dmg
-    - Mailspring.zip
-    - $(find . -type f -name mailspring-*.deb | tr "\n" ":")
-    - $(find . -type f -name mailspring-*.rpm | tr "\n" ":")
+      - mailsync.tar.gz
+      - Mailspring.dmg
+      - Mailspring.zip
+      - $(find . -type f -name mailspring-*.deb | tr "\n" ":")
+      - $(find . -type f -name mailspring-*.rpm | tr "\n" ":")
   apt:
     sources:
-    - ubuntu-toolchain-r-test
+      - ubuntu-toolchain-r-test
     packages:
-    - build-essential
-    - clang
-    - execstack
-    - fakeroot
-    - g++-4.8
-    - git
-    - libgnome-keyring-dev
-    - libsecret-1-dev
-    - xvfb
-    - rpm
-    - libxext-dev
-    - libxtst-dev
-    - libxkbfile-dev
+      - build-essential
+      - clang
+      - execstack
+      - fakeroot
+      - g++-4.8
+      - git
+      - libgnome-keyring-dev
+      - libsecret-1-dev
+      - xvfb
+      - rpm
+      - libxext-dev
+      - libxtst-dev
+      - libxkbfile-dev
 
 branches:
   only:
-  - master
-  - "/ci-.*/"
-  - "/stable.*/"
+    - master
+    - '/ci-.*/'
+    - '/stable.*/'
 
 matrix:
   include:
-  - os: linux
-    env: CC=gcc-4.8 CXX=g++-4.8
-  - os: osx
-    osx_image: xcode8.3
-    env: CC=clang CXX=clang++ SIGN_BUILD=true
+    - os: linux
+      env: CC=gcc-4.8 CXX=g++-4.8
+    - os: osx
+      osx_image: xcode8.3
+      env: CC=clang CXX=clang++ SIGN_BUILD=true
 
 before_install:
-# Decrypt and uncompress code signing certs, etc.
-- openssl aes-256-cbc -K $encrypted_faf2708e46e2_key -iv $encrypted_faf2708e46e2_iv
-  -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d;
-- mkdir app/build/resources/certs;
-- tar xvf app/build/resources/certs.tar --directory=app/build/resources/;
-- source app/build/resources/certs/mac/set_unix_env.sh;
-# Checkout the (currently private) C++ Mailsync codebase
-- GIT_SSH_COMMAND='ssh -i app/build/resources/certs/mailsync-deploy-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-  SSH_ASKPASS=/Users/travis/build/Foundry376/Mailspring/app/build/resources/certs/ssh-askpass-fix
-  DISPLAY=nothing:0
-  git submodule update --init mailsync
+  # Decrypt and uncompress code signing certs, etc.
+  - openssl aes-256-cbc -K $encrypted_faf2708e46e2_key -iv $encrypted_faf2708e46e2_iv
+    -in app/build/resources/certs.tar.enc -out app/build/resources/certs.tar -d;
+  - mkdir app/build/resources/certs;
+  - tar xvf app/build/resources/certs.tar --directory=app/build/resources/;
+  - source app/build/resources/certs/mac/set_unix_env.sh;
+  # Checkout the (currently private) C++ Mailsync codebase
+  - GIT_SSH_COMMAND='ssh -i app/build/resources/certs/mailsync-deploy-key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+    SSH_ASKPASS=/Users/travis/build/Foundry376/Mailspring/app/build/resources/certs/ssh-askpass-fix
+    DISPLAY=nothing:0
+    git submodule update --init mailsync
 
 before_script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
@@ -70,27 +70,28 @@ before_script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=gcc-5 CXX=g++-5; fi
 
 script:
-- npm run ci-setup-mac-keychain
-- npm run lint
-- mailsync/build.sh
-- mv ./mailsync ./mailsync-src
-- DEBUG=electron-packager,electron-osx-sign npm run build
+  - npm run ci-setup-mac-keychain
+  - npm run lint
+  - mailsync/build.sh
+  - mv ./mailsync ./mailsync-src
+  - DEBUG=electron-packager,electron-osx-sign npm run build
 
 cache:
   directories:
-  - node_modules
-  - app/node_modules
-  - /tmp/mailsync-build-deps
+    - node_modules
+    - app/node_modules
+    - /tmp/mailsync-build-deps
+    - /var/lib/docker/aufs
 
 after_success:
-# Grab the version number from the .deb product and update the snapcraft.yml file
-- sed "s/MAILSPRING_VERSION/$(grep -E -o '([0-9]+.[0-9]+.[0-9]+)' <<< "$(find app/dist -type f -name mailspring-*.deb)")/g" snap/snapcraft.template.yaml > snap/snapcraft.yaml
-# Decrypt the snapcraft login information
-- openssl aes-256-cbc -K $encrypted_60f7ef72bfa6_key -iv $encrypted_60f7ef72bfa6_iv
-  -in .snapcraft/travis_snapcraft.cfg -out .snapcraft/snapcraft.cfg -d
+  # Grab the version number from the .deb product and update the snapcraft.yml file
+  - sed "s/MAILSPRING_VERSION/$(grep -E -o '([0-9]+.[0-9]+.[0-9]+)' <<< "$(find app/dist -type f -name mailspring-*.deb)")/g" snap/snapcraft.template.yaml > snap/snapcraft.yaml
+  # Decrypt the snapcraft login information
+  - openssl aes-256-cbc -K $encrypted_60f7ef72bfa6_key -iv $encrypted_60f7ef72bfa6_iv
+    -in .snapcraft/travis_snapcraft.cfg -out .snapcraft/snapcraft.cfg -d
 
 services:
-- docker
+  - docker
 
 deploy:
   'on':

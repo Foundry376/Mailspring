@@ -211,7 +211,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       <a
         className="quoted-text-control"
         onMouseDown={e => {
-          if (e.currentTarget.closest('.remove-quoted-text')) return;
+          if (e.target instanceof HTMLElement && e.target.closest('.remove-quoted-text')) return;
           e.preventDefault();
           e.stopPropagation();
           this.setState({ quotedTextHidden: false });
