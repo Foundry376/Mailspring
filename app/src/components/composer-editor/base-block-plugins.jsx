@@ -112,6 +112,7 @@ export const BLOCK_CONFIG = {
     button: {
       isActive: value => value.focusBlock && value.focusBlock.type === BLOCK_CONFIG.code.type,
       iconClass: 'fa fa-sticky-note-o',
+      svgName: 'code.svg',
       onToggle: (value, active) =>
         active
           ? value.change().setBlock(BLOCK_CONFIG.div.type)

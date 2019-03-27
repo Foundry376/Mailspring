@@ -1,6 +1,7 @@
 import React from 'react';
 import { Mark } from 'slate';
 import { CompactPicker } from 'react-color';
+import { RetinaImg } from 'mailspring-component-kit';
 
 // Helper Functions
 
@@ -103,13 +104,18 @@ export function applyValueForMark(value, type, markValue) {
 
 // React Component Factories
 
-export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle } }) {
+export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle, svgName = '' } }) {
   return ({ value, onChange, className }) => {
     const active = isActive(value);
     const onMouseDown = e => {
       onChange(onToggle(value, active));
       e.preventDefault();
     };
+    if(svgName){
+      return (<button className={`${className} ${active ? 'active' : ''}`} onMouseDown={onMouseDown}>
+        <RetinaImg style={{width: 18}} name={svgName} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+      </button>)
+    }
     return (
       <button className={`${className} ${active ? 'active' : ''}`} onMouseDown={onMouseDown}>
         <i title={type} className={iconClass} />

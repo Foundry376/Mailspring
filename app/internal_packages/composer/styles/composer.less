@@ -119,7 +119,6 @@
     .dt-icon {
       font-size: 18px;
       line-height: 24px;
-      color: @gray;
     }
   }
 
@@ -143,7 +142,7 @@
 
   button {
     cursor: pointer;
-    color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 30%);
+    color: fadeout(@gray, 30%);
     padding: 4px 5px;
     border: none;
     background: none;
@@ -153,24 +152,39 @@
     max-width: 32px;
 
     &:hover {
-      color: fadeout(mix(@btn-default-text-color, @component-active-color, 88%), 5%);
+      color: fadeout(@black, 5%);
       background: none;
+
+      img.content-mask{
+        background-color: fadeout(@gray, 5%);
+      }
     }
     &.with-select {
       max-width: 100px;
       white-space: nowrap;
       select {
+        cursor: pointer;
         border: none;
+        color: fadeout(@gray, 30%);
         background: none;
         margin: 0;
         min-width: 72px;
         max-width: 92px;
+        &:hover {
+          color: fadeout(@black, 5%);
+        }
       }
+    }
+    img.content-mask{
+      background-color: fadeout(@gray, 30%);
     }
   }
 
   button.active {
     color: @component-active-color;
+    img.content-mask{
+      background-color: @component-active-color;
+    }
   }
 
   .dropdown {
