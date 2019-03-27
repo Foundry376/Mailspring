@@ -14,6 +14,7 @@ import AccountSettingsPageOffice365 from './page-account-settings-office365';
 import AccountSettingsPageYahoo from './page-account-settings-yahoo';
 import AccountOnboardingSuccess from './page-account-onboarding-success';
 import InitialPreferencesPage from './page-initial-preferences';
+import AddAnotherAccountPage from './page-account-add-another';
 
 const PageComponents = {
   welcome: WelcomePage,
@@ -26,6 +27,7 @@ const PageComponents = {
   'account-settings-yahoo': AccountSettingsPageYahoo,
   'account-settings-imap': AccountSettingsPageIMAP,
   'account-onboarding-success': AccountOnboardingSuccess,
+  'account-add-another': AddAnotherAccountPage,
   'initial-preferences': InitialPreferencesPage,
 };
 
@@ -72,7 +74,7 @@ export default class OnboardingRoot extends React.Component {
       <div className="page-frame">
         <PageTopBar
           pageDepth={this.state.pageDepth}
-          allowMoveBack={!['initial-preferences', 'tutorial'].includes(this.state.page)}
+          allowMoveBack={!['initial-preferences', 'tutorial', 'account-add-another'].includes(this.state.page)}
         />
         <CSSTransitionGroup
           transitionName="alpha-fade"

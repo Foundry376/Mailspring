@@ -798,7 +798,8 @@ export default class AppEnvConstructor {
   }
 
   showOpenDialog(options, callback) {
-    return callback(remote.dialog.showOpenDialog(this.getCurrentWindow(), options));
+    // return callback(remote.dialog.showOpenDialog(this.getCurrentWindow(), options));
+    return callback(remote.dialog.showOpenDialog(options));
   }
 
   showSaveDialog(options, callback) {

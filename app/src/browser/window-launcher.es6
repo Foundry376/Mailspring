@@ -36,6 +36,7 @@ export default class WindowLauncher {
       bootstrapScript: require.resolve('../secondary-window-bootstrap'),
       resourcePath,
       configDirPath,
+      width: 880
     };
     this.config = config;
     this.onCreatedHotWindow = onCreatedHotWindow;
