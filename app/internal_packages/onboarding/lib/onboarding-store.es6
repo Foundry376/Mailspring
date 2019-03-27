@@ -127,10 +127,10 @@ class OnboardingStore extends MailspringStore {
   };
 
   _onFinishAndAddAccount = async account => {
-    const isFirstAccount = AccountStore.accounts().length === 0;
+    // const isFirstAccount = AccountStore.accounts().length === 0;
 
     try {
-      AccountStore.addAccount(account);
+      await AccountStore.addAccount(account);
     } catch (e) {
       AppEnv.reportError(e);
       AppEnv.showErrorDialog({
@@ -145,8 +145,10 @@ class OnboardingStore extends MailspringStore {
 
     // await connectChat(account);
 
-    if (isFirstAccount) {
-      this._onMoveToPage('initial-preferences');
+    const { addingAccount } = AppEnv.getWindowProps();
+    const isOnboarding = !addingAccount;
+    if (isOnboarding) {
+      this._onMoveToPage('account-add-another');
     } else {
       // let them see the "success" screen for a moment
       // before the window is closed.
