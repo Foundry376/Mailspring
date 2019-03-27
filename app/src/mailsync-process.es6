@@ -123,6 +123,8 @@ export default class MailsyncProcess extends EventEmitter {
     }
     if (this.account) {
       args.push('--info', this.account.id);
+    } else {
+      args.push('--info', mode);
     }
     this._proc = spawn(this.binaryPath, args, { env });
 
