@@ -1,4 +1,5 @@
 import { remote } from 'electron';
+import LRUCache from 'lru-cache';
 import fs from 'fs';
 import path from 'path';
 import { localized } from './intl';
@@ -27,6 +28,7 @@ class Spellchecker {
       const initialLanguage = AppEnv.config.get('core.composing.spellcheckDefaultLanguage');
       const { SpellCheckHandler } = require('electron-spellchecker'); //eslint-disable-line
       this.handler = new SpellCheckHandler(initialLanguage);
+      this.handler['isMisspelledCache'] = new LRUCache({ max: 5000 });
 
       // Monitor language setting for changes. Note that as the user types in a draft we
       // change spellcheck to that language.
@@ -47,6 +49,7 @@ class Spellchecker {
       lang = app.getLocale() || 'en-US';
     }
     this.handler.switchLanguage(lang);
+    this.handler['isMisspelledCache'].reset();
   };
 
   _loadCustomDict = () => {
