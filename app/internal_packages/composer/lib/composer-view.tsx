@@ -223,9 +223,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
           onMouseUp={e => {
             e.preventDefault();
             e.stopPropagation();
-            const { draft, session } = this.props;
-            const change = removeQuotedText(draft.bodyEditorState);
-            session.changes.add({ bodyEditorState: change.value });
+            this._els[Fields.Body].removeQuotedText();
             this.setState({ quotedTextHidden: false });
           }}
         >
@@ -256,9 +254,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
           // We minimize thrashing and support editors in multiple windows by ensuring
           // non-value changes (eg focus) to the editorState don't trigger database saves
           const skipSaving = change.operations.every(
-            ({ type, properties }) =>
-              type === 'set_selection' ||
-              (type === 'set_value' && Object.keys(properties).every(k => k === 'decorations'))
+            op =>
+              op.type === 'set_selection' ||
+              (op.type === 'set_value' &&
+                Object.keys(op.properties).every(k => k === 'decorations'))
           );
           this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
         }}

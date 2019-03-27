@@ -2,6 +2,7 @@ import React from 'react';
 import { ImageAttachmentItem } from 'mailspring-component-kit';
 import { AttachmentStore } from 'mailspring-exports';
 import { isQuoteNode } from './base-block-plugins';
+import { ComposerEditorPlugin } from './types';
 
 const IMAGE_TYPE = 'image';
 
@@ -26,19 +27,16 @@ function ImageNode(props) {
       className={`file-upload ${isSelected && 'custom-block-selected'}`}
       filePath={AttachmentStore.pathForFile(file)}
       displayName={file.filename}
-      onRemoveAttachment={() =>
-        editor.change(change => {
-          change.removeNodeByKey(node.key);
-        })
-      }
+      onRemoveAttachment={() => editor.removeNodeByKey(node.key)}
     />
   );
 }
 
-function renderNode(props) {
+function renderNode(props, editor = null, next = () => {}) {
   if (props.node.type === IMAGE_TYPE) {
     return ImageNode(props);
   }
+  return next();
 }
 
 const rules = [
@@ -47,7 +45,6 @@ const rules = [
       if (el.tagName.toLowerCase() === 'img' && (el.getAttribute('src') || '').startsWith('cid:')) {
         return {
           object: 'inline',
-          isVoid: true,
           nodes: [],
           type: IMAGE_TYPE,
           data: {
@@ -67,18 +64,17 @@ const rules = [
 ];
 
 export const changes = {
-  insert: (change, file) => {
+  insert: (editor: Editor, file) => {
     const canHoldInline = node => !node.isVoid && !isQuoteNode(node) && !!node.getFirstText();
 
-    while (!canHoldInline(change.value.anchorBlock)) {
-      change.collapseToEndOfPreviousText();
-      if (!change.value.anchorBlock) {
+    while (!canHoldInline(editor.value.anchorBlock)) {
+      editor.moveToEndOfPreviousText();
+      if (!editor.value.anchorBlock) {
         break;
       }
     }
-    return change.insertInline({
+    return editor.insertInline({
       object: 'inline',
-      isVoid: true,
       type: IMAGE_TYPE,
       data: {
         contentId: file.contentId,
@@ -87,9 +83,11 @@ export const changes = {
   },
 };
 
-export default [
+const plugins: ComposerEditorPlugin[] = [
   {
     renderNode,
     rules,
   },
 ];
+
+export default plugins;

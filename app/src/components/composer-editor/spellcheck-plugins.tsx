@@ -1,10 +1,11 @@
 import React from 'react';
-import { Range } from 'slate';
+import { Editor, Decoration } from 'slate';
 
 import { BLOCK_CONFIG } from './base-block-plugins';
 import { LINK_TYPE } from './link-plugins';
 import { VARIABLE_TYPE } from './template-plugins';
 import { MARK_CONFIG } from './base-mark-plugins';
+import { ComposerEditorPlugin } from './types';
 
 /* Why not use the spellchecking built-in to Slate? It falls through to the
 native spellcheck APIs (which we also customize for the rest of the app), but
@@ -31,42 +32,37 @@ const MAX_MISPELLINGS = 10;
 const EXCEPT_BLOCK_TYPES = [BLOCK_CONFIG.blockquote.type, BLOCK_CONFIG.code.type];
 const EXCEPT_MARK_TYPES = [MARK_CONFIG.codeInline.type, LINK_TYPE, VARIABLE_TYPE];
 
-function renderMark(props) {
+function renderMark(props, editor = null, next = () => {}) {
   const { children, mark } = props;
-  if (mark.type === MISSPELLED_TYPE) {
-    return (
-      <span
-        onMouseDown={event => {
-          // handle only ctrl click or right click (button = 2)
-          if (!event.metaKey && !event.ctrlKey && event.button !== 2) {
-            return;
-          }
-          event.preventDefault();
-          // select the entire word so that the contextual menu offers spelling suggestions
-          const { editor: { onChange, value }, node, offset, text } = props;
-          onChange(
-            value.change().select(
-              Range.create({
-                anchorKey: node.key,
-                anchorOffset: offset,
-                focusKey: node.key,
-                focusOffset: offset + text.length,
-                isFocused: true,
-              } as any)
-            )
-          );
-        }}
-        style={{
-          backgroundImage: 'linear-gradient(to left, red 40%, rgba(255, 255, 255, 0) 0%)',
-          backgroundPosition: 'bottom',
-          backgroundSize: '5px 1.3px',
-          backgroundRepeat: 'repeat-x',
-        }}
-      >
-        {children}
-      </span>
-    );
+  if (mark.type !== MISSPELLED_TYPE) {
+    return next();
   }
+  return (
+    <span
+      onMouseDown={event => {
+        // handle only ctrl click or right click (button = 2)
+        if (!event.metaKey && !event.ctrlKey && event.button !== 2) {
+          return;
+        }
+        event.preventDefault();
+        // select the entire word so that the contextual menu offers spelling suggestions
+        const { editor, node, offset, text } = props;
+        editor.select({
+          anchor: { key: node.key, offset: offset },
+          focus: { key: node.key, offset: offset + text.length },
+          isFocused: true,
+        });
+      }}
+      style={{
+        backgroundImage: 'linear-gradient(to left, red 40%, rgba(255, 255, 255, 0) 0%)',
+        backgroundPosition: 'bottom',
+        backgroundSize: '5px 1.3px',
+        backgroundRepeat: 'repeat-x',
+      }}
+    >
+      {children}
+    </span>
+  );
 }
 
 function decorationsForNode(node, value) {
@@ -75,25 +71,20 @@ function decorationsForNode(node, value) {
   const decorations = [];
   let match = null;
 
-  const isFocused = node.key === value.focusKey;
+  const focus = value.selection.focus;
+  const isFocused = focus && key === focus.key;
 
   while ((match = regexp.exec(text))) {
     // If this word contains the insertion point don't mark it as misspelled.
-    if (
-      isFocused &&
-      match.index <= value.focusOffset &&
-      match.index + match[0].length >= value.focusOffset
-    ) {
+    if (isFocused && match.index <= focus.offset && match.index + match[0].length >= focus.offset) {
       continue;
     }
 
     if (AppEnv.spellchecker.isMisspelled(match[0])) {
-      const range = Range.create({
-        anchorKey: key,
-        anchorOffset: match.index,
-        focusKey: key,
-        focusOffset: match.index + match[0].length,
-        marks: [{ type: MISSPELLED_TYPE }],
+      const range = Decoration.create({
+        anchor: { key: key, offset: match.index },
+        focus: { key: key, offset: match.index + match[0].length },
+        mark: { type: MISSPELLED_TYPE },
       } as any);
 
       // If this text range has marks (it's part of a link, template variable,
@@ -137,17 +128,19 @@ function collectSpellcheckableTextNodes(node) {
   return array;
 }
 
-function onSpellcheckFocusedNode(change) {
-  const { value } = change;
+function onSpellcheckFocusedNode(editor) {
+  const { value } = editor;
   const decorations = value.get('decorations') || [];
-  if (!value.focusKey) {
+  const block = value.focusBlock;
+
+  if (!block) {
     return;
   }
 
   const next = [];
 
   // spellcheck the text nodes of the focused block
-  const texts = collectSpellcheckableTextNodes(value.focusBlock);
+  const texts = collectSpellcheckableTextNodes(block);
   const scannedNodeKeys = {};
   for (const node of texts) {
     scannedNodeKeys[node.key] = true;
@@ -159,15 +152,14 @@ function onSpellcheckFocusedNode(change) {
 
   // add the decorations already in nodes we didn't visit
   decorations.forEach(d => {
-    if (!scannedNodeKeys[d.focusKey]) {
+    if (!scannedNodeKeys[d.focus.key]) {
       next.push(d);
     }
   });
 
-  change
-    .setOperationFlag('save', false)
-    .setValue({ decorations: next })
-    .setOperationFlag('save', true);
+  editor.withoutSaving(() => {
+    editor.setDecorations(next);
+  });
 }
 
 function onSpellcheckFullDocument(editor) {
@@ -201,10 +193,10 @@ function onSpellcheckFullDocument(editor) {
   } else {
     const table = {};
     previous.forEach(
-      d => (table[`${d.anchorKey}:${d.anchorOffset}-${d.focusKey}:${d.focusOffset}`] = true)
+      d => (table[`${d.anchor.key}:${d.anchor.offset}-${d.focus.key}:${d.focus.offset}`] = true)
     );
     for (const d of decorations) {
-      if (!table[`${d.anchorKey}:${d.anchorOffset}-${d.focusKey}:${d.focusOffset}`]) {
+      if (!table[`${d.anchor.key}:${d.anchor.offset}-${d.focus.key}:${d.focus.offset}`]) {
         changed = true;
         break;
       }
@@ -212,40 +204,40 @@ function onSpellcheckFullDocument(editor) {
   }
 
   if (changed) {
-    const change = value
-      .change()
-      .setOperationFlag('save', false)
-      .setValue({ decorations })
-      .setOperationFlag('save', true);
-    editor.onChange(change);
+    editor.withoutSaving(() => {
+      editor.setDecorations(decorations);
+    });
   }
 }
 
 let timer = null;
 let timerStart = Date.now();
 
-function onChange(change, editor) {
+function onChange(editor: Editor, next: () => void) {
   if (!AppEnv.config.get('core.composing.spellcheck')) {
-    return;
+    return next();
   }
   const now = Date.now();
   if (timer && now - timerStart < 200) {
-    return;
+    return next();
   }
   if (editor.state.isComposing) {
-    return;
+    return next();
   }
-  onSpellcheckFocusedNode(change);
+  onSpellcheckFocusedNode(editor);
 
   timerStart = now;
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => onSpellcheckFullDocument(editor), 1000);
+  return next();
 }
 
-export default [
+const plugins: ComposerEditorPlugin[] = [
   {
     onChange,
     renderMark,
     rules: [],
   },
 ];
+
+export default plugins;

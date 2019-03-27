@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mark } from 'slate';
+import { Range, Editor, Mark, Value, Block } from 'slate';
 import { CompactPicker } from 'react-color';
 
 // Helper Functions
@@ -7,50 +7,50 @@ import { CompactPicker } from 'react-color';
 export interface IEditorToolbarConfigItem {
   type: string;
   tagNames?: string[];
-  render?: (props) => React.ReactChild;
+  render?: (
+    props: { node: Block; attributes: any; children: any; targetIsHTML: boolean }
+  ) => JSX.Element | string | void;
   button?: {
-    isActive: (value: any) => boolean;
-    onToggle: (value: any, active: boolean) => any;
+    isActive: (value: Value) => boolean;
+    onToggle: (editor: Editor, active: boolean) => any;
     iconClass: string;
   };
 }
 
-function removeMarksOfTypeInRange(change, range, type) {
+function removeMarksOfTypeInRange(editor: Editor, range: Range, type) {
   if (range.isCollapsed) {
-    const active = change.value.activeMarks.find(m => m.type === type);
+    const active = editor.value.activeMarks.find(m => m.type === type);
     if (active) {
-      change.removeMark(active);
+      editor.removeMark(active);
     }
-    return change;
+    return;
   }
-  const document = change.value.document;
+  const document = editor.value.document;
   const texts = document.getTextsAtRange(range);
-  const { startKey, startOffset, endKey, endOffset } = range;
+  const { start, end } = range;
 
   texts.forEach(node => {
     const { key } = node;
     let index = 0;
     let length = node.text.length;
 
-    if (key === startKey) index = startOffset;
-    if (key === endKey) length = endOffset;
-    if (key === startKey && key === endKey) length = endOffset - startOffset;
+    if (key === start.key) index = start.offset;
+    if (key === end.key) length = end.offset;
+    if (key === start.key && key === end.key) length = end.offset - start.offset;
 
     node.getMarks().forEach(mark => {
       if (mark.type === type) {
-        change.removeMarkByKey(key, index, length, mark, { normalize: true });
+        (editor.removeMarkByKey as any)(key, index, length, mark, { normalize: true });
       }
     });
   });
-
-  return change;
 }
 
-export function expandSelectionToRangeOfMark(change, type) {
-  const { selection, document } = change.value;
-  const node = document.getNode(selection.anchorKey);
-  let start = selection.anchorOffset;
-  let end = selection.anchorOffset;
+export function expandSelectionToRangeOfMark(editor, type) {
+  const { selection, document } = editor.value;
+  const node = document.getNode(selection.anchor.key);
+  let start = selection.anchor.offset;
+  let end = selection.anchor.offset;
 
   // expand backwards until the mark disappears
   while (start > 0 && node.getMarksAtIndex(start).find(m => m.type === type)) {
@@ -62,15 +62,12 @@ export function expandSelectionToRangeOfMark(change, type) {
   }
 
   // expand selection
-  change.select({
-    anchorKey: selection.anchorKey,
-    anchorOffset: start,
-    focusKey: selection.anchorKey,
-    focusOffset: end,
+  editor.select({
+    anchor: { key: selection.anchor.key, offset: start },
+    focus: { key: selection.anchor.key, offset: end },
     isFocused: true,
     isBackward: false,
   });
-  return change;
 }
 
 export function hasMark(value, type) {
@@ -96,20 +93,18 @@ export function getActiveValueForMark(value, type) {
   }
 }
 
-export function applyValueForMark(value, type, markValue) {
-  let change = value.change().focus();
-  removeMarksOfTypeInRange(change, value.selection, type);
+export function applyValueForMark(editor, type, markValue) {
+  editor.focus();
+  removeMarksOfTypeInRange(editor, editor.value.selection, type);
 
   if (markValue) {
-    change.addMark({
+    editor.addMark({
       type,
       data: {
         value: markValue,
       },
     });
   }
-
-  return change;
 }
 
 // React Component Factories
@@ -118,18 +113,10 @@ export function BuildToggleButton({
   type,
   button: { iconClass, isActive, onToggle },
 }: IEditorToolbarConfigItem) {
-  return ({
-    value,
-    onChange,
-    className,
-  }: {
-    value: any;
-    onChange: (value: any) => void;
-    className: string;
-  }) => {
+  return ({ value, editor, className }: { value: any; editor: any; className: string }) => {
     const active = isActive(value);
     const onMouseDown = e => {
-      onChange(onToggle(value, active));
+      onToggle(editor, active);
       e.preventDefault();
     };
     return (
@@ -142,7 +129,7 @@ export function BuildToggleButton({
 
 interface ToolbarButtonProps {
   value: any;
-  onChange: (value: any) => void;
+  editor: any;
   className: string;
 }
 
@@ -179,7 +166,7 @@ export function BuildMarkButtonWithValuePicker(config) {
       e.preventDefault();
 
       // attach the URL value to the LINK that was created when we opened the link modal
-      const { value, onChange } = this.props;
+      const { value, editor } = this.props;
       const { fieldValue } = this.state;
 
       if (fieldValue.trim() === '') {
@@ -198,30 +185,23 @@ export function BuildMarkButtonWithValuePicker(config) {
       const active = getMarkOfType(this.props.value, config.type);
       if (active) {
         // update the active mark
-        const change = value.change();
-        expandSelectionToRangeOfMark(change, config.type);
-        removeMarksOfTypeInRange(change, value.selection, config.type)
-          .addMark(newMark)
-          .focus();
-        onChange(change);
+        expandSelectionToRangeOfMark(editor, config.type);
+        removeMarksOfTypeInRange(editor, value.selection, config.type);
+        editor.addMark(newMark);
+        editor.focus();
       } else if (value.selection.isCollapsed) {
         // apply new mark to new text
-        onChange(
-          value
-            .change()
-            .addMark(newMark)
-            .insertText(fieldValue)
-            .removeMark(newMark)
-            .insertText(' ')
-            .focus()
-        );
+        editor
+          .addMark(newMark)
+          .insertText(fieldValue)
+          .removeMark(newMark)
+          .insertText(' ')
+          .focus();
       } else {
         // apply new mark to selected text
-        onChange(
-          removeMarksOfTypeInRange(value.change(), value.selection, config.type)
-            .addMark(newMark)
-            .focus()
-        );
+        removeMarksOfTypeInRange(editor, value.selection, config.type);
+        editor.addMark(newMark);
+        editor.focus();
       }
 
       this.setState({ expanded: false, fieldValue: '' });
@@ -229,14 +209,14 @@ export function BuildMarkButtonWithValuePicker(config) {
 
     onRemove = e => {
       e.preventDefault();
-      const { value, onChange } = this.props;
+      const { value, editor } = this.props;
       const active = getMarkOfType(this.props.value, config.type);
       if (value.selection.isCollapsed) {
-        const anchorNode = value.document.getNode(value.selection.anchorKey);
+        const anchorNode = value.document.getNode(value.selection.anchor.key);
         const expanded = value.selection.moveToRangeOf(anchorNode);
-        onChange(value.change().removeMarkAtRange(expanded, active));
+        editor.removeMarkAtRange(expanded, active);
       } else {
-        onChange(value.change().removeMark(active));
+        editor.removeMark(active);
       }
     };
 
@@ -315,9 +295,9 @@ export function BuildColorPicker(config) {
 
     _onChangeComplete = ({ hex }) => {
       this.setState({ expanded: false });
-      const { value, onChange } = this.props;
+      const { editor } = this.props;
       const markValue = hex !== config.default ? hex : null;
-      onChange(applyValueForMark(value, config.type, markValue));
+      applyValueForMark(editor, config.type, markValue);
     };
 
     shouldComponentUpdate(nProps, nState) {
@@ -369,12 +349,12 @@ export function BuildColorPicker(config) {
 export function BuildFontPicker(config) {
   return class FontPicker extends React.Component<ToolbarButtonProps> {
     _onSetValue = e => {
-      const { onChange, value } = this.props;
+      const { editor } = this.props;
       let markValue = e.target.value !== config.default ? e.target.value : null;
       if (!(typeof config.options[0].value === 'string')) {
         markValue = markValue / 1;
       }
-      onChange(applyValueForMark(value, config.type, markValue));
+      applyValueForMark(editor, config.type, markValue);
     };
 
     shouldComponentUpdate(nextProps) {

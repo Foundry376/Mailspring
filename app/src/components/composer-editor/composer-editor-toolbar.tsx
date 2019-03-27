@@ -1,9 +1,10 @@
 import React from 'react';
+import { Value, Editor } from 'slate';
+import { ComposerEditorPlugin } from './types';
 
-interface ComposerEditorToolbarProps {
-  value;
-  onChange;
-  plugins;
+export interface ComposerEditorToolbarProps {
+  editor: Editor;
+  plugins: ComposerEditorPlugin[];
 }
 
 export default class ComposerEditorToolbar extends React.Component<
@@ -71,7 +72,7 @@ export default class ComposerEditorToolbar extends React.Component<
   };
 
   render() {
-    const { value, onChange, plugins } = this.props;
+    const { editor, plugins } = this.props;
     let sectionItems = [];
 
     if (!this.state.visible) {
@@ -93,8 +94,8 @@ export default class ComposerEditorToolbar extends React.Component<
         ...toolbarComponents.map((Component, cdx) => (
           <Component
             key={`${idx}-${cdx}`}
-            value={value}
-            onChange={onChange}
+            editor={editor}
+            value={editor.value}
             className={toolbarSectionClass}
           />
         ))

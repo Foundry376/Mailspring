@@ -1,12 +1,13 @@
 import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
+import { ComposerEditorPlugin } from './types';
 
 export const UNEDITABLE_TYPE = 'uneditable';
 export const UNEDITABLE_TAGS = ['table', 'img', 'center', 'signature'];
 
 function UneditableNode(props) {
-  const { attributes, node, editor, targetIsHTML, isSelected } = props;
+  const { attributes, node, editor, targetIsHTML, isSelected, children } = props;
   const __html = node.data.get ? node.data.get('html') : node.data.html;
 
   if (targetIsHTML) {
@@ -14,13 +15,12 @@ function UneditableNode(props) {
   }
   return (
     <div {...attributes} className={`uneditable ${isSelected && 'custom-block-selected'}`}>
+      <div style={{ position: 'absolute', height: 0 }}>{children}</div>
       <a
         onClick={e => {
           e.stopPropagation();
           e.preventDefault();
-          editor.change(change => {
-            change.removeNodeByKey(node.key);
-          });
+          editor.removeNodeByKey(node.key);
         }}
         className="uneditable-remove"
       >
@@ -35,10 +35,11 @@ function UneditableNode(props) {
   );
 }
 
-function renderNode(props) {
+function renderNode(props, editor = null, next = () => {}) {
   if (props.node.type === UNEDITABLE_TYPE) {
     return UneditableNode(props);
   }
+  return next();
 }
 
 const rules = [
@@ -52,7 +53,6 @@ const rules = [
           type: UNEDITABLE_TYPE,
           data: { html: el.outerHTML },
           nodes: [],
-          isVoid: true,
         };
       }
     },
@@ -63,9 +63,11 @@ const rules = [
   },
 ];
 
-export default [
+const plugins: ComposerEditorPlugin[] = [
   {
     renderNode,
     rules,
   },
 ];
+
+export default plugins;

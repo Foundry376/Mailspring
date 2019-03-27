@@ -1,5 +1,5 @@
 import Html from 'slate-html-serializer';
-import { Value } from 'slate';
+import { Value, useMemoization } from 'slate';
 import React from 'react';
 
 import BaseMarkPlugins from './base-mark-plugins';
@@ -11,6 +11,25 @@ import InlineAttachmentPlugins from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
 import EmojiPlugins from './emoji-plugins';
+
+useMemoization(false);
+
+export const schema = {
+  inlines: {
+    templatevar: {
+      isVoid: true,
+    },
+    emoji: {
+      isVoid: true,
+    },
+    uneditable: {
+      isVoid: true,
+    },
+    image: {
+      isVoid: true,
+    },
+  },
+};
 
 // Note: order is important here because we deserialize HTML with rules
 // in this order. <code class="var"> before <code>, etc.
@@ -266,6 +285,7 @@ export function convertFromHTML(html) {
   because the input contained whitespace, or because there were elements present
   that we didn't convert into anything. Prune the trailing empty node(s). */
   const cleanupTrailingWhitespace = (node, isTopLevel) => {
+    // TODO WHEREI S VOID
     if (!node.nodes || node.isVoid) return;
 
     while (true) {
