@@ -24,7 +24,11 @@ export default class SyncbackDraftTask extends Task {
     this.headerMessageId = (draft || {}).headerMessageId;
   }
 
-  onError({ key, debuginfo }) {
+  onError({ key, debuginfo, retryable }) {
+    if (retryable) {
+      console.warn(`retrying task because ${debuginfo}`);
+      return;
+    }
     if (key === 'no-drafts-folder') {
       AppEnv.showErrorDialog({
         title: 'Drafts folder not found',
