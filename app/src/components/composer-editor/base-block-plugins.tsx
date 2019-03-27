@@ -401,9 +401,15 @@ export default [
       if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
         return;
       }
-      const { focusText, focusOffset, document } = change.value;
+      const { selection, focusText, focusOffset, document } = change.value;
       const firstText = document.getFirstText();
-      if (focusOffset === 0 && focusText && firstText && firstText.key === focusText.key) {
+      if (
+        selection.isCollapsed &&
+        focusOffset === 0 &&
+        focusText &&
+        firstText &&
+        firstText.key === focusText.key
+      ) {
         event.preventDefault();
         return true;
       }
