@@ -95,6 +95,9 @@ export default class Message extends ModelWithMetadata {
 
     from: Attributes.Collection({
       modelKey: 'from',
+      // jsonKey: 'from',
+      // queryable: true,
+      // loadFromColumn: true,
       itemClass: Contact,
     }),
 
@@ -212,7 +215,7 @@ export default class Message extends ModelWithMetadata {
     return Message.attributes.date.ascending();
   }
 
-  constructor(data={}) {
+  constructor(data = {}) {
     super(data);
     this.subject = this.subject || '';
     this.to = this.to || [];
