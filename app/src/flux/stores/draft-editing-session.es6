@@ -57,8 +57,8 @@ class DraftChangeSet extends EventEmitter {
 
   add(changes, { skipSaving = false } = {}) {
     if (!skipSaving) {
-        changes.pristine = false;
-        changes.needUpload = true;
+      changes.pristine = false;
+      changes.needUpload = true;
       // update the per-attribute flags that track our dirty state
       for (const key of Object.keys(changes)) this._lastModifiedTimes[key] = Date.now();
       if (changes.bodyEditorState) this._lastModifiedTimes.body = Date.now();
@@ -236,12 +236,14 @@ export default class DraftEditingSession extends MailspringStore {
             console.warn(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
             return;
           }
-          if(!draft.body){
-            console.log('draft have no body, ');
+          if (!draft.body) {
             draft.waitingForBody = true;
             Actions.fetchBodies([draft]);
           }
           hotwireDraftBodyState(draft);
+          if (draft.remoteUID) {
+            draft.setOrigin(Message.EditExistingDraft);
+          }
           this._draft = draft;
           this._threadId = draft.threadId;
           // console.log(`sending out draft-arp @ windowLevel ${this._currentWindowLevel}`);
@@ -288,12 +290,15 @@ export default class DraftEditingSession extends MailspringStore {
     this._destroyed = true;
     this._removeListeners();
   }
-  freezeSession(){
+
+  freezeSession() {
     this._removeListeners();
   }
-  resumeSession(){
+
+  resumeSession() {
     this._registerListeners();
   }
+
   _registerListeners = () => {
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
@@ -301,7 +306,7 @@ export default class DraftEditingSession extends MailspringStore {
     ipcRenderer.on('draft-close-window', this._onDraftCloseWindow);
     ipcRenderer.on('new-window', this._onDraftNewWindow);
     ipcRenderer.on('draft-delete', this._onDraftDelete);
-  }
+  };
   _removeListeners = () => {
     this.stopListeningToAll();
     this.changes.cancelCommit();
@@ -309,7 +314,7 @@ export default class DraftEditingSession extends MailspringStore {
     ipcRenderer.removeListener('draft-close-window', this._onDraftCloseWindow);
     ipcRenderer.removeListener('draft-arp-reply', this._onDraftARPReply);
     ipcRenderer.removeListener('draft-delete', this._onDraftDelete);
-  }
+  };
 
   validateDraftForSending() {
     const warnings = [];
@@ -454,7 +459,7 @@ export default class DraftEditingSession extends MailspringStore {
       if (destroy) {
         // console.log('destroyed');
         Actions.destroyDraft(draft, { switchingAccount: true });
-      }else{
+      } else {
         // console.log('did not destroy', draft);
       }
     }
@@ -625,7 +630,7 @@ export default class DraftEditingSession extends MailspringStore {
       this._inView &&
       !this._destroyed
     ) {
-      if(this.needUpload()){
+      if (this.needUpload()) {
         this.changeSetCommit('unload');
       }
       this._removeListeners();
