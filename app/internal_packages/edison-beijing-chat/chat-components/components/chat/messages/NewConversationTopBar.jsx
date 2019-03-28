@@ -9,6 +9,19 @@ export default class MessagesTopBar extends Component {
   constructor() {
     super();
   }
+  componentDidMount = () => {
+  }
+
+  componentDidUpdate = () => {
+    const rect = this.contactInputEl.getBoundingClientRect();
+    let el = document.querySelector('.rc-select-dropdown.rc-select-dropdown--multiple.rc-select-dropdown-placement-bottomLeft');
+    if (el) {
+      console.log('dbg*** componentDidUpdate 1: ', el, rect.right-rect.left);
+      el.style.width = Math.floor(rect.right-rect.left+5)+'px';
+      console.log('dbg*** componentDidUpdate 2: ', el, rect.right-rect.left);
+    }
+  }
+
   handleChange = (value, options) => {
     const members = options.map(item => ({
       name: item.props.label,
@@ -57,13 +70,13 @@ export default class MessagesTopBar extends Component {
           </span>
           <span className="new-message-title">New Message</span>
         </div>
-        <div style={{ display: 'flex' }} onClick={() => {
+        <div ref={el=>{this.contactInputEl = el}} style={{ display: 'flex' }} onClick={() => {
           document.querySelector('#contact-select input').focus();
         }}>
           <Select
             mode="tags"
             id="contact-select"
-            style={{ width: '100%', flex: 1, height: '50px' }}
+            style={{ width: '400px', flex: 1, height: '50px' }}
             onChange={this.handleChange}
             defaultOpen={true}
             multiple
