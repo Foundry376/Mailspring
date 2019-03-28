@@ -180,6 +180,7 @@ export default class Message extends ModelWithMetadata {
     }),
 
     referenceMessageId: Attributes.String({
+      jsonKey: 'refMsgId',
       modelKey: 'referenceMessageId',
     }),
 
