@@ -52,9 +52,30 @@
     }
   }
 }
+.rc-select-dropdown {
+  scrollbar-width: thin;
+  border: none;
+  box-shadow: none;
+}
+.rc-select-dropdown::-webkit-scrollbar {
+  width: 0.3em;
+}
+.rc-select-dropdown::-webkit-scrollbar-track {
+  -webkit-box-shadow: none;
+}
+.rc-select-dropdown::-webkit-scrollbar-thumb {
+  background-color: lightgrey;
+  outline: 1px solid lightgrey;
+  border-radius: 5px;
+}
+
 
 li.rc-select-dropdown-menu-item-active {
-  background-color: #e7ebed;
+  background-color: #F8F8FA;
+  border-radius: 5px;
+  background-image: url(images/chat/return.png);
+  background-repeat: no-repeat;
+  background-position: right;
 }
 
 .rc-select-dropdown {

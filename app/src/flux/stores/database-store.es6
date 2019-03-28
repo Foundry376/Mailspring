@@ -251,6 +251,11 @@ class DatabaseStore extends MailspringStore {
 
       const start = Date.now();
 
+      // when limit 0, no need to run the query
+      if (/LIMIT 0/g.test(query)) {
+        return resolve([]);
+      }
+
       if (!background) {
         const results = await this._executeLocally(query, values);
         const msec = Date.now() - start;
