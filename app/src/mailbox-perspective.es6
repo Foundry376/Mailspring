@@ -487,6 +487,8 @@ class CategoryMailboxPerspective extends MailboxPerspective {
 
     if (!['spam', 'trash'].includes(this.categoriesSharedRole())) {
       query.where({ inAllMail: true, state: 0 });
+    } else {
+      query.where({ state: 0 });
     }
 
 
