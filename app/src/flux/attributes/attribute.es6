@@ -94,6 +94,6 @@ export default class Attribute {
 
   needsColumn() {
     // return this.queryable && this.columnSQL && this.jsonKey !== 'id';
-    return this.queryable && this.columnSQL;
+    return this.queryable;
   }
 }

@@ -352,7 +352,7 @@ export default class ModelQuery {
         if (!attr.needsColumn() || !attr.loadFromColumn) {
           continue;
         }
-        result += `, \`${this._klass.name}\`.${attr.tableColumn} `;
+        result += `, \`${this._klass.name}\`.\`${attr.tableColumn}\` `;
       }
       this._includeJoinedData.forEach(attr => {
         result += `, ${attr.selectSQL(this._klass)} `;

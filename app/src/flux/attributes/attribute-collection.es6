@@ -39,6 +39,7 @@ export default class AttributeCollection extends Attribute {
     joinTableName,
     joinOnWhere,
     queryable,
+    loadFromColumn,
   }) {
     super({ modelKey, jsonKey, queryable });
     this.itemClass = itemClass;
@@ -46,6 +47,7 @@ export default class AttributeCollection extends Attribute {
     this.joinTableName = joinTableName;
     this.joinQueryableBy = joinQueryableBy || [];
     this.joinOnWhere = joinOnWhere || {};
+    this.loadFromColumn = loadFromColumn;
   }
 
   toJSON(vals) {
@@ -61,7 +63,7 @@ export default class AttributeCollection extends Attribute {
       if (this.itemClass && !(val instanceof this.itemClass)) {
         throw new Error(
           `AttributeCollection::toJSON: Value \`${val}\` in ${this.modelKey} is not an ${
-            this.itemClass.name
+          this.itemClass.name
           }`
         );
       }
@@ -70,6 +72,9 @@ export default class AttributeCollection extends Attribute {
   }
 
   fromJSON(json) {
+    if (typeof json === 'string') {
+      json = JSON.parse(json);
+    }
     const Klass = this.itemClass;
 
     if (!json || !(json instanceof Array)) {
