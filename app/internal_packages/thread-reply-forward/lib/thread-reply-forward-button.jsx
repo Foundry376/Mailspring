@@ -1,7 +1,7 @@
 import { React, PropTypes, Actions } from 'mailspring-exports';
 import { RetinaImg, LottieImg } from 'mailspring-component-kit';
 
-const buttonTimeout = 700;
+const buttonTimeout = 5000;
 const delayTimeout = 400;
 export default class ThreadReplyForwardButton extends React.Component {
   static displayName = 'ThreadReplyForwardButton';
@@ -56,7 +56,7 @@ export default class ThreadReplyForwardButton extends React.Component {
       if (!this._replyTimer) {
         this._replyTimer = setTimeout(() => {
           if (this._mounted) {
-            this.setState({ isReplying: false });
+            this.setState({ isReplying: false, showReplyLoading: false });
             this._replyTimer = null;
           }
         }, buttonTimeout);
@@ -65,7 +65,7 @@ export default class ThreadReplyForwardButton extends React.Component {
       if (!this._replyAllTimer) {
         this._replyAllTimer = setTimeout(() => {
           if (this._mounted) {
-            this.setState({ isReplyAlling: false });
+            this.setState({ isReplyAlling: false, showReplyAllLoading: false });
             this._replyAllTimer = null;
           }
         }, buttonTimeout);
@@ -74,46 +74,52 @@ export default class ThreadReplyForwardButton extends React.Component {
       if (!this._forwardTimer) {
         this._forwardTimer = setTimeout(() => {
           if (this._mounted) {
-            this.setState({ isForwarding: false });
+            this.setState({ isForwarding: false, showForwardLoading: false });
             this._forwardTimer = null;
           }
         }, buttonTimeout);
       }
     }
   };
-  _delayTimeout = (type)=>{
-    if (type === 'reply'){
-      clearTimeout(this._delayReplyTimer);
-      this._delayReplyTimer= setTimeout(()=>{
-        if(this._mounted){
-          this.setState({showReplyLoading: true});
-        }
-      }, delayTimeout);
-    }else if(type==='reply-all'){
-      clearTimeout(this._delayReplyAllTimer);
-      this._delayReplyAllTimer = setTimeout(()=>{
-        if(this._mounted){
-          this.setState({showReplyAllLoading: true});
-        }
-      }, delayTimeout);
-    } else{
-      clearTimeout(this._delayForwardTimer);
-      this._delayForwardTimer= setTimeout(()=>{
-        if(this._mounted){
-          this.setState({showForwardLoading: true});
-        }
-      }, delayTimeout);
+  _delayTimeout = (type) => {
+    if (type === 'reply') {
+      if (!this._delayReplyTimer) {
+        this._delayReplyTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ showReplyLoading: true });
+            this._delayReplyTimer = null;
+          }
+        }, delayTimeout);
+      }
+    } else if (type === 'reply-all') {
+      if (!this._delayReplyAllTimer) {
+        this._delayReplyAllTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ showReplyAllLoading: true });
+            this._delayReplyAllTimer = null;
+          }
+        }, delayTimeout);
+      }
+    } else {
+      if (!this._delayForwardTimer) {
+        this._delayForwardTimer = setTimeout(() => {
+          if (this._mounted) {
+            this.setState({ showForwardLoading: true });
+            this._delayForwardTimer = null;
+          }
+        }, delayTimeout);
+      }
     }
   };
 
   _onCreatingDraft = ({ message, type = '' }) => {
     if (this._mounted) {
-      if (type === 'reply') {
+      if (type === 'reply' && this.state.isReplying) {
         this.setState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
-      } else if (type === 'reply-all') {
+      } else if (type === 'reply-all' && this.state.isReplyAlling) {
         this.setState({ isReplyAlling: true }, this._timeoutButton.bind(this, 'reply-all'));
-      } else {
-        this.setState({ isForwarding: true }, this._timeoutButton.bind(this, 'forwart'));
+      } else if (type === 'forward' && this.state.isForwarding) {
+        this.setState({ isForwarding: true }, this._timeoutButton.bind(this, 'forward'));
       }
     }
   };
@@ -122,6 +128,7 @@ export default class ThreadReplyForwardButton extends React.Component {
     if (this._mounted) {
       if (type === 'reply') {
         clearTimeout(this._delayReplyTimer);
+        this._delayReplyTimer = null;
         if (this._replyTimer) {
           return;
         }
@@ -133,6 +140,7 @@ export default class ThreadReplyForwardButton extends React.Component {
         }, buttonTimeout);
       } else if (type === 'reply-all') {
         clearTimeout(this._delayReplyAllTimer);
+        this._delayReplyAllTimer = null;
         if (this._replyAllTimer) {
           return;
         }
@@ -144,6 +152,7 @@ export default class ThreadReplyForwardButton extends React.Component {
         }, buttonTimeout);
       } else {
         clearTimeout(this._delayForwardTimer);
+        this._delayForwardTimer = null;
         if (this._forwardTimer) {
           return;
         }
@@ -203,7 +212,7 @@ export default class ThreadReplyForwardButton extends React.Component {
           style={{ marginRight: 0 }}
           onClick={this._reply}
         >{this.state.showReplyLoading ?
-        <LottieImg size={{width: 26, height: 26}} name='loading-spinner-blue'/> :
+          <LottieImg size={{ width: 26, height: 26 }} name='loading-spinner-blue'/> :
           <RetinaImg name={'reply.svg'}
                      style={{ width: 26, height: 26 }}
                      isIcon={true}
@@ -217,7 +226,7 @@ export default class ThreadReplyForwardButton extends React.Component {
               style={{ marginRight: 0 }}
               onClick={this._replyAll}
             >{this.state.showReplyAllLoading ?
-              <LottieImg size={{width: 26, height: 26}} name='loading-spinner-blue'/> :
+              <LottieImg size={{ width: 26, height: 26 }} name='loading-spinner-blue'/> :
               <RetinaImg name={'reply-all.svg'}
                          style={{ width: 26, height: 26 }}
                          isIcon={true}
@@ -232,7 +241,7 @@ export default class ThreadReplyForwardButton extends React.Component {
           onClick={this._forward}
         >
           {this.state.showForwardLoading ?
-            <LottieImg size={{width: 26, height: 26}} name='loading-spinner-blue'/> :
+            <LottieImg size={{ width: 26, height: 26 }} name='loading-spinner-blue'/> :
             <RetinaImg name={'forward.svg'}
                        style={{ width: 26, height: 26 }}
                        isIcon={true}

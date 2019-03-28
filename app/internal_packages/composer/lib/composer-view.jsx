@@ -7,6 +7,7 @@ import {
   Actions,
   DraftStore,
   AttachmentStore,
+  MessageStore,
 } from 'mailspring-exports';
 import {
   DropZone,
@@ -35,6 +36,7 @@ const {
   removeQuotedText,
 } = ComposerSupport.BaseBlockPlugins;
 const buttonTimer = 700;
+const newDraftTimeDiff = 3000;
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
 // Composer with new props.
@@ -86,7 +88,7 @@ export default class ComposerView extends React.Component {
       }
     });
 
-    const isBrandNew = Date.now() - this.props.draft.date < 3 * 1000;
+    const isBrandNew = this.props.draft.date >= MessageStore.lastThreadChangeTimestamp();
     if (isBrandNew) {
       ReactDOM.findDOMNode(this).scrollIntoView(false);
       this._animationFrameTimer = window.requestAnimationFrame(() => {

@@ -7,7 +7,7 @@ import CategoryStore from '../stores/category-store';
 import Thread from '../models/thread';
 import Label from '../models/label';
 import _ from 'underscore';
-import ExpungeThreadsTask from './expunge-threads-task';
+import DeleteThreadsTask from './delete-threads-task';
 
 const TaskFactory = {
   tasksForThreadsByAccountId(threads, callback) {
@@ -96,7 +96,7 @@ const TaskFactory = {
   },
   tasksForExpungingThreads({ threads, source }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      return new ExpungeThreadsTask({
+      return new DeleteThreadsTask({
         accountId: accountId,
         threadIds: accountThreads.map(thread => thread.id),
         source,

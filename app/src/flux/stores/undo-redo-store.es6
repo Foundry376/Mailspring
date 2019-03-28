@@ -43,7 +43,7 @@ class UndoRedoStore extends MailspringStore {
           Actions.queueTasks(tasks.map(t => {
             // undo send mail
             if (t instanceof SyncbackMetadataTask && t.pluginId === 'send-later') {
-              ipcRenderer.send('send-later-manager', 'undo', t.modelHeaderMessageId);
+              ipcRenderer.send('send-later-manager', 'undo', t.modelHeaderMessageId, null, null, t.modelThreadId);
             }
             return TaskFactory.taskForUndo({ task: t });
           }));

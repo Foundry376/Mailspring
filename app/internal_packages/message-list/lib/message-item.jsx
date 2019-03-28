@@ -156,7 +156,7 @@ export default class MessageItem extends React.Component {
           matching={{ role: 'MessageHeader' }}
           exposedProps={{ message: message, thread: thread, messages: messages }}
         />
-        <div className="pending-spinner" style={{ position: 'absolute', marginTop: -2 }}>
+        <div className="pending-spinner" style={{ position: 'absolute', marginTop: -2 , left: 55}}>
           <RetinaImg width={18} name="sending-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />
         </div>
         <div className="message-header-right">

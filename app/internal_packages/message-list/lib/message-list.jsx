@@ -101,9 +101,11 @@ class MessageList extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
-    this._unsubscribers = [MessageStore.listen(this._onChange),
-    Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this),
-    Actions.composeReply.listen(this._onCreatingDraft, this)];
+    this._unsubscribers = [
+      MessageStore.listen(this._onChange),
+      Actions.draftReplyForwardCreated.listen(this._onDraftCreated, this),
+      Actions.composeReply.listen(this._onCreatingDraft, this),
+    ];
   }
 
   shouldComponentUpdate(nextProps, nextState) {

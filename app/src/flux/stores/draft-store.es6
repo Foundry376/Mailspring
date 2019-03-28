@@ -55,11 +55,14 @@ class DraftStore extends MailspringStore {
       ipcRenderer.on('action-send-now', (event, headerMessageId, actionKey) => {
         Actions.sendDraft(headerMessageId, { actionKey, delay: 0 });
       });
-      ipcRenderer.on('action-send-cancelled', (event, headerMessageId, actionKey)=>{
-        Actions.draftDeliveryCancelled({ headerMessageId, actionKey });
-      });
       ipcRenderer.on('thread-arp', this._onThreadChange);
     }
+    ipcRenderer.on('action-send-cancelled', (event, headerMessageId, actionKey)=>{
+      if (AppEnv.isMainWindow()){
+        Actions.draftDeliveryCancelled({ headerMessageId, actionKey });
+      }
+      this._onSendDraftCancelled({ headerMessageId });
+    });
     // popout closed
     ipcRenderer.on('draft-close-window', this._onPopoutClosed);
     // ipcRenderer.on('draft-got-new-id', this._onDraftGotNewId);
@@ -652,7 +655,7 @@ class DraftStore extends MailspringStore {
           undoValue: { expiration: null, isUndoSend: true },
         }),
       );
-      ipcRenderer.send('send-later-manager', 'send-later', headerMessageId, delay, actionKey);
+      ipcRenderer.send('send-later-manager', 'send-later', headerMessageId, delay, actionKey,  draft.threadId);
     } else {
       // Immediately send the draft
       await sendAction.performSendAction({ draft });
@@ -672,6 +675,21 @@ class DraftStore extends MailspringStore {
     delete this._draftsSending[headerMessageId];
     this.trigger({ headerMessageId });
   };
+  _onSendDraftCancelled = ({ headerMessageId }) => {
+    delete this._draftsSending[headerMessageId];
+    this.trigger({ headerMessageId });
+    if (AppEnv.isMainWindow()) {
+      // We delay so the view has time to update the restored draft. If we
+      // don't delay the modal may come up in a state where the draft looks
+      // like it hasn't been restored or has been lost.
+      //
+      // We also need to delay because the old draft window needs to fully
+      // close. It takes windows currently (June 2016) 100ms to close by
+      setTimeout(() => {
+        Actions.composePopoutDraft(headerMessageId);
+      }, 300);
+    }
+  }
 
   _onSendDraftFailed = ({ headerMessageId, threadId, errorMessage, errorDetail }) => {
     this._draftsSending[headerMessageId] = false;

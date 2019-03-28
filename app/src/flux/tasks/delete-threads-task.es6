@@ -1,7 +1,7 @@
 import Task from './task';
 import Attributes from '../attributes';
 
-export default class ExpungeThreadsTask extends Task {
+export default class DeleteThreadsTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
     threadIds: Attributes.Collection({
       modelKey: 'threadIds',
