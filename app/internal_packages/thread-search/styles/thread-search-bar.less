@@ -2,7 +2,7 @@
 @import 'ui-mixins';
 
 @token-color: @accent-primary;
-@search-bar-height: 40px;
+@search-bar-height: 68px;
 
 .title-search-bar {
   position: relative;
@@ -12,7 +12,7 @@
   min-height: @search-bar-height;
   font-size: 15px;
   font-weight: 400;
-  margin-left: 16px;
+  margin-left: 20px;
   width: 100%;
   max-width: 1140px;
 }
@@ -21,10 +21,14 @@
   width: 40%;
   -webkit-app-region: drag;
   height: @search-bar-height;
-  font-size:32px;
   font-weight: bold;
   white-space: nowrap;
   text-overflow: ellipsis;
+  h1 {
+    margin: 0;
+    font-size: 32px;
+    line-height: @search-bar-height;
+  }
 }
 .sheet-toolbar{
   .item-container{
