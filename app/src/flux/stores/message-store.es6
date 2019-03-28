@@ -40,6 +40,10 @@ class MessageStore extends MailspringStore {
     return this._thread;
   }
 
+  lastThreadChangeTimestamp() {
+    return this._lastThreadChangeTimestamp;
+  }
+
   itemsExpandedState() {
     // ensure that we're always serving up immutable objects.
     // this.state == nextState is always true if we modify objects in place.
@@ -108,6 +112,7 @@ class MessageStore extends MailspringStore {
     this._showingHiddenItems = false;
     this._thread = null;
     this._popedOut = false;
+    this._lastThreadChangeTimestamp = 0;
   }
 
   _registerListeners() {
@@ -244,6 +249,7 @@ class MessageStore extends MailspringStore {
   _updateThread = thread => {
     if (thread) {
       this._thread = thread;
+      this._lastThreadChangeTimestamp = Date.now();
       // console.log('sending out thread arp');
       ipcRenderer.send('arp', {
         threadId: thread.id,
