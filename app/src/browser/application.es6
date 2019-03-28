@@ -129,16 +129,16 @@ export default class Application extends EventEmitter {
           role: 'window',
           submenu: [
             {
-              role: 'minimize'
+              role: 'minimize',
             },
             {
-              role: 'close'
-            }
-          ]
-        }
-      ])
+              role: 'close',
+            },
+          ],
+        },
+      ]);
 
-      app.dock.setMenu(dockMenu)
+      app.dock.setMenu(dockMenu);
     }
   }
 
@@ -559,7 +559,7 @@ export default class Application extends EventEmitter {
       this.systemTrayManager.updateTrayChatUnreadCount(...args);
     });
 
-    ipcMain.on('send-later-manager', (event, action, headerMessageId, delay, actionKey) => {
+    ipcMain.on('send-later-manager', (event, action, headerMessageId, delay, actionKey, threadId) => {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (action === 'send-later') {
         const timer = setTimeout(() => {
@@ -575,10 +575,16 @@ export default class Application extends EventEmitter {
         clearTimeout(timer);
         delete this._draftsSendLater[headerMessageId];
         mainWindow.browserWindow.webContents.send(
-          'action-send-canceled',
+          'action-send-cancelled',
           headerMessageId,
-          actionKey
+          actionKey,
         );
+        if (threadId) {
+          const threadWindow = this.windowManager.get(`thread-${threadId}`);
+          if (threadWindow && threadWindow.browserWindow.webContents) {
+            threadWindow.browserWindow.webContents.send('action-send-cancelled', headerMessageId, actionKey);
+          }
+        }
       }
     });
 
@@ -635,7 +641,7 @@ export default class Application extends EventEmitter {
         if (threadWindow && threadWindow.browserWindow.webContents) {
           threadWindow.browserWindow.webContents.send(
             `${additionalChannelParam}draft-got-new-id`,
-            options
+            options,
           );
         }
       }
@@ -644,7 +650,7 @@ export default class Application extends EventEmitter {
         if (composerWindow && composerWindow.browserWindow.webContents) {
           composerWindow.browserWindow.webContents.send(
             `${options.arpType}draft-got-new-id`,
-            options
+            options,
           );
         } else {
           console.log(`draft got new id cannot find composer ${options.oldHeaderMessageId}`);
@@ -758,7 +764,7 @@ export default class Application extends EventEmitter {
           if (threadWindow && threadWindow.browserWindow.webContents) {
             threadWindow.browserWindow.webContents.send(
               `${additionalChannelParam}new-window`,
-              options
+              options,
             );
           }
         }
