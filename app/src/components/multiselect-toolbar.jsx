@@ -102,7 +102,10 @@ class MultiselectToolbar extends Component {
     let threadCounts = 0;
     let lastUpdate = 0;
     if (current && current._categories && current._categories.length) {
-      threadCounts = ThreadCountsStore.totalCountForCategoryId(current._categories[0].id);
+      // 'Unread' is not a folder, don't display count
+      if (current.name !== 'Unread') {
+        threadCounts = ThreadCountsStore.totalCountForCategoryId(current._categories[0].id);
+      }
       const category = CategoryStore.byId(current._categories[0].accountId, current._categories[0].id);
       lastUpdate = category.updatedAt;
     }
