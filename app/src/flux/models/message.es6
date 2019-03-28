@@ -171,7 +171,6 @@ export default class Message extends ModelWithMetadata {
     }),
 
     replyToHeaderMessageId: Attributes.String({
-      jsonKey: 'rthMsgId',
       modelKey: 'replyToHeaderMessageId',
     }),
 
