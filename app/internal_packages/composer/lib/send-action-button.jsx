@@ -1,4 +1,4 @@
-import { React, PropTypes, Actions, SendActionsStore, SoundRegistry } from 'mailspring-exports';
+import { React, PropTypes, Actions, SendActionsStore, SoundRegistry, OnlineStatusStore } from 'mailspring-exports';
 import { Menu, RetinaImg, LottieImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
 
 const sendButtonTimeout = 700;
@@ -17,11 +17,12 @@ class SendActionButton extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { isSending: false, mounted: false, showLoading: false };
+    this.state = { isSending: false, mounted: false, showLoading: false, offline: !OnlineStatusStore.isOnline() };
     this._sendButtonTimer = null;
     this._delayLoadingTimer = null;
     this._mounted = false;
     this._unlisten = [
+      OnlineStatusStore.listen(this.onlineStatusChanged, this),
       Actions.draftDeliveryFailed.listen(this._onSendDraftProcessCompleted, this),
       Actions.draftDeliveryCancelled.listen(this._onSendDraftProcessCompleted, this),
     ];
@@ -50,6 +51,11 @@ class SendActionButton extends React.Component {
       this.props.disabled !== nextProps.disabled ||
       this.state.isSending !== nextState.isSending
     );
+  }
+  onlineStatusChanged= ({onlineDidChange}) =>{
+    if(onlineDidChange){
+      this.setState({offline: !OnlineStatusStore.isOnline()});
+    }
   }
 
   primarySend() {
@@ -161,8 +167,8 @@ class SendActionButton extends React.Component {
         style={{ order: 100 }}
         primaryItem={this._renderSendActionItem(sendActions[0])}
         primaryTitle={sendActions[0].title}
-        primaryClick={!this.props.disabled ? this._onPrimaryClick : null}
-        disabled={this.props.disabled}
+        primaryClick={!this.props.disabled && !this.state.offline ? this._onPrimaryClick : null}
+        disabled={this.props.disabled || this.state.offline}
         closeOnMenuClick
         menu={menu}
       />
