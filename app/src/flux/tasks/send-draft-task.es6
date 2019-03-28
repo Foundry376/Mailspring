@@ -122,7 +122,11 @@ export default class SendDraftTask extends Task {
     }
   }
 
-  onError({ key, debuginfo }) {
+  onError({ key, debuginfo, retryable }) {
+    if (retryable) {
+      console.warn(`retrying task because ${debuginfo}`);
+      return;
+    }
     let errorMessage = null;
     let errorDetail = null;
 
