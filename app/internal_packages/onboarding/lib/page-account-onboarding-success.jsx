@@ -20,7 +20,7 @@ class AccountOnboardingSuccess extends Component {
         <div className="logo-container">
           <RetinaImg
             style={{ backgroundColor: providerConfig.color, borderRadius: 44 }}
-            name={providerConfig.headerIcon}
+            name={providerConfig.icon}
             mode={RetinaImg.Mode.ContentPreserve}
             className="logo"
           />

@@ -223,7 +223,6 @@ export default class Message extends ModelWithMetadata {
 
   constructor(data = {}) {
     super(data);
-    console.log('****datadata', data);
     this.subject = this.subject || '';
     this.to = this.to || [];
     this.cc = this.cc || [];
@@ -236,7 +235,6 @@ export default class Message extends ModelWithMetadata {
   }
 
   toJSON(options) {
-    console.log('****eeee', options);
     const json = super.toJSON(options);
     json.file_ids = this.fileIds();
     if (this.draft) {
@@ -251,7 +249,6 @@ export default class Message extends ModelWithMetadata {
   }
 
   fromJSON(json = {}) {
-    console.log('****dddd', json);
     super.fromJSON(json);
 
     // Only change the `draft` bit if the incoming json has an `object`

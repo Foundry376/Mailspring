@@ -399,7 +399,7 @@ export default class MessagesSendBar extends PureComponent {
             }}
           >
             <RetinaImg name={'attachments.svg'}
-              style={{ width: 24, height: 24 }}
+              style={{ width: 20, height: 20 }}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
             <input
@@ -412,7 +412,7 @@ export default class MessagesSendBar extends PureComponent {
           </Button>
           <Button onClick={this.onEmojiTouch}>
             <RetinaImg name={'emoji.svg'}
-              style={{ width: 24, height: 24 }}
+              style={{ width: 20, height: 20 }}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
           </Button>

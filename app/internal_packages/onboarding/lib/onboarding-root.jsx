@@ -74,7 +74,7 @@ export default class OnboardingRoot extends React.Component {
       <div className="page-frame">
         <PageTopBar
           pageDepth={this.state.pageDepth}
-          allowMoveBack={!['initial-preferences', 'tutorial', 'account-add-another'].includes(this.state.page)}
+          allowMoveBack={!['initial-preferences', 'tutorial', 'account-add-another', 'account-choose'].includes(this.state.page)}
         />
         <CSSTransitionGroup
           transitionName="alpha-fade"

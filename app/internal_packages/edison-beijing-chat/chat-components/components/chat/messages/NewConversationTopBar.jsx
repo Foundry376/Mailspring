@@ -76,7 +76,7 @@ export default class MessagesTopBar extends Component {
           <Select
             mode="tags"
             id="contact-select"
-            style={{ width: '400px', flex: 1, height: '50px' }}
+            style={{ width: '400px', flex: 1, height: '70px' }}
             onChange={this.handleChange}
             defaultOpen={true}
             multiple
