@@ -257,17 +257,18 @@ export default class OAuthSignInPage extends React.Component {
       height: '100%',
       width: '100%',
       position: 'fixed',
-      top: 75,
+      top: 0,
       bottom: 0,
       zIndex: 2
     };
     const yahooOptions = {
-      position: 'fixed',
-      width: '100%',
+      width: '80%',
       height: '100%',
+      position: 'fixed',
       top: 0,
-      left: 0,
+      left: '10%',
       zIndex: 2,
+      paddingTop: 20
     }
     const Validating = (
       <div className="validating">
