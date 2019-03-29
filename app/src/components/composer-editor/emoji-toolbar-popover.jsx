@@ -214,7 +214,6 @@ export default class EmojiToolbarPopover extends React.Component {
           (position.y - this.state.categoryPositions[category].top - emptyLineAfterCategoryTextLineHeight) / emojiLineHeight
         );
         const index = x + y * numItemsPerLine;
-        console.log(`index :${index}, x: ${x}, y:${y}`);
         return this.state.categorizedEmoji[category][index];
       }
     }
