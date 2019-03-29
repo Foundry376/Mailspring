@@ -120,7 +120,7 @@ export default class OAuthSignInPage extends React.Component {
     setTimeout(() => {
       if (!this._mounted) return;
       this.props.onSuccess(account);
-    }, 400);
+    }, 1000);
   }
 
   _renderHeader() {
@@ -198,7 +198,7 @@ export default class OAuthSignInPage extends React.Component {
       this.refs.webview.blur();
     }
   }
-  _pasteIntoWebview = () =>{
+  _pasteIntoWebview = () => {
     const contents = this.refs.webview;
     contents.insertText(clipboard.readText());
   }
@@ -269,22 +269,35 @@ export default class OAuthSignInPage extends React.Component {
       left: 0,
       zIndex: 2,
     }
+    const Validating = (
+      <div className="validating">
+        <h2>Validating...</h2>
+        <p>Please wait while we validate<br />
+          your account.</p>
+        <LottieImg name='loading-spinner-blue'
+          size={{ width: 65, height: 65 }}
+          style={{ margin: '0 auto' }} />
+      </div>
+    );
+    const Success = (
+      <div className="success">
+        <h2>Success!</h2>
+        <RetinaImg
+          style={{ width: 65, height: 65 }}
+          isIcon
+          name="check-alone.svg"
+          mode={RetinaImg.Mode.ContentIsMask} />
+      </div>
+    );
     return (
       <div className={`page account-setup oauth ${this.props.serviceName.toLowerCase()}`}>
-        {authStage === 'buildingAccount' || authStage === 'accountSuccess' ? (
-          <div className="validating">
-            <h2>Validating...</h2>
-            <p>Please wait while we validate<br />
-              your account.</p>
-            <LottieImg name='loading-spinner-blue'
-              size={{ width: 65, height: 65 }}
-              style={{ margin: '0 auto' }} />
-          </div>
-        ) : (
-            <webview ref='webview' src={this.state.url} partition="in-memory-only" style={
-              isYahoo ? yahooOptions : defaultOptions
-            } />
-          )}
+        {authStage === 'buildingAccount' && Validating}
+        {authStage === 'accountSuccess' && Success}
+        {!(authStage === 'buildingAccount' || authStage === 'accountSuccess') && (
+          <webview ref='webview' src={this.state.url} partition="in-memory-only" style={
+            isYahoo ? yahooOptions : defaultOptions
+          } />
+        )}
         {loading && (
           <LottieImg name='loading-spinner-blue'
             size={{ width: 65, height: 65 }}
