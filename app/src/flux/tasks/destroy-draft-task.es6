@@ -20,7 +20,11 @@ export default class DestroyDraftTask extends Task {
       messageIds: this.messageIds,
     });
   }
-  onError({key, debuginfo}){
+  onError({key, debuginfo, retryable}){
+    if ( retryable ){
+      console.warn(`Destroying draft failed because ${debuginfo}`);
+      return;
+    }
     Actions.destroyDraftFailed({
       key, debuginfo,
       messageIds: this.messageIds,
