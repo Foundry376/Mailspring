@@ -27,7 +27,7 @@
       z-index: 2;
       .new-message-title {
         font-weight: bold;
-        font-size: 16px;
+        font-size: 28px;
       }
       .button {
         img.content-mask {
@@ -44,12 +44,20 @@
     }
     .go {
       margin: 10px 0 0 10px;
-      height: 32px;
-      width: 50px;
+      height: 48px;
+      width: 59px;
       background: @blue;
       color: @white;
       border-radius: 4px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.01px;
+      line-height: 24px;
+      border-radius: 10px;
     }
+  }
+  .content-mask {
+    background-color: #797d80;
   }
 }
 .rc-select-dropdown {
@@ -69,13 +77,24 @@
   border-radius: 5px;
 }
 
-
 li.rc-select-dropdown-menu-item-active {
+  position:relative;
   background-color: #F8F8FA;
   border-radius: 5px;
+  margin: 0 10px 0 0;
   background-image: url(images/chat/return.png);
   background-repeat: no-repeat;
-  background-position: right;
+  background-position: center right 20px;
+  background-size: 20px;
+}
+li.rc-select-dropdown-menu-item {
+  height: 56px;
+  line-height: 56px;
+}
+
+.rc-select-selection__rendered {
+  height: 48px;
+  padding: 15px 5px 5px 5px;
 }
 
 .rc-select-dropdown {
@@ -90,15 +109,27 @@ li.rc-select-dropdown-menu-item-active {
       float: left;
     }
     .contact-name {
-      font-weight: bold;
-      font-size: 12px;
-      margin-left: 15px;
+      height: 40px;
       color: #000;
+      font-size: 15px;
+      letter-spacing: 0.21px;
+      line-height: 40px;
+      margin: 0 20px;
     }
     .contact-email {
-      font-size: 11px;
-      margin-left: 15px;
-      color: #7d8285;
+      height: 40px;
+      color: #797D80;
+      font-size: 13px;
+      letter-spacing: 0.18px;
+      line-height: 40px;
     }
+  }
+  .rc-select-selection__choice__content {
+    height: 28px;
+    color: #000;
+    font-size: 13px;
+    line-height: 16px;
+    border-radius: 15px;
+    background-color: #F4F6F8;
   }
 }
