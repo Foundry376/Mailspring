@@ -41,8 +41,10 @@ export default class TutorialPage extends React.Component {
       autoplay: {
         delay: 8000,
       },
+      loop: true,
       pagination: {
         el: '.swiper-pagination',
+        clickable: true
       },
       navigation: {
         nextEl: '.swiper-button-next',
