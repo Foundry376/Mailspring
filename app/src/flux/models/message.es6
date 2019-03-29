@@ -80,24 +80,33 @@ export default class Message extends ModelWithMetadata {
 
     to: Attributes.Collection({
       modelKey: 'to',
+      jsonKey: 'to',
+      queryable: true,
+      loadFromColumn: true,
       itemClass: Contact,
     }),
 
     cc: Attributes.Collection({
       modelKey: 'cc',
+      jsonKey: 'cc',
+      queryable: true,
+      loadFromColumn: true,
       itemClass: Contact,
     }),
 
     bcc: Attributes.Collection({
       modelKey: 'bcc',
+      jsonKey: 'bcc',
+      queryable: true,
+      loadFromColumn: true,
       itemClass: Contact,
     }),
 
     from: Attributes.Collection({
       modelKey: 'from',
-      // jsonKey: 'from',
-      // queryable: true,
-      // loadFromColumn: true,
+      jsonKey: 'from',
+      queryable: true,
+      loadFromColumn: true,
       itemClass: Contact,
     }),
 
@@ -217,6 +226,7 @@ export default class Message extends ModelWithMetadata {
 
   constructor(data = {}) {
     super(data);
+    console.log('****datadata', data);
     this.subject = this.subject || '';
     this.to = this.to || [];
     this.cc = this.cc || [];
@@ -229,6 +239,7 @@ export default class Message extends ModelWithMetadata {
   }
 
   toJSON(options) {
+    console.log('****eeee', options);
     const json = super.toJSON(options);
     json.file_ids = this.fileIds();
     if (this.draft) {
@@ -243,6 +254,7 @@ export default class Message extends ModelWithMetadata {
   }
 
   fromJSON(json = {}) {
+    console.log('****dddd', json);
     super.fromJSON(json);
 
     // Only change the `draft` bit if the incoming json has an `object`
