@@ -1,10 +1,26 @@
 import React from 'react';
-// import { RetinaImg, ScrollRegion } from 'mailspring-component-kit';
 import RetinaImg from '../retina-img';
 import ScrollRegion from '../scroll-region';
 
 import categorizedEmojiList from './categorized-emoji';
 import { getEmojiImagePath } from './emoji-plugins';
+
+const emojiHeight = 24;
+const emojiWidth = 24;
+const categoryTextSize = 12;
+const categoryTextLeftStartPosition = 7;
+const canvasWidth = 200;
+const emojiLeftStartingPosition = 9;
+const scrollOffSet = 16;
+const canvasStartVerticalPosition = categoryTextSize + 4;
+const emojiLineHeight = emojiHeight + 8;
+const emojiItemWidth = emojiWidth + 8;
+const emojiCategoryTextLineHeight = categoryTextSize + 4;
+const emptyLineBeforeCategoryTextLineHeight = emojiCategoryTextLineHeight;
+const emptyLineAfterCategoryTextLineHeight = emojiCategoryTextLineHeight / 2;
+const numItemsPerLine = Math.floor(canvasWidth / emojiItemWidth);
+const emojiRightMostPossiblePosition = canvasWidth - emojiItemWidth;
+const emojiRightLastDrawPosition = emojiItemWidth * numItemsPerLine + emojiLeftStartingPosition;
 
 export default class EmojiToolbarPopover extends React.Component {
   static displayName = 'EmojiToolbarPopover';
@@ -83,8 +99,8 @@ export default class EmojiToolbarPopover extends React.Component {
           },
           categoryPositions: {
             'Search Results': {
-              top: 25,
-              bottom: 25 + Math.ceil(searchMatches.length / 8) * 24,
+              top: canvasStartVerticalPosition,
+              bottom: canvasStartVerticalPosition + Math.ceil(searchMatches.length / numItemsPerLine) * emojiLineHeight + emptyLineBeforeCategoryTextLineHeight,
             },
           },
           searchValue: searchValue,
@@ -131,13 +147,14 @@ export default class EmojiToolbarPopover extends React.Component {
     for (const name of categoryNames) {
       categoryPositions[name] = { top: 0, bottom: 0 };
     }
-    let verticalPos = 25;
+    let verticalPos = canvasStartVerticalPosition;
     for (const category of Object.keys(categoryPositions)) {
-      const height = Math.ceil(categorizedEmoji[category].length / 8) * 24;
+      const height =
+        Math.ceil(categorizedEmoji[category].length / numItemsPerLine) * emojiLineHeight + emptyLineBeforeCategoryTextLineHeight;
       categoryPositions[category].top = verticalPos;
       verticalPos += height;
       categoryPositions[category].bottom = verticalPos;
-      verticalPos += 24;
+      verticalPos += emptyLineAfterCategoryTextLineHeight;
     }
     return {
       categoryNames: categoryNames,
@@ -152,10 +169,10 @@ export default class EmojiToolbarPopover extends React.Component {
       this.setState({ searchValue: '' });
       this.setState(this.getStateFromStore, () => {
         this.renderCanvas();
-        container.scrollTop = this.state.categoryPositions[category].top + 16;
+        container.scrollTop = this.state.categoryPositions[category].top + scrollOffSet;
       });
     } else {
-      container.scrollTop = this.state.categoryPositions[category].top + 16;
+      container.scrollTop = this.state.categoryPositions[category].top + scrollOffSet;
     }
     this.setState({ activeTab: category });
   }
@@ -176,30 +193,28 @@ export default class EmojiToolbarPopover extends React.Component {
   calcPosition(event) {
     const rect = event.target.getBoundingClientRect();
     const position = {
-      x: event.pageX - rect.left / 2,
-      y: event.pageY - rect.top / 2,
+      x: event.pageX - rect.left,
+      y: event.pageY - rect.top,
     };
+    console.log(`mouse position in canvas ${JSON.stringify(position)}`);
     return position;
   }
 
   calcEmojiByPosition = position => {
     for (const category of Object.keys(this.state.categoryPositions)) {
-      const LEFT_BOUNDARY = 8;
-      const RIGHT_BOUNDARY = 204;
-      const EMOJI_WIDTH = 24.5;
-      const EMOJI_HEIGHT = 24;
-      const EMOJI_PER_ROW = 8;
       if (
-        position.x >= LEFT_BOUNDARY &&
-        position.x <= RIGHT_BOUNDARY &&
-        position.y >= this.state.categoryPositions[category].top &&
-        position.y <= this.state.categoryPositions[category].bottom
+        position.x >= emojiLeftStartingPosition &&
+        position.x <= emojiRightLastDrawPosition &&
+        position.y >=
+          this.state.categoryPositions[category].top + emptyLineAfterCategoryTextLineHeight &&
+        position.y <= this.state.categoryPositions[category].bottom - emptyLineBeforeCategoryTextLineHeight
       ) {
-        const x = Math.round((position.x + 5) / EMOJI_WIDTH);
-        const y = Math.round(
-          (position.y - this.state.categoryPositions[category].top + 10) / EMOJI_HEIGHT
+        const x = Math.floor((position.x - emojiLeftStartingPosition) / emojiItemWidth);
+        const y = Math.floor(
+          (position.y - this.state.categoryPositions[category].top - emptyLineAfterCategoryTextLineHeight) / emojiLineHeight
         );
-        const index = x + (y - 1) * EMOJI_PER_ROW - 1;
+        const index = x + y * numItemsPerLine;
+        console.log(`index :${index}, x: ${x}, y:${y}`);
         return this.state.categorizedEmoji[category][index];
       }
     }
@@ -218,8 +233,10 @@ export default class EmojiToolbarPopover extends React.Component {
           <RetinaImg
             key={`${category} tab`}
             className={className}
-            name={`icon-emojipicker-${category.replace(/ /g, '-').toLowerCase()}.png`}
+            name={`popover-${category.replace(/ /g, '-').toLowerCase()}.svg`}
             mode={RetinaImg.Mode.ContentIsMask}
+            isIcon
+            style={{width: 18}}
             onMouseDown={() => this.scrollToCategory(category)}
           />
         </div>
@@ -229,15 +246,20 @@ export default class EmojiToolbarPopover extends React.Component {
   }
 
   renderCanvas() {
-    const keys = Object.keys(this.state.categoryPositions);
-    this._canvasEl.height = this.state.categoryPositions[keys[keys.length - 1]].bottom * 2;
+    // const keys = Object.keys(this.state.categoryPositions);
+    this._canvasEl.height = Object.values(this.state.categoryPositions).map((item)=>{
+      return item.bottom;
+    }).reduce((a ,b)=>{
+      return Math.max(a,b);
+    });
+    // this._canvasEl.height = this.state.categoryPositions[keys[keys.length - 1]].bottom * 2;
     const ctx = this._canvasEl.getContext('2d');
-    ctx.font = '24px Nylas-Pro';
+    ctx.font = `${categoryTextSize}px Nylas-Pro`;
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.clearRect(0, 0, this._canvasEl.width, this._canvasEl.height);
     const position = {
-      x: 15,
-      y: 45,
+      x: categoryTextLeftStartPosition,
+      y: canvasStartVerticalPosition,
     };
 
     let idx = 0;
@@ -254,12 +276,12 @@ export default class EmojiToolbarPopover extends React.Component {
   renderCategory(category, i, ctx, pos, callback) {
     const position = pos;
     if (i > 0) {
-      position.x = 18;
-      position.y += 48;
+      position.x = categoryTextLeftStartPosition;
+      position.y += emojiLineHeight + emptyLineBeforeCategoryTextLineHeight;
     }
     ctx.fillText(category, position.x, position.y);
-    position.x = 18;
-    position.y += 48;
+    position.x = emojiLeftStartingPosition;
+    position.y += emptyLineAfterCategoryTextLineHeight;
 
     const emojiNames = this.state.categorizedEmoji[category];
     if (!emojiNames || emojiNames.length === 0) return;
@@ -269,11 +291,14 @@ export default class EmojiToolbarPopover extends React.Component {
       const y = position.y;
       const src = getEmojiImagePath(emojiName);
 
-      if (position.x > 325 && j < this.state.categorizedEmoji[category].length - 1) {
-        position.x = 18;
-        position.y += 48;
+      if (
+        position.x > emojiRightMostPossiblePosition &&
+        j < this.state.categorizedEmoji[category].length - 1
+      ) {
+        position.x = emojiLeftStartingPosition;
+        position.y += emojiLineHeight;
       } else {
-        position.x += 50;
+        position.x += emojiItemWidth;
       }
 
       return { src, x, y };
@@ -285,7 +310,7 @@ export default class EmojiToolbarPopover extends React.Component {
       }
       this._emojiPreloadImage.onload = () => {
         this._emojiPreloadImage.onload = null;
-        ctx.drawImage(this._emojiPreloadImage, x, y - 30, 32, 32);
+        ctx.drawImage(this._emojiPreloadImage, x, y, emojiWidth, emojiHeight);
         if (emojiToDraw.length === 0) {
           callback();
         } else {
@@ -315,12 +340,12 @@ export default class EmojiToolbarPopover extends React.Component {
             ref={el => {
               this._canvasEl = el;
             }}
-            width="400"
+            width={canvasWidth}
             height="2000"
             onMouseDown={this.onMouseDown}
             onMouseOut={this.onMouseOut}
             onMouseMove={this.onHover}
-            style={{ zoom: '0.5' }}
+            style={{ zoom: '1' }}
           />
         </ScrollRegion>
         <div className="emoji-name">{this.state.emojiName}</div>
