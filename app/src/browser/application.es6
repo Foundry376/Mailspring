@@ -443,7 +443,7 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-help', () => {
-      const helpUrl = 'http://support.getmailspring.com/hc/en-us';
+      const helpUrl = 'https://www.edison.tech/';
       require('electron').shell.openExternal(helpUrl);
     });
 
