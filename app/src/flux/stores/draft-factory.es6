@@ -239,7 +239,7 @@ class DraftFactory {
       files: message.files,
       threadId: thread.id,
       accountId: message.accountId,
-      forwardedHeaderMessageId: message.headerMessageId,
+      referenceMessageId: message.headerMessageId,
       msgOrigin: Message.ForwardDraft,
       body: `
         <br/>

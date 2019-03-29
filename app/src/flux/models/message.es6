@@ -156,7 +156,6 @@ export default class Message extends ModelWithMetadata {
 
     headerMessageId: Attributes.String({
       queryable: true,
-      jsonKey: 'hMsgId',
       modelKey: 'headerMessageId',
     }),
 
@@ -181,12 +180,10 @@ export default class Message extends ModelWithMetadata {
     }),
 
     replyToHeaderMessageId: Attributes.String({
-      jsonKey: 'rthMsgId',
       modelKey: 'replyToHeaderMessageId',
     }),
 
     forwardedHeaderMessageId: Attributes.String({
-      jsonKey: 'fwdMsgId',
       modelKey: 'forwardedHeaderMessageId',
     }),
 
