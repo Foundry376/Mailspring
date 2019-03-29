@@ -67,6 +67,22 @@ const AccountProviders = [
     color: '#a76ead',
     twoStep
   },
+  {
+    provider: 'hotmail',
+    displayName: 'Hotmail',
+    icon: 'account-logo-hotmail.png',
+    headerIcon: 'setup-icon-provider-yahoo.png',
+    color: '#a76ead',
+    twoStep
+  },
+  {
+    provider: 'att',
+    displayName: 'AT&T',
+    icon: 'account-logo-att.png',
+    headerIcon: 'setup-icon-provider-yahoo.png',
+    color: '#a76ead',
+    twoStep
+  },
   // {
   //   provider: 'yandex',
   //   displayName: 'Yandex',
