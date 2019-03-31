@@ -3,6 +3,8 @@ import { ImageAttachmentItem } from 'mailspring-component-kit';
 import { AttachmentStore } from 'mailspring-exports';
 import { isQuoteNode } from './base-block-plugins';
 import { ComposerEditorPlugin } from './types';
+import { Editor, Node } from 'slate';
+import { schema } from './conversion';
 
 const IMAGE_TYPE = 'image';
 
@@ -65,7 +67,11 @@ const rules = [
 
 export const changes = {
   insert: (editor: Editor, file) => {
-    const canHoldInline = node => !node.isVoid && !isQuoteNode(node) && !!node.getFirstText();
+    const canHoldInline = (node: Node) => {
+      const isVoid =
+        node.object === 'inline' && schema.inlines[node.type] && schema.inlines[node.type].isVoid;
+      return !isVoid && !isQuoteNode(node) && !!node.getFirstText();
+    };
 
     while (!canHoldInline(editor.value.anchorBlock)) {
       editor.moveToEndOfPreviousText();

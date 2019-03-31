@@ -10,6 +10,7 @@ import {
   AttachmentStore,
   Message,
   DraftEditingSession,
+  MessageWithEditorState,
 } from 'mailspring-exports';
 import {
   DropZone,
@@ -37,7 +38,7 @@ const {
 } = ComposerSupport.BaseBlockPlugins;
 
 interface ComposerViewProps {
-  draft: Message & { bodyEditorState: any };
+  draft: MessageWithEditorState;
   session: DraftEditingSession;
   className?: string;
 }

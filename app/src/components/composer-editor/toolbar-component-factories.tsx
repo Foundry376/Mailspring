@@ -8,7 +8,13 @@ export interface IEditorToolbarConfigItem {
   type: string;
   tagNames?: string[];
   render?: (
-    props: { node: Block; attributes: any; children: any; targetIsHTML: boolean }
+    props: {
+      node?: Block;
+      mark?: any;
+      attributes: any;
+      children: any;
+      targetIsHTML: boolean;
+    }
   ) => JSX.Element | string | void;
   button?: {
     isActive: (value: Value) => boolean;

@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
-import DraftEditingSession from './draft-editing-session';
+import { DraftEditingSession } from './draft-editing-session';
 import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
 import { SendActionsStore } from './send-actions-store';

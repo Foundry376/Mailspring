@@ -1,7 +1,7 @@
 import React from 'react';
-import { localized, PropTypes, Message } from 'mailspring-exports';
+import { localized, PropTypes, Message, MessageWithEditorState } from 'mailspring-exports';
 
-class TemplateStatusBar extends React.Component<{ draft: Message }> {
+class TemplateStatusBar extends React.Component<{ draft: MessageWithEditorState }> {
   static displayName = 'TemplateStatusBar';
 
   static containerStyles = {
@@ -14,7 +14,7 @@ class TemplateStatusBar extends React.Component<{ draft: Message }> {
     draft: PropTypes.object.isRequired,
   };
 
-  _usingTemplate({ draft }) {
+  _usingTemplate({ draft }: { draft: MessageWithEditorState }) {
     return (
       draft &&
       draft.bodyEditorState &&

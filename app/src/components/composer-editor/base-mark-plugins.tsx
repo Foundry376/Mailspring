@@ -10,7 +10,7 @@ import {
 } from './toolbar-component-factories';
 
 import BaseBlockPlugins from './base-block-plugins';
-import { ComposerEditorPlugin } from './types';
+import { ComposerEditorPlugin, Rule } from './types';
 
 export const DEFAULT_FONT_SIZE = 2;
 export const DEFAULT_FONT_OPTIONS = [
@@ -140,7 +140,7 @@ function renderMark(props, editor = null, next = () => {}) {
   return config && config.render ? config.render(props) : next();
 }
 
-const rules = [
+const rules: Rule[] = [
   {
     deserialize(el, next) {
       const marks = [];
@@ -154,21 +154,21 @@ const rules = [
           nodes: next(el.childNodes),
         };
       }
-      if (el.style && isMeaningfulColor(el.style.color)) {
+      if (el instanceof HTMLElement && el.style && isMeaningfulColor(el.style.color)) {
         marks.push({
           object: 'mark',
           type: 'color',
           data: { value: el.style.color },
         });
       }
-      if (el.style && isMeaningfulFontStyle(el.style.fontSize)) {
+      if (el instanceof HTMLElement && el.style && isMeaningfulFontStyle(el.style.fontSize)) {
         marks.push({
           object: 'mark',
           type: 'size',
           data: { value: el.style.fontSize },
         });
       }
-      if (el.style && el.style.fontFamily) {
+      if (el instanceof HTMLElement && el.style && el.style.fontFamily) {
         marks.push({
           object: 'mark',
           type: 'face',
@@ -186,7 +186,7 @@ const rules = [
         });
       }
       if (tagName === 'font' && el.getAttribute('size')) {
-        const size = Math.max(1, Math.min(6, el.getAttribute('size') / 1));
+        const size = Math.max(1, Math.min(6, Number(el.getAttribute('size'))));
         if (isMeaningfulFontSize(size)) {
           marks.push({
             object: 'mark',
@@ -256,7 +256,7 @@ const rules = [
   },
 ];
 
-const exportedlugins: ComposerEditorPlugin[] = [
+const exportedPlugins: ComposerEditorPlugin[] = [
   {
     toolbarComponents: []
       .concat(
@@ -319,4 +319,4 @@ const exportedlugins: ComposerEditorPlugin[] = [
   },
 ];
 
-export default exportedlugins;
+export default exportedPlugins;

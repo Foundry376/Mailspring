@@ -17,7 +17,7 @@ const AEditor = (SlateEditorComponent as any) as React.ComponentType<
 >;
 
 interface ComposerEditorProps {
-  value: any;
+  value: Value;
   propsForPlugins: any;
   onChange: (change: { operations: Immutable.List<Operation>; value: Value }) => void;
   className?: string;
@@ -200,6 +200,8 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
   render() {
     const { className, onBlur, onDrop, value, propsForPlugins } = this.props;
 
+    const PluginTopComponents = this.editor ? plugins.filter(p => p.topLevelComponent) : [];
+
     return (
       <KeyCommandsRegion
         className={`RichEditor-root ${className || ''}`}
@@ -211,11 +213,9 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
           onClick={this.onFocusIfBlurred}
           onContextMenu={this.onContextMenu}
         >
-          {plugins
-            .filter(p => p.topLevelComponent)
-            .map((p, idx) => (
-              <p.topLevelComponent key={idx} value={value} onChange={this.onChange} />
-            ))}
+          {PluginTopComponents.map((p, idx) => (
+            <p.topLevelComponent key={idx} value={value} editor={this.editor} />
+          ))}
           <AEditor
             ref={editor => (this.editor = editor)}
             schema={schema}
@@ -230,9 +230,6 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
             plugins={plugins}
             propsForPlugins={propsForPlugins}
           />
-          {plugins
-            .reduce((arr, p) => (p.topLevelComponents ? arr.concat(p.topLevelComponents) : arr), [])
-            .map((Component, idx) => <Component key={idx} />)}
         </div>
       </KeyCommandsRegion>
     );

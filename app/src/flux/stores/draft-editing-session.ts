@@ -16,6 +16,8 @@ import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import { SyncbackDraftTask } from '../tasks/syncback-draft-task';
 import { DestroyDraftTask } from '../tasks/destroy-draft-task';
 
+export type MessageWithEditorState = Message & { bodyEditorState: any };
+
 const { convertFromHTML, convertToHTML } = Conversion;
 const MetadataChangePrefix = 'metadata.';
 let DraftStore = null;
@@ -112,7 +114,7 @@ class DraftChangeSet extends EventEmitter {
   }
 }
 
-function hotwireDraftBodyState(draft) {
+function hotwireDraftBodyState(draft: any): MessageWithEditorState {
   // Populate the bodyEditorState and override the draft properties
   // so that they're kept in sync with minimal recomputation
   let _bodyHTMLCache = draft.body;
@@ -159,6 +161,8 @@ function hotwireDraftBodyState(draft) {
   Object.defineProperty(draft, 'body', draft.__bodyPropDescriptor);
   Object.defineProperty(draft, 'bodyEditorState', draft.__bodyEditorStatePropDescriptor);
   draft.body = _bodyHTMLCache;
+
+  return draft as MessageWithEditorState;
 }
 
 function fastCloneDraft(draft) {
@@ -185,10 +189,10 @@ that display Draft objects or allow for interactive editing of Drafts.
 
 Section: Drafts
 */
-export default class DraftEditingSession extends MailspringStore {
+export class DraftEditingSession extends MailspringStore {
   static DraftChangeSet = DraftChangeSet;
 
-  _draft: Message = null;
+  _draft: MessageWithEditorState = null;
   _draftPromise: Promise<Message> = null;
   _destroyed: boolean = false;
 
@@ -207,8 +211,7 @@ export default class DraftEditingSession extends MailspringStore {
     this.listenTo(DraftStore, this._onDraftChanged);
 
     if (draft) {
-      hotwireDraftBodyState(draft);
-      this._draft = draft;
+      this._draft = hotwireDraftBodyState(draft);
       this._draftPromise = Promise.resolve(draft);
     } else {
       this._draftPromise = DatabaseStore.findBy<Message>(Message, {
@@ -225,8 +228,7 @@ export default class DraftEditingSession extends MailspringStore {
             console.warn(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
             return;
           }
-          hotwireDraftBodyState(draft);
-          this._draft = draft;
+          this._draft = hotwireDraftBodyState(draft);
           this.trigger();
           return draft;
         });

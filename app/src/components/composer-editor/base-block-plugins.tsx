@@ -1,29 +1,32 @@
 import React from 'react';
-import { Editor, Value, Block } from 'slate';
+import { Editor, Value, Block, Node } from 'slate';
 import SoftBreak from 'slate-soft-break';
 import EditList from 'golery-slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
 import When from 'slate-when';
 
+import { Message, MessageWithEditorState } from 'mailspring-exports';
 import { BuildToggleButton, IEditorToolbarConfigItem } from './toolbar-component-factories';
 import { ComposerEditorPlugin } from './types';
 
-function nodeIsEmpty(node: Block) {
+function nodeIsEmpty(node: Node) {
   if (node.text !== '') {
     return false;
   }
 
-  let children = (node.nodes.toArray ? node.nodes.toArray() : node.nodes) || [];
-  if (children.length === 0) {
-    return true;
-  }
-  if (children.length === 1 && children[0].object === 'text') {
-    return true;
+  if (node.object !== 'text') {
+    let children = (node.nodes.toArray ? node.nodes.toArray() : node.nodes) || [];
+    if (children.length === 0) {
+      return true;
+    }
+    if (children.length === 1 && children[0].object === 'text') {
+      return true;
+    }
   }
   return false;
 }
 
-function isBlockTypeOrWithinType(value: Value, type) {
+function isBlockTypeOrWithinType(value: Value, type: string) {
   if (!value.focusBlock) {
     return false;
   }
@@ -47,7 +50,7 @@ function toggleBlockTypeWithBreakout(editor: Editor, type) {
     const depth = ancestors.size - idx;
     if (depth > 0) {
       editor.splitBlock(ancestors.size - idx);
-      for (let x = 0; x < depth; x++) editor.unwrapBlock();
+      for (let x = 0; x < depth; x++) editor.unwrapBlock({ type });
     }
     editor.setBlocks(BLOCK_CONFIG.div.type);
   } else {
@@ -277,7 +280,7 @@ const rules = [
 
 // support functions
 
-export function hasBlockquote(value) {
+export function hasBlockquote(value: Value) {
   const nodeHasBlockquote = node => {
     if (!node.nodes) return false;
     for (const childNode of node.nodes.toArray()) {
@@ -289,7 +292,7 @@ export function hasBlockquote(value) {
   return nodeHasBlockquote(value.document);
 }
 
-export function hasNonTrailingBlockquote(value) {
+export function hasNonTrailingBlockquote(value: Value) {
   const nodeHasNonTrailingBlockquote = node => {
     if (!node.nodes) return false;
     let found = false;
@@ -306,7 +309,7 @@ export function hasNonTrailingBlockquote(value) {
   return nodeHasNonTrailingBlockquote(value.document);
 }
 
-export function allNodesInBFSOrder(value) {
+export function allNodesInBFSOrder(value: Value) {
   const all = [];
   const collect = node => {
     if (!node.nodes) return;
@@ -317,14 +320,15 @@ export function allNodesInBFSOrder(value) {
   return all;
 }
 
-export function isQuoteNode(n) {
+export function isQuoteNode(n: Node) {
   return (
-    n.type === 'blockquote' ||
-    (n.data && n.data.get('className') && n.data.get('className').includes('gmail_quote'))
+    n.object === 'block' &&
+    (n.type === 'blockquote' ||
+      (n.data && n.data.get('className') && n.data.get('className').includes('gmail_quote')))
   );
 }
 
-export function lastUnquotedNode(value) {
+export function lastUnquotedNode(value: Value) {
   const all = allNodesInBFSOrder(value);
   for (let idx = 0; idx < all.length; idx++) {
     const n = all[idx];
@@ -335,14 +339,14 @@ export function lastUnquotedNode(value) {
   return all[0];
 }
 
-export function removeQuotedText(editor) {
+export function removeQuotedText(editor: Editor) {
   let quoteBlock = null;
   while ((quoteBlock = allNodesInBFSOrder(editor.value).find(isQuoteNode))) {
     editor.removeNodeByKey(quoteBlock.key);
   }
 }
 
-export function hideQuotedTextByDefault(draft) {
+export function hideQuotedTextByDefault(draft: MessageWithEditorState) {
   if (draft.isForwarded()) {
     return false;
   }

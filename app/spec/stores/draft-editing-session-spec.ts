@@ -6,7 +6,7 @@
 import { Message } from '../../src/flux/models/message';
 import * as Actions from '../../src/flux/actions';
 import DatabaseStore from '../../src/flux/stores/database-store';
-import DraftEditingSession from '../../src/flux/stores/draft-editing-session';
+import { DraftEditingSession } from '../../src/flux/stores/draft-editing-session';
 const { DraftChangeSet } = DraftEditingSession;
 import _ from 'underscore';
 

@@ -87,8 +87,7 @@
   export const BadgeStore: BadgeStore;
   export type DraftStore = typeof import('../flux/stores/draft-store').default;
   export const DraftStore: DraftStore;
-  export type DraftEditingSession = import('../flux/stores/draft-editing-session').default;
-  export const DraftEditingSession: DraftEditingSession;
+  export * from'../flux/stores/draft-editing-session'
   export type DraftFactory = typeof import('../flux/stores/draft-factory').default;
   export const DraftFactory: DraftFactory;
   export type ModalStore = typeof import('../flux/stores/modal-store').default;

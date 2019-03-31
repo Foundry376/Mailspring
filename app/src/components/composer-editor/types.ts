@@ -1,11 +1,19 @@
 import { Node, Editor, Value, Mark } from 'slate';
 
+export interface Rule {
+  deserialize?: (
+    el: Element,
+    next: (elements: Element[] | NodeList | Array<Node & ChildNode>) => any
+  ) => any;
+  serialize?: (obj: any, children: string) => React.ReactNode | void;
+}
+
 export interface ComposerEditorPlugin {
   renderMark?: (
     { mark, children, targetIsHTML }: { mark: Mark; children: any; targetIsHTML: boolean },
     editor: Editor | null,
     next: () => void
-  ) => void | JSX.Element;
+  ) => void | string | JSX.Element;
 
   renderNode?: (
     props: { node: Node; children: any; targetIsHTML: boolean },
@@ -13,15 +21,13 @@ export interface ComposerEditorPlugin {
     next: () => void
   ) => void | JSX.Element;
 
-  rules?: {
-    deserialize: (el, next: Node) => void | Node | Mark;
-  }[];
+  rules?: Rule[];
 
-  topLevelComponent: React.ComponentType<ComposerEditorPluginTopLevelComponentProps>;
+  topLevelComponent?: React.ComponentType<ComposerEditorPluginTopLevelComponentProps>;
   toolbarComponents?: React.ComponentType<ComposerEditorPluginToolbarComponentProps>[];
   toolbarSectionClass?: string;
 
-  commands: { [command: string]: (event: any, editor: Editor) => void };
+  commands?: { [command: string]: (event: any, editor: Editor) => void };
 }
 
 export interface ComposerEditorPluginToolbarComponentProps {
