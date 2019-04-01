@@ -7,11 +7,11 @@ const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
 
 module.exports = {
   activate() {
+    ComponentRegistry.register(EmailAvatar, { role: 'EmailAvatar' });
     const { devMode } = AppEnv.getLoadSettings();
     if (devMode) {
       WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });
       ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
-      ComponentRegistry.register(EmailAvatar, { role: 'EmailAvatar' });
       if (AppEnv.isMainWindow()) {
         ComponentRegistry.register(ChatButton, {
           location: WorkspaceStore.Location.RootSidebar.Toolbar,
@@ -33,9 +33,9 @@ module.exports = {
   },
 
   deactivate() {
+    ComponentRegistry.unregister(EmailAvatar);
     const { devMode } = AppEnv.getLoadSettings();
     if (devMode) {
-      ComponentRegistry.unregister(EmailAvatar);
       if (AppEnv.isMainWindow()) {
         ComponentRegistry.unregister(ChatButton);
         ComponentRegistry.unregister(ChatViewLeft);
