@@ -577,9 +577,9 @@ class DraftStore extends MailspringStore {
       const headerMessageId = this._draftsDeleting[messageIds[0]];
       delete this._draftsDeleting[messageIds[0]];
       this.trigger({ headerMessageId });
-      if (key) {
-        AppEnv.showErrorDialog('Deleting Draft failed', { detail: debuginfo });
-      }
+      // if (key) {
+      //   AppEnv.showErrorDialog('Deleting Draft failed', { detail: debuginfo });
+      // }
     }
   };
 
