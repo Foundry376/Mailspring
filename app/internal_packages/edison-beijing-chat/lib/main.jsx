@@ -7,36 +7,42 @@ const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
 
 module.exports = {
   activate() {
-    WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });
-    ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
-    ComponentRegistry.register(EmailAvatar, { role: 'EmailAvatar' });
-    if (AppEnv.isMainWindow()) {
-      ComponentRegistry.register(ChatButton, {
-        location: WorkspaceStore.Location.RootSidebar.Toolbar,
-      });
-      ComponentRegistry.register(ChatViewLeft, {
-        location: WorkspaceStore.Sheet.Global.Footer,
-      });
-      ComponentRegistry.register(ChatAccountSidebarFiller, {
-        location: WorkspaceStore.Location.RootSidebar,
-      });
+    const { devMode } = AppEnv.getLoadSettings();
+    if (devMode) {
+      WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });
+      ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
+      ComponentRegistry.register(EmailAvatar, { role: 'EmailAvatar' });
+      if (AppEnv.isMainWindow()) {
+        ComponentRegistry.register(ChatButton, {
+          location: WorkspaceStore.Location.RootSidebar.Toolbar,
+        });
+        ComponentRegistry.register(ChatViewLeft, {
+          location: WorkspaceStore.Sheet.Global.Footer,
+        });
+        ComponentRegistry.register(ChatAccountSidebarFiller, {
+          location: WorkspaceStore.Location.RootSidebar,
+        });
+      }
+      // else {
+      //   AppEnv.getCurrentWindow().setMinimumSize(800, 600);
+      //   ComponentRegistry.register(ChatView, {
+      //     location: WorkspaceStore.Location.Center,
+      //   });
+      // }
     }
-    // else {
-    //   AppEnv.getCurrentWindow().setMinimumSize(800, 600);
-    //   ComponentRegistry.register(ChatView, {
-    //     location: WorkspaceStore.Location.Center,
-    //   });
-    // }
   },
 
   deactivate() {
-    ComponentRegistry.unregister(EmailAvatar);
-    if (AppEnv.isMainWindow()) {
-      ComponentRegistry.unregister(ChatButton);
-      ComponentRegistry.unregister(ChatViewLeft);
-      ComponentRegistry.unregister(ChatAccountSidebarFiller);
-    } else {
-      ComponentRegistry.unregister(ChatView);
+    const { devMode } = AppEnv.getLoadSettings();
+    if (devMode) {
+      ComponentRegistry.unregister(EmailAvatar);
+      if (AppEnv.isMainWindow()) {
+        ComponentRegistry.unregister(ChatButton);
+        ComponentRegistry.unregister(ChatViewLeft);
+        ComponentRegistry.unregister(ChatAccountSidebarFiller);
+      } else {
+        ComponentRegistry.unregister(ChatView);
+      }
     }
   }
 };

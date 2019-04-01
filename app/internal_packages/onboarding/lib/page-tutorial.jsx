@@ -5,6 +5,14 @@ import Swiper from 'swiper';
 const Steps = [
   {
     seen: false,
+    id: 'tutorial-0',
+    title: 'Welcome to Edison Mail!',
+    image: 'tutorial-0@2x.png',
+    description:
+      `Your email with an assistant built in. <br/>Better, faster, and stronger.`,
+  },
+  {
+    seen: false,
     id: 'tutorial-1',
     title: 'Lightning Fast',
     image: 'tutorial-1@2x.png',
