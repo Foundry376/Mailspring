@@ -33,10 +33,6 @@ parts:
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/sounds
     after:
       - desktop-gtk3
-    stage:
-      - share/icons
-      - share/themes
-      - share/sounds
     stage-packages:
       - gir1.2-gnomekeyring-1.0
       - libcanberra-gtk-module
