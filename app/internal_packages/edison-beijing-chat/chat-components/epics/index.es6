@@ -13,5 +13,6 @@ export default combineEpics(
   ...Object.values(contactEpics),
   ...Object.values(roomEpics),
   ...Object.values(timeEpics),
-  ...Object.values(dbEpics)
+  ...Object.values(dbEpics),
+  ...window.pluginEpics,
 );

@@ -403,6 +403,10 @@ export default class Messages extends PureComponent {
 
             </div>
             {group.messages.map((msg, idx) => {
+              const result = window.renderMessageByPlugins(msg, idx);
+              if (result) {
+                return result;
+              }
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
               if (msgBody.deleted) {
                 return null;

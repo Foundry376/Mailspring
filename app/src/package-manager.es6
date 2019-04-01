@@ -2,6 +2,36 @@ import path from 'path';
 import fs from 'fs-plus';
 import { shell, remote, ipcRenderer } from 'electron';
 
+//some initialization code for chat plugins
+window.pluginEpics = [];
+window.messageRenders = [];
+
+//epics is an array of epic for redux-observeable, epic should has the signature of
+// (action$: Observable<Action>, state$: StateObservable<State>): Observable<Action>;
+// see https://redux-observable.js.org/docs/basics/Epics.html for more information
+window.addPluginEpics = (...epics) => {
+  window.pluginEpics.push.apply(window.pluginEpics, epics);
+};
+// renderFunc should be a function with signature (msg, idx) => {}
+// msg is the message to be rendered;
+// idx is its index in the message group
+// it should return a React element
+// if it return true, false, undefined, msg will be continued to proceccessed by the following messageRenders
+window.addMessageRender = (renderFunc) => {
+  window.messageRenders.push(renderFunc);
+};
+
+window.renderMessageByPlugins = (msg, idx) => {
+  for (const render of window.messageRenders) {
+    const result = render(msg, idx);
+    if (result === true || result === false || result === undefined) {
+      continue;
+    } else {
+      return result;
+    }
+  }
+};
+
 import Package from './package';
 
 export default class PackageManager {
@@ -61,13 +91,15 @@ export default class PackageManager {
       const pkg = this.available[name];
 
       if (pkg.windowTypes[windowType] || pkg.windowTypes.all) {
-        if (pkg.syncInit) {
+        if (pkg.syncInit && name !== 'chat') {
           this.activatePackage(pkg);
-        } else {
+        } else if (name !== 'chat') {
           this.waiting.push(pkg);
         }
       }
     }
+    //ensure edison-beijing-chat is activatd at last
+    this.waiting.push(this.available.chat);
 
     setTimeout(() => {
       for (const w of this.waiting) {
@@ -136,7 +168,7 @@ export default class PackageManager {
           if (err) {
             AppEnv.showErrorDialog({ title: 'Could not install plugin', message: err.message });
           } else {
-            const message = `${packageName} has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.`;
+            const message = `${packageName} has been installed and enabled. Need to restart! If you don't see the plugin loaded, check the console for errors.`;
             AppEnv.showErrorDialog({ title: 'Plugin installed! 🎉', message });
           }
         });
