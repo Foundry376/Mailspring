@@ -343,6 +343,7 @@ body.platform-win32 {
       height: 27px;
       background-color: transparent;
       transition: all 0.2s;
+      font-weight: bold;
       span {
         div[role='button']{
           float: left;
@@ -501,9 +502,15 @@ body.platform-win32 {
     float: left;
     padding-top: 13px;
     display: block;
+    font-weight: bold;
     &:hover {
       cursor: default;
     }
+  }
+
+  .dt-icon-font-size + select {
+    position: relative;
+    top: -3px;
   }
 
   .composer-subject {
@@ -522,8 +529,10 @@ body.platform-win32 {
     }
 
     input {
+      font-size: 15px;
+      line-height: 44px;
       display: inline-block;
-      padding: 13px 10px 9px 10px;
+      padding: 0 10px;
       min-width: 5em;
       background-color: transparent;
       border: none;
@@ -728,6 +737,7 @@ body.platform-win32 {
   }
 
   .from-single-name {
+    font-size: 15px;
     &:hover {
       cursor: default;
     }
