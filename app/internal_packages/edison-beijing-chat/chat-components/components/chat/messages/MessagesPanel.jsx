@@ -376,7 +376,6 @@ export default class MessagesPanel extends PureComponent {
   loadIndex = 0;
 
   queueLoadMessage = (loadConfig) => {
-    // console.log('dbg*** queueLoadMessage: ', loadConfig);
     this.loadQueue = this.loadQueue || [];
     this.loadQueue.push(loadConfig);
     if (!this.loading) {
@@ -385,12 +384,9 @@ export default class MessagesPanel extends PureComponent {
   };
 
   retryLoadMessage = () => {
-    // console.log('dbg*** retryLoadMessage');
     const progress = Object.assign({}, this.state.progress, { failed: false });
     const state = Object.assign({}, this.state, { progress });
     this.setState(state);
-    // here setTimeout is necessary, because setState is asynchronous,
-    // otherwise progress.failed will be set to true in this.loadMessage again
     setTimeout(() => {
       this.loadMessage();
     })
@@ -399,7 +395,6 @@ export default class MessagesPanel extends PureComponent {
   cancelLoadMessage = () => {
     const loadConfig = this.loadQueue[this.loadIndex];
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
-      // console.log('dbg*** cancelLoadMessage: ', loadConfig.request);
       loadConfig.request.abort();
     }
     this.loadQueue = null;
@@ -421,7 +416,6 @@ export default class MessagesPanel extends PureComponent {
 
     const loadCallback = (...args) => {
       const loadConfig = this.loadQueue[this.loadIndex];
-      // console.log('dbg*** loadCallback: ', loadConfig);
       this.loadIndex++;
       if (this.loadIndex === this.loadQueue.length) {
         const progress = Object.assign({}, this.state.progress, { loadQueue: this.loadQueue, loadIndex: this.loadIndex });
@@ -441,7 +435,6 @@ export default class MessagesPanel extends PureComponent {
         body.type = FILE_TYPE.OTHER_FILE;
         body.isUploading = false;
         body.mediaObjectId = myKey;
-        // console.log('dbg*** before onMessageSubmitted body: ', body);
         body = JSON.stringify(body);
         if (err) {
           console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
@@ -464,19 +457,17 @@ export default class MessagesPanel extends PureComponent {
 
     const loadProgressCallback = progress => {
       const {loaded, total} = progress;
-      // console.log('dbg*** loadProgressCallback: ', loaded, total);
       const percent = Math.floor(+loaded*100.0/(+total));
       progress = Object.assign({}, this.state.progress, { percent });
       const state = Object.assign({}, this.state, { progress });
       this.setState(state);
     }
-    // console.log('dbg*** loadMessage: ', loadConfig, msgBody);
     if ( loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
       loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
-    } else if (msgBody.timeSend || msgBody.path && msgBody.path.match(/^file:\/\//)) {
+    } else if (msgBody.path && !msgBody.path.match(/^((http:)|(https:))/)) {
       // the file is an image and it has been downloaded to local while the message was received
       let imgpath = msgBody.path.replace('file://', '');
       fs.copyFileSync(imgpath, filepath);
