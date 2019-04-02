@@ -3,7 +3,7 @@ import CancelIcon from './icons/CancelIcon';
 import path from 'path';
 
 export default function ProgressBar(props) {
-  const { progress, onCancel } = props;
+  const { progress, onCancel, onRetry } = props;
   // console.log('dbg*** ProgressBar: ', props);
   const { loadQueue, loadIndex, percent } = progress;
   const visible = loadQueue != null;
@@ -23,6 +23,13 @@ export default function ProgressBar(props) {
       loadWord = 'Uploading'
     }
   }
+  let status = '';
+  if (progress.failed){
+    status = '(failed)'
+  }
+  if (progress.offline) {
+    status = '(offline)'
+  }
   return (<div className='progress-banner'>
     <div>
       {loadedConfigs && loadedConfigs.map((loadConfig, index) => {
@@ -40,6 +47,7 @@ export default function ProgressBar(props) {
     {(!allFinished) ? <div className={'progress-prompt'}>
       <span>{loadWord}:&nbsp;</span>
       <span>{filename}</span>
+      <span>{status}</span>
     </div> : null}
     {(!allFinished) ? <div className='msg-progress-bar-wrap'>
       <div className='progress-background'/>
@@ -49,9 +57,10 @@ export default function ProgressBar(props) {
       }}/>
     </div> : null
     }
-    <div className='progressButtons' onClick={onCancel}>
-      {(!allFinished) ? <div className='textButton'>cancel</div> : null}
-      <CancelIcon color={'gray'}></CancelIcon>
+    <div className='progressButtons'>
+      {(!progress.offline && progress.failed) ? <div className='textButton1' onClick={onRetry}>Retry</div> : null}
+      {(!allFinished) ? <div className='textButton2' onClick={onCancel}>Cancel</div> : null}
+      <CancelIcon color={'gray'} onClick={onCancel}></CancelIcon>
     </div>
     <div>
       {waitConfigs && waitConfigs.map((waitConfig, index) => {
