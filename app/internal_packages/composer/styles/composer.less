@@ -455,8 +455,9 @@ body.platform-win32 {
     float: right;
     z-index: 2;
     cursor: default;
-    padding-right: 0;
+    padding-right: 10px;
     padding-top: 12px;
+    font-weight: bold;
 
     .action {
       color: @text-color-very-subtle;
@@ -538,7 +539,7 @@ body.platform-win32 {
       border: none;
       margin: 0;
       &::-webkit-input-placeholder {
-        color: @text-color-very-subtle;
+        color: @gray-light;
       }
       &:focus {
         box-shadow: none;
@@ -745,12 +746,16 @@ body.platform-win32 {
 
   .button-dropdown {
     margin-left: 10px;
-    padding-top: 11px;
+    padding-top: 7px;
     vertical-align: -webkit-baseline-middle;
 
     .primary-item,
     .only-item {
       line-height: 2em;
+      font-size: 15px;
+      img.content-mask {
+        margin-top: -1.5px;
+      }
     }
     &:hover {
       .primary-item,

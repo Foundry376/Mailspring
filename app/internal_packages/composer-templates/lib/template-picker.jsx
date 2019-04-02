@@ -130,8 +130,10 @@ class TemplatePicker extends React.Component {
         title="Insert quick reply…"
       >
         <RetinaImg
-          url="edisonmail://composer-templates/assets/icon-composer-templates@2x.png"
+          name="quick-reply.svg"
+          isIcon
           mode={RetinaImg.Mode.ContentIsMask}
+          style={{ width: 24 }}
         />
         &nbsp;
         <RetinaImg name="icon-composer-dropdown.png" mode={RetinaImg.Mode.ContentIsMask} />

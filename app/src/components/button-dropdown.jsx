@@ -81,7 +81,7 @@ class ButtonDropdown extends React.Component {
           >
             {this.props.primaryItem}
             <RetinaImg
-              name={'more.svg'}
+              name={'arrow-dropdown.svg'}
               isIcon
               style={{ width: 24, height: 24 }}
               mode={RetinaImg.Mode.ContentIsMask}
