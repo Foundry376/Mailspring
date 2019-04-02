@@ -239,6 +239,7 @@ export default class Message extends ModelWithMetadata {
     json.file_ids = this.fileIds();
     if (this.draft) {
       json.object = 'draft';
+      delete json.folder;
     }
 
     if (this.events && this.events.length) {
