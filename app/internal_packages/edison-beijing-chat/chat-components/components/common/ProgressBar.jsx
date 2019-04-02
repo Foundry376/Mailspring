@@ -4,7 +4,6 @@ import path from 'path';
 
 export default function ProgressBar(props) {
   const { progress, onCancel, onRetry } = props;
-  // console.log('dbg*** ProgressBar: ', props);
   const { loadQueue, loadIndex, percent } = progress;
   const visible = loadQueue != null;
   if (!visible) {
