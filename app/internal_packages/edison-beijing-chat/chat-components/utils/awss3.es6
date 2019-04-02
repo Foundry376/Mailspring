@@ -100,7 +100,7 @@ export const uploadFile = (oid, aes, file, callback, progressCallback) => {
     var uploadParams = { Bucket: myBucket, Key: myKey, Body: data };
     const request = s3.upload(uploadParams);
     request.on('httpUploadProgress', function (progress) {
-      console.log(`dbg*** httpUploadProgress: ${progress.loaded} of ${progress.total}`);
+      // console.log(`dbg*** httpUploadProgress: ${progress.loaded} of ${progress.total}`);
       if (progressCallback) {
         progressCallback(progress)
       }

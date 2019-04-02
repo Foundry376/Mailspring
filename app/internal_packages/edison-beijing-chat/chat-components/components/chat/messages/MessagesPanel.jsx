@@ -392,7 +392,6 @@ export default class MessagesPanel extends PureComponent {
     // here setTimeout is necessary, because setState is asynchronous,
     // otherwise progress.failed will be set to true in this.loadMessage again
     setTimeout(() => {
-      debugger;
       this.loadMessage();
     })
   };
@@ -400,8 +399,7 @@ export default class MessagesPanel extends PureComponent {
   cancelLoadMessage = () => {
     const loadConfig = this.loadQueue[this.loadIndex];
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
-      console.log('dbg*** cancelLoadMessage: ', loadConfig.request);
-      debugger;
+      // console.log('dbg*** cancelLoadMessage: ', loadConfig.request);
       loadConfig.request.abort();
     }
     this.loadQueue = null;
@@ -423,7 +421,7 @@ export default class MessagesPanel extends PureComponent {
 
     const loadCallback = (...args) => {
       const loadConfig = this.loadQueue[this.loadIndex];
-      console.log('dbg*** loadCallback: ', loadConfig);
+      // console.log('dbg*** loadCallback: ', loadConfig);
       this.loadIndex++;
       if (this.loadIndex === this.loadQueue.length) {
         const progress = Object.assign({}, this.state.progress, { loadQueue: this.loadQueue, loadIndex: this.loadIndex });
@@ -472,7 +470,7 @@ export default class MessagesPanel extends PureComponent {
       const state = Object.assign({}, this.state, { progress });
       this.setState(state);
     }
-    console.log('dbg*** loadMessage: ', loadConfig, msgBody);
+    // console.log('dbg*** loadMessage: ', loadConfig, msgBody);
     if ( loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');

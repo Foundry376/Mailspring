@@ -16,9 +16,9 @@ export default class MessagesTopBar extends Component {
     const rect = this.contactInputEl.getBoundingClientRect();
     let el = document.querySelector('.rc-select-dropdown.rc-select-dropdown--multiple.rc-select-dropdown-placement-bottomLeft');
     if (el) {
-      console.log('dbg*** componentDidUpdate 1: ', el, rect.right-rect.left);
+      // console.log('dbg*** componentDidUpdate 1: ', el, rect.right-rect.left);
       el.style.width = Math.floor(rect.right-rect.left+5)+'px';
-      console.log('dbg*** componentDidUpdate 2: ', el, rect.right-rect.left);
+      // console.log('dbg*** componentDidUpdate 2: ', el, rect.right-rect.left);
     }
   }
 
