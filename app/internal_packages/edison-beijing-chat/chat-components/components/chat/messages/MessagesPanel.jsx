@@ -14,7 +14,7 @@ import InviteGroupChatList from '../new/InviteGroupChatList';
 import xmpp from '../../../xmpp/index';
 import chatModel, { saveToLocalStorage } from '../../../store/model';
 import getDb from '../../../db';
-import { downloadFile, uploadFile, uploadProgressly } from '../../../utils/awss3';
+import { downloadFile, uploadFile } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
@@ -188,14 +188,18 @@ export default class MessagesPanel extends PureComponent {
     if (!this.props.chat_online) {
       this.reconnect();
     }
+    const progress = Object.assign({}, this.state.progress, {offline:false});
     this.setState({
-      online: true
+      online: true,
+      progress,
     })
   }
 
   offLine = () => {
+    const progress = Object.assign({}, this.state.progress, {offline:true, failed:true});
     this.setState({
-      online: false
+      online: false,
+      progress,
     })
   }
 
@@ -376,14 +380,26 @@ export default class MessagesPanel extends PureComponent {
     this.loadQueue = this.loadQueue || [];
     this.loadQueue.push(loadConfig);
     if (!this.loading) {
-      this.loadMessageFile();
+      this.loadMessage();
     }
   };
 
-  cancelLoadMessageFile = () => {
+  retryLoadMessage = () => {
+    // console.log('dbg*** retryLoadMessage');
+    const progress = Object.assign({}, this.state.progress, { failed: false });
+    const state = Object.assign({}, this.state, { progress });
+    this.setState(state);
+    // here setTimeout is necessary, because setState is asynchronous,
+    // otherwise progress.failed will be set to true in this.loadMessage again
+    setTimeout(() => {
+      this.loadMessage();
+    })
+  };
+
+  cancelLoadMessage = () => {
     const loadConfig = this.loadQueue[this.loadIndex];
-    // console.log('dbg*** cancelLoadMessageFile: ', loadConfig, this.loadQueue);
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
+      // console.log('dbg*** cancelLoadMessage: ', loadConfig.request);
       loadConfig.request.abort();
     }
     this.loadQueue = null;
@@ -392,9 +408,10 @@ export default class MessagesPanel extends PureComponent {
     const progress = { loadQueue: this.loadQueue };
     const state = Object.assign({}, this.state, { progress });
     this.setState(state);
+    clearInterval(this.loadTimer);
   }
 
-  loadMessageFile = () => {
+  loadMessage = () => {
     this.loading = true;
     const loadConfig = this.loadQueue[this.loadIndex];
     const { msgBody, filepath } = loadConfig;
@@ -411,8 +428,9 @@ export default class MessagesPanel extends PureComponent {
         const state = Object.assign({}, this.state, { progress });
         this.setState(state);
         this.loading = false;
+        clearInterval(this.loadTimer);
       } else {
-        this.loadMessageFile();
+        this.loadMessage();
       }
       if (loadConfig.type === 'upload') {
         const onMessageSubmitted = this.props.sendMessage;
@@ -452,13 +470,13 @@ export default class MessagesPanel extends PureComponent {
       const state = Object.assign({}, this.state, { progress });
       this.setState(state);
     }
-    // console.log('dbg*** loadMessageFile: ', loadConfig, msgBody);
+    // console.log('dbg*** loadMessage: ', loadConfig, msgBody);
     if ( loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
-      uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
-    } else if (msgBody.path && msgBody.path.match(/^file:\/\//)) {
+      loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
+    } else if (msgBody.timeSend || msgBody.path && msgBody.path.match(/^file:\/\//)) {
       // the file is an image and it has been downloaded to local while the message was received
       let imgpath = msgBody.path.replace('file://', '');
       fs.copyFileSync(imgpath, filepath);
@@ -492,6 +510,18 @@ export default class MessagesPanel extends PureComponent {
         });
       });
     }
+
+    if (this.loadTimer) {
+      clearInterval(this.loadTimer);
+    }
+    this.loadTimer = setInterval(() => {
+      const loadConfig = this.loadQueue[this.loadIndex];
+      if (loadConfig && loadConfig.request && loadConfig.request.failed) {
+        const progress = Object.assign({}, this.state.progress, {failed:true});
+        const state = Object.assign({}, this.state, {progress});
+        this.setState(state);
+      }
+    }, 10000);
   }
 
   render() {
@@ -597,7 +627,7 @@ export default class MessagesPanel extends PureComponent {
                 ) : (
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
-                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile}/>
+                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessage} onRetry={this.retryLoadMessage}/>
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       <Notifications {...notificationsProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (
