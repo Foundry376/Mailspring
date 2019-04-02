@@ -437,11 +437,11 @@ class AttachmentStore extends MailspringStore {
 
   // Handlers
 
-  _onSelectAttachment = ({ headerMessageId }) => {
+  _onSelectAttachment = ({ headerMessageId, onCreated = () => {} , type = '*'}) => {
     this._assertIdPresent(headerMessageId);
 
     // When the dialog closes, it triggers `Actions.addAttachment`
-    return AppEnv.showOpenDialog({ properties: ['openFile', 'multiSelections'] }, paths => {
+    const cb = paths => {
       if (paths == null) {
         return;
       }
@@ -450,8 +450,12 @@ class AttachmentStore extends MailspringStore {
         pathsToOpen = [pathsToOpen];
       }
 
-      pathsToOpen.forEach(filePath => Actions.addAttachment({ headerMessageId, filePath }));
-    });
+      pathsToOpen.forEach(filePath => Actions.addAttachment({ headerMessageId, filePath, onCreated }));
+    };
+    if (type === 'image') {
+      return AppEnv.showImageSelectionDialog(cb);
+    }
+    return AppEnv.showOpenDialog({ properties: ['openFile', 'multiSelections'] }, cb);
   };
 
   _onAddAttachment = async ({

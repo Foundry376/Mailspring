@@ -44,9 +44,7 @@ class ThreadListEmptyFolderBar extends React.Component {
     return (
       <div className="thread-list-empty-folder-bar">
         <div className="notice">
-          {`Showing ${(count / 1).toLocaleString()}
-          ${count > 1 ? 'threads' : 'thread'}
-          with ${term} messages`}
+          {`Showing ${(count / 1).toLocaleString()} ${term} ${count > 1 ? 'messages' : 'messages'}`}
         </div>
         {busy ? (
           <div className="btn">

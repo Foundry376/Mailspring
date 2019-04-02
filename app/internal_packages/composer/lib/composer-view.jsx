@@ -20,7 +20,7 @@ import {
   InjectedComponentSet,
   ComposerEditor,
   ComposerSupport,
-  Spinner
+  Spinner,
 } from 'mailspring-component-kit';
 import { History } from 'slate';
 import ComposerHeader from './composer-header';
@@ -181,7 +181,8 @@ export default class ComposerView extends React.Component {
           onMouseUp={this._onMouseUpComposerBody}
           onMouseDown={this._onMouseDownComposerBody}
         >
-          {(this.props.draft && this.props.draft.waitingForBody)? <Spinner visible={true} /> :  this._renderBodyRegions()}
+          {(this.props.draft && this.props.draft.waitingForBody) ?
+            <Spinner visible={true}/> : this._renderBodyRegions()}
           {this._renderFooterRegions()}
         </div>
       </div>
@@ -358,14 +359,14 @@ export default class ComposerView extends React.Component {
           onClick={this._onDestroyDraft}
           disabled={this.props.session.isPopout()}
         >
-          {this.state.isDeleting?
-          <LottieImg name={'loading-spinner-blue'}
-                     size={{ width: 24, height: 24 }}/> :
-          <RetinaImg name={'trash.svg'}
-                     style={{ width: 24, height: 24 }}
-                     isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}
-          />}
+          {this.state.isDeleting ?
+            <LottieImg name={'loading-spinner-blue'}
+                       size={{ width: 24, height: 24 }}/> :
+            <RetinaImg name={'trash.svg'}
+                       style={{ width: 24, height: 24 }}
+                       isIcon
+                       mode={RetinaImg.Mode.ContentIsMask}
+            />}
         </button>
 
         <button
@@ -381,7 +382,19 @@ export default class ComposerView extends React.Component {
                      isIcon
                      mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
-
+        <button
+          tabIndex={-1}
+          className="btn btn-toolbar btn-attach"
+          style={{ order: -49 }}
+          title="Attach file"
+          onClick={this._onSelectAttachment.bind(this, { type: 'image' })}
+          disabled={this.props.session.isPopout()}
+        >
+          <RetinaImg name={'inline-image.svg'}
+                     style={{ width: 24, height: 24 }}
+                     isIcon
+                     mode={RetinaImg.Mode.ContentIsMask}/>
+        </button>
         <div style={{ order: 0, flex: 1 }}/>
 
         <SendActionButton
@@ -484,27 +497,29 @@ export default class ComposerView extends React.Component {
     }
   };
 
+  _onAttachmentCreated = fileObj => {
+    if (!this._mounted) return;
+    if (Utils.shouldDisplayAsImage(fileObj)) {
+      const { draft, session } = this.props;
+      const match = draft.files.find(f => f.id === fileObj.id);
+      if (!match) {
+        return;
+      }
+      match.contentId = Utils.generateContentId();
+      session.changes.add({
+        files: [].concat(draft.files),
+      });
+
+      this._els[Fields.Body].insertInlineAttachment(fileObj);
+    }
+  };
+
   _onFileReceived = filePath => {
     // called from onDrop and onFilePaste - assume images should be inline
     Actions.addAttachment({
       filePath: filePath,
       headerMessageId: this.props.draft.headerMessageId,
-      onCreated: file => {
-        if (!this._mounted) return;
-        if (Utils.shouldDisplayAsImage(file)) {
-          const { draft, session } = this.props;
-          const match = draft.files.find(f => f.id === file.id);
-          if (!match) {
-            return;
-          }
-          match.contentId = Utils.generateContentId();
-          session.changes.add({
-            files: [].concat(draft.files),
-          });
-
-          this._els[Fields.Body].insertInlineAttachment(file);
-        }
-      },
+      onCreated: this._onAttachmentCreated,
     });
   };
 
@@ -586,8 +601,16 @@ export default class ComposerView extends React.Component {
     }
   };
 
-  _onSelectAttachment = () => {
-    Actions.selectAttachment({ headerMessageId: this.props.draft.headerMessageId });
+  _onSelectAttachment = ({ type = 'image' }) => {
+    if (type === 'image') {
+      Actions.selectAttachment({
+        headerMessageId: this.props.draft.headerMessageId,
+        onCreated: this._onAttachmentCreated,
+        type,
+      });
+    } else {
+      Actions.selectAttachment({ headerMessageId: this.props.draft.headerMessageId, type });
+    }
   };
 
   render() {

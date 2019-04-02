@@ -801,6 +801,21 @@ export default class AppEnvConstructor {
     // return callback(remote.dialog.showOpenDialog(this.getCurrentWindow(), options));
     return callback(remote.dialog.showOpenDialog(options));
   }
+  showImageSelectionDialog(cb) {
+    return remote.dialog.showOpenDialog(
+      this.getCurrentWindow(),
+      {
+        properties: ['openFile', 'multiSelections'],
+        filters: [
+          {
+            name: 'Images',
+            extensions: ['jpg', 'bmp', 'gif', 'png', 'jpeg'],
+          },
+        ],
+      },
+      cb
+    );
+  }
 
   showSaveDialog(options, callback) {
     if (options.title == null) {
