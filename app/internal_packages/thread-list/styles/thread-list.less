@@ -160,7 +160,7 @@ input:focus {
   }
 
   .participants {
-    font-size: @font-size;
+    font-size: @font-size + 1px;
     text-overflow: ellipsis;
     text-align: left;
     overflow: hidden;
@@ -176,7 +176,7 @@ input:focus {
     overflow: hidden;
 
     .subject {
-      font-size: @font-size;
+      font-size: @font-size + 1px;
       font-weight: @font-weight-normal;
       padding-right: @padding-base-horizontal;
       text-overflow: ellipsis;
@@ -186,7 +186,7 @@ input:focus {
       flex-shrink: 0.1;
     }
     .snippet {
-      font-size: @font-size;
+      font-size: @font-size + 1px;
       font-weight: @font-weight-normal;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -198,7 +198,9 @@ input:focus {
       margin-left: @padding-base-horizontal;
     }
   }
-
+  .list-column-Participants {
+    padding-left: 7px;
+  }
   .list-column-State {
     display: flex;
     align-items: center;
@@ -218,7 +220,7 @@ input:focus {
   .unread:not(.focused):not(.selected) {
     background-color: @background-primary;
     &:hover {
-      background: darken(@background-primary, 2%);
+      background: @white;
     }
     .timestamp {
       color: @blue;

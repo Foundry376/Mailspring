@@ -69,12 +69,12 @@ const c1 = new ListTabular.Column({
         exposedProps={{ thread: thread }}
         matching={{ role: 'EmailAvatar' }}
       />,
-      <ThreadListIcon key="thread-list-icon" thread={thread} />,
-      <MailImportantIcon
-        key="mail-important-icon"
-        thread={thread}
-        showIfAvailableForAnyAccount={true}
-      />,
+      // <ThreadListIcon key="thread-list-icon" thread={thread} />,
+      // <MailImportantIcon
+      //   key="mail-important-icon"
+      //   thread={thread}
+      //   showIfAvailableForAnyAccount={true}
+      // />,
       <InjectedComponentSet
         key="injected-component-set"
         inline={true}
