@@ -425,7 +425,7 @@
       // }
     }
 
-    &.selected {
+    &.selected:not(:hover){
       background: @list-selected-bg;
       color: @list-selected-color;
       border-bottom: 1px solid @list-selected-border;
@@ -458,6 +458,7 @@
 
     &:hover {
       cursor: default;
+      background: @white;
     }
 
     // &.keyboard-cursor {
@@ -483,7 +484,7 @@
     }
     &.focused {
       .checkmark .inner {
-        border: 1px solid @accent-primary;
+        border: 1px solid ;
       }
     }
 

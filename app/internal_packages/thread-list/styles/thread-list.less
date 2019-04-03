@@ -616,7 +616,7 @@ body.platform-win32 {
 
 .thread-list.handler-split {
   .list-item {
-    &.selected {
+    &.selected:not(:hover) {
       background: @list-focused-bg;
       color: @list-focused-color;
       border-right: 0;
@@ -647,8 +647,8 @@ body.platform-win32 {
 body.is-blurred {
   .thread-list.handler-split {
     .list-item {
-      &.selected {
-        background: fadeout(desaturate(@list-focused-bg, 100%), 65%);
+      &.selected:not(:hover) {
+        background: @list-focused-bg;
         color: @text-color;
       }
     }
