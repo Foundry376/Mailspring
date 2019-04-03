@@ -161,7 +161,7 @@ class MessageList extends React.Component {
     }
   };
 
-  _onCreatingDraft = ({ message, type = '' }) => {
+  _onCreatingDraft = ({ message = {}, type = '' }) => {
     if (this._mounted && (!this._lastMessage() || message.id === this._lastMessage().id)) {
       if (type === 'reply') {
         this.setState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
