@@ -242,6 +242,11 @@ body.is-blurred {
           .btn-toolbar {
             position: relative;
             margin-top: 0;
+            &.flagged {
+              img.content-mask {
+                background-color: @orange;
+              }
+            }
             img {
               position: relative;
               z-index: 2;

@@ -44,9 +44,9 @@ export class ArchiveButton extends React.Component {
       <BindGlobalCommands commands={{ 'core:archive-item': () => this._onArchive() }}>
         <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
           <RetinaImg name={'archive.svg'}
-                     style={{ width: 26, height: 26 }}
-                     isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            style={{ width: 26, height: 26 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -73,7 +73,7 @@ export class TrashButton extends React.Component {
     }
     return;
   };
-  _onExpunge = event =>{
+  _onExpunge = event => {
     const tasks = TaskFactory.tasksForExpungingThreads({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
@@ -93,9 +93,9 @@ export class TrashButton extends React.Component {
       return false;
     }
     let actionCallBack = null;
-    if(canMove){
+    if (canMove) {
       actionCallBack = this._onRemove;
-    }else if(canExpunge){
+    } else if (canExpunge) {
       actionCallBack = this._onExpunge;
     }
 
@@ -107,7 +107,7 @@ export class TrashButton extends React.Component {
           title="Move to Trash"
           onClick={actionCallBack}
         >
-          <RetinaImg name={'trash.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name={'trash.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -147,11 +147,11 @@ class HiddenGenericRemoveButton extends React.Component {
           'core:remove-from-view': this._onRemoveFromView,
           'core:remove-and-previous': () => this._onRemoveAndShift({ offset: -1 }),
           'core:remove-and-next': () => this._onRemoveAndShift({ offset: 1 }),
-          'core:show-previous': () => this._onShift({offset: -1}),
-          'core:show-next': () => this._onShift({offset: 1}),
+          'core:show-previous': () => this._onShift({ offset: -1 }),
+          'core:show-next': () => this._onShift({ offset: 1 }),
         }}
       >
-        <span/>
+        <span />
       </BindGlobalCommands>
     );
   }
@@ -208,7 +208,7 @@ class HiddenToggleImportantButton extends React.Component {
             : { 'core:mark-important': () => this._onSetImportant(true) }
         }
       >
-        <span/>
+        <span />
       </BindGlobalCommands>
     );
   }
@@ -265,7 +265,7 @@ export class MarkAsSpamButton extends React.Component {
             onClick={this._onNotSpam}
           >
             <RetinaImg name="not-junk.svg" style={{ width: 26, height: 26 }} isIcon
-                       mode={RetinaImg.Mode.ContentIsMask}/>
+              mode={RetinaImg.Mode.ContentIsMask} />
           </button>
         </BindGlobalCommands>
       );
@@ -286,7 +286,7 @@ export class MarkAsSpamButton extends React.Component {
           title="Mark as Spam"
           onClick={this._onMarkAsSpam}
         >
-          <RetinaImg name={'junk.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name={'junk.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -317,12 +317,16 @@ export class ToggleStarredButton extends React.Component {
   render() {
     const postClickStarredState = this.props.items.every(t => t.starred === false);
     const title = postClickStarredState ? 'Flag' : 'Unflag';
-    const imageName = postClickStarredState ? 'flag.svg' : 'flag-not-selected.svg';
+    const className = postClickStarredState ? 'flag-not-selected' : 'flagged';
 
     return (
       <BindGlobalCommands commands={{ 'core:star-item': () => this._onStar() }}>
-        <button tabIndex={-1} className="btn btn-toolbar" title={title} onClick={this._onStar}>
-          <RetinaImg name={imageName} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+        <button tabIndex={-1} className={"btn btn-toolbar " + className} title={title} onClick={this._onStar}>
+          <RetinaImg
+            name="flag.svg"
+            style={{ width: 26, height: 26 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -375,7 +379,7 @@ export class ToggleUnreadButton extends React.Component {
           onClick={this._onClick}
         >
           <RetinaImg name={`${fragment}.svg`} style={{ width: 26, height: 26 }} isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -431,7 +435,7 @@ class ThreadArrowButton extends React.Component {
           name={`${direction === 'up' ? 'back' : 'next'}.svg`}
           isIcon
           style={{ width: 24, height: 24 }}
-          mode={RetinaImg.Mode.ContentIsMask}/>
+          mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
   }

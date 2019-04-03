@@ -93,17 +93,21 @@ class ThreadStarQuickAction extends React.Component {
   static propTypes = { thread: PropTypes.object };
 
   render() {
-    const imgName = this.props.thread.starred ? 'flag-not-selected.svg' : 'flag.svg';
+    const className = this.props.thread.starred ? 'flagged' : 'flag-not-selected';
     const title = this.props.thread.starred ? 'UnFlag' : 'Flag';
     return (
       <div
         key="remove"
         title={title}
         style={{ order: 109 }}
-        className="action action-flag"
+        className={"action action-flag " + className}
         onClick={this._onToggleStar}
       >
-        <RetinaImg name={imgName} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+        <RetinaImg
+          name="flag.svg"
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
   }
