@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
   <title>block</title>
+  <rect width="96" height="96" fill="none"/>
   <path d="M48,14A34,34,0,1,0,82,48,34,34,0,0,0,48,14ZM61.6,51.4H34.4a3.4,3.4,0,0,1,0-6.8H61.6a3.4,3.4,0,0,1,0,6.8Z" fill="#fff"/>
+  <rect width="96" height="96" fill="none"/>
 </svg>
