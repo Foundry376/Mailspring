@@ -80,6 +80,8 @@ class CrashTracker {
 
   _appendCrashToHistory(fullAccountJSON) {
     const key = this._keyFor(fullAccountJSON);
+    console.log(`mailsync crashed for account: ${key}`);
+    AppEnv.debugLog(`mailsync crashed for account: ${key}`);
     this._timestamps[key] = this._timestamps[key] || [];
     if (this._timestamps[key].unshift(Date.now()) > MAX_CRASH_HISTORY) {
       this._timestamps[key].length = MAX_CRASH_HISTORY;
