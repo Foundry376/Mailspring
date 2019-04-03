@@ -131,6 +131,11 @@
         margin-top: 0;
         box-shadow: none;
         background: transparent;
+        &.flagged {
+          img.content-mask {
+            background-color: @orange;
+          }
+        }
         img.content-mask {
           background-color: @gray;
           position: relative;

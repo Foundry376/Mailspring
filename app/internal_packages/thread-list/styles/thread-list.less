@@ -294,8 +294,7 @@ input:focus {
       .icon-mixin('../static/icons/feed-forward.svg', #000);
     }
     &.thread-icon-star {
-      background-size: 16px;
-      background-image: url(../static/images/thread-list/icon-star-@2x.png);
+      .icon-mixin('../static/icons/flag.svg',@orange, 24px);
     }
   }
   .star-button {
@@ -470,8 +469,6 @@ body.platform-win32 {
 // stars
 
 .thread-list .thread-icon-star:hover {
-  background-image: url(../static/images/thread-list/icon-star-@2x.png);
-  background-size: 16px;
   -webkit-filter: brightness(90%);
 }
 // quanzs comment out
