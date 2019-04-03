@@ -35,6 +35,7 @@ import {
   sendingMessage,
   selectConversation,
   showConversationNotification,
+  showConversationNotificationFail,
 } from '../actions/chat';
 import {
   UPDATE_SELECTED_CONVERSATION,
@@ -50,6 +51,7 @@ import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 import { FILE_TYPE } from '../components/chat/messages/messageModel';
+import { failConnectionAuth } from '../actions/auth';
 
 const addToAvatarMembers = (conv, contact) => {
   if (!contact) {
@@ -632,9 +634,9 @@ export const triggerPrivateNotificationEpic = action$ =>
           .map(contact => {
             content = `${contact.name}: ${content}`
             return showConversationNotification(conversationJid, name || conv.name, content);
-          })
-      })
-    });
+          }).catch(err => Observable.of(showConversationNotificationFail(err)))
+      }).catch(err => Observable.of(showConversationNotificationFail(err)))
+    }).catch(err => Observable.of(showConversationNotificationFail(err)));
 
 export const triggerGroupNotificationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_GROUP_MESSAGE)
@@ -686,9 +688,9 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
           .map(contact => {
             content = contact ? `${contact.name}: ${content}` : content
             return showConversationNotification(conversationJid, name || conv.name, content);
-          })
-      })
-    });
+          }).catch(err => Observable.of(showConversationNotificationFail(err)))
+      }).catch(err => Observable.of(showConversationNotificationFail(err)))
+    }).catch(err => Observable.of(showConversationNotificationFail(err)));
 
 export const showConversationNotificationEpic = (action$, { getState }) =>
   action$.ofType(SHOW_CONVERSATION_NOTIFICATION)
@@ -711,8 +713,8 @@ export const showConversationNotificationEpic = (action$, { getState }) =>
           const window = remote.getCurrentWindow();
           window.show();
           return conv
-        }),
-    );
+        }).catch(err => Observable.of(showConversationNotificationFail(err))),
+    ).catch(err => Observable.of(showConversationNotificationFail(err)));
 
 export const goPrevConversationEpic = (action$, { getState }) =>
   action$.ofType(GO_PREV_CONVERSATION)

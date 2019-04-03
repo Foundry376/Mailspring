@@ -301,7 +301,7 @@ class OutlineViewItem extends Component {
   }
 
   _renderIcon(item = this.props.item) {
-    const styles = { width: 16, height: 16 };
+    const styles = { width: 24, height: 24 };
     if (item.bgColor) {
       styles.backgroundColor = item.bgColor;
     }
