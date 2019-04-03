@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
   <title>menu-travel</title>
   <path d="M48,8A40,40,0,1,0,88,48,40,40,0,0,0,48,8ZM68,56.4,51.16,51.15V62.7l4.21,3.15V69L48,66.9,40.63,69V65.85l4.21-3.15V51.15L28,56.4V52.2L44.84,41.7V30.15a3.16,3.16,0,0,1,6.32,0V41.7L68,52.2Z" fill="#fff"/>
+  <rect width="96" height="96" fill="none"/>
 </svg>

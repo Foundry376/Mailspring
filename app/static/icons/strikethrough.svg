@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
   <title>strikethrough</title>
   <path d="M23.8,15a6.6,6.6,0,0,0,0,13.2H39.2V41.4H56.8V28.2H72.2a6.6,6.6,0,0,0,0-13.2Zm-11,35.2a4.4,4.4,0,0,0,0,8.8H83.2a4.4,4.4,0,0,0,0-8.8ZM39.2,67.8v4.4a8.8,8.8,0,0,0,17.6,0V67.8Z" fill="#fff"/>
+  <rect width="96" height="96" fill="none"/>
 </svg>
