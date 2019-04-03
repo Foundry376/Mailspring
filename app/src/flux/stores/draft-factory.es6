@@ -52,9 +52,10 @@ class DraftFactory {
     };
 
     const merged = Object.assign(defaults, fields);
-    if(merged.forwardedHeaderMessageId){
+    if (merged.forwardedHeaderMessageId) {
       merged.referenceMessageId = merged.forwardedHeaderMessageId;
-    }else{
+      delete merged.forwardedHeaderMessageId;
+    } else {
       merged.referenceMessageId = merged.replyToHeaderMessageId;
     }
 
@@ -239,7 +240,7 @@ class DraftFactory {
       files: message.files,
       threadId: thread.id,
       accountId: message.accountId,
-      referenceMessageId: message.headerMessageId,
+      forwardedHeaderMessageId: message.headerMessageId,
       msgOrigin: Message.ForwardDraft,
       body: `
         <br/>
