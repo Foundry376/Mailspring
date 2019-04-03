@@ -654,6 +654,12 @@ body.platform-win32 {
   margin-top: @search-bar-height;
   padding-bottom: @search-bar-height;
   -webkit-app-region: no-drag;
+  div{
+    // This is for DC-182 reduce height because of thread-list-empty-bar
+    div:nth-child(2).key-commands-region.thread-list{
+      height: calc(~"100% - 40px");
+    }
+  }
 }
 
 .column-MessageList {
