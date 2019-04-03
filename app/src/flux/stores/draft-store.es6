@@ -336,7 +336,7 @@ class DraftStore extends MailspringStore {
         return DraftFactory.createOrUpdateDraftForReply({ message: m, thread: t, type, behavior });
       })
       .then(draft => {
-        return this._finalizeAndPersistNewMessage(draft, { popout }, {originalMessageId: message.id, messageType: type});
+        return this._finalizeAndPersistNewMessage(draft, { popout }, {originalMessageId: message? message.id : null, messageType: type});
       });
   };
 
@@ -346,7 +346,7 @@ class DraftStore extends MailspringStore {
         return DraftFactory.createDraftForForward({ thread: t, message: m });
       })
       .then(draft => {
-        return this._finalizeAndPersistNewMessage(draft, { popout }, {originalMessageId: message.id, messageType: 'forward'});
+        return this._finalizeAndPersistNewMessage(draft, { popout }, {originalMessageId: message? message.id : null, messageType: 'forward'});
       });
   };
 
