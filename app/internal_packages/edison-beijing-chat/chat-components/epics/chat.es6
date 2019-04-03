@@ -709,8 +709,6 @@ export const showConversationNotificationEpic = (action$, { getState }) =>
           return !selectedConversation || selectedConversation.jid !== jid;
         })
         .map(() => {
-          console.log('debugger*** click notification');
-          throw new Error('notification error');
           const conv = selectConversation(jid);
           const window = remote.getCurrentWindow();
           window.show();
