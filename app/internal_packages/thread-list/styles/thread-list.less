@@ -164,6 +164,7 @@ input:focus {
     text-overflow: ellipsis;
     text-align: left;
     overflow: hidden;
+    line-height: 24px;
 
     &.no-recipients {
       color: @text-color-very-subtle;
@@ -349,6 +350,11 @@ input:focus {
     display: inline-block;
     margin-left: 11px;
     position: relative;
+    &.flagged {
+      img.content-mask {
+        background-color: @orange;
+      }
+    }
     img {
        background-color: @gray;
        position: relative;

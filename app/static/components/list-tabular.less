@@ -72,17 +72,18 @@
       white-space: nowrap;
 
       .checkmark.selected {
-        background-image: url(../static/icons/check.svg);
-        background-size: 130% auto;
+        -webkit-mask-image: url(../static/icons/check.svg);
+        background-color: @blue;
+        -webkit-mask-size: 130% auto;
       }
       .checkmark {
         margin: 0 35px 0 18px;
         height: 18px;
         min-width: 18px;
-        background-image: url(../static/icons/check-empty.svg);
-        background-position: center;
-        background-color: transparent;
-        background-size: 130% auto;
+        -webkit-mask-image: url(../static/icons/check-empty.svg);
+        -webkit-mask-position: center;
+        background-color: @gray-lighter;
+        -webkit-mask-size: 130% auto;
         border: none;
       }
 
@@ -201,17 +202,18 @@
       white-space: nowrap;
 
       .checkmark.selected {
-        background-image: url(../static/icons/check.svg);
-        background-size: 130% auto;
+        -webkit-mask-image: url(../static/icons/check.svg);
+        background-color: @blue;
+        -webkit-mask-size: 130% auto;
       }
       .checkmark {
         margin: 0 35px 0 18px;
         height: 18px;
         min-width: 18px;
-        background-image: url(../static/icons/check-empty.svg);
-        background-position: center;
-        background-color: transparent;
-        background-size: 130% auto;
+        -webkit-mask-image: url(../static/icons/check-empty.svg);
+        -webkit-mask-position: center;
+        background-color: @gray-lighter;
+        -webkit-mask-size: 130% auto;
         border: none;
       }
 
@@ -327,10 +329,10 @@
     &.selected.focused,
     &.selected {
       .checkmark .inner {
-        background-color: transparent;
-        background-image: url(../static/icons/check.svg);
-        background-position: center;
-        background-size: 130% auto;
+        background-color: @blue;
+        -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-position: center;
+        -webkit-mask-size: 130% auto;
         border: none;
       }
     }
@@ -368,11 +370,11 @@
         width: 18px;
         height: 18px;
         border-radius: 50% !important;
-        background: transparent;
-        background-image: url(../static/icons/check-empty.svg);
-        background-size: 130% auto;
+        background-color: @gray-lighter;
+        -webkit-mask-image: url(../static/icons/check-empty.svg);
+        -webkit-mask-size: 130% auto;
         background-repeat: no-repeat;
-        background-position: center;
+        -webkit-mask-position: center;
         &::after {
           display: none;
         }
@@ -466,24 +468,24 @@
 
     &.selected {
       .checkmark .inner {
-        background-color: transparent;
-        background-image: url(../static/icons/check.svg);
-        background-position: center;
-        background-size: 130% auto;
+        background-color: @blue;
+        -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-position: center;
+        -webkit-mask-size: 130% auto;
         border: none;
       }
     }
 
     &.selected.focused {
       .checkmark .inner {
-        background-color: transparent;
-        background-image: url(../static/icons/check.svg);
+        background-color: @blue;
+        -webkit-mask-image: url(../static/icons/check.svg);
         border: none;
       }
     }
     &.focused {
       .checkmark .inner {
-        border: 1px solid @accent-primary;
+        // border: 1px solid @accent-primary;
       }
     }
 
@@ -496,10 +498,10 @@
       .inner {
         width: 18px;
         height: 18px;
-        background-image: url(../static/icons/check-empty.svg);
-        background-position: center;
-        background-color: transparent;
-        background-size: 130% auto;
+        -webkit-mask-image: url(../static/icons/check-empty.svg);
+        -webkit-mask-position: center;
+        background-color: @gray-lighter;
+        -webkit-mask-size: 130% auto;
         border: none;
       }
     }
