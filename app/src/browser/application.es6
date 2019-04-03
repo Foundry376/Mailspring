@@ -111,6 +111,7 @@ export default class Application extends EventEmitter {
     }
 
     this.setupJavaScriptArguments();
+    this.setupAutoPlayPolicy();
     this.handleEvents();
     this.handleLaunchOptions(options);
 
@@ -279,6 +280,10 @@ export default class Application extends EventEmitter {
   // Configures required javascript environment flags.
   setupJavaScriptArguments() {
     app.commandLine.appendSwitch('js-flags', '--harmony');
+  }
+
+  setupAutoPlayPolicy() {
+    app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
   }
 
   openWindowsForTokenState() {
