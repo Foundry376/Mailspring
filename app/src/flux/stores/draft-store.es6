@@ -376,10 +376,13 @@ class DraftStore extends MailspringStore {
       queries.message = DatabaseStore.find(Message, messageId).include(Message.attributes.body);
     } else {
       queries.message = DatabaseStore.findAll(Message, { threadId: threadId || thread.id })
+        .where({ state: 0 })
         .order(Message.attributes.date.descending())
         .include(Message.attributes.body)
         .limit(10)
-        .then(messages => messages.find(m => !m.isHidden()));
+        .then(messages => {
+          return messages.find(m => !m.isHidden());
+        });
     }
 
     return queries;
