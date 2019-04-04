@@ -70,11 +70,11 @@ const c1 = new ListTabular.Column({
         matching={{ role: 'EmailAvatar' }}
       />,
       // <ThreadListIcon key="thread-list-icon" thread={thread} />,
-      // <MailImportantIcon
-      //   key="mail-important-icon"
-      //   thread={thread}
-      //   showIfAvailableForAnyAccount={true}
-      // />,
+      <MailImportantIcon
+        key="mail-important-icon"
+        thread={thread}
+        showIfAvailableForAnyAccount={true}
+      />,
       <InjectedComponentSet
         key="injected-component-set"
         inline={true}
@@ -220,7 +220,6 @@ const cNarrow = new ListTabular.Column({
         </div>
         <div className="thread-info-column">
           <div className="participants-wrapper">
-            <ThreadListIcon thread={thread} />
             <ThreadListParticipants thread={thread} />
             {attachment}
             {pencil}
@@ -233,12 +232,15 @@ const cNarrow = new ListTabular.Column({
               matching={{ role: 'ThreadListTimestamp' }}
             />
           </div>
-          <div className="subject">{subject(thread.subject)}</div>
+          <div className="subject">
+            {subject(thread.subject)}
+            <ThreadListIcon thread={thread} />
+          </div>
           <div className="snippet-and-labels">
             <div className="snippet">{getSnippet(thread)}&nbsp;</div>
             <div style={{ flex: 1, flexShrink: 1 }} />
             <MailLabelSet thread={thread} />
-            <div>
+            <div className="icons">
               <InjectedComponentSet
                 inline={true}
                 matchLimit={1}

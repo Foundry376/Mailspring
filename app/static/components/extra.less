@@ -95,21 +95,21 @@ body.platform-win32 {
   width: 25px;
   height: 25px;
   display: inline-block;
-  .icon-mixin('../static/icons/important.svg', @gray-lighter);
+  .icon-mixin('../static/icons/important.svg', @gray-lighter, 24px);
 }
 .mail-important-icon.enabled.active {
   // background-image: url(../static/images/important/Icon-Important-Active@2x.png);
   // background-size: 16px;
-  .icon-mixin('../static/icons/important.svg',@yellow);
+  .icon-mixin('../static/icons/important.svg',@yellow, 24px);
 }
 .mail-important-icon.enabled:hover {
   // background-image: url(../static/images/important/Icon-Important-HoverActive@2x.png);
   // background-size: 16px;
-  .icon-mixin('../static/icons/important.svg',darken(@yellow, 5%));
+  .icon-mixin('../static/icons/important.svg',darken(@yellow, 5%), 24px);
 }
 .mail-important-icon.enabled.active:hover {
   // background-image: url(../static/images/important/Icon-Important-Active@2x.png);
   // background-size: 16px;
-  .icon-mixin('../static/icons/important.svg',@yellow);
+  .icon-mixin('../static/icons/important.svg',@yellow, 24px);
   -webkit-filter: brightness(90%);
 }

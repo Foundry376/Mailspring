@@ -200,7 +200,7 @@ input:focus {
     }
   }
   .list-column-Participants {
-    padding-left: 7px;
+    padding-left: 0px;
   }
   .list-column-State {
     display: flex;
@@ -475,6 +475,7 @@ body.platform-win32 {
 .mode-split {
   .thread-list .list-item .thread-icon-none {
     width: 0;
+    height: 0;
     // transition-duration: 0.4s;
   }
   // .thread-list .list-item:hover .thread-icon-none {
@@ -547,16 +548,14 @@ body.platform-win32 {
     border: none;
   }
 
-  .list-tabular-item:not(.selected):not(.focused):not(.next-is-selected) {
-    :after {
-      content: "";
-      background: @border-color-divider;
-      position: absolute;
-      bottom: 0;
-      left: 0%;
-      height: 1px;
-      width: 100%;
-    }
+  .list-tabular-item:not(.selected):not(.focused):not(.next-is-selected):after {
+    content: "";
+    background: @border-color-divider;
+    position: absolute;
+    bottom: 0;
+    left: 0%;
+    height: 1px;
+    width: 100%;
   }
 
   .timestamp {
@@ -584,17 +583,32 @@ body.platform-win32 {
     color: @black;
     opacity: 0.7;
     margin-right: @scrollbar-margin;
+    padding-right: 20px;
+    position: relative;
+    .thread-icon {
+      position: absolute;
+      right: 4px;
+      top: 0;
+      width: 20px;
+      -webkit-mask-size: 18px;
+      &.thread-icon-unread {
+        display: none;
+      }
+    }
   }
   .snippet-and-labels {
     margin-right: @scrollbar-margin;
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     overflow: hidden;
 
     .mail-label {
       font-size: 0.8em;
       line-height: 17px;
-      margin: 1px 0;
+      margin: 1px 1px 0 0;
+      &:after {
+        visibility: hidden;
+      }
     }
 
     .snippet {
@@ -611,6 +625,19 @@ body.platform-win32 {
       -webkit-line-clamp: 2;
       display: -webkit-box;
       -webkit-box-orient: vertical;
+    }
+    .icons {
+      height: 42px;
+      width: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      .thread-icon-unread {
+        display: none;
+      }
+      .mail-important-icon {
+        margin-bottom: -1px;
+      }
     }
   }
 }
