@@ -352,9 +352,12 @@ export default [
       if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
         return;
       }
-      const { focusText, focusOffset, document } = change.value;
+      const { focusText, focusOffset, document, selection } = change.value;
       const firstText = document.getFirstText();
       if (focusOffset === 0 && focusText && firstText && firstText.key === focusText.key) {
+        if (selection.startOffset !== selection.endOffset) {
+          return;
+        }
         event.preventDefault();
         return true;
       }
