@@ -441,16 +441,20 @@ class ThreadArrowButton extends React.Component {
   }
 }
 
+const Divider = () => (
+  <div className="divider"></div>
+)
+
 export const FlagButtons = CreateButtonGroup(
   'FlagButtons',
-  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton],
+  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, Divider],
   { order: -103 },
 );
 
 export const MoveButtons = CreateButtonGroup(
   'MoveButtons',
-  [ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton],
-  { order: -107 },
+  [ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton, Divider],
+  { order: -109 },
 );
 
 export const DownButton = () => {
