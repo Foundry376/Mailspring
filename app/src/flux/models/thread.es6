@@ -48,8 +48,10 @@ export default class Thread extends ModelWithMetadata {
     }),
 
     unread: Attributes.Boolean({
-      queryable: true,
       modelKey: 'unread',
+      jsonKey: 'unread',
+      queryable: true,
+      loadFromColumn: true,
     }),
 
     starred: Attributes.Boolean({
