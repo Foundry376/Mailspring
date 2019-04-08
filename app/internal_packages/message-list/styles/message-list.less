@@ -88,19 +88,23 @@ body.platform-win32 {
     flex-grow: 0;
     flex-shrink: 0;
   }
+  .message-toolbar-popout,
   .message-toolbar-arrow {
     display: flex;
     align-items: center;
   }
   .message-toolbar-arrow.down {
     order: 203;
-    margin-right: 0;
     margin-right: @spacing-standard * 0.75;
   }
   .message-toolbar-arrow.up {
     order: 202;
     margin-left: 0;
     // <1 because of hit region padding on the button
+  }
+  .message-toolbar-popout {
+    order: 204;
+    margin-right: @spacing-standard * 0.75;
   }
   .message-toolbar-arrow.disabled {
     opacity: 0.3;
