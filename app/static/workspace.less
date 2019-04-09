@@ -216,10 +216,18 @@ body.is-blurred {
     background: #fff;
   }
   .toolbar-MessageList {
-    height: 56px;
+    height: 40px;
     top: @search-bar-height - 1px !important;
     border-bottom: none;
     border-top: 1px solid @extra-light-grey;
+    .divider {
+      width: 1px;
+      height: 30px;
+      background: @border-color-divider;
+    }
+    .button-group {
+      align-items: center;
+    }
     .item-container {
       .item-spacer {
         display: none;
@@ -235,9 +243,6 @@ body.is-blurred {
           align-items: center;
           .key-commands-region {
             height: auto;
-          }
-          .button-group {
-            align-items: center;
           }
           .btn-toolbar {
             position: relative;
@@ -266,7 +271,7 @@ body.is-blurred {
                 display: block;
                 position: absolute;
                 top: -5px;
-                left: 8px;
+                left: 7px;
                 animation: growUp 0.4s;
               }
               img {

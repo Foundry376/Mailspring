@@ -201,22 +201,23 @@ export default class ThreadReplyForwardButton extends React.Component {
 
   render() {
     if (this.props.items && this.props.items.length > 1) {
-      return <span/>;
+      return <span />;
     }
 
     return (
-      <div className="button-group">
+      <div className="button-group reply-button-group">
+        <div className="divider"></div>
         <button
           className={`btn btn-toolbar thread-reply-button`}
           title="Reply"
           style={{ marginRight: 0 }}
           onClick={this._reply}
         >{this.state.showReplyLoading ?
-          <LottieImg size={{ width: 26, height: 26 }} name='loading-spinner-blue'/> :
+          <LottieImg size={{ width: 24, height: 24 }} name='loading-spinner-blue' /> :
           <RetinaImg name={'reply.svg'}
-                     style={{ width: 26, height: 26 }}
-                     isIcon={true}
-                     mode={RetinaImg.Mode.ContentIsMask}/>}
+            style={{ width: 24, height: 24 }}
+            isIcon={true}
+            mode={RetinaImg.Mode.ContentIsMask} />}
         </button>
         {
           this.canReplyAll() && (
@@ -226,11 +227,11 @@ export default class ThreadReplyForwardButton extends React.Component {
               style={{ marginRight: 0 }}
               onClick={this._replyAll}
             >{this.state.showReplyAllLoading ?
-              <LottieImg size={{ width: 26, height: 26 }} name='loading-spinner-blue'/> :
+              <LottieImg size={{ width: 24, height: 24 }} name='loading-spinner-blue' /> :
               <RetinaImg name={'reply-all.svg'}
-                         style={{ width: 26, height: 26 }}
-                         isIcon={true}
-                         mode={RetinaImg.Mode.ContentIsMask}/>}
+                style={{ width: 24, height: 24 }}
+                isIcon={true}
+                mode={RetinaImg.Mode.ContentIsMask} />}
             </button>
           )
         }
@@ -241,11 +242,11 @@ export default class ThreadReplyForwardButton extends React.Component {
           onClick={this._forward}
         >
           {this.state.showForwardLoading ?
-            <LottieImg size={{ width: 26, height: 26 }} name='loading-spinner-blue'/> :
+            <LottieImg size={{ width: 24, height: 24 }} name='loading-spinner-blue' /> :
             <RetinaImg name={'forward.svg'}
-                       style={{ width: 26, height: 26 }}
-                       isIcon={true}
-                       mode={RetinaImg.Mode.ContentIsMask}/>}
+              style={{ width: 24, height: 24 }}
+              isIcon={true}
+              mode={RetinaImg.Mode.ContentIsMask} />}
         </button>
       </div>
     );

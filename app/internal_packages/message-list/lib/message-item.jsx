@@ -193,7 +193,7 @@ export default class MessageItem extends React.Component {
           </div>
         </div>
         <MessageParticipants
-          from={message.from}
+          detailFrom={message.from}
           to={message.to}
           cc={message.cc}
           bcc={message.bcc}

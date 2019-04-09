@@ -49,7 +49,7 @@ export class ArchiveButton extends React.Component {
       <BindGlobalCommands commands={{ 'core:archive-item': () => this._onArchive() }}>
         <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
           <RetinaImg name={'archive.svg'}
-            style={{ width: 26, height: 26 }}
+            style={{ width: 24, height: 24 }}
             isIcon
             mode={RetinaImg.Mode.ContentIsMask} />
         </button>
@@ -112,7 +112,7 @@ export class TrashButton extends React.Component {
           title="Move to Trash"
           onClick={actionCallBack}
         >
-          <RetinaImg name={'trash.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'trash.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -269,7 +269,7 @@ export class MarkAsSpamButton extends React.Component {
             title="Not Junk"
             onClick={this._onNotSpam}
           >
-            <RetinaImg name="not-junk.svg" style={{ width: 26, height: 26 }} isIcon
+            <RetinaImg name="not-junk.svg" style={{ width: 24, height: 24 }} isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
           </button>
         </BindGlobalCommands>
@@ -291,7 +291,7 @@ export class MarkAsSpamButton extends React.Component {
           title="Mark as Spam"
           onClick={this._onMarkAsSpam}
         >
-          <RetinaImg name={'junk.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'junk.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -329,7 +329,7 @@ export class ToggleStarredButton extends React.Component {
         <button tabIndex={-1} className={"btn btn-toolbar " + className} title={title} onClick={this._onStar}>
           <RetinaImg
             name="flag.svg"
-            style={{ width: 26, height: 26 }}
+            style={{ width: 24, height: 24 }}
             isIcon
             mode={RetinaImg.Mode.ContentIsMask} />
         </button>
@@ -383,7 +383,7 @@ export class ToggleUnreadButton extends React.Component {
           title={`Mark as ${fragment}`}
           onClick={this._onClick}
         >
-          <RetinaImg name={`${fragment}.svg`} style={{ width: 26, height: 26 }} isIcon
+          <RetinaImg name={`${fragment}.svg`} style={{ width: 24, height: 24 }} isIcon
             mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
@@ -426,7 +426,7 @@ export class MoreButton extends React.Component {
       <button tabIndex={-1} className="btn btn-toolbar btn-more" onClick={this._more}>
         <RetinaImg
           name="more.svg"
-          style={{ width: 26, height: 26 }}
+          style={{ width: 24, height: 24 }}
           isIcon
           mode={RetinaImg.Mode.ContentIsMask} />
       </button>
@@ -482,7 +482,7 @@ class ThreadArrowButton extends React.Component {
         <RetinaImg
           name={`${direction === 'up' ? 'back' : 'next'}.svg`}
           isIcon
-          style={{ width: 26, height: 26 }}
+          style={{ width: 24, height: 24 }}
           mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
@@ -496,7 +496,7 @@ Divider.displayName = 'Divider';
 
 export const FlagButtons = CreateButtonGroup(
   'FlagButtons',
-  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, MoreButton, Divider],
+  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, MoreButton],
   { order: -103 },
 );
 
@@ -575,7 +575,7 @@ export const PopoutButton = () => {
         onClick={_onPopoutComposer}
       >
         <RetinaImg name={'popout.svg'}
-          style={{ width: 26, height: 26 }}
+          style={{ width: 24, height: 24 }}
           isIcon
           mode={RetinaImg.Mode.ContentIsMask} />
       </div>
