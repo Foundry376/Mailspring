@@ -26,7 +26,8 @@ class ThreadListIcon extends React.Component {
     }
 
     if (this.props.thread.unread) {
-      return 'thread-icon-unread thread-icon-star-on-hover';
+      // return 'thread-icon-unread thread-icon-star-on-hover';
+      return 'thread-icon-star-on-hover';
     }
 
     const msgs = this._nonDraftMessages();
@@ -63,7 +64,7 @@ class ThreadListIcon extends React.Component {
     return (
       <div
         className={`thread-icon ${this._iconClassNames()}`}
-        title="Star"
+        title="Flag"
         onClick={this._onToggleStar}
       />
     );
