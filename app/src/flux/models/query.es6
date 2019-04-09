@@ -2,6 +2,7 @@
 import Attributes from '../attributes';
 import QueryRange from './query-range';
 import Utils from './utils';
+import _ from 'underscore';
 
 const { Matcher, AttributeJoinedData, AttributeCollection } = Attributes;
 
@@ -434,7 +435,7 @@ export default class ModelQuery {
   }
 
   _whereClause() {
-    const joins = [];
+    let joins = [];
     this._matchers.forEach(c => {
       const join = c.joinSQL(this._klass);
       if (join) {
@@ -456,7 +457,7 @@ export default class ModelQuery {
         wheres.push(where);
       }
     });
-
+    joins = _.flatten(joins);
     let sql = joins.join(' ');
     if (wheres.length > 0) {
       sql += ` WHERE ${wheres.join(' AND ')}`;

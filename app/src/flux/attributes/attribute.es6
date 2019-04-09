@@ -10,7 +10,7 @@ The Attribute class also exposes convenience methods for generating {Matcher} ob
 Section: Database
 */
 export default class Attribute {
-  constructor({ modelKey, queryable, jsonKey, loadFromColumn }) {
+  constructor({ modelKey, queryable, jsonKey, loadFromColumn, isJoinTable = false }) {
     this.modelKey = modelKey;
     this.tableColumn = modelKey;
     this.jsonKey = jsonKey || modelKey;
@@ -19,6 +19,7 @@ export default class Attribute {
       throw new Error('loadFromColumn requires queryable');
     }
     this.loadFromColumn = loadFromColumn;
+    this.isJoinTable = isJoinTable;
   }
 
   _assertPresentAndQueryable(fnName, val) {
@@ -35,7 +36,7 @@ export default class Attribute {
   // Public: Returns a {Matcher} for objects `=` to the provided value.
   equal(val) {
     this._assertPresentAndQueryable('equal', val);
-    return new Matcher(this, '=', val);
+    return new Matcher(this, '=', val, this.isJoinTable);
   }
 
   // Public: Returns a {Matcher} for objects `=` to the provided value.
@@ -54,10 +55,10 @@ export default class Attribute {
     }
     if (val.length === 1) {
       const testChar = notIn ? '!=' : '=';
-      return new Matcher(this, testChar, val[0]);
+      return new Matcher(this, testChar, val[0], this.isJoinTable);
     }
     const matcherType = notIn ? 'not in' : 'in';
-    return new Matcher(this, matcherType, val);
+    return new Matcher(this, matcherType, val, this.isJoinTable);
   }
 
   notIn(val) {
@@ -67,7 +68,7 @@ export default class Attribute {
   // Public: Returns a {Matcher} for objects `!=` to the provided value.
   not(val) {
     this._assertPresentAndQueryable('not', val);
-    return new Matcher(this, '!=', val);
+    return new Matcher(this, '!=', val, this.isJoinTable);
   }
 
   // Public: Returns a descending {SortOrder} for this attribute.
