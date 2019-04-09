@@ -473,7 +473,7 @@ class MessageList extends React.Component {
       popedOut: MessageStore.isPopedOut(),
     };
   }
-  _onSelectText= e =>{
+  _onSelectText = e => {
 
     e.preventDefault();
     e.stopPropagation();
@@ -490,9 +490,9 @@ class MessageList extends React.Component {
     const menu = new Menu();
     menu.append(new MenuItem({ role: 'copy' }));
     menu.append(new MenuItem({
-        label: `Search for "${subject}`,
-        click: () => Actions.searchQuerySubmitted(`subject:"${subject}"`),
-      })
+      label: `Search for "${subject}`,
+      click: () => Actions.searchQuerySubmitted(`subject:"${subject}"`),
+    })
     );
     menu.popup({});
   };
@@ -507,8 +507,8 @@ class MessageList extends React.Component {
       <div className="message-subject-wrap">
         <div style={{ flex: 1, flexWrap: 'wrap' }}>
           <span className="message-subject"
-                onClick={this._onSelectText}
-                onContextMenu={this._onContactContextMenu.bind(this, subject)}
+            onClick={this._onSelectText}
+            onContextMenu={this._onContactContextMenu.bind(this, subject)}
           >{subject}</span>
           <MailImportantIcon thread={this.state.currentThread} />
           <MailLabelSet
@@ -518,7 +518,7 @@ class MessageList extends React.Component {
             thread={this.state.currentThread}
           />
         </div>
-        {this._renderIcons()}
+        {/* {this._renderIcons()} */}
       </div>
     );
   }

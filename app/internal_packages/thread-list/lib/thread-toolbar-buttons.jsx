@@ -3,13 +3,18 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { RetinaImg, CreateButtonGroup, BindGlobalCommands } from 'mailspring-component-kit';
 import {
+  ReactDOM,
   Actions,
   TaskFactory,
   ChangeLabelsTask,
   CategoryStore,
   FocusedContentStore,
   FocusedPerspectiveStore,
+  WorkspaceStore,
+  MessageStore,
 } from 'mailspring-exports';
+import { remote } from 'electron';
+const { Menu, MenuItem } = remote;
 
 import ThreadListStore from './thread-list-store';
 
@@ -386,6 +391,49 @@ export class ToggleUnreadButton extends React.Component {
   }
 }
 
+export class MoreButton extends React.Component {
+  static displayName = 'MoreButton';
+  static containerRequired = false;
+
+  static propTypes = {
+    items: PropTypes.array.isRequired,
+  };
+
+  _onPrintThread = () => {
+    const node = document.querySelector('#message-list');
+    const currentThread = MessageStore.thread();
+    Actions.printThread(currentThread, node.outerHTML);
+  };
+
+  _more = () => {
+    const expandTitle = MessageStore.hasCollapsedItems() ? 'Expand All' : 'Collapse All';
+    const menu = new Menu();
+    menu.append(new MenuItem({
+      label: `Print Thread`,
+      click: () => this._onPrintThread(),
+    })
+    );
+    menu.append(new MenuItem({
+      label: expandTitle,
+      click: () => Actions.toggleAllMessagesExpanded(),
+    })
+    );
+    menu.popup({});
+  };
+
+  render() {
+    return (
+      <button tabIndex={-1} className="btn btn-toolbar btn-more" onClick={this._more}>
+        <RetinaImg
+          name="more.svg"
+          style={{ width: 26, height: 26 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
+      </button>
+    );
+  }
+}
+
 class ThreadArrowButton extends React.Component {
   static propTypes = {
     getStateFromStores: PropTypes.func,
@@ -434,7 +482,7 @@ class ThreadArrowButton extends React.Component {
         <RetinaImg
           name={`${direction === 'up' ? 'back' : 'next'}.svg`}
           isIcon
-          style={{ width: 24, height: 24 }}
+          style={{ width: 26, height: 26 }}
           mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
@@ -443,11 +491,12 @@ class ThreadArrowButton extends React.Component {
 
 const Divider = () => (
   <div className="divider"></div>
-)
+);
+Divider.displayName = 'Divider';
 
 export const FlagButtons = CreateButtonGroup(
   'FlagButtons',
-  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, Divider],
+  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, MoreButton, Divider],
   { order: -103 },
 );
 
@@ -466,6 +515,10 @@ export const DownButton = () => {
       disabled: lastItem && lastItem.id === selectedId,
     };
   };
+
+  if (WorkspaceStore.layoutMode() !== 'list') {
+    return null;
+  }
 
   return (
     <ThreadArrowButton
@@ -488,6 +541,10 @@ export const UpButton = () => {
     };
   };
 
+  if (WorkspaceStore.layoutMode() !== 'list') {
+    return null;
+  }
+
   return (
     <ThreadArrowButton
       getStateFromStores={getStateFromStores}
@@ -499,3 +556,38 @@ export const UpButton = () => {
 };
 UpButton.displayName = 'UpButton';
 UpButton.containerRequired = false;
+
+export const PopoutButton = () => {
+  const _onPopoutComposer = () => {
+    const thread = MessageStore.thread();
+    Actions.popoutThread(thread);
+    // This returns the single-pane view to the inbox, and does nothing for
+    // double-pane view because we're at the root sheet.
+    Actions.popSheet();
+  }
+
+  if (!AppEnv.isComposerWindow()) {
+    return (
+      <div
+        className="btn-icon message-toolbar-popout"
+        key="popout"
+        title="Popout composer…"
+        onClick={_onPopoutComposer}
+      >
+        <RetinaImg name={'popout.svg'}
+          style={{ width: 26, height: 26 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
+      </div>
+    );
+  }
+
+  return null;
+};
+PopoutButton.displayName = 'PopoutButton';
+
+export const NavButtons = CreateButtonGroup(
+  'NavButtons',
+  [Divider, UpButton, DownButton, PopoutButton],
+  { order: 205 },
+);

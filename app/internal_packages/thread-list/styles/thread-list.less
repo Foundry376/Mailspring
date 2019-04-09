@@ -494,8 +494,12 @@ body.platform-win32 {
   visibility: inherit;
 }
 .thread-list .thread-icon-star-on-hover:hover {
-  background-image: url(../static/images/thread-list/icon-star-hover-@2x.png);
-  background-size: 16px;
+  -webkit-mask-image: url(../static/icons/flag.svg);
+  -webkit-mask-size: 16px 16px;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  background-color: @gray;
+  -webkit-filter: brightness(150%);
 }
 
 .thread-list .avatar-icon {
@@ -591,9 +595,6 @@ body.platform-win32 {
       top: 0;
       width: 20px;
       -webkit-mask-size: 18px;
-      &.thread-icon-unread {
-        display: none;
-      }
     }
   }
   .snippet-and-labels {

@@ -77,7 +77,7 @@ class OnboardingStore extends MailspringStore {
     // Don't carry over any type-specific account information
     this._onSetAccount(
       new Account({
-        emailAddress: this._account.emailAddress,
+        emailAddress: '',
         name: this._account.name,
         settings: {},
         provider,
