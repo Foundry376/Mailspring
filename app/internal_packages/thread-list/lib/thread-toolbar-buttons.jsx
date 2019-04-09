@@ -560,10 +560,12 @@ UpButton.containerRequired = false;
 export const PopoutButton = () => {
   const _onPopoutComposer = () => {
     const thread = MessageStore.thread();
-    Actions.popoutThread(thread);
-    // This returns the single-pane view to the inbox, and does nothing for
-    // double-pane view because we're at the root sheet.
-    Actions.popSheet();
+    if (thread) {
+      Actions.popoutThread(thread);
+      // This returns the single-pane view to the inbox, and does nothing for
+      // double-pane view because we're at the root sheet.
+      Actions.popSheet();
+    }
   }
 
   if (!AppEnv.isComposerWindow()) {

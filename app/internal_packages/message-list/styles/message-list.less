@@ -87,6 +87,9 @@ body.platform-win32 {
     order: 200;
     flex-grow: 0;
     flex-shrink: 0;
+    &:empty + .button-group {
+      display: none;
+    }
   }
   .message-toolbar-popout,
   .message-toolbar-arrow {
