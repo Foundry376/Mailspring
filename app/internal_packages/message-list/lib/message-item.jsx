@@ -156,7 +156,7 @@ export default class MessageItem extends React.Component {
           matching={{ role: 'MessageHeader' }}
           exposedProps={{ message: message, thread: thread, messages: messages }}
         />
-        <div className="pending-spinner" style={{ position: 'absolute', marginTop: -2 , left: 55}}>
+        <div className="pending-spinner" style={{ position: 'absolute', marginTop: -2, left: 55 }}>
           <RetinaImg width={18} name="sending-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />
         </div>
         <div className="message-header-right">
@@ -193,6 +193,7 @@ export default class MessageItem extends React.Component {
           </div>
         </div>
         <MessageParticipants
+          detailFrom={message.from}
           to={message.to}
           cc={message.cc}
           bcc={message.bcc}
@@ -200,7 +201,7 @@ export default class MessageItem extends React.Component {
           onClick={this._onClickParticipants}
           isDetailed={this.state.detailedHeaders}
         />
-        {this._renderFolder()}
+        {/* {this._renderFolder()} */}
         {this._renderHeaderDetailToggle()}
       </header>
     );

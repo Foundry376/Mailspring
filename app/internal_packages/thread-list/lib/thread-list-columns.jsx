@@ -233,7 +233,7 @@ const cNarrow = new ListTabular.Column({
             />
           </div>
           <div className="subject">
-            {subject(thread.subject)}
+            <span>{subject(thread.subject)}</span>
             <ThreadListIcon thread={thread} />
           </div>
           <div className="snippet-and-labels">

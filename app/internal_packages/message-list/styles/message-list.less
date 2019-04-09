@@ -92,19 +92,20 @@ body.platform-win32 {
   .message-toolbar-arrow {
     display: flex;
     align-items: center;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 13px;
   }
   .message-toolbar-arrow.down {
     order: 203;
-    margin-right: @spacing-standard * 0.75;
   }
   .message-toolbar-arrow.up {
     order: 202;
-    margin-left: 0;
     // <1 because of hit region padding on the button
   }
   .message-toolbar-popout {
     order: 204;
-    margin-right: @spacing-standard * 0.75;
+    padding-right: 13px;
   }
   .message-toolbar-arrow.disabled {
     opacity: 0.3;
@@ -221,7 +222,7 @@ body.platform-win32 {
     font-size: 17px;
     font-weight: bold;
     color: @text-color;
-    margin-right: @spacing-standard;
+    margin-right: @spacing-half;
   }
   .message-icons-wrap {
     flex-shrink: 0;
@@ -242,7 +243,8 @@ body.platform-win32 {
     vertical-align: top;
     flex-wrap: wrap;
     .mail-label.removable {
-      margin-bottom: 2px;
+      margin-top: 1px;
+      margin-bottom: 1px;
     }
   }
   .message-list-headers {
@@ -369,7 +371,6 @@ body.platform-win32 {
         font-weight: @font-weight-semi-bold;
         color: @text-color;
         // min-width: 60px;
-        margin-right: 1em;
         font-size: 15px;
       }
 
@@ -694,6 +695,7 @@ body.platform-win32 {
     font-size: 15px;
     color: @text-color;
   }
+  .detail-from-label,
   .from-label,
   .to-label,
   .reply-to-label,
@@ -701,6 +703,7 @@ body.platform-win32 {
   .bcc-label {
     color: @text-color-very-subtle;
   }
+  .detail-from-contact,
   .to-contact,
   .reply-to-contact,
   .cc-contact,
@@ -751,6 +754,7 @@ body.platform-win32 {
       margin-top: 0.2em;
     }
 
+    .detail-from-label,
     .from-label,
     .to-label,
     .reply-to-label,
@@ -768,7 +772,14 @@ body.platform-win32 {
       font-weight: @font-weight-semi-bold;
     }
 
+    .from-contact {
+      .participant-secondary {
+        display: none;
+      }
+    }
+
     // .from-label { margin-right: 1em; }
+    .detail-from-label,
     .to-label,
     .reply-to-label,
     .cc-label {

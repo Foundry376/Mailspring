@@ -62,6 +62,13 @@
     background-color: @background-primary;
     transition: opacity 0.2s ease-in-out;
 
+    .divider {
+      height: 30px;
+      width: 1px;
+      background: @border-color-divider;
+      display: inline-block;
+    }
+
     .inner {
       width: 100%;
       height: 100%;
@@ -175,6 +182,14 @@
         justify-content: flex-start;
         align-items: center;
         height: auto !important;
+        .button-group {
+          display: flex;
+          align-items: center;
+          .btn-more,
+          &.reply-button-group {
+            display: none;
+          }
+        }
         .btn {
           height: auto;
         }

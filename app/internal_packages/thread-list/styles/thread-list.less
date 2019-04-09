@@ -288,10 +288,10 @@ input:focus {
       .icon-mixin('../static/icons/menu-unread.svg', @blue, auto);
     }
     &.thread-icon-replied {
-      .icon-mixin('../static/icons/feed-reply.svg', #000);
+      .icon-mixin('../static/icons/feed-reply.svg', @gray-light);
     }
     &.thread-icon-forwarded {
-      .icon-mixin('../static/icons/feed-forward.svg', #000);
+      .icon-mixin('../static/icons/feed-forward.svg', @gray-light);
     }
     &.thread-icon-star {
       .icon-mixin('../static/icons/flag.svg',@orange, 24px);
@@ -585,10 +585,12 @@ body.platform-win32 {
     text-overflow: ellipsis;
     text-align: left;
     color: @black;
-    opacity: 0.7;
     margin-right: @scrollbar-margin;
     padding-right: 20px;
     position: relative;
+    span {
+      opacity: 0.7;
+    }
     .thread-icon {
       position: absolute;
       right: 4px;

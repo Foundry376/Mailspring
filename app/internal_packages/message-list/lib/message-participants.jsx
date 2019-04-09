@@ -111,7 +111,7 @@ export default class MessageParticipants extends React.Component {
     return (
       <div className="participant-type" key={`participant-type-${name}`}>
         {includeLabel ? (
-          <div className={`participant-label ${name}-label`}>{name}:&nbsp;</div>
+          <div className={`participant-label ${name}-label`}>{name === 'detail-from' ? 'from' : name}:&nbsp;</div>
         ) : null}
         <div className={`participant-name ${name}-contact`}>{this._renderFullContacts(field)}</div>
       </div>
@@ -119,9 +119,13 @@ export default class MessageParticipants extends React.Component {
   }
 
   _renderExpanded() {
-    const { from, replyTo, to, cc, bcc } = this.props;
+    const { detailFrom, from, replyTo, to, cc, bcc } = this.props;
 
     const expanded = [];
+
+    if (detailFrom && detailFrom.length > 0) {
+      expanded.push(this._renderExpandedField('detail-from', detailFrom));
+    }
 
     if (from.length > 0) {
       expanded.push(this._renderExpandedField('from', from, { includeLabel: false }));
