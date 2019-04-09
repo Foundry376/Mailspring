@@ -7,7 +7,7 @@ import {
   QuotedHTMLTransformer,
   AttachmentStore,
   DatabaseStore,
-  Message
+  Message,
 } from 'mailspring-exports';
 import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 
@@ -39,7 +39,7 @@ class ConditionalQuotedTextControl extends React.Component {
             name={'expand-more.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            mode={RetinaImg.Mode.ContentIsMask}/>
         </span>
       </a>
     );
@@ -67,8 +67,11 @@ export default class MessageItemBody extends React.Component {
     this._unsub = MessageBodyProcessor.subscribe(
       this.props.message,
       needInitialCallback,
-      processedBody => this._setProcessBody(processedBody, this.props.message.id)
+      processedBody => this._setProcessBody(processedBody, this.props.message.id),
     );
+    if (!this.state.processedBody && this.props.message) {
+      MessageBodyProcessor.updateCacheForMessage(this.props.message);
+    }
   }
 
   componentDidMount() {
@@ -83,24 +86,24 @@ export default class MessageItemBody extends React.Component {
       this._unsub = MessageBodyProcessor.subscribe(
         nextProps.message,
         true,
-        processedBody => this._setProcessBody(processedBody, nextProps.message.id)
+        processedBody => this._setProcessBody(processedBody, nextProps.message.id),
       );
     }
   }
 
   _setProcessBody = (processedBody, messageId) => {
-    if (processedBody === null || processedBody.trim() === "") {
+    if (processedBody === null || processedBody.trim() === '') {
       const query = DatabaseStore.find(Message, messageId);
       query.include(Message.attributes.body);
       query.then(msg => {
         if (msg.body !== this.state.processedBody) {
           this.setState({ processedBody });
         }
-      })
+      });
     } else {
       this.setState({ processedBody });
     }
-  }
+  };
 
   componentWillUnmount() {
     this._mounted = false;
@@ -129,13 +132,13 @@ export default class MessageItemBody extends React.Component {
       if (download && download.state !== 'finished') {
         const inlineImgRegexp = new RegExp(
           `<\\s*img.*src=['"]cid:${safeContentId}['"][^>]*>`,
-          'gi'
+          'gi',
         );
         // Render a spinner
         merged = merged.replace(
           inlineImgRegexp,
           () =>
-            '<img alt="spinner.gif" src="edisonmail://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">'
+            '<img alt="spinner.gif" src="edisonmail://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">',
         );
       } else {
         const cidRegexp = new RegExp(`cid:${safeContentId}(@[^'"]+)?`, 'gi');
