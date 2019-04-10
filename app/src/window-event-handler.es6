@@ -136,8 +136,8 @@ export default class WindowEventHandler {
     AppEnv.commands.add(document.body, {
       'core:copy': () => (isSelectionPresent() ? webContents.copy() : null),
       'core:cut': () => (isSelectionPresent() ? webContents.cut() : null),
-      'core:paste': () => webContents.paste(),
-      'core:paste-and-match-style': () => webContents.pasteAndMatchStyle(),
+      'core:paste': () => webContents.pasteAndMatchStyle(),
+      'core:paste-and-match-style': () => webContents.paste(),
       'core:undo': e => (isTextInput(e.target) ? webContents.undo() : getUndoStore().undo()),
       'core:redo': e => (isTextInput(e.target) ? webContents.redo() : getUndoStore().redo()),
       'core:select-all': e => (isTextInput(e.target) ? webContents.selectAll() : null),
@@ -357,7 +357,7 @@ export default class WindowEventHandler {
     );
     menu.append(
       new MenuItem({
-        label: 'Paste and Match Style',
+        label: 'Paste with Style',
         click: () => {
           onRestoreSelection();
           AppEnv.commands.dispatch('core:paste-and-match-style');
