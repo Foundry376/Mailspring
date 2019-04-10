@@ -91,7 +91,7 @@ class ThreadListStore extends MailspringStore {
 
       const notInSet = function(model) {
         if (matchers) {
-          return model.matches(matchers) === false;
+          return model.matches(matchers) === false && next.offsetOfId(model.id) === -1;
         } else {
           return next.offsetOfId(model.id) === -1;
         }
