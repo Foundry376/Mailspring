@@ -30,9 +30,9 @@ class AutoloadImagesStore extends MailspringStore {
 
   shouldBlockImagesIn = message => {
     const spamFolderId = (CategoryStore.getSpamCategory(message.accountId) || {}).id;
-
+    // draft has no folder info
     if (!message.folder) {
-      console.error('message.folder is undefined:', message);
+      return false;
     }
     if (AppEnv.config.get('core.reading.autoloadImages') && message.folder && message.folder.id !== spamFolderId) {
       return false;

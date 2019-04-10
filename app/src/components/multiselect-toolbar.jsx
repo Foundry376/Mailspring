@@ -1,4 +1,4 @@
-import { Utils, WorkspaceStore, ThreadCountsStore, FocusedPerspectiveStore, CategoryStore } from 'mailspring-exports';
+import { Utils, WorkspaceStore, ThreadCountsStore, FocusedPerspectiveStore, CategoryStore, Label } from 'mailspring-exports';
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
@@ -106,7 +106,10 @@ class MultiselectToolbar extends Component {
       if (current.name !== 'Unread') {
         threadCounts = ThreadCountsStore.totalCountForCategoryId(current._categories[0].id);
       }
-      const category = CategoryStore.byId(current._categories[0].accountId, current._categories[0].id);
+      let category = CategoryStore.byId(current._categories[0].accountId, current._categories[0].id);
+      if (category instanceof Label) {
+        category = CategoryStore.getCategoryByRole(current._categories[0].accountId, 'all');
+      }
       lastUpdate = category.updatedAt;
     }
     return (
