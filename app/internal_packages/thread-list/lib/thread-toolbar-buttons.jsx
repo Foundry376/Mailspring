@@ -472,7 +472,7 @@ class ThreadArrowButton extends React.Component {
   render() {
     const { direction, title } = this.props;
     const classes = classNames({
-      'btn-icon': true,
+      'btn-toolbar': true,
       'message-toolbar-arrow': true,
       disabled: this.state.disabled,
     });
@@ -571,7 +571,7 @@ export const PopoutButton = () => {
   if (!AppEnv.isComposerWindow()) {
     return (
       <div
-        className="btn-icon message-toolbar-popout"
+        className="btn-toolbar message-toolbar-popout"
         key="popout"
         title="Popout composer…"
         onClick={_onPopoutComposer}

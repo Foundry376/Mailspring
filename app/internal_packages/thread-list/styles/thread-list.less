@@ -367,15 +367,12 @@ input:focus {
         height: 36px;
         width: 36px;
         border-radius: 50%;
-        background: @source-list-active-bg;
+        background: @off-white;
         display: block;
         position: absolute;
         top: 10px;
         left: -6px;
         animation: growUp 0.4s;
-      }
-      img {
-        background-color: @blue;
       }
       @keyframes growUp {
         from {
@@ -386,6 +383,14 @@ input:focus {
           opacity: 1;
           transform: scale(1);
         }
+      }
+    }
+    &:active {
+      &:after {
+        background: @extra-light-grey;
+      }
+      img {
+        background-color: @dark-grey;
       }
     }
   }

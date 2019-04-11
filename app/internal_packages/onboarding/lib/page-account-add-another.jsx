@@ -51,7 +51,7 @@ export default class AddAnotherAccountPage extends React.Component {
           </div>
         </div>
         <div className="footer">
-          <button key="later" className="btn btn-large btn-later" onClick={this._onFinish}>
+          <button key="later" className="btn btn-large btn-ghost btn-later" onClick={this._onFinish}>
             Maybe Later
           </button>
           <button key="now" className="btn btn-large btn-now" onClick={this._onAddNow}>

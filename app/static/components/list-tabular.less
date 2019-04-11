@@ -154,15 +154,12 @@
             height: 32px;
             width: 32px;
             border-radius: 50%;
-            background: @source-list-active-bg;
+            background: @off-white;
             display: block;
             position: absolute;
             top: -3px;
             left: 1px;
             animation: growUp 0.4s;
-          }
-          img {
-            background-color: @blue;
           }
           @keyframes growUp {
             from {
@@ -173,6 +170,14 @@
               opacity: 1;
               transform: scale(1);
             }
+          }
+        }
+        &:active {
+          &:after {
+            background: @extra-light-grey;
+          }
+          img {
+            background-color: @dark-grey;
           }
         }
       }
@@ -292,15 +297,12 @@
             height: 36px;
             width: 36px;
             border-radius: 50%;
-            background: @source-list-active-bg;
+            background: @off-white;
             display: block;
             position: absolute;
             top: -5px;
             left: 0;
             animation: growUp 0.4s;
-          }
-          img {
-            background-color: @blue;
           }
           @keyframes growUp {
             from {
@@ -311,6 +313,14 @@
               opacity: 1;
               transform: scale(1);
             }
+          }
+        }
+        &:active {
+          &:after {
+            background: @extra-light-grey;
+          }
+          img {
+            background-color: @dark-grey;
           }
         }
       }
