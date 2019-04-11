@@ -52,6 +52,19 @@ function toggleBlockTypeWithBreakout(value, change, type) {
   return change;
 }
 
+function isPartOfList(value) {
+  const listTypes = ['ol_list', 'ul_list'];
+  const focusKey = value.focusKey;
+  if (!focusKey) {
+    return false;
+  }
+  const parentNode = value.document.getFurthestAncestor(focusKey);
+  if (!parentNode) {
+    return false;
+  }
+  return listTypes.includes(parentNode.type);
+}
+
 export const BLOCK_CONFIG = {
   div: {
     type: 'div',
@@ -101,7 +114,7 @@ export const BLOCK_CONFIG = {
       <code {...props.attributes}>
         <pre
           style={{
-            backgroundColor: `rgba(0,0,0,0.05)`,
+            backgroundColor: `rgba(0, 0, 0, 0.05)`,
             padding: `0.2em 1em`,
           }}
         >
@@ -356,6 +369,9 @@ export default [
       const firstText = document.getFirstText();
       if (focusOffset === 0 && focusText && firstText && firstText.key === focusText.key) {
         if (selection.startOffset !== selection.endOffset) {
+          return;
+        }
+        if (isPartOfList(change.value)) {
           return;
         }
         event.preventDefault();

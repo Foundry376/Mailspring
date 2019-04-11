@@ -1,4 +1,4 @@
-import { React, PropTypes, Actions } from 'mailspring-exports';
+import { React, PropTypes, Actions, MessageStore } from 'mailspring-exports';
 import { RetinaImg, LottieImg } from 'mailspring-component-kit';
 
 const buttonTimeout = 5000;
@@ -167,7 +167,7 @@ export default class ThreadReplyForwardButton extends React.Component {
   };
 
   _lastMessage = () => {
-    return (this.props.thread.__messages || []).filter(m => !m.draft).pop();
+    return (this.props.thread.__messages || MessageStore.items() || []).filter(m => !m.draft).pop();
   };
 
   canReplyAll = () => {
