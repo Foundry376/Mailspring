@@ -21,7 +21,10 @@ export default class EmailAvatar extends Component {
     }
 
     this.state = {
-      name: (from.name || from.email || ' ').substring(0, 1).toUpperCase(),
+      name: (from.name || from.email || ' ')
+        .trim()
+        .substring(0, 1)
+        .toUpperCase(),
       bgColor: gradientColorForString(from.email || '')
     }
   }
