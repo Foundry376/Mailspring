@@ -190,6 +190,7 @@ export default class MessageItem extends React.Component {
               isDetailed={this.state.detailedHeaders}
               date={message.date}
             />
+            {this._renderHeaderDetailToggle()}
           </div>
         </div>
         <MessageParticipants
@@ -202,7 +203,6 @@ export default class MessageItem extends React.Component {
           isDetailed={this.state.detailedHeaders}
         />
         {/* {this._renderFolder()} */}
-        {this._renderHeaderDetailToggle()}
       </header>
     );
   }
@@ -221,10 +221,7 @@ export default class MessageItem extends React.Component {
             e.stopPropagation();
           }}
         >
-          <RetinaImg
-            name={'message-disclosure-triangle-active.png'}
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
+          less
         </div>
       );
     }
@@ -238,7 +235,7 @@ export default class MessageItem extends React.Component {
           e.stopPropagation();
         }}
       >
-        <RetinaImg name={'message-disclosure-triangle.png'} mode={RetinaImg.Mode.ContentIsMask} />
+        more
       </div>
     );
   }
