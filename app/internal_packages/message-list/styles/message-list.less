@@ -98,6 +98,7 @@ body.platform-win32 {
     margin-left: 0;
     margin-right: 0;
     padding-left: 13px;
+    padding-right: 0;
   }
   .message-toolbar-arrow.down {
     order: 203;
@@ -575,16 +576,9 @@ body.platform-win32 {
   }
 
   .header-toggle-control {
-    &.inactive {
-      display: none;
-    }
-    z-index: 3;
-    position: absolute;
-    top: 0;
-    left: -1 * 13px;
-    img {
-      background: @text-color-very-subtle;
-    }
+    color: @blue;
+    font-size: 11px;
+    cursor: pointer;
   }
   .message-item-wrap:hover {
     .header-toggle-control.inactive {

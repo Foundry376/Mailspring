@@ -13,9 +13,10 @@ window, but it uses a hot window which makes that difficult now. */
 @gray-light: lighten(@gray-base, 46.7%); // #777
 @gray-lighter: lighten(@gray-base, 92.5%); // #eee
 @white: #ffffff;
+@disabled-color: #B6BDC2;
 
 @blue-dark: #3187e1;
-@blue: #419bf9;
+@blue: #39f;
 
 //== Color Descriptors
 @accent-primary: @blue;
@@ -119,8 +120,9 @@ h6 {
   border: 0;
   cursor: default;
   display: inline-block;
-  color: @btn-default-text-color;
-  background: @background-primary;
+  color: #fff;
+  background: @blue;
+  box-shadow: none;
 
   img.content-mask {
     background-color: @btn-default-text-color;
@@ -129,8 +131,8 @@ h6 {
   // Use 4 box shadows to create a 0.5px hairline around the button, and another
   // for the actual shadow. Pending https://code.google.com/p/chromium/issues/detail?id=236371
   // Yes, 1px border looks really bad on retina.
-  box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
-    0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 0.5px 1px rgba(0, 0, 0, 0.15);
+  // box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 -0.5px 0 rgba(0, 0, 0, 0.15),
+  //   0.5px 0 0 rgba(0, 0, 0, 0.15), -0.5px 0 0 rgba(0, 0, 0, 0.15), 0 0.5px 1px rgba(0, 0, 0, 0.15);
 
   height: 1.9em;
   line-height: 1.9em;
@@ -139,9 +141,12 @@ h6 {
     margin-left: 6px;
   }
 
+  &:hover {
+    background: #0f72d1;
+  }
   &:active {
     cursor: default;
-    background: darken(@btn-default-bg-color, 9%);
+    background: #0e63b6;
   }
   &:focus {
     outline: none;
@@ -162,12 +167,24 @@ h6 {
     font-size: @font-size-large;
     padding: 0 1.6em;
   }
+  &.btn-ghost {
+    border: 2px solid @blue;
+    color: @blue;
+    background: #fff;
+    &:hover {
+      background: #F8F8FA;
+    }
+    &:active {
+      cursor: default;
+      background: #E1E4E6;
+    }
+  }
 
   &.btn-disabled {
-    color: fadeout(@btn-default-text-color, 40%);
-    background: fadeout(@btn-default-bg-color, 15%);
+    color: #fff;
+    background: @disabled-color;
     &:active {
-      background: fadeout(@btn-default-bg-color, 15%);
+      background: @disabled-color;
     }
   }
 

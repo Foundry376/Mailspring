@@ -231,6 +231,24 @@ const cNarrow = new ListTabular.Column({
               exposedProps={{ thread: thread }}
               matching={{ role: 'ThreadListTimestamp' }}
             />
+            <div className="list-column-HoverActions">
+              <div className="inner quick-actions">
+                <InjectedComponentSet
+                  key="injected-component-set"
+                  inline={true}
+                  containersRequired={false}
+                  children={[
+                    <ThreadUnreadQuickAction key="thread-unread-quick-action" thread={thread} />,
+                    <ThreadStarQuickAction key="thread-star-quick-action" thread={thread} />,
+                    <ThreadTrashQuickAction key="thread-trash-quick-action" thread={thread} />,
+                    <ThreadArchiveQuickAction key="thread-archive-quick-action" thread={thread} />,
+                  ]}
+                  matching={{ role: 'ThreadListQuickAction' }}
+                  className="thread-injected-quick-actions"
+                  exposedProps={{ thread: thread }}
+                />
+              </div>
+            </div>
           </div>
           <div className="subject">
             <span>{subject(thread.subject)}</span>
@@ -239,7 +257,7 @@ const cNarrow = new ListTabular.Column({
           <div className="snippet-and-labels">
             <div className="snippet">{getSnippet(thread)}&nbsp;</div>
             <div style={{ flex: 1, flexShrink: 1 }} />
-            <MailLabelSet thread={thread} />
+            {/* <MailLabelSet thread={thread} /> */}
             <div className="icons">
               <InjectedComponentSet
                 inline={true}
