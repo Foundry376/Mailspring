@@ -151,14 +151,14 @@
         &:hover {
           &:after {
             content: '';
-            height: 36px;
-            width: 36px;
+            height: 32px;
+            width: 32px;
             border-radius: 50%;
             background: @source-list-active-bg;
             display: block;
             position: absolute;
-            top: -5px;
-            left: 0;
+            top: -3px;
+            left: 1px;
             animation: growUp 0.4s;
           }
           img {
@@ -356,6 +356,18 @@
         border: none;
       }
     }
+    &:hover .list-column-HoverActions {
+      position: absolute;
+      right: 0;
+      top: 0;
+      max-height: 55px;
+      .thread-injected-quick-actions {
+        margin-top: 11px;
+      }
+      .action:hover:after {
+        top: -7px;
+      }
+    }
   }
 
 
@@ -450,17 +462,17 @@
     &.selected:not(:hover){
       background: @list-selected-bg;
       color: @list-selected-color;
-      border-bottom: 1px solid @list-selected-border;
+      border-bottom: 1px solid @border-color-secondary;
     }
 
     &.next-is-selected {
-      border-bottom: 1px solid transparent;
+      border-bottom: 1px solid @border-color-secondary;
     }
 
     &.focused {
       background: @list-focused-bg;
       color: @list-focused-color;
-      border-bottom: 1px solid @list-focused-border;
+      border-bottom: 1px solid @border-color-secondary;
     }
   }
 }

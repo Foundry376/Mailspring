@@ -2,6 +2,7 @@
 @import 'ui-mixins';
 
 @scrollbar-margin: 8px;
+@read-bg-color: #fbfbfd;
 
 // MIXINS
 
@@ -133,7 +134,7 @@ input:focus {
   }
 
   .list-item {
-    background-color: @white;
+    background-color: @read-bg-color;
     line-height: 55px;
   }
 
@@ -354,7 +355,8 @@ input:focus {
         background-color: @orange;
       }
     }
-    img {
+    img.content-mask {
+      margin-top: -3px;
        background-color: @gray;
        position: relative;
        z-index: 2;
@@ -368,7 +370,7 @@ input:focus {
         background: @source-list-active-bg;
         display: block;
         position: absolute;
-        top: 11px;
+        top: 10px;
         left: -6px;
         animation: growUp 0.4s;
       }
@@ -452,9 +454,9 @@ body.platform-win32 {
     @white 50%,
     @white 100%
   );
-  .action {
-    -webkit-filter: brightness(300%);
-  }
+  // .action {
+  //   -webkit-filter: brightness(300%);
+  // }
   .action.action-archive {
     //background: url(@archive-img) center no-repeat;
   }
@@ -659,13 +661,13 @@ body.platform-win32 {
   .list-item.selected:hover .list-column-HoverActions .inner {
     background-image: -webkit-linear-gradient(
       left,
-      fade(@list-focused-bg, 0%) 0%,
-      @list-focused-bg 50%,
-      @list-focused-bg 100%
+      fade(@white, 0%) 0%,
+      @white 50%,
+      @white 100%
     );
-    .action {
-      -webkit-filter: brightness(300%);
-    }
+    // .action {
+    //   -webkit-filter: brightness(300%);
+    // }
     .action.action-archive {
       //background: url(@archive-img) center no-repeat;
     }
