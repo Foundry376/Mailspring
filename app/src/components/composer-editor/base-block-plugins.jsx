@@ -52,8 +52,8 @@ function toggleBlockTypeWithBreakout(value, change, type) {
   return change;
 }
 
-function isPartOfList(value) {
-  const listTypes = ['ol_list', 'ul_list'];
+function shouldBeRemoved(value) {
+  const listTypes = ['ol_list', 'ul_list', 'code', 'blockquote'];
   const focusKey = value.focusKey;
   if (!focusKey) {
     return false;
@@ -129,7 +129,7 @@ export const BLOCK_CONFIG = {
       onToggle: (value, active) =>
         active
           ? value.change().setBlock(BLOCK_CONFIG.div.type)
-          : value.change().setBlock(BLOCK_CONFIG.code.type),
+          : value.change().setBlock(BLOCK_CONFIG.code.type).moveToEnd().insertBlock(BLOCK_CONFIG.div.type),
     },
   },
   ol_list: {
@@ -371,7 +371,7 @@ export default [
         if (selection.startOffset !== selection.endOffset) {
           return;
         }
-        if (isPartOfList(change.value)) {
+        if (shouldBeRemoved(change.value)) {
           return;
         }
         event.preventDefault();
