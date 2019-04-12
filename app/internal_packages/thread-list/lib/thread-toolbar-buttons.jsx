@@ -391,6 +391,59 @@ export class ToggleUnreadButton extends React.Component {
   }
 }
 
+export class ThreadListMoreButton extends React.Component {
+  static displayName = 'ThreadListMoreButton';
+  static containerRequired = false;
+
+  static propTypes = {
+    items: PropTypes.array.isRequired,
+  };
+
+  _onPrintThread = () => {
+    const node = document.querySelector('#message-list');
+    const currentThread = MessageStore.thread();
+    Actions.printThread(currentThread, node.outerHTML);
+  };
+
+  _more = () => {
+    const menu = new Menu();
+    menu.append(new MenuItem({
+      label: `Mark as read`,
+      click: () => AppEnv.commands.dispatch('core:mark-as-read'),
+    })
+    );
+    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
+      this.props.items,
+      'important',
+    );
+    if (allowed) {
+      menu.append(new MenuItem({
+        label: `Mark as spam`,
+        click: () => AppEnv.commands.dispatch('core:report-as-spam'),
+      })
+      );
+    }
+    menu.append(new MenuItem({
+      label: `Mark important`,
+      click: () => AppEnv.commands.dispatch('core:mark-important'),
+    })
+    );
+    menu.popup({});
+  };
+
+  render() {
+    return (
+      <button tabIndex={-1} className="btn btn-toolbar btn-list-more" onClick={this._more}>
+        <RetinaImg
+          name="more.svg"
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
+      </button>
+    );
+  }
+}
+
 export class MoreButton extends React.Component {
   static displayName = 'MoreButton';
   static containerRequired = false;
@@ -496,7 +549,7 @@ Divider.displayName = 'Divider';
 
 export const FlagButtons = CreateButtonGroup(
   'FlagButtons',
-  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, MoreButton],
+  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, MoreButton, ThreadListMoreButton],
   { order: -103 },
 );
 
