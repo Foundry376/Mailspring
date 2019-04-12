@@ -216,7 +216,7 @@ class MessageStore extends MailspringStore {
         const item = change.objects[0];
         const itemIndex = this._items.findIndex(msg => msg.id === item.id);
 
-        if (change.type === 'persist' && itemIndex === -1) {
+        if (change.type === 'persist' && itemIndex === -1 && !this._isDraftDuplicateHeaderMessageId(item)) {
           this._items = [].concat(this._items, [item]).filter(m => !m.isHidden());
           this._items = this._sortItemsForDisplay(this._items);
           this._expandItemsToDefault();
@@ -335,7 +335,7 @@ class MessageStore extends MailspringStore {
             source: 'Thread Selected',
             canBeUndone: false,
             unread: false,
-          })
+          }),
         );
       }, markAsReadDelay);
     }
@@ -388,7 +388,7 @@ class MessageStore extends MailspringStore {
     const loadedThreadId = this._thread.id;
 
     const query = DatabaseStore.findAll(Message);
-    query.where({ threadId: loadedThreadId });
+    query.where({ threadId: loadedThreadId, state: 0 });
     query.include(Message.attributes.body);
 
     return query.then(items => {
@@ -396,13 +396,13 @@ class MessageStore extends MailspringStore {
       // loading items for. Necessary because this takes a while.
       if (loadedThreadId !== this.threadId()) return;
 
-      this._items = items.filter(m => !m.isHidden());
+      this._items = items.filter(m => !m.isHidden()).filter(this.filterOutDuplicateMessage);
       this._items = this._sortItemsForDisplay(this._items);
 
       this._expandItemsToDefault();
 
       // if (this._itemsLoading) {
-        this._fetchMissingBodies(this._items);
+      this._fetchMissingBodies(this._items);
       // }
 
       // Download the attachments on expanded messages.
@@ -420,7 +420,7 @@ class MessageStore extends MailspringStore {
   }
 
   _fetchMissingBodies(items) {
-    const missing = items.filter(i =>{
+    const missing = items.filter(i => {
       return (
         (i.body === null || (typeof i.body === 'string' && i.body.length === 0)) &&
         this._itemsExpanded[i.id]
@@ -430,7 +430,8 @@ class MessageStore extends MailspringStore {
       return Actions.fetchBodies(missing);
     }
   }
-  _isMissingBody(item){
+
+  _isMissingBody(item) {
     return item.body === null || (typeof item.body === 'string' && item.body.length === 0);
   }
 
@@ -458,6 +459,24 @@ class MessageStore extends MailspringStore {
         this._itemsExpanded[item.id] = 'default';
       }
     }
+  }
+
+  _isDraftDuplicateHeaderMessageId(item) {
+    if (!item.draft) {
+      return false;
+    }
+    for (let i of this._items) {
+      if (i.headerMessageId === item.headerMessageId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  filterOutDuplicateMessage(value, index, array) {
+    return array.findIndex((el) => {
+      return el.headerMessageId == value.headerMessageId;
+    }) === index;
   }
 
   _sortItemsForDisplay(items) {

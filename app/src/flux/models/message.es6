@@ -199,6 +199,8 @@ export default class Message extends ModelWithMetadata {
     }),
     state: Attributes.Number({
       modelKey: 'state',
+      jsonKey: 'state',
+      loadFromColumn: true,
       queryable: true,
     }),
     msgOrigin: Attributes.Number({
