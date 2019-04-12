@@ -137,6 +137,7 @@ const c3 = new ListTabular.Column({
         <MailLabelSet thread={thread} />
         <span className="subject">{subject(thread.subject)}</span>
         <span className="snippet">{getSnippet(thread)}</span>
+        <ThreadListIcon thread={thread} />
       </span>
     );
   },
