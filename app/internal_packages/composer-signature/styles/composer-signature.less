@@ -311,6 +311,12 @@
     .dropdown-component
     .signature-button-dropdown
     .only-item {
+    cursor: pointer;
     background: @background-primary;
+    &:hover {
+      img.content-mask {
+        background-color: @blue;
+      }
+    }
   }
 }
