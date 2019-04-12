@@ -446,7 +446,7 @@ body.platform-win32 {
 
     .action-bar-animation-wrap {
       position: relative;
-      overflow: hidden;
+      overflow: visible;
 
       .composer-action-bar-plugins {
         opacity: 0;
@@ -507,6 +507,7 @@ body.platform-win32 {
     font-weight: bold;
 
     .action {
+      cursor: pointer;
       color: @text-color-very-subtle;
       img.content-mask {
         background-color: @text-color-very-subtle;
@@ -524,7 +525,6 @@ body.platform-win32 {
         img.content-mask {
           background-color: @text-color-link;
         }
-        cursor: default;
       }
       &.show-popout {
         position: absolute;
