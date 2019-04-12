@@ -3,7 +3,12 @@ import _ from 'underscore';
 import lottie from 'lottie-web';
 
 class Lottie extends React.Component {
-  componentDidMount() {
+  static currentIndex = 0;
+  constructor(props) {
+    super(props);
+    this.timer = null;
+  }
+  componentDidMount = () => {
     const {
       options,
       eventListeners,
@@ -11,7 +16,6 @@ class Lottie extends React.Component {
 
     const {
       loop,
-      autoplay,
       animationData,
       rendererSettings,
       segments,
@@ -21,48 +25,109 @@ class Lottie extends React.Component {
       container: this.el,
       renderer: 'svg',
       loop: loop !== false,
-      autoplay: autoplay !== false,
       segments: segments !== false,
       animationData,
-      rendererSettings,
+      rendererSettings
     };
 
     this.options = { ...this.options, ...options };
 
     this.anim = lottie.loadAnimation(this.options);
     this.registerEvents(eventListeners);
+
+    this.currentIndex = -1;
+    // start autoplay
+    this.timer = setInterval(this.next, 5000);
+    setTimeout(() => {
+      this.anim.setDirection(1);
+      this.next();
+      this.registNav();
+    }, 100);
+  }
+
+  registNav = () => {
+    const { navigation, pagination, data } = this.props;
+    if (navigation) {
+      const prevEl = document.querySelector(navigation.prevEl);
+      if (prevEl) {
+        prevEl.onclick = () => {
+          clearInterval(this.timer);
+          this.prev();
+          this.timer = setInterval(this.next, 5000);
+        }
+      }
+      const nextEl = document.querySelector(navigation.nextEl);
+      if (nextEl) {
+        nextEl.onclick = () => {
+          clearInterval(this.timer);
+          this.next();
+          this.timer = setInterval(this.next, 5000);
+        }
+      }
+    }
+    if (pagination) {
+      const container = document.querySelector(pagination.el);
+      if (container) {
+        const bullets = document.createElement('div');
+        bullets.className = 'swiper-pagination-bullets';
+        for (let i = 0; i < data.length - 1; i++) {
+          const bullet = document.createElement("div");
+          bullet.className = 'swiper-pagination-bullet';
+          bullet.onclick = () => {
+            this.jumpTo(i);
+          };
+          bullets.appendChild(bullet);
+        }
+        container.appendChild(bullets);
+        this.setCurrentIndex();
+      }
+    }
+  }
+
+  jumpTo = (idx) => {
+    const data = this.props.data;
+    clearInterval(this.timer);
+    this.currentIndex = idx;
+    this.setCurrentIndex(idx);
+    const frames = [...data[this.currentIndex].frameRange];
+    this.anim.playSegments(frames);
+    // start autoplay
+    this.timer = setInterval(this.next, 5000);
   }
 
   componentWillUpdate(nextProps /* , nextState */) {
     /* Recreate the animation handle if the data is changed */
-    if (this.options.animationData !== nextProps.options.animationData) {
-      this.deRegisterEvents(this.props.eventListeners);
-      this.destroy();
-      this.options = { ...this.options, ...nextProps.options };
-      this.anim = lottie.loadAnimation(this.options);
-      this.registerEvents(nextProps.eventListeners);
-    }
+    // if (this.options.animationData !== nextProps.options.animationData) {
+    //   this.deRegisterEvents(this.props.eventListeners);
+    //   this.destroy();
+    //   this.options = { ...this.options, ...nextProps.options };
+    //   this.anim = lottie.loadAnimation(this.options);
+    //   this.registerEvents(nextProps.eventListeners);
+    // }
   }
 
   componentDidUpdate() {
-    if (this.props.isStopped) {
-      this.stop();
-    } else if (this.props.segments) {
-      this.playSegments();
-    } else {
-      this.play();
-    }
+    // if (this.props.isStopped) {
+    //   this.stop();
+    // } else if (this.props.segments) {
+    //   this.playSegments();
+    // } else {
+    //   this.play();
+    // }
 
-    this.pause();
-    this.setSpeed();
-    this.setDirection();
+    // this.pause();
+    // this.setSpeed();
+    // this.setDirection();
   }
 
-  componentWillUnmount() {
+  componentWillUnmount = () => {
     this.deRegisterEvents(this.props.eventListeners);
     this.destroy();
     this.options.animationData = null;
     this.anim = null;
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
 
   setSpeed() {
@@ -73,12 +138,50 @@ class Lottie extends React.Component {
     this.anim.setDirection(this.props.direction);
   }
 
-  play() {
-    this.anim.play();
+  next = () => {
+    this.currentIndex++;
+    const data = this.props.data;
+    if (this.currentIndex === data.length) {
+      this.currentIndex = 1;
+    }
+    // here is a bug in lottie web, need backward for index=0
+    if (this.currentIndex === 0) {
+      this.anim.setDirection(-1);
+    }
+    const frames = [...data[this.currentIndex].frameRange];
+    this.anim.playSegments(frames);
+    this.setCurrentIndex();
   }
 
-  playSegments() {
-    this.anim.playSegments(this.props.segments);
+  prev = () => {
+    this.currentIndex--;
+    const data = this.props.data;
+    if (this.currentIndex < 0) {
+      this.currentIndex = data.length - 2;
+    }
+    const frames = [...data[this.currentIndex + 1].frameRange];
+    this.anim.playSegments(frames.reverse());
+    this.setCurrentIndex();
+  }
+
+  setCurrentIndex = () => {
+    const setIndex = this.options.setCurrentIndex;
+    const data = this.props.data;
+    if (setIndex) {
+      setIndex(this.currentIndex);
+    }
+    const bullets = document.querySelectorAll('.swiper-pagination-bullet');
+    if (bullets && bullets.length) {
+      for (const b of bullets) {
+        b.className = 'swiper-pagination-bullet';
+      }
+      const current = this.currentIndex % (data.length - 1);
+      bullets[current].className += ' swiper-pagination-bullet-active';
+    }
+  }
+
+  play() {
+    this.anim.play();
   }
 
   stop() {
@@ -112,11 +215,11 @@ class Lottie extends React.Component {
   handleClickToPause = () => {
     // The pause() method is for handling pausing by passing a prop isPaused
     // This method is for handling the ability to pause by clicking on the animation
-    if (this.anim.isPaused) {
-      this.anim.play();
-    } else {
-      this.anim.pause();
-    }
+    // if (this.anim.isPaused) {
+    //   this.play();
+    // } else {
+    //   this.pause();
+    // }
   }
 
   render() {
@@ -214,8 +317,8 @@ export default class LottieImg extends React.Component {
   static defaultProps = {
     size: { width: 16, height: 16 },
     options: {
-      loop: true,
-      autoplay: true,
+      loop: false,
+      autoplay: false,
       rendererSettings: {
         preserveAspectRatio: 'xMidYMid slice'
       }
@@ -252,9 +355,13 @@ export default class LottieImg extends React.Component {
     const options = this.props.options;
     this.animationData = this.animationData || require(this._pathFor(this.props.name));
     options.animationData = this.animationData;
+    options.setCurrentIndex = this.props.setCurrentIndex;
     return <Lottie options={options}
+      data={this.props.data}
       height={this.props.size.height}
       width={this.props.size.width}
+      navigation={this.props.navigation}
+      pagination={this.props.pagination}
       style={this.props.style} />
   }
 }

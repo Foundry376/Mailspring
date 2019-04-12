@@ -13,7 +13,7 @@ class ThreadListIcon extends React.Component {
 
   _iconClassNames = () => {
     if (!this.props.thread) {
-      return 'thread-icon-star-on-hover';
+      return '';
     }
 
     const extensionIconClassNames = this._extensionsIconClassNames();
@@ -27,7 +27,7 @@ class ThreadListIcon extends React.Component {
 
     if (this.props.thread.unread) {
       // return 'thread-icon-unread thread-icon-star-on-hover';
-      return 'thread-icon-star-on-hover';
+      return '';
     }
 
     const msgs = this._nonDraftMessages();
@@ -35,13 +35,13 @@ class ThreadListIcon extends React.Component {
 
     if (msgs.length > 1 && (last.from[0] != null ? last.from[0].isMe() : undefined)) {
       if (last.isForwarded()) {
-        return 'thread-icon-forwarded thread-icon-star-on-hover';
+        return 'thread-icon-forwarded';
       } else {
-        return 'thread-icon-replied thread-icon-star-on-hover';
+        return 'thread-icon-replied';
       }
     }
 
-    return 'thread-icon-none thread-icon-star-on-hover';
+    return '';
   };
 
   _nonDraftMessages() {
@@ -65,7 +65,7 @@ class ThreadListIcon extends React.Component {
       <div
         className={`thread-icon ${this._iconClassNames()}`}
         title="Flag"
-        onClick={this._onToggleStar}
+      // onClick={this._onToggleStar}
       />
     );
   }

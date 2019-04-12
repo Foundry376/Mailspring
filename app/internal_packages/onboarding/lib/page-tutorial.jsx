@@ -1,6 +1,6 @@
 import React from 'react';
 import OnboardingActions from './onboarding-actions';
-import Swiper from 'swiper';
+import LottieImg from './lottie-img-for-tutorial';
 
 const Steps = [
   {
@@ -8,6 +8,7 @@ const Steps = [
     id: 'tutorial-0',
     title: 'Welcome to Edison Mail!',
     image: 'tutorial-0@2x.png',
+    frameRange: [0, 21],
     description:
       `Your email with an assistant built in. <br/>Better, faster, and stronger.`,
   },
@@ -16,6 +17,7 @@ const Steps = [
     id: 'tutorial-1',
     title: 'Lightning Fast',
     image: 'tutorial-1@2x.png',
+    frameRange: [20, 46],
     description:
       `Search results in a fraction of a second. <br/> Meet the fastest mail app on desktop.`,
   },
@@ -24,16 +26,27 @@ const Steps = [
     id: 'tutorial-2',
     title: 'With an Assistant Built-In',
     image: 'tutorial-2@2x.png',
+    frameRange: [45, 71],
     description:
       `Easily find travel reservations, <br/> packages, and more.`,
   },
   {
     seen: false,
     id: 'tutorial-3',
+    frameRange: [70, 96],
     title: '1-Tap Unsubscribe',
     image: 'tutorial-3@2x.png',
     description:
       `Clean up your inbox in seconds by <br/> easily removing junk.`,
+  },
+  {
+    seen: false,
+    id: 'tutorial-4',
+    title: 'Welcome to Edison Mail!',
+    image: 'tutorial-0@2x.png',
+    frameRange: [95, 121],
+    description:
+      `Your email with an assistant built in. <br/>Better, faster, and stronger.`,
   },
 ];
 
@@ -42,22 +55,14 @@ export default class TutorialPage extends React.Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      idx: 0
+    };
   }
 
-  componentDidMount() {
-    new Swiper('.swiper-container', {
-      autoplay: {
-        delay: 8000,
-      },
-      loop: true,
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true
-      },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-      },
+  _setCurrentIndex = (idx) => {
+    this.setState({
+      idx
     });
   }
 
@@ -66,21 +71,29 @@ export default class TutorialPage extends React.Component {
   };
 
   render() {
-
+    const currentIndex = this.state.idx;
     return (
       <div className={`page tutorial`}>
         <div className="tutorial-container swiper-container">
           <div className="swiper-wrapper">
-            {Steps.map(step => (
-              <div className="swiper-slide" key={step.id}>
-                <img
-                  src={`edisonmail://onboarding/assets/${step.image}`}
-                  alt=""
-                />
-                <h2>{step.title}</h2>
-                <p dangerouslySetInnerHTML={{ __html: step.description }} ></p>
-              </div>
-            ))}
+            <div className="swiper-slide">
+              <LottieImg name={'mac-onboarding'}
+                height={400} width={'100%'}
+                style={{ width: '100%', height: 400 }}
+                pagination={{
+                  el: '.swiper-pagination',
+                  clickable: true
+                }}
+                navigation={{
+                  nextEl: '.swiper-button-next',
+                  prevEl: '.swiper-button-prev',
+                }}
+                data={Steps}
+                setCurrentIndex={this._setCurrentIndex}
+              />
+              <h2>{Steps[currentIndex].title}</h2>
+              <p dangerouslySetInnerHTML={{ __html: Steps[currentIndex].description }} ></p>
+            </div>
           </div>
           <div className="swiper-pagination"></div>
           <div className="swiper-button-prev">
