@@ -581,16 +581,14 @@ class MessageList extends React.Component {
   }
 
   _renderReplyArea() {
-    const isReplyAll = this._replyType() === 'reply-all';
-    const disabled = isReplyAll ? this.state.isReplyAlling : this.state.isReplying;
     return (
       <div className="footer-reply-area-wrap"
         onClick={this.state.popedOut ? this._onPopoutThread : this._onClickReplyArea} key="reply-area">
         <div className="footer-reply-area">
           <RetinaImg
-            name={disabled ? 'sending-spinner.gif' : `${this._replyType()}.svg`}
+            name={`${this._replyType()}.svg`}
             style={{ width: 24 }}
-            isIcon={!disabled}
+            isIcon
             mode={RetinaImg.Mode.ContentIsMask} />
           <span className="reply-text">
             {this._replyType() === 'reply-all' ? 'Reply All' : 'Reply'}

@@ -212,12 +212,11 @@ export default class ThreadReplyForwardButton extends React.Component {
           title="Reply"
           style={{ marginRight: 0 }}
           onClick={this._reply}
-        >{this.state.showReplyLoading ?
-          <LottieImg size={{ width: 24, height: 24 }} name='loading-spinner-blue' /> :
+        >
           <RetinaImg name={'reply.svg'}
             style={{ width: 24, height: 24 }}
             isIcon={true}
-            mode={RetinaImg.Mode.ContentIsMask} />}
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
         {
           this.canReplyAll() && (
@@ -226,12 +225,12 @@ export default class ThreadReplyForwardButton extends React.Component {
               title="Reply All"
               style={{ marginRight: 0 }}
               onClick={this._replyAll}
-            >{this.state.showReplyAllLoading ?
-              <LottieImg size={{ width: 24, height: 24 }} name='loading-spinner-blue' /> :
+            >
               <RetinaImg name={'reply-all.svg'}
                 style={{ width: 24, height: 24 }}
                 isIcon={true}
-                mode={RetinaImg.Mode.ContentIsMask} />}
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
             </button>
           )
         }
@@ -241,12 +240,10 @@ export default class ThreadReplyForwardButton extends React.Component {
           style={{ marginRight: 0 }}
           onClick={this._forward}
         >
-          {this.state.showForwardLoading ?
-            <LottieImg size={{ width: 24, height: 24 }} name='loading-spinner-blue' /> :
-            <RetinaImg name={'forward.svg'}
+          <RetinaImg name={'forward.svg'}
               style={{ width: 24, height: 24 }}
               isIcon={true}
-              mode={RetinaImg.Mode.ContentIsMask} />}
+              mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </div>
     );
