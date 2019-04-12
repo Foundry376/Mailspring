@@ -351,14 +351,19 @@ const DateUtils = {
       // Time if less than 1 day old
       format = DateUtils.getTimeFormat(null);
     } else if (diff < 2 && !isSameDay) {
-      // Month and day with time if up to 2 days ago
-      format = `MMM D, ${DateUtils.getTimeFormat(null)}`;
+      if (moment.locale() === 'en') {
+        format = `[Yesterday] ${DateUtils.getTimeFormat(null)}`;
+      } else {
+        let lastDayFormat = moment.localeData().calendar('lastDay');
+        lastDayFormat = lastDayFormat.replace(/(\[|\]+.*)/g, '')
+        format = `[${lastDayFormat}] ${DateUtils.getTimeFormat(null)}`;
+      }
     } else if (isSameYear) {
       // Month and day up to 1 year old
       format = 'MMM D';
     } else {
       // Month, day and year if over a year old
-      format = 'MMM D YYYY';
+      format = 'M/D/YY';
     }
 
     return moment(datetime).format(format);
