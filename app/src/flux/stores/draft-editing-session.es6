@@ -225,8 +225,9 @@ export default class DraftEditingSession extends MailspringStore {
       this._draftPromise = DatabaseStore.findBy(Message, {
         headerMessageId: this.headerMessageId,
         draft: true,
+        state: 0,
       })
-        .include(Message.attributes.body)
+        .include(Message.attributes.body).limit(1)
         .then(draft => {
           if (this._destroyed) {
             console.warn(`Draft loaded but session has been torn down.`);
@@ -562,8 +563,9 @@ export default class DraftEditingSession extends MailspringStore {
       DatabaseStore.findBy(Message, {
         headerMessageId: this.headerMessageId,
         draft: true,
+        state: 0,
       })
-        .include(Message.attributes.body)
+        .include(Message.attributes.body).limit(1)
         .then(draft => {
           if (this._destroyed) {
             console.warn(`Draft loaded but session has been torn down.`);

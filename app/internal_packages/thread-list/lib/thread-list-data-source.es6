@@ -8,7 +8,7 @@ import {
 } from 'mailspring-exports';
 
 const _observableForThreadMessages = (id, initialModels) => {
-  const subscription = new QuerySubscription(DatabaseStore.findAll(Message, { threadId: id }), {
+  const subscription = new QuerySubscription(DatabaseStore.findAll(Message, { threadId: id, state: 0 }), {
     initialModels: initialModels,
     emitResultSet: true,
   });

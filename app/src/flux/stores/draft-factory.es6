@@ -265,6 +265,7 @@ class DraftFactory {
       const msg = await DatabaseStore.findBy(Message, {
         accountId: thread.accountId,
         threadId: thread.id,
+        state: 0,
       })
         .order(Message.attributes.date.descending())
         .limit(1);
@@ -292,7 +293,7 @@ class DraftFactory {
     const messages =
       message.threadId === MessageStore.threadId()
         ? MessageStore.items()
-        : await DatabaseStore.findAll(Message, { threadId: message.threadId });
+        : await DatabaseStore.findAll(Message, { threadId: message.threadId, state: 0 });
 
     const candidateDrafts = messages.filter(
       other => other.replyToHeaderMessageId === message.headerMessageId && other.draft === true
