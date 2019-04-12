@@ -44,9 +44,11 @@ class SearchStore extends MailspringStore {
   };
 
   _onQueryChanged = query => {
-    this._searchQuery = query;
-    this.trigger();
-    this._processAndSubmitQuery();
+    if (query !== this._searchQuery) {
+      this._searchQuery = query;
+      this.trigger();
+      this._processAndSubmitQuery();
+    }
   };
 
   _processAndSubmitQuery = _.throttle(() => {
@@ -70,9 +72,11 @@ class SearchStore extends MailspringStore {
   }, 500);
 
   _onQuerySubmitted = query => {
-    this._searchQuery = query;
-    this.trigger();
-    this._processAndSubmitQuery();
+    if (query !== this._searchQuery) {
+      this._searchQuery = query;
+      this.trigger();
+      this._processAndSubmitQuery();
+    }
   };
 }
 
