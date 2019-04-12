@@ -634,7 +634,7 @@ class DraftStore extends MailspringStore {
 
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
     // we need to have the final object with it's final ID.
-    draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true }).include(
+    draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true, state: 0 }).include(
       Message.attributes.body,
     );
     // Directly update the message body cache so the user immediately sees
