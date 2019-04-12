@@ -354,7 +354,7 @@ const DateUtils = {
       if (moment.locale() === 'en') {
         format = `[Yesterday] ${DateUtils.getTimeFormat(null)}`;
       } else {
-        let lastDayFormat = moment.localeData().calendar('lastDay');
+        let lastDayFormat = moment.localeData().calendar('lastDay', moment());
         lastDayFormat = lastDayFormat.replace(/(\[|\]+.*)/g, '')
         format = `[${lastDayFormat}] ${DateUtils.getTimeFormat(null)}`;
       }
