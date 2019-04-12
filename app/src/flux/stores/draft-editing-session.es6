@@ -559,7 +559,7 @@ export default class DraftEditingSession extends MailspringStore {
     if (!nextDraft) {
       return;
     }
-    if (this._draft.waitingForBody) {
+    if (this._draft.waitingForBody || !this._draft.body) {
       DatabaseStore.findBy(Message, {
         headerMessageId: this.headerMessageId,
         draft: true,
@@ -601,6 +601,10 @@ export default class DraftEditingSession extends MailspringStore {
       if (changed === false) {
         this._draft = fastCloneDraft(this._draft);
         changed = true;
+      }
+      if (key === 'body' && nextDraft[key].length === 0){
+        console.log('body is empty, ignoring');
+        continue;
       }
       this._draft[key] = nextDraft[key];
     }

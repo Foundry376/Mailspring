@@ -216,8 +216,8 @@ class MessageStore extends MailspringStore {
         const item = change.objects[0];
         const itemIndex = this._items.findIndex(msg => msg.id === item.id);
 
-        if (change.type === 'persist' && itemIndex === -1 && !this._isDraftDuplicateHeaderMessageId(item)) {
-          this._items = [].concat(this._items, [item]).filter(m => !m.isHidden());
+        if (change.type === 'persist' && itemIndex === -1 ) {
+          this._items = [].concat(this._items, [item]).filter(m => !m.isHidden()).filter(this.filterOutDuplicateDraftHeaderMessage);
           this._items = this._sortItemsForDisplay(this._items);
           this._expandItemsToDefault();
           this.trigger();
@@ -396,7 +396,7 @@ class MessageStore extends MailspringStore {
       // loading items for. Necessary because this takes a while.
       if (loadedThreadId !== this.threadId()) return;
 
-      this._items = items.filter(m => !m.isHidden()).filter(this.filterOutDuplicateMessage);
+      this._items = items.filter(m => !m.isHidden()).filter(this.filterOutDuplicateDraftHeaderMessage);
       this._items = this._sortItemsForDisplay(this._items);
 
       this._expandItemsToDefault();
@@ -465,18 +465,22 @@ class MessageStore extends MailspringStore {
     if (!item.draft) {
       return false;
     }
+    let count = 0;
     for (let i of this._items) {
       if (i.headerMessageId === item.headerMessageId) {
+        count++;
+      }
+      if (count > 1){
         return true;
       }
     }
     return false;
   }
 
-  filterOutDuplicateMessage(value, index, array) {
+  filterOutDuplicateDraftHeaderMessage(value, index, array) {
     return array.findIndex((el) => {
       return el.headerMessageId == value.headerMessageId;
-    }) === index;
+    }) === index || !value.draft;
   }
 
   _sortItemsForDisplay(items) {
