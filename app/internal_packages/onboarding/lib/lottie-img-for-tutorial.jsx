@@ -220,7 +220,6 @@ class Lottie extends React.Component {
     // } else {
     //   this.pause();
     // }
-    this.anim.pause();
   }
 
   render() {
