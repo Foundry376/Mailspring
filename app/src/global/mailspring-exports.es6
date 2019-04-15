@@ -145,6 +145,7 @@ load(`FocusedContactsStore`, 'flux/stores/focused-contacts-store');
 load(`FolderSyncProgressStore`, 'flux/stores/folder-sync-progress-store');
 load(`FocusedPerspectiveStore`, 'flux/stores/focused-perspective-store');
 load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
+load('DebugStore', 'flux/stores/debug-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
 

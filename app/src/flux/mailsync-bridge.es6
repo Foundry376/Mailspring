@@ -116,6 +116,7 @@ export default class MailsyncBridge {
     Actions.fetchBodies.listen(this._onFetchBodies, this);
     Actions.syncFolders.listen(this._onSyncFolders, this);
     Actions.setObservableRange.listen(this._onSetObservableRange, this);
+    Actions.debugFakeNativeMessage.listen(this.fakeEmit, this);
     ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
     ipcRenderer.on('thread-close-window', this._onNewWindowClose);
 
