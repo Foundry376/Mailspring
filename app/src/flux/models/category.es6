@@ -58,12 +58,12 @@ Section: Models
 */
 export default class Category extends Model {
   get displayName() {
-    if(!this.path) {
+    if (!this.path) {
       return '';
     }
     const decoded = utf7.imap.decode(this.path);
 
-    for (const prefix of ['INBOX', '[Gmail]', '[Mailspring]']) {
+    for (const prefix of ['INBOX', '[Gmail]', '[Google Mail]', '[Mailspring]']) {
       if (decoded.startsWith(prefix) && decoded.length > prefix.length + 1) {
         return decoded.substr(prefix.length + 1); // + delimiter
       }
