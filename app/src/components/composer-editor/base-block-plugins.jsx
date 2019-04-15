@@ -103,7 +103,9 @@ export const BLOCK_CONFIG = {
         return isBlockTypeOrWithinType(value, BLOCK_CONFIG.blockquote.type);
       },
       onToggle: (value, active) => {
-        return toggleBlockTypeWithBreakout(value, value.change(), BLOCK_CONFIG.blockquote.type);
+        return active
+          ? value.change().setBlock(BLOCK_CONFIG.div.type)
+          : value.change().setBlock(BLOCK_CONFIG.blockquote.type).moveToEnd().insertBlock(BLOCK_CONFIG.div.type);
       },
     },
   },
@@ -356,7 +358,7 @@ export default [
 
   // Return creates soft newlines in code blocks
   SoftBreak({
-    onlyIn: [BLOCK_CONFIG.code.type],
+    onlyIn: [BLOCK_CONFIG.code.type, BLOCK_CONFIG.blockquote.type],
   }),
 
   // Pressing backspace when you're at the top of the document should not delete down
@@ -389,10 +391,10 @@ export default [
       if (event.key !== 'Enter') {
         return;
       }
-      if (!isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.blockquote.type)) {
-        return;
-      }
-      toggleBlockTypeWithBreakout(change.value, change, BLOCK_CONFIG.blockquote.type);
+      // if (!isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.blockquote.type)) {
+      //   return;
+      // }
+      // toggleBlockTypeWithBreakout(change.value, change, BLOCK_CONFIG.blockquote.type);
       event.preventDefault(); // since this inserts a newline
       return change;
     },
