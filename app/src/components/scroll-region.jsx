@@ -327,8 +327,7 @@ class ScrollRegion extends React.Component {
       classNames({
         'scroll-region': true,
         dragging: this.state.dragging,
-        scrolling: this.state.scrolling,
-        'not-at-top': this.scrollTop !== 0
+        scrolling: this.state.scrolling
       });
 
     if (!this.props.getScrollbar) {
