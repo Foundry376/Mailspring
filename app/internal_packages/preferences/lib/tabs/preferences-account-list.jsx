@@ -39,11 +39,7 @@ class PreferencesAccountList extends Component {
           <div style={{ textAlign: 'center' }}>
             <RetinaImg
               style={{ width: 50, height: 50 }}
-              name={
-                syncError
-                  ? 'ic-settings-account-error.png'
-                  : `account-logo-${account.provider}.png`
-              }
+              name={`account-logo-${account.provider}.png`}
               fallback="account-logo-other.png"
               mode={RetinaImg.Mode.ContentPreserve}
             />
