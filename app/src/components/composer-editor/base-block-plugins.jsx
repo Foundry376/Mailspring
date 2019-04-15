@@ -64,6 +64,14 @@ function shouldBeRemoved(value) {
   }
   return listTypes.includes(parentNode.type);
 }
+function toggleList(value, activated, type){
+  if(activated){
+    return EditListPlugin.changes.unwrapList(value.change());
+  }else{
+    let changes = EditListPlugin.changes.unwrapList(value.change());
+    return EditListPlugin.changes.wrapInList(changes, type);
+  }
+}
 
 export const BLOCK_CONFIG = {
   div: {
@@ -144,10 +152,7 @@ export const BLOCK_CONFIG = {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ol_list.type;
       },
-      onToggle: (value, active) =>
-        active
-          ? EditListPlugin.changes.unwrapList(value.change())
-          : EditListPlugin.changes.wrapInList(value.change(), BLOCK_CONFIG.ol_list.type),
+      onToggle: (value, active) => toggleList(value, active, BLOCK_CONFIG.ol_list.type)
     },
   },
   ul_list: {
@@ -160,10 +165,7 @@ export const BLOCK_CONFIG = {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ul_list.type;
       },
-      onToggle: (value, active) =>
-        active
-          ? EditListPlugin.changes.unwrapList(value.change())
-          : EditListPlugin.changes.wrapInList(value.change(), BLOCK_CONFIG.ul_list.type),
+      onToggle: (value, active) => toggleList(value, active, BLOCK_CONFIG.ul_list.type),
     },
   },
   list_item: {
@@ -391,9 +393,9 @@ export default [
       if (event.key !== 'Enter') {
         return;
       }
-      // if (!isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.blockquote.type)) {
-      //   return;
-      // }
+      if (!isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.blockquote.type)) {
+        return;
+      }
       // toggleBlockTypeWithBreakout(change.value, change, BLOCK_CONFIG.blockquote.type);
       event.preventDefault(); // since this inserts a newline
       return change;
