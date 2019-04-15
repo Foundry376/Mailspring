@@ -211,7 +211,7 @@ class DraftFactory {
         <div class="gmail_quote_attribution">${DOMUtils.escapeHTMLCharacters(
         message.replyAttributionLine()
       )}</div>
-        <blockquote class="gmail_quote"
+        <blockquote class="gmail_quote" data-edison="true"
           style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
           ${prevBody}
           <br/>

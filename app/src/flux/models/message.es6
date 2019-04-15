@@ -440,4 +440,7 @@ export default class Message extends ModelWithMetadata {
   setOrigin(val) {
     this.msgOrigin = val;
   }
+  isNewDraft() {
+    return this.msgOrigin === Message.NewDraft;
+  }
 }

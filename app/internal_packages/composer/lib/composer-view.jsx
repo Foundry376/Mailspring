@@ -99,11 +99,11 @@ export default class ComposerView extends React.Component {
 
   componentDidUpdate() {
     const { draft } = this.props;
-
+    const isNewDraft = draft && draft.isNewDraft();
     // If the user has added an inline blockquote, show all the quoted text
     // note: this is necessary because it's hidden with CSS that can't be
     // made more specific.
-    if (this.state.quotedTextHidden && hasNonTrailingBlockquote(draft.bodyEditorState)) {
+    if (this.state.quotedTextHidden && (hasNonTrailingBlockquote(draft.bodyEditorState) || isNewDraft) ) {
       this.setState({ quotedTextHidden: false });
     }
   }
