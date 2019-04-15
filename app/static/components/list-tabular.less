@@ -80,17 +80,21 @@
 
       .checkmark.selected {
         -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center;
         background-color: @blue;
-        -webkit-mask-size: 130% auto;
+        -webkit-mask-size: 24px auto;
       }
       .checkmark {
-        margin: 0 35px 0 18px;
+        margin: 0 17px 0 0;
         height: 18px;
-        min-width: 18px;
+        width: 54px;
+        padding: 18px;
         -webkit-mask-image: url(../static/icons/check-empty.svg);
         -webkit-mask-position: center;
+        -webkit-mask-repeat: no-repeat;
         background-color: @gray-lighter;
-        -webkit-mask-size: 130% auto;
+        -webkit-mask-size: 24px auto;
         border: none;
       }
 
@@ -228,17 +232,20 @@
 
       .checkmark.selected {
         -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-position: center;
+        -webkit-mask-repeat: no-repeat;
         background-color: @blue;
-        -webkit-mask-size: 130% auto;
+        -webkit-mask-size: 24px auto;
       }
       .checkmark {
-        margin: 0 35px 0 18px;
+        margin: 0 17px 0 0;
         height: 18px;
-        min-width: 18px;
+        width: 54px;
+        padding: 18px;
         -webkit-mask-image: url(../static/icons/check-empty.svg);
         -webkit-mask-position: center;
         background-color: @gray-lighter;
-        -webkit-mask-size: 130% auto;
+        -webkit-mask-size: 24px auto;
         border: none;
       }
 
@@ -362,7 +369,8 @@
         background-color: @blue;
         -webkit-mask-image: url(../static/icons/check.svg);
         -webkit-mask-position: center;
-        -webkit-mask-size: 130% auto;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-size: 24px auto;
         border: none;
       }
     }
@@ -414,7 +422,7 @@
         border-radius: 50% !important;
         background-color: @gray-lighter;
         -webkit-mask-image: url(../static/icons/check-empty.svg);
-        -webkit-mask-size: 130% auto;
+        -webkit-mask-size: 24px auto;
         background-repeat: no-repeat;
         -webkit-mask-position: center;
         &::after {
@@ -514,7 +522,8 @@
         background-color: @blue;
         -webkit-mask-image: url(../static/icons/check.svg);
         -webkit-mask-position: center;
-        -webkit-mask-size: 130% auto;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-size: 24px auto;
         border: none;
       }
     }
@@ -523,6 +532,7 @@
       .checkmark .inner {
         background-color: @blue;
         -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-repeat: no-repeat;
         border: none;
       }
     }
@@ -544,7 +554,7 @@
         -webkit-mask-image: url(../static/icons/check-empty.svg);
         -webkit-mask-position: center;
         background-color: @gray-lighter;
-        -webkit-mask-size: 130% auto;
+        -webkit-mask-size: 24px auto;
         border: none;
       }
     }

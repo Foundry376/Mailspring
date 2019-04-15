@@ -87,8 +87,15 @@ class MultiselectToolbar extends Component {
     })
   }
 
+  _clearSelection = () => {
+    this.props.onClearSelection();
+    this.setState({
+      selectAll: true
+    })
+  }
+
   renderToolbar() {
-    const { toolbarElement, onClearSelection, dataSource, selectionCount } = this.props;
+    const { toolbarElement, dataSource, selectionCount } = this.props;
     const mode = WorkspaceStore.layoutMode();
     let totalCount = 0;
     if (dataSource) {
@@ -123,7 +130,7 @@ class MultiselectToolbar extends Component {
                 <button className="btn btn-toggle-select-all" onClick={this.selectAll}>
                   Select all {this._formatNumber(totalCount)}
                 </button>
-                <button className="btn btn-clear-all" onClick={onClearSelection}>
+                <button className="btn btn-clear-all" onClick={this._clearSelection}>
                   Clear Selection
                 </button>
                 {toolbarElement}
