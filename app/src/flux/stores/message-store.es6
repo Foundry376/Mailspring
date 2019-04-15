@@ -216,7 +216,7 @@ class MessageStore extends MailspringStore {
         const item = change.objects[0];
         const itemIndex = this._items.findIndex(msg => msg.id === item.id);
 
-        if (change.type === 'persist' && itemIndex === -1 ) {
+        if (change.type === 'persist' && itemIndex === -1) {
           this._items = [].concat(this._items, [item]).filter(m => !m.isHidden()).filter(this.filterOutDuplicateDraftHeaderMessage);
           this._items = this._sortItemsForDisplay(this._items);
           this._expandItemsToDefault();
@@ -422,8 +422,7 @@ class MessageStore extends MailspringStore {
   _fetchMissingBodies(items) {
     const missing = items.filter(i => {
       return (
-        (i.body === null || (typeof i.body === 'string' && i.body.length === 0)) &&
-        this._itemsExpanded[i.id]
+        (i.body === null || (typeof i.body === 'string' && i.body.length === 0))
       );
     });
     if (missing.length > 0) {
@@ -470,7 +469,7 @@ class MessageStore extends MailspringStore {
       if (i.headerMessageId === item.headerMessageId) {
         count++;
       }
-      if (count > 1){
+      if (count > 1) {
         return true;
       }
     }
