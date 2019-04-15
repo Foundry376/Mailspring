@@ -110,7 +110,7 @@ class MultiselectToolbar extends Component {
       if (category instanceof Label) {
         category = CategoryStore.getCategoryByRole(current._categories[0].accountId, 'all');
       }
-      lastUpdate = category.updatedAt;
+      lastUpdate = category ? category.updatedAt : '';
     }
     return (
       <div className="multiselect-toolbar-root" key="absolute">
