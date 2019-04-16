@@ -1,5 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import Contact from '../models/contact';
+import Matcher from '../attributes/matcher';
 import RegExpUtils from '../../regexp-utils';
 import DatabaseStore from './database-store';
 import AccountStore from './account-store';
@@ -43,7 +44,11 @@ class ContactStore extends MailspringStore {
     // could exist in every account. Rather than make SQLite do a SELECT DISTINCT
     // (which is very slow), we just ask for more items.
     const query = DatabaseStore.findAll(Contact)
-      .search(search)
+      // .search(search)
+      .where(new Matcher.Or([
+        Contact.attributes.name.like(search),
+        Contact.attributes.email.like(search),
+      ]))
       .limit(limit * accountCount)
       .order(Contact.attributes.refs.descending());
 
