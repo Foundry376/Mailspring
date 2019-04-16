@@ -30,7 +30,8 @@ class PreferencesAccountList extends Component {
 
   _renderAccount = account => {
     const label = account.label;
-    const accountSub = `${account.name || 'No name provided'} <${account.emailAddress}>`;
+    // const accountSub = `${account.name || 'No name provided'} <${account.emailAddress}>`;
+    const accountSub = `<${account.emailAddress}>`;
     const syncError = account.hasSyncStateError();
 
     return (

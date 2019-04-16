@@ -4,7 +4,27 @@ const { get, post } = require('./httpex');
 import { getPubKey } from './e2ee';
 import { isJsonStr } from './stringUtils';
 
-var urlPre = 'https://restxmpp.stag.easilydo.cc/client/';
+
+const { devMode } = AppEnv.getLoadSettings();
+const domain = {
+    dev: {
+        rest: 'https://restxmpp.stag.easilydo.cc'
+    },
+    prod: {
+        rest: 'https://restxmpp.edison.tech'
+    },
+}
+function getBaseDomain(kind) {
+    let chatObj = {};
+    if (devMode) {
+        chatObj = domain.dev;
+    } else {
+        chatObj = domain.prod;
+    }
+    return chatObj[kind];
+}
+
+var urlPre = `${getBaseDomain('rest')}/client/`;
 
 export const register = (email, pwd, name, type, provider, setting) => {
     if (!setting) {
@@ -195,7 +215,7 @@ export const getAvatar = (email, cb) => {
         cb(avatarCache[email]);
         return avatarCache[email];
     }
-    get('https://restxmpp.stag.easilydo.cc/public/getavatar?email=' + email, (error, data, res) => {
+    get(`${getBaseDomain('rest')}/public/getavatar?email=` + email, (error, data, res) => {
         if (res && res.statusCode < 400) {
             avatarCache[email] = res.headers.location;
         } else {
@@ -206,11 +226,18 @@ export const getAvatar = (email, cb) => {
         }
     });
 }
+export const getAvatarPromise = (email) => {
+    return new Promise((resolve) => {
+        getAvatar(email, resolve);
+    })
+}
 export const getAvatarFromCache = email => {
     return avatarCache[email];
 }
 
 export default {
-    register, unregister, queryProfile, setProfile, login, uploadContacts, getAvatar, getAvatarFromCache,
-    xmpplogin, listApp, listKeywordApps, sendMsg2App, sendMsg2App2, sendCmd2App, sendCmd2App2
+    register, unregister, queryProfile, setProfile,
+    login, uploadContacts, getAvatar, getAvatarFromCache,
+    xmpplogin, listApp, listKeywordApps, sendMsg2App,
+    sendMsg2App2, sendCmd2App, sendCmd2App2, getAvatarPromise
 }
