@@ -798,6 +798,7 @@ body.platform-win32 {
 
     .primary-item,
     .only-item {
+      border-radius: 14px;
       line-height: 2em;
       font-size: 15px;
       img.content-mask {
@@ -807,7 +808,19 @@ body.platform-win32 {
     &:hover {
       .primary-item,
       .only-item {
-        border-radius: @border-radius-base;
+        background: @off-white;
+        img.content-mask {
+          background-color: @medium-grey;
+        }
+      }
+    }
+    &:active {
+      .primary-item,
+      .only-item {
+        background: @extra-light-grey;
+        img.content-mask {
+          background-color: @dark-grey;
+        }
       }
     }
     .secondary-items {
