@@ -66,9 +66,7 @@ class DraftStore extends MailspringStore {
     // popout closed
     ipcRenderer.on('draft-close-window', this._onPopoutClosed);
     // ipcRenderer.on('draft-got-new-id', this._onDraftGotNewId);
-    if (!AppEnv.isMainWindow()) {
-      ipcRenderer.on('draft-arp', this._onDraftArp);
-    }
+    ipcRenderer.on('draft-arp', this._onDraftArp);
 
     // Remember that these two actions only fire in the current window and
     // are picked up by the instance of the DraftStore in the current
@@ -102,6 +100,7 @@ class DraftStore extends MailspringStore {
       this._draftSessions[headerMessageId] = this._createSession(headerMessageId);
     }
     await this._draftSessions[headerMessageId].prepare();
+    ipcRenderer.send('draft-arp', { headerMessageId });
     return this._draftSessions[headerMessageId];
   }
 
@@ -164,7 +163,6 @@ class DraftStore extends MailspringStore {
     if (options.headerMessageId && options.threadId && options.windowLevel) {
       const currenttWindowsLevel = this._getCurrentWindowLevel();
       if (
-        currenttWindowsLevel > options.windowLevel &&
         this._draftSessions[options.headerMessageId]
       ) {
         ipcRenderer.send('draft-arp-reply', {
