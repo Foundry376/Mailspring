@@ -522,7 +522,7 @@ class DraftStore extends MailspringStore {
     const session = this._draftSessions[headerMessageId];
     // Immediately reset any pending changes so no saves occur
     if (session) {
-      if (session.isPopout()) {
+      if (session.isPopout() && this._draftsSending[headerMessageId]) {
         // We do nothing if session have popouts
         return;
       }
