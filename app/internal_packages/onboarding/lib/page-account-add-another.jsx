@@ -55,7 +55,7 @@ export default class AddAnotherAccountPage extends React.Component {
             Maybe Later
           </button>
           <button key="now" className="btn btn-large btn-now" onClick={this._onAddNow}>
-            Add Now!
+            Add More!
           </button>
         </div>
       </div >
