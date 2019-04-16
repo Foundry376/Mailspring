@@ -52,7 +52,7 @@ export default class SyncbackDraftTask extends Task {
           AppEnv.config.set('accounts', newAccounts);
           AppEnv.showErrorDialog(`Cannot authenticate with ${errorAccount.emailAddress}`, { detail: debuginfo });
         }
-      } else {
+      } else if (AppEnv.inDevMode()){
         AppEnv.showErrorDialog('Draft processing failed', { detail: debuginfo });
       }
     }
