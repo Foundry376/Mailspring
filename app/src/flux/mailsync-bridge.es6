@@ -504,6 +504,21 @@ export default class MailsyncBridge {
       );
     }
   };
+  _recordErrorToConsole = task => {
+    if (task && task.accountId) {
+      const accounts = AppEnv.config.get('accounts');
+      let errorAccount = {};
+      if (Array.isArray(accounts)) {
+        for (let acc of accounts) {
+          if (acc.id === task.accountId) {
+            errorAccount = AppEnv.anonymizeAccount(acc);
+            break;
+          }
+        }
+      }
+      console.error(`TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`);
+    }
+  };
 
   _onIncomingChangeRecord = record => {
     DatabaseStore.trigger(record);
@@ -514,12 +529,14 @@ export default class MailsyncBridge {
       for (const task of record.objects) {
         if (task.error != null) {
           task.onError(task.error);
+          this._recordErrorToConsole(task);
         }
         if (task.status !== 'complete') {
           continue;
         }
         if (task.error != null) {
           task.onError(task.error);
+          this._recordErrorToConsole(task);
         } else {
           task.onSuccess();
         }

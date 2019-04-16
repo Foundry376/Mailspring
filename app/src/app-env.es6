@@ -951,4 +951,17 @@ export default class AppEnvConstructor {
       return this.propagationStopped;
     };
   }
+  anonymizeAccount (account){
+    const ret = Object.assign({}, account);
+    if(account){
+      const settings = Object.assign({}, ret.settings);
+      delete settings.access_token;
+      delete settings.imap_username;
+      delete settings.smtp_username;
+      ret.settings = settings;
+      delete ret.label;
+      delete ret.name;
+      delete ret.emailAddress;
+    }
+  }
 }
