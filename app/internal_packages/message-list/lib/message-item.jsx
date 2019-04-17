@@ -89,12 +89,18 @@ export default class MessageItem extends React.Component {
     return (
       <div className="download-all">
         <div className="attachment-number">
-          <RetinaImg name="ic-attachments-all-clippy.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name="feed-attachments.svg"
+            isIcon
+            style={{ width: 18, height: 18 }}
+            mode={RetinaImg.Mode.ContentIsMask} />
           <span>{this.props.message.files.length} attachments</span>
         </div>
         <div className="separator">-</div>
         <div className="download-all-action" onClick={this._onDownloadAll}>
-          <RetinaImg name="ic-attachments-download-all.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name="download.svg"
+            isIcon
+            style={{ width: 18, height: 18 }}
+            mode={RetinaImg.Mode.ContentIsMask} />
           <span>Download all</span>
         </div>
       </div>
