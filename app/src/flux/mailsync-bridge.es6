@@ -510,7 +510,7 @@ export default class MailsyncBridge {
       let errorAccount = {};
       if (Array.isArray(accounts)) {
         for (let acc of accounts) {
-          if (acc.id === task.accountId) {
+          if (acc.id === task.aid || acc.id === task.accountId) {
             errorAccount = AppEnv.anonymizeAccount(acc);
             break;
           }
