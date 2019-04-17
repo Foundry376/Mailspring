@@ -963,5 +963,6 @@ export default class AppEnvConstructor {
       delete ret.name;
       delete ret.emailAddress;
     }
+    return ret;
   }
 }
