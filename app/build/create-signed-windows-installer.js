@@ -22,8 +22,8 @@ const config = {
   authors: 'Foundry 376, LLC',
   setupIcon: path.join(appDir, 'build', 'resources', 'win', 'edisonmail.ico'),
   setupExe: 'EdisonMailSetup.exe',
-  exe: 'edisonmail.exe',
-  name: 'EdisonMail',
+  exe: 'Edison Mail.exe',
+  name: 'Edison Mail',
 };
 
 console.log(config);
