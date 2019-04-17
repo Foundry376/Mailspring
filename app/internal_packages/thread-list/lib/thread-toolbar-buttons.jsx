@@ -555,7 +555,7 @@ export const FlagButtons = CreateButtonGroup(
 
 export const MoveButtons = CreateButtonGroup(
   'MoveButtons',
-  [ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton, Divider],
+  [Divider, ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton, Divider],
   { order: -109 },
 );
 
