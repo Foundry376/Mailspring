@@ -203,13 +203,20 @@ export default class OAuthSignInPage extends React.Component {
     contents.insertText(clipboard.readText());
   }
 
+  _webviewDidFailLoad = () => {
+    this.setState({
+      authStage: 'error',
+      errorMessage: 'Network Error.'
+    })
+  }
+
   _setupWebview = () => {
     const webview = ReactDOM.findDOMNode(this.refs.webview);
     if (!webview) {
       return;
     }
     const listeners = {
-      // 'did-fail-load': this._webviewDidFailLoad,
+      'did-fail-load': this._webviewDidFailLoad,
       'did-finish-load': this._loaded,
       // 'did-get-response-details': this._webviewDidGetResponseDetails,
       'console-message': this._onConsoleMessage,

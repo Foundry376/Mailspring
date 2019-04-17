@@ -287,9 +287,12 @@ class OutlineViewItem extends Component {
     menu.popup({});
   };
 
-  // Renderers
+  _formatNumber(num) {
+    return num && num.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+  }
 
-  _renderCount(item = this.props.item) {
+  // Renderers
+  _renderCount = (item = this.props.item) => {
     if (!item.count) {
       return <span />;
     }
@@ -297,7 +300,7 @@ class OutlineViewItem extends Component {
       'item-count-box': true,
       'alt-count': item.counterStyle === CounterStyles.Alt,
     });
-    return <div className={className}>{item.count}</div>;
+    return <div className={className}>{this._formatNumber(item.count)}</div>;
   }
 
   _renderIcon(item = this.props.item) {

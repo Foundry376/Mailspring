@@ -509,14 +509,17 @@ class MessageList extends React.Component {
           <span className="message-subject"
             onClick={this._onSelectText}
             onContextMenu={this._onContactContextMenu.bind(this, subject)}
-          >{subject}</span>
-          <MailImportantIcon thread={this.state.currentThread} />
-          <MailLabelSet
-            removable
-            includeCurrentCategories
-            messages={this.state.messages}
-            thread={this.state.currentThread}
-          />
+          >
+            {subject}
+            <MailImportantIcon thread={this.state.currentThread} />
+            <MailLabelSet
+              noWrapper
+              removable
+              includeCurrentCategories
+              messages={this.state.messages}
+              thread={this.state.currentThread}
+            />
+          </span>
         </div>
         {/* {this._renderIcons()} */}
       </div>
