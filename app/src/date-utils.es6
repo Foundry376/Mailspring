@@ -352,11 +352,11 @@ const DateUtils = {
       format = DateUtils.getTimeFormat(null);
     } else if (diff < 2 && !isSameDay) {
       if (moment.locale() === 'en') {
-        format = `[Yesterday] ${DateUtils.getTimeFormat(null)}`;
+        format = `[Yesterday]`;
       } else {
         let lastDayFormat = moment.localeData().calendar('lastDay', moment());
         lastDayFormat = lastDayFormat.replace(/(\[|\]+.*)/g, '')
-        format = `[${lastDayFormat}] ${DateUtils.getTimeFormat(null)}`;
+        format = `[${lastDayFormat}]`;
       }
     } else if (isSameYear) {
       // Month and day up to 1 year old
