@@ -542,8 +542,8 @@ class ThreadArrowButton extends React.Component {
   }
 }
 
-const Divider = () => (
-  <div className="divider"></div>
+const Divider = (key='divider') => (
+  <div className="divider" key={key}/>
 );
 Divider.displayName = 'Divider';
 
