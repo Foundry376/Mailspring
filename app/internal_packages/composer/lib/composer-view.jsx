@@ -386,7 +386,7 @@ export default class ComposerView extends React.Component {
           tabIndex={-1}
           className="btn btn-toolbar btn-attach"
           style={{ order: -49 }}
-          title="Attach file"
+          title="Insert photo"
           onClick={this._onSelectAttachment.bind(this, { type: 'image' })}
           disabled={this.props.session.isPopout()}
         >
