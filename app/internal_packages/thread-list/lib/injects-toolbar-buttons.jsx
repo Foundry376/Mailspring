@@ -9,7 +9,8 @@ function defaultObservable() {
   return ThreadListStore.selectionObservable();
 }
 
-function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [] }) {
+function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [], onEmpty = null }) {
+  const emptyMatching = onEmpty ? onEmpty : null;
   const roles = [ToolbarRole].concat(extraRoles);
 
   class ComposedComponent extends Component {
@@ -31,13 +32,21 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
         items,
         selection,
         thread: items[0],
-        dataSource
+        dataSource,
       };
       const injectedButtons = (
-        <InjectedComponentSet className="toolbar-buttons" key="injected" matching={{ roles }} exposedProps={exposedProps} />
+        <InjectedComponentSet className="toolbar-buttons" key="injected" matching={{ roles }}
+                              exposedProps={exposedProps}/>
       );
+      let onEmptyButtons = [];
+      if (emptyMatching) {
+        onEmptyButtons = (<InjectedComponentSet className="toolbar-buttons" key="injected"
+                                               matching={emptyMatching}
+                                               exposedProps={exposedProps}/>);
+      }
       return (
-        <ToolbarComponent items={items} selection={selection} injectedButtons={injectedButtons} dataSource={dataSource} />
+        <ToolbarComponent items={items} selection={selection} injectedButtons={injectedButtons} dataSource={dataSource}
+                          onEmptyButtons={onEmptyButtons}/>
       );
     }
   }

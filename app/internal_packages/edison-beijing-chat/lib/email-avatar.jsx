@@ -30,11 +30,13 @@ export default class EmailAvatar extends Component {
       email: from.email,
       hasImage: false
     }
+    this._mounted = false;
   }
   componentDidMount = async () => {
+    this._mounted = true;
     if (this.state.email) {
       const avatarUrl = await getAvatarPromise(this.state.email);
-      if (avatarUrl) {
+      if (avatarUrl && this._mounted) {
         this && this.setState({
           bgColor: `url(${avatarUrl})`,
           hasImage: true
@@ -42,6 +44,10 @@ export default class EmailAvatar extends Component {
       }
     }
   }
+  componentWillUnmount() {
+    this._mounted = false;
+  }
+
   render() {
     const { name, bgColor, hasImage } = this.state;
     let styles = { backgroundImage: bgColor, backgroundPosition: 'center', backgroundSize: 'cover' };

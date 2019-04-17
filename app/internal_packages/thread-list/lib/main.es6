@@ -9,7 +9,9 @@ import SelectedItemsStack from './selected-items-stack';
 import {
   MoveButtons,
   FlagButtons,
-  NavButtons
+  NavButtons,
+  ThreadMoreButtons,
+  ThreadEmptyMoreButtons
 }
   from './thread-toolbar-buttons';
 
@@ -45,6 +47,13 @@ export function activate() {
   ComponentRegistry.register(FlagButtons, {
     role: 'ThreadActionsToolbarButton',
   });
+  ComponentRegistry.register(ThreadMoreButtons, {
+    role: 'ThreadActionsToolbarButton',
+  });
+  ComponentRegistry.register(ThreadEmptyMoreButtons, {
+    modes: ['list'],
+    role: 'ThreadActionsToolbarButtonEmpty',
+  });
   ComponentRegistry.register(NavButtons, {
     location: WorkspaceStore.Location.MessageList.Toolbar,
   });
@@ -58,4 +67,6 @@ export function deactivate() {
   ComponentRegistry.unregister(MoveButtons);
   ComponentRegistry.unregister(FlagButtons);
   ComponentRegistry.unregister(NavButtons);
+  ComponentRegistry.unregister(ThreadMoreButtons);
+  ComponentRegistry.unregister(ThreadEmptyMoreButtons);
 }
