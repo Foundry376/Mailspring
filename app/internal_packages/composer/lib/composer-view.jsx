@@ -72,6 +72,8 @@ export default class ComposerView extends React.Component {
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
       quotedTextHidden: hideQuotedTextByDefault(draft),
       isDeleting: false,
+      editorSelection: null,
+      editorSelectedText: '',
     };
     this._deleteTimer = null;
     this._unlisten = [
@@ -103,7 +105,7 @@ export default class ComposerView extends React.Component {
     // If the user has added an inline blockquote, show all the quoted text
     // note: this is necessary because it's hidden with CSS that can't be
     // made more specific.
-    if (this.state.quotedTextHidden && (hasNonTrailingBlockquote(draft.bodyEditorState) || isNewDraft) ) {
+    if (this.state.quotedTextHidden && (hasNonTrailingBlockquote(draft.bodyEditorState) || isNewDraft)) {
       this.setState({ quotedTextHidden: false });
     }
   }
@@ -158,6 +160,17 @@ export default class ComposerView extends React.Component {
     return this._renderContent();
   }
 
+  _onEditorBodyContextMenu = event => {
+    if (this._els[Fields.Body] && this.state.editorSelection ) {
+      this._els[Fields.Body].openContextMenu({
+        word: this.state.editorSelectedText,
+        sel: this.state.editorSelection,
+        hasSelectedText: !this.state.editorSelection.isCollapsed,
+      });
+    }
+    event.preventDefault();
+  };
+
   _renderContent() {
     return (
       <div className="composer-centered">
@@ -180,6 +193,7 @@ export default class ComposerView extends React.Component {
           }}
           onMouseUp={this._onMouseUpComposerBody}
           onMouseDown={this._onMouseDownComposerBody}
+          onContextMenu={this._onEditorBodyContextMenu}
         >
           {(this.props.draft && this.props.draft.waitingForBody) ?
             <Spinner visible={true}/> : this._renderBodyRegions()}
@@ -241,6 +255,28 @@ export default class ComposerView extends React.Component {
     );
   }
 
+  _onEditorBlur = (event, editor, next) => {
+    this.setState({ editorSelection: editor.value.selection, editorSelectedText: editor.value.fragment.text });
+    this._onEditorChange(editor);
+  };
+  _onEditorChange = change => {
+    // We minimize thrashing and disable editors in multiple windows by ensuring
+    // non-value changes (eg focus) to the editorState don't trigger database saves
+    if (!this.props.session.isPopout()) {
+      const skipSaving = change.operations.every(
+        ({ type, properties }) => {
+          return type === 'set_selection' || (type === 'set_value' && Object.keys(properties).every(k => {
+            if (k === 'schema') {
+              //In case we encountered more scheme change
+              console.error('schema');
+            }
+            return (k === 'decorations' || k === 'schema');
+          }));
+        });
+      this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
+    }
+  };
+
   _renderEditor() {
     return (
       <ComposerEditor
@@ -254,24 +290,9 @@ export default class ComposerView extends React.Component {
         value={this.props.draft.bodyEditorState}
         onFileReceived={this._onFileReceived}
         onDrop={e => this._dropzone._onDrop(e)}
+        onBlur={this._onEditorBlur}
         readOnly={this.props.session ? this.props.session.isPopout() : true}
-        onChange={change => {
-          // We minimize thrashing and disable editors in multiple windows by ensuring
-          // non-value changes (eg focus) to the editorState don't trigger database saves
-          if (!this.props.session.isPopout()) {
-            const skipSaving = change.operations.every(
-              ({ type, properties }) => {
-                return type === 'set_selection' || (type === 'set_value' && Object.keys(properties).every(k => {
-                  if (k === 'schema') {
-                    //In case we encountered more scheme change
-                    console.error('schema');
-                  }
-                  return (k === 'decorations' || k === 'schema');
-                }));
-              });
-            this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
-          }
-        }}
+        onChange={this._onEditorChange}
       />
     );
   }
