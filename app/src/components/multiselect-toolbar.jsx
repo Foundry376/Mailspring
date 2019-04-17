@@ -18,6 +18,7 @@ class MultiselectToolbar extends Component {
 
   static propTypes = {
     toolbarElement: PropTypes.element.isRequired,
+    onEmptyButtons: PropTypes.element,
     collection: PropTypes.string.isRequired,
     onClearSelection: PropTypes.func.isRequired,
     selectionCount: PropTypes.node,
@@ -95,7 +96,7 @@ class MultiselectToolbar extends Component {
   }
 
   renderToolbar() {
-    const { toolbarElement, dataSource, selectionCount } = this.props;
+    const { toolbarElement, dataSource, selectionCount, onEmptyButtons } = this.props;
     const mode = WorkspaceStore.layoutMode();
     let totalCount = 0;
     if (dataSource) {
@@ -133,15 +134,22 @@ class MultiselectToolbar extends Component {
                 <button className="btn btn-clear-all" onClick={this._clearSelection}>
                   Clear Selection
                 </button>
+                {WorkspaceStore.layoutMode() === 'list' ? <div className="divider" key='thread-list-tool-bar-divider'/> : null}
                 {toolbarElement}
               </div>
             ) : (
+              <div style={{ display: 'flex', width: 'calc(100% - 66px)',
+                justifyContent: 'space-between' }}>
                 <span className="updated-time">
                   {this._renderLastUpdateLabel(lastUpdate)}
                   {threadCounts > 0 && (
                     <span>({this._formatNumber(threadCounts)})</span>
                   )}
                 </span>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  {onEmptyButtons}
+                </div>
+              </div>
               )
           }
         </div>

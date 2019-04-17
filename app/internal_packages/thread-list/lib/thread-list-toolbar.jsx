@@ -12,7 +12,8 @@ class ThreadListToolbar extends Component {
       clear: PropTypes.func,
     }),
     injectedButtons: PropTypes.element,
-    dataSource: PropTypes.object
+    onEmptyButtons: PropTypes.element,
+    dataSource: PropTypes.object,
   };
 
   onClearSelection = () => {
@@ -20,13 +21,14 @@ class ThreadListToolbar extends Component {
   };
 
   render() {
-    const { injectedButtons, items, dataSource } = this.props;
+    const { injectedButtons, items, dataSource, onEmptyButtons } = this.props;
 
     return (
       <MultiselectToolbar
         collection="thread"
         selectionCount={items.length}
         toolbarElement={injectedButtons}
+        onEmptyButtons={onEmptyButtons}
         onClearSelection={this.onClearSelection}
         dataSource={dataSource}
       />
@@ -35,7 +37,11 @@ class ThreadListToolbar extends Component {
 }
 
 const toolbarProps = {
-  extraRoles: [`ThreadList:${ToolbarRole}`],
+  extraRoles: [`ThreadList:${ToolbarRole}Empty`],
+  onEmpty: {
+    roles: [`${ToolbarRole}Empty`],
+    modes: ['list']
+  }
 };
 
 export default InjectsToolbarButtons(ThreadListToolbar, toolbarProps);

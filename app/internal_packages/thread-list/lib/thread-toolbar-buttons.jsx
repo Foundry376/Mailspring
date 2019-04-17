@@ -549,13 +549,23 @@ Divider.displayName = 'Divider';
 
 export const FlagButtons = CreateButtonGroup(
   'FlagButtons',
-  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, MoreButton, ThreadListMoreButton],
+  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, MoreButton],
   { order: -103 },
+);
+export const ThreadMoreButtons = CreateButtonGroup(
+  'ThreadMoreButtons',
+  [ThreadListMoreButton],
+  {order: -100}
+);
+export const ThreadEmptyMoreButtons = CreateButtonGroup(
+  'ThreadEmptyMoreButtons',
+  [ThreadListMoreButton],
+  {order: -100}
 );
 
 export const MoveButtons = CreateButtonGroup(
   'MoveButtons',
-  [Divider, ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton, Divider],
+  [ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton, Divider],
   { order: -109 },
 );
 
