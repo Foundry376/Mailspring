@@ -1,7 +1,8 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
 import { gradientColorForString } from '../chat-components/utils/colors';
-import { getAvatarPromise } from '../chat-components/utils/restjs';
+import { getAvatarPromise, getLogo } from '../chat-components/utils/restjs';
+
 
 export default class EmailAvatar extends Component {
   static displayName = 'EmailAvatar';
@@ -35,10 +36,10 @@ export default class EmailAvatar extends Component {
   componentDidMount = async () => {
     this._mounted = true;
     if (this.state.email) {
-      const avatarUrl = await getAvatarPromise(this.state.email);
+      const avatarUrl = await getLogo(this.state.email);
       if (avatarUrl && this._mounted) {
         this && this.setState({
-          bgColor: `url(${avatarUrl})`,
+          bgColor: `url('${avatarUrl}')`,
           hasImage: true
         });
       }
