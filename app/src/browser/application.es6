@@ -141,6 +141,11 @@ export default class Application extends EventEmitter {
 
       app.dock.setMenu(dockMenu);
     }
+
+    let logoPath = path.join(configDirPath, 'logo_cache');
+    if (!fs.existsSync(logoPath)) {
+      fs.mkdirSync(logoPath);
+    }
   }
 
   getMainWindow() {

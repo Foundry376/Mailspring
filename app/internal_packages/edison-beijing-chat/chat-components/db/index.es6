@@ -14,10 +14,6 @@ function databasePath(specMode) {
   if (!fs.existsSync(dbpath)) {
     fs.mkdirSync(dbpath);
   }
-  let logoPath = path.join(configDirPath, 'logo_cache');
-  if (!fs.existsSync(logoPath)) {
-    fs.mkdirSync(logoPath);
-  }
   let dbPath = path.join(dbpath, 'mailspring-chat.db');
   if (specMode) {
     dbPath = path.join(dbpath, 'mailspring-chat.test.db');
