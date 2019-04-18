@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import { exec } from 'child_process';
 import ws from 'windows-shortcuts';
+const app = require('electron').remote;
 
 class SystemStartServiceBase {
   checkAvailability() {
@@ -25,42 +26,51 @@ class SystemStartServiceBase {
 class SystemStartServiceDarwin extends SystemStartServiceBase {
   checkAvailability() {
     return new Promise(resolve => {
-      fs.access(this._launcherPath(), fs.R_OK | fs.W_OK, err => {
-        if (err) {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
+      resolve(true);
     });
+    // return new Promise(resolve => {
+    //   fs.access(this._launcherPath(), fs.R_OK | fs.W_OK, err => {
+    //     if (err) {
+    //       resolve(false);
+    //     } else {
+    //       resolve(true);
+    //     }
+    //   });
+    // });
   }
 
   doesLaunchOnSystemStart() {
-    return new Promise(resolve => {
-      fs.access(this._plistPath(), fs.R_OK | fs.W_OK, err => {
-        if (err) {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
+    return new Promise( resolve => {
+      const ret = app.getLoginItemSettings();
+      resolve(ret.openAtLogin);
     });
+    // return new Promise(resolve => {
+    //   fs.access(this._plistPath(), fs.R_OK | fs.W_OK, err => {
+    //     if (err) {
+    //       resolve(false);
+    //     } else {
+    //       resolve(true);
+    //     }
+    //   });
+    // });
   }
 
   configureToLaunchOnSystemStart() {
-    fs.writeFile(this._plistPath(), JSON.stringify(this._launchdPlist()), err => {
-      if (!err) {
-        exec(`plutil -convert xml1 ${this._plistPath()}`);
-      }
-    });
+    app.setLoginItemSettings({ openAtLogin: true });
+    // fs.writeFile(this._plistPath(), JSON.stringify(this._launchdPlist()), err => {
+    //   if (!err) {
+    //     exec(`plutil -convert xml1 ${this._plistPath()}`);
+    //   }
+    // });
   }
 
   dontLaunchOnSystemStart() {
+    app.setLoginItemSettings({ openAtLogin: false });
     return fs.unlink(this._plistPath(), () => { });
   }
 
   _launcherPath() {
-    return path.join('/', 'Applications', 'EdisonMail.app', 'Contents', 'MacOS', 'EdisonMail');
+    return path.join('/', 'Applications', 'Edison Mail.app', 'Contents', 'MacOS', 'Edison Mail');
   }
 
   _plistPath() {
