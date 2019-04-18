@@ -293,7 +293,7 @@ class OutlineViewItem extends Component {
 
   // Renderers
   _renderCount = (item = this.props.item) => {
-    if (!item.count) {
+    if (!item.count || item.iconName === 'sent.svg') {
       return <span />;
     }
     const className = classnames({
