@@ -15,7 +15,13 @@ function _getMenuTemplate(platform, application) {
     },
     {
       label: 'Quit EdisonMail',
-      click: () => application.emit('application:quit'),
+      click: () => {
+        //DC-256 let tray.mouse-leave event fire before triggering app quit
+        //otherwise it'll cause electron to crash
+        setTimeout(() => {
+          application.emit('application:quit');
+        }, 200);
+      },
     },
   ];
 
