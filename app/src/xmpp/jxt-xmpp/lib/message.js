@@ -28,6 +28,10 @@ internals.defineMessage = function (JXT, name, namespace) {
             thread: Utils.textSub(namespace, 'thread'),
             parentThread: Utils.subAttribute(namespace, 'thread', 'parent'),
             subject: Utils.textSub(namespace, 'subject'),
+            appJid: Utils.subAttribute(namespace, 'appext', 'jid'),
+            appName: Utils.subAttribute(namespace, 'appext', 'name'),
+            htmlBody: Utils.textSub(namespace, 'htmlbody'),
+            ctxCmds: Utils.textSub(namespace, 'ctxcmds'),
             $body: {
                 get: function getBody$() {
                     return Utils.getSubLangText(this.xml, namespace, 'body', this.lang);
@@ -44,23 +48,23 @@ internals.defineMessage = function (JXT, name, namespace) {
             },
             $keys: {
                 get: function getKeys$() {
-                    const ns='edison.encrypted';
-                    const e2ee=Utils.getElements(this.xml,ns, 'edi-encrypted');
-                    if (e2ee.length){
-                        const header=Utils.getElements(e2ee[0],ns, 'header');
-                        if(header.length){
+                    const ns = 'edison.encrypted';
+                    const e2ee = Utils.getElements(this.xml, ns, 'edi-encrypted');
+                    if (e2ee.length) {
+                        const header = Utils.getElements(e2ee[0], ns, 'header');
+                        if (header.length) {
                             const subs = Utils.find(header[0], ns, 'key');
                             if (subs.length) {
-                                let uid,rid, sub;
+                                let uid, rid, sub;
                                 let results = {};
 
                                 for (var i = 0; i < subs.length; i++) {
                                     sub = subs[i];
                                     uid = sub.getAttribute('uid');
                                     rid = sub.getAttribute('rid');
-                                    if(uid&&rid){
-                                        if(!results[uid]){
-                                            results[uid]={};
+                                    if (uid && rid) {
+                                        if (!results[uid]) {
+                                            results[uid] = {};
                                         }
                                         results[uid][rid] = sub.textContent || '';
                                     }
@@ -80,9 +84,9 @@ internals.defineMessage = function (JXT, name, namespace) {
             },
             $payload: {
                 get: function getPayload$() {
-                    const e2ee=Utils.getElements(this.xml,'edison.encrypted', 'edi-encrypted');
-                    if (e2ee.length){
-                        const payload=Utils.getSubLangText(e2ee[0], 'edison.encrypted', 'payload','payload');
+                    const e2ee = Utils.getElements(this.xml, 'edison.encrypted', 'edi-encrypted');
+                    if (e2ee.length) {
+                        const payload = Utils.getSubLangText(e2ee[0], 'edison.encrypted', 'payload', 'payload');
                         return payload;
                     }
                     return {};
@@ -105,8 +109,8 @@ internals.defineMessage = function (JXT, name, namespace) {
                     return bodies[this.lang] || '';
                 },
                 set: function setBodyext(value) {
-                    Utils.setSubLangText(this.xml, namespace, 'bodyext','', this.lang);
-                    for (var key in value){
+                    Utils.setSubLangText(this.xml, namespace, 'bodyext', '', this.lang);
+                    for (var key in value) {
                         Utils.setAttribute(this.xml.children[1], key, value[key]);
                     }
                 }
@@ -114,17 +118,17 @@ internals.defineMessage = function (JXT, name, namespace) {
             $e2ee: {
                 get: function getE2ee$() {
                     //yazz debugger;
-                    const e2ee=Utils.getElements(this.xml,'edi-e2ee', 'edi-e2ee');
-                    if (e2ee.length){
-                        try{
-                            let user=Utils.getElements(e2ee[0],'edi-e2ee', 'user')[0];
-                            let device=Utils.getElements(user,'edi-e2ee', 'device')[0];
-                            if(device){
-                                let key=Utils.getElements(device,'edi-e2ee', 'key')[0];
-                                return {id:this.xml.getAttribute('id'),user:user.attrs.jid,device:device.attrs.id,key:key.children[0]};
+                    const e2ee = Utils.getElements(this.xml, 'edi-e2ee', 'edi-e2ee');
+                    if (e2ee.length) {
+                        try {
+                            let user = Utils.getElements(e2ee[0], 'edi-e2ee', 'user')[0];
+                            let device = Utils.getElements(user, 'edi-e2ee', 'device')[0];
+                            if (device) {
+                                let key = Utils.getElements(device, 'edi-e2ee', 'key')[0];
+                                return { id: this.xml.getAttribute('id'), user: user.attrs.jid, device: device.attrs.id, key: key.children[0] };
                             }
-                        }catch(e){
-                            console.log('error',e);
+                        } catch (e) {
+                            console.log('error', e);
                         }
                     }
                 }
@@ -132,29 +136,29 @@ internals.defineMessage = function (JXT, name, namespace) {
             $received: {
                 get: function getReceived$() {
                     //yazz debugger;
-                    const received=Utils.getElements(this.xml,'urn:xmpp:receipts', 'received');
-                    if (received.length){
-                        try{
+                    const received = Utils.getElements(this.xml, 'urn:xmpp:receipts', 'received');
+                    if (received.length) {
+                        try {
                             return {
-                                id:received[0].getAttribute('id'),
-                                ts:received[0].getAttribute('ts'),
-                                status:received[0].getAttribute('status')
+                                id: received[0].getAttribute('id'),
+                                ts: received[0].getAttribute('ts'),
+                                status: received[0].getAttribute('status')
                             };
-                        }catch(e){
-                            console.log('error',e);
+                        } catch (e) {
+                            console.log('error', e);
                         }
                     }
                 }
             },
-            ts:{
-                get: function getTs(){
-                    let type=Utils.getAttribute(this.xml, 'type');
-                    if(!type||type!='chat'){return '';}
-                    const bext=Utils.getElements(this.xml, 'jabber:client', 'bodyext');
-                    try{
+            ts: {
+                get: function getTs() {
+                    let type = Utils.getAttribute(this.xml, 'type');
+                    if (!type || (type != 'chat' && type != 'groupchat')) { return ''; }
+                    const bext = Utils.getElements(this.xml, 'jabber:client', 'bodyext');
+                    try {
                         return Utils.getAttribute(bext[0], 'ts');
-                    }catch(e){
-                        console.log('error data',e);
+                    } catch (e) {
+                        console.log('error data', e);
                     }
                 }
             },
