@@ -585,13 +585,25 @@ class DraftStore extends MailspringStore {
   };
 
   _onSendDraft = async (headerMessageId, options = {}) => {
+    if(this._draftsSending[headerMessageId]){
+      if (AppEnv.isComposerWindow()) {
+        AppEnv.close({
+          headerMessageId,
+          threadId: draft.threadId,
+          additionalChannelParam: 'draft',
+          windowLevel: this._getCurrentWindowLevel(),
+        });
+      }
+      return;
+    }
+
     const {
       delay = AppEnv.config.get('core.sending.undoSend'),
       actionKey = DefaultSendActionKey,
     } = options;
 
-    this._draftsSending[headerMessageId] = true;
     const sendAction = SendActionsStore.sendActionForKey(actionKey);
+
     if (!sendAction) {
       throw new Error(`Cant find send action ${actionKey} `);
     }
@@ -601,6 +613,10 @@ class DraftStore extends MailspringStore {
       isUndoSend: true,
       actionKey: actionKey,
     };
+
+    if(!sendLaterMetadataValue){
+      this._draftsSending[headerMessageId] = true;
+    }
 
     // get the draft session, apply any last-minute edits and get the final draft.
     // We need to call `changes.commit` here to ensure the body of the draft is
@@ -632,9 +648,9 @@ class DraftStore extends MailspringStore {
 
     // ensureCorrectAccount / commit may assign this draft a new ID. To move forward
     // we need to have the final object with it's final ID.
-    draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true, state: 0 }).include(
-      Message.attributes.body,
-    );
+    // draft = await DatabaseStore.findBy(Message, { headerMessageId, draft: true, state: 0 }).include(
+    //   Message.attributes.body,
+    // );
     // Directly update the message body cache so the user immediately sees
     // the new message text (and never old draft text or blank text) sending.
     await MessageBodyProcessor.updateCacheForMessage(draft);
