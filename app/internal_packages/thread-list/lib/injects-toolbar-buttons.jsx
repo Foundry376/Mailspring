@@ -36,17 +36,17 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
       };
       const injectedButtons = (
         <InjectedComponentSet className="toolbar-buttons" key="injected" matching={{ roles }}
-                              exposedProps={exposedProps}/>
+          exposedProps={exposedProps} />
       );
       let onEmptyButtons = [];
       if (emptyMatching) {
-        onEmptyButtons = (<InjectedComponentSet className="toolbar-buttons" key="injected"
-                                               matching={emptyMatching}
-                                               exposedProps={exposedProps}/>);
+        onEmptyButtons = (<InjectedComponentSet className="toolbar-buttons123" key="injected"
+          matching={emptyMatching}
+          exposedProps={exposedProps} />);
       }
       return (
         <ToolbarComponent items={items} selection={selection} injectedButtons={injectedButtons} dataSource={dataSource}
-                          onEmptyButtons={onEmptyButtons}/>
+          onEmptyButtons={onEmptyButtons} />
       );
     }
   }

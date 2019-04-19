@@ -24,7 +24,8 @@ function databasePath(specMode) {
 const createDb = async () => {
   let specMode = AppEnv.inSpecMode();
   let dbPath = databasePath(specMode);
-  const db = await RxDB.create({name: dbPath,
+  const db = await RxDB.create({
+    name: dbPath,
     adapter: 'websql',
     // pouchSettings: {
     //   name: dbPath,

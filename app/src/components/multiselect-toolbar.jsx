@@ -126,7 +126,7 @@ class MultiselectToolbar extends Component {
           <div className={'checkmark' + (isSelectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
           {
             selectionCount > 0 ? (
-              <div style={{ display: 'flex' }}>
+              <div style={{ display: 'flex', flex: '1' }}>
                 <div className="selection-label">{this.selectionLabel()}</div>
                 <button className="btn btn-toggle-select-all" onClick={this.selectAll}>
                   Select all {this._formatNumber(totalCount)}
@@ -134,22 +134,24 @@ class MultiselectToolbar extends Component {
                 <button className="btn btn-clear-all" onClick={this._clearSelection}>
                   Clear Selection
                 </button>
-                {WorkspaceStore.layoutMode() === 'list' ? <div className="divider" key='thread-list-tool-bar-divider'/> : null}
+                {WorkspaceStore.layoutMode() === 'list' ? <div className="divider" key='thread-list-tool-bar-divider' /> : null}
                 {toolbarElement}
               </div>
             ) : (
-              <div style={{ display: 'flex', width: 'calc(100% - 66px)',
-                justifyContent: 'space-between' }}>
-                <span className="updated-time">
-                  {this._renderLastUpdateLabel(lastUpdate)}
-                  {threadCounts > 0 && (
-                    <span>({this._formatNumber(threadCounts)})</span>
-                  )}
-                </span>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  {onEmptyButtons}
+                <div style={{
+                  display: 'flex', width: 'calc(100% - 66px)',
+                  justifyContent: 'space-between'
+                }}>
+                  <span className="updated-time">
+                    {this._renderLastUpdateLabel(lastUpdate)}
+                    {threadCounts > 0 && (
+                      <span>({this._formatNumber(threadCounts)})</span>
+                    )}
+                  </span>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    {onEmptyButtons}
+                  </div>
                 </div>
-              </div>
               )
           }
         </div>

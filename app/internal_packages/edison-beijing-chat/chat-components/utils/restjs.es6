@@ -3,7 +3,11 @@ import keyMannager from '../../../../src/key-manager';
 const { get, post } = require('./httpex');
 import { getPubKey } from './e2ee';
 import { isJsonStr } from './stringUtils';
-
+import path from 'path';
+import fs from 'fs';
+const download = require('download');
+let configDirPath = AppEnv.getConfigDirPath();
+let logoDirPath = path.join(configDirPath, 'logo_cache');
 
 const { devMode } = AppEnv.getLoadSettings();
 const domain = {
@@ -235,9 +239,52 @@ export const getAvatarFromCache = email => {
     return avatarCache[email];
 }
 
+const isDownloading = {};
+async function downloadImage(url, logoPath, domain) {
+    if (isDownloading[domain]) {
+        return;
+    }
+    isDownloading[domain] = true;
+    try {
+        const data = await download(url);
+        fs.writeFileSync(logoPath, data);
+        return url;
+    } catch (err) {
+        console.warn('image download error:', err.message, url);
+    }
+}
+
+const logoCache = {};
+export const getLogo = async (email) => {
+    if (email) {
+        let domain = email.split('@')[1];
+        // domain = /\w+\.\w+$/g.exec(domain);
+        // find in localFolder
+        let logoPath = path.join(logoDirPath, domain + '.png');
+        if (fs.existsSync(logoPath)) {
+            return `file:${logoPath}`;
+        }
+
+        // find from cache first
+        if (logoCache[domain]) {
+            await downloadImage(logoCache[domain], logoPath, domain);
+            return logoCache[domain];
+        }
+
+        const url = `https://logo.clearbit.com/${domain}?size=256`;
+
+        const result = await downloadImage(url, logoPath, domain);
+        if (result) {
+            logoCache[domain] = url;
+        }
+        return result;
+    }
+}
+
 export default {
     register, unregister, queryProfile, setProfile,
     login, uploadContacts, getAvatar, getAvatarFromCache,
     xmpplogin, listApp, listKeywordApps, sendMsg2App,
-    sendMsg2App2, sendCmd2App, sendCmd2App2, getAvatarPromise
+    sendMsg2App2, sendCmd2App, sendCmd2App2, getAvatarPromise,
+    getLogo
 }

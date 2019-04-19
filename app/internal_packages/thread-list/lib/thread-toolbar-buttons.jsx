@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { RetinaImg, CreateButtonGroup, BindGlobalCommands } from 'mailspring-component-kit';
 import {
-  ReactDOM,
+  AccountStore,
   Actions,
   TaskFactory,
   ChangeLabelsTask,
@@ -399,6 +399,21 @@ export class ThreadListMoreButton extends React.Component {
     items: PropTypes.array.isRequired,
   };
 
+  constructor(props) {
+    super(props);
+    const current = FocusedPerspectiveStore.current();
+    if (current && current.accountIds.length) {
+      this._account = AccountStore.accountForId(current.accountIds[0]);
+    }
+  }
+
+  componentWillUpdate() {
+    const current = FocusedPerspectiveStore.current();
+    if (current && current.accountIds.length) {
+      this._account = AccountStore.accountForId(current.accountIds[0]);
+    }
+  }
+
   _onPrintThread = () => {
     const node = document.querySelector('#message-list');
     const currentThread = MessageStore.thread();
@@ -423,11 +438,13 @@ export class ThreadListMoreButton extends React.Component {
       })
       );
     }
-    menu.append(new MenuItem({
-      label: `Mark important`,
-      click: () => AppEnv.commands.dispatch('core:mark-important'),
-    })
-    );
+    if (this._account && this._account.usesLabels()) {
+      menu.append(new MenuItem({
+        label: `Mark important`,
+        click: () => AppEnv.commands.dispatch('core:mark-important'),
+      })
+      );
+    }
     menu.popup({});
   };
 
@@ -542,8 +559,8 @@ class ThreadArrowButton extends React.Component {
   }
 }
 
-const Divider = (key='divider') => (
-  <div className="divider" key={key}/>
+const Divider = (key = 'divider') => (
+  <div className="divider" key={key} />
 );
 Divider.displayName = 'Divider';
 
@@ -555,12 +572,12 @@ export const FlagButtons = CreateButtonGroup(
 export const ThreadMoreButtons = CreateButtonGroup(
   'ThreadMoreButtons',
   [ThreadListMoreButton],
-  {order: -100}
+  { order: -100, marginLeft: 'auto' }
 );
 export const ThreadEmptyMoreButtons = CreateButtonGroup(
   'ThreadEmptyMoreButtons',
   [ThreadListMoreButton],
-  {order: -100}
+  { order: -100 }
 );
 
 export const MoveButtons = CreateButtonGroup(
