@@ -572,7 +572,8 @@ export const FlagButtons = CreateButtonGroup(
 export const ThreadMoreButtons = CreateButtonGroup(
   'ThreadMoreButtons',
   [ThreadListMoreButton],
-  { order: -100, marginLeft: 'auto' }
+  { order: -100 },
+  'thread-more'
 );
 export const ThreadEmptyMoreButtons = CreateButtonGroup(
   'ThreadEmptyMoreButtons',
