@@ -202,7 +202,8 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'folder',
       itemClass: Folder,
     }),
-    state: Attributes.String({
+    //DC-265 State attributes must be Number, but actual value must be string, otherwise all kinds of error
+    state: Attributes.Number({
       modelKey: 'state',
       jsonKey: 'state',
       loadFromColumn: true,
