@@ -193,7 +193,7 @@ export default class MessageItem extends React.Component {
             />
             <MessageTimestamp
               className="message-time"
-              isDetailed={this.state.detailedHeaders}
+              isDetailed
               date={message.date}
             />
             {this._renderHeaderDetailToggle()}
