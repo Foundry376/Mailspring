@@ -126,7 +126,7 @@ class MultiselectToolbar extends Component {
           <div className={'checkmark' + (isSelectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
           {
             selectionCount > 0 ? (
-              <div style={{ display: 'flex', flex: '1' }}>
+              <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
                 <div className="selection-label">{this.selectionLabel()}</div>
                 <button className="btn btn-toggle-select-all" onClick={this.selectAll}>
                   Select all {this._formatNumber(totalCount)}
@@ -140,7 +140,8 @@ class MultiselectToolbar extends Component {
             ) : (
                 <div style={{
                   display: 'flex', width: 'calc(100% - 66px)',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  marginRight: 10
                 }}>
                   <span className="updated-time">
                     {this._renderLastUpdateLabel(lastUpdate)}

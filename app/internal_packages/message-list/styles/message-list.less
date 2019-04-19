@@ -112,7 +112,7 @@ body.platform-win32 {
   }
   .message-toolbar-popout {
     order: 204;
-    padding-right: 13px;
+    padding-right: 24px;
   }
   .message-toolbar-arrow.disabled {
     opacity: 0.3;
@@ -214,7 +214,7 @@ body.platform-win32 {
     line-height: @font-size-large * 1.8;
     display: flex;
     align-items: center;
-    padding: 0 @padding-base-horizontal;
+    padding: 0 12px 0 14px;
     &>div {
       display: flex;
       align-items: center;
@@ -352,6 +352,7 @@ body.platform-win32 {
         .collapsed-timestamp {
           text-align: right;
           flex: 1;
+          padding-right: 4px;
         }
       }
 
@@ -753,6 +754,20 @@ body.platform-win32 {
     }
   }
 
+  .collapsed-participants {
+    .from-contact {
+      .participant-secondary {
+        display: none;
+      }
+    }
+    .to-label {
+      margin-right: 0.5em;
+    }
+    .participant-name {
+      color: @gray-dark;
+    }
+  }
+
   .expanded-participants {
     padding-right: 1.2em;
     width: 100%;
@@ -760,10 +775,6 @@ body.platform-win32 {
     .participant {
       display: inline-block;
       margin-right: 0.25em;
-    }
-
-    .participant-type {
-      margin-top: 0.2em;
     }
 
     .detail-from-label,
@@ -802,12 +813,12 @@ body.platform-win32 {
     }
 
     .participant-primary {
-      color: @text-color-very-subtle;
+      color: @gray-dark;
       margin-right: 0.15em;
       display: inline-block;
     }
     .participant-secondary {
-      color: @text-color-very-subtle;
+      color: @gray-dark;
       display: inline-block;
     }
 
