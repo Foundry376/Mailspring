@@ -137,6 +137,21 @@ export default class MessagesPanel extends PureComponent {
     window.removeEventListener("offline", this.offLine);
   }
 
+  _getTokenByCurJid = async () => {
+    const { selectedConversation } = this.props;
+    let currentUserId = selectedConversation && selectedConversation.curJid;
+    if (currentUserId) {
+      currentUserId = currentUserId.split('@')[0];
+      const chatAccounts = AppEnv.config.get('chatAccounts');
+      for (const email in chatAccounts) {
+        if (chatAccounts[email].userId === currentUserId) {
+          return await keyMannager.getAccessTokenByEmail(email);
+        }
+      }
+    }
+    return null;
+  }
+
   getEmailContacts = async () => {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
@@ -188,7 +203,7 @@ export default class MessagesPanel extends PureComponent {
     if (!this.props.chat_online) {
       this.reconnect();
     }
-    const progress = Object.assign({}, this.state.progress, {offline:false});
+    const progress = Object.assign({}, this.state.progress, { offline: false });
     this.setState({
       online: true,
       progress,
@@ -196,7 +211,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   offLine = () => {
-    const progress = Object.assign({}, this.state.progress, {offline:true, failed:true});
+    const progress = Object.assign({}, this.state.progress, { offline: true, failed: true });
     this.setState({
       online: false,
       progress,
@@ -456,13 +471,13 @@ export default class MessagesPanel extends PureComponent {
     }
 
     const loadProgressCallback = progress => {
-      const {loaded, total} = progress;
-      const percent = Math.floor(+loaded*100.0/(+total));
+      const { loaded, total } = progress;
+      const percent = Math.floor(+loaded * 100.0 / (+total));
       progress = Object.assign({}, this.state.progress, { percent });
       const state = Object.assign({}, this.state, { progress });
       this.setState(state);
     }
-    if ( loadConfig.type === 'upload') {
+    if (loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
@@ -508,8 +523,8 @@ export default class MessagesPanel extends PureComponent {
     this.loadTimer = setInterval(() => {
       const loadConfig = this.loadQueue[this.loadIndex];
       if (loadConfig && loadConfig.request && loadConfig.request.failed) {
-        const progress = Object.assign({}, this.state.progress, {failed:true});
-        const state = Object.assign({}, this.state, {progress});
+        const progress = Object.assign({}, this.state.progress, { failed: true });
+        const state = Object.assign({}, this.state, { progress });
         this.setState(state);
       }
     }, 10000);
@@ -618,7 +633,7 @@ export default class MessagesPanel extends PureComponent {
                 ) : (
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
-                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessage} onRetry={this.retryLoadMessage}/>
+                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessage} onRetry={this.retryLoadMessage} />
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       <Notifications {...notificationsProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (
