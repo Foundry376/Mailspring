@@ -14,7 +14,7 @@ const config = {
   outputDirectory: path.join(appDir, 'dist'),
   appDirectory: path.join(appDir, 'dist', 'Edison Mail-win32-x64'),
   loadingGif: path.join(appDir, 'build', 'resources', 'win', 'loading.gif'),
-  iconUrl: 'http://mailspring-builds.s3.amazonaws.com/assets/mailspring.ico',
+  iconUrl: 'https://cp.edison.tech/static/edisonmail.ico',
   certificateFile: process.env.WINDOWS_CODESIGN_CERT,
   description: 'Edison Mail',
   version: version,

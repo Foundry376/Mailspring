@@ -379,12 +379,13 @@ body.platform-win32 {
     }
 
     .btn.btn-toolbar.btn-send {
-      margin-right: 10px;
+      border-radius: 17px;
       white-space: nowrap;
-      height: 27px;
+      height: 33px;
       background-color: transparent;
       transition: all 0.2s;
       font-weight: bold;
+      padding: 0 15px 0 13px;
       span {
         div[role='button']{
           float: left;
@@ -397,12 +398,13 @@ body.platform-win32 {
         img.content-mask {
           float: left;
           background-color: @blue;
+          margin-top: 3px;
         }
         span {
           float: left;
           color: @blue;
           font-size: 15px;
-          line-height: 27px;
+          line-height: 33px;
         }
       }
       &:hover {
@@ -437,7 +439,7 @@ body.platform-win32 {
       margin: 0 auto;
       flex-direction: row;
       max-width: @compose-width;
-      padding: 9px 0;
+      align-items: center;
 
       .composer-action-bar-plugins {
         flex-wrap: wrap;
@@ -693,7 +695,7 @@ body.platform-win32 {
     }
 
     .composer-action-bar-content {
-      padding: 9px 0;
+      padding: 6px 0;
     }
 
     .compose-body {
