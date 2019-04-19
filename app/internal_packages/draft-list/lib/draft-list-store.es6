@@ -9,6 +9,7 @@ const {
   ObservableListDataSource,
   FocusedPerspectiveStore,
   DatabaseStore,
+  DraftStore,
 } = require('mailspring-exports');
 const { ListTabular } = require('mailspring-component-kit');
 
@@ -44,11 +45,13 @@ class DraftListStore extends MailspringStore {
     }
 
     if (mailboxPerspective.drafts) {
-      const query = DatabaseStore.findAll(Message)
-        .include(Message.attributes.body)
-        .order(Message.attributes.date.descending())
-        .where({ draft: true, state: 0 })
-        .page(0, 1);
+      const query = DraftStore.findAllWithBodyInDescendingOrder().page(0, 1);
+      // const query = DatabaseStore.findAll(Message)
+      //   .include(Message.attributes.body)
+      //   .order(Message.attributes.date.descending())
+      //   .where([Message.attributes.state.in(['0', '2'])])
+      //   .where({ draft: true})
+      //   .page(0, 1);
 
       // Adding a "account_id IN (a,b,c)" clause to our query can result in a full
       // table scan. Don't add the where clause if we know we want results from all.

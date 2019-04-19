@@ -75,6 +75,8 @@ export const triggerStoreMessageEpic = action$ =>
       return true;
     })
     .map(({ newMessage }) => {
+      delete newMessage.ts;
+      delete newMessage.curJid;
       return beginStoringMessage(newMessage);
     });
 

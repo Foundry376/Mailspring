@@ -572,14 +572,16 @@ export default class Application extends EventEmitter {
     ipcMain.on('send-later-manager', (event, action, headerMessageId, delay, actionKey, threadId) => {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (action === 'send-later') {
-        const timer = setTimeout(() => {
+        if(this._draftsSendLater[headerMessageId]){
+          clearTimeout(this._draftsSendLater[headerMessageId])
+        }
+        this._draftsSendLater[headerMessageId] = setTimeout(() => {
           delete this._draftsSendLater[headerMessageId];
           if (!mainWindow || !mainWindow.browserWindow.webContents) {
             return;
           }
           mainWindow.browserWindow.webContents.send('action-send-now', headerMessageId, actionKey);
         }, delay);
-        this._draftsSendLater[headerMessageId] = timer;
       } else if (action === 'undo') {
         const timer = this._draftsSendLater[headerMessageId];
         clearTimeout(timer);
