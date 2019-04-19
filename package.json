@@ -74,11 +74,10 @@
     "ci-setup-mac-keychain": "grunt setup-mac-keychain --gruntfile=app/build/Gruntfile.js --base=./"
   },
   "dependencies": {
+    "mkdirp": "^0.5.1",
     "appdmg": "^0.5.2",
     "aws-sdk": "^2.336.0",
-    "download": "^7.1.0",
     "electron-platform": "^1.2.0",
-    "mkdirp": "^0.5.1",
     "plist": "^3.0.1",
     "react-bootstrap": "^0.32.4"
   },
