@@ -6,6 +6,7 @@ import {
   MessageBodyProcessor,
   QuotedHTMLTransformer,
   AttachmentStore,
+  MessageStore,
   DatabaseStore,
   Message,
 } from 'mailspring-exports';
@@ -93,9 +94,9 @@ export default class MessageItemBody extends React.Component {
 
   _setProcessBody = (processedBody, messageId) => {
     if (processedBody === null || processedBody.trim() === '') {
-      const query = DatabaseStore.find(Message, messageId);
-      query.include(Message.attributes.body);
-      query.then(msg => {
+      // const query = DatabaseStore.find(Message, messageId);
+      // query.include(Message.attributes.body);
+      MessageStore.findByMessageIdWithBody({ messageId: messageId }).then(msg => {
         if (msg.body !== this.state.processedBody) {
           this.setState({ processedBody });
         }

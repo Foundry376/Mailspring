@@ -16,6 +16,7 @@ import TaskQueue from './task-queue';
 import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
+import MessageStore from './message-store';
 
 const { DefaultSendActionKey } = SendActionsStore;
 
@@ -57,8 +58,8 @@ class DraftStore extends MailspringStore {
       });
       ipcRenderer.on('thread-arp', this._onThreadChange);
     }
-    ipcRenderer.on('action-send-cancelled', (event, headerMessageId, actionKey)=>{
-      if (AppEnv.isMainWindow()){
+    ipcRenderer.on('action-send-cancelled', (event, headerMessageId, actionKey) => {
+      if (AppEnv.isMainWindow()) {
         Actions.draftDeliveryCancelled({ headerMessageId, actionKey });
       }
       this._onSendDraftCancelled({ headerMessageId });
@@ -83,6 +84,21 @@ class DraftStore extends MailspringStore {
     this._draftsPopedOut = {};
     ipcRenderer.on('mailto', this._onHandleMailtoLink);
     ipcRenderer.on('mailfiles', this._onHandleMailFiles);
+  }
+
+  findByHeaderMessageId({ headerMessageId }) {
+    return DatabaseStore.findBy(Message, {
+      headerMessageId: headerMessageId,
+      draft: true,
+    }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+  }
+
+  findByHeaderMessageIdWithBody({ headerMessageId }) {
+    return this.findByHeaderMessageId({ headerMessageId }).include(Message.attributes.body);
+  }
+
+  findAllWithBodyInDescendingOrder(){
+    return MessageStore.findAllWithBodyInDescendingOrder().where({draft: true});
   }
 
   /**
@@ -127,7 +143,7 @@ class DraftStore extends MailspringStore {
     oldDraft.bcc = newParticipants.bcc;
     const newDraft = await DraftFactory.copyDraftToAccount(oldDraft, newParticipants.from);
     await this._finalizeAndPersistNewMessage(newDraft);
-    Actions.changeDraftAccountComplete({newDraftJSON: newDraft.toJSON()});
+    Actions.changeDraftAccountComplete({ newDraftJSON: newDraft.toJSON() });
     this._onDestroyDraft(
       {
         accountId: oldDraft.accountId,
@@ -334,7 +350,10 @@ class DraftStore extends MailspringStore {
         return DraftFactory.createOrUpdateDraftForReply({ message: m, thread: t, type, behavior });
       })
       .then(draft => {
-        return this._finalizeAndPersistNewMessage(draft, { popout }, {originalMessageId: message? message.id : null, messageType: type});
+        return this._finalizeAndPersistNewMessage(draft, { popout }, {
+          originalMessageId: message ? message.id : null,
+          messageType: type,
+        });
       });
   };
 
@@ -344,7 +363,10 @@ class DraftStore extends MailspringStore {
         return DraftFactory.createDraftForForward({ thread: t, message: m });
       })
       .then(draft => {
-        return this._finalizeAndPersistNewMessage(draft, { popout }, {originalMessageId: message? message.id : null, messageType: 'forward'});
+        return this._finalizeAndPersistNewMessage(draft, { popout }, {
+          originalMessageId: message ? message.id : null,
+          messageType: 'forward',
+        });
       });
   };
 
@@ -371,12 +393,11 @@ class DraftStore extends MailspringStore {
       }
       queries.message = message;
     } else if (messageId != null) {
-      queries.message = DatabaseStore.find(Message, messageId).include(Message.attributes.body);
+      queries.message = MessageStore.findByMessageIdWithBody({messageId});
     } else {
-      queries.message = DatabaseStore.findAll(Message, { threadId: threadId || thread.id })
-        .where({ state: 0 })
-        .order(Message.attributes.date.descending())
-        .include(Message.attributes.body)
+      queries.message = MessageStore.findAllByThreadIdWithBodyInDescendingOrder({
+        threadId: threadId || thread.id,
+      })
         .limit(10)
         .then(messages => {
           return messages.find(m => !m.isHidden());
@@ -386,7 +407,7 @@ class DraftStore extends MailspringStore {
     return queries;
   }
 
-  _finalizeAndPersistNewMessage(draft, { popout } = {}, {originalMessageId, messageType} = {}) {
+  _finalizeAndPersistNewMessage(draft, { popout } = {}, { originalMessageId, messageType } = {}) {
     // Give extensions an opportunity to perform additional setup to the draft
     ExtensionRegistry.Composer.extensions().forEach(extension => {
       if (!extension.prepareNewDraft) {
@@ -406,8 +427,8 @@ class DraftStore extends MailspringStore {
       if (popout) {
         this._onPopoutDraft(draft.headerMessageId);
       }
-      if(originalMessageId){
-        Actions.draftReplyForwardCreated({ messageId: originalMessageId, type: messageType});
+      if (originalMessageId) {
+        Actions.draftReplyForwardCreated({ messageId: originalMessageId, type: messageType });
       }
       return { headerMessageId: draft.headerMessageId, draft };
     });
@@ -672,7 +693,7 @@ class DraftStore extends MailspringStore {
           undoValue: { expiration: null, isUndoSend: true },
         }),
       );
-      ipcRenderer.send('send-later-manager', 'send-later', headerMessageId, delay, actionKey,  draft.threadId);
+      ipcRenderer.send('send-later-manager', 'send-later', headerMessageId, delay, actionKey, draft.threadId);
     } else {
       // Immediately send the draft
       await sendAction.performSendAction({ draft });
@@ -706,7 +727,7 @@ class DraftStore extends MailspringStore {
         Actions.composePopoutDraft(headerMessageId);
       }, 300);
     }
-  }
+  };
 
   _onSendDraftFailed = ({ headerMessageId, threadId, errorMessage, errorDetail }) => {
     this._draftsSending[headerMessageId] = false;

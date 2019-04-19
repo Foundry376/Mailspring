@@ -69,6 +69,11 @@ export default class Message extends ModelWithMetadata {
   static ReplyDraft = 3;
   static ForwardDraft = 4;
   static ReplyAllDraft = 5;
+  static messageState = {
+    normal: '0',
+    deleted: '1',
+    saving: '2'
+  };
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
     // load id column into json
     id: Attributes.String({
@@ -197,7 +202,7 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'folder',
       itemClass: Folder,
     }),
-    state: Attributes.Number({
+    state: Attributes.String({
       modelKey: 'state',
       jsonKey: 'state',
       loadFromColumn: true,
@@ -424,7 +429,10 @@ export default class Message extends ModelWithMetadata {
     return this.body.replace(re, '').length === 0;
   }
   isDeleted() {
-    return this.state === 1;
+    return this.state === Message.messageState.deleted;
+  }
+  isDraftSaving(){
+    return this.state === Message.messageState.saving && this.draft
   }
 
   isHidden() {

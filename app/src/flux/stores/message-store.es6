@@ -18,6 +18,55 @@ class MessageStore extends MailspringStore {
     this._registerListeners();
   }
 
+  findAll() {
+    return DatabaseStore.findAll(Message)
+      .where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+  }
+
+  findAllInDescendingOrder() {
+    return this.findAll().order(Message.attributes.date.descending());
+  }
+
+  findAllWithBodyInDescendingOrder() {
+    return this.findAllInDescendingOrder().include(Message.attributes.body);
+  }
+
+  findAllByThreadId({ threadId }) {
+    return this.findAll().where({ threadId: threadId });
+  }
+
+  findAllByThreadIdWithBody({ threadId }) {
+    return this.findAllByThreadId({ threadId }).include(Message.attributes.body);
+  }
+
+  findAllByThreadIdWithBodyInDescendingOrder({ threadId }) {
+    return this.findAllByThreadIdWithBody({ threadId }).order(Message.attributes.date.descending());
+  }
+
+  findByThreadId({ threadId }) {
+    return DatabaseStore.findBy(Message, { threadId }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+  }
+
+  findByThreadIdAndAccountId({ threadId, accountId }) {
+    return this.findByThreadId({ threadId }).where({ accountId: accountId });
+  }
+
+  findByThreadIdAndAccountIdInDesecndingOrder({ threadId, accountId }) {
+    return this.findByThreadIdAndAccountId({ threadId, accountId }).order(Message.attributes.date.descending());
+  }
+
+  findByThreadIdInDescendingOrder({ threadId }) {
+    return this.findByThreadId({ threadId }).order(Message.attributes.date.descending());
+  }
+
+  findByMessageId({ messageId }) {
+    return DatabaseStore.find(Message, messageId).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+  }
+
+  findByMessageIdWithBody({ messageId }) {
+    return this.findByMessageId({ messageId }).include(Message.attributes.body);
+  }
+
   //########## PUBLIC #####################################################
 
   items() {
@@ -386,10 +435,10 @@ class MessageStore extends MailspringStore {
     if (!this._thread) return;
 
     const loadedThreadId = this._thread.id;
-
-    const query = DatabaseStore.findAll(Message);
-    query.where({ threadId: loadedThreadId, state: 0 });
-    query.include(Message.attributes.body);
+    const query = this.findAllByThreadIdWithBody({ threadId: loadedThreadId });
+    // const query = DatabaseStore.findAll(Message);
+    // query.where({ threadId: loadedThreadId, state: 0 });
+    // query.include(Message.attributes.body);
 
     return query.then(items => {
       // Check to make sure that our thread is still the thread we were
