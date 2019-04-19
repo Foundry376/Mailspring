@@ -33,6 +33,7 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 import MessageEditBar from './MessageEditBar';
+import MessageApp from './MessageApp';
 import SecurePrivate from './SecurePrivate'
 import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 
@@ -311,7 +312,7 @@ export default class Messages extends PureComponent {
     const loadConfig = {
       msgBody,
       filepath: pathForSave,
-      type:'download'
+      type: 'download'
     }
     const { queueLoadMessage } = this.props;
     queueLoadMessage(loadConfig);
@@ -387,12 +388,12 @@ export default class Messages extends PureComponent {
           <div className="message-group" key={index}>
             <div className="day-label">
               <label>
-                <Divider type="horizontal"/>
+                <Divider type="horizontal" />
                 {nearDays(group.time) ? (
-                    <div className="day-label-text">
-                      <span className='span1'>{dateFormat(group.time)}</span>
-                      <span className='span2'>{dateFormatDigit(group.time)}</span>
-                    </div>) :
+                  <div className="day-label-text">
+                    <span className='span1'>{dateFormat(group.time)}</span>
+                    <span className='span2'>{dateFormatDigit(group.time)}</span>
+                  </div>) :
                   (
                     <div className="day-label-text">
                       <span className='span1'>{weekDayFormat(group.time)}</span>
@@ -407,6 +408,16 @@ export default class Messages extends PureComponent {
               if (msgBody.deleted) {
                 return null;
               }
+              if (msgBody.appJid) {
+                console.log("yazz-test", msg);
+                return <MessageApp msgBody={msgBody}
+                  userId={currentUserId}
+                  selectedConversation={this.selectedConversation}
+                  getContactInfoByJid={this.getContactInfoByJid}
+                  getContactAvatar={this.getContactAvatar}
+                  key={msg.id} />
+              }
+
               if (msg.sender === currentUserId) {
                 msgBody.path = msgBody.localFile || msgBody.path;
               } else {

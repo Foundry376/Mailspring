@@ -199,8 +199,10 @@ function Client(opts) {
         if (Object.keys(msg.$body || msg.$payload || {}).length) {
             if (msg.type === 'chat' || msg.type === 'normal') {
                 self.emit('chat', msg);
+                console.log("yazz-on-message:", msg);
             } else if (msg.type === 'groupchat') {
                 self.emit('groupchat', msg);
+                console.log("yazz-on-message:", msg);
             }
         }
         if (msg.type === 'normal' && msg.$e2ee) {
@@ -497,7 +499,8 @@ Client.prototype.sendIq = function (data, cb) {
     request = new Promise(function (resolve, reject) {
         var handler = function (res) {
             // Only process result from the correct responder
-            if (!allowed[res.from.full]) {
+            if (res.from && !allowed[res.from.full]) {
+                console.log(res);
                 return;
             }
 

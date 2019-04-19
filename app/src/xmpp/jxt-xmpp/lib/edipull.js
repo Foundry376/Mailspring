@@ -42,8 +42,10 @@ exports['default'] = function (JXT) {
             }
         }
     });
-
     JXT.extend(IQEx, EdiPull);
+    JXT.withIQ(function (IQ) {
+        JXT.extend(IQ, IQEx);
+    });
 }
 
 module.exports = exports['default'];

@@ -333,7 +333,7 @@ exports['default'] = function (JXT) {
     JXT.use(_visibility2['default']);
     JXT.use(_e2ee2['default']);
     JXT.use(_ediencrypted2['default']);
-    JXT.use(_edipull['default']);
+    JXT.use(_edipull2['default']);
 };
 
 module.exports = exports['default'];

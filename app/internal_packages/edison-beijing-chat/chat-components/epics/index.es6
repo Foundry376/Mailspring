@@ -5,6 +5,8 @@ import * as chatEpics from './chat';
 import * as contactEpics from './contact';
 import * as roomEpics from './room';
 import * as timeEpics from './time';
+import * as appsEpics from './apps';
+import * as messagesEpics from './messages';
 import dbEpics from './db';
 
 export default combineEpics(
@@ -13,5 +15,7 @@ export default combineEpics(
   ...Object.values(contactEpics),
   ...Object.values(roomEpics),
   ...Object.values(timeEpics),
+  ...Object.values(appsEpics),
+  ...Object.values(messagesEpics),
   ...Object.values(dbEpics)
 );
