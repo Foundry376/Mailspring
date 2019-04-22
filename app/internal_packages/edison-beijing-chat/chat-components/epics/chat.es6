@@ -191,8 +191,10 @@ export const successSendMessageEpic = action$ =>
 export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
     .mergeMap(
-      ({ payload }) => Observable.fromPromise(getDb())
-        .map(db => ({ db, payload })),
+      ({ payload }) => {
+        return Observable.fromPromise(getDb())
+          .map(db => ({ db, payload }))
+      }
     )//yazzzzz
     .mergeMap(({ db, payload }) => {
       if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
@@ -321,6 +323,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
       const message = {
         id: payload.id,
         conversationJid: payload.to,
+        curJid,
         sender: curJid,
         body: payload.body,// || payload.ediEncrypted,//yazzz3
         sentTime: (new Date()).getTime(),
@@ -657,7 +660,7 @@ export const triggerPrivateNotificationEpic = action$ =>
           .map(conv => ({ conv, payload }))
       },
     )
-    .filter(({ conv }) => {
+    .filter(({ conv, payload }) => {
       // hide notifications
       return !conv || !conv.isHiddenNotification;
     })
@@ -686,9 +689,9 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
           .map(conv => ({ conv, payload }))
       },
     )
-    .filter(({ conv }) => {
+    .filter(({ conv, payload }) => {
       // hide notifications
-      return !conv || !conv.isHiddenNotification;
+      return !conv || (!conv.isHiddenNotification && payload.curJid !== payload.from.resource + '@im.edison.tech');
     })
     .mergeMap(({ conv, payload }) => {
       let name = payload.from.local;
