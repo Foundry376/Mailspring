@@ -126,7 +126,9 @@ export default class EmailFrame extends React.Component {
   };
 
   _openInlineImage(e) {
-    shell.openItem(decodeURIComponent(e.target.src.replace('file://', '')));
+    if (e.target) {
+      shell.openItem(decodeURIComponent(e.target.src.replace('file://', '')));
+    }
   }
 
   _onMustRecalculateFrameHeight = () => {
