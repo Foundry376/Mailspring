@@ -7,7 +7,7 @@ import { BadgeStore } from 'mailspring-exports';
 const { platform } = process;
 const INBOX_ZERO_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Zero.png');
 const INBOX_UNREAD_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Inbox-Full.png');
-const TRAY_CHAT_ICON = path.join(__dirname, '..', 'assets', platform, 'chat.png');
+const TRAY_CHAT_ICON = path.join(__dirname, '..', 'assets', platform, 'MenuItem-Chat.png');
 const INBOX_UNREAD_ALT_ICON = path.join(
   __dirname,
   '..',
