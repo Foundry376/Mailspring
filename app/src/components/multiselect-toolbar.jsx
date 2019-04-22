@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import classnames from 'classnames';
 
 /*
  * MultiselectToolbar renders a toolbar inside a horizontal bar and displays
@@ -120,8 +121,12 @@ class MultiselectToolbar extends Component {
       }
       lastUpdate = category ? category.updatedAt : '';
     }
+    const classes = classnames({
+      'multiselect-toolbar-root': true,
+      'no-threads': items.length === 0,
+    });
     return (
-      <div className="multiselect-toolbar-root" key="absolute">
+      <div className={classes} key="absolute">
         <div className="inner">
           <div className={'checkmark' + (isSelectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
           {
