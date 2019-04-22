@@ -3,7 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import { exec } from 'child_process';
 import ws from 'windows-shortcuts';
-const app = require('electron').remote;
+const { app } = require('electron').remote;
 
 class SystemStartServiceBase {
   checkAvailability() {
