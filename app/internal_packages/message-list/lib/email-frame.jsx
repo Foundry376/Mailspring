@@ -10,6 +10,7 @@ import {
 import { autolink } from './autolinker';
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';
+import { shell } from 'electron';
 
 export default class EmailFrame extends React.Component {
   static displayName = 'EmailFrame';
@@ -113,7 +114,22 @@ export default class EmailFrame extends React.Component {
     const iframeNode = ReactDOM.findDOMNode(this._iframeComponent);
     iframeNode.removeEventListener('load', this._onLoad);
     this._setFrameHeight();
+
+    // double click can open the file
+    const doc = iframeNode.contentDocument;
+    const inlineImgs = doc.querySelectorAll('.inline-image');
+    if (inlineImgs && inlineImgs.length > 0) {
+      for (let i = 0; i < inlineImgs.length; i++) {
+        inlineImgs[i].ondblclick = this._openInlineImage;
+      }
+    }
   };
+
+  _openInlineImage(e) {
+    if (e.target) {
+      shell.openItem(decodeURIComponent(e.target.src.replace('file://', '')));
+    }
+  }
 
   _onMustRecalculateFrameHeight = () => {
     this._iframeComponent.setHeightQuietly(0);

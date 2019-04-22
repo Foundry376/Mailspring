@@ -33,6 +33,9 @@ mailspring-workspace {
   -webkit-app-region: drag;
   .selection-bar div.multiselect-toolbar-root {
     border-right: none;
+    &.no-threads {
+      display: none;
+    }
   }
 }
 .layout-mode-split{
@@ -666,6 +669,7 @@ body.platform-win32 {
 .column-RootSidebar {
   border-right: 1px solid @extra-light-grey;
   -webkit-app-region: no-drag;
+  flex-shrink: 0;
 }
 
 .column-ThreadList,

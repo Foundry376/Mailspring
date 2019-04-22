@@ -11,6 +11,7 @@ class AccountSidebar extends React.Component {
   static containerStyles = {
     minWidth: 165,
     maxWidth: 250,
+    flexShrink: 0
   };
 
   constructor(props) {
