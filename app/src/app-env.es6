@@ -798,8 +798,7 @@ export default class AppEnvConstructor {
   }
 
   showOpenDialog(options, callback) {
-    // return callback(remote.dialog.showOpenDialog(this.getCurrentWindow(), options));
-    return callback(remote.dialog.showOpenDialog(options));
+    return remote.dialog.showOpenDialog(this.getCurrentWindow(), options, callback);
   }
   showImageSelectionDialog(cb) {
     return remote.dialog.showOpenDialog(
@@ -821,7 +820,7 @@ export default class AppEnvConstructor {
     if (options.title == null) {
       options.title = 'Save File';
     }
-    return callback(remote.dialog.showSaveDialog(this.getCurrentWindow(), options));
+    return remote.dialog.showSaveDialog(this.getCurrentWindow(), options, callback);
   }
 
   showErrorDialog(messageData, { showInMainWindow, detail } = {}) {
