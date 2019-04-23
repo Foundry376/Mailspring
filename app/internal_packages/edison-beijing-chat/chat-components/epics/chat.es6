@@ -35,6 +35,7 @@ import {
   sendingMessage,
   selectConversation,
   showConversationNotification,
+  showConversationNotificationFail,
 } from '../actions/chat';
 import {
   UPDATE_SELECTED_CONVERSATION,
@@ -50,6 +51,7 @@ import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 import { FILE_TYPE } from '../components/chat/messages/messageModel';
+import { failConnectionAuth } from '../actions/auth';
 
 const addToAvatarMembers = (conv, contact) => {
   if (!contact) {
@@ -145,11 +147,11 @@ export const receiptSentEpic = action$ =>
 
 export const membersChangeEpic = action$ =>
   action$.ofType(MEMBERS_CHANGE)
-    .mergeMap(({ payload }) =>  Observable.fromPromise(asyncMembersChangeEpic(payload)));
+    .mergeMap(({ payload }) => Observable.fromPromise(asyncMembersChangeEpic(payload)));
 
 const asyncMembersChangeEpic = async payload => {
   const notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
-  const items = notifications[payload.from] || (notifications[payload.from]=[]);
+  const items = notifications[payload.from] || (notifications[payload.from] = []);
   const nicknames = chatModel.chatStorage.nicknames;
   const fromjid = payload.userJid;
   const db = await getDb();
@@ -168,8 +170,8 @@ const asyncMembersChangeEpic = async payload => {
     type: payload.type,
     by: {
       jid: byjid,
-      email:bycontact && bycontact.email,
-      name:bycontact && bycontact.name,
+      email: bycontact && bycontact.email,
+      name: bycontact && bycontact.name,
       nickname: nicknames[byjid]
     },
     time,
@@ -189,8 +191,10 @@ export const successSendMessageEpic = action$ =>
 export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
     .mergeMap(
-      ({ payload }) => Observable.fromPromise(getDb())
-        .map(db => ({ db, payload })),
+      ({ payload }) => {
+        return Observable.fromPromise(getDb())
+          .map(db => ({ db, payload }))
+      }
     )//yazzzzz
     .mergeMap(({ db, payload }) => {
       if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
@@ -319,6 +323,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
       const message = {
         id: payload.id,
         conversationJid: payload.to,
+        curJid,
         sender: curJid,
         body: payload.body,// || payload.ediEncrypted,//yazzz3
         sentTime: (new Date()).getTime(),
@@ -432,6 +437,16 @@ export const receivePrivateMessageEpic = action$ =>
         }
       } else {
         downloadAndTagImageFileInMessage(RECEIVE_CHAT, null, payload);
+        if (payload.appJid) {
+          try {
+            let json = JSON.parse(payload.body);
+            json.appJid = payload.appJid;
+            json.appName = payload.appName;
+            json.htmlBody = payload.htmlBody;
+            json.ctxCmds = payload.ctxCmds;
+            payload.body = JSON.stringify(json);
+          } catch (e) { }
+        }
       }
       return payload.body;
     })
@@ -462,7 +477,7 @@ export const receiveGroupMessageEpic = action$ =>
       if (payload.payload) {
         let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
-        if (keys[jidLocal]
+        if (keys && keys[jidLocal]
           && keys[jidLocal][deviceId]) {
           let text = keys[jidLocal][deviceId];
           if (text) {
@@ -472,6 +487,17 @@ export const receiveGroupMessageEpic = action$ =>
         }
       } else {
         downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, null, payload);
+        if (payload.appJid) {
+          try {
+            console.log('yazz-config4', payload)
+            let json = JSON.parse(payload.body);
+            json.appJid = payload.appJid;
+            json.appName = payload.appName;
+            json.htmlBody = payload.htmlBody;
+            json.ctxCmds = payload.ctxCmds;
+            payload.body = JSON.stringify(json);
+          } catch (e) { }
+        }
       }
       return payload.body;
     })
@@ -481,7 +507,17 @@ export const receiveGroupMessageEpic = action$ =>
 
 export const convertReceivedMessageEpic = (action$) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
+    .filter(({ payload }) => {
+      try {
+        JSON.parse(payload.body);
+        return true;
+      }
+      catch (e) {
+        return false;
+      }
+    })
     .map(({ type, payload }) => {
+      console.log("yazz-test1", payload)
       const { timeSend } = JSON.parse(payload.body);
       let sender = payload.from.bare;
       // if groupchat, display the sender name
@@ -495,6 +531,8 @@ export const convertReceivedMessageEpic = (action$) =>
         body: payload.body,
         sentTime: (new Date(timeSend)).getTime(),
         status: MESSAGE_STATUS_RECEIVED,
+        ts: payload.ts,
+        curJid: payload.curJid
       };
     })
     .map(newPayload => newMessage(newPayload));
@@ -502,6 +540,7 @@ export const convertReceivedMessageEpic = (action$) =>
 export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE)
     .mergeMap(({ type, payload }) => {
+      console.log("yazz-test2", payload)
       let name = payload.from.local;
       return [{ type, payload, name }];
     })
@@ -536,68 +575,69 @@ export const updateGroupMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_GROUP_MESSAGE)
     .mergeMap(payload => Observable.fromPromise(asyncUpdateGroupMessageConversationEpic(payload, getState)));
 
-const asyncUpdateGroupMessageConversationEpic = async ({payload}, getState) => {
-    let beAt = false;
-    let name = payload.from.local;
-    // get the room name and whether you are '@'
-    const { room: { rooms } } = getState();
-    const body = JSON.parse(payload.body);
-    beAt = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
-    if (rooms[payload.from.bare]) {
-      name = rooms[payload.from.bare];
-    } else {
-      console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
-      let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
-      roomsInfo = roomsInfo || {
-        curJid: payload.curJid,
-        discoItems: {items:[]},
-      };
-      const { discoItems: { items }} = roomsInfo;
-      if (items) {
-        for (const item of items) {
-          if (payload.from.local === item.jid.local) {
-            name = item.name;
-            break;
-          }
+const asyncUpdateGroupMessageConversationEpic = async ({ payload }, getState) => {
+  let beAt = false;
+  let name = payload.from.local;
+  // get the room name and whether you are '@'
+  const { room: { rooms } } = getState();
+  const body = JSON.parse(payload.body);
+  beAt = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
+  if (rooms[payload.from.bare]) {
+    name = rooms[payload.from.bare];
+  } else {
+    console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
+    let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
+    roomsInfo = roomsInfo || {
+      curJid: payload.curJid,
+      discoItems: { items: [] },
+    };
+    const { discoItems: { items } } = roomsInfo;
+    if (items) {
+      for (const item of items) {
+        if (payload.from.local === item.jid.local) {
+          name = item.name;
+          break;
         }
       }
     }
-    let at = false;
-    const  { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
-    const { timeSend } = JSON.parse(payload.body);
-    // if not current conversation, unreadMessages + 1
-    let unreadMessages = 0;
-    const { chat: { selectedConversation } } = getState();
-    if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
-      unreadMessages = 1;
-      at = beAt;
-    }
-    let conv = {
-      jid: payload.from.bare,
-      curJid: payload.curJid,
-      name: name,
-      isGroup: true,
-      unreadMessages: unreadMessages,
-      lastMessageTime,
-      lastMessageText,
-      lastMessageSender: sender || payload.from.resource + '@im.edison.tech',
-      at
-    };
-    const db = await getDb();
-    const convInDb = await db.conversations.findOne().where('jid').eq(conv.jid).exec();
-    if (convInDb) {
-      conv.occupants = convInDb.occupants;
-      conv.avatarMembers = convInDb.avatarMembers;
-    } else {
-      conv.occupants = [];
-    }
-    const contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
-    addToAvatarMembers(conv, contact);
-    return beginStoringConversations([conv]);
+  }
+  let at = false;
+  const { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
+  const { timeSend } = JSON.parse(payload.body);
+  // if not current conversation, unreadMessages + 1
+  let unreadMessages = 0;
+  const { chat: { selectedConversation } } = getState();
+  if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
+    unreadMessages = 1;
+    at = beAt;
+  }
+  let conv = {
+    jid: payload.from.bare,
+    curJid: payload.curJid,
+    name: name,
+    isGroup: true,
+    unreadMessages: unreadMessages,
+    lastMessageTime,
+    lastMessageText,
+    lastMessageSender: sender || payload.from.resource + '@im.edison.tech',
+    at
+  };
+  const db = await getDb();
+  const convInDb = await db.conversations.findOne().where('jid').eq(conv.jid).exec();
+  if (convInDb) {
+    conv.occupants = convInDb.occupants;
+    conv.avatarMembers = convInDb.avatarMembers;
+  } else {
+    conv.occupants = [];
+  }
+  const contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
+  addToAvatarMembers(conv, contact);
+  return beginStoringConversations([conv]);
 }
 
 export const beginRetrievingMessagesEpic = action$ =>
   action$.ofType(UPDATE_SELECTED_CONVERSATION)
+    .filter(({ payload }) => !!payload)
     .map(({ payload: { jid } }) => {
       if (chatModel.conversationJid != jid) {
         saveGroupMessages(chatModel.groupedMessages);
@@ -620,7 +660,7 @@ export const triggerPrivateNotificationEpic = action$ =>
           .map(conv => ({ conv, payload }))
       },
     )
-    .filter(({ conv }) => {
+    .filter(({ conv, payload }) => {
       // hide notifications
       return !conv || !conv.isHiddenNotification;
     })
@@ -632,9 +672,9 @@ export const triggerPrivateNotificationEpic = action$ =>
           .map(contact => {
             content = `${contact.name}: ${content}`
             return showConversationNotification(conversationJid, name || conv.name, content);
-          })
-      })
-    });
+          }).catch(err => Observable.of(showConversationNotificationFail(err)))
+      }).catch(err => Observable.of(showConversationNotificationFail(err)))
+    }).catch(err => Observable.of(showConversationNotificationFail(err)));
 
 export const triggerGroupNotificationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_GROUP_MESSAGE)
@@ -649,9 +689,9 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
           .map(conv => ({ conv, payload }))
       },
     )
-    .filter(({ conv }) => {
+    .filter(({ conv, payload }) => {
       // hide notifications
-      return !conv || !conv.isHiddenNotification;
+      return !conv || (!conv.isHiddenNotification && payload.curJid !== payload.from.resource + '@im.edison.tech');
     })
     .mergeMap(({ conv, payload }) => {
       let name = payload.from.local;
@@ -686,18 +726,19 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
           .map(contact => {
             content = contact ? `${contact.name}: ${content}` : content
             return showConversationNotification(conversationJid, name || conv.name, content);
-          })
-      })
-    });
+          }).catch(err => Observable.of(showConversationNotificationFail(err)))
+      }).catch(err => Observable.of(showConversationNotificationFail(err)))
+    }).catch(err => Observable.of(showConversationNotificationFail(err)));
 
 export const showConversationNotificationEpic = (action$, { getState }) =>
   action$.ofType(SHOW_CONVERSATION_NOTIFICATION)
     .map(({ payload: { conversationJid, title, body } }) => {
       console.log('SHOW_CONVERSATION_NOTIFICATION: ', conversationJid, title, body);
       return ({
-      jid: conversationJid,
-      notification: postNotification(title, body),
-    })})
+        jid: conversationJid,
+        notification: postNotification(title, body),
+      })
+    })
     .filter(({ notification }) => notification !== null)
     .mergeMap(({ jid, notification }) =>
       Observable.fromEvent(notification, 'click')
@@ -711,8 +752,8 @@ export const showConversationNotificationEpic = (action$, { getState }) =>
           const window = remote.getCurrentWindow();
           window.show();
           return conv
-        }),
-    );
+        }).catch(err => Observable.of(showConversationNotificationFail(err))),
+    ).catch(err => Observable.of(showConversationNotificationFail(err)));
 
 export const goPrevConversationEpic = (action$, { getState }) =>
   action$.ofType(GO_PREV_CONVERSATION)

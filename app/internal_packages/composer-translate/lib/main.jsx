@@ -137,8 +137,10 @@ class TranslateButton extends React.Component {
         title="Translate email body…"
       >
         <RetinaImg
+          name="translate.svg"
+          isIcon
           mode={RetinaImg.Mode.ContentIsMask}
-          url="edisonmail://composer-translate/assets/icon-composer-translate@2x.png"
+          style={{ width: 24 }}
         />
         &nbsp;
         <RetinaImg name="icon-composer-dropdown.png" mode={RetinaImg.Mode.ContentIsMask} />

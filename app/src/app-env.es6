@@ -801,6 +801,21 @@ export default class AppEnvConstructor {
     // return callback(remote.dialog.showOpenDialog(this.getCurrentWindow(), options));
     return callback(remote.dialog.showOpenDialog(options));
   }
+  showImageSelectionDialog(cb) {
+    return remote.dialog.showOpenDialog(
+      this.getCurrentWindow(),
+      {
+        properties: ['openFile', 'multiSelections'],
+        filters: [
+          {
+            name: 'Images',
+            extensions: ['jpg', 'bmp', 'gif', 'png', 'jpeg'],
+          },
+        ],
+      },
+      cb
+    );
+  }
 
   showSaveDialog(options, callback) {
     if (options.title == null) {
@@ -935,5 +950,19 @@ export default class AppEnvConstructor {
     Event.prototype.isPropagationStopped = function isPropagationStopped() {
       return this.propagationStopped;
     };
+  }
+  anonymizeAccount (account){
+    const ret = Object.assign({}, account);
+    if(account){
+      const settings = Object.assign({}, ret.settings);
+      delete settings.access_token;
+      delete settings.imap_username;
+      delete settings.smtp_username;
+      ret.settings = settings;
+      delete ret.label;
+      delete ret.name;
+      delete ret.emailAddress;
+    }
+    return ret;
   }
 }

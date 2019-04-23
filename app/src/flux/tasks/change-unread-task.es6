@@ -13,6 +13,11 @@ export default class ChangeUnreadTask extends ChangeMailTask {
     }),
   });
 
+  constructor(props) {
+    super(props);
+    this.canBeUndone = false;
+  }
+
   label() {
     return this.unread ? 'Marking as unread' : 'Marking as read';
   }

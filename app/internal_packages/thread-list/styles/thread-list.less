@@ -2,6 +2,7 @@
 @import 'ui-mixins';
 
 @scrollbar-margin: 8px;
+@read-bg-color: #fbfbfd;
 
 // MIXINS
 
@@ -133,7 +134,7 @@ input:focus {
   }
 
   .list-item {
-    background-color: @white;
+    background-color: @read-bg-color;
     line-height: 55px;
   }
 
@@ -160,10 +161,11 @@ input:focus {
   }
 
   .participants {
-    font-size: @font-size;
+    font-size: @font-size + 1px;
     text-overflow: ellipsis;
     text-align: left;
     overflow: hidden;
+    line-height: 24px;
 
     &.no-recipients {
       color: @text-color-very-subtle;
@@ -176,7 +178,7 @@ input:focus {
     overflow: hidden;
 
     .subject {
-      font-size: @font-size;
+      font-size: @font-size + 1px;
       font-weight: @font-weight-normal;
       padding-right: @padding-base-horizontal;
       text-overflow: ellipsis;
@@ -186,7 +188,7 @@ input:focus {
       flex-shrink: 0.1;
     }
     .snippet {
-      font-size: @font-size;
+      font-size: @font-size + 1px;
       font-weight: @font-weight-normal;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -198,13 +200,18 @@ input:focus {
       margin-left: @padding-base-horizontal;
     }
   }
-
+  .list-column-Participants {
+    padding-left: 0px;
+  }
   .list-column-State {
     display: flex;
     align-items: center;
   }
   .list-column-Date {
     text-align: right;
+    .timestamp {
+      min-width: 30px;
+    }
   }
 
   .timestamp {
@@ -218,7 +225,7 @@ input:focus {
   .unread:not(.focused):not(.selected) {
     background-color: @background-primary;
     &:hover {
-      background: darken(@background-primary, 2%);
+      background: @white;
     }
     .timestamp {
       color: @blue;
@@ -257,7 +264,7 @@ input:focus {
     margin-right: 6px;
   }
   .thread-icon-pencil {
-    background-color: @red;
+    background-color: @gray-light;
     margin: auto;
   }
   .thread-icon {
@@ -285,14 +292,13 @@ input:focus {
       .icon-mixin('../static/icons/menu-unread.svg', @blue, auto);
     }
     &.thread-icon-replied {
-      .icon-mixin('../static/icons/feed-reply.svg', #000);
+      .icon-mixin('../static/icons/feed-reply.svg', @gray-light);
     }
     &.thread-icon-forwarded {
-      .icon-mixin('../static/icons/feed-forward.svg', #000);
+      .icon-mixin('../static/icons/feed-forward.svg', @gray-light);
     }
     &.thread-icon-star {
-      background-size: 16px;
-      background-image: url(../static/images/thread-list/icon-star-@2x.png);
+      .icon-mixin('../static/icons/flag.svg',@orange, 24px);
     }
   }
   .star-button {
@@ -347,7 +353,13 @@ input:focus {
     display: inline-block;
     margin-left: 11px;
     position: relative;
-    img {
+    &.flagged {
+      img.content-mask {
+        background-color: @orange;
+      }
+    }
+    img.content-mask {
+      margin-top: -3px;
        background-color: @gray;
        position: relative;
        z-index: 2;
@@ -358,15 +370,12 @@ input:focus {
         height: 36px;
         width: 36px;
         border-radius: 50%;
-        background: @source-list-active-bg;
+        background: @off-white;
         display: block;
         position: absolute;
-        top: 11px;
+        top: 10px;
         left: -6px;
         animation: growUp 0.4s;
-      }
-      img {
-        background-color: @blue;
       }
       @keyframes growUp {
         from {
@@ -377,6 +386,14 @@ input:focus {
           opacity: 1;
           transform: scale(1);
         }
+      }
+    }
+    &:active {
+      &:after {
+        background: @extra-light-grey;
+      }
+      img {
+        background-color: @dark-grey;
       }
     }
   }
@@ -445,9 +462,9 @@ body.platform-win32 {
     @white 50%,
     @white 100%
   );
-  .action {
-    -webkit-filter: brightness(300%);
-  }
+  // .action {
+  //   -webkit-filter: brightness(300%);
+  // }
   .action.action-archive {
     //background: url(@archive-img) center no-repeat;
   }
@@ -462,14 +479,13 @@ body.platform-win32 {
 // stars
 
 .thread-list .thread-icon-star:hover {
-  background-image: url(../static/images/thread-list/icon-star-@2x.png);
-  background-size: 16px;
   -webkit-filter: brightness(90%);
 }
 // quanzs comment out
 .mode-split {
   .thread-list .list-item .thread-icon-none {
     width: 0;
+    height: 0;
     // transition-duration: 0.4s;
   }
   // .thread-list .list-item:hover .thread-icon-none {
@@ -488,8 +504,12 @@ body.platform-win32 {
   visibility: inherit;
 }
 .thread-list .thread-icon-star-on-hover:hover {
-  background-image: url(../static/images/thread-list/icon-star-hover-@2x.png);
-  background-size: 16px;
+  -webkit-mask-image: url(../static/icons/flag.svg);
+  -webkit-mask-size: 16px 16px;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  background-color: @gray;
+  -webkit-filter: brightness(150%);
 }
 
 .thread-list .avatar-icon {
@@ -503,6 +523,10 @@ body.platform-win32 {
 }
 
 .thread-list-narrow {
+  .list-tabular .selection-bar .multiselect-toolbar-root .inner .checkmark {
+    width: 66px;
+    margin-right: 3px;
+  }
   .icons-column {
     display: flex;
     flex-direction: column;
@@ -542,16 +566,14 @@ body.platform-win32 {
     border: none;
   }
 
-  .list-tabular-item:not(.selected):not(.focused):not(.next-is-selected) {
-    :after {
-      content: "";
-      background: @border-color-divider;
-      position: absolute;
-      bottom: 0;
-      left: 0%;
-      height: 1px;
-      width: 100%;
-    }
+  .list-tabular-item:not(.selected):not(.focused):not(.next-is-selected):after {
+    content: "";
+    background: @border-color-divider;
+    position: absolute;
+    bottom: 0;
+    left: 0%;
+    height: 1px;
+    width: 100%;
   }
 
   .timestamp {
@@ -577,19 +599,33 @@ body.platform-win32 {
     text-overflow: ellipsis;
     text-align: left;
     color: @black;
-    opacity: 0.7;
     margin-right: @scrollbar-margin;
+    padding-right: 20px;
+    position: relative;
+    span {
+      opacity: 0.7;
+    }
+    .thread-icon {
+      position: absolute;
+      right: 4px;
+      top: 0;
+      width: 20px;
+      -webkit-mask-size: 18px;
+    }
   }
   .snippet-and-labels {
     margin-right: @scrollbar-margin;
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     overflow: hidden;
 
     .mail-label {
       font-size: 0.8em;
       line-height: 17px;
-      margin: 1px 0;
+      margin: 1px 1px 0 0;
+      &:after {
+        visibility: hidden;
+      }
     }
 
     .snippet {
@@ -607,6 +643,19 @@ body.platform-win32 {
       display: -webkit-box;
       -webkit-box-orient: vertical;
     }
+    .icons {
+      height: 42px;
+      width: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      .thread-icon-unread {
+        display: none;
+      }
+      .mail-important-icon {
+        margin-bottom: -1px;
+      }
+    }
   }
 }
 
@@ -614,7 +663,7 @@ body.platform-win32 {
 
 .thread-list.handler-split {
   .list-item {
-    &.selected {
+    &.selected:not(:hover) {
       background: @list-focused-bg;
       color: @list-focused-color;
       border-right: 0;
@@ -624,13 +673,13 @@ body.platform-win32 {
   .list-item.selected:hover .list-column-HoverActions .inner {
     background-image: -webkit-linear-gradient(
       left,
-      fade(@list-focused-bg, 0%) 0%,
-      @list-focused-bg 50%,
-      @list-focused-bg 100%
+      fade(@white, 0%) 0%,
+      @white 50%,
+      @white 100%
     );
-    .action {
-      -webkit-filter: brightness(300%);
-    }
+    // .action {
+    //   -webkit-filter: brightness(300%);
+    // }
     .action.action-archive {
       //background: url(@archive-img) center no-repeat;
     }
@@ -645,8 +694,8 @@ body.platform-win32 {
 body.is-blurred {
   .thread-list.handler-split {
     .list-item {
-      &.selected {
-        background: fadeout(desaturate(@list-focused-bg, 100%), 65%);
+      &.selected:not(:hover) {
+        background: @list-focused-bg;
         color: @text-color;
       }
     }

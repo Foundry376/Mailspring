@@ -22,8 +22,9 @@ import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
-import {isImageFilePath} from '../../../utils/stringUtils';
+import { isImageFilePath } from '../../../utils/stringUtils';
 import { sendFileMessage } from '../../../utils/message';
+import { sendCmd2App2, getMyAppByShortName, getToken } from '../../../utils/appmgt';
 
 var thumb = require('node-thumbnail').thumb;
 const FAKE_SPACE = '\u00A0';
@@ -161,13 +162,45 @@ export default class MessagesSendBar extends PureComponent {
     }
     return atJids;
   }
-
+  sendCommand2App(userId, app, command, peerUserId, roomId) {
+    let { id, commandType } = app;
+    let userName = '';
+    getToken(userId).then(token => {
+      // if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
+      //console.log("yazz-test", userId, id, commandType, command, peerUserId, roomId);
+      if (command) {
+        sendCmd2App2(userId, userName, token, id, command, peerUserId, roomId, (err, data) => {
+          console.log(err, data);
+        });
+      }
+    })
+  }
   sendMessage() {
     let { messageBody, occupants } = this.state;
-    messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
     const { selectedConversation, onMessageSubmitted } = this.props;
     const atIndex = selectedConversation.jid.indexOf('@')
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
+
+    if (messageBody.indexOf('/') == 0) {
+      console.log(selectedConversation)
+      let peerUserId, roomId;
+      let appName = messageBody.split(' ')[0].substring(1);
+      let curJidLocal = selectedConversation.curJid.slice(0, selectedConversation.curJid.indexOf('@'));
+      let app = getMyAppByShortName(curJidLocal, appName);
+      if (app && app.length > 0) {
+        if (selectedConversation.isGroup) {
+          roomId = jidLocal;
+        } else {
+          peerUserId = jidLocal;
+        }
+        console.log(app);
+        this.sendCommand2App(curJidLocal, app[0], messageBody, peerUserId, roomId);
+        this.setState({ messageBody: '', files: [] });
+        return;
+      }
+    }
+
+    messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
 
     if (!selectedConversation) {
       return;

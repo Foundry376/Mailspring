@@ -2,7 +2,7 @@
 /* eslint jsx-a11y/tabindex-no-positive:0 */
 
 import _ from 'underscore';
-import { Utils } from 'mailspring-exports';
+import { Utils, AccountStore } from 'mailspring-exports';
 import classnames from 'classnames';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
@@ -287,21 +287,24 @@ class OutlineViewItem extends Component {
     menu.popup({});
   };
 
-  // Renderers
+  _formatNumber(num) {
+    return num && num.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
+  }
 
-  _renderCount(item = this.props.item) {
-    if (!item.count) {
+  // Renderers
+  _renderCount = (item = this.props.item) => {
+    if (!item.count || item.iconName === 'sent.svg') {
       return <span />;
     }
     const className = classnames({
       'item-count-box': true,
       'alt-count': item.counterStyle === CounterStyles.Alt,
     });
-    return <div className={className}>{item.count}</div>;
+    return <div className={className}>{this._formatNumber(item.count)}</div>;
   }
 
   _renderIcon(item = this.props.item) {
-    const styles = { width: 16, height: 16 };
+    const styles = { width: 24, height: 24 };
     if (item.bgColor) {
       styles.backgroundColor = item.bgColor;
     }
@@ -319,6 +322,9 @@ class OutlineViewItem extends Component {
   }
 
   _renderItemContent(item = this.props.item, state = this.state) {
+    if (this.props.provider === 'aol' && item.name === 'Bulk Mail') {
+      item.displayName = item.name = 'Spam';
+    }
     if (state.editing) {
       const placeholder = item.inputPlaceholder || '';
       return (
@@ -368,10 +374,14 @@ class OutlineViewItem extends Component {
   }
 
   _renderChildren(item = this.props.item) {
+    let acc = {};
+    if (item.accountIds && item.accountIds.length === 1) {
+      acc = AccountStore.accountForId(item.accountIds[0]);
+    }
     if (item.children.length > 0 && !item.collapsed) {
       return (
         <section className="item-children" key={`${item.id}-children`}>
-          {item.children.map(child => <OutlineViewItem key={child.id} item={child} />)}
+          {item.children.map(child => <OutlineViewItem key={child.id} provider={acc.provider} item={child} />)}
         </section>
       );
     }

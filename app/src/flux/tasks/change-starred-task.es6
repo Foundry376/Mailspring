@@ -13,6 +13,11 @@ export default class ChangeStarredTask extends ChangeMailTask {
     }),
   });
 
+  constructor(props) {
+    super(props);
+    this.canBeUndone = false;
+  }
+
   label() {
     return this.starred ? 'Starring' : 'Unstarring';
   }

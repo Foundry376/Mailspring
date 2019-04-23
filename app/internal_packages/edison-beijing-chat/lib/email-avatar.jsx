@@ -1,6 +1,8 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
 import { gradientColorForString } from '../chat-components/utils/colors';
+import { getAvatarPromise, getLogo } from '../chat-components/utils/restjs';
+
 
 export default class EmailAvatar extends Component {
   static displayName = 'EmailAvatar';
@@ -21,19 +23,41 @@ export default class EmailAvatar extends Component {
     }
 
     this.state = {
-      name: (from.name || from.email || ' ').substring(0, 1).toUpperCase(),
-      bgColor: gradientColorForString(from.email || '')
+      name: (from.name || from.email || ' ')
+        .trim()
+        .substring(0, 1)
+        .toUpperCase(),
+      bgColor: gradientColorForString(from.email || ''),
+      email: from.email,
+      hasImage: false
+    }
+    this._mounted = false;
+  }
+  componentDidMount = async () => {
+    this._mounted = true;
+    if (this.state.email) {
+      const avatarUrl = await getLogo(this.state.email);
+      if (avatarUrl && this._mounted) {
+        this && this.setState({
+          bgColor: `url('${avatarUrl}')`,
+          hasImage: true
+        });
+      }
     }
   }
+  componentWillUnmount() {
+    this._mounted = false;
+  }
+
   render() {
-    const { name, bgColor } = this.state;
-    let styles = { background: bgColor };
+    const { name, bgColor, hasImage } = this.state;
+    let styles = { backgroundImage: bgColor, backgroundPosition: 'center', backgroundSize: 'cover' };
     if (this.props.styles) {
       styles = Object.assign(styles, this.props.styles);
     }
     return (
       <div className="avatar-icon" style={styles}>
-        {name}
+        {!hasImage ? name : null}
       </div>
     )
   }

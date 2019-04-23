@@ -69,6 +69,11 @@ export default class Message extends ModelWithMetadata {
   static ReplyDraft = 3;
   static ForwardDraft = 4;
   static ReplyAllDraft = 5;
+  static messageState = {
+    normal: '0',
+    deleted: '1',
+    saving: '2'
+  };
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
     // load id column into json
     id: Attributes.String({
@@ -197,8 +202,11 @@ export default class Message extends ModelWithMetadata {
       modelKey: 'folder',
       itemClass: Folder,
     }),
+    //DC-265 State attributes must be Number, but actual value must be string, otherwise all kinds of error
     state: Attributes.Number({
       modelKey: 'state',
+      jsonKey: 'state',
+      loadFromColumn: true,
       queryable: true,
     }),
     msgOrigin: Attributes.Number({
@@ -422,7 +430,10 @@ export default class Message extends ModelWithMetadata {
     return this.body.replace(re, '').length === 0;
   }
   isDeleted() {
-    return this.state === 1;
+    return this.state === Message.messageState.deleted;
+  }
+  isDraftSaving(){
+    return this.state === Message.messageState.saving && this.draft
   }
 
   isHidden() {
@@ -437,5 +448,8 @@ export default class Message extends ModelWithMetadata {
   }
   setOrigin(val) {
     this.msgOrigin = val;
+  }
+  isNewDraft() {
+    return this.msgOrigin === Message.NewDraft;
   }
 }

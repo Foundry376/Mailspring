@@ -21,9 +21,15 @@ export default class SignatureComposerDropdown extends React.Component {
 
     this._staticIcon = (
       <RetinaImg
-        className="signature-button"
-        name="top-signature-dropdown.png"
+        name="signature.svg"
+        isIcon
         mode={RetinaImg.Mode.ContentIsMask}
+        style={{
+          width: 30,
+          display: 'inline-block',
+          marginRight: -3,
+          marginTop: -4
+        }}
       />
     );
     this._staticHeaderItems = [

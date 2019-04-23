@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Flexbox, RetinaImg, LottieImg } from 'mailspring-component-kit';
+import { RetinaImg, LottieImg } from 'mailspring-component-kit';
 import {
   Actions,
   SyncbackCategoryTask,
-  ChangeFolderTask,
   TaskFactory,
   TaskQueue,
   Folder,
@@ -38,8 +37,8 @@ export default class CreateNewFolderPopover extends Component {
     this._buttonTimestamp = 0;
   }
   componentWillMount() {
-    if(this.props.defaultValue && this.props.defaultValue.length>0){
-      this.setState({newName: this.props.defaultValue});
+    if (this.props.defaultValue && this.props.defaultValue.length > 0) {
+      this.setState({ newName: this.props.defaultValue });
     }
   }
 
@@ -152,7 +151,7 @@ export default class CreateNewFolderPopover extends Component {
         disabled={this.state.newName.length === 0} onClick={this._onCreateCategory}>
         {(this.state.isBusy || this._buttonTimer) ?
           <LottieImg name={'loading-spinner-white'}
-                     height={24} width={24}
+            height={24} width={24}
             style={{ width: 24, height: 24 }} /> :
           <span>Create Folder</span>}
       </button>

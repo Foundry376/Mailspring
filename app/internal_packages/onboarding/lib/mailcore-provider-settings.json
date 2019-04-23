@@ -1302,5 +1302,28 @@
 			"sentmail": "Sent Items",
 			"trash": "Deleted Items"
 		}
+	},
+	"att": {
+		"servers": {
+			"imap": [{
+				"port": 993,
+				"hostname": "imap.mail.att.net",
+				"ssl": true
+			}],
+			"smtp": [{
+				"port": 587,
+				"hostname": "smtp.mail.att.net",
+				"starttls": true
+			}]
+		},
+		"domain-match": [
+			"att\\.net"
+		],
+		"mailboxes": {
+			"drafts": "Drafts",
+			"spam": "Spam",
+			"sentmail": "Sent",
+			"trash": "Trash"
+		}
 	}
 }

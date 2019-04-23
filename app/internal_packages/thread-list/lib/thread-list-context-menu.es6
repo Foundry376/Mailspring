@@ -6,6 +6,7 @@ import {
   Message,
   TaskFactory,
   DatabaseStore,
+  MessageStore,
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
@@ -96,8 +97,9 @@ export default class ThreadListContextMenu {
       return null;
     }
 
-    return DatabaseStore.findBy(Message, { threadId: this.threadIds[0] })
-      .order(Message.attributes.date.descending())
+    // return DatabaseStore.findBy(Message, { threadId: this.threadIds[0], state: 0 })
+    //   .order(Message.attributes.date.descending())
+    return MessageStore.findByThreadIdInDescendingOrder({threadId: this.threadIds[0]})
       .limit(1)
       .then(message => {
         if (message && message.canReplyAll()) {

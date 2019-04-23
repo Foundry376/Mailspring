@@ -66,7 +66,7 @@ export default class AccountContactField extends React.Component {
 
   _renderAccountSpan = label => {
     return (
-      <span className="from-single-name" style={{ position: 'relative', top: 13, left: '0.5em' }}>
+      <span className="from-single-name" style={{ position: 'relative', top: 11, left: '0.5em' }}>
         {label}
       </span>
     );

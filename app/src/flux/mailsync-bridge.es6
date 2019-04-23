@@ -80,6 +80,8 @@ class CrashTracker {
 
   _appendCrashToHistory(fullAccountJSON) {
     const key = this._keyFor(fullAccountJSON);
+    console.log(`mailsync crashed for account: ${key}`);
+    AppEnv.debugLog(`mailsync crashed for account: ${key}`);
     this._timestamps[key] = this._timestamps[key] || [];
     if (this._timestamps[key].unshift(Date.now()) > MAX_CRASH_HISTORY) {
       this._timestamps[key].length = MAX_CRASH_HISTORY;
@@ -114,6 +116,7 @@ export default class MailsyncBridge {
     Actions.fetchBodies.listen(this._onFetchBodies, this);
     Actions.syncFolders.listen(this._onSyncFolders, this);
     Actions.setObservableRange.listen(this._onSetObservableRange, this);
+    Actions.debugFakeNativeMessage.listen(this.fakeEmit, this);
     ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
     ipcRenderer.on('thread-close-window', this._onNewWindowClose);
 
@@ -501,6 +504,21 @@ export default class MailsyncBridge {
       );
     }
   };
+  _recordErrorToConsole = task => {
+    if (task && task.accountId) {
+      const accounts = AppEnv.config.get('accounts');
+      let errorAccount = {};
+      if (Array.isArray(accounts)) {
+        for (let acc of accounts) {
+          if (acc.id === task.aid || acc.id === task.accountId) {
+            errorAccount = AppEnv.anonymizeAccount(acc);
+            break;
+          }
+        }
+      }
+      console.error(`TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`);
+    }
+  };
 
   _onIncomingChangeRecord = record => {
     DatabaseStore.trigger(record);
@@ -511,12 +529,14 @@ export default class MailsyncBridge {
       for (const task of record.objects) {
         if (task.error != null) {
           task.onError(task.error);
+          this._recordErrorToConsole(task);
         }
         if (task.status !== 'complete') {
           continue;
         }
         if (task.error != null) {
           task.onError(task.error);
+          this._recordErrorToConsole(task);
         } else {
           task.onSuccess();
         }

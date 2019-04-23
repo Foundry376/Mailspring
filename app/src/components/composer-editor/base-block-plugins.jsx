@@ -52,6 +52,27 @@ function toggleBlockTypeWithBreakout(value, change, type) {
   return change;
 }
 
+function shouldBeRemoved(value) {
+  const listTypes = ['ol_list', 'ul_list', 'code', 'blockquote'];
+  const focusKey = value.focusKey;
+  if (!focusKey) {
+    return false;
+  }
+  const parentNode = value.document.getFurthestAncestor(focusKey);
+  if (!parentNode) {
+    return false;
+  }
+  return listTypes.includes(parentNode.type);
+}
+function toggleList(value, activated, type){
+  if(activated){
+    return EditListPlugin.changes.unwrapList(value.change());
+  }else{
+    let changes = EditListPlugin.changes.unwrapList(value.change());
+    return EditListPlugin.changes.wrapInList(changes, type);
+  }
+}
+
 export const BLOCK_CONFIG = {
   div: {
     type: 'div',
@@ -90,7 +111,9 @@ export const BLOCK_CONFIG = {
         return isBlockTypeOrWithinType(value, BLOCK_CONFIG.blockquote.type);
       },
       onToggle: (value, active) => {
-        return toggleBlockTypeWithBreakout(value, value.change(), BLOCK_CONFIG.blockquote.type);
+        return active
+          ? value.change().setBlock(BLOCK_CONFIG.div.type)
+          : value.change().setBlock(BLOCK_CONFIG.blockquote.type).moveToEnd().insertBlock(BLOCK_CONFIG.div.type);
       },
     },
   },
@@ -101,7 +124,7 @@ export const BLOCK_CONFIG = {
       <code {...props.attributes}>
         <pre
           style={{
-            backgroundColor: `rgba(0,0,0,0.05)`,
+            backgroundColor: `rgba(0, 0, 0, 0.05)`,
             padding: `0.2em 1em`,
           }}
         >
@@ -116,7 +139,7 @@ export const BLOCK_CONFIG = {
       onToggle: (value, active) =>
         active
           ? value.change().setBlock(BLOCK_CONFIG.div.type)
-          : value.change().setBlock(BLOCK_CONFIG.code.type),
+          : value.change().setBlock(BLOCK_CONFIG.code.type).moveToEnd().insertBlock(BLOCK_CONFIG.div.type),
     },
   },
   ol_list: {
@@ -129,10 +152,7 @@ export const BLOCK_CONFIG = {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ol_list.type;
       },
-      onToggle: (value, active) =>
-        active
-          ? EditListPlugin.changes.unwrapList(value.change())
-          : EditListPlugin.changes.wrapInList(value.change(), BLOCK_CONFIG.ol_list.type),
+      onToggle: (value, active) => toggleList(value, active, BLOCK_CONFIG.ol_list.type)
     },
   },
   ul_list: {
@@ -145,10 +165,7 @@ export const BLOCK_CONFIG = {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ul_list.type;
       },
-      onToggle: (value, active) =>
-        active
-          ? EditListPlugin.changes.unwrapList(value.change())
-          : EditListPlugin.changes.wrapInList(value.change(), BLOCK_CONFIG.ul_list.type),
+      onToggle: (value, active) => toggleList(value, active, BLOCK_CONFIG.ul_list.type),
     },
   },
   list_item: {
@@ -343,7 +360,7 @@ export default [
 
   // Return creates soft newlines in code blocks
   SoftBreak({
-    onlyIn: [BLOCK_CONFIG.code.type],
+    onlyIn: [BLOCK_CONFIG.code.type, BLOCK_CONFIG.blockquote.type],
   }),
 
   // Pressing backspace when you're at the top of the document should not delete down
@@ -352,9 +369,15 @@ export default [
       if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
         return;
       }
-      const { focusText, focusOffset, document } = change.value;
+      const { focusText, focusOffset, document, selection } = change.value;
       const firstText = document.getFirstText();
       if (focusOffset === 0 && focusText && firstText && firstText.key === focusText.key) {
+        if (selection.startOffset !== selection.endOffset) {
+          return;
+        }
+        if (shouldBeRemoved(change.value)) {
+          return;
+        }
         event.preventDefault();
         return true;
       }
@@ -373,7 +396,7 @@ export default [
       if (!isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.blockquote.type)) {
         return;
       }
-      toggleBlockTypeWithBreakout(change.value, change, BLOCK_CONFIG.blockquote.type);
+      // toggleBlockTypeWithBreakout(change.value, change, BLOCK_CONFIG.blockquote.type);
       event.preventDefault(); // since this inserts a newline
       return change;
     },

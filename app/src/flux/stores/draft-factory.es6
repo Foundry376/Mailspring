@@ -52,9 +52,10 @@ class DraftFactory {
     };
 
     const merged = Object.assign(defaults, fields);
-    if(merged.forwardedHeaderMessageId){
+    if (merged.forwardedHeaderMessageId) {
       merged.referenceMessageId = merged.forwardedHeaderMessageId;
-    }else{
+      delete merged.forwardedHeaderMessageId;
+    } else {
       merged.referenceMessageId = merged.replyToHeaderMessageId;
     }
 
@@ -68,7 +69,8 @@ class DraftFactory {
 
     return new Message(merged);
   }
-  async copyDraftToAccount(draft, from){
+
+  async copyDraftToAccount(draft, from) {
     const uniqueId = uuid();
     const account = AccountStore.accountForEmail(from[0].email);
     if (!account) {
@@ -129,7 +131,7 @@ class DraftFactory {
     // URL encoded. (In the above example, decoding the body would cause the URL
     // to fall apart.)
     //
-    const query = {msgOrigin: Message.NewDraft};
+    const query = { msgOrigin: Message.NewDraft };
     query.to = to;
 
     const querySplit = /[&|?](subject|body|cc|to|from|bcc)+\s*=/gi;
@@ -208,9 +210,9 @@ class DraftFactory {
         <br/>
         <br/>
         <div class="gmail_quote_attribution">${DOMUtils.escapeHTMLCharacters(
-        message.replyAttributionLine()
+        message.replyAttributionLine(),
       )}</div>
-        <blockquote class="gmail_quote"
+        <blockquote class="gmail_quote" data-edison="true"
           style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">
           ${prevBody}
           <br/>
@@ -239,7 +241,7 @@ class DraftFactory {
       files: message.files,
       threadId: thread.id,
       accountId: message.accountId,
-      referenceMessageId: message.headerMessageId,
+      forwardedHeaderMessageId: message.headerMessageId,
       msgOrigin: Message.ForwardDraft,
       body: `
         <br/>
@@ -261,12 +263,16 @@ class DraftFactory {
     let replyToHeaderMessageId = threadMessageId;
 
     if (!replyToHeaderMessageId) {
-      const msg = await DatabaseStore.findBy(Message, {
-        accountId: thread.accountId,
+      // const msg = await DatabaseStore.findBy(Message, {
+      //   accountId: thread.accountId,
+      //   threadId: thread.id,
+      //   state: 0,
+      // })
+      //   .order(Message.attributes.date.descending())
+      const msg = await MessageStore.findByThreadIdAndAccountIdInDesecndingOrder({
         threadId: thread.id,
-      })
-        .order(Message.attributes.date.descending())
-        .limit(1);
+        accountId: thread.accountId,
+      }).limit(1);
       replyToHeaderMessageId = (msg && msg.headerMessageId) || '';
     }
 
@@ -291,10 +297,10 @@ class DraftFactory {
     const messages =
       message.threadId === MessageStore.threadId()
         ? MessageStore.items()
-        : await DatabaseStore.findAll(Message, { threadId: message.threadId });
+        : await MessageStore.findAllByThreadId({ threadId: message.threadId });
 
     const candidateDrafts = messages.filter(
-      other => other.replyToHeaderMessageId === message.headerMessageId && other.draft === true
+      other => other.replyToHeaderMessageId === message.headerMessageId && other.draft === true,
     );
 
     if (candidateDrafts.length === 0) {
@@ -308,8 +314,8 @@ class DraftFactory {
       DraftStore = DraftStore || require('./draft-store').default;
       const sessions = await Promise.all(
         candidateDrafts.map(candidateDraft =>
-          DraftStore.sessionForClientId(candidateDraft.headerMessageId)
-        )
+          DraftStore.sessionForClientId(candidateDraft.headerMessageId),
+        ),
       );
       for (const session of sessions) {
         if (session.draft().pristine) {

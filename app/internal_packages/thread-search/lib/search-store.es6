@@ -1,6 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import { Actions, AccountStore, FocusedPerspectiveStore } from 'mailspring-exports';
-
+import _ from 'underscore';
 import SearchMailboxPerspective from './search-mailbox-perspective';
 
 // Stores should closely match the needs of a particular part of the front end.
@@ -44,14 +44,14 @@ class SearchStore extends MailspringStore {
   };
 
   _onQueryChanged = query => {
-    this._searchQuery = query;
-    this.trigger();
+    if (query !== this._searchQuery) {
+      this._searchQuery = query;
+      this.trigger();
+      this._processAndSubmitQuery();
+    }
   };
 
-  _onQuerySubmitted = query => {
-    this._searchQuery = query;
-    this.trigger();
-
+  _processAndSubmitQuery = _.throttle(() => {
     const current = FocusedPerspectiveStore.current();
 
     if (this.queryPopulated()) {
@@ -68,6 +68,14 @@ class SearchStore extends MailspringStore {
       } else {
         Actions.focusDefaultMailboxPerspectiveForAccounts(AccountStore.accounts());
       }
+    }
+  }, 500);
+
+  _onQuerySubmitted = query => {
+    if (query !== this._searchQuery) {
+      this._searchQuery = query;
+      this.trigger();
+      this._processAndSubmitQuery();
     }
   };
 }

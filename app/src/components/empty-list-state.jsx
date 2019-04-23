@@ -76,10 +76,12 @@ class EmptyInboxState extends React.Component {
     return (
       <div className="inbox-zero-animation">
         <div className="animation-wrapper" style={style}>
-          <iframe
+          {/* <iframe
             title="animation"
             src={`animations/inbox-zero/${animationName}/${animationName}.html`}
           />
+          <div className="message">Hooray! You’re done.</div> */}
+          <RetinaImg name={`ic-emptystate-${name}.png`} fallback={`nomail.png`} mode={RetinaImg.Mode.ContentPreserve} />
           <div className="message">Hooray! You’re done.</div>
         </div>
       </div>

@@ -14,7 +14,7 @@ import InviteGroupChatList from '../new/InviteGroupChatList';
 import xmpp from '../../../xmpp/index';
 import chatModel, { saveToLocalStorage } from '../../../store/model';
 import getDb from '../../../db';
-import { downloadFile, uploadFile, uploadProgressly } from '../../../utils/awss3';
+import { downloadFile, uploadFile } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
@@ -141,6 +141,21 @@ export default class MessagesPanel extends PureComponent {
     window.removeEventListener("offline", this.offLine);
   }
 
+  _getTokenByCurJid = async () => {
+    const { selectedConversation } = this.props;
+    let currentUserId = selectedConversation && selectedConversation.curJid;
+    if (currentUserId) {
+      currentUserId = currentUserId.split('@')[0];
+      const chatAccounts = AppEnv.config.get('chatAccounts');
+      for (const email in chatAccounts) {
+        if (chatAccounts[email].userId === currentUserId) {
+          return await keyMannager.getAccessTokenByEmail(email);
+        }
+      }
+    }
+    return null;
+  }
+
   getEmailContacts = async () => {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
@@ -192,14 +207,18 @@ export default class MessagesPanel extends PureComponent {
     if (!this.props.chat_online) {
       this.reconnect();
     }
+    const progress = Object.assign({}, this.state.progress, { offline: false });
     this.setState({
-      online: true
+      online: true,
+      progress,
     })
   }
 
   offLine = () => {
+    const progress = Object.assign({}, this.state.progress, { offline: true, failed: true });
     this.setState({
-      online: false
+      online: false,
+      progress,
     })
   }
 
@@ -376,17 +395,24 @@ export default class MessagesPanel extends PureComponent {
   loadIndex = 0;
 
   queueLoadMessage = (loadConfig) => {
-    // console.log('dbg*** queueLoadMessage: ', loadConfig);
     this.loadQueue = this.loadQueue || [];
     this.loadQueue.push(loadConfig);
     if (!this.loading) {
-      this.loadMessageFile();
+      this.loadMessage();
     }
   };
 
-  cancelLoadMessageFile = () => {
+  retryLoadMessage = () => {
+    const progress = Object.assign({}, this.state.progress, { failed: false });
+    const state = Object.assign({}, this.state, { progress });
+    this.setState(state);
+    setTimeout(() => {
+      this.loadMessage();
+    })
+  };
+
+  cancelLoadMessage = () => {
     const loadConfig = this.loadQueue[this.loadIndex];
-    // console.log('dbg*** cancelLoadMessageFile: ', loadConfig, this.loadQueue);
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
       loadConfig.request.abort();
     }
@@ -396,9 +422,10 @@ export default class MessagesPanel extends PureComponent {
     const progress = { loadQueue: this.loadQueue };
     const state = Object.assign({}, this.state, { progress });
     this.setState(state);
+    clearInterval(this.loadTimer);
   }
 
-  loadMessageFile = () => {
+  loadMessage = () => {
     this.loading = true;
     const loadConfig = this.loadQueue[this.loadIndex];
     const { msgBody, filepath } = loadConfig;
@@ -408,15 +435,15 @@ export default class MessagesPanel extends PureComponent {
 
     const loadCallback = (...args) => {
       const loadConfig = this.loadQueue[this.loadIndex];
-      // console.log('dbg*** loadCallback: ', loadConfig);
       this.loadIndex++;
       if (this.loadIndex === this.loadQueue.length) {
         const progress = Object.assign({}, this.state.progress, { loadQueue: this.loadQueue, loadIndex: this.loadIndex });
         const state = Object.assign({}, this.state, { progress });
         this.setState(state);
         this.loading = false;
+        clearInterval(this.loadTimer);
       } else {
-        this.loadMessageFile();
+        this.loadMessage();
       }
       if (loadConfig.type === 'upload') {
         const onMessageSubmitted = this.props.sendMessage;
@@ -427,7 +454,6 @@ export default class MessagesPanel extends PureComponent {
         body.type = FILE_TYPE.OTHER_FILE;
         body.isUploading = false;
         body.mediaObjectId = myKey;
-        // console.log('dbg*** before onMessageSubmitted body: ', body);
         body = JSON.stringify(body);
         if (err) {
           console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
@@ -449,20 +475,18 @@ export default class MessagesPanel extends PureComponent {
     }
 
     const loadProgressCallback = progress => {
-      const {loaded, total} = progress;
-      // console.log('dbg*** loadProgressCallback: ', loaded, total);
-      const percent = Math.floor(+loaded*100.0/(+total));
+      const { loaded, total } = progress;
+      const percent = Math.floor(+loaded * 100.0 / (+total));
       progress = Object.assign({}, this.state.progress, { percent });
       const state = Object.assign({}, this.state, { progress });
       this.setState(state);
     }
-    // console.log('dbg*** loadMessageFile: ', loadConfig, msgBody);
-    if ( loadConfig.type === 'upload') {
+    if (loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
-      uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
-    } else if (msgBody.path && msgBody.path.match(/^file:\/\//)) {
+      loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
+    } else if (msgBody.path && !msgBody.path.match(/^((http:)|(https:))/)) {
       // the file is an image and it has been downloaded to local while the message was received
       let imgpath = msgBody.path.replace('file://', '');
       fs.copyFileSync(imgpath, filepath);
@@ -496,6 +520,18 @@ export default class MessagesPanel extends PureComponent {
         });
       });
     }
+
+    if (this.loadTimer) {
+      clearInterval(this.loadTimer);
+    }
+    this.loadTimer = setInterval(() => {
+      const loadConfig = this.loadQueue[this.loadIndex];
+      if (loadConfig && loadConfig.request && loadConfig.request.failed) {
+        const progress = Object.assign({}, this.state.progress, { failed: true });
+        const state = Object.assign({}, this.state, { progress });
+        this.setState(state);
+      }
+    }, 10000);
   }
 
   installApp = async (e) => {

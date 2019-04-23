@@ -43,7 +43,7 @@ export default class AutoUpdateManager extends EventEmitter {
       params.platform = 'mac';
     }
 
-    let host = process.env.updateServer || `https://cp.stag.easilydo.cc:8000/ota/api/checkUpdate`;
+    let host = process.env.updateServer || `https://cp.stag.easilydo.cc/api/ota/checkUpdate`;
     this.feedURL = `${host}?platform=desktop-${params.platform}-full&clientVersion=${this.version}`;
     if (autoUpdater) {
       autoUpdater.setFeedURL(this.feedURL);

@@ -48,8 +48,10 @@ export default class Thread extends ModelWithMetadata {
     }),
 
     unread: Attributes.Boolean({
-      queryable: true,
       modelKey: 'unread',
+      jsonKey: 'unread',
+      queryable: true,
+      loadFromColumn: true,
     }),
 
     starred: Attributes.Boolean({
@@ -140,8 +142,9 @@ export default class Thread extends ModelWithMetadata {
 
   async messages({ includeHidden } = {}) {
     const messages = await DatabaseStore.findAll(Message)
-      .where({ threadId: this.id, state: 0 })
+      .where({ threadId: this.id}).where([Message.attributes.state.in([Message.messageState.saving, Message.messageState.normal])])
       .include(Message.attributes.body);
+
     if (!includeHidden) {
       return messages.filter(message => !message.isHidden());
     }

@@ -1,4 +1,4 @@
-import { Utils, WorkspaceStore, ThreadCountsStore, FocusedPerspectiveStore, CategoryStore } from 'mailspring-exports';
+import { Utils, WorkspaceStore, ThreadCountsStore, FocusedPerspectiveStore, CategoryStore, Label } from 'mailspring-exports';
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
@@ -18,6 +18,7 @@ class MultiselectToolbar extends Component {
 
   static propTypes = {
     toolbarElement: PropTypes.element.isRequired,
+    onEmptyButtons: PropTypes.element,
     collection: PropTypes.string.isRequired,
     onClearSelection: PropTypes.func.isRequired,
     selectionCount: PropTypes.node,
@@ -87,8 +88,15 @@ class MultiselectToolbar extends Component {
     })
   }
 
+  _clearSelection = () => {
+    this.props.onClearSelection();
+    this.setState({
+      selectAll: true
+    })
+  }
+
   renderToolbar() {
-    const { toolbarElement, onClearSelection, dataSource, selectionCount } = this.props;
+    const { toolbarElement, dataSource, selectionCount, onEmptyButtons } = this.props;
     const mode = WorkspaceStore.layoutMode();
     let totalCount = 0;
     if (dataSource) {
@@ -106,8 +114,11 @@ class MultiselectToolbar extends Component {
       if (current.name !== 'Unread') {
         threadCounts = ThreadCountsStore.totalCountForCategoryId(current._categories[0].id);
       }
-      const category = CategoryStore.byId(current._categories[0].accountId, current._categories[0].id);
-      lastUpdate = category.updatedAt;
+      let category = CategoryStore.byId(current._categories[0].accountId, current._categories[0].id);
+      if (category instanceof Label) {
+        category = CategoryStore.getCategoryByRole(current._categories[0].accountId, 'all');
+      }
+      lastUpdate = category ? category.updatedAt : '';
     }
     return (
       <div className="multiselect-toolbar-root" key="absolute">
@@ -115,23 +126,33 @@ class MultiselectToolbar extends Component {
           <div className={'checkmark' + (isSelectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
           {
             selectionCount > 0 ? (
-              <div style={{ display: 'flex' }}>
+              <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
                 <div className="selection-label">{this.selectionLabel()}</div>
                 <button className="btn btn-toggle-select-all" onClick={this.selectAll}>
                   Select all {this._formatNumber(totalCount)}
                 </button>
-                <button className="btn btn-clear-all" onClick={onClearSelection}>
+                <button className="btn btn-clear-all" onClick={this._clearSelection}>
                   Clear Selection
                 </button>
+                {WorkspaceStore.layoutMode() === 'list' ? <div className="divider" key='thread-list-tool-bar-divider' /> : null}
                 {toolbarElement}
               </div>
             ) : (
-                <span className="updated-time">
-                  {this._renderLastUpdateLabel(lastUpdate)}
-                  {threadCounts > 0 && (
-                    <span>({this._formatNumber(threadCounts)})</span>
-                  )}
-                </span>
+                <div style={{
+                  display: 'flex', width: 'calc(100% - 66px)',
+                  justifyContent: 'space-between',
+                  marginRight: 10
+                }}>
+                  <span className="updated-time">
+                    {this._renderLastUpdateLabel(lastUpdate)}
+                    {threadCounts > 0 && (
+                      <span>({this._formatNumber(threadCounts)})</span>
+                    )}
+                  </span>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    {onEmptyButtons}
+                  </div>
+                </div>
               )
           }
         </div>

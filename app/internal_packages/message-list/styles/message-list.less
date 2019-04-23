@@ -87,20 +87,32 @@ body.platform-win32 {
     order: 200;
     flex-grow: 0;
     flex-shrink: 0;
+    &:empty + .button-group {
+      display: none;
+    }
+    .btn-list-more {
+      display: none;
+    }
   }
+  .message-toolbar-popout,
   .message-toolbar-arrow {
     display: flex;
     align-items: center;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 13px;
+    padding-right: 0;
   }
   .message-toolbar-arrow.down {
     order: 203;
-    margin-right: 0;
-    margin-right: @spacing-standard * 0.75;
   }
   .message-toolbar-arrow.up {
     order: 202;
-    margin-left: 0;
     // <1 because of hit region padding on the button
+  }
+  .message-toolbar-popout {
+    order: 204;
+    padding-right: 24px;
   }
   .message-toolbar-arrow.disabled {
     opacity: 0.3;
@@ -151,7 +163,7 @@ body.platform-win32 {
   min-height: 100%;
   padding: 0;
   order: 2;
-  padding-top: 55px;
+  padding-top: 40px;
 
   search-match,
   .search-match {
@@ -197,12 +209,12 @@ body.platform-win32 {
 
   .message-subject-wrap {
     max-width: @message-max-width;
-    margin: 5px auto 10px auto;
+    margin: 15px auto 5px auto;
     -webkit-user-select: text;
-    line-height: @font-size-large * 1.8;
+    line-height: 27px;
     display: flex;
     align-items: center;
-    padding: 0 @padding-base-horizontal;
+    padding: 0 12px 0 14px;
     &>div {
       display: flex;
       align-items: center;
@@ -217,7 +229,18 @@ body.platform-win32 {
     font-size: 17px;
     font-weight: bold;
     color: @text-color;
-    margin-right: @spacing-standard;
+    margin-right: @spacing-half;
+    .mail-important-icon {
+      height: 18px;
+      margin-right: 6px;
+      margin-left: 6px;
+      position: relative;
+      top: 4px;
+    }
+    .mail-label {
+      position: relative;
+      top: -3px;
+    }
   }
   .message-icons-wrap {
     flex-shrink: 0;
@@ -238,7 +261,8 @@ body.platform-win32 {
     vertical-align: top;
     flex-wrap: wrap;
     .mail-label.removable {
-      margin-bottom: 2px;
+      margin-top: 1px;
+      margin-bottom: 1px;
     }
   }
   .message-list-headers {
@@ -298,8 +322,6 @@ body.platform-win32 {
       background: @background-primary;
       border: 0;
     }
-
-    padding-bottom: 8px;
     &.before-reply-area {
       padding-bottom: 0;
     }
@@ -328,6 +350,7 @@ body.platform-win32 {
         .collapsed-timestamp {
           text-align: right;
           flex: 1;
+          padding-right: 4px;
         }
       }
 
@@ -365,7 +388,6 @@ body.platform-win32 {
         font-weight: @font-weight-semi-bold;
         color: @text-color;
         // min-width: 60px;
-        margin-right: 1em;
         font-size: 15px;
       }
 
@@ -567,16 +589,9 @@ body.platform-win32 {
   }
 
   .header-toggle-control {
-    &.inactive {
-      display: none;
-    }
-    z-index: 3;
-    position: absolute;
-    top: 0;
-    left: -1 * 13px;
-    img {
-      background: @text-color-very-subtle;
-    }
+    color: @blue;
+    font-size: 11px;
+    cursor: pointer;
   }
   .message-item-wrap:hover {
     .header-toggle-control.inactive {
@@ -644,7 +659,8 @@ body.platform-win32 {
 
   img {
     vertical-align: middle;
-    margin-right: @spacing-half;
+    margin-right: 4px;
+    margin-top: -1px;
     background-color: @download-btn-color;
   }
 
@@ -690,6 +706,7 @@ body.platform-win32 {
     font-size: 15px;
     color: @text-color;
   }
+  .detail-from-label,
   .from-label,
   .to-label,
   .reply-to-label,
@@ -697,6 +714,7 @@ body.platform-win32 {
   .bcc-label {
     color: @text-color-very-subtle;
   }
+  .detail-from-contact,
   .to-contact,
   .reply-to-contact,
   .cc-contact,
@@ -734,6 +752,20 @@ body.platform-win32 {
     }
   }
 
+  .collapsed-participants {
+    .from-contact {
+      .participant-secondary {
+        display: none;
+      }
+    }
+    .to-label {
+      margin-right: 0.5em;
+    }
+    .participant-name {
+      color: @gray-dark;
+    }
+  }
+
   .expanded-participants {
     padding-right: 1.2em;
     width: 100%;
@@ -743,10 +775,7 @@ body.platform-win32 {
       margin-right: 0.25em;
     }
 
-    .participant-type {
-      margin-top: 0.2em;
-    }
-
+    .detail-from-label,
     .from-label,
     .to-label,
     .reply-to-label,
@@ -764,7 +793,14 @@ body.platform-win32 {
       font-weight: @font-weight-semi-bold;
     }
 
+    .from-contact {
+      .participant-secondary {
+        display: none;
+      }
+    }
+
     // .from-label { margin-right: 1em; }
+    .detail-from-label,
     .to-label,
     .reply-to-label,
     .cc-label {
@@ -775,12 +811,12 @@ body.platform-win32 {
     }
 
     .participant-primary {
-      color: @text-color-very-subtle;
+      color: @gray-dark;
       margin-right: 0.15em;
       display: inline-block;
     }
     .participant-secondary {
-      color: @text-color-very-subtle;
+      color: @gray-dark;
       display: inline-block;
     }
 

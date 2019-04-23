@@ -312,13 +312,13 @@ export default class MailsyncProcess extends EventEmitter {
       console.log('-----------------------------To native END-----------------------');
     }
     try {
-            this._proc.stdin.write(msg, 'UTF8');
+      this._proc.stdin.write(msg, 'UTF8');
     } catch (error) {
       let id = '';
       if (this._proc && this._proc.pid) {
         id = this._proc.pid;
       }
-      AppEnv.debugLog(`@pid ${id} mailsync write error`);
+      AppEnv.debugLog(`@pid ${id} mailsync write error: ${error.message}`);
       if (error && error.message.includes('socket has been ended')) {
         // but try to kill it anyway and then force-emit a 'close' to trigger
         // the bridge to restart us.

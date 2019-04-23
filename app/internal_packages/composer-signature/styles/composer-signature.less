@@ -254,6 +254,7 @@
 
         img.content-mask {
           display: none;
+          background-color: @gray;
         }
         img.signature-button {
           display: inline-block;
@@ -310,6 +311,12 @@
     .dropdown-component
     .signature-button-dropdown
     .only-item {
+    cursor: pointer;
     background: @background-primary;
+    &:hover {
+      img.content-mask {
+        background-color: @blue;
+      }
+    }
   }
 }

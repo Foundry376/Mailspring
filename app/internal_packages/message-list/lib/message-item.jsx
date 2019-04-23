@@ -89,12 +89,18 @@ export default class MessageItem extends React.Component {
     return (
       <div className="download-all">
         <div className="attachment-number">
-          <RetinaImg name="ic-attachments-all-clippy.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name="feed-attachments.svg"
+            isIcon
+            style={{ width: 18, height: 18 }}
+            mode={RetinaImg.Mode.ContentIsMask} />
           <span>{this.props.message.files.length} attachments</span>
         </div>
         <div className="separator">-</div>
         <div className="download-all-action" onClick={this._onDownloadAll}>
-          <RetinaImg name="ic-attachments-download-all.png" mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name="download.svg"
+            isIcon
+            style={{ width: 18, height: 18 }}
+            mode={RetinaImg.Mode.ContentIsMask} />
           <span>Download all</span>
         </div>
       </div>
@@ -156,7 +162,7 @@ export default class MessageItem extends React.Component {
           matching={{ role: 'MessageHeader' }}
           exposedProps={{ message: message, thread: thread, messages: messages }}
         />
-        <div className="pending-spinner" style={{ position: 'absolute', marginTop: -2 , left: 55}}>
+        <div className="pending-spinner" style={{ position: 'absolute', marginTop: -2, left: 55 }}>
           <RetinaImg width={18} name="sending-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />
         </div>
         <div className="message-header-right">
@@ -187,12 +193,14 @@ export default class MessageItem extends React.Component {
             />
             <MessageTimestamp
               className="message-time"
-              isDetailed={this.state.detailedHeaders}
+              isDetailed
               date={message.date}
             />
+            {this._renderHeaderDetailToggle()}
           </div>
         </div>
         <MessageParticipants
+          detailFrom={message.from}
           to={message.to}
           cc={message.cc}
           bcc={message.bcc}
@@ -200,8 +208,7 @@ export default class MessageItem extends React.Component {
           onClick={this._onClickParticipants}
           isDetailed={this.state.detailedHeaders}
         />
-        {this._renderFolder()}
-        {this._renderHeaderDetailToggle()}
+        {/* {this._renderFolder()} */}
       </header>
     );
   }
@@ -220,10 +227,7 @@ export default class MessageItem extends React.Component {
             e.stopPropagation();
           }}
         >
-          <RetinaImg
-            name={'message-disclosure-triangle-active.png'}
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
+          less
         </div>
       );
     }
@@ -237,7 +241,7 @@ export default class MessageItem extends React.Component {
           e.stopPropagation();
         }}
       >
-        <RetinaImg name={'message-disclosure-triangle.png'} mode={RetinaImg.Mode.ContentIsMask} />
+        more
       </div>
     );
   }

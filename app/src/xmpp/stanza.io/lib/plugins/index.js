@@ -49,4 +49,5 @@ module.exports = function (client) {
     client.use(require('./vcard'));
     client.use(require('./version'));
     client.use(require('./e2ee'));
+    client.use(require('./edipull'));
 };

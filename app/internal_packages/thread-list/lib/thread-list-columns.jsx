@@ -19,6 +19,9 @@ const ThreadListTimestamp = function ({ thread }) {
   let rawTimestamp = FocusedPerspectiveStore.current().isSent()
     ? thread.lastMessageSentTimestamp
     : thread.lastMessageReceivedTimestamp;
+  if (!rawTimestamp) {
+    rawTimestamp = thread.lastMessageSentTimestamp;
+  }
   const timestamp = rawTimestamp ? DateUtils.shortTimeString(rawTimestamp) : 'No Date';
   return <span className="timestamp">{timestamp}</span>;
 };
@@ -69,7 +72,7 @@ const c1 = new ListTabular.Column({
         exposedProps={{ thread: thread }}
         matching={{ role: 'EmailAvatar' }}
       />,
-      <ThreadListIcon key="thread-list-icon" thread={thread} />,
+      // <ThreadListIcon key="thread-list-icon" thread={thread} />,
       <MailImportantIcon
         key="mail-important-icon"
         thread={thread}
@@ -137,6 +140,7 @@ const c3 = new ListTabular.Column({
         <MailLabelSet thread={thread} />
         <span className="subject">{subject(thread.subject)}</span>
         <span className="snippet">{getSnippet(thread)}</span>
+        <ThreadListIcon thread={thread} />
       </span>
     );
   },
@@ -220,7 +224,6 @@ const cNarrow = new ListTabular.Column({
         </div>
         <div className="thread-info-column">
           <div className="participants-wrapper">
-            <ThreadListIcon thread={thread} />
             <ThreadListParticipants thread={thread} />
             {attachment}
             {pencil}
@@ -232,13 +235,34 @@ const cNarrow = new ListTabular.Column({
               exposedProps={{ thread: thread }}
               matching={{ role: 'ThreadListTimestamp' }}
             />
+            <div className="list-column-HoverActions">
+              <div className="inner quick-actions">
+                <InjectedComponentSet
+                  key="injected-component-set"
+                  inline={true}
+                  containersRequired={false}
+                  children={[
+                    <ThreadUnreadQuickAction key="thread-unread-quick-action" thread={thread} />,
+                    <ThreadStarQuickAction key="thread-star-quick-action" thread={thread} />,
+                    <ThreadTrashQuickAction key="thread-trash-quick-action" thread={thread} />,
+                    <ThreadArchiveQuickAction key="thread-archive-quick-action" thread={thread} />,
+                  ]}
+                  matching={{ role: 'ThreadListQuickAction' }}
+                  className="thread-injected-quick-actions"
+                  exposedProps={{ thread: thread }}
+                />
+              </div>
+            </div>
           </div>
-          <div className="subject">{subject(thread.subject)}</div>
+          <div className="subject">
+            <span>{subject(thread.subject)}</span>
+            <ThreadListIcon thread={thread} />
+          </div>
           <div className="snippet-and-labels">
             <div className="snippet">{getSnippet(thread)}&nbsp;</div>
             <div style={{ flex: 1, flexShrink: 1 }} />
-            <MailLabelSet thread={thread} />
-            <div>
+            {/* <MailLabelSet thread={thread} /> */}
+            <div className="icons">
               <InjectedComponentSet
                 inline={true}
                 matchLimit={1}

@@ -19,6 +19,12 @@ module.exports = grunt => {
         icon: path.resolve(grunt.config('appDir'), 'build', 'resources', 'mac', 'edisonMail.icns'),
         overwrite: true,
         out: grunt.config('outputDir'),
+        iconSize: 114,
+        contents: function (opts) {
+          return [
+            { x: 494, y: 280, type: 'link', path: '/Applications' },
+            { x: 164, y: 280, type: 'file', path: opts.appPath }];
+        }
       },
       err => {
         if (err) {

@@ -43,11 +43,12 @@ body.platform-win32 {
 }
 
 .mail-label {
-  font-size: 0.9em;
+  font-size: 11px;
+  font-weight: normal;
   padding: 1px 8px;
   margin-right: 6px;
   flex-shrink: 0;
-  border-radius: 3px;
+  border-radius: 10px;
   display: inline-block;
   cursor: default;
   line-height: 18px;
@@ -95,21 +96,21 @@ body.platform-win32 {
   width: 25px;
   height: 25px;
   display: inline-block;
-  .icon-mixin('../static/icons/important.svg', @gray-lighter);
+  .icon-mixin('../static/icons/important.svg', @gray-lighter, 24px);
 }
 .mail-important-icon.enabled.active {
   // background-image: url(../static/images/important/Icon-Important-Active@2x.png);
   // background-size: 16px;
-  .icon-mixin('../static/icons/important.svg',@yellow);
+  .icon-mixin('../static/icons/important.svg',@yellow, 24px);
 }
 .mail-important-icon.enabled:hover {
   // background-image: url(../static/images/important/Icon-Important-HoverActive@2x.png);
   // background-size: 16px;
-  .icon-mixin('../static/icons/important.svg',darken(@yellow, 5%));
+  .icon-mixin('../static/icons/important.svg',darken(@yellow, 5%), 24px);
 }
 .mail-important-icon.enabled.active:hover {
   // background-image: url(../static/images/important/Icon-Important-Active@2x.png);
   // background-size: 16px;
-  .icon-mixin('../static/icons/important.svg',@yellow);
+  .icon-mixin('../static/icons/important.svg',@yellow, 24px);
   -webkit-filter: brightness(90%);
 }

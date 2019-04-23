@@ -91,80 +91,27 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
 export const uploadFile = (oid, aes, file, callback, progressCallback) => {
 
     let filename = path.basename(file);
-    let size;
-    var fileStream;
-    var readStream = fs.createReadStream(file);
-    readStream.on('error', (err) => {
-        console.log('发生异常:', err);
-    });
-    let arr = [];
-    var myKey = oid + '/' + uuid.v4() + path.extname(file);
-    readStream.on('data', (chunk) => {
-        //console.log('读取文件数据:', chunk);
-        arr.push(chunk);
-    });
-    readStream.on('end', () => {
-        let data = Buffer.concat(arr);
-        size = getSize(data.length);
-        if (aes) {
-            fileStream = encryptByAESFile(aes, data);
-            //console.log('fileStream', fileStream);
-            myKey = myKey + ENCRYPTED_SUFFIX;
-        } else {
-            fileStream = data;
-        }
-
-        var uploadParams = { Bucket: myBucket, Key: myKey, Body: fileStream };//,ACL: 'public-read'};
-        const request = s3.upload(uploadParams);
-        //console.log("dbg*** uploadFile: ", request, uploadParams, aes, file, fileStream);
-        request.on('httpUploadProgress', function (progress) {
-          //console.log("dbg*** uploadFile: progress:", progress.loaded + " of " + progress.total + " bytes");
-          if (progressCallback) {
-            progressCallback(progress)
-          }
-          if (callback && +progress.loaded == +progress.total) {
-            callback(null, filename, myKey, size);
-            console.log("Upload Success", data);
-          }
-        });
-        request.send();
-        return request;
-    })
-}
-
-export const uploadProgressly = (oid, aes, file, callback, progressCallBack) => {
-
-  let myKey = oid + '/' + uuid.v4() + path.extname(file);
-  if (aes) {
+    let myKey = oid + '/' + uuid.v4() + path.extname(file);
     let data = fs.readFileSync(file);
-    data = encryptByAESFile(aes, data);
-    fs.writeFileSync(file, data);
-    let data2 = fs.readFileSync(file);
-    console.log('dbg*** original and writed data: ', data, data2);
-    myKey = myKey + ENCRYPTED_SUFFIX;
-  }
-    var params = {
-      localFile: file,
-      s3Params: {
-        Bucket: myBucket,
-        Key: myKey,
-      },
-    };
-    let  client = hls3.createClient({s3options});
-    console.log('dbg*** uploadProgressly client: ', client);
-
-    var uploader = client.uploadFile(params);
-    uploader.on('error', function(err) {
-      console.error("dbg*** unable to upload:", err.stack);
+    if (aes) {
+      data = encryptByAESFile(aes, data);
+      myKey = myKey + ENCRYPTED_SUFFIX;
+    }
+    var uploadParams = { Bucket: myBucket, Key: myKey, Body: data };
+    const request = s3.upload(uploadParams);
+    request.on('httpUploadProgress', function (progress) {
+      if (progressCallback) {
+        progressCallback(progress)
+      }
+      if (+progress.loaded === +progress.total) {
+        console.log("Upload Finished. ");
+        if (callback) {
+          callback(null, filename, myKey, progress.loaded);
+        }
+      }
     });
-    uploader.on('progress', function() {
-      console.log("dbg*** upload progress", uploader.progressAmount, uploader.progressTotal);
-    });
-    uploader.on('end', function() {
-      console.log("dbg*** done uploading");
-    });
-    console.log('dbg*** uploadProgressly uploader: ', uploader);
-    return uploader;
+    request.send();
+    return request;
 }
 
 function getSize(len) {

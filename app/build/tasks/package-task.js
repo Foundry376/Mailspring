@@ -101,6 +101,7 @@ module.exports = grunt => {
   }
 
   const platform = grunt.option('platform');
+  const arch = process.arch;
 
   // See: https://github.com/electron-userland/electron-packager/blob/master/usage.txt
   grunt.config.merge({
@@ -122,7 +123,8 @@ module.exports = grunt => {
       tmpdir: tmpdir,
       arch: {
         win32: 'ia32',
-      }[platform],
+        x64: 'x64'
+      }[arch],
       icon: {
         darwin: path.resolve(
           grunt.config('appDir'),
@@ -132,6 +134,7 @@ module.exports = grunt => {
           'edisonMail.icns'
         ),
         win32: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'edisonmail.ico'),
+        x64: path.resolve(grunt.config('appDir'), 'build', 'resources', 'win', 'edisonmail.ico'),
         linux: undefined,
       }[platform],
       name: {

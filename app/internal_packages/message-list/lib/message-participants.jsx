@@ -111,7 +111,7 @@ export default class MessageParticipants extends React.Component {
     return (
       <div className="participant-type" key={`participant-type-${name}`}>
         {includeLabel ? (
-          <div className={`participant-label ${name}-label`}>{name}:&nbsp;</div>
+          <div className={`participant-label ${name}-label`}>{name === 'detail-from' ? 'from' : name}:</div>
         ) : null}
         <div className={`participant-name ${name}-contact`}>{this._renderFullContacts(field)}</div>
       </div>
@@ -119,17 +119,9 @@ export default class MessageParticipants extends React.Component {
   }
 
   _renderExpanded() {
-    const { from, replyTo, to, cc, bcc } = this.props;
+    const { detailFrom, from, replyTo, to, cc, bcc } = this.props;
 
     const expanded = [];
-
-    if (from.length > 0) {
-      expanded.push(this._renderExpandedField('from', from, { includeLabel: false }));
-    }
-
-    if (replyTo.length > 0) {
-      expanded.push(this._renderExpandedField('reply-to', replyTo));
-    }
 
     if (to.length > 0) {
       expanded.push(this._renderExpandedField('to', to));
@@ -143,6 +135,18 @@ export default class MessageParticipants extends React.Component {
       expanded.push(this._renderExpandedField('bcc', bcc));
     }
 
+    if (detailFrom && detailFrom.length > 0) {
+      expanded.push(this._renderExpandedField('detail-from', detailFrom));
+    }
+
+    if (from.length > 0) {
+      expanded.push(this._renderExpandedField('from', from, { includeLabel: false }));
+    }
+
+    if (replyTo.length > 0) {
+      expanded.push(this._renderExpandedField('reply-to', replyTo));
+    }
+
     return <div className="expanded-participants">{expanded}</div>;
   }
 
@@ -153,7 +157,8 @@ export default class MessageParticipants extends React.Component {
     if (this.props.from.length > 0) {
       childSpans.push(
         <span className="participant-name from-contact" key="from">
-          {this._shortNames(this.props.from)}
+          {/* {this._shortNames(this.props.from)} */}
+          {this._renderExpandedField('from', this.props.from, { includeLabel: false })}
         </span>
       );
     }
@@ -161,7 +166,7 @@ export default class MessageParticipants extends React.Component {
     if (toParticipants.length > 0) {
       childSpans.push(
         <span className="participant-label to-label" key="to-label">
-          To:&nbsp;
+          To:
         </span>,
         <span className="participant-name to-contact" key="to-value">
           {this._shortNames(toParticipants)}

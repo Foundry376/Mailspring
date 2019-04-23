@@ -23,6 +23,7 @@ export const CREATE_GROUP_CONVERSATION = 'CREATE_GROUP_CONVERSATION';
 export const REMOVE_CONVERSATION = 'REMOVE_CONVERSATION';
 
 export const SHOW_CONVERSATION_NOTIFICATION = 'SHOW_CONVERSATION_NOTIFICATION';
+export const SHOW_CONVERSATION_NOTIFICATION_FAIL = 'SHOW_CONVERSATION_NOTIFICATION_FAIL';
 
 // Mousetrap shortcut actions
 export const GO_PREV_CONVERSATION = 'GO_PREV_CONVERSATION';
@@ -130,6 +131,11 @@ export const createGroupConversation = ({ contacts, roomId, name, curJid }) => (
 export const showConversationNotification = (conversationJid, title, body) => ({
   type: SHOW_CONVERSATION_NOTIFICATION,
   payload: { conversationJid, title, body },
+});
+
+export const showConversationNotificationFail = (error) => ({
+  type: SHOW_CONVERSATION_NOTIFICATION_FAIL,
+  payload: { error },
 });
 
 // Mousetrap action creators

@@ -161,7 +161,7 @@ class MessageList extends React.Component {
     }
   };
 
-  _onCreatingDraft = ({ message, type = '' }) => {
+  _onCreatingDraft = ({ message = {}, type = '' }) => {
     if (this._mounted && (!this._lastMessage() || message.id === this._lastMessage().id)) {
       if (type === 'reply') {
         this.setState({ isReplying: true }, this._timeoutButton.bind(this, 'reply'));
@@ -473,7 +473,7 @@ class MessageList extends React.Component {
       popedOut: MessageStore.isPopedOut(),
     };
   }
-  _onSelectText= e =>{
+  _onSelectText = e => {
 
     e.preventDefault();
     e.stopPropagation();
@@ -490,9 +490,9 @@ class MessageList extends React.Component {
     const menu = new Menu();
     menu.append(new MenuItem({ role: 'copy' }));
     menu.append(new MenuItem({
-        label: `Search for "${subject}`,
-        click: () => Actions.searchQuerySubmitted(`subject:"${subject}"`),
-      })
+      label: `Search for "${subject}`,
+      click: () => Actions.searchQuerySubmitted(`subject:"${subject}"`),
+    })
     );
     menu.popup({});
   };
@@ -507,18 +507,21 @@ class MessageList extends React.Component {
       <div className="message-subject-wrap">
         <div style={{ flex: 1, flexWrap: 'wrap' }}>
           <span className="message-subject"
-                onClick={this._onSelectText}
-                onContextMenu={this._onContactContextMenu.bind(this, subject)}
-          >{subject}</span>
-          <MailImportantIcon thread={this.state.currentThread} />
-          <MailLabelSet
-            removable
-            includeCurrentCategories
-            messages={this.state.messages}
-            thread={this.state.currentThread}
-          />
+            onClick={this._onSelectText}
+            onContextMenu={this._onContactContextMenu.bind(this, subject)}
+          >
+            {subject}
+            <MailImportantIcon thread={this.state.currentThread} />
+            <MailLabelSet
+              noWrapper
+              removable
+              includeCurrentCategories
+              messages={this.state.messages}
+              thread={this.state.currentThread}
+            />
+          </span>
         </div>
-        {this._renderIcons()}
+        {/* {this._renderIcons()} */}
       </div>
     );
   }
@@ -581,16 +584,14 @@ class MessageList extends React.Component {
   }
 
   _renderReplyArea() {
-    const isReplyAll = this._replyType() === 'reply-all';
-    const disabled = isReplyAll ? this.state.isReplyAlling : this.state.isReplying;
     return (
       <div className="footer-reply-area-wrap"
         onClick={this.state.popedOut ? this._onPopoutThread : this._onClickReplyArea} key="reply-area">
         <div className="footer-reply-area">
           <RetinaImg
-            name={disabled ? 'sending-spinner.gif' : `${this._replyType()}.svg`}
+            name={`${this._replyType()}.svg`}
             style={{ width: 24 }}
-            isIcon={!disabled}
+            isIcon
             mode={RetinaImg.Mode.ContentIsMask} />
           <span className="reply-text">
             {this._replyType() === 'reply-all' ? 'Reply All' : 'Reply'}

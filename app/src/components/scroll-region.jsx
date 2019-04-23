@@ -43,7 +43,7 @@ class Scrollbar extends React.Component {
   }
 
   componentWillUnmount() {
-    this._onHandleUp({ preventDefault() {} });
+    this._onHandleUp({ preventDefault() { } });
     if (this._tickUnsub) {
       this._tickUnsub();
     }
@@ -251,7 +251,11 @@ class ScrollRegion extends React.Component {
 
     Object.defineProperty(this, 'scrollTop', {
       get() {
-        return ReactDOM.findDOMNode(this.refs.content).scrollTop;
+        const container = ReactDOM.findDOMNode(this.refs.content);
+        if (!container) {
+          return 0;
+        }
+        return container.scrollTop;
       },
       set(val) {
         ReactDOM.findDOMNode(this.refs.content).scrollTop = val;
@@ -323,7 +327,7 @@ class ScrollRegion extends React.Component {
       classNames({
         'scroll-region': true,
         dragging: this.state.dragging,
-        scrolling: this.state.scrolling,
+        scrolling: this.state.scrolling
       });
 
     if (!this.props.getScrollbar) {

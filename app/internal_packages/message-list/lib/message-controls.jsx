@@ -108,19 +108,19 @@ export default class MessageControls extends React.Component {
   _items() {
     const reply = {
       name: 'Reply',
-      image: this.state.isReplying ? 'sending-spinner.gif' : 'reply.svg',
+      image: 'reply.svg',
       disabled: this.state.isReplying,
       select: this.props.threadPopedOut ? this._onPopoutThread : this._onReply,
     };
     const replyAll = {
       name: 'Reply All',
-      image: this.state.isReplyAlling ? 'sending-spinner.gif' : 'reply-all.svg',
+      image: 'reply-all.svg',
       disabled: this.state.isReplyAlling,
       select: this.props.threadPopedOut ? this._onPopoutThread : this._onReplyAll,
     };
     const forward = {
       name: 'Forward',
-      image: this.state.isForwarding ? 'sending-spinner.gif' : 'forward.svg',
+      image: 'forward.svg',
       disabled: this.state.isForwarding,
       select: this.props.threadPopedOut ? this._onPopoutThread : this._onForward,
     };
@@ -263,7 +263,7 @@ export default class MessageControls extends React.Component {
           primaryItem={<RetinaImg
             name={items[0].image}
             style={{ width: 24, height: 24 }}
-            isIcon={!items[0].disabled}
+            isIcon
             mode={RetinaImg.Mode.ContentIsMask}/>}
           primaryTitle={items[0].name}
           primaryClick={items[0].select}

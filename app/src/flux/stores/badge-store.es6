@@ -3,6 +3,7 @@ import MailspringStore from 'mailspring-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import ThreadCountsStore from './thread-counts-store';
 import CategoryStore from './category-store';
+import AccountStore from './account-store';
 
 class BadgeStore extends MailspringStore {
   constructor() {
@@ -35,7 +36,9 @@ class BadgeStore extends MailspringStore {
     let unread = 0;
     let total = 0;
 
-    const accountIds = FocusedPerspectiveStore.current().accountIds;
+
+    // const accountIds = FocusedPerspectiveStore.current().accountIds;
+    const accountIds = AccountStore.accountIds();
     for (const cat of CategoryStore.getCategoriesWithRoles(accountIds, 'inbox')) {
       unread += ThreadCountsStore.unreadCountForCategoryId(cat.id);
       total += ThreadCountsStore.totalCountForCategoryId(cat.id);

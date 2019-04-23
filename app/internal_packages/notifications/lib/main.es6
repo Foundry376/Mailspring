@@ -25,7 +25,9 @@ const notifications = [
 ];
 
 export function activate() {
-  ComponentRegistry.register(ActivitySidebar, { location: WorkspaceStore.Location.RootSidebar });
+  if(AppEnv.inDevMode()){
+    ComponentRegistry.register(ActivitySidebar, { location: WorkspaceStore.Location.RootSidebar });
+  }
   ComponentRegistry.register(NotifWrapper, { location: WorkspaceStore.Sheet.Global.Footer });
 
   for (const notification of notifications) {
@@ -36,7 +38,9 @@ export function activate() {
 export function serialize() { }
 
 export function deactivate() {
-  ComponentRegistry.unregister(ActivitySidebar);
+  if(AppEnv.inDevMode()){
+    ComponentRegistry.unregister(ActivitySidebar);
+  }
   ComponentRegistry.unregister(NotifWrapper);
 
   for (const notification of notifications) {

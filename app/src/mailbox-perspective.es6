@@ -70,7 +70,7 @@ export default class MailboxPerspective {
     return categories.length > 0 ? new UnreadMailboxPerspective(categories) : this.forNothing();
   }
 
-  static forUnreadByAccounts(accountIds){
+  static forUnreadByAccounts(accountIds) {
     let categories = accountIds.map(accId => {
       return CategoryStore.getCategoryByRole(accId, 'inbox');
     });
@@ -83,6 +83,7 @@ export default class MailboxPerspective {
     categories = _.compact(categories);
     return MailboxPerspective.forUnread(categories);
   }
+
   static getCategoryIds = (accountsOrIds, categoryName) => {
     const categoryIds = [];
     for (let accountId of accountsOrIds) {
@@ -97,7 +98,8 @@ export default class MailboxPerspective {
       return undefined;
     }
   };
-  static forSent(accountsOrIds){
+
+  static forSent(accountsOrIds) {
     let cats = [];
     for (let accountId of accountsOrIds) {
       let tmp = CategoryStore.getCategoryByRole(accountId, 'sent');
@@ -107,15 +109,15 @@ export default class MailboxPerspective {
     }
     const perspective = this.forCategories(cats);
 
-    perspective.iconName='sent.svg';
+    perspective.iconName = 'sent.svg';
     perspective.categoryIds = this.getCategoryIds(accountsOrIds, 'sent');
     return perspective;
   }
 
   static forInbox(accountsOrIds) {
     const perspective = this.forStandardCategories(accountsOrIds, 'inbox');
-    perspective.iconName='all-mail.svg';
-    if(accountsOrIds.length > 1){
+    perspective.iconName = 'all-mail.svg';
+    if (accountsOrIds.length > 1) {
       perspective.displayName = 'All Inboxes';
     }
     perspective.categoryIds = this.getCategoryIds(accountsOrIds, 'inbox');
@@ -293,11 +295,12 @@ export default class MailboxPerspective {
       return false;
     }
     return AccountStore.accountsForItems(threads).every(
-      acc => CategoryStore.getCategoryByRole(acc, standardCategoryName) !== null
+      acc => CategoryStore.getCategoryByRole(acc, standardCategoryName) !== null,
     );
   }
-  canExpungeThreads(threads){
-    if(this.categoriesSharedRole() === 'trash'){
+
+  canExpungeThreads(threads) {
+    if (this.categoriesSharedRole() === 'trash') {
       return true;
     }
   }
@@ -309,6 +312,7 @@ export default class MailboxPerspective {
     return [];
   }
 }
+
 class SingleAccountMailboxPerspective extends MailboxPerspective {
   constructor(accountId) {
     super([accountId]);
@@ -393,6 +397,7 @@ class StarredMailboxPerspective extends MailboxPerspective {
     return tasks;
   }
 }
+
 class AttachementMailboxPerspective extends MailboxPerspective {
   constructor(accountIds) {
     super(accountIds);
@@ -400,6 +405,7 @@ class AttachementMailboxPerspective extends MailboxPerspective {
     this.name = 'Attachment';
     this.iconName = 'attachments.svg';
   }
+
   threads() {
     const query = DatabaseStore.findAll(Thread)
       .where([Thread.attributes.hasAttachments.equal(true)], Thread.attributes.inAllMail.equal(true))
@@ -490,7 +496,6 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     } else {
       query.where({ state: 0 });
     }
-
 
 
     // if (['spam', 'trash'].includes(this.categoriesSharedRole())) {
@@ -595,17 +600,20 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     if (myCat instanceof Label && currentCat && currentCat instanceof Folder) {
       // dragging from trash or spam into a label? We need to both apply the label and
       // move to the "All Mail" folder.
+      // DC-173
+      // Since move folder from trash/spam changes threadId,
+      // we must change label first then change folder
       return [
-        new ChangeFolderTask({
-          threads,
-          source: 'Dragged into list',
-          folder: CategoryStore.getCategoryByRole(accountId, 'all'),
-        }),
         new ChangeLabelsTask({
           threads,
           source: 'Dragged into list',
           labelsToAdd: [myCat],
           labelsToRemove: [],
+        }),
+        new ChangeFolderTask({
+          threads,
+          source: 'Dragged into list',
+          folder: CategoryStore.getCategoryByRole(accountId, 'all'),
         }),
       ];
     }
@@ -695,7 +703,7 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
         threads: threads,
         unread: true,
         source: 'Dragged Into List',
-      })
+      }),
     );
     return tasks;
   }
@@ -705,7 +713,7 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
 
     const tasks = super.tasksForRemovingItems(threads, ruleset, source);
     tasks.push(
-      new ChangeUnreadTask({ threads, unread: false, source: source || 'Removed From List' })
+      new ChangeUnreadTask({ threads, unread: false, source: source || 'Removed From List' }),
     );
     return tasks;
   }

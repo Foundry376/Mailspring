@@ -62,6 +62,14 @@
     background-color: @background-primary;
     transition: opacity 0.2s ease-in-out;
 
+    .divider {
+      height: 30px;
+      width: 1px;
+      background: @border-color-divider;
+      display: inline-block;
+      margin: 0 5px;
+    }
+
     .inner {
       width: 100%;
       height: 100%;
@@ -72,17 +80,22 @@
       white-space: nowrap;
 
       .checkmark.selected {
-        background-image: url(../static/icons/check.svg);
-        background-size: 130% auto;
+        -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        background-color: @blue;
+        -webkit-mask-size: 24px auto;
       }
       .checkmark {
-        margin: 0 35px 0 18px;
+        margin: 0 17px 0 0;
         height: 18px;
-        min-width: 18px;
-        background-image: url(../static/icons/check-empty.svg);
-        background-position: center;
-        background-color: transparent;
-        background-size: 130% auto;
+        width: 54px;
+        padding: 18px;
+        -webkit-mask-image: url(../static/icons/check-empty.svg);
+        -webkit-mask-position: center;
+        -webkit-mask-repeat: no-repeat;
+        background-color: @gray-lighter;
+        -webkit-mask-size: 24px auto;
         border: none;
       }
 
@@ -118,18 +131,26 @@
         height: 22px;
         border-radius: 11px;
         line-height: 22px;
-        background: @off-white;
+        //background: @off-white;
         padding: 0 12px;
         box-shadow: none;
         color: @blue;
       }
 
+      .button-group.thread-more {
+        margin-left: auto;
+      }
       .btn-toolbar {
         position: relative;
         padding: 0 5px;
         margin-top: 0;
         box-shadow: none;
         background: transparent;
+        &.flagged {
+          img.content-mask {
+            background-color: @orange;
+          }
+        }
         img.content-mask {
           background-color: @gray;
           position: relative;
@@ -138,18 +159,15 @@
         &:hover {
           &:after {
             content: '';
-            height: 36px;
-            width: 36px;
+            height: 32px;
+            width: 32px;
             border-radius: 50%;
-            background: @source-list-active-bg;
+            background: @off-white;
             display: block;
             position: absolute;
-            top: -5px;
-            left: 0;
+            top: -3px;
+            left: 1px;
             animation: growUp 0.4s;
-          }
-          img {
-            background-color: @blue;
           }
           @keyframes growUp {
             from {
@@ -162,6 +180,14 @@
             }
           }
         }
+        &:active {
+          &:after {
+            background: @extra-light-grey;
+          }
+          img {
+            background-color: @dark-grey;
+          }
+        }
       }
 
       .toolbar-buttons {
@@ -169,6 +195,14 @@
         justify-content: flex-start;
         align-items: center;
         height: auto !important;
+        .button-group {
+          display: flex;
+          align-items: center;
+          .btn-more,
+          &.reply-button-group {
+            display: none;
+          }
+        }
         .btn {
           height: auto;
         }
@@ -201,17 +235,21 @@
       white-space: nowrap;
 
       .checkmark.selected {
-        background-image: url(../static/icons/check.svg);
-        background-size: 130% auto;
+        -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-position: center;
+        -webkit-mask-repeat: no-repeat;
+        background-color: @blue;
+        -webkit-mask-size: 24px auto;
       }
       .checkmark {
-        margin: 0 35px 0 18px;
+        margin: 0 17px 0 0;
         height: 18px;
-        min-width: 18px;
-        background-image: url(../static/icons/check-empty.svg);
-        background-position: center;
-        background-color: transparent;
-        background-size: 130% auto;
+        width: 54px;
+        padding: 18px;
+        -webkit-mask-image: url(../static/icons/check-empty.svg);
+        -webkit-mask-position: center;
+        background-color: @gray-lighter;
+        -webkit-mask-size: 24px auto;
         border: none;
       }
 
@@ -270,15 +308,12 @@
             height: 36px;
             width: 36px;
             border-radius: 50%;
-            background: @source-list-active-bg;
+            background: @off-white;
             display: block;
             position: absolute;
             top: -5px;
             left: 0;
             animation: growUp 0.4s;
-          }
-          img {
-            background-color: @blue;
           }
           @keyframes growUp {
             from {
@@ -289,6 +324,14 @@
               opacity: 1;
               transform: scale(1);
             }
+          }
+        }
+        &:active {
+          &:after {
+            background: @extra-light-grey;
+          }
+          img {
+            background-color: @dark-grey;
           }
         }
       }
@@ -327,11 +370,25 @@
     &.selected.focused,
     &.selected {
       .checkmark .inner {
-        background-color: transparent;
-        background-image: url(../static/icons/check.svg);
-        background-position: center;
-        background-size: 130% auto;
+        background-color: @blue;
+        -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-position: center;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-size: 24px auto;
         border: none;
+      }
+    }
+    &:hover .list-column-HoverActions {
+      position: absolute;
+      right: 0;
+      top: 0;
+      max-height: 55px;
+      .thread-injected-quick-actions {
+        padding-top: 11px;
+        max-height: 40px;
+      }
+      .action:hover:after {
+        top: -7px;
       }
     }
   }
@@ -357,10 +414,10 @@
       display: none;
     }
     .checkmark {
-      padding: 0;
+      padding: 18px;
       position: absolute;
-      top: 0;
-      left: 0;
+      top: -18px;
+      left: -18px;
       &::after {
         display: none;
       }
@@ -368,11 +425,11 @@
         width: 18px;
         height: 18px;
         border-radius: 50% !important;
-        background: transparent;
-        background-image: url(../static/icons/check-empty.svg);
-        background-size: 130% auto;
+        background-color: @gray-lighter;
+        -webkit-mask-image: url(../static/icons/check-empty.svg);
+        -webkit-mask-size: 24px auto;
         background-repeat: no-repeat;
-        background-position: center;
+        -webkit-mask-position: center;
         &::after {
           display: none;
         }
@@ -414,31 +471,31 @@
       background-color: #FFF;
       z-index: 9;
       box-shadow: 2px 0 30px 0 rgba(0,0,0,0.15);
-      &:after {
-        content: '';
-        position: absolute;
-        width: 100%;
-        top: -1px;
-        height: 1px;
-        display:block;
-        background: @white;
-      }
+      // &:after {
+      //   content: '';
+      //   position: absolute;
+      //   width: 100%;
+      //   top: -1px;
+      //   height: 1px;
+      //   display:block;
+      //   background: @white;
+      // }
     }
 
-    &.selected {
+    &.selected:not(:hover){
       background: @list-selected-bg;
       color: @list-selected-color;
-      border-bottom: 1px solid @list-selected-border;
+      border-bottom: 1px solid @border-color-secondary;
     }
 
     &.next-is-selected {
-      border-bottom: 1px solid transparent;
+      border-bottom: 1px solid @border-color-secondary;
     }
 
     &.focused {
       background: @list-focused-bg;
       color: @list-focused-color;
-      border-bottom: 1px solid @list-focused-border;
+      border-bottom: 1px solid @border-color-secondary;
     }
   }
 }
@@ -458,6 +515,7 @@
 
     &:hover {
       cursor: default;
+      background: @white;
     }
 
     // &.keyboard-cursor {
@@ -466,24 +524,26 @@
 
     &.selected {
       .checkmark .inner {
-        background-color: transparent;
-        background-image: url(../static/icons/check.svg);
-        background-position: center;
-        background-size: 130% auto;
+        background-color: @blue;
+        -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-position: center;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-size: 24px auto;
         border: none;
       }
     }
 
     &.selected.focused {
       .checkmark .inner {
-        background-color: transparent;
-        background-image: url(../static/icons/check.svg);
+        background-color: @blue;
+        -webkit-mask-image: url(../static/icons/check.svg);
+        -webkit-mask-repeat: no-repeat;
         border: none;
       }
     }
     &.focused {
       .checkmark .inner {
-        border: 1px solid @accent-primary;
+        // border: 1px solid @accent-primary;
       }
     }
 
@@ -496,10 +556,10 @@
       .inner {
         width: 18px;
         height: 18px;
-        background-image: url(../static/icons/check-empty.svg);
-        background-position: center;
-        background-color: transparent;
-        background-size: 130% auto;
+        -webkit-mask-image: url(../static/icons/check-empty.svg);
+        -webkit-mask-position: center;
+        background-color: @gray-lighter;
+        -webkit-mask-size: 24px auto;
         border: none;
       }
     }
@@ -517,6 +577,7 @@
     &:first-child {
       // padding-left: @padding-base-horizontal - 4;
       width: 47px;
+      overflow: visible;
     }
     &:last-child {
       text-align: right;

@@ -40,7 +40,7 @@ isUnread.evaluate(threadB)
 Section: Database
 */
 class Matcher {
-  constructor(attr, comparator, val, muid = null) {
+  constructor(attr, comparator, val, muid = null, useJoinTableRef = false) {
     this.attr = attr;
     this.comparator = comparator;
     this.val = val;
@@ -50,6 +50,15 @@ class Matcher {
       this.muid = Matcher.muid;
       Matcher.muid = (Matcher.muid + 1) % 50;
     }
+    this._useJoinTableRef = useJoinTableRef;
+  }
+
+  getMuid() {
+    return this.muid;
+  }
+
+  setMuid(value) {
+    this.muid = value;
   }
 
   attribute() {
@@ -218,7 +227,30 @@ class Matcher {
       }
       andSql = ` AND ( ${wheres.join(' AND ')} ) `;
     }
-
+    if (this.attr.isJoinTable) {
+      switch (this.comparator) {
+        case '=': {
+          if (escaped === null) {
+            return `\`${this.joinTableRef()}\`.\`${this.attr.tableColumn}\` IS NULL`;
+          }
+          return `\`${this.joinTableRef()}\`.\`${this.attr.tableColumn}\` = ${escaped}`;
+        }
+        case '!=': {
+          if (escaped === null) {
+            return `\`${this.joinTableRef()}\`.\`${this.attr.tableColumn}\` IS NOT NULL`;
+          }
+          return `\`${this.joinTableRef()}\`.\`${this.attr.tableColumn}\` != ${escaped}`;
+        }
+        case 'startsWith':
+          return ' RAISE `TODO`; ';
+        case 'contains':
+          return `\`${this.joinTableRef()}\`.\`value\` = ${escaped}`;
+        case 'containsAny':
+          return `\`${this.joinTableRef()}\`.\`value\` IN ${escaped} ${andSql}`;
+        default:
+          return `\`${this.joinTableRef()}\`.\`${this.attr.tableColumn}\` ${this.comparator} ${escaped}`;
+      }
+    }
     switch (this.comparator) {
       case '=': {
         if (escaped === null) {
@@ -281,6 +313,29 @@ class OrCompositeMatcher extends Matcher {
   }
 }
 
+class JoinOrCompositeMatcher extends OrCompositeMatcher {
+  joinSQL(klass) {
+    const joins = [];
+    for (const matcher of this.children) {
+      matcher.setMuid(this.getMuid());
+      const join = matcher.joinSQL(klass);
+      if (join) {
+        joins.push(join);
+      }
+    }
+    return joins.length ? joins.join(' ') : false;
+  }
+
+  whereSQL(klass) {
+    const muid = this.getMuid();
+    const wheres = this.children.map(matcher => {
+      matcher.setMuid(muid);
+      return matcher.whereSQL(klass);
+    });
+    return `(${wheres.join(' OR ')})`;
+  }
+}
+
 class AndCompositeMatcher extends Matcher {
   constructor(children) {
     super();
@@ -312,6 +367,29 @@ class AndCompositeMatcher extends Matcher {
 
   whereSQL(klass) {
     const wheres = this.children.map(m => m.whereSQL(klass));
+    return `(${wheres.join(' AND ')})`;
+  }
+}
+
+class JoinAndCompositeMatcher extends AndCompositeMatcher {
+  joinSQL(klass) {
+    const joins = [];
+    for (const matcher of this.children) {
+      matcher.setMuid(this.getMuid());
+      const join = matcher.joinSQL(klass);
+      if (join) {
+        joins.push(join);
+      }
+    }
+    return joins;
+  }
+
+  whereSQL(klass) {
+    const muid = this.getMuid();
+    const wheres = this.children.map(m => {
+      m.setMuid(muid);
+      return m.whereSQL(klass);
+    });
     return `(${wheres.join(' AND ')})`;
   }
 }
@@ -390,7 +468,9 @@ class SearchMatcher extends Matcher {
 }
 
 Matcher.Or = OrCompositeMatcher;
+Matcher.JoinOr = JoinOrCompositeMatcher;
 Matcher.And = AndCompositeMatcher;
+Matcher.JoinAnd = JoinAndCompositeMatcher;
 Matcher.Not = NotCompositeMatcher;
 Matcher.Search = SearchMatcher;
 Matcher.StructuredSearch = StructuredSearchMatcher;

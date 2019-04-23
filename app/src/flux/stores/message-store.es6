@@ -18,6 +18,55 @@ class MessageStore extends MailspringStore {
     this._registerListeners();
   }
 
+  findAll() {
+    return DatabaseStore.findAll(Message)
+      .where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+  }
+
+  findAllInDescendingOrder() {
+    return this.findAll().order(Message.attributes.date.descending());
+  }
+
+  findAllWithBodyInDescendingOrder() {
+    return this.findAllInDescendingOrder().include(Message.attributes.body);
+  }
+
+  findAllByThreadId({ threadId }) {
+    return this.findAll().where({ threadId: threadId });
+  }
+
+  findAllByThreadIdWithBody({ threadId }) {
+    return this.findAllByThreadId({ threadId }).include(Message.attributes.body);
+  }
+
+  findAllByThreadIdWithBodyInDescendingOrder({ threadId }) {
+    return this.findAllByThreadIdWithBody({ threadId }).order(Message.attributes.date.descending());
+  }
+
+  findByThreadId({ threadId }) {
+    return DatabaseStore.findBy(Message, { threadId }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+  }
+
+  findByThreadIdAndAccountId({ threadId, accountId }) {
+    return this.findByThreadId({ threadId }).where({ accountId: accountId });
+  }
+
+  findByThreadIdAndAccountIdInDesecndingOrder({ threadId, accountId }) {
+    return this.findByThreadIdAndAccountId({ threadId, accountId }).order(Message.attributes.date.descending());
+  }
+
+  findByThreadIdInDescendingOrder({ threadId }) {
+    return this.findByThreadId({ threadId }).order(Message.attributes.date.descending());
+  }
+
+  findByMessageId({ messageId }) {
+    return DatabaseStore.find(Message, messageId).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+  }
+
+  findByMessageIdWithBody({ messageId }) {
+    return this.findByMessageId({ messageId }).include(Message.attributes.body);
+  }
+
   //########## PUBLIC #####################################################
 
   items() {
@@ -217,7 +266,7 @@ class MessageStore extends MailspringStore {
         const itemIndex = this._items.findIndex(msg => msg.id === item.id);
 
         if (change.type === 'persist' && itemIndex === -1) {
-          this._items = [].concat(this._items, [item]).filter(m => !m.isHidden());
+          this._items = [].concat(this._items, [item]).filter(m => !m.isHidden()).filter(this.filterOutDuplicateDraftHeaderMessage);
           this._items = this._sortItemsForDisplay(this._items);
           this._expandItemsToDefault();
           this.trigger();
@@ -335,7 +384,7 @@ class MessageStore extends MailspringStore {
             source: 'Thread Selected',
             canBeUndone: false,
             unread: false,
-          })
+          }),
         );
       }, markAsReadDelay);
     }
@@ -386,23 +435,23 @@ class MessageStore extends MailspringStore {
     if (!this._thread) return;
 
     const loadedThreadId = this._thread.id;
-
-    const query = DatabaseStore.findAll(Message);
-    query.where({ threadId: loadedThreadId });
-    query.include(Message.attributes.body);
+    const query = this.findAllByThreadIdWithBody({ threadId: loadedThreadId });
+    // const query = DatabaseStore.findAll(Message);
+    // query.where({ threadId: loadedThreadId, state: 0 });
+    // query.include(Message.attributes.body);
 
     return query.then(items => {
       // Check to make sure that our thread is still the thread we were
       // loading items for. Necessary because this takes a while.
       if (loadedThreadId !== this.threadId()) return;
 
-      this._items = items.filter(m => !m.isHidden());
+      this._items = items.filter(m => !m.isHidden()).filter(this.filterOutDuplicateDraftHeaderMessage);
       this._items = this._sortItemsForDisplay(this._items);
 
       this._expandItemsToDefault();
 
       // if (this._itemsLoading) {
-        this._fetchMissingBodies(this._items);
+      this._fetchMissingBodies(this._items);
       // }
 
       // Download the attachments on expanded messages.
@@ -420,17 +469,17 @@ class MessageStore extends MailspringStore {
   }
 
   _fetchMissingBodies(items) {
-    const missing = items.filter(i =>{
+    const missing = items.filter(i => {
       return (
-        (i.body === null || (typeof i.body === 'string' && i.body.length === 0)) &&
-        this._itemsExpanded[i.id]
+        (i.body === null || (typeof i.body === 'string' && i.body.length === 0))
       );
     });
     if (missing.length > 0) {
       return Actions.fetchBodies(missing);
     }
   }
-  _isMissingBody(item){
+
+  _isMissingBody(item) {
     return item.body === null || (typeof item.body === 'string' && item.body.length === 0);
   }
 
@@ -458,6 +507,28 @@ class MessageStore extends MailspringStore {
         this._itemsExpanded[item.id] = 'default';
       }
     }
+  }
+
+  _isDraftDuplicateHeaderMessageId(item) {
+    if (!item.draft) {
+      return false;
+    }
+    let count = 0;
+    for (let i of this._items) {
+      if (i.headerMessageId === item.headerMessageId) {
+        count++;
+      }
+      if (count > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  filterOutDuplicateDraftHeaderMessage(value, index, array) {
+    return array.findIndex((el) => {
+      return el.headerMessageId == value.headerMessageId;
+    }) === index || !value.draft;
   }
 
   _sortItemsForDisplay(items) {

@@ -11,10 +11,15 @@ export default class AttributeDateTime extends Attribute {
     if (!val) {
       return null;
     }
+    if (!(val instanceof Date) && isFinite(val)){
+      console.warn('converting val from integer to Date');
+      val = new Date(val);
+    }
     if (!(val instanceof Date)) {
-      throw new Error(
+      console.error(
         `Attempting to toJSON AttributeDateTime which is not a date: ${this.modelKey} = ${val}`
       );
+      return null;
     }
     return val.getTime() / 1000.0;
   }

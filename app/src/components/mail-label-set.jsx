@@ -19,6 +19,7 @@ export default class MailLabelSet extends React.Component {
     messages: PropTypes.array,
     includeCurrentCategories: PropTypes.bool,
     removable: PropTypes.bool,
+    noWrapper: PropTypes.bool,
   };
 
   _onRemoveLabel(label) {
@@ -32,7 +33,7 @@ export default class MailLabelSet extends React.Component {
   }
 
   render() {
-    const { thread, messages, includeCurrentCategories } = this.props;
+    const { thread, messages, includeCurrentCategories, noWrapper } = this.props;
     const account = AccountStore.accountForId(thread.accountId);
     const labels = [];
 
@@ -64,6 +65,10 @@ export default class MailLabelSet extends React.Component {
           labels.push(LabelComponentCache[label.id]);
         }
       }
+    }
+
+    if (noWrapper) {
+      return labels;
     }
     return (
       <InjectedComponentSet

@@ -11,11 +11,12 @@ import { changes as InlineAttachmentChanges } from './inline-attachment-plugins'
 
 export default class ComposerEditor extends React.Component {
   static propTypes = {
-    readOnly: PropTypes.bool
+    readOnly: PropTypes.bool,
   };
   static defaultProps = {
-    readOnly: false
+    readOnly: false,
   };
+
   // Public API
 
   constructor(props) {
@@ -54,7 +55,7 @@ export default class ComposerEditor extends React.Component {
         .change()
         .selectAll()
         .collapseToStart()
-        .focus()
+        .focus(),
     );
   };
 
@@ -67,7 +68,7 @@ export default class ComposerEditor extends React.Component {
         value
           .change()
           .collapseToEndOf(node)
-          .focus()
+          .focus(),
       );
     });
   };
@@ -80,7 +81,7 @@ export default class ComposerEditor extends React.Component {
           .change()
           .selectAll()
           .collapseToEnd()
-          .focus()
+          .focus(),
       );
     });
   };
@@ -149,11 +150,11 @@ export default class ComposerEditor extends React.Component {
       return true;
     } else {
       const macCopiedFile = decodeURI(
-        ElectronClipboard.read('public.file-url').replace('file://', '')
+        ElectronClipboard.read('public.file-url').replace('file://', ''),
       );
       const winCopiedFile = ElectronClipboard.read('FileNameW').replace(
         new RegExp(String.fromCharCode(0), 'g'),
-        ''
+        '',
       );
       if (macCopiedFile.length || winCopiedFile.length) {
         onFileReceived(macCopiedFile || winCopiedFile);
@@ -161,24 +162,19 @@ export default class ComposerEditor extends React.Component {
       }
     }
 
-    // handle text/html paste
-    const html = event.clipboardData.getData('text/html');
-    if (html) {
-      const value = convertFromHTML(html);
-      if (value && value.document) {
-        change.insertFragment(value.document);
-        return true;
-      }
-    }
+    // DC-145
+    // Removed because we will be relying on electron's paste with style
+    // const html = event.clipboardData.getData('text/html');
+    // if (html) {
+    //   const value = convertFromHTML(html);
+    //   if (value && value.document) {
+    //     change.insertFragment(value.document);
+    //     return true;
+    //   }
+    // }
   };
 
-  onContextMenu = event => {
-    event.preventDefault();
-
-    const word = this.props.value.fragment.text;
-    const sel = this.props.value.selection;
-    const hasSelectedText = !sel.isCollapsed;
-
+  openContextMenu = ({ word, sel, hasSelectedText }) => {
     AppEnv.windowEventHandler.openSpellingMenuFor(word, hasSelectedText, {
       onCorrect: correction => {
         this.onChange(this.props.value.change().insertText(correction));
@@ -187,6 +183,15 @@ export default class ComposerEditor extends React.Component {
         this.onChange(this.props.value.change().select(sel));
       },
     });
+  };
+
+  onContextMenu = event => {
+    event.preventDefault();
+
+    const word = this.props.value.fragment.text;
+    const sel = this.props.value.selection;
+    const hasSelectedText = !sel.isCollapsed;
+    this.openContextMenu({ word, sel, hasSelectedText });
   };
 
   onChange = nextValue => {
@@ -215,7 +220,7 @@ export default class ComposerEditor extends React.Component {
           {plugins
             .filter(p => p.topLevelComponent)
             .map((p, idx) => (
-              <p.topLevelComponent key={idx} value={value} onChange={this.onChange} />
+              <p.topLevelComponent key={idx} value={value} onChange={this.onChange}/>
             ))}
           <Editor
             value={value}
@@ -232,7 +237,7 @@ export default class ComposerEditor extends React.Component {
           />
           {plugins
             .reduce((arr, p) => (p.topLevelComponents ? arr.concat(p.topLevelComponents) : arr), [])
-            .map((Component, idx) => <Component key={idx} />)}
+            .map((Component, idx) => <Component key={idx}/>)}
         </div>
       </KeyCommandsRegion>
     );

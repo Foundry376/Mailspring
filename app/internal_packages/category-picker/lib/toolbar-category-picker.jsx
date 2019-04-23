@@ -119,7 +119,7 @@ class MovePicker extends React.Component {
             onClick={this._onOpenMovePopover}
             className={'btn btn-toolbar btn-category-picker'}
           >
-            <RetinaImg name={'folder.svg'} style={{ width: 26, height: 26 }} isIcon
+            <RetinaImg name={'folder.svg'} style={{ width: 24, height: 24 }} isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
           </button>
           {this._account.usesLabels() && (
@@ -130,7 +130,7 @@ class MovePicker extends React.Component {
               onClick={this._onOpenLabelsPopover}
               className={'btn btn-toolbar btn-category-picker'}
             >
-              <RetinaImg name={'label.svg'} style={{ width: 26, height: 26 }} isIcon
+              <RetinaImg name={'label.svg'} style={{ width: 24, height: 24 }} isIcon
                 mode={RetinaImg.Mode.ContentIsMask} />
             </button>
           )}

@@ -48,8 +48,11 @@ class MessageBodyProcessor {
     // changedMessage may not have a loaded body if it wasn't changed. In
     // that case, we use the previous body. Note: metadata changes, etc.
     // can cause the body to change, even if the HTML is identical!
+    if (!changedMessage){
+      return;
+    }
     const subscriptions = this._subscriptions.filter(
-      ({ message }) => message.id === changedMessage.id
+      ({ message }) => message && changedMessage && message.id === changedMessage.id,
     );
 
     const updatedMessage = changedMessage.clone();
@@ -96,7 +99,7 @@ class MessageBodyProcessor {
           if (this._subscriptions.includes(sub)) {
             callback(output);
           }
-        })
+        }),
       );
     }
 
@@ -121,6 +124,8 @@ class MessageBodyProcessor {
     const key = this._key(message);
     if (this._recentlyProcessedD[key]) {
       return this._recentlyProcessedD[key].body;
+    } else {
+      this.retrieve(message);
     }
     return null;
   }
@@ -163,7 +168,7 @@ class MessageBodyProcessor {
           }
         }
         return body;
-      }
+      },
     );
   }
 

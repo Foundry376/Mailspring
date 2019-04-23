@@ -1,10 +1,10 @@
 import React from 'react';
 
-export default function CreateButtonGroup(name, buttons, { order = 0 }) {
+export default function CreateButtonGroup(name, buttons, { order = 0, ...otherProps }, className = '') {
   const fn = props => {
     return (
-      <div className="button-group" style={{ order }}>
-        {buttons.map(Component => <Component key={Component.displayName} {...props} />)}
+      <div key={name} className={"button-group " + className} style={{ order, ...otherProps }}>
+        {buttons.map((Component, index) => <Component key={Component.displayName + index.toString()} {...props} />)}
       </div>
     );
   };

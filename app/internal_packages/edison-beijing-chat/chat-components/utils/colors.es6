@@ -1,19 +1,19 @@
 const colors = [
-  '#ff2d60',
-  '#ff5e3a',
-  '#54c4f6',
-  '#1966f2',
-  '#c643fc',
-  '#5856d6'
-];
-
-const colorsStop = [
   '#ff5939',
   '#ff8d09',
   '#4ee3ca',
   '#16c8fd',
   '#e94cc0',
   '#b647f6'
+];
+
+const colorsStop = [
+  '#ff2d60',
+  '#ff5e3a',
+  '#54c4f6',
+  '#1966f2',
+  '#c643fc',
+  '#5856d6'
 ];
 
 export const colorForString = str => {

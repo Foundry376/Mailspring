@@ -5,6 +5,7 @@ import Actions from '../actions';
 import Thread from '../models/thread';
 import Message from '../models/message';
 import DatabaseStore from '../stores/database-store';
+import MessageStore from '../stores/message-store';
 import CategoryStore from '../stores/category-store';
 import MailRulesProcessor from '../../mail-rules-processor';
 
@@ -206,9 +207,11 @@ class MailRulesStore extends MailspringStore {
         return;
       }
 
-      DatabaseStore.findAll(Message, {
-        threadId: threads.map(t => t.id),
-      }).then(messages => {
+
+      // DatabaseStore.findAll(Message, {
+      //   threadId: threads.map(t => t.id),
+      // })
+      MessageStore.findAllByThreadId({ threadId: threads.map(t => t.id) }).then(messages => {
         if (!this._reprocessing[accountId]) {
           return;
         }

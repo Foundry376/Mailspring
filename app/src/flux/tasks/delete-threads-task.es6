@@ -8,7 +8,10 @@ export default class DeleteThreadsTask extends Task {
     }),
     source: Attributes.String({
       modelKey: 'source',
-    })
+    }),
+    canBeUndone: Attributes.Boolean({
+      modelKey: 'canBeUndone',
+    }),
   });
 
   constructor(data = {}) {
@@ -17,6 +20,9 @@ export default class DeleteThreadsTask extends Task {
     this.threadIds = data.threadIds || [];
     this.accountId = data.accountId || '';
     this.source = data.source || '';
+    if (this.canBeUndone === undefined){
+      this.canBeUndone = true;
+    }
   }
 
   label() {

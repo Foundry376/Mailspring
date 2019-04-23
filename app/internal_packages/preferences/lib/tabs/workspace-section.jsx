@@ -49,7 +49,7 @@ class DefaultMailClientItem extends React.Component {
               shell.openExternal('https://foundry376.zendesk.com/hc/en-us/articles/115002281851')
             }
           >
-            Use Mailspring as default mail client
+            Use Edison Mail as default mail client
           </div>
         </div>
       );
@@ -63,7 +63,7 @@ class DefaultMailClientItem extends React.Component {
           checked={this.state.defaultClient}
           onChange={this.toggleDefaultMailClient}
         />
-        <label htmlFor="default-client">Use Mailspring as default mail client</label>
+        <label htmlFor="default-client">Use Edison Mail as default mail client</label>
       </div>
     );
   }

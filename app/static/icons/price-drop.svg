@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
   <title>price-drop</title>
   <path d="M63,72l9.16-9.16L52.64,43.32l-16,16L9.82,32.46a4,4,0,0,1,0-5.64h0a4,4,0,0,1,5.64,0L36.64,48l16-16,25.2,25.16L87,48V72Z" fill="#fff"/>
+  <rect width="96" height="96" fill="none"/>
 </svg>

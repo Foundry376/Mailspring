@@ -3,8 +3,32 @@ import keyMannager from '../../../../src/key-manager';
 const { get, post } = require('./httpex');
 import { getPubKey } from './e2ee';
 import { isJsonStr } from './stringUtils';
+import path from 'path';
+import fs from 'fs';
+const download = require('download');
+let configDirPath = AppEnv.getConfigDirPath();
+let logoDirPath = path.join(configDirPath, 'logo_cache');
 
-var urlPre = 'https://restxmpp.stag.easilydo.cc/client/';
+const { devMode } = AppEnv.getLoadSettings();
+const domain = {
+    dev: {
+        rest: 'https://restxmpp.stag.easilydo.cc'
+    },
+    prod: {
+        rest: 'https://restxmpp.edison.tech'
+    },
+}
+function getBaseDomain(kind) {
+    let chatObj = {};
+    if (devMode) {
+        chatObj = domain.dev;
+    } else {
+        chatObj = domain.prod;
+    }
+    return chatObj[kind];
+}
+
+var urlPre = `${getBaseDomain('rest')}/client/`;
 
 export const register = (email, pwd, name, type, provider, setting) => {
     if (!setting) {
@@ -138,35 +162,35 @@ export async function refreshChatAccountTokens(cb) {
 export const setProfile = (data, cb) => {
     post(urlPre + 'setProfile', data, cb);
 }
-//--------------for chat platform------------
-const appBaseUrl = 'https://cs.stag.easilydo.cc';
-export const xmpplogin = (userId, token, cb) => {
-    var url = appBaseUrl + '/auth/public/xmpplogin';
-    post(url, { userId, token }, cb);
-}
-export const listApp = (userId, token, cb) => {
-    var url = appBaseUrl + '/xmpp/client/listApps';
-    post(url, { userId, token }, cb);
-}
-export const listKeywordApps = (userId, token, cb) => {
-    var url = appBaseUrl + '/xmpp/client/listKeywordApps';
-    post(url, { userId, token }, cb);
-}
-export const sendMsg2App = (data, cb) => {
-    var url = appBaseUrl + '/xmpp/client/sendMessage';
-    post(url, data, cb);
-}
-export const sendMsg2App2 = (userId, userName, token, appId, content, cb) => {
-    sendMsg2App({ userId, userName, token, appId, content }, cb);
-}
-export const sendCmd2App = (data, cb) => {
-    var url = appBaseUrl + '/xmpp/client/sendCommand';
-    post(url, data, cb);
-}
-export const sendCmd2App2 = (userId, userName, token, appId, command, peerUserId, roomId, cb) => {
-    sendCmd2App({ userId, userName, token, appId, command, peerUserId, roomId }, cb);
-}
-//--------------for chat platform------------
+// //--------------for chat platform------------
+// const appBaseUrl = 'https://cs.stag.easilydo.cc';
+// export const xmpplogin = (userId, token, cb) => {
+//     var url = appBaseUrl + '/auth/public/xmpplogin';
+//     post(url, { userId, token }, cb);
+// }
+// export const listApp = (userId, token, cb) => {
+//     var url = appBaseUrl + '/xmpp/client/listApps';
+//     post(url, { userId, token }, cb);
+// }
+// export const listKeywordApps = (userId, token, cb) => {
+//     var url = appBaseUrl + '/xmpp/client/listKeywordApps';
+//     post(url, { userId, token }, cb);
+// }
+// export const sendMsg2App = (data, cb) => {
+//     var url = appBaseUrl + '/xmpp/client/sendMessage';
+//     post(url, data, cb);
+// }
+// export const sendMsg2App2 = (userId, userName, token, appId, content, cb) => {
+//     sendMsg2App({ userId, userName, token, appId, content }, cb);
+// }
+// export const sendCmd2App = (data, cb) => {
+//     var url = appBaseUrl + '/xmpp/client/sendCommand';
+//     post(url, data, cb);
+// }
+// export const sendCmd2App2 = (userId, userName, token, appId, command, peerUserId, roomId, cb) => {
+//     sendCmd2App({ userId, userName, token, appId, command, peerUserId, roomId }, cb);
+// }
+// //--------------for chat platform------------
 export const login = (email, password, cb) => {
     post(urlPre + 'login',
         {
@@ -195,7 +219,7 @@ export const getAvatar = (email, cb) => {
         cb(avatarCache[email]);
         return avatarCache[email];
     }
-    get('https://restxmpp.stag.easilydo.cc/public/getavatar?email=' + email, (error, data, res) => {
+    get(`${getBaseDomain('rest')}/public/getavatar?email=` + email, (error, data, res) => {
         if (res && res.statusCode < 400) {
             avatarCache[email] = res.headers.location;
         } else {
@@ -206,11 +230,61 @@ export const getAvatar = (email, cb) => {
         }
     });
 }
+export const getAvatarPromise = (email) => {
+    return new Promise((resolve) => {
+        getAvatar(email, resolve);
+    })
+}
 export const getAvatarFromCache = email => {
     return avatarCache[email];
 }
 
+const isDownloading = {};
+async function downloadImage(url, logoPath, domain) {
+    if (isDownloading[domain]) {
+        return;
+    }
+    isDownloading[domain] = true;
+    try {
+        const data = await download(url);
+        fs.writeFileSync(logoPath, data);
+        return url;
+    } catch (err) {
+        console.warn('image download error:', err.message, url);
+    }
+}
+
+const logoCache = {};
+export const getLogo = async (email) => {
+    if (email) {
+        let domain = email.split('@')[1];
+        // domain = /\w+\.\w+$/g.exec(domain);
+        // find in localFolder
+        let logoPath = path.join(logoDirPath, domain + '.png');
+        if (fs.existsSync(logoPath)) {
+            return `file:${logoPath}`;
+        }
+
+        // find from cache first
+        if (logoCache[domain]) {
+            await downloadImage(logoCache[domain], logoPath, domain);
+            return logoCache[domain];
+        }
+
+        const url = `https://logo.clearbit.com/${domain}?size=256`;
+
+        const result = await downloadImage(url, logoPath, domain);
+        if (result) {
+            logoCache[domain] = url;
+        }
+        return result;
+    }
+}
+
 export default {
-    register, unregister, queryProfile, setProfile, login, uploadContacts, getAvatar, getAvatarFromCache,
-    xmpplogin, listApp, listKeywordApps, sendMsg2App, sendMsg2App2, sendCmd2App, sendCmd2App2
+    register, unregister, queryProfile, setProfile,
+    login, uploadContacts, getAvatar, getAvatarFromCache,
+    // xmpplogin, listApp, listKeywordApps, sendMsg2App,
+    // sendMsg2App2, sendCmd2App, sendCmd2App2, 
+    getAvatarPromise, getLogo
 }

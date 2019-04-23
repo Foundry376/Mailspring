@@ -30,7 +30,8 @@ class PreferencesAccountList extends Component {
 
   _renderAccount = account => {
     const label = account.label;
-    const accountSub = `${account.name || 'No name provided'} <${account.emailAddress}>`;
+    // const accountSub = `${account.name || 'No name provided'} <${account.emailAddress}>`;
+    const accountSub = `<${account.emailAddress}>`;
     const syncError = account.hasSyncStateError();
 
     return (
@@ -39,11 +40,7 @@ class PreferencesAccountList extends Component {
           <div style={{ textAlign: 'center' }}>
             <RetinaImg
               style={{ width: 50, height: 50 }}
-              name={
-                syncError
-                  ? 'ic-settings-account-error.png'
-                  : `account-logo-${account.provider}.png`
-              }
+              name={`account-logo-${account.provider}.png`}
               fallback="account-logo-other.png"
               mode={RetinaImg.Mode.ContentPreserve}
             />

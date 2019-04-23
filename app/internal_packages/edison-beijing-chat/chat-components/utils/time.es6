@@ -44,7 +44,7 @@ export const buildTimeDescriptor = (currentTime = new Date().getTime()) => {
     if (longFormat) {
       return moment(timestamp).calendar(currentTime, longFormat ? LONG_FORMATS : SHORT_FORMATS);
     }
-    // if yestoday, don't display
+    // if yesterday, don't display
     var d = new Date();
     if (timestamp < d.setHours(0, 0, 0, 0)) {
       return moment(timestamp).fromNow();
@@ -69,7 +69,7 @@ export const dateFormat = (timestamp, format) => {
   if (format) {
     return moment(timestamp).format(format);
   }
-  const str =  moment(timestamp).calendar(currentTime, DAY_LABEL_FORMATS);
+  const str = moment(timestamp).calendar(currentTime, DAY_LABEL_FORMATS);
   return str;
 
 }
@@ -92,7 +92,7 @@ export const weekDayFormat = (timestamp) => {
 
 export const nearDays = (timestamp) => {
   const currentTime = new Date().getTime();
-  return Math.abs(timestamp - currentTime) < 2*24*3600*1000
+  return Math.abs(timestamp - currentTime) < 2 * 24 * 3600 * 1000
 }
 
 export default {

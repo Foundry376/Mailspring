@@ -3,13 +3,18 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { RetinaImg, CreateButtonGroup, BindGlobalCommands } from 'mailspring-component-kit';
 import {
+  AccountStore,
   Actions,
   TaskFactory,
   ChangeLabelsTask,
   CategoryStore,
   FocusedContentStore,
   FocusedPerspectiveStore,
+  WorkspaceStore,
+  MessageStore,
 } from 'mailspring-exports';
+import { remote } from 'electron';
+const { Menu, MenuItem } = remote;
 
 import ThreadListStore from './thread-list-store';
 
@@ -44,9 +49,9 @@ export class ArchiveButton extends React.Component {
       <BindGlobalCommands commands={{ 'core:archive-item': () => this._onArchive() }}>
         <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
           <RetinaImg name={'archive.svg'}
-                     style={{ width: 26, height: 26 }}
-                     isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -73,7 +78,7 @@ export class TrashButton extends React.Component {
     }
     return;
   };
-  _onExpunge = event =>{
+  _onExpunge = event => {
     const tasks = TaskFactory.tasksForExpungingThreads({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
@@ -93,9 +98,9 @@ export class TrashButton extends React.Component {
       return false;
     }
     let actionCallBack = null;
-    if(canMove){
+    if (canMove) {
       actionCallBack = this._onRemove;
-    }else if(canExpunge){
+    } else if (canExpunge) {
       actionCallBack = this._onExpunge;
     }
 
@@ -107,7 +112,7 @@ export class TrashButton extends React.Component {
           title="Move to Trash"
           onClick={actionCallBack}
         >
-          <RetinaImg name={'trash.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name={'trash.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -147,11 +152,11 @@ class HiddenGenericRemoveButton extends React.Component {
           'core:remove-from-view': this._onRemoveFromView,
           'core:remove-and-previous': () => this._onRemoveAndShift({ offset: -1 }),
           'core:remove-and-next': () => this._onRemoveAndShift({ offset: 1 }),
-          'core:show-previous': () => this._onShift({offset: -1}),
-          'core:show-next': () => this._onShift({offset: 1}),
+          'core:show-previous': () => this._onShift({ offset: -1 }),
+          'core:show-next': () => this._onShift({ offset: 1 }),
         }}
       >
-        <span/>
+        <span />
       </BindGlobalCommands>
     );
   }
@@ -208,7 +213,7 @@ class HiddenToggleImportantButton extends React.Component {
             : { 'core:mark-important': () => this._onSetImportant(true) }
         }
       >
-        <span/>
+        <span />
       </BindGlobalCommands>
     );
   }
@@ -264,8 +269,8 @@ export class MarkAsSpamButton extends React.Component {
             title="Not Junk"
             onClick={this._onNotSpam}
           >
-            <RetinaImg name="not-junk.svg" style={{ width: 26, height: 26 }} isIcon
-                       mode={RetinaImg.Mode.ContentIsMask}/>
+            <RetinaImg name="not-junk.svg" style={{ width: 24, height: 24 }} isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
           </button>
         </BindGlobalCommands>
       );
@@ -286,7 +291,7 @@ export class MarkAsSpamButton extends React.Component {
           title="Mark as Spam"
           onClick={this._onMarkAsSpam}
         >
-          <RetinaImg name={'junk.svg'} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name={'junk.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -317,12 +322,16 @@ export class ToggleStarredButton extends React.Component {
   render() {
     const postClickStarredState = this.props.items.every(t => t.starred === false);
     const title = postClickStarredState ? 'Flag' : 'Unflag';
-    const imageName = postClickStarredState ? 'flag.svg' : 'flag-not-selected.svg';
+    const className = postClickStarredState ? 'flag-not-selected' : 'flagged';
 
     return (
       <BindGlobalCommands commands={{ 'core:star-item': () => this._onStar() }}>
-        <button tabIndex={-1} className="btn btn-toolbar" title={title} onClick={this._onStar}>
-          <RetinaImg name={imageName} style={{ width: 26, height: 26 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+        <button tabIndex={-1} className={"btn btn-toolbar " + className} title={title} onClick={this._onStar}>
+          <RetinaImg
+            name="flag.svg"
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -374,10 +383,123 @@ export class ToggleUnreadButton extends React.Component {
           title={`Mark as ${fragment}`}
           onClick={this._onClick}
         >
-          <RetinaImg name={`${fragment}.svg`} style={{ width: 26, height: 26 }} isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name={`${fragment}.svg`} style={{ width: 24, height: 24 }} isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
+    );
+  }
+}
+
+export class ThreadListMoreButton extends React.Component {
+  static displayName = 'ThreadListMoreButton';
+  static containerRequired = false;
+
+  static propTypes = {
+    items: PropTypes.array.isRequired,
+  };
+
+  constructor(props) {
+    super(props);
+    const current = FocusedPerspectiveStore.current();
+    if (current && current.accountIds.length) {
+      this._account = AccountStore.accountForId(current.accountIds[0]);
+    }
+  }
+
+  componentWillUpdate() {
+    const current = FocusedPerspectiveStore.current();
+    if (current && current.accountIds.length) {
+      this._account = AccountStore.accountForId(current.accountIds[0]);
+    }
+  }
+
+  _onPrintThread = () => {
+    const node = document.querySelector('#message-list');
+    const currentThread = MessageStore.thread();
+    Actions.printThread(currentThread, node.outerHTML);
+  };
+
+  _more = () => {
+    const menu = new Menu();
+    menu.append(new MenuItem({
+      label: `Mark as read`,
+      click: () => AppEnv.commands.dispatch('core:mark-as-read'),
+    })
+    );
+    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
+      this.props.items,
+      'important',
+    );
+    if (allowed) {
+      menu.append(new MenuItem({
+        label: `Mark as spam`,
+        click: () => AppEnv.commands.dispatch('core:report-as-spam'),
+      })
+      );
+    }
+    if (this._account && this._account.usesLabels()) {
+      menu.append(new MenuItem({
+        label: `Mark important`,
+        click: () => AppEnv.commands.dispatch('core:mark-important'),
+      })
+      );
+    }
+    menu.popup({});
+  };
+
+  render() {
+    return (
+      <button tabIndex={-1} className="btn btn-toolbar btn-list-more" onClick={this._more}>
+        <RetinaImg
+          name="more.svg"
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
+      </button>
+    );
+  }
+}
+
+export class MoreButton extends React.Component {
+  static displayName = 'MoreButton';
+  static containerRequired = false;
+
+  static propTypes = {
+    items: PropTypes.array.isRequired,
+  };
+
+  _onPrintThread = () => {
+    const node = document.querySelector('#message-list');
+    const currentThread = MessageStore.thread();
+    Actions.printThread(currentThread, node.outerHTML);
+  };
+
+  _more = () => {
+    const expandTitle = MessageStore.hasCollapsedItems() ? 'Expand All' : 'Collapse All';
+    const menu = new Menu();
+    menu.append(new MenuItem({
+      label: `Print Thread`,
+      click: () => this._onPrintThread(),
+    })
+    );
+    menu.append(new MenuItem({
+      label: expandTitle,
+      click: () => Actions.toggleAllMessagesExpanded(),
+    })
+    );
+    menu.popup({});
+  };
+
+  render() {
+    return (
+      <button tabIndex={-1} className="btn btn-toolbar btn-more" onClick={this._more}>
+        <RetinaImg
+          name="more.svg"
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
+      </button>
     );
   }
 }
@@ -420,7 +542,7 @@ class ThreadArrowButton extends React.Component {
   render() {
     const { direction, title } = this.props;
     const classes = classNames({
-      'btn-icon': true,
+      'btn-toolbar': true,
       'message-toolbar-arrow': true,
       disabled: this.state.disabled,
     });
@@ -431,22 +553,38 @@ class ThreadArrowButton extends React.Component {
           name={`${direction === 'up' ? 'back' : 'next'}.svg`}
           isIcon
           style={{ width: 24, height: 24 }}
-          mode={RetinaImg.Mode.ContentIsMask}/>
+          mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
   }
 }
 
+const Divider = (key = 'divider') => (
+  <div className="divider" key={key} />
+);
+Divider.displayName = 'Divider';
+
 export const FlagButtons = CreateButtonGroup(
   'FlagButtons',
-  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton],
+  [ToggleStarredButton, HiddenToggleImportantButton, ToggleUnreadButton, MoreButton],
   { order: -103 },
+);
+export const ThreadMoreButtons = CreateButtonGroup(
+  'ThreadMoreButtons',
+  [ThreadListMoreButton],
+  { order: -100 },
+  'thread-more'
+);
+export const ThreadEmptyMoreButtons = CreateButtonGroup(
+  'ThreadEmptyMoreButtons',
+  [ThreadListMoreButton],
+  { order: -100 }
 );
 
 export const MoveButtons = CreateButtonGroup(
   'MoveButtons',
-  [ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton],
-  { order: -107 },
+  [ArchiveButton, MarkAsSpamButton, HiddenGenericRemoveButton, TrashButton, Divider],
+  { order: -109 },
 );
 
 export const DownButton = () => {
@@ -458,6 +596,10 @@ export const DownButton = () => {
       disabled: lastItem && lastItem.id === selectedId,
     };
   };
+
+  if (WorkspaceStore.layoutMode() !== 'list') {
+    return null;
+  }
 
   return (
     <ThreadArrowButton
@@ -480,6 +622,10 @@ export const UpButton = () => {
     };
   };
 
+  if (WorkspaceStore.layoutMode() !== 'list') {
+    return null;
+  }
+
   return (
     <ThreadArrowButton
       getStateFromStores={getStateFromStores}
@@ -491,3 +637,40 @@ export const UpButton = () => {
 };
 UpButton.displayName = 'UpButton';
 UpButton.containerRequired = false;
+
+export const PopoutButton = () => {
+  const _onPopoutComposer = () => {
+    const thread = MessageStore.thread();
+    if (thread) {
+      Actions.popoutThread(thread);
+      // This returns the single-pane view to the inbox, and does nothing for
+      // double-pane view because we're at the root sheet.
+      // Actions.popSheet();
+    }
+  }
+
+  if (!AppEnv.isComposerWindow()) {
+    return (
+      <div
+        className="btn-toolbar message-toolbar-popout"
+        key="popout"
+        title="Popout composer…"
+        onClick={_onPopoutComposer}
+      >
+        <RetinaImg name={'popout.svg'}
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
+      </div>
+    );
+  }
+
+  return null;
+};
+PopoutButton.displayName = 'PopoutButton';
+
+export const NavButtons = CreateButtonGroup(
+  'NavButtons',
+  [Divider, UpButton, DownButton, PopoutButton],
+  { order: 205 },
+);

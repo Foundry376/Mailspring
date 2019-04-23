@@ -11,6 +11,7 @@ body {
   line-height: @line-height-base;
   -webkit-font-smoothing: antialiased;
   touch-action: manipulation;
+  caret-color: @blue;
 }
 @search-bar-height: 68px;
 mailspring-workspace {
@@ -72,6 +73,10 @@ mailspring-workspace {
 
 .toolbar-menu-control {
   display: none;
+}
+img.icon-small{
+  width: @icon-small;
+  height: @icon-small;
 }
 
 .toolbar-window-controls {
@@ -212,13 +217,72 @@ body.is-blurred {
     background: #fff;
   }
   .toolbar-MessageList {
-    height: 56px;
+    height: 40px;
     top: @search-bar-height - 1px !important;
     border-bottom: none;
     border-top: 1px solid @extra-light-grey;
+    overflow: hidden;
+    .divider {
+      width: 1px;
+      height: 30px;
+      background: @border-color-divider;
+    }
+    .button-group {
+      align-items: center;
+    }
     .item-container {
       .item-spacer {
         display: none;
+      }
+      .btn-toolbar {
+        position: relative;
+        margin-top: 0;
+        height: auto;
+        &.flagged {
+          img.content-mask {
+            background-color: @orange;
+          }
+        }
+        img {
+          position: relative;
+          z-index: 2;
+          transition: background-color 0.4s;
+        }
+        &:active {
+          background-color: @white;
+        }
+        &:hover {
+          &:after {
+            content: '';
+            height: 36px;
+            width: 36px;
+            border-radius: 50%;
+            background: @off-white;
+            display: block;
+            position: absolute;
+            top: -5px;
+            left: 7px;
+            animation: growUp 0.4s;
+          }
+          @keyframes growUp {
+            from {
+              opacity: 0.7;
+              transform: scale(0.5);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+        }
+        &:active {
+          &:after {
+            background: @extra-light-grey;
+          }
+          img {
+            background-color: @dark-grey;
+          }
+        }
       }
       .message-toolbar-items {
         flex: 1;
@@ -230,49 +294,8 @@ body.is-blurred {
           justify-content: flex-end;
           align-items: center;
           .key-commands-region {
+            white-space: nowrap;
             height: auto;
-          }
-          .button-group {
-            align-items: center;
-          }
-          .btn-toolbar {
-            position: relative;
-            margin-top: 0;
-            img {
-              position: relative;
-              z-index: 2;
-              transition: background-color 0.4s;
-            }
-            &:active {
-              background-color: @white;
-            }
-            &:hover {
-              &:after {
-                content: '';
-                height: 36px;
-                width: 36px;
-                border-radius: 50%;
-                background: @source-list-active-bg;
-                display: block;
-                position: absolute;
-                top: -5px;
-                left: 8px;
-                animation: growUp 0.4s;
-              }
-              img {
-                background-color: @blue;
-              }
-              @keyframes growUp {
-                from {
-                  opacity: 0.7;
-                  transform: scale(0.5);
-                }
-                to {
-                  opacity: 1;
-                  transform: scale(1);
-                }
-              }
-            }
           }
         }
       }
@@ -315,7 +338,7 @@ body.is-blurred {
   .item-back {
     order: -999;
     img.content-mask {
-      background-color: @text-color-heading;
+      background-color: @gray;
     }
     flex-grow: 0;
     flex-shrink: 0;
@@ -643,6 +666,7 @@ body.platform-win32 {
 .column-RootSidebar {
   border-right: 1px solid @extra-light-grey;
   -webkit-app-region: no-drag;
+  flex-shrink: 0;
 }
 
 .column-ThreadList,
@@ -650,6 +674,12 @@ body.platform-win32 {
   margin-top: @search-bar-height;
   padding-bottom: @search-bar-height;
   -webkit-app-region: no-drag;
+  div{
+    // This is for DC-182 reduce height because of thread-list-empty-bar
+    div:nth-child(2).key-commands-region.thread-list{
+      height: calc(~"100% - 40px");
+    }
+  }
 }
 
 .column-MessageList {
