@@ -27,6 +27,8 @@ import { AccountStore } from 'mailspring-exports';
 
 import keyMannager from '../../../../../../src/key-manager';
 import MemberProfile from '../conversations/MemberProfile';
+
+import {xmpplogin} from '../../../utils/restjs';
 import Notification from '../../../../../../src/components/notification';
 import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 import fs from "fs";
@@ -37,6 +39,8 @@ import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
+
+const {exec} = require('child_process');
 const remote = require('electron').remote;
 const { dialog } = remote;
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -494,6 +498,23 @@ export default class MessagesPanel extends PureComponent {
     }
   }
 
+  installApp = async (e) => {
+    const conv = this.props.selectedConversation;
+    const {curJid} = conv;
+    const db = await getDb();
+    const contact = await db.contacts.findOne().where('jid').eq(curJid).exec();
+    const email = contact.email;
+    let token = await keyMannager.getAccessTokenByEmail(email);
+    const userId = curJid.split('@')[0];
+    xmpplogin(userId, token,(err,data) => {
+      console.log('debugger xmpplogin: ', userId, token, err, data);
+      if (data) {
+        data = JSON.parse(data);
+        exec('open ' + data.data.url);
+      }
+    })
+  }
+
   render() {
     const { showConversationInfo, inviting, members } = this.state;
     const {
@@ -597,6 +618,7 @@ export default class MessagesPanel extends PureComponent {
                 ) : (
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
+                      <div onClick={this.installApp} style={{zIndex:999}}> Install App</div>
                       <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile}/>
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       <Notifications {...notificationsProps} sendBarProps={sendBarProps} />

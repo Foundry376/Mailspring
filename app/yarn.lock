@@ -5596,13 +5596,13 @@ node-int64@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/node-int64/-/node-int64-0.4.0.tgz#87a9065cdb355d3182d8f94ce11188b825c68a3b"
 
-node-mac-notifier@0.0.13:
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/node-mac-notifier/-/node-mac-notifier-0.0.13.tgz#d64b76ed181f4795d4445ba2d3ad0d6f7298f7e2"
+node-mac-notifier@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/node-mac-notifier/-/node-mac-notifier-1.1.0.tgz#8c84193498c04ba99058f45da750f94798982d10"
   dependencies:
     bindings "^1.2.1"
     event-target-shim "^1.1.1"
-    node-uuid "^1.4.7"
+    uuid "^3.3.2"
 
 node-notifier@^5.2.1:
   version "5.4.0"
@@ -5658,10 +5658,6 @@ node-thumbnail@^0.15.0:
     commander "2.9.0"
     jimp "0.2.27"
     lodash "4.17.5"
-
-node-uuid@^1.4.7:
-  version "1.4.8"
-  resolved "https://registry.yarnpkg.com/node-uuid/-/node-uuid-1.4.8.tgz#b040eb0923968afabf8d32fb1f17f1167fdab907"
 
 noop-fn@^1.0.0:
   version "1.0.0"
