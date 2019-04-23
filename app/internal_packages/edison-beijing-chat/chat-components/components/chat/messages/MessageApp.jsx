@@ -42,6 +42,7 @@ export default class MessageApp extends PureComponent {
             getContactAvatar
         } = this.props;
         const member = { jid: appJid, name: appName };
+        debugger
         let cmds = '';
         if (ctxCmds) {
             let arrCmds = JSON.parse(ctxCmds);
