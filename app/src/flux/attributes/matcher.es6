@@ -88,6 +88,30 @@ class Matcher {
       }
       return false;
     };
+    const valueIn = (array, searchItem) => {
+      if (array.length === 0) {
+        return false;
+      }
+      for (let item of array) {
+        // triple-equals would break this, because we have state = 1 while we look for state='1'
+        if (item == searchItem) { // eslint-disable-line
+          return true;
+        }
+      }
+      return false;
+    };
+    const valueNotIn = (array, searchItem) => {
+      if (array.length === 0) {
+        return true;
+      }
+      for (let item of array) {
+        // triple-equals would break this, because we have state = 1 while we look for state='1'
+        if (item == searchItem) { // eslint-disable-line
+          return false;
+        }
+      }
+      return true;
+    };
 
     switch (this.comparator) {
       case '=':
@@ -104,9 +128,9 @@ class Matcher {
       case '>=':
         return modelValue >= matcherValue;
       case 'in':
-        return matcherValue.includes(modelValue);
+        return valueIn(matcherValue, modelValue);
       case 'not in':
-        return !matcherValue.includes(modelValue);
+        return valueNotIn(matcherValue, modelValue);
       case 'contains':
         return modelArrayContainsValue(modelValue, matcherValue);
       case 'containsAny':

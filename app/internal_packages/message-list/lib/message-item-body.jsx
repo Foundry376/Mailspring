@@ -40,7 +40,7 @@ class ConditionalQuotedTextControl extends React.Component {
             name={'expand-more.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask}/>
+            mode={RetinaImg.Mode.ContentIsMask} />
         </span>
       </a>
     );
@@ -121,7 +121,6 @@ export default class MessageItemBody extends React.Component {
 
   _mergeBodyWithFiles(body) {
     let merged = body;
-
     // Replace cid: references with the paths to downloaded files
     this.props.message.files.filter(f => f.contentId).forEach(file => {
       const download = this.props.downloads[file.id];
@@ -142,8 +141,8 @@ export default class MessageItemBody extends React.Component {
             '<img alt="spinner.gif" src="edisonmail://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">',
         );
       } else {
-        const cidRegexp = new RegExp(`cid:${safeContentId}(@[^'"]+)?`, 'gi');
-        merged = merged.replace(cidRegexp, `file://${AttachmentStore.pathForFile(file)}`);
+        const cidRegexp = new RegExp(`"cid:${safeContentId}(@[^'"]+)?"`, 'gi');
+        merged = merged.replace(cidRegexp, `"file://${AttachmentStore.pathForFile(file)}" class='inline-image'`);
       }
     });
 
