@@ -39,6 +39,7 @@ import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
+import { getToken } from '../../../utils/appmgt';
 
 const {exec} = require('child_process');
 const remote = require('electron').remote;
@@ -537,11 +538,8 @@ export default class MessagesPanel extends PureComponent {
   installApp = async (e) => {
     const conv = this.props.selectedConversation;
     const {curJid} = conv;
-    const db = await getDb();
-    const contact = await db.contacts.findOne().where('jid').eq(curJid).exec();
-    const email = contact.email;
-    let token = await keyMannager.getAccessTokenByEmail(email);
     const userId = curJid.split('@')[0];
+    let token = await getToken(userId);
     xmpplogin(userId, token,(err,data) => {
       console.log('debugger xmpplogin: ', userId, token, err, data);
       if (data) {

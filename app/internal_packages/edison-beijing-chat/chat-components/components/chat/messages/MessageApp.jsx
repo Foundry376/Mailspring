@@ -37,12 +37,12 @@ export default class MessageApp extends PureComponent {
     }
     render() {
         const { appJid, appName, content, htmlBody, ctxCmds, sentTime } = this.props.msgBody;
+        console.log('debugger: MessageApp.render msgBody: ', this.props.msgBody);
         const {
             getContactInfoByJid,
             getContactAvatar
         } = this.props;
         const member = { jid: appJid, name: appName };
-        debugger
         let cmds = '';
         if (ctxCmds) {
             let arrCmds = JSON.parse(ctxCmds);
@@ -63,7 +63,7 @@ export default class MessageApp extends PureComponent {
                     </div>
                     <div className="messageBody">
                         <div className="text-content">
-                            {htmlBody ? htmlBody : content}
+                            {htmlBody ? <div dangerouslySetInnerHTML={htmlBody} /> : content}
                         </div>
                         <div>{cmds}</div>
                     </div>

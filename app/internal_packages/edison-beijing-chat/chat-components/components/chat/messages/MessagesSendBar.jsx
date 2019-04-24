@@ -186,7 +186,6 @@ export default class MessagesSendBar extends PureComponent {
       let peerUserId, roomId;
       let appName = messageBody.split(' ')[0].substring(1);
       let curJidLocal = selectedConversation.curJid.slice(0, selectedConversation.curJid.indexOf('@'));
-      debugger;
       let app = getMyAppByShortName(curJidLocal, appName);
       if (app && app.length > 0) {
         if (selectedConversation.isGroup) {
