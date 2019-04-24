@@ -430,10 +430,11 @@ export default class Message extends ModelWithMetadata {
     return this.body.replace(re, '').length === 0;
   }
   isDeleted() {
-    return this.state === Message.messageState.deleted;
+    //DC-269
+    return this.state == Message.messageState.deleted; // eslint-ignore-line
   }
   isDraftSaving(){
-    return this.state === Message.messageState.saving && this.draft
+    return this.state == Message.messageState.saving && this.draft; // eslint-ignore-line
   }
 
   isHidden() {

@@ -123,7 +123,7 @@ class DraftStore extends MailspringStore {
   // Public: Look up the sending state of the given draft headerMessageId.
   // In popout windows the existance of the window is the sending state.
   isSendingDraft(headerMessageId) {
-    return this._draftsSending[headerMessageId] || false;
+    return !!this._draftsSending[headerMessageId] || false;
   }
 
   _onDraftAccountChange = async ({
@@ -610,7 +610,7 @@ class DraftStore extends MailspringStore {
       if (AppEnv.isComposerWindow()) {
         AppEnv.close({
           headerMessageId,
-          threadId: draft.threadId,
+          threadId: this._draftsSending[headerMessageId].threadId,
           additionalChannelParam: 'draft',
           windowLevel: this._getCurrentWindowLevel(),
         });
@@ -635,9 +635,7 @@ class DraftStore extends MailspringStore {
       actionKey: actionKey,
     };
 
-    if(!sendLaterMetadataValue){
-      this._draftsSending[headerMessageId] = true;
-    }
+
 
     // get the draft session, apply any last-minute edits and get the final draft.
     // We need to call `changes.commit` here to ensure the body of the draft is
@@ -653,6 +651,9 @@ class DraftStore extends MailspringStore {
 
     // remove inline attachments that are no longer in the body
     let draft = session.draft();
+    if(!sendLaterMetadataValue){
+      this._draftsSending[headerMessageId] = draft;
+    }
     const files = draft.files.filter(f => {
       return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
     });
@@ -730,7 +731,7 @@ class DraftStore extends MailspringStore {
   };
 
   _onSendDraftFailed = ({ headerMessageId, threadId, errorMessage, errorDetail }) => {
-    this._draftsSending[headerMessageId] = false;
+    delete this._draftsSending[headerMessageId];
     this.trigger({ headerMessageId });
 
     if (AppEnv.isMainWindow()) {
