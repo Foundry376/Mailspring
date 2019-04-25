@@ -240,6 +240,20 @@ body.platform-win32 {
     .mail-label {
       position: relative;
       top: -3px;
+      &.removable {
+        padding-left: 15px;
+        padding-right: 1px;
+        .inner {
+          left: -6px;
+        }
+        img.x {
+          display: inline-block;
+          opacity: 0.4;
+          left: -4px;
+          top: 0;
+          cursor: pointer;
+        }
+      }
     }
   }
   .message-icons-wrap {
