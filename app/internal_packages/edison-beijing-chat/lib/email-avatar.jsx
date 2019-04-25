@@ -59,11 +59,17 @@ export default class EmailAvatar extends Component {
       styles = Object.assign(styles, this.props.styles);
     }
     if (this.props.messagePending) {
+      const lottieStyle ={marginTop: -5, marginLeft: -5};
+      if(!hasImage){
+        lottieStyle.position = 'absolute';
+        lottieStyle.left = 0;
+        lottieStyle.top = 15;
+      }
       return <div className="avatar-icon" style={styles}>
           {!hasImage ? name : null}
         <LottieImg name={'loading-spinner-blue'}
                    size={{ width: 50, height: 50}}
-        style={{marginTop: -5, marginLeft: -5}}/>
+        style={lottieStyle}/>
         </div>;
     }
     return (
