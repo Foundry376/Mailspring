@@ -26,7 +26,7 @@ const triggerStoreMessageEpic = action$ =>
   });
 
 const render = (msg, idx) => {
-  console.log('chat-pugin-demo render: ', msg, idx);
+  // console.log('chat-pugin-demo render: ', msg, idx);
 };
 module.exports = {
   activate() {

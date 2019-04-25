@@ -332,6 +332,7 @@ export default class Messages extends PureComponent {
       groupedMessages,
       selectedConversation: { isGroup, jid },
     } = this.props;
+    console.log('Message.render this.props: ', this.props);
     messageModel.currentUserId = currentUserId;
     if (groupedMessages.length) {
       chatModel.groupedMessages = groupedMessages;
@@ -416,7 +417,7 @@ export default class Messages extends PureComponent {
                 console.log("yazz-test", msg);
                 return <MessageApp msgBody={msgBody}
                   userId={currentUserId}
-                  selectedConversation={this.selectedConversation}
+                  selectedConversation={this.props.selectedConversation}
                   getContactInfoByJid={this.getContactInfoByJid}
                   getContactAvatar={this.getContactAvatar}
                   key={msg.id} />

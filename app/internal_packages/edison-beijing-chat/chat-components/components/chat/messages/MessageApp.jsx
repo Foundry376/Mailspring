@@ -6,8 +6,10 @@ import {
     dateFormat
 } from '../../../utils/time';
 import { sendCmd2App2, getToken, getMyAppByShortName } from '../../../utils/appmgt';
+import MessageCommand from './MessageCommand';
 export default class MessageApp extends PureComponent {
     static propTypes = {
+        selectedConversation: PropTypes.object.isRequired,
         msgBody: PropTypes.object.isRequired,
         userId: PropTypes.string.isRequired,
         peerUserId: PropTypes.string,
@@ -36,6 +38,7 @@ export default class MessageApp extends PureComponent {
 
     }
     render() {
+        console.log('debugger: MessageApp.render this.props.msgBody: ', this.props.msgBody);
         const { appJid, appName, content, htmlBody, ctxCmds, sentTime } = this.props.msgBody;
         console.log('debugger: MessageApp.render msgBody: ', this.props.msgBody);
         const {
@@ -44,12 +47,13 @@ export default class MessageApp extends PureComponent {
         } = this.props;
         const member = { jid: appJid, name: appName };
         let cmds = '';
+        let commands = null;
         if (ctxCmds) {
             let arrCmds = JSON.parse(ctxCmds);
-            cmds = '\n------------commands-----------'
-            arrCmds.forEach(element => {
-                cmds += '\n' + element.command;
-            });
+            console.log('debubger: arrCmds: ', arrCmds);
+          commands = arrCmds.map(item => <MessageCommand conversation={this.props.selectedConversation}
+                                                         appJid = {appJid}
+                                                         templateText = {item.command}></MessageCommand>)
         }
         return (
             <div className="message otherUser">
@@ -63,9 +67,9 @@ export default class MessageApp extends PureComponent {
                     </div>
                     <div className="messageBody">
                         <div className="text-content">
-                            {htmlBody ? <div dangerouslySetInnerHTML={htmlBody} /> : content}
+                            {htmlBody ? <div dangerouslySetInnerHTML={{__html:htmlBody}} /> : content}
                         </div>
-                        <div>{cmds}</div>
+                        <div>{commands}</div>
                     </div>
                 </div>
             </div>
