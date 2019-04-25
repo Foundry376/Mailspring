@@ -21,7 +21,7 @@ class SignatureStore extends MailspringStore {
           title: 'Default',
           body: `<div><div>Sent from <a href="https://www.edison.tech/">EdisonMail</a>, the best free email app for work</div></div>`,
           data: {
-            title: 'Sent from EdisonMail, the best free email app for work',
+            title: 'Sent from Edison Mail, the best free email app for work',
             templateName: 'SignatureB',
           },
         },
