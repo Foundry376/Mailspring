@@ -17,6 +17,7 @@ import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import MessageStore from './message-store';
+import UndoRedoStore from './undo-redo-store';
 
 const { DefaultSendActionKey } = SendActionsStore;
 
@@ -686,14 +687,15 @@ class DraftStore extends MailspringStore {
     // want a separate SyncbackMetadataTask to be queued because a stray SyncbackDraftTask
     // could overwrite the metadata value back to null.
     if (sendLaterMetadataValue) {
-      Actions.queueUndoOnlyTask(
-        SyncbackMetadataTask.forSaving({
-          pluginId: 'send-later',
-          model: draft,
-          value: sendLaterMetadataValue,
-          undoValue: { expiration: null, isUndoSend: true },
-        }),
-      );
+      const undoTask = SyncbackMetadataTask.forSaving({
+        pluginId: 'send-later',
+        model: draft,
+        value: sendLaterMetadataValue,
+        undoValue: { expiration: null, isUndoSend: true },
+        lingerAfterTimeout: true,
+        priority: UndoRedoStore.priority.critical
+      });
+      Actions.queueUndoOnlyTask(undoTask);
       ipcRenderer.send('send-later-manager', 'send-later', headerMessageId, delay, actionKey, draft.threadId);
     } else {
       // Immediately send the draft
@@ -717,17 +719,17 @@ class DraftStore extends MailspringStore {
   _onSendDraftCancelled = ({ headerMessageId }) => {
     delete this._draftsSending[headerMessageId];
     this.trigger({ headerMessageId });
-    if (AppEnv.isMainWindow()) {
-      // We delay so the view has time to update the restored draft. If we
-      // don't delay the modal may come up in a state where the draft looks
-      // like it hasn't been restored or has been lost.
-      //
-      // We also need to delay because the old draft window needs to fully
-      // close. It takes windows currently (June 2016) 100ms to close by
-      setTimeout(() => {
-        Actions.composePopoutDraft(headerMessageId);
-      }, 300);
-    }
+    // if (AppEnv.isMainWindow()) {
+    //   // We delay so the view has time to update the restored draft. If we
+    //   // don't delay the modal may come up in a state where the draft looks
+    //   // like it hasn't been restored or has been lost.
+    //   //
+    //   // We also need to delay because the old draft window needs to fully
+    //   // close. It takes windows currently (June 2016) 100ms to close by
+    //   setTimeout(() => {
+    //     Actions.composePopoutDraft(headerMessageId);
+    //   }, 300);
+    // }
   };
 
   _onSendDraftFailed = ({ headerMessageId, threadId, errorMessage, errorDetail }) => {
@@ -741,14 +743,14 @@ class DraftStore extends MailspringStore {
       //
       // We also need to delay because the old draft window needs to fully
       // close. It takes windows currently (June 2016) 100ms to close by
-      setTimeout(() => {
-        const focusedThread = FocusedContentStore.focused('thread');
-        if (threadId && focusedThread && focusedThread.id === threadId) {
-          AppEnv.showErrorDialog(errorMessage, { detail: errorDetail });
-        } else {
-          Actions.composePopoutDraft(headerMessageId, { errorMessage, errorDetail });
-        }
-      }, 300);
+      // setTimeout(() => {
+      //   const focusedThread = FocusedContentStore.focused('thread');
+      //   if (threadId && focusedThread && focusedThread.id === threadId) {
+      //     AppEnv.showErrorDialog(errorMessage, { detail: errorDetail });
+      //   } else {
+      //     Actions.composePopoutDraft(headerMessageId, { errorMessage, errorDetail });
+      //   }
+      // }, 300);
     }
   };
   _getCurrentWindowLevel = () => {

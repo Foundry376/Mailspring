@@ -2,7 +2,7 @@ import Task from './task';
 import Attributes from '../attributes';
 
 export default class SyncbackMetadataTask extends Task {
-  static forSaving({ model, pluginId, value, undoValue }) {
+  static forSaving({ model, pluginId, value, undoValue, ...others }) {
     if (!pluginId) {
       throw new Error('SyncbackMetadataTask.forSaving: You must specify a pluginId.');
     }
@@ -15,6 +15,7 @@ export default class SyncbackMetadataTask extends Task {
       accountId: model.accountId,
       value,
       undoValue,
+      ...others,
     });
 
     if (value && value.expiration) {

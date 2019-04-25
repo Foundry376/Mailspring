@@ -35,6 +35,12 @@ export default class Task extends Model {
     needToBroadcastBeforeSendTask: Attributes.Object({
       modelKey: 'needToBroadcastBeforeSendTask',
     }),
+    lingerAfterTimeout: Attributes.Boolean({
+      modelKey: 'lingerAfterTimeout',
+    }),
+    priority: Attributes.Number({
+      modelKey: 'priority',
+    }),
   });
 
   // Public: Override the constructor to pass initial args to your Task and
