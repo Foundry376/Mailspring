@@ -268,7 +268,7 @@ export default class ComposerView extends React.Component {
           return type === 'set_selection' || (type === 'set_value' && Object.keys(properties).every(k => {
             if (k === 'schema') {
               //In case we encountered more scheme change
-              console.error('schema');
+              // console.error('schema');
             }
             return (k === 'decorations' || k === 'schema');
           }));
