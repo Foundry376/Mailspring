@@ -360,9 +360,7 @@ export default class ModelQuery {
         // get data from inner join table
         if (attr.modelTable && attr.modelTable !== this._klass.name) {
           let tableRef = this._getMuidByJoinTableName(allMatchers, attr.modelTable);
-          if (tableRef) {
-            result += `, \`${tableRef ? tableRef : this._klass.name}\`.\`${attr.tableColumn}\` `;
-          }
+          result += `, \`${tableRef ? tableRef : this._klass.name}\`.\`${attr.tableColumn}\` `;
         } else {
           result += `, \`${this._klass.name}\`.\`${attr.tableColumn}\` `;
         }
