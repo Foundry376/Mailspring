@@ -76,6 +76,9 @@ export default class MenuManager {
         if (item.hideWhenDisabled) {
           item.visible = item.enabled;
         }
+        if (!this.devMode && item.devOnly) {
+          item.visible = false;
+        }
       });
 
       this.sendToBrowserProcess(this.template, AppEnv.keymaps.getBindingsForAllCommands());
