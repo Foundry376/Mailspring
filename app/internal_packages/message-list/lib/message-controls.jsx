@@ -148,10 +148,10 @@ export default class MessageControls extends React.Component {
     const itemContent = item => (
       <span>
         <RetinaImg name={item.image}
-                   style={{ width: 24, height: 24 }}
-                   isIcon={!item.disabled}
-                   mode={RetinaImg.Mode.ContentIsMask}/>
-        &nbsp;&nbsp;{item.name}
+          style={{ width: 18, height: 18, marginTop: 3 }}
+          isIcon={!item.disabled}
+          mode={RetinaImg.Mode.ContentIsMask} />
+        {item.name}
       </span>
     );
 
@@ -264,14 +264,14 @@ export default class MessageControls extends React.Component {
             name={items[0].image}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask}/>}
+            mode={RetinaImg.Mode.ContentIsMask} />}
           primaryTitle={items[0].name}
           primaryClick={items[0].select}
           closeOnMenuClick
           menu={this._dropdownMenu(items.slice(1))}
         />
         <div className="message-actions-ellipsis" onClick={this._onShowActionsMenu}>
-          <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name={'message-actions-ellipsis.png'} mode={RetinaImg.Mode.ContentIsMask} />
         </div>
       </div>
     );
