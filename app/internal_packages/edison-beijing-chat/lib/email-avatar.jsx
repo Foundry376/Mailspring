@@ -69,6 +69,7 @@ export default class EmailAvatar extends Component {
           {!hasImage ? name : null}
         <LottieImg name={'loading-spinner-blue'}
                    size={{ width: 50, height: 50}}
+                   isClickToPauseDisabled={true}
         style={lottieStyle}/>
         </div>;
     }

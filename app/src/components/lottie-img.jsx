@@ -249,12 +249,13 @@ export default class LottieImg extends React.Component {
   };
 
   render() {
-    const options = this.props.options;
+    const {options, ...others} = this.props;
     this.animationData = this.animationData || require(this._pathFor(this.props.name));
     options.animationData = this.animationData;
-    return <Lottie options={options}
+    return <Lottie {...others}
+      options={options}
       height={this.props.size.height}
       width={this.props.size.width}
-      style={this.props.style} />
+      style={this.props.style}/>
   }
 }
