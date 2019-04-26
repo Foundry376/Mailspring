@@ -12,15 +12,12 @@ import {
 } from '../../../db/schemas/message';
 import { colorForString } from '../../../utils/colors';
 import {
-  buildTimeDescriptor,
   dateFormat,
   dateFormatDigit,
   weekDayFormat,
   nearDays,
 } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
-import { downloadFile } from '../../../utils/awss3';
-import ProgressBar from '../../common/ProgressBar';
 const { Actions } = require('mailspring-exports');
 
 const remote = require('electron').remote;
@@ -35,7 +32,6 @@ import MessageImagePopup from './MessageImagePopup';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import SecurePrivate from './SecurePrivate'
-import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 
 let key = 0;
 
