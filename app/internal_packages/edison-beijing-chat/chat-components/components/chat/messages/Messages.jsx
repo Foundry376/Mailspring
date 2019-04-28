@@ -410,7 +410,7 @@ export default class Messages extends PureComponent {
                 return null;
               }
               if (msgBody.appJid) {
-                console.log("debugger: MessageApp msg: ", msg);
+                // console.log("debugger: MessageApp msg: ", msg);
                 return <MessageApp msgBody={msgBody}
                   userId={currentUserId}
                   selectedConversation={this.props.selectedConversation}

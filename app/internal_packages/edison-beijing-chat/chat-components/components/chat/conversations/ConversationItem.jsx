@@ -40,18 +40,16 @@ export default class ConversationItem extends PureComponent {
     }
     const userId = conversation.curJid.split('@')[0];
     const appId = conversation.jid.split('@')[0];
-    console.log('debugger: componentWillMount: userId, appId: ', userId, appId);
+    // console.log('debugger: componentWillMount: userId, appId: ', userId, appId);
     getToken(userId).then (token => {
       getApp(userId, appId, token, (err, app ) => {
         if (!err){
-          console.log('debugger:  getApp', app);
+          // console.log('debugger:  getApp', app);
           const state = Object.assign({}, this.state, {appName: app.name});
           this.setState(state);
         }
       });
     })
-
-
   }
 
   onClickRemove = (event) => {

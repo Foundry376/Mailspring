@@ -541,7 +541,7 @@ export default class MessagesPanel extends PureComponent {
     const userId = curJid.split('@')[0];
     let token = await getToken(userId);
     xmpplogin(userId, token,(err,data) => {
-      console.log('debugger xmpplogin: ', userId, token, err, data);
+      // console.log('debugger xmpplogin: ', userId, token, err, data);
       if (data) {
         data = JSON.parse(data);
         exec('open ' + data.data.url);

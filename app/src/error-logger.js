@@ -99,7 +99,11 @@ module.exports = ErrorLogger = (function () {
     } else {
       this._notifyExtensions('reportError', error, extra);
     }
-    console.error(error, extra);
+    if (error.name==='conflict' && error.status===409) {
+      console.warn(error, extra);
+    } else {
+      console.error(error, extra);
+    }
   };
 
   /////////////////////////////////////////////////////////////////////

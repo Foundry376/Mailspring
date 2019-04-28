@@ -51,9 +51,9 @@ export default class MessageApp extends PureComponent {
 
     }
     render() {
-        console.log('debugger: MessageApp.render this.props.msgBody: ', this.props.msgBody);
+        // console.log('debugger: MessageApp.render this.props.msgBody: ', this.props.msgBody);
         const { appJid, appName, content, htmlBody, ctxCmds, sentTime } = this.props.msgBody;
-        console.log('debugger: MessageApp.render msgBody: ', this.props.msgBody);
+        // console.log('debugger: MessageApp.render msgBody: ', this.props.msgBody);
         const {
             getContactInfoByJid,
             getContactAvatar

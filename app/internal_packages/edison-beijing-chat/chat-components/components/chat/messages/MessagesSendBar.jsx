@@ -187,8 +187,8 @@ export default class MessagesSendBar extends PureComponent {
       let appName = messageBody.split(' ')[0].substring(1);
       let curJidLocal = selectedConversation.curJid.slice(0, selectedConversation.curJid.indexOf('@'));
       let app = getMyAppByShortName(curJidLocal, appName);
-      console.log('debugger: ', app);
-      debugger;
+      // console.log('debugger: ', app);
+      // debugger;
       if (app && app.length > 0) {
         if (selectedConversation.isGroup) {
           roomId = jidLocal;
