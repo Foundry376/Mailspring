@@ -52,6 +52,7 @@ export default class Thread extends ModelWithMetadata {
       jsonKey: 'unread',
       queryable: true,
       loadFromColumn: true,
+      modelTable: 'ThreadCategory',
     }),
 
     starred: Attributes.Boolean({
@@ -69,6 +70,7 @@ export default class Thread extends ModelWithMetadata {
       queryable: true,
       modelKey: 'categories',
       joinOnField: 'id',
+      joinTableName: 'ThreadCategory',
       joinOnWhere: { state: 0 },
       joinQueryableBy: [
         'inAllMail',
@@ -87,6 +89,7 @@ export default class Thread extends ModelWithMetadata {
     labels: Attributes.Collection({
       modelKey: 'labels',
       joinOnField: 'id',
+      joinTableName: 'ThreadCategory',
       joinQueryableBy: [
         'inAllMail',
         'lastMessageReceivedTimestamp',
@@ -114,12 +117,16 @@ export default class Thread extends ModelWithMetadata {
       queryable: true,
       jsonKey: 'lmrt',
       modelKey: 'lastMessageReceivedTimestamp',
+      modelTable: 'ThreadCategory',
+      loadFromColumn: true
     }),
 
     lastMessageSentTimestamp: Attributes.DateTime({
       queryable: true,
       jsonKey: 'lmst',
       modelKey: 'lastMessageSentTimestamp',
+      modelTable: 'ThreadCategory',
+      loadFromColumn: true
     }),
 
     inAllMail: Attributes.Boolean({
@@ -142,7 +149,7 @@ export default class Thread extends ModelWithMetadata {
 
   async messages({ includeHidden } = {}) {
     const messages = await DatabaseStore.findAll(Message)
-      .where({ threadId: this.id}).where([Message.attributes.state.in([Message.messageState.saving, Message.messageState.normal])])
+      .where({ threadId: this.id }).where([Message.attributes.state.in([Message.messageState.saving, Message.messageState.normal])])
       .include(Message.attributes.body);
 
     if (!includeHidden) {

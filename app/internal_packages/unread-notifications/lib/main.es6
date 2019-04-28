@@ -7,6 +7,7 @@ import {
   SoundRegistry,
   NativeNotifications,
   DatabaseStore,
+  ThreadStore,
 } from 'mailspring-exports';
 
 const WAIT_FOR_CHANGES_DELAY = 400;
@@ -92,14 +93,19 @@ export class Notifier {
     await this._onNewMessagesReceived(Object.values(notifworthy));
   }
 
-  _onThreadsChanged(threads) {
+  _onThreadsChanged(threadsMessage) {
     // Ensure notifications are dismissed when the user reads a thread
-    threads.forEach(({ id, unread }) => {
-      if (!unread && this.activeNotifications[id]) {
-        this.activeNotifications[id].forEach(n => n.close());
-        delete this.activeNotifications[id];
-      }
+    const threadIds = threadsMessage.map(({id})=>{
+      return id;
     });
+    ThreadStore.findAllByThreadIds({threadIds}).then(threads=>{
+      threads.forEach(({ id, unread }) => {
+        if (!unread && this.activeNotifications[id]) {
+          this.activeNotifications[id].forEach(n => n.close());
+          delete this.activeNotifications[id];
+        }
+      });
+    })
   }
 
   _notifyAll() {

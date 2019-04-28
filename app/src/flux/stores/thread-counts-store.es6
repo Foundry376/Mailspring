@@ -3,6 +3,7 @@ import MailspringStore from 'mailspring-store';
 import DatabaseStore from './database-store';
 import Thread from '../models/thread';
 import ThreadCounts from '../models/thread-counts';
+import ThreadCategory from '../models/thread-category';
 
 class ThreadCountsStore extends MailspringStore {
   constructor() {
@@ -13,7 +14,11 @@ class ThreadCountsStore extends MailspringStore {
       // For now, unread counts are only retrieved in the main window.
       this._onCountsChangedDebounced = _.throttle(this._onCountsChanged, 1000);
       DatabaseStore.listen(change => {
-        if (change.objectClass === ThreadCounts.name || change.objectClass === Thread.name) {
+        if (
+          change.objectClass === ThreadCounts.name ||
+          change.objectClass === ThreadCategory.name ||
+          change.objectClass === Thread.name
+        ) {
           this._onCountsChangedDebounced();
         }
       });
