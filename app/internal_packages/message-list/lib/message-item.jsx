@@ -155,16 +155,16 @@ export default class MessageItem extends React.Component {
     return (
       <header
         ref={el => (this._headerEl = el)}
-        className={`message-header ${pending && 'pending'}`}
+        className={`message-header `}
         onClick={this._onClickHeader}
       >
         <InjectedComponent
           matching={{ role: 'MessageHeader' }}
           exposedProps={{ message: message, thread: thread, messages: messages }}
         />
-        <div className="pending-spinner" style={{ position: 'absolute', marginTop: -2, left: 55 }}>
-          <RetinaImg width={18} name="sending-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />
-        </div>
+        {/*<div className="pending-spinner" style={{ position: 'absolute', marginTop: -2, left: 55 }}>*/}
+        {/*  <RetinaImg width={18} name="sending-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />*/}
+        {/*</div>*/}
         <div className="message-header-right">
           <InjectedComponentSet
             className="message-header-status"
@@ -181,7 +181,8 @@ export default class MessageItem extends React.Component {
           <InjectedComponent
             key="thread-avatar"
             exposedProps={{
-              from: message.from && message.from[0]
+              from: message.from && message.from[0],
+              messagePending: this.props.pending
             }}
             matching={{ role: 'EmailAvatar' }}
           />

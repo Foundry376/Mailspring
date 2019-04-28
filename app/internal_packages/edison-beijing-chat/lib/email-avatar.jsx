@@ -2,10 +2,11 @@
 import React, { Component } from 'react';
 import { gradientColorForString } from '../chat-components/utils/colors';
 import { getAvatarPromise, getLogo } from '../chat-components/utils/restjs';
-
+import { LottieImg } from 'mailspring-component-kit';
 
 export default class EmailAvatar extends Component {
   static displayName = 'EmailAvatar';
+
   constructor(props) {
     super(props);
     let from = {};
@@ -18,8 +19,8 @@ export default class EmailAvatar extends Component {
     } else if (props.from) {
       from = {
         name: props.from && props.from.displayName({ compact: true }),
-        email: props.from.email
-      }
+        email: props.from.email,
+      };
     }
 
     this.state = {
@@ -29,10 +30,11 @@ export default class EmailAvatar extends Component {
         .toUpperCase(),
       bgColor: gradientColorForString(from.email || ''),
       email: from.email,
-      hasImage: false
-    }
+      hasImage: false,
+    };
     this._mounted = false;
   }
+
   componentDidMount = async () => {
     this._mounted = true;
     if (this.state.email) {
@@ -40,11 +42,12 @@ export default class EmailAvatar extends Component {
       if (avatarUrl && this._mounted) {
         this && this.setState({
           bgColor: `url('${avatarUrl}')`,
-          hasImage: true
+          hasImage: true,
         });
       }
     }
-  }
+  };
+
   componentWillUnmount() {
     this._mounted = false;
   }
@@ -55,10 +58,25 @@ export default class EmailAvatar extends Component {
     if (this.props.styles) {
       styles = Object.assign(styles, this.props.styles);
     }
+    if (this.props.messagePending) {
+      const lottieStyle ={marginTop: -5, marginLeft: -5};
+      if(!hasImage){
+        lottieStyle.position = 'absolute';
+        lottieStyle.left = 0;
+        lottieStyle.top = 15;
+      }
+      return <div className="avatar-icon" style={styles}>
+          {!hasImage ? name : null}
+        <LottieImg name={'loading-spinner-blue'}
+                   size={{ width: 50, height: 50}}
+                   isClickToPauseDisabled={true}
+        style={lottieStyle}/>
+        </div>;
+    }
     return (
       <div className="avatar-icon" style={styles}>
         {!hasImage ? name : null}
       </div>
-    )
+    );
   }
 }

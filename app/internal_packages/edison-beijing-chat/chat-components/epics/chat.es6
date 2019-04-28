@@ -1,4 +1,5 @@
 import fs from 'fs'
+import uuid from 'uuid/v4';
 import { Observable } from 'rxjs/Observable';
 import xmpp from '../xmpp';
 import getDb from '../db';
@@ -43,6 +44,7 @@ import {
   beginStoringConversations,
 } from '../actions/db/conversation';
 import {
+  beginStoringMessage,
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
 import { getLastMessageInfo, parseMessageBody } from '../utils/message';
@@ -51,7 +53,7 @@ import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 import { downloadFile } from '../utils/awss3';
 import { FILE_TYPE } from '../components/chat/messages/messageModel';
-import { failConnectionAuth } from '../actions/auth';
+const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 const addToAvatarMembers = (conv, contact) => {
   if (!contact) {
@@ -153,13 +155,13 @@ const asyncMembersChangeEpic = async payload => {
   const notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
   const items = notifications[payload.from] || (notifications[payload.from] = []);
   const nicknames = chatModel.chatStorage.nicknames;
+  console.log('debugger: asyncMembersChangeEpic payload: ', payload);
   const fromjid = payload.userJid;
   const db = await getDb();
   const contacts = db.contacts;
   const fromcontact = await contacts.findOne().where('jid').eq(fromjid).exec();
   const byjid = payload.actorJid;
   const bycontact = await contacts.findOne().where('jid').eq(byjid).exec();
-  const time = (new Date()).getTime();
   const item = {
     from: {
       jid: fromjid,
@@ -173,14 +175,31 @@ const asyncMembersChangeEpic = async payload => {
       email: bycontact && bycontact.email,
       name: bycontact && bycontact.name,
       nickname: nicknames[byjid]
-    },
-    time,
+    }
   }
 
-  items.push(item);
-  saveToLocalStorage();
-  const conv = await db.conversations.findOne().where('jid').eq(payload.from.bare).exec();
-  return updateSelectedConversation(conv);
+  // items.push(item);
+  // saveToLocalStorage();
+  let content;
+  const fromName = item.from.nickname || item.from.name || item.from.email;
+  const byName = item.by.nickname || item.by.name || item.by.email;
+  if (payload.type === 'join') {
+    content = `${fromName} joined by invitation from ${byName}.`
+  } else {
+    content = `${fromName} quited by operation from ${byName}.`
+  }
+  const body = {
+    content,
+  }
+  const msg = {
+    id: uuid(),
+    conversationJid: payload.from.bare,
+    sender: fromjid,
+    body: JSON.stringify(body),
+    sentTime: (new Date()).getTime(),
+    status: MESSAGE_STATUS_RECEIVED,
+  };
+  return beginStoringMessage(msg);
 }
 
 export const successSendMessageEpic = action$ =>

@@ -24,7 +24,7 @@
     "label": "File",
     "submenu": [
       { "label": "New Email", "command": "application:new-message" },
-      { "label": "New Message(Chat)", "command": "application:new-chat" },
+      { "label": "New Message(Chat)", "command": "application:new-chat", "devOnly": true },
       { "type": "separator" },
       { "label": "Check for Mail...", "command": "window:sync-mail-now" },
       { "type": "separator" },

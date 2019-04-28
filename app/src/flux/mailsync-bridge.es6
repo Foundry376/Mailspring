@@ -449,7 +449,9 @@ export default class MailsyncBridge {
       return;
     }
     for (const task of tasks) {
-      this._onQueueTask(task);
+      if(task){
+        this._onQueueTask(task);
+      }
     }
   }
 
