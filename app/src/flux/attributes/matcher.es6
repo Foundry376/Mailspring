@@ -144,8 +144,8 @@ class Matcher {
       default:
         throw new Error(
           `Matcher.evaulate() not sure how to evaluate ${this.attr.modelKey} with comparator ${
-            this.comparator
-            }`,
+          this.comparator
+          }`,
         );
     }
   }
@@ -210,11 +210,28 @@ class Matcher {
     }
   }
 
+  _safeSQL(keyWord) {
+    return keyWord
+      .replace(/\//g, "//")
+      .replace(/\'/g, singleQuoteEscapeSequence)
+      .replace(/\[/g, "/[")
+      .replace(/\]/g, "/]")
+      .replace(/\%/g, "/%")
+      .replace(/\&/g, "/&")
+      .replace(/\_/g, "/_")
+      .replace(/\(/g, "/(")
+      .replace(/\)/g, "/)");
+  }
+
   whereSQL(klass) {
-    const val = this.comparator === 'like' ? `%${this.val}%` : this.val;
+    const val = this.comparator === 'like' ? `%${this._safeSQL(this.val)}%` : this.val;
     let escaped = null;
     if (typeof val === 'string') {
-      escaped = `'${val.replace(/'/g, singleQuoteEscapeSequence)}'`;
+      if (this.comparator === 'like') {
+        escaped = `'${val}' escape '/' `;
+      } else {
+        escaped = `'${val.replace(/'/g, singleQuoteEscapeSequence)}'`;
+      }
     } else if (val === true) {
       escaped = 1;
     } else if (val === false) {
