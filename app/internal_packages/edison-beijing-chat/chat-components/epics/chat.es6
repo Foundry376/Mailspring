@@ -155,7 +155,7 @@ const asyncMembersChangeEpic = async payload => {
   const notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
   const items = notifications[payload.from] || (notifications[payload.from] = []);
   const nicknames = chatModel.chatStorage.nicknames;
-  console.log('debugger: asyncMembersChangeEpic payload: ', payload);
+  // console.log('debugger: asyncMembersChangeEpic payload: ', payload);
   const fromjid = payload.userJid;
   const db = await getDb();
   const contacts = db.contacts;
@@ -178,8 +178,6 @@ const asyncMembersChangeEpic = async payload => {
     }
   }
 
-  // items.push(item);
-  // saveToLocalStorage();
   let content;
   const fromName = item.from.nickname || item.from.name || item.from.email;
   const byName = item.by.nickname || item.by.name || item.by.email;

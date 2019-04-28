@@ -7,7 +7,6 @@ import MessagesTopBar from './MessagesTopBar';
 import NewConversationTopBar from './NewConversationTopBar';
 import MessagesSendBar from './MessagesSendBar';
 import Messages from './Messages';
-import Notifications from './Notifications';
 import ConversationInfo from '../conversations/ConversationInfo';
 import Divider from '../../common/Divider';
 import InviteGroupChatList from '../new/InviteGroupChatList';
@@ -229,22 +228,6 @@ export default class MessagesPanel extends PureComponent {
       && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid ||
       nextProps.selectedConversation && !this.props.selectedConversation) {
       this.refreshRoomMembers(nextProps);
-      this.getNotifications(nextProps);
-    }
-  }
-  getNotifications = () => {
-    const { selectedConversation: conversation } = this.props;
-    if (conversation && conversation.isGroup) {
-      let notifications = chatModel.chatStorage.notifications || {};
-      let jid = conversation.jid;
-      notifications = notifications[jid] || [];
-      setTimeout(() => {
-        chatModel.chatStorage.notifications = chatModel.chatStorage.notifications || {}
-        delete chatModel.chatStorage.notifications[jid];
-        saveToLocalStorage();
-      }, 3600000);
-
-      return notifications;
     }
   }
 
@@ -591,10 +574,6 @@ export default class MessagesPanel extends PureComponent {
       onMessageSubmitted: sendMessage,
       queueLoadMessage: this.queueLoadMessage,
     };
-    const notifications = this.getNotifications() || [];
-    const notificationsProps = {
-      notifications,
-    };
     const sendBarProps = {
       onMessageSubmitted: sendMessage,
       selectedConversation,
@@ -655,7 +634,6 @@ export default class MessagesPanel extends PureComponent {
                       <div onClick={this.installApp} style={{zIndex:999}}> Install App</div>
                       <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile}/>
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
-                      <Notifications {...notificationsProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (
                         <div id="message-dragdrop-override"></div>
                       )}

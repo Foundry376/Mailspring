@@ -44,8 +44,8 @@ export default class MessageCommand extends PureComponent {
                   {this.head}
                 </span>
               {this.items.map((item, idx) => {
-                    return ( <span>
-                          <input placeHolder={item[0]} ref={(el) => {
+                    return ( <span key={idx}>
+                          <input placeholder={item[0]} ref={(el) => {
                             this.argEls[idx] = el;
                           }}/>
                         {item[1]? <span>{item[1]}</span>: null}
