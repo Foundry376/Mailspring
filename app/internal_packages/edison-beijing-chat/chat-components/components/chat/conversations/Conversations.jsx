@@ -25,6 +25,8 @@ export default class Conversations extends PureComponent {
       removeConversation
     } = this.props;
 
+    console.log('debugger* Conversations.render: conversations: ', conversations);
+
     return (
       <div onClick={() => Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView)}>
         {conversations.map((conv, index) => (

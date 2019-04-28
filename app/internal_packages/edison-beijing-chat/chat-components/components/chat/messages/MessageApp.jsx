@@ -7,6 +7,7 @@ import {
 } from '../../../utils/time';
 import { sendCmd2App2, getToken, getMyAppByShortName } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
+import getDb from '../../../db/index';
 export default class MessageApp extends PureComponent {
     static propTypes = {
         selectedConversation: PropTypes.object.isRequired,
@@ -15,6 +16,18 @@ export default class MessageApp extends PureComponent {
         peerUserId: PropTypes.string,
         roomId: PropTypes.string
     };
+
+    state = {}
+
+    componentWillMount = async () => {
+      const { selectedConversation } = this.props;
+      const userJid = selectedConversation.curJid;
+      const db = await getDb();
+      let contact = await db.contacts.findOne().where('jid').eq(userJid).exec();
+      const state = Object.assign({}, this.state, {installerName: contact.name});
+      this.setState(state);
+    }
+
     sendCommand2App(command) {
         const { appJid } = this.props.msgBody;
         const { userId, selectedConversation } = this.props;
@@ -63,6 +76,7 @@ export default class MessageApp extends PureComponent {
                 <div className="messageContent">
                     <div>
                         <span className="username">{appName}</span>
+                      <span className="username">{this.state.installerName}</span>
                         <span className="time">{dateFormat(sentTime, 'LT')}</span>
                     </div>
                     <div className="messageBody">

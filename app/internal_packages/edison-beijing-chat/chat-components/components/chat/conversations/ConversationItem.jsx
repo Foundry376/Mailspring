@@ -8,6 +8,7 @@ import chatModel from '../../../store/model';
 import messageModel from '../messages/messageModel';
 import { clearMessages } from '../../../utils/message';
 import { RetinaImg } from 'mailspring-component-kit';
+import { getApp, getToken } from '../../../utils/appmgt';
 
 export default class ConversationItem extends PureComponent {
 
@@ -30,7 +31,27 @@ export default class ConversationItem extends PureComponent {
     referenceTime: new Date().getTime(),
   }
 
-  componentWillMount() {
+  state = {}
+
+  componentWillMount = () => {
+    const { conversation } = this.props;
+    if (!conversation.jid.match(/@app\.im/)) {
+      return
+    }
+    const userId = conversation.curJid.split('@')[0];
+    const appId = conversation.jid.split('@')[0];
+    console.log('debugger: componentWillMount: userId, appId: ', userId, appId);
+    getToken(userId).then (token => {
+      getApp(userId, appId, token, (err, app ) => {
+        if (!err){
+          console.log('debugger:  getApp', app);
+          const state = Object.assign({}, this.state, {appName: app.name});
+          this.setState(state);
+        }
+      });
+    })
+
+
   }
 
   onClickRemove = (event) => {
@@ -66,7 +87,7 @@ export default class ConversationItem extends PureComponent {
           </div>
           <div className="content">
             <div className="headerRow">
-              <span className="headerText">{conversation.name}</span>
+              <span className="headerText">{this.state.appName || conversation.name}</span>
               <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span>
             </div>
             <div className="subHeader">
