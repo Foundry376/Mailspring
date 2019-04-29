@@ -189,7 +189,7 @@ function fastCloneDraft(draft) {
 export default class DraftEditingSession extends MailspringStore {
   static DraftChangeSet = DraftChangeSet;
 
-  constructor(headerMessageId, draft = null, popout = false) {
+  constructor(headerMessageId, draft = null, popout = false, forceDBFetch=false) {
     super();
     this._draft = false;
     this._destroyed = false;
@@ -217,7 +217,7 @@ export default class DraftEditingSession extends MailspringStore {
     ipcRenderer.on('new-window', this._onDraftNewWindow);
     ipcRenderer.on('draft-delete', this._onDraftDelete);
 
-    if (draft) {
+    if (draft && !forceDBFetch) {
       hotwireDraftBodyState(draft);
       this._draft = draft;
       this._draftPromise = Promise.resolve(draft);
