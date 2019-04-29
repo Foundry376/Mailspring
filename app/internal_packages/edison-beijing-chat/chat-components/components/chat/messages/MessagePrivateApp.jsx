@@ -8,6 +8,7 @@ import {
 import { sendCmd2App2, getToken, getMyAppByShortName, getMyAppById } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
 import getDb from '../../../db/index';
+import { SUCCESS_AUTH } from '../../../actions/auth';
 
 export default class MessagePrivateApp extends PureComponent {
   static propTypes = {
@@ -55,13 +56,18 @@ export default class MessagePrivateApp extends PureComponent {
   }
 
   render() {
-    const { userId, sentTime } = this.props.msg;
+    const { conversation } = this.props;
+    const { sentTime } = this.props.msg;
     const msgBody = JSON.parse(this.props.msg.body);
     console.log('debugger: MessageApp.render msgBody: ', msgBody);
-    const { appJid, data} = msgBody;
+    const { appJid, appName, data} = msgBody;
     let {type, mimeType, content, contents, htmlBody, ctxCommands} = data;
     const appId = appJid.split('@')[0];
-    let appName = getMyAppById(userId, appId);
+    const userId = conversation.curJid.split('@')[0];
+    console.log('debugger: getMyAppById: userId, appId: ', userId, appId);
+    debugger;
+    // app is not awailable until some  aync actions
+    //triggerFetchAppsEpic SUCCESS_AUTH
     const {
       getContactAvatar,
     } = this.props;

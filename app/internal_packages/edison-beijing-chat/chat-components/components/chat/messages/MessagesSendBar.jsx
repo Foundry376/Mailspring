@@ -164,7 +164,7 @@ export default class MessagesSendBar extends PureComponent {
   }
   sendCommand2App(userId, app, command, peerUserId, roomId) {
     const { selectedConversation, onMessageSubmitted } = this.props;
-    let { id, commandType } = app;
+    let { id, name, commandType } = app;
     let userName = '';
     getToken(userId).then(token => {
       // if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
@@ -172,9 +172,11 @@ export default class MessagesSendBar extends PureComponent {
       if (command) {
         sendCmd2App2(userId, userName, token, id, command, peerUserId, roomId, (err, data) => {
           console.log(err, data);
+          debugger;
           const appJid = id+'@app.im.edison.tech';
           data = JSON.parse(data);
           data.appJid = appJid;
+          data.appName = name;
           data.isAppprivateCommand = true;
           const msg = {
             id: uuid(),
