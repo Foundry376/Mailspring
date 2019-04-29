@@ -417,7 +417,7 @@ export default class Messages extends PureComponent {
                 return null;
               }
               if (msgBody.isAppprivateCommand) {
-                console.log("debugger: MessagePrivateApp msg: ", msg);
+                // console.log("debugger: MessagePrivateApp msg: ", msg);
                 return <MessagePrivateApp msg={msg}
                                           userId={currentUserId}
                                           conversation={this.props.selectedConversation}

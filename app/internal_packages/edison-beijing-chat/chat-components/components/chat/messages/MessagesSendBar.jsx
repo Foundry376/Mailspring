@@ -172,7 +172,6 @@ export default class MessagesSendBar extends PureComponent {
       if (command) {
         sendCmd2App2(userId, userName, token, id, command, peerUserId, roomId, (err, data) => {
           console.log(err, data);
-          debugger;
           const appJid = id+'@app.im.edison.tech';
           data = JSON.parse(data);
           data.appJid = appJid;
@@ -205,7 +204,7 @@ export default class MessagesSendBar extends PureComponent {
       let appName = messageBody.split(' ')[0].substring(1);
       let curJidLocal = selectedConversation.curJid.slice(0, selectedConversation.curJid.indexOf('@'));
       let app = getMyAppByShortName(curJidLocal, appName);
-      console.log('debugger: app: ', app);
+      // console.log('debugger: app: ', app);
       if (app && app.length > 0) {
         if (selectedConversation.isGroup) {
           roomId = jidLocal;

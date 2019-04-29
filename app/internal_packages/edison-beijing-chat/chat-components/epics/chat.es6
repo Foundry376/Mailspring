@@ -436,7 +436,7 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
     .mergeMap((payload) => {
-      console.log('debugger: receivePrivateMessageEpic: payload: ', payload);
+      // console.log('debugger: receivePrivateMessageEpic: payload: ', payload);
       return Observable.fromPromise(getPriKey()).map(({ deviceId, priKey }) => {
         return { payload: payload.payload, deviceId, priKey };
       });
