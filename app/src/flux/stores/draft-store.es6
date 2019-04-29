@@ -107,19 +107,11 @@ class DraftStore extends MailspringStore {
    draft with `headerMessageId`.
 
    @param {String} headerMessageId - The headerMessageId of the draft.
-   @param {Boolean} forceDBFetch - Force fetch data from DB.
    @returns {Promise} - Resolves to an {DraftEditingSession} for the draft once it has been prepared
    */
-  async sessionForClientId(headerMessageId, forceDBFetch = false) {
+  async sessionForClientId(headerMessageId) {
     if (!headerMessageId) {
       throw new Error('DraftStore::sessionForClientId requires a headerMessageId');
-    }
-    if (forceDBFetch) {
-      this._draftSessions[headerMessageId] = this._createSession(
-        headerMessageId,
-        null,
-        forceDBFetch
-      );
     }
     if (!this._draftSessions[headerMessageId]) {
       this._draftSessions[headerMessageId] = this._createSession(headerMessageId);
@@ -443,13 +435,8 @@ class DraftStore extends MailspringStore {
     });
   }
 
-  _createSession(headerMessageId, draft, forceDBFetch = false) {
-    this._draftSessions[headerMessageId] = new DraftEditingSession(
-      headerMessageId,
-      draft,
-      null,
-      forceDBFetch
-    );
+  _createSession(headerMessageId, draft) {
+    this._draftSessions[headerMessageId] = new DraftEditingSession(headerMessageId, draft);
     ipcRenderer.send('draft-arp', { headerMessageId });
     return this._draftSessions[headerMessageId];
   }
@@ -654,7 +641,7 @@ class DraftStore extends MailspringStore {
     // get the draft session, apply any last-minute edits and get the final draft.
     // We need to call `changes.commit` here to ensure the body of the draft is
     // completely saved and the user won't see old content briefly.
-    const session = await this.sessionForClientId(headerMessageId, !sendLaterMetadataValue);
+    const session = await this.sessionForClientId(headerMessageId);
     // if (session.isPopout()) {
     //   // Do nothing if session have popouts
     //   return;
@@ -663,11 +650,11 @@ class DraftStore extends MailspringStore {
     // move the draft to another account if necessary to match the from: field
     await session.ensureCorrectAccount();
 
+    // remove inline attachments that are no longer in the body
     let draft = session.draft();
     if(!sendLaterMetadataValue){
       this._draftsSending[headerMessageId] = draft;
     }
-    // remove inline attachments that are no longer in the body
     const files = draft.files.filter(f => {
       return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
     });
