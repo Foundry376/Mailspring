@@ -31,6 +31,7 @@ import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
+import MessagePrivateApp from './MessagePrivateApp';
 import SecurePrivate from './SecurePrivate'
 
 let key = 0;
@@ -406,10 +407,25 @@ export default class Messages extends PureComponent {
                 return result;
               }
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
+              if (typeof msgBody === 'string') {
+                msgBody = {content: msgBody};
+              }
+              if (typeof msgBody.content !== 'string') {
+                msgBody.content = JSON.stringify(msgBody.content);
+              }
               if (msgBody.deleted) {
                 return null;
               }
-              if (msgBody.appJid) {
+              if (msgBody.isAppprivateCommand) {
+                console.log("debugger: MessagePrivateApp msg: ", msg);
+                return <MessagePrivateApp msg={msg}
+                                          userId={currentUserId}
+                                          conversation={this.props.selectedConversation}
+                                          getContactInfoByJid={this.getContactInfoByJid}
+                                          getContactAvatar={this.getContactAvatar}
+                                          key={msg.id} />
+
+              } else if (msgBody.appJid) {
                 // console.log("debugger: MessageApp msg: ", msg);
                 return <MessageApp msgBody={msgBody}
                   userId={currentUserId}

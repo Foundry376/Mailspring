@@ -20,7 +20,7 @@ import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
 import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 import { beginStoringMessage } from '../../../actions/db/message';
-import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
+import { MESSAGE_STATUS_RECEIVED, MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { isImageFilePath } from '../../../utils/stringUtils';
 import { sendFileMessage } from '../../../utils/message';
@@ -163,6 +163,7 @@ export default class MessagesSendBar extends PureComponent {
     return atJids;
   }
   sendCommand2App(userId, app, command, peerUserId, roomId) {
+    const { selectedConversation, onMessageSubmitted } = this.props;
     let { id, commandType } = app;
     let userName = '';
     getToken(userId).then(token => {
@@ -171,6 +172,21 @@ export default class MessagesSendBar extends PureComponent {
       if (command) {
         sendCmd2App2(userId, userName, token, id, command, peerUserId, roomId, (err, data) => {
           console.log(err, data);
+          const appJid = id+'@app.im.edison.tech';
+          data = JSON.parse(data);
+          data.appJid = appJid;
+          data.isAppprivateCommand = true;
+          const msg = {
+            id: uuid(),
+            conversationJid: selectedConversation.jid,
+            sender: appJid,
+            body: JSON.stringify(data),
+            sentTime: (new Date()).getTime(),
+            status: MESSAGE_STATUS_RECEIVED,
+          };
+          chatModel.store.dispatch(beginStoringMessage(msg));
+          chatModel.store.dispatch(updateSelectedConversation(selectedConversation));
+
         });
       }
     })
@@ -187,8 +203,7 @@ export default class MessagesSendBar extends PureComponent {
       let appName = messageBody.split(' ')[0].substring(1);
       let curJidLocal = selectedConversation.curJid.slice(0, selectedConversation.curJid.indexOf('@'));
       let app = getMyAppByShortName(curJidLocal, appName);
-      // console.log('debugger: ', app);
-      // debugger;
+      console.log('debugger: app: ', app);
       if (app && app.length > 0) {
         if (selectedConversation.isGroup) {
           roomId = jidLocal;
