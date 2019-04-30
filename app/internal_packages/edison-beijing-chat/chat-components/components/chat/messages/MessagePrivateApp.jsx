@@ -8,6 +8,9 @@ import getDb from '../../../db/index';
 import chatModel from '../../../store/model';
 import { beginSendingMessage } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
+import { MESSAGE_STATUS_RECEIVED } from '../../../db/schemas/message';
+import { beginStoringMessage } from '../../../actions/db/message';
+import { copyRxdbMessage } from '../../../utils/db-utils';
 
 export default class MessagePrivateApp extends PureComponent {
   static propTypes = {
@@ -66,9 +69,15 @@ export default class MessagePrivateApp extends PureComponent {
     const body = {
       "type": fileType,
       "mediaObjectId": url,
+      path:url,
       content:'sent'
     };
     const messageId = uuid();
+    const msg = copyRxdbMessage(this.props.msg);
+    const msgBody = JSON.parse(msg.body);
+    msgBody.deleted = true;
+    msg.body = JSON.stringify(msgBody);
+    chatModel.store.dispatch(beginStoringMessage(msg));
     chatModel.store.dispatch(beginSendingMessage(conversation, JSON.stringify(body), messageId, false));
   }
 
@@ -77,6 +86,9 @@ export default class MessagePrivateApp extends PureComponent {
     const { sentTime } = this.props.msg;
     const msgBody = JSON.parse(this.props.msg.body);
     console.log('debugger: MessagePrivateApp.render msgBody: ', msgBody);
+    if (msgBody.deleted) {
+      return null;
+    }
     const { appJid, appName, data} = msgBody;
     let {type, mimeType, content, contents, htmlBody, ctxCommands} = data;
     const appId = appJid.split('@')[0];
@@ -114,6 +126,7 @@ export default class MessagePrivateApp extends PureComponent {
             <div className="text-content">
               {htmlBody ? <div dangerouslySetInnerHTML={{ __html: htmlBody }}/> : content}
               {contents}
+              <p>click a image to send it</p>
             </div>
             <div>{commands}</div>
           </div>
