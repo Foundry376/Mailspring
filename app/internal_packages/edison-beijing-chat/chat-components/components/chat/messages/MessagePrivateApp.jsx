@@ -76,7 +76,7 @@ export default class MessagePrivateApp extends PureComponent {
     const { conversation } = this.props;
     const { sentTime } = this.props.msg;
     const msgBody = JSON.parse(this.props.msg.body);
-    // console.log('debugger: MessageApp.render msgBody: ', msgBody);
+    console.log('debugger: MessagePrivateApp.render msgBody: ', msgBody);
     const { appJid, appName, data} = msgBody;
     let {type, mimeType, content, contents, htmlBody, ctxCommands} = data;
     const appId = appJid.split('@')[0];

@@ -64,9 +64,11 @@ export default class MessageApp extends PureComponent {
         if (ctxCmds) {
             let arrCmds = JSON.parse(ctxCmds);
             // console.log('debugger: arrCmds: ', arrCmds);
-          commands = arrCmds.map(item => <MessageCommand conversation={this.props.selectedConversation}
+          commands = arrCmds.map((item, idx) => <MessageCommand conversation={this.props.selectedConversation}
                                                          appJid = {appJid}
-                                                         templateText = {item.command}></MessageCommand>)
+                                                         templateText = {item.command}
+                                                         key = {idx}>
+          </MessageCommand>)
         }
         return (
             <div className="message otherUser">
