@@ -1,14 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import InfoIcon from '../../common/icons/InfoIcon';
-import Button from '../../common/Button';
-import {
-  dateFormat,
-} from '../../../utils/time';
-import { sendCmd2App2, getToken, getMyAppByShortName, getMyAppById } from '../../../utils/appmgt';
+import uuid from 'uuid/v4';
+import { dateFormat } from '../../../utils/time';
+import { sendCmd2App2, getToken } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
 import getDb from '../../../db/index';
-import { SUCCESS_AUTH } from '../../../actions/auth';
+import chatModel from '../../../store/model';
+import { beginSendingMessage } from '../../../actions/chat';
+import { FILE_TYPE } from './messageModel';
 
 export default class MessagePrivateApp extends PureComponent {
   static propTypes = {
@@ -54,6 +53,24 @@ export default class MessagePrivateApp extends PureComponent {
     });
 
   }
+  sendImageLink = (url) => {
+    const { conversation } = this.props;
+    let fileType;
+    if (url.match(/gif$/)) {
+      fileType = FILE_TYPE.GIF;
+    } else if (url.match(/gif$|png$|bmp$|jpg$|jpeg$/)) {
+      fileType = FILE_TYPE.IMAGE;
+    } else {
+      fileType = FILE_TYPE.OTHER_FILE;
+    }
+    const body = {
+      "type": fileType,
+      "mediaObjectId": url,
+      content:'sent'
+    };
+    const messageId = uuid();
+    chatModel.store.dispatch(beginSendingMessage(conversation, JSON.stringify(body), messageId, false));
+  }
 
   render() {
     const { conversation } = this.props;
@@ -76,7 +93,7 @@ export default class MessagePrivateApp extends PureComponent {
                                                      templateText={item.command}></MessageCommand>);
     }
     if (mimeType.match(/^image/)) {
-      contents = contents.map((item, idx) => <img src={item} style={{maxWidth:'100px', maxHeight:'100px'}} key={idx}/>)
+      contents = contents.map((item, idx) => <img src={item} style={{maxWidth:'100px', maxHeight:'100px'}} onClick={e => this.sendImageLink(item)} key={idx}/>)
     } else if (type==='url') {
       contents = contents.map((item, idx) => <a href={item} key={idx}/>)
     } else {

@@ -449,8 +449,11 @@ export const receivePrivateMessageEpic = action$ =>
           && keys[jidLocal][deviceId]) {
           let text = keys[jidLocal][deviceId];
           if (text) {
-            let aes = decrypte(text, priKey); //window.localStorage.priKey);
-            downloadAndTagImageFileInMessage(RECEIVE_CHAT, aes, payload);
+            try {
+              let aes = decrypte(text, priKey);
+              //window.localStorage.priKey);
+              downloadAndTagImageFileInMessage(RECEIVE_CHAT, aes, payload);
+            } catch (e) { }
           }
         }
       } else {
@@ -565,7 +568,10 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
     .mergeMap(({ payload, name }) => {
       return Observable.fromPromise(getLastMessageInfo(payload))
         .map(({ lastMessageTime, sender, lastMessageText }) => {
-          const { timeSend } = JSON.parse(payload.body);
+          let timeSend = new Date().getTime();
+          if (payload.body){
+            timeSend = JSON.parse(payload.body).timeSend;
+          }
           // if not current conversation, unreadMessages + 1
           let unreadMessages = 0;
           const { chat: { selectedConversation } } = getState();

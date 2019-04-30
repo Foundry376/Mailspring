@@ -407,6 +407,7 @@ export default class Messages extends PureComponent {
                 return result;
               }
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
+              // console.log('debugger: Messages.render: msgBody: ', msgBody);
               if (typeof msgBody === 'string') {
                 msgBody = {content: msgBody};
               }
@@ -559,12 +560,12 @@ export default class Messages extends PureComponent {
                         </div>) : (
                           isEditing ? (
                             <div>
-                              <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} {...this.props.sendBarProps} />
+                              <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || 'msgBody'} {...this.props.sendBarProps} />
                             </div>
                           ) : (
                               <div className="messageBody">
                                 <div className="text-content">
-                                  {msgBody.path && path.basename(msgBody.path) || msgBody.content || msgBody}
+                                  {msgBody.path && path.basename(msgBody.path) || msgBody.content || 'msgBody'}
                                   {
                                     !msgFile && isCurrentUser && !isEditing && (
                                       messageToolbar(msg, msgBody, false)
