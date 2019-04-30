@@ -8,7 +8,6 @@ import getDb from '../../../db/index';
 import chatModel from '../../../store/model';
 import { beginSendingMessage } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
-import { MESSAGE_STATUS_RECEIVED } from '../../../db/schemas/message';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { copyRxdbMessage } from '../../../utils/db-utils';
 
@@ -32,30 +31,6 @@ export default class MessagePrivateApp extends PureComponent {
     this.setState(state);
   };
 
-  sendCommand2App(command) {
-    const { appJid } = this.props.msgBody;
-    const { userId, conversation } = this.props;
-    let jidLocal = conversation.jid.split('@')[0];
-    let peerUserId, roomId;
-    if (conversation.isGroup) {
-      roomId = jidLocal;
-    } else {
-      peerUserId = jidLocal;
-    }
-    let appId = appJid.split('@')[0];
-    let userName = '';
-    getToken(userId).then(token => {
-      if (!token) {
-        token = 'AhU0sbojRdafuHUV-ESofQ';
-      }
-      if (command) {
-        sendCmd2App2(userId, userName, token, appId, command, peerUserId, roomId, (err, data) => {
-          console.log(err, data);
-        });
-      }
-    });
-
-  }
   sendImageLink = (url) => {
     const { conversation } = this.props;
     let fileType;
@@ -86,6 +61,7 @@ export default class MessagePrivateApp extends PureComponent {
     const { sentTime } = this.props.msg;
     const msgBody = JSON.parse(this.props.msg.body);
     console.log('debugger: MessagePrivateApp.render msgBody: ', msgBody);
+    debugger;
     if (msgBody.deleted) {
       return null;
     }
@@ -99,9 +75,16 @@ export default class MessagePrivateApp extends PureComponent {
     const member = { jid: appJid, name: '' };
     let commands = null;
     if (ctxCommands) {
-      let arrCmds = JSON.parse(ctxCommands);
+      let arrCmds;
+      if (typeof ctxCommands === 'string') {
+        arrCmds = JSON.parse(ctxCommands);
+      } else {
+        arrCmds = ctxCommands;
+      }
       commands = arrCmds.map(item => <MessageCommand conversation={this.props.conversation}
                                                      appJid={appJid}
+                                                     commandType={2}
+                                                     appName={appName}
                                                      templateText={item.command}></MessageCommand>);
     }
     if (mimeType.match(/^image/)) {
@@ -124,9 +107,10 @@ export default class MessagePrivateApp extends PureComponent {
           </div>
           <div className="messageBody">
             <div className="text-content">
-              {htmlBody ? <div dangerouslySetInnerHTML={{ __html: htmlBody }}/> : content}
+              {htmlBody ? <div dangerouslySetInnerHTML={{ __html: htmlBody }}/> : <div> { content } </div> }
               {contents}
-              <p>click a image to send it</p>
+              <br/>
+              {contents && contents.length ? <h6>click a image to send it</h6> : null}
             </div>
             <div>{commands}</div>
           </div>

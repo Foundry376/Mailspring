@@ -1,16 +1,24 @@
 import React, { PureComponent } from 'react';
+import uuid from 'uuid/v4';
 import PropTypes from 'prop-types';
 import { sendCmd2App2, getToken } from '../../../utils/appmgt';
+import { MESSAGE_STATUS_RECEIVED } from '../../../db/schemas/message';
+import chatModel from '../../../store/model';
+import { beginStoringMessage } from '../../../actions/db/message';
+import { updateSelectedConversation } from '../../../actions/db/conversation';
 export default class MessageCommand extends PureComponent {
     static propTypes = {
         appJid: PropTypes.string.isRequired,
         conversation: PropTypes.object.isRequired,
         templateText: PropTypes.string.isRequired
     };
+
     argEls = [];
+
     sendCommand2App = async (e) => {
         let command = this.head;
-        const { appJid, conversation } = this.props;
+
+        const { appJid, appName, commandType, conversation } = this.props;
         const userId = conversation.curJid.split('@')[0];
         let jidLocal = conversation.jid.split('@')[0];
         let peerUserId, roomId;
@@ -27,7 +35,25 @@ export default class MessageCommand extends PureComponent {
         });
         const token = await getToken(userId);
         sendCmd2App2(userId, userName, token, appId, command, peerUserId, roomId, (err, data) => {
-            console.log(err, data);
+          console.log('debugger: MessageCommand: sendCmd2App2:', err, data);
+          debugger;
+          if (err || !data || commandType !== 2) {
+            return;
+          }
+          data = JSON.parse(data);
+          data.appJid = appJid;
+          data.appName = appName;
+          data.isAppprivateCommand = true;
+          const msg = {
+            id: uuid(),
+            conversationJid: conversation.jid,
+            sender: appJid,
+            body: JSON.stringify(data),
+            sentTime: (new Date()).getTime(),
+            status: MESSAGE_STATUS_RECEIVED,
+          };
+          chatModel.store.dispatch(beginStoringMessage(msg));
+          chatModel.store.dispatch(updateSelectedConversation(conversation));
         });
     }
 
