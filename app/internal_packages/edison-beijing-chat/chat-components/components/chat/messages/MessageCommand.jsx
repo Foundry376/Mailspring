@@ -35,8 +35,8 @@ export default class MessageCommand extends PureComponent {
         });
         const token = await getToken(userId);
         sendCmd2App2(userId, userName, token, appId, command, peerUserId, roomId, (err, data) => {
-          console.log('debugger: MessageCommand: sendCmd2App2:', err, data);
-          debugger;
+          // console.log('debugger: MessageCommand: sendCmd2App2:', err, data);
+          // debugger;
           if (err || !data || commandType !== 2) {
             return;
           }

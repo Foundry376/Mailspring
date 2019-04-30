@@ -44,6 +44,7 @@ export default class MessagePrivateApp extends PureComponent {
     const body = {
       "type": fileType,
       "mediaObjectId": url,
+      timeSend: new Date().getTime(),
       path:url,
       content:'sent'
     };
@@ -60,8 +61,8 @@ export default class MessagePrivateApp extends PureComponent {
     const { conversation } = this.props;
     const { sentTime } = this.props.msg;
     const msgBody = JSON.parse(this.props.msg.body);
-    console.log('debugger: MessagePrivateApp.render msgBody: ', msgBody);
-    debugger;
+    // console.log('debugger: MessagePrivateApp.render msgBody: ', msgBody);
+    // debugger;
     if (msgBody.deleted) {
       return null;
     }
