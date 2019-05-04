@@ -8,6 +8,7 @@ import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
 import LanguageSection from './language-section';
 import { ConfigLike, ConfigSchemaLike } from '../types';
+import {remote} from "electron";
 
 class PreferencesGeneral extends React.Component<{
   config: ConfigLike;
@@ -27,18 +28,26 @@ class PreferencesGeneral extends React.Component<{
   };
 
   _onResetAccountsAndSettings = () => {
-    rimraf(AppEnv.getConfigDirPath(), { disableGlob: true }, err => {
-      if (err) {
-        return AppEnv.showErrorDialog(
-          localized(
-            `Could not reset accounts and settings. Please delete the folder %@ manually.\n\n%@`,
-            AppEnv.getConfigDirPath(),
-            err.toString()
-          )
-        );
-      }
-      this._onReboot();
+    const chosen = remote.dialog.showMessageBox(AppEnv.getCurrentWindow(), {
+      type: 'info',
+      message: localized('Are you sure?'),
+      buttons: [localized('Cancel'), localized('Reset')],
     });
+
+    if (chosen === 1) {
+      rimraf(AppEnv.getConfigDirPath(), { disableGlob: true }, err => {
+        if (err) {
+          return AppEnv.showErrorDialog(
+            localized(
+              `Could not reset accounts and settings. Please delete the folder %@ manually.\n\n%@`,
+              AppEnv.getConfigDirPath(),
+              err.toString()
+            )
+          );
+        }
+        this._onReboot();
+      });
+    }
   };
 
   _onResetEmailCache = () => {
