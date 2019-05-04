@@ -72,6 +72,7 @@
     "node-rsa": "^1.0.1",
     "node-thumbnail": "^0.15.0",
     "optimist": "0.4.0",
+    "os-locale": "^3.1.0",
     "pick-react-known-prop": "0.x.x",
     "plist": "^3.0.1",
     "pouchdb": "^7.0.0",
