@@ -15,6 +15,7 @@ import AccountSettingsPageYahoo from './page-account-settings-yahoo';
 import AccountOnboardingSuccess from './page-account-onboarding-success';
 import InitialPreferencesPage from './page-initial-preferences';
 import AddAnotherAccountPage from './page-account-add-another';
+import GdprTerms from './page-gdpr-terms';
 
 const PageComponents = {
   welcome: WelcomePage,
@@ -29,6 +30,7 @@ const PageComponents = {
   'account-onboarding-success': AccountOnboardingSuccess,
   'account-add-another': AddAnotherAccountPage,
   'initial-preferences': InitialPreferencesPage,
+  'gdpr-terms': GdprTerms,
 };
 
 export default class OnboardingRoot extends React.Component {
