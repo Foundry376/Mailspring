@@ -6,6 +6,7 @@ import {
   BEGIN_FETCH_E2EE,
   SUCCESS_FETCH_E2EE,
   failedFetchingRoster,
+  failedFetchingE2ee,
   fetchRoster,
   succesfullyFetchedRoster,
   fetchE2ee,
@@ -85,8 +86,13 @@ export const fetchE2eeEpic = action$ =>
   action$.ofType(BEGIN_FETCH_E2EE)//yazzxx2
     .mergeMap(({ payload }) => {
       return Observable.fromPromise(xmpp.getE2ee('', payload.bare))
-        .map(({ e2ee }) => { return succesfullyFetchedE2ee(e2ee) })//yazzxx3
-        .catch(err => console.log(err))
+        .map((result ) => {
+          if (!result) {
+            console.warn('xmpp fail to getE2ee jid: ', payload.bare);
+          }
+          const { e2ee } = reult;
+        return succesfullyFetchedE2ee(e2ee) })//yazzxx3
+        .catch(err => Observable.of(failedFetchingE2ee(err)))
     });
 
 export const fetchE2eeByJidsEpic = action$ =>
