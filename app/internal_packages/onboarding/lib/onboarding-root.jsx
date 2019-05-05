@@ -14,6 +14,7 @@ import AccountSettingsPageOffice365 from './page-account-settings-office365';
 import AccountSettingsPageYahoo from './page-account-settings-yahoo';
 import AccountOnboardingSuccess from './page-account-onboarding-success';
 import InitialPreferencesPage from './page-initial-preferences';
+import InitialDonePage from './page-initial-done';
 import AddAnotherAccountPage from './page-account-add-another';
 import GdprTerms from './page-gdpr-terms';
 
@@ -30,6 +31,7 @@ const PageComponents = {
   'account-onboarding-success': AccountOnboardingSuccess,
   'account-add-another': AddAnotherAccountPage,
   'initial-preferences': InitialPreferencesPage,
+  'initial-done': InitialDonePage,
   'gdpr-terms': GdprTerms,
 };
 
