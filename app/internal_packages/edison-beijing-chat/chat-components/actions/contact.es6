@@ -2,6 +2,7 @@
 export const BEGIN_FETCH_ROSTER = 'BEGIN_FETCH_ROSTER';
 export const SUCCESS_FETCH_ROSTER = 'SUCCESS_FETCH_ROSTER';
 export const FAIL_FETCH_ROSTER = 'FAIL_FETCH_ROSTER';
+export const FAIL_FETCH_E2EE = 'FAIL_FETCH_E2EE';
 
 // User status from roster
 export const USER_AVAILABLE = 'USER_AVAILABLE';
@@ -18,6 +19,7 @@ export const succesfullyFetchedE2ee = result => ({ type: SUCCESS_FETCH_E2EE, pay
 export const succesfullyFetchedRoster = result => ({ type: SUCCESS_FETCH_ROSTER, payload: result });
 
 export const failedFetchingRoster = error => ({ type: FAIL_FETCH_ROSTER, payload: error });
+export const failedFetchingE2ee = error => ({ type: FAIL_FETCH_E2EE, payload: error });
 
 // User status from roster
 export const userAvailable = data => ({ type: USER_AVAILABLE, payload: data });
