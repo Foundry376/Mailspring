@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import uuid from 'uuid/v4';
 import { dateFormat } from '../../../utils/time';
-import { sendCmd2App2, getToken } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
 import getDb from '../../../db/index';
 import chatModel from '../../../store/model';
@@ -15,9 +14,6 @@ export default class MessagePrivateApp extends PureComponent {
   static propTypes = {
     conversation: PropTypes.object.isRequired,
     msg: PropTypes.object.isRequired,
-    userId: PropTypes.string.isRequired,
-    peerUserId: PropTypes.string,
-    roomId: PropTypes.string,
   };
 
   state = {};
@@ -58,9 +54,9 @@ export default class MessagePrivateApp extends PureComponent {
   }
 
   render() {
-    const { conversation } = this.props;
-    const { sentTime } = this.props.msg;
-    const msgBody = JSON.parse(this.props.msg.body);
+    const { msg } = this.props;
+    const { sentTime } = msg;
+    const msgBody = JSON.parse(msg.body);
     // console.log('debugger: MessagePrivateApp.render msgBody: ', msgBody);
     // debugger;
     if (msgBody.deleted) {
@@ -68,8 +64,6 @@ export default class MessagePrivateApp extends PureComponent {
     }
     const { appJid, appName, data} = msgBody;
     let {type, mimeType, content, contents, htmlBody, ctxCommands} = data;
-    const appId = appJid.split('@')[0];
-    const userId = conversation.curJid.split('@')[0];
     const {
       getContactAvatar,
     } = this.props;
@@ -86,7 +80,8 @@ export default class MessagePrivateApp extends PureComponent {
                                                      appJid={appJid}
                                                      commandType={2}
                                                      appName={appName}
-                                                     templateText={item.command}></MessageCommand>);
+                                                     templateText={item.command}
+                                                     key={appJid}></MessageCommand>);
     }
     if (mimeType.match(/^image/)) {
       contents = contents.map((item, idx) => <img src={item} style={{maxWidth:'100px', maxHeight:'100px'}} onClick={e => this.sendImageLink(item)} key={idx}/>)
