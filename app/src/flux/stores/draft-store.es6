@@ -44,6 +44,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.draftDeliveryFailed, this._onSendDraftFailed);
     this.listenTo(Actions.draftDeliverySucceeded, this._onSendDraftSuccess);
     this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
+    this.listenTo(Actions.sendingDraft, this._onSendingDraft);
     this.listenTo(Actions.destroyDraftFailed, this._onDestroyDraftFailed);
     this.listenTo(Actions.destroyDraftSucceeded, this._onDestroyDraftSuccess);
     this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);
@@ -80,6 +81,7 @@ class DraftStore extends MailspringStore {
 
     this._draftSessions = {};
     this._draftsSending = {};
+    this._draftsPendingSending = {};
     this._draftsDeleting = {};
 
     this._draftsPopedOut = {};
@@ -124,7 +126,11 @@ class DraftStore extends MailspringStore {
   // Public: Look up the sending state of the given draft headerMessageId.
   // In popout windows the existance of the window is the sending state.
   isSendingDraft(headerMessageId) {
-    return !!this._draftsSending[headerMessageId] || false;
+    return (
+      !!this._draftsSending[headerMessageId] ||
+      !!this._draftsPendingSending[headerMessageId] ||
+      false
+    );
   }
 
   _onDraftAccountChange = async ({
@@ -605,6 +611,9 @@ class DraftStore extends MailspringStore {
       // }
     }
   };
+  _onSendingDraft = ({ headerMessageId, windowLevel }) => {
+    this._draftsPendingSending[headerMessageId] = true;
+  };
 
   _onSendDraft = async (headerMessageId, options = {}) => {
     if(this._draftsSending[headerMessageId]){
@@ -616,9 +625,11 @@ class DraftStore extends MailspringStore {
           windowLevel: this._getCurrentWindowLevel(),
         });
       }
+      delete this._draftsPendingSending[headerMessageId];
       return;
     }
-
+    this._draftsPendingSending[headerMessageId] = true;
+    Actions.sendingDraft({ headerMessageId, windowLevel: this._getCurrentWindowLevel() });
     const {
       delay = AppEnv.config.get('core.sending.undoSend'),
       actionKey = DefaultSendActionKey,
@@ -652,8 +663,9 @@ class DraftStore extends MailspringStore {
 
     // remove inline attachments that are no longer in the body
     let draft = session.draft();
-    if(!sendLaterMetadataValue){
+    if (!sendLaterMetadataValue) {
       this._draftsSending[headerMessageId] = draft;
+      delete this._draftsPendingSending[headerMessageId];
     }
     const files = draft.files.filter(f => {
       return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
@@ -718,6 +730,7 @@ class DraftStore extends MailspringStore {
   };
   _onSendDraftCancelled = ({ headerMessageId }) => {
     delete this._draftsSending[headerMessageId];
+    delete this._draftsPendingSending[headerMessageId];
     this.trigger({ headerMessageId });
     // if (AppEnv.isMainWindow()) {
     //   // We delay so the view has time to update the restored draft. If we
