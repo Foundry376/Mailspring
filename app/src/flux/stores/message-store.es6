@@ -3,6 +3,7 @@ import Actions from '../actions';
 import Message from '../models/message';
 import Thread from '../models/thread';
 import DatabaseStore from './database-store';
+import ThreadStore from './thread-store';
 import TaskFactory from '../tasks/task-factory';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
@@ -289,8 +290,10 @@ class MessageStore extends MailspringStore {
       const updatedThread = change.objects.find(t => t.id === this._thread.id);
       if (updatedThread) {
         // this._thread = updatedThread;
-        this._updateThread(updatedThread);
-        this._fetchFromCache();
+        ThreadStore.findBy({threadId: this._thread.id}).then(thread=>{
+          this._updateThread(thread);
+          this._fetchFromCache();
+        })
       }
     }
   }

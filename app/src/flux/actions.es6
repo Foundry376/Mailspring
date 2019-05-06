@@ -418,6 +418,7 @@ class Actions {
   ```
   */
   static sendDraft = ActionScopeWindow;
+  static sendingDraft = ActionScopeGlobal;
   /*
   Public: Fired when a draft is successfully sent
   *Scope: Global*

@@ -73,6 +73,7 @@ lazyLoadAndRegisterModel(`Label`, 'label');
 lazyLoadAndRegisterModel(`Folder`, 'folder');
 lazyLoadAndRegisterModel(`Thread`, 'thread');
 lazyLoadAndRegisterModel('ThreadCounts', 'thread-counts');
+lazyLoadAndRegisterModel('ThreadCategory', 'thread-category');
 lazyLoadAndRegisterModel(`Account`, 'account');
 lazyLoadAndRegisterModel(`Message`, 'message');
 lazyLoadAndRegisterModel(`Contact`, 'contact');
@@ -146,6 +147,7 @@ load(`FolderSyncProgressStore`, 'flux/stores/folder-sync-progress-store');
 load(`FocusedPerspectiveStore`, 'flux/stores/focused-perspective-store');
 load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
 load('DebugStore', 'flux/stores/debug-store');
+lazyLoad('ThreadStore', 'flux/stores/thread-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
 

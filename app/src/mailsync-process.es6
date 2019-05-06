@@ -202,6 +202,7 @@ export default class MailsyncProcess extends EventEmitter {
           }
         } catch (err) {
           const error = new Error(`An unexpected mailsync error occurred (${code})`);
+          console.log(err);
           error.rawLog = stripSecrets(buffer.toString());
           reject(error);
         }

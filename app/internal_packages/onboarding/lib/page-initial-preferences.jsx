@@ -16,20 +16,22 @@ class AppearanceModeOption extends React.Component {
 
   render() {
     let classname = 'appearance-mode';
+    let active = '';
     if (this.props.active) {
       classname += ' active';
+      active = '-active';
     }
 
     const label = {
-      list: 'Reading Pane Off',
-      split: 'Reading Pane On',
+      list: 'One Panel',
+      split: 'Two Panels',
     }[this.props.mode];
 
     return (
       <div className={classname} onClick={this.props.onClick}>
         <RetinaImg
-          name={`appearance-mode-${this.props.mode}.png`}
-          mode={RetinaImg.Mode.ContentIsMask}
+          name={`appearance-mode-${this.props.mode}${active}.png`}
+          mode={RetinaImg.Mode.ContentPreserve}
         />
         <div>{label}</div>
       </div>
@@ -93,19 +95,11 @@ class InitialPreferencesOptions extends React.Component {
     }
 
     return (
-      <div
-        style={{
-          display: 'flex',
-          width: 600,
-          marginBottom: 50,
-          marginLeft: 150,
-          marginRight: 150,
-          textAlign: 'left',
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <p>Do you prefer a single panel layout (like Gmail) or a two panel layout?</p>
-          <Flexbox direction="row" style={{ alignItems: 'center' }}>
+      <div className="preferences">
+        <div>
+          <h1>How do you want to view your inbox?</h1>
+          <p>This will be the default view for your<br />mailbox lists.</p>
+          <Flexbox direction="row" style={{ alignItems: 'center', width: 418 }}>
             {['list', 'split'].map(mode => (
               <AppearanceModeOption
                 mode={mode}
@@ -116,11 +110,7 @@ class InitialPreferencesOptions extends React.Component {
             ))}
           </Flexbox>
         </div>
-        <div
-          key="divider"
-          style={{ marginLeft: 20, marginRight: 20, borderLeft: '1px solid #ccc' }}
-        />
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, display: 'none' }}>
           <p>
             We've picked a set of keyboard shortcuts based on your email account and platform. You
             can also pick another set:
@@ -168,43 +158,24 @@ class InitialPreferencesPage extends React.Component {
     if (!this.state.account) {
       return <div />;
     }
-    const { submitting } = this.state;
     return (
       <div className="page opaque" style={{ width: 900, height: '100%' }}>
-        <img
-          src={`edisonmail://onboarding/assets/onboarding-done@2x.png`}
-          alt=""
-        />
-        <h1>You're all Set!</h1>
-        <h4>We couldn't be happier to have you using Edison Mail for Mac.</h4>
         <div className="configure">
           <ConfigPropContainer>
             <InitialPreferencesOptions account={this.state.account} />
           </ConfigPropContainer>
         </div>
-        <button className={'btn btn-large ' + (submitting && 'btn-disabled')} style={{ marginBottom: 60 }} onClick={this._onFinished}>
-          Let's Go
+        <div className="footer">
+          <button className="btn btn-large btn-continue" onClick={this._onFinished}>
+            Continue
         </button>
-        {
-          submitting && (
-            <LottieImg name='loading-spinner-blue'
-              size={{ width: 24, height: 24 }}
-              style={{
-                margin: '20px auto 0',
-                position: 'relative',
-                bottom: '170px'
-              }} />
-          )
-        }
+        </div>
       </div>
     );
   }
 
   _onFinished = () => {
-    this.setState({
-      submitting: true
-    });
-    require('electron').ipcRenderer.send('account-setup-successful');
+    OnboardingActions.moveToPage('initial-done');
   };
 }
 

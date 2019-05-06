@@ -326,6 +326,102 @@
   }
 }
 
+.page.gdpr-terms {
+  @terms-width: 437px;
+  .terms,
+  .gdpr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  img.logo {
+    width: 120px;
+    margin: 40px auto 20px;
+  }
+  img.check {
+    background-color: #3B99FC;
+  }
+  img.empty {
+    background-color: #E8EBED;
+  }
+  h1 {
+    color: #000;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 29px;
+  }
+  h4 {
+    width: 484px;
+    color: #000;
+    font-size: 17px;
+    line-height: 20px;
+    text-align: center;
+  }
+  .these-terms-condition {
+    height: 160px;
+    width: @terms-width;
+    color: #334;
+    font-size: 12px;
+    line-height: 14px;
+    margin-top: 6px;
+    text-align: left;
+  }
+  .row {
+    display: flex;
+    flex-direction: row;
+    padding: 16px 0;
+    width: 478px;
+    border-top: 1px solid #E8EBED;
+    &:nth-child(3) {
+      border-top: none;
+    }
+    a {
+      display: inline-block;
+      width: 40px;
+    }
+    &.check-all div {
+      color: #39F;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 24px;
+    }
+    &.terms-check {
+      width: @terms-width;
+      a {
+        width: 24px;
+      }
+      .label {
+        color: #252525;
+        font-size: 15px;
+        line-height: 24px;
+        padding: 0;
+        padding-left: 20px;
+      }
+    }
+  }
+  .terms-links {
+    width: @terms-width;
+    a {
+      display: block;
+      color: #39F;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 18px;
+      margin-bottom: 15px;
+      text-align: left;
+    }
+  }
+  .footer {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    width: 100%;
+    .btn-large {
+      width: 300px;
+    }
+  }
+}
+
 .page.authenticate {
   flex: 1;
   display: flex;
@@ -433,6 +529,10 @@
       }
     }
   }
+}
+
+.page.add-another,
+.page.gdpr-terms {
   .btn-large {
     height: 50px;
     width: 164px;
@@ -465,9 +565,6 @@
     line-height: 20px;
     text-align: center;
   }
-  .configure {
-    display: none;
-  }
   .btn.btn-large {
     height: 50px;
     width: 300px;
@@ -478,6 +575,39 @@
     text-align: center;
     &.btn-disabled {
       opacity: 0.25;
+    }
+  }
+  .preferences {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    h1 {
+      margin-top: 180px;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #000;
+      font-size: 17px;
+      line-height: 20px;
+      text-align: center;
+      margin-bottom: 58px;
+    }
+    .appearance-mode {
+      height: 140px;
+    }
+    img {
+      width: 170px;
+      margin-top: 0;
+      backgruond-color: none;
+    }
+  }
+  .footer {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    width: 100%;
+    .btn-large {
+      width: 300px;
     }
   }
 }
@@ -951,30 +1081,36 @@ body.platform-win32 {
 // Individual Components
 
 .appearance-mode {
-  background-color: #f7f9f9;
+  background-color: #F8F8FA;
   border-radius: 10px;
-  border: 1px solid #c6c7c7;
+  border: 1px solid #F8F8FA;
   text-align: center;
   flex: 1;
   padding: 9px;
   padding-top: 10px;
   margin: 10px;
   margin-top: 0;
-  img {
-    background-color: #c6c7c7;
-  }
+  // img {
+  //   background-color: #c6c7c7;
+  // }
   div {
-    margin-top: 10px;
+    color: #797D80;
+    font-size: 13px;
+    line-height: 16px;
+    text-align: center;
     text-transform: capitalize;
     cursor: default;
   }
 }
 .appearance-mode.active {
   border: 1px solid @component-active-color;
-  color: @component-active-color;
-  img {
-    background-color: @component-active-color;
+  font-weight: 700;
+  div {
+    color: @component-active-color;
   }
+  // img {
+  //   background-color: @component-active-color;
+  // }
 }
 
 .alternative-auth {

@@ -172,6 +172,7 @@ export class XmppEx extends EventEmitter3 {
       this.ping();
     });
     this.client.on('session:prebind', (bind) => {
+      chatModel.serverTimestamp = parseInt(bind.serverTimestamp);
       chatModel.diffTime = parseInt(bind.serverTimestamp)
         - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
       console.log('session:prebind', bind, chatModel.diffTime);

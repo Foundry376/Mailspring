@@ -333,15 +333,19 @@ export default class ModelQuery {
     return [].concat(inflated);
   }
 
-  // Query SQL Building
+  _getMuidByJoinTableName(matchers, tableName) {
+    if (matchers && matchers.length && tableName) {
+      for (const matcher of matchers) {
+        if (matcher.attr && matcher.attr.joinTableName === tableName) {
+          return matcher.joinTableRef();
+        }
+      }
+    }
+    return null;
+  }
 
-  // Returns a {String} with the SQL generated for the query.
-  //
-  sql() {
-    this.finalize();
-
+  _getSelect(allMatchers) {
     let result = null;
-
     if (this._count) {
       result = `COUNT(*) as count`;
     } else if (this._returnIds) {
@@ -353,13 +357,31 @@ export default class ModelQuery {
         if (!attr.needsColumn() || !attr.loadFromColumn) {
           continue;
         }
-        result += `, \`${this._klass.name}\`.\`${attr.tableColumn}\` `;
+        // get data from inner join table
+        if (attr.modelTable && attr.modelTable !== this._klass.name) {
+          let tableRef = this._getMuidByJoinTableName(allMatchers, attr.modelTable);
+          result += `, \`${tableRef ? tableRef : this._klass.name}\`.\`${attr.tableColumn}\` `;
+        } else {
+          result += `, \`${this._klass.name}\`.\`${attr.tableColumn}\` `;
+        }
       }
       this._includeJoinedData.forEach(attr => {
         result += `, ${attr.selectSQL(this._klass)} `;
       });
     }
+    return result;
+  }
 
+  // Query SQL Building
+
+  // Returns a {String} with the SQL generated for the query.
+  //
+  sql() {
+    this.finalize();
+
+    const allMatchers = this.matchersFlattened();
+    const whereSql = this._whereClause();
+    const seletSql = this._getSelect(allMatchers);
     const order = this._count ? '' : this._orderClause();
 
     let limit = '';
@@ -373,20 +395,20 @@ export default class ModelQuery {
     }
 
     const distinct = this._distinct ? ' DISTINCT' : '';
-    const allMatchers = this.matchersFlattened();
 
     const joins = allMatchers.filter(matcher => matcher.attr instanceof AttributeCollection);
 
     if (joins.length === 1 && this._canSubselectForJoin(joins[0], allMatchers)) {
       const subSql = this._subselectSQL(joins[0], this._matchers, order, limit);
-      return `SELECT${distinct} ${result} FROM \`${
+      return `SELECT ${distinct} ${seletSql} FROM \`${
         this._klass.name
         }\` WHERE \`id\` IN (${subSql}) ${order}`;
     }
 
-    return `SELECT${distinct} ${result} FROM \`${
+
+    return `SELECT ${distinct} ${seletSql} FROM \`${
       this._klass.name
-      }\` ${this._whereClause()} ${order} ${limit}`;
+      }\` ${whereSql} ${order} ${limit}`;
   }
 
   // If one of our matchers requires a join, and the attribute configuration lists
@@ -471,8 +493,12 @@ export default class ModelQuery {
     }
 
     let sql = ' ORDER BY ';
+    const allMatchers = this.matchersFlattened();
+    const getJoinTableRef = attr => {
+      return this._getMuidByJoinTableName(allMatchers, attr.modelTable);
+    }
     this._orders.forEach(sort => {
-      sql += sort.orderBySQL(this._klass);
+      sql += sort.orderBySQL(this._klass, getJoinTableRef);
     });
     return sql;
   }

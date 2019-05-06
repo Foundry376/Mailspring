@@ -12,12 +12,15 @@ import {
 } from '../../../db/schemas/message';
 import { colorForString } from '../../../utils/colors';
 import {
+  buildTimeDescriptor,
   dateFormat,
   dateFormatDigit,
   weekDayFormat,
   nearDays,
 } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
+import { downloadFile } from '../../../utils/awss3';
+import ProgressBar from '../../common/ProgressBar';
 const { Actions } = require('mailspring-exports');
 
 const remote = require('electron').remote;
@@ -31,8 +34,8 @@ import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
-import MessagePrivateApp from './MessagePrivateApp';
 import SecurePrivate from './SecurePrivate'
+import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 
 let key = 0;
 
@@ -329,7 +332,6 @@ export default class Messages extends PureComponent {
       groupedMessages,
       selectedConversation: { isGroup, jid },
     } = this.props;
-    // console.log('debugger: Message.render this.props: ', this.props);
     messageModel.currentUserId = currentUserId;
     if (groupedMessages.length) {
       chatModel.groupedMessages = groupedMessages;
@@ -402,18 +404,7 @@ export default class Messages extends PureComponent {
 
             </div>
             {group.messages.map((msg, idx) => {
-              const result = window.renderMessageByPlugins(msg, idx);
-              if (result) {
-                return result;
-              }
               let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
-              // console.log('debugger: Messages.render: msgBody: ', msgBody);
-              if (typeof msgBody === 'string') {
-                msgBody = {content: msgBody};
-              }
-              if (typeof msgBody.content !== 'string') {
-                msgBody.content = JSON.stringify(msgBody.content);
-              }
               if (msgBody.deleted) {
                 return null;
               }
@@ -430,7 +421,7 @@ export default class Messages extends PureComponent {
                 // console.log("debugger: MessageApp msg: ", msg);
                 return <MessageApp msgBody={msgBody}
                   userId={currentUserId}
-                  selectedConversation={this.props.selectedConversation}
+                  selectedConversation={this.selectedConversation}
                   getContactInfoByJid={this.getContactInfoByJid}
                   getContactAvatar={this.getContactAvatar}
                   key={msg.id} />
@@ -560,12 +551,12 @@ export default class Messages extends PureComponent {
                         </div>) : (
                           isEditing ? (
                             <div>
-                              <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || 'msgBody'} {...this.props.sendBarProps} />
+                              <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} {...this.props.sendBarProps} />
                             </div>
                           ) : (
                               <div className="messageBody">
                                 <div className="text-content">
-                                  {msgBody.path && path.basename(msgBody.path) || msgBody.content || 'msgBody'}
+                                  {msgBody.path && path.basename(msgBody.path) || msgBody.content || msgBody}
                                   {
                                     !msgFile && isCurrentUser && !isEditing && (
                                       messageToolbar(msg, msgBody, false)

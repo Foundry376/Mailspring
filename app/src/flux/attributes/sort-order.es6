@@ -18,8 +18,12 @@ export default class SortOrder {
     this.direction = direction;
   }
 
-  orderBySQL(klass) {
-    return `\`${klass.name}\`.\`${this.attr.tableColumn}\` ${this.direction}`;
+  orderBySQL(klass, getJoinTableRef) {
+    let joinTableRef = '';
+    if (getJoinTableRef) {
+      joinTableRef = getJoinTableRef(this.attr);
+    }
+    return `\`${joinTableRef ? joinTableRef : klass.name}\`.\`${this.attr.tableColumn}\` ${this.direction}`;
   }
 
   attribute() {
