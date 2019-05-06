@@ -9,7 +9,7 @@ module.exports = {
   activate() {
     ComponentRegistry.register(EmailAvatar, { role: 'EmailAvatar' });
     const { devMode } = AppEnv.getLoadSettings();
-    if (true || devMode) {
+    if (devMode) {
       WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });
       ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
       if (AppEnv.isMainWindow()) {
@@ -35,7 +35,7 @@ module.exports = {
   deactivate() {
     ComponentRegistry.unregister(EmailAvatar);
     const { devMode } = AppEnv.getLoadSettings();
-    if (true || devMode) {
+    if (devMode) {
       if (AppEnv.isMainWindow()) {
         ComponentRegistry.unregister(ChatButton);
         ComponentRegistry.unregister(ChatViewLeft);

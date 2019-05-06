@@ -15,7 +15,7 @@ const domain = {
         rest: 'https://restxmpp.stag.easilydo.cc'
     },
     prod: {
-        rest: 'https://restxmpp.stag.easilydo.cc' //'https://restxmpp.edison.tech'
+        rest: 'https://restxmpp.edison.tech'
     },
 }
 function getBaseDomain(kind) {
