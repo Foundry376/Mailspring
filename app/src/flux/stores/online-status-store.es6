@@ -1,6 +1,11 @@
 import MailspringStore from 'mailspring-store';
 import { ExponentialBackoffScheduler } from '../../backoff-schedulers';
 import Actions from '../actions';
+import DatabaseStore from './database-store';
+import Message from '../models/message';
+import ThreadCounts from '../models/thread-counts';
+import Folder from '../models/folder';
+import Label from '../models/label';
 
 let isOnlineModule = null;
 
@@ -20,6 +25,23 @@ class OnlineStatusStore extends MailspringStore {
     if (AppEnv.isMainWindow()) {
       Actions.checkOnlineStatus.listen(this._checkOnlineStatus);
       setTimeout(this._checkOnlineStatus, 3 * 1000); // initial check
+    }
+    this._interestedClasses = [Message.name, ThreadCounts.name, Folder.name, Label.name];
+
+  }
+
+  _onDataChange(change) {
+    if (this._interestedClasses.includes(change.objectClass)) {
+      this._online = true;
+      this._backoffScheduler.reset();
+      this._timeoutTargetTime = Date.now() + CHECK_ONLINE_INTERVAL;
+      this._timeout = setTimeout(this._checkOnlineStatus, CHECK_ONLINE_INTERVAL);
+      this.trigger({
+        onlineDidChange: true,
+        wakingFromSleep: false,
+        countdownDidChange: false,
+      });
+      this.stopListeningTo(DatabaseStore);
     }
   }
 
@@ -66,13 +88,15 @@ class OnlineStatusStore extends MailspringStore {
 
     if (this._online) {
       // just check again later
+      this.stopListeningTo(DatabaseStore);
       this._backoffScheduler.reset();
       this._timeoutTargetTime = Date.now() + CHECK_ONLINE_INTERVAL;
       this._timeout = setTimeout(this._checkOnlineStatus, CHECK_ONLINE_INTERVAL);
     } else {
+      this.listenTo(DatabaseStore, this._onDataChange);
       // count down an inreasing delay and check again
       this._countdownSeconds = Math.ceil(this._backoffScheduler.nextDelay() / 1000);
-      clearInterval(this._interval)
+      clearInterval(this._interval);
       this._interval = setInterval(() => {
         const next = Math.max(0, this._countdownSeconds - 1);
         if (next === 0) {
