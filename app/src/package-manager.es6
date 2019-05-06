@@ -1,8 +1,8 @@
 import path from 'path';
 import fs from 'fs-plus';
 import { shell, remote, ipcRenderer } from 'electron';
-
 import Package from './package';
+require('./chat-plugin-init');
 
 export default class PackageManager {
   constructor({ configDirPath, devMode, safeMode, resourcePath, specMode }) {
@@ -61,13 +61,15 @@ export default class PackageManager {
       const pkg = this.available[name];
 
       if (pkg.windowTypes[windowType] || pkg.windowTypes.all) {
-        if (pkg.syncInit) {
+        if (pkg.syncInit && name !== 'chat') {
           this.activatePackage(pkg);
-        } else {
+        } else if (name !== 'chat') {
           this.waiting.push(pkg);
         }
       }
     }
+    //ensure edison-beijing-chat is activatd at last
+    this.waiting.push(this.available.chat);
 
     setTimeout(() => {
       for (const w of this.waiting) {
@@ -136,7 +138,7 @@ export default class PackageManager {
           if (err) {
             AppEnv.showErrorDialog({ title: 'Could not install plugin', message: err.message });
           } else {
-            const message = `${packageName} has been installed and enabled. No need to restart! If you don't see the plugin loaded, check the console for errors.`;
+            const message = `${packageName} has been installed and enabled. Need to restart! If you don't see the plugin loaded, check the console for errors.`;
             AppEnv.showErrorDialog({ title: 'Plugin installed! 🎉', message });
           }
         });

@@ -15,6 +15,7 @@ export default combineEpics(
   ...Object.values(contactEpics),
   ...Object.values(roomEpics),
   ...Object.values(timeEpics),
+  ...window.pluginEpics,
   ...Object.values(appsEpics),
   ...Object.values(messagesEpics),
   ...Object.values(dbEpics)

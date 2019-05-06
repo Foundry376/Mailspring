@@ -34,6 +34,7 @@ import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
+import MessagePrivateApp from './MessagePrivateApp';
 import SecurePrivate from './SecurePrivate'
 import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 
@@ -408,11 +409,20 @@ export default class Messages extends PureComponent {
               if (msgBody.deleted) {
                 return null;
               }
-              if (msgBody.appJid) {
-                //console.log("yazz-test", msg);
+              if (msgBody.isAppprivateCommand) {
+                // console.log("debugger: MessagePrivateApp msg: ", msg);
+                return <MessagePrivateApp msg={msg}
+                                          userId={currentUserId}
+                                          conversation={this.props.selectedConversation}
+                                          getContactInfoByJid={this.getContactInfoByJid}
+                                          getContactAvatar={this.getContactAvatar}
+                                          key={msg.id} />
+
+              } else if (msgBody.appJid) {
+                // console.log("debugger: MessageApp msg: ", msg);
                 return <MessageApp msgBody={msgBody}
                   userId={currentUserId}
-                  selectedConversation={this.selectedConversation}
+                  conversation={this.props.selectedConversation}
                   getContactInfoByJid={this.getContactInfoByJid}
                   getContactAvatar={this.getContactAvatar}
                   key={msg.id} />

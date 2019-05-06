@@ -101,6 +101,8 @@ const saveConversation = async (db, conv) => {
         $set: {
           ...conv
         }
+      }).catch(function (err) {
+        console.log('save conversation:', err);
       })
     }
   }
@@ -143,6 +145,8 @@ const saveConversation = async (db, conv) => {
           lastMessageSenderName: conv.lastMessageSenderName,
           avatarMembers: conv.avatarMembers
         }
+      }).catch(function (err) {
+        console.log('save conversation:', err);
       });
       chatModel.updateAvatars(conv.jid);
       return convInDB;

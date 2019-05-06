@@ -83,6 +83,8 @@ export const triggerStoreMessageEpic = action$ =>
 export const beginStoreMessageEpic = action$ =>
   action$.ofType(BEGIN_STORE_MESSAGE)
     .mergeMap(({ payload: message }) => {
+      // console.log('debugger:beginStoreMessageEpic message: ', message);
+      // debugger;
       return Observable.fromPromise(saveMessages([message]))
         .map(result => successfullyStoredMessage(result))
         .catch(err => Observable.of(failedStoringMessage(err, message)))

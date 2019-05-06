@@ -71,4 +71,5 @@ export default {
     'sentTime',
     'status',
   ],
+  additionalProperties: true,
 };

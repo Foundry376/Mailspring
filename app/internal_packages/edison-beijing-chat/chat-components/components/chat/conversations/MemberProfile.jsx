@@ -155,11 +155,11 @@ export default class MemberProfie extends Component {
     contacts.push({email:member.email, displayName:member.name ||member.nickname});
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     const email = Object.keys(chatAccounts)[0];
-    let accessToken = keyMannager.getAccessTokenByEmail(email);
+    let accessToken = await keyMannager.getAccessTokenByEmail(email);
     const { err, res } = await checkToken(accessToken);
     if (err || !res || res.resultCode!==1) {
       await refreshChatAccountTokens();
-      accessToken = keyMannager.getAccessTokenByEmail(email);
+      accessToken = await keyMannager.getAccessTokenByEmail(email);
     }
     await db.contacts.upsert({
       jid,

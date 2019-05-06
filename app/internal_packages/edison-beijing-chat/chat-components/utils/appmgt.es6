@@ -49,8 +49,8 @@ export const getToken = async (userId) => {
 }
 /**
  * initialize my apps
- * @param userId 
- * @param token 
+ * @param userId
+ * @param token
  */
 export const iniApps = (userId, token) => {
     if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
@@ -76,17 +76,17 @@ export const iniApps = (userId, token) => {
     });
 }
 export const getApp = (userId, appId, token, cb) => {
-    let app = otherApps[appID];
+    let app = otherApps[appId];
     if (app) {
         cb(null, app);
         return;
     }
     var url = appBaseUrl + '/xmpp/client/appInfo';
-    post(url, { userId, appId, token, version }, (err, data) => {
+    post(url, { userId, appId, token }, (err, data) => {
         if (data) {
             let json = JSON.parse(data);
             if (json.code == 0 && json.data.app) {
-                otherApps[appID] = json.data.app;
+                otherApps[appId] = json.data.app;
                 cb(null, json.data.app);
                 return;
             } else {
