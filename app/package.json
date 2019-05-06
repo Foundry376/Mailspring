@@ -39,6 +39,7 @@
     "faye-websocket": "^0.11.0",
     "fs-plus": "^2.3.2",
     "getmac": "^1.2.1",
+    "glob": "^7.1.3",
     "graceful-fs": "^4.1.11",
     "group-by-time": "^1.0.0",
     "hostmeta": "^2.0.0",

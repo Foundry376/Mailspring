@@ -5,6 +5,7 @@ import { BrowserWindow, Menu, app, ipcMain, dialog } from 'electron';
 import fs from 'fs-plus';
 import url from 'url';
 import path from 'path';
+import glob from 'glob';
 import proc, { execSync } from 'child_process';
 import { EventEmitter } from 'events';
 
@@ -56,11 +57,11 @@ export default class Application extends EventEmitter {
       let message = null;
       let buttons = ['Quit'];
       if (err.toString().includes('ENOENT')) {
-        message = `EdisonMail could find the mailsync process. If you're building EdisonMail from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.`;
+        message = `Edison Mail could find the mailsync process. If you're building Edison Mail from source, make sure mailsync.tar.gz has been downloaded and unpacked in your working copy.`;
       } else if (err.toString().includes('spawn')) {
-        message = `EdisonMail could not spawn the mailsync process. ${err.toString()}`;
+        message = `Edison Mail could not spawn the mailsync process. ${err.toString()}`;
       } else {
-        message = `We encountered a problem with your local email database. ${err.toString()}\n\nCheck that no other copies of EdisonMail are running and click Rebuild to reset your local cache.`;
+        message = `We encountered a problem with your local email database. ${err.toString()}\n\nCheck that no other copies of Edison Mail are running and click Rebuild to reset your local cache.`;
         buttons = ['Quit', 'Rebuild'];
       }
 
@@ -244,17 +245,23 @@ export default class Application extends EventEmitter {
         callback(null);
       }
     };
+    glob(filePath, (err, files) => {
+      if (err) {
+        return;
+      }
+      for (let fileName of files) {
+        if (!fs.existsSync(fileName)) {
+          callback(null);
+          return;
+        }
 
-    if (!fs.existsSync(filePath)) {
-      callback(null);
-      return;
-    }
-
-    if (retries > 0) {
-      fs.unlink(filePath, callbackWithRetry);
-    } else {
-      fs.unlink(filePath, callback);
-    }
+        if (retries > 0) {
+          fs.unlink(fileName, callbackWithRetry);
+        } else {
+          fs.unlink(fileName, callback);
+        }
+      }
+    });
   }
 
   renameFileWithRetry(filePath, newPath, callback = () => {
@@ -350,6 +357,7 @@ export default class Application extends EventEmitter {
   _deleteDatabase = (callback, rebuild) => {
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-wal'));
     this.deleteFileWithRetry(path.join(this.configDirPath, 'edisonmail.db-shm'));
+    this.deleteFileWithRetry(path.join(this.configDirPath, 'emdb_*'));
     if (rebuild) {
       const dbPath = path.join(this.configDirPath, 'edisonmail.db');
       const newDbName = `edisonmail_backup_${new Date().getTime()}.db`;
@@ -367,7 +375,7 @@ export default class Application extends EventEmitter {
           execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
             cwd: this.configDirPath,
           });
-          fs.unlink(path.join(this.configDirPath, sqlPath));
+          fs.unlink(path.join(this.configDirPath, sqlPath), ()=>{});
         } else {
           // TODO in windows
           console.warn('in this system does not implement yet');
