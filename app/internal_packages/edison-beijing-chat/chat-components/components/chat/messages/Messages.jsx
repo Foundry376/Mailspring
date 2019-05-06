@@ -409,7 +409,7 @@ export default class Messages extends PureComponent {
                 return null;
               }
               if (msgBody.appJid) {
-                console.log("yazz-test", msg);
+                //console.log("yazz-test", msg);
                 return <MessageApp msgBody={msgBody}
                   userId={currentUserId}
                   selectedConversation={this.selectedConversation}
