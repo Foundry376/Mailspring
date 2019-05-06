@@ -37,6 +37,13 @@ class MultiselectToolbar extends Component {
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
+  componentDidUpdate = () => {
+    const { selectionCount, dataSource } = this.props;
+    const items = dataSource.itemsCurrentlyInViewMatching(() => true);
+    const isSelectAll = !this.state.selectAll && items && items.length && selectionCount === items.length;
+    this.state.selectAll = !isSelectAll;
+  }
+
   selectionLabel = () => {
     const { selectionCount, collection } = this.props;
     if (selectionCount > 1) {
@@ -133,10 +140,10 @@ class MultiselectToolbar extends Component {
             selectionCount > 0 ? (
               <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
                 <div className="selection-label">{this.selectionLabel()}</div>
-                <button className="btn btn-toggle-select-all" onClick={this.selectAll}>
+                <button className="btn clickable btn-toggle-select-all" onClick={this.selectAll}>
                   Select all {this._formatNumber(totalCount)}
                 </button>
-                <button className="btn btn-clear-all" onClick={this._clearSelection}>
+                <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
                   Clear Selection
                 </button>
                 {WorkspaceStore.layoutMode() === 'list' ? <div className="divider" key='thread-list-tool-bar-divider' /> : null}
