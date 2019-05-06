@@ -344,13 +344,14 @@ const DateUtils = {
     const now = moment();
     const diff = now.diff(datetime, 'days', true);
     const isSameDay = now.isSame(datetime, 'days');
+    const isYesterday = now.add(-1, 'days').isSame(datetime, 'days');
     const isSameYear = now.isSame(datetime, 'years');
     let format = null;
 
     if (diff <= 1 && isSameDay) {
       // Time if less than 1 day old
       format = DateUtils.getTimeFormat(null);
-    } else if (diff < 2 && !isSameDay) {
+    } else if (isYesterday) {
       if (moment.locale() === 'en') {
         format = `[Yesterday]`;
       } else {
