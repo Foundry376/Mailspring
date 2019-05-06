@@ -24,7 +24,7 @@ export default class MessagePrivateApp extends PureComponent {
     const db = await getDb();
     let contact = await db.contacts.findOne().where('jid').eq(userJid).exec();
     const state = Object.assign({}, this.state, { installerName: contact.name });
-    this.setState(state);
+    this.state = state;
   };
 
   sendImageLink = (url) => {
@@ -76,12 +76,12 @@ export default class MessagePrivateApp extends PureComponent {
       } else {
         arrCmds = ctxCommands;
       }
-      commands = arrCmds.map(item => <MessageCommand conversation={this.props.conversation}
+      commands = arrCmds.map((item,idx) => <MessageCommand conversation={this.props.conversation}
                                                      appJid={appJid}
                                                      commandType={2}
                                                      appName={appName}
                                                      templateText={item.command}
-                                                     key={appJid}></MessageCommand>);
+                                                     key={idx}></MessageCommand>);
     }
     if (mimeType.match(/^image/)) {
       contents = contents.map((item, idx) => <img src={item} style={{maxWidth:'100px', maxHeight:'100px'}} onClick={e => this.sendImageLink(item)} key={idx}/>)

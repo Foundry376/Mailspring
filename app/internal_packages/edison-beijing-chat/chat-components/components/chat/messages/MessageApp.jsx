@@ -10,7 +10,7 @@ import MessageCommand from './MessageCommand';
 import getDb from '../../../db/index';
 export default class MessageApp extends PureComponent {
     static propTypes = {
-        selectedConversation: PropTypes.object.isRequired,
+        conversation: PropTypes.object.isRequired,
         msgBody: PropTypes.object.isRequired,
         userId: PropTypes.string.isRequired,
         peerUserId: PropTypes.string,
@@ -20,8 +20,8 @@ export default class MessageApp extends PureComponent {
     state = {}
 
     componentWillMount = async () => {
-      const { selectedConversation } = this.props;
-      const userJid = selectedConversation.curJid;
+      const { conversation } = this.props;
+      const userJid = conversation.curJid;
       const db = await getDb();
       let contact = await db.contacts.findOne().where('jid').eq(userJid).exec();
       const state = Object.assign({}, this.state, {installerName: contact.name});
@@ -30,10 +30,10 @@ export default class MessageApp extends PureComponent {
 
     sendCommand2App(command) {
         const { appJid } = this.props.msgBody;
-        const { userId, selectedConversation } = this.props;
-        let jidLocal = selectedConversation.jid.split('@')[0];
+        const { userId, conversation } = this.props;
+        let jidLocal = conversation.jid.split('@')[0];
         let peerUserId, roomId;
-        if (selectedConversation.isGroup) {
+        if (conversation.isGroup) {
             roomId = jidLocal;
         } else {
             peerUserId = jidLocal;
@@ -64,7 +64,7 @@ export default class MessageApp extends PureComponent {
         if (ctxCmds) {
             let arrCmds = JSON.parse(ctxCmds);
             // console.log('debugger: arrCmds: ', arrCmds);
-          commands = arrCmds.map((item, idx) => <MessageCommand conversation={this.props.selectedConversation}
+          commands = arrCmds.map((item, idx) => <MessageCommand conversation={this.props.conversation}
                                                          appJid = {appJid}
                                                          templateText = {item.command}
                                                          key = {idx}>
