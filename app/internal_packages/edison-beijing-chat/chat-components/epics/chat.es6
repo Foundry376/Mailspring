@@ -715,7 +715,17 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
     )
     .filter(({ conv, payload }) => {
       // hide notifications
-      return !conv || (!conv.isHiddenNotification && payload.curJid !== payload.from.resource + '@im.edison.tech');
+      let chatAccounts = AppEnv.config.get('chatAccounts') || {};
+      const fromUserId = payload.from.resource;
+      let isme = false;
+      for (let email in chatAccounts) {
+        const acc = chatAccounts[email];
+        if ( acc.userId === fromUserId ) {
+          isme = true;
+          break;
+        }
+      }
+      return conv  && !conv.isHiddenNotification && !isme;
     })
     .mergeMap(({ conv, payload }) => {
       let name = payload.from.local;
