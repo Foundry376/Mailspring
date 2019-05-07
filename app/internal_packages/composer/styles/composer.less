@@ -520,6 +520,9 @@ body.platform-win32 {
       &:first-child {
         padding-left: @spacing-standard;
       }
+      &:nth-last-child(2) {
+        padding-right: 0;
+      }
       &:last-child {
         padding-right: 0;
       }
@@ -636,7 +639,7 @@ body.platform-win32 {
       // div[contentedtiable] has 10px of bottom padding. It's better to
       // put the padding on the contenteditable so the bottom looks nice
       // in popout windows when there's no quoted text control.
-      margin: 0 @spacing-standard @spacing-standard 22px;
+      margin: 0 @spacing-standard @spacing-standard 4px;
 
       .remove-quoted-text {
         display: none;
@@ -710,6 +713,10 @@ body.platform-win32 {
 // Overrides for the composer in a message-list
 #message-list {
   .message-item-wrap {
+    &.draft {
+      margin-bottom: 9px;
+      border-bottom: none;
+    }
     .message-item-white-wrap.composer-outer-wrap {
       background: @blurred-primary-color;
 
@@ -785,6 +792,7 @@ body.platform-win32 {
 
   .from-single-name {
     font-size: 15px;
+    padding-left: 8px;
     &:hover {
       cursor: default;
     }

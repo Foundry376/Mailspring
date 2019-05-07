@@ -161,7 +161,7 @@ export default class ComposerView extends React.Component {
   }
 
   _onEditorBodyContextMenu = event => {
-    if (this._els[Fields.Body] && this.state.editorSelection ) {
+    if (this._els[Fields.Body] && this.state.editorSelection) {
       this._els[Fields.Body].openContextMenu({
         word: this.state.editorSelectedText,
         sel: this.state.editorSelection,
@@ -196,7 +196,7 @@ export default class ComposerView extends React.Component {
           onContextMenu={this._onEditorBodyContextMenu}
         >
           {(this.props.draft && this.props.draft.waitingForBody) ?
-            <Spinner visible={true}/> : this._renderBodyRegions()}
+            <Spinner visible={true} /> : this._renderBodyRegions()}
           {this._renderFooterRegions()}
         </div>
       </div>
@@ -232,7 +232,7 @@ export default class ComposerView extends React.Component {
             name={'expand-more.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask}/>
+            mode={RetinaImg.Mode.ContentIsMask} />
         </span>
         <span
           className="remove-quoted-text"
@@ -382,11 +382,11 @@ export default class ComposerView extends React.Component {
         >
           {this.state.isDeleting ?
             <LottieImg name={'loading-spinner-blue'}
-                       size={{ width: 24, height: 24 }}/> :
+              size={{ width: 24, height: 24 }} /> :
             <RetinaImg name={'trash.svg'}
-                       style={{ width: 24, height: 24 }}
-                       isIcon
-                       mode={RetinaImg.Mode.ContentIsMask}
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
             />}
         </button>
 
@@ -399,9 +399,9 @@ export default class ComposerView extends React.Component {
           disabled={this.props.session.isPopout()}
         >
           <RetinaImg name={'attachments.svg'}
-                     style={{ width: 24, height: 24 }}
-                     isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
         <button
           tabIndex={-1}
@@ -412,11 +412,11 @@ export default class ComposerView extends React.Component {
           disabled={this.props.session.isPopout()}
         >
           <RetinaImg name={'inline-image.svg'}
-                     style={{ width: 24, height: 24 }}
-                     isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
-        <div style={{ order: 0, flex: 1 }}/>
+        <div style={{ order: 0, flex: 1 }} />
 
         <SendActionButton
           ref={el => {
@@ -641,7 +641,7 @@ export default class ComposerView extends React.Component {
       <div className={this.props.className}>
         <KeyCommandsRegion
           localHandlers={this._keymapHandlers}
-          className={'message-item-white-wrap composer-outer-wrap'}
+          className={'message-item-white-wrap focused composer-outer-wrap'}
           ref={el => {
             if (el) {
               this._els.composerWrap = el;
@@ -674,7 +674,7 @@ export default class ComposerView extends React.Component {
               </div>
 
               <div className="composer-action-bar-wrap" data-tooltips-anchor>
-                <div className="tooltips-container"/>
+                <div className="tooltips-container" />
                 {this._renderActionsRegion()}
               </div>
             </DropZone>

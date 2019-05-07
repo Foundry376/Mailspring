@@ -56,6 +56,9 @@ export const addMessagesSenderNickname = async (messages) => {
 export const getLastMessageInfo = async (message) => {
   let body, lastMessageText, sender = null, lastMessageTime = (new Date()).getTime();
   body = message.body;
+  if (!body) {
+    return { sender, lastMessageTime, lastMessageText };
+  }
   if (isJsonStr(body)) {
     body = JSON.parse(body);
   }

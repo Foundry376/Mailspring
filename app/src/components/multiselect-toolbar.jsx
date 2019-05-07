@@ -119,8 +119,14 @@ class MultiselectToolbar extends Component {
     let lastUpdate = 0;
     if (current && current._categories && current._categories.length) {
       // 'Unread' is not a folder, don't display count
-      if (current.name !== 'Unread') {
-        threadCounts = ThreadCountsStore.totalCountForCategoryId(current._categories[0].id);
+      if (current.name !== 'Unread' && current._categories && current._categories.length > 0) {
+        for (let cat of current._categories) {
+          threadCounts += ThreadCountsStore.totalCountForCategoryId(cat.id);
+        }
+      } else if (current.name === 'Unread') {
+        for (let cat of current._categories) {
+          threadCounts += ThreadCountsStore.unreadCountForCategoryId(cat.id);
+        }
       }
       let category = CategoryStore.byId(current._categories[0].accountId, current._categories[0].id);
       if (category instanceof Label) {

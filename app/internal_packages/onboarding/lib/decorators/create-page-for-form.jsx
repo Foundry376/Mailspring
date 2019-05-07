@@ -1,7 +1,6 @@
 import { shell, remote } from 'electron';
-import { RetinaImg, LottieImg } from 'mailspring-component-kit';
+import { ScrollRegion, RetinaImg, LottieImg } from 'mailspring-component-kit';
 import { React, ReactDOM, PropTypes } from 'mailspring-exports';
-
 import OnboardingActions from '../onboarding-actions';
 import { finalizeAndValidateAccount } from '../onboarding-helpers';
 import FormErrorMessage from '../form-error-message';
@@ -264,7 +263,7 @@ const CreatePageForForm = FormComponent => {
       const hideTitle = errorMessage && errorMessage.length > 120;
 
       return (
-        <div className={`page account-setup ${FormComponent.displayName}`}>
+        <ScrollRegion className={`page account-setup ${FormComponent.displayName}`}>
           <div className="logo-container">
             <RetinaImg
               name={providerConfig.icon}
@@ -303,7 +302,7 @@ const CreatePageForForm = FormComponent => {
                 style={{ margin: '20px auto 0' }} />
             )
           }
-        </div>
+        </ScrollRegion>
       );
     }
   };
