@@ -474,5 +474,7 @@ export async function finalizeAndValidateAccount(account) {
   proc.account = account;
   const { response } = await proc.test();
   const newAccount = response.account;
+  // preload mail data
+  proc.sync();
   return new Account(newAccount);
 }
