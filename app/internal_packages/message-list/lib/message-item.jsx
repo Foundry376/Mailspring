@@ -7,6 +7,7 @@ import MessageParticipants from './message-participants';
 import MessageItemBody from './message-item-body';
 import MessageTimestamp from './message-timestamp';
 import MessageControls from './message-controls';
+import TaskFactory from '../../../src/flux/tasks/task-factory';
 
 export default class MessageItem extends React.Component {
   static displayName = 'MessageItem';
@@ -33,10 +34,13 @@ export default class MessageItem extends React.Component {
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
       detailedHeaders: false,
     };
+    this.markAsReadTimer = null;
+    this.mounted = false;
   }
 
   componentDidMount() {
     this._storeUnlisten = AttachmentStore.listen(this._onDownloadStoreChange);
+    this.mounted = true;
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -44,6 +48,8 @@ export default class MessageItem extends React.Component {
   }
 
   componentWillUnmount() {
+    this.mounted = false;
+    clearTimeout(this.markAsReadTimer);
     if (this._storeUnlisten) {
       this._storeUnlisten();
     }
@@ -84,23 +90,66 @@ export default class MessageItem extends React.Component {
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
     });
   };
+  _cancelMarkAsRead = () => {
+    if (this.markAsReadTimer) {
+      clearTimeout(this.markAsReadTimer);
+      this.markAsReadTimer = null;
+    }
+  };
+  _markAsRead = () => {
+    if (!this.props.message) {
+      return;
+    }
+    if (this.props.collapsed || this.props.pending) {
+      return;
+    }
+    if (!this.props.message.unread || this.props.message.draft) {
+      return;
+    }
+    if (this.markAsReadTimer) {
+      return;
+    }
+    const messageId = this.props.message.id;
+    const threadId = this.props.message.threadId;
+    const markAsReadDelay = AppEnv.config.get('core.reading.markAsReadDelay');
+    this.markAsReadTimer = setTimeout(() => {
+      this.markAsReadTimer = null;
+      if (!this.props.message || !this.mounted || this.props.pending) {
+        return;
+      }
+      if (threadId !== this.props.message.threadId || messageId !== this.props.message.id) {
+        return;
+      }
+      if (!this.props.message.unread) {
+        return;
+      }
+      Actions.queueTask(
+        TaskFactory.taskForInvertingUnread({
+          threads: [this.props.thread],
+          source: 'Thread Selected',
+          canBeUndone: false,
+          unread: false,
+        }),
+      );
+    }, markAsReadDelay);
+  };
 
   _renderDownloadAllButton() {
     return (
       <div className="download-all">
         <div className="attachment-number">
           <RetinaImg name="feed-attachments.svg"
-            isIcon
-            style={{ width: 18, height: 18 }}
-            mode={RetinaImg.Mode.ContentIsMask} />
+                     isIcon
+                     style={{ width: 18, height: 18 }}
+                     mode={RetinaImg.Mode.ContentIsMask}/>
           <span>{this.props.message.files.length} attachments</span>
         </div>
         <div className="separator">-</div>
         <div className="download-all-action" onClick={this._onDownloadAll}>
           <RetinaImg name="download.svg"
-            isIcon
-            style={{ width: 18, height: 18 }}
-            mode={RetinaImg.Mode.ContentIsMask} />
+                     isIcon
+                     style={{ width: 18, height: 18 }}
+                     mode={RetinaImg.Mode.ContentIsMask}/>
           <span>Download all</span>
         </div>
       </div>
@@ -111,7 +160,7 @@ export default class MessageItem extends React.Component {
     const { files = [], body, id } = this.props.message;
     const { filePreviewPaths, downloads } = this.state;
     const attachedFiles = files.filter(
-      f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`)
+      f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`),
     );
 
     return (
@@ -175,14 +224,14 @@ export default class MessageItem extends React.Component {
               detailedHeaders: this.state.detailedHeaders,
             }}
           />
-          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut} />
+          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut}/>
         </div>
         <div className='row'>
           <InjectedComponent
             key="thread-avatar"
             exposedProps={{
               from: message.from && message.from[0],
-              messagePending: this.props.pending
+              messagePending: this.props.pending,
             }}
             matching={{ role: 'EmailAvatar' }}
           />
@@ -269,7 +318,7 @@ export default class MessageItem extends React.Component {
     const { message: { snippet, from, files, date, draft }, className } = this.props;
 
     const attachmentIcon = Utils.showIconForAttachments(files) ? (
-      <div className="collapsed-attachment" />
+      <div className="collapsed-attachment"/>
     ) : null;
 
     return (
@@ -279,7 +328,7 @@ export default class MessageItem extends React.Component {
             <InjectedComponent
               key="thread-avatar"
               exposedProps={{
-                from: from && from[0]
+                from: from && from[0],
               }}
               matching={{ role: 'EmailAvatar' }}
             />
@@ -289,11 +338,11 @@ export default class MessageItem extends React.Component {
                   {from && from[0] && from[0].displayName({ compact: true })}
                 </div>
                 {draft && (
-                  <div className="collapsed-pencil" />
+                  <div className="collapsed-pencil"/>
                 )}
                 {attachmentIcon}
                 <div className="collapsed-timestamp">
-                  <MessageTimestamp date={date} />
+                  <MessageTimestamp date={date}/>
                 </div>
               </div>
               <div className="collapsed-snippet">{snippet}</div>
@@ -306,11 +355,11 @@ export default class MessageItem extends React.Component {
 
   _renderFull() {
     return (
-      <div className={this.props.className}>
+      <div className={this.props.className} onMouseEnter={this._markAsRead} onMouseLeave={this._cancelMarkAsRead}>
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             {this._renderHeader()}
-            <MessageItemBody message={this.props.message} downloads={this.state.downloads} />
+            <MessageItemBody message={this.props.message} downloads={this.state.downloads}/>
             {this._renderAttachments()}
             {this._renderFooterStatus()}
           </div>
