@@ -1,7 +1,6 @@
 import ChatButton from './chat-button';
 import ChatView from './chat-view';
 import ChatViewLeft from './chat-view-left';
-import EmailAvatar from './email-avatar';
 import ChatAccountSidebarFiller from '../chat-components/components/chat/chat-account-sidebar-filler';
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
 const osLocale = require('os-locale');
@@ -20,7 +19,6 @@ const isChatTest = isChatTestUser();
 
 module.exports = {
   activate() {
-    ComponentRegistry.register(EmailAvatar, { role: 'EmailAvatar' });
     const { devMode } = AppEnv.getLoadSettings();
     if (devMode || isChatTest) {
       WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });
@@ -46,7 +44,6 @@ module.exports = {
   },
 
   deactivate() {
-    ComponentRegistry.unregister(EmailAvatar);
     const { devMode } = AppEnv.getLoadSettings();
     if (devMode || isChatTest) {
       if (AppEnv.isMainWindow()) {

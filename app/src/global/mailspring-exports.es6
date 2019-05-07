@@ -203,6 +203,8 @@ lazyLoad(`SystemStartService`, 'system-start-service');
 // Testing
 lazyLoadWithGetter(`MailspringTestUtils`, () => require('../../spec/mailspring-test-utils'));
 
+lazyLoad(`EmailAvatar`, '../internal_packages/edison-beijing-chat/lib/email-avatar');
+
 process.nextTick(() => {
   let c = 0;
   for (const key of _resolveNow) {

@@ -531,7 +531,7 @@ body.platform-win32 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    // width: 25px;
+    width: 40px;
     margin: 0 15px;
     .avatar-icon {
       height: 40px;
@@ -642,6 +642,31 @@ body.platform-win32 {
       -webkit-line-clamp: 2;
       display: -webkit-box;
       -webkit-box-orient: vertical;
+      flex: 1;
+      .skeleton {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        div {
+          background: @gray-lighter;
+          height: 17px;
+          border-radius: 4px;
+        }
+        div:first-child {
+          width: 100%;
+        }
+        div:last-child {
+          width: 70%;
+        }
+      }
+      // .skeleton {
+      //   height: 100%;
+      //   background-repeat: no-repeat;
+      //   background-image: linear-gradient(red 16px, transparent 0), 
+      //   linear-gradient(white 20px, transparent 0), 
+      //   linear-gradient(gray 36px, transparent 0);
+      // }
     }
     .icons {
       height: 42px;
