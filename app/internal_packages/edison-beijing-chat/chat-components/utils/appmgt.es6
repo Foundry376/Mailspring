@@ -60,6 +60,7 @@ export const iniApps = (userId, token) => {
         version = myApps[userId].version;
     }
     post(url, { userId, token, version }, (err, data) => {
+        debugger;
         if (data) {
             let json = JSON.parse(data);
             console.log(json);
