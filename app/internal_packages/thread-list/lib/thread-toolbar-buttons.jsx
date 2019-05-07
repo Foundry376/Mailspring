@@ -14,9 +14,19 @@ import {
   MessageStore,
 } from 'mailspring-exports';
 import { remote } from 'electron';
+
 const { Menu, MenuItem } = remote;
 
 import ThreadListStore from './thread-list-store';
+const commandCb = (event, cb, cbArgs) => {
+  if (event) {
+    if (event.propagationStopped) {
+      return;
+    }
+    event.stopPropagation();
+  }
+  cb(cbArgs);
+};
 
 export class ArchiveButton extends React.Component {
   static displayName = 'ArchiveButton';
@@ -46,12 +56,12 @@ export class ArchiveButton extends React.Component {
     }
 
     return (
-      <BindGlobalCommands commands={{ 'core:archive-item': () => this._onArchive() }}>
+      <BindGlobalCommands commands={{ 'core:archive-item': event => commandCb(event, this._onArchive) }}>
         <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
           <RetinaImg name={'archive.svg'}
-            style={{ width: 24, height: 24 }}
-            isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+                     style={{ width: 24, height: 24 }}
+                     isIcon
+                     mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -89,7 +99,7 @@ export class TrashButton extends React.Component {
       event.stopPropagation();
     }
     return;
-  }
+  };
 
   render() {
     const canMove = FocusedPerspectiveStore.current().canMoveThreadsTo(this.props.items, 'trash');
@@ -105,14 +115,14 @@ export class TrashButton extends React.Component {
     }
 
     return (
-      <BindGlobalCommands commands={{ 'core:delete-item': () => actionCallBack() }}>
+      <BindGlobalCommands commands={{ 'core:delete-item': event => commandCb(event, actionCallBack) }}>
         <button
           tabIndex={-1}
           className="btn btn-toolbar"
           title="Move to Trash"
           onClick={actionCallBack}
         >
-          <RetinaImg name={'trash.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'trash.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -148,15 +158,15 @@ class HiddenGenericRemoveButton extends React.Component {
     return (
       <BindGlobalCommands
         commands={{
-          'core:gmail-remove-from-view': this._onRemoveFromView,
-          'core:remove-from-view': this._onRemoveFromView,
-          'core:remove-and-previous': () => this._onRemoveAndShift({ offset: -1 }),
-          'core:remove-and-next': () => this._onRemoveAndShift({ offset: 1 }),
-          'core:show-previous': () => this._onShift({ offset: -1 }),
-          'core:show-next': () => this._onShift({ offset: 1 }),
+          'core:gmail-remove-from-view': event => commandCb(event, this._onRemoveFromView),
+          'core:remove-from-view': event => commandCb(event, this._onRemoveFromView),
+          'core:remove-and-previous': event => commandCb(event, this._onRemoveAndShift, { offset: -1 }),
+          'core:remove-and-next': event => commandCb(event, this._onRemoveAndShift, { offset: 1 }),
+          'core:show-previous': event => commandCb(event, this._onShift, { offset: -1 }),
+          'core:show-next': event => commandCb(event, this._onShift, { offset: 1 }),
         }}
       >
-        <span />
+        <span/>
       </BindGlobalCommands>
     );
   }
@@ -209,11 +219,15 @@ class HiddenToggleImportantButton extends React.Component {
         key={allImportant ? 'unimportant' : 'important'}
         commands={
           allImportant
-            ? { 'core:mark-unimportant': () => this._onSetImportant(false) }
-            : { 'core:mark-important': () => this._onSetImportant(true) }
+            ? {
+              'core:mark-unimportant': event => commandCb(event,this._onSetImportant,false)
+            }
+            : {
+              'core:mark-important': event => commandCb(event,this._onSetImportant,true)
+            }
         }
       >
-        <span />
+        <span/>
       </BindGlobalCommands>
     );
   }
@@ -261,7 +275,9 @@ export class MarkAsSpamButton extends React.Component {
       return (
         <BindGlobalCommands
           key="not-spam"
-          commands={{ 'core:report-not-spam': () => this._onNotSpam() }}
+          commands={{
+            'core:report-not-spam': event => commandCb(event, this._onNotSpam)
+          }}
         >
           <button
             tabIndex={-1}
@@ -270,7 +286,7 @@ export class MarkAsSpamButton extends React.Component {
             onClick={this._onNotSpam}
           >
             <RetinaImg name="not-junk.svg" style={{ width: 24, height: 24 }} isIcon
-              mode={RetinaImg.Mode.ContentIsMask} />
+                       mode={RetinaImg.Mode.ContentIsMask}/>
           </button>
         </BindGlobalCommands>
       );
@@ -283,7 +299,9 @@ export class MarkAsSpamButton extends React.Component {
     return (
       <BindGlobalCommands
         key="spam"
-        commands={{ 'core:report-as-spam': () => this._onMarkAsSpam() }}
+        commands={{
+          'core:report-as-spam': event => commandCb(event, this._onMarkAsSpam)
+        }}
       >
         <button
           tabIndex={-1}
@@ -291,7 +309,7 @@ export class MarkAsSpamButton extends React.Component {
           title="Mark as Spam"
           onClick={this._onMarkAsSpam}
         >
-          <RetinaImg name={'junk.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+          <RetinaImg name={'junk.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -325,13 +343,13 @@ export class ToggleStarredButton extends React.Component {
     const className = postClickStarredState ? 'flag-not-selected' : 'flagged';
 
     return (
-      <BindGlobalCommands commands={{ 'core:star-item': () => this._onStar() }}>
-        <button tabIndex={-1} className={"btn btn-toolbar " + className} title={title} onClick={this._onStar}>
+      <BindGlobalCommands commands={{ 'core:star-item': event => commandCb(event, this._onStar) }}>
+        <button tabIndex={-1} className={'btn btn-toolbar ' + className} title={title} onClick={this._onStar}>
           <RetinaImg
             name="flag.svg"
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -373,8 +391,12 @@ export class ToggleUnreadButton extends React.Component {
         key={fragment}
         commands={
           targetUnread
-            ? { 'core:mark-as-unread': () => this._onChangeUnread(true) }
-            : { 'core:mark-as-read': () => this._onChangeUnread(false) }
+            ? {
+              'core:mark-as-unread': event => commandCb(event, this._onChangeUnread,true)
+            }
+            : {
+              'core:mark-as-read': event => commandCb(event, this._onChangeUnread,false)
+            }
         }
       >
         <button
@@ -384,7 +406,7 @@ export class ToggleUnreadButton extends React.Component {
           onClick={this._onClick}
         >
           <RetinaImg name={`${fragment}.svg`} style={{ width: 24, height: 24 }} isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+                     mode={RetinaImg.Mode.ContentIsMask}/>
         </button>
       </BindGlobalCommands>
     );
@@ -423,9 +445,11 @@ export class ThreadListMoreButton extends React.Component {
   _more = () => {
     const menu = new Menu();
     menu.append(new MenuItem({
-      label: `Mark as read`,
-      click: () => AppEnv.commands.dispatch('core:mark-as-read'),
-    })
+        label: `Mark as read`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('core:mark-as-read');
+        },
+      }),
     );
     const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
       this.props.items,
@@ -433,16 +457,18 @@ export class ThreadListMoreButton extends React.Component {
     );
     if (allowed) {
       menu.append(new MenuItem({
-        label: `Mark as spam`,
-        click: () => AppEnv.commands.dispatch('core:report-as-spam'),
-      })
+          label: `Mark as spam`,
+          click: (menuItem, browserWindow) => {
+            AppEnv.commands.dispatch('core:report-as-spam');
+          },
+        }),
       );
     }
     if (this._account && this._account.usesLabels()) {
       menu.append(new MenuItem({
-        label: `Mark important`,
-        click: () => AppEnv.commands.dispatch('core:mark-important'),
-      })
+          label: `Mark important`,
+          click: () => AppEnv.commands.dispatch('core:mark-important'),
+        }),
       );
     }
     menu.popup({});
@@ -455,7 +481,7 @@ export class ThreadListMoreButton extends React.Component {
           name="more.svg"
           style={{ width: 24, height: 24 }}
           isIcon
-          mode={RetinaImg.Mode.ContentIsMask} />
+          mode={RetinaImg.Mode.ContentIsMask}/>
       </button>
     );
   }
@@ -479,14 +505,14 @@ export class MoreButton extends React.Component {
     const expandTitle = MessageStore.hasCollapsedItems() ? 'Expand All' : 'Collapse All';
     const menu = new Menu();
     menu.append(new MenuItem({
-      label: `Print Thread`,
-      click: () => this._onPrintThread(),
-    })
+        label: `Print Thread`,
+        click: () => this._onPrintThread(),
+      }),
     );
     menu.append(new MenuItem({
-      label: expandTitle,
-      click: () => Actions.toggleAllMessagesExpanded(),
-    })
+        label: expandTitle,
+        click: () => Actions.toggleAllMessagesExpanded(),
+      }),
     );
     menu.popup({});
   };
@@ -498,7 +524,7 @@ export class MoreButton extends React.Component {
           name="more.svg"
           style={{ width: 24, height: 24 }}
           isIcon
-          mode={RetinaImg.Mode.ContentIsMask} />
+          mode={RetinaImg.Mode.ContentIsMask}/>
       </button>
     );
   }
@@ -553,14 +579,14 @@ class ThreadArrowButton extends React.Component {
           name={`${direction === 'up' ? 'back' : 'next'}.svg`}
           isIcon
           style={{ width: 24, height: 24 }}
-          mode={RetinaImg.Mode.ContentIsMask} />
+          mode={RetinaImg.Mode.ContentIsMask}/>
       </div>
     );
   }
 }
 
 const Divider = (key = 'divider') => (
-  <div className="divider" key={key} />
+  <div className="divider" key={key}/>
 );
 Divider.displayName = 'Divider';
 
@@ -573,12 +599,12 @@ export const ThreadMoreButtons = CreateButtonGroup(
   'ThreadMoreButtons',
   [ThreadListMoreButton],
   { order: -100 },
-  'thread-more'
+  'thread-more',
 );
 export const ThreadEmptyMoreButtons = CreateButtonGroup(
   'ThreadEmptyMoreButtons',
   [ThreadListMoreButton],
-  { order: -100 }
+  { order: -100 },
 );
 
 export const MoveButtons = CreateButtonGroup(
@@ -647,7 +673,7 @@ export const PopoutButton = () => {
       // double-pane view because we're at the root sheet.
       // Actions.popSheet();
     }
-  }
+  };
 
   if (!AppEnv.isComposerWindow()) {
     return (
@@ -658,9 +684,9 @@ export const PopoutButton = () => {
         onClick={_onPopoutComposer}
       >
         <RetinaImg name={'popout.svg'}
-          style={{ width: 24, height: 24 }}
-          isIcon
-          mode={RetinaImg.Mode.ContentIsMask} />
+                   style={{ width: 24, height: 24 }}
+                   isIcon
+                   mode={RetinaImg.Mode.ContentIsMask}/>
       </div>
     );
   }
