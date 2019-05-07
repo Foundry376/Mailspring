@@ -4,20 +4,21 @@
 @tooltip-background: -webkit-gradient(linear, left top, left bottom, from(rgba(99, 102, 103, 0.9)), to(rgba(82, 85, 86, 0.9)));
 
 .scroll-tooltip {
-  background: @tooltip-background;
+  background: @gray;
   color: white;
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.25);
   padding: @padding-base-vertical @padding-base-horizontal @padding-base-vertical
     @padding-base-horizontal;
-  border: 1px solid @tooltip-border-color;
-  border-radius: @border-radius-base;
-  transform: translate(-15px, 0);
+  border: 1px solid @gray;
+  border-radius: 16px;
+  transform: translate(-8px, 0);
   position: relative;
   white-space: nowrap;
   pointer-events: none;
 }
 .scroll-tooltip:after,
 .scroll-tooltip:before {
+  display: none;
   left: 100%;
   top: 50%;
   border: solid transparent;

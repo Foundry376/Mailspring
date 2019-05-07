@@ -8,7 +8,7 @@ const {
   InjectedComponentSet,
 } = require('mailspring-component-kit');
 
-const { FocusedPerspectiveStore, Utils, DateUtils } = require('mailspring-exports');
+const { FocusedPerspectiveStore, Utils, DateUtils, EmailAvatar } = require('mailspring-exports');
 
 const { ThreadUnreadQuickAction, ThreadStarQuickAction, ThreadArchiveQuickAction, ThreadTrashQuickAction } = require('./thread-list-quick-actions');
 const ThreadListParticipants = require('./thread-list-participants');
@@ -60,18 +60,19 @@ const getSnippet = function (thread) {
   for (let ii = messages.length - 1; ii >= 0; ii--) {
     if (messages[ii].snippet) return messages[ii].snippet;
   }
-  return '';
+  return (
+    <div className="skeleton">
+      <div></div>
+      <div></div>
+    </div>
+  );
 };
 
 const c1 = new ListTabular.Column({
   name: '★',
   resolver: thread => {
     return [
-      <InjectedComponent
-        key="thread-avatar"
-        exposedProps={{ thread: thread }}
-        matching={{ role: 'EmailAvatar' }}
-      />,
+      <EmailAvatar thread={thread} />,
       // <ThreadListIcon key="thread-list-icon" thread={thread} />,
       <MailImportantIcon
         key="mail-important-icon"
@@ -216,11 +217,7 @@ const cNarrow = new ListTabular.Column({
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div className="icons-column">
-          <InjectedComponent
-            key="thread-avatar"
-            exposedProps={{ thread: thread }}
-            matching={{ role: 'EmailAvatar' }}
-          />
+          <EmailAvatar thread={thread} />
         </div>
         <div className="thread-info-column">
           <div className="participants-wrapper">
@@ -260,7 +257,7 @@ const cNarrow = new ListTabular.Column({
           </div>
           <div className="snippet-and-labels">
             <div className="snippet">{getSnippet(thread)}&nbsp;</div>
-            <div style={{ flex: 1, flexShrink: 1 }} />
+            {/* <div style={{ flex: 1, flexShrink: 1 }} /> */}
             {/* <MailLabelSet thread={thread} /> */}
             <div className="icons">
               <InjectedComponentSet
