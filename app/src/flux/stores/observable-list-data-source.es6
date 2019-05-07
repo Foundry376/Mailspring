@@ -105,8 +105,11 @@ export default class ObservableListDataSource extends ListTabular.DataSource {
   setObservableRangeTask = ({ items }) => {
     let accounts = {};
     let idKey = 'id';
+    let isItemsThread = true;
+    let missingBodyMessages = [];
     if (items[Object.keys(items)[0]] instanceof Message) {
       idKey = 'threadId';
+      isItemsThread = false;
     }
     Object.values(items).forEach(item => {
       if (!item) {
@@ -119,7 +122,25 @@ export default class ObservableListDataSource extends ListTabular.DataSource {
         tmp[item[idKey]] = 1;
         accounts[item.accountId] = { ids: tmp };
       }
+      if (isItemsThread) {
+        if (item.__messages) {
+          item.__messages.forEach(message => {
+            if (message.snippet.length === 0) {
+              missingBodyMessages.push(message);
+            }
+          });
+        } else {
+          console.warn('thread missing __messages, bodies not pre fetched');
+        }
+      } else {
+        if (item.snippet.length === 0) {
+          missingBodyMessages.push(item);
+        }
+      }
     });
+    if (missingBodyMessages.length > 0) {
+      Actions.fetchBodies(missingBodyMessages);
+    }
     Object.keys(accounts).forEach(account => {
       accounts[account].ids = Object.keys(accounts[account].ids);
       Actions.setObservableRange(
