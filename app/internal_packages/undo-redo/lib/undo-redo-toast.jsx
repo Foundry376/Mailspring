@@ -110,10 +110,10 @@ class BasicContent extends React.Component {
     return (
       <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         <div className="message">{description}</div>
-        <div className="action" onClick={() => UndoRedoStore.undo({ block })}>
+        <div className="action">
           <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
-                     onClick={onClose.bind(this, block)}/>
-          <span className="undo-action-text">Undo</span>
+                     onClick={onClose}/>
+          <div className="undo-action-text" onClick={() => UndoRedoStore.undo({ block })} >Undo</div>
         </div>
       </div>
     );
@@ -178,10 +178,10 @@ class UndoSendContent extends BasicContent {
 
   renderActionArea(block) {
     if (!block.due) {
-      return <span className="undo-action-text">Undo</span>;
+      return <div className="undo-action-text" onClick={this.onActionClicked}>Undo</div>;
     }
     if (this.state.sendStatus === 'failed') {
-      return <span className="undo-action-text">View</span>;
+      return <div className="undo-action-text" onClick={this.onActionClicked}>View</div>;
     }
     return null;
   }
@@ -208,7 +208,7 @@ class UndoSendContent extends BasicContent {
         onMouseLeave={this.onMouseLeave}
       >
         <div className="message">{messageStatus}</div>
-        <div className="action" onClick={this.onActionClicked}>
+        <div className="action">
           <RetinaImg
             name="close_1.svg"
             isIcon
@@ -221,58 +221,6 @@ class UndoSendContent extends BasicContent {
     );
   }
 }
-
-// const UndoSendContent = ({ block, onMouseEnter, onMouseLeave, onClose }) => {
-//   const isSendTask = block.tasks[0] instanceof SendDraftTask;
-//   return (
-//     <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-//       <div className="message">Sending message...</div>
-//       <div className="action" onClick={() => UndoRedoStore.undo({ block })}>
-//         <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
-//                    onClick={onClose}/>
-//         {isSendTask ? null : <span className="undo-action-text">Undo</span>}
-//       </div>
-//     </div>
-//   );
-// };
-
-// const BasicContent = ({ block, onMouseEnter, onMouseLeave, onClose }) => {
-//   let description = block.description;
-//   if (block.tasks.length >= 2) {
-//     const tasks = block.tasks;
-//     // if all ChangeUnreadTask
-//     if (tasks[0] instanceof ChangeUnreadTask && tasks[tasks.length - 1] instanceof ChangeUnreadTask) {
-//       let total = 0;
-//       tasks.forEach(item => (total += item.threadIds.length));
-//       const newState = tasks[0].unread ? 'unread' : 'read';
-//       description = `Marked ${total} threads as ${newState}`;
-//     }
-//     // if all ChangeStarredTask
-//     else if (tasks[0] instanceof ChangeStarredTask && tasks[tasks.length - 1] instanceof ChangeStarredTask) {
-//       let total = 0;
-//       tasks.forEach(item => (total += item.threadIds.length));
-//       const verb = tasks[0].starred ? 'Flagged' : 'Unflagged';
-//       description = `${verb} ${total} threads`;
-//     }
-//     // if all ChangeFolderTask
-//     else if (tasks[0] instanceof ChangeFolderTask && tasks[tasks.length - 1] instanceof ChangeFolderTask) {
-//       let total = 0;
-//       tasks.forEach(item => (total += item.threadIds.length));
-//       const folderText = ` to ${tasks[0].folder.displayName}`;
-//       description = `Moved ${total} threads${folderText}`;
-//     }
-//   }
-//   return (
-//     <div className="content" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-//       <div className="message">{description}</div>
-//       <div className="action" onClick={() => UndoRedoStore.undo({ block })}>
-//         <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
-//                    onClick={onClose}/>
-//         <span className="undo-action-text">Undo</span>
-//       </div>
-//     </div>
-//   );
-// };
 
 export default class UndoRedoToast extends React.Component {
   static displayName = 'UndoRedoToast';
