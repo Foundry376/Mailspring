@@ -17,12 +17,12 @@ export default class ConversationsTopBar extends PureComponent {
           [<div key='title' className="left-title">MESSAGES</div>,
           <BindGlobalCommands key='bindKey' commands={{
             "application:new-chat": this.newConversation
-          }}><span/></BindGlobalCommands>]
+          }}><span /></BindGlobalCommands>]
         }
         right={
           <Button className="button new-message" onClick={this.newConversation}>
             <RetinaImg name={'pencil.svg'}
-                       className='icon-small'
+              style={{ width: 12 }}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
             New
