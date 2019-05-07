@@ -40,7 +40,7 @@ export const LocalizedErrorStrings = {
   ErrorSendMessageIllegalAttachment:
     'The message contains an illegial attachment that is not allowed by the server.',
   ErrorYahooSendMessageSpamSuspected:
-    "The message has been blocked by Yahoo's outbound spam filter.",
+    'The message has been blocked by Yahoo\'s outbound spam filter.',
   ErrorYahooSendMessageDailyLimitExceeded:
     'The message has been blocked by Yahoo - you have exceeded your daily sending limit.',
   ErrorNoSender: 'The message has been blocked because no sender is configured.',
@@ -201,10 +201,16 @@ export default class MailsyncProcess extends EventEmitter {
             reject(error);
           }
         } catch (err) {
-          const error = new Error(`An unexpected mailsync error occurred (${code})`);
-          console.log(err);
-          error.rawLog = stripSecrets(buffer.toString());
-          reject(error);
+          if (code !== 0) {
+            const error = new Error(`An unexpected mailsync error occurred (${code})`);
+            console.error(`Error while getting native is closing: ${err}`);
+            error.rawLog = stripSecrets(buffer.toString());
+            reject(error);
+          } else {
+            console.error(`Error while parsing native buffer ${buffer}`);
+            AppEnv.debugLog(buffer.toString('UTF-8'));
+            resolve({ response: {}, buffer });
+          }
         }
       });
     });
@@ -243,7 +249,7 @@ export default class MailsyncProcess extends EventEmitter {
         outBuffer += added;
 
         if (isIndexOfEnter) {
-          const msgs = this._arrayTrim(outBuffer.split('\n'))
+          const msgs = this._arrayTrim(outBuffer.split('\n'));
           outBuffer = '';
           this.emit('deltas', msgs);
         }
@@ -381,7 +387,7 @@ tell application "System Events"
   end tell
   
 end tell
-    `
+    `,
     );
     exec(`osascript ${tmppath}`);
   }
