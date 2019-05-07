@@ -60,7 +60,7 @@ class AccountSidebar extends React.Component {
           {/*<AccountSwitcher accounts={accounts} sidebarAccountIds={sidebarAccountIds} />*/}
           <div className="account-sidebar-sections">
             <OutlineView {...standardSection} />
-            {this._renderUserSections(userSections)}
+            {/*{this._renderUserSections(userSections)}*/}
           </div>
         </ScrollRegion>
       </Flexbox>

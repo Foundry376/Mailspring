@@ -101,8 +101,8 @@ class SidebarItem {
     if (perspective.isInbox()) {
       counterStyle = OutlineViewItem.CounterStyles.Alt;
     }
-    if (opts.displayName) {
-      perspective.displayName = opts.displayName;
+    if (opts) {
+      perspective = Object.assign(perspective, opts);
     }
 
     const collapsed = isItemCollapsed(id);
@@ -115,7 +115,7 @@ class SidebarItem {
         accountIds: perspective.accountIds,
         name: perspective.name,
         displayName: perspective.displayName,
-        contextMenuLabel: perspective.name,
+        contextMenuLabel: perspective.displayName,
         count: countForItem(perspective),
         iconName: perspective.iconName,
         bgColor: perspective.bgColor,

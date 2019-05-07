@@ -150,7 +150,7 @@ class SidebarSection {
     // });
     // const attchmentsMail = SidebarItem.forAttachments(accountIds);
     const snoozedMail = SidebarItem.forSnoozed(accountIds, {displayName: 'Snoozed'});
-    const archiveMail = SidebarItem.forArchived(accountIds, {displayName: 'All Archive'});
+    const archiveMail = SidebarItem.forArchived(accountIds, {displayName: 'All Archive', name: 'allArchive'});
     const spamMail = SidebarItem.forSpam(accountIds, {dispalyName: 'Spam'});
     const sentMail = SidebarItem.forSentMails(accountIds, {dispalyName: 'All Sent'});
     const allInboxes = SidebarItem.forAllInbox(accountIds, {displayName: 'All Inboxes'});
