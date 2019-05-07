@@ -22,12 +22,16 @@ export default class MessageCommand extends PureComponent {
         const userId = conversation.curJid.split('@')[0];
         let jidLocal = conversation.jid.split('@')[0];
         let peerUserId, roomId;
+        let appId = appJid.split('@')[0];
+        debugger
         if (conversation.isGroup) {
             roomId = jidLocal;
+        } else if ( '@app.'.indexOf(conversation.jid) >= 0 ){
+          peerUserId = appId;
         } else {
             peerUserId = jidLocal;
         }
-        let appId = appJid.split('@')[0];
+
         let userName = '';
         this.items.forEach((item, idx) => {
             command += ' ' + this.argEls[idx].value;

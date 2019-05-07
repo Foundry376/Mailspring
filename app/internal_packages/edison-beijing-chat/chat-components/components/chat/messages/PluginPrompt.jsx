@@ -57,7 +57,7 @@ export default class PluginPrompt extends PureComponent {
     }
     matchedApps.forEach( app => {
       app = getMyAppById(userId, app.appId);
-      console.log('debugger: getMyAppById: userId, app.appId, err, data: ', userId, app.appId, err, data);
+      console.log('debugger: getMyAppById: app: ', userId, app);
       if (!app) {
         return;
       };

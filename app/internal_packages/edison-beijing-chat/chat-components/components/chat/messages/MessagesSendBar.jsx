@@ -211,14 +211,14 @@ export default class MessagesSendBar extends PureComponent {
   sendCommand2App(userId, app, command, peerUserId, roomId) {
     const { selectedConversation, onMessageSubmitted } = this.props;
     let { id, name, commandType } = app;
-    // console.log('debugger: sendCommand2App: app: ', app);
+    console.log('debugger: sendCommand2App: app: ', app);
     let userName = '';
     getToken(userId).then(token => {
       // if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
       //console.log("yazz-test", userId, id, commandType, command, peerUserId, roomId);
       if (command) {
         sendCmd2App2(userId, userName, token, id, command, peerUserId, roomId, (err, data) => {
-          // console.log('debugger: sendCommand2App: err, data: ', err, data);
+          console.log('debugger: sendCommand2App: err, data: ', err, data);
           if (err || !data || commandType !== 2) {
             return;
           }
@@ -253,8 +253,9 @@ export default class MessagesSendBar extends PureComponent {
       let peerUserId, roomId;
       let appName = messageBody.split(' ')[0].substring(1);
       let curJidLocal = selectedConversation.curJid.slice(0, selectedConversation.curJid.indexOf('@'));
+      debugger
       let app = getMyAppByShortName(curJidLocal, appName);
-      // console.log('debugger: app: ', app);
+      console.log('debugger: app: ', app);
       if (app && app.length > 0) {
         if (selectedConversation.isGroup) {
           roomId = jidLocal;

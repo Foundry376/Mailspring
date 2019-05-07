@@ -420,7 +420,7 @@ export default class Messages extends PureComponent {
 
               } else if (msgBody.appJid) {
                 // console.log("debugger: MessageApp msg: ", msg);
-                return <MessageApp msgBody={msgBody}
+                return <MessageApp msg={msg}
                   userId={currentUserId}
                   conversation={this.props.selectedConversation}
                   getContactInfoByJid={this.getContactInfoByJid}
