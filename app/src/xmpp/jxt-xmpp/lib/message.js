@@ -30,6 +30,7 @@ internals.defineMessage = function (JXT, name, namespace) {
             subject: Utils.textSub(namespace, 'subject'),
             appJid: Utils.subAttribute(namespace, 'appext', 'jid'),
             appName: Utils.subAttribute(namespace, 'appext', 'name'),
+            appType: Utils.subAttribute(namespace, 'appext', 'type'),
             htmlBody: Utils.textSub(namespace, 'bodyhtml'),
             ctxCmds: Utils.textSub(namespace, 'ctxcmds'),
             $body: {
