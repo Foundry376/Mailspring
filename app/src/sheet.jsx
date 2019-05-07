@@ -28,7 +28,7 @@ export default class Sheet extends React.Component {
   constructor(props) {
     super(props);
     this.unlisteners = [];
-    this.state = this._getStateFromStores();
+    this.state = this._getStateFromStores(props);
   }
 
   getChildContext() {
@@ -39,9 +39,12 @@ export default class Sheet extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      ComponentRegistry.listen(() => this.setState(this._getStateFromStores()))
+      ComponentRegistry.listen(() => this.setState(this._getStateFromStores(this.props)))
     );
-    this.unlisteners.push(WorkspaceStore.listen(() => this.setState(this._getStateFromStores())));
+    this.unlisteners.push(WorkspaceStore.listen(() => this.setState(this._getStateFromStores(this.props))));
+  }
+  componentWillReceiveProps(nextProps, nextContext) {
+    this.setState(this._getStateFromStores(nextProps));
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -68,7 +71,7 @@ export default class Sheet extends React.Component {
       if (minWidth !== maxWidth && maxWidth < FLEX) {
         return (
           <ResizableRegion
-            key={`${this.props.data.id}:${idx}`}
+            key={`${idx}`}
             name={`${this.props.data.id}:${idx}`}
             className={`column-${location.id}`}
             style={{ height: '100%' }}
@@ -123,7 +126,7 @@ export default class Sheet extends React.Component {
     this.props.onColumnSizeChanged(this);
   };
 
-  _getStateFromStores() {
+  _getStateFromStores(props) {
     const state = {
       mode: WorkspaceStore.layoutMode(),
       columns: [],
@@ -132,7 +135,7 @@ export default class Sheet extends React.Component {
     let widest = -1;
     let widestWidth = -1;
 
-    const data = this.props.data || {};
+    const data = props.data || {};
 
     if (data.columns[state.mode]) {
       data.columns[state.mode].forEach((location, idx) => {

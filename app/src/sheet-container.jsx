@@ -101,7 +101,7 @@ export default class SheetContainer extends React.Component {
       <Sheet
         data={sheet}
         depth={index}
-        key={`${index}:${sheet.id}`}
+        key={`root`}
         onColumnSizeChanged={this._onColumnSizeChanged}
       />
     ));

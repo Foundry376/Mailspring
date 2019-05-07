@@ -313,7 +313,7 @@ class SidebarItem {
     opts.iconName = 'drafts.svg';
     const perspective = MailboxPerspective.forDrafts(accountIds);
     opts.categoryIds = this.getCategoryIds(accountIds, 'drafts');
-    const id = `Drafts-${opts.name}`;
+    const id = `Drafts-${opts.categoryIds.join('-')}`;
     return this.forPerspective(id, perspective, opts);
   }
 
