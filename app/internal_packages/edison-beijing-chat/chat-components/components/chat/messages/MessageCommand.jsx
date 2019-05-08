@@ -16,18 +16,21 @@ export default class MessageCommand extends PureComponent {
     argEls = [];
 
     sendCommand2App = async (e) => {
+        // console.log('debugger: sendCommand2App this.props: ', this.props);
         let command = this.head;
-
         const { appJid, appName, commandType, conversation } = this.props;
         const userId = conversation.curJid.split('@')[0];
         let jidLocal = conversation.jid.split('@')[0];
         let peerUserId, roomId;
+        let appId = appJid.split('@')[0];
         if (conversation.isGroup) {
             roomId = jidLocal;
+        } else if ( '@app.'.indexOf(conversation.jid) >= 0 ){
+          peerUserId = appId;
         } else {
             peerUserId = jidLocal;
         }
-        let appId = appJid.split('@')[0];
+
         let userName = '';
         this.items.forEach((item, idx) => {
             command += ' ' + this.argEls[idx].value;
@@ -35,7 +38,7 @@ export default class MessageCommand extends PureComponent {
         });
         const token = await getToken(userId);
         sendCmd2App2(userId, userName, token, appId, command, peerUserId, roomId, (err, data) => {
-          // console.log('debugger: MessageCommand: sendCmd2App2:', err, data);
+          // console.log('debugger: MessageCommand: sendCmd2App2:', appId, err, data);
           // debugger;
           if (err || !data || commandType !== 2) {
             return;

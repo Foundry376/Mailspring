@@ -63,6 +63,9 @@ export default class MessagePrivateApp extends PureComponent {
       return null;
     }
     const { appJid, appName, data} = msgBody;
+    if (!data) {
+      return null;
+    }
     let {type, mimeType, content, contents, htmlBody, ctxCommands} = data;
     const {
       getContactAvatar,

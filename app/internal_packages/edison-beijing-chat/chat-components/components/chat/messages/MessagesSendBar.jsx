@@ -24,7 +24,9 @@ import { MESSAGE_STATUS_RECEIVED, MESSAGE_STATUS_UPLOAD_FAILED } from '../../../
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { isImageFilePath } from '../../../utils/stringUtils';
 import { sendFileMessage } from '../../../utils/message';
-import { sendCmd2App2, getMyAppByShortName, getToken } from '../../../utils/appmgt';
+import { sendCmd2App2, getMyAppByShortName, listKeywordApps, iniApps, getToken } from '../../../utils/appmgt';
+import PluginPrompt from './PluginPrompt';
+const getCaretCoordinates = require('../../../utils/textarea-caret-position');
 
 var thumb = require('node-thumbnail').thumb;
 const FAKE_SPACE = '\u00A0';
@@ -95,6 +97,39 @@ export default class MessagesSendBar extends PureComponent {
   fileInput = null;
   textarea = null;
 
+
+  componentWillReceiveProps = async nextProps => {
+    if (!nextProps || !nextProps.selectedConversation) {
+      return;
+    }
+    const { selectedConversation } = nextProps;
+    const userId = selectedConversation.curJid.split('@')[0];
+    const token = await getToken(userId);
+    iniApps(userId, token);
+    const keyword2app = {};
+    listKeywordApps(userId, token, (err, data) => {
+      console.log('MessageSendBar.componentWillReceiveProps listKeywordApps err, data: ', err, data);
+      if (err || !data) {
+        return;
+      }
+      data = JSON.parse(data).data;
+      if (!data || !data.apps) {
+        return;
+      }
+      const { apps } = data;
+
+      apps.forEach(app => {
+        const keywords = [app.shortName, app.appName].concat(app.keywords);
+        keywords.forEach(keyword => {
+          keyword2app[keyword] = app;
+        })
+      });
+      // console.log('debugger: MessageSendBar.componentWillReceiveProps: listKeywordApps: keyword2app: ', keyword2app);
+      const state = Object.assign({}, this.state, { keyword2app });
+      this.setState(state);
+    })
+  }
+
   componentDidMount = async () => {
     const roomMembers = await this.getRoomMembers();
     const occupants = roomMembers.map(item => item.jid.bare);
@@ -127,6 +162,25 @@ export default class MessagesSendBar extends PureComponent {
       event.preventDefault();
       this.sendMessage();
       return false;
+    }
+    return true;
+  }
+  onInputKeyUp = (event) => {
+    const { nativeEvent } = event;
+    // console.log('debugger: onInputKeyUp: nativeEvent: ', nativeEvent);
+    event.preventDefault();
+    event.stopPropagation();
+    if (nativeEvent.keyCode == 27) { //ESC
+      nativeEvent.target.value = '';
+      const prefix = '';
+      const state = Object.assign({}, this.state, {prefix});
+      this.setState(state);
+    } else if (nativeEvent.keyCode != 13) {
+      const prefix = nativeEvent.target.value;
+      const promptPos = getCaretCoordinates(nativeEvent.target, nativeEvent.target.value.length);
+      const state = Object.assign({}, this.state, {prefix, promptPos });
+      // console.log('debugger: onInputKeyUp: prefix, promptPos: ', prefix, promptPos);
+      this.setState(state);
     }
     return true;
   }
@@ -215,7 +269,6 @@ export default class MessagesSendBar extends PureComponent {
         } else {
           peerUserId = jidLocal;
         }
-        console.log(app);
         this.sendCommand2App(curJidLocal, app[0], messageBody, peerUserId, roomId);
         this.setState({ messageBody: '', files: [] });
         return;
@@ -387,6 +440,7 @@ export default class MessagesSendBar extends PureComponent {
 
   render() {
     const inputProps = {};
+    const { selectedConversation } = this.props;
     return (
       <div className="sendBar" onDrop={this.onDrop}>
         {/* <Mention
@@ -409,6 +463,7 @@ export default class MessagesSendBar extends PureComponent {
           value={this.state.messageBody}
           onChange={this.onMessageBodyChanged.bind(this)}
           onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
+          onKeyUp={this.onInputKeyUp}
           ref={element => { this.textarea = element; }}
           onKeyDown={this.onKeyDown}
           {...inputProps}
@@ -472,6 +527,7 @@ export default class MessagesSendBar extends PureComponent {
               mode={RetinaImg.Mode.ContentIsMask} />
           </Button>
         </div>
+        <PluginPrompt conversation={selectedConversation} pos={this.state.promptPos} prefix={this.state.prefix} keyword2app={this.state.keyword2app}/>
       </div>
     );
   }

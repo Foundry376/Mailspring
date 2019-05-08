@@ -7,6 +7,7 @@ import MessageParticipants from './message-participants';
 import MessageItemBody from './message-item-body';
 import MessageTimestamp from './message-timestamp';
 import MessageControls from './message-controls';
+import TaskFactory from '../../../src/flux/tasks/task-factory';
 
 export default class MessageItem extends React.Component {
   static displayName = 'MessageItem';
@@ -33,10 +34,13 @@ export default class MessageItem extends React.Component {
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
       detailedHeaders: false,
     };
+    this.markAsReadTimer = null;
+    this.mounted = false;
   }
 
   componentDidMount() {
     this._storeUnlisten = AttachmentStore.listen(this._onDownloadStoreChange);
+    this.mounted = true;
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -44,6 +48,8 @@ export default class MessageItem extends React.Component {
   }
 
   componentWillUnmount() {
+    this.mounted = false;
+    clearTimeout(this.markAsReadTimer);
     if (this._storeUnlisten) {
       this._storeUnlisten();
     }
@@ -84,6 +90,49 @@ export default class MessageItem extends React.Component {
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
     });
   };
+  _cancelMarkAsRead = () => {
+    if (this.markAsReadTimer) {
+      clearTimeout(this.markAsReadTimer);
+      this.markAsReadTimer = null;
+    }
+  };
+  _markAsRead = () => {
+    if (!this.props.message) {
+      return;
+    }
+    if (this.props.collapsed || this.props.pending) {
+      return;
+    }
+    if (!this.props.message.unread || this.props.message.draft) {
+      return;
+    }
+    if (this.markAsReadTimer) {
+      return;
+    }
+    const messageId = this.props.message.id;
+    const threadId = this.props.message.threadId;
+    const markAsReadDelay = AppEnv.config.get('core.reading.markAsReadDelay');
+    this.markAsReadTimer = setTimeout(() => {
+      this.markAsReadTimer = null;
+      if (!this.props.message || !this.mounted || this.props.pending) {
+        return;
+      }
+      if (threadId !== this.props.message.threadId || messageId !== this.props.message.id) {
+        return;
+      }
+      if (!this.props.message.unread) {
+        return;
+      }
+      Actions.queueTask(
+        TaskFactory.taskForInvertingUnread({
+          threads: [this.props.thread],
+          source: 'Thread Selected',
+          canBeUndone: false,
+          unread: false,
+        }),
+      );
+    }, markAsReadDelay);
+  };
 
   _renderDownloadAllButton() {
     return (
@@ -111,7 +160,7 @@ export default class MessageItem extends React.Component {
     const { files = [], body, id } = this.props.message;
     const { filePreviewPaths, downloads } = this.state;
     const attachedFiles = files.filter(
-      f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`)
+      f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`),
     );
 
     return (
@@ -300,7 +349,7 @@ export default class MessageItem extends React.Component {
 
   _renderFull() {
     return (
-      <div className={this.props.className}>
+      <div className={this.props.className} onMouseEnter={this._markAsRead} onMouseLeave={this._cancelMarkAsRead}>
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             {this._renderHeader()}
