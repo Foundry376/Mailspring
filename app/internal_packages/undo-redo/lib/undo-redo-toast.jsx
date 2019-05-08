@@ -171,7 +171,7 @@ class UndoSendContent extends BasicContent {
   onActionClicked = () => {
     if (!this.props.block.due) {
       UndoRedoStore.undo({ block: this.props.block });
-    } else if (this.state.sendStatus === 'failed') {s
+    } else if (this.state.sendStatus === 'failed') {
       setTimeout(() => {
         AppEnv.reportError(new Error(`Sending email failed, and user clicked view. headerMessageId: ${this.props.block.tasks[0].modelHeaderMessageId}`));
         Actions.composePopoutDraft(this.props.block.tasks[0].modelHeaderMessageId);
