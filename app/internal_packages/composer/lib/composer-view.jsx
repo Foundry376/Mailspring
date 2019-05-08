@@ -317,7 +317,6 @@ export default class ComposerView extends React.Component {
 
   _renderAttachments() {
     const { files, headerMessageId } = this.props.draft;
-
     const nonImageFiles = files
       .filter(f => !Utils.shouldDisplayAsImage(f))
       .map(file => (
@@ -327,6 +326,7 @@ export default class ComposerView extends React.Component {
           draggable={false}
           filePath={AttachmentStore.pathForFile(file)}
           displayName={file.filename}
+          displaySize={file.displayFileSize()}
           fileIconName={`file-${file.extension}.png`}
           onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
         />

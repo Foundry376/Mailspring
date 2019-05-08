@@ -39,6 +39,38 @@ const NonPreviewableExtensions = [
   'ics',
 ];
 
+const extMapping = {
+  pdf: 'pdf',
+  xls: 'xls',
+  xlsx: 'xls',
+  zip: 'zip',
+  ppt: 'ppt',
+  pptx: 'ppt',
+  doc: 'doc',
+  docx: 'doc',
+  mp4: 'video',
+  avi: 'video',
+  mov: 'video',
+  gz: 'zip',
+  tar: 'zip',
+  '7z': 'zip',
+  c: 'code',
+  cpp: 'code',
+  php: 'code',
+  rb: 'code',
+  java: 'code',
+  coffee: 'code',
+  pl: 'code',
+  js: 'code',
+  html: 'code',
+  htm: 'code',
+  py: 'code',
+  go: 'code',
+  ics: 'calendar',
+  ifb: 'calendar',
+  pkpass: 'pass'
+};
+
 const PREVIEW_FILE_SIZE_LIMIT = 2000000; // 2mb
 const THUMBNAIL_WIDTH = 320;
 
@@ -79,6 +111,12 @@ class AttachmentStore extends MailspringStore {
       id,
       file.safeDisplayName()
     );
+  }
+
+  getExtIconName(filePath) {
+    let extName = path.extname(filePath).slice(1);
+    extName = extMapping[extName && extName.toLowerCase()];
+    return extName ? `attachment-${extName}.svg` : 'drafts.svg';
   }
 
   getDownloadDataForFile() {
@@ -437,7 +475,7 @@ class AttachmentStore extends MailspringStore {
 
   // Handlers
 
-  _onSelectAttachment = ({ headerMessageId, onCreated = () => {} , type = '*'}) => {
+  _onSelectAttachment = ({ headerMessageId, onCreated = () => { }, type = '*' }) => {
     this._assertIdPresent(headerMessageId);
 
     // When the dialog closes, it triggers `Actions.addAttachment`

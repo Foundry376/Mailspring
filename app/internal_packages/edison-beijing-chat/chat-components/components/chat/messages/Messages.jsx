@@ -1,5 +1,3 @@
-import http from 'http';
-import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import React, { PureComponent } from 'react';
@@ -12,16 +10,13 @@ import {
 } from '../../../db/schemas/message';
 import { colorForString } from '../../../utils/colors';
 import {
-  buildTimeDescriptor,
   dateFormat,
   dateFormatDigit,
   weekDayFormat,
   nearDays,
 } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
-import { downloadFile } from '../../../utils/awss3';
-import ProgressBar from '../../common/ProgressBar';
-const { Actions } = require('mailspring-exports');
+const { Actions, AttachmentStore } = require('mailspring-exports');
 
 const remote = require('electron').remote;
 const { dialog, Menu, MenuItem } = remote;
@@ -35,42 +30,9 @@ import MessageImagePopup from './MessageImagePopup';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
-import SecurePrivate from './SecurePrivate'
-import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
+import SecurePrivate from './SecurePrivate';
 
 let key = 0;
-
-const extMap = {
-  pdf: 'pdf',
-  xls: 'xls',
-  xlsx: 'xls',
-  zip: 'zip',
-  ppt: 'ppt',
-  pptx: 'ppt',
-  doc: 'doc',
-  docx: 'doc',
-  mp4: 'video',
-  mp3: 'video',
-  avi: 'video',
-  gz: 'zip',
-  tar: 'zip',
-  '7z': 'zip',
-  c: 'code',
-  cpp: 'code',
-  php: 'code',
-  rb: 'code',
-  java: 'code',
-  coffee: 'code',
-  pl: 'code',
-  js: 'code',
-  html: 'code',
-  htm: 'code',
-  py: 'code',
-  go: 'code',
-  ics: 'calendar',
-  ifb: 'calendar',
-  pkpass: 'pass'
-};
 
 const isImage = (type) => {
   return type === FILE_TYPE.IMAGE || type === FILE_TYPE.GIF || type === FILE_TYPE.STICKER;
@@ -412,11 +374,11 @@ export default class Messages extends PureComponent {
               if (msgBody.isAppprivateCommand) {
                 // console.log("debugger: MessagePrivateApp msg: ", msg);
                 return <MessagePrivateApp msg={msg}
-                                          userId={currentUserId}
-                                          conversation={this.props.selectedConversation}
-                                          getContactInfoByJid={this.getContactInfoByJid}
-                                          getContactAvatar={this.getContactAvatar}
-                                          key={msg.id} />
+                  userId={currentUserId}
+                  conversation={this.props.selectedConversation}
+                  getContactInfoByJid={this.getContactInfoByJid}
+                  getContactAvatar={this.getContactAvatar}
+                  key={msg.id} />
 
               } else if (msgBody.appJid) {
                 // console.log("debugger: MessageApp msg: ", msg);
@@ -466,12 +428,12 @@ export default class Messages extends PureComponent {
               } else if (shouldDisplayFileIcon(msgBody)) {
                 const fileName = msgBody.path ? path.basename(msgBody.path) : '';
                 let extName = path.extname(msgBody.path || 'x.doc').slice(1);
-                extName = extMap[extName.toLowerCase()] || 'doc';
+                let iconName = AttachmentStore.getExtIconName(msgBody.path);
                 msgFile = (
                   <div className="message-file">
                     <div className="file-info">
                       <div className="file-icon">
-                        <RetinaImg name={`attachment-${extName}.svg`}
+                        <RetinaImg name={iconName}
                           isIcon
                           mode={RetinaImg.Mode.ContentIsMask} />
                       </div>

@@ -111,10 +111,12 @@ class RetinaImg extends React.Component {
       pathName = `${basename}-selected.${ext}`;
     }
     if (this.props.isIcon) {
-      return Utils.iconNamed(pathName, this.props.resourcePath);
-    } else {
-      return Utils.imageNamed(pathName, this.props.resourcePath);
+      const svgPath = Utils.iconNamed(pathName, this.props.resourcePath);
+      if (svgPath) {
+        return svgPath;
+      }
     }
+    return Utils.imageNamed(pathName, this.props.resourcePath);
   };
 
   render() {

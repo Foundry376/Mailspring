@@ -69,8 +69,12 @@
     border-right: none;
 
     .file-icon {
+      width: 24px;
       margin-right: 10px;
       flex-shrink: 0;
+      &.content-mask {
+        background: @black;
+      }
     }
     .file-name {
       font-weight: @font-weight-medium;
@@ -81,11 +85,9 @@
       max-width: 235px;
     }
     .file-size {
-      @file-size-color: #b8b8b8;
-
       margin-left: auto;
       margin-right: @spacing-three-quarters;
-      color: @file-size-color;
+      color: @black;
     }
     img.quicklook-icon {
       background-color: @file-icon-color;
