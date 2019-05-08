@@ -8,6 +8,7 @@ import { pickHTMLProps } from 'pick-react-known-prop';
 import RetinaImg from './retina-img';
 import Flexbox from './flexbox';
 import Spinner from './spinner';
+import { AttachmentStore } from 'mailspring-exports';
 
 const propTypes = {
   className: PropTypes.string,
@@ -187,6 +188,7 @@ export class AttachmentItem extends Component {
     const tabIndex = focusable ? 0 : null;
     const { devicePixelRatio } = window;
 
+    let iconName = AttachmentStore.getExtIconName(displayName);
     return (
       <div
         style={style}
@@ -212,10 +214,10 @@ export class AttachmentItem extends Component {
                   this._fileIconComponent = cm;
                 }}
                 className="file-icon"
-                fallback="file-fallback.png"
-                mode={RetinaImg.Mode.ContentPreserve}
-                name={fileIconName}
-              />
+                fallback="drafts.svg"
+                name={iconName}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask} />
               <span className="file-name" title={displayName}>
                 {displayName}
               </span>

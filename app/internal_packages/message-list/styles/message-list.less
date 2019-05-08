@@ -320,6 +320,9 @@ body.platform-win32 {
     max-width: @message-max-width;
     margin: 0 auto;
     border-bottom: 1px solid @border-color-divider;
+    &:not(.draft):nth-last-child(2) {
+      border-bottom: none;
+    }
 
     .avatar-icon {
       width: 40px;

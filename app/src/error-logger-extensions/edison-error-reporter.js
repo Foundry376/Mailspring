@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const _ = require('underscore');
 var https = require('https');
 
-module.exports = class RavenErrorReporter {
+module.exports = class EdisonErrorReporter {
   constructor({ inSpecMode, inDevMode, resourcePath }) {
     this.inSpecMode = inSpecMode;
     this.inDevMode = inDevMode;

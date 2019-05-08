@@ -34,12 +34,12 @@ export default class MessageApp extends PureComponent {
         const { userId, conversation } = this.props;
         let jidLocal = conversation.jid.split('@')[0];
         let peerUserId, roomId;
+        const appId = appJid.split('@')[0];
         if (conversation.isGroup) {
             roomId = jidLocal;
-        } else {
+        } else if (jidLocal != appId) {
             peerUserId = jidLocal;
         }
-        let appId = appJid.split('@')[0];
         let userName = '';
         getToken(userId).then(token => {
             if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
