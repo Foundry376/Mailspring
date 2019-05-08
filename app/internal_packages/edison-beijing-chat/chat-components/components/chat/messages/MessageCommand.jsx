@@ -27,7 +27,7 @@ export default class MessageCommand extends PureComponent {
             roomId = jidLocal;
         } else if ( '@app.'.indexOf(conversation.jid) >= 0 ){
           peerUserId = appId;
-        } else {
+        } else if (jidLocal != appId) {
             peerUserId = jidLocal;
         }
 

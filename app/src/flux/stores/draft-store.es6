@@ -100,8 +100,8 @@ class DraftStore extends MailspringStore {
     return this.findByHeaderMessageId({ headerMessageId }).include(Message.attributes.body);
   }
 
-  findAllWithBodyInDescendingOrder(){
-    return MessageStore.findAllWithBodyInDescendingOrder().where({draft: true});
+  findAllWithBodyInDescendingOrder() {
+    return MessageStore.findAllWithBodyInDescendingOrder().where({ draft: true });
   }
 
   /**
@@ -134,15 +134,15 @@ class DraftStore extends MailspringStore {
   }
 
   _onDraftAccountChange = async ({
-    originalMessageId,
-    originalHeaderMessageId,
-    newParticipants,
-  }) => {
+                                   originalMessageId,
+                                   originalHeaderMessageId,
+                                   newParticipants,
+                                 }) => {
     const session = this._draftSessions[originalHeaderMessageId];
     await session.changes.commit();
     session.freezeSession();
     const oldDraft = session.draft();
-    if(!oldDraft){
+    if (!oldDraft) {
       console.error('How can old not available');
       return;
     }
@@ -158,7 +158,7 @@ class DraftStore extends MailspringStore {
         id: originalMessageId,
         threadId: oldDraft.threadId,
       },
-      { switchingAccount: true }
+      { switchingAccount: true },
     );
   };
 
@@ -400,7 +400,7 @@ class DraftStore extends MailspringStore {
       }
       queries.message = message;
     } else if (messageId != null) {
-      queries.message = MessageStore.findByMessageIdWithBody({messageId});
+      queries.message = MessageStore.findByMessageIdWithBody({ messageId });
     } else {
       queries.message = MessageStore.findAllByThreadIdWithBodyInDescendingOrder({
         threadId: threadId || thread.id,
@@ -468,6 +468,14 @@ class DraftStore extends MailspringStore {
     this._draftsPopedOut[headerMessageId] = true;
     session.setPopout(true);
     await session.changes.commit();
+    if (!session.draft()) {
+      AppEnv.reportError(
+        new Error(
+          `DraftStore::onPopoutDraft - session.draft() is false, draft not ready. headerMessageId: ${headerMessageId}`
+        )
+      );
+      return;
+    }
     const draftJSON = session.draft().toJSON();
     // Since we pass a windowKey, if the popout composer draft already
     // exists we'll simply show that one instead of spawning a whole new
@@ -616,7 +624,7 @@ class DraftStore extends MailspringStore {
   };
 
   _onSendDraft = async (headerMessageId, options = {}) => {
-    if(this._draftsSending[headerMessageId]){
+    if (this._draftsSending[headerMessageId]) {
       if (AppEnv.isComposerWindow()) {
         AppEnv.close({
           headerMessageId,
@@ -646,7 +654,6 @@ class DraftStore extends MailspringStore {
       isUndoSend: true,
       actionKey: actionKey,
     };
-
 
 
     // get the draft session, apply any last-minute edits and get the final draft.
@@ -705,7 +712,7 @@ class DraftStore extends MailspringStore {
         value: sendLaterMetadataValue,
         undoValue: { expiration: null, isUndoSend: true },
         lingerAfterTimeout: true,
-        priority: UndoRedoStore.priority.critical
+        priority: UndoRedoStore.priority.critical,
       });
       Actions.queueUndoOnlyTask(undoTask);
       ipcRenderer.send('send-later-manager', 'send-later', headerMessageId, delay, actionKey, draft.threadId);

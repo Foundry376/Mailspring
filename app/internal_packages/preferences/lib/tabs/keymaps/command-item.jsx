@@ -99,7 +99,7 @@ export default class CommandKeybinding extends React.Component {
           keymaps = JSON.parse(fs.readFileSync(keymapPath));
         }
       } catch (err) {
-        console.error(err);
+        AppEnv.reportError(err);
       }
 
       keymaps[this.props.command] = this.state.editingBinding;

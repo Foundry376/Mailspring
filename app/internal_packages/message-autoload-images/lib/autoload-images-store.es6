@@ -75,7 +75,7 @@ class AutoloadImagesStore extends MailspringStore {
     const data = Object.keys(this._whitelistEmails).join('\n');
     fs.writeFile(this._whitelistEmailsPath, data, err => {
       if (err) {
-        console.error(`AutoloadImagesStore could not save whitelist: ${err.toString()}`);
+        AppEnv.reportError(new Error(`AutoloadImagesStore could not save whitelist: ${err.toString()}`));
       }
     });
   };

@@ -113,7 +113,7 @@ class BasicContent extends React.Component {
         <div className="action">
           <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
                      onClick={onClose}/>
-          <div className="undo-action-text" onClick={() => UndoRedoStore.undo({ block })} >Undo</div>
+          <div className="undo-action-text" onClick={() => UndoRedoStore.undo({ block })}>Undo</div>
         </div>
       </div>
     );
@@ -172,7 +172,10 @@ class UndoSendContent extends BasicContent {
     if (!this.props.block.due) {
       UndoRedoStore.undo({ block: this.props.block });
     } else if (this.state.sendStatus === 'failed') {
-      Actions.composePopoutDraft(this.props.block.tasks[0].modelHeaderMessageId);
+      setTimeout(() => {
+        AppEnv.reportError(new Error(`Sending email failed, and user clicked view. headerMessageId: ${this.props.block.tasks[0].modelHeaderMessageId}`));
+        Actions.composePopoutDraft(this.props.block.tasks[0].modelHeaderMessageId);
+      }, 300);
     }
   };
 

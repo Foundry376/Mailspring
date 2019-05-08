@@ -571,7 +571,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
       console.log("yazz-test2", payload);
       let name;
       if (payload.from.bare===payload.curJid) {
-        name = payload.to.local;
+        name = null;
       } else {
         name = payload.from.local;
       }
@@ -599,7 +599,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
           return {
             jid,
             curJid: payload.curJid,
-            name: name,
+            name,
             isGroup: false,
             occupants: [jid, payload.curJid],
             unreadMessages: unreadMessages,
@@ -704,7 +704,7 @@ export const triggerPrivateNotificationEpic = action$ =>
     )
     .filter(({ conv, payload }) => {
       // hide notifications
-      return !conv || !conv.isHiddenNotification;
+      return conv && !conv.isHiddenNotification && payload.curJid !== payload.from.bare;
     })
     .mergeMap(({ payload }) => {
       const { from: { bare: conversationJid, local: name }, body } = payload;
@@ -734,6 +734,9 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
     .filter(({ conv, payload }) => {
       // hide notifications
       let chatAccounts = AppEnv.config.get('chatAccounts') || {};
+      if (payload.curJid === payload.from.bare) {
+        return false;
+      }
       const fromUserId = payload.from.resource;
       let isme = false;
       for (let email in chatAccounts) {

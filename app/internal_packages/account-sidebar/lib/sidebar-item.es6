@@ -134,7 +134,7 @@ class SidebarItem {
           try {
             jsonData = JSON.parse(jsonString);
           } catch (err) {
-            console.error(`JSON parse error: ${err}`);
+            AppEnv.reportError(new Error(`JSON parse error: ${err}`));
           }
           if (!jsonData) {
             return;

@@ -644,7 +644,7 @@ export default class DraftEditingSession extends MailspringStore {
     }
     //if id is empty, we assign uuid to id;
     if (!this._draft.id || this._draft.id === '') {
-      console.error('draft id is empty', this._draft);
+      AppEnv.reportError(new Error(`Draft id is empty assigning new id for draft ${JSON.stringify(this._draft)}`));
       this._draft.id = uuid();
     }
     if (

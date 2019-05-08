@@ -100,7 +100,7 @@ export default {
           backspaceDelete: {
             type: 'boolean',
             default: false,
-            title: 'Swipe gesture and backspace / delete move messages to trash',
+            title: 'Backspace / delete move messages to trash',
           },
           descendingOrderMessageList: {
             type: 'boolean',
@@ -274,21 +274,21 @@ export default {
             default: true,
             title: 'Show notifications for new unread messages',
           },
-          enabledForRepeatedTrackingEvents: {
-            type: 'boolean',
-            default: true,
-            title: 'Show notifications for repeated opens / clicks',
-          },
+          // enabledForRepeatedTrackingEvents: {
+          //   type: 'boolean',
+          //   default: true,
+          //   title: 'Show notifications for repeated opens / clicks',
+          // },
           sounds: {
             type: 'boolean',
             default: true,
             title: 'Play sound when receiving new mail',
           },
-          unsnoozeToTop: {
-            type: 'boolean',
-            default: true,
-            title: 'Resurface messages to the top of the inbox when unsnoozing',
-          },
+          // unsnoozeToTop: {
+          //   type: 'boolean',
+          //   default: true,
+          //   title: 'Resurface messages to the top of the inbox when unsnoozing',
+          // },
           countBadge: {
             type: 'string',
             default: 'unread',

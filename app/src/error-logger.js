@@ -111,19 +111,17 @@ module.exports = ErrorLogger = (function () {
   /////////////////////////////////////////////////////////////////////
 
   ErrorLogger.prototype._startCrashReporter = function (args) {
-    // crashReporter.start({
-    //   productName: 'Mailspring',
-    //   companyName: 'Mailspring',
-    //   submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${
-    //     process.platform
-    //     }`,
-    //   uploadToServer: true,
-    //   autoSubmit: true,
-    //   extra: {
-    //     ver: appVersion,
-    //     platform: process.platform,
-    //   },
-    // });
+    crashReporter.start({
+      productName: 'Edison Mail',
+      companyName: 'Edison Tech',
+      submitURL: `https://cp.stag.easilydo.cc/api/log/`,
+      uploadToServer: true,
+      autoSubmit: true,
+      extra: {
+        ver: appVersion,
+        platform: process.platform,
+      },
+    });
   };
 
   ErrorLogger.prototype._extendNativeConsole = function (args) {
