@@ -18,13 +18,13 @@ export default class PluginPrompt extends PureComponent {
     const { appJid } = this.props.msgBody;
     const { userId, conversation } = this.props;
     let jidLocal = conversation.jid.split('@')[0];
+    const appId = appJid.split('@')[0];
     let peerUserId, roomId;
     if (conversation.isGroup) {
       roomId = jidLocal;
-    } else if (jidLocal != app[0].id) {
+    } else if (jidLocal != appId) {
       peerUserId = jidLocal;
     }
-    let appId = appJid.split('@')[0];
     let userName = '';
     getToken(userId).then(token => {
       if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
@@ -34,7 +34,6 @@ export default class PluginPrompt extends PureComponent {
         });
       }
     })
-
   }
 
   componentWillReceiveProps = async nextProps => {
