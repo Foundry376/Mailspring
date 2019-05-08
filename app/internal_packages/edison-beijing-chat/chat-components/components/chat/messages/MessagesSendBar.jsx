@@ -106,6 +106,7 @@ export default class MessagesSendBar extends PureComponent {
     const userId = selectedConversation.curJid.split('@')[0];
     const token = await getToken(userId);
     iniApps(userId, token);
+    const keyword2app = {};
     listKeywordApps(userId, token, (err, data) => {
       console.log('MessageSendBar.componentWillReceiveProps listKeywordApps err, data: ', err, data);
       if (err || !data) {
@@ -116,13 +117,14 @@ export default class MessagesSendBar extends PureComponent {
         return;
       }
       const { apps } = data;
-      const keyword2app = {};
+
       apps.forEach(app => {
-        app.keywords.forEach(keyword => {
+        const keywords = [app.shortName, app.appName].concat(app.keywords);
+        keywords.forEach(keyword => {
           keyword2app[keyword] = app;
         })
       });
-      console.log('debugger: MessageSendBar.componentWillReceiveProps: listKeywordApps: keyword2app: ', keyword2app);
+      // console.log('debugger: MessageSendBar.componentWillReceiveProps: listKeywordApps: keyword2app: ', keyword2app);
       const state = Object.assign({}, this.state, { keyword2app });
       this.setState(state);
     })
@@ -165,13 +167,19 @@ export default class MessagesSendBar extends PureComponent {
   }
   onInputKeyUp = (event) => {
     const { nativeEvent } = event;
-    console.log('debugger: onInputKeyUp: nativeEvent: ', nativeEvent);
+    // console.log('debugger: onInputKeyUp: nativeEvent: ', nativeEvent);
     event.preventDefault();
     event.stopPropagation();
-    if (nativeEvent.keyCode != 13) {
+    if (nativeEvent.keyCode == 27) { //ESC
+      nativeEvent.target.value = '';
+      const prefix = '';
+      const state = Object.assign({}, this.state, {prefix});
+      this.setState(state);
+    } else if (nativeEvent.keyCode != 13) {
       const prefix = nativeEvent.target.value;
       const promptPos = getCaretCoordinates(nativeEvent.target, nativeEvent.target.value.length);
       const state = Object.assign({}, this.state, {prefix, promptPos });
+      // console.log('debugger: onInputKeyUp: prefix, promptPos: ', prefix, promptPos);
       this.setState(state);
     }
     return true;
@@ -211,14 +219,14 @@ export default class MessagesSendBar extends PureComponent {
   sendCommand2App(userId, app, command, peerUserId, roomId) {
     const { selectedConversation, onMessageSubmitted } = this.props;
     let { id, name, commandType } = app;
-    console.log('debugger: sendCommand2App: app: ', app);
+    // console.log('debugger: sendCommand2App: app: ', app);
     let userName = '';
     getToken(userId).then(token => {
       // if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
       //console.log("yazz-test", userId, id, commandType, command, peerUserId, roomId);
       if (command) {
         sendCmd2App2(userId, userName, token, id, command, peerUserId, roomId, (err, data) => {
-          console.log('debugger: sendCommand2App: err, data: ', err, data);
+          // console.log('debugger: sendCommand2App: err, data: ', err, data);
           if (err || !data || commandType !== 2) {
             return;
           }
@@ -253,16 +261,14 @@ export default class MessagesSendBar extends PureComponent {
       let peerUserId, roomId;
       let appName = messageBody.split(' ')[0].substring(1);
       let curJidLocal = selectedConversation.curJid.slice(0, selectedConversation.curJid.indexOf('@'));
-      debugger
       let app = getMyAppByShortName(curJidLocal, appName);
-      console.log('debugger: app: ', app);
+      // console.log('debugger: app: ', app);
       if (app && app.length > 0) {
         if (selectedConversation.isGroup) {
           roomId = jidLocal;
         } else {
           peerUserId = jidLocal;
         }
-        console.log(app);
         this.sendCommand2App(curJidLocal, app[0], messageBody, peerUserId, roomId);
         this.setState({ messageBody: '', files: [] });
         return;

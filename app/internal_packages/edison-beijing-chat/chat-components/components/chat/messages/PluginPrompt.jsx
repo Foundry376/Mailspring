@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { sendCmd2App2, getToken, getMyAppByShortName, getMyAppById } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
+import _ from 'lodash'
 
 export default class PluginPrompt extends PureComponent {
   static propTypes = {
@@ -39,43 +40,73 @@ export default class PluginPrompt extends PureComponent {
   componentWillReceiveProps = async nextProps => {
     console.log('debugger: PluginPrompt.componentWillReceiveProps nextProps: ', nextProps);
     const {conversation, prefix, keyword2app} = nextProps;
-    let matchedAppCommands = null;
+    let matchedAppCommands = [];
     if (!conversation || !keyword2app ||  !prefix || prefix[0] !== '/') {
       Object.assign({}, this.state, { matchedAppCommands });
       return;
     }
     const userId = conversation.curJid.split('@')[0]
-    const text = prefix.slice(1).toLowerCase();
-    const matchedApps = [];
+    const text = prefix.slice(1).trim().toLowerCase();
+    let matchedApps = [];
     for (let kw in keyword2app) {
       let app = keyword2app[kw];
-      let kws = app.keywords;
-      kws = kws.map(kw => kw.toLowerCase());
-      if (kws.indexOf(text)>=0) {
-        matchedApps.push(app);
+      kw = kw.toLowerCase();
+      if (kw==text || text.length>=3 && kw.toLowerCase().startsWith(text)) {
+          matchedApps.push(app);
       }
     }
+    matchedApps = _.uniq(matchedApps);
     matchedApps.forEach( app => {
-      app = getMyAppById(userId, app.appId);
-      console.log('debugger: getMyAppById: app: ', userId, app);
-      if (!app) {
+      app = getMyAppByShortName(userId, app.shortName);
+      // console.log('debugger: getMyAppById: app: ', userId, app);
+      if (!app || !app.length) {
         return;
-      };
+      } else {
+        app = app[0];
+        if (app.description) {
+          matchedAppCommands.push({name:app.name, description:app.description});
+        }
+        if (app.commands && app.commands.length) {
+          matchedAppCommands.push.apply(matchedAppCommands, app.commands.map(command => ({app, command})));
+        } else {
+          matchedAppCommands.push({app, command:{command:'/'+app.shortName, text:''}});
+          matchedAppCommands.push({app, command:{command:'/'+app.shortName +' ?', text:''}});
+        };
+      }
     });
+    const state = Object.assign({}, this.state, { matchedAppCommands })
+    this.setState(state);
   }
 
   render() {
-    console.log('debugger: PluginPrompt.render this.props: ', this.props);
-    const {pos,  prefix, keyword2app} = this.props;
+    // console.log('debugger: PluginPrompt.render this.props: ', this.props);
+    const {pos,  prefix} = this.props;
 
-    if (!prefix || prefix[0] !== '/') {
+    if (!prefix || prefix[0] !== '/' || prefix=='/') {
       return null;
     }
+     if (!this.state.matchedAppCommands || !this.state.matchedAppCommands.length) {
+       return null;
+     }
+    const commands = this.state.matchedAppCommands.map((item, idx) => {
+       if (item.description) {
+         return <div key={idx} > {`${item.name}: ${item.description}`} </div>;
+       } else {
+         const { app, command } = item;
+           // console.log('debugger: app, command: ', app, command);
+           return (<MessageCommand conversation={this.props.conversation}
+           appJid = {app.id+'@app.im.edison.tech'}
+           commandType = {app.commandType}
+           templateText = {command.command}
+           key = {idx}>
+           </MessageCommand>)
+       }
+    });
 
     return (
-      <div className="plugin-prompt-container" style={{bottom:pos.top+48+'px', left:pos.left+'px'}}>
+      <div className="plugin-prompt-container" style={{bottom:pos.top+28+'px', left:pos.left+28+'px'}}>
         <div>plugin commands:</div>
-        {prefix}
+        {commands}
       </div>
     );
   }

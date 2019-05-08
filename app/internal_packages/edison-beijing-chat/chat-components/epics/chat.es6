@@ -609,7 +609,7 @@ const asyncUpdateGroupMessageConversationEpic = async ({ payload }, getState) =>
   if (rooms[payload.from.bare]) {
     name = rooms[payload.from.bare];
   } else {
-    console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
+    // console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
     let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
     roomsInfo = roomsInfo || {
       curJid: payload.curJid,
