@@ -58,7 +58,7 @@ export default class PluginPrompt extends PureComponent {
     matchedApps = _.uniq(matchedApps);
     matchedApps.forEach( app => {
       app = getMyAppByShortName(userId, app.shortName);
-      // console.log('debugger: getMyAppById: app: ', userId, app);
+      console.log('debugger: getMyAppById: app: ', userId, app);
       if (!app || !app.length) {
         return;
       } else {

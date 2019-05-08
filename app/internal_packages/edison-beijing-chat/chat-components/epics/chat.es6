@@ -436,12 +436,13 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
     .mergeMap((payload) => {
-      // console.log('debugger: receivePrivateMessageEpic: payload: ', payload);
+      console.log('debugger: receivePrivateMessageEpic: payload: ', payload);
       return Observable.fromPromise(getPriKey()).map(({ deviceId, priKey }) => {
         return { payload: payload.payload, deviceId, priKey };
       });
     })
     .filter(({ payload, deviceId, priKey }) => {
+      console.log('debugger: receivePrivateMessageEpic.filter: payload', payload);
       if (payload.payload) {
         let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
@@ -545,9 +546,15 @@ export const convertReceivedMessageEpic = (action$) =>
       if (type === RECEIVE_GROUP_MESSAGE) {
         sender = payload.from.resource + '@im.edison.tech';
       }
+      let conversationJid;
+      if (payload.curJid===payload.from.bare) {
+        conversationJid = payload.to.bare
+      } else {
+        conversationJid = payload.from.bare
+      }
       return {
         id: payload.id,
-        conversationJid: payload.from.bare,
+        conversationJid,
         sender: sender,
         body: payload.body,
         sentTime: (new Date(timeSend)).getTime(),
@@ -561,8 +568,13 @@ export const convertReceivedMessageEpic = (action$) =>
 export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE)
     .mergeMap(({ type, payload }) => {
-      console.log("yazz-test2", payload)
-      let name = payload.from.local;
+      console.log("yazz-test2", payload);
+      let name;
+      if (payload.from.bare===payload.curJid) {
+        name = payload.to.local;
+      } else {
+        name = payload.from.local;
+      }
       return [{ type, payload, name }];
     })
     .mergeMap(({ payload, name }) => {
@@ -578,12 +590,18 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
           if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
             unreadMessages = 1;
           }
+          let jid;
+          if (payload.from.bare===payload.curJid) {
+            jid = payload.to.bare;
+          } else {
+            jid = payload.from.bare;
+          }
           return {
-            jid: payload.from.bare,
+            jid,
             curJid: payload.curJid,
             name: name,
             isGroup: false,
-            occupants: [payload.from.bare, payload.curJid],
+            occupants: [jid, payload.curJid],
             unreadMessages: unreadMessages,
             lastMessageTime,
             lastMessageText,
