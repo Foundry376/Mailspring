@@ -97,6 +97,9 @@ const saveConversation = async (db, conv) => {
       conv.avatar = contact.avatar;
     }
     if (convInDB) {
+      if (!conv.name) {
+        conv.name = convInDB.name;
+      }
       return convInDB.update({
         $set: {
           ...conv

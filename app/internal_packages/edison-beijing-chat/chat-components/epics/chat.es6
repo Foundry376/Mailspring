@@ -571,7 +571,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
       console.log("yazz-test2", payload);
       let name;
       if (payload.from.bare===payload.curJid) {
-        name = payload.to.local;
+        name = null;
       } else {
         name = payload.from.local;
       }
@@ -599,7 +599,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
           return {
             jid,
             curJid: payload.curJid,
-            name: name,
+            name,
             isGroup: false,
             occupants: [jid, payload.curJid],
             unreadMessages: unreadMessages,

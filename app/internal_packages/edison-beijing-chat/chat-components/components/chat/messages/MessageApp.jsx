@@ -36,7 +36,7 @@ export default class MessageApp extends PureComponent {
         let peerUserId, roomId;
         if (conversation.isGroup) {
             roomId = jidLocal;
-        } else {
+        } else if (jidLocal != app[0].id) {
             peerUserId = jidLocal;
         }
         let appId = appJid.split('@')[0];
