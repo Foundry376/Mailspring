@@ -14,7 +14,7 @@ const getDatabase = (dbpath) => {
   try {
     dbs[dbpath] = new Sqlite3(dbpath, { readonly: true });
   } catch (err) {
-    console.error(err);
+    AppEnv.reportError(err);
     process.exit(1);
   }
   // dbs[dbpath].on('close', (err) => {

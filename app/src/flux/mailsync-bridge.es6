@@ -518,7 +518,7 @@ export default class MailsyncBridge {
           }
         }
       }
-      console.error(`TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`);
+      AppEnv.reportError(new Error(`TaskError: account-> ${JSON.stringify(errorAccount)} task-> ${JSON.stringify(task)}`));
     }
   };
 

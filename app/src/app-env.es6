@@ -72,10 +72,10 @@ export default class AppEnvConstructor {
       process.env.NODE_ENV = 'production';
     }
     // if (devMode) {
-      this.enabledToNativeLog = true;
-      this.enabledFromNativeLog = true;
-      this.enabledBackgroundQueryLog = true;
-      this.enabledLocalQueryLog = true;
+    this.enabledToNativeLog = true;
+    this.enabledFromNativeLog = true;
+    this.enabledBackgroundQueryLog = true;
+    this.enabledLocalQueryLog = true;
     // }
 
     // Setup config and load it immediately so it's available to our singletons
@@ -209,8 +209,8 @@ export default class AppEnvConstructor {
       }
       const error = new Error(
         `Unrecognized event shape in window.unhandledrejection handler. Event keys: ${Object.keys(
-          e
-        )}`
+          e,
+        )}`,
       );
       this._onUnhandledRejection(error, sourceMapCache);
     });
@@ -253,7 +253,7 @@ export default class AppEnvConstructor {
     } else if (this.inDevMode() && !noWindows) {
       if (!this.isDevToolsOpened()) {
         this.openDevTools();
-        this.executeJavaScriptInDevTools("DevToolsAPI.showPanel('console')");
+        this.executeJavaScriptInDevTools('DevToolsAPI.showPanel(\'console\')');
       }
     }
 
@@ -424,7 +424,7 @@ export default class AppEnvConstructor {
       'call-window-method',
       'setPosition',
       ensureInteger(x, 0),
-      ensureInteger(y, 0)
+      ensureInteger(y, 0),
     );
   }
 
@@ -461,7 +461,7 @@ export default class AppEnvConstructor {
   }
 
   fakeEmit(msg) {
-    this.mailsyncBridge.fakeEmit([msg])
+    this.mailsyncBridge.fakeEmit([msg]);
   }
 
   isVisible() {
@@ -675,7 +675,7 @@ export default class AppEnvConstructor {
         { root: true },
         {
           popout: ['Center'],
-        }
+        },
       );
     }
   }
@@ -694,7 +694,7 @@ export default class AppEnvConstructor {
 
     this.emitter.emit(
       'window-props-received',
-      loadSettings.windowProps != null ? loadSettings.windowProps : {}
+      loadSettings.windowProps != null ? loadSettings.windowProps : {},
     );
 
     const browserWindow = this.getCurrentWindow();
@@ -800,6 +800,7 @@ export default class AppEnvConstructor {
   showOpenDialog(options, callback) {
     return remote.dialog.showOpenDialog(this.getCurrentWindow(), options, callback);
   }
+
   showImageSelectionDialog(cb) {
     return remote.dialog.showOpenDialog(
       this.getCurrentWindow(),
@@ -812,7 +813,7 @@ export default class AppEnvConstructor {
           },
         ],
       },
-      cb
+      cb,
     );
   }
 
@@ -867,7 +868,7 @@ export default class AppEnvConstructor {
             height: 300,
           });
         }
-      }
+      },
     );
   }
 
@@ -950,9 +951,10 @@ export default class AppEnvConstructor {
       return this.propagationStopped;
     };
   }
-  anonymizeAccount (account){
+
+  anonymizeAccount(account) {
     const ret = Object.assign({}, account);
-    if(account){
+    if (account) {
       const settings = Object.assign({}, ret.settings);
       delete settings.access_token;
       delete settings.imap_username;

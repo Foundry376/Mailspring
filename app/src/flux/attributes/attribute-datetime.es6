@@ -16,8 +16,10 @@ export default class AttributeDateTime extends Attribute {
       val = new Date(val);
     }
     if (!(val instanceof Date)) {
-      console.error(
-        `Attempting to toJSON AttributeDateTime which is not a date: ${this.modelKey} = ${val}`
+      AppEnv.reportError(
+        new Error(
+          `Attempting to toJSON AttributeDateTime which is not a date: ${this.modelKey} = ${val}`
+        )
       );
       return null;
     }

@@ -11,6 +11,7 @@ import MailspringStore from '../../global/mailspring-store';
 import Utils from '../models/utils';
 import Query from '../models/query';
 import DatabaseChangeRecord from './database-change-record';
+import App from '../../../internal_packages/edison-beijing-chat/chat-components/containers/App';
 
 const debug = createDebug('app:RxDB');
 const debugVerbose = createDebug('app:RxDB:all');
@@ -391,7 +392,7 @@ class DatabaseStore extends MailspringStore {
         this._agent = null;
       });
       this._agent.on('error', err => {
-        console.error(`Query Agent: failed to start or receive message: ${err.toString()}`);
+        AppEnv.reportError(new Error(`Query Agent: failed to start or receive message: ${err.toString()}`));
         this._agent.kill('SIGTERM');
         this._agent = null;
       });
