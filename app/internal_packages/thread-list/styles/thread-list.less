@@ -321,15 +321,15 @@ input:focus {
 }
 
 .thread-list-empty-folder-bar {
-  color: mix(@color-warning, @text-color, 30%);
-  background-color: mix(@color-warning, @background-primary, 20%);
-  border-bottom: 1px solid mix(@color-warning, @border-color-divider, 30%);
+  color: fade(@black, 60%);
+  background-color: fade(@blue, 10%);
   padding: @padding-base-vertical @padding-base-vertical @padding-base-vertical
-    @padding-base-horizontal * 1.5;
+    21px;
   align-items: center;
   display: flex;
   font-size: 0.9em;
   flex-shrink: 0;
+  width: 100%;
 
   .notice {
     flex: 1;
@@ -337,6 +337,14 @@ input:focus {
   }
   .btn {
     flex-shrink: 0;
+    color: @blue;
+    font-size: 11px;
+    font-weight: 700;
+    border: none;
+    box-shadow: none;
+    background: none;
+    cursor: pointer;
+    padding-right: 20px;
   }
 }
 
@@ -523,6 +531,9 @@ body.platform-win32 {
 }
 
 .thread-list-narrow {
+  .thread-list-empty-folder-bar {
+    padding-left: 26px;
+  }
   .list-tabular .selection-bar .multiselect-toolbar-root .inner .checkmark {
     width: 66px;
     margin-right: 3px;

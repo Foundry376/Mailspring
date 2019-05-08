@@ -9,6 +9,7 @@ import {
   FocusedPerspectiveStore,
   ThreadCountsStore,
 } from 'mailspring-exports';
+import { remote } from 'electron';
 
 class ThreadListEmptyFolderBar extends React.Component {
   static displayName = 'ThreadListEmptyFolderBar';
@@ -21,7 +22,17 @@ class ThreadListEmptyFolderBar extends React.Component {
   };
 
   _onClick = () => {
-    const { folders } = this.props;
+    const { folders, count } = this.props;
+    const idx = remote.dialog.showMessageBox({
+      type: 'question',
+      buttons: ['Cancel', 'Okay'],
+      message: 'Are you sure?',
+      detail:
+        `This action will permanently affect ${(count / 1).toLocaleString()} ${count > 1 ? 'messages' : 'message'} messages. Are you sure you want to continue?`,
+    });
+    if (idx === 0) {
+      return;
+    }
 
     Actions.queueTasks(
       folders.map(
@@ -44,7 +55,7 @@ class ThreadListEmptyFolderBar extends React.Component {
     return (
       <div className="thread-list-empty-folder-bar">
         <div className="notice">
-          {`Showing ${(count / 1).toLocaleString()} ${term} ${count > 1 ? 'messages' : 'messages'}`}
+          {`${(count / 1).toLocaleString()} ${count > 1 ? 'messages' : 'message'} in ${role}`}
         </div>
         {busy ? (
           <div className="btn">
@@ -55,8 +66,8 @@ class ThreadListEmptyFolderBar extends React.Component {
             />
           </div>
         ) : (
-          <div className="btn" onClick={this._onClick}>{`Empty ${role} now`}</div>
-        )}
+            <div className="btn" onClick={this._onClick}>{`Delete all ${role} messages now.`}</div>
+          )}
       </div>
     );
   }

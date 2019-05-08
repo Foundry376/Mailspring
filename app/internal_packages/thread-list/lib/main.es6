@@ -17,7 +17,8 @@ import {
 
 export function activate() {
   ComponentRegistry.register(ThreadListEmptyFolderBar, {
-    location: WorkspaceStore.Location.ThreadList,
+    // location: WorkspaceStore.Location.ThreadList,
+    role: 'ThreadListEmptyFolderBar'
   });
 
   ComponentRegistry.register(ThreadList, {

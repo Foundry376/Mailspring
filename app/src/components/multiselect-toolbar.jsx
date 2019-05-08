@@ -1,4 +1,5 @@
 import { Utils, WorkspaceStore, ThreadCountsStore, FocusedPerspectiveStore, CategoryStore, Label } from 'mailspring-exports';
+import { InjectedComponentSet } from 'mailspring-component-kit';
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
@@ -174,6 +175,9 @@ class MultiselectToolbar extends Component {
               )
           }
         </div>
+        <InjectedComponentSet
+          matching={{ role: 'ThreadListEmptyFolderBar' }}
+        />
       </div>
     );
   }
