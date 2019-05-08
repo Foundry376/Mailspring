@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Utils, Actions, AttachmentStore } from 'mailspring-exports';
+import { Utils, Actions, AttachmentStore, EmailAvatar } from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
@@ -178,13 +178,10 @@ export default class MessageItem extends React.Component {
           <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut} />
         </div>
         <div className='row'>
-          <InjectedComponent
+          <EmailAvatar
             key="thread-avatar"
-            exposedProps={{
-              from: message.from && message.from[0],
-              messagePending: this.props.pending
-            }}
-            matching={{ role: 'EmailAvatar' }}
+            from={message.from && message.from[0]}
+            messagePending={this.props.pending}
           />
           <div>
             <MessageParticipants
@@ -276,12 +273,9 @@ export default class MessageItem extends React.Component {
       <div className={className} onClick={this._onToggleCollapsed}>
         <div className="message-item-white-wrap">
           <div className="message-item-area">
-            <InjectedComponent
+            <EmailAvatar
               key="thread-avatar"
-              exposedProps={{
-                from: from && from[0]
-              }}
-              matching={{ role: 'EmailAvatar' }}
+              from={from && from[0]}
             />
             <div style={{ flex: 1, overflow: 'hidden' }}>
               <div className="row">

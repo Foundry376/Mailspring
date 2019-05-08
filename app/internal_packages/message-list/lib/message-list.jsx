@@ -9,6 +9,7 @@ import {
   MessageStore,
   SearchableComponentStore,
   SearchableComponentMaker,
+  EmailAvatar
 } from 'mailspring-exports';
 
 import {
@@ -19,7 +20,6 @@ import {
   MailImportantIcon,
   KeyCommandsRegion,
   InjectedComponentSet,
-  InjectedComponent,
 } from 'mailspring-component-kit';
 
 import FindInThread from './find-in-thread';
@@ -613,13 +613,10 @@ class MessageList extends React.Component {
         <div className="msg-avatars">
           {
             lines.map((message, index) => (
-              <InjectedComponent
+              <EmailAvatar
                 key={`thread-avatar-${index}`}
-                exposedProps={{
-                  from: message.from && message.from[0],
-                  styles: { marginLeft: 5 * index, border: '1px solid #fff' },
-                }}
-                matching={{ role: 'EmailAvatar' }}
+                from={message.from && message.from[0]}
+                styles={{ marginLeft: 5 * index, border: '1px solid #fff' }}
               />
             ))
           }
