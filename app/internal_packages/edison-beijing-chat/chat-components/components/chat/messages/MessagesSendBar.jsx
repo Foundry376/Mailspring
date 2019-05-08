@@ -173,12 +173,12 @@ export default class MessagesSendBar extends PureComponent {
     if (nativeEvent.keyCode == 27) { //ESC
       nativeEvent.target.value = '';
       const prefix = '';
-      const state = Object.assign({}, this.state, {prefix});
+      const state = Object.assign({}, this.state, { prefix });
       this.setState(state);
     } else if (nativeEvent.keyCode != 13) {
       const prefix = nativeEvent.target.value;
       const promptPos = getCaretCoordinates(nativeEvent.target, nativeEvent.target.value.length);
-      const state = Object.assign({}, this.state, {prefix, promptPos });
+      const state = Object.assign({}, this.state, { prefix, promptPos });
       // console.log('debugger: onInputKeyUp: prefix, promptPos: ', prefix, promptPos);
       this.setState(state);
     }
@@ -230,7 +230,7 @@ export default class MessagesSendBar extends PureComponent {
           if (err || !data || commandType !== 2) {
             return;
           }
-          const appJid = id+'@app.im.edison.tech';
+          const appJid = id + '@app.im.edison.tech';
           data = JSON.parse(data);
           data.appJid = appJid;
           data.appName = name;
@@ -267,7 +267,10 @@ export default class MessagesSendBar extends PureComponent {
         if (selectedConversation.isGroup) {
           roomId = jidLocal;
         } else {
-          peerUserId = jidLocal;
+          //console.log('yazz-test88', jidLocal, curJidLocal);
+          if (jidLocal != app[0].id) {
+            peerUserId = jidLocal;
+          }
         }
         this.sendCommand2App(curJidLocal, app[0], messageBody, peerUserId, roomId);
         this.setState({ messageBody: '', files: [] });
@@ -527,7 +530,7 @@ export default class MessagesSendBar extends PureComponent {
               mode={RetinaImg.Mode.ContentIsMask} />
           </Button>
         </div>
-        <PluginPrompt conversation={selectedConversation} pos={this.state.promptPos} prefix={this.state.prefix} keyword2app={this.state.keyword2app}/>
+        <PluginPrompt conversation={selectedConversation} pos={this.state.promptPos} prefix={this.state.prefix} keyword2app={this.state.keyword2app} />
       </div>
     );
   }

@@ -68,7 +68,7 @@ export default class PluginPrompt extends PureComponent {
         }
         if (app.commands && app.commands.length) {
           matchedAppCommands.push.apply(matchedAppCommands, app.commands.map(command => ({app, command})));
-        } else {d
+        } else {
           matchedAppCommands.push({app, command:{command:'/'+app.shortName, text:''}});
           matchedAppCommands.push({app, command:{command:'/'+app.shortName +' ?', text:''}});
         };
