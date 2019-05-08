@@ -329,6 +329,7 @@ export default class ComposerView extends React.Component {
           displayName={file.filename}
           fileIconName={`file-${file.extension}.png`}
           onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
+          onOpenAttachment={() => Actions.fetchAndOpenFile(file)}
         />
       ));
     const imageFiles = files
@@ -342,6 +343,7 @@ export default class ComposerView extends React.Component {
           filePath={AttachmentStore.pathForFile(file)}
           displayName={file.filename}
           onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
+          onOpenAttachment={() => Actions.fetchAndOpenFile(file)}
         />
       ));
 
