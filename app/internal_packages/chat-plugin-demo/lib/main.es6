@@ -11,7 +11,7 @@ import { beginStoringMessage } from '../../edison-beijing-chat/chat-components/a
 const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
     .mergeMap((payload) => {
-      console.log('chat-pugin-demo epic: ', payload);
+      // console.log('chat-pugin-demo epic: ', payload);
       return Observable.fromPromise(getPriKey()).map(({ deviceId, priKey }) => {
         return { payload: payload.payload, deviceId, priKey };
       });
@@ -21,7 +21,7 @@ const receivePrivateMessageEpic = action$ =>
 const triggerStoreMessageEpic = action$ =>
   action$.ofType(NEW_MESSAGE)
   .map(({ payload: newMessage }) => {
-    console.log('dbg*** chat-plugin-demo NEW_MESSAGE: ', newMessage);
+    // console.log('dbg*** chat-plugin-demo NEW_MESSAGE: ', newMessage);
     return beginStoringMessage(newMessage);
   });
 

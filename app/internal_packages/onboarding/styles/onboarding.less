@@ -327,7 +327,7 @@
 }
 
 .page.gdpr-terms {
-  @terms-width: 437px;
+  @terms-width: 440px;
   .terms,
   .gdpr {
     display: flex;
@@ -358,11 +358,10 @@
     text-align: center;
   }
   .these-terms-condition {
-    height: 160px;
     width: @terms-width;
     color: #334;
-    font-size: 12px;
-    line-height: 14px;
+    font-size: 15px;
+    line-height: 18px;
     margin-top: 6px;
     text-align: left;
   }
@@ -372,6 +371,7 @@
     padding: 16px 0;
     width: 478px;
     border-top: 1px solid #E8EBED;
+    text-align: left;
     &:nth-child(3) {
       border-top: none;
     }
@@ -387,6 +387,8 @@
     }
     &.terms-check {
       width: @terms-width;
+      padding: 0;
+      border-top: none;
       a {
         width: 24px;
       }
@@ -395,8 +397,13 @@
         font-size: 15px;
         line-height: 24px;
         padding: 0;
-        padding-left: 20px;
+        padding-left: 10px;
       }
+    }
+    .error {
+      color: #F36;
+      font-size: 11px;
+      line-height: 13px;
     }
   }
   .terms-links {
@@ -1111,6 +1118,7 @@ body.platform-win32 {
 .appearance-mode.active {
   border: 1px solid @component-active-color;
   font-weight: 700;
+  background-color: @white;
   div {
     color: @component-active-color;
   }

@@ -8,10 +8,12 @@ import {
 import { sendCmd2App2, getToken, getMyAppByShortName } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
 import getDb from '../../../db/index';
+const sanitizeHtml = require('sanitize-html');
+
 export default class MessageApp extends PureComponent {
     static propTypes = {
         conversation: PropTypes.object.isRequired,
-        msgBody: PropTypes.object.isRequired,
+        msg: PropTypes.object.isRequired,
         userId: PropTypes.string.isRequired,
         peerUserId: PropTypes.string,
         roomId: PropTypes.string
@@ -20,11 +22,10 @@ export default class MessageApp extends PureComponent {
     state = {}
 
     componentWillMount = async () => {
-      const { conversation } = this.props;
-      const userJid = conversation.curJid;
+      const { msg } = this.props;
       const db = await getDb();
-      let contact = await db.contacts.findOne().where('jid').eq(userJid).exec();
-      const state = Object.assign({}, this.state, {installerName: contact.name});
+      let contact = await db.contacts.findOne().where('jid').eq(msg.sender).exec();
+      const state = Object.assign({}, this.state, {installerName: contact && contact.name || ''});
       this.setState(state);
     }
 
@@ -51,13 +52,17 @@ export default class MessageApp extends PureComponent {
 
     }
     render() {
-        // console.log('debugger: MessageApp.render this.props.msgBody: ', this.props.msgBody);
-        const { appJid, appName, content, htmlBody, ctxCmds, sentTime } = this.props.msgBody;
-        // console.log('debugger: MessageApp.render msgBody: ', this.props.msgBody);
-        const {
-            getContactInfoByJid,
-            getContactAvatar
-        } = this.props;
+        console.log('debugger: MessageApp.render this.props: ', this.props);
+        const {msg} = this.props;
+        const msgBody = JSON.parse(msg.body);
+        console.log('debugger: MessageApp.render msgBody: ', msgBody);
+        let { appJid, appName, content, htmlBody, ctxCmds } = msgBody;
+        const { sentTime } = msg;
+        if (htmlBody) {
+          htmlBody = sanitizeHtml(htmlBody);
+        }
+        const { getContactAvatar } = this.props;
+
         const member = { jid: appJid, name: appName };
         let cmds = '';
         let commands = null;

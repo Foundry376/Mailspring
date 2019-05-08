@@ -132,7 +132,8 @@
     "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7",
     "xhr": "^2.0.1",
     "xmpp-constants": "^2.3.0",
-    "xmpp-jid": "^1.0.0"
+    "xmpp-jid": "^1.0.0",
+    "sanitize-html": "^1.20.1"
   },
   "optionalDependencies": {
     "node-mac-notifier": "^1.1.0"
