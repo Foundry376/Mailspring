@@ -182,7 +182,7 @@ class UndoRedoStore extends MailspringStore {
     this.trigger();
   };
 
-  undo = ({ block }) => {
+  undo = ({ block } = {}) => {
     if (!block) {
       console.warn('can not undo when block is not defined');
       return;
