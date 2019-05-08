@@ -27,7 +27,8 @@ class GdprTerms extends Component {
       gdpr_check_all: false,
       gdpr_checks: [false, false],
       continueGDPR: false,
-      terms_check_all: false
+      terms_check_all: false,
+      terms_error: false
     }
   }
 
@@ -43,13 +44,14 @@ class GdprTerms extends Component {
     const result = !this.state.gdpr_check_all;
     this.setState({
       gdpr_check_all: result,
-      gdpr_checks: [result, result]
+      gdpr_checks: [result, result],
     })
   }
 
   toggleTerms = () => {
     this.setState({
-      terms_check_all: !this.state.terms_check_all
+      terms_check_all: !this.state.terms_check_all,
+      terms_error: this.state.terms_check_all
     })
   }
 
@@ -84,11 +86,17 @@ class GdprTerms extends Component {
   }
 
   _onAgree = () => {
+    if (!this.state.terms_check_all) {
+      this.setState({
+        terms_error: true
+      })
+      return;
+    }
     OnboardingActions.moveToPage('initial-preferences');
   }
 
   render() {
-    const { isEU, gdpr_check_all, gdpr_checks, continueGDPR, terms_check_all } = this.state;
+    const { isEU, gdpr_check_all, gdpr_checks, continueGDPR, terms_check_all, terms_error } = this.state;
     const GDPR = (
       <div className="gdpr">
         <h1>We Care About Your Privacy</h1>
@@ -110,21 +118,21 @@ class GdprTerms extends Component {
           <a onClick={() => this.toggleCheckbox('gdpr_checks', 0, 'gdpr_check_all')}>
             {this._renderCheckbox(gdpr_checks[0])}
           </a>
-          <p>
+          <div className="label">
             Access email accounts connected and process personal data to<br />
             use the smart features in the Edison Mail app.
-          </p>
+          </div>
         </div>
         <div className="row">
           <a onClick={() => this.toggleCheckbox('gdpr_checks', 1, 'gdpr_check_all')}>
             {this._renderCheckbox(gdpr_checks[1])}
           </a>
-          <p>
+          <div className="label">
             Process data as part of Edison Trends Research. We use the<br />
             information we collect to understand new and interesting<br />
             consumer trends. We may share these anonymized trends with<br />
             third parties outside Edison. Keep Email free!
-          </p>
+          </div>
         </div>
         <div className="footer">
           <button
@@ -140,15 +148,15 @@ class GdprTerms extends Component {
       <div className="terms">
         <h1>Terms & Conditions</h1>
         <p className="these-terms-condition">
-          These Terms & Conditions govern your use of the Edison Software (“Edison”)<br />
-          services and mobile applications. By accessing or using the Service, you signify<br />
-          that you have read, understood, and agree to be bound by this Terms &<br />
-          Conditions Agreement (“Agreement”), whether or not you are a registered user of<br />
-          our Service. We reserve the right to update this Agreement at any time. If we<br />
-          make any material changes to this Agreement, we will announce these changes<br />
-          on our Site and notify registered users via email. Your continued use of the<br />
-          Service after any such changes constitutes your acceptance of the new<br />
-          Agreement. If you do not agree to abide by these or any future Terms &<br />
+          These Terms & Conditions govern your use of the Edison Software (“Edison”)
+          services and mobile applications. By accessing or using the Service, you signify
+          that you have read, understood, and agree to be bound by this Terms &
+          Conditions Agreement (“Agreement”), whether or not you are a registered user of
+          our Service. We reserve the right to update this Agreement at any time. If we
+          make any material changes to this Agreement, we will announce these changes
+          on our Site and notify registered users via email. Your continued use of the
+          Service after any such changes constitutes your acceptance of the new
+          Agreement. If you do not agree to abide by these or any future Terms &
           Conditions, do not use or access the Service.
         </p>
         <div className="terms-links">
@@ -159,13 +167,16 @@ class GdprTerms extends Component {
             View Privacy Policy
           </a>
         </div>
-        <div className="row terms-check">
-          <a onClick={this.toggleTerms}>
+        <div className="row terms-check" onClick={this.toggleTerms}>
+          <a>
             {this._renderCheckbox(terms_check_all)}
           </a>
-          <p className="label">
+          <div className="label">
             I have read and agree to the Terms & Conditions
-          </p>
+            {terms_error && (
+              <div className="error">You must agree to the Terms & Conditions before continuing.</div>
+            )}
+          </div>
         </div>
         <div className="footer">
           <button
