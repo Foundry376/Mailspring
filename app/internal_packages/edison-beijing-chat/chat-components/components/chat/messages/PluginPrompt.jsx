@@ -14,28 +14,6 @@ export default class PluginPrompt extends PureComponent {
 
   state = {}
 
-  sendCommand2App(command) {
-    const { appJid } = this.props.msgBody;
-    const { userId, conversation } = this.props;
-    let jidLocal = conversation.jid.split('@')[0];
-    const appId = appJid.split('@')[0];
-    let peerUserId, roomId;
-    if (conversation.isGroup) {
-      roomId = jidLocal;
-    } else if (jidLocal != appId) {
-      peerUserId = jidLocal;
-    }
-    let userName = '';
-    getToken(userId).then(token => {
-      if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
-      if (command) {
-        sendCmd2App2(userId, userName, token, appId, command, peerUserId, roomId, (err, data) => {
-          console.log(err, data);
-        });
-      }
-    })
-  }
-
   componentWillReceiveProps = async nextProps => {
     console.log('debugger: PluginPrompt.componentWillReceiveProps nextProps: ', nextProps);
     const {conversation, prefix, keyword2app} = nextProps;
@@ -57,7 +35,7 @@ export default class PluginPrompt extends PureComponent {
     matchedApps = _.uniq(matchedApps);
     matchedApps.forEach( app => {
       app = getMyAppByShortName(userId, app.shortName);
-      console.log('debugger: getMyAppById: app: ', userId, app);
+      // console.log('debugger: getMyAppById: app: ', userId, app);
       if (!app || !app.length) {
         return;
       } else {
