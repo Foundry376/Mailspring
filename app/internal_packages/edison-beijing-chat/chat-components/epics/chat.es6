@@ -436,13 +436,13 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
     .mergeMap((payload) => {
-      console.log('debugger: receivePrivateMessageEpic: payload: ', payload);
+      // console.log('debugger: receivePrivateMessageEpic: payload: ', payload);
       return Observable.fromPromise(getPriKey()).map(({ deviceId, priKey }) => {
         return { payload: payload.payload, deviceId, priKey };
       });
     })
     .filter(({ payload, deviceId, priKey }) => {
-      console.log('debugger: receivePrivateMessageEpic.filter: payload', payload);
+      // console.log('debugger: receivePrivateMessageEpic.filter: payload', payload);
       if (payload.payload) {
         let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
@@ -788,7 +788,7 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
 export const showConversationNotificationEpic = (action$, { getState }) =>
   action$.ofType(SHOW_CONVERSATION_NOTIFICATION)
     .map(({ payload: { conversationJid, title, body } }) => {
-      console.log('SHOW_CONVERSATION_NOTIFICATION: ', conversationJid, title, body);
+      // console.log('SHOW_CONVERSATION_NOTIFICATION: ', conversationJid, title, body);
       return ({
         jid: conversationJid,
         notification: postNotification(title, body),

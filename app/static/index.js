@@ -1,4 +1,4 @@
-window.eval = global.eval = function() {
+window.eval = global.eval = function () {
   throw new Error('Sorry, N1 does not support window.eval() for security reasons.');
 };
 
@@ -54,7 +54,7 @@ function setupVmCompatibility() {
   }
 }
 
-window.onload = function() {
+window.onload = function () {
   try {
     var startTime = Date.now();
 
@@ -74,6 +74,19 @@ window.onload = function() {
 
     setupWindow(loadSettings);
     setLoadTime(Date.now() - startTime);
+    if (process.env.MONKEY_SERVER) {
+      const gremlins = require('./gremlins.min.js');
+      const logForMonkey = require('electron-log');
+      var horde = gremlins.createHorde();
+      var customLogger = {
+        log: console.log,
+        info: logForMonkey.info,
+        warn: logForMonkey.warn,
+        error: logForMonkey.error,
+      };
+      horde.logger(customLogger);
+      horde.unleash({ nb: 100 * 60 * 60 * 24 * 7 });
+    }
   } catch (error) {
     handleSetupError(error);
   }

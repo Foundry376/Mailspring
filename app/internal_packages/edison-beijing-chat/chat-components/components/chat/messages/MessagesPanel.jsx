@@ -38,7 +38,7 @@ import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
-import { getToken } from '../../../utils/appmgt';
+import { getToken, getMyApps } from '../../../utils/appmgt';
 
 const {exec} = require('child_process');
 const remote = require('electron').remote;
@@ -100,6 +100,8 @@ export default class MessagesPanel extends PureComponent {
     },
   }
 
+  apps = []
+
   onUpdateGroup = async (contacts) => {
     this.setState(Object.assign({}, this.state, { inviting: false }));
     const { selectedConversation } = this.props;
@@ -139,6 +141,41 @@ export default class MessagesPanel extends PureComponent {
   componentWillUnmount() {
     window.removeEventListener("online", this.onLine);
     window.removeEventListener("offline", this.offLine);
+  }
+
+  getApps = () => {
+    // console.log('debugger: MessagePanel.getApps: this.props: ', this.props);
+    const { selectedConversation } = this.props;
+    if (!selectedConversation) {
+      return;
+    }
+    const { curJid } = selectedConversation;
+    if(!curJid) {
+      return;
+    }
+    let apps = [];
+    const userId = curJid.split('@')[0];
+    const myApps = getMyApps(userId);
+    // console.log('debugger: MessagePanel.getApps: myApps: ', myApps);
+    if (!myApps) {
+      return;
+    }
+    let uapps = myApps.apps;
+    try {
+      for (let app of uapps) {
+        app = Object.assign({}, app);
+        app.jid = app.id + '@app.im.edison.tech';
+        app.email = app.jid;
+        app.curJid = curJid;
+        apps.push(app)
+      }
+      // console.log('debugger: MessagePanel.getApps: apps: ', apps);
+      // const state = Object.assign({}, this.state, { apps });
+      // this.setState(state);
+      this.apps = apps;
+    } catch (e) {
+      console.log(e, myApps, uapps);
+    }
   }
 
   _getTokenByCurJid = async () => {
@@ -321,6 +358,10 @@ export default class MessagesPanel extends PureComponent {
         onGroupConversationCompleted({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
       }
       else if (members.length > 1 && onGroupConversationCompleted) {
+        if (members.some((member) => member.jid.match(/@app/))) {
+          window.alert('plugin app should only create cprivate onversation with single member!');
+          return;
+        }
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const names = members.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
@@ -533,6 +574,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   render() {
+    this.getApps();
     const { showConversationInfo, inviting, members } = this.state;
     const {
       deselectConversation,
@@ -605,7 +647,7 @@ export default class MessagesPanel extends PureComponent {
         allContacts.push(contact);
       }
     });
-
+    this.apps && allContacts.push.apply(allContacts, this.apps);
     const newConversationProps = {
       contacts: allContacts,
       saveRoomMembersForTemp: this.saveRoomMembersForTemp,
