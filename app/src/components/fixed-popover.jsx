@@ -227,7 +227,7 @@ class FixedPopover extends Component {
     return null;
   };
 
-  computePopoverStyles = ({ originRect, direction, offset, isFixedToWindow, position={} }) => {
+  computePopoverStyles = ({ originRect, direction, offset, isFixedToWindow, position = {} }) => {
     const { Up, Down, Left, Right } = Directions;
     let containerStyle = {};
     let popoverStyle = {};
@@ -351,7 +351,7 @@ class FixedPopover extends Component {
         <div
           ref="popoverContainer"
           style={containerStyle}
-          className={`fixed-popover-container${animateClass}`}
+          className={`fixed-popover-container${animateClass} ${this.props.className}`}
           onKeyDown={this.onKeyDown}
           onBlur={this.onBlur}
           tabIndex={-1}

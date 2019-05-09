@@ -245,7 +245,7 @@ export default class MessagesSendBar extends PureComponent {
             conversationJid: selectedConversation.jid,
             sender: appJid,
             body: JSON.stringify(data),
-            sentTime: (new Date()).getTime(),
+            sentTime: (new Date()).getTime()+chatModel.diffTime,
             status: MESSAGE_STATUS_RECEIVED,
           };
           chatModel.store.dispatch(beginStoringMessage(msg));

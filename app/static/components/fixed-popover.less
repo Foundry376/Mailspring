@@ -22,6 +22,7 @@
     background-color: @white;
     border-radius: @border-radius-base;
     box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.3);
+    overflow: hidden;
 
     .menu {
       z-index: 1;
@@ -74,6 +75,45 @@
         background-size: 15px 15px;
         background-position: 7px 4px;
         text-indent: 31px;
+      }
+    }
+    .tip-popover-container {
+      .fixed-popover-pointer {
+        background-color: @blue;
+      }
+      .tip-popover-contents {
+        overflow: hidden;
+        background-color: @blue;
+        padding: 0 5px;
+        h2 {
+          font-size: 24px;
+          font-weight: 700;
+          line-height: 29px;
+          margin-top: 12px;
+          margin-bottom: 2px;
+          color: @white;
+          padding: 0 5px;
+        }
+        p {
+          font-size: 13px;
+          line-height: 16px;
+          color: @white;
+          padding: 0 5px;
+        }
+        .btn {
+          color: @white;
+          width: 100%;
+          background: none;
+          box-shadow: none;
+          border-top: 1px solid fade(@white, 20%);
+          border-radius: 0;
+          height: auto;
+          font-size: 13px;
+          font-weight: 700;
+          line-height: 16px;
+          text-align: center;
+          padding: 12px 0;
+        }
       }
     }
   }

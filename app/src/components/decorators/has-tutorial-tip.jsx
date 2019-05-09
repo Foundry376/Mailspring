@@ -89,7 +89,7 @@ class TipPopoverContents extends React.Component {
     }
 
     return (
-      <div style={{ width: 250, padding: 20, paddingTop: 0 }}>
+      <div className="tip-popover-contents" style={{ width: 200 }}>
         <h2>{this.props.title}</h2>
         {content}
         <button className="btn" onClick={this.onDone}>
@@ -242,6 +242,7 @@ export default function HasTutorialTip(ComposedComponent, TipConfig) {
           originRect: tipRect,
           direction: 'down',
           fallbackDirection: 'up',
+          className: 'tip-popover-container'
         }
       );
     };
