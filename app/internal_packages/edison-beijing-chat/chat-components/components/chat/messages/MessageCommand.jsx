@@ -6,6 +6,8 @@ import { MESSAGE_STATUS_RECEIVED } from '../../../db/schemas/message';
 import chatModel from '../../../store/model';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
+import chatModel from '../../../store/model';
+
 export default class MessageCommand extends PureComponent {
     static propTypes = {
         appJid: PropTypes.string.isRequired,
@@ -52,7 +54,7 @@ export default class MessageCommand extends PureComponent {
             conversationJid: conversation.jid,
             sender: appJid,
             body: JSON.stringify(data),
-            sentTime: (new Date()).getTime(),
+            sentTime: (new Date()).getTime()+chatModel.diffTime,
             status: MESSAGE_STATUS_RECEIVED,
           };
           chatModel.store.dispatch(beginStoringMessage(msg));
