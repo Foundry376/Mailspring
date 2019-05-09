@@ -12,7 +12,7 @@ export const xmpplogin = (userId, token, cb) => {
 }
 export const getMyAppByShortName = (userId, shortName) => {
     let arr = [];
-    console.log(userId, shortName, myApps)
+    // console.log(userId, shortName, myApps)
     if (myApps[userId] && myApps[userId].apps) {
         const apps = myApps[userId].apps;
         for (var i = 0; i < apps.length; i++) {
@@ -128,9 +128,18 @@ export const sendCmd2App2 = (userId, userName, token, appId, command, peerUserId
     }
     sendCmd2App({ userId, userName, token, appId, command, peerUserId, roomId }, cb);
 }
+
+export const getMyApps = (userId) => {
+    if (userId) {
+      return myApps[userId];
+    } else {
+      return myApps;
+    }
+}
 //--------------for chat platform------------
 
 export default {
     xmpplogin, iniApps, listKeywordApps, sendMsg2App, getApp, getToken,
-    sendMsg2App2, sendCmd2App, sendCmd2App2, getMyAppByShortName, getMyAppById
+    sendMsg2App2, sendCmd2App, sendCmd2App2, getMyAppByShortName, getMyAppById,
+    getMyApps
 }

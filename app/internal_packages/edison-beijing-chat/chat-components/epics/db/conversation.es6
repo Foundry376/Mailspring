@@ -336,9 +336,10 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
 
 export const createInitiatedPrivateConversationEpic = (action$) =>
   action$.ofType(CREATE_PRIVATE_CONVERSATION)
-    .mergeMap(({ payload: contact }) =>
-      Observable.fromPromise(retriveConversation(contact.jid))
+    .mergeMap(({ payload: contact }) => {
+      return Observable.fromPromise(retriveConversation(contact.jid))
         .map(conv => {
+          // console.log('debugger: CREATE_PRIVATE_CONVERSATION conv: ', conv);
           if (conv || !contact.name) {
             return selectConversation(conv.jid);
           } else {
@@ -358,7 +359,8 @@ export const createInitiatedPrivateConversationEpic = (action$) =>
             }
             return { conversation: conv }
           }
-        }))
+        });
+    })
     .filter(({ conversation }) => {
       return !!conversation;
     })

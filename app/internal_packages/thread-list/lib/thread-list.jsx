@@ -206,6 +206,7 @@ class ThreadList extends React.Component {
       return {
         threadIds: dataSource.selection.ids(),
         accountIds: _.uniq(_.pluck(dataSource.selection.items(), 'accountId')),
+        threads: dataSource.selection.items(),
       };
     } else {
       const thread = dataSource.getById(itemThreadId);
@@ -215,6 +216,7 @@ class ThreadList extends React.Component {
       return {
         threadIds: [thread.id],
         accountIds: [thread.accountId],
+        threads: [thread]
       };
     }
   }

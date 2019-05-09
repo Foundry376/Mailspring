@@ -52,10 +52,10 @@ export default class MessageApp extends PureComponent {
 
     }
     render() {
-        console.log('debugger: MessageApp.render this.props: ', this.props);
+        // console.log('debugger: MessageApp.render this.props: ', this.props);
         const {msg} = this.props;
         const msgBody = JSON.parse(msg.body);
-        console.log('debugger: MessageApp.render msgBody: ', msgBody);
+        // console.log('debugger: MessageApp.render msgBody: ', msgBody);
         let { appJid, appName, content, htmlBody, ctxCmds } = msgBody;
         const { sentTime } = msg;
         if (htmlBody) {
