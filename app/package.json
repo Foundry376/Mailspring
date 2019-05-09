@@ -30,6 +30,7 @@
     "double-ended-queue": "^2.1.0-0",
     "download": "^7.1.0",
     "electron-localstorage": "^1.0.5",
+    "electron-log": "^3.0.5",
     "electron-platform": "^1.2.0",
     "electron-spellchecker": "1.1.2",
     "emoji-data": "^0.2.0",
@@ -104,6 +105,7 @@
     "rxjs": "^6.3.3",
     "rxjs-compat": "^6.3.3",
     "s3": "^4.4.0",
+    "sanitize-html": "^1.20.1",
     "sasl-anonymous": "^0.1.0",
     "sasl-external": "^0.1.0",
     "sasl-plain": "^0.1.0",
@@ -132,8 +134,7 @@
     "windows-shortcuts": "emorikawa/windows-shortcuts#b0a0fc7",
     "xhr": "^2.0.1",
     "xmpp-constants": "^2.3.0",
-    "xmpp-jid": "^1.0.0",
-    "sanitize-html": "^1.20.1"
+    "xmpp-jid": "^1.0.0"
   },
   "optionalDependencies": {
     "node-mac-notifier": "^1.1.0"

@@ -76,8 +76,16 @@ window.onload = function () {
     setLoadTime(Date.now() - startTime);
     if (process.env.MONKEY_SERVER) {
       const gremlins = require('./gremlins.min.js');
+      const logForMonkey = require('electron-log');
       var horde = gremlins.createHorde();
-      horde.unleash();
+      var customLogger = {
+        log: console.log,
+        info: logForMonkey.info,
+        warn: logForMonkey.warn,
+        error: logForMonkey.error,
+      };
+      horde.logger(customLogger);
+      horde.unleash({ nb: 100 * 60 * 60 * 24 * 7 });
     }
   } catch (error) {
     handleSetupError(error);
