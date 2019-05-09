@@ -568,7 +568,11 @@ export default class MessagesPanel extends PureComponent {
       // console.log('debugger xmpplogin: ', userId, token, err, data);
       if (data) {
         data = JSON.parse(data);
-        exec('open ' + data.data.url);
+        if (data.data && data.data.url){
+          exec('open ' + data.data.url);
+        } else {
+          window.alert('fail to open the app store page'); 
+        }
       }
     })
   }
