@@ -103,6 +103,9 @@ export default class MessagesSendBar extends PureComponent {
       return;
     }
     const { selectedConversation } = nextProps;
+    if (!selectedConversation.curJid) {
+      return;
+    }
     const userId = selectedConversation.curJid.split('@')[0];
     const token = await getToken(userId);
     iniApps(userId, token);
@@ -161,6 +164,8 @@ export default class MessagesSendBar extends PureComponent {
     if (nativeEvent.keyCode === 13 && !nativeEvent.shiftKey) {
       event.preventDefault();
       this.sendMessage();
+      const state = Object.assign({}, this.state, { prefix:'', messageBody:''});
+      this.setState(state);
       return false;
     }
     return true;
