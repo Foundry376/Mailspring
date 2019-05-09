@@ -11,38 +11,33 @@ import {
 } from 'mailspring-exports';
 
 export default class ThreadListContextMenu {
-  constructor({ threadIds = [], accountIds = [] }) {
+  constructor({ threadIds = [], accountIds = [], threads = [] }) {
     this.threadIds = threadIds;
     this.accountIds = accountIds;
+    this.threads = threads;
   }
 
   menuItemTemplate() {
-    return DatabaseStore.modelify(Thread, this.threadIds)
-      .then(threads => {
-        this.threads = threads;
-
-        return Promise.all([
-          this.findWithFrom(),
-          this.findWithSubject(),
-          { type: 'separator' },
-          this.replyItem(),
-          this.replyAllItem(),
-          this.forwardItem(),
-          { type: 'separator' },
-          this.archiveItem(),
-          this.trashItem(),
-          this.markAsReadItem(),
-          this.starItem(),
-        ]);
-      })
-      .then(menuItems => {
-        return _.filter(_.compact(menuItems), (item, index) => {
-          if ((index === 0 || index === menuItems.length - 1) && item.type === 'separator') {
-            return false;
-          }
-          return true;
-        });
+    return Promise.all([
+      this.findWithFrom(),
+      this.findWithSubject(),
+      { type: 'separator' },
+      this.replyItem(),
+      this.replyAllItem(),
+      this.forwardItem(),
+      { type: 'separator' },
+      this.archiveItem(),
+      this.trashItem(),
+      this.markAsReadItem(),
+      this.starItem(),
+    ]).then(menuItems => {
+      return _.filter(_.compact(menuItems), (item, index) => {
+        if ((index === 0 || index === menuItems.length - 1) && item.type === 'separator') {
+          return false;
+        }
+        return true;
       });
+    });
   }
 
   findWithFrom() {
@@ -99,7 +94,7 @@ export default class ThreadListContextMenu {
 
     // return DatabaseStore.findBy(Message, { threadId: this.threadIds[0], state: 0 })
     //   .order(Message.attributes.date.descending())
-    return MessageStore.findByThreadIdInDescendingOrder({threadId: this.threadIds[0]})
+    return MessageStore.findByThreadIdInDescendingOrder({ threadId: this.threadIds[0] })
       .limit(1)
       .then(message => {
         if (message && message.canReplyAll()) {
