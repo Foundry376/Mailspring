@@ -24,7 +24,7 @@ import { MESSAGE_STATUS_RECEIVED, MESSAGE_STATUS_UPLOAD_FAILED } from '../../../
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { isImageFilePath } from '../../../utils/stringUtils';
 import { sendFileMessage } from '../../../utils/message';
-import { sendCmd2App2, getMyAppByShortName, listKeywordApps, iniApps, getToken } from '../../../utils/appmgt';
+import { sendCmd2App2, getMyAppByShortName, listKeywordApps, iniApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
 const getCaretCoordinates = require('../../../utils/textarea-caret-position');
 
@@ -164,7 +164,7 @@ export default class MessagesSendBar extends PureComponent {
     if (nativeEvent.keyCode === 13 && !nativeEvent.shiftKey) {
       event.preventDefault();
       this.sendMessage();
-      const state = Object.assign({}, this.state, { prefix:'', messageBody:''});
+      const state = Object.assign({}, this.state, { prefix: '', messageBody: '' });
       this.setState(state);
       return false;
     }
@@ -245,7 +245,7 @@ export default class MessagesSendBar extends PureComponent {
             conversationJid: selectedConversation.jid,
             sender: appJid,
             body: JSON.stringify(data),
-            sentTime: (new Date()).getTime()+chatModel.diffTime,
+            sentTime: (new Date()).getTime() + chatModel.diffTime,
             status: MESSAGE_STATUS_RECEIVED,
           };
           chatModel.store.dispatch(beginStoringMessage(msg));
@@ -255,17 +255,25 @@ export default class MessagesSendBar extends PureComponent {
       }
     })
   }
+  sendMessage2App(userId, appId, content) {
+    let userName = '';
+    getToken(userId).then(token => {
+      sendMsg2App2(userId, userName, token, appId, content, (err, data) => {
+        console.log(err, data);
+      });
+    });
+  }
   sendMessage() {
     let { messageBody, occupants } = this.state;
     const { selectedConversation, onMessageSubmitted } = this.props;
     const atIndex = selectedConversation.jid.indexOf('@')
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
 
+    let curJidLocal = selectedConversation.curJid.split('@')[0];//.slice(0, selectedConversation.curJid.indexOf('@'));
     if (messageBody.indexOf('/') == 0) {
       // console.log(selectedConversation)
       let peerUserId, roomId;
       let appName = messageBody.split(' ')[0].substring(1);
-      let curJidLocal = selectedConversation.curJid.slice(0, selectedConversation.curJid.indexOf('@'));
       let app = getMyAppByShortName(curJidLocal, appName);
       // console.log('debugger: app: ', app);
       if (app && app.length > 0) {
@@ -281,6 +289,11 @@ export default class MessagesSendBar extends PureComponent {
         this.setState({ messageBody: '', files: [] });
         return;
       }
+    }
+    if (selectedConversation.jid.indexOf('@app') > 0) {
+      this.sendMessage2App(curJidLocal, jidLocal, messageBody);
+      this.setState({ messageBody: '', files: [] });
+      return;
     }
 
     messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
