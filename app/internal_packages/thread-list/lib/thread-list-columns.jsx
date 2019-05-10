@@ -72,7 +72,7 @@ const c1 = new ListTabular.Column({
   name: '★',
   resolver: thread => {
     return [
-      <EmailAvatar thread={thread} />,
+      <EmailAvatar key="email-avatar" thread={thread} />,
       // <ThreadListIcon key="thread-list-icon" thread={thread} />,
       <MailImportantIcon
         key="mail-important-icon"
