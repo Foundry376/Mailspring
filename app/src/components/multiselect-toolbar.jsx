@@ -177,6 +177,7 @@ class MultiselectToolbar extends Component {
         </div>
         <InjectedComponentSet
           matching={{ role: 'ThreadListEmptyFolderBar' }}
+          className="empty-folder-bar"
         />
       </div>
     );
