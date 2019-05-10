@@ -61,6 +61,9 @@
     border-right: 1px solid @border-color-divider;
     background-color: @background-primary;
     transition: opacity 0.2s ease-in-out;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
 
     .divider {
       height: 30px;
@@ -123,6 +126,9 @@
         color: @gray;
         font-size: 11px;
         line-height: 13px;
+        .toolbar-unread-count {
+          margin-left: 5px;
+        }
       }
 
       .btn-clear-all,
@@ -155,6 +161,24 @@
           background-color: @gray;
           position: relative;
           z-index: 2;
+        }
+        &.btn-selection-filter {
+          position: absolute;
+          left: 33px;
+          height: 100%;
+          display: flex;
+          &:hover {
+            &::after {
+              content: '';
+              display: block;
+              position: absolute;
+              height: 86%;
+              width: 76%;
+              border-radius: 5px;
+              left: 12%;
+              top: auto;
+            }
+          }
         }
         &:hover {
           &:after {
@@ -398,6 +422,10 @@
   .btn-clear-all,
   .btn-toggle-select-all {
     display: none;
+  }
+
+  .list-tabular .selection-bar .multiselect-toolbar-root .inner .btn-toolbar.btn-selection-filter {
+    left: 39px;
   }
 
   .list-column:first-child {

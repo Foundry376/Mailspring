@@ -22,6 +22,8 @@ const {
   FocusedContentStore,
   FocusedPerspectiveStore,
   FolderSyncProgressStore,
+  AccountStore,
+  CategoryStore,
 } = require('mailspring-exports');
 
 const ThreadListColumns = require('./thread-list-columns');
@@ -109,7 +111,7 @@ class ThreadList extends React.Component {
               'thread-list:select-unread': this._onSelectUnread,
               'thread-list:select-starred': this._onSelectStarred,
               'thread-list:select-unstarred': this._onSelectUnstarred,
-
+              'thread-list:select-important': this._onSelectImportant,
             }}
             onDoubleClick={thread => Actions.popoutThread(thread)}
             onDragStart={this._onDragStart}
@@ -297,6 +299,18 @@ class ThreadList extends React.Component {
   _onSelectUnstarred = () => {
     const dataSource = ThreadListStore.dataSource();
     const items = dataSource.itemsCurrentlyInViewMatching(item => !item.starred);
+    this.refs.list.handler().onSelect(items);
+  };
+
+  _onSelectImportant = () => {
+    const dataSource = ThreadListStore.dataSource();
+    const items = dataSource.itemsCurrentlyInViewMatching(item => {
+      console.log('item', item);
+      const account = AccountStore.accountForId(item.accountId);
+      const category = CategoryStore.getCategoryByRole(account, 'important');
+      const isImportant = category && _.findWhere(item.labels, { id: category.id }) != null;
+      return isImportant;
+    });
     this.refs.list.handler().onSelect(items);
   };
 }

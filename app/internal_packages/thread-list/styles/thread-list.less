@@ -533,6 +533,9 @@ body.platform-win32 {
 }
 
 .thread-list-narrow {
+  .empty-folder-bar {
+    width: 100%;
+  }
   .thread-list-empty-folder-bar {
     padding-left: 24px;
   }
@@ -576,18 +579,17 @@ body.platform-win32 {
   .list-tabular-item {
     line-height: 21px;
     box-shadow: none;
-    border: none;
   }
 
-  .list-tabular-item:not(.selected):not(.focused):not(.next-is-selected):after {
-    content: "";
-    background: @border-color-divider;
-    position: absolute;
-    bottom: 0;
-    left: 0%;
-    height: 1px;
-    width: 100%;
-  }
+  // .list-tabular-item:not(.selected):not(.focused):not(.next-is-selected):after {
+  //   content: "";
+  //   background: @border-color-divider;
+  //   position: absolute;
+  //   bottom: 0;
+  //   left: 0%;
+  //   height: 1px;
+  //   width: 100%;
+  // }
 
   .timestamp {
     order: 100;

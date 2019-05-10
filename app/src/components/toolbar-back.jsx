@@ -46,8 +46,10 @@ export default class ToolbarBack extends React.Component {
       title = this.state.categoryName;
     }
     return (
-      <div className="item-back" onClick={this._onClick} title={`Return to ${title}`}>
-        <RetinaImg name={'arrow.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+      <div className="button-group">
+        <div style={{ marginLeft: 0 }} className="item-back btn-toolbar" onClick={this._onClick} title={`Return to ${title}`}>
+          <RetinaImg name={'arrow.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
+        </div>
       </div>
     );
   }
