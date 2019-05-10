@@ -382,8 +382,13 @@ export class XmppEx extends EventEmitter3 {
         .subscribe(jid => this.client.joinRoom(jid));
     });
   }
-
+  lastTs = 0;
   async pullMessage(ts) {
+    // console.log('yazz-test87', ts);
+    if (this.lastTs == ts) {
+      return;
+    }
+    this.lastTs = ts;
     return this.client.pullMessage(ts);
   }
   /**
