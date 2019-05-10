@@ -1,10 +1,12 @@
 import { Utils, WorkspaceStore, ThreadCountsStore, FocusedPerspectiveStore, CategoryStore, Label } from 'mailspring-exports';
-import { InjectedComponentSet } from 'mailspring-component-kit';
+import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import classnames from 'classnames';
+import { remote } from 'electron';
+const { Menu, MenuItem } = remote;
 
 /*
  * MultiselectToolbar renders a toolbar inside a horizontal bar and displays
@@ -104,6 +106,46 @@ class MultiselectToolbar extends Component {
     })
   }
 
+  onSelectWithFilter = () => {
+    const menu = new Menu();
+    menu.append(new MenuItem({
+      label: `All`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('multiselect-list:select-all');
+      },
+    }),
+    );
+    menu.append(new MenuItem({
+      label: `None`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('multiselect-list:deselect-all');
+      },
+    }),
+    );
+    menu.append(new MenuItem({
+      label: `Unread`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('thread-list:select-unread');
+      },
+    }),
+    );
+    menu.append(new MenuItem({
+      label: `Flagged`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('thread-list:select-starred');
+      },
+    }),
+    );
+    menu.append(new MenuItem({
+      label: `Important`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('thread-list:select-important');
+      },
+    }),
+    );
+    menu.popup({});
+  }
+
   renderToolbar() {
     const { toolbarElement, dataSource, selectionCount, onEmptyButtons } = this.props;
     const mode = WorkspaceStore.layoutMode();
@@ -143,16 +185,24 @@ class MultiselectToolbar extends Component {
       <div className={classes} key="absolute">
         <div className="inner">
           <div className={'checkmark' + (isSelectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
+          <div onClick={this.onSelectWithFilter} className="btn btn-toolbar btn-selection-filter">
+            <RetinaImg
+              name="arrow-dropdown.svg"
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+              style={{ width: 20 }}
+            />
+          </div>
           {
             selectionCount > 0 ? (
               <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
                 <div className="selection-label">{this.selectionLabel()}</div>
-                <button className="btn clickable btn-toggle-select-all" onClick={this.selectAll}>
+                {/* <button className="btn clickable btn-toggle-select-all" onClick={this.selectAll}>
                   Select all {this._formatNumber(totalCount)}
                 </button>
                 <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
                   Clear Selection
-                </button>
+                </button> */}
                 {WorkspaceStore.layoutMode() === 'list' ? <div className="divider" key='thread-list-tool-bar-divider' /> : null}
                 {toolbarElement}
               </div>
@@ -165,7 +215,7 @@ class MultiselectToolbar extends Component {
                   <span className="updated-time">
                     {this._renderLastUpdateLabel(lastUpdate)}
                     {threadCounts > 0 && (
-                      <span>({this._formatNumber(threadCounts)})</span>
+                      <span className="toolbar-unread-count">({this._formatNumber(threadCounts)})</span>
                     )}
                   </span>
                   <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

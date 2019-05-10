@@ -9,7 +9,7 @@ import {
 } from 'mailspring-exports';
 
 const _observableForThreadMessages = (id, initialModels) => {
-  const subscription = new QuerySubscription(MessageStore.findAllByThreadId({threadId: id}), {
+  const subscription = new QuerySubscription(MessageStore.findAllByThreadId({ threadId: id }), {
     initialModels: initialModels,
     emitResultSet: true,
   });
@@ -34,7 +34,7 @@ const _flatMapJoiningMessages = $threadsResultSet => {
         if (missingIds.length === 0) {
           promise = Promise.resolve([threadsResultSet, []]);
         } else {
-          promise = MessageStore.findAllByThreadId({threadId: missingIds}).then(messages => {
+          promise = MessageStore.findAllByThreadId({ threadId: missingIds }).then(messages => {
             return Promise.resolve([threadsResultSet, messages]);
           });
         }
