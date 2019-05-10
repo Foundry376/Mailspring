@@ -235,6 +235,9 @@ export default class AppEnvConstructor {
   reportError(error, extra = {}, { noWindows } = {}) {
     try {
       extra.pluginIds = this._findPluginsFromError(error);
+      if (Array.isArray(AppEnv.config.get('accounts'))) {
+        extra.accounts = AppEnv.config.get('accounts').map(ac => ac.emailAddress);
+      }
     } catch (err) {
       // can happen when an error is thrown very early
       extra.pluginIds = [];

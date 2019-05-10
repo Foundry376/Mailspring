@@ -204,6 +204,7 @@ export default class MailsyncProcess extends EventEmitter {
           if (code !== 0) {
             const error = new Error(`An unexpected mailsync error occurred (${code})`);
             console.error(`Error while getting native is closing: ${err}`);
+            console.error(`last buffer is: ${buffer}`);
             error.rawLog = stripSecrets(buffer.toString());
             reject(error);
           } else {
