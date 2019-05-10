@@ -194,6 +194,8 @@ class SidebarSection {
     //
     const items = [];
     const seenItems = {};
+    const categoriesToBeRemoved = [];
+
     for (let category of CategoryStore.userCategories(account)) {
       // https://regex101.com/r/jK8cC2/1
       var item, parentKey;
@@ -217,9 +219,20 @@ class SidebarSection {
       } else {
         item = SidebarItem.forCategories([category]);
         items.push(item);
+        if (category.isStandardCategory()) {
+          categoriesToBeRemoved.push(item.id)
+        }
       }
       seenItems[itemKey] = item;
     }
+
+    for (let categoryToRemove of categoriesToBeRemoved) {
+      let indexToRemove = items.findIndex(item => item.id === categoryToRemove && !item.children.length);
+      if (indexToRemove !== -1) {
+        items.splice(indexToRemove, 1 );
+      }
+    }
+
 
     const inbox = CategoryStore.getInboxCategory(account);
     let iconName = null;

@@ -184,7 +184,7 @@ export class Category extends Model {
   }
 
   isUserCategory() {
-    return !this.isStandardCategory() && !this.isHiddenCategory();
+    return !this.isHiddenCategory();
   }
 
   isArchive() {
