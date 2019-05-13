@@ -16,6 +16,14 @@ export default class MessageCommand extends PureComponent {
 
   argEls = [];
 
+  onClick = e => {
+    const onClick = this.props.onClick;
+    if (onClick) {
+      onClick();
+    }
+    this.sendCommand2App();
+  }
+
   sendCommand2App = async (e) => {
     // console.log('debugger: sendCommand2App this.props: ', this.props);
     let command = this.head;
@@ -70,7 +78,7 @@ export default class MessageCommand extends PureComponent {
     return (
       <div>
         <div className="messageCommand">
-          <span className="messageCommandHead" onClick={this.sendCommand2App}>
+          <span className="messageCommandHead" onClick={this.onClick}>
             {this.head}
           </span>
           {this.items.map((item, idx) => {

@@ -22,7 +22,7 @@ const isChatTest = isChatTestUser();
 module.exports = {
   activate() {
     const { devMode } = AppEnv.getLoadSettings();
-    if (devMode || isChatTest) {
+    if (true || devMode || isChatTest) {
       WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });
       ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
       if (AppEnv.isMainWindow()) {
@@ -49,7 +49,7 @@ module.exports = {
   deactivate() {
     quit();
     const { devMode } = AppEnv.getLoadSettings();
-    if (devMode || isChatTest) {
+    if (true || devMode || isChatTest) {
       if (AppEnv.isMainWindow()) {
         ComponentRegistry.unregister(ChatButton);
         ComponentRegistry.unregister(ChatViewLeft);

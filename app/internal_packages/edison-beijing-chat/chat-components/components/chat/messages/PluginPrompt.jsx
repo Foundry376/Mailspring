@@ -51,7 +51,12 @@ export default class PluginPrompt extends PureComponent {
         };
       }
     });
-    const state = Object.assign({}, this.state, { matchedAppCommands })
+    const state = Object.assign({}, this.state, { matchedAppCommands, hidden: false })
+    this.setState(state);
+  }
+
+  hide = () => {
+    const state = Object.assign({}, this.state, { hidden:true });
     this.setState(state);
   }
 
@@ -59,7 +64,7 @@ export default class PluginPrompt extends PureComponent {
     // console.log('debugger: PluginPrompt.render this.props: ', this.props);
     const {pos,  prefix} = this.props;
 
-    if (!prefix || prefix[0] !== '/' || prefix=='/') {
+    if (!prefix || prefix[0] !== '/' || prefix=='/' || this.state.hidden) {
       return null;
     }
      if (!this.state.matchedAppCommands || !this.state.matchedAppCommands.length) {
@@ -75,6 +80,7 @@ export default class PluginPrompt extends PureComponent {
            appJid = {app.id+'@app.im.edison.tech'}
            commandType = {app.commandType}
            templateText = {command.command}
+           onClick={this.hide}
            key = {idx}>
            </MessageCommand>)
        }
