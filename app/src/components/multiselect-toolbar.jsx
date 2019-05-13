@@ -41,10 +41,7 @@ class MultiselectToolbar extends Component {
   }
 
   componentDidUpdate = () => {
-    const { selectionCount, dataSource } = this.props;
-    const items = dataSource.itemsCurrentlyInViewMatching(() => true);
-    const isSelectAll = !this.state.selectAll && items && items.length && selectionCount === items.length;
-    this.state.selectAll = !isSelectAll;
+
   }
 
   selectionLabel = () => {
@@ -58,17 +55,14 @@ class MultiselectToolbar extends Component {
   };
 
   onToggleSelectAll = () => {
-    const { onClearSelection } = this.props;
+    const checkStatus = this.checkStatus();
     // select all
-    if (this.state.selectAll) {
-      this.selectAll();
+    if (!checkStatus) {
+      this._selectAll();
     }
     // deselect all
     else {
-      onClearSelection();
-      this.setState({
-        selectAll: true
-      })
+      this._clearSelection();
     }
   }
 
@@ -88,22 +82,16 @@ class MultiselectToolbar extends Component {
     return num && num.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
   }
 
-  selectAll = () => {
-    const { onClearSelection, dataSource } = this.props;
+  _selectAll = () => {
+    const { dataSource } = this.props;
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
     if (items) {
       dataSource.selection.set(items);
     }
-    this.setState({
-      selectAll: false
-    })
   }
 
   _clearSelection = () => {
     this.props.onClearSelection();
-    this.setState({
-      selectAll: true
-    })
   }
 
   onSelectWithFilter = () => {
@@ -146,9 +134,20 @@ class MultiselectToolbar extends Component {
     menu.popup({});
   }
 
+  checkStatus = () => {
+    const { dataSource, selectionCount } = this.props;
+    const items = dataSource.itemsCurrentlyInViewMatching(() => true);
+    const isSelectAll = items && items.length && selectionCount === items.length;
+    if (isSelectAll) {
+      return 'selected';
+    } else if (selectionCount) {
+      return 'some-selected';
+    }
+    return '';
+  }
+
   renderToolbar() {
     const { toolbarElement, dataSource, selectionCount, onEmptyButtons } = this.props;
-    const mode = WorkspaceStore.layoutMode();
     let totalCount = 0;
     if (dataSource) {
       totalCount = dataSource.count();
@@ -156,7 +155,7 @@ class MultiselectToolbar extends Component {
       return <span />
     }
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
-    const isSelectAll = !this.state.selectAll && items && items.length && selectionCount === items.length;
+    const checkStatus = this.checkStatus();
     const current = FocusedPerspectiveStore.current();
     let threadCounts = 0;
     let lastUpdate = 0;
@@ -184,7 +183,7 @@ class MultiselectToolbar extends Component {
     return (
       <div className={classes} key="absolute">
         <div className="inner">
-          <div className={'checkmark' + (isSelectAll ? ' selected' : '')} onClick={this.onToggleSelectAll}></div>
+          <div className={'checkmark ' + checkStatus} onClick={this.onToggleSelectAll}></div>
           <div onClick={this.onSelectWithFilter} className="btn btn-toolbar btn-selection-filter">
             <RetinaImg
               name="arrow-dropdown.svg"
@@ -197,7 +196,7 @@ class MultiselectToolbar extends Component {
             selectionCount > 0 ? (
               <div style={{ display: 'flex', flex: '1', marginRight: 10 }}>
                 <div className="selection-label">{this.selectionLabel()}</div>
-                {/* <button className="btn clickable btn-toggle-select-all" onClick={this.selectAll}>
+                {/* <button className="btn clickable btn-toggle-select-all" onClick={this._selectAll}>
                   Select all {this._formatNumber(totalCount)}
                 </button>
                 <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
