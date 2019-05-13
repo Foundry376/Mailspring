@@ -39,6 +39,7 @@ import { beginStoringMessage } from '../../../actions/db/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
 import { getToken, getMyApps } from '../../../utils/appmgt';
+import { log } from '../../../utils/log-util';
 
 const { exec } = require('child_process');
 const remote = require('electron').remote;
@@ -242,6 +243,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   onLine = () => {
+    log(`MessagePanel: chat online`);
     // connect to chat server
     if (!this.props.chat_online) {
       this.reconnect();
@@ -251,15 +253,16 @@ export default class MessagesPanel extends PureComponent {
       online: true,
       progress,
     })
-  }
+  };
 
   offLine = () => {
+    log(`MessagePanel: chat offline`);
     const progress = Object.assign({}, this.state.progress, { offline: true, failed: true });
     this.setState({
       online: false,
       progress,
     })
-  }
+  };
 
   componentWillReceiveProps = (nextProps) => {
     if (nextProps.selectedConversation

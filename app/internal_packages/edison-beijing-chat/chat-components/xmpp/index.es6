@@ -2,6 +2,7 @@ import Stanza, { Client } from '../../../../src/xmpp/stanza.io';
 import EventEmitter3 from 'eventemitter3';
 import { Observable } from 'rxjs/Observable';
 import chatModel from '../store/model';
+import { log } from '../utils/log-util';
 
 /**
  * The interval between requests to join rooms
@@ -164,6 +165,7 @@ export class XmppEx extends EventEmitter3 {
       }
     });
     this.client.on('session:started', () => {
+      log(`xmpp session:started: jid: ${this.connectedJid}`);
       this.retryTimes = 0;
       this.isConnected = true;
       this.client.sendPresence();
@@ -179,6 +181,7 @@ export class XmppEx extends EventEmitter3 {
     });
     this.client.on('disconnected', () => {
       console.warn('disconnected', this.connectedJid);
+      log(`xmpp disconnected: jid: ${this.connectedJid}`);
       this.isConnected = false;
       if (this.retryTimes == 0) {
         this.retryTimes++;

@@ -3,6 +3,8 @@ import ChatView from './chat-view';
 import ChatViewLeft from './chat-view-left';
 import ChatAccountSidebarFiller from '../chat-components/components/chat/chat-account-sidebar-filler';
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
+import { init, quit } from '../chat-components/utils/log-util';
+
 const osLocale = require('os-locale');
 const CHAT_COUNTRIES = [
   "CN"
@@ -20,7 +22,7 @@ const isChatTest = isChatTestUser();
 module.exports = {
   activate() {
     const { devMode } = AppEnv.getLoadSettings();
-    if (devMode || isChatTest) {
+    if (true || devMode || isChatTest) {
       WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });
       ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
       if (AppEnv.isMainWindow()) {
@@ -41,11 +43,13 @@ module.exports = {
       //   });
       // }
     }
+    init();
   },
 
   deactivate() {
+    quit();
     const { devMode } = AppEnv.getLoadSettings();
-    if (devMode || isChatTest) {
+    if (true || devMode || isChatTest) {
       if (AppEnv.isMainWindow()) {
         ComponentRegistry.unregister(ChatButton);
         ComponentRegistry.unregister(ChatViewLeft);
@@ -55,4 +59,5 @@ module.exports = {
       }
     }
   }
+
 };
