@@ -72,7 +72,8 @@ export default class Message extends ModelWithMetadata {
   static messageState = {
     normal: '0',
     deleted: '1',
-    saving: '2'
+    saving: '2',
+    sending: '3',
   };
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
     // load id column into json
