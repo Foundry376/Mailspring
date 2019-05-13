@@ -1,0 +1,15 @@
+{
+  "name": "exportPDF",
+  "version": "0.1.0",
+  "main": "./lib/main",
+  "description": "Export to PDF",
+  "license": "GPL-3.0",
+  "private": true,
+  "engines": {
+    "mailspring": "*"
+  },
+  "windowTypes": {
+    "default": true,
+    "thread-popout": true
+  }
+}

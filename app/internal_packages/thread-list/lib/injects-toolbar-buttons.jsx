@@ -40,7 +40,7 @@ function InjectsToolbarButtons(ToolbarComponent, { getObservable, extraRoles = [
       );
       let onEmptyButtons = [];
       if (emptyMatching) {
-        onEmptyButtons = (<InjectedComponentSet className="toolbar-buttons123" key="injected"
+        onEmptyButtons = (<InjectedComponentSet className="toolbar-buttons" key="injected"
           matching={emptyMatching}
           exposedProps={exposedProps} />);
       }

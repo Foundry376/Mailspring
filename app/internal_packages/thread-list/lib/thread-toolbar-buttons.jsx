@@ -59,9 +59,9 @@ export class ArchiveButton extends React.Component {
       <BindGlobalCommands commands={{ 'core:archive-item': event => commandCb(event, this._onArchive) }}>
         <button tabIndex={-1} className="btn btn-toolbar" title="Archive" onClick={this._onArchive}>
           <RetinaImg name={'archive.svg'}
-                     style={{ width: 24, height: 24 }}
-                     isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            style={{ width: 24, height: 24 }}
+            isIcon
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -122,7 +122,7 @@ export class TrashButton extends React.Component {
           title="Move to Trash"
           onClick={actionCallBack}
         >
-          <RetinaImg name={'trash.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name={'trash.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -166,7 +166,7 @@ class HiddenGenericRemoveButton extends React.Component {
           'core:show-next': event => commandCb(event, this._onShift, { offset: 1 }),
         }}
       >
-        <span/>
+        <span />
       </BindGlobalCommands>
     );
   }
@@ -220,14 +220,14 @@ class HiddenToggleImportantButton extends React.Component {
         commands={
           allImportant
             ? {
-              'core:mark-unimportant': event => commandCb(event,this._onSetImportant,false)
+              'core:mark-unimportant': event => commandCb(event, this._onSetImportant, false)
             }
             : {
-              'core:mark-important': event => commandCb(event,this._onSetImportant,true)
+              'core:mark-important': event => commandCb(event, this._onSetImportant, true)
             }
         }
       >
-        <span/>
+        <span />
       </BindGlobalCommands>
     );
   }
@@ -286,7 +286,7 @@ export class MarkAsSpamButton extends React.Component {
             onClick={this._onNotSpam}
           >
             <RetinaImg name="not-junk.svg" style={{ width: 24, height: 24 }} isIcon
-                       mode={RetinaImg.Mode.ContentIsMask}/>
+              mode={RetinaImg.Mode.ContentIsMask} />
           </button>
         </BindGlobalCommands>
       );
@@ -309,7 +309,7 @@ export class MarkAsSpamButton extends React.Component {
           title="Mark as Spam"
           onClick={this._onMarkAsSpam}
         >
-          <RetinaImg name={'junk.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask}/>
+          <RetinaImg name={'junk.svg'} style={{ width: 24, height: 24 }} isIcon mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -349,7 +349,7 @@ export class ToggleStarredButton extends React.Component {
             name="flag.svg"
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask}/>
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -392,10 +392,10 @@ export class ToggleUnreadButton extends React.Component {
         commands={
           targetUnread
             ? {
-              'core:mark-as-unread': event => commandCb(event, this._onChangeUnread,true)
+              'core:mark-as-unread': event => commandCb(event, this._onChangeUnread, true)
             }
             : {
-              'core:mark-as-read': event => commandCb(event, this._onChangeUnread,false)
+              'core:mark-as-read': event => commandCb(event, this._onChangeUnread, false)
             }
         }
       >
@@ -406,7 +406,7 @@ export class ToggleUnreadButton extends React.Component {
           onClick={this._onClick}
         >
           <RetinaImg name={`${fragment}.svg`} style={{ width: 24, height: 24 }} isIcon
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </BindGlobalCommands>
     );
@@ -443,32 +443,56 @@ export class ThreadListMoreButton extends React.Component {
   };
 
   _more = () => {
+    const selectionCount = this.props.items ? this.props.items.length : 0;
     const menu = new Menu();
-    menu.append(new MenuItem({
+    if (selectionCount > 0) {
+      menu.append(new MenuItem({
         label: `Mark as read`,
         click: (menuItem, browserWindow) => {
           AppEnv.commands.dispatch('core:mark-as-read');
         },
       }),
-    );
-    const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
-      this.props.items,
-      'important',
-    );
-    if (allowed) {
-      menu.append(new MenuItem({
+      );
+      const allowed = FocusedPerspectiveStore.current().canMoveThreadsTo(
+        this.props.items,
+        'important',
+      );
+      if (allowed) {
+        menu.append(new MenuItem({
           label: `Mark as spam`,
           click: (menuItem, browserWindow) => {
             AppEnv.commands.dispatch('core:report-as-spam');
           },
         }),
-      );
-    }
-    if (this._account && this._account.usesLabels()) {
-      menu.append(new MenuItem({
+        );
+      }
+      if (this._account && this._account.usesLabels()) {
+        menu.append(new MenuItem({
           label: `Mark important`,
           click: () => AppEnv.commands.dispatch('core:mark-important'),
         }),
+        );
+      }
+    } else {
+      menu.append(new MenuItem({
+        label: `Mark all as read`,
+        click: (menuItem, browserWindow) => {
+          const unreadThreads = this.props.dataSource.itemsCurrentlyInViewMatching(item => item.unread);
+          Actions.queueTasks(
+            TaskFactory.taskForSettingUnread({
+              threads: unreadThreads,
+              unread: false,
+              source: 'Toolbar Button: Mark all read',
+            }),
+          );
+        },
+      }),
+      );
+      menu.append(new MenuItem({ type: 'separator' }));
+      menu.append(new MenuItem({
+        label: `Select messages for more options.`,
+        enabled: false
+      }),
       );
     }
     menu.popup({});
@@ -481,7 +505,7 @@ export class ThreadListMoreButton extends React.Component {
           name="more.svg"
           style={{ width: 24, height: 24 }}
           isIcon
-          mode={RetinaImg.Mode.ContentIsMask}/>
+          mode={RetinaImg.Mode.ContentIsMask} />
       </button>
     );
   }
@@ -505,14 +529,14 @@ export class MoreButton extends React.Component {
     const expandTitle = MessageStore.hasCollapsedItems() ? 'Expand All' : 'Collapse All';
     const menu = new Menu();
     menu.append(new MenuItem({
-        label: `Print Thread`,
-        click: () => this._onPrintThread(),
-      }),
+      label: `Print Thread`,
+      click: () => this._onPrintThread(),
+    }),
     );
     menu.append(new MenuItem({
-        label: expandTitle,
-        click: () => Actions.toggleAllMessagesExpanded(),
-      }),
+      label: expandTitle,
+      click: () => Actions.toggleAllMessagesExpanded(),
+    }),
     );
     menu.popup({});
   };
@@ -524,7 +548,7 @@ export class MoreButton extends React.Component {
           name="more.svg"
           style={{ width: 24, height: 24 }}
           isIcon
-          mode={RetinaImg.Mode.ContentIsMask}/>
+          mode={RetinaImg.Mode.ContentIsMask} />
       </button>
     );
   }
@@ -579,14 +603,14 @@ class ThreadArrowButton extends React.Component {
           name={`${direction === 'up' ? 'back' : 'next'}.svg`}
           isIcon
           style={{ width: 24, height: 24 }}
-          mode={RetinaImg.Mode.ContentIsMask}/>
+          mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
   }
 }
 
 const Divider = (key = 'divider') => (
-  <div className="divider" key={key}/>
+  <div className="divider" key={key} />
 );
 Divider.displayName = 'Divider';
 
@@ -684,9 +708,9 @@ export const PopoutButton = () => {
         onClick={_onPopoutComposer}
       >
         <RetinaImg name={'popout.svg'}
-                   style={{ width: 24, height: 24 }}
-                   isIcon
-                   mode={RetinaImg.Mode.ContentIsMask}/>
+          style={{ width: 24, height: 24 }}
+          isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
       </div>
     );
   }

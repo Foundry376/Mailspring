@@ -27,7 +27,7 @@ import { AccountStore } from 'mailspring-exports';
 import keyMannager from '../../../../../../src/key-manager';
 import MemberProfile from '../conversations/MemberProfile';
 
-import {xmpplogin} from '../../../utils/restjs';
+import { xmpplogin } from '../../../utils/restjs';
 import Notification from '../../../../../../src/components/notification';
 import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 import fs from "fs";
@@ -40,7 +40,7 @@ import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
 import { getToken, getMyApps } from '../../../utils/appmgt';
 
-const {exec} = require('child_process');
+const { exec } = require('child_process');
 const remote = require('electron').remote;
 const { dialog } = remote;
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -150,7 +150,7 @@ export default class MessagesPanel extends PureComponent {
       return;
     }
     const { curJid } = selectedConversation;
-    if(!curJid) {
+    if (!curJid) {
       return;
     }
     let apps = [];
@@ -162,12 +162,14 @@ export default class MessagesPanel extends PureComponent {
     }
     let uapps = myApps.apps;
     try {
-      for (let app of uapps) {
-        app = Object.assign({}, app);
-        app.jid = app.id + '@app.im.edison.tech';
-        app.email = app.jid;
-        app.curJid = curJid;
-        apps.push(app)
+      if (uapps && uapps.length > 0) {
+        for (let app of uapps) {
+          app = Object.assign({}, app);
+          app.jid = app.id + '@app.im.edison.tech';
+          app.email = app.jid;
+          app.curJid = curJid;
+          apps.push(app)
+        }
       }
       // console.log('debugger: MessagePanel.getApps: apps: ', apps);
       // const state = Object.assign({}, this.state, { apps });
@@ -561,17 +563,17 @@ export default class MessagesPanel extends PureComponent {
 
   installApp = async (e) => {
     const conv = this.props.selectedConversation;
-    const {curJid} = conv;
+    const { curJid } = conv;
     const userId = curJid.split('@')[0];
     let token = await getToken(userId);
-    xmpplogin(userId, token,(err,data) => {
+    xmpplogin(userId, token, (err, data) => {
       // console.log('debugger xmpplogin: ', userId, token, err, data);
       if (data) {
         data = JSON.parse(data);
-        if (data.data && data.data.url){
+        if (data.data && data.data.url) {
           exec('open ' + data.data.url);
         } else {
-          window.alert('fail to open the app store page'); 
+          window.alert('fail to open the app store page');
         }
       }
     })
@@ -677,8 +679,8 @@ export default class MessagesPanel extends PureComponent {
                 ) : (
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
-                      <div onClick={this.installApp} style={{zIndex:999}}> Install App</div>
-                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile}/>
+                      <div onClick={this.installApp} style={{ zIndex: 999 }}> Install App</div>
+                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile} />
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (
                         <div id="message-dragdrop-override"></div>

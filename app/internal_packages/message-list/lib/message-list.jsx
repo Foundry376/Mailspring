@@ -237,6 +237,7 @@ class MessageList extends React.Component {
       },
       'core:forward': () => this._onForward(),
       'core:print-thread': () => this._onPrintThread(),
+      'core:export-pdf': this._onPdfThread,
       'core:messages-page-up': () => this._onScrollByPage(-1),
       'core:messages-page-down': () => this._onScrollByPage(1),
     };
@@ -284,6 +285,10 @@ class MessageList extends React.Component {
 
   _onToggleAllMessagesExpanded = () => {
     Actions.toggleAllMessagesExpanded();
+  };
+  _onPdfThread = () => {
+    const node = ReactDOM.findDOMNode(this);
+    Actions.pdfThread(this.state.currentThread, node.innerHTML);
   };
 
   _onPrintThread = () => {

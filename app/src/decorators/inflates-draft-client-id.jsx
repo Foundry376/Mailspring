@@ -42,7 +42,10 @@ function InflatesDraftClientId(ComposedComponent) {
     }
 
     componentWillReceiveProps(newProps) {
-      if (newProps.headerMessageId !== this.props.headerMessageId) {
+      if (
+        newProps.headerMessageId !== this.props.headerMessageId ||
+        newProps.messageId !== this.props.messageId
+      ) {
         // console.log(`new props: ${JSON.stringify(newProps)}`);
         this._teardownForDraft();
         this._prepareForDraft(newProps.headerMessageId, newProps.messageId);

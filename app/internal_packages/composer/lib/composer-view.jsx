@@ -22,7 +22,6 @@ import {
   ComposerSupport,
   Spinner,
 } from 'mailspring-component-kit';
-import { History } from 'slate';
 import ComposerHeader from './composer-header';
 import SendActionButton from './send-action-button';
 import ActionBarPlugins from './action-bar-plugins';
