@@ -21,7 +21,7 @@ class MessageStore extends MailspringStore {
 
   findAll() {
     return DatabaseStore.findAll(Message)
-      .where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+      .where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending])]);
   }
 
   findAllInDescendingOrder() {
@@ -45,7 +45,7 @@ class MessageStore extends MailspringStore {
   }
 
   findByThreadId({ threadId }) {
-    return DatabaseStore.findBy(Message, { threadId }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+    return DatabaseStore.findBy(Message, { threadId }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending])]);
   }
 
   findByThreadIdAndAccountId({ threadId, accountId }) {
@@ -61,7 +61,7 @@ class MessageStore extends MailspringStore {
   }
 
   findByMessageId({ messageId }) {
-    return DatabaseStore.find(Message, messageId).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving])]);
+    return DatabaseStore.find(Message, messageId).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending])]);
   }
 
   findByMessageIdWithBody({ messageId }) {

@@ -28,9 +28,12 @@ class UndoRedoStore extends MailspringStore {
     this._mostRecentBlock = null;
     this._queueingTasks = false;
 
-    this.listenTo(Actions.queueTask, this._onQueue);
-    this.listenTo(Actions.queueTasks, this._onQueue);
-    this.listenTo(Actions.queueUndoOnlyTask, this._onQueue);
+    if (AppEnv.isMainWindow()) {
+      console.log('main window');
+      this.listenTo(Actions.queueTask, this._onQueue);
+      this.listenTo(Actions.queueTasks, this._onQueue);
+      this.listenTo(Actions.queueUndoOnlyTask, this._onQueue);
+    }
   }
 
   _onQueue = taskOrTasks => {
@@ -45,7 +48,7 @@ class UndoRedoStore extends MailspringStore {
 
     if (tasks.every(t => t.canBeUndone)) {
       const block = {
-        id: tasks.map(t=>t.id).join('-'),
+        id: tasks.map(t => t.id).join('-'),
         ids: tasks.map(t => t.id),
         tasks: tasks,
         description: tasks.map(t => t.description()).join(', '),
@@ -59,7 +62,7 @@ class UndoRedoStore extends MailspringStore {
             if (t instanceof SyncbackMetadataTask && t.pluginId === 'send-later') {
               ipcRenderer.send('send-later-manager', 'undo', t.modelHeaderMessageId, null, null, t.modelThreadId);
               return null;
-            }else{
+            } else {
               return TaskFactory.taskForUndo({ task: t });
             }
           }));
@@ -76,7 +79,7 @@ class UndoRedoStore extends MailspringStore {
         queueTimeoutTasks: () => {
           tasks.forEach(t => {
             if (t.delayedTasks) {
-              Actions.queueTasks(t.delayedTasks());
+              Actions.queueTasks(t.delayedTasks);
             }
           });
         },
@@ -116,12 +119,13 @@ class UndoRedoStore extends MailspringStore {
     }
     this._timeouts[block.id] = setTimeout(
       this._onBlockTimedOut.bind(this, { block }),
-      block.delayDuration
+      block.delayDuration,
     );
   };
   _onBlockTimedOut = ({ block }) => {
     const currentBlock = this.findBlock({ block });
     if (!currentBlock) {
+      clearTimeout(this._timeouts[block.id]);
       delete this._timeouts[block.id];
       return;
     }
@@ -236,6 +240,7 @@ class UndoRedoStore extends MailspringStore {
       return b.id !== block.id;
     });
     clearTimeout(this._timeouts[block.id]);
+    delete this._timeouts[block.id];
     if (!noTrigger) {
       this.trigger();
     }

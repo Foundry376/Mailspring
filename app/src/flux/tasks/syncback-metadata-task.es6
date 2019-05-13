@@ -52,6 +52,9 @@ export default class SyncbackMetadataTask extends Task {
     undoValue: Attributes.Object({
       modelKey: 'undoValue',
     }),
+    delayedTasks: Attributes.Collection({
+      delayedTasks: 'delayedTasks',
+    }),
   });
 
   get canBeUndone() {
