@@ -1,11 +1,17 @@
-import { Utils, WorkspaceStore, ThreadCountsStore, FocusedPerspectiveStore, CategoryStore, Label } from 'mailspring-exports';
-import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
+import {
+  Utils,
+  WorkspaceStore,
+  ThreadCountsStore,
+  FocusedPerspectiveStore,
+} from 'mailspring-exports';
+import { InjectedComponentSet, RetinaImg, LottieImg } from 'mailspring-component-kit';
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import classnames from 'classnames';
 import { remote } from 'electron';
+
 const { Menu, MenuItem } = remote;
 
 /*
@@ -26,14 +32,24 @@ class MultiselectToolbar extends Component {
     collection: PropTypes.string.isRequired,
     onClearSelection: PropTypes.func.isRequired,
     selectionCount: PropTypes.node,
-    dataSource: PropTypes.object
+    dataSource: PropTypes.object,
   };
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
-      selectAll: true
-    }
+      selectAll: true,
+      refreshingMessages: false,
+      previousPerspectiveName: '',
+      previousUpdatedTime: '',
+    };
+    this.refreshTimer = null;
+    this.refreshDelay = 300;
+    this.mounted = false;
+  }
+
+  componentDidMount() {
+    this.mounted = true;
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -41,7 +57,27 @@ class MultiselectToolbar extends Component {
   }
 
   componentDidUpdate = () => {
+    const perspective = FocusedPerspectiveStore.current();
+    const updatedTime = FocusedPerspectiveStore.getLastUpdatedTime();
+    const state = {};
+    if (this.state.previousPerspectiveName !== perspective.name) {
+      state.previousPerspectiveName = perspective.name;
+      state.refreshingMessages = false;
+    }
+    if (this.state.previousUpdatedTime !== updatedTime) {
+      state.previousUpdatedTime = updatedTime;
+      state.refreshingMessages = false;
+    }
+    if (state.refreshingMessages === false) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+    this.setState(state);
+  };
 
+  componentWillUnmount() {
+    this.mounted = false;
+    clearTimeout(this.refreshTimer);
   }
 
   selectionLabel = () => {
@@ -64,7 +100,7 @@ class MultiselectToolbar extends Component {
     else {
       this._clearSelection();
     }
-  }
+  };
 
   _renderLastUpdateLabel(lastUpdate) {
     if (!lastUpdate) {
@@ -75,7 +111,7 @@ class MultiselectToolbar extends Component {
     }
     return (
       <span>Updated {moment(lastUpdate).fromNow()}</span>
-    )
+    );
   }
 
   _formatNumber(num) {
@@ -88,51 +124,51 @@ class MultiselectToolbar extends Component {
     if (items) {
       dataSource.selection.set(items);
     }
-  }
+  };
 
   _clearSelection = () => {
     this.props.onClearSelection();
-  }
+  };
 
   onSelectWithFilter = () => {
     const menu = new Menu();
     menu.append(new MenuItem({
-      label: `All`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('multiselect-list:select-all');
-      },
-    }),
+        label: `All`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('multiselect-list:select-all');
+        },
+      }),
     );
     menu.append(new MenuItem({
-      label: `None`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('multiselect-list:deselect-all');
-      },
-    }),
+        label: `None`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('multiselect-list:deselect-all');
+        },
+      }),
     );
     menu.append(new MenuItem({
-      label: `Unread`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('thread-list:select-unread');
-      },
-    }),
+        label: `Unread`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('thread-list:select-unread');
+        },
+      }),
     );
     menu.append(new MenuItem({
-      label: `Flagged`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('thread-list:select-starred');
-      },
-    }),
+        label: `Flagged`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('thread-list:select-starred');
+        },
+      }),
     );
     menu.append(new MenuItem({
-      label: `Important`,
-      click: (menuItem, browserWindow) => {
-        AppEnv.commands.dispatch('thread-list:select-important');
-      },
-    }),
+        label: `Important`,
+        click: (menuItem, browserWindow) => {
+          AppEnv.commands.dispatch('thread-list:select-important');
+        },
+      }),
     );
     menu.popup({});
-  }
+  };
 
   checkStatus = () => {
     const { dataSource, selectionCount } = this.props;
@@ -144,6 +180,38 @@ class MultiselectToolbar extends Component {
       return 'some-selected';
     }
     return '';
+  };
+  refreshPerspective = () => {
+    if (!this.state.refreshingMessages && !this.refreshTimer) {
+      this.refreshTimer = setTimeout(() => {
+        if (this.mounted) {
+          FocusedPerspectiveStore.refreshPerspectiveMessages();
+          this.setState({ refreshingMessages: true });
+        }
+        this.refreshTimer = null;
+      }, this.refreshDelay);
+    }
+  };
+
+  renderRefreshButton(perspective) {
+    if (!perspective) {
+      return null;
+    }
+    if (perspective.starred) {
+      return null;
+    }
+    if (this.state.refreshingMessages) {
+      return <LottieImg name='loading-spinner-blue'
+                        size={{ width: 24, height: 24 }}
+                        style={{ margin: '0 5px' }}/>;
+    }
+    return <button tabIndex={-1}
+                   className="btn btn-toolbar btn-list-more" title='Refresh'
+                   onClick={this.refreshPerspective}>
+      <RetinaImg name='refresh.svg'
+                 style={{ width: 24, height: 24 }} isIcon
+                 mode={RetinaImg.Mode.ContentIsMask}/>
+    </button>;
   }
 
   renderToolbar() {
@@ -152,13 +220,13 @@ class MultiselectToolbar extends Component {
     if (dataSource) {
       totalCount = dataSource.count();
     } else {
-      return <span />
+      return <span/>;
     }
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
     const checkStatus = this.checkStatus();
     const current = FocusedPerspectiveStore.current();
     let threadCounts = 0;
-    let lastUpdate = 0;
+    const lastUpdate = FocusedPerspectiveStore.getLastUpdatedTime();
     if (current && current._categories && current._categories.length) {
       // 'Unread' is not a folder, don't display count
       if (current.name !== 'Unread' && current._categories && current._categories.length > 0) {
@@ -170,11 +238,6 @@ class MultiselectToolbar extends Component {
           threadCounts += ThreadCountsStore.unreadCountForCategoryId(cat.id);
         }
       }
-      let category = CategoryStore.byId(current._categories[0].accountId, current._categories[0].id);
-      if (category instanceof Label) {
-        category = CategoryStore.getCategoryByRole(current._categories[0].accountId, 'all');
-      }
-      lastUpdate = category ? category.updatedAt : '';
     }
     const classes = classnames({
       'multiselect-toolbar-root': true,
@@ -202,26 +265,31 @@ class MultiselectToolbar extends Component {
                 <button className="btn clickable btn-clear-all" onClick={this._clearSelection}>
                   Clear Selection
                 </button> */}
-                {WorkspaceStore.layoutMode() === 'list' ? <div className="divider" key='thread-list-tool-bar-divider' /> : null}
+                {WorkspaceStore.layoutMode() === 'list' ?
+                  <div className="divider" key='thread-list-tool-bar-divider'/> : null}
                 {toolbarElement}
               </div>
             ) : (
-                <div style={{
-                  display: 'flex', width: 'calc(100% - 66px)',
-                  justifyContent: 'space-between',
-                  marginRight: 10
-                }}>
-                  <span className="updated-time">
+              <div style={{
+                display: 'flex', width: 'calc(100% - 66px)',
+                justifyContent: 'space-between',
+                marginRight: 10,
+              }}>
+                {this.state.refreshingMessages ?
+                  <span className="updated-time">Checking for mail...</span>
+                  : <span className="updated-time">
                     {this._renderLastUpdateLabel(lastUpdate)}
                     {threadCounts > 0 && (
                       <span className="toolbar-unread-count">({this._formatNumber(threadCounts)})</span>
                     )}
                   </span>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    {onEmptyButtons}
-                  </div>
+                }
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  {this.renderRefreshButton(current)}
+                  {onEmptyButtons}
                 </div>
-              )
+              </div>
+            )
           }
         </div>
         <InjectedComponentSet
