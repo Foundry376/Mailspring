@@ -73,13 +73,6 @@ export default class ConversationInfo extends Component {
   showMenu = (e) => {
     const menus = [
       {
-        label: `Add to Group...`,
-        click: () => {
-          const moreBtnEl = document.querySelector('.more');
-          this.props.toggleInvite(moreBtnEl);
-        },
-      },
-      {
         label: `Clear Message History`,
         click: () => {
           this.clearMessages();
@@ -95,6 +88,16 @@ export default class ConversationInfo extends Component {
         },
       },
     ]
+    const { selectedConversation: conversation } = this.props;
+    if (!conversation.jid.match(/@app/)) {
+      menus.unshift({
+        label: `Add to Group...`,
+        click: () => {
+          const moreBtnEl = document.querySelector('.more');
+          this.props.toggleInvite(moreBtnEl);
+        },
+      })
+    }
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
   }
 
