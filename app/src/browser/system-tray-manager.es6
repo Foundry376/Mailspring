@@ -44,9 +44,9 @@ function _getIcon(iconPath, isTemplateImg) {
     return nativeImage.createEmpty();
   }
   const icon = nativeImage.createFromPath(iconPath);
-  if (isTemplateImg) {
-    icon.setTemplateImage(true);
-  }
+  // if (isTemplateImg) {
+  icon.setTemplateImage(true);
+  // }
   return icon;
 }
 
