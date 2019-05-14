@@ -18,7 +18,7 @@ import {
 import { RetinaImg } from 'mailspring-component-kit';
 const { Actions, AttachmentStore } = require('mailspring-exports');
 
-const remote = require('electron').remote;
+import { remote, shell } from 'electron';
 const { dialog, Menu, MenuItem } = remote;
 import { isJsonString } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
@@ -227,6 +227,10 @@ export default class Messages extends PureComponent {
     return null
   }
 
+  openFile(filePath) {
+    shell.openItem(filePath);
+  }
+
   onKeyDown = event => {
     let keyCode = event.keyCode;
     if (keyCode === 27) { // ESC
@@ -431,7 +435,7 @@ export default class Messages extends PureComponent {
                 let iconName = AttachmentStore.getExtIconName(msgBody.path);
                 msgFile = (
                   <div className="message-file">
-                    <div className="file-info">
+                    <div className="file-info" onDoubleClick={() => this.openFile(msgBody.path)}>
                       <div className="file-icon">
                         <RetinaImg name={iconName}
                           isIcon
