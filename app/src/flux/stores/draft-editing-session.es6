@@ -655,7 +655,7 @@ export default class DraftEditingSession extends MailspringStore {
     ) {
       this._draft.setOrigin(Message.EditExistingDraft);
       this._draft.referenceMessageId = this._draft.id;
-      this._draft.id = uuid();
+      // this._draft.id = uuid();
       const oldHMsgId = this._draft.headerMessageId;
       // this._draft.headerMessageId = this._draft.id;
       this.headerMessageId = this._draft.headerMessageId;
