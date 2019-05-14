@@ -28,7 +28,7 @@ class ThreadListEmptyFolderBar extends React.Component {
       buttons: ['Cancel', 'Okay'],
       message: 'Are you sure?',
       detail:
-        `This action will permanently affect ${(count / 1).toLocaleString()} ${count > 1 ? 'messages' : 'message'} messages. Are you sure you want to continue?`,
+        `This action will permanently affect ${(count / 1).toLocaleString()} ${count > 1 ? 'messages' : 'message'}. Are you sure you want to continue?`,
     });
     if (idx === 0) {
       return;

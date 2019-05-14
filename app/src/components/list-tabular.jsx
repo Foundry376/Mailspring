@@ -385,8 +385,12 @@ class ListTabular extends Component {
     } else {
       Toolbar = ComponentRegistry.findComponentsMatching({ role: 'ThreadListToolbar' })[0];
     }
+    let hasEmptyBar = ''
+    if (current && ['spam', 'trash'].includes(current.categoriesSharedRole())) {
+      hasEmptyBar = 'has-empty-bar';
+    }
     return (
-      <div className={`list-container list-tabular ${className}`}>
+      <div className={`list-container list-tabular ${className} ${hasEmptyBar}`}>
         {Toolbar ? <Toolbar /> : null}
         <ScrollRegion
           ref={cm => {
