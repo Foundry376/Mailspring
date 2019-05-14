@@ -305,7 +305,6 @@ class ThreadList extends React.Component {
   _onSelectImportant = () => {
     const dataSource = ThreadListStore.dataSource();
     const items = dataSource.itemsCurrentlyInViewMatching(item => {
-      console.log('item', item);
       const account = AccountStore.accountForId(item.accountId);
       const category = CategoryStore.getCategoryByRole(account, 'important');
       const isImportant = category && _.findWhere(item.labels, { id: category.id }) != null;
