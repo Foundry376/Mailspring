@@ -542,6 +542,22 @@ body.platform-win32 {
   .list-tabular .selection-bar .multiselect-toolbar-root .inner .checkmark {
     width: 66px;
     margin-right: 3px;
+    cursor: pointer;
+    &::after {
+      content: '';
+      height: 28px;
+      width: 28px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.15);
+      display: none;
+      position: absolute;
+    }
+    &:hover {
+      &:after {
+        display: block;
+        animation: growUp 0.4s;
+      }
+    }
   }
   .icons-column {
     display: flex;

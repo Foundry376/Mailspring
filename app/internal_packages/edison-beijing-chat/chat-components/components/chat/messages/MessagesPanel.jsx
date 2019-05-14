@@ -682,7 +682,6 @@ export default class MessagesPanel extends PureComponent {
                 ) : (
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
-                      <div onClick={this.installApp} style={{ zIndex: 999 }}> Install App</div>
                       <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile} />
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (

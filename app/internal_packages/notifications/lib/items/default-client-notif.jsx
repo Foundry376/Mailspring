@@ -62,6 +62,7 @@ export default class DefaultClientNotification extends React.Component {
         title="Would you like to make Edison Mail your default mail client?"
         priority="1"
         icon="volstead-defaultclient.png"
+        className="set-default-client"
         actions={[
           {
             label: 'Yes',

@@ -84,30 +84,47 @@
       white-space: nowrap;
 
       .checkmark.selected {
-        -webkit-mask-image: url(../static/icons/check.svg);
-        -webkit-mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-        background-color: @blue;
-        -webkit-mask-size: 24px auto;
+        &:before {
+          .icon-mixin('../static/icons/check.svg', @blue, 24px);
+        }
       }
       .checkmark.some-selected {
-        -webkit-mask-image: url(../static/icons/some-selected.svg);
-        -webkit-mask-position: center;
-        -webkit-mask-repeat: no-repeat;
-        background-color: @blue;
-        -webkit-mask-size: 24px auto;
+        &:before {
+          .icon-mixin('../static/icons/some-selected.svg', @blue, 24px);
+        }
       }
       .checkmark {
         margin: 0 17px 0 0;
         height: 18px;
         width: 54px;
         padding: 18px;
-        -webkit-mask-image: url(../static/icons/check-empty.svg);
-        -webkit-mask-position: center;
-        -webkit-mask-repeat: no-repeat;
-        background-color: @gray-lighter;
-        -webkit-mask-size: 24px auto;
         border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        &:hover {
+          &:after {
+            display: block;
+            animation: growUp 0.4s;
+          }
+        }
+        &:after {
+          content: '';
+          height: 28px;
+          width: 28px;
+          border-radius: 8px;
+          background: rgba(0,0,0,0.15);
+          display: none;
+          position: absolute;
+        }
+        &:before {
+          content: '';
+          display: block;
+          height: 24px;
+          width: 24px;
+          .icon-mixin('../static/icons/check-empty.svg', @gray-lighter, 24px);
+        }
       }
 
       &>div {
@@ -267,29 +284,36 @@
       white-space: nowrap;
 
       .checkmark.selected {
-        -webkit-mask-image: url(../static/icons/check.svg);
-        -webkit-mask-position: center;
-        -webkit-mask-repeat: no-repeat;
-        background-color: @blue;
-        -webkit-mask-size: 24px auto;
+        &:before {
+          .icon-mixin('../static/icons/check.svg', @blue, 24px);
+        }
       }
       .checkmark.some-selected {
-        -webkit-mask-image: url(../static/icons/some-selected.svg);
-        -webkit-mask-position: center;
-        -webkit-mask-repeat: no-repeat;
-        background-color: @blue;
-        -webkit-mask-size: 24px auto;
+        &:before {
+          .icon-mixin('../static/icons/some-selected.svg', @blue, 24px);
+        }
       }
       .checkmark {
         margin: 0 17px 0 0;
         height: 18px;
         width: 54px;
         padding: 18px;
-        -webkit-mask-image: url(../static/icons/check-empty.svg);
-        -webkit-mask-position: center;
-        background-color: @gray-lighter;
-        -webkit-mask-size: 24px auto;
         border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        &:after {
+          margin-top: -7px;
+          margin-left: 6px;
+        }
+        &:before {
+          content: '';
+          display: block;
+          height: 24px;
+          width: 24px;
+          .icon-mixin('../static/icons/check-empty.svg', @gray-lighter, 24px);
+        }
       }
 
       &>div {
@@ -409,11 +433,7 @@
     &.selected.focused,
     &.selected {
       .checkmark .inner {
-        background-color: @blue;
-        -webkit-mask-image: url(../static/icons/check.svg);
-        -webkit-mask-position: center;
-        -webkit-mask-repeat: no-repeat;
-        -webkit-mask-size: 24px auto;
+        .icon-mixin('../static/icons/check.svg', @blue, 24px);
         border: none;
       }
     }
@@ -461,18 +481,28 @@
       position: absolute;
       top: -18px;
       left: -18px;
+      cursor: pointer;
       &::after {
+        content: '';
+        height: 28px;
+        width: 28px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.15);
         display: none;
+        position: absolute;
+        top: 13px;
+        left: 13px;
+      }
+      &:hover {
+        &:after {
+          display: block;
+          animation: growUp 0.4s;
+        }
       }
       .inner {
         width: 18px;
         height: 18px;
-        border-radius: 50% !important;
-        background-color: @gray-lighter;
-        -webkit-mask-image: url(../static/icons/check-empty.svg);
-        -webkit-mask-size: 24px auto;
-        background-repeat: no-repeat;
-        -webkit-mask-position: center;
+        .icon-mixin('../static/icons/check-empty.svg', @gray-lighter, 24px);
         &::after {
           display: none;
         }
@@ -567,20 +597,14 @@
 
     &.selected {
       .checkmark .inner {
-        background-color: @blue;
-        -webkit-mask-image: url(../static/icons/check.svg);
-        -webkit-mask-position: center;
-        -webkit-mask-repeat: no-repeat;
-        -webkit-mask-size: 24px auto;
+        .icon-mixin('../static/icons/check.svg', @blue, 24px);
         border: none;
       }
     }
 
     &.selected.focused {
       .checkmark .inner {
-        background-color: @blue;
-        -webkit-mask-image: url(../static/icons/check.svg);
-        -webkit-mask-repeat: no-repeat;
+        .icon-mixin('../static/icons/check.svg', @blue, 24px);
         border: none;
       }
     }
@@ -596,13 +620,28 @@
       position: absolute;
       top: 0;
       left: 0;
+      cursor: pointer;
+      &::after {
+        content: '';
+        height: 28px;
+        width: 28px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.15);
+        display: none;
+        position: absolute;
+        top: 13px;
+        left: 13px;
+      }
+      &:hover {
+        &:after {
+          display: block;
+          animation: growUp 0.4s;
+        }
+      }
       .inner {
         width: 18px;
         height: 18px;
-        -webkit-mask-image: url(../static/icons/check-empty.svg);
-        -webkit-mask-position: center;
-        background-color: @gray-lighter;
-        -webkit-mask-size: 24px auto;
+        .icon-mixin('../static/icons/check-empty.svg', @gray-lighter, 24px);
         border: none;
       }
     }
