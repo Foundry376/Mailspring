@@ -5,6 +5,7 @@ import WorkspaceStore from './workspace-store';
 import MailboxPerspective from '../../mailbox-perspective';
 import CategoryStore from './category-store';
 import Actions from '../actions';
+import Label from '../models/label';
 
 class FocusedPerspectiveStore extends MailspringStore {
   constructor() {
@@ -16,7 +17,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     this.listenTo(Actions.focusMailboxPerspective, this._onFocusPerspective);
     this.listenTo(
       Actions.focusDefaultMailboxPerspectiveForAccounts,
-      this._onFocusDefaultPerspectiveForAccounts
+      this._onFocusDefaultPerspectiveForAccounts,
     );
     this.listenTo(Actions.ensureCategoryIsFocused, this._onEnsureCategoryIsFocused);
     this._listenToCommands();
@@ -24,6 +25,25 @@ class FocusedPerspectiveStore extends MailspringStore {
 
   current() {
     return this._current;
+  }
+
+  getLastUpdatedTime() {
+    const current = this.current();
+    let lastUpdate = 0;
+    if (current && current.categories() && current.categories().length) {
+      current.categories().forEach(cat => {
+        let tmp = CategoryStore.byId(cat.accountId, cat.id);
+        if (tmp instanceof Label) {
+          tmp = CategoryStore.getCategoryByRole(cat.accountId, 'all');
+        }
+        if (tmp.updatedAt) {
+          if (tmp.updatedAt.getTime() > lastUpdate) {
+            lastUpdate = tmp.updatedAt;
+          }
+        }
+      });
+    }
+    return lastUpdate;
   }
 
   sidebarAccountIds() {
@@ -56,9 +76,12 @@ class FocusedPerspectiveStore extends MailspringStore {
         const categories = this._current.accountIds.map(id => CategoryStore.getArchiveCategory(id));
         this._setPerspective(MailboxPerspective.forCategories(categories));
       },
-      'navigation:go-to-contacts': () => {}, // TODO,
-      'navigation:go-to-tasks': () => {}, // TODO,
-      'navigation:go-to-label': () => {}, // TODO,
+      'navigation:go-to-contacts': () => {
+      }, // TODO,
+      'navigation:go-to-tasks': () => {
+      }, // TODO,
+      'navigation:go-to-label': () => {
+      }, // TODO,
     });
   }
 
@@ -203,6 +226,37 @@ class FocusedPerspectiveStore extends MailspringStore {
       return;
     }
     this._setPerspective(MailboxPerspective.forCategories(categories));
+  }
+
+  refreshPerspectiveMessages({ perspective = null } = {}) {
+    if (!perspective) {
+      perspective = this.current();
+    }
+    if (!perspective) {
+      return;
+    }
+    if (perspective.categories && perspective.categories().length > 0) {
+      const accounts = {};
+      perspective.categories().forEach(cat => {
+        if (!accounts[cat.accountId]) {
+          accounts[cat.accountId] = [];
+        }
+        accounts[cat.accountId].push(cat.id);
+      });
+      for (let key of Object.keys(accounts)) {
+        Actions.syncFolders({ accountId: key, foldersIds: accounts[key] });
+      }
+    } else if (
+      perspective.categoryIds &&
+      perspective.categoryIds.length === perspective.accountIds.length
+    ) {
+      for (let i = 0; i < perspective.categoryIds.length; i++) {
+        Actions.syncFolders({
+          accountId: perspective.accountIds[i],
+          foldersIds: [perspective.categoryIds[i]],
+        });
+      }
+    }
   }
 }
 

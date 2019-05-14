@@ -73,13 +73,6 @@ export default class ConversationInfo extends Component {
   showMenu = (e) => {
     const menus = [
       {
-        label: `Add to Group...`,
-        click: () => {
-          const moreBtnEl = document.querySelector('.more');
-          this.props.toggleInvite(moreBtnEl);
-        },
-      },
-      {
         label: `Clear Message History`,
         click: () => {
           this.clearMessages();
@@ -95,6 +88,16 @@ export default class ConversationInfo extends Component {
         },
       },
     ]
+    const { selectedConversation: conversation } = this.props;
+    if (!conversation.jid.match(/@app/)) {
+      menus.unshift({
+        label: `Add to Group...`,
+        click: () => {
+          const moreBtnEl = document.querySelector('.more');
+          this.props.toggleInvite(moreBtnEl);
+        },
+      })
+    }
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
   }
 
@@ -150,6 +153,13 @@ export default class ConversationInfo extends Component {
           }
           {
             conversation.isGroup && !loadingMembers && roomMembers && roomMembers.map(member => {
+              console.log('debugger: ConversationInfo: roomMembers: ', member);
+              let name = member.name;
+              const email = member.email || member.jid.unescapedLocal.replace('^at^', '@');
+              if (!name) {
+                name = email.split('@')[0];
+              }
+
               const onClickRemove = (e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -176,15 +186,15 @@ export default class ConversationInfo extends Component {
               return (
                 <div className="row" key={jid} onClick={onEditMemberProfile}>
                   <div className="avatar">
-                    <ContactAvatar jid={jid} name={member.name}
-                      email={member.email} avatar={member.avatar} size={30} />
+                    <ContactAvatar jid={jid} name={name}
+                      email={ email } avatar={member.avatar} size={30} />
                   </div>
                   <div className="info">
                     <div className="name">
-                      {member.name}
+                      { name }
                       {member.affiliation === 'owner' ? <span> (owner)</span> : null}
                     </div>
-                    <div className="email">{member.email}</div>
+                    <div className="email">{email}</div>
                   </div>
                   {this.currentUserIsOwner && member.affiliation !== 'owner' &&
                     <span className="remove-member" onClick={onClickRemove}>

@@ -160,15 +160,7 @@ class SidebarItem {
         },
 
         onSelect(item) {
-          if (
-            item.accountIds.length === 1 &&
-            (item.contextMenuLabel === 'Folder' || item.contextMenuLabel === 'Drafts')
-          ) {
-            Actions.syncFolders(
-              item.accountIds[0],
-              item.categoryIds ? item.categoryIds : [item.id],
-            );
-          }
+          FocusedPerspectiveStore.refreshPerspectiveMessages({perspective: item});
           Actions.focusMailboxPerspective(item.perspective);
         },
       },

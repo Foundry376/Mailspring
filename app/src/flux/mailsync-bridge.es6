@@ -449,7 +449,7 @@ export default class MailsyncBridge {
       return;
     }
     for (const task of tasks) {
-      if(task){
+      if (task) {
         this._onQueueTask(task);
       }
     }
@@ -695,7 +695,7 @@ export default class MailsyncBridge {
     }
   };
 
-  _onSyncFolders(accountId, foldersIds) {
+  _onSyncFolders({ accountId, foldersIds } = {}) {
     if (this._syncFolderTimer) {
       clearTimeout(this._syncFolderTimer);
     }
