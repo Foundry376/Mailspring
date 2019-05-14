@@ -112,9 +112,9 @@ class EditableList extends Component {
     className: '',
     createInputProps: {},
     showEditIcon: false,
-    onDeleteItem: () => {},
-    onItemEdited: () => {},
-    onItemCreated: () => {},
+    onDeleteItem: () => { },
+    onItemEdited: () => { },
+    onItemCreated: () => { },
   };
 
   constructor(props) {
@@ -166,7 +166,7 @@ class EditableList extends Component {
     this._setStateAndFocus({ creatingItem: false }, callback);
   };
 
-  _setStateAndFocus = (state, callback = () => {}) => {
+  _setStateAndFocus = (state, callback = () => { }) => {
     this.setState(state, () => {
       this._focusSelf();
       callback();
@@ -441,7 +441,7 @@ class EditableList extends Component {
           <span>+</span>
         </div>
         <div className={deleteClasses} onClick={this._onDeleteItem}>
-          <span>—</span>
+          <span>-</span>
         </div>
       </div>
     );
