@@ -54,14 +54,15 @@ export default class DefaultClientNotification extends React.Component {
   };
 
   render() {
-    if (this.state.initializing || this.state.alreadyPrompted || this.state.registered) {
-      return <span />;
-    }
+    // if (this.state.initializing || this.state.alreadyPrompted || this.state.registered) {
+    //   return <span />;
+    // }
     return (
       <Notification
         title="Would you like to make Edison Mail your default mail client?"
         priority="1"
         icon="volstead-defaultclient.png"
+        className="set-default-client"
         actions={[
           {
             label: 'Yes',
