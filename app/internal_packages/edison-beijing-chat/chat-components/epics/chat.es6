@@ -840,6 +840,10 @@ export const goNextConversationEpic = (action$, { getState }) =>
 const getEncrypted = (jid, body, devices, selfDevices, curJid, deviceId) => {
   let aeskey = generateAESKey();
   let uid = jid.substring(0, jid.indexOf('@'));//new JID(jid).local;//.substring(0,jid.indexOf('@'));
+  if(!selfDevices){
+    console.warn('getEncrypted: selfDevices is undefined');
+    return false;
+  }
   let selfDk = JSON.parse(selfDevices);
   let dk = [];
 
