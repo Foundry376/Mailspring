@@ -31,7 +31,7 @@ export default class MemberProfie extends Component {
     document.body.addEventListener('click', this.onClickWithMemberProfile);
   };
   componentWillUnmount = () => {
-    console.log('cxm *** document.body.removeEventListener ');
+    // console.log('cxm *** document.body.removeEventListener ');
     document.body.removeEventListener('click', this.onClickWithMemberProfile);
 
   };
