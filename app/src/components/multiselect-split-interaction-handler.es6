@@ -70,9 +70,11 @@ module.exports = class MultiselectSplitInteractionHandler {
     this._checkSelectionAndFocusConsistency();
   };
 
-  onSelect = items => {
+  onSelect = (items, autoSelectFocus = true) => {
     this.props.dataSource.selection.set(items);
-    this._checkSelectionAndFocusConsistency();
+    if (autoSelectFocus) {
+      this._checkSelectionAndFocusConsistency();
+    }
   };
 
   onSelectKeyboardItem = () => {

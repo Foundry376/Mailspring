@@ -194,7 +194,7 @@ export class XmppEx extends EventEmitter3 {
   ping() {
     if (this.isConnected) {
       this.client.ping(this.connectedJid);
-      setTimeout(() => this.ping(), 23333);
+      setTimeout(() => this.ping(), 9333);
     }
   }
 
