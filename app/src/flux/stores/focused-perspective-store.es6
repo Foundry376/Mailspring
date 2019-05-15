@@ -12,6 +12,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     super();
     this._current = MailboxPerspective.forNothing();
     this._initialized = false;
+    this._refreshPerspectiveTimer = null;
 
     this.listenTo(CategoryStore, this._onCategoryStoreChanged);
     this.listenTo(Actions.focusMailboxPerspective, this._onFocusPerspective);
@@ -205,6 +206,14 @@ class FocusedPerspectiveStore extends MailspringStore {
     }
 
     if (shouldTrigger) {
+      if (this._refreshPerspectiveTimer) {
+        clearTimeout(this._refreshPerspectiveTimer);
+        this._refreshPerspectiveTimer = null;
+      }
+      this._refreshPerspectiveTimer = setTimeout(() => {
+        this.refreshPerspectiveMessages();
+        this._refreshPerspectiveTimer = null;
+      }, 700);
       this.trigger();
     }
 
@@ -235,8 +244,8 @@ class FocusedPerspectiveStore extends MailspringStore {
     if (!perspective) {
       return;
     }
+    const accounts = {};
     if (perspective.categories && perspective.categories().length > 0) {
-      const accounts = {};
       perspective.categories().forEach(cat => {
         if (!accounts[cat.accountId]) {
           accounts[cat.accountId] = [];
@@ -251,12 +260,14 @@ class FocusedPerspectiveStore extends MailspringStore {
       perspective.categoryIds.length === perspective.accountIds.length
     ) {
       for (let i = 0; i < perspective.categoryIds.length; i++) {
+        accounts[perspective.accountIds[i]] = [perspective.categoryIds[i]];
         Actions.syncFolders({
           accountId: perspective.accountIds[i],
           foldersIds: [perspective.categoryIds[i]],
         });
       }
     }
+    return accounts;
   }
 }
 

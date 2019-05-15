@@ -2,9 +2,10 @@ import {
   Utils,
   WorkspaceStore,
   ThreadCountsStore,
+  CategoryStore,
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
-import { InjectedComponentSet, RetinaImg, LottieImg } from 'mailspring-component-kit';
+import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
@@ -42,6 +43,7 @@ class MultiselectToolbar extends Component {
       refreshingMessages: false,
       previousPerspectiveName: '',
       previousUpdatedTime: '',
+      cachedSyncFolderData: null,
     };
     this.refreshTimer = null;
     this.refreshDelay = 300;
@@ -62,15 +64,15 @@ class MultiselectToolbar extends Component {
     const state = {};
     if (this.state.previousPerspectiveName !== perspective.name) {
       state.previousPerspectiveName = perspective.name;
+      state.previousUpdatedTime = updatedTime;
       state.refreshingMessages = false;
-    }
-    if (this.state.previousUpdatedTime !== updatedTime) {
+    } else if (this.state.previousUpdatedTime !== updatedTime) {
       state.previousUpdatedTime = updatedTime;
       state.refreshingMessages = false;
     }
     if (state.refreshingMessages === false) {
-      clearTimeout(this.refreshTimer);
-      this.refreshTimer = null;
+      this.stopRefreshing();
+      delete state.refreshingMessages;
     }
     this.setState(state);
   };
@@ -181,15 +183,21 @@ class MultiselectToolbar extends Component {
     }
     return '';
   };
-  refreshPerspective = () => {
-    if (!this.state.refreshingMessages && !this.refreshTimer) {
+  stopRefreshing = () => {
+    if (!this.refreshTimer) {
       this.refreshTimer = setTimeout(() => {
         if (this.mounted) {
-          FocusedPerspectiveStore.refreshPerspectiveMessages();
-          this.setState({ refreshingMessages: true });
+          this.setState({ refreshingMessages: false, cachedSyncFolderData: null });
         }
         this.refreshTimer = null;
       }, this.refreshDelay);
+    }
+  };
+
+  refreshPerspective = () => {
+    if (!this.state.refreshingMessages) {
+      const accounts = FocusedPerspectiveStore.refreshPerspectiveMessages();
+      this.setState({ refreshingMessages: true, cachedSyncFolderData: accounts });
     }
   };
 
@@ -201,9 +209,12 @@ class MultiselectToolbar extends Component {
       return null;
     }
     if (this.state.refreshingMessages) {
-      return <LottieImg name='loading-spinner-blue'
-                        size={{ width: 24, height: 24 }}
-                        style={{ margin: '0 5px' }}/>;
+      return <div style={{ padding: '0 5px' }}>
+        <RetinaImg name='refresh.svg'
+                   className='infinite-rotation-linear'
+                   style={{ width: 24, height: 24, backgroundColor: '#797d80' }} isIcon
+                   mode={RetinaImg.Mode.ContentIsMask}/>
+      </div>;
     }
     return <button tabIndex={-1}
                    className="btn btn-toolbar btn-list-more" title='Refresh'

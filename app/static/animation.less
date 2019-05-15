@@ -1,0 +1,14 @@
+@import 'ui-variables';
+@import 'ui-mixins';
+
+
+.infinite-rotation-linear {
+  animation: spin-frame 1s linear infinite;
+}
+
+@keyframes spin-frame {
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}

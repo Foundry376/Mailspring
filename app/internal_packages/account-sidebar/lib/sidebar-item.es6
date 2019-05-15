@@ -160,7 +160,7 @@ class SidebarItem {
         },
 
         onSelect(item) {
-          FocusedPerspectiveStore.refreshPerspectiveMessages({perspective: item});
+          // FocusedPerspectiveStore.refreshPerspectiveMessages({perspective: item});
           Actions.focusMailboxPerspective(item.perspective);
         },
       },

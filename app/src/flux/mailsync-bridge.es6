@@ -696,18 +696,12 @@ export default class MailsyncBridge {
   };
 
   _onSyncFolders({ accountId, foldersIds } = {}) {
-    if (this._syncFolderTimer) {
-      clearTimeout(this._syncFolderTimer);
-    }
     if (Array.isArray(foldersIds) && accountId) {
-      this._syncFolderTimer = setTimeout(() => {
-          this.sendMessageToAccount(accountId, {
-            type: 'sync-folders',
-            aid: accountId,
-            ids: foldersIds,
-          });
-        },
-        700);
+      this.sendMessageToAccount(accountId, {
+        type: 'sync-folders',
+        aid: accountId,
+        ids: foldersIds,
+      });
     }
   }
 
