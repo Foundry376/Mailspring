@@ -3,7 +3,7 @@
   position: fixed;
   bottom: 56px;
   z-index: 100;
-  max-width: 25%;
+  max-width: 45%;
   text-align: center;
   pointer-events: none;
   .undo-redo-toast {
@@ -39,10 +39,10 @@
       overflow: hidden;
       text-overflow: ellipsis;
       text-align: left;
-      font-size: 12px;
+      font-size: 15px;
       letter-spacing: 0.34px;
-      height: 13px;
-      line-height: 13px;
+      height: 15px;
+      line-height: 15px;
       max-width: 200px;
     }
 
@@ -68,18 +68,18 @@
       //}
       .undo-action-text {
         color: @white;
-        font-size: 12px;
+        font-size: 15px;
         font-weight: 700;
         letter-spacing: 0.34px;
-        line-height: 13px;
-        height: 13px;
+        line-height: 15px;
+        height: 15px;
         padding-right: 14.5px;
       }
 
       .content-mask {
         height: 10px;
         width: 10px;
-        background-color: @gray;
+        background-color: fade(@black, 30%);
       }
     }
   }
