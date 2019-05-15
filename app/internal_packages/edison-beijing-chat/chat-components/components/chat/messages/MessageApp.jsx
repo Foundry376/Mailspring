@@ -58,8 +58,26 @@ export default class MessageApp extends PureComponent {
         // console.log('debugger: MessageApp.render msgBody: ', msgBody);
         let { appJid, appName, content, htmlBody, ctxCmds } = msgBody;
         const { sentTime } = msg;
+        const options = {
+          allowedTags: [ 'html', 'head', 'body', 'br', 'del', 's', 'strike', 'ins', 'em', 'b', 'strong', 'i', 'u', 'a',
+
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre', 'p', 'div', 'span', 'hr',
+            'article', 'section', 'header', 'footer', 'summary', 'aside', 'details',
+            'ul', 'ol', 'li', 'dir', 'dl', 'dt', 'dd',
+            'table', 'caption', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot',
+            'col', 'colgroup',
+            'img',
+          ],
+          allowedAttributes: {
+            a: [ 'href', 'name', 'target' ],
+            img: [ 'style', 'class', 'alt', 'src', 'align', 'border', 'height', 'width', 'hspace', 'vspace' ],
+            '*': [ 'href', 'align', 'alt', 'center', 'bgcolor' ]
+          },
+          allowedSchemes: [ 'http', 'https', 'mailto' ],
+          allowedSchemesAppliedToAttributes: [ 'href', 'src', 'cite' ],
+        };
         if (htmlBody) {
-          htmlBody = sanitizeHtml(htmlBody);
+          htmlBody = sanitizeHtml(htmlBody, options);
         }
         const { getContactAvatar } = this.props;
 
