@@ -59,7 +59,12 @@ export const decrypte = (data, priStr) => {
     if (priStr) {
         let priTmp = new NodeRSA(PRI_START + priStr + PRI_END, 'pkcs8-private');//导入私钥
         priTmp.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码。
-        return priTmp.decrypt(data, 'utf8');
+        try {
+            return priTmp.decrypt(data, 'utf8');
+        } catch (e) {
+            console.log('decrypte error: e, data, priStr: ', e, data, priStr);
+            return '';
+        }
     }
     return priKey.decrypt(data, 'utf8');
 }
