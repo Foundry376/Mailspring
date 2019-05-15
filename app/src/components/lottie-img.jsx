@@ -194,7 +194,7 @@ Lottie.defaultProps = {
   speed: 1,
   ariaRole: 'button',
   ariaLabel: 'animation',
-  isClickToPauseDisabled: false,
+  isClickToPauseDisabled: true,
   title: '',
 };
 
