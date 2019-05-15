@@ -26,6 +26,9 @@ import { isImageFilePath } from '../../../utils/stringUtils';
 import { sendFileMessage } from '../../../utils/message';
 import { sendCmd2App2, getMyAppByShortName, listKeywordApps, iniApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
+import { xmpplogin } from '../../../utils/restjs';
+const { exec } = require('child_process');
+
 const getCaretCoordinates = require('../../../utils/textarea-caret-position');
 
 var thumb = require('node-thumbnail').thumb;
@@ -263,6 +266,25 @@ export default class MessagesSendBar extends PureComponent {
       });
     });
   }
+
+  installApp = async (e) => {
+    const conv = this.props.selectedConversation;
+    const { curJid } = conv;
+    const userId = curJid.split('@')[0];
+    let token = await getToken(userId);
+    xmpplogin(userId, token, (err, data) => {
+      // console.log('debugger xmpplogin: ', userId, token, err, data);
+      if (data) {
+        data = JSON.parse(data);
+        if (data.data && data.data.url) {
+          exec('open ' + data.data.url);
+        } else {
+          window.alert('fail to open the app store page');
+        }
+      }
+    })
+  }
+
   sendMessage() {
     let { messageBody, occupants } = this.state;
     const { selectedConversation, onMessageSubmitted } = this.props;
@@ -270,7 +292,10 @@ export default class MessagesSendBar extends PureComponent {
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
 
     let curJidLocal = selectedConversation.curJid.split('@')[0];//.slice(0, selectedConversation.curJid.indexOf('@'));
-    if (messageBody.indexOf('/') == 0) {
+    if (messageBody === '/install-chat-plugin-app') {
+      this.installApp();
+      return;
+    } else if (messageBody.indexOf('/') == 0) {
       // console.log(selectedConversation)
       let peerUserId, roomId;
       let appName = messageBody.split(' ')[0].substring(1);
@@ -289,8 +314,7 @@ export default class MessagesSendBar extends PureComponent {
         this.setState({ messageBody: '', files: [] });
         return;
       }
-    }
-    if (selectedConversation.jid.indexOf('@app') > 0) {
+    } else if (selectedConversation.jid.indexOf('@app') > 0) {
       this.sendMessage2App(curJidLocal, jidLocal, messageBody);
       this.setState({ messageBody: '', files: [] });
       return;
@@ -301,7 +325,6 @@ export default class MessagesSendBar extends PureComponent {
     if (!selectedConversation) {
       return;
     }
-
 
     if (this.state.files.length) {
       this.state.files.map((file, index) => sendFileMessage(file, index, this, messageBody));
