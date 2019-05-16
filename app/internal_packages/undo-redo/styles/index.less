@@ -3,16 +3,15 @@
   position: fixed;
   bottom: 56px;
   z-index: 100;
-  max-width: 45%;
   text-align: center;
   pointer-events: none;
+  max-width: calc(~"100% - 90px");
   .undo-redo-toast {
     display: flex;
     flex-direction: column-reverse;
     justify-content: space-around;
     .content {
       height: 48px;
-      width: 250px;
       opacity: 0.97;
       border-radius: @border-radius-toast;
       background: @blue-light;
@@ -23,11 +22,13 @@
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
-      min-width: 200px;
+      min-width: 250px;
+      max-width: 100%;
       box-shadow: 0 2px 7px 0 rgba(0, 0, 0, 0.2);
       padding: 11.5px 17.5px 11.5px 20px;
       margin-bottom: 5px;
       margin-left: 10px;
+      margin-right: auto;
     }
     .failed{
       background: @red;
@@ -39,11 +40,10 @@
       overflow: hidden;
       text-overflow: ellipsis;
       text-align: left;
-      font-size: 15px;
+      font-size: 14px;
       letter-spacing: 0.34px;
-      height: 15px;
-      line-height: 15px;
-      max-width: 200px;
+      height: 14px;
+      line-height: 14px;
     }
 
     .action {
@@ -68,11 +68,11 @@
       //}
       .undo-action-text {
         color: @white;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 700;
         letter-spacing: 0.34px;
-        line-height: 15px;
-        height: 15px;
+        line-height: 14px;
+        height: 14px;
         padding-right: 14.5px;
       }
 

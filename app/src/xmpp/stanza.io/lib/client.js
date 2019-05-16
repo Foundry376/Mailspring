@@ -105,7 +105,7 @@ function Client(opts) {
         }
         if (data._name === 'message' || data._name === 'presence' || data._name === 'iq') {
             self.sm.handle(json);
-            // console.log(json);//yazz
+            //console.log('yazz-test8', json);//yazz
             if (json.edimucevent && json.edimucevent.edimucconfig && json.edimucevent.edimucconfig.actorJid) {
                 self.emit('edimucconfig', json);
             } else if (memberschange) {
@@ -199,18 +199,16 @@ function Client(opts) {
         if (Object.keys(msg.$body || msg.$payload || {}).length) {
             if (msg.type === 'chat' || msg.type === 'normal') {
                 self.emit('chat', msg);
-                console.log("yazz-on-message:", msg);
+                //console.log("yazz-on-message:", msg);
             } else if (msg.type === 'groupchat') {
                 self.emit('groupchat', msg);
-                console.log("yazz-on-message:", msg);
+                //console.log("yazz-on-message:", msg);
             }
         }
         if (msg.type === 'normal' && msg.$e2ee) {
-            //yazz
             self.emit('message:ext-e2ee', msg.$e2ee);
         }
         if (msg.type === 'normal' && msg.$received) {
-            //yazz
             self.emit('message:received', msg.$received);
         }
         if (msg.type === 'error') {
