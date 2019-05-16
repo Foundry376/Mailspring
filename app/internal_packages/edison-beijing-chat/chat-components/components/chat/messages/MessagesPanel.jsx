@@ -47,6 +47,7 @@ const { dialog } = remote;
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 window.registerLoginChatAccounts = registerLoginChatAccounts;
+let chatViewDisplay, toolbarControlsDisplay;
 
 export default class MessagesPanel extends PureComponent {
   static propTypes = {
@@ -663,6 +664,38 @@ export default class MessagesPanel extends PureComponent {
       deselectConversation,
       createRoom: this.createRoom
     }
+    let style = {};
+    // debugger;
+    if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {
+      style = {
+        position:'fixed',
+        top: '0px',
+        left: '0px',
+        width:'100%',
+        height: '100%',
+        backgroundColor:'white',
+        zIndex: 999,
+      };
+      let element = document.querySelector('#ChatView');
+      if (element) {
+        chatViewDisplay = chatViewDisplay || element.style.display;
+        element.style.display = 'none';
+      }
+      element = document.querySelector('.toolbar-window-controls');
+      if (element) {
+        toolbarControlsDisplay = toolbarControlsDisplay || element.style.display;
+        element.style.display = 'none';
+      }
+    } else {
+      let element = document.querySelector('#ChatView');
+      if (element && chatViewDisplay) {
+        element.style.display = chatViewDisplay;
+      }
+      element = document.querySelector('.toolbar-window-controls');
+      if (element && toolbarControlsDisplay) {
+        element.style.display = toolbarControlsDisplay;
+      }
+    }
 
     return (
       <div className="panel"
@@ -673,7 +706,7 @@ export default class MessagesPanel extends PureComponent {
       >
         {selectedConversation ?
           <div className="chat">
-            <div className="splitPanel">
+            <div className="splitPanel" style={style}>
               {
                 selectedConversation.jid === NEW_CONVERSATION ? (
                   <div className="chatPanel">
