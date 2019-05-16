@@ -166,6 +166,7 @@ export class XmppEx extends EventEmitter3 {
     });
     this.client.on('session:started', () => {
       log(`xmpp session:started: jid: ${this.connectedJid}`);
+      console.log(`xmpp session:started: jid: ${this.connectedJid}`);
       this.retryTimes = 0;
       this.isConnected = true;
       this.client.sendPresence();
@@ -207,6 +208,7 @@ export class XmppEx extends EventEmitter3 {
     if (this.client === null) {
       throw Error('Init this instance by calling init(credentials) before trying to connect');
     }
+    log(`xmpp connect: jid: ${this.connectedJid}`);
 
     const self = this;
     let isComplete = false;
