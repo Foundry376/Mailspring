@@ -712,9 +712,12 @@ body.platform-win32 {
 
 // Overrides for the composer in a message-list
 #message-list {
+  .scrollbar-track {
+    background: transparent;
+  }
   .message-item-wrap {
     &.draft {
-      margin-bottom: 9px;
+      padding-bottom: 15px;
       border-bottom: none;
     }
     .message-item-white-wrap.composer-outer-wrap {

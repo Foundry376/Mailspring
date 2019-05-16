@@ -694,6 +694,9 @@ body.platform-win32 {
 }
 
 .column-MessageList {
+  margin-top: 0;
+  top: 68px;
+  height: calc(~'100% - 40px') !important;
   &>div.empty {
     height: 100%;
     background: url(../static/images/chat/default-empty-mail.png) no-repeat center center;
@@ -706,6 +709,9 @@ body.platform-win32 {
     &.has-shadow {
       transition: box-shadow 0.2s ease-in-out;
       box-shadow: 0 2.5px 10px rgba(0, 0, 0, 0.35);
+      border-bottom: 1px solid @gray-lighter;
+      position: relative;
+      z-index: 2;
     }
     .divider {
       width: 1px;
@@ -743,6 +749,7 @@ body.platform-win32 {
         height: auto;
         box-shadow: none;
         background: none;
+        cursor: pointer;
         &.flagged {
           img.content-mask {
             background-color: @orange;
