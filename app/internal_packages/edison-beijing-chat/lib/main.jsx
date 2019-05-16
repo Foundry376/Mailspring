@@ -10,11 +10,12 @@ const CHAT_COUNTRIES = [
   "CN"
 ];
 function isChatTestUser() {
-  let locale = osLocale.sync();
-  if (locale.indexOf('_') !== -1) {
-    locale = locale.split('_')[1];
-  }
-  return CHAT_COUNTRIES.indexOf(locale) !== -1;
+  // let locale = osLocale.sync();
+  // if (locale.indexOf('_') !== -1) {
+  //   locale = locale.split('_')[1];
+  // }
+  // return CHAT_COUNTRIES.indexOf(locale) !== -1;
+  return true;
 }
 
 const isChatTest = isChatTestUser();
