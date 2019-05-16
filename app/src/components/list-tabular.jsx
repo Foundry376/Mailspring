@@ -177,10 +177,13 @@ class ListTabular extends Component {
     this._onWindowResize();
   };
 
-  onScroll = () => {
+  onScroll = (e) => {
     // If we've shifted enough pixels from our previous scrollTop to require
     // new rows to be rendered, update our state!
     this.updateRangeState();
+    if (this.props.onScroll) {
+      this.props.onScroll(e);
+    }
   };
 
   onCleanupAnimatingItems = () => {

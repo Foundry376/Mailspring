@@ -38,7 +38,7 @@ export function activate() {
   });
 
   ComponentRegistry.register(MessageListToolbar, {
-    location: WorkspaceStore.Location.MessageList.Toolbar,
+    role: 'MessageListToolbar'
   });
 
   ComponentRegistry.register(MoveButtons, {
@@ -56,7 +56,7 @@ export function activate() {
     role: 'ThreadActionsToolbarButtonEmpty',
   });
   ComponentRegistry.register(NavButtons, {
-    location: WorkspaceStore.Location.MessageList.Toolbar,
+    role: 'MessageListToolbar'
   });
 }
 

@@ -220,11 +220,15 @@ body.is-blurred {
     background: #fff;
   }
   .toolbar-MessageList {
-    height: 40px;
+    height: 0px;
     top: @search-bar-height - 1px !important;
     border-bottom: none;
     border-top: 1px solid @extra-light-grey;
     overflow: hidden;
+    &.has-shadow {
+      box-shadow: 0 2.5px 10px rgba(0, 0, 0, 0.35);
+      transition: box-shadow 0.3s;
+    }
     .divider {
       width: 1px;
       height: 30px;
@@ -685,11 +689,122 @@ body.platform-win32 {
   }
 }
 
+.column-ThreadList {
+  overflow-x: hidden;
+}
+
 .column-MessageList {
   &>div.empty {
     height: 100%;
     background: url(../static/images/chat/default-empty-mail.png) no-repeat center center;
     background-size: 250px auto;
+  }
+
+  .message-list-toolbar {
+    height: 41px;
+    border-bottom: 1px solid transparent;
+    &.has-shadow {
+      transition: box-shadow 0.2s ease-in-out;
+      box-shadow: 0 2.5px 10px rgba(0, 0, 0, 0.35);
+    }
+    .divider {
+      width: 1px;
+      height: 30px;
+      background: @border-color-divider;
+    }
+    .button-group {
+      align-items: center;
+      display: flex;
+    }
+    .item-container {
+      .item-spacer {
+        display: none;
+      }
+      img.content-mask {
+        background-color: @gray;
+      }
+      .btn-list-more {
+        display: none;
+      }
+      .message-toolbar-popout {
+        padding-right: 24px;
+      }
+      .message-toolbar-arrow {
+        display: flex;
+        align-items: center;
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 13px;
+        padding-right: 0;
+      }
+      .btn-toolbar {
+        position: relative;
+        margin-top: 0;
+        height: auto;
+        box-shadow: none;
+        background: none;
+        &.flagged {
+          img.content-mask {
+            background-color: @orange;
+          }
+        }
+        img {
+          position: relative;
+          z-index: 2;
+          transition: background-color 0.4s;
+        }
+        &:active {
+          background-color: @white;
+        }
+        &:hover {
+          &:after {
+            content: '';
+            height: 36px;
+            width: 36px;
+            border-radius: 50%;
+            background: @off-white;
+            display: block;
+            position: absolute;
+            top: -5px;
+            left: 7px;
+            animation: growUp 0.4s;
+          }
+          @keyframes growUp {
+            from {
+              opacity: 0.7;
+              transform: scale(0.5);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+        }
+        &:active {
+          &:after {
+            background: @extra-light-grey;
+          }
+          img {
+            background-color: @dark-grey;
+          }
+        }
+      }
+      .message-toolbar-items {
+        flex: 1;
+        // border-bottom: 1px solid @extra-light-grey;
+        &:empty {
+          border-bottom: none;
+        }
+        .toolbar-buttons {
+          justify-content: flex-end;
+          align-items: center;
+          .key-commands-region {
+            white-space: nowrap;
+            height: auto;
+          }
+        }
+      }
+    }
   }
 }
 

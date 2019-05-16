@@ -78,6 +78,25 @@ class ThreadList extends React.Component {
     return <SyncingListState />;
   }
 
+  _calcScrollPosition = _.throttle((scrollTop) => {
+    const toolbar = document.querySelector('.thread-list .thread-list-toolbar');
+    if (toolbar) {
+      if (scrollTop > 0) {
+        if (toolbar.className.indexOf('has-shadow') === -1) {
+          toolbar.className += ' has-shadow';
+        }
+      } else {
+        toolbar.className = toolbar.className.replace(' has-shadow', '');
+      }
+    }
+  }, 100)
+
+  _onScroll = e => {
+    if (e.target) {
+      this._calcScrollPosition(e.target.scrollTop);
+    }
+  };
+
   render() {
     let columns, itemHeight;
     if (this.state.style === 'wide') {
@@ -116,6 +135,7 @@ class ThreadList extends React.Component {
             onDoubleClick={thread => Actions.popoutThread(thread)}
             onDragStart={this._onDragStart}
             onDragEnd={this._onDragEnd}
+            onScroll={this._onScroll}
           />
         </FocusContainer>
       </FluxContainer>

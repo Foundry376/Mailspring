@@ -1,6 +1,6 @@
 const AccountSidebar = require('./components/account-sidebar');
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
-const {ToolbarBack} = require('mailspring-component-kit');
+const { ToolbarBack } = require('mailspring-component-kit');
 
 module.exports = {
   item: null, // The DOM item the main React component renders into
@@ -8,7 +8,10 @@ module.exports = {
   activate(state) {
     this.state = state;
     ComponentRegistry.register(AccountSidebar, { location: WorkspaceStore.Location.RootSidebar });
-    ComponentRegistry.register(ToolbarBack, { location: WorkspaceStore.Location.MessageList.Toolbar, mode: 'list'});
+    ComponentRegistry.register(ToolbarBack, {
+      mode: 'list',
+      role: 'MessageListToolbar'
+    });
   },
 
   deactivate(state) {

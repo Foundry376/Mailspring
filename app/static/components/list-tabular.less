@@ -54,6 +54,7 @@
   min-height: 40px;
   z-index: 99;
   flex: 0 0 40px;
+  position: relative;
   .multiselect-toolbar-root {
     position: relative;
     min-height: 40px;
@@ -64,6 +65,10 @@
     display: flex;
     justify-content: center;
     flex-direction: column;
+    &.has-shadow {
+      transition: box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out;
+      box-shadow: 0 2.5px 10px rgba(0, 0, 0, 0.35);
+    }
 
     .divider {
       height: 30px;
@@ -192,6 +197,7 @@
           left: 33px;
           height: 100%;
           display: flex;
+          cursor: pointer;
           &:hover {
             &::after {
               content: '';

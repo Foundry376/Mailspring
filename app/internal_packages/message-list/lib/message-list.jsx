@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-
+import _ from 'underscore';
 import {
   React,
   ReactDOM,
@@ -631,6 +631,25 @@ class MessageList extends React.Component {
     );
   }
 
+  _calcScrollPosition = _.throttle((scrollTop) => {
+    const toolbar = document.querySelector('#message-list-toolbar');
+    if (toolbar) {
+      if (scrollTop > 0) {
+        if (toolbar.className.indexOf('has-shadow') === -1) {
+          toolbar.className += ' has-shadow';
+        }
+      } else {
+        toolbar.className = toolbar.className.replace(' has-shadow', '');
+      }
+    }
+  }, 100)
+
+  _onScroll = e => {
+    if (e.target) {
+      this._calcScrollPosition(e.target.scrollTop);
+    }
+  };
+
   render() {
     if (!this.state.currentThread) {
       return <div className="empty" />;
@@ -649,6 +668,13 @@ class MessageList extends React.Component {
     return (
       <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()}>
         <FindInThread />
+        <div className="message-list-toolbar" id="message-list-toolbar">
+          <InjectedComponentSet
+            className="item-container"
+            matching={{ role: 'MessageListToolbar' }}
+            exposedProps={{ thread: this.state.currentThread, messages: this.state.messages }}
+          />
+        </div>
         <div className={messageListClass} id="message-list">
           <ScrollRegion
             tabIndex="-1"
@@ -658,6 +684,7 @@ class MessageList extends React.Component {
             ref={el => {
               this._messageWrapEl = el;
             }}
+            onScroll={this._onScroll}
           >
             {this._renderSubject()}
             <div className="headers" style={{ position: 'relative' }}>
