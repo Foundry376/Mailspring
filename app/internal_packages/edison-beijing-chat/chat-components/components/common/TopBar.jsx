@@ -17,9 +17,9 @@ export default class TopBar extends PureComponent {
   }
 
   render() {
-    const { left, center, right } = this.props;
+    const { left, center, right, className } = this.props;
     return (
-      <div className="top-bar-container">
+      <div className={`top-bar-container ${className}`}>
         {left ? (
           <div className="left">
             {left}

@@ -31,6 +31,7 @@ import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import SecurePrivate from './SecurePrivate';
+import _ from 'underscore';
 
 let key = 0;
 
@@ -172,6 +173,7 @@ export default class Messages extends PureComponent {
     saveGroupMessages(groupedMessages);
   }
 
+  messagesTopBar = null;
   messagesPanel = null;
   messagePanelEnd = null;
 
@@ -224,7 +226,7 @@ export default class Messages extends PureComponent {
           email={member.email} avatar={member.avatar} size={32} />
       )
     }
-    return null
+    return null;
   }
 
   openFile(filePath) {
@@ -248,25 +250,34 @@ export default class Messages extends PureComponent {
     key++;
     this.setState(Object.assign({}, this.state, { key }));
   }
-  calcTimeLabel = () => {
-    clearTimeout(this.timer);
-    this.timer = setTimeout(() => {
-      if (!this.messagesPanel) {
-        return;
+  calcTimeLabel = _.throttle(() => {
+    if (!this.messagesPanel) {
+      return;
+    }
+    const scrollTop = this.messagesPanel.scrollTop;
+    if (!this.messagesTopBar) {
+      this.messagesTopBar = document.querySelector('.messages-top-bar');
+    }
+    if (this.messagesTopBar) {
+      if (scrollTop > 0) {
+        if (this.messagesTopBar.className.indexOf('has-shadow') === -1) {
+          this.messagesTopBar.className += ' has-shadow';
+        }
+      } else {
+        this.messagesTopBar.className = this.messagesTopBar.className.replace(' has-shadow', '');
       }
-      const top = this.messagesPanel.scrollTop;
-      const messageGroups = this.messagesPanel.children;
-      for (const msgGrp of messageGroups) {
-        if (msgGrp.className.indexOf('message-group') !== -1) {
-          if (msgGrp.offsetTop - 50 < top && top < msgGrp.offsetTop + msgGrp.offsetHeight - 70) {
-            msgGrp.className = 'message-group time-label-fix';
-          } else {
-            msgGrp.className = 'message-group';
-          }
+    }
+    const messageGroups = this.messagesPanel.children;
+    for (const msgGrp of messageGroups) {
+      if (msgGrp.className.indexOf('message-group') !== -1) {
+        if (msgGrp.offsetTop - 50 < scrollTop && scrollTop < msgGrp.offsetTop + msgGrp.offsetHeight - 70) {
+          msgGrp.className = 'message-group time-label-fix';
+        } else {
+          msgGrp.className = 'message-group';
         }
       }
-    }, 10);
-  }
+    }
+  }, 50);
 
   download = (msgBody) => {
     event.stopPropagation();
@@ -358,13 +369,13 @@ export default class Messages extends PureComponent {
                 <Divider type="horizontal" />
                 {nearDays(group.time) ? (
                   <div className="day-label-text">
-                    <span className='span1'>{dateFormat(group.time)}</span>
-                    <span className='span2'>{dateFormatDigit(group.time)}</span>
+                    <span className='weekday'>{dateFormat(group.time)}</span>
+                    <span className='date'>{dateFormatDigit(group.time)}</span>
                   </div>) :
                   (
                     <div className="day-label-text">
-                      <span className='span1'>{weekDayFormat(group.time)}</span>
-                      <span className='span2'>{dateFormatDigit(group.time)}</span>
+                      <span className='weekday'>{weekDayFormat(group.time)}</span>
+                      <span className='date'>{dateFormatDigit(group.time)}</span>
                     </div>)
                 }
               </label>

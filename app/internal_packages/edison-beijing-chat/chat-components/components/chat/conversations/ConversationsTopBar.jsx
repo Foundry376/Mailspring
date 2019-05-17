@@ -13,6 +13,7 @@ export default class ConversationsTopBar extends PureComponent {
   render() {
     return (
       <TopBar
+        className="conversation-top-bar"
         left={
           [<div key='title' className="left-title">MESSAGES</div>,
           <BindGlobalCommands key='bindKey' commands={{
@@ -22,7 +23,7 @@ export default class ConversationsTopBar extends PureComponent {
         right={
           <Button className="button new-message" onClick={this.newConversation}>
             <RetinaImg name={'pencil.svg'}
-              style={{ width: 12 }}
+              style={{ width: 18 }}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
             New
