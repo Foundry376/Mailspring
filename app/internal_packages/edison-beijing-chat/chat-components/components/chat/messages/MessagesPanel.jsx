@@ -47,6 +47,7 @@ const { dialog } = remote;
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 window.registerLoginChatAccounts = registerLoginChatAccounts;
+let chatViewDisplay, toolbarControlsDisplay;
 
 export default class MessagesPanel extends PureComponent {
   static propTypes = {
@@ -276,6 +277,7 @@ export default class MessagesPanel extends PureComponent {
   refreshRoomMembers = async (nextProps) => {
     const { selectedConversation: conversation } = (nextProps || this.props);
     if (conversation && conversation.isGroup) {
+      const curJid = conversation.curJid;
       let state = Object.assign({}, this.state, { loadingMembers: true });
       this.setState(state);
       const members = await this.getRoomMembers(nextProps);
@@ -288,10 +290,12 @@ export default class MessagesPanel extends PureComponent {
           }
         })
       }
+      console.log('debugger: refreshRoomMembers: conversation, members: ', conversation, members);
       for (let member of members) {
         const jid = member.jid.bare || member.jid;
         const nicknames = chatModel.chatStorage.nicknames;
         member.nickname = nicknames[jid] || '';
+        member.curJid = member.curJid || curJid;
       };
       if (!this.state.members || !this.state.members.length || members && members.length) {
         const state = Object.assign({}, this.state, { members });
@@ -399,6 +403,7 @@ export default class MessagesPanel extends PureComponent {
   };
 
   editMemberProfile = member => {
+    console.log('debugger: editMemberProfile: ', member);
     const state = Object.assign({}, this.state, { editingMember: member });
     this.setState(state);
   }
@@ -663,6 +668,38 @@ export default class MessagesPanel extends PureComponent {
       deselectConversation,
       createRoom: this.createRoom
     }
+    let style = {};
+    // debugger;
+    if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {
+      style = {
+        position:'fixed',
+        top: '0px',
+        left: '0px',
+        width:'100%',
+        height: '100%',
+        backgroundColor:'white',
+        zIndex: 999,
+      };
+      let element = document.querySelector('#ChatView');
+      if (element) {
+        chatViewDisplay = chatViewDisplay || element.style.display;
+        element.style.display = 'none';
+      }
+      element = document.querySelector('.toolbar-window-controls');
+      if (element) {
+        toolbarControlsDisplay = toolbarControlsDisplay || element.style.display;
+        element.style.display = 'none';
+      }
+    } else {
+      let element = document.querySelector('#ChatView');
+      if (element && chatViewDisplay) {
+        element.style.display = chatViewDisplay;
+      }
+      element = document.querySelector('.toolbar-window-controls');
+      if (element && toolbarControlsDisplay) {
+        element.style.display = toolbarControlsDisplay;
+      }
+    }
 
     return (
       <div className="panel"
@@ -673,7 +710,7 @@ export default class MessagesPanel extends PureComponent {
       >
         {selectedConversation ?
           <div className="chat">
-            <div className="splitPanel">
+            <div className="splitPanel" style={style}>
               {
                 selectedConversation.jid === NEW_CONVERSATION ? (
                   <div className="chatPanel">

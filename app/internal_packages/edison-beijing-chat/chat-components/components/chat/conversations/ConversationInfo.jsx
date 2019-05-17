@@ -139,7 +139,7 @@ export default class ConversationInfo extends Component {
             !conversation.isGroup ? (
               <div className="row">
                 <div className="avatar-icon">
-                  <ContactAvatar jid={privateChatMember.jid} name={privateChatMember.name}
+                  <ContactAvatar conversation={conversation} jid={privateChatMember.jid} name={privateChatMember.name}
                     email={privateChatMember.email} avatar={privateChatMember.avatar} size={30} />
                 </div>
                 <div className="info">
@@ -153,7 +153,7 @@ export default class ConversationInfo extends Component {
           }
           {
             conversation.isGroup && !loadingMembers && roomMembers && roomMembers.map(member => {
-              console.log('debugger: ConversationInfo: roomMembers: ', member);
+              // console.log('debugger: ConversationInfo: roomMembers: ', member);
               let name = member.name;
               const email = member.email || member.jid.unescapedLocal.replace('^at^', '@');
               if (!name) {
@@ -186,7 +186,7 @@ export default class ConversationInfo extends Component {
               return (
                 <div className="row" key={jid} onClick={onEditMemberProfile}>
                   <div className="avatar">
-                    <ContactAvatar jid={jid} name={name}
+                    <ContactAvatar conversation={conversation} jid={jid} name={name}
                       email={ email } avatar={member.avatar} size={30} />
                   </div>
                   <div className="info">

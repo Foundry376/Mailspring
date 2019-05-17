@@ -72,6 +72,7 @@ export default class ConversationItem extends PureComponent {
   render() {
     const { selected, conversation, referenceTime, onClick, removeConversation, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
+    console.log('debugger ConversationItem: props: ', this.props);
     return (
       <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
         <div style={{ width: '100%', display: 'flex' }} onClick={onClick}>

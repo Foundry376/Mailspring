@@ -111,7 +111,6 @@ export default class MessagesSendBar extends PureComponent {
     }
     const userId = selectedConversation.curJid.split('@')[0];
     const token = await getToken(userId);
-    iniApps(userId, token);
     const keyword2app = {};
     listKeywordApps(userId, token, (err, data) => {
       // console.log('MessageSendBar.componentWillReceiveProps listKeywordApps err, data: ', err, data);
@@ -571,7 +570,12 @@ export default class MessagesSendBar extends PureComponent {
               mode={RetinaImg.Mode.ContentIsMask} />
           </Button>
         </div>
-        <PluginPrompt conversation={selectedConversation} pos={this.state.promptPos} prefix={this.state.prefix} keyword2app={this.state.keyword2app} />
+        <PluginPrompt conversation={selectedConversation}
+                      pos={this.state.promptPos}
+                      prefix={this.state.prefix}
+                      keyword2app={this.state.keyword2app}
+                      installApp = {this.installApp}
+        />
       </div>
     );
   }
