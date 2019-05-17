@@ -28,6 +28,7 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import messageModel, { FILE_TYPE } from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 import MessageEditBar from './MessageEditBar';
+import Group from './Group';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import SecurePrivate from './SecurePrivate';
@@ -310,6 +311,7 @@ export default class Messages extends PureComponent {
       groupedMessages,
       selectedConversation: { isGroup, jid },
     } = this.props;
+    console.log('debugger Messages currentUserId:', currentUserId);
     messageModel.currentUserId = currentUserId;
     if (groupedMessages.length) {
       chatModel.groupedMessages = groupedMessages;
@@ -362,223 +364,16 @@ export default class Messages extends PureComponent {
         tabIndex="0"
       >
         <SecurePrivate />
-        {jid !== NEW_CONVERSATION && groupedMessages.map((group, index) => (
-          <div className="message-group" key={index}>
-            <div className="day-label">
-              <label>
-                <Divider type="horizontal" />
-                {nearDays(group.time) ? (
-                  <div className="day-label-text">
-                    <span className='weekday'>{dateFormat(group.time)}</span>
-                    <span className='date'>{dateFormatDigit(group.time)}</span>
-                  </div>) :
-                  (
-                    <div className="day-label-text">
-                      <span className='weekday'>{weekDayFormat(group.time)}</span>
-                      <span className='date'>{dateFormatDigit(group.time)}</span>
-                    </div>)
-                }
-              </label>
-
-            </div>
-            {group.messages.map((msg, idx) => {
-              let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
-              if (msgBody.deleted) {
-                return null;
-              }
-              if (msgBody.isAppprivateCommand) {
-                // console.log("debugger: MessagePrivateApp msg: ", msg);
-                return <MessagePrivateApp msg={msg}
-                  userId={currentUserId}
-                  conversation={this.props.selectedConversation}
-                  getContactInfoByJid={this.getContactInfoByJid}
-                  getContactAvatar={this.getContactAvatar}
-                  key={msg.id} />
-
-              } else if (msgBody.appJid) {
-                // console.log("debugger: MessageApp msg: ", msg);
-                return <MessageApp msg={msg}
-                  userId={currentUserId}
-                  conversation={this.props.selectedConversation}
-                  getContactInfoByJid={this.getContactInfoByJid}
-                  getContactAvatar={this.getContactAvatar}
-                  key={msg.id} />
-              }
-
-              if (msg.sender === currentUserId) {
-                msgBody.path = msgBody.localFile || msgBody.path;
-              } else {
-                msgBody.path = msgBody.path || msgBody.localFile;
-              }
-              const msgImgPath = msgBody.path;
-
-              const color = colorForString(msg.sender);
-              let msgFile;
-              let onClickImage = () => {
-                msg.zoomin = true;
-                if (msg.height < 1600) {
-                  msg.height *= 2;
-                } else {
-                  msg.height = 100;
-                }
-                messageModel.group = group;
-                messageModel.msg = msg;
-                messageModel.msgBody = msgBody;
-                messageModel.imagePopup.show();
-                this.update();
-              }
-              let cursor = 'zoom-in';
-
-              if (shouldInlineImg(msgBody)) {
-                msgFile = (
-                  <div className="message-image">
-                    <img
-                      src={msgBody.path}
-                      title={msgBody.localFile || msgBody.mediaObjectId}
-                      onClick={onClickImage}
-                    />
-                    {messageToolbar(msg, msgBody, true)}
-                  </div>
-                )
-              } else if (shouldDisplayFileIcon(msgBody)) {
-                const fileName = msgBody.path ? path.basename(msgBody.path) : '';
-                let extName = path.extname(msgBody.path || 'x.doc').slice(1);
-                let iconName = AttachmentStore.getExtIconName(msgBody.path);
-                msgFile = (
-                  <div className="message-file">
-                    <div className="file-info" onDoubleClick={() => this.openFile(msgBody.path)}>
-                      <div className="file-icon">
-                        <RetinaImg name={iconName}
-                          isIcon
-                          mode={RetinaImg.Mode.ContentIsMask} />
-                      </div>
-                      <div>
-                        <div className="file-name">{fileName}</div>
-                        <div className="ext">{extName.toUpperCase()}</div>
-                      </div>
-                    </div>
-                    {messageToolbar(msg, msgBody, true)}
-                  </div>
-                )
-              } else {
-                msgFile = null;
-              }
-              let percent = chatModel.loadProgressMap[msgBody.path] || 0;
-              let border = null;
-              const isUnreadUpdatedMessage = (msg) => {
-                if (!msg.updateTime) {
-                  return false;
-                } else {
-                  const readTime = msg.readTime || 0;
-                  return readTime < msg.updateTime;
-                }
-              }
-              let isEditing = false;
-              if (msg.id === chatModel.editingMessageId) {
-                isEditing = true;
-              } else if (isUnreadUpdatedMessage(msg)) {
-              }
-              const isCurrentUser = msg.sender === currentUserId;
-              const member = this.getContactInfoByJid(msg.sender);
-              const senderName = msg.senderNickname || member.name;
-              return (
-                <div
-                  key={msg.id}
-                  className={getMessageClasses(msg) + (
-                    isEditing ? ' editing' : ''
-                  )}
-                  style={{ borderColor: color, border }}
-                >
-                  <div className="messageSender">
-                    {this.getContactAvatar(member)}
-                  </div>
-                  <div className="messageContent">
-                    <div>
-                      <span className="username">{senderName}</span>
-                      <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
-                    </div>
-                    {
-                      (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgImgPath.replace('file://', '')))) ? (
-                        <div className="messageBody loading">
-                          {msgBody.downloading && (
-                            <div> Downloading...
-                              <RetinaImg
-                                name="inline-loading-spinner.gif"
-                                mode={RetinaImg.Mode.ContentPreserve}
-                              />
-                            </div>
-                          )}
-                          {msgBody.isUploading && (
-                            <div>
-                              Uploading {msgBody.localFile && path.basename(msgBody.localFile)}
-                              <RetinaImg
-                                name="inline-loading-spinner.gif"
-                                mode={RetinaImg.Mode.ContentPreserve}
-                              />
-                              {isImage(msgBody.type) && (
-                                <div className="message-image">
-                                  <img
-                                    src={msgBody.localFile}
-                                    title={msgBody.isUploading && msgBody.localFile || ''}
-                                    onClick={onClickImage}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>) : (
-                          isEditing ? (
-                            <div>
-                              <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} {...this.props.sendBarProps} />
-                            </div>
-                          ) : (
-                              <div className="messageBody">
-                                <div className="text-content">
-                                  {msgBody.path && path.basename(msgBody.path) || msgBody.content || msgBody}
-                                  {
-                                    !msgFile && isCurrentUser && !isEditing && (
-                                      messageToolbar(msg, msgBody, false)
-                                    )}
-                                </div>
-                              </div>
-                            )
-                        )
-                    }
-
-                    {msgBody.mediaObjectId && (
-                      <div className="messageMeta">
-                        <div>{msgFile}</div>
-                      </div>
-                    )}
-
-                    <div className="messageMeta">
-                      {
-                        getStatusWeight(msg.status) >= getStatusWeight(MESSAGE_STATUS_DELIVERED) ?
-                          <CheckIcon
-                            className="messageStatus"
-                            size={8}
-                            color="white"
-                          /> : null
-                      }
-                    </div>
-                    {
-                      msg.status === MESSAGE_STATUS_UPLOAD_FAILED &&
-                      <div className="upload-error">
-                        <span>
-                          <RetinaImg name={'close_1.svg'}
-                            style={{ width: 20, height: 20 }}
-                            isIcon
-                            mode={RetinaImg.Mode.ContentIsMask} />
-                        </span>
-                        <span> File transfer failed!</span>
-                      </div>
-                    }
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ))
+        { jid !== NEW_CONVERSATION && groupedMessages.map((group, idx) => {
+          return (
+            <Group conversation={this.props.selectedConversation}
+                   group={group}
+                   queueLoadMessage={this.props.queueLoadMessage}
+                   onMessageSubmitted={this.props.onMessageSubmitted}
+                   key={idx}>
+            </Group>
+          );
+         })
         }
         <MessageImagePopup
           {...this.props}

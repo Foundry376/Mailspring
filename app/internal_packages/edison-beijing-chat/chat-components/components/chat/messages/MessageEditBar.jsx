@@ -61,7 +61,7 @@ export default class MessageEditBar extends PureComponent {
   static propTypes = {
     onMessageSubmitted: PropTypes.func.isRequired,
     value: PropTypes.string.isRequired,
-    selectedConversation: PropTypes.shape({
+    conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
       email: PropTypes.string,//.isRequired,
@@ -70,7 +70,7 @@ export default class MessageEditBar extends PureComponent {
   }
 
   static defaultProps = {
-    selectedConversation: null
+    conversation: null
   }
 
   state = {
@@ -99,13 +99,13 @@ export default class MessageEditBar extends PureComponent {
   }
 
   getRoomMembers = async () => {
-    const { selectedConversation } = this.props;
+    const { conversation } = this.props;
     const { roomMembers } = this.state;
-    if (selectedConversation.isGroup) {
+    if (conversation.isGroup) {
       if (roomMembers && roomMembers.length) {
         return roomMembers;
       }
-      const result = await xmpp.getRoomMembers(selectedConversation.jid, null, selectedConversation.curJid)
+      const result = await xmpp.getRoomMembers(conversation.jid, null, conversation.curJid)
       return result.mucAdmin.items;
     }
     return [];
@@ -130,8 +130,8 @@ export default class MessageEditBar extends PureComponent {
 
   getAtTargetPersons = () => {
     const { messageBody, roomMembers } = this.state;
-    const { selectedConversation } = this.props;
-    if (!selectedConversation.isGroup) {
+    const { conversation } = this.props;
+    if (!conversation.isGroup) {
       return [];
     }
     const atJids = [];
@@ -156,15 +156,15 @@ export default class MessageEditBar extends PureComponent {
   sendMessage = () => {
     let { messageBody, occupants } = this.state;
     messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
-    const { selectedConversation, onMessageSubmitted } = this.props;
-    const atIndex = selectedConversation.jid.indexOf('@')
-    let jidLocal = selectedConversation.jid.slice(0, atIndex);
+    const { conversation, onMessageSubmitted } = this.props;
+    const atIndex = conversation.jid.indexOf('@')
+    let jidLocal = conversation.jid.slice(0, atIndex);
 
-    if (!selectedConversation) {
+    if (!conversation) {
       return;
     }
 
-
+    debugger;
     if (this.state.files.length) {
       this.state.files.map((file, index) => {
         let filepath;
@@ -180,6 +180,7 @@ export default class MessageEditBar extends PureComponent {
           filepath = file;
         }
         let messageId, updating = false;
+
         if (chatModel.editingMessageId) {
           messageId = chatModel.editingMessageId;
           updating = true;
@@ -198,8 +199,8 @@ export default class MessageEditBar extends PureComponent {
           timeSend: new Date().getTime(),
           isUploading: true,
           content: 'sending...',
-          email: selectedConversation.email,
-          name: selectedConversation.name,
+          email: conversation.email,
+          name: conversation.name,
           mediaObjectId: '',
           localFile: filepath,
           updating
@@ -208,7 +209,7 @@ export default class MessageEditBar extends PureComponent {
           body.emailSubject = file.subject;
           body.emailMessageId = file.messageId;
         }
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, true);
+        onMessageSubmitted(conversation, JSON.stringify(body), messageId, true);
         uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
           if (err) {
             alert(`upload files failed because error: ${err}, filepath: ${filepath}`);
@@ -228,7 +229,7 @@ export default class MessageEditBar extends PureComponent {
           body.occupants = occupants;
           body.atJids = this.getAtTargetPersons();
           body.updating = updating;
-          onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
+          onMessageSubmitted(conversation, JSON.stringify(body), messageId, false);
         });
       })
     } else {
@@ -246,14 +247,14 @@ export default class MessageEditBar extends PureComponent {
           type: FILE_TYPE.TEXT,
           timeSend: new Date().getTime(),
           content: message,
-          email: selectedConversation.email,
-          name: selectedConversation.name,
+          email: conversation.email,
+          name: conversation.name,
           occupants,
           atJids: this.getAtTargetPersons(),
           updating
         };
 
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
+        onMessageSubmitted(conversation, JSON.stringify(body), messageId, false);
       }
 
     }
@@ -317,8 +318,8 @@ export default class MessageEditBar extends PureComponent {
   };
 
   onSearchChange = (value) => {
-    const { selectedConversation } = this.props;
-    if (!selectedConversation.isGroup) {
+    const { conversation } = this.props;
+    if (!conversation.isGroup) {
       return;
     }
     const { roomMembers } = this.state;
