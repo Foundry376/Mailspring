@@ -246,9 +246,9 @@ export default class Message extends ModelWithMetadata {
   toJSON(options) {
     const json = super.toJSON(options);
     json.file_ids = this.fileIds();
-    if (this.draft) {
-      json.object = 'draft';
-    }
+    // if (this.draft) {
+    //   json.object = 'draft';
+    // }
 
     if (this.events && this.events.length) {
       json.event_id = this.events[0].id;
@@ -264,9 +264,9 @@ export default class Message extends ModelWithMetadata {
     // property. Because of `DraftChangeSet`, it's common for incoming json
     // to be an empty hash. In this case we want to leave the pre-existing
     // draft bit alone.
-    if (json.object) {
-      this.draft = json.object === 'draft';
-    }
+    // if (json.object) {
+    //   this.draft = json.object === 'draft';
+    // }
 
     return this;
   }

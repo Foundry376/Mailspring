@@ -22,17 +22,6 @@ const isChatTest = isChatTestUser();
 
 module.exports = {
   activate() {
-    const jsonParse = JSON.parse;
-    JSON.parse = (data) => {
-      try {
-        return jsonParse.call(JSON, data);
-      } catch (e) {
-        const error = new Error();
-        console.warn("JSON.parse errror: e, data: ", e, data);
-        console.log(error.stack);
-        return data;
-      }
-    };
     const { devMode } = AppEnv.getLoadSettings();
     if (true || devMode || isChatTest) {
       WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });

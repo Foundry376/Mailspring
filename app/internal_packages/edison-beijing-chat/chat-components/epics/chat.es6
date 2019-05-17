@@ -539,8 +539,13 @@ export const convertReceivedMessageEpic = (action$) =>
       }
     })
     .map(({ type, payload }) => {
-      console.log("yazz-test1", payload)
-      const { timeSend } = JSON.parse(payload.body);
+      console.log("yazz-test1", payload);
+      let timeSend;
+      if (payload.body){
+         timeSend = JSON.parse(payload.body).timeSend;
+      } else {
+        timeSend = payload.ts;
+      }
       let sender = payload.from.bare;
       // if groupchat, display the sender name
       if (type === RECEIVE_GROUP_MESSAGE) {
@@ -582,6 +587,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
         .map(({ lastMessageTime, sender, lastMessageText }) => {
           let timeSend = new Date().getTime();
           if (payload.body){
+            console.log('debugger: updatePrivateMessageConversationEpic: payload.body: ', payload.body);
             timeSend = JSON.parse(payload.body).timeSend;
           }
           // if not current conversation, unreadMessages + 1
@@ -645,6 +651,7 @@ const asyncUpdateGroupMessageConversationEpic = async ({ payload }, getState) =>
   }
   let at = false;
   const { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
+  console.log('debugger asyncUpdateGroupMessageConversationEpic: payload.body: ', payload.body);
   const { timeSend } = JSON.parse(payload.body);
   // if not current conversation, unreadMessages + 1
   let unreadMessages = 0;
