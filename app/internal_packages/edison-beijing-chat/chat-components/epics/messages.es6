@@ -28,10 +28,10 @@ export const fetchMessagesEpic = action$ =>
         )
         .mergeMap(
             ({ db, jid }) => {
-                console.log("yazz-config1", db, jid);
+                // console.log("yazz-config1", db, jid);
                 return Observable.fromPromise(db.configs.findOne({ key: jid.local + "_message_ts" }).exec())
                     .map((data) => {
-                        console.log("yazz-config1", data)
+                        // console.log("yazz-config1", data)
                         if (data) {
                             return { ts: data.value, jid }
                         } else {
@@ -42,14 +42,14 @@ export const fetchMessagesEpic = action$ =>
             }
         )
         .mergeMap(({ ts, jid }) => {
-            console.log("yazz-config2", ts, jid);
+            // console.log("yazz-config2", ts, jid);
             return Observable.fromPromise(xmpp.pullMessage(ts, jid.bare))
                 .map(data => {
-                    console.log("yazz-config3", data)
+                    // console.log("yazz-config3", data)
                     return succesfullyFetchedMessage(jid)
                 })//yazzxx3
                 .catch(err => {
-                    console.log("yazz-config33", err)
+                    // console.log("yazz-config33", err)
                     return Observable.of(failedFetchingMessage(err)
                     )
                 })

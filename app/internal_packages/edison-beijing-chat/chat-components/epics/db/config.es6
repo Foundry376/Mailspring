@@ -10,10 +10,10 @@ import {
 import getDb from '../../db';
 import chatModel from '../../store/model';
 const saveConfig = async config => {
-    console.log("yazz-config4", config);
+    // console.log("yazz-config4", config);
     const db = await getDb();
     if (config) {
-        console.log(config)
+        // console.log(config)
         if (!config.time) {
             config.time = Date.now();
         }
