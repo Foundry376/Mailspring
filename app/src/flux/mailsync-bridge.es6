@@ -258,6 +258,14 @@ export default class MailsyncBridge {
         message: `In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.`,
       });
     }
+    if (!this._clients[accountId].isSyncReadyToReceiveMessage()) {
+      const { emailAddress } = AccountStore.accountForId(accountId) || {};
+      console.log(
+        `sync is not ready, initial message not send to native yet. Message for account ${emailAddress} not send`
+      );
+      this._clients[accountId].appendToSendQueue(json);
+      return;
+    }
     this._clients[accountId].sendMessage(json);
   }
 
