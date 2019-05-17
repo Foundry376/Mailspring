@@ -70,6 +70,8 @@ export default class MailsyncProcess extends EventEmitter {
     // these must be set before you use the process
     this.account = null;
     this.identity = null;
+    this.syncInitilMessageSend = false;
+    this._sendMessageQueue = [];
   }
 
   _showStatusWindow(mode) {
@@ -145,6 +147,15 @@ export default class MailsyncProcess extends EventEmitter {
         rs.push(`${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`);
         rs.push(null);
         rs.pipe(this._proc.stdin, { end: false });
+        if (AppEnv.enabledToNativeLog) {
+          console.log('--------------------To native---------------');
+          console.log(
+            `to native: ${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`,
+          );
+          console.log('-----------------------------To native END-----------------------');
+        }
+        this.syncInitilMessageSend = true;
+        this._flushSendQueue();
       });
     }
   }
@@ -303,6 +314,33 @@ export default class MailsyncProcess extends EventEmitter {
     });
     this._proc.on('close', onStreamCloseOrExit);
     this._proc.on('exit', onStreamCloseOrExit);
+  }
+
+  isSyncReadyToReceiveMessage() {
+    return this.syncInitilMessageSend;
+  }
+
+  appendToSendQueue(json) {
+    if (this.syncInitilMessageSend) {
+      this.sendMessage(json);
+      return false;
+    }
+    this._sendMessageQueue.push(json);
+  }
+
+  _flushSendQueue() {
+    if (!this.syncInitilMessageSend || this.isRemoving) {
+      return false;
+    }
+    for (let i = 0; i < this._sendMessageQueue.length; i++) {
+      if (AppEnv.enabledToNativeLog) {
+        console.log('--------------------To native ---------------');
+        console.log(`to native: flushing queue: ${this.account ? this.account.id : 'no account'} - ${this._sendMessageQueue[i]}`);
+        console.log('-----------------------------To native END-----------------------');
+      }
+      this.sendMessage(this._sendMessageQueue[i]);
+    }
+    this._sendMessageQueue = [];
   }
 
   sendMessage(json) {
