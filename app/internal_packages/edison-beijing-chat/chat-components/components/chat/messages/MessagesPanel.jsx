@@ -701,8 +701,10 @@ export default class MessagesPanel extends PureComponent {
       }
     }
 
+    const isOffLine = !this.state.online || !this.props.chat_online;
+
     return (
-      <div className="panel"
+      <div className={`panel ${isOffLine ? 'offline': ''}`}
         onDragOverCapture={this.onDragOver}
         onDragEnd={this.onDragEnd}
         onMouseLeave={this.onDragEnd}
@@ -750,13 +752,13 @@ export default class MessagesPanel extends PureComponent {
             </span>
           </div>
         }
-        {(!this.state.online || !this.props.chat_online) && (
+        {isOffLine && (
           <div className="network-offline">
             {this.state.online ? (
               this.props.isAuthenticating ? (
                 <div>
                   <RetinaImg name={'no-network.svg'}
-                    style={{ width: 15 }}
+                    style={{ width: 16 }}
                     isIcon
                     mode={RetinaImg.Mode.ContentIsMask} />
                   <span>Your computer appears to be offline. Edison Mail is trying to reconnect. </span>
@@ -767,7 +769,7 @@ export default class MessagesPanel extends PureComponent {
                 )
             ) : (<div>
               <RetinaImg name={'no-network.svg'}
-                style={{ width: 15 }}
+                style={{ width: 16 }}
                 isIcon
                 mode={RetinaImg.Mode.ContentIsMask} />
               <span>Your computer appears to be offline.</span>

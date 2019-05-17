@@ -33,10 +33,18 @@
     }
   }
 
+  .panel.offline {
+    .messages {
+      background: url(images/chat/no-connection.png) no-repeat center center;
+      background-size: 250px auto;
+    }
+  }
+
   .messages {
     flex-grow: 1;
     overflow-y: scroll;
     -webkit-app-region: no-drag;
+    height: 100%;
     &::-webkit-scrollbar {
       display: none;
     }
@@ -130,7 +138,7 @@
     .day-label label {
       position: absolute;
       z-index: 99;
-      top: 69px;
+      top: 72px;
       left: 0px;
       right: 0px;
     }
