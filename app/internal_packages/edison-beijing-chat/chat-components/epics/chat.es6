@@ -511,7 +511,7 @@ export const receiveGroupMessageEpic = action$ =>
         downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, null, payload);
         if (payload.appJid) {
           try {
-            console.log('yazz-config4', payload)
+            // console.log('yazz-config4', payload)
             let json = JSON.parse(payload.body);
             json.appJid = payload.appJid;
             json.appName = payload.appName;
@@ -539,10 +539,10 @@ export const convertReceivedMessageEpic = (action$) =>
       }
     })
     .map(({ type, payload }) => {
-      console.log("yazz-test1", payload);
+      // console.log("yazz-test1", payload);
       let timeSend;
-      if (payload.body){
-         timeSend = JSON.parse(payload.body).timeSend;
+      if (payload.body) {
+        timeSend = JSON.parse(payload.body).timeSend;
       } else {
         timeSend = payload.ts;
       }
@@ -552,7 +552,7 @@ export const convertReceivedMessageEpic = (action$) =>
         sender = payload.from.resource + '@im.edison.tech';
       }
       let conversationJid;
-      if (payload.curJid===payload.from.bare) {
+      if (payload.curJid === payload.from.bare) {
         conversationJid = payload.to.bare
       } else {
         conversationJid = payload.from.bare
@@ -573,9 +573,9 @@ export const convertReceivedMessageEpic = (action$) =>
 export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE)
     .mergeMap(({ type, payload }) => {
-      console.log("yazz-test2", payload);
+      // console.log("yazz-test2", payload);
       let name;
-      if (payload.from.bare===payload.curJid) {
+      if (payload.from.bare === payload.curJid) {
         name = null;
       } else {
         name = payload.from.local;
@@ -586,7 +586,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
       return Observable.fromPromise(getLastMessageInfo(payload))
         .map(({ lastMessageTime, sender, lastMessageText }) => {
           let timeSend = new Date().getTime();
-          if (payload.body){
+          if (payload.body) {
             console.log('debugger: updatePrivateMessageConversationEpic: payload.body: ', payload.body);
             timeSend = JSON.parse(payload.body).timeSend;
           }
@@ -597,7 +597,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
             unreadMessages = 1;
           }
           let jid;
-          if (payload.from.bare===payload.curJid) {
+          if (payload.from.bare === payload.curJid) {
             jid = payload.to.bare;
           } else {
             jid = payload.from.bare;
@@ -748,12 +748,12 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
       let isme = false;
       for (let email in chatAccounts) {
         const acc = chatAccounts[email];
-        if ( acc.userId === fromUserId ) {
+        if (acc.userId === fromUserId) {
           isme = true;
           break;
         }
       }
-      return conv  && !conv.isHiddenNotification && !isme;
+      return conv && !conv.isHiddenNotification && !isme;
     })
     .mergeMap(({ conv, payload }) => {
       let name = payload.from.local;
@@ -847,7 +847,7 @@ export const goNextConversationEpic = (action$, { getState }) =>
 const getEncrypted = (jid, body, devices, selfDevices, curJid, deviceId) => {
   let aeskey = generateAESKey();
   let uid = jid.substring(0, jid.indexOf('@'));//new JID(jid).local;//.substring(0,jid.indexOf('@'));
-  if(!selfDevices){
+  if (!selfDevices) {
     console.warn('getEncrypted: selfDevices is undefined');
     return false;
   }

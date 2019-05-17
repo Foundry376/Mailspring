@@ -66,6 +66,7 @@ export default class MessagesTopBar extends Component {
     return (
       <div>
         <TopBar
+          className="messages-top-bar"
           left={
             <div className='conv-name'>
               <div

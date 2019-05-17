@@ -4,9 +4,11 @@ var util = require('util');
 var WildEmitter = require('wildemitter');
 var async = require('async');
 
-var WS = (require('faye-websocket') && require('faye-websocket').Client) ?
-    require('faye-websocket').Client :
-    window.WebSocket;
+// var WS = (require('faye-websocket') && require('faye-websocket').Client) ?
+//     require('faye-websocket').Client :
+//     window.WebSocket;
+
+var WS = window.WebSocket;
 
 var WS_OPEN = 1;
 
@@ -119,10 +121,12 @@ WSConnection.prototype.connect = function (opts) {
     self.conn = new WS(opts.wsURL, 'xmpp', opts.wsOptions);
     self.conn.onerror = function (e) {
         e.preventDefault();
+        console.warn('websocket error:', e);
         self.emit('disconnected', self);
     };
 
     self.conn.onclose = function () {
+        console.warn('websocket onclose');
         self.emit('disconnected', self);
     };
 

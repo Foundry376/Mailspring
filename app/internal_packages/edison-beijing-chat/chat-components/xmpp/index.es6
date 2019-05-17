@@ -166,7 +166,7 @@ export class XmppEx extends EventEmitter3 {
     });
     this.client.on('session:started', () => {
       log(`xmpp session:started: jid: ${this.connectedJid}`);
-      console.log(`xmpp session:started: jid: ${this.connectedJid}`);
+      console.warn(`xmpp session1:started: jid: ${this.connectedJid}`);
       this.retryTimes = 0;
       this.isConnected = true;
       this.client.sendPresence();
@@ -181,12 +181,12 @@ export class XmppEx extends EventEmitter3 {
       console.log('session:prebind', bind, chatModel.diffTime);
     });
     this.client.on('disconnected', () => {
-      console.warn('disconnected', this.connectedJid);
+      console.warn('xmpp session2:disconnected', this.connectedJid);
       log(`xmpp disconnected: jid: ${this.connectedJid}`);
       this.isConnected = false;
       if (this.retryTimes == 0) {
         this.retryTimes++;
-        setTimeout(() => this.connect(), 1333);
+        setTimeout(() => this.connect(), 1111);
       } else {
         this.emit('disconnected', this.connectedJid);
       }
@@ -195,7 +195,10 @@ export class XmppEx extends EventEmitter3 {
   ping() {
     if (this.isConnected) {
       this.client.ping(this.connectedJid);
+      console.log(`xmpp session3:ping: jid: ${this.connectedJid}`);
       setTimeout(() => this.ping(), 9333);
+    } else {
+      console.log(`xmpp session3:ping: jid: ${this.connectedJid}`);
     }
   }
 
@@ -209,6 +212,7 @@ export class XmppEx extends EventEmitter3 {
       throw Error('Init this instance by calling init(credentials) before trying to connect');
     }
     log(`xmpp connect: jid: ${this.connectedJid}`);
+    console.warn(`xmpp session3:connecting: jid: ${this.connectedJid}`);
 
     const self = this;
     let isComplete = false;

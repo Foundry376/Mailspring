@@ -1,5 +1,12 @@
 @import 'ui-variables';
 .top-bar-container {
+  &.messages-top-bar {
+    border-bottom: 1px solid @gray-lighter;
+    &.has-shadow {
+      transition: box-shadow 0.2s ease-in-out;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+    }
+  }
   .chatTopBarCenter {
     display: flex;
     flex-direction: column;
@@ -42,8 +49,7 @@
       padding:0 30px 0 20px;
       white-space: nowrap;
       text-overflow: ellipsis;
-      overflow:hidden;
-      height: 32px;
+      overflow: hidden;
       width: 294px;
       color: #000;
       font-size: 32px;
@@ -53,7 +59,6 @@
     }
     .conv-name {
       width: 100%;
-      height:100%;
       .conv-pencil {
         display: none;
         position:absolute;
