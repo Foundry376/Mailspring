@@ -101,14 +101,6 @@ export default class SheetContainer extends React.Component {
         key="root"
         onColumnSizeChanged={this._onColumnSizeChanged}
       />
-    // const sheetComponents = this.state.stack.map((sheet, index) => (
-    //   <Sheet
-    //     data={sheet}
-    //     depth={index}
-    //     key={`root`}
-    //     onColumnSizeChanged={this._onColumnSizeChanged}
-    //   />
-    // ));
 
     return (
       <Flexbox
@@ -128,17 +120,6 @@ export default class SheetContainer extends React.Component {
 
         <div id="Center" name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
           {sheetComponent}
-          {/*{this.state.mode === 'list' ? (*/}
-          {/*  sheetComponents.slice(1)*/}
-          {/*) : (*/}
-          {/*    <CSSTransitionGroup*/}
-          {/*      transitionLeaveTimeout={125}*/}
-          {/*      transitionEnterTimeout={125}*/}
-          {/*      transitionName="sheet-stack"*/}
-          {/*    >*/}
-          {/*      {sheetComponents.slice(1)}*/}
-          {/*    </CSSTransitionGroup>*/}
-          {/*  )}*/}
         </div>
 
         <div name="Footer" style={{ order: 3, zIndex: 4 }}>
