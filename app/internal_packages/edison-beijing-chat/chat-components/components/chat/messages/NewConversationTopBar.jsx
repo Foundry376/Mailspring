@@ -8,6 +8,9 @@ import Button from '../../common/Button';
 export default class MessagesTopBar extends Component {
   constructor() {
     super();
+    this.state = {
+      members: []
+    }
   }
   componentDidMount = () => {
   }
@@ -16,7 +19,7 @@ export default class MessagesTopBar extends Component {
     const rect = this.contactInputEl.getBoundingClientRect();
     let el = document.querySelector('.rc-select-dropdown.rc-select-dropdown--multiple.rc-select-dropdown-placement-bottomLeft');
     if (el) {
-      el.style.width = Math.floor(rect.right-rect.left+5)+'px';
+      el.style.width = Math.floor(rect.right - rect.left + 5) + 'px';
     }
   }
 
@@ -27,12 +30,24 @@ export default class MessagesTopBar extends Component {
       curJid: item.props.curjid,
       email: item.props.email,
     }));
-    this.props.saveRoomMembersForTemp(members)
+    this.props.saveRoomMembersForTemp(members);
+    this.setState({
+      members
+    });
   }
+
+  createRoom = () => {
+    if (this.state.members.length === 0) {
+      return;
+    }
+    this.props.createRoom();
+  }
+
   render() {
     const {
       contacts,
     } = this.props;
+    const { members } = this.state;
 
     const children = contacts.filter(contant => !!contant).map((contact, index) =>
       <Option
@@ -52,11 +67,11 @@ export default class MessagesTopBar extends Component {
       </Option>
     );
 
-
     return (
       <div className="new-conversation-header">
         <div className="to">
           <span
+            className="close"
             onClick={() => {
               this.props.deselectConversation();
             }}
@@ -68,7 +83,7 @@ export default class MessagesTopBar extends Component {
           </span>
           <span className="new-message-title">New Message</span>
         </div>
-        <div ref={el=>{this.contactInputEl = el}} style={{ display: 'flex' }} onClick={() => {
+        <div ref={el => { this.contactInputEl = el }} style={{ display: 'flex' }} onClick={() => {
           document.querySelector('#contact-select input').focus();
         }}>
           <Select
@@ -85,7 +100,7 @@ export default class MessagesTopBar extends Component {
           >
             {children}
           </Select>
-          <Button className="go" onClick={this.props.createRoom}>Go</Button>
+          <Button className={`btn go ${members.length === 0 ? 'btn-disabled' : ''}`} onClick={this.createRoom}>Go</Button>
         </div>
       </div>
     );
