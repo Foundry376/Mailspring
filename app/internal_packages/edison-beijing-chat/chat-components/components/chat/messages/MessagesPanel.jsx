@@ -719,7 +719,6 @@ export default class MessagesPanel extends PureComponent {
                 ) : (
                     <div className="chatPanel">
                       <MessagesTopBar {...topBarProps} />
-                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessageFile} />
                       <Messages {...messagesProps} sendBarProps={sendBarProps} />
                       {this.state.dragover && (
                         <div id="message-dragdrop-override"></div>
@@ -727,6 +726,7 @@ export default class MessagesPanel extends PureComponent {
                       <div>
                         <MessagesSendBar {...sendBarProps} />
                       </div>
+                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessage} />
                     </div>
                   )
               }
