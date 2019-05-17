@@ -28,11 +28,6 @@ class ContactAvatar extends Component {
 
   state = {};
 
-  componentDidMount = () => {
-    this.mounted = true;
-    this.refreshState(this.props);
-  };
-
   componentWillReceiveProps = nextProps => {
     this.refreshState(nextProps);
   };
@@ -131,7 +126,9 @@ class ContactAvatar extends Component {
         }
       })
     }
+    this.refreshState(this.props);
   }
+
   render() {
     const { name, size = 48, conversation } = this.props;
     const { avatar, isImgExist, userProfile, bgColor } = this.state;
