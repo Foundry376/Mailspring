@@ -220,7 +220,7 @@ export default class Messages extends PureComponent {
     if (member) {
       const memberJid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
       return (
-        <ContactAvatar jid={memberJid} name={member.name}
+        <ContactAvatar jid={memberJid} name={member.name} conversation={this.props.selectedConversation}
           email={member.email} avatar={member.avatar} size={32} />
       )
     }

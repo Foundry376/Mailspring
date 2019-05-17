@@ -2,6 +2,7 @@ import keyMannager from '../../../../src/key-manager';
 import { register } from './restjs';
 import chatModel, { loadFromLocalStorage } from '../store/model';
 import { SUBMIT_AUTH } from '../actions/auth';
+import { getToken, iniApps } from './appmgt';
 
 export default async function registerLoginChatAccounts() {
   loadFromLocalStorage();
@@ -65,6 +66,7 @@ export default async function registerLoginChatAccounts() {
       })
     } else {
       let jid = chatAccount.userId + '@im.edison.tech';
+      const userId = chatAccount.userId;
       chatModel.allSelfUsers[jid] = chatAccount;
       chatModel.store.dispatch({
         type: SUBMIT_AUTH,

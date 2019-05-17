@@ -24,19 +24,24 @@ export default class PluginPrompt extends PureComponent {
     }
     const userId = conversation.curJid.split('@')[0]
     const text = prefix.slice(1).trim().toLowerCase();
+    let allApps = Object.values(keyword2app);
     let matchedApps = [];
     for (let kw in keyword2app) {
       let app = keyword2app[kw];
       kw = kw.toLowerCase();
-      if (kw==text || text.length>=3 && kw.toLowerCase().startsWith(text)) {
+      if (text && kw==text || text.length>=3 && kw.toLowerCase().startsWith(text)) {
           matchedApps.push(app);
       }
     }
     matchedApps = _.uniq(matchedApps);
-    matchedApps.forEach( app => {
-      app = getMyAppByShortName(userId, app.shortName);
-      // console.log('debugger: getMyAppById: app: ', userId, app);
+    console.log('debugger: matchedApps: ', matchedApps);
+    const  uninstalledApps = [];
+    matchedApps.forEach( app0 => {
+      let app = getMyAppByShortName(userId, app0.shortName);
+      console.log('debugger: getMyAppById: app: ', userId, app);
       if (!app || !app.length) {
+        console.log('debugger: uninstalled app: ', app0);
+        uninstalledApps.push (app0);
         return;
       } else {
         app = app[0];
@@ -51,26 +56,42 @@ export default class PluginPrompt extends PureComponent {
         };
       }
     });
-    const state = Object.assign({}, this.state, { matchedAppCommands, hidden: false })
+    let expectInstallApps;
+    if (!text) {
+      allApps =  _.uniq(allApps);
+      console.log('debugger: allApps: ', allApps);
+      debugger;
+      expectInstallApps = allApps.filter(app => {
+        console.log('debugger app: ', app);
+        const apps = getMyAppByShortName(userId, app.shortName);
+        return !apps || !apps.length;
+      });
+    } else {
+      expectInstallApps = uninstalledApps;
+    }
+    const state = Object.assign({}, this.state, { matchedAppCommands, expectInstallApps, hidden: false });
     this.setState(state);
   }
 
   hide = () => {
     const state = Object.assign({}, this.state, { hidden:true });
     this.setState(state);
-  }
+  };
+
+  installApp = () => {
+    this.props.installApp();
+    const state = Object.assign({}, this.state, { hidden:true });
+    this.setState(state);
+  };
 
   render() {
     // console.log('debugger: PluginPrompt.render this.props: ', this.props);
     const {pos,  prefix} = this.props;
 
-    if (!prefix || prefix[0] !== '/' || prefix=='/' || this.state.hidden) {
+    if (!prefix || prefix[0] !== '/' || this.state.hidden) {
       return null;
     }
-     if (!this.state.matchedAppCommands || !this.state.matchedAppCommands.length) {
-       return null;
-     }
-    const commands = this.state.matchedAppCommands.map((item, idx) => {
+    let commands = this.state.matchedAppCommands && this.state.matchedAppCommands.map((item, idx) => {
        if (item.description) {
          return <div key={idx} > {`${item.name}: ${item.description}`} </div>;
        } else {
@@ -85,11 +106,35 @@ export default class PluginPrompt extends PureComponent {
            </MessageCommand>)
        }
     });
+    if (commands && commands.length) {
+      commands = (<div>
+        <div>plugin commands:</div>
+      {commands}
+      </div>);
+    } else {
+      commands = null;
+    }
+    let apps = this.state.expectInstallApps && this.state.expectInstallApps.map(app => {
+      return (<div>
+          <em>{app.appName}: </em>
+          <span>{app.appDescription}</span>
+        </div>
+    )});
+    if (apps && apps.length) {
+      apps = (<div>
+        <div>chat plugin apps that can be installed: </div>
+        <div>{apps}</div>
+        <br/>
+        <button className='btn' onClick={this.installApp}> go chat edison app store to install </button>
+        </div>)
+    } else {
+      apps = null;
+    }
 
     return (
       <div className="plugin-prompt-container" style={{bottom:pos.top+28+'px', left:pos.left+28+'px'}}>
-        <div>plugin commands:</div>
         {commands}
+        {apps}
       </div>
     );
   }

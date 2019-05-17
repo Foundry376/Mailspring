@@ -5,6 +5,7 @@ import { getAvatar, getAvatarFromCache, queryProfile } from '../../utils/restjs'
 import { connect } from 'react-redux';
 import keyMannager from '../../../../../src/key-manager';
 import _ from 'underscore';
+import { getMyAppById } from '../../utils/appmgt';
 
 const getInitials = name => {
   const trimmedName = name ? name.trim() : '';
@@ -22,19 +23,56 @@ const getInitials = name => {
 class ContactAvatar extends Component {
   constructor(props) {
     super(props);
+    this.refreshState(props);
+  }
+
+  state = {};
+
+  componentDidMount = () => {
+    this.mounted = true;
+    this.refreshState(this.props);
+  };
+
+  componentWillReceiveProps = nextProps => {
+    this.refreshState(nextProps);
+  };
+
+  refreshState = props => {
+    console.log('debugger: ContactAvatar.refreshState props: ', props);
     const bgColor = gradientColorForString(props.jid);
-    this.state = {
+    let app;
+    const state = {
       avatar: props.avatar ? `https://s3.us-east-2.amazonaws.com/edison-profile-stag/${props.avatar}` : bgColor,
       isImgExist: false,
       userProfile: {},
       bgColor
-    }
+    };
+
     const imgUrl = getAvatarFromCache(this.props.email);
-    if (imgUrl) {
-      this.state.avatar = imgUrl;
-      this.state.isImgExist = true;
+    if (props.jid.match(/@app/)){
+      const conv = props.conversation;
+      if (conv){
+        const userId = conv.curJid.split('@')[0];
+        const id = props.jid.split('@')[0];
+        app = getMyAppById(userId, id);
+        console.log('debugger: ContactAvatar userId, id app, imgUrl: ', userId, id, imgUrl, app);
+      }
     }
-  }
+    if (imgUrl) {
+      state.avatar = imgUrl;
+      state.isImgExist = true;
+    } else if (app) {
+      state.avatar = app.icon;
+      state.isImgExist = true;
+    }
+    console.log('debugger: ContactAvatar state: ', state);
+    if (this.mounted) {
+      this.setState(state);
+    } else {
+      this.state = state;
+    }
+  };
+
   isOnline = () => {
     const { availableUsers, jid } = this.props;
     return availableUsers && availableUsers.indexOf(jid) !== -1 ? 'online' : 'offline';
@@ -66,6 +104,7 @@ class ContactAvatar extends Component {
     return true;
   }
   componentDidMount = async () => {
+    this.mounted = true;
     let { email, conversation } = this.props;
     if (this.props.jid && !email && (!conversation || !conversation.isGroup)) {
       let userProfile;
