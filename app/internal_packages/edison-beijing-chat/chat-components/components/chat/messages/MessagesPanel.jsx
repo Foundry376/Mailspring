@@ -272,6 +272,10 @@ export default class MessagesPanel extends PureComponent {
       nextProps.selectedConversation && !this.props.selectedConversation) {
       this.refreshRoomMembers(nextProps);
     }
+    return true;
+  }
+  componentShouldUpdate(){
+    return true;
   }
 
   refreshRoomMembers = async (nextProps) => {

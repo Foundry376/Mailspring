@@ -17,6 +17,7 @@ import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup'
 import EmailAttachmentPopup from '../../common/EmailAttachmentPopup'
+import { updateSelectedConversation } from '../../../actions/db/conversation';
 const FAKE_SPACE = '\u00A0';
 
 const activeStyle = {
@@ -164,7 +165,6 @@ export default class MessageEditBar extends PureComponent {
       return;
     }
 
-    debugger;
     if (this.state.files.length) {
       this.state.files.map((file, index) => {
         let filepath;
@@ -234,6 +234,8 @@ export default class MessageEditBar extends PureComponent {
       })
     } else {
       let messageId, updating = false;
+      debugger;
+      console.log('debugger: MessageEditBar.sendMessage chatModel: ', chatModel.editingMessageId, chatModel);
       if (chatModel.editingMessageId) {
         messageId = chatModel.editingMessageId;
         updating = true;

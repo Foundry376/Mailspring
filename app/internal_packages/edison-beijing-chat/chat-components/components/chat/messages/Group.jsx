@@ -10,6 +10,8 @@ import {
 import { RetinaImg } from 'mailspring-component-kit';
 import Msg from './Msg';
 
+let key = 0;
+
 export default class Group extends PureComponent {
   static propTypes = {
     group: PropTypes.arrayOf(
@@ -29,6 +31,18 @@ export default class Group extends PureComponent {
       jid: PropTypes.string.isRequired,
       isGroup: PropTypes.bool.isRequired,
     }),
+  }
+  componentWillReceiveProps(nextProps) {
+    this.props = nextProps;
+    setTimeout(()=>{this.update();})
+    return true;
+  }
+  componentShouldUpdate(){
+    return true;
+  }
+  update() {
+    key++;
+    this.setState(Object.assign({}, this.state, { key }));
   }
 
   render() {

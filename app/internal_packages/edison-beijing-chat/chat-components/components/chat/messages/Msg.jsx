@@ -81,6 +81,16 @@ export default class Msg extends PureComponent {
 
   static timer;
 
+  componentWillReceiveProps(nextProps) {
+    this.props = nextProps;
+    setTimeout(()=>{this.update();})
+    return true;
+  }
+
+  componentShouldUpdate(){
+    return true;
+  }
+
   componentDidMount() {
     this.menu = new Menu()
     let menuItem = new MenuItem({
@@ -88,6 +98,8 @@ export default class Msg extends PureComponent {
       click: () => {
         const {msg} = this.props;
         chatModel.editingMessageId = msg.id;
+        console.log('debugger: Edit Text:  msg.id, chatModel: ', msg.id, chatModel);
+        debugger;
         this.update();
         this.menu.closePopup();
       }
@@ -106,7 +118,7 @@ export default class Msg extends PureComponent {
     });
     this.menu.append(menuItem);
 
-    this.unlisten = Actions.updateDownloadPorgress.listen(this.onUpdataDownloadProgress, this);
+    this.unlisten = Actions.updateDownloadPorgress.listen(this.update, this);
   }
 
   componentWillUnmount() {
@@ -117,11 +129,6 @@ export default class Msg extends PureComponent {
     saveGroupMessages(groupedMessages);
   }
 
-  onUpdataDownloadProgress = () => {
-    key++
-    const state = Object.assign({}, this.state, { key });
-    this.setState(state);
-  }
   getContactInfoByJid = jid => {
     const {conversation} = this.props;
     const members = conversation.roomMembers;
@@ -358,6 +365,12 @@ export default class Msg extends PureComponent {
     return msg.senderNickname || member.name;
   }
 
+  onMessageSubmitted = (conversation, body, messageId, uploading) => {
+    this.msgBody = JSON.parse(body);
+    this.props.onMessageSubmitted(conversation, body, messageId, uploading);
+    this.update();
+  }
+
   render() {
     const { msg, conversation } = this.props;
     const currentUserJid = this.currentUserJid;
@@ -368,8 +381,8 @@ export default class Msg extends PureComponent {
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
-
     const {msgBody} = this;
+
     if (msgBody.deleted) {
       return null;
     } else if (msgBody.isAppprivateCommand) {
@@ -438,7 +451,7 @@ export default class Msg extends PureComponent {
                 </div>) : (
                 isEditing ? (
                   <div>
-                    <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} conversation={conversation} onMessageSubmitted={this.props.onMessageSubmitted}/>
+                    <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} conversation={conversation} onMessageSubmitted={this.onMessageSubmitted}/>
                   </div>
                 ) : (
                   <div className="messageBody">

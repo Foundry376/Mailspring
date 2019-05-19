@@ -36,21 +36,6 @@ import _ from 'underscore';
 
 let key = 0;
 
-const isImage = (type) => {
-  return type === FILE_TYPE.IMAGE || type === FILE_TYPE.GIF || type === FILE_TYPE.STICKER;
-}
-
-const shouldInlineImg = (msgBody) => {
-  let path = msgBody.path;
-  return isImage(msgBody.type)
-    && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
-}
-const shouldDisplayFileIcon = (msgBody) => {
-  return msgBody.mediaObjectId
-    && msgBody.type == FILE_TYPE.OTHER_FILE
-    && !isImage(msgBody.type)
-}
-
 // The number of pixels away from the bottom to be considered as being at the bottom
 const BOTTOM_TOLERANCE = 32;
 
@@ -108,6 +93,7 @@ export default class Messages extends PureComponent {
   static timer;
 
   componentWillReceiveProps(nextProps) {
+    this.props = nextProps;
     const { selectedConversation: currentConv = {} } = this.props;
     const { selectedConversation: nextConv = {} } = nextProps;
     const { jid: currentJid } = currentConv;
@@ -133,32 +119,14 @@ export default class Messages extends PureComponent {
     this.setState({
       shouldScrollBottom: areNewMessages && (isLatestSelf || isAtBottom),
     });
+    setTimeout(()=>{this.update();})
+    return true;
   }
   componentDidMount() {
-    this.menu = new Menu()
-    let menuItem = new MenuItem({
-      label: 'Edit text',
-      click: () => {
-        chatModel.editingMessageId = this.activeMsg.id;
-        this.update();
-        this.menu.closePopup();
-      }
-    });
-    this.menu.append(menuItem);
-    menuItem = new MenuItem({
-      label: 'Delete message',
-      click: () => {
-        const { selectedConversation, onMessageSubmitted } = this.props;
-        const body = this.activeMsgBody;
-        body.updating = true;
-        body.deleted = true;
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), this.activeMsg.id, true);
-        this.menu.closePopup();
-      }
-    });
-    this.menu.append(menuItem);
-
-    this.unlisten = Actions.updateDownloadPorgress.listen(this.onUpdataDownloadProgress, this);
+    this.unlisten = Actions.updateDownloadPorgress.listen(this.update, this);
+  }
+  componentShouldUpdate(){
+    return true;
   }
 
   componentDidUpdate() {
@@ -186,7 +154,7 @@ export default class Messages extends PureComponent {
     }
   }
 
-  onUpdataDownloadProgress = () => {
+  update = () => {
     key++
     const state = Object.assign({}, this.state, { key });
     this.setState(state);
@@ -296,15 +264,6 @@ export default class Messages extends PureComponent {
     const { queueLoadMessage } = this.props;
     queueLoadMessage(loadConfig);
   };
-
-  showPopupMenu = (msg, msgBody) => {
-    this.activeMsg = msg;
-    this.activeMsgBody = msgBody;
-    event.stopPropagation();
-    event.preventDefault();
-    this.menu.popup({ x: event.clientX, y: event.clientY });
-  };
-
   render() {
     const {
       currentUserId,
@@ -316,44 +275,6 @@ export default class Messages extends PureComponent {
     if (groupedMessages.length) {
       chatModel.groupedMessages = groupedMessages;
     }
-    const getMessageClasses = message => {
-      const messageStyles = ['message'];
-      if (message.sender === currentUserId) {
-        messageStyles.push('currentUser');
-      } else {
-        messageStyles.push('otherUser');
-      }
-      return messageStyles.join(' ');
-    };
-
-    const messageToolbar = (msg, msgBody, isFile) => (
-      <div className='message-toolbar' >
-        {isFile && (
-          <span
-            className="download-img"
-            title={msgBody.path}
-            onClick={() => this.download(msgBody)}
-          >
-            <RetinaImg name={'download.svg'}
-              style={{ width: 24, height: 24 }}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask} />
-          </span>
-        )}
-        {msg.sender === currentUserId && (
-          <span
-            className="inplace-edit-img"
-            onClick={() => this.showPopupMenu(msg, msgBody)}
-            onContextMenu={() => this.showPopupMenu(msg, msgBody)}
-          >
-            <RetinaImg name={'expand-more.svg'}
-              style={{ width: 26, height: 26 }}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask} />
-          </span>
-        )}
-      </div>
-    )
 
     return (
       <div
