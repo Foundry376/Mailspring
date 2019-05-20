@@ -587,7 +587,7 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
         .map(({ lastMessageTime, sender, lastMessageText }) => {
           let timeSend = new Date().getTime();
           if (payload.body) {
-            console.log('debugger: updatePrivateMessageConversationEpic: payload.body: ', payload.body);
+            // console.log('debugger: updatePrivateMessageConversationEpic: payload.body: ', payload.body);
             timeSend = JSON.parse(payload.body).timeSend;
           }
           // if not current conversation, unreadMessages + 1
@@ -651,7 +651,7 @@ const asyncUpdateGroupMessageConversationEpic = async ({ payload }, getState) =>
   }
   let at = false;
   const { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
-  console.log('debugger asyncUpdateGroupMessageConversationEpic: payload.body: ', payload.body);
+  // console.log('debugger asyncUpdateGroupMessageConversationEpic: payload.body: ', payload.body);
   const { timeSend } = JSON.parse(payload.body);
   // if not current conversation, unreadMessages + 1
   let unreadMessages = 0;

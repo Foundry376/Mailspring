@@ -234,7 +234,6 @@ export default class MessageEditBar extends PureComponent {
       })
     } else {
       let messageId, updating = false;
-      debugger;
       console.log('debugger: MessageEditBar.sendMessage chatModel: ', chatModel.editingMessageId, chatModel);
       if (chatModel.editingMessageId) {
         messageId = chatModel.editingMessageId;

@@ -88,8 +88,7 @@ export default class Msg extends PureComponent {
       click: () => {
         const {msg} = this.props;
         chatModel.editingMessageId = msg.id;
-        console.log('debugger: Edit Text:  msg.id, chatModel: ', msg.id, chatModel);
-        debugger;
+        // console.log('debugger: Edit Text:  msg.id, chatModel: ', msg.id, chatModel);
         this.update();
         this.menu.closePopup();
       }
