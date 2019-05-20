@@ -16,15 +16,14 @@ export default class Group extends PureComponent {
   static propTypes = {
     group:
       PropTypes.shape({
-        messages:
-          PropTypes.shape({
+        messages:PropTypes.arrayOf(PropTypes.shape({
             id: PropTypes.string.isRequired,
             conversationJid: PropTypes.string.isRequired,
             sender: PropTypes.string.isRequired,
             body: PropTypes.string.isRequired,
             sentTime: PropTypes.number.isRequired,
             status: PropTypes.string.isRequired,
-          })
+          }))
   }).isRequired,
     conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
