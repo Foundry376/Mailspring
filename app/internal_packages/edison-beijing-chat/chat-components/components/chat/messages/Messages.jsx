@@ -267,7 +267,6 @@ export default class Messages extends PureComponent {
       groupedMessages,
       selectedConversation: { isGroup, jid },
     } = this.props;
-    console.log('debugger Messages currentUserId:', currentUserId);
     messageModel.currentUserId = currentUserId;
     if (jid === NEW_CONVERSATION) {
       return null;

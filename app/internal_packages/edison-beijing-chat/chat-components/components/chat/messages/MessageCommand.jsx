@@ -25,7 +25,6 @@ export default class MessageCommand extends PureComponent {
   }
 
   sendCommand2App = async (e) => {
-    // console.log('debugger: sendCommand2App this.props: ', this.props);
     let command = this.head;
     const { appJid, appName, commandType, conversation } = this.props;
     const userId = conversation.curJid.split('@')[0];
@@ -47,8 +46,6 @@ export default class MessageCommand extends PureComponent {
     });
     const token = await getToken(userId);
     sendCmd2App2(userId, userName, token, appId, command, peerUserId, roomId, (err, data) => {
-      // console.log('debugger: MessageCommand: sendCmd2App2:', appId, err, data);
-      // debugger;
       if (err || !data || commandType !== 2) {
         return;
       }

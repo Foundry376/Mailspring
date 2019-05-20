@@ -33,7 +33,6 @@ class ContactAvatar extends Component {
   };
 
   refreshState = props => {
-    console.log('debugger: ContactAvatar.refreshState props: ', props);
     const bgColor = gradientColorForString(props.jid);
     let app;
     const state = {
@@ -50,7 +49,6 @@ class ContactAvatar extends Component {
         const userId = conv.curJid.split('@')[0];
         const id = props.jid.split('@')[0];
         app = getMyAppById(userId, id);
-        console.log('debugger: ContactAvatar userId, id app, imgUrl: ', userId, id, imgUrl, app);
       }
     }
     if (imgUrl) {
@@ -60,7 +58,6 @@ class ContactAvatar extends Component {
       state.avatar = app.icon;
       state.isImgExist = true;
     }
-    console.log('debugger: ContactAvatar state: ', state);
     if (this.mounted) {
       this.setState(state);
     } else {

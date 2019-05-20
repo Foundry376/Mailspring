@@ -40,11 +40,9 @@ export default class ConversationItem extends PureComponent {
     }
     const userId = conversation.curJid.split('@')[0];
     const appId = conversation.jid.split('@')[0];
-    // console.log('debugger: componentWillMount: userId, appId: ', userId, appId);
     getToken(userId).then (token => {
       getApp(userId, appId, token, (err, app ) => {
         if (!err){
-          // console.log('debugger:  getApp', app);
           const state = Object.assign({}, this.state, {appName: app.name});
           this.setState(state);
         }
@@ -72,7 +70,6 @@ export default class ConversationItem extends PureComponent {
   render() {
     const { selected, conversation, referenceTime, onClick, removeConversation, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
-    // console.log('debugger ConversationItem: props: ', this.props);
     return (
       <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
         <div style={{ width: '100%', display: 'flex' }} onClick={onClick}>

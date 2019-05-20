@@ -87,7 +87,6 @@ export default class Msg extends PureComponent {
       click: () => {
         const {msg} = this.props;
         chatModel.editingMessageId = msg.id;
-        // console.log('debugger: Edit Text:  msg.id, chatModel: ', msg.id, chatModel);
         this.update();
         this.menu.closePopup();
       }
@@ -373,7 +372,6 @@ export default class Msg extends PureComponent {
     if (msgBody.deleted) {
       return null;
     } else if (msgBody.isAppprivateCommand) {
-      // console.log("debugger: MessagePrivateApp msg: ", msg);
       return <MessagePrivateApp msg={msg}
         userId={currentUserJid}
         conversation={conversation}
@@ -382,7 +380,6 @@ export default class Msg extends PureComponent {
         key={msg.id} />
 
     } else if (msgBody.appJid) {
-      // console.log("debugger: MessageApp msg: ", msg);
       return <MessageApp msg={msg}
         userId={currentUserJid}
         conversation={conversation}
