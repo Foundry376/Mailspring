@@ -287,34 +287,34 @@ export default class Msg extends PureComponent {
       return readTime < msg.updateTime;
     }
   }
+  onClickImage = () => {
+    const {msg} = this.props;
+    const msgBody = this.msgBody;
+    msg.zoomin = true;
+    if (msg.height < 1600) {
+      msg.height *= 2;
+    } else {
+      msg.height = 100;
+    }
+    // messageModel.group = group;
+    messageModel.msg = msg;
+    messageModel.msgBody = msgBody;
+    messageModel.imagePopup.show();
+    this.update();
+  }
   msgFile = () => {
     const { msg } = this.props;
     const currentUserJid = this.currentUserJid;
     const msgBody = this.msgBody;
     const msgImgPath = this.msgImgPath;
-
-
-    let onClickImage = () => {
-      msg.zoomin = true;
-      if (msg.height < 1600) {
-        msg.height *= 2;
-      } else {
-        msg.height = 100;
-      }
-      messageModel.group = group;
-      messageModel.msg = msg;
-      messageModel.msgBody = msgBody;
-      messageModel.imagePopup.show();
-      this.update();
-    }
-
+    
     if (this.shouldInlineImg()) {
       return (
         <div className="message-image">
           <img
             src={msgBody.path}
             title={msgBody.localFile || msgBody.mediaObjectId}
-            onClick={onClickImage}
+            onClick={this.onClickImage}
           />
           {this.messageToolbar(msg, msgBody, true)}
         </div>
