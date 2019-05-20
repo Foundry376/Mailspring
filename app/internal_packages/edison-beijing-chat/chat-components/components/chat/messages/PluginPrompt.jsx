@@ -60,9 +60,8 @@ export default class PluginPrompt extends PureComponent {
     if (!text) {
       allApps =  _.uniq(allApps);
       console.log('debugger: allApps: ', allApps);
-      debugger;
       expectInstallApps = allApps.filter(app => {
-        console.log('debugger app: ', app);
+        // console.log('debugger app: ', app);
         const apps = getMyAppByShortName(userId, app.shortName);
         return !apps || !apps.length;
       });

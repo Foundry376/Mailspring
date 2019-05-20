@@ -116,9 +116,12 @@ export default class MessagesPanel extends PureComponent {
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const db = await getDb();
+        console.log('debugger: contacts', contacts);
         if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
           const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
-          contacts.unshift(other);
+          if(other) {
+            contacts.unshift(other);
+          }
         }
         if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
           const owner = await db.contacts.findOne().where('jid').eq(selectedConversation.curJid).exec();
@@ -272,6 +275,7 @@ export default class MessagesPanel extends PureComponent {
       nextProps.selectedConversation && !this.props.selectedConversation) {
       this.refreshRoomMembers(nextProps);
     }
+    return true;
   }
 
   refreshRoomMembers = async (nextProps) => {
