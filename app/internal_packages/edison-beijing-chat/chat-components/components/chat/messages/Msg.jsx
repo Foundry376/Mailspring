@@ -296,9 +296,9 @@ export default class Msg extends PureComponent {
     } else {
       msg.height = 100;
     }
-    // messageModel.group = group;
     messageModel.msg = msg;
     messageModel.msgBody = msgBody;
+    messageModel.imagePopup.getAllImages();
     messageModel.imagePopup.show();
     this.update();
   }
@@ -307,7 +307,7 @@ export default class Msg extends PureComponent {
     const currentUserJid = this.currentUserJid;
     const msgBody = this.msgBody;
     const msgImgPath = this.msgImgPath;
-    
+
     if (this.shouldInlineImg()) {
       return (
         <div className="message-image">
