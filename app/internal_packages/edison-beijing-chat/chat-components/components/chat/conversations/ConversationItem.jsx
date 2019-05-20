@@ -40,10 +40,10 @@ export default class ConversationItem extends PureComponent {
     }
     const userId = conversation.curJid.split('@')[0];
     const appId = conversation.jid.split('@')[0];
-    getToken(userId).then (token => {
-      getApp(userId, appId, token, (err, app ) => {
-        if (!err){
-          const state = Object.assign({}, this.state, {appName: app.name});
+    getToken(userId).then(token => {
+      getApp(userId, appId, token, (err, app) => {
+        if (!err) {
+          const state = Object.assign({}, this.state, { appName: app.name });
           this.setState(state);
         }
       });
@@ -71,8 +71,12 @@ export default class ConversationItem extends PureComponent {
     const { selected, conversation, referenceTime, onClick, removeConversation, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
     return (
-      <div className={'item' + (selected ? ' selected' : '')} {...otherProps} style={{ width: '100%' }}>
-        <div style={{ width: '100%', display: 'flex' }} onClick={onClick}>
+      <div
+        onClick={onClick}
+        className={'item' + (selected ? ' selected' : '')}
+        style={{ width: '100%' }}
+        {...otherProps}>
+        <div style={{ width: '100%', display: 'flex' }}>
           <div className="avatarWrapper">
             {conversation.isGroup ?
               <GroupChatAvatar conversation={conversation} size={23} /> :
