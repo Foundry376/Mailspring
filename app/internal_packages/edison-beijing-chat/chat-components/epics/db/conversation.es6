@@ -200,9 +200,7 @@ const saveConversationName = async payload => {
   const conv = await db.conversations.findOne(convJid).exec();
   if (conv && conv.name != convName) {
     await conv.update({
-      $set: {
         name: convName
-      }
     })
     return conv;
   }

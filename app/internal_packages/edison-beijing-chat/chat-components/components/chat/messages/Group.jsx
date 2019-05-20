@@ -14,7 +14,7 @@ let key = 0;
 
 export default class Group extends PureComponent {
   static propTypes = {
-    group: PropTypes.arrayOf(
+    group:
       PropTypes.shape({
         messages:
           PropTypes.shape({
@@ -25,8 +25,7 @@ export default class Group extends PureComponent {
             sentTime: PropTypes.number.isRequired,
             status: PropTypes.string.isRequired,
           })
-      })
-    ).isRequired,
+  }).isRequired,
     conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
       isGroup: PropTypes.bool.isRequired,
