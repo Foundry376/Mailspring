@@ -363,15 +363,14 @@ export default class Msg extends PureComponent {
 
   render() {
     const { msg, conversation } = this.props;
-    const currentUserJid = this.currentUserJid;
+    const {msgBody, currentUserJid} = this;
     let border = null;
-    const color = colorForString(msg.sender);
-    const isEditing =  msg.id === chatModel.editingMessageId;
+    const isEditing = msg.id === chatModel.editingMessageId;
     const isCurrentUser = msg.sender === currentUserJid;
+    const color = colorForString(msg.sender);
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
-    const {msgBody} = this;
 
     if (msgBody.deleted) {
       return null;

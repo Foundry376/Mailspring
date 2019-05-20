@@ -53,16 +53,14 @@ export default class Group extends PureComponent {
             }
           </label>
         </div>
-        {group.messages.map((msg, idx) => {
-          return (
-            <Msg conversation={this.props.conversation}
+        { group.messages.map((msg, idx) => ( <Msg conversation={this.props.conversation}
                  msg={msg}
                  queueLoadMessage={this.props.queueLoadMessage}
                  onMessageSubmitted={this.props.onMessageSubmitted}
                  key={msg.id}>
-            </Msg>
-          );
-        })}
+            </Msg>)
+          )
+        }
       </div>
     )
   }

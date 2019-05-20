@@ -269,6 +269,9 @@ export default class Messages extends PureComponent {
     } = this.props;
     console.log('debugger Messages currentUserId:', currentUserId);
     messageModel.currentUserId = currentUserId;
+    if (jid === NEW_CONVERSATION) {
+      return null;
+    }
     if (groupedMessages.length) {
       chatModel.groupedMessages = groupedMessages;
     }
@@ -282,16 +285,13 @@ export default class Messages extends PureComponent {
         tabIndex="0"
       >
         <SecurePrivate />
-        { jid !== NEW_CONVERSATION && groupedMessages.map((group, idx) => {
-          return (
-            <Group conversation={this.props.selectedConversation}
+        { groupedMessages.map((group, idx) =>(<Group conversation={this.props.selectedConversation}
                    group={group}
                    queueLoadMessage={this.props.queueLoadMessage}
                    onMessageSubmitted={this.props.onMessageSubmitted}
                    key={idx}>
-            </Group>
-          );
-         })
+            </Group>)
+          )
         }
         <MessageImagePopup
           {...this.props}
