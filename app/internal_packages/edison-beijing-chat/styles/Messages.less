@@ -145,7 +145,7 @@
   }
 
   .message {
-    margin: 1px 0 0px 20px;
+    padding: 1px 0 30px 20px;
     display: flex;
     flex-direction: column;
     border-width: 2px;
@@ -158,7 +158,6 @@
   .message.currentUser,
   .message.otherUser {
     align-self: flex-start;
-    padding: 0 0px 30px 0px;
     color: @text-color;
     position: relative;
     display: flex;
@@ -229,13 +228,18 @@
     font-size: 0.7em;
     position: relative;
     display: flex;
-    max-width: 80%;
+    max-width: 90%;
+    &>div {
+      width: 100%;
+      overflow: hidden;
+    }
     &:hover .message-toolbar {
       display: flex;
     }
     .message-image,
     .message-file {
       position: relative;
+      display: inline-block;
       .message-toolbar {
         width: 90px;
         top: 15px;
