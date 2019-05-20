@@ -121,11 +121,17 @@ export default class MessagesPanel extends PureComponent {
           const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
           if(other) {
             contacts.unshift(other);
+          } else {
+            contacts.unshift({jid: selectedConversation.jid, name:''});
           }
         }
         if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
           const owner = await db.contacts.findOne().where('jid').eq(selectedConversation.curJid).exec();
-          contacts.unshift(owner);
+          if (owner) {
+            contacts.unshift(owner);
+          } else {
+            contacts.unshift({jid: selectedConversation.curJid, name:''});
+          }
         }
         const names = contacts.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
