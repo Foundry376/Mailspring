@@ -274,24 +274,8 @@ export default class UndoRedoToast extends React.Component {
 
   _closeToaster = (block) => {
     block.lingerAfterTimeout = false;
-    UndoRedoStore.removeTaskFromUndo({ block });
-    // this._clearTimeout();
-    // this.setState({ block: null });
+    UndoRedoStore.setTaskToHide({ block });
   };
-
-  // _ensureTimeout() {
-  //   for (const block of this.state.blocks) {
-  //     if (!this._timeouts[block.id]) {
-  //       this._timeouts[block.id] = setTimeout(() => {
-  //         if (block.onDelayTimeout) {
-  //           block.onDelayTimeout();
-  //         } else {
-  //           delete this._timeouts[block.id];
-  //         }
-  //       }, block.delayDuration);
-  //     }
-  //   }
-  // }
 
   _onMouseEnter = () => {
     // this._clearTimeout();

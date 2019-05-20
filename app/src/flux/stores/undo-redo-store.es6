@@ -51,6 +51,7 @@ class UndoRedoStore extends MailspringStore {
         id: tasks.map(t => t.id).join('-'),
         ids: tasks.map(t => t.id),
         tasks: tasks,
+        hide: false,
         description: tasks.map(t => t.description()).join(', '),
         do: () => {
           // no-op, tasks queued separately
@@ -213,13 +214,18 @@ class UndoRedoStore extends MailspringStore {
     return this._mostRecentBlock;
   };
   getUndos = ({ critical = 0, high = 3, medium = 2, low = 5 } = {}) => {
-    return {
+    const ret = {
       critical:
         critical === 0 ? this._undo.critical.slice() : this._undo.critical.slice(critical * -1),
       high: high === 0 ? this._undo.high.slice() : this._undo.high.slice(high * -1),
       medium: medium === 0 ? this._undo.medium.slice() : this._undo.medium.slice(medium * -1),
       low: low === 0 ? this._undo.low.slice() : this._undo.low.slice(low * -1),
     };
+    ret.critical = ret.critical.filter(t => !t.hide);
+    ret.high = ret.high.filter(t => !t.hide);
+    ret.medium = ret.medium.filter(t => !t.hide);
+    ret.low = ret.low.filter(t => !t.hide);
+    return ret;
   };
   removeTaskFromUndo = ({ block, noTrigger = false }) => {
     let priority = 'low';
@@ -244,6 +250,10 @@ class UndoRedoStore extends MailspringStore {
     if (!noTrigger) {
       this.trigger();
     }
+  };
+  setTaskToHide = ({ block }) => {
+    block.hide = true;
+    this.findAndReplace({ block });
   };
   _findHighestPriority = ({ tasks }) => {
     let priority = this.priority.low;
