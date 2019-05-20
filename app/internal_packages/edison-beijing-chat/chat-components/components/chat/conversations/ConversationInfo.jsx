@@ -153,7 +153,6 @@ export default class ConversationInfo extends Component {
           }
           {
             conversation.isGroup && !loadingMembers && roomMembers && roomMembers.map(member => {
-              // console.log('debugger: ConversationInfo: roomMembers: ', member);
               let name = member.name;
               const email = member.email || member.jid.unescapedLocal.replace('^at^', '@');
               if (!name) {

@@ -155,7 +155,6 @@ const asyncMembersChangeEpic = async payload => {
   const notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
   const items = notifications[payload.from] || (notifications[payload.from] = []);
   const nicknames = chatModel.chatStorage.nicknames;
-  // console.log('debugger: asyncMembersChangeEpic payload: ', payload);
   const fromjid = payload.userJid;
   const db = await getDb();
   const contacts = db.contacts;
@@ -436,13 +435,11 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
 export const receivePrivateMessageEpic = action$ =>
   action$.ofType(RECEIVE_CHAT)
     .mergeMap((payload) => {
-      // console.log('debugger: receivePrivateMessageEpic: payload: ', payload);
       return Observable.fromPromise(getPriKey()).map(({ deviceId, priKey }) => {
         return { payload: payload.payload, deviceId, priKey };
       });
     })
     .filter(({ payload, deviceId, priKey }) => {
-      // console.log('debugger: receivePrivateMessageEpic.filter: payload', payload);
       if (payload.payload) {
         let jidLocal = payload.curJid.substring(0, payload.curJid.indexOf('@'));
         let keys = payload.keys;//JSON.parse(msg.body);
@@ -587,7 +584,6 @@ export const updatePrivateMessageConversationEpic = (action$, { getState }) =>
         .map(({ lastMessageTime, sender, lastMessageText }) => {
           let timeSend = new Date().getTime();
           if (payload.body) {
-            console.log('debugger: updatePrivateMessageConversationEpic: payload.body: ', payload.body);
             timeSend = JSON.parse(payload.body).timeSend;
           }
           // if not current conversation, unreadMessages + 1
@@ -633,7 +629,6 @@ const asyncUpdateGroupMessageConversationEpic = async ({ payload }, getState) =>
   if (rooms[payload.from.bare]) {
     name = rooms[payload.from.bare];
   } else {
-    // console.log('updateGroupMessageConversationEpic xmpp.getRoomList payload.curJid 1: ', payload.curJid);
     let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
     roomsInfo = roomsInfo || {
       curJid: payload.curJid,
@@ -651,7 +646,6 @@ const asyncUpdateGroupMessageConversationEpic = async ({ payload }, getState) =>
   }
   let at = false;
   const { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
-  console.log('debugger asyncUpdateGroupMessageConversationEpic: payload.body: ', payload.body);
   const { timeSend } = JSON.parse(payload.body);
   // if not current conversation, unreadMessages + 1
   let unreadMessages = 0;
@@ -795,7 +789,6 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
 export const showConversationNotificationEpic = (action$, { getState }) =>
   action$.ofType(SHOW_CONVERSATION_NOTIFICATION)
     .map(({ payload: { conversationJid, title, body } }) => {
-      // console.log('SHOW_CONVERSATION_NOTIFICATION: ', conversationJid, title, body);
       return ({
         jid: conversationJid,
         notification: postNotification(title, body),

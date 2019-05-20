@@ -53,7 +53,6 @@ export const getToken = async (userId) => {
  * @param token
  */
 export const iniApps = (userId, token) => {
-    console.log('debugger: iniApps: userId: ', userId);
     if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
     let url = appBaseUrl + '/xmpp/client/listApps';
     let version;
@@ -63,15 +62,14 @@ export const iniApps = (userId, token) => {
     post(url, { userId, token, version }, (err, data) => {
         if (data) {
             let json = JSON.parse(data);
-            console.log('debugger: iniApps: succeed: userId, json: ', userId, json);
-            // console.log('debugger: iniApps: json: ', json);
+            console.log('iniApps: succeed: userId, json: ', userId, json);
             if (json.code == 0 && json.data.apps && json.data.apps.length > 0) {
                 if (!myApps[userId]) { myApps[userId] = {}; }
                 myApps[userId].apps = json.data.apps;
                 myApps[userId].version = json.data.version;
             }
         } else {
-          console.log('debugger: iniApps: failed: ', userId, err);
+          console.log('iniApps: failed: ', userId, err);
         }
     });
 }

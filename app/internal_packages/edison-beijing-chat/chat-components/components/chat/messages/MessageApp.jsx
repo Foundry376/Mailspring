@@ -52,10 +52,8 @@ export default class MessageApp extends PureComponent {
 
     }
     render() {
-        // console.log('debugger: MessageApp.render this.props: ', this.props);
         const {msg} = this.props;
         const msgBody = JSON.parse(msg.body);
-        // console.log('debugger: MessageApp.render msgBody: ', msgBody);
         let { appJid, appName, content, htmlBody, ctxCmds } = msgBody;
         const { sentTime } = msg;
         const options = {
@@ -86,7 +84,6 @@ export default class MessageApp extends PureComponent {
         let commands = null;
         if (ctxCmds) {
             let arrCmds = JSON.parse(ctxCmds);
-            // console.log('debugger: arrCmds: ', arrCmds);
           commands = arrCmds.map((item, idx) => <MessageCommand conversation={this.props.conversation}
                                                          appJid = {appJid}
                                                          templateText = {item.command}

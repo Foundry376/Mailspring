@@ -37,9 +37,15 @@ mailspring-workspace {
       display: none;
     }
   }
+  .toolbar-ThreadList .thread-search-bar{
+    width: 50%;
+  }
 }
 .layout-mode-split{
   -webkit-app-region: drag;
+  .toolbar-ThreadList .thread-search-bar {
+    display: none;
+  }
 }
 .sheet-container {
   height: 100%;
@@ -220,11 +226,6 @@ body.is-blurred {
     background: #fff;
   }
   .toolbar-MessageList {
-    height: 0px;
-    top: @search-bar-height - 1px !important;
-    border-bottom: none;
-    border-top: 1px solid @extra-light-grey;
-    overflow: hidden;
     &.has-shadow {
       box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
       transition: box-shadow 0.3s;

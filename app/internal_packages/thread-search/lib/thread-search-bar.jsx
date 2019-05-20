@@ -303,7 +303,6 @@ class ThreadSearchBar extends Component {
 
     return (
       <KeyCommandsRegion
-        id='thread-search-bar'
         className={`thread-search-bar ${showPlaceholder ? 'placeholder' : ''}`}
         globalHandlers={{
           'core:focus-search': () => {

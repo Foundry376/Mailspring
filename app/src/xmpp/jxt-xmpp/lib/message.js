@@ -13,7 +13,6 @@ internals.defineMessage = function (JXT, name, namespace) {
     var Utils = JXT.utils;
     // console.log(JXT);
     // console.log(Utils);
-    // debugger;
     JXT.define({
         name: name,
         namespace: namespace,

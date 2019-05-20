@@ -118,11 +118,19 @@ export default class MessagesPanel extends PureComponent {
         const db = await getDb();
         if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
           const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
-          contacts.unshift(other);
+          if(other) {
+            contacts.unshift(other);
+          } else {
+            contacts.unshift({jid: selectedConversation.jid, name:''});
+          }
         }
         if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
           const owner = await db.contacts.findOne().where('jid').eq(selectedConversation.curJid).exec();
-          contacts.unshift(owner);
+          if (owner) {
+            contacts.unshift(owner);
+          } else {
+            contacts.unshift({jid: selectedConversation.curJid, name:''});
+          }
         }
         const names = contacts.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
@@ -146,7 +154,6 @@ export default class MessagesPanel extends PureComponent {
   }
 
   getApps = () => {
-    // console.log('debugger: MessagePanel.getApps: this.props: ', this.props);
     const { selectedConversation } = this.props;
     if (!selectedConversation) {
       return;
@@ -158,7 +165,6 @@ export default class MessagesPanel extends PureComponent {
     let apps = [];
     const userId = curJid.split('@')[0];
     const myApps = getMyApps(userId);
-    // console.log('debugger: MessagePanel.getApps: myApps: ', myApps);
     if (!myApps) {
       return;
     }
@@ -173,9 +179,6 @@ export default class MessagesPanel extends PureComponent {
           apps.push(app)
         }
       }
-      // console.log('debugger: MessagePanel.getApps: apps: ', apps);
-      // const state = Object.assign({}, this.state, { apps });
-      // this.setState(state);
       this.apps = apps;
     } catch (e) {
       console.log(e, myApps, uapps);
@@ -272,6 +275,7 @@ export default class MessagesPanel extends PureComponent {
       nextProps.selectedConversation && !this.props.selectedConversation) {
       this.refreshRoomMembers(nextProps);
     }
+    return true;
   }
 
   refreshRoomMembers = async (nextProps) => {
@@ -290,7 +294,6 @@ export default class MessagesPanel extends PureComponent {
           }
         })
       }
-      console.log('debugger: refreshRoomMembers: conversation, members: ', conversation, members);
       for (let member of members) {
         const jid = member.jid.bare || member.jid;
         const nicknames = chatModel.chatStorage.nicknames;
@@ -403,7 +406,6 @@ export default class MessagesPanel extends PureComponent {
   };
 
   editMemberProfile = member => {
-    console.log('debugger: editMemberProfile: ', member);
     const state = Object.assign({}, this.state, { editingMember: member });
     this.setState(state);
   }
@@ -575,7 +577,6 @@ export default class MessagesPanel extends PureComponent {
     const userId = curJid.split('@')[0];
     let token = await getToken(userId);
     xmpplogin(userId, token, (err, data) => {
-      // console.log('debugger xmpplogin: ', userId, token, err, data);
       if (data) {
         data = JSON.parse(data);
         if (data.data && data.data.url) {
@@ -669,7 +670,6 @@ export default class MessagesPanel extends PureComponent {
       createRoom: this.createRoom
     }
     let style = {};
-    // debugger;
     if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {
       style = {
         position:'fixed',

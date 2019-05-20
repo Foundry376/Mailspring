@@ -9,8 +9,10 @@ export function activate() {
     role: 'Search-Bar'
   });
   ComponentRegistry.register(ThreadSearchBar, {
-    location: WorkspaceStore.Location.QuickSidebar.Toolbar,
-    role: 'Search-Bar'
+    locations: [
+      WorkspaceStore.Location.MessageList.Toolbar,
+      WorkspaceStore.Location.ThreadList.Toolbar
+    ],
   });
 }
 

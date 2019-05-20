@@ -57,8 +57,6 @@ export default class MessagePrivateApp extends PureComponent {
     const { msg } = this.props;
     const { sentTime } = msg;
     const msgBody = JSON.parse(msg.body);
-    // console.log('debugger: MessagePrivateApp.render msgBody: ', msgBody);
-    // debugger;
     if (msgBody.deleted) {
       return null;
     }

@@ -15,7 +15,6 @@ export default class PluginPrompt extends PureComponent {
   state = {}
 
   componentWillReceiveProps = async nextProps => {
-    // console.log('debugger: PluginPrompt.componentWillReceiveProps nextProps: ', nextProps);
     const {conversation, prefix, keyword2app} = nextProps;
     let matchedAppCommands = [];
     if (!conversation || !keyword2app ||  !prefix || prefix[0] !== '/') {
@@ -34,13 +33,10 @@ export default class PluginPrompt extends PureComponent {
       }
     }
     matchedApps = _.uniq(matchedApps);
-    console.log('debugger: matchedApps: ', matchedApps);
     const  uninstalledApps = [];
     matchedApps.forEach( app0 => {
       let app = getMyAppByShortName(userId, app0.shortName);
-      console.log('debugger: getMyAppById: app: ', userId, app);
       if (!app || !app.length) {
-        console.log('debugger: uninstalled app: ', app0);
         uninstalledApps.push (app0);
         return;
       } else {
@@ -59,10 +55,7 @@ export default class PluginPrompt extends PureComponent {
     let expectInstallApps;
     if (!text) {
       allApps =  _.uniq(allApps);
-      console.log('debugger: allApps: ', allApps);
-      debugger;
       expectInstallApps = allApps.filter(app => {
-        console.log('debugger app: ', app);
         const apps = getMyAppByShortName(userId, app.shortName);
         return !apps || !apps.length;
       });
@@ -85,7 +78,6 @@ export default class PluginPrompt extends PureComponent {
   };
 
   render() {
-    // console.log('debugger: PluginPrompt.render this.props: ', this.props);
     const {pos,  prefix} = this.props;
 
     if (!prefix || prefix[0] !== '/' || this.state.hidden) {
@@ -96,7 +88,6 @@ export default class PluginPrompt extends PureComponent {
          return <div key={idx} > {`${item.name}: ${item.description}`} </div>;
        } else {
          const { app, command } = item;
-           // console.log('debugger: app, command: ', app, command);
            return (<MessageCommand conversation={this.props.conversation}
            appJid = {app.id+'@app.im.edison.tech'}
            commandType = {app.commandType}
