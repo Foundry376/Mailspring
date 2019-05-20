@@ -71,7 +71,7 @@ export default class Group extends PureComponent {
                  msg={msg}
                  queueLoadMessage={this.props.queueLoadMessage}
                  onMessageSubmitted={this.props.onMessageSubmitted}
-                 key={idx}>
+                 key={msg.id}>
             </Msg>
           );
         })}
