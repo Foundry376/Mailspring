@@ -81,16 +81,6 @@ export default class Msg extends PureComponent {
 
   static timer;
 
-  componentWillReceiveProps(nextProps) {
-    this.props = nextProps;
-    setTimeout(()=>{this.update();})
-    return true;
-  }
-
-  componentShouldUpdate(){
-    return true;
-  }
-
   componentDidMount() {
     this.menu = new Menu()
     let menuItem = new MenuItem({

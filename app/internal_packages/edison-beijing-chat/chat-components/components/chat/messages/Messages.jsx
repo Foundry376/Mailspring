@@ -125,9 +125,6 @@ export default class Messages extends PureComponent {
   componentDidMount() {
     this.unlisten = Actions.updateDownloadPorgress.listen(this.update, this);
   }
-  componentShouldUpdate(){
-    return true;
-  }
 
   componentDidUpdate() {
     if (this.state.shouldScrollBottom) {

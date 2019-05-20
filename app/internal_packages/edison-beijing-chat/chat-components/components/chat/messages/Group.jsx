@@ -32,18 +32,6 @@ export default class Group extends PureComponent {
       isGroup: PropTypes.bool.isRequired,
     }),
   }
-  componentWillReceiveProps(nextProps) {
-    this.props = nextProps;
-    setTimeout(()=>{this.update();})
-    return true;
-  }
-  componentShouldUpdate(){
-    return true;
-  }
-  update() {
-    key++;
-    this.setState(Object.assign({}, this.state, { key }));
-  }
 
   render() {
     const { group } = this.props;
