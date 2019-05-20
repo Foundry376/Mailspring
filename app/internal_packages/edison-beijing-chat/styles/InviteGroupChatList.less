@@ -1,21 +1,19 @@
 .chat-view-container {
   @width: 350px;
-  @height: 430px;
+  @height: 500px;
   .fixed-popover-container {
     .contactsList {
       flex: 1;
       overflow-y: visible;
       height: @height;
       background-color: #fff;
-      &>div{
-        overflow: auto !important;
-      }
     }
     .fixed-popover {
       width: @width;
       background-color: #fff;
       padding: 0 10px;
     }
+    z-index: 100;
     width: @width;
     margin-top: -43px;
     margin-left: -300px;

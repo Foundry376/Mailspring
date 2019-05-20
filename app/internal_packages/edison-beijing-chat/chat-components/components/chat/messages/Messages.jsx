@@ -93,7 +93,6 @@ export default class Messages extends PureComponent {
   static timer;
 
   componentWillReceiveProps(nextProps) {
-    this.props = nextProps;
     const { selectedConversation: currentConv = {} } = this.props;
     const { selectedConversation: nextConv = {} } = nextProps;
     const { jid: currentJid } = currentConv;
@@ -119,7 +118,7 @@ export default class Messages extends PureComponent {
     this.setState({
       shouldScrollBottom: areNewMessages && (isLatestSelf || isAtBottom),
     });
-    setTimeout(()=>{this.update();})
+    setTimeout(() => { this.update(); })
     return true;
   }
   componentDidMount() {
@@ -284,13 +283,13 @@ export default class Messages extends PureComponent {
         tabIndex="0"
       >
         <SecurePrivate />
-        { groupedMessages.map((group, idx) =>(<Group conversation={this.props.selectedConversation}
-                   group={group}
-                   queueLoadMessage={this.props.queueLoadMessage}
-                   onMessageSubmitted={this.props.onMessageSubmitted}
-                   key={idx}>
-            </Group>)
-          )
+        {groupedMessages.map((group, idx) => (<Group conversation={this.props.selectedConversation}
+          group={group}
+          queueLoadMessage={this.props.queueLoadMessage}
+          onMessageSubmitted={this.props.onMessageSubmitted}
+          key={idx}>
+        </Group>)
+        )
         }
         <MessageImagePopup
           {...this.props}

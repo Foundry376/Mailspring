@@ -1,6 +1,13 @@
 @import 'ui-variables';
 
 .chat-view-container {
+  .icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 15px) {
+    -webkit-mask-image: url(@svg-url);
+    -webkit-mask-size: @bgSize;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    background-color: @bgColor;
+  }
   @more-height: 20px;
   @member-count-height:18px;
   .more {
@@ -40,12 +47,10 @@
       border: none;
       box-shadow: none;
       border-radius: 50%;
-      background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 0);
-      background-size: 14px auto;
-      margin-right: 20px;
+      .icon-mixin('../static/icons/expand-more.svg', @gray, 24px);
+      margin-right: 14px;
       &:hover {
-        background: url(images/chat/more_active.png) no-repeat center center rgba(255, 255, 255, 1);
-        background-size: 14px auto;
+        .icon-mixin('../static/icons/expand-more.svg', @blue, 24px);
       }
     }
     .member-count {
@@ -79,10 +84,11 @@
   .add-to-group {
     width: 60%;
     height: 40px;
-    margin: 0 auto 10px auto;
+    margin: 2px auto 10px auto;
     border-radius: 4px;
     font-weight: bold;
-    padding: 10px 0 0 35px;
+    text-align: center;
+    line-height: 40px;
     color: @accent-primary;
     box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
     transition: 0.5s;

@@ -1,8 +1,14 @@
 @import 'ui-variables';
 
 .member-profile-panel {
+  .icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 15px) {
+    -webkit-mask-image: url(@svg-url);
+    -webkit-mask-size: @bgSize;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    background-color: @bgColor;
+  }
   @more-height: 20px;
-
   position: absolute;
   top:120px;
   right:240px;
@@ -23,11 +29,9 @@
     width: @more-height;
     height: @more-height;
     border-radius: 50%;
-    background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 1);
-    background-size: 14px auto;
+    .icon-mixin('../static/icons/expand-more.svg', @gray, 24px);
     &:hover {
-      background: url(images/chat/more_active.png) no-repeat center center rgba(255, 255, 255, 1);
-      background-size: 14px auto;
+      .icon-mixin('../static/icons/expand-more.svg', @blue, 24px);
     }
   }
   .avatar-area {
@@ -74,13 +78,7 @@
     border: none;
     box-shadow: none;
     border-radius: 50%;
-    background: url(images/chat/more.png) no-repeat center center rgba(255, 255, 255, 0);
-    background-size: 14px auto;
     margin-right: 20px;
-    &:hover {
-      background: url(images/chat/more_active.png) no-repeat center center rgba(255, 255, 255, 1);
-      background-size: 14px auto;
-    }
   }
   .command-button {
     width: 150px;

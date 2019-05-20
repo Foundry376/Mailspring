@@ -95,6 +95,7 @@ export default class MessagesTopBar extends Component {
             multiple
             autoFocus
             open
+            placeholder="Find a contact or enter an email"
             tokenSeparators={[',']}
             optionLabelProp="label"
           >
