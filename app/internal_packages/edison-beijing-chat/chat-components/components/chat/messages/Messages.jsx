@@ -37,7 +37,7 @@ import _ from 'underscore';
 let key = 0;
 
 // The number of pixels away from the bottom to be considered as being at the bottom
-const BOTTOM_TOLERANCE = 32;
+const BOTTOM_TOLERANCE = 0;
 
 const flattenMsgIds = groupedMessages =>
   groupedMessages
@@ -93,7 +93,6 @@ export default class Messages extends PureComponent {
   static timer;
 
   componentWillReceiveProps(nextProps) {
-    this.props = nextProps;
     const { selectedConversation: currentConv = {} } = this.props;
     const { selectedConversation: nextConv = {} } = nextProps;
     const { jid: currentJid } = currentConv;
@@ -105,21 +104,18 @@ export default class Messages extends PureComponent {
     }
 
     const msgElem = this.messagesPanel;
-    const isAtBottom = (msgElem.scrollHeight - msgElem.scrollTop) <
-      (msgElem.clientHeight + BOTTOM_TOLERANCE);
+    const isAtBottom = (msgElem.scrollHeight - msgElem.scrollTop) < (msgElem.clientHeight + BOTTOM_TOLERANCE);
     const { currentUserId } = this.props;
     const { groupedMessages: currentMsgs = [] } = this.props;
     const { groupedMessages: nextMsgs = [] } = nextProps;
     const currentIds = flattenMsgIds(currentMsgs);
     const nextIds = flattenMsgIds(nextMsgs);
     const areNewMessages = currentIds.size !== nextIds.size;
-    const isLatestSelf = nextMsgs.length > 0 &&
-      nextMsgs[nextMsgs.length - 1].sender === currentUserId;
+    const isLatestSelf = nextMsgs.length > 0 && nextMsgs[nextMsgs.length - 1].sender === currentUserId;
 
     this.setState({
-      shouldScrollBottom: areNewMessages && (isLatestSelf || isAtBottom),
+      shouldScrollBottom: areNewMessages && (isLatestSelf || !isAtBottom),
     });
-    setTimeout(()=>{this.update();})
     return true;
   }
   componentDidMount() {
