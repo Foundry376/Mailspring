@@ -27,7 +27,6 @@ let key = 0;
 
 export default class Msg extends PureComponent {
   static propTypes = {
-    currentUserJid: PropTypes.string.isRequired,
       msg: PropTypes.shape({
           id: PropTypes.string.isRequired,
           conversationJid: PropTypes.string.isRequired,
