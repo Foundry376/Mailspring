@@ -6,7 +6,7 @@ import Button from '../../common/Button';
 import { Actions, WorkspaceStore } from 'mailspring-exports';
 
 
-export default class MessagesTopBar extends Component {
+export default class NewConversationTopBar extends Component {
   constructor() {
     super();
     this.state = {
