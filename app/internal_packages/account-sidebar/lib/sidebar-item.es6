@@ -23,7 +23,19 @@ const countForItem = function (perspective) {
   return 0;
 };
 
-const isItemSelected = perspective => FocusedPerspectiveStore.current().isEqual(perspective);
+const isItemSelected = (perspective, collapsed) => {
+  const current = FocusedPerspectiveStore.current();
+  let isChildSelected = false;
+  if (collapsed
+    && perspective.children
+    && perspective.children.length > 0
+    && perspective.accountIds.length === 1
+    && current.accountIds.length === 1
+    && current.accountIds[0] === perspective.accountIds[0]) {
+    isChildSelected = true;
+  }
+  return current.isEqual(perspective) || isChildSelected;
+};
 
 const isItemCollapsed = function (id) {
   if (AppEnv.savedState.sidebarKeysCollapsed[id] !== undefined) {
@@ -121,7 +133,7 @@ class SidebarItem {
         bgColor: perspective.bgColor,
         children: [],
         perspective,
-        selected: isItemSelected(perspective),
+        selected: isItemSelected(perspective, collapsed),
         collapsed: collapsed != null ? collapsed : true,
         counterStyle,
         onDelete: opts.deletable ? onDeleteItem : undefined,
