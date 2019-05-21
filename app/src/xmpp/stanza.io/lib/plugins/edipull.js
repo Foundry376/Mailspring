@@ -50,10 +50,6 @@ module.exports = function (client) {
             pagenumber: 100,
             incrooms: true
         };
-        client.sendIq(pull, function (err, result) {
-            if (cb) {
-                cb(err, result);
-            }
-        });
+        client.sendIq(pull, cb);
     }
 };

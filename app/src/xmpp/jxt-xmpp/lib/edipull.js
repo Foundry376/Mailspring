@@ -39,7 +39,9 @@ exports['default'] = function (JXT) {
                         helpers.setAttribute(this.xml.children[0], 'incrooms', value['incrooms']);
                     }
                 }
-            }
+            },
+            since: helpers.subAttribute('edipull', 'result', 'nextsince'),
+            more: helpers.subAttribute('edipull', 'result', 'more')
         }
     });
     JXT.extend(IQEx, EdiPull);
