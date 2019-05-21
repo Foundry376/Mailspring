@@ -202,6 +202,10 @@ export default class OAuthSignInPage extends React.Component {
     const contents = this.refs.webview;
     contents.insertText(clipboard.readText());
   }
+  _selectAllInWebview = () => {
+    const contents = this.refs.webview;
+    contents.selectAll();
+  }
 
   _webviewDidFailLoad = () => {
     this.setState({
@@ -220,7 +224,8 @@ export default class OAuthSignInPage extends React.Component {
       'did-finish-load': this._loaded,
       // 'did-get-response-details': this._webviewDidGetResponseDetails,
       'console-message': this._onConsoleMessage,
-      'core:paste': this._pasteIntoWebview
+      'core:paste': this._pasteIntoWebview,
+      'core:select-all': this._selectAllInWebview
     };
 
     for (const event of Object.keys(listeners)) {
