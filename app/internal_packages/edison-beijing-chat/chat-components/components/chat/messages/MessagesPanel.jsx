@@ -40,6 +40,7 @@ import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
 import { getToken, getMyApps } from '../../../utils/appmgt';
 import { log } from '../../../utils/log-util';
+import { safeUpdate } from '../../../utils/db-utils';
 
 const { exec } = require('child_process');
 const remote = require('electron').remote;
@@ -288,11 +289,7 @@ export default class MessagesPanel extends PureComponent {
       state = Object.assign({}, this.state, { loadingMembers: false });
       this.setState(state);
       if (conversation.update && members && members.length > 0) {
-        conversation.update({
-          $set: {
-            roomMembers: members
-          }
-        })
+        safeUpdate(conversation, { roomMembers: members });
       }
       for (let member of members) {
         const jid = member.jid.bare || member.jid;

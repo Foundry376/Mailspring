@@ -45,11 +45,7 @@ export default class ConversationInfo extends Component {
 
   hiddenNotifi = () => {
     const isHidden = !this.props.selectedConversation.isHiddenNotification;
-    this.props.selectedConversation.update({
-      $set: {
-        isHiddenNotification: isHidden
-      }
-    })
+    safeUpdate(this.props.selectedConversation, { isHiddenNotification: isHidden });
     this.setState({
       isHiddenNotifi: isHidden
     })

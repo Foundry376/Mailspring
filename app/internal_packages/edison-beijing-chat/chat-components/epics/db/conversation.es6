@@ -35,7 +35,7 @@ import { ipcRenderer } from 'electron';
 import chatModel from '../../store/model';
 import keyMannager from '../../../../../src/key-manager';
 import { queryProfile } from '../../utils/restjs';
-import { copyRxdbContact } from '../../utils/db-utils';
+import { copyRxdbContact, safeUpdate } from '../../utils/db-utils';
 
 const saveOccupants = async payload => {
   if (!payload.mucAdmin) {
@@ -46,11 +46,7 @@ const saveOccupants = async payload => {
   const db = await getDb();
   const convInDB = await db.conversations.findOne(jid).exec();
   if (convInDB) {
-    convInDB.update({
-      $set: {
-        occupants
-      }
-    })
+    safeUpdate(convInDB, { occupants });
     return occupants;
   }
   return null;
@@ -100,13 +96,7 @@ const saveConversation = async (db, conv) => {
       if (!conv.name) {
         conv.name = convInDB.name;
       }
-      return convInDB.update({
-        $set: {
-          ...conv
-        }
-      }).catch(function (err) {
-        console.log('save conversation:', err);
-      })
+      safeUpdate(convInDB, { ...conv });
     }
   }
   // when group chat, if exists in db, do not update occupants
@@ -138,8 +128,7 @@ const saveConversation = async (db, conv) => {
       }
     }
     if (convInDB) {
-      await convInDB.update({
-        $set: {
+      await safeUpdate(convInDB, {
           at: conv.at,
           unreadMessages: conv.unreadMessages,
           lastMessageTime: conv.lastMessageTime,
@@ -147,9 +136,6 @@ const saveConversation = async (db, conv) => {
           lastMessageSender: conv.lastMessageSender,
           lastMessageSenderName: conv.lastMessageSenderName,
           avatarMembers: conv.avatarMembers
-        }
-      }).catch(function (err) {
-        console.log('save conversation:', err);
       });
       chatModel.updateAvatars(conv.jid);
       return convInDB;
@@ -176,11 +162,10 @@ const removeConversation = async jid => {
 
 const clearConversationUnreadMessages = async jid => {
   const db = await getDb();
-  return db.conversations.findOne(jid).update({
-    $set: {
-      unreadMessages: 0,
-      at: false
-    }
+  let conv = db.conversations.findOne(jid);
+  return await safeUpdate(conv, {
+    unreadMessages: 0,
+    at: false
   });
 };
 
@@ -199,10 +184,7 @@ const saveConversationName = async payload => {
   prevConvName = convName;
   const conv = await db.conversations.findOne(convJid).exec();
   if (conv && conv.name != convName) {
-    await conv.update({
-        name: convName
-    })
-    return conv;
+    return await safeUpdate(conv, { name: convName });
   }
   return []
 };

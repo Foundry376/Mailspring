@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import xmpp from '../xmpp';
 import getDb from '../db';
 import chatModel, { saveToLocalStorage } from '../store/model';
-import { copyRxdbContact, saveGroupMessages } from '../utils/db-utils';
+import { copyRxdbContact, safeUpdate, saveGroupMessages } from '../utils/db-utils';
 const { remote } = require('electron');
 const { Actions } = require('mailspring-exports');
 
@@ -264,28 +264,22 @@ export const sendMessageEpic = action$ =>
       // update conversation last message
       if (body) {
         getLastMessageInfo(payload).then(({ lastMessageTime, sender, lastMessageText }) => {
-          if (conversation.update) {
-            conversation.update({
-              $set: {
-                lastMessageTime,
-                lastMessageSender: sender || conversation.curJid,
-                lastMessageText
-              }
-            })
-          }
-          // if private chat, and it's a new conversation
-          else if (!conversation.isGroup) {
-            getDb().then(db => db.conversations.findOne(conversation.jid).exec().then(conv => {
-              conv.update({
-                $set: {
-                  lastMessageTime,
-                  lastMessageSender: sender || conversation.curJid,
-                  lastMessageText
-                }
-              })
-            }))
-          }
-        });
+          safeUpdate(conversation, {
+            lastMessageTime,
+            lastMessageSender: sender || conversation.curJid,
+            lastMessageText
+          });
+          if (!conversation.isGroup) {
+            // if private chat, and it's a new conversation
+              getDb().then(db => db.conversations.findOne(conversation.jid).exec().then(conv => {
+                safeUpdate(conv, {
+                    lastMessageTime,
+                    lastMessageSender: sender || conversation.curJid,
+                    lastMessageText
+                  })
+              }))
+            }
+          });
       }
       if (ediEncrypted) {
         return ({
