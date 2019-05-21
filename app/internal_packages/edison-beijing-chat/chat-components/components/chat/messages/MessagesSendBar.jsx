@@ -24,7 +24,7 @@ import { MESSAGE_STATUS_RECEIVED, MESSAGE_STATUS_UPLOAD_FAILED } from '../../../
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { isImageFilePath } from '../../../utils/stringUtils';
 import { sendFileMessage } from '../../../utils/message';
-import { sendCmd2App2, getMyAppByShortName, listKeywordApps, iniApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
+import { sendCmd2App2, getMyAppByShortName, listKeywordApps, getMyApps, iniApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../utils/restjs';
 const { exec } = require('child_process');
@@ -121,6 +121,8 @@ export default class MessagesSendBar extends PureComponent {
         return;
       }
       const { apps } = data;
+      const myApps = getMyApps(userId) || [];
+      apps.push.apply(apps, myApps);
 
       apps.forEach(app => {
         const keywords = [app.shortName, app.appName].concat(app.keywords);

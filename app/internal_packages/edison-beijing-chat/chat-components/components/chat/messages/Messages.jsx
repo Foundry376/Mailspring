@@ -1,43 +1,22 @@
-import fs from 'fs';
 import path from 'path';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import CheckIcon from '../../common/icons/CheckIcon';
-import Divider from '../../common/Divider';
-import {
-  MESSAGE_STATUS_DELIVERED,
-  getStatusWeight, MESSAGE_STATUS_UPLOAD_FAILED,
-} from '../../../db/schemas/message';
-import { colorForString } from '../../../utils/colors';
-import {
-  dateFormat,
-  dateFormatDigit,
-  weekDayFormat,
-  nearDays,
-} from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
-const { Actions, AttachmentStore } = require('mailspring-exports');
+const { Actions } = require('mailspring-exports');
 
 import { remote, shell } from 'electron';
-const { dialog, Menu, MenuItem } = remote;
-import { isJsonString } from '../../../utils/stringUtils';
+const { dialog } = remote;
 import ContactAvatar from '../../common/ContactAvatar';
 import chatModel from '../../../store/model';
 import { saveGroupMessages } from '../../../utils/db-utils';
 import { NEW_CONVERSATION } from '../../../actions/chat';
-import messageModel, { FILE_TYPE } from './messageModel';
+import messageModel from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
-import MessageEditBar from './MessageEditBar';
 import Group from './Group';
-import MessageApp from './MessageApp';
-import MessagePrivateApp from './MessagePrivateApp';
 import SecurePrivate from './SecurePrivate';
 import _ from 'underscore';
 
 let key = 0;
-
-// The number of pixels away from the bottom to be considered as being at the bottom
-const BOTTOM_TOLERANCE = 32;
 
 const flattenMsgIds = groupedMessages =>
   groupedMessages
@@ -54,7 +33,6 @@ export default class Messages extends PureComponent {
     currentUserId: PropTypes.string.isRequired,
     groupedMessages: PropTypes.arrayOf(
       PropTypes.shape({
-        // sender: PropTypes.string.isRequired,
         time: PropTypes.string.isRequired,
         messages: PropTypes.arrayOf(
           PropTypes.shape({
@@ -93,7 +71,6 @@ export default class Messages extends PureComponent {
   static timer;
 
   componentWillReceiveProps(nextProps) {
-    this.props = nextProps;
     const { selectedConversation: currentConv = {} } = this.props;
     const { selectedConversation: nextConv = {} } = nextProps;
     const { jid: currentJid } = currentConv;
@@ -105,21 +82,15 @@ export default class Messages extends PureComponent {
     }
 
     const msgElem = this.messagesPanel;
-    const isAtBottom = (msgElem.scrollHeight - msgElem.scrollTop) <
-      (msgElem.clientHeight + BOTTOM_TOLERANCE);
-    const { currentUserId } = this.props;
     const { groupedMessages: currentMsgs = [] } = this.props;
     const { groupedMessages: nextMsgs = [] } = nextProps;
     const currentIds = flattenMsgIds(currentMsgs);
     const nextIds = flattenMsgIds(nextMsgs);
-    const areNewMessages = currentIds.size !== nextIds.size;
-    const isLatestSelf = nextMsgs.length > 0 &&
-      nextMsgs[nextMsgs.length - 1].sender === currentUserId;
+    const areNewMessages = currentIds.size < nextIds.size;
 
     this.setState({
-      shouldScrollBottom: areNewMessages && (isLatestSelf || isAtBottom),
+      shouldScrollBottom: areNewMessages,
     });
-    setTimeout(()=>{this.update();})
     return true;
   }
   componentDidMount() {
@@ -151,11 +122,6 @@ export default class Messages extends PureComponent {
     }
   }
 
-  update = () => {
-    key++
-    const state = Object.assign({}, this.state, { key });
-    this.setState(state);
-  }
   getContactInfoByJid = jid => {
     const members = this.props.selectedConversation.roomMembers;
     if (this.props.selectedConversation.isGroup && members && members.length > 0) {
@@ -193,10 +159,6 @@ export default class Messages extends PureComponent {
       )
     }
     return null;
-  }
-
-  openFile(filePath) {
-    shell.openItem(filePath);
   }
 
   onKeyDown = event => {
@@ -261,6 +223,7 @@ export default class Messages extends PureComponent {
     const { queueLoadMessage } = this.props;
     queueLoadMessage(loadConfig);
   };
+
   render() {
     const {
       currentUserId,

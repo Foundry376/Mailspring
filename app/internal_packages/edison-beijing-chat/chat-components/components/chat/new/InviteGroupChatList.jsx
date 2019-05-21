@@ -70,11 +70,11 @@ export default class InviteGroupChatList extends Component {
     return (
       <div className="contactsList">
         <h2>Add to Group...</h2>
-        <div style={{ overflowY: 'scroll', flex: 1 }}>
+        <div style={{ flex: 1 }}>
           <Select
             ref="contacts"
             mode="tags"
-            style={{ width: '100%', flex: 1, height: '50px' }}
+            style={{ width: '100%', flex: 1 }}
             onSelect={this.onUpdateGroup}
             open={open}
             defaultOpen={true}

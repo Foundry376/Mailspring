@@ -656,7 +656,7 @@ export const DownButton = () => {
       getStateFromStores={getStateFromStores}
       direction={'down'}
       title={'Next thread'}
-      command={'core:next-item'}
+      command={'core:show-next'}
     />
   );
 };
@@ -681,7 +681,7 @@ export const UpButton = () => {
       getStateFromStores={getStateFromStores}
       direction={'up'}
       title={'Previous thread'}
-      command={'core:previous-item'}
+      command={'core:show-previous'}
     />
   );
 };
