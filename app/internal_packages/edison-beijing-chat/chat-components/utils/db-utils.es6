@@ -50,12 +50,52 @@ export async function saveGroupMessages(groupedMessages) {
       messages.reverse();
       for (const msg of messages) {
         if (msg.updateTime && (!msg.readTime || msg.readTime < msg.updateTime)) {
-          await msg.update({
-            $set: {
-              readTime
-            }
-          })
+          await safeUpdate(msg, { readTime });
         }
+      }
+    }
+  }
+}
+
+async function getDoc(doc) {
+  //this is only for  being used by saveUpdate
+  const db = await getDb();
+  if (doc.jid) {
+    return await db.conversations.findOne(doc.jid).exec();
+  } else {
+    return await db.messages.findOne(doc.id).exec();
+  }
+}
+
+let tryCount = 0;
+let tryMax = 3;
+export async function safeUpdate(doc, data) {
+  //this is only for conversations or messages
+  tryCount++;
+  try {
+    const result = await doc.update({ $set: data });
+    tryCount = 0;
+    return result;
+  } catch (e) {
+    const error = new Error();
+    if (tryCount==1){
+      console.log('db error: data, doc, e, stack: ', data, doc, e, error.stack);
+    }
+    let doc2 = await getDoc(doc);
+    let failed = false;
+    for (let key in data) {
+      if (data[key] != doc2[key])  {
+        failed = true;
+        break;
+      }
+    }
+    if (failed) {
+      if(tryCount < tryMax) {
+        const result = await safeUpdate(doc, data);
+        tryCount = 0;
+        return result;
+      } else {
+        throw(e);
       }
     }
   }
