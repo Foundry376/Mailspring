@@ -20,6 +20,7 @@ import MessageStore from './message-store';
 import UndoRedoStore from './undo-redo-store';
 
 const { DefaultSendActionKey } = SendActionsStore;
+const SendDraftTimeout = 300000;
 
 /*
 Public: DraftStore responds to Actions that interact with Drafts and exposes
@@ -81,6 +82,7 @@ class DraftStore extends MailspringStore {
 
     this._draftSessions = {};
     this._draftsSending = {};
+    this._draftSendindTimeouts = {};
     this._draftsDeleting = {};
 
     this._draftsPopedOut = {};
@@ -192,27 +194,6 @@ class DraftStore extends MailspringStore {
           windowLevel: currenttWindowsLevel,
         });
       }
-      // else if (currenttWindowsLevel > options.windowLevel && options.referenceMessageId) {
-      //   console.log(
-      //     `found new session ${options.headerMessageId} for old ${options.referenceMessageId}`,
-      //   );
-      //   for (let key in Object.keys(this._draftSessions)) {
-      //     console.log(`key : ${key}`);
-      //     if (this._draftSessions[key].id === options.referenceMessageId) {
-      //       this._draftSessions[options.headerMessageId] = Object.assign(
-      //         {},
-      //         this._draftSessions[this._draftSessions[key].headerMessageId],
-      //       );
-      //       this._doneWithSession(this._draftSessions[this._draftSessions[this._draftSessions[key].headerMessageId]]);
-      //       ipcRenderer.send('draft-arp-reply', {
-      //         headerMessageId: options.headerMessageId,
-      //         threadId: options.threadId,
-      //         windowLevel: currenttWindowsLevel,
-      //       });
-      //       break;
-      //     }
-      //   }
-      // }
     }
   };
 
@@ -320,7 +301,7 @@ class DraftStore extends MailspringStore {
       if (this._draftsSending[draft.headerMessageId]) {
         const m = draft.metadataForPluginId('send-later');
         if (m && m.isUndoSend && !m.expiration) {
-          delete this._draftsSending[draft.headerMessageId];
+          this._cancelSendingDraftTimeout({ headerMessageId });
         }
       }
     }
@@ -612,13 +593,35 @@ class DraftStore extends MailspringStore {
       const headerMessageId = this._draftsDeleting[messageIds[0]];
       delete this._draftsDeleting[messageIds[0]];
       this.trigger({ headerMessageId });
-      // if (key) {
-      //   AppEnv.showErrorDialog('Deleting Draft failed', { detail: debuginfo });
-      // }
     }
   };
+  _cancelSendingDraftTimeout = ({ headerMessageId, trigger = false, changeSendStatus = true }) => {
+    if (this._draftSendindTimeouts[headerMessageId]) {
+      clearTimeout(this._draftSendindTimeouts[headerMessageId]);
+      delete this._draftSendindTimeouts[headerMessageId];
+    }
+    if (changeSendStatus) {
+      delete this._draftsSending[headerMessageId];
+    } else {
+      AppEnv.reportError(
+        new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout} seconds`)
+      );
+    }
+    if (trigger) {
+      this.trigger({ headerMessageId });
+    }
+  };
+  _startSendingDraftTimeout = ({ headerMessageId }) => {
+    if (this._draftSendindTimeouts[headerMessageId]) {
+      clearTimeout(this._draftSendindTimeouts[headerMessageId]);
+    }
+    this._draftsSending[headerMessageId] = true;
+    this._draftSendindTimeouts[headerMessageId] = setTimeout(() => {
+      this._cancelSendingDraftTimeout({ headerMessageId, trigger: true, changeSendStatus: false });
+    }, SendDraftTimeout);
+  };
   _onSendingDraft = async ({ headerMessageId, windowLevel }) => {
-    console.log(`headerMessageId: ${headerMessageId}, from window: ${windowLevel}, at window ${this._getCurrentWindowLevel()}`);
+    // console.log(`headerMessageId: ${headerMessageId}, from window: ${windowLevel}, at window ${this._getCurrentWindowLevel()}`);
     if (this._getCurrentWindowLevel() !== windowLevel) {
       const session = await this.sessionForClientId(headerMessageId);
       if (session) {
@@ -627,7 +630,7 @@ class DraftStore extends MailspringStore {
       } else {
         console.error(`session not found for ${headerMessageId} at window: ${windowLevel}`);
       }
-      this._draftsSending[headerMessageId] = true;
+      this._startSendingDraftTimeout({ headerMessageId });
       this.trigger({ headerMessageId });
     }
   };
@@ -675,12 +678,11 @@ class DraftStore extends MailspringStore {
     // move the draft to another account if necessary to match the from: field
     await session.ensureCorrectAccount();
 
-    // remove inline attachments that are no longer in the body
     let draft = session.draft();
-    // if (!sendLaterMetadataValue) {
-    this._draftsSending[headerMessageId] = draft;
-    // delete this._draftsPendingSending[headerMessageId];
-    // }
+
+    this._startSendingDraftTimeout({ headerMessageId });
+
+    // remove inline attachments that are no longer in the body
     const files = draft.files.filter(f => {
       return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
     });
@@ -740,46 +742,34 @@ class DraftStore extends MailspringStore {
   };
 
   _onSendDraftSuccess = ({ headerMessageId }) => {
-    delete this._draftsSending[headerMessageId];
+    this._cancelSendingDraftTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
   };
   _onSendDraftCancelled = ({ headerMessageId }) => {
-    delete this._draftsSending[headerMessageId];
-    // delete this._draftsPendingSending[headerMessageId];
+    this._cancelSendingDraftTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
-    // if (AppEnv.isMainWindow()) {
-    //   // We delay so the view has time to update the restored draft. If we
-    //   // don't delay the modal may come up in a state where the draft looks
-    //   // like it hasn't been restored or has been lost.
-    //   //
-    //   // We also need to delay because the old draft window needs to fully
-    //   // close. It takes windows currently (June 2016) 100ms to close by
-    //   setTimeout(() => {
-    //     Actions.composePopoutDraft(headerMessageId);
-    //   }, 300);
-    // }
   };
 
   _onSendDraftFailed = ({ headerMessageId, threadId, errorMessage, errorDetail }) => {
-    delete this._draftsSending[headerMessageId];
+    this._cancelSendingDraftTimeout({ headerMessageId });
     this.trigger({ headerMessageId });
 
-    if (AppEnv.isMainWindow()) {
-      // We delay so the view has time to update the restored draft. If we
-      // don't delay the modal may come up in a state where the draft looks
-      // like it hasn't been restored or has been lost.
-      //
-      // We also need to delay because the old draft window needs to fully
-      // close. It takes windows currently (June 2016) 100ms to close by
-      // setTimeout(() => {
-      //   const focusedThread = FocusedContentStore.focused('thread');
-      //   if (threadId && focusedThread && focusedThread.id === threadId) {
-      //     AppEnv.showErrorDialog(errorMessage, { detail: errorDetail });
-      //   } else {
-      //     Actions.composePopoutDraft(headerMessageId, { errorMessage, errorDetail });
-      //   }
-      // }, 300);
-    }
+    // if (AppEnv.isMainWindow()) {
+    // We delay so the view has time to update the restored draft. If we
+    // don't delay the modal may come up in a state where the draft looks
+    // like it hasn't been restored or has been lost.
+    //
+    // We also need to delay because the old draft window needs to fully
+    // close. It takes windows currently (June 2016) 100ms to close by
+    // setTimeout(() => {
+    //   const focusedThread = FocusedContentStore.focused('thread');
+    //   if (threadId && focusedThread && focusedThread.id === threadId) {
+    //     AppEnv.showErrorDialog(errorMessage, { detail: errorDetail });
+    //   } else {
+    //     Actions.composePopoutDraft(headerMessageId, { errorMessage, errorDetail });
+    //   }
+    // }, 300);
+    // }
   };
   _getCurrentWindowLevel = () => {
     if (AppEnv.isComposerWindow()) {
