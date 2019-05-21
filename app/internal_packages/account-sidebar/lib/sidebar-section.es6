@@ -98,8 +98,9 @@ class SidebarSection {
         items.push(
           SidebarItem.forInbox([acc.id], {
             name: acc.label,
+            threadTitleName: 'Inbox',
             children: this.standardSectionForAccount(acc).items,
-          })
+          }),
         );
       });
     }
@@ -149,14 +150,14 @@ class SidebarSection {
     //   children: accounts.map(acc => SidebarItem.forDrafts([acc.id], { name: acc.label })),
     // });
     // const attchmentsMail = SidebarItem.forAttachments(accountIds);
-    const snoozedMail = SidebarItem.forSnoozed(accountIds, {displayName: 'Snoozed'});
-    const archiveMail = SidebarItem.forArchived(accountIds, {displayName: 'All Archive', name: 'allArchive'});
-    const spamMail = SidebarItem.forSpam(accountIds, {dispalyName: 'Spam'});
-    const sentMail = SidebarItem.forSentMails(accountIds, {dispalyName: 'All Sent'});
-    const allInboxes = SidebarItem.forAllInbox(accountIds, {displayName: 'All Inboxes'});
-    const starredItem = SidebarItem.forStarred(accountIds, {displayName: 'Flagged'});
-    const unreadItem = SidebarItem.forUnread(accountIds, {displayName: 'Unread'});
-    const draftsItem = SidebarItem.forDrafts(accountIds, {displayName: 'All Drafts'});
+    const snoozedMail = SidebarItem.forSnoozed(accountIds, { displayName: 'Snoozed' });
+    const archiveMail = SidebarItem.forArchived(accountIds, { displayName: 'All Archive', name: 'allArchive' });
+    const spamMail = SidebarItem.forSpam(accountIds, { dispalyName: 'Spam' });
+    const sentMail = SidebarItem.forSentMails(accountIds, { dispalyName: 'All Sent' });
+    const allInboxes = SidebarItem.forAllInbox(accountIds, { displayName: 'All Inboxes' });
+    const starredItem = SidebarItem.forStarred(accountIds, { displayName: 'Flagged' });
+    const unreadItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread' });
+    const draftsItem = SidebarItem.forDrafts(accountIds, { displayName: 'All Drafts' });
     //
     // // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     items.unshift(allInboxes);
@@ -168,7 +169,7 @@ class SidebarSection {
       spamMail,
       archiveMail,
       draftsItem,
-      sentMail
+      sentMail,
     );
 
     ExtensionRegistry.AccountSidebar.extensions()
@@ -199,7 +200,7 @@ class SidebarSection {
     };
   }
 
-  static accountUserCategories(account, {title, collapsible } = {}){
+  static accountUserCategories(account, { title, collapsible } = {}) {
     const items = [];
     const seenItems = {};
     for (let category of CategoryStore.userCategories(account)) {
@@ -222,6 +223,9 @@ class SidebarSection {
         const itemDisplayName = category.displayName.substr(parentKey.length + 1);
         item = SidebarItem.forCategories([category], { name: itemDisplayName });
         parent.children.push(item);
+        if (item.selected) {
+          parent.selected = true;
+        }
       } else {
         item = SidebarItem.forCategories([category]);
         items.push(item);

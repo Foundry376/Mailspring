@@ -155,7 +155,7 @@ class OutlineViewItem extends Component {
     }
     this.setState({
       renderMissingBackgroundBox: true,
-      targetDiv: ReactDOM.findDOMNode(this.refs[`${this.props.item.id}-div`]),
+      targetDiv: ReactDOM.findDOMNode(this.refs[`${this.props.item.id}-span`]),
     });
   }
 
@@ -294,14 +294,14 @@ class OutlineViewItem extends Component {
   // Renderers
   _renderCount = (item = this.props.item) => {
     if (!item.count || item.iconName === 'sent.svg') {
-      return <span />;
+      return <span/>;
     }
     const className = classnames({
       'item-count-box': true,
       'alt-count': item.counterStyle === CounterStyles.Alt,
     });
     return <div className={className}>{this._formatNumber(item.count)}</div>;
-  }
+  };
 
   _renderIcon(item = this.props.item) {
     const styles = { width: 24, height: 24 };
@@ -381,11 +381,11 @@ class OutlineViewItem extends Component {
     if (item.children.length > 0 && !item.collapsed) {
       return (
         <section className="item-children" key={`${item.id}-children`}>
-          {item.children.map(child => <OutlineViewItem key={child.id} provider={acc.provider} item={child} />)}
+          {item.children.map(child => <OutlineViewItem key={child.id} provider={acc.provider} item={child}/>)}
         </section>
       );
     }
-    return <span />;
+    return <span/>;
   }
 
   _renderMissingShadowBox() {
@@ -394,7 +394,7 @@ class OutlineViewItem extends Component {
       height: this.state.targetDiv.clientHeight,
       width: this.state.targetDiv.offsetLeft,
     };
-    return <div style={style} className="missing-shadow-patch" />;
+    return <div style={style} className="missing-shadow-patch"/>;
   }
 
   render() {
@@ -405,8 +405,8 @@ class OutlineViewItem extends Component {
       dropping: this.state.isDropping,
     });
     return (
-      <div ref={`${item.id}-div`}>
-        <span className={containerClasses}>
+      <div>
+        <span className={containerClasses} ref={`${item.id}-span`}>
           {this._renderItem()}
           <DisclosureTriangle
             collapsed={item.collapsed}

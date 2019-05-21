@@ -15,7 +15,7 @@ const SidebarActions = require('./sidebar-actions');
 
 const idForCategories = categories => _.pluck(categories, 'id').join('-');
 
-const countForItem = function (perspective) {
+const countForItem = function(perspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
   if (perspective.isInbox() || unreadCountEnabled) {
     return perspective.unreadCount();
@@ -23,9 +23,32 @@ const countForItem = function (perspective) {
   return 0;
 };
 
-const isItemSelected = perspective => FocusedPerspectiveStore.current().isEqual(perspective);
+const isChildrenSelected = (children = [], currentPerspective) => {
+  if (!children || children.length === 0) {
+    return false;
+  }
+  for (let p of children) {
+    if (p.perspective.isEqual(currentPerspective)) {
+      return true;
+    }
+    if (p.children.length > 0) {
+      if(isChildrenSelected(p.children, currentPerspective)){
+        return true;
+      }
+    }
+  }
+  return false;
+};
 
-const isItemCollapsed = function (id) {
+const isItemSelected = (perspective, children = []) => {
+  const isCurrent = FocusedPerspectiveStore.current().isEqual(perspective);
+  if (isCurrent) {
+    return true;
+  }
+  return isChildrenSelected(children, FocusedPerspectiveStore.current());
+};
+
+const isItemCollapsed = function(id) {
   if (AppEnv.savedState.sidebarKeysCollapsed[id] !== undefined) {
     return AppEnv.savedState.sidebarKeysCollapsed[id];
   } else {
@@ -33,14 +56,14 @@ const isItemCollapsed = function (id) {
   }
 };
 
-const toggleItemCollapsed = function (item) {
+const toggleItemCollapsed = function(item) {
   if (!(item.children.length > 0)) {
     return;
   }
   SidebarActions.setKeyCollapsed(item.id, !isItemCollapsed(item.id));
 };
 
-const onDeleteItem = function (item) {
+const onDeleteItem = function(item) {
   // TODO Delete multiple categories at once
   if (item.deleted === true) {
     return;
@@ -58,7 +81,7 @@ const onDeleteItem = function (item) {
   );
 };
 
-const onEditItem = function (item, value) {
+const onEditItem = function(item, value) {
   let newDisplayName;
   if (!value) {
     return;
@@ -115,13 +138,14 @@ class SidebarItem {
         accountIds: perspective.accountIds,
         name: perspective.name,
         displayName: perspective.displayName,
+        threadTitleName: perspective.threadTitleName,
         contextMenuLabel: perspective.displayName,
         count: countForItem(perspective),
         iconName: perspective.iconName,
         bgColor: perspective.bgColor,
         children: [],
         perspective,
-        selected: isItemSelected(perspective),
+        selected: isItemSelected(perspective, opts.children),
         collapsed: collapsed != null ? collapsed : true,
         counterStyle,
         onDelete: opts.deletable ? onDeleteItem : undefined,

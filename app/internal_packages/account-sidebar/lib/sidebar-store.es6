@@ -140,7 +140,7 @@ class SidebarStore extends MailspringStore {
     if (accounts.length === 0) {
       return;
     }
-    const multiAccount = accounts.length > 1;
+    // const multiAccount = accounts.length > 1;
 
     this._sections[Sections.Standard] = SidebarSection.standardSectionForAccounts(accounts);
     // this._sections[Sections.User] = accounts.map(function(acc) {
