@@ -125,7 +125,15 @@ export class Xmpp extends EventEmitter3 {
   }
   async pullMessage(ts, curJid) {
     let xmpp = this.getXmpp(curJid);
-    return xmpp.pullMessage(ts);
+    return new Promise((resolve, reject) => {
+      xmpp.pullMessage(ts, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      })
+    });
   }
   sendMessage(message, curJid) {
     let xmpp = this.getXmpp(curJid);
@@ -175,7 +183,6 @@ export class XmppEx extends EventEmitter3 {
       this.ping();
     });
     this.client.on('session:prebind', (bind) => {
-      chatModel.serverTimestamp = parseInt(bind.serverTimestamp);
       chatModel.diffTime = parseInt(bind.serverTimestamp)
         - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
       console.log('session:prebind', bind, chatModel.diffTime);
@@ -198,7 +205,7 @@ export class XmppEx extends EventEmitter3 {
       console.log(`xmpp session3:ping: jid: ${this.connectedJid}`);
       setTimeout(() => this.ping(), 9333);
     } else {
-      console.log(`xmpp session3:ping: jid: ${this.connectedJid}`);
+      console.log(`xmpp session3:ping2: jid: ${this.connectedJid}`);
     }
   }
 
@@ -392,13 +399,12 @@ export class XmppEx extends EventEmitter3 {
     });
   }
   lastTs = 0;
-  async pullMessage(ts) {
-    // console.log('yazz-test87', ts);
+  async pullMessage(ts, cb) {
     if (this.lastTs == ts) {
       return;
     }
     this.lastTs = ts;
-    return this.client.pullMessage(ts);
+    this.client.pullMessage(ts, cb)//yazz test
   }
   /**
    * Sends a message to the connected xmpp server

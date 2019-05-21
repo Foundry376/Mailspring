@@ -2,7 +2,6 @@ const EdisonMailStorageKey = 'EdisonMail-Storage';
 const storage = require('electron-localstorage');
 const chatModel = {
   diffTime: 0, //the diffTime to correct sentTime from xmpp server, see xmpp/index.es6 on 'session:prebind'
-  serverTimestamp: 0,
   allSelfUsers: {},
   chatStorage: null, // {"nicknames":{}} // data in window.localStorage for chat
   store: null, // will save the store instance in ConfigureStore

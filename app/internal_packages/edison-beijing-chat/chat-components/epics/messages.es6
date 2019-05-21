@@ -5,8 +5,10 @@ import getDb from '../db';
 
 import {
     BEGIN_FETCH_MESSAGE,
+    FETCH_NEXT_MESSAGE,
     SUCCESS_FETCH_MESSAGE,
     fetchMessage,
+    fetchNextMessage,
     succesfullyFetchedMessage,
     failedFetchingMessage
 } from '../actions/message';
@@ -42,20 +44,42 @@ export const fetchMessagesEpic = action$ =>
             }
         )
         .mergeMap(({ ts, jid }) => {
+            return pullMessage(ts, jid);
             // console.log("yazz-config2", ts, jid);
-            return Observable.fromPromise(xmpp.pullMessage(ts, jid.bare))
-                .map(data => {
-                    // console.log("yazz-config3", data)
-                    return succesfullyFetchedMessage(jid)
-                })//yazzxx3
-                .catch(err => {
-                    // console.log("yazz-config33", err)
-                    return Observable.of(failedFetchingMessage(err)
-                    )
-                })
+            // return Observable.fromPromise(xmpp.pullMessage(ts, jid.bare))
+            //     .map(data => {
+            //         console.log("saveLastTs4", data)
+            //         if (data.more == "true") {
+            //             Observable.fromPromise(xmpp.pullMessage(data.since, jid.bare))
+            //         }
+            //         return succesfullyFetchedMessage(jid)
+            //     })//yazzxx3
+            //     .catch(err => {
+            //         // console.log("yazz-config33", err)
+            //         return Observable.of(failedFetchingMessage(err)
+            //         )
+            //     })
         }
         );
-
+export const fetchNextMessagesEpic = action$ =>
+    action$.ofType(FETCH_NEXT_MESSAGE)//yazzxx2
+        .mergeMap(({ payload: { ts, jid } }) => {
+            return pullMessage(ts, jid);
+        });
+const pullMessage = (ts, jid) => {
+    return Observable.fromPromise(xmpp.pullMessage(ts, jid.bare))
+        .map(data => {
+            if (data.edipull && data.edipull.more == "true") {
+                return fetchNextMessage({ ts: data.edipull.since, jid })
+            }
+            return succesfullyFetchedMessage(jid)
+        })//yazzxx3
+        .catch(err => {
+            // console.log("yazz-config33", err)
+            return Observable.of(failedFetchingMessage(err)
+            )
+        })
+}
 
 // export const triggerStoreMessagesEpic = action$ =>
 //     action$.ofType(SUCCESS_FETCH_MESSAGE)
