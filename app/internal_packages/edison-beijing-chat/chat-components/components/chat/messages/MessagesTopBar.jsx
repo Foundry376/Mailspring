@@ -89,7 +89,7 @@ export default class MessagesTopBar extends Component {
                     email={conversation.email} avatar={conversation.avatar} size={35} />
                 }
               </div>
-              <ThreadSearchBar></ThreadSearchBar>
+              <ThreadSearchBar />
             </div>
           }
         />

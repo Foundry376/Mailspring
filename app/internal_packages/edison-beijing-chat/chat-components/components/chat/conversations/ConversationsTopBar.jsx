@@ -7,7 +7,8 @@ import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
 
 export default class ConversationsTopBar extends PureComponent {
   newConversation = () => {
-    Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
+    Actions.pushSheet(WorkspaceStore.Sheet.ChatView);
+    document.querySelector('#Center').style.zIndex = 9;
     this.props.newConversation(NEW_CONVERSATION);
   }
   render() {
@@ -15,10 +16,16 @@ export default class ConversationsTopBar extends PureComponent {
       <TopBar
         className="conversation-top-bar"
         left={
-          [<div key='title' className="left-title">MESSAGES</div>,
-          <BindGlobalCommands key='bindKey' commands={{
-            "application:new-chat": this.newConversation
-          }}><span /></BindGlobalCommands>]
+          [
+            <div key='title' className="left-title">MESSAGES</div>,
+            <BindGlobalCommands
+              key='bindKey'
+              commands={{
+                "application:new-chat": this.newConversation
+              }}>
+              <span />
+            </BindGlobalCommands>
+          ]
         }
         right={
           <Button className="button new-message" onClick={this.newConversation}>

@@ -3,6 +3,7 @@ import { RetinaImg } from 'mailspring-component-kit';
 import Select, { Option } from 'rc-select';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
+import { Actions, WorkspaceStore } from 'mailspring-exports';
 
 
 export default class MessagesTopBar extends Component {
@@ -40,7 +41,15 @@ export default class MessagesTopBar extends Component {
     if (this.state.members.length === 0) {
       return;
     }
+    this._close();
+    Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
     this.props.createRoom();
+  }
+
+  _close = () => {
+    Actions.popSheet();
+    this.props.deselectConversation();
+    document.querySelector('#Center').style.zIndex = 1;
   }
 
   render() {
@@ -66,15 +75,12 @@ export default class MessagesTopBar extends Component {
         </div>
       </Option>
     );
-
     return (
       <div className="new-conversation-header">
         <div className="to">
           <span
             className="close"
-            onClick={() => {
-              this.props.deselectConversation();
-            }}
+            onClick={this._close}
           >
             <RetinaImg name={'close_1.svg'}
               style={{ width: 24, height: 24 }}

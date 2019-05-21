@@ -28,6 +28,7 @@
       font-size: 13px;
       font-weight: bold;
       z-index: 2;
+      margin-top: 30px;
       span.close {
         position: relative;
         left: -38px;
@@ -73,6 +74,9 @@
   scrollbar-width: thin;
   border: none;
   box-shadow: none;
+  &.rc-select-dropdown--multiple {
+    z-index: 11;
+  }
 }
 .rc-select-dropdown::-webkit-scrollbar {
   width: 0.3em;

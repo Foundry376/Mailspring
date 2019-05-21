@@ -119,10 +119,10 @@ export default class MessagesPanel extends PureComponent {
         const db = await getDb();
         if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
           const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
-          if(other) {
+          if (other) {
             contacts.unshift(other);
           } else {
-            contacts.unshift({jid: selectedConversation.jid, name:''});
+            contacts.unshift({ jid: selectedConversation.jid, name: '' });
           }
         }
         if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
@@ -130,7 +130,7 @@ export default class MessagesPanel extends PureComponent {
           if (owner) {
             contacts.unshift(owner);
           } else {
-            contacts.unshift({jid: selectedConversation.curJid, name:''});
+            contacts.unshift({ jid: selectedConversation.curJid, name: '' });
           }
         }
         const names = contacts.map(item => item.name);
@@ -666,42 +666,15 @@ export default class MessagesPanel extends PureComponent {
       deselectConversation,
       createRoom: this.createRoom
     }
-    let style = {};
+    let className = '';
     if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {
-      style = {
-        position:'fixed',
-        top: '0px',
-        left: '0px',
-        width:'100%',
-        height: '100%',
-        backgroundColor:'white',
-        zIndex: 999,
-      };
-      let element = document.querySelector('#ChatView');
-      if (element) {
-        chatViewDisplay = chatViewDisplay || element.style.display;
-        element.style.display = 'none';
-      }
-      element = document.querySelector('.toolbar-window-controls');
-      if (element) {
-        toolbarControlsDisplay = toolbarControlsDisplay || element.style.display;
-        element.style.display = 'none';
-      }
-    } else {
-      let element = document.querySelector('#ChatView');
-      if (element && chatViewDisplay) {
-        element.style.display = chatViewDisplay;
-      }
-      element = document.querySelector('.toolbar-window-controls');
-      if (element && toolbarControlsDisplay) {
-        element.style.display = toolbarControlsDisplay;
-      }
+      className = 'new-conversation-popup'
     }
 
     const isOffLine = !this.state.online || !this.props.chat_online;
 
     return (
-      <div className={`panel ${isOffLine ? 'offline': ''}`}
+      <div className={`panel ${isOffLine ? 'offline' : ''}`}
         onDragOverCapture={this.onDragOver}
         onDragEnd={this.onDragEnd}
         onMouseLeave={this.onDragEnd}
@@ -709,7 +682,7 @@ export default class MessagesPanel extends PureComponent {
       >
         {selectedConversation ?
           <div className="chat">
-            <div className="splitPanel" style={style}>
+            <div className={`split-panel ${className}`}>
               {
                 selectedConversation.jid === NEW_CONVERSATION ? (
                   <div className="chatPanel">
