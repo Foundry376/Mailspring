@@ -17,24 +17,24 @@ const ThreadSearchBarWithTip = HasTutorialTip(ThreadSearchBar, {
 
 class TitleSearchBar extends Component {
   static displayName = 'TitleSearchBar';
+
   render() {
     const current = FocusedPerspectiveStore.current();
-    let label = '';
-    if (current.unread || current.starred || current.drafts) {
-      label = current.name;
-    }
-    else if (current && current._categories && current._categories.length && current._categories[0].displayName) {
-      label = current._categories[0].displayName
-    } else {
-      current && (current.displayName ? current.displayName : current.name);
+    let title = '';
+    if (current && current.threadTitleName) {
+      title = current.threadTitleName;
+    } else if (current && current.displayName) {
+      title = current.displayName;
+    } else if (current) {
+      title = current.name;
     }
     return (
       <div className="title-search-bar">
         <div className='thread-title'>
-          <h1>{label}</h1>
+          <h1>{title}</h1>
         </div>
       </div>
-    )
+    );
   }
 }
 

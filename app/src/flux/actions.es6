@@ -437,9 +437,9 @@ class Actions {
 
   Recieves the id of the message that was sent
   */
-  static draftDeliveryCancelled = ActionScopeMainWindow;
-  static draftDeliverySucceeded = ActionScopeMainWindow;
-  static draftDeliveryFailed = ActionScopeMainWindow;
+  static draftDeliveryCancelled = ActionScopeGlobal;
+  static draftDeliverySucceeded = ActionScopeGlobal;
+  static draftDeliveryFailed = ActionScopeGlobal;
 
   /*
   Public: Destroys the draft with the given ID. This Action is handled by the {DraftStore},
