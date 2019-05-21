@@ -112,7 +112,7 @@ class BasicContent extends React.Component {
         <div className="message">{description}</div>
         <div className="action">
           <RetinaImg name="close_1.svg" isIcon mode={RetinaImg.Mode.ContentIsMask}
-                     onClick={onClose}/>
+                     onClick={()=>onClose()}/>
           <div className="undo-action-text" onClick={() => UndoRedoStore.undo({ block })}>Undo</div>
         </div>
       </div>
@@ -152,7 +152,9 @@ class UndoSendContent extends BasicContent {
     ) {
       this.setState({ sendStatus: 'success' });
       clearTimeout(this.timer);
-      this.timer = setTimeout(this.props.onClose, 3000);
+      this.timer = setTimeout(() => {
+        this.props.onClose(true);
+      }, 3000);
     }
   };
 
@@ -164,7 +166,9 @@ class UndoSendContent extends BasicContent {
     ) {
       this.setState({ sendStatus: 'failed' });
       clearTimeout(this.timer);
-      this.timer = setTimeout(this.props.onClose, 10000);
+      this.timer = setTimeout(() => {
+        this.props.onClose(true);
+      }, 10000);
     }
   };
 
@@ -172,10 +176,12 @@ class UndoSendContent extends BasicContent {
     if (!this.props.block.due) {
       UndoRedoStore.undo({ block: this.props.block });
     } else if (this.state.sendStatus === 'failed') {
+      clearTimeout(this.timer);
       setTimeout(() => {
         AppEnv.reportError(new Error(`Sending email failed, and user clicked view. headerMessageId: ${this.props.block.tasks[0].modelHeaderMessageId}`));
         Actions.composePopoutDraft(this.props.block.tasks[0].modelHeaderMessageId);
       }, 300);
+      this.props.onClose(true);
     }
   };
 
@@ -193,7 +199,7 @@ class UndoSendContent extends BasicContent {
     clearTimeout(this.timer);
   };
   onMouseLeave = () => {
-    this.timer = setTimeout(this.props.onClose, 400);
+    this.timer = setTimeout(()=>this.props.onClose(), 400);
   };
 
   render() {
@@ -216,7 +222,7 @@ class UndoSendContent extends BasicContent {
             name="close_1.svg"
             isIcon
             mode={RetinaImg.Mode.ContentIsMask}
-            onClick={this.props.onClose}
+            onClick={()=>this.props.onClose()}
           />
           {this.renderActionArea(block)}
         </div>
@@ -253,13 +259,7 @@ export default class UndoRedoToast extends React.Component {
     });
   }
 
-  //
-  // componentDidUpdate() {
-  //   this._ensureTimeout();
-  // }
-
   componentWillUnmount() {
-    // this._clearTimeout();
     if (this._unlisten) {
       this._unlisten();
     }
@@ -272,9 +272,13 @@ export default class UndoRedoToast extends React.Component {
     }
   }
 
-  _closeToaster = (block) => {
+  _closeToaster = (block, remove = false) => {
     block.lingerAfterTimeout = false;
-    UndoRedoStore.setTaskToHide({ block });
+    if (remove) {
+      UndoRedoStore.removeTaskFromUndo({ block });
+    } else {
+      UndoRedoStore.setTaskToHide({ block });
+    }
   };
 
   _onMouseEnter = () => {
@@ -295,7 +299,7 @@ export default class UndoRedoToast extends React.Component {
           transitionEnterTimeout={150}
           transitionName="undo-redo-toast-fade"
         >
-          {blocks.map(block => {
+          {blocks.filter(b => !b.hide).map(block => {
             const Component = block && (isUndoSend(block) ? UndoSendContent : BasicContent);
             return <Component
               key={block.id}

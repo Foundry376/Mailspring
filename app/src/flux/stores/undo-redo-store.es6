@@ -158,7 +158,7 @@ class UndoRedoStore extends MailspringStore {
     }
     for (let i = 0; i < this._undo[priority].length; i++) {
       if (this._undo[priority][i].id === block.id) {
-        return this._undo[priority][i];
+        return Object.assign({}, this._undo[priority][i]);
       }
     }
     return null;
@@ -180,11 +180,11 @@ class UndoRedoStore extends MailspringStore {
     }
     for (let i = 0; i < this._undo[priority].length; i++) {
       if (this._undo[priority][i].id === block.id) {
-        this._undo[priority][i] = block;
+        this._undo[priority][i] = Object.assign({}, block);
+        this.trigger();
         return;
       }
     }
-    this.trigger();
   };
 
   undo = ({ block } = {}) => {
@@ -214,18 +214,13 @@ class UndoRedoStore extends MailspringStore {
     return this._mostRecentBlock;
   };
   getUndos = ({ critical = 0, high = 3, medium = 2, low = 5 } = {}) => {
-    const ret = {
+    return {
       critical:
         critical === 0 ? this._undo.critical.slice() : this._undo.critical.slice(critical * -1),
       high: high === 0 ? this._undo.high.slice() : this._undo.high.slice(high * -1),
       medium: medium === 0 ? this._undo.medium.slice() : this._undo.medium.slice(medium * -1),
       low: low === 0 ? this._undo.low.slice() : this._undo.low.slice(low * -1),
     };
-    ret.critical = ret.critical.filter(t => !t.hide);
-    ret.high = ret.high.filter(t => !t.hide);
-    ret.medium = ret.medium.filter(t => !t.hide);
-    ret.low = ret.low.filter(t => !t.hide);
-    return ret;
   };
   removeTaskFromUndo = ({ block, noTrigger = false }) => {
     let priority = 'low';
