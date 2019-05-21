@@ -27,10 +27,12 @@ const isItemSelected = (perspective, collapsed) => {
   const current = FocusedPerspectiveStore.current();
   let isChildSelected = false;
   if (collapsed
+    && perspective.level === 1
     && perspective.children
     && perspective.children.length > 0
     && perspective.accountIds.length === 1
     && current.accountIds.length === 1
+    && current.level !== 1 // current is a childNode
     && current.accountIds[0] === perspective.accountIds[0]) {
     isChildSelected = true;
   }

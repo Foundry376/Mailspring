@@ -99,6 +99,7 @@ class SidebarSection {
           SidebarItem.forInbox([acc.id], {
             name: acc.label,
             children: this.standardSectionForAccount(acc).items,
+            level: 1
           })
         );
       });
@@ -149,14 +150,14 @@ class SidebarSection {
     //   children: accounts.map(acc => SidebarItem.forDrafts([acc.id], { name: acc.label })),
     // });
     // const attchmentsMail = SidebarItem.forAttachments(accountIds);
-    const snoozedMail = SidebarItem.forSnoozed(accountIds, {displayName: 'Snoozed'});
-    const archiveMail = SidebarItem.forArchived(accountIds, {displayName: 'All Archive', name: 'allArchive'});
-    const spamMail = SidebarItem.forSpam(accountIds, {dispalyName: 'Spam'});
-    const sentMail = SidebarItem.forSentMails(accountIds, {dispalyName: 'All Sent'});
-    const allInboxes = SidebarItem.forAllInbox(accountIds, {displayName: 'All Inboxes'});
-    const starredItem = SidebarItem.forStarred(accountIds, {displayName: 'Flagged'});
-    const unreadItem = SidebarItem.forUnread(accountIds, {displayName: 'Unread'});
-    const draftsItem = SidebarItem.forDrafts(accountIds, {displayName: 'All Drafts'});
+    const snoozedMail = SidebarItem.forSnoozed(accountIds, { displayName: 'Snoozed', level: 1 });
+    const archiveMail = SidebarItem.forArchived(accountIds, { displayName: 'All Archive', level: 1, name: 'allArchive' });
+    const spamMail = SidebarItem.forSpam(accountIds, { dispalyName: 'Spam', level: 1 });
+    const sentMail = SidebarItem.forSentMails(accountIds, { dispalyName: 'All Sent', level: 1 });
+    const allInboxes = SidebarItem.forAllInbox(accountIds, { displayName: 'All Inboxes', level: 1 });
+    const starredItem = SidebarItem.forStarred(accountIds, { displayName: 'Flagged', level: 1 });
+    const unreadItem = SidebarItem.forUnread(accountIds, { displayName: 'Unread', level: 1 });
+    const draftsItem = SidebarItem.forDrafts(accountIds, { displayName: 'All Drafts', level: 1 });
     //
     // // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     items.unshift(allInboxes);
@@ -199,7 +200,7 @@ class SidebarSection {
     };
   }
 
-  static accountUserCategories(account, {title, collapsible } = {}){
+  static accountUserCategories(account, { title, collapsible } = {}) {
     const items = [];
     const seenItems = {};
     for (let category of CategoryStore.userCategories(account)) {
