@@ -26,7 +26,7 @@ const saveConfig = async config => {
 const saveLastTs = (ts, curJid) => {
     if (ts != lastTs[curJid]) {
         ts = lastTs[curJid];
-        window.setTimeout(() => { saveLastTs(ts, curJid); }, 1000);
+        window.setTimeout(() => { saveLastTs(ts, curJid); }, 2000);
         // console.log('saveLastTs1', ts, curJid, lastTs);
         return;
     }
