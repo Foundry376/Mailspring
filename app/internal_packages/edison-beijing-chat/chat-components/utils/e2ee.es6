@@ -49,7 +49,7 @@ const setDeviceId = async (db, deviceId) => {
 const setE2ee = async (db) => {
     let { pubkey, prikey } = generateKey();
     await safeUpsert(db.configs, { key: 'e2ee_prikey', value: prikey, time: Date.now() });
-    await safeUpsert(db.configs, { key: 'e2ee_prikey', value: pubkey, time: Date.now() });
+    await safeUpsert(db.configs, { key: 'e2ee_pubkey', value: pubkey, time: Date.now() });
 }
 // iniE2ee();
 export const getPriKey = async () => {

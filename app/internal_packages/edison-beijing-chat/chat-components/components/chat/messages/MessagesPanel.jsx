@@ -20,7 +20,7 @@ import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
-import { checkToken, login, queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
+import { queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
 import { AccountStore } from 'mailspring-exports';
 
@@ -28,8 +28,6 @@ import keyMannager from '../../../../../../src/key-manager';
 import MemberProfile from '../conversations/MemberProfile';
 
 import { xmpplogin } from '../../../utils/restjs';
-import Notification from '../../../../../../src/components/notification';
-import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 import fs from "fs";
 import https from "https";
 import http from "http";
@@ -48,7 +46,6 @@ const { dialog } = remote;
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 window.registerLoginChatAccounts = registerLoginChatAccounts;
-let chatViewDisplay, toolbarControlsDisplay;
 
 export default class MessagesPanel extends PureComponent {
   static propTypes = {
@@ -58,7 +55,6 @@ export default class MessagesPanel extends PureComponent {
     currentUserId: PropTypes.string,
     groupedMessages: PropTypes.arrayOf(
       PropTypes.shape({
-        // sender: PropTypes.string.isRequired,
         time: PropTypes.string.isRequired,
         messages: PropTypes.arrayOf(
           PropTypes.shape({
@@ -76,7 +72,7 @@ export default class MessagesPanel extends PureComponent {
       isGroup: PropTypes.bool.isRequired,
       jid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      email: PropTypes.string,//.isRequired,
+      email: PropTypes.string,
       avatar: PropTypes.string,
       occupants: PropTypes.arrayOf(PropTypes.string).isRequired,
     }),
@@ -210,12 +206,8 @@ export default class MessagesPanel extends PureComponent {
     sqldb.close();
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     const email = Object.keys(chatAccounts)[0];
-    let accessToken = await keyMannager.getAccessTokenByEmail(email);
-    // let { err, res } = await checkToken(accessToken);
-    // if (err || !res || res.resultCode !== 1) {
     await refreshChatAccountTokens()
-    accessToken = await keyMannager.getAccessTokenByEmail(email);
-    // }
+    let accessToken = await keyMannager.getAccessTokenByEmail(email);
     const emails = emailContacts.map(contact => contact.email);
     queryProfile({ accessToken, emails }, (err, res) => {
       if (!res) {
@@ -411,7 +403,6 @@ export default class MessagesPanel extends PureComponent {
     const db = await getDb();
     const jid = member.jid.bare || member.jid;
     const nicknames = chatModel.chatStorage.nicknames;
-    // const contact = await db.contacts.findOne().where('jid').eq(jid).exec();
     if (nicknames[jid] != member.nickname) {
       nicknames[jid] = member.nickname;
       saveToLocalStorage();

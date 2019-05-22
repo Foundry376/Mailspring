@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { sendCmd2App2, getToken, getMyAppByShortName, getMyAppById } from '../../../utils/appmgt';
+import { getMyAppByShortName } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
 import _ from 'lodash'
 
