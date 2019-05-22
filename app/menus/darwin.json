@@ -184,8 +184,8 @@
       { "label": "Check for Update", "command": "application:check-for-update", "visible": false},
       { "label": "Downloading Update", "enabled": false, "visible": false},
       {"type":  "separator"},
-      { "label": "Privacy Policy", "command": "application:view-help" },
-      { "label": "Terms of Use", "command": "application:view-help" },
+      { "label": "Privacy Policy", "command": "application:view-privacy" },
+      { "label": "Terms of Use", "command": "application:view-terms" },
       {"type":  "separator"},
       {"label": "What's New...", "command": "application:view-help"}
     ]

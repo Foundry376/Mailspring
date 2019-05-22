@@ -466,6 +466,16 @@ export default class Application extends EventEmitter {
       require('electron').shell.openExternal(helpUrl);
     });
 
+    this.on('application:view-privacy', () => {
+      const helpUrl = 'http://www.edison.tech/privacy.html';
+      require('electron').shell.openExternal(helpUrl);
+    });
+
+    this.on('application:view-terms', () => {
+      const helpUrl = 'http://www.edison.tech/terms.html';
+      require('electron').shell.openExternal(helpUrl);
+    });
+
     this.on('application:open-preferences', () => {
       const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (main) {
