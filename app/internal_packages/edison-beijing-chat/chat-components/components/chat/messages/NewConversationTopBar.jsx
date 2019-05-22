@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, InjectedComponent } from 'mailspring-component-kit';
 import Select, { Option } from 'rc-select';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
@@ -91,6 +91,9 @@ export default class NewConversationTopBar extends Component {
     );
     return (
       <div className="new-conversation-header" onKeyUp={this.onKeyUp}>
+        <InjectedComponent
+          matching={{ role: 'ToolbarWindowControls' }}
+        />
         <div className="to">
           <span
             className="close"
