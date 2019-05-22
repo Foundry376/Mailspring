@@ -2,6 +2,7 @@ import uuid from 'uuid/v4';
 import { generateKey } from './rsa';
 //import { encryptByAES } from './aes';
 import getDb from '../db';
+import { safeUpsert } from './db-utils';
 let deviceId = null;
 const iniE2ee = async () => {
     const db = await getDb();
@@ -42,13 +43,13 @@ const generateDeviceId = () => {
     })
 }
 const setDeviceId = async (db, deviceId) => {
-    await db.configs.upsert({ key: 'deviceId', value: deviceId, time: Date.now() });
+    await safeUpsert( db.configs, { key: 'deviceId', value: deviceId, time: Date.now() });
     return deviceId;
 }
 const setE2ee = async (db) => {
     let { pubkey, prikey } = generateKey();
-    await db.configs.upsert({ key: 'e2ee_prikey', value: prikey, time: Date.now() });
-    await db.configs.upsert({ key: 'e2ee_pubkey', value: pubkey, time: Date.now() });
+    await safeUpsert(db.configs, { key: 'e2ee_prikey', value: prikey, time: Date.now() });
+    await safeUpsert(db.configs, { key: 'e2ee_prikey', value: pubkey, time: Date.now() });
 }
 // iniE2ee();
 export const getPriKey = async () => {
@@ -88,7 +89,7 @@ export const getDeviceId = async (cb) => {
 }
 export const setE2eeJid = async (jidLocal, value) => {
     const db = await getDb();
-    await db.configs.upsert({ key: 'e2ee_' + jidLocal, value, time: Date.now() });
+    await safeUpsert(db.configs, { key: 'e2ee_' + jidLocal, value, time: Date.now() });
 }
 export const getE2ees = async (jidLocal) => {
     const db = await getDb();

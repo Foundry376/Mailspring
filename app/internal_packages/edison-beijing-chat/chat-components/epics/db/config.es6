@@ -9,6 +9,7 @@ import {
 } from '../../actions/chat';
 import getDb from '../../db';
 import chatModel from '../../store/model';
+import { safeUpsert } from '../../utils/db-utils';
 const saveConfig = async config => {
     // console.log("saveLastTs3", config);
     const db = await getDb();
@@ -17,7 +18,7 @@ const saveConfig = async config => {
         if (!config.time) {
             config.time = Date.now();
         }
-        await db.configs.upsert(config)
+        await safeUpsert(db.configs, config);
     }
     return {};
 };

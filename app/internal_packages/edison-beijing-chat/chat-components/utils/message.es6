@@ -1,5 +1,5 @@
 import { isImageFilePath, isJsonStr } from './stringUtils';
-import { copyRxdbMessage } from './db-utils';
+import { copyRxdbMessage, safeUpsert } from './db-utils';
 import groupByTime from 'group-by-time';
 
 import getDb from '../db';
@@ -128,7 +128,7 @@ export const clearMessages = async (conversation) => {
     body.deleted = true;
     body = JSON.stringify(body);
     msg.body = body;
-    db.messages.upsert(msg);
+    safeUpsert(db.messages, msg);
   }
 }
 

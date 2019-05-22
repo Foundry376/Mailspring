@@ -12,6 +12,7 @@ import { Actions } from 'mailspring-exports';
 import Contact from '../../../../../../src/flux/models/contact';
 import keyMannager from '../../../../../../src/key-manager';
 import { RetinaImg } from 'mailspring-component-kit';
+import { safeUpsert } from '../../../utils/db-utils';
 
 export default class MemberProfie extends Component {
   static timer;
@@ -160,7 +161,7 @@ export default class MemberProfie extends Component {
       await refreshChatAccountTokens();
       accessToken = await keyMannager.getAccessTokenByEmail(email);
     }
-    await db.contacts.upsert({
+    await safeUpsert(db.contacts, {
       jid,
       curJid:member.curJid,
       name: member.name || member.nickname || jid.split('@')[0],

@@ -35,7 +35,7 @@ import { ipcRenderer } from 'electron';
 import chatModel from '../../store/model';
 import keyMannager from '../../../../../src/key-manager';
 import { queryProfile } from '../../utils/restjs';
-import { copyRxdbContact, safeUpdate } from '../../utils/db-utils';
+import { copyRxdbContact, safeUpdate, safeUpsert } from '../../utils/db-utils';
 
 const saveOccupants = async payload => {
   if (!payload.mucAdmin) {
@@ -141,7 +141,7 @@ const saveConversation = async (db, conv) => {
       return convInDB;
     }
   }
-  return db.conversations.upsert(conv)
+  return safeUpsert(db.conversations, conv);
 }
 
 const retriveConversation = async jid => {

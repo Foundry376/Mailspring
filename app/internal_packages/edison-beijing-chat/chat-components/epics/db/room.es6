@@ -5,6 +5,7 @@ import {
   failedStoringRooms
 } from '../../actions/db/room';
 import getDb from '../../db';
+import { safeUpsert } from '../../utils/db-utils';
 
 const saveRooms = async rooms => {
   const db = await getDb();
@@ -12,8 +13,7 @@ const saveRooms = async rooms => {
     rooms
       .filter(({ name }) => !!name) // ignore the contact that the name is undefined
       .map(({ jid: { bare: jid }, name }) =>
-        db.rooms
-          .upsert({
+        safeUpsert(db.rooms, {
             jid,
             name
           })
