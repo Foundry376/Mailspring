@@ -14,6 +14,15 @@ export default class NewConversationTopBar extends Component {
     }
   }
   componentDidMount = () => {
+    setTimeout(this._setDropDownHeight, 300);
+  }
+
+  _setDropDownHeight() {
+    const dropDown = document.querySelector('.rc-select-dropdown');
+    if (dropDown) {
+      const offsetTop = dropDown.offsetTop;
+      dropDown.style.maxHeight = `calc(100vh - ${offsetTop + 5}px)`;
+    }
   }
 
   componentDidUpdate = () => {
@@ -49,7 +58,12 @@ export default class NewConversationTopBar extends Component {
   _close = () => {
     Actions.popSheet();
     this.props.deselectConversation();
-    document.querySelector('#Center').style.zIndex = 1;
+  }
+
+  onKeyUp = (event) => {
+    if (keyCode === 27) { // ESC
+      this._close();
+    }
   }
 
   render() {
@@ -76,7 +90,7 @@ export default class NewConversationTopBar extends Component {
       </Option>
     );
     return (
-      <div className="new-conversation-header">
+      <div className="new-conversation-header" onKeyUp={this.onKeyUp}>
         <div className="to">
           <span
             className="close"
