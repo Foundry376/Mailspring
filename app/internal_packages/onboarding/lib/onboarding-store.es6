@@ -120,7 +120,11 @@ class OnboardingStore extends MailspringStore {
         next.emailAddress = json.emailAddress;
         this._onSetAccount(next);
         OnboardingActions.moveToPage('account-choose');
-      } else {
+      }
+      else if (!AppEnv.config.get('agree')) {
+        OnboardingActions.moveToPage('gdpr-terms');
+      }
+      else {
         this._onOnboardingComplete();
       }
     }, 1000);

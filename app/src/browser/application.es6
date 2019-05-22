@@ -306,8 +306,9 @@ export default class Application extends EventEmitter {
     const accounts = this.config.get('accounts');
     const hasAccount = accounts && accounts.length > 0;
     const hasIdentity = this.config.get('identity.id');
+    const agree = this.config.get('agree');
 
-    if (hasAccount && hasIdentity) {
+    if (hasAccount && hasIdentity && agree) {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
     } else {
       this.windowManager.ensureWindow(WindowManager.ONBOARDING_WINDOW, {
@@ -375,7 +376,7 @@ export default class Application extends EventEmitter {
           execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
             cwd: this.configDirPath,
           });
-          fs.unlink(path.join(this.configDirPath, sqlPath), ()=>{});
+          fs.unlink(path.join(this.configDirPath, sqlPath), () => { });
         } else {
           // TODO in windows
           console.warn('in this system does not implement yet');
@@ -462,6 +463,16 @@ export default class Application extends EventEmitter {
 
     this.on('application:view-help', () => {
       const helpUrl = 'https://www.edison.tech/';
+      require('electron').shell.openExternal(helpUrl);
+    });
+
+    this.on('application:view-privacy', () => {
+      const helpUrl = 'http://www.edison.tech/privacy.html';
+      require('electron').shell.openExternal(helpUrl);
+    });
+
+    this.on('application:view-terms', () => {
+      const helpUrl = 'http://www.edison.tech/terms.html';
       require('electron').shell.openExternal(helpUrl);
     });
 
@@ -580,7 +591,7 @@ export default class Application extends EventEmitter {
     ipcMain.on('send-later-manager', (event, action, headerMessageId, delay, actionKey, threadId) => {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (action === 'send-later') {
-        if(this._draftsSendLater[headerMessageId]){
+        if (this._draftsSendLater[headerMessageId]) {
           clearTimeout(this._draftsSendLater[headerMessageId])
         }
         this._draftsSendLater[headerMessageId] = setTimeout(() => {

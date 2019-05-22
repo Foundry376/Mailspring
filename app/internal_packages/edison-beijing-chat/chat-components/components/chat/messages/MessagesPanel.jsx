@@ -205,7 +205,7 @@ export default class MessagesPanel extends PureComponent {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
     const sqldb = sqlite(dbpath);
-    const stmt = sqldb.prepare('SELECT * FROM contactName where sendToCount > 1  and recvFromCount >= 1');
+    const stmt = sqldb.prepare('SELECT * FROM contact where refs > 2');
     let emailContacts = stmt.all();
     sqldb.close();
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
@@ -735,14 +735,21 @@ export default class MessagesPanel extends PureComponent {
                   <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
                 </div>
               ) : (
-                  <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
+                  <div>
+                    <RetinaImg name={'no-network.svg'}
+                      style={{ width: 16 }}
+                      isIcon
+                      mode={RetinaImg.Mode.ContentIsMask} />
+                    <span>There appears to be a problem with your connection. Edison Mail is trying to reconnect. </span>
+                    <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
+                  </div>
                 )
             ) : (<div>
               <RetinaImg name={'no-network.svg'}
                 style={{ width: 16 }}
                 isIcon
                 mode={RetinaImg.Mode.ContentIsMask} />
-              <span>Your computer appears to be offline.</span>
+              <span>Your computer appears to be offline. Check your network connection.</span>
             </div>)}
           </div>
         )}

@@ -26,7 +26,7 @@ export default class MessageApp extends PureComponent {
       const db = await getDb();
       let contact = await db.contacts.findOne().where('jid').eq(msg.sender).exec();
       const state = Object.assign({}, this.state, {senderName: contact && contact.name || ''});
-      this.setState(state);
+      this.state = state;
     }
 
     sendCommand2App(command) {

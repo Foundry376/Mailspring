@@ -92,6 +92,7 @@ class GdprTerms extends Component {
       })
       return;
     }
+    AppEnv.config.set("agree", true);
     OnboardingActions.moveToPage('initial-preferences');
   }
 
