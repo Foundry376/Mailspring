@@ -22,9 +22,12 @@ const isChatTest = isChatTestUser();
 
 module.exports = {
   activate() {
+    WorkspaceStore.defineSheet('ChatView', { root: true }, {
+      list: ['RootSidebar', 'ChatView'],
+      split: ['RootSidebar', 'ChatView']
+    });
     const { devMode } = AppEnv.getLoadSettings();
     if (true || devMode || isChatTest) {
-      WorkspaceStore.defineSheet('ChatView', { root: true }, { list: ['RootSidebar', 'ChatView'] });
       ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
       if (AppEnv.isMainWindow()) {
         ComponentRegistry.register(ChatButton, {

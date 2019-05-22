@@ -298,9 +298,11 @@ class WorkspaceStore extends MailspringStore {
       this.trigger();
     }
     // make toolbar display
-    setTimeout(() => {
-      document.querySelector('#Center').style.zIndex = 1;
-    }, 150);
+    if (this.topSheet() && this.topSheet().id === 'Threads') {
+      setTimeout(() => {
+        document.querySelector('#Center').style.zIndex = 1;
+      }, 150);
+    }
     if (Sheet.Thread && sheet === Sheet.Thread) {
       Actions.setFocus({ collection: 'thread', item: null });
     }
