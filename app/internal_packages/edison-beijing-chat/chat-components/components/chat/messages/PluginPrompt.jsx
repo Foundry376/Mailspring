@@ -106,7 +106,7 @@ export default class PluginPrompt extends PureComponent {
       commands = null;
     }
     let apps = this.state.expectInstallApps && this.state.expectInstallApps.map(app => {
-      return (<div>
+      return (<div key={app.jid}>
           <em>{app.appName}: </em>
           <span>{app.appDescription}</span>
         </div>

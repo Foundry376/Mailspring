@@ -99,7 +99,6 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
   } catch (e) {
     return;
   }
-  console.log('downlod receiving msgBody: ', msgBody);
   if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
     // a link
     msgBody.path = msgBody.mediaObjectId;

@@ -5,7 +5,7 @@ import {
   groupMessagesByTime,
   addMessagesSenderNickname,
 } from '../../utils/message';
-import { copyRxdbMessage } from '../../utils/db-utils';
+import { copyRxdbMessage, safeUpsert } from '../../utils/db-utils';
 import {
   BEGIN_STORE_MESSAGE,
   RETRIEVE_SELECTED_CONVERSATION_MESSAGES,
@@ -48,16 +48,16 @@ const saveMessages = async messages => {
         }
         // update message id: uuid + conversationJid
         msg2.id = msg2.id.split(SEPARATOR)[0] + SEPARATOR + msg.conversationJid;
-        return db.messages.upsert(msg2);
+        return safeUpsert(db.messages, msg2);
       } else {
         // update message id: uuid + conversationJid
         if (msg.id.indexOf(SEPARATOR) === -1) {
           msg.id += SEPARATOR + msg.conversationJid;
         }
-        return db.messages.upsert(msg);
+        return safeUpsert(db.messages, msg);
       }
     }).catch((err) => {
-      return db.messages.upsert(msg);
+      return safeUpsert(db.messages, msg);
     })
 
   }));

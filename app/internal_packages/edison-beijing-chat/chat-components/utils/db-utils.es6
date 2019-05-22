@@ -58,7 +58,7 @@ export async function saveGroupMessages(groupedMessages) {
 }
 
 async function getDoc(doc) {
-  //this is only for  being used by saveUpdate
+  //this is only for  being used by safeUpdate
   const db = await getDb();
   if (doc.jid) {
     return await db.conversations.findOne(doc.jid).exec();
@@ -67,18 +67,18 @@ async function getDoc(doc) {
   }
 }
 
-let tryCount = 0;
+let updateCount = 0;
 let tryMax = 3;
 export async function safeUpdate(doc, data) {
   //this is only for conversations or messages
-  tryCount++;
+  updateCount++;
   try {
     const result = await doc.update({ $set: data });
-    tryCount = 0;
+    updateCount = 0;
     return result;
   } catch (e) {
     const error = new Error();
-    if (tryCount==1){
+    if (updateCount==1){
       console.log('db error: data, doc, e, stack: ', data, doc, e, error.stack);
     }
     let doc2 = await getDoc(doc);
@@ -90,14 +90,28 @@ export async function safeUpdate(doc, data) {
       }
     }
     if (failed) {
-      if(tryCount < tryMax) {
+      if(updateCount < tryMax) {
         const result = await safeUpdate(doc, data);
-        tryCount = 0;
+        updateCount = 0;
         return result;
       } else {
+        updateCount = 0;
         throw(e);
       }
     }
   }
 }
 
+export async function safeUpsert(doc, data) {
+  try {
+    return await doc.upsert(data);
+  } catch (e) {
+    const error = new Error();
+    console.log('db error: data, e, stack: ', data, e, error.stack);
+    if (e.status === 409 && e.name === 'conflict') {
+        return;
+    } else {
+        throw(e);
+    }
+    }
+}

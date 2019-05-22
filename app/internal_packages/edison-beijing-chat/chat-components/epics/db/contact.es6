@@ -11,6 +11,7 @@ import {
   updateStoredContacts,
 } from '../../actions/db/contact';
 import getDb from '../../db';
+import { safeUpsert } from '../../utils/db-utils';
 
 const saveContacts = async contacts => {
   const db = await getDb();
@@ -24,7 +25,7 @@ const saveContacts = async contacts => {
         email,
         avatar
       }
-      await db.contacts.upsert(contact);
+      await safeUpsert(db.contacts, contact);
       dbContacts.push(contact);
     }
   }
@@ -39,7 +40,7 @@ const saveE2ees = async e2ees => {
         jid,
         devices
       }
-      await db.e2ees.upsert(e2ee);
+      await safeUpsert(db.e2ees, e2ee);
       dbE2ees.push(e2ee);
     }
   }

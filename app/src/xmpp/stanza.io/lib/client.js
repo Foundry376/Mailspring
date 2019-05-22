@@ -105,13 +105,16 @@ function Client(opts) {
         }
         if (data._name === 'message' || data._name === 'presence' || data._name === 'iq') {
             self.sm.handle(json);
-            //console.log('yazz-test8', json);//yazz
+            // console.log('app-event8', json);//yazz
             if (json.edimucevent && json.edimucevent.edimucconfig && json.edimucevent.edimucconfig.actorJid) {
                 self.emit('edimucconfig', json);
             } else if (memberschange) {
                 memberschange.from = json.from;
                 self.emit('memberschange', memberschange);
-            } else {
+            } else if (json.appEvent) {
+                self.emit('app-event', json);
+            }
+            else {
                 self.emit('stanza', json);
             }
         } else if (data._name === 'smAck') {
@@ -521,7 +524,6 @@ Client.prototype.sendIq = function (data, cb) {
 
     this.send(iq);
 
-
     return timeoutRequest(request, data.id, (self.config.timeout || 15) * 1000).then(function (result) {
         if (cb) {
             cb(null, result);
@@ -533,6 +535,8 @@ Client.prototype.sendIq = function (data, cb) {
         } else {
             const stackError = new Error();
             console.warn('stanza.io/lib/client.js: timeoutRequest: err:', err, stackError);
+
+            self.emit('request:timeout', err);
             // throw err;
         }
     });

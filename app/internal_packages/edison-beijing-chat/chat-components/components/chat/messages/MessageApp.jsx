@@ -25,8 +25,8 @@ export default class MessageApp extends PureComponent {
       const { msg } = this.props;
       const db = await getDb();
       let contact = await db.contacts.findOne().where('jid').eq(msg.sender).exec();
-      const state = Object.assign({}, this.state, {installerName: contact && contact.name || ''});
-      this.setState(state);
+      const state = Object.assign({}, this.state, {senderName: contact && contact.name || ''});
+      this.state = state;
     }
 
     sendCommand2App(command) {
@@ -52,7 +52,7 @@ export default class MessageApp extends PureComponent {
 
     }
     render() {
-        const {msg} = this.props;
+        const {msg, conversation} = this.props;
         const msgBody = JSON.parse(msg.body);
         let { appJid, appName, content, htmlBody, ctxCmds } = msgBody;
         const { sentTime } = msg;
@@ -98,7 +98,7 @@ export default class MessageApp extends PureComponent {
                 <div className="messageContent">
                     <div>
                         <span className="username">{appName}</span>
-                      <span className="username">{this.state.installerName}</span>
+                        {!conversation.jid.match(/@app/) ? <span className="username">{this.state.senderName}</span> : null }
                         <span className="time">{dateFormat(sentTime, 'LT')}</span>
                     </div>
                     <div className="messageBody">
