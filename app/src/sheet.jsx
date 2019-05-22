@@ -18,7 +18,8 @@ export default class Sheet extends React.Component {
   };
 
   static defaultProps = {
-    onColumnSizeChanged: () => { },
+    onColumnSizeChanged: () => {
+    },
   };
 
   static childContextTypes = {
@@ -28,6 +29,15 @@ export default class Sheet extends React.Component {
   constructor(props) {
     super(props);
     this.unlisteners = [];
+    this.state = {
+      mode: '',
+      previousMode: '',
+      isRoot: true,
+      columns: [],
+      previousColumns: [],
+      data: { id: '' },
+      previousData: { id: '' },
+    };
     this.state = this._getStateFromStores(props);
   }
 
@@ -39,10 +49,11 @@ export default class Sheet extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      ComponentRegistry.listen(() => this.setState(this._getStateFromStores(this.props)))
+      ComponentRegistry.listen(() => this.setState(this._getStateFromStores(this.props))),
     );
     this.unlisteners.push(WorkspaceStore.listen(() => this.setState(this._getStateFromStores(this.props))));
   }
+
   componentWillReceiveProps(nextProps, nextContext) {
     this.setState(this._getStateFromStores(nextProps));
   }
@@ -64,61 +75,79 @@ export default class Sheet extends React.Component {
     this.unlisteners = [];
   }
 
-  _columnFlexboxElements() {
-    return this.state.columns.map((column, idx) => {
-      const { maxWidth, minWidth, handle, location, width } = column;
-
-      if (minWidth !== maxWidth && maxWidth < FLEX) {
-        return (
-          <ResizableRegion
-            key={`${idx}`}
-            name={`${this.props.data.id}:${idx}`}
-            className={`column-${location.id}`}
-            style={{ height: '100%' }}
-            data-column={idx}
-            onResize={w => this._onColumnResize(column, w)}
-            initialWidth={width}
-            minWidth={minWidth}
-            maxWidth={maxWidth}
-            handle={handle}
-          >
-            <InjectedComponentSet
-              direction="column"
-              matching={{ location: location, mode: this.state.mode }}
-            />
-          </ResizableRegion>
-        );
-      }
-
-      const style = {
-        height: '100%',
-        minWidth: minWidth,
-        overflow: 'hidden',
-      };
-      if (location.id === 'QuickSidebar') {
-        style.overflow = 'visible';
-      }
-      if (maxWidth < FLEX) {
-        style.width = maxWidth;
-      } else {
-        if (location.id === 'ThreadList') {
-          style.flex = 1;
-        } else {
-          style.flex = 2;
-        }
-      }
+  _renderColumn = (isPrevious = false, column, idx) => {
+    if (isPrevious && idx === 0) {
+      return;
+    }
+    const { maxWidth, minWidth, handle, location, width } = column;
+    const mode = isPrevious ? this.state.previousMode : this.state.mode;
+    const dataId = isPrevious ? this.state.previousData.id : this.props.data.id;
+    if (minWidth !== maxWidth && maxWidth < FLEX) {
       return (
-        <InjectedComponentSet
-          direction="column"
-          key={`${this.props.data.id}:${idx}`}
-          name={`${this.props.data.id}:${idx}`}
+        <ResizableRegion
+          key={`${idx}`}
+          name={`${dataId}:${idx}`}
           className={`column-${location.id}`}
-          data-column={idx}
-          style={style}
-          matching={{ location: location, mode: this.state.mode }}
-        />
+          style={{ height: '100%', display: isPrevious ? 'none' : undefined }}
+          data-column={isPrevious ? `${idx}-previous` : idx}
+          onResize={w => this._onColumnResize(column, w)}
+          initialWidth={width}
+          minWidth={minWidth}
+          maxWidth={maxWidth}
+          handle={handle}
+        >
+          <InjectedComponentSet
+            direction="column"
+            matching={{ location: location, mode: mode }}
+          />
+        </ResizableRegion>
       );
-    });
+    }
+
+    const style = {
+      height: '100%',
+      minWidth: minWidth,
+      overflow: 'hidden',
+    };
+    if (location.id === 'QuickSidebar') {
+      style.overflow = 'visible';
+    }
+    if (maxWidth < FLEX) {
+      style.width = maxWidth;
+    } else {
+      if (location.id === 'ThreadList') {
+        style.flex = 1;
+      } else {
+        style.flex = 2;
+      }
+    }
+    if (isPrevious) {
+      style.display = 'none';
+    }
+    return (
+      <InjectedComponentSet
+        direction="column"
+        key={`${dataId}:${idx}`}
+        name={`${dataId}:${idx}`}
+        className={`column-${location.id}`}
+        data-column={isPrevious ? `${idx}-previous` : idx}
+        style={style}
+        matching={{ location: location, mode: mode }}
+      />
+    );
+  };
+
+  _columnFlexboxElements() {
+    const bottomColumns = this.state.previousColumns.map(this._renderColumn.bind(this, true));
+    const topColumns = this.state.columns.map(this._renderColumn.bind(this, false));
+    if (topColumns.length === 0) {
+      return [];
+    }
+    if (topColumns.length === 1) {
+      return topColumns;
+    } else {
+      return [topColumns[0], ...bottomColumns, ...topColumns.slice(1)];
+    }
   }
 
   _onColumnResize = (column, width) => {
@@ -129,7 +158,15 @@ export default class Sheet extends React.Component {
   _getStateFromStores(props) {
     const state = {
       mode: WorkspaceStore.layoutMode(),
+      previousMode: this.state.mode,
+      isRoot: props.data.root,
       columns: [],
+      previousColumns:
+        this.state.isRoot && !props.data.root && this.state.mode === WorkspaceStore.layoutMode()
+          ? this.state.columns.slice()
+          : [],
+      data: Object.assign({}, props.data),
+      previousData: Object.assign({}, this.state.data),
     };
 
     let widest = -1;
