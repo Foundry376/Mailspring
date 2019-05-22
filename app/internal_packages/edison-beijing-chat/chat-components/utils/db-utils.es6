@@ -113,5 +113,5 @@ export async function safeUpsert(doc, data) {
     } else {
         throw(e);
     }
-    }
+  }
 }
