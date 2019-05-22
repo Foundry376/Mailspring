@@ -114,6 +114,7 @@ export default class MailsyncBridge {
     Actions.queueTasks.listen(this._onQueueTasks, this);
     Actions.cancelTask.listen(this._onCancelTask, this);
     Actions.fetchBodies.listen(this._onFetchBodies, this);
+    Actions.fetchAttachments.listen(this._onFetchAttachments, this);
     Actions.syncFolders.listen(this._onSyncFolders, this);
     Actions.setObservableRange.listen(this._onSetObservableRange, this);
     Actions.debugFakeNativeMessage.listen(this.fakeEmit, this);
@@ -261,7 +262,7 @@ export default class MailsyncBridge {
     if (!this._clients[accountId].isSyncReadyToReceiveMessage()) {
       const { emailAddress } = AccountStore.accountForId(accountId) || {};
       console.log(
-        `sync is not ready, initial message not send to native yet. Message for account ${emailAddress} not send`
+        `sync is not ready, initial message not send to native yet. Message for account ${emailAddress} not send`,
       );
       this._clients[accountId].appendToSendQueue(json);
       return;
@@ -565,6 +566,10 @@ export default class MailsyncBridge {
       }),
     );
   };
+
+  _onFetchAttachments({ accountId, missingItems }) {
+    this.sendMessageToAccount(accountId, { type: 'need-attachments', fileIds: missingItems });
+  }
 
   _onFetchBodies(messages) {
     const byAccountId = {};

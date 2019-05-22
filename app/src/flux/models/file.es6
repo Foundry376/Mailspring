@@ -40,6 +40,9 @@ export default class File extends Model {
     contentId: Attributes.String({
       modelKey: 'contentId',
     }),
+    isInline: Attributes.Boolean({
+      modelKey: 'isInline',
+    }),
   });
 
   // Public: Files can have empty names, or no name. `displayName` returns the file's

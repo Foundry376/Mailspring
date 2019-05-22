@@ -4,11 +4,13 @@ import Message from '../models/message';
 import Thread from '../models/thread';
 import DatabaseStore from './database-store';
 import ThreadStore from './thread-store';
+import AttachmentStore from './attachment-store';
 import TaskFactory from '../tasks/task-factory';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import electron, { ipcRenderer } from 'electron';
+import fs from 'fs';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
 
@@ -163,6 +165,7 @@ class MessageStore extends MailspringStore {
     this._thread = null;
     this._popedOut = false;
     this._lastThreadChangeTimestamp = 0;
+    this._missingAttachmentIds = [];
   }
 
   _registerListeners() {
@@ -290,10 +293,10 @@ class MessageStore extends MailspringStore {
       const updatedThread = change.objects.find(t => t.id === this._thread.id);
       if (updatedThread) {
         // this._thread = updatedThread;
-        ThreadStore.findBy({threadId: this._thread.id}).then(thread=>{
+        ThreadStore.findBy({ threadId: this._thread.id }).then(thread => {
           this._updateThread(thread);
           this._fetchFromCache();
-        })
+        });
       }
     }
   }
@@ -427,6 +430,7 @@ class MessageStore extends MailspringStore {
     this._itemsExpanded[item.id] = 'explicit';
     this._fetchExpandedAttachments([item]);
     this._fetchMissingBodies([item]);
+    this._fetchMissingAttachments([item]);
   }
 
   _collapseItem(item) {
@@ -452,10 +456,8 @@ class MessageStore extends MailspringStore {
       this._items = this._sortItemsForDisplay(this._items);
 
       this._expandItemsToDefault();
-
-      // if (this._itemsLoading) {
       this._fetchMissingBodies(this._items);
-      // }
+      this._fetchMissingAttachments(this._items);
 
       // Download the attachments on expanded messages.
       this._fetchExpandedAttachments(this._items);
@@ -480,6 +482,55 @@ class MessageStore extends MailspringStore {
     if (missing.length > 0) {
       return Actions.fetchBodies(missing);
     }
+  }
+
+  _fetchMissingAttachments(items) {
+    const inLineMissing = [];
+    const normalMissing = [];
+    let change = this._missingAttachmentIds.length === 0;
+    let total = 0;
+    let processed = 0;
+    items.forEach(i => {
+      total += i.files.length;
+    });
+    items.forEach(i => {
+      i.files.forEach(f => {
+        fs.access(AttachmentStore.pathForFile(f), fs.constants.R_OK, (err) => {
+          if (err) {
+            if (f.isInline) {
+              inLineMissing.push(f.id);
+            } else {
+              normalMissing.push(f.id);
+            }
+            if (!this.isAttachmentMissing(f.id)) {
+              change = true;
+            }
+          } else {
+            if (this.isAttachmentMissing(f.id)) {
+              change = true;
+            }
+          }
+          processed++;
+          if (processed === total) {
+            if (inLineMissing.length > 0) {
+              Actions.fetchAttachments({ accountId: i.accountId, missingItems: inLineMissing });
+            }
+            if (change) {
+              this._missingAttachmentIds = [...inLineMissing, ...normalMissing];
+              this.trigger();
+            }
+          }
+        });
+      });
+    });
+  }
+
+  getMissingFileIds() {
+    return this._missingAttachmentIds.slice();
+  }
+
+  isAttachmentMissing(fileId) {
+    return this._missingAttachmentIds.includes(fileId);
   }
 
   _isMissingBody(item) {

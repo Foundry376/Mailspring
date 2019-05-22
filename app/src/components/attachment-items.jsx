@@ -16,6 +16,7 @@ const propTypes = {
   focusable: PropTypes.bool,
   previewable: PropTypes.bool,
   disabled: PropTypes.bool,
+  missing: PropTypes.bool,
   filePath: PropTypes.string,
   contentType: PropTypes.string,
   download: PropTypes.shape({
@@ -35,6 +36,7 @@ const propTypes = {
 const defaultProps = {
   draggable: true,
   disabled: false,
+  missing: false,
 };
 
 const SPACE = ' ';
@@ -43,7 +45,7 @@ function ProgressBar(props) {
   const { download } = props;
   const isDownloading = download ? download.state === 'downloading' : false;
   if (!isDownloading) {
-    return <span />;
+    return <span/>;
   }
   const { state: downloadState, percent: downloadPercent } = download;
   const downloadProgressStyle = {
@@ -51,16 +53,18 @@ function ProgressBar(props) {
   };
   return (
     <span className={`progress-bar-wrap state-${downloadState}`}>
-      <span className="progress-background" />
-      <span className="progress-foreground" style={downloadProgressStyle} />
+      <span className="progress-background"/>
+      <span className="progress-foreground "/>
     </span>
   );
 }
+
 ProgressBar.propTypes = propTypes;
 
 function AttachmentActionIcon(props) {
   const {
-    download,
+    missing,
+    isDownloading,
     removeIcon,
     downloadIcon,
     retinaImgMode,
@@ -71,26 +75,35 @@ function AttachmentActionIcon(props) {
   } = props;
 
   const isRemovable = (onRemoveAttachment != null) && !disabled;
-  const isDownloading = download ? download.state === 'downloading' : false;
   const actionIconName = isRemovable || isDownloading ? removeIcon : downloadIcon;
 
   const onClickActionIcon = event => {
+    if (missing) {
+      return;
+    }
     event.stopPropagation(); // Prevent 'onOpenAttachment'
     if (isRemovable) {
       onRemoveAttachment();
     } else if (isDownloading && onAbortDownload != null) {
       onAbortDownload();
-    } else if (onDownloadAttachment != null) {
+    } else if (!isDownloading && onDownloadAttachment != null) {
       onDownloadAttachment();
     }
   };
 
   return (
     <div className="file-action-icon" onClick={onClickActionIcon}>
-      <RetinaImg name={actionIconName} mode={retinaImgMode} />
+      {isDownloading ?
+        <RetinaImg name='refresh.svg'
+                   className='infinite-rotation-linear'
+                   style={{ width: 24, height: 24, backgroundColor: '#797d80' }} isIcon
+                   mode={RetinaImg.Mode.ContentIsMask}/> :
+        <RetinaImg name={actionIconName} mode={retinaImgMode}/>
+      }
     </div>
   );
 }
+
 AttachmentActionIcon.propTypes = {
   removeIcon: PropTypes.string,
   downloadIcon: PropTypes.string,
@@ -106,6 +119,20 @@ export class AttachmentItem extends Component {
   static propTypes = propTypes;
 
   static defaultProps = defaultProps;
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      isDownloading: false,
+      download: { state: 'done', percent: 100 },
+    };
+  }
+
+  componentWillReceiveProps(nextProps, nextContext) {
+    if (this.props.missing && !nextProps.missing) {
+      this.setState({ isDownloading: false, download: { state: 'done', percent: 100 } });
+    }
+  }
 
   _canPreview() {
     const { filePath, previewable } = this.props;
@@ -137,6 +164,12 @@ export class AttachmentItem extends Component {
   };
 
   _onOpenAttachment = () => {
+    if (this.state.isDownloading) {
+      return;
+    }
+    if (this.props.missing && !this.state.isDownloading) {
+      this.setState({ isDownloading: true, download: { state: 'downloading', percent: 100 } });
+    }
     const { onOpenAttachment } = this.props;
     if (onOpenAttachment != null) {
       onOpenAttachment();
@@ -197,16 +230,17 @@ export class AttachmentItem extends Component {
         onKeyDown={focusable && !disabled ? this._onAttachmentKeyDown : null}
         draggable={draggable && !disabled}
         onDoubleClick={!disabled ? this._onOpenAttachment : null}
+        onClick={!disabled ? this._onOpenAttachment : null}
         onDragStart={!disabled ? this._onDragStart : null}
         {...pickHTMLProps(extraProps)}
       >
         {filePreviewPath ? (
           <div className="file-thumbnail-preview" draggable={false}>
-            <img alt="" src={`file://${filePreviewPath}`} style={{ zoom: 1 / devicePixelRatio }} />
+            <img alt="" src={`file://${filePreviewPath}`} style={{ zoom: 1 / devicePixelRatio }}/>
           </div>
         ) : null}
         <div className="inner">
-          <ProgressBar download={download} />
+          <ProgressBar download={this.state.download}/>
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
             <div className="file-info-wrap">
               <RetinaImg
@@ -217,7 +251,7 @@ export class AttachmentItem extends Component {
                 fallback="drafts.svg"
                 name={iconName}
                 isIcon
-                mode={RetinaImg.Mode.ContentIsMask} />
+                mode={RetinaImg.Mode.ContentIsMask}/>
               <span className="file-name" title={displayName}>
                 {displayName}
               </span>
@@ -233,6 +267,7 @@ export class AttachmentItem extends Component {
             </div>
             <AttachmentActionIcon
               {...this.props}
+              isDownloading={this.state.isDownloading}
               removeIcon="remove-attachment.png"
               downloadIcon="icon-attachment-download.png"
               retinaImgMode={RetinaImg.Mode.ContentIsMask}
@@ -279,13 +314,13 @@ export class ImageAttachmentItem extends Component {
     if (download && download.percent <= 5) {
       return (
         <div style={{ width: '100%', height: '100px' }}>
-          <Spinner visible />
+          <Spinner visible/>
         </div>
       );
     }
     const src =
       download && download.percent < 100 ? `${filePath}?percent=${download.percent}` : filePath;
-    return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded} />;
+    return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded}/>;
   }
 
   render() {
@@ -294,7 +329,7 @@ export class ImageAttachmentItem extends Component {
     return (
       <div className={classes} {...pickHTMLProps(extraProps)}>
         <div>
-          <ProgressBar download={download} />
+          <ProgressBar download={download}/>
           <AttachmentActionIcon
             {...this.props}
             removeIcon="image-cancel-button.png"

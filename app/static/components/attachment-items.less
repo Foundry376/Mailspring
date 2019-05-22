@@ -159,12 +159,13 @@
       left: 4px;
       bottom: 0;
       height: 2px;
-      width: 0; // Changed by React
+      width: 97.5%;
       z-index: 3;
       display: block;
-      background: @blue-light;
+      background-image: linear-gradient(0.25turn, @blue, lightskyblue, @blue);
+      background-size: 50px 50px;
+      animation: move-progress-gradient 1s linear infinite;
       border-bottom-left-radius: 4px;
-      transition: width 0.3s linear;
     }
     .progress-background {
       position: absolute;

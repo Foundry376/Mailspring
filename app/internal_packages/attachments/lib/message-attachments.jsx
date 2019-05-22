@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Actions, Utils, AttachmentStore } from 'mailspring-exports';
+import { Actions, Utils, AttachmentStore, MessageStore } from 'mailspring-exports';
 import { AttachmentItem, ImageAttachmentItem } from 'mailspring-component-kit';
 
 class MessageAttachments extends Component {
@@ -22,7 +22,11 @@ class MessageAttachments extends Component {
   };
 
   onOpenAttachment = file => {
-    Actions.fetchAndOpenFile(file);
+    if (MessageStore.isAttachmentMissing(file.id)) {
+      Actions.fetchAttachments({ accountId: file.accountId, missingItems: [file.id] });
+    } else {
+      Actions.fetchAndOpenFile(file);
+    }
   };
 
   onRemoveAttachment = file => {
@@ -59,6 +63,7 @@ class MessageAttachments extends Component {
         previewable
         filePath={filePath}
         download={download}
+        missing={MessageStore.isAttachmentMissing(file.id)}
         contentType={contentType}
         displayName={displayName}
         displaySize={displaySize}

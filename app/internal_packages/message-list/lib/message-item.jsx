@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Utils, Actions, AttachmentStore, EmailAvatar } from 'mailspring-exports';
+import { Utils, Actions, AttachmentStore, MessageStore, EmailAvatar } from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
@@ -33,13 +33,17 @@ export default class MessageItem extends React.Component {
       downloads: AttachmentStore.getDownloadDataForFiles(fileIds),
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
       detailedHeaders: false,
+      missingFileIds: MessageStore.getMissingFileIds(),
     };
     this.markAsReadTimer = null;
     this.mounted = false;
   }
 
   componentDidMount() {
-    this._storeUnlisten = AttachmentStore.listen(this._onDownloadStoreChange);
+    this._storeUnlisten = [
+      AttachmentStore.listen(this._onDownloadStoreChange),
+      MessageStore.listen(this._onDownloadStoreChange),
+    ];
     this.mounted = true;
   }
 
@@ -51,7 +55,9 @@ export default class MessageItem extends React.Component {
     this.mounted = false;
     clearTimeout(this.markAsReadTimer);
     if (this._storeUnlisten) {
-      this._storeUnlisten();
+      for (let un of this._storeUnlisten) {
+        un();
+      }
     }
   }
 
@@ -88,6 +94,7 @@ export default class MessageItem extends React.Component {
     this.setState({
       downloads: AttachmentStore.getDownloadDataForFiles(fileIds),
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
+      missingFileIds: MessageStore.getMissingFileIds(),
     });
   };
   _cancelMarkAsRead = () => {
@@ -139,17 +146,17 @@ export default class MessageItem extends React.Component {
       <div className="download-all">
         <div className="attachment-number">
           <RetinaImg name="feed-attachments.svg"
-            isIcon
-            style={{ width: 18, height: 18 }}
-            mode={RetinaImg.Mode.ContentIsMask} />
+                     isIcon
+                     style={{ width: 18, height: 18 }}
+                     mode={RetinaImg.Mode.ContentIsMask}/>
           <span>{this.props.message.files.length} attachments</span>
         </div>
         <div className="separator">-</div>
         <div className="download-all-action" onClick={this._onDownloadAll}>
           <RetinaImg name="download.svg"
-            isIcon
-            style={{ width: 18, height: 18 }}
-            mode={RetinaImg.Mode.ContentIsMask} />
+                     isIcon
+                     style={{ width: 18, height: 18 }}
+                     mode={RetinaImg.Mode.ContentIsMask}/>
           <span>Download all</span>
         </div>
       </div>
@@ -224,7 +231,7 @@ export default class MessageItem extends React.Component {
               detailedHeaders: this.state.detailedHeaders,
             }}
           />
-          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut} />
+          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut}/>
         </div>
         <div className='row'>
           <EmailAvatar
@@ -315,7 +322,7 @@ export default class MessageItem extends React.Component {
     const { message: { snippet, from, files, date, draft }, className } = this.props;
 
     const attachmentIcon = Utils.showIconForAttachments(files) ? (
-      <div className="collapsed-attachment" />
+      <div className="collapsed-attachment"/>
     ) : null;
 
     return (
@@ -332,11 +339,11 @@ export default class MessageItem extends React.Component {
                   {from && from[0] && from[0].displayName({ compact: true })}
                 </div>
                 {draft && (
-                  <div className="collapsed-pencil" />
+                  <div className="collapsed-pencil"/>
                 )}
                 {attachmentIcon}
                 <div className="collapsed-timestamp">
-                  <MessageTimestamp date={date} />
+                  <MessageTimestamp date={date}/>
                 </div>
               </div>
               <div className="collapsed-snippet">{snippet}</div>
@@ -353,7 +360,7 @@ export default class MessageItem extends React.Component {
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             {this._renderHeader()}
-            <MessageItemBody message={this.props.message} downloads={this.state.downloads} />
+            <MessageItemBody message={this.props.message} downloads={this.state.downloads}/>
             {this._renderAttachments()}
             {this._renderFooterStatus()}
           </div>
