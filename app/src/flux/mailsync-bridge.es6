@@ -571,7 +571,7 @@ export default class MailsyncBridge {
   };
 
   _onFetchAttachments({ accountId, missingItems }) {
-    this.sendMessageToAccount(accountId, { type: 'need-attachments', fileIds: missingItems });
+    this.sendMessageToAccount(accountId, { type: 'need-attachments', ids: missingItems });
   }
 
   _onFetchBodies(messages) {
