@@ -1,13 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../../common/Button';
-import FilePlusIcon from '../../common/icons/FilePlusIcon';
-import EmojiIcon from '../../common/icons/EmojiIcon';
-import InfoIcon from '../../common/icons/InfoIcon';
 import os from 'os';
 import fs from 'fs';
-import path from 'path';
-import { uploadFile } from '../../../utils/awss3';
 import { RetinaImg } from 'mailspring-component-kit';
 
 import xmpp from '../../../xmpp';
@@ -20,9 +15,8 @@ import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
 import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 import { beginStoringMessage } from '../../../actions/db/message';
-import { MESSAGE_STATUS_RECEIVED, MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
+import { MESSAGE_STATUS_RECEIVED } from '../../../db/schemas/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
-import { isImageFilePath } from '../../../utils/stringUtils';
 import { sendFileMessage } from '../../../utils/message';
 import { sendCmd2App2, getMyAppByShortName, listKeywordApps, getMyApps, iniApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
@@ -31,7 +25,6 @@ const { exec } = require('child_process');
 
 const getCaretCoordinates = require('../../../utils/textarea-caret-position');
 
-var thumb = require('node-thumbnail').thumb;
 const FAKE_SPACE = '\u00A0';
 
 const activeStyle = {
