@@ -252,6 +252,9 @@ export default class MailsyncBridge {
   }
 
   sendMessageToAccount(accountId, json) {
+    if (!AccountStore.accountForId(accountId)) {
+      return;
+    }
     if (!this._clients[accountId]) {
       const { emailAddress } = AccountStore.accountForId(accountId) || {};
       return AppEnv.showErrorDialog({

@@ -182,6 +182,7 @@ class ToolbarMenuControl extends React.Component {
 
 ComponentRegistry.register(ToolbarWindowControls, {
   location: WorkspaceStore.Sheet.Global.Toolbar.Left,
+  role: 'ToolbarWindowControls'
 });
 
 ComponentRegistry.register(ToolbarMenuControl, {
