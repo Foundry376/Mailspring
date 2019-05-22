@@ -41,10 +41,12 @@ export default class ChatView extends Component {
     }
 
     const accSidebar = document.querySelector('.account-sidebar');
-    const sidebarPanelHeight = accSidebar.parentNode.offsetHeight;
-    // accSidebar.style.height = sidebarPanelHeight - h - BOTTOM_OFFSET + 'px';
-    leftPanel.style.height = h + 'px';
-    Actions.updateChatPanelHeight(leftPanel.getBoundingClientRect().top);
+    if (accSidebar) {
+      const sidebarPanelHeight = accSidebar.parentNode.offsetHeight;
+      // accSidebar.style.height = sidebarPanelHeight - h - BOTTOM_OFFSET + 'px';
+      leftPanel.style.height = h + 'px';
+      Actions.updateChatPanelHeight(leftPanel.getBoundingClientRect().top);
+    }
   }
   componentDidMount() {
     const h = AppEnv.config.get(`chatPanelHeight`);
