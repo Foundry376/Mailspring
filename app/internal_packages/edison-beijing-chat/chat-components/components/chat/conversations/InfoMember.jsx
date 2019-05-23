@@ -1,15 +1,7 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
-import Button from '../../common/Button';
-import getDb from '../../../db';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../utils/colors';
-import { remote } from 'electron';
-import { clearMessages } from '../../../utils/message';
-import _ from 'lodash';
-import RetinaImg from '../../../../../../src/components/retina-img';
-import chatModel, { saveToLocalStorage } from '../../../store/model';
 
 const { primaryColor } = theme;
 
