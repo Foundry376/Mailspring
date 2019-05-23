@@ -757,6 +757,14 @@ body.platform-win32 {
             background-color: @orange;
           }
         }
+        &.disabled {
+          opacity: 0.3;
+          &:hover {
+            &:after {
+              display: none;
+            }
+          }
+        }
         img {
           position: relative;
           z-index: 2;

@@ -140,6 +140,7 @@ export default class MessagesPanel extends PureComponent {
   componentWillMount() {
   }
   componentDidMount() {
+    console.log('debugger: MessagePanel.componentDidMount: profile: ', this.profile);
     this.refreshRoomMembers();
     this.getEmailContacts();
     window.addEventListener("online", this.onLine);
@@ -272,16 +273,20 @@ export default class MessagesPanel extends PureComponent {
   }
 
   refreshRoomMembers = async (nextProps) => {
-    const { selectedConversation: conversation } = (nextProps || this.props);
-    if (conversation && conversation.isGroup) {
-      const curJid = conversation.curJid;
+    const {selectedConversation: conv} = this.props;
+    if (!nextProps) {
+      return;
+    }
+    const {selectedConversation: nextconv} = nextProps;
+    if (nextconv && nextconv.isGroup && (!conv || (conv.jid !== nextconv.jid))) {
+      const curJid = nextconv.curJid;
       let state = Object.assign({}, this.state, { loadingMembers: true });
       this.setState(state);
       const members = await this.getRoomMembers(nextProps);
       state = Object.assign({}, this.state, { loadingMembers: false });
       this.setState(state);
-      if (conversation.update && members && members.length > 0) {
-        safeUpdate(conversation, { roomMembers: members });
+      if (nextconv.update && members && members.length > 0) {
+        safeUpdate(nextconv, { roomMembers: members });
       }
       for (let member of members) {
         const jid = member.jid.bare || member.jid;
@@ -394,21 +399,25 @@ export default class MessagesPanel extends PureComponent {
     }
   };
 
-  editMemberProfile = member => {
-    const state = Object.assign({}, this.state, { editingMember: member });
-    this.setState(state);
+  editProfile = member => {
+    const {profile} = this;
+    profile.clickSame = member && member === profile.state.member;
+    setTimeout(() => {
+      this.profile.setMember(member);
+    }, 10);
   }
 
-  exitMemberProfile = async member => {
-    const db = await getDb();
+  exitProfile = async member => {
+    if(!member) {
+      return;
+    }
     const jid = member.jid.bare || member.jid;
     const nicknames = chatModel.chatStorage.nicknames;
     if (nicknames[jid] != member.nickname) {
       nicknames[jid] = member.nickname;
       saveToLocalStorage();
     }
-    const state = Object.assign({}, this.state, { editingMember: null });
-    this.setState(state);
+    this.profile.setMember(null);
   }
 
   reconnect = () => {
@@ -633,8 +642,8 @@ export default class MessagesPanel extends PureComponent {
       getRoomMembers: this.getRoomMembers,
       refreshRoomMembers: this.refreshRoomMembers,
       removeMember: this.removeMember,
-      editMemberProfile: this.editMemberProfile,
-      exitMemberProfile: this.exitMemberProfile,
+      editProfile: this.editProfile,
+      exitProfile: this.exitProfile,
     };
     const contactsSet = {};
     contacts.forEach(contact => {
@@ -761,12 +770,12 @@ export default class MessagesPanel extends PureComponent {
             <InviteGroupChatList contacts={allContacts} groupMode={true} onUpdateGroup={this.onUpdateGroup} />
           </FixedPopover>
         )}
-        {
-          (this.state.editingMember) ? (
-            <MemberProfile conversation={selectedConversation} exitMemberProfile={this.exitMemberProfile} member={this.state.editingMember} onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
-            </MemberProfile>
-          ) : null
-        }
+        <MemberProfile conversation={selectedConversation}
+                       exitProfile={this.exitProfile}
+                       panel={this}
+                       onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
+        </MemberProfile>
+          )
       </div>
     );
   }

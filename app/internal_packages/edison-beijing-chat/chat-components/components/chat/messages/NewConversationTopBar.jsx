@@ -61,7 +61,7 @@ export default class NewConversationTopBar extends Component {
   }
 
   onKeyUp = (event) => {
-    if (keyCode === 27) { // ESC
+    if (event.keyCode === 27) { // ESC
       this._close();
     }
   }
