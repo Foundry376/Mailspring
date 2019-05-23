@@ -20,25 +20,34 @@ export default class MemberProfie extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      member: this.props.member,
+      member: null,
+      visible: true,
     };
   }
 
   componentDidMount = () => {
     this.mounted = true;
+    const {panel} = this.props;
+
+    panel.profile = this;
     this.queryProfile();
-    const rect = this.panel.getBoundingClientRect();
+    const rect = this.panelElement.getBoundingClientRect();
     this.panelRect = rect;
-    document.body.addEventListener('click', this.onClickWithMemberProfile);
+    document.body.addEventListener('click', this.onClickWithProfile);
+    this.setMember(null);
   };
+
   componentWillUnmount = () => {
-    // console.log('cxm *** document.body.removeEventListener ');
-    document.body.removeEventListener('click', this.onClickWithMemberProfile);
+    document.body.removeEventListener('click', this.onClickWithProfile);
 
   };
   queryProfile = async () => {
+    const {member} = this.state;
+    if (!member){
+      return;
+    }
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
-    const userId = this.props.member.jid.local || this.props.member.jid.split('@')[0];
+    const userId = member.jid.local || member.jid.split('@')[0];
     const email = Object.keys(chatAccounts)[0];
     let accessToken = keyMannager.getAccessTokenByEmail(email);
     const { err, res } = await checkToken(accessToken);
@@ -54,8 +63,11 @@ export default class MemberProfie extends Component {
       if (isJsonStr(res)) {
         res = JSON.parse(res);
       }
-      const member = Object.assign(this.state.member, res.data);
-      const state = Object.assign({}, this.state, { member });
+      if (!this.state.member) {
+        return;
+      }
+      Object.assign(this.state.member, res.data);
+      const state = Object.assign({}, this.state);
       if (this.mounted){
         this.setState(state);
       } else {
@@ -64,32 +76,44 @@ export default class MemberProfie extends Component {
     });
   };
 
-  componentWillReceiveProps = (nextProps) => {
-    if (!this.props.member || nextProps.member.email !== this.props.member.email) {
-      this.props = nextProps;
-      this.queryProfile();
-    }
-  };
-
-  onClickWithMemberProfile = (e) => {
+  onClickWithProfile = (e) => {
     //  cxm:
     // because onBlur on a div container does not work as expected
     // so it's necessary to use this as a workaround
-    const rect = this.panelRect;
-    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
-      this.props.exitMemberProfile(this.state.member);
-    }
+    setTimeout(() => {
+      if (this.clickSame) {
+        this.clickSame = false;
+        return;
+      }
+      const rect = this.panelRect;
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+        this.props.exitProfile(this.state.member);
+      };
+    }, 5);
   };
+
+  setMember = (member) => {
+    const error = new Error();
+    this.clickSame =  member && member === this.state.member;
+    const state = Object.assign({}, this.state, { member });
+    if (member && (!this.state.member || member.email !== this.state.member.email)) {
+      this.queryProfile();
+    }
+    state.visible = !!member;
+    this.setState(state);
+  }
+
   startPrivateChat = (e) => {
-    this.props.exitMemberProfile(this.props.member);
-    const member = Object.assign({}, this.props.member);
+    this.props.exitProfile(this.state.member);
+    const member = Object.assign({}, this.state.member);
     member.jid = member.jid.bare || member.jid;
     member.name = member.name || member.jid.split('^at^')[0];
     this.props.onPrivateConversationCompleted(member);
   };
+
   composeEmail = (e) => {
     const member = this.state.member;
-    this.props.exitMemberProfile(member);
+    this.props.exitProfile(member);
     const contact = new Contact({
       id: member.id,
       accountId: member.accountId,
@@ -174,8 +198,6 @@ export default class MemberProfie extends Component {
   };
 
   onChangeNickname = (e) => {
-    // e.preventDefault();
-    // e.stopPropagation();
     const { member } = this.state;
     member.nickname = e.target.value;
     const state = Object({}, this.state, { member });
@@ -184,22 +206,15 @@ export default class MemberProfie extends Component {
   }
 
   render = () => {
-    const { member } = this.state;
-    let backgroundImage;
-    if (member.avatar) {
-      backgroundImage = `url(https://s3.us-east-2.amazonaws.com/edison-profile-stag/${member.avatar})`;
-    } else {
-      backgroundImage = ''
-    }
-    let jid;
-    if (member.jid && typeof member.jid != 'string') {
-      jid = member.jid.bare;
-    } else {
-      jid = member.jid || '';
+    if (!this.state.visible) {
+      return null;
     }
 
+    const member = this.state.member || {};
+    const jid = (member.jid && typeof member.jid != 'string') ? member.jid.bare : (member.jid || '');
+
     return (
-      <div className="member-profile-panel" ref = {(el)=> this.panel = el } tabIndex={1}>
+      <div className="member-profile-panel" ref = {(el)=> this.panelElement = el } tabIndex={1}>
         <Button className="more" onClick={this.showMenu}></Button>
         <div className="avatar-area">
           <ContactAvatar jid={jid} name={member.name}
@@ -228,7 +243,3 @@ export default class MemberProfie extends Component {
     );
   };
 }
-
-MemberProfie.propTypes = {
-  member: PropTypes.object.isRequired,
-};

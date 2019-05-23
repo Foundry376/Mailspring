@@ -4,6 +4,7 @@ import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
 import getDb from '../../../db';
 import CancelIcon from '../../common/icons/CancelIcon';
+import InfoMember from './InfoMember';
 import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
 import { clearMessages } from '../../../utils/message';
@@ -149,55 +150,13 @@ export default class ConversationInfo extends Component {
           }
           {
             conversation.isGroup && !loadingMembers && roomMembers && roomMembers.map(member => {
-              let name = member.name;
-              const email = member.email || member.jid.unescapedLocal.replace('^at^', '@');
-              if (!name) {
-                name = email.split('@')[0];
-              }
-
-              const onClickRemove = (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.props.removeMember(member);
-              };
-              const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
-
-              const onEditMemberProfile = () => {
-                const fn = _.debounce(() => {
-                  setTimeout(() => {
-                    if (this.editingMember && member !== this.editingMember) {
-                      this.props.exitMemberProfile(this.editingMember);
-                    }
-                    setTimeout(() => {
-                      this.props.editMemberProfile(member);
-                      this.editingMember = member;
-                    }, 30);
-                  }, 30);
-
-                }, 300);
-                fn();
-                return;
-              }
-              return (
-                <div className="row" key={jid} onClick={onEditMemberProfile}>
-                  <div className="avatar">
-                    <ContactAvatar conversation={conversation} jid={jid} name={name}
-                      email={ email } avatar={member.avatar} size={30} />
-                  </div>
-                  <div className="info">
-                    <div className="name">
-                      { name }
-                      {member.affiliation === 'owner' ? <span> (owner)</span> : null}
-                    </div>
-                    <div className="email">{email}</div>
-                  </div>
-                  {this.currentUserIsOwner && member.affiliation !== 'owner' &&
-                    <span className="remove-member" onClick={onClickRemove}>
-                      <CancelIcon color={primaryColor} />
-                    </span>
-                  }
-                </div>
-              )
+              return (<InfoMember conversation={conversation}
+                                 member={member}
+                                 editingMember={this.editingMember}
+                                  editProfile={this.props.editProfile}
+                                  exitProfile={this.props.exitProfile}
+                                  key={member.jid}
+              />)
             })
           }
           {(conversation.isGroup && !this.currentUserIsOwner) && (
