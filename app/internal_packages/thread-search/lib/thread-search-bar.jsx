@@ -4,6 +4,7 @@ import { ListensToFluxStore, RetinaImg, KeyCommandsRegion } from 'mailspring-com
 import { Actions, FocusedPerspectiveStore, WorkspaceStore } from 'mailspring-exports';
 import SearchStore from './search-store';
 import TokenizingContenteditable from './tokenizing-contenteditable';
+
 var utf7 = require('utf7').imap;
 
 import {
@@ -102,7 +103,7 @@ class ThreadSearchBar extends Component {
           promises.push(
             termSuggestions(term, accountIds).then(results => {
               suggestions.push(...results.map(textToSuggestion));
-            })
+            }),
           );
         } else {
           suggestions = termSuggestions
@@ -124,10 +125,10 @@ class ThreadSearchBar extends Component {
               term: wrapInQuotes(t.subject),
               description: t.subject,
               thread: t,
-            }))
+            })),
           ),
           contacts: getContactSuggestions(query, accountIds).then(results =>
-            results.map(term => ({ token: null, term: wrapInQuotes(term), description: term }))
+            results.map(term => ({ token: null, term: wrapInQuotes(term), description: term })),
           ),
         }).then(({ contacts, subjects }) => {
           suggestions = [...contacts, ...subjects].sort((a, b) => {
@@ -140,7 +141,7 @@ class ThreadSearchBar extends Component {
           if (suggestions.length > 10) {
             suggestions.length = 10;
           }
-        })
+        }),
       );
     }
 
@@ -152,11 +153,19 @@ class ThreadSearchBar extends Component {
     }
   }
 
+  _fieldElFocus = () => {
+    if (this._fieldEl) {
+      this._fieldEl.focus();
+    }
+  };
+
   _onFocus = e => {
     this.setState({ focused: true });
     if (this.props.query === '') {
       this._onSearchQueryChanged(this._initialQueryForPerspective());
-      window.requestAnimationFrame(() => this._fieldEl.focus());
+      window.requestAnimationFrame(() => {
+        this._fieldElFocus()
+      });
     }
   };
 
@@ -249,7 +258,7 @@ class ThreadSearchBar extends Component {
 
   _setSuggestionState = suggestions => {
     const sameItemIdx = suggestions.findIndex(
-      s => this.state.selected && s.description === this.state.selected.description
+      s => this.state.selected && s.description === this.state.selected.description,
     );
     const backupIdx = Math.max(-1, Math.min(this.state.selectedIdx, suggestions.length - 1));
     const selectedIdx = sameItemIdx !== -1 ? sameItemIdx : backupIdx;
@@ -269,7 +278,7 @@ class ThreadSearchBar extends Component {
         item = utf7.encode(item);
       }
       return item;
-    })
+    });
     nextQuery = input.join(SPACE);
     Actions.searchQuerySubmitted(nextQuery);
     this._fieldEl.blur();
@@ -312,7 +321,7 @@ class ThreadSearchBar extends Component {
               AppEnv.commands.dispatch('multiselect-list:deselect-all');
             }
             Actions.popSheet();
-            this._fieldEl.focus();
+            this._fieldElFocus();
           },
         }}
       >
@@ -323,13 +332,13 @@ class ThreadSearchBar extends Component {
             mode={RetinaImg.Mode.ContentPreserve}
           />
         ) : (
-            <RetinaImg
-              className="search-accessory search"
-              name="searchloupe.png"
-              mode={RetinaImg.Mode.ContentDark}
-              onClick={() => this._fieldEl.focus()}
-            />
-          )}
+          <RetinaImg
+            className="search-accessory search"
+            name="searchloupe.png"
+            mode={RetinaImg.Mode.ContentDark}
+            onClick={() => this._fieldElFocus()}
+          />
+        )}
         <TokenizingContenteditable
           ref={el => (this._fieldEl = el)}
           value={showPlaceholder ? this._placeholder() : utf7.decode(query)}
@@ -347,39 +356,39 @@ class ThreadSearchBar extends Component {
           />
         )}
         {this.state.suggestions.length > 0 &&
-          this.state.focused && (
-            <div className="suggestions">
-              {suggestions.map((s, idx) => (
-                <div
+        this.state.focused && (
+          <div className="suggestions">
+            {suggestions.map((s, idx) => (
+              <div
+                onMouseDown={e => {
+                  this._onChooseSuggestion(s);
+                  e.preventDefault();
+                }}
+                className={`suggestion ${selectedIdx === idx ? 'selected' : ''}`}
+                key={`${idx}`}
+              >
+                {s.token && <span className="suggestion-token">{s.token}: </span>}
+                {s.description}
+              </div>
+            ))}
+            {suggestions === TokenSuggestionsForEmpty && (
+              <div className="footer">
+                Pro tip: Combine search terms with AND and OR to create complex queries.{' '}
+                <a
                   onMouseDown={e => {
-                    this._onChooseSuggestion(s);
+                    AppEnv.windowEventHandler.openLink({
+                      href: LearnMoreURL,
+                      metaKey: e.metaKey,
+                    });
                     e.preventDefault();
                   }}
-                  className={`suggestion ${selectedIdx === idx ? 'selected' : ''}`}
-                  key={`${idx}`}
                 >
-                  {s.token && <span className="suggestion-token">{s.token}: </span>}
-                  {s.description}
-                </div>
-              ))}
-              {suggestions === TokenSuggestionsForEmpty && (
-                <div className="footer">
-                  Pro tip: Combine search terms with AND and OR to create complex queries.{' '}
-                  <a
-                    onMouseDown={e => {
-                      AppEnv.windowEventHandler.openLink({
-                        href: LearnMoreURL,
-                        metaKey: e.metaKey,
-                      });
-                      e.preventDefault();
-                    }}
-                  >
-                    Learn more >
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
+                  Learn more >
+                </a>
+              </div>
+            )}
+          </div>
+        )}
       </KeyCommandsRegion>
     );
   }
