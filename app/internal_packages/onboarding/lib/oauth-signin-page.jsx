@@ -306,7 +306,7 @@ export default class OAuthSignInPage extends React.Component {
       <div className={`page account-setup oauth ${this.props.serviceName.toLowerCase()}`}>
         {authStage === 'buildingAccount' && Validating}
         {authStage === 'accountSuccess' && Success}
-        {!(authStage === 'buildingAccount' || authStage === 'accountSuccess') && (
+        {!(['buildingAccount', 'accountSuccess', 'error'].includes(authStage)) && (
           <webview ref='webview' src={this.state.url} partition="in-memory-only" style={
             isYahoo ? yahooOptions : defaultOptions
           } />
