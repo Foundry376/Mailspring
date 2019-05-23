@@ -104,8 +104,8 @@ export default class MemberProfie extends Component {
   }
 
   startPrivateChat = (e) => {
-    this.props.exitProfile(this.props.member);
-    const member = Object.assign({}, this.props.member);
+    this.props.exitProfile(this.state.member);
+    const member = Object.assign({}, this.state.member);
     member.jid = member.jid.bare || member.jid;
     member.name = member.name || member.jid.split('^at^')[0];
     this.props.onPrivateConversationCompleted(member);
