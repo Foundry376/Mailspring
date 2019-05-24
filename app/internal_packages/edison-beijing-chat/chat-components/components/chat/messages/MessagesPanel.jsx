@@ -142,7 +142,6 @@ export default class MessagesPanel extends PureComponent {
   componentWillMount() {
   }
   componentDidMount() {
-    console.log('debugger: MessagePanel.componentDidMount: profile: ', this.profile);
     this.refreshRoomMembers();
     this.getEmailContacts();
     window.addEventListener("online", this.onLine);
@@ -470,8 +469,7 @@ export default class MessagesPanel extends PureComponent {
         sentTime: (new Date()).getTime() + chatModel.diffTime,
         status: MESSAGE_STATUS_UPLOAD_FAILED,
       };
-      console.log('debugger: cancelLoadMessage: ', message, conversation);
-      chatModel.store.dispatch(beginStoringMessage(message));
+       chatModel.store.dispatch(beginStoringMessage(message));
       chatModel.store.dispatch(updateSelectedConversation(conversation));
     }
     this.loadQueue = null;
@@ -538,7 +536,6 @@ export default class MessagesPanel extends PureComponent {
       const percent = Math.floor(+loaded * 100.0 / (+total));
       console.log('debugger loadProgressCallback: progress, loadConfig 1: ', progress, loadConfig);
       if (loadConfig.type === 'upload' && +loaded === +total) {
-        console.log('debugger loadProgressCallback: progress, loadConfig 2: ', progress, loadConfig);
         const onMessageSubmitted = this.props.sendMessage;
         const conversation = loadConfig.conversation;
         const messageId = loadConfig.messageId;
@@ -621,7 +618,6 @@ export default class MessagesPanel extends PureComponent {
     })
   }
   update() {
-    console.log('debugger: updating ');
     key++;
     const state = Object.assign({}, this.state, {key});
     this.setState(state);
