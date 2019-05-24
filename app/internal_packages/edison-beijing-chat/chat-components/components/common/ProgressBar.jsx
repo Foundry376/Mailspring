@@ -29,7 +29,8 @@ export default function ProgressBar(props) {
   if (progress.offline) {
     status = '(offline)'
   }
-  return (<div className='progress-banner'>
+  return (<div className={'progress-container'}>
+    <div className='progress-banner'>
     <div>
       {loadedConfigs && loadedConfigs.map((loadConfig, index) => {
         let loadPrompt;
@@ -57,8 +58,8 @@ export default function ProgressBar(props) {
     </div> : null
     }
     <div className='progressButtons'>
-      {(!progress.offline && progress.failed) ? <div className='textButton1' onClick={onRetry}>Retry</div> : null}
-      {(!allFinished) ? <div className='textButton2' onClick={onCancel}>Cancel</div> : null}
+      {(!progress.offline && progress.failed) ? <div className='retryButton' onClick={onRetry}>Retry</div> : null}
+      {(!allFinished) ? <div className='cancelButton' onClick={onCancel}>Cancel</div> : null}
       <CancelIcon color={'gray'} onClick={onCancel}></CancelIcon>
     </div>
     <div>
@@ -74,5 +75,6 @@ export default function ProgressBar(props) {
       })
       }
     </div>
+  </div>
   </div>)
 }
