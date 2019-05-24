@@ -4,6 +4,7 @@ import Message from '../models/message';
 import Thread from '../models/thread';
 import DatabaseStore from './database-store';
 import ThreadStore from './thread-store';
+import WorkspaceStore from './workspace-store';
 import TaskFactory from '../tasks/task-factory';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
@@ -290,10 +291,10 @@ class MessageStore extends MailspringStore {
       const updatedThread = change.objects.find(t => t.id === this._thread.id);
       if (updatedThread) {
         // this._thread = updatedThread;
-        ThreadStore.findBy({threadId: this._thread.id}).then(thread=>{
+        ThreadStore.findBy({ threadId: this._thread.id }).then(thread => {
           this._updateThread(thread);
           this._fetchFromCache();
-        })
+        });
       }
     }
   }
@@ -315,6 +316,12 @@ class MessageStore extends MailspringStore {
     // console.log('onFocus change');
     if (!change.impactsCollection('thread')) return;
 
+    //DC-400 Because the way list mode is
+    if (WorkspaceStore.layoutMode() === 'list') {
+      this._onApplyFocusChange();
+      return;
+    }
+
     // This implements a debounce that fires on the leading and trailing edge.
     //
     // If we haven't changed focus in the last 100ms, do it immediately. This means
@@ -324,6 +331,7 @@ class MessageStore extends MailspringStore {
     // stop arriving for 100msec before applying. This means that flying
     // through threads doesn't cause is to make a zillion queries for messages.
     //
+
     if (!this._onFocusChangedTimer) {
       this._onApplyFocusChange();
     } else {
