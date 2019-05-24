@@ -379,7 +379,6 @@ export default class Msg extends PureComponent {
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
-    console.log('debugger: Msg.render: msgBody: ', msgBody);
 
     if (msgBody.deleted) {
       return null;

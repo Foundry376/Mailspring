@@ -534,7 +534,6 @@ export default class MessagesPanel extends PureComponent {
       const loadConfig = this.loadQueue[this.loadIndex];
       const { loaded, total } = progress;
       const percent = Math.floor(+loaded * 100.0 / (+total));
-      console.log('debugger loadProgressCallback: progress, loadConfig 1: ', progress, loadConfig);
       if (loadConfig.type === 'upload' && +loaded === +total) {
         const onMessageSubmitted = this.props.sendMessage;
         const conversation = loadConfig.conversation;
