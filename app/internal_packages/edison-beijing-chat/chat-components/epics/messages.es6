@@ -28,22 +28,25 @@ export const fetchMessagesEpic = action$ =>
             ({ payload }) => Observable.fromPromise(getDb())
                 .map(db => ({ db, jid: payload })),
         )
-        .mergeMap(
-            ({ db, jid }) => {
-                // console.log("yazz-config1", db, jid);
-                return Observable.fromPromise(db.configs.findOne({ key: jid.local + "_message_ts" }).exec())
-                    .map((data) => {
-                        // console.log("yazz-config1", data)
-                        if (data) {
-                            return { ts: data.value, jid }
-                        } else {
-                            return { ts: new Date().getTime(), jid }
-                        }
-                    }
-                    )
-            }
-        )
-        .mergeMap(({ ts, jid }) => {
+        // .mergeMap(
+        //     ({ db, jid }) => {
+        //         // console.log("yazz-config1", db, jid);
+        //         return Observable.fromPromise(db.configs.findOne({ key: jid.local + "_message_ts" }).exec())
+        //             .map((data) => {
+        //                 // console.log("yazz-config1", data)
+        //                 if (data) {
+        //                     return { ts: data.value, jid }
+        //                 } else {
+        //                     return { ts: new Date().getTime(), jid }
+        //                 }
+        //             }
+        //             )
+        //     }
+        // )
+        .mergeMap(({ jid }) => {
+            let ts = AppEnv.config.get(jid.local + "_message_ts");
+
+            // console.log('_message_ts2', ts);
             return pullMessage(ts, jid);
             // console.log("yazz-config2", ts, jid);
             // return Observable.fromPromise(xmpp.pullMessage(ts, jid.bare))

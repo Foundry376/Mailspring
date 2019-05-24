@@ -235,26 +235,26 @@ export default class OAuthSignInPage extends React.Component {
       webview.addEventListener(event, listeners[event]);
     }
 
-    // if (this.state.isYahoo) {
-    //   webview.setAttribute('preload', '../internal_packages/onboarding/lib/oauth-inject-yahoo.js');
-    //   webview.getWebContents().executeJavaScript(`
-    //   function deleteAllCookies() {
-    //       var cookies = document.cookie.split(";");
-    //       if (cookies.length > 0) {
-    //           for (var i = 0; i < cookies.length; i++) {
-    //               var cookie = cookies[i];
-    //               var eqPos = cookie.indexOf("=");
-    //               var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-    //               name = name.trim();
-    //               document.cookie = name + "=;expires=" + new Date(0).toUTCString() + "; path=/; domain=.yahoo.com";
-    //           }
-    //       }
-    //   }
-    //   deleteAllCookies();
-    // `, false, () => {
-    //       webview.reload();
-    //     });
-    // }
+    if (this.state.isYahoo) {
+      webview.setAttribute('preload', '../internal_packages/onboarding/lib/oauth-inject-yahoo.js');
+      webview.getWebContents().executeJavaScript(`
+      function deleteAllCookies() {
+          var cookies = document.cookie.split(";");
+          if (cookies.length > 0) {
+              for (var i = 0; i < cookies.length; i++) {
+                  var cookie = cookies[i];
+                  var eqPos = cookie.indexOf("=");
+                  var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                  name = name.trim();
+                  document.cookie = name + "=;expires=" + new Date(0).toUTCString() + "; path=/; domain=.yahoo.com";
+              }
+          }
+      }
+      deleteAllCookies();
+    `, false, () => {
+          webview.reload();
+        });
+    }
   }
 
   _loaded = () => {
@@ -311,7 +311,7 @@ export default class OAuthSignInPage extends React.Component {
             isYahoo ? yahooOptions : defaultOptions
           } />
         )}
-        {loading && (
+        {loading && !(['buildingAccount', 'accountSuccess', 'error'].includes(authStage)) && (
           <LottieImg name='loading-spinner-blue'
             size={{ width: 65, height: 65 }}
             style={{ margin: '200px auto 0' }} />
