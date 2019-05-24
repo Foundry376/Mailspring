@@ -41,8 +41,15 @@ export default class Msg extends PureComponent {
     }),
   }
 
+  state = {
+  }
+
   constructor(props) {
     super(props);
+    this.receiveProps(props)
+  }
+
+  receiveProps = (props) => {
     const { msg, conversation } = props;
     const msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
     this.msgBody = msgBody;
@@ -56,9 +63,10 @@ export default class Msg extends PureComponent {
     this.msgImgPath = msgImgPath;
   }
 
-  state = {
+  componentWillReceiveProps = (nextProps) => {
+    this.receiveProps(nextProps);
+    this.update();
   }
-
 
   isImage = (type) => {
     return type === FILE_TYPE.IMAGE || type === FILE_TYPE.GIF || type === FILE_TYPE.STICKER;
@@ -319,7 +327,10 @@ export default class Msg extends PureComponent {
     } else if (this.shouldDisplayFileIcon()) {
       const fileName = msgBody.path ? path.basename(msgBody.path) : '';
       let extName = path.extname(msgBody.path || 'x.doc').slice(1);
-      let iconName = AttachmentStore.getExtIconName(msgBody.path);
+      let iconName = '';
+      if (msgBody.path) {
+        iconName = AttachmentStore.getExtIconName(msgBody.path);
+      }
       return (
         <div className="message-file">
           <div className="file-info" onDoubleClick={() => this.openFile(msgBody.path)}>
