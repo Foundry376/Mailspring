@@ -162,9 +162,17 @@ export class AttachmentItem extends Component {
       event.preventDefault();
     }
   };
+  _onClick = () =>{
+    if (this.state.isDownloading || this.props.isDownloading) {
+      return;
+    }
+    if (this.props.missing && !this.state.isDownloading) {
+      this.setState({ isDownloading: true, download: { state: 'downloading', percent: 100 } });
+    }
+  }
 
   _onOpenAttachment = () => {
-    if (this.state.isDownloading) {
+    if (this.state.isDownloading || this.props.isDownloading) {
       return;
     }
     if (this.props.missing && !this.state.isDownloading) {
@@ -230,7 +238,7 @@ export class AttachmentItem extends Component {
         onKeyDown={focusable && !disabled ? this._onAttachmentKeyDown : null}
         draggable={draggable && !disabled}
         onDoubleClick={!disabled ? this._onOpenAttachment : null}
-        onClick={!disabled ? this._onOpenAttachment : null}
+        onClick={!disabled ? this._onClick : null}
         onDragStart={!disabled ? this._onDragStart : null}
         {...pickHTMLProps(extraProps)}
       >
@@ -267,7 +275,7 @@ export class AttachmentItem extends Component {
             </div>
             <AttachmentActionIcon
               {...this.props}
-              isDownloading={this.state.isDownloading}
+              isDownloading={this.state.isDownloading || this.props.isDownloading}
               removeIcon="remove-attachment.png"
               downloadIcon="icon-attachment-download.png"
               retinaImgMode={RetinaImg.Mode.ContentIsMask}

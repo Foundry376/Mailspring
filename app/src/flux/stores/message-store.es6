@@ -493,9 +493,11 @@ class MessageStore extends MailspringStore {
     items.forEach(i => {
       total += i.files.length;
     });
-    items.forEach(i => {
-      i.files.forEach(f => {
-        fs.access(AttachmentStore.pathForFile(f), fs.constants.R_OK, (err) => {
+    total = total * 2;
+    items.forEach((i, itemIndex) => {
+      i.files.forEach((f, fileIndex) => {
+        const tmpPath = AttachmentStore.pathForFile(f);
+        fs.access(tmpPath, fs.constants.R_OK, (err) => {
           if (err) {
             if (f.isInline) {
               inLineMissing.push(f.id);
@@ -505,12 +507,26 @@ class MessageStore extends MailspringStore {
             if (!this.isAttachmentMissing(f.id)) {
               change = true;
             }
+            processed++;
+            fs.access(`${tmpPath}.part`, fs.constants.R_OK, (err) => {
+              items[itemIndex].files[fileIndex].isDownloading = !err;
+              processed++;
+              if (processed === total) {
+                if (inLineMissing.length > 0) {
+                  Actions.fetchAttachments({ accountId: i.accountId, missingItems: inLineMissing });
+                }
+                if (change) {
+                  this._missingAttachmentIds = [...inLineMissing, ...normalMissing];
+                  this.trigger();
+                }
+              }
+            });
           } else {
             if (this.isAttachmentMissing(f.id)) {
               change = true;
             }
+            processed += 2;
           }
-          processed++;
           if (processed === total) {
             if (inLineMissing.length > 0) {
               Actions.fetchAttachments({ accountId: i.accountId, missingItems: inLineMissing });
