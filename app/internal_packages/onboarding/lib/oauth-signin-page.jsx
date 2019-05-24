@@ -311,7 +311,7 @@ export default class OAuthSignInPage extends React.Component {
             isYahoo ? yahooOptions : defaultOptions
           } />
         )}
-        {loading && (
+        {loading && !(['buildingAccount', 'accountSuccess', 'error'].includes(authStage)) && (
           <LottieImg name='loading-spinner-blue'
             size={{ width: 65, height: 65 }}
             style={{ margin: '200px auto 0' }} />

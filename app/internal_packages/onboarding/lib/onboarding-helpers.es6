@@ -35,7 +35,11 @@ const YAHOO_CLIENT_SECRET = '8a267b9f897da839465ff07a712f9735550ed412';
 
 const OFFICE365_CLIENT_ID = '000000004818114B';
 const OFFICE365_CLIENT_SECRET = 'jXRAIb5CxLHI5MsVy9kb5okP9mGDZaqw';
-const OFFICE365_SCOPES = ['wl.basic', 'wl.emails', 'wl.imap', 'wl.offline_access'];
+const OFFICE365_SCOPES = ['user.read', 'mail.read'];
+
+const OUTLOOK_CLIENT_ID = '000000004818114B';
+const OUTLOOK_CLIENT_SECRET = 'jXRAIb5CxLHI5MsVy9kb5okP9mGDZaqw';
+const OUTLOOK_SCOPES = ['wl.basic', 'wl.emails', 'wl.imap', 'wl.offline_access'];
 
 const EDISON_CHAT_REST_URL = 'https://restxmpp.stag.easilydo.cc';
 const EDISON_CHAT_REST_PORT = 443;
@@ -190,6 +194,66 @@ export async function buildOffice365AccountFromAuthResponse(code) {
   body.push(`redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`);
   body.push(`grant_type=${encodeURIComponent('authorization_code')}`);
 
+  const resp = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+    method: 'POST',
+    body: body.join('&'),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    },
+  });
+
+  const json = (await resp.json()) || {};
+  if (!resp.ok) {
+    throw new Error(
+      `Office365 OAuth Code exchange returned ${resp.status} ${resp.statusText}: ${JSON.stringify(
+        json
+      )}`
+    );
+  }
+  const { access_token, refresh_token } = json;
+
+  // get the user's email address
+  const meResp = await fetch('https://graph.microsoft.com/v1.0/me', {
+    method: 'GET',
+    headers: {
+      Authorization: `${access_token}`,
+      'Content-Type': 'application/json'
+    },
+  });
+  const me = await meResp.json();
+  if (!meResp.ok) {
+    throw new Error(
+      `Office365 profile request returned ${resp.status} ${resp.statusText}: ${JSON.stringify(me)}`
+    );
+  }
+  const account = await expandAccountWithCommonSettings(
+    new Account({
+      name: me.name,
+      emailAddress: me.email,
+      provider: 'office365',
+      settings: {
+        refresh_client_id: OFFICE365_CLIENT_ID,
+        refresh_token: refresh_token,
+      },
+    })
+  );
+
+  account.id = idForAccount(me.email, account.settings);
+
+  // test the account locally to ensure the All Mail folder is enabled
+  // and the refresh token can be exchanged for an account token.
+  return await finalizeAndValidateAccount(account);
+}
+
+export async function buildOutlookAccountFromAuthResponse(code, provider = 'outlook') {
+  /// Exchange code for an access token
+  const body = [];
+  body.push(`code=${encodeURIComponent(code)}`);
+  body.push(`client_id=${encodeURIComponent(OUTLOOK_CLIENT_ID)}`);
+  body.push(`client_secret=${encodeURIComponent(OUTLOOK_CLIENT_SECRET)}`);
+  body.push(`redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`);
+  body.push(`grant_type=${encodeURIComponent('authorization_code')}`);
+
   const resp = await fetch('https://login.live.com/oauth20_token.srf', {
     method: 'POST',
     body: body.join('&'),
@@ -209,23 +273,26 @@ export async function buildOffice365AccountFromAuthResponse(code) {
   const { access_token, refresh_token } = json;
 
   // get the user's email address
-  const meResp = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', {
+  const meResp = await fetch('https://apis.live.net/v5.0/me', {
     method: 'GET',
-    headers: { Authorization: `Bearer ${access_token}` },
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    },
   });
   const me = await meResp.json();
+  debugger;
   if (!meResp.ok) {
     throw new Error(
-      `Gmail profile request returned ${resp.status} ${resp.statusText}: ${JSON.stringify(me)}`
+      `Outlook profile request returned ${resp.status} ${resp.statusText}: ${JSON.stringify(me)}`
     );
   }
   const account = await expandAccountWithCommonSettings(
     new Account({
       name: me.name,
-      emailAddress: me.email,
-      provider: 'gmail',
+      emailAddress: me.emails.account,
+      provider: provider,
       settings: {
-        refresh_client_id: GMAIL_CLIENT_ID,
+        refresh_client_id: OUTLOOK_CLIENT_ID,
         refresh_token: refresh_token,
       },
     })
@@ -236,8 +303,6 @@ export async function buildOffice365AccountFromAuthResponse(code) {
   // test the account locally to ensure the All Mail folder is enabled
   // and the refresh token can be exchanged for an account token.
   return await finalizeAndValidateAccount(account);
-
-  // return account;
 }
 
 export async function buildGmailAccountFromAuthResponse(code) {
@@ -294,8 +359,6 @@ export async function buildGmailAccountFromAuthResponse(code) {
   // test the account locally to ensure the All Mail folder is enabled
   // and the refresh token can be exchanged for an account token.
   return await finalizeAndValidateAccount(account);
-
-  // return account;
 }
 
 export async function connectChat(account) {
@@ -386,10 +449,6 @@ export async function buildYahooAccountFromAuthResponse(code) {
     email = me.profile.emails[0].handle
   }
 
-  console.log(fullName);
-  console.log(email);
-  console.log(refresh_token);
-
   const account = await expandAccountWithCommonSettings(
     new Account({
       name: fullName,
@@ -403,25 +462,30 @@ export async function buildYahooAccountFromAuthResponse(code) {
   );
   account.settings.imap_username = account.settings.smtp_username = guid;
 
-  console.log(account);
-
   account.id = idForAccount(email, account.settings);
-
-  console.log(account.id);
 
   // test the account locally to ensure the All Mail folder is enabled
   // and the refresh token can be exchanged for an account token.
   return await finalizeAndValidateAccount(account);
-
-  // return account;
 }
 
 export function buildOffice365AuthURL() {
-  return `https://login.live.com/oauth20_authorize.srf`
+  return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize`
     + `?`
     + `client_id=${OFFICE365_CLIENT_ID}`
     + `&scope=${encodeURIComponent(OFFICE365_SCOPES.join(' '))}`
     + `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
+    + `&state=${EDISON_OAUTH_KEYWORD}`
+    + `&response_type=code`;
+}
+
+export function buildOutlookAuthURL() {
+  return `https://login.live.com/oauth20_authorize.srf`
+    + `?`
+    + `client_id=${OUTLOOK_CLIENT_ID}`
+    + `&scope=${encodeURIComponent(OUTLOOK_SCOPES.join(' '))}`
+    + `&redirect_uri=${encodeURIComponent(EDISON_REDIRECT_URI)}`
+    + `&state=${EDISON_OAUTH_KEYWORD}`
     + `&response_type=code`;
 }
 
