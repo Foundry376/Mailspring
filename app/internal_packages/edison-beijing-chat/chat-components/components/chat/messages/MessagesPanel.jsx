@@ -47,6 +47,8 @@ const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 window.registerLoginChatAccounts = registerLoginChatAccounts;
 
+let key = 0;
+
 export default class MessagesPanel extends PureComponent {
   static propTypes = {
     deselectConversation: PropTypes.func.isRequired,
@@ -448,7 +450,29 @@ export default class MessagesPanel extends PureComponent {
   cancelLoadMessage = () => {
     const loadConfig = this.loadQueue[this.loadIndex];
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
-      loadConfig.request.abort();
+      try {
+        loadConfig.request.abort();
+      } catch (e) {
+        console.log('abort loading:', e);
+      }
+    }
+    if (loadConfig && loadConfig.type === 'upload') {
+      const conversation = loadConfig.conversation;
+      const messageId = loadConfig.messageId;
+      let body = loadConfig.msgBody;
+      body.isUploading = false;
+      body = JSON.stringify(body);
+      const message = {
+        id: messageId,
+        conversationJid: conversation.jid,
+        body,
+        sender: conversation.curJid,
+        sentTime: (new Date()).getTime() + chatModel.diffTime,
+        status: MESSAGE_STATUS_UPLOAD_FAILED,
+      };
+      console.log('debugger: cancelLoadMessage: ', message, conversation);
+      chatModel.store.dispatch(beginStoringMessage(message));
+      chatModel.store.dispatch(updateSelectedConversation(conversation));
     }
     this.loadQueue = null;
     this.loadIndex = 0;
@@ -509,8 +533,20 @@ export default class MessagesPanel extends PureComponent {
     }
 
     const loadProgressCallback = progress => {
+      const loadConfig = this.loadQueue[this.loadIndex];
       const { loaded, total } = progress;
       const percent = Math.floor(+loaded * 100.0 / (+total));
+      console.log('debugger loadProgressCallback: progress, loadConfig 1: ', progress, loadConfig);
+      if (loadConfig.type === 'upload' && +loaded === +total) {
+        console.log('debugger loadProgressCallback: progress, loadConfig 2: ', progress, loadConfig);
+        const onMessageSubmitted = this.props.sendMessage;
+        const conversation = loadConfig.conversation;
+        const messageId = loadConfig.messageId;
+        let body = loadConfig.msgBody;
+        body.isUploading = false;
+        body = JSON.stringify(body);
+        onMessageSubmitted(conversation, body, messageId, false);
+      }
       progress = Object.assign({}, this.state.progress, { percent });
       const state = Object.assign({}, this.state, { progress });
       this.setState(state);
@@ -583,6 +619,12 @@ export default class MessagesPanel extends PureComponent {
         }
       }
     })
+  }
+  update() {
+    console.log('debugger: updating ');
+    key++;
+    const state = Object.assign({}, this.state, {key});
+    this.setState(state);
   }
 
   render() {

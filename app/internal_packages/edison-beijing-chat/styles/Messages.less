@@ -373,21 +373,27 @@
     }
   }
 
+  .progress-container {
+    display: flex;
+    position: absolute;
+    justify-content:center;
+    bottom:120px;
+    width: 100%;
+    height: auto;
+  }
+
   .progress-banner {
-    position:absolute;
-    bottom: 60px;
-    left:300px;
+    position:relative;
     padding: 5px 5px 10px 10px;
     height: auto;
     min-height: 40px;
-    width:500px;
-    font-color: white;
+    width:700px;
     color:white;
     background-color: #63a2ff;
     border-radius: 12px;
-    z-index:9999;
+    z-index:9;
     &:hover {
-      z-index:9999;
+      z-index:9;
     }
     .progress-prompt {
       margin-left:5px;
@@ -395,7 +401,7 @@
     .msg-progress-bar-wrap {
       position:relative;
       height: 5px;
-      width: 400px;
+      width: 75%;
       margin-left:5px;
       .progress-background {
         position: absolute;
@@ -403,7 +409,8 @@
         left:0;
         height: 5px;
         width:100%;
-        background-color: lightgray;
+        background-color: #96d0ff;
+        opacity: 0.5;
         z-index:100;
       }
       .progress-foreground {
@@ -417,28 +424,23 @@
     }
     .progressButtons {
       position: absolute;
+      display: flex;
+      align-items: center;
       top: 5px;
       right: 5px;
       width:120px;
-      height:40px;
-      font-color: white;
-      .textButton1 {
+      height:100%;
+      .retryButton {
         display: inline-block;
-        position: absolute;
-        top: 3px;
-        right: 70px;
         margin: 0 5px 0 0;
       }
-      .textButton2 {
+      .cancelButton {
         display: inline-block;
-        position: absolute;
-        top: 3px;
-        right: 25px;
         margin: 0 5px 0 0;
       }
       svg {
-        float: right;
-        right: 0px;
+        position: absolute;
+        right: 5px;
       }
     }
   }
