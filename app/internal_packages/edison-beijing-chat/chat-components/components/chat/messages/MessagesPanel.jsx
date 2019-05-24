@@ -365,7 +365,7 @@ export default class MessagesPanel extends PureComponent {
       }
       else if (members.length > 1 && onGroupConversationCompleted) {
         if (members.some((member) => member.jid.match(/@app/))) {
-          window.alert('plugin app should only create cprivate onversation with single member!');
+          window.alert('plugin app should only create private conversation with single member!');
           return;
         }
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
