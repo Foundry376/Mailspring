@@ -273,11 +273,11 @@ export default class MessagesPanel extends PureComponent {
   }
 
   refreshRoomMembers = async (nextProps) => {
-    const {selectedConversation: conv} = this.props;
+    const { selectedConversation: conv } = this.props;
     if (!nextProps) {
       return;
     }
-    const {selectedConversation: nextconv} = nextProps;
+    const { selectedConversation: nextconv } = nextProps;
     if (nextconv && nextconv.isGroup && (!conv || (conv.jid !== nextconv.jid))) {
       const curJid = nextconv.curJid;
       let state = Object.assign({}, this.state, { loadingMembers: true });
@@ -365,7 +365,7 @@ export default class MessagesPanel extends PureComponent {
       }
       else if (members.length > 1 && onGroupConversationCompleted) {
         if (members.some((member) => member.jid.match(/@app/))) {
-          window.alert('plugin app should only create cprivate onversation with single member!');
+          window.alert('plugin app should only create private conversation with single member!');
           return;
         }
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
@@ -400,7 +400,7 @@ export default class MessagesPanel extends PureComponent {
   };
 
   editProfile = member => {
-    const {profile} = this;
+    const { profile } = this;
     profile.clickSame = member && member === profile.state.member;
     setTimeout(() => {
       this.profile.setMember(member);
@@ -408,7 +408,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   exitProfile = async member => {
-    if(!member) {
+    if (!member) {
       return;
     }
     const jid = member.jid.bare || member.jid;
@@ -771,11 +771,10 @@ export default class MessagesPanel extends PureComponent {
           </FixedPopover>
         )}
         <MemberProfile conversation={selectedConversation}
-                       exitProfile={this.exitProfile}
-                       panel={this}
-                       onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
+          exitProfile={this.exitProfile}
+          panel={this}
+          onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
         </MemberProfile>
-          )
       </div>
     );
   }
