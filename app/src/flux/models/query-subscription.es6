@@ -1,6 +1,7 @@
 import DatabaseStore from '../stores/database-store';
 import QueryRange from './query-range';
 import MutableQueryResultSet from './mutable-query-result-set';
+import Thread from '../models/thread';
 
 export default class QuerySubscription {
   constructor(query, options = {}) {
@@ -28,7 +29,7 @@ export default class QuerySubscription {
           new QueryRange({
             limit: this._options.initialModels.length,
             offset: 0,
-          })
+          }),
         );
         this._createResultAndTrigger();
       } else {
@@ -58,7 +59,7 @@ export default class QuerySubscription {
   removeCallback(callback) {
     if (!(callback instanceof Function)) {
       throw new Error(
-        `QuerySubscription:removeCallback - expects a function, received ${callback}`
+        `QuerySubscription:removeCallback - expects a function, received ${callback}`,
       );
     }
     this._callbacks = this._callbacks.filter(c => c !== callback);
@@ -67,7 +68,8 @@ export default class QuerySubscription {
     }
   }
 
-  onLastCallbackRemoved() {}
+  onLastCallbackRemoved() {
+  }
 
   callbackCount = () => {
     return this._callbacks.length;
@@ -119,7 +121,12 @@ export default class QuerySubscription {
           const offset = this._set.offsetOfId(item.id);
           const itemIsInSet = offset !== -1;
           const itemShouldBeInSet = item.matches(this._query.matchers());
-
+          // DC-393 we have to force full update, because thread.data is no longer reliable.
+          if (item instanceof Thread && itemIsInSet) {
+            unknownImpacts += 1;
+            this._set = null;
+            return;
+          }
           if (itemIsInSet && !itemShouldBeInSet) {
             this._set.removeModelAtOffset(item, offset);
             unknownImpacts += 1;
@@ -129,10 +136,10 @@ export default class QuerySubscription {
           } else if (itemIsInSet) {
             const oldItem = this._set.modelWithId(item.id);
             this._set.updateModel(item);
-
             if (this._itemSortOrderHasChanged(oldItem, item)) {
               unknownImpacts += 1;
             } else {
+              this._set.updateModel(item);
               knownImpacts += 1;
             }
           }
@@ -275,7 +282,7 @@ export default class QuerySubscription {
     }
     if (!allUniqueIds) {
       error = new Error(
-        'QuerySubscription: Applied all changes and result set contains duplicate IDs.'
+        'QuerySubscription: Applied all changes and result set contains duplicate IDs.',
       );
     }
 
