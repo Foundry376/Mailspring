@@ -354,7 +354,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
         <button
           tabIndex={-1}
           className="btn btn-toolbar btn-attach"
-          style={{ order: 50 }}
+          style={{ order: 0 }}
           title={localized('Attach File')}
           onClick={this._onSelectAttachment}
         >
