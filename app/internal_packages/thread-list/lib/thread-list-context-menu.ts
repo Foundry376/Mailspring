@@ -45,6 +45,8 @@ export default class ThreadListContextMenu {
           this.markAsReadItem(),
           this.markAsSpamItem(),
           this.starItem(),
+          { type: 'separator' },
+          this.createMailboxLinkItem(),
         ]);
       })
       .then(menuItems => {
@@ -239,6 +241,22 @@ export default class ThreadListContextMenu {
             threads: this.threads,
           })
         );
+      },
+    };
+  }
+
+  createMailboxLinkItem() {
+    if (this.threadIds.length !== 1) {
+      return null;
+    }
+
+    return {
+      label: localized('Copy mailbox permalink'),
+      click: async () => {
+        const id = this.threadIds[0];
+        const thread = await DatabaseStore.findBy<Thread>(Thread, { id }).limit(1);
+        if (!thread) return;
+        require('electron').clipboard.writeText(thread.getMailboxPermalink());
       },
     };
   }

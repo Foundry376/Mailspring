@@ -24,6 +24,12 @@ export default class ThreadSharingButton extends React.Component<{ items: any[];
     });
   };
 
+  _onCopyMailboxLink = () => {
+    // Note: This is the mailbox link, not the thread sharing link, but they are managed together
+    // since this plugin also implements the receiving side (_onOpenThreadFromWeb).
+    require('electron').clipboard.writeText(this.props.thread.getMailboxPermalink());
+  };
+
   render() {
     if (this.props.items && this.props.items.length > 1) {
       return <span />;
@@ -31,7 +37,12 @@ export default class ThreadSharingButton extends React.Component<{ items: any[];
     const item = this.props.items[0];
 
     return (
-      <BindGlobalCommands commands={{ 'core:share-item-link': () => this._onClick() }}>
+      <BindGlobalCommands
+        commands={{
+          'core:share-item-link': () => this._onClick(),
+          'core:copy-mailbox-link': () => this._onCopyMailboxLink(),
+        }}
+      >
         <button
           className={`btn btn-toolbar thread-sharing-button ${isShared(item) && 'active'}`}
           title={localized('Share')}

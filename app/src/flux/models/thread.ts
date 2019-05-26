@@ -104,6 +104,12 @@ export class Thread extends ModelWithMetadata {
       modelKey: 'attachmentCount',
     }),
 
+    firstMessageTimestamp: Attributes.DateTime({
+      queryable: true,
+      jsonKey: 'fmt',
+      modelKey: 'firstMessageTimestamp',
+    }),
+
     lastMessageReceivedTimestamp: Attributes.DateTime({
       queryable: true,
       jsonKey: 'lmrt',
@@ -139,6 +145,7 @@ export class Thread extends ModelWithMetadata {
   public labels: Label[];
   public participants: Contact[];
   public attachmentCount: number;
+  public firstMessageTimestamp: Date;
   public lastMessageReceivedTimestamp: Date;
   public lastMessageSentTimestamp: Date;
   public inAllMail: boolean;
@@ -205,5 +212,10 @@ export class Thread extends ModelWithMetadata {
       out = out.concat(userLabels.sort((a, b) => a.displayName.localeCompare(b.displayName)));
     }
     return out;
+  }
+
+  getMailboxPermalink() {
+    const subject = encodeURIComponent(this.subject);
+    return `mailspring://thread?subject=${subject}&date=${this.firstMessageTimestamp.getTime()}`;
   }
 }
