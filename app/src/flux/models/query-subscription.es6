@@ -108,6 +108,9 @@ export default class QuerySubscription {
     let unknownImpacts = 0;
 
     this._queuedChangeRecords.forEach(record => {
+      if (!this._set) {
+        return;
+      }
       if (record.type === 'unpersist') {
         for (const item of record.objects) {
           const offset = this._set.offsetOfId(item.id);
