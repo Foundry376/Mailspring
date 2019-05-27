@@ -678,7 +678,7 @@ export default class DraftEditingSession extends MailspringStore {
     }
     // console.error('commit sync back draft');
     const task = new SyncbackDraftTask({ draft: this._draft });
-    // task.saveOnRemote = arg === 'unload';
+    task.saveOnRemote = arg === 'unload';
     Actions.queueTask(task);
     await TaskQueue.waitForPerformLocal(task);
   }

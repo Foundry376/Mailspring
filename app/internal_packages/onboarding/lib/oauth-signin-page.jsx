@@ -306,12 +306,12 @@ export default class OAuthSignInPage extends React.Component {
       <div className={`page account-setup oauth ${this.props.serviceName.toLowerCase()}`}>
         {authStage === 'buildingAccount' && Validating}
         {authStage === 'accountSuccess' && Success}
-        {!(authStage === 'buildingAccount' || authStage === 'accountSuccess') && (
+        {!(['buildingAccount', 'accountSuccess', 'error'].includes(authStage)) && (
           <webview ref='webview' src={this.state.url} partition="in-memory-only" style={
             isYahoo ? yahooOptions : defaultOptions
           } />
         )}
-        {loading && (
+        {loading && !(['buildingAccount', 'accountSuccess', 'error'].includes(authStage)) && (
           <LottieImg name='loading-spinner-blue'
             size={{ width: 65, height: 65 }}
             style={{ margin: '200px auto 0' }} />

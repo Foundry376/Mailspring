@@ -1,6 +1,6 @@
 @import 'ui-variables';
 @import 'ui-mixins';
-@file-icon-color: #c7c7c7;
+@file-icon-color: @gray;
 @attachment-border-color: rgba(0, 0, 0, 0.09);
 
 .nylas-attachment-item {
@@ -14,8 +14,7 @@
 
   &.file-attachment-item:focus {
     .file-info-wrap,
-    .file-action-icon,
-    .file-thumbnail-preview {
+    .file-action-icon {
       border-color: lighten(@component-active-color, 10%);
     }
     .file-action-icon {
@@ -38,22 +37,37 @@
     &:focus {
       .file-info-wrap,
       .file-action-icon {
-        border-top-color: @attachment-border-color;
+        // border-top-color: @attachment-border-color;
       }
-    }
-    .file-info-wrap {
-      border-top-left-radius: 0;
-    }
-    .file-action-icon {
-      border-top-right-radius: 0;
     }
   }
 
   .inner {
     border-radius: 2px;
     color: @text-color;
-    background: @background-off-primary;
-    height: 37px;
+    height: 74px;
+    overflow: hidden;
+    &:hover {
+      .attachment-action-bar {
+        opacity: 1;
+      }
+    }
+    .attachment-action-bar {
+      position: absolute;
+      width: auto;
+      bottom: 0;
+      right: 0;
+      display: flex;
+      height: 100%;
+      transition: opacity 0.2s;
+      opacity: 0;
+      justify-content: flex-end;
+      .file-action-icon {
+        border: none;
+        margin-left: 0;
+        cursor: pointer;
+      }
+    }
   }
 
   .file-info-wrap {
@@ -62,12 +76,49 @@
     flex-grow: 2;
     min-width: 85%;
     padding: 10px;
-    height: 105%;
-    border: solid 1px @attachment-border-color;
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-    border-right: none;
-
+    height: 100%;
+    border: solid 1px @gray-lighter;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    .attachment-icon {
+      width: 55px;
+      height: 55px;
+      overflow: hidden;
+      .file-icon {
+        width: 100%;
+      }
+      img {
+        width: 100%;
+      }
+      .file-thumbnail-preview {
+        height: 100%;
+        border-top: none;
+      }
+    }
+    .attachment-info {
+      flex: 1;
+      height: 100%;
+      padding: 0 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      justify-content: center;
+      &>div {
+        width: 100%;
+      }
+      .attachment-name {
+        display: -webkit-box;  
+        -webkit-line-clamp: 2;  
+        word-break: break-all;
+        overflow: hidden;
+      }
+      .file-size {
+        color: @gray-light;
+      }
+    }
     .file-icon {
       width: 24px;
       margin-right: 10px;

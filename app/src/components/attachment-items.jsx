@@ -207,7 +207,7 @@ export class AttachmentItem extends Component {
   };
 
   render() {
-    const {
+    let {
       download,
       className,
       focusable,
@@ -217,6 +217,8 @@ export class AttachmentItem extends Component {
       fileIconName,
       filePreviewPath,
       disabled,
+      isImage,
+      filePath,
       ...extraProps
     } = this.props;
     const classes = classnames({
@@ -225,6 +227,9 @@ export class AttachmentItem extends Component {
       'has-preview': filePreviewPath,
       [className]: className,
     });
+    if (isImage) {
+      filePreviewPath = filePath
+    }
     const style = draggable ? { WebkitUserDrag: 'element' } : null;
     const tabIndex = focusable ? 0 : null;
     const { devicePixelRatio } = window;
@@ -242,44 +247,53 @@ export class AttachmentItem extends Component {
         onDragStart={!disabled ? this._onDragStart : null}
         {...pickHTMLProps(extraProps)}
       >
-        {filePreviewPath ? (
-          <div className="file-thumbnail-preview" draggable={false}>
-            <img alt="" src={`file://${filePreviewPath}`} style={{ zoom: 1 / devicePixelRatio }}/>
-          </div>
-        ) : null}
         <div className="inner">
           <ProgressBar download={this.state.download}/>
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
             <div className="file-info-wrap">
-              <RetinaImg
-                ref={cm => {
-                  this._fileIconComponent = cm;
-                }}
-                className="file-icon"
-                fallback="drafts.svg"
-                name={iconName}
-                isIcon
-                mode={RetinaImg.Mode.ContentIsMask}/>
-              <span className="file-name" title={displayName}>
-                {displayName}
-              </span>
-              <span className="file-size">{displaySize ? `(${displaySize})` : ''}</span>
-              {this._canPreview() ? (
-                <RetinaImg
-                  className="quicklook-icon"
-                  name="attachment-quicklook.png"
-                  mode={RetinaImg.Mode.ContentIsMask}
-                  onClick={!disabled ? this._onClickQuicklookIcon : null}
-                />
-              ) : null}
+              <div className="attachment-icon">
+                {filePreviewPath ? (
+                  <div className="file-thumbnail-preview" draggable={false}>
+                    <img alt="" src={`file://${filePreviewPath}`} style={{ zoom: 1 / devicePixelRatio }} />
+                  </div>
+                ) : (
+                    <RetinaImg
+                      ref={cm => {
+                        this._fileIconComponent = cm;
+                      }}
+                      className="file-icon"
+                      fallback="drafts.svg"
+                      name={iconName}
+                      isIcon
+                      mode={RetinaImg.Mode.ContentIsMask} />
+                  )}
+              </div>
+              <div className="attachment-info">
+                <div className="attachment-name" title={displayName}>
+                  {displayName}
+                </div>
+                <div className="file-size">{displaySize ? `${displaySize}` : ''}</div>
+                <div className="attachment-action-bar">
+                  {this._canPreview() ? (
+                    <div className="file-action-icon">
+                      <RetinaImg
+                        className="quicklook-icon"
+                        name="attachment-quicklook.png"
+                        mode={RetinaImg.Mode.ContentIsMask}
+                        onClick={!disabled ? this._onClickQuicklookIcon : null}
+                      />
+                    </div>
+                  ) : null}
+                  <AttachmentActionIcon
+                    {...this.props}
+                    isDownloading={this.state.isDownloading || this.props.isDownloading}
+                    removeIcon="remove-attachment.png"
+                    downloadIcon="icon-attachment-download.png"
+                    retinaImgMode={RetinaImg.Mode.ContentIsMask}
+                  />
+                </div>
+              </div>
             </div>
-            <AttachmentActionIcon
-              {...this.props}
-              isDownloading={this.state.isDownloading || this.props.isDownloading}
-              removeIcon="remove-attachment.png"
-              downloadIcon="icon-attachment-download.png"
-              retinaImgMode={RetinaImg.Mode.ContentIsMask}
-            />
           </Flexbox>
         </div>
       </div>

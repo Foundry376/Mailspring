@@ -47,6 +47,8 @@ const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 window.registerLoginChatAccounts = registerLoginChatAccounts;
 
+let key = 0;
+
 export default class MessagesPanel extends PureComponent {
   static propTypes = {
     deselectConversation: PropTypes.func.isRequired,
@@ -272,16 +274,20 @@ export default class MessagesPanel extends PureComponent {
   }
 
   refreshRoomMembers = async (nextProps) => {
-    const { selectedConversation: conversation } = (nextProps || this.props);
-    if (conversation && conversation.isGroup) {
-      const curJid = conversation.curJid;
+    const { selectedConversation: conv } = this.props;
+    if (!nextProps) {
+      return;
+    }
+    const { selectedConversation: nextconv } = nextProps;
+    if (nextconv && nextconv.isGroup && (!conv || (conv.jid !== nextconv.jid))) {
+      const curJid = nextconv.curJid;
       let state = Object.assign({}, this.state, { loadingMembers: true });
       this.setState(state);
       const members = await this.getRoomMembers(nextProps);
       state = Object.assign({}, this.state, { loadingMembers: false });
       this.setState(state);
-      if (conversation.update && members && members.length > 0) {
-        safeUpdate(conversation, { roomMembers: members });
+      if (nextconv.update && members && members.length > 0) {
+        safeUpdate(nextconv, { roomMembers: members });
       }
       for (let member of members) {
         const jid = member.jid.bare || member.jid;
@@ -360,7 +366,7 @@ export default class MessagesPanel extends PureComponent {
       }
       else if (members.length > 1 && onGroupConversationCompleted) {
         if (members.some((member) => member.jid.match(/@app/))) {
-          window.alert('plugin app should only create cprivate onversation with single member!');
+          window.alert('plugin app should only create private conversation with single member!');
           return;
         }
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
@@ -394,21 +400,25 @@ export default class MessagesPanel extends PureComponent {
     }
   };
 
-  editMemberProfile = member => {
-    const state = Object.assign({}, this.state, { editingMember: member });
-    this.setState(state);
+  editProfile = member => {
+    const { profile } = this;
+    profile.clickSame = member && member === profile.state.member;
+    setTimeout(() => {
+      this.profile.setMember(member);
+    }, 10);
   }
 
-  exitMemberProfile = async member => {
-    const db = await getDb();
+  exitProfile = async member => {
+    if (!member) {
+      return;
+    }
     const jid = member.jid.bare || member.jid;
     const nicknames = chatModel.chatStorage.nicknames;
     if (nicknames[jid] != member.nickname) {
       nicknames[jid] = member.nickname;
       saveToLocalStorage();
     }
-    const state = Object.assign({}, this.state, { editingMember: null });
-    this.setState(state);
+    this.profile.setMember(null);
   }
 
   reconnect = () => {
@@ -439,7 +449,28 @@ export default class MessagesPanel extends PureComponent {
   cancelLoadMessage = () => {
     const loadConfig = this.loadQueue[this.loadIndex];
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
-      loadConfig.request.abort();
+      try {
+        loadConfig.request.abort();
+      } catch (e) {
+        console.log('abort loading:', e);
+      }
+    }
+    if (loadConfig && loadConfig.type === 'upload') {
+      const conversation = loadConfig.conversation;
+      const messageId = loadConfig.messageId;
+      let body = loadConfig.msgBody;
+      body.isUploading = false;
+      body = JSON.stringify(body);
+      const message = {
+        id: messageId,
+        conversationJid: conversation.jid,
+        body,
+        sender: conversation.curJid,
+        sentTime: (new Date()).getTime() + chatModel.diffTime,
+        status: MESSAGE_STATUS_UPLOAD_FAILED,
+      };
+       chatModel.store.dispatch(beginStoringMessage(message));
+      chatModel.store.dispatch(updateSelectedConversation(conversation));
     }
     this.loadQueue = null;
     this.loadIndex = 0;
@@ -500,8 +531,18 @@ export default class MessagesPanel extends PureComponent {
     }
 
     const loadProgressCallback = progress => {
+      const loadConfig = this.loadQueue[this.loadIndex];
       const { loaded, total } = progress;
       const percent = Math.floor(+loaded * 100.0 / (+total));
+      if (loadConfig.type === 'upload' && +loaded === +total) {
+        const onMessageSubmitted = this.props.sendMessage;
+        const conversation = loadConfig.conversation;
+        const messageId = loadConfig.messageId;
+        let body = loadConfig.msgBody;
+        body.isUploading = false;
+        body = JSON.stringify(body);
+        onMessageSubmitted(conversation, body, messageId, false);
+      }
       progress = Object.assign({}, this.state.progress, { percent });
       const state = Object.assign({}, this.state, { progress });
       this.setState(state);
@@ -575,6 +616,11 @@ export default class MessagesPanel extends PureComponent {
       }
     })
   }
+  update() {
+    key++;
+    const state = Object.assign({}, this.state, {key});
+    this.setState(state);
+  }
 
   render() {
     this.getApps();
@@ -633,8 +679,8 @@ export default class MessagesPanel extends PureComponent {
       getRoomMembers: this.getRoomMembers,
       refreshRoomMembers: this.refreshRoomMembers,
       removeMember: this.removeMember,
-      editMemberProfile: this.editMemberProfile,
-      exitMemberProfile: this.exitMemberProfile,
+      editProfile: this.editProfile,
+      exitProfile: this.exitProfile,
     };
     const contactsSet = {};
     contacts.forEach(contact => {
@@ -761,12 +807,11 @@ export default class MessagesPanel extends PureComponent {
             <InviteGroupChatList contacts={allContacts} groupMode={true} onUpdateGroup={this.onUpdateGroup} />
           </FixedPopover>
         )}
-        {
-          (this.state.editingMember) ? (
-            <MemberProfile conversation={selectedConversation} exitMemberProfile={this.exitMemberProfile} member={this.state.editingMember} onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
-            </MemberProfile>
-          ) : null
-        }
+        <MemberProfile conversation={selectedConversation}
+          exitProfile={this.exitProfile}
+          panel={this}
+          onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
+        </MemberProfile>
       </div>
     );
   }

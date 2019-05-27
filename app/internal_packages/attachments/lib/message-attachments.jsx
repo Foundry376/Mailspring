@@ -45,7 +45,7 @@ class MessageAttachments extends Component {
     Actions.abortFetchFile(file);
   };
 
-  renderAttachment(AttachmentRenderer, file) {
+  renderAttachment(AttachmentRenderer, file, isImage = false) {
     const { canRemoveAttachments, downloads, filePreviewPaths, headerMessageId } = this.props;
     const download = downloads[file.id];
     const filePath = AttachmentStore.pathForFile(file);
@@ -61,6 +61,7 @@ class MessageAttachments extends Component {
         key={file.id}
         focusable
         previewable
+        isImage={isImage}
         filePath={filePath}
         download={download}
         missing={MessageStore.isAttachmentMissing(file.id)}
@@ -86,7 +87,7 @@ class MessageAttachments extends Component {
     return (
       <div>
         {nonImageFiles.map(file => this.renderAttachment(AttachmentItem, file))}
-        {imageFiles.map(file => this.renderAttachment(ImageAttachmentItem, file))}
+        {imageFiles.map(file => this.renderAttachment(AttachmentItem, file, true))}
       </div>
     );
   }

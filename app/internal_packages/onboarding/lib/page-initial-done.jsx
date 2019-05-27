@@ -41,20 +41,22 @@ class InitialDonePage extends React.Component {
         />
         <h1>You're all Set!</h1>
         <h4>We couldn't be happier to have you using Edison Mail for Mac.</h4>
-        <button className={'btn btn-large ' + (submitting && 'btn-disabled')} style={{ marginBottom: 60 }} onClick={this._onFinished}>
-          Let's Go
-        </button>
-        {
-          submitting && (
-            <LottieImg name='loading-spinner-blue'
-              size={{ width: 24, height: 24 }}
-              style={{
-                margin: '20px auto 0',
-                position: 'relative',
-                bottom: '170px'
-              }} />
-          )
-        }
+        <div className="footer">
+          <button className={'btn btn-large ' + (submitting && 'btn-disabled')} onClick={this._onFinished}>
+            Let's Go
+          </button>
+          {
+            submitting && (
+              <LottieImg name='loading-spinner-blue'
+                size={{ width: 24, height: 24 }}
+                style={{
+                  margin: '20px auto 0',
+                  position: 'relative',
+                  bottom: '170px'
+                }} />
+            )
+          }
+        </div>
       </div>
     );
   }

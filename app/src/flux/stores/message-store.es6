@@ -5,6 +5,7 @@ import Thread from '../models/thread';
 import DatabaseStore from './database-store';
 import ThreadStore from './thread-store';
 import AttachmentStore from './attachment-store';
+import WorkspaceStore from './workspace-store';
 import TaskFactory from '../tasks/task-factory';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
@@ -23,7 +24,7 @@ class MessageStore extends MailspringStore {
 
   findAll() {
     return DatabaseStore.findAll(Message)
-      .where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending])]);
+      .where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending, Message.messageState.pulling])]);
   }
 
   findAllInDescendingOrder() {
@@ -47,7 +48,7 @@ class MessageStore extends MailspringStore {
   }
 
   findByThreadId({ threadId }) {
-    return DatabaseStore.findBy(Message, { threadId }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending])]);
+    return DatabaseStore.findBy(Message, { threadId }).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending, Message.messageState.pulling])]);
   }
 
   findByThreadIdAndAccountId({ threadId, accountId }) {
@@ -63,7 +64,7 @@ class MessageStore extends MailspringStore {
   }
 
   findByMessageId({ messageId }) {
-    return DatabaseStore.find(Message, messageId).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending])]);
+    return DatabaseStore.find(Message, messageId).where([Message.attributes.state.in([Message.messageState.normal, Message.messageState.saving, Message.messageState.sending, Message.messageState.pulling])]);
   }
 
   findByMessageIdWithBody({ messageId }) {
@@ -319,6 +320,12 @@ class MessageStore extends MailspringStore {
     // console.log('onFocus change');
     if (!change.impactsCollection('thread')) return;
 
+    //DC-400 Because the way list mode is
+    if (WorkspaceStore.layoutMode() === 'list') {
+      this._onApplyFocusChange();
+      return;
+    }
+
     // This implements a debounce that fires on the leading and trailing edge.
     //
     // If we haven't changed focus in the last 100ms, do it immediately. This means
@@ -328,6 +335,7 @@ class MessageStore extends MailspringStore {
     // stop arriving for 100msec before applying. This means that flying
     // through threads doesn't cause is to make a zillion queries for messages.
     //
+
     if (!this._onFocusChangedTimer) {
       this._onApplyFocusChange();
     } else {
@@ -431,7 +439,6 @@ class MessageStore extends MailspringStore {
     this._itemsExpanded[item.id] = 'explicit';
     this._fetchExpandedAttachments([item]);
     this._fetchMissingBodies([item]);
-    this._fetchMissingAttachments([item]);
   }
 
   _collapseItem(item) {

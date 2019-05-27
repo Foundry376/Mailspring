@@ -69,7 +69,10 @@ export const triggerUpdateMessageTsConfigEpic = action$ =>
         })
         .map(({ payload }) => {
             let { ts, curJid } = payload;
+            let jidLocal = curJid.split('@')[0];
+            // console.log('_message_ts1', (ts));
+            AppEnv.config.set(jidLocal + '_message_ts', parseInt(ts))
             // let jidLocal = curJid.split('@')[0];
-            window.setTimeout(() => { saveLastTs(parseInt(ts), curJid); }, 1000);
+            // window.setTimeout(() => { saveLastTs(parseInt(ts), curJid); }, 1000);
             return successfullyStoredConfig(payload);
         })

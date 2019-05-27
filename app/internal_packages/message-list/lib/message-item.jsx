@@ -195,7 +195,6 @@ export default class MessageItem extends React.Component {
 
     return (
       <div>
-        {files.length > 1 ? this._renderDownloadAllButton() : null}
         {attachedFiles.length > 0 && (
           <div className="attachments-area">
             <InjectedComponent
@@ -210,6 +209,7 @@ export default class MessageItem extends React.Component {
             />
           </div>
         )}
+        {files.length > 1 ? this._renderDownloadAllButton() : null}
       </div>
     );
   }

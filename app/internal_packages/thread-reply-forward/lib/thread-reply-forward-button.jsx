@@ -184,6 +184,9 @@ export default class ThreadReplyForwardButton extends React.Component {
   };
 
   _replyAll = () => {
+    if (!this.canReplyAll()) {
+      return;
+    }
     if (!this.state.isReplyAlling && !this._replyAllTimer) {
       this._timeoutButton('reply-all');
       this.setState({ isReplyAlling: true });
@@ -218,22 +221,18 @@ export default class ThreadReplyForwardButton extends React.Component {
             isIcon={true}
             mode={RetinaImg.Mode.ContentIsMask} />
         </button>
-        {
-          this.canReplyAll() && (
-            <button
-              className={`btn btn-toolbar thread-reply-all-button`}
-              title="Reply All"
-              style={{ marginRight: 0 }}
-              onClick={this._replyAll}
-            >
-              <RetinaImg name={'reply-all.svg'}
-                style={{ width: 24, height: 24 }}
-                isIcon={true}
-              mode={RetinaImg.Mode.ContentIsMask}
-            />
-            </button>
-          )
-        }
+        <button
+          className={`btn btn-toolbar thread-reply-all-button ${this.canReplyAll() ? '' : 'disabled'}`}
+          title="Reply All"
+          style={{ marginRight: 0 }}
+          onClick={this._replyAll}
+        >
+          <RetinaImg name={'reply-all.svg'}
+            style={{ width: 24, height: 24 }}
+            isIcon={true}
+            mode={RetinaImg.Mode.ContentIsMask}
+          />
+        </button>
         <button
           className={`btn btn-toolbar thread-forward-button`}
           title="Forward"
@@ -241,9 +240,9 @@ export default class ThreadReplyForwardButton extends React.Component {
           onClick={this._forward}
         >
           <RetinaImg name={'forward.svg'}
-              style={{ width: 24, height: 24 }}
-              isIcon={true}
-              mode={RetinaImg.Mode.ContentIsMask} />
+            style={{ width: 24, height: 24 }}
+            isIcon={true}
+            mode={RetinaImg.Mode.ContentIsMask} />
         </button>
       </div>
     );

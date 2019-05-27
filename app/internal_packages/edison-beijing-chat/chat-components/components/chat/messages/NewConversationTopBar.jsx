@@ -25,14 +25,6 @@ export default class NewConversationTopBar extends Component {
     }
   }
 
-  componentDidUpdate = () => {
-    const rect = this.contactInputEl.getBoundingClientRect();
-    let el = document.querySelector('.rc-select-dropdown.rc-select-dropdown--multiple.rc-select-dropdown-placement-bottomLeft');
-    if (el) {
-      el.style.width = Math.floor(rect.right - rect.left + 5) + 'px';
-    }
-  }
-
   handleChange = (value, options) => {
     const members = options.map(item => ({
       name: item.props.label,
@@ -61,7 +53,7 @@ export default class NewConversationTopBar extends Component {
   }
 
   onKeyUp = (event) => {
-    if (keyCode === 27) { // ESC
+    if (event.keyCode === 27) { // ESC
       this._close();
     }
   }
