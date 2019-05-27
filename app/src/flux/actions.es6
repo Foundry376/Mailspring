@@ -473,6 +473,7 @@ class Actions {
 
   static syncFolders = ActionScopeMainWindow;
   static fetchBodies = ActionScopeMainWindow;
+  static fetchAttachmentsByMessage = ActionScopeWindow;
   static fetchAttachments = ActionScopeMainWindow;
   static fetchAndOpenFile = ActionScopeWindow;
   static fetchAndSaveFile = ActionScopeWindow;

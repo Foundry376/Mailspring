@@ -79,7 +79,11 @@ export default class MessageItem extends React.Component {
   };
 
   _onDownloadAll = () => {
-    Actions.fetchAndSaveAllFiles(this.props.message.files);
+    if (MessageStore.isMessageMissingAttachment(this.props.message)) {
+      Actions.fetchAttachmentsByMessage({ messageId: this.props.message.id });
+    } else {
+      Actions.fetchAndSaveAllFiles(this.props.message.files);
+    }
   };
 
   _onToggleCollapsed = () => {
@@ -141,6 +145,16 @@ export default class MessageItem extends React.Component {
     }, markAsReadDelay);
   };
 
+  _isAllAttachmentsDownloading() {
+    if (this.props.message.files.length > 0) {
+      return this.props.message.files.every(f => {
+        return f.isDownloading;
+      });
+    } else {
+      return false;
+    }
+  }
+
   _renderDownloadAllButton() {
     return (
       <div className="download-all">
@@ -152,13 +166,22 @@ export default class MessageItem extends React.Component {
           <span>{this.props.message.files.length} attachments</span>
         </div>
         <div className="separator">-</div>
-        <div className="download-all-action" onClick={this._onDownloadAll}>
-          <RetinaImg name="download.svg"
-                     isIcon
-                     style={{ width: 18, height: 18 }}
-                     mode={RetinaImg.Mode.ContentIsMask}/>
-          <span>Download all</span>
-        </div>
+        {this._isAllAttachmentsDownloading() ?
+          <div className="download-all-action">
+            <RetinaImg name='refresh.svg'
+                       className='infinite-rotation-linear'
+                       style={{ width: 24, height: 24, backgroundColor: '#797d80' }} isIcon
+                       mode={RetinaImg.Mode.ContentIsMask}/>
+          </div>
+          :
+          <div className="download-all-action" onClick={this._onDownloadAll}>
+            <RetinaImg name="download.svg"
+                       isIcon
+                       style={{ width: 18, height: 18 }}
+                       mode={RetinaImg.Mode.ContentIsMask}/>
+            <span>Download all</span>
+          </div>
+        }
       </div>
     );
   }
