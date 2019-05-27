@@ -74,6 +74,7 @@ export default class Message extends ModelWithMetadata {
     deleted: '1',
     saving: '2',
     sending: '3',
+    pulling: '4',// Updating data from server
   };
   static attributes = Object.assign({}, ModelWithMetadata.attributes, {
     // load id column into json
