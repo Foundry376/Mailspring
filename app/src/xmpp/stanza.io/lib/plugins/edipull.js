@@ -47,7 +47,7 @@ module.exports = function (client) {
         pull.edipull.type = 'message';
         pull.edipull.param = {
             since: ts,
-            pagenumber: 100,
+            pagenumber: 20,
             incrooms: true
         };
         client.sendIq(pull, cb);
