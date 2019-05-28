@@ -206,8 +206,38 @@
     position: fixed;
     top: 41px;
     left: 11px;
+    cursor: pointer;
     img {
       background-color: #B6BDC2;
+      position: relative;
+      z-index: 2;
+    }
+    &:hover {
+      &:after {
+        content: '';
+        height: 36px;
+        width: 36px;
+        border-radius: 50%;
+        background: @off-white;
+        display: block;
+        position: absolute;
+        top: -3px;
+        left: -4px;
+        animation: growUp 0.4s;
+      }
+      @keyframes growUp {
+        from {
+          opacity: 0.7;
+          transform: scale(0.5);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      img.content-mask {
+        background-color: #797d80;
+      }
     }
   }
 

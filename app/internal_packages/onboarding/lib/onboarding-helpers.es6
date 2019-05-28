@@ -280,7 +280,6 @@ export async function buildOutlookAccountFromAuthResponse(code, provider = 'outl
     },
   });
   const me = await meResp.json();
-  debugger;
   if (!meResp.ok) {
     throw new Error(
       `Outlook profile request returned ${resp.status} ${resp.statusText}: ${JSON.stringify(me)}`

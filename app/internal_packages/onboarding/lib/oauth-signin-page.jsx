@@ -46,6 +46,15 @@ export default class OAuthSignInPage extends React.Component {
     });
   }
 
+  componentDidUpdate() {
+    const { authStage } = this.state;
+    if (['buildingAccount', 'accountSuccess'].includes(authStage)) {
+      document.querySelector('.back').style.display = 'none';
+    } else {
+      document.querySelector('.back').style.display = 'block';
+    }
+  }
+
   componentDidMount() {
     this._setupWebview();
 
@@ -220,7 +229,7 @@ export default class OAuthSignInPage extends React.Component {
       return;
     }
     const listeners = {
-      'did-fail-load': this._webviewDidFailLoad,
+      // 'did-fail-load': this._webviewDidFailLoad,
       'did-finish-load': this._loaded,
       // 'did-get-response-details': this._webviewDidGetResponseDetails,
       'console-message': this._onConsoleMessage,
