@@ -9,7 +9,6 @@ import Utils from '../models/utils';
 import Actions from '../actions';
 import AccountStore from './account-store';
 import ContactStore from './contact-store';
-import DatabaseStore from './database-store';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
@@ -555,6 +554,17 @@ export default class DraftEditingSession extends MailspringStore {
 
     if (!nextDraft) {
       return;
+    }
+    if(nextDraft.id !== this._draft.id){
+      this._draft.id = nextDraft.id;
+      ipcRenderer.send('draft-got-new-id', {
+        newHeaderMessageId: this._draft.headerMessageId,
+        oldHeaderMessageId: this._draft.headerMessageId,
+        newMessageId: this._draft.id,
+        referenceMessageId: this._draft.referenceMessageId,
+        threadId: this._draft.threadId,
+        windowLevel: this._currentWindowLevel,
+      });
     }
     if (this._draft.waitingForBody || !this._draft.body) {
       DraftStore.findByHeaderMessageIdWithBody({

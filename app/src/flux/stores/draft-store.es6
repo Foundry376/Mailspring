@@ -4,7 +4,8 @@ import DraftEditingSession from './draft-editing-session';
 import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
 import SendActionsStore from './send-actions-store';
-import FocusedContentStore from './focused-content-store';
+// import FocusedContentStore from './focused-content-store';
+import CategoryStore from './category-store';
 import SyncbackDraftTask from '../tasks/syncback-draft-task';
 import SyncbackMetadataTask from '../tasks/syncback-metadata-task';
 import SendDraftTask from '../tasks/send-draft-task';
@@ -18,6 +19,7 @@ import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import MessageStore from './message-store';
 import UndoRedoStore from './undo-redo-store';
+import ChangeFolderTask from '../tasks/change-folder-task';
 
 const { DefaultSendActionKey } = SendActionsStore;
 const SendDraftTimeout = 300000;
@@ -48,7 +50,11 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.sendingDraft, this._onSendingDraft);
     this.listenTo(Actions.destroyDraftFailed, this._onDestroyDraftFailed);
     this.listenTo(Actions.destroyDraftSucceeded, this._onDestroyDraftSuccess);
-    this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);
+    this.listenTo(Actions.changeDraftAccount, this._onDraftAccountChange);    // Remember that these two actions only fire in the current window and
+    // are picked up by the instance of the DraftStore in the current
+    // window.
+    this.listenTo(Actions.sendDraft, this._onSendDraft);
+    this.listenTo(Actions.destroyDraft, this._onDestroyDraft);
 
     if (AppEnv.isMainWindow()) {
       ipcRenderer.on('new-message', () => {
@@ -72,11 +78,6 @@ class DraftStore extends MailspringStore {
     // ipcRenderer.on('draft-got-new-id', this._onDraftGotNewId);
     ipcRenderer.on('draft-arp', this._onDraftArp);
 
-    // Remember that these two actions only fire in the current window and
-    // are picked up by the instance of the DraftStore in the current
-    // window.
-    this.listenTo(Actions.sendDraft, this._onSendDraft);
-    this.listenTo(Actions.destroyDraft, this._onDestroyDraft);
 
     AppEnv.onBeforeUnload(this._onBeforeUnload);
 
@@ -530,8 +531,9 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onDestroyDraft = ({ accountId, headerMessageId, id, threadId }, opts = {}) => {
+  _onDestroyDraft = (message = {}, opts = {}) => {
     // console.log('on destroy draft');
+    const { accountId, headerMessageId, id, threadId } = message;
     const session = this._draftSessions[headerMessageId];
     // Immediately reset any pending changes so no saves occur
     if (session) {
@@ -604,7 +606,7 @@ class DraftStore extends MailspringStore {
       delete this._draftsSending[headerMessageId];
     } else {
       AppEnv.reportError(
-        new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout} seconds`)
+        new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout} seconds`),
       );
     }
     if (trigger) {

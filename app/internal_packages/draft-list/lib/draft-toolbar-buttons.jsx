@@ -1,5 +1,5 @@
 import { RetinaImg } from 'mailspring-component-kit';
-import { React, PropTypes, Actions } from 'mailspring-exports';
+import { React, PropTypes, Actions, } from 'mailspring-exports';
 
 const buttonTimer = 500;
 

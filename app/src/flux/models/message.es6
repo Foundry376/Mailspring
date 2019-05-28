@@ -431,6 +431,9 @@ export default class Message extends ModelWithMetadata {
     const re = /(?:<signature>.*<\/signature>)|(?:<.+?>)|\s/gim;
     return this.body.replace(re, '').length === 0;
   }
+  isActiveDraft(){
+
+  }
   isDeleted() {
     //DC-269
     return this.state == Message.messageState.deleted; // eslint-ignore-line

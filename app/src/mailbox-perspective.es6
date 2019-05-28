@@ -344,6 +344,10 @@ class DraftsMailboxPerspective extends MailboxPerspective {
     return false;
   }
 
+  tasksForRemovingItems(messages, source) {
+    return TaskFactory.tasksForMovingToTrash({ messages, source });
+  }
+
   sheet() {
     if (!WorkspaceStore || !WorkspaceStore.Sheet) {
       WorkspaceStore = require('./flux/stores/workspace-store');

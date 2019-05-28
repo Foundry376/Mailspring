@@ -1,5 +1,5 @@
 import React from 'react';
-import { Actions } from 'mailspring-exports';
+import { Actions, } from 'mailspring-exports';
 import {
   FluxContainer,
   FocusContainer,

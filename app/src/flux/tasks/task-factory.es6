@@ -5,6 +5,7 @@ import ChangeStarredTask from './change-starred-task';
 import UndoTask from './undo-task';
 import CategoryStore from '../stores/category-store';
 import Thread from '../models/thread';
+import Message from '../models/message';
 import Label from '../models/label';
 import _ from 'underscore';
 import DeleteThreadsTask from './delete-threads-task';
@@ -33,6 +34,31 @@ const TaskFactory = {
         } else if (taskOrTasks) {
           tasks.push(taskOrTasks);
         }
+      }
+    });
+    return tasks;
+  },
+  tasksForMessagesByAccount(messages = [], task = () => null) {
+    if (typeof task !== 'function') {
+      throw new Error(`sortMessagesByAccount: 'task' must be function`);
+    }
+    const byAccount = {};
+    for (let message of messages) {
+      if (!(message instanceof Message)) {
+        throw new Error(`sortMessagesByAccount: 'messages' must be instance of Message`);
+      }
+      if (!byAccount[message.accountId]) {
+        byAccount[message.accountId] = [];
+      }
+      byAccount[message.accountId].push(message);
+    }
+    const tasks = [];
+    Object.keys(byAccount).forEach(accountId => {
+      const taskOrTasks = task({ accountId, messages: byAccount[accountId] });
+      if (taskOrTasks && taskOrTasks instanceof Array) {
+        tasks.push(...taskOrTasks);
+      } else if (taskOrTasks) {
+        tasks.push(taskOrTasks);
       }
     });
     return tasks;
@@ -85,14 +111,31 @@ const TaskFactory = {
     });
   },
 
-  tasksForMovingToTrash({ threads, source }) {
-    return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      return new ChangeFolderTask({
-        folder: CategoryStore.getTrashCategory(accountId),
-        threads: accountThreads,
-        source,
-      });
-    });
+  tasksForMovingToTrash({ threads = [], messages = [], source }) {
+    const tasks = [];
+    if (threads.length > 0 && (threads[0] instanceof Thread)) {
+      tasks.push(
+        ...this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+          return new ChangeFolderTask({
+            folder: CategoryStore.getTrashCategory(accountId),
+            threads: accountThreads,
+            source,
+          });
+        }),
+      );
+    }
+    if (messages.length > 0 && (messages[0] instanceof Message)) {
+      tasks.push(
+        ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          return new ChangeFolderTask({
+            folder: CategoryStore.getTrashCategory(accountId),
+            messages: messages,
+            source,
+          });
+        }),
+      );
+    }
+    return tasks;
   },
   tasksForExpungingThreads({ threads, source }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
