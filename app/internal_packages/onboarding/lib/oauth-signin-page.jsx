@@ -46,6 +46,15 @@ export default class OAuthSignInPage extends React.Component {
     });
   }
 
+  componentDidUpdate() {
+    const { authStage } = this.state;
+    if (['buildingAccount', 'accountSuccess'].includes(authStage)) {
+      document.querySelector('.back').style.display = 'none';
+    } else {
+      document.querySelector('.back').style.display = 'block';
+    }
+  }
+
   componentDidMount() {
     this._setupWebview();
 
