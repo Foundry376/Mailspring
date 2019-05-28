@@ -56,6 +56,7 @@ module.exports = class MailspringWindow extends EventEmitter {
       width,
       height,
       resizable,
+      acceptFirstMouse: true,
       webPreferences: {
         directWrite: true,
       },
