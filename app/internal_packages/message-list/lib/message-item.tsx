@@ -1,6 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Thread, Message, localized, Utils, Actions, AttachmentStore } from 'mailspring-exports';
+import {
+  Thread,
+  Message,
+  localized,
+  Utils,
+  Actions,
+  AttachmentStore,
+  MessageStore,
+} from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
@@ -125,9 +133,17 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
   _renderAttachments() {
     const { files = [], body, id } = this.props.message;
     const { filePreviewPaths, downloads } = this.state;
-    const attachedFiles = files.filter(
+    let attachedFiles = files.filter(
       f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`)
     );
+
+    for (const extension of MessageStore.extensions()) {
+      if (!extension.filterMessageFiles) continue;
+      attachedFiles = extension.filterMessageFiles({
+        message: this.props.message,
+        files: attachedFiles,
+      });
+    }
 
     return (
       <div>

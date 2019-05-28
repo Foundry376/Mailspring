@@ -170,6 +170,7 @@ lazyLoad(`ComponentRegistry`, 'registries/component-registry');
 lazyLoad(`Utils`, 'flux/models/utils');
 lazyLoad(`DOMUtils`, 'dom-utils');
 lazyLoad(`DateUtils`, 'date-utils');
+lazyLoad(`CalendarUtils`, 'calendar-utils');
 lazyLoad(`FsUtils`, 'fs-utils');
 lazyLoad(`CanvasUtils`, 'canvas-utils');
 lazyLoad(`RegExpUtils`, 'regexp-utils');
