@@ -579,10 +579,10 @@ class MessageStore extends MailspringStore {
               items[itemIndex].files[fileIndex].isDownloading = !err;
               processed++;
               if (processed === total) {
-                if (inLineMissing.length > 0) {
-                  Actions.fetchAttachments({ accountId: i.accountId, missingItems: inLineMissing });
-                }
                 if (change) {
+                  if (inLineMissing.length > 0) {
+                    Actions.fetchAttachments({ accountId: i.accountId, missingItems: inLineMissing });
+                  }
                   this._missingAttachmentIds = [...inLineMissing, ...normalMissing];
                   this.trigger();
                 }
@@ -595,10 +595,10 @@ class MessageStore extends MailspringStore {
             processed += 2;
           }
           if (processed === total) {
-            if (inLineMissing.length > 0) {
-              Actions.fetchAttachments({ accountId: i.accountId, missingItems: inLineMissing });
-            }
             if (change) {
+              if (inLineMissing.length > 0) {
+                Actions.fetchAttachments({ accountId: i.accountId, missingItems: inLineMissing });
+              }
               this._missingAttachmentIds = [...inLineMissing, ...normalMissing];
               this.trigger();
             }
