@@ -160,25 +160,25 @@ export default class MessageItem extends React.Component {
       <div className="download-all">
         <div className="attachment-number">
           <RetinaImg name="feed-attachments.svg"
-                     isIcon
-                     style={{ width: 18, height: 18 }}
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            isIcon
+            style={{ width: 18, height: 18 }}
+            mode={RetinaImg.Mode.ContentIsMask} />
           <span>{this.props.message.files.length} attachments</span>
         </div>
         <div className="separator">-</div>
         {this._isAllAttachmentsDownloading() ?
           <div className="download-all-action">
             <RetinaImg name='refresh.svg'
-                       className='infinite-rotation-linear'
-                       style={{ width: 24, height: 24, backgroundColor: '#797d80' }} isIcon
-                       mode={RetinaImg.Mode.ContentIsMask}/>
+              className='infinite-rotation-linear'
+              style={{ width: 24, height: 24 }} isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
           </div>
           :
           <div className="download-all-action" onClick={this._onDownloadAll}>
             <RetinaImg name="download.svg"
-                       isIcon
-                       style={{ width: 18, height: 18 }}
-                       mode={RetinaImg.Mode.ContentIsMask}/>
+              isIcon
+              style={{ width: 18, height: 18 }}
+              mode={RetinaImg.Mode.ContentIsMask} />
             <span>Download all</span>
           </div>
         }
@@ -209,7 +209,7 @@ export default class MessageItem extends React.Component {
             />
           </div>
         )}
-        {files.length > 1 ? this._renderDownloadAllButton() : null}
+        {attachedFiles.length > 1 ? this._renderDownloadAllButton() : null}
       </div>
     );
   }
@@ -254,7 +254,7 @@ export default class MessageItem extends React.Component {
               detailedHeaders: this.state.detailedHeaders,
             }}
           />
-          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut}/>
+          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut} />
         </div>
         <div className='row'>
           <EmailAvatar
@@ -345,7 +345,7 @@ export default class MessageItem extends React.Component {
     const { message: { snippet, from, files, date, draft }, className } = this.props;
 
     const attachmentIcon = Utils.showIconForAttachments(files) ? (
-      <div className="collapsed-attachment"/>
+      <div className="collapsed-attachment" />
     ) : null;
 
     return (
@@ -362,11 +362,11 @@ export default class MessageItem extends React.Component {
                   {from && from[0] && from[0].displayName({ compact: true })}
                 </div>
                 {draft && (
-                  <div className="collapsed-pencil"/>
+                  <div className="collapsed-pencil" />
                 )}
                 {attachmentIcon}
                 <div className="collapsed-timestamp">
-                  <MessageTimestamp date={date}/>
+                  <MessageTimestamp date={date} />
                 </div>
               </div>
               <div className="collapsed-snippet">{snippet}</div>
@@ -383,7 +383,7 @@ export default class MessageItem extends React.Component {
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             {this._renderHeader()}
-            <MessageItemBody message={this.props.message} downloads={this.state.downloads}/>
+            <MessageItemBody message={this.props.message} downloads={this.state.downloads} />
             {this._renderAttachments()}
             {this._renderFooterStatus()}
           </div>
