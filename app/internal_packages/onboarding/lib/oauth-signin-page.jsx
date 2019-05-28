@@ -220,7 +220,7 @@ export default class OAuthSignInPage extends React.Component {
       return;
     }
     const listeners = {
-      'did-fail-load': this._webviewDidFailLoad,
+      // 'did-fail-load': this._webviewDidFailLoad,
       'did-finish-load': this._loaded,
       // 'did-get-response-details': this._webviewDidGetResponseDetails,
       'console-message': this._onConsoleMessage,

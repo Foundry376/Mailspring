@@ -138,39 +138,39 @@ class MultiselectToolbar extends Component {
   onSelectWithFilter = () => {
     const menu = new Menu();
     menu.append(new MenuItem({
-        label: `All`,
-        click: (menuItem, browserWindow) => {
-          AppEnv.commands.dispatch('multiselect-list:select-all');
-        },
-      }),
+      label: `All`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('multiselect-list:select-all');
+      },
+    }),
     );
     menu.append(new MenuItem({
-        label: `None`,
-        click: (menuItem, browserWindow) => {
-          AppEnv.commands.dispatch('multiselect-list:deselect-all');
-        },
-      }),
+      label: `None`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('multiselect-list:deselect-all');
+      },
+    }),
     );
     menu.append(new MenuItem({
-        label: `Unread`,
-        click: (menuItem, browserWindow) => {
-          AppEnv.commands.dispatch('thread-list:select-unread');
-        },
-      }),
+      label: `Unread`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('thread-list:select-unread');
+      },
+    }),
     );
     menu.append(new MenuItem({
-        label: `Flagged`,
-        click: (menuItem, browserWindow) => {
-          AppEnv.commands.dispatch('thread-list:select-starred');
-        },
-      }),
+      label: `Flagged`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('thread-list:select-starred');
+      },
+    }),
     );
     menu.append(new MenuItem({
-        label: `Important`,
-        click: (menuItem, browserWindow) => {
-          AppEnv.commands.dispatch('thread-list:select-important');
-        },
-      }),
+      label: `Important`,
+      click: (menuItem, browserWindow) => {
+        AppEnv.commands.dispatch('thread-list:select-important');
+      },
+    }),
     );
     menu.popup({});
   };
@@ -219,17 +219,17 @@ class MultiselectToolbar extends Component {
     if (this.state.refreshingMessages) {
       return <div style={{ padding: '0 5px' }}>
         <RetinaImg name='refresh.svg'
-                   className='infinite-rotation-linear'
-                   style={{ width: 24, height: 24, backgroundColor: '#797d80' }} isIcon
-                   mode={RetinaImg.Mode.ContentIsMask}/>
+          className='infinite-rotation-linear'
+          style={{ width: 24, height: 24 }} isIcon
+          mode={RetinaImg.Mode.ContentIsMask} />
       </div>;
     }
     return <button tabIndex={-1}
-                   className="btn btn-toolbar btn-list-more" title='Refresh'
-                   onClick={this.refreshPerspective}>
+      className="btn btn-toolbar btn-list-more" title='Refresh'
+      onClick={this.refreshPerspective}>
       <RetinaImg name='refresh.svg'
-                 style={{ width: 24, height: 24 }} isIcon
-                 mode={RetinaImg.Mode.ContentIsMask}/>
+        style={{ width: 24, height: 24 }} isIcon
+        mode={RetinaImg.Mode.ContentIsMask} />
     </button>;
   }
 
@@ -239,7 +239,7 @@ class MultiselectToolbar extends Component {
     if (dataSource) {
       totalCount = dataSource.count();
     } else {
-      return <span/>;
+      return <span />;
     }
     const items = dataSource.itemsCurrentlyInViewMatching(() => true);
     const checkStatus = this.checkStatus();
@@ -286,30 +286,30 @@ class MultiselectToolbar extends Component {
                   Clear Selection
                 </button> */}
                 {WorkspaceStore.layoutMode() === 'list' ?
-                  <div className="divider" key='thread-list-tool-bar-divider'/> : null}
+                  <div className="divider" key='thread-list-tool-bar-divider' /> : null}
                 {toolbarElement}
               </div>
             ) : (
-              <div style={{
-                display: 'flex', width: 'calc(100% - 66px)',
-                justifyContent: 'space-between',
-                marginRight: 10,
-              }}>
-                {this.state.refreshingMessages ?
-                  <span className="updated-time">Checking for mail...</span>
-                  : <span className="updated-time">
+                <div style={{
+                  display: 'flex', width: 'calc(100% - 66px)',
+                  justifyContent: 'space-between',
+                  marginRight: 10,
+                }}>
+                  {this.state.refreshingMessages ?
+                    <span className="updated-time">Checking for mail...</span>
+                    : <span className="updated-time">
                       {this._renderLastUpdateLabel(lastUpdate)}
-                    {threadCounts > 0 && (
-                      <span className="toolbar-unread-count">({this._formatNumber(threadCounts)})</span>
-                    )}
+                      {threadCounts > 0 && (
+                        <span className="toolbar-unread-count">({this._formatNumber(threadCounts)})</span>
+                      )}
                     </span>
-                }
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  {this.renderRefreshButton(current)}
-                  {onEmptyButtons}
+                  }
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    {this.renderRefreshButton(current)}
+                    {onEmptyButtons}
+                  </div>
                 </div>
-              </div>
-            )
+              )
           }
         </div>
         <InjectedComponentSet

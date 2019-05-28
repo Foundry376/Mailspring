@@ -45,7 +45,7 @@ function ProgressBar(props) {
   const { download } = props;
   const isDownloading = download ? download.state === 'downloading' : false;
   if (!isDownloading) {
-    return <span/>;
+    return <span />;
   }
   const { state: downloadState, percent: downloadPercent } = download;
   const downloadProgressStyle = {
@@ -53,8 +53,8 @@ function ProgressBar(props) {
   };
   return (
     <span className={`progress-bar-wrap state-${downloadState}`}>
-      <span className="progress-background"/>
-      <span className="progress-foreground "/>
+      <span className="progress-background" />
+      <span className="progress-foreground " />
     </span>
   );
 }
@@ -95,10 +95,10 @@ function AttachmentActionIcon(props) {
     <div className="file-action-icon" onClick={onClickActionIcon}>
       {isDownloading ?
         <RetinaImg name='refresh.svg'
-                   className='infinite-rotation-linear'
-                   style={{ width: 24, height: 24, backgroundColor: '#797d80' }} isIcon
-                   mode={RetinaImg.Mode.ContentIsMask}/> :
-        <RetinaImg name={actionIconName} mode={retinaImgMode}/>
+          className='infinite-rotation-linear'
+          style={{ width: 24, height: 24 }} isIcon
+          mode={RetinaImg.Mode.ContentIsMask} /> :
+        <RetinaImg name={actionIconName} mode={retinaImgMode} />
       }
     </div>
   );
@@ -162,7 +162,7 @@ export class AttachmentItem extends Component {
       event.preventDefault();
     }
   };
-  _onClick = () =>{
+  _onClick = () => {
     if (this.state.isDownloading || this.props.isDownloading) {
       return;
     }
@@ -248,7 +248,7 @@ export class AttachmentItem extends Component {
         {...pickHTMLProps(extraProps)}
       >
         <div className="inner">
-          <ProgressBar download={this.state.download}/>
+          <ProgressBar download={this.state.download} />
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
             <div className="file-info-wrap">
               <div className="attachment-icon">
@@ -336,13 +336,13 @@ export class ImageAttachmentItem extends Component {
     if (download && download.percent <= 5) {
       return (
         <div style={{ width: '100%', height: '100px' }}>
-          <Spinner visible/>
+          <Spinner visible />
         </div>
       );
     }
     const src =
       download && download.percent < 100 ? `${filePath}?percent=${download.percent}` : filePath;
-    return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded}/>;
+    return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded} />;
   }
 
   render() {
@@ -351,7 +351,7 @@ export class ImageAttachmentItem extends Component {
     return (
       <div className={classes} {...pickHTMLProps(extraProps)}>
         <div>
-          <ProgressBar download={download}/>
+          <ProgressBar download={download} />
           <AttachmentActionIcon
             {...this.props}
             removeIcon="image-cancel-button.png"
