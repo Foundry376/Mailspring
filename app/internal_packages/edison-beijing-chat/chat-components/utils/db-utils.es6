@@ -92,11 +92,17 @@ export async function safeUpdate(doc, data) {
     }
     let doc2 = await getDoc(doc);
     let failed = false;
-    for (let key in data) {
-      if (data[key] != doc2[key]) {
-        failed = true;
-        break;
+    if (data && doc2) {
+      for (let key in data) {
+        if (data[key] != doc2[key]) {
+          failed = true;
+          break;
+        }
       }
+    } else {
+      const error = new Error();
+      console.log('safeUpdate error data is null or getDoc return null: data, doc, e, stack: ', data, doc, e, error.stack);
+      failed = true;
     }
     if (failed) {
       if (tryCount < tryMax) {
@@ -132,11 +138,17 @@ export async function safeUpsert(doc, data) {
     }
     let doc2 = await db[doc.name].findOne().where(key).eq(keyValue).exec();
     let failed = false;
-    for (let key in data) {
-      if (data[key] != doc2[key]) {
-        failed = true;
-        break;
+    if (doc2 && data) {
+      for (let key in data) {
+        if (data[key] != doc2[key]) {
+          failed = true;
+          break;
+        }
       }
+    } else {
+      const error = new Error();
+      console.log('safeUpsert error no doc2 or data: data, doc, e, stack: ', data, doc, e, error.stack);
+      failed = true;
     }
     if (failed) {
       if (tryCount < tryMax) {
