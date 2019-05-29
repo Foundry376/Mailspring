@@ -20,6 +20,7 @@ import {
   SELECT_CONVERSATION,
   DESELECT_CONVERSATION,
 } from '../../actions/chat';
+import chatModel from '../../store/model';
 
 const SEPARATOR = '$';
 
@@ -107,6 +108,14 @@ export const retrieveSelectedConversationMessagesEpic = action$ =>
             .mergeMap(messages => {
               addMessagesSenderNickname(messages);
               return groupMessagesByTime(messages, 'sentTime', 'day');
+            })
+            .filter(()=> {
+              const time = new Date().getTime();
+              const keep = time - chatModel.lastUpdateMessageTime > 500;
+              if (keep){
+                chatModel.lastUpdateMessageTime = time;
+              }
+              return keep;
             })
             .map(groupedMessages => {
               return updateSelectedConversationMessages(groupedMessages)

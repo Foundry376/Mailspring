@@ -211,7 +211,7 @@ export const beginStoreConversationsEpic = action$ =>
       Observable.fromPromise(saveConversations(conversations))
         .map(convs => successfullyStoredConversations(convs))
         .catch(err => {
-          console.log('failedStoringConversations', err);
+          // console.log('failedStoringConversations', err);
           return Observable.of(failedStoringConversations(err, conversations))
         })
     );
@@ -246,6 +246,14 @@ export const retrieveConversationsEpic = action$ =>
               )
                 .sort((a, b) => b.lastMessageTime - a.lastMessageTime)
             )
+            .filter(() => {
+              const time = new Date().getTime();
+              const keep = time - chatModel.lastUpdateConversationTime > 500;
+              if (keep) {
+                chatModel.lastUpdateConversationTime = time;
+              }
+              return keep;
+            })
             .map(conversations => {
               // update system tray's unread count
               setTimeout(() => {

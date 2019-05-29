@@ -104,10 +104,12 @@ export default class Msg extends PureComponent {
       label: 'Delete message',
       click: () => {
         const { msg, conversation, onMessageSubmitted } = this.props;
+        console.log('delete message: msg: ', msg);
         const body = this.msgBody;
         body.updating = true;
         body.deleted = true;
         onMessageSubmitted(conversation, JSON.stringify(body), msg.id, true);
+        msg.remove();
         this.menu.closePopup();
       }
     });

@@ -119,11 +119,11 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
       if (fs.existsSync(thumbPath)) {
         Actions.updateDownloadPorgress();
-        console.log('downloaded thumb: ', msgBody);
+        // console.log('downloaded thumb: ', msgBody);
         downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
           if (fs.existsSync(thumbPath)) {
             Actions.updateDownloadPorgress();
-            console.log('downloaded image: ', msgBody);
+            // console.log('downloaded image: ', msgBody);
           }
         });
       }
