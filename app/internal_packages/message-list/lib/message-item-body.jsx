@@ -40,7 +40,7 @@ class ConditionalQuotedTextControl extends React.Component {
             name={'expand-more.svg'}
             style={{ width: 24, height: 24 }}
             isIcon
-            mode={RetinaImg.Mode.ContentIsMask} />
+            mode={RetinaImg.Mode.ContentIsMask}/>
         </span>
       </a>
     );
@@ -81,15 +81,25 @@ export default class MessageItemBody extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.message.id !== this.props.message.id || !this.state.processedBody) {
-      if (this._unsub) {
-        this._unsub();
-      }
-      this._unsub = MessageBodyProcessor.subscribe(
-        nextProps.message,
-        true,
-        processedBody => this._setProcessBody(processedBody, nextProps.message.id),
-      );
+      this.renewSubscriptionToMessageBodyProcessor(nextProps);
+    } else if (
+      nextProps.message.id === this.props.message.id &&
+      nextProps.message.version > this.props.message.version &&
+      nextProps.message.body === this.props.message.body
+    ) {
+      this.renewSubscriptionToMessageBodyProcessor(nextProps);
     }
+  }
+
+  renewSubscriptionToMessageBodyProcessor(props) {
+    if (this._unsub) {
+      this._unsub();
+    }
+    this._unsub = MessageBodyProcessor.subscribe(
+      props.message,
+      true,
+      processedBody => this._setProcessBody(processedBody, props.message.id),
+    );
   }
 
   _setProcessBody = (processedBody, messageId) => {

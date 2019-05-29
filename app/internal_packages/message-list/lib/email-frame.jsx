@@ -27,6 +27,16 @@ export default class EmailFrame extends React.Component {
     this._unlisten = EmailFrameStylesStore.listen(this._writeContent);
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (
+      nextProps.message.id === this.props.message.id &&
+      nextProps.content === this.props.content &&
+      nextProps.message.version > this.props.message.version
+    ) {
+      this._writeContent();
+    }
+  }
+
   shouldComponentUpdate(nextProps) {
     const { content, showQuotedText, message = {} } = this.props;
     const nextMessage = nextProps.message || {};
@@ -35,6 +45,9 @@ export default class EmailFrame extends React.Component {
       content !== nextProps.content ||
       showQuotedText !== nextProps.showQuotedText ||
       message.id !== nextMessage.id ||
+      (message.id === nextMessage.id &&
+        nextMessage.version > message.version &&
+        content === nextProps.content) ||
       !Utils.isEqualReact(message.pluginMetadata, nextMessage.pluginMetadata)
     );
   }
@@ -79,7 +92,7 @@ export default class EmailFrame extends React.Component {
       doc.write(`<style>${styles}</style>`);
     }
     doc.write(
-      `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent()}</div>`
+      `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent()}</div>`,
     );
     doc.close();
 
@@ -191,7 +204,7 @@ export default class EmailFrame extends React.Component {
       window.requestAnimationFrame(() => {
         this._setFrameHeight();
       });
-    }
+    };
   };
 
   render() {
