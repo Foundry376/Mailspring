@@ -122,13 +122,6 @@ export const clearMessages = async (conversation) => {
   let msg = await db.messages.findOne().where('conversationJid').eq(conversation.jid).exec();
   if (msg) {
     await db.messages.find().where('conversationJid').eq(conversation.jid).remove();
-    msg = copyRxdbMessage(msg);
-    let body = msg.body;
-    body = JSON.parse(body);
-    body.deleted = true;
-    body = JSON.stringify(body);
-    msg.body = body;
-    safeUpsert(db.messages, msg);
   }
 }
 

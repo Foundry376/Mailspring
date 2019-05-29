@@ -27,10 +27,9 @@ const createDb = async () => {
   const db = await RxDB.create({
     name: dbPath,
     adapter: 'websql',
-    // pouchSettings: {
-    //   name: dbPath,
-    //   adapter: 'websql'
-    // }
+    pouchSettings: {
+      auto_compaction: true,
+    }
   });
   await Promise.all(
     Object.entries(schemas)
