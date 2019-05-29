@@ -203,7 +203,7 @@ export default class MessagesPanel extends PureComponent {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
     const sqldb = sqlite(dbpath);
-    const stmt = sqldb.prepare('SELECT * FROM contact where refs > 2');
+    const stmt = sqldb.prepare('SELECT * FROM contact where sendToCount > 1  and recvFromCount >= 1');
     let emailContacts = stmt.all();
     sqldb.close();
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
