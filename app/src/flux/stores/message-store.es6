@@ -492,6 +492,16 @@ class MessageStore extends MailspringStore {
     }
   }
 
+  fetchMissingAttachmentsByFileIds({ fileIds = [] } = {}) {
+    if (
+      fileIds.every(id => {
+        return this._missingAttachmentIds.includes(id);
+      })
+    ) {
+      Actions.fetchAttachments({ accountId: this._items[0].accountId, missingItems: fileIds });
+    }
+  }
+
   fetchMissingAttachmentsByMessage({ messageId } = {}) {
     const missing = [];
     const noLongerMissing = [];

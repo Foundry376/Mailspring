@@ -8,7 +8,7 @@ import { pickHTMLProps } from 'pick-react-known-prop';
 import RetinaImg from './retina-img';
 import Flexbox from './flexbox';
 import Spinner from './spinner';
-import { AttachmentStore } from 'mailspring-exports';
+import { AttachmentStore, MessageStore } from 'mailspring-exports';
 
 const propTypes = {
   className: PropTypes.string,
@@ -17,6 +17,7 @@ const propTypes = {
   previewable: PropTypes.bool,
   disabled: PropTypes.bool,
   missing: PropTypes.bool,
+  fileId: PropTypes.string,
   filePath: PropTypes.string,
   contentType: PropTypes.string,
   download: PropTypes.shape({
@@ -45,7 +46,7 @@ function ProgressBar(props) {
   const { download } = props;
   const isDownloading = download ? download.state === 'downloading' : false;
   if (!isDownloading) {
-    return <span />;
+    return <span/>;
   }
   const { state: downloadState, percent: downloadPercent } = download;
   const downloadProgressStyle = {
@@ -53,8 +54,8 @@ function ProgressBar(props) {
   };
   return (
     <span className={`progress-bar-wrap state-${downloadState}`}>
-      <span className="progress-background" />
-      <span className="progress-foreground " />
+      <span className="progress-background"/>
+      <span className="progress-foreground "/>
     </span>
   );
 }
@@ -95,10 +96,10 @@ function AttachmentActionIcon(props) {
     <div className="file-action-icon" onClick={onClickActionIcon}>
       {isDownloading ?
         <RetinaImg name='refresh.svg'
-          className='infinite-rotation-linear'
-          style={{ width: 24, height: 24 }} isIcon
-          mode={RetinaImg.Mode.ContentIsMask} /> :
-        <RetinaImg name={actionIconName} mode={retinaImgMode} />
+                   className='infinite-rotation-linear'
+                   style={{ width: 24, height: 24 }} isIcon
+                   mode={RetinaImg.Mode.ContentIsMask}/> :
+        <RetinaImg name={actionIconName} mode={retinaImgMode}/>
       }
     </div>
   );
@@ -168,8 +169,9 @@ export class AttachmentItem extends Component {
     }
     if (this.props.missing && !this.state.isDownloading) {
       this.setState({ isDownloading: true, download: { state: 'downloading', percent: 100 } });
+      MessageStore.fetchMissingAttachmentsByFileIds({ fileIds: [this.props.fileId] });
     }
-  }
+  };
 
   _onOpenAttachment = () => {
     if (this.state.isDownloading || this.props.isDownloading) {
@@ -177,6 +179,7 @@ export class AttachmentItem extends Component {
     }
     if (this.props.missing && !this.state.isDownloading) {
       this.setState({ isDownloading: true, download: { state: 'downloading', percent: 100 } });
+      MessageStore.fetchMissingAttachmentsByFileIds({ filedIds: [this.props.fileId] });
     }
     const { onOpenAttachment } = this.props;
     if (onOpenAttachment != null) {
@@ -228,7 +231,7 @@ export class AttachmentItem extends Component {
       [className]: className,
     });
     if (isImage) {
-      filePreviewPath = filePath
+      filePreviewPath = filePath;
     }
     const style = draggable ? { WebkitUserDrag: 'element' } : null;
     const tabIndex = focusable ? 0 : null;
@@ -248,25 +251,25 @@ export class AttachmentItem extends Component {
         {...pickHTMLProps(extraProps)}
       >
         <div className="inner">
-          <ProgressBar download={this.state.download} />
+          <ProgressBar download={this.state.download}/>
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
             <div className="file-info-wrap">
               <div className="attachment-icon">
                 {filePreviewPath ? (
                   <div className="file-thumbnail-preview" draggable={false}>
-                    <img alt="" src={`file://${filePreviewPath}`} style={{ zoom: 1 / devicePixelRatio }} />
+                    <img alt="" src={`file://${filePreviewPath}`} style={{ zoom: 1 / devicePixelRatio }}/>
                   </div>
                 ) : (
-                    <RetinaImg
-                      ref={cm => {
-                        this._fileIconComponent = cm;
-                      }}
-                      className="file-icon"
-                      fallback="drafts.svg"
-                      name={iconName}
-                      isIcon
-                      mode={RetinaImg.Mode.ContentIsMask} />
-                  )}
+                  <RetinaImg
+                    ref={cm => {
+                      this._fileIconComponent = cm;
+                    }}
+                    className="file-icon"
+                    fallback="drafts.svg"
+                    name={iconName}
+                    isIcon
+                    mode={RetinaImg.Mode.ContentIsMask}/>
+                )}
               </div>
               <div className="attachment-info">
                 <div className="attachment-name" title={displayName}>
@@ -336,13 +339,13 @@ export class ImageAttachmentItem extends Component {
     if (download && download.percent <= 5) {
       return (
         <div style={{ width: '100%', height: '100px' }}>
-          <Spinner visible />
+          <Spinner visible/>
         </div>
       );
     }
     const src =
       download && download.percent < 100 ? `${filePath}?percent=${download.percent}` : filePath;
-    return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded} />;
+    return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded}/>;
   }
 
   render() {
@@ -351,7 +354,7 @@ export class ImageAttachmentItem extends Component {
     return (
       <div className={classes} {...pickHTMLProps(extraProps)}>
         <div>
-          <ProgressBar download={download} />
+          <ProgressBar download={download}/>
           <AttachmentActionIcon
             {...this.props}
             removeIcon="image-cancel-button.png"

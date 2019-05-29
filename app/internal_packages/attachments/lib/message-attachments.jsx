@@ -59,6 +59,7 @@ class MessageAttachments extends Component {
     return (
       <AttachmentRenderer
         key={file.id}
+        fileId={file.id}
         focusable
         previewable
         isImage={isImage}
