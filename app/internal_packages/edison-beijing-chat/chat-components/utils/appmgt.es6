@@ -138,10 +138,25 @@ export const sendCmd2App2 = (userId, userName, token, appId, command, peerUserId
     }
     sendCmd2App({ userId, userName, token, appId, command, peerUserId, roomId }, cb);
 }
-
+export const removeMyApps = (userId) => {
+    if (userId) {
+        if (myApps[userId]) {
+            myApps[userId] = null;
+        }
+    }
+}
 export const getMyApps = (userId) => {
     if (userId) {
-        return myApps[userId];
+        if (!myApps[userId] || !myApps[userId].apps) {
+            getToken(userId).then((data) => {
+                iniApps(userId, data);
+            }).catch((err) => {
+                console.warn(err);
+            })
+            return {};
+        } else {
+            return myApps[userId];
+        }
     } else {
         return myApps;
     }
