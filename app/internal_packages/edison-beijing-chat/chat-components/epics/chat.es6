@@ -270,15 +270,15 @@ export const sendMessageEpic = action$ =>
           });
           if (!conversation.isGroup) {
             // if private chat, and it's a new conversation
-              getDb().then(db => db.conversations.findOne(conversation.jid).exec().then(conv => {
-                safeUpdate(conv, {
-                    lastMessageTime,
-                    lastMessageSender: sender || conversation.curJid,
-                    lastMessageText
-                  })
-              }))
-            }
-          });
+            getDb().then(db => db.conversations.findOne(conversation.jid).exec().then(conv => {
+              safeUpdate(conv, {
+                lastMessageTime,
+                lastMessageSender: sender || conversation.curJid,
+                lastMessageText
+              })
+            }))
+          }
+        });
       }
       if (ediEncrypted) {
         return ({
@@ -519,23 +519,26 @@ export const receiveGroupMessageEpic = action$ =>
 
 export const convertReceivedMessageEpic = (action$) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
-    .filter(({ payload }) => {
-      try {
-        JSON.parse(payload.body);
-        return true;
-      }
-      catch (e) {
-        return false;
-      }
-    })
+    // .filter(({ payload }) => {
+    //   try {
+    //     JSON.parse(payload.body);
+    //     return true;
+    //   }
+    //   catch (e) {
+    //     return false;
+    //   }
+    // })
     .map(({ type, payload }) => {
-      // console.log("yazz-test1", payload);
       let timeSend;
-      if (payload.body) {
-        timeSend = JSON.parse(payload.body).timeSend;
-      } else {
-        timeSend = payload.ts;
+      // if (payload.body) {
+      //   timeSend = JSON.parse(payload.body).timeSend;
+      // } else {
+      //   timeSend = payload.ts;
+      // }
+      if (payload.body && payload.body.trim().indexOf('{') != 0) {
+        payload.body = '{"type":1,"content":"' + payload.body + '"}';
       }
+      timeSend = parseInt(payload.ts);
       let sender = payload.from.bare;
       // if groupchat, display the sender name
       if (type === RECEIVE_GROUP_MESSAGE) {

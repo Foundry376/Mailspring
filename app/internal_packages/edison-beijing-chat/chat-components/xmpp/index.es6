@@ -39,6 +39,18 @@ export class Xmpp extends EventEmitter3 {
     console.log(xmpp);
     return xmpp.connect();
   }
+  removeXmpp(jid) {
+    if (jid && jid.indexOf('/') > 0) {
+      jid = jid.substring(0, jid.indexOf('/'));
+    }
+    let xmpp = this.xmppMap[jid];
+    if (xmpp) {
+      if (xmpp.client) {
+        xmpp.client.disconnect();
+      }
+      this.xmppMap[jid] = null;
+    }
+  }
   getXmpp(jid) {
     if (jid && jid.indexOf('/') > 0) {
       jid = jid.substring(0, jid.indexOf('/'));
@@ -152,6 +164,7 @@ export class XmppEx extends EventEmitter3 {
   connectedJid = null;
   retryTimes = 0;
   correctionTime = 0;
+  timeoutCount = 0;
 
   /**
    * Initializes the QuickBlox instance's credentials.
@@ -166,6 +179,7 @@ export class XmppEx extends EventEmitter3 {
     }
     this.credentials = credentials;
     this.connectedJid = credentials.jid;
+    this.retryTimes = 0;
     this.client = Stanza.createClient(credentials);
     this.client.on('*', (name, data) => {
       if (name != 'disconnected') {
@@ -191,24 +205,32 @@ export class XmppEx extends EventEmitter3 {
       console.warn('xmpp session2:disconnected', this.connectedJid);
       log(`xmpp disconnected: jid: ${this.connectedJid}`);
       this.isConnected = false;
-      if (this.retryTimes == 0) {
-        this.retryTimes++;
-        setTimeout(() => this.connect(), 1111);
+      if (this.retryTimes < 3) {
+        // this.retryTimes++;
+        setTimeout(() => this.connect(), 500 + this.retryTimes * 1000);
       } else {
         this.emit('disconnected', this.connectedJid);
+      }
+    });
+    this.client.on('request:timeout', () => {
+      this.timeoutCount++;
+      if (this.timeoutCount == 2) {
+        setTimeout(() => this.connect(), 1111);
       }
     });
   }
   ping() {
     if (this.isConnected) {
       this.client.ping(this.connectedJid);
-      console.log(`xmpp session3:ping: jid: ${this.connectedJid}`);
+      console.log(`xmpp session3:ping: jid: ${this.connectedJid}, ${this.getTime()}`);
       setTimeout(() => this.ping(), 9333);
     } else {
       console.log(`xmpp session3:ping2: jid: ${this.connectedJid}`);
     }
   }
-
+  getTime() {
+    return `${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`
+  }
   /**
    * Connects to the xmpp service. Requires the instance to be initialized.
    * @throws  {Error}             Throws an error if the instance has not been initialized
@@ -219,27 +241,30 @@ export class XmppEx extends EventEmitter3 {
       throw Error('Init this instance by calling init(credentials) before trying to connect');
     }
     log(`xmpp connect: jid: ${this.connectedJid}`);
-    console.warn(`xmpp session3:connecting: jid: ${this.connectedJid}`);
-
+    console.warn(`xmpp session3:connecting: jid: ${this.connectedJid}, ${this.getTime()}`);
+    this.retryTimes++;
     const self = this;
     let isComplete = false;
     return new Promise((resolve, reject) => {
       const success = jid => {
         isComplete = true;
+        // console.log(`xmpp session3:isComplete1, ${this.getTime()}`, isComplete);
         removeListeners();
         resolve(jid);
       };
       const failure = () => {
         isComplete = true;
+        // console.log(`xmpp session3:isComplete2, ${this.getTime()}`, isComplete);
         removeListeners();
         reject();
       };
       setTimeout(() => {
         if (!isComplete) {
+          // console.log('xmpp session3:isComplete3', isComplete);
           removeListeners();
           self.client.disconnect();
           //reject('Connection timeout');
-          console.log('Connection timeout');
+          console.log(`Connection timeout, ${this.getTime()}`);
         }
       }, 30000);
       const removeListeners = () => {

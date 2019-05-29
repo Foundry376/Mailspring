@@ -20,6 +20,12 @@ export const getMyAppByShortName = (userId, shortName) => {
                 arr.push(apps[i]);
             }
         }
+    } else if (!myApps[userId] || !myApps[userId].apps) {
+        getToken(userId).then((data) => {
+            iniApps(userId, data);
+        }).catch((err) => {
+            console.warn(err);
+        })
     }
     return arr;
 }
@@ -31,6 +37,12 @@ export const getMyAppById = (userId, id) => {
                 return apps[i];
             }
         }
+    } else if (!myApps[userId] || !myApps[userId].apps) {
+        getToken(userId).then((data) => {
+            iniApps(userId, data);
+        }).catch((err) => {
+            console.warn(err);
+        })
     }
     return null;
 }
@@ -69,7 +81,7 @@ export const iniApps = (userId, token) => {
                 myApps[userId].version = json.data.version;
             }
         } else {
-          console.log('iniApps: failed: ', userId, err);
+            console.log('iniApps: failed: ', userId, err);
         }
     });
 }
@@ -129,9 +141,9 @@ export const sendCmd2App2 = (userId, userName, token, appId, command, peerUserId
 
 export const getMyApps = (userId) => {
     if (userId) {
-      return myApps[userId];
+        return myApps[userId];
     } else {
-      return myApps;
+        return myApps;
     }
 }
 //--------------for chat platform------------
