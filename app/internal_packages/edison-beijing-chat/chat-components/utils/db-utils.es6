@@ -58,6 +58,14 @@ export async function saveGroupMessages(groupedMessages) {
   }
 }
 
+const docName2key = {
+  messages: 'id',
+  contacts: 'jid',
+  configs: 'key',
+  conversations: 'jid',
+  e2ees: 'jid',
+  rooms: 'jid'
+}
 async function getDoc(doc) {
   //this is only for  being used by safeUpdate
   const db = await getDb();
@@ -68,19 +76,19 @@ async function getDoc(doc) {
   }
 }
 
-let updateCount = 0;
+let tryCount = 0;
 let tryMax = 3;
 export async function safeUpdate(doc, data) {
   //this is only for conversations or messages
-  updateCount++;
+  tryCount++;
   try {
     const result = await doc.update({ $set: data });
-    updateCount = 0;
+    tryCount = 0;
     return result;
   } catch (e) {
-    const error = new Error();
-    if (updateCount == 1) {
-      console.log('db error: data, doc, e, stack: ', data, doc, e, error.stack);
+    if (tryCount === 1) {
+      const error = new Error();
+      console.log('safeUpdate error: data, doc, e, stack: ', data, doc, e, error.stack);
     }
     let doc2 = await getDoc(doc);
     let failed = false;
@@ -91,43 +99,55 @@ export async function safeUpdate(doc, data) {
       }
     }
     if (failed) {
-      if (updateCount < tryMax) {
+      if (tryCount < tryMax) {
         const result = await safeUpdate(doc, data);
-        updateCount = 0;
+        tryCount = 0;
         return result;
       } else {
-        updateCount = 0;
+        tryCount = 0;
         throw (e);
       }
     }
   }
 }
 
-let cacheForUpsert = {};
-const debounceUpsert = _.debounce(async () => {
-  const cache = Object.assign({}, cacheForUpsert);
-  cacheForUpsert = {};
-  for (const k in cache) {
-    const item = cache[k];
-    await item.doc.upsert(item.data);
-  }
-}, 30);
-
 export async function safeUpsert(doc, data) {
+  tryCount++;
+  let docinDB;
+  const db = await getDb();
+  const key = docName2key[doc.name];
+  const keyValue = data[key];
   try {
-    const docId = JSON.stringify(data);
-    if (cacheForUpsert[docId]) {
-      console.warn('******conlict data', data);
-    }
-    cacheForUpsert[docId] = { doc, data };
-    await debounceUpsert();
-  } catch (e) {
-    const error = new Error();
-    console.log('db error: data, e, stack: ', data, e, error.stack);
-    if (e.status === 409 && e.name === 'conflict') {
-      return;
+    docinDB = await db[doc.name].findOne().where(key).eq(keyValue).exec();
+    if (docinDB) {
+      await docinDB.update({ $set: data })
     } else {
-      throw (e);
+      await doc.insert(data)
+    }
+    tryCount = 0;
+  } catch (e) {
+    if (tryCount === 1) {
+      const error = new Error();
+      console.log('safeUpsert error: data, doc, e, stack: ', data, doc, e, error.stack);
+    }
+    let doc2 = await db[doc.name].findOne().where(key).eq(keyValue).exec();
+    let failed = false;
+    for (let key in data) {
+      if (data[key] != doc2[key]) {
+        failed = true;
+        break;
+      }
+    }
+    if (failed) {
+      if (tryCount < tryMax) {
+        const result = await safeUpsert(doc, data);
+        tryCount = 0;
+        return result;
+      } else {
+        tryCount = 0;
+        throw (e);
+      }
     }
   }
+  tryCount = 0;
 }

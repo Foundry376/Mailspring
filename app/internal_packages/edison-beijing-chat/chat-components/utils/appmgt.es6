@@ -120,7 +120,7 @@ export const sendMsg2App = (data, cb) => {
     post(url, data, cb);
 }
 export const sendMsg2App2 = (userId, userName, token, appId, content, cb) => {
-    if (!userName) {
+    if (!userName && myApps[userId]) {
         userName = myApps[userId].name;
     }
     sendMsg2App({ userId, userName, token, appId, content }, cb);

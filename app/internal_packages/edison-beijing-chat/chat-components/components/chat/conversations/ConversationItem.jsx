@@ -42,7 +42,7 @@ export default class ConversationItem extends PureComponent {
     const appId = conversation.jid.split('@')[0];
     getToken(userId).then(token => {
       getApp(userId, appId, token, (err, app) => {
-        if (!err) {
+        if (!err && app) {
           const state = Object.assign({}, this.state, { appName: app.name });
           this.setState(state);
         }
@@ -55,7 +55,7 @@ export default class ConversationItem extends PureComponent {
     event.preventDefault();
     const { conversation, removeConversation } = this.props;
     clearMessages(conversation).then(() => {
-      setTimeout((() => {
+      // setTimeout((() => {
         // cxm: it's so weird, it's necessary to add th delay to make the messages history not to come back!
         // but it really works, tested.
         chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
@@ -63,7 +63,7 @@ export default class ConversationItem extends PureComponent {
         if (messageModel.imagePopup) {
           messageModel.imagePopup.hide();
         }
-      }), 1000)
+      // }), 1000)
     })
   }
 
