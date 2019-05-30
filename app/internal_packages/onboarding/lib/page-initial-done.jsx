@@ -50,9 +50,10 @@ class InitialDonePage extends React.Component {
               <LottieImg name='loading-spinner-blue'
                 size={{ width: 24, height: 24 }}
                 style={{
-                  margin: '20px auto 0',
-                  position: 'relative',
-                  bottom: '170px'
+                  marginLeft: '-12px',
+                  position: 'absolute',
+                  bottom: '70px',
+                  left: '50%'
                 }} />
             )
           }
