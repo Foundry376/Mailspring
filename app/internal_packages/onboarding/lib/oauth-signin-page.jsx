@@ -48,10 +48,13 @@ export default class OAuthSignInPage extends React.Component {
 
   componentDidUpdate() {
     const { authStage } = this.state;
-    if (['buildingAccount', 'accountSuccess'].includes(authStage)) {
-      document.querySelector('.back').style.display = 'none';
-    } else {
-      document.querySelector('.back').style.display = 'block';
+    const back = document.querySelector('.back');
+    if (back) {
+      if (['buildingAccount', 'accountSuccess'].includes(authStage)) {
+        back.style.display = 'none';
+      } else {
+        back.style.display = 'block';
+      }
     }
   }
 
