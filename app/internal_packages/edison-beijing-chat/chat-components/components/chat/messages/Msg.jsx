@@ -23,6 +23,7 @@ import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import _ from 'underscore';
+import { updateSelectedConversation } from '../../../actions/db/conversation';
 let key = 0;
 
 export default class Msg extends PureComponent {
@@ -233,6 +234,7 @@ export default class Msg extends PureComponent {
     }
     const { queueLoadMessage } = this.props;
     queueLoadMessage(loadConfig);
+    chatModel.store.dispatch(updateSelectedConversation(this.props.conversation));
   };
 
   showPopupMenu = () => {
@@ -254,7 +256,7 @@ export default class Msg extends PureComponent {
             onClick={() => this.download()}
           >
             <RetinaImg name={'download.svg'}
-                       style={{ width: 24, height: 24 }}
+                       style={{ width: 24, height: 24}}
                        isIcon
                        mode={RetinaImg.Mode.ContentIsMask} />
           </span>

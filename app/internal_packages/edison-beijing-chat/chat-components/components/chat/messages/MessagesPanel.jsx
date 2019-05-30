@@ -203,7 +203,7 @@ export default class MessagesPanel extends PureComponent {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
     const sqldb = sqlite(dbpath);
-    const stmt = sqldb.prepare('SELECT * FROM contact where sendToCount > 1  and recvFromCount >= 1');
+    const stmt = sqldb.prepare('SELECT * FROM contact where refs > 1');
     let emailContacts = stmt.all();
     sqldb.close();
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
@@ -256,11 +256,13 @@ export default class MessagesPanel extends PureComponent {
 
   offLine = () => {
     log(`MessagePanel: chat offline`);
-    const progress = Object.assign({}, this.state.progress, { offline: true, failed: true });
+    const {progressBarData} = chatModel;
+    Object.assign(progressBarData, { offline: true, failed: true });
     this.setState({
       online: false,
       progress,
     })
+    progressBarData.bar.update();
   };
 
   componentWillReceiveProps = (nextProps) => {
@@ -430,29 +432,34 @@ export default class MessagesPanel extends PureComponent {
     registerLoginChatAccounts();
   }
 
-  loadQueue = null;
-  loading = false;
-  loadIndex = 0;
-
   queueLoadMessage = (loadConfig) => {
-    this.loadQueue = this.loadQueue || [];
-    this.loadQueue.push(loadConfig);
-    if (!this.loading) {
+    const {progressBarData} = chatModel;
+    progressBarData.onCancel = this.cancelLoadMessage;
+    progressBarData.onRetry = this.retryLoadMessage;
+
+    progressBarData.loadQueue = progressBarData.loadQueue || [];
+    progressBarData.loadQueue.push(loadConfig);
+    if (!progressBarData.loading) {
       this.loadMessage();
     }
   };
 
   retryLoadMessage = () => {
-    const progress = Object.assign({}, this.state.progress, { failed: false });
-    const state = Object.assign({}, this.state, { progress });
-    this.setState(state);
+    const { progressBarData } = chatModel;
+    Object.assign(progressBarData, { failed: false });
+    progressBarData.bar.update();
     setTimeout(() => {
       this.loadMessage();
     })
   };
 
   cancelLoadMessage = () => {
-    const loadConfig = this.loadQueue[this.loadIndex];
+    const { progressBarData } = chatModel;
+    let {bar, loadQueue, loadIndex, loading} = progressBarData;
+    if (!loadQueue) {
+      return;
+    }
+    const loadConfig = loadQueue[loadIndex];
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
       try {
         loadConfig.request.abort();
@@ -477,31 +484,31 @@ export default class MessagesPanel extends PureComponent {
        chatModel.store.dispatch(beginStoringMessage(message));
       chatModel.store.dispatch(updateSelectedConversation(conversation));
     }
-    this.loadQueue = null;
-    this.loadIndex = 0;
-    this.loading = false;
-    const progress = { loadQueue: this.loadQueue };
-    const state = Object.assign({}, this.state, { progress });
-    this.setState(state);
+    loadQueue = null;
+    loadIndex = 0;
+    loading = false;
+    Object.assign(progressBarData, {loadQueue, loadIndex, loading, visible: false });
+    bar.update();
     clearInterval(this.loadTimer);
   }
 
   loadMessage = () => {
-    this.loading = true;
-    const loadConfig = this.loadQueue[this.loadIndex];
+    const {progressBarData} = chatModel;
+    let {bar, loadQueue, loadIndex} = progressBarData;
+    progressBarData.loading = true;
+    Object.assign(progressBarData, { percent: 0, visible: true });
+    bar.update();
+    const loadConfig = loadQueue[loadIndex];
     const { msgBody, filepath } = loadConfig;
-    const progress = Object.assign({}, this.state.progress, { loadQueue: this.loadQueue, loadIndex: this.loadIndex, percent: 0 });
-    const state = Object.assign({}, this.state, { progress });
-    this.setState(state);
 
     const loadCallback = (...args) => {
-      const loadConfig = this.loadQueue[this.loadIndex];
-      this.loadIndex++;
-      if (this.loadIndex === this.loadQueue.length) {
-        const progress = Object.assign({}, this.state.progress, { loadQueue: this.loadQueue, loadIndex: this.loadIndex });
-        const state = Object.assign({}, this.state, { progress });
-        this.setState(state);
-        this.loading = false;
+      const loadConfig = loadQueue[loadIndex];
+      loadIndex++;
+      if (loadIndex === loadQueue.length) {
+        Object.assign(progressBarData, { loadIndex });
+        bar.update();
+        progressBarData.loading = false;
+        progressBarData.visible = true;
         clearInterval(this.loadTimer);
       } else {
         this.loadMessage();
@@ -536,7 +543,7 @@ export default class MessagesPanel extends PureComponent {
     }
 
     const loadProgressCallback = progress => {
-      const loadConfig = this.loadQueue[this.loadIndex];
+      const loadConfig = loadQueue[loadIndex];
       const { loaded, total } = progress;
       const percent = Math.floor(+loaded * 100.0 / (+total));
       if (loadConfig.type === 'upload' && +loaded === +total) {
@@ -548,9 +555,8 @@ export default class MessagesPanel extends PureComponent {
         body = JSON.stringify(body);
         onMessageSubmitted(conversation, body, messageId, false);
       }
-      progress = Object.assign({}, this.state.progress, { percent });
-      const state = Object.assign({}, this.state, { progress });
-      this.setState(state);
+      Object.assign(progressBarData, { percent, visible:true });
+      bar.update();
     }
     if (loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
@@ -596,11 +602,10 @@ export default class MessagesPanel extends PureComponent {
       clearInterval(this.loadTimer);
     }
     this.loadTimer = setInterval(() => {
-      const loadConfig = this.loadQueue[this.loadIndex];
+      const loadConfig = loadQueue[loadIndex];
       if (loadConfig && loadConfig.request && loadConfig.request.failed) {
-        const progress = Object.assign({}, this.state.progress, { failed: true });
-        const state = Object.assign({}, this.state, { progress });
-        this.setState(state);
+        Object.assign(progressBarData, { failed: true });
+        bar.update();
       }
     }, 10000);
   }
@@ -740,7 +745,6 @@ export default class MessagesPanel extends PureComponent {
                       <div>
                         <MessagesSendBar {...sendBarProps} />
                       </div>
-                      <ProgressBar progress={this.state.progress} onCancel={this.cancelLoadMessage} />
                     </div>
                   )
               }
