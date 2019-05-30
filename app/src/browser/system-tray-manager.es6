@@ -28,7 +28,7 @@ function _getMenuTemplate(platform, application) {
   if (platform !== 'win32') {
     template.unshift({
       label: 'Open Inbox',
-      click: () => application.emit('application:show-main-window'),
+      click: () => application.emit('application:show-all-inbox'),
     });
   }
 

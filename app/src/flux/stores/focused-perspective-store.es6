@@ -66,8 +66,7 @@ class FocusedPerspectiveStore extends MailspringStore {
       'navigation:go-to-all-unread': () => {
         this._setPerspective(MailboxPerspective.forUnreadByAccounts(this.sidebarAccountIds()));
       },
-      'navigation:go-to-all-inbox': () =>
-        this._setPerspective(MailboxPerspective.forInbox(this.sidebarAccountIds())),
+      'navigation:go-to-all-inbox': () => this.gotoAllInbox(),
       'navigation:go-to-all-sent': () => this._setPerspective(MailboxPerspective.forSent(this.sidebarAccountIds())),
       'navigation:go-to-starred': () =>
         this._setPerspective(MailboxPerspective.forStarred(this._current.accountIds)),
@@ -84,6 +83,10 @@ class FocusedPerspectiveStore extends MailspringStore {
       'navigation:go-to-label': () => {
       }, // TODO,
     });
+  }
+
+  gotoAllInbox = () => {
+    return this._setPerspective(MailboxPerspective.forInbox(this.sidebarAccountIds()));
   }
 
   _isValidAccountSet(ids) {
