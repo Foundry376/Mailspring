@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ConversationItem from './ConversationItem';
 import { WorkspaceStore, Actions } from 'mailspring-exports';
+import ProgressBar from '../../common/ProgressBar';
 export default class Conversations extends PureComponent {
   static propTypes = {
     conversations: PropTypes.arrayOf(PropTypes.object).isRequired,

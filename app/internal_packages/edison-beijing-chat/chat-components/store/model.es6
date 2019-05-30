@@ -16,6 +16,14 @@ const chatModel = {
         groupAvatar.refreshAvatar(groupAvatar.props);
       }
     })
+  },
+  progressBarData: {
+    bar: null, // the react component instance for ProgressBar.jsx
+    loadQueue: [],
+    loadIndex: 0,
+    percent: 0,
+    loading: false,
+    visible: false
   }
 };
 
