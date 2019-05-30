@@ -24,6 +24,7 @@ const {
   FolderSyncProgressStore,
   AccountStore,
   CategoryStore,
+  WorkspaceStore
 } = require('mailspring-exports');
 
 const ThreadListColumns = require('./thread-list-columns');
@@ -99,7 +100,8 @@ class ThreadList extends React.Component {
 
   render() {
     let columns, itemHeight;
-    if (this.state.style === 'wide') {
+    const layoutMode = WorkspaceStore.layoutMode();
+    if (this.state.style === 'wide' || layoutMode === 'list') {
       columns = ThreadListColumns.Wide;
       itemHeight = 55;
     } else {
