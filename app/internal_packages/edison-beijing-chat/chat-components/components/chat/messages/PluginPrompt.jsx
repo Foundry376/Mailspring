@@ -33,13 +33,9 @@ export default class PluginPrompt extends PureComponent {
       }
     }
     matchedApps = _.uniq(matchedApps);
-    const  uninstalledApps = [];
     matchedApps.forEach( app0 => {
       let app = getMyAppByShortName(userId, app0.shortName);
-      if (!app || !app.length) {
-        uninstalledApps.push (app0);
-        return;
-      } else {
+      if (app && app.length) {
         app = app[0];
         if (app.description) {
           matchedAppCommands.push({name:app.name, description:app.description});
@@ -52,17 +48,7 @@ export default class PluginPrompt extends PureComponent {
         };
       }
     });
-    let expectInstallApps;
-    if (!text) {
-      allApps =  _.uniq(allApps);
-      expectInstallApps = allApps.filter(app => {
-        const apps = getMyAppByShortName(userId, app.shortName);
-        return !apps || !apps.length;
-      });
-    } else {
-      expectInstallApps = uninstalledApps;
-    }
-    const state = Object.assign({}, this.state, { matchedAppCommands, expectInstallApps, hidden: false });
+    const state = Object.assign({}, this.state, { matchedAppCommands, hidden: false });
     this.setState(state);
   }
 
@@ -77,55 +63,41 @@ export default class PluginPrompt extends PureComponent {
     this.setState(state);
   };
 
+  renderCommands() {
+    const { matchedAppCommands } = this.state;
+    if (!matchedAppCommands || !matchedAppCommands.length) {
+      return null;
+    }
+    return (<div>
+      <div>plugin commands:</div>
+      {matchedAppCommands.map((item, idx) => {
+        if (item.description) {
+          return <div key={idx} > {`${item.name}: ${item.description}`} </div>;
+        } else {
+          const { app, command } = item;
+          return (<MessageCommand conversation={this.props.conversation}
+          appJid = {app.id+'@app.im.edison.tech'}
+          commandType = {app.commandType}
+          templateText = {command.command}
+          onClick={this.hide}
+          key = {idx}>
+          </MessageCommand>)
+        }
+      })
+      }
+    </div>);
+  }
+
   render() {
     const {pos,  prefix} = this.props;
 
     if (!prefix || prefix[0] !== '/' || this.state.hidden) {
       return null;
     }
-    let commands = this.state.matchedAppCommands && this.state.matchedAppCommands.map((item, idx) => {
-       if (item.description) {
-         return <div key={idx} > {`${item.name}: ${item.description}`} </div>;
-       } else {
-         const { app, command } = item;
-           return (<MessageCommand conversation={this.props.conversation}
-           appJid = {app.id+'@app.im.edison.tech'}
-           commandType = {app.commandType}
-           templateText = {command.command}
-           onClick={this.hide}
-           key = {idx}>
-           </MessageCommand>)
-       }
-    });
-    if (commands && commands.length) {
-      commands = (<div>
-        <div>plugin commands:</div>
-      {commands}
-      </div>);
-    } else {
-      commands = null;
-    }
-    let apps = this.state.expectInstallApps && this.state.expectInstallApps.map(app => {
-      return (<div key={app.jid}>
-          <em>{app.appName}: </em>
-          <span>{app.appDescription}</span>
-        </div>
-    )});
-    if (apps && apps.length) {
-      apps = (<div>
-        <div>chat plugin apps that can be installed: </div>
-        <div>{apps}</div>
-        <br/>
-        <button className='btn' onClick={this.installApp}> go chat edison app store to install </button>
-        </div>)
-    } else {
-      apps = null;
-    }
 
     return (
       <div className="plugin-prompt-container" style={{bottom:pos.top+28+'px', left:pos.left+28+'px'}}>
-        {commands}
-        {apps}
+        {this.renderCommands()}
       </div>
     );
   }

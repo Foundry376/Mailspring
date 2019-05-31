@@ -155,15 +155,14 @@ export default class MessagesPanel extends PureComponent {
 
   getApps = () => {
     const { selectedConversation } = this.props;
-    if (!selectedConversation) {
+    if (!selectedConversation || !selectedConversation.curJid) {
       return;
     }
+    //curJid is necessary for app to create a new conversation
     const { curJid } = selectedConversation;
-    if (!curJid) {
-      return;
-    }
-    let apps = [];
     const userId = curJid.split('@')[0];
+    let apps = [];
+
     const myApps = getMyApps(userId);
     if (!myApps) {
       return;

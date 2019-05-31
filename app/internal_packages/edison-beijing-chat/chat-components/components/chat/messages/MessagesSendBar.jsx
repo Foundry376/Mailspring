@@ -18,7 +18,7 @@ import { beginStoringMessage } from '../../../actions/db/message';
 import { MESSAGE_STATUS_RECEIVED } from '../../../db/schemas/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
-import { sendCmd2App2, getMyAppByShortName, listKeywordApps, getMyApps, iniApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
+import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../utils/restjs';
 const { exec } = require('child_process');
@@ -103,29 +103,18 @@ export default class MessagesSendBar extends PureComponent {
       return;
     }
     const userId = selectedConversation.curJid.split('@')[0];
-    const token = await getToken(userId);
     const keyword2app = {};
-    listKeywordApps(userId, token, (err, data) => {
-      if (err || !data) {
-        return;
-      }
-      data = JSON.parse(data).data;
-      if (!data || !data.apps) {
-        return;
-      }
-      const { apps } = data;
-      const myApps = getMyApps(userId) || [];
-      apps.push.apply(apps, myApps);
-
-      apps.forEach(app => {
-        const keywords = [app.shortName, app.appName].concat(app.keywords);
-        keywords.forEach(keyword => {
-          keyword2app[keyword] = app;
-        })
-      });
-      const state = Object.assign({}, this.state, { keyword2app });
+    let apps = getMyApps(userId);
+    console.log( 'apps: ', apps);
+    apps = apps ? apps.apps : [];
+    apps.forEach(app => {
+      const keywords = [app.shortName, app.appName].concat(app.keywords);
+      keywords.forEach(keyword => {
+        keyword2app[keyword] = app;
+      })
+    });
+    const state = Object.assign({}, this.state, { keyword2app });
       this.setState(state);
-    })
   }
 
   componentDidMount = async () => {
