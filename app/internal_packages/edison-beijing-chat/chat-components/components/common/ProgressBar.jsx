@@ -3,97 +3,95 @@ import CancelIcon from './icons/CancelIcon';
 import path from 'path';
 import { RetinaImg } from 'mailspring-component-kit';
 import chatModel from '../../store/model';
-import {ChatActions} from 'chat-exports';
+import { ProgressBarStore, ChatActions } from 'chat-exports';
+
+const remote = require('electron').remote;
+const shell = remote.shell;
 
 export default class ProgressBar extends PureComponent {
   constructor(props) {
-    super(props)
+    super(props);
   }
 
   hide = () => {
-    ChatActions.updateProgress({visible:false});
-  }
+    let loading = ProgressBarStore.progress.loading;
+    if (ProgressBarStore.progress.finished || ProgressBarStore.progress.failed) {
+      loading = false;
+    }
+    ChatActions.updateProgress({ loading:false, visible: false });
+  };
+
+  viewDownload = () => {
+    const { progress } = this.props;
+    const { loadConfig } = progress;
+    shell.showItemInFolder(loadConfig.filepath);
+
+  };
 
   render() {
     const { progress, onCancel, onRetry } = this.props;
-    // console.log('progressBar.render: progress: ', progress);
-    const { loadQueue, loadIndex, percent, visible, failed, offline } = progress;
+    const { loadConfig, percent, visible, failed, offline, loading, finished } = progress;
 
-    if (!loadQueue || !visible) {
+    if (!loadConfig || !visible) {
       return null;
     }
 
-    const loadedConfigs = loadQueue.slice(0, loadIndex);
-    const waitConfigs = loadQueue.slice(loadIndex + 1);
-    const allFinished = loadIndex === loadQueue.length;
-    let loadConfig, filename, loadWord;
-    if (!allFinished) {
-      loadConfig = loadQueue[loadIndex];
-      filename = path.basename(loadConfig.filepath);
-      if (loadConfig.type === 'download') {
-        loadWord = 'Downloading'
-      } else {
-        loadWord = 'Uploading'
-      }
+    let loadWord;
+    const filename = path.basename(loadConfig.filepath);
+    if (loadConfig.type === 'download') {
+      loadWord = 'Downloading';
+    } else {
+      loadWord = 'Uploading';
     }
     let status = '';
     if (failed) {
-      status = '(failed)'
+      status = '(failed)';
     }
     if (offline) {
-      status = '(offline)'
+      status = '(offline)';
     }
     return (<div className={'progress-container'}>
       <div className='progress-banner'>
-        <div>
-          {loadedConfigs && loadedConfigs.map((loadConfig, index) => {
-            let loadPrompt;
-            if (loadConfig.type === 'download') {
-              loadPrompt = ' was saved to your computer'
-            } else {
-              loadPrompt = ' was uploaded to the web'
-            }
-            const name = path.basename(loadConfig.filepath);
-            return <p key={index}> {name} {loadPrompt}</p>
-          })
+        {(!finished) ? <RetinaImg className={'download-btn'}
+                              name={'download.svg'}
+                              isIcon
+                              mode={RetinaImg.Mode.ContentIsMask}/> :
+          <RetinaImg className={'download-btn'}
+                     name={'check-alone.svg'}
+                     isIcon={true}
+                     mode={RetinaImg.Mode.ContentIsMask}/>
+        }
+
+        <div className='load-info'>
+          <div className={'progress-prompt'}>
+            <span>{loadWord}:&nbsp;</span>
+            <span>{filename}</span>
+            <span>{status}</span>
+          </div>
+
+          {!finished ? <div className='msg-progress-bar-wrap'>
+            <div className='progress-background'/>
+            <div className='progress-foreground' style={{
+              backGroundColor: '#1b08ff',
+              width: `${Math.min(percent, 100)}%`,
+            }}/>
+          </div>: null
           }
         </div>
-        {(!allFinished) ? <div className={'progress-prompt'}>
-          <span>{loadWord}:&nbsp;</span>
-          <span>{filename}</span>
-          <span>{status}</span>
-        </div> : null}
-        <RetinaImg className={'download-btn'}
-                   name={'download.svg'}
-                   isIcon
-                   mode={RetinaImg.Mode.ContentIsMask}/>
-        {(!allFinished) ? <div className='msg-progress-bar-wrap'>
-          <div className='progress-background'/>
-          <div className='progress-foreground' style={{
-            backGroundColor: '#1b08ff',
-            width: `${Math.min(percent, 100)}%`,
-          }}/>
-        </div> : null
-        }
         <div className='progressButtons'>
-          {(!offline && failed) ? <div className='retryButton' onClick={onRetry}>Retry</div> : null}
-          {(!allFinished) ? <div className='cancelButton' onClick={onCancel}>Cancel</div> : null}
+          {finished ?
+            (loadConfig.type==='download' ?
+            <div className='cancelButton' onClick={this.viewDownload}>View</div> :
+            null) :
+            ((!offline && failed) ? <div className='cancelButton' onClick={onRetry}>Retry</div> :
+                      <div className='cancelButton' onClick={onCancel}>Cancel</div>)
+          }
           <CancelIcon color={'gray'} onClick={this.hide}></CancelIcon>
         </div>
         <div>
-          {waitConfigs && waitConfigs.map((waitConfig, index) => {
-            let waitPrompt;
-            if (loadConfig.type === 'download') {
-              waitPrompt = ' is waiting to save to your computer'
-            } else {
-              waitPrompt = ' is waiting to upload to the web'
-            }
-            const name = path.basename(waitConfig.filepath);
-            return <p key={index}> {name} {waitPrompt}</p>
-          })
-          }
+
         </div>
       </div>
-    </div>)
+    </div>);
   }
 }

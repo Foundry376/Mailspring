@@ -385,6 +385,8 @@
 
   .progress-banner {
     position:relative;
+    display:flex;
+    align-items: center;
     padding: 5px 5px 10px 0;
     height: auto;
     min-height: 40px;
@@ -395,14 +397,32 @@
     &:hover {
       z-index:9;
     }
+    .download-btn {
+      display: inline-block;
+      width: 34px;
+      height:24px;
+      margin: 0 10px 0 25px;
+      background-color: @white !important;
+      color: @white;
+    }
+    .load-info {
+      display: inline-block;
+      width: 75%;
+    }
     .progress-prompt {
       margin-left:5px;
+      height: 17px;
+      width: 247px;
+      color: @white;
+      font-size: 14px;
+      letter-spacing: 0.43px;
+      line-height: 17px;
     }
     .msg-progress-bar-wrap {
       display:inline-block;
       position:relative;
-      height: 5px;
-      width: 75%;
+      height: 4px;
+      width: 525px;
       margin-left:5px;
       .progress-background {
         position: absolute;
@@ -424,27 +444,30 @@
       }
     }
     .progressButtons {
-      position: absolute;
+      position:relative;
       display: flex;
       align-items: center;
-      top: 5px;
-      right: 5px;
-      width:120px;
+      width:20%;
       height:100%;
       .retryButton {
-        display: inline-block;
-        position: absolute;
-        right:75px;
       }
       .cancelButton {
-        display: inline-block;
-        position: absolute;
-        right:30px;
+        position:absolute;
+        right:35px;
+        height: 17px;
+        width: 48px;
+        color: @white;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.43px;
+        line-height: 17px;
+        text-align: right;
       }
       svg {
-        display: inline-block;
-        position: absolute;
+        position:absolute;
         right:5px;
+        width:15px;
+        height:15px;
       }
     }
   }
@@ -457,14 +480,6 @@
     margin: 0 20px 10px 0;
     padding: 2px;
     border: solid black 1px;
-  }
-  .download-btn {
-    display: inline-block;
-    width: 32px;
-    height:21px;
-    margin: 0 10px 0 0;
-    background-color: @white !important;
-    color: @white;
   }
 
 }
