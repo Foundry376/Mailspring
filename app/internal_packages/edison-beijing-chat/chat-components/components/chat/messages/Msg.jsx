@@ -65,7 +65,9 @@ export default class Msg extends PureComponent {
   }
 
   componentWillReceiveProps = (nextProps) => {
+    // console.log('Msg.componentWillReceiveProps: nextProps: ', nextProps);
     this.receiveProps(nextProps);
+    // console.log('Msg.componentWillReceiveProps 2: msgBody: ', this.msgBody);
     this.update();
   }
 
@@ -383,6 +385,7 @@ export default class Msg extends PureComponent {
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
+    // console.log('Msg.render: msg, msgBody: ', msg, msgBody);
 
     if (msgBody.deleted) {
       return null;
