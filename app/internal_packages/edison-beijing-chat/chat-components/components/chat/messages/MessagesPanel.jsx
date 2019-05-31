@@ -19,6 +19,7 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
+import { ProgressBarStore, ChatActions } from 'chat-exports';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
 import { queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
@@ -33,7 +34,7 @@ import https from "https";
 import http from "http";
 import ProgressBar from '../../common/ProgressBar';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
-import { beginStoringMessage } from '../../../actions/db/message';
+import { beginSendingMessage } from '../../../actions/chat';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
 import { getToken, getMyApps } from '../../../utils/appmgt';
@@ -247,22 +248,18 @@ export default class MessagesPanel extends PureComponent {
     if (!this.props.chat_online) {
       this.reconnect();
     }
-    const progress = Object.assign({}, this.state.progress, { offline: false });
+    ChatActions.updateProgress({ offline: false });
     this.setState({
-      online: true,
-      progress,
+      online: true
     })
   };
 
   offLine = () => {
     log(`MessagePanel: chat offline`);
-    const {progressBarData} = chatModel;
-    Object.assign(progressBarData, { offline: true, failed: true });
+    ChatActions.updateProgress({ offline: true, failed: true });
     this.setState({
-      online: false,
-      progress,
+      online: false
     })
-    progressBarData.bar.update();
   };
 
   componentWillReceiveProps = (nextProps) => {
@@ -433,82 +430,37 @@ export default class MessagesPanel extends PureComponent {
   }
 
   queueLoadMessage = (loadConfig) => {
-    const {progressBarData} = chatModel;
-    progressBarData.onCancel = this.cancelLoadMessage;
-    progressBarData.onRetry = this.retryLoadMessage;
+    let { progress } = ProgressBarStore;
+    progress = Object.assign({}, progress);
+    // console.log('queueLoadMessage: progress 0: ', progress);
+    const onCancel = this.cancelLoadMessage;
+    const onRetry = this.retryLoadMessage;
 
-    progressBarData.loadQueue = progressBarData.loadQueue || [];
-    progressBarData.loadQueue.push(loadConfig);
-    if (!progressBarData.loading) {
+    const loadQueue = progress.loadQueue || [];
+    loadQueue.push(loadConfig);
+    let progress2 = {loadQueue, loading:true, visible: true };
+    // console.log('queueLoadMessage: progress: ', progress2);
+    ChatActions.updateProgress(progress2, { onCancel, onRetry });
+    if (!progress.loading) {
       this.loadMessage();
     }
   };
-
-  retryLoadMessage = () => {
-    const { progressBarData } = chatModel;
-    Object.assign(progressBarData, { failed: false });
-    progressBarData.bar.update();
-    setTimeout(() => {
-      this.loadMessage();
-    })
-  };
-
-  cancelLoadMessage = () => {
-    const { progressBarData } = chatModel;
-    let {bar, loadQueue, loadIndex, loading} = progressBarData;
-    if (!loadQueue) {
-      return;
-    }
-    const loadConfig = loadQueue[loadIndex];
-    if (loadConfig && loadConfig.request && loadConfig.request.abort) {
-      try {
-        loadConfig.request.abort();
-      } catch (e) {
-        console.log('abort loading:', e);
-      }
-    }
-    if (loadConfig && loadConfig.type === 'upload') {
-      const conversation = loadConfig.conversation;
-      const messageId = loadConfig.messageId;
-      let body = loadConfig.msgBody;
-      body.isUploading = false;
-      body = JSON.stringify(body);
-      const message = {
-        id: messageId,
-        conversationJid: conversation.jid,
-        body,
-        sender: conversation.curJid,
-        sentTime: (new Date()).getTime() + chatModel.diffTime,
-        status: MESSAGE_STATUS_UPLOAD_FAILED,
-      };
-       chatModel.store.dispatch(beginStoringMessage(message));
-      chatModel.store.dispatch(updateSelectedConversation(conversation));
-    }
-    loadQueue = null;
-    loadIndex = 0;
-    loading = false;
-    Object.assign(progressBarData, {loadQueue, loadIndex, loading, visible: false });
-    bar.update();
-    clearInterval(this.loadTimer);
-  }
 
   loadMessage = () => {
-    const {progressBarData} = chatModel;
-    let {bar, loadQueue, loadIndex} = progressBarData;
-    progressBarData.loading = true;
-    Object.assign(progressBarData, { percent: 0, visible: true });
-    bar.update();
+    // console.log('loadMessage: ');
+    const {progress} = ProgressBarStore;
+    let {loadQueue, loadIndex} = progress;
+    ChatActions.updateProgress({loading:true, percent: 0, visible: true});
     const loadConfig = loadQueue[loadIndex];
     const { msgBody, filepath } = loadConfig;
+    // console.log('loadMessage: loadConfig: ', loadConfig);
 
     const loadCallback = (...args) => {
+      // console.log('loadCallback: ', loadIndex);
       const loadConfig = loadQueue[loadIndex];
-      loadIndex++;
-      if (loadIndex === loadQueue.length) {
-        Object.assign(progressBarData, { loadIndex });
-        bar.update();
-        progressBarData.loading = false;
-        progressBarData.visible = true;
+      ProgressBarStore.progress.loadIndex++;
+      if (loadIndex === loadQueue.length - 1) {
+        ChatActions.updateProgress({loading:false, visible:true});
         clearInterval(this.loadTimer);
       } else {
         this.loadMessage();
@@ -543,8 +495,8 @@ export default class MessagesPanel extends PureComponent {
     }
 
     const loadProgressCallback = progress => {
-      const loadConfig = loadQueue[loadIndex];
       const { loaded, total } = progress;
+      // console.log('loadProgressCallback: loaded, total:', loaded, total);
       const percent = Math.floor(+loaded * 100.0 / (+total));
       if (loadConfig.type === 'upload' && +loaded === +total) {
         const onMessageSubmitted = this.props.sendMessage;
@@ -553,10 +505,10 @@ export default class MessagesPanel extends PureComponent {
         let body = loadConfig.msgBody;
         body.isUploading = false;
         body = JSON.stringify(body);
+        ChatActions.updateProgress({ percent, visible:true });
         onMessageSubmitted(conversation, body, messageId, false);
       }
-      Object.assign(progressBarData, { percent, visible:true });
-      bar.update();
+      ChatActions.updateProgress({ percent });
     }
     if (loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
@@ -566,7 +518,9 @@ export default class MessagesPanel extends PureComponent {
     } else if (msgBody.path && !msgBody.path.match(/^((http:)|(https:))/)) {
       // the file is an image and it has been downloaded to local while the message was received
       let imgpath = msgBody.path.replace('file://', '');
-      fs.copyFileSync(imgpath, filepath);
+      if (imgpath !== filepath) {
+        fs.copyFileSync(imgpath, filepath);
+      }
       loadCallback();
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
@@ -602,13 +556,50 @@ export default class MessagesPanel extends PureComponent {
       clearInterval(this.loadTimer);
     }
     this.loadTimer = setInterval(() => {
-      const loadConfig = loadQueue[loadIndex];
       if (loadConfig && loadConfig.request && loadConfig.request.failed) {
-        Object.assign(progressBarData, { failed: true });
-        bar.update();
+        ChatActions.updateProgress({ failed:true });
       }
     }, 10000);
   }
+
+  cancelLoadMessage = () => {
+    // console.log('cancelLoadMessage 0');
+    const { progress } = ProgressBarStore;
+    let {loadQueue, loadIndex} = progress;
+    if (!loadQueue) {
+      return;
+    }
+    const loadConfig = loadQueue[loadIndex];
+    if (loadConfig && loadConfig.request && loadConfig.request.abort) {
+      try {
+        loadConfig.request.abort();
+      } catch (e) {
+        console.log('abort loading:', e);
+      }
+    }
+    if (loadConfig && loadConfig.type === 'upload') {
+      const conversation = loadConfig.conversation;
+      const messageId = loadConfig.messageId;
+      let body = loadConfig.msgBody;
+      body.isUploading = false;
+      body.path = body.localFile;
+      //body.localFile = null;
+      body = JSON.stringify(body);
+      chatModel.store.dispatch(beginSendingMessage(conversation, body, messageId, false, false));
+    }
+    // console.log('cancelLoadMessage');
+    setTimeout(() => {
+      ChatActions.updateProgress({loadQueue:null, loadIndex:0, loading:false, visible: false });
+    }, 2);
+    clearInterval(this.loadTimer);
+  }
+
+  retryLoadMessage = () => {
+    ChatActions.updateProgress({failed:false});
+    setTimeout(() => {
+      this.loadMessage();
+    })
+  };
 
   installApp = async (e) => {
     const conv = this.props.selectedConversation;
@@ -626,6 +617,7 @@ export default class MessagesPanel extends PureComponent {
       }
     })
   }
+
   update() {
     key++;
     const state = Object.assign({}, this.state, {key});

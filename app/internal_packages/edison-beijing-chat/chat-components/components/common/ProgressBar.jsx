@@ -3,33 +3,21 @@ import CancelIcon from './icons/CancelIcon';
 import path from 'path';
 import { RetinaImg } from 'mailspring-component-kit';
 import chatModel from '../../store/model';
-
-let key = 0;
+import {ChatActions} from 'chat-exports';
 
 export default class ProgressBar extends PureComponent {
   constructor(props) {
     super(props)
   }
 
-  componentDidMount() {
-    chatModel.progressBarData.bar = this;
-  }
-
-  update() {
-    key++;
-    const state = { key };
-    this.setState(state);
-  }
-
   hide = () => {
-    chatModel.progressBarData.visible = false;
-    this.update();
+    ChatActions.updateProgress({visible:false});
   }
 
   render() {
-    const {progressBarData} = chatModel;
-    console.log('progressBar.render: progressBarData: ', progressBarData);
-    const { loadQueue, loadIndex, percent, visible, failed, offline, onCancel, onRetry } = progressBarData;
+    const { progress, onCancel, onRetry } = this.props;
+    // console.log('progressBar.render: progress: ', progress);
+    const { loadQueue, loadIndex, percent, visible, failed, offline } = progress;
 
     if (!loadQueue || !visible) {
       return null;

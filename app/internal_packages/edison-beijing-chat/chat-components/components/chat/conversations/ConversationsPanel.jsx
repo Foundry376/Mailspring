@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import Conversations from './Conversations';
 import ConversationsTopBar from './ConversationsTopBar';
 import ProgressBar from '../../common/ProgressBar';
-import chatModel from '../../../store/model';
+import { ProgressBarStore } from 'chat-exports';
 
-let key = 0;
 export default class ConversationsPanel extends PureComponent {
   static propTypes = {
     retrieveAllConversations: PropTypes.func.isRequired,
@@ -21,17 +20,27 @@ export default class ConversationsPanel extends PureComponent {
     referenceTime: new Date().getTime(),
   }
 
+  state = {progress:{}}
+
   componentDidMount() {
-    chatModel.convPanel = this;
+    this.unsubscribers = [];
+    this.unsubscribers.push(ProgressBarStore.listen(this.onProgressChange));
+
     const { retrieveAllConversations } = this.props;
     if (retrieveAllConversations) {
       retrieveAllConversations();
     }
   }
 
-  update() {
-    key++;
-    const state = {key};
+  componentWillUnmount() {
+    return this.unsubscribers.map(unsubscribe => unsubscribe());
+  }
+
+  onProgressChange = () => {
+    let { progress, props } = ProgressBarStore;
+    progress = Object.assign({}, progress);
+    const state = Object.assign({}, this.state, { progress }, props);
+    console.log('ConversationsPanel.onProgressChange: state: ', state, props);
     this.setState(state);
   }
 
@@ -55,7 +64,7 @@ export default class ConversationsPanel extends PureComponent {
       referenceTime,
       removeConversation
     };
-    const progressBarProps = chatModel.progressBarData;
+    const { progress, onCancel, onRetry } = this.state;
 
     return (
       <div className="panel">
@@ -67,7 +76,7 @@ export default class ConversationsPanel extends PureComponent {
             </div>
           }
         </div>
-        <ProgressBar {...progressBarProps}/>
+        <ProgressBar progress = { progress } onCancel={onCancel} onRetry={onRetry}/>
       </div>
     );
   }
