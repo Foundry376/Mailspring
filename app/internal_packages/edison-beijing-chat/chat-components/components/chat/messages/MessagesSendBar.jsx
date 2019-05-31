@@ -106,7 +106,8 @@ export default class MessagesSendBar extends PureComponent {
     const keyword2app = {};
     let apps = getMyApps(userId);
     console.log( 'apps: ', apps);
-    apps = apps ? apps.apps : [];
+    apps = apps && apps.apps;
+    apps = apps || [];
     apps.forEach(app => {
       const keywords = [app.shortName, app.appName].concat(app.keywords);
       keywords.forEach(keyword => {
