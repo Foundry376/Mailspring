@@ -109,3 +109,4 @@ export default class ProgressBar extends PureComponent {
     </div>)
   }
 }
+
