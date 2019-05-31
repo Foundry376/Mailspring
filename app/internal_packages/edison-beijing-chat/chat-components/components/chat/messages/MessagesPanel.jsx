@@ -442,7 +442,7 @@ export default class MessagesPanel extends PureComponent {
     }
     ChatActions.updateProgress({loadConfig, loading:true, visible: true },
       { onCancel: this.cancelLoadMessage, onRetry: this.retryLoadMessage });
-    if (!progress.loading) {
+    if (!loading) {
       this.loadMessage();
     }
   };
@@ -486,7 +486,6 @@ export default class MessagesPanel extends PureComponent {
     }
 
     const loadProgressCallback = progress => {
-      const loadConfig = loadQueue[loadIndex];
       const { loaded, total } = progress;
       const percent = Math.floor(+loaded * 100.0 / (+total));
       if (loadConfig.type === 'upload' && +loaded === +total) {

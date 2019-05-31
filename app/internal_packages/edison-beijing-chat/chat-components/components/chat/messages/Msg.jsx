@@ -236,7 +236,6 @@ export default class Msg extends PureComponent {
     }
     const { queueLoadMessage } = this.props;
     queueLoadMessage(loadConfig);
-    chatModel.store.dispatch(updateSelectedConversation(this.props.conversation));
   };
 
   showPopupMenu = () => {
