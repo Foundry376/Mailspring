@@ -337,8 +337,10 @@ class DraftsMailboxPerspective extends MailboxPerspective {
 
   unreadCount() {
     let sum = 0;
-    for (const catId of this.categoryIds) {
-      sum += ThreadCountsStore.totalCountForCategoryId(catId);
+    if (Array.isArray(this.categoryIds)) {
+      for (const catId of this.categoryIds) {
+        sum += ThreadCountsStore.totalCountForCategoryId(catId);
+      }
     }
     return sum;
   }
