@@ -65,6 +65,7 @@ class MessageAttachments extends Component {
         isImage={isImage}
         filePath={filePath}
         download={download}
+        isDownloading={file.isDownloading}
         missing={MessageStore.isAttachmentMissing(file.id)}
         contentType={contentType}
         displayName={displayName}

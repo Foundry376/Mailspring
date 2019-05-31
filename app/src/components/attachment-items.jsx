@@ -43,17 +43,16 @@ const defaultProps = {
 const SPACE = ' ';
 
 function ProgressBar(props) {
-  const { download } = props;
-  const isDownloading = download ? download.state === 'downloading' : false;
+  const { isDownloading } = props;
   if (!isDownloading) {
     return <span/>;
   }
-  const { state: downloadState, percent: downloadPercent } = download;
-  const downloadProgressStyle = {
-    width: `${Math.min(downloadPercent, 97.5)}%`,
-  };
+  // const { state: downloadState, percent: downloadPercent } = download;
+  // const downloadProgressStyle = {
+  //   width: `${Math.min(downloadPercent, 97.5)}%`,
+  // };
   return (
-    <span className={`progress-bar-wrap state-${downloadState}`}>
+    <span className={`progress-bar-wrap state-downloading`}>
       <span className="progress-background"/>
       <span className="progress-foreground "/>
     </span>
@@ -251,7 +250,7 @@ export class AttachmentItem extends Component {
         {...pickHTMLProps(extraProps)}
       >
         <div className="inner">
-          <ProgressBar download={this.state.download}/>
+          <ProgressBar isDownloading={this.state.isDownloading || this.props.isDownloading}/>
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
             <div className="file-info-wrap">
               <div className="attachment-icon">
@@ -316,7 +315,26 @@ export class ImageAttachmentItem extends Component {
 
   static containerRequired = false;
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      isDownloading: false,
+    };
+  }
+  componentWillReceiveProps(nextProps, nextContext) {
+    if (this.props.missing && !nextProps.missing) {
+      this.setState({ isDownloading: false});
+    }
+  }
+
   _onOpenAttachment = () => {
+    if (this.state.isDownloading || this.props.isDownloading) {
+      return;
+    }
+    if (this.props.missing && !this.state.isDownloading) {
+      this.setState({ isDownloading: true, download: { state: 'downloading', percent: 100 } });
+      MessageStore.fetchMissingAttachmentsByFileIds({ filedIds: [this.props.fileId] });
+    }
     const { onOpenAttachment } = this.props;
     if (onOpenAttachment != null) {
       onOpenAttachment();
@@ -335,17 +353,16 @@ export class ImageAttachmentItem extends Component {
   };
 
   renderImage() {
-    const { download, filePath, draggable } = this.props;
-    if (download && download.percent <= 5) {
+    const { isDownloading, filePath, draggable } = this.props;
+    if (isDownloading || this.state.isDownloading) {
       return (
         <div style={{ width: '100%', height: '100px' }}>
-          <Spinner visible/>
+          <Spinner visible />
         </div>
       );
     }
-    const src =
-      download && download.percent < 100 ? `${filePath}?percent=${download.percent}` : filePath;
-    return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded}/>;
+    // const src =filePath;
+    return <img draggable={draggable} src={filePath} alt="" onLoad={this._onImgLoaded} />;
   }
 
   render() {
@@ -354,11 +371,12 @@ export class ImageAttachmentItem extends Component {
     return (
       <div className={classes} {...pickHTMLProps(extraProps)}>
         <div>
-          <ProgressBar download={download}/>
+          <ProgressBar isDownloading={this.state.isDownloading || this.props.isDownloading}/>
           <AttachmentActionIcon
             {...this.props}
             removeIcon="image-cancel-button.png"
             downloadIcon="image-download-button.png"
+            isDownloading={this.state.isDownloading || this.props.isDownloading}
             retinaImgMode={RetinaImg.Mode.ContentPreserve}
             onAbortDownload={null}
           />

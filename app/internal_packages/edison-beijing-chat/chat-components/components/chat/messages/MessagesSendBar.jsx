@@ -412,6 +412,7 @@ export default class MessagesSendBar extends PureComponent {
     let el = ReactDOM.findDOMNode(this.textarea);
     el.focus();
     document.execCommand('insertText', false, value);
+    setTimeout(() => el.focus(), 10);
   };
   onEmailAttachmentTouch = () => {
     let attachmentEl = ReactDOM.findDOMNode(this.attachmentRef);
@@ -544,10 +545,10 @@ export default class MessagesSendBar extends PureComponent {
           </Button>
         </div>
         <PluginPrompt conversation={selectedConversation}
-                      pos={this.state.promptPos}
-                      prefix={this.state.prefix}
-                      keyword2app={this.state.keyword2app}
-                      installApp = {this.installApp}
+          pos={this.state.promptPos}
+          prefix={this.state.prefix}
+          keyword2app={this.state.keyword2app}
+          installApp={this.installApp}
         />
       </div>
     );

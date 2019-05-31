@@ -521,7 +521,10 @@ class MessageStore extends MailspringStore {
               }
               processed++;
               fs.access(`${tmpPath}.part`, fs.constants.R_OK, (err) => {
-                this._items[i].files[fileIndex].isDownloading = !err;
+                if (err) {
+                  change = true;
+                }
+                this._items[i].files[fileIndex].isDownloading = !!err;
                 processed++;
                 if (processed === total) {
                   if (missing.length > 0) {
@@ -537,7 +540,7 @@ class MessageStore extends MailspringStore {
               });
             } else {
               if (this.isAttachmentMissing(f.id)) {
-                noLongerMissing.push(id);
+                noLongerMissing.push(f.id);
                 change = true;
               }
               processed += 2;

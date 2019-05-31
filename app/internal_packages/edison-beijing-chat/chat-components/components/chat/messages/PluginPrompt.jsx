@@ -15,9 +15,9 @@ export default class PluginPrompt extends PureComponent {
   state = {}
 
   componentWillReceiveProps = async nextProps => {
-    const {conversation, prefix, keyword2app} = nextProps;
+    const { conversation, prefix, keyword2app } = nextProps;
     let matchedAppCommands = [];
-    if (!conversation || !keyword2app ||  !prefix || prefix[0] !== '/') {
+    if (!conversation || !keyword2app || !prefix || prefix[0] !== '/') {
       Object.assign({}, this.state, { matchedAppCommands });
       return;
     }
@@ -28,8 +28,8 @@ export default class PluginPrompt extends PureComponent {
     for (let kw in keyword2app) {
       let app = keyword2app[kw];
       kw = kw.toLowerCase();
-      if (text && kw==text || text.length>=3 && kw.toLowerCase().startsWith(text)) {
-          matchedApps.push(app);
+      if (text && kw == text || text.length >= 3 && kw.toLowerCase().startsWith(text)) {
+        matchedApps.push(app);
       }
     }
     matchedApps = _.uniq(matchedApps);
@@ -38,13 +38,13 @@ export default class PluginPrompt extends PureComponent {
       if (app && app.length) {
         app = app[0];
         if (app.description) {
-          matchedAppCommands.push({name:app.name, description:app.description});
+          matchedAppCommands.push({ name: app.name, description: app.description });
         }
         if (app.commands && app.commands.length) {
-          matchedAppCommands.push.apply(matchedAppCommands, app.commands.map(command => ({app, command})));
+          matchedAppCommands.push.apply(matchedAppCommands, app.commands.map(command => ({ app, command })));
         } else {
-          matchedAppCommands.push({app, command:{command:'/'+app.shortName, text:''}});
-          matchedAppCommands.push({app, command:{command:'/'+app.shortName +' ?', text:''}});
+          matchedAppCommands.push({ app, command: { command: '/' + app.shortName, text: '' } });
+          matchedAppCommands.push({ app, command: { command: '/' + app.shortName + ' ?', text: '' } });
         };
       }
     });
@@ -53,13 +53,13 @@ export default class PluginPrompt extends PureComponent {
   }
 
   hide = () => {
-    const state = Object.assign({}, this.state, { hidden:true });
+    const state = Object.assign({}, this.state, { hidden: true });
     this.setState(state);
   };
 
   installApp = () => {
     this.props.installApp();
-    const state = Object.assign({}, this.state, { hidden:true });
+    const state = Object.assign({}, this.state, { hidden: true });
     this.setState(state);
   };
 
@@ -89,7 +89,7 @@ export default class PluginPrompt extends PureComponent {
   }
 
   render() {
-    const {pos,  prefix} = this.props;
+    const { pos, prefix } = this.props;
 
     if (!prefix || prefix[0] !== '/' || this.state.hidden) {
       return null;
