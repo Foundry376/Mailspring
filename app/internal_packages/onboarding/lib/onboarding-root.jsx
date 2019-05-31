@@ -16,6 +16,7 @@ import AccountSettingsPageYahoo from './page-account-settings-yahoo';
 import AccountOnboardingSuccess from './page-account-onboarding-success';
 import InitialPreferencesPage from './page-initial-preferences';
 import InitialDonePage from './page-initial-done';
+import LoginErrorPage from './page-login-error';
 import AddAnotherAccountPage from './page-account-add-another';
 import GdprTerms from './page-gdpr-terms';
 
@@ -36,6 +37,7 @@ const PageComponents = {
   'initial-preferences': InitialPreferencesPage,
   'initial-done': InitialDonePage,
   'gdpr-terms': GdprTerms,
+  'login-error': LoginErrorPage
 };
 
 export default class OnboardingRoot extends React.Component {
@@ -81,7 +83,7 @@ export default class OnboardingRoot extends React.Component {
       <div className="page-frame">
         <PageTopBar
           pageDepth={this.state.pageDepth}
-          allowMoveBack={!['initial-preferences', 'tutorial', 'account-add-another', 'account-choose'].includes(this.state.page)}
+          allowMoveBack={!['initial-preferences', 'tutorial', 'account-add-another', 'account-choose', 'login-error'].includes(this.state.page)}
         />
         <CSSTransitionGroup
           transitionName="alpha-fade"

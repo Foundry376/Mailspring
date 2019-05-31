@@ -110,6 +110,12 @@ export default class OAuthSignInPage extends React.Component {
     if (this._server) this._server.close();
   }
 
+  componentWillUpdate = () => {
+    if (this.state.authStage === 'error') {
+      OnboardingActions.moveToPage('login-error');
+    }
+  }
+
   _onError(err) {
     this.setState({ authStage: 'error', errorMessage: err.message });
     AppEnv.reportError(err);
@@ -232,7 +238,7 @@ export default class OAuthSignInPage extends React.Component {
       return;
     }
     const listeners = {
-      // 'did-fail-load': this._webviewDidFailLoad,
+      'did-fail-load': this._webviewDidFailLoad,
       'did-finish-load': this._loaded,
       // 'did-get-response-details': this._webviewDidGetResponseDetails,
       'console-message': this._onConsoleMessage,
@@ -328,14 +334,14 @@ export default class OAuthSignInPage extends React.Component {
             size={{ width: 65, height: 65 }}
             style={{ margin: '200px auto 0' }} />
         )}
-        {authStage === 'error' && (
+        {/* {authStage === 'error' && (
           <div style={{ marginTop: 100 }} >
             <h2>Sorry, we had trouble logging you in</h2>
             <div className="error-region">
               <FormErrorMessage message={this.state.errorMessage} />
             </div>
           </div>
-        )}
+        )} */}
       </div>
     );
   }
