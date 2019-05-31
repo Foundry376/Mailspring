@@ -283,7 +283,10 @@ export default class MailboxPerspective {
       return false;
     }
     const accounts = AccountStore.accountsForItems(threads);
-    return accounts.every(acc => acc.canArchiveThreads());
+    return (
+      accounts.every(acc => acc.canArchiveThreads()) &&
+      threads.some(thread => thread.labels.some(label => label.role === 'inbox'))
+    );
   }
 
   canTrashThreads(threads) {
