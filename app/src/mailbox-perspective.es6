@@ -336,11 +336,11 @@ class DraftsMailboxPerspective extends MailboxPerspective {
   }
 
   unreadCount() {
-    let count = 0;
-    for (const aid of this.accountIds) {
-      count += OutboxStore.itemsForAccount(aid).length;
+    let sum = 0;
+    for (const catId of this.categoryIds) {
+      sum += ThreadCountsStore.totalCountForCategoryId(catId);
     }
-    return count;
+    return sum;
   }
 
   canReceiveThreadsFromAccountIds() {
