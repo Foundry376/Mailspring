@@ -348,6 +348,7 @@ export default class MessageEditBar extends PureComponent {
     let el = ReactDOM.findDOMNode(this.textarea);
     el.focus();
     document.execCommand('insertText', false, value);
+    setTimeout(() => el.focus(), 10);
   };
   onEmailAttachmentTouch = () => {
     let attachmentEl = ReactDOM.findDOMNode(this.attachmentRef);
