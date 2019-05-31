@@ -436,8 +436,8 @@ export default class MessagesPanel extends PureComponent {
     let { loading} = progress;
     if (loading) {
       loadConfig = progress.loadConfig;
-      const loadText = loadConfig.type==='upload'? 'upload' : 'download';
-      window.alert(`A ${loadText} is processing, please wait it to be finished!`);
+      const loadText = loadConfig.type==='upload'? 'An upload' : ' A download';
+      window.alert(`${loadText} is processing, please wait it to be finished!`);
       return;
     }
     ChatActions.updateProgress({loadConfig, loading:true, visible: true },

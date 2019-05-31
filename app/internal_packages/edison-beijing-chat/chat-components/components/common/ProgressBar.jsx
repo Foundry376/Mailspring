@@ -18,14 +18,13 @@ export default class ProgressBar extends PureComponent {
     if (ProgressBarStore.progress.finished || ProgressBarStore.progress.failed) {
       loading = false;
     }
-    ChatActions.updateProgress({ loading:false, visible: false });
+    ChatActions.updateProgress({ loading, visible: false });
   };
 
   viewDownload = () => {
     const { progress } = this.props;
     const { loadConfig } = progress;
     shell.showItemInFolder(loadConfig.filepath);
-
   };
 
   render() {

@@ -12,6 +12,8 @@ import { uploadFile } from './awss3';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../db/schemas/message';
 import { beginStoringMessage } from '../actions/db/message';
 import { updateSelectedConversation } from '../actions/db/conversation';
+import { ProgressBarStore } from 'chat-exports';
+
 var thumb = require('node-thumbnail').thumb;
 
 export const groupMessages = async messages => {
@@ -126,12 +128,21 @@ export const clearMessages = async (conversation) => {
 }
 
 export const sendFileMessage = (file, index, reactInstance, messageBody) => {
+  let { progress } = ProgressBarStore;
+  let { loading} = progress;
+  if (loading) {
+    const loadConfig = progress.loadConfig;
+    const loadText = loadConfig.type==='upload'? 'An upload' : ' A download';
+    window.alert(`${loadText} is processing, please wait it to be finished!`);
+    return;
+  }
   const props = reactInstance.props;
   const conversation = props.selectedConversation;
   const onMessageSubmitted = props.onMessageSubmitted || props.sendMessage;
   const queueLoadMessage = reactInstance.queueLoadMessage || props.queueLoadMessage;
   let filepath;
   if (typeof file === 'object') {
+    // the file is an description to an email attachment
     let id = file.id;
     let configDirPath = AppEnv.getConfigDirPath();
     filepath = path.join(configDirPath, 'files', id.slice(0, 2), id.slice(2, 4), id, file.filename);
@@ -140,6 +151,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
       return;
     }
   } else {
+    // the file is selected from the local file system
     filepath = file;
   }
   let messageId, updating = false;
@@ -180,7 +192,6 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
       filepath,
       type:'upload',
     }
-
     queueLoadMessage(loadConfig);
   } else {
     const atIndex = conversation.jid.indexOf('@')
