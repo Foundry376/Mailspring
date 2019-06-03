@@ -9,6 +9,7 @@ import Account from '../models/account';
 import Utils from '../models/utils';
 import getDb from '../../../internal_packages/edison-beijing-chat/chat-components/db';
 import { clearMessages } from '../../../internal_packages/edison-beijing-chat/chat-components/utils/message';
+import {removeMyApps} from '../../../internal_packages/edison-beijing-chat/chat-components/utils/appmgmt';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
@@ -191,6 +192,7 @@ class AccountStore extends MailspringStore {
         });
       });
       xmpp.removeXmpp(jid);
+      removeMyApps(chatAccount.userId);
     }
 
     this._caches = {};
