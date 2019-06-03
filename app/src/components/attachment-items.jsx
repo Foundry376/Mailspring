@@ -45,7 +45,7 @@ const SPACE = ' ';
 function ProgressBar(props) {
   const { isDownloading } = props;
   if (!isDownloading) {
-    return <span/>;
+    return <span />;
   }
   // const { state: downloadState, percent: downloadPercent } = download;
   // const downloadProgressStyle = {
@@ -53,8 +53,8 @@ function ProgressBar(props) {
   // };
   return (
     <span className={`progress-bar-wrap state-downloading`}>
-      <span className="progress-background"/>
-      <span className="progress-foreground "/>
+      <span className="progress-background" />
+      <span className="progress-foreground " />
     </span>
   );
 }
@@ -95,10 +95,10 @@ function AttachmentActionIcon(props) {
     <div className="file-action-icon" onClick={onClickActionIcon}>
       {isDownloading ?
         <RetinaImg name='refresh.svg'
-                   className='infinite-rotation-linear'
-                   style={{ width: 24, height: 24 }} isIcon
-                   mode={RetinaImg.Mode.ContentIsMask}/> :
-        <RetinaImg name={actionIconName} mode={retinaImgMode}/>
+          className='infinite-rotation-linear'
+          style={{ width: 24, height: 24 }} isIcon
+          mode={RetinaImg.Mode.ContentIsMask} /> :
+        <RetinaImg name={actionIconName} mode={retinaImgMode} />
       }
     </div>
   );
@@ -229,14 +229,25 @@ export class AttachmentItem extends Component {
       'has-preview': filePreviewPath,
       [className]: className,
     });
+    let iconName = AttachmentStore.getExtIconName(displayName);
     if (isImage) {
-      filePreviewPath = filePath;
+      if (fs.existsSync(filePath)) {
+        filePreviewPath = filePath;
+      }
+      iconName = 'attachment-img.svg';
     }
     const style = draggable ? { WebkitUserDrag: 'element' } : null;
     const tabIndex = focusable ? 0 : null;
     const { devicePixelRatio } = window;
 
-    let iconName = AttachmentStore.getExtIconName(displayName);
+    let previewStyle = {};
+    if (filePreviewPath) {
+      previewStyle = {
+        background: `url(file://${encodeURI(filePreviewPath)}) no-repeat center center`,
+        backgroundSize: 'cover'
+      }
+    }
+
     return (
       <div
         style={style}
@@ -250,25 +261,23 @@ export class AttachmentItem extends Component {
         {...pickHTMLProps(extraProps)}
       >
         <div className="inner">
-          <ProgressBar isDownloading={this.state.isDownloading || this.props.isDownloading}/>
+          <ProgressBar isDownloading={this.state.isDownloading || this.props.isDownloading} />
           <Flexbox direction="row" style={{ alignItems: 'center' }}>
             <div className="file-info-wrap">
               <div className="attachment-icon">
                 {filePreviewPath ? (
-                  <div className="file-thumbnail-preview" draggable={false}>
-                    <img alt="" src={`file://${filePreviewPath}`} style={{ zoom: 1 / devicePixelRatio }}/>
-                  </div>
+                  <div className="file-thumbnail-preview" style={previewStyle} draggable={false}></div>
                 ) : (
-                  <RetinaImg
-                    ref={cm => {
-                      this._fileIconComponent = cm;
-                    }}
-                    className="file-icon"
-                    fallback="drafts.svg"
-                    name={iconName}
-                    isIcon
-                    mode={RetinaImg.Mode.ContentIsMask}/>
-                )}
+                    <RetinaImg
+                      ref={cm => {
+                        this._fileIconComponent = cm;
+                      }}
+                      className="file-icon"
+                      fallback="drafts.svg"
+                      name={iconName}
+                      isIcon
+                      mode={RetinaImg.Mode.ContentIsMask} />
+                  )}
               </div>
               <div className="attachment-info">
                 <div className="attachment-name" title={displayName}>
@@ -323,7 +332,7 @@ export class ImageAttachmentItem extends Component {
   }
   componentWillReceiveProps(nextProps, nextContext) {
     if (this.props.missing && !nextProps.missing) {
-      this.setState({ isDownloading: false});
+      this.setState({ isDownloading: false });
     }
   }
 
@@ -371,7 +380,7 @@ export class ImageAttachmentItem extends Component {
     return (
       <div className={classes} {...pickHTMLProps(extraProps)}>
         <div>
-          <ProgressBar isDownloading={this.state.isDownloading || this.props.isDownloading}/>
+          <ProgressBar isDownloading={this.state.isDownloading || this.props.isDownloading} />
           <AttachmentActionIcon
             {...this.props}
             removeIcon="image-cancel-button.png"
