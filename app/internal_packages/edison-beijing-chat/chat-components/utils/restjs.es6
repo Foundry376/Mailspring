@@ -8,6 +8,7 @@ import fs from 'fs';
 const download = require('download');
 let configDirPath = AppEnv.getConfigDirPath();
 let logoDirPath = path.join(configDirPath, 'logo_cache');
+let avatarDirPath = path.join(configDirPath, 'chat_avatar_cache');
 
 const { devMode } = AppEnv.getLoadSettings();
 const domain = {
@@ -70,6 +71,30 @@ export const register = (email, pwd, name, type, provider, setting) => {
 export const unregister = (userId, password, cb) => {
     post(urlPre + 'unregisterV2',
         { IMAccounts: [{ userId: userId, password: password }] }, cb);
+}
+
+let accessToken;
+export const getProfile = async (jid) => {
+    const userId = jid.split('@')[0];
+    if (profileCache[userId]) {
+        return profileCache[userId];
+    }
+    const chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    if (Object.keys(chatAccounts).length > 0) {
+        if (!accessToken) {
+            accessToken = await keyMannager.getAccessTokenByEmail(Object.keys(chatAccounts)[0]);
+        }
+        return await new Promise((resolve, reject) => {
+            queryProfile({ accessToken, userId }, (error, data) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(data);
+                }
+            })
+        });
+    }
+    return {};
 }
 
 const profileCache = {};
@@ -282,9 +307,22 @@ export const getLogo = async (email) => {
 }
 
 export default {
-    register, unregister, queryProfile, setProfile,
-    login, uploadContacts, getAvatar, getAvatarFromCache,
-    xmpplogin, listApp, listKeywordApps, sendMsg2App,
-    sendMsg2App2, sendCmd2App, sendCmd2App2,
-    getAvatarPromise, getLogo
+    register,
+    unregister,
+    queryProfile,
+    setProfile,
+    getProfile,
+    login,
+    uploadContacts,
+    getAvatar,
+    getAvatarFromCache,
+    xmpplogin,
+    listApp,
+    listKeywordApps,
+    sendMsg2App,
+    sendMsg2App2,
+    sendCmd2App,
+    sendCmd2App2,
+    getAvatarPromise,
+    getLogo
 }

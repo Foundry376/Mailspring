@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { gradientColorForString } from '../../utils/colors';
-import { getAvatar, getAvatarFromCache, queryProfile } from '../../utils/restjs';
+import { getAvatar, getAvatarFromCache, queryProfile, getProfile } from '../../utils/restjs';
 import { connect } from 'react-redux';
 import keyMannager from '../../../../../src/key-manager';
 import _ from 'underscore';
@@ -43,9 +43,9 @@ class ContactAvatar extends Component {
     };
 
     const imgUrl = getAvatarFromCache(this.props.email);
-    if (props.jid.match(/@app/)){
+    if (props.jid.match(/@app/)) {
       const conv = props.conversation;
-      if (conv){
+      if (conv) {
         const userId = conv.curJid.split('@')[0];
         const id = props.jid.split('@')[0];
         app = getMyAppById(userId, id);
@@ -69,23 +69,6 @@ class ContactAvatar extends Component {
     const { availableUsers, jid } = this.props;
     return availableUsers && availableUsers.indexOf(jid) !== -1 ? 'online' : 'offline';
   }
-  getProfile = async () => {
-    const chatAccounts = AppEnv.config.get('chatAccounts') || {};
-    if (Object.keys(chatAccounts).length > 0) {
-      const accessToken = await keyMannager.getAccessTokenByEmail(Object.keys(chatAccounts)[0]);
-      const userId = this.props.jid.split('@')[0];
-      return await new Promise((resolve, reject) => {
-        queryProfile({ accessToken, userId }, (error, data) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(data);
-          }
-        })
-      });
-    }
-    return {};
-  }
   shouldComponentUpdate(nextProps, nextState) {
     const { availableUsers, jid } = this.props;
     if (_.isEqual(nextState, this.state)
@@ -100,9 +83,9 @@ class ContactAvatar extends Component {
     let { email, conversation } = this.props;
     if (this.props.jid && !email && (!conversation || !conversation.isGroup)) {
       let userProfile;
-      try{
-         const { data } = await this.getProfile();
-         userProfile = data;
+      try {
+        const { data } = await getProfile(this.props.jid);
+        userProfile = data;
       } catch (e) {
         console.log('error in getProfile:', e);
       }
