@@ -528,11 +528,12 @@ export default class ComposerView extends React.Component {
         return;
       }
       match.contentId = Utils.generateContentId();
+      match.inline = true;
       session.changes.add({
         files: [].concat(draft.files),
       });
-
       this._els[Fields.Body].insertInlineAttachment(fileObj);
+      session.changes.commit();
     }
   };
 
