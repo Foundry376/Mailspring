@@ -127,8 +127,9 @@ export async function safeUpsert(doc, data) {
     docinDB = await db[doc.name].findOne().where(key).eq(keyValue).exec();
     if (docinDB) {
       await docinDB.update({ $set: data })
+      return docinDB;
     } else {
-      await doc.insert(data)
+      return await doc.insert(data)
     }
     tryCount = 0;
   } catch (e) {
