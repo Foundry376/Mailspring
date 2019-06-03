@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import CancelIcon from './icons/CancelIcon';
 import path from 'path';
 import { RetinaImg } from 'mailspring-component-kit';
-import chatModel from '../../store/model';
 import { ProgressBarStore, ChatActions } from 'chat-exports';
 
 const remote = require('electron').remote;
@@ -35,12 +34,14 @@ export default class ProgressBar extends PureComponent {
       return null;
     }
 
-    let loadWord;
+    let loadWord, loadText;
     const filename = path.basename(loadConfig.filepath);
     if (loadConfig.type === 'download') {
       loadWord = 'Downloading';
+      loadText = 'was saved to your computer'
     } else {
       loadWord = 'Uploading';
+      loadText = 'was uploaded to the web'
     }
     let status = '';
     if (failed) {
@@ -62,11 +63,13 @@ export default class ProgressBar extends PureComponent {
         }
 
         <div className='load-info'>
-          <div className={'progress-prompt'}>
-            <span>{loadWord}:&nbsp;</span>
-            <span>{filename}</span>
-            <span>{status}</span>
-          </div>
+          {!finished ? <div className={'progress-prompt'}>
+              <span>{loadWord}:&nbsp;</span>
+              <span>{filename}</span>
+              <span>{status}</span>
+            </div>:
+            <div>{filename} {loadText}</div>
+          }
 
           {!finished ? <div className='msg-progress-bar-wrap'>
             <div className='progress-background'/>

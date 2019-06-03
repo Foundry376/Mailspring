@@ -18,10 +18,6 @@ class ProgressBarStore extends MailspringStore {
   _registerListeners() {
     this.listenTo(ChatActions.updateProgress, this.updateProgress);
   }
-  componentDidMount() {
-    this.unsubscribers = [];
-    this.unsubscribers.push(ProgressBarStore.listen(this.onProgressChange));
-  }
 
   updateProgress(progress, props) {
     Object.assign(this.progress, progress);

@@ -32,7 +32,6 @@ import { xmpplogin } from '../../../utils/restjs';
 import fs from "fs";
 import https from "https";
 import http from "http";
-import ProgressBar from '../../common/ProgressBar';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
 import { beginSendingMessage } from '../../../actions/chat';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
@@ -42,8 +41,6 @@ import { log } from '../../../utils/log-util';
 import { safeUpdate } from '../../../utils/db-utils';
 
 const { exec } = require('child_process');
-const remote = require('electron').remote;
-const { dialog } = remote;
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 window.registerLoginChatAccounts = registerLoginChatAccounts;
