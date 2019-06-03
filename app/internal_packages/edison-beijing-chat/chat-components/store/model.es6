@@ -9,7 +9,6 @@ const chatModel = {
   store: null, // will save the store instance in ConfigureStore
   editingMessageId: null, //inplace editing message's id
   groupAvatars: [], // GroupChatAvatar React instance
-  loadProgressMap: {}, // record progress for downloading/uploading file, key is the msgBody.path
   updateAvatars(conversationJid) {
     this.groupAvatars.forEach(groupAvatar => {
       if (groupAvatar && conversationJid === groupAvatar.props.conversation.jid) {
@@ -17,14 +16,6 @@ const chatModel = {
       }
     })
   },
-  progressBarData: {
-    bar: null, // the react component instance for ProgressBar.jsx
-    loadQueue: [],
-    loadIndex: 0,
-    percent: 0,
-    loading: false,
-    visible: false
-  }
 };
 
 export const loadFromLocalStorage = () => {

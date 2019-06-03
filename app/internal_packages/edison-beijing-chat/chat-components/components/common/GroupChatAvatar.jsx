@@ -15,6 +15,11 @@ class GroupChatAvatar extends Component {
     const groupAvatars = chatModel.groupAvatars;
     groupAvatars.push(this);
   }
+  componentWillUnmount() {
+    const groupAvatars = chatModel.groupAvatars;
+    const index = groupAvatars.indexOf(this);
+    groupAvatars.splice(index, 1);
+  }
   componentWillReceiveProps(nextProps) {
     if (nextProps.conversation.jid !== this.props.conversation.jid) {
       this.refreshAvatar(nextProps);
