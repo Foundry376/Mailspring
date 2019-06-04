@@ -144,6 +144,8 @@ export default class MessagesPanel extends PureComponent {
     this.getEmailContacts();
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
+    const state = Object.assign({}, this.state, {online: navigator.onLine});
+    this.setState(state);
   }
   componentWillUnmount() {
     window.removeEventListener("online", this.onLine);
@@ -758,7 +760,7 @@ export default class MessagesPanel extends PureComponent {
                       style={{ width: 16 }}
                       isIcon
                       mode={RetinaImg.Mode.ContentIsMask} />
-                    <span>There appears to be a problem with your connection. Edison Mail is trying to reconnect. </span>
+                    <span>There appears to be a problem with your chat connection. Please click to reconnect: </span>
                     <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
                   </div>
                 )
@@ -767,7 +769,7 @@ export default class MessagesPanel extends PureComponent {
                 style={{ width: 16 }}
                 isIcon
                 mode={RetinaImg.Mode.ContentIsMask} />
-              <span>Your computer appears to be offline. Check your network connection.</span>
+              <span>Your computer appears to be offline. Please check your network connection.</span>
             </div>)}
           </div>
         )}
