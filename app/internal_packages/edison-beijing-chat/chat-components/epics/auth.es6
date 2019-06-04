@@ -22,6 +22,7 @@ import {
   failedJoiningRooms,
 } from '../actions/auth';
 import { getDeviceId } from '../utils/e2ee';
+import RoomStore from '../../store/RoomStore'
 
 /**
  * Starts the authentication process by starting session creation
@@ -68,7 +69,12 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
     // window.localStorage.jidLocal = jid.substring(0, jid.indexOf('@'));
 
     return Observable.fromPromise(xmpp.connect(jid))
-      .map(res => successfulConnectionAuth(res))
+      .map(res => {
+        // fetch and saveRoom infomation
+        xmpp.getRoomList(null, res.bare)
+          .then(rooms => RoomStore.saveRooms(rooms));
+        return successfulConnectionAuth(res);
+      })
       .catch(error => Observable.of(failConnectionAuth(error)));
   });
 

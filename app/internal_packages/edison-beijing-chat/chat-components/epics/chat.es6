@@ -344,6 +344,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
       }
       return message;
     }).map(newPayload => newMessage(newPayload));
+
 const getAes = (keys, curJid, deviceId) => {
   if (keys) {
     let text;
@@ -515,6 +516,7 @@ export const receiveGroupMessageEpic = action$ =>
       return receiveGroupMessage(payload)
     });
 
+// TODO 这里群聊接受OK，待删除
 export const convertReceivedMessageEpic = (action$) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
     // .filter(({ payload }) => {

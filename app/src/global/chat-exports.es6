@@ -53,6 +53,9 @@ lazyLoad(`ChatActions`, 'flux-actions/actions');
 // listen-only and not explicitly required from anywhere. Stores
 // currently set themselves up on require.
 lazyLoad(`ProgressBarStore`, 'store/ProgressBarStore');
+lazyLoad(`MessageStore`, 'store/MessageStore');
+lazyLoad(`ConversationStore`, 'store/ConversationStore');
+lazyLoad(`RoomStore`, 'store/RoomStore');
 
 process.nextTick(() => {
   let c = 0;

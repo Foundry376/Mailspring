@@ -3,10 +3,12 @@ import adapter from 'pouchdb-adapter-node-websql';
 import schemas from './schemas';
 import path from "path";
 import fs from 'fs';
+const Sequelize = require('sequelize');
 
 RxDB.plugin(adapter);
 
 let dbPromise;
+let sequelize;
 
 function databasePath(specMode) {
   let configDirPath = AppEnv.getConfigDirPath();
@@ -39,9 +41,33 @@ const createDb = async () => {
   return db;
 };
 
+const createSQLITE = () => {
+  if (sequelize) {
+    return sequelize;
+  }
+  let configDirPath = AppEnv.getConfigDirPath();
+  let dbPath = path.join(configDirPath, 'chat-db');
+  if (!fs.existsSync(dbPath)) {
+    fs.mkdirSync(dbPath);
+  }
+  console.log('****storage', `${dbPath}/chat-db.sqlite`);
+  sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: `${dbPath}/chat-db.sqlite`
+  });
+  return sequelize;
+}
+
+export const getSequelize = () => {
+  return createSQLITE();
+}
+
 export default () => {
   if (!dbPromise) {
     dbPromise = createDb();
+  }
+  if (!sequelize) {
+    sequelize = createSQLITE();
   }
   return dbPromise;
 };

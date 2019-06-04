@@ -21,10 +21,13 @@ import {
   DESELECT_CONVERSATION,
 } from '../../actions/chat';
 import chatModel from '../../store/model';
+import { MessageStore } from 'chat-exports';
 
 const SEPARATOR = '$';
 
 const saveMessages = async messages => {
+  MessageStore.saveMessages(messages);
+  // TODO 下面这些逻辑将来需要删除
   const db = await getDb();
   return Promise.all(messages.map(msg => {
     db.messages.findOne(msg.id).exec().then((msg1) => {
@@ -109,10 +112,10 @@ export const retrieveSelectedConversationMessagesEpic = action$ =>
               addMessagesSenderNickname(messages);
               return groupMessagesByTime(messages, 'sentTime', 'day');
             })
-            .filter(()=> {
+            .filter(() => {
               const time = new Date().getTime();
               const keep = time - chatModel.lastUpdateMessageTime > 500;
-              if (keep){
+              if (keep) {
                 chatModel.lastUpdateMessageTime = time;
               }
               return keep;

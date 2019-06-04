@@ -1,4 +1,5 @@
 import { Xmpp } from '../index';
+import { ChatActions, MessageStore } from 'chat-exports';
 
 /**
  * Creates a middleware for the XMPP class to dispatch actions to a redux store whenever any events
@@ -26,6 +27,9 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
         }
       }));
   }
+  xmpp.on('groupchat', data => {
+    MessageStore.reveiveGroupChat(data);
+  })
   return next => action => next(action);
 };
 
