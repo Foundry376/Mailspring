@@ -752,7 +752,7 @@ export default class MessagesPanel extends PureComponent {
                     style={{ width: 16 }}
                     isIcon
                     mode={RetinaImg.Mode.ContentIsMask} />
-                  <span>Your computer appears to be offline. Edison Mail is trying to reconnect. </span>
+                  <span>Your computer appears to be disconnected. Edison Mail is trying to reconnect. </span>
                 </div>
               ) : (
                   <div>
@@ -760,7 +760,7 @@ export default class MessagesPanel extends PureComponent {
                       style={{ width: 16 }}
                       isIcon
                       mode={RetinaImg.Mode.ContentIsMask} />
-                    <span>There appears to be a problem with your chat connection. Please click to reconnect: </span>
+                    <span>There appears to be a problem with your connection. Please click to reconnect: </span>
                     <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
                   </div>
                 )
