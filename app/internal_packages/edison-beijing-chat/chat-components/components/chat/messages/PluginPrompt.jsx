@@ -53,8 +53,7 @@ export default class PluginPrompt extends PureComponent {
   }
 
   hide = () => {
-    const state = Object.assign({}, this.state, { hidden: true });
-    this.setState(state);
+    this.props.hidePrompt();
   };
 
   installApp = () => {

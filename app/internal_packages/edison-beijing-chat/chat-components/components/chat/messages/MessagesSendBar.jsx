@@ -378,6 +378,11 @@ export default class MessagesSendBar extends PureComponent {
     }
   };
 
+  hidePrompt = () => {
+    const state = Object.assign({}, this.state, {prefix:''});
+    this.setState(state);
+  }
+
   clearFiles = (e) => {
     this.setState(Object.assign({}, this.state, { files: [] }));
   };
@@ -549,6 +554,7 @@ export default class MessagesSendBar extends PureComponent {
           pos={this.state.promptPos}
           prefix={this.state.prefix}
           keyword2app={this.state.keyword2app}
+          hidePrompt = {this.hidePrompt}
           installApp={this.installApp}
         />
       </div>
