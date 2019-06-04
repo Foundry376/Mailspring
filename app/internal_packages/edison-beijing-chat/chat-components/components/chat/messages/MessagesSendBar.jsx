@@ -105,7 +105,6 @@ export default class MessagesSendBar extends PureComponent {
     const userId = selectedConversation.curJid.split('@')[0];
     const keyword2app = {};
     let apps = getMyApps(userId);
-    console.log( 'apps: ', apps);
     apps = apps && apps.apps;
     apps = apps || [];
     apps.forEach(app => {

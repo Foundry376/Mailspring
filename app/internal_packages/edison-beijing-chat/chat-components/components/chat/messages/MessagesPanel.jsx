@@ -258,7 +258,6 @@ export default class MessagesPanel extends PureComponent {
     this.setState({
       online: false
     })
-    progressBarData.bar.update();
   };
 
   componentWillReceiveProps = (nextProps) => {
