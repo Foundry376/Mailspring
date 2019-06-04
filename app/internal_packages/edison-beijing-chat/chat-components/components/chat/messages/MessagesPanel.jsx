@@ -751,7 +751,6 @@ export default class MessagesPanel extends PureComponent {
                     isIcon
                     mode={RetinaImg.Mode.ContentIsMask} />
                   <span>Your computer appears to be offline. Edison Mail is trying to reconnect. </span>
-                  <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
                 </div>
               ) : (
                   <div>
