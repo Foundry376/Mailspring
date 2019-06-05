@@ -102,7 +102,7 @@ class DraftChangeSet extends EventEmitter {
     if (this.dirtyFields().length === 0) {
       return;
     }
-    if (this._timer){
+    if (this._timer) {
       clearTimeout(this._timer);
     }
     await this.callbacks.onCommit(arg);
@@ -212,13 +212,7 @@ export default class DraftEditingSession extends MailspringStore {
       onCommit: (arg) => this.changeSetCommit(arg), // for specs
     });
 
-    DraftStore = DraftStore || require('./draft-store').default;
-    this.listenTo(DraftStore, this._onDraftChanged);
-    ipcRenderer.on('draft-arp-reply', this._onDraftARPReply);
-    ipcRenderer.on('draft-close-window', this._onDraftCloseWindow);
-    ipcRenderer.on('new-window', this._onDraftNewWindow);
-    ipcRenderer.on('draft-delete', this._onDraftDelete);
-
+    this._registerListeners();
     if (draft) {
       hotwireDraftBodyState(draft);
       this._draft = draft;
@@ -306,6 +300,7 @@ export default class DraftEditingSession extends MailspringStore {
     ipcRenderer.on('draft-close-window', this._onDraftCloseWindow);
     ipcRenderer.on('new-window', this._onDraftNewWindow);
     ipcRenderer.on('draft-delete', this._onDraftDelete);
+    this.listenTo(Actions.popSheet, this._onThreadClose);
   };
   _removeListeners = () => {
     this.stopListeningToAll();
@@ -480,6 +475,13 @@ export default class DraftEditingSession extends MailspringStore {
       this.setPopout(true);
     }
   };
+  _onThreadClose = ({ thread = null } = {}) => {
+    if (thread) {
+      if (thread.id === this._draft.threadId) {
+        this.onThreadChange({ threadId: 'nan' });
+      }
+    }
+  };
 
   _onDraftCloseWindow = (event, options = {}) => {
     // console.log('session on close window', options);
@@ -558,7 +560,7 @@ export default class DraftEditingSession extends MailspringStore {
     if (!nextDraft) {
       return;
     }
-    if(nextDraft.id !== this._draft.id){
+    if (nextDraft.id !== this._draft.id) {
       this._draft.id = nextDraft.id;
       ipcRenderer.send('draft-got-new-id', {
         newHeaderMessageId: this._draft.headerMessageId,
@@ -609,7 +611,7 @@ export default class DraftEditingSession extends MailspringStore {
         this._draft = fastCloneDraft(this._draft);
         changed = true;
       }
-      if (key === 'body' && nextDraft[key].length === 0){
+      if (key === 'body' && nextDraft[key].length === 0) {
         console.log('body is empty, ignoring');
         continue;
       }
@@ -641,6 +643,7 @@ export default class DraftEditingSession extends MailspringStore {
       options.threadId &&
       this._draft.threadId !== options.threadId &&
       this._inView &&
+      !this.isPopout() &&
       !this._destroyed
     ) {
       if (this.needUpload()) {
