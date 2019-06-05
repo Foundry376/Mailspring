@@ -38,7 +38,7 @@ export default class ChatPage extends PureComponent {
         ).isRequired
       })
     ),
-    conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
+    // conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
     currentUserId: PropTypes.string,
     referenceTime: PropTypes.number,
     selectedConversation: PropTypes.shape({
@@ -77,12 +77,12 @@ export default class ChatPage extends PureComponent {
       sendMessage,
       availableUsers,
       contacts,
-      conversations,
+      // conversations,
       currentUserId,
       groupedMessages,
       referenceTime,
       selectedConversation,
-      removeConversation,
+      // removeConversation,
       isLeft,
       resetHeight,
       onDragStart,
@@ -95,10 +95,10 @@ export default class ChatPage extends PureComponent {
       retrieveAllConversations,
       // selectConversation,
       // newConversation,
-      conversations,
+      // conversations,
       selectedConversationJid,
       referenceTime,
-      removeConversation,
+      // removeConversation,
     };
     const messagesPanelProps = {
       // deselectConversation,

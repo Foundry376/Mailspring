@@ -10,7 +10,7 @@ export default class ConversationsTopBar extends PureComponent {
   newConversation = () => {
     Actions.pushSheet(WorkspaceStore.Sheet.ChatView);
     document.querySelector('#Center').style.zIndex = 9;
-    ConversationStore.setSelectedConversation('NEW_CONVERSATION');
+    ConversationStore.setSelectedConversation(NEW_CONVERSATION);
   }
   render() {
     return (

@@ -10,7 +10,7 @@ import {
   // deselectConversation,
   // selectConversation,
   // newConversation,
-  removeConversation,
+  // removeConversation,
   beginSendingMessage,
 } from '../actions/chat';
 import {
@@ -26,7 +26,7 @@ const actionCreators = {
   // deselectConversation,
   // selectConversation,
   // newConversation,
-  removeConversation,
+  // removeConversation,
   sendMessage: beginSendingMessage,
   setReferenceTime,
 };
@@ -39,7 +39,7 @@ const mapStateToProps = ({
   },
   chat: {
     groupedMessages,
-    conversations,
+    // conversations,
     selectedConversation,
   },
   contact: {
@@ -51,7 +51,7 @@ const mapStateToProps = ({
   return {
     availableUsers,
     contacts,
-    conversations,
+    // conversations,
     currentUserId: currentUser ? currentUser.bare : null,
     groupedMessages,
     referenceTime,

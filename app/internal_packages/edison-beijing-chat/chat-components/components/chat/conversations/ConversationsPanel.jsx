@@ -10,10 +10,10 @@ export default class ConversationsPanel extends PureComponent {
   static propTypes = {
     retrieveAllConversations: PropTypes.func.isRequired,
     // selectConversation: PropTypes.func.isRequired,
-    conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
+    // conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
     selectedConversationJid: PropTypes.string,
     referenceTime: PropTypes.number,
-    removeConversation: PropTypes.func
+    // removeConversation: PropTypes.func
   };
 
   static defaultProps = {
@@ -26,10 +26,10 @@ export default class ConversationsPanel extends PureComponent {
   componentDidMount() {
     this.unsubscribers = [];
     this.unsubscribers.push(ProgressBarStore.listen(this.onProgressChange));
-    const { retrieveAllConversations } = this.props;
-    if (retrieveAllConversations) {
-      retrieveAllConversations();
-    }
+    // const { retrieveAllConversations } = this.props;
+    // if (retrieveAllConversations) {
+    //   retrieveAllConversations();
+    // }
   }
 
   componentWillUnmount() {
@@ -52,7 +52,7 @@ export default class ConversationsPanel extends PureComponent {
       // conversations,
       // selectedConversationJid,
       referenceTime,
-      removeConversation
+      // removeConversation
     } = this.props;
     // const selectedIndex = conversations.map(conv => conv.jid)
     //   .indexOf(selectedConversationJid);
@@ -62,7 +62,7 @@ export default class ConversationsPanel extends PureComponent {
       // conversations,
       // selectedIndex,
       referenceTime,
-      removeConversation
+      // removeConversation
     };
     const { progress, onCancel, onRetry } = this.state;
 

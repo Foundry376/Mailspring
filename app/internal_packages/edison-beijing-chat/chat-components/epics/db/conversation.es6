@@ -150,16 +150,16 @@ const retriveConversation = async jid => {
   return db.conversations.findOne(jid).exec();
 };
 
-const removeConversation = async jid => {
-  const db = await getDb();
-  return (db.conversations.findOne(jid).exec()).then((conv) => {
-    if (conv) {
-      conv.remove();
-    } else {
-      console.error('error: no conversation exists for removing conversation, jid:', jid);
-    }
-  });
-};
+// const removeConversation = async jid => {
+//   const db = await getDb();
+//   return (db.conversations.findOne(jid).exec()).then((conv) => {
+//     if (conv) {
+//       conv.remove();
+//     } else {
+//       console.error('error: no conversation exists for removing conversation, jid:', jid);
+//     }
+//   });
+// };
 
 const clearConversationUnreadMessages = async jid => {
   const db = await getDb();
@@ -440,12 +440,12 @@ export const createGroupMessageConversationEpic = (action$) =>
       return beginStoringConversations([conversation]);
     });
 
-export const removeConversationEpic = (action$) =>
-  action$.ofType(REMOVE_CONVERSATION)
-    .map(({ payload: jid }) => {
-      removeConversation(jid);
-      return jid;
-    }).map(jid => {
-      return { type: REMOVING_CONVERSATION, payload: jid }
-    });
+// export const removeConversationEpic = (action$) =>
+//   action$.ofType(REMOVE_CONVERSATION)
+//     .map(({ payload: jid }) => {
+//       removeConversation(jid);
+//       return jid;
+//     }).map(jid => {
+//       return { type: REMOVING_CONVERSATION, payload: jid }
+//     });
 

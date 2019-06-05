@@ -10,7 +10,7 @@ export default class Conversations extends PureComponent {
     // selectedIndex: PropTypes.number,
     // selectConversation: PropTypes.func.isRequired,
     referenceTime: PropTypes.number,
-    removeConversation: PropTypes.func
+    // removeConversation: PropTypes.func
   };
 
   static defaultProps = {
@@ -70,7 +70,6 @@ export default class Conversations extends PureComponent {
             conversation={conv}
             referenceTime={referenceTime}
             onClick={() => ChatActions.selectConversation(conv.jid)}
-            removeConversation={() => ChatActions.removeConversation(conv.jid)}
           />
         ))}
       </div>

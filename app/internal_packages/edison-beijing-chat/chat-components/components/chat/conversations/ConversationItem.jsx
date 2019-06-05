@@ -9,6 +9,7 @@ import messageModel from '../messages/messageModel';
 import { clearMessages } from '../../../utils/message';
 import { RetinaImg } from 'mailspring-component-kit';
 import { getApp, getToken } from '../../../utils/appmgt';
+import { ChatActions } from 'chat-exports';
 
 export default class ConversationItem extends PureComponent {
 
@@ -23,7 +24,7 @@ export default class ConversationItem extends PureComponent {
       lastMessageTime: PropTypes.number.isRequired,
     }).isRequired,
     referenceTime: PropTypes.number,
-    removeConversation: PropTypes.func
+    // removeConversation: PropTypes.func
   }
 
   static defaultProps = {
@@ -53,22 +54,22 @@ export default class ConversationItem extends PureComponent {
   onClickRemove = (event) => {
     event.stopPropagation();
     event.preventDefault();
-    const { conversation, removeConversation } = this.props;
+    const { conversation } = this.props;
     clearMessages(conversation).then(() => {
       // setTimeout((() => {
-        // cxm: it's so weird, it's necessary to add th delay to make the messages history not to come back!
-        // but it really works, tested.
-        chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
-        removeConversation(conversation.jid);
-        if (messageModel.imagePopup) {
-          messageModel.imagePopup.hide();
-        }
+      // cxm: it's so weird, it's necessary to add th delay to make the messages history not to come back!
+      // but it really works, tested.
+      chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
+      ChatActions.removeConversation(conversation.jid);
+      if (messageModel.imagePopup) {
+        messageModel.imagePopup.hide();
+      }
       // }), 1000)
     })
   }
 
   render() {
-    const { selected, conversation, referenceTime, onClick, removeConversation, ...otherProps } = this.props;
+    const { selected, conversation, referenceTime, onClick, ...otherProps } = this.props;
     const timeDescriptor = buildTimeDescriptor(referenceTime);
     return (
       <div
