@@ -136,6 +136,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     window.alert(`${loadText} is processing, please wait it to be finished!`);
     return;
   }
+
   const props = reactInstance.props;
   const conversation = props.selectedConversation;
   const onMessageSubmitted = props.onMessageSubmitted || props.sendMessage;
@@ -153,6 +154,11 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   } else {
     // the file is selected from the local file system
     filepath = file;
+  }
+  const isdir = fs.lstatSync(filepath).isDirectory();
+  if (isdir) {
+    window.alert('Not support to send folder.');
+    return;
   }
   let messageId, updating = false;
   if (chatModel.editingMessageId) {
