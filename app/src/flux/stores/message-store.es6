@@ -594,7 +594,15 @@ class MessageStore extends MailspringStore {
               if (processed === total) {
                 if (change) {
                   if (inLineMissing.length > 0) {
-                    Actions.fetchAttachments({ accountId: i.accountId, missingItems: inLineMissing });
+                    Actions.fetchAttachments({
+                      accountId: i.accountId,
+                      missingItems: inLineMissing,
+                    });
+                  } else if (normalMissing.length > 0) {
+                    Actions.fetchAttachments({
+                      accountId: i.accountId,
+                      missingItems: normalMissing,
+                    });
                   }
                   this._missingAttachmentIds = [...inLineMissing, ...normalMissing];
                   this.trigger();
