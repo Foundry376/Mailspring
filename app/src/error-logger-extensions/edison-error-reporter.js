@@ -1,9 +1,7 @@
 /* eslint global-require: 0 */
-const { getMac } = require('getmac');
-const crypto = require('crypto');
+const { getDeviceHash } = require('../system-utils');
 const _ = require('underscore');
 var https = require('https');
-
 module.exports = class EdisonErrorReporter {
   constructor({ inSpecMode, inDevMode, resourcePath }) {
     this.inSpecMode = inSpecMode;
@@ -15,14 +13,7 @@ module.exports = class EdisonErrorReporter {
 
     if (!this.inSpecMode) {
       try {
-        getMac((err, macAddress) => {
-          if (!err && macAddress) {
-            this.deviceHash = crypto
-              .createHash('md5')
-              .update(macAddress)
-              .digest('hex');
-          }
-        });
+        this.deviceHash = getDeviceHash();
       } catch (err) {
         console.error(err);
       }
