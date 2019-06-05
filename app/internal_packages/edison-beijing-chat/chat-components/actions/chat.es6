@@ -101,10 +101,10 @@ export const sendingMessage = message => {
 //   payload: jid
 // });
 
-export const newConversation = jid => ({
-  type: NEW_CONVERSATION,
-  payload: jid
-});
+// export const newConversation = jid => ({
+//   type: NEW_CONVERSATION,
+//   payload: jid
+// });
 
 export const removeConversation = jid => ({
   type: REMOVE_CONVERSATION,

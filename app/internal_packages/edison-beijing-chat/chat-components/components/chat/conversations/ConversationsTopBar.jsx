@@ -4,12 +4,13 @@ import TopBar from '../../common/TopBar';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import { WorkspaceStore, Actions } from 'mailspring-exports';
 import { RetinaImg, BindGlobalCommands } from 'mailspring-component-kit';
+import { ConversationStore } from 'chat-exports';
 
 export default class ConversationsTopBar extends PureComponent {
   newConversation = () => {
     Actions.pushSheet(WorkspaceStore.Sheet.ChatView);
     document.querySelector('#Center').style.zIndex = 9;
-    this.props.newConversation(NEW_CONVERSATION);
+    ConversationStore.setSelectedConversation('NEW_CONVERSATION');
   }
   render() {
     return (

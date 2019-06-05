@@ -48,7 +48,7 @@ export default class ConversationsPanel extends PureComponent {
   render() {
     const {
       // selectConversation,
-      newConversation,
+      // newConversation,
       // conversations,
       // selectedConversationJid,
       referenceTime,
@@ -68,7 +68,7 @@ export default class ConversationsPanel extends PureComponent {
 
     return (
       <div className="panel">
-        <ConversationsTopBar newConversation={newConversation} />
+        <ConversationsTopBar />
         <div className="conversations">
           <Conversations {...conversationsProps} />
         </div>

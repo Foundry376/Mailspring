@@ -2,6 +2,8 @@ import MailspringStore from 'mailspring-store';
 import { ChatActions, MessageStore } from 'chat-exports';
 import ConversationModel from '../model/Conversation';
 
+export const NEW_CONVERSATION = 'NEW_CONVERSATION';
+
 class ConversationStore extends MailspringStore {
   constructor() {
     super();
@@ -52,6 +54,19 @@ class ConversationStore extends MailspringStore {
   }
 
   setSelectedConversation = async (jid) => {
+    if (jid === NEW_CONVERSATION) {
+      this.selectedConversation = {
+        jid: jid,
+        curJid: null,
+        name: ' ',
+        email: null,
+        avatar: null,
+        isGroup: false,
+        unreadMessages: 0,
+        occupants: []
+      };
+      this.trigger();
+    }
     // the same conversation, skip refresh
     if (this.selectedConversation && (this.selectedConversation.jid === jid)) {
       console.log('****setSelectedConversation return');
@@ -59,12 +74,10 @@ class ConversationStore extends MailspringStore {
     }
     // refresh message store
     if (!this.selectedConversation || (this.selectedConversation.jid !== jid)) {
-      console.log('****setSelectedConversation get message - 1');
       MessageStore.retrieveSelectedConversationMessages(jid);
     }
     await this._clearUnreadCount(jid);
     const conv = await this.getConversationByJid(jid);
-    console.log('****setSelectedConversation get message - 2', conv);
     this.selectedConversation = conv;
     this.trigger();
   }

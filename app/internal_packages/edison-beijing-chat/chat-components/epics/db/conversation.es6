@@ -283,20 +283,20 @@ export const retrieveConversationsEpic = action$ =>
 //         .catch(error => failedSelectingConversation(error, jid))
 //     });
 
-export const newConversationEpic = action$ =>
-  action$.ofType(NEW_CONVERSATION)
-    .map(({ payload: jid }) => {
-      return updateSelectedConversation({
-        jid: jid,
-        curJid: null,
-        name: ' ',
-        email: null,
-        avatar: null,
-        isGroup: false,
-        unreadMessages: 0,
-        occupants: []
-      });
-    });
+// export const newConversationEpic = action$ =>
+//   action$.ofType(NEW_CONVERSATION)
+//     .map(({ payload: jid }) => {
+//       return updateSelectedConversation({
+//         jid: jid,
+//         curJid: null,
+//         name: ' ',
+//         email: null,
+//         avatar: null,
+//         isGroup: false,
+//         unreadMessages: 0,
+//         occupants: []
+//       });
+//     });
 
 // TODO 这里需要改造
 export const privateConversationCreatedEpic = (action$, { getState }) =>
