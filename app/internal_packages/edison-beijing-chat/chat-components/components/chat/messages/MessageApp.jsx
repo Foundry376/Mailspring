@@ -5,6 +5,7 @@ import { sendCmd2App2, getToken } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
 import getDb from '../../../db/index';
 const sanitizeHtml = require('sanitize-html');
+import { ContactStore } from 'chat-exports';
 
 export default class MessageApp extends PureComponent {
     static propTypes = {
@@ -18,11 +19,10 @@ export default class MessageApp extends PureComponent {
     state = {}
 
     componentWillMount = async () => {
-      const { msg } = this.props;
-      const db = await getDb();
-      let contact = await db.contacts.findOne().where('jid').eq(msg.sender).exec();
-      const state = Object.assign({}, this.state, {senderName: contact && contact.name || ''});
-      this.state = state;
+        const { msg } = this.props;
+        const contact = await ContactStore.findContactByJid(msg.sender);
+        const state = Object.assign({}, this.state, { senderName: contact && contact.name || '' });
+        this.state = state;
     }
 
     sendCommand2App(command) {
@@ -48,30 +48,30 @@ export default class MessageApp extends PureComponent {
 
     }
     render() {
-        const {msg, conversation} = this.props;
+        const { msg, conversation } = this.props;
         const msgBody = JSON.parse(msg.body);
         let { appJid, appName, content, htmlBody, ctxCmds } = msgBody;
         const { sentTime } = msg;
         const options = {
-          allowedTags: [ 'html', 'head', 'body', 'br', 'del', 's', 'strike', 'ins', 'em', 'b', 'strong', 'i', 'u', 'a',
+            allowedTags: ['html', 'head', 'body', 'br', 'del', 's', 'strike', 'ins', 'em', 'b', 'strong', 'i', 'u', 'a',
 
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre', 'p', 'div', 'span', 'hr',
-            'article', 'section', 'header', 'footer', 'summary', 'aside', 'details',
-            'ul', 'ol', 'li', 'dir', 'dl', 'dt', 'dd',
-            'table', 'caption', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot',
-            'col', 'colgroup',
-            'img',
-          ],
-          allowedAttributes: {
-            a: [ 'href', 'name', 'target' ],
-            img: [ 'style', 'class', 'alt', 'src', 'align', 'border', 'height', 'width', 'hspace', 'vspace' ],
-            '*': [ 'href', 'align', 'alt', 'center', 'bgcolor' ]
-          },
-          allowedSchemes: [ 'http', 'https', 'mailto' ],
-          allowedSchemesAppliedToAttributes: [ 'href', 'src', 'cite' ],
+                'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre', 'p', 'div', 'span', 'hr',
+                'article', 'section', 'header', 'footer', 'summary', 'aside', 'details',
+                'ul', 'ol', 'li', 'dir', 'dl', 'dt', 'dd',
+                'table', 'caption', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot',
+                'col', 'colgroup',
+                'img',
+            ],
+            allowedAttributes: {
+                a: ['href', 'name', 'target'],
+                img: ['style', 'class', 'alt', 'src', 'align', 'border', 'height', 'width', 'hspace', 'vspace'],
+                '*': ['href', 'align', 'alt', 'center', 'bgcolor']
+            },
+            allowedSchemes: ['http', 'https', 'mailto'],
+            allowedSchemesAppliedToAttributes: ['href', 'src', 'cite'],
         };
         if (htmlBody) {
-          htmlBody = sanitizeHtml(htmlBody, options);
+            htmlBody = sanitizeHtml(htmlBody, options);
         }
         const { getContactAvatar } = this.props;
 
@@ -80,11 +80,11 @@ export default class MessageApp extends PureComponent {
         let commands = null;
         if (ctxCmds) {
             let arrCmds = JSON.parse(ctxCmds);
-          commands = arrCmds.map((item, idx) => <MessageCommand conversation={this.props.conversation}
-                                                         appJid = {appJid}
-                                                         templateText = {item.command}
-                                                         key = {idx}>
-          </MessageCommand>)
+            commands = arrCmds.map((item, idx) => <MessageCommand conversation={this.props.conversation}
+                appJid={appJid}
+                templateText={item.command}
+                key={idx}>
+            </MessageCommand>)
         }
         return (
             <div className="message otherUser">
@@ -94,12 +94,12 @@ export default class MessageApp extends PureComponent {
                 <div className="messageContent">
                     <div>
                         <span className="username">{appName}</span>
-                        {!conversation.jid.match(/@app/) ? <span className="username">{this.state.senderName}</span> : null }
+                        {!conversation.jid.match(/@app/) ? <span className="username">{this.state.senderName}</span> : null}
                         <span className="time">{dateFormat(sentTime, 'LT')}</span>
                     </div>
                     <div className="messageBody">
                         <div className="text-content">
-                            {htmlBody ? <div dangerouslySetInnerHTML={{__html:htmlBody}} /> : content}
+                            {htmlBody ? <div dangerouslySetInnerHTML={{ __html: htmlBody }} /> : content}
                         </div>
                         <div>{commands}</div>
                     </div>

@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import { ChatActions, RoomStore, ConversationStore } from 'chat-exports';
+import { ChatActions, RoomStore, ConversationStore, ContactStore } from 'chat-exports';
 import { encrypte, decrypte } from '../chat-components/utils/rsa';
 import { encryptByAES, decryptByAES, generateAESKey } from '../chat-components/utils/aes';
 import { downloadFile } from '../chat-components/utils/awss3';
@@ -86,9 +86,7 @@ class MessageStore extends MailspringStore {
     } else {
       jid = payload.from.bare;
     }
-
-    const db = await getDb();
-    const contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+    const contact = await ContactStore.findContactByJid(jid);
     const coversation = {
       jid,
       curJid: payload.curJid,
@@ -291,9 +289,7 @@ class MessageStore extends MailspringStore {
     } else {
       conv.occupants = [];
     }
-
-    let db = await getDb();
-    const contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
+    const contact = await ContactStore.findContactByJid(conv.lastMessageSender);
     addToAvatarMembers(conv, contact);
     await ConversationStore.saveConversations([conv]);
     return conv;

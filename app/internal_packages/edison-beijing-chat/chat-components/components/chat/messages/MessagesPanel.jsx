@@ -19,7 +19,7 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions, MessageStore, ConversationStore } from 'chat-exports';
+import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore } from 'chat-exports';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
 import { queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
@@ -133,7 +133,7 @@ export default class MessagesPanel extends Component {
 
   onUpdateGroup = async (contacts) => {
     this.setState(Object.assign({}, this.state, { inviting: false }));
-    const { selectedConversation } = this.props;
+    const { selectedConversation } = this.state;
     if (contacts && contacts.length > 0) {
       if (selectedConversation.isGroup) {
         await Promise.all(contacts.map(contact => (
@@ -143,8 +143,8 @@ export default class MessagesPanel extends Component {
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const db = await getDb();
-        if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
-          const other = await db.contacts.findOne().where('jid').eq(selectedConversation.jid).exec();
+        if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
+          const other = await ContactStore.findContactByJid(selectedConversation.curJid);
           if (other) {
             contacts.unshift(other);
           } else {
@@ -152,7 +152,7 @@ export default class MessagesPanel extends Component {
           }
         }
         if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
-          const owner = await db.contacts.findOne().where('jid').eq(selectedConversation.curJid).exec();
+          const owner = await ContactStore.findContactByJid(selectedConversation.curJid);
           if (owner) {
             contacts.unshift(owner);
           } else {
@@ -183,7 +183,7 @@ export default class MessagesPanel extends Component {
   }
 
   getApps = () => {
-    const { selectedConversation } = this.props;
+    const { selectedConversation } = this.state;
     if (!selectedConversation || !selectedConversation.curJid) {
       return;
     }
@@ -214,7 +214,7 @@ export default class MessagesPanel extends Component {
   }
 
   _getTokenByCurJid = async () => {
-    const { selectedConversation } = this.props;
+    const { selectedConversation } = this.state;
     let currentUserId = selectedConversation && selectedConversation.curJid;
     if (currentUserId) {
       currentUserId = currentUserId.split('@')[0];
@@ -290,19 +290,20 @@ export default class MessagesPanel extends Component {
     })
   };
 
-  componentWillReceiveProps = (nextProps) => {
-    if (nextProps.selectedConversation
-      && this.props.selectedConversation
-      && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid ||
-      nextProps.selectedConversation && !this.props.selectedConversation) {
-      this.refreshRoomMembers(nextProps);
-    }
-    this.update();
-    return true;
-  }
+  // componentWillReceiveProps = (nextProps) => {
+  //   if (nextProps.selectedConversation
+  //     && this.props.selectedConversation
+  //     && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid ||
+  //     nextProps.selectedConversation && !this.props.selectedConversation) {
+  //     this.refreshRoomMembers(nextProps);
+  //   }
+  //   this.update();
+  //   return true;
+  // }
 
+  // TODO 刷新群列表有问题，这里需要重构
   refreshRoomMembers = async (nextProps) => {
-    const { selectedConversation: conv } = this.props;
+    const { selectedConversation: conv } = this.state;
     if (!nextProps) {
       return;
     }

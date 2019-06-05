@@ -1,10 +1,11 @@
 import getDb from '../db/index';
+import { ContactStore } from 'chat-exports';
 
-export  const getChatMembersFromDb = async convjid => {
+export const getChatMembersFromDb = async convjid => {
   const db = await getDb();
   const conv = await db.conversations.findOne().where('jid').eq(convjid).exec();
   const occupants = conv.occupants;
-  return Promise.all(occupants.map(accupant=> db.contacts.findOne().where('jid').eq(accupant).exec()))
+  return Promise.all(occupants.map(accupant => ContactStore.findContactByJid(accupant)))
 };
 
 // find contact info from group conversation members

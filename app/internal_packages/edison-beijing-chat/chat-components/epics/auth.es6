@@ -22,7 +22,7 @@ import {
   failedJoiningRooms,
 } from '../actions/auth';
 import { getDeviceId } from '../utils/e2ee';
-import RoomStore from '../../store/RoomStore'
+import { RoomStore, ContactStore } from 'chat-exports';
 
 /**
  * Starts the authentication process by starting session creation
@@ -71,8 +71,14 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
     return Observable.fromPromise(xmpp.connect(jid))
       .map(res => {
         // fetch and saveRoom infomation
-        xmpp.getRoomList(null, res.bare)
-          .then(rooms => RoomStore.saveRooms(rooms));
+        setTimeout(() => {
+          xmpp.getRoomList(null, res.bare)
+            .then(rooms => RoomStore.saveRooms(rooms));
+        }, 200);
+        setTimeout(() => {
+          xmpp.getRoster(res.bare)
+            .then(contacts => ContactStore.saveContacts(contacts, res.bare));
+        }, 400);
         return successfulConnectionAuth(res);
       })
       .catch(error => Observable.of(failConnectionAuth(error)));

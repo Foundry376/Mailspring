@@ -8,6 +8,7 @@ import {
   REMOVE_CONVERSATION,
   // selectConversation,
 } from '../../actions/chat';
+import { ContactStore } from 'chat-exports';
 import {
   BEGIN_STORE_CONVERSATIONS,
   BEGIN_STORE_OCCUPANTS,
@@ -88,7 +89,7 @@ const saveConversation = async (db, conv) => {
   }
   // when private chat, update avatar
   if (!conv.isGroup) {
-    const contact = await db.contacts.findOne(conv.jid).exec();
+    const contact = await ContactStore.findContactByJid(conv.jid);
     if (contact && contact.avatar) {
       conv.avatar = contact.avatar;
     }
@@ -107,14 +108,14 @@ const saveConversation = async (db, conv) => {
     }
     if (!conv.avatarMembers) {
       conv.avatarMembers = []
-      let contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
+      let contact = await ContactStore.findContactByJid(conv.lastMessageSender);
       if (contact) {
         contact = copyRxdbContact(contact);
         conv.avatarMembers.push(contact);
       }
     }
     if (!conv.avatarMembers.length) {
-      let contact = await db.contacts.findOne().where('jid').eq(conv.curJid).exec();
+      let contact = await ContactStore.findContactByJid(conv.curJid);
       if (contact) {
         contact = copyRxdbContact(contact);
         conv.avatarMembers.push(contact);
@@ -425,7 +426,7 @@ export const createGroupMessageConversationEpic = (action$) =>
     .mergeMap(conv => {
       return Observable.fromPromise(getDb())
         .mergeMap(db => {
-          return Observable.fromPromise(Promise.all(conv.occupants.map(occupant => db.contacts.findOne().where('jid').eq(occupant).exec())
+          return Observable.fromPromise(Promise.all(conv.occupants.map(occupant => ContactStore.findContactByJid(occupant))
           )).map(contacts => {
             contacts = contacts.filter(contact => contact);
             contacts = [contacts.find(contact => contact.jid === conv.curJid), contacts.find(contact => contact.jid !== conv.curJid)];

@@ -46,52 +46,53 @@ export const triggerFetchE2eeEpic = action$ =>
     });
 // .map(fetchE2ee);//yazzxx1
 
-export const fetchRosterEpic = action$ =>
-  action$.ofType(BEGIN_FETCH_ROSTER)//yazzxx2
-    .mergeMap(({ payload }) => {
-      return Observable.fromPromise(xmpp.getRoster(payload.bare))
-        .map((res) => {
-          const { roster } = res;
-          roster.curJid = payload.bare;
-          return succesfullyFetchedRoster(roster);
-        })//yazzxx3
-        .catch(err => {
-          return Observable.of(failedFetchingRoster(err))
-        })
-    });
+// export const fetchRosterEpic = action$ =>
+//   action$.ofType(BEGIN_FETCH_ROSTER)//yazzxx2
+//     .mergeMap(({ payload }) => {
+//       return Observable.fromPromise(xmpp.getRoster(payload.bare))
+//         .map((res) => {
+//           const { roster } = res;
+//           roster.curJid = payload.bare;
+//           return succesfullyFetchedRoster(roster);
+//         })//yazzxx3
+//         .catch(err => {
+//           return Observable.of(failedFetchingRoster(err))
+//         })
+//     });
 
-export const triggerStoreContactsEpic = action$ =>
-  // items now have .curJid field, which is xmpp.curJid
-  action$.ofType(SUCCESS_FETCH_ROSTER)
-    .filter(({ payload }) => {
-      const { items } = payload;
-      if (items && items.length) {
-        items.forEach((item) => {
-          if (!item.name) {
-            item.name = item.oriName;
-          }
-          item.curJid = payload.curJid;
-        });
-        return true;
-      } else {
-        return false;
-      }
-    })
-    .map(({ payload: { items } }) => {
-      return storeContacts(items)
-    });
+// export const triggerStoreContactsEpic = action$ =>
+//   // items now have .curJid field, which is xmpp.curJid
+//   action$.ofType(SUCCESS_FETCH_ROSTER)
+//     .filter(({ payload }) => {
+//       const { items } = payload;
+//       if (items && items.length) {
+//         items.forEach((item) => {
+//           if (!item.name) {
+//             item.name = item.oriName;
+//           }
+//           item.curJid = payload.curJid;
+//         });
+//         return true;
+//       } else {
+//         return false;
+//       }
+//     })
+//     .map(({ payload: { items } }) => {
+//       return storeContacts(items)
+//     });
 
 
 export const fetchE2eeEpic = action$ =>
   action$.ofType(BEGIN_FETCH_E2EE)//yazzxx2
     .mergeMap(({ payload }) => {
       return Observable.fromPromise(xmpp.getE2ee('', payload.bare))
-        .map((result ) => {
+        .map((result) => {
           if (!result) {
             console.warn('xmpp fail to getE2ee jid: ', payload.bare);
           }
           const { e2ee } = reult;
-        return succesfullyFetchedE2ee(e2ee) })//yazzxx3
+          return succesfullyFetchedE2ee(e2ee)
+        })//yazzxx3
         .catch(err => Observable.of(failedFetchingE2ee(err)))
     });
 

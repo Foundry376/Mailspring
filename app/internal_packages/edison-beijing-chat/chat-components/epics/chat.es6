@@ -7,8 +7,7 @@ import chatModel, { saveToLocalStorage } from '../store/model';
 import { copyRxdbContact, safeUpdate, saveGroupMessages } from '../utils/db-utils';
 const { remote } = require('electron');
 const { Actions } = require('mailspring-exports');
-import { ChatActions } from 'chat-exports';
-
+import { ChatActions, ContactStore } from 'chat-exports';
 import {
   MESSAGE_STATUS_FILE_UPLOADING,
   MESSAGE_STATUS_SENDING,
@@ -154,11 +153,9 @@ const asyncMembersChangeEpic = async payload => {
   const items = notifications[payload.from] || (notifications[payload.from] = []);
   const nicknames = chatModel.chatStorage.nicknames;
   const fromjid = payload.userJid;
-  const db = await getDb();
-  const contacts = db.contacts;
-  const fromcontact = await contacts.findOne().where('jid').eq(fromjid).exec();
+  const fromcontact = await ContactStore.findContactByJid(fromjid);
   const byjid = payload.actorJid;
-  const bycontact = await contacts.findOne().where('jid').eq(byjid).exec();
+  const bycontact = await ContactStore.findContactByJid(byjid);
   const item = {
     from: {
       jid: fromjid,
@@ -413,7 +410,7 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
               }
             })
             .mergeMap(conv => {
-              return Observable.fromPromise(db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec())
+              return Observable.fromPromise(ContactStore.findContactByJid(conv.lastMessageSender))
                 .map(contact => {
                   addToAvatarMembers(conv, contact);
                   return conv;
@@ -468,7 +465,7 @@ export const receivePrivateMessageEpic = action$ =>
         .map(db => ({ db, payload })),
     )
     .mergeMap(({ db, payload }) => {
-      return Observable.fromPromise(db.contacts.findOne(payload.from.bare).exec())
+      return Observable.fromPromise(ContactStore.findContactByJid(payload.from.bare))
         .map(contact => {
           if (contact) {
             payload.from.local = contact.name;
@@ -670,7 +667,7 @@ const asyncUpdateGroupMessageConversationEpic = async ({ payload }, getState) =>
   } else {
     conv.occupants = [];
   }
-  const contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
+  const contact = await ContactStore.findContactByJid(conv.lastMessageSender);
   addToAvatarMembers(conv, contact);
   return beginStoringConversations([conv]);
 }
@@ -708,7 +705,7 @@ export const triggerPrivateNotificationEpic = action$ =>
       const { from: { bare: conversationJid, local: name }, body } = payload;
       let { content } = JSON.parse(body);
       return Observable.fromPromise(getDb()).mergeMap(db => {
-        return Observable.fromPromise(db.contacts.findOne().where('jid').eq(payload.from.bare).exec())
+        return Observable.fromPromise(ContactStore.findContactByJid(payload.from.bare))
           .map(contact => {
             content = `${contact.name}: ${content}`
             return showConversationNotification(conversationJid, name || conv.name, content);
@@ -725,7 +722,7 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
     .mergeMap(
       ({ db, payload }) => {
         const { from: { bare: conversationJid } } = payload;
-        return Observable.fromPromise(db.conversations.findOne(conversationJid).exec())
+        return Observable.fromPromise(ContactStore.findContactByJid(conversationJid))
           .map(conv => ({ conv, payload }))
       },
     )
@@ -775,7 +772,7 @@ export const triggerGroupNotificationEpic = (action$, { getState }) =>
       let { content } = JSON.parse(body);
       return Observable.fromPromise(getDb()).mergeMap(db => {
         let msgFrom = payload.from.resource + '@im.edison.tech';
-        return Observable.fromPromise(db.contacts.findOne().where('jid').eq(msgFrom).exec())
+        return Observable.fromPromise(ContactStore.findContactByJid(msgFrom))
           .map(contact => {
             content = contact ? `${contact.name}: ${content}` : content
             return showConversationNotification(conversationJid, name || conv.name, content);
