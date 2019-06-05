@@ -112,6 +112,7 @@
     "sasl-scram-sha-1": "^1.1.0",
     "sasl-x-oauth2": "^0.1.0",
     "saslmechanisms": "^0.1.1",
+    "sequelize": "^5.8.7",
     "slate": "bengotow/slate#77f6337",
     "slate-auto-replace": "0.9.0",
     "slate-base64-serializer": "0.2.19",
