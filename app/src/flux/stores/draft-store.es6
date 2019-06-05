@@ -691,6 +691,7 @@ class DraftStore extends MailspringStore {
     if (files.length !== draft.files.length) {
       session.changes.add({ files });
     }
+    draft.files = files;
 
     // attach send-later metadata if a send delay is enabled
     if (sendLaterMetadataValue) {

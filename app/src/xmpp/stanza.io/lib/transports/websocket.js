@@ -93,7 +93,7 @@ function WSConnection(sm, stanzas) {
         if (stanzaObj._name === 'openStream') {
             self.hasStream = true;// yazz
             self.stream = stanzaObj;
-            //sessionId = stanzaObj.id;
+            window.localStorage.sessionId = stanzaObj.id;
             return self.emit('stream:start', stanzaObj.toJSON());
         }
         if (stanzaObj._name === 'closeStream') {
@@ -117,16 +117,16 @@ WSConnection.prototype.connect = function (opts) {
 
     self.hasStream = false;
     self.closing = false;
-    self.isCache = opts.wsURL.substring(opts.wsURL.indexOf(":", 10) + 1) == '5291';
+    self.isCache = true;//opts.wsURL.substring(opts.wsURL.indexOf(":", 10) + 1) == '5290';
     self.conn = new WS(opts.wsURL, 'xmpp', opts.wsOptions);
     self.conn.onerror = function (e) {
         e.preventDefault();
-        console.warn('websocket error:', e);
-        self.emit('disconnected', self);
+        console.warn(`websocket error:${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()},`, e);
+        //self.emit('disconnected', self);
     };
 
     self.conn.onclose = function () {
-        console.warn('websocket onclose');
+        console.warn(`websocket onclose,${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`);
         self.emit('disconnected', self);
     };
 
@@ -142,7 +142,7 @@ WSConnection.prototype.connect = function (opts) {
         }
         if (wsMsg.data.indexOf('<open') >= 0) { // yazz
             if (wsMsg.data.indexOf("serverTimestamp") > 0) {
-                setTimeout(function () { self.emit('session:started') }, 20);
+                setTimeout(function () { self.emit('session:started', self.config.jid) }, 20);
             }
             else if (wsMsg.data.indexOf("step='first'") > 0) {
                 self.emit('raw:incoming', new Buffer(feature1, 'utf-8').toString());

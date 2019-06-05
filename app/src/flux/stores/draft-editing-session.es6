@@ -102,9 +102,12 @@ class DraftChangeSet extends EventEmitter {
     if (this.dirtyFields().length === 0) {
       return;
     }
-    if (this._timer) clearTimeout(this._timer);
+    if (this._timer){
+      clearTimeout(this._timer);
+    }
     await this.callbacks.onCommit(arg);
     this._lastCommitTime = Date.now();
+    this._timer = null;
     this._lastModifiedTimes = {};
   }
 }

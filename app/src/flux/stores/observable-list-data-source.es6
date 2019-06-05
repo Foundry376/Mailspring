@@ -115,12 +115,19 @@ export default class ObservableListDataSource extends ListTabular.DataSource {
       if (!item) {
         return;
       }
+      let idType = 'threadIds';
+      let tmpId = idKey;
+      if (item instanceof Message && item.draft) {
+        idType = 'messageIds';
+        tmpId = 'id';
+      }
       if (accounts[item.accountId]) {
-        accounts[item.accountId].ids[item[idKey]] = 1;
+        accounts[item.accountId][idType][item[tmpId]] = 1;
       } else {
+        accounts[item.accountId] = { messageIds: {}, threadIds: {} };
         const tmp = {};
-        tmp[item[idKey]] = 1;
-        accounts[item.accountId] = { ids: tmp };
+        tmp[item[tmpId]] = 1;
+        accounts[item.accountId][idType] = tmp;
       }
       if (isItemsThread) {
         if (item.__messages) {
@@ -142,10 +149,15 @@ export default class ObservableListDataSource extends ListTabular.DataSource {
       Actions.fetchBodies(missingBodyMessages);
     }
     Object.keys(accounts).forEach(account => {
-      accounts[account].ids = Object.keys(accounts[account].ids);
+      const threadIds = Object.keys(accounts[account].threadIds);
+      const messageIds = Object.keys(accounts[account].messageIds);
       Actions.setObservableRange(
         account,
-        new SetObservableRangeTask({ accountId: account, threadIds: accounts[account].ids }),
+        new SetObservableRangeTask({
+          accountId: account,
+          threadIds: threadIds,
+          messageIds: messageIds,
+        }),
       );
     });
   };

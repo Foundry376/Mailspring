@@ -634,12 +634,21 @@ export default class MailsyncBridge {
       this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
       return true;
     }
-    if (this._cachedSetObservableRangeTask[accountId].threadIds.length !== task.threadIds.length) {
+    if (
+      this._cachedSetObservableRangeTask[accountId].threadIds.length !== task.threadIds.length ||
+      this._cachedSetObservableRangeTask[accountId].messageIds.length !== task.messageIds.length
+    ) {
       this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
       return true;
     }
     for (let threadId of task.threadIds) {
       if (!this._cachedSetObservableRangeTask[accountId].threadIds.includes(threadId)) {
+        this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
+        return true;
+      }
+    }
+    for (let messageId of task.messageIds) {
+      if (!this._cachedSetObservableRangeTask[accountId].messageIds.includes(messageId)) {
         this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
         return true;
       }
@@ -683,7 +692,9 @@ export default class MailsyncBridge {
             if (isManualTrigger) {
               tmpTask.threadIds = [
                 ...new Set(
-                  tmpTask.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
+                  tmpTask.threadIds.concat(
+                    Object.values(this._additionalObservableThreads[accountId])
+                  )
                 )];
             }
             this.sendMessageToAccount(accountId, tmpTask.toJSON());
@@ -701,7 +712,9 @@ export default class MailsyncBridge {
           if (isManualTrigger) {
             tmpTask.threadIds = [
               ...new Set(
-                tmpTask.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
+                tmpTask.threadIds.concat(
+                  Object.values(this._additionalObservableThreads[accountId])
+                )
               )];
           }
           this.sendMessageToAccount(accountId, tmpTask.toJSON());
