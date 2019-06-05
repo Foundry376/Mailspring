@@ -1,21 +1,80 @@
 import MailspringStore from 'mailspring-store';
-import { ChatActions } from 'chat-exports';
+import { ChatActions, MessageStore } from 'chat-exports';
 import ConversationModel from '../model/Conversation';
 
 class ConversationStore extends MailspringStore {
   constructor() {
     super();
-    this.selectedConversation = {};
+    this.selectedConversation = null;
     this.conversations = [];
+    this._registerListeners();
     this.refreshConversations();
   }
 
-  setSelectedConversation = async (conv) => {
+  _registerListeners() {
+    this.listenTo(ChatActions.selectConversation, this.setSelectedConversation);
+    this.listenTo(ChatActions.deselectConversation, this.deselectConversation);
+    this.listenTo(ChatActions.removeConversation, this.removeConversation);
+    this.listenTo(ChatActions.goToPreviousConversation, this.previousConversation);
+    this.listenTo(ChatActions.goToNextConversation, this.nextConversation);
+  }
+
+  previousConversation = async () => {
+    const jid = this.selectedConversation ? this.selectedConversation.jid : null;
+    const jids = this.conversations.map(conv => conv.jid);
+    const selectedIndex = jids.indexOf(jid);
+    if (jids.length > 1 && selectedIndex > 0) {
+      this.setSelectedConversation(jids[selectedIndex - 1]);
+    }
+  }
+
+  nextConversation = async () => {
+    const jid = this.selectedConversation ? this.selectedConversation.jid : null;
+    const jids = this.conversations.map(conv => conv.jid);
+    const selectedIndex = jids.indexOf(jid);
+    if (selectedIndex === -1 || selectedIndex < jids.length - 1) {
+      this.setSelectedConversation(jids[selectedIndex + 1]);
+    }
+  }
+
+  removeConversation = async (jid) => {
+    ConversationModel.destroy({
+      where: {
+        jid
+      }
+    });
+    this.refreshConversations();
+  }
+
+  deselectConversation = async (jid) => {
+    this.selectedConversation = null;
+    this.trigger();
+  }
+
+  setSelectedConversation = async (jid) => {
+    // the same conversation, skip refresh
+    if (this.selectedConversation && (this.selectedConversation.jid === jid)) {
+      console.log('****setSelectedConversation return');
+      return;
+    }
+    // refresh message store
+    if (!this.selectedConversation || (this.selectedConversation.jid !== jid)) {
+      console.log('****setSelectedConversation get message - 1');
+      MessageStore.retrieveSelectedConversationMessages(jid);
+    }
+    await this._clearUnreadCount(jid);
+    const conv = await this.getConversationByJid(jid);
+    console.log('****setSelectedConversation get message - 2', conv);
     this.selectedConversation = conv;
     this.trigger();
   }
 
-  getSelectedConversation(rooms) {
+  _clearUnreadCount = async (jid) => {
+    await ConversationModel.update({ unreadMessages: 0 }, { where: { jid } })
+    this.conversations = await ConversationModel.findAll();
+  }
+
+  getSelectedConversation() {
     return this.selectedConversation;
   }
 
@@ -37,13 +96,17 @@ class ConversationStore extends MailspringStore {
   }
 
   refreshConversations = async () => {
-    this.conversations = await ConversationModel.findAll();
+    this.conversations = await ConversationModel.findAll({
+      order: [
+        ['lastMessageTime', 'desc']
+      ]
+    });
     this.trigger();
   }
 
-  saveConversations(convs) {
+  saveConversations = async (convs) => {
     for (const conv of convs) {
-      ConversationModel.upsert(conv);
+      await ConversationModel.upsert(conv);
     }
     this.refreshConversations();
   }

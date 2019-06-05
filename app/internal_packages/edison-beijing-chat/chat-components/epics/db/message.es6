@@ -27,7 +27,7 @@ const SEPARATOR = '$';
 
 const saveMessages = async messages => {
   // TODO 这里临时加的timeout，最后去掉这个延时。
-  setTimeout(() => { MessageStore.saveMessages(messages); }, 100);
+  setTimeout(() => { MessageStore.saveMessagesAndRefresh(messages); }, 200);
 
   // TODO 下面这些逻辑将来需要删除
   const db = await getDb();

@@ -5,7 +5,12 @@ const ActionScopeGlobal = 'global';
 const ActionScopeMainWindow = 'main';
 
 class Actions {
-    static updateProgress = ActionScopeWindow;
+  static updateProgress = ActionScopeWindow;
+  static selectConversation = ActionScopeWindow;
+  static deselectConversation = ActionScopeWindow;
+  static removeConversation = ActionScopeWindow;
+  static goToPreviousConversation = ActionScopeWindow;
+  static goToNextConversation = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above

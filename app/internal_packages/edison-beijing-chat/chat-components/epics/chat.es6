@@ -7,6 +7,7 @@ import chatModel, { saveToLocalStorage } from '../store/model';
 import { copyRxdbContact, safeUpdate, saveGroupMessages } from '../utils/db-utils';
 const { remote } = require('electron');
 const { Actions } = require('mailspring-exports');
+import { ChatActions } from 'chat-exports';
 
 import {
   MESSAGE_STATUS_FILE_UPLOADING,
@@ -34,7 +35,7 @@ import {
   successfullySentMessage,
   newMessage,
   sendingMessage,
-  selectConversation,
+  // selectConversation,
   showConversationNotification,
   showConversationNotificationFail,
 } from '../actions/chat';
@@ -516,7 +517,7 @@ export const receiveGroupMessageEpic = action$ =>
       return receiveGroupMessage(payload)
     });
 
-// TODO 这里群聊接受OK，待删除
+// TODO 这里群聊和私聊接受OK，待删除
 export const convertReceivedMessageEpic = (action$) =>
   action$.ofType(RECEIVE_PRIVATE_MESSAGE, RECEIVE_GROUP_MESSAGE)
     // .filter(({ payload }) => {
@@ -799,39 +800,39 @@ export const showConversationNotificationEpic = (action$, { getState }) =>
           return !selectedConversation || selectedConversation.jid !== jid;
         })
         .map(() => {
-          const conv = selectConversation(jid);
+          const conv = ChatActions.selectConversation(jid);
           const window = remote.getCurrentWindow();
           window.show();
           return conv
         }).catch(err => Observable.of(showConversationNotificationFail(err))),
     ).catch(err => Observable.of(showConversationNotificationFail(err)));
 
-export const goPrevConversationEpic = (action$, { getState }) =>
-  action$.ofType(GO_PREV_CONVERSATION)
-    .filter(() => !!getState().auth.currentUser)
-    .map(() => {
-      const { chat: { selectedConversation, conversations } } = getState();
-      const jid = selectedConversation ? selectedConversation.jid : null;
-      const jids = conversations.map(conv => conv.jid);
-      const selectedIndex = jids.indexOf(jid);
-      return { jids, selectedIndex };
-    })
-    .filter(({ jids, selectedIndex }) => jids.length > 1 && selectedIndex > 0)
-    .map(({ jids, selectedIndex }) => selectConversation(jids[selectedIndex - 1]));
+// export const goPrevConversationEpic = (action$, { getState }) =>
+//   action$.ofType(GO_PREV_CONVERSATION)
+//     .filter(() => !!getState().auth.currentUser)
+//     .map(() => {
+//       const { chat: { selectedConversation, conversations } } = getState();
+//       const jid = selectedConversation ? selectedConversation.jid : null;
+//       const jids = conversations.map(conv => conv.jid);
+//       const selectedIndex = jids.indexOf(jid);
+//       return { jids, selectedIndex };
+//     })
+//     .filter(({ jids, selectedIndex }) => jids.length > 1 && selectedIndex > 0)
+//     .map(({ jids, selectedIndex }) => ChatActions.selectConversation(jids[selectedIndex - 1]));
 
-export const goNextConversationEpic = (action$, { getState }) =>
-  action$.ofType(GO_NEXT_CONVERSATION)
-    .filter(() => !!getState().auth.currentUser)
-    .map(() => {
-      const { chat: { selectedConversation, conversations } } = getState();
-      const jid = selectedConversation ? selectedConversation.jid : null;
-      const jids = conversations.map(conv => conv.jid);
-      const selectedIndex = jids.indexOf(jid);
-      return { jids, selectedIndex };
-    })
-    .filter(({ jids }) => jids.length > 0)
-    .filter(({ jids, selectedIndex }) => selectedIndex === -1 || selectedIndex < jids.length - 1)
-    .map(({ jids, selectedIndex }) => selectConversation(jids[selectedIndex + 1]));
+// export const goNextConversationEpic = (action$, { getState }) =>
+//   action$.ofType(GO_NEXT_CONVERSATION)
+//     .filter(() => !!getState().auth.currentUser)
+//     .map(() => {
+//       const { chat: { selectedConversation, conversations } } = getState();
+//       const jid = selectedConversation ? selectedConversation.jid : null;
+//       const jids = conversations.map(conv => conv.jid);
+//       const selectedIndex = jids.indexOf(jid);
+//       return { jids, selectedIndex };
+//     })
+//     .filter(({ jids }) => jids.length > 0)
+//     .filter(({ jids, selectedIndex }) => selectedIndex === -1 || selectedIndex < jids.length - 1)
+//     .map(({ jids, selectedIndex }) => ChatActions.selectConversation(jids[selectedIndex + 1]));
 
 const getEncrypted = (jid, body, devices, selfDevices, curJid, deviceId) => {
   let aeskey = generateAESKey();

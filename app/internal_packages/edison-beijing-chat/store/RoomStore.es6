@@ -5,10 +5,11 @@ import RoomModel from '../model/Room';
 class RoomStore extends MailspringStore {
   constructor() {
     super();
-    this.rooms = {};
+    this.rooms = null;
   }
 
   refreshRooms = async () => {
+    this.rooms = {};
     const data = await RoomModel.findAll();
     for (const item of data) {
       this.rooms[item.jid] = item.name;
@@ -28,7 +29,10 @@ class RoomStore extends MailspringStore {
     }
   }
 
-  getRooms() {
+  getRooms = async () => {
+    if (!this.rooms) {
+      await this.refreshRooms();
+    }
     return this.rooms;
   }
 }

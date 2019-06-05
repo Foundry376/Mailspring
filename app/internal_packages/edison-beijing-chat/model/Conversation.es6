@@ -55,7 +55,7 @@ Conversation.init({
   }
 }, {
     sequelize,
-    modelName: 'conversation'
+    modelName: 'conversations'
     // options
   });
 Conversation.sync();

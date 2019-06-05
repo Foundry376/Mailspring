@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import path from "path";
 const sqlite = require('better-sqlite3');
 import { CSSTransitionGroup } from 'react-transition-group';
@@ -19,7 +19,7 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions } from 'chat-exports';
+import { ProgressBarStore, ChatActions, MessageStore, ConversationStore } from 'chat-exports';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
 import { queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
@@ -47,59 +47,89 @@ window.registerLoginChatAccounts = registerLoginChatAccounts;
 
 let key = 0;
 
-export default class MessagesPanel extends PureComponent {
+export default class MessagesPanel extends Component {
   static propTypes = {
-    deselectConversation: PropTypes.func.isRequired,
+    // deselectConversation: PropTypes.func.isRequired,
     sendMessage: PropTypes.func.isRequired,
     availableUsers: PropTypes.arrayOf(PropTypes.string),
     currentUserId: PropTypes.string,
-    groupedMessages: PropTypes.arrayOf(
-      PropTypes.shape({
-        time: PropTypes.string.isRequired,
-        messages: PropTypes.arrayOf(
-          PropTypes.shape({
-            id: PropTypes.string.isRequired,
-            conversationJid: PropTypes.string.isRequired,
-            sender: PropTypes.string.isRequired,
-            body: PropTypes.string.isRequired,
-            sentTime: PropTypes.number.isRequired
-          })
-        ).isRequired
-      })
-    ),
+    // groupedMessages: PropTypes.arrayOf(
+    //   PropTypes.shape({
+    //     time: PropTypes.string.isRequired,
+    //     messages: PropTypes.arrayOf(
+    //       PropTypes.shape({
+    //         id: PropTypes.string.isRequired,
+    //         conversationJid: PropTypes.string.isRequired,
+    //         sender: PropTypes.string.isRequired,
+    //         body: PropTypes.string.isRequired,
+    //         sentTime: PropTypes.number.isRequired
+    //       })
+    //     ).isRequired
+    //   })
+    // ),
     referenceTime: PropTypes.number,
-    selectedConversation: PropTypes.shape({
-      isGroup: PropTypes.bool.isRequired,
-      jid: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      email: PropTypes.string,
-      avatar: PropTypes.string,
-      occupants: PropTypes.arrayOf(PropTypes.string).isRequired,
-    }),
+    // selectedConversation: PropTypes.shape({
+    //   isGroup: PropTypes.bool.isRequired,
+    //   jid: PropTypes.string.isRequired,
+    //   name: PropTypes.string.isRequired,
+    //   email: PropTypes.string,
+    //   avatar: PropTypes.string,
+    //   occupants: PropTypes.arrayOf(PropTypes.string).isRequired,
+    // }),
   }
 
   static defaultProps = {
     availableUsers: [],
     currentUserId: null,
     groupedMessages: [],
-    selectedConversation: null,
+    // selectedConversation: null,
     referenceTime: new Date().getTime(),
   }
 
-  state = {
-    showConversationInfo: false,
-    inviting: false,
-    members: [],
-    membersTemp: null,
-    online: true,
-    connecting: false,
-    moreBtnEl: null,
-    progress: {
-      loadConfig: null
-    },
+  apps = []
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      showConversationInfo: false,
+      inviting: false,
+      members: [],
+      membersTemp: null,
+      online: true,
+      connecting: false,
+      moreBtnEl: null,
+      groupedMessages: [],
+      progress: {
+        loadConfig: null
+      },
+      selectedConversation: null
+    }
+    this._listenToStore();
   }
 
-  apps = []
+  _listenToStore = () => {
+    this._unsubs = [];
+    this._unsubs.push(ConversationStore.listen(this._onDataChanged));
+    this._unsubs.push(MessageStore.listen(this._onDataChanged));
+  }
+
+  componentWillUnmount() {
+    for (const unsub of this._unsubs) {
+      unsub();
+    };
+  }
+
+  _onDataChanged = async () => {
+    const selectedConversation = await ConversationStore.getSelectedConversation();
+    let groupedMessages = [];
+    if (selectedConversation) {
+      groupedMessages = await MessageStore.getGroupedMessages(selectedConversation.jid);
+    }
+    this.setState({
+      selectedConversation,
+      groupedMessages
+    });
+  }
 
   onUpdateGroup = async (contacts) => {
     this.setState(Object.assign({}, this.state, { inviting: false }));
@@ -144,7 +174,7 @@ export default class MessagesPanel extends PureComponent {
     this.getEmailContacts();
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
-    const state = Object.assign({}, this.state, {online: navigator.onLine});
+    const state = Object.assign({}, this.state, { online: navigator.onLine });
     this.setState(state);
   }
   componentWillUnmount() {
@@ -271,10 +301,6 @@ export default class MessagesPanel extends PureComponent {
     return true;
   }
 
-  shouldComponentUpdate = () => {
-    return true;
-  }
-
   refreshRoomMembers = async (nextProps) => {
     const { selectedConversation: conv } = this.props;
     if (!nextProps) {
@@ -391,12 +417,14 @@ export default class MessagesPanel extends PureComponent {
     const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
     xmpp.leaveRoom(conversation.jid, jid);
     if (jid == conversation.curJid) {
-      (getDb()).then(db => {
-        db.conversations.findOne(conversation.jid).exec().then(conv => {
-          conv.remove()
-        }).catch((error) => { })
-      });
-      this.props.deselectConversation();
+      // (getDb()).then(db => {
+      //   db.conversations.findOne(conversation.jid).exec().then(conv => {
+      //     conv.remove()
+      //   }).catch((error) => { })
+      // });
+      // this.props.deselectConversation();
+      ChatActions.removeConversation(conversation.jid);
+      ChatActions.deselectConversation();
     } else {
       this.refreshRoomMembers();
     }
@@ -430,14 +458,14 @@ export default class MessagesPanel extends PureComponent {
   queueLoadMessage = (loadConfig) => {
     let { progress } = ProgressBarStore;
     progress = Object.assign({}, progress);
-    let { loading} = progress;
+    let { loading } = progress;
     if (loading) {
       loadConfig = progress.loadConfig;
-      const loadText = loadConfig.type==='upload'? 'An upload' : ' A download';
+      const loadText = loadConfig.type === 'upload' ? 'An upload' : ' A download';
       window.alert(`${loadText} is processing, please wait it to be finished!`);
       return;
     }
-    ChatActions.updateProgress({loadConfig, loading:true, visible: true },
+    ChatActions.updateProgress({ loadConfig, loading: true, visible: true },
       { onCancel: this.cancelLoadMessage, onRetry: this.retryLoadMessage });
     if (!loading) {
       this.loadMessage();
@@ -445,13 +473,13 @@ export default class MessagesPanel extends PureComponent {
   };
 
   loadMessage = () => {
-    const {progress} = ProgressBarStore;
+    const { progress } = ProgressBarStore;
     let { loadConfig } = progress;
-    ChatActions.updateProgress({loading:true, percent:0, finished:false, failed:false, visible: true});
+    ChatActions.updateProgress({ loading: true, percent: 0, finished: false, failed: false, visible: true });
     const { msgBody, filepath } = loadConfig;
 
     const loadCallback = (...args) => {
-      ChatActions.updateProgress({loading:false, finished:true, visible:true});
+      ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
       if (loadConfig.type === 'upload') {
         const onMessageSubmitted = this.props.sendMessage;
@@ -492,7 +520,7 @@ export default class MessagesPanel extends PureComponent {
         let body = loadConfig.msgBody;
         body.isUploading = false;
         body = JSON.stringify(body);
-        ChatActions.updateProgress({ percent, visible:true });
+        ChatActions.updateProgress({ percent, visible: true });
         onMessageSubmitted(conversation, body, messageId, false);
       }
       ChatActions.updateProgress({ percent });
@@ -544,15 +572,15 @@ export default class MessagesPanel extends PureComponent {
     }
     this.loadTimer = setInterval(() => {
       if (loadConfig && loadConfig.request && loadConfig.request.failed) {
-        ChatActions.updateProgress({ failed:true });
+        ChatActions.updateProgress({ failed: true });
       }
     }, 10000);
   }
 
   cancelLoadMessage = () => {
     const { progress } = ProgressBarStore;
-    let { loadConfig} = progress;
-    if (!loadConfig ) {
+    let { loadConfig } = progress;
+    if (!loadConfig) {
       return;
     }
     if (loadConfig && loadConfig.request && loadConfig.request.abort) {
@@ -572,12 +600,12 @@ export default class MessagesPanel extends PureComponent {
       body = JSON.stringify(body);
       chatModel.store.dispatch(beginSendingMessage(conversation, body, messageId, false, false));
     }
-    ChatActions.updateProgress({ loading:false, failed:true });
+    ChatActions.updateProgress({ loading: false, failed: true });
     clearInterval(this.loadTimer);
   }
 
   retryLoadMessage = () => {
-    ChatActions.updateProgress({failed:false});
+    ChatActions.updateProgress({ failed: false });
     setTimeout(() => {
       this.loadMessage();
     })
@@ -602,7 +630,7 @@ export default class MessagesPanel extends PureComponent {
 
   update() {
     key++;
-    const state = Object.assign({}, this.state, {key});
+    const state = Object.assign({}, this.state, { key });
     this.setState(state);
   }
 
@@ -610,14 +638,13 @@ export default class MessagesPanel extends PureComponent {
     this.getApps();
     const { showConversationInfo, inviting, members } = this.state;
     const {
-      deselectConversation,
+      // deselectConversation,
       sendMessage,
       availableUsers,
-      groupedMessages,
-      selectedConversation,
       referenceTime,
       contacts
     } = this.props;
+    const { groupedMessages, selectedConversation } = this.state;
     groupedMessages.map(group => group.messages.map(message => {
       members.map(member => {
         const jid = member.jid.bare || member.jid;
@@ -630,7 +657,7 @@ export default class MessagesPanel extends PureComponent {
 
     const topBarProps = {
       onBackPressed: () => {
-        deselectConversation();
+        ChatActions.deselectConversation()();
         this.setState({ showConversationInfo: false });
       },
       onInfoPressed: () =>
@@ -656,7 +683,7 @@ export default class MessagesPanel extends PureComponent {
     };
     const infoProps = {
       selectedConversation,
-      deselectConversation: this.props.deselectConversation,
+      // deselectConversation: this.props.deselectConversation,
       toggleInvite: this.toggleInvite,
       members: this.state.members,
       loadingMembers: this.state.loadingMembers,
@@ -684,7 +711,7 @@ export default class MessagesPanel extends PureComponent {
     const newConversationProps = {
       contacts: allContacts,
       saveRoomMembersForTemp: this.saveRoomMembersForTemp,
-      deselectConversation,
+      // deselectConversation,
       createRoom: this.createRoom
     }
     let className = '';

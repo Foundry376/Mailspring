@@ -4,6 +4,7 @@ import Select, { Option } from 'rc-select';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
 import { Actions, WorkspaceStore } from 'mailspring-exports';
+import { ChatActions } from 'chat-exports';
 
 
 export default class NewConversationTopBar extends Component {
@@ -49,7 +50,7 @@ export default class NewConversationTopBar extends Component {
 
   _close = () => {
     Actions.popSheet();
-    this.props.deselectConversation();
+    ChatActions.deselectConversation();
   }
 
   onKeyUp = (event) => {

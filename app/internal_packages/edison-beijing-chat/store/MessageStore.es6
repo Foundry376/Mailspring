@@ -1,6 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import { ChatActions, RoomStore, ConversationStore } from 'chat-exports';
 import { encrypte, decrypte } from '../chat-components/utils/rsa';
+import { encryptByAES, decryptByAES, generateAESKey } from '../chat-components/utils/aes';
 import { downloadFile } from '../chat-components/utils/awss3';
 import { getMessageContent } from '../chat-components/utils/message';
 import { isImageFilePath, isJsonStr } from '../chat-components/utils/stringUtils';
@@ -13,6 +14,7 @@ import ConversationModel from '../model/Conversation';
 import MessageModel, { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 import getDb from '../chat-components/db';
 import chatModel from '../chat-components/store/model';
+import fs from 'fs';
 // TODO 
 // getPriKey getDeviceId should get data from sqlite
 import { getPriKey, getDeviceId } from '../chat-components/utils/e2ee';
@@ -32,6 +34,7 @@ class MessageStore extends MailspringStore {
   constructor() {
     super();
     this.groupedMessages = [];
+    this.conversationJid;
     this._registerListeners();
     return;
   }
@@ -39,19 +42,79 @@ class MessageStore extends MailspringStore {
   _registerListeners() {
   }
 
+  getGroupedMessages = () => {
+    return this.groupedMessages;
+  }
+
   reveivePrivateChat = async (message) => {
-    this.receivePrivateMessage(message);
+    console.log('****reveivePrivateChat', message);
+    let jidLocal = message.to.local;
+    message = await this.decrypteBody(message, jidLocal);
+    await this.processPrivateMessage(message);
+    const conv = await this.storePrivateConversation(message);
+    // if current selection, refresh messages
+    if (conv.jid === this.conversationJid) {
+      this.retrieveSelectedConversationMessages(conv.jid);
+    }
+    // TODO 弹出提示
   }
 
-  receivePrivateMessage = async (payload) => {
-    this.receiveMessage(payload, RECEIVE_PRIVATECHAT);
-    // TODO 要在这里更新conversation
+  processPrivateMessage = async (payload) => {
+    await this.prepareForSaveMessage(payload, RECEIVE_PRIVATECHAT);
   }
 
-  reveiveGroupChat = async (message) => {
+  storePrivateConversation = async (payload) => {
+    let name;
+    let timeSend = new Date().getTime();
+    if (payload.from.bare === payload.curJid) {
+      name = null;
+    } else {
+      name = payload.from.local;
+    }
+    const { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
+    if (payload.body) {
+      timeSend = JSON.parse(payload.body).timeSend;
+    }
+    // if not current conversation, unreadMessages + 1
+    let unreadMessages = 0;
+    if (!this.conversationJid || this.conversationJid !== payload.from.bare) {
+      unreadMessages = 1;
+    }
+    let jid;
+    if (payload.from.bare === payload.curJid) {
+      jid = payload.to.bare;
+    } else {
+      jid = payload.from.bare;
+    }
+
+    const db = await getDb();
+    const contact = await db.contacts.findOne().where('jid').eq(jid).exec();
+    const coversation = {
+      jid,
+      curJid: payload.curJid,
+      name: contact ? contact.name : name,
+      isGroup: false,
+      occupants: [jid, payload.curJid],
+      unreadMessages: unreadMessages,
+      lastMessageTime,
+      lastMessageText,
+      lastMessageSender: sender || payload.from.bare,
+      at: false
+    };
+    const convInDb = await ConversationStore.getConversationByJid(jid);
+    if (convInDb) {
+      if (unreadMessages) {
+        coversation.unreadMessages = convInDb.unreadMessages + 1;
+      }
+    }
+
+    await ConversationStore.saveConversations([coversation]);
+    return coversation;
+  }
+
+  decrypteBody = async (message, jidLocal) => {
     const { deviceId, priKey } = await getPriKey();
     if (message.payload) {
-      let jidLocal = message.curJid.substring(0, message.curJid.indexOf('@'));
       let keys = message.keys;//JSON.parse(msg.body);
       if (keys && keys[jidLocal]
         && keys[jidLocal][deviceId]) {
@@ -74,7 +137,19 @@ class MessageStore extends MailspringStore {
         } catch (e) { }
       }
     }
-    this.receiveGroupMessage(message);
+    return message;
+  }
+
+  reveiveGroupChat = async (message) => {
+    console.log('*****reveiveGroupChat - 1', message);
+    let jidLocal = message.to.local;
+    message = await this.decrypteBody(message, jidLocal);
+    console.log('*****reveiveGroupChat - 2', message);
+    const conv = await this.processGroupMessage(message);
+    if (conv.jid === this.conversationJid) {
+      this.retrieveSelectedConversationMessages(conv.jid);
+    }
+    // TODO 弹出聊天的提示框
   }
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
@@ -131,44 +206,44 @@ class MessageStore extends MailspringStore {
       msgBody.aes = aes;
     }
     payload.body = JSON.stringify(msgBody);
-    this.retrievingMessages(payload.from.bare);
+    // this.retrievingMessages(payload.from.bare);
   }
 
-  retrievingMessages = (jid) => {
-    console.log('****retrievingMessages', jid);
-    if (chatModel.conversationJid != jid) {
-      saveGroupMessages(chatModel.groupedMessages);
-    }
-    chatModel.conversationJid = jid;
-    this.retrieveSelectedConversationMessages(jid);
-  }
+  // retrievingMessages = (jid) => {
+  //   console.log('****retrievingMessages', jid);
+  //   if (this.conversationJid != jid) {
+  //     saveGroupMessages(this.groupedMessages);
+  //   }
+  //   this.conversationJid = jid;
+  //   this.retrieveSelectedConversationMessages(jid);
+  // }
 
   retrieveSelectedConversationMessages = async (jid) => {
-    console.log('*****retrieveSelectedConversationMessages - 1', jid);
     let messages = await MessageModel.findAll({
       where: {
         conversationJid: jid
       },
       order: [
-        ['sentTime', 'DESC']
+        ['sentTime', 'ASC']
       ]
     });
     messages = messages.filter(msg => msg.body.indexOf('"deleted":true') === -1);
-    console.log('*****retrieveSelectedConversationMessages - 2', messages);
     addMessagesSenderNickname(messages);
     this.groupedMessages = groupMessagesByTime(messages, 'sentTime', 'day');
+    this.conversationJid = jid;
     this.trigger();
   }
 
-  receiveGroupMessage = async (payload) => {
-    this.receiveMessage(payload, RECEIVE_GROUPCHAT);
-    console.log('****receiveGroupMessage', payload);
-    let beAt = false;
+  processGroupMessage = async (payload) => {
+    console.log('****processGroupMessage', payload);
+    await this.prepareForSaveMessage(payload, RECEIVE_GROUPCHAT);
+    let at = false;
     let name = payload.from.local;
     // get the room name and whether you are '@'
-    const rooms = RoomStore.getRooms();
+    const rooms = await RoomStore.getRooms();
     const body = JSON.parse(payload.body);
-    beAt = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
+    at = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
+    // console.log('******processGroupMessage payload.from.bare', payload.from.bare, rooms);
     if (rooms[payload.from.bare]) {
       name = rooms[payload.from.bare];
     } else {
@@ -188,22 +263,19 @@ class MessageStore extends MailspringStore {
         }
       }
     }
-    let at = false;
     const { lastMessageTime, sender, lastMessageText } = await getLastMessageInfo(payload);
-    const { timeSend } = JSON.parse(payload.body);
     // if not current conversation, unreadMessages + 1
     let unreadMessages = 0;
-    const selectedConversation = ConversationStore.getSelectedConversation();
+    const selectedConversation = await ConversationStore.getSelectedConversation();
     if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
       unreadMessages = 1;
-      at = beAt;
     }
     let conv = {
       jid: payload.from.bare,
       curJid: payload.curJid,
       name: name,
       isGroup: true,
-      unreadMessages: unreadMessages,
+      unreadMessages,
       lastMessageTime,
       lastMessageText,
       lastMessageSender: sender || payload.from.resource + '@im.edison.tech',
@@ -213,6 +285,9 @@ class MessageStore extends MailspringStore {
     if (convInDb) {
       conv.occupants = convInDb.occupants;
       conv.avatarMembers = convInDb.avatarMembers;
+      if (unreadMessages) {
+        conv.unreadMessages = convInDb.unreadMessages + 1;
+      }
     } else {
       conv.occupants = [];
     }
@@ -220,12 +295,14 @@ class MessageStore extends MailspringStore {
     let db = await getDb();
     const contact = await db.contacts.findOne().where('jid').eq(conv.lastMessageSender).exec();
     addToAvatarMembers(conv, contact);
-    ConversationStore.saveConversations([conv]);
+    await ConversationStore.saveConversations([conv]);
+    return conv;
   }
 
-  receiveMessage = (payload, type) => {
+  prepareForSaveMessage = async (payload, type) => {
+    console.log('*****prepareForSaveMessage', payload, type);
     let timeSend;
-    if (payload.body && payload.body.trim().indexOf('{') != 0) {
+    if (payload.body && payload.body.trim().indexOf('{') !== 0) {
       payload.body = '{"type":1,"content":"' + payload.body + '"}';
     }
     timeSend = parseInt(payload.ts);
@@ -250,11 +327,21 @@ class MessageStore extends MailspringStore {
       ts: payload.ts,
       curJid: payload.curJid
     };
-    this.saveMessages([message]);
+    await this.saveMessages([message]);
+  }
+
+  saveMessagesAndRefresh = async messages => {
+    await this.saveMessages(messages);
+    this.retrieveSelectedConversationMessages(this.conversationJid);
   }
 
   saveMessages = async messages => {
+    console.log('***saveMessages', messages);
     for (const msg of messages) {
+      // update message id: uuid + conversationJid
+      if (msg.id.indexOf(SEPARATOR) === -1) {
+        msg.id += SEPARATOR + msg.conversationJid;
+      }
       const messageInDb = await MessageModel.findOne({
         where: {
           id: msg.id
@@ -265,26 +352,22 @@ class MessageStore extends MailspringStore {
         // so do below to restore  localFile field
         // and for RXDocouments Object.assign will not copy all fields
         // it is necessary to rebuild the message one field by one field.
-        let body = JSON.parse(messageInDb.body);
-        let localFile = body.localFile;
-        body = JSON.parse(msg.body);
-        if (localFile && msg.status === MESSAGE_STATUS_RECEIVED) {
-          body.localFile = localFile;
+        if (isJsonStr(messageInDb.body) && isJsonStr(msg.body)) {
+          let body = JSON.parse(messageInDb.body);
+          let localFile = body.localFile;
+          body = JSON.parse(msg.body);
+          if (localFile && msg.status === MESSAGE_STATUS_RECEIVED) {
+            body.localFile = localFile;
+          }
+          body = JSON.stringify(body);
+          messageInDb.body = body;
+        } else {
+          messageInDb.body = msg.body;
         }
-        body = JSON.stringify(body);
-        messageInDb.body = body;
-        if (messageInDb.updateTime && msg.status === MESSAGE_STATUS_RECEIVED) {
-          messageInDb.updateTime = messageInDb.updateTime;
-        }
-        // update message id: uuid + conversationJid
-        messageInDb.id = messageInDb.id.split(SEPARATOR)[0] + SEPARATOR + msg.conversationJid;
-        messageInDb.save();
+        console.log('****messageInDb.body - 2', messageInDb.body);
+        await messageInDb.save();
       } else {
-        // update message id: uuid + conversationJid
-        if (msg.id.indexOf(SEPARATOR) === -1) {
-          msg.id += SEPARATOR + msg.conversationJid;
-        }
-        MessageModel.upsert(msg);
+        await MessageModel.create(msg);
       }
     }
   };
@@ -352,13 +435,12 @@ const getLastMessageInfo = async (message) => {
         return { sender, lastMessageTime, lastMessageText };
       }
     }
-    console.log('*****getLastMessageInfo', conv.jid);
     let lastMessage = await MessageModel.findOne({
       where: {
         conversationJid: conv.jid
       },
       order: [
-        ['sentTime', 'DESC']
+        ['sentTime', 'ASC']
       ]
     });
 

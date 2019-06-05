@@ -96,10 +96,10 @@ export const sendingMessage = message => {
   });
 }
 
-export const selectConversation = jid => ({
-  type: SELECT_CONVERSATION,
-  payload: jid
-});
+// export const selectConversation = jid => ({
+//   type: SELECT_CONVERSATION,
+//   payload: jid
+// });
 
 export const newConversation = jid => ({
   type: NEW_CONVERSATION,
@@ -111,7 +111,7 @@ export const removeConversation = jid => ({
   payload: jid
 });
 
-export const deselectConversation = () => ({ type: DESELECT_CONVERSATION });
+// export const deselectConversation = () => ({ type: DESELECT_CONVERSATION });
 
 export const failedSelectingConversation = (error, jid) => ({
   type: SELECT_CONVERSATION,
@@ -140,6 +140,6 @@ export const showConversationNotificationFail = (error) => ({
 
 // Mousetrap action creators
 
-export const goToPreviousConversation = () => ({ type: GO_PREV_CONVERSATION });
+// export const goToPreviousConversation = () => ({ type: GO_PREV_CONVERSATION });
 
-export const goToNextConversation = () => ({ type: GO_NEXT_CONVERSATION });
+// export const goToNextConversation = () => ({ type: GO_NEXT_CONVERSATION });

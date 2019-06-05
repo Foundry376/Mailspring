@@ -1,12 +1,8 @@
-import {
-  deselectConversation,
-  goToPreviousConversation,
-  goToNextConversation,
-} from '../../actions/chat';
+import { ChatActions } from 'chat-exports';
 
 export default {
-  // esc: deselectConversation,
-  'option+left': deselectConversation,
-  'option+up': goToPreviousConversation,
-  'option+down': goToNextConversation,
+  // esc: ChatActions.deselectConversation,
+  'option+left': ChatActions.deselectConversation,
+  'option+up': ChatActions.goToPreviousConversation,
+  'option+down': ChatActions.goToNextConversation,
 };

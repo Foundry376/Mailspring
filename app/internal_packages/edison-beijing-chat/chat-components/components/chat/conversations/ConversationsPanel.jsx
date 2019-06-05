@@ -9,7 +9,7 @@ let key = 0;
 export default class ConversationsPanel extends PureComponent {
   static propTypes = {
     retrieveAllConversations: PropTypes.func.isRequired,
-    selectConversation: PropTypes.func.isRequired,
+    // selectConversation: PropTypes.func.isRequired,
     conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
     selectedConversationJid: PropTypes.string,
     referenceTime: PropTypes.number,
@@ -21,7 +21,7 @@ export default class ConversationsPanel extends PureComponent {
     referenceTime: new Date().getTime(),
   }
 
-  state = {progress:{}}
+  state = { progress: {} }
 
   componentDidMount() {
     this.unsubscribers = [];
@@ -47,20 +47,20 @@ export default class ConversationsPanel extends PureComponent {
 
   render() {
     const {
-      selectConversation,
+      // selectConversation,
       newConversation,
-      conversations,
-      selectedConversationJid,
+      // conversations,
+      // selectedConversationJid,
       referenceTime,
       removeConversation
     } = this.props;
-    const selectedIndex = conversations.map(conv => conv.jid)
-      .indexOf(selectedConversationJid);
+    // const selectedIndex = conversations.map(conv => conv.jid)
+    //   .indexOf(selectedConversationJid);
 
     const conversationsProps = {
-      selectConversation,
-      conversations,
-      selectedIndex,
+      // selectConversation,
+      // conversations,
+      // selectedIndex,
       referenceTime,
       removeConversation
     };
@@ -70,13 +70,9 @@ export default class ConversationsPanel extends PureComponent {
       <div className="panel">
         <ConversationsTopBar newConversation={newConversation} />
         <div className="conversations">
-          {conversations.length ?
-            <Conversations {...conversationsProps} /> :
-            <div className="noConversations">
-            </div>
-          }
+          <Conversations {...conversationsProps} />
         </div>
-        <ProgressBar progress = { progress } onCancel={onCancel} onRetry={onRetry}/>
+        <ProgressBar progress={progress} onCancel={onCancel} onRetry={onRetry} />
       </div>
     );
   }

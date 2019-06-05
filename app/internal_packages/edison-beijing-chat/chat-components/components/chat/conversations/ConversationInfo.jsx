@@ -11,6 +11,7 @@ import { clearMessages } from '../../../utils/message';
 import _ from 'lodash';
 import RetinaImg from '../../../../../../src/components/retina-img';
 import chatModel, { saveToLocalStorage } from '../../../store/model';
+import { ChatActions } from 'chat-exports';
 
 const { primaryColor } = theme;
 
@@ -59,12 +60,13 @@ export default class ConversationInfo extends Component {
 
     const { selectedConversation: conversation } = this.props;
     xmpp.leaveRoom(conversation.jid, conversation.curJid);
-    (getDb()).then(db => {
-      db.conversations.findOne(conversation.jid).exec().then(conv => {
-        conv.remove()
-      }).catch((error) => { })
-    });
-    this.props.deselectConversation();
+    // (getDb()).then(db => {
+    //   db.conversations.findOne(conversation.jid).exec().then(conv => {
+    //     conv.remove()
+    //   }).catch((error) => { })
+    // });
+    ChatActions.removeConversation(conversation.jid);
+    ChatActions.deselectConversation();
   }
 
   showMenu = (e) => {
@@ -151,11 +153,11 @@ export default class ConversationInfo extends Component {
           {
             conversation.isGroup && !loadingMembers && roomMembers && roomMembers.map(member => {
               return (<InfoMember conversation={conversation}
-                                 member={member}
-                                 editingMember={this.editingMember}
-                                  editProfile={this.props.editProfile}
-                                  exitProfile={this.props.exitProfile}
-                                  key={member.jid}
+                member={member}
+                editingMember={this.editingMember}
+                editProfile={this.props.editProfile}
+                exitProfile={this.props.exitProfile}
+                key={member.jid}
               />)
             })
           }

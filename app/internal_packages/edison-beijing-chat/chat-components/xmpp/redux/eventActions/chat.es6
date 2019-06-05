@@ -6,8 +6,8 @@ import {
 } from '../../../actions/chat';
 
 export default {
-  chat: receiveChat,
-  groupchat: receiveGroupchat,
+  // chat: receiveChat,
+  // groupchat: receiveGroupchat,
   'message:sent': messageSent,
   memberschange: membersChange,
 };

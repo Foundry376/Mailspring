@@ -6,7 +6,7 @@ import {
   CREATE_PRIVATE_CONVERSATION,
   CREATE_GROUP_CONVERSATION,
   REMOVE_CONVERSATION,
-  selectConversation,
+  // selectConversation,
 } from '../../actions/chat';
 import {
   BEGIN_STORE_CONVERSATIONS,
@@ -129,13 +129,13 @@ const saveConversation = async (db, conv) => {
     }
     if (convInDB) {
       await safeUpdate(convInDB, {
-          at: conv.at,
-          unreadMessages: conv.unreadMessages,
-          lastMessageTime: conv.lastMessageTime,
-          lastMessageText: conv.lastMessageText,
-          lastMessageSender: conv.lastMessageSender,
-          lastMessageSenderName: conv.lastMessageSenderName,
-          avatarMembers: conv.avatarMembers
+        at: conv.at,
+        unreadMessages: conv.unreadMessages,
+        lastMessageTime: conv.lastMessageTime,
+        lastMessageText: conv.lastMessageText,
+        lastMessageSender: conv.lastMessageSender,
+        lastMessageSenderName: conv.lastMessageSenderName,
+        avatarMembers: conv.avatarMembers
       });
       chatModel.updateAvatars(conv.jid);
       return convInDB;
@@ -271,16 +271,16 @@ export const retrieveConversationsEpic = action$ =>
         .catch(err => Observable.of(failRetrievingConversations(err)))
     );
 
-export const selectConversationEpic = action$ =>
-  action$.ofType(SELECT_CONVERSATION)
-    .mergeMap(({ payload: jid }) => {
-      clearConversationUnreadMessages(jid);
-      return Observable.fromPromise(retriveConversation(jid))
-        .map(conversation => {
-          return updateSelectedConversation(conversation)
-        })
-        .catch(error => failedSelectingConversation(error, jid))
-    });
+// export const selectConversationEpic = action$ =>
+//   action$.ofType(SELECT_CONVERSATION)
+//     .mergeMap(({ payload: jid }) => {
+//       clearConversationUnreadMessages(jid);
+//       return Observable.fromPromise(retriveConversation(jid))
+//         .map(conversation => {
+//           return updateSelectedConversation(conversation)
+//         })
+//         .catch(error => failedSelectingConversation(error, jid))
+//     });
 
 export const newConversationEpic = action$ =>
   action$.ofType(NEW_CONVERSATION)
@@ -297,6 +297,7 @@ export const newConversationEpic = action$ =>
       });
     });
 
+// TODO 这里需要改造
 export const privateConversationCreatedEpic = (action$, { getState }) =>
   action$.ofType(CREATE_PRIVATE_CONVERSATION)
     .mergeMap(({ payload: contact }) =>
@@ -322,6 +323,7 @@ export const privateConversationCreatedEpic = (action$, { getState }) =>
         })
     );
 
+// TODO 这里需要改造
 export const createInitiatedPrivateConversationEpic = (action$) =>
   action$.ofType(CREATE_PRIVATE_CONVERSATION)
     .mergeMap(({ payload: contact }) => {
@@ -355,6 +357,7 @@ export const createInitiatedPrivateConversationEpic = (action$) =>
       return beginStoringConversations([conversation]);
     });
 
+// TODO 这里需要改造
 export const groupConversationCreatedEpic = (action$) =>
   action$.ofType(CREATE_GROUP_CONVERSATION)
     .mergeMap(({ payload: { contacts, roomId, name, curJid } }) => {

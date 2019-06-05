@@ -24,7 +24,6 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
     Object.entries(map)
       .forEach(([eventname, action]) => xmpp.on(eventname, data => {
         if (action) {
-          console.log('*****xmpp.on', eventname, data);
           store.dispatch(action(data));
         }
       }));
@@ -35,7 +34,6 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   })
   // receive private chat
   xmpp.on('chat', data => {
-    console.log('*****private chat', data);
     MessageStore.reveivePrivateChat(data);
   })
   return next => action => next(action);

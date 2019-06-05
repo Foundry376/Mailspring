@@ -25,11 +25,10 @@ export const validateShorcutActionMap = shortcutActionMap => {
  *                                          a predefined shortcut is triggered
  */
 export const createMousetrapMiddleware = (mousetrap, shortcutActionMap) => {
-  validateShorcutActionMap(shortcutActionMap);
   return store => {
     Object.entries(shortcutActionMap)
       .forEach(([shortcut, actionCreator]) =>
-        mousetrap.bind(shortcut, () => store.dispatch(actionCreator()))
+        mousetrap.bind(shortcut, () => actionCreator())
       );
     return next => action => next(action);
   };
