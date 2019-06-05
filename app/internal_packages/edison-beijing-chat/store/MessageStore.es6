@@ -19,7 +19,7 @@ import { getPriKey, getDeviceId } from '../chat-components/utils/e2ee';
 
 const SEPARATOR = '$';
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
-export const RECEIVE_CHAT = 'RECEIVE_CHAT';
+export const RECEIVE_PRIVATECHAT = 'RECEIVE_PRIVATECHAT';
 export const FILE_TYPE = {
   TEXT: 1,
   IMAGE: 2,
@@ -39,8 +39,16 @@ class MessageStore extends MailspringStore {
   _registerListeners() {
   }
 
+  reveivePrivateChat = async (message) => {
+    this.receivePrivateMessage(message);
+  }
+
+  receivePrivateMessage = async (payload) => {
+    this.receiveMessage(payload, RECEIVE_PRIVATECHAT);
+    // TODO 要在这里更新conversation
+  }
+
   reveiveGroupChat = async (message) => {
-    console.log('****reveiveGroupChat', message);
     const { deviceId, priKey } = await getPriKey();
     if (message.payload) {
       let jidLocal = message.curJid.substring(0, message.curJid.indexOf('@'));
@@ -73,7 +81,7 @@ class MessageStore extends MailspringStore {
     console.log('****downloadAndTagImageFileInMessage', chatType, aes, payload);
     let body;
     let convJid;
-    if (chatType === RECEIVE_CHAT) {
+    if (chatType === RECEIVE_PRIVATECHAT) {
       convJid = payload.from.bare;
     } else {
       convJid = payload.from.local;
@@ -153,7 +161,7 @@ class MessageStore extends MailspringStore {
   }
 
   receiveGroupMessage = async (payload) => {
-    receiveMessage(payload, RECEIVE_GROUPCHAT);
+    this.receiveMessage(payload, RECEIVE_GROUPCHAT);
     console.log('****receiveGroupMessage', payload);
     let beAt = false;
     let name = payload.from.local;
@@ -214,6 +222,72 @@ class MessageStore extends MailspringStore {
     addToAvatarMembers(conv, contact);
     ConversationStore.saveConversations([conv]);
   }
+
+  receiveMessage = (payload, type) => {
+    let timeSend;
+    if (payload.body && payload.body.trim().indexOf('{') != 0) {
+      payload.body = '{"type":1,"content":"' + payload.body + '"}';
+    }
+    timeSend = parseInt(payload.ts);
+    let sender = payload.from.bare;
+    // if groupchat, display the sender name
+    if (type === RECEIVE_GROUPCHAT) {
+      sender = payload.from.resource + '@im.edison.tech';
+    }
+    let conversationJid;
+    if (payload.curJid === payload.from.bare) {
+      conversationJid = payload.to.bare
+    } else {
+      conversationJid = payload.from.bare
+    }
+    const message = {
+      id: payload.id,
+      conversationJid,
+      sender: sender,
+      body: payload.body,
+      sentTime: (new Date(timeSend)).getTime(),
+      status: MESSAGE_STATUS_RECEIVED,
+      ts: payload.ts,
+      curJid: payload.curJid
+    };
+    this.saveMessages([message]);
+  }
+
+  saveMessages = async messages => {
+    for (const msg of messages) {
+      const messageInDb = await MessageModel.findOne({
+        where: {
+          id: msg.id
+        }
+      });
+      if (messageInDb) {
+        // because sending message in group chat will be overrided by the same RECEIVE_GROUPCHAT message overrided
+        // so do below to restore  localFile field
+        // and for RXDocouments Object.assign will not copy all fields
+        // it is necessary to rebuild the message one field by one field.
+        let body = JSON.parse(messageInDb.body);
+        let localFile = body.localFile;
+        body = JSON.parse(msg.body);
+        if (localFile && msg.status === MESSAGE_STATUS_RECEIVED) {
+          body.localFile = localFile;
+        }
+        body = JSON.stringify(body);
+        messageInDb.body = body;
+        if (messageInDb.updateTime && msg.status === MESSAGE_STATUS_RECEIVED) {
+          messageInDb.updateTime = messageInDb.updateTime;
+        }
+        // update message id: uuid + conversationJid
+        messageInDb.id = messageInDb.id.split(SEPARATOR)[0] + SEPARATOR + msg.conversationJid;
+        messageInDb.save();
+      } else {
+        // update message id: uuid + conversationJid
+        if (msg.id.indexOf(SEPARATOR) === -1) {
+          msg.id += SEPARATOR + msg.conversationJid;
+        }
+        MessageModel.upsert(msg);
+      }
+    }
+  };
 }
 
 // TODO
@@ -307,71 +381,5 @@ const getLastMessageInfo = async (message) => {
   }
   return { sender, lastMessageTime, lastMessageText };
 }
-
-const receiveMessage = (payload, type) => {
-  let timeSend;
-  if (payload.body && payload.body.trim().indexOf('{') != 0) {
-    payload.body = '{"type":1,"content":"' + payload.body + '"}';
-  }
-  timeSend = parseInt(payload.ts);
-  let sender = payload.from.bare;
-  // if groupchat, display the sender name
-  if (type === RECEIVE_GROUPCHAT) {
-    sender = payload.from.resource + '@im.edison.tech';
-  }
-  let conversationJid;
-  if (payload.curJid === payload.from.bare) {
-    conversationJid = payload.to.bare
-  } else {
-    conversationJid = payload.from.bare
-  }
-  const message = {
-    id: payload.id,
-    conversationJid,
-    sender: sender,
-    body: payload.body,
-    sentTime: (new Date(timeSend)).getTime(),
-    status: MESSAGE_STATUS_RECEIVED,
-    ts: payload.ts,
-    curJid: payload.curJid
-  };
-  saveMessages([message]);
-}
-
-const saveMessages = async messages => {
-  for (const msg of messages) {
-    const messageInDb = await MessageModel.findOne({
-      where: {
-        id: msg.id
-      }
-    });
-    if (messageInDb) {
-      // because sending message in group chat will be overrided by the same RECEIVE_GROUPCHAT message overrided
-      // so do below to restore  localFile field
-      // and for RXDocouments Object.assign will not copy all fields
-      // it is necessary to rebuild the message one field by one field.
-      let body = JSON.parse(messageInDb.body);
-      let localFile = body.localFile;
-      body = JSON.parse(msg.body);
-      if (localFile && msg.status === MESSAGE_STATUS_RECEIVED) {
-        body.localFile = localFile;
-      }
-      body = JSON.stringify(body);
-      messageInDb.body = body;
-      if (messageInDb.updateTime && msg.status === MESSAGE_STATUS_RECEIVED) {
-        messageInDb.updateTime = messageInDb.updateTime;
-      }
-      // update message id: uuid + conversationJid
-      messageInDb.id = messageInDb.id.split(SEPARATOR)[0] + SEPARATOR + msg.conversationJid;
-      messageInDb.save();
-    } else {
-      // update message id: uuid + conversationJid
-      if (msg.id.indexOf(SEPARATOR) === -1) {
-        msg.id += SEPARATOR + msg.conversationJid;
-      }
-      MessageModel.upsert(msg);
-    }
-  }
-};
 
 module.exports = new MessageStore();

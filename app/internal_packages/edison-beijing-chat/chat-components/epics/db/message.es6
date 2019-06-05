@@ -26,7 +26,9 @@ import { MessageStore } from 'chat-exports';
 const SEPARATOR = '$';
 
 const saveMessages = async messages => {
-  MessageStore.saveMessages(messages);
+  // TODO 这里临时加的timeout，最后去掉这个延时。
+  setTimeout(() => { MessageStore.saveMessages(messages); }, 100);
+
   // TODO 下面这些逻辑将来需要删除
   const db = await getDb();
   return Promise.all(messages.map(msg => {
