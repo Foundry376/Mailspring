@@ -1,4 +1,5 @@
 import MailspringStore from 'mailspring-store';
+const { Actions } = require('mailspring-exports');
 import { ChatActions, RoomStore, ConversationStore, ContactStore } from 'chat-exports';
 import { encrypte, decrypte } from '../chat-components/utils/rsa';
 import { encryptByAES, decryptByAES, generateAESKey } from '../chat-components/utils/aes';
@@ -6,7 +7,6 @@ import { downloadFile } from '../chat-components/utils/awss3';
 import { getMessageContent } from '../chat-components/utils/message';
 import { isImageFilePath, isJsonStr } from '../chat-components/utils/stringUtils';
 import {
-  groupMessages,
   groupMessagesByTime,
   addMessagesSenderNickname,
 } from '../chat-components/utils/message';
@@ -191,10 +191,10 @@ class MessageStore extends MailspringStore {
       msgBody.downloading = true;
       downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
         if (fs.existsSync(thumbPath)) {
-          ChatActions.updateDownloadPorgress();
+          Actions.updateDownloadPorgress();
           downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
             if (fs.existsSync(thumbPath)) {
-              ChatActions.updateDownloadPorgress();
+              Actions.updateDownloadPorgress();
             }
           });
         }
@@ -289,6 +289,7 @@ class MessageStore extends MailspringStore {
     }
     const contact = await ContactStore.findContactByJid(conv.lastMessageSender);
     addToAvatarMembers(conv, contact);
+    console.log('*****reveiveGroupChat - 3', conv);
     await ConversationStore.saveConversations([conv]);
     return conv;
   }
@@ -326,12 +327,16 @@ class MessageStore extends MailspringStore {
 
   saveMessagesAndRefresh = async messages => {
     await this.saveMessages(messages);
-    this.retrieveSelectedConversationMessages(this.conversationJid);
+    if (this.conversationJid) {
+      this.retrieveSelectedConversationMessages(this.conversationJid);
+    }
   }
 
   saveMessages = async messages => {
-    console.log('***saveMessages', messages);
     for (const msg of messages) {
+      if (!msg.conversationJid) {
+        console.log('*****saveMessages', msg);
+      }
       // update message id: uuid + conversationJid
       if (msg.id.indexOf(SEPARATOR) === -1) {
         msg.id += SEPARATOR + msg.conversationJid;

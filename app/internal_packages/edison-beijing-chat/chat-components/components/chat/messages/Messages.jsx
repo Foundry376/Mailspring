@@ -66,7 +66,8 @@ export default class Messages extends Component {
       downQueue: [],
       visible: false,
       percent: 0,
-    }
+    },
+    members: []
   }
 
   static timer;
@@ -79,6 +80,7 @@ export default class Messages extends Component {
 
     if (currentJid !== nextJid) {
       this.setState({ shouldScrollBottom: true });
+      await this.getRoomMembers(nextConv);
       return;
     }
 
@@ -95,8 +97,18 @@ export default class Messages extends Component {
     return true;
   }
 
-  componentDidMount = () => {
+  getRoomMembers = async (conv) => {
+    if (conv.isGroup) {
+      const members = await RoomStore.getRoomMembers(conv.jid, conv.curJid);
+      console.log('***members - 1', members);
+      this.setState({ members });
+    }
+  }
+
+  componentDidMount = async () => {
     this.unlisten = Actions.updateDownloadPorgress.listen(this.update, this);
+    const { selectedConversation: conv = {} } = this.props;
+    await this.getRoomMembers(conv);
   }
 
   componentDidUpdate = async () => {
@@ -125,7 +137,8 @@ export default class Messages extends Component {
   }
 
   getContactInfoByJid = jid => {
-    const { selectedConversation, members } = this.props;
+    const { members } = this.state;
+    const { selectedConversation } = this.props;
     if (selectedConversation.isGroup && members && members.length > 0) {
       for (const member of members) {
         const memberJid = typeof member.jid === 'object' ? member.jid.bare : member.jid;

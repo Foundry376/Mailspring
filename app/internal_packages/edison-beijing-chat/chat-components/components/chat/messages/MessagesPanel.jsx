@@ -43,8 +43,6 @@ const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 window.registerLoginChatAccounts = registerLoginChatAccounts;
 
-let key = 0;
-
 export default class MessagesPanel extends Component {
   static propTypes = {
     sendMessage: PropTypes.func.isRequired,
@@ -94,6 +92,10 @@ export default class MessagesPanel extends Component {
     let groupedMessages = [];
     if (selectedConversation) {
       groupedMessages = await MessageStore.getGroupedMessages(selectedConversation.jid);
+    }
+    const { selectedConversation: currentConv } = this.state;
+    if (!currentConv || currentConv.jid !== selectedConversation.jid) {
+      await this.refreshRoomMembers({ selectedConversation });
     }
     this.setState({
       selectedConversation,
@@ -263,51 +265,25 @@ export default class MessagesPanel extends Component {
     })
   };
 
-  componentWillReceiveProps = () => {
-    this.refreshRoomMembers();
+  componentWillReceiveProps = (nextProps, nextState) => {
+    this.refreshRoomMembers(nextState);
   }
 
   // TODO 刷新群列表有问题，这里需要重构
-  refreshRoomMembers = async (nextProps) => {
+  refreshRoomMembers = async (nextState) => {
     this.setState({ loadingMembers: true });
-    const members = await this.getRoomMembers(nextProps);
+    const members = await this.getRoomMembers(nextState);
     console.log('*****refreshRoomMembers - 1', members);
     this.setState({
       members,
       loadingMembers: false
     });
-
-    // console.log('*****refreshRoomMembers - 1', nextProps);
-    // const props = nextProps || this.props;
-    // const { selectedConversation: nextconv } = nextProps;
-    // console.log('*****refreshRoomMembers', conv.jid, nextconv.jid);
-    // if (props && props.isGroup && (!conv || (conv.jid !== props.jid))) {
-    //   const curJid = nextconv.curJid;
-    //   let state = Object.assign({}, this.state, { loadingMembers: true });
-    //   this.setState(state);
-    //   const members = await this.getRoomMembers(nextProps);
-    //   debugger;
-    //   state = Object.assign({}, this.state, { loadingMembers: false });
-    //   this.setState(state);
-    //   if (nextconv.update && members && members.length > 0) {
-    //     safeUpdate(nextconv, { roomMembers: members });
-    //   }
-    //   for (let member of members) {
-    //     const jid = member.jid.bare || member.jid;
-    //     const nicknames = chatModel.chatStorage.nicknames;
-    //     member.nickname = nicknames[jid] || '';
-    //     member.curJid = member.curJid || curJid;
-    //   };
-    //   if (!this.state.members || !this.state.members.length || members && members.length) {
-    //     const state = Object.assign({}, this.state, { members });
-    //     this.setState(state);
-    //   }
-    // }
   }
 
-  getRoomMembers = async () => {
-    const { selectedConversation: conversation } = this.state;;
+  getRoomMembers = async (nextState) => {
+    const { selectedConversation: conversation } = nextState || this.state;
     if (conversation && conversation.isGroup) {
+      console.log('*****refreshRoomMembers - 2', conversation.jid, conversation.curJid);
       return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid, true);
     }
     return [];

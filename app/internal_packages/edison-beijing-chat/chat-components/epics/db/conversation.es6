@@ -128,7 +128,7 @@ const saveConversation = async (db, conv) => {
         lastMessageSenderName: conv.lastMessageSenderName,
         avatarMembers: conv.avatarMembers
       });
-      chatModel.updateAvatars(conv.jid);
+      // chatModel.updateAvatars(conv.jid);
       return convInDB;
     }
   }
