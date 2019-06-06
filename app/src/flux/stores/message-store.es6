@@ -488,7 +488,7 @@ class MessageStore extends MailspringStore {
       );
     });
     if (missing.length > 0) {
-      return Actions.fetchBodies(missing);
+      return Actions.fetchBodies({ messages: missing, source: 'message' });
     }
   }
 
