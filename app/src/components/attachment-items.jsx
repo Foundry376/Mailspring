@@ -78,7 +78,7 @@ function AttachmentActionIcon(props) {
   const actionIconName = isRemovable || isDownloading ? removeIcon : downloadIcon;
 
   const onClickActionIcon = event => {
-    if (missing) {
+    if (missing || isDownloading) {
       return;
     }
     event.stopPropagation(); // Prevent 'onOpenAttachment'
@@ -93,12 +93,8 @@ function AttachmentActionIcon(props) {
 
   return (
     <div className="file-action-icon" onClick={onClickActionIcon}>
-      {isDownloading ?
-        <RetinaImg name='refresh.svg'
-          className='infinite-rotation-linear'
-          style={{ width: 24, height: 24 }} isIcon
-          mode={RetinaImg.Mode.ContentIsMask} /> :
-        <RetinaImg name={actionIconName} mode={retinaImgMode} />
+      {!isDownloading ?
+        <RetinaImg name={actionIconName} mode={retinaImgMode} /> : null
       }
     </div>
   );

@@ -530,7 +530,15 @@ export default class MessagesPanel extends Component {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
-      loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
+      try {
+        loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
+      } catch (e) {
+        console.log( 'upload file:', e);
+        window.alert(`failed to send file: ${loadConfig.filepath}: ${e}`);
+        this.cancelLoadMessage();
+        ChatActions.updateProgress({ failed:true, loading:false, visible:false });
+        return;
+      }
     } else if (msgBody.path && !msgBody.path.match(/^((http:)|(https:))/)) {
       // the file is an image and it has been downloaded to local while the message was received
       let imgpath = msgBody.path.replace('file://', '');

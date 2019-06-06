@@ -33,7 +33,7 @@ export default class ToolbarBack extends React.Component {
   }
 
   _onClick = () => {
-    Actions.popSheet();
+    Actions.popSheet({ thread: this.props.thread });
   };
 
   render() {
