@@ -7,24 +7,21 @@ import {
   weekDayFormat,
   nearDays,
 } from '../../../utils/time';
-import { RetinaImg } from 'mailspring-component-kit';
 import Msg from './Msg';
-
-let key = 0;
 
 export default class Group extends PureComponent {
   static propTypes = {
     group:
       PropTypes.shape({
-        messages:PropTypes.arrayOf(PropTypes.shape({
-            id: PropTypes.string.isRequired,
-            conversationJid: PropTypes.string.isRequired,
-            sender: PropTypes.string.isRequired,
-            body: PropTypes.string.isRequired,
-            sentTime: PropTypes.number.isRequired,
-            status: PropTypes.string.isRequired,
-          }))
-  }).isRequired,
+        messages: PropTypes.arrayOf(PropTypes.shape({
+          id: PropTypes.string.isRequired,
+          conversationJid: PropTypes.string.isRequired,
+          sender: PropTypes.string.isRequired,
+          body: PropTypes.string.isRequired,
+          sentTime: PropTypes.number.isRequired,
+          status: PropTypes.string.isRequired,
+        }))
+      }).isRequired,
     conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
       isGroup: PropTypes.bool.isRequired,
@@ -51,13 +48,16 @@ export default class Group extends PureComponent {
             }
           </label>
         </div>
-        { group.messages.map((msg, idx) => ( <Msg conversation={this.props.conversation}
-                 msg={msg}
-                 queueLoadMessage={this.props.queueLoadMessage}
-                 onMessageSubmitted={this.props.onMessageSubmitted}
-                 key={msg.id}>
-            </Msg>)
-          )
+        {group.messages.map((msg) => (
+          <Msg
+            conversation={this.props.conversation}
+            msg={msg}
+            queueLoadMessage={this.props.queueLoadMessage}
+            onMessageSubmitted={this.props.onMessageSubmitted}
+            getContactInfoByJid={this.props.getContactInfoByJid}
+            key={msg.id}>
+          </Msg>
+        ))
         }
       </div>
     )

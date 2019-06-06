@@ -13,10 +13,13 @@ Room.init({
   name: {
     type: Sequelize.STRING,
     indexed: true,
+  },
+  members: {
+    type: Sequelize.JSON,
   }
 }, {
     sequelize,
-    modelName: 'room'
+    modelName: 'rooms'
     // options
   });
 Room.sync();

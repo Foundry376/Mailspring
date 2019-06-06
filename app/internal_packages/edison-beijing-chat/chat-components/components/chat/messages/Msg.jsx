@@ -28,14 +28,14 @@ let key = 0;
 
 export default class Msg extends PureComponent {
   static propTypes = {
-      msg: PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          conversationJid: PropTypes.string.isRequired,
-          sender: PropTypes.string.isRequired,
-          body: PropTypes.string.isRequired,
-          sentTime: PropTypes.number.isRequired,
-          status: PropTypes.string.isRequired,
-        }).isRequired,
+    msg: PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      conversationJid: PropTypes.string.isRequired,
+      sender: PropTypes.string.isRequired,
+      body: PropTypes.string.isRequired,
+      sentTime: PropTypes.number.isRequired,
+      status: PropTypes.string.isRequired,
+    }).isRequired,
     conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
       isGroup: PropTypes.bool.isRequired,
@@ -96,7 +96,7 @@ export default class Msg extends PureComponent {
     let menuItem = new MenuItem({
       label: 'Edit text',
       click: () => {
-        const {msg} = this.props;
+        const { msg } = this.props;
         chatModel.editingMessageId = msg.id;
         this.update();
         this.menu.closePopup();
@@ -130,36 +130,11 @@ export default class Msg extends PureComponent {
   }
 
   getContactInfoByJid = jid => {
-    const {conversation} = this.props;
-    const members = conversation.roomMembers;
-    if (conversation.isGroup && members && members.length > 0) {
-      for (const member of members) {
-        const memberJid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
-        if (memberJid === jid) {
-          return member;
-        }
-      }
-    }
-
-    // get self User info
-    const self = chatModel.allSelfUsers[jid];
-    if (self) {
-      return {
-        jid,
-        name: self['name'],
-        email: self['email'],
-      }
-    }
-
-    const { jid: convJid, name, email } = conversation;
-    if (convJid === jid) {
-      return { jid, name, email };
-    }
-    return { jid, name: '', email: '' };
+    return this.props.getContactInfoByJid(jid);
   }
 
   getContactAvatar = member => {
-    const {conversation} = this.props;
+    const { conversation } = this.props;
     if (member) {
       const memberJid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
       return (
@@ -257,9 +232,9 @@ export default class Msg extends PureComponent {
             onClick={() => this.download()}
           >
             <RetinaImg name={'download.svg'}
-                       style={{ width: 24, height: 24}}
-                       isIcon
-                       mode={RetinaImg.Mode.ContentIsMask} />
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
           </span>
         )}
         {msg.sender === currentUserJid && (
@@ -269,9 +244,9 @@ export default class Msg extends PureComponent {
             onContextMenu={() => this.showPopupMenu()}
           >
             <RetinaImg name={'expand-more.svg'}
-                       style={{ width: 26, height: 26 }}
-                       isIcon
-                       mode={RetinaImg.Mode.ContentIsMask} />
+              style={{ width: 26, height: 26 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
           </span>
         )}
       </div>
@@ -298,7 +273,7 @@ export default class Msg extends PureComponent {
     }
   }
   onClickImage = () => {
-    const {msg} = this.props;
+    const { msg } = this.props;
     const msgBody = this.msgBody;
     msg.zoomin = true;
     if (msg.height < 1600) {
@@ -341,8 +316,8 @@ export default class Msg extends PureComponent {
           <div className="file-info" onDoubleClick={() => this.openFile(msgBody.path)}>
             <div className="file-icon">
               <RetinaImg name={iconName}
-                         isIcon
-                         mode={RetinaImg.Mode.ContentIsMask} />
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask} />
             </div>
             <div>
               <div className="file-name">{fileName}</div>
@@ -358,12 +333,12 @@ export default class Msg extends PureComponent {
   }
 
   senderContact = () => {
-    const {msg} = this.props;
+    const { msg } = this.props;
     return this.getContactInfoByJid(msg.sender);
   }
 
   senderName = () => {
-    const {msg} = this.props;
+    const { msg } = this.props;
     const member = this.senderContact();
     return msg.senderNickname || member.name;
   }
@@ -376,7 +351,7 @@ export default class Msg extends PureComponent {
 
   render() {
     const { msg, conversation } = this.props;
-    const {msgBody, currentUserJid} = this;
+    const { msgBody, currentUserJid } = this;
     let border = null;
     const isEditing = msg.id === chatModel.editingMessageId;
     const isCurrentUser = msg.sender === currentUserJid;
@@ -450,22 +425,22 @@ export default class Msg extends PureComponent {
                     </div>
                   )}
                 </div>) : (
-                isEditing ? (
-                  <div>
-                    <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} conversation={conversation} onMessageSubmitted={this.onMessageSubmitted}/>
-                  </div>
-                ) : (
-                  <div className="messageBody">
-                    <div className="text-content">
-                      {msgBody.path && path.basename(msgBody.path) || msgBody.content || msgBody}
-                      {
-                        !msgFile && isCurrentUser && !isEditing && (
-                          this.messageToolbar(msg, msgBody, false)
-                        )}
+                  isEditing ? (
+                    <div>
+                      <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} conversation={conversation} onMessageSubmitted={this.onMessageSubmitted} />
                     </div>
-                  </div>
+                  ) : (
+                      <div className="messageBody">
+                        <div className="text-content">
+                          {msgBody.path && path.basename(msgBody.path) || msgBody.content || msgBody}
+                          {
+                            !msgFile && isCurrentUser && !isEditing && (
+                              this.messageToolbar(msg, msgBody, false)
+                            )}
+                        </div>
+                      </div>
+                    )
                 )
-              )
             }
 
             {msgBody.mediaObjectId && (
@@ -487,12 +462,12 @@ export default class Msg extends PureComponent {
             {
               msg.status === MESSAGE_STATUS_UPLOAD_FAILED &&
               <div className="upload-error">
-              <span>
-                <RetinaImg name={'close_1.svg'}
-                           style={{ width: 20, height: 20 }}
-                           isIcon
-                           mode={RetinaImg.Mode.ContentIsMask} />
-              </span>
+                <span>
+                  <RetinaImg name={'close_1.svg'}
+                    style={{ width: 20, height: 20 }}
+                    isIcon
+                    mode={RetinaImg.Mode.ContentIsMask} />
+                </span>
                 <span> File transfer failed!</span>
               </div>
             }

@@ -1,5 +1,5 @@
 import path from 'path';
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { RetinaImg } from 'mailspring-component-kit';
 const { Actions } = require('mailspring-exports');
@@ -15,6 +15,7 @@ import MessageImagePopup from './MessageImagePopup';
 import Group from './Group';
 import SecurePrivate from './SecurePrivate';
 import _ from 'underscore';
+import { RoomStore } from 'chat-exports';
 
 let key = 0;
 
@@ -28,7 +29,7 @@ const flattenMsgIds = groupedMessages =>
       }, new Set()
     );
 
-export default class Messages extends PureComponent {
+export default class Messages extends Component {
   static propTypes = {
     currentUserId: PropTypes.string.isRequired,
     groupedMessages: PropTypes.arrayOf(
@@ -65,12 +66,12 @@ export default class Messages extends PureComponent {
       downQueue: [],
       visible: false,
       percent: 0,
-    },
+    }
   }
 
   static timer;
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps = async (nextProps) => {
     const { selectedConversation: currentConv = {} } = this.props;
     const { selectedConversation: nextConv = {} } = nextProps;
     const { jid: currentJid } = currentConv;
@@ -93,11 +94,12 @@ export default class Messages extends PureComponent {
     });
     return true;
   }
-  componentDidMount() {
+
+  componentDidMount = () => {
     this.unlisten = Actions.updateDownloadPorgress.listen(this.update, this);
   }
 
-  componentDidUpdate() {
+  componentDidUpdate = async () => {
     if (this.state.shouldScrollBottom) {
       this.scrollToMessagesBottom();
     }
@@ -123,8 +125,8 @@ export default class Messages extends PureComponent {
   }
 
   getContactInfoByJid = jid => {
-    const members = this.props.selectedConversation.roomMembers;
-    if (this.props.selectedConversation.isGroup && members && members.length > 0) {
+    const { selectedConversation, members } = this.props;
+    if (selectedConversation.isGroup && members && members.length > 0) {
       for (const member of members) {
         const memberJid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
         if (memberJid === jid) {
@@ -143,7 +145,7 @@ export default class Messages extends PureComponent {
       }
     }
 
-    const { jid: convJid, name, email } = this.props.selectedConversation;
+    const { jid: convJid, name, email } = selectedConversation;
     if (convJid === jid) {
       return { jid, name, email };
     }
@@ -247,13 +249,16 @@ export default class Messages extends PureComponent {
         tabIndex="0"
       >
         <SecurePrivate />
-        { groupedMessages.map((group, idx) =>(<Group conversation={this.props.selectedConversation}
-                   group={group}
-                   queueLoadMessage={this.props.queueLoadMessage}
-                   onMessageSubmitted={this.props.onMessageSubmitted}
-                   key={idx}>
-            </Group>)
-          )
+        {groupedMessages.map((group, idx) => (
+          <Group conversation={this.props.selectedConversation}
+            group={group}
+            queueLoadMessage={this.props.queueLoadMessage}
+            onMessageSubmitted={this.props.onMessageSubmitted}
+            getContactInfoByJid={this.getContactInfoByJid}
+            members={this.state.members}
+            key={idx}>
+          </Group>
+        ))
         }
         <MessageImagePopup
           {...this.props}

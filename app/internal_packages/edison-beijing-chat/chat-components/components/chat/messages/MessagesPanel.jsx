@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import path from "path";
 const sqlite = require('better-sqlite3');
 import { CSSTransitionGroup } from 'react-transition-group';
@@ -12,14 +12,13 @@ import Divider from '../../common/Divider';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import xmpp from '../../../xmpp/index';
 import chatModel, { saveToLocalStorage } from '../../../store/model';
-import getDb from '../../../db';
 import { downloadFile, uploadFile } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore } from 'chat-exports';
+import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore } from 'chat-exports';
 import FixedPopover from '../../../../../../src/components/fixed-popover';
 import { queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
@@ -38,7 +37,6 @@ import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
 import { getToken, getMyApps } from '../../../utils/appmgt';
 import { log } from '../../../utils/log-util';
-import { safeUpdate } from '../../../utils/db-utils';
 
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -47,7 +45,7 @@ window.registerLoginChatAccounts = registerLoginChatAccounts;
 
 let key = 0;
 
-export default class MessagesPanel extends PureComponent {
+export default class MessagesPanel extends Component {
   static propTypes = {
     sendMessage: PropTypes.func.isRequired,
     currentUserId: PropTypes.string,
@@ -88,12 +86,6 @@ export default class MessagesPanel extends PureComponent {
     this._unsubs.push(ConversationStore.listen(this._onDataChanged));
     this._unsubs.push(MessageStore.listen(this._onDataChanged));
     this._unsubs.push(ContactStore.listen(this._onDataChanged));
-  }
-
-  componentWillUnmount() {
-    for (const unsub of this._unsubs) {
-      unsub();
-    };
   }
 
   _onDataChanged = async () => {
@@ -147,8 +139,8 @@ export default class MessagesPanel extends PureComponent {
 
   componentWillMount() {
   }
-  componentDidMount() {
-    this.refreshRoomMembers();
+  componentDidMount = async () => {
+    await this.refreshRoomMembers();
     this.getEmailContacts();
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
@@ -158,6 +150,9 @@ export default class MessagesPanel extends PureComponent {
   componentWillUnmount() {
     window.removeEventListener("online", this.onLine);
     window.removeEventListener("offline", this.offLine);
+    for (const unsub of this._unsubs) {
+      unsub();
+    };
   }
 
   getApps = () => {
@@ -268,56 +263,52 @@ export default class MessagesPanel extends PureComponent {
     })
   };
 
-  // componentWillReceiveProps = (nextProps) => {
-  //   if (nextProps.selectedConversation
-  //     && this.props.selectedConversation
-  //     && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid ||
-  //     nextProps.selectedConversation && !this.props.selectedConversation) {
-  //     this.refreshRoomMembers(nextProps);
-  //   }
-  //   this.update();
-  //   return true;
-  // }
+  componentWillReceiveProps = () => {
+    this.refreshRoomMembers();
+  }
 
   // TODO 刷新群列表有问题，这里需要重构
   refreshRoomMembers = async (nextProps) => {
-    const { selectedConversation: conv } = this.state;
-    if (!nextProps) {
-      return;
-    }
-    const { selectedConversation: nextconv } = nextProps;
-    if (nextconv && nextconv.isGroup && (!conv || (conv.jid !== nextconv.jid))) {
-      const curJid = nextconv.curJid;
-      let state = Object.assign({}, this.state, { loadingMembers: true });
-      this.setState(state);
-      const members = await this.getRoomMembers(nextProps);
-      state = Object.assign({}, this.state, { loadingMembers: false });
-      this.setState(state);
-      if (nextconv.update && members && members.length > 0) {
-        safeUpdate(nextconv, { roomMembers: members });
-      }
-      for (let member of members) {
-        const jid = member.jid.bare || member.jid;
-        const nicknames = chatModel.chatStorage.nicknames;
-        member.nickname = nicknames[jid] || '';
-        member.curJid = member.curJid || curJid;
-      };
-      if (!this.state.members || !this.state.members.length || members && members.length) {
-        const state = Object.assign({}, this.state, { members });
-        this.setState(state);
-      }
-    }
+    this.setState({ loadingMembers: true });
+    const members = await this.getRoomMembers(nextProps);
+    console.log('*****refreshRoomMembers - 1', members);
+    this.setState({
+      members,
+      loadingMembers: false
+    });
+
+    // console.log('*****refreshRoomMembers - 1', nextProps);
+    // const props = nextProps || this.props;
+    // const { selectedConversation: nextconv } = nextProps;
+    // console.log('*****refreshRoomMembers', conv.jid, nextconv.jid);
+    // if (props && props.isGroup && (!conv || (conv.jid !== props.jid))) {
+    //   const curJid = nextconv.curJid;
+    //   let state = Object.assign({}, this.state, { loadingMembers: true });
+    //   this.setState(state);
+    //   const members = await this.getRoomMembers(nextProps);
+    //   debugger;
+    //   state = Object.assign({}, this.state, { loadingMembers: false });
+    //   this.setState(state);
+    //   if (nextconv.update && members && members.length > 0) {
+    //     safeUpdate(nextconv, { roomMembers: members });
+    //   }
+    //   for (let member of members) {
+    //     const jid = member.jid.bare || member.jid;
+    //     const nicknames = chatModel.chatStorage.nicknames;
+    //     member.nickname = nicknames[jid] || '';
+    //     member.curJid = member.curJid || curJid;
+    //   };
+    //   if (!this.state.members || !this.state.members.length || members && members.length) {
+    //     const state = Object.assign({}, this.state, { members });
+    //     this.setState(state);
+    //   }
+    // }
   }
 
-  getRoomMembers = async (nextProps) => {
-    const { selectedConversation: conversation } = (nextProps || this.props);
+  getRoomMembers = async () => {
+    const { selectedConversation: conversation } = this.state;;
     if (conversation && conversation.isGroup) {
-      const result = await xmpp.getRoomMembers(conversation.jid, null, conversation.curJid);
-      if (result && result.mucAdmin) {
-        return result.mucAdmin.items;
-      } else {
-        return [];
-      }
+      return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid, true);
     }
     return [];
   }
@@ -352,7 +343,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   sendFile(files) {
-    const { selectedConversation } = this.props;
+    const { selectedConversation } = this.state;
     const onMessageSubmitted = this.props.sendMessage;
     const atIndex = selectedConversation.jid.indexOf('@');
 
@@ -387,7 +378,7 @@ export default class MessagesPanel extends PureComponent {
   }
 
   removeMember = member => {
-    const conversation = this.props.selectedConversation;
+    const conversation = this.state.selectedConversation;
     if (member.affiliation === 'owner') {
       alert('you can not remove the owner of the group chat!');
       return;
@@ -598,7 +589,7 @@ export default class MessagesPanel extends PureComponent {
   };
 
   installApp = async (e) => {
-    const conv = this.props.selectedConversation;
+    const conv = this.state.selectedConversation;
     const { curJid } = conv;
     const userId = curJid.split('@')[0];
     let token = await getToken(userId);
@@ -612,12 +603,6 @@ export default class MessagesPanel extends PureComponent {
         }
       }
     })
-  }
-
-  update() {
-    key++;
-    const state = Object.assign({}, this.state, { key });
-    this.setState(state);
   }
 
   render() {
@@ -658,6 +643,7 @@ export default class MessagesPanel extends PureComponent {
       selectedConversation,
       onMessageSubmitted: sendMessage,
       queueLoadMessage: this.queueLoadMessage,
+      members: this.state.members,
     };
     const sendBarProps = {
       onMessageSubmitted: sendMessage,
@@ -666,7 +652,6 @@ export default class MessagesPanel extends PureComponent {
     };
     const infoProps = {
       selectedConversation,
-      // deselectConversation: this.props.deselectConversation,
       toggleInvite: this.toggleInvite,
       members: this.state.members,
       loadingMembers: this.state.loadingMembers,

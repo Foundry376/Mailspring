@@ -233,7 +233,6 @@ class MessageStore extends MailspringStore {
   }
 
   processGroupMessage = async (payload) => {
-    console.log('****processGroupMessage', payload);
     await this.prepareForSaveMessage(payload, RECEIVE_GROUPCHAT);
     let at = false;
     let name = payload.from.local;
@@ -241,9 +240,8 @@ class MessageStore extends MailspringStore {
     const rooms = await RoomStore.getRooms();
     const body = JSON.parse(payload.body);
     at = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
-    // console.log('******processGroupMessage payload.from.bare', payload.from.bare, rooms);
     if (rooms[payload.from.bare]) {
-      name = rooms[payload.from.bare];
+      name = rooms[payload.from.bare].name;
     } else {
       let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
       RoomStore.saveRooms(roomsInfo);

@@ -22,6 +22,7 @@ import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } 
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../utils/restjs';
 const { exec } = require('child_process');
+import { RoomStore } from 'chat-exports';
 
 const getCaretCoordinates = require('../../../utils/textarea-caret-position');
 
@@ -114,7 +115,7 @@ export default class MessagesSendBar extends PureComponent {
       })
     });
     const state = Object.assign({}, this.state, { keyword2app });
-      this.setState(state);
+    this.setState(state);
   }
 
   componentDidMount = async () => {
@@ -127,18 +128,9 @@ export default class MessagesSendBar extends PureComponent {
   }
 
   getRoomMembers = async () => {
-    const { selectedConversation } = this.props;
-    const { roomMembers } = this.state;
-    if (selectedConversation.isGroup) {
-      if (roomMembers && roomMembers.length) {
-        return roomMembers;
-      }
-      const result = await xmpp.getRoomMembers(selectedConversation.jid, null, selectedConversation.curJid);
-      if (result && result.mucAdmin) {
-        return result.mucAdmin.items;
-      } else {
-        return [];
-      }
+    const { selectedConversation: conversation } = this.props;
+    if (conversation.isGroup) {
+      return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid);
     }
     return [];
   }
@@ -378,7 +370,7 @@ export default class MessagesSendBar extends PureComponent {
   };
 
   hidePrompt = () => {
-    const state = Object.assign({}, this.state, {prefix:''});
+    const state = Object.assign({}, this.state, { prefix: '' });
     this.setState(state);
   }
 
@@ -553,7 +545,7 @@ export default class MessagesSendBar extends PureComponent {
           pos={this.state.promptPos}
           prefix={this.state.prefix}
           keyword2app={this.state.keyword2app}
-          hidePrompt = {this.hidePrompt}
+          hidePrompt={this.hidePrompt}
           installApp={this.installApp}
         />
       </div>

@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Button from '../../common/Button';
-import EmojiIcon from '../../common/icons/EmojiIcon';
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
@@ -16,8 +15,9 @@ import { FILE_TYPE } from './messageModel';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup'
-import EmailAttachmentPopup from '../../common/EmailAttachmentPopup'
-import { updateSelectedConversation } from '../../../actions/db/conversation';
+import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
+import { RoomStore } from 'chat-exports';
+
 const FAKE_SPACE = '\u00A0';
 
 const activeStyle = {
@@ -101,13 +101,8 @@ export default class MessageEditBar extends PureComponent {
 
   getRoomMembers = async () => {
     const { conversation } = this.props;
-    const { roomMembers } = this.state;
     if (conversation.isGroup) {
-      if (roomMembers && roomMembers.length) {
-        return roomMembers;
-      }
-      const result = await xmpp.getRoomMembers(conversation.jid, null, conversation.curJid)
-      return result.mucAdmin.items;
+      return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid);
     }
     return [];
   }

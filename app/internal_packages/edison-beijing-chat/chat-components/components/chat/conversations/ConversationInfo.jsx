@@ -2,18 +2,13 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
-import getDb from '../../../db';
-import CancelIcon from '../../common/icons/CancelIcon';
 import InfoMember from './InfoMember';
-import { theme } from '../../../utils/colors';
 import { remote } from 'electron';
 import { clearMessages } from '../../../utils/message';
 import _ from 'lodash';
 import RetinaImg from '../../../../../../src/components/retina-img';
 import chatModel, { saveToLocalStorage } from '../../../store/model';
 import { ChatActions } from 'chat-exports';
-
-const { primaryColor } = theme;
 
 
 export default class ConversationInfo extends Component {
@@ -60,11 +55,6 @@ export default class ConversationInfo extends Component {
 
     const { selectedConversation: conversation } = this.props;
     xmpp.leaveRoom(conversation.jid, conversation.curJid);
-    // (getDb()).then(db => {
-    //   db.conversations.findOne(conversation.jid).exec().then(conv => {
-    //     conv.remove()
-    //   }).catch((error) => { })
-    // });
     ChatActions.removeConversation(conversation.jid);
     ChatActions.deselectConversation();
   }
