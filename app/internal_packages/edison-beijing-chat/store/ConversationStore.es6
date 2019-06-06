@@ -73,7 +73,6 @@ class ConversationStore extends MailspringStore {
     }
     // the same conversation, skip refresh
     if (this.selectedConversation && (this.selectedConversation.jid === jid)) {
-      console.log('****setSelectedConversation return');
       return;
     }
     // refresh message store
@@ -88,7 +87,7 @@ class ConversationStore extends MailspringStore {
 
   _clearUnreadCount = async (jid) => {
     await ConversationModel.update({ unreadMessages: 0 }, { where: { jid } })
-    this.conversations = await ConversationModel.findAll();
+    this.refreshConversations();
   }
 
   getSelectedConversation() {

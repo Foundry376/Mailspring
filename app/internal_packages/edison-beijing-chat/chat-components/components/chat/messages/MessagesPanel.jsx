@@ -184,7 +184,7 @@ export default class MessagesPanel extends Component {
       }
       this.apps = apps;
     } catch (e) {
-      console.log(e, myApps, uapps);
+      console.error(e, myApps, uapps);
     }
   }
 
@@ -269,11 +269,9 @@ export default class MessagesPanel extends Component {
     this.refreshRoomMembers(nextState);
   }
 
-  // TODO 刷新群列表有问题，这里需要重构
   refreshRoomMembers = async (nextState) => {
     this.setState({ loadingMembers: true });
     const members = await this.getRoomMembers(nextState);
-    console.log('*****refreshRoomMembers - 1', members);
     this.setState({
       members,
       loadingMembers: false
@@ -283,7 +281,6 @@ export default class MessagesPanel extends Component {
   getRoomMembers = async (nextState) => {
     const { selectedConversation: conversation } = nextState || this.state;
     if (conversation && conversation.isGroup) {
-      console.log('*****refreshRoomMembers - 2', conversation.jid, conversation.curJid);
       return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid, true);
     }
     return [];
@@ -477,7 +474,7 @@ export default class MessagesPanel extends Component {
       try {
         loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
       } catch (e) {
-        console.log('upload file:', e);
+        console.error('upload file:', e);
         window.alert(`failed to send file: ${loadConfig.filepath}: ${e}`);
         this.cancelLoadMessage();
         ChatActions.updateProgress({ failed: true, loading: false, visible: false });
@@ -510,7 +507,7 @@ export default class MessagesPanel extends Component {
         res.on('end', function () {
           fs.writeFile(filepath, imgData, 'binary', function (err) {
             if (err) {
-              console.log('down fail');
+              console.error('down fail', err);
             } else {
               console.log('down success');
             }
