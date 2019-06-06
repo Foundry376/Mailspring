@@ -93,7 +93,8 @@ function WSConnection(sm, stanzas) {
         if (stanzaObj._name === 'openStream') {
             self.hasStream = true;// yazz
             self.stream = stanzaObj;
-            window.localStorage.sessionId = stanzaObj.id;
+            window.localStorage['sessionId' + self.config.jid.local] = stanzaObj.id;
+
             return self.emit('stream:start', stanzaObj.toJSON());
         }
         if (stanzaObj._name === 'closeStream') {
@@ -114,7 +115,6 @@ util.inherits(WSConnection, WildEmitter);
 WSConnection.prototype.connect = function (opts) {
     var self = this;
     self.config = opts;
-
     self.hasStream = false;
     self.closing = false;
     self.isCache = true;//opts.wsURL.substring(opts.wsURL.indexOf(":", 10) + 1) == '5290';
