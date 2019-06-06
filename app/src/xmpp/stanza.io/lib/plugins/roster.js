@@ -25,21 +25,23 @@ module.exports = function (client) {
         });
     });
 
-    client.getRoster = function (cb,ver) {
+    client.getRoster = function (cb, ver) {
         var self = this;
 
         return client.sendIq({
             type: 'get',
             roster: {
-                ver: ver?ver:self.config.rosterVer
+                ver: ver ? ver : self.config.rosterVer
             }
         }).then(function (resp) {
-            if (resp.roster) {
+            if (resp && resp.roster) {
                 var ver = resp.roster.ver;
                 if (ver) {
                     self.config.rosterVer = ver;
                     self.emit('roster:ver', ver);
                 }
+            } else {
+                resp = { roster: {} };
             }
             //debugger;
             return resp;
@@ -68,22 +70,22 @@ module.exports = function (client) {
     };
 
     client.removeRosterItem = function (jid, cb) {
-        return client.updateRosterItem({jid: jid, subscription: 'remove'}, cb);
+        return client.updateRosterItem({ jid: jid, subscription: 'remove' }, cb);
     };
 
     client.subscribe = function (jid) {
-        client.sendPresence({type: 'subscribe', to: jid});
+        client.sendPresence({ type: 'subscribe', to: jid });
     };
 
     client.unsubscribe = function (jid) {
-        client.sendPresence({type: 'unsubscribe', to: jid});
+        client.sendPresence({ type: 'unsubscribe', to: jid });
     };
 
     client.acceptSubscription = function (jid) {
-        client.sendPresence({type: 'subscribed', to: jid});
+        client.sendPresence({ type: 'subscribed', to: jid });
     };
 
     client.denySubscription = function (jid) {
-        client.sendPresence({type: 'unsubscribed', to: jid});
+        client.sendPresence({ type: 'unsubscribed', to: jid });
     };
 };
