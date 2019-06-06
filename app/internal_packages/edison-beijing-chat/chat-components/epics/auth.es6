@@ -59,7 +59,7 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
       deviceModel: process.platform,
       clientVerCode: '101',
       clientVerName: '1.0.0',
-      sessionId: window.localStorage.sessionId
+      sessionId: window.localStorage['sessionId' + jid.split('@')[0]]
     });
     // if (jid.indexOf('/') > 0) {
     //   window.localStorage.jid = jid.substring(0, jid.indexOf('/'));//{ jid, local: jid.substring(0, jid.indexOf('@')) };

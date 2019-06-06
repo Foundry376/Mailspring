@@ -18,7 +18,6 @@ const getDeviceHash = () => {
       return networks[key][0].mac;
     })
     .join('-');
-  console.log(macs);
   return crypto
     .createHash('sha256')
     .update(`${os.arch()}-${os.cpus()[0].model}-${macs}-${os.platform()}`)
