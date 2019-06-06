@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { gradientColorForString } from '../../utils/colors';
-import { getAvatar, getAvatarFromCache, queryProfile, getProfile } from '../../utils/restjs';
-import { connect } from 'react-redux';
-import keyMannager from '../../../../../src/key-manager';
+import { getAvatar, getAvatarFromCache, getProfile } from '../../utils/restjs';
 import _ from 'underscore';
 import { getMyAppById } from '../../utils/appmgt';
+import { OnlineUserStore } from 'chat-exports';
 
 const getInitials = name => {
   const trimmedName = name ? name.trim() : '';
@@ -20,13 +19,27 @@ const getInitials = name => {
   return initials;
 };
 
-class ContactAvatar extends Component {
+export default class ContactAvatar extends Component {
   constructor(props) {
     super(props);
     this.refreshState(props);
+    this._listenToStore();
   }
 
-  state = {};
+  _listenToStore() {
+    this._unsub = OnlineUserStore.listen(this._onDataChanged);
+  }
+
+  componentWillUnmount() {
+    this._unsub();
+  }
+
+  _onDataChanged = () => {
+    const isOnline = this.isOnline();
+    this.setState({
+      isOnline
+    });
+  }
 
   componentWillReceiveProps = nextProps => {
     this.refreshState(nextProps);
@@ -39,7 +52,8 @@ class ContactAvatar extends Component {
       avatar: props.avatar ? `https://s3.us-east-2.amazonaws.com/edison-profile-stag/${props.avatar}` : bgColor,
       isImgExist: false,
       userProfile: {},
-      bgColor
+      bgColor,
+      isOnline: false,
     };
 
     const imgUrl = getAvatarFromCache(this.props.email);
@@ -66,18 +80,10 @@ class ContactAvatar extends Component {
   };
 
   isOnline = () => {
-    const { availableUsers, jid } = this.props;
-    return availableUsers && availableUsers.indexOf(jid) !== -1 ? 'online' : 'offline';
+    const { jid } = this.props;
+    return OnlineUserStore.isUserOnline(jid);
   }
-  shouldComponentUpdate(nextProps, nextState) {
-    const { availableUsers, jid } = this.props;
-    if (_.isEqual(nextState, this.state)
-      && nextProps.jid === jid
-      && _.isEqual(nextProps.availableUsers, availableUsers)) {
-      return false;
-    }
-    return true;
-  }
+
   componentDidMount = async () => {
     this.mounted = true;
     let { email, conversation } = this.props;
@@ -111,7 +117,7 @@ class ContactAvatar extends Component {
 
   render() {
     const { name, size = 48, conversation } = this.props;
-    const { avatar, isImgExist, userProfile, bgColor } = this.state;
+    const { avatar, isImgExist, userProfile, bgColor, isOnline } = this.state;
     const isGroup = conversation && conversation.isGroup;
     const contactName = name || userProfile.name;
     const styles = {
@@ -135,7 +141,7 @@ class ContactAvatar extends Component {
       >
         {isImgExist ? null : getInitials(contactName).toUpperCase()}
         {!isGroup ? (
-          <div className={this.isOnline()}></div>
+          <div className={isOnline ? 'online' : 'offline'}></div>
         ) : null}
       </div>
     )
@@ -153,9 +159,3 @@ ContactAvatar.propTypes = {
 ContactAvatar.defaultProps = {
   size: 48,
 };
-
-const mapStateToProps = (state) => ({
-  availableUsers: state.contact.availableUsers
-})
-
-export default connect(mapStateToProps)(ContactAvatar);

@@ -1,7 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import ContactModel from '../model/Contact';
-
-class RoomStore extends MailspringStore {
+class ContactStore extends MailspringStore {
   constructor() {
     super();
     this.contacts = [];
@@ -57,6 +56,12 @@ class RoomStore extends MailspringStore {
     });
   }
 
+  findOneByCondition = async (where) => {
+    return await ContactModel.findOne({
+      where
+    });
+  }
+
   getContacts = async () => {
     if (!this.contacts) {
       await this.refreshContacts();
@@ -65,4 +70,4 @@ class RoomStore extends MailspringStore {
   }
 }
 
-module.exports = new RoomStore();
+module.exports = new ContactStore();

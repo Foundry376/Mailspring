@@ -11,7 +11,6 @@ export default class MessagesTopBar extends Component {
   static propTypes = {
     onBackPressed: PropTypes.func,
     onInfoPressed: PropTypes.func,
-    availableUsers: PropTypes.arrayOf(PropTypes.string),
     infoActive: PropTypes.bool,
     selectedConversation: PropTypes.shape({
       isGroup: PropTypes.bool.isRequired,
@@ -25,7 +24,6 @@ export default class MessagesTopBar extends Component {
   static defaultProps = {
     onBackPressed: () => { },
     onInfoPressed: () => { },
-    availableUsers: [],
     infoActive: false,
     selectedConversation: null,
   }

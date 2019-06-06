@@ -49,9 +49,7 @@ let key = 0;
 
 export default class MessagesPanel extends PureComponent {
   static propTypes = {
-    // deselectConversation: PropTypes.func.isRequired,
     sendMessage: PropTypes.func.isRequired,
-    availableUsers: PropTypes.arrayOf(PropTypes.string),
     currentUserId: PropTypes.string,
     referenceTime: PropTypes.number,
   }

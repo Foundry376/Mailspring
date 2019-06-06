@@ -57,6 +57,7 @@ lazyLoad(`MessageStore`, 'store/MessageStore');
 lazyLoad(`ConversationStore`, 'store/ConversationStore');
 lazyLoad(`RoomStore`, 'store/RoomStore');
 lazyLoad(`ContactStore`, 'store/ContactStore');
+lazyLoad(`OnlineUserStore`, 'store/OnlineUserStore');
 
 process.nextTick(() => {
   let c = 0;

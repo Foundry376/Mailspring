@@ -1,5 +1,5 @@
 import { Xmpp } from '../index';
-import { ChatActions, MessageStore } from 'chat-exports';
+import { MessageStore, OnlineUserStore } from 'chat-exports';
 
 /**
  * Creates a middleware for the XMPP class to dispatch actions to a redux store whenever any events
@@ -19,7 +19,6 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   }
 
   const map = eventActionMap; // Ensure map is not modified while iterating over keys
-  console.log('*****map', map);
   if (map) {
     Object.entries(map)
       .forEach(([eventname, action]) => xmpp.on(eventname, data => {
@@ -35,6 +34,14 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   // receive private chat
   xmpp.on('chat', data => {
     MessageStore.reveivePrivateChat(data);
+  })
+  // user online
+  xmpp.on('available', data => {
+    OnlineUserStore.addOnlineUser(data);
+  })
+  // user online
+  xmpp.on('unavailable', data => {
+    OnlineUserStore.removeOnlineUser(data);
   })
   return next => action => next(action);
 };

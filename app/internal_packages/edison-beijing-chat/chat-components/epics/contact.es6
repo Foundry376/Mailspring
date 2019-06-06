@@ -1,29 +1,18 @@
 import { Observable } from 'rxjs/Observable';
 import { SUCCESS_AUTH } from '../actions/auth';
 import {
-  BEGIN_FETCH_ROSTER,
-  SUCCESS_FETCH_ROSTER,
   BEGIN_FETCH_E2EE,
   SUCCESS_FETCH_E2EE,
-  failedFetchingRoster,
   failedFetchingE2ee,
-  fetchRoster,
-  succesfullyFetchedRoster,
   fetchE2ee,
   succesfullyFetchedE2ee
 } from '../actions/contact';
 import {
-  storeContacts,
   storeE2ees
 } from '../actions/db/contact';
 import xmpp from '../xmpp';
 import { SUCCESS_STORE_OCCUPANTS } from '../actions/db/conversation';
 import { getE2ees, setE2eeJid } from '../utils/e2ee';
-export const triggerFetchRosterEpic = action$ =>
-  action$.ofType(SUCCESS_AUTH)
-    .map(({ payload }) => {
-      return fetchRoster(payload);
-    });
 
 export const triggerFetchE2eeEpic = action$ =>
   action$.ofType(SUCCESS_AUTH)
@@ -44,43 +33,6 @@ export const triggerFetchE2eeEpic = action$ =>
     .map((payload) => {
       return fetchE2ee(payload);
     });
-// .map(fetchE2ee);//yazzxx1
-
-// export const fetchRosterEpic = action$ =>
-//   action$.ofType(BEGIN_FETCH_ROSTER)//yazzxx2
-//     .mergeMap(({ payload }) => {
-//       return Observable.fromPromise(xmpp.getRoster(payload.bare))
-//         .map((res) => {
-//           const { roster } = res;
-//           roster.curJid = payload.bare;
-//           return succesfullyFetchedRoster(roster);
-//         })//yazzxx3
-//         .catch(err => {
-//           return Observable.of(failedFetchingRoster(err))
-//         })
-//     });
-
-// export const triggerStoreContactsEpic = action$ =>
-//   // items now have .curJid field, which is xmpp.curJid
-//   action$.ofType(SUCCESS_FETCH_ROSTER)
-//     .filter(({ payload }) => {
-//       const { items } = payload;
-//       if (items && items.length) {
-//         items.forEach((item) => {
-//           if (!item.name) {
-//             item.name = item.oriName;
-//           }
-//           item.curJid = payload.curJid;
-//         });
-//         return true;
-//       } else {
-//         return false;
-//       }
-//     })
-//     .map(({ payload: { items } }) => {
-//       return storeContacts(items)
-//     });
-
 
 export const fetchE2eeEpic = action$ =>
   action$.ofType(BEGIN_FETCH_E2EE)//yazzxx2

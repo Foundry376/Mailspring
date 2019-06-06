@@ -7,7 +7,6 @@ import {
   FAIL_STORE_CONVERSATIONS,
   RETRY_STORE_CONVERSATIONS,
   RETRIEVE_ALL_CONVERSATIONS,
-  REMOVING_CONVERSATION,
   STORE_CONVERSATION_NAME,
   successfullyStoredConversations,
   failedStoringConversations,
@@ -15,20 +14,18 @@ import {
   failedRetryStoringConversations,
   updateConversations,
   failRetrievingConversations,
-  updateSelectedConversation,
-  failedSelectingConversation,
-  beginStoringConversations,
   successfullyStoredOccupants,
   failedStoringOccupants,
   successfullyStoredConversationName,
   failStoredConversationName
 } from '../../actions/db/conversation';
-import xmpp from '../../xmpp/index';
 import { ipcRenderer } from 'electron';
 import chatModel from '../../store/model';
 import keyMannager from '../../../../../src/key-manager';
 import { queryProfile } from '../../utils/restjs';
-import { copyRxdbContact, safeUpdate, safeUpsert } from '../../utils/db-utils';
+import { safeUpdate, safeUpsert } from '../../utils/db-utils';
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op
 
 const saveOccupants = async payload => {
   if (!payload.mucAdmin) {
@@ -102,21 +99,22 @@ const saveConversation = async (db, conv) => {
       conv.avatarMembers = []
       let contact = await ContactStore.findContactByJid(conv.lastMessageSender);
       if (contact) {
-        contact = copyRxdbContact(contact);
         conv.avatarMembers.push(contact);
       }
     }
     if (!conv.avatarMembers.length) {
       let contact = await ContactStore.findContactByJid(conv.curJid);
       if (contact) {
-        contact = copyRxdbContact(contact);
         conv.avatarMembers.push(contact);
       }
     }
     if (conv.avatarMembers.length < 2) {
-      let contact = await db.contacts.findOne().where('jid').ne(conv.curJid).exec();
+      let contact = await ContactStore.findOneByCondition({
+        jid: {
+          [Op.ne]: conv.curJid
+        }
+      });
       if (contact) {
-        contact = copyRxdbContact(contact);
         conv.avatarMembers.push(contact);
       }
     }
@@ -136,20 +134,6 @@ const saveConversation = async (db, conv) => {
   }
   return safeUpsert(db.conversations, conv);
 }
-
-const retriveConversation = async jid => {
-  const db = await getDb();
-  return db.conversations.findOne(jid).exec();
-};
-
-const clearConversationUnreadMessages = async jid => {
-  const db = await getDb();
-  let conv = db.conversations.findOne(jid);
-  return await safeUpdate(conv, {
-    unreadMessages: 0,
-    at: false
-  });
-};
 
 let prevConvJid;
 let prevConvName;

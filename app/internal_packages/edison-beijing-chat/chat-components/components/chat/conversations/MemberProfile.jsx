@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
 import getDb from '../../../db';
-import chatModel from '../../../store/model';
+import { ContactStore } from 'chat-exports';
 import { uploadContacts } from '../../../utils/restjs';
 import { remote } from 'electron';
 import { checkToken, refreshChatAccountTokens, queryProfile } from '../../../utils/restjs';
@@ -169,9 +169,7 @@ export default class MemberProfie extends Component {
   addToContacts = async () => {
     const member = this.state.member;
     const jid = member.jid.bare || member.jid;
-    const db = await getDb();
-    let contacts = await db.contacts.find().exec();
-    console.log(contacts);
+    let contacts = await ContactStore.getContacts();
     if (contacts.some(item => item.email === member.email)) {
       alert(`This contact(${member.nickname || member.name}) has been in the contacts.`);
       return;
@@ -186,13 +184,15 @@ export default class MemberProfie extends Component {
       await refreshChatAccountTokens();
       accessToken = await keyMannager.getAccessTokenByEmail(email);
     }
-    await safeUpsert(db.contacts, {
-      jid,
-      curJid: member.curJid,
-      name: member.name || member.nickname || jid.split('@')[0],
-      email: member.email,
-      avatar: member.avatar
-    });
+    ContactStore.saveContacts([
+      {
+        jid,
+        curJid: member.curJid,
+        name: member.name || member.nickname || jid.split('@')[0],
+        email: member.email,
+        avatar: member.avatar
+      }
+    ], member.curJid);
     uploadContacts(accessToken, contacts, () => {
       alert(`This contact(${member.nickname || member.name}) has been added into the contacts.`)
     });
