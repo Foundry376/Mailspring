@@ -232,7 +232,7 @@ export default class DraftEditingSession extends MailspringStore {
           }
           if (!draft.body) {
             draft.waitingForBody = true;
-            Actions.fetchBodies([draft]);
+            Actions.fetchBodies({ messages: [draft], source: 'draft' });
           }
           hotwireDraftBodyState(draft);
           if (draft.remoteUID) {

@@ -146,7 +146,7 @@ export default class ObservableListDataSource extends ListTabular.DataSource {
       }
     });
     if (missingBodyMessages.length > 0) {
-      Actions.fetchBodies(missingBodyMessages);
+      Actions.fetchBodies({ messages: missingBodyMessages, source: 'thread' });
     }
     Object.keys(accounts).forEach(account => {
       const threadIds = Object.keys(accounts[account].threadIds);

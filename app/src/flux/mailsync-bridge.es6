@@ -123,6 +123,10 @@ export default class MailsyncBridge {
 
     this._crashTracker = new CrashTracker();
     this._clients = {};
+    this._fetchBodiesCacheTTL = 30000;
+    this._fetchAttachmentCacheTTL = 60000;
+    this._cachedFetchBodies = {};
+    this._cachedFetchAttachments = {};
     this._setObservableRangeTimer = {};
     this._cachedSetObservableRangeTask = {};
     // Store threads that are opened in seperate window
@@ -361,6 +365,8 @@ export default class MailsyncBridge {
     delete this._setObservableRangeTimer[account.id];
     delete this._cachedSetObservableRangeTask[account.id];
     delete this._additionalObservableThreads[account.id];
+    delete this._cachedFetchAttachments[account.id];
+    delete this._cachedFetchAttachments[account.id];
     const fullAccountJSON = (await KeyManager.insertAccountSecrets(account)).toJSON();
 
     if (force) {
@@ -570,19 +576,109 @@ export default class MailsyncBridge {
     );
   };
 
-  _onFetchAttachments({ accountId, missingItems }) {
-    this.sendMessageToAccount(accountId, { type: 'need-attachments', ids: missingItems });
+  _fetchCacheFilter({ accountId = null, missingIds = [] } = {}, dataCache, ttl) {
+    if (!accountId) {
+      return [];
+    }
+    const now = Date.now();
+    if (!dataCache[accountId]) {
+      dataCache[accountId] = [];
+    }
+    if (dataCache[accountId].length === 0) {
+      for (const id of missingIds) {
+        dataCache[accountId].push({ id: id, lastSend: now });
+      }
+      return missingIds;
+    } else {
+      const missingIdsMap = missingIds.map(id => {
+        return { id: id, isNew: true };
+      });
+      const missing = [];
+      const newCache = [];
+      for (let cache of dataCache[accountId]) {
+        let cacheUpdated = false;
+        for (let i = 0; i < missingIdsMap.length; i++) {
+          if (missingIdsMap[i].id === cache.id) {
+            if (now - cache.lastSend >= ttl) {
+              cache.lastSend = now;
+              missing.push(cache.id);
+            }
+            newCache.push(cache);
+            cacheUpdated = true;
+            missingIdsMap[i].isNew = false;
+            break;
+          }
+        }
+        if (now - cache.lastSend < ttl && !cacheUpdated) {
+          newCache.push(cache);
+        }
+      }
+      for (const idMap of missingIdsMap) {
+        if (idMap.isNew) {
+          newCache.push({ id: idMap.id, lastSend: now });
+          missing.push(idMap.id);
+        }
+      }
+      dataCache[accountId] = newCache;
+      return missing;
+    }
   }
 
-  _onFetchBodies(messages) {
-    const byAccountId = {};
+  _onFetchAttachments({ accountId, missingItems }) {
+    const ids = this._fetchAttachmentCacheFilter({ accountId, missingItems });
+    if (ids.length > 0) {
+      this.sendMessageToAccount(accountId, {
+        type: 'need-attachments',
+        ids: ids,
+      });
+    }
+  }
+
+  _fetchAttachmentCacheFilter({ accountId = null, missingItems = [] } = {}) {
+    return this._fetchCacheFilter(
+      { accountId, missingIds: missingItems },
+      this._cachedFetchAttachments,
+      this._fetchAttachmentCacheTTL,
+    );
+  }
+
+  _onFetchBodies({ messages = [], source = 'message-list' } = {}) {
+    const messagesByAccountId = this._sortMessagesByAccount({ messages });
+    for (const accountId of Object.keys(messagesByAccountId)) {
+      const ids = this._fetchBodiesCacheFilter({
+        accountId,
+        messages: messagesByAccountId[accountId],
+      });
+      if (ids.length > 0) {
+        this.sendMessageToAccount(accountId, {
+          type: 'need-bodies',
+          ids: ids,
+          source,
+        });
+      }
+    }
+  }
+
+  _sortMessagesByAccount({ messages = [] } = {}) {
+    const byAccount = {};
     for (const msg of messages) {
-      byAccountId[msg.accountId] = byAccountId[msg.accountId] || [];
-      byAccountId[msg.accountId].push(msg.id);
+      if (!byAccount[msg.accountId]) {
+        byAccount[msg.accountId] = [];
+      }
+      byAccount[msg.accountId].push(msg);
     }
-    for (const accountId of Object.keys(byAccountId)) {
-      this.sendMessageToAccount(accountId, { type: 'need-bodies', ids: byAccountId[accountId] });
-    }
+    return byAccount;
+  }
+
+  _fetchBodiesCacheFilter({ accountId, messages = [] } = {}) {
+    return this._fetchCacheFilter(
+      {
+        accountId,
+        missingIds: messages.map(m => m.id),
+      },
+      this._cachedFetchBodies,
+      this._fetchBodiesCacheTTL,
+    );
   }
 
   _onNewWindowOpened = (event, options) => {
@@ -693,8 +789,8 @@ export default class MailsyncBridge {
               tmpTask.threadIds = [
                 ...new Set(
                   tmpTask.threadIds.concat(
-                    Object.values(this._additionalObservableThreads[accountId])
-                  )
+                    Object.values(this._additionalObservableThreads[accountId]),
+                  ),
                 )];
             }
             this.sendMessageToAccount(accountId, tmpTask.toJSON());
@@ -713,8 +809,8 @@ export default class MailsyncBridge {
             tmpTask.threadIds = [
               ...new Set(
                 tmpTask.threadIds.concat(
-                  Object.values(this._additionalObservableThreads[accountId])
-                )
+                  Object.values(this._additionalObservableThreads[accountId]),
+                ),
               )];
           }
           this.sendMessageToAccount(accountId, tmpTask.toJSON());
