@@ -92,10 +92,10 @@ export default class MessagesPanel extends Component {
     let groupedMessages = [];
     if (selectedConversation) {
       groupedMessages = await MessageStore.getGroupedMessages(selectedConversation.jid);
-    }
-    const { selectedConversation: currentConv } = this.state;
-    if (!currentConv || currentConv.jid !== selectedConversation.jid) {
-      await this.refreshRoomMembers({ selectedConversation });
+      const { selectedConversation: currentConv } = this.state;
+      if (!currentConv || currentConv.jid !== selectedConversation.jid) {
+        await this.refreshRoomMembers({ selectedConversation });
+      }
     }
     this.setState({
       selectedConversation,
