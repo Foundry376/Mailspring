@@ -8,16 +8,10 @@ import { ProgressBarStore } from 'chat-exports';
 let key = 0;
 export default class ConversationsPanel extends PureComponent {
   static propTypes = {
-    retrieveAllConversations: PropTypes.func.isRequired,
-    // selectConversation: PropTypes.func.isRequired,
-    // conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
-    selectedConversationJid: PropTypes.string,
     referenceTime: PropTypes.number,
-    // removeConversation: PropTypes.func
   };
 
   static defaultProps = {
-    selectedConversationJid: null,
     referenceTime: new Date().getTime(),
   }
 
@@ -26,10 +20,6 @@ export default class ConversationsPanel extends PureComponent {
   componentDidMount() {
     this.unsubscribers = [];
     this.unsubscribers.push(ProgressBarStore.listen(this.onProgressChange));
-    // const { retrieveAllConversations } = this.props;
-    // if (retrieveAllConversations) {
-    //   retrieveAllConversations();
-    // }
   }
 
   componentWillUnmount() {
@@ -47,22 +37,11 @@ export default class ConversationsPanel extends PureComponent {
 
   render() {
     const {
-      // selectConversation,
-      // newConversation,
-      // conversations,
-      // selectedConversationJid,
       referenceTime,
-      // removeConversation
     } = this.props;
-    // const selectedIndex = conversations.map(conv => conv.jid)
-    //   .indexOf(selectedConversationJid);
 
     const conversationsProps = {
-      // selectConversation,
-      // conversations,
-      // selectedIndex,
       referenceTime,
-      // removeConversation
     };
     const { progress, onCancel, onRetry } = this.state;
 

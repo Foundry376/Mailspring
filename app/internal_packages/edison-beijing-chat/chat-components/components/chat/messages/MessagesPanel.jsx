@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import path from "path";
 const sqlite = require('better-sqlite3');
 import { CSSTransitionGroup } from 'react-transition-group';
@@ -47,42 +47,19 @@ window.registerLoginChatAccounts = registerLoginChatAccounts;
 
 let key = 0;
 
-export default class MessagesPanel extends Component {
+export default class MessagesPanel extends PureComponent {
   static propTypes = {
     // deselectConversation: PropTypes.func.isRequired,
     sendMessage: PropTypes.func.isRequired,
     availableUsers: PropTypes.arrayOf(PropTypes.string),
     currentUserId: PropTypes.string,
-    // groupedMessages: PropTypes.arrayOf(
-    //   PropTypes.shape({
-    //     time: PropTypes.string.isRequired,
-    //     messages: PropTypes.arrayOf(
-    //       PropTypes.shape({
-    //         id: PropTypes.string.isRequired,
-    //         conversationJid: PropTypes.string.isRequired,
-    //         sender: PropTypes.string.isRequired,
-    //         body: PropTypes.string.isRequired,
-    //         sentTime: PropTypes.number.isRequired
-    //       })
-    //     ).isRequired
-    //   })
-    // ),
     referenceTime: PropTypes.number,
-    // selectedConversation: PropTypes.shape({
-    //   isGroup: PropTypes.bool.isRequired,
-    //   jid: PropTypes.string.isRequired,
-    //   name: PropTypes.string.isRequired,
-    //   email: PropTypes.string,
-    //   avatar: PropTypes.string,
-    //   occupants: PropTypes.arrayOf(PropTypes.string).isRequired,
-    // }),
   }
 
   static defaultProps = {
     availableUsers: [],
     currentUserId: null,
     groupedMessages: [],
-    // selectedConversation: null,
     referenceTime: new Date().getTime(),
   }
 
@@ -102,7 +79,8 @@ export default class MessagesPanel extends Component {
       progress: {
         loadConfig: null
       },
-      selectedConversation: null
+      selectedConversation: null,
+      contacts: []
     }
     this._listenToStore();
   }
@@ -111,6 +89,7 @@ export default class MessagesPanel extends Component {
     this._unsubs = [];
     this._unsubs.push(ConversationStore.listen(this._onDataChanged));
     this._unsubs.push(MessageStore.listen(this._onDataChanged));
+    this._unsubs.push(ContactStore.listen(this._onDataChanged));
   }
 
   componentWillUnmount() {
@@ -121,13 +100,15 @@ export default class MessagesPanel extends Component {
 
   _onDataChanged = async () => {
     const selectedConversation = await ConversationStore.getSelectedConversation();
+    const contacts = await ContactStore.getContacts();
     let groupedMessages = [];
     if (selectedConversation) {
       groupedMessages = await MessageStore.getGroupedMessages(selectedConversation.jid);
     }
     this.setState({
       selectedConversation,
-      groupedMessages
+      groupedMessages,
+      contacts
     });
   }
 
@@ -142,7 +123,6 @@ export default class MessagesPanel extends Component {
         this.refreshRoomMembers();
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
-        const db = await getDb();
         if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
           const other = await ContactStore.findContactByJid(selectedConversation.curJid);
           if (other) {
@@ -644,13 +624,11 @@ export default class MessagesPanel extends Component {
 
   render() {
     this.getApps();
-    const { showConversationInfo, inviting, members } = this.state;
+    const { showConversationInfo, inviting, members, contacts } = this.state;
     const {
-      // deselectConversation,
       sendMessage,
       availableUsers,
       referenceTime,
-      contacts
     } = this.props;
     const { groupedMessages, selectedConversation } = this.state;
     groupedMessages.map(group => group.messages.map(message => {
@@ -662,7 +640,6 @@ export default class MessagesPanel extends Component {
       });
     }));
     const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
-    console.log('****currentUserId', selectedConversation, currentUserId);
     const topBarProps = {
       onBackPressed: () => {
         ChatActions.deselectConversation()();

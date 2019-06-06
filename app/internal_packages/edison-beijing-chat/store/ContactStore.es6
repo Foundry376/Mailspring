@@ -1,19 +1,14 @@
 import MailspringStore from 'mailspring-store';
-import { ChatActions } from 'chat-exports';
 import ContactModel from '../model/Contact';
 
 class RoomStore extends MailspringStore {
   constructor() {
     super();
-    this.contacts = null;
+    this.contacts = [];
   }
 
   refreshContacts = async () => {
-    this.contacts = {};
-    const data = await ContactModel.findAll();
-    for (const item of data) {
-      this.contacts[item.jid] = item;
-    }
+    this.contacts = await ContactModel.findAll();
     this.trigger();
   }
 
@@ -49,9 +44,10 @@ class RoomStore extends MailspringStore {
 
   findContactByJid = async (jid) => {
     if (this.contacts) {
-      const contact = this.contacts[jid];
-      if (contact) {
-        return contact;
+      for (const contact of this.contacts) {
+        if (contact.jid === jid) {
+          return contact;
+        }
       }
     } else {
       this.refreshContacts();

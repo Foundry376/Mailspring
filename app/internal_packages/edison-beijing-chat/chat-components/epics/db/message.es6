@@ -16,9 +16,7 @@ import {
   failedRetrievingSelectedConversationMessages,
 } from '../../actions/db/message';
 import {
-  NEW_MESSAGE,
-  SELECT_CONVERSATION,
-  DESELECT_CONVERSATION,
+  NEW_MESSAGE
 } from '../../actions/chat';
 import chatModel from '../../store/model';
 import { MessageStore } from 'chat-exports';
@@ -94,39 +92,39 @@ export const beginStoreMessageEpic = action$ =>
         .catch(err => Observable.of(failedStoringMessage(err, message)))
     });
 
-export const retrieveSelectedConversationMessagesEpic = action$ =>
-  action$.ofType(RETRIEVE_SELECTED_CONVERSATION_MESSAGES)
-    .mergeMap(({ payload: jid }) =>
-      Observable.fromPromise(getDb())
-        .mergeMap(db =>
-          db.messages
-            .find()
-            .where('conversationJid')
-            .eq(jid)
-            .$
-            .takeUntil(action$.ofType(SELECT_CONVERSATION, DESELECT_CONVERSATION))
-            .map(messages => {
-              return messages
-                .filter(msg => msg.body.indexOf('"deleted":true') === -1)
-                .sort((a, b) => a.sentTime - b.sentTime);
-            })
-            .mergeMap(messages => {
-              addMessagesSenderNickname(messages);
-              return groupMessagesByTime(messages, 'sentTime', 'day');
-            })
-            .filter(() => {
-              const time = new Date().getTime();
-              const keep = time - chatModel.lastUpdateMessageTime > 500;
-              if (keep) {
-                chatModel.lastUpdateMessageTime = time;
-              }
-              return keep;
-            })
-            .map(groupedMessages => {
-              return updateSelectedConversationMessages(groupedMessages)
-            })
-        )
-        .catch(error =>
-          Observable.of(failedRetrievingSelectedConversationMessages(error, jid))
-        )
-    );
+// export const retrieveSelectedConversationMessagesEpic = action$ =>
+//   action$.ofType(RETRIEVE_SELECTED_CONVERSATION_MESSAGES)
+//     .mergeMap(({ payload: jid }) =>
+//       Observable.fromPromise(getDb())
+//         .mergeMap(db =>
+//           db.messages
+//             .find()
+//             .where('conversationJid')
+//             .eq(jid)
+//             .$
+//             .takeUntil(action$.ofType(SELECT_CONVERSATION, DESELECT_CONVERSATION))
+//             .map(messages => {
+//               return messages
+//                 .filter(msg => msg.body.indexOf('"deleted":true') === -1)
+//                 .sort((a, b) => a.sentTime - b.sentTime);
+//             })
+//             .mergeMap(messages => {
+//               addMessagesSenderNickname(messages);
+//               return groupMessagesByTime(messages, 'sentTime', 'day');
+//             })
+//             .filter(() => {
+//               const time = new Date().getTime();
+//               const keep = time - chatModel.lastUpdateMessageTime > 500;
+//               if (keep) {
+//                 chatModel.lastUpdateMessageTime = time;
+//               }
+//               return keep;
+//             })
+//             .map(groupedMessages => {
+//               return updateSelectedConversationMessages(groupedMessages)
+//             })
+//         )
+//         .catch(error =>
+//           Observable.of(failedRetrievingSelectedConversationMessages(error, jid))
+//         )
+//     );

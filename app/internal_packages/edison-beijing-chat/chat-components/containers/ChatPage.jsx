@@ -13,20 +13,10 @@ import {
   // removeConversation,
   beginSendingMessage,
 } from '../actions/chat';
-import {
-  retrieveAllConversations,
-} from '../actions/db/conversation';
 
 const actionCreators = {
-  // createGroupConversation,
-  // createPrivateConversation,
   fetchRoster,
-  retrieveAllConversations,
   retrieveContacts,
-  // deselectConversation,
-  // selectConversation,
-  // newConversation,
-  // removeConversation,
   sendMessage: beginSendingMessage,
   setReferenceTime,
 };
@@ -51,7 +41,6 @@ const mapStateToProps = ({
   return {
     availableUsers,
     contacts,
-    // conversations,
     currentUserId: currentUser ? currentUser.bare : null,
     groupedMessages,
     referenceTime,
