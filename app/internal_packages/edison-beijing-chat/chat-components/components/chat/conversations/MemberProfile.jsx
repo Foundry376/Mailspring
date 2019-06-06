@@ -13,6 +13,7 @@ import Contact from '../../../../../../src/flux/models/contact';
 import keyMannager from '../../../../../../src/key-manager';
 import { RetinaImg } from 'mailspring-component-kit';
 import { safeUpsert } from '../../../utils/db-utils';
+import { ConversationStore } from 'chat-exports';
 
 export default class MemberProfie extends Component {
   static timer;
@@ -27,7 +28,7 @@ export default class MemberProfie extends Component {
 
   componentDidMount = () => {
     this.mounted = true;
-    const {panel} = this.props;
+    const { panel } = this.props;
 
     panel.profile = this;
     this.queryProfile();
@@ -42,8 +43,8 @@ export default class MemberProfie extends Component {
 
   };
   queryProfile = async () => {
-    const {member} = this.state;
-    if (!member){
+    const { member } = this.state;
+    if (!member) {
       return;
     }
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
@@ -51,7 +52,7 @@ export default class MemberProfie extends Component {
     const email = Object.keys(chatAccounts)[0];
     let accessToken = keyMannager.getAccessTokenByEmail(email);
     const { err, res } = await checkToken(accessToken);
-    if (err || !res || res.resultCode!==1) {
+    if (err || !res || res.resultCode !== 1) {
       await refreshChatAccountTokens();
       accessToken = keyMannager.getAccessTokenByEmail(email);
     }
@@ -68,7 +69,7 @@ export default class MemberProfie extends Component {
       }
       Object.assign(this.state.member, res.data);
       const state = Object.assign({}, this.state);
-      if (this.mounted){
+      if (this.mounted) {
         this.setState(state);
       } else {
         this.state = state;
@@ -94,7 +95,7 @@ export default class MemberProfie extends Component {
 
   setMember = (member) => {
     const error = new Error();
-    this.clickSame =  member && member === this.state.member;
+    this.clickSame = member && member === this.state.member;
     const state = Object.assign({}, this.state, { member });
     if (member && (!this.state.member || member.email !== this.state.member.email)) {
       this.queryProfile();
@@ -108,7 +109,7 @@ export default class MemberProfie extends Component {
     const member = Object.assign({}, this.state.member);
     member.jid = member.jid.bare || member.jid;
     member.name = member.name || member.jid.split('^at^')[0];
-    this.props.onPrivateConversationCompleted(member);
+    ConversationStore.createPrivateConversation(member);
   };
 
   composeEmail = (e) => {
@@ -171,26 +172,26 @@ export default class MemberProfie extends Component {
     const db = await getDb();
     let contacts = await db.contacts.find().exec();
     console.log(contacts);
-    if (contacts.some(item => item.email===member.email)) {
+    if (contacts.some(item => item.email === member.email)) {
       alert(`This contact(${member.nickname || member.name}) has been in the contacts.`);
       return;
     }
-    contacts = contacts.map(item => ({email:item.email, displayName:item.name}));
-    contacts.push({email:member.email, displayName:member.name ||member.nickname});
+    contacts = contacts.map(item => ({ email: item.email, displayName: item.name }));
+    contacts.push({ email: member.email, displayName: member.name || member.nickname });
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
     const email = Object.keys(chatAccounts)[0];
     let accessToken = await keyMannager.getAccessTokenByEmail(email);
     const { err, res } = await checkToken(accessToken);
-    if (err || !res || res.resultCode!==1) {
+    if (err || !res || res.resultCode !== 1) {
       await refreshChatAccountTokens();
       accessToken = await keyMannager.getAccessTokenByEmail(email);
     }
     await safeUpsert(db.contacts, {
       jid,
-      curJid:member.curJid,
+      curJid: member.curJid,
       name: member.name || member.nickname || jid.split('@')[0],
-      email:member.email,
-      avatar:member.avatar
+      email: member.email,
+      avatar: member.avatar
     });
     uploadContacts(accessToken, contacts, () => {
       alert(`This contact(${member.nickname || member.name}) has been added into the contacts.`)
@@ -214,11 +215,11 @@ export default class MemberProfie extends Component {
     const jid = (member.jid && typeof member.jid != 'string') ? member.jid.bare : (member.jid || '');
 
     return (
-      <div className="member-profile-panel" ref = {(el)=> this.panelElement = el } tabIndex={1}>
+      <div className="member-profile-panel" ref={(el) => this.panelElement = el} tabIndex={1}>
         <Button className="more" onClick={this.showMenu}></Button>
         <div className="avatar-area">
           <ContactAvatar jid={jid} name={member.name}
-                         email={member.email} avatar={member.avatar || ''} size={140} />
+            email={member.email} avatar={member.avatar || ''} size={140} />
           <div className="name-buttons">
             <h2 className="member-name">{member.name}</h2>
             <button className="btn btn-toolbar command-button" title="Start a private chat" onClick={this.startPrivateChat}>
@@ -232,8 +233,8 @@ export default class MemberProfie extends Component {
           </div>
         </div>
         <div className="email">
-            <div className="email-label">email</div>
-            <div  className="member-email">{member.email}</div>
+          <div className="email-label">email</div>
+          <div className="member-email">{member.email}</div>
         </div>
         <div className="nickname">
           <div className="nickname-label">nickname</div>

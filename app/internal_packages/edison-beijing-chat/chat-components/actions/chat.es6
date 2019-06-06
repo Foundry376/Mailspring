@@ -31,20 +31,20 @@ export const GO_NEXT_CONVERSATION = 'GO_NEXT_CONVERSATION';
 
 export const MEMBERS_CHANGE = 'MEMBERS_CHANGE';
 
-export const receiveChat = message => ({
-  type: RECEIVE_CHAT,
-  payload: message
-});
+// export const receiveChat = message => ({
+//   type: RECEIVE_CHAT,
+//   payload: message
+// });
 
 export const membersChange = payload => ({
   type: MEMBERS_CHANGE,
   payload: payload
 });
 
-export const receiveGroupchat = message => ({
-  type: RECEIVE_GROUPCHAT,
-  payload: message
-});
+// export const receiveGroupchat = message => ({
+//   type: RECEIVE_GROUPCHAT,
+//   payload: message
+// });
 
 export const messageSent = message => ({
   type: MESSAGE_SENT,
@@ -118,15 +118,15 @@ export const failedSelectingConversation = (error, jid) => ({
   payload: { error, jid }
 });
 
-export const createPrivateConversation = contact => ({
-  type: CREATE_PRIVATE_CONVERSATION,
-  payload: contact,
-});
+// export const createPrivateConversation = contact => ({
+//   type: CREATE_PRIVATE_CONVERSATION,
+//   payload: contact,
+// });
 
-export const createGroupConversation = ({ contacts, roomId, name, curJid }) => ({
-  type: CREATE_GROUP_CONVERSATION,
-  payload: { contacts, roomId, name, curJid },
-});
+// export const createGroupConversation = ({ contacts, roomId, name, curJid }) => ({
+//   type: CREATE_GROUP_CONVERSATION,
+//   payload: { contacts, roomId, name, curJid },
+// });
 
 export const showConversationNotification = (conversationJid, title, body) => ({
   type: SHOW_CONVERSATION_NOTIFICATION,

@@ -5,8 +5,8 @@ import MessagesPanel from './messages/MessagesPanel';
 
 export default class ChatPage extends PureComponent {
   static propTypes = {
-    createGroupConversation: PropTypes.func.isRequired,
-    createPrivateConversation: PropTypes.func.isRequired,
+    // createGroupConversation: PropTypes.func.isRequired,
+    // createPrivateConversation: PropTypes.func.isRequired,
     // deselectConversation: PropTypes.func.isRequired,
     fetchRoster: PropTypes.func.isRequired,
     retrieveAllConversations: PropTypes.func.isRequired,
@@ -68,8 +68,8 @@ export default class ChatPage extends PureComponent {
 
   render() {
     const {
-      createGroupConversation,
-      createPrivateConversation,
+      // createGroupConversation,
+      // createPrivateConversation,
       // deselectConversation,
       retrieveAllConversations,
       // selectConversation,
@@ -109,8 +109,8 @@ export default class ChatPage extends PureComponent {
       referenceTime,
       selectedConversation,
       contacts,
-      onGroupConversationCompleted: createGroupConversation,
-      onPrivateConversationCompleted: createPrivateConversation,
+      // onGroupConversationCompleted: createGroupConversation,
+      // onPrivateConversationCompleted: createPrivateConversation,
       chat_online: online,
       isAuthenticating
     };

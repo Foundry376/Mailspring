@@ -5,8 +5,8 @@ import { setReferenceTime } from '../actions/time';
 import { fetchRoster } from '../actions/contact';
 import { retrieveContacts } from '../actions/db/contact';
 import {
-  createGroupConversation,
-  createPrivateConversation,
+  // createGroupConversation,
+  // createPrivateConversation,
   // deselectConversation,
   // selectConversation,
   // newConversation,
@@ -18,8 +18,8 @@ import {
 } from '../actions/db/conversation';
 
 const actionCreators = {
-  createGroupConversation,
-  createPrivateConversation,
+  // createGroupConversation,
+  // createPrivateConversation,
   fetchRoster,
   retrieveAllConversations,
   retrieveContacts,

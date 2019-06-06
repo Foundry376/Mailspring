@@ -161,8 +161,8 @@ export default class MessagesPanel extends Component {
         }
         const names = contacts.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
-        const { onGroupConversationCompleted } = this.props;
-        onGroupConversationCompleted({ contacts, roomId, name: chatName, curJid: selectedConversation.curJid });
+        // const { onGroupConversationCompleted } = this.props;
+        ConversationStore.createGroupConversation({ contacts, roomId, name: chatName, curJid: selectedConversation.curJid });
       }
     }
   }
@@ -386,14 +386,13 @@ export default class MessagesPanel extends Component {
   createRoom = () => {
     const members = this.state.membersTemp;
     if (members && members.length) {
-      const { onGroupConversationCompleted, onPrivateConversationCompleted } = this.props;
-      if (members.length > 4 && onGroupConversationCompleted) {
+      if (members.length > 4) {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const names = members.map(item => item.name);
         const chatName = names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others`;
-        onGroupConversationCompleted({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
+        ConversationStore.createGroupConversation({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
       }
-      else if (members.length > 1 && onGroupConversationCompleted) {
+      else if (members.length > 1) {
         if (members.some((member) => member.jid.match(/@app/))) {
           window.alert('plugin app should only create private conversation with single member!');
           return;
@@ -401,10 +400,10 @@ export default class MessagesPanel extends Component {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const names = members.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
-        onGroupConversationCompleted({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
+        ConversationStore.createGroupConversation({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
       }
-      else if (members.length == 1 && onPrivateConversationCompleted) {
-        onPrivateConversationCompleted(members[0]);
+      else if (members.length == 1) {
+        ConversationStore.createPrivateConversation(members[0]);
       }
     }
   }
@@ -533,10 +532,10 @@ export default class MessagesPanel extends Component {
       try {
         loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
       } catch (e) {
-        console.log( 'upload file:', e);
+        console.log('upload file:', e);
         window.alert(`failed to send file: ${loadConfig.filepath}: ${e}`);
         this.cancelLoadMessage();
-        ChatActions.updateProgress({ failed:true, loading:false, visible:false });
+        ChatActions.updateProgress({ failed: true, loading: false, visible: false });
         return;
       }
     } else if (msgBody.path && !msgBody.path.match(/^((http:)|(https:))/)) {
@@ -663,7 +662,7 @@ export default class MessagesPanel extends Component {
       });
     }));
     const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
-
+    console.log('****currentUserId', selectedConversation, currentUserId);
     const topBarProps = {
       onBackPressed: () => {
         ChatActions.deselectConversation()();
@@ -827,8 +826,7 @@ export default class MessagesPanel extends Component {
         )}
         <MemberProfile conversation={selectedConversation}
           exitProfile={this.exitProfile}
-          panel={this}
-          onPrivateConversationCompleted={this.props.onPrivateConversationCompleted}>
+          panel={this}>
         </MemberProfile>
       </div>
     );

@@ -1,6 +1,8 @@
 import MailspringStore from 'mailspring-store';
-import { ChatActions, MessageStore } from 'chat-exports';
+import { ChatActions, MessageStore, ContactStore } from 'chat-exports';
 import ConversationModel from '../model/Conversation';
+import xmpp from '../chat-components/xmpp';
+import _ from 'underscore';
 
 export const NEW_CONVERSATION = 'NEW_CONVERSATION';
 
@@ -11,6 +13,7 @@ class ConversationStore extends MailspringStore {
     this.conversations = [];
     this._registerListeners();
     this.refreshConversations();
+    this._triggerDebounced = _.debounce(() => this.trigger(), 20);
   }
 
   _registerListeners() {
@@ -50,7 +53,7 @@ class ConversationStore extends MailspringStore {
 
   deselectConversation = async (jid) => {
     this.selectedConversation = null;
-    this.trigger();
+    this._triggerDebounced();
   }
 
   setSelectedConversation = async (jid) => {
@@ -65,7 +68,8 @@ class ConversationStore extends MailspringStore {
         unreadMessages: 0,
         occupants: []
       };
-      this.trigger();
+      this._triggerDebounced();
+      return;
     }
     // the same conversation, skip refresh
     if (this.selectedConversation && (this.selectedConversation.jid === jid)) {
@@ -79,7 +83,7 @@ class ConversationStore extends MailspringStore {
     await this._clearUnreadCount(jid);
     const conv = await this.getConversationByJid(jid);
     this.selectedConversation = conv;
-    this.trigger();
+    this._triggerDebounced();
   }
 
   _clearUnreadCount = async (jid) => {
@@ -114,7 +118,7 @@ class ConversationStore extends MailspringStore {
         ['lastMessageTime', 'desc']
       ]
     });
-    this.trigger();
+    this._triggerDebounced();
   }
 
   saveConversations = async (convs) => {
@@ -122,6 +126,74 @@ class ConversationStore extends MailspringStore {
       await ConversationModel.upsert(conv);
     }
     this.refreshConversations();
+  }
+
+  _createGroupChatRoom = async (payload) => {
+    const { contacts, roomId, name, curJid } = payload;
+    const jidArr = contacts.map(contact => contact.jid).sort();
+    const opt = {
+      type: 'create',
+      name: name,
+      subject: 'test subject',
+      description: 'test description',
+      members: {
+        jid: jidArr
+      }
+    }
+    await xmpp.createRoom(roomId, opt, curJid);
+  }
+
+  createGroupConversation = async (payload) => {
+    await this._createGroupChatRoom(payload);
+    const { contacts, roomId, name } = payload;
+    const jidArr = contacts.map(contact => contact.jid).sort();
+    const content = '';
+    const timeSend = new Date().getTime();
+    const conversation = {
+      jid: roomId,
+      curJid: contacts[0].curJid,
+      name: name,
+      isGroup: true,
+      unreadMessages: 0,
+      occupants: [
+        contacts[0].curJid,
+        ...jidArr
+      ],
+      lastMessageTime: (new Date(timeSend)).getTime(),
+      lastMessageText: content,
+      lastMessageSender: contacts[0].curJid
+    };
+    let avatarMembers = await Promise.all(conversation.occupants.map(occupant => ContactStore.findContactByJid(occupant)));
+    avatarMembers = avatarMembers.filter(contact => contact);
+    avatarMembers = [avatarMembers.find(contact => contact.jid === conversation.curJid), contacts.find(contact => contact.jid !== conversation.curJid)];
+    avatarMembers = [avatarMembers[0], avatarMembers[1]];
+    conversation.avatarMembers = avatarMembers;
+    await this.saveConversations([conversation]);
+    await this.setSelectedConversation(roomId);
+  }
+
+  createPrivateConversation = async (contact) => {
+    const jid = contact.jid;
+    let conversation = await this.getConversationByJid(jid);
+    if (conversation) {
+      await this.setSelectedConversation(jid);
+      return;
+    }
+    conversation = {
+      jid: contact.jid,
+      curJid: contact.curJid,
+      name: contact.name,
+      occupants: [contact.jid, contact.curJid],
+      roomMembers: [contact],
+      isGroup: false,
+      // below is some filling to show the conversation
+      unreadMessages: 0,
+      lastMessageSender: contact.curJid,
+      lastMessageText: '',
+      lastMessageTime: (new Date()).getTime()
+    }
+    await this.saveConversations([conversation]);
+    await this.setSelectedConversation(jid);
   }
 }
 
