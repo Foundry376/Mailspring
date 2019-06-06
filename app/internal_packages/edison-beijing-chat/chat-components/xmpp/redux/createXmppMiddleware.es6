@@ -43,6 +43,16 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   xmpp.on('unavailable', data => {
     OnlineUserStore.removeOnlineUser(data);
   })
+  // Chat account online
+  xmpp.on('session:started', data => {
+    console.log('*****OnlineUserStore session:started', data);
+    OnlineUserStore.addOnLineAccount(data);
+  })
+  // Chat account offline
+  xmpp.on('disconnected', data => {
+    console.log('*****OnlineUserStore disconnected', data);
+    OnlineUserStore.removeOnLineAccount(data);
+  })
   return next => action => next(action);
 };
 

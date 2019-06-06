@@ -5,7 +5,7 @@ class OnlineUserStore extends MailspringStore {
   constructor() {
     super();
     this.onlineUsers = {};
-    this.accountOnLineStatus = {};
+    this.onLineAccounts = {};
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
   }
 
@@ -16,6 +16,17 @@ class OnlineUserStore extends MailspringStore {
 
   removeOnlineUser(payload) {
     this.onlineUsers[payload.from.bare] = 0;
+    this._triggerDebounced();
+  }
+
+  addOnLineAccount(payload) {
+    this.onLineAccounts[payload.bare] = 1;
+    this._triggerDebounced();
+  }
+
+  removeOnLineAccount(payload) {
+    this.onLineAccounts[payload.curJid] = 0;
+    this.resetOnlineUsers();
     this._triggerDebounced();
   }
 
