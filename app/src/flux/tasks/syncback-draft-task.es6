@@ -33,7 +33,8 @@ export default class SyncbackDraftTask extends Task {
       AppEnv.showErrorDialog({
         title: 'Drafts folder not found',
         message:
-          'Mailspring can\'t find your Drafts folder. To create and send mail, visit Preferences > Folders and choose a Drafts folder.',
+          'Edison Mail can\'t find your Drafts folder. To create and send mail, visit Preferences > Folders and' +
+          ' choose a Drafts folder.',
       });
     } else {
       if (key === 'ErrorAccountNotConnected') {
@@ -50,7 +51,7 @@ export default class SyncbackDraftTask extends Task {
             }
           });
           AppEnv.config.set('accounts', newAccounts);
-          AppEnv.showErrorDialog(`Cannot authenticate with ${errorAccount.emailAddress}`, { detail: debuginfo });
+          // AppEnv.showErrorDialog(`Cannot authenticate with ${errorAccount.emailAddress}`, { detail: debuginfo });
         }
       } else if (AppEnv.inDevMode()){
         AppEnv.showErrorDialog('Draft processing failed', { detail: debuginfo });
