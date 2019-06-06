@@ -119,7 +119,7 @@ export default class MailsyncBridge {
     Actions.setObservableRange.listen(this._onSetObservableRange, this);
     Actions.debugFakeNativeMessage.listen(this.fakeEmit, this);
     ipcRenderer.on('thread-new-window', this._onNewWindowOpened);
-    ipcRenderer.on('thread-close-window', this._onNewWindowClose);
+    // ipcRenderer.on('thread-close-window', this._onNewWindowClose);
 
     this._crashTracker = new CrashTracker();
     this._clients = {};
@@ -129,6 +129,9 @@ export default class MailsyncBridge {
     this._cachedFetchAttachments = {};
     this._setObservableRangeTimer = {};
     this._cachedSetObservableRangeTask = {};
+    this._cachedObservableThreadIds = {};
+    this._cachedObservableMessageIds = {};
+    this._cachedObservableTTL = 30000;
     // Store threads that are opened in seperate window
     this._additionalObservableThreads = {};
     this._analyzeDBTimer = null;
@@ -363,7 +366,8 @@ export default class MailsyncBridge {
     const client = new MailsyncProcess(this._getClientConfiguration());
     this._clients[account.id] = client; // set this synchornously so we never spawn two
     delete this._setObservableRangeTimer[account.id];
-    delete this._cachedSetObservableRangeTask[account.id];
+    delete this._cachedObservableThreadIds[account.id];
+    delete this._cachedObservableMessageIds[account.id];
     delete this._additionalObservableThreads[account.id];
     delete this._cachedFetchAttachments[account.id];
     delete this._cachedFetchAttachments[account.id];
@@ -683,95 +687,37 @@ export default class MailsyncBridge {
 
   _onNewWindowOpened = (event, options) => {
     if (options.threadId && options.accountId && this._clients[options.accountId]) {
-      if (!this._additionalObservableThreads[options.accountId]) {
-        this._additionalObservableThreads[options.accountId] = {};
-      }
-      this._additionalObservableThreads[options.accountId][options.threadId] = options.threadId;
-      if (
-        this._cachedSetObservableRangeTask[options.accountId] &&
-        !this._isThreadIdWithinRange(options.accountId, options.threadId)
-      ) {
-        this._onSetObservableRange(
-          options.accountId,
-          this._cachedSetObservableRangeTask[options.accountId],
-          true,
-        );
-      }
+      this._onSetObservableRange(options.accountId, {
+        missingThreadIds: [options.threadId],
+        missingMessageIds: [],
+      });
     }
-  };
-  _onNewWindowClose = (event, options) => {
-    if (options.threadId && options.accountId && this._clients[options.accountId]) {
-      if (this._additionalObservableThreads[options.accountId]) {
-        delete this._additionalObservableThreads[options.accountId][options.threadId];
-        if (Object.keys(this._additionalObservableThreads[options.accountId]).length === 0) {
-          delete this._additionalObservableThreads[options.accountId];
-        }
-        if (
-          this._cachedSetObservableRangeTask[options.accountId] &&
-          !this._isThreadIdWithinRange(options.accountId, options.threadId)
-        ) {
-          this._onSetObservableRange(
-            options.accountId,
-            this._cachedSetObservableRangeTask[options.accountId],
-            true,
-          );
-        }
-      }
-    }
-  };
-  _isThreadIdWithinRange = (accountId, threadId) => {
-    if (!this._cachedSetObservableRangeTask[accountId]) {
-      return false;
-    }
-    return this._cachedSetObservableRangeTask[accountId].threadIds.includes(threadId);
-  };
-  _updatedCacheObservableRangeTask = (accountId, task) => {
-    if (!this._cachedSetObservableRangeTask[accountId]) {
-      this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-      return true;
-    }
-    if (
-      this._cachedSetObservableRangeTask[accountId].threadIds.length !== task.threadIds.length ||
-      this._cachedSetObservableRangeTask[accountId].messageIds.length !== task.messageIds.length
-    ) {
-      this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-      return true;
-    }
-    for (let threadId of task.threadIds) {
-      if (!this._cachedSetObservableRangeTask[accountId].threadIds.includes(threadId)) {
-        this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-        return true;
-      }
-    }
-    for (let messageId of task.messageIds) {
-      if (!this._cachedSetObservableRangeTask[accountId].messageIds.includes(messageId)) {
-        this._cachedSetObservableRangeTask[accountId] = new SetObservableRangeTask(task);
-        return true;
-      }
-    }
-    return false;
   };
 
-  _onSetObservableRange = (accountId, task, isManualTrigger = false) => {
+  _onSetObservableRange = (accountId, { missingThreadIds = [], missingMessageIds = [] } = {}) => {
     if (!this._clients[accountId]) {
       //account doesn't exist, we clear observable cache
       delete this._setObservableRangeTimer[accountId];
-      delete this._cachedSetObservableRangeTask[accountId];
+      delete this._cachedObservableThreadIds[accountId];
+      delete this._cachedObservableMessageIds[accountId];
       return;
     }
     if (this._setObservableRangeTimer[accountId]) {
       if (Date.now() - this._setObservableRangeTimer[accountId].timestamp > 1000) {
-        if (!this._updatedCacheObservableRangeTask(accountId, task) && !isManualTrigger) {
+        const threadIds = this._fetchCacheFilter(
+          { accountId, missingIds: missingThreadIds },
+          this._cachedObservableThreadIds,
+          this._cachedObservableTTL
+        );
+        const messageIds = this._fetchCacheFilter(
+          { accountId, missingIds: missingMessageIds },
+          this._cachedObservableMessageIds,
+          this._cachedObservableTTL
+        );
+        if (threadIds.length === 0 && messageIds.length === 0) {
           return;
         }
-        const tmpTask = this._cachedSetObservableRangeTask[accountId];
-        if (isManualTrigger) {
-
-          tmpTask.threadIds = [
-            ...new Set(
-              tmpTask.threadIds.concat(Object.values(this._additionalObservableThreads[accountId])),
-            )];
-        }
+        const tmpTask = new SetObservableRangeTask({ accountId, threadIds, messageIds });
         this._setObservableRangeTimer[accountId].timestamp = Date.now();
         // DC-46
         // We call sendMessageToAccount last on the off chance that mailsync have died,
@@ -781,18 +727,20 @@ export default class MailsyncBridge {
         clearTimeout(this._setObservableRangeTimer[accountId].id);
         this._setObservableRangeTimer[accountId] = {
           id: setTimeout(() => {
-            if (!this._updatedCacheObservableRangeTask(accountId, task) && !isManualTrigger) {
+            const threadIds = this._fetchCacheFilter(
+              { accountId, missingIds: missingThreadIds },
+              this._cachedObservableThreadIds,
+              this._cachedObservableTTL
+            );
+            const messageIds = this._fetchCacheFilter(
+              { accountId, missingIds: missingMessageIds },
+              this._cachedObservableMessageIds,
+              this._cachedObservableTTL
+            );
+            if (threadIds.length === 0 && messageIds.length === 0) {
               return;
             }
-            const tmpTask = this._cachedSetObservableRangeTask[accountId];
-            if (isManualTrigger) {
-              tmpTask.threadIds = [
-                ...new Set(
-                  tmpTask.threadIds.concat(
-                    Object.values(this._additionalObservableThreads[accountId]),
-                  ),
-                )];
-            }
+            const tmpTask = new SetObservableRangeTask({ accountId, threadIds, messageIds });
             this.sendMessageToAccount(accountId, tmpTask.toJSON());
           }, 1000),
           timestamp: Date.now(),
@@ -801,18 +749,20 @@ export default class MailsyncBridge {
     } else {
       this._setObservableRangeTimer[accountId] = {
         id: setTimeout(() => {
-          if (!this._updatedCacheObservableRangeTask(accountId, task) && !isManualTrigger) {
+          const threadIds = this._fetchCacheFilter(
+            { accountId, missingIds: missingThreadIds },
+            this._cachedObservableThreadIds,
+            this._cachedObservableTTL
+          );
+          const messageIds = this._fetchCacheFilter(
+            { accountId, missingIds: missingMessageIds },
+            this._cachedObservableMessageIds,
+            this._cachedObservableTTL
+          );
+          if (threadIds.length === 0 && messageIds.length === 0) {
             return;
           }
-          const tmpTask = this._cachedSetObservableRangeTask[accountId];
-          if (isManualTrigger) {
-            tmpTask.threadIds = [
-              ...new Set(
-                tmpTask.threadIds.concat(
-                  Object.values(this._additionalObservableThreads[accountId]),
-                ),
-              )];
-          }
+          const tmpTask = new SetObservableRangeTask({ accountId, threadIds, messageIds });
           this.sendMessageToAccount(accountId, tmpTask.toJSON());
         }, 1000),
         timestamp: Date.now(),

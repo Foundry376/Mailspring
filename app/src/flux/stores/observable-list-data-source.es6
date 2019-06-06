@@ -148,17 +148,10 @@ export default class ObservableListDataSource extends ListTabular.DataSource {
     if (missingBodyMessages.length > 0) {
       Actions.fetchBodies({ messages: missingBodyMessages, source: 'thread' });
     }
-    Object.keys(accounts).forEach(account => {
-      const threadIds = Object.keys(accounts[account].threadIds);
-      const messageIds = Object.keys(accounts[account].messageIds);
-      Actions.setObservableRange(
-        account,
-        new SetObservableRangeTask({
-          accountId: account,
-          threadIds: threadIds,
-          messageIds: messageIds,
-        }),
-      );
+    Object.keys(accounts).forEach(accountId => {
+      const threadIds = Object.keys(accounts[accountId].threadIds);
+      const messageIds = Object.keys(accounts[accountId].messageIds);
+      Actions.setObservableRange(accountId, { missingThreadIds: threadIds, missingMessageIds: messageIds });
     });
   };
 }
