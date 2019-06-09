@@ -1,13 +1,6 @@
 import classNames from 'classnames';
 import React from 'react';
-import {
-  PropTypes,
-  Utils,
-  DraftStore,
-  ComponentRegistry,
-  Thread,
-  Message,
-} from 'mailspring-exports';
+import { Utils, DraftStore, ComponentRegistry, Thread, Message } from 'mailspring-exports';
 
 import MessageItem from './message-item';
 
@@ -21,9 +14,13 @@ interface MessageItemContainerProps {
   scrollTo: () => void;
 }
 
+interface MessageItemContainerState {
+  isSending: boolean;
+}
+
 export default class MessageItemContainer extends React.Component<
   MessageItemContainerProps,
-  { isSending: boolean }
+  MessageItemContainerState
 > {
   static displayName = 'MessageItemContainer';
 

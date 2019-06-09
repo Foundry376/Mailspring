@@ -286,8 +286,11 @@ body.platform-win32 {
       display: flex;
       margin: 0 auto;
       flex-direction: row;
-      max-width: @compose-width;
       padding: 9px 22.5px;
+
+      &.restrict-width {
+        max-width: @compose-width;
+      }
 
       .composer-action-bar-plugins {
         flex-wrap: wrap;
@@ -338,9 +341,12 @@ body.platform-win32 {
     flex-direction: column;
     flex: 1;
     width: 100%;
-    max-width: @compose-width;
     margin: 0 auto;
     padding-top: @spacing-standard * 0.7;
+
+    &.restrict-width {
+      max-width: @compose-width;
+    }
   }
 
   .composer-body-wrap {

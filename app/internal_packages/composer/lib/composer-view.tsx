@@ -165,8 +165,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   }
 
   _renderContent() {
+    const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
+
     return (
-      <div className="composer-centered">
+      <div className={`composer-centered ${restrictWidth && 'restrict-width'}`}>
         <ComposerHeader
           ref={el => {
             if (el) {
@@ -333,8 +335,9 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   }
 
   _renderActionsRegion() {
+    const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
     return (
-      <div className="composer-action-bar-content">
+      <div className={`composer-action-bar-content ${restrictWidth && 'restrict-width'}`}>
         <ActionBarPlugins
           draft={this.props.draft}
           session={this.props.session}

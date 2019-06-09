@@ -84,6 +84,8 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     // the `border-collapse: collapse` css property while setting a
     // `padding`.
     const styles = EmailFrameStylesStore.styles();
+    const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
+
     doc.open();
     doc.write(
       `<!DOCTYPE html>` +
@@ -91,6 +93,10 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
         `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent()}</div>`
     );
     doc.close();
+
+    if (doc.body && restrictWidth) {
+      doc.body.classList.add('restrict-width');
+    }
 
     // Notify the EventedIFrame that we've replaced it's document (with `open`)
     // so it can attach event listeners again.
