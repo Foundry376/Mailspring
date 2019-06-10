@@ -22,6 +22,10 @@ Contact.init({
   },
   avatar: {
     type: Sequelize.STRING
+  },
+  isApp: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false
   }
 }, {
     sequelize,
