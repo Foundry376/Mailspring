@@ -64,6 +64,8 @@ apps:
       # are used and do not fall back to Notification Area applets
       # or disappear completely.
       XDG_CURRENT_DESKTOP: Unity
+      # Fallback to XWayland if running in a Wayland session.
+      DISABLE_WAYLAND: 1
     plugs:
       - avahi-observe
       - browser-support
