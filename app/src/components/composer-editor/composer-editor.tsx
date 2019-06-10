@@ -24,6 +24,7 @@ interface ComposerEditorProps {
   onBlur?: () => void;
   onDrop?: (e: Event) => void;
   onFileReceived?: (path: string) => void;
+  onUpdatedSlateEditor?: (editor: Editor | null) => void;
 }
 
 export class ComposerEditor extends React.Component<ComposerEditorProps> {
@@ -55,10 +56,12 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
 
   componentDidMount() {
     this._mounted = true;
+    this.props.onUpdatedSlateEditor && this.props.onUpdatedSlateEditor(this.editor);
   }
 
   componentWillUnmount() {
     this._mounted = false;
+    this.props.onUpdatedSlateEditor && this.props.onUpdatedSlateEditor(null);
   }
 
   focus = () => {
@@ -102,7 +105,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
   onCopy = (event, editor: Editor, next: () => void) => {
     event.preventDefault();
     const document = editor.value.document.getFragmentAtRange(editor.value.selection as any);
-    event.clipboardData.setData('text/html', convertToHTML({ document }));
+    event.clipboardData.setData('text/html', convertToHTML(({ document } as any) as Value));
     event.clipboardData.setData('text/plain', editor.value.fragment.text);
   };
 

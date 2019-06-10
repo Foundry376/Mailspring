@@ -5,16 +5,16 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { Disposable } from 'rx-core';
 
-type KeyCommandsRegionProps = {
+interface KeyCommandsRegionProp {
   className?: string;
   localHandlers?: object;
   globalHandlers?: object;
   onFocusIn?: (...args: any[]) => any;
   onFocusOut?: (...args: any[]) => any;
-};
-type KeyCommandsRegionState = {
+}
+interface KeyCommandsRegionState {
   focused: boolean;
-};
+}
 
 /*
 Public: Easily respond to keyboard shortcuts

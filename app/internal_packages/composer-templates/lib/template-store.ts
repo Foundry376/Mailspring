@@ -124,25 +124,24 @@ class TemplateStore extends MailspringStore {
     this.saveNewTemplate(name, contents, this._onShowTemplates);
   }
 
-  _onCreateTemplateFromDraft(headerMessageId) {
-    DraftStore.sessionForClientId(headerMessageId).then(session => {
-      const draft = session.draft();
-      const draftName = draft.subject.replace(INVALID_TEMPLATE_NAME_REGEX, '');
+  async _onCreateTemplateFromDraft(headerMessageId) {
+    const session = await DraftStore.sessionForClientId(headerMessageId);
+    const draft = session.draft();
+    const draftName = draft.subject.replace(INVALID_TEMPLATE_NAME_REGEX, '');
 
-      let draftContents = QuotedHTMLTransformer.removeQuotedHTML(draft.body);
-      const sigIndex = draftContents.search(RegExpUtils.mailspringSignatureRegex());
-      draftContents = sigIndex > -1 ? draftContents.substr(0, sigIndex) : draftContents;
+    let draftContents = QuotedHTMLTransformer.removeQuotedHTML(draft.body);
+    const sigIndex = draftContents.search(RegExpUtils.mailspringSignatureRegex());
+    draftContents = sigIndex > -1 ? draftContents.substr(0, sigIndex) : draftContents;
 
-      if (!draftName || draftName.length === 0) {
-        this._displayError(localized('Give your draft a subject to name your template.'));
-      }
-      if (!draftContents || draftContents.length === 0) {
-        this._displayError(
-          localized('To create a template you need to fill the body of the current draft.')
-        );
-      }
-      this.saveNewTemplate(draftName, draftContents, this._onShowTemplates);
-    });
+    if (!draftName || draftName.length === 0) {
+      this._displayError(localized('Give your draft a subject to name your template.'));
+    }
+    if (!draftContents || draftContents.length === 0) {
+      this._displayError(
+        localized('To create a template you need to fill the body of the current draft.')
+      );
+    }
+    this.saveNewTemplate(draftName, draftContents, this._onShowTemplates);
   }
 
   _onShowTemplates() {
@@ -266,40 +265,40 @@ class TemplateStore extends MailspringStore {
     });
   }
 
-  _onInsertTemplateId({
+  async _onInsertTemplateId({
     templateId,
     headerMessageId,
   }: { templateId?: string; headerMessageId?: string } = {}) {
     const template = this._items.find(t => t.id === templateId);
     const templateBody = fs.readFileSync(template.path).toString();
-    DraftStore.sessionForClientId(headerMessageId).then(session => {
-      let proceed = true;
-      if (!session.draft().pristine && !session.draft().hasEmptyBody()) {
-        proceed = this._displayDialog(
-          localized('Replace draft contents?'),
-          localized(
-            'It looks like your draft already has some content. Loading this template will overwrite all draft contents.'
-          ),
-          [localized('Replace contents'), localized('Cancel')]
-        );
-      }
+    const session = await DraftStore.sessionForClientId(headerMessageId);
 
-      if (proceed) {
-        const current = session.draft().body;
-        let insertion = current.length;
-        for (const s of [
-          '<signature',
-          '<div class="gmail_quote_attribution"',
-          '<blockquote class="gmail_quote"',
-        ]) {
-          const i = current.indexOf(s);
-          if (i !== -1) {
-            insertion = Math.min(insertion, i);
-          }
+    let proceed = true;
+    if (!session.draft().pristine && !session.draft().hasEmptyBody()) {
+      proceed = this._displayDialog(
+        localized('Replace draft contents?'),
+        localized(
+          'It looks like your draft already has some content. Loading this template will overwrite all draft contents.'
+        ),
+        [localized('Replace contents'), localized('Cancel')]
+      );
+    }
+
+    if (proceed) {
+      const current = session.draft().body;
+      let insertion = current.length;
+      for (const s of [
+        '<signature',
+        '<div class="gmail_quote_attribution"',
+        '<blockquote class="gmail_quote"',
+      ]) {
+        const i = current.indexOf(s);
+        if (i !== -1) {
+          insertion = Math.min(insertion, i);
         }
-        session.changes.add({ body: `${templateBody}${current.substr(insertion)}` });
       }
-    });
+      session.changes.add({ body: `${templateBody}${current.substr(insertion)}` });
+    }
   }
 }
 

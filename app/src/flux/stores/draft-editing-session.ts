@@ -1,5 +1,6 @@
-import EventEmitter from 'events';
 import MailspringStore from 'mailspring-store';
+import { Editor } from 'slate';
+
 import { Conversion } from '../../components/composer-editor/composer-support';
 import RegExpUtils from '../../regexp-utils';
 import { localized } from '../../intl';
@@ -8,13 +9,14 @@ import TaskQueue from './task-queue';
 import { Message } from '../models/message';
 import * as Utils from '../models/utils';
 import * as Actions from '../actions';
-import { AccountStore } from './account-store';
 import ContactStore from './contact-store';
 import DatabaseStore from './database-store';
+import { AccountStore } from './account-store';
+import { DraftChangeSet } from './draft-change-set';
+import { DestroyDraftTask } from '../tasks/destroy-draft-task';
 import { Composer as ComposerExtensionRegistry } from '../../registries/extension-registry';
 import QuotedHTMLTransformer from '../../services/quoted-html-transformer';
 import { SyncbackDraftTask } from '../tasks/syncback-draft-task';
-import { DestroyDraftTask } from '../tasks/destroy-draft-task';
 
 export type MessageWithEditorState = Message & { bodyEditorState: any };
 
@@ -22,99 +24,7 @@ const { convertFromHTML, convertToHTML } = Conversion;
 const MetadataChangePrefix = 'metadata.';
 let DraftStore = null;
 
-/**
-Public: As the user interacts with the draft, changes are accumulated in the
-DraftChangeSet associated with the store session.
-
-This class used to be more complex - now it's mostly a holdover from when
-we implemented undo/redo manually and just functions as a pass-through.
-
-Section: Drafts
-*/
-const SaveAfterIdleMSec = 10000;
-const SaveAfterIdleSlushMSec = 2000;
-
-class DraftChangeSet extends EventEmitter {
-  callbacks = {
-    onAddChanges: null,
-    onCommit: null,
-  };
-  _timer = null;
-  _timerTime = null;
-  _timerStarted = null;
-  _lastModifiedTimes: {
-    body?: number;
-    bodyEditorState?: number;
-    pluginMetadata?: number;
-  } = {};
-  _lastCommitTime = 0;
-
-  constructor(callbacks) {
-    super();
-    this.callbacks = callbacks;
-  }
-
-  cancelCommit() {
-    if (this._timer) {
-      clearTimeout(this._timer);
-      this._timerStarted = null;
-      this._timer = null;
-    }
-  }
-
-  add(changes, { skipSaving = false } = {}) {
-    if (!skipSaving) {
-      changes.pristine = false;
-
-      // update the per-attribute flags that track our dirty state
-      for (const key of Object.keys(changes)) this._lastModifiedTimes[key] = Date.now();
-      if (changes.bodyEditorState) this._lastModifiedTimes.body = Date.now();
-      if (changes.body) this._lastModifiedTimes.bodyEditorState = Date.now();
-      this.debounceCommit();
-    }
-
-    this.callbacks.onAddChanges(changes);
-  }
-
-  addPluginMetadata(pluginId, metadata) {
-    this._lastModifiedTimes.pluginMetadata = Date.now();
-    this.callbacks.onAddChanges({ [`${MetadataChangePrefix}${pluginId}`]: metadata });
-    this.debounceCommit();
-  }
-
-  isDirty() {
-    return this.dirtyFields().length > 0;
-  }
-
-  dirtyFields() {
-    return Object.keys(this._lastModifiedTimes).filter(
-      key => this._lastModifiedTimes[key] > this._lastCommitTime
-    );
-  }
-
-  debounceCommit() {
-    const now = Date.now();
-
-    // If there's already a timer going and we started it recently,
-    // it means it'll fire a bit early but that's ok. It's actually
-    // pretty expensive to re-create a timer on every keystroke.
-    if (this._timer && now - this._timerStarted < SaveAfterIdleSlushMSec) {
-      return;
-    }
-    this.cancelCommit();
-    this._timerStarted = now;
-    this._timer = setTimeout(() => this.commit(), SaveAfterIdleMSec);
-  }
-
-  async commit() {
-    if (this.dirtyFields().length === 0) return;
-    if (this._timer) clearTimeout(this._timer);
-    await this.callbacks.onCommit();
-    this._lastCommitTime = Date.now();
-  }
-}
-
-function hotwireDraftBodyState(draft: any): MessageWithEditorState {
+function hotwireDraftBodyState(draft: any, session: DraftEditingSession): MessageWithEditorState {
   // Populate the bodyEditorState and override the draft properties
   // so that they're kept in sync with minimal recomputation
   let _bodyHTMLCache = draft.body;
@@ -131,8 +41,8 @@ function hotwireDraftBodyState(draft: any): MessageWithEditorState {
     },
     set: function(inHTML) {
       let nextValue = convertFromHTML(inHTML);
-      if (draft.bodyEditorState) {
-        nextValue = draft.bodyEditorState
+      if (session._mountedEditor) {
+        session._mountedEditor
           .change()
           .selectAll()
           .delete()
@@ -173,7 +83,7 @@ function fastCloneDraft(draft) {
   }
   Object.defineProperty(next, 'body', (next as any).__bodyPropDescriptor);
   Object.defineProperty(next, 'bodyEditorState', (next as any).__bodyEditorStatePropDescriptor);
-  return next;
+  return next as MessageWithEditorState;
 }
 
 /**
@@ -195,6 +105,7 @@ export class DraftEditingSession extends MailspringStore {
   _draft: MessageWithEditorState = null;
   _draftPromise: Promise<Message> = null;
   _destroyed: boolean = false;
+  _mountedEditor: Editor | null = null;
 
   headerMessageId: string;
   changes = new DraftChangeSet({
@@ -210,9 +121,11 @@ export class DraftEditingSession extends MailspringStore {
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
 
+    this._mountedEditor = null;
+
     if (draft) {
-      this._draft = hotwireDraftBodyState(draft);
       this._draftPromise = Promise.resolve(draft);
+      this._draft = hotwireDraftBodyState(draft, this);
     } else {
       this._draftPromise = DatabaseStore.findBy<Message>(Message, {
         headerMessageId: this.headerMessageId,
@@ -228,7 +141,7 @@ export class DraftEditingSession extends MailspringStore {
             console.warn(`Draft ${this.headerMessageId} could not be found. Just deleted?`);
             return;
           }
-          this._draft = hotwireDraftBodyState(draft);
+          this._draft = hotwireDraftBodyState(draft, this);
           this.trigger();
           return draft;
         });
@@ -249,6 +162,11 @@ export class DraftEditingSession extends MailspringStore {
     this.stopListeningToAll();
     this.changes.cancelCommit();
     this._destroyed = true;
+    this._mountedEditor = null;
+  }
+
+  setMountedEditor(editor: Editor | null) {
+    this._mountedEditor = editor;
   }
 
   validateDraftForSending() {
