@@ -28,14 +28,9 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
 
   componentDidMount() {
     this._mounted = true;
+    this._iframeDocObserver = new window.ResizeObserver(this._onReevaluateContentSize);
     this._writeContent();
     this._unlisten = EmailFrameStylesStore.listen(this._writeContent);
-
-    // Update the iframe's size whenever it's content size changes. Doing this
-    // with ResizeObserver is /so/ elegant compared to polling for it's height.
-    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
-    this._iframeDocObserver = new window.ResizeObserver(this._onReevaluateContentSize);
-    this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
   }
 
   shouldComponentUpdate(nextProps: EmailFrameProps) {
@@ -74,6 +69,8 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
   };
 
   _writeContent = () => {
+    if (this._iframeDocObserver) this._iframeDocObserver.disconnect();
+
     const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
     const doc = iframeEl.contentDocument;
     if (!doc) return;
@@ -95,6 +92,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     // Notify the EventedIFrame that we've replaced it's document (with `open`)
     // so it can attach event listeners again.
     this._iframeComponent.didReplaceDocument();
+    this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
 
     window.requestAnimationFrame(() => {
       autolink(doc, { async: true });
