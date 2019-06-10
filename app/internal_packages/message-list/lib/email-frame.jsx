@@ -79,6 +79,8 @@ export default class EmailFrame extends React.Component {
     if (!doc) {
       return;
     }
+    const { body, snippet } = this.props.message;
+    const isPlainBody = body && body.trim().replace(/(\r\n|\r|\n)/g,' ').substr(0, 20) == snippet.trim().substr(0, 20);
     doc.open();
 
     // NOTE: The iframe must have a modern DOCTYPE. The lack of this line
@@ -90,6 +92,15 @@ export default class EmailFrame extends React.Component {
     const styles = EmailFrameStylesStore.styles();
     if (styles) {
       doc.write(`<style>${styles}</style>`);
+    }
+    if (isPlainBody) {
+      doc.write(`
+      <style>
+        #inbox-html-wrapper {
+          white-space: pre;
+        }
+      </style>
+      `);
     }
     doc.write(
       `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent()}</div>`,

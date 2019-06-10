@@ -75,7 +75,11 @@ export default class MessagesTopBar extends Component {
                 spellCheck="false"
                 className="conversationName">
               </div>
-              <span className="dt-icon-pencil conv-pencil"></span>
+              {
+                conversation.isGroup && (
+                  <span className="dt-icon-pencil conv-pencil"></span>
+                )
+              }
             </div>
           }
           right={

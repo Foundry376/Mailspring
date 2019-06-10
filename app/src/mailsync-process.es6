@@ -287,6 +287,8 @@ export default class MailsyncProcess extends EventEmitter {
       let lastJSON = null;
       try {
         lastJSON = outBuffer.length && JSON.parse(outBuffer);
+      } catch (err) {
+        AppEnv.reportError(new Error(`parse outBuffer failed: ${outBuffer}`));
       } finally {
         if (lastJSON) {
           if (lastJSON.error) {

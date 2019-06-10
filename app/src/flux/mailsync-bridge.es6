@@ -69,7 +69,7 @@ class CrashTracker {
   }
 
   recordClientCrash(fullAccountJSON, { code, error, signal }) {
-    this._appendCrashToHistory(fullAccountJSON);
+    this._appendCrashToHistory(fullAccountJSON, { code, error, signal });
 
     // We now let crashpad do this, because Sentry was losing it's mind.
   }
@@ -78,10 +78,19 @@ class CrashTracker {
     return JSON.stringify({ id, settings });
   }
 
-  _appendCrashToHistory(fullAccountJSON) {
+  _appendCrashToHistory(fullAccountJSON, { code = 0, error, signal } = {}) {
     const key = this._keyFor(fullAccountJSON);
-    AppEnv.reportError(new Error(`mailsync crashed for account: ${key}`));
-    AppEnv.debugLog(`mailsync crashed for account: ${key}`);
+    if (code === -1 || code === null) {
+      console.log('mailsync crashed');
+      AppEnv.reportError(new Error(`mailsync crashed for account: ${key}`));
+    } else {
+      console.log('mailsync exited');
+      AppEnv.reportError(
+        new Error(
+          `mailsync existed with code: ${code}, error: ${error}, signal: ${signal} for account: ${key}`,
+        ),
+      );
+    }
     this._timestamps[key] = this._timestamps[key] || [];
     if (this._timestamps[key].unshift(Date.now()) > MAX_CRASH_HISTORY) {
       this._timestamps[key].length = MAX_CRASH_HISTORY;
@@ -580,7 +589,7 @@ export default class MailsyncBridge {
     );
   };
 
-  _fetchCacheFilter({ accountId = null, missingIds = [] } = {}, dataCache, ttl) {
+  _fetchCacheFilter({ accountId = null, missingIds = [], priority = 0 } = {}, dataCache, ttl) {
     if (!accountId) {
       return [];
     }
@@ -590,7 +599,7 @@ export default class MailsyncBridge {
     }
     if (dataCache[accountId].length === 0) {
       for (const id of missingIds) {
-        dataCache[accountId].push({ id: id, lastSend: now });
+        dataCache[accountId].push({ id: id, lastSend: now, priority });
       }
       return missingIds;
     } else {
@@ -605,6 +614,11 @@ export default class MailsyncBridge {
           if (missingIdsMap[i].id === cache.id) {
             if (now - cache.lastSend >= ttl) {
               cache.lastSend = now;
+              cache.priority = priority;
+              missing.push(cache.id);
+            } else if (priority > cache.priority) {
+              cache.lastSend = now;
+              cache.priority = priority;
               missing.push(cache.id);
             }
             newCache.push(cache);
@@ -619,7 +633,7 @@ export default class MailsyncBridge {
       }
       for (const idMap of missingIdsMap) {
         if (idMap.isNew) {
-          newCache.push({ id: idMap.id, lastSend: now });
+          newCache.push({ id: idMap.id, lastSend: now, priority });
           missing.push(idMap.id);
         }
       }
@@ -646,12 +660,19 @@ export default class MailsyncBridge {
     );
   }
 
-  _onFetchBodies({ messages = [], source = 'message-list' } = {}) {
+  _onFetchBodies({ messages = [], source = 'message' } = {}) {
     const messagesByAccountId = this._sortMessagesByAccount({ messages });
+    let priority = 0;
+    if (source === 'draft') {
+      priority = 2;
+    } else if (source === 'message') {
+      priority = 1;
+    }
     for (const accountId of Object.keys(messagesByAccountId)) {
       const ids = this._fetchBodiesCacheFilter({
         accountId,
         messages: messagesByAccountId[accountId],
+        priority,
       });
       if (ids.length > 0) {
         this.sendMessageToAccount(accountId, {
@@ -674,11 +695,12 @@ export default class MailsyncBridge {
     return byAccount;
   }
 
-  _fetchBodiesCacheFilter({ accountId, messages = [] } = {}) {
+  _fetchBodiesCacheFilter({ accountId, messages = [], priority = 0 } = {}) {
     return this._fetchCacheFilter(
       {
         accountId,
         missingIds: messages.map(m => m.id),
+        priority,
       },
       this._cachedFetchBodies,
       this._fetchBodiesCacheTTL,
@@ -707,12 +729,12 @@ export default class MailsyncBridge {
         const threadIds = this._fetchCacheFilter(
           { accountId, missingIds: missingThreadIds },
           this._cachedObservableThreadIds,
-          this._cachedObservableTTL
+          this._cachedObservableTTL,
         );
         const messageIds = this._fetchCacheFilter(
           { accountId, missingIds: missingMessageIds },
           this._cachedObservableMessageIds,
-          this._cachedObservableTTL
+          this._cachedObservableTTL,
         );
         if (threadIds.length === 0 && messageIds.length === 0) {
           return;
@@ -730,12 +752,12 @@ export default class MailsyncBridge {
             const threadIds = this._fetchCacheFilter(
               { accountId, missingIds: missingThreadIds },
               this._cachedObservableThreadIds,
-              this._cachedObservableTTL
+              this._cachedObservableTTL,
             );
             const messageIds = this._fetchCacheFilter(
               { accountId, missingIds: missingMessageIds },
               this._cachedObservableMessageIds,
-              this._cachedObservableTTL
+              this._cachedObservableTTL,
             );
             if (threadIds.length === 0 && messageIds.length === 0) {
               return;
@@ -752,12 +774,12 @@ export default class MailsyncBridge {
           const threadIds = this._fetchCacheFilter(
             { accountId, missingIds: missingThreadIds },
             this._cachedObservableThreadIds,
-            this._cachedObservableTTL
+            this._cachedObservableTTL,
           );
           const messageIds = this._fetchCacheFilter(
             { accountId, missingIds: missingMessageIds },
             this._cachedObservableMessageIds,
-            this._cachedObservableTTL
+            this._cachedObservableTTL,
           );
           if (threadIds.length === 0 && messageIds.length === 0) {
             return;
