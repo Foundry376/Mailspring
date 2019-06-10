@@ -78,6 +78,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     super(props);
 
     const draft = props.session.draft();
+
     this.state = {
       isDropping: false,
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
@@ -86,20 +87,22 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   }
 
   componentDidMount() {
+    const { date, files } = this.props.draft;
+
     this._mounted = true;
-    this.props.draft.files.forEach(file => {
+
+    files.forEach(file => {
       if (Utils.shouldDisplayAsImage(file)) {
         Actions.fetchFile(file);
       }
     });
 
-    const d = this.props.draft.date;
-    const isBrandNew = Date.now() - (d instanceof Date ? d.getTime() : Number(d)) < 3 * 1000;
+    // Note: the way this is implemented, `date` updates each time the draft is saved,
+    // so this will autoselect the draft if it has been edited or created in the last 3s.
+    const isBrandNew = Date.now() - (date instanceof Date ? date.getTime() : Number(date)) < 3000;
     if (isBrandNew) {
       (ReactDOM.findDOMNode(this) as HTMLElement).scrollIntoView(false);
-      window.requestAnimationFrame(() => {
-        this.focus();
-      });
+      window.requestAnimationFrame(() => this.focus());
     }
   }
 
@@ -159,12 +162,15 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
               onChange={change => {
                 // We minimize thrashing and support editors in multiple windows by ensuring
                 // non-value changes (eg focus) to the editorState don't trigger database saves
-                const skipSaving = change.operations.every(
-                  op =>
-                    op.type === 'set_selection' ||
-                    (op.type === 'set_value' &&
-                      Object.keys(op.properties).every(k => k === 'decorations'))
-                );
+                const skipSaving =
+                  change.operations.size &&
+                  change.operations.every(
+                    op =>
+                      op.type === 'set_selection' ||
+                      (op.type === 'set_value' &&
+                        Object.keys(op.properties).every(k => k === 'decorations'))
+                  );
+                console.log(`skipSaving: ${skipSaving}`);
                 session.changes.add({ bodyEditorState: change.value }, { skipSaving });
               }}
             />

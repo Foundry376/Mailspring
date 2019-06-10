@@ -11,6 +11,7 @@ import ComposerEditorToolbar from './composer-editor-toolbar';
 import { schema, plugins, convertFromHTML, convertToHTML } from './conversion';
 import { lastUnquotedNode, removeQuotedText } from './base-block-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
+import ReactDOM from 'react-dom';
 
 const AEditor = (SlateEditorComponent as any) as React.ComponentType<
   EditorProps & { ref: any; propsForPlugins: any }
@@ -32,7 +33,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
 
   _pluginKeyHandlers = {};
   _mounted = false;
-  editor: Editor = null;
+  editor: Editor | null = null;
 
   constructor(props) {
     super(props);
@@ -57,18 +58,35 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
   componentDidMount() {
     this._mounted = true;
     this.props.onUpdatedSlateEditor && this.props.onUpdatedSlateEditor(this.editor);
+
+    // This is a bit of a hack. The toolbar requires access to the Editor model,
+    // which IS the Editor component in `slate-react`. It seems silly to copy a ref
+    // into state, but we need to re-render once after mount when we have it.
+    this.forceUpdate();
   }
 
   componentWillUnmount() {
     this._mounted = false;
     this.props.onUpdatedSlateEditor && this.props.onUpdatedSlateEditor(null);
+
+    // We need to explicitly blur the editor so that it saves a new selection (null)
+    // and doesn't try to restore the selection / steal focus when you navigate to
+    // the thread again.
+
+    const editorEl = ReactDOM.findDOMNode(this.editor as any);
+    if (editorEl && editorEl.contains(document.getSelection().anchorNode)) {
+      this.props.onChange({
+        operations: Immutable.List([]),
+        value: this.editor.deselect().blur().value,
+      });
+    }
   }
 
   focus = () => {
     this.editor
+      .focus()
       .moveToRangeOfDocument()
-      .moveToStart()
-      .focus();
+      .moveToStart();
   };
 
   focusEndReplyText = () => {
