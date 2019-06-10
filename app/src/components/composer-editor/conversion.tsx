@@ -24,8 +24,6 @@ import LinkPlugins from './link-plugins';
 import EmojiPlugins from './emoji-plugins';
 import { Rule, ComposerEditorPlugin } from './types';
 
-useMemoization(false);
-
 export const schema = {
   inlines: {
     templatevar: {

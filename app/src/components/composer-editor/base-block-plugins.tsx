@@ -1,11 +1,11 @@
 import React from 'react';
-import { Editor, Value, Block, Node } from 'slate';
+import { Editor, Value, Node } from 'slate';
 import SoftBreak from 'slate-soft-break';
 import EditList from 'golery-slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
 import When from 'slate-when';
 
-import { Message, MessageWithEditorState } from 'mailspring-exports';
+import { MessageWithEditorState } from 'mailspring-exports';
 import { BuildToggleButton, IEditorToolbarConfigItem } from './toolbar-component-factories';
 import { ComposerEditorPlugin } from './types';
 
@@ -15,7 +15,7 @@ function nodeIsEmpty(node: Node) {
   }
 
   if (node.object !== 'text') {
-    let children = (node.nodes.toArray ? node.nodes.toArray() : node.nodes) || [];
+    let children = ((node.nodes.toArray ? node.nodes.toArray() : node.nodes) || []) as any;
     if (children.length === 0) {
       return true;
     }
@@ -223,7 +223,7 @@ export const BLOCK_CONFIG: {
   },
 };
 
-const EditListPlugin = new EditList({
+export const EditListPlugin = new EditList({
   types: [BLOCK_CONFIG.ol_list.type, BLOCK_CONFIG.ul_list.type],
   typeItem: BLOCK_CONFIG.list_item.type,
   typeDefault: BLOCK_CONFIG.div.type,
@@ -358,42 +358,44 @@ export function hideQuotedTextByDefault(draft: MessageWithEditorState) {
 
 // plugins
 
+const MailspringBaseBlockPlugin: ComposerEditorPlugin = {
+  toolbarComponents: Object.values(BLOCK_CONFIG)
+    .filter(config => config.button)
+    .map(BuildToggleButton),
+  renderNode,
+  commands: {
+    'contenteditable:quote': (event, editor: Editor) => {
+      const { isActive, onToggle } = BLOCK_CONFIG.blockquote.button;
+      return onToggle(editor, isActive(editor.value));
+    },
+    'contenteditable:numbered-list': (event, editor: Editor) => {
+      const { isActive, onToggle } = BLOCK_CONFIG.ol_list.button;
+      return onToggle(editor, isActive(editor.value));
+    },
+    'contenteditable:bulleted-list': (event, editor: Editor) => {
+      const { isActive, onToggle } = BLOCK_CONFIG.ul_list.button;
+      return onToggle(editor, isActive(editor.value));
+    },
+    'contenteditable:indent': (event, editor: Editor) => {
+      const focusBlock = editor.value.focusBlock;
+      if (focusBlock && focusBlock.type === BLOCK_CONFIG.div.type) {
+        return editor.setBlocks(BLOCK_CONFIG.blockquote.type);
+      }
+    },
+    'contenteditable:outdent': (event, editor: Editor) => {
+      const focusBlock = editor.value.focusBlock;
+      if (focusBlock && focusBlock.type === BLOCK_CONFIG.blockquote.type) {
+        return editor.setBlocks(BLOCK_CONFIG.div.type);
+      }
+    },
+  },
+  rules,
+};
+
 const plugins: ComposerEditorPlugin[] = [
   // Base implementation of BLOCK_CONFIG block types,
   // the "block" toolbar section, and serialization
-  {
-    toolbarComponents: Object.values(BLOCK_CONFIG)
-      .filter(config => config.button)
-      .map(BuildToggleButton),
-    renderNode,
-    commands: {
-      'contenteditable:quote': (event, editor: Editor) => {
-        const { isActive, onToggle } = BLOCK_CONFIG.blockquote.button;
-        return onToggle(editor, isActive(editor.value));
-      },
-      'contenteditable:numbered-list': (event, editor: Editor) => {
-        const { isActive, onToggle } = BLOCK_CONFIG.ol_list.button;
-        return onToggle(editor, isActive(editor.value));
-      },
-      'contenteditable:bulleted-list': (event, editor: Editor) => {
-        const { isActive, onToggle } = BLOCK_CONFIG.ul_list.button;
-        return onToggle(editor, isActive(editor.value));
-      },
-      'contenteditable:indent': (event, editor: Editor) => {
-        const focusBlock = editor.value.focusBlock;
-        if (focusBlock && focusBlock.type === BLOCK_CONFIG.div.type) {
-          return editor.setBlocks(BLOCK_CONFIG.blockquote.type);
-        }
-      },
-      'contenteditable:outdent': (event, editor: Editor) => {
-        const focusBlock = editor.value.focusBlock;
-        if (focusBlock && focusBlock.type === BLOCK_CONFIG.blockquote.type) {
-          return editor.setBlocks(BLOCK_CONFIG.div.type);
-        }
-      },
-    },
-    rules,
-  },
+  MailspringBaseBlockPlugin,
 
   // Return creates soft newlines in code blocks
   When({

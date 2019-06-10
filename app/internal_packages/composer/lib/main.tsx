@@ -48,14 +48,13 @@ class ComposerWithWindowProps extends React.Component<
     this._composerComponent.focus();
   }
 
-  _onDraftReady = () => {
-    this._composerComponent.focus().then(() => {
-      AppEnv.displayWindow();
+  _onDraftReady = async () => {
+    await this._composerComponent.focus();
+    AppEnv.displayWindow();
 
-      if (this.state.errorMessage) {
-        this._showInitialErrorDialog(this.state.errorMessage, this.state.errorDetail);
-      }
-    });
+    if (this.state.errorMessage) {
+      this._showInitialErrorDialog(this.state.errorMessage, this.state.errorDetail);
+    }
   };
 
   render() {

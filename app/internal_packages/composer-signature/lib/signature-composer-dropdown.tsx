@@ -4,20 +4,20 @@ import {
   Actions,
   PropTypes,
   SignatureStore,
-  Message,
   DraftEditingSession,
   Account,
   ISignatureSet,
+  MessageWithEditorState,
 } from 'mailspring-exports';
 import { Menu, RetinaImg, ButtonDropdown } from 'mailspring-component-kit';
 
-import { applySignature, currentSignatureId } from './signature-utils';
+import { applySignature, currentSignatureIdSlate } from './signature-utils';
 
 const MenuItem = Menu.Item;
 
 export default class SignatureComposerDropdown extends React.Component<
   {
-    draft: Message;
+    draft: MessageWithEditorState;
     draftFromEmail: string;
     session: DraftEditingSession;
     accounts: Account[];
@@ -102,6 +102,7 @@ export default class SignatureComposerDropdown extends React.Component<
 
   _renderSignatures() {
     // note: these are using onMouseDown to avoid clearing focus in the composer (I think)
+    const currentId = currentSignatureIdSlate(this.props.draft.bodyEditorState);
 
     return (
       <Menu
@@ -109,14 +110,14 @@ export default class SignatureComposerDropdown extends React.Component<
           <MenuItem
             key={'none'}
             onMouseDown={() => this._onChangeSignature(null)}
-            checked={!currentSignatureId(this.props.draft.body)}
+            checked={!currentId}
             content={localized('No signature')}
           />,
         ]}
         footerComponents={this._staticFooterItems}
         items={Object.values(this.state.signatures)}
         itemKey={sig => sig.id}
-        itemChecked={sig => currentSignatureId(this.props.draft.body) === sig.id}
+        itemChecked={sig => currentId === sig.id}
         itemContent={sig => <span className={`signature-title-${sig.title}`}>{sig.title}</span>}
         onSelect={this._onChangeSignature}
       />

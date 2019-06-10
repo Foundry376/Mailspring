@@ -1,4 +1,6 @@
-import { Node, Editor, Value, Mark } from 'slate';
+import { Node, Editor, Value, Mark, Block } from 'slate';
+import * as Immutable from 'immutable';
+import { EditListPlugin } from './base-block-plugins';
 
 export interface Rule {
   deserialize?: (
@@ -10,7 +12,7 @@ export interface Rule {
 
 export interface ComposerEditorPlugin {
   renderMark?: (
-    { mark, children, targetIsHTML }: { mark: Mark; children: any; targetIsHTML: boolean },
+    { mark, children, targetIsHTML }: { mark: Mark; children: any; targetIsHTML?: boolean },
     editor: Editor | null,
     next: () => void
   ) => void | string | JSX.Element;
@@ -27,7 +29,12 @@ export interface ComposerEditorPlugin {
   toolbarComponents?: React.ComponentType<ComposerEditorPluginToolbarComponentProps>[];
   toolbarSectionClass?: string;
 
-  commands?: { [command: string]: (event: any, editor: Editor) => void };
+  commands?: { [command: string]: (event: any, editor: Editor) => Editor };
+
+  onPaste?: (event, editor: Editor, next: () => void) => void;
+  onKeyDown?: (event, editor: Editor, next: () => void) => void;
+  onKeyUp?: (event, editor: Editor, next: () => void) => void;
+  onClick?: (event, editor: Editor, next: () => void) => void;
 }
 
 export interface ComposerEditorPluginToolbarComponentProps {

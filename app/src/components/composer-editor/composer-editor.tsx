@@ -210,7 +210,9 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
         className={`RichEditor-root ${className || ''}`}
         localHandlers={this._pluginKeyHandlers}
       >
-        {this.editor && <ComposerEditorToolbar editor={this.editor} plugins={plugins} />}
+        {this.editor && (
+          <ComposerEditorToolbar editor={this.editor} plugins={plugins} value={value} />
+        )}
         <div
           className="RichEditor-content"
           onClick={this.onFocusIfBlurred}

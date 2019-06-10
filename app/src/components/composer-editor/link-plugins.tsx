@@ -4,7 +4,8 @@ import { Mark, Editor } from 'slate';
 import AutoReplace from 'slate-auto-replace';
 import { RegExpUtils } from 'mailspring-exports';
 
-import { BuildMarkButtonWithValuePicker, getMarkOfType } from './toolbar-component-factories';
+import { BuildMarkButtonWithValuePicker } from './toolbar-component-factories';
+import { ComposerEditorPlugin } from './types';
 
 export const LINK_TYPE = 'link';
 
@@ -91,54 +92,57 @@ const TriggerKeyValues = {
   Return: '\n',
 };
 
-const plugins: ComposerEditorPlugin[] = [
-  {
-    toolbarComponents: [
-      BuildMarkButtonWithValuePicker({
-        type: LINK_TYPE,
-        field: 'href',
-        iconClassOn: 'fa fa-link',
-        iconClassOff: 'fa fa-link',
-        placeholder: 'http://',
-      }),
-    ],
-    onPaste,
-    onKeyDown: function onKeyDown(event, editor: Editor, next: () => void) {
-      // ensure space and enter always terminate links
-      if (!['Space', 'Enter', ' ', 'Return'].includes(event.key)) {
-        return next();
-      }
-      const mark = getMarkOfType(editor.value, LINK_TYPE);
-      if (mark) {
-        editor.removeMark(mark);
-      }
+const BaseLinkPlugin: ComposerEditorPlugin = {
+  toolbarComponents: [
+    BuildMarkButtonWithValuePicker({
+      type: LINK_TYPE,
+      field: 'href',
+      iconClassOn: 'fa fa-link',
+      iconClassOff: 'fa fa-link',
+      placeholder: 'http://',
+    }),
+  ],
+  onPaste,
+  onKeyDown: function onKeyDown(event, editor: Editor, next: () => void) {
+    // ensure space and enter always terminate links
+    if (!['Space', 'Enter', ' ', 'Return'].includes(event.key)) {
       return next();
-    },
-    renderMark,
-    rules,
-    commands: {
-      'contenteditable:insert-link': (event, editor) => {
-        // want to see a hack? here you go!
-        // 1: find our container and then find the link toolbar icon - this approach
-        // ensures we get the link button in the /current/ composer.
-        const linkButton = event.target
-          .closest('.RichEditor-root')
-          .querySelector('.fa.fa-link')
-          .closest('button');
+    }
+    const mark = editor.value.activeMarks.find(m => m.type === LINK_TYPE);
+    if (mark) {
+      editor.removeMark(mark);
+    }
+    return next();
+  },
+  renderMark,
+  rules,
+  commands: {
+    'contenteditable:insert-link': (event, editor) => {
+      // want to see a hack? here you go!
+      // 1: find our container and then find the link toolbar icon - this approach
+      // ensures we get the link button in the /current/ composer.
+      const linkButton = event.target
+        .closest('.RichEditor-root')
+        .querySelector('.fa.fa-link')
+        .closest('button');
 
-        // 2: click it.
-        if (linkButton) {
-          linkButton.dispatchEvent(
-            new MouseEvent('mousedown', {
-              view: window,
-              bubbles: true,
-              cancelable: true,
-            })
-          );
-        }
-      },
+      // 2: click it.
+      if (linkButton) {
+        linkButton.dispatchEvent(
+          new MouseEvent('mousedown', {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+          })
+        );
+      }
+      return editor;
     },
   },
+};
+
+const plugins: ComposerEditorPlugin[] = [
+  BaseLinkPlugin,
   AutoReplace({
     trigger: e => !!TriggerKeyValues[e.key],
     before: RegExpUtils.emailRegex({ requireStartOrWhitespace: true, matchTailOfString: true }),

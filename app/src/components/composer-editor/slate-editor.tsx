@@ -2,7 +2,7 @@ import React from 'react';
 import SlateTypes from 'slate-prop-types';
 import Types from 'prop-types';
 import invariant from 'tiny-invariant';
-import { Editor as Controller, Value } from 'slate';
+import { Editor as Controller } from 'slate';
 
 const EVENT_HANDLERS = [
   'onBeforeInput',

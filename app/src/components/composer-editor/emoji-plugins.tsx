@@ -205,6 +205,7 @@ export function swapEmojiMarkFor(editor: Editor, emoji: Mark, picked: string) {
       },
     });
     editor.moveToStartOfNextText();
+    editor.removeMark(emoji);
   }
 }
 

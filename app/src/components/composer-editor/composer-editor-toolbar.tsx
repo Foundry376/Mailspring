@@ -1,29 +1,31 @@
 import React from 'react';
-import { Value, Editor } from 'slate';
+import { Editor, Value } from 'slate';
 import { ComposerEditorPlugin } from './types';
 
-export interface ComposerEditorToolbarProps {
+interface ComposerEditorToolbarProps {
   editor: Editor;
+  value: Value;
   plugins: ComposerEditorPlugin[];
+}
+
+export interface ComposerEditorToolbarState {
+  visible: boolean;
 }
 
 export default class ComposerEditorToolbar extends React.Component<
   ComposerEditorToolbarProps,
-  { visible: boolean }
+  ComposerEditorToolbarState
 > {
   _mounted: boolean = false;
   _topClip: number = 0;
   _el: HTMLElement;
   _floatingEl: HTMLElement;
+  _heightObserver: ResizeObserver;
 
-  constructor(props) {
-    super(props);
-    this.state = { visible: false };
-  }
+  state = { visible: false };
 
   componentDidMount() {
     this._mounted = true;
-
     setTimeout(() => {
       if (!this._mounted) return;
       this.setState({ visible: true }, () => {
@@ -40,23 +42,27 @@ export default class ComposerEditorToolbar extends React.Component<
         }
 
         this._el.style.height = `${this._floatingEl.clientHeight}px`;
+
+        this._heightObserver = new window.ResizeObserver(entries => {
+          console.log(entries);
+          this._el.style.height = `${this._floatingEl.clientHeight}px`;
+          this._onScroll();
+        });
+        this._heightObserver.observe(this._floatingEl);
       });
     }, 400);
   }
 
-  componentDidUpdate() {
-    if (this._el) {
-      this._el.style.height = `${this._floatingEl.clientHeight}px`;
-      this._onScroll();
-    }
-  }
-
   componentWillUnmount() {
     this._mounted = false;
+    if (this._heightObserver) {
+      this._heightObserver.disconnect();
+    }
     for (const el of Array.from(document.querySelectorAll('.scroll-region-content'))) {
       el.removeEventListener('scroll', this._onScroll);
     }
   }
+
   _onScroll = () => {
     if (!this._el) return;
     let { top, height } = this._el.getBoundingClientRect();
@@ -72,7 +78,8 @@ export default class ComposerEditorToolbar extends React.Component<
   };
 
   render() {
-    const { editor, plugins } = this.props;
+    const { editor, plugins, value } = this.props;
+
     let sectionItems = [];
 
     if (!this.state.visible) {
@@ -86,7 +93,7 @@ export default class ComposerEditorToolbar extends React.Component<
     }
 
     const pluginsWithToolbars = plugins.filter(
-      (p, idx) => p.toolbarComponents && p.toolbarComponents.length
+      p => p.toolbarComponents && p.toolbarComponents.length
     );
 
     pluginsWithToolbars.forEach(({ toolbarComponents, toolbarSectionClass }, idx) => {
@@ -95,7 +102,7 @@ export default class ComposerEditorToolbar extends React.Component<
           <Component
             key={`${idx}-${cdx}`}
             editor={editor}
-            value={editor.value}
+            value={value}
             className={toolbarSectionClass}
           />
         ))

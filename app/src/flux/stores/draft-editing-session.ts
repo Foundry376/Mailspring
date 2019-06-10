@@ -42,16 +42,14 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
     set: function(inHTML) {
       let nextValue = convertFromHTML(inHTML);
       if (session._mountedEditor) {
-        session._mountedEditor
-          .change()
-          .selectAll()
-          .delete()
-          .insertFragment(nextValue.document)
-          .selectAll()
-          .collapseToStart().value;
+        nextValue = session._mountedEditor
+          .moveToRangeOfDocument()
+          .insertFragment(convertFromHTML(inHTML).document)
+          .moveToRangeOfDocument()
+          .moveToStart()
+          .deleteForward(1).value;
       }
-      draft.bodyEditorState = nextValue;
-      _bodyHTMLCache = inHTML;
+      _bodyEditorState = nextValue;
     },
   };
 
@@ -346,8 +344,8 @@ export class DraftEditingSession extends MailspringStore {
     for (const [key] of Object.entries(Message.attributes)) {
       if (key === 'headerMessageId') continue;
       if (nextDraft[key] === undefined) continue;
-      if (this._draft[key] === nextDraft[key]) continue;
       if (lockedFields.includes(key)) continue;
+      if (this._draft[key] === nextDraft[key]) continue;
 
       if (changed === false) {
         this._draft = fastCloneDraft(this._draft);

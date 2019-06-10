@@ -1,6 +1,7 @@
 import React from 'react';
-import { Range, Editor, Mark, Value, Block } from 'slate';
+import { Range, Editor, Mark, Value, Block, Selection } from 'slate';
 import { CompactPicker } from 'react-color';
+import { ComposerEditorPluginToolbarComponentProps } from './types';
 
 // Helper Functions
 
@@ -15,7 +16,7 @@ export interface IEditorToolbarConfigItem {
       children: any;
       targetIsHTML: boolean;
     }
-  ) => JSX.Element | string | void;
+  ) => JSX.Element | void;
   button?: {
     isActive: (value: Value) => boolean;
     onToggle: (editor: Editor, active: boolean) => any;
@@ -23,7 +24,7 @@ export interface IEditorToolbarConfigItem {
   };
 }
 
-function removeMarksOfTypeInRange(editor: Editor, range: Range, type) {
+function removeMarksOfTypeInRange(editor: Editor, range: Range | Selection, type) {
   if (range.isCollapsed) {
     const active = editor.value.activeMarks.find(m => m.type === type);
     if (active) {
@@ -32,7 +33,7 @@ function removeMarksOfTypeInRange(editor: Editor, range: Range, type) {
     return;
   }
   const document = editor.value.document;
-  const texts = document.getTextsAtRange(range);
+  const texts = document.getTextsAtRange(range as any);
   const { start, end } = range;
 
   texts.forEach(node => {
@@ -76,30 +77,12 @@ export function expandSelectionToRangeOfMark(editor, type) {
   });
 }
 
-export function hasMark(value, type) {
-  return !!getMarkOfType(value, type);
+export function getActiveValueForMark(value: Value, type: string) {
+  const active = value.activeMarks.find(m => m.type === type);
+  return (active && active.data.get('value')) || '';
 }
 
-export function getMarkOfType(value, type) {
-  try {
-    return value.activeMarks.find(m => m.type === type);
-  } catch (err) {
-    // this occasionally throws when selection is undefined
-    return null;
-  }
-}
-
-export function getActiveValueForMark(value, type) {
-  try {
-    const active = value.activeMarks.find(m => m.type === type);
-    return (active && active.data.get('value')) || '';
-  } catch (err) {
-    // this occasionally throws when selection is undefined
-    return '';
-  }
-}
-
-export function applyValueForMark(editor, type, markValue) {
+export function applyValueForMark(editor: Editor, type: string, markValue: any) {
   editor.focus();
   removeMarksOfTypeInRange(editor, editor.value.selection, type);
 
@@ -119,7 +102,7 @@ export function BuildToggleButton({
   type,
   button: { iconClass, isActive, onToggle },
 }: IEditorToolbarConfigItem) {
-  return ({ value, editor, className }: { value: any; editor: any; className: string }) => {
+  return ({ editor, className, value }: ComposerEditorPluginToolbarComponentProps) => {
     const active = isActive(value);
     const onMouseDown = e => {
       onToggle(editor, active);
@@ -133,32 +116,22 @@ export function BuildToggleButton({
   };
 }
 
-interface ToolbarButtonProps {
-  value: any;
-  editor: any;
-  className: string;
-}
-
 export function BuildMarkButtonWithValuePicker(config) {
   return class ToolbarMarkDataPicker extends React.Component<
-    ToolbarButtonProps,
+    ComposerEditorPluginToolbarComponentProps,
     { expanded: boolean; fieldValue: string }
   > {
     _inputEl: HTMLInputElement;
     _el: HTMLDivElement;
 
-    constructor(props) {
-      super(props);
-
-      this.state = {
-        fieldValue: '',
-        expanded: false,
-      };
-    }
+    state = {
+      fieldValue: '',
+      expanded: false,
+    };
 
     onPrompt = e => {
       e.preventDefault();
-      const active = getMarkOfType(this.props.value, config.type);
+      const active = this.props.value.activeMarks.find(m => m.type === config.type);
       const fieldValue = (active && active.data.get(config.field)) || '';
       this.setState({ expanded: true, fieldValue: fieldValue }, () => {
         setTimeout(() => {
@@ -187,8 +160,7 @@ export function BuildMarkButtonWithValuePicker(config) {
           [config.field]: fieldValue,
         },
       });
-
-      const active = getMarkOfType(this.props.value, config.type);
+      const active = value.activeMarks.find(m => m.type === config.type);
       if (active) {
         // update the active mark
         expandSelectionToRangeOfMark(editor, config.type);
@@ -216,11 +188,11 @@ export function BuildMarkButtonWithValuePicker(config) {
     onRemove = e => {
       e.preventDefault();
       const { value, editor } = this.props;
-      const active = getMarkOfType(this.props.value, config.type);
+      const active = value.activeMarks.find(m => m.type === config.type);
       if (value.selection.isCollapsed) {
         const anchorNode = value.document.getNode(value.selection.anchor.key);
-        const expanded = value.selection.moveToRangeOf(anchorNode);
-        editor.removeMarkAtRange(expanded, active);
+        const expanded = value.selection.moveToRangeOfNode(anchorNode);
+        editor.removeMarkAtRange(expanded as any, active);
       } else {
         editor.removeMark(active);
       }
@@ -233,11 +205,13 @@ export function BuildMarkButtonWithValuePicker(config) {
     };
 
     render() {
+      const { value, className } = this.props;
       const { expanded } = this.state;
-      const active = getMarkOfType(this.props.value, config.type);
+
+      const active = value.activeMarks.find(m => m.type === config.type);
       return (
         <div
-          className={`${this.props.className} link-picker`}
+          className={`${className} link-picker`}
           ref={el => (this._el = el)}
           tabIndex={-1}
           onBlur={this.onBlur}
@@ -277,7 +251,7 @@ export function BuildMarkButtonWithValuePicker(config) {
 
 export function BuildColorPicker(config) {
   return class ToolbarColorPicker extends React.Component<
-    ToolbarButtonProps,
+    ComposerEditorPluginToolbarComponentProps,
     { expanded: boolean }
   > {
     _el: HTMLElement;
@@ -353,7 +327,7 @@ export function BuildColorPicker(config) {
 }
 
 export function BuildFontPicker(config) {
-  return class FontPicker extends React.Component<ToolbarButtonProps> {
+  return class FontPicker extends React.Component<ComposerEditorPluginToolbarComponentProps> {
     _onSetValue = e => {
       const { editor } = this.props;
       let markValue = e.target.value !== config.default ? e.target.value : null;

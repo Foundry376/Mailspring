@@ -1,8 +1,6 @@
 import EventEmitter from 'events';
 import { Message } from '../models/message';
 
-export type MessageWithEditorState = Message & { bodyEditorState: any };
-
 const MetadataChangePrefix = 'metadata.';
 
 /**
