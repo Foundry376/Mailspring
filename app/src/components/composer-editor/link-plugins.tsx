@@ -52,13 +52,16 @@ function renderMark({ mark, children, targetIsHTML }, editor = null, next = () =
       </a>
     );
   } else {
-    const onClick = e => {
-      if (e.ctrlKey || e.metaKey) {
-        AppEnv.windowEventHandler.openLink({ href, metaKey: e.metaKey });
-      }
-    };
     return (
-      <span className="link" title={href} onClick={onClick}>
+      <span
+        className="link"
+        title={href}
+        onClick={e => {
+          if (e.ctrlKey || e.metaKey || e.altKey) {
+            AppEnv.windowEventHandler.openLink({ href, metaKey: e.metaKey });
+          }
+        }}
+      >
         {children}
       </span>
     );
