@@ -27,7 +27,6 @@ export const QuotedTextControl: React.FunctionComponent<{
         onMouseUp={e => {
           e.preventDefault();
           e.stopPropagation();
-          this.editor.current.removeQuotedText();
           props.onRemove();
         }}
       >

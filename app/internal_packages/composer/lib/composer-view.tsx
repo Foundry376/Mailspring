@@ -170,7 +170,6 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                       (op.type === 'set_value' &&
                         Object.keys(op.properties).every(k => k === 'decorations'))
                   );
-                console.log(`skipSaving: ${skipSaving}`);
                 session.changes.add({ bodyEditorState: change.value }, { skipSaving });
               }}
             />
@@ -179,8 +178,9 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
               quotedTextPresent={quotedTextPresent}
               onUnhide={() => this.setState({ quotedTextHidden: false })}
               onRemove={() => {
-                this.setState({ quotedTextHidden: false });
-                this.editor.current.removeQuotedText();
+                this.setState({ quotedTextHidden: false }, () =>
+                  this.editor.current.removeQuotedText()
+                );
               }}
             />
             <AttachmentsArea draft={draft} />

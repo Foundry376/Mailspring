@@ -268,6 +268,9 @@ export default class MailspringWindow extends EventEmitter {
       if (!this.loaded) {
         return;
       }
+      if (this.devMode) {
+        return;
+      }
 
       const chosen = dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
