@@ -606,7 +606,7 @@ class DraftStore extends MailspringStore {
       delete this._draftsSending[headerMessageId];
     } else {
       AppEnv.reportError(
-        new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout} seconds`),
+        new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout/1000} seconds`),
       );
     }
     if (trigger) {
