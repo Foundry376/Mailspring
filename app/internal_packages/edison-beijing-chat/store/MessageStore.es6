@@ -12,9 +12,8 @@ import {
 } from '../chat-components/utils/message';
 import ConversationModel from '../model/Conversation';
 import MessageModel, { MESSAGE_STATUS_RECEIVED } from '../model/Message';
-import getDb from '../chat-components/db';
-import chatModel from '../chat-components/store/model';
 import fs from 'fs';
+import _ from 'underscore';
 // TODO 
 // getPriKey getDeviceId should get data from sqlite
 import { getPriKey, getDeviceId } from '../chat-components/utils/e2ee';
@@ -36,7 +35,7 @@ class MessageStore extends MailspringStore {
     this.groupedMessages = [];
     this.conversationJid;
     this._registerListeners();
-    return;
+    this._triggerDebounced = _.debounce(() => this.trigger(), 20);
   }
 
   _registerListeners() {
@@ -47,7 +46,6 @@ class MessageStore extends MailspringStore {
   }
 
   reveivePrivateChat = async (message) => {
-    console.log('****reveivePrivateChat', message);
     let jidLocal = message.to.local;
     message = await this.decrypteBody(message, jidLocal);
     await this.processPrivateMessage(message);
@@ -139,10 +137,8 @@ class MessageStore extends MailspringStore {
   }
 
   reveiveGroupChat = async (message) => {
-    console.log('*****reveiveGroupChat - 1', message);
     let jidLocal = message.to.local;
     message = await this.decrypteBody(message, jidLocal);
-    console.log('*****reveiveGroupChat - 2', message);
     const conv = await this.processGroupMessage(message);
     if (conv.jid === this.conversationJid) {
       this.retrieveSelectedConversationMessages(conv.jid);
@@ -151,7 +147,6 @@ class MessageStore extends MailspringStore {
   }
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
-    console.log('****downloadAndTagImageFileInMessage', chatType, aes, payload);
     let body;
     let convJid;
     if (chatType === RECEIVE_PRIVATECHAT) {
@@ -229,7 +224,7 @@ class MessageStore extends MailspringStore {
     addMessagesSenderNickname(messages);
     this.groupedMessages = groupMessagesByTime(messages, 'sentTime', 'day');
     this.conversationJid = jid;
-    this.trigger();
+    this._triggerDebounced();
   }
 
   processGroupMessage = async (payload) => {
@@ -289,13 +284,11 @@ class MessageStore extends MailspringStore {
     }
     const contact = await ContactStore.findContactByJid(conv.lastMessageSender);
     addToAvatarMembers(conv, contact);
-    console.log('*****reveiveGroupChat - 3', conv);
     await ConversationStore.saveConversations([conv]);
     return conv;
   }
 
   prepareForSaveMessage = async (payload, type) => {
-    console.log('*****prepareForSaveMessage', payload, type);
     let timeSend;
     if (payload.body && payload.body.trim().indexOf('{') !== 0) {
       payload.body = '{"type":1,"content":"' + payload.body + '"}';
@@ -335,7 +328,7 @@ class MessageStore extends MailspringStore {
   saveMessages = async messages => {
     for (const msg of messages) {
       if (!msg.conversationJid) {
-        console.log('*****saveMessages', msg);
+        console.error(`msg did not have conversationJid`, msg);
       }
       // update message id: uuid + conversationJid
       if (msg.id.indexOf(SEPARATOR) === -1) {
@@ -363,7 +356,6 @@ class MessageStore extends MailspringStore {
         } else {
           messageInDb.body = msg.body;
         }
-        console.log('****messageInDb.body - 2', messageInDb.body);
         await messageInDb.save();
       } else {
         await MessageModel.create(msg);
@@ -382,7 +374,6 @@ const saveGroupMessages = async (groupedMessages) => {
       messages.reverse();
       for (const msg of messages) {
         if (msg.updateTime && (!msg.readTime || msg.readTime < msg.updateTime)) {
-          console.log('*****saveGroupMessages', msg);
           ConversationModel.update({ readTime }, {
             where: {
               id: msg.id
