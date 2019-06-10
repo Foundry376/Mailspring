@@ -75,7 +75,7 @@ class DraftStore extends MailspringStore {
       // by flushing them periodically. We care about this a lot because
       // the app is on the same "web page" forever.
       require('slate').resetMemoization();
-    }, 3 * 60 * 1000); // 3 min
+    }, 5 * 60 * 1000); // 5 min
   }
 
   /**

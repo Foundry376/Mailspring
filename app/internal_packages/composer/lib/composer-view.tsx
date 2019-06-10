@@ -60,7 +60,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
   dropzone = React.createRef<DropZone>();
   sendButton = React.createRef<SendActionButton>();
-  focusContainer = React.createRef<KeyCommandsRegion>();
+  focusContainer = React.createRef<KeyCommandsRegion & HTMLDivElement>();
   editor = React.createRef<ComposerEditor>();
   header = React.createRef<ComposerHeader>();
 

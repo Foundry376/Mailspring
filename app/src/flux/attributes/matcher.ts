@@ -123,7 +123,7 @@ export class Matcher {
       case 'contains':
         return modelArrayContainsValue(modelValue, matcherValue);
       case 'containsAny':
-        return !!matcherValue.find(submatcherValue =>
+        return matcherValue.some(submatcherValue =>
           modelArrayContainsValue(modelValue, submatcherValue)
         );
       case 'startsWith':

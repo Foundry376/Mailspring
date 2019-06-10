@@ -5,10 +5,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { Disposable } from 'rx-core';
 
-interface KeyCommandsRegionProps {
-  children: React.ReactNode;
-  tabIndex?: number;
-  className?: string;
+interface KeyCommandsRegionProps extends React.HTMLProps<HTMLDivElement> {
   localHandlers?: object;
   globalHandlers?: object;
   onFocusIn?: (...args: any[]) => any;

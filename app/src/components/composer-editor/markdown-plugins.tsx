@@ -78,7 +78,7 @@ const plugins: ComposerEditorPlugin[] = [
   AutoReplace({
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '`',
-    before: /(?:[^|^`]){1}([`]{1})([^`]+)$/,
+    before: /(?:^|[^`])([`]{1})([^`]+)$/,
     change: (editor: Editor, e, matches) => {
       editor
         .addMark(MARK_CONFIG.codeInline.type)

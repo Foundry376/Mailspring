@@ -14,7 +14,7 @@ class TemplateStatusBar extends React.Component<{ draft: MessageWithEditorState 
     draft: PropTypes.object.isRequired,
   };
 
-  _usingTemplate({ draft }: { draft: MessageWithEditorState }) {
+  _usingTemplate(draft: MessageWithEditorState) {
     return (
       draft &&
       draft.bodyEditorState &&
@@ -23,7 +23,7 @@ class TemplateStatusBar extends React.Component<{ draft: MessageWithEditorState 
   }
 
   render() {
-    if (!this._usingTemplate(this.props)) {
+    if (!this._usingTemplate(this.props.draft)) {
       return <div />;
     }
     return (

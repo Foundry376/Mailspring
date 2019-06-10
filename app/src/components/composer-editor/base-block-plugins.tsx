@@ -120,7 +120,7 @@ export const BLOCK_CONFIG: {
     button: {
       isActive: value => value.focusBlock && value.focusBlock.type === BLOCK_CONFIG.code.type,
       iconClass: 'fa fa-sticky-note-o',
-      onToggle: (editor: Editor, active: boolean) => {
+      onToggle: (editor, active) => {
         if (active) {
           return editor.setBlocks(BLOCK_CONFIG.div.type);
         } else if (editor.value.selection.isCollapsed) {
@@ -229,7 +229,7 @@ export const EditListPlugin = new EditList({
   typeDefault: BLOCK_CONFIG.div.type,
 });
 
-function renderNode(props, editor = null, next = () => {}) {
+function renderNode(props, editor: Editor = null, next = () => {}) {
   const config = BLOCK_CONFIG[props.node.type];
   return config ? config.render(props) : next();
 }

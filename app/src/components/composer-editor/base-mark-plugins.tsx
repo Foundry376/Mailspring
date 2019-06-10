@@ -1,6 +1,6 @@
 import React from 'react';
 import { localized } from 'mailspring-exports';
-
+import { Editor } from 'slate';
 import {
   IEditorToolbarConfigItem,
   BuildToggleButton,
@@ -134,7 +134,7 @@ export const MARK_CONFIG: {
   },
 };
 
-function renderMark(props, editor = null, next = () => {}) {
+function renderMark(props, editor: Editor = null, next = () => {}) {
   const config = MARK_CONFIG[props.mark.type];
   return config && config.render ? config.render(props) : next();
 }

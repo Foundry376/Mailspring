@@ -167,8 +167,8 @@ class HiddenToggleImportantButton extends React.Component<{ items: Thread[] }> {
       return false;
     }
 
-    const allImportant = this.props.items.every(
-      item => !!item.labels.find(c => c.role === 'important')
+    const allImportant = this.props.items.every(item =>
+      item.labels.some(c => c.role === 'important')
     );
 
     return (
@@ -222,7 +222,7 @@ export class MarkAsSpamButton extends React.Component<{ items: Thread[] }> {
   };
 
   render() {
-    const allInSpam = this.props.items.every(item => !!item.folders.find(c => c.role === 'spam'));
+    const allInSpam = this.props.items.every(item => item.folders.some(c => c.role === 'spam'));
 
     if (allInSpam) {
       return (

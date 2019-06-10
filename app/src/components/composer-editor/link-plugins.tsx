@@ -40,7 +40,7 @@ function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
   };
 }
 
-function renderMark({ mark, children, targetIsHTML }, editor = null, next = () => {}) {
+function renderMark({ mark, children, targetIsHTML }, editor: Editor = null, next = () => {}) {
   if (mark.type !== LINK_TYPE) {
     return next();
   }

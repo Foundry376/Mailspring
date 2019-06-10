@@ -1,6 +1,6 @@
 import React from 'react';
 import * as Immutable from 'immutable';
-import { Editor, Value, Operation } from 'slate';
+import { Editor, Value, Operation, Range } from 'slate';
 import { Editor as SlateEditorComponent, EditorProps } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
 import path from 'path';
@@ -122,8 +122,9 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
 
   onCopy = (event, editor: Editor, next: () => void) => {
     event.preventDefault();
-    const document = editor.value.document.getFragmentAtRange(editor.value.selection as any);
-    event.clipboardData.setData('text/html', convertToHTML(({ document } as any) as Value));
+    const document = editor.value.document.getFragmentAtRange((editor.value
+      .selection as any) as Range);
+    event.clipboardData.setData('text/html', convertToHTML(Value.create({ document })));
     event.clipboardData.setData('text/plain', editor.value.fragment.text);
   };
 
@@ -236,9 +237,10 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
           onClick={this.onFocusIfBlurred}
           onContextMenu={this.onContextMenu}
         >
-          {PluginTopComponents.map((p, idx) => (
-            <p.topLevelComponent key={idx} value={value} editor={this.editor} />
-          ))}
+          {this.editor &&
+            PluginTopComponents.map((p, idx) => (
+              <p.topLevelComponent key={idx} value={value} editor={this.editor} />
+            ))}
           <AEditor
             ref={editor => (this.editor = editor)}
             schema={schema}

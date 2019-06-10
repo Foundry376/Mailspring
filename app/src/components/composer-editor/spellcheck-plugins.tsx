@@ -32,7 +32,9 @@ const MAX_MISPELLINGS = 10;
 const EXCEPT_BLOCK_TYPES = [BLOCK_CONFIG.blockquote.type, BLOCK_CONFIG.code.type];
 const EXCEPT_MARK_TYPES = [MARK_CONFIG.codeInline.type, LINK_TYPE, VARIABLE_TYPE];
 
-function renderMark(props, editor = null, next = () => {}) {
+const composingWeakmap = new WeakMap();
+
+function renderMark(props, editor: Editor = null, next = () => {}) {
   const { children, mark } = props;
   if (mark.type !== MISSPELLED_TYPE) {
     return next();
@@ -221,7 +223,7 @@ function onChange(editor: Editor, next: () => void) {
   if (timer && now - timerStart < 200) {
     return next();
   }
-  if (editor.state.isComposing) {
+  if (composingWeakmap.get(editor)) {
     return next();
   }
   onSpellcheckFocusedNode(editor);
@@ -237,6 +239,16 @@ const plugins: ComposerEditorPlugin[] = [
     onChange,
     renderMark,
     rules: [],
+    onCompositionStart: (event, editor, next) => {
+      const v = composingWeakmap.get(editor) || 0 + 1;
+      composingWeakmap.set(editor, v);
+      next();
+    },
+    onCompositionEnd: (event, editor, next) => {
+      const v = Math.max(0, (composingWeakmap.get(editor) || 0) - 1);
+      composingWeakmap.set(editor, v);
+      next();
+    },
   },
 ];
 

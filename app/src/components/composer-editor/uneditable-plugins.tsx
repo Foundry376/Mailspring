@@ -1,4 +1,5 @@
 import React from 'react';
+import { Editor } from 'slate';
 import { RetinaImg } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
 import { ComposerEditorPlugin } from './types';
@@ -35,7 +36,7 @@ function UneditableNode(props) {
   );
 }
 
-function renderNode(props, editor = null, next = () => {}) {
+function renderNode(props, editor: Editor = null, next = () => {}) {
   if (props.node.type === UNEDITABLE_TYPE) {
     return UneditableNode(props);
   }

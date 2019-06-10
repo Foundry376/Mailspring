@@ -34,7 +34,7 @@ function ImageNode(props) {
   );
 }
 
-function renderNode(props, editor = null, next = () => {}) {
+function renderNode(props, editor: Editor = null, next = () => {}) {
   if (props.node.type === IMAGE_TYPE) {
     return ImageNode(props);
   }

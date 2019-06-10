@@ -67,13 +67,7 @@ function FloatingEmojiPicker({ editor, value }: ComposerEditorPluginTopLevelComp
   if (!sel.rangeCount) return null;
   const range = sel.getRangeAt(0);
 
-  let emoji = null;
-  try {
-    emoji = value.activeMarks.find(i => i.type === EMOJI_TYPING_TYPE);
-  } catch (err) {
-    // sometimes fails for some reason
-  }
-
+  const emoji = value.activeMarks.find(i => i.type === EMOJI_TYPING_TYPE);
   if (!emoji) return null;
 
   const picked = emoji.data.get('picked');
@@ -136,7 +130,7 @@ function renderNode(
     children: any;
     targetIsHTML?: boolean;
   },
-  editor = null,
+  editor: Editor = null,
   next = () => {}
 ) {
   if (node.type !== EMOJI_TYPE) {
@@ -160,7 +154,7 @@ function renderMark(
     children: any;
     targetIsHTML?: boolean;
   },
-  editor = null,
+  editor: Editor = null,
   next = () => {}
 ) {
   if (mark.type === EMOJI_TYPING_TYPE) {

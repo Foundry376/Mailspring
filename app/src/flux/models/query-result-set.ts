@@ -21,7 +21,7 @@ an item might be at index 20 in the _ids array, but at offset 120 in the result.
 */
 export class QueryResultSet<T extends Model> {
   _offset: number;
-  _query: ModelQuery<T>;
+  _query: ModelQuery<T> | ModelQuery<T[]>;
   _idToIndexHash?: { [id: string]: number };
   _modelsHash?: { [id: string]: T };
   _ids: string[] = [];

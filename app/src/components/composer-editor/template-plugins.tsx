@@ -20,7 +20,7 @@ function renderNode(
     isSelected?: boolean;
     targetIsHTML: boolean;
   },
-  editor = null,
+  editor: Editor = null,
   next = () => {}
 ) {
   if (node.type === VARIABLE_TYPE) {
@@ -133,7 +133,7 @@ const plugins: ComposerEditorPlugin[] = [
         type: VARIABLE_TYPE,
         button: {
           iconClass: 'fa fa-tag',
-          isActive: value => !!value.inlines.find(i => i.type === VARIABLE_TYPE),
+          isActive: value => value.inlines.some(i => i.type === VARIABLE_TYPE),
           onToggle: (editor: Editor, active) => {
             if (active) {
               const node = editor.value.inlines.find(i => i.type === VARIABLE_TYPE);
