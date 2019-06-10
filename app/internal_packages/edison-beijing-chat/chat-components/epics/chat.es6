@@ -128,10 +128,9 @@ const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     msgBody.aes = aes;
   }
   payload.body = JSON.stringify(msgBody);
-  (getDb()).then(db => {
-    db.conversations.findOne().where('jid').eq(convJid).exec().then(conv => {
-      updateSelectedConversation(conv);
-    })
+  const db = getDb();
+  db.conversations.findOne({where: { jid: convJid }}).then(conv => {
+    updateSelectedConversation(conv);
   });
   return;
 }
@@ -198,10 +197,10 @@ export const successSendMessageEpic = action$ =>
 
 export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
-    .mergeMap(
+    .map(
       ({ payload }) => {
-        return Observable.fromPromise(getDb())
-          .map(db => ({ db, payload }))
+        const db = getDb();
+          return { db, payload }
       }
     )//yazzzzz
     .mergeMap(({ db, payload }) => {
@@ -223,7 +222,7 @@ export const sendMessageEpic = action$ =>
             return { db, payload };
           });
       } else {
-        return Observable.fromPromise(db.e2ees.findOne(payload.conversation.jid).exec())
+        return Observable.fromPromise(db.e2ees.findOne({where:{jid:payload.conversation.jid}}))
           .map(e2ee => {
             if (e2ee) {
               payload.devices = e2ee.devices;
@@ -233,7 +232,7 @@ export const sendMessageEpic = action$ =>
       }
     })
     .mergeMap(({ db, payload }) => {
-      return Observable.fromPromise(db.e2ees.findOne(payload.conversation.curJid).exec())
+      return Observable.fromPromise(db.e2ees.findOne({where:{jid:payload.conversation.curJid}}))
         .map(e2ee => {
           if (e2ee) {
             payload.selfDevices = e2ee.devices;
@@ -263,13 +262,13 @@ export const sendMessageEpic = action$ =>
           });
           if (!conversation.isGroup) {
             // if private chat, and it's a new conversation
-            getDb().then(db => db.conversations.findOne(conversation.jid).exec().then(conv => {
+            const db = getDb();
+            db.conversations.findOne({ where: { jid: conversation.jid } }).then(conv =>
               safeUpdate(conv, {
                 lastMessageTime,
                 lastMessageSender: sender || conversation.curJid,
                 lastMessageText
-              })
-            }))
+              }))
           }
         });
       }

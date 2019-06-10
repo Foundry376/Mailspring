@@ -3,10 +3,12 @@ import { generateKey } from './rsa';
 //import { encryptByAES } from './aes';
 import getDb from '../db';
 import { safeUpsert } from './db-utils';
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 let deviceId = null;
 const iniE2ee = async () => {
     const db = await getDb();
-    const datas = await db.configs.find({ key: { $in: ['deviceId', 'e2ee_prikey', 'e2ee_pubkey'] } }).exec();
+    const datas = await db.configs.findAll({where: { key: { [Op.in]: ['deviceId', 'e2ee_prikey', 'e2ee_pubkey'] } }});
     if (datas.length < 3) {
         for (let data in datas) {
             if (data.key == 'deviceId') {
@@ -54,7 +56,7 @@ const setE2ee = async (db) => {
 // iniE2ee();
 export const getPriKey = async () => {
     const db = await getDb();
-    let data = await db.configs.find({ key: { $in: ['deviceId', 'e2ee_prikey'] } }).exec();
+    let data = await db.configs.findAll({where:{ key: {[Op.in]: ['deviceId', 'e2ee_prikey'] }}});
     if (data.length == 2) {
         return { deviceId: data[0].value, priKey: data[1].value };
     } else {
@@ -63,20 +65,20 @@ export const getPriKey = async () => {
 }
 export const getPubKey = async (cb) => {
     const db = await getDb();
-    const data = await db.configs.find({ key: { $in: ['deviceId', 'e2ee_pubkey'] } }).exec();
+    const data = await db.configs.findAll({where:{ key: {[Op.in]: ['deviceId', 'e2ee_pubkey'] }}});
     if (data.length == 2) {
         cb(null, data[0].value, data[1].value);
     }
     else {
         console.log('getPubKey retry');
         await iniE2ee();
-        const data = await db.configs.find({ key: { $in: ['deviceId', 'e2ee_pubkey'] } }).exec();
+        const data = await db.configs.findAll({where:{ key: {[Op.in]: ['deviceId', 'e2ee_pubkey'] }}});
         cb(null, data[0].value, data[1].value);
     }
 }
 export const getDeviceId = async (cb) => {
     const db = await getDb();
-    let data = await db.configs.findOne({ key: 'deviceId' }).exec();
+    let data = await db.configs.findOne({where: { key: 'deviceId' }});
     if (data) {
         return data.value;
     } else {
@@ -93,9 +95,8 @@ export const setE2eeJid = async (jidLocal, value) => {
 }
 export const getE2ees = async (jidLocal) => {
     const db = await getDb();
-    let datas = await db.configs.find({
-        key: { $in: ['deviceId', 'e2ee_prikey', 'e2ee_pubkey', 'e2ee_' + jidLocal] }
-    }).exec();
+    let datas = await db.configs.findAll({where:
+          {key: { [Op.in]: ['deviceId', 'e2ee_prikey', 'e2ee_pubkey', 'e2ee_' + jidLocal] }}});
 
     if (datas) {
         let d = {};

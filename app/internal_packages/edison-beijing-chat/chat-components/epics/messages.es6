@@ -24,10 +24,11 @@ export const triggerFetchMessagesEpic = action$ =>
 
 export const fetchMessagesEpic = action$ =>
     action$.ofType(BEGIN_FETCH_MESSAGE)//yazzxx2
-        .mergeMap(
-            ({ payload }) => Observable.fromPromise(getDb())
-                .map(db => ({ db, jid: payload })),
-        )
+        .map(
+            ({ payload }) =>  {
+              const db = getDb();
+              return { db, jid: payload }
+            })
         // .mergeMap(
         //     ({ db, jid }) => {
         //         // console.log("yazz-config1", db, jid);

@@ -3,30 +3,22 @@ const Model = Sequelize.Model;
 const { getSequelize } = require('../chat-components/db/index');
 const sequelize = getSequelize();
 
-export default class Contact extends Model { }
-Contact.init({
-  // attributes
+export default class E2ee extends Model { }
+E2ee.init({
   jid: {
     type: Sequelize.STRING,
     primaryKey: true
   },
-  curJid: {
-    type: Sequelize.STRING,
-  },
-  name: {
+  devices: {
     type: Sequelize.STRING,
     allowNull: false
   },
-  email: {
-    type: Sequelize.STRING
-  },
-  avatar: {
-    type: Sequelize.STRING
+  key: {
+    type: Sequelize.STRING,
   }
 }, {
     sequelize,
-    modelName: 'contact'
-    // options
+    modelName: 'e2ees'
   });
-Contact.sync();
-sequelize.concatcs = Contact;
+E2ee.sync();
+sequelize.e2ees = E2ee;

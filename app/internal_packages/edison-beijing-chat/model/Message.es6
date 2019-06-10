@@ -1,4 +1,6 @@
 // For messages from current user
+import Conversation from './Conversation';
+
 export const MESSAGE_STATUS_FILE_UPLOADING = 'MESSAGE_STATUS_FILE_UPLOADING';
 export const MESSAGE_STATUS_SENDING = 'MESSAGE_STATUS_SENDING';
 export const MESSAGE_STATUS_DELIVERED = 'MESSAGE_STATUS_DELIVERED';
@@ -70,3 +72,4 @@ Message.init({
     // options
   });
 Message.sync();
+sequelize.messages = Message;

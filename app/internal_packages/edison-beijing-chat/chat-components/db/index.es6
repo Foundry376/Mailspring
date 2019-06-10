@@ -63,11 +63,5 @@ export const getSequelize = () => {
 }
 
 export default () => {
-  if (!dbPromise) {
-    dbPromise = createDb();
-  }
-  if (!sequelize) {
-    sequelize = createSQLITE();
-  }
-  return dbPromise;
+  return createSQLITE();
 };

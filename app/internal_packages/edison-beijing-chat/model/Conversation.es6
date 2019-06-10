@@ -59,3 +59,4 @@ Conversation.init({
     // options
   });
 Conversation.sync();
+sequelize.conversations = Conversation;

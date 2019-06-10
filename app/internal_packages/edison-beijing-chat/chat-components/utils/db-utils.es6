@@ -124,12 +124,12 @@ export async function safeUpsert(doc, data) {
   const key = docName2key[doc.name];
   const keyValue = data[key];
   try {
-    docinDB = await db[doc.name].findOne().where(key).eq(keyValue).exec();
+    docinDB = await db[doc.name].findOne({where:{[key]:keyValue}});
     if (docinDB) {
-      await docinDB.update({ $set: data })
+      await docinDB.updateAttributes(data)
       return docinDB;
     } else {
-      return await doc.insert(data)
+      return await doc.create(data)
     }
     tryCount = 0;
   } catch (e) {
@@ -137,7 +137,7 @@ export async function safeUpsert(doc, data) {
       const error = new Error();
       console.log('safeUpsert error: data, doc, e, stack: ', data, doc, e, error.stack);
     }
-    let doc2 = await db[doc.name].findOne().where(key).eq(keyValue).exec();
+    let doc2 = await db[doc.name].findOne({where: {[key]: keyValue}});
     let failed = false;
     if (doc2 && data) {
       for (let key in data) {

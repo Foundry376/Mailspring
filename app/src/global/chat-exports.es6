@@ -40,7 +40,7 @@ const load = (klassName, path) => {
 };
 
 // Actions
-lazyLoad(`ChatActions`, 'flux-actions/actions');
+lazyLoad(`ChatActions`, 'actions/actions');
 
 // API Endpoints
 //lazyLoad(`MailspringAPIRequest`, 'flux/mailspring-api-request');
