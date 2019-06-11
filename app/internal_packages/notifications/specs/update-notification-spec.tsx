@@ -81,6 +81,14 @@ describe('UpdateNotification', function describeBlock() {
         notif.find('#action-0').simulate('click'); // Expects the first action to be the install action
         expect(ipcSendArgs).toEqual(['command', 'application:install-update']);
       });
+
+      it('should dismiss the update notification prompt', () => {
+        stubUpdaterState = 'update-available';
+        const notif = mount(<UpdateNotification />);
+        expect(notif.find('.notification').exists()).toEqual(true);
+        notif.find('#action-1').simulate('click'); // Expects the second action to be the dismiss action
+        expect(notif.find('.notification').exists()).toEqual(false);
+      });
     });
   });
 });
