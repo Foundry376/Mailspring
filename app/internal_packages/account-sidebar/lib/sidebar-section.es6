@@ -211,25 +211,20 @@ class SidebarSection {
       var item, parentKey;
       const re = RegExpUtils.subcategorySplitRegex();
       const itemKey = category.displayName.replace(re, '/');
-
+      if (itemKey.toLocaleLowerCase().includes('inbox/')) {
+        continue;
+      }
       let parent = null;
       const parentComponents = itemKey.split('/');
       for (let i = parentComponents.length; i >= 1; i--) {
         parentKey = parentComponents.slice(0, i).join('/');
-        parent = seenItems[parentKey];
+        parent = seenItems[parentKey.toLocaleLowerCase()];
         if (parent) {
           break;
         }
       }
 
-      if (parent) {
-        const itemDisplayName = category.displayName.substr(parentKey.length + 1);
-        item = SidebarItem.forCategories([category], { name: itemDisplayName });
-        parent.children.push(item);
-        if (item.selected) {
-          parent.selected = true;
-        }
-      } else {
+      if (!parent) {
         if (!category.displayName.match(re)) {
           item = SidebarItem.forCategories([category]);
           items.push(item);
@@ -238,7 +233,7 @@ class SidebarSection {
         }
       }
       if (item) {
-        seenItems[itemKey] = item;
+        seenItems[itemKey.toLocaleLowerCase()] = item;
       }
     }
     return items;
