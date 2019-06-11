@@ -208,7 +208,7 @@ class ConversationStore extends MailspringStore {
     const config = data.edimucevent.edimucconfig;
     const convJid = data.from.bare;
     const conv = await this.getConversationByJid(convJid);
-    if (conv && conv.name === config.name) {
+    if (!conv || conv.name === config.name) {
       return;
     } else {
       const name = config.name;
