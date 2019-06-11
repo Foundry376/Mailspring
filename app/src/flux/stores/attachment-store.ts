@@ -137,7 +137,6 @@ class AttachmentStore extends MailspringStore {
     // If the preview file doesn't exist yet, generate it
     if (await generatePreview({ file, filePath, previewPath })) {
       this._filePreviewPaths[file.id] = previewPath;
-      console.log('got preview for ' + previewPath);
       this.trigger();
     }
   }
