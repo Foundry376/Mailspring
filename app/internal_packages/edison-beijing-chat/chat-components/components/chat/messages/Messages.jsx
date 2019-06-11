@@ -15,7 +15,7 @@ import MessageImagePopup from './MessageImagePopup';
 import Group from './Group';
 import SecurePrivate from './SecurePrivate';
 import _ from 'underscore';
-import { RoomStore } from 'chat-exports';
+import { RoomStore, MessageStore, ConversationStore } from 'chat-exports';
 
 let key = 0;
 
@@ -32,21 +32,6 @@ const flattenMsgIds = groupedMessages =>
 export default class Messages extends Component {
   static propTypes = {
     currentUserId: PropTypes.string.isRequired,
-    groupedMessages: PropTypes.arrayOf(
-      PropTypes.shape({
-        time: PropTypes.string.isRequired,
-        messages: PropTypes.arrayOf(
-          PropTypes.shape({
-            id: PropTypes.string.isRequired,
-            conversationJid: PropTypes.string.isRequired,
-            sender: PropTypes.string.isRequired,
-            body: PropTypes.string.isRequired,
-            sentTime: PropTypes.number.isRequired,
-            status: PropTypes.string.isRequired,
-          })
-        ).isRequired
-      })
-    ).isRequired,
     referenceTime: PropTypes.number,
     selectedConversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
@@ -67,12 +52,13 @@ export default class Messages extends Component {
       visible: false,
       percent: 0,
     },
-    members: []
+    members: [],
+    groupedMessages: []
   }
 
   static timer;
 
-  componentWillReceiveProps = async (nextProps) => {
+  componentWillReceiveProps = async (nextProps, nextState) => {
     const { selectedConversation: currentConv = {} } = this.props;
     const { selectedConversation: nextConv = {} } = nextProps;
     const { jid: currentJid } = currentConv;
@@ -83,10 +69,8 @@ export default class Messages extends Component {
       await this.getRoomMembers(nextConv);
       return;
     }
-
-    const msgElem = this.messagesPanel;
-    const { groupedMessages: currentMsgs = [] } = this.props;
-    const { groupedMessages: nextMsgs = [] } = nextProps;
+    const { groupedMessages: currentMsgs = [] } = this.state;
+    const { groupedMessages: nextMsgs = [] } = nextState;
     const currentIds = flattenMsgIds(currentMsgs);
     const nextIds = flattenMsgIds(nextMsgs);
     const areNewMessages = currentIds.size < nextIds.size;
@@ -100,15 +84,33 @@ export default class Messages extends Component {
   getRoomMembers = async (conv) => {
     if (conv.isGroup) {
       const members = await RoomStore.getRoomMembers(conv.jid, conv.curJid);
-      console.log('***members - 1', members);
       this.setState({ members });
     }
   }
 
   componentDidMount = async () => {
-    this.unlisten = Actions.updateDownloadPorgress.listen(this.update, this);
+    this._listenToStore();
     const { selectedConversation: conv = {} } = this.props;
     await this.getRoomMembers(conv);
+  }
+
+  _listenToStore = () => {
+    this._unsubs = [];
+    this._unsubs.push(Actions.updateDownloadPorgress.listen(this.update, this));
+    this._unsubs.push(MessageStore.listen(() => this._onDataChanged('message')));
+  }
+
+  _onDataChanged = async (changedDataName) => {
+    if (changedDataName === 'message') {
+      let groupedMessages = [];
+      const selectedConversation = await ConversationStore.getSelectedConversation();
+      if (selectedConversation) {
+        groupedMessages = await MessageStore.getGroupedMessages(selectedConversation.jid);
+        this.setState({
+          groupedMessages
+        });
+      }
+    }
   }
 
   componentDidUpdate = async () => {
@@ -117,10 +119,12 @@ export default class Messages extends Component {
     }
   }
   componentWillUnmount() {
-    this.unlisten();
+    for (const unsub of this._unsubs) {
+      unsub();
+    };
     const {
       groupedMessages
-    } = this.props;
+    } = this.state;
     saveGroupMessages(groupedMessages);
   }
 
@@ -242,9 +246,17 @@ export default class Messages extends Component {
   render() {
     const {
       currentUserId,
-      groupedMessages,
-      selectedConversation: { isGroup, jid },
+      selectedConversation: { jid },
     } = this.props;
+    const { groupedMessages, members } = this.state;
+    groupedMessages.map(group => group.messages.map(message => {
+      members.map(member => {
+        const jid = member.jid.bare || member.jid;
+        if (jid === message.sender) {
+          message.senderNickname = member.nickname || message.senderNickname;
+        }
+      });
+    }));
     messageModel.currentUserId = currentUserId;
     if (jid === NEW_CONVERSATION) {
       return null;
@@ -262,8 +274,9 @@ export default class Messages extends Component {
         tabIndex="0"
       >
         <SecurePrivate />
-        {groupedMessages.map((group, idx) => (
-          <Group conversation={this.props.selectedConversation}
+        {groupedMessages.map((group) => (
+          <Group
+            conversation={this.props.selectedConversation}
             group={group}
             queueLoadMessage={this.props.queueLoadMessage}
             onMessageSubmitted={this.props.onMessageSubmitted}
@@ -275,6 +288,7 @@ export default class Messages extends Component {
         }
         <MessageImagePopup
           {...this.props}
+          groupedMessages={groupedMessages}
           getContactInfoByJid={this.getContactInfoByJid}
           getContactAvatar={this.getContactAvatar}
         />

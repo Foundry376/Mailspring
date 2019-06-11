@@ -72,35 +72,33 @@ export default class MessagesPanel extends Component {
         loadConfig: null
       },
       selectedConversation: null,
-      contacts: [],
-      groupedMessages: []
+      contacts: []
     }
     this._listenToStore();
   }
 
   _listenToStore = () => {
     this._unsubs = [];
-    this._unsubs.push(ConversationStore.listen(this._onDataChanged));
-    this._unsubs.push(MessageStore.listen(this._onDataChanged));
-    this._unsubs.push(ContactStore.listen(this._onDataChanged));
+    this._unsubs.push(ConversationStore.listen(() => this._onDataChanged('conversation')));
+    this._unsubs.push(ContactStore.listen(() => this._onDataChanged('contact')));
   }
 
-  _onDataChanged = async () => {
-    const selectedConversation = await ConversationStore.getSelectedConversation();
-    const contacts = await ContactStore.getContacts();
-    let groupedMessages = [];
-    if (selectedConversation) {
-      groupedMessages = await MessageStore.getGroupedMessages(selectedConversation.jid);
-      const { selectedConversation: currentConv } = this.state;
-      if (!currentConv || currentConv.jid !== selectedConversation.jid) {
-        await this.refreshRoomMembers({ selectedConversation });
+  _onDataChanged = async (changedDataName) => {
+    if (changedDataName === 'conversation') {
+      const selectedConversation = await ConversationStore.getSelectedConversation();
+      if (!this.state.selectedConversation
+        || this.state.selectedConversation.jid !== selectedConversation.jid) {
+        this.setState({
+          selectedConversation
+        });
       }
     }
-    this.setState({
-      selectedConversation,
-      groupedMessages,
-      contacts
-    });
+    else if (changedDataName === 'contact') {
+      const contacts = await ContactStore.getContacts();
+      this.setState({
+        contacts
+      });
+    }
   }
 
   onUpdateGroup = async (contacts) => {
@@ -573,21 +571,12 @@ export default class MessagesPanel extends Component {
 
   render() {
     this.getApps();
-    const { showConversationInfo, inviting, members, contacts } = this.state;
+    const { showConversationInfo, selectedConversation, inviting, members, contacts } = this.state;
     const {
       sendMessage,
       availableUsers,
       referenceTime,
     } = this.props;
-    const { groupedMessages, selectedConversation } = this.state;
-    groupedMessages.map(group => group.messages.map(message => {
-      members.map(member => {
-        const jid = member.jid.bare || member.jid;
-        if (jid === message.sender) {
-          message.senderNickname = member.nickname || message.senderNickname;
-        }
-      });
-    }));
     const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
     const topBarProps = {
       onBackPressed: () => {
@@ -604,12 +593,11 @@ export default class MessagesPanel extends Component {
     };
     const messagesProps = {
       currentUserId,
-      groupedMessages,
       referenceTime,
       selectedConversation,
       onMessageSubmitted: sendMessage,
       queueLoadMessage: this.queueLoadMessage,
-      members: this.state.members,
+      members,
     };
     const sendBarProps = {
       onMessageSubmitted: sendMessage,
@@ -619,7 +607,7 @@ export default class MessagesPanel extends Component {
     const infoProps = {
       selectedConversation,
       toggleInvite: this.toggleInvite,
-      members: this.state.members,
+      members,
       loadingMembers: this.state.loadingMembers,
       getRoomMembers: this.getRoomMembers,
       refreshRoomMembers: this.refreshRoomMembers,
@@ -645,7 +633,6 @@ export default class MessagesPanel extends Component {
     const newConversationProps = {
       contacts: allContacts,
       saveRoomMembersForTemp: this.saveRoomMembersForTemp,
-      // deselectConversation,
       createRoom: this.createRoom
     }
     let className = '';
@@ -654,7 +641,6 @@ export default class MessagesPanel extends Component {
     }
 
     const isOffLine = !this.state.online || !this.props.chat_online;
-
     return (
       <div className={`panel ${isOffLine ? 'offline' : ''}`}
         onDragOverCapture={this.onDragOver}
