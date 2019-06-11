@@ -8,6 +8,8 @@ import { copyRxdbContact, safeUpdate, saveGroupMessages } from '../utils/db-util
 const { remote } = require('electron');
 const { Actions } = require('mailspring-exports');
 import { ChatActions, ContactStore } from 'chat-exports';
+import Sequelize from 'Sequelize';
+
 const Op = Sequelize.Op;
 
 import {
@@ -99,7 +101,7 @@ export const sendMessageEpic = action$ =>
     .mergeMap(({ db, payload }) => {
       if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
         let occupants = payload.conversation.occupants;
-        return Observable.fromPromise(db.e2ees.findAll({where: { jid: { [OP.in]: occupants }}}))
+        return Observable.fromPromise(db.e2ees.findAll({where: { jid: { [Op.in]: occupants }}}))
           .map(e2ees => {
             let devices = [];
             if (e2ees && e2ees.length == occupants.length) {

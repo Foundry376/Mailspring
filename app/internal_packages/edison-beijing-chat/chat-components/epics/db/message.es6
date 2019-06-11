@@ -69,11 +69,11 @@ const saveMessages = async messages => {
 
 export const triggerStoreMessageEpic = action$ =>
   action$.ofType(NEW_MESSAGE)
-    .mergeMap(({ payload: newMessage }) =>
-      Observable.fromPromise(getDb())
-        .mergeMap(db => db.messages.findOne(newMessage.id).exec())
+    .mergeMap(({ payload: newMessage }) => {
+      const db = getDb();
+      return Observable.fromPromise(db.messages.findOne({ where: { id: newMessage.id } }))
         .map(dbMessage => ({ dbMessage, newMessage }))
-    )
+    })
     .filter(({ dbMessage, newMessage }) => {
       // !dbMessage || newMessage.status === 'MESSAGE_STATUS_RECEIVED' || getStatusWeight(newMessage.status) > getStatusWeight(dbMessage.status)
       return true;
