@@ -57,6 +57,18 @@ class MessageStore extends MailspringStore {
     // TODO 弹出提示
   }
 
+  removeMessagesByConversationJid = async (jid) => {
+    await MessageModel.destroy({
+      where: {
+        conversationJid: jid
+      }
+    });
+    if (this.conversationJid === jid) {
+      this.groupedMessages = [];
+      this._triggerDebounced();
+    }
+  }
+
   processPrivateMessage = async (payload) => {
     await this.prepareForSaveMessage(payload, RECEIVE_PRIVATECHAT);
   }

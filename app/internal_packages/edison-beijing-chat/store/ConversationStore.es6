@@ -43,12 +43,13 @@ class ConversationStore extends MailspringStore {
   }
 
   removeConversation = async (jid) => {
-    ConversationModel.destroy({
+    await ConversationModel.destroy({
       where: {
         jid
       }
     });
     this.refreshConversations();
+    MessageStore.removeMessagesByConversationJid(jid);
   }
 
   deselectConversation = async (jid) => {
@@ -109,6 +110,10 @@ class ConversationStore extends MailspringStore {
         jid
       }
     });
+  }
+
+  findConversationsByCondition = async (condition) => {
+    return await ConversationModel.findAll(condition);
   }
 
   refreshConversations = async () => {

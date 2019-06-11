@@ -3,13 +3,12 @@
 import _ from 'underscore';
 
 import MailspringStore from 'mailspring-store';
+import { ConversationStore } from 'chat-exports';
 import KeyManager from '../../key-manager';
 import Actions from '../actions';
 import Account from '../models/account';
 import Utils from '../models/utils';
-import getDb from '../../../internal_packages/edison-beijing-chat/chat-components/db';
-import { clearMessages } from '../../../internal_packages/edison-beijing-chat/chat-components/utils/message';
-import {removeMyApps} from '../../../internal_packages/edison-beijing-chat/chat-components/utils/appmgt';
+import { removeMyApps } from '../../../internal_packages/edison-beijing-chat/chat-components/utils/appmgt';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
@@ -174,23 +173,19 @@ class AccountStore extends MailspringStore {
    * the AccountStore and runs `ensureK2Consistency`. This will actually
    * delete the Account on the local sync side.
    */
-  _onRemoveAccount = id => {
+  _onRemoveAccount = async id => {
     const account = this._accounts.find(a => a.id === id);
     if (!account) return;
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
     let chatAccount = chatAccounts[account.emailAddress];
     delete chatAccounts[account.emailAddress];
     AppEnv.config.set('chatAccounts', chatAccounts);
-    if(chatAccount) {//If there is an chat account
+    if (chatAccount) {//If there is an chat account
       let jid = chatAccount.userId + '@im.edison.tech';
-      getDb().then(db => {
-        db.conversations.find().where('curJid').eq(jid).exec().then(conversations => {
-          conversations.forEach(conv =>{
-            clearMessages(conv);
-            conv.remove();
-          })
-        });
-      });
+      const conversations = await ConversationStore.findConversationsByCondition({ curJid: jid });
+      for (const conv of conversations) {
+        ConversationStore.removeConversation(conv.jid);
+      }
       xmpp.removeXmpp(jid);
       removeMyApps(chatAccount.userId);
     }
