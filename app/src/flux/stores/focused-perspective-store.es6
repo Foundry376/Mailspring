@@ -76,6 +76,7 @@ class FocusedPerspectiveStore extends MailspringStore {
         const categories = this._current.accountIds.map(id => CategoryStore.getArchiveCategory(id));
         this._setPerspective(MailboxPerspective.forCategories(categories));
       },
+      'navigation:go-to-chat': () => this.gotoChat(),
       'navigation:go-to-contacts': () => {
       }, // TODO,
       'navigation:go-to-tasks': () => {
@@ -83,6 +84,9 @@ class FocusedPerspectiveStore extends MailspringStore {
       'navigation:go-to-label': () => {
       }, // TODO,
     });
+  }
+  gotoChat=()=>{
+    Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
   }
 
   gotoAllInbox = () => {

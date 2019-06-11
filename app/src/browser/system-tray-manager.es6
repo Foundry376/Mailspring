@@ -98,7 +98,7 @@ class SystemTrayManager {
   };
 
   _onChatClick = () => {
-    this._application.emit('application:show-main-window');
+    this._application.emit('application:show-chat');
   };
 
   updateTraySettings(iconPath, unreadString, isTemplateImg, chatIconPath) {
