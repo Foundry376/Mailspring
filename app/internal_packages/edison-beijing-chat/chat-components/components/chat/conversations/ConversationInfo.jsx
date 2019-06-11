@@ -8,12 +8,15 @@ import _ from 'lodash';
 import RetinaImg from '../../../../../../src/components/retina-img';
 import chatModel, { saveToLocalStorage } from '../../../store/model';
 import { ChatActions, MessageStore, RoomStore } from 'chat-exports';
-
+import { FixedPopover } from 'mailspring-component-kit';
+import { NEW_CONVERSATION } from '../../../actions/chat';
+import InviteGroupChatList from '../new/InviteGroupChatList';
 
 export default class ConversationInfo extends Component {
   constructor(props) {
     super();
     this.state = {
+      inviting: false,
       members: [],
       loadingMembers: false,
       visible: false,
@@ -92,6 +95,45 @@ export default class ConversationInfo extends Component {
     ChatActions.deselectConversation();
   }
 
+  toggleInvite = (moreBtnEl) => {
+    this.setState({ inviting: !this.state.inviting, moreBtnEl });
+  }
+
+  onUpdateGroup = async (contacts) => {
+    this.setState({ inviting: false });
+    const { selectedConversation } = this.props;
+    if (contacts && contacts.length > 0) {
+      if (selectedConversation.isGroup) {
+        await Promise.all(contacts.map(contact => (
+          xmpp.addMember(selectedConversation.jid, contact.jid, selectedConversation.curJid)
+        )));
+        this.refreshRoomMembers();
+      } else {
+        const roomId = uuid() + GROUP_CHAT_DOMAIN;
+        if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
+          const other = await ContactStore.findContactByJid(selectedConversation.curJid);
+          if (other) {
+            contacts.unshift(other);
+          } else {
+            contacts.unshift({ jid: selectedConversation.jid, name: '' });
+          }
+        }
+        if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
+          const owner = await ContactStore.findContactByJid(selectedConversation.curJid);
+          if (owner) {
+            contacts.unshift(owner);
+          } else {
+            contacts.unshift({ jid: selectedConversation.curJid, name: '' });
+          }
+        }
+        const names = contacts.map(item => item.name);
+        const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
+        // const { onGroupConversationCompleted } = this.props;
+        ConversationStore.createGroupConversation({ contacts, roomId, name: chatName, curJid: selectedConversation.curJid });
+      }
+    }
+  }
+
   showMenu = (e) => {
     const menus = [
       {
@@ -116,7 +158,7 @@ export default class ConversationInfo extends Component {
         label: `Add to Group...`,
         click: () => {
           const moreBtnEl = document.querySelector('.more');
-          this.props.toggleInvite(moreBtnEl);
+          this.toggleInvite(moreBtnEl);
         },
       })
     }
@@ -124,8 +166,8 @@ export default class ConversationInfo extends Component {
   }
 
   render = () => {
-    const { selectedConversation: conversation } = this.props;
-    const { members: roomMembers, loadingMembers } = this.state;
+    const { selectedConversation: conversation, contacts } = this.props;
+    const { members: roomMembers, loadingMembers, inviting } = this.state;
     let currentUserIsOwner = false;
     for (const member of roomMembers) {
       const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
@@ -196,6 +238,23 @@ export default class ConversationInfo extends Component {
             ])
           }
         </div>
+        {inviting && conversation.jid !== NEW_CONVERSATION && (
+          <FixedPopover {...{
+            direction: 'down',
+            originRect: {
+              width: 350,
+              height: 430,
+              top: this.state.moreBtnEl.getBoundingClientRect().top,
+              left: this.state.moreBtnEl.getBoundingClientRect().left,
+            },
+            closeOnAppBlur: false,
+            onClose: () => {
+              this.setState({ inviting: false });
+            },
+          }}>
+            <InviteGroupChatList contacts={contacts} groupMode={true} onUpdateGroup={this.onUpdateGroup} />
+          </FixedPopover>
+        )}
       </div>
     )
   };

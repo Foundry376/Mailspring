@@ -9,8 +9,6 @@ import MessagesSendBar from './MessagesSendBar';
 import Messages from './Messages';
 import ConversationInfo from '../conversations/ConversationInfo';
 import Divider from '../../common/Divider';
-import InviteGroupChatList from '../new/InviteGroupChatList';
-import xmpp from '../../../xmpp/index';
 import chatModel, { saveToLocalStorage } from '../../../store/model';
 import { downloadFile, uploadFile } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
@@ -19,7 +17,6 @@ import { FILE_TYPE } from './messageModel';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore } from 'chat-exports';
-import FixedPopover from '../../../../../../src/components/fixed-popover';
 import { queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
 import { isJsonStr } from '../../../utils/stringUtils';
 import { AccountStore } from 'mailspring-exports';
@@ -62,7 +59,6 @@ export default class MessagesPanel extends Component {
     super(props);
     this.state = {
       showConversationInfo: false,
-      inviting: false,
       membersTemp: null,
       online: true,
       connecting: false,
@@ -97,40 +93,6 @@ export default class MessagesPanel extends Component {
       this.setState({
         contacts
       });
-    }
-  }
-
-  onUpdateGroup = async (contacts) => {
-    this.setState(Object.assign({}, this.state, { inviting: false }));
-    const { selectedConversation } = this.state;
-    if (contacts && contacts.length > 0) {
-      if (selectedConversation.isGroup) {
-        await Promise.all(contacts.map(contact => (
-          xmpp.addMember(selectedConversation.jid, contact.jid, selectedConversation.curJid)
-        )));
-      } else {
-        const roomId = uuid() + GROUP_CHAT_DOMAIN;
-        if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
-          const other = await ContactStore.findContactByJid(selectedConversation.curJid);
-          if (other) {
-            contacts.unshift(other);
-          } else {
-            contacts.unshift({ jid: selectedConversation.jid, name: '' });
-          }
-        }
-        if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
-          const owner = await ContactStore.findContactByJid(selectedConversation.curJid);
-          if (owner) {
-            contacts.unshift(owner);
-          } else {
-            contacts.unshift({ jid: selectedConversation.curJid, name: '' });
-          }
-        }
-        const names = contacts.map(item => item.name);
-        const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
-        // const { onGroupConversationCompleted } = this.props;
-        ConversationStore.createGroupConversation({ contacts, roomId, name: chatName, curJid: selectedConversation.curJid });
-      }
     }
   }
 
@@ -262,10 +224,6 @@ export default class MessagesPanel extends Component {
 
   saveRoomMembersForTemp = (members) => {
     this.setState({ membersTemp: members })
-  }
-
-  toggleInvite = (moreBtnEl) => {
-    this.setState({ inviting: !this.state.inviting, moreBtnEl });
   }
 
   onDragOver = (event) => {
@@ -532,7 +490,7 @@ export default class MessagesPanel extends Component {
 
   render() {
     this.getApps();
-    const { showConversationInfo, selectedConversation, inviting, contacts } = this.state;
+    const { showConversationInfo, selectedConversation, contacts } = this.state;
     const {
       sendMessage,
       availableUsers,
@@ -546,11 +504,8 @@ export default class MessagesPanel extends Component {
       },
       onInfoPressed: () =>
         this.setState({ showConversationInfo: !this.state.showConversationInfo }),
-      toggleInvite: this.toggleInvite,
       availableUsers,
-      infoActive: showConversationInfo,
       selectedConversation,
-      inviting: this.state.inviting
     };
     const messagesProps = {
       currentUserId,
@@ -563,14 +518,6 @@ export default class MessagesPanel extends Component {
       onMessageSubmitted: sendMessage,
       selectedConversation,
       queueLoadMessage: this.queueLoadMessage,
-    };
-    const infoProps = {
-      selectedConversation,
-      toggleInvite: this.toggleInvite,
-      loadingMembers: this.state.loadingMembers,
-      getRoomMembers: this.getRoomMembers,
-      editProfile: this.editProfile,
-      exitProfile: this.exitProfile,
     };
     const contactsSet = {};
     contacts.forEach(contact => {
@@ -592,6 +539,14 @@ export default class MessagesPanel extends Component {
       saveRoomMembersForTemp: this.saveRoomMembersForTemp,
       createRoom: this.createRoom
     }
+    const infoProps = {
+      selectedConversation,
+      loadingMembers: this.state.loadingMembers,
+      getRoomMembers: this.getRoomMembers,
+      editProfile: this.editProfile,
+      exitProfile: this.exitProfile,
+      contacts: allContacts,
+    };
     let className = '';
     if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {
       className = 'new-conversation-popup'
@@ -675,23 +630,6 @@ export default class MessagesPanel extends Component {
               <span>Your computer appears to be offline. Please check your network connection.</span>
             </div>)}
           </div>
-        )}
-        {inviting && selectedConversation.jid !== NEW_CONVERSATION && (
-          <FixedPopover {...{
-            direction: 'down',
-            originRect: {
-              width: 350,
-              height: 430,
-              top: this.state.moreBtnEl.getBoundingClientRect().top,
-              left: this.state.moreBtnEl.getBoundingClientRect().left,
-            },
-            closeOnAppBlur: false,
-            onClose: () => {
-              this.setState({ inviting: false });
-            },
-          }}>
-            <InviteGroupChatList contacts={allContacts} groupMode={true} onUpdateGroup={this.onUpdateGroup} />
-          </FixedPopover>
         )}
         <MemberProfile conversation={selectedConversation}
           exitProfile={this.exitProfile}
