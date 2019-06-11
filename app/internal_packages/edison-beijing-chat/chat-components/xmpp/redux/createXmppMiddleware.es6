@@ -1,5 +1,5 @@
 import { Xmpp } from '../index';
-import { MessageStore, OnlineUserStore, ConversationStore } from 'chat-exports';
+import { MessageStore, OnlineUserStore, ConversationStore, RoomStore } from 'chat-exports';
 
 /**
  * Creates a middleware for the XMPP class to dispatch actions to a redux store whenever any events
@@ -51,9 +51,17 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   xmpp.on('disconnected', data => {
     OnlineUserStore.removeOnLineAccount(data);
   })
+
+  // change conversation name
   xmpp.on('edimucconfig', data => {
     ConversationStore.saveConversationName(data);
-  })
+  });
+
+  //member join / quit
+  xmpp.on('memberschange', data => {
+    RoomStore.onMembersChange(data);
+  });
+
   return next => action => next(action);
 };
 

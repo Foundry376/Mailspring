@@ -5,9 +5,10 @@ import {
   membersChange,
 } from '../../../actions/chat';
 
+import { RoomStore } from 'chat-exports';
+
 export default {
   // chat: receiveChat,
   // groupchat: receiveGroupchat,
   'message:sent': messageSent,
-  memberschange: membersChange,
 };

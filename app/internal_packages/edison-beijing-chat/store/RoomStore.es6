@@ -2,6 +2,11 @@ import MailspringStore from 'mailspring-store';
 import RoomModel from '../model/Room';
 import xmpp from '../chat-components/xmpp';
 import {jidlocal} from '../chat-components/utils/jid';
+import chatModel from '../chat-components/store/model';
+import { MESSAGE_STATUS_RECEIVED } from '../chat-components/db/schemas/message';
+import { beginStoringMessage } from '../chat-components/actions/db/message';
+import {MessageStore, ContactStore} from 'chat-exports';
+import uuid from 'uuid/v4';
 
 class RoomStore extends MailspringStore {
   constructor() {
@@ -87,6 +92,53 @@ class RoomStore extends MailspringStore {
       }
     }
     return null;
+  }
+
+  onMembersChange = async (payload) => {
+    console.log( 'onMembersChange: payload: ', payload);
+    const nicknames = chatModel.chatStorage.nicknames;
+    const fromjid = payload.userJid;
+    const fromcontact = await ContactStore.findContactByJid(fromjid);
+    const byjid = payload.actorJid;
+    const bycontact = await ContactStore.findContactByJid(byjid);
+    const item = {
+      from: {
+        jid: fromjid,
+        email: payload.userEmail,
+        name: fromcontact && fromcontact.name,
+        nickname: nicknames[fromjid]
+      },
+      type: payload.type,
+      by: {
+        jid: byjid,
+        email: bycontact && bycontact.email,
+        name: bycontact && bycontact.name,
+        nickname: nicknames[byjid]
+      }
+    }
+
+    let content;
+    const fromName = item.from.nickname || item.from.name || item.from.email;
+    const byName = item.by.nickname || item.by.name || item.by.email;
+    if (payload.type === 'join') {
+      content = `${fromName} joined by invitation from ${byName}.`
+    } else {
+      content = `${fromName} quited by operation from ${byName}.`
+    }
+    const body = {
+      content,
+    }
+    const msg = {
+      id: uuid(),
+      conversationJid: payload.from.bare,
+      sender: fromjid,
+      body: JSON.stringify(body),
+      sentTime: (new Date()).getTime(),
+      status: MESSAGE_STATUS_RECEIVED,
+    };
+    this.refreshRoomMember(payload.from.bare, payload.curJid);
+    MessageStore.saveMessagesAndRefresh([msg]);
+    return;
   }
 }
 
