@@ -11,6 +11,7 @@ import {
   ISignature,
   IDefaultSignatures,
   IAliasSet,
+  InlineStyleTransformer,
 } from 'mailspring-exports';
 import { Flexbox, EditableList } from 'mailspring-component-kit';
 
@@ -29,10 +30,20 @@ interface SignatureEditorProps {
 interface SignatureEditorState {}
 
 class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEditorState> {
-  _onBaseFieldChange = event => {
-    const { id, value } = event.target;
+  _onTitleChange = event => {
     const sig = this.props.signature;
-    Actions.upsertSignature(Object.assign({}, sig, { [id]: value }), sig.id);
+    Actions.upsertSignature({ ...sig, title: event.target.value }, sig.id);
+  };
+
+  _onRawBodyChange = async event => {
+    const sig = this.props.signature;
+    let body = event.target.value;
+    try {
+      body = await InlineStyleTransformer.run(body);
+    } catch (err) {
+      //no-op
+    }
+    Actions.upsertSignature({ ...sig, body }, sig.id);
   };
 
   _onDataFieldChange = event => {
@@ -43,7 +54,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
     // display a warning UNLESS the html is an unmodified template HTML
     if (id === 'templateName' && !sig.data.templateName && value) {
       const htmlMatchesATemplate = Templates.find(
-        t => sig.body === RenderSignatureData(Object.assign({}, sig.data, { templateName: t.name }))
+        t => sig.body === RenderSignatureData({ ...sig.data, templateName: t.name })
       );
       if (!htmlMatchesATemplate) {
         const idx = remote.dialog.showMessageBox({
@@ -61,7 +72,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
     }
 
     // apply change
-    sig.data = Object.assign({}, sig.data, { [id]: value });
+    sig.data = { ...sig.data, [id]: value };
 
     // re-render
     if (sig.data.templateName) {
@@ -99,7 +110,7 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
             id="title"
             placeholder={localized('Name')}
             value={signature.title || ''}
-            onChange={this._onBaseFieldChange}
+            onChange={this._onTitleChange}
           />
           <div style={{ flex: 1 }} />
           <SignatureAccountDefaultPicker
@@ -125,11 +136,11 @@ class SignatureEditor extends React.Component<SignatureEditorProps, SignatureEdi
               </div>,
               <textarea
                 id="body"
-                key="textarea"
+                key={`textarea ${signature.id}`}
                 className="section raw-html"
                 spellCheck={false}
-                onChange={this._onBaseFieldChange}
-                value={signature.body || ''}
+                onChange={this._onRawBodyChange}
+                defaultValue={signature.body || ''}
               />,
             ]
           : [
@@ -208,7 +219,7 @@ export default class PreferencesSignatures extends React.Component<{}, Preferenc
     let data = {};
     let body = null;
     if (this.state.selectedSignature) {
-      data = Object.assign({}, this.state.selectedSignature.data);
+      data = { ...this.state.selectedSignature.data };
       body = this.state.selectedSignature.body;
     } else {
       data = {
