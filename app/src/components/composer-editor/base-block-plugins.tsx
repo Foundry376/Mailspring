@@ -1,7 +1,7 @@
 import React from 'react';
 import { Editor, Value, Node } from 'slate';
 import SoftBreak from 'slate-soft-break';
-import EditList from 'golery-slate-edit-list';
+import EditList from '@bengotow/slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
 import When from 'slate-when';
 
