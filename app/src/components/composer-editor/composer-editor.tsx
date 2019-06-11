@@ -8,7 +8,7 @@ import fs from 'fs';
 
 import { KeyCommandsRegion } from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
-import { schema, plugins, convertFromHTML, convertToHTML } from './conversion';
+import { schema, plugins, convertFromHTML, convertToHTML, convertToPlainText } from './conversion';
 import { lastUnquotedNode, removeQuotedText } from './base-block-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
 import ReactDOM from 'react-dom';
@@ -122,10 +122,11 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
 
   onCopy = (event, editor: Editor, next: () => void) => {
     event.preventDefault();
-    const document = editor.value.document.getFragmentAtRange((editor.value
+    const fragment = editor.value.document.getFragmentAtRange((editor.value
       .selection as any) as Range);
-    event.clipboardData.setData('text/html', convertToHTML(Value.create({ document })));
-    event.clipboardData.setData('text/plain', editor.value.fragment.text);
+    const value = Value.create({ document: fragment });
+    event.clipboardData.setData('text/html', convertToHTML(value));
+    event.clipboardData.setData('text/plain', convertToPlainText(value));
   };
 
   onCut = (event, editor: Editor, next: () => void) => {

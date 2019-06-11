@@ -1,4 +1,5 @@
 import Html from 'slate-html-serializer';
+import PlainSerializer from 'slate-plain-serializer';
 import {
   TextJSON,
   InlineJSON,
@@ -384,4 +385,8 @@ export function convertFromHTML(html: string) {
 
 export function convertToHTML(value: Value) {
   return HtmlSerializer.serialize(value);
+}
+
+export function convertToPlainText(value: Value) {
+  return PlainSerializer.serialize(value);
 }
