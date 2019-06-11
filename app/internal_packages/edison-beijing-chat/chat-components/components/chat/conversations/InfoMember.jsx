@@ -50,7 +50,7 @@ export default class InfoMember extends Component {
           </div>
           <div className="email">{email}</div>
         </div>
-        { //this.currentUserIsOwner && member.affiliation !== 'owner' &&
+        {this.props.currentUserIsOwner && member.affiliation !== 'owner' &&
           <span className="remove-member" onClick={this.onClickRemove}>
             <CancelIcon color={primaryColor} />
           </span>

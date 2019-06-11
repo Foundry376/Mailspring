@@ -138,6 +138,7 @@ export default class ConversationInfo extends Component {
                 editProfile={this.props.editProfile}
                 exitProfile={this.props.exitProfile}
                 removeMember={this.props.removeMember}
+                currentUserIsOwner={this.currentUserIsOwner}
                 key={member.jid}
               />)
             })
