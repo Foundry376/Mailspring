@@ -6,15 +6,10 @@ import { WorkspaceStore, Actions } from 'mailspring-exports';
 import ProgressBar from '../../common/ProgressBar';
 export default class Conversations extends PureComponent {
   static propTypes = {
-    // conversations: PropTypes.arrayOf(PropTypes.object).isRequired,
-    // selectedIndex: PropTypes.number,
-    // selectConversation: PropTypes.func.isRequired,
     referenceTime: PropTypes.number,
-    // removeConversation: PropTypes.func
   };
 
   static defaultProps = {
-    // selectedIndex: null,
     referenceTime: new Date().getTime(),
   }
 
@@ -46,11 +41,7 @@ export default class Conversations extends PureComponent {
 
   render() {
     const {
-      // conversations,
-      // selectConversation,
-      // selectedIndex,
       referenceTime,
-      // removeConversation
     } = this.props;
 
     const { selectedConversation, conversations } = this.state;

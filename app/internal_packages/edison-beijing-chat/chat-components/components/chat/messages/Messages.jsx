@@ -245,7 +245,6 @@ export default class Messages extends Component {
 
   render() {
     const {
-      currentUserId,
       selectedConversation: { jid },
     } = this.props;
     const { groupedMessages, members } = this.state;
@@ -257,7 +256,6 @@ export default class Messages extends Component {
         }
       });
     }));
-    messageModel.currentUserId = currentUserId;
     if (jid === NEW_CONVERSATION) {
       return null;
     }

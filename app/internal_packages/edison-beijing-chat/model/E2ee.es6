@@ -12,9 +12,6 @@ E2ee.init({
   devices: {
     type: Sequelize.STRING,
     allowNull: false
-  },
-  key: {
-    type: Sequelize.STRING,
   }
 }, {
     sequelize,

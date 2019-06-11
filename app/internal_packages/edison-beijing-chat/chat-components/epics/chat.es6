@@ -7,7 +7,7 @@ import chatModel, { saveToLocalStorage } from '../store/model';
 import { copyRxdbContact, safeUpdate, saveGroupMessages } from '../utils/db-utils';
 const { remote } = require('electron');
 const { Actions } = require('mailspring-exports');
-import { ChatActions, ContactStore } from 'chat-exports';
+import { ChatActions, ContactStore, E2eeStore } from 'chat-exports';
 import Sequelize from 'Sequelize';
 
 const Op = Sequelize.Op;
@@ -92,16 +92,16 @@ export const successSendMessageEpic = action$ =>
 
 export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
-    .map(
-      ({ payload }) => {
-        const db = getDb();
-          return { db, payload }
-      }
-    )//yazzzzz
+    // .map(
+    //   ({ payload }) => {
+    //     const db = getDb();
+    //     return { db, payload }
+    //   }
+    // )//yazzzzz
     .mergeMap(({ db, payload }) => {
       if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
         let occupants = payload.conversation.occupants;
-        return Observable.fromPromise(db.e2ees.findAll({where: { jid: { [Op.in]: occupants }}}))
+        return Observable.fromPromise(E2eeStore.find(occupants))
           .map(e2ees => {
             let devices = [];
             if (e2ees && e2ees.length == occupants.length) {
@@ -117,7 +117,7 @@ export const sendMessageEpic = action$ =>
             return { db, payload };
           });
       } else {
-        return Observable.fromPromise(db.e2ees.findOne({where:{jid:payload.conversation.jid}}))
+        return Observable.fromPromise(E2eeStore.findOne(payload.conversation.jid))
           .map(e2ee => {
             if (e2ee) {
               payload.devices = e2ee.devices;
@@ -127,7 +127,7 @@ export const sendMessageEpic = action$ =>
       }
     })
     .mergeMap(({ db, payload }) => {
-      return Observable.fromPromise(db.e2ees.findOne({where:{jid:payload.conversation.curJid}}))
+      return Observable.fromPromise(E2eeStore.findOne(payload.conversation.curJid))
         .map(e2ee => {
           if (e2ee) {
             payload.selfDevices = e2ee.devices;
@@ -290,7 +290,7 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
     .mergeMap(conv => {
       return Observable.fromPromise(getDb())
         .mergeMap(db => {
-          return Observable.fromPromise(db.conversations.findOne({where:{jid:conv.jid}}))
+          return Observable.fromPromise(db.conversations.findOne({ where: { jid: conv.jid } }))
             .map(convInDb => {
               if (conv.isGroup) {
                 conv.occupants = convInDb.occupants;
@@ -332,7 +332,7 @@ const getEncrypted = (jid, body, devices, selfDevices, curJid, deviceId) => {
     console.warn('getEncrypted: selfDevices is undefined');
     return false;
   }
-  let selfDk = JSON.parse(selfDevices);
+  let selfDk = selfDevices;//JSON.parse(selfDevices);
   let dk = [];
 
   let keys = [];

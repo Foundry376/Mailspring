@@ -182,11 +182,12 @@ export default class ConversationInfo extends Component {
                 editProfile={this.props.editProfile}
                 exitProfile={this.props.exitProfile}
                 removeMember={this.removeMember}
+                currentUserIsOwner={this.currentUserIsOwner}
                 key={member.jid}
               />)
             })
           }
-          {(conversation.isGroup && !this.currentUserIsOwner) && (
+          {conversation.isGroup && !this.currentUserIsOwner && (
             <div className="add-to-group"
               onClick={this.exitGroup}>
               Exit from Group

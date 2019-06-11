@@ -320,8 +320,10 @@ class MessageStore extends MailspringStore {
     let msgFrom = payload.from.resource + '@im.edison.tech';
     const memberName = await RoomStore.getMemberName({roomJid:payload.from.bare, curJid:payload.curJid, memberJid:msgFrom});
     const contact = ContactStore.findContactByJid(msgFrom);
-    const title = memberName || contact && contact.name || payload.from.local;
-    const noti = postNotification(title, payload.body);
+    const title = payload.appName || memberName || contact && contact.name || payload.from.local;
+    let body = payload.body;
+    body = body.content || body;
+    const noti = postNotification(title, body);
     noti.addEventListener('click', (event) => {
       ChatActions.selectConversation(convjid);
       const window = remote.getCurrentWindow();
