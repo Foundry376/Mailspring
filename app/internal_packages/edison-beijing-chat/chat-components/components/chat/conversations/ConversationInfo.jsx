@@ -11,7 +11,6 @@ import { ChatActions, MessageStore, RoomStore } from 'chat-exports';
 
 
 export default class ConversationInfo extends Component {
-  currentUserIsOwner = false;
   constructor(props) {
     super();
     this.state = {
@@ -127,10 +126,11 @@ export default class ConversationInfo extends Component {
   render = () => {
     const { selectedConversation: conversation } = this.props;
     const { members: roomMembers, loadingMembers } = this.state;
+    let currentUserIsOwner = false;
     for (const member of roomMembers) {
       const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
       if (member.affiliation === 'owner' && jid === conversation.curJid) {
-        this.currentUserIsOwner = true;
+        currentUserIsOwner = true;
         break;
       }
     }
@@ -175,24 +175,26 @@ export default class ConversationInfo extends Component {
             ) : null
           }
           {
-            conversation.isGroup && !loadingMembers && roomMembers && roomMembers.map(member => {
-              return (<InfoMember conversation={conversation}
-                member={member}
-                editingMember={this.editingMember}
-                editProfile={this.props.editProfile}
-                exitProfile={this.props.exitProfile}
-                removeMember={this.removeMember}
-                currentUserIsOwner={this.currentUserIsOwner}
-                key={member.jid}
-              />)
-            })
+            conversation.isGroup && !loadingMembers && ([
+              roomMembers && roomMembers.map(member => {
+                return (<InfoMember conversation={conversation}
+                  member={member}
+                  editingMember={this.editingMember}
+                  editProfile={this.props.editProfile}
+                  exitProfile={this.props.exitProfile}
+                  removeMember={this.removeMember}
+                  currentUserIsOwner={currentUserIsOwner}
+                  key={member.jid}
+                />)
+              }),
+              !currentUserIsOwner && (
+                <div className="add-to-group"
+                  onClick={this.exitGroup}>
+                  Exit from Group
+              </div>
+              )
+            ])
           }
-          {conversation.isGroup && !this.currentUserIsOwner && (
-            <div className="add-to-group"
-              onClick={this.exitGroup}>
-              Exit from Group
-          </div>
-          )}
         </div>
       </div>
     )
