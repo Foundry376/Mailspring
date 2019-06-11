@@ -70,6 +70,7 @@ export default class UpdateNotification extends React.Component<{}, UpdateNotifi
             fn: this._onUpdate,
           },
         ]}
+        isDismissable
       />
     );
   }
