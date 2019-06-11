@@ -53,7 +53,6 @@ export default class MessagesPanel extends Component {
   static defaultProps = {
     availableUsers: [],
     currentUserId: null,
-    groupedMessages: [],
     referenceTime: new Date().getTime(),
   }
 
@@ -69,12 +68,12 @@ export default class MessagesPanel extends Component {
       online: true,
       connecting: false,
       moreBtnEl: null,
-      groupedMessages: [],
       progress: {
         loadConfig: null
       },
       selectedConversation: null,
-      contacts: []
+      contacts: [],
+      groupedMessages: []
     }
     this._listenToStore();
   }
@@ -359,12 +358,6 @@ export default class MessagesPanel extends Component {
     const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
     xmpp.leaveRoom(conversation.jid, jid);
     if (jid == conversation.curJid) {
-      // (getDb()).then(db => {
-      //   db.conversations.findOne(conversation.jid).exec().then(conv => {
-      //     conv.remove()
-      //   }).catch((error) => { })
-      // });
-      // this.props.deselectConversation();
       ChatActions.removeConversation(conversation.jid);
       ChatActions.deselectConversation();
     } else {
