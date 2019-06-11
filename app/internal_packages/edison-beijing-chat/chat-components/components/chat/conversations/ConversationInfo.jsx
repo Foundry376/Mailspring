@@ -22,14 +22,14 @@ export default class ConversationInfo extends Component {
     }
   }
 
-  removeMember = member => {
-    const conversation = this.state.selectedConversation;
+  removeMember = async member => {
+    const conversation = this.props.selectedConversation;
     if (member.affiliation === 'owner') {
       alert('you can not remove the owner of the group chat!');
       return;
     }
     const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
-    xmpp.leaveRoom(conversation.jid, jid);
+    await xmpp.leaveRoom(conversation.jid, jid, conversation.curJid);
     if (jid == conversation.curJid) {
       ChatActions.removeConversation(conversation.jid);
       ChatActions.deselectConversation();
