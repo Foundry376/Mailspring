@@ -14,9 +14,11 @@ import ConversationModel from '../model/Conversation';
 import MessageModel, { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 import fs from 'fs';
 import _ from 'underscore';
-// TODO 
+// TODO
 // getPriKey getDeviceId should get data from sqlite
 import { getPriKey, getDeviceId } from '../chat-components/utils/e2ee';
+const { remote } = require('electron');
+import { postNotification } from '../chat-components/utils/electron';
 
 const SEPARATOR = '$';
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
@@ -54,7 +56,7 @@ class MessageStore extends MailspringStore {
     if (conv.jid === this.conversationJid) {
       this.retrieveSelectedConversationMessages(conv.jid);
     }
-    // TODO 弹出提示
+    this.showNotification(message);
   }
 
   removeMessagesByConversationJid = async (jid) => {
@@ -155,7 +157,7 @@ class MessageStore extends MailspringStore {
     if (conv.jid === this.conversationJid) {
       this.retrieveSelectedConversationMessages(conv.jid);
     }
-    // TODO 弹出聊天的提示框
+    this.showNotification(message);
   }
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
@@ -304,7 +306,48 @@ class MessageStore extends MailspringStore {
     const contact = await ContactStore.findContactByJid(conv.lastMessageSender);
     addToAvatarMembers(conv, contact);
     await ConversationStore.saveConversations([conv]);
+
     return conv;
+  }
+
+  showNotification = async (payload) => {
+    console.log( ' showNotification payload: ', payload);
+    const shouldShow = await this.shouldShowNotification(payload);
+    if (!shouldShow) {
+      return;
+    }
+    const convjid = payload.from.bare;
+    let msgFrom = payload.from.resource + '@im.edison.tech';
+    const memberName = await RoomStore.getMemberName({roomJid:payload.from.bare, curJid:payload.curJid, memberJid:msgFrom});
+    const contact = ContactStore.findContactByJid(msgFrom);
+    const title = memberName || contact && contact.name || payload.from.local;
+    const noti = postNotification(title, payload.body);
+    noti.addEventListener('click', (event) => {
+      ChatActions.selectConversation(convjid);
+      const window = remote.getCurrentWindow();
+      window.show();
+    });
+  }
+
+  shouldShowNotification = async (payload) => {
+    const conversationJid = payload.from.bare;
+    const conv = await ConversationStore.getConversationByJid(conversationJid);
+    console.trace( 'shouldShowNotification: ', conversationJid, conv);
+
+    let chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    if (payload.curJid === payload.from.bare) {
+      return false;
+    }
+    const fromUserId = payload.from.resource;
+    let isme = false;
+    for (let email in chatAccounts) {
+      const acc = chatAccounts[email];
+      if (acc.userId === fromUserId) {
+        isme = true;
+        break;
+      }
+    }
+    return conv && !conv.isHiddenNotification && !isme;
   }
 
   prepareForSaveMessage = async (payload, type) => {

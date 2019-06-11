@@ -1,19 +1,24 @@
 import MailspringStore from 'mailspring-store';
 import RoomModel from '../model/Room';
 import xmpp from '../chat-components/xmpp';
+import {jidlocal} from '../chat-components/utils/jid';
 
 class RoomStore extends MailspringStore {
   constructor() {
     super();
-    this.rooms = null;
+    this.loadRooms();
   }
 
-  refreshRooms = async () => {
+  loadRooms = async () => {
     this.rooms = {};
     const data = await RoomModel.findAll();
     for (const item of data) {
       this.rooms[item.jid] = item;
     }
+  }
+
+  refreshRooms = async () => {
+    await this.loadRooms();
     this.trigger();
   }
 
@@ -29,10 +34,7 @@ class RoomStore extends MailspringStore {
     }
   }
 
-  getRooms = async () => {
-    if (!this.rooms) {
-      await this.refreshRooms();
-    }
+  getRooms = () => {
     return this.rooms;
   }
 
@@ -49,6 +51,7 @@ class RoomStore extends MailspringStore {
       jid: roomId,
       members
     });
+    await this.loadRooms();
     return members;
   }
 
@@ -59,16 +62,31 @@ class RoomStore extends MailspringStore {
         return members;
       }
     }
-    if (this.rooms
-      && this.rooms[roomId]
+    if (this.rooms[roomId]
       && this.rooms[roomId].members
       && this.rooms[roomId].members.length) {
-      return this.rooms[roomId].members;
-    }
-    if (!this.rooms) {
-      this.refreshRooms();
+      let members = this.rooms[roomId].members;
+      if (typeof members === 'string')  {
+        members = JSON.parse(members);
+      }
+      return members;
     }
     return await this.refreshRoomMember(roomId, curJid);
+  }
+
+  getMemberName = async (data) => {
+    // data: {roomJid, memberJid, curJid}
+
+    const roomJid = data.roomJid || data.curJid;
+    const curJid = data.curJid || data.memberJid;
+    const members = await this.getRoomMembers(roomJid, curJid);
+    const local = jidlocal(data.memberJid);
+    for (const item of members) {
+      if (jidlocal(item.jid) === local) {
+        return item.name;
+      }
+    }
+    return null;
   }
 }
 
