@@ -231,6 +231,18 @@ export default class MailboxPerspective {
     return this.categories().length === 1 ? this.categories()[0] : null;
   }
 
+  getPath() {
+    const ret = [];
+    for (const category of this.categories()) {
+      if (AccountStore.accountForId(category.accountId).provider === 'gmail') {
+        ret.push({ accountId: category.accountId, path: category.path.replace('[Gmail]/', '') });
+      } else {
+        ret.push({ accountId: category.accountId, path: category.path });
+      }
+    }
+    return ret;
+  }
+
   threads() {
     throw new Error('threads: Not implemented in base class.');
   }
@@ -329,6 +341,14 @@ class DraftsMailboxPerspective extends MailboxPerspective {
     this.name = 'Drafts';
     this.iconName = 'drafts.svg';
     this.drafts = true; // The DraftListStore looks for this
+    this._categories = [];
+    for (const id of accountIds) {
+      this._categories.push(CategoryStore.getCategoryByRole(id, 'drafts'));
+    }
+  }
+
+  categories() {
+    return this._categories;
   }
 
   threads() {

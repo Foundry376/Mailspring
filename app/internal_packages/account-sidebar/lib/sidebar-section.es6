@@ -50,10 +50,9 @@ class SidebarSection {
       return this.empty(account.label);
     }
 
-    const items = _.reject(cats, cat => cat.role === 'drafts').map(cat =>
+    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat =>
       SidebarItem.forCategories([cat], { editable: false, deletable: false }),
     );
-
     const unreadItem = SidebarItem.forUnread([account.id]);
     const starredItem = SidebarItem.forStarred([account.id], { displayName: 'Flagged' });
     const draftsItem = SidebarItem.forDrafts([account.id]);
@@ -61,6 +60,10 @@ class SidebarSection {
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     items.splice(1, 0, unreadItem, starredItem);
+    if (account.provider !== 'gmail') {
+      const archiveMail = SidebarItem.forArchived([account.id]);
+      items.push(archiveMail);
+    }
     items.push(draftsItem);
     items.push(...this.accountUserCategories(account));
 
@@ -227,10 +230,16 @@ class SidebarSection {
           parent.selected = true;
         }
       } else {
-        item = SidebarItem.forCategories([category]);
-        items.push(item);
+        if (!category.displayName.match(re)) {
+          item = SidebarItem.forCategories([category]);
+          items.push(item);
+        } else {
+          item = null;
+        }
       }
-      seenItems[itemKey] = item;
+      if (item) {
+        seenItems[itemKey] = item;
+      }
     }
     return items;
   }
