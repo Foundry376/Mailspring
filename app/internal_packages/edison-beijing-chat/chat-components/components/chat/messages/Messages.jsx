@@ -269,7 +269,7 @@ export default class Messages extends Component {
             onMessageSubmitted={this.props.onMessageSubmitted}
             getContactInfoByJid={this.getContactInfoByJid}
             members={this.state.members}
-            key={idx}>
+            key={group.time}>
           </Group>
         ))
         }

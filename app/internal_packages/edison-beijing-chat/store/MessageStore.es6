@@ -211,15 +211,22 @@ class MessageStore extends MailspringStore {
   //   this.retrieveSelectedConversationMessages(jid);
   // }
 
-  retrieveSelectedConversationMessages = async (jid) => {
-    let messages = await MessageModel.findAll({
+  retrieveSelectedConversationMessages = async (jid, limit, offset) => {
+    const condistion = {
       where: {
         conversationJid: jid
       },
       order: [
         ['sentTime', 'ASC']
-      ]
-    });
+      ],
+    };
+    if (limit) {
+      condistion.limit = limit
+    }
+    if (offset) {
+      condistion.offset = offset
+    }
+    let messages = await MessageModel.findAll(condistion);
     messages = messages.filter(msg => msg.body.indexOf('"deleted":true') === -1);
     addMessagesSenderNickname(messages);
     this.groupedMessages = groupMessagesByTime(messages, 'sentTime', 'day');
