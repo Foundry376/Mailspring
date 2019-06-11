@@ -9,9 +9,7 @@ import { safeUpdate } from '../../../utils/db-utils';
 
 export default class MessagesTopBar extends Component {
   static propTypes = {
-    onBackPressed: PropTypes.func,
     onInfoPressed: PropTypes.func,
-    infoActive: PropTypes.bool,
     selectedConversation: PropTypes.shape({
       isGroup: PropTypes.bool.isRequired,
       jid: PropTypes.string.isRequired,
@@ -22,14 +20,11 @@ export default class MessagesTopBar extends Component {
     }),
   }
   static defaultProps = {
-    onBackPressed: () => { },
     onInfoPressed: () => { },
-    infoActive: false,
     selectedConversation: null,
   }
   constructor(props) {
-    super();
-    this.state = { inviting: false }
+    super(props);
   }
   _onkeyDown = (e) => {
     if (e.keyCode === 13) {
@@ -49,17 +44,15 @@ export default class MessagesTopBar extends Component {
       await xmpp.setRoomName(selectedConversation.jid, {
         name
       })
-
       selectedConversation && safeUpdate(selectedConversation, { name });
     }
   }
 
   render() {
     const {
-      selectedConversation,
+      selectedConversation: conversation,
       onInfoPressed
     } = this.props;
-    const conversation = selectedConversation;
 
     return (
       <div>
