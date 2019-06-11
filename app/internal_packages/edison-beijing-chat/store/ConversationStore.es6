@@ -132,19 +132,6 @@ class ConversationStore extends MailspringStore {
     this.refreshConversations();
   }
 
-  saveConversationName = async (payload) => {
-    const convJid = payload.from.bare;
-    const convName = payload.edimucevent && payload.edimucevent.edimucconfig.name;
-    if (convJid && convName) {
-      await ConversationModel.update({ name: convName }, {
-        where: {
-          jid: convJid
-        }
-      });
-      this.refreshConversations();
-    }
-  }
-
   _createGroupChatRoom = async (payload) => {
     const { contacts, roomId, name, curJid } = payload;
     const jidArr = contacts.map(contact => contact.jid).sort();
@@ -221,11 +208,11 @@ class ConversationStore extends MailspringStore {
     const config = data.edimucevent.edimucconfig;
     const convJid = data.from.bare;
     const conv = await this.getConversationByJid(convJid);
-    if (conv.name===config.name) {
+    if (conv && conv.name === config.name) {
       return;
     } else {
       const name = config.name;
-      conv.update({name});
+      conv.update({ name });
       this.refreshConversations();
     }
   }
