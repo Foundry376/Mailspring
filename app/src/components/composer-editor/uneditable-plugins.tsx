@@ -16,7 +16,6 @@ function UneditableNode(props) {
   }
   return (
     <div {...attributes} className={`uneditable ${isSelected && 'custom-block-selected'}`}>
-      <div style={{ position: 'absolute', height: 0 }}>{children}</div>
       <a
         onClick={e => {
           e.stopPropagation();
@@ -32,6 +31,9 @@ function UneditableNode(props) {
         />
       </a>
       <div dangerouslySetInnerHTML={{ __html }} />
+      {/* This node below is necessary for selection of the uneditable block, and
+      we also put the text content of the HTML in so that copy/paste works nicely. */}
+      <div style={{ position: 'absolute', height: 0, overflow: 'hidden' }}>{children}</div>
     </div>
   );
 }
@@ -52,7 +54,9 @@ const rules = [
         return {
           object: 'block',
           type: UNEDITABLE_TYPE,
-          data: { html: el.outerHTML },
+          data: {
+            html: el.outerHTML,
+          },
           nodes: [],
         };
       }

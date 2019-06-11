@@ -121,6 +121,16 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
   };
 
   onCopy = (event, editor: Editor, next: () => void) => {
+    const sel = document.getSelection();
+
+    // copying within an uneditable region of the composer (eg: quoted HTML)
+    // is handled by the browser on it's own. We only need to copy the Slate
+    // value if the selection is in the editable region.
+    const entirelyWithinUneditable =
+      sel.anchorNode.parentElement.closest('.uneditable') &&
+      sel.focusNode.parentElement.closest('.uneditable');
+    if (entirelyWithinUneditable) return;
+
     event.preventDefault();
     const fragment = editor.value.document.getFragmentAtRange((editor.value
       .selection as any) as Range);

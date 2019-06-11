@@ -1,23 +1,22 @@
 import Html from 'slate-html-serializer';
-import PlainSerializer from 'slate-plain-serializer';
 import {
   TextJSON,
   InlineJSON,
   Value,
-  useMemoization,
-  Node as SlateNode,
+  Node,
   BlockJSON,
   DocumentJSON,
   Mark,
   NodeJSON,
   MarkJSON,
+  Block,
 } from 'slate';
 import React from 'react';
 
 import BaseMarkPlugins from './base-mark-plugins';
 import TemplatePlugins from './template-plugins';
 import SpellcheckPlugins from './spellcheck-plugins';
-import UneditablePlugins from './uneditable-plugins';
+import UneditablePlugins, { UNEDITABLE_TYPE } from './uneditable-plugins';
 import BaseBlockPlugins, { BLOCK_CONFIG } from './base-block-plugins';
 import InlineAttachmentPlugins from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
@@ -388,5 +387,18 @@ export function convertToHTML(value: Value) {
 }
 
 export function convertToPlainText(value: Value) {
-  return PlainSerializer.serialize(value);
+  const serializeNode = (node: Node) => {
+    if (node.object === 'block' && node.type === UNEDITABLE_TYPE) {
+      const html = node.data.get('html');
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div.innerText;
+    }
+    if (node.object === 'document' || (node.object === 'block' && Block.isBlockList(node.nodes))) {
+      return node.nodes.map(serializeNode).join('\n');
+    } else {
+      return node.text;
+    }
+  };
+  return serializeNode(value.document);
 }

@@ -244,7 +244,7 @@ function onKeyUp(event, editor: Editor, next: () => void) {
   if (!emoji) {
     const { offset, key } = editor.value.selection.focus;
     const focusText = editor.value.focusText;
-    if (focusText.key === key && focusText.text[offset - 1] === ':') {
+    if (focusText && focusText.key === key && focusText.text[offset - 1] === ':') {
       editor.addMark({
         type: EMOJI_TYPING_TYPE,
         data: { typed: '', suggestions: [], picked: '' },
