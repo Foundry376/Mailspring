@@ -298,7 +298,7 @@ class WorkspaceStore extends MailspringStore {
       this.trigger();
     }
     // make toolbar display
-    if ((this.topSheet() && ['Threads', 'Thread'].includes(this.topSheet().id))
+    if ((this.topSheet() && ['Threads', 'Thread', 'ChatView'].includes(this.topSheet().id))
       || sheet.id === "ChatView"
     ) {
       setTimeout(() => {
