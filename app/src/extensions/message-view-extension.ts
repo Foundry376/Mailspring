@@ -1,3 +1,6 @@
+import { Message } from '../flux/models/message';
+import { File } from '../flux/models/file';
+
 /*
 Public: To create MessageViewExtension that customize message viewing, you
 should create objects that implement the interface defined at {MessageViewExtension}.
@@ -28,7 +31,7 @@ export class MessageViewExtension {
   Public: Modify the body of the message provided. Note that you're provided
   the entire message object, but you can only change `message.body`.
   */
-  static formatMessageBody({ message }) {}
+  static formatMessageBody({ message }: { message: Message }) {}
 
   /*
   Public: Modify the rendered message body using the DOM.
@@ -36,4 +39,11 @@ export class MessageViewExtension {
   into the DOM.
   */
   static renderedMessageBodyIntoDocument({ document, message, iframe }) {}
+
+  /*
+  Public: Filter the list of displayed attachments.
+  */
+  static filterMessageFiles({ message, files }: { message: Message; files: File[] }): File[] {
+    return files;
+  }
 }

@@ -114,6 +114,11 @@ export default {
             default: true,
             title: localized('Automatically load images in viewed messages'),
           },
+          restrictMaxWidth: {
+            type: 'boolean',
+            default: false,
+            title: localized('Restrict width of messages to maximize readability'),
+          },
           backspaceDelete: {
             type: 'boolean',
             default: false,

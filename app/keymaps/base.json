@@ -22,6 +22,7 @@
 
   "core:snooze-item": "z",
   "core:print-thread": "mod+p",
+  "core:copy-mailbox-link": "ctrl+l",
   "core:focus-item": "enter",
   "core:remove-from-view": ["backspace", "del"],
   "core:pop-sheet": "escape",
@@ -41,6 +42,8 @@
   "window:select-account-6": "mod+7",
   "window:select-account-7": "mod+8",
   "window:select-account-8": "mod+9",
+
+  "window:sync-mail-now": "f5",
 
   "contenteditable:underline": "mod+u",
   "contenteditable:bold": "mod+b",

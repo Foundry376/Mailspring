@@ -186,6 +186,7 @@ export class DraftEditingSession extends MailspringStore {
       if (name && name.length && name !== contact.email) {
         allNames.push(name.toLowerCase()); // ben gotow
         allNames.push(...name.toLowerCase().split(' ')); // ben, gotow
+        allNames.push(...name.toLowerCase().split('-')); // anne-marie => anne, marie
         allNames.push(contact.nameAbbreviation().toLowerCase()); // bg
         allNames.push(name.toLowerCase()[0]); // b
       } else {
@@ -226,15 +227,17 @@ export class DraftEditingSession extends MailspringStore {
     if (!unnamedRecipientPresent) {
       // https://www.regexpal.com/?fam=99334
       // note: requires that the name is capitalized, to avoid catching "Hey guys"
-      const englishSalutationPhrases = /(?:[y|Y]o|[h|H]ey|[h|H]i|[M|m]orning|[A|a]fternoon|[E|e]vening|[D|d]ear){1} ([A-Z][A-Za-zÀ-ÿ. ]+)[!_—,.\n\r< -]/;
+      const englishSalutationPhrases = /(?:[y|Y]o|[h|H]ey|[h|H]i|[M|m]orning|[A|a]fternoon|[E|e]vening|[D|d]ear){1} ([A-Z][A-Za-zÀ-ÿ. -]+)[!_—,.\n\r< ]/;
       const match = englishSalutationPhrases.exec(cleaned);
       if (match) {
-        const salutation = (match[1] || '').toLowerCase();
+        let salutation = (match[1] || '').toLowerCase();
+        if (salutation.endsWith('-')) salutation = salutation.substr(0, salutation.length - 1);
+
         if (!allNames.find(n => n === salutation || (n.length > 1 && salutation.includes(n)))) {
           warnings.push(
             localized(
               `The message is addressed to a name that doesn't appear to be a recipient ("%@")`,
-              salutation
+              match[1]
             )
           );
         }

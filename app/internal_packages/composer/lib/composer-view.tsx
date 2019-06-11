@@ -139,11 +139,12 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   }
 
   _renderContent() {
+    const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
     const { quotedTextHidden, quotedTextPresent } = this.state;
     const { draft, session } = this.props;
 
     return (
-      <div className="composer-centered">
+      <div className={`composer-centered ${restrictWidth && 'restrict-width'}`}>
         <ComposerHeader ref={this.header} draft={draft} session={session} />
         <div
           className="compose-body"

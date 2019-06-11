@@ -20,6 +20,12 @@ export class Event extends Model {
       modelKey: 'ics',
     }),
 
+    icsuid: Attributes.String({
+      queryable: true,
+      jsonKey: 'icsuid',
+      modelKey: 'icsuid',
+    }),
+
     // The calculated Unix start time. See the implementation for how we
     // treat each type of "when" attribute.
     recurrenceStart: Attributes.Number({

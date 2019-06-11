@@ -1,139 +1,239 @@
 import { RetinaImg } from 'mailspring-component-kit';
+
 import React from 'react';
+import fs from 'fs';
 import {
+  Rx,
   Actions,
+  AttachmentStore,
+  File,
   localized,
-  PropTypes,
   DateUtils,
+  CalendarUtils,
+  ICSParticipantStatus,
   Message,
   Event,
   EventRSVPTask,
   DatabaseStore,
 } from 'mailspring-exports';
+import ICAL from 'ical.js';
+
 const moment = require('moment-timezone');
 
-class EventHeader extends React.Component<
-  {
-    message: Message;
-  },
-  { event: Event }
-> {
+interface EventHeaderProps {
+  message: Message;
+  file: File;
+}
+
+interface EventHeaderState {
+  icsOriginalData?: string;
+  icsMethod?: 'reply' | 'request';
+  icsEvent?: ICAL.Event;
+  inflight?: ICSParticipantStatus;
+}
+
+/*
+The EventHeader allows you to RSVP to a calendar invite embedded in an email. It also
+looks to see if a matching event is present on your calendar. In most cases the event
+will also be on your calendar, and that version is synced while the email attachment
+version gets stale.
+
+We try to show the RSVP status of the event on your calendar if it's present. If not,
+we fall back to storing the RSVP status in message metadata (so the "Accept" button is
+"sticky", even though we just fire off a RSVP message via email and never hear back.)
+*/
+export class EventHeader extends React.Component<EventHeaderProps, EventHeaderState> {
   static displayName = 'EventHeader';
 
-  static propTypes = { message: PropTypes.instanceOf(Message).isRequired };
+  state = {
+    icsEvent: undefined,
+    icsMethod: undefined,
+    icsOriginalData: undefined,
+    inflight: undefined,
+  };
 
-  _unlisten: () => void;
+  _mounted: boolean = false;
+  _subscription: Rx.IDisposable;
 
-  constructor(props) {
-    super(props);
-    this.state = { event: this.props.message.events[0] };
-  }
-
-  _onChange() {
-    if (!this.state.event) {
-      return;
+  componentWillUnmount() {
+    this._mounted = false;
+    if (this._subscription) {
+      this._subscription.dispose();
     }
-    DatabaseStore.find<Event>(Event, this.state.event.id).then(event => {
-      if (!event) {
-        return;
-      }
-      this.setState({ event });
-    });
   }
 
   componentDidMount() {
-    // TODO: This should use observables!
-    this._unlisten = DatabaseStore.listen(change => {
-      if (this.state.event && change.objectClass === Event.name) {
-        const updated = change.objects.find(o => o.id === this.state.event.id);
-        if (updated) {
-          this.setState({ event: updated });
-        }
-      }
+    const { file, message } = this.props;
+    this._mounted = true;
+
+    fs.readFile(AttachmentStore.pathForFile(file), async (err, data) => {
+      if (err || !this._mounted) return;
+
+      const icsData = ICAL.parse(data.toString());
+      const icsRoot = new ICAL.Component(icsData);
+      const icsEvent = new ICAL.Event(icsRoot.getFirstSubcomponent('vevent'));
+
+      this.setState({
+        icsEvent: icsEvent,
+        icsMethod: (icsRoot.getFirstPropertyValue('method') || 'request').toLowerCase(),
+        icsOriginalData: data.toString(),
+      });
+
+      this._subscription = Rx.Observable.fromQuery(
+        DatabaseStore.findBy<Event>(Event, {
+          icsuid: icsEvent.uid,
+          accountId: message.accountId,
+        })
+      ).subscribe(calEvent => {
+        if (!this._mounted || !calEvent) return;
+        this.setState({
+          icsEvent: CalendarUtils.eventFromICSString(calEvent.ics),
+        });
+      });
     });
-    this._onChange();
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({ event: nextProps.message.events[0] });
-    this._onChange();
-  }
-
-  componentWillUnmount() {
-    if (this._unlisten) {
-      this._unlisten();
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.inflight) {
+      this.setState({ inflight: undefined });
     }
   }
 
   render() {
-    const timeFormat = DateUtils.getTimeFormat({ timeZone: true });
-    if (this.state.event != null) {
-      return (
-        <div className="event-wrapper">
-          <div className="event-header">
-            <RetinaImg
-              name="icon-RSVP-calendar-mini@2x.png"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
-            <span className="event-title-text">{localized('Event')}: </span>
-            <span className="event-title">{this.state.event.title}</span>
-          </div>
-          <div className="event-body">
-            <div className="event-date">
-              <div className="event-day">
-                {moment(this.state.event.start * 1000)
-                  .tz(DateUtils.timeZone)
-                  .format(localized('dddd, MMMM Do'))}
-              </div>
-              <div>
-                <div className="event-time">
-                  {moment(this.state.event.start * 1000)
-                    .tz(DateUtils.timeZone)
-                    .format(timeFormat)}
-                </div>
-                {this._renderEventActions()}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
+    const { icsEvent, icsMethod } = this.state;
+    if (!icsEvent || !icsEvent.startDate) {
+      return null;
+    }
+
+    const startMoment = moment(icsEvent.startDate.toJSDate()).tz(DateUtils.timeZone);
+    const endMoment = moment(icsEvent.endDate.toJSDate()).tz(DateUtils.timeZone);
+
+    const daySeconds = 24 * 60 * 60 * 1000;
+    let day = '';
+    let time = '';
+
+    if (endMoment.diff(startMoment) < daySeconds) {
+      day = startMoment.format('dddd, MMMM Do');
+      time = `${startMoment.format(
+        DateUtils.getTimeFormat({ timeZone: false })
+      )} - ${endMoment.format(DateUtils.getTimeFormat({ timeZone: true }))}`;
     } else {
-      return <div />;
+      day = `${startMoment.format('dddd, MMMM Do')} - ${endMoment.format('MMMM Do')}`;
+      if (endMoment.diff(startMoment) % daySeconds === 0) {
+        time = localized('All Day');
+      } else {
+        time = startMoment.format(DateUtils.getTimeFormat({ timeZone: true }));
+      }
     }
-  }
-
-  _renderEventActions() {
-    const me = this.state.event.participantForMe();
-    if (!me) {
-      return false;
-    }
-
-    const actions = [
-      ['yes', localized('Accept')],
-      ['maybe', localized('Maybe')],
-      ['no', localized('Decline')],
-    ];
 
     return (
-      <div className="event-actions">
-        {actions.map(([status, label]) => {
-          let classes = 'btn-rsvp ';
-          if (me.status === status) {
-            classes += status;
-          }
-          return (
-            <div key={status} className={classes} onClick={() => this._rsvp(status)}>
-              {label}
+      <div className="event-wrapper">
+        <div className="event-header">
+          <RetinaImg name="icon-RSVP-calendar-mini@2x.png" mode={RetinaImg.Mode.ContentPreserve} />
+          <span className="event-title-text">{localized('Event')}: </span>
+          <span className="event-title">{icsEvent.summary}</span>
+        </div>
+        <div className="event-body">
+          {icsMethod === 'request' ? this._renderRSVP() : this._renderSenderResponse()}
+          <div className="event-date">
+            <div className="event-day">{day}</div>
+            <div>
+              <div className="event-time">{time}</div>
             </div>
-          );
-        })}
+            <div className="event-location">{icsEvent.location}</div>
+          </div>
+        </div>
       </div>
     );
   }
 
-  _rsvp = status => {
-    const me = this.state.event.participantForMe();
-    Actions.queueTask(new EventRSVPTask(this.state.event, me.email, status));
+  _renderSenderResponse() {
+    const { icsEvent } = this.state;
+
+    const from = this.props.message.from[0].email;
+    const sender = CalendarUtils.cleanParticipants(icsEvent).find(p => p.email === from);
+    if (!sender) return false;
+
+    const verb: { [key: string]: string } = {
+      DECLINED: localized('declined'),
+      ACCEPTED: localized('accepted'),
+      TENTATIVE: localized('tentatively accepted'),
+      DELEGATED: localized('delegated'),
+      COMPLETED: localized('completed'),
+    }[sender.status];
+
+    return <div className="event-actions">{localized(`%1$@ has %2$@ this event`, from, verb)}</div>;
+  }
+
+  _renderRSVP() {
+    const { icsEvent, inflight } = this.state;
+    const me = CalendarUtils.selfParticipant(icsEvent, this.props.message.accountId);
+    if (!me) return false;
+
+    let status = me.status;
+
+    const icsTimeProperty = icsEvent.component.getFirstPropertyValue('dtstamp');
+    const icsTime = icsTimeProperty ? icsTimeProperty.toJSDate() : new Date(0);
+
+    const metadata = this.props.message.metadataForPluginId('event-rsvp');
+    if (metadata && new Date(metadata.time) > icsTime) {
+      status = metadata.status;
+    }
+
+    const actions: [ICSParticipantStatus, string][] = [
+      ['ACCEPTED', localized('Accept')],
+      ['TENTATIVE', localized('Maybe')],
+      ['DECLINED', localized('Decline')],
+    ];
+
+    return (
+      <div className="event-actions">
+        {actions.map(([actionStatus, actionLabel]) => (
+          <div
+            key={actionStatus}
+            className={`btn btn-large btn-rsvp ${status === actionStatus ? actionStatus : ''}`}
+            onClick={() => this._onRSVP(actionStatus)}
+          >
+            {actionStatus === status || actionStatus !== inflight ? (
+              actionLabel
+            ) : (
+              <RetinaImg
+                width={18}
+                name="sending-spinner.gif"
+                mode={RetinaImg.Mode.ContentPreserve}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  _onRSVP = (status: ICSParticipantStatus) => {
+    const { icsEvent, icsOriginalData, inflight } = this.state;
+    if (inflight) return; // prevent double clicks
+
+    const organizerEmail = CalendarUtils.emailFromParticipantURI(icsEvent.organizer);
+    if (!organizerEmail) {
+      AppEnv.showErrorDialog(
+        localized(
+          "Sorry, this event does not have an organizer or the organizer's address is not a valid email address: {}",
+          icsEvent.organizer
+        )
+      );
+    }
+
+    this.setState({ inflight: status });
+
+    Actions.queueTask(
+      EventRSVPTask.forReplying({
+        accountId: this.props.message.accountId,
+        messageId: this.props.message.id,
+        icsOriginalData,
+        icsRSVPStatus: status,
+        to: organizerEmail,
+      })
+    );
   };
 }
 

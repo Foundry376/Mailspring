@@ -84,10 +84,12 @@ function __getDesktopSettingsPath(): string {
  */
 function __exec(cmd: string): string {
   try {
-    return cmd == null ? null : execSync(cmd)
-      .toString()
-      .trim()
-      .replace(/'/g, '');
+    return cmd == null
+      ? null
+      : execSync(cmd)
+          .toString()
+          .trim()
+          .replace(/'/g, '');
   } catch (error) {
     console.warn(error);
     return null;
@@ -152,7 +154,7 @@ function getIconTheme(themeName): IconTheme {
 type IconTheme = {
   themePath: string;
   data: object;
-}
+};
 
 /**
  * Get all possible icon paths
@@ -165,7 +167,13 @@ type IconTheme = {
  * @returns {string[]} with all possibilities of the icon in one theme
  * @private
  */
-function __getAllIconPaths(theme: IconTheme, iconName: string, size: number, contexts: string|string[], scale: 1|2 = 1): string[] {
+function __getAllIconPaths(
+  theme: IconTheme,
+  iconName: string,
+  size: number,
+  contexts: string | string[],
+  scale: 1 | 2 = 1
+): string[] {
   const icons = [];
 
   if (!(contexts instanceof Array)) {
@@ -174,11 +182,11 @@ function __getAllIconPaths(theme: IconTheme, iconName: string, size: number, con
 
   for (const [sectionName, section] of Object.entries(theme.data)) {
     if (sectionName !== 'Icon Theme') {
-      const _context = section.Context.toLowerCase();
-      const _minSize = parseInt(section.MinSize, 10);
-      const _maxSize = parseInt(section.MaxSize, 10);
+      const _context = (section.Context || '').toLowerCase();
       const _size = parseInt(section.Size, 10);
-      const _scale = parseInt(section.Scale, 10);
+      const _minSize = parseInt(section.MinSize || section.Size, 10);
+      const _maxSize = parseInt(section.MaxSize || section.Size, 10);
+      const _scale = parseInt(section.Scale || 1, 10);
 
       if (
         contexts.indexOf(_context) > -1 &&
@@ -208,7 +216,13 @@ function __getAllIconPaths(theme: IconTheme, iconName: string, size: number, con
  * @param {1|2} [scale=1] of the icon
  * @returns {string} path to the icon or null
  */
-function getIconFromTheme(theme: IconTheme, iconName: string, size: number, contexts: string|string[], scale: 1|2 = 1) {
+function getIconFromTheme(
+  theme: IconTheme,
+  iconName: string,
+  size: number,
+  contexts: string | string[],
+  scale: 1 | 2 = 1
+) {
   const icons = __getAllIconPaths(theme, iconName, size, contexts, scale);
   for (let path of icons) {
     if (fs.existsSync(path)) {
@@ -228,7 +242,7 @@ function getIconFromTheme(theme: IconTheme, iconName: string, size: number, cont
  * @param {1|2} [scale=1] 1 = normal, 2 = HiDPI version
  * @returns {string} absolute path of the icon
  */
-function getIconPath(iconName: string, size: number, context: string|string[], scale: 1|2 = 1) {
+function getIconPath(iconName: string, size: number, context: string | string[], scale: 1 | 2 = 1) {
   let defaultTheme = getIconTheme(getIconThemeName());
   if (defaultTheme != null) {
     let inherits = defaultTheme.data['Icon Theme']['Inherits'].split(',');
@@ -261,7 +275,12 @@ function getIconPath(iconName: string, size: number, context: string|string[], s
  * @param {number} [scale=2] icon scale, defaults to HiDPI version
  * @returns {string} path to the icon
  */
-function getIcon(iconName, size = 22, context: string|string[] = [Context.APPLICATIONS], scale: 1|2 = 2) {
+function getIcon(
+  iconName,
+  size = 22,
+  context: string | string[] = [Context.APPLICATIONS],
+  scale: 1 | 2 = 2
+) {
   if (process.platform !== 'linux') {
     throw Error('getIcon only works on linux');
   }
@@ -295,11 +314,4 @@ function convertToPNG(iconName: string, iconPath: string) {
   return null;
 }
 
-
-export {
-  convertToPNG,
-  getIcon,
-  getIconThemeName,
-  getThemeName,
-  Context,
-}
+export { convertToPNG, getIcon, getIconThemeName, getThemeName, Context };

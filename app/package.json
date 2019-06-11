@@ -1,7 +1,7 @@
 {
   "name": "mailspring",
   "productName": "Mailspring",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "repository": {
     "type": "git",
     "url": "git://github.com/foundry376/mailspring.git"

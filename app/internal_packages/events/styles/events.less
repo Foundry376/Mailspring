@@ -54,37 +54,34 @@
     }
 
     .event-actions {
-      display: inline-block;
+      display: flex;
       float: right;
-
       z-index: 4;
       text-align: center;
+      position: relative;
 
       .btn-rsvp {
-        float: left;
-        padding: @spacing-three-quarters @spacing-standard * 1.75 @spacing-three-quarters
-          @spacing-standard * 1.75;
-        line-height: 10px;
-        color: @text-color;
-        border-radius: 3px;
-        background: @background-primary;
-        box-shadow: @standard-shadow;
-        margin: 0 7.5px 0 7.5px;
+        margin-left: 10.5px;
+        min-width: 85px;
+
+        &:hover {
+          background: mix(@background-primary, @text-color, 95%);
+        }
         &:active {
-          background: transparent;
+          background: mix(@background-primary, @text-color, 92%);
         }
 
-        &.no {
+        &.DECLINED {
           background: @color-error;
           color: @white;
         }
 
-        &.yes {
+        &.ACCEPTED {
           background: @color-success;
           color: @white;
         }
 
-        &.maybe {
+        &.TENTATIVE {
           background: @gray-light;
           color: @white;
         }

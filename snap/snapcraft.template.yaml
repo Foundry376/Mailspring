@@ -33,10 +33,6 @@ parts:
       mkdir -p $SNAPCRAFT_PART_INSTALL/share/sounds
     after:
       - desktop-gtk3
-    stage:
-      - share/icons
-      - share/themes
-      - share/sounds
     stage-packages:
       - gir1.2-gnomekeyring-1.0
       - libcanberra-gtk-module
@@ -68,6 +64,8 @@ apps:
       # are used and do not fall back to Notification Area applets
       # or disappear completely.
       XDG_CURRENT_DESKTOP: Unity
+      # Fallback to XWayland if running in a Wayland session.
+      DISABLE_WAYLAND: 1
     plugs:
       - avahi-observe
       - browser-support

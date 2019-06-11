@@ -1,5 +1,31 @@
 # Mailspring Changelog
 
+### 1.6.1 (4/4/2019)
+
+Fixes:
+
+* Sync Mail Now now has a keyboard shortcut (F5). Thanks @StarScape!
+
+* Swipe-to-archive on a macOS trackpad is less "touchy" and ignores interactions that are primarily vertical. #690
+
+* Mail Rules run on every incoming message and always run after the message body has been fetched, fixing issues with some mail rules not being executed properly. #605, #513
+
+* The "Check for Updates" menu item no longer causes the app to crash when no update is available.
+
+* Fixes a regression in removing quoted text via the small "X" that appears over the quoted text marker. #1434
+
+* Update snapcraft.yml to include gtk-3-themes #1435
+
+* Spellcheck on large emails with more than 500 distinct words is much more performant thanks to a larger cache.
+
+* In the composer, you can delete a text selection that includes the first character in the email. (More composer fixes are coming soon - we've been unblocked upstream in SlateJS!)
+
+* The Japanese translation has been improved. Thanks @kometchtech!
+
+* The Russian translation has been improved. Thanks @ivan-nginx!
+
+* Mailspring now uses Electron 4.1.4, which fixes several crashes and an issue on KDE where tray icons would be displayed incorrectly as a 22x22 square cropped from the center.
+
 ### 1.6.0 (3/18/2019)
 
 **Mailspring now uses the TypeScript compiler instead of Babel, and the entire project (92,000 LOC!) has been converted to TypeScript. 🎉** This took an enormous amount of effort - 9,800 TypeScript errors were resolved by hand - but will make the project more stable, easier to maintain, and easier to contribute to in the future.

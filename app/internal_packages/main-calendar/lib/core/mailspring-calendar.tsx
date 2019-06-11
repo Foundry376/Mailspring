@@ -125,13 +125,13 @@ export default class MailspringCalendar extends React.Component<MailspringCalend
     const calQuery = DatabaseStore.findAll<Calendar>(Calendar);
     const calQueryObs = Rx.Observable.fromQuery(calQuery);
     const accQueryObs = Rx.Observable.fromStore(AccountStore);
-    const configObs = Rx.Observable.fromConfig<string[]>(DISABLED_CALENDARS);
+    const configObs = Rx.Observable.fromConfig<string[] | undefined>(DISABLED_CALENDARS);
     return Rx.Observable.combineLatest<any>([calQueryObs, accQueryObs, configObs]).subscribe(
-      ([calendars, accountStore, disabledCalendars]: [Calendar[], any, string[]]) => {
+      ([calendars, accountStore, disabledCalendars]: [Calendar[], any, string[] | undefined]) => {
         this.setState({
           accounts: accountStore.accounts() as Account[],
           calendars: calendars,
-          disabledCalendars: disabledCalendars,
+          disabledCalendars: disabledCalendars || [],
         });
       }
     );

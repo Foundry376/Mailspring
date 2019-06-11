@@ -353,6 +353,10 @@ export class HasAttachmentQueryExpression extends QueryExpression {
     visitor.visitHasAttachment(this);
   }
 
+  _computeIsMatchCompatible() {
+    return false;
+  }
+
   equals(other) {
     return other instanceof HasAttachmentQueryExpression;
   }

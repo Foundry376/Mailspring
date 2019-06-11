@@ -9,6 +9,7 @@ import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import electron from 'electron';
 import DatabaseChangeRecord from './database-change-record';
+import { MessageViewExtension } from 'mailspring-exports';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
 
@@ -78,7 +79,7 @@ class _MessageStore extends MailspringStore {
   */
 
   // Public: Returns the extensions registered with the MessageStore.
-  extensions() {
+  extensions(): typeof MessageViewExtension[] {
     return ExtensionRegistry.MessageView.extensions();
   }
 

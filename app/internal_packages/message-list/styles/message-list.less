@@ -136,6 +136,30 @@ body.platform-win32 {
   padding: 0;
   order: 2;
 
+  &.restrict-width {
+    .message-subject-wrap {
+      max-width: @message-max-width;
+    }
+    .message-list-headers {
+      max-width: @message-max-width;
+    }
+    .message-item-wrap {
+      max-width: @message-max-width;
+    }
+    .msg-lines {
+      max-width: @message-max-width;
+    }
+    .message-item-area {
+      max-width: @message-max-width;
+    }
+    .footer-reply-area-wrap {
+      max-width: @message-max-width;
+    }
+    .footer-reply-area {
+      max-width: @message-max-width;
+    }
+  }
+
   search-match,
   .search-match {
     background: @text-color-search-match;
@@ -179,7 +203,6 @@ body.platform-win32 {
   }
 
   .message-subject-wrap {
-    max-width: @message-max-width;
     margin: 5px auto 10px auto;
     -webkit-user-select: text;
     line-height: @font-size-large * 1.8;
@@ -215,10 +238,11 @@ body.platform-win32 {
   .thread-injected-mail-labels {
     vertical-align: top;
   }
+
   .message-list-headers {
     margin: 0 auto;
     width: 100%;
-    max-width: @message-max-width;
+
     display: block;
 
     .participants {
@@ -250,7 +274,7 @@ body.platform-win32 {
   .message-item-wrap {
     transition: height 0.1s;
     position: relative;
-    max-width: @message-max-width;
+
     margin: 0 auto;
 
     .message-item-white-wrap {
@@ -355,7 +379,6 @@ body.platform-win32 {
       }
     }
     .msg-lines {
-      max-width: @message-max-width;
       margin: 0 auto;
       width: 100%;
       margin-top: -13px;
@@ -479,7 +502,7 @@ body.platform-win32 {
 
   .message-item-area {
     width: 100%;
-    max-width: @message-max-width;
+
     margin: 0 auto;
     padding: 0 20px @spacing-standard 20px;
 
@@ -520,7 +543,6 @@ body.platform-win32 {
   .footer-reply-area-wrap {
     overflow: hidden;
 
-    max-width: @message-max-width;
     margin: -3px auto 10px auto;
 
     position: relative;
@@ -543,7 +565,7 @@ body.platform-win32 {
 
     .footer-reply-area {
       width: 100%;
-      max-width: @message-max-width;
+
       margin: 0 auto;
       padding: 12px @spacing-standard * 1.5;
     }

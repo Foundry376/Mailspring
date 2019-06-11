@@ -35,13 +35,21 @@ async function prepareBodyForQuoting(body) {
 class DraftFactory {
   async createDraft(fields = {}) {
     const account = this._accountForNewDraft();
+
+    // create a UUID where the first segment is always the 8-digit account ID.
+    // Having a consistent accountID prefix is what allows us to ensure that you
+    // don't trigger your own open-tracked emails, for example. [BG NOTE "HMID"]
+    //
+    const auuid = uuidv4().toUpperCase().split('-')
+    auuid.splice(0, 1, account.id.toUpperCase())
+
     const defaults = {
       body: '<br/>',
       subject: '',
       version: 0,
       unread: false,
       starred: false,
-      headerMessageId: `${uuidv4().toUpperCase()}@getmailspring.com`,
+      headerMessageId: `${auuid.join('-')}@getmailspring.com`,
       from: [account.defaultMe()],
       date: new Date(),
       draft: true,

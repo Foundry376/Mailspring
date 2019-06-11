@@ -3,6 +3,7 @@ import {
   MessageViewExtension,
   ComposerExtension,
   RegExpUtils,
+  Message,
 } from 'mailspring-exports';
 
 const TrackingBlacklist = [
@@ -128,7 +129,7 @@ const TrackingBlacklist = [
   },
 ];
 
-export function rejectImagesInBody(body, callback) {
+export function rejectImagesInBody(body: string, callback: (url: string) => boolean) {
   const spliceRegions = [];
   const regex = RegExpUtils.imageTagRegex();
 
@@ -148,7 +149,7 @@ export function rejectImagesInBody(body, callback) {
   return updated;
 }
 
-export function removeTrackingPixels(message) {
+export function removeTrackingPixels(message: Message) {
   const isFromMe = message.isFromMe();
 
   message.body = rejectImagesInBody(message.body, imageURL => {
@@ -163,9 +164,10 @@ export function removeTrackingPixels(message) {
     }
 
     // Remove Mailspring read receipt pixels for the current account. If this is a
-    // reply, our read receipt could still be in the body and could trigger
-    // additional opens. (isFromMe is not sufficient!)
-    if (imageURL.indexOf(`getmailspring.com/open/${message.accountId}`) >= 0) {
+    // reply or a bounce, our read receipt could still be in the body and could
+    // trigger additional opens. (isFromMe is not sufficient!) [BG NOTE "HMID"]
+    const ownOpenURL = `getmailspring.com/open/${message.accountId}`.toLowerCase();
+    if (imageURL.toLowerCase().includes(ownOpenURL)) {
       return true;
     }
     return false;

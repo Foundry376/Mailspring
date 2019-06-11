@@ -27,33 +27,51 @@ const DATE_EPSILON = 60; // Seconds
 
 const _readFile = Promise.promisify(fs.readFile);
 
+interface MailspringLinkParams {
+  subject: string;
+  lastDate?: number;
+  date?: number;
+}
 const _parseOpenThreadUrl = mailspringUrlString => {
   const parsedUrl = url.parse(mailspringUrlString);
-  const params: any = querystring.parse(parsedUrl.query);
-  params.lastDate = parseInt(params.lastDate, 10);
-  return params;
+  const params = querystring.parse(parsedUrl.query) as any;
+  return {
+    subject: params.subject,
+    date: params.date ? parseInt(params.date, 10) : undefined,
+    lastDate: params.lastDate ? parseInt(params.lastDate, 10) : undefined,
+  } as MailspringLinkParams;
 };
 
-const _findCorrespondingThread = ({ subject, lastDate }, dateEpsilon = DATE_EPSILON) => {
+const _findCorrespondingThread = (
+  { subject, lastDate, date }: MailspringLinkParams,
+  dateEpsilon = DATE_EPSILON
+) => {
+  const dateClause = date
+    ? new Matcher.And([
+        Thread.attributes.firstMessageTimestamp.lessThan(date + dateEpsilon),
+        Thread.attributes.firstMessageTimestamp.greaterThan(date - dateEpsilon),
+      ])
+    : new Matcher.Or([
+        new Matcher.And([
+          Thread.attributes.lastMessageSentTimestamp.lessThan(lastDate + dateEpsilon),
+          Thread.attributes.lastMessageSentTimestamp.greaterThan(lastDate - dateEpsilon),
+        ]),
+        new Matcher.And([
+          Thread.attributes.lastMessageReceivedTimestamp.lessThan(lastDate + dateEpsilon),
+          Thread.attributes.lastMessageReceivedTimestamp.greaterThan(lastDate - dateEpsilon),
+        ]),
+      ]);
+
   return DatabaseStore.findBy<Thread>(Thread).where([
     Thread.attributes.subject.equal(subject),
-    new Matcher.Or([
-      new Matcher.And([
-        Thread.attributes.lastMessageSentTimestamp.lessThan(lastDate + dateEpsilon),
-        Thread.attributes.lastMessageSentTimestamp.greaterThan(lastDate - dateEpsilon),
-      ]),
-      new Matcher.And([
-        Thread.attributes.lastMessageReceivedTimestamp.lessThan(lastDate + dateEpsilon),
-        Thread.attributes.lastMessageReceivedTimestamp.greaterThan(lastDate - dateEpsilon),
-      ]),
-    ]),
+    dateClause,
   ]);
 };
 
 const _onOpenThreadFromWeb = (event, mailspringUrl) => {
-  const { subject, lastDate } = _parseOpenThreadUrl(mailspringUrl);
+  const params = _parseOpenThreadUrl(mailspringUrl);
 
-  _findCorrespondingThread({ subject, lastDate })
+  _findCorrespondingThread(params)
     .then(thread => {
       if (!thread) {
         throw new Error('Thread not found');
@@ -62,7 +80,9 @@ const _onOpenThreadFromWeb = (event, mailspringUrl) => {
     })
     .catch(error => {
       AppEnv.reportError(error);
-      AppEnv.showErrorDialog(localized(`The thread %@ does not exist in your mailbox!`, subject));
+      AppEnv.showErrorDialog(
+        localized(`The thread %@ does not exist in your mailbox!`, params.subject)
+      );
     });
 };
 

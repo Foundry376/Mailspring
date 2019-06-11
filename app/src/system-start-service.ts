@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import { exec } from 'child_process';
 import ws from 'windows-shortcuts';
+import { localized } from './intl';
 
 class SystemStartServiceBase {
   checkAvailability(): Promise<boolean> {
@@ -49,14 +50,29 @@ class SystemStartServiceDarwin extends SystemStartServiceBase {
 
   configureToLaunchOnSystemStart() {
     fs.writeFile(this._plistPath(), JSON.stringify(this._launchdPlist()), err => {
-      if (!err) {
+      if (err) {
+        this._displayError(err);
+      } else {
         exec(`plutil -convert xml1 ${this._plistPath()}`);
       }
     });
   }
 
   dontLaunchOnSystemStart() {
-    return fs.unlink(this._plistPath(), () => {});
+    fs.unlink(this._plistPath(), err => {
+      if (err) {
+        this._displayError(err);
+      }
+    });
+  }
+
+  _displayError(err: Error) {
+    AppEnv.showErrorDialog(
+      localized(
+        'Mailspring was unable to create or delete the LaunchAgent file at %@.',
+        this._plistPath()
+      ) + `\n\n${err.toString()}`
+    );
   }
 
   _launcherPath() {

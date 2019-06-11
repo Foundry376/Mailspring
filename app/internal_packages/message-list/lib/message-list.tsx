@@ -1,10 +1,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import {
   localized,
-  PropTypes,
   Utils,
   Actions,
   MessageStore,
@@ -27,53 +25,8 @@ import {
 
 import FindInThread from './find-in-thread';
 import MessageItemContainer from './message-item-container';
-
-class MessageListScrollTooltip extends React.Component<
-  { viewportCenter: number; totalHeight: number },
-  { idx: number; count: number }
-> {
-  static displayName = 'MessageListScrollTooltip';
-  static propTypes = {
-    viewportCenter: PropTypes.number.isRequired,
-    totalHeight: PropTypes.number.isRequired,
-  };
-
-  componentWillMount() {
-    this.setupForProps(this.props);
-  }
-
-  componentWillReceiveProps(newProps) {
-    this.setupForProps(newProps);
-  }
-
-  shouldComponentUpdate(newProps, newState) {
-    return !Utils.isEqualReact(this.state, newState);
-  }
-
-  setupForProps(props) {
-    // Technically, we could have MessageList provide the currently visible
-    // item index, but the DOM approach is simple and self-contained.
-    //
-    const els = document.querySelectorAll('.message-item-wrap');
-    let idx = Array.from(els).findIndex(el => (el as HTMLElement).offsetTop > props.viewportCenter);
-    if (idx === -1) {
-      idx = els.length;
-    }
-
-    this.setState({
-      idx: idx,
-      count: els.length,
-    });
-  }
-
-  render() {
-    return (
-      <div className="scroll-tooltip">
-        {localized('%1$@ of %2$@', this.state.idx, this.state.count)}
-      </div>
-    );
-  }
-}
+import { MessageListScrollTooltip } from './message-list-scroll-tooltip';
+import { SubjectLineIcons } from './subject-line-icons';
 
 interface MessageListState {
   messages: Message[];
@@ -86,6 +39,10 @@ interface MessageListState {
   loading: boolean;
   minified: boolean;
 }
+
+const PREF_REPLY_TYPE = 'core.sending.defaultReplyType';
+const PREF_RESTRICT_WIDTH = 'core.reading.restrictMaxWidth';
+const PREF_DESCENDING_ORDER = 'core.reading.descendingOrderMessageList';
 
 class MessageList extends React.Component<{}, MessageListState> {
   static displayName = 'MessageList';
@@ -172,7 +129,7 @@ class MessageList extends React.Component<{}, MessageListState> {
 
   // Returns either "reply" or "reply-all"
   _replyType() {
-    const defaultReplyType = AppEnv.config.get('core.sending.defaultReplyType');
+    const defaultReplyType = AppEnv.config.get(PREF_REPLY_TYPE);
     const lastMessage = this._lastMessage();
     if (!lastMessage) {
       return 'reply';
@@ -232,7 +189,7 @@ class MessageList extends React.Component<{}, MessageListState> {
     const hasReplyArea = mostRecentMessage && !mostRecentMessage.draft;
 
     // Invert the message list if the descending option is set
-    if (AppEnv.config.get('core.reading.descendingOrderMessageList')) {
+    if (AppEnv.config.get(PREF_DESCENDING_ORDER)) {
       messages = messages.reverse();
     }
 
@@ -396,61 +353,13 @@ class MessageList extends React.Component<{}, MessageListState> {
             thread={this.state.currentThread}
           />
         </div>
-        {this._renderIcons()}
-      </div>
-    );
-  }
-
-  _renderIcons() {
-    return (
-      <div className="message-icons-wrap">
-        {this._renderExpandToggle()}
-        <div onClick={this._onPrintThread}>
-          <RetinaImg
-            name="print.png"
-            title={localized('Print Thread')}
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
-        </div>
-        {this._renderPopoutToggle()}
-      </div>
-    );
-  }
-
-  _renderExpandToggle() {
-    if (!this.state.canCollapse) {
-      return <span />;
-    }
-
-    return (
-      <div onClick={this._onToggleAllMessagesExpanded}>
-        <RetinaImg
-          name={this.state.hasCollapsedItems ? 'expand.png' : 'collapse.png'}
-          title={this.state.hasCollapsedItems ? localized('Expand All') : localized('Collapse All')}
-          mode={RetinaImg.Mode.ContentIsMask}
-        />
-      </div>
-    );
-  }
-
-  _renderPopoutToggle() {
-    if (AppEnv.isThreadWindow()) {
-      return (
-        <div onClick={this._onPopThreadIn}>
-          <RetinaImg
-            name="thread-popin.png"
-            title={localized('Pop thread in')}
-            mode={RetinaImg.Mode.ContentIsMask}
-          />
-        </div>
-      );
-    }
-    return (
-      <div onClick={this._onPopoutThread}>
-        <RetinaImg
-          name="thread-popout.png"
-          title={localized('Popout thread')}
-          mode={RetinaImg.Mode.ContentIsMask}
+        <SubjectLineIcons
+          canCollapse={this.state.canCollapse}
+          hasCollapsedItems={this.state.hasCollapsedItems}
+          onPrint={this._onPrintThread}
+          onPopIn={this._onPopThreadIn}
+          onPopOut={this._onPopoutThread}
+          onToggleAllExpanded={this._onToggleAllMessagesExpanded}
         />
       </div>
     );
@@ -500,15 +409,17 @@ class MessageList extends React.Component<{}, MessageListState> {
       ready: !this.state.loading,
     });
 
-    const messageListClass = classNames({
-      'message-list': true,
-      'height-fix': SearchableComponentStore.searchTerm !== null,
-    });
-
     return (
       <KeyCommandsRegion globalHandlers={this._globalKeymapHandlers()}>
         <FindInThread />
-        <div className={messageListClass} id="message-list">
+        <div
+          id="message-list"
+          className={classNames({
+            'message-list': true,
+            'restrict-width': AppEnv.config.get(PREF_RESTRICT_WIDTH),
+            'height-fix': SearchableComponentStore.searchTerm !== null,
+          })}
+        >
           <ScrollRegion
             tabIndex={-1}
             className={wrapClass}
@@ -523,7 +434,10 @@ class MessageList extends React.Component<{}, MessageListState> {
               <InjectedComponentSet
                 className="message-list-headers"
                 matching={{ role: 'MessageListHeaders' }}
-                exposedProps={{ thread: this.state.currentThread, messages: this.state.messages }}
+                exposedProps={{
+                  thread: this.state.currentThread,
+                  messages: this.state.messages,
+                }}
                 direction="column"
               />
             </div>

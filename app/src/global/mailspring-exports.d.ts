@@ -9,7 +9,7 @@
   export const isRTL: isRTL; 
 
   // Actions
-  export type Actions = typeof import('../flux/actions').default;
+  export type Actions = typeof import('../flux/actions');
   export const Actions: Actions; 
 
   // API Endpoints
@@ -171,6 +171,11 @@
   export const DOMUtils: DOMUtils;
   export type DateUtils = typeof import('../date-utils').default;
   export const DateUtils: DateUtils;
+
+  export type CalendarUtils = typeof import('../calendar-utils');
+  export const CalendarUtils: CalendarUtils;
+  export {ICSParticipantStatus, ICSParticipant} from '../calendar-utils'
+  
   export type FsUtils = typeof import('../fs-utils');
   export const FsUtils: FsUtils;
   export type CanvasUtils = typeof import('../canvas-utils');
