@@ -8,6 +8,8 @@ import { copyRxdbContact, safeUpdate, saveGroupMessages } from '../utils/db-util
 const { remote } = require('electron');
 const { Actions } = require('mailspring-exports');
 import { ChatActions, ContactStore } from 'chat-exports';
+const Op = Sequelize.Op;
+
 import {
   MESSAGE_STATUS_FILE_UPLOADING,
   MESSAGE_STATUS_SENDING,
@@ -81,56 +83,6 @@ export const receiptSentEpic = action$ =>
     .filter(({ payload }) => payload.receipt && !payload.body)
     .map(({ payload }) => receiptSent(payload.id));
 
-export const membersChangeEpic = action$ =>
-  action$.ofType(MEMBERS_CHANGE)
-    .mergeMap(({ payload }) => Observable.fromPromise(asyncMembersChangeEpic(payload)));
-
-const asyncMembersChangeEpic = async payload => {
-  const notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
-  const items = notifications[payload.from] || (notifications[payload.from] = []);
-  const nicknames = chatModel.chatStorage.nicknames;
-  const fromjid = payload.userJid;
-  const fromcontact = await ContactStore.findContactByJid(fromjid);
-  const byjid = payload.actorJid;
-  const bycontact = await ContactStore.findContactByJid(byjid);
-  const item = {
-    from: {
-      jid: fromjid,
-      email: payload.userEmail,
-      name: fromcontact && fromcontact.name,
-      nickname: nicknames[fromjid]
-    },
-    type: payload.type,
-    by: {
-      jid: byjid,
-      email: bycontact && bycontact.email,
-      name: bycontact && bycontact.name,
-      nickname: nicknames[byjid]
-    }
-  }
-
-  let content;
-  const fromName = item.from.nickname || item.from.name || item.from.email;
-  const byName = item.by.nickname || item.by.name || item.by.email;
-  if (payload.type === 'join') {
-    content = `${fromName} joined by invitation from ${byName}.`
-  } else {
-    content = `${fromName} quited by operation from ${byName}.`
-  }
-  const body = {
-    content,
-  }
-  const msg = {
-    id: uuid(),
-    conversationJid: payload.from.bare,
-    sender: fromjid,
-    body: JSON.stringify(body),
-    sentTime: (new Date()).getTime(),
-    status: MESSAGE_STATUS_RECEIVED,
-  };
-  return beginStoringMessage(msg);
-}
-
 export const successSendMessageEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
     .filter(({ payload }) => !payload.receipt && payload.body)
@@ -147,7 +99,7 @@ export const sendMessageEpic = action$ =>
     .mergeMap(({ db, payload }) => {
       if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
         let occupants = payload.conversation.occupants;
-        return Observable.fromPromise(db.e2ees.find({ jid: { $in: occupants } }).exec())
+        return Observable.fromPromise(db.e2ees.findAll({where: { jid: { [OP.in]: occupants }}}))
           .map(e2ees => {
             let devices = [];
             if (e2ees && e2ees.length == occupants.length) {
@@ -336,7 +288,7 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
     .mergeMap(conv => {
       return Observable.fromPromise(getDb())
         .mergeMap(db => {
-          return Observable.fromPromise(db.conversations.findOne().where('jid').eq(conv.jid).exec())
+          return Observable.fromPromise(db.conversations.findOne({where:{jid:conv.jid}}))
             .map(convInDb => {
               if (conv.isGroup) {
                 conv.occupants = convInDb.occupants;

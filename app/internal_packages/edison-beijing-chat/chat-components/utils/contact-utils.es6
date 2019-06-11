@@ -3,7 +3,7 @@ import { ContactStore } from 'chat-exports';
 
 export const getChatMembersFromDb = async convjid => {
   const db = await getDb();
-  const conv = await db.conversations.findOne().where('jid').eq(convjid).exec();
+  const conv = await db.conversations.findOne({where:{jid:convjid}});
   const occupants = conv.occupants;
   return Promise.all(occupants.map(accupant => ContactStore.findContactByJid(accupant)))
 };

@@ -70,9 +70,9 @@ async function getDoc(doc) {
   //this is only for  being used by safeUpdate
   const db = await getDb();
   if (doc.jid) {
-    return await db.conversations.findOne().where('jid').eq(doc.jid).exec();
+    return await db.conversations.findOne({where:{jid:doc.jid}});
   } else {
-    return await db.messages.findOne().where('id').eq(doc.id).exec();
+    return await db.messages.findOne({where:{id:doc.id}});
   }
 }
 

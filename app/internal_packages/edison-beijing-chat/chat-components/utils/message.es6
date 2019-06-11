@@ -68,13 +68,13 @@ export const getLastMessageInfo = async (message) => {
     let conv = message.conversation;
     let db = await getDb();
     if (!conv) {
-      conv = await db.conversations.findOne().where('jid').eq(message.from.bare).exec();
+      conv = await db.conversations.findOne({where: {jid:message.from.bare}});
       if (!conv) {
         lastMessageText = getMessageContent(message);
         return { sender, lastMessageTime, lastMessageText };
       }
     }
-    let messages = await db.messages.find().where('conversationJid').eq(conv.jid).exec();
+    let messages = await db.messages.findAll({where:{conversationJid:conv.jid}});
 
     if (messages.length) {
       messages.sort((a, b) => a.sentTime - b.sentTime);
