@@ -52,7 +52,7 @@ test: off
 
 environment:
   matrix:
-  - NODE_VERSION: 7.10
+  - NODE_VERSION: '11'
   global:
     SIGN_BUILD: true
     WINDOWS_CODESIGN_CERT: .\app\build\resources\certs\win\win-codesigning.p12

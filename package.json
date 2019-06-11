@@ -9,7 +9,7 @@
     "url": "git+https://github.com/Foundry376/Mailspring.git"
   },
   "engines": {
-    "node": "6.9.x"
+    "node": "11.x"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^5.2.2",
