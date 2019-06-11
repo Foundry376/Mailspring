@@ -99,7 +99,7 @@ class SidebarSection {
     } else {
       accounts.forEach(acc => {
         items.push(
-          SidebarItem.forInbox([acc.id], {
+          SidebarItem.forSingleInbox([acc.id], {
             name: acc.label,
             threadTitleName: 'Inbox',
             children: this.standardSectionForAccount(acc).items,

@@ -305,6 +305,13 @@ class SidebarItem {
     }
     return this.forPerspective(id, perspective, opts);
   }
+  static forSingleInbox(accountId, opts = {}) {
+    opts.iconName = 'inbox.svg';
+    const perspective = MailboxPerspective.forInbox(accountId);
+    opts.categoryIds = this.getCategoryIds(accountId, 'inbox');
+    const id = [accountId].join('-');
+    return this.forPerspective(id, perspective, opts);
+  }
 
   static forInbox(accountId, opts = {}) {
     opts.iconName = 'inbox.svg';
