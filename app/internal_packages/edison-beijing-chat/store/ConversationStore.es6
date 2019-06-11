@@ -82,7 +82,7 @@ class ConversationStore extends MailspringStore {
     await this._clearUnreadCount(jid);
     const conv = await this.getConversationByJid(jid);
     this.selectedConversation = conv;
-    this._triggerDebounced();
+    this.trigger();
   }
 
   _clearUnreadCount = async (jid) => {
@@ -125,6 +125,19 @@ class ConversationStore extends MailspringStore {
       await ConversationModel.upsert(conv);
     }
     this.refreshConversations();
+  }
+
+  saveConversationName = async (payload) => {
+    const convJid = payload.from.bare;
+    const convName = payload.edimucevent && payload.edimucevent.edimucconfig.name;
+    if (convJid && convName) {
+      await ConversationModel.update({ name: convName }, {
+        where: {
+          jid: convJid
+        }
+      });
+      this.refreshConversations();
+    }
   }
 
   _createGroupChatRoom = async (payload) => {
