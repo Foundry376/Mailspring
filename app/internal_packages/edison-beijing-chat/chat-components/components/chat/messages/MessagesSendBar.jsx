@@ -71,7 +71,7 @@ export default class MessagesSendBar extends PureComponent {
     onMessageSubmitted: PropTypes.func.isRequired,
     selectedConversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
+      name: PropTypes.string,
       email: PropTypes.string,//.isRequired,
       isGroup: PropTypes.bool.isRequired
     }).isRequired,

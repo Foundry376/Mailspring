@@ -15,14 +15,13 @@ export default class ConversationItem extends PureComponent {
     selected: PropTypes.bool,
     conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
+      name: PropTypes.string,
       email: PropTypes.string,//.isRequired,
       avatar: PropTypes.string,
       lastMessageText: PropTypes.string.isRequired,
       lastMessageTime: PropTypes.number.isRequired,
     }).isRequired,
     referenceTime: PropTypes.number,
-    // removeConversation: PropTypes.func
   }
 
   static defaultProps = {
