@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ConversationsPanel from './conversations/ConversationsPanel';
 import MessagesPanel from './messages/MessagesPanel';
 
 export default class ChatPage extends PureComponent {
@@ -29,16 +28,10 @@ export default class ChatPage extends PureComponent {
       currentUserId,
       groupedMessages,
       referenceTime,
-      isLeft,
-      resetHeight,
-      onDragStart,
       online,
       isAuthenticating
     } = this.props;
 
-    const conversationsPanelProps = {
-      referenceTime,
-    };
     const messagesPanelProps = {
       sendMessage,
       currentUserId,
@@ -53,17 +46,9 @@ export default class ChatPage extends PureComponent {
 
     return (
       <div className="chatPageContainer">
-        <div className="leftPanel" style={{ display: isLeft ? 'block' : 'none' }}>
-          <div onDoubleClick={resetHeight} onMouseDown={onDragStart} className="resizeBar"></div>
-          <ConversationsPanel {...conversationsPanelProps} />
+        <div className={rightPanelClasses}>
+          <MessagesPanel {...messagesPanelProps} />
         </div>
-        {
-          !isLeft ? (
-            <div className={rightPanelClasses}>
-              <MessagesPanel {...messagesPanelProps} />
-            </div>
-          ) : null
-        }
       </div>
     );
   }

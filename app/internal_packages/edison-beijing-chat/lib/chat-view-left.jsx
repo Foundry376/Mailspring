@@ -1,13 +1,10 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
-import ChatPage from '../chat-components/containers/ChatPage';
-import chatModel from '../chat-components/store/model';
-import { Provider } from 'react-redux';
 import { Actions } from 'mailspring-exports';
+import ConversationsPanel from '../chat-components/components/chat/conversations/ConversationsPanel';
 import registerLoginChatAccounts from '../chat-components/utils/registerLoginChatAccounts';
-const { history } = require('../chat-components/store/configureStore').default;
 const BOTTOM_OFFSET = 0;
-export default class ChatView extends Component {
+export default class ChatViewLeft extends Component {
   static displayName = 'ChatViewLeft';
   onDragStart(e) {
     const startY = e.clientY;
@@ -62,9 +59,12 @@ export default class ChatView extends Component {
   render() {
     return (
       <div className="chat-view-container chat-left-panel-container">
-        <Provider store={chatModel.store}>
-          <ChatPage isLeft={true} onDragStart={this.onDragStart} resetHeight={this.resetHeight} />
-        </Provider>
+        <div className="chatPageContainer">
+          <div className="leftPanel">
+            <div onDoubleClick={this.resetHeight} onMouseDown={this.onDragStart} className="resizeBar"></div>
+            <ConversationsPanel />
+          </div>
+        </div>
       </div>
     )
   }
