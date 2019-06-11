@@ -50,7 +50,7 @@ export const groupMessagesByTime = async (messages, key, kind) => {
 
 export const addMessagesSenderNickname = async (messages) => {
   const nicknames = chatModel.chatStorage.nicknames;
-  for (let message of messages){
+  for (let message of messages) {
     message.senderNickname = nicknames[message.sender];
   }
 }
@@ -119,20 +119,12 @@ export const parseMessageBody = (body) => {
   }
 }
 
-export const clearMessages = async (conversation) => {
-  const db = await getDb();
-  let msg = await db.messages.findOne().where('conversationJid').eq(conversation.jid).exec();
-  if (msg) {
-    await db.messages.find().where('conversationJid').eq(conversation.jid).remove();
-  }
-}
-
 export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   let { progress } = ProgressBarStore;
-  let { loading} = progress;
+  let { loading } = progress;
   if (loading) {
     const loadConfig = progress.loadConfig;
-    const loadText = loadConfig.type==='upload'? 'An upload' : ' A download';
+    const loadText = loadConfig.type === 'upload' ? 'An upload' : ' A download';
     window.alert(`${loadText} is processing, please wait it to be finished!`);
     return;
   }
@@ -190,13 +182,13 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     body.emailMessageId = file.messageId;
   }
   onMessageSubmitted(conversation, JSON.stringify(body), messageId, true);
-  if (!isImageFilePath(filepath)){
+  if (!isImageFilePath(filepath)) {
     const loadConfig = {
       conversation,
       messageId,
       msgBody: body,
       filepath,
-      type:'upload',
+      type: 'upload',
     }
     queueLoadMessage(loadConfig);
   } else {
@@ -208,7 +200,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
         body.isUploading = false;
         body.content = message || " ";
         body.mediaObjectId = myKey;
-        if (thumbKey){
+        if (thumbKey) {
           body.thumbObjectId = thumbKey;
         }
         body.occupants = reactInstance.state.occupants || [];
@@ -236,11 +228,11 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
         sendUploadMessage(null);
       } else {
         body.type = FILE_TYPE.IMAGE;
-        let thumbPath = path.join(path.dirname(filepath), path.basename(filepath).replace(/\.\w*$/, '_thumb')+path.extname(filepath));
+        let thumbPath = path.join(path.dirname(filepath), path.basename(filepath).replace(/\.\w*$/, '_thumb') + path.extname(filepath));
         thumb({
           source: filepath,
           destination: path.dirname(filepath)
-        }, function(files, err, stdout, stderr) {
+        }, function (files, err, stdout, stderr) {
           const thumbExist = fs.existsSync(thumbPath);
           if (thumbExist) {
             uploadFile(jidLocal, null, thumbPath, (err, filename, thumbKey, size) => {

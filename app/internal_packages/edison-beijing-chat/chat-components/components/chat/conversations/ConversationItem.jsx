@@ -4,12 +4,10 @@ import { buildTimeDescriptor } from '../../../utils/time';
 import ContactAvatar from '../../common/ContactAvatar';
 import GroupChatAvatar from '../../common/GroupChatAvatar';
 import Badge from './ConversationBadge';
-import chatModel from '../../../store/model';
 import messageModel from '../messages/messageModel';
-import { clearMessages } from '../../../utils/message';
 import { RetinaImg } from 'mailspring-component-kit';
 import { getApp, getToken } from '../../../utils/appmgt';
-import { ChatActions } from 'chat-exports';
+import { ChatActions, MessageStore } from 'chat-exports';
 
 export default class ConversationItem extends PureComponent {
 
@@ -51,21 +49,16 @@ export default class ConversationItem extends PureComponent {
     })
   }
 
-  onClickRemove = (event) => {
+  onClickRemove = async (event) => {
     event.stopPropagation();
     event.preventDefault();
     const { conversation } = this.props;
-    clearMessages(conversation).then(() => {
-      // setTimeout((() => {
-      // cxm: it's so weird, it's necessary to add th delay to make the messages history not to come back!
-      // but it really works, tested.
-      chatModel.store.dispatch({ type: 'DESELECT_CONVERSATION' });
-      ChatActions.removeConversation(conversation.jid);
-      if (messageModel.imagePopup) {
-        messageModel.imagePopup.hide();
-      }
-      // }), 1000)
-    })
+    MessageStore.removeMessagesByConversationJid(conversation.jid);
+    ChatActions.deselectConversation();
+    ChatActions.removeConversation(conversation.jid);
+    if (messageModel.imagePopup) {
+      messageModel.imagePopup.hide();
+    }
   }
 
   render() {
