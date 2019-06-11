@@ -324,7 +324,7 @@ input {
     background-color: white;
     border: 2px inset;
     -webkit-rtl-ordering: logical;
-    -webkit-user-select: text;
+    user-select: text;
     cursor: auto;
 }
 input[type="search" i] {
@@ -388,7 +388,7 @@ input::-webkit-inner-spin-button {
     cursor: default;
     flex: none;
     align-self: stretch;
-    -webkit-user-select: none;
+    user-select: none;
     -webkit-user-modify: read-only !important;
     opacity: 0;
     pointer-events: none;
@@ -408,7 +408,7 @@ textarea {
     background-color: white;
     border: 1px solid;
     -webkit-rtl-ordering: logical;
-    -webkit-user-select: text;
+    user-select: text;
     flex-direction: column;
     resize: auto;
     cursor: auto;
@@ -454,7 +454,7 @@ input[type="radio" i], input[type="checkbox" i] {
 }
 input[type="button" i], input[type="submit" i], input[type="reset" i] {
     -webkit-appearance: push-button;
-    -webkit-user-select: none;
+    user-select: none;
     white-space: pre
 }
 input[type="file" i]::-webkit-file-upload-button {
@@ -630,7 +630,7 @@ select:-internal-list-box {
     overflow-x: hidden;
     overflow-y: scroll;
     vertical-align: text-bottom;
-    -webkit-user-select: none;
+    user-select: none;
     white-space: nowrap;
 }
 optgroup {

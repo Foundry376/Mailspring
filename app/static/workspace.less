@@ -132,8 +132,8 @@ body.is-blurred {
     }
   }
   .sheet-toolbar-container {
-    background-image: -webkit-linear-gradient(
-      top,
+    background-image: linear-gradient(
+      to bottom,
       lighten(@toolbar-background-color, 14%),
       lighten(@toolbar-background-color, 14%)
     );
@@ -380,7 +380,7 @@ body.is-blurred {
     white-space: nowrap;
     z-index: 100;
     -webkit-transform: translate(-50%, -50%);
-    -webkit-user-select: text;
+    user-select: text;
   }
   &:hover {
     border: 1px dashed rgba(255, 0, 0, 1);

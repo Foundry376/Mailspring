@@ -70,7 +70,7 @@
   bottom: 0px;
   z-index: -1;
   cursor: default;
-  -webkit-user-select: none;
+  user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
@@ -447,7 +447,7 @@ select {
   height: 100%;
   overflow: hidden;
   cursor: none;
-  -webkit-user-select: none;
+  user-select: none;
           user-select: none;
 }
 
@@ -483,7 +483,7 @@ select {
   height: 100%;
   overflow: hidden;
   cursor: none;
-  -webkit-user-select: none;
+  user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
@@ -565,7 +565,7 @@ html[dir='rtl'] #sidebarContainer {
   /* Improve responsiveness and avoid visual glitches when the sidebar is resized. */
   transition-duration: 0s;
   /* Prevent e.g. the thumbnails being selected when the sidebar is resized. */
-  -webkit-user-select: none;
+  user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
@@ -736,7 +736,7 @@ html[dir='rtl'] #toolbarContainer, .findbar, .secondaryToolbar {
   transition: width 200ms;
 }
 
-@-webkit-keyframes progressIndeterminate {
+@keyframes progressIndeterminate {
   0% { left: -142px; }
   100% { left: 0; }
 }
@@ -803,7 +803,7 @@ html[dir='rtl'] .findbar {
 }
 
 .findbar label {
-  -webkit-user-select: none;
+  user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
@@ -1088,7 +1088,7 @@ html[dir='rtl'] .splitToolbarButtonSeparator {
   color: hsla(0,0%,100%,.8);
   font-size: 12px;
   line-height: 14px;
-  -webkit-user-select: none;
+  user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
@@ -1552,7 +1552,7 @@ html[dir='rtl'] .verticalToolbarSeparator {
   font-size: 12px;
   line-height: 14px;
   text-align: left;
-  -webkit-user-select: none;
+  user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
@@ -1645,7 +1645,7 @@ a:focus > .thumbnail > .thumbnailSelectionRing,
   bottom: 0;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  -webkit-user-select: none;
+  user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
@@ -1681,7 +1681,7 @@ html[dir='rtl'] .outlineItem > .outlineItems {
   color: hsla(0,0%,100%,.8);
   font-size: 13px;
   line-height: 15px;
-  -webkit-user-select: none;
+  user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;

@@ -274,8 +274,8 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 // Remove gradient on thread list during quick action hover
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner,
 .thread-list .list-item:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
+  background-image: linear-gradient(
+    to right,
     fade(@less-highlight, 0%) 0%,
     @less-highlight 40%,
     @less-highlight 100%
@@ -311,7 +311,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 // Change default color of star to gray
 .thread-list .thread-icon.thread-icon-star,
 .draft-list .thread-icon.thread-icon-star {
-  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
 }
 
 //====================================================

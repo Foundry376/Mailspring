@@ -24,7 +24,7 @@
   .thread-icon,
   .draft-icon,
   .mail-important-icon {
-    -webkit-filter: brightness(600%) grayscale(100%);
+    filter: brightness(600%) grayscale(100%);
   }
 
   .mail-label {
@@ -32,7 +32,7 @@
     // since the color of the label is detemined programatically.
     background: fade(@text-color-inverse, 20%) !important;
     box-shadow: none !important;
-    -webkit-filter: brightness(600%) grayscale(100%);
+    filter: brightness(600%) grayscale(100%);
   }
 }
 
@@ -373,8 +373,8 @@ body.platform-win32 {
 }
 
 .thread-list .list-item:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
+  background-image: linear-gradient(
+    to right,
     fade(darken(@list-bg, 5%), 0%) 0%,
     darken(@list-bg, 5%) 50%,
     darken(@list-bg, 5%) 100%
@@ -382,8 +382,8 @@ body.platform-win32 {
 }
 
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
+  background-image: linear-gradient(
+    to right,
     fade(@list-selected-bg, 0%) 0%,
     @list-selected-bg 50%,
     @list-selected-bg 100%
@@ -391,14 +391,14 @@ body.platform-win32 {
 }
 
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
+  background-image: linear-gradient(
+    to right,
     fade(@list-focused-bg, 0%) 0%,
     @list-focused-bg 50%,
     @list-focused-bg 100%
   );
   .action {
-    -webkit-filter: invert(100%) brightness(300%);
+    filter: invert(100%) brightness(300%);
   }
   .action.action-archive {
     background: url(@archive-img) center no-repeat;
@@ -416,7 +416,7 @@ body.platform-win32 {
 .thread-list .thread-icon-star:hover {
   background-image: url(../static/images/thread-list/icon-star-@2x.png);
   background-size: 16px;
-  -webkit-filter: brightness(90%);
+  filter: brightness(90%);
 }
 .thread-list .list-item:hover .thread-icon-none:hover {
   background-image: url(../static/images/thread-list/icon-star-action-hover-@2x.png);
@@ -519,14 +519,14 @@ body.platform-win32 {
     }
   }
   .list-item.selected:hover .list-column-HoverActions .inner {
-    background-image: -webkit-linear-gradient(
-      left,
+    background-image: linear-gradient(
+      to right,
       fade(@list-focused-bg, 0%) 0%,
       @list-focused-bg 50%,
       @list-focused-bg 100%
     );
     .action {
-      -webkit-filter: invert(100%) brightness(300%);
+      filter: invert(100%) brightness(300%);
     }
     .action.action-archive {
       background: url(@archive-img) center no-repeat;

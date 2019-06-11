@@ -1,6 +1,6 @@
 body {
   overflow: auto !important;
-  -webkit-filter: none !important;
+  filter: none !important;
 }
 
 h1,

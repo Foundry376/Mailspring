@@ -10,10 +10,10 @@
 .thread-list.handler-split .list-item.selected .thread-icon,
 .thread-list.handler-split .list-item.selected .draft-icon,
 .thread-list.handler-split .list-item.selected .mail-important-icon {
-  -webkit-filter: none !important;
+  filter: none !important;
 }
 
-// Base settings for replacing backgrounds with -webkit-filters for easier color changes
+// Base settings for replacing backgrounds with filters for easier color changes
 .thread-list .thread-icon {
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: 12px;
@@ -67,8 +67,8 @@
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner,
 .thread-list .list-item.selected:hover .list-column-HoverActions .inner,
 .thread-list.handler-split .list-item.selected:hover .list-column-HoverActions .inner {
-  background-image: -webkit-linear-gradient(
-    left,
+  background-image: linear-gradient(
+    to right,
     fade(@messagelist-bg, 0%) 0%,
     @messagelist-bg 40%,
     @messagelist-bg 100%
@@ -77,7 +77,7 @@
 
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner .action,
 .thread-list.handler-split .list-item.selected:hover .list-column-HoverActions .inner .action {
-  -webkit-filter: none;
+  filter: none;
 }
 
 .thread-list .list-item.focused:hover .list-column-HoverActions .inner .action.action-trash {

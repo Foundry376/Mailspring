@@ -87,7 +87,7 @@
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
-          
+
           .progress-label {
             color: @text-color-very-subtle;
             margin-left: 2px;
@@ -128,7 +128,7 @@
     background-color: #615396;
   }
   .notification-upgrade {
-    background-image: -webkit-linear-gradient(bottom, #429e91, #40b1ac);
+    background-image: linear-gradient(to top, #429e91, #40b1ac);
     img {
       background-color: @text-color-inverse;
     }
@@ -194,7 +194,7 @@
     }
 
     &.has-default-action:hover {
-      -webkit-filter: brightness(110%);
+      filter: brightness(110%);
       cursor: default;
     }
   }
@@ -204,7 +204,7 @@
   animation: blink 1s ease;
 }
 
-@-webkit-keyframes blink {
+@keyframes blink {
   0%,
   100% {
     box-shadow: none;
@@ -214,7 +214,7 @@
   }
 }
 
-@-webkit-keyframes border-pulse {
+@keyframes border-pulse {
   0%,
   100% {
     border-color: #00dd00;
@@ -224,7 +224,7 @@
   }
 }
 
-@-webkit-keyframes show-ellipsis {
+@keyframes show-ellipsis {
   0%,
   100% {
     opacity: 0;
