@@ -45,6 +45,12 @@
     overflow-y: scroll;
     -webkit-app-region: no-drag;
     height: 100%;
+    &:hover {
+      &::-webkit-scrollbar {
+        display: initial;
+        width: 4px;
+      }
+    }
     &::-webkit-scrollbar {
       display: none;
     }
