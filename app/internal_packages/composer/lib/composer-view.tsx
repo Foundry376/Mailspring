@@ -7,37 +7,34 @@ import {
   Utils,
   Actions,
   DraftStore,
-  AttachmentStore,
-  Message,
   DraftEditingSession,
+  MessageWithEditorState,
 } from 'mailspring-exports';
 import {
   DropZone,
   RetinaImg,
   ScrollRegion,
   TabGroupRegion,
-  AttachmentItem,
   KeyCommandsRegion,
-  ImageAttachmentItem,
   InjectedComponentSet,
   ComposerEditor,
   ComposerSupport,
 } from 'mailspring-component-kit';
-import { History } from 'slate';
-import ComposerHeader from './composer-header';
-import SendActionButton from './send-action-button';
-import ActionBarPlugins from './action-bar-plugins';
+import { ComposerHeader } from './composer-header';
+import { SendActionButton } from './send-action-button';
+import { ActionBarPlugins } from './action-bar-plugins';
+import { AttachmentsArea } from './attachments-area';
+import { QuotedTextControl } from './quoted-text-control';
 import Fields from './fields';
 
 const {
   hasBlockquote,
   hasNonTrailingBlockquote,
   hideQuotedTextByDefault,
-  removeQuotedText,
 } = ComposerSupport.BaseBlockPlugins;
 
 interface ComposerViewProps {
-  draft: Message & { bodyEditorState: any };
+  draft: MessageWithEditorState;
   session: DraftEditingSession;
   className?: string;
 }
@@ -60,21 +57,19 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
   _mounted: boolean = false;
   _mouseDownTarget: HTMLElement = null;
-  _dropzone: DropZone;
 
-  _els: { [key: string]: any } = {
-    composerWrap: null,
-    sendActionButton: SendActionButton,
-    [Fields.Body]: ComposerEditor,
-    header: ComposerHeader,
-  };
+  dropzone = React.createRef<DropZone>();
+  sendButton = React.createRef<SendActionButton>();
+  focusContainer = React.createRef<KeyCommandsRegion & HTMLDivElement>();
+  editor = React.createRef<ComposerEditor>();
+  header = React.createRef<ComposerHeader>();
 
   _keymapHandlers = {
-    'composer:send-message': () => this._onPrimarySend(),
+    'composer:send-message': () => this.sendButton.current.primarySend(),
     'composer:delete-empty-draft': () => this.props.draft.pristine && this._onDestroyDraft(),
-    'composer:show-and-focus-bcc': () => this._els.header.showAndFocusField(Fields.Bcc),
-    'composer:show-and-focus-cc': () => this._els.header.showAndFocusField(Fields.Cc),
-    'composer:focus-to': () => this._els.header.showAndFocusField(Fields.To),
+    'composer:show-and-focus-bcc': () => this.header.current.showAndFocusField(Fields.Bcc),
+    'composer:show-and-focus-cc': () => this.header.current.showAndFocusField(Fields.Cc),
+    'composer:focus-to': () => this.header.current.showAndFocusField(Fields.To),
     'composer:show-and-focus-from': () => {},
     'composer:select-attachment': () => this._onSelectAttachment(),
   };
@@ -83,6 +78,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     super(props);
 
     const draft = props.session.draft();
+
     this.state = {
       isDropping: false,
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
@@ -91,20 +87,22 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   }
 
   componentDidMount() {
+    const { date, files } = this.props.draft;
+
     this._mounted = true;
-    this.props.draft.files.forEach(file => {
+
+    files.forEach(file => {
       if (Utils.shouldDisplayAsImage(file)) {
         Actions.fetchFile(file);
       }
     });
 
-    const d = this.props.draft.date;
-    const isBrandNew = Date.now() - (d instanceof Date ? d.getTime() : Number(d)) < 3 * 1000;
+    // Note: the way this is implemented, `date` updates each time the draft is saved,
+    // so this will autoselect the draft if it has been edited or created in the last 3s.
+    const isBrandNew = Date.now() - (date instanceof Date ? date.getTime() : Number(date)) < 3000;
     if (isBrandNew) {
       (ReactDOM.findDOMNode(this) as HTMLElement).scrollIntoView(false);
-      window.requestAnimationFrame(() => {
-        this.focus();
-      });
+      window.requestAnimationFrame(() => this.focus());
     }
   }
 
@@ -121,264 +119,87 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
   componentWillUnmount() {
     this._mounted = false;
-
-    // In the future, we should clean up the draft session entirely, or give it
-    // the same lifecycle as the composer view. For now, just make sure we free
-    // up all the memory used for undo/redo.
-    const { draft, session } = this.props;
-    session.changes.add({ bodyEditorState: draft.bodyEditorState.set('history', new History()) });
   }
 
   focus() {
-    if (!this._mounted) return;
+    if (!this._mounted || !this.header.current || !this.editor.current) return;
 
     // If something within us already has focus, don't change it. Never, ever
     // want to pull the cursor out from under the user while typing
-    const node = ReactDOM.findDOMNode(this._els.composerWrap);
+    const node = ReactDOM.findDOMNode(this.focusContainer.current);
     if (node.contains(document.activeElement)) {
       return;
     }
 
     if (this.props.draft.to.length === 0 || this.props.draft.subject.length === 0) {
-      this._els.header.focus();
+      this.header.current.focus();
     } else {
-      this._els[Fields.Body].focus();
+      this.editor.current.focus();
     }
-  }
-
-  _renderContentScrollRegion() {
-    if (AppEnv.isComposerWindow()) {
-      return (
-        <ScrollRegion
-          className="compose-body-scroll"
-          ref={el => {
-            if (el) {
-              this._els.scrollregion = el;
-            }
-          }}
-        >
-          {this._renderContent()}
-        </ScrollRegion>
-      );
-    }
-    return this._renderContent();
   }
 
   _renderContent() {
     const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
+    const { quotedTextHidden, quotedTextPresent } = this.state;
+    const { draft, session } = this.props;
 
     return (
       <div className={`composer-centered ${restrictWidth && 'restrict-width'}`}>
-        <ComposerHeader
-          ref={el => {
-            if (el) {
-              this._els.header = el;
-            }
-          }}
-          draft={this.props.draft}
-          session={this.props.session}
-        />
+        <ComposerHeader ref={this.header} draft={draft} session={session} />
         <div
           className="compose-body"
-          ref={el => {
-            if (el) {
-              this._els.composeBody = el;
-            }
-          }}
           onMouseUp={this._onMouseUpComposerBody}
           onMouseDown={this._onMouseDownComposerBody}
         >
-          {this._renderBodyRegions()}
-          {this._renderFooterRegions()}
+          <div className="composer-body-wrap">
+            <ComposerEditor
+              ref={this.editor}
+              value={draft.bodyEditorState}
+              className={quotedTextHidden && 'hiding-quoted-text'}
+              propsForPlugins={{ draft, session }}
+              onFileReceived={this._onFileReceived}
+              onUpdatedSlateEditor={editor => session.setMountedEditor(editor)}
+              onDrop={e => this.dropzone.current._onDrop(e)}
+              onChange={change => {
+                // We minimize thrashing and support editors in multiple windows by ensuring
+                // non-value changes (eg focus) to the editorState don't trigger database saves
+                const skipSaving =
+                  change.operations.size &&
+                  change.operations.every(
+                    op =>
+                      op.type === 'set_selection' ||
+                      (op.type === 'set_value' &&
+                        Object.keys(op.properties).every(k => k === 'decorations'))
+                  );
+                session.changes.add({ bodyEditorState: change.value }, { skipSaving });
+              }}
+            />
+            <QuotedTextControl
+              quotedTextHidden={quotedTextHidden}
+              quotedTextPresent={quotedTextPresent}
+              onUnhide={() => this.setState({ quotedTextHidden: false })}
+              onRemove={() => {
+                this.setState({ quotedTextHidden: false }, () =>
+                  this.editor.current.removeQuotedText()
+                );
+              }}
+            />
+            <AttachmentsArea draft={draft} />
+          </div>
+          <div className="composer-footer-region">
+            <InjectedComponentSet
+              deferred
+              direction="column"
+              matching={{ role: 'Composer:Footer' }}
+              exposedProps={{
+                draft: draft,
+                threadId: draft.threadId,
+                headerMessageId: draft.headerMessageId,
+                session: session,
+              }}
+            />
+          </div>
         </div>
-      </div>
-    );
-  }
-
-  _renderBodyRegions() {
-    return (
-      <div className="composer-body-wrap">
-        {this._renderEditor()}
-        {this._renderQuotedTextControl()}
-        {this._renderAttachments()}
-      </div>
-    );
-  }
-
-  _renderQuotedTextControl() {
-    if (!this.state.quotedTextPresent || !this.state.quotedTextHidden) {
-      return false;
-    }
-    return (
-      <a
-        className="quoted-text-control"
-        onMouseDown={e => {
-          if (e.target instanceof HTMLElement && e.target.closest('.remove-quoted-text')) return;
-          e.preventDefault();
-          e.stopPropagation();
-          this.setState({ quotedTextHidden: false });
-        }}
-      >
-        <span className="dots">&bull;&bull;&bull;</span>
-        <span
-          className="remove-quoted-text"
-          onMouseUp={e => {
-            e.preventDefault();
-            e.stopPropagation();
-            const { draft, session } = this.props;
-            const change = removeQuotedText(draft.bodyEditorState);
-            session.changes.add({ bodyEditorState: change.value });
-            this.setState({ quotedTextHidden: false });
-          }}
-        >
-          <RetinaImg
-            title={localized('Remove quoted text')}
-            name="image-cancel-button.png"
-            mode={RetinaImg.Mode.ContentPreserve}
-          />
-        </span>
-      </a>
-    );
-  }
-
-  _renderEditor() {
-    return (
-      <ComposerEditor
-        ref={el => {
-          if (el) {
-            this._els[Fields.Body] = el;
-          }
-        }}
-        className={this.state.quotedTextHidden && 'hiding-quoted-text'}
-        propsForPlugins={{ draft: this.props.draft, session: this.props.session }}
-        value={this.props.draft.bodyEditorState}
-        onFileReceived={this._onFileReceived}
-        onDrop={e => this._dropzone._onDrop(e)}
-        onChange={change => {
-          // We minimize thrashing and support editors in multiple windows by ensuring
-          // non-value changes (eg focus) to the editorState don't trigger database saves
-          const skipSaving = change.operations.every(
-            ({ type, properties }) =>
-              type === 'set_selection' ||
-              (type === 'set_value' && Object.keys(properties).every(k => k === 'decorations'))
-          );
-          this.props.session.changes.add({ bodyEditorState: change.value }, { skipSaving });
-        }}
-      />
-    );
-  }
-
-  _renderFooterRegions() {
-    return (
-      <div className="composer-footer-region">
-        <InjectedComponentSet
-          deferred
-          matching={{ role: 'Composer:Footer' }}
-          exposedProps={{
-            draft: this.props.draft,
-            threadId: this.props.draft.threadId,
-            headerMessageId: this.props.draft.headerMessageId,
-            session: this.props.session,
-          }}
-          direction="column"
-        />
-      </div>
-    );
-  }
-
-  _renderAttachments() {
-    const { files, headerMessageId } = this.props.draft;
-
-    const nonImageFiles = files
-      .filter(f => !Utils.shouldDisplayAsImage(f))
-      .map(file => (
-        <AttachmentItem
-          key={file.id}
-          className="file-upload"
-          draggable={false}
-          filePath={AttachmentStore.pathForFile(file)}
-          displayName={file.filename}
-          fileIconName={`file-${file.displayExtension()}.png`}
-          onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
-        />
-      ));
-    const imageFiles = files
-      .filter(f => Utils.shouldDisplayAsImage(f))
-      .filter(f => !f.contentId)
-      .map(file => (
-        <ImageAttachmentItem
-          key={file.id}
-          draggable={false}
-          className="file-upload"
-          filePath={AttachmentStore.pathForFile(file)}
-          displayName={file.filename}
-          onRemoveAttachment={() => Actions.removeAttachment(headerMessageId, file)}
-        />
-      ));
-
-    return <div className="attachments-area">{nonImageFiles.concat(imageFiles)}</div>;
-  }
-
-  _renderActionsWorkspaceRegion() {
-    return (
-      <InjectedComponentSet
-        deferred
-        matching={{ role: 'Composer:ActionBarWorkspace' }}
-        exposedProps={{
-          draft: this.props.draft,
-          threadId: this.props.draft.threadId,
-          headerMessageId: this.props.draft.headerMessageId,
-          session: this.props.session,
-        }}
-      />
-    );
-  }
-
-  _renderActionsRegion() {
-    const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
-    return (
-      <div className={`composer-action-bar-content ${restrictWidth && 'restrict-width'}`}>
-        <ActionBarPlugins
-          draft={this.props.draft}
-          session={this.props.session}
-          isValidDraft={this._isValidDraft}
-        />
-
-        <button
-          tabIndex={-1}
-          className="btn btn-toolbar btn-trash"
-          style={{ order: 100 }}
-          title={localized('Delete Draft')}
-          onClick={this._onDestroyDraft}
-        >
-          <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
-        </button>
-
-        <button
-          tabIndex={-1}
-          className="btn btn-toolbar btn-attach"
-          style={{ order: 0 }}
-          title={localized('Attach File')}
-          onClick={this._onSelectAttachment}
-        >
-          <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
-        </button>
-
-        <div style={{ order: 0, flex: 1 }} />
-
-        <SendActionButton
-          ref={el => {
-            if (el) {
-              this._els.sendActionButton = el;
-            }
-          }}
-          tabIndex={-1}
-          style={{ order: -100 }}
-          draft={this.props.draft}
-          headerMessageId={this.props.draft.headerMessageId}
-          session={this.props.session}
-          isValidDraft={this._isValidDraft}
-        />
       </div>
     );
   }
@@ -392,7 +213,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   // start and end target are both not in the contenteditable. This ensures
   // that this behavior doesn't interfear with a click and drag selection.
   _onMouseDownComposerBody = event => {
-    if (ReactDOM.findDOMNode(this._els[Fields.Body]).contains(event.target)) {
+    if (ReactDOM.findDOMNode(this.editor.current).contains(event.target)) {
       this._mouseDownTarget = null;
     } else {
       this._mouseDownTarget = event.target;
@@ -408,16 +229,16 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       // We don't set state directly here because we want the native
       // contenteditable focus behavior. When the contenteditable gets focused
       const bodyRect = (ReactDOM.findDOMNode(
-        this._els[Fields.Body]
+        this.editor.current
       ) as HTMLElement).getBoundingClientRect();
 
       if (event.pageY < bodyRect.top) {
-        this._els[Fields.Body].focus();
+        this.editor.current.focus();
       } else {
         if (this.state.quotedTextHidden) {
-          this._els[Fields.Body].focusEndReplyText();
+          this.editor.current.focusEndReplyText();
         } else {
-          this._els[Fields.Body].focusEndAbsolute();
+          this.editor.current.focusEndAbsolute();
         }
       }
     }
@@ -486,7 +307,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
             files: [].concat(draft.files),
           });
 
-          this._els[Fields.Body].insertInlineAttachment(file);
+          this.editor.current.insertInlineAttachment(file);
         }
       },
     });
@@ -531,10 +352,6 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     return true;
   };
 
-  _onPrimarySend = () => {
-    this._els.sendActionButton.primarySend();
-  };
-
   _onDestroyDraft = () => {
     Actions.destroyDraft(this.props.draft);
   };
@@ -544,47 +361,68 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   };
 
   render() {
-    const dropCoverDisplay = this.state.isDropping ? 'block' : 'none';
-
     return (
       <div className={this.props.className}>
         <KeyCommandsRegion
           localHandlers={this._keymapHandlers}
           className={'message-item-white-wrap composer-outer-wrap'}
-          ref={el => {
-            if (el) {
-              this._els.composerWrap = el;
-            }
-          }}
+          ref={this.focusContainer}
           tabIndex={-1}
         >
           <TabGroupRegion className="composer-inner-wrap">
             <DropZone
-              ref={cm => (this._dropzone = cm)}
+              ref={this.dropzone}
               className="composer-inner-wrap"
               shouldAcceptDrop={this._shouldAcceptDrop}
               onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
               onDrop={this._onDrop}
             >
-              <div className="composer-drop-cover" style={{ display: dropCoverDisplay }}>
-                <div className="centered">
-                  <RetinaImg
-                    name="composer-drop-to-attach.png"
-                    mode={RetinaImg.Mode.ContentIsMask}
-                  />
-                  {localized(`Drop to Attach`)}
-                </div>
+              <DropToAttachCover visible={this.state.isDropping} />
+
+              <div className="composer-content-wrap">
+                {AppEnv.isComposerWindow() ? (
+                  <ScrollRegion className="compose-body-scroll">
+                    {this._renderContent()}
+                  </ScrollRegion>
+                ) : (
+                  this._renderContent()
+                )}
               </div>
 
-              <div className="composer-content-wrap">{this._renderContentScrollRegion()}</div>
-
               <div className="composer-action-bar-workspace-wrap">
-                {this._renderActionsWorkspaceRegion()}
+                <InjectedComponentSet
+                  deferred
+                  matching={{ role: 'Composer:ActionBarWorkspace' }}
+                  exposedProps={{
+                    draft: this.props.draft,
+                    threadId: this.props.draft.threadId,
+                    headerMessageId: this.props.draft.headerMessageId,
+                    session: this.props.session,
+                  }}
+                />
               </div>
 
               <div className="composer-action-bar-wrap" data-tooltips-anchor>
                 <div className="tooltips-container" />
-                {this._renderActionsRegion()}
+                <div className="composer-action-bar-content">
+                  <ActionBarPlugins
+                    draft={this.props.draft}
+                    session={this.props.session}
+                    isValidDraft={this._isValidDraft}
+                  />
+                  <DeleteButton onClick={this._onDestroyDraft} />
+                  <AttachFileButton onClick={this._onSelectAttachment} />
+
+                  <div style={{ order: 0, flex: 1 }} />
+
+                  <SendActionButton
+                    tabIndex={-1}
+                    ref={this.sendButton}
+                    style={{ order: -100 }}
+                    draft={this.props.draft}
+                    isValidDraft={this._isValidDraft}
+                  />
+                </div>
               </div>
             </DropZone>
           </TabGroupRegion>
@@ -593,3 +431,36 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     );
   }
 }
+
+const DropToAttachCover = (props: { visible: boolean }) => (
+  <div className="composer-drop-cover" style={{ display: props.visible ? 'block' : 'none' }}>
+    <div className="centered">
+      <RetinaImg name="composer-drop-to-attach.png" mode={RetinaImg.Mode.ContentIsMask} />
+      {localized(`Drop to Attach`)}
+    </div>
+  </div>
+);
+
+const AttachFileButton = (props: { onClick: () => void }) => (
+  <button
+    tabIndex={-1}
+    className="btn btn-toolbar btn-attach"
+    style={{ order: 50 }}
+    title={localized('Attach File')}
+    onClick={props.onClick}
+  >
+    <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
+  </button>
+);
+
+const DeleteButton = (props: { onClick: () => void }) => (
+  <button
+    tabIndex={-1}
+    className="btn btn-toolbar btn-trash"
+    style={{ order: 100 }}
+    title={localized('Delete Draft')}
+    onClick={props.onClick}
+  >
+    <RetinaImg name="icon-composer-trash.png" mode={RetinaImg.Mode.ContentIsMask} />
+  </button>
+);

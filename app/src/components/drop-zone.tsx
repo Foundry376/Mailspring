@@ -3,13 +3,18 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 interface DropZoneProps {
-  shouldAcceptDrop: (e: Event) => boolean;
-  onDrop: (e: Event) => void;
-  onDragOver: (e: Event) => void;
+  id?: string;
+  className?: string;
+  style?: any;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  shouldAcceptDrop: (e: React.DragEvent<HTMLDivElement>) => boolean;
+  onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragStateChange: ({ isDropping: boolean }) => void;
 }
 
-export class DropZone extends React.Component<DropZoneProps & React.HTMLProps<HTMLDivElement>> {
+export class DropZone extends React.Component<DropZoneProps> {
   static propTypes = {
     shouldAcceptDrop: PropTypes.func.isRequired,
     onDrop: PropTypes.func.isRequired,

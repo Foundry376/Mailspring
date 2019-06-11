@@ -56,30 +56,29 @@ function InflatesDraftClientId(
       }
     }
 
-    _prepareForDraft(headerMessageId) {
+    async _prepareForDraft(headerMessageId) {
       if (!headerMessageId) {
         return;
       }
-      DraftStore.sessionForClientId(headerMessageId).then(session => {
-        const shouldSetState = () =>
-          this._mounted && session.headerMessageId === this.props.headerMessageId;
+      const session = await DraftStore.sessionForClientId(headerMessageId);
+      const shouldSetState = () =>
+        this._mounted && session.headerMessageId === this.props.headerMessageId;
 
+      if (!shouldSetState()) {
+        return;
+      }
+      this._sessionUnlisten = session.listen(() => {
         if (!shouldSetState()) {
           return;
         }
-        this._sessionUnlisten = session.listen(() => {
-          if (!shouldSetState()) {
-            return;
-          }
-          this.setState({ draft: session.draft() });
-        });
-
-        this.setState({
-          session: session,
-          draft: session.draft(),
-        });
-        this.props.onDraftReady();
+        this.setState({ draft: session.draft() });
       });
+
+      this.setState({
+        session: session,
+        draft: session.draft(),
+      });
+      this.props.onDraftReady();
     }
 
     _teardownForDraft() {

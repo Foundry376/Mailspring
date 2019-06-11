@@ -12,7 +12,7 @@ export class QuerySubscription<T extends Model> {
   _updateInFlight = false;
   _queuedChangeRecords = [];
   _queryVersion = 1;
-  _query: ModelQuery<T>;
+  _query: ModelQuery<T> | ModelQuery<T[]>;
   _options: any;
 
   constructor(

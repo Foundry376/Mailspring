@@ -36,10 +36,7 @@ interface ComposerHeaderState {
   enabledFields: string[];
 }
 
-export default class ComposerHeader extends React.Component<
-  ComposerHeaderProps,
-  ComposerHeaderState
-> {
+export class ComposerHeader extends React.Component<ComposerHeaderProps, ComposerHeaderState> {
   static displayName = 'ComposerHeader';
 
   static propTypes = {

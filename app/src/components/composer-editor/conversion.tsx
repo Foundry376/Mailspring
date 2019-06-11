@@ -1,5 +1,16 @@
 import Html from 'slate-html-serializer';
-import { Value } from 'slate';
+import {
+  TextJSON,
+  InlineJSON,
+  Value,
+  useMemoization,
+  Node as SlateNode,
+  BlockJSON,
+  DocumentJSON,
+  Mark,
+  NodeJSON,
+  MarkJSON,
+} from 'slate';
 import React from 'react';
 
 import BaseMarkPlugins from './base-mark-plugins';
@@ -11,10 +22,28 @@ import InlineAttachmentPlugins from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
 import EmojiPlugins from './emoji-plugins';
+import { Rule, ComposerEditorPlugin } from './types';
+
+export const schema = {
+  inlines: {
+    templatevar: {
+      isVoid: true,
+    },
+    emoji: {
+      isVoid: true,
+    },
+    uneditable: {
+      isVoid: true,
+    },
+    image: {
+      isVoid: true,
+    },
+  },
+};
 
 // Note: order is important here because we deserialize HTML with rules
 // in this order. <code class="var"> before <code>, etc.
-export const plugins = [
+export const plugins: ComposerEditorPlugin[] = [
   ...InlineAttachmentPlugins,
   ...UneditablePlugins,
   ...BaseMarkPlugins,
@@ -26,11 +55,11 @@ export const plugins = [
   ...SpellcheckPlugins,
 ];
 
-const cssValueIsZero = val => {
+const cssValueIsZero = (val: string | number) => {
   return val === '0' || val === '0px' || val === '0em' || val === 0;
 };
 
-const nodeIsEmpty = node => {
+const nodeIsEmpty = (node: Node) => {
   if (!node.childNodes || node.childNodes.length === 0) {
     return true;
   }
@@ -44,7 +73,7 @@ const nodeIsEmpty = node => {
   return false;
 };
 
-function parseHtml(html) {
+function parseHtml(html: string) {
   const parsed = new DOMParser().parseFromString(html, 'text/html');
   const tree = parsed.body;
 
@@ -118,7 +147,7 @@ function parseHtml(html) {
 
 // This is copied from slate-html-serializer/index.js and improved to preserve
 // sequential space characters that would be compacted during the HTML display.
-const TEXT_RULE_IMPROVED = {
+const TEXT_RULE_IMPROVED: Rule = {
   deserialize: el => {
     if (el.tagName && el.tagName.toLowerCase() === 'br') {
       return {
@@ -173,11 +202,14 @@ const HtmlSerializer = new Html({
 /* Patch: The HTML Serializer doesn't properly handle nested marks
 because when it discovers another mark it fails to call applyMark
 on the result. */
-(HtmlSerializer as any).deserializeMark = function(mark) {
+(HtmlSerializer as any).deserializeMark = function(mark: Mark) {
   const type = mark.type;
   const data = mark.data;
 
-  const applyMark = function applyMark(node) {
+  const applyMark = function applyMark(
+    node: TextJSON | InlineJSON | BlockJSON | MarkJSON
+  ): NodeJSON {
+    // TODO BG
     if (node.object === 'mark') {
       // THIS LINE CONTAINS THE CHANGE. +map
       let result = (HtmlSerializer as any).deserializeMark(node);
@@ -188,7 +220,7 @@ on the result. */
     } else if (node.object === 'text') {
       node.leaves = node.leaves.map(function(leaf) {
         leaf.marks = leaf.marks || [];
-        leaf.marks.push({ type: type, data: data });
+        leaf.marks.push({ object: 'mark', type: type, data: data });
         return leaf;
       });
     } else {
@@ -208,7 +240,7 @@ on the result. */
   }, []);
 };
 
-export function convertFromHTML(html) {
+export function convertFromHTML(html: string) {
   const json = HtmlSerializer.deserialize(html, { toJSON: true });
 
   /* Slate's default sanitization just obliterates block nodes that contain both
@@ -218,8 +250,8 @@ export function convertFromHTML(html) {
   - Find nodes with mixed children:
     + Wrap adjacent inline+text children in a new <div> block
   */
-  const wrapMixedChildren = node => {
-    if (!node.nodes) return;
+  const wrapMixedChildren = (node: DocumentJSON | NodeJSON) => {
+    if (!('nodes' in node)) return;
 
     // visit all our children
     node.nodes.forEach(wrapMixedChildren);
@@ -265,8 +297,13 @@ export function convertFromHTML(html) {
   /* We often end up with bogus whitespace at the bottom of complex emails, either
   because the input contained whitespace, or because there were elements present
   that we didn't convert into anything. Prune the trailing empty node(s). */
-  const cleanupTrailingWhitespace = (node, isTopLevel) => {
-    if (!node.nodes || node.isVoid) return;
+  const cleanupTrailingWhitespace = (node: DocumentJSON | NodeJSON, isTopLevel: boolean) => {
+    if (node.object === 'text') {
+      return;
+    }
+    if (node.object === 'inline' && schema.inlines[node.type] && schema.inlines[node.type].isVoid) {
+      return;
+    }
 
     while (true) {
       const last = node.nodes[node.nodes.length - 1];
@@ -303,8 +340,8 @@ export function convertFromHTML(html) {
   - Convert adjacent text nodes into a single text node with all the leaves.
   - Ensure `block` elements have an empty text node child.
   */
-  const optimizeTextNodesForNormalization = node => {
-    if (!node.nodes) return;
+  const optimizeTextNodesForNormalization = (node: DocumentJSON | NodeJSON) => {
+    if (!('nodes' in node)) return;
     node.nodes.forEach(optimizeTextNodesForNormalization);
 
     // Convert adjacent text nodes into a single text node with all the leaves
@@ -345,6 +382,6 @@ export function convertFromHTML(html) {
   return Value.fromJSON(json);
 }
 
-export function convertToHTML(value) {
+export function convertToHTML(value: Value) {
   return HtmlSerializer.serialize(value);
 }

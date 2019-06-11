@@ -1,15 +1,15 @@
 import React from 'react';
 import { localized } from 'mailspring-exports';
-
+import { Editor } from 'slate';
 import {
   IEditorToolbarConfigItem,
   BuildToggleButton,
   BuildColorPicker,
   BuildFontPicker,
-  hasMark,
 } from './toolbar-component-factories';
 
 import BaseBlockPlugins from './base-block-plugins';
+import { ComposerEditorPlugin, Rule } from './types';
 
 export const DEFAULT_FONT_SIZE = 2;
 export const DEFAULT_FONT_OPTIONS = [
@@ -57,8 +57,8 @@ export const MARK_CONFIG: {
     tagNames: ['b', 'strong'],
     render: props => <strong>{props.children}</strong>,
     button: {
-      isActive: value => hasMark(value, MARK_CONFIG.bold.type),
-      onToggle: value => value.change().toggleMark(MARK_CONFIG.bold.type),
+      isActive: value => value.activeMarks.some(m => m.type === MARK_CONFIG.bold.type),
+      onToggle: editor => editor.toggleMark(MARK_CONFIG.bold.type),
       iconClass: 'fa fa-bold',
     },
   },
@@ -67,8 +67,8 @@ export const MARK_CONFIG: {
     tagNames: ['em', 'i'],
     render: props => <em>{props.children}</em>,
     button: {
-      isActive: value => hasMark(value, MARK_CONFIG.italic.type),
-      onToggle: value => value.change().toggleMark(MARK_CONFIG.italic.type),
+      isActive: value => value.activeMarks.some(m => m.type === MARK_CONFIG.italic.type),
+      onToggle: editor => editor.toggleMark(MARK_CONFIG.italic.type),
       iconClass: 'fa fa-italic',
     },
   },
@@ -77,8 +77,8 @@ export const MARK_CONFIG: {
     tagNames: ['u'],
     render: props => <u>{props.children}</u>,
     button: {
-      isActive: value => hasMark(value, MARK_CONFIG.underline.type),
-      onToggle: value => value.change().toggleMark(MARK_CONFIG.underline.type),
+      isActive: value => value.activeMarks.some(m => m.type === MARK_CONFIG.underline.type),
+      onToggle: editor => editor.toggleMark(MARK_CONFIG.underline.type),
       iconClass: 'fa fa-underline',
     },
   },
@@ -88,8 +88,8 @@ export const MARK_CONFIG: {
     tagNames: ['strike', 's', 'del'],
     render: props => <strike>{props.children}</strike>,
     button: {
-      isActive: value => hasMark(value, MARK_CONFIG.strike.type),
-      onToggle: value => value.change().toggleMark(MARK_CONFIG.strike.type),
+      isActive: value => value.activeMarks.some(m => m.type === MARK_CONFIG.strike.type),
+      onToggle: editor => editor.toggleMark(MARK_CONFIG.strike.type),
       iconClass: 'fa fa-strikethrough',
     },
   },
@@ -134,12 +134,12 @@ export const MARK_CONFIG: {
   },
 };
 
-function renderMark(props) {
+function renderMark(props, editor: Editor = null, next = () => {}) {
   const config = MARK_CONFIG[props.mark.type];
-  return config && config.render(props);
+  return config && config.render ? config.render(props) : next();
 }
 
-const rules = [
+const rules: Rule[] = [
   {
     deserialize(el, next) {
       const marks = [];
@@ -153,21 +153,21 @@ const rules = [
           nodes: next(el.childNodes),
         };
       }
-      if (el.style && isMeaningfulColor(el.style.color)) {
+      if (el instanceof HTMLElement && el.style && isMeaningfulColor(el.style.color)) {
         marks.push({
           object: 'mark',
           type: 'color',
           data: { value: el.style.color },
         });
       }
-      if (el.style && isMeaningfulFontStyle(el.style.fontSize)) {
+      if (el instanceof HTMLElement && el.style && isMeaningfulFontStyle(el.style.fontSize)) {
         marks.push({
           object: 'mark',
           type: 'size',
           data: { value: el.style.fontSize },
         });
       }
-      if (el.style && el.style.fontFamily) {
+      if (el instanceof HTMLElement && el.style && el.style.fontFamily) {
         marks.push({
           object: 'mark',
           type: 'face',
@@ -185,7 +185,7 @@ const rules = [
         });
       }
       if (tagName === 'font' && el.getAttribute('size')) {
-        const size = Math.max(1, Math.min(6, el.getAttribute('size') / 1));
+        const size = Math.max(1, Math.min(6, Number(el.getAttribute('size'))));
         if (isMeaningfulFontSize(size)) {
           marks.push({
             object: 'mark',
@@ -255,67 +255,67 @@ const rules = [
   },
 ];
 
-export default [
-  {
-    toolbarComponents: []
-      .concat(
-        Object.values(MARK_CONFIG)
-          .filter(m => m.button)
-          .map(BuildToggleButton)
-      )
-      .concat([
-        BuildColorPicker({ type: 'color', default: '#000000' }),
-        BuildFontPicker({
-          type: 'face',
-          default: DEFAULT_FONT_FACE,
-          options: DEFAULT_FONT_FACE_OPTIONS,
-          convert: provided => {
-            let opt = null;
-            let score = 10000;
-            for (const aopt of DEFAULT_FONT_FACE_OPTIONS) {
-              const i = provided.toLowerCase().indexOf(aopt.value);
-              if (i >= 0 && i < score) {
-                score = i;
-                opt = aopt;
-              }
+const BaseMarkPlugin: ComposerEditorPlugin = {
+  toolbarComponents: []
+    .concat(
+      Object.values(MARK_CONFIG)
+        .filter(m => m.button)
+        .map(BuildToggleButton)
+    )
+    .concat([
+      BuildColorPicker({ type: 'color', default: '#000000' }),
+      BuildFontPicker({
+        type: 'face',
+        default: DEFAULT_FONT_FACE,
+        options: DEFAULT_FONT_FACE_OPTIONS,
+        convert: provided => {
+          let opt = null;
+          let score = 10000;
+          for (const aopt of DEFAULT_FONT_FACE_OPTIONS) {
+            const i = provided.toLowerCase().indexOf(aopt.value);
+            if (i >= 0 && i < score) {
+              score = i;
+              opt = aopt;
             }
-            return opt ? opt.value : 'sans-serif';
-          },
-        }),
-        BuildFontPicker({
-          type: 'size',
-          iconClass: 'fa fa-text-height',
-          default: DEFAULT_FONT_SIZE,
-          options: DEFAULT_FONT_OPTIONS,
-          convert: provided => {
-            if (typeof provided === 'string') {
-              let size = 2;
-              if (provided.endsWith('px')) {
-                // 16px = 12pt
-                size = PT_TO_SIZE[Math.round(Number(provided.replace('px', '')) / 1 * 0.75)];
-              }
-              if (provided.endsWith('em')) {
-                // 1em = 12pt
-                size = PT_TO_SIZE[Math.round(Number(provided.replace('em', '')) * 12)];
-              }
-              if (provided.endsWith('pt')) {
-                size = PT_TO_SIZE[Math.round(Number(provided.replace('pt', '')) * 1)];
-              }
-              const opt = DEFAULT_FONT_OPTIONS.find(({ value }) => value >= size);
-              return opt ? opt.value : 2;
+          }
+          return opt ? opt.value : 'sans-serif';
+        },
+      }),
+      BuildFontPicker({
+        type: 'size',
+        iconClass: 'fa fa-text-height',
+        default: DEFAULT_FONT_SIZE,
+        options: DEFAULT_FONT_OPTIONS,
+        convert: provided => {
+          if (typeof provided === 'string') {
+            let size = 2;
+            if (provided.endsWith('px')) {
+              // 16px = 12pt
+              size = PT_TO_SIZE[Math.round(Number(provided.replace('px', '')) / 1 * 0.75)];
             }
-            return provided;
-          },
-        }),
-      ]),
-    renderMark,
-    commands: {
-      'contenteditable:bold': (event, value) => value.change().toggleMark(MARK_CONFIG.bold.type),
-      'contenteditable:underline': (event, value) =>
-        value.change().toggleMark(MARK_CONFIG.underline.type),
-      'contenteditable:italic': (event, value) =>
-        value.change().toggleMark(MARK_CONFIG.italic.type),
-    },
-    rules,
+            if (provided.endsWith('em')) {
+              // 1em = 12pt
+              size = PT_TO_SIZE[Math.round(Number(provided.replace('em', '')) * 12)];
+            }
+            if (provided.endsWith('pt')) {
+              size = PT_TO_SIZE[Math.round(Number(provided.replace('pt', '')) * 1)];
+            }
+            const opt = DEFAULT_FONT_OPTIONS.find(({ value }) => value >= size);
+            return opt ? opt.value : 2;
+          }
+          return provided;
+        },
+      }),
+    ]),
+  renderMark,
+  commands: {
+    'contenteditable:bold': (event, editor) => editor.toggleMark(MARK_CONFIG.bold.type),
+    'contenteditable:underline': (event, editor) => editor.toggleMark(MARK_CONFIG.underline.type),
+    'contenteditable:italic': (event, editor) => editor.toggleMark(MARK_CONFIG.italic.type),
   },
-];
+  rules,
+};
+
+const exportedPlugins: ComposerEditorPlugin[] = [BaseMarkPlugin];
+
+export default exportedPlugins;

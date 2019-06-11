@@ -1,4 +1,5 @@
 import { RegExpUtils } from 'mailspring-exports';
+import { Value } from 'slate';
 
 function numberOfTrailingBRs(text) {
   let count = 0;
@@ -17,7 +18,19 @@ function numberOfTrailingBRs(text) {
   return count;
 }
 
-export function currentSignatureId(body) {
+export function currentSignatureIdSlate(value: Value) {
+  const sigNode = value.document
+    .getBlocksByType('uneditable')
+    .toArray()
+    .find(a => a.data.get('html').startsWith('<signature '));
+  if (!sigNode) return null;
+
+  const signatureRegex = RegExpUtils.mailspringSignatureRegex();
+  const signatureMatch = signatureRegex.exec(sigNode.data.get('html'));
+  return signatureMatch && signatureMatch[1];
+}
+
+export function currentSignatureId(body: string) {
   let replyEnd = body.search(RegExpUtils.nativeQuoteStartRegex());
   if (replyEnd === -1) {
     replyEnd = body.length;

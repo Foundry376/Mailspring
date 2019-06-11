@@ -5,7 +5,7 @@ import { InjectedComponentSet } from 'mailspring-component-kit';
 
 const ROLE = 'Composer:ActionButton';
 
-export default class ActionBarPlugins extends React.Component<
+export class ActionBarPlugins extends React.Component<
   {
     draft: Message;
     session: DraftEditingSession;

@@ -1,19 +1,21 @@
-import { Mark } from 'slate';
 import AutoReplace from 'slate-auto-replace';
+import { Editor } from 'slate';
 import { BLOCK_CONFIG } from './base-block-plugins';
 import { MARK_CONFIG } from './base-mark-plugins';
+import { ComposerEditorPlugin } from './types';
 
-export default [
+const plugins: ComposerEditorPlugin[] = [
   // **abd* + *
   AutoReplace({
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '*',
     before: /([*]{2})([^*]+)([*]{1})$/,
-    transform: (transform, e, matches) => {
-      const text = matches.before[2];
-      const mark = Mark.create({ type: MARK_CONFIG.bold.type });
-      const marks = Mark.createSet([mark]);
-      transform.insertText(text, marks).removeMark(mark.type);
+    change: (editor: Editor, e, matches) => {
+      editor
+        .addMark(MARK_CONFIG.bold.type)
+        .insertText(matches.before[2])
+        .toggleMark(MARK_CONFIG.bold.type)
+        .insertText(' ');
     },
   }),
 
@@ -22,11 +24,12 @@ export default [
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '*',
     before: /(?:[^|^*]){1}([*]{1})([^*]+)$/,
-    transform: (transform, e, matches) => {
-      const text = matches.before[2];
-      const mark = Mark.create({ type: MARK_CONFIG.italic.type });
-      const marks = Mark.createSet([mark]);
-      transform.insertText(text, marks).removeMark(mark.type);
+    change: (editor: Editor, e, matches) => {
+      editor
+        .addMark(MARK_CONFIG.italic.type)
+        .insertText(matches.before[2])
+        .toggleMark(MARK_CONFIG.italic.type)
+        .insertText(' ');
     },
   }),
 
@@ -36,14 +39,13 @@ export default [
     trigger: '*',
     before: /(\*)$/,
     after: /^([^*]+)([*]{2})/,
-    transform: (transform, e, matches) => {
+    change: (editor: Editor, e, matches) => {
       const text = matches.after[1];
-      const mark = Mark.create({ type: MARK_CONFIG.bold.type });
-      const marks = Mark.createSet([mark]);
-      transform
-        .insertText(text, marks)
-        .moveAnchor(-text.length)
-        .collapseToAnchor();
+      editor
+        .addMark(MARK_CONFIG.bold.type)
+        .insertText(text)
+        .moveAnchorForward(-text.length)
+        .moveToAnchor();
     },
   }),
 
@@ -52,14 +54,13 @@ export default [
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '*',
     after: /^([^*]+)([*]{1})(?:[^*]{1}|$)/,
-    transform: (transform, e, matches) => {
+    change: (editor: Editor, e, matches) => {
       const text = matches.after[1];
-      const mark = Mark.create({ type: MARK_CONFIG.italic.type });
-      const marks = Mark.createSet([mark]);
-      transform
-        .insertText(text, marks)
-        .moveAnchor(-text.length)
-        .collapseToAnchor();
+      editor
+        .addMark(MARK_CONFIG.italic.type)
+        .insertText(text)
+        .moveAnchorForward(-text.length)
+        .moveToAnchor();
     },
   }),
 
@@ -68,8 +69,8 @@ export default [
     onlyIn: [BLOCK_CONFIG.div.type],
     trigger: '`',
     before: /^([`]{2})$/,
-    transform: (transform, e, matches) => {
-      transform.setBlock(BLOCK_CONFIG.code.type);
+    change: (editor: Editor, e, matches) => {
+      editor.setBlocks(BLOCK_CONFIG.code.type);
     },
   }),
 
@@ -77,12 +78,15 @@ export default [
   AutoReplace({
     ignoreIn: BLOCK_CONFIG.code.type,
     trigger: '`',
-    before: /(?:[^|^`]){1}([`]{1})([^`]+)$/,
-    transform: (transform, e, matches) => {
-      const text = matches.before[2];
-      const mark = Mark.create({ type: MARK_CONFIG.codeInline.type });
-      const marks = Mark.createSet([mark]);
-      transform.insertText(text, marks).removeMark(mark);
+    before: /(?:^|[^`])([`]{1})([^`]+)$/,
+    change: (editor: Editor, e, matches) => {
+      editor
+        .addMark(MARK_CONFIG.codeInline.type)
+        .insertText(matches.before[2])
+        .removeMark(MARK_CONFIG.codeInline.type)
+        .insertText(' ');
     },
   }),
 ];
+
+export default plugins;

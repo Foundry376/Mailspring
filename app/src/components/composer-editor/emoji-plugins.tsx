@@ -1,7 +1,8 @@
 import React from 'react';
 import NodeEmoji from 'node-emoji';
 import { Actions } from 'mailspring-exports';
-
+import { Editor, Mark } from 'slate';
+import { Rule, ComposerEditorPlugin, ComposerEditorPluginTopLevelComponentProps } from './types';
 import EmojiToolbarPopover from './emoji-toolbar-popover';
 
 let EmojiNameToImageTable = null;
@@ -19,7 +20,7 @@ const EMOJI_TYPE = 'emoji';
 const MAX_EMOJI_SUGGESTIONS = 6;
 
 /* Returns the official emoji names matching the provided text. */
-export function getEmojiSuggestions(word) {
+export function getEmojiSuggestions(word: string) {
   const emojiOptions = [];
   const emojiNames = Object.keys(NodeEmoji.emoji).sort();
   for (const emojiName of emojiNames) {
@@ -30,14 +31,14 @@ export function getEmojiSuggestions(word) {
   return emojiOptions;
 }
 
-export function getEmojiImagePath(emojiname) {
+export function getEmojiImagePath(emojiname: string) {
   EmojiNameToImageTable = EmojiNameToImageTable || require('./emoji-name-to-image-table');
   return process.platform === 'darwin'
     ? `images/composer-emoji/apple/${EmojiNameToImageTable[emojiname]}`
     : `images/composer-emoji/twitter/${EmojiNameToImageTable[emojiname]}`;
 }
 
-function ImageBasedEmoji(props) {
+function ImageBasedEmoji(props: { name: string }) {
   return (
     <img
       alt={props.name}
@@ -60,27 +61,21 @@ state (emoji to display, current selection, etc.) from the EMOJI_TYPING_TYPE
 mark. Storing the state in the document is a bit odd but worked very well in
 the last Mailspring editor.
 */
-function FloatingEmojiPicker({ value, onChange }) {
-  if (!value.selection.isFocused) return false;
+function FloatingEmojiPicker({ editor, value }: ComposerEditorPluginTopLevelComponentProps) {
+  if (!value.selection.isFocused) return null;
   const sel = document.getSelection();
-  if (!sel.rangeCount) return false;
+  if (!sel.rangeCount) return null;
   const range = sel.getRangeAt(0);
 
-  let emoji = null;
-  try {
-    emoji = value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
-  } catch (err) {
-    // sometimes fails for some reason
-  }
-
-  if (!emoji) return false;
+  const emoji = value.activeMarks.find(i => i.type === EMOJI_TYPING_TYPE);
+  if (!emoji) return null;
 
   const picked = emoji.data.get('picked');
   const suggestions = emoji.data.get('suggestions');
-  if (!suggestions || !suggestions.length) return false;
+  if (!suggestions || !suggestions.length) return null;
 
   const target = range.endContainer.parentElement.closest('[data-emoji-typing]');
-  if (!target) return false;
+  if (!target) return null;
 
   const relativePositionedParent = target.closest('.RichEditor-content') as HTMLElement;
   const intrinsicPos = relativePositionedParent.getBoundingClientRect();
@@ -113,7 +108,7 @@ function FloatingEmojiPicker({ value, onChange }) {
       {displayedSuggestions.map(option => (
         <button
           key={option}
-          onMouseDown={e => onChange(swapEmojiMarkFor(value.change(), emoji, option))}
+          onMouseDown={e => swapEmojiMarkFor(editor, emoji, option)}
           className={`btn btn-icon ${picked === option && 'emoji-option'}`}
         >
           <ImageBasedEmoji name={option} /> :{option}
@@ -123,49 +118,58 @@ function FloatingEmojiPicker({ value, onChange }) {
   );
 }
 
-function renderNode({
-  node,
-  attributes,
-  children,
-  targetIsHTML,
-}: {
-  node?: any;
-  attributes?: any;
-  children: any;
-  targetIsHTML?: boolean;
-}) {
-  if (node.type === EMOJI_TYPE) {
-    const name = node.data.name || node.data.get('name');
-    return (
-      <span {...attributes} data-emoji-name={name}>
-        {targetIsHTML ? NodeEmoji.get(name) : <ImageBasedEmoji name={name} />}
-      </span>
-    );
+function renderNode(
+  {
+    node,
+    attributes,
+    children,
+    targetIsHTML,
+  }: {
+    node?: any;
+    attributes?: any;
+    children: any;
+    targetIsHTML?: boolean;
+  },
+  editor: Editor = null,
+  next = () => {}
+) {
+  if (node.type !== EMOJI_TYPE) {
+    return next();
   }
+  const name = node.data.name || node.data.get('name');
+  return (
+    <span {...attributes} data-emoji-name={name}>
+      {targetIsHTML ? NodeEmoji.get(name) : <ImageBasedEmoji name={name} />}
+    </span>
+  );
 }
 
-function renderMark({
-  mark,
-  children,
-  targetIsHTML,
-}: {
-  mark: any;
-  children: any;
-  targetIsHTML?: boolean;
-}) {
+function renderMark(
+  {
+    mark,
+    children,
+    targetIsHTML,
+  }: {
+    mark: any;
+    children: any;
+    targetIsHTML?: boolean;
+  },
+  editor: Editor = null,
+  next = () => {}
+) {
   if (mark.type === EMOJI_TYPING_TYPE) {
     return <span data-emoji-typing={true}>{children}</span>;
   }
+  return next();
 }
 
-const rules = [
+const rules: Rule[] = [
   {
     deserialize(el, next) {
-      if (el.dataset && el.dataset.emojiName) {
+      if (el instanceof HTMLElement && el.dataset && el.dataset.emojiName) {
         return {
           type: EMOJI_TYPE,
           object: 'inline',
-          isVoid: true,
           data: {
             name: el.dataset.emojiName,
           },
@@ -182,92 +186,83 @@ const rules = [
   },
 ];
 
-export function swapEmojiMarkFor(change, emoji, picked) {
-  change.removeMark(emoji);
+export function swapEmojiMarkFor(editor: Editor, emoji: Mark, picked: string) {
+  editor.removeMark(emoji);
   if (picked) {
-    change.extend(-emoji.data.get('typed').length);
-    change.delete();
-    change.insertInline({
+    editor.moveFocusBackward(emoji.data.get('typed').length);
+    editor.delete();
+    editor.insertInline({
       object: 'inline',
       type: EMOJI_TYPE,
-      isVoid: true,
       data: {
         name: picked,
       },
     });
-    change.collapseToStartOfNextText();
+    editor.moveToStartOfNextText();
+    editor.removeMark(emoji);
   }
-  return change;
 }
 
-export function updateEmojiMark(change, emoji, { typed, suggestions, picked }) {
-  change.extend(-typed.length);
-  change.delete();
-
-  // https://sentry.io/foundry-376-llc/mailspring/issues/445604114/
-  // Sometimes it appears we overdelete and the mark is gone?
-  try {
-    if (!change.value.marks.find(i => i.type === EMOJI_TYPING_TYPE)) return change;
-  } catch (err) {
-    return change;
-  }
-  change.removeMark(emoji);
-  change.addMark({ type: EMOJI_TYPING_TYPE, data: { typed, suggestions, picked } });
-  change.insertText(typed);
-  return change;
+export function updateEmojiMark(editor: Editor, existing, { typed, suggestions, picked }) {
+  editor.moveAnchorBackward(typed.length);
+  editor.removeMark(existing);
+  editor.addMark({
+    type: EMOJI_TYPING_TYPE,
+    data: { typed, suggestions, picked },
+  });
+  editor.moveToFocus();
 }
 
-function onKeyDown(event, change, editor) {
+function onKeyDown(event, editor: Editor, next: () => void) {
   if ([' ', 'Return', 'Enter'].includes(event.key)) {
-    const emoji = change.value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
-    if (!emoji) return;
+    const emoji = editor.value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
+    if (!emoji) return next();
     const picked = emoji.data.get('picked');
-    swapEmojiMarkFor(change, emoji, picked);
+    swapEmojiMarkFor(editor, emoji, picked);
     if (picked) {
       event.preventDefault();
-      return true;
+      return;
     }
   } else if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
     const dir = event.key.includes('Down') ? 1 : -1;
-    const emoji = change.value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
-    if (!emoji) return;
+    const emoji = editor.value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
+    if (!emoji) return next();
     const suggestions = emoji.data.get('suggestions');
     const typed = emoji.data.get('typed');
     let picked = emoji.data.get('picked');
     const len = suggestions.length;
     picked = suggestions[(len + suggestions.indexOf(picked) + dir) % len];
-    updateEmojiMark(change, emoji, { typed, suggestions, picked });
+    updateEmojiMark(editor, emoji, { typed, suggestions, picked });
     event.preventDefault();
-    return true;
+    return;
   }
+  return next();
 }
 
-function onKeyUp(event, change, editor) {
-  const emoji = change.value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
+function onKeyUp(event, editor: Editor, next: () => void) {
+  const emoji = editor.value.marks.find(i => i.type === EMOJI_TYPING_TYPE);
   if (!emoji) {
-    const justTyped = change.value.change().extend(-1).value.fragment.text;
-    if (justTyped.trim() === ':') {
-      change.addMark({ type: EMOJI_TYPING_TYPE, data: { typed: '', suggestions: [], picked: '' } });
+    const { offset, key } = editor.value.selection.focus;
+    const focusText = editor.value.focusText;
+    if (focusText.key === key && focusText.text[offset - 1] === ':') {
+      editor.addMark({
+        type: EMOJI_TYPING_TYPE,
+        data: { typed: '', suggestions: [], picked: '' },
+      });
     }
-    return;
+    return next();
   }
 
   if (event.key.length === 1 || event.key === 'Backspace' || event.key === 'Delete') {
     let typed = '';
-    const tmp = change.value.change();
-    while (true) {
-      tmp.extend(-1);
-      if (typed === tmp.value.fragment.text) {
-        break;
-      }
-      typed = tmp.value.fragment.text;
-      if (typed.startsWith(':')) {
-        break;
-      }
+    const { offset, key } = editor.value.selection.focus;
+    const focusText = editor.value.focusText;
+    if (focusText.key === key) {
+      typed = focusText.text.substr(focusText.text.lastIndexOf(':', offset), offset);
     }
     if (typed.length > 10 || !typed.startsWith(':')) {
-      change.removeMark(emoji);
-      return;
+      editor.removeMark(emoji);
+      return next();
     }
     let suggestions = [];
     let picked = emoji.data.get('picked');
@@ -281,27 +276,24 @@ function onKeyUp(event, change, editor) {
         picked = suggestions[pickedIdx === -1 ? 0 : pickedIdx];
       }
     }
-    updateEmojiMark(change, emoji, { typed, suggestions, picked });
+    updateEmojiMark(editor, emoji, { typed, suggestions, picked });
   }
+  return next();
 }
 
-const ToolbarEmojiButton = ({ value, onChange }) => {
+const ToolbarEmojiButton = ({ value, editor }) => {
   const onInsertEmoji = name => {
     const inline = {
       object: 'inline',
       type: EMOJI_TYPE,
-      isVoid: true,
       data: { name },
     };
     Actions.closePopover();
     setTimeout(() => {
-      onChange(
-        value
-          .change()
-          .insertInline(inline)
-          .collapseToStartOfNextText()
-          .focus()
-      );
+      editor
+        .insertInline(inline)
+        .moveToStartOfNextText()
+        .focus();
     }, 100);
   };
 
@@ -319,7 +311,7 @@ const ToolbarEmojiButton = ({ value, onChange }) => {
   );
 };
 
-export default [
+const plugins: ComposerEditorPlugin[] = [
   {
     toolbarComponents: [ToolbarEmojiButton],
     topLevelComponent: FloatingEmojiPicker,
@@ -330,3 +322,5 @@ export default [
     onKeyUp,
   },
 ];
+
+export default plugins;

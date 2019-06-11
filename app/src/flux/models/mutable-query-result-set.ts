@@ -108,7 +108,7 @@ export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
     this._idToIndexHash = null;
   }
 
-  setQuery(query: ModelQuery<T>) {
+  setQuery(query: ModelQuery<T> | ModelQuery<T[]>) {
     this._query = query.clone();
     this._query.finalize();
   }

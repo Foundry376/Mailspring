@@ -5,16 +5,15 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { Disposable } from 'rx-core';
 
-type KeyCommandsRegionProps = {
-  className?: string;
+interface KeyCommandsRegionProps extends React.HTMLProps<HTMLDivElement> {
   localHandlers?: object;
   globalHandlers?: object;
   onFocusIn?: (...args: any[]) => any;
   onFocusOut?: (...args: any[]) => any;
-};
-type KeyCommandsRegionState = {
+}
+interface KeyCommandsRegionState {
   focused: boolean;
-};
+}
 
 /*
 Public: Easily respond to keyboard shortcuts
@@ -95,7 +94,7 @@ In `my-package/keymaps/my-package.cson`:
 ```
 */
 export class KeyCommandsRegion extends React.Component<
-  KeyCommandsRegionProps & React.HTMLProps<HTMLDivElement>,
+  KeyCommandsRegionProps,
   KeyCommandsRegionState
 > {
   static displayName = 'KeyCommandsRegion';
@@ -124,15 +123,17 @@ export class KeyCommandsRegion extends React.Component<
   _globalDisposable?: Disposable;
   _goingout: boolean = false;
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      focused: false,
-    };
-  }
+  state = {
+    focused: false,
+  };
 
   componentDidMount() {
     this._setupListeners(this.props);
+
+    const el = ReactDOM.findDOMNode(this);
+    if (el && document.activeElement && el.contains(document.activeElement)) {
+      this.setState({ focused: true });
+    }
   }
 
   componentWillReceiveProps(newProps) {

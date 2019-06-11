@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
-import DraftEditingSession from './draft-editing-session';
+import { DraftEditingSession } from './draft-editing-session';
 import DraftFactory from './draft-factory';
 import DatabaseStore from './database-store';
 import { SendActionsStore } from './send-actions-store';
@@ -17,7 +17,6 @@ import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import { localized } from '../../intl';
-import ModelQuery from '../models/query';
 
 interface IThreadMessageModelOrId {
   thread?: Thread;
@@ -70,6 +69,13 @@ class DraftStore extends MailspringStore {
 
     ipcRenderer.on('mailto', this._onHandleMailtoLink);
     ipcRenderer.on('mailfiles', this._onHandleMailFiles);
+
+    setInterval(() => {
+      // Slate is unable to properly clear it's caches, so we help it out
+      // by flushing them periodically. We care about this a lot because
+      // the app is on the same "web page" forever.
+      require('slate').resetMemoization();
+    }, 5 * 60 * 1000); // 5 min
   }
 
   /**
@@ -436,7 +442,7 @@ class DraftStore extends MailspringStore {
     await session.ensureCorrectAccount();
 
     // remove inline attachments that are no longer in the body
-    let draft = session.draft();
+    let draft: Message = session.draft();
     const files = draft.files.filter(f => {
       return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
     });

@@ -236,8 +236,6 @@ body.platform-win32 {
   }
 
   .nylas-attachment-item.image-attachment-item {
-    margin: 0;
-    max-width: calc(100% - 22px); // right margin of composer
     min-width: 0;
   }
 
@@ -487,6 +485,7 @@ body.platform-win32 {
         border-radius: 0 0 0 3px;
         &:active {
           background: none;
+          filter: brightness(95%);
           -webkit-filter: brightness(95%);
         }
         img {

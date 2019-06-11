@@ -1,55 +1,61 @@
 import React from 'react';
+import { Editor, Value, Node } from 'slate';
 import SoftBreak from 'slate-soft-break';
-import EditList from 'slate-edit-list';
+import EditList from 'golery-slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
+import When from 'slate-when';
 
+import { MessageWithEditorState } from 'mailspring-exports';
 import { BuildToggleButton, IEditorToolbarConfigItem } from './toolbar-component-factories';
+import { ComposerEditorPlugin } from './types';
 
-function nodeIsEmpty(node) {
+function nodeIsEmpty(node: Node) {
   if (node.text !== '') {
     return false;
   }
 
-  let children = (node.nodes.toArray ? node.nodes.toArray() : node.nodes) || [];
-  if (children.length === 0) {
-    return true;
-  }
-  if (children.length === 1 && children[0].object === 'text') {
-    return true;
+  if (node.object !== 'text') {
+    let children = ((node.nodes.toArray ? node.nodes.toArray() : node.nodes) || []) as any;
+    if (children.length === 0) {
+      return true;
+    }
+    if (children.length === 1 && children[0].object === 'text') {
+      return true;
+    }
   }
   return false;
 }
 
-function isBlockTypeOrWithinType(value, type) {
+function isBlockTypeOrWithinType(value: Value, type: string) {
   if (!value.focusBlock) {
     return false;
   }
   const isMe = value.focusBlock.type === type;
-  const isParent = value.document.getAncestors(value.focusBlock.key).find(b => b.type === type);
+  const isParent = value.document
+    .getAncestors(value.focusBlock.key)
+    .find(b => b.object === 'block' && b.type === type);
 
-  return isMe || isParent;
+  return !!(isMe || isParent);
 }
 
-function toggleBlockTypeWithBreakout(value, change, type) {
-  const ancestors = value.document.getAncestors(value.focusBlock.key);
+function toggleBlockTypeWithBreakout(editor: Editor, type) {
+  const ancestors = editor.value.document.getAncestors(editor.value.focusBlock.key);
 
-  let idx = ancestors.findIndex(b => b.type === type);
-  if (idx === -1 && value.focusBlock.type === type) {
+  let idx = ancestors.findIndex(b => b.object === 'block' && b.type === type);
+  if (idx === -1 && editor.value.focusBlock.type === type) {
     idx = ancestors.size - 1;
   }
 
   if (idx !== -1) {
     const depth = ancestors.size - idx;
     if (depth > 0) {
-      change.splitBlock(ancestors.size - idx);
-      for (let x = 0; x < depth; x++) change.unwrapBlock();
+      editor.splitBlock(ancestors.size - idx);
+      for (let x = 0; x < depth; x++) editor.unwrapBlock({ type });
     }
-    change.setBlock(BLOCK_CONFIG.div.type);
+    editor.setBlocks(BLOCK_CONFIG.div.type);
   } else {
-    change.setBlock(type);
+    editor.setBlocks(type);
   }
-
-  return change;
 }
 
 export const BLOCK_CONFIG: {
@@ -75,7 +81,7 @@ export const BLOCK_CONFIG: {
         <div
           {...attributes}
           {...explicitHTMLAttributes}
-          className={node.data.className || node.data.get('className')}
+          className={node.data['className'] || node.data.get('className')}
         >
           {children}
         </div>
@@ -91,8 +97,8 @@ export const BLOCK_CONFIG: {
       isActive: value => {
         return isBlockTypeOrWithinType(value, BLOCK_CONFIG.blockquote.type);
       },
-      onToggle: (value, active) => {
-        return toggleBlockTypeWithBreakout(value, value.change(), BLOCK_CONFIG.blockquote.type);
+      onToggle: (editor: Editor, active) => {
+        return toggleBlockTypeWithBreakout(editor, BLOCK_CONFIG.blockquote.type);
       },
     },
   },
@@ -114,25 +120,26 @@ export const BLOCK_CONFIG: {
     button: {
       isActive: value => value.focusBlock && value.focusBlock.type === BLOCK_CONFIG.code.type,
       iconClass: 'fa fa-sticky-note-o',
-      onToggle: (value, active) => {
+      onToggle: (editor, active) => {
         if (active) {
-          return value.change().setBlock(BLOCK_CONFIG.div.type);
-        } else if (value.selection.isCollapsed) {
-          return value.change().setBlock(BLOCK_CONFIG.code.type);
+          return editor.setBlocks(BLOCK_CONFIG.div.type);
+        } else if (editor.value.selection.isCollapsed) {
+          return editor.setBlocks(BLOCK_CONFIG.code.type);
         } else {
+          const value = editor.value;
           // Collect all the text fragments which are being converted to a code block
           let texts = value.document
-            .getTextsAtRange(value.selection)
+            .getTextsAtRange(value.selection as any)
             .toArray()
             .map(t => {
-              if (t.key === value.selection.anchorKey) {
+              if (t.key === value.selection.anchor.key) {
                 return value.selection.isBackward
-                  ? t.text.substr(0, value.selection.anchorOffset)
-                  : t.text.substr(value.selection.anchorOffset);
-              } else if (t.key === value.selection.focusKey) {
+                  ? t.text.substr(0, value.selection.anchor.offset)
+                  : t.text.substr(value.selection.anchor.offset);
+              } else if (t.key === value.selection.focus.key) {
                 return value.selection.isBackward
-                  ? t.text.substr(value.selection.focusOffset)
-                  : t.text.substr(0, value.selection.focusOffset);
+                  ? t.text.substr(value.selection.focus.offset)
+                  : t.text.substr(0, value.selection.focus.offset);
               } else {
                 return t.text;
               }
@@ -158,8 +165,7 @@ export const BLOCK_CONFIG: {
           const text = texts.map(t => t.substr(minLeadingSpaces)).join('\n');
 
           // Delete the selection and insert a single code block with the text
-          return value
-            .change()
+          return editor
             .delete()
             .insertBlock(BLOCK_CONFIG.code.type)
             .insertText(text)
@@ -178,10 +184,10 @@ export const BLOCK_CONFIG: {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ol_list.type;
       },
-      onToggle: (value, active) =>
+      onToggle: (editor: Editor, active) =>
         active
-          ? EditListPlugin.changes.unwrapList(value.change())
-          : EditListPlugin.changes.wrapInList(value.change(), BLOCK_CONFIG.ol_list.type),
+          ? EditListPlugin.changes.unwrapList(editor)
+          : EditListPlugin.changes.wrapInList(editor, BLOCK_CONFIG.ol_list.type),
     },
   },
   ul_list: {
@@ -194,10 +200,10 @@ export const BLOCK_CONFIG: {
         const list = EditListPlugin.utils.getCurrentList(value);
         return list && list.type === BLOCK_CONFIG.ul_list.type;
       },
-      onToggle: (value, active) =>
+      onToggle: (editor: Editor, active) =>
         active
-          ? EditListPlugin.changes.unwrapList(value.change())
-          : EditListPlugin.changes.wrapInList(value.change(), BLOCK_CONFIG.ul_list.type),
+          ? EditListPlugin.changes.unwrapList(editor)
+          : EditListPlugin.changes.wrapInList(editor, BLOCK_CONFIG.ul_list.type),
     },
   },
   list_item: {
@@ -217,15 +223,15 @@ export const BLOCK_CONFIG: {
   },
 };
 
-const EditListPlugin = new EditList({
+export const EditListPlugin = new EditList({
   types: [BLOCK_CONFIG.ol_list.type, BLOCK_CONFIG.ul_list.type],
   typeItem: BLOCK_CONFIG.list_item.type,
   typeDefault: BLOCK_CONFIG.div.type,
 });
 
-function renderNode(props) {
+function renderNode(props, editor: Editor = null, next = () => {}) {
   const config = BLOCK_CONFIG[props.node.type];
-  return config && config.render(props);
+  return config ? config.render(props) : next();
 }
 
 const rules = [
@@ -274,7 +280,7 @@ const rules = [
 
 // support functions
 
-export function hasBlockquote(value) {
+export function hasBlockquote(value: Value) {
   const nodeHasBlockquote = node => {
     if (!node.nodes) return false;
     for (const childNode of node.nodes.toArray()) {
@@ -286,7 +292,7 @@ export function hasBlockquote(value) {
   return nodeHasBlockquote(value.document);
 }
 
-export function hasNonTrailingBlockquote(value) {
+export function hasNonTrailingBlockquote(value: Value) {
   const nodeHasNonTrailingBlockquote = node => {
     if (!node.nodes) return false;
     let found = false;
@@ -303,7 +309,7 @@ export function hasNonTrailingBlockquote(value) {
   return nodeHasNonTrailingBlockquote(value.document);
 }
 
-export function allNodesInBFSOrder(value) {
+export function allNodesInBFSOrder(value: Value) {
   const all = [];
   const collect = node => {
     if (!node.nodes) return;
@@ -314,14 +320,15 @@ export function allNodesInBFSOrder(value) {
   return all;
 }
 
-export function isQuoteNode(n) {
+export function isQuoteNode(n: Node) {
   return (
-    n.type === 'blockquote' ||
-    (n.data && n.data.get('className') && n.data.get('className').includes('gmail_quote'))
+    n.object === 'block' &&
+    (n.type === 'blockquote' ||
+      (n.data && n.data.get('className') && n.data.get('className').includes('gmail_quote')))
   );
 }
 
-export function lastUnquotedNode(value) {
+export function lastUnquotedNode(value: Value) {
   const all = allNodesInBFSOrder(value);
   for (let idx = 0; idx < all.length; idx++) {
     const n = all[idx];
@@ -332,16 +339,14 @@ export function lastUnquotedNode(value) {
   return all[0];
 }
 
-export function removeQuotedText(value) {
-  const change = value.change();
+export function removeQuotedText(editor: Editor) {
   let quoteBlock = null;
-  while ((quoteBlock = allNodesInBFSOrder(change.value).find(isQuoteNode))) {
-    change.removeNodeByKey(quoteBlock.key);
+  while ((quoteBlock = allNodesInBFSOrder(editor.value).find(isQuoteNode))) {
+    editor.removeNodeByKey(quoteBlock.key);
   }
-  return change;
 }
 
-export function hideQuotedTextByDefault(draft) {
+export function hideQuotedTextByDefault(draft: MessageWithEditorState) {
   if (draft.isForwarded()) {
     return false;
   }
@@ -353,84 +358,89 @@ export function hideQuotedTextByDefault(draft) {
 
 // plugins
 
-export default [
+const MailspringBaseBlockPlugin: ComposerEditorPlugin = {
+  toolbarComponents: Object.values(BLOCK_CONFIG)
+    .filter(config => config.button)
+    .map(BuildToggleButton),
+  renderNode,
+  commands: {
+    'contenteditable:quote': (event, editor: Editor) => {
+      const { isActive, onToggle } = BLOCK_CONFIG.blockquote.button;
+      return onToggle(editor, isActive(editor.value));
+    },
+    'contenteditable:numbered-list': (event, editor: Editor) => {
+      const { isActive, onToggle } = BLOCK_CONFIG.ol_list.button;
+      return onToggle(editor, isActive(editor.value));
+    },
+    'contenteditable:bulleted-list': (event, editor: Editor) => {
+      const { isActive, onToggle } = BLOCK_CONFIG.ul_list.button;
+      return onToggle(editor, isActive(editor.value));
+    },
+    'contenteditable:indent': (event, editor: Editor) => {
+      const focusBlock = editor.value.focusBlock;
+      if (focusBlock && focusBlock.type === BLOCK_CONFIG.div.type) {
+        return editor.setBlocks(BLOCK_CONFIG.blockquote.type);
+      }
+    },
+    'contenteditable:outdent': (event, editor: Editor) => {
+      const focusBlock = editor.value.focusBlock;
+      if (focusBlock && focusBlock.type === BLOCK_CONFIG.blockquote.type) {
+        return editor.setBlocks(BLOCK_CONFIG.div.type);
+      }
+    },
+  },
+  rules,
+};
+
+const plugins: ComposerEditorPlugin[] = [
   // Base implementation of BLOCK_CONFIG block types,
   // the "block" toolbar section, and serialization
-  {
-    toolbarComponents: Object.values(BLOCK_CONFIG)
-      .filter(config => config.button)
-      .map(BuildToggleButton),
-    renderNode,
-    commands: {
-      'contenteditable:quote': (event, value) => {
-        const { isActive, onToggle } = BLOCK_CONFIG.blockquote.button;
-        return onToggle(value, isActive(value));
-      },
-      'contenteditable:numbered-list': (event, value) => {
-        const { isActive, onToggle } = BLOCK_CONFIG.ol_list.button;
-        return onToggle(value, isActive(value));
-      },
-      'contenteditable:bulleted-list': (event, value) => {
-        const { isActive, onToggle } = BLOCK_CONFIG.ul_list.button;
-        return onToggle(value, isActive(value));
-      },
-      'contenteditable:indent': (event, value) => {
-        const focusBlock = value.focusBlock;
-        if (focusBlock && focusBlock.type === BLOCK_CONFIG.div.type) {
-          return value.change().setBlock(BLOCK_CONFIG.blockquote.type);
-        }
-      },
-      'contenteditable:outdent': (event, value) => {
-        const focusBlock = value.focusBlock;
-        if (focusBlock && focusBlock.type === BLOCK_CONFIG.blockquote.type) {
-          return value.change().setBlock(BLOCK_CONFIG.div.type);
-        }
-      },
-    },
-    rules,
-  },
+  MailspringBaseBlockPlugin,
 
   // Return creates soft newlines in code blocks
-  SoftBreak({
-    onlyIn: [BLOCK_CONFIG.code.type],
+  When({
+    when: value => value.blocks.some(b => b.type === BLOCK_CONFIG.code.type),
+    plugin: SoftBreak(),
   }),
 
   // Pressing backspace when you're at the top of the document should not delete down
   {
-    onKeyDown: function onKeyDown(event, change) {
+    onKeyDown: function onKeyDown(event, editor: Editor, next: () => void) {
       if (event.key !== 'Backspace' || event.shiftKey || event.metaKey || event.optionKey) {
-        return;
+        return next();
       }
-      const { selection, focusText, focusOffset, document } = change.value;
+      const { selection, focusText, document } = editor.value;
       const firstText = document.getFirstText();
       if (
         selection.isCollapsed &&
-        focusOffset === 0 &&
+        selection.focus &&
+        selection.focus.offset === 0 &&
         focusText &&
         firstText &&
         firstText.key === focusText.key
       ) {
         event.preventDefault();
-        return true;
+        return;
+      } else {
+        return next();
       }
     },
   },
 
   // Return breaks you out of blockquotes completely
   {
-    onKeyDown: function onKeyDown(event, change) {
+    onKeyDown: function onKeyDown(event, editor: Editor, next: () => void) {
       if (event.shiftKey) {
-        return;
+        return next();
       }
       if (event.key !== 'Enter') {
-        return;
+        return next();
       }
-      if (!isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.blockquote.type)) {
-        return;
+      if (!isBlockTypeOrWithinType(editor.value, BLOCK_CONFIG.blockquote.type)) {
+        return next();
       }
-      toggleBlockTypeWithBreakout(change.value, change, BLOCK_CONFIG.blockquote.type);
+      toggleBlockTypeWithBreakout(editor, BLOCK_CONFIG.blockquote.type);
       event.preventDefault(); // since this inserts a newline
-      return change;
     },
   },
 
@@ -442,7 +452,7 @@ export default [
     onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
     trigger: ' ',
     before: /^([-]{1})$/,
-    transform: (transform, e, matches) => {
+    change: (transform, e, matches) => {
       EditListPlugin.changes.wrapInList(transform, BLOCK_CONFIG.ul_list.type);
     },
   }),
@@ -450,8 +460,10 @@ export default [
     onlyIn: [BLOCK_CONFIG.div.type, BLOCK_CONFIG.div.type],
     trigger: ' ',
     before: /^([1]{1}[.]{1})$/,
-    transform: (transform, e, matches) => {
+    change: (transform, e, matches) => {
       EditListPlugin.changes.wrapInList(transform, BLOCK_CONFIG.ol_list.type);
     },
   }),
 ];
+
+export default plugins;

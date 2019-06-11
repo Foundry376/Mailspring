@@ -1,25 +1,31 @@
 import React from 'react';
-import { Editor } from 'slate-react';
+import * as Immutable from 'immutable';
+import { Editor, Value, Operation, Range } from 'slate';
+import { Editor as SlateEditorComponent, EditorProps } from 'slate-react';
 import { clipboard as ElectronClipboard } from 'electron';
 import path from 'path';
 import fs from 'fs';
 
 import { KeyCommandsRegion } from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
-import { plugins, convertFromHTML, convertToHTML } from './conversion';
-import { lastUnquotedNode } from './base-block-plugins';
+import { schema, plugins, convertFromHTML, convertToHTML } from './conversion';
+import { lastUnquotedNode, removeQuotedText } from './base-block-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
+import ReactDOM from 'react-dom';
 
-const AEditor = Editor as any;
+const AEditor = (SlateEditorComponent as any) as React.ComponentType<
+  EditorProps & { ref: any; propsForPlugins: any }
+>;
 
 interface ComposerEditorProps {
-  value: any;
+  value: Value;
   propsForPlugins: any;
-  onChange: (change: any) => void;
+  onChange: (change: { operations: Immutable.List<Operation>; value: Value }) => void;
   className?: string;
   onBlur?: () => void;
   onDrop?: (e: Event) => void;
   onFileReceived?: (path: string) => void;
+  onUpdatedSlateEditor?: (editor: Editor | null) => void;
 }
 
 export class ComposerEditor extends React.Component<ComposerEditorProps> {
@@ -27,6 +33,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
 
   _pluginKeyHandlers = {};
   _mounted = false;
+  editor: Editor | null = null;
 
   constructor(props) {
     super(props);
@@ -41,11 +48,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
         ([command, handler]: [string, (event: any, val: any) => any]) => {
           this._pluginKeyHandlers[command] = event => {
             if (!this._mounted) return;
-            const { onChange, value } = this.props;
-            const change = handler(event, value);
-            if (change) {
-              onChange(change);
-            }
+            handler(event, this.editor);
           };
         }
       );
@@ -54,53 +57,61 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
 
   componentDidMount() {
     this._mounted = true;
+    this.props.onUpdatedSlateEditor && this.props.onUpdatedSlateEditor(this.editor);
+
+    // This is a bit of a hack. The toolbar requires access to the Editor model,
+    // which IS the Editor component in `slate-react`. It seems silly to copy a ref
+    // into state, but we need to re-render once after mount when we have it.
+    this.forceUpdate();
   }
 
   componentWillUnmount() {
     this._mounted = false;
+    this.props.onUpdatedSlateEditor && this.props.onUpdatedSlateEditor(null);
+
+    // We need to explicitly blur the editor so that it saves a new selection (null)
+    // and doesn't try to restore the selection / steal focus when you navigate to
+    // the thread again.
+
+    const editorEl = ReactDOM.findDOMNode(this.editor as any);
+    if (editorEl && editorEl.contains(document.getSelection().anchorNode)) {
+      this.props.onChange({
+        operations: Immutable.List([]),
+        value: this.editor.deselect().blur().value,
+      });
+    }
   }
 
   focus = () => {
-    const { onChange, value } = this.props;
-    onChange(
-      value
-        .change()
-        .selectAll()
-        .collapseToStart()
-        .focus()
-    );
+    this.editor
+      .focus()
+      .moveToRangeOfDocument()
+      .moveToStart();
   };
 
   focusEndReplyText = () => {
     window.requestAnimationFrame(() => {
-      const { onChange, value } = this.props;
-      const node = lastUnquotedNode(value);
+      const node = lastUnquotedNode(this.editor.value);
       if (!node) return;
-      onChange(
-        value
-          .change()
-          .collapseToEndOf(node)
-          .focus()
-      );
+      this.editor.moveToEndOfNode(node).focus();
     });
   };
 
   focusEndAbsolute = () => {
     window.requestAnimationFrame(() => {
-      const { onChange, value } = this.props;
-      onChange(
-        value
-          .change()
-          .selectAll()
-          .collapseToEnd()
-          .focus()
-      );
+      this.editor
+        .moveToRangeOfDocument()
+        .moveToEnd()
+        .focus();
     });
   };
 
+  removeQuotedText = () => {
+    removeQuotedText(this.editor);
+  };
+
   insertInlineAttachment = file => {
-    const { onChange, value } = this.props;
-    onChange(InlineAttachmentChanges.insert(value.change(), file));
+    InlineAttachmentChanges.insert(this.editor, file);
   };
 
   onFocusIfBlurred = event => {
@@ -109,25 +120,24 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
     }
   };
 
-  onCopy = (event, change, editor) => {
+  onCopy = (event, editor: Editor, next: () => void) => {
     event.preventDefault();
-    const document = editor.value.document.getFragmentAtRange(editor.value.selection);
-    event.clipboardData.setData('text/html', convertToHTML({ document }));
+    const document = editor.value.document.getFragmentAtRange((editor.value
+      .selection as any) as Range);
+    event.clipboardData.setData('text/html', convertToHTML(Value.create({ document })));
     event.clipboardData.setData('text/plain', editor.value.fragment.text);
-    return true;
   };
 
-  onCut = (event, change, editor) => {
-    this.onCopy(event, change, editor);
-    change.deleteBackward();
-    return true;
+  onCut = (event, editor: Editor, next: () => void) => {
+    this.onCopy(event, editor, next);
+    editor.deleteBackward(1);
   };
 
-  onPaste = (event, change, editor) => {
+  onPaste = (event, editor: Editor, next: () => void) => {
     const { onFileReceived } = this.props;
 
     if (!onFileReceived || event.clipboardData.items.length === 0) {
-      return;
+      return next();
     }
     event.preventDefault();
 
@@ -157,7 +167,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
         });
       });
       reader.readAsArrayBuffer(blob);
-      return true;
+      return;
     } else {
       const macCopiedFile = decodeURI(
         ElectronClipboard.read('public.file-url').replace('file://', '')
@@ -168,7 +178,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
       );
       if (macCopiedFile.length || winCopiedFile.length) {
         onFileReceived(macCopiedFile || winCopiedFile);
-        return true;
+        return;
       }
     }
 
@@ -177,10 +187,11 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
     if (html) {
       const value = convertFromHTML(html);
       if (value && value.document) {
-        change.insertFragment(value.document);
-        return true;
+        editor.insertFragment(value.document);
+        return;
       }
     }
+    next();
   };
 
   onContextMenu = event => {
@@ -192,42 +203,47 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
 
     AppEnv.windowEventHandler.openSpellingMenuFor(word, hasSelectedText, {
       onCorrect: correction => {
-        this.onChange(this.props.value.change().insertText(correction));
+        this.editor.insertText(correction);
       },
       onRestoreSelection: () => {
-        this.onChange(this.props.value.change().select(sel));
+        this.editor.select(sel);
       },
     });
   };
 
-  onChange = nextValue => {
+  onChange = (change: { operations: Immutable.List<Operation>; value: Value }) => {
     // This needs to be here because some composer plugins defer their calls to onChange
     // (like spellcheck and the context menu).
     if (!this._mounted) return;
-    this.props.onChange(nextValue);
+    this.props.onChange(change);
   };
 
   // Event Handlers
   render() {
     const { className, onBlur, onDrop, value, propsForPlugins } = this.props;
 
+    const PluginTopComponents = this.editor ? plugins.filter(p => p.topLevelComponent) : [];
+
     return (
       <KeyCommandsRegion
         className={`RichEditor-root ${className || ''}`}
         localHandlers={this._pluginKeyHandlers}
       >
-        <ComposerEditorToolbar value={value} onChange={this.onChange} plugins={plugins} />
+        {this.editor && (
+          <ComposerEditorToolbar editor={this.editor} plugins={plugins} value={value} />
+        )}
         <div
           className="RichEditor-content"
           onClick={this.onFocusIfBlurred}
           onContextMenu={this.onContextMenu}
         >
-          {plugins
-            .filter(p => p.topLevelComponent)
-            .map((p, idx) => (
-              <p.topLevelComponent key={idx} value={value} onChange={this.onChange} />
+          {this.editor &&
+            PluginTopComponents.map((p, idx) => (
+              <p.topLevelComponent key={idx} value={value} editor={this.editor} />
             ))}
           <AEditor
+            ref={editor => (this.editor = editor)}
+            schema={schema}
             value={value}
             onChange={this.onChange}
             onBlur={onBlur}
@@ -239,9 +255,6 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
             plugins={plugins}
             propsForPlugins={propsForPlugins}
           />
-          {plugins
-            .reduce((arr, p) => (p.topLevelComponents ? arr.concat(p.topLevelComponents) : arr), [])
-            .map((Component, idx) => <Component key={idx} />)}
         </div>
       </KeyCommandsRegion>
     );

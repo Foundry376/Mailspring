@@ -50,7 +50,7 @@ function ListensToFluxStore(ComposedComponent, { stores, getStateFromStores }) {
       }
       return <ComposedComponent {...props} />;
     }
-  };
+  } as any;
 }
 
 export default ListensToFluxStore;

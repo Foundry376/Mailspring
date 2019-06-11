@@ -137,7 +137,6 @@ class AttachmentStore extends MailspringStore {
     // If the preview file doesn't exist yet, generate it
     if (await generatePreview({ file, filePath, previewPath })) {
       this._filePreviewPaths[file.id] = previewPath;
-      console.log('got preview for ' + previewPath);
       this.trigger();
     }
   }
@@ -368,10 +367,15 @@ class AttachmentStore extends MailspringStore {
   }
 
   async _deleteFile(file: File) {
+    // Delete the file, it's preview if present and it's containing folder. We don't
+    // delete other arbitrary files in case for some reason other files are saved here.
     try {
-      // Delete the file and it's containing folder. Todo: possibly other empty dirs?
-      await fs.unlinkAsync(this.pathForFile(file));
-      await fs.rmdirAsync(path.dirname(this.pathForFile(file)));
+      const filePath = this.pathForFile(file);
+      await fs.unlinkAsync(filePath);
+      if (await fileAccessibleAtPath(`${filePath}.png`)) {
+        await fs.unlinkAsync(`${filePath}.png`);
+      }
+      await fs.rmdirAsync(path.dirname(filePath));
     } catch (err) {
       throw new Error(`Error deleting file file ${file.filename}:\n\n${err.message}`);
     }

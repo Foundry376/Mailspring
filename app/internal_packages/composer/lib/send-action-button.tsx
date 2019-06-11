@@ -7,24 +7,66 @@ import {
   SoundRegistry,
   Message,
 } from 'mailspring-exports';
-import { Menu, RetinaImg, ButtonDropdown, ListensToFluxStore } from 'mailspring-component-kit';
+import { Menu, RetinaImg, ButtonDropdown } from 'mailspring-component-kit';
 
 interface SendActionButtonProps {
+  tabIndex: number;
+  style: any;
   draft: Message;
   isValidDraft: () => boolean;
+}
+
+interface SendActionButtonState {
   sendActions: ISendAction[];
 }
-class SendActionButton extends React.Component<SendActionButtonProps> {
+
+export class SendActionButton extends React.Component<
+  SendActionButtonProps,
+  SendActionButtonState
+> {
   static displayName = 'SendActionButton';
 
   static containerRequired = false;
 
+  _unlisteners = [];
+  _composedComponent: any;
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      sendActions: SendActionsStore.orderedSendActionsForDraft(props.draft),
+    };
+  }
+
+  componentDidMount() {
+    this._unlisteners.push(
+      SendActionsStore.listen(() => {
+        this.setState({
+          sendActions: SendActionsStore.orderedSendActionsForDraft(this.props.draft),
+        });
+      })
+    );
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      sendActions: SendActionsStore.orderedSendActionsForDraft(nextProps.draft),
+    });
+  }
+
+  componentWillUnmount() {
+    for (const unlisten of this._unlisteners) {
+      unlisten();
+    }
+    this._unlisteners = [];
+  }
+
   /* This component is re-rendered constantly because `draft` changes in random ways.
   We only use the draft prop when you click send, so update with more discretion. */
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps, nextState) {
     return (
-      nextProps.sendActions.map(a => a.configKey).join(',') !==
-      this.props.sendActions.map(a => a.configKey).join(',')
+      nextState.sendActions.map(a => a.configKey).join(',') !==
+      this.state.sendActions.map(a => a.configKey).join(',')
     );
   }
 
@@ -33,7 +75,7 @@ class SendActionButton extends React.Component<SendActionButtonProps> {
   }
 
   _onPrimaryClick = () => {
-    this._onSendWithAction(this.props.sendActions[0]);
+    this._onSendWithAction(this.state.sendActions[0]);
   };
 
   _onSendWithAction = sendAction => {
@@ -74,13 +116,13 @@ class SendActionButton extends React.Component<SendActionButtonProps> {
         style={{ order: -100 }}
         onClick={this._onPrimaryClick}
       >
-        {this._renderSendActionItem(this.props.sendActions[0])}
+        {this._renderSendActionItem(this.state.sendActions[0])}
       </button>
     );
   }
 
   _renderButtonDropdown() {
-    const { sendActions } = this.props;
+    const { sendActions } = this.state;
     const menu = (
       <Menu
         items={sendActions.slice(1)}
@@ -104,36 +146,8 @@ class SendActionButton extends React.Component<SendActionButtonProps> {
   }
 
   render() {
-    return this.props.sendActions.length === 1
+    return this.state.sendActions.length === 1
       ? this._renderSingleButton()
       : this._renderButtonDropdown();
   }
 }
-
-const EnhancedSendActionButton = ListensToFluxStore(SendActionButton, {
-  stores: [SendActionsStore],
-  getStateFromStores(props) {
-    return {
-      sendActions: SendActionsStore.orderedSendActionsForDraft(props.draft),
-    };
-  },
-});
-
-// TODO this is a hack so that the send button can still expose
-// the `primarySend` method required by the ComposerView. Ideally, this
-// decorator mechanism should expose whatever instance methods are exposed
-// by the component its wrapping.
-// However, I think the better fix will happen when mail merge lives in its
-// own window and doesn't need to override the Composer's send button, which
-// is already a bit of a hack.
-Object.assign(EnhancedSendActionButton.prototype, {
-  primarySend() {
-    if (this._composedComponent) {
-      this._composedComponent.primarySend();
-    }
-  },
-});
-
-(EnhancedSendActionButton as any).UndecoratedSendActionButton = SendActionButton;
-
-export default EnhancedSendActionButton;

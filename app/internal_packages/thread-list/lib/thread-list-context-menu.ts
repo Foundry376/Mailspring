@@ -203,7 +203,7 @@ export default class ThreadListContextMenu {
   }
 
   markAsSpamItem(): TemplateItem | null {
-    const allInSpam = this.threads.every(item => !!item.folders.find(c => c.role === 'spam'));
+    const allInSpam = this.threads.every(item => item.folders.some(c => c.role === 'spam'));
     const dir = allInSpam ? localized('Not Spam') : localized('Spam');
 
     return {
