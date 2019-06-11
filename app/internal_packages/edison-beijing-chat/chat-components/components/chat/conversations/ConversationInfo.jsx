@@ -7,7 +7,7 @@ import { remote } from 'electron';
 import _ from 'lodash';
 import RetinaImg from '../../../../../../src/components/retina-img';
 import chatModel, { saveToLocalStorage } from '../../../store/model';
-import { ChatActions, MessageStore } from 'chat-exports';
+import { ChatActions, MessageStore, RoomStore } from 'chat-exports';
 
 
 export default class ConversationInfo extends Component {
@@ -15,9 +15,54 @@ export default class ConversationInfo extends Component {
   constructor(props) {
     super();
     this.state = {
+      members: [],
+      loadingMembers: false,
       visible: false,
       isHiddenNotifi: props.selectedConversation && !!props.selectedConversation.isHiddenNotification
     }
+  }
+
+  removeMember = member => {
+    const conversation = this.state.selectedConversation;
+    if (member.affiliation === 'owner') {
+      alert('you can not remove the owner of the group chat!');
+      return;
+    }
+    const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
+    xmpp.leaveRoom(conversation.jid, jid);
+    if (jid == conversation.curJid) {
+      ChatActions.removeConversation(conversation.jid);
+      ChatActions.deselectConversation();
+    } else {
+      this.refreshRoomMembers();
+    }
+  };
+
+  componentDidMount() {
+    this.refreshRoomMembers();
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.selectedConversation.jid !== this.props.selectedConversation.jid) {
+      this.refreshRoomMembers(nextProps);
+    }
+  }
+
+  refreshRoomMembers = async (nextProps) => {
+    this.setState({ loadingMembers: true });
+    const members = await this.getRoomMembers(nextProps);
+    this.setState({
+      members,
+      loadingMembers: false
+    });
+  }
+
+  getRoomMembers = async (nextProps = {}) => {
+    const conversation = nextProps.selectedConversation || this.props.selectedConversation;
+    if (conversation && conversation.isGroup) {
+      return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid, true);
+    }
+    return [];
   }
 
   clearMessages = () => {
@@ -42,7 +87,6 @@ export default class ConversationInfo extends Component {
     if (!confirm('Are you sure to exit from this group?')) {
       return;
     }
-
     const { selectedConversation: conversation } = this.props;
     xmpp.leaveRoom(conversation.jid, conversation.curJid);
     ChatActions.removeConversation(conversation.jid);
@@ -81,8 +125,8 @@ export default class ConversationInfo extends Component {
   }
 
   render = () => {
-    const { selectedConversation: conversation, members, loadingMembers } = this.props;
-    const roomMembers = members;
+    const { selectedConversation: conversation } = this.props;
+    const { members: roomMembers, loadingMembers } = this.state;
     for (const member of roomMembers) {
       const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
       if (member.affiliation === 'owner' && jid === conversation.curJid) {
@@ -137,7 +181,7 @@ export default class ConversationInfo extends Component {
                 editingMember={this.editingMember}
                 editProfile={this.props.editProfile}
                 exitProfile={this.props.exitProfile}
-                removeMember={this.props.removeMember}
+                removeMember={this.removeMember}
                 key={member.jid}
               />)
             })
