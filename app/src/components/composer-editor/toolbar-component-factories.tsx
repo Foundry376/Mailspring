@@ -299,20 +299,12 @@ export function BuildColorPicker(config) {
           tabIndex={-1}
           onBlur={this._onBlur}
           ref={el => (this._el = el)}
-          className={this.props.className}
-          style={{ display: 'inline-block', position: 'relative' }}
+          className={`color-picker ${this.props.className}`}
         >
           <button
             onClick={this._onToggleExpanded}
             style={{
-              cursor: 'pointer',
-              width: 20,
-              height: 14,
               backgroundColor: color,
-              marginRight: 4,
-              marginLeft: 4,
-              marginBottom: 2,
-              verticalAlign: 'middle',
             }}
           />
           {expanded && (

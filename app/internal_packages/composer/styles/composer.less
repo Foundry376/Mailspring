@@ -142,9 +142,20 @@
       0 -3px 12px @standard-shadow-color;
   }
 
-  .color-swatch {
-    border: 1px solid @border-color-divider;
-    margin: 0 7px;
+  .color-picker {
+    display: inline-block;
+    position: relative;
+    & > button {
+      cursor: pointer;
+      width: 20px;
+      height: 14px;
+      margin-right: 4px;
+      margin-left: 4px;
+      margin-bottom: 2px;
+      vertical-align: middle;
+      box-shadow: @text-color 0px 0.5px, @text-color 0px -0.5px, @text-color 0.5px 0px,
+        @text-color -0.5px 0px;
+    }
   }
 
   .link-picker {
