@@ -22,7 +22,7 @@ import {
   failedJoiningRooms,
 } from '../actions/auth';
 import { getDeviceId } from '../utils/e2ee';
-import { RoomStore, ContactStore } from 'chat-exports';
+import { RoomStore, ContactStore, E2eeStore } from 'chat-exports';
 
 /**
  * Starts the authentication process by starting session creation
@@ -79,6 +79,10 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
           xmpp.getRoster(res.bare)
             .then(contacts => ContactStore.saveContacts(contacts, res.bare));
         }, 400);
+        setTimeout(() => {
+          xmpp.getE2ee('', res.bare)
+            .then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
+        }, 600);
         return successfulConnectionAuth(res);
       })
       .catch(error => Observable.of(failConnectionAuth(error)));

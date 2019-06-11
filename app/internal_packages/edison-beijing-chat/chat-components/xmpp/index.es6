@@ -223,7 +223,7 @@ export class XmppEx extends EventEmitter3 {
     if (this.isConnected) {
       this.client.ping("im.edison.tech");
       // console.log(`xmpp session3:ping: jid: ${this.connectedJid}, ${this.getTime()}`);
-      setTimeout(() => this.ping(), 9333);
+      setTimeout(() => this.ping(), 30000);
     } else {
       console.log(`xmpp session3:ping2: jid: ${this.connectedJid}`);
     }
