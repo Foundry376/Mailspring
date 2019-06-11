@@ -1,35 +1,25 @@
-import { OnlineStatusStore, React, PropTypes, Actions } from 'mailspring-exports';
+import { OnlineStatusStore, React, PropTypes } from 'mailspring-exports';
 import { Notification, ListensToFluxStore } from 'mailspring-component-kit';
 
-function OfflineNotification({ isOnline, retryingInSeconds }) {
+function OfflineNotification({ isOnline }) {
   if (isOnline) {
     return false;
   }
-  const subtitle = retryingInSeconds
-    ? `Retrying in ${retryingInSeconds} second${retryingInSeconds > 1 ? 's' : ''}`
-    : `Retrying now...`;
+  const subtitle = 'Please check your network connection.';
 
   return (
     <Notification
       className="offline"
-      title="EdisonMail is offline"
+      title="Edison Mail is offline"
       subtitle={subtitle}
       priority="5"
       icon="volstead-offline.png"
-      actions={[
-        {
-          id: 'try_now',
-          label: 'Try now',
-          fn: () => Actions.checkOnlineStatus(),
-        },
-      ]}
     />
   );
 }
 OfflineNotification.displayName = 'OfflineNotification';
 OfflineNotification.propTypes = {
   isOnline: PropTypes.bool,
-  retryingInSeconds: PropTypes.number,
 };
 
 export default ListensToFluxStore(OfflineNotification, {
@@ -37,7 +27,6 @@ export default ListensToFluxStore(OfflineNotification, {
   getStateFromStores() {
     return {
       isOnline: OnlineStatusStore.isOnline(),
-      retryingInSeconds: OnlineStatusStore.retryingInSeconds(),
     };
   },
 });
