@@ -32,6 +32,8 @@ export default class ThemeManager {
   private resourcePath: string;
   private safeMode: boolean;
 
+  private themeValueCache: { emailTextColor?: string } = {};
+
   constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
     this.packageManager = packageManager;
     this.resourcePath = resourcePath;
@@ -140,6 +142,7 @@ export default class ThemeManager {
     document.body.classList.add(`theme-${this.getBaseTheme().name}`);
     document.body.classList.add(`theme-${this.getActiveTheme().name}`);
 
+    this.themeValueCache = {};
     this.activeThemePackage = next;
   }
 
@@ -215,5 +218,23 @@ export default class ThemeManager {
 
       return '';
     }
+  }
+
+  // Helpers for theme values
+
+  getEmailTextColor() {
+    if (!this.themeValueCache.emailTextColor) {
+      // Quite surprising that Chrome is cool with this...
+      const innerBodyEl = document.createElement('body');
+      const wrapEl = document.createElement('span');
+      wrapEl.className = 'ignore-in-parent-frame';
+      wrapEl.appendChild(innerBodyEl);
+      document.body.appendChild(wrapEl);
+
+      const style = window.getComputedStyle(innerBodyEl);
+      this.themeValueCache.emailTextColor = style.getPropertyValue('color');
+      wrapEl.remove();
+    }
+    return this.themeValueCache.emailTextColor;
   }
 }

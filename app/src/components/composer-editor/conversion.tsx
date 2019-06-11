@@ -3,7 +3,7 @@ import {
   TextJSON,
   InlineJSON,
   Value,
-  Node,
+  Node as SlateNode,
   BlockJSON,
   DocumentJSON,
   Mark,
@@ -387,7 +387,7 @@ export function convertToHTML(value: Value) {
 }
 
 export function convertToPlainText(value: Value) {
-  const serializeNode = (node: Node) => {
+  const serializeNode = (node: SlateNode) => {
     if (node.object === 'block' && node.type === UNEDITABLE_TYPE) {
       const html = node.data.get('html');
       const div = document.createElement('div');

@@ -36,9 +36,16 @@ const PT_TO_SIZE = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 3, 4, 4, 5, 5, 5, 5, 5, 
 
 let plugins = null;
 
-function isMeaningfulColor(color) {
+function isMeaningfulColor(color, el: HTMLElement) {
+  if (!color) return false;
+
   const meaningless = ['black', 'rgb(0,0,0)', 'rgba(0,0,0,1)', '#000', '#000000'];
-  return color && !meaningless.includes(color.replace(/ /g, ''));
+  if (meaningless.includes(color.replace(/ /g, ''))) return false;
+
+  const isOwnHTML = (el.style.fontFamily || '').includes('Nylas-Pro');
+  if (isOwnHTML && color === AppEnv.themes.getEmailTextColor()) return false;
+
+  return true;
 }
 
 function isMeaningfulFontSize(size) {
@@ -153,7 +160,7 @@ const rules: Rule[] = [
           nodes: next(el.childNodes),
         };
       }
-      if (el instanceof HTMLElement && el.style && isMeaningfulColor(el.style.color)) {
+      if (el instanceof HTMLElement && el.style && isMeaningfulColor(el.style.color, el)) {
         marks.push({
           object: 'mark',
           type: 'color',
@@ -176,7 +183,7 @@ const rules: Rule[] = [
       }
       if (
         ['font', 'p', 'div', 'span'].includes(tagName) &&
-        isMeaningfulColor(el.getAttribute('color'))
+        isMeaningfulColor(el.getAttribute('color'), el as HTMLElement)
       ) {
         marks.push({
           object: 'mark',
