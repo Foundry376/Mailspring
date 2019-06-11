@@ -76,65 +76,6 @@ const addToAvatarMembers = (conv, contact) => {
   }
 }
 
-const downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
-  let body;
-  let convJid;
-  if (chatType === RECEIVE_CHAT) {
-    convJid = payload.from.bare;
-  } else {
-    convJid = payload.from.local;
-  }
-  const msgid = payload.id;
-  if (aes) {
-    body = decryptByAES(aes, payload.payload);
-  } else {
-    body = payload.body;
-  }
-  let msgBody;
-  try {
-    msgBody = JSON.parse(body);
-  } catch (e) {
-    return;
-  }
-  if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
-    // a link
-    msgBody.path = msgBody.mediaObjectId;
-    // } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE) {
-  } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
-    // file on aws
-    let name = msgBody.mediaObjectId;
-    name = name.split('/')[1]
-    name = name.replace(/\.encrypted$/, '');
-    let path = AppEnv.getConfigDirPath();
-    let downpath = path + '/download/';
-    if (!fs.existsSync(downpath)) {
-      fs.mkdirSync(downpath);
-    }
-    const thumbPath = downpath + name;
-    msgBody.path = 'file://' + thumbPath;
-    msgBody.downloading = true;
-    downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
-      if (fs.existsSync(thumbPath)) {
-        Actions.updateDownloadPorgress();
-        downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
-          if (fs.existsSync(thumbPath)) {
-            Actions.updateDownloadPorgress();
-          }
-        });
-      }
-    });
-  }
-  if (aes) {
-    msgBody.aes = aes;
-  }
-  payload.body = JSON.stringify(msgBody);
-  const db = getDb();
-  db.conversations.findOne({where: { jid: convJid }}).then(conv => {
-    updateSelectedConversation(conv);
-  });
-  return;
-}
-
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
     .filter(({ payload }) => payload.receipt && !payload.body)
@@ -429,35 +370,6 @@ export const beginRetrievingMessagesEpic = action$ =>
       return retrieveSelectedConversationMessages(jid);
 
     });
-
-export const triggerPrivateNotificationEpic = action$ =>
-  action$.ofType(RECEIVE_PRIVATE_MESSAGE)
-    .mergeMap(
-      ({ payload }) => Observable.fromPromise(getDb())
-        .map(db => ({ db, payload })),
-    )
-    .mergeMap(
-      ({ db, payload }) => {
-        const { from: { bare: conversationJid } } = payload;
-        return Observable.fromPromise(db.conversations.findOne(conversationJid).exec())
-          .map(conv => ({ conv, payload }))
-      },
-    )
-    .filter(({ conv, payload }) => {
-      // hide notifications
-      return conv && !conv.isHiddenNotification && payload.curJid !== payload.from.bare;
-    })
-    .mergeMap(({ payload }) => {
-      const { from: { bare: conversationJid, local: name }, body } = payload;
-      let { content } = JSON.parse(body);
-      return Observable.fromPromise(getDb()).mergeMap(db => {
-        return Observable.fromPromise(ContactStore.findContactByJid(payload.from.bare))
-          .map(contact => {
-            content = `${contact.name}: ${content}`
-            return showConversationNotification(conversationJid, name || conv.name, content);
-          }).catch(err => Observable.of(showConversationNotificationFail(err)))
-      }).catch(err => Observable.of(showConversationNotificationFail(err)))
-    }).catch(err => Observable.of(showConversationNotificationFail(err)));
 
 const getEncrypted = (jid, body, devices, selfDevices, curJid, deviceId) => {
   let aeskey = generateAESKey();
