@@ -212,6 +212,23 @@ class ConversationStore extends MailspringStore {
     await this.saveConversations([conversation]);
     await this.setSelectedConversation(jid);
   }
+
+  saveConversationName = async (data) => {
+    if (!data || !data.edimucevent || !data.edimucevent.edimucconfig) {
+      return;
+    }
+
+    const config = data.edimucevent.edimucconfig;
+    const convJid = data.from.bare;
+    const conv = await this.getConversationByJid(convJid);
+    if (conv.name===config.name) {
+      return;
+    } else {
+      const name = config.name;
+      conv.update({name});
+      this.refreshConversations();
+    }
+  }
 }
 
 module.exports = new ConversationStore();
