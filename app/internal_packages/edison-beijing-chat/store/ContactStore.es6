@@ -21,7 +21,7 @@ class ContactStore extends MailspringStore {
           ContactModel.update({
             jid: contact.jid.bare,
             curJid,
-            name: contact.oriName,
+            name: contact.oriName || contact.email,
             email: contact.email,
             avatar: contact.avatar ? contact.avatar : contactInDb.avatar
           }, {
@@ -31,7 +31,7 @@ class ContactStore extends MailspringStore {
           ContactModel.create({
             jid: contact.jid.bare,
             curJid,
-            name: contact.oriName,
+            name: contact.oriName || contact.email,
             email: contact.email,
             avatar: contact.avatar
           });
