@@ -5,11 +5,13 @@ import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
 
 export class DestroyCategoryTask extends Task {
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     path: Attributes.String({
       modelKey: 'path',
     }),
-  });
+  };
 
   path: string;
 

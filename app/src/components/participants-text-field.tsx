@@ -134,7 +134,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
 
     const replacements = await this._tokensForString(replacementString);
     const updates = {};
-    updates[field] = [].concat(this.props.participants[field]);
+    updates[field] = [...this.props.participants[field]];
     updates[field].splice(tokenIndex, 1, ...replacements);
     this.props.change(updates);
   };
@@ -164,7 +164,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
 
       const updates = {};
       for (const field of Object.keys(this.props.participants)) {
-        updates[field] = [].concat(this.props.participants[field]);
+        updates[field] = [...this.props.participants[field]];
       }
 
       for (const token of contactTokens) {
@@ -176,7 +176,7 @@ export default class ParticipantsTextField extends React.Component<ParticipantsT
         }
 
         // add the participant to field
-        updates[this.props.field] = [].concat(updates[this.props.field], [token]);
+        updates[this.props.field] = [...updates[this.props.field], token];
       }
 
       this.props.change(updates);

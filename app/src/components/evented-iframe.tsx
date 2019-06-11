@@ -270,16 +270,14 @@ export class EventedIFrame extends React.Component<
     }
 
     node.dispatchEvent(
-      new MouseEvent(
-        event.type,
-        Object.assign({}, eventAttrs, {
-          bubbles: true,
-          clientX: event.clientX + nodeRect.left,
-          clientY: event.clientY + nodeRect.top,
-          pageX: event.pageX + nodeRect.left,
-          pageY: event.pageY + nodeRect.top,
-        })
-      )
+      new MouseEvent(event.type, {
+        ...eventAttrs,
+        bubbles: true,
+        clientX: event.clientX + nodeRect.left,
+        clientY: event.clientY + nodeRect.top,
+        screenX: event.screenX + nodeRect.left,
+        screenY: event.screenY + nodeRect.top,
+      })
     );
   };
 

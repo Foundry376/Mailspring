@@ -71,7 +71,7 @@ xdescribe('DraftEditingSession Specs', function() {
       });
 
       it('should move changes to the saving set', function() {
-        const pendingBefore = Object.assign({}, this.changeSet._pending);
+        const pendingBefore = { ...this.changeSet._pending };
         expect(this.changeSet._saving).toEqual({});
         this.changeSet.commit();
         advanceClock();

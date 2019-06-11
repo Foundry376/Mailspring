@@ -82,7 +82,7 @@ export default class ApplicationTouchBar {
   getCommandsEnabledInMenu(template) {
     // Recursively iterate through the menu tree and find all of the
     // menu items with a `command` that are enabled.
-    const menus = [].concat(template);
+    const menus = [...template];
     const availableCommands = {};
     let menu = null;
     while ((menu = menus.pop())) {

@@ -264,7 +264,9 @@ Section: Models
 */
 
 export class Contact extends Model {
-  static attributes = Object.assign({}, Model.attributes, {
+  static attributes = {
+    ...Model.attributes,
+
     name: Attributes.String({
       modelKey: 'name',
     }),
@@ -307,7 +309,7 @@ export class Contact extends Model {
     searchIndexId: Attributes.Number({
       modelKey: 'searchIndexId',
     }),
-  });
+  };
 
   static searchable = true;
 

@@ -5,7 +5,9 @@ import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
 
 export class SyncbackCategoryTask extends Task {
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     path: Attributes.String({
       modelKey: 'path',
     }),
@@ -15,7 +17,7 @@ export class SyncbackCategoryTask extends Task {
     created: Attributes.Object({
       modelKey: 'created',
     }),
-  });
+  };
 
   path: string;
   existingPath: string;

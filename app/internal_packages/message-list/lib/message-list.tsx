@@ -230,7 +230,7 @@ class MessageList extends React.Component<{}, MessageListState> {
       return allMessages;
     }
 
-    const messages = [].concat(allMessages);
+    const messages = [...allMessages];
     const minifyRanges = [];
     let consecutiveCollapsed = 0;
 

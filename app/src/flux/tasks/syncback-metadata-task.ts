@@ -39,7 +39,9 @@ export class SyncbackMetadataTask extends Task {
     return task;
   }
 
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     pluginId: Attributes.String({
       modelKey: 'pluginId',
     }),
@@ -58,7 +60,7 @@ export class SyncbackMetadataTask extends Task {
     undoValue: Attributes.Object({
       modelKey: 'undoValue',
     }),
-  });
+  };
 
   pluginId: string;
   modelId: string;

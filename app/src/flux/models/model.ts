@@ -29,10 +29,17 @@ interface HasStaticAttributes {
 
 export type AttributeValues<T> = { [P in keyof T]?: any } & { __cls?: string };
 
+type ModelAttributes = {
+  id: Attribute;
+  accountId: Attribute;
+  version: Attribute;
+  [attribute: string]: Attribute;
+};
+
 export class Model implements HasStaticAttributes {
   'constructor': typeof Model; // prettier-ignore
 
-  static attributes: { [attribute: string]: Attribute } = {
+  static attributes: ModelAttributes = {
     id: Attributes.String({
       queryable: true,
       modelKey: 'id',

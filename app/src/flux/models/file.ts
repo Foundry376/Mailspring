@@ -24,7 +24,9 @@ This class also inherits attributes from {Model}
 Section: Models
 */
 export class File extends Model {
-  static attributes = Object.assign({}, Model.attributes, {
+  static attributes = {
+    ...Model.attributes,
+
     filename: Attributes.String({
       modelKey: 'filename',
       queryable: true,
@@ -41,7 +43,7 @@ export class File extends Model {
     contentId: Attributes.String({
       modelKey: 'contentId',
     }),
-  });
+  };
 
   public filename: string;
   public size: number;

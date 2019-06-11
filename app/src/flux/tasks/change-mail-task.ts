@@ -14,7 +14,9 @@ they provide, and override {ChangeMailTask::performLocal} to perform
 additional consistency checks.
 */
 export class ChangeMailTask extends Task {
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     taskDescription: Attributes.String({
       modelKey: 'taskDescription',
     }),
@@ -30,7 +32,7 @@ export class ChangeMailTask extends Task {
     isUndo: Attributes.Boolean({
       modelKey: 'isUndo',
     }),
-  });
+  };
 
   threadIds: string[];
   messageIds: string[];

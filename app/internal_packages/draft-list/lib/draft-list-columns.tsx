@@ -24,7 +24,7 @@ const ParticipantsColumn = new ListTabular.Column({
   name: 'Participants',
   width: 200,
   resolver: draft => {
-    const list = [].concat(draft.to, draft.cc, draft.bcc);
+    const list = [...draft.to, ...draft.cc, ...draft.bcc];
 
     if (list.length > 0) {
       return (

@@ -286,6 +286,6 @@ export default class WindowManager {
 
     const defaultOptions = coreWinOpts[windowKey] || {};
 
-    return Object.assign({}, defaultOptions, extraOpts);
+    return { ...defaultOptions, ...extraOpts };
   }
 }

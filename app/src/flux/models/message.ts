@@ -64,7 +64,9 @@ This class also inherits attributes from {Model}
 Section: Models
 */
 export class Message extends ModelWithMetadata {
-  static attributes = Object.assign({}, ModelWithMetadata.attributes, {
+  static attributes = {
+    ...ModelWithMetadata.attributes,
+
     to: Attributes.Collection({
       modelKey: 'to',
       itemClass: Contact,
@@ -170,7 +172,7 @@ export class Message extends ModelWithMetadata {
       modelKey: 'folder',
       itemClass: Folder,
     }),
-  });
+  };
 
   public subject: string;
   public to: Contact[];
@@ -248,7 +250,7 @@ export class Message extends ModelWithMetadata {
   participants({ includeFrom = true, includeBcc = false } = {}) {
     const seen = {};
     const all = [];
-    let contacts = [].concat(this.to, this.cc);
+    let contacts = [...this.to, ...this.cc];
     if (includeFrom) {
       contacts = _.union(contacts, this.from || []);
     }
@@ -291,7 +293,7 @@ export class Message extends ModelWithMetadata {
       // If a replyTo is specified and that replyTo would not result in you
       // sending the message to yourself, use it.
       to = this.replyTo;
-      cc = excludeMeAndFroms([].concat(this.to, this.cc));
+      cc = excludeMeAndFroms([...this.to, ...this.cc]);
     } else if (this.isFromMe()) {
       // If the message is from you to others, reply-all should send to the
       // same people.
@@ -301,7 +303,7 @@ export class Message extends ModelWithMetadata {
       // ... otherwise, address the reply to the sender of the email and cc
       // everyone else.
       to = this.from;
-      cc = excludeMeAndFroms([].concat(this.to, this.cc));
+      cc = excludeMeAndFroms([...this.to, ...this.cc]);
     }
 
     to = _.uniq(to, p => Utils.toEquivalentEmailForm(p.email));

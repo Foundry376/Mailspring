@@ -47,7 +47,9 @@ export class PluginMetadata extends Model {
  in the future.
 */
 export class ModelWithMetadata extends Model {
-  static attributes = Object.assign({}, Model.attributes, {
+  static attributes = {
+    ...Model.attributes,
+
     pluginMetadata: Attributes.Collection({
       queryable: true,
       itemClass: PluginMetadata,
@@ -56,7 +58,7 @@ export class ModelWithMetadata extends Model {
       modelKey: 'pluginMetadata',
       jsonKey: 'metadata',
     }),
-  });
+  };
 
   static naturalSortOrder() {
     return null;

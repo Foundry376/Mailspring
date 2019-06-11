@@ -35,7 +35,7 @@ async function incrementMetadataUse(model, expiration) {
 }
 
 function assertMetadataShape(value) {
-  const t = Object.assign({}, value);
+  const t = { ...value };
   if (t.expiration && !(t.expiration instanceof Date)) {
     throw new Error(`"expiration" should always be absent or a date. Received ${t.expiration}`);
   }

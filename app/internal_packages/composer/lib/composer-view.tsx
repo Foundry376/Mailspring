@@ -304,7 +304,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
           }
           match.contentId = Utils.generateContentId();
           session.changes.add({
-            files: [].concat(draft.files),
+            files: [...draft.files],
           });
 
           this.editor.current.insertInlineAttachment(file);

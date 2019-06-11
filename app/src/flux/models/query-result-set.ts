@@ -47,9 +47,9 @@ export class QueryResultSet<T extends Model> {
 
   clone() {
     return new (this.constructor as any)({
-      _ids: [].concat(this._ids),
-      _modelsHash: Object.assign({}, this._modelsHash),
-      _idToIndexHash: Object.assign({}, this._idToIndexHash),
+      _ids: [...this._ids],
+      _modelsHash: { ...this._modelsHash },
+      _idToIndexHash: { ...this._idToIndexHash },
       _query: this._query,
       _offset: this._offset,
     });

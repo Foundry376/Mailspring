@@ -69,7 +69,7 @@ export default class ActivitySidebar extends React.Component<{}, ActivitySidebar
   };
 
   _onCollapse = () => {
-    this.setState(Object.assign({ expanded: false, syncState: {} }));
+    this.setState({ expanded: false, syncState: {} });
   };
 
   componentWillUnmount() {

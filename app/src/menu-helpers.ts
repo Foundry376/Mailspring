@@ -95,7 +95,7 @@ export function normalizeLabel(label) {
 }
 
 export function cloneMenuItem(item: IMenuItem) {
-  item = Object.assign({}, item);
+  item = { ...item };
   if (item.submenu != null) {
     item.submenu = item.submenu.map(submenuItem => cloneMenuItem(submenuItem));
   }

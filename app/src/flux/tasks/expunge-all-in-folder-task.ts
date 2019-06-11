@@ -5,12 +5,14 @@ import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
 
 export class ExpungeAllInFolderTask extends Task {
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     folder: Attributes.Object({
       modelKey: 'folder',
       itemClass: Folder,
     }),
-  });
+  };
 
   folder: Folder;
 

@@ -18,7 +18,9 @@ import { AttributeValues } from '../models/model';
 //   that configuration
 //
 export class ChangeFolderTask extends ChangeMailTask {
-  static attributes = Object.assign({}, ChangeMailTask.attributes, {
+  static attributes = {
+    ...ChangeMailTask.attributes,
+
     previousFolder: Attributes.Object({
       modelKey: 'previousFolder',
       itemClass: Folder,
@@ -27,7 +29,7 @@ export class ChangeFolderTask extends ChangeMailTask {
       modelKey: 'folder',
       itemClass: Folder,
     }),
-  });
+  };
 
   previousFolder: Folder;
   folder: Folder;

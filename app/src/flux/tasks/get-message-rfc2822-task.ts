@@ -3,14 +3,16 @@ import Attributes from '../attributes';
 import { AttributeValues } from '../models/model';
 
 export class GetMessageRFC2822Task extends Task {
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     messageId: Attributes.String({
       modelKey: 'messageId',
     }),
     filepath: Attributes.String({
       modelKey: 'filepath',
     }),
-  });
+  };
 
   messageId: string;
   filepath: string;

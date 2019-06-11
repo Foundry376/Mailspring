@@ -170,10 +170,10 @@ export class DraftEditingSession extends MailspringStore {
   validateDraftForSending() {
     const warnings = [];
     const errors = [];
-    const allRecipients = [].concat(this._draft.to, this._draft.cc, this._draft.bcc);
+    const allRecipients = [...this._draft.to, ...this._draft.cc, ...this._draft.bcc];
     const hasAttachment = this._draft.files && this._draft.files.length > 0;
 
-    const allNames = [].concat(Utils.commonlyCapitalizedSalutations);
+    const allNames = [...Utils.commonlyCapitalizedSalutations];
     let unnamedRecipientPresent = false;
 
     for (const contact of allRecipients) {

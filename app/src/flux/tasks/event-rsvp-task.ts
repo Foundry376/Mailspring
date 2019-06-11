@@ -19,7 +19,9 @@ export class EventRSVPTask extends Task {
   messageId: string;
   organizerEmail: string;
 
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     ics: Attributes.String({
       modelKey: 'ics',
     }),
@@ -35,7 +37,7 @@ export class EventRSVPTask extends Task {
     messageId: Attributes.String({
       modelKey: 'messageId',
     }),
-  });
+  };
 
   constructor(data: AttributeValues<typeof EventRSVPTask.attributes> = {}) {
     super(data);

@@ -55,7 +55,7 @@ export const DataShape = [
 ];
 
 export const ResolveSignatureData = data => {
-  data = Object.assign({}, data);
+  data = { ...data };
 
   ['websiteURL', 'facebookURL'].forEach(key => {
     if (data[key] && !data[key].includes(':')) {

@@ -155,7 +155,7 @@ class ComponentRegistry extends MailspringStore {
 
     const cacheKey = JSON.stringify({ locations, modes, roles });
     if (this._cache[cacheKey]) {
-      return [].concat(this._cache[cacheKey]);
+      return [...this._cache[cacheKey]];
     }
 
     // Made into a convenience function because default
@@ -178,7 +178,7 @@ class ComponentRegistry extends MailspringStore {
     const results = entries.map(entry => entry.component);
     this._cache[cacheKey] = results;
 
-    return [].concat(results);
+    return [...results];
   }
 
   // We debounce because a single plugin may activate many components in

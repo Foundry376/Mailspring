@@ -62,7 +62,7 @@ class ThemePicker extends React.Component<{}, { themes: any[]; activeTheme: stri
       'ui-dark',
       'ui-light',
     ];
-    const sortedThemes = [].concat(this.state.themes);
+    const sortedThemes = [...this.state.themes];
     sortedThemes.sort((a, b) => {
       return (internalThemes.indexOf(a.name) - internalThemes.indexOf(b.name)) * -1;
     });

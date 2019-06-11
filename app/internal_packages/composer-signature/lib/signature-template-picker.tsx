@@ -45,11 +45,12 @@ export default class SignatureTemplatePicker extends React.Component<{
 
     const { name, email, title } = resolvedData;
     if (!name && !email && !title) {
-      resolvedData = Object.assign({}, resolvedData, {
+      resolvedData = {
+        ...resolvedData,
         name: localized('Your name'),
         email: 'you@domain.com',
         title: localized('Job Title'),
-      });
+      };
     }
     return (
       <div ref={el => (this._el = el)} className="signature-template-picker">

@@ -289,7 +289,7 @@ export class MultiselectList extends React.Component<MultiselectListProps, Multi
     // computed columns are still valid, we store the original columns in our state
     // along with the computed ones.
     if (props.columns !== state.columns || layoutMode !== state.layoutMode) {
-      computedColumns = [].concat(props.columns);
+      computedColumns = [...props.columns];
       if (layoutMode === 'list') {
         computedColumns.splice(0, 0, this._getCheckmarkColumn());
       }

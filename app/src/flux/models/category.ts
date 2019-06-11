@@ -96,7 +96,9 @@ export class Category extends Model {
     return this.role;
   }
 
-  static attributes = Object.assign({}, Model.attributes, {
+  static attributes = {
+    ...Model.attributes,
+
     role: Attributes.String({
       queryable: true,
       modelKey: 'role',
@@ -108,7 +110,7 @@ export class Category extends Model {
     localStatus: Attributes.Object({
       modelKey: 'localStatus',
     }),
-  });
+  };
 
   static Types = {
     Standard: 'standard',

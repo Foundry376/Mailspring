@@ -178,7 +178,7 @@ export default class MailspringWindow extends EventEmitter {
 
   updateLoadSettings = (newSettings = {}) => {
     this.loaded = true;
-    this.setLoadSettings(Object.assign({}, this.browserWindow.loadSettings, newSettings));
+    this.setLoadSettings({ ...this.browserWindow.loadSettings, ...newSettings });
   };
 
   loadSettings(): MailspringWindowSettings {

@@ -4,11 +4,13 @@ import { AccountStore } from '../stores/account-store';
 import { AttributeValues } from '../models/model';
 
 export class SendFeatureUsageEventTask extends Task {
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     feature: Attributes.String({
       modelKey: 'feature',
     }),
-  });
+  };
 
   feature: string;
 

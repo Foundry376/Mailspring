@@ -2,7 +2,9 @@ import { Model } from './model';
 import Attributes from '../attributes';
 
 export default class ProviderSyncbackRequest extends Model {
-  static attributes = Object.assign({}, Model.attributes, {
+  static attributes = {
+    ...Model.attributes,
+
     type: Attributes.String({
       queryable: true,
       modelKey: 'type',
@@ -28,5 +30,5 @@ export default class ProviderSyncbackRequest extends Model {
     status: Attributes.String({
       modelKey: 'status',
     }),
-  });
+  };
 }

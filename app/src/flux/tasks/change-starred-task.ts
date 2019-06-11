@@ -6,11 +6,13 @@ import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
 
 export class ChangeStarredTask extends ChangeMailTask {
-  static attributes = Object.assign({}, ChangeMailTask.attributes, {
+  static attributes = {
+    ...ChangeMailTask.attributes,
+
     starred: Attributes.Boolean({
       modelKey: 'starred',
     }),
-  });
+  };
 
   starred: boolean;
 

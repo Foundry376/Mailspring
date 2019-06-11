@@ -15,7 +15,9 @@ This class also inherits attributes from {Model}
 Section: Models
 */
 export class Calendar extends Model {
-  static attributes = Object.assign({}, Model.attributes, {
+  static attributes = {
+    ...Model.attributes,
+
     name: Attributes.String({
       modelKey: 'name',
       jsonKey: 'name',
@@ -28,7 +30,7 @@ export class Calendar extends Model {
       modelKey: 'readOnly',
       jsonKey: 'read_only',
     }),
-  });
+  };
 
   public name: string;
   public description: string;

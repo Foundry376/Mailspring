@@ -60,7 +60,7 @@ class TaskQueue extends MailspringStore {
     const finished = [Task.Status.Complete, Task.Status.Cancelled];
     this._queue = tasks.filter(t => !finished.includes(t.status));
     this._completed = tasks.filter(t => finished.includes(t.status));
-    const all = [].concat(this._queue, this._completed);
+    const all = [...this._queue, ...this._completed];
 
     this._waitingForLocal.filter(({ task, resolve }) => {
       const match = all.find(t => task.id === t.id);
@@ -92,12 +92,12 @@ class TaskQueue extends MailspringStore {
   }
 
   allTasks() {
-    return [].concat(this._queue, this._completed);
+    return [...this._queue, ...this._completed];
   }
 
   findTasks(typeOrClass, matching = {}, { includeCompleted }: { includeCompleted?: boolean } = {}) {
     const type = typeOrClass instanceof String ? typeOrClass : typeOrClass.name;
-    const tasks = includeCompleted ? [].concat(this._queue, this._completed) : this._queue;
+    const tasks = includeCompleted ? [...this._queue, ...this._completed] : this._queue;
 
     const matches = tasks.filter(task => {
       if (task.constructor.name !== type) {
@@ -113,7 +113,7 @@ class TaskQueue extends MailspringStore {
   }
 
   waitForPerformLocal = task => {
-    const upToDateTask = [].concat(this._queue, this._completed).find(t => t.id === task.id);
+    const upToDateTask = [...this._queue, ...this._completed].find(t => t.id === task.id);
     if (upToDateTask && upToDateTask.hasRunLocally()) {
       return Promise.resolve(upToDateTask);
     }
@@ -124,7 +124,7 @@ class TaskQueue extends MailspringStore {
   };
 
   waitForPerformRemote = task => {
-    const upToDateTask = [].concat(this._queue, this._completed).find(t => t.id === task.id);
+    const upToDateTask = [...this._queue, ...this._completed].find(t => t.id === task.id);
     if (upToDateTask && upToDateTask.status === Task.Status.Complete) {
       return Promise.resolve(upToDateTask);
     }

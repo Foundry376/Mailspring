@@ -33,7 +33,7 @@ export default class CalendarWrapper extends React.Component<{}, { selectedEvent
   }
 
   _onEventClick = (e: React.MouseEvent, event: Event) => {
-    let next = [].concat(this.state.selectedEvents);
+    let next = [...this.state.selectedEvents];
 
     if (e.shiftKey || e.metaKey) {
       const idx = next.findIndex(({ id }) => event.id === id);

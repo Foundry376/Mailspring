@@ -165,7 +165,7 @@ export default class MailsyncBridge {
   }
 
   ensureClients = _.throttle(() => {
-    const clientsWithoutAccounts = Object.assign({}, this._clients);
+    const clientsWithoutAccounts = { ...this._clients };
 
     for (const acct of AccountStore.accounts()) {
       if (!this._clients[acct.id]) {

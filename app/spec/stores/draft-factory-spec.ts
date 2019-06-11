@@ -61,7 +61,10 @@ describe('DraftFactory', function draftFactory() {
       id: 'fake-message-1',
       headerMessageId: 'fake-message-1@localhost',
       accountId: account.id,
-      to: [new Contact({ email: 'ben@mailspring.com' }), new Contact({ email: 'evan@mailspring.com' })],
+      to: [
+        new Contact({ email: 'ben@mailspring.com' }),
+        new Contact({ email: 'evan@mailspring.com' }),
+      ],
       cc: [new Contact({ email: 'mg@mailspring.com' }), account.me()],
       bcc: [new Contact({ email: 'recruiting@mailspring.com' })],
       from: [new Contact({ email: 'customer@example.com', name: 'Customer' })],
@@ -75,7 +78,10 @@ describe('DraftFactory', function draftFactory() {
       id: 'fake-message-with-files',
       headerMessageId: 'fake-message-with-files@localhost',
       accountId: account.id,
-      to: [new Contact({ email: 'ben@mailspring.com' }), new Contact({ email: 'evan@mailspring.com' })],
+      to: [
+        new Contact({ email: 'ben@mailspring.com' }),
+        new Contact({ email: 'evan@mailspring.com' }),
+      ],
       cc: [new Contact({ email: 'mg@mailspring.com' }), account.me()],
       bcc: [new Contact({ email: 'recruiting@mailspring.com' })],
       from: [new Contact({ email: 'customer@example.com', name: 'Customer' })],
@@ -322,7 +328,11 @@ describe('DraftFactory', function draftFactory() {
             type: 'reply-all',
           }).then(draft => {
             const ccEmails = draft.cc.map(cc => cc.email);
-            expect(ccEmails.sort()).toEqual(['ben@mailspring.com', 'evan@mailspring.com', 'mg@mailspring.com']);
+            expect(ccEmails.sort()).toEqual([
+              'ben@mailspring.com',
+              'evan@mailspring.com',
+              'mg@mailspring.com',
+            ]);
           });
         });
       });
@@ -385,7 +395,7 @@ describe('DraftFactory', function draftFactory() {
               message: msgWithReplyTo,
               type: 'reply-all',
             }).then(draft => {
-              const all = [].concat(draft.to, draft.cc, draft.bcc);
+              const all = [...draft.to, ...draft.cc, ...draft.bcc];
               const match = _.find(all, c => c.email === msgWithReplyTo.from[0].email);
               expect(match).toEqual(undefined);
             });
@@ -448,9 +458,13 @@ describe('DraftFactory', function draftFactory() {
           true
         );
         expect(this.model.body.indexOf('Subject: Fake Subject') > 0).toBe(true);
-        expect(this.model.body.indexOf('To: ben@mailspring.com, evan@mailspring.com') > 0).toBe(true);
+        expect(this.model.body.indexOf('To: ben@mailspring.com, evan@mailspring.com') > 0).toBe(
+          true
+        );
         expect(
-          this.model.body.indexOf('Cc: mg@mailspring.com, Mailspring Test &lt;tester@mailspring.com&gt;') > 0
+          this.model.body.indexOf(
+            'Cc: mg@mailspring.com, Mailspring Test &lt;tester@mailspring.com&gt;'
+          ) > 0
         ).toBe(true);
       });
 
@@ -517,7 +531,8 @@ describe('DraftFactory', function draftFactory() {
         DraftFactory.createOrUpdateDraftForReply({
           thread: fakeThread,
           message: fakeMessage1,
-          type: 'wrong',
+          type: 'wrong' as any,
+          behavior: 'prefer-existing',
         })
           .then(() => {
             expect(false).toEqual(true);
@@ -618,22 +633,26 @@ describe('DraftFactory', function draftFactory() {
           thread: fakeThread,
           message: fakeMessage1,
           type: 'reply-all',
+          behavior: 'prefer-existing',
         });
         expect(DraftFactory.createDraftForReply).toHaveBeenCalledWith({
           thread: fakeThread,
           message: fakeMessage1,
           type: 'reply-all',
+          behavior: 'prefer-existing',
         });
 
         await DraftFactory.createOrUpdateDraftForReply({
           thread: fakeThread,
           message: fakeMessage1,
           type: 'reply',
+          behavior: 'prefer-existing',
         });
         expect(DraftFactory.createDraftForReply).toHaveBeenCalledWith({
           thread: fakeThread,
           message: fakeMessage1,
           type: 'reply',
+          behavior: 'prefer-existing',
         });
       });
     });
@@ -768,7 +787,9 @@ describe('DraftFactory', function draftFactory() {
         new Message({
           to: [new Contact({ name: 'bengotow@gmail.com', email: 'bengotow@gmail.com' })],
         }),
-        new Message({ to: [new Contact({ name: 'mg@mailspring.com', email: 'mg@mailspring.com' })] }),
+        new Message({
+          to: [new Contact({ name: 'mg@mailspring.com', email: 'mg@mailspring.com' })],
+        }),
         new Message({ subject: '%1z2a' }),
         new Message({ subject: 'Rz2a' }),
         new Message({ subject: 'Martha Stewart' }),

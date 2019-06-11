@@ -5,12 +5,14 @@ import Attributes from '../src/flux/attributes';
 import DatabaseObjectRegistry from '../src/registries/database-object-registry';
 
 class GoodTest extends Model {
-  static attributes = Object.assign({}, Model.attributes, {
+  static attributes = {
+    ...Model.attributes,
+
     foo: Attributes.String({
       modelKey: 'foo',
       jsonKey: 'foo',
     }),
-  });
+  };
 }
 
 describe('DatabaseObjectRegistry', function DatabaseObjectRegistrySpecs() {

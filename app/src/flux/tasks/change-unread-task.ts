@@ -6,11 +6,13 @@ import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
 
 export class ChangeUnreadTask extends ChangeMailTask {
-  static attributes = Object.assign({}, ChangeMailTask.attributes, {
+  static attributes = {
+    ...ChangeMailTask.attributes,
+
     unread: Attributes.Boolean({
       modelKey: 'unread',
     }),
-  });
+  };
 
   unread: boolean;
 

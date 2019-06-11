@@ -544,8 +544,9 @@ class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespa
 export default ListensToFluxStore(Root, {
   stores: [FocusedPerspectiveStore],
   getStateFromStores: props => {
-    return Object.assign({}, props, {
+    return {
+      ...props,
       accountIds: FocusedPerspectiveStore.current().accountIds,
-    });
+    };
   },
 });

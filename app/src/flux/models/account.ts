@@ -34,7 +34,9 @@ export class Account extends ModelWithMetadata {
 
   static SYNC_STATE_ERROR = 'sync_error';
 
-  static attributes = Object.assign({}, ModelWithMetadata.attributes, {
+  static attributes = {
+    ...ModelWithMetadata.attributes,
+
     name: Attributes.String({
       modelKey: 'name',
     }),
@@ -75,7 +77,7 @@ export class Account extends ModelWithMetadata {
     syncError: Attributes.Object({
       modelKey: 'syncError',
     }),
-  });
+  };
 
   public name: string;
   public provider: string;

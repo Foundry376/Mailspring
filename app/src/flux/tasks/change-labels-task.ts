@@ -12,7 +12,9 @@ import { localized } from '../../intl';
 // - messages: An {Array} of {Message}s or {Message} ids
 //
 export class ChangeLabelsTask extends ChangeMailTask {
-  static attributes = Object.assign({}, ChangeMailTask.attributes, {
+  static attributes = {
+    ...ChangeMailTask.attributes,
+
     labelsToAdd: Attributes.Collection({
       modelKey: 'labelsToAdd',
       itemClass: Label,
@@ -21,7 +23,7 @@ export class ChangeLabelsTask extends ChangeMailTask {
       modelKey: 'labelsToRemove',
       itemClass: Label,
     }),
-  });
+  };
 
   labelsToAdd: Label[];
   labelsToRemove: Label[];
@@ -92,7 +94,7 @@ export class ChangeLabelsTask extends ChangeMailTask {
     if (!this.labelsToRemove) {
       throw new Error(`Assertion Failure: ChangeLabelsTask requires labelsToRemove`);
     }
-    for (const l of [].concat(this.labelsToAdd, this.labelsToRemove)) {
+    for (const l of [...this.labelsToAdd, ...this.labelsToRemove]) {
       if (l instanceof Label === false) {
         throw new Error(
           `Assertion Failure: ChangeLabelsTask received a non-label: ${JSON.stringify(l)}`

@@ -36,7 +36,7 @@ export default class AccountContactField extends React.Component<AccountContactF
     const { draft, session, onChange } = this.props;
     const { autoaddress } = AccountStore.accountForEmail(contact.email);
 
-    const existing = [].concat(draft.to, draft.cc, draft.bcc).map(c => c.email);
+    const existing = [...draft.to, ...draft.cc, ...draft.bcc].map(c => c.email);
     let autocontacts = await ContactStore.parseContactsInString(autoaddress.value);
     autocontacts = autocontacts.filter(c => !existing.includes(c.email));
 
@@ -44,8 +44,8 @@ export default class AccountContactField extends React.Component<AccountContactF
 
     onChange({
       from: [contact],
-      cc: [].concat(draft.cc).concat(autoaddress.type === 'cc' ? autocontacts : []),
-      bcc: [].concat(draft.bcc).concat(autoaddress.type === 'bcc' ? autocontacts : []),
+      cc: [...draft.cc].concat(autoaddress.type === 'cc' ? autocontacts : []),
+      bcc: [...draft.bcc].concat(autoaddress.type === 'bcc' ? autocontacts : []),
     });
     session.ensureCorrectAccount();
   };

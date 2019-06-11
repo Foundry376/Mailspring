@@ -87,7 +87,7 @@ export function ActionTemplatesForAccount(account): Template[] {
     return [];
   }
 
-  const templates = [].concat(ActionTemplates);
+  const templates = [...ActionTemplates];
 
   const CategoryNamesObservable = Categories.forAccount(account)
     .sort()

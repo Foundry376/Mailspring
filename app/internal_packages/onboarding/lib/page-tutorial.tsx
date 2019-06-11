@@ -92,7 +92,7 @@ export default class TutorialPage extends React.Component<
   };
 
   _onNextUnseen = () => {
-    const nextSeen = [].concat(this.state.seen, [this.state.current]);
+    const nextSeen = [...this.state.seen, this.state.current];
     const nextItem = Steps.find(s => !nextSeen.includes(s));
     if (nextItem) {
       this.setState({ current: nextItem, seen: nextSeen });

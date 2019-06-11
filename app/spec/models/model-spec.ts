@@ -26,16 +26,20 @@ describe('Model', function modelSpecs() {
   describe('clone', () =>
     it('should return a deep copy of the object (not reusing array members, etc.)', () => {
       class SubSubmodel extends Model {
-        static attributes = Object.assign({}, Model.attributes, {
+        static attributes = {
+          ...Model.attributes,
+
           value: Attributes.Number({
             modelKey: 'value',
             jsonKey: 'value',
           }),
-        });
+        };
       }
 
       class Submodel extends Model {
-        static attributes = Object.assign({}, Model.attributes, {
+        static attributes = {
+          ...Model.attributes,
+
           testNumber: Attributes.Number({
             modelKey: 'testNumber',
             jsonKey: 'test_number',
@@ -45,7 +49,10 @@ describe('Model', function modelSpecs() {
             modelKey: 'testArray',
             jsonKey: 'test_array',
           }),
-        });
+        };
+
+        testNumber: number;
+        testArray: SubSubmodel[];
       }
 
       const old = new Submodel({
@@ -69,7 +76,9 @@ describe('Model', function modelSpecs() {
       class SubmodelItem extends Model {}
 
       class Submodel extends Model {
-        static attributes = Object.assign({}, Model.attributes, {
+        static attributes = {
+          ...Model.attributes,
+
           testNumber: Attributes.Number({
             modelKey: 'testNumber',
             jsonKey: 'test_number',
@@ -87,7 +96,7 @@ describe('Model', function modelSpecs() {
             modelKey: 'testJoinedData',
             jsonKey: 'test_joined_data',
           }),
-        });
+        };
       }
 
       this.json = {
@@ -97,7 +106,7 @@ describe('Model', function modelSpecs() {
         test_boolean: true,
         daysOld: 4,
       };
-      this.m = new Submodel();
+      this.m = new Submodel({});
     });
 
     it('should assign attribute values by calling through to attribute fromJSON functions', () => {

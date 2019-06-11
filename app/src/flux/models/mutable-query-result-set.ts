@@ -7,8 +7,8 @@ import ModelQuery from './query';
 export class MutableQueryResultSet<T extends Model> extends QueryResultSet<T> {
   immutableClone() {
     const set = new QueryResultSet({
-      _ids: [].concat(this._ids),
-      _modelsHash: Object.assign({}, this._modelsHash),
+      _ids: [...this._ids],
+      _modelsHash: { ...this._modelsHash },
       _query: this._query,
       _offset: this._offset,
     });

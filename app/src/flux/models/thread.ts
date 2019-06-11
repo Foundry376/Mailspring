@@ -36,7 +36,9 @@ Section: Models
 @class Thread
 */
 export class Thread extends ModelWithMetadata {
-  static attributes = Object.assign({}, ModelWithMetadata.attributes, {
+  static attributes = {
+    ...ModelWithMetadata.attributes,
+
     snippet: Attributes.String({
       // TODO NONFUNCTIONAL
       modelKey: 'snippet',
@@ -126,7 +128,7 @@ export class Thread extends ModelWithMetadata {
       queryable: true,
       modelKey: 'inAllMail',
     }),
-  });
+  };
 
   static sortOrderAttribute = () => {
     return Thread.attributes.lastMessageReceivedTimestamp;

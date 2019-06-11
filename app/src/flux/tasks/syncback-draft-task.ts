@@ -5,7 +5,9 @@ import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
 
 export class SyncbackDraftTask extends Task {
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     headerMessageId: Attributes.String({
       modelKey: 'headerMessageId',
     }),
@@ -13,7 +15,7 @@ export class SyncbackDraftTask extends Task {
       modelKey: 'draft',
       itemClass: Message,
     }),
-  });
+  };
 
   draft: Message;
   headerMessageId: string;

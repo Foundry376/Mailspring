@@ -28,7 +28,7 @@ class AutoaddressControl extends Component<AutoaddressControlProps> {
           <select
             style={{ marginTop: 0 }}
             value={autoaddress.type}
-            onChange={e => onChange(Object.assign({}, autoaddress, { type: e.target.value }))}
+            onChange={e => onChange({ ...autoaddress, type: e.target.value as 'cc' | 'bcc' })}
             onBlur={onSaveChanges}
           >
             <option value="cc">{localized('Cc')}</option>
@@ -38,7 +38,7 @@ class AutoaddressControl extends Component<AutoaddressControlProps> {
         <input
           type="text"
           value={autoaddress.value}
-          onChange={e => onChange(Object.assign({}, autoaddress, { value: e.target.value }))}
+          onChange={e => onChange({ ...autoaddress, value: e.target.value })}
           onBlur={onSaveChanges}
           placeholder={localized('Comma-separated email addresses')}
         />

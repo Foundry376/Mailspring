@@ -16,7 +16,9 @@ export class Task extends Model {
   static Status = Status;
   static SubclassesUseModelTable = Task;
 
-  static attributes = Object.assign({}, Model.attributes, {
+  static attributes = {
+    ...Model.attributes,
+
     status: Attributes.String({
       queryable: true,
       modelKey: 'status',
@@ -27,7 +29,7 @@ export class Task extends Model {
     error: Attributes.Object({
       modelKey: 'error',
     }),
-  });
+  };
 
   status: string;
   source: string;

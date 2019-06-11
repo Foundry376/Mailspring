@@ -65,8 +65,8 @@ export default class ModelQuery<T> {
 
   clone(): ModelQuery<T> {
     const q = new ModelQuery<T>(this._klass, this._database).where(this._matchers).order(this._orders);
-    q._orders = [].concat(this._orders);
-    q._includeJoinedData = [].concat(this._includeJoinedData);
+    q._orders = [...this._orders];
+    q._includeJoinedData = [...this._includeJoinedData];
     q._range = this._range.clone();
     q._background = this._background;
     q._backgroundable = this._backgroundable;
@@ -329,7 +329,7 @@ export default class ModelQuery<T> {
     if (this._count) {
       return inflated;
     }
-    return [].concat(inflated);
+    return [...inflated];
   }
 
   // Query SQL Building

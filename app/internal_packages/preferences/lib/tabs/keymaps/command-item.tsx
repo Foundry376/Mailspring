@@ -168,7 +168,7 @@ export default class CommandKeybinding extends React.Component<
 
     let editingBinding = keys.join(' ');
     if (modifiers.length > 0) {
-      editingBinding = [].concat(modifiers, keys).join('+');
+      editingBinding = [...modifiers, ...keys].join('+');
       editingBinding = editingBinding.replace(/(meta|command|ctrl)/g, 'mod');
     }
 

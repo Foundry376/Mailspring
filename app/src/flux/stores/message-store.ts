@@ -126,7 +126,7 @@ class _MessageStore extends MailspringStore {
         const itemIndex = this._items.findIndex(msg => msg.id === item.id);
 
         if (change.type === 'persist' && itemIndex === -1) {
-          this._items = [].concat(this._items, [item]).filter(m => !m.isHidden());
+          this._items = [...this._items, item].filter(m => !m.isHidden());
           this._items = this._sortItemsForDisplay(this._items);
           this._expandItemsToDefault();
           this.trigger();
@@ -134,7 +134,7 @@ class _MessageStore extends MailspringStore {
         }
 
         if (change.type === 'unpersist' && itemIndex !== -1) {
-          this._items = [].concat(this._items).filter(m => !m.isHidden());
+          this._items = [...this._items].filter(m => !m.isHidden());
           this._items.splice(itemIndex, 1);
           this._expandItemsToDefault();
           this.trigger();

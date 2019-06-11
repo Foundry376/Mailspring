@@ -72,10 +72,7 @@ class SendRemindersStore extends MailspringStore {
       // advance metadata into the "notify" phase.
       if (type === 'metadata-expiration' && metadata.expiration <= new Date()) {
         // mark that the email should enter the notification highlight state
-        updateReminderMetadata(
-          thread,
-          Object.assign(metadata, { expiration: null, shouldNotify: true })
-        );
+        updateReminderMetadata(thread, { ...metadata, expiration: null, shouldNotify: true });
         // send an email on the thread, causing the thread to move up in the inbox
         this._sendReminderEmail(thread, metadata.sentHeaderMessageId);
       }

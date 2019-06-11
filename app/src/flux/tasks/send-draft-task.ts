@@ -51,7 +51,9 @@ export class SendDraftTask extends Task {
     return task;
   }
 
-  static attributes = Object.assign({}, Task.attributes, {
+  static attributes = {
+    ...Task.attributes,
+
     draft: Attributes.Object({
       modelKey: 'draft',
       itemClass: Message,
@@ -66,7 +68,7 @@ export class SendDraftTask extends Task {
     silent: Attributes.Boolean({
       modelKey: 'silent',
     }),
-  });
+  };
 
   draft: Message;
   perRecipientBodies: { [email: string]: string };

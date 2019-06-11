@@ -304,7 +304,7 @@ class DraftFactory {
       throw new Error('updateDraftForReply: Expected message and existing draft.');
     }
 
-    const updated: {to: Contact[], cc: Contact[]} = { to: [].concat(draft.to), cc: [].concat(draft.cc) };
+    const updated: {to: Contact[], cc: Contact[]} = { to: [...draft.to], cc: [...draft.cc] };
     const replySet = message.participantsForReply();
     const replyAllSet = message.participantsForReplyAll();
     let targetSet = null;
@@ -347,7 +347,7 @@ class DraftFactory {
 
     for (const aliasString of account.aliases) {
       const alias = account.meUsingAlias(aliasString);
-      for (const recipient of [].concat(message.to, message.cc)) {
+      for (const recipient of [...message.to, ...message.cc]) {
         const emailIsNotDefault = alias.email !== defaultMe.email;
         const emailsMatch = recipient.email === alias.email;
         const nameIsNotDefault = alias.name !== defaultMe.name;

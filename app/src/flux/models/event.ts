@@ -8,7 +8,9 @@ let chrono = null;
 export class Event extends Model {
   // Note: This class doesn't have many table-level attributes. We store the ICS
   // data for the event in the model JSON and parse it when we pull it out.
-  static attributes = Object.assign({}, Model.attributes, {
+  static attributes = {
+    ...Model.attributes,
+
     calendarId: Attributes.String({
       queryable: true,
       jsonKey: 'cid',
@@ -49,7 +51,7 @@ export class Event extends Model {
       modelKey: 'searchIndexId',
       jsonKey: 'search_index_id',
     }),
-  });
+  };
 
   static searchable = true;
 
