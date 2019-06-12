@@ -35,9 +35,6 @@ Conversation.init({
   occupants: { // Jids of occupants
     type: Sequelize.JSON
   },
-  roomMembers: { // group chat members
-    type: Sequelize.JSON
-  },
   avatarMembers: {
     type: Sequelize.JSON
   },

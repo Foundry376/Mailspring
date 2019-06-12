@@ -188,7 +188,6 @@ class ConversationStore extends MailspringStore {
       curJid: contact.curJid,
       name: contact.name,
       occupants: [contact.jid, contact.curJid],
-      roomMembers: [contact],
       isGroup: false,
       // below is some filling to show the conversation
       unreadMessages: 0,
