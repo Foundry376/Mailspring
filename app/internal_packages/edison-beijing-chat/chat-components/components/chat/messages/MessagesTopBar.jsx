@@ -5,7 +5,6 @@ import ContactAvatar from '../../common/ContactAvatar';
 import xmpp from '../../../xmpp';
 import GroupChatAvatar from '../../common/GroupChatAvatar';
 import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
-import { safeUpdate } from '../../../utils/db-utils';
 
 export default class MessagesTopBar extends Component {
   static propTypes = {
@@ -43,8 +42,7 @@ export default class MessagesTopBar extends Component {
     if (name && name !== selectedConversation.name) {
       await xmpp.setRoomName(selectedConversation.jid, {
         name
-      })
-      selectedConversation && safeUpdate(selectedConversation, { name });
+      }, selectedConversation.curJid)
     }
   }
 

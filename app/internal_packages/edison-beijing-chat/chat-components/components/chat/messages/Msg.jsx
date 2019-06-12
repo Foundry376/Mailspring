@@ -166,34 +166,6 @@ export default class Msg extends PureComponent {
     key++;
     this.setState(Object.assign({}, this.state, { key }));
   }
-  calcTimeLabel = _.throttle(() => {
-    if (!this.messagesPanel) {
-      return;
-    }
-    const scrollTop = this.messagesPanel.scrollTop;
-    if (!this.messagesTopBar) {
-      this.messagesTopBar = document.querySelector('.messages-top-bar');
-    }
-    if (this.messagesTopBar) {
-      if (scrollTop > 0) {
-        if (this.messagesTopBar.className.indexOf('has-shadow') === -1) {
-          this.messagesTopBar.className += ' has-shadow';
-        }
-      } else {
-        this.messagesTopBar.className = this.messagesTopBar.className.replace(' has-shadow', '');
-      }
-    }
-    const messageGroups = this.messagesPanel.children;
-    for (const msgGrp of messageGroups) {
-      if (msgGrp.className.indexOf('message-group') !== -1) {
-        if (msgGrp.offsetTop - 50 < scrollTop && scrollTop < msgGrp.offsetTop + msgGrp.offsetHeight - 70) {
-          msgGrp.className = 'message-group time-label-fix';
-        } else {
-          msgGrp.className = 'message-group';
-        }
-      }
-    }
-  }, 50);
 
   download = () => {
     const msgBody = this.msgBody;
