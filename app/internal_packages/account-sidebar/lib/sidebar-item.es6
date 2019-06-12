@@ -32,7 +32,7 @@ const isChildrenSelected = (children = [], currentPerspective) => {
       return true;
     }
     if (p.children.length > 0) {
-      if(isChildrenSelected(p.children, currentPerspective)){
+      if (isChildrenSelected(p.children, currentPerspective)) {
         return true;
       }
     }
@@ -137,6 +137,7 @@ class SidebarItem {
         categoryIds: opts.categoryIds ? opts.categoryIds : undefined,
         accountIds: perspective.accountIds,
         name: perspective.name,
+        path: perspective.getPath(),
         displayName: perspective.displayName,
         threadTitleName: perspective.threadTitleName,
         contextMenuLabel: perspective.displayName,
@@ -194,6 +195,7 @@ class SidebarItem {
 
   static forCategories(categories = [], opts = {}) {
     const id = idForCategories(categories);
+    const accountIds = new Set(categories.map(c=>c.accountId));
     const contextMenuLabel = _str.capitalize(
       categories[0] != null ? categories[0].displayType() : undefined,
     );
@@ -206,7 +208,10 @@ class SidebarItem {
       opts.editable = true;
     }
     opts.contextMenuLabel = contextMenuLabel;
-    return this.forPerspective(id, perspective, opts);
+    return SidebarItem.appendSubPathByAccounts(
+      accountIds,
+      this.forPerspective(id, perspective, opts)
+    );
   }
 
   static forSentMails(accountIds, opts = {}) {
@@ -221,7 +226,7 @@ class SidebarItem {
     const perspective = MailboxPerspective.forCategories(cats);
     const id = _.pluck(cats, 'id').join('-');
     opts.categoryIds = this.getCategoryIds(accountIds, 'sent');
-    return this.forPerspective(id, perspective, opts);
+    return SidebarItem.appendSubPathByAccounts(accountIds, this.forPerspective(id, perspective, opts))
   }
 
   static forSpam(accountIds, opts = {}) {
@@ -236,7 +241,7 @@ class SidebarItem {
     const perspective = MailboxPerspective.forCategories(cats);
     const id = _.pluck(cats, 'id').join('-');
     opts.categoryIds = this.getCategoryIds(accountIds, 'spam');
-    return this.forPerspective(id, perspective, opts);
+    return SidebarItem.appendSubPathByAccounts(accountIds, this.forPerspective(id, perspective, opts));
   }
 
   static forArchived(accountIds, opts = {}) {
@@ -251,7 +256,10 @@ class SidebarItem {
     const perspective = MailboxPerspective.forCategories(cats);
     const id = _.pluck(cats, 'id').join('-');
     opts.categoryIds = this.getCategoryIds(accountIds, 'archive');
-    return this.forPerspective(id, perspective, opts);
+    return SidebarItem.appendSubPathByAccounts(
+      accountIds,
+      this.forPerspective(id, perspective, opts)
+    );
   }
 
   static forSnoozed(accountIds, opts = {}) {
@@ -297,13 +305,23 @@ class SidebarItem {
     }
     return this.forPerspective(id, perspective, opts);
   }
+  static forSingleInbox(accountId, opts = {}) {
+    opts.iconName = 'inbox.svg';
+    const perspective = MailboxPerspective.forInbox(accountId);
+    opts.categoryIds = this.getCategoryIds(accountId, 'inbox');
+    const id = [accountId].join('-');
+    return this.forPerspective(id, perspective, opts);
+  }
 
   static forInbox(accountId, opts = {}) {
     opts.iconName = 'inbox.svg';
-    const perspective = MailboxPerspective.forInbox([accountId]);
-    opts.categoryIds = this.getCategoryIds([accountId], 'inbox');
+    const perspective = MailboxPerspective.forInbox(accountId);
+    opts.categoryIds = this.getCategoryIds(accountId, 'inbox');
     const id = [accountId].join('-');
-    return this.forPerspective(id, perspective, opts);
+    return SidebarItem.appendSubPathByAccounts(
+      accountId,
+      this.forPerspective(id, perspective, opts)
+    );
   }
 
   static forAllInbox(accountIds, opts = {}) {
@@ -330,7 +348,71 @@ class SidebarItem {
     const perspective = MailboxPerspective.forDrafts(accountIds);
     opts.categoryIds = this.getCategoryIds(accountIds, 'drafts');
     const id = `Drafts-${opts.name}`;
-    return this.forPerspective(id, perspective, opts);
+    // return this.forPerspective(id, perspective, opts);
+    return SidebarItem.appendSubPathByAccounts(
+      accountIds,
+      this.forPerspective(id, perspective, opts)
+    );
+  }
+
+  static appendSubPathByAccounts(accountIds, parentPerspective) {
+    for (const accountId of accountIds) {
+      const paths = parentPerspective.path.filter(p => p.accountId === accountId);
+      if (paths.length === 1) {
+        SidebarItem.appendSubPathByAccount(accountId, parentPerspective, paths[0].path);
+      }
+    }
+    return parentPerspective;
+  }
+
+  static appendSubPathByAccount(accountId, parentItem, path) {
+    if(!path){
+      throw new Error('path must not be empty');
+    }
+    if(!parentItem){
+      throw new Error('parentItem must not be empty');
+    }
+    const seenItems = {};
+    seenItems[path.toLocaleLowerCase()] = parentItem;
+    for (let category of CategoryStore.userCategories(accountId)) {
+      // https://regex101.com/r/jK8cC2/1
+      var item, parentKey;
+      const re = RegExpUtils.subcategorySplitRegex();
+      const itemKey = category.displayName.replace(re, '/');
+
+      let parent = null;
+      const parentComponents = itemKey.split('/');
+      if (
+        parentComponents[0].toLocaleLowerCase() !== path.toLocaleLowerCase() ||
+        parentComponents.length === 1
+      ) {
+        continue;
+      }
+      for (let i = parentComponents.length; i >= 1; i--) {
+        parentKey = parentComponents.slice(0, i).join('/');
+        parent = seenItems[parentKey.toLocaleLowerCase()];
+        if (parent) {
+          break;
+        }
+      }
+
+      if (parent) {
+        const itemDisplayName = category.displayName.substr(parentKey.length + 1);
+        item = SidebarItem.forCategories([category], { name: itemDisplayName });
+        parent.children.push(item);
+        if (item.selected) {
+          parent.selected = true;
+          for (let key of Object.keys(seenItems)) {
+            if (parentKey.includes(key)) {
+              seenItems[key].selected = true;
+            }
+          }
+        }
+      } else {
+        item = SidebarItem.forCategories([category]);
+      }
+      seenItems[itemKey.toLocaleLowerCase()] = item;
+    }
   }
 
   static getCategoryIds = (accountIds, categoryName) => {

@@ -420,7 +420,7 @@ export default class MessageEditBar extends PureComponent {
           onKeyDown={this.onKeyDown}
           {...inputProps}
         />
-        <div className="edit-button-group">
+        <div className="edit-button-group" ref={emoji=>{this.emojiRef = emoji}}>
           <Button onClick={this.onEmojiTouch} className="emoji">
             <RetinaImg name={'emoji.svg'}
               style={{ width: 20, height: 20 }}

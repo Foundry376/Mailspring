@@ -224,6 +224,11 @@ class OutlineViewItem extends Component {
   _onClick = event => {
     event.preventDefault();
     this._runCallback('onSelect');
+    if (this.props.item.selected) {
+      if (!this.props.item.children.some(i => i.selected)) {
+        this._onCollapseToggled();
+      }
+    }
   };
 
   _onDelete = () => {

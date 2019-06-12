@@ -80,7 +80,7 @@ class CrashTracker {
 
   _appendCrashToHistory(fullAccountJSON, { code = 0, error, signal } = {}) {
     const key = this._keyFor(fullAccountJSON);
-    if (code === -1 || code === null) {
+    if (code === null) {
       console.log('mailsync crashed');
       AppEnv.reportError(new Error(`mailsync crashed for account: ${key}`));
     } else {

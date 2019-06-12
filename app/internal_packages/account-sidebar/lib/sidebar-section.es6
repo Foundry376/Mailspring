@@ -50,10 +50,9 @@ class SidebarSection {
       return this.empty(account.label);
     }
 
-    const items = _.reject(cats, cat => cat.role === 'drafts').map(cat =>
+    const items = _.reject(cats, cat => (cat.role === 'drafts') || (cat.role === 'archive')).map(cat =>
       SidebarItem.forCategories([cat], { editable: false, deletable: false }),
     );
-
     const unreadItem = SidebarItem.forUnread([account.id]);
     const starredItem = SidebarItem.forStarred([account.id], { displayName: 'Flagged' });
     const draftsItem = SidebarItem.forDrafts([account.id]);
@@ -61,6 +60,10 @@ class SidebarSection {
 
     // Order correctly: Inbox, Unread, Starred, rest... , Drafts
     items.splice(1, 0, unreadItem, starredItem);
+    if (account.provider !== 'gmail') {
+      const archiveMail = SidebarItem.forArchived([account.id]);
+      items.push(archiveMail);
+    }
     items.push(draftsItem);
     items.push(...this.accountUserCategories(account));
 
@@ -96,7 +99,7 @@ class SidebarSection {
     } else {
       accounts.forEach(acc => {
         items.push(
-          SidebarItem.forInbox([acc.id], {
+          SidebarItem.forSingleInbox([acc.id], {
             name: acc.label,
             threadTitleName: 'Inbox',
             children: this.standardSectionForAccount(acc).items,
@@ -208,29 +211,30 @@ class SidebarSection {
       var item, parentKey;
       const re = RegExpUtils.subcategorySplitRegex();
       const itemKey = category.displayName.replace(re, '/');
-
+      if (itemKey.toLocaleLowerCase().includes('inbox/')) {
+        continue;
+      }
       let parent = null;
       const parentComponents = itemKey.split('/');
       for (let i = parentComponents.length; i >= 1; i--) {
         parentKey = parentComponents.slice(0, i).join('/');
-        parent = seenItems[parentKey];
+        parent = seenItems[parentKey.toLocaleLowerCase()];
         if (parent) {
           break;
         }
       }
 
-      if (parent) {
-        const itemDisplayName = category.displayName.substr(parentKey.length + 1);
-        item = SidebarItem.forCategories([category], { name: itemDisplayName });
-        parent.children.push(item);
-        if (item.selected) {
-          parent.selected = true;
+      if (!parent) {
+        if (!category.displayName.match(re)) {
+          item = SidebarItem.forCategories([category]);
+          items.push(item);
+        } else {
+          item = null;
         }
-      } else {
-        item = SidebarItem.forCategories([category]);
-        items.push(item);
       }
-      seenItems[itemKey] = item;
+      if (item) {
+        seenItems[itemKey.toLocaleLowerCase()] = item;
+      }
     }
     return items;
   }
