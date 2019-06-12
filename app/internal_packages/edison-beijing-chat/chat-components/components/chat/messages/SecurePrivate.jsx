@@ -14,7 +14,7 @@ export default () => (
                 Secure & Private
             </div>
             <div className="private-detail">
-                Messages in this chat are secured with end-to-end encryption. <a>Learn More</a>
+                Messages in this chat are secured with end-to-end encryption. <a href="http://www.edison.tech/privacy.html">Learn More</a>
             </div>
         </div>
     </div>
