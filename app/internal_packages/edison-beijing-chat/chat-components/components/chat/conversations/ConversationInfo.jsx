@@ -53,6 +53,7 @@ export default class ConversationInfo extends Component {
   refreshRoomMembers = async (nextProps) => {
     this.setState({ loadingMembers: true });
     const members = await this.getRoomMembers(nextProps);
+    members.sort((a, b) => (a.affiliation + a.name) > (b.affiliation + b.name) ? 1 : -1);
     this.setState({
       members,
       loadingMembers: false
@@ -176,7 +177,6 @@ export default class ConversationInfo extends Component {
         break;
       }
     }
-    roomMembers.sort((a, b) => a.affiliation + a.jid.bare > b.affiliation + b.jid.bare);
     let privateChatMember = {};
     if (!conversation.isGroup) {
       if (conversation.roomMembers && conversation.roomMembers.length > 0) {
@@ -219,18 +219,21 @@ export default class ConversationInfo extends Component {
           {
             conversation.isGroup && !loadingMembers && ([
               roomMembers && roomMembers.map(member => {
-                return (<InfoMember conversation={conversation}
-                  member={member}
-                  editingMember={this.editingMember}
-                  editProfile={this.props.editProfile}
-                  exitProfile={this.props.exitProfile}
-                  removeMember={this.removeMember}
-                  currentUserIsOwner={currentUserIsOwner}
-                  key={member.jid}
-                />)
+                return (
+                  <InfoMember conversation={conversation}
+                    member={member}
+                    editingMember={this.editingMember}
+                    editProfile={this.props.editProfile}
+                    exitProfile={this.props.exitProfile}
+                    removeMember={this.removeMember}
+                    currentUserIsOwner={currentUserIsOwner}
+                    key={member.jid.bare}
+                  />)
               }),
               !currentUserIsOwner && (
-                <div className="add-to-group"
+                <div
+                  key="exit-group"
+                  className="exit-group"
                   onClick={this.exitGroup}>
                   Exit from Group
               </div>
