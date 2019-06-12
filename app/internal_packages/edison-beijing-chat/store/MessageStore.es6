@@ -151,7 +151,7 @@ class MessageStore extends MailspringStore {
   }
 
   reveiveGroupChat = async (message) => {
-    let jidLocal = message.to.local;
+    let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
     const conv = await this.processGroupMessage(message);
     if (conv.jid === this.conversationJid) {
