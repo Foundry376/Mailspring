@@ -16,18 +16,18 @@ import {
     storeConfig, failedStoringConfig
 } from '../actions/db/config';
 
-export const triggerFetchMessagesEpic = action$ =>
-    action$.ofType(SUCCESS_AUTH)
-        .map(({ payload }) => {
-            return fetchMessage(payload);
-        });
+// export const triggerFetchMessagesEpic = action$ =>
+//     action$.ofType(SUCCESS_AUTH)
+//         .map(({ payload }) => {
+//             return fetchMessage(payload);
+//         });
 
 export const fetchMessagesEpic = action$ =>
     action$.ofType(BEGIN_FETCH_MESSAGE)//yazzxx2
         .map(
-            ({ payload }) =>  {
-              const db = getDb();
-              return { db, jid: payload }
+            ({ payload }) => {
+                const db = getDb();
+                return { db, jid: payload }
             })
         // .mergeMap(
         //     ({ db, jid }) => {

@@ -113,6 +113,8 @@ function Client(opts) {
                 self.emit('memberschange', memberschange);
             } else if (json.appEvent) {
                 self.emit('app-event', json);
+            } else if (json.error) {
+                self.emit('message:error', json);
             }
             else {
                 self.emit('stanza', json);
@@ -534,6 +536,7 @@ Client.prototype.sendIq = function (data, cb) {
             return cb(err);
         } else {
             const stackError = new Error();
+            console.warn(self.config.jid.bare);
             console.warn('stanza.io/lib/client.js: timeoutRequest: err:', err, stackError);
 
             self.emit('request:timeout', err);
