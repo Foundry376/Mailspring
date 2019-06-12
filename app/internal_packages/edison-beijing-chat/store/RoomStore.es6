@@ -1,11 +1,11 @@
 import MailspringStore from 'mailspring-store';
 import RoomModel from '../model/Room';
 import xmpp from '../chat-components/xmpp';
-import {jidlocal} from '../chat-components/utils/jid';
+import { jidlocal } from '../chat-components/utils/jid';
 import chatModel from '../chat-components/store/model';
 import { MESSAGE_STATUS_RECEIVED } from '../chat-components/db/schemas/message';
 import { beginStoringMessage } from '../chat-components/actions/db/message';
-import {MessageStore, ContactStore} from 'chat-exports';
+import { MessageStore, ContactStore } from 'chat-exports';
 import uuid from 'uuid/v4';
 
 class RoomStore extends MailspringStore {
@@ -71,12 +71,24 @@ class RoomStore extends MailspringStore {
       && this.rooms[roomId].members
       && this.rooms[roomId].members.length) {
       let members = this.rooms[roomId].members;
-      if (typeof members === 'string')  {
+      if (typeof members === 'string') {
         members = JSON.parse(members);
       }
       return members;
     }
     return await this.refreshRoomMember(roomId, curJid);
+  }
+
+  getMemeberInfo = async (roomId, curJid, memberId) => {
+    const members = await this.getRoomMembers(roomId, curJid);
+    if (members && members.length > 0) {
+      for (const member of members) {
+        if (member.jid === memberId) {
+          return { roomMembers: members, contact: member };
+        }
+      }
+    }
+    return { roomMembers: members, contact: null };;
   }
 
   getMemberName = async (data) => {

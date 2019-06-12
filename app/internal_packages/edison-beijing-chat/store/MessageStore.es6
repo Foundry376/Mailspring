@@ -4,7 +4,6 @@ import { ChatActions, RoomStore, ConversationStore, ContactStore } from 'chat-ex
 import { encrypte, decrypte } from '../chat-components/utils/rsa';
 import { encryptByAES, decryptByAES, generateAESKey } from '../chat-components/utils/aes';
 import { downloadFile } from '../chat-components/utils/awss3';
-import { getMessageContent } from '../chat-components/utils/message';
 import { isImageFilePath, isJsonStr } from '../chat-components/utils/stringUtils';
 import {
   groupMessagesByTime,
@@ -304,17 +303,21 @@ class MessageStore extends MailspringStore {
     const convInDb = await ConversationStore.getConversationByJid(conv.jid);
     if (convInDb) {
       conv.occupants = convInDb.occupants;
-      conv.avatarMembers = convInDb.avatarMembers;
+      conv.avatarMembers = convInDb.avatarMembers || [];
       if (unreadMessages) {
         conv.unreadMessages = convInDb.unreadMessages + 1;
       }
     } else {
       conv.occupants = [];
+      conv.avatarMembers = [];
     }
-    const contact = await ContactStore.findContactByJid(conv.lastMessageSender);
+    const { contact, roomMembers } = await RoomStore.getMemeberInfo(conv.jid, conv.curJid, conv.lastMessageSender);
     addToAvatarMembers(conv, contact);
+    // if avatar members is empty, set the value
+    if (!conv.avatarMembers || conv.avatarMembers.length === 0) {
+      conv.avatarMembers = roomMembers.slice(0, 2);
+    }
     await ConversationStore.saveConversations([conv]);
-
     return conv;
   }
 
@@ -329,7 +332,7 @@ class MessageStore extends MailspringStore {
     const contact = ContactStore.findContactByJid(msgFrom);
     const title = payload.appName || memberName || contact && contact.name || payload.from.local;
     let body = payload.body;
-    if (isJsonStr(body)){
+    if (isJsonStr(body)) {
       body = JSON.parse(body);
     }
     body = body.content || payload.body;
@@ -526,6 +529,18 @@ const getLastMessageInfo = async (message) => {
     lastMessageText = body.content;
   }
   return { sender, lastMessageTime, lastMessageText };
+}
+
+const getMessageContent = message => {
+  let body = message.body;
+  if (isJsonStr(body)) {
+    body = JSON.parse(body);
+  }
+  if (typeof body === 'string') {
+    return body;
+  } else {
+    return body.content;
+  }
 }
 
 module.exports = new MessageStore();

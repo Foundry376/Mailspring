@@ -56,30 +56,6 @@ import { downloadFile } from '../utils/awss3';
 import { FILE_TYPE } from '../components/chat/messages/messageModel';
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
-const addToAvatarMembers = (conv, contact) => {
-  if (!contact) {
-    return conv;
-  }
-  if (!conv.isGroup) {
-    return conv;
-  }
-  conv.avatarMembers = conv.avatarMembers || [];
-  if (conv.avatarMembers[0]) {
-    if (contact.jid !== conv.avatarMembers[0].jid) {
-      conv.avatarMembers[1] = conv.avatarMembers[0];
-      contact = copyRxdbContact(contact);
-      conv.avatarMembers[0] = contact;
-      return conv;
-    } else {
-      return conv;
-    }
-  } else {
-    contact = copyRxdbContact(contact);
-    conv.avatarMembers[0] = contact;
-    return conv;
-  }
-}
-
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
     .filter(({ payload }) => payload.receipt && !payload.body)
