@@ -27,12 +27,24 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
         }
       }));
   }
+  let saveLastTs = (data) => {
+    console.log('_message_ts', data);
+    let jidLocal = data.curJid.split('@')[0];
+    let ts = AppEnv.config.get(jidLocal + "_message_ts");
+    const msgTs = parseInt(data.ts)
+    if (ts < msgTs) {
+      AppEnv.config.set(jidLocal + '_message_ts', msgTs);
+    }
+  }
   // receive group chat
   xmpp.on('groupchat', data => {
+    saveLastTs(data);
     MessageStore.reveiveGroupChat(data);
+
   })
   // receive private chat
   xmpp.on('chat', data => {
+    saveLastTs(data);
     MessageStore.reveivePrivateChat(data);
   })
   // user online

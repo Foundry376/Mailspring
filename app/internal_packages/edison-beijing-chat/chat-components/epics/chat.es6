@@ -98,7 +98,7 @@ export const sendMessageEpic = action$ =>
     //     return { db, payload }
     //   }
     // )//yazzzzz
-    .mergeMap(({ db, payload }) => {
+    .mergeMap(({ payload }) => {
       if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
         let occupants = payload.conversation.occupants;
         return Observable.fromPromise(E2eeStore.find(occupants))
@@ -114,7 +114,7 @@ export const sendMessageEpic = action$ =>
               console.log(devices)
             }
             payload.devices = devices;//e2ee.devices;
-            return { db, payload };
+            return { payload };
           });
       } else {
         return Observable.fromPromise(E2eeStore.findOne(payload.conversation.jid))
@@ -122,11 +122,11 @@ export const sendMessageEpic = action$ =>
             if (e2ee) {
               payload.devices = e2ee.devices;
             }
-            return { db, payload };
+            return { payload };
           });
       }
     })
-    .mergeMap(({ db, payload }) => {
+    .mergeMap(({ payload }) => {
       return Observable.fromPromise(E2eeStore.findOne(payload.conversation.curJid))
         .map(e2ee => {
           if (e2ee) {
@@ -201,18 +201,18 @@ export const sendMessageEpic = action$ =>
 export const newTempMessageEpic = (action$, { getState }) =>
   action$.ofType(SENDING_MESSAGE)//yazzz2
     .mergeMap((payload) => {
-      return Observable.fromPromise(getPriKey()).map(({ deviceId, priKey }) => {
-        return { payload: payload.payload, deviceId, priKey };
+      return Observable.fromPromise(getPriKey()).map(({ deviceId, prikey }) => {
+        return { payload: payload.payload, deviceId, prikey };
       });
     })
-    .map(({ payload, deviceId, priKey }) => {
+    .map(({ payload, deviceId, prikey }) => {
       const curJid = payload.curJid;
       const curJidLocal = curJid ? curJid.split('@')[0] : '';
       if (payload.ediEncrypted) {
         let keys = payload.ediEncrypted.header.key;//JSON.parse(msg.body);
         let text = getAes(keys, curJidLocal, deviceId);
         if (text) {
-          let aes = decrypte(text, priKey);//window.localStorage.priKey);
+          let aes = decrypte(text, prikey);//window.localStorage.priKey);
           payload.body = decryptByAES(aes, payload.ediEncrypted.payload);
         }
       }

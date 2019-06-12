@@ -48,7 +48,7 @@ class MessageStore extends MailspringStore {
   }
 
   reveivePrivateChat = async (message) => {
-    let jidLocal = message.to.local;
+    let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
     await this.processPrivateMessage(message);
     const conv = await this.storePrivateConversation(message);
@@ -123,14 +123,14 @@ class MessageStore extends MailspringStore {
   }
 
   decrypteBody = async (message, jidLocal) => {
-    const { deviceId, priKey } = await getPriKey();
+    const { deviceId, prikey } = await getPriKey();
     if (message.payload) {
       let keys = message.keys;//JSON.parse(msg.body);
       if (keys && keys[jidLocal]
         && keys[jidLocal][deviceId]) {
         let text = keys[jidLocal][deviceId];
         if (text) {
-          let aes = decrypte(text, priKey);//window.localStorage.priKey);
+          let aes = decrypte(text, prikey);//window.localStorage.priKey);
           this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, aes, message);
         }
       }
