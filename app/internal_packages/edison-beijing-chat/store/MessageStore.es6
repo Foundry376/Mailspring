@@ -241,7 +241,15 @@ class MessageStore extends MailspringStore {
       condistion.offset = offset
     }
     let messages = await MessageModel.findAll(condistion);
-    messages = messages.filter(msg => msg.body.indexOf('"deleted":true') === -1);
+    messages = messages.filter(msg => {
+      const isDeleted = msg.body.indexOf('"deleted":true') !== -1;
+      return !isDeleted;
+    });
+    // add row number for lazy display
+    let rowNum = messages.length;
+    messages.forEach(msg => {
+      msg.rowNum = rowNum--;
+    })
     addMessagesSenderNickname(messages);
     this.groupedMessages = groupMessagesByTime(messages, 'sentTime', 'day');
     this.conversationJid = jid;
@@ -311,7 +319,7 @@ class MessageStore extends MailspringStore {
   }
 
   showNotification = async (payload) => {
-    console.log(' showNotification payload: ', payload);
+    console.log('showNotification payload: ', payload);
     const shouldShow = await this.shouldShowNotification(payload);
     if (!shouldShow) {
       return;
@@ -354,7 +362,7 @@ class MessageStore extends MailspringStore {
 
   prepareForSaveMessage = async (payload, type) => {
     let timeSend;
-    if (payload.body && payload.body.trim().indexOf('{') !== 0) {
+    if (payload.body && !isJsonStr(payload.body)) {
       payload.body = '{"type":1,"content":"' + payload.body + '"}';
     }
     timeSend = parseInt(payload.ts);

@@ -1,7 +1,6 @@
 import path from 'path';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { RetinaImg } from 'mailspring-component-kit';
 const { Actions } = require('mailspring-exports');
 
 import { remote, shell } from 'electron';
@@ -10,7 +9,6 @@ import ContactAvatar from '../../common/ContactAvatar';
 import chatModel from '../../../store/model';
 import { saveGroupMessages } from '../../../utils/db-utils';
 import { NEW_CONVERSATION } from '../../../actions/chat';
-import messageModel from './messageModel';
 import MessageImagePopup from './MessageImagePopup';
 import Group from './Group';
 import SecurePrivate from './SecurePrivate';
@@ -28,7 +26,7 @@ const flattenMsgIds = groupedMessages =>
         return acc;
       }, new Set()
     );
-
+const MESSAGE_COUNTS_EACH_PAGE = 25;
 export default class Messages extends Component {
   static propTypes = {
     currentUserId: PropTypes.string.isRequired,
@@ -53,7 +51,8 @@ export default class Messages extends Component {
       percent: 0,
     },
     members: [],
-    groupedMessages: []
+    groupedMessages: [],
+    shouldDisplayMessageCounts: MESSAGE_COUNTS_EACH_PAGE
   }
 
   static timer;
@@ -65,7 +64,11 @@ export default class Messages extends Component {
     const { jid: nextJid } = nextConv;
 
     if (currentJid !== nextJid) {
-      this.setState({ shouldScrollBottom: true });
+      this.setState({
+        shouldScrollBottom: true,
+        groupedMessages: [],
+        shouldDisplayMessageCounts: MESSAGE_COUNTS_EACH_PAGE
+      });
       await this.getRoomMembers(nextConv);
       return;
     }
@@ -106,8 +109,14 @@ export default class Messages extends Component {
       const selectedConversation = await ConversationStore.getSelectedConversation();
       if (selectedConversation) {
         groupedMessages = await MessageStore.getGroupedMessages(selectedConversation.jid);
+
+        const { groupedMessages: currentMsgs = [] } = this.state;
+        const currentIds = flattenMsgIds(currentMsgs);
+        const nextIds = flattenMsgIds(groupedMessages);
+        const areNewMessages = currentIds.size < nextIds.size;
         this.setState({
-          groupedMessages
+          groupedMessages,
+          shouldScrollBottom: areNewMessages,
         });
       }
     }
@@ -135,7 +144,10 @@ export default class Messages extends Component {
   scrollToMessagesBottom() {
     if (this.messagePanelEnd) {
       // this.messagePanelEnd.scrollIntoView({ behavior: 'smooth' });
-      this.messagePanelEnd.scrollIntoView();
+      // dom render spend some time, so add a timeout here.
+      setTimeout(() => {
+        this.messagePanelEnd.scrollIntoView();
+      }, 100)
       this.setState({ shouldScrollBottom: false });
     }
   }
@@ -224,7 +236,12 @@ export default class Messages extends Component {
         }
       }
     }
-  }, 50);
+    if (scrollTop < 600) {
+      this.setState({
+        shouldDisplayMessageCounts: this.state.shouldDisplayMessageCounts + MESSAGE_COUNTS_EACH_PAGE
+      });
+    }
+  }, 30);
 
   download = (msgBody) => {
     event.stopPropagation();
@@ -247,7 +264,7 @@ export default class Messages extends Component {
     const {
       selectedConversation: { jid },
     } = this.props;
-    const { groupedMessages, members } = this.state;
+    const { groupedMessages, members, shouldDisplayMessageCounts } = this.state;
     groupedMessages.map(group => group.messages.map(message => {
       members.map(member => {
         const jid = member.jid.bare || member.jid;
@@ -280,6 +297,7 @@ export default class Messages extends Component {
             onMessageSubmitted={this.props.onMessageSubmitted}
             getContactInfoByJid={this.getContactInfoByJid}
             members={this.state.members}
+            shouldDisplayMessageCounts={shouldDisplayMessageCounts}
             key={group.time}>
           </Group>
         ))

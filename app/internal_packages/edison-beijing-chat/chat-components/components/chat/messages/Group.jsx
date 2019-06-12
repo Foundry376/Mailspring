@@ -26,10 +26,11 @@ export default class Group extends PureComponent {
       jid: PropTypes.string.isRequired,
       isGroup: PropTypes.bool.isRequired,
     }),
+    shouldDisplayMessageCounts: PropTypes.number
   }
 
   render() {
-    const { group } = this.props;
+    const { group, shouldDisplayMessageCounts } = this.props;
     return (
       <div className="message-group">
         <div className="day-label">
@@ -48,16 +49,18 @@ export default class Group extends PureComponent {
             }
           </label>
         </div>
-        {group.messages.map((msg) => (
-          <Msg
-            conversation={this.props.conversation}
-            msg={msg}
-            queueLoadMessage={this.props.queueLoadMessage}
-            onMessageSubmitted={this.props.onMessageSubmitted}
-            getContactInfoByJid={this.props.getContactInfoByJid}
-            key={msg.id}>
-          </Msg>
-        ))
+        {group.messages.map(msg => {
+          return msg.rowNum <= shouldDisplayMessageCounts && (
+            <Msg
+              conversation={this.props.conversation}
+              msg={msg}
+              queueLoadMessage={this.props.queueLoadMessage}
+              onMessageSubmitted={this.props.onMessageSubmitted}
+              getContactInfoByJid={this.props.getContactInfoByJid}
+              key={msg.id}>
+            </Msg>
+          )
+        })
         }
       </div>
     )
