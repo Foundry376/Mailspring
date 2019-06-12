@@ -1,40 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ContactAvatar from './ContactAvatar';
-import chatModel from '../../store/model';
 
 class GroupChatAvatar extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      avatarMembers: []
-    }
-  }
-  componentDidMount() {
-    this.refreshAvatar(this.props);
-    const groupAvatars = chatModel.groupAvatars;
-    groupAvatars.push(this);
-  }
-  componentWillUnmount() {
-    const groupAvatars = chatModel.groupAvatars;
-    const index = groupAvatars.indexOf(this);
-    groupAvatars.splice(index, 1);
-  }
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.conversation.jid !== this.props.conversation.jid) {
-      this.refreshAvatar(nextProps);
-    }
-  }
-  refreshAvatar = (props) => {
-    const { conversation } = props;
-    if (!conversation.isGroup) {
-      return;
-    }
-    const avatarMembers = conversation.avatarMembers;
-    this.setState({ avatarMembers });
   }
   render() {
-    const { avatarMembers } = this.state;
+    const { conversation: { avatarMembers } } = this.props;
+    if (!avatarMembers) {
+      return null;
+    }
     return (
       <div className="groupAvatar">
         {

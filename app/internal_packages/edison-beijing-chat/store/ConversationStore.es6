@@ -83,7 +83,7 @@ class ConversationStore extends MailspringStore {
     await this._clearUnreadCount(jid);
     const conv = await this.getConversationByJid(jid);
     this.selectedConversation = conv;
-    this.trigger();
+    this._triggerDebounced();
   }
 
   _clearUnreadCount = async (jid) => {
@@ -122,6 +122,9 @@ class ConversationStore extends MailspringStore {
         ['lastMessageTime', 'desc']
       ]
     });
+    if (this.selectedConversation && this.selectedConversation.jid !== NEW_CONVERSATION) {
+      this.selectedConversation = await this.getConversationByJid(this.selectedConversation.jid);
+    }
     this._triggerDebounced();
   }
 

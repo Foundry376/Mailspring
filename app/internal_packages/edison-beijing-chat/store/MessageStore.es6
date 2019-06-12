@@ -312,11 +312,12 @@ class MessageStore extends MailspringStore {
       conv.avatarMembers = [];
     }
     const { contact, roomMembers } = await RoomStore.getMemeberInfo(conv.jid, conv.curJid, conv.lastMessageSender);
-    addToAvatarMembers(conv, contact);
     // if avatar members is empty, set the value
     if (!conv.avatarMembers || conv.avatarMembers.length === 0) {
       conv.avatarMembers = roomMembers.slice(0, 2);
     }
+    // add last sender to avatar
+    addToAvatarMembers(conv, contact);
     await ConversationStore.saveConversations([conv]);
     return conv;
   }
