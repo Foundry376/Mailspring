@@ -59,7 +59,7 @@ export default class ContactAvatar extends Component {
     const imgUrl = getAvatarFromCache(this.props.email);
     if (props.jid.match(/@app/)) {
       const conv = props.conversation;
-      if (conv) {
+      if (conv && conv.curJid) {
         const userId = conv.curJid.split('@')[0];
         const id = props.jid.split('@')[0];
         app = getMyAppById(userId, id);
