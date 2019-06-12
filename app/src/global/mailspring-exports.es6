@@ -147,6 +147,7 @@ load(`FolderSyncProgressStore`, 'flux/stores/folder-sync-progress-store');
 load(`FocusedPerspectiveStore`, 'flux/stores/focused-perspective-store');
 load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
 load('DebugStore', 'flux/stores/debug-store');
+load('SystemInfoStore', 'flux/stores/system-info-store');
 lazyLoad('ThreadStore', 'flux/stores/thread-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);

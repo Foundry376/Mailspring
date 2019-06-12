@@ -12,6 +12,7 @@ import PleaseSubscribeNotification from './items/please-subscribe-notif';
 import DisabledMailRulesNotification from './items/disabled-mail-rules-notif';
 import OfflineNotification from './items/offline-notification';
 import UpdateNotification from './items/update-notification';
+import DiskUsageNotification from './items/disk-usage-notification';
 
 const notifications = [
   AccountErrorNotification,
@@ -22,6 +23,7 @@ const notifications = [
   DisabledMailRulesNotification,
   OfflineNotification,
   UpdateNotification,
+  DiskUsageNotification,
 ];
 
 export function activate() {
