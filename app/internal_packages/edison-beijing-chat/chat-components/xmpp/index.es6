@@ -25,6 +25,10 @@ export class Xmpp extends EventEmitter3 {
     }
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
+      if (name == 'raw:outgoing' || name == 'raw:incoming') {
+        console.log('onrawdata', xmpp.getTime(), xmpp.connectedJid, name, data);
+        return;
+      }
       if (data && typeof data != "string") {
         data.curJid = xmpp.connectedJid;
       }
@@ -136,6 +140,7 @@ export class Xmpp extends EventEmitter3 {
     return xmpp.joinRooms(...roomJids);
   }
   async pullMessage(ts, curJid) {
+    // console.log('pullMessage', ts, curJid);
     let xmpp = this.getXmpp(curJid);
     return new Promise((resolve, reject) => {
       xmpp.pullMessage(ts, (err, data) => {
