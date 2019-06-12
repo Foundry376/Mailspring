@@ -27,6 +27,7 @@ const flattenMsgIds = groupedMessages =>
       }, new Set()
     );
 const MESSAGE_COUNTS_EACH_PAGE = 25;
+const MAX_COUNTS = 2000;
 export default class Messages extends Component {
   static propTypes = {
     currentUserId: PropTypes.string.isRequired,
@@ -237,8 +238,9 @@ export default class Messages extends Component {
       }
     }
     if (scrollTop < 600) {
+      const counts = this.state.shouldDisplayMessageCounts + MESSAGE_COUNTS_EACH_PAGE;
       this.setState({
-        shouldDisplayMessageCounts: this.state.shouldDisplayMessageCounts + MESSAGE_COUNTS_EACH_PAGE
+        shouldDisplayMessageCounts: counts > MAX_COUNTS ? MAX_COUNTS : counts
       });
     }
   }, 30);
