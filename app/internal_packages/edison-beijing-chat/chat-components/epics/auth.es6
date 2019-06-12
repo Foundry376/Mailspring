@@ -41,10 +41,10 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
     });
   })
   .mergeMap(({ payload: { jid, password }, deviceId }) => {
-    // let deviceId = '2b92e45c-2fde-48e3-9335-421c8c57777f';
-    // if (!window.localStorage.deviceId) {
-    //   window.localStorage.deviceId = uuid();
-    // }
+    let sessionId = window.localStorage['sessionId' + jid.split('@')[0]]
+    if (!sessionId) {
+      sessionId = uuid();
+    }
     xmpp.init({
       jid,
       password,
@@ -58,7 +58,7 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
       deviceModel: process.platform,
       clientVerCode: '101',
       clientVerName: '1.0.0',
-      sessionId: window.localStorage['sessionId' + jid.split('@')[0]]
+      sessionId
     });
     // if (jid.indexOf('/') > 0) {
     //   window.localStorage.jid = jid.substring(0, jid.indexOf('/'));//{ jid, local: jid.substring(0, jid.indexOf('@')) };
