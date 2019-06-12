@@ -82,6 +82,7 @@ export default class MessagesPanel extends Component {
     if (changedDataName === 'conversation') {
       const selectedConversation = await ConversationStore.getSelectedConversation();
       if (!this.state.selectedConversation
+        || !selectedConversation
         || this.state.selectedConversation.jid !== selectedConversation.jid) {
         this.setState({
           selectedConversation

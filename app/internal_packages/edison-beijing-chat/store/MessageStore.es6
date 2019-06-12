@@ -311,14 +311,14 @@ class MessageStore extends MailspringStore {
   }
 
   showNotification = async (payload) => {
-    console.log( ' showNotification payload: ', payload);
+    console.log(' showNotification payload: ', payload);
     const shouldShow = await this.shouldShowNotification(payload);
     if (!shouldShow) {
       return;
     }
     const convjid = payload.from.bare;
     let msgFrom = payload.from.resource + '@im.edison.tech';
-    const memberName = await RoomStore.getMemberName({roomJid:payload.from.bare, curJid:payload.curJid, memberJid:msgFrom});
+    const memberName = await RoomStore.getMemberName({ roomJid: payload.from.bare, curJid: payload.curJid, memberJid: msgFrom });
     const contact = ContactStore.findContactByJid(msgFrom);
     const title = payload.appName || memberName || contact && contact.name || payload.from.local;
     let body = payload.body;
@@ -334,7 +334,7 @@ class MessageStore extends MailspringStore {
   shouldShowNotification = async (payload) => {
     const conversationJid = payload.from.bare;
     const conv = await ConversationStore.getConversationByJid(conversationJid);
-    console.trace( 'shouldShowNotification: ', conversationJid, conv);
+    console.trace('shouldShowNotification: ', conversationJid, conv);
 
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
     if (payload.curJid === payload.from.bare) {
@@ -387,6 +387,7 @@ class MessageStore extends MailspringStore {
     if (this.conversationJid) {
       this.retrieveSelectedConversationMessages(this.conversationJid);
     }
+    return messages;
   }
 
   saveMessages = async messages => {
