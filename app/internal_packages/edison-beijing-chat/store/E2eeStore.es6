@@ -18,7 +18,8 @@ class E2eeStore extends MailspringStore {
         this.trigger();
     }
 
-    saveE2ees(e2ees) {
+    saveE2ees = (e2ees) => {
+        if (!e2ees) { return; }
         let { e2ee: { users } } = e2ees;
         if (users) {
             for (const user of users) {
