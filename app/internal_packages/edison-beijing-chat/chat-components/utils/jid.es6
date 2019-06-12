@@ -9,3 +9,10 @@ export const jidlocal = (jid) => {
     return jid.local;
   }
 }
+export const jidbare = (jid) => {
+  if (typeof jid === 'string') {
+    return jid;
+  } else if (jid) {
+    return jid.bare;
+  }
+}

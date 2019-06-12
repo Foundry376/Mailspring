@@ -64,7 +64,7 @@ export const getToken = async (userId) => {
  * @param userId
  * @param token
  */
-export const iniApps = (userId, token) => {
+export const iniApps = (userId, token, cb) => {
     if (!token) { token = "AhU0sbojRdafuHUV-ESofQ"; }
     let url = appBaseUrl + '/xmpp/client/listApps';
     let version;
@@ -79,6 +79,9 @@ export const iniApps = (userId, token) => {
                 if (!myApps[userId]) { myApps[userId] = {}; }
                 myApps[userId].apps = json.data.apps;
                 myApps[userId].version = json.data.version;
+            }
+            if (cb) {
+                cb(myApps[userId].apps);
             }
         } else {
             console.log('iniApps: failed: ', userId, err);

@@ -71,7 +71,11 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
         }, 200);
         setTimeout(() => {
           xmpp.getRoster(res.bare)
-            .then(contacts => ContactStore.saveContacts(contacts, res.bare));
+            .then(contacts => {
+              if (contacts && contacts.roster && contacts.roster.items) {
+                ContactStore.saveContacts(contacts.roster.items, res.bare)
+              }
+            });
         }, 400);
         setTimeout(() => {
           xmpp.getE2ee('', res.bare)

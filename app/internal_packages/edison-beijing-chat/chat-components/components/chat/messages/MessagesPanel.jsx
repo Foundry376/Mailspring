@@ -98,7 +98,6 @@ export default class MessagesPanel extends Component {
   }
 
   componentDidMount = async () => {
-    this.getEmailContacts();
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
     const state = Object.assign({}, this.state, { online: navigator.onLine });
@@ -156,48 +155,6 @@ export default class MessagesPanel extends Component {
       }
     }
     return null;
-  }
-
-  getEmailContacts = async () => {
-    let configDirPath = AppEnv.getConfigDirPath();
-    let dbpath = path.join(configDirPath, 'edisonmail.db');
-    const sqldb = sqlite(dbpath);
-    const stmt = sqldb.prepare('SELECT * FROM contact where sendToCount >= 1 and recvFromCount > 1');
-    let emailContacts = stmt.all();
-    sqldb.close();
-    const chatAccounts = AppEnv.config.get('chatAccounts') || {};
-    const email = Object.keys(chatAccounts)[0];
-    await refreshChatAccountTokens()
-    let accessToken = await keyMannager.getAccessTokenByEmail(email);
-    const emails = emailContacts.map(contact => contact.email);
-    queryProfile({ accessToken, emails }, (err, res) => {
-      if (!res) {
-        console.log('fail to login to queryProfile');
-        return;
-      }
-      if (isJsonStr(res)) {
-        res = JSON.parse(res);
-      }
-      emailContacts = emailContacts.map((contact, index) => {
-        contact = Object.assign(contact, res.data ? res.data.users[index] : {})
-        if (contact.userId) {
-          contact.jid = contact.userId + '@im.edison.tech'
-        } else {
-          contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
-        }
-        contact.curJid = this.getCurJidByAccountId(contact.accountId, chatAccounts);
-        return contact;
-      });
-      emailContacts = emailContacts.filter(contact => !!contact.curJid);
-      const state = Object.assign({}, this.state, { emailContacts });
-      this.setState(state);
-    })
-  }
-
-  getCurJidByAccountId(aid, chatAccounts) {
-    const contact = AccountStore.accountForId(aid);
-    const chatAcc = contact ? chatAccounts[contact.emailAddress] : null;
-    return chatAcc ? chatAcc.userId + '@im.edison.tech' : null;
   }
 
   onLine = () => {
@@ -520,23 +477,8 @@ export default class MessagesPanel extends Component {
       selectedConversation,
       queueLoadMessage: this.queueLoadMessage,
     };
-    const contactsSet = {};
-    contacts.forEach(contact => {
-      contactsSet[contact.email] = 1;
-      return
-    });
-    let allContacts = contacts.slice();
-    this.state.emailContacts && this.state.emailContacts.forEach(contact => {
-      if (contactsSet[contact.email]) {
-        return;
-      } else {
-        contactsSet[contact.email] = 1;
-        allContacts.push(contact);
-      }
-    });
-    this.apps && allContacts.push.apply(allContacts, this.apps);
     const newConversationProps = {
-      contacts: allContacts,
+      contacts,
       saveRoomMembersForTemp: this.saveRoomMembersForTemp,
       createRoom: this.createRoom
     }
@@ -546,7 +488,7 @@ export default class MessagesPanel extends Component {
       getRoomMembers: this.getRoomMembers,
       editProfile: this.editProfile,
       exitProfile: this.exitProfile,
-      contacts: allContacts,
+      contacts,
     };
     let className = '';
     if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {

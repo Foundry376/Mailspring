@@ -319,7 +319,6 @@ class MessageStore extends MailspringStore {
   }
 
   showNotification = async (payload) => {
-    console.log('showNotification payload: ', payload);
     const shouldShow = await this.shouldShowNotification(payload);
     if (!shouldShow) {
       return;
@@ -330,7 +329,10 @@ class MessageStore extends MailspringStore {
     const contact = ContactStore.findContactByJid(msgFrom);
     const title = payload.appName || memberName || contact && contact.name || payload.from.local;
     let body = payload.body;
-    body = body.content || body;
+    if (isJsonStr(body)){
+      body = JSON.parse(body);
+    }
+    body = body.content || payload.body;
     const noti = postNotification(title, body);
     noti.addEventListener('click', (event) => {
       ChatActions.selectConversation(convjid);
@@ -342,7 +344,6 @@ class MessageStore extends MailspringStore {
   shouldShowNotification = async (payload) => {
     const conversationJid = payload.from.bare;
     const conv = await ConversationStore.getConversationByJid(conversationJid);
-    console.trace('shouldShowNotification: ', conversationJid, conv);
 
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
     if (payload.curJid === payload.from.bare) {
