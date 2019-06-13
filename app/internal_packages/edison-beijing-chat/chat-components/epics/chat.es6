@@ -37,6 +37,7 @@ import { getLastMessageInfo, parseMessageBody } from '../utils/message';
 import { encryptByAES, decryptByAES, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
+import { isJsonStr } from '../utils/stringUtils';
 
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
@@ -65,7 +66,11 @@ export const sendMessageEpic = action$ =>
             if (e2ees && e2ees.length == occupants.length) {
               e2ees.forEach((e2ee => {
                 let device = {};
-                device.dk = JSON.parse(e2ee.devices);
+                if (isJsonStr(e2ee.devices)) {
+                  device.dk = JSON.parse(e2ee.devices);
+                } else {
+                  device.dk = e2ee.devices;
+                }
                 device.jid = e2ee.jid;
                 devices.push(device);
               }));

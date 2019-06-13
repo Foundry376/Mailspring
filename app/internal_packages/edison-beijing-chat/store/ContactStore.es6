@@ -66,7 +66,7 @@ class ContactStore extends MailspringStore {
   }
 
   getContacts = async () => {
-    if (!this.contacts) {
+    if (!this.contacts || !this.contacts.length) {
       await this.refreshContacts();
     }
     return this.contacts;

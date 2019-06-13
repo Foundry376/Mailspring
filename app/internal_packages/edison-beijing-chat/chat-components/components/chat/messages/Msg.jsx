@@ -347,9 +347,9 @@ export default class Msg extends PureComponent {
           )}
           style={{ borderColor: color }}
         >
-          <div className="messageSender">
+          {msgBody.type !=='memberschange' ? <div className="messageSender">
             {this.getContactAvatar(member)}
-          </div>
+          </div> : null }
           <div className="messageContent">
             <div>
               <span className="username">{senderName}</span>
