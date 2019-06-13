@@ -1,5 +1,4 @@
 import { Observable } from 'rxjs/Observable';
-import getDb from '../../db';
 import {
   BEGIN_STORE_MESSAGE,
   beginStoringMessage,

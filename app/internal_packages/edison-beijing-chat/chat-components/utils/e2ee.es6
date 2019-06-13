@@ -1,13 +1,7 @@
 import uuid from 'uuid/v4';
 import { generateKey } from './rsa';
-//import { encryptByAES } from './aes';
-// import getDb from '../db';
-// import { safeUpsert } from './db-utils';
 import { ConfigStore } from 'chat-exports';
-const Sequelize = require('sequelize');
-// const Op = Sequelize.Op;
-// let deviceId = null;
-const device_info = 'device_info'
+const device_info = 'device_info';
 const iniE2ee = async () => {
     let config = await ConfigStore.findOne(device_info);
     let deviceInfo = null;
@@ -92,33 +86,6 @@ export const updateFlag = async (jid) => {
         await ConfigStore.saveConfig({ key: device_info, value: JSON.stringify(deviceInfo), time: new Date().getTime() });
     }
 }
-// export const setE2eeJid = async (jidLocal, value) => {
-//     const db = getDb();
-//     await safeUpsert(db.configs, { key: 'e2ee_' + jidLocal, value, time: Date.now() });
-// }
-// export const getE2ees = async (jidLocal) => {
-//     const db = getDb();
-//     let datas = await db.configs.findAll({
-//         where:
-//             { key: { [Op.in]: ['deviceId', 'e2ee_prikey', 'e2ee_pubkey', 'e2ee_' + jidLocal] } }
-//     });
-
-//     if (datas) {
-//         let d = {};
-//         datas.forEach((data) => {
-//             d[data.key] = data.value;
-//             d[data.key + "_time"] = data.time;
-//         });
-//         d['e2ee_time'] = d['deviceId_time'] + d['e2ee_prikey_time'] + d['e2ee_pubkey_time'];
-//         d['needUpload'] = (d['e2ee_time'] != d['e2ee_' + jidLocal]);
-//         return d;
-//     } else {
-//         return null;
-//     }
-//     // db.configs.findOne({ key: 'deviceId' }).exec().then((data) => {
-//     //     cb(data);
-//     // });
-// }
 
 export default {
     getPriKey, getPubKey, getDeviceId, getDeviceInfo, updateFlag//, getE2ees, setE2eeJid//, delPubKey

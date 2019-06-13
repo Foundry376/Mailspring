@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { dateFormat } from '../../../utils/time';
 import { sendCmd2App2, getToken } from '../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
-import getDb from '../../../db/index';
 const sanitizeHtml = require('sanitize-html');
 import { ContactStore } from 'chat-exports';
 

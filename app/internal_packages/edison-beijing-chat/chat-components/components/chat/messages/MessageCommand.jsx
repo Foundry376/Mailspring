@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import uuid from 'uuid/v4';
 import PropTypes from 'prop-types';
 import { sendCmd2App2, getToken } from '../../../utils/appmgt';
-import { MESSAGE_STATUS_RECEIVED } from '../../../db/schemas/message';
+import { MESSAGE_STATUS_RECEIVED } from '../../../../model/Message';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 

@@ -1,11 +1,9 @@
 import MailspringStore from 'mailspring-store';
 import RoomModel from '../model/Room';
 import xmpp from '../chat-components/xmpp';
-import {jidlocal} from '../chat-components/utils/jid';
-import { MESSAGE_STATUS_RECEIVED } from '../chat-components/db/schemas/message';
-import { beginStoringMessage } from '../chat-components/actions/db/message';
+import { jidlocal } from '../chat-components/utils/jid';
+import { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 import { MessageStore, ContactStore } from 'chat-exports';
-import uuid from 'uuid/v4';
 
 class RoomStore extends MailspringStore {
   constructor() {
@@ -106,7 +104,7 @@ class RoomStore extends MailspringStore {
   }
 
   onMembersChange = async (payload) => {
-    console.log( 'onMembersChange: payload: ', payload);
+    console.log('onMembersChange: payload: ', payload);
     const nicknames = chatLocalStorage.nicknames;
     const fromjid = payload.userJid;
     const fromcontact = await ContactStore.findContactByJid(fromjid);

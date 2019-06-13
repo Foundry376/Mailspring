@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs/Observable';
 import xmpp from '../xmpp';
 import getDb from '../db';
-import { copyRxdbContact, safeUpdate } from '../utils/db-utils';
+import { safeUpdate } from '../utils/db-utils';
 import { ChatActions, ContactStore, E2eeStore } from 'chat-exports';
 
 
@@ -9,7 +9,7 @@ import {
   MESSAGE_STATUS_FILE_UPLOADING,
   MESSAGE_STATUS_SENDING,
   MESSAGE_STATUS_DELIVERED,
-} from '../db/schemas/message';
+} from '../../model/Message';
 import {
   BEGIN_SEND_MESSAGE,
   RECEIVE_CHAT,
@@ -110,26 +110,6 @@ export const sendMessageEpic = action$ =>
       if (devices) {
         ediEncrypted = getEncrypted(conversation.jid, body, devices, selfDevices, conversation.curJid, deviceId);
       }
-      // update conversation last message
-      if (body) {
-        getLastMessageInfo(payload).then(({ lastMessageTime, sender, lastMessageText }) => {
-          safeUpdate(conversation, {
-            lastMessageTime,
-            lastMessageSender: sender || conversation.curJid,
-            lastMessageText
-          });
-          if (!conversation.isGroup) {
-            // if private chat, and it's a new conversation
-            const db = getDb();
-            db.conversations.findOne({ where: { jid: conversation.jid } }).then(conv =>
-              safeUpdate(conv, {
-                lastMessageTime,
-                lastMessageSender: sender || conversation.curJid,
-                lastMessageText
-              }))
-          }
-        });
-      }
       if (ediEncrypted) {
         return ({
           id,
@@ -224,57 +204,6 @@ export const convertSentMessageEpic = action$ =>
     }))
     .delay(500) // need this delay to combat super fast network
     .map(newPayload => newMessage(newPayload));
-
-export const updateSentMessageConversationEpic = (action$, { getState }) =>
-  action$.ofType(SUCCESS_SEND_MESSAGE)
-    .mergeMap(({ payload: message }) =>
-      Observable.fromPromise(getDb())
-        .map(db => ({ db, message })),
-    )
-    .mergeMap(({ db, message }) =>
-      Observable.fromPromise(db.conversations.findOne(message.to.bare).exec())
-        .mergeMap(conversation => {
-          let conv = conversation;
-          if (!conversation) {
-            const { chat: { selectedConversation } } = getState();
-            conv = selectedConversation;
-          }
-          return Observable.fromPromise(getLastMessageInfo(message))
-            .map(({ lastMessageTime, sender, lastMessageText }) => {
-              return Object.assign({}, JSON.parse(JSON.stringify(conv)), {
-                lastMessageTime,
-                lastMessageText,
-                lastMessageSender: sender || message.from.bare,
-                _rev: undefined,
-              });
-            });
-        }),
-    )
-    .mergeMap(conv => {
-      return Observable.fromPromise(getDb())
-        .mergeMap(db => {
-          return Observable.fromPromise(db.conversations.findOne({ where: { jid: conv.jid } }))
-            .map(convInDb => {
-              if (conv.isGroup) {
-                conv.occupants = convInDb.occupants;
-                conv.avatarMembers = convInDb.avatarMembers;
-                return conv;
-              } else {
-                return conv;
-              }
-            })
-            .mergeMap(conv => {
-              return Observable.fromPromise(ContactStore.findContactByJid(conv.lastMessageSender))
-                .map(contact => {
-                  addToAvatarMembers(conv, contact);
-                  return conv;
-                })
-            })
-        })
-    })
-    .map(conversation => {
-      beginStoringConversations([conversation])
-    });
 
 export const beginRetrievingMessagesEpic = action$ =>
   action$.ofType(UPDATE_SELECTED_CONVERSATION)

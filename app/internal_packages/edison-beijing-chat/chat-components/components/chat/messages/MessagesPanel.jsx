@@ -24,7 +24,7 @@ import { xmpplogin } from '../../../utils/restjs';
 import fs from "fs";
 import https from "https";
 import http from "http";
-import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../db/schemas/message';
+import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../../model/Message';
 import { beginSendingMessage } from '../../../actions/chat';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';

@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
-import getDb from '../../../db';
 import { ContactStore } from 'chat-exports';
 import { uploadContacts } from '../../../utils/restjs';
 import { remote } from 'electron';
@@ -12,7 +11,6 @@ import { Actions } from 'mailspring-exports';
 import Contact from '../../../../../../src/flux/models/contact';
 import keyMannager from '../../../../../../src/key-manager';
 import { RetinaImg } from 'mailspring-component-kit';
-import { safeUpsert } from '../../../utils/db-utils';
 import { ConversationStore } from 'chat-exports';
 
 export default class MemberProfie extends Component {

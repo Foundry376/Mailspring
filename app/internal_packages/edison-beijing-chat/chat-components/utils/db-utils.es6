@@ -14,19 +14,6 @@ export function copyRxdbContact(contact) {
   return result;
 }
 
-export function copyRxdbMessage(msg) {
-  const result = {};
-  result.id = msg.id;
-  result.conversationJid = msg.conversationJid;
-  result.sender = msg.sender;
-  result.body = msg.body;
-  result.sentTime = msg.sentTime;
-  result.updateTime = msg.updateTime;
-  result.readTime = msg.readTime;
-  result.status = msg.status;
-  return result;
-}
-
 export function copyRxdbConversation(conv) {
   const result = {};
   result.jid = conv.jid;
@@ -70,9 +57,9 @@ async function getDoc(doc) {
   //this is only for  being used by safeUpdate
   const db = await getDb();
   if (doc.jid) {
-    return await db.conversations.findOne({where:{jid:doc.jid}});
+    return await db.conversations.findOne({ where: { jid: doc.jid } });
   } else {
-    return await db.messages.findOne({where:{id:doc.id}});
+    return await db.messages.findOne({ where: { id: doc.id } });
   }
 }
 
@@ -124,7 +111,7 @@ export async function safeUpsert(doc, data) {
   const key = docName2key[doc.name];
   const keyValue = data[key];
   try {
-    docinDB = await db[doc.name].findOne({where:{[key]:keyValue}});
+    docinDB = await db[doc.name].findOne({ where: { [key]: keyValue } });
     if (docinDB) {
       await docinDB.updateAttributes(data)
       return docinDB;
@@ -137,7 +124,7 @@ export async function safeUpsert(doc, data) {
       const error = new Error();
       console.log('safeUpsert error: data, doc, e, stack: ', data, doc, e, error.stack);
     }
-    let doc2 = await db[doc.name].findOne({where: {[key]: keyValue}});
+    let doc2 = await db[doc.name].findOne({ where: { [key]: keyValue } });
     let failed = false;
     if (doc2 && data) {
       for (let key in data) {

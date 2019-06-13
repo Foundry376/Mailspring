@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
-import getDb from '../../../db';
 import Select, { Option } from 'rc-select';
 
 export default class InviteGroupChatList extends Component {

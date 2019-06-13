@@ -6,7 +6,6 @@ import MessageCommand from './MessageCommand';
 import { beginSendingMessage } from '../../../actions/chat';
 import { FILE_TYPE } from '../../../utils/filetypes';
 import { beginStoringMessage } from '../../../actions/db/message';
-import { copyRxdbMessage } from '../../../utils/db-utils';
 import { ContactStore } from 'chat-exports';
 
 export default class MessagePrivateApp extends PureComponent {
@@ -43,7 +42,7 @@ export default class MessagePrivateApp extends PureComponent {
       content: 'sent'
     };
     const messageId = uuid();
-    const msg = copyRxdbMessage(this.props.msg);
+    const msg = this.props.msg;
     const msgBody = JSON.parse(msg.body);
     msgBody.deleted = true;
     msg.body = JSON.stringify(msgBody);

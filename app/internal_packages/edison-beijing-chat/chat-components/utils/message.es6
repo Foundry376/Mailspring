@@ -1,5 +1,4 @@
 import { isImageFilePath, isJsonStr } from './stringUtils';
-import { copyRxdbMessage, safeUpsert } from './db-utils';
 import groupByTime from 'group-by-time';
 
 import getDb from '../db';
@@ -8,7 +7,7 @@ import fs from "fs";
 import uuid from 'uuid/v4';
 import { FILE_TYPE } from './filetypes';
 import { uploadFile } from './awss3';
-import { MESSAGE_STATUS_UPLOAD_FAILED } from '../db/schemas/message';
+import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../model/Message';
 import { beginStoringMessage } from '../actions/db/message';
 import { updateSelectedConversation } from '../actions/db/conversation';
 import { ProgressBarStore } from 'chat-exports';
@@ -21,7 +20,6 @@ export const groupMessages = async messages => {
     sender: message.sender,
     messages: [message]
   });
-  const db = await getDb();
   for (let index = 0; index < messages.length; index++) {
     let message = messages[index];
     const lastIndex = groupedMessages.length - 1;
@@ -52,49 +50,6 @@ export const addMessagesSenderNickname = async (messages) => {
   for (let message of messages) {
     message.senderNickname = nicknames[message.sender];
   }
-}
-
-export const getLastMessageInfo = async (message) => {
-  let body, lastMessageText, sender = null, lastMessageTime = (new Date()).getTime();
-  body = message.body;
-  if (!body) {
-    return { sender, lastMessageTime, lastMessageText };
-  }
-  if (isJsonStr(body)) {
-    body = JSON.parse(body);
-  }
-  if (body.updating || body.deleted) {
-    let conv = message.conversation;
-    let db = await getDb();
-    if (!conv) {
-      conv = await db.conversations.findOne({where: {jid:message.from.bare}});
-      if (!conv) {
-        lastMessageText = getMessageContent(message);
-        return { sender, lastMessageTime, lastMessageText };
-      }
-    }
-    let messages = await db.messages.findAll({where:{conversationJid:conv.jid}});
-
-    if (messages.length) {
-      messages.sort((a, b) => a.sentTime - b.sentTime);
-      const lastMessage = messages[messages.length - 1];
-      const id = message.id.split('$')[0];
-      const lastid = lastMessage.id.split('$')[0];
-      if (id != lastid) {
-        sender = lastMessage.sender;
-        lastMessageTime = lastMessage.sentTime;
-        lastMessageText = getMessageContent(lastMessage);
-      } else if (body.deleted) {
-        lastMessageTime = lastMessage.sentTime || lastMessageTime;
-        lastMessageText = '';
-      } else {
-        lastMessageText = body.content;
-      }
-    }
-  } else {
-    lastMessageText = body.content;
-  }
-  return { sender, lastMessageTime, lastMessageText };
 }
 
 const getMessageContent = message => {
