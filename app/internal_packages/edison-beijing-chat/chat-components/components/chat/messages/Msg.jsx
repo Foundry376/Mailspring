@@ -25,8 +25,6 @@ import _ from 'underscore';
 import { ChatActions } from 'chat-exports';
 import { FILE_TYPE } from '../../../utils/filetypes';
 
-let key = 0;
-
 export default class Msg extends PureComponent {
   static propTypes = {
     msg: PropTypes.shape({
@@ -163,8 +161,7 @@ export default class Msg extends PureComponent {
   update(imgId) {
     const { mediaObjectId, thumbObjectId } = this.state.msgBody;
     if (imgId === mediaObjectId || imgId === thumbObjectId) {
-      key++;
-      this.setState({ key });
+      this.setState({ imgId });
     }
   }
   download = () => {
