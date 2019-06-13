@@ -85,11 +85,11 @@ class CrashTracker {
       AppEnv.reportError(new Error(`mailsync crashed for account: ${key}`));
     } else {
       console.log('mailsync exited');
-      AppEnv.reportError(
-        new Error(
-          `mailsync existed with code: ${code}, error: ${error}, signal: ${signal} for account: ${key}`,
-        ),
-      );
+      // AppEnv.reportError(
+      //   new Error(
+      //     `mailsync existed with code: ${code}, error: ${error}, signal: ${signal} for account: ${key}`,
+      //   ),
+      // );
     }
     this._timestamps[key] = this._timestamps[key] || [];
     if (this._timestamps[key].unshift(Date.now()) > MAX_CRASH_HISTORY) {
