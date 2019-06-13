@@ -77,6 +77,7 @@ function Client(opts) {
         var memberschange;
         if (data.edimucevent && data.edimucevent.memberschange && data.edimucevent.memberschange.userJid) {
             memberschange = data.edimucevent.memberschange.toJSON();
+            memberschange.id = data.id;
         }
         var json = data ? data.toJSON() : null;
         if (!json) {
