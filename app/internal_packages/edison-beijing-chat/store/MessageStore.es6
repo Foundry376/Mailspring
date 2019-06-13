@@ -167,7 +167,7 @@ class MessageStore extends MailspringStore {
     } else {
       convJid = payload.from.local;
     }
-    const msgid = payload.id;
+    const msgId = payload.id;
     if (aes) {
       body = decryptByAES(aes, payload.payload);
     } else {
@@ -199,10 +199,10 @@ class MessageStore extends MailspringStore {
       msgBody.downloading = true;
       downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
         if (fs.existsSync(thumbPath)) {
-          Actions.updateDownloadPorgress();
+          Actions.updateDownloadPorgress(msgBody.thumbObjectId);
           downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
             if (fs.existsSync(thumbPath)) {
-              Actions.updateDownloadPorgress();
+              Actions.updateDownloadPorgress(msgBody.mediaObjectId);
             }
           });
         }

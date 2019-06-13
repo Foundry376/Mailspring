@@ -14,8 +14,6 @@ import SecurePrivate from './SecurePrivate';
 import _ from 'underscore';
 import { RoomStore, MessageStore, ConversationStore, OnlineUserStore } from 'chat-exports';
 
-let key = 0;
-
 const flattenMsgIds = groupedMessages =>
   groupedMessages
     .map(group => group.messages.map(message => message.id))
@@ -99,7 +97,6 @@ export default class Messages extends Component {
 
   _listenToStore = () => {
     this._unsubs = [];
-    this._unsubs.push(Actions.updateDownloadPorgress.listen(this.update, this));
     this._unsubs.push(MessageStore.listen(() => this._onDataChanged('message')));
   }
 
@@ -189,10 +186,6 @@ export default class Messages extends Component {
       )
     }
     return null;
-  }
-  update() {
-    key++;
-    this.setState(Object.assign({}, this.state, { key }));
   }
   calcTimeLabel = _.throttle(() => {
     if (!this.messagesPanel) {

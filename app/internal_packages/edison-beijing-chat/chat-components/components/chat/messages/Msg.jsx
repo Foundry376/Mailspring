@@ -160,11 +160,13 @@ export default class Msg extends PureComponent {
       isEditing: false
     });
   }
-  update() {
-    key++;
-    this.setState(Object.assign({}, this.state, { key }));
+  update(imgId) {
+    const { mediaObjectId, thumbObjectId } = this.state.msgBody;
+    if (imgId === mediaObjectId || imgId === thumbObjectId) {
+      key++;
+      this.setState({ key });
+    }
   }
-
   download = () => {
     const msgBody = this.state.msgBody;
     event.stopPropagation();
