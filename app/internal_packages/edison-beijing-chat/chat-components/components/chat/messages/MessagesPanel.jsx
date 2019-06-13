@@ -283,6 +283,9 @@ export default class MessagesPanel extends Component {
     const loadCallback = (...args) => {
       ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
+      setTimeout(() => {
+        ChatActions.updateProgress({ loading: false, finished: true, visible: false });
+      }, 3000);
       if (loadConfig.type === 'upload') {
         const onMessageSubmitted = this.props.sendMessage;
         const [err, _, myKey, size] = args;
