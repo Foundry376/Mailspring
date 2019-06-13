@@ -777,9 +777,9 @@ babel-plugin-transform-strict-mode@^6.24.1:
     babel-runtime "^6.22.0"
     babel-types "^6.24.1"
 
-"babel-preset-electron@github:bengotow/babel-preset-electron#00783dfc438f122997993ae597a41ec315ba121b":
+"babel-preset-electron@github:ruoxijiang/babel-preset-electron#00783dfc438f122997993ae597a41ec315ba121b":
   version "1.4.15"
-  resolved "https://codeload.github.com/bengotow/babel-preset-electron/tar.gz/00783dfc438f122997993ae597a41ec315ba121b"
+  resolved "https://codeload.github.com/ruoxijiang/babel-preset-electron/tar.gz/00783dfc438f122997993ae597a41ec315ba121b"
   dependencies:
     babel-plugin-syntax-trailing-function-commas "6.x.x"
     babel-plugin-transform-async-generator-functions "6.x.x"
@@ -982,7 +982,7 @@ bluebird@^3.4.7:
   version "3.5.4"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.4.tgz#d6cc661595de30d5b3af5fcedd3c0b3ef6ec5714"
 
-bluebird@^3.5.0, bluebird@^3.5.3:
+bluebird@^3.5.0:
   version "3.5.5"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.5.tgz#a8d0afd73251effbbd5fe384a77d73003c17a71f"
 
@@ -1801,9 +1801,9 @@ debug@^4.1.0, debug@^4.1.1:
   dependencies:
     ms "^2.1.1"
 
-"debug@github:emorikawa/debug#nylas":
+"debug@github:ruoxijiang/debug#nylas":
   version "2.6.3"
-  resolved "https://codeload.github.com/emorikawa/debug/tar.gz/29685485665b44c42d33ebd7ed62570b21c6e4bd"
+  resolved "https://codeload.github.com/ruoxijiang/debug/tar.gz/29685485665b44c42d33ebd7ed62570b21c6e4bd"
   dependencies:
     ms "0.7.3"
 
@@ -1999,6 +1999,13 @@ direction@^0.1.5:
 discontinuous-range@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/discontinuous-range/-/discontinuous-range-1.0.0.tgz#e38331f0844bba49b9a9cb71c771585aab1bc65a"
+
+diskusage@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/diskusage/-/diskusage-1.1.1.tgz#bd47ba4bfa401f0d6b81fa492223b447231da0e5"
+  dependencies:
+    es6-promise "^4.2.5"
+    nan "^2.11.1"
 
 dns-packet@^1.1.0:
   version "1.3.1"
@@ -2394,6 +2401,10 @@ es6-iterator@~2.0.3:
 es6-promise@^3.0.2:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-3.3.1.tgz#a08cdde84ccdbf34d027a1451bc91d4bcd28a613"
+
+es6-promise@^4.2.5:
+  version "4.2.8"
+  resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-4.2.8.tgz#4eb21594c972bc40553d276e510539143db53e0a"
 
 es6-symbol@^3.1.1, es6-symbol@~3.1.1:
   version "3.1.1"
@@ -3604,7 +3615,7 @@ inline-process-browser@^1.0.0:
     falafel "^1.0.1"
     through2 "^0.6.5"
 
-integer@^2.1.0:
+integer@2.1.0, integer@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/integer/-/integer-2.1.0.tgz#29134ea2f7ba3362ed4dbe6bcca992b1f18ff276"
 
@@ -5736,7 +5747,7 @@ nan-x@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/nan-x/-/nan-x-1.0.2.tgz#5f34e9d3115242486219eee3c8bc49fd2425b19a"
 
-nan@2.11.1, nan@2.12.1, nan@^2.0.0, nan@^2.0.5, nan@^2.10.0, nan@^2.12.1, nan@^2.6.2, nan@~2.10.0, nan@~2.12.1, nan@~2.8.0:
+nan@2.11.1, nan@2.12.1, nan@^2.0.0, nan@^2.0.5, nan@^2.10.0, nan@^2.11.1, nan@^2.12.1, nan@^2.6.2, nan@~2.10.0, nan@~2.12.1, nan@~2.8.0:
   version "2.11.1"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.11.1.tgz#90e22bccb8ca57ea4cd37cc83d3819b52eea6766"
 
@@ -7921,9 +7932,9 @@ rtcpeerconnection@^8.0.0, rtcpeerconnection@^8.3.1:
     sdp-jingle-json "^3.0.0"
     wildemitter "1.x"
 
-runas@getflywheel/node-runas#ca4f0714:
+"runas@git+https://git@github.com/ruoxijiang/node-runas.git#ca4f0714":
   version "3.2.5"
-  resolved "https://codeload.github.com/getflywheel/node-runas/tar.gz/ca4f0714a926319f53df4851b007f2e4fd5381e5"
+  resolved "git+https://git@github.com/ruoxijiang/node-runas.git#ca4f0714a926319f53df4851b007f2e4fd5381e5"
   dependencies:
     nan "^2.6.2"
     prebuild-install "^2.1.2"
@@ -8138,15 +8149,13 @@ send@0.16.2:
     range-parser "~1.2.0"
     statuses "~1.4.0"
 
-sequelize-pool@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/sequelize-pool/-/sequelize-pool-1.0.2.tgz#89c767882bbdb8a41dac66922ed9820939a5401e"
-  dependencies:
-    bluebird "^3.5.3"
+sequelize-pool@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/sequelize-pool/-/sequelize-pool-2.1.0.tgz#cbab1c1872c37e531743e811e0672317ab9e9b84"
 
-sequelize@^5.8.7:
-  version "5.8.8"
-  resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-5.8.8.tgz#e30410e4d9cf8a0a9fedeb137710a255855e2e9e"
+sequelize@^5.8.9:
+  version "5.8.9"
+  resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-5.8.9.tgz#7503d90dea0237cf24f90cd5958d74b66d66ac58"
   dependencies:
     bluebird "^3.5.0"
     cls-bluebird "^2.1.0"
@@ -8158,7 +8167,7 @@ sequelize@^5.8.7:
     moment-timezone "^0.5.21"
     retry-as-promised "^3.1.0"
     semver "^5.6.0"
-    sequelize-pool "^1.0.2"
+    sequelize-pool "^2.1.0"
     toposort-class "^1.0.1"
     uuid "^3.2.1"
     validator "^10.11.0"
@@ -8293,9 +8302,9 @@ slate-dev-logger@^0.1.36, slate-dev-logger@^0.1.43:
   version "0.1.43"
   resolved "https://registry.yarnpkg.com/slate-dev-logger/-/slate-dev-logger-0.1.43.tgz#77f6ca7207fcbf453a5516f3aa8b19794d1d26dc"
 
-slate-edit-list@bengotow/slate-edit-list#44701a7:
-  version "0.10.1"
-  resolved "https://codeload.github.com/bengotow/slate-edit-list/tar.gz/44701a78b729fed5714aaf3f6f02790d7343bb4f"
+slate-edit-list@^0.12.1:
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/slate-edit-list/-/slate-edit-list-0.12.1.tgz#11a83e4c91af858b37a516ef0b2a868910eb4903"
 
 slate-html-serializer@0.5.0:
   version "0.5.0"
@@ -8350,9 +8359,9 @@ slate-soft-break@0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/slate-soft-break/-/slate-soft-break-0.6.0.tgz#1e44815b7ff4ddada055bba14cd0d2d4ef0fd463"
 
-slate@bengotow/slate#77f6337:
+"slate@github:ruoxijiang/slate#77f6337":
   version "0.32.0"
-  resolved "https://codeload.github.com/bengotow/slate/tar.gz/77f6337d9eecedbfeb143dca4f06a1bfa1b22b6b"
+  resolved "https://codeload.github.com/ruoxijiang/slate/tar.gz/77f6337d9eecedbfeb143dca4f06a1bfa1b22b6b"
   dependencies:
     debug "^2.3.2"
     direction "^0.1.5"
@@ -8539,7 +8548,7 @@ sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
 
-sqlite3@^4.0.0, sqlite3@^4.0.6:
+sqlite3@^4.0.0:
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-4.0.6.tgz#e587b583b5acc6cb38d4437dedb2572359c080ad"
   dependencies:
@@ -9483,9 +9492,9 @@ window-size@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/window-size/-/window-size-0.1.0.tgz#5438cd2ea93b202efa3a19fe8887aee7c94f9c9d"
 
-windows-shortcuts@emorikawa/windows-shortcuts#b0a0fc7:
+"windows-shortcuts@github:ruoxijiang/windows-shortcuts#b0a0fc7":
   version "0.1.1"
-  resolved "https://codeload.github.com/emorikawa/windows-shortcuts/tar.gz/b0a0fc7fb86fb03e06ddceb9cbd6c9c5c29e571e"
+  resolved "https://codeload.github.com/ruoxijiang/windows-shortcuts/tar.gz/b0a0fc7fb86fb03e06ddceb9cbd6c9c5c29e571e"
 
 wkx@^0.4.6:
   version "0.4.7"

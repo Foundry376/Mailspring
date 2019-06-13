@@ -331,7 +331,8 @@ class MessageStore extends MailspringStore {
     let msgFrom = payload.from.resource + '@im.edison.tech';
     const memberName = await RoomStore.getMemberName({ roomJid: payload.from.bare, curJid: payload.curJid, memberJid: msgFrom });
     const contact = ContactStore.findContactByJid(msgFrom);
-    const title = payload.appName || memberName || contact && contact.name || payload.from.local;
+    const conv = await ConversationStore.getConversationByJid(convjid);
+    const title = payload.appName || memberName || contact && contact.name || conv.name || payload.from.local;
     let body = payload.body;
     if (isJsonStr(body)) {
       body = JSON.parse(body);
