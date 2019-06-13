@@ -103,7 +103,6 @@
     "rimraf": "2.5.2",
     "runas": "git+https://git@github.com/ruoxijiang/node-runas.git#ca4f0714",
     "rx-lite": "4.0.8",
-    "rxdb": "^8.0.1",
     "rxjs": "^6.3.3",
     "rxjs-compat": "^6.3.3",
     "s3": "^4.4.0",
