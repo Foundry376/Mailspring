@@ -10,10 +10,10 @@ import { isJsonStr } from '../utils/stringUtils';
 const sqlite = require('better-sqlite3');
 
 export const triggerFetchAppsEpic = action$ =>
-    action$.ofType(SUCCESS_AUTH)
-        .mergeMap(({ payload }) => {
-          return Observable.fromPromise(saveMyAppsAndEmailContacts(payload));
-        });
+  action$.ofType(SUCCESS_AUTH)
+    .mergeMap(({ payload }) => {
+      return Observable.fromPromise(saveMyAppsAndEmailContacts(payload));
+    });
 
 async function saveMyAppsAndEmailContacts(payload) {
   const token = await getToken(payload.local);
@@ -24,15 +24,17 @@ async function saveMyAppsAndEmailContacts(payload) {
 
 function saveMyApps(payload, token) {
   iniApps(payload.local, token, apps => {
-    apps = apps.map(app => {
-      app = Object.assign({}, app);
-      app.jid = app.id + '@app.im.edison.tech';
-      app.oriName = app.name;
-      app.avatar = app.icon;
-      app.isApp = true;
-      return app;
-    });
-    ContactStore.saveContacts(apps, payload.curJid);
+    if (apps) {
+      apps = apps.map(app => {
+        app = Object.assign({}, app);
+        app.jid = app.id + '@app.im.edison.tech';
+        app.oriName = app.name;
+        app.avatar = app.icon;
+        app.isApp = true;
+        return app;
+      });
+      ContactStore.saveContacts(apps, payload.curJid);
+    }
   })
 }
 
