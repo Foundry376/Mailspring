@@ -242,10 +242,13 @@ export default class Msg extends PureComponent {
       return readTime < msg.updateTime;
     }
   }
-  onClickImage = () => {
+  onClickImage = (e) => {
     const { msg } = this.props;
-    console.log('onClickImage: msg', msg);
-    ChatActions.updateImagePopup(msg);
+    // console.log('onClickImage: msg', msg);
+    // ChatActions.updateImagePopup(msg);
+    if (e.target.src) {
+      shell.openExternal(e.target.src);
+    }
   }
   msgFile = () => {
     const { msg } = this.props;
@@ -378,7 +381,7 @@ export default class Msg extends PureComponent {
                           <img
                             src={msgBody.localFile}
                             title={msgBody.isUploading && msgBody.localFile || ''}
-                            onClick={onClickImage}
+                            onClick={this.onClickImage}
                           />
                         </div>
                       )}
