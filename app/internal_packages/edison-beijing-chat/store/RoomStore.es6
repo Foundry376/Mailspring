@@ -137,6 +137,7 @@ class RoomStore extends MailspringStore {
     }
     const body = {
       content,
+      type: 'memberschange'
     }
     const msg = {
       id: uuid(),
