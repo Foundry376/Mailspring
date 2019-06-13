@@ -104,37 +104,6 @@ export default class MessagesPanel extends Component {
     };
   }
 
-  getApps = () => {
-    const { selectedConversation } = this.state;
-    if (!selectedConversation || !selectedConversation.curJid) {
-      return;
-    }
-    //curJid is necessary for app to create a new conversation
-    const { curJid } = selectedConversation;
-    const userId = curJid.split('@')[0];
-    let apps = [];
-
-    const myApps = getMyApps(userId);
-    if (!myApps) {
-      return;
-    }
-    let uapps = myApps.apps;
-    try {
-      if (uapps && uapps.length > 0) {
-        for (let app of uapps) {
-          app = Object.assign({}, app);
-          app.jid = app.id + '@app.im.edison.tech';
-          app.email = app.jid;
-          app.curJid = curJid;
-          apps.push(app)
-        }
-      }
-      this.apps = apps;
-    } catch (e) {
-      console.error(e, myApps, uapps);
-    }
-  }
-
   _getTokenByCurJid = async () => {
     const { selectedConversation } = this.state;
     let currentUserId = selectedConversation && selectedConversation.curJid;
@@ -443,7 +412,6 @@ export default class MessagesPanel extends Component {
   }
 
   render() {
-    this.getApps();
     const { showConversationInfo, selectedConversation, contacts } = this.state;
     const {
       sendMessage,

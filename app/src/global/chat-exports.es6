@@ -62,6 +62,14 @@ lazyLoad(`OnlineUserStore`, 'store/OnlineUserStore');
 lazyLoad(`E2eeStore`, 'store/E2eeStore');
 lazyLoad(`ConfigStore`, 'store/ConfigStore');
 
+// Models
+lazyLoad(`ConfigModel`, 'model/Config');
+lazyLoad(`ContactModel`, 'model/Contact');
+lazyLoad(`ConversationModel`, 'model/Conversation');
+lazyLoad(`E2eeModel`, 'model/E2ee');
+lazyLoad(`MessageModel`, 'model/Message');
+lazyLoad(`RoomModel`, 'model/Room');
+
 process.nextTick(() => {
   let c = 0;
   for (const key of _resolveNow) {

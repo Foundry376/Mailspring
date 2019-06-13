@@ -3,7 +3,7 @@
 import _ from 'underscore';
 
 import MailspringStore from 'mailspring-store';
-import { ConversationStore } from 'chat-exports';
+import { ConversationStore, ContactStore, ContactModel } from 'chat-exports';
 import KeyManager from '../../key-manager';
 import Actions from '../actions';
 import Account from '../models/account';
@@ -186,6 +186,12 @@ class AccountStore extends MailspringStore {
       for (const conv of conversations) {
         ConversationStore.removeConversation(conv.jid);
       }
+      await ContactModel.destroy({
+        where: {
+          curJid: jid
+        }
+      });
+      ContactStore.refreshContacts();
       xmpp.removeXmpp(jid);
       removeMyApps(chatAccount.userId);
     }
