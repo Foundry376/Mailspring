@@ -94,6 +94,7 @@ export default class Messages extends Component {
     this._listenToStore();
     const { selectedConversation: conv = {} } = this.props;
     await this.getRoomMembers(conv);
+    this._onDataChanged('message');
   }
 
   _listenToStore = () => {
