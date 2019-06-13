@@ -547,8 +547,6 @@ class Actions {
   static searchQueryChanged = ActionScopeWindow;
   static searchCompleted = ActionScopeWindow;
 
-  static updateDownloadPorgress = ActionScopeWindow;
-
   static updateChatPanelHeight = ActionScopeMainWindow;
   static expandChatPanelFiller = ActionScopeMainWindow;
   static debugFakeNativeMessage = ActionScopeWindow;
