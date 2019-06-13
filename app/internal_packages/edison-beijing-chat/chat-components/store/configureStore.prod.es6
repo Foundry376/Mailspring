@@ -9,7 +9,6 @@ import shortcutActions from '../shortcuts/shortcutActions';
 import xmpp from '../xmpp';
 import rootEpic from '../epics';
 import rootReducer from '../reducers';
-import chatModel from './model';
 
 const epics = createEpicMiddleware(rootEpic);
 const xmppMiddleware = createXmppMiddleware(xmpp, eventActions);
@@ -18,7 +17,7 @@ const enhancer = applyMiddleware(thunk, epics, xmppMiddleware, mousetrapMiddlewa
 
 function configureStore() {
   const store = createStore(rootReducer, enhancer);
-  chatModel.store = store;
+  window.chatReduxStore = store;
   return store;
 }
 

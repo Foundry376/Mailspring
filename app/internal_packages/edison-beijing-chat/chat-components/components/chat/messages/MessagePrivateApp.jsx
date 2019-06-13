@@ -3,10 +3,8 @@ import PropTypes from 'prop-types';
 import uuid from 'uuid/v4';
 import { dateFormat } from '../../../utils/time';
 import MessageCommand from './MessageCommand';
-import getDb from '../../../db/index';
-import chatModel from '../../../store/model';
 import { beginSendingMessage } from '../../../actions/chat';
-import { FILE_TYPE } from './messageModel';
+import { FILE_TYPE } from '../../../utils/filetypes';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { copyRxdbMessage } from '../../../utils/db-utils';
 import { ContactStore } from 'chat-exports';
@@ -49,8 +47,8 @@ export default class MessagePrivateApp extends PureComponent {
     const msgBody = JSON.parse(msg.body);
     msgBody.deleted = true;
     msg.body = JSON.stringify(msgBody);
-    chatModel.store.dispatch(beginStoringMessage(msg));
-    chatModel.store.dispatch(beginSendingMessage(conversation, JSON.stringify(body), messageId, false));
+    chatReduxStore.dispatch(beginStoringMessage(msg));
+    chatReduxStore.dispatch(beginSendingMessage(conversation, JSON.stringify(body), messageId, false));
   }
 
   render() {

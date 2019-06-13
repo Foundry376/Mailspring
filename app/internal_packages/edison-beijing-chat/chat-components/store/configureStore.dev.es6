@@ -10,7 +10,6 @@ import shortcutActions from '../shortcuts/shortcutActions';
 import xmpp from '../xmpp';
 import rootEpic from '../epics';
 import rootReducer from '../reducers';
-import chatModel from './model';
 
 const configureStore = () => {
   // Redux Configuration
@@ -59,7 +58,7 @@ const configureStore = () => {
       store.replaceReducer(require('../reducers')) // eslint-disable-line global-require
     );
   }
-  chatModel.store = store;
+  window.chatReduxStore = store;
   return store;
 };
 

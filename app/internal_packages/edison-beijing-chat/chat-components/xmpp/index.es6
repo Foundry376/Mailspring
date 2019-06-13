@@ -1,7 +1,6 @@
 import Stanza, { Client } from '../../../../src/xmpp/stanza.io';
 import EventEmitter3 from 'eventemitter3';
 import { Observable } from 'rxjs/Observable';
-import chatModel from '../store/model';
 import { log } from '../utils/log-util';
 
 /**
@@ -202,9 +201,10 @@ export class XmppEx extends EventEmitter3 {
       this.ping();
     });
     this.client.on('session:prebind', (bind) => {
-      chatModel.diffTime = parseInt(bind.serverTimestamp)
+      console.log( 'session:prebind: ', bind);
+      window.edisonChatServerDiffTime = parseInt(bind.serverTimestamp)
         - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
-      console.log('session:prebind', bind, chatModel.diffTime);
+      console.log('session:prebind', bind, edisonChatServerDiffTime);
     });
     this.client.on('disconnected', () => {
       console.warn('xmpp session2:disconnected', this.connectedJid);

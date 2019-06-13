@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import path from "path";
-const sqlite = require('better-sqlite3');
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
@@ -9,16 +8,13 @@ import MessagesSendBar from './MessagesSendBar';
 import Messages from './Messages';
 import ConversationInfo from '../conversations/ConversationInfo';
 import Divider from '../../common/Divider';
-import chatModel, { saveToLocalStorage } from '../../../store/model';
 import { downloadFile, uploadFile } from '../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
-import { FILE_TYPE } from './messageModel';
+import { FILE_TYPE } from '../../../utils/filetypes';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore } from 'chat-exports';
-import { queryProfile, refreshChatAccountTokens } from '../../../utils/restjs';
-import { isJsonStr } from '../../../utils/stringUtils';
 import { AccountStore } from 'mailspring-exports';
 
 import keyMannager from '../../../../../../src/key-manager';
@@ -249,7 +245,7 @@ export default class MessagesPanel extends Component {
       return;
     }
     const jid = member.jid.bare || member.jid;
-    const nicknames = chatModel.chatStorage.nicknames;
+    const nicknames = chatLocalStorage.nicknames;
     if (nicknames[jid] != member.nickname) {
       nicknames[jid] = member.nickname;
       saveToLocalStorage();
@@ -304,11 +300,11 @@ export default class MessagesPanel extends Component {
             conversationJid: conversation.jid,
             body,
             sender: conversation.curJid,
-            sentTime: (new Date()).getTime() + chatModel.diffTime,
+            sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
             status: MESSAGE_STATUS_UPLOAD_FAILED,
           };
-          chatModel.store.dispatch(beginStoringMessage(message));
-          chatModel.store.dispatch(updateSelectedConversation(conversation));
+          chatReduxStore.dispatch(beginStoringMessage(message));
+          chatReduxStore.dispatch(updateSelectedConversation(conversation));
           return;
         } else {
           onMessageSubmitted(conversation, body, messageId, false);
@@ -412,7 +408,7 @@ export default class MessagesPanel extends Component {
       body.path = body.localFile;
       //body.localFile = null;
       body = JSON.stringify(body);
-      chatModel.store.dispatch(beginSendingMessage(conversation, body, messageId, false, false));
+      chatReduxStore.dispatch(beginSendingMessage(conversation, body, messageId, false, false));
     }
     ChatActions.updateProgress({ loading: false, failed: true });
     clearInterval(this.loadTimer);

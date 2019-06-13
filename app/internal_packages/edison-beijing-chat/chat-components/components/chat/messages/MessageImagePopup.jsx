@@ -1,25 +1,48 @@
 import React, { Component } from 'react';
-import messageModel, { FILE_TYPE } from './messageModel'
+import { FILE_TYPE } from '../../../utils/filetypes';
 import { buildTimeDescriptor } from '../../../utils/time';
 import { downloadFile } from '../../../utils/awss3';
 import { isJsonString } from '../../../utils/stringUtils';
-import CancelIcon from '../../common/icons/CancelIcon';
-import Button from '../../common/Button';
 const { dialog } = require('electron').remote;
 import { RetinaImg } from 'mailspring-component-kit';
+import {MessageImagePopupStore} from 'chat-exports';
 
 var http = require("http");
 var https = require("https");
 var fs = require("fs");
 const path = require('path');
 export default class MessageImagePopup extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       imgIndex: -1,
       hidden: true
     }
-    messageModel.imagePopup = this;
+  }
+  componentDidMount(){
+    this.getAllImages(this.props);
+    this.unsubscribers = [];
+    this.unsubscribers.push(MessageImagePopupStore.listen(this.onMessageImageChange));
+    const footer = document.querySelector('[name=Footer]');
+    if (footer) {
+      this.footerDisplay = footer.style.display;
+    }
+  }
+  componentWillUnmount() {
+    this.unsubscribers.map(unsubscribe => unsubscribe());
+  }
+  onMessageImageChange = () => {
+    const msg = MessageImagePopupStore.msg;
+    console.log( 'MessageImagePopup.onMessageImageChange: msg', msg);
+    const imgIndex = this.imgMsgs.indexOf(msg);
+    this.setState({
+      imgIndex,
+      hidden:false
+    });
+    const footer = document.querySelector('[name=Footer]');
+    if (footer) {
+      footer.style.display = 'none';
+    }
   }
   componentDidUpdate() {
     this.node && this.node.focus();
@@ -44,7 +67,7 @@ export default class MessageImagePopup extends Component {
   downloadImage = (event) => {
     event.stopPropagation();
     event.preventDefault();
-    const { msgBody } = this.images[this.state.imgIndex];
+    const { msgBody } = this.imgMsgs[this.state.imgIndex];
     const fileName = this.getFileName(msgBody);
     const path = dialog.showSaveDialog({
       title: `download file`,
@@ -84,35 +107,30 @@ export default class MessageImagePopup extends Component {
       });
     }
   }
-  componentDidMount = () => {
-    this.images = this.getAllImages();
+  componentWillReceiveProps = (nexProps) => {
+    this.getAllImages(nexProps);
   }
-  componentWillReceiveProps = () => {
-    this.images = this.getAllImages();
-  }
-  getAllImages() {
-    const imageData = []
-    const groupedMessages = this.props.groupedMessages;
+  getAllImages(props) {
+    const imgMsgs = [];
+    const imgMsgBodies = [];
+    const groupedMessages = props.groupedMessages;
     let index = 0;
     for (const groupedMessage of groupedMessages) {
       const { messages } = groupedMessage;
       for (const msg of messages) {
-        let msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
+        let msgBody = msg.body
+        if(isJsonString(msg.body)) {
+          msgBody = JSON.parse(msgBody);
+        }
         if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER) {
-          if (msg === messageModel.msg) {
-            this.setState({
-              imgIndex: index
-            })
-          }
-          imageData.push({
-            msg,
-            msgBody
-          })
+          imgMsgs.push(msg);
+          imgMsgBodies.push(msgBody);
           index++;
         }
       }
     }
-    return imageData;
+    this.imgMsgs = imgMsgs;
+    this.imgMsgBodies = imgMsgBodies;
   }
   gotoPrevImage = (event) => {
     let prevIndex = this.state.imgIndex - 1;
@@ -125,8 +143,8 @@ export default class MessageImagePopup extends Component {
   }
   gotoNextImage = (event) => {
     let nextIndex = this.state.imgIndex + 1;
-    if (nextIndex > this.images.length - 1) {
-      nextIndex = this.images.length - 1
+    if (nextIndex > this.imgMsgs.length - 1) {
+      nextIndex = this.imgMsgs.length - 1
     }
     this.setState({
       imgIndex: nextIndex
@@ -150,6 +168,10 @@ export default class MessageImagePopup extends Component {
   }
   hide = () => {
     document.querySelector('#Center').style.zIndex = 1;
+    const footer = document.querySelector('[name=Footer]');
+    if (footer) {
+      footer.style.display = this.footerDisplay;
+    }
     this.setState({
       hidden: true
     });
@@ -164,12 +186,14 @@ export default class MessageImagePopup extends Component {
 
     const timeDescriptor = buildTimeDescriptor(referenceTime);
     const { imgIndex } = this.state;
-    if (this.state.hidden || !messageModel.msg || imgIndex === -1) {
+    if (this.state.hidden || imgIndex === -1) {
       return null;
     }
-    const { msg, msgBody } = this.images[imgIndex];
+    const msg = this.imgMsgs[imgIndex];
+    const msgBody = this.imgMsgBodies[imgIndex];
+
     const isLeftEdge = imgIndex <= 0;
-    const isRightEdge = imgIndex >= this.images.length - 1;
+    const isRightEdge = imgIndex >= this.imgMsgs.length - 1;
     const fileName = this.getFileName(msgBody);
     return (
       <div>

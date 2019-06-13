@@ -6,6 +6,7 @@ const ActionScopeMainWindow = 'main';
 
 class Actions {
   static updateProgress = ActionScopeWindow;
+  static updateImagePopup = ActionScopeWindow;
   static selectConversation = ActionScopeWindow;
   static deselectConversation = ActionScopeWindow;
   static removeConversation = ActionScopeWindow;

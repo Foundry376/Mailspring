@@ -16,14 +16,14 @@ import { remote, shell } from 'electron';
 const { dialog, Menu, MenuItem } = remote;
 import { isJsonString } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
-import chatModel from '../../../store/model';
 import { saveGroupMessages } from '../../../utils/db-utils';
-import messageModel, { FILE_TYPE } from './messageModel';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import _ from 'underscore';
-import { updateSelectedConversation } from '../../../actions/db/conversation';
+import {ChatActions} from 'chat-exports';
+import { FILE_TYPE } from '../../../utils/filetypes';
+
 let key = 0;
 
 export default class Msg extends PureComponent {
@@ -96,9 +96,8 @@ export default class Msg extends PureComponent {
     let menuItem = new MenuItem({
       label: 'Edit text',
       click: () => {
-        const { msg } = this.props;
-        chatModel.editingMessageId = msg.id;
-        this.update();
+        const state = Object.assign({}, this.state, {isEditing:true});
+        this.setState(state);
         this.menu.closePopup();
       }
     });
@@ -158,7 +157,6 @@ export default class Msg extends PureComponent {
     }
   }
   cancelEdit = () => {
-    chatModel.editingMessageId = null;
     key++;
     this.setState(Object.assign({}, this.state, { key }));
   }
@@ -246,18 +244,8 @@ export default class Msg extends PureComponent {
   }
   onClickImage = () => {
     const { msg } = this.props;
-    const msgBody = this.msgBody;
-    msg.zoomin = true;
-    if (msg.height < 1600) {
-      msg.height *= 2;
-    } else {
-      msg.height = 100;
-    }
-    messageModel.msg = msg;
-    messageModel.msgBody = msgBody;
-    messageModel.imagePopup.getAllImages();
-    messageModel.imagePopup.show();
-    this.update();
+    console.log( 'onClickImage: msg', msg);
+    ChatActions.updateImagePopup(msg);
   }
   msgFile = () => {
     const { msg } = this.props;
@@ -325,12 +313,12 @@ export default class Msg extends PureComponent {
     const { msg, conversation } = this.props;
     const { msgBody, currentUserJid } = this;
     let border = null;
-    const isEditing = msg.id === chatModel.editingMessageId;
     const isCurrentUser = msg.sender === currentUserJid;
     const color = colorForString(msg.sender);
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
+    const { isEditing } = this.state;
     // console.log('Msg.render: msg, msgBody: ', msg, msgBody);
 
     if (msgBody.deleted) {
@@ -399,7 +387,7 @@ export default class Msg extends PureComponent {
                 </div>) : (
                   isEditing ? (
                     <div>
-                      <MessageEditBar cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} conversation={conversation} onMessageSubmitted={this.onMessageSubmitted} />
+                      <MessageEditBar msg={msg} cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} conversation={conversation} onMessageSubmitted={this.onMessageSubmitted} />
                     </div>
                   ) : (
                       <div className="messageBody">

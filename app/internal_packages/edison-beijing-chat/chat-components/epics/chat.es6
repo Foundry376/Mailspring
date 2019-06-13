@@ -1,60 +1,42 @@
-import fs from 'fs'
-import uuid from 'uuid/v4';
 import { Observable } from 'rxjs/Observable';
 import xmpp from '../xmpp';
 import getDb from '../db';
-import chatModel, { saveToLocalStorage } from '../store/model';
-import { copyRxdbContact, safeUpdate, saveGroupMessages } from '../utils/db-utils';
-const { remote } = require('electron');
-const { Actions } = require('mailspring-exports');
+import { copyRxdbContact, safeUpdate } from '../utils/db-utils';
 import { ChatActions, ContactStore, E2eeStore } from 'chat-exports';
-import Sequelize from 'Sequelize';
 
-const Op = Sequelize.Op;
 
 import {
   MESSAGE_STATUS_FILE_UPLOADING,
   MESSAGE_STATUS_SENDING,
   MESSAGE_STATUS_DELIVERED,
-  MESSAGE_STATUS_RECEIVED,
 } from '../db/schemas/message';
-import { postNotification } from '../utils/electron';
 import {
   BEGIN_SEND_MESSAGE,
   RECEIVE_CHAT,
   RECEIVE_GROUPCHAT,
-  MEMBERS_CHANGE,
   MESSAGE_SENT,
   RECEIVE_PRIVATE_MESSAGE,
   RECEIVE_GROUP_MESSAGE,
   SENDING_MESSAGE,
   SUCCESS_SEND_MESSAGE,
-  SHOW_CONVERSATION_NOTIFICATION,
   receivePrivateMessage,
   receiveGroupMessage,
   receiptSent,
   successfullySentMessage,
   newMessage,
   sendingMessage,
-  showConversationNotification,
-  showConversationNotificationFail,
 } from '../actions/chat';
 import {
   UPDATE_SELECTED_CONVERSATION,
-  updateSelectedConversation,
   beginStoringConversations,
 } from '../actions/db/conversation';
 import {
-  beginStoringMessage,
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
 import { getLastMessageInfo, parseMessageBody } from '../utils/message';
 import { encryptByAES, decryptByAES, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
-import { downloadFile } from '../utils/awss3';
-import { FILE_TYPE } from '../components/chat/messages/messageModel';
-const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)
@@ -203,9 +185,9 @@ export const newTempMessageEpic = (action$, { getState }) =>
       };
       let body = parseMessageBody(payload.body);
       if (body && body.updating) {
-        message.updateTime = (new Date()).getTime() + chatModel.diffTime;
+        message.updateTime = (new Date()).getTime() + edisonChatServerDiffTime;
       } else {
-        message.sentTime = (new Date()).getTime() + chatModel.diffTime;
+        message.sentTime = (new Date()).getTime() + edisonChatServerDiffTime;
       }
       return message;
     }).map(newPayload => newMessage(newPayload));
@@ -292,14 +274,7 @@ export const updateSentMessageConversationEpic = (action$, { getState }) =>
 export const beginRetrievingMessagesEpic = action$ =>
   action$.ofType(UPDATE_SELECTED_CONVERSATION)
     .filter(({ payload }) => !!payload)
-    .map(({ payload: { jid } }) => {
-      if (chatModel.conversationJid != jid) {
-        saveGroupMessages(chatModel.groupedMessages);
-      }
-      chatModel.conversationJid = jid;
-      return retrieveSelectedConversationMessages(jid);
-
-    });
+    .map(({ payload: { jid } }) => retrieveSelectedConversationMessages(jid));
 
 const getEncrypted = (jid, body, devices, selfDevices, curJid, deviceId) => {
   let aeskey = generateAESKey();

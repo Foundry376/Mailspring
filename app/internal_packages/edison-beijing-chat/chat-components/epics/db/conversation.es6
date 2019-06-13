@@ -17,7 +17,6 @@ import {
   failedStoringOccupants,
 } from '../../actions/db/conversation';
 import { ipcRenderer } from 'electron';
-import chatModel from '../../store/model';
 import keyMannager from '../../../../../src/key-manager';
 import { queryProfile } from '../../utils/restjs';
 import { safeUpdate, safeUpsert } from '../../utils/db-utils';
@@ -125,7 +124,6 @@ const saveConversation = async (db, conv) => {
         lastMessageSenderName: conv.lastMessageSenderName,
         avatarMembers: conv.avatarMembers
       });
-      // chatModel.updateAvatars(conv.jid);
       return convInDB;
     }
   }
@@ -184,14 +182,6 @@ export const retrieveConversationsEpic = action$ =>
               )
                 .sort((a, b) => b.lastMessageTime - a.lastMessageTime)
             )
-            .filter(() => {
-              const time = new Date().getTime();
-              const keep = time - chatModel.lastUpdateConversationTime > 500;
-              if (keep) {
-                chatModel.lastUpdateConversationTime = time;
-              }
-              return keep;
-            })
             .map(conversations => {
               // update system tray's unread count
               setTimeout(() => {

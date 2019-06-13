@@ -3,15 +3,9 @@ import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import os from 'os';
 import fs from 'fs';
-import path from 'path';
-import { uploadFile } from '../../../utils/awss3';
 import { RetinaImg } from 'mailspring-component-kit';
-
-import xmpp from '../../../xmpp';
-import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
-import chatModel from '../../../store/model';
-import { FILE_TYPE } from './messageModel';
+import { FILE_TYPE } from '../../../utils/filetypes';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup'
@@ -152,107 +146,30 @@ export default class MessageEditBar extends PureComponent {
   sendMessage = () => {
     let { messageBody, occupants } = this.state;
     messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
-    const { conversation, onMessageSubmitted } = this.props;
-    const atIndex = conversation.jid.indexOf('@')
-    let jidLocal = conversation.jid.slice(0, atIndex);
+    const { conversation, onMessageSubmitted, msg } = this.props;
 
     if (!conversation) {
       return;
     }
 
-    if (this.state.files.length) {
-      this.state.files.map((file, index) => {
-        let filepath;
-        if (typeof file === 'object') {
-          let id = file.id;
-          let configDirPath = AppEnv.getConfigDirPath();
-          filepath = path.join(configDirPath, 'files', id.slice(0, 2), id.slice(2, 4), id, file.filename);
-          if (!fs.existsSync(filepath)) {
-            alert(`the selected file to be sent is not downloaded  to this computer: ${filepath}, ${file.id}, ${file.filename}`);
-            return;
-          }
-        } else {
-          filepath = file;
-        }
-        let messageId, updating = false;
+    let updating = true;
+    const messageId = msg.id;
+    let message = messageBody.trim();
+    if (message) {
+      let body = {
+        type: FILE_TYPE.TEXT,
+        timeSend: new Date().getTime(),
+        content: message,
+        email: conversation.email,
+        name: conversation.name,
+        occupants,
+        atJids: this.getAtTargetPersons(),
+        updating
+      };
 
-        if (chatModel.editingMessageId) {
-          messageId = chatModel.editingMessageId;
-          updating = true;
-          chatModel.editingMessageId = null;
-        } else {
-          messageId = uuid();
-        }
-        let message;
-        if (index === 0) {
-          message = messageBody.trim();
-        } else {
-          message = '📄';
-        }
-        let body = {
-          type: FILE_TYPE.TEXT,
-          timeSend: new Date().getTime(),
-          isUploading: true,
-          content: 'sending...',
-          email: conversation.email,
-          name: conversation.name,
-          mediaObjectId: '',
-          localFile: filepath,
-          updating
-        };
-        if (file !== filepath) {
-          body.emailSubject = file.subject;
-          body.emailMessageId = file.messageId;
-        }
-        onMessageSubmitted(conversation, JSON.stringify(body), messageId, true);
-        uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
-          if (err) {
-            alert(`upload files failed because error: ${err}, filepath: ${filepath}`);
-            return;
-          }
-          if (filename.match(/.gif$/)) {
-            body.type = FILE_TYPE.GIF;
-          } else if (filename.match(/(\.bmp|\.png|\.jpg|\.jpeg)$/)) {
-            body.type = FILE_TYPE.IMAGE;
-          } else {
-            body.type = FILE_TYPE.OTHER_FILE;
-          }
-          body.localFile = filepath;
-          body.isUploading = false;
-          body.content = message || " ";
-          body.mediaObjectId = myKey;
-          body.occupants = occupants;
-          body.atJids = this.getAtTargetPersons();
-          body.updating = updating;
-          onMessageSubmitted(conversation, JSON.stringify(body), messageId, false);
-        });
-      })
-    } else {
-      let messageId, updating = false;
-      if (chatModel.editingMessageId) {
-        messageId = chatModel.editingMessageId;
-        updating = true;
-        chatModel.editingMessageId = null;
-      } else {
-        messageId = uuid();
-      }
-      let message = messageBody.trim();
-      if (message) {
-        let body = {
-          type: FILE_TYPE.TEXT,
-          timeSend: new Date().getTime(),
-          content: message,
-          email: conversation.email,
-          name: conversation.name,
-          occupants,
-          atJids: this.getAtTargetPersons(),
-          updating
-        };
-
-        onMessageSubmitted(conversation, JSON.stringify(body), messageId, false);
-      }
-
+      onMessageSubmitted(conversation, JSON.stringify(body), messageId, false);
     }
+
     this.setState({ messageBody: '', files: [] });
     // this.refs.mention.reset();
   }

@@ -8,8 +8,7 @@ import { RetinaImg } from 'mailspring-component-kit';
 import xmpp from '../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
-import chatModel from '../../../store/model';
-import { FILE_TYPE } from './messageModel';
+import { FILE_TYPE } from '../../../utils/filetypes';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
@@ -215,11 +214,11 @@ export default class MessagesSendBar extends PureComponent {
             conversationJid: selectedConversation.jid,
             sender: appJid,
             body: JSON.stringify(data),
-            sentTime: (new Date()).getTime() + chatModel.diffTime,
+            sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
             status: MESSAGE_STATUS_RECEIVED,
           };
-          chatModel.store.dispatch(beginStoringMessage(msg));
-          chatModel.store.dispatch(updateSelectedConversation(selectedConversation));
+          chatReduxStore.dispatch(beginStoringMessage(msg));
+          chatReduxStore.dispatch(updateSelectedConversation(selectedConversation));
 
         });
       }
@@ -304,14 +303,7 @@ export default class MessagesSendBar extends PureComponent {
           occupants,
           atJids: this.getAtTargetPersons()
         };
-        let messageId, updating = false;
-        if (chatModel.editingMessageId) {
-          messageId = chatModel.editingMessageId;
-          updating = true;
-          chatModel.editingMessageId = null;
-        } else {
-          messageId = uuid();
-        }
+        const messageId = uuid();
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
       }
     }

@@ -3,11 +3,10 @@ import { copyRxdbMessage, safeUpsert } from './db-utils';
 import groupByTime from 'group-by-time';
 
 import getDb from '../db';
-import chatModel from '../store/model';
 import path from "path";
 import fs from "fs";
 import uuid from 'uuid/v4';
-import { FILE_TYPE } from '../components/chat/messages/messageModel';
+import { FILE_TYPE } from './filetypes';
 import { uploadFile } from './awss3';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../db/schemas/message';
 import { beginStoringMessage } from '../actions/db/message';
@@ -49,7 +48,7 @@ export const groupMessagesByTime = async (messages, key, kind) => {
 }
 
 export const addMessagesSenderNickname = async (messages) => {
-  const nicknames = chatModel.chatStorage.nicknames;
+  const nicknames = chatLocalStorage.nicknames;
   for (let message of messages) {
     message.senderNickname = nicknames[message.sender];
   }
@@ -152,14 +151,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     window.alert('Not support to send folder.');
     return;
   }
-  let messageId, updating = false;
-  if (chatModel.editingMessageId) {
-    messageId = chatModel.editingMessageId;
-    updating = true;
-    chatModel.editingMessageId = null;
-  } else {
-    messageId = uuid();
-  }
+  const messageId = uuid(), updating = false;
   let message;
   if (index === 0) {
     message = messageBody.trim();
@@ -213,11 +205,11 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
             conversationJid: conversation.jid,
             body,
             sender: conversation.curJid,
-            sentTime: (new Date()).getTime() + chatModel.diffTime,
+            sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
             status: MESSAGE_STATUS_UPLOAD_FAILED,
           };
-          chatModel.store.dispatch(beginStoringMessage(message));
-          chatModel.store.dispatch(updateSelectedConversation(conversation));
+          chatReduxStore.dispatch(beginStoringMessage(message));
+          chatReduxStore.dispatch(updateSelectedConversation(conversation));
           return;
         } else {
           onMessageSubmitted(conversation, body, messageId, false);

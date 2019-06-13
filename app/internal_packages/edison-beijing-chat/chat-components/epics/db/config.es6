@@ -8,8 +8,8 @@ import {
     NEW_MESSAGE,
 } from '../../actions/chat';
 import getDb from '../../db';
-import chatModel from '../../store/model';
 import { safeUpsert } from '../../utils/db-utils';
+
 const saveConfig = async config => {
     // console.log("saveLastTs3", config);
     const db = await getDb();

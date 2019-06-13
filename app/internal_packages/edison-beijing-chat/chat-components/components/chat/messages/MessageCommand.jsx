@@ -3,7 +3,6 @@ import uuid from 'uuid/v4';
 import PropTypes from 'prop-types';
 import { sendCmd2App2, getToken } from '../../../utils/appmgt';
 import { MESSAGE_STATUS_RECEIVED } from '../../../db/schemas/message';
-import chatModel from '../../../store/model';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { updateSelectedConversation } from '../../../actions/db/conversation';
 
@@ -58,11 +57,11 @@ export default class MessageCommand extends PureComponent {
         conversationJid: conversation.jid,
         sender: appJid,
         body: JSON.stringify(data),
-        sentTime: (new Date()).getTime() + chatModel.diffTime,
+        sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
         status: MESSAGE_STATUS_RECEIVED,
       };
-      chatModel.store.dispatch(beginStoringMessage(msg));
-      chatModel.store.dispatch(updateSelectedConversation(conversation));
+      chatReduxStore.dispatch(beginStoringMessage(msg));
+      chatReduxStore.dispatch(updateSelectedConversation(conversation));
     });
   }
 

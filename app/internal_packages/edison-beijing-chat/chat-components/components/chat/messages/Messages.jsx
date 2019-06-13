@@ -3,10 +3,9 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 const { Actions } = require('mailspring-exports');
 
-import { remote, shell } from 'electron';
+import { remote } from 'electron';
 const { dialog } = remote;
 import ContactAvatar from '../../common/ContactAvatar';
-import chatModel from '../../../store/model';
 import { saveGroupMessages } from '../../../utils/db-utils';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import MessageImagePopup from './MessageImagePopup';
@@ -59,6 +58,7 @@ export default class Messages extends Component {
   static timer;
 
   componentWillReceiveProps = async (nextProps, nextState) => {
+    console.log( 'Messages.componentWillReceiveProps: nextProps, this.state: ', nextProps, this.state);
     const { selectedConversation: currentConv = {} } = this.props;
     const { selectedConversation: nextConv = {} } = nextProps;
     const { jid: currentJid } = currentConv;
@@ -96,6 +96,7 @@ export default class Messages extends Component {
     this._listenToStore();
     const { selectedConversation: conv = {} } = this.props;
     await this.getRoomMembers(conv);
+    console.log( 'end Messages.componentDidMount: this.state: ', this.state);
   }
 
   _listenToStore = () => {
@@ -105,6 +106,7 @@ export default class Messages extends Component {
   }
 
   _onDataChanged = async (changedDataName) => {
+    console.log( '_onDataChanged: changedDataName: ', changedDataName);
     if (changedDataName === 'message') {
       let groupedMessages = [];
       const selectedConversation = await ConversationStore.getSelectedConversation();
@@ -166,7 +168,7 @@ export default class Messages extends Component {
     }
 
     // get self User info
-    const self = chatModel.allSelfUsers[jid];
+    const self = chatAllSelfUsers[jid];
     if (self) {
       return {
         jid,
@@ -202,7 +204,6 @@ export default class Messages extends Component {
     }
   }
   cancelEdit = () => {
-    chatModel.editingMessageId = null;
     key++;
     this.setState(Object.assign({}, this.state, { key }));
   }
@@ -267,6 +268,7 @@ export default class Messages extends Component {
       selectedConversation: { jid },
     } = this.props;
     const { groupedMessages, members, shouldDisplayMessageCounts } = this.state;
+    console.log( 'Messages.render: groupedMessages: ', groupedMessages);
     groupedMessages.map(group => group.messages.map(message => {
       members.map(member => {
         const jid = member.jid.bare || member.jid;
@@ -277,9 +279,6 @@ export default class Messages extends Component {
     }));
     if (jid === NEW_CONVERSATION) {
       return null;
-    }
-    if (groupedMessages.length) {
-      chatModel.groupedMessages = groupedMessages;
     }
 
     return (

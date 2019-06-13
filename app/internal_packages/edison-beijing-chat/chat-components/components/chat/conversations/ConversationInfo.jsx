@@ -4,9 +4,7 @@ import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
 import InfoMember from './InfoMember';
 import { remote } from 'electron';
-import _ from 'lodash';
 import RetinaImg from '../../../../../../src/components/retina-img';
-import chatModel, { saveToLocalStorage } from '../../../store/model';
 import { ChatActions, MessageStore, RoomStore } from 'chat-exports';
 import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
@@ -69,12 +67,9 @@ export default class ConversationInfo extends Component {
   }
 
   clearMessages = () => {
-    let conversation = this.props.selectedConversation;
-    let jid = conversation.jid;
-    let notifications = chatModel.chatStorage.notifications || (chatModel.chatStorage.notifications = {});
-    delete notifications[jid];
-    saveToLocalStorage();
-    MessageStore.removeMessagesByConversationJid(conversation.jid);
+    const conversation = this.props.selectedConversation;
+    const jid = conversation.jid;
+    MessageStore.removeMessagesByConversationJid(jid);
     return;
   }
 
