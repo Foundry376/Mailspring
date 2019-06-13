@@ -21,7 +21,7 @@ import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import _ from 'underscore';
-import {ChatActions} from 'chat-exports';
+import { ChatActions } from 'chat-exports';
 import { FILE_TYPE } from '../../../utils/filetypes';
 
 let key = 0;
@@ -96,7 +96,7 @@ export default class Msg extends PureComponent {
     let menuItem = new MenuItem({
       label: 'Edit text',
       click: () => {
-        const state = Object.assign({}, this.state, {isEditing:true});
+        const state = Object.assign({}, this.state, { isEditing: true });
         this.setState(state);
         this.menu.closePopup();
       }
@@ -244,7 +244,7 @@ export default class Msg extends PureComponent {
   }
   onClickImage = () => {
     const { msg } = this.props;
-    console.log( 'onClickImage: msg', msg);
+    console.log('onClickImage: msg', msg);
     ChatActions.updateImagePopup(msg);
   }
   msgFile = () => {

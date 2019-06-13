@@ -2,6 +2,7 @@ import keyMannager from '../../../../src/key-manager';
 import { register } from './restjs';
 import { loadFromLocalStorage } from '../store/configureStore';
 import { SUBMIT_AUTH } from '../actions/auth';
+import { OnlineUserStore } from 'chat-exports';
 
 export default async function registerLoginChatAccounts() {
   loadFromLocalStorage();
@@ -13,7 +14,7 @@ export default async function registerLoginChatAccounts() {
     // get chat password from cache
     if (chatAccount.userId) {
       let jid = chatAccount.userId + '@im.edison.tech';
-      chatAccount = chatAllSelfUsers[jid] || chatAccount;
+      chatAccount = OnlineUserStore.getSelfAccountById(jid) || chatAccount;
     }
     // get chat password from keychain
     chatAccount.clone = () => Object.assign({}, chatAccount);
@@ -53,7 +54,7 @@ export default async function registerLoginChatAccounts() {
       chatAccount = res.data;
       chatAccount.refreshTime = (new Date()).getTime();
       let jid = chatAccount.userId + '@im.edison.tech';
-      chatAllSelfUsers[jid] = chatAccount;
+      OnlineUserStore.addSelfAccount(jid, chatAccount);
       chatReduxStore.dispatch({
         type: SUBMIT_AUTH,
         payload: { jid, password: chatAccount.password, email: acc.emailAddress }
@@ -65,8 +66,7 @@ export default async function registerLoginChatAccounts() {
       })
     } else {
       let jid = chatAccount.userId + '@im.edison.tech';
-      const userId = chatAccount.userId;
-      chatAllSelfUsers[jid] = chatAccount;
+      OnlineUserStore.addSelfAccount(jid, chatAccount);
       chatReduxStore.dispatch({
         type: SUBMIT_AUTH,
         payload: { jid, password: chatAccount.password, email: chatAccount.email }

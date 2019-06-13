@@ -12,7 +12,7 @@ import MessageImagePopup from './MessageImagePopup';
 import Group from './Group';
 import SecurePrivate from './SecurePrivate';
 import _ from 'underscore';
-import { RoomStore, MessageStore, ConversationStore } from 'chat-exports';
+import { RoomStore, MessageStore, ConversationStore, OnlineUserStore } from 'chat-exports';
 
 let key = 0;
 
@@ -164,7 +164,7 @@ export default class Messages extends Component {
     }
 
     // get self User info
-    const self = chatAllSelfUsers[jid];
+    const self = OnlineUserStore.getSelfAccountById(jid);
     if (self) {
       return {
         jid,

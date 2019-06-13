@@ -5,8 +5,17 @@ class OnlineUserStore extends MailspringStore {
   constructor() {
     super();
     this.onlineUsers = {};
-    this.onLineAccounts = {};
+    this.onlineAccounts = {};
+    this.allSelfAccounts = {};
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
+  }
+
+  addSelfAccount(jid, account) {
+    this.allSelfAccounts[jid] = account;
+  }
+
+  getSelfAccountById(jid) {
+    return this.allSelfAccounts[jid];
   }
 
   addOnlineUser(payload) {
@@ -20,12 +29,12 @@ class OnlineUserStore extends MailspringStore {
   }
 
   addOnLineAccount(payload) {
-    this.onLineAccounts[payload.bare] = 1;
+    this.onlineAccounts[payload.bare] = 1;
     this._triggerDebounced();
   }
 
   removeOnLineAccount() {
-    this.onLineAccounts = {};
+    this.onlineAccounts = {};
     this.resetOnlineUsers();
     this._triggerDebounced();
   }

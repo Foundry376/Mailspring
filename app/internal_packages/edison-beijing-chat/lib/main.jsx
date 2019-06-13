@@ -5,7 +5,6 @@ import ChatAccountSidebarFiller from '../chat-components/components/chat/chat-ac
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
 import { init, quit } from '../chat-components/utils/log-util';
 import '../model/';
-window.chatAllSelfUsers = {};
 const osLocale = require('os-locale');
 const CHAT_COUNTRIES = [
   "CN"
