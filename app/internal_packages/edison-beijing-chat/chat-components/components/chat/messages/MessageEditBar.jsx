@@ -199,34 +199,18 @@ export default class MessageEditBar extends PureComponent {
     this.setState(Object.assign({}, this.state, { files }));
   };
 
-  onKeyDown = (e) => {
-    if (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) {
-      let files;
-      // try-catch is neccessary to prevent exception
-      // while the clipboard is containing files copied from non standard system application(e.g. webstorm)
-      try {
-        files = getClipboardFiles();
-      }
-      catch (e) {
-      }
-      if (!files || files.length === 0) {
-        return true;
-      }
-      files = this.state.files.concat(files);
-      this.setState(Object.assign({}, this.state, { files }), () => {
-        this.sendMessage();
-      });
-      e.preventDefault();
-      e.stopPropagation();
-    } else if (e.keyCode == 13 && (e.ctrlKey || e.metaKey)) {
+  onKeyUp = (e) => {
+    if (e.keyCode === 27) {
+      //ESC key
+      this.props.cancelEdit();
+      this.hide();
+    } else if (e.keyCode == 13) {
+      // enter key
       this.sendMessage();
-      e.preventDefault();
-      e.stopPropagation();
+      this.hide();
     }
-  };
-
-  clearFiles = (e) => {
-    this.setState(Object.assign({}, this.state, { files: [] }));
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   onSearchChange = (value) => {
@@ -245,16 +229,6 @@ export default class MessageEditBar extends PureComponent {
       suggestionStyle: filtered.length ? activeStyle : disableStyle
     });
   };
-  sendEmailAttachment = (files) => {
-    Actions.closePopover();
-    let state = Object.assign({}, this.state, { files });
-    this.setState(state, () => {
-      this.sendMessage();
-    });
-    let el = ReactDOM.findDOMNode(this.textarea);
-    el.value = '';
-    el.focus();
-  };
   onEmojiSelected = (value) => {
     Actions.closePopover();
     let el = ReactDOM.findDOMNode(this.textarea);
@@ -262,26 +236,6 @@ export default class MessageEditBar extends PureComponent {
     document.execCommand('insertText', false, value);
     setTimeout(() => el.focus(), 10);
   };
-  onEmailAttachmentTouch = () => {
-    let attachmentEl = ReactDOM.findDOMNode(this.attachmentRef);
-    if (!this.state.openAttachment) {
-      Actions.openPopover(<EmailAttachmentPopup sendEmailAttachment={this.sendEmailAttachment} />, {
-        direction: 'up',
-        originRect: {
-          top: attachmentEl.getBoundingClientRect().top,
-          left: attachmentEl.getBoundingClientRect().left,
-          width: 250,
-        },
-        closeOnAppBlur: true,
-        onClose: () => {
-          this.setState({ openAttachment: false });
-        },
-      });
-    } else {
-      Actions.closePopover();
-    }
-    this.setState({ openAttachment: !this.state.openAttachment });
-  }
   onEmojiTouch = () => {
     let rectPosition = ReactDOM.findDOMNode(this.emojiRef);
     if (!this.state.openEmoji) {
@@ -303,6 +257,20 @@ export default class MessageEditBar extends PureComponent {
     this.setState({ openEmoji: !this.state.openEmoji });
   }
 
+  hide = () => {
+    const state = Object.assign({}, this.state, {hidden: true});
+    this.setState(state);
+  }
+  onCancel = () => {
+    this.props.cancelEdit();
+    this.hide();
+
+  }
+  onSave = () => {
+    this.sendMessage();
+    this.hide();
+  }
+
   render() {
     // const { suggestions, suggestionStyle } = this.state;
     const inputProps = {};
@@ -311,20 +279,11 @@ export default class MessageEditBar extends PureComponent {
         this.props.createRoom();
       }
     }
+    if (this.state.hidden) {
+      return null;
+    }
     return (
-      <div className="sendBar" onDrop={this.onDrop}>
-        {/* <Mention
-            style={{ width: '100%', height: '70px' }}
-            multiLines={true}
-            onChange={this.onMessageBodyChanged}
-            onSearchChange={this.onSearchChange}
-            suggestions={suggestions}
-            suggestionStyle={suggestionStyle}
-            prefixCls="rc-editor-mention"
-            notFoundContent="could not find"
-            ref="mention"
-            prefix="@"
-          /> */}
+      <div className="sendBar">
         <TextArea
           className="messageTextField"
           placeholder="Edison Chat"
@@ -334,7 +293,7 @@ export default class MessageEditBar extends PureComponent {
           onChange={this.onMessageBodyChanged.bind(this)}
           onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
           innerRef={element => { this.textarea = element; }}
-          onKeyDown={this.onKeyDown}
+          onKeyUp={this.onKeyUp}
           {...inputProps}
         />
         <div className="edit-button-group" ref={emoji=>{this.emojiRef = emoji}}>
@@ -344,8 +303,8 @@ export default class MessageEditBar extends PureComponent {
               isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
           </Button>
-          <Button className="cancel" onClick={this.props.cancelEdit}>Cancel</Button>
-          <Button onClick={this.sendMessage}>
+          <Button className="cancel" onClick={this.onCancel}>Cancel</Button>
+          <Button onClick={this.onSave}>
             Save Changes
           </Button>
         </div>
@@ -371,10 +330,6 @@ export default class MessageEditBar extends PureComponent {
               </div>
             );
           })
-          }
-          {this.state.files.length ?
-            <div id="clear-all-files" title="clear all files from the list" onClick={this.clearFiles}> X </div> :
-            null
           }
         </div>
       </div>
