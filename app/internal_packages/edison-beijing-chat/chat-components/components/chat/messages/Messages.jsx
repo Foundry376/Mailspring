@@ -190,19 +190,6 @@ export default class Messages extends Component {
     }
     return null;
   }
-
-  onKeyDown = event => {
-    let keyCode = event.keyCode;
-    if (keyCode === 27) { // ESC
-      event.stopPropagation();
-      event.preventDefault();
-      this.cancelEdit();
-    }
-  }
-  cancelEdit = () => {
-    key++;
-    this.setState(Object.assign({}, this.state, { key }));
-  }
   update() {
     key++;
     this.setState(Object.assign({}, this.state, { key }));

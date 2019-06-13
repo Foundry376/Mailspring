@@ -5,7 +5,8 @@ import PropTypes from 'prop-types';
 import CheckIcon from '../../common/icons/CheckIcon';
 import {
   MESSAGE_STATUS_DELIVERED,
-  getStatusWeight, MESSAGE_STATUS_UPLOAD_FAILED,
+  getStatusWeight,
+  MESSAGE_STATUS_UPLOAD_FAILED,
 } from '../../../db/schemas/message';
 import { colorForString } from '../../../utils/colors';
 import { dateFormat } from '../../../utils/time';
@@ -42,33 +43,31 @@ export default class Msg extends PureComponent {
     }),
   }
 
-  state = {
-  }
-
   constructor(props) {
     super(props);
-    this.receiveProps(props)
+    this.state = this.receiveProps(props);
   }
 
   receiveProps = (props) => {
     const { msg, conversation } = props;
     const msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
-    this.msgBody = msgBody;
-    this.currentUserJid = conversation.curJid;
-    if (msg.sender === this.currentUserJid) {
+    const currentUserJid = conversation.curJid;
+    if (msg.sender === currentUserJid) {
       msgBody.path = msgBody.localFile || msgBody.path;
     } else {
       msgBody.path = msgBody.path || msgBody.localFile;
     }
     const msgImgPath = msgBody.path;
-    this.msgImgPath = msgImgPath;
+    return {
+      msgBody,
+      msgImgPath,
+      currentUserJid
+    };
   }
 
   componentWillReceiveProps = (nextProps) => {
-    // console.log('Msg.componentWillReceiveProps: nextProps: ', nextProps);
-    this.receiveProps(nextProps);
-    // console.log('Msg.componentWillReceiveProps 2: msgBody: ', this.msgBody);
-    this.update();
+    const newState = this.receiveProps(nextProps);
+    this.setState(newState);
   }
 
   isImage = (type) => {
@@ -76,14 +75,14 @@ export default class Msg extends PureComponent {
   }
 
   shouldInlineImg = () => {
-    const { msgBody } = this;
+    const { msgBody } = this.state;
     let path = msgBody.path;
     return this.isImage(msgBody.type)
       && ((path && path.match(/^https?:\/\//) || fs.existsSync(path && path.replace('file://', ''))));
   }
 
   shouldDisplayFileIcon = () => {
-    const { msgBody } = this;
+    const { msgBody } = this.state;
     return msgBody.mediaObjectId
       && msgBody.type == FILE_TYPE.OTHER_FILE
       && !this.isImage(msgBody.type)
@@ -107,7 +106,7 @@ export default class Msg extends PureComponent {
       click: () => {
         const { msg, conversation, onMessageSubmitted } = this.props;
         console.log('delete message: msg: ', msg);
-        const body = this.msgBody;
+        const body = this.state.msgBody;
         body.updating = true;
         body.deleted = true;
         onMessageSubmitted(conversation, JSON.stringify(body), msg.id, true);
@@ -157,8 +156,9 @@ export default class Msg extends PureComponent {
     }
   }
   cancelEdit = () => {
-    key++;
-    this.setState(Object.assign({}, this.state, { key }));
+    this.setState({
+      isEditing: false
+    });
   }
   update() {
     key++;
@@ -166,7 +166,7 @@ export default class Msg extends PureComponent {
   }
 
   download = () => {
-    const msgBody = this.msgBody;
+    const msgBody = this.state.msgBody;
     event.stopPropagation();
     event.preventDefault();
     const fileName = msgBody.path ? path.basename(msgBody.path) : '';
@@ -191,7 +191,7 @@ export default class Msg extends PureComponent {
 
   messageToolbar = (msg, msgBody, isFile) => {
     const { conversation } = this.props;
-    const currentUserJid = this.currentUserJid;
+    const { currentUserJid } = this.state;
 
     return (
       <div className='message-toolbar' >
@@ -223,7 +223,7 @@ export default class Msg extends PureComponent {
     )
   }
   getMessageClasses = () => {
-    const currentUserJid = this.currentUserJid;
+    const { currentUserJid } = this.state;
     const { msg } = this.props;
     const messageStyles = ['message'];
     if (msg.sender === currentUserJid) {
@@ -252,9 +252,7 @@ export default class Msg extends PureComponent {
   }
   msgFile = () => {
     const { msg } = this.props;
-    const currentUserJid = this.currentUserJid;
-    const msgBody = this.msgBody;
-    const msgImgPath = this.msgImgPath;
+    const { currentUserJid, msgBody, msgImgPath } = this.state;
 
     if (this.shouldInlineImg()) {
       return (
@@ -307,22 +305,22 @@ export default class Msg extends PureComponent {
   }
 
   onMessageSubmitted = (conversation, body, messageId, uploading) => {
-    this.msgBody = JSON.parse(body);
+    const msgBody = JSON.parse(body);
     this.props.onMessageSubmitted(conversation, body, messageId, uploading);
-    this.update();
+    this.setState({
+      msgBody,
+      isEditing: false
+    })
   }
 
   render() {
     const { msg, conversation } = this.props;
-    const { msgBody, currentUserJid } = this;
-    let border = null;
+    const { isEditing, msgImgPath, msgBody, currentUserJid } = this.state;
     const isCurrentUser = msg.sender === currentUserJid;
     const color = colorForString(msg.sender);
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
-    const { isEditing } = this.state;
-    // console.log('Msg.render: msg, msgBody: ', msg, msgBody);
 
     if (msgBody.deleted) {
       return null;
@@ -348,7 +346,7 @@ export default class Msg extends PureComponent {
           className={this.getMessageClasses() + (
             isEditing ? ' editing' : ''
           )}
-          style={{ borderColor: color, border }}
+          style={{ borderColor: color }}
         >
           <div className="messageSender">
             {this.getContactAvatar(member)}
@@ -359,7 +357,7 @@ export default class Msg extends PureComponent {
               <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
             </div>
             {
-              (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(this.msgImgPath.replace('file://', '')))) ? (
+              (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgImgPath.replace('file://', '')))) ? (
                 <div className="messageBody loading">
                   {msgBody.downloading && (
                     <div> Downloading...
@@ -389,7 +387,7 @@ export default class Msg extends PureComponent {
                   )}
                 </div>) : (
                   isEditing ? (
-                    <div>
+                    <div onKeyDown={this.onKeyDown}>
                       <MessageEditBar msg={msg} cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} conversation={conversation} onMessageSubmitted={this.onMessageSubmitted} />
                     </div>
                   ) : (
