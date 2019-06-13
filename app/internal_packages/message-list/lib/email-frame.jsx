@@ -93,7 +93,7 @@ export default class EmailFrame extends React.Component {
     if (styles) {
       doc.write(`<style>${styles}</style>`);
     }
-    doc.write(`<style> body {display: block!important;} </style>`);
+    doc.write(`<style> body {display: block!important; visibility: visible!important;} </style>`);
     if (isPlainBody) {
       doc.write(`
       <style>
