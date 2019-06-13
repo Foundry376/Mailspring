@@ -92,7 +92,8 @@ export default class MessagesPanel extends Component {
   componentDidMount = async () => {
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
-    const state = Object.assign({}, this.state, { online: navigator.onLine });
+    const contacts = await ContactStore.getContacts();
+    const state = Object.assign({}, this.state, { online: navigator.onLine, contacts });
     this.setState(state);
   }
   componentWillUnmount() {
