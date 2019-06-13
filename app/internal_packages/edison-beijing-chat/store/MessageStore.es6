@@ -510,7 +510,7 @@ const getLastMessageInfo = async (message) => {
         conversationJid: conv.jid
       },
       order: [
-        ['sentTime', 'ASC']
+        ['sentTime', 'DESC']
       ]
     });
 
