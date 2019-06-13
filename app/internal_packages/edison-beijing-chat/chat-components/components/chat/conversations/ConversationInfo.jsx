@@ -261,7 +261,7 @@ export default class ConversationInfo extends Component {
 ConversationInfo.propTypes = {
   selectedConversation: PropTypes.shape({
     jid: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
+    name: PropTypes.string,//.isRequired,
     email: PropTypes.string,//.isRequired,
     avatar: PropTypes.string,
     isGroup: PropTypes.bool.isRequired,
