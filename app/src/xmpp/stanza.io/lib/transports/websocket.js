@@ -141,7 +141,16 @@ WSConnection.prototype.connect = function (opts) {
             return;
         }
         if (wsMsg.data.indexOf('<open') >= 0) { // yazz
-            if (wsMsg.data.indexOf("serverTimestamp") > 0) {
+            let index = wsMsg.data.indexOf("clientTimestamp=");
+            if (index > 0) {
+                index = index + "clientTimestamp=".length + 1;
+                let end = wsMsg.data.indexOf("'", index);
+                let timestamp = wsMsg.data.substring(index, end);
+                index = wsMsg.data.indexOf("serverTimestamp=", index);
+                index = index + "serverTimestamp=".length + 1;
+                end = wsMsg.data.indexOf("'", index);
+                let serverTimestamp = wsMsg.data.substring(index, end);
+                self.emit('session:prebind', { serverTimestamp, timestamp });
                 setTimeout(function () { self.emit('session:started', self.config.jid) }, 20);
             }
             else if (wsMsg.data.indexOf("step='first'") > 0) {

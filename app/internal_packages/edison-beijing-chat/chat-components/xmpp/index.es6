@@ -201,7 +201,7 @@ export class XmppEx extends EventEmitter3 {
       this.ping();
     });
     this.client.on('session:prebind', (bind) => {
-      console.log( 'session:prebind: ', bind);
+      // console.log('session:prebind: ', bind);
       window.edisonChatServerDiffTime = parseInt(bind.serverTimestamp)
         - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
       console.log('session:prebind', bind, edisonChatServerDiffTime);
@@ -215,6 +215,10 @@ export class XmppEx extends EventEmitter3 {
         setTimeout(() => this.connect(), 500 + this.retryTimes * 1000);
       } else {
         this.emit('disconnected', this.connectedJid);
+        // if (this.retryTimes == 3) {
+        //   this.emit('disconnected', this.connectedJid);
+        // }
+        // setTimeout(() => this.connect(), 300000);
       }
     });
     this.client.on('request:timeout', () => {
@@ -228,7 +232,7 @@ export class XmppEx extends EventEmitter3 {
     if (this.isConnected) {
       this.client.ping("im.edison.tech");
       // console.log(`xmpp session3:ping: jid: ${this.connectedJid}, ${this.getTime()}`);
-      setTimeout(() => this.ping(), 30000);
+      setTimeout(() => this.ping(), 25000 + Math.random() * 5000);
     } else {
       console.log(`xmpp session3:ping2: jid: ${this.connectedJid}`);
     }

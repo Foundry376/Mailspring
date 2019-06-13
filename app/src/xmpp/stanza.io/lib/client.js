@@ -538,8 +538,8 @@ Client.prototype.sendIq = function (data, cb) {
             const stackError = new Error();
             console.warn(self.config.jid.bare);
             console.warn('stanza.io/lib/client.js: timeoutRequest: err:', err, stackError);
-
-            self.emit('request:timeout', err);
+            if (!(err.error.code == '503'))
+                self.emit('request:timeout', err);
             // throw err;
         }
     });

@@ -28,7 +28,6 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
       }));
   }
   let saveLastTs = (data) => {
-    console.log('_message_ts', data);
     let jidLocal = data.curJid.split('@')[0];
     let ts = AppEnv.config.get(jidLocal + "_message_ts");
     const msgTs = parseInt(data.ts)
