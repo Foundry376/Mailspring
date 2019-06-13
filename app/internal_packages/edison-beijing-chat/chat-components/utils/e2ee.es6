@@ -18,6 +18,7 @@ const iniE2ee = async () => {
     if (!deviceInfo) {
         deviceId = await generateDeviceId();
         let { pubkey, prikey } = generateKey();
+        //const isUpload = false;
         await ConfigStore.saveConfig({ key: device_info, value: JSON.stringify({ deviceId, pubkey, prikey }), time: new Date().getTime() });
     } else {
         deviceId = deviceInfo.deviceId;
@@ -72,6 +73,25 @@ export const getDeviceId = async (cb) => {
     }
     return null;
 }
+export const getDeviceInfo = async () => {
+    let config = await ConfigStore.findOne(device_info);
+    if (config) {
+        return JSON.parse(config.value);
+    }
+    return null;
+}
+export const updateFlag = async (jid) => {
+    let config = await ConfigStore.findOne(device_info);
+    let deviceInfo = null;
+    if (config) {
+        deviceInfo = JSON.parse(config.value);
+        if (!deviceInfo.users) {
+            deviceInfo.users = [];
+        }
+        deviceInfo.users.push(jid);
+        await ConfigStore.saveConfig({ key: device_info, value: JSON.stringify(deviceInfo), time: new Date().getTime() });
+    }
+}
 // export const setE2eeJid = async (jidLocal, value) => {
 //     const db = getDb();
 //     await safeUpsert(db.configs, { key: 'e2ee_' + jidLocal, value, time: Date.now() });
@@ -101,5 +121,5 @@ export const getDeviceId = async (cb) => {
 // }
 
 export default {
-    getPriKey, getPubKey, getDeviceId//, getE2ees, setE2eeJid//, delPubKey
+    getPriKey, getPubKey, getDeviceId, getDeviceInfo, updateFlag//, getE2ees, setE2eeJid//, delPubKey
 }

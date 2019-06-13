@@ -21,7 +21,7 @@ import {
   successfullyJoinedRooms,
   failedJoiningRooms,
 } from '../actions/auth';
-import { getDeviceId } from '../utils/e2ee';
+import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { RoomStore, ContactStore, E2eeStore } from 'chat-exports';
 
 /**
@@ -78,14 +78,31 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
             });
         }, 400);
         setTimeout(() => {
-          xmpp.getE2ee('', res.bare)
-            .then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
+          getDeviceInfo().then(device => {
+            if (device && (!device.users || device.users.indexOf(res.local) < 0)) {
+              xmpp.setE2ee({
+                jid: res.bare,
+                did: device.deviceId,
+                key: device.pubkey
+              }, res.bare)
+                .then(resp => {
+                  if (resp && resp.type == "result" && resp.e2ee) {
+                    updateFlag(res.local);
+                  }
+                });
+            }
+          });
         }, 600);
         setTimeout(() => {
-          let ts = AppEnv.config.get(res.local + "_message_ts");
-          xmpp.pullMessage(ts, res.bare)
+          xmpp.getE2ee('', res.bare)
             .then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
         }, 800);
+
+        setTimeout(() => {
+          let ts = AppEnv.config.get(res.local + "_message_ts");
+          xmpp.pullMessage(ts, res.bare);
+          //.then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
+        }, 1000);
         return successfulConnectionAuth(res);
       })
       .catch(error => Observable.of(failConnectionAuth(error)));

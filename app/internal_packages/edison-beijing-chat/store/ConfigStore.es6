@@ -20,7 +20,8 @@ class ConfigStore extends MailspringStore {
     saveConfig(config) {
         if (config) {
             ConfigModel.upsert(config);
-            this.refreshConfigs();
+            this.configs[config.key] = config;
+            // this.refreshConfigs();
         }
     }
 
