@@ -58,7 +58,6 @@ export default class Messages extends Component {
   static timer;
 
   componentWillReceiveProps = async (nextProps, nextState) => {
-    console.log( 'Messages.componentWillReceiveProps: nextProps, this.state: ', nextProps, this.state);
     const { selectedConversation: currentConv = {} } = this.props;
     const { selectedConversation: nextConv = {} } = nextProps;
     const { jid: currentJid } = currentConv;
@@ -67,7 +66,6 @@ export default class Messages extends Component {
     if (currentJid !== nextJid) {
       this.setState({
         shouldScrollBottom: true,
-        groupedMessages: [],
         shouldDisplayMessageCounts: MESSAGE_COUNTS_EACH_PAGE
       });
       await this.getRoomMembers(nextConv);
@@ -96,7 +94,6 @@ export default class Messages extends Component {
     this._listenToStore();
     const { selectedConversation: conv = {} } = this.props;
     await this.getRoomMembers(conv);
-    console.log( 'end Messages.componentDidMount: this.state: ', this.state);
   }
 
   _listenToStore = () => {
@@ -106,13 +103,11 @@ export default class Messages extends Component {
   }
 
   _onDataChanged = async (changedDataName) => {
-    console.log( '_onDataChanged: changedDataName: ', changedDataName);
     if (changedDataName === 'message') {
       let groupedMessages = [];
       const selectedConversation = await ConversationStore.getSelectedConversation();
       if (selectedConversation) {
         groupedMessages = await MessageStore.getGroupedMessages(selectedConversation.jid);
-
         const { groupedMessages: currentMsgs = [] } = this.state;
         const currentIds = flattenMsgIds(currentMsgs);
         const nextIds = flattenMsgIds(groupedMessages);
@@ -268,7 +263,6 @@ export default class Messages extends Component {
       selectedConversation: { jid },
     } = this.props;
     const { groupedMessages, members, shouldDisplayMessageCounts } = this.state;
-    console.log( 'Messages.render: groupedMessages: ', groupedMessages);
     groupedMessages.map(group => group.messages.map(message => {
       members.map(member => {
         const jid = member.jid.bare || member.jid;
