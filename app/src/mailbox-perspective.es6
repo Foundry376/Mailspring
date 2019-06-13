@@ -343,7 +343,10 @@ class DraftsMailboxPerspective extends MailboxPerspective {
     this.drafts = true; // The DraftListStore looks for this
     this._categories = [];
     for (const id of accountIds) {
-      this._categories.push(CategoryStore.getCategoryByRole(id, 'drafts'));
+      const cat = CategoryStore.getCategoryByRole(id, 'drafts');
+      if (cat) {
+        this._categories.push();
+      }
     }
   }
 

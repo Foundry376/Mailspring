@@ -37,6 +37,9 @@ class FocusedPerspectiveStore extends MailspringStore {
         if (tmp instanceof Label) {
           tmp = CategoryStore.getCategoryByRole(cat.accountId, 'all');
         }
+        if (!tmp) {
+          return lastUpdate;
+        }
         if (tmp.updatedAt) {
           if (tmp.updatedAt.getTime() > lastUpdate) {
             lastUpdate = tmp.updatedAt;
@@ -85,13 +88,14 @@ class FocusedPerspectiveStore extends MailspringStore {
       }, // TODO,
     });
   }
-  gotoChat=()=>{
+
+  gotoChat = () => {
     Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
-  }
+  };
 
   gotoAllInbox = () => {
     return this._setPerspective(MailboxPerspective.forInbox(this.sidebarAccountIds()));
-  }
+  };
 
   _isValidAccountSet(ids) {
     const accountIds = AccountStore.accountIds();
