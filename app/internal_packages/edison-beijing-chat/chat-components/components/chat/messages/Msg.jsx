@@ -17,7 +17,6 @@ import { remote, shell } from 'electron';
 const { dialog, Menu, MenuItem } = remote;
 import { isJsonString } from '../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
-import { saveGroupMessages } from '../../../utils/db-utils';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
@@ -122,7 +121,6 @@ export default class Msg extends PureComponent {
     const {
       groupedMessages
     } = this.props;
-    saveGroupMessages(groupedMessages);
   }
 
   getContactInfoByJid = jid => {

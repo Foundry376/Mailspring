@@ -5,7 +5,7 @@ import Button from '../../common/Button';
 import InfoMember from './InfoMember';
 import { remote } from 'electron';
 import RetinaImg from '../../../../../../src/components/retina-img';
-import { ChatActions, MessageStore, RoomStore } from 'chat-exports';
+import { ChatActions, MessageStore, RoomStore, ConversationStore } from 'chat-exports';
 import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
@@ -75,7 +75,7 @@ export default class ConversationInfo extends Component {
 
   hiddenNotifi = () => {
     const isHidden = !this.props.selectedConversation.isHiddenNotification;
-    safeUpdate(this.props.selectedConversation, { isHiddenNotification: isHidden });
+    ConversationStore.updateConversationByJid({ isHiddenNotification: isHidden }, this.props.selectedConversation.jid);
     this.setState({
       isHiddenNotifi: isHidden
     })

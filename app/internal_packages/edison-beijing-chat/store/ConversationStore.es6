@@ -135,6 +135,15 @@ class ConversationStore extends MailspringStore {
     this.refreshConversations();
   }
 
+  updateConversationByJid = async (data, jid) => {
+    await ConversationModel.update(data, {
+      where: {
+        jid
+      }
+    });
+    this.refreshConversations();
+  }
+
   _createGroupChatRoom = async (payload) => {
     const { contacts, roomId, name, curJid } = payload;
     const jidArr = contacts.map(contact => contact.jid).sort();

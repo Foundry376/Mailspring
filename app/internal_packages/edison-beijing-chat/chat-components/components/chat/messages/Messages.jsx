@@ -1,12 +1,10 @@
 import path from 'path';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-const { Actions } = require('mailspring-exports');
 
 import { remote } from 'electron';
 const { dialog } = remote;
 import ContactAvatar from '../../common/ContactAvatar';
-import { saveGroupMessages } from '../../../utils/db-utils';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import MessageImagePopup from './MessageImagePopup';
 import Group from './Group';
@@ -130,7 +128,6 @@ export default class Messages extends Component {
     const {
       groupedMessages
     } = this.state;
-    saveGroupMessages(groupedMessages);
   }
 
   messagesTopBar = null;

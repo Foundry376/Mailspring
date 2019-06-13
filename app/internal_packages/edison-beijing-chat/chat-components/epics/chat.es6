@@ -1,7 +1,5 @@
 import { Observable } from 'rxjs/Observable';
 import xmpp from '../xmpp';
-import getDb from '../db';
-import { safeUpdate } from '../utils/db-utils';
 import { ChatActions, ContactStore, E2eeStore } from 'chat-exports';
 
 
@@ -51,12 +49,6 @@ export const successSendMessageEpic = action$ =>
 
 export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
-    // .map(
-    //   ({ payload }) => {
-    //     const db = getDb();
-    //     return { db, payload }
-    //   }
-    // )//yazzzzz
     .mergeMap(({ payload }) => {
       if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
         let occupants = payload.conversation.occupants;

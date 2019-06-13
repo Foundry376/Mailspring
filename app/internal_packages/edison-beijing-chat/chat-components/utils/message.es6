@@ -1,7 +1,5 @@
 import { isImageFilePath, isJsonStr } from './stringUtils';
 import groupByTime from 'group-by-time';
-
-import getDb from '../db';
 import path from "path";
 import fs from "fs";
 import uuid from 'uuid/v4';
