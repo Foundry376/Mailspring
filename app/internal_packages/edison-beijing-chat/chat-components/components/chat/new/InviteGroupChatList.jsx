@@ -11,7 +11,7 @@ export default class InviteGroupChatList extends Component {
     contacts: PropTypes.arrayOf(PropTypes.shape({
       jid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      email: PropTypes.string.isRequired,
+      email: PropTypes.string,
       avatar: PropTypes.string
     })),
     selectedContacts: PropTypes.arrayOf(PropTypes.shape({

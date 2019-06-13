@@ -106,6 +106,7 @@ class RoomStore extends MailspringStore {
   }
 
   onMembersChange = async (payload) => {
+    console.log( 'onMembersChange: payload: ', payload);
     const nicknames = chatLocalStorage.nicknames;
     const fromjid = payload.userJid;
     const fromcontact = await ContactStore.findContactByJid(fromjid);
@@ -140,7 +141,7 @@ class RoomStore extends MailspringStore {
       type: 'memberschange'
     }
     const msg = {
-      id: uuid(),
+      id: payload.id,
       conversationJid: payload.from.bare,
       sender: fromjid,
       body: JSON.stringify(body),
