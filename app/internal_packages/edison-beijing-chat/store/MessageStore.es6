@@ -1,5 +1,4 @@
 import MailspringStore from 'mailspring-store';
-const { Actions } = require('mailspring-exports');
 import { ChatActions, RoomStore, ConversationStore, ContactStore } from 'chat-exports';
 import { encrypte, decrypte } from '../chat-components/utils/rsa';
 import { encryptByAES, decryptByAES, generateAESKey } from '../chat-components/utils/aes';
@@ -199,10 +198,10 @@ class MessageStore extends MailspringStore {
       msgBody.downloading = true;
       downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
         if (fs.existsSync(thumbPath)) {
-          Actions.updateDownloadPorgress(msgBody.thumbObjectId);
+          ChatActions.updateDownloadPorgress(msgBody.thumbObjectId);
           downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
             if (fs.existsSync(thumbPath)) {
-              Actions.updateDownloadPorgress(msgBody.mediaObjectId);
+              ChatActions.updateDownloadPorgress(msgBody.mediaObjectId);
             }
           });
         }

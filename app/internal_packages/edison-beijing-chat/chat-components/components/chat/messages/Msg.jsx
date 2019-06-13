@@ -7,11 +7,11 @@ import {
   MESSAGE_STATUS_DELIVERED,
   getStatusWeight,
   MESSAGE_STATUS_UPLOAD_FAILED,
-} from '../../../db/schemas/message';
+} from '../../../../model/Message';
 import { colorForString } from '../../../utils/colors';
 import { dateFormat } from '../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
-const { Actions, AttachmentStore } = require('mailspring-exports');
+const { AttachmentStore } = require('mailspring-exports');
 
 import { remote, shell } from 'electron';
 const { dialog, Menu, MenuItem } = remote;
@@ -114,7 +114,7 @@ export default class Msg extends PureComponent {
     });
     this.menu.append(menuItem);
 
-    this.unlisten = Actions.updateDownloadPorgress.listen(this.update, this);
+    this.unlisten = ChatActions.updateDownloadPorgress.listen(this.update, this);
   }
 
   componentWillUnmount() {
@@ -347,9 +347,9 @@ export default class Msg extends PureComponent {
           )}
           style={{ borderColor: color }}
         >
-          {msgBody.type !=='memberschange' ? <div className="messageSender">
+          {msgBody.type !== 'memberschange' ? <div className="messageSender">
             {this.getContactAvatar(member)}
-          </div> : null }
+          </div> : null}
           <div className="messageContent">
             <div>
               <span className="username">{senderName}</span>
