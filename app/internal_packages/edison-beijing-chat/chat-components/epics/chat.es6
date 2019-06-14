@@ -19,9 +19,6 @@ import {
   sendingMessage,
 } from '../actions/chat';
 import {
-  UPDATE_SELECTED_CONVERSATION,
-} from '../actions/db/conversation';
-import {
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
 import { getLastMessageInfo, parseMessageBody } from '../utils/message';
@@ -121,6 +118,7 @@ export const sendMessageEpic = action$ =>
       const action = sendingMessage(message);
       let payload = message;
       if (!payload.isUploading) {
+        console.log( 'xmpp.sendMessage: ', payload);
         xmpp.sendMessage(payload, payload.curJid);
       }
       return action;
@@ -163,6 +161,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
     }).mergeMap(message => {
     delete message.ts;
     delete message.curJid;
+    console.log( 'MessageStore.saveMessagesAndRefresh: ', message);
     return Observable.fromPromise(MessageStore.saveMessagesAndRefresh([message]))
       .map(result => newMessage(message))
   })

@@ -75,6 +75,27 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
     RoomStore.onMembersChange(data);
   });
 
+  xmpp.on('message:error', async data => {
+    console.log(' xmpp.on message:error: ', data);
+    debugger;
+    if (data.error && data.error.code == 403 && data.id) {
+      let msgInDb = await MessageStore.getMessageById(data.id+'$'+data.from.bare);
+      console.log(' xmpp.on message:error: msgInDb: ', msgInDb);
+      if (!msgInDb) {
+        return;
+      }
+      const msg = msgInDb.get({plain:true});
+      console.log(' xmpp.on message:error: msg: ', msg);
+      let body = msg.body;
+      body = JSON.parse(body);
+      body.content = 'You can not send message to this conversation';
+      body.type = 'error403';
+      body = JSON.stringify(body);
+      msg.body = body;
+      MessageStore.saveMessagesAndRefresh([msg])
+    }
+  });
+
   return next => action => next(action);
 };
 

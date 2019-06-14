@@ -1,9 +1,9 @@
 import MailspringStore from 'mailspring-store';
-import { ChatActions, RoomStore, ConversationStore, ContactStore } from 'chat-exports';
-import { encrypte, decrypte } from '../chat-components/utils/rsa';
-import { encryptByAES, decryptByAES, generateAESKey } from '../chat-components/utils/aes';
+import { ChatActions, RoomStore, ConversationStore, ContactStore, messageModel } from 'chat-exports';
+import { decrypte } from '../chat-components/utils/rsa';
+import { decryptByAES } from '../chat-components/utils/aes';
 import { downloadFile } from '../chat-components/utils/awss3';
-import { isImageFilePath, isJsonStr } from '../chat-components/utils/stringUtils';
+import { isJsonStr } from '../chat-components/utils/stringUtils';
 import {
   groupMessagesByTime,
   addMessagesSenderNickname,
@@ -40,6 +40,14 @@ class MessageStore extends MailspringStore {
 
   _registerListeners() {
   }
+  getMessageById = async (id) => {
+    return await MessageModel.findOne({
+      where: {
+        id
+      }
+    });
+  }
+
 
   getGroupedMessages = () => {
     return this.groupedMessages;
