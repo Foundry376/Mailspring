@@ -8,11 +8,6 @@ export const FAIL_STORE_MESSAGE = 'FAIL_STORE_MESSAGE';
 //   'FAIL_RETRIEVE_SELECTED_CONVERSATION_MESSAGES';
 export const UPDATE_SELECTED_CONVERSATION_MESSAGES = 'UPDATE_SELECTED_CONVERSATION_MESSAGES';
 
-export const beginStoringMessage = message => ({
-  type: BEGIN_STORE_MESSAGE,
-  payload: message
-});
-
 export const successfullyStoredMessage = message => {
   return {
     type: SUCCESS_STORE_MESSAGE,

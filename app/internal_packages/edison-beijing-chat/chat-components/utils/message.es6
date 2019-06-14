@@ -6,9 +6,7 @@ import uuid from 'uuid/v4';
 import { FILE_TYPE } from './filetypes';
 import { uploadFile } from './awss3';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../model/Message';
-import { beginStoringMessage } from '../actions/db/message';
-import { updateSelectedConversation } from '../actions/db/conversation';
-import { ProgressBarStore } from 'chat-exports';
+import { ProgressBarStore, MessageStore } from 'chat-exports';
 
 var thumb = require('node-thumbnail').thumb;
 
@@ -161,8 +159,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
             sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
             status: MESSAGE_STATUS_UPLOAD_FAILED,
           };
-          chatReduxStore.dispatch(beginStoringMessage(message));
-          // chatReduxStore.dispatch(updateSelectedConversation(conversation));
+          MessageStore.saveMessagesAndRefresh([message]);
           return;
         } else {
           onMessageSubmitted(conversation, body, messageId, false);
