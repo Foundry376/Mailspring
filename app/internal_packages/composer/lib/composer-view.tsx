@@ -246,9 +246,14 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   };
 
   _shouldAcceptDrop = event => {
+    // If the drag was initiated within Slate, let Slate handle it by falling through
+    // and not preventing default. Slate can drag-drop image (void) nodes on it's own.
+    if (event.dataTransfer.types.includes('application/x-slate-fragment')) {
+      return false;
+    }
+
     // Ensure that you can't pick up a file and drop it on the same draft
     const nonNativeFilePath = this._nonNativeFilePathForDrop(event);
-
     const hasNativeFile = event.dataTransfer.types.includes('Files');
     const hasNonNativeFilePath = nonNativeFilePath !== null;
 
@@ -445,7 +450,7 @@ const AttachFileButton = (props: { onClick: () => void }) => (
   <button
     tabIndex={-1}
     className="btn btn-toolbar btn-attach"
-    style={{ order: 50 }}
+    style={{ order: 0 }}
     title={localized('Attach File')}
     onClick={props.onClick}
   >

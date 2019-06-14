@@ -249,18 +249,17 @@ export default class WindowEventHandler {
   // Important: even though we don't do anything here, we need to catch the
   // drop event to prevent the browser from navigating the to the "url" of the
   // file and completely leaving the app.
-  onDrop = event => {
+  onDrop = (event: DragEvent) => {
     event.preventDefault();
     event.stopPropagation();
   };
 
-  onDragOver = event => {
-    event.preventDefault();
-    event.stopPropagation();
+  onDragOver = (event: DragEvent) => {
+    event.dataTransfer.dropEffect = 'none';
   };
 
-  resolveHref(el) {
-    if (!el) {
+  resolveHref(el: EventTarget) {
+    if (!el || !(el instanceof HTMLElement)) {
       return null;
     }
     const closestHrefEl = el.closest('[href]');
