@@ -47,12 +47,12 @@
     height: 100%;
     &:hover {
       &::-webkit-scrollbar {
-        display: initial;
-        width: 4px;
+        visibility: visible;
       }
     }
     &::-webkit-scrollbar {
-      display: none;
+      width: 4px;
+      visibility: hidden;
     }
     &::-webkit-scrollbar-thumb {
       -webkit-border-radius: 2px;
@@ -158,6 +158,18 @@
     font-size: 12px;
     &:hover .message-toolbar {
       display: flex;
+    }
+  }
+
+  .message.system-event {
+    padding-left: 0;
+    text-align: center;
+    .username {
+      display: none;
+    }
+    .text-content {
+      text-align: center;
+      color: @gray;
     }
   }
 

@@ -336,17 +336,22 @@ export default class Msg extends PureComponent {
         getContactAvatar={this.getContactAvatar}
         key={msg.id} />
     } else {
+      const isSystemEvent = ['error403', 'memberschange'].includes(msgBody.type);
       return (
         <div
           key={msg.id}
-          className={this.getMessageClasses() + (
-            isEditing ? ' editing' : ''
-          )}
+          className={
+            this.getMessageClasses()
+            + (isEditing ? ' editing' : '')
+            + (isSystemEvent ? ' system-event' : '')
+          }
           style={{ borderColor: color }}
         >
-          {(msgBody.type !== 'memberschange' &&  msgBody.type !== 'error403') ? <div className="messageSender">
-            {this.getContactAvatar(member)}
-          </div> : null}
+          {!isSystemEvent ? (
+            <div className="messageSender">
+              {this.getContactAvatar(member)}
+            </div>
+          ) : null}
           <div className="messageContent">
             <div>
               <span className="username">{senderName}</span>
