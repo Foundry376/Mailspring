@@ -284,10 +284,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
             }}
             onDrop={(e: any, editor, next) => {
               if (onDrop) onDrop(e as React.DragEvent<any>);
-              if (!e.isPropagationStopped()) {
-                console.log('Running default darg drop');
-                next();
-              }
+              if (!e.isPropagationStopped()) next();
             }}
             onCut={this.onCut}
             onCopy={this.onCopy}

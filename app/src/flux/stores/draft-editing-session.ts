@@ -158,7 +158,7 @@ export class DraftEditingSession extends MailspringStore {
 
   teardown() {
     this.stopListeningToAll();
-    this.changes.cancelCommit();
+    this.changes.clearDelayedCommit();
     this._destroyed = true;
     this._mountedEditor = null;
   }

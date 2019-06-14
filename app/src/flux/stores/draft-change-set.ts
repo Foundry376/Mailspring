@@ -1,5 +1,4 @@
 import EventEmitter from 'events';
-import { Message } from '../models/message';
 
 const MetadataChangePrefix = 'metadata.';
 
@@ -29,13 +28,14 @@ export class DraftChangeSet extends EventEmitter {
     pluginMetadata?: number;
   } = {};
   _lastCommitTime = 0;
+  _commitPromise: Promise<any> = null;
 
   constructor(callbacks) {
     super();
     this.callbacks = callbacks;
   }
 
-  cancelCommit() {
+  clearDelayedCommit() {
     if (this._timer) {
       clearTimeout(this._timer);
       this._timerStarted = null;
@@ -48,9 +48,9 @@ export class DraftChangeSet extends EventEmitter {
       changes.pristine = false;
 
       // update the per-attribute flags that track our dirty state
-      for (const key of Object.keys(changes)) this._lastModifiedTimes[key] = Date.now();
-      if (changes.bodyEditorState) this._lastModifiedTimes.body = Date.now();
-      if (changes.body) this._lastModifiedTimes.bodyEditorState = Date.now();
+      for (const key of Object.keys(changes)) this._lastModifiedTimes[key] = performance.now();
+      if (changes.bodyEditorState) this._lastModifiedTimes.body = performance.now();
+      if (changes.body) this._lastModifiedTimes.bodyEditorState = performance.now();
       this.debounceCommit();
     }
 
@@ -58,7 +58,7 @@ export class DraftChangeSet extends EventEmitter {
   }
 
   addPluginMetadata(pluginId, metadata) {
-    this._lastModifiedTimes.pluginMetadata = Date.now();
+    this._lastModifiedTimes.pluginMetadata = performance.now();
     this.callbacks.onAddChanges({ [`${MetadataChangePrefix}${pluginId}`]: metadata });
     this.debounceCommit();
   }
@@ -82,15 +82,29 @@ export class DraftChangeSet extends EventEmitter {
     if (this._timer && now - this._timerStarted < SaveAfterIdleSlushMSec) {
       return;
     }
-    this.cancelCommit();
+    this.clearDelayedCommit();
     this._timerStarted = now;
     this._timer = setTimeout(() => this.commit(), SaveAfterIdleMSec);
   }
 
+  /*
+  The `commit` method flushes the changes from the editor to SQLite. It's extremely important
+  that this method does not resolve until everything has been saved. However:
+
+  - A commit (triggered by a timer) may already be running when this function is called.
+    We may not need to save again, but we need to block until that save completes.
+  */
   async commit() {
-    if (this.dirtyFields().length === 0) return;
-    if (this._timer) clearTimeout(this._timer);
-    await this.callbacks.onCommit();
-    this._lastCommitTime = Date.now();
+    if (this._commitPromise) {
+      await this._commitPromise;
+    }
+
+    if (this.dirtyFields().length > 0) {
+      this.clearDelayedCommit();
+      this._commitPromise = this.callbacks.onCommit();
+      await this._commitPromise;
+      this._lastCommitTime = performance.now();
+      this._commitPromise = null;
+    }
   }
 }
