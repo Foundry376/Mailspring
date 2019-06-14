@@ -4,6 +4,7 @@ import messages from './Message';
 import e2ees from './E2ee';
 import rooms from './Room';
 import configs from './Config';
+import userCache from './UserCache';
 
 export default {
   contacts,
@@ -11,5 +12,6 @@ export default {
   messages,
   e2ees,
   rooms,
-  configs
+  configs,
+  userCache
 };
