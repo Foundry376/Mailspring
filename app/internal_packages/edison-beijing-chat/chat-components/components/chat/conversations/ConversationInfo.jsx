@@ -23,6 +23,14 @@ export default class ConversationInfo extends Component {
     }
   }
 
+  _listenToStore = () => {
+    this._unsub = RoomStore.listen(this.refreshRoomMembers);
+  }
+
+  componentWillUnmount() {
+    this._unsub();
+  }
+
   removeMember = async member => {
     const conversation = this.props.selectedConversation;
     if (member.affiliation === 'owner') {
@@ -40,11 +48,15 @@ export default class ConversationInfo extends Component {
   };
 
   componentDidMount() {
+    this._listenToStore();
     this.refreshRoomMembers();
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.selectedConversation.jid !== this.props.selectedConversation.jid) {
+      this.setState({
+        members: []
+      });
       this.refreshRoomMembers(nextProps);
     }
   }
@@ -104,7 +116,6 @@ export default class ConversationInfo extends Component {
         await Promise.all(contacts.map(contact => (
           xmpp.addMember(selectedConversation.jid, contact.jid, selectedConversation.curJid)
         )));
-        this.refreshRoomMembers();
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
@@ -213,7 +224,7 @@ export default class ConversationInfo extends Component {
             ) : null
           }
           {
-            conversation.isGroup && !loadingMembers && ([
+            conversation.isGroup && ([
               roomMembers && roomMembers.map(member => {
                 return (
                   <InfoMember conversation={conversation}

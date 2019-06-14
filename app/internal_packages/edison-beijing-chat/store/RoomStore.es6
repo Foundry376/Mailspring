@@ -156,6 +156,7 @@ class RoomStore extends MailspringStore {
     };
     this.refreshRoomMember(payload.from.bare, payload.curJid, true);
     MessageStore.saveMessagesAndRefresh([msg]);
+    this.trigger();
     return;
   }
 }
