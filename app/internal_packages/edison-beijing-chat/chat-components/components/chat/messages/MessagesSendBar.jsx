@@ -218,7 +218,7 @@ export default class MessagesSendBar extends PureComponent {
             status: MESSAGE_STATUS_RECEIVED,
           };
           chatReduxStore.dispatch(beginStoringMessage(msg));
-          chatReduxStore.dispatch(updateSelectedConversation(selectedConversation));
+          // chatReduxStore.dispatch(updateSelectedConversation(selectedConversation));
 
         });
       }

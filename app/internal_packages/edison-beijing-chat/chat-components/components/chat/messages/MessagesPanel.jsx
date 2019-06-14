@@ -277,7 +277,7 @@ export default class MessagesPanel extends Component {
             status: MESSAGE_STATUS_UPLOAD_FAILED,
           };
           chatReduxStore.dispatch(beginStoringMessage(message));
-          chatReduxStore.dispatch(updateSelectedConversation(conversation));
+          // chatReduxStore.dispatch(updateSelectedConversation(conversation));
           return;
         } else {
           onMessageSubmitted(conversation, body, messageId, false);

@@ -10,15 +10,9 @@ import {
 } from '../../model/Message';
 import {
   BEGIN_SEND_MESSAGE,
-  RECEIVE_CHAT,
-  RECEIVE_GROUPCHAT,
   MESSAGE_SENT,
-  RECEIVE_PRIVATE_MESSAGE,
-  RECEIVE_GROUP_MESSAGE,
   SENDING_MESSAGE,
   SUCCESS_SEND_MESSAGE,
-  receivePrivateMessage,
-  receiveGroupMessage,
   receiptSent,
   successfullySentMessage,
   newMessage,
@@ -26,7 +20,6 @@ import {
 } from '../actions/chat';
 import {
   UPDATE_SELECTED_CONVERSATION,
-  beginStoringConversations,
 } from '../actions/db/conversation';
 import {
   retrieveSelectedConversationMessages,
@@ -197,10 +190,10 @@ export const convertSentMessageEpic = action$ =>
     .delay(500) // need this delay to combat super fast network
     .map(newPayload => newMessage(newPayload));
 
-export const beginRetrievingMessagesEpic = action$ =>
-  action$.ofType(UPDATE_SELECTED_CONVERSATION)
-    .filter(({ payload }) => !!payload)
-    .map(({ payload: { jid } }) => retrieveSelectedConversationMessages(jid));
+// export const beginRetrievingMessagesEpic = action$ =>
+//   action$.ofType(UPDATE_SELECTED_CONVERSATION)
+//     .filter(({ payload }) => !!payload)
+//     .map(({ payload: { jid } }) => retrieveSelectedConversationMessages(jid));
 
 const getEncrypted = (jid, body, devices, selfDevices, curJid, deviceId) => {
   let aeskey = generateAESKey();

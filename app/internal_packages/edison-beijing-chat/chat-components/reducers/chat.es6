@@ -17,8 +17,8 @@ export default function chatReducer(state = initialState, { type, payload }) {
   switch (type) {
     case UPDATE_CONVERSATIONS:
       return Object.assign({}, state, { conversations: payload });
-    case UPDATE_SELECTED_CONVERSATION:
-      return Object.assign({}, state, { selectedConversation: payload });
+    // case UPDATE_SELECTED_CONVERSATION:
+    //   return Object.assign({}, state, { selectedConversation: payload });
     case UPDATE_SELECTED_CONVERSATION_MESSAGES:
       return Object.assign({}, state, { groupedMessages: payload });
     default:

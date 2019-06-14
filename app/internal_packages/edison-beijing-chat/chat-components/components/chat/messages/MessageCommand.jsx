@@ -61,7 +61,7 @@ export default class MessageCommand extends PureComponent {
         status: MESSAGE_STATUS_RECEIVED,
       };
       chatReduxStore.dispatch(beginStoringMessage(msg));
-      chatReduxStore.dispatch(updateSelectedConversation(conversation));
+      // chatReduxStore.dispatch(updateSelectedConversation(conversation));
     });
   }
 
