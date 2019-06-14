@@ -23,4 +23,4 @@ UserCache.init({
     modelName: 'usercache'
   });
 UserCache.sync();
-db.usercache = UserCache;
+db.userCache = UserCache;
