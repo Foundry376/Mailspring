@@ -1,12 +1,18 @@
 import { Emitter, Disposable, CompositeDisposable } from 'event-kit';
 
+type CommandCallback = (event: CustomEvent) => void;
+
 export default class CommandRegistry {
   emitter = new Emitter();
   listenerCounts = {};
   listenerCountChanges = {};
   pendingEmit: boolean = false;
 
-  add(target: Element, commandName: string | object, callback?) {
+  add(
+    target: Element,
+    commandName: string | { [command: string]: CommandCallback },
+    callback?: CommandCallback
+  ) {
     if (typeof commandName === 'object') {
       const commands = commandName;
       const disposable = new CompositeDisposable();

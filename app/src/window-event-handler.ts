@@ -6,35 +6,28 @@ import { localized } from './intl';
 let ComponentRegistry = null;
 let Spellchecker = null;
 
-const isTextInput = node => {
+const isIFrame = (node: EventTarget) => {
+  return node instanceof HTMLElement && node.tagName === 'IFRAME';
+};
+
+const isTextInput = (node: EventTarget) => {
   if (!node) {
     return false;
   }
-  if (node.nodeName === 'WEBVIEW') {
+  if (node instanceof Node && node.nodeName === 'WEBVIEW') {
     return true;
   }
-  if (node.nodeName === 'TEXTAREA') {
+  if (node instanceof Node && node.nodeName === 'TEXTAREA') {
     return true;
   }
   const TextInputTypes = ['text', 'email', 'url', '', 'search', 'password', 'number'];
-  if (node.nodeName === 'INPUT' && TextInputTypes.includes(node.type)) {
+  if (node instanceof HTMLInputElement && TextInputTypes.includes(node.type)) {
     return true;
   }
-  if (node.closest('[contenteditable]')) {
+  if (node instanceof HTMLElement && node.closest('[contenteditable]')) {
     return true;
   }
   return false;
-};
-
-const isSelectionPresent = () => {
-  if (
-    document.activeElement &&
-    document.activeElement.closest('[contenteditable]') &&
-    document.getSelection().toString().length === 0
-  ) {
-    return false;
-  }
-  return true;
 };
 
 // Handles low-level events related to the window.
@@ -138,8 +131,8 @@ export default class WindowEventHandler {
     };
 
     AppEnv.commands.add(document.body, {
-      'core:copy': () => (isSelectionPresent() ? webContents.copy() : null),
-      'core:cut': () => (isSelectionPresent() ? webContents.cut() : null),
+      'core:copy': e => (isIFrame(e.target) ? webContents.copy() : document.execCommand('copy')),
+      'core:cut': e => (isIFrame(e.target) ? webContents.cut() : document.execCommand('cut')),
       'core:paste': () => webContents.paste(),
       'core:paste-and-match-style': () => webContents.pasteAndMatchStyle(),
       'core:undo': e => (isTextInput(e.target) ? webContents.undo() : getUndoStore().undo()),
