@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
-const { getSequelize } = require('../chat-components/db/index');
-const sequelize = getSequelize();
+const { getdb } = require('../db/index');
+const db = getdb();
 
 export default class UserCache extends Model { }
 UserCache.init({
@@ -19,8 +19,8 @@ UserCache.init({
     type: Sequelize.JSON,
   },
 }, {
-    sequelize,
-    modelName: 'configs'
+    sequelize: db,
+    modelName: 'usercache'
   });
 UserCache.sync();
-sequelize.configs = UserCache;
+db.usercache = UserCache;
