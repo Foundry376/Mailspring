@@ -1,6 +1,8 @@
 import MailspringStore from 'mailspring-store';
 import ContactModel from '../model/Contact';
 import {jidbare } from '../chat-components/utils/jid';
+import _ from 'lodash';
+
 class ContactStore extends MailspringStore {
   constructor() {
     super();
@@ -9,6 +11,7 @@ class ContactStore extends MailspringStore {
 
   refreshContacts = async () => {
     this.contacts = await ContactModel.findAll();
+    this.contacts = _.uniqBy(this.contacts, 'jid');
     this.trigger();
   }
 
