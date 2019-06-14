@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
-const { getSequelize } = require('../chat-components/db/index');
-const sequelize = getSequelize();
+const { getdb } = require('../chat-components/db/index');
+const db = getdb();
 
 export default class Conversation extends Model { }
 Conversation.init({
@@ -48,9 +48,9 @@ Conversation.init({
     type: Sequelize.STRING
   }
 }, {
-    sequelize,
+    sequelize:db,
     modelName: 'conversations'
     // options
   });
 Conversation.sync();
-sequelize.conversations = Conversation;
+db.conversations = Conversation;

@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
-const { getSequelize } = require('../chat-components/db/index');
-const sequelize = getSequelize();
+const { getdb } = require('../chat-components/db/index');
+const db = getdb();
 
 export default class Config extends Model { }
 Config.init({
@@ -17,8 +17,8 @@ Config.init({
     type: Sequelize.INTEGER,
   }
 }, {
-    sequelize,
+    sequelize:db,
     modelName: 'configs'
   });
 Config.sync();
-sequelize.configs = Config;
+db.configs = Config;

@@ -22,8 +22,8 @@ const STATUS_WEIGHTS = {
 
 const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
-const { getSequelize } = require('../chat-components/db/index');
-const sequelize = getSequelize();
+const { getdb } = require('../chat-components/db/index');
+const db = getdb();
 
 export const getStatusWeight = status => STATUS_WEIGHTS[status];
 
@@ -61,7 +61,7 @@ Message.init({
     allowNull: false
   },
 }, {
-    sequelize,
+    sequelize:db,
     indexes: [
       {
         name: 'conversation_jid_index',
@@ -72,4 +72,4 @@ Message.init({
     // options
   });
 Message.sync();
-sequelize.messages = Message;
+db.messages = Message;

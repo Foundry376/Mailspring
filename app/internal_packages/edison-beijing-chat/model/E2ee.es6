@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
-const { getSequelize } = require('../chat-components/db/index');
-const sequelize = getSequelize();
+const { getdb } = require('../chat-components/db/index');
+const db = getdb();
 
 export default class E2ee extends Model { }
 E2ee.init({
@@ -14,8 +14,8 @@ E2ee.init({
     allowNull: false
   }
 }, {
-    sequelize,
+    sequelize:db,
     modelName: 'e2ees'
   });
 E2ee.sync();
-sequelize.e2ees = E2ee;
+db.e2ees = E2ee;

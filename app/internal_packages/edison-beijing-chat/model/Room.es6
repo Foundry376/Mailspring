@@ -2,8 +2,8 @@ import Message from './Message';
 
 const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
-const { getSequelize } = require('../chat-components/db/index');
-const sequelize = getSequelize();
+const { getdb } = require('../chat-components/db/index');
+const db = getdb();
 
 export default class Room extends Model { }
 Room.init({
@@ -20,9 +20,9 @@ Room.init({
     type: Sequelize.JSON,
   }
 }, {
-    sequelize,
+    sequelize:db,
     modelName: 'rooms'
     // options
   });
 Room.sync();
-sequelize.rooms = Room;
+db.rooms = Room;
