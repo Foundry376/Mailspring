@@ -140,7 +140,7 @@ export default class Messages extends Component {
       // dom render spend some time, so add a timeout here.
       setTimeout(() => {
         this.messagePanelEnd.scrollIntoView();
-      }, 100)
+      }, 20)
       this.setState({ shouldScrollBottom: false });
     }
   }
