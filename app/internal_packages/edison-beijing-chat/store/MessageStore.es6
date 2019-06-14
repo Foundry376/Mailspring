@@ -56,6 +56,10 @@ class MessageStore extends MailspringStore {
   reveivePrivateChat = async (message) => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
+    if (await this._isExistInDb(message)) {
+      return;
+    }
+
     await this.processPrivateMessage(message);
     const conv = await this.storePrivateConversation(message);
     // if current selection, refresh messages
@@ -155,10 +159,24 @@ class MessageStore extends MailspringStore {
     return message;
   }
 
+  _isExistInDb = async (message) => {
+    const messageInDb = await this.getMessageById(message.id);
+    if (messageInDb) {
+      // if already exist in db, skip it
+      if (messageInDb.body === message.body) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   reveiveGroupChat = async (message) => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
-    console.log('****reveiveGroupChat', message);
+    if (await this._isExistInDb(message)) {
+      return;
+    }
+
     const conv = await this.processGroupMessage(message);
     if (conv.jid === this.conversationJid) {
       this.retrieveSelectedConversationMessages(conv.jid);
@@ -185,6 +203,7 @@ class MessageStore extends MailspringStore {
       msgBody = JSON.parse(body);
     } catch (e) {
       console.error('****downloadAndTagImageFileInMessage error:', e);
+      payload.body = '';
       return;
     }
     if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
