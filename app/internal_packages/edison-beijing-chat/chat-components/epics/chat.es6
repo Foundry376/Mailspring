@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs/Observable';
-import xmpp from '../xmpp';
+import xmpp from '../../xmpp';
 import { MessageStore, RoomStore, ContactStore, E2eeStore } from 'chat-exports';
 
 
@@ -18,11 +18,11 @@ import {
   newMessage,
   sendingMessage,
 } from '../actions/chat';
-import { getLastMessageInfo, parseMessageBody } from '../utils/message';
-import { encryptByAES, decryptByAES, generateAESKey } from '../utils/aes';
-import { encrypte, decrypte } from '../utils/rsa';
-import { getPriKey, getDeviceId } from '../utils/e2ee';
-import { isJsonStr } from '../utils/stringUtils';
+import { getLastMessageInfo, parseMessageBody } from '../../utils/message';
+import { encryptByAES, decryptByAES, generateAESKey } from '../../utils/aes';
+import { encrypte, decrypte } from '../../utils/rsa';
+import { getPriKey, getDeviceId } from '../../utils/e2ee';
+import { isJsonStr } from '../../utils/stringUtils';
 
 export const receiptSentEpic = action$ =>
   action$.ofType(MESSAGE_SENT)

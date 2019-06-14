@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import RoomModel from '../model/Room';
-import xmpp from '../chat-components/xmpp';
-import { jidlocal } from '../chat-components/utils/jid';
+import xmpp from '../xmpp';
+import { jidlocal } from '../utils/jid';
 import { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 import { MessageStore, ContactStore } from 'chat-exports';
 

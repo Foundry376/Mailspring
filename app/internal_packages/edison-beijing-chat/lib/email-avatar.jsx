@@ -1,7 +1,7 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
-import { gradientColorForString } from '../chat-components/utils/colors';
-import { getAvatarPromise, getLogo } from '../chat-components/utils/restjs';
+import { gradientColorForString } from '../utils/colors';
+import { getAvatarPromise, getLogo } from '../utils/restjs';
 import { LottieImg } from 'mailspring-component-kit';
 
 export default class EmailAvatar extends Component {

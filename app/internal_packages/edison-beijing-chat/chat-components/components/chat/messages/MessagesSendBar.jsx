@@ -5,23 +5,23 @@ import os from 'os';
 import fs from 'fs';
 import { RetinaImg } from 'mailspring-component-kit';
 
-import xmpp from '../../../xmpp';
+import xmpp from '../../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
-import { FILE_TYPE } from '../../../utils/filetypes';
+import { FILE_TYPE } from '../../../../utils/filetypes';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
 import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 import { MESSAGE_STATUS_RECEIVED } from '../../../../model/Message';
-import { sendFileMessage } from '../../../utils/message';
-import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
+import { sendFileMessage } from '../../../../utils/message';
+import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } from '../../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
-import { xmpplogin } from '../../../utils/restjs';
+import { xmpplogin } from '../../../../utils/restjs';
 const { exec } = require('child_process');
 import { MessageStore, RoomStore } from 'chat-exports';
 
-const getCaretCoordinates = require('../../../utils/textarea-caret-position');
+const getCaretCoordinates = require('../../../../utils/textarea-caret-position');
 
 const FAKE_SPACE = '\u00A0';
 

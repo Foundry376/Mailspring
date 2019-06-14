@@ -1,9 +1,9 @@
-import { iniApps, getToken } from '../chat-components/utils/appmgt';
+import { iniApps, getToken } from '../utils/appmgt';
 import { AccountStore } from 'mailspring-exports';
 import { ContactStore } from 'chat-exports';
 import path from "path";
-import { queryProfile } from '../chat-components/utils/restjs';
-import { isJsonStr } from '../chat-components/utils/stringUtils';
+import { queryProfile } from '../utils/restjs';
+import { isJsonStr } from '../utils/stringUtils';
 const sqlite = require('better-sqlite3');
 import MailspringStore from 'mailspring-store';
 

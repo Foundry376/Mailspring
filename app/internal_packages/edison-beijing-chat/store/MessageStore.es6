@@ -1,22 +1,22 @@
 import MailspringStore from 'mailspring-store';
 import { ChatActions, RoomStore, ConversationStore, ContactStore, messageModel } from 'chat-exports';
-import { decrypte } from '../chat-components/utils/rsa';
-import { decryptByAES } from '../chat-components/utils/aes';
-import { downloadFile } from '../chat-components/utils/awss3';
-import { isJsonStr } from '../chat-components/utils/stringUtils';
+import { decrypte } from '../utils/rsa';
+import { decryptByAES } from '../utils/aes';
+import { downloadFile } from '../utils/awss3';
+import { isJsonStr } from '../utils/stringUtils';
 import {
   groupMessagesByTime,
   addMessagesSenderNickname,
-} from '../chat-components/utils/message';
+} from '../utils/message';
 import ConversationModel from '../model/Conversation';
 import MessageModel, { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 import fs from 'fs';
 import _ from 'underscore';
 // TODO
 // getPriKey getDeviceId should get data from sqlite
-import { getPriKey, getDeviceId } from '../chat-components/utils/e2ee';
+import { getPriKey, getDeviceId } from '../utils/e2ee';
 const { remote } = require('electron');
-import { postNotification } from '../chat-components/utils/electron';
+import { postNotification } from '../utils/electron';
 
 const SEPARATOR = '$';
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';

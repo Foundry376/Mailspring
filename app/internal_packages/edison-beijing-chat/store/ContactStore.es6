@@ -1,6 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import ContactModel from '../model/Contact';
-import {jidbare } from '../chat-components/utils/jid';
+import {jidbare } from '../utils/jid';
 import _ from 'lodash';
 
 class ContactStore extends MailspringStore {

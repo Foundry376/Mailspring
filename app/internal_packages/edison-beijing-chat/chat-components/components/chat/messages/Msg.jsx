@@ -8,20 +8,20 @@ import {
   getStatusWeight,
   MESSAGE_STATUS_UPLOAD_FAILED,
 } from '../../../../model/Message';
-import { colorForString } from '../../../utils/colors';
-import { dateFormat } from '../../../utils/time';
+import { colorForString } from '../../../../utils/colors';
+import { dateFormat } from '../../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
 const { AttachmentStore } = require('mailspring-exports');
 
 import { remote, shell } from 'electron';
 const { dialog, Menu, MenuItem } = remote;
-import { isJsonString } from '../../../utils/stringUtils';
+import { isJsonString } from '../../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import { ChatActions } from 'chat-exports';
-import { FILE_TYPE } from '../../../utils/filetypes';
+import { FILE_TYPE } from '../../../../utils/filetypes';
 
 export default class Msg extends PureComponent {
   static propTypes = {

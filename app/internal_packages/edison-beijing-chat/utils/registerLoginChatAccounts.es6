@@ -1,7 +1,7 @@
-import keyMannager from '../../../../src/key-manager';
+import keyMannager from '../../../src/key-manager';
 import { register } from './restjs';
-import { loadFromLocalStorage } from '../store/configureStore';
-import { SUBMIT_AUTH } from '../actions/auth';
+import { loadFromLocalStorage } from '../chat-components/store/configureStore';
+import { SUBMIT_AUTH } from '../chat-components/actions/auth';
 import { OnlineUserStore } from 'chat-exports';
 
 export default async function registerLoginChatAccounts() {

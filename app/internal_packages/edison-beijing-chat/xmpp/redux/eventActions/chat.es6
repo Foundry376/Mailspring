@@ -3,7 +3,7 @@ import {
   receiveGroupchat,
   messageSent,
   membersChange,
-} from '../../../actions/chat';
+} from '../../../chat-components/actions/chat';
 
 import { RoomStore } from 'chat-exports';
 

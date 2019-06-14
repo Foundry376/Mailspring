@@ -1,6 +1,5 @@
 import MailspringStore from 'mailspring-store';
 import E2eeModel from '../model/E2ee';
-// import xmpp from '../chat-components/xmpp';
 
 class E2eeStore extends MailspringStore {
     constructor() {

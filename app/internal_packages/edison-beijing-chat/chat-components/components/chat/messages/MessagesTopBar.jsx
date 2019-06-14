@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import TopBar from '../../common/TopBar';
 import ContactAvatar from '../../common/ContactAvatar';
-import xmpp from '../../../xmpp';
+import xmpp from '../../../../xmpp';
 import GroupChatAvatar from '../../common/GroupChatAvatar';
 import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 

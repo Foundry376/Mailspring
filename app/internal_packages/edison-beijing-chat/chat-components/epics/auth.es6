@@ -1,6 +1,6 @@
 import uuid from 'uuid/v4';
 import { Observable } from 'rxjs/Observable';
-import xmpp from '../xmpp';
+import xmpp from '../../xmpp';
 import {
   SUBMIT_AUTH,
   BEGIN_CONNECTION_AUTH,
@@ -17,7 +17,7 @@ import {
   successfullyJoinedRooms,
   failedJoiningRooms,
 } from '../actions/auth';
-import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
+import { getDeviceId, getDeviceInfo, updateFlag } from '../../utils/e2ee';
 import { RoomStore, ContactStore, E2eeStore, AppsStore } from 'chat-exports';
 
 /**

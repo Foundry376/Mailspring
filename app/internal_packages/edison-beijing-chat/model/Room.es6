@@ -2,7 +2,7 @@ import Message from './Message';
 
 const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
-const { getdb } = require('../chat-components/db/index');
+const { getdb } = require('../db/index');
 const db = getdb();
 
 export default class Room extends Model { }

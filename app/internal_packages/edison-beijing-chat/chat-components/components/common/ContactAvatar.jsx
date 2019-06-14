@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { gradientColorForString } from '../../utils/colors';
-import { getAvatar, getAvatarFromCache, getProfile } from '../../utils/restjs';
+import { gradientColorForString } from '../../../utils/colors';
+import { getAvatar, getAvatarFromCache, getProfile } from '../../../utils/restjs';
 import _ from 'underscore';
-import { getMyAppById } from '../../utils/appmgt';
+import { getMyAppById } from '../../../utils/appmgt';
 import { ChatActions, OnlineUserStore } from 'chat-exports';
 
 const getInitials = name => {

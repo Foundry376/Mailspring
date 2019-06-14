@@ -22,7 +22,7 @@ const STATUS_WEIGHTS = {
 
 const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
-const { getdb } = require('../chat-components/db/index');
+const { getdb } = require('../db/index');
 const db = getdb();
 
 export const getStatusWeight = status => STATUS_WEIGHTS[status];

@@ -8,7 +8,7 @@ import KeyManager from '../../key-manager';
 import Actions from '../actions';
 import Account from '../models/account';
 import Utils from '../models/utils';
-import { removeMyApps } from '../../../internal_packages/edison-beijing-chat/chat-components/utils/appmgt';
+import { removeMyApps } from '../../../internal_packages/edison-beijing-chat/utils/appmgt';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';

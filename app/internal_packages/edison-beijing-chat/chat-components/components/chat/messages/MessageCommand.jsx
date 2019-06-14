@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import uuid from 'uuid/v4';
 import PropTypes from 'prop-types';
-import { sendCmd2App2, getToken } from '../../../utils/appmgt';
+import { sendCmd2App2, getToken } from '../../../../utils/appmgt';
 import { MESSAGE_STATUS_RECEIVED } from '../../../../model/Message';
 import {MessageStore} from 'chat-exports';
 
