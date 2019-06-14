@@ -1,6 +1,5 @@
 import MailspringStore from 'mailspring-store';
 import ConfigModel from '../model/Config';
-// import xmpp from '../chat-components/xmpp';
 
 class ConfigStore extends MailspringStore {
     constructor() {

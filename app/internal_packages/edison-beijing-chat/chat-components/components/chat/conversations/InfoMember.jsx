@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ContactAvatar from '../../common/ContactAvatar';
 import CancelIcon from '../../common/icons/CancelIcon';
-import { theme } from '../../../utils/colors';
+import { theme } from '../../../../utils/colors';
 
 const { primaryColor } = theme;
 

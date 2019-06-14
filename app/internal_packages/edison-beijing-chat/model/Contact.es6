@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const Model = Sequelize.Model;
-const { getSequelize } = require('../chat-components/db/index');
-const sequelize = getSequelize();
+const { getdb } = require('../db/index');
+const db = getdb();
 
 export default class Contact extends Model { }
 Contact.init({
@@ -28,9 +28,9 @@ Contact.init({
     defaultValue: false
   }
 }, {
-    sequelize,
+    sequelize:db,
     modelName: 'contact'
     // options
   });
 Contact.sync();
-sequelize.concatcs = Contact;
+db.concatcs = Contact;

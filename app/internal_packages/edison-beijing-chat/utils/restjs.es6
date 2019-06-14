@@ -1,4 +1,4 @@
-import keyMannager from '../../../../src/key-manager';
+import keyMannager from '../../../src/key-manager';
 
 const { get, post } = require('./httpex');
 import { getPubKey } from './e2ee';

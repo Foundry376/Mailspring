@@ -1,7 +1,7 @@
 import {
   connectionEstablished,
   connectionBroken
-} from '../../../actions/auth';
+} from '../../../chat-components/actions/auth';
 
 export const disconnected = connectionBroken;
 export const sessionStarted = data => connectionEstablished(data);

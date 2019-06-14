@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { FILE_TYPE } from '../../../utils/filetypes';
-import { buildTimeDescriptor } from '../../../utils/time';
-import { downloadFile } from '../../../utils/awss3';
-import { isJsonString } from '../../../utils/stringUtils';
+import { FILE_TYPE } from '../../../../utils/filetypes';
+import { buildTimeDescriptor } from '../../../../utils/time';
+import { downloadFile } from '../../../../utils/awss3';
+import { isJsonString } from '../../../../utils/stringUtils';
 const { dialog } = require('electron').remote;
 import { RetinaImg } from 'mailspring-component-kit';
 import {MessageImagePopupStore} from 'chat-exports';

@@ -1,10 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import uuid from 'uuid/v4';
-import { dateFormat } from '../../../utils/time';
+import { dateFormat } from '../../../../utils/time';
 import MessageCommand from './MessageCommand';
 import { beginSendingMessage } from '../../../actions/chat';
-import { FILE_TYPE } from '../../../utils/filetypes';
+import { FILE_TYPE } from '../../../../utils/filetypes';
 import { MessageStore, ContactStore } from 'chat-exports';
 
 export default class MessagePrivateApp extends PureComponent {

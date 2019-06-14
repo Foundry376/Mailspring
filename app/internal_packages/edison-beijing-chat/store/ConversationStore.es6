@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import { ChatActions, MessageStore, ContactStore } from 'chat-exports';
 import ConversationModel from '../model/Conversation';
-import xmpp from '../chat-components/xmpp';
+import xmpp from '../xmpp';
 import _ from 'underscore';
 
 export const NEW_CONVERSATION = 'NEW_CONVERSATION';

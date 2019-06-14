@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import path from "path";
 import DoneIcon from './icons/DoneIcon';
 import Button from './Button';
-import { theme } from '../../utils/colors';
+import { theme } from '../../../utils/colors';
 
 const { primaryColor } = theme;
 

@@ -6,7 +6,7 @@ import {
   dateFormatDigit,
   weekDayFormat,
   nearDays,
-} from '../../../utils/time';
+} from '../../../../utils/time';
 import Msg from './Msg';
 
 export default class Group extends PureComponent {

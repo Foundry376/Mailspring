@@ -1,4 +1,4 @@
-import { Xmpp } from '../index';
+import { Xmpp } from '..';
 import { ChatActions, MessageStore, OnlineUserStore, ConversationStore, RoomStore } from 'chat-exports';
 
 /**

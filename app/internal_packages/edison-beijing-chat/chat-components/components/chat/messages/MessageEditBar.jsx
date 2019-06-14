@@ -5,7 +5,7 @@ import os from 'os';
 import fs from 'fs';
 import { RetinaImg } from 'mailspring-component-kit';
 import TextArea from 'react-autosize-textarea';
-import { FILE_TYPE } from '../../../utils/filetypes';
+import { FILE_TYPE } from '../../../../utils/filetypes';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup'

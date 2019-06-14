@@ -1,5 +1,5 @@
 
-import keyMannager from '../../../../src/key-manager';
+import keyMannager from '../../../src/key-manager';
 const { get, post } = require('./httpex');
 let myApps = {}
 let otherApps = {}

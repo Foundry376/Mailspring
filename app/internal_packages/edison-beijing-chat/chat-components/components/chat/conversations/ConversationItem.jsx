@@ -1,11 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { buildTimeDescriptor } from '../../../utils/time';
+import { buildTimeDescriptor } from '../../../../utils/time';
 import ContactAvatar from '../../common/ContactAvatar';
 import GroupChatAvatar from '../../common/GroupChatAvatar';
 import Badge from './ConversationBadge';
 import { RetinaImg } from 'mailspring-component-kit';
-import { getApp, getToken } from '../../../utils/appmgt';
+import { getApp, getToken } from '../../../../utils/appmgt';
 import { ChatActions, MessageStore } from 'chat-exports';
 
 export default class ConversationItem extends PureComponent {
