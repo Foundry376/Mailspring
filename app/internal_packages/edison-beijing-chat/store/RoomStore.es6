@@ -112,7 +112,6 @@ class RoomStore extends MailspringStore {
   }
 
   onMembersChange = async (payload) => {
-    console.log('onMembersChange: payload: ', payload);
     const nicknames = chatLocalStorage.nicknames;
     const fromjid = payload.userJid;
     const fromcontact = await ContactStore.findContactByJid(fromjid);

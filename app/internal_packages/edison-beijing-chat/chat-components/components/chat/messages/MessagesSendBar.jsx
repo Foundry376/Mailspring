@@ -15,7 +15,6 @@ import EmojiPopup from '../../common/EmojiPopup';
 import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
 import { beginStoringMessage } from '../../../actions/db/message';
 import { MESSAGE_STATUS_RECEIVED } from '../../../../model/Message';
-import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
 import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';

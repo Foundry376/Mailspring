@@ -26,7 +26,6 @@ import https from "https";
 import http from "http";
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../../model/Message';
 import { beginSendingMessage } from '../../../actions/chat';
-import { updateSelectedConversation } from '../../../actions/db/conversation';
 import { sendFileMessage } from '../../../utils/message';
 import { getToken, getMyApps } from '../../../utils/appmgt';
 import { log } from '../../../utils/log-util';

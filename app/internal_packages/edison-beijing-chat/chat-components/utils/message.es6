@@ -7,7 +7,6 @@ import { FILE_TYPE } from './filetypes';
 import { uploadFile } from './awss3';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../model/Message';
 import { beginStoringMessage } from '../actions/db/message';
-import { updateSelectedConversation } from '../actions/db/conversation';
 import { ProgressBarStore } from 'chat-exports';
 
 var thumb = require('node-thumbnail').thumb;

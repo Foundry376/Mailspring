@@ -7,7 +7,6 @@ import {
   SUCCESS_CONNECTION_AUTH,
   FAIL_CONNECTION_AUTH,
   BEGIN_ENABLE_CARBONS,
-  BEGIN_JOIN_ROOMS,
   successAuth,
   failAuth,
   beginConnectionAuth,
@@ -121,12 +120,6 @@ export const failAuthEpic = action$ => action$.ofType(FAIL_CONNECTION_AUTH)
   .map(({ payload }) => failAuth(payload));
 
 /**
- * Trigger enabling carbons after connection is established
- */
-// export const triggerEnableCarbonsEpic = action$ => action$.ofType(CONNECTION_ESTABLISHED)
-//   .mapTo(beginEnablingCarbons());
-
-/**
  * Enable carbons
  */
 export const enableCarbonsEpic = action$ => action$.ofType(BEGIN_ENABLE_CARBONS)
@@ -135,11 +128,3 @@ export const enableCarbonsEpic = action$ => action$.ofType(BEGIN_ENABLE_CARBONS)
     .catch(error => Observable.of(failedEnablingCarbons(error)))
   );
 
-/**
- * Joins xmpp rooms
- */
-export const joinRoomsEpic = action$ => action$.ofType(BEGIN_JOIN_ROOMS)
-  .mergeMap(({ payload: rooms }) => Observable.fromPromise(xmpp.joinRooms('', ...rooms))
-    .map(res => successfullyJoinedRooms(res))
-    .catch(err => Observable.of(failedJoiningRooms(err)))
-  );
