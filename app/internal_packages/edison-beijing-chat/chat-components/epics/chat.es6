@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import xmpp from '../xmpp';
-import { ChatActions, ContactStore, E2eeStore } from 'chat-exports';
+import { MessageStore, ChatActions, ContactStore, E2eeStore } from 'chat-exports';
 
 
 import {
@@ -160,7 +160,12 @@ export const newTempMessageEpic = (action$, { getState }) =>
         message.sentTime = (new Date()).getTime() + edisonChatServerDiffTime;
       }
       return message;
-    }).map(newPayload => newMessage(newPayload));
+    }).mergeMap(message => {
+    delete message.ts;
+    delete message.curJid;
+    return Observable.fromPromise(MessageStore.saveMessagesAndRefresh([message]))
+      .map(result => newMessage(message))
+  })
 
 const getAes = (keys, curJid, deviceId) => {
   if (keys) {

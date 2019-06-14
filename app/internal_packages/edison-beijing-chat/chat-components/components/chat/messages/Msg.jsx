@@ -113,7 +113,7 @@ export default class Msg extends PureComponent {
     });
     this.menu.append(menuItem);
 
-    this.unlisten = ChatActions.updateDownloadPorgress.listen(this.update, this);
+    this.unlisten = ChatActions.updateDownload.listen(this.update, this);
   }
 
   componentWillUnmount() {

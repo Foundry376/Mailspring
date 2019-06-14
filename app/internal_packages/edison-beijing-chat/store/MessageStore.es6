@@ -198,10 +198,10 @@ class MessageStore extends MailspringStore {
       msgBody.downloading = true;
       downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
         if (fs.existsSync(thumbPath)) {
-          ChatActions.updateDownloadPorgress(msgBody.thumbObjectId);
+          ChatActions.updateDownload(msgBody.thumbObjectId);
           downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
             if (fs.existsSync(thumbPath)) {
-              ChatActions.updateDownloadPorgress(msgBody.mediaObjectId);
+              ChatActions.updateDownload(msgBody.mediaObjectId);
             }
           });
         }

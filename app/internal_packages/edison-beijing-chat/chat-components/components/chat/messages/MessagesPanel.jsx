@@ -254,7 +254,9 @@ export default class MessagesPanel extends Component {
       ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
       setTimeout(() => {
-        ChatActions.updateProgress({ loading: false, finished: true, visible: false });
+        if (!ProgressBarStore.progress.loading) {
+          ChatActions.updateProgress({ loading: false, finished: true, visible: false });
+        }
       }, 3000);
       if (loadConfig.type === 'upload') {
         const onMessageSubmitted = this.props.sendMessage;

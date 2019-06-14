@@ -12,7 +12,7 @@ class Actions {
   static removeConversation = ActionScopeWindow;
   static goToPreviousConversation = ActionScopeWindow;
   static goToNextConversation = ActionScopeWindow;
-  static updateDownloadPorgress = ActionScopeWindow;
+  static updateDownload = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above
