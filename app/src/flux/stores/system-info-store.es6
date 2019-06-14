@@ -15,7 +15,7 @@ class SystemInfoStore extends MailspringStore {
     this._timer = null;
     if (AppEnv.isMainWindow()) {
       this._checkDiskStats();
-      this._timer = setInterval(this._checkDiskStats, 60 * 60 * 1000);
+      this._timer = setInterval(this._checkDiskStats, 10 * 1000);
       Actions.updateLastSystemInfoCheck.listen(this._updateLastChecked, this);
     }
   }
@@ -28,14 +28,14 @@ class SystemInfoStore extends MailspringStore {
     return this._systemInfo.diskStats;
   }
 
-  _updateLastChecked({ source = '' } = {}) {
+  _updateLastChecked = ({ source = '' } = {}) => {
     if (source) {
       this._lastChecked[source] = Date.now();
       this.trigger({ source });
     }
-  }
+  };
 
-  _checkDiskStats(cb) {
+  _checkDiskStats = cb => {
     diskuasge.check(AppEnv.getConfigDirPath(), (err, info) => {
       if (err) {
         AppEnv.reportError(err);
@@ -47,7 +47,7 @@ class SystemInfoStore extends MailspringStore {
         this.trigger();
       }
     });
-  }
+  };
 
   _mockDiskLow() {
     this._systemInfo.diskStats = { totalInBytes: 50000, availableInBytes: 1000 };
