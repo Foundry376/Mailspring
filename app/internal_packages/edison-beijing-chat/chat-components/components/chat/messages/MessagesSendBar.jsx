@@ -86,7 +86,7 @@ export default class MessagesSendBar extends PureComponent {
     suggestions: [],
     suggestionStyle: activeStyle,
     roomMembers: [],
-    occupants: [],
+    // occupants: [],
   }
   emojiRef = null;
 
@@ -119,10 +119,10 @@ export default class MessagesSendBar extends PureComponent {
 
   componentDidMount = async () => {
     const roomMembers = await this.getRoomMembers();
-    const occupants = roomMembers.map(item => item.jid.bare);
+    // const occupants = roomMembers.map(item => item.jid.bare);
     this.setState({
       roomMembers,
-      occupants
+      // occupants
     })
   }
 
@@ -251,7 +251,7 @@ export default class MessagesSendBar extends PureComponent {
   }
 
   sendMessage() {
-    let { messageBody, occupants } = this.state;
+    let { messageBody } = this.state;
     const { selectedConversation, onMessageSubmitted } = this.props;
     const atIndex = selectedConversation.jid.indexOf('@')
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
@@ -300,7 +300,7 @@ export default class MessagesSendBar extends PureComponent {
           content: message,
           email: selectedConversation.email,
           name: selectedConversation.name,
-          occupants,
+          // occupants,
           atJids: this.getAtTargetPersons()
         };
         const messageId = uuid();

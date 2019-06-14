@@ -67,7 +67,6 @@ class ConversationStore extends MailspringStore {
         avatar: null,
         isGroup: false,
         unreadMessages: 0,
-        occupants: []
       };
       this._triggerDebounced();
       return;
@@ -162,7 +161,6 @@ class ConversationStore extends MailspringStore {
   createGroupConversation = async (payload) => {
     await this._createGroupChatRoom(payload);
     const { contacts, roomId, name } = payload;
-    const jidArr = contacts.map(contact => contact.jid).sort();
     const content = '';
     const timeSend = new Date().getTime();
     const conversation = {
@@ -171,15 +169,11 @@ class ConversationStore extends MailspringStore {
       name: name,
       isGroup: true,
       unreadMessages: 0,
-      occupants: [
-        contacts[0].curJid,
-        ...jidArr
-      ],
       lastMessageTime: (new Date(timeSend)).getTime(),
       lastMessageText: content,
       lastMessageSender: contacts[0].curJid
     };
-    let avatarMembers = await Promise.all(conversation.occupants.map(occupant => ContactStore.findContactByJid(occupant)));
+    let avatarMembers = contacts;
     avatarMembers = avatarMembers.filter(contact => contact);
     avatarMembers = [avatarMembers.find(contact => contact.jid === conversation.curJid), contacts.find(contact => contact.jid !== conversation.curJid)];
     avatarMembers = [avatarMembers[0], avatarMembers[1]];
@@ -199,7 +193,6 @@ class ConversationStore extends MailspringStore {
       jid: contact.jid,
       curJid: contact.curJid,
       name: contact.name,
-      occupants: [contact.jid, contact.curJid],
       isGroup: false,
       // below is some filling to show the conversation
       unreadMessages: 0,

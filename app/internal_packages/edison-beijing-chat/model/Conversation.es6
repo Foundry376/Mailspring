@@ -32,9 +32,6 @@ Conversation.init({
     type: Sequelize.INTEGER,
     defaultValue: 0
   },
-  occupants: { // Jids of occupants
-    type: Sequelize.JSON
-  },
   avatarMembers: {
     type: Sequelize.JSON
   },

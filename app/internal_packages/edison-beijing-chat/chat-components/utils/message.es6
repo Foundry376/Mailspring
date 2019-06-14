@@ -148,7 +148,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
         if (thumbKey) {
           body.thumbObjectId = thumbKey;
         }
-        body.occupants = reactInstance.state.occupants || [];
+        // body.occupants = reactInstance.state.occupants || [];
         body.atJids = reactInstance.getAtTargetPersons && reactInstance.getAtTargetPersons() || [];
         body = JSON.stringify(body);
         if (err) {

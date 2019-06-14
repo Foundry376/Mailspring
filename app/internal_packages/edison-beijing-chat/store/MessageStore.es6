@@ -102,7 +102,6 @@ class MessageStore extends MailspringStore {
       curJid: payload.curJid,
       name: contact ? contact.name : name,
       isGroup: false,
-      occupants: [jid, payload.curJid],
       unreadMessages: unreadMessages,
       lastMessageTime,
       lastMessageText,
@@ -301,13 +300,11 @@ class MessageStore extends MailspringStore {
     };
     const convInDb = await ConversationStore.getConversationByJid(conv.jid);
     if (convInDb) {
-      conv.occupants = convInDb.occupants;
       conv.avatarMembers = convInDb.avatarMembers || [];
       if (unreadMessages) {
         conv.unreadMessages = convInDb.unreadMessages + 1;
       }
     } else {
-      conv.occupants = [];
       conv.avatarMembers = [];
     }
     const { contact, roomMembers } = await RoomStore.getMemeberInfo(conv.jid, conv.curJid, conv.lastMessageSender);

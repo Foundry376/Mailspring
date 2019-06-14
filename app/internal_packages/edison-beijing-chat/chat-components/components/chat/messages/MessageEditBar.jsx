@@ -74,7 +74,7 @@ export default class MessageEditBar extends PureComponent {
     suggestions: [],
     suggestionStyle: activeStyle,
     roomMembers: [],
-    occupants: [],
+    // occupants: [],
   }
   emojiRef = null;
 
@@ -83,10 +83,10 @@ export default class MessageEditBar extends PureComponent {
 
   componentDidMount = async () => {
     const roomMembers = await this.getRoomMembers();
-    const occupants = roomMembers.map(item => item.jid.bare);
+    // const occupants = roomMembers.map(item => item.jid.bare);
     this.setState({
       roomMembers,
-      occupants
+      // occupants
     })
     if (this.textarea) {
       this.textarea.focus();
@@ -144,7 +144,7 @@ export default class MessageEditBar extends PureComponent {
   }
 
   sendMessage = () => {
-    let { messageBody, occupants } = this.state;
+    let { messageBody } = this.state;
     messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
     const { conversation, onMessageSubmitted, msg } = this.props;
 
@@ -162,7 +162,7 @@ export default class MessageEditBar extends PureComponent {
         content: message,
         email: conversation.email,
         name: conversation.name,
-        occupants,
+        // occupants,
         atJids: this.getAtTargetPersons(),
         updating
       };
@@ -258,7 +258,7 @@ export default class MessageEditBar extends PureComponent {
   }
 
   hide = () => {
-    const state = Object.assign({}, this.state, {hidden: true});
+    const state = Object.assign({}, this.state, { hidden: true });
     this.setState(state);
   }
   onCancel = () => {
@@ -296,7 +296,7 @@ export default class MessageEditBar extends PureComponent {
           onKeyUp={this.onKeyUp}
           {...inputProps}
         />
-        <div className="edit-button-group" ref={emoji=>{this.emojiRef = emoji}}>
+        <div className="edit-button-group" ref={emoji => { this.emojiRef = emoji }}>
           <Button onClick={this.onEmojiTouch} className="emoji">
             <RetinaImg name={'emoji.svg'}
               style={{ width: 20, height: 20 }}

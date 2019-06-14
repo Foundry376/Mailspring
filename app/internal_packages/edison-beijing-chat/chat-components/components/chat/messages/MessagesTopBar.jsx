@@ -15,7 +15,6 @@ export default class MessagesTopBar extends Component {
       name: PropTypes.string,//.isRequired,
       email: PropTypes.string,//.isRequired,
       avatar: PropTypes.string,
-      occupants: PropTypes.arrayOf(PropTypes.string).isRequired,
     }),
   }
   static defaultProps = {

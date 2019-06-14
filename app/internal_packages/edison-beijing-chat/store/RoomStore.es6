@@ -76,6 +76,14 @@ class RoomStore extends MailspringStore {
     return await this.refreshRoomMember(roomId, curJid);
   }
 
+  getConversationOccupants = async (roomId, curJid) => {
+    const members = await this.getRoomMembers(roomId, curJid);
+    if (members) {
+      return members.map(m => m.jid);
+    }
+    return [];
+  }
+
   getMemeberInfo = async (roomId, curJid, memberId) => {
     const members = await this.getRoomMembers(roomId, curJid);
     if (members && members.length > 0) {

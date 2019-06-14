@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import xmpp from '../xmpp';
-import { MessageStore, ChatActions, ContactStore, E2eeStore } from 'chat-exports';
+import { MessageStore, RoomStore, ContactStore, E2eeStore } from 'chat-exports';
 
 
 import {
@@ -44,9 +44,12 @@ export const sendMessageEpic = action$ =>
   action$.ofType(BEGIN_SEND_MESSAGE)
     .mergeMap(({ payload }) => {
       if (payload.conversation.isGroup) {//yazz 区分群聊和非群聊
-        let occupants = payload.conversation.occupants;
-        return Observable.fromPromise(E2eeStore.find(occupants))
-          .map(e2ees => {
+        const conversation = payload.conversation;
+        const occupantsPromise = RoomStore.getConversationOccupants(conversation.jid, conversation.curJid);
+        return Observable.fromPromise(occupantsPromise.then(occupants => {
+          return Promise.all([E2eeStore.find(occupants), Promise.resolve(occupants)])
+        }))
+          .map(([e2ees, occupants]) => {
             let devices = [];
             if (e2ees && e2ees.length == occupants.length) {
               e2ees.forEach((e2ee => {
@@ -161,11 +164,11 @@ export const newTempMessageEpic = (action$, { getState }) =>
       }
       return message;
     }).mergeMap(message => {
-    delete message.ts;
-    delete message.curJid;
-    return Observable.fromPromise(MessageStore.saveMessagesAndRefresh([message]))
-      .map(result => newMessage(message))
-  })
+      delete message.ts;
+      delete message.curJid;
+      return Observable.fromPromise(MessageStore.saveMessagesAndRefresh([message]))
+        .map(result => newMessage(message))
+    })
 
 const getAes = (keys, curJid, deviceId) => {
   if (keys) {
