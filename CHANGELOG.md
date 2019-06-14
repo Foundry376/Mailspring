@@ -8,7 +8,7 @@ Highlights:
 
 - A new menu option, "Copy Mailbox Permalink", allows you to generate a `mailspring://` URL for a thread. Clicking this link from another application opens the thread in Mailspring. Note: this is separate from thread sharing (public links) and only works on computers with the account synced.
 
-- The composer is faster, more reliable, and uses significantly less RAM over time thanks to a new version of the SlateJS text editor. #1446, #578, #727, #773, #950, #1211, #1437
+- The composer is faster, more reliable, and uses significantly less RAM over time thanks to a new version of the SlateJS text editor. You can also drag and drop selected text and drag/copy/paste inline images. #1446, #578, #727, #773, #950, #1211, #1437
 
 Improvements:
 
@@ -46,9 +46,13 @@ Improvements:
 
 - On Windows, the font dropdowns in the composer no longer appear white-on-white in dark themes. #1500
 
+- Select-all and copy paste of email message contents now works reliably in all cases.
+
 Development:
 
 - Mailspring now uses Electron 4.2.4, which includes several security patches and minor bug fixes.
+
+- Resizing Mailspring's main window is considerably faster thanks to better use of ResizeObserver.
 
 ### 1.6.1 (4/4/2019)
 
