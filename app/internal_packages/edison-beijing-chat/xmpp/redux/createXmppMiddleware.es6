@@ -77,7 +77,6 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
 
   xmpp.on('message:error', async data => {
     console.log(' xmpp.on message:error: ', data);
-    debugger;
     if (data.error && data.error.code == 403 && data.id) {
       let msgInDb = await MessageStore.getMessageById(data.id+'$'+data.from.bare);
       console.log(' xmpp.on message:error: msgInDb: ', msgInDb);
