@@ -3,11 +3,9 @@ import { Observable } from 'rxjs/Observable';
 import xmpp from '../xmpp';
 import {
   SUBMIT_AUTH,
-  SUCCESS_AUTH,
   BEGIN_CONNECTION_AUTH,
   SUCCESS_CONNECTION_AUTH,
   FAIL_CONNECTION_AUTH,
-  CONNECTION_ESTABLISHED,
   BEGIN_ENABLE_CARBONS,
   BEGIN_JOIN_ROOMS,
   successAuth,
@@ -15,14 +13,13 @@ import {
   beginConnectionAuth,
   successfulConnectionAuth,
   failConnectionAuth,
-  beginEnablingCarbons,
   successfullyEnabledCarbons,
   failedEnablingCarbons,
   successfullyJoinedRooms,
   failedJoiningRooms,
 } from '../actions/auth';
 import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
-import { RoomStore, ContactStore, E2eeStore } from 'chat-exports';
+import { RoomStore, ContactStore, E2eeStore, AppsStore } from 'chat-exports';
 
 /**
  * Starts the authentication process by starting session creation
@@ -103,6 +100,9 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
           xmpp.pullMessage(ts, res.bare);
           //.then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
         }, 1000);
+        setTimeout(() => {
+          AppsStore.saveMyAppsAndEmailContacts(res);
+        }, 1200);
         return successfulConnectionAuth(res);
       })
       .catch(error => Observable.of(failConnectionAuth(error)));

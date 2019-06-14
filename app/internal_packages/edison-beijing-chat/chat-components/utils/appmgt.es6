@@ -57,7 +57,6 @@ export const getToken = async (userId) => {
             return await keyMannager.getAccessTokenByEmail(email);
         }
     }
-    console.log(1234567);
 }
 /**
  * initialize my apps

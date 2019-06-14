@@ -61,6 +61,7 @@ lazyLoad(`ContactStore`, 'store/ContactStore');
 lazyLoad(`OnlineUserStore`, 'store/OnlineUserStore');
 lazyLoad(`E2eeStore`, 'store/E2eeStore');
 lazyLoad(`ConfigStore`, 'store/ConfigStore');
+lazyLoad(`AppsStore`, 'store/AppsStore');
 
 // Models
 lazyLoad(`ConfigModel`, 'model/Config');

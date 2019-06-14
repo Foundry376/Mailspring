@@ -18,9 +18,6 @@ import {
   newMessage,
   sendingMessage,
 } from '../actions/chat';
-import {
-  retrieveSelectedConversationMessages,
-} from '../actions/db/message';
 import { getLastMessageInfo, parseMessageBody } from '../utils/message';
 import { encryptByAES, decryptByAES, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
