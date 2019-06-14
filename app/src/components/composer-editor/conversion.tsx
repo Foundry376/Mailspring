@@ -14,28 +14,28 @@ import {
 import React from 'react';
 
 import BaseMarkPlugins from './base-mark-plugins';
-import TemplatePlugins from './template-plugins';
+import TemplatePlugins, { VARIABLE_TYPE } from './template-plugins';
 import SpellcheckPlugins from './spellcheck-plugins';
 import UneditablePlugins, { UNEDITABLE_TYPE } from './uneditable-plugins';
 import BaseBlockPlugins, { BLOCK_CONFIG } from './base-block-plugins';
-import InlineAttachmentPlugins from './inline-attachment-plugins';
+import InlineAttachmentPlugins, { IMAGE_TYPE } from './inline-attachment-plugins';
 import MarkdownPlugins from './markdown-plugins';
 import LinkPlugins from './link-plugins';
-import EmojiPlugins from './emoji-plugins';
+import EmojiPlugins, { EMOJI_TYPE } from './emoji-plugins';
 import { Rule, ComposerEditorPlugin } from './types';
 
 export const schema = {
   inlines: {
-    templatevar: {
+    [VARIABLE_TYPE]: {
       isVoid: true,
     },
-    emoji: {
+    [EMOJI_TYPE]: {
       isVoid: true,
     },
-    uneditable: {
+    [UNEDITABLE_TYPE]: {
       isVoid: true,
     },
-    image: {
+    [IMAGE_TYPE]: {
       isVoid: true,
     },
   },

@@ -158,6 +158,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
   render() {
     return (
       <div
+        className="message-iframe-container"
         style={{ height: 0 }}
         ref={el => {
           this._iframeWrapperEl = el;

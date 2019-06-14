@@ -14,7 +14,7 @@ const EMOJI_TYPING_TYPE = 'emojitype';
 // An Inline type used for actual emoji in the editor, which we
 // display as images rather than text characters for visual consistency
 // across platforms (textual emoji suck on Windows and Linux)
-const EMOJI_TYPE = 'emoji';
+export const EMOJI_TYPE = 'emoji';
 
 // The size of the list of floating emoji options
 const MAX_EMOJI_SUGGESTIONS = 6;

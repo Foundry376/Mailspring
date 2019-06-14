@@ -290,6 +290,16 @@ export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgPr
     return <img draggable={draggable} src={src} alt="" onLoad={this._onImgLoaded} />;
   }
 
+  componentDidMount() {
+    // NOTE: This is a hack to make copy paste work in the composer when the image void node
+    // is the only selection. Waiting for https://github.com/ianstormtaylor/slate/issues/2124 fix.
+    const el = ReactDOM.findDOMNode(this);
+    const parentVoidNode = el instanceof HTMLElement && el.closest('[data-slate-void]');
+    if (parentVoidNode) {
+      parentVoidNode.removeAttribute('contenteditable');
+    }
+  }
+
   render() {
     const { className, displayName, download, ...extraProps } = this.props;
     const classes = `nylas-attachment-item image-attachment-item ${className || ''}`;
