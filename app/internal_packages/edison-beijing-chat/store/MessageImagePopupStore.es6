@@ -12,7 +12,6 @@ class MessageImagePopupStore extends MailspringStore {
   }
 
   updateImagePopup(msg) {
-    console.log( 'MessageImagePopupStore.updateImagePopup: msg', msg);
     this.msg = msg;
     this.trigger();
   }

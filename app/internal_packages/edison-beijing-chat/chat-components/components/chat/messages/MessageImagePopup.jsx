@@ -33,7 +33,6 @@ export default class MessageImagePopup extends Component {
   }
   onMessageImageChange = () => {
     const msg = MessageImagePopupStore.msg;
-    console.log( 'MessageImagePopup.onMessageImageChange: msg', msg);
     const imgIndex = this.imgMsgs.indexOf(msg);
     this.setState({
       imgIndex,

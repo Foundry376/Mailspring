@@ -199,7 +199,6 @@ export default class MessagesSendBar extends PureComponent {
     getToken(userId).then(token => {
       if (command) {
         sendCmd2App2(userId, userName, token, id, command, peerUserId, roomId, (err, data) => {
-          console.log( 'sendCmd2App2: err, data: ', err, data);
           if (err || !data || commandType !== 2) {
             return;
           }
