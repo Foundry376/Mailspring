@@ -55,7 +55,6 @@ export class EventedIFrame extends React.Component<
   };
 
   _regionId: string;
-  _ignoreNextResize: boolean;
   _searchUsub: () => void;
 
   render() {
@@ -102,7 +101,6 @@ export class EventedIFrame extends React.Component<
   setHeightQuietly(height) {
     const el = ReactDOM.findDOMNode(this) as HTMLIFrameElement;
     if (el.style.height !== `${height}px`) {
-      this._ignoreNextResize = true;
       el.style.height = `${height}px`;
     }
   }
@@ -117,7 +115,9 @@ export class EventedIFrame extends React.Component<
     const node = ReactDOM.findDOMNode(this) as HTMLIFrameElement;
     const doc =
       (node.contentDocument != null ? node.contentDocument.body : undefined) != null
-        ? node.contentDocument != null ? node.contentDocument.body : undefined
+        ? node.contentDocument != null
+          ? node.contentDocument.body
+          : undefined
         : node.contentDocument;
     const searchIndex = SearchableComponentStore.getCurrentRegionIndex(this._regionId);
     const { searchTerm } = SearchableComponentStore.getCurrentSearchData();
@@ -145,7 +145,6 @@ export class EventedIFrame extends React.Component<
     if (node.contentWindow) {
       node.contentWindow.removeEventListener('focus', this._onIFrameFocus);
       node.contentWindow.removeEventListener('blur', this._onIFrameBlur);
-      node.contentWindow.removeEventListener('resize', this._onIFrameResize);
     }
   }
 
@@ -164,9 +163,6 @@ export class EventedIFrame extends React.Component<
       if (node.contentWindow) {
         node.contentWindow.addEventListener('focus', this._onIFrameFocus);
         node.contentWindow.addEventListener('blur', this._onIFrameBlur);
-        if (this.props.onResize) {
-          node.contentWindow.addEventListener('resize', this._onIFrameResize);
-        }
       }
     });
   }
@@ -189,16 +185,6 @@ export class EventedIFrame extends React.Component<
 
   _onIFrameFocus = event => {
     window.getSelection().empty();
-  };
-
-  _onIFrameResize = event => {
-    if (this._ignoreNextResize) {
-      this._ignoreNextResize = false;
-      return;
-    }
-    if (this.props.onResize) {
-      this.props.onResize(event);
-    }
   };
 
   // The iFrame captures events that take place over it, which causes some

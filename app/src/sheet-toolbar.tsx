@@ -229,6 +229,7 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
   };
 
   mounted: boolean = false;
+  lastReportedToolbarHeight: number = 0;
   unlisteners: Array<() => void> = [];
 
   constructor(props) {
@@ -307,7 +308,10 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     }
 
     // Record our overall height for sheets
-    remote.getCurrentWindow().setSheetOffset(el.clientHeight);
+    if (el.clientHeight !== this.lastReportedToolbarHeight) {
+      this.lastReportedToolbarHeight = el.clientHeight;
+      remote.getCurrentWindow().setSheetOffset(el.clientHeight);
+    }
   }
 
   _onWindowResize = () => {

@@ -81,7 +81,9 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
       this.setState({ trackHeight: entries[0].contentRect.height });
     });
     this._heightObserver.observe(trackEl);
-    this.setState({ trackHeight: trackEl.clientHeight });
+
+    // This is not nececssary because the resize observer fires with initial state.
+    // this.setState({ trackHeight: trackEl.clientHeight });
   }
 
   componentWillUnmount() {
@@ -113,10 +115,10 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
         <div className="scrollbar-track-inner" ref="track" onClick={this._onScrollJump}>
           {this._renderScrollbarTicks()}
           <div
+            ref="handle"
             className="scrollbar-handle"
             onMouseDown={this._onHandleDown}
             style={this._scrollbarHandleStyles()}
-            ref="handle"
             onClick={this._onHandleClick}
           >
             <div className="tooltip">{tooltip}</div>
@@ -147,8 +149,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   _scrollbarHandleStyles = (): CSSProperties => {
     const handleHeight = this._getHandleHeight();
     const handleTop =
-      this.state.viewportScrollTop /
-      (this.state.totalHeight - this.state.viewportHeight) *
+      (this.state.viewportScrollTop / (this.state.totalHeight - this.state.viewportHeight)) *
       (this.state.trackHeight - handleHeight);
 
     return {
@@ -213,7 +214,7 @@ class Scrollbar extends React.Component<ScrollbarProps, ScrollbarState> {
   _getHandleHeight = () => {
     return Math.min(
       this.state.totalHeight,
-      Math.max(40, this.state.trackHeight / this.state.totalHeight * this.state.trackHeight)
+      Math.max(40, (this.state.trackHeight / this.state.totalHeight) * this.state.trackHeight)
     );
   };
 }

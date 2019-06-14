@@ -51,13 +51,37 @@ class EmptyPerspectiveState extends React.Component<EmptyPerspectiveStateProps> 
   }
 }
 
-class EmptyInboxState extends React.Component<{ containerRect: { width: number } }> {
+class EmptyInboxState extends React.Component<{}, { width: number; height: number }> {
   static displayName = 'EmptyInboxState';
 
   static propTypes = { containerRect: PropTypes.object };
 
+  _containerSizeObserver: ResizeObserver;
+  _containerEl: HTMLDivElement;
+
+  state = {
+    width: 0,
+    height: 0,
+  };
+
+  componentDidMount() {
+    this._containerSizeObserver = new window.ResizeObserver(entries =>
+      window.requestAnimationFrame(() =>
+        this.setState({
+          width: entries[0].contentRect.width,
+          height: entries[0].contentRect.width,
+        })
+      )
+    );
+    this._containerSizeObserver.observe(this._containerEl);
+  }
+
+  componentWillUnmount() {
+    this._containerSizeObserver.disconnect();
+  }
+
   _getScalingFactor = () => {
-    const { width } = this.props.containerRect;
+    const { width } = this.state;
     if (!width) {
       return null;
     }
@@ -84,7 +108,7 @@ class EmptyInboxState extends React.Component<{ containerRect: { width: number }
     const style = factor ? { transform: `scale(${factor})` } : {};
 
     return (
-      <div className="inbox-zero-animation">
+      <div className="inbox-zero-animation" ref={el => (this._containerEl = el)}>
         <div className="animation-wrapper" style={style}>
           <iframe
             title="animation"
@@ -99,7 +123,7 @@ class EmptyInboxState extends React.Component<{ containerRect: { width: number }
 
 class EmptyListState extends React.Component<
   { visible: boolean },
-  { active: boolean; rect: object; syncing: boolean }
+  { active: boolean; syncing: boolean }
 > {
   static displayName = 'EmptyListState';
   static propTypes = { visible: PropTypes.bool.isRequired };
@@ -112,7 +136,6 @@ class EmptyListState extends React.Component<
     this.state = Object.assign(
       {
         active: false,
-        rect: {},
       },
       this._getStateFromStores()
     );
@@ -126,10 +149,8 @@ class EmptyListState extends React.Component<
     this._unlisteners.push(
       FocusedPerspectiveStore.listen(() => this.setState(this._getStateFromStores()), this)
     );
-    window.addEventListener('resize', this._onResize);
     if (this.props.visible && !this.state.active) {
-      const rect = this._getDimensions();
-      this.setState({ active: true, rect });
+      this.setState({ active: true });
     }
   }
 
@@ -145,13 +166,11 @@ class EmptyListState extends React.Component<
     for (let unlisten of Array.from(this._unlisteners)) {
       unlisten();
     }
-    window.removeEventListener('resize', this._onResize);
   }
 
   componentDidUpdate() {
     if (this.props.visible && !this.state.active) {
-      const rect = this._getDimensions();
-      this.setState({ active: true, rect });
+      this.setState({ active: true });
     }
   }
 
@@ -182,30 +201,10 @@ class EmptyListState extends React.Component<
 
     return (
       <div className={classes}>
-        <ContentComponent
-          perspective={current}
-          containerRect={this.state.rect}
-          messageContent={messageContent}
-        />
+        <ContentComponent perspective={current} messageContent={messageContent} />
       </div>
     );
   }
-
-  _getDimensions() {
-    if (!this._mounted) {
-      return null;
-    }
-    const node = ReactDOM.findDOMNode(this) as HTMLElement;
-    const rect = node.getBoundingClientRect();
-    return { width: rect.width, height: rect.height };
-  }
-
-  _onResize = () => {
-    const rect = this._getDimensions();
-    if (rect) {
-      this.setState({ rect });
-    }
-  };
 
   _getStateFromStores() {
     return { syncing: FocusedPerspectiveStore.current().hasSyncingCategories() };
