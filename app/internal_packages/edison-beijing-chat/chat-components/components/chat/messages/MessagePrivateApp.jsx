@@ -5,8 +5,7 @@ import { dateFormat } from '../../../utils/time';
 import MessageCommand from './MessageCommand';
 import { beginSendingMessage } from '../../../actions/chat';
 import { FILE_TYPE } from '../../../utils/filetypes';
-import { beginStoringMessage } from '../../../actions/db/message';
-import { ContactStore } from 'chat-exports';
+import { MessageStore, ContactStore } from 'chat-exports';
 
 export default class MessagePrivateApp extends PureComponent {
   static propTypes = {
@@ -46,7 +45,7 @@ export default class MessagePrivateApp extends PureComponent {
     const msgBody = JSON.parse(msg.body);
     msgBody.deleted = true;
     msg.body = JSON.stringify(msgBody);
-    chatReduxStore.dispatch(beginStoringMessage(msg));
+    MessageStore.saveMessagesAndRefresh([msg]);
     chatReduxStore.dispatch(beginSendingMessage(conversation, JSON.stringify(body), messageId, false));
   }
 

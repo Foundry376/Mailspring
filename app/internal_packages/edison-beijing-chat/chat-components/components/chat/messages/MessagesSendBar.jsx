@@ -13,14 +13,13 @@ import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
 import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
-import { beginStoringMessage } from '../../../actions/db/message';
 import { MESSAGE_STATUS_RECEIVED } from '../../../../model/Message';
 import { sendFileMessage } from '../../../utils/message';
 import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } from '../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../utils/restjs';
 const { exec } = require('child_process');
-import { RoomStore } from 'chat-exports';
+import { MessageStore, RoomStore } from 'chat-exports';
 
 const getCaretCoordinates = require('../../../utils/textarea-caret-position');
 
@@ -200,6 +199,7 @@ export default class MessagesSendBar extends PureComponent {
     getToken(userId).then(token => {
       if (command) {
         sendCmd2App2(userId, userName, token, id, command, peerUserId, roomId, (err, data) => {
+          console.log( 'sendCmd2App2: err, data: ', err, data);
           if (err || !data || commandType !== 2) {
             return;
           }
@@ -216,9 +216,7 @@ export default class MessagesSendBar extends PureComponent {
             sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
             status: MESSAGE_STATUS_RECEIVED,
           };
-          chatReduxStore.dispatch(beginStoringMessage(msg));
-          // chatReduxStore.dispatch(updateSelectedConversation(selectedConversation));
-
+          MessageStore.saveMessagesAndRefresh([msg]);
         });
       }
     })

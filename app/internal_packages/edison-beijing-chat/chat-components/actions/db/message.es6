@@ -3,11 +3,6 @@ export const RETRY_STORE_MESSAGE = 'RETRY_STORE_MESSAGE';
 export const SUCCESS_STORE_MESSAGE = 'SUCCESS_STORE_MESSAGE';
 export const FAIL_STORE_MESSAGE = 'FAIL_STORE_MESSAGE';
 
-export const beginStoringMessage = message => ({
-  type: BEGIN_STORE_MESSAGE,
-  payload: message
-});
-
 export const successfullyStoredMessage = message => {
   return {
     type: SUCCESS_STORE_MESSAGE,

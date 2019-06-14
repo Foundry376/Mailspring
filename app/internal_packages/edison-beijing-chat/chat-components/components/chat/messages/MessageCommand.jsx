@@ -3,7 +3,7 @@ import uuid from 'uuid/v4';
 import PropTypes from 'prop-types';
 import { sendCmd2App2, getToken } from '../../../utils/appmgt';
 import { MESSAGE_STATUS_RECEIVED } from '../../../../model/Message';
-import { beginStoringMessage } from '../../../actions/db/message';
+import {MessageStore} from 'chat-exports';
 
 export default class MessageCommand extends PureComponent {
   static propTypes = {
@@ -59,8 +59,7 @@ export default class MessageCommand extends PureComponent {
         sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
         status: MESSAGE_STATUS_RECEIVED,
       };
-      chatReduxStore.dispatch(beginStoringMessage(msg));
-      // chatReduxStore.dispatch(updateSelectedConversation(conversation));
+      MessageStore.saveMessagesAndRefresh([msg]);
     });
   }
 

@@ -277,8 +277,7 @@ export default class MessagesPanel extends Component {
             sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
             status: MESSAGE_STATUS_UPLOAD_FAILED,
           };
-          chatReduxStore.dispatch(beginStoringMessage(message));
-          // chatReduxStore.dispatch(updateSelectedConversation(conversation));
+          MessageStore.saveMessagesAndRefresh([message]);
           return;
         } else {
           onMessageSubmitted(conversation, body, messageId, false);
