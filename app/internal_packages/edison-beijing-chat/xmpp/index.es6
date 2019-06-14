@@ -211,20 +211,29 @@ export class XmppEx extends EventEmitter3 {
       log(`xmpp disconnected: jid: ${this.connectedJid}`);
       this.isConnected = false;
       if (this.retryTimes < 3) {
-        // this.retryTimes++;
-        setTimeout(() => this.connect(), 500 + this.retryTimes * 1000);
+        setTimeout(() => {
+          console.log('connect trace', this.connectedJid, this.isConnected, this.getTime());
+          this.connect();
+        }, 1000 + (this.retryTimes - 1) * 5000);
       } else {
-        this.emit('disconnected', this.connectedJid);
-        // if (this.retryTimes == 3) {
-        //   this.emit('disconnected', this.connectedJid);
-        // }
-        // setTimeout(() => this.connect(), 300000);
+        if (this.retryTimes == 3) {
+          this.emit('disconnected', this.connectedJid);
+        }
+        setTimeout(() => {
+          console.log('connect trace', this.connectedJid, this.isConnected, this.getTime());
+          this.connect();
+        }, 300000);
       }
     });
     this.client.on('request:timeout', () => {
       this.timeoutCount++;
       if (this.timeoutCount == 2) {
-        setTimeout(() => this.connect(), 1111);
+        setTimeout(() => {
+          console.log('connect trace', this.connectedJid, this.isConnected, this.getTime());
+          if (!this.isConnected) {
+            this.connect()
+          }
+        }, 1111);
       }
     });
   }
