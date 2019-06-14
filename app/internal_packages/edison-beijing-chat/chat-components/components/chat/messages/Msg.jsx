@@ -20,7 +20,6 @@ import ContactAvatar from '../../common/ContactAvatar';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
-import _ from 'underscore';
 import { ChatActions } from 'chat-exports';
 import { FILE_TYPE } from '../../../utils/filetypes';
 
@@ -345,7 +344,7 @@ export default class Msg extends PureComponent {
           )}
           style={{ borderColor: color }}
         >
-          {msgBody.type !== 'memberschange' ? <div className="messageSender">
+          {(msgBody.type !== 'memberschange' &&  msgBody.type !== 'error403') ? <div className="messageSender">
             {this.getContactAvatar(member)}
           </div> : null}
           <div className="messageContent">

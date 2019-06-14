@@ -19,9 +19,6 @@ import {
   sendingMessage,
 } from '../actions/chat';
 import {
-  UPDATE_SELECTED_CONVERSATION,
-} from '../actions/db/conversation';
-import {
   retrieveSelectedConversationMessages,
 } from '../actions/db/message';
 import { getLastMessageInfo, parseMessageBody } from '../utils/message';
@@ -124,6 +121,7 @@ export const sendMessageEpic = action$ =>
       const action = sendingMessage(message);
       let payload = message;
       if (!payload.isUploading) {
+        console.log('xmpp.sendMessage: ', payload);
         xmpp.sendMessage(payload, payload.curJid);
       }
       return action;
@@ -166,6 +164,7 @@ export const newTempMessageEpic = (action$, { getState }) =>
     }).mergeMap(message => {
       delete message.ts;
       delete message.curJid;
+      console.log('MessageStore.saveMessagesAndRefresh: ', message);
       return Observable.fromPromise(MessageStore.saveMessagesAndRefresh([message]))
         .map(result => newMessage(message))
     })
@@ -214,16 +213,9 @@ const getEncrypted = (jid, body, devices, selfDevices, curJid, deviceId) => {
   let dk = [];
 
   let keys = [];
-  if (typeof devices == "string") {
-    dk = JSON.parse(devices);
-    keys = addKeys(uid, dk, aeskey, keys);
-    if (keys.length > 0) {
-      keys = addKeys(curJid, selfDk, aeskey, keys);
-    }
-  } else {
-    devices.forEach(device => {
-      keys = addKeys(device.jid, device.dk, aeskey, keys);
-    });
+  keys = addKeys(uid, devices, aeskey, keys);
+  if (keys.length > 0) {
+    keys = addKeys(curJid, selfDk, aeskey, keys);
   }
 
   //对称加密body

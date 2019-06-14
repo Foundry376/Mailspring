@@ -154,7 +154,7 @@ class RoomStore extends MailspringStore {
       sentTime: (new Date()).getTime(),
       status: MESSAGE_STATUS_RECEIVED,
     };
-    this.refreshRoomMember(payload.from.bare, payload.curJid);
+    this.refreshRoomMember(payload.from.bare, payload.curJid, true);
     MessageStore.saveMessagesAndRefresh([msg]);
     return;
   }
