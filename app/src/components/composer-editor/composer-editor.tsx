@@ -22,8 +22,8 @@ interface ComposerEditorProps {
   propsForPlugins: any;
   onChange: (change: { operations: Immutable.List<Operation>; value: Value }) => void;
   className?: string;
-  onBlur?: () => void;
-  onDrop?: (e: Event) => void;
+  onBlur?: (e: React.FocusEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
   onFileReceived?: (path: string) => void;
   onUpdatedSlateEditor?: (editor: Editor | null) => void;
 }
@@ -123,7 +123,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
   onCopy = (event, editor: Editor, next: () => void) => {
     const sel = document.getSelection();
 
-    // copying within an uneditable region of the composer (eg: quoted HTML)
+    // copying within an uneditable region of the composer (eg: quoted HTML email)
     // is handled by the browser on it's own. We only need to copy the Slate
     // value if the selection is in the editable region.
     const entirelyWithinUneditable =
@@ -132,64 +132,82 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
     if (entirelyWithinUneditable) return;
 
     event.preventDefault();
-    const fragment = editor.value.document.getFragmentAtRange((editor.value
-      .selection as any) as Range);
+
+    const range = (editor.value.selection as any) as Range;
+    const fragment = editor.value.document.getFragmentAtRange(range);
     const value = Value.create({ document: fragment });
-    event.clipboardData.setData('text/html', convertToHTML(value));
-    event.clipboardData.setData('text/plain', convertToPlainText(value));
+    const text = convertToPlainText(value);
+    if (text) {
+      event.clipboardData.setData('text/html', convertToHTML(value));
+      event.clipboardData.setData('text/plain', text);
+    } else {
+      // Don't blow away the current contents of the user's clipboard if the
+      // current editor selection has no text at all.
+    }
+
+    // Allow slate to attach it's own data, which it can use to paste nicely
+    // if the paste target is the editor.
+    next();
   };
 
   onCut = (event, editor: Editor, next: () => void) => {
     this.onCopy(event, editor, next);
-    editor.deleteBackward(1);
+
+    // Allow slate to attach it's own data, which it can use to paste nicely
+    // if the paste target is the editor. Note: Slate also cuts the selection.
+    next();
   };
 
   onPaste = (event, editor: Editor, next: () => void) => {
     const { onFileReceived } = this.props;
 
-    if (!onFileReceived || event.clipboardData.items.length === 0) {
+    // If the copy event originated in the editor, let Slate handle the paste
+    // rather than falling back to text+html deserialization.
+    if (event.clipboardData.types.includes('application/x-slate-fragment')) {
       return next();
     }
-    event.preventDefault();
 
-    // If the pasteboard has a file on it, stream it to a teporary
-    // file and fire our `onFilePaste` event.
-    const item = event.clipboardData.items[0];
+    if (onFileReceived && event.clipboardData.items.length > 0) {
+      event.preventDefault();
+      const item = event.clipboardData.items[0];
 
-    if (item.kind === 'file') {
-      const temp = require('temp');
-      const blob = item.getAsFile();
-      const ext =
-        {
-          'image/png': '.png',
-          'image/jpg': '.jpg',
-          'image/tiff': '.tiff',
-        }[item.type] || '';
+      // If the pasteboard has a file on it, stream it to a temporary
+      // file and fire our `onFilePaste` event.
+      if (item.kind === 'file') {
+        const temp = require('temp');
+        const blob = item.getAsFile();
+        const ext =
+          {
+            'image/png': '.png',
+            'image/jpg': '.jpg',
+            'image/tiff': '.tiff',
+          }[item.type] || '';
 
-      const reader = new FileReader();
-      reader.addEventListener('loadend', () => {
-        const buffer = Buffer.from(new Uint8Array(reader.result as any));
-        const tmpFolder = temp.path('-mailspring-attachment');
-        const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
-        fs.mkdir(tmpFolder, () => {
-          fs.writeFile(tmpPath, buffer, () => {
-            onFileReceived(tmpPath);
+        const reader = new FileReader();
+        reader.addEventListener('loadend', () => {
+          const buffer = Buffer.from(new Uint8Array(reader.result as any));
+          const tmpFolder = temp.path('-mailspring-attachment');
+          const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
+          fs.mkdir(tmpFolder, () => {
+            fs.writeFile(tmpPath, buffer, () => {
+              onFileReceived(tmpPath);
+            });
           });
         });
-      });
-      reader.readAsArrayBuffer(blob);
-      return;
-    } else {
-      const macCopiedFile = decodeURI(
-        ElectronClipboard.read('public.file-url').replace('file://', '')
-      );
-      const winCopiedFile = ElectronClipboard.read('FileNameW').replace(
-        new RegExp(String.fromCharCode(0), 'g'),
-        ''
-      );
-      if (macCopiedFile.length || winCopiedFile.length) {
-        onFileReceived(macCopiedFile || winCopiedFile);
+        reader.readAsArrayBuffer(blob);
         return;
+      } else {
+        const macCopiedFile = decodeURI(
+          ElectronClipboard.read('public.file-url').replace('file://', '')
+        );
+        const winCopiedFile = ElectronClipboard.read('FileNameW').replace(
+          new RegExp(String.fromCharCode(0), 'g'),
+          ''
+        );
+        if (macCopiedFile.length || winCopiedFile.length) {
+          onFileReceived(macCopiedFile || winCopiedFile);
+          return;
+        }
       }
     }
 
@@ -199,10 +217,13 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
       const value = convertFromHTML(html);
       if (value && value.document) {
         editor.insertFragment(value.document);
+        event.preventDefault();
         return;
       }
     }
-    next();
+
+    // fall back to Slate's default behavior
+    return next();
   };
 
   onContextMenu = event => {
@@ -257,8 +278,17 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
             schema={schema}
             value={value}
             onChange={this.onChange}
-            onBlur={onBlur}
-            onDrop={onDrop}
+            onBlur={(e: any, editor, next) => {
+              if (onBlur) onBlur(e as React.FocusEvent<any>);
+              if (!e.isPropagationStopped()) next();
+            }}
+            onDrop={(e: any, editor, next) => {
+              if (onDrop) onDrop(e as React.DragEvent<any>);
+              if (!e.isPropagationStopped()) {
+                console.log('Running default darg drop');
+                next();
+              }
+            }}
             onCut={this.onCut}
             onCopy={this.onCopy}
             onPaste={this.onPaste}
