@@ -4,7 +4,7 @@ import { gradientColorForString } from '../../utils/colors';
 import { getAvatar, getAvatarFromCache, getProfile } from '../../utils/restjs';
 import _ from 'underscore';
 import { getMyAppById } from '../../utils/appmgt';
-import { OnlineUserStore } from 'chat-exports';
+import { ChatActions, OnlineUserStore } from 'chat-exports';
 
 const getInitials = name => {
   const trimmedName = name ? name.trim() : '';
@@ -27,18 +27,19 @@ export default class ContactAvatar extends Component {
   }
 
   _listenToStore() {
-    this._unsub = OnlineUserStore.listen(this._onDataChanged);
+    this._unsub = ChatActions.userOnlineStatusChanged.listen(this._onDataChanged, this);
   }
 
   componentWillUnmount() {
     this._unsub();
   }
 
-  _onDataChanged = () => {
-    const isOnline = this.isOnline();
-    this.setState({
-      isOnline
-    });
+  _onDataChanged = (jid) => {
+    if (jid === this.props.jid) {
+      this.setState({
+        isOnline: this.isOnline()
+      });
+    }
   }
 
   componentWillReceiveProps = nextProps => {
@@ -53,7 +54,7 @@ export default class ContactAvatar extends Component {
       isImgExist: false,
       userProfile: {},
       bgColor,
-      isOnline: false,
+      isOnline: this.isOnline()
     };
 
     const imgUrl = getAvatarFromCache(this.props.email);
@@ -140,9 +141,7 @@ export default class ContactAvatar extends Component {
         title={contactName}
       >
         {isImgExist ? null : getInitials(contactName).toUpperCase()}
-        {!isGroup ? (
-          <div className={isOnline ? 'online' : 'offline'}></div>
-        ) : null}
+        <div className={isOnline ? 'online' : 'offline'}></div>
       </div>
     )
   }

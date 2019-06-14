@@ -1,5 +1,5 @@
 import { Xmpp } from '../index';
-import { MessageStore, OnlineUserStore, ConversationStore, RoomStore } from 'chat-exports';
+import { ChatActions, MessageStore, OnlineUserStore, ConversationStore, RoomStore } from 'chat-exports';
 
 /**
  * Creates a middleware for the XMPP class to dispatch actions to a redux store whenever any events
@@ -49,10 +49,12 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   // user online
   xmpp.on('available', data => {
     OnlineUserStore.addOnlineUser(data);
+    ChatActions.userOnlineStatusChanged(data.from.bare);
   })
   // user online
   xmpp.on('unavailable', data => {
     OnlineUserStore.removeOnlineUser(data);
+    ChatActions.userOnlineStatusChanged(data.from.bare);
   })
   // Chat account online
   xmpp.on('session:started', data => {
