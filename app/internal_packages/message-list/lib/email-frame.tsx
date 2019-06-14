@@ -24,11 +24,15 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
   _mounted: boolean = false;
   _unlisten: () => void;
   _iframeComponent: EventedIFrame;
+  _iframeWrapperEl: HTMLDivElement;
   _iframeDocObserver: ResizeObserver;
+  _lastFitSize: string = '';
 
   componentDidMount() {
     this._mounted = true;
-    this._iframeDocObserver = new window.ResizeObserver(this._onReevaluateContentSize);
+    this._iframeDocObserver = new window.ResizeObserver(entries =>
+      window.requestAnimationFrame(() => this._onReevaluateContentSize(entries[0]))
+    );
     this._writeContent();
     this._unlisten = EmailFrameStylesStore.listen(this._writeContent);
   }
@@ -97,6 +101,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
 
     // Notify the EventedIFrame that we've replaced it's document (with `open`)
     // so it can attach event listeners again.
+    this._lastFitSize = '';
     this._iframeComponent.didReplaceDocument();
     this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
 
@@ -121,7 +126,11 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     });
   };
 
-  _onReevaluateContentSize = () => {
+  _onReevaluateContentSize = (entry: ResizeObserverEntry) => {
+    const size = `${entry.contentRect.width}:${entry.contentRect.height}`;
+    if (size === this._lastFitSize) return;
+
+    this._lastFitSize = size;
     const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
     const doc = iframeEl && iframeEl.contentDocument;
 
@@ -143,26 +152,26 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
     }
 
     this._iframeComponent.setHeightQuietly(height);
-  };
-
-  _onResize = () => {
-    const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
-    if (!iframeEl) return;
-    this._iframeDocObserver.disconnect();
-    this._iframeDocObserver.observe(iframeEl.contentDocument.firstElementChild);
+    this._iframeWrapperEl.style.height = `${height}px`;
   };
 
   render() {
     return (
-      <EventedIFrame
-        searchable
-        onResize={this._onResize}
-        seamless={true}
+      <div
         style={{ height: 0 }}
-        ref={cm => {
-          this._iframeComponent = cm;
+        ref={el => {
+          this._iframeWrapperEl = el;
         }}
-      />
+      >
+        <EventedIFrame
+          searchable
+          seamless={true}
+          style={{ height: 0 }}
+          ref={cm => {
+            this._iframeComponent = cm;
+          }}
+        />
+      </div>
     );
   }
 }

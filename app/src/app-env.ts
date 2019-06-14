@@ -26,7 +26,6 @@ let loadSettings = JSON.parse(decodeURIComponent(window.location.search.substr(1
 export default class AppEnvConstructor {
   // Returns the load settings hash associated with the current window.
 
-
   emitter = new Emitter();
   loadTime: number = null;
   config: import('./config').default;
@@ -39,11 +38,10 @@ export default class AppEnvConstructor {
   menu: import('./menu-manager').default;
   windowEventHandler: import('./window-event-handler').default;
   actionBridge: import('./flux/action-bridge').default;
-  mailsyncBridge: import('./flux/mailsync-bridge').default
+  mailsyncBridge: import('./flux/mailsync-bridge').default;
   errorLogger: import('./error-logger');
   savedState: any;
   isReloading: boolean;
-
 
   /*
   Section: Construction and Destruction
@@ -158,6 +156,9 @@ export default class AppEnvConstructor {
 
     // https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror
     window.onerror = (message, url, line, column, originalError) => {
+      if (!originalError) {
+        originalError = new Error(`${message}`);
+      }
       if (!this.inDevMode()) {
         return this.reportError(originalError, { url, line, column });
       }
@@ -216,7 +217,7 @@ export default class AppEnvConstructor {
   // The difference between this and `ErrorLogger.reportError` is that
   // `AppEnv.reportError` hooks into test failures and dev tool popups.
   //
-  reportError(error, extra: any = {}, { noWindows }: {noWindows?: boolean} = {}) {
+  reportError(error, extra: any = {}, { noWindows }: { noWindows?: boolean } = {}) {
     try {
       extra.pluginIds = this._findPluginsFromError(error);
     } catch (err) {
@@ -536,7 +537,12 @@ export default class AppEnvConstructor {
 
   // Returns true if the dimensions are useable, false if they should be ignored.
   // Work around for https://github.com/atom/electron/issues/473
-  isValidDimensions({ x, y, width, height }: {x?: number, y?:number, width?: number, height?: number} = {}) {
+  isValidDimensions({
+    x,
+    y,
+    width,
+    height,
+  }: { x?: number; y?: number; width?: number; height?: number } = {}) {
     return width > 0 && height > 0 && x + width > 0 && y + height > 0;
   }
 
@@ -703,7 +709,7 @@ export default class AppEnvConstructor {
   Section: Messaging the User
   */
 
-  displayWindow({ maximize }: {maximize?: boolean} = {}) {
+  displayWindow({ maximize }: { maximize?: boolean } = {}) {
     if (this.inSpecMode()) {
       return;
     }
@@ -785,7 +791,10 @@ export default class AppEnvConstructor {
     return callback(remote.dialog.showSaveDialog(this.getCurrentWindow(), options));
   }
 
-  showErrorDialog(messageData, { showInMainWindow, detail }: {showInMainWindow?: boolean, detail?: string} = {}) {
+  showErrorDialog(
+    messageData,
+    { showInMainWindow, detail }: { showInMainWindow?: boolean; detail?: string } = {}
+  ) {
     let message;
     let title;
     if (_.isString(messageData) || _.isNumber(messageData)) {
