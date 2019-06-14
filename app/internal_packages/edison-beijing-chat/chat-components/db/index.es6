@@ -13,7 +13,6 @@ const createSQLITE = () => {
   if (!fs.existsSync(dbPath)) {
     fs.mkdirSync(dbPath);
   }
-  console.log('****storage', `${dbPath}/chat-db.sqlite`);
   sequelize = new Sequelize({
     dialect: 'sqlite',
     storage: `${dbPath}/chat-db.sqlite`

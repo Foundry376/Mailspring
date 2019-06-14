@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import path from "path";
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
@@ -15,9 +14,6 @@ import { FILE_TYPE } from '../../../utils/filetypes';
 import registerLoginChatAccounts from '../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore } from 'chat-exports';
-import { AccountStore } from 'mailspring-exports';
-
-import keyMannager from '../../../../../../src/key-manager';
 import MemberProfile from '../conversations/MemberProfile';
 
 import { xmpplogin } from '../../../utils/restjs';
@@ -103,21 +99,6 @@ export default class MessagesPanel extends Component {
     };
   }
 
-  _getTokenByCurJid = async () => {
-    const { selectedConversation } = this.state;
-    let currentUserId = selectedConversation && selectedConversation.curJid;
-    if (currentUserId) {
-      currentUserId = currentUserId.split('@')[0];
-      const chatAccounts = AppEnv.config.get('chatAccounts');
-      for (const email in chatAccounts) {
-        if (chatAccounts[email].userId === currentUserId) {
-          return await keyMannager.getAccessTokenByEmail(email);
-        }
-      }
-    }
-    return null;
-  }
-
   onLine = () => {
     log(`MessagePanel: chat online`);
     // connect to chat server
@@ -137,9 +118,6 @@ export default class MessagesPanel extends Component {
       online: false
     })
   };
-
-  componentWillReceiveProps = (nextProps, nextState) => {
-  }
 
   saveRoomMembersForTemp = (members) => {
     this.setState({ membersTemp: members })

@@ -14,8 +14,6 @@ import {
   failConnectionAuth,
   successfullyEnabledCarbons,
   failedEnablingCarbons,
-  successfullyJoinedRooms,
-  failedJoiningRooms,
 } from '../actions/auth';
 import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { RoomStore, ContactStore, E2eeStore, AppsStore } from 'chat-exports';
