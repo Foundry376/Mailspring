@@ -37,9 +37,12 @@
   color: @text-color-link;
   text-decoration: underline;
 }
-.RichEditor-root .custom-block-selected,
-.RichEditor-root .uneditable.custom-block-selected {
-  border: 1px dashed @text-color;
+.RichEditor-root .custom-block,
+.RichEditor-root .uneditable.custom-block {
+  border: 1px dashed transparent;
+  &.focused {
+    border: 1px dashed @text-color;
+  }
 }
 
 .RichEditor-root .uneditable {

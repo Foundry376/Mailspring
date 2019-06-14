@@ -6,10 +6,10 @@ import { ComposerEditorPlugin } from './types';
 import { Editor, Node } from 'slate';
 import { schema } from './conversion';
 
-const IMAGE_TYPE = 'image';
+export const IMAGE_TYPE = 'image';
 
 function ImageNode(props) {
-  const { attributes, node, editor, targetIsHTML, isSelected } = props;
+  const { attributes, node, editor, targetIsHTML, isFocused } = props;
   const contentId = node.data.get ? node.data.get('contentId') : node.data.contentId;
 
   if (targetIsHTML) {
@@ -25,8 +25,7 @@ function ImageNode(props) {
   return (
     <ImageAttachmentItem
       {...attributes}
-      draggable={false}
-      className={`file-upload ${isSelected && 'custom-block-selected'}`}
+      className={`file-upload custom-block ${isFocused && 'focused'}`}
       filePath={AttachmentStore.pathForFile(file)}
       displayName={file.filename}
       onRemoveAttachment={() => editor.removeNodeByKey(node.key)}

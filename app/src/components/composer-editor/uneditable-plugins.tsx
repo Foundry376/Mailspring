@@ -8,21 +8,21 @@ export const UNEDITABLE_TYPE = 'uneditable';
 export const UNEDITABLE_TAGS = ['table', 'img', 'center', 'signature'];
 
 function UneditableNode(props) {
-  const { attributes, node, editor, targetIsHTML, isSelected, children } = props;
+  const { attributes, node, editor, targetIsHTML, isFocused, children } = props;
   const __html = node.data.get ? node.data.get('html') : node.data.html;
 
   if (targetIsHTML) {
     return <div dangerouslySetInnerHTML={{ __html }} />;
   }
   return (
-    <div {...attributes} className={`uneditable ${isSelected && 'custom-block-selected'}`}>
+    <div {...attributes} className={`uneditable custom-block ${isFocused && 'focused'}`}>
       <a
+        className="uneditable-remove"
         onClick={e => {
           e.stopPropagation();
           e.preventDefault();
           editor.removeNodeByKey(node.key);
         }}
-        className="uneditable-remove"
       >
         <RetinaImg
           title={localized('Remove HTML')}

@@ -211,6 +211,8 @@ body.platform-win32 {
   }
 
   &:hover {
+    border: 1px dashed fade(@text-color, 20%);
+
     .file-action-icon,
     .file-name-container,
     .file-name {
@@ -224,6 +226,7 @@ body.platform-win32 {
     right: 2px;
     top: -14px;
     width: 26px;
+    height: 26px;
     border-radius: 0 0 0 3px;
     border: none;
     img {
@@ -240,12 +243,16 @@ body.platform-win32 {
       cursor: default;
       position: absolute;
       bottom: 0;
-      top: 0;
       z-index: 2;
-      width: 100%;
-      height: 100%;
-      min-height: 300px;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 23%);
+      height: 30px;
+      max-width: 100%;
+      border-top-right-radius: 3px;
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.5) 0px,
+        rgba(0, 0, 0, 0.5) 20px,
+        rgba(0, 0, 0, 0) 50px
+      );
       vertical-align: bottom;
 
       // Important! file-name-container is on top of the image and prevents you from dragging it.
@@ -253,12 +260,12 @@ body.platform-win32 {
 
       .file-name {
         color: @white;
-        left: @spacing-standard;
-        right: @spacing-standard;
-        bottom: @spacing-standard;
-        text-align: left;
-        position: absolute;
+        padding: 5px 10px;
         z-index: 3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
       }
     }
 
