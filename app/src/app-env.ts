@@ -152,13 +152,11 @@ export default class AppEnvConstructor {
       resourcePath: this.getLoadSettings().resourcePath,
     });
 
-    const sourceMapCache = {};
-
     // https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onerror
     window.onerror = (message, url, line, column, originalError) => {
-      if (!originalError) {
-        originalError = new Error(`${message}`);
-      }
+      if (!originalError && !message) return;
+      if (!originalError) originalError = new Error(`${message}`);
+
       if (!this.inDevMode()) {
         return this.reportError(originalError, { url, line, column });
       }
@@ -166,58 +164,41 @@ export default class AppEnvConstructor {
       return this.reportError(originalError, { url, line: newLine, column: newColumn });
     };
 
-    process.on('uncaughtException', e => {
-      this.reportError(e);
+    process.on('uncaughtException', error => {
+      this.reportError(error);
     });
 
     process.on('unhandledRejection', error => {
-      this._onUnhandledRejection(error, sourceMapCache);
+      this.reportError(error);
     });
 
     window.addEventListener('unhandledrejection', e => {
       // This event is supposed to look like {reason, promise}, according to
       // https://developer.mozilla.org/en-US/docs/Web/API/PromiseRejectionEvent
       // In practice, it can have different shapes, so we make our best guess
-      if (!e) {
-        const error = new Error(`Unknown window.unhandledrejection event.`);
-        this._onUnhandledRejection(error, sourceMapCache);
-        return;
-      }
       if (e instanceof Error) {
-        this._onUnhandledRejection(e, sourceMapCache);
+        this.reportError(e);
         return;
       }
       if (e.reason) {
-        const error = e.reason;
-        this._onUnhandledRejection(error, sourceMapCache);
+        this.reportError(e.reason);
         return;
       }
       if ((e as any).detail && (e as any).detail.reason) {
-        const error = (e as any).detail.reason;
-        this._onUnhandledRejection(error, sourceMapCache);
+        this.reportError((e as any).detail.reason);
         return;
       }
-      const error = new Error(
-        `Unrecognized event shape in window.unhandledrejection handler. Event keys: ${Object.keys(
-          e
-        )}`
-      );
-      this._onUnhandledRejection(error, sourceMapCache);
     });
 
     return null;
   }
-
-  _onUnhandledRejection = (error, sourceMapCache) => {
-    this.reportError(error);
-  };
 
   // Public: report an error through the `ErrorLogger`
   //
   // The difference between this and `ErrorLogger.reportError` is that
   // `AppEnv.reportError` hooks into test failures and dev tool popups.
   //
-  reportError(error, extra: any = {}, { noWindows }: { noWindows?: boolean } = {}) {
+  reportError(error, extra: any = {}) {
     try {
       extra.pluginIds = this._findPluginsFromError(error);
     } catch (err) {
@@ -236,7 +217,7 @@ export default class AppEnvConstructor {
       if (jasmine) {
         jasmine.getEnv().currentSpec.fail(error);
       }
-    } else if (this.inDevMode() && !noWindows) {
+    } else if (this.inDevMode()) {
       if (!this.isDevToolsOpened()) {
         this.openDevTools();
         this.executeJavaScriptInDevTools("DevToolsAPI.showPanel('console')");
