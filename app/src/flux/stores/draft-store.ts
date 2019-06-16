@@ -190,30 +190,25 @@ class DraftStore extends MailspringStore {
     this.trigger(change);
   };
 
-  _onSendQuickReply = (
-    { thread, threadId, message, messageId }: IThreadMessageModelOrId,
-    body: string
-  ) => {
+  _onSendQuickReply = async (context: IThreadMessageModelOrId, body: string) => {
     if (AppEnv.config.get('core.sending.sounds')) {
       SoundRegistry.playSound('hit-send');
     }
-    return Promise.props(this._modelifyContext({ thread, threadId, message, messageId }))
-      .then(({ message: m, thread: t }) => {
-        return DraftFactory.createDraftForReply({ message: m, thread: t, type: 'reply' });
-      })
-      .then(draft => {
-        draft.body = `${body}\n\n${draft.body}`;
-        draft.pristine = false;
 
-        const t = new SyncbackDraftTask({ draft });
-        Actions.queueTask(t);
-        TaskQueue.waitForPerformLocal(t).then(() => {
-          Actions.sendDraft(draft.headerMessageId);
-        });
-      });
+    const resolved = await this._modelifyContext(context);
+    if (!resolved.message || !resolved.thread) return;
+
+    const draft = await DraftFactory.createDraftForReply({ ...resolved, type: 'reply' });
+    draft.body = `${body}\n\n${draft.body}`;
+    draft.pristine = false;
+
+    const t = new SyncbackDraftTask({ draft });
+    Actions.queueTask(t);
+    await TaskQueue.waitForPerformLocal(t);
+    Actions.sendDraft(draft.headerMessageId);
   };
 
-  _onComposeReply = ({
+  _onComposeReply = async ({
     thread,
     threadId,
     message,
@@ -226,13 +221,10 @@ class DraftStore extends MailspringStore {
     type: ReplyType;
     behavior: ReplyBehavior;
   }) => {
-    return Promise.props(this._modelifyContext({ thread, threadId, message, messageId }))
-      .then(({ message: m, thread: t }) => {
-        return DraftFactory.createOrUpdateDraftForReply({ message: m, thread: t, type, behavior });
-      })
-      .then(draft => {
-        return this._finalizeAndPersistNewMessage(draft, { popout });
-      });
+    const resolved = await this._modelifyContext({ thread, threadId, message, messageId });
+    if (!resolved.message || !resolved.thread) return;
+    const draft = await DraftFactory.createOrUpdateDraftForReply({ ...resolved, type, behavior });
+    return this._finalizeAndPersistNewMessage(draft, { popout });
   };
 
   _onComposeForward = async ({
@@ -242,16 +234,18 @@ class DraftStore extends MailspringStore {
     messageId,
     popout,
   }: IThreadMessageModelOrId & { popout?: boolean }) => {
-    return Promise.props(this._modelifyContext({ thread, threadId, message, messageId }))
-      .then(({ thread: t, message: m }) => {
-        return DraftFactory.createDraftForForward({ thread: t, message: m });
-      })
-      .then(draft => {
-        return this._finalizeAndPersistNewMessage(draft, { popout });
-      });
+    const resolved = await this._modelifyContext({ thread, threadId, message, messageId });
+    if (!resolved.message || !resolved.thread) return;
+    const draft = await DraftFactory.createDraftForForward(resolved);
+    return this._finalizeAndPersistNewMessage(draft, { popout });
   };
 
-  _modelifyContext({ thread, threadId, message, messageId }: IThreadMessageModelOrId) {
+  _modelifyContext({
+    thread,
+    threadId,
+    message,
+    messageId,
+  }: IThreadMessageModelOrId): Promise<{ thread: Thread; message: Message }> {
     const queries: {
       thread?: Thread | { then: (next: any) => Promise<{}> };
       message?: Message | { then: (next: any) => Promise<{}> };
@@ -289,10 +283,10 @@ class DraftStore extends MailspringStore {
         .then(messages => messages.find(m => !m.isHidden()));
     }
 
-    return queries;
+    return Promise.props(queries);
   }
 
-  _finalizeAndPersistNewMessage(draft, { popout }: { popout?: boolean } = {}) {
+  async _finalizeAndPersistNewMessage(draft, { popout }: { popout?: boolean } = {}) {
     // Give extensions an opportunity to perform additional setup to the draft
     ExtensionRegistry.Composer.extensions().forEach(extension => {
       if (!extension.prepareNewDraft) {
@@ -308,12 +302,11 @@ class DraftStore extends MailspringStore {
     const task = new SyncbackDraftTask({ draft });
     Actions.queueTask(task);
 
-    return TaskQueue.waitForPerformLocal(task).then(() => {
-      if (popout) {
-        this._onPopoutDraft(draft.headerMessageId);
-      }
-      return { headerMessageId: draft.headerMessageId, draft };
-    });
+    await TaskQueue.waitForPerformLocal(task);
+    if (popout) {
+      this._onPopoutDraft(draft.headerMessageId);
+    }
+    return { headerMessageId: draft.headerMessageId, draft };
   }
 
   _createSession(headerMessageId: string, draft?: Message) {
