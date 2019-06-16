@@ -338,6 +338,7 @@ class DraftStore extends MailspringStore {
     }
 
     const session = await this.sessionForClientId(headerMessageId);
+    await session.prepare();
     await session.changes.commit();
     const draftJSON = session.draft().toJSON();
 
