@@ -61,6 +61,10 @@ export default class EmailFrame extends React.Component {
     if (this._unlisten) {
       this._unlisten();
     }
+    const iframeNode = ReactDOM.findDOMNode(this._iframeComponent);
+    if (iframeNode) {
+      iframeNode.removeEventListener('load', this._onLoad);
+    }
   }
 
   _emailContent = () => {
@@ -136,7 +140,13 @@ export default class EmailFrame extends React.Component {
   };
 
   _onLoad = () => {
+    if (!this._mounted) {
+      return;
+    }
     const iframeNode = ReactDOM.findDOMNode(this._iframeComponent);
+    if (!iframeNode) {
+      return;
+    }
     iframeNode.removeEventListener('load', this._onLoad);
     this._setFrameHeight();
 

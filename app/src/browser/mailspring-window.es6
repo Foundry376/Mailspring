@@ -336,15 +336,21 @@ module.exports = class MailspringWindow extends EventEmitter {
   }
 
   close() {
-    this.browserWindow.close();
+    if (!this.browserWindow.isDestroyed()) {
+      this.browserWindow.close();
+    }
   }
 
   hide() {
-    this.browserWindow.hide();
+    if (!this.browserWindow.isDestroyed()) {
+      this.browserWindow.hide();
+    }
   }
 
   show() {
-    this.browserWindow.show();
+    if (!this.browserWindow.isDestroyed()) {
+      this.browserWindow.show();
+    }
   }
 
   showWhenLoaded() {

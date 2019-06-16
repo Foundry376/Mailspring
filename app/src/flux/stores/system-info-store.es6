@@ -15,7 +15,7 @@ class SystemInfoStore extends MailspringStore {
     this._timer = null;
     if (AppEnv.isMainWindow()) {
       this._checkDiskStats();
-      this._timer = setInterval(this._checkDiskStats, 10 * 1000);
+      this._timer = setInterval(this._checkDiskStats, 60 * 60 * 1000);
       Actions.updateLastSystemInfoCheck.listen(this._updateLastChecked, this);
     }
   }
