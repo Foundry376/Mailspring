@@ -2,6 +2,7 @@ import {
   Rx,
   ObservableListDataSource,
   DatabaseStore,
+  Thread,
   Message,
   QueryResultSet,
   QuerySubscription,
@@ -75,7 +76,7 @@ const _flatMapJoiningMessages = $threadsResultSet => {
       .flatMapLatest(([threadsResultSet, ...messagesResultSets]) => {
         const threadsWithMessages = {};
         threadsResultSet.models().forEach((thread, idx) => {
-          const clone = new thread.constructor(thread);
+          const clone = new Thread(thread) as any;
           clone.__messages = messagesResultSets[idx] ? messagesResultSets[idx].models() : [];
           clone.__messages = clone.__messages.filter(m => !m.isHidden());
           threadsWithMessages[clone.id] = clone;

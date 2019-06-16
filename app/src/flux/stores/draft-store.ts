@@ -338,7 +338,8 @@ class DraftStore extends MailspringStore {
     }
 
     const session = await this.sessionForClientId(headerMessageId);
-    await session.prepare();
+    if (!session.draft()) return;
+
     await session.changes.commit();
     const draftJSON = session.draft().toJSON();
 
@@ -442,8 +443,12 @@ class DraftStore extends MailspringStore {
     // move the draft to another account if necessary to match the from: field
     await session.ensureCorrectAccount();
 
-    // remove inline attachments that are no longer in the body
     let draft: Message = session.draft();
+    if (!draft) {
+      return this._onUnexpectedNotFoundDuringSend();
+    }
+
+    // remove inline attachments that are no longer in the body
     const files = draft.files.filter(f => {
       return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
     });
@@ -464,6 +469,9 @@ class DraftStore extends MailspringStore {
     draft = await DatabaseStore.findBy<Message>(Message, { headerMessageId, draft: true }).include(
       Message.attributes.body
     );
+    if (!draft) {
+      return this._onUnexpectedNotFoundDuringSend();
+    }
 
     // Directly update the message body cache so the user immediately sees
     // the new message text (and never old draft text or blank text) sending.
@@ -494,6 +502,14 @@ class DraftStore extends MailspringStore {
     if (AppEnv.isComposerWindow()) {
       AppEnv.close();
     }
+  };
+
+  _onUnexpectedNotFoundDuringSend = () => {
+    const msg = localized(
+      'Sorry, the draft you tried to send could not be found. Please try again.'
+    );
+    AppEnv.showErrorDialog(msg);
+    AppEnv.reportError(new Error('Could not find draft after finalizing session for sending.'));
   };
 
   _onSendDraftSuccess = ({ headerMessageId }) => {

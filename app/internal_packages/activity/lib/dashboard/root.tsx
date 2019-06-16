@@ -145,7 +145,10 @@ class RootWithTimespan extends React.Component<
   _onComputeMetrics = async () => {
     const metricsComputeStarted = Date.now();
 
-    const { timespan: { startDate, endDate, days }, accountIds } = this.props;
+    const {
+      timespan: { startDate, endDate, days },
+      accountIds,
+    } = this.props;
     const dayUnix = 24 * 60 * 60;
     const startUnix = startDate.unix();
     const endUnix = endDate.unix();
@@ -275,11 +278,11 @@ class RootWithTimespan extends React.Component<
           receivedTimeOfDay,
           sentByDay,
           percentUsingTracking: Math.ceil(
-            Math.max(openTrackingEnabled, linkTrackingEnabled) / (sentTotal || 1) * 100
+            (Math.max(openTrackingEnabled, linkTrackingEnabled) / (sentTotal || 1)) * 100
           ),
-          percentOpened: Math.ceil(openTrackingTriggered / (openTrackingEnabled || 1) * 100),
-          percentLinkClicked: Math.ceil(linkTrackingTriggered / (linkTrackingEnabled || 1) * 100),
-          percentReplied: Math.ceil(threadsOutboundGotReply / (threadsOutbound || 1) * 100),
+          percentOpened: Math.ceil((openTrackingTriggered / (openTrackingEnabled || 1)) * 100),
+          percentLinkClicked: Math.ceil((linkTrackingTriggered / (linkTrackingEnabled || 1)) * 100),
+          percentReplied: Math.ceil((threadsOutboundGotReply / (threadsOutbound || 1)) * 100),
         },
       });
     }, animationDelay);
@@ -310,7 +313,10 @@ class RootWithTimespan extends React.Component<
         return;
       }
 
-      const { timespan: { startDate, endDate }, accountIds } = this.props;
+      const {
+        timespan: { startDate, endDate },
+        accountIds,
+      } = this.props;
       const esc = cell => '"' + `${cell}`.replace(/"/g, '""') + '"';
       const ws = fs.createWriteStream(filepath);
 
@@ -522,6 +528,7 @@ class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespa
 
   render() {
     const { accountIds } = this.props;
+    const account = AccountStore.accountForId(accountIds[0]);
 
     return (
       <ScrollRegion className="activity-dashboard">
@@ -529,9 +536,7 @@ class Root extends React.Component<{ accountIds: string[] }, { timespan: Timespa
           <div style={{ flex: 1 }}>
             <h2>{localized('Activity')}</h2>
             <div className="accounts">
-              {accountIds.length > 1
-                ? localized('All Accounts')
-                : AccountStore.accountForId(accountIds[0]).label}
+              {accountIds.length > 1 ? localized('All Accounts') : account && account.label}
             </div>
           </div>
           <TimespanSelector timespan={this.state.timespan} onChange={this._onChangeTimespan} />
