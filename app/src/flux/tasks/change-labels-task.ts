@@ -2,6 +2,9 @@ import { Label } from '../models/label';
 import { ChangeMailTask } from './change-mail-task';
 import Attributes from '../attributes';
 import { localized } from '../../intl';
+import { AttributeValues } from '../models/model';
+import { Thread } from '../models/thread';
+import { Message } from '../models/message';
 
 // Public: Create a new task to apply labels to a message or thread.
 //
@@ -27,6 +30,15 @@ export class ChangeLabelsTask extends ChangeMailTask {
 
   labelsToAdd: Label[];
   labelsToRemove: Label[];
+
+  constructor(
+    data: AttributeValues<typeof ChangeLabelsTask.attributes> & {
+      threads?: Thread[];
+      messages?: Message[];
+    } = {}
+  ) {
+    super(data);
+  }
 
   label() {
     return localized('Applying labels');

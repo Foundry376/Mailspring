@@ -38,29 +38,24 @@ export const TaskFactory = {
 
   tasksForMarkingAsSpam({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      return new ChangeFolderTask({
-        folder: CategoryStore.getSpamCategory(accountId),
-        threads: accountThreads,
-        source,
-      });
+      const folder = CategoryStore.getSpamCategory(accountId);
+      if (!folder) return null;
+      return new ChangeFolderTask({ folder, source, threads: accountThreads });
     });
   },
 
   tasksForMarkingNotSpam({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
       const inbox = CategoryStore.getInboxCategory(accountId);
+
       if (inbox instanceof Label) {
-        return new ChangeFolderTask({
-          folder: CategoryStore.getAllMailCategory(accountId) as any,
-          threads: accountThreads,
-          source,
-        });
+        const all = CategoryStore.getAllMailCategory(accountId) as any;
+        if (!all) return null;
+        return new ChangeFolderTask({ folder: all, threads: accountThreads, source });
       }
-      return new ChangeFolderTask({
-        folder: inbox,
-        threads: accountThreads,
-        source,
-      });
+
+      if (!inbox) return null;
+      return new ChangeFolderTask({ folder: inbox, threads: accountThreads, source });
     });
   },
 
@@ -75,21 +70,18 @@ export const TaskFactory = {
           source,
         });
       }
-      return new ChangeFolderTask({
-        folder: CategoryStore.getArchiveCategory(accountId),
-        threads: accountThreads,
-        source,
-      });
+
+      const archive = CategoryStore.getArchiveCategory(accountId);
+      if (!archive) return null;
+      return new ChangeFolderTask({ folder: archive, threads: accountThreads, source });
     });
   },
 
   tasksForMovingToTrash({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      return new ChangeFolderTask({
-        folder: CategoryStore.getTrashCategory(accountId) as any,
-        threads: accountThreads,
-        source,
-      });
+      const trash = CategoryStore.getTrashCategory(accountId) as any;
+      if (!trash) return null;
+      return new ChangeFolderTask({ folder: trash, threads: accountThreads, source });
     });
   },
 

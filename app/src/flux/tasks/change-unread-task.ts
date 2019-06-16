@@ -4,6 +4,8 @@ import Attributes from '../attributes';
 import { ChangeMailTask } from './change-mail-task';
 import { localized } from '../../intl';
 import { AttributeValues } from '../models/model';
+import { Thread } from '../models/thread';
+import { Message } from '../models/message';
 
 export class ChangeUnreadTask extends ChangeMailTask {
   static attributes = {
@@ -16,7 +18,12 @@ export class ChangeUnreadTask extends ChangeMailTask {
 
   unread: boolean;
 
-  constructor(data: AttributeValues<typeof ChangeUnreadTask.attributes> = {}) {
+  constructor(
+    data: AttributeValues<typeof ChangeUnreadTask.attributes> & {
+      threads?: Thread[];
+      messages?: Message[];
+    } = {}
+  ) {
     super(data);
   }
 
