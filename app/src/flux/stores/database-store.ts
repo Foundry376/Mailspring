@@ -351,8 +351,8 @@ class DatabaseStore extends MailspringStore {
     if (!this._agent) {
       this._agentOpenQueries = {};
       this._agent = childProcess.fork(AGENT_PATH, [], { silent: true });
-      this._agent.stdout.on('data', data => console.log(data.toString()));
-      this._agent.stderr.on('data', data => console.error(data.toString()));
+      if (this._agent.stdout) this._agent.stdout.on('data', data => console.log(data.toString()));
+      if (this._agent.stderr) this._agent.stderr.on('data', data => console.error(data.toString()));
       this._agent.on('close', code => {
         debug(`Query Agent: exited with code ${code}`);
         this._agent = null;

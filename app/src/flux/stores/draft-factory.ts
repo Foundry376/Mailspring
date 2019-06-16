@@ -18,7 +18,8 @@ import { Thread } from '../models/Thread';
 
 let DraftStore: typeof import('./draft-store').default = null;
 
-type ReplyType = 'reply' | 'reply-all'
+export type ReplyType = 'reply' | 'reply-all';
+export type ReplyBehavior = 'prefer-existing' | 'prefer-existing-if-pristine';
 
 async function prepareBodyForQuoting(body) {
   // TODO: Fix inline images
@@ -40,8 +41,10 @@ class DraftFactory {
     // Having a consistent accountID prefix is what allows us to ensure that you
     // don't trigger your own open-tracked emails, for example. [BG NOTE "HMID"]
     //
-    const auuid = uuidv4().toUpperCase().split('-')
-    auuid.splice(0, 1, account.id.toUpperCase())
+    const auuid = uuidv4()
+      .toUpperCase()
+      .split('-');
+    auuid.splice(0, 1, account.id.toUpperCase());
 
     const defaults = {
       body: '<br/>',
@@ -154,7 +157,7 @@ class DraftFactory {
     message: Message;
     thread: Thread;
     type: ReplyType;
-    behavior: string;
+    behavior: ReplyBehavior;
   }) {
     if (!['reply', 'reply-all'].includes(type)) {
       throw new Error(`createOrUpdateDraftForReply called with ${type}, not reply or reply-all`);
@@ -262,7 +265,7 @@ class DraftFactory {
     });
   }
 
-  async candidateDraftForUpdating(message, behavior) {
+  async candidateDraftForUpdating(message: Message, behavior: ReplyBehavior) {
     if (!['prefer-existing-if-pristine', 'prefer-existing'].includes(behavior)) {
       return null;
     }
@@ -279,7 +282,6 @@ class DraftFactory {
     if (candidateDrafts.length === 0) {
       return null;
     }
-
     if (behavior === 'prefer-existing') {
       return candidateDrafts.pop();
     }
@@ -290,21 +292,16 @@ class DraftFactory {
           DraftStore.sessionForClientId(candidateDraft.headerMessageId)
         )
       );
-      for (const session of sessions) {
-        if (session.draft().pristine) {
-          return session.draft();
-        }
-      }
-      return null;
+      return sessions.map(s => s.draft()).find(d => d && d.pristine);
     }
   }
 
-  updateDraftForReply(draft: Message, { type, message }: {type: ReplyType, message: Message}) {
+  updateDraftForReply(draft: Message, { type, message }: { type: ReplyType; message: Message }) {
     if (!(message && draft)) {
       throw new Error('updateDraftForReply: Expected message and existing draft.');
     }
 
-    const updated: {to: Contact[], cc: Contact[]} = { to: [...draft.to], cc: [...draft.cc] };
+    const updated: { to: Contact[]; cc: Contact[] } = { to: [...draft.to], cc: [...draft.cc] };
     const replySet = message.participantsForReply();
     const replyAllSet = message.participantsForReplyAll();
     let targetSet = null;

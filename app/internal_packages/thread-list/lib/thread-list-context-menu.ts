@@ -63,7 +63,7 @@ export default class ThreadListContextMenu {
   }
 
   findWithFrom(): TemplateItem | null {
-    if (this.threadIds.length !== 1) {
+    if (this.threadIds.length !== 1 || !this.threads[0]) {
       return null;
     }
     const first = this.threads[0];
@@ -78,7 +78,7 @@ export default class ThreadListContextMenu {
   }
 
   findWithSubject(): TemplateItem | null {
-    if (this.threadIds.length !== 1) {
+    if (this.threadIds.length !== 1 || !this.threads[0]) {
       return null;
     }
     const subject = this.threads[0].subject;
@@ -95,7 +95,7 @@ export default class ThreadListContextMenu {
   }
 
   replyItem(): TemplateItem | null {
-    if (this.threadIds.length !== 1) {
+    if (this.threadIds.length !== 1 || !this.threads[0]) {
       return null;
     }
     return {
@@ -112,7 +112,7 @@ export default class ThreadListContextMenu {
   }
 
   replyAllItem(): Promise<TemplateItem> | null {
-    if (this.threadIds.length !== 1) {
+    if (this.threadIds.length !== 1 || !this.threads[0]) {
       return null;
     }
 
@@ -138,7 +138,7 @@ export default class ThreadListContextMenu {
   }
 
   forwardItem(): TemplateItem | null {
-    if (this.threadIds.length !== 1) {
+    if (this.threadIds.length !== 1 || !this.threads[0]) {
       return null;
     }
     return {
@@ -246,7 +246,7 @@ export default class ThreadListContextMenu {
   }
 
   createMailboxLinkItem() {
-    if (this.threadIds.length !== 1) {
+    if (this.threadIds.length !== 1 || !this.threads[0]) {
       return null;
     }
 

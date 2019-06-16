@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 import { DraftEditingSession } from './draft-editing-session';
-import DraftFactory from './draft-factory';
+import DraftFactory, { ReplyType, ReplyBehavior } from './draft-factory';
 import DatabaseStore from './database-store';
 import { SendActionsStore } from './send-actions-store';
 import FocusedContentStore from './focused-content-store';
@@ -223,8 +223,8 @@ class DraftStore extends MailspringStore {
     behavior,
   }: IThreadMessageModelOrId & {
     popout?: boolean;
-    type: 'reply' | 'reply-all';
-    behavior: string;
+    type: ReplyType;
+    behavior: ReplyBehavior;
   }) => {
     return Promise.props(this._modelifyContext({ thread, threadId, message, messageId }))
       .then(({ message: m, thread: t }) => {

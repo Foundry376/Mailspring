@@ -86,14 +86,14 @@ export async function expandAccountWithCommonSettings(account: Account) {
     const imap = (template.servers.imap || [])[0] || ({} as any);
     const smtp = (template.servers.smtp || [])[0] || ({} as any);
     const defaults = {
-      imap_host: imap.hostname.replace('{domain}', domain),
+      imap_host: (imap.hostname || '').replace('{domain}', domain),
       imap_port: imap.port,
       imap_username: usernameWithFormat('email'),
       imap_password: populated.settings.imap_password,
       imap_security: imap.starttls ? 'STARTTLS' : imap.ssl ? 'SSL / TLS' : 'none',
       imap_allow_insecure_ssl: false,
 
-      smtp_host: smtp.hostname.replace('{domain}', domain),
+      smtp_host: (smtp.hostname || '').replace('{domain}', domain),
       smtp_port: smtp.port,
       smtp_username: usernameWithFormat('email'),
       smtp_password: populated.settings.smtp_password || populated.settings.imap_password,
