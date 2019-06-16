@@ -244,25 +244,27 @@ function getIconFromTheme(
  */
 function getIconPath(iconName: string, size: number, context: string | string[], scale: 1 | 2 = 1) {
   let defaultTheme = getIconTheme(getIconThemeName());
-  if (defaultTheme != null) {
-    let inherits = defaultTheme.data['Icon Theme']['Inherits'].split(',');
+  if (!defaultTheme) return null;
 
-    let icon = getIconFromTheme(defaultTheme, iconName, size, context, scale);
+  const iconThemeObject = defaultTheme.data['Icon Theme'];
+  const inheritsList = iconThemeObject && iconThemeObject['Inherits'];
+  if (!inheritsList) return null;
 
+  const inherits = inheritsList.split(',');
+  let icon = getIconFromTheme(defaultTheme, iconName, size, context, scale);
+
+  if (icon !== null) {
+    return icon;
+  }
+
+  // in case the icon was not found in the theme, we search the inherited themes
+  for (let key of inherits) {
+    let inheritsTheme = getIconTheme(inherits[key]);
+    icon = getIconFromTheme(inheritsTheme, iconName, size, context);
     if (icon !== null) {
       return icon;
     }
-
-    // in case the icon was not found in the theme, we search the inherited themes
-    for (let key of inherits) {
-      let inheritsTheme = getIconTheme(inherits[key]);
-      icon = getIconFromTheme(inheritsTheme, iconName, size, context);
-      if (icon !== null) {
-        return icon;
-      }
-    }
   }
-
   return null;
 }
 
