@@ -58,7 +58,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
       // keyed by a fileId. The value is the downloadData.
       downloads: AttachmentStore.getDownloadDataForFiles(fileIds),
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
-      detailedHeaders: false,
+      detailedHeaders: AppEnv.config.get('core.reading.messageHeader'),
     };
   }
 
@@ -287,7 +287,10 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
   }
 
   _renderCollapsed() {
-    const { message: { snippet, from, files, date, draft }, className } = this.props;
+    const {
+      message: { snippet, from, files, date, draft },
+      className,
+    } = this.props;
 
     const attachmentIcon = Utils.showIconForAttachments(files) ? (
       <div className="collapsed-attachment" />
