@@ -136,16 +136,16 @@ function __parseIconTheme(themePath: string): object {
  * @returns {IconTheme} containing the parsed index.theme file and path to the theme
  */
 function getIconTheme(themeName): IconTheme {
-  if (themeName != null) {
-    for (const themesPath of ICON_THEME_PATHS) {
-      const themePath = path.join(themesPath, themeName);
-      const parsed = __parseIconTheme(themePath);
-      if (parsed != null) {
-        return {
-          themePath: themePath,
-          data: parsed,
-        };
-      }
+  if (!themeName) return null;
+
+  for (const themesPath of ICON_THEME_PATHS) {
+    const themePath = path.join(themesPath, themeName);
+    const parsed = __parseIconTheme(themePath);
+    if (parsed != null) {
+      return {
+        themePath: themePath,
+        data: parsed,
+      };
     }
   }
   return null;
@@ -243,7 +243,7 @@ function getIconFromTheme(
  * @returns {string} absolute path of the icon
  */
 function getIconPath(iconName: string, size: number, context: string | string[], scale: 1 | 2 = 1) {
-  let defaultTheme = getIconTheme(getIconThemeName());
+  const defaultTheme = getIconTheme(getIconThemeName());
   if (!defaultTheme) return null;
 
   const iconThemeObject = defaultTheme.data['Icon Theme'];
@@ -259,7 +259,8 @@ function getIconPath(iconName: string, size: number, context: string | string[],
 
   // in case the icon was not found in the theme, we search the inherited themes
   for (let key of inherits) {
-    let inheritsTheme = getIconTheme(inherits[key]);
+    const inheritsTheme = getIconTheme(inherits[key]);
+    if (!inheritsTheme) continue;
     icon = getIconFromTheme(inheritsTheme, iconName, size, context);
     if (icon !== null) {
       return icon;
