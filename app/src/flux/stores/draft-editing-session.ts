@@ -26,61 +26,86 @@ let DraftStore = null;
 
 function hotwireDraftBodyState(draft: any, session: DraftEditingSession): MessageWithEditorState {
   // Populate the bodyEditorState and override the draft properties
-  // so that they're kept in sync with minimal recomputation
-  let _bodyHTMLCache = draft.body;
-  let _bodyEditorState = null;
+  // so that they're kept in sync with minimal recomputation.
+  let _bodyHTMLValue = draft.body;
+  let _bodyEditorValue = null;
 
   draft.__bodyPropDescriptor = {
     configurable: true,
     get: function() {
-      if (!_bodyHTMLCache) {
-        console.log('building HTML body cache');
-        _bodyHTMLCache = convertToHTML(_bodyEditorState);
+      if (!_bodyHTMLValue) {
+        _bodyHTMLValue = convertToHTML(_bodyEditorValue);
       }
-      return _bodyHTMLCache;
+      return _bodyHTMLValue;
     },
     set: function(inHTML) {
-      let nextValue = convertFromHTML(inHTML);
+      if (_bodyHTMLValue === inHTML) return;
+
+      _bodyHTMLValue = inHTML;
+
       if (session._mountedEditor) {
-        nextValue = session._mountedEditor
+        // compute it now and apply it, preserving the document history
+        _bodyEditorValue = session._mountedEditor
           .moveToRangeOfDocument()
+          .delete()
           .insertFragment(convertFromHTML(inHTML).document)
           .moveToRangeOfDocument()
-          .moveToStart()
-          .deleteForward(1).value;
+          .moveToStart().value;
+
+        // occasionally inserting the new document adds a new line at the beginning of the value.
+        // It's unclaer why this happens...
+        const firstBlock = _bodyEditorValue.document.getBlocks().first();
+        if (firstBlock.text === '') {
+          _bodyEditorValue = session._mountedEditor.removeNodeByKey(firstBlock.key).value;
+        }
+      } else {
+        // compute it again when it's asked for
+        _bodyEditorValue = null;
       }
-      _bodyEditorState = nextValue;
     },
   };
 
-  draft.__bodyEditorStatePropDescriptor = {
+  draft.__bodyEditorValuePropDescriptor = {
     configurable: true,
     get: function() {
-      return _bodyEditorState;
-    },
-    set: function(next) {
-      if (_bodyEditorState !== next) {
-        _bodyHTMLCache = null;
+      if (!_bodyEditorValue) {
+        _bodyEditorValue = convertFromHTML(_bodyHTMLValue);
       }
-      _bodyEditorState = next;
+      return _bodyEditorValue;
+    },
+    set: function(inValue) {
+      if (_bodyEditorValue === inValue) return;
+      _bodyHTMLValue = null;
+      _bodyEditorValue = inValue;
     },
   };
 
   Object.defineProperty(draft, 'body', draft.__bodyPropDescriptor);
-  Object.defineProperty(draft, 'bodyEditorState', draft.__bodyEditorStatePropDescriptor);
-  draft.body = _bodyHTMLCache;
+  Object.defineProperty(draft, 'bodyEditorState', draft.__bodyEditorValuePropDescriptor);
+  draft.body = _bodyHTMLValue;
 
   return draft as MessageWithEditorState;
 }
 
-function fastCloneDraft(draft) {
+/**
+ * Note: This method is intended to return a new Mesasge object so that lazy people doing
+ * shallow equals get the correct basic behavior as the draft is modified in the session.
+ *
+ * However, this method does not deep clone array values (To:, etc.) and the hot-wired body
+ * and bodyEditorValue are linked through the same internal state. Changing the body of
+ * the cloned draft changes the body of the old draft too.
+ *
+ * At the moment these tradeoffs seem OK because we're really just trying to make
+ * "props.draft !== nextProps.draft" work.
+ */
+function fastCloneDraft(draft: MessageWithEditorState) {
   const next = new Message({});
   for (const key of Object.getOwnPropertyNames(draft)) {
     if (key === 'body' || key === 'bodyEditorState') continue;
     next[key] = draft[key];
   }
   Object.defineProperty(next, 'body', (next as any).__bodyPropDescriptor);
-  Object.defineProperty(next, 'bodyEditorState', (next as any).__bodyEditorStatePropDescriptor);
+  Object.defineProperty(next, 'bodyEditorState', (next as any).__bodyEditorValuePropDescriptor);
   return next as MessageWithEditorState;
 }
 
@@ -342,7 +367,6 @@ export class DraftEditingSession extends MailspringStore {
     // be made through the editing session and we don't want to overwrite the user's
     // work under any scenario.
     const lockedFields = this.changes.dirtyFields();
-
     let changed = false;
     for (const [key] of Object.entries(Message.attributes)) {
       if (key === 'headerMessageId') continue;
@@ -356,6 +380,7 @@ export class DraftEditingSession extends MailspringStore {
       }
       this._draft[key] = nextDraft[key];
     }
+
     if (changed) {
       this.trigger();
     }
