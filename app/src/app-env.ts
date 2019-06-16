@@ -224,6 +224,16 @@ export default class AppEnvConstructor {
       }
     }
 
+    if (
+      error.message &&
+      ['EROFS', 'EPIPE', 'ENOSPC', 'EBUSY', 'EACCES', 'UNKNOWN: unknown error, open'].find(prefix =>
+        error.message.startsWith(prefix)
+      )
+    ) {
+      // Don't fill Sentry with "couldn't open an attachment" type errors.
+      return;
+    }
+
     this.errorLogger.reportError(error, extra);
   }
 

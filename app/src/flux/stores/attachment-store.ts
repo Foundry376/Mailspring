@@ -311,7 +311,7 @@ class AttachmentStore extends MailspringStore {
 
   _catchFSErrors(error) {
     let message = null;
-    if (['EPERM', 'EMFILE', 'EACCES'].includes(error.code)) {
+    if (['EPERM', 'EROFS', 'EPIPE', 'EBUSY', 'EMFILE', 'EACCES', 'UNKNOWN'].includes(error.code)) {
       message = localized(
         'Mailspring could not save an attachment. Check that permissions are set correctly and try restarting Mailspring if the issue persists.'
       );
