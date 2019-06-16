@@ -323,7 +323,9 @@ function _generateNextCrossplatformPreview() {
 
   onFinalize = success => {
     clearTimeout(timer);
-    captureWindow.removeListener('page-title-updated', onRendererSuccess);
+    if (captureWindow) {
+      captureWindow.removeListener('page-title-updated', onRendererSuccess);
+    }
     process.nextTick(_generateNextCrossplatformPreview);
     resolve(success);
   };
@@ -336,9 +338,7 @@ async function _generateQuicklookPreview({ filePath }: { filePath: string }) {
   const pathQuoted = `"${filePath.replace(/"/g, '\\"')}"`;
 
   return new Promise(resolve => {
-    const cmd = `qlmanage -t -f ${
-      window.devicePixelRatio
-    } -s ${ThumbnailWidth} -o ${dirQuoted} ${pathQuoted}`;
+    const cmd = `qlmanage -t -f ${window.devicePixelRatio} -s ${ThumbnailWidth} -o ${dirQuoted} ${pathQuoted}`;
 
     exec(cmd, (error, stdout, stderr) => {
       // Note: sometimes qlmanage outputs to stderr but still successfully
