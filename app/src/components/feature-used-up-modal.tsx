@@ -7,10 +7,12 @@ import { RetinaImg } from './retina-img';
 import BillingModal from './billing-modal';
 import { IdentityStore } from '../flux/stores/identity-store';
 
-export default class FeatureUsedUpModal extends React.Component<
-  { modalClass: string; iconUrl: string; rechargeText: string; headerText: string },
-  { upgradeUrl: string }
-> {
+export default class FeatureUsedUpModal extends React.Component<{
+  modalClass: string;
+  iconUrl: string;
+  rechargeText: string;
+  headerText: string;
+}> {
   static propTypes = {
     modalClass: PropTypes.string.isRequired,
     headerText: PropTypes.string.isRequired,
@@ -18,31 +20,24 @@ export default class FeatureUsedUpModal extends React.Component<
     iconUrl: PropTypes.string.isRequired,
   };
 
-  private _mounted = false;
+  private _fetchPromise: Promise<string>;
 
   componentDidMount() {
-    this._mounted = true;
-
-    IdentityStore.fetchSingleSignOnURL('/payment?embedded=true').then(upgradeUrl => {
-      if (!this._mounted) {
-        return;
-      }
-      this.setState({ upgradeUrl });
-    });
-  }
-
-  componentWillUnmount() {
-    this._mounted = false;
+    this._fetchPromise = IdentityStore.fetchSingleSignOnURL('/payment?embedded=true');
   }
 
   onGoToFeatures = () => {
     shell.openExternal('https://getmailspring.com/pro');
   };
 
-  onUpgrade = e => {
+  onUpgrade = async e => {
+    // Retrieve the SSO URL for the billing modal or wait for it to be retrieved
+    // before opening the modal.
+    const upgradeUrl = await this._fetchPromise;
+
     e.stopPropagation();
     Actions.openModal({
-      component: <BillingModal source="feature-limit" upgradeUrl={this.state.upgradeUrl} />,
+      component: <BillingModal source="feature-limit" upgradeUrl={upgradeUrl} />,
       width: BillingModal.IntrinsicWidth,
       height: BillingModal.IntrinsicHeight,
     });
