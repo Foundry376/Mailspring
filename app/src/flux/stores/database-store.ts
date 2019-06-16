@@ -16,9 +16,14 @@ const debug = createDebug('app:RxDB');
 const debugVerbose = createDebug('app:RxDB:all');
 
 const DEBUG_QUERY_PLANS = AppEnv.inDevMode();
+const AGENT_PATH = path.join(path.dirname(__filename), 'database-agent.js');
 
 const BASE_RETRY_LOCK_DELAY = 50;
 const MAX_RETRY_LOCK_DELAY = 500;
+
+type AgentResponse = { results: any[]; agentTime: number };
+type SQLString = string;
+type SQLValue = boolean | string | number;
 
 function trimTo(str: string, size?: number) {
   const g = window || global || {};
@@ -135,7 +140,7 @@ class DatabaseStore extends MailspringStore {
 
   _open = false;
   _waiting = [];
-  _preparedStatementCache = new LRU({ max: 500 });
+  _preparedStatementCache = new LRU<string, Sqlite3.Statement<any[]>>({ max: 500 });
   _databasePath = databasePath(AppEnv.getConfigDirPath(), AppEnv.inSpecMode());
   _db?: Sqlite3.Database;
 
@@ -212,7 +217,7 @@ class DatabaseStore extends MailspringStore {
   //
   // If a query is made before the database has been opened, the query will be
   // held in a queue and run / resolved when the database is ready.
-  _query(query, values = [], background = false) {
+  _query(query: SQLString, values: SQLValue[] = [], background: boolean = false) {
     return new Promise(async (resolve, reject) => {
       if (!this._open) {
         this._waiting.push(() => this._query(query, values).then(resolve, reject));
@@ -243,29 +248,26 @@ class DatabaseStore extends MailspringStore {
         }
         resolve(results);
       } else {
-        this._executeInBackground(query, values).then(({ results, backgroundTime }) => {
-          const msec = Date.now() - start;
-          if (debugVerbose.enabled) {
-            const q = `🔶 (${msec}ms) Background: ${query}`;
-            debugVerbose(trimTo(q));
-          }
+        const { results, agentTime } = await this._executeInBackground(query, values);
+        const msec = Date.now() - start;
+        if (debugVerbose.enabled) {
+          const q = `🔶 (${msec}ms) Background: ${query}`;
+          debugVerbose(trimTo(q));
+        }
 
-          if (msec > 100) {
-            const msgPrefix =
-              msec > 100 ? 'DatabaseStore._executeInBackground took more than 100ms - ' : '';
-            this._prettyConsoleLog(
-              `${msgPrefix}${msec}msec (${backgroundTime}msec in background): ${query}`
-            );
-          }
-          resolve(results);
-        });
+        if (msec > 100) {
+          const msgPrefix = msec > 100 ? '_executeInBackground took more than 100ms - ' : '';
+          this._prettyConsoleLog(
+            `${msgPrefix}${msec}msec (${agentTime}msec in background): ${query}`
+          );
+        }
+        resolve(results);
       }
     });
   }
 
-  async _executeLocally(query, values) {
+  async _executeLocally(query: SQLString, values: SQLValue[]) {
     const fn = query.startsWith('SELECT') ? 'all' : 'run';
-    let results = null;
     const scheduler = new ExponentialBackoffScheduler({
       baseDelay: BASE_RETRY_LOCK_DELAY,
       maxDelay: MAX_RETRY_LOCK_DELAY,
@@ -278,6 +280,8 @@ class DatabaseStore extends MailspringStore {
     // Because other processes may be writing to the database and modifying the
     // schema (running ANALYZE, etc.), we may `prepare` a statement and then be
     // unable to execute it. Handle this case silently unless it's persistent.
+    let results: any[] = null;
+
     while (!results) {
       try {
         if (scheduler.currentDelay() > 0) {
@@ -296,7 +300,7 @@ class DatabaseStore extends MailspringStore {
         }
 
         const start = Date.now();
-        results = stmt[fn](values);
+        results = stmt[fn](values) as any[];
         const msec = Date.now() - start;
         if (debugVerbose.enabled) {
           const q = `(${msec}ms) ${query}`;
@@ -341,17 +345,12 @@ class DatabaseStore extends MailspringStore {
   }
 
   _agent?: ChildProcess;
-  _agentOpenQueries: { [id: string]: (args: { results: Model[]; backgroundTime: number }) => void };
-  _executeInBackground(query, values) {
+  _agentOpenQueries: { [id: string]: (args: AgentResponse) => void };
+
+  _executeInBackground(query: SQLString, values: SQLValue[]) {
     if (!this._agent) {
       this._agentOpenQueries = {};
-      this._agent = childProcess.fork(
-        path.join(path.dirname(__filename), 'database-agent.js'),
-        [],
-        {
-          silent: true,
-        }
-      );
+      this._agent = childProcess.fork(AGENT_PATH, [], { silent: true });
       this._agent.stdout.on('data', data => console.log(data.toString()));
       this._agent.stderr.on('data', data => console.error(data.toString()));
       this._agent.on('close', code => {
@@ -360,17 +359,25 @@ class DatabaseStore extends MailspringStore {
       });
       this._agent.on('error', err => {
         console.error(`Query Agent: failed to start or receive message: ${err.toString()}`);
-        this._agent.kill('SIGTERM');
+        if (this._agent) this._agent.kill('SIGTERM');
         this._agent = null;
       });
       this._agent.on('message', ({ type, id, results, agentTime }) => {
-        if (type === 'results') {
-          this._agentOpenQueries[id]({ results, backgroundTime: agentTime });
+        if (type === 'results' && this._agentOpenQueries[id]) {
+          this._agentOpenQueries[id]({ results, agentTime });
           delete this._agentOpenQueries[id];
         }
       });
     }
-    return new Promise(resolve => {
+
+    return new Promise<AgentResponse>(async resolve => {
+      if (!this._agent) {
+        // Something bad has happened and we were immediately unable to spawn the query helper.
+        // Fall back to running the query in-process.
+        const results = await this._executeLocally(query, values);
+        resolve({ results, agentTime: -1 });
+        return;
+      }
       const id = Utils.generateTempId();
       this._agentOpenQueries[id] = resolve;
       this._agent.send({ query, values, id, dbpath: this._databasePath });
