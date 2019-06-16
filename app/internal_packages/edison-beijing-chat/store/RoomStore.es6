@@ -3,7 +3,7 @@ import RoomModel from '../model/Room';
 import xmpp from '../xmpp';
 import { jidlocal } from '../utils/jid';
 import { MESSAGE_STATUS_RECEIVED } from '../model/Message';
-import { MessageStore, ContactStore } from 'chat-exports';
+import { MessageStore, ContactStore, UserCacheStore } from 'chat-exports';
 
 class RoomStore extends MailspringStore {
   constructor() {
@@ -54,6 +54,7 @@ class RoomStore extends MailspringStore {
       members
     });
     await this.loadRooms();
+    UserCacheStore.saveUserCache(members);
     return members;
   }
 
