@@ -116,6 +116,8 @@ function Client(opts) {
                 self.emit('app-event', json);
             } else if (json.error) {
                 self.emit('message:error', json);
+            } else if (json.$received) {
+                self.emit('message:success', json);
             }
             else {
                 self.emit('stanza', json);
