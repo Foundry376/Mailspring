@@ -1,4 +1,5 @@
 import MailspringStore from 'mailspring-store';
+import { Actions, WorkspaceStore } from 'mailspring-exports';
 import { ChatActions, RoomStore, ConversationStore, ContactStore } from 'chat-exports';
 import { decrypte } from '../utils/rsa';
 import { decryptByAES } from '../utils/aes';
@@ -372,6 +373,7 @@ class MessageStore extends MailspringStore {
     const noti = postNotification(title, body);
     noti.addEventListener('click', (event) => {
       ChatActions.selectConversation(convjid);
+      Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
       const window = remote.getCurrentWindow();
       window.show();
     });

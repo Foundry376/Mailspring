@@ -11,6 +11,8 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import uuid from 'uuid/v4';
 
+const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
+
 export default class ConversationInfo extends Component {
   constructor(props) {
     super();
@@ -19,13 +21,13 @@ export default class ConversationInfo extends Component {
       members: [],
       loadingMembers: false,
       visible: false,
-      isHiddenNotifi: props.selectedConversation && !!props.selectedConversation.isHiddenNotification
-    }
+      isHiddenNotifi: props.selectedConversation && !!props.selectedConversation.isHiddenNotification,
+    };
   }
 
   _listenToStore = () => {
     this._unsub = RoomStore.listen(this.refreshRoomMembers);
-  }
+  };
 
   componentWillUnmount() {
     this._unsub();
@@ -55,7 +57,7 @@ export default class ConversationInfo extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.selectedConversation.jid !== this.props.selectedConversation.jid) {
       this.setState({
-        members: []
+        members: [],
       });
       this.refreshRoomMembers(nextProps);
     }
@@ -67,9 +69,9 @@ export default class ConversationInfo extends Component {
     members.sort((a, b) => (a.affiliation + a.name) > (b.affiliation + b.name) ? 1 : -1);
     this.setState({
       members,
-      loadingMembers: false
+      loadingMembers: false,
     });
-  }
+  };
 
   getRoomMembers = async (nextProps = {}) => {
     const conversation = nextProps.selectedConversation || this.props.selectedConversation;
@@ -77,22 +79,22 @@ export default class ConversationInfo extends Component {
       return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid, true);
     }
     return [];
-  }
+  };
 
   clearMessages = () => {
     const conversation = this.props.selectedConversation;
     const jid = conversation.jid;
     MessageStore.removeMessagesByConversationJid(jid);
     return;
-  }
+  };
 
   hiddenNotifi = () => {
     const isHidden = !this.props.selectedConversation.isHiddenNotification;
     ConversationStore.updateConversationByJid({ isHiddenNotification: isHidden }, this.props.selectedConversation.jid);
     this.setState({
-      isHiddenNotifi: isHidden
-    })
-  }
+      isHiddenNotifi: isHidden,
+    });
+  };
 
   exitGroup = () => {
     if (!confirm('Are you sure to exit from this group?')) {
@@ -102,11 +104,11 @@ export default class ConversationInfo extends Component {
     xmpp.leaveRoom(conversation.jid, conversation.curJid);
     ChatActions.removeConversation(conversation.jid);
     ChatActions.deselectConversation();
-  }
+  };
 
   toggleInvite = (moreBtnEl) => {
     this.setState({ inviting: !this.state.inviting, moreBtnEl });
-  }
+  };
 
   onUpdateGroup = async (contacts) => {
     this.setState({ inviting: false });
@@ -137,10 +139,15 @@ export default class ConversationInfo extends Component {
         const names = contacts.map(item => item.name);
         const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
         // const { onGroupConversationCompleted } = this.props;
-        ConversationStore.createGroupConversation({ contacts, roomId, name: chatName, curJid: selectedConversation.curJid });
+        ConversationStore.createGroupConversation({
+          contacts,
+          roomId,
+          name: chatName,
+          curJid: selectedConversation.curJid,
+        });
       }
     }
-  }
+  };
 
   showMenu = (e) => {
     const menus = [
@@ -159,7 +166,7 @@ export default class ConversationInfo extends Component {
           this.hiddenNotifi();
         },
       },
-    ]
+    ];
     const { selectedConversation: conversation } = this.props;
     if (!conversation.jid.match(/@app/)) {
       menus.unshift({
@@ -168,10 +175,22 @@ export default class ConversationInfo extends Component {
           const moreBtnEl = document.querySelector('.more');
           this.toggleInvite(moreBtnEl);
         },
-      })
+      });
     }
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
-  }
+  };
+  filterCurrentMemebers = contact => {
+    if (this.props.selectedConversation.isGroup) {
+      const memberJids = this.state.members.map(c => c.email);
+      return !memberJids.includes(contact.email);
+    } else {
+      if (this.props.selectedConversation.roomMembers && this.props.selectedConversation.roomMembers.length > 0) {
+        return [this.props.selectedConversation.roomMembers[0].email];
+      } else {
+        return [this.props.selectedConversation.email];
+      }
+    }
+  };
 
   render = () => {
     const { selectedConversation: conversation, contacts } = this.props;
@@ -200,7 +219,7 @@ export default class ConversationInfo extends Component {
               name="inline-loading-spinner.gif"
               mode={RetinaImg.Mode.ContentPreserve}
             /> :
-            <div className="member-count">{conversation.isGroup ? roomMembers.length + " People" : ""}
+            <div className="member-count">{conversation.isGroup ? roomMembers.length + ' People' : ''}
             </div>
           }
 
@@ -212,7 +231,7 @@ export default class ConversationInfo extends Component {
               <div className="row">
                 <div className="avatar-icon">
                   <ContactAvatar conversation={conversation} jid={privateChatMember.jid} name={privateChatMember.name}
-                    email={privateChatMember.email} avatar={privateChatMember.avatar} size={30} />
+                                 email={privateChatMember.email} avatar={privateChatMember.avatar} size={30}/>
                 </div>
                 <div className="info">
                   <div className="name">
@@ -228,14 +247,14 @@ export default class ConversationInfo extends Component {
               roomMembers && roomMembers.map(member => {
                 return (
                   <InfoMember conversation={conversation}
-                    member={member}
-                    editingMember={this.editingMember}
-                    editProfile={this.props.editProfile}
-                    exitProfile={this.props.exitProfile}
-                    removeMember={this.removeMember}
-                    currentUserIsOwner={currentUserIsOwner}
-                    key={member.jid.bare}
-                  />)
+                              member={member}
+                              editingMember={this.editingMember}
+                              editProfile={this.props.editProfile}
+                              exitProfile={this.props.exitProfile}
+                              removeMember={this.removeMember}
+                              currentUserIsOwner={currentUserIsOwner}
+                              key={member.jid.bare}
+                  />);
               }),
               !currentUserIsOwner && (
                 <div
@@ -243,8 +262,8 @@ export default class ConversationInfo extends Component {
                   className="exit-group"
                   onClick={this.exitGroup}>
                   Exit from Group
-              </div>
-              )
+                </div>
+              ),
             ])
           }
         </div>
@@ -262,11 +281,12 @@ export default class ConversationInfo extends Component {
               this.setState({ inviting: false });
             },
           }}>
-            <InviteGroupChatList contacts={contacts} groupMode={true} onUpdateGroup={this.onUpdateGroup} />
+            <InviteGroupChatList contacts={contacts.filter(this.filterCurrentMemebers)} groupMode={true}
+                                 onUpdateGroup={this.onUpdateGroup}/>
           </FixedPopover>
         )}
       </div>
-    )
+    );
   };
 }
 

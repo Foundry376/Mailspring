@@ -551,6 +551,7 @@ class Actions {
   static expandChatPanelFiller = ActionScopeMainWindow;
   static debugFakeNativeMessage = ActionScopeWindow;
   static updateLastSystemInfoCheck = ActionScopeMainWindow;
+  static goToMostRecentChat = ActionScopeMainWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above

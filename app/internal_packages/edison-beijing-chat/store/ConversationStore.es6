@@ -1,4 +1,5 @@
 import MailspringStore from 'mailspring-store';
+import { Actions } from 'mailspring-exports';
 import { ChatActions, MessageStore, ContactStore } from 'chat-exports';
 import ConversationModel from '../model/Conversation';
 import xmpp from '../xmpp';
@@ -22,6 +23,8 @@ class ConversationStore extends MailspringStore {
     this.listenTo(ChatActions.removeConversation, this.removeConversation);
     this.listenTo(ChatActions.goToPreviousConversation, this.previousConversation);
     this.listenTo(ChatActions.goToNextConversation, this.nextConversation);
+    this.listenTo(ChatActions.goToMostRecentConversation, this.goToMostRecentConvorsation);
+    this.listenTo(Actions.goToMostRecentChat, this.goToMostRecentConvorsation);
   }
 
   previousConversation = async () => {
@@ -97,6 +100,15 @@ class ConversationStore extends MailspringStore {
   getConversations() {
     return this.conversations;
   }
+  goToMostRecentConvorsation = () =>{
+    const conversation = this.getMostRecentConversation();
+    if (conversation) {
+      ChatActions.selectConversation(conversation.jid);
+    }
+  };
+  getMostRecentConversation = () => {
+    return this.conversations.length > 0 ? this.conversations[0] : null;
+  };
 
   getConversationByJid = async (jid) => {
     for (const conv of this.conversations) {

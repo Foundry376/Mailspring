@@ -6,7 +6,6 @@ import Button from '../../common/Button';
 import { Actions, WorkspaceStore } from 'mailspring-exports';
 import { ChatActions } from 'chat-exports';
 
-
 export default class NewConversationTopBar extends Component {
   constructor() {
     super();

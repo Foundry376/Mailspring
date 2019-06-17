@@ -22,6 +22,7 @@ import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import { ChatActions } from 'chat-exports';
 import { FILE_TYPE } from '../../../../utils/filetypes';
+import {MessageModel} from 'chat-exports';
 
 export default class Msg extends PureComponent {
   static propTypes = {
@@ -106,7 +107,7 @@ export default class Msg extends PureComponent {
         body.updating = true;
         body.deleted = true;
         onMessageSubmitted(conversation, JSON.stringify(body), msg.id, true);
-        msg.remove();
+        MessageModel.destroy({where:{id:msg.id}});
         this.menu.closePopup();
       }
     });

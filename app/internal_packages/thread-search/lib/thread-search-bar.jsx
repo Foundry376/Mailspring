@@ -298,7 +298,7 @@ class ThreadSearchBar extends Component {
 
   _placeholder = () => {
     if (this._initialQueryForPerspective() === '') {
-      return 'Search all email';
+      return 'Search all emails';
     }
     return `Search ${this.props.perspective.name || ''}`;
   };

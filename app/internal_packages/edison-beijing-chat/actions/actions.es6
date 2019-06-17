@@ -5,6 +5,7 @@ const ActionScopeGlobal = 'global';
 const ActionScopeMainWindow = 'main';
 
 class Actions {
+  static goToMostRecentConversation = ActionScopeMainWindow;
   static updateProgress = ActionScopeWindow;
   static updateImagePopup = ActionScopeWindow;
   static selectConversation = ActionScopeWindow;
