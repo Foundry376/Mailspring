@@ -190,7 +190,7 @@ class MessageList extends React.Component<{}, MessageListState> {
 
     // Invert the message list if the descending option is set
     if (AppEnv.config.get(PREF_DESCENDING_ORDER)) {
-      messages = messages.reverse();
+      messages = [...messages].reverse();
     }
 
     messages.forEach(message => {
