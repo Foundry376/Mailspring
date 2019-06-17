@@ -35,6 +35,7 @@
 
   .event-body {
     padding: @padding-small-horizontal;
+    color: @text-color;
 
     .event-date {
       display: inline-block;
@@ -55,14 +56,12 @@
 
     .event-actions {
       display: flex;
-      float: right;
-      z-index: 4;
-      text-align: center;
-      position: relative;
 
       .btn-rsvp {
-        margin-left: 10.5px;
+        margin-right: 10.5px;
+        margin-top: 5px;
         min-width: 85px;
+        text-align: center;
 
         &:hover {
           background: mix(@background-primary, @text-color, 95%);

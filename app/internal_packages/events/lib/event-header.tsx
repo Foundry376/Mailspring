@@ -134,13 +134,13 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
           <span className="event-title">{icsEvent.summary}</span>
         </div>
         <div className="event-body">
-          {icsMethod === 'request' ? this._renderRSVP() : this._renderSenderResponse()}
           <div className="event-date">
             <div className="event-day">{day}</div>
             <div>
               <div className="event-time">{time}</div>
             </div>
             <div className="event-location">{icsEvent.location}</div>
+            {icsMethod === 'request' ? this._renderRSVP() : this._renderSenderResponse()}
           </div>
         </div>
       </div>
