@@ -31,7 +31,6 @@ class FocusedContactStorePropsContainer extends React.Component<
     return {
       sortedContacts: FocusedContactsStore.sortedContacts(),
       focusedContact: FocusedContactsStore.focusedContact(),
-      focusedContactThreads: FocusedContactsStore.focusedContactThreads(),
     };
   }
 
@@ -55,7 +54,6 @@ const SidebarPluginContainerInner = props => {
       direction="column"
       exposedProps={{
         contact: props.focusedContact,
-        contactThreads: props.focusedContactThreads,
       }}
     />
   );
@@ -63,7 +61,6 @@ const SidebarPluginContainerInner = props => {
 
 SidebarPluginContainerInner.propTypes = {
   focusedContact: PropTypes.object,
-  focusedContactThreads: PropTypes.array,
 };
 
 export class SidebarPluginContainer extends React.Component {

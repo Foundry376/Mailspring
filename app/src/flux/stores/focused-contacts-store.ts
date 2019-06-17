@@ -27,7 +27,6 @@ class FocusedContactsStore extends MailspringStore {
     this.listenTo(Actions.focusContact, this._onFocusContact);
     this._clearCurrentParticipants();
     this._triggerLater = _.debounce(this.trigger, 250);
-    this._loadCurrentParticipantThreads = _.debounce(this._loadCurrentParticipantThreads, 250);
   }
 
   sortedContacts() {
@@ -36,10 +35,6 @@ class FocusedContactsStore extends MailspringStore {
 
   focusedContact() {
     return this._currentFocusedContact;
-  }
-
-  focusedContactThreads() {
-    return this._currentParticipantThreads || [];
   }
 
   // We need to wait now for the MessageStore to grab all of the
@@ -82,7 +77,6 @@ class FocusedContactsStore extends MailspringStore {
     this._unsubFocusedContact = null;
     this._currentFocusedContact = null;
     this._currentThread = null;
-    this._currentParticipantThreads = [];
   }
 
   _onFocusContact = contact => {
@@ -90,8 +84,6 @@ class FocusedContactsStore extends MailspringStore {
       this._unsubFocusedContact.dispose();
       this._unsubFocusedContact = null;
     }
-
-    this._currentParticipantThreads = [];
 
     if (contact && contact.email) {
       const query = DatabaseStore.findBy<Contact>(Contact, {
@@ -105,31 +97,11 @@ class FocusedContactsStore extends MailspringStore {
         this._currentFocusedContact = match || contact;
         this._triggerLater();
       });
-      this._loadCurrentParticipantThreads();
     } else {
       this._currentFocusedContact = null;
       this._triggerLater();
     }
   };
-
-  _loadCurrentParticipantThreads() {
-    const currentContact = this._currentFocusedContact || { email: undefined };
-    const email = currentContact.email;
-    if (!email) {
-      return;
-    }
-    DatabaseStore.findAll<Thread>(Thread)
-      .structuredSearch(SearchQueryParser.parse(`from:${email}`))
-      .limit(100)
-      .background()
-      .then((threads = []) => {
-        if (currentContact.email !== email) {
-          return;
-        }
-        this._currentParticipantThreads = threads;
-        this.trigger();
-      });
-  }
 
   // We score everyone to determine who's the most relevant to display in
   // the sidebar.

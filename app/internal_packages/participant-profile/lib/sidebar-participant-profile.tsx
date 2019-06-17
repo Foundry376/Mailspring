@@ -36,7 +36,7 @@ class TimeInTimezone extends React.Component<{ timeZone: string }, { tick: numbe
     // schedules for the next minute change each minute
     this._timer = setTimeout(() => {
       this.setState({ tick: this.state.tick + 1 }, this.scheduleTick);
-    }, 60000 - Date.now() % 60000);
+    }, 60000 - (Date.now() % 60000));
   };
 
   render() {
@@ -224,7 +224,6 @@ class LocationRow extends React.Component<{ location: string }> {
 
 interface SidebarParticipantProfileProps {
   contact: Contact;
-  contactThreads: Thread[];
 }
 
 interface SidebarParticipantProfileState {
@@ -282,7 +281,6 @@ export default class SidebarParticipantProfile extends React.Component<
 
   static propTypes = {
     contact: PropTypes.object,
-    contactThreads: PropTypes.array,
   };
 
   static containerStyles = {
