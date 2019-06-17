@@ -101,9 +101,9 @@ export class DraftChangeSet extends EventEmitter {
 
     if (this.dirtyFields().length > 0) {
       this.clearDelayedCommit();
+      this._lastCommitTime = performance.now();
       this._commitPromise = this.callbacks.onCommit();
       await this._commitPromise;
-      this._lastCommitTime = performance.now();
       this._commitPromise = null;
     }
   }
