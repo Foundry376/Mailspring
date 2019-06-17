@@ -218,6 +218,7 @@ export class Thread extends ModelWithMetadata {
 
   getMailboxPermalink() {
     const subject = encodeURIComponent(this.subject);
-    return `mailspring://thread?subject=${subject}&date=${this.firstMessageTimestamp.getTime()}`;
+    const date = Math.floor(this.firstMessageTimestamp.getTime() / 1000);
+    return `mailspring://thread?subject=${subject}&date=${date}`;
   }
 }
