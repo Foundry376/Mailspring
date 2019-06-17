@@ -216,7 +216,7 @@ interface ToolbarState {
   columnNames: string[];
 }
 
-let lastReportedToolbarHeight: number = 0;
+let lastReportedToolbarHeight = 0;
 
 export default class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
   static displayName = 'Toolbar';
