@@ -216,6 +216,8 @@ interface ToolbarState {
   columnNames: string[];
 }
 
+let lastReportedToolbarHeight: number = 0;
+
 export default class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
   static displayName = 'Toolbar';
 
@@ -229,7 +231,6 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
   };
 
   mounted: boolean = false;
-  lastReportedToolbarHeight: number = 0;
   unlisteners: Array<() => void> = [];
 
   constructor(props) {
@@ -308,8 +309,8 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
     }
 
     // Record our overall height for sheets
-    if (el.clientHeight !== this.lastReportedToolbarHeight) {
-      this.lastReportedToolbarHeight = el.clientHeight;
+    if (el.clientHeight !== lastReportedToolbarHeight) {
+      lastReportedToolbarHeight = el.clientHeight;
       remote.getCurrentWindow().setSheetOffset(el.clientHeight);
     }
   }

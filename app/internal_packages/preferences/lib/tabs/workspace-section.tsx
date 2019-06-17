@@ -5,25 +5,31 @@ import { shell } from 'electron';
 
 import ConfigSchemaItem from './config-schema-item';
 
-class DefaultMailClientItem extends React.Component<{}, { defaultClient: boolean | 'unknown' }> {
+interface DefaultMailClientItemState {
+  defaultClient: boolean | 'unknown';
+}
+
+const DELAY_FOR_SHEET_ANIMATION = 25;
+
+const helper = new DefaultClientHelper();
+const service = new SystemStartService();
+
+class DefaultMailClientItem extends React.Component<{}, DefaultMailClientItemState> {
   _mounted: boolean = false;
 
-  _helper = new DefaultClientHelper();
+  state: DefaultMailClientItemState = { defaultClient: helper.available() ? false : 'unknown' };
 
-  constructor(props) {
-    super(props);
-    if (this._helper.available()) {
-      this.state = { defaultClient: false };
-      this._helper.isRegisteredForURLScheme('mailto', registered => {
-        if (this._mounted) this.setState({ defaultClient: registered });
-      });
-    } else {
-      this.state = { defaultClient: 'unknown' };
-    }
-  }
-
-  componentDidMount() {
+  async componentDidMount() {
     this._mounted = true;
+
+    if (helper.available()) {
+      await Promise.delay(DELAY_FOR_SHEET_ANIMATION);
+      if (!this._mounted) return;
+      helper.isRegisteredForURLScheme('mailto', registered => {
+        if (!this._mounted) return;
+        this.setState({ defaultClient: registered });
+      });
+    }
   }
 
   componentWillUnmount() {
@@ -33,10 +39,10 @@ class DefaultMailClientItem extends React.Component<{}, { defaultClient: boolean
   toggleDefaultMailClient = event => {
     if (this.state.defaultClient) {
       this.setState({ defaultClient: false });
-      this._helper.resetURLScheme('mailto');
+      helper.resetURLScheme('mailto');
     } else {
       this.setState({ defaultClient: true });
-      this._helper.registerForURLScheme('mailto');
+      helper.registerForURLScheme('mailto');
     }
     event.target.blur();
   };
@@ -81,19 +87,18 @@ class LaunchSystemStartItem extends React.Component {
 
   _mounted: boolean;
 
-  componentDidMount() {
+  async componentDidMount() {
     this._mounted = true;
-    this._service.checkAvailability().then(available => {
-      if (this._mounted) {
-        this.setState({ available });
-      }
-      if (!available || !this._mounted) return;
-      this._service.doesLaunchOnSystemStart().then(launchOnStart => {
-        if (this._mounted) {
-          this.setState({ launchOnStart });
-        }
-      });
-    });
+
+    const available = await service.checkAvailability();
+    if (!this._mounted) return;
+    this.setState({ available });
+
+    if (available) {
+      const launchOnStart = service.doesLaunchOnSystemStart();
+      if (!this._mounted) return;
+      this.setState({ launchOnStart });
+    }
   }
 
   componentWillUnmount() {
@@ -103,16 +108,17 @@ class LaunchSystemStartItem extends React.Component {
   _toggleLaunchOnStart = event => {
     if (this.state.launchOnStart) {
       this.setState({ launchOnStart: false });
-      this._service.dontLaunchOnSystemStart();
+      service.dontLaunchOnSystemStart();
     } else {
       this.setState({ launchOnStart: true });
-      this._service.configureToLaunchOnSystemStart();
+      service.configureToLaunchOnSystemStart();
     }
     event.target.blur();
   };
 
   render() {
     if (!this.state.available) return false;
+
     return (
       <div className="item">
         <input

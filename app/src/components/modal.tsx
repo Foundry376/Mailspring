@@ -10,6 +10,7 @@ type ModalProps = {
   height?: number;
   width?: number;
 };
+
 type ModalState = {
   animateClass: boolean;
   offset: number;
@@ -26,23 +27,20 @@ class Modal extends React.Component<ModalProps, ModalState> {
 
   _mounted: boolean = false;
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      offset: 0,
-      dimensions: {},
-      animateClass: false,
-    };
-  }
+  state = {
+    offset: 0,
+    dimensions: {},
+    animateClass: false,
+  };
 
   componentDidMount() {
-    this._focusImportantElement();
     this._mounted = true;
+    this._focusImportantElement();
     window.requestAnimationFrame(() => {
-      if (!this._mounted) {
-        return;
-      }
-      this.setState({ animateClass: true });
+      window.requestAnimationFrame(() => {
+        if (!this._mounted) return;
+        this.setState({ animateClass: true });
+      });
     });
   }
 
