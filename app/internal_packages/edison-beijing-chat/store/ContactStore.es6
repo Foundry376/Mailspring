@@ -11,7 +11,7 @@ class ContactStore extends MailspringStore {
 
   refreshContacts = async () => {
     this.contacts = await ContactModel.findAll();
-    this.contacts = _.uniqBy(this.contacts, 'jid');
+    this.contacts = _.uniqBy(this.contacts, 'email');
     this.trigger();
   }
 
