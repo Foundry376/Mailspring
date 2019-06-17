@@ -100,7 +100,7 @@ class ConversationStore extends MailspringStore {
   getConversations() {
     return this.conversations;
   }
-  goToMostRecentConvorsation = () =>{
+  goToMostRecentConvorsation = () => {
     const conversation = this.getMostRecentConversation();
     if (conversation) {
       ChatActions.selectConversation(conversation.jid);
@@ -124,7 +124,9 @@ class ConversationStore extends MailspringStore {
   }
 
   findConversationsByCondition = async (condition) => {
-    return await ConversationModel.findAll(condition);
+    return await ConversationModel.findAll({
+      where: condition
+    });
   }
 
   refreshConversations = async () => {
