@@ -10,6 +10,7 @@ import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import uuid from 'uuid/v4';
+const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class ConversationInfo extends Component {
   constructor(props) {
