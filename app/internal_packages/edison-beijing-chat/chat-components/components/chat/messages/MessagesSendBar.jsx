@@ -111,6 +111,9 @@ export default class MessagesSendBar extends PureComponent {
       })
     });
     const state = Object.assign({}, this.state, { keyword2app });
+    if (nextProps.selectedConversation && this.props.selectedConversation && nextProps.selectedConversation.jid !== this.props.selectedConversation.jid) {
+      state.messageBody = '';
+    }
     this.setState(state);
   }
 
