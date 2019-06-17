@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import { ChatActions, RoomStore, ConversationStore, ContactStore, messageModel } from 'chat-exports';
+import { ChatActions, RoomStore, ConversationStore, ContactStore } from 'chat-exports';
 import { decrypte } from '../utils/rsa';
 import { decryptByAES } from '../utils/aes';
 import { downloadFile } from '../utils/awss3';
@@ -56,7 +56,7 @@ class MessageStore extends MailspringStore {
   reveivePrivateChat = async (message) => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
-    if (await this._isExistInDb(message)) {
+    if (!message || await this._isExistInDb(message)) {
       return;
     }
 
@@ -140,7 +140,10 @@ class MessageStore extends MailspringStore {
         let text = keys[jidLocal][deviceId];
         if (text) {
           let aes = decrypte(text, prikey);//window.localStorage.priKey);
-          this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, aes, message);
+          const result = this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, aes, message);
+          if (!result) {
+            return null;
+          }
         }
       }
     } else {
@@ -173,7 +176,7 @@ class MessageStore extends MailspringStore {
   reveiveGroupChat = async (message) => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
-    if (await this._isExistInDb(message)) {
+    if (!message || await this._isExistInDb(message)) {
       return;
     }
 
@@ -195,6 +198,9 @@ class MessageStore extends MailspringStore {
     const msgId = payload.id;
     if (aes) {
       body = decryptByAES(aes, payload.payload);
+      if (!body) {
+        return false;
+      }
     } else {
       body = payload.body;
     }
@@ -202,7 +208,7 @@ class MessageStore extends MailspringStore {
     try {
       msgBody = JSON.parse(body);
     } catch (e) {
-      console.error('****downloadAndTagImageFileInMessage error:', e);
+      console.error('downloadAndTagImageFileInMessage error:', e);
       payload.body = '';
       return;
     }
@@ -238,7 +244,7 @@ class MessageStore extends MailspringStore {
       msgBody.aes = aes;
     }
     payload.body = JSON.stringify(msgBody);
-    // this.retrievingMessages(payload.from.bare);
+    return true;
   }
 
   // retrievingMessages = (jid) => {
