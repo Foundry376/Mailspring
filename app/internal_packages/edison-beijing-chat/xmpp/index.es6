@@ -221,7 +221,9 @@ export class XmppEx extends EventEmitter3 {
         }
         setTimeout(() => {
           console.log('connect trace', this.connectedJid, this.isConnected, this.getTime());
-          this.connect();
+          if (!this.isConnected) {
+            this.connect();
+          }
         }, 300000);
       }
     });

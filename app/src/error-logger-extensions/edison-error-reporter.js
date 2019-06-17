@@ -41,6 +41,23 @@ module.exports = class EdisonErrorReporter {
       }
     })
   }
+  reportWarning(err, extra) {
+    if (this.inSpecMode || this.inDevMode) {
+      return;
+    }
+    this._sendErrorToServer({
+      app: "DESKTOP",
+      platform: process.platform,
+      device_id: this.deviceHash,
+      level: "WARNING",
+      time: new Date().getTime(),
+      data: {
+        version: this.getVersion(),
+        error: err,
+        extra: extra
+      }
+    })
+  }
 
   _sendErrorToServer(post_data) {
     this.errorStack.push(post_data);

@@ -265,6 +265,36 @@ export default class AppEnvConstructor {
 
     this.errorLogger.reportError(error, extra);
   }
+  reportWarning(error, extra = {}, { noWindows } = {}) {
+    try {
+      extra.pluginIds = this._findPluginsFromError(error);
+      if (Array.isArray(AppEnv.config.get('accounts'))) {
+        extra.accounts = AppEnv.config.get('accounts').map(ac => ac.emailAddress);
+      }
+    } catch (err) {
+      // can happen when an error is thrown very early
+      extra.pluginIds = [];
+    }
+
+    if (error instanceof APIError) {
+      // API Errors are logged by our backend and happen all the time (offline, etc.)
+      // Don't clutter the front-end metrics with these.
+      return;
+    }
+
+    if (this.inSpecMode()) {
+      if (global.jasmine || window.jasmine) {
+        jasmine.getEnv().currentSpec.fail(error);
+      }
+    } else if (this.inDevMode() && !noWindows) {
+      if (!this.isDevToolsOpened()) {
+        this.openDevTools();
+        this.executeJavaScriptInDevTools('DevToolsAPI.showPanel(\'console\')');
+      }
+    }
+
+    this.errorLogger.reportWarning(error, extra);
+  }
 
   _findPluginsFromError(error) {
     if (!error.stack) {
