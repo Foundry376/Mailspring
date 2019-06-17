@@ -99,10 +99,56 @@ module.exports = ErrorLogger = (function () {
     } else {
       this._notifyExtensions('reportError', error, extra);
     }
-    if (error.name==='conflict' && error.status===409) {
+    if (error.name === 'conflict' && error.status === 409) {
       console.warn(error, extra);
     } else {
       console.error(error, extra);
+    }
+  };
+  ErrorLogger.prototype.reportWarning = function (error, extra = {}) {
+    if (this.inSpecMode) {
+      return;
+    }
+    if (!error) {
+      error = { stack: '' };
+    }
+    if (process.type === 'renderer') {
+      var errorJSON = '{}';
+      try {
+        errorJSON = JSON.stringify(error);
+      } catch (err) {
+        var recoveredError = new Error();
+        recoveredError.stack = error.stack;
+        recoveredError.message = `Recovered Error: ${error.message}`;
+        errorJSON = JSON.stringify(recoveredError);
+      }
+
+      var extraJSON;
+      try {
+        extraJSON = JSON.stringify(extra);
+      } catch (err) {
+        extraJSON = '{}';
+      }
+
+      /**
+       * We synchronously send all errors to the backend main process.
+       *
+       * This is important because errors can frequently happen right
+       * before a renderer window is closing. Since error reporting hits
+       * APIs and is asynchronous it's possible for the window to be
+       * destroyed before the report makes it.
+       *
+       * This is a rare use of `sendSync` to ensure the command has made
+       * it before the window closes.
+       */
+      ipcRenderer.sendSync('report-warning', { errorJSON: errorJSON, extra: extraJSON });
+    } else {
+      this._notifyExtensions('reportWarning', error, extra);
+    }
+    if (error.name === 'conflict' && error.status === 409) {
+      console.warn(error, extra);
+    } else {
+      console.warn(error, extra);
     }
   };
 
