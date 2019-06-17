@@ -3,8 +3,7 @@ import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import os from 'os';
 import fs from 'fs';
-import { RetinaImg } from 'mailspring-component-kit';
-
+import { RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
 import xmpp from '../../../../xmpp';
 import uuid from 'uuid/v4';
 import TextArea from 'react-autosize-textarea';
@@ -18,8 +17,8 @@ import { sendFileMessage } from '../../../../utils/message';
 import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } from '../../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../../utils/restjs';
-const { exec } = require('child_process');
 import { MessageStore, RoomStore } from 'chat-exports';
+const { exec } = require('child_process');
 
 const getCaretCoordinates = require('../../../../utils/textarea-caret-position');
 
@@ -439,12 +438,21 @@ export default class MessagesSendBar extends PureComponent {
     }
     this.setState({ openEmoji: !this.state.openEmoji });
   }
+  onContextMenu = event => {
+    const sel = document.getSelection();
+    AppEnv.windowEventHandler.openSpellingMenuFor(sel.toString(), !sel.isCollapsed, {
+      onCorrect: correction => {
+        document.execCommand('insertText', false, correction);
+      },
+    });
+  };
 
   render() {
     const inputProps = {};
     const { selectedConversation } = this.props;
     return (
-      <div className="sendBar" onDrop={this.onDrop}>
+      <KeyCommandsRegion>
+      <div className="sendBar" onDrop={this.onDrop} onContextMenu={this.onContextMenu}>
         {/* <Mention
             style={{ width: '100%', height: '70px' }}
             multiLines={true}
@@ -537,6 +545,7 @@ export default class MessagesSendBar extends PureComponent {
           installApp={this.installApp}
         />
       </div>
+      </KeyCommandsRegion>
     );
   }
 }
