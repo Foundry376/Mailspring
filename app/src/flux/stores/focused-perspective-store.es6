@@ -90,6 +90,7 @@ class FocusedPerspectiveStore extends MailspringStore {
   }
 
   gotoChat = () => {
+    Actions.goToMostRecentChat();
     Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
   };
 
