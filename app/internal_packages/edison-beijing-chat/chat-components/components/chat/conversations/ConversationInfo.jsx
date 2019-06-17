@@ -173,6 +173,10 @@ export default class ConversationInfo extends Component {
     }
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
   }
+  filterCurrentMemeber = contact=>{
+    const memberJids = this.state.members.map(c=>c.email);
+    return !memberJids.includes(contact.email);
+  };
 
   render = () => {
     const { selectedConversation: conversation, contacts } = this.props;
@@ -263,7 +267,7 @@ export default class ConversationInfo extends Component {
               this.setState({ inviting: false });
             },
           }}>
-            <InviteGroupChatList contacts={contacts} groupMode={true} onUpdateGroup={this.onUpdateGroup} />
+            <InviteGroupChatList contacts={contacts.filter(this.filterCurrentMemeber)} groupMode={true} onUpdateGroup={this.onUpdateGroup} />
           </FixedPopover>
         )}
       </div>
