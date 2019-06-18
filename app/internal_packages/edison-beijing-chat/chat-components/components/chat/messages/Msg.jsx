@@ -22,7 +22,7 @@ import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import { ChatActions } from 'chat-exports';
 import { FILE_TYPE } from '../../../../utils/filetypes';
-import {MessageModel} from 'chat-exports';
+import { MessageModel } from 'chat-exports';
 
 export default class Msg extends PureComponent {
   static propTypes = {
@@ -101,19 +101,22 @@ export default class Msg extends PureComponent {
     menuItem = new MenuItem({
       label: 'Delete message',
       click: () => {
-        const { msg, conversation, onMessageSubmitted } = this.props;
-        console.log('delete message: msg: ', msg);
-        const body = this.state.msgBody;
-        body.updating = true;
-        body.deleted = true;
-        onMessageSubmitted(conversation, JSON.stringify(body), msg.id, true);
-        MessageModel.destroy({where:{id:msg.id}});
+        this.deleteMessage();
         this.menu.closePopup();
       }
     });
     this.menu.append(menuItem);
 
     this.unlisten = ChatActions.updateDownload.listen(this.update, this);
+  }
+
+  deleteMessage = () => {
+    const { msg, conversation, onMessageSubmitted } = this.props;
+    const body = this.state.msgBody;
+    body.updating = true;
+    body.deleted = true;
+    onMessageSubmitted(conversation, JSON.stringify(body), msg.id, true);
+    MessageModel.destroy({ where: { id: msg.id } });
   }
 
   componentWillUnmount() {
@@ -390,7 +393,13 @@ export default class Msg extends PureComponent {
                 </div>) : (
                   isEditing ? (
                     <div onKeyDown={this.onKeyDown}>
-                      <MessageEditBar msg={msg} cancelEdit={this.cancelEdit} value={msgBody.content || msgBody} conversation={conversation} onMessageSubmitted={this.onMessageSubmitted} />
+                      <MessageEditBar
+                        msg={msg}
+                        cancelEdit={this.cancelEdit}
+                        value={msgBody.content || msgBody}
+                        conversation={conversation}
+                        deleteMessage={this.deleteMessage}
+                        onMessageSubmitted={this.onMessageSubmitted} />
                     </div>
                   ) : (
                       <div className="messageBody">

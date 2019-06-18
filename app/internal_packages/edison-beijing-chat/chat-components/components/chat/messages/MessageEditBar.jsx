@@ -173,7 +173,6 @@ export default class MessageEditBar extends PureComponent {
     }
 
     this.setState({ messageBody: '', files: [] });
-    // this.refs.mention.reset();
   }
 
   onFileChange = event => {
@@ -269,6 +268,11 @@ export default class MessageEditBar extends PureComponent {
 
   }
   onSave = () => {
+    let { messageBody } = this.state;
+    if (!messageBody) {
+      this.props.deleteMessage();
+      return;
+    }
     this.sendMessage();
     this.hide();
   }
