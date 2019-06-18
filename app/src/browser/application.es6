@@ -94,6 +94,7 @@ export default class Application extends EventEmitter {
 
     await this.oneTimeMoveToApplications();
     await this.oneTimeAddToDock();
+    this.autoStartRestore();
 
     this.autoUpdateManager = new AutoUpdateManager(version, config, specMode);
     this.applicationMenu = new ApplicationMenu(version);
@@ -198,6 +199,22 @@ export default class Application extends EventEmitter {
         this.openUrl(urlToOpen);
       }
     }
+  }
+  autoStartRestore() {
+    return new Promise( resolve =>{
+      if (process.platform === 'darwin') {
+        const openAtLogin = app.getLoginItemSettings().openAtLogin;
+        if (!openAtLogin) {
+          resolve();
+          return;
+        }
+        app.setLoginItemSettings({ openAtLogin: false });
+        setTimeout(() => {
+          app.setLoginItemSettings({ openAtLogin });
+        }, 2000);
+      }
+      resolve();
+    });
   }
 
   async oneTimeMoveToApplications() {
