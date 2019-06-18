@@ -8,8 +8,7 @@ import TextArea from 'react-autosize-textarea';
 import { FILE_TYPE } from '../../../../utils/filetypes';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
-import EmojiPopup from '../../common/EmojiPopup'
-import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
+import EmojiPopup from '../../common/EmojiPopup';
 import { RoomStore } from 'chat-exports';
 
 const FAKE_SPACE = '\u00A0';
@@ -58,7 +57,7 @@ export default class MessageEditBar extends PureComponent {
     value: PropTypes.string.isRequired,
     conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
+      name: PropTypes.string,
       email: PropTypes.string,//.isRequired,
       isGroup: PropTypes.bool.isRequired
     }).isRequired,
@@ -90,6 +89,9 @@ export default class MessageEditBar extends PureComponent {
     })
     if (this.textarea) {
       this.textarea.focus();
+    }
+    if (document.querySelector(".edit-button-group")) {
+      document.querySelector(".edit-button-group").scrollIntoView();
     }
   }
 
