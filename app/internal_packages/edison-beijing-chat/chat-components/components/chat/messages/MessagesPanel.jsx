@@ -88,8 +88,12 @@ export default class MessagesPanel extends Component {
     window.addEventListener("online", this.onLine);
     window.addEventListener("offline", this.offLine);
     const contacts = await ContactStore.getContacts();
-    const state = Object.assign({}, this.state, { online: navigator.onLine, contacts });
-    this.setState(state);
+    const selectedConversation = await ConversationStore.getSelectedConversation();
+    this.setState({
+      online: navigator.onLine,
+      contacts,
+      selectedConversation
+    });
   }
   componentWillUnmount() {
     window.removeEventListener("online", this.onLine);
