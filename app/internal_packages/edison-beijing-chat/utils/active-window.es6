@@ -1,9 +1,10 @@
-var monitor = require('active-window');
+// var monitor = require('active-window');
 
 export const getActiveWindow = () => {
   return new Promise((resolve) => {
-    monitor.getActiveWindow((window) => {
-      resolve(window)
-    });
+    // monitor.getActiveWindow((window) => {
+    //   resolve(window)
+    // });
+    resolve(null);
   })
 }
