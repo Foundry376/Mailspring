@@ -202,8 +202,10 @@ export class XmppEx extends EventEmitter3 {
     });
     this.client.on('session:prebind', (bind) => {
       // console.log('session:prebind: ', bind);
-      window.edisonChatServerDiffTime = parseInt(bind.serverTimestamp)
-        - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
+      if (!window.edisonChatServerDiffTime) {
+        window.edisonChatServerDiffTime = parseInt(bind.serverTimestamp)
+          - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
+      }
       console.log('session:prebind', bind, edisonChatServerDiffTime);
     });
     this.client.on('disconnected', () => {
@@ -212,7 +214,7 @@ export class XmppEx extends EventEmitter3 {
       this.isConnected = false;
       if (this.retryTimes < 3) {
         setTimeout(() => {
-          console.log('connect trace', this.connectedJid, this.isConnected, this.getTime());
+          console.log('connect trace1', this.connectedJid, this.isConnected, this.getTime());
           this.connect();
         }, 1000 + (this.retryTimes - 1) * 5000);
       } else {
@@ -220,7 +222,7 @@ export class XmppEx extends EventEmitter3 {
           this.emit('disconnected', this.connectedJid);
         }
         setTimeout(() => {
-          console.log('connect trace', this.connectedJid, this.isConnected, this.getTime());
+          console.log('connect trace2', this.connectedJid, this.isConnected, this.getTime());
           if (!this.isConnected) {
             this.connect();
           }
@@ -231,7 +233,7 @@ export class XmppEx extends EventEmitter3 {
       this.timeoutCount++;
       if (this.timeoutCount == 2) {
         setTimeout(() => {
-          console.log('connect trace', this.connectedJid, this.isConnected, this.getTime());
+          console.log('connect trace3', this.connectedJid, this.isConnected, this.getTime());
           if (!this.isConnected) {
             this.connect()
           }

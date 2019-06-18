@@ -94,7 +94,9 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
 
         setTimeout(() => {
           let ts = AppEnv.config.get(res.local + "_message_ts");
-          xmpp.pullMessage(ts, res.bare);
+          if (ts) {
+            xmpp.pullMessage(ts, res.bare);
+          }
           //.then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
         }, 1000);
         setTimeout(() => {
