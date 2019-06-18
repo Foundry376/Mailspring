@@ -148,15 +148,17 @@ export const newTempMessageEpic = (action$, { getState }) =>
         curJid,
         sender: curJid,
         body: payload.body,// || payload.ediEncrypted,//yazzz3
-        sentTime: (new Date()).getTime(),
+        sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
         status: payload.isUploading ? MESSAGE_STATUS_FILE_UPLOADING : MESSAGE_STATUS_SENDING,
       };
+      console.log('xmpp.sendMessage2: ', JSON.stringify(message));
       let body = parseMessageBody(payload.body);
       if (body && body.updating) {
         message.updateTime = (new Date()).getTime() + edisonChatServerDiffTime;
-      } else {
-        message.sentTime = (new Date()).getTime() + edisonChatServerDiffTime;
       }
+      // else {
+      //   message.sentTime = (new Date()).getTime() + edisonChatServerDiffTime;
+      // }
       return message;
     }).mergeMap(message => {
       delete message.ts;
