@@ -102,7 +102,7 @@ export default class ConversationInfo extends Component {
       return;
     }
     const { selectedConversation: conversation } = this.props;
-    xmpp.leaveRoom(conversation.jid, conversation.curJid);
+    xmpp.leaveRoom(conversation.jid, conversation.curJid, conversation.curJid);
     ChatActions.removeConversation(conversation.jid);
     ChatActions.deselectConversation();
   };
@@ -189,7 +189,7 @@ export default class ConversationInfo extends Component {
       });
     }
     this.menu = remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
-    console.log( 'showMenu: this.menu: ', this.menu);
+    console.log('showMenu: this.menu: ', this.menu);
   };
   filterCurrentMemebers = contact => {
     if (this.props.selectedConversation.isGroup) {
@@ -268,14 +268,12 @@ export default class ConversationInfo extends Component {
                     key={member.jid.bare}
                   />);
               }),
-              !currentUserIsOwner && (
-                <div
-                  key="exit-group"
-                  className="exit-group"
-                  onClick={this.exitGroup}>
-                  Exit from Group
-                </div>
-              ),
+              <div
+                key="exit-group"
+                className="exit-group"
+                onClick={this.exitGroup}>
+                Exit from Group
+              </div>
             ])
           }
         </div>
