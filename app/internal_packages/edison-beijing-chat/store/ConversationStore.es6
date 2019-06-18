@@ -145,7 +145,7 @@ class ConversationStore extends MailspringStore {
     for (const conv of convs) {
       const convInDb = await ConversationModel.findOne({
         where: {
-          jid
+          jid: conv.jid
         }
       });
       // if exists in db, don't update curJid
