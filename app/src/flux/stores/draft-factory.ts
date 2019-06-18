@@ -233,10 +233,7 @@ class DraftFactory {
     let replyToHeaderMessageId = threadMessageId;
 
     if (!replyToHeaderMessageId) {
-      const msg = await DatabaseStore.findBy<Message>(Message, {
-        accountId: thread.accountId,
-        threadId: thread.id,
-      })
+      const msg = await DatabaseStore.findBy<Message>(Message, { threadId: thread.id })
         .order(Message.attributes.date.descending())
         .limit(1);
       replyToHeaderMessageId = (msg && msg.headerMessageId) || '';

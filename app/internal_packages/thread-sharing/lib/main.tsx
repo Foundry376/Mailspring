@@ -136,10 +136,9 @@ const syncThreadToWebSoon = (thread: Thread) => {
 export const syncThreadToWeb = async thread => {
   const metadata = thread.metadataForPluginId(PLUGIN_ID) || {};
 
-  let messages = await DatabaseStore.findAll<Message>(Message, {
-    threadId: thread.id,
-    accountId: thread.accountId,
-  }).include(Message.attributes.body);
+  let messages = await DatabaseStore.findAll<Message>(Message, { threadId: thread.id }).include(
+    Message.attributes.body
+  );
 
   // hide reminder notifications, deleted emails, etc.
   messages = messages.filter(m => !m.isHidden());

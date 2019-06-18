@@ -41,9 +41,7 @@ function assertMetadataShape(value) {
   }
   if (t.lastReplyTimestamp && !(t.lastReplyTimestamp < Date.now() / 100)) {
     throw new Error(
-      `"lastReplyTimestamp" should always be a unix timestamp in seconds. Received ${
-        t.lastReplyTimestamp
-      }`
+      `"lastReplyTimestamp" should always be a unix timestamp in seconds. Received ${t.lastReplyTimestamp}`
     );
   }
   delete t.expiration;
@@ -58,7 +56,7 @@ function assertMetadataShape(value) {
 export async function updateReminderMetadata(thread, metadataValue) {
   assertMetadataShape(metadataValue);
 
-  if (!await incrementMetadataUse(thread, metadataValue.expiration)) {
+  if (!(await incrementMetadataUse(thread, metadataValue.expiration))) {
     return;
   }
   Actions.queueTask(
@@ -73,20 +71,30 @@ export async function updateReminderMetadata(thread, metadataValue) {
 export async function updateDraftReminderMetadata(draftSession, metadataValue) {
   assertMetadataShape(metadataValue);
 
-  if (!await incrementMetadataUse(draftSession.draft(), metadataValue.expiration)) {
+  if (!(await incrementMetadataUse(draftSession.draft(), metadataValue.expiration))) {
     return;
   }
   draftSession.changes.add({ pristine: false });
   draftSession.changes.addPluginMetadata(PLUGIN_ID, metadataValue);
 }
 
+export async function findMessage({ accountId, headerMessageId }) {
+  // This is an unusual query (accountId + headerMessageId) we don't make in many places,
+  // on a message that is (no longer) a draft and could exist in more than one of your
+  // accounts if you sent it to yourself. To make this more performant, we do a find
+  // and then a filter in code.
+  return (await DatabaseStore.findAll<Message>(Message, { headerMessageId })).find(
+    m => m.accountId === accountId
+  );
+}
+
 export async function transferReminderMetadataFromDraftToThread({ accountId, headerMessageId }) {
-  let message = await DatabaseStore.findBy<Message>(Message, { accountId, headerMessageId });
+  let message = await findMessage({ accountId, headerMessageId });
   if (!message) {
     // The task has just completed, wait a moment to see if the message appears. Testing to
     // see whether this resolves https://sentry.io/foundry-376-llc/mailspring/issues/363208698/
     await Promise.delay(1500);
-    message = await DatabaseStore.findBy<Message>(Message, { accountId, headerMessageId });
+    message = await findMessage({ accountId, headerMessageId });
     if (!message) {
       throw new Error('SendReminders: Could not find message to update');
     }
