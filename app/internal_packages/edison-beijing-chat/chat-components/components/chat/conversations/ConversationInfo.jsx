@@ -88,8 +88,9 @@ export default class ConversationInfo extends Component {
     return;
   };
 
-  hiddenNotifi = () => {
+  toggleNotification = (event) => {
     const isHidden = !this.props.selectedConversation.isHiddenNotification;
+    this.props.selectedConversation.isHiddenNotification = isHidden;
     ConversationStore.updateConversationByJid({ isHiddenNotification: isHidden }, this.props.selectedConversation.jid);
     this.setState({
       isHiddenNotifi: isHidden,
@@ -150,6 +151,14 @@ export default class ConversationInfo extends Component {
   };
 
   showMenu = (e) => {
+    const props = this.props;
+    const isHidden = props.selectedConversation.isHiddenNotification;
+    let menuToggleNotificationLabel;
+    if (isHidden) {
+      menuToggleNotificationLabel = 'Show notifications';
+    } else {
+      menuToggleNotificationLabel = 'Hide notifications'
+    }
     const menus = [
       {
         label: `Clear Message History`,
@@ -159,11 +168,9 @@ export default class ConversationInfo extends Component {
       },
       { type: 'separator' },
       {
-        label: `Hide notifications`,
-        type: 'checkbox',
-        checked: this.state.isHiddenNotifi,
-        click: () => {
-          this.hiddenNotifi();
+        label: menuToggleNotificationLabel,
+        click: (e) => {
+          this.toggleNotification(e);
         },
       },
     ];
@@ -177,7 +184,8 @@ export default class ConversationInfo extends Component {
         },
       });
     }
-    remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
+    this.menu = remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
+    console.log( 'showMenu: this.menu: ', this.menu);
   };
   filterCurrentMemebers = contact => {
     if (this.props.selectedConversation.isGroup) {
