@@ -358,33 +358,49 @@ class MessageStore extends MailspringStore {
     if (!shouldShow) {
       return;
     }
+    console.log('do showNotification: ');
     const convjid = payload.from.bare;
     let msgFrom = payload.from.resource + '@im.edison.tech';
     let memberName = payload.appName;
-    if (!memberName) { memberName = await RoomStore.getMemberName({ roomJid: payload.from.bare, curJid: payload.curJid, memberJid: msgFrom }); }
+    if (!memberName) {
+      memberName = await RoomStore.getMemberName({ roomJid: payload.from.bare, curJid: payload.curJid, memberJid: msgFrom });
+    }
     const contact = ContactStore.findContactByJid(msgFrom);
     const conv = await ConversationStore.getConversationByJid(convjid);
-    const title = payload.appName || memberName || contact && contact.name || conv.name || payload.from.local;
+    let title = conv.name;
+    const senderName = payload.appName || memberName || contact && contact.name
+    if (senderName) {
+      title += ': ' + senderName;
+    };
     let body = payload.body;
     if (isJsonStr(body)) {
       body = JSON.parse(body);
     }
     body = body.content || payload.body;
     const noti = postNotification(title, body);
+    console.log('the noti: ', noti);
     noti.addEventListener('click', (event) => {
       ChatActions.selectConversation(convjid);
       Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
       const window = remote.getCurrentWindow();
       window.show();
+      ChatActions.selectConversation(conv.jid);
     });
   }
 
   shouldShowNotification = async (payload) => {
-    const conversationJid = payload.from.bare;
-    const conv = await ConversationStore.getConversationByJid(conversationJid);
-
+    const win = remote.getCurrentWindow();
+    const focus = win.isFocused();
+    if (focus) {
+      return false;
+    }
+    const conv = ConversationStore.selectedConversation;
+    if (!conv) {
+      return true;
+    }
+    console.log('shouldShowNotification: payload, conv: ', payload, conv);
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
-    if (payload.curJid === payload.from.bare) {
+    if (payload.curJid === payload.from.bare || payload.from.bare === conv.jid) {
       return false;
     }
     const fromUserId = payload.from.resource;
@@ -470,7 +486,7 @@ class MessageStore extends MailspringStore {
         }
         await messageInDb.save();
       } else {
-        await MessageModel.create(msg);
+        await MessageModel.upsert(msg);
       }
     }
   };

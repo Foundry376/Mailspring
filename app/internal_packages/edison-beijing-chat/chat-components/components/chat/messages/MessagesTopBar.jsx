@@ -27,7 +27,7 @@ export default class MessagesTopBar extends Component {
   _onkeyDown = (e) => {
     if (e.keyCode === 13) {
       e.currentTarget.blur();
-      this.saveRoomName(e.currentTarget.innerText);
+      // this.saveRoomName(e.currentTarget.innerText);
       e.preventDefault();
     }
   }

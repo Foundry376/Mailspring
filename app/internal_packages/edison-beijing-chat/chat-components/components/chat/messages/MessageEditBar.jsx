@@ -8,8 +8,7 @@ import TextArea from 'react-autosize-textarea';
 import { FILE_TYPE } from '../../../../utils/filetypes';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
-import EmojiPopup from '../../common/EmojiPopup'
-import EmailAttachmentPopup from '../../common/EmailAttachmentPopup';
+import EmojiPopup from '../../common/EmojiPopup';
 import { RoomStore } from 'chat-exports';
 
 const FAKE_SPACE = '\u00A0';
@@ -58,7 +57,7 @@ export default class MessageEditBar extends PureComponent {
     value: PropTypes.string.isRequired,
     conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
+      name: PropTypes.string,
       email: PropTypes.string,//.isRequired,
       isGroup: PropTypes.bool.isRequired
     }).isRequired,
@@ -91,6 +90,9 @@ export default class MessageEditBar extends PureComponent {
     if (this.textarea) {
       this.textarea.focus();
     }
+    if (document.querySelector(".edit-button-group")) {
+      document.querySelector(".edit-button-group").scrollIntoView();
+    }
   }
 
   getRoomMembers = async () => {
@@ -101,11 +103,11 @@ export default class MessageEditBar extends PureComponent {
     return [];
   }
 
-  onMessageBodyKeyPressed(event) {
+  onMessageBodyKeyPressed = (event) => {
     const { nativeEvent } = event;
     if (nativeEvent.keyCode === 13 && !nativeEvent.shiftKey) {
       event.preventDefault();
-      this.sendMessage();
+      this.onSave();
       return false;
     }
     return true;
@@ -144,7 +146,7 @@ export default class MessageEditBar extends PureComponent {
   }
 
   sendMessage = () => {
-    let { messageBody } = this.state;
+    let messageBody = this.textarea.value;
     messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
     const { conversation, onMessageSubmitted, msg } = this.props;
 
@@ -171,7 +173,6 @@ export default class MessageEditBar extends PureComponent {
     }
 
     this.setState({ messageBody: '', files: [] });
-    // this.refs.mention.reset();
   }
 
   onFileChange = event => {
@@ -267,6 +268,11 @@ export default class MessageEditBar extends PureComponent {
 
   }
   onSave = () => {
+    let messageBody = this.textarea.value;
+    if (!messageBody.trim()) {
+      this.props.deleteMessage();
+      return;
+    }
     this.sendMessage();
     this.hide();
   }
@@ -290,8 +296,8 @@ export default class MessageEditBar extends PureComponent {
           rows={1}
           maxRows={20}
           value={this.state.messageBody}
-          onChange={this.onMessageBodyChanged.bind(this)}
-          onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
+          onChange={this.onMessageBodyChanged}
+          onKeyPress={this.onMessageBodyKeyPressed}
           innerRef={element => { this.textarea = element; }}
           onKeyUp={this.onKeyUp}
           {...inputProps}

@@ -23,6 +23,7 @@ class AppsStore extends MailspringStore {
           app.oriName = app.name;
           app.avatar = app.icon;
           app.isApp = true;
+          app.email = app.jid;
           return app;
         });
         ContactStore.saveContacts(apps, payload.curJid);

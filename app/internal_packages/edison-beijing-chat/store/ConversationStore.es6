@@ -55,7 +55,7 @@ class ConversationStore extends MailspringStore {
     MessageStore.removeMessagesByConversationJid(jid);
   }
 
-  deselectConversation = async (jid) => {
+  deselectConversation = async () => {
     this.selectedConversation = null;
     this._triggerDebounced();
   }
@@ -143,6 +143,15 @@ class ConversationStore extends MailspringStore {
 
   saveConversations = async (convs) => {
     for (const conv of convs) {
+      const convInDb = await ConversationModel.findOne({
+        where: {
+          jid: conv.jid
+        }
+      });
+      // if exists in db, don't update curJid
+      if (convInDb) {
+        delete conv.curJid;
+      }
       await ConversationModel.upsert(conv);
     }
     this.refreshConversations();
@@ -174,18 +183,18 @@ class ConversationStore extends MailspringStore {
 
   createGroupConversation = async (payload) => {
     await this._createGroupChatRoom(payload);
-    const { contacts, roomId, name } = payload;
+    const { contacts, roomId, name, curJid } = payload;
     const content = '';
     const timeSend = new Date().getTime();
     const conversation = {
       jid: roomId,
-      curJid: contacts[0].curJid,
+      curJid: curJid,
       name: name,
       isGroup: true,
       unreadMessages: 0,
       lastMessageTime: (new Date(timeSend)).getTime(),
       lastMessageText: content,
-      lastMessageSender: contacts[0].curJid
+      lastMessageSender: curJid
     };
     let avatarMembers = contacts;
     avatarMembers = avatarMembers.filter(contact => contact);
