@@ -14,7 +14,9 @@ class ThreadArchiveQuickAction extends React.Component {
   render() {
     const allowed = FocusedPerspectiveStore.current().canArchiveThreads([this.props.thread]);
     if (!allowed) {
-      return <span />;
+      // DC-570 [Actions] The actions on last email cannot be active in special steps
+      // Don't know why, but if we render a <span/>, the hover will not work as intended
+      return null;
     }
 
     return (
