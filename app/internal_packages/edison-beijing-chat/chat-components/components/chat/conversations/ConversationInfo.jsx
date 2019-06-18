@@ -5,7 +5,7 @@ import Button from '../../common/Button';
 import InfoMember from './InfoMember';
 import { remote } from 'electron';
 import RetinaImg from '../../../../../../src/components/retina-img';
-import { ChatActions, MessageStore, RoomStore, ConversationStore } from 'chat-exports';
+import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore } from 'chat-exports';
 import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
@@ -120,8 +120,8 @@ export default class ConversationInfo extends Component {
         )));
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
-        if (!contacts.filter(item => item.jid === selectedConversation.curJid).length) {
-          const other = await ContactStore.findContactByJid(selectedConversation.curJid);
+        if (!contacts.filter(item => item.jid === selectedConversation.jid).length) {
+          const other = await ContactStore.findContactByJid(selectedConversation.jid);
           if (other) {
             contacts.unshift(other);
           } else {
@@ -231,7 +231,7 @@ export default class ConversationInfo extends Component {
               <div className="row">
                 <div className="avatar-icon">
                   <ContactAvatar conversation={conversation} jid={privateChatMember.jid} name={privateChatMember.name}
-                                 email={privateChatMember.email} avatar={privateChatMember.avatar} size={30}/>
+                    email={privateChatMember.email} avatar={privateChatMember.avatar} size={30} />
                 </div>
                 <div className="info">
                   <div className="name">
@@ -247,13 +247,13 @@ export default class ConversationInfo extends Component {
               roomMembers && roomMembers.map(member => {
                 return (
                   <InfoMember conversation={conversation}
-                              member={member}
-                              editingMember={this.editingMember}
-                              editProfile={this.props.editProfile}
-                              exitProfile={this.props.exitProfile}
-                              removeMember={this.removeMember}
-                              currentUserIsOwner={currentUserIsOwner}
-                              key={member.jid.bare}
+                    member={member}
+                    editingMember={this.editingMember}
+                    editProfile={this.props.editProfile}
+                    exitProfile={this.props.exitProfile}
+                    removeMember={this.removeMember}
+                    currentUserIsOwner={currentUserIsOwner}
+                    key={member.jid.bare}
                   />);
               }),
               !currentUserIsOwner && (
@@ -282,7 +282,7 @@ export default class ConversationInfo extends Component {
             },
           }}>
             <InviteGroupChatList contacts={contacts.filter(this.filterCurrentMemebers)} groupMode={true}
-                                 onUpdateGroup={this.onUpdateGroup}/>
+              onUpdateGroup={this.onUpdateGroup} />
           </FixedPopover>
         )}
       </div>
