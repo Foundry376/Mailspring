@@ -150,6 +150,9 @@ export class AttachmentItem extends Component {
       event.dataTransfer.setData('DownloadURL', downloadURL);
       event.dataTransfer.setData('text/nylas-file-url', downloadURL);
       const el = ReactDOM.findDOMNode(this._fileIconComponent);
+      if (!el) {
+        return;
+      }
       const rect = el.getBoundingClientRect();
       const x = window.devicePixelRatio === 2 ? rect.height / 2 : rect.height;
       const y = window.devicePixelRatio === 2 ? rect.width / 2 : rect.width;
