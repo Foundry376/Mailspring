@@ -143,6 +143,15 @@ class ConversationStore extends MailspringStore {
 
   saveConversations = async (convs) => {
     for (const conv of convs) {
+      const convInDb = await ConversationModel.findOne({
+        where: {
+          jid
+        }
+      });
+      // if exists in db, don't update curJid
+      if (convInDb) {
+        delete conv.curJid;
+      }
       await ConversationModel.upsert(conv);
     }
     this.refreshConversations();
