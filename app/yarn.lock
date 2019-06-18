@@ -59,10 +59,6 @@ abstract-leveldown@~5.0.0:
   dependencies:
     xtend "~4.0.0"
 
-active-window@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/active-window/-/active-window-0.1.0.tgz#1b986b950293eb0577fb83966f44db62de1a7593"
-
 add-dom-event-listener@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/add-dom-event-listener/-/add-dom-event-listener-1.1.0.tgz#6a92db3a0dd0abc254e095c0f1dc14acbbaae310"

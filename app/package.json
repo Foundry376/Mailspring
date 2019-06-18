@@ -10,7 +10,6 @@
     "rebuild": "node_modules/.bin/electron-rebuild"
   },
   "dependencies": {
-    "active-window": "^0.1.0",
     "alt-sasl-digest-md5": "^1.0.0",
     "async": "^2.5.0",
     "aws-sdk": "latest",
