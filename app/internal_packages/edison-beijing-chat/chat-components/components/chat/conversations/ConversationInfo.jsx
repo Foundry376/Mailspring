@@ -114,6 +114,10 @@ export default class ConversationInfo extends Component {
   onUpdateGroup = async (contacts) => {
     this.setState({ inviting: false });
     const { selectedConversation } = this.props;
+    if (contacts.some(contact => contact.jid.match(/@app/))) {
+      window.alert('plugin app should not be added to any group chat as contact.');
+      return;
+    }
     if (contacts && contacts.length > 0) {
       if (selectedConversation.isGroup) {
         await Promise.all(contacts.map(contact => (
