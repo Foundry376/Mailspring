@@ -18,9 +18,6 @@ import _ from 'underscore';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 const { remote } = require('electron');
 import { postNotification } from '../utils/electron';
-import { getActiveWindow } from '../utils/active-window';
-import { getDoNotDisturb } from 'electron-notification-state'
-// const { getDoNotDisturb, getNotificationState }  = require('macos-notification-state');
 
 const SEPARATOR = '$';
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
@@ -392,20 +389,10 @@ class MessageStore extends MailspringStore {
   }
 
   shouldShowNotification = async (payload) => {
-    // const nodisturb = getDoNotDisturb();
-    // console.log( 'shouldShowNotification: nodisturb: ', nodisturb);
-    // if (nodisturb) {
-    //   return false;
-    // }
-    // const notiState = getNotificationState();
-    // console.log( 'shouldShowNotification: notiState: ', notiState);
-    // if (notiState==='DO_NOT_DISTURB') {
-    //   return false;
-    // }
-    const activeWindow = await getActiveWindow();
-    console.log('shouldShowNotification activeWindow: ', activeWindow);
-    if (activeWindow && activeWindow.title.match(/EdisonMail/)) {
-      return false
+    const win = remote.getCurrentWindow();
+    const focus = win.isFocused();
+    if (focus) {
+      return false;
     }
     const conv = ConversationStore.selectedConversation;
     if (!conv) {
@@ -414,7 +401,6 @@ class MessageStore extends MailspringStore {
     console.log('shouldShowNotification: payload, conv: ', payload, conv);
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
     if (payload.curJid === payload.from.bare || payload.from.bare === conv.jid) {
-      console.log('curJid conv pass: ', payload);
       return false;
     }
     const fromUserId = payload.from.resource;
@@ -422,7 +408,6 @@ class MessageStore extends MailspringStore {
     for (let email in chatAccounts) {
       const acc = chatAccounts[email];
       if (acc.userId === fromUserId) {
-        console.log('isme: email: ', email);
         isme = true;
         break;
       }

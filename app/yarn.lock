@@ -1568,14 +1568,6 @@ electron-log@^3.0.5:
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/electron-log/-/electron-log-3.0.6.tgz#2291375572f6be5889f06fb32a35eab2930a1728"
 
-electron-notification-state@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/electron-notification-state/-/electron-notification-state-1.0.4.tgz#998610eff6f3870c81beec4769a0d9c7ad659aa1"
-  dependencies:
-    macos-notification-state "^1.1.0"
-    windows-notification-state "^1.3.0"
-    windows-quiet-hours "^1.2.2"
-
 electron-platform@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/electron-platform/-/electron-platform-1.2.0.tgz#2fc70bce53fb732ec81769bd6c48e10c40a551aa"
@@ -3569,13 +3561,6 @@ ltx@^2.2.0:
   resolved "https://registry.yarnpkg.com/ltx/-/ltx-2.8.1.tgz#5ab2770eb9e6d0a78dbed29416d706d8742b6658"
   dependencies:
     inherits "^2.0.1"
-
-macos-notification-state@^1.1.0:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/macos-notification-state/-/macos-notification-state-1.3.1.tgz#0be26fe1ef41f6914431ae5b792df40ed25ce20c"
-  dependencies:
-    bindings "^1.4.0"
-    nan "^2.13.2"
 
 make-dir@^1.0.0, make-dir@^1.2.0:
   version "1.3.0"
@@ -6090,14 +6075,7 @@ window-size@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/window-size/-/window-size-0.1.0.tgz#5438cd2ea93b202efa3a19fe8887aee7c94f9c9d"
 
-windows-notification-state@^1.3.0:
-  version "1.3.4"
-  resolved "https://registry.yarnpkg.com/windows-notification-state/-/windows-notification-state-1.3.4.tgz#f4cdb009d1e92124f1913a93b5c72659f4901542"
-  dependencies:
-    bindings "^1.5.0"
-    nan "^2.14.0"
-
-windows-quiet-hours@^1.2.2:
+indows-quiet-hours@^1.2.2:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/windows-quiet-hours/-/windows-quiet-hours-1.2.7.tgz#12dd46f21d296f1518109dcbe1a518ef1f85365e"
   dependencies:
