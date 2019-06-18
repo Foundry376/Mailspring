@@ -174,18 +174,18 @@ class ConversationStore extends MailspringStore {
 
   createGroupConversation = async (payload) => {
     await this._createGroupChatRoom(payload);
-    const { contacts, roomId, name } = payload;
+    const { contacts, roomId, name, curJid } = payload;
     const content = '';
     const timeSend = new Date().getTime();
     const conversation = {
       jid: roomId,
-      curJid: contacts[0].curJid,
+      curJid: curJid,
       name: name,
       isGroup: true,
       unreadMessages: 0,
       lastMessageTime: (new Date(timeSend)).getTime(),
       lastMessageText: content,
-      lastMessageSender: contacts[0].curJid
+      lastMessageSender: curJid
     };
     let avatarMembers = contacts;
     avatarMembers = avatarMembers.filter(contact => contact);
