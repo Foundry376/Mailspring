@@ -18,6 +18,9 @@ import _ from 'underscore';
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 const { remote } = require('electron');
 import { postNotification } from '../utils/electron';
+import {getActiveWindow} from '../utils/active-window';
+import { getDoNotDisturb} from 'electron-notification-state'
+// const { getDoNotDisturb, getNotificationState }  = require('macos-notification-state');
 
 const SEPARATOR = '$';
 export const RECEIVE_GROUPCHAT = 'RECEIVE_GROUPCHAT';
@@ -358,6 +361,7 @@ class MessageStore extends MailspringStore {
     if (!shouldShow) {
       return;
     }
+    console.log( 'do showNotification: ');
     const convjid = payload.from.bare;
     let msgFrom = payload.from.resource + '@im.edison.tech';
     let memberName = payload.appName;
@@ -377,16 +381,32 @@ class MessageStore extends MailspringStore {
     }
     body = body.content || payload.body;
     const noti = postNotification(title, body);
+    console.log( 'the noti: ', noti);
     noti.addEventListener('click', (event) => {
       ChatActions.selectConversation(convjid);
       Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
       const window = remote.getCurrentWindow();
       window.show();
+      ChatActions.selectConversation(conv.jid);
     });
   }
 
   shouldShowNotification = async (payload) => {
-    const conversationJid = payload.from.bare;
+    // const nodisturb = getDoNotDisturb();
+    // console.log( 'shouldShowNotification: nodisturb: ', nodisturb);
+    // if (nodisturb) {
+    //   return false;
+    // }
+    // const notiState = getNotificationState();
+    // console.log( 'shouldShowNotification: notiState: ', notiState);
+    // if (notiState==='DO_NOT_DISTURB') {
+    //   return false;
+    // }
+    const activeWindow = await getActiveWindow();
+    console.log( 'shouldShowNotification activeWindow: ', activeWindow);
+    if (activeWindow && activeWindow.title.match(/EdisonMail/)) {
+      return false
+    }
     const conv = ConversationStore.selectedConversation;
     if (!conv) {
       return true;
@@ -394,6 +414,7 @@ class MessageStore extends MailspringStore {
     console.log( 'shouldShowNotification: payload, conv: ', payload, conv);
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
     if (payload.curJid === payload.from.bare || payload.from.bare === conv.jid) {
+      console.log( 'curJid conv pass: ', email);
       return false;
     }
     const fromUserId = payload.from.resource;
@@ -401,6 +422,7 @@ class MessageStore extends MailspringStore {
     for (let email in chatAccounts) {
       const acc = chatAccounts[email];
       if (acc.userId === fromUserId) {
+        console.log( 'isme: email: ', email);
         isme = true;
         break;
       }

@@ -10,6 +10,7 @@
     "rebuild": "node_modules/.bin/electron-rebuild"
   },
   "dependencies": {
+    "active-window": "^0.1.0",
     "alt-sasl-digest-md5": "^1.0.0",
     "async": "^2.5.0",
     "aws-sdk": "latest",
@@ -32,6 +33,7 @@
     "download": "^7.1.0",
     "electron-localstorage": "^1.0.5",
     "electron-log": "^3.0.5",
+    "electron-notification-state": "^1.0.4",
     "electron-platform": "^1.2.0",
     "electron-spellchecker": "1.1.2",
     "emoji-data": "^0.2.0",
