@@ -103,11 +103,11 @@ export default class MessageEditBar extends PureComponent {
     return [];
   }
 
-  onMessageBodyKeyPressed(event) {
+  onMessageBodyKeyPressed = (event) => {
     const { nativeEvent } = event;
     if (nativeEvent.keyCode === 13 && !nativeEvent.shiftKey) {
       event.preventDefault();
-      this.sendMessage();
+      this.onSave();
       return false;
     }
     return true;
@@ -146,7 +146,7 @@ export default class MessageEditBar extends PureComponent {
   }
 
   sendMessage = () => {
-    let { messageBody } = this.state;
+    let messageBody = this.textarea.value;
     messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
     const { conversation, onMessageSubmitted, msg } = this.props;
 
@@ -268,8 +268,8 @@ export default class MessageEditBar extends PureComponent {
 
   }
   onSave = () => {
-    let { messageBody } = this.state;
-    if (!messageBody) {
+    let messageBody = this.textarea.value;
+    if (!messageBody.trim()) {
       this.props.deleteMessage();
       return;
     }
@@ -296,8 +296,8 @@ export default class MessageEditBar extends PureComponent {
           rows={1}
           maxRows={20}
           value={this.state.messageBody}
-          onChange={this.onMessageBodyChanged.bind(this)}
-          onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
+          onChange={this.onMessageBodyChanged}
+          onKeyPress={this.onMessageBodyKeyPressed}
           innerRef={element => { this.textarea = element; }}
           onKeyUp={this.onKeyUp}
           {...inputProps}
