@@ -486,7 +486,7 @@ class MessageStore extends MailspringStore {
         }
         await messageInDb.save();
       } else {
-        await MessageModel.create(msg);
+        await MessageModel.upsert(msg);
       }
     }
   };

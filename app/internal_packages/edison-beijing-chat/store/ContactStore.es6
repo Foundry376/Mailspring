@@ -1,6 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import ContactModel from '../model/Contact';
-import {jidbare } from '../utils/jid';
+import { jidbare } from '../utils/jid';
 import _ from 'lodash';
 
 class ContactStore extends MailspringStore {
@@ -23,7 +23,7 @@ class ContactStore extends MailspringStore {
         where: { jid }
       });
       if (contactInDb) {
-        ContactModel.update({
+        await ContactModel.update({
           jid,
           curJid,
           name: contact.oriName || contact.email,
@@ -34,7 +34,7 @@ class ContactStore extends MailspringStore {
             where: { jid }
           });
       } else {
-        ContactModel.create({
+        await ContactModel.upsert({
           jid,
           curJid,
           name: contact.oriName || contact.email,
