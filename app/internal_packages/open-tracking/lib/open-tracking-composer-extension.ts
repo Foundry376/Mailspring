@@ -1,4 +1,6 @@
 import { ComposerExtension, FeatureUsageStore, Message, Contact } from 'mailspring-exports';
+import qs from 'querystring';
+
 import { PLUGIN_ID, PLUGIN_URL } from './open-tracking-constants';
 import { OpenTrackingMetadata } from './types';
 
@@ -24,8 +26,10 @@ export default class OpenTrackingComposerExtension extends ComposerExtension {
     }
 
     // insert a tracking pixel <img> into the message
-    const q = recipient ? `?recipient=${encodeURIComponent(btoa(recipient.email))}` : '';
-    const serverUrl = `${PLUGIN_URL}/open/${draft.headerMessageId}${q}`;
+    const query: { [key: string]: string } = { me: draft.accountId };
+    if (recipient) query.recipient = btoa(recipient.email);
+
+    const serverUrl = `${PLUGIN_URL}/open/${draft.headerMessageId}?${qs.stringify(query)}`;
     const imgFragment = document
       .createRange()
       .createContextualFragment(

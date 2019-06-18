@@ -166,8 +166,10 @@ export function removeTrackingPixels(message: Message) {
     // Remove Mailspring read receipt pixels for the current account. If this is a
     // reply or a bounce, our read receipt could still be in the body and could
     // trigger additional opens. (isFromMe is not sufficient!) [BG NOTE "HMID"]
-    const ownOpenURL = `getmailspring.com/open/${message.accountId}`.toLowerCase();
-    if (imageURL.toLowerCase().includes(ownOpenURL)) {
+    if (
+      imageURL.includes(`getmailspring.com/open/${message.accountId.toUpperCase()}`) ||
+      imageURL.includes(`me=${encodeURIComponent(message.accountId)}`)
+    ) {
       return true;
     }
     return false;
