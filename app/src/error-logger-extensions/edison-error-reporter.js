@@ -32,8 +32,9 @@ module.exports = class EdisonErrorReporter {
       app: "DESKTOP",
       platform: process.platform,
       device_id: this.deviceHash,
-      level: "ERROR",
+      level: "LOG",
       time: new Date().getTime(),
+      version: this.getVersion(),
       data: {
         version: this.getVersion(),
         error: err,
@@ -51,6 +52,7 @@ module.exports = class EdisonErrorReporter {
       device_id: this.deviceHash,
       level: "WARNING",
       time: new Date().getTime(),
+      version: this.getVersion(),
       data: {
         version: this.getVersion(),
         error: err,
