@@ -6,9 +6,9 @@ import Thread from '../models/thread';
 import JoinTable from '../models/join-table';
 
 const buildQuery = categoryIds => {
-  const unreadMatchers = new Matcher.And([
+  const unreadMatchers = new Matcher.JoinAnd([
     Thread.attributes.categories.containsAny(categoryIds),
-    Thread.attributes.unread.equal(true),
+    JoinTable.useAttribute('unread', 'Number').equal(1),
     Thread.attributes.inAllMail.equal(true),
     Thread.attributes.state.equal(0),
   ]);
@@ -27,8 +27,8 @@ const buildQuery = categoryIds => {
         Thread.attributes.categories.containsAny(categoryIds),
         new Matcher.JoinOr([
           new Matcher.JoinAnd([
-            Thread.attributes.unread.equal(true),
             Thread.attributes.inAllMail.equal(true),
+            JoinTable.useAttribute('unread', 'Number').equal(1),
             Thread.attributes.state.equal(0),
           ]),
           new Matcher.JoinAnd([
