@@ -8,6 +8,7 @@ import { mapSourcePosition } from 'source-map-support';
 import fs from 'fs';
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
+let getOSInfo = null;
 
 function ensureInteger(f, fallback) {
   let int = f;
@@ -238,10 +239,12 @@ export default class AppEnvConstructor {
   //
   reportError(error, extra = {}, { noWindows } = {}) {
     try {
-      extra.pluginIds = this._findPluginsFromError(error);
       if (Array.isArray(AppEnv.config.get('accounts'))) {
         extra.accounts = AppEnv.config.get('accounts').map(ac => ac.emailAddress);
       }
+      getOSInfo = getOSInfo || require('./system-utils').getOSInfo;
+      extra.osInfo = getOSInfo();
+      extra.pluginIds = this._findPluginsFromError(error);
     } catch (err) {
       // can happen when an error is thrown very early
       extra.pluginIds = [];
@@ -268,10 +271,12 @@ export default class AppEnvConstructor {
   }
   reportWarning(error, extra = {}, { noWindows } = {}) {
     try {
-      extra.pluginIds = this._findPluginsFromError(error);
       if (Array.isArray(AppEnv.config.get('accounts'))) {
         extra.accounts = AppEnv.config.get('accounts').map(ac => ac.emailAddress);
       }
+      getOSInfo = getOSInfo | require('./system-utils').getOSInfo;
+      extra.osInfo = getOSInfo();
+      extra.pluginIds = this._findPluginsFromError(error);
     } catch (err) {
       // can happen when an error is thrown very early
       extra.pluginIds = [];
