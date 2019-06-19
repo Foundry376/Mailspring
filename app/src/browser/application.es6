@@ -963,6 +963,7 @@ export default class Application extends EventEmitter {
     });
 
     ipcMain.on('account-setup-successful', () => {
+      this.systemTrayManager.initTray();
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
       const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
       if (onboarding) {

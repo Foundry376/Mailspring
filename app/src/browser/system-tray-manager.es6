@@ -67,12 +67,22 @@ class SystemTrayManager {
         this.initTray();
       }
     });
+    this._application.config.onDidChange('agree', ({ newValue }) => {
+      if (newValue === false) {
+        this.destroyTray();
+      } else {
+        this.initTray();
+      }
+    });
   }
 
   initTray() {
     const enabled = this._application.config.get('core.workspace.systemTray') !== false;
     const created = this._tray !== null;
-
+    const accounts = this._application.config.get('accounts');
+    if (!Array.isArray(accounts) || accounts.length === 0) {
+      return;
+    }
     if (enabled && !created) {
       this._trayChat = new Tray(_getIcon(this._iconPath));
       this._trayChat.addListener('click', this._onChatClick);
