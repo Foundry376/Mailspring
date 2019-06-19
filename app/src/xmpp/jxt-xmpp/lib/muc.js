@@ -90,6 +90,7 @@ exports['default'] = function (JXT) {
         fields: {
             affiliation: Utils.attribute('affiliation'),
             name: Utils.attribute('name'),
+            avatar: Utils.attribute('avatar'),
             email: Utils.attribute('email'),
             nick: Utils.attribute('nick'),
             jid: Utils.jidAttribute('jid'),
@@ -161,6 +162,7 @@ exports['default'] = function (JXT) {
             ver: Utils.attribute('ver'),
             affiliation: proxy('_mucAdminItem', 'affiliation'),
             nick: proxy('_mucAdminItem', 'nick'),
+            avatar: proxy('_mucAdminItem', 'avatar'),
             jid: proxy('_mucAdminItem', 'jid'),
             role: proxy('_mucAdminItem', 'role'),
             actor: proxy('_mucAdminItem', '_mucAdminActor'),
