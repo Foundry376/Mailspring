@@ -55,19 +55,12 @@ class SystemTrayManager {
     this._platform = platform;
     this._application = application;
     this._iconPath = null;
+    this._iconChatPath = null;
     this._unreadString = null;
     this._tray = null;
     this._trayChat = null;
-    this.initTray();
 
     this._application.config.onDidChange('core.workspace.systemTray', ({ newValue }) => {
-      if (newValue === false) {
-        this.destroyTray();
-      } else {
-        this.initTray();
-      }
-    });
-    this._application.config.onDidChange('agree', ({ newValue }) => {
       if (newValue === false) {
         this.destroyTray();
       } else {
@@ -84,9 +77,8 @@ class SystemTrayManager {
       return;
     }
     if (enabled && !created) {
-      this._trayChat = new Tray(_getIcon(this._iconPath));
+      this._trayChat = new Tray(_getIcon(this._iconChatPath));
       this._trayChat.addListener('click', this._onChatClick);
-
       this._tray = new Tray(_getIcon(this._iconPath));
       this._tray.setToolTip(_getTooltip(this._unreadString));
       this._tray.addListener('click', this._onClick);
@@ -112,9 +104,12 @@ class SystemTrayManager {
   };
 
   updateTraySettings(iconPath, unreadString, isTemplateImg, chatIconPath) {
+    this.initTray();
     if (this._iconPath !== iconPath) {
       this._iconPath = iconPath;
-      if (this._tray) this._tray.setImage(_getIcon(this._iconPath, isTemplateImg));
+      if (this._tray) {
+        this._tray.setImage(_getIcon(this._iconPath, isTemplateImg));
+      }
     }
     if (this._unreadString !== unreadString) {
       this._unreadString = unreadString;
@@ -122,7 +117,9 @@ class SystemTrayManager {
     }
     if (this._iconChatPath !== chatIconPath) {
       this._iconChatPath = chatIconPath;
-      if (this._trayChat) this._trayChat.setImage(_getIcon(this._iconChatPath, isTemplateImg));
+      if (this._trayChat) {
+        this._trayChat.setImage(_getIcon(this._iconChatPath, isTemplateImg));
+      }
     }
   }
 
