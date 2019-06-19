@@ -85,7 +85,7 @@
     "proxyquire": "1.3.1",
     "raven": "2.1.2",
     "rc-editor-mention": "^1.1.12",
-    "rc-select": "^8.8.4",
+    "rc-select": "^9.1.5",
     "react": "16.2.0",
     "react-autosize-textarea": "^4.0.0",
     "react-bootstrap": "^0.32.4",
