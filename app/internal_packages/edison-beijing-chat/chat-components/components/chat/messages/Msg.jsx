@@ -190,8 +190,8 @@ export default class Msg extends PureComponent {
   };
 
   messageToolbar = (msg, msgBody, isFile) => {
-    const { conversation } = this.props;
     const { currentUserJid } = this.state;
+    const isSystemEvent = ['error403', 'memberschange', 'change-group-name'].includes(msgBody.type);
 
     return (
       <div className='message-toolbar' >
@@ -207,7 +207,7 @@ export default class Msg extends PureComponent {
               mode={RetinaImg.Mode.ContentIsMask} />
           </span>
         )}
-        {msg.sender === currentUserJid && (
+        {msg.sender === currentUserJid && !isSystemEvent && (
           <span
             className="inplace-edit-img"
             onClick={() => this.showPopupMenu()}
