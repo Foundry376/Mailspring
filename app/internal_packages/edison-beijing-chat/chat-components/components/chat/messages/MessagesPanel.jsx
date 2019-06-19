@@ -249,7 +249,6 @@ export default class MessagesPanel extends Component {
         const conversation = loadConfig.conversation;
         const messageId = loadConfig.messageId;
         let body = loadConfig.msgBody;
-        body.type = FILE_TYPE.OTHER_FILE;
         body.isUploading = false;
         body.mediaObjectId = myKey;
         body = JSON.stringify(body);
@@ -286,6 +285,7 @@ export default class MessagesPanel extends Component {
       }
       ChatActions.updateProgress({ percent });
     }
+
     if (loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
