@@ -340,7 +340,7 @@ export default class Msg extends PureComponent {
         getContactAvatar={this.getContactAvatar}
         key={msg.id} />
     } else {
-      const isSystemEvent = ['error403', 'memberschange'].includes(msgBody.type);
+      const isSystemEvent = ['error403', 'memberschange', 'change-group-name'].includes(msgBody.type);
       return (
         <div
           key={msg.id}

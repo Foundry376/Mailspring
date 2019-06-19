@@ -3,6 +3,7 @@ import { Actions } from 'mailspring-exports';
 import { ChatActions, MessageStore, RoomStore } from 'chat-exports';
 import ConversationModel from '../model/Conversation';
 import _ from 'underscore';
+import { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 
 export const NEW_CONVERSATION = 'NEW_CONVERSATION';
 
@@ -219,6 +220,22 @@ class ConversationStore extends MailspringStore {
     const config = data.edimucevent.edimucconfig;
     const convJid = data.from.bare;
     const conv = await this.getConversationByJid(convJid);
+    const id = data.id+'$'+convJid;
+    const contact = await ContactStore.findContactByJid(config.actorJid);
+    const name = contact && (contact.name || contact.email) || config.actorJid.split('@')[0];
+    const body = {
+      content:`${name} changes the group name to ${config.name}`,
+      type:'change-group-name'
+    };
+    const msg = {
+      id,
+      conversationJid: convJid,
+      sender: config.actorJid,
+      body: JSON.stringify(body),
+      sentTime: (new Date()).getTime(),
+      status: MESSAGE_STATUS_RECEIVED
+    };
+    MessageStore.saveMessagesAndRefresh([msg]);
     await this.saveConversationName(conv, config.name);
   };
 
