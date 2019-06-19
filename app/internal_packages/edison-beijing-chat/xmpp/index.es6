@@ -24,7 +24,7 @@ export class Xmpp extends EventEmitter3 {
     }
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
-      if (name == 'raw:outgoing' || name == 'raw:incoming') {
+      if (AppEnv.enabledXmppLog && (name == 'raw:outgoing' || name == 'raw:incoming')) {
         console.log('onrawdata', xmpp.getTime(), xmpp.connectedJid, name, data);
         return;
       }
@@ -201,7 +201,7 @@ export class XmppEx extends EventEmitter3 {
       this.ping();
     });
     this.client.on('session:prebind', (bind) => {
-       if (!window.edisonChatServerDiffTime) {
+      if (!window.edisonChatServerDiffTime) {
         window.edisonChatServerDiffTime = parseInt(bind.serverTimestamp)
           - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
       }

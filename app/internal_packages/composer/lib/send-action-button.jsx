@@ -138,11 +138,12 @@ class SendActionButton extends React.Component {
   };
 
   _renderSingleButton() {
+    const style = Object.assign({ order: 100 }, this.props.style);
     return (
       <button
         tabIndex={-1}
         className={`btn btn-toolbar btn-normal btn-send`}
-        style={{ order: 100 }}
+        style={style}
         onClick={!this.props.disabled ? this._onPrimaryClick : null}
       >
         {this._renderSendActionItem(this.props.sendActions[0])}
