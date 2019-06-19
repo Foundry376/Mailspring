@@ -5,6 +5,7 @@ import ContactAvatar from '../../common/ContactAvatar';
 import xmpp from '../../../../xmpp';
 import GroupChatAvatar from '../../common/GroupChatAvatar';
 import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
+import { ConversationStore } from 'chat-exports';
 
 export default class MessagesTopBar extends Component {
   static propTypes = {
@@ -33,15 +34,23 @@ export default class MessagesTopBar extends Component {
   }
 
   _onBlur = (e) => {
+    if (!e.currentTarget.innerText.trim()) {
+      window.alert(' Group name should NOT be empty or blank.');
+      // this.forceUpdate();
+      const { selectedConversation } = this.props;
+      e.currentTarget.innerText = selectedConversation.name;
+      return
+    }
     this.saveRoomName(e.currentTarget.innerText);
   }
 
   async saveRoomName(name) {
     const { selectedConversation } = this.props;
     if (name && name !== selectedConversation.name) {
+      ConversationStore.saveConversationName(name);
       await xmpp.setRoomName(selectedConversation.jid, {
         name
-      }, selectedConversation.curJid)
+      }, selectedConversation.curJid);
     }
   }
 

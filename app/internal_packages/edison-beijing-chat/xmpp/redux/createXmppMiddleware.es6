@@ -67,7 +67,7 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
 
   // change conversation name
   xmpp.on('edimucconfig', data => {
-    ConversationStore.saveConversationName(data);
+    ConversationStore.onChangeConversationName(data);
   });
 
   //member join / quit
