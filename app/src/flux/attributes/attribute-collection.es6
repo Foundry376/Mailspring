@@ -104,4 +104,8 @@ export default class AttributeCollection extends Attribute {
     this._assertPresentAndQueryable('contains', vals);
     return new Matcher(this, 'containsAny', vals);
   }
+  appendOnWhere(data) {
+    Object.assign(this.joinOnWhere, data);
+    return this;
+  }
 }
