@@ -29,6 +29,9 @@ class EmptyPerspectiveState extends React.Component {
     if (name) {
       name = name.toLowerCase();
     }
+    if (!name) {
+      name = 'nomail';
+    }
 
     return (
       <div className="perspective-empty-state">
