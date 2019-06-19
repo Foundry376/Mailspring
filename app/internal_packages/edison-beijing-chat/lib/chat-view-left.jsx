@@ -44,6 +44,18 @@ export default class ChatViewLeft extends Component {
       leftPanel.style.height = h + 'px';
       Actions.updateChatPanelHeight(leftPanel.getBoundingClientRect().top);
     }
+
+    // set panel width
+    const columnEl = document.querySelector(`[data-column='0']`);
+    if (columnEl) {
+      if (leftPanel) {
+        leftPanel.style.width = `${columnEl.offsetWidth - 1}px`;
+      }
+      const notifications = document.querySelector('.notifications');
+      if (notifications) {
+        notifications.style.width = `${columnEl.offsetWidth - 1}px`;
+      }
+    }
   }
   componentDidMount() {
     const h = AppEnv.config.get(`chatPanelHeight`);

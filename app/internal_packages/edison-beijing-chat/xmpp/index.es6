@@ -24,7 +24,7 @@ export class Xmpp extends EventEmitter3 {
     }
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
-      if (name == 'raw:outgoing' || name == 'raw:incoming') {
+      if (AppEnv.enabledXmppLog && (name == 'raw:outgoing' || name == 'raw:incoming')) {
         console.log('onrawdata', xmpp.getTime(), xmpp.connectedJid, name, data);
         return;
       }
@@ -140,7 +140,6 @@ export class Xmpp extends EventEmitter3 {
     return xmpp.joinRooms(...roomJids);
   }
   async pullMessage(ts, curJid) {
-    // console.log('pullMessage', ts, curJid);
     let xmpp = this.getXmpp(curJid);
     return new Promise((resolve, reject) => {
       xmpp.pullMessage(ts, (err, data) => {
@@ -202,12 +201,10 @@ export class XmppEx extends EventEmitter3 {
       this.ping();
     });
     this.client.on('session:prebind', (bind) => {
-      // console.log('session:prebind: ', bind);
       if (!window.edisonChatServerDiffTime) {
         window.edisonChatServerDiffTime = parseInt(bind.serverTimestamp)
           - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
       }
-      console.log('session:prebind', bind, edisonChatServerDiffTime);
     });
     this.client.on('disconnected', () => {
       console.warn('xmpp session2:disconnected', this.connectedJid);
@@ -283,7 +280,6 @@ export class XmppEx extends EventEmitter3 {
       };
       setTimeout(() => {
         if (!isComplete) {
-          // console.log('xmpp session3:isComplete3', isComplete);
           removeListeners();
           self.client.disconnect();
           //reject('Connection timeout');

@@ -32,7 +32,6 @@ export default class Group extends PureComponent {
 
   render() {
     const { group, shouldDisplayMessageCounts } = this.props;
-    console.log( 'Group.render: group: ', group);
     group.messages = _.uniqBy(group.messages, msg => msg.dataValues.body + Math.floor(msg.sentTime/100000))
     return (
       <div className="message-group">

@@ -67,7 +67,7 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
 
   // change conversation name
   xmpp.on('edimucconfig', data => {
-    ConversationStore.saveConversationName(data);
+    ConversationStore.onChangeConversationName(data);
   });
 
   //member join / quit
@@ -76,15 +76,12 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   });
 
   xmpp.on('message:error', async data => {
-    console.log(' xmpp.on message:error: ', data);
     if (data.error && data.error.code == 403 && data.id) {
       let msgInDb = await MessageStore.getMessageById(data.id+'$'+data.from.bare);
-      console.log(' xmpp.on message:error: msgInDb: ', msgInDb);
       if (!msgInDb) {
         return;
       }
       const msg = msgInDb.get({plain:true});
-      console.log(' xmpp.on message:error: msg: ', msg);
       let body = msg.body;
       body = JSON.parse(body);
       body.content = 'You can not send message to this conversation';
@@ -93,6 +90,16 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
       msg.body = body;
       MessageStore.saveMessagesAndRefresh([msg])
     }
+  });
+  xmpp.on('message:success', async data => {
+    let msgInDb = await MessageStore.getMessageById(data.$received.id+'$'+data.from.bare);
+    if (!msgInDb) {
+      return;
+    }
+    const msg = msgInDb.get({plain:true});
+    msg.status = 'MESSAGE_STATUS_DELIVERED';
+    MessageStore.saveMessagesAndRefresh([msg]);
+
   });
 
   return next => action => next(action);

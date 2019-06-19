@@ -40,7 +40,6 @@ export default async function registerLoginChatAccounts() {
         type = 0
       }
       let { err, res } = await register(acc.emailAddress, acc.settings.refresh_token || acc.settings.imap_password, acc.name, type, acc.provider, acc.settings);
-      console.log('after await register acc, type, acc.provider acc, type, acc.provider, err, res: ', acc, type, acc.provider, err, res);
       try {
         res = JSON.parse(res);
       } catch (e) {
