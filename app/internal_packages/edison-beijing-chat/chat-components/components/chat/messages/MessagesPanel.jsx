@@ -72,6 +72,10 @@ export default class MessagesPanel extends Component {
   _onDataChanged = async (changedDataName) => {
     if (changedDataName === 'conversation') {
       const selectedConversation = await ConversationStore.getSelectedConversation();
+      if (!selectedConversation.isGroup && !selectedConversation.email) {
+        const user = await ContactStore.findContactByJid(selectedConversation.jid);
+        selectedConversation.email = user.email;
+      }
       this.setState({
         selectedConversation
       });
