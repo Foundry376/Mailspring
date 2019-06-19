@@ -75,6 +75,7 @@ export default class AppEnvConstructor {
     this.enabledFromNativeLog = true;
     this.enabledBackgroundQueryLog = true;
     this.enabledLocalQueryLog = true;
+    this.enabledXmppLog = true;
     // }
 
     // Setup config and load it immediately so it's available to our singletons
