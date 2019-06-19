@@ -41,13 +41,14 @@ export default class ContactAvatar extends Component {
     }
   }
 
-  componentWillReceiveProps = nextProps => {
-    this.refreshState(nextProps);
+  componentWillReceiveProps = async (nextProps) => {
+    await this.refreshState(nextProps);
   };
 
-  refreshState = props => {
+  refreshState = async (props) => {
     const bgColor = gradientColorForString(props.jid);
     let app;
+    await UserCacheStore.init();
     const state = {
       avatar: UserCacheStore.getAvatarByJid(props.jid),
       userInfo: UserCacheStore.getUserInfoByJid(props.jid),
@@ -80,7 +81,7 @@ export default class ContactAvatar extends Component {
 
   componentDidMount = async () => {
     this.mounted = true;
-    this.refreshState(this.props);
+    await this.refreshState(this.props);
   }
 
   _getContactName = () => {
