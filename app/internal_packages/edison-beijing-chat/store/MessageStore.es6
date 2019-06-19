@@ -349,6 +349,7 @@ class MessageStore extends MailspringStore {
     }
     // add last sender to avatar
     addToAvatarMembers(conv, contact);
+    conv.name = convInDb.name || conv.name // DC-581, DC-519
     await ConversationStore.saveConversations([conv]);
     return conv;
   }
