@@ -72,9 +72,15 @@ export const encryptByAES = (key, buffer) => {
  * @param {message body} buffer 
  */
 export const decryptByAES = (key, buffer) => {
-    const k = CryptoJS.enc.Base64.parse(key);
-    const decrypted = aesDecrypt(buffer, k);
-    return decrypted;
+    try {
+        const k = CryptoJS.enc.Base64.parse(key);
+        const decrypted = aesDecrypt(buffer, k);
+        return decrypted;
+    }
+    catch (e) {
+        console.warn(key, buffer);
+        throw e;
+    }
 }
 
 export const encryptByAESFile = (key, buffer) => {
