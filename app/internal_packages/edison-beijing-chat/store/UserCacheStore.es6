@@ -11,13 +11,19 @@ const AVATAR_BASE_URL = 'https://s3.us-east-2.amazonaws.com/edison-profile-stag/
 class UserCacheStore extends MailspringStore {
   constructor() {
     super();
-    this.userCache = {};
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
     this.loadUserCacheData();
   }
 
+  init = async () => {
+    if (!this.userCache) {
+      await this.loadUserCacheData();
+    }
+  }
+
   loadUserCacheData = async () => {
     const data = await UserCacheModel.findAll();
+    this.userCache = {};
     for (const item of data) {
       this.userCache[item.jid] = item;
     }
@@ -29,6 +35,7 @@ class UserCacheStore extends MailspringStore {
   }
 
   saveUserCache = async (members) => {
+    members = [...members];
     if (members) {
       for (const member of members) {
         await UserCacheModel.upsert({
@@ -47,18 +54,19 @@ class UserCacheStore extends MailspringStore {
     if (members) {
       for (const member of members) {
         if (member.avatar) {
-          const avatarLocalPath = `${avatarDirPath}/${member.jid.bare}${path.extname(member.avatar)}`;
-          if (!fs.existsSync(avatarLocalPath)) {
+          const jid = member.jid.bare;
+          const avatarLocalPath = `${avatarDirPath}/${jid}${path.extname(member.avatar)}`;
+          const userInfo = this.getUserInfoByJid(jid);
+          const isAvatarUpdated = userInfo && userInfo.info.avatar !== member.avatar;
+          if (!fs.existsSync(avatarLocalPath)
+            || isAvatarUpdated) {
             try {
+              console.log('****download', member, member.avatar);
               const data = await download(this._getAvatarUrl(member.avatar));
               fs.writeFileSync(avatarLocalPath, data);
               await UserCacheModel.update({
                 avatar: avatarLocalPath
-              }, {
-                  where: {
-                    jid: member.jid.bare
-                  }
-                });
+              }, { where: { jid } });
               await this.refreshUserCache();
             } catch (e) {
               console.warn('**avatar download error', member, e);
@@ -70,11 +78,11 @@ class UserCacheStore extends MailspringStore {
   }
 
   getAvatarByJid = (jid) => {
-    const member = this.userCache[jid];
+    const member = this.userCache && this.userCache[jid];
     if (member && member.avatar) {
-      const avatarPath = member.avatar;
+      const avatarPath = encodeURI(member.avatar);
       if (!fs.existsSync(avatarPath)) {
-        return encodeURI(avatarPath);
+        return avatarPath;
       }
       return this._getAvatarUrl(member.info.avatar);
     }
@@ -82,7 +90,7 @@ class UserCacheStore extends MailspringStore {
   }
 
   getUserInfoByJid = (jid) => {
-    return this.userCache[jid];
+    return this.userCache && this.userCache[jid];
   }
 
   _getAvatarUrl = (avatar) => {
