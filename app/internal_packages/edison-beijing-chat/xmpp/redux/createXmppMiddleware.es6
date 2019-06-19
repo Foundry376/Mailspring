@@ -94,6 +94,20 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
       MessageStore.saveMessagesAndRefresh([msg])
     }
   });
+  xmpp.on('message:success', async data => {
+    console.log( 'message:success data: ', data);
+    let msgInDb = await MessageStore.getMessageById(data.$received.id+'$'+data.from.bare);
+    console.log( 'xmpp.on message:success: msgInDb: ', msgInDb);
+    if (!msgInDb) {
+      console.log( 'something wrong with message:success data: ', data);
+      return;
+    }
+    const msg = msgInDb.get({plain:true});
+    console.log( 'xmpp.on message:success: msg: ', msg);
+    msg.status = 'MESSAGE_STATUS_DELIVERED';
+    MessageStore.saveMessagesAndRefresh([msg]);
+
+  });
 
   return next => action => next(action);
 };

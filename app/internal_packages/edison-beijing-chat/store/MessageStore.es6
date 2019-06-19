@@ -389,6 +389,7 @@ class MessageStore extends MailspringStore {
   }
 
   shouldShowNotification = async (payload) => {
+    console.log( 'shouldShowNotification: payload: ', payload);
     const win = remote.getCurrentWindow();
     const focus = win.isFocused();
     if (focus) {
@@ -398,7 +399,7 @@ class MessageStore extends MailspringStore {
     if (!conv) {
       return true;
     }
-    console.log('shouldShowNotification: payload, conv: ', payload, conv);
+    console.log( 'shouldShowNotification: conv: ', conv.isHiddenNotification, conv);
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
     if (payload.curJid === payload.from.bare || payload.from.bare === conv.jid) {
       return false;
@@ -454,7 +455,9 @@ class MessageStore extends MailspringStore {
   }
 
   saveMessages = async messages => {
+    // console.log( 'saveMessages: messages: ', messages);
     for (const msg of messages) {
+      // console.log( 'saveMessages: msg: ', msg);
       if (!msg.conversationJid) {
         console.error(`msg did not have conversationJid`, msg);
       }
@@ -483,6 +486,9 @@ class MessageStore extends MailspringStore {
           messageInDb.body = body;
         } else {
           messageInDb.body = msg.body;
+        }
+        if (msg.status) {
+          messageInDb.status = msg.status;
         }
         await messageInDb.save();
       } else {
