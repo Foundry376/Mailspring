@@ -23,7 +23,19 @@ const getDeviceHash = () => {
     .update(`${os.arch()}-${os.cpus()[0].model}-${macs}-${os.platform()}`)
     .digest('hex');
 };
+const getOSInfo = () => {
+  return {
+    platform: os.platform(),
+    arch: os.arch(),
+    release: os.release(),
+    uptime: os.uptime(),
+    freeMemInBytes: os.freemem(),
+    totalMemInBytes: os.totalmem(),
+    loadAvg: os.loadavg(),
+  }
+}
 
 module.exports = {
   getDeviceHash: getDeviceHash,
+  getOSInfo: getOSInfo
 };

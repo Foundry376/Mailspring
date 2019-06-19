@@ -32,7 +32,7 @@ module.exports = class EdisonErrorReporter {
       app: "DESKTOP",
       platform: process.platform,
       device_id: this.deviceHash,
-      level: "LOG",
+      level: "ERROR",
       time: new Date().getTime(),
       version: this.getVersion(),
       data: {
