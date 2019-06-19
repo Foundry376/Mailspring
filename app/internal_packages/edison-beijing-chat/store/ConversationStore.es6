@@ -1,8 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import { Actions } from 'mailspring-exports';
-import { ChatActions, MessageStore, ContactStore } from 'chat-exports';
+import { ChatActions, MessageStore, RoomStore } from 'chat-exports';
 import ConversationModel from '../model/Conversation';
-import xmpp from '../xmpp';
 import _ from 'underscore';
 
 export const NEW_CONVERSATION = 'NEW_CONVERSATION';
@@ -166,23 +165,8 @@ class ConversationStore extends MailspringStore {
     this.refreshConversations();
   }
 
-  _createGroupChatRoom = async (payload) => {
-    const { contacts, roomId, name, curJid } = payload;
-    const jidArr = contacts.map(contact => contact.jid).sort();
-    const opt = {
-      type: 'create',
-      name: name,
-      subject: 'test subject',
-      description: 'test description',
-      members: {
-        jid: jidArr
-      }
-    }
-    await xmpp.createRoom(roomId, opt, curJid);
-  }
-
   createGroupConversation = async (payload) => {
-    await this._createGroupChatRoom(payload);
+    await RoomStore.createGroupChatRoom(payload);
     const { contacts, roomId, name, curJid } = payload;
     const content = '';
     const timeSend = new Date().getTime();

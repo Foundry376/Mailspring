@@ -19,6 +19,29 @@ class RoomStore extends MailspringStore {
     }
   }
 
+  createGroupChatRoom = async (payload) => {
+    const { contacts, roomId, name, curJid } = payload;
+    const jidArr = contacts.map(contact => contact.jid).sort();
+    const opt = {
+      type: 'create',
+      name,
+      subject: 'test subject',
+      description: 'test description',
+      members: {
+        jid: jidArr
+      }
+    }
+    await xmpp.createRoom(roomId, opt, curJid);
+    console.log('****room data', {
+      jid: roomId,
+      name
+    }, payload);
+    RoomModel.upsert({
+      jid: roomId,
+      name
+    });
+  }
+
   refreshRooms = async () => {
     await this.loadRooms();
     this.trigger();
