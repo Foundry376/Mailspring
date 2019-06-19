@@ -1,7 +1,7 @@
 /* eslint jsx-a11y/tabindex-no-positive: 0 */
 import React, { Component } from 'react';
 import { gradientColorForString } from '../utils/colors';
-import { getAvatarPromise, getLogo } from '../utils/restjs';
+import { getLogo } from '../utils/restjs';
 import { LottieImg } from 'mailspring-component-kit';
 
 export default class EmailAvatar extends Component {
@@ -59,19 +59,19 @@ export default class EmailAvatar extends Component {
       styles = Object.assign(styles, this.props.styles);
     }
     if (this.props.messagePending) {
-      const lottieStyle ={marginTop: -5, marginLeft: -5};
-      if(!hasImage){
+      const lottieStyle = { marginTop: -5, marginLeft: -5 };
+      if (!hasImage) {
         lottieStyle.position = 'absolute';
         lottieStyle.left = 0;
         lottieStyle.top = 15;
       }
       return <div className="avatar-icon" style={styles}>
-          {!hasImage ? name : null}
+        {!hasImage ? name : null}
         <LottieImg name={'loading-spinner-blue'}
-                   size={{ width: 50, height: 50}}
-                   isClickToPauseDisabled={true}
-        style={lottieStyle}/>
-        </div>;
+          size={{ width: 50, height: 50 }}
+          isClickToPauseDisabled={true}
+          style={lottieStyle} />
+      </div>;
     }
     return (
       <div className="avatar-icon" style={styles}>

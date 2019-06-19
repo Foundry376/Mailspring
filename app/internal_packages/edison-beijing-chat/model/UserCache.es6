@@ -5,9 +5,12 @@ const db = getdb();
 
 export default class UserCache extends Model { }
 UserCache.init({
-  email: {
+  jid: {
     type: Sequelize.STRING,
     primaryKey: true
+  },
+  email: {
+    type: Sequelize.STRING,
   },
   name: {
     type: Sequelize.STRING,
@@ -20,7 +23,7 @@ UserCache.init({
   },
 }, {
     sequelize: db,
-    modelName: 'usercache'
+    modelName: 'usercache_v2'
   });
 UserCache.sync();
 db.userCache = UserCache;

@@ -109,8 +109,17 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   } else {
     message = '📄';
   }
+  let filetype;
+  if (isImageFilePath(filepath)) {
+    filetype = FILE_TYPE.IMAGE;
+    if (filepath.match(/.gif$/)) {
+      filetype = FILE_TYPE.GIF;
+    }
+  } else {
+    filetype = FILE_TYPE.OTHER_FILE;
+  }
   let body = {
-    type: FILE_TYPE.TEXT,
+    type: filetype,
     timeSend: new Date().getTime(),
     isUploading: true,
     content: 'sending...',
@@ -125,69 +134,14 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     body.emailMessageId = file.messageId;
   }
   onMessageSubmitted(conversation, JSON.stringify(body), messageId, true);
-  if (!isImageFilePath(filepath)) {
-    const loadConfig = {
-      conversation,
-      messageId,
-      msgBody: body,
-      filepath,
-      type: 'upload',
-    }
-    queueLoadMessage(loadConfig);
-  } else {
-    const atIndex = conversation.jid.indexOf('@')
-    let jidLocal = conversation.jid.slice(0, atIndex);
-    uploadFile(jidLocal, null, filepath, (err, filename, myKey, size) => {
-      const sendUploadMessage = thumbKey => {
-        body.localFile = filepath;
-        body.isUploading = false;
-        body.content = message || " ";
-        body.mediaObjectId = myKey;
-        if (thumbKey) {
-          body.thumbObjectId = thumbKey;
-        }
-        // body.occupants = reactInstance.state.occupants || [];
-        body.atJids = reactInstance.getAtTargetPersons && reactInstance.getAtTargetPersons() || [];
-        body = JSON.stringify(body);
-        if (err) {
-          console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
-          const message = {
-            id: messageId,
-            conversationJid: conversation.jid,
-            body,
-            sender: conversation.curJid,
-            sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
-            status: MESSAGE_STATUS_UPLOAD_FAILED,
-          };
-          MessageStore.saveMessagesAndRefresh([message]);
-          return;
-        } else {
-          onMessageSubmitted(conversation, body, messageId, false);
-        }
-      }
-      if (filename.match(/.gif$/)) {
-        body.type = FILE_TYPE.GIF;
-        sendUploadMessage(null);
-      } else {
-        body.type = FILE_TYPE.IMAGE;
-        let thumbPath = path.join(path.dirname(filepath), path.basename(filepath).replace(/\.\w*$/, '_thumb') + path.extname(filepath));
-        thumb({
-          source: filepath,
-          destination: path.dirname(filepath)
-        }, function (files, err, stdout, stderr) {
-          const thumbExist = fs.existsSync(thumbPath);
-          if (thumbExist) {
-            uploadFile(jidLocal, null, thumbPath, (err, filename, thumbKey, size) => {
-              sendUploadMessage(thumbKey);
-              fs.unlinkSync(thumbPath);
-            });
-          } else {
-            sendUploadMessage(null);
-          }
-        });
-      }
-    });
+  const loadConfig = {
+    conversation,
+    messageId,
+    msgBody: body,
+    filepath,
+    type: 'upload'
   }
+  queueLoadMessage(loadConfig);
 }
 
 

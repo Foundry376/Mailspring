@@ -32,10 +32,6 @@ class RoomStore extends MailspringStore {
       }
     }
     await xmpp.createRoom(roomId, opt, curJid);
-    console.log('****room data', {
-      jid: roomId,
-      name
-    }, payload);
     RoomModel.upsert({
       jid: roomId,
       name

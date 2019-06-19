@@ -148,6 +148,10 @@ export default class Application extends EventEmitter {
     if (!fs.existsSync(logoPath)) {
       fs.mkdirSync(logoPath);
     }
+    let avatarPath = path.join(configDirPath, 'chat_avatar_cache');
+    if (!fs.existsSync(avatarPath)) {
+      fs.mkdirSync(avatarPath);
+    }
   }
 
   getMainWindow() {
@@ -201,7 +205,7 @@ export default class Application extends EventEmitter {
     }
   }
   autoStartRestore() {
-    return new Promise( resolve =>{
+    return new Promise(resolve => {
       if (process.platform === 'darwin') {
         const openAtLogin = app.getLoginItemSettings().openAtLogin;
         if (!openAtLogin) {
