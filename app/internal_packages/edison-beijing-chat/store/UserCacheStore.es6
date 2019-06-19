@@ -11,6 +11,7 @@ const AVATAR_BASE_URL = 'https://s3.us-east-2.amazonaws.com/edison-profile-stag/
 class UserCacheStore extends MailspringStore {
   constructor() {
     super();
+    this.downloading = {};
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
     this.loadUserCacheData();
   }
@@ -61,9 +62,13 @@ class UserCacheStore extends MailspringStore {
           if (!fs.existsSync(avatarLocalPath)
             || isAvatarUpdated) {
             try {
-              console.log('****download', member, member.avatar);
+              if (this.downloading[jid]) {
+                return;
+              }
+              this.downloading[jid] = 1;
               const data = await download(this._getAvatarUrl(member.avatar));
               fs.writeFileSync(avatarLocalPath, data);
+              this.downloading[jid] = 0;
               await UserCacheModel.update({
                 avatar: avatarLocalPath
               }, { where: { jid } });
