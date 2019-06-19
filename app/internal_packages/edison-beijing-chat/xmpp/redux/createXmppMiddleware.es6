@@ -76,15 +76,12 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   });
 
   xmpp.on('message:error', async data => {
-    console.log(' xmpp.on message:error: ', data);
     if (data.error && data.error.code == 403 && data.id) {
       let msgInDb = await MessageStore.getMessageById(data.id+'$'+data.from.bare);
-      console.log(' xmpp.on message:error: msgInDb: ', msgInDb);
       if (!msgInDb) {
         return;
       }
       const msg = msgInDb.get({plain:true});
-      console.log(' xmpp.on message:error: msg: ', msg);
       let body = msg.body;
       body = JSON.parse(body);
       body.content = 'You can not send message to this conversation';
@@ -95,15 +92,11 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
     }
   });
   xmpp.on('message:success', async data => {
-    console.log( 'message:success data: ', data);
     let msgInDb = await MessageStore.getMessageById(data.$received.id+'$'+data.from.bare);
-    console.log( 'xmpp.on message:success: msgInDb: ', msgInDb);
     if (!msgInDb) {
-      console.log( 'something wrong with message:success data: ', data);
       return;
     }
     const msg = msgInDb.get({plain:true});
-    console.log( 'xmpp.on message:success: msg: ', msg);
     msg.status = 'MESSAGE_STATUS_DELIVERED';
     MessageStore.saveMessagesAndRefresh([msg]);
 

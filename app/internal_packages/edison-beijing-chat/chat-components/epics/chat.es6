@@ -118,7 +118,6 @@ export const sendMessageEpic = action$ =>
       const action = sendingMessage(message);
       let payload = message;
       if (!payload.isUploading) {
-        console.log('xmpp.sendMessage: ', payload);
         xmpp.sendMessage(payload, payload.curJid);
       }
       return action;
@@ -151,7 +150,6 @@ export const newTempMessageEpic = (action$, { getState }) =>
         sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
         status: payload.isUploading ? MESSAGE_STATUS_FILE_UPLOADING : MESSAGE_STATUS_SENDING,
       };
-      console.log('xmpp.sendMessage2: ', JSON.stringify(message));
       let body = parseMessageBody(payload.body);
       if (body && body.updating) {
         message.updateTime = (new Date()).getTime() + edisonChatServerDiffTime;
@@ -163,7 +161,6 @@ export const newTempMessageEpic = (action$, { getState }) =>
     }).mergeMap(message => {
       delete message.ts;
       delete message.curJid;
-      console.log('MessageStore.saveMessagesAndRefresh: ', message);
       return Observable.fromPromise(MessageStore.saveMessagesAndRefresh([message]))
         .map(result => newMessage(message))
     })

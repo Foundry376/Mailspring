@@ -189,7 +189,6 @@ export default class ConversationInfo extends Component {
       });
     }
     this.menu = remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
-    console.log('showMenu: this.menu: ', this.menu);
   };
   filterCurrentMemebers = contact => {
     if (this.props.selectedConversation.isGroup) {

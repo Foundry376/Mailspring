@@ -219,7 +219,6 @@ class AccountStore extends MailspringStore {
     } else {
       // Clear the cached data for the account and reset secrets once that has completed
       AppEnv.mailsyncBridge.resetCacheForAccount(account, { silent: true }).then(() => {
-        console.log('Account removal complete.');
         KeyManager.deleteAccountSecrets(account);
       });
     }

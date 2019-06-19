@@ -16,7 +16,6 @@ export const init = () => {
 
 export const quit = () => {
   const time = new Date();
-  console.log('log-util quit: ', fd);
   fs.writeSync(fd, `>>> ${Math.floor(time/1000)} : ${time.toLocaleString()}: edisonmail quit running -------\n`);
   fs.closeSync(fd);
   return;

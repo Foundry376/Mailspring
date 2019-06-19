@@ -73,7 +73,6 @@ export const iniApps = (userId, token, cb) => {
     post(url, { userId, token, version }, (err, data) => {
         if (data) {
             let json = JSON.parse(data);
-            // console.log('iniApps: succeed: userId, json: ', userId, json);
             if (json.code == 0 && json.data.apps && json.data.apps.length > 0) {
                 if (!myApps[userId]) { myApps[userId] = {}; }
                 myApps[userId].apps = json.data.apps;

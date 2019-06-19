@@ -358,7 +358,6 @@ class MessageStore extends MailspringStore {
     if (!shouldShow) {
       return;
     }
-    console.log('do showNotification: ');
     const convjid = payload.from.bare;
     let msgFrom = payload.from.resource + '@im.edison.tech';
     let memberName = payload.appName;
@@ -378,7 +377,6 @@ class MessageStore extends MailspringStore {
     }
     body = body.content || payload.body;
     const noti = postNotification(title, body);
-    console.log('the noti: ', noti);
     noti.addEventListener('click', (event) => {
       ChatActions.selectConversation(convjid);
       Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
@@ -389,21 +387,13 @@ class MessageStore extends MailspringStore {
   }
 
   shouldShowNotification = async (payload) => {
-    console.log( 'shouldShowNotification: payload: ', payload);
     const win = remote.getCurrentWindow();
     const focus = win.isFocused();
     if (focus) {
       return false;
     }
-    const conv = ConversationStore.selectedConversation;
-    if (!conv) {
-      return true;
-    }
-    console.log( 'shouldShowNotification: conv: ', conv.isHiddenNotification, conv);
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
-    if (payload.curJid === payload.from.bare || payload.from.bare === conv.jid) {
-      return false;
-    }
+    const conv = await ConversationStore.getConversationByJid(payload.from.bare);
     const fromUserId = payload.from.resource;
     let isme = false;
     for (let email in chatAccounts) {
@@ -455,9 +445,7 @@ class MessageStore extends MailspringStore {
   }
 
   saveMessages = async messages => {
-    // console.log( 'saveMessages: messages: ', messages);
     for (const msg of messages) {
-      // console.log( 'saveMessages: msg: ', msg);
       if (!msg.conversationJid) {
         console.error(`msg did not have conversationJid`, msg);
       }
