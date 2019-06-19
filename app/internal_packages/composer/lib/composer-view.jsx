@@ -372,25 +372,20 @@ export default class ComposerView extends React.Component {
           session={this.props.session}
           isValidDraft={this._isValidDraft}
         />
-
-        <button
+        <SendActionButton
+          ref={el => {
+            if (el) {
+              this._els.sendActionButton = el;
+            }
+          }}
           tabIndex={-1}
-          className="btn btn-toolbar btn-trash"
-          style={{ order: -100 }}
-          title="Delete draft"
-          onClick={this._onDestroyDraft}
+          style={{ order: -51 }}
+          draft={this.props.draft}
+          headerMessageId={this.props.draft.headerMessageId}
+          session={this.props.session}
+          isValidDraft={this._isValidDraft}
           disabled={this.props.session.isPopout()}
-        >
-          {this.state.isDeleting ?
-            <LottieImg name={'loading-spinner-blue'}
-              size={{ width: 24, height: 24 }} /> :
-            <RetinaImg name={'trash.svg'}
-              style={{ width: 24, height: 24 }}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask}
-            />}
-        </button>
-
+        />
         <button
           tabIndex={-1}
           className="btn btn-toolbar btn-attach"
@@ -417,22 +412,24 @@ export default class ComposerView extends React.Component {
             isIcon
             mode={RetinaImg.Mode.ContentIsMask} />
         </button>
-        <div style={{ order: 0, flex: 1 }} />
 
-        <SendActionButton
-          ref={el => {
-            if (el) {
-              this._els.sendActionButton = el;
-            }
-          }}
+        <button
           tabIndex={-1}
-          style={{ order: -100 }}
-          draft={this.props.draft}
-          headerMessageId={this.props.draft.headerMessageId}
-          session={this.props.session}
-          isValidDraft={this._isValidDraft}
+          className="btn btn-toolbar btn-trash"
+          style={{ order: 40 }}
+          title="Delete draft"
+          onClick={this._onDestroyDraft}
           disabled={this.props.session.isPopout()}
-        />
+        >
+          {this.state.isDeleting ?
+            <LottieImg name={'loading-spinner-blue'}
+                       size={{ width: 24, height: 24 }} /> :
+            <RetinaImg name={'trash.svg'}
+                       style={{ width: 24, height: 24 }}
+                       isIcon
+                       mode={RetinaImg.Mode.ContentIsMask}
+            />}
+        </button>
       </div>
     );
   }
