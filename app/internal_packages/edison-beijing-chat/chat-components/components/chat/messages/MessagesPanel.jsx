@@ -25,11 +25,10 @@ import { beginSendingMessage } from '../../../actions/chat';
 import { sendFileMessage } from '../../../../utils/message';
 import { getToken, getMyApps } from '../../../../utils/appmgt';
 import { log } from '../../../../utils/log-util';
+import { saveToLocalStorage } from '../../../store/configureStore'
 
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
-
-window.registerLoginChatAccounts = registerLoginChatAccounts;
 
 export default class MessagesPanel extends Component {
   static propTypes = {
@@ -206,6 +205,7 @@ export default class MessagesPanel extends Component {
       saveToLocalStorage();
     }
     this.profile.setMember(null);
+    MessageStore.saveMessagesAndRefresh([]);
   }
 
   reconnect = () => {

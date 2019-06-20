@@ -12,6 +12,7 @@ import Contact from '../../../../../../src/flux/models/contact';
 import keyMannager from '../../../../../../src/key-manager';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ConversationStore } from 'chat-exports';
+import {nickname} from '../../../../utils/name'
 
 export default class MemberProfie extends Component {
   static timer;
@@ -27,6 +28,7 @@ export default class MemberProfie extends Component {
   componentDidMount = () => {
     this.mounted = true;
     const { panel } = this.props;
+    const {member} = this.state;
 
     panel.profile = this;
     this.queryProfile();
@@ -98,7 +100,11 @@ export default class MemberProfie extends Component {
     if (member && (!this.state.member || member.email !== this.state.member.email)) {
       this.queryProfile();
     }
+    if (member) {
+      member.nickname = nickname(member.jid);
+    }
     state.visible = !!member;
+
     this.setState(state);
   }
 
@@ -199,6 +205,7 @@ export default class MemberProfie extends Component {
 
   onChangeNickname = (e) => {
     const { member } = this.state;
+    debugger;
     member.nickname = e.target.value;
     const state = Object({}, this.state, { member });
     this.setState(state);

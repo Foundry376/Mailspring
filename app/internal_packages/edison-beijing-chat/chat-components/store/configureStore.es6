@@ -14,13 +14,11 @@ exports.loadFromLocalStorage = () => {
     return;
   }
   const storageString = storage.getItem(EdisonMailStorageKey) || '{"nicknames":{}}';
-  const chatStorage = JSON.parse(storageString);
-  window.chatLocalStorage = chatStorage;
+  window.chatLocalStorage  = JSON.parse(storageString);
 };
 
 exports.saveToLocalStorage = () => {
-  const chatStorage = chatLocalStorage;
-  const storageString = JSON.stringify(chatStorage);
+  const storageString = JSON.stringify(chatLocalStorage);
   storage.setItem(EdisonMailStorageKey, storageString);
 };
 

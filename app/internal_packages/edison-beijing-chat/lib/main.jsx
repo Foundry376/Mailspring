@@ -27,6 +27,7 @@ module.exports = {
       split: ['RootSidebar', 'ChatView']
     });
     const { devMode } = AppEnv.getLoadSettings();
+    window.chatLocalStorage = null;
     window.edisonChatServerDiffTime = 0;
     if (true || devMode || isChatTest) {
       ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
