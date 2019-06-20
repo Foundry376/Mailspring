@@ -139,7 +139,12 @@ class ConversationStore extends MailspringStore {
       this.selectedConversation = await this.getConversationByJid(this.selectedConversation.jid);
     }
     this._triggerDebounced();
+    let count = 0
+    this.conversations.forEach(item => count += item.unreadMessages);
+    this.setTrayChatUnreadCount(count);
   }
+
+  setTrayChatUnreadCount = _.debounce(count => AppEnv.setTrayChatUnreadCount(count), 500);
 
   saveConversations = async (convs) => {
     for (const conv of convs) {
