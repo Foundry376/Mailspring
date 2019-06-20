@@ -58,6 +58,8 @@ lazyLoad(`MessageStore`, 'store/MessageStore');
 lazyLoad(`ConversationStore`, 'store/ConversationStore');
 lazyLoad(`RoomStore`, 'store/RoomStore');
 lazyLoad(`ContactStore`, 'store/ContactStore');
+lazyLoad(`AppStore`, 'store/AppsStore');
+lazyLoad(`LocalStorage`, 'store/LocalStorage');
 lazyLoad(`OnlineUserStore`, 'store/OnlineUserStore');
 lazyLoad(`E2eeStore`, 'store/E2eeStore');
 lazyLoad(`ConfigStore`, 'store/ConfigStore');

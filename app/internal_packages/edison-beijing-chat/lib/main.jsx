@@ -2,6 +2,7 @@ import ChatButton from './chat-button';
 import ChatView from './chat-view';
 import ChatViewLeft from './chat-view-left';
 import ChatAccountSidebarFiller from '../chat-components/components/chat/chat-account-sidebar-filler';
+import {LocalStorage} from 'chat-exports';
 const { ComponentRegistry, WorkspaceStore } = require('mailspring-exports');
 import { init, quit } from '../utils/log-util';
 import '../model/';
@@ -27,7 +28,7 @@ module.exports = {
       split: ['RootSidebar', 'ChatView']
     });
     const { devMode } = AppEnv.getLoadSettings();
-    window.chatLocalStorage = null;
+    LocalStorage.loadFromLocalStorage();
     window.edisonChatServerDiffTime = 0;
     if (true || devMode || isChatTest) {
       ComponentRegistry.register(ChatView, { location: WorkspaceStore.Location.ChatView });
