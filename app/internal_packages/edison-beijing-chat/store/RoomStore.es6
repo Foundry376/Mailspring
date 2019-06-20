@@ -124,7 +124,10 @@ class RoomStore extends MailspringStore {
         UserCacheStore.saveUserCache(members);
       }
     }
-    return members;
+    if (!members) {
+      console.error('***members is null', roomId, curJid, force);
+    }
+    return members || [];
   }
 
   getConversationOccupants = async (roomId, curJid) => {
