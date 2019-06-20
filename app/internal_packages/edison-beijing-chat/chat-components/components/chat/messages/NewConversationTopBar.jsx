@@ -10,11 +10,36 @@ export default class NewConversationTopBar extends Component {
   constructor() {
     super();
     this.state = {
-      members: []
-    }
+      members: [],
+    };
   }
+
   componentDidMount = () => {
     setTimeout(this._setDropDownHeight, 300);
+    window.addEventListener('resize', this.setUlListPosition);
+  };
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.setUlListPosition);
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (this.state.members.length !== prevState.members.length) {
+      this.setUlListPosition();
+    }
+  }
+
+  setUlListPosition() {
+    const container = document.querySelector('#contact-select');
+    const ulList = document.querySelector('#contact-select ul');
+    if (container && ulList) {
+      const widthDiff = ulList.getBoundingClientRect().width - container.getBoundingClientRect().width;
+      if (widthDiff <= 0) {
+        ulList.setAttribute('style', 'margin-left: 0');
+      } else {
+        ulList.setAttribute('style', `margin-left: -${widthDiff + 20}px`);
+      }
+    }
   }
 
   _setDropDownHeight() {
@@ -34,9 +59,11 @@ export default class NewConversationTopBar extends Component {
     }));
     this.props.saveRoomMembersForTemp(members);
     this.setState({
-      members
+      members,
+    }, () => {
+      document.querySelector('#contact-select input').focus();
     });
-  }
+  };
 
   createRoom = () => {
     if (this.state.members.length === 0) {
@@ -45,18 +72,18 @@ export default class NewConversationTopBar extends Component {
     this._close();
     Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
     this.props.createRoom();
-  }
+  };
 
   _close = () => {
     Actions.popSheet();
     ChatActions.deselectConversation();
-  }
+  };
 
   onKeyUp = (event) => {
     if (event.keyCode === 27) { // ESC
       this._close();
     }
-  }
+  };
 
   render() {
     const {
@@ -75,11 +102,11 @@ export default class NewConversationTopBar extends Component {
       >
         <div className="chip">
           <ContactAvatar jid={contact.jid} name={contact.name}
-            email={contact.email} avatar={contact.avatar} size={32} />
+                         email={contact.email} avatar={contact.avatar} size={32}/>
           <span className="contact-name">{contact.name}</span>
           <span className="contact-email">{contact.email}</span>
         </div>
-      </Option>
+      </Option>,
     );
     return (
       <div className="new-conversation-header" onKeyUp={this.onKeyUp}>
@@ -92,20 +119,25 @@ export default class NewConversationTopBar extends Component {
             onClick={this._close}
           >
             <RetinaImg name={'close_1.svg'}
-              style={{ width: 24, height: 24 }}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask} />
+                       style={{ width: 24, height: 24 }}
+                       isIcon
+                       mode={RetinaImg.Mode.ContentIsMask}/>
           </span>
           <span className="new-message-title">New Message</span>
         </div>
-        <div ref={el => { this.contactInputEl = el }} style={{ display: 'flex' }} onClick={() => {
-          document.querySelector('#contact-select input').focus();
-        }}>
+        <div ref={el => {
+          this.contactInputEl = el;
+        }} style={{ display: 'flex' }}
+             onResize={this.setUlListPosition}>
           <Select
             mode="tags"
             id="contact-select"
             style={{ width: '400px', flex: 1, height: '70px' }}
             onChange={this.handleChange}
+            onSelect={() => {
+              document.querySelector('#contact-select').focus();
+              document.querySelector('#contact-select input').focus();
+            }}
             defaultOpen={true}
             multiple
             autoFocus
@@ -116,7 +148,8 @@ export default class NewConversationTopBar extends Component {
           >
             {children}
           </Select>
-          <Button className={`btn go ${members.length === 0 ? 'btn-disabled' : ''}`} onClick={this.createRoom}>Go</Button>
+          <Button className={`btn go ${members.length === 0 ? 'btn-disabled' : ''}`}
+                  onClick={this.createRoom}>Go</Button>
         </div>
       </div>
     );
