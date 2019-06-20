@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
 import InfoMember from './InfoMember';
 import { remote } from 'electron';
-import RetinaImg from '../../../../../../src/components/retina-img';
-import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore } from 'chat-exports';
+import { RetinaImg } from 'mailspring-component-kit';
+import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore, UserCacheStore } from 'chat-exports';
 import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
@@ -215,12 +214,10 @@ export default class ConversationInfo extends Component {
       }
     }
     let privateChatMember = {};
+    let self;
     if (!conversation.isGroup) {
-      if (conversation.roomMembers && conversation.roomMembers.length > 0) {
-        privateChatMember = conversation.roomMembers[0];
-      } else {
-        privateChatMember = conversation;
-      }
+      privateChatMember = conversation;
+      self = UserCacheStore.getUserInfoByJid(conversation.curJid);
     }
     return (
       <div className="info-content">
@@ -230,7 +227,8 @@ export default class ConversationInfo extends Component {
               name="inline-loading-spinner.gif"
               mode={RetinaImg.Mode.ContentPreserve}
             /> :
-            <div className="member-count">{conversation.isGroup ? roomMembers.length + ' People' : ''}
+            <div className="member-count">
+              {conversation.isGroup ? roomMembers.length + ' People' : ''}
             </div>
           }
 
@@ -238,33 +236,44 @@ export default class ConversationInfo extends Component {
         </div>
         <div className="members">
           {
-            !conversation.isGroup ? (
-              <div className="row">
-                <div className="avatar-icon">
-                  <ContactAvatar conversation={conversation} jid={privateChatMember.jid} name={privateChatMember.name}
-                    email={privateChatMember.email} avatar={privateChatMember.avatar} size={30} />
-                </div>
-                <div className="info">
-                  <div className="name">
-                    {privateChatMember.name}
-                  </div>
-                  <div className="email">{privateChatMember.email}</div>
-                </div>
-              </div>
-            ) : null
+            !conversation.isGroup ? ([
+              <InfoMember
+                conversation={conversation}
+                member={privateChatMember}
+                editingMember={this.editingMember}
+                editProfile={this.props.editProfile}
+                exitProfile={this.props.exitProfile}
+                removeMember={this.removeMember}
+                currentUserIsOwner={currentUserIsOwner}
+                key={privateChatMember.jid}
+              />,
+              self && (
+                <InfoMember
+                  conversation={conversation}
+                  member={self}
+                  editingMember={this.editingMember}
+                  editProfile={this.props.editProfile}
+                  exitProfile={this.props.exitProfile}
+                  removeMember={this.removeMember}
+                  currentUserIsOwner={currentUserIsOwner}
+                  key={self.jid}
+                />
+              )
+            ]) : null
           }
           {
             conversation.isGroup && ([
               roomMembers && roomMembers.map(member => {
                 return (
-                  <InfoMember conversation={conversation}
+                  <InfoMember
+                    conversation={conversation}
                     member={member}
                     editingMember={this.editingMember}
                     editProfile={this.props.editProfile}
                     exitProfile={this.props.exitProfile}
                     removeMember={this.removeMember}
                     currentUserIsOwner={currentUserIsOwner}
-                    key={member.jid.bare}
+                    key={member.jid}
                   />);
               }),
               <div

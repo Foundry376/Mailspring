@@ -14,8 +14,10 @@ class RoomStore extends MailspringStore {
   }
 
   loadRooms = async () => {
-    this.rooms = {};
     const data = await RoomModel.findAll();
+    if (!this.rooms) {
+      this.rooms = {};
+    }
     for (const item of data) {
       this.rooms[item.jid] = item;
     }
@@ -73,7 +75,8 @@ class RoomStore extends MailspringStore {
   }
 
   getRoomMembersFromCache = (roomId, curJid) => {
-    if (this.rooms[roomId]
+    if (this.rooms
+      && this.rooms[roomId]
       && this.rooms[roomId].members
       && this.rooms[roomId].members.length) {
       let members = this.rooms[roomId].members;
@@ -93,15 +96,14 @@ class RoomStore extends MailspringStore {
       ver = config.value;
     }
     const result = await xmpp.getRoomMembers(roomId, ver, curJid);
-    if (result && result.mucAdmin) {
-      if (ver != result.mucAdmin.ver) {
-        members = result.mucAdmin.items;
-        await RoomModel.upsert({
-          jid: roomId,
-          members
-        });
-        await ConfigStore.saveConfig({ key: configKey, value: result.mucAdmin.ver });
-      }
+    if (result && result.mucAdmin && ver != result.mucAdmin.ver
+      && result.mucAdmin.items) {
+      members = result.mucAdmin.items;
+      await RoomModel.upsert({
+        jid: roomId,
+        members
+      });
+      await ConfigStore.saveConfig({ key: configKey, value: result.mucAdmin.ver });
     }
     return members;
   }
@@ -116,13 +118,16 @@ class RoomStore extends MailspringStore {
 
     let members = this.getRoomMembersFromCache(roomId, curJid);
     if (!members) {
-      members = this.getRoomMembersFromXmpp(roomId, curJid);
+      members = await this.getRoomMembersFromXmpp(roomId, curJid);
       if (members) {
         await this.loadRooms();
         UserCacheStore.saveUserCache(members);
       }
     }
-    return members;
+    if (!members) {
+      console.error('***members is null', roomId, curJid, force);
+    }
+    return members || [];
   }
 
   getConversationOccupants = async (roomId, curJid) => {
@@ -151,10 +156,12 @@ class RoomStore extends MailspringStore {
     const roomJid = data.roomJid || data.curJid;
     const curJid = data.curJid || data.memberJid;
     const members = await this.getRoomMembers(roomJid, curJid);
-    const local = jidlocal(data.memberJid);
-    for (const item of members) {
-      if (jidlocal(item.jid) === local) {
-        return item.name;
+    if (members) {
+      const local = jidlocal(data.memberJid);
+      for (const item of members) {
+        if (jidlocal(item.jid) === local) {
+          return item.name;
+        }
       }
     }
     return null;
