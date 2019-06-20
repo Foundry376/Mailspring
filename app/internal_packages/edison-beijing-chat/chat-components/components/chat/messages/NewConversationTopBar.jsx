@@ -127,8 +127,7 @@ export default class NewConversationTopBar extends Component {
         </div>
         <div ref={el => {
           this.contactInputEl = el;
-        }} style={{ display: 'flex' }}
-             onResize={this.setUlListPosition}>
+        }} style={{ display: 'flex' }}>
           <Select
             mode="tags"
             id="contact-select"
