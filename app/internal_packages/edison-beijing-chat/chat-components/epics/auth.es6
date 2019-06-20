@@ -55,7 +55,13 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
       clientVerName: '1.0.0',
       sessionId
     });
-
+    let pullMessage = (ts, jid) => {
+      xmpp.pullMessage(ts, jid).then(data => {
+        if (data && data.edipull && data.edipull.more) {
+          pullMessage(data.edipull.since, jid);
+        }
+      });
+    };
     return Observable.fromPromise(xmpp.connect(jid))
       .map(res => {
         // fetch and saveRoom infomation
@@ -95,7 +101,7 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
         setTimeout(() => {
           let ts = AppEnv.config.get(res.local + "_message_ts");
           if (ts) {
-            xmpp.pullMessage(ts, res.bare);
+            pullMessage(ts, res.bare);
           }
           //.then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
         }, 1000);
