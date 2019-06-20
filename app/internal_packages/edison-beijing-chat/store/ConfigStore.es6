@@ -18,6 +18,9 @@ class ConfigStore extends MailspringStore {
 
     saveConfig(config) {
         if (config) {
+            if (!config.time) {
+                config.time = new Date().getTime();
+            }
             ConfigModel.upsert(config);
             this.configs[config.key] = config;
             // this.refreshConfigs();

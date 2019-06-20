@@ -24,7 +24,16 @@ export default class MessagesTopBar extends Component {
   }
   constructor(props) {
     super(props);
+    this.state = {
+      conversationName: this.props.selectedConversation.name
+    }
   }
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      conversationName: nextProps.selectedConversation.name
+    });
+  }
+
   _onkeyDown = (e) => {
     if (e.keyCode === 13) {
       e.currentTarget.blur();
@@ -34,14 +43,17 @@ export default class MessagesTopBar extends Component {
   }
 
   _onBlur = (e) => {
-    if (!e.currentTarget.innerText.trim()) {
+    const { conversationName } = this.state;
+    if (!conversationName.trim()) {
       window.alert(' Group name should NOT be empty or blank.');
       // this.forceUpdate();
       const { selectedConversation } = this.props;
-      e.currentTarget.innerText = selectedConversation.name;
+      this.setState({
+        conversationName: selectedConversation.name
+      })
       return
     }
-    this.saveRoomName(e.currentTarget.innerText);
+    this.saveRoomName(conversationName);
   }
 
   async saveRoomName(name) {
@@ -54,11 +66,18 @@ export default class MessagesTopBar extends Component {
     }
   }
 
+  _onChange = (e) => {
+    this.setState({
+      conversationName: e.target.value
+    })
+  }
+
   render() {
     const {
       selectedConversation: conversation,
       onInfoPressed
     } = this.props;
+    const { conversationName } = this.state;
 
     return (
       <div>
@@ -66,13 +85,16 @@ export default class MessagesTopBar extends Component {
           className="messages-top-bar"
           left={
             <div className='conv-name'>
-              <div
-                contentEditable={conversation.isGroup}
-                dangerouslySetInnerHTML={{ __html: conversation.name }}
-                onKeyDown={this._onkeyDown}
-                onBlur={this._onBlur}
-                spellCheck="false"
-                className="conversationName">
+              <div className="conversation-name">
+                {conversationName}
+                {conversation.isGroup && (
+                  <input type="text"
+                    value={conversationName}
+                    onChange={this._onChange}
+                    onKeyDown={this._onkeyDown}
+                    onBlur={this._onBlur}
+                  />
+                )}
               </div>
               {
                 conversation.isGroup && (

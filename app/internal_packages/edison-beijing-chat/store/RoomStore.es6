@@ -3,8 +3,10 @@ import RoomModel from '../model/Room';
 import xmpp from '../xmpp';
 import { jidlocal } from '../utils/jid';
 import { MESSAGE_STATUS_RECEIVED } from '../model/Message';
-import { MessageStore, ContactStore, UserCacheStore } from 'chat-exports';
+import { MessageStore, ContactStore, UserCacheStore, ConfigStore } from 'chat-exports';
 
+
+const ROOM_MEMBER_VER = 'room_member_ver_';
 class RoomStore extends MailspringStore {
   constructor() {
     super();
@@ -60,20 +62,47 @@ class RoomStore extends MailspringStore {
   }
 
   refreshRoomMember = async (roomId, curJid) => {
-    let members = [];
-    const result = await xmpp.getRoomMembers(roomId, null, curJid);
-    if (!result) {
+    let members = await this.getRoomMembersFromXmpp(roomId, curJid);
+    if (!members) {
+      return this.getRoomMembersFromCache(roomId, curJid);
+    } else {
+      await this.loadRooms();
+      UserCacheStore.saveUserCache(members);
+    }
+    return members;
+  }
+
+  getRoomMembersFromCache = (roomId, curJid) => {
+    if (this.rooms[roomId]
+      && this.rooms[roomId].members
+      && this.rooms[roomId].members.length) {
+      let members = this.rooms[roomId].members;
+      if (typeof members === 'string') {
+        members = JSON.parse(members);
+      }
       return members;
     }
-    if (result && result.mucAdmin) {
-      members = result.mucAdmin.items;
+  }
+
+  getRoomMembersFromXmpp = async (roomId, curJid) => {
+    let members = null;
+    const configKey = ROOM_MEMBER_VER + curJid + '_' + roomId;
+    const config = await ConfigStore.findOne(configKey)
+    let ver = '';
+    if (config) {
+      ver = config.value;
     }
-    await RoomModel.upsert({
-      jid: roomId,
-      members
-    });
-    await this.loadRooms();
-    UserCacheStore.saveUserCache(members);
+    const result = await xmpp.getRoomMembers(roomId, ver, curJid);
+    if (result && result.mucAdmin) {
+      if (ver != result.mucAdmin.ver) {
+        members = result.mucAdmin.items;
+        await RoomModel.upsert({
+          jid: roomId,
+          members
+        });
+        await ConfigStore.saveConfig({ key: configKey, value: result.mucAdmin.ver });
+      }
+    }
     return members;
   }
 
@@ -84,16 +113,16 @@ class RoomStore extends MailspringStore {
         return members;
       }
     }
-    if (this.rooms[roomId]
-      && this.rooms[roomId].members
-      && this.rooms[roomId].members.length) {
-      let members = this.rooms[roomId].members;
-      if (typeof members === 'string') {
-        members = JSON.parse(members);
+
+    let members = this.getRoomMembersFromCache(roomId, curJid);
+    if (!members) {
+      members = this.getRoomMembersFromXmpp(roomId, curJid);
+      if (members) {
+        await this.loadRooms();
+        UserCacheStore.saveUserCache(members);
       }
-      return members;
     }
-    return await this.refreshRoomMember(roomId, curJid);
+    return members;
   }
 
   getConversationOccupants = async (roomId, curJid) => {
