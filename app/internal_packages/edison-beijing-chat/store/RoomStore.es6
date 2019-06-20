@@ -14,8 +14,10 @@ class RoomStore extends MailspringStore {
   }
 
   loadRooms = async () => {
-    this.rooms = {};
     const data = await RoomModel.findAll();
+    if (!this.rooms) {
+      this.rooms = {};
+    }
     for (const item of data) {
       this.rooms[item.jid] = item;
     }
