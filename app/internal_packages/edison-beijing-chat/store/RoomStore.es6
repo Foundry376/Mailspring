@@ -116,7 +116,7 @@ class RoomStore extends MailspringStore {
 
     let members = this.getRoomMembersFromCache(roomId, curJid);
     if (!members) {
-      members = this.getRoomMembersFromXmpp(roomId, curJid);
+      members = await this.getRoomMembersFromXmpp(roomId, curJid);
       if (members) {
         await this.loadRooms();
         UserCacheStore.saveUserCache(members);
