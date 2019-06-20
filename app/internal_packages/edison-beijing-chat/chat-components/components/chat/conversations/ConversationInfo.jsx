@@ -4,6 +4,7 @@ import Button from '../../common/Button';
 import InfoMember from './InfoMember';
 import { remote } from 'electron';
 import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore, UserCacheStore } from 'chat-exports';
+import { RetinaImg } from 'mailspring-component-kit';
 import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
