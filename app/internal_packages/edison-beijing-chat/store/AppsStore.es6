@@ -39,7 +39,7 @@ class AppsStore extends MailspringStore {
     let emailContacts = stmt.all();
     sqldb.close();
     const emails = emailContacts.map(contact => contact.email);
-    queryProfile({ accessToken, emails }, (err, res) => {
+    queryProfile({ accessToken, emails }, async (err, res) => {
       if (!res) {
         console.log('fail to login to queryProfile');
         return;
@@ -52,7 +52,7 @@ class AppsStore extends MailspringStore {
       }
       const users = res.data.users;
       const chatAccounts = AppEnv.config.get('chatAccounts') || {};
-      emailContacts = emailContacts.map((contact, index) => {
+      emailContacts = emailContacts.map( (contact, index) => {
         contact = Object.assign(contact, users[index]);
         if (contact.userId) {
           contact.jid = contact.userId + '@im.edison.tech'
@@ -63,7 +63,7 @@ class AppsStore extends MailspringStore {
         return contact;
       });
       emailContacts = emailContacts.filter(contact => !!contact.curJid);
-      ContactStore.saveContacts(emailContacts, payload.curJid);
+      await ContactStore.saveContacts(emailContacts, payload.curJid);
       return;
     })
   }

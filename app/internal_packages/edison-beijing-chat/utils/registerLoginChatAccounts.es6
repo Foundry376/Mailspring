@@ -1,11 +1,9 @@
 import keyMannager from '../../../src/key-manager';
 import { register } from './restjs';
-import { loadFromLocalStorage } from '../chat-components/store/configureStore';
 import { SUBMIT_AUTH } from '../chat-components/actions/auth';
 import { OnlineUserStore } from 'chat-exports';
 
 export default async function registerLoginChatAccounts() {
-  loadFromLocalStorage();
   let accounts = AppEnv.config.get('accounts');
   let chatAccounts = AppEnv.config.get('chatAccounts') || {};
   for (let acc of accounts) {

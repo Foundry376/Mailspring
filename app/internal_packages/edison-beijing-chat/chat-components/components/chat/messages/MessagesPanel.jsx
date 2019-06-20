@@ -25,7 +25,7 @@ import { beginSendingMessage } from '../../../actions/chat';
 import { sendFileMessage } from '../../../../utils/message';
 import { getToken, getMyApps } from '../../../../utils/appmgt';
 import { log } from '../../../../utils/log-util';
-import { saveToLocalStorage } from '../../../store/configureStore'
+import { LocalStorage } from 'chat-exports';
 
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -202,7 +202,7 @@ export default class MessagesPanel extends Component {
     const nicknames = chatLocalStorage.nicknames;
     if (nicknames[jid] != member.nickname) {
       nicknames[jid] = member.nickname;
-      saveToLocalStorage();
+      LocalStorage.saveToLocalStorage();
     }
     this.profile.setMember(null);
     MessageStore.saveMessagesAndRefresh([]);
