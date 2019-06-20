@@ -90,8 +90,8 @@ export default class MessageApp extends PureComponent {
                 <div className="messageSender">
                     {getContactAvatar(member)}
                 </div>
-                <div className="messageContent">
-                    <div>
+                <div className="message-content">
+                    <div className="message-header">
                         <span className="username">{appName}</span>
                         {!conversation.jid.match(/@app/) ? <span className="username">{this.state.senderName}</span> : null}
                         <span className="time">{dateFormat(sentTime, 'LT')}</span>

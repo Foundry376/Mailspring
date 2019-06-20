@@ -92,8 +92,8 @@ export default class MessagePrivateApp extends PureComponent {
         <div className="messageSender">
           {getContactAvatar(member)}
         </div>
-        <div className="messageContent">
-          <div>
+        <div className="message-content">
+          <div className="message-header">
             <span className="username">{appName}</span>
             <span className="username">{this.state.installerName}</span>
             <span className="time">{dateFormat(sentTime, 'LT')}</span>
