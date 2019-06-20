@@ -7,6 +7,7 @@ const {
   SyncbackCategoryTask,
   DestroyCategoryTask,
   CategoryStore,
+  WorkspaceStore,
   Actions,
   RegExpUtils,
 } = require('mailspring-exports');
@@ -41,6 +42,10 @@ const isChildrenSelected = (children = [], currentPerspective) => {
 };
 
 const isItemSelected = (perspective, children = []) => {
+  const sheet = WorkspaceStore.topSheet();
+  if (sheet && !['Threads', 'Thread', 'Preference'].includes(sheet.id)) {
+    return false;
+  }
   const isCurrent = FocusedPerspectiveStore.current().isEqual(perspective);
   if (isCurrent) {
     return true;
@@ -195,7 +200,7 @@ class SidebarItem {
 
   static forCategories(categories = [], opts = {}) {
     const id = idForCategories(categories);
-    const accountIds = new Set(categories.map(c=>c.accountId));
+    const accountIds = new Set(categories.map(c => c.accountId));
     const contextMenuLabel = _str.capitalize(
       categories[0] != null ? categories[0].displayType() : undefined,
     );
@@ -210,7 +215,7 @@ class SidebarItem {
     opts.contextMenuLabel = contextMenuLabel;
     return SidebarItem.appendSubPathByAccounts(
       accountIds,
-      this.forPerspective(id, perspective, opts)
+      this.forPerspective(id, perspective, opts),
     );
   }
 
@@ -226,7 +231,7 @@ class SidebarItem {
     const perspective = MailboxPerspective.forCategories(cats);
     const id = _.pluck(cats, 'id').join('-');
     opts.categoryIds = this.getCategoryIds(accountIds, 'sent');
-    return SidebarItem.appendSubPathByAccounts(accountIds, this.forPerspective(id, perspective, opts))
+    return SidebarItem.appendSubPathByAccounts(accountIds, this.forPerspective(id, perspective, opts));
   }
 
   static forSpam(accountIds, opts = {}) {
@@ -258,7 +263,7 @@ class SidebarItem {
     opts.categoryIds = this.getCategoryIds(accountIds, 'archive');
     return SidebarItem.appendSubPathByAccounts(
       accountIds,
-      this.forPerspective(id, perspective, opts)
+      this.forPerspective(id, perspective, opts),
     );
   }
 
@@ -305,6 +310,7 @@ class SidebarItem {
     }
     return this.forPerspective(id, perspective, opts);
   }
+
   static forSingleInbox(accountId, opts = {}) {
     opts.iconName = 'inbox.svg';
     const perspective = MailboxPerspective.forInbox(accountId);
@@ -320,7 +326,7 @@ class SidebarItem {
     const id = [accountId].join('-');
     return SidebarItem.appendSubPathByAccounts(
       accountId,
-      this.forPerspective(id, perspective, opts)
+      this.forPerspective(id, perspective, opts),
     );
   }
 
@@ -351,7 +357,7 @@ class SidebarItem {
     // return this.forPerspective(id, perspective, opts);
     return SidebarItem.appendSubPathByAccounts(
       accountIds,
-      this.forPerspective(id, perspective, opts)
+      this.forPerspective(id, perspective, opts),
     );
   }
 
@@ -366,10 +372,10 @@ class SidebarItem {
   }
 
   static appendSubPathByAccount(accountId, parentItem, path) {
-    if(!path){
+    if (!path) {
       throw new Error('path must not be empty');
     }
-    if(!parentItem){
+    if (!parentItem) {
       throw new Error('parentItem must not be empty');
     }
     const seenItems = {};

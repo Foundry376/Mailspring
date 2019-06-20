@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import { Actions } from 'mailspring-exports';
+import { Actions, WorkspaceStore } from 'mailspring-exports';
 import { ChatActions, MessageStore, ContactStore, RoomStore } from 'chat-exports';
 import ConversationModel from '../model/Conversation';
 import _ from 'underscore';
@@ -25,6 +25,7 @@ class ConversationStore extends MailspringStore {
     this.listenTo(ChatActions.goToNextConversation, this.nextConversation);
     this.listenTo(ChatActions.goToMostRecentConversation, this.goToMostRecentConvorsation);
     this.listenTo(Actions.goToMostRecentChat, this.goToMostRecentConvorsation);
+    this.listenTo(WorkspaceStore, this.workspaceChanged);
   }
 
   previousConversation = async () => {
@@ -99,6 +100,14 @@ class ConversationStore extends MailspringStore {
 
   getConversations() {
     return this.conversations;
+  }
+  workspaceChanged = () => {
+    const sheet = WorkspaceStore.topSheet();
+    if(sheet){
+      if(sheet.id !== 'ChatView'){
+        this.deselectConversation();
+      }
+    }
   }
   goToMostRecentConvorsation = () => {
     const conversation = this.getMostRecentConversation();
