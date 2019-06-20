@@ -698,6 +698,19 @@ export default class DraftEditingSession extends MailspringStore {
     Actions.queueTask(task);
     await TaskQueue.waitForPerformLocal(task);
   }
+  duplicateCurrentDraft(){
+    if (this._draft) {
+      const draft = this._draft;
+      const oldHeaderMessageId = this._draft.headerMessageId;
+      const oldMessageId = this._draft.id;
+      draft.id = uuid();
+      const newHeaderMessageId = draft.id + '@edison.tech';
+      draft.headerMessageId = newHeaderMessageId;
+      return { draft, oldHeaderMessageId, oldMessageId };
+    } else {
+      return {draft: null, oldHeaderMessageId: null, oldMessageId: null};
+    }
+  }
 
   needUpload() {
     return this._draft.needUpload;

@@ -146,6 +146,9 @@ module.exports = class MailspringWindow extends EventEmitter {
       this.browserWindow.focusOnWebView();
     }
   }
+  updateWindowKey(key){
+    this.windowKey = key;
+  }
 
   updateLoadSettings = (newSettings = {}) => {
     this.loaded = true;

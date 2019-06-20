@@ -101,4 +101,7 @@ export default class Task extends Model {
   onSuccess() {
     // noop
   }
+  description() {
+    // noop
+  }
 }

@@ -8,14 +8,14 @@ const ONBOARDING_WINDOW = 'onboarding';
 
 export default class WindowManager {
   constructor({
-    devMode,
-    safeMode,
-    specMode,
-    resourcePath,
-    configDirPath,
-    initializeInBackground,
-    config,
-  }) {
+                devMode,
+                safeMode,
+                specMode,
+                resourcePath,
+                configDirPath,
+                initializeInBackground,
+                config,
+              }) {
     this.initializeInBackground = initializeInBackground;
     this._windows = {};
 
@@ -64,8 +64,17 @@ export default class WindowManager {
         values.push(win);
       }
     });
-
     return values;
+  }
+
+  replaceWindowsKey(oldKey, newKey) {
+    const win = this.get(oldKey);
+    if (win) {
+      win.updateWindowKey(newKey);
+      this._didCreateNewWindow(win);
+      this._windows[newKey] = win;
+      delete this._windows[oldKey];
+    }
   }
 
   getVisibleWindowCount() {
@@ -110,8 +119,8 @@ export default class WindowManager {
     if (this._windows[win.windowKey]) {
       throw new Error(
         `WindowManager: Attempting to register a new window for an existing windowKey (${
-        win.windowKey
-        }). Use 'get()' to retrieve the existing window instead.`
+          win.windowKey
+          }). Use 'get()' to retrieve the existing window instead.`,
       );
     }
 
@@ -165,6 +174,10 @@ export default class WindowManager {
   sendToAllWindows(msg, { except }, ...args) {
     for (const windowKey of Object.keys(this._windows)) {
       const win = this._windows[windowKey];
+      if (win.browserWindow.isDestroyed()) {
+        delete this._windows[windowKey];
+        continue;
+      }
       if (win.browserWindow === except) {
         continue;
       }

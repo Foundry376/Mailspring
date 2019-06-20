@@ -50,10 +50,11 @@ class ComposerWithWindowProps extends React.Component {
 
   _onDraftGotNewId = (event, options) => {
     if (
-      options.referenceMessageId &&
+      (options.referenceMessageId || options.oldMessageId) &&
       options.newHeaderMessageId &&
       options.newMessageId &&
-      options.referenceMessageId === this.state.messageId
+      (options.referenceMessageId === this.state.messageId ||
+        options.oldMessageId === this.state.messageId)
     ) {
       this.setState({
         headerMessageId: options.newHeaderMessageId,

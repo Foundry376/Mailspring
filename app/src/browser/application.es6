@@ -204,6 +204,7 @@ export default class Application extends EventEmitter {
       }
     }
   }
+
   autoStartRestore() {
     return new Promise(resolve => {
       if (process.platform === 'darwin') {
@@ -397,7 +398,8 @@ export default class Application extends EventEmitter {
           execSync(`sqlite3 edisonmail.db < ${sqlPath}`, {
             cwd: this.configDirPath,
           });
-          fs.unlink(path.join(this.configDirPath, sqlPath), () => { });
+          fs.unlink(path.join(this.configDirPath, sqlPath), () => {
+          });
         } else {
           // TODO in windows
           console.warn('in this system does not implement yet');
@@ -628,7 +630,7 @@ export default class Application extends EventEmitter {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (action === 'send-later') {
         if (this._draftsSendLater[headerMessageId]) {
-          clearTimeout(this._draftsSendLater[headerMessageId])
+          clearTimeout(this._draftsSendLater[headerMessageId]);
         }
         this._draftsSendLater[headerMessageId] = setTimeout(() => {
           delete this._draftsSendLater[headerMessageId];
@@ -712,11 +714,15 @@ export default class Application extends EventEmitter {
           );
         }
       }
-      if (options.oldHeaderMessageId) {
-        const composerWindow = this.windowManager.get(`composer-${options.oldHeaderMessageId}`);
+      if (options.oldHeaderMessageId && options.newHeaderMessageId) {
+        this.windowManager.replaceWindowsKey(
+          `composer-${options.oldHeaderMessageId}`,
+          `composer-${options.newHeaderMessageId}`,
+        );
+        const composerWindow = this.windowManager.get(`composer-${options.newHeaderMessageId}`);
         if (composerWindow && composerWindow.browserWindow.webContents) {
           composerWindow.browserWindow.webContents.send(
-            `${options.arpType}draft-got-new-id`,
+            `${additionalChannelParam}draft-got-new-id`,
             options,
           );
         } else {

@@ -537,9 +537,24 @@ class DraftStore extends MailspringStore {
     const session = this._draftSessions[headerMessageId];
     // Immediately reset any pending changes so no saves occur
     if (session) {
-      if (session.isPopout() && this._draftsSending[headerMessageId]) {
-        // We do nothing if session have popouts
+      if (this._draftsSending[headerMessageId]) {
         return;
+      }
+      if (session.isPopout()) {
+        const { draft, oldHeaderMessageId, oldMessageId } = session.duplicateCurrentDraft();
+        if (draft) {
+          this._finalizeAndPersistNewMessage(draft).then(() => {
+            ipcRenderer.send('draft-got-new-id', {
+              newHeaderMessageId: draft.headerMessageId,
+              oldHeaderMessageId,
+              newMessageId: draft.id,
+              oldMessageId,
+              referenceMessageId: draft.referenceMessageId,
+              threadId: draft.threadId,
+              windowLevel: this._getCurrentWindowLevel(),
+            });
+          })
+        }
       }
       this._doneWithSession(session);
     }

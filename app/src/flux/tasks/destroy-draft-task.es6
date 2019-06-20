@@ -12,14 +12,27 @@ export default class DestroyDraftTask extends Task {
     // })
   });
 
+  constructor({ messageIds = [], ...rest } = {}) {
+    super(rest);
+    this.messageIds = messageIds;
+    if (this.canBeUndone === undefined) {
+      this.canBeUndone = true;
+    }
+  }
+
   label() {
     return 'Deleting draft';
   }
-  onSuccess(){
+  description() {
+    return 'Deleting draft';
+  }
+
+  onSuccess() {
     Actions.destroyDraftSucceeded({
       messageIds: this.messageIds,
     });
   }
+
   onError({ key, debuginfo, retryable }) {
     if (retryable) {
       console.warn(`Destroying draft failed because ${debuginfo}`);
