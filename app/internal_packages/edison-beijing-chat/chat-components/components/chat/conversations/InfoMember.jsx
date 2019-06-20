@@ -58,7 +58,7 @@ export default class InfoMember extends Component {
         <div className="info">
           <div className="name">
             {name}
-            {moreInfo && moreInfo.length > 0 ? <span class="chat-role"> ({moreInfo.join(' ')})</span> : null}
+            {moreInfo && moreInfo.length > 0 ? <span className="chat-role"> ({moreInfo.join(' ')})</span> : null}
           </div>
           <div className="email">{email}</div>
         </div>
