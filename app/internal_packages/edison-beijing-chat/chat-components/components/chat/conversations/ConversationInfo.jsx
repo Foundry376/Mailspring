@@ -259,7 +259,7 @@ export default class ConversationInfo extends Component {
                     exitProfile={this.props.exitProfile}
                     removeMember={this.removeMember}
                     currentUserIsOwner={currentUserIsOwner}
-                    key={member.jid.bare}
+                    key={member.jid}
                   />);
               }),
               <div

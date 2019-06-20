@@ -13,7 +13,7 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import { FILE_TYPE } from '../../../../utils/filetypes';
 import registerLoginChatAccounts from '../../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore } from 'chat-exports';
+import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore } from 'chat-exports';
 import MemberProfile from '../conversations/MemberProfile';
 
 import { xmpplogin } from '../../../../utils/restjs';
@@ -71,8 +71,10 @@ export default class MessagesPanel extends Component {
   _onDataChanged = async (changedDataName) => {
     if (changedDataName === 'conversation') {
       const selectedConversation = await ConversationStore.getSelectedConversation();
-      if (selectedConversation && !selectedConversation.isGroup && !selectedConversation.email && selectedConversation.jid != 'NEW_CONVERSATION') {
-        const user = await ContactStore.findContactByJid(selectedConversation.jid);
+      if (selectedConversation && !selectedConversation.isGroup && !selectedConversation.email
+        && selectedConversation.jid.indexOf('@app') == -1 && selectedConversation.jid != 'NEW_CONVERSATION') {
+        // let user = await ContactStore.findContactByJid(selectedConversation.jid);
+        let user = await UserCacheStore.getUserInfoByJid(selectedConversation.jid);
         selectedConversation.email = user.email;
       }
       this.setState({

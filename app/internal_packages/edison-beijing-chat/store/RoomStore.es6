@@ -93,15 +93,14 @@ class RoomStore extends MailspringStore {
       ver = config.value;
     }
     const result = await xmpp.getRoomMembers(roomId, ver, curJid);
-    if (result && result.mucAdmin) {
-      if (ver != result.mucAdmin.ver) {
-        members = result.mucAdmin.items;
-        await RoomModel.upsert({
-          jid: roomId,
-          members
-        });
-        await ConfigStore.saveConfig({ key: configKey, value: result.mucAdmin.ver });
-      }
+    if (result && result.mucAdmin && ver != result.mucAdmin.ver
+      && result.mucAdmin.items) {
+      members = result.mucAdmin.items;
+      await RoomModel.upsert({
+        jid: roomId,
+        members
+      });
+      await ConfigStore.saveConfig({ key: configKey, value: result.mucAdmin.ver });
     }
     return members;
   }
@@ -151,10 +150,12 @@ class RoomStore extends MailspringStore {
     const roomJid = data.roomJid || data.curJid;
     const curJid = data.curJid || data.memberJid;
     const members = await this.getRoomMembers(roomJid, curJid);
-    const local = jidlocal(data.memberJid);
-    for (const item of members) {
-      if (jidlocal(item.jid) === local) {
-        return item.name;
+    if (members) {
+      const local = jidlocal(data.memberJid);
+      for (const item of members) {
+        if (jidlocal(item.jid) === local) {
+          return item.name;
+        }
       }
     }
     return null;
