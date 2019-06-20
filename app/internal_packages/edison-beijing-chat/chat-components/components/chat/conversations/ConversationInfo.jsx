@@ -257,7 +257,8 @@ export default class ConversationInfo extends Component {
             conversation.isGroup && ([
               roomMembers && roomMembers.map(member => {
                 return (
-                  <InfoMember conversation={conversation}
+                  <InfoMember
+                    conversation={conversation}
                     member={member}
                     editingMember={this.editingMember}
                     editProfile={this.props.editProfile}
