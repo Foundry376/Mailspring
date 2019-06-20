@@ -36,8 +36,8 @@ class UserCacheStore extends MailspringStore {
   }
 
   saveUserCache = async (members) => {
-    members = [...members];
     if (members) {
+      members = [...members];
       for (const member of members) {
         await UserCacheModel.upsert({
           jid: member.jid.bare,
