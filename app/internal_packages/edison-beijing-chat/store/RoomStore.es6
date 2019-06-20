@@ -75,7 +75,8 @@ class RoomStore extends MailspringStore {
   }
 
   getRoomMembersFromCache = (roomId, curJid) => {
-    if (this.rooms[roomId]
+    if (this.rooms
+      && this.rooms[roomId]
       && this.rooms[roomId].members
       && this.rooms[roomId].members.length) {
       let members = this.rooms[roomId].members;
