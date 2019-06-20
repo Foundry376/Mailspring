@@ -3,7 +3,7 @@
 import _ from 'underscore';
 
 import MailspringStore from 'mailspring-store';
-import { ConversationStore, ContactStore, ContactModel } from 'chat-exports';
+import { MessageStore, ConversationStore, ContactStore, ContactModel, AppStore } from 'chat-exports';
 import KeyManager from '../../key-manager';
 import Actions from '../actions';
 import Account from '../models/account';
@@ -260,6 +260,12 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
+    const conv = ConversationStore.selectedConversation;
+    if (conv) {
+      const payload = {curJid: conv.curjid, local: conv.curJid.split('@')[0]};
+      await AppStore.saveMyAppsAndEmailContacts(payload);
+      await MessageStore.saveMessagesAndRefresh([]);
+    }
   };
 
   _cachedGetter(key, fn) {
