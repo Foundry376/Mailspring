@@ -1,13 +1,29 @@
 import { iniApps, getToken } from '../utils/appmgt';
 import { AccountStore } from 'mailspring-exports';
-import { ContactStore } from 'chat-exports';
+import { ConversationStore, ContactStore } from 'chat-exports';
 import path from "path";
 import { queryProfile } from '../utils/restjs';
 import { isJsonStr } from '../utils/stringUtils';
 const sqlite = require('better-sqlite3');
 import MailspringStore from 'mailspring-store';
+import { NEW_CONVERSATION } from './ConversationStore';
 
 class AppsStore extends MailspringStore {
+  refreshAppsEmailContacts = async () => {
+    let conv = ConversationStore.selectedConversation;
+    if (!conv || conv.jid === NEW_CONVERSATION) {
+      await ConversationStore.refreshConversations();
+      conv = ConversationStore.conversations[0];
+      if (!conv) {
+        return;
+      }
+    }
+    const payload = {
+      local:conv.curJid.split('@')[0],
+      curJid:conv.curJid
+    }
+    await this.saveMyAppsAndEmailContacts(payload);
+  }
   saveMyAppsAndEmailContacts = async (payload) => {
     const token = await getToken(payload.local);
     await this.saveEmailContacts(payload, token);
