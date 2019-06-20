@@ -63,14 +63,22 @@ class RoomStore extends MailspringStore {
     return this.rooms;
   }
 
-  refreshRoomMember = async (roomId, curJid) => {
-    let members = await this.getRoomMembersFromXmpp(roomId, curJid);
-    if (!members) {
-      return this.getRoomMembersFromCache(roomId, curJid);
-    } else {
-      await this.loadRooms();
-      UserCacheStore.saveUserCache(members);
+  refreshRoomMember = async (roomId, curJid, force) => {
+    let members;
+    if (force) {
+      members = await this.getRoomMembersFromXmpp(roomId, curJid);
     }
+    if (!members) {
+      members = this.getRoomMembersFromCache(roomId, curJid);
+      if (members) {
+        return members;
+      } else {
+        console.warn('***members is null', roomId, curJid, force);
+        members = await this.getRoomMembersFromXmpp(roomId, curJid, true);
+      }
+    }
+    await this.loadRooms();
+    UserCacheStore.saveUserCache(members);
     return members;
   }
 
@@ -87,12 +95,12 @@ class RoomStore extends MailspringStore {
     }
   }
 
-  getRoomMembersFromXmpp = async (roomId, curJid) => {
+  getRoomMembersFromXmpp = async (roomId, curJid, force) => {
     let members = null;
     const configKey = ROOM_MEMBER_VER + curJid + '_' + roomId;
     const config = await ConfigStore.findOne(configKey)
     let ver = '';
-    if (config) {
+    if (!force && config) {
       ver = config.value;
     }
     const result = await xmpp.getRoomMembers(roomId, ver, curJid);
@@ -109,21 +117,7 @@ class RoomStore extends MailspringStore {
   }
 
   getRoomMembers = async (roomId, curJid, force = false) => {
-    if (force) {
-      const members = await this.refreshRoomMember(roomId, curJid);
-      if (members && members.length > 0) {
-        return members;
-      }
-    }
-
-    let members = this.getRoomMembersFromCache(roomId, curJid);
-    if (!members) {
-      members = await this.getRoomMembersFromXmpp(roomId, curJid);
-      if (members) {
-        await this.loadRooms();
-        UserCacheStore.saveUserCache(members);
-      }
-    }
+    const members = await this.refreshRoomMember(roomId, curJid, force);
     if (!members) {
       console.error('***members is null', roomId, curJid, force);
     }
