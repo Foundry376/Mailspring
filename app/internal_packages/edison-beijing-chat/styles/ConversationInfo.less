@@ -58,14 +58,11 @@
       width: 63px;
       height: 18px;
       text-align: left;
-      color: #000;
+      color: @black;
       font-weight: bold;
       size:15px;
       line-height: @member-count-height;
       white-space: nowrap;
-    }
-    .clear-message {
-      color: #ff355e;
     }
     &>div {
       width: 100%;
@@ -123,10 +120,13 @@
     }
     .name {
       height: 16px;
-      color: #000;
+      color: @black;
       font-size: 13px;
-      letter-spacing: 0.18px;
       line-height: 16px;
+      white-space: nowrap;
+      .chat-role {
+        color: @blue;
+      }
     }
     .email {
       height: 13px;
