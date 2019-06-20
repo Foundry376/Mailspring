@@ -119,7 +119,7 @@ class RoomStore extends MailspringStore {
   getRoomMembers = async (roomId, curJid, force = false) => {
     const members = await this.refreshRoomMember(roomId, curJid, force);
     if (!members) {
-      console.error('***members is null', roomId, curJid, force);
+      console.warn('***members is null', roomId, curJid, force);
     }
     return members || [];
   }
