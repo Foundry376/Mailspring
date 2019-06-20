@@ -75,7 +75,10 @@ export default class MessagesPanel extends Component {
         && selectedConversation.jid.indexOf('@app') == -1 && selectedConversation.jid != 'NEW_CONVERSATION') {
         // let user = await ContactStore.findContactByJid(selectedConversation.jid);
         let user = await UserCacheStore.getUserInfoByJid(selectedConversation.jid);
-        selectedConversation.email = user.email;
+        if (!user) {
+          console.error('****user is null', selectedConversation);
+        }
+        selectedConversation.email = user && user.email;
       }
       this.setState({
         selectedConversation
