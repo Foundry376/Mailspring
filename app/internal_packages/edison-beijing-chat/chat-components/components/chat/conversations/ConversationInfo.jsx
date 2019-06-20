@@ -216,11 +216,7 @@ export default class ConversationInfo extends Component {
     }
     let privateChatMember = {};
     if (!conversation.isGroup) {
-      if (conversation.roomMembers && conversation.roomMembers.length > 0) {
-        privateChatMember = conversation.roomMembers[0];
-      } else {
-        privateChatMember = conversation;
-      }
+      privateChatMember = conversation;
     }
     return (
       <div className="info-content">
@@ -239,18 +235,16 @@ export default class ConversationInfo extends Component {
         <div className="members">
           {
             !conversation.isGroup ? (
-              <div className="row">
-                <div className="avatar-icon">
-                  <ContactAvatar conversation={conversation} jid={privateChatMember.jid} name={privateChatMember.name}
-                    email={privateChatMember.email} avatar={privateChatMember.avatar} size={30} />
-                </div>
-                <div className="info">
-                  <div className="name">
-                    {privateChatMember.name}
-                  </div>
-                  <div className="email">{privateChatMember.email}</div>
-                </div>
-              </div>
+              <InfoMember
+                conversation={conversation}
+                member={privateChatMember}
+                editingMember={this.editingMember}
+                editProfile={this.props.editProfile}
+                exitProfile={this.props.exitProfile}
+                removeMember={this.removeMember}
+                currentUserIsOwner={currentUserIsOwner}
+                key={privateChatMember.jid}
+              />
             ) : null
           }
           {
