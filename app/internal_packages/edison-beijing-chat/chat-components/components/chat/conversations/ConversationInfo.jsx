@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import InfoMember from './InfoMember';
 import { remote } from 'electron';
-import { RetinaImg } from 'mailspring-component-kit';
 import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore, UserCacheStore } from 'chat-exports';
+import { RetinaImg } from 'mailspring-component-kit';
 import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
@@ -181,8 +181,9 @@ export default class ConversationInfo extends Component {
     if (!conversation.jid.match(/@app/)) {
       menus.unshift({
         label: `Add to Group...`,
-        click: () => {
+        click: async () => {
           const moreBtnEl = document.querySelector('.more');
+          await AppStore.refreshAppsEmailContacts();
           this.toggleInvite(moreBtnEl);
         },
       });

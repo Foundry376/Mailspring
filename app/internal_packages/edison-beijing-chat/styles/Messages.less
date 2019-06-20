@@ -206,7 +206,7 @@
     padding: 2px 10px 4px 0;
   }
 
-  .messageContent {
+  .message-content {
     flex: 1;
     flex-flow: row wrap;
     align-items: baseline;
@@ -215,17 +215,29 @@
     user-select: text;
     font-size: 13px;
     line-height: 18px;
-    .username {
-      font-weight: bold;
-      margin-right: 10px;
-    }
-    .time {
-      font-size: 10px;
-      color: @timeColor;
+    .message-header {
+      overflow: hidden;
+      span {
+        float: left;
+      }
+      .username {
+        font-weight: bold;
+        margin-right: 10px;
+        font-weight: bold;
+        margin-right: 10px;
+        max-width: 50%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .time {
+        font-size: 10px;
+        color: @timeColor;
+      }
     }
   }
 
-  .messageContent {
+  .message-content {
     overflow-x: visible;
     overflow-y: hidden;
     padding-right: 10px;
@@ -385,7 +397,7 @@
     &:after {
       display: none!important;
     }
-    .messageContent>div{
+    .message-content>div{
       width: 100%;
     }
     textarea {

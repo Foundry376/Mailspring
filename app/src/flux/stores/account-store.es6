@@ -260,12 +260,8 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
-    const conv = ConversationStore.selectedConversation;
-    if (conv) {
-      const payload = {curJid: conv.curjid, local: conv.curJid.split('@')[0]};
-      await AppStore.saveMyAppsAndEmailContacts(payload);
-      await MessageStore.saveMessagesAndRefresh([]);
-    }
+    await AppStore.refreshAppsEmailContacts();
+    await MessageStore.saveMessagesAndRefresh([]);
   };
 
   _cachedGetter(key, fn) {

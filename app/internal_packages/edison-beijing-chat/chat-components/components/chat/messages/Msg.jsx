@@ -356,8 +356,8 @@ export default class Msg extends PureComponent {
               {this.getContactAvatar(member)}
             </div>
           ) : null}
-          <div className="messageContent">
-            <div>
+          <div className="message-content">
+            <div className="message-header">
               <span className="username">{senderName}</span>
               <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
             </div>

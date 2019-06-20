@@ -220,7 +220,9 @@ class MessageStore extends MailspringStore {
     } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
       // file on aws
       let name = msgBody.mediaObjectId;
-      name = name.split('/')[1]
+      if (name.indexOf('/') !== -1) {
+        name = name.substr(name.lastIndexOf('/') + 1)
+      }
       name = name.replace(/\.encrypted$/, '');
       let path = AppEnv.getConfigDirPath();
       let downpath = path + '/download/';
