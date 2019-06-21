@@ -116,7 +116,7 @@ export default class ContactAvatar extends Component {
         title={contactName}
       >
         <div className="avatar-image" style={avatarStyles}></div>
-        <span className="contact-name">{getInitials(contactName).toUpperCase()}</span>
+        <span>{getInitials(contactName).toUpperCase()}</span>
         <div className={isOnline ? 'online' : 'offline'}></div>
       </div>
     )
