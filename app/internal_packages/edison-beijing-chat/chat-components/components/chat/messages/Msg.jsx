@@ -49,10 +49,12 @@ export default class Msg extends PureComponent {
     const { msg, conversation } = props;
     const msgBody = isJsonStr(msg.body) ? JSON.parse(msg.body) : msg.body;
     const currentUserJid = conversation.curJid;
-    if (msg.sender === currentUserJid) {
-      msgBody.path = msgBody.localFile || msgBody.path;
-    } else {
-      msgBody.path = msgBody.path || msgBody.localFile;
+    if (typeof msgBody !== 'string') {
+      if (msg.sender === currentUserJid) {
+        msgBody.path = msgBody.localFile || msgBody.path;
+      } else {
+        msgBody.path = msgBody.path || msgBody.localFile;
+      }
     }
     const msgImgPath = msgBody.path;
     return {
