@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { FILE_TYPE } from '../../../../utils/filetypes';
 import { buildTimeDescriptor } from '../../../../utils/time';
 import { downloadFile } from '../../../../utils/awss3';
-import { isJsonString } from '../../../../utils/stringUtils';
+import { isJsonStr } from '../../../../utils/stringUtils';
 const { dialog } = require('electron').remote;
 import { RetinaImg } from 'mailspring-component-kit';
 import {MessageImagePopupStore} from 'chat-exports';
@@ -118,7 +118,7 @@ export default class MessageImagePopup extends Component {
       const { messages } = groupedMessage;
       for (const msg of messages) {
         let msgBody = msg.body
-        if(isJsonString(msg.body)) {
+        if(isJsonStr(msg.body)) {
           msgBody = JSON.parse(msgBody);
         }
         if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.STICKER) {
