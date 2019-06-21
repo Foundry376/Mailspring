@@ -34,8 +34,12 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
   let request;
   if (!progressBack) {
     request = s3.getObject(params, function (err, data) {
-        if (err) console.log(err, err.stack);
-        else {
+        if (err) {
+          console.error('fail to down file in message: ', err, err.stack);
+          if (callback) {
+            callback(err);
+          }
+        } else {
           if (aes) {
             //fs.writeFileSync('./files/src' + name, data.Body);
             fs.writeFileSync(name, decryptByAESFile(aes, data.Body));

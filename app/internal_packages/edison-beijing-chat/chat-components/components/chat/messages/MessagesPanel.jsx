@@ -308,6 +308,9 @@ export default class MessagesPanel extends Component {
       // the file is an image and it has been downloaded to local while the message was received
       let imgpath = msgBody.path.replace('file://', '');
       if (imgpath !== filepath) {
+        if (!fs.existsSync(imgpath)) {
+          window.alert('The file does not exist, probably it is failed to be received, please try to receive this message again.')
+        }
         fs.copyFileSync(imgpath, filepath);
       }
       loadCallback();
