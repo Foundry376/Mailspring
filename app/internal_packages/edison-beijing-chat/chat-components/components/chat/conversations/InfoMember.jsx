@@ -30,7 +30,8 @@ export default class InfoMember extends Component {
   render = () => {
     const { conversation, member } = this.props;
     let name = member.name;
-    const email = member.email || member.jid.unescapedLocal.replace('^at^', '@');
+    const local = member.jid.unescapedLocal || member.jid.local || member.jid
+    const email = member.email || local.replace('^at^', '@');
     if (!name) {
       name = email.split('@')[0];
     }
