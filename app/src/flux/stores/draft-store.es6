@@ -159,7 +159,7 @@ class DraftStore extends MailspringStore {
         id: originalMessageId,
         threadId: oldDraft.threadId,
       },
-      { switchingAccount: true },
+      { switchingAccount: true, canBeUndone: false},
     );
   };
 
@@ -238,7 +238,7 @@ class DraftStore extends MailspringStore {
       // Only delete pristine drafts if we're in popouts and is not from server, aka remoteUID=0.
       if (draft.pristine && !session.isPopout() && !draft.remoteUID) {
         // console.log(`draft to be destroyed @ ${this._getCurrentWindowLevel()}`);
-        promises.push(Actions.destroyDraft(draft));
+        promises.push(Actions.destroyDraft(draft, { canBeUndone: false }));
       } else if (
         AppEnv.isMainWindow() &&
         (session.changes.isDirty() || session.needUpload()) &&
@@ -569,6 +569,7 @@ class DraftStore extends MailspringStore {
       this.trigger({ headerMessageId });
       Actions.queueTask(
         new DestroyDraftTask({
+          canBeUndone: opts.canBeUndone,
           accountId,
           messageIds: [id],
           headerMessageId,

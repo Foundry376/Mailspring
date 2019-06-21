@@ -7,9 +7,9 @@ export default class DestroyDraftTask extends Task {
     messageIds: Attributes.Collection({
       modelKey: 'messageIds',
     }),
-    // headerMessageId: Attributes.String({
-    //   modelKey: 'headerMessageId',
-    // })
+    canBeUndone: Attributes.Boolean({
+      modelKey: 'canBeUndone',
+    })
   });
 
   constructor({ messageIds = [], ...rest } = {}) {
