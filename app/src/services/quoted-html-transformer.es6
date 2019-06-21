@@ -8,7 +8,8 @@ class QuotedHTMLTransformer {
   hasQuotedHTML(html) {
     const doc = this._parseHTML(html);
     const quoteElements = this._findQuoteElements(doc);
-    return quoteElements.length > 0;
+    const quoteString = quoteStringDetector(doc);
+    return quoteElements.length > 0 || quoteString.length > 0;
   }
 
   // Public: Removes quoted text from an HTML string

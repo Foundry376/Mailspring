@@ -67,9 +67,9 @@ export default class EmailFrame extends React.Component {
     }
   }
 
-  _emailContent = () => {
+  _emailContent = (isPlainBody = false) => {
     // When showing quoted text, always return the pure content
-    if (this.props.showQuotedText) {
+    if (this.props.showQuotedText || isPlainBody) {
       return this.props.content;
     }
     return QuotedHTMLTransformer.removeQuotedHTML(this.props.content, {
@@ -108,7 +108,7 @@ export default class EmailFrame extends React.Component {
       `);
     }
     doc.write(
-      `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent()}</div>`,
+      `<div id='inbox-html-wrapper' class="${process.platform}">${this._emailContent(isPlainBody)}</div>`,
     );
     doc.close();
 
