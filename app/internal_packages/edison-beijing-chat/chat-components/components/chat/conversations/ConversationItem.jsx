@@ -72,12 +72,15 @@ export default class ConversationItem extends PureComponent {
               <ContactAvatar conversation={conversation} jid={conversation.jid} name={conversation.name}
                 email={conversation.email} avatar={conversation.avatar} size={23} />
             }
-            {!conversation.isHiddenNotification ? <Badge count={conversation.unreadMessages} /> : null}
+            {/* {!conversation.isHiddenNotification ? <Badge count={conversation.unreadMessages} /> : null} */}
           </div>
           <div className="content">
             <div className="headerRow">
               <span className="headerText">{this.state.appName || conversation.name}</span>
-              <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span>
+              {/* <span className="time">{timeDescriptor(conversation.lastMessageTime)}</span> */}
+              <span className="unread-count">
+                {!conversation.isHiddenNotification && conversation.unreadMessages ? conversation.unreadMessages : null}
+              </span>
             </div>
             <div className="subHeader">
               {conversation.at ? (<span style={{ color: 'red' }}>[@me]</span>) : null}

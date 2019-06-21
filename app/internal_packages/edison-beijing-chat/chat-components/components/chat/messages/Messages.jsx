@@ -261,27 +261,29 @@ export default class Messages extends Component {
         onScroll={this.calcTimeLabel}
         tabIndex="0"
       >
-        <SecurePrivate />
-        {groupedMessages.map((group) => (
-          <Group
-            conversation={this.props.selectedConversation}
-            group={group}
-            queueLoadMessage={this.props.queueLoadMessage}
-            onMessageSubmitted={this.props.onMessageSubmitted}
+        <div className="messages-wrap">
+          <SecurePrivate />
+          {groupedMessages.map((group) => (
+            <Group
+              conversation={this.props.selectedConversation}
+              group={group}
+              queueLoadMessage={this.props.queueLoadMessage}
+              onMessageSubmitted={this.props.onMessageSubmitted}
+              getContactInfoByJid={this.getContactInfoByJid}
+              members={this.state.members}
+              shouldDisplayMessageCounts={shouldDisplayMessageCounts}
+              key={group.time}>
+            </Group>
+          ))
+          }
+          <MessageImagePopup
+            {...this.props}
+            groupedMessages={groupedMessages}
             getContactInfoByJid={this.getContactInfoByJid}
-            members={this.state.members}
-            shouldDisplayMessageCounts={shouldDisplayMessageCounts}
-            key={group.time}>
-          </Group>
-        ))
-        }
-        <MessageImagePopup
-          {...this.props}
-          groupedMessages={groupedMessages}
-          getContactInfoByJid={this.getContactInfoByJid}
-          getContactAvatar={this.getContactAvatar}
-        />
-        <div ref={element => { this.messagePanelEnd = element; }} />
+            getContactAvatar={this.getContactAvatar}
+          />
+          <div ref={element => { this.messagePanelEnd = element; }} />
+        </div>
       </div>
     );
   }
