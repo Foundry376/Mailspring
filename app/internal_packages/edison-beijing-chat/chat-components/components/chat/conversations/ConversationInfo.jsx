@@ -65,6 +65,7 @@ export default class ConversationInfo extends Component {
   refreshRoomMembers = async (nextProps) => {
     this.setState({ loadingMembers: true });
     const members = await this.getRoomMembers(nextProps);
+    console.log( 'refreshRoomMembers: ', members);
     members.sort((a, b) => (a.affiliation + a.name) > (b.affiliation + b.name) ? 1 : -1);
     this.setState({
       members,

@@ -15,7 +15,7 @@ const { AttachmentStore } = require('mailspring-exports');
 
 import { remote, shell } from 'electron';
 const { dialog, Menu, MenuItem } = remote;
-import { isJsonString } from '../../../../utils/stringUtils';
+import { isJsonStr } from '../../../../utils/stringUtils';
 import ContactAvatar from '../../common/ContactAvatar';
 import MessageEditBar from './MessageEditBar';
 import MessageApp from './MessageApp';
@@ -47,12 +47,14 @@ export default class Msg extends PureComponent {
 
   receiveProps = (props) => {
     const { msg, conversation } = props;
-    const msgBody = isJsonString(msg.body) ? JSON.parse(msg.body) : msg.body;
+    const msgBody = isJsonStr(msg.body) ? JSON.parse(msg.body) : msg.body;
     const currentUserJid = conversation.curJid;
-    if (msg.sender === currentUserJid) {
-      msgBody.path = msgBody.localFile || msgBody.path;
-    } else {
-      msgBody.path = msgBody.path || msgBody.localFile;
+    if (typeof msgBody !== 'string') {
+      if (msg.sender === currentUserJid) {
+        msgBody.path = msgBody.localFile || msgBody.path;
+      } else {
+        msgBody.path = msgBody.path || msgBody.localFile;
+      }
     }
     const msgImgPath = msgBody.path;
     return {

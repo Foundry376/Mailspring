@@ -110,9 +110,10 @@ export default class MemberProfile extends Component {
 
   startPrivateChat = (e) => {
     this.props.exitProfile(this.state.member);
-    const member = Object.assign({}, this.state.member);
-    member.jid = member.jid.bare || member.jid;
-    member.name = member.name || member.jid.split('^at^')[0];
+    let member = Object.assign({}, this.state.member);
+    member = member.dataValues || member;
+    member.jid = member.jid && member.jid.bare || member.jid;
+    member.name = member.name || member.jid && member.jid.split('^at^')[0];
     member.curJid = member.curJid || this.props.conversation.curJid;
     ConversationStore.createPrivateConversation(member);
   };

@@ -4,6 +4,7 @@ import { ChatActions, MessageStore, ContactStore, RoomStore, UserCacheStore } fr
 import ConversationModel from '../model/Conversation';
 import _ from 'underscore';
 import { MESSAGE_STATUS_RECEIVED } from '../model/Message';
+import { setTimeout } from 'timers';
 
 export const NEW_CONVERSATION = 'NEW_CONVERSATION';
 
@@ -103,8 +104,8 @@ class ConversationStore extends MailspringStore {
   }
   workspaceChanged = () => {
     const sheet = WorkspaceStore.topSheet();
-    if(sheet){
-      if(sheet.id !== 'ChatView'){
+    if (sheet) {
+      if (sheet.id !== 'ChatView') {
         this.deselectConversation();
       }
     }
@@ -233,7 +234,6 @@ class ConversationStore extends MailspringStore {
     }
     const config = data.edimucevent.edimucconfig;
     const convJid = data.from.bare;
-    const conv = await this.getConversationByJid(convJid);
     const id = data.id + '$' + convJid;
     let contact = await ContactStore.findContactByJid(config.actorJid);
     if (!contact) {
@@ -253,17 +253,27 @@ class ConversationStore extends MailspringStore {
       status: MESSAGE_STATUS_RECEIVED
     };
     MessageStore.saveMessagesAndRefresh([msg]);
-    await this.saveConversationName(conv, config.name);
+    await this.saveConversationName(convJid, config.name);
   };
 
-  saveConversationName = async (conv, name) => {
+  convName = {};
+  saveConversationName = async (jid, name) => {
+    const conv = await this.getConversationByJid(jid);
     if (!conv || conv.name === name) {
       return;
     } else {
-      await conv.update({ name });
-      this.refreshConversations();
+      this.convName[jid] = { name, ts: new Date().getTime() };
+
+      setTimeout(async () => {
+        let obj = this.convName[jid];
+        if ((new Date().getTime() - obj.ts) > 45) {
+          await conv.update({ name });
+          this.refreshConversations();
+        }
+      }, 50);
     }
   };
+
 }
 
 module.exports = new ConversationStore();
