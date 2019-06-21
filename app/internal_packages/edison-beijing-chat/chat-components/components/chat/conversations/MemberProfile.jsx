@@ -12,9 +12,9 @@ import Contact from '../../../../../../src/flux/models/contact';
 import keyMannager from '../../../../../../src/key-manager';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ConversationStore } from 'chat-exports';
-import {nickname} from '../../../../utils/name'
+import { nickname } from '../../../../utils/name'
 
-export default class MemberProfie extends Component {
+export default class MemberProfile extends Component {
   static timer;
 
   constructor(props) {
@@ -28,7 +28,7 @@ export default class MemberProfie extends Component {
   componentDidMount = () => {
     this.mounted = true;
     const { panel } = this.props;
-    const {member} = this.state;
+    const { member } = this.state;
 
     panel.profile = this;
     this.queryProfile();
