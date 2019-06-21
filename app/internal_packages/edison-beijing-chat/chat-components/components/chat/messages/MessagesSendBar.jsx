@@ -455,8 +455,8 @@ export default class MessagesSendBar extends PureComponent {
     const { selectedConversation } = this.props;
     return (
       <KeyCommandsRegion>
-      <div className="sendBar" onDrop={this.onDrop} onContextMenu={this.onContextMenu}>
-        {/* <Mention
+        <div className="sendBar" onDrop={this.onDrop} onContextMenu={this.onContextMenu}>
+          {/* <Mention
             style={{ width: '100%', height: '70px' }}
             multiLines={true}
             onChange={this.onMessageBodyChanged}
@@ -468,86 +468,86 @@ export default class MessagesSendBar extends PureComponent {
             ref="mention"
             prefix="@"
           /> */}
-        <TextArea
-          className="messageTextField"
-          placeholder="Edison Chat"
-          rows={1}
-          maxRows={5}
-          value={this.state.messageBody}
-          onChange={this.onMessageBodyChanged.bind(this)}
-          onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
-          onKeyUp={this.onInputKeyUp}
-          ref={element => { this.textarea = element; }}
-          onKeyDown={this.onKeyDown}
-          {...inputProps}
-        />
-        <div className="chat-message-filelist">
-          {this.state.files.map((file, index) => {
-            const removeFile = (e) => {
-              let files = this.state.files;
-              index = files.indexOf(file);
-              files.splice(index, 1);
-              files = files.slice();
-              this.setState(Object.assign({}, this.state, { files }));
-            };
-            return (
-              <div id='remove-file' key={index} onClick={removeFile} title={file}>
-                <RetinaImg
-                  name="fileIcon.png"
-                  mode={RetinaImg.Mode.ContentPreserve}
-                  key={index}
-                />
-                <div id='remove-file-inner' title="remove this file from the list">
-                  -
+          <TextArea
+            className="messageTextField"
+            placeholder="Edison Chat"
+            rows={1}
+            maxRows={5}
+            value={this.state.messageBody}
+            onChange={this.onMessageBodyChanged.bind(this)}
+            onKeyPress={this.onMessageBodyKeyPressed.bind(this)}
+            onKeyUp={this.onInputKeyUp}
+            ref={element => { this.textarea = element; }}
+            onKeyDown={this.onKeyDown}
+            {...inputProps}
+          />
+          <div className="chat-message-filelist">
+            {this.state.files.map((file, index) => {
+              const removeFile = (e) => {
+                let files = this.state.files;
+                index = files.indexOf(file);
+                files.splice(index, 1);
+                files = files.slice();
+                this.setState(Object.assign({}, this.state, { files }));
+              };
+              return (
+                <div id='remove-file' key={index} onClick={removeFile} title={file}>
+                  <RetinaImg
+                    name="fileIcon.png"
+                    mode={RetinaImg.Mode.ContentPreserve}
+                    key={index}
+                  />
+                  <div id='remove-file-inner' title="remove this file from the list">
+                    -
                   </div>
-              </div>
-            );
-          })
-          }
-          {this.state.files.length ?
-            <div id="clear-all-files" title="clear all files from the list" onClick={this.clearFiles}> X </div> :
-            null
-          }
-        </div>
-        {/* <div key='attachments' className="sendbar-attacment" ref={(el) => { this.attachmentRef = el }}>
+                </div>
+              );
+            })
+            }
+            {this.state.files.length ?
+              <div id="clear-all-files" title="clear all files from the list" onClick={this.clearFiles}> X </div> :
+              null
+            }
+          </div>
+          {/* <div key='attachments' className="sendbar-attacment" ref={(el) => { this.attachmentRef = el }}>
           <Button className='no-border' onClick={this.onEmailAttachmentTouch}>
             <InfoIcon className="icon" />
           </Button>
         </div> */}
 
-        <div className="chat-tool-bar" ref={emoji => { this.emojiRef = emoji }}>
-          <Button
-            onClick={() => {
-              this.fileInput.click();
-            }}
-          >
-            <RetinaImg name={'attachments.svg'}
-              style={{ width: 20, height: 20 }}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask} />
-            <input
-              style={{ display: 'none' }}
-              ref={element => { this.fileInput = element; }}
-              type="file"
-              multiple
-              onChange={this.onFileChange}
-            />
-          </Button>
-          <Button onClick={this.onEmojiTouch}>
-            <RetinaImg name={'emoji.svg'}
-              style={{ width: 20, height: 20 }}
-              isIcon
-              mode={RetinaImg.Mode.ContentIsMask} />
-          </Button>
+          <div className="chat-tool-bar" ref={emoji => { this.emojiRef = emoji }}>
+            <Button
+              onClick={() => {
+                this.fileInput.click();
+              }}
+            >
+              <RetinaImg name={'attachments.svg'}
+                style={{ width: 24 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask} />
+              <input
+                style={{ display: 'none' }}
+                ref={element => { this.fileInput = element; }}
+                type="file"
+                multiple
+                onChange={this.onFileChange}
+              />
+            </Button>
+            <Button onClick={this.onEmojiTouch}>
+              <RetinaImg name={'emoji.svg'}
+                style={{ width: 24 }}
+                isIcon
+                mode={RetinaImg.Mode.ContentIsMask} />
+            </Button>
+          </div>
+          <PluginPrompt conversation={selectedConversation}
+            pos={this.state.promptPos}
+            prefix={this.state.prefix}
+            keyword2app={this.state.keyword2app}
+            hidePrompt={this.hidePrompt}
+            installApp={this.installApp}
+          />
         </div>
-        <PluginPrompt conversation={selectedConversation}
-          pos={this.state.promptPos}
-          prefix={this.state.prefix}
-          keyword2app={this.state.keyword2app}
-          hidePrompt={this.hidePrompt}
-          installApp={this.installApp}
-        />
-      </div>
       </KeyCommandsRegion>
     );
   }
