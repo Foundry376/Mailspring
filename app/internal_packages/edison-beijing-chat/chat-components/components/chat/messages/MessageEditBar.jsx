@@ -91,7 +91,7 @@ export default class MessageEditBar extends PureComponent {
       this.textarea.focus();
     }
     if (document.querySelector(".edit-button-group")) {
-      document.querySelector(".edit-button-group").scrollIntoView();
+      document.querySelector(".edit-button-group").scrollIntoViewIfNeeded(false);
     }
   }
 
