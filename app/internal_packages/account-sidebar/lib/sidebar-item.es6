@@ -43,7 +43,7 @@ const isChildrenSelected = (children = [], currentPerspective) => {
 
 const isItemSelected = (perspective, children = []) => {
   const sheet = WorkspaceStore.topSheet();
-  if (sheet && !['Threads', 'Thread', 'Preference'].includes(sheet.id)) {
+  if (sheet && !['Threads', 'Thread', 'Drafts', 'Preference'].includes(sheet.id)) {
     return false;
   }
   const isCurrent = FocusedPerspectiveStore.current().isEqual(perspective);
