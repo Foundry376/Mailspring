@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import InfoMember from './InfoMember';
 import { remote } from 'electron';
-import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore, UserCacheStore } from 'chat-exports';
+import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore, UserCacheStore, AppStore } from 'chat-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
@@ -65,7 +65,7 @@ export default class ConversationInfo extends Component {
   refreshRoomMembers = async (nextProps) => {
     this.setState({ loadingMembers: true });
     const members = await this.getRoomMembers(nextProps);
-    console.log( 'refreshRoomMembers: ', members);
+    console.log('refreshRoomMembers: ', members);
     members.sort((a, b) => (a.affiliation + a.name) > (b.affiliation + b.name) ? 1 : -1);
     this.setState({
       members,
