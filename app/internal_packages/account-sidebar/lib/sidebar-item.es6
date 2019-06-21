@@ -18,7 +18,7 @@ const idForCategories = categories => _.pluck(categories, 'id').join('-');
 
 const countForItem = function(perspective) {
   const unreadCountEnabled = AppEnv.config.get('core.workspace.showUnreadForAllCategories');
-  if (perspective.isInbox() || unreadCountEnabled) {
+  if (perspective.isInbox() || perspective.isDrafts() || unreadCountEnabled) {
     return perspective.unreadCount();
   }
   return 0;

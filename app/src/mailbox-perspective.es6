@@ -185,6 +185,10 @@ export default class MailboxPerspective {
     return true;
   }
 
+  isDrafts() {
+    return this.categoriesSharedRole() === 'drafts';
+  }
+
   isInbox() {
     return this.categoriesSharedRole() === 'inbox';
   }
@@ -345,7 +349,7 @@ class DraftsMailboxPerspective extends MailboxPerspective {
     for (const id of accountIds) {
       const cat = CategoryStore.getCategoryByRole(id, 'drafts');
       if (cat) {
-        this._categories.push();
+        this._categories.push(cat);
       }
     }
   }
