@@ -6,7 +6,7 @@ import uuid from 'uuid/v4';
 import { FILE_TYPE } from './filetypes';
 import { uploadFile } from './awss3';
 import { MESSAGE_STATUS_UPLOAD_FAILED } from '../model/Message';
-import { ProgressBarStore, MessageStore } from 'chat-exports';
+import { ProgressBarStore, MessageStore, ConversationStore } from 'chat-exports';
 
 var thumb = require('node-thumbnail').thumb;
 
@@ -80,7 +80,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   }
 
   const props = reactInstance.props;
-  const conversation = props.selectedConversation;
+  const conversation = ConversationStore.selectedConversation;
   const onMessageSubmitted = props.onMessageSubmitted || props.sendMessage;
   const queueLoadMessage = reactInstance.queueLoadMessage || props.queueLoadMessage;
   let filepath;

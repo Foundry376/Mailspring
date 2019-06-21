@@ -221,7 +221,7 @@ class MessageStore extends MailspringStore {
       // file on aws
       let name = msgBody.mediaObjectId;
       if (name.indexOf('/') !== -1) {
-        name = name.substr(name.lastIndexOf('/') + 1)
+        name = name.substr(name.lastIndexOf('/') + 1);
       }
       name = name.replace(/\.encrypted$/, '');
       let path = AppEnv.getConfigDirPath();
@@ -232,11 +232,37 @@ class MessageStore extends MailspringStore {
       const thumbPath = downpath + name;
       msgBody.path = 'file://' + thumbPath;
       msgBody.downloading = true;
-      downloadFile(aes, msgBody.thumbObjectId, thumbPath, () => {
-        if (fs.existsSync(thumbPath)) {
+      downloadFile(aes, msgBody.thumbObjectId, thumbPath, (err) => {
+        if (err) {
+          msgBody.downloading = false;
+          msgBody.content = `the file ${name} failed to be downloaded`;
+          body = JSON.stringify(msgBody);
+          const msg = {
+            id: payload.id,
+            conversationJid: convJid,
+            body,
+            status: 'MESSAGE_STATUS_RECEIVED'
+          }
+          this.saveMessagesAndRefresh([msg]);
+          ChatActions.updateDownload(msgBody.mediaObjectId);
+          return;
+        } else if (fs.existsSync(thumbPath)) {
           ChatActions.updateDownload(msgBody.thumbObjectId);
-          downloadFile(aes, msgBody.mediaObjectId, thumbPath, () => {
-            if (fs.existsSync(thumbPath)) {
+          downloadFile(aes, msgBody.mediaObjectId, thumbPath, (err) => {
+            if (err) {
+              msgBody.content = `the file ${name} failed to be downloaded`;
+              msgBody.downloading = false;
+              body = JSON.stringify(msgBody);
+              const msg = {
+                id: payload.id,
+                conversationJid: convJid,
+                body,
+                status: 'MESSAGE_STATUS_RECEIVED'
+              }
+              this.saveMessagesAndRefresh([msg]);
+              ChatActions.updateDownload(msgBody.mediaObjectId);
+              return;
+            } else if (fs.existsSync(thumbPath)) {
               ChatActions.updateDownload(msgBody.mediaObjectId);
             }
           });

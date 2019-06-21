@@ -40,7 +40,6 @@ export default class MemberProfile extends Component {
 
   componentWillUnmount = () => {
     document.body.removeEventListener('click', this.onClickWithProfile);
-
   };
   queryProfile = async () => {
     const { member } = this.state;
