@@ -416,7 +416,7 @@ class EventedIFrame extends React.Component {
         new MenuItem({
           label: 'Copy',
           click() {
-            clipboard.writeText(text);
+            AppEnv.commands.dispatch('core:copy');
           },
         })
       );
