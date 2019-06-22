@@ -383,10 +383,13 @@ export function convertFromHTML(html: string) {
 }
 
 export function convertToHTML(value: Value) {
+  if (!value) return '';
   return HtmlSerializer.serialize(value);
 }
 
 export function convertToPlainText(value: Value) {
+  if (!value) return '';
+
   const serializeNode = (node: SlateNode) => {
     if (node.object === 'block' && node.type === UNEDITABLE_TYPE) {
       const html = node.data.get('html');

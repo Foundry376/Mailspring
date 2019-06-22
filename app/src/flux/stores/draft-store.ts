@@ -98,11 +98,11 @@ class DraftStore extends MailspringStore {
 
   // Public: Look up the sending state of the given draft headerMessageId.
   // In popout windows the existance of the window is the sending state.
-  isSendingDraft(headerMessageId) {
+  isSendingDraft(headerMessageId: string) {
     return this._draftsSending[headerMessageId] || false;
   }
 
-  _doneWithSession(session) {
+  _doneWithSession(session: DraftEditingSession) {
     session.teardown();
     delete this._draftSessions[session.headerMessageId];
   }
@@ -113,7 +113,7 @@ class DraftStore extends MailspringStore {
     });
   }
 
-  _onBeforeUnload = readyToUnload => {
+  _onBeforeUnload = (readyToUnload: () => void) => {
     const promises = [];
 
     // Normally we'd just append all promises, even the ones already

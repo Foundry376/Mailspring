@@ -33,7 +33,7 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
   draft.__bodyPropDescriptor = {
     configurable: true,
     get: function() {
-      if (!_bodyHTMLValue) {
+      if (_bodyHTMLValue === null) {
         _bodyHTMLValue = convertToHTML(_bodyEditorValue);
       }
       return _bodyHTMLValue;
@@ -68,7 +68,7 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
   draft.__bodyEditorValuePropDescriptor = {
     configurable: true,
     get: function() {
-      if (!_bodyEditorValue) {
+      if (_bodyEditorValue === null) {
         _bodyEditorValue = convertFromHTML(_bodyHTMLValue);
       }
       return _bodyEditorValue;
@@ -146,7 +146,7 @@ export class DraftEditingSession extends MailspringStore {
 
     this._mountedEditor = null;
 
-    if (draft) {
+    if (draft && draft.body !== undefined) {
       this._draftPromise = Promise.resolve(draft);
       this._draft = hotwireDraftBodyState(draft, this);
     } else {
