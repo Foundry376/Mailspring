@@ -1,6 +1,6 @@
 # Mailspring Changelog
 
-### 1.6.2 (TBD)
+### 1.6.2 (6/18/2019)
 
 Highlights:
 
