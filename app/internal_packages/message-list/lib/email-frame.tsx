@@ -31,7 +31,10 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
   componentDidMount() {
     this._mounted = true;
     this._iframeDocObserver = new window.ResizeObserver(entries =>
-      window.requestAnimationFrame(() => this._onReevaluateContentSize(entries[0]))
+      window.requestAnimationFrame(() => {
+        if (!this._mounted) return;
+        this._onReevaluateContentSize(entries[0]);
+      })
     );
     this._writeContent();
     this._unlisten = EmailFrameStylesStore.listen(this._writeContent);
@@ -128,7 +131,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
 
   _onReevaluateContentSize = (entry: ResizeObserverEntry) => {
     const size = `${entry.contentRect.width}:${entry.contentRect.height}`;
-    if (size === this._lastFitSize) return;
+    if (size === this._lastFitSize || !this._iframeComponent) return;
 
     this._lastFitSize = size;
     const iframeEl = ReactDOM.findDOMNode(this._iframeComponent) as HTMLIFrameElement;
