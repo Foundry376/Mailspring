@@ -405,3 +405,27 @@ export function convertToPlainText(value: Value) {
   };
   return serializeNode(value.document);
 }
+
+/* This is a utility method that converts the value to JSON and strips every node
+of it's sensitive bigts, replacing text, links, images, etc. with "XXX" characers
+of the same length. This allows us to log exceptions with the document's structure
+so we can debug challenging problems but not leak PII. */
+export function convertToShapeWithoutContent(value: Value) {
+  // Sidenote: this uses JSON.stringify to "walk" every key-value pair
+  // in the entire JSON tree and have the opportunity to replace the values.
+  let json: object = { error: 'toJSON failed' };
+  try {
+    json = value.toJSON();
+  } catch (err) {
+    // pass
+  }
+  return JSON.stringify(json, (key, value) => {
+    if (
+      typeof value === 'string' &&
+      ['text', 'href', 'html', 'contentId', 'className'].includes(key)
+    ) {
+      return 'X'.repeat(value.length);
+    }
+    return value;
+  });
+}

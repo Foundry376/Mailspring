@@ -20,7 +20,7 @@ import { SyncbackDraftTask } from '../tasks/syncback-draft-task';
 
 export type MessageWithEditorState = Message & { bodyEditorState: any };
 
-const { convertFromHTML, convertToHTML } = Conversion;
+const { convertFromHTML, convertToHTML, convertToShapeWithoutContent } = Conversion;
 const MetadataChangePrefix = 'metadata.';
 let DraftStore = null;
 
@@ -44,19 +44,37 @@ function hotwireDraftBodyState(draft: any, session: DraftEditingSession): Messag
       _bodyHTMLValue = inHTML;
 
       if (session._mountedEditor) {
-        // compute it now and apply it, preserving the document history
-        _bodyEditorValue = session._mountedEditor
-          .moveToRangeOfDocument()
-          .delete()
-          .insertFragment(convertFromHTML(inHTML).document)
-          .moveToRangeOfDocument()
-          .moveToStart().value;
+        const inHTMLEditorValue = convertFromHTML(inHTML);
+        try {
+          // try to apply the new value to the existing document to preserve undo history.
+          _bodyEditorValue = session._mountedEditor
+            .moveToRangeOfDocument()
+            .delete()
+            .insertFragment(inHTMLEditorValue.document)
+            .moveToRangeOfDocument()
+            .moveToStart().value;
 
-        // occasionally inserting the new document adds a new line at the beginning of the value.
-        // It's unclaer why this happens...
-        const firstBlock = _bodyEditorValue.document.getBlocks().first();
-        if (firstBlock.text === '') {
-          _bodyEditorValue = session._mountedEditor.removeNodeByKey(firstBlock.key).value;
+          // occasionally inserting the new document adds a new line at the beginning of the value.
+          // It's unclaer why this happens...
+          const firstBlock = _bodyEditorValue.document.getBlocks().first();
+          if (firstBlock.text === '') {
+            _bodyEditorValue = session._mountedEditor.removeNodeByKey(firstBlock.key).value;
+          }
+        } catch (err) {
+          // deleting and re-inserting the whole document seems to push Slate pretty hard and it
+          // sometimes fails with odd schema issues (undefined node, invalid range.) Just fall
+          // back to blowing away undo rather than getting the editor stuck.
+
+          // These errors are "downstream" from the actual problem (an invalid document model).
+          // To debug this, we convert the doc to JSON and replace all the actual text / html
+          // with "XXXX". Sending this home means we can replay the failing transform with an
+          // equivalent document of the same shape.
+          AppEnv.reportError(new Error(`Unable to insert fragment into existing document.`), {
+            underlyingError: err,
+            existingSlateShape: convertToShapeWithoutContent(session._mountedEditor.value),
+            incomingSlateShape: convertToShapeWithoutContent(inHTMLEditorValue),
+          });
+          _bodyEditorValue = inHTMLEditorValue;
         }
       } else {
         // compute it again when it's asked for
