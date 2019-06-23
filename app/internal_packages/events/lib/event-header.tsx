@@ -149,9 +149,10 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
   _renderSenderResponse() {
     const { icsEvent } = this.state;
+    const from = this.props.message.from[0];
+    if (!from) return false;
 
-    const from = this.props.message.from[0].email;
-    const sender = CalendarUtils.cleanParticipants(icsEvent).find(p => p.email === from);
+    const sender = CalendarUtils.cleanParticipants(icsEvent).find(p => p.email === from.email);
     if (!sender) return false;
 
     const verb: { [key: string]: string } = {
@@ -162,7 +163,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       COMPLETED: localized('completed'),
     }[sender.status];
 
-    return <div className="event-actions">{localized(`%1$@ has %2$@ this event`, from, verb)}</div>;
+    return (
+      <div className="event-actions">{localized(`%1$@ has %2$@ this event`, from.email, verb)}</div>
+    );
   }
 
   _renderRSVP() {
