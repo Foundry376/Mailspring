@@ -90,14 +90,18 @@ export async function findMessage({ accountId, headerMessageId }) {
 
 export async function transferReminderMetadataFromDraftToThread({ accountId, headerMessageId }) {
   let message = await findMessage({ accountId, headerMessageId });
-  if (!message) {
-    // The task has just completed, wait a moment to see if the message appears. Testing to
-    // see whether this resolves https://sentry.io/foundry-376-llc/mailspring/issues/363208698/
-    await Promise.delay(1500);
+  let delay = [1500, 1500, 10000, 10000];
+
+  // The sent message should already be synced, but if the send taks was interrupted and completed
+  // without finalizing / cleaning up, we may need to go through a sync cycle. Do this before giving up.
+  let ms = 0;
+  while (!message && (ms = delay.shift())) {
+    await Promise.delay(ms);
     message = await findMessage({ accountId, headerMessageId });
-    if (!message) {
-      throw new Error('SendReminders: Could not find message to update');
-    }
+  }
+
+  if (!message) {
+    throw new Error('SendReminders: Could not find message to update');
   }
 
   const metadata = message.metadataForPluginId(PLUGIN_ID) || {};
