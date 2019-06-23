@@ -14,6 +14,10 @@ interface ThemeOptionProps {
   onSelect: () => void;
 }
 
+export function toSelector(themeName: string) {
+  return `theme-preview-${btoa(themeName).replace(/=/g, 'z')}`;
+}
+
 class ThemeOption extends React.Component<ThemeOptionProps> {
   static propTypes = {
     theme: PropTypes.object.isRequired,
@@ -101,7 +105,7 @@ class ThemeOption extends React.Component<ThemeOptionProps> {
           ref={cm => {
             this._iframeComponent = cm;
           }}
-          className={`theme-preview-${this.props.theme.name.replace(/\./g, '-')}`}
+          className={toSelector(this.props.theme.name)}
           frameBorder="0"
           width="115px"
           height="70px"

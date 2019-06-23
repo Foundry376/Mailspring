@@ -3,7 +3,7 @@ import React from 'react';
 
 import { Flexbox, ScrollRegion } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
-import ThemeOption from './theme-option';
+import ThemeOption, { toSelector } from './theme-option';
 import { Disposable } from 'event-kit';
 
 class ThemePicker extends React.Component<{}, { themes: any[]; activeTheme: string }> {
@@ -41,16 +41,22 @@ class ThemePicker extends React.Component<{}, { themes: any[]; activeTheme: stri
   }
 
   _rewriteIFrame(prevActiveTheme, activeTheme) {
-    const prevActiveThemeDoc = (document.querySelector(
-      `.theme-preview-${prevActiveTheme.replace(/\./g, '-')}`
-    ) as HTMLIFrameElement).contentDocument;
-    const prevActiveElement = prevActiveThemeDoc.querySelector('.theme-option.active-true');
-    if (prevActiveElement) prevActiveElement.className = 'theme-option active-false';
-    const activeThemeDoc = (document.querySelector(
-      `.theme-preview-${activeTheme.replace(/\./g, '-')}`
-    ) as HTMLIFrameElement).contentDocument;
-    const activeElement = activeThemeDoc.querySelector('.theme-option.active-false');
-    if (activeElement) activeElement.className = 'theme-option active-true';
+    const activeFrame = document.querySelector(`.${toSelector(activeTheme)}`) as HTMLIFrameElement;
+    const prevActiveFrame = document.querySelector(
+      `.${toSelector(prevActiveTheme)}`
+    ) as HTMLIFrameElement;
+
+    if (prevActiveFrame) {
+      const prevActiveDoc = prevActiveFrame.contentDocument;
+      const prevActiveElement = prevActiveDoc.querySelector('.theme-option.active-true');
+      if (prevActiveElement) prevActiveElement.className = 'theme-option active-false';
+    }
+
+    if (activeFrame) {
+      const activeDoc = activeFrame.contentDocument;
+      const activeElement = activeDoc.querySelector('.theme-option.active-false');
+      if (activeElement) activeElement.className = 'theme-option active-true';
+    }
   }
 
   _renderThemeOptions() {
