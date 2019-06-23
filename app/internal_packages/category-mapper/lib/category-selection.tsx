@@ -9,7 +9,7 @@ import {
 import { localized, Label, Utils, PropTypes } from 'mailspring-exports';
 
 interface CategorySelectionProps {
-  accountUsesLabels: boolean;
+  allowLabels: boolean;
   all: CategoryItem[];
   current: CategoryItem;
   onSelect: (item: CategoryItem) => void;
@@ -31,7 +31,7 @@ export default class CategorySelection extends React.Component<
   CategorySelectionState
 > {
   static propTypes = {
-    accountUsesLabels: PropTypes.bool,
+    allowLabels: PropTypes.bool,
     all: PropTypes.array,
     current: PropTypes.object,
     onSelect: PropTypes.func,
@@ -95,7 +95,7 @@ export default class CategorySelection extends React.Component<
   };
 
   render() {
-    const placeholder = this.props.accountUsesLabels
+    const placeholder = this.props.allowLabels
       ? localized('Choose folder or label')
       : localized('Choose folder');
 

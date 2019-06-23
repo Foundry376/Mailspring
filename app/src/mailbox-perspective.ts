@@ -536,15 +536,15 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     ChangeFolderTask =
       ChangeFolderTask || require('./flux/tasks/change-folder-task').ChangeFolderTask;
 
-    // TODO this is an awful hack
-    const role = this.isArchive() ? 'archive' : this.categoriesSharedRole();
-
-    if (role === 'spam' || role === 'trash') {
-      return [];
+    // If you are viewing the archive, "remove" goes to the trash, since obeying
+    // your rpreference would mean possibly doing nothing (if you default to archive.)
+    if (this.isArchive()) {
+      return TaskFactory.tasksForMovingToTrash({ threads, source });
     }
 
-    if (role === 'archive') {
-      return TaskFactory.tasksForMovingToTrash({ threads, source });
+    // If you are viewing spam or trash, "remove" does nothing
+    if (['spam', 'trash'].includes(this.categoriesSharedRole())) {
+      return [];
     }
 
     return TaskFactory.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {

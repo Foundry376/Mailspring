@@ -5,6 +5,7 @@ import {
   Category,
   Actions,
   ChangeRoleMappingTask,
+  Folder,
 } from 'mailspring-exports';
 
 import CategorySelection from './category-selection';
@@ -79,15 +80,20 @@ export default class PreferencesCategoryMapper extends React.Component<{}, State
     if (account.provider === 'gmail' && role === 'archive') {
       return false;
     }
+
+    let all = this.state.all[account.id];
+    const allowLabels = account.usesLabels() && role !== 'trash' && role !== 'spam';
+    if (!allowLabels) all = all.filter(c => c instanceof Folder);
+
     return (
       <div className="role-section" key={`${account.id}-${role}`}>
         <div className="col-left">{Category.LocalizedStringForRole[role]}:</div>
         <div className="col-right">
           <CategorySelection
-            all={this.state.all[account.id]}
+            all={all}
             current={assignments[role]}
             onSelect={category => this._onCategorySelection(account, role, category)}
-            accountUsesLabels={account.usesLabels()}
+            allowLabels={allowLabels}
           />
         </div>
       </div>
