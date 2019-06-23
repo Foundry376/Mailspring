@@ -171,6 +171,8 @@ export class QuerySubscription<T extends Model> {
   };
 
   _itemSortOrderHasChanged(old, updated) {
+    if (!old || !updated) return true;
+
     for (const descriptor of this._query.orderSortDescriptors()) {
       const oldSortValue = old[descriptor.attr.modelKey];
       const updatedSortValue = updated[descriptor.attr.modelKey];
