@@ -263,7 +263,7 @@ class _AccountStore extends MailspringStore {
 
   accountsForItems = (items: Thread[]) => {
     const accounts: { [id: string]: Account } = {};
-    items.forEach(({ accountId }) => {
+    _.compact(items).forEach(({ accountId }) => {
       accounts[accountId] = accounts[accountId] || this.accountForId(accountId);
     });
     return _.compact(Object.values(accounts));

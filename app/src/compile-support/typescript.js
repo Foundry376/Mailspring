@@ -29,7 +29,28 @@ exports.getCachePath = function(sourceCode) {
 
 exports.compile = function(sourceCode, filePath) {
   if (!TypeScript) {
-    TypeScript = require('typescript');
+    try {
+      TypeScript = require('typescript');
+    } catch (err) {
+      if (err.toString().includes('Cannot find module')) {
+        const dialog =
+          process.type === 'renderer'
+            ? require('electron').remote.dialog
+            : require('electron').dialog;
+        dialog.showErrorBox(
+          `Plugin must be compiled`,
+          `Sorry, Mailspring no longer ships with Babel and TypeScript to recompile plugins on the fly. ` +
+            `Ask the plugin developer to compile the plugin to vanilla JavaScript as a pre-publish step.` +
+            `\n\nFile: ${filePath}`
+        );
+        TypeScript = 'missing';
+      } else {
+        throw err;
+      }
+    }
+  }
+  if (TypeScript === 'missing') {
+    return sourceCode;
   }
   return TypeScript.transpileModule(sourceCode, { compilerOptions, fileName: filePath }).outputText;
 };
