@@ -562,6 +562,8 @@ export class TokenizingTextField extends React.Component<
     const { tokenKey, tokens } = this.props;
     const { selectedKeys } = this.state;
 
+    if (!tokens.length) return;
+
     // select the last token on left arrow press if no tokens are selected
     if (selectedKeys.length === 0) {
       if (delta === -1) {
