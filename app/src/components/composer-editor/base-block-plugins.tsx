@@ -39,6 +39,8 @@ function isBlockTypeOrWithinType(value: Value, type: string) {
 }
 
 function toggleBlockTypeWithBreakout(editor: Editor, type) {
+  if (!editor.value.focusBlock) return;
+
   const ancestors = editor.value.document.getAncestors(editor.value.focusBlock.key);
 
   let idx = ancestors.findIndex(b => b.object === 'block' && b.type === type);
@@ -153,14 +155,16 @@ export const BLOCK_CONFIG: {
           }
           // Remove leading spaces that are present on every line
           let minLeadingSpaces = 1000;
-          texts.filter(text => text.trim().length > 0).forEach(text => {
-            const match = /^ +/.exec(text);
-            if (match === null) {
-              minLeadingSpaces = 0;
-            } else {
-              minLeadingSpaces = Math.min(minLeadingSpaces, match[0].length);
-            }
-          });
+          texts
+            .filter(text => text.trim().length > 0)
+            .forEach(text => {
+              const match = /^ +/.exec(text);
+              if (match === null) {
+                minLeadingSpaces = 0;
+              } else {
+                minLeadingSpaces = Math.min(minLeadingSpaces, match[0].length);
+              }
+            });
           // Join the text blocks together into a single string
           const text = texts.map(t => t.substr(minLeadingSpaces)).join('\n');
 
