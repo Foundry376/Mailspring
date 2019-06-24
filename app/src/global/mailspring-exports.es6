@@ -112,6 +112,7 @@ lazyLoadAndRegisterTask(`SendFeatureUsageEventTask`, 'send-feature-usage-event-t
 lazyLoadAndRegisterTask(`UndoTask`, 'undo-task');
 lazyLoadAndRegisterTask('AnalyzeDBTask', 'analyze-db-task');
 lazyLoadAndRegisterTask('DeleteThreadsTask', 'delete-threads-task');
+lazyLoadAndRegisterModel('CalendarTask', 'calendar-task');
 
 // Stores
 // These need to be required immediately since some Stores are

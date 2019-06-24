@@ -8,6 +8,7 @@ import { mapSourcePosition } from 'source-map-support';
 import fs from 'fs';
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
+import ICAL from 'ical.js';
 let getOSInfo = null;
 
 function ensureInteger(f, fallback) {
@@ -223,6 +224,7 @@ export default class AppEnvConstructor {
     const fileName = path.join(this.getConfigDirPath(), `ui-kill-${new Date().getTime()}.txt`);
     fs.writeFileSync(fileName, msg);
   }
+
   mockDiskLow() {
     const SystemInfoStore = require('./flux/stores/system-info-store').default;
     SystemInfoStore._mockDiskLow();
@@ -1007,5 +1009,66 @@ export default class AppEnvConstructor {
       delete ret.emailAddress;
     }
     return ret;
+  }
+
+  mockIcal() {
+    /**
+     * Welcome to ICAL.js fiddle
+     */
+
+    var iCalendarData = [
+      'BEGIN:VCALENDAR',
+      'CALSCALE:GREGORIAN',
+      'VERSION:2.0',
+      'X-WR-CALNAME:Flag Day',
+      'METHOD:PUBLISH',
+      'PRODID:-//Apple Inc.//Mac OS X 10.14.5//EN',
+      'BEGIN:VEVENT',
+      'TRANSP:TRANSPARENT',
+      'DTEND;VALUE=DATE:20180615',
+      'X-APPLE-TRAVEL-ADVISORY-BEHAVIOR:AUTOMATIC',
+      'UID:fdc817f4-1e63-3669-abeb-3a4adf767698',
+      'DTSTAMP:20190531T224633Z',
+      'SEQUENCE:0',
+      'CLASS:PUBLIC',
+      'X-APPLE-UNIVERSAL-ID:bfc1642a-310f-205e-e7ea-5cfae2283834',
+      'CATEGORIES:Holidays',
+      'SUMMARY;LANGUAGE=en-US:Flag Day',
+      'SUMMARY;LANGUAGE=cn-ZH:Flag Mo',
+      'LAST-MODIFIED:20190610T072131Z',
+      'LOCATION:Beijing',
+      'DTSTART;VALUE=DATE:20180614',
+      'CREATED:20190506T002539Z',
+      'RRULE:FREQ=YEARLY;COUNT=5',
+      'STATUS:CONFIRMED',
+      'BEGIN:VALARM',
+      'X-WR-ALARMUID:A3CACA4D-CB8A-4790-B49C-2079DD45E1FF',
+      'UID:A3CACA4D-CB8A-4790-B49C-2079DD45E1FF',
+      'TRIGGER:-PT15H',
+      'ATTACH;VALUE=URI:Chord',
+      'X-APPLE-LOCAL-DEFAULT-ALARM:TRUE',
+      'ACTION:AUDIO',
+      'X-APPLE-DEFAULT-ALARM:TRUE',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+
+    var jcalData = ICAL.parse(iCalendarData);
+    var vcalendar = new ICAL.Component(jcalData);
+    var vevent = vcalendar.getFirstSubcomponent('vevent');
+    var summary = vevent.getAllProperties('status');
+    console.log('location: ' + summary[0].getFirstValue());
+    console.log('stringfy: ' + vcalendar.toString());
+    const CalendarTask = require('./flux/tasks/calendar-task').default;
+    this.mailsyncBridge._onQueueTask(
+      new CalendarTask({
+        accountId: 'cb6f2148',
+        fileId: 'abc',
+        targetStatus: 1,
+        messageId: 'bbc',
+      })
+    );
   }
 }

@@ -46,6 +46,7 @@
     "group-by-time": "^1.0.0",
     "hostmeta": "^2.0.0",
     "iana-hashes": "^1.0.2",
+    "ical.js": "^1.3.0",
     "immutable": "^3.8.2",
     "integer": "2.1.0",
     "is-online": "7.0.0",
