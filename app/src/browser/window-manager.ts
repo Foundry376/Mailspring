@@ -267,8 +267,8 @@ export default class WindowManager {
       title: localized('Calendar Preview'),
       width: 900,
       height: 600,
-      frame: false,
-      toolbar: true,
+      frame: true,
+      toolbar: false,
       hidden: false,
     };
 
