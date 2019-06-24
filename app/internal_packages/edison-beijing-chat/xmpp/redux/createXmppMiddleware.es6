@@ -1,5 +1,6 @@
 import { Xmpp } from '..';
 import { ChatActions, MessageStore, OnlineUserStore, ConversationStore, RoomStore } from 'chat-exports';
+import {registerLoginEmailAccountForChat} from '../../utils/registerLoginChatAccounts'
 
 /**
  * Creates a middleware for the XMPP class to dispatch actions to a redux store whenever any events
@@ -100,6 +101,14 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
     msg.status = 'MESSAGE_STATUS_DELIVERED';
     MessageStore.saveMessagesAndRefresh([msg]);
 
+  });
+
+  xmpp.on('auth:failed', async data => {
+    const account = OnlineUserStore.getSelfAccountById(data.curJid);
+    account.password = null;
+    account.emailAddress = account.email
+    account.settings = {}
+    registerLoginEmailAccountForChat(account);
   });
 
   return next => action => next(action);

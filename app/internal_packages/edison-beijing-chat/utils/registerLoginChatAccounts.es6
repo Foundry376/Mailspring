@@ -8,7 +8,7 @@ export default async function registerLoginChatAccounts() {
 
   for (let account of accounts) {
     await registerLoginEmailAccountForChat(account);
-  };
+  }
 }
 
 export async function registerLoginEmailAccountForChat(account) {

@@ -40,6 +40,7 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
     if (!sessionId) {
       sessionId = uuid();
     }
+    console.log('xmpp.init: ', jid, password);
     xmpp.init({
       jid,
       password,
