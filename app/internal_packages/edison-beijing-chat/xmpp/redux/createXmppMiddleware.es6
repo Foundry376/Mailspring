@@ -108,6 +108,9 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
     account.password = null;
     account.emailAddress = account.email
     account.settings = {}
+    let accounts = AppEnv.config.get('chatAccounts');
+    delete accounts[account.email];
+    AppEnv.config.set('chatAccounts', accounts);
     registerLoginEmailAccountForChat(account);
   });
 
