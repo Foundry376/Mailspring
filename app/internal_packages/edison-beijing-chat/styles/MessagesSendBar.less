@@ -66,7 +66,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    padding-left: 27px;
+    padding-left: 26px;
     width: 100%;
     display: flex;
     align-items: flex-end;
@@ -95,8 +95,8 @@
 
   #remove-file-inner {
     display: inline-block;
-    border: solid 1px gray;
-    background-color: lightgray;
+    border: solid 1px @gray;
+    background-color: @gray-light;
     width: 15px;
     height: 15px;
     text-align: center;
@@ -106,8 +106,8 @@
   }
   #clear-all-files {
     display: inline-block;
-    border: solid 2px gray;
-    background-color: lightgray;
+    border: solid 2px @gray;
+    background-color: @gray-light;
     width: 20px;
     height: 20px;
     text-align: center;
@@ -115,17 +115,18 @@
 
   .messageTextField {
     width: 100%;
-    border: 1px solid #f0f1f3;
+    border: none;
+    box-shadow: -1px 1.5px 6px rgba(0, 0, 0, 0.15);
     padding: 9px 13px;
-    border-radius: 5px;
+    border-radius: 10px;
     resize: none;
     position: relative;
     transition: all 0.5s;
   }
   .messageTextField:focus {
-    box-shadow: -2px 2px 6px #999;
-    left: 1px;
-    top: -1px;
+    box-shadow: -2px 2.5px 10px rgba(0, 0, 0, 0.35);
+    // left: 1px;
+    // top: -1px;
   }
 
   .chat-message-filelist {
