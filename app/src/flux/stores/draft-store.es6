@@ -445,9 +445,6 @@ class DraftStore extends MailspringStore {
     }
 
     const session = await this.sessionForClientId(headerMessageId);
-    this._draftsPopedOut[headerMessageId] = true;
-    session.setPopout(true);
-    await session.changes.commit();
     if (!session.draft()) {
       AppEnv.reportError(
         new Error(
@@ -456,6 +453,18 @@ class DraftStore extends MailspringStore {
       );
       return;
     }
+    const messageId = session.draft().id;
+    if (this._draftsDeleting[messageId] || this.isSendingDraft(headerMessageId)) {
+      AppEnv.reportError(
+        new Error(
+          `Attempting to open draft-id:${messageId} when it is being deleted or sending. this._draftDeleting: ${this._draftsDeleting}, this._draftSending: ${this._draftsSending}`
+        )
+      );
+      return;
+    }
+    await session.changes.commit();
+    this._draftsPopedOut[headerMessageId] = true;
+    session.setPopout(true);
     const draftJSON = session.draft().toJSON();
     // Since we pass a windowKey, if the popout composer draft already
     // exists we'll simply show that one instead of spawning a whole new
@@ -586,7 +595,7 @@ class DraftStore extends MailspringStore {
         }),
       );
     } else {
-      console.warn('Tried to delete a draft that had no ID assigned yet.');
+      AppEnv.reportError(new Error('Tried to delete a draft that had no ID assigned yet.'));
     }
     if (AppEnv.isComposerWindow() && !opts.switchingAccount) {
       AppEnv.close({
@@ -643,7 +652,6 @@ class DraftStore extends MailspringStore {
     if (this._getCurrentWindowLevel() !== windowLevel) {
       const session = await this.sessionForClientId(headerMessageId);
       if (session) {
-        console.log('done with session because of sending draft');
         this._doneWithSession(session);
       } else {
         console.error(`session not found for ${headerMessageId} at window: ${windowLevel}`);
@@ -728,6 +736,7 @@ class DraftStore extends MailspringStore {
     // At this point the message UI enters the sending state and the composer is unmounted.
     this.trigger({ headerMessageId });
     this._doneWithSession(session);
+    // Notify all windows that draft is being send out.
     Actions.sendingDraft({ headerMessageId, windowLevel: this._getCurrentWindowLevel() });
     // To be able to undo the send, we need to pretend that we added the send-later
     // metadata as it's own task so that the undo action is clear. We don't actually

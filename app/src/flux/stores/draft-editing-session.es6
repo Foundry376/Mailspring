@@ -560,6 +560,7 @@ export default class DraftEditingSession extends MailspringStore {
     if (!nextDraft) {
       return;
     }
+    let changed = false;
     if (nextDraft.id !== this._draft.id) {
       this._draft.id = nextDraft.id;
       ipcRenderer.send('draft-got-new-id', {
@@ -570,6 +571,7 @@ export default class DraftEditingSession extends MailspringStore {
         threadId: this._draft.threadId,
         windowLevel: this._currentWindowLevel,
       });
+      changed = true;
     }
     if (this._draft.waitingForBody || !this._draft.body) {
       DraftStore.findByHeaderMessageIdWithBody({
@@ -599,8 +601,6 @@ export default class DraftEditingSession extends MailspringStore {
     // meaning user is not changing session in current window,
     // thus we should reflect all changes from database
     const lockedFields = this.changes.dirtyFields();
-
-    let changed = false;
     for (const [key] of Object.entries(Message.attributes)) {
       if (key === 'headerMessageId') continue;
       if (nextDraft[key] === undefined) continue;
