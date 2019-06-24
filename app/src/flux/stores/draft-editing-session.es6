@@ -80,7 +80,7 @@ class DraftChangeSet extends EventEmitter {
 
   dirtyFields() {
     return Object.keys(this._lastModifiedTimes).filter(
-      key => this._lastModifiedTimes[key] > this._lastCommitTime,
+      key => this._lastModifiedTimes[key] > this._lastCommitTime
     );
   }
 
@@ -209,7 +209,7 @@ export default class DraftEditingSession extends MailspringStore {
     this.headerMessageId = headerMessageId;
     this.changes = new DraftChangeSet({
       onAddChanges: changes => this.changeSetApplyChanges(changes),
-      onCommit: (arg) => this.changeSetCommit(arg), // for specs
+      onCommit: arg => this.changeSetCommit(arg), // for specs
     });
 
     this._registerListeners();
@@ -220,7 +220,8 @@ export default class DraftEditingSession extends MailspringStore {
     } else {
       this._draftPromise = DraftStore.findByHeaderMessageIdWithBody({
         headerMessageId: this.headerMessageId,
-      }).limit(1)
+      })
+        .limit(1)
         .then(draft => {
           if (this._destroyed) {
             console.warn(`Draft loaded but session has been torn down.`);
@@ -268,6 +269,24 @@ export default class DraftEditingSession extends MailspringStore {
 
   isPopout() {
     return this._popedOut;
+  }
+  inView() {
+    return this._inView;
+  }
+  isDestroyed() {
+    return this._destroyed;
+  }
+  updateDraftId(id) {
+    this._draft.id = id;
+    ipcRenderer.send('draft-got-new-id', {
+      newHeaderMessageId: this._draft.headerMessageId,
+      oldHeaderMessageId: this._draft.headerMessageId,
+      newMessageId: this._draft.id,
+      referenceMessageId: this._draft.referenceMessageId,
+      threadId: this._draft.threadId,
+      windowLevel: this._currentWindowLevel,
+    });
+    this.trigger();
   }
 
   setPopout(val) {
@@ -323,7 +342,7 @@ export default class DraftEditingSession extends MailspringStore {
     for (const contact of allRecipients) {
       if (!ContactStore.isValidContact(contact)) {
         errors.push(
-          `${contact.email} is not a valid email address - please remove or edit it before sending.`,
+          `${contact.email} is not a valid email address - please remove or edit it before sending.`
         );
       }
       const name = contact.fullName();
@@ -374,7 +393,7 @@ export default class DraftEditingSession extends MailspringStore {
         const salutation = (match[1] || '').toLowerCase();
         if (!allNames.find(n => n === salutation || (n.length > 1 && salutation.includes(n)))) {
           warnings.push(
-            `addressed to a name that doesn't appear to be a recipient ("${salutation}")`,
+            `addressed to a name that doesn't appear to be a recipient ("${salutation}")`
           );
         }
       }
@@ -405,7 +424,7 @@ export default class DraftEditingSession extends MailspringStore {
     const account = AccountStore.accountForEmail(draft.from[0].email);
     if (!account) {
       throw new Error(
-        'DraftEditingSession::ensureCorrectAccount - you can only send drafts from a configured account.',
+        'DraftEditingSession::ensureCorrectAccount - you can only send drafts from a configured account.'
       );
     }
 
@@ -576,7 +595,8 @@ export default class DraftEditingSession extends MailspringStore {
     if (this._draft.waitingForBody || !this._draft.body) {
       DraftStore.findByHeaderMessageIdWithBody({
         headerMessageId: this.headerMessageId,
-      }).limit(1)
+      })
+        .limit(1)
         .then(draft => {
           if (this._destroyed) {
             console.warn(`Draft loaded but session has been torn down.`);
@@ -627,7 +647,7 @@ export default class DraftEditingSession extends MailspringStore {
   };
 
   // We assume that when thread changes, we are switching view
-  onThreadChange = (options) => {
+  onThreadChange = options => {
     // console.log(`on thread change listener: ${this._threadId}`, options);
     if (
       this._draft &&
@@ -660,7 +680,9 @@ export default class DraftEditingSession extends MailspringStore {
     }
     //if id is empty, we assign uuid to id;
     if (!this._draft.id || this._draft.id === '') {
-      AppEnv.reportError(new Error(`Draft id is empty assigning new id for draft ${JSON.stringify(this._draft)}`));
+      AppEnv.reportError(
+        new Error(`Draft id is empty assigning new id for draft ${JSON.stringify(this._draft)}`)
+      );
       this._draft.id = uuid();
     }
     if (
@@ -698,7 +720,7 @@ export default class DraftEditingSession extends MailspringStore {
     Actions.queueTask(task);
     await TaskQueue.waitForPerformLocal(task);
   }
-  duplicateCurrentDraft(){
+  duplicateCurrentDraft() {
     if (this._draft) {
       const draft = this._draft;
       const oldHeaderMessageId = this._draft.headerMessageId;
@@ -708,7 +730,7 @@ export default class DraftEditingSession extends MailspringStore {
       draft.headerMessageId = newHeaderMessageId;
       return { draft, oldHeaderMessageId, oldMessageId };
     } else {
-      return {draft: null, oldHeaderMessageId: null, oldMessageId: null};
+      return { draft: null, oldHeaderMessageId: null, oldMessageId: null };
     }
   }
 

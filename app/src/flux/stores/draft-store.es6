@@ -286,6 +286,23 @@ class DraftStore extends MailspringStore {
     // Continue closing
     return true;
   };
+  _onDraftIdChange = change => {
+    const draftsHeaderMessageId = Object.keys(this._draftSessions);
+    const nextDraft = change.objects
+      .filter(obj => draftsHeaderMessageId.includes(obj.headerMessageId))
+      .pop();
+
+    if (!nextDraft) {
+      return;
+    }
+    if (
+      this._draftSessions[nextDraft.headerMessageId] &&
+      this._draftSessions[nextDraft.headerMessageId].draft() &&
+      !this._draftSessions[nextDraft.headerMessageId].inView()
+    ) {
+      this._draftSessions[nextDraft.headerMessageId].updateDraftId(nextDraft.id);
+    }
+  };
 
   _onDataChanged = change => {
     if (change.objectClass !== Message.name) {
@@ -309,6 +326,8 @@ class DraftStore extends MailspringStore {
 
     // allow draft editing sessions to update
     this.trigger(change);
+    // update drafts that are not in view;
+    this._onDraftIdChange(change);
   };
 
   _onSendQuickReply = ({ thread, threadId, message, messageId }, body) => {
