@@ -41,7 +41,7 @@ export default class InfoMember extends Component {
     if (member.affiliation === 'owner') {
       moreInfo.push('Owner');
     }
-    if (member.jid === conversation.curJid) {
+    if (jid === conversation.curJid) {
       moreInfo.push('Me');
     }
 
