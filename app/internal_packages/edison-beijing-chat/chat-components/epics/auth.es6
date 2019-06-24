@@ -111,7 +111,12 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
         }, 1200);
         return successfulConnectionAuth(res);
       })
-      .catch(error => Observable.of(failConnectionAuth(error)));
+      .catch(error => {
+        if (error && jid.split('@').length > 1) {
+          window.removeItem('sessionId' + jid.split('@')[0]);
+        }
+        return Observable.of(failConnectionAuth(error));
+      });
   });
 
 /**
