@@ -211,6 +211,7 @@ export default class MessagesPanel extends Component {
     }
     this.profile.setMember(null);
     MessageStore.saveMessagesAndRefresh([]);
+    LocalStorage.trigger();
   }
 
   reconnect = () => {

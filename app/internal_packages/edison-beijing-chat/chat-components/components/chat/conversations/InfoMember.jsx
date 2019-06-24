@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ContactAvatar from '../../common/ContactAvatar';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../../utils/colors';
+import { name } from '../../../../utils/name';
 const { primaryColor } = theme;
 
 
@@ -29,14 +30,9 @@ export default class InfoMember extends Component {
 
   render = () => {
     const { conversation, member } = this.props;
-    let name = member.name;
-    const local = member.jid.unescapedLocal || member.jid.local || member.jid
-    const email = member.email || local && local.replace('^at^', '@');
-    if (!name) {
-      name = email.split('@')[0];
-    }
-
     const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
+    let membername = name(jid);
+    const email = member.email;
     const moreInfo = [];
     if (member.affiliation === 'owner') {
       moreInfo.push('Owner');
@@ -51,14 +47,14 @@ export default class InfoMember extends Component {
           <ContactAvatar
             conversation={conversation}
             jid={jid}
-            name={name}
+            name={membername}
             email={email}
             avatar={member.avatar}
             size={30} />
         </div>
         <div className="info">
           <div className="name">
-            {name}
+            {membername}
             {moreInfo && moreInfo.length > 0 ? <span className="chat-role"> ({moreInfo.join(' ')})</span> : null}
           </div>
           <div className="email">{email}</div>

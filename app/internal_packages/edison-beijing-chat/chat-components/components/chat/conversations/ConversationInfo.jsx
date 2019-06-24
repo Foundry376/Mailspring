@@ -3,12 +3,13 @@ import PropTypes from 'prop-types';
 import Button from '../../common/Button';
 import InfoMember from './InfoMember';
 import { remote } from 'electron';
-import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore, UserCacheStore, AppStore } from 'chat-exports';
+import { ChatActions, MessageStore, RoomStore, ConversationStore, ContactStore, UserCacheStore, AppStore, LocalStorage } from 'chat-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import uuid from 'uuid/v4';
+import {name} from '../../../../utils/name';
 
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
@@ -25,11 +26,15 @@ export default class ConversationInfo extends Component {
   }
 
   _listenToStore = () => {
-    this._unsub = RoomStore.listen(this.refreshRoomMembers);
+    this._unsubs = [];
+    this._unsubs.push(RoomStore.listen(this.refreshRoomMembers));
+    this._unsubs.push(LocalStorage.listen(this.refreshRoomMembers));
   };
 
   componentWillUnmount() {
-    this._unsub();
+    for (const unsub of this._unsubs) {
+      unsub();
+    }
   }
 
   removeMember = async member => {
@@ -65,6 +70,9 @@ export default class ConversationInfo extends Component {
   refreshRoomMembers = async (nextProps) => {
     this.setState({ loadingMembers: true });
     const members = await this.getRoomMembers(nextProps);
+    for (const member of members) {
+      member.name = name(member.jid);
+    }
     console.log('refreshRoomMembers: ', members);
     members.sort((a, b) => (a.affiliation + a.name) > (b.affiliation + b.name) ? 1 : -1);
     this.setState({
@@ -74,7 +82,7 @@ export default class ConversationInfo extends Component {
   };
 
   getRoomMembers = async (nextProps = {}) => {
-    const conversation = nextProps.selectedConversation || this.props.selectedConversation;
+    const conversation = nextProps && nextProps.selectedConversation || this.props.selectedConversation;
     if (conversation && conversation.isGroup) {
       return await RoomStore.getRoomMembers(conversation.jid, conversation.curJid, true);
     }
