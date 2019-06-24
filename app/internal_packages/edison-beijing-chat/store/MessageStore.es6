@@ -104,6 +104,7 @@ class MessageStore extends MailspringStore {
       unreadMessages = 1;
     }
     let jid;
+    console.log( payload.from.bare , payload.curJid);
     if (payload.from.bare === payload.curJid) {
       jid = payload.to.bare;
     } else {

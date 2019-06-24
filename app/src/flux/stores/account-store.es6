@@ -9,6 +9,7 @@ import Actions from '../actions';
 import Account from '../models/account';
 import Utils from '../models/utils';
 import { removeMyApps } from '../../../internal_packages/edison-beijing-chat/utils/appmgt';
+import { registerLoginEmailAccountForChat } from '../../../internal_packages/edison-beijing-chat/utils/registerLoginChatAccounts';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
@@ -260,6 +261,7 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
+    registerLoginEmailAccountForChat(account);
     await AppStore.refreshAppsEmailContacts();
     await MessageStore.saveMessagesAndRefresh([]);
   };
