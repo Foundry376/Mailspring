@@ -258,6 +258,7 @@ export default class MessagesPanel extends Component {
         body.isUploading = false;
         body.mediaObjectId = myKey;
         body = JSON.stringify(body);
+        console.log( 'loadCallback: ', err, body, myKey, loadConfig);
         if (err) {
           console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
           const message = {

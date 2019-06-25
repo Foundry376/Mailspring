@@ -324,6 +324,8 @@ export default class Msg extends PureComponent {
     const senderName = this.senderName();
     const msgFile = this.msgFile();
 
+    console.log( 'msg.render: msg, msgBody:', msg, msgBody);
+
     if (msgBody.deleted) {
       return null;
     } else if (msgBody.isAppprivateCommand) {
@@ -385,7 +387,6 @@ export default class Msg extends PureComponent {
                         <div className="message-image">
                           <img
                             src={msgBody.localFile}
-                            title={msgBody.isUploading && msgBody.localFile || ''}
                             onClick={this.onClickImage}
                           />
                         </div>
