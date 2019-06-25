@@ -49,7 +49,8 @@ exports['default'] = function (JXT) {
         namespace: _xmppConstants.Namespace.DISCO_ITEMS,
         element: 'query',
         fields: {
-            node: Utils.attribute('node')
+            node: Utils.attribute('node'),
+            ver: Utils.attribute('ver')
         }
     });
 
@@ -60,7 +61,8 @@ exports['default'] = function (JXT) {
         fields: {
             jid: Utils.jidAttribute('jid'),
             node: Utils.attribute('node'),
-            name: Utils.attribute('name')
+            name: Utils.attribute('name'),
+            ver: Utils.attribute('ver')
         }
     });
 
