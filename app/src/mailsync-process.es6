@@ -146,10 +146,13 @@ export default class MailsyncProcess extends EventEmitter {
         var rs = new Readable();
         rs.push(`${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`);
         rs.push(null);
-        rs.pipe(this._proc.stdin, { end: false });
+        rs.pipe(
+          this._proc.stdin,
+          { end: false }
+        );
         if (AppEnv.enabledToNativeLog) {
           console.log('--------------------To native---------------');
-          console.log(
+          AppEnv.logDebug(
             `to native: ${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`,
           );
           console.log('-----------------------------To native END-----------------------');
@@ -337,7 +340,7 @@ export default class MailsyncProcess extends EventEmitter {
     for (let i = 0; i < this._sendMessageQueue.length; i++) {
       if (AppEnv.enabledToNativeLog) {
         console.log('--------------------To native ---------------');
-        console.log(`to native: flushing queue: ${this.account ? this.account.id : 'no account'} - ${this._sendMessageQueue[i]}`);
+        AppEnv.logDebug(`to native: flushing queue: ${this.account ? this.account.id : 'no account'} - ${this._sendMessageQueue[i]}`);
         console.log('-----------------------------To native END-----------------------');
       }
       this.sendMessage(this._sendMessageQueue[i]);
@@ -356,7 +359,7 @@ export default class MailsyncProcess extends EventEmitter {
     const msg = `${JSON.stringify(json)}\n`;
     if (AppEnv.enabledToNativeLog) {
       console.log('--------------------To native---------------');
-      console.log(`to native: ${this.account ? this.account.id : 'no account'} - ${msg}`);
+      AppEnv.logDebug(`to native: ${this.account ? this.account.id : 'no account'} - ${msg}`);
       console.log('-----------------------------To native END-----------------------');
     }
     try {
@@ -366,14 +369,14 @@ export default class MailsyncProcess extends EventEmitter {
       if (this._proc && this._proc.pid) {
         id = this._proc.pid;
       }
-      AppEnv.debugLog(`@pid ${id} mailsync write error: ${error.message}`);
+      AppEnv.logDebug(`@pid ${id} mailsync write error: ${error.message}`);
       if (error && error.message.includes('socket has been ended')) {
         // but try to kill it anyway and then force-emit a 'close' to trigger
         // the bridge to restart us.
         // The process probably already exited and we missed it somehow,
 
         this.kill();
-        AppEnv.debugLog(`pid@${id} mailsync-process sendMessage error:  ${error.message}`);
+        AppEnv.logDebug(`pid@${id} mailsync-process sendMessage error:  ${error.message}`);
         this.emit('close', { code: -2, error, signal: null });
       }
     }
