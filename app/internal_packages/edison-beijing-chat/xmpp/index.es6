@@ -26,6 +26,11 @@ export class Xmpp extends EventEmitter3 {
     xmpp.client.on('*', (name, data) => {
       if (AppEnv.enabledXmppLog && (name == 'raw:outgoing' || name == 'raw:incoming')) {
         console.log('onrawdata', xmpp.getTime(), xmpp.connectedJid, name, data);
+      }
+      if (name == 'auth:failed') {
+        console.log('onrawdata1', xmpp.getTime(), xmpp.connectedJid, name, data);
+        this.emit(name, { curJid: xmpp.connectedJid });
+        this.removeXmpp(xmpp.connectedJid);
         return;
       }
       if (data && typeof data != "string") {
@@ -60,9 +65,11 @@ export class Xmpp extends EventEmitter3 {
       jid = jid.substring(0, jid.indexOf('/'));
     }
     if (jid) {
-      return this.xmppMap[jid] || this.xmppMap[this.defaultJid];
-    } else {
-      return this.xmppMap[this.defaultJid];
+      return this.xmppMap[jid];
+    }
+    else {
+      console.error('jid is null');
+      return null;
     }
   }
   async enableCarbons(curJid) {
@@ -212,11 +219,12 @@ export class XmppEx extends EventEmitter3 {
       this.isConnected = false;
       if (this.connectedJid && this.retryTimes < 3) {
         setTimeout(() => {
-          console.log('connect trace1', this.connectedJid, this.isConnected, this.getTime());
+          console.log('connect trace1', this.retryTimes, this.connectedJid, this.isConnected, this.getTime());
           this.connect();
-        }, 1000 + (this.retryTimes - 1) * 5000);
+        }, 1000 + this.retryTimes * 5000);
       } else if (this.connectedJid) {
         if (this.retryTimes == 3) {
+          console.warn('xmpp session3:disconnected', this.connectedJid);
           this.emit('disconnected', this.connectedJid);
         }
         setTimeout(() => {
@@ -268,15 +276,14 @@ export class XmppEx extends EventEmitter3 {
     return new Promise((resolve, reject) => {
       const success = jid => {
         isComplete = true;
-        // console.log(`xmpp session3:isComplete1, ${this.getTime()}`, isComplete);
         removeListeners();
         resolve(jid);
       };
       const failure = () => {
+        console.warn(`xmpp auth:failed: jid: ${self.connectedJid}, ${self.getTime()}`);
         isComplete = true;
-        // console.log(`xmpp session3:isComplete2, ${this.getTime()}`, isComplete);
         removeListeners();
-        reject();
+        reject(self.connectedJid);
       };
       setTimeout(() => {
         if (!isComplete) {

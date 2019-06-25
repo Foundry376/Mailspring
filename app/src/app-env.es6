@@ -9,6 +9,7 @@ import fs from 'fs';
 import { APIError } from './flux/errors';
 import WindowEventHandler from './window-event-handler';
 import ICAL from 'ical.js';
+const LOG = require('electron-log');
 let getOSInfo = null;
 
 function ensureInteger(f, fallback) {
@@ -78,6 +79,13 @@ export default class AppEnvConstructor {
     this.enabledBackgroundQueryLog = true;
     this.enabledLocalQueryLog = true;
     this.enabledXmppLog = true;
+    LOG.transports.file.fileName = `ui-log-${Date.now()}.log`;
+    LOG.transports.console.level = false;
+    if (devMode) {
+      LOG.transports.file.appName = 'EdisonMail-dev';
+    } else {
+      LOG.transports.file.appName = 'EdisonMail';
+    }
     // }
 
     // Setup config and load it immediately so it's available to our singletons
@@ -268,9 +276,10 @@ export default class AppEnvConstructor {
         this.executeJavaScriptInDevTools('DevToolsAPI.showPanel(\'console\')');
       }
     }
-
+    this.logError(error);
     this.errorLogger.reportError(error, extra);
   }
+
   reportWarning(error, extra = {}, { noWindows } = {}) {
     try {
       if (Array.isArray(AppEnv.config.get('accounts'))) {
@@ -300,8 +309,36 @@ export default class AppEnvConstructor {
         this.executeJavaScriptInDevTools('DevToolsAPI.showPanel(\'console\')');
       }
     }
-
+    this.logWarning(error);
     this.errorLogger.reportWarning(error, extra);
+  }
+
+  logError(error) {
+    if (this.inDevMode()) {
+      console.error(error);
+    }
+    LOG.error(error.toLocaleString());
+  }
+
+  logWarning(log) {
+    if (this.inDevMode()) {
+      console.warn(log);
+    }
+    LOG.warn(log.toLocaleString());
+  }
+
+  logDebug(log) {
+    if (this.inDevMode()) {
+      console.log(log);
+    }
+    LOG.debug(log.toLocaleString());
+  }
+
+  logInfo(log) {
+    if (this.inDevMode()) {
+      console.log(log);
+    }
+    LOG.info(log.toLocaleString());
   }
 
   _findPluginsFromError(error) {

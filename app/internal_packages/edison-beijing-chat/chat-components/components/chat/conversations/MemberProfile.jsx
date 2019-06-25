@@ -12,7 +12,7 @@ import Contact from '../../../../../../src/flux/models/contact';
 import keyMannager from '../../../../../../src/key-manager';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ConversationStore } from 'chat-exports';
-import { nickname } from '../../../../utils/name'
+import { nickname, name } from '../../../../utils/name'
 
 export default class MemberProfile extends Component {
   static timer;
@@ -93,7 +93,6 @@ export default class MemberProfile extends Component {
   };
 
   setMember = (member) => {
-    const error = new Error();
     this.clickSame = member && member === this.state.member;
     const state = Object.assign({}, this.state, { member });
     if (member && (!this.state.member || member.email !== this.state.member.email)) {
@@ -101,6 +100,7 @@ export default class MemberProfile extends Component {
     }
     if (member) {
       member.nickname = nickname(member.jid);
+      member.name = name(member.jid);
     }
     state.visible = !!member;
 

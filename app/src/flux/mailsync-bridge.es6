@@ -502,7 +502,7 @@ export default class MailsyncBridge {
         continue;
       }
       if (msg[0] !== '{') {
-        console.log(`Sync worker sent non-JSON formatted message: ${msg}`);
+        AppEnv.logWarning(`Sync worker sent non-JSON formatted message: ${msg}`);
         continue;
       }
 
@@ -510,13 +510,13 @@ export default class MailsyncBridge {
       try {
         json = JSON.parse(msg);
       } catch (err) {
-        console.log(`Sync worker sent non-JSON formatted message: ${msg}. ${err}`);
+        AppEnv.logWarning(`Sync worker sent non-JSON formatted message: ${msg}. ${err}`);
         continue;
       }
 
       const { type, modelJSONs, modelClass } = json;
       if (!modelJSONs || !type || !modelClass) {
-        console.log(`Sync worker sent a JSON formatted message with unexpected keys: ${msg}`);
+        AppEnv.logWarning(`Sync worker sent a JSON formatted message with unexpected keys: ${msg}`);
         continue;
       }
 
@@ -524,7 +524,7 @@ export default class MailsyncBridge {
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);
       if (AppEnv.enabledFromNativeLog) {
         console.log('----------------From native-------------------');
-        console.log(`from native : ${msg}`);
+        AppEnv.logDebug(`from native : ${msg}`);
         console.log('---------------------From native END------------------------');
       }
       const models = modelJSONs.map(Utils.convertToModel);

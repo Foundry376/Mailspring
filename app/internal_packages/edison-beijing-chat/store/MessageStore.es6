@@ -198,6 +198,7 @@ class MessageStore extends MailspringStore {
       convJid = payload.from.local;
     }
     const msgId = payload.id;
+    console.log( 'downloadAndTagImageFileInMessage: payload: ', payload);
     if (aes) {
       body = decryptByAES(aes, payload.payload);
       if (!body) {
@@ -214,17 +215,18 @@ class MessageStore extends MailspringStore {
       payload.body = '';
       return;
     }
+
     if (msgBody.mediaObjectId && msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // a link
       msgBody.path = msgBody.mediaObjectId;
-      // } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE) {
-    } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
+      // } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
+    } else if (msgBody.mediaObjectId && (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE)) {
       // file on aws
-      let name = msgBody.mediaObjectId;
-      if (name.indexOf('/') !== -1) {
+      let name = msgBody.mediaObjectId || '';
+      if (name && name.indexOf('/') !== -1) {
         name = name.substr(name.lastIndexOf('/') + 1);
       }
-      name = name.replace(/\.encrypted$/, '');
+      name = name && name.replace(/\.encrypted$/, '') || '';
       let path = AppEnv.getConfigDirPath();
       let downpath = path + '/download/';
       if (!fs.existsSync(downpath)) {
@@ -233,42 +235,64 @@ class MessageStore extends MailspringStore {
       const thumbPath = downpath + name;
       msgBody.path = 'file://' + thumbPath;
       msgBody.downloading = true;
-      downloadFile(aes, msgBody.thumbObjectId, thumbPath, (err) => {
-        if (err) {
-          msgBody.downloading = false;
-          msgBody.content = `the file ${name} failed to be downloaded`;
-          body = JSON.stringify(msgBody);
-          const msg = {
-            id: payload.id,
-            conversationJid: convJid,
-            body,
-            status: 'MESSAGE_STATUS_RECEIVED'
-          }
-          this.saveMessagesAndRefresh([msg]);
-          ChatActions.updateDownload(msgBody.mediaObjectId);
-          return;
-        } else if (fs.existsSync(thumbPath)) {
-          ChatActions.updateDownload(msgBody.thumbObjectId);
-          downloadFile(aes, msgBody.mediaObjectId, thumbPath, (err) => {
-            if (err) {
-              msgBody.content = `the file ${name} failed to be downloaded`;
-              msgBody.downloading = false;
-              body = JSON.stringify(msgBody);
-              const msg = {
-                id: payload.id,
-                conversationJid: convJid,
-                body,
-                status: 'MESSAGE_STATUS_RECEIVED'
-              }
-              this.saveMessagesAndRefresh([msg]);
-              ChatActions.updateDownload(msgBody.mediaObjectId);
-              return;
-            } else if (fs.existsSync(thumbPath)) {
-              ChatActions.updateDownload(msgBody.mediaObjectId);
+      console.log( 'downloadAndTagImageFileInMessage: downloading: ', msgBody);
+      if (msgBody.thumbObjectId) {
+        downloadFile(aes, msgBody.thumbObjectId, thumbPath, (err) => {
+          if (err) {
+            msgBody.downloading = false;
+            msgBody.content = `the file ${name} failed to be downloaded`;
+            body = JSON.stringify(msgBody);
+            const msg = {
+              id: payload.id,
+              conversationJid: convJid,
+              body,
+              status: 'MESSAGE_STATUS_RECEIVED'
             }
-          });
-        }
-      });
+            this.saveMessagesAndRefresh([msg]);
+            ChatActions.updateDownload(msgBody.mediaObjectId);
+            return;
+          } else if (fs.existsSync(thumbPath)) {
+            ChatActions.updateDownload(msgBody.thumbObjectId);
+            downloadFile(aes, msgBody.mediaObjectId, thumbPath, (err) => {
+              if (err) {
+                msgBody.content = `the file ${name} failed to be downloaded`;
+                msgBody.downloading = false;
+                body = JSON.stringify(msgBody);
+                const msg = {
+                  id: payload.id,
+                  conversationJid: convJid,
+                  body,
+                  status: 'MESSAGE_STATUS_RECEIVED'
+                }
+                this.saveMessagesAndRefresh([msg]);
+                ChatActions.updateDownload(msgBody.mediaObjectId);
+                return;
+              } else if (fs.existsSync(thumbPath)) {
+                ChatActions.updateDownload(msgBody.mediaObjectId);
+              }
+            });
+          }
+        });
+      } else {
+        downloadFile(aes, msgBody.mediaObjectId, thumbPath, (err) => {
+          if (err) {
+            msgBody.content = `the file ${name} failed to be downloaded`;
+            msgBody.downloading = false;
+            body = JSON.stringify(msgBody);
+            const msg = {
+              id: payload.id,
+              conversationJid: convJid,
+              body,
+              status: 'MESSAGE_STATUS_RECEIVED'
+            }
+            this.saveMessagesAndRefresh([msg]);
+            ChatActions.updateDownload(msgBody.mediaObjectId);
+            return;
+          } else if (fs.existsSync(thumbPath)) {
+            ChatActions.updateDownload(msgBody.mediaObjectId);
+          }
+        });
+      }
     }
     if (aes) {
       msgBody.aes = aes;
@@ -494,14 +518,18 @@ class MessageStore extends MailspringStore {
         // and for RXDocouments Object.assign will not copy all fields
         // it is necessary to rebuild the message one field by one field.
         if (isJsonStr(messageInDb.body) && isJsonStr(msg.body)) {
-          let body = JSON.parse(messageInDb.body);
-          let localFile = body.localFile;
-          body = JSON.parse(msg.body);
-          if (localFile && msg.status === MESSAGE_STATUS_RECEIVED) {
-            body.localFile = localFile;
+          const dbBody = JSON.parse(messageInDb.body);
+          let msgBody = JSON.parse(msg.body);
+          if (msg.status === MESSAGE_STATUS_RECEIVED) {
+            if (dbBody.localFile) {
+              msgBody.localFile = dbBody.localFile;
+            }
+            if (dbBody.mediaObjectId) {
+              msgBody.mediaObjectId = dbBody.mediaObjectId;
+            }
           }
-          body = JSON.stringify(body);
-          messageInDb.body = body;
+          msgBody = JSON.stringify(msgBody);
+          messageInDb.body = msgBody;
         } else {
           messageInDb.body = msg.body;
         }
