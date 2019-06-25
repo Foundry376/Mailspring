@@ -191,13 +191,7 @@ class MessageStore extends MailspringStore {
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     let body;
-    let convJid;
-    if (chatType === RECEIVE_PRIVATECHAT) {
-      convJid = payload.from.bare;
-    } else {
-      convJid = payload.from.local;
-    }
-    const msgId = payload.id;
+    let convJid = payload.from.bare;
     console.log( 'downloadAndTagImageFileInMessage: payload: ', payload);
     if (aes) {
       body = decryptByAES(aes, payload.payload);
@@ -243,10 +237,10 @@ class MessageStore extends MailspringStore {
             msgBody.content = `the file ${name} failed to be downloaded`;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id,
+              id: payload.id+'$'+convJid,
               conversationJid: convJid,
               body,
-              status: 'MESSAGE_STATUS_RECEIVED'
+              status: 'MESSAGE_STATUS_TRANSFER_FAILED'
             }
             this.saveMessagesAndRefresh([msg]);
             ChatActions.updateDownload(msgBody.mediaObjectId);
@@ -259,15 +253,24 @@ class MessageStore extends MailspringStore {
                 msgBody.downloading = false;
                 body = JSON.stringify(msgBody);
                 const msg = {
-                  id: payload.id,
+                  id: payload.id+'$'+convJid,
                   conversationJid: convJid,
                   body,
-                  status: 'MESSAGE_STATUS_RECEIVED'
+                  status: 'MESSAGE_STATUS_TRANSFER_FAILED'
                 }
                 this.saveMessagesAndRefresh([msg]);
                 ChatActions.updateDownload(msgBody.mediaObjectId);
                 return;
               } else if (fs.existsSync(thumbPath)) {
+                msgBody.downloading = false;
+                body = JSON.stringify(msgBody);
+                const msg = {
+                  id: payload.id+'$'+convJid,
+                  conversationJid: convJid,
+                  body,
+                  status: 'MESSAGE_STATUS_RECEIVED'
+                }
+                this.saveMessagesAndRefresh([msg]);
                 ChatActions.updateDownload(msgBody.mediaObjectId);
               }
             });
@@ -280,15 +283,24 @@ class MessageStore extends MailspringStore {
             msgBody.downloading = false;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id,
+              id: payload.id+'$'+convJid,
               conversationJid: convJid,
               body,
-              status: 'MESSAGE_STATUS_RECEIVED'
+              status: 'MESSAGE_STATUS_TRANSFER_FAILED'
             }
             this.saveMessagesAndRefresh([msg]);
             ChatActions.updateDownload(msgBody.mediaObjectId);
             return;
           } else if (fs.existsSync(thumbPath)) {
+            msgBody.downloading = false;
+            body = JSON.stringify(msgBody);
+            const msg = {
+              id: payload.id+'$'+convJid,
+              conversationJid: convJid,
+              body,
+              status: 'MESSAGE_STATUS_RECEIVED'
+            }
+            this.saveMessagesAndRefresh([msg]);
             ChatActions.updateDownload(msgBody.mediaObjectId);
           }
         });

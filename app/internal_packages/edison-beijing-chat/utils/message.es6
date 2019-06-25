@@ -5,7 +5,7 @@ import fs from "fs";
 import uuid from 'uuid/v4';
 import { FILE_TYPE } from './filetypes';
 import { uploadFile } from './awss3';
-import { MESSAGE_STATUS_UPLOAD_FAILED } from '../model/Message';
+import { MESSAGE_STATUS_TRANSFER_FAILED } from '../model/Message';
 import { ProgressBarStore, MessageStore, ConversationStore } from 'chat-exports';
 
 var thumb = require('node-thumbnail').thumb;

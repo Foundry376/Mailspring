@@ -6,7 +6,7 @@ import CheckIcon from '../../common/icons/CheckIcon';
 import {
   MESSAGE_STATUS_DELIVERED,
   getStatusWeight,
-  MESSAGE_STATUS_UPLOAD_FAILED,
+  MESSAGE_STATUS_TRANSFER_FAILED,
 } from '../../../../model/Message';
 import { colorForString } from '../../../../utils/colors';
 import { dateFormat } from '../../../../utils/time';
@@ -435,7 +435,7 @@ export default class Msg extends PureComponent {
               }
             </div>
             {
-              msg.status === MESSAGE_STATUS_UPLOAD_FAILED &&
+              msg.status === MESSAGE_STATUS_TRANSFER_FAILED &&
               <div className="upload-error">
                 <span>
                   <RetinaImg name={'close_1.svg'}
