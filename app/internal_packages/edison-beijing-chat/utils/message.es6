@@ -120,12 +120,8 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   }
   let body = {
     type: filetype,
-    timeSend: new Date().getTime(),
     isUploading: true,
     content: 'sending...',
-    email: conversation.email,
-    name: conversation.name,
-    mediaObjectId: '',
     localFile: filepath,
     updating
   };

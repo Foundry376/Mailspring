@@ -105,13 +105,18 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
 
   xmpp.on('auth:failed', async data => {
     const account = OnlineUserStore.getSelfAccountById(data.curJid);
-    account.password = null;
-    account.emailAddress = account.email
-    account.settings = {}
+    const emailAccounts = AppEnv.config.get('accounts');
+    let emailAccount;
+    for (const acc of emailAccounts) {
+      if (acc.emailAddress === account.email) {
+        emailAccount = acc;
+        break;
+      }
+    }
     let accounts = AppEnv.config.get('chatAccounts');
     delete accounts[account.email];
     AppEnv.config.set('chatAccounts', accounts);
-    registerLoginEmailAccountForChat(account);
+    registerLoginEmailAccountForChat(emailAccount);
   });
 
   return next => action => next(action);
