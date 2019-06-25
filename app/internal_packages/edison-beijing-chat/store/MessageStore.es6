@@ -82,6 +82,22 @@ class MessageStore extends MailspringStore {
     }
   }
 
+  removeMessageById = async (id, convJid) => {
+    const $index = id.lastIndexOf('$');
+    if ($index > 0) {
+      convJid = id.substr($index+1);
+    } else {
+      if (!convJid) {
+        convJid = this.conversationJid;
+      }
+      id += '$' + convJid;
+    }
+    await MessageModel.destroy({ where: { id } });
+    if (convJid === this.conversationJid) {
+      await this.retrieveSelectedConversationMessages(convJid);
+    }
+  }
+
   processPrivateMessage = async (payload) => {
     await this.prepareForSaveMessage(payload, RECEIVE_PRIVATECHAT);
   }
@@ -192,7 +208,6 @@ class MessageStore extends MailspringStore {
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     let body;
     let convJid = payload.from.bare;
-    console.log( 'downloadAndTagImageFileInMessage: payload: ', payload);
     if (aes) {
       body = decryptByAES(aes, payload.payload);
       if (!body) {
@@ -229,7 +244,6 @@ class MessageStore extends MailspringStore {
       const thumbPath = downpath + name;
       msgBody.path = 'file://' + thumbPath;
       msgBody.downloading = true;
-      console.log( 'downloadAndTagImageFileInMessage: downloading: ', msgBody);
       if (msgBody.thumbObjectId) {
         downloadFile(aes, msgBody.thumbObjectId, thumbPath, (err) => {
           if (err) {

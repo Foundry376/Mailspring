@@ -205,7 +205,6 @@ export default class MemberProfile extends Component {
 
   onChangeNickname = (e) => {
     const { member } = this.state;
-    debugger;
     member.nickname = e.target.value;
     const state = Object({}, this.state, { member });
     this.setState(state);

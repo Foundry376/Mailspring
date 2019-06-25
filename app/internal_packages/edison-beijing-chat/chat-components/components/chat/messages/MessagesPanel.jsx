@@ -258,7 +258,6 @@ export default class MessagesPanel extends Component {
         body.isUploading = false;
         body.mediaObjectId = myKey;
         body = JSON.stringify(body);
-        console.log( 'loadCallback: ', err, body, myKey, loadConfig);
         if (err) {
           console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
           const message = {
@@ -366,7 +365,7 @@ export default class MessagesPanel extends Component {
       try {
         loadConfig.request.abort();
       } catch (e) {
-        console.log('abort loading:', e);
+        console.log('error on abort loading:', e);
       }
     }
     if (loadConfig && loadConfig.type === 'upload') {
