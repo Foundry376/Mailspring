@@ -1071,12 +1071,14 @@ export default class AppEnvConstructor {
       'X-APPLE-UNIVERSAL-ID:bfc1642a-310f-205e-e7ea-5cfae2283834',
       'CATEGORIES:Holidays',
       'SUMMARY;LANGUAGE=en-US:Flag Day',
-      'SUMMARY;LANGUAGE=cn-ZH:Flag Mo',
       'LAST-MODIFIED:20190610T072131Z',
+      'ORGANIZER;CN=No Name;SENT-BY="mailto:jane_doe@example.com":mailto:jsmith@example.com',
       'LOCATION:Beijing',
       'DTSTART;VALUE=DATE:20180614',
       'CREATED:20190506T002539Z',
+      'RECURRENCE-ID;VALUE=DATE:19960401',
       'RRULE:FREQ=YEARLY;COUNT=5',
+      'ATTENDEE;MEMBER="mailto:projectA@example.com","mailto:projectB@example.com":mailto:janedoe@example.com',
       'STATUS:CONFIRMED',
       'BEGIN:VALARM',
       'X-WR-ALARMUID:A3CACA4D-CB8A-4790-B49C-2079DD45E1FF',
@@ -1093,19 +1095,23 @@ export default class AppEnvConstructor {
 
 
     var jcalData = ICAL.parse(iCalendarData);
-    var vcalendar = new ICAL.Component(jcalData);
-    var vevent = vcalendar.getFirstSubcomponent('vevent');
-    var summary = vevent.getAllProperties('status');
-    console.log('location: ' + summary[0].getFirstValue());
-    console.log('stringfy: ' + vcalendar.toString());
-    const CalendarTask = require('./flux/tasks/calendar-task').default;
-    this.mailsyncBridge._onQueueTask(
-      new CalendarTask({
-        accountId: 'cb6f2148',
-        fileId: 'abc',
-        targetStatus: 1,
-        messageId: 'bbc',
-      })
-    );
+    const Calendar = require('./flux/models/calendar').default;
+    var vcalendar = new Calendar(jcalData);
+    var summary = vcalendar.getFirstEvent();
+    // var vcalendar = new ICAL.Component(jcalData);
+    // var vevent = vcalendar.getFirstSubcomponent('vevent');
+    // var summary = vevent.getFirstProperty('attendee');
+    // console.log('location: ', summary);
+    return summary;
+    // console.log('stringfy: ' + vcalendar.toString());
+    // const CalendarTask = require('./flux/tasks/calendar-task').default;
+    // this.mailsyncBridge._onQueueTask(
+    //   new CalendarTask({
+    //     accountId: 'cb6f2148',
+    //     fileId: 'abc',
+    //     targetStatus: 1,
+    //     messageId: 'bbc',
+    //   })
+    // );
   }
 }
