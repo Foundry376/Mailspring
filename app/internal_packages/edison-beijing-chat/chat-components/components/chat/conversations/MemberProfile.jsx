@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
-import { ContactStore } from 'chat-exports';
+import { ContactStore, MemberProfileStore } from 'chat-exports';
 import { uploadContacts } from '../../../../utils/restjs';
 import { remote } from 'electron';
 import { checkToken, refreshChatAccountTokens, queryProfile } from '../../../../utils/restjs';
@@ -27,19 +26,18 @@ export default class MemberProfile extends Component {
 
   componentDidMount = () => {
     this.mounted = true;
-    const { panel } = this.props;
-    const { member } = this.state;
 
-    panel.profile = this;
     this.queryProfile();
     const rect = this.panelElement.getBoundingClientRect();
     this.panelRect = rect;
     document.body.addEventListener('click', this.onClickWithProfile);
+    this._unsub = MemberProfileStore.listen(() => this.setMember(MemberProfileStore.member));
     this.setMember(null);
   };
 
   componentWillUnmount = () => {
     document.body.removeEventListener('click', this.onClickWithProfile);
+    this._unsub();
   };
   queryProfile = async () => {
     const { member } = this.state;
@@ -93,8 +91,11 @@ export default class MemberProfile extends Component {
   };
 
   setMember = (member) => {
+    console.log( 'prof.setMember: ', member);
     this.clickSame = member && member === this.state.member;
-    const state = Object.assign({}, this.state, { member });
+    if (this.clickSame) {
+      return;
+    }
     if (member && (!this.state.member || member.email !== this.state.member.email)) {
       this.queryProfile();
     }
@@ -102,9 +103,7 @@ export default class MemberProfile extends Component {
       member.nickname = nickname(member.jid);
       member.name = name(member.jid);
     }
-    state.visible = !!member;
-
-    this.setState(state);
+    this.setState({ member, visible: !!member});
   }
 
   startPrivateChat = (e) => {
