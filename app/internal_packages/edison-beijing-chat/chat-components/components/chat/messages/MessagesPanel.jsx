@@ -10,10 +10,9 @@ import Divider from '../../common/Divider';
 import { downloadFile, uploadFile } from '../../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
-import { FILE_TYPE } from '../../../../utils/filetypes';
 import registerLoginChatAccounts from '../../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore } from 'chat-exports';
+import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore, OnlineUserStore } from 'chat-exports';
 import MemberProfile from '../conversations/MemberProfile';
 
 import { xmpplogin } from '../../../../utils/restjs';
@@ -23,7 +22,7 @@ import http from "http";
 import { MESSAGE_STATUS_TRANSFER_FAILED } from '../../../../model/Message';
 import { beginSendingMessage } from '../../../actions/chat';
 import { sendFileMessage } from '../../../../utils/message';
-import { getToken, getMyApps } from '../../../../utils/appmgt';
+import { getToken } from '../../../../utils/appmgt';
 import { log } from '../../../../utils/log-util';
 import { LocalStorage } from 'chat-exports';
 
@@ -66,6 +65,7 @@ export default class MessagesPanel extends Component {
     this._unsubs = [];
     this._unsubs.push(ConversationStore.listen(() => this._onDataChanged('conversation')));
     this._unsubs.push(ContactStore.listen(() => this._onDataChanged('contact')));
+    this._unsubs.push(OnlineUserStore.listen(() => this._onDataChanged('online')));
   }
 
   _onDataChanged = async (changedDataName) => {
@@ -83,11 +83,17 @@ export default class MessagesPanel extends Component {
       this.setState({
         selectedConversation
       });
-    }
-    else if (changedDataName === 'contact') {
+    } else if (changedDataName === 'contact') {
       const contacts = await ContactStore.getContacts();
       this.setState({
         contacts
+      });
+    } else if (changedDataName === 'online') {
+      const selectedConversation = await ConversationStore.getSelectedConversation();
+      const { curJid } = selectedConversation;
+      const chat_online = !!OnlineUserStore.onlineUsers[curJid];
+      this.setState({
+        chat_online
       });
     }
   }
@@ -97,12 +103,38 @@ export default class MessagesPanel extends Component {
     window.addEventListener("offline", this.offLine);
     const contacts = await ContactStore.getContacts();
     const selectedConversation = await ConversationStore.getSelectedConversation();
+    let chat_online;
+    if (selectedConversation) {
+      const { curJid } = selectedConversation;
+      chat_online = !!OnlineUserStore.onlineUsers[curJid];
+    } else {
+      chat_online = true;
+    }
     this.setState({
       online: navigator.onLine,
       contacts,
+      chat_online,
       selectedConversation
     });
   }
+  componentWillReceiveProps = async (nextProps, nextContext) => {
+    const contacts = await ContactStore.getContacts();
+    const selectedConversation = await ConversationStore.getSelectedConversation();
+    let chat_online;
+    if (selectedConversation) {
+      const { curJid } = selectedConversation;
+      chat_online = !!OnlineUserStore.onlineUsers[curJid];
+    } else {
+      chat_online = true;
+    }
+    this.setState({
+      online: navigator.onLine,
+      contacts,
+      chat_online,
+      selectedConversation
+    });
+  }
+
   componentWillUnmount() {
     window.removeEventListener("online", this.onLine);
     window.removeEventListener("offline", this.offLine);
@@ -114,7 +146,7 @@ export default class MessagesPanel extends Component {
   onLine = () => {
     log(`MessagePanel: chat online`);
     // connect to chat server
-    if (!this.props.chat_online) {
+    if (!this.state.chat_online) {
       this.reconnect();
     }
     ChatActions.updateProgress({ offline: false });
@@ -454,7 +486,7 @@ export default class MessagesPanel extends Component {
       className = 'new-conversation-popup'
     }
 
-    const isOffLine = !this.state.online || !this.props.chat_online;
+    const isOffLine = !this.state.online || !this.state.chat_online;
     return (
       <div className={`panel ${isOffLine ? 'offline' : ''}`}
         onDragOverCapture={this.onDragOver}
