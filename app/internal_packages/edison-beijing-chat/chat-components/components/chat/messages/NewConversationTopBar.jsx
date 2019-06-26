@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+const { AccountStore } = require('mailspring-exports');
 import { RetinaImg, InjectedComponent } from 'mailspring-component-kit';
 import Select, { Option } from 'rc-select';
 import ContactAvatar from '../../common/ContactAvatar';
@@ -27,6 +28,10 @@ export default class NewConversationTopBar extends Component {
     if (this.state.members.length !== prevState.members.length) {
       this.setUlListPosition();
     }
+  }
+
+  isMe(email) {
+    return !!AccountStore.accountForEmail(email);
   }
 
   setUlListPosition() {
@@ -91,23 +96,25 @@ export default class NewConversationTopBar extends Component {
     } = this.props;
     const { members } = this.state;
 
-    const children = contacts.filter(contant => !!contant).map((contact, index) =>
-      <Option
-        key={contact.jid}
-        jid={contact.jid}
-        curjid={contact.curJid}
-        value={contact.name + contact.email}
-        email={contact.email}
-        label={contact.name}
-      >
-        <div className="chip">
-          <ContactAvatar jid={contact.jid} name={contact.name}
-                         email={contact.email} avatar={contact.avatar} size={32}/>
-          <span className="contact-name">{contact.name}</span>
-          <span className="contact-email">{contact.email}</span>
-        </div>
-      </Option>,
-    );
+    const children = contacts
+      .filter(contact => !!contact && !this.isMe(contact.email))
+      .map((contact, index) =>
+        <Option
+          key={contact.jid}
+          jid={contact.jid}
+          curjid={contact.curJid}
+          value={contact.name + contact.email}
+          email={contact.email}
+          label={contact.name}
+        >
+          <div className="chip">
+            <ContactAvatar jid={contact.jid} name={contact.name}
+              email={contact.email} avatar={contact.avatar} size={32} />
+            <span className="contact-name">{contact.name}</span>
+            <span className="contact-email">{contact.email}</span>
+          </div>
+        </Option>,
+      );
     return (
       <div className="new-conversation-header" onKeyUp={this.onKeyUp}>
         <InjectedComponent
@@ -119,9 +126,9 @@ export default class NewConversationTopBar extends Component {
             onClick={this._close}
           >
             <RetinaImg name={'close_1.svg'}
-                       style={{ width: 24, height: 24 }}
-                       isIcon
-                       mode={RetinaImg.Mode.ContentIsMask}/>
+              style={{ width: 24, height: 24 }}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask} />
           </span>
           <span className="new-message-title">New Message</span>
         </div>
@@ -148,7 +155,7 @@ export default class NewConversationTopBar extends Component {
             {children}
           </Select>
           <Button className={`btn go ${members.length === 0 ? 'btn-disabled' : ''}`}
-                  onClick={this.createRoom}>Go</Button>
+            onClick={this.createRoom}>Go</Button>
         </div>
       </div>
     );
