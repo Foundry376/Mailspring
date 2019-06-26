@@ -90,9 +90,11 @@ export default class MessageEditBar extends PureComponent {
     if (this.textarea) {
       this.textarea.focus();
     }
-    if (document.querySelector(".edit-button-group")) {
-      document.querySelector(".edit-button-group").scrollIntoViewIfNeeded(false);
-    }
+    setTimeout(() => {
+      if (document.querySelector(".edit-button-group")) {
+        document.querySelector(".edit-button-group").scrollIntoViewIfNeeded(false);
+      }
+    }, 30);
   }
 
   getRoomMembers = async () => {
