@@ -85,7 +85,7 @@ class MessageStore extends MailspringStore {
   removeMessageById = async (id, convJid) => {
     const $index = id.lastIndexOf('$');
     if ($index > 0) {
-      convJid = id.substr($index+1);
+      convJid = id.substr($index + 1);
     } else {
       if (!convJid) {
         convJid = this.conversationJid;
@@ -116,11 +116,11 @@ class MessageStore extends MailspringStore {
     }
     // if not current conversation, unreadMessages + 1
     let unreadMessages = 0;
-    if (!this.conversationJid || this.conversationJid !== payload.from.bare) {
+    if (!this.conversationJid || (this.conversationJid !== payload.from.bare)) {
       unreadMessages = 1;
     }
     let jid;
-    console.log( payload.from.bare , payload.curJid);
+    console.log(payload.from.bare, payload.curJid);
     if (payload.from.bare === payload.curJid) {
       jid = payload.to.bare;
     } else {
@@ -199,6 +199,9 @@ class MessageStore extends MailspringStore {
     }
 
     const conv = await this.processGroupMessage(message);
+    if (!conv) {
+      return;
+    }
     if (conv.jid === this.conversationJid) {
       this.retrieveSelectedConversationMessages(conv.jid);
     }
@@ -251,7 +254,7 @@ class MessageStore extends MailspringStore {
             msgBody.content = `the file ${name} failed to be downloaded`;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id+'$'+convJid,
+              id: payload.id + '$' + convJid,
               conversationJid: convJid,
               body,
               status: 'MESSAGE_STATUS_TRANSFER_FAILED'
@@ -267,7 +270,7 @@ class MessageStore extends MailspringStore {
                 msgBody.downloading = false;
                 body = JSON.stringify(msgBody);
                 const msg = {
-                  id: payload.id+'$'+convJid,
+                  id: payload.id + '$' + convJid,
                   conversationJid: convJid,
                   body,
                   status: 'MESSAGE_STATUS_TRANSFER_FAILED'
@@ -279,7 +282,7 @@ class MessageStore extends MailspringStore {
                 msgBody.downloading = false;
                 body = JSON.stringify(msgBody);
                 const msg = {
-                  id: payload.id+'$'+convJid,
+                  id: payload.id + '$' + convJid,
                   conversationJid: convJid,
                   body,
                   status: 'MESSAGE_STATUS_RECEIVED'
@@ -297,7 +300,7 @@ class MessageStore extends MailspringStore {
             msgBody.downloading = false;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id+'$'+convJid,
+              id: payload.id + '$' + convJid,
               conversationJid: convJid,
               body,
               status: 'MESSAGE_STATUS_TRANSFER_FAILED'
@@ -309,7 +312,7 @@ class MessageStore extends MailspringStore {
             msgBody.downloading = false;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id+'$'+convJid,
+              id: payload.id + '$' + convJid,
               conversationJid: convJid,
               body,
               status: 'MESSAGE_STATUS_RECEIVED'
@@ -417,6 +420,10 @@ class MessageStore extends MailspringStore {
       conv.avatarMembers = convInDb.avatarMembers || [];
       if (unreadMessages) {
         conv.unreadMessages = convInDb.unreadMessages + 1;
+      }
+      // if conversation's curJid is not equal to payload's curJid, skip it.
+      if (convInDb.curJid !== payload.curJid) {
+        return;
       }
     } else {
       conv.avatarMembers = [];
