@@ -290,7 +290,7 @@ class DatabaseStore extends MailspringStore {
   async _executeLocally(query, values) {
     if (AppEnv.enabledLocalQueryLog) {
       console.log(`-------------------local query----------------`);
-      console.log(`local query - ${query}`);
+      AppEnv.logDebug(`local query - ${query}`);
       console.log('--------------------local query end---------------');
     }
 
@@ -373,7 +373,7 @@ class DatabaseStore extends MailspringStore {
   _executeInBackground(query, values) {
     if(AppEnv.enabledBackgroundQueryLog){
       console.log('-------------------background query----------------');
-      console.log(`background query - ${query}`);
+      AppEnv.logDebug(`background query - ${query}`);
       console.log('--------------------background end query---------------');
     }
     if (!this._agent) {

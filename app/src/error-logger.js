@@ -13,7 +13,6 @@ var appVersion = app.getVersion();
 var crashReporter = require('electron').crashReporter;
 // var RavenErrorReporter = require('./error-logger-extensions/raven-error-reporter');
 var EdisonErrorReporter = require('./error-logger-extensions/edison-error-reporter');
-
 // A globally available ErrorLogger that can report errors to various
 // sources and enhance error functionality.
 //
@@ -102,7 +101,7 @@ module.exports = ErrorLogger = (function () {
     if (error.name === 'conflict' && error.status === 409) {
       console.warn(error, extra);
     } else {
-      console.error(error, extra);
+      // console.error(error, extra);
     }
   };
   ErrorLogger.prototype.reportWarning = function (error, extra = {}) {
@@ -148,7 +147,7 @@ module.exports = ErrorLogger = (function () {
     if (error.name === 'conflict' && error.status === 409) {
       console.warn(error, extra);
     } else {
-      console.warn(error, extra);
+      // console.warn(error, extra);
     }
   };
 

@@ -7,6 +7,7 @@ import { MessageStore, ContactStore, UserCacheStore, ConfigStore } from 'chat-ex
 
 
 const ROOM_MEMBER_VER = 'room_member_ver_';
+const ROOM_LIST_VER = 'room_list_ver_';
 class RoomStore extends MailspringStore {
   constructor() {
     super();
@@ -47,16 +48,31 @@ class RoomStore extends MailspringStore {
     this.trigger();
   }
 
-  saveRooms(rooms) {
+  saveRooms = async (rooms) => {
     if (rooms && rooms.discoItems && rooms.discoItems.items) {
       for (const room of rooms.discoItems.items) {
-        RoomModel.upsert({
+        await RoomModel.upsert({
           jid: room.jid.bare,
           name: room.name
         });
       }
+      if (rooms.discoItems.ver) {
+        const configKey = ROOM_LIST_VER + rooms.curJid;
+        ConfigStore.saveConfig({ key: configKey, value: rooms.discoItems.ver });
+      }
       this.refreshRooms();
     }
+  }
+
+  refreshRoomsFromXmpp = async (jid) => {
+    const configKey = ROOM_LIST_VER + jid;
+    const config = await ConfigStore.findOne(configKey)
+    let ver = '1';
+    if (config) {
+      ver = config.value;
+    }
+    xmpp.getRoomList(ver, jid)
+      .then(rooms => this.saveRooms(rooms));
   }
 
   getRooms = () => {
@@ -68,7 +84,7 @@ class RoomStore extends MailspringStore {
     if (force) {
       members = await this.getRoomMembersFromXmpp(roomId, curJid);
     }
-    console.log( 'refreshRoomMember: ', roomId, curJid, force, members);
+    console.log('refreshRoomMember: ', roomId, curJid, force, members);
     if (!members) {
       members = this.getRoomMembersFromCache(roomId, curJid);
       if (members) {

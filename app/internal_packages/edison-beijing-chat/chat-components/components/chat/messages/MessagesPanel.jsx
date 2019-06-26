@@ -20,7 +20,7 @@ import { xmpplogin } from '../../../../utils/restjs';
 import fs from "fs";
 import https from "https";
 import http from "http";
-import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../../model/Message';
+import { MESSAGE_STATUS_TRANSFER_FAILED } from '../../../../model/Message';
 import { beginSendingMessage } from '../../../actions/chat';
 import { sendFileMessage } from '../../../../utils/message';
 import { getToken, getMyApps } from '../../../../utils/appmgt';
@@ -211,6 +211,7 @@ export default class MessagesPanel extends Component {
     }
     this.profile.setMember(null);
     MessageStore.saveMessagesAndRefresh([]);
+    LocalStorage.trigger();
   }
 
   reconnect = () => {
@@ -265,7 +266,7 @@ export default class MessagesPanel extends Component {
             body,
             sender: conversation.curJid,
             sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
-            status: MESSAGE_STATUS_UPLOAD_FAILED,
+            status: MESSAGE_STATUS_TRANSFER_FAILED,
           };
           MessageStore.saveMessagesAndRefresh([message]);
           return;
@@ -364,7 +365,7 @@ export default class MessagesPanel extends Component {
       try {
         loadConfig.request.abort();
       } catch (e) {
-        console.log('abort loading:', e);
+        console.log('error on abort loading:', e);
       }
     }
     if (loadConfig && loadConfig.type === 'upload') {

@@ -35,7 +35,7 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
   if (!progressBack) {
     request = s3.getObject(params, function (err, data) {
         if (err) {
-          console.error('fail to down file in message: ', err, err.stack);
+          console.error('fail to down file in message: key, name, err, err.stack: ', key, name, err, err.stack);
           if (callback) {
             callback(err);
           }

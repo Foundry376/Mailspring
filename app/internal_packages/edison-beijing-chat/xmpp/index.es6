@@ -280,6 +280,7 @@ export class XmppEx extends EventEmitter3 {
         resolve(jid);
       };
       const failure = () => {
+        console.warn(`xmpp auth:failed: jid: ${self.connectedJid}, ${self.getTime()}`);
         isComplete = true;
         removeListeners();
         reject(self.connectedJid);
