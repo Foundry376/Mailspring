@@ -88,11 +88,13 @@ export default class MessagesTopBar extends Component {
               <div className="conversation-name">
                 {conversationName}
                 {conversation.isGroup && (
-                  <input type="text"
+                  <input
+                    type="text"
                     value={conversationName}
                     onChange={this._onChange}
                     onKeyDown={this._onkeyDown}
                     onBlur={this._onBlur}
+                    maxLength="32"
                   />
                 )}
               </div>
