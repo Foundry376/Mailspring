@@ -90,6 +90,11 @@ export default class NewConversationTopBar extends Component {
     }
   };
 
+  focusIntoInput = () => {
+    document.querySelector('#contact-select').focus();
+    document.querySelector('#contact-select input').focus();
+  }
+
   render() {
     const {
       contacts,
@@ -132,18 +137,20 @@ export default class NewConversationTopBar extends Component {
           </span>
           <span className="new-message-title">New Message</span>
         </div>
-        <div ref={el => {
-          this.contactInputEl = el;
-        }} style={{ display: 'flex' }}>
+        <div
+          ref={el => {
+            this.contactInputEl = el;
+          }}
+          style={{ display: 'flex' }}
+          onClick={this.focusIntoInput}
+          className="contact-select-wrapper"
+        >
           <Select
             mode="tags"
             id="contact-select"
             style={{ width: '400px', flex: 1, height: '70px' }}
             onChange={this.handleChange}
-            onSelect={() => {
-              document.querySelector('#contact-select').focus();
-              document.querySelector('#contact-select input').focus();
-            }}
+            onSelect={this.focusIntoInput}
             defaultOpen={true}
             multiple
             autoFocus
