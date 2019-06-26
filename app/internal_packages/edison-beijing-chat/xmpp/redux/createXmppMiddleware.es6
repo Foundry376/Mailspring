@@ -1,6 +1,6 @@
 import { Xmpp } from '..';
 import { ChatActions, MessageStore, OnlineUserStore, ConversationStore, RoomStore } from 'chat-exports';
-import {registerLoginEmailAccountForChat} from '../../utils/registerLoginChatAccounts'
+import { registerLoginEmailAccountForChat } from '../../utils/registerLoginChatAccounts'
 
 /**
  * Creates a middleware for the XMPP class to dispatch actions to a redux store whenever any events
@@ -78,14 +78,14 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
 
   xmpp.on('message:error', async data => {
     if (data.error && data.error.code == 403 && data.id) {
-      let msgInDb = await MessageStore.getMessageById(data.id+'$'+data.from.bare);
+      let msgInDb = await MessageStore.getMessageById(data.id + '$' + data.from.bare);
       if (!msgInDb) {
         return;
       }
-      const msg = msgInDb.get({plain:true});
+      const msg = msgInDb.get({ plain: true });
       let body = msg.body;
       body = JSON.parse(body);
-      body.content = 'You can not send message to this conversation';
+      body.content = 'You are not in this conversation.';
       body.type = 'error403';
       body = JSON.stringify(body);
       msg.body = body;
@@ -93,11 +93,11 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
     }
   });
   xmpp.on('message:success', async data => {
-    let msgInDb = await MessageStore.getMessageById(data.$received.id+'$'+data.from.bare);
+    let msgInDb = await MessageStore.getMessageById(data.$received.id + '$' + data.from.bare);
     if (!msgInDb) {
       return;
     }
-    const msg = msgInDb.get({plain:true});
+    const msg = msgInDb.get({ plain: true });
     msg.status = 'MESSAGE_STATUS_DELIVERED';
     MessageStore.saveMessagesAndRefresh([msg]);
 
