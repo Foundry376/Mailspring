@@ -254,6 +254,13 @@ class RoomStore extends MailspringStore {
     return false;
   }
 
+  updateRoomName = async (roomId, roomName) => {
+    await RoomModel.upsert({
+      jid: roomId,
+      name: roomName
+    });
+  }
+
   _isMe(email) {
     return !!AccountStore.accountForEmail(email);
   }

@@ -255,6 +255,7 @@ class ConversationStore extends MailspringStore {
     };
     MessageStore.saveMessagesAndRefresh([msg]);
     await this.saveConversationName(convJid, config.name);
+    await RoomStore.updateRoomName(convJid, config.name);
   };
 
   convName = {};
