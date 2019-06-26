@@ -32,7 +32,7 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
     let jidLocal = data.curJid.split('@')[0];
     let ts = AppEnv.config.get(jidLocal + "_message_ts");
     const msgTs = parseInt(data.ts)
-    if (ts < msgTs) {
+    if (!ts || ts < msgTs) {
       AppEnv.config.set(jidLocal + '_message_ts', msgTs);
     }
   }
