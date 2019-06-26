@@ -10,17 +10,19 @@ import { NEW_CONVERSATION } from './ConversationStore';
 
 class AppsStore extends MailspringStore {
   refreshAppsEmailContacts = async () => {
-    let conv = ConversationStore.selectedConversation;
-    if (!conv || conv.jid === NEW_CONVERSATION) {
-      await ConversationStore.refreshConversations();
-      conv = ConversationStore.conversations[0];
-      if (!conv) {
-        return;
-      }
+    const chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    let acc, userId;
+    for (const email in chatAccounts) {
+      acc = chatAccounts[email];
+      userId = acc.userId;
+      break;
+    }
+    if (!userId) {
+      return;
     }
     const payload = {
-      local:conv.curJid.split('@')[0],
-      curJid:conv.curJid
+      local:userId,
+      curJid:userId+'@im.edison.tech'
     }
     await this.saveMyAppsAndEmailContacts(payload);
   }
@@ -51,7 +53,7 @@ class AppsStore extends MailspringStore {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
     const sqldb = sqlite(dbpath);
-    const stmt = sqldb.prepare('SELECT * FROM contact where sendToCount >= 1 and recvFromCount > 1');
+    let stmt = sqldb.prepare('SELECT * FROM contact where sendToCount >= 1 and recvFromCount > 1');
     let emailContacts = stmt.all();
     sqldb.close();
     const emails = emailContacts.map(contact => contact.email);
@@ -75,19 +77,13 @@ class AppsStore extends MailspringStore {
         } else {
           contact.jid = contact.email.replace('@', '^at^') + '@im.edison.tech'
         }
-        contact.curJid = this.getCurJidByAccountId(contact.accountId, chatAccounts);
+        contact.curJid = payload.curJid;
         return contact;
       });
       emailContacts = emailContacts.filter(contact => !!contact.curJid);
       await ContactStore.saveContacts(emailContacts, payload.curJid);
       return;
     })
-  }
-
-  getCurJidByAccountId = (aid, chatAccounts) => {
-    const contact = AccountStore.accountForId(aid);
-    const chatAcc = contact ? chatAccounts[contact.emailAddress] : null;
-    return chatAcc ? chatAcc.userId + '@im.edison.tech' : null;
   }
 }
 
