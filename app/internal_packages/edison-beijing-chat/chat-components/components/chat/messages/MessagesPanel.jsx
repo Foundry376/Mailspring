@@ -90,13 +90,16 @@ export default class MessagesPanel extends Component {
       });
     } else if (changedDataName === 'online') {
       const selectedConversation = await ConversationStore.getSelectedConversation();
+      let chat_online;
       if (selectedConversation) {
         const { curJid } = selectedConversation;
-        const chat_online = !!OnlineUserStore.onlineUsers[curJid];
-        this.setState({
-          chat_online
-        });
+        chat_online = !!OnlineUserStore.onlineUsers[curJid];
+      } else {
+        chat_online = true;
       }
+      this.setState({
+        chat_online
+      });
     }
   }
 
@@ -201,26 +204,20 @@ export default class MessagesPanel extends Component {
   }
 
   createRoom = () => {
-    const members = this.state.membersTemp;
-    if (members && members.length) {
-      if (members.length > 4) {
+    const contacts = this.state.membersTemp;
+    if (contacts && contacts.length) {
+      const curJid = contacts[0].curJid;
+      if (contacts.length === 1) {
+        ConversationStore.createPrivateConversation(contacts[0]);
+      } else if (contacts.some((contact) => contact.jid.match(/@app/))) {
+        window.alert(' Should only create private conversation with single plugin app contact.');
+        return;
+      } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
-        const names = members.map(item => item.name);
-        const chatName = names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others`;
-        ConversationStore.createGroupConversation({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
-      }
-      else if (members.length > 1) {
-        if (members.some((member) => member.jid.match(/@app/))) {
-          window.alert('plugin app should only create private conversation with single member!');
-          return;
-        }
-        const roomId = uuid() + GROUP_CHAT_DOMAIN;
-        const names = members.map(item => item.name);
-        const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
-        ConversationStore.createGroupConversation({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
-      }
-      else if (members.length == 1) {
-        ConversationStore.createPrivateConversation(members[0]);
+        const names = contacts.map(contact => contact.name);
+        const name = (contacts.length > 4 ? names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others` :
+          names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1]);
+        ConversationStore.createGroupConversation({ contacts, roomId, name, curJid });
       }
     }
   }
