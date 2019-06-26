@@ -19,7 +19,7 @@ export default class MessagePrivateApp extends PureComponent {
     const { conversation } = this.props;
     const userJid = conversation.curJid;
     const contact = await ContactStore.findContactByJid(userJid);
-    const state = Object.assign({}, this.state, { installerName: contact.name });
+    const state = Object.assign({}, this.state, { installerName: contact && contact.name });
     this.state = state;
   };
 

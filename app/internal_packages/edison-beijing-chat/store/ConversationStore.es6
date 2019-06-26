@@ -166,6 +166,7 @@ class ConversationStore extends MailspringStore {
       // if exists in db, don't update curJid
       if (convInDb) {
         delete conv.curJid;
+        delete conv.name;
       }
       await ConversationModel.upsert(conv);
     }
