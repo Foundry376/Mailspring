@@ -90,11 +90,13 @@ export default class MessagesPanel extends Component {
       });
     } else if (changedDataName === 'online') {
       const selectedConversation = await ConversationStore.getSelectedConversation();
-      const { curJid } = selectedConversation;
-      const chat_online = !!OnlineUserStore.onlineUsers[curJid];
-      this.setState({
-        chat_online
-      });
+      if (selectedConversation) {
+        const { curJid } = selectedConversation;
+        const chat_online = !!OnlineUserStore.onlineUsers[curJid];
+        this.setState({
+          chat_online
+        });
+      }
     }
   }
 
