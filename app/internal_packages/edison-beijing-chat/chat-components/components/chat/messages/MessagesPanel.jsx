@@ -407,7 +407,6 @@ export default class MessagesPanel extends Component {
       body.path = body.localFile;
       //body.localFile = null;
       body = JSON.stringify(body);
-      chatReduxStore.dispatch(beginSendingMessage(conversation, body, messageId, false, false));
     }
     ChatActions.updateProgress({ loading: false, failed: true });
     clearInterval(this.loadTimer);

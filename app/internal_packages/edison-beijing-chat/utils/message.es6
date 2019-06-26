@@ -121,15 +121,13 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   let body = {
     type: filetype,
     isUploading: true,
-    content: 'sending...',
-    localFile: filepath,
-    updating
+    content: path.basename(filepath) || "file",
+    localFile: filepath
   };
   if (file !== filepath) {
     body.emailSubject = file.subject;
     body.emailMessageId = file.messageId;
   }
-  onMessageSubmitted(conversation, JSON.stringify(body), messageId, true);
   const loadConfig = {
     conversation,
     messageId,
@@ -138,6 +136,6 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     type: 'upload'
   }
   queueLoadMessage(loadConfig);
-}
+};
 
 

@@ -20,7 +20,6 @@ export default class ProgressBar extends PureComponent {
     }
     if (failed) {
       const loadConfig = ProgressBarStore.progress.loadConfig;
-      MessageStore.removeMessageById(loadConfig.messageId+'$'+loadConfig.conversation.jid);
     }
     ChatActions.updateProgress({ loading, visible: false });
   };
