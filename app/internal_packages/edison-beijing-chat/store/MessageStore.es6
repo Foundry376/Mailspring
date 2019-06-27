@@ -116,7 +116,8 @@ class MessageStore extends MailspringStore {
     }
     // if not current conversation, unreadMessages + 1
     let unreadMessages = 0;
-    if (!this.conversationJid || (this.conversationJid !== payload.from.bare)) {
+    const selectedConversation = await ConversationStore.getSelectedConversation();
+    if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
       unreadMessages = 1;
     }
     let jid;

@@ -59,6 +59,7 @@ class ConversationStore extends MailspringStore {
 
   deselectConversation = async () => {
     this.selectedConversation = null;
+    MessageStore.conversationJid = null;
     this._triggerDebounced();
   }
 
