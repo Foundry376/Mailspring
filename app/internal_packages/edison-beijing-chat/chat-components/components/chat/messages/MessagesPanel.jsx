@@ -92,6 +92,7 @@ export default class MessagesPanel extends Component {
       let chat_online;
       if (selectedConversation) {
         const { curJid } = selectedConversation;
+        console.log('on chat_online change: curJid, OnlineUserStore.onlineUsers: ', curJid, JSON.stringify(OnlineUserStore.onlineUsers));
         chat_online = !!OnlineUserStore.onlineUsers[curJid];
       } else {
         chat_online = true;
@@ -308,14 +309,10 @@ export default class MessagesPanel extends Component {
       const { loaded, total } = progress;
       const percent = Math.floor(+loaded * 100.0 / (+total));
       if (loadConfig.type === 'upload' && +loaded === +total) {
-        const onMessageSubmitted = this.props.sendMessage;
-        const conversation = loadConfig.conversation;
-        const messageId = loadConfig.messageId;
         let body = loadConfig.msgBody;
         body.isUploading = false;
         body = JSON.stringify(body);
         ChatActions.updateProgress({ percent, visible: true });
-        onMessageSubmitted(conversation, body, messageId, false);
       }
       ChatActions.updateProgress({ percent });
     }

@@ -40,7 +40,6 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   xmpp.on('groupchat', data => {
     saveLastTs(data);
     MessageStore.reveiveGroupChat(data);
-
   })
   // receive private chat
   xmpp.on('chat', data => {
@@ -49,20 +48,24 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   })
   // user online
   xmpp.on('available', data => {
+    console.log('xmpp:available: ', data);
     OnlineUserStore.addOnlineUser(data);
     ChatActions.userOnlineStatusChanged(data.from.bare);
   })
   // user online
   xmpp.on('unavailable', data => {
+    console.log('xmpp:unavailable: ', data);
     OnlineUserStore.removeOnlineUser(data);
     ChatActions.userOnlineStatusChanged(data.from.bare);
   })
   // Chat account online
   xmpp.on('session:started', data => {
+    console.log('xmpp:session:started: ', data);
     OnlineUserStore.addOnLineAccount(data);
   })
   // Chat account offline
   xmpp.on('disconnected', data => {
+    console.log('xmpp:disconnected: ', data);
     OnlineUserStore.removeOnLineAccount(data);
   })
 
