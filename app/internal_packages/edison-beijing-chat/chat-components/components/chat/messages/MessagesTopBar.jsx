@@ -6,6 +6,8 @@ import xmpp from '../../../../xmpp';
 import GroupChatAvatar from '../../common/GroupChatAvatar';
 import ThreadSearchBar from '../../../../../thread-search/lib/thread-search-bar';
 import { ConversationStore } from 'chat-exports';
+import { remote } from 'electron';
+const dialog = remote.dialog;
 
 export default class MessagesTopBar extends Component {
   static propTypes = {
@@ -22,6 +24,7 @@ export default class MessagesTopBar extends Component {
     onInfoPressed: () => { },
     selectedConversation: null,
   }
+  static inputEl;
   constructor(props) {
     super(props);
     this.state = {
@@ -29,9 +32,12 @@ export default class MessagesTopBar extends Component {
     }
   }
   componentWillReceiveProps(nextProps) {
-    this.setState({
-      conversationName: nextProps.selectedConversation.name
-    });
+    if (!this.props.selectedConversation
+      || this.props.selectedConversation.jid !== nextProps.selectedConversation.jid) {
+      this.setState({
+        conversationName: nextProps.selectedConversation.name
+      });
+    }
   }
 
   _onkeyDown = (e) => {
@@ -40,13 +46,29 @@ export default class MessagesTopBar extends Component {
       // this.saveRoomName(e.currentTarget.innerText);
       e.preventDefault();
     }
+    else if (e.keyCode === 27) {
+      this.setState({
+        conversationName: this.props.selectedConversation.name
+      });
+      // waiting for rendering over
+      setTimeout(() => {
+        this.inputEl.blur();
+      }, 20);
+      e.preventDefault();
+    }
   }
 
   _onBlur = (e) => {
     const { conversationName } = this.state;
+    if (conversationName === this.props.selectedConversation.name) {
+      return;
+    }
     if (!conversationName.trim()) {
-      window.alert(' Group name should NOT be empty or blank.');
-      // this.forceUpdate();
+      dialog.showMessageBox({
+        type: 'warning',
+        message: 'Group name should NOT be empty or blank.',
+        buttons: ['OK'],
+      });
       const { selectedConversation } = this.props;
       this.setState({
         conversationName: selectedConversation.name
@@ -90,6 +112,7 @@ export default class MessagesTopBar extends Component {
                 {conversation.isGroup && (
                   <input
                     type="text"
+                    ref={el => this.inputEl = el}
                     value={conversationName}
                     onChange={this._onChange}
                     onKeyDown={this._onkeyDown}
