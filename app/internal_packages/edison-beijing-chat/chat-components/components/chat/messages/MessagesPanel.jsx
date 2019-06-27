@@ -24,6 +24,7 @@ import { sendFileMessage } from '../../../../utils/message';
 import { getToken } from '../../../../utils/appmgt';
 import { log } from '../../../../utils/log-util';
 import { LocalStorage } from 'chat-exports';
+import { alert } from '../../../../utils/electron';
 
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -210,7 +211,7 @@ export default class MessagesPanel extends Component {
       if (contacts.length === 1) {
         ConversationStore.createPrivateConversation(contacts[0]);
       } else if (contacts.some((contact) => contact.jid.match(/@app/))) {
-        window.alert(' Should only create private conversation with single plugin app contact.');
+        alert('Should only create private conversation with single plugin app contact.');
         return;
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
@@ -254,7 +255,7 @@ export default class MessagesPanel extends Component {
     if (loading) {
       loadConfig = progress.loadConfig;
       const loadText = loadConfig.type === 'upload' ? 'An upload' : ' A download';
-      window.alert(`${loadText} is processing, please wait it to be finished!`);
+      alert('${loadText} is processing, please wait it to be finished!');
       return;
     }
     ChatActions.updateProgress({ loadConfig, loading: true, visible: true },
@@ -325,7 +326,7 @@ export default class MessagesPanel extends Component {
         loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
       } catch (e) {
         console.error('upload file:', e);
-        window.alert(`failed to send file: ${loadConfig.filepath}: ${e}`);
+        alert('failed to send file: ${loadConfig.filepath}: ${e}');
         this.cancelLoadMessage();
         ChatActions.updateProgress({ failed: true, loading: false, visible: false });
         return;
@@ -335,7 +336,7 @@ export default class MessagesPanel extends Component {
       let imgpath = msgBody.path.replace('file://', '');
       if (imgpath !== filepath) {
         if (!fs.existsSync(imgpath)) {
-          window.alert('The file does not exist, probably it is failed to be received, please try to receive this message again.')
+          alert('The file does not exist, probably it is failed to be received, please try to receive this message again.');
         }
         fs.copyFileSync(imgpath, filepath);
       }
@@ -424,7 +425,7 @@ export default class MessagesPanel extends Component {
         if (data.data && data.data.url) {
           exec('open ' + data.data.url);
         } else {
-          window.alert('fail to open the app store page');
+          alert('fail to open the app store page');
         }
       }
     })
