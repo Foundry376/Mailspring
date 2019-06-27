@@ -7,7 +7,7 @@ import { downloadFile } from '../utils/awss3';
 import { isJsonStr } from '../utils/stringUtils';
 import {
   groupMessagesByTime,
-  addMessagesSenderNickname,
+  addMessagesSenderNickname, parseMessageBody,
 } from '../utils/message';
 import ConversationModel from '../model/Conversation';
 import MessageModel, { MESSAGE_STATUS_RECEIVED } from '../model/Message';
@@ -376,7 +376,7 @@ class MessageStore extends MailspringStore {
     let name = payload.from.local;
     // get the room name and whether you are '@'
     const rooms = await RoomStore.getRooms();
-    const body = JSON.parse(payload.body);
+    const body = parseMessageBody(payload.body);
     at = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
     if (rooms[payload.from.bare]) {
       name = rooms[payload.from.bare].name;

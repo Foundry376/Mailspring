@@ -222,7 +222,6 @@ export default class MessagesPanel extends Component {
   }
 
   editProfile = member => {
-    console.log( 'mp.editProfile: ', member);
     setTimeout(() => {
       MemberProfileStore.setMember(member);
     }, 10);

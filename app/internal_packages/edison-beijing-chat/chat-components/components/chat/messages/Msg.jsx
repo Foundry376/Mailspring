@@ -318,7 +318,6 @@ export default class Msg extends PureComponent {
 
   render() {
     const { msg, conversation } = this.props;
-    console.log( 'msg.render: msg: ', msg);
     const { isEditing, msgImgPath, msgBody, currentUserJid } = this.state;
     const isCurrentUser = msg.sender === currentUserJid;
     const color = colorForString(msg.sender);

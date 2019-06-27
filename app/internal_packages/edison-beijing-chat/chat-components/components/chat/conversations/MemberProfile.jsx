@@ -91,7 +91,6 @@ export default class MemberProfile extends Component {
   };
 
   setMember = (member) => {
-    console.log( 'prof.setMember: ', member);
     this.clickSame = member && member === this.state.member;
     if (this.clickSame) {
       return;
