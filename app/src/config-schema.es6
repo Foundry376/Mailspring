@@ -238,7 +238,7 @@ export default {
             ],
             title: 'Default spellcheck language',
             note:
-              'If you write a draft in another language, Mailspring will auto-detect it and use the correct spelling dictionary after a few sentences.',
+              'If you write a draft in another language, Edison Mail will auto-detect it and use the correct spelling dictionary after a few sentences.',
           },
         },
       },

@@ -43,7 +43,7 @@ Fixes:
 
 * Signatures with Facebook and Twitter profiles now display the service favicons reliably when viewed in Gmail and Outlook. #968
 
-* Invalid themes no longer "brick" the app - Mailspring will present an alert with the error and offer to revert to the basic theme. (Mailspring-Theme-Starter/issues/1)
+* Invalid themes no longer "brick" the app - Edison Mail will present an alert with the error and offer to revert to the basic theme. (Mailspring-Theme-Starter/issues/1)
 
 ### 1.2.2 (5/30/2018)
 

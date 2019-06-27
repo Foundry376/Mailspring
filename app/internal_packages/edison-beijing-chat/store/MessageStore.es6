@@ -223,7 +223,7 @@ class MessageStore extends MailspringStore {
     try {
       msgBody = JSON.parse(body);
     } catch (e) {
-      console.error('downloadAndTagImageFileInMessage error:', e);
+      console.error('downloadAndTagImageFileInMessage error:', e, body);
       payload.body = '';
       return;
     }
