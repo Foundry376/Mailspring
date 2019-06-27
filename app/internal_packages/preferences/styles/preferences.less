@@ -96,9 +96,13 @@
         }
 
         &.active {
-          background: darken(@background-primary, 10%);
+          background: @source-list-active-bg;
           border-radius: @border-radius-large @border-radius-large 0 0;
-          box-shadow: @shadow-border;
+          // box-shadow: @shadow-border;
+          .name {
+            color: @blue;
+            font-weight: 600;
+          }
         }
 
         .tab-icon {
