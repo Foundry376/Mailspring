@@ -163,8 +163,6 @@ class RoomStore extends MailspringStore {
   }
 
   getMemberName = async (data) => {
-    // data: {roomJid, memberJid, curJid}
-
     const roomJid = data.roomJid || data.curJid;
     const curJid = data.curJid || data.memberJid;
     const members = await this.getRoomMembers(roomJid, curJid);

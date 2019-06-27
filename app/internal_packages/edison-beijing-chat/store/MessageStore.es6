@@ -455,15 +455,15 @@ class MessageStore extends MailspringStore {
     const contact = ContactStore.findContactByJid(msgFrom);
     const conv = await ConversationStore.getConversationByJid(convjid);
     let title = conv.name;
-    const senderName = payload.appName || memberName || contact && contact.name
-    if (senderName) {
-      title += ': ' + senderName;
-    };
+    const senderName = payload.appName || memberName || contact && contact.name;
     let body = payload.body;
     if (isJsonStr(body)) {
       body = JSON.parse(body);
     }
     body = body.content || payload.body;
+    if (senderName) {
+      body = senderName + ': ' + body;
+    };
     const noti = postNotification(title, body);
     noti.addEventListener('click', (event) => {
       ChatActions.selectConversation(convjid);
