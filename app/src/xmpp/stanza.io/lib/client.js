@@ -49,7 +49,7 @@ function timeoutRequest(targetPromise, id, delay) {
 
 function Client(opts) {
     var self = this;
-
+    this._id = new Date().getTime();
     WildEmitter.call(this);
 
     opts = opts || {};
@@ -240,7 +240,7 @@ Object.defineProperty(Client.prototype, 'stream', {
         return this.transport ? this.transport.stream : undefined;
     }
 });
-
+Client.prototype._id = 0;
 Client.prototype._initConfig = function (opts) {
     var self = this;
     var currConfig = this.config || {};
