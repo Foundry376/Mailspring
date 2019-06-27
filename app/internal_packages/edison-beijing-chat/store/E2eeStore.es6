@@ -27,7 +27,11 @@ class E2eeStore extends MailspringStore {
             this.refreshE2ees();
         }
     }
-
+    saveE2ee = async (user) => {
+        if (!user) { return; }
+        await E2eeModel.upsert({ jid: user.jid, devices: JSON.stringify(user.devices) });
+        this.refreshE2ees();
+    }
     getE2ees = async () => {
         if (!this.e2ees) {
             await this.refreshE2ees();

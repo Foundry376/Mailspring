@@ -1,5 +1,5 @@
 import { Xmpp } from '..';
-import { ChatActions, MessageStore, OnlineUserStore, ConversationStore, RoomStore } from 'chat-exports';
+import { ChatActions, MessageStore, OnlineUserStore, ConversationStore, RoomStore, E2eeStore } from 'chat-exports';
 import { registerLoginEmailAccountForChat } from '../../utils/registerLoginChatAccounts'
 
 /**
@@ -77,6 +77,11 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   //member join / quit
   xmpp.on('memberschange', data => {
     RoomStore.onMembersChange(data);
+  });
+
+  xmpp.on('message:ext-e2ee', data => {
+    //console.log('message:ext-e2ee', data);
+    E2eeStore.saveE2ee(data);
   });
 
   xmpp.on('message:error', async data => {
