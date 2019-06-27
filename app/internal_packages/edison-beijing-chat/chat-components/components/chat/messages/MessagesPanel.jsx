@@ -12,7 +12,7 @@ import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import registerLoginChatAccounts from '../../../../utils/registerLoginChatAccounts';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore, OnlineUserStore } from 'chat-exports';
+import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore, OnlineUserStore, MemberProfileStore } from 'chat-exports';
 import MemberProfile from '../conversations/MemberProfile';
 
 import { xmpplogin } from '../../../../utils/restjs';
@@ -20,7 +20,6 @@ import fs from "fs";
 import https from "https";
 import http from "http";
 import { MESSAGE_STATUS_TRANSFER_FAILED } from '../../../../model/Message';
-import { beginSendingMessage } from '../../../actions/chat';
 import { sendFileMessage } from '../../../../utils/message';
 import { getToken } from '../../../../utils/appmgt';
 import { log } from '../../../../utils/log-util';
@@ -223,10 +222,8 @@ export default class MessagesPanel extends Component {
   }
 
   editProfile = member => {
-    const { profile } = this;
-    profile.clickSame = member && member === profile.state.member;
     setTimeout(() => {
-      this.profile.setMember(member);
+      MemberProfileStore.setMember(member);
     }, 10);
   }
 
@@ -240,7 +237,7 @@ export default class MessagesPanel extends Component {
       nicknames[jid] = member.nickname;
       LocalStorage.saveToLocalStorage();
     }
-    this.profile.setMember(null);
+    MemberProfileStore.setMember(null);
     MessageStore.saveMessagesAndRefresh([]);
     LocalStorage.trigger();
   }
@@ -563,10 +560,7 @@ export default class MessagesPanel extends Component {
             </div>)}
           </div>
         )}
-        <MemberProfile conversation={selectedConversation}
-          exitProfile={this.exitProfile}
-          panel={this}>
-        </MemberProfile>
+        <MemberProfile conversation={selectedConversation} exitProfile={this.exitProfile}></MemberProfile>
       </div>
     );
   }

@@ -23,6 +23,7 @@ import MessagePrivateApp from './MessagePrivateApp';
 import { ChatActions } from 'chat-exports';
 import { FILE_TYPE } from '../../../../utils/filetypes';
 import { MessageModel } from 'chat-exports';
+import { name } from '../../../../utils/name';
 
 export default class Msg extends PureComponent {
   static propTypes = {
@@ -303,7 +304,7 @@ export default class Msg extends PureComponent {
   senderName = () => {
     const { msg } = this.props;
     const member = this.senderContact();
-    return msg.senderNickname || member.name;
+    return name(msg.sender) || member.name;
   }
 
   onMessageSubmitted = (conversation, body, messageId, uploading) => {

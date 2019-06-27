@@ -64,9 +64,7 @@ export const parseMessageBody = (body) => {
   if (isJsonStr(body)) {
     return JSON.parse(body);
   }
-  if (typeof body === 'string') {
-    return body;
-  }
+  return body;
 }
 
 export const sendFileMessage = (file, index, reactInstance, messageBody) => {
