@@ -1,6 +1,7 @@
 import keyMannager from '../../../src/key-manager';
 import { register } from './restjs';
 import { SUBMIT_AUTH } from '../chat-components/actions/auth';
+import auth from '../xmpp/auth';
 import { OnlineUserStore } from 'chat-exports';
 
 export default async function registerLoginChatAccounts() {
@@ -56,21 +57,14 @@ export async function registerLoginEmailAccountForChat(account) {
     chatAccount.refreshTime = (new Date()).getTime();
     let jid = chatAccount.userId + '@im.edison.tech';
     OnlineUserStore.addSelfAccount(jid, chatAccount);
-    chatReduxStore.dispatch({
-      type: SUBMIT_AUTH,
-      payload: { jid, password: chatAccount.password, email: account.emailAddress }
-    });
+    await auth({jid, password: chatAccount.password});
     chatAccount.clone = () => Object.assign({}, chatAccount);
-    keyMannager.extractChatAccountSecrets(chatAccount).then(chatAccount => {
-      chatAccounts[account.emailAddress] = chatAccount;
-      AppEnv.config.set('chatAccounts', chatAccounts);
-    })
+    const chatAccount = await keyMannager.extractChatAccountSecrets(chatAccount);
+    chatAccounts[account.emailAddress] = chatAccount;
+    AppEnv.config.set('chatAccounts', chatAccounts);
   } else {
     let jid = chatAccount.userId + '@im.edison.tech';
     OnlineUserStore.addSelfAccount(jid, chatAccount);
-    chatReduxStore.dispatch({
-      type: SUBMIT_AUTH,
-      payload: { jid, password: chatAccount.password, email: chatAccount.email }
-    });
+    await auth({jid, password: chatAccount.password});
   }
  }
