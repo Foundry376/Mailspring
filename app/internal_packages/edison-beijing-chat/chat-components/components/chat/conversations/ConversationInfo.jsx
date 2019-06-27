@@ -10,6 +10,7 @@ import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import uuid from 'uuid/v4';
 import { name } from '../../../../utils/name';
+import { alert } from '../../../../utils/electron';
 
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
@@ -120,7 +121,7 @@ export default class ConversationInfo extends Component {
     this.setState({ inviting: false });
     const { selectedConversation } = this.props;
     if (contacts.some(contact => contact.jid.match(/@app/))) {
-      window.alert('plugin app should not be added to any group chat as contact.');
+      alert('plugin app should not be added to any group chat as contact.');
       return;
     }
     if (contacts && contacts.length > 0) {

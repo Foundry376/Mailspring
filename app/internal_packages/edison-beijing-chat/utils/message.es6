@@ -7,6 +7,7 @@ import { FILE_TYPE } from './filetypes';
 import { uploadFile } from './awss3';
 import { MESSAGE_STATUS_TRANSFER_FAILED } from '../model/Message';
 import { ProgressBarStore, MessageStore, ConversationStore } from 'chat-exports';
+import { alert } from './electron';
 
 var thumb = require('node-thumbnail').thumb;
 
@@ -73,7 +74,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   if (loading) {
     const loadConfig = progress.loadConfig;
     const loadText = loadConfig.type === 'upload' ? 'An upload' : ' A download';
-    window.alert(`${loadText} is processing, please wait it to be finished!`);
+    alert(`${loadText} is processing, please wait it to be finished!`);
     return;
   }
 
@@ -97,7 +98,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
   }
   const isdir = fs.lstatSync(filepath).isDirectory();
   if (isdir) {
-    window.alert('Not support to send folder.');
+    alert('Not support to send folder.');
     return;
   }
   const messageId = uuid(), updating = false;

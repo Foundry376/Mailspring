@@ -18,6 +18,7 @@ import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } 
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../../utils/restjs';
 import { MessageStore, RoomStore } from 'chat-exports';
+import { alert } from '../../../../utils/electron';
 const { exec } = require('child_process');
 
 const getCaretCoordinates = require('../../../../utils/textarea-caret-position');
@@ -242,7 +243,7 @@ export default class MessagesSendBar extends PureComponent {
         if (data.data && data.data.url) {
           exec('open ' + data.data.url);
         } else {
-          window.alert('fail to open the app store page');
+          alert(`fail to open the app store page`);
         }
       }
     })
