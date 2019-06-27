@@ -121,11 +121,6 @@ export default class MessagesTopBar extends Component {
                   />
                 )}
               </div>
-              {
-                conversation.isGroup && (
-                  <span className="dt-icon-pencil conv-pencil"></span>
-                )
-              }
             </div>
           }
           right={
