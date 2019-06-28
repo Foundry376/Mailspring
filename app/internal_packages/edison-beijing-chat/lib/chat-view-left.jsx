@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { Actions } from 'mailspring-exports';
 import ConversationsPanel from '../chat-components/components/chat/conversations/ConversationsPanel';
-import registerLoginChatAccounts from '../utils/registerLoginChatAccounts';
+import registerLoginChat from '../utils/register-login-chat';
 const BOTTOM_OFFSET = 0;
 export default class ChatViewLeft extends Component {
   static displayName = 'ChatViewLeft';
@@ -63,7 +63,7 @@ export default class ChatViewLeft extends Component {
     setTimeout(() => {
       this.calcPanel(h);
     }, 500);
-    registerLoginChatAccounts();
+    registerLoginChat();
   }
   resetHeight = () => {
     this.calcPanel(300);

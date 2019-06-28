@@ -9,7 +9,7 @@ import Actions from '../actions';
 import Account from '../models/account';
 import Utils from '../models/utils';
 import { removeMyApps } from '../../../internal_packages/edison-beijing-chat/utils/appmgt';
-import { registerLoginEmailAccountForChat } from '../../../internal_packages/edison-beijing-chat/utils/registerLoginChatAccounts';
+import { registerLoginEmailAccountForChat } from '../../../internal_packages/edison-beijing-chat/utils/register-login-chat';
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';

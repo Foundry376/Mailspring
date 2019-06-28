@@ -10,7 +10,7 @@ import Divider from '../../common/Divider';
 import { downloadFile, uploadFile } from '../../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
-import registerLoginChatAccounts from '../../../../utils/registerLoginChatAccounts';
+import registerLoginChat from '../../../../utils/register-login-chat';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore, OnlineUserStore, MemberProfileStore } from 'chat-exports';
 import MemberProfile from '../conversations/MemberProfile';
@@ -245,7 +245,7 @@ export default class MessagesPanel extends Component {
   }
 
   reconnect = () => {
-    registerLoginChatAccounts();
+    registerLoginChat();
   }
 
   queueLoadMessage = (loadConfig) => {

@@ -7,6 +7,6 @@ export const disconnected = connectionBroken;
 export const sessionStarted = data => connectionEstablished(data);
 
 export default {
-  'session:started': sessionStarted,
-  disconnected
+  // 'session:started': sessionStarted,
+  // disconnected
 };

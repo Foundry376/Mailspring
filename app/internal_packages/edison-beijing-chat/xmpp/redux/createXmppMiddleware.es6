@@ -1,6 +1,6 @@
 import { Xmpp } from '..';
 import { ChatActions, MessageStore, OnlineUserStore, ConversationStore, RoomStore, E2eeStore } from 'chat-exports';
-import { registerLoginEmailAccountForChat } from '../../utils/registerLoginChatAccounts'
+import { registerLoginEmailAccountForChat } from '../../utils/register-login-chat'
 
 /**
  * Creates a middleware for the XMPP class to dispatch actions to a redux store whenever any events
