@@ -1,5 +1,6 @@
 import Task from './task';
 import Attributes from '../attributes';
+import Message from '../models/message';
 
 export default class CalendarTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -11,6 +12,7 @@ export default class CalendarTask extends Task {
     }),
     draft: Attributes.Object({
       modelKey: 'draft',
+      itemClass: Message
     }),
   });
   constructor({ accountId, messageId, draft, targetStatus, ...rest } = {}) {
