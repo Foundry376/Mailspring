@@ -35,7 +35,6 @@ export default class ConversationsTopBar extends PureComponent {
               style={{ width: 18 }}
               isIcon
               mode={RetinaImg.Mode.ContentIsMask} />
-            New
           </Button>
         }
       />
