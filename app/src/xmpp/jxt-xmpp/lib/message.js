@@ -121,7 +121,6 @@ internals.defineMessage = function (JXT, name, namespace) {
                 get: function getE2ee$() {
                     //yazz debugger;
                     const e2ee = Utils.getElements(this.xml, 'edi-e2ee', 'edi-e2ee');
-                    console.log('e2ee', e2ee);
                     let result = {};
                     if (e2ee.length) {
                         try {
@@ -169,7 +168,7 @@ internals.defineMessage = function (JXT, name, namespace) {
                     const bext = Utils.getElements(this.xml, 'jabber:client', 'bodyext');
                     try {
                         if (this.xml.children.length == 1) {
-                            return his.xml.children[0].attrs.ts;
+                            return this.xml.children[0].attrs.ts;
                         }
                         return Utils.getAttribute(bext[0], 'ts');
                     } catch (e) {
