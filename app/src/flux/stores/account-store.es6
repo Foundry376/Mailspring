@@ -195,6 +195,7 @@ class AccountStore extends MailspringStore {
       ContactStore.refreshContacts();
       xmpp.removeXmpp(jid);
       removeMyApps(chatAccount.userId);
+      AppEnv.config.set(`${chatAccount.userId}_message_ts`, null)
     }
 
     this._caches = {};
