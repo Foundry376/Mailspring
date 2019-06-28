@@ -41,8 +41,8 @@ class OnlineUserStore extends MailspringStore {
     this._triggerDebounced();
   }
 
-  removeOnLineAccount() {
-    this.onlineAccounts = {};
+  removeOnLineAccount(data) {
+    this.authingAccounts[data.curJid] = 0;
     this.authingAccounts = {};
     this.resetOnlineUsers();
     this._triggerDebounced();
