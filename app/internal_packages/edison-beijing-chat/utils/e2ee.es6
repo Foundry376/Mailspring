@@ -37,7 +37,6 @@ const generateDeviceId = () => {
 iniE2ee();
 export const getPriKey = async () => {
     let config = await ConfigStore.findOne(device_info);
-    console.log('yazztest', config)
     if (config) {
         let deviceInfo = JSON.parse(config.value);
         if (deviceInfo) {
