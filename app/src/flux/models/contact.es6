@@ -355,6 +355,25 @@ export default class Contact extends Model {
       email: email,
     });
   }
+  static fromObject({ email = '', name = '' } = {}, { accountId } = {}) {
+    const emailRegex = RegExpUtils.emailRegex();
+    const match = emailRegex.exec(email);
+    if (emailRegex.exec(email)) {
+      throw new Error(
+        'Error while calling Contact.fromString: string contains more than one email'
+      );
+    }
+    if (name.endsWith('<') || name.endsWith('(')) {
+      name = name.substr(0, name.length - 1);
+    }
+    return new Contact({
+      // used to give them random strings, let's try for something consistent
+      id: `local-${accountId}-${email}`,
+      accountId: accountId,
+      name: name.trim(),
+      email: email,
+    });
+  }
 
   constructor(data) {
     super(data);

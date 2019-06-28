@@ -308,7 +308,7 @@ class DraftStore extends MailspringStore {
     if (change.objectClass !== Message.name) {
       return;
     }
-    const drafts = change.objects.filter(msg => msg.draft);
+    const drafts = change.objects.filter(msg => msg.draft && !msg.eventReply);
     if (drafts.length === 0) {
       return;
     }

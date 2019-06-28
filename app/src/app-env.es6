@@ -1052,57 +1052,85 @@ export default class AppEnvConstructor {
     /**
      * Welcome to ICAL.js fiddle
      */
-
     var iCalendarData = [
       'BEGIN:VCALENDAR',
-      'CALSCALE:GREGORIAN',
+    'PRODID:-//Google Inc//Google Calendar 70.9054//EN',
       'VERSION:2.0',
-      'X-WR-CALNAME:Flag Day',
-      'METHOD:PUBLISH',
-      'PRODID:-//Apple Inc.//Mac OS X 10.14.5//EN',
-      'BEGIN:VEVENT',
-      'TRANSP:TRANSPARENT',
-      'DTEND;VALUE=DATE:20180615',
-      'X-APPLE-TRAVEL-ADVISORY-BEHAVIOR:AUTOMATIC',
-      'UID:fdc817f4-1e63-3669-abeb-3a4adf767698',
-      'DTSTAMP:20190531T224633Z',
+    'CALSCALE:GREGORIAN',
+    'METHOD:REQUEST',
+    'BEGIN:VEVENT',
+    'DTSTART:20190630T143000Z',
+    'DTEND:20190630T200000Z',
+    'DTSTAMP:20190627T032420Z',
+    'ORGANIZER;CN=jing@edison.tech:mailto:jing@edison.tech',
+    'UID:44dj14md6q5k817i3866t7baa8@google.com',
+    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE;CN=jing@edison.tech;X-NUM-GUESTS=0:mailto:jing@edison.tech',
+    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=beijing;X-NUM-GUESTS=0:mailto:beijing@edison.tech',
+    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=zhansheng@edison.tech;X-NUM-GUESTS=0:mailto:zhansheng@edison.tech',
+    'ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=ShuhaoZhang;X-NUM-GUESTS=0:mailto:shuhao@edison.tech',
+    'X-MICROSOFT-CDO-OWNERAPPTID:1245465387',
+    'CREATED:20190627T032415Z',
+    'DESCRIPTION:Hi，All1.\n-::~:~::~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~:~::~:~::-',
+                                            'LAST-MODIFIED:20190627T032419Z',
+                                            'LOCATION:北京超玩汇轰趴馆(水长城店)',
       'SEQUENCE:0',
-      'CLASS:PUBLIC',
-      'X-APPLE-UNIVERSAL-ID:bfc1642a-310f-205e-e7ea-5cfae2283834',
-      'CATEGORIES:Holidays',
-      'SUMMARY;LANGUAGE=en-US:Flag Day',
-      'LAST-MODIFIED:20190610T072131Z',
-      'ORGANIZER;CN=No Name;SENT-BY="mailto:jane_doe@example.com":mailto:jsmith@example.com',
-      'LOCATION:Beijing',
-      'DTSTART;VALUE=DATE:20180614',
-      'CREATED:20190506T002539Z',
-      'RECURRENCE-ID;VALUE=DATE:19960401',
-      'RRULE:FREQ=YEARLY;COUNT=5',
-      'ATTENDEE;MEMBER="mailto:projectA@example.com","mailto:projectB@example.com":mailto:janedoe@example.com',
       'STATUS:CONFIRMED',
-      'BEGIN:VALARM',
-      'X-WR-ALARMUID:A3CACA4D-CB8A-4790-B49C-2079DD45E1FF',
-      'UID:A3CACA4D-CB8A-4790-B49C-2079DD45E1FF',
-      'TRIGGER:-PT15H',
-      'ATTACH;VALUE=URI:Chord',
-      'X-APPLE-LOCAL-DEFAULT-ALARM:TRUE',
-      'ACTION:AUDIO',
-      'X-APPLE-DEFAULT-ALARM:TRUE',
-      'END:VALARM',
-      'END:VEVENT',
-      'END:VCALENDAR',
-    ].join('\r\n');
+                                            'SUMMARY:Team Building',
+                                            'TRANSP:OPAQUE',
+                                            'END:VEVENT',
+                                            'END:VCALENDAR',
+  ].join('\r\n');
+
+    // var iCalendarData = [
+    //   'BEGIN:VCALENDAR',
+    //   'CALSCALE:GREGORIAN',
+    //   'VERSION:2.0',
+    //   'X-WR-CALNAME:Flag Day',
+    //   'METHOD:PUBLISH',
+    //   'PRODID:-//Apple Inc.//Mac OS X 10.14.5//EN',
+    //   'BEGIN:VEVENT',
+    //   'TRANSP:TRANSPARENT',
+    //   'DTEND;VALUE=DATE:20180615',
+    //   'X-APPLE-TRAVEL-ADVISORY-BEHAVIOR:AUTOMATIC',
+    //   'UID:fdc817f4-1e63-3669-abeb-3a4adf767698',
+    //   'DTSTAMP:20190531T224633Z',
+    //   'SEQUENCE:0',
+    //   'CLASS:PUBLIC',
+    //   'X-APPLE-UNIVERSAL-ID:bfc1642a-310f-205e-e7ea-5cfae2283834',
+    //   'CATEGORIES:Holidays',
+    //   'SUMMARY;LANGUAGE=en-US:Flag Day',
+    //   'LAST-MODIFIED:20190610T072131Z',
+    //   'ORGANIZER;CN=No Name;SENT-BY="mailto:jane_doe@example.com":mailto:jsmith@example.com',
+    //   'LOCATION:Beijing',
+    //   'DTSTART;VALUE=DATE:20180614',
+    //   'CREATED:20190506T002539Z',
+    //   'RECURRENCE-ID;VALUE=DATE:19960401',
+    //   'RRULE:FREQ=YEARLY;COUNT=5',
+    //   'ATTENDEE;MEMBER="mailto:projectA@example.com","mailto:projectB@example.com":mailto:janedoe@example.com',
+    //   'STATUS:CONFIRMED',
+    //   'BEGIN:VALARM',
+    //   'X-WR-ALARMUID:A3CACA4D-CB8A-4790-B49C-2079DD45E1FF',
+    //   'UID:A3CACA4D-CB8A-4790-B49C-2079DD45E1FF',
+    //   'TRIGGER:-PT15H',
+    //   'ATTACH;VALUE=URI:Chord',
+    //   'X-APPLE-LOCAL-DEFAULT-ALARM:TRUE',
+    //   'ACTION:AUDIO',
+    //   'X-APPLE-DEFAULT-ALARM:TRUE',
+    //   'END:VALARM',
+    //   'END:VEVENT',
+    //   'END:VCALENDAR',
+    // ].join('\r\n');
 
 
     var jcalData = ICAL.parse(iCalendarData);
     const Calendar = require('./flux/models/calendar').default;
     var vcalendar = new Calendar(jcalData);
-    var summary = vcalendar.getFirstEvent();
+    var summary = vcalendar.getFirstTimeZone();
     // var vcalendar = new ICAL.Component(jcalData);
     // var vevent = vcalendar.getFirstSubcomponent('vevent');
     // var summary = vevent.getFirstProperty('attendee');
     // console.log('location: ', summary);
-    return summary;
+    return vcalendar;
     // console.log('stringfy: ' + vcalendar.toString());
     // const CalendarTask = require('./flux/tasks/calendar-task').default;
     // this.mailsyncBridge._onQueueTask(

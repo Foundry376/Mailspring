@@ -9,7 +9,11 @@ class VFreeBusy {
 
 }
 
-class VTimeZone {
+class VTimeZone extends ICAL.Timezone {
+  constructor(comp, tzid) {
+    super({ component: comp, tzid });
+  }
+
 
 }
 
@@ -32,7 +36,7 @@ class Attendee {
   ];
 
   constructor(prop, type = 'event') {
-    this._attendee = ICAL.helpers.clone(prop);
+    this._attendee = prop;
     this._parentType = type;
   }
 
@@ -436,6 +440,10 @@ class VEvent extends ICAL.Event {
     return this._created.toJSDate();
   }
 
+  set created(unixTimestamp) {
+    this._created.fromUnixTime(unixTimestamp, true);
+  }
+
   // get description() {
   //   return this._description;
   // }
@@ -518,19 +526,31 @@ class VEvent extends ICAL.Event {
     return this.status === 'CANCELLED';
   }
 
-  tentative() {
+  tentative(attendeeEmail = '') {
     this.updatePropertyWithValue('status', 'TENTATIVE');
     this._status = 'TENTATIVE';
+    const attendee = this.findAttendeeByEmail(attendeeEmail);
+    if (Array.isArray(attendee)) {
+      attendee[0].tentative();
+    }
   }
 
-  confirm() {
+  confirm(attendeeEmail = '') {
     this.updatePropertyWithValue('status', 'CONFIRMED');
     this._status = 'CONFIRMED';
+    const attendee = this.findAttendeeByEmail(attendeeEmail);
+    if (Array.isArray(attendee)) {
+      attendee[0].tentative();
+    }
   }
 
-  cancel() {
+  cancel(attendeeEmail = '') {
     this.updatePropertyWithValue('status', 'CANCELLED');
     this._status = 'CANCELLED';
+    const attendee = this.findAttendeeByEmail(attendeeEmail);
+    if (Array.isArray(attendee)) {
+      attendee[0].tentative();
+    }
   }
 
   // get summary() {
@@ -583,15 +603,24 @@ class VEvent extends ICAL.Event {
     return this.attendees.map(attendee => attendee.email);
   }
 
+  findAttendeeByEmail(email) {
+    return this.attendees.filter(i => i.email === email);
+  }
+
   filterAttendeesBy({ criteria = '', value = '' } = {}) {
     if (!['role', 'type', 'participationStatus', 'rsvp'].includes(criteria)) {
-      return [];
+      return this.attendees;
     }
     return this.attendees.filter(attendees => attendees[criteria] === value);
   }
 
   filterAttendeesEmailBy({ criteria = '', value = '' } = {}) {
     return this.filterAttendeesBy({ criteria, value }).map(attendee => attendee.email);
+  }
+
+  needToRsvpByEmail(email) {
+    const emails = this.filterAttendeesEmailBy({ criteria: 'rsvp', value: true });
+    return emails.includes(email);
   }
 
   get categories() {
@@ -612,6 +641,7 @@ class VEvent extends ICAL.Event {
   get contacts() {
     return this.getAllProperties('contact').map(item => item.getFirstValue());
   }
+
   //
   // get exdates() {
   //   return this._exdates;
@@ -645,7 +675,7 @@ class VEvent extends ICAL.Event {
   }
 
   updatePropertyWithValue(prop, val) {
-    this._lastMod.fromUnixTime(Date.now());
+    this._lastMod.fromUnixTime(Date.now() / 1000, true);
     this.component.updatePropertyWithValue('last-modified', this._lastMod);
     this.component.updatePropertyWithValue(prop, val);
   }
@@ -653,22 +683,26 @@ class VEvent extends ICAL.Event {
 
 export default class Calendar {
   constructor(jcalData) {
-    const vCalendar = new ICAL.Component(jcalData);
-    this._VEvents = vCalendar.getAllSubcomponents('vevent').map(e => new VEvent(e));
-    this._VTodos = vCalendar.getAllSubcomponents('vtodo').map(todo => new VTodo(todo));
-    this._VJournals = vCalendar
+    this._vCalendar = new ICAL.Component(jcalData);
+    this._VEvents = this._vCalendar.getAllSubcomponents('vevent').map(e => new VEvent(e));
+    this._VTodos = this._vCalendar.getAllSubcomponents('vtodo').map(todo => new VTodo(todo));
+    this._VJournals = this._vCalendar
       .getAllSubcomponents('vjournal')
       .map(journal => new VJournal(journal));
-    this._VTimeZones = vCalendar
+    this._VTimeZones = this._vCalendar
       .getAllSubcomponents('vtimezone')
-      .map(timezone => new VTIMEZONE(timezone));
-    this._VFreeBusys = vCalendar
+      .map(timezone => new ICAL.Timezone(timezone, timezone.getFirstPropertyValue('tzid')));
+    this._VFreeBusys = this._vCalendar
       .getAllSubcomponents('vfreebusy')
       .map(freebusy => new VFreeBusy(freebusy));
-    this._productId = vCalendar.getFirstPropertyValue('prodid');
-    this._version = vCalendar.getFirstPropertyValue('_version');
-    this._calenderScale = vCalendar.getFirstPropertyValue('calscale');
-    this._method = vCalendar.getFirstPropertyValue('_method');
+    this._productId = this._vCalendar.getFirstPropertyValue('prodid');
+    this._version = this._vCalendar.getFirstPropertyValue('version');
+    this._calenderScale = this._vCalendar.getFirstPropertyValue('calscale');
+    this._method = this._vCalendar.getFirstPropertyValue('method');
+  }
+
+  toString() {
+    return this._vCalendar.toString();
   }
 
   static parse(str) {
@@ -708,6 +742,13 @@ export default class Calendar {
 
   get VTimeZones() {
     return this._VTimeZones;
+  }
+
+  getFirstTimeZone() {
+    if (this._VTimeZones.length > 0) {
+      return this._VTimeZones[0];
+    }
+    return null;
   }
 
   get VFreeBusys() {

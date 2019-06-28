@@ -1,13 +1,14 @@
-const { RetinaImg } = require('mailspring-component-kit');
+import { RetinaImg } from 'mailspring-component-kit';
+
 const {
   Actions,
   React,
   PropTypes,
   DateUtils,
   Message,
-  Event,
   EventRSVPTask,
   DatabaseStore,
+  CalendarStore,
 } = require('mailspring-exports');
 const moment = require('moment-timezone');
 
@@ -18,37 +19,20 @@ class EventHeader extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { event: this.props.message.events[0] };
+    this.state = { event: this.props.calendar ? this.props.calendar.getFirstEvent() : null };
   }
 
   _onChange() {
     if (!this.state.event) {
       return;
     }
-    DatabaseStore.find(Event, this.state.event.id).then(event => {
-      if (!event) {
-        return;
-      }
-      this.setState({ event });
-    });
+    this.setState({ event: this.props.calendar ? this.props.calendar.getFirstEvent() : null });
   }
 
-  componentDidMount() {
-    // TODO: This should use observables!
-    this._unlisten = DatabaseStore.listen(change => {
-      if (this.state.event && change.objectClass === Event.name) {
-        const updated = change.objects.find(o => o.id === this.state.event.id);
-        if (updated) {
-          this.setState({ event: updated });
-        }
-      }
-    });
-    this._onChange();
-  }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({ event: nextProps.message.events[0] });
-    this._onChange();
+    this.setState({ event: nextProps.calendar ? nextProps.calendar.getFirstEvent() : null });
+    // this._onChange();
   }
 
   componentWillUnmount() {
@@ -68,18 +52,18 @@ class EventHeader extends React.Component {
               mode={RetinaImg.Mode.ContentPreserve}
             />
             <span className="event-title-text">Event: </span>
-            <span className="event-title">{this.state.event.title}</span>
+            <span className="event-title">{this.state.event.summary}</span>
           </div>
           <div className="event-body">
             <div className="event-date">
               <div className="event-day">
-                {moment(this.state.event.start * 1000)
+                {moment(this.state.event.startDate.toJSDate())
                   .tz(DateUtils.timeZone)
                   .format('dddd, MMMM Do')}
               </div>
               <div>
                 <div className="event-time">
-                  {moment(this.state.event.start * 1000)
+                  {moment(this.state.event.startDate.toJSDate())
                     .tz(DateUtils.timeZone)
                     .format(timeFormat)}
                 </div>
@@ -90,27 +74,27 @@ class EventHeader extends React.Component {
         </div>
       );
     } else {
-      return <div />;
+      return <div/>;
     }
   }
 
   _renderEventActions() {
-    const me = this.state.event.participantForMe();
-    if (!me) {
-      return false;
+    if (!CalendarStore.needRSVPByMessage(this.props.message)) {
+      return null;
     }
 
-    const actions = [['yes', 'Accept'], ['maybe', 'Maybe'], ['no', 'Decline']];
+    const actions = [{ status: 1, label: 'Accept', css: 'yes' }, { status: 3, label: 'Maybe', css: 'maybe' }, { status: 2, label: 'No', css: 'no' }];
 
     return (
       <div className="event-actions">
-        {actions.mapx(([status, label]) => {
+        {actions.map(item => {
+          const { status, label, css } = item;
           let classes = 'btn-rsvp ';
-          if (me.status === status) {
-            classes += status;
+          if (this.props.message.calendarStatus() === status) {
+            classes += css;
           }
           return (
-            <div key={status} className={classes} onClick={() => this._rsvp(status)}>
+            <div key={status} className={classes} onClick={() => this._rsvp(this.props.message, status)}>
               {label}
             </div>
           );
@@ -119,9 +103,8 @@ class EventHeader extends React.Component {
     );
   }
 
-  _rsvp = status => {
-    const me = this.state.event.participantForMe();
-    Actions.queueTask(new EventRSVPTask(this.state.event, me.email, status));
+  _rsvp = (message, status) => {
+    Actions.RSVPEvent(message, status);
   };
 }
 

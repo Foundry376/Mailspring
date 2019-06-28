@@ -84,6 +84,9 @@ class MessageStore extends MailspringStore {
       return viewingHiddenCategory ? inHidden || item.draft : !inHidden;
     });
   }
+  getAllItems(){
+    return this._items;
+  }
 
   threadId() {
     return this._thread ? this._thread.id : undefined;

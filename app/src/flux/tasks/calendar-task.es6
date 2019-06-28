@@ -3,8 +3,8 @@ import Attributes from '../attributes';
 
 export default class CalendarTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
-    messageId: Attributes.String({
-      modelKey: 'messageId',
+    replyToMessageId: Attributes.String({
+      modelKey: 'replyToMessageId',
     }),
     targetStatus: Attributes.Number({
       modelKey: 'targetStatus',
@@ -13,19 +13,12 @@ export default class CalendarTask extends Task {
       modelKey: 'draft',
     }),
   });
-  constructor({ accountId, messageId, draft, ...rest } = {}) {
+  constructor({ accountId, messageId, draft, targetStatus, ...rest } = {}) {
     super(rest);
     this.accountId = accountId || '';
     this.draft = draft;
-    this.messageId = messageId;
-  }
-
-  get messageId() {
-    return this._messageId;
-  }
-
-  set messageId(value) {
-    this._messageId = value;
+    this.replyToMessageId = messageId;
+    this.targetStatus = targetStatus;
   }
 
   label() {

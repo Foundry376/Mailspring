@@ -82,7 +82,7 @@ export default class Message extends ModelWithMetadata {
       queryable: true,
       jsonKey: 'id',
       modelKey: 'id',
-      loadFromColumn: true
+      loadFromColumn: true,
     }),
 
     to: Attributes.Collection({
@@ -175,6 +175,10 @@ export default class Message extends ModelWithMetadata {
       queryable: true,
     }),
 
+    eventReply: Attributes.Boolean({
+      modelKey: 'eventReply',
+    }),
+
     pristine: Attributes.Boolean({
       modelKey: 'pristine',
       queryable: false,
@@ -224,7 +228,19 @@ export default class Message extends ModelWithMetadata {
     waitingForBody: Attributes.Boolean({
       modelKey: 'waitingForBody',
       queryable: false,
-    })
+    }),
+    calendarCurrentStatus: Attributes.Number({
+      modelKey: 'calCurStat',
+    }),
+    calendarTargetStatus: Attributes.Number({
+      modelKey: 'calTarStat',
+    }),
+    calendarFileId: Attributes.String({
+      modelKey: 'calFileId',
+    }),
+    hasCalendar: Attributes.Boolean({
+      modelKey: 'hasCalendar',
+    }),
   });
 
   static naturalSortOrder() {
@@ -315,7 +331,7 @@ export default class Message extends ModelWithMetadata {
     const excludeMeAndFroms = cc =>
       _.reject(
         cc,
-        p => p.isMe() || _.contains(excludedFroms, Utils.toEquivalentEmailForm(p.email))
+        p => p.isMe() || _.contains(excludedFroms, Utils.toEquivalentEmailForm(p.email)),
       );
 
     let to = null;
@@ -431,14 +447,17 @@ export default class Message extends ModelWithMetadata {
     const re = /(?:<signature>.*<\/signature>)|(?:<.+?>)|\s/gim;
     return this.body.replace(re, '').length === 0;
   }
-  isActiveDraft(){
+
+  isActiveDraft() {
 
   }
+
   isDeleted() {
     //DC-269
     return this.state == Message.messageState.deleted; // eslint-ignore-line
   }
-  isDraftSaving(){
+
+  isDraftSaving() {
     return this.state == Message.messageState.saving && this.draft; // eslint-ignore-line
   }
 
@@ -452,10 +471,19 @@ export default class Message extends ModelWithMetadata {
 
     return isReminder || isDraftBeingDeleted;
   }
+
   setOrigin(val) {
     this.msgOrigin = val;
   }
+
   isNewDraft() {
     return this.msgOrigin === Message.NewDraft;
+  }
+
+  calendarStatus() {
+    if (this.calendarTargetStatus && this.calendarTargetStatus >= 0) {
+      return this.calendarTargetStatus;
+    }
+    return this.calendarCurrentStatus;
   }
 }

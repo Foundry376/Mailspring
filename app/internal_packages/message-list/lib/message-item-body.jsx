@@ -52,6 +52,7 @@ export default class MessageItemBody extends React.Component {
   static propTypes = {
     message: PropTypes.object.isRequired,
     downloads: PropTypes.object.isRequired,
+    calendar: PropTypes.object
   };
 
   constructor(props, context) {
@@ -200,7 +201,7 @@ export default class MessageItemBody extends React.Component {
       <span>
         <InjectedComponentSet
           matching={{ role: 'message:BodyHeader' }}
-          exposedProps={{ message: this.props.message }}
+          exposedProps={{ message: this.props.message, calendar: this.props.calendar }}
           direction="column"
           style={{ width: '100%' }}
         />

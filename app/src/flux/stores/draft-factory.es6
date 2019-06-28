@@ -220,6 +220,20 @@ class DraftFactory {
         `,
     });
   }
+  async createReplyForEvent({ message, file, replyStatus, tos, me, replyEvent }) {
+    return this.createDraft({
+      subject: replyEvent.summary,
+      to: tos,
+      from: [this._fromContactForReply(message)],
+      threadId: message.threadId,
+      accountId: message.accountId,
+      replyToHeaderMessageId: message.headerMessageId,
+      body: `${me.name} have replied with a status of ${replyStatus.label}`,
+      files: [file],
+      calTarStat: replyStatus.code,
+      eventReply: true
+    });
+  }
 
   async createDraftForForward({ thread, message }) {
     // Start downloading the attachments, if they haven't been already
