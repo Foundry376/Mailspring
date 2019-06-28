@@ -21,6 +21,10 @@ export class Xmpp extends EventEmitter3 {
       xmpp = new XmppEx();
       this.xmppMap[jid] = xmpp;
       this.defaultJid = jid;
+      // xmpp.on('*', (name, data) => {
+      //   console.log('onrawdata.xmpp', xmpp.getTime(), xmpp.client.ts, xmpp.connectedJid, name, data);
+      //   this.emit(name, data);
+      // })
     }
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
@@ -42,6 +46,7 @@ export class Xmpp extends EventEmitter3 {
       this.emit(name, data);
     });
   }
+
   connect(jid) {
     let xmpp = this.getXmpp(jid);
     console.log(xmpp);
@@ -160,6 +165,10 @@ export class Xmpp extends EventEmitter3 {
   }
   sendMessage(message, curJid) {
     let xmpp = this.getXmpp(curJid);
+    if (!xmpp) {
+      console.warn('xmpp is null', curJid);
+      return;
+    }
     xmpp.sendMessage(message);
   }
 }
@@ -245,12 +254,10 @@ export class XmppEx extends EventEmitter3 {
     this.client.on('request:timeout', () => {
       this.timeoutCount++;
       if (this.timeoutCount == 3) {
-        setTimeout(() => {
-          console.log('connect trace3', this.connectedJid, this.isConnected, this.getTime());
-          if (this.isConnected) {
-            this.client.disconnect();
-          }
-        }, 1111);
+        console.log('connect trace3', this.connectedJid, this.isConnected, this.getTime());
+        if (this.isConnected) {
+          this.client.disconnect();
+        }
       }
     });
   }
@@ -480,7 +487,6 @@ export class XmppEx extends EventEmitter3 {
       console.warn(e);
     }
     if (!isConnected) {
-      this.emit('message:failed', message);
       return;
     }
     const finalMessage = Object.assign({}, message, {
