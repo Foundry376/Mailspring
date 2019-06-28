@@ -70,4 +70,4 @@ export async function registerLoginEmailAccountForChat(account) {
     OnlineUserStore.addSelfAccount(jid, chatAccount);
     await auth({jid, password: chatAccount.password});
   }
- }
+}

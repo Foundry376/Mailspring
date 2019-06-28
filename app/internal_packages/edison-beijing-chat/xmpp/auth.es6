@@ -74,6 +74,7 @@ export const auth = async ({ jid, password }) => {
   } catch (error) {
     if (error && jid.split('@').length > 1) {
       window.removeItem('sessionId' + jid.split('@')[0]);
+      OnlineUserStore.removeAuthingAccount(jid);
     }
   };
 };
