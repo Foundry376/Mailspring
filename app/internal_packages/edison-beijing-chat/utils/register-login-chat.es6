@@ -7,7 +7,11 @@ export default async function registerLoginChat() {
   let accounts = AppEnv.config.get('accounts');
 
   for (let account of accounts) {
-    await registerLoginEmailAccountForChat(account);
+    try {
+      await registerLoginEmailAccountForChat(account);
+    } catch (e) {
+      console.error('error in login chat account: ', account);
+    }
   }
 }
 
