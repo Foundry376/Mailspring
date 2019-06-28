@@ -1,7 +1,7 @@
 import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { delay } from '../utils/delay';
 import xmpp from './index';
-import { RoomStore, ContactStore, E2eeStore, AppsStore } from 'chat-exports';
+import { RoomStore, ContactStore, E2eeStore, AppsStore, OnlineUserStore } from 'chat-exports';
 
 export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
@@ -10,6 +10,8 @@ export const auth = async ({ jid, password }) => {
     sessionId = uuid();
   }
   console.log('xmpp.init: ', jid, password);
+  OnlineUserStore.addAuthingAccount(jid);
+
   xmpp.init({
     jid,
     password,

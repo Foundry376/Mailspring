@@ -90,16 +90,19 @@ export default class MessagesPanel extends Component {
       });
     } else if (changedDataName === 'online') {
       const selectedConversation = await ConversationStore.getSelectedConversation();
-      let chat_online;
+      let chat_online, isAuthenticating;
       if (selectedConversation) {
         const { curJid } = selectedConversation;
-        console.log('on chat_online change: curJid, OnlineUserStore.onlineUsers: ', curJid, JSON.stringify(OnlineUserStore.onlineUsers));
-        chat_online = !!OnlineUserStore.onlineUsers[curJid];
+        console.log('on chat_online change: curJid, OnlineUserStore.onlineAccounts: ', curJid, OnlineUserStore.onlineAccounts);
+        chat_online = !!OnlineUserStore.onlineAccounts[curJid];
+        isAuthenticating = !!OnlineUserStore.authingAccounts[curJid];
       } else {
         chat_online = true;
+        isAuthenticating = false;
       }
       this.setState({
-        chat_online
+        chat_online,
+        isAuthenticating
       });
     }
   }
@@ -109,35 +112,41 @@ export default class MessagesPanel extends Component {
     window.addEventListener("offline", this.offLine);
     const contacts = await ContactStore.getContacts();
     const selectedConversation = await ConversationStore.getSelectedConversation();
-    let chat_online;
+    let chat_online, isAuthenticating;
     if (selectedConversation) {
       const { curJid } = selectedConversation;
-      chat_online = !!OnlineUserStore.onlineUsers[curJid];
+      chat_online = !!OnlineUserStore.onlineAccounts[curJid];
+      isAuthenticating = !!OnlineUserStore.authingAccounts[curJid];
     } else {
       chat_online = true;
+      isAuthenticating = false;
     }
     this.setState({
       online: navigator.onLine,
       contacts,
       chat_online,
-      selectedConversation
+      selectedConversation,
+      isAuthenticating
     });
   }
   componentWillReceiveProps = async (nextProps, nextContext) => {
     const contacts = await ContactStore.getContacts();
     const selectedConversation = await ConversationStore.getSelectedConversation();
-    let chat_online;
+    let chat_online, isAuthenticating;
     if (selectedConversation) {
       const { curJid } = selectedConversation;
-      chat_online = !!OnlineUserStore.onlineUsers[curJid];
+      chat_online = !!OnlineUserStore.onlineAccounts[curJid];
+      isAuthenticating = !!OnlineUserStore.authingAccounts[curJid];
     } else {
       chat_online = true;
+      isAuthenticating = false;
     }
     this.setState({
       online: navigator.onLine,
       contacts,
       chat_online,
-      selectedConversation
+      selectedConversation,
+      isAuthenticating
     });
   }
 
@@ -531,7 +540,7 @@ export default class MessagesPanel extends Component {
         {isOffLine && (
           <div className="network-offline">
             {this.state.online ? (
-              this.props.isAuthenticating ? (
+              this.state.isAuthenticating ? (
                 <div>
                   <RetinaImg name={'no-network.svg'}
                     style={{ width: 16 }}
