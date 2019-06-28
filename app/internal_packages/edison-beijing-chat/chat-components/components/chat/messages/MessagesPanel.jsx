@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
+import Online from './Online';
 import NewConversationTopBar from './NewConversationTopBar';
 import MessagesSendBar from './MessagesSendBar';
 import Messages from './Messages';
@@ -22,7 +23,6 @@ import http from "http";
 import { MESSAGE_STATUS_TRANSFER_FAILED } from '../../../../model/Message';
 import { sendFileMessage } from '../../../../utils/message';
 import { getToken } from '../../../../utils/appmgt';
-import { log } from '../../../../utils/log-util';
 import { LocalStorage } from 'chat-exports';
 import { alert } from '../../../../utils/electron';
 
@@ -42,7 +42,7 @@ export default class MessagesPanel extends Component {
     referenceTime: new Date().getTime(),
   }
 
-  apps = []
+  apps = [];
 
   constructor(props) {
     super(props);
@@ -65,7 +65,6 @@ export default class MessagesPanel extends Component {
     this._unsubs = [];
     this._unsubs.push(ConversationStore.listen(() => this._onDataChanged('conversation')));
     this._unsubs.push(ContactStore.listen(() => this._onDataChanged('contact')));
-    this._unsubs.push(OnlineUserStore.listen(() => this._onDataChanged('online')));
   }
 
   _onDataChanged = async (changedDataName) => {
@@ -88,95 +87,31 @@ export default class MessagesPanel extends Component {
       this.setState({
         contacts
       });
-    } else if (changedDataName === 'online') {
-      const selectedConversation = await ConversationStore.getSelectedConversation();
-      let chat_online, isAuthenticating;
-      if (selectedConversation) {
-        const { curJid } = selectedConversation;
-        console.log('on chat_online change: curJid, OnlineUserStore.onlineAccounts: ', curJid, OnlineUserStore.onlineAccounts);
-        chat_online = !!OnlineUserStore.onlineAccounts[curJid];
-        isAuthenticating = !!OnlineUserStore.authingAccounts[curJid];
-      } else {
-        chat_online = true;
-        isAuthenticating = false;
-      }
-      this.setState({
-        chat_online,
-        isAuthenticating
-      });
     }
   }
 
   componentDidMount = async () => {
-    window.addEventListener("online", this.onLine);
-    window.addEventListener("offline", this.offLine);
     const contacts = await ContactStore.getContacts();
     const selectedConversation = await ConversationStore.getSelectedConversation();
-    let chat_online, isAuthenticating;
-    if (selectedConversation) {
-      const { curJid } = selectedConversation;
-      chat_online = !!OnlineUserStore.onlineAccounts[curJid];
-      isAuthenticating = !!OnlineUserStore.authingAccounts[curJid];
-    } else {
-      chat_online = true;
-      isAuthenticating = false;
-    }
     this.setState({
       online: navigator.onLine,
       contacts,
-      chat_online,
-      selectedConversation,
-      isAuthenticating
+      selectedConversation
     });
   }
   componentWillReceiveProps = async (nextProps, nextContext) => {
-    const contacts = await ContactStore.getContacts();
     const selectedConversation = await ConversationStore.getSelectedConversation();
-    let chat_online, isAuthenticating;
-    if (selectedConversation) {
-      const { curJid } = selectedConversation;
-      chat_online = !!OnlineUserStore.onlineAccounts[curJid];
-      isAuthenticating = !!OnlineUserStore.authingAccounts[curJid];
-    } else {
-      chat_online = true;
-      isAuthenticating = false;
-    }
     this.setState({
-      online: navigator.onLine,
       contacts,
-      chat_online,
-      selectedConversation,
-      isAuthenticating
+      selectedConversation
     });
   }
 
   componentWillUnmount() {
-    window.removeEventListener("online", this.onLine);
-    window.removeEventListener("offline", this.offLine);
     for (const unsub of this._unsubs) {
       unsub();
     };
   }
-
-  onLine = () => {
-    log(`MessagePanel: chat online`);
-    // connect to chat server
-    if (!this.state.chat_online) {
-      this.reconnect();
-    }
-    ChatActions.updateProgress({ offline: false });
-    this.setState({
-      online: true
-    })
-  };
-
-  offLine = () => {
-    log(`MessagePanel: chat offline`);
-    ChatActions.updateProgress({ offline: true, failed: true });
-    this.setState({
-      online: false
-    })
-  };
 
   saveRoomMembersForTemp = (members) => {
     this.setState({ membersTemp: members })
@@ -205,11 +140,8 @@ export default class MessagesPanel extends Component {
 
   sendFile(files) {
     const { selectedConversation } = this.state;
-    const onMessageSubmitted = this.props.sendMessage;
     const atIndex = selectedConversation.jid.indexOf('@');
-
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
-
     files.map((file, index) => sendFileMessage(file, index, this, ' '));
   }
 
@@ -488,9 +420,8 @@ export default class MessagesPanel extends Component {
       className = 'new-conversation-popup'
     }
 
-    const isOffLine = !this.state.online || !this.state.chat_online;
     return (
-      <div className={`panel ${isOffLine ? 'offline' : ''}`}
+      <div className={`panel`}
         onDragOverCapture={this.onDragOver}
         onDragEnd={this.onDragEnd}
         onMouseLeave={this.onDragEnd}
@@ -537,36 +468,7 @@ export default class MessagesPanel extends Component {
             </span>
           </div>
         }
-        {isOffLine && (
-          <div className="network-offline">
-            {this.state.online ? (
-              this.state.isAuthenticating ? (
-                <div>
-                  <RetinaImg name={'no-network.svg'}
-                    style={{ width: 16 }}
-                    isIcon
-                    mode={RetinaImg.Mode.ContentIsMask} />
-                  <span>Your computer appears to be disconnected. Edison Mail is trying to reconnect. </span>
-                </div>
-              ) : (
-                  <div>
-                    <RetinaImg name={'no-network.svg'}
-                      style={{ width: 16 }}
-                      isIcon
-                      mode={RetinaImg.Mode.ContentIsMask} />
-                    <span>There appears to be a problem with your connection. Please click to reconnect: </span>
-                    <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
-                  </div>
-                )
-            ) : (<div>
-              <RetinaImg name={'no-network.svg'}
-                style={{ width: 16 }}
-                isIcon
-                mode={RetinaImg.Mode.ContentIsMask} />
-              <span>Your computer appears to be offline. Please check your network connection.</span>
-            </div>)}
-          </div>
-        )}
+        <Online conversation={selectedConversation}></Online>
         <MemberProfile conversation={selectedConversation} exitProfile={this.exitProfile}></MemberProfile>
       </div>
     );
