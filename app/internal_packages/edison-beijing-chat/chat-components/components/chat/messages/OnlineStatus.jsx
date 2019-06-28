@@ -29,7 +29,7 @@ import { alert } from '../../../../utils/electron';
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
-export default class Online extends Component {
+export default class OnlineStatus extends Component {
   static propTypes = {
     conversation: PropTypes.object.isRequired,
   }
@@ -49,27 +49,26 @@ export default class Online extends Component {
 
   _listenToStore = () => {
     this._unsubs = [];
-    this._unsubs.push(OnlineUserStore.listen(() => this._onDataChanged('online')));
+    this._unsubs.push(this._onDataChanged);
   }
 
-  _onDataChanged = async (changedDataName) => {
-    if (changedDataName === 'online') {
-      const {conversation} = this.props;
-      let chat_online, isAuthenticating;
-      if (conversation) {
-        const { curJid } = conversation;
-        console.log('on chat_online change: curJid, OnlineUserStore.onlineAccounts: ', curJid, OnlineUserStore.onlineAccounts);
-        chat_online = !!OnlineUserStore.onlineAccounts[curJid];
-        isAuthenticating = !!OnlineUserStore.authingAccounts[curJid];
-      } else {
-        chat_online = true;
-        isAuthenticating = false;
-      }
-      this.setState({
-        chat_online,
-        isAuthenticating
-      });
+  _onDataChanged = async () => {
+    const {conversation} = this.props;
+    let chat_online, isAuthenticating;
+    if (conversation) {
+      const { curJid } = conversation;
+      console.log('on chat_online change: curJid, OnlineUserStore.onlineAccounts: ', curJid, OnlineUserStore.onlineAccounts);
+      chat_online = !!OnlineUserStore.onlineAccounts[curJid];
+      isAuthenticating = !!OnlineUserStore.authingAccounts[curJid];
+    } else {
+      chat_online = true;
+      isAuthenticating = false;
     }
+    this.setPanelClassName();
+    this.setState({
+      chat_online,
+      isAuthenticating
+    });
   }
 
   componentDidMount = async () => {
@@ -85,6 +84,7 @@ export default class Online extends Component {
       chat_online = true;
       isAuthenticating = false;
     }
+    this.setPanelClassName();
     this.setState({
       online: navigator.onLine,
       chat_online,
@@ -103,6 +103,7 @@ export default class Online extends Component {
       chat_online = true;
       isAuthenticating = false;
     }
+    this.setPanelClassName();
     this.setState({
       online: navigator.onLine,
       chat_online,
@@ -117,6 +118,18 @@ export default class Online extends Component {
       unsub();
     };
   }
+
+  setPanelClassName = () => {
+    const panel = document.querySelector('.panel');
+    if (!panel) {
+      return;
+    }
+    if (!this.state.online || !this.chat_online){
+      panel.className = 'panel offline';
+    } else {
+      panel.className = 'panel';
+    }
+  };
 
   onLine = () => {
     log(`MessagePanel: chat online`);

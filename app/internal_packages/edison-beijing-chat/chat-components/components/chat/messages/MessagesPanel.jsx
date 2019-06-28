@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
-import Online from './Online';
+import OnlineStatus from './OnlineStatus';
 import NewConversationTopBar from './NewConversationTopBar';
 import MessagesSendBar from './MessagesSendBar';
 import Messages from './Messages';
@@ -468,7 +468,7 @@ export default class MessagesPanel extends Component {
             </span>
           </div>
         }
-        <Online conversation={selectedConversation}></Online>
+        <OnlineStatus conversation={selectedConversation}></OnlineStatus>
         <MemberProfile conversation={selectedConversation} exitProfile={this.exitProfile}></MemberProfile>
       </div>
     );
