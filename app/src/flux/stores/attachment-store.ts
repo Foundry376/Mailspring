@@ -42,7 +42,6 @@ class AttachmentStore extends MailspringStore {
     this.listenTo(Actions.fetchAndOpenFile, this._fetchAndOpen);
     this.listenTo(Actions.fetchAndSaveFile, this._fetchAndSave);
     this.listenTo(Actions.fetchAndSaveAllFiles, this._fetchAndSaveAll);
-    this.listenTo(Actions.abortFetchFile, this._abortFetchFile);
     this.listenTo(Actions.quickPreviewFile, this._quickPreviewFile);
 
     // sending
@@ -258,12 +257,6 @@ class AttachmentStore extends MailspringStore {
           });
       });
     });
-  };
-
-  _abortFetchFile = () => {
-    // file
-    // put this back if we ever support downloading individual files again
-    return;
   };
 
   _defaultSaveDir() {

@@ -31,26 +31,6 @@ class MessageAttachments extends Component<MessageAttachmentsProps> {
     filePreviewPaths: {},
   };
 
-  onOpenAttachment = file => {
-    Actions.fetchAndOpenFile(file);
-  };
-
-  onRemoveAttachment = file => {
-    const { headerMessageId } = this.props;
-    Actions.removeAttachment({
-      headerMessageId: headerMessageId,
-      file: file,
-    });
-  };
-
-  onDownloadAttachment = file => {
-    Actions.fetchAndSaveFile(file);
-  };
-
-  onAbortDownload = file => {
-    Actions.abortFetchFile(file);
-  };
-
   renderAttachment(AttachmentRenderer, file) {
     const { canRemoveAttachments, downloads, filePreviewPaths } = this.props;
     const download = downloads[file.id];
@@ -73,10 +53,13 @@ class MessageAttachments extends Component<MessageAttachmentsProps> {
         displaySize={displaySize}
         fileIconName={fileIconName}
         filePreviewPath={filePreviewPath}
-        onOpenAttachment={() => this.onOpenAttachment(file)}
-        onDownloadAttachment={() => this.onDownloadAttachment(file)}
-        onAbortDownload={() => this.onAbortDownload(file)}
-        onRemoveAttachment={canRemoveAttachments ? () => this.onRemoveAttachment(file) : null}
+        onOpenAttachment={() => Actions.fetchAndOpenFile(file)}
+        onSaveAttachment={() => Actions.fetchAndSaveFile(file)}
+        onRemoveAttachment={
+          canRemoveAttachments
+            ? () => Actions.removeAttachment({ headerMessageId: this.props.headerMessageId, file })
+            : null
+        }
       />
     );
   }

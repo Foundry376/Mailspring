@@ -463,7 +463,6 @@ export const fetchAndOpenFile = create('fetchAndOpenFile', ActionScopeWindow);
 export const fetchAndSaveFile = create('fetchAndSaveFile', ActionScopeWindow);
 export const fetchAndSaveAllFiles = create('fetchAndSaveAllFiles', ActionScopeWindow);
 export const fetchFile = create('fetchFile', ActionScopeWindow);
-export const abortFetchFile = create('abortFetchFile', ActionScopeWindow);
 export const quickPreviewFile = create('quickPreviewFile', ActionScopeWindow);
 
 /*

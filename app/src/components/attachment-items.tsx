@@ -9,6 +9,7 @@ import { pickHTMLProps } from 'pick-react-known-prop';
 import { RetinaImg } from './retina-img';
 import { Flexbox } from './flexbox';
 import { Spinner } from './spinner';
+import { localized } from '../intl';
 
 const propTypes = {
   className: PropTypes.string,
@@ -26,8 +27,7 @@ const propTypes = {
   filePreviewPath: PropTypes.string,
   onOpenAttachment: PropTypes.func,
   onRemoveAttachment: PropTypes.func,
-  onDownloadAttachment: PropTypes.func,
-  onAbortDownload: PropTypes.func,
+  onSaveAttachment: PropTypes.func,
 };
 
 const defaultProps = {
@@ -36,8 +36,47 @@ const defaultProps = {
 
 const SPACE = ' ';
 
-function ProgressBar(props) {
-  const { download } = props;
+function buildContextMenu(fns: {
+  onOpenAttachment?: () => void;
+  onPreviewAttachment?: () => void;
+  onRemoveAttachment?: () => void;
+  onSaveAttachment?: () => void;
+}) {
+  const { remote } = require('electron');
+  const template: Electron.MenuItemConstructorOptions[] = [];
+  if (fns.onOpenAttachment) {
+    template.push({
+      click: () => fns.onOpenAttachment(),
+      label: localized('Open'),
+    });
+  }
+  if (fns.onRemoveAttachment) {
+    template.push({
+      click: () => fns.onRemoveAttachment(),
+      label: localized('Remove'),
+    });
+  }
+  if (fns.onPreviewAttachment) {
+    template.push({
+      click: () => fns.onPreviewAttachment(),
+      label: localized('Preview'),
+    });
+  }
+  if (fns.onSaveAttachment) {
+    template.push({
+      click: () => fns.onSaveAttachment(),
+      label: localized('Save Into...'),
+    });
+  }
+  remote.Menu.buildFromTemplate(template).popup({});
+}
+
+const ProgressBar: React.FunctionComponent<{
+  download: {
+    state: string;
+    percent: number;
+  };
+}> = ({ download }) => {
   const isDownloading = download ? download.state === 'downloading' : false;
   if (!isDownloading) {
     return <span />;
@@ -52,8 +91,7 @@ function ProgressBar(props) {
       <span className="progress-foreground" style={downloadProgressStyle} />
     </span>
   );
-}
-ProgressBar.propTypes = propTypes;
+};
 
 function AttachmentActionIcon(props) {
   const {
@@ -61,9 +99,8 @@ function AttachmentActionIcon(props) {
     removeIcon,
     downloadIcon,
     retinaImgMode,
-    onAbortDownload,
     onRemoveAttachment,
-    onDownloadAttachment,
+    onSaveAttachment,
   } = props;
 
   const isRemovable = onRemoveAttachment != null;
@@ -74,10 +111,8 @@ function AttachmentActionIcon(props) {
     event.stopPropagation(); // Prevent 'onOpenAttachment'
     if (isRemovable) {
       onRemoveAttachment();
-    } else if (isDownloading && onAbortDownload != null) {
-      onAbortDownload();
-    } else if (onDownloadAttachment != null) {
-      onDownloadAttachment();
+    } else if (onSaveAttachment != null) {
+      onSaveAttachment();
     }
   };
 
@@ -109,8 +144,8 @@ interface AttachmentItemProps {
   fileIconName?: string;
   filePreviewPath?: string;
   onOpenAttachment?: () => void;
+  onSaveAttachment?: () => void;
   onRemoveAttachment: () => void;
-  onDownloadAttachment?: () => void;
 }
 
 export class AttachmentItem extends Component<AttachmentItemProps> {
@@ -142,13 +177,6 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
     }
   };
 
-  _onOpenAttachment = () => {
-    const { onOpenAttachment } = this.props;
-    if (onOpenAttachment != null) {
-      onOpenAttachment();
-    }
-  };
-
   _onAttachmentKeyDown = event => {
     if (event.key === SPACE && this.props.filePreviewPath) {
       event.preventDefault();
@@ -163,9 +191,11 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
     }
   };
 
-  _onClickQuicklookIcon = event => {
-    event.preventDefault();
-    event.stopPropagation();
+  _onClickQuicklookIcon = (event?: React.MouseEvent<any>) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     Actions.quickPreviewFile(this.props.filePath);
   };
 
@@ -179,6 +209,8 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
       displaySize,
       fileIconName,
       filePreviewPath,
+      onOpenAttachment,
+      onSaveAttachment,
       ...extraProps
     } = this.props;
     const classes = classnames({
@@ -197,8 +229,15 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
         tabIndex={tabIndex}
         onKeyDown={focusable ? this._onAttachmentKeyDown : null}
         draggable={draggable}
-        onDoubleClick={this._onOpenAttachment}
+        onDoubleClick={onOpenAttachment}
         onDragStart={this._onDragStart}
+        onContextMenu={() =>
+          buildContextMenu({
+            onPreviewAttachment: this._onClickQuicklookIcon,
+            onOpenAttachment,
+            onSaveAttachment,
+          })
+        }
         {...pickHTMLProps(extraProps)}
       >
         {filePreviewPath ? (
@@ -228,11 +267,11 @@ export class AttachmentItem extends Component<AttachmentItemProps> {
               </span>
               <span className="file-size">{displaySize ? `(${displaySize})` : ''}</span>
             </div>
-            {filePreviewPath ? (
+            {filePreviewPath && (
               <div className="file-action-icon quicklook" onClick={this._onClickQuicklookIcon}>
                 <RetinaImg name="attachment-quicklook.png" mode={RetinaImg.Mode.ContentIsMask} />
               </div>
-            ) : null}
+            )}
             <AttachmentActionIcon
               {...this.props}
               removeIcon="remove-attachment.png"
@@ -257,13 +296,6 @@ export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgPr
   static defaultProps = defaultProps;
 
   static containerRequired = false;
-
-  _onOpenAttachment = () => {
-    const { onOpenAttachment } = this.props;
-    if (onOpenAttachment != null) {
-      onOpenAttachment();
-    }
-  };
 
   _onImgLoaded = () => {
     // on load, modify our DOM just /slightly/. This causes DOM mutation listeners
@@ -301,10 +333,19 @@ export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgPr
   }
 
   render() {
-    const { className, displayName, download, ...extraProps } = this.props;
-    const classes = `nylas-attachment-item image-attachment-item ${className || ''}`;
+    const {
+      className,
+      displayName,
+      download,
+      onOpenAttachment,
+      onSaveAttachment,
+      ...extraProps
+    } = this.props;
     return (
-      <div className={classes} {...pickHTMLProps(extraProps)}>
+      <div
+        className={`nylas-attachment-item image-attachment-item ${className || ''}`}
+        {...pickHTMLProps(extraProps)}
+      >
         <div>
           <ProgressBar download={download} />
           <AttachmentActionIcon
@@ -312,9 +353,12 @@ export class ImageAttachmentItem extends Component<AttachmentItemProps & { imgPr
             removeIcon="image-cancel-button.png"
             downloadIcon="image-download-button.png"
             retinaImgMode={RetinaImg.Mode.ContentPreserve}
-            onAbortDownload={null}
           />
-          <div className="file-preview" onDoubleClick={this._onOpenAttachment}>
+          <div
+            className="file-preview"
+            onDoubleClick={onOpenAttachment}
+            onContextMenu={() => buildContextMenu({ onOpenAttachment, onSaveAttachment })}
+          >
             <div className="file-name-container">
               <div className="file-name" title={displayName}>
                 {displayName}
