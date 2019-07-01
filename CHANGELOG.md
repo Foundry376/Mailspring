@@ -6,6 +6,8 @@ Fixes:
 
 - Drag and drop of files into the composer and drag and drop of threads into folders / labels in the left sidebar now works as expected in all cases. #1533, #1534
 
+- When typing in Japanese or another language that uses composition events / IME, the composer now always commits your text when the composition dropdown is dismissed. #1531
+
 - A small "download" icon on the event header displayed in calendar emails allows you to download the underlying ICS file. #1547
 
 - Resolves top issues reported via our automated error collection, including several problems causing instability in the composer.

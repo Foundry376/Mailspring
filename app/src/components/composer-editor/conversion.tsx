@@ -24,6 +24,8 @@ import LinkPlugins from './link-plugins';
 import EmojiPlugins, { EMOJI_TYPE } from './emoji-plugins';
 import { Rule, ComposerEditorPlugin } from './types';
 
+import './patch-chrome-ime';
+
 export const schema = {
   inlines: {
     [VARIABLE_TYPE]: {
