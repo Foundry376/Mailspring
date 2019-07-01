@@ -1,6 +1,11 @@
 import { remote } from 'electron';
 import keytar from 'keytar';
 import { localized } from './intl';
+import { Account } from 'mailspring-exports';
+
+interface KeySet {
+  [key: string]: string;
+}
 
 /**
  * A basic wrap around keytar's secure key management. Consolidates all of
@@ -14,7 +19,7 @@ class KeyManager {
   SERVICE_NAME = AppEnv.inDevMode() ? 'Mailspring Dev' : 'Mailspring';
   KEY_NAME = 'Mailspring Keys';
 
-  async deleteAccountSecrets(account) {
+  async deleteAccountSecrets(account: Account) {
     try {
       const keys = await this._getKeyHash();
       delete keys[`${account.emailAddress}-imap`];
@@ -26,7 +31,7 @@ class KeyManager {
     }
   }
 
-  async extractAccountSecrets(account) {
+  async extractAccountSecrets(account: Account) {
     try {
       const keys = await this._getKeyHash();
       keys[`${account.emailAddress}-imap`] = account.settings.imap_password;
@@ -43,16 +48,16 @@ class KeyManager {
     return next;
   }
 
-  async insertAccountSecrets(account) {
+  async insertAccountSecrets(account: Account, keys: KeySet = null) {
     const next = account.clone();
-    const keys = await this._getKeyHash();
+    if (!keys) keys = await this._getKeyHash();
     next.settings.imap_password = keys[`${account.emailAddress}-imap`];
     next.settings.smtp_password = keys[`${account.emailAddress}-smtp`];
     next.settings.refresh_token = keys[`${account.emailAddress}-refresh-token`];
     return next;
   }
 
-  async replacePassword(keyName, newVal) {
+  async replacePassword(keyName: string, newVal: string) {
     try {
       const keys = await this._getKeyHash();
       keys[keyName] = newVal;
@@ -62,7 +67,7 @@ class KeyManager {
     }
   }
 
-  async deletePassword(keyName) {
+  async deletePassword(keyName: string) {
     try {
       const keys = await this._getKeyHash();
       delete keys[keyName];
@@ -72,7 +77,7 @@ class KeyManager {
     }
   }
 
-  async getPassword(keyName) {
+  async getPassword(keyName: string) {
     try {
       const keys = await this._getKeyHash();
       return keys[keyName];
@@ -84,17 +89,17 @@ class KeyManager {
   async _getKeyHash() {
     const raw = (await keytar.getPassword(this.SERVICE_NAME, this.KEY_NAME)) || '{}';
     try {
-      return JSON.parse(raw);
+      return JSON.parse(raw) as KeySet;
     } catch (err) {
       return {};
     }
   }
 
-  async _writeKeyHash(keys) {
+  async _writeKeyHash(keys: KeySet) {
     await keytar.setPassword(this.SERVICE_NAME, this.KEY_NAME, JSON.stringify(keys));
   }
 
-  _reportFatalError(err) {
+  _reportFatalError(err: Error) {
     let more = '';
     if (process.platform === 'linux') {
       more = localized('Make sure you have `libsecret` installed and a keyring is present. ');

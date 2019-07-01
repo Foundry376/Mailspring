@@ -1,6 +1,6 @@
 import React from 'react';
 import { Range, Editor, Mark, Value, Block, Selection } from 'slate';
-import { CompactPicker } from 'react-color';
+import CompactPicker from 'react-color/lib/Compact';
 import { ComposerEditorPluginToolbarComponentProps } from './types';
 
 // Helper Functions
@@ -8,15 +8,13 @@ import { ComposerEditorPluginToolbarComponentProps } from './types';
 export interface IEditorToolbarConfigItem {
   type: string;
   tagNames?: string[];
-  render?: (
-    props: {
-      node?: Block;
-      mark?: any;
-      attributes: any;
-      children: any;
-      targetIsHTML: boolean;
-    }
-  ) => JSX.Element | void;
+  render?: (props: {
+    node?: Block;
+    mark?: any;
+    attributes: any;
+    children: any;
+    targetIsHTML: boolean;
+  }) => JSX.Element | void;
   button?: {
     isActive: (value: Value) => boolean;
     onToggle: (editor: Editor, active: boolean) => any;
