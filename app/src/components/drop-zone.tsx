@@ -10,7 +10,6 @@ interface DropZoneProps {
   onDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   shouldAcceptDrop: (e: React.DragEvent<HTMLDivElement>) => boolean;
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
-  onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragStateChange: ({ isDropping: boolean }) => void;
 }
 
@@ -18,7 +17,6 @@ export class DropZone extends React.Component<DropZoneProps> {
   static propTypes = {
     shouldAcceptDrop: PropTypes.func.isRequired,
     onDrop: PropTypes.func.isRequired,
-    onDragOver: PropTypes.func,
     onDragStateChange: PropTypes.func,
   };
 
@@ -76,7 +74,10 @@ export class DropZone extends React.Component<DropZoneProps> {
     return (
       <div
         {...otherProps}
-        onDragOver={this.props.onDragOver}
+        onDragOver={event => {
+          event.dataTransfer.dropEffect = 'copy';
+          event.preventDefault();
+        }}
         onDragEnter={this._onDragEnter}
         onDragLeave={this._onDragLeave}
         onDrop={this._onDrop}
