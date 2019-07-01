@@ -129,6 +129,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     return (
       <div className="event-wrapper">
         <div className="event-header">
+          <div className="event-download" onClick={() => Actions.fetchAndOpenFile(this.props.file)}>
+            <RetinaImg name="icon-attachment-download.png" mode={RetinaImg.Mode.ContentIsMask} />
+          </div>
           <RetinaImg name="icon-RSVP-calendar-mini@2x.png" mode={RetinaImg.Mode.ContentPreserve} />
           <span className="event-title-text">{localized('Event')}: </span>
           <span className="event-title">{icsEvent.summary}</span>
