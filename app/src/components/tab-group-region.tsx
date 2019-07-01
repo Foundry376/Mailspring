@@ -9,16 +9,24 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
+let compositionActive = false;
+document.addEventListener('compositionstart', () => {
+  compositionActive = true;
+});
+document.addEventListener('compositionend', () => {
+  compositionActive = false;
+});
+
 export class TabGroupRegion extends React.Component<React.HTMLProps<HTMLDivElement>> {
   static childContextTypes = { parentTabGroup: PropTypes.object };
 
   _onKeyDown = event => {
-    if (event.key === 'Tab' && !event.defaultPrevented) {
-      const dir = event.shiftKey ? -1 : 1;
-      this.shiftFocus(dir);
-      event.preventDefault();
-      event.stopPropagation();
-    }
+    if (event.key !== 'Tab' || event.defaultPrevented) return;
+    if (compositionActive) return;
+    const dir = event.shiftKey ? -1 : 1;
+    this.shiftFocus(dir);
+    event.preventDefault();
+    event.stopPropagation();
   };
 
   shiftFocus = dir => {
