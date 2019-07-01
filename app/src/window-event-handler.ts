@@ -248,10 +248,6 @@ export default class WindowEventHandler {
     event.stopPropagation();
   };
 
-  onDragOver = (event: DragEvent) => {
-    event.dataTransfer.dropEffect = 'none';
-  };
-
   resolveHref(el: EventTarget) {
     if (!el || !(el instanceof HTMLElement)) {
       return null;

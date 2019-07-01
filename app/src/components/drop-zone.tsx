@@ -75,7 +75,13 @@ export class DropZone extends React.Component<DropZoneProps> {
       <div
         {...otherProps}
         onDragOver={event => {
-          event.dataTransfer.dropEffect = 'copy';
+          if (event.target instanceof HTMLElement && event.target.closest('[data-slate-editor]'))
+            return;
+          if (event.dataTransfer.effectAllowed) {
+            event.dataTransfer.dropEffect = event.dataTransfer.effectAllowed;
+          } else {
+            event.dataTransfer.dropEffect = 'copy';
+          }
           event.preventDefault();
         }}
         onDragEnter={this._onDragEnter}
