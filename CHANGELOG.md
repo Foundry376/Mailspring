@@ -1,5 +1,21 @@
 # Mailspring Changelog
 
+### 1.6.3 (TBD)
+
+Fixes:
+
+- Drag and drop of files into the composer and drag and drop of threads into folders / labels in the left sidebar now works as expected in all cases. #1533, #1534
+
+- A small "download" icon on the event header displayed in calendar emails allows you to download the underlying ICS file. #1547
+
+- Resolves top issues reported via our automated error collection, including several problems causing instability in the composer.
+
+- Right clicking an image or file attachment now gives you contextual menu options to save, open or preview the file. #1548
+
+- You can no longer select a Label as your Gmail "Trash" folder. This was the root cause of several crashes and is not really conceptually supported by Gmail.
+
+- Mailspring now warns when loading plugins that have not been compiled to JavaScript ahead of time. (We no longer ship TypeScript + Babel because relying on a specific verison is problematic and they are 30+ MB)
+
 ### 1.6.2 (6/18/2019)
 
 Highlights:
