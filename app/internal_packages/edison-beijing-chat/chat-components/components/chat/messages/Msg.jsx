@@ -364,12 +364,8 @@ export default class Msg extends PureComponent {
               <span className="username">{senderName}</span>
               <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
               {
-                // msg.status === 'MESSAGE_STATUS_DELIVERED' || msg.status === 'MESSAGE_STATUS_RECEIVED' ?
-                //   <CheckIcon
-                //     className="messageStatus"
-                //     size={16}
-                //     color="gray"
-                //   /> : null
+                msg.status === 'MESSAGE_STATUS_TRANSFER_FAILED'?
+                  <span className="messageStatus"> x </span> :null
               }
             </div>
             {
