@@ -93,12 +93,22 @@ export default class MessagesPanel extends Component {
   componentDidMount = async () => {
     const contacts = await ContactStore.getContacts();
     const selectedConversation = await ConversationStore.getSelectedConversation();
+    document.body.onclick = this._closePreview;
     this.setState({
       online: navigator.onLine,
       contacts,
       selectedConversation
     });
   }
+
+  _closePreview = (e) => {
+    if (e.target.tagName === "IMG") {
+      return;
+    }
+    const currentWin = AppEnv.getCurrentWindow();
+    currentWin.closeFilePreview();
+  }
+
   componentWillReceiveProps = async (nextProps, nextContext) => {
     const selectedConversation = await ConversationStore.getSelectedConversation();
     this.setState({
@@ -111,6 +121,7 @@ export default class MessagesPanel extends Component {
     for (const unsub of this._unsubs) {
       unsub();
     };
+    document.body.onclick = null;
   }
 
   saveRoomMembersForTemp = (members) => {

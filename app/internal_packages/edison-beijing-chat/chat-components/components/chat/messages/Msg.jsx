@@ -124,9 +124,6 @@ export default class Msg extends PureComponent {
 
   componentWillUnmount() {
     this.unlisten();
-    const {
-      groupedMessages
-    } = this.props;
   }
 
   getContactInfoByJid = jid => {
@@ -246,12 +243,15 @@ export default class Msg extends PureComponent {
     }
   }
   onClickImage = (e) => {
-    const { msg } = this.props;
-    // console.log('onClickImage: msg', msg);
-    // ChatActions.updateImagePopup(msg);
+    e.preventDefault();
+    e.stopPropagation();
     if (e.target.src) {
-      shell.openExternal(e.target.src);
+      this._previewAttachment(decodeURI(e.target.src).replace('file://', ''));
     }
+  }
+  _previewAttachment(filePath) {
+    const currentWin = AppEnv.getCurrentWindow();
+    currentWin.previewFile(filePath);
   }
   msgFile = () => {
     const { msg } = this.props;
