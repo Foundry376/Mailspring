@@ -64,10 +64,11 @@ export default class OnlineStatus extends Component {
       chat_online = true;
       isAuthenticating = false;
     }
-    this.setPanelClassName();
     this.setState({
       chat_online,
       isAuthenticating
+    }, () => {
+      this.setPanelClassName();
     });
   }
 
@@ -84,11 +85,12 @@ export default class OnlineStatus extends Component {
       chat_online = true;
       isAuthenticating = false;
     }
-    this.setPanelClassName();
     this.setState({
       online: navigator.onLine,
       chat_online,
       isAuthenticating
+    }, () => {
+      this.setPanelClassName();
     });
   }
 
@@ -104,11 +106,12 @@ export default class OnlineStatus extends Component {
       chat_online = true;
       isAuthenticating = false;
     }
-    this.setPanelClassName();
     this.setState({
       online: navigator.onLine,
       chat_online,
       isAuthenticating
+    }, () => {
+      this.setPanelClassName();
     });
   }
 
@@ -122,10 +125,11 @@ export default class OnlineStatus extends Component {
 
   setPanelClassName = () => {
     const panel = document.querySelector('.panel');
+    console.log( 'setPanelClassName: ', this.state, panel);
     if (!panel) {
       return;
     }
-    if (!this.state.online || !this.chat_online){
+    if (!this.state.online || !this.state.chat_online) {
       panel.className = 'panel offline';
     } else {
       panel.className = 'panel';
@@ -139,8 +143,11 @@ export default class OnlineStatus extends Component {
       this.reconnect();
     }
     ChatActions.updateProgress({ offline: false });
+    this.setPanelClassName();
     this.setState({
       online: true
+    }, () => {
+      this.setPanelClassName();
     })
   };
 
@@ -149,6 +156,8 @@ export default class OnlineStatus extends Component {
     ChatActions.updateProgress({ offline: true, failed: true });
     this.setState({
       online: false
+    }, () => {
+      this.setPanelClassName();
     })
   };
 
