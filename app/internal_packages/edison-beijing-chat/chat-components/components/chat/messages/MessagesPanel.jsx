@@ -223,7 +223,7 @@ export default class MessagesPanel extends Component {
     let { loadConfig } = progress;
     ChatActions.updateProgress({ loading: true, percent: 0, finished: false, failed: false, visible: true });
     const { msgBody, filepath } = loadConfig;
-    log2(`MessagePanel.loadMessage: type:${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`);
+    log2(`MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`);
     const loadCallback = (...args) => {
       ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
