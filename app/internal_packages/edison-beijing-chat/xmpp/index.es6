@@ -21,11 +21,15 @@ export class Xmpp extends EventEmitter3 {
       xmpp = new XmppEx();
       this.xmppMap[jid] = xmpp;
       this.defaultJid = jid;
+      // xmpp.on('*', (name, data) => {
+      //   console.log('onrawdata.xmpp', xmpp.getTime(), xmpp.client.ts, xmpp.connectedJid, name, data);
+      //   this.emit(name, data);
+      // })
     }
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
       if (AppEnv.enabledXmppLog && (name == 'raw:outgoing' || name == 'raw:incoming')) {
-        console.log('onrawdata', xmpp.getTime(), xmpp.connectedJid, name, data);
+        console.log('onrawdata', xmpp.getTime(), xmpp.client.ts, xmpp.connectedJid, name, data);
       }
       if (name == 'auth:failed') {
         console.log('onrawdata1', xmpp.getTime(), xmpp.connectedJid, name, data);
@@ -42,6 +46,7 @@ export class Xmpp extends EventEmitter3 {
       this.emit(name, data);
     });
   }
+
   connect(jid) {
     let xmpp = this.getXmpp(jid);
     console.log(xmpp);
@@ -160,6 +165,10 @@ export class Xmpp extends EventEmitter3 {
   }
   sendMessage(message, curJid) {
     let xmpp = this.getXmpp(curJid);
+    if (!xmpp) {
+      console.warn('xmpp is null', curJid);
+      return;
+    }
     xmpp.sendMessage(message);
   }
 }
@@ -174,6 +183,7 @@ export class XmppEx extends EventEmitter3 {
   credentials = null;
   connectedJid = null;
   retryTimes = 0;
+  retrying = false;
   correctionTime = 0;
   timeoutCount = 0;
 
@@ -214,17 +224,23 @@ export class XmppEx extends EventEmitter3 {
       }
     });
     this.client.on('disconnected', () => {
-      console.warn('xmpp session2:disconnected', this.connectedJid);
-      log(`xmpp disconnected: jid: ${this.connectedJid}`);
+      console.warn('xmpp session2:disconnected', this.connectedJid, this.retrying, this.getTime());
       this.isConnected = false;
-      if (this.connectedJid && this.retryTimes < 3) {
+      log(`xmpp disconnected: jid: ${this.connectedJid}`);
+      if (this.connectedJid && this.retryTimes < 10) {
+        if (this.retrying) { return; }
+        this.retrying = true;
+        let timespan = 1000 + (this.retryTimes % 5) * 2000;
         setTimeout(() => {
-          console.log('connect trace1', this.retryTimes, this.connectedJid, this.isConnected, this.getTime());
-          this.connect();
-        }, 1000 + this.retryTimes * 5000);
+          console.log('connect trace1', this.retryTimes, timespan, this.connectedJid, this.isConnected, this.getTime());
+          if (!this.isConnected) {
+            this.retrying = false;
+            this.connect();
+          }
+        }, timespan);
       } else if (this.connectedJid) {
-        if (this.retryTimes == 3) {
-          console.warn('xmpp session3:disconnected', this.connectedJid);
+        if (this.retryTimes == 10) {
+          console.warn('xmpp session3:disconnected', this.connectedJid, this.getTime());
           this.emit('disconnected', this.connectedJid);
         }
         setTimeout(() => {
@@ -237,13 +253,11 @@ export class XmppEx extends EventEmitter3 {
     });
     this.client.on('request:timeout', () => {
       this.timeoutCount++;
-      if (this.timeoutCount == 2) {
-        setTimeout(() => {
-          console.log('connect trace3', this.connectedJid, this.isConnected, this.getTime());
-          if (!this.isConnected) {
-            this.connect()
-          }
-        }, 1111);
+      if (this.timeoutCount == 3) {
+        console.log('connect trace3', this.connectedJid, this.isConnected, this.getTime());
+        if (this.isConnected) {
+          this.client.disconnect();
+        }
       }
     });
   }
@@ -253,7 +267,7 @@ export class XmppEx extends EventEmitter3 {
       // console.log(`xmpp session3:ping: jid: ${this.connectedJid}, ${this.getTime()}`);
       setTimeout(() => this.ping(), 25000 + Math.random() * 5000);
     } else {
-      console.log(`xmpp session3:ping2: jid: ${this.connectedJid}`);
+      console.log(`xmpp session3:ping2: jid: ${this.connectedJid}`, this.client ? this.client.ts : 0, this.getTime());
     }
   }
   getTime() {
@@ -275,6 +289,7 @@ export class XmppEx extends EventEmitter3 {
     let isComplete = false;
     return new Promise((resolve, reject) => {
       const success = jid => {
+        console.warn(`xmpp auth:success: jid: ${self.connectedJid}, ${self.getTime()}`);
         isComplete = true;
         removeListeners();
         resolve(jid);
@@ -288,9 +303,11 @@ export class XmppEx extends EventEmitter3 {
       setTimeout(() => {
         if (!isComplete) {
           removeListeners();
-          self.client.disconnect();
+          if (self.isConnected) {
+            self.client.disconnect();
+          }
           //reject('Connection timeout');
-          console.log(`Connection timeout, ${this.getTime()}`);
+          console.log(`Connection timeout, ${self.isConnected}, ${self.getTime()}`);
         }
       }, 30000);
       const removeListeners = () => {
@@ -462,7 +479,7 @@ export class XmppEx extends EventEmitter3 {
    * @param   {Object}  message   The message to be sent
    * @throws  {Error}             Throws an error if the client is not connected
    */
-  sendMessage(message, retryCnt = 0) {
+  sendMessage(message) {
     let isConnected = false;
     try {
       isConnected = this.requireConnection();
@@ -470,12 +487,6 @@ export class XmppEx extends EventEmitter3 {
       console.warn(e);
     }
     if (!isConnected) {
-      retryCnt++;
-      if (retryCnt <= 10) {
-        setTimeout(() => {
-          this.connect().then(() => this.sendMessage(message, retryCnt));
-        }, 100 + 1000 * (retryCnt - 1)); // 0.1s, 1.1s, 2.1s ...
-      }
       return;
     }
     const finalMessage = Object.assign({}, message, {

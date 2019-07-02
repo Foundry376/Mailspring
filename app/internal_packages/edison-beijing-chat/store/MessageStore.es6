@@ -7,7 +7,7 @@ import { downloadFile } from '../utils/awss3';
 import { isJsonStr } from '../utils/stringUtils';
 import {
   groupMessagesByTime,
-  addMessagesSenderNickname,
+  addMessagesSenderNickname, parseMessageBody,
 } from '../utils/message';
 import ConversationModel from '../model/Conversation';
 import MessageModel, { MESSAGE_STATUS_RECEIVED } from '../model/Message';
@@ -82,6 +82,22 @@ class MessageStore extends MailspringStore {
     }
   }
 
+  removeMessageById = async (id, convJid) => {
+    const $index = id.lastIndexOf('$');
+    if ($index > 0) {
+      convJid = id.substr($index + 1);
+    } else {
+      if (!convJid) {
+        convJid = this.conversationJid;
+      }
+      id += '$' + convJid;
+    }
+    await MessageModel.destroy({ where: { id } });
+    if (convJid === this.conversationJid) {
+      await this.retrieveSelectedConversationMessages(convJid);
+    }
+  }
+
   processPrivateMessage = async (payload) => {
     await this.prepareForSaveMessage(payload, RECEIVE_PRIVATECHAT);
   }
@@ -100,11 +116,12 @@ class MessageStore extends MailspringStore {
     }
     // if not current conversation, unreadMessages + 1
     let unreadMessages = 0;
-    if (!this.conversationJid || this.conversationJid !== payload.from.bare) {
+    const selectedConversation = await ConversationStore.getSelectedConversation();
+    if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
       unreadMessages = 1;
     }
     let jid;
-    console.log( payload.from.bare , payload.curJid);
+    console.log(payload.from.bare, payload.curJid);
     if (payload.from.bare === payload.curJid) {
       jid = payload.to.bare;
     } else {
@@ -183,6 +200,9 @@ class MessageStore extends MailspringStore {
     }
 
     const conv = await this.processGroupMessage(message);
+    if (!conv) {
+      return;
+    }
     if (conv.jid === this.conversationJid) {
       this.retrieveSelectedConversationMessages(conv.jid);
     }
@@ -191,14 +211,7 @@ class MessageStore extends MailspringStore {
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     let body;
-    let convJid;
-    if (chatType === RECEIVE_PRIVATECHAT) {
-      convJid = payload.from.bare;
-    } else {
-      convJid = payload.from.local;
-    }
-    const msgId = payload.id;
-    console.log( 'downloadAndTagImageFileInMessage: payload: ', payload);
+    let convJid = payload.from.bare;
     if (aes) {
       body = decryptByAES(aes, payload.payload);
       if (!body) {
@@ -211,7 +224,7 @@ class MessageStore extends MailspringStore {
     try {
       msgBody = JSON.parse(body);
     } catch (e) {
-      console.error('downloadAndTagImageFileInMessage error:', e);
+      console.error('downloadAndTagImageFileInMessage error:', e, body);
       payload.body = '';
       return;
     }
@@ -235,7 +248,6 @@ class MessageStore extends MailspringStore {
       const thumbPath = downpath + name;
       msgBody.path = 'file://' + thumbPath;
       msgBody.downloading = true;
-      console.log( 'downloadAndTagImageFileInMessage: downloading: ', msgBody);
       if (msgBody.thumbObjectId) {
         downloadFile(aes, msgBody.thumbObjectId, thumbPath, (err) => {
           if (err) {
@@ -243,10 +255,10 @@ class MessageStore extends MailspringStore {
             msgBody.content = `the file ${name} failed to be downloaded`;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id,
+              id: payload.id + '$' + convJid,
               conversationJid: convJid,
               body,
-              status: 'MESSAGE_STATUS_RECEIVED'
+              status: 'MESSAGE_STATUS_TRANSFER_FAILED'
             }
             this.saveMessagesAndRefresh([msg]);
             ChatActions.updateDownload(msgBody.mediaObjectId);
@@ -259,15 +271,24 @@ class MessageStore extends MailspringStore {
                 msgBody.downloading = false;
                 body = JSON.stringify(msgBody);
                 const msg = {
-                  id: payload.id,
+                  id: payload.id + '$' + convJid,
                   conversationJid: convJid,
                   body,
-                  status: 'MESSAGE_STATUS_RECEIVED'
+                  status: 'MESSAGE_STATUS_TRANSFER_FAILED'
                 }
                 this.saveMessagesAndRefresh([msg]);
                 ChatActions.updateDownload(msgBody.mediaObjectId);
                 return;
               } else if (fs.existsSync(thumbPath)) {
+                msgBody.downloading = false;
+                body = JSON.stringify(msgBody);
+                const msg = {
+                  id: payload.id + '$' + convJid,
+                  conversationJid: convJid,
+                  body,
+                  status: 'MESSAGE_STATUS_RECEIVED'
+                }
+                this.saveMessagesAndRefresh([msg]);
                 ChatActions.updateDownload(msgBody.mediaObjectId);
               }
             });
@@ -280,15 +301,24 @@ class MessageStore extends MailspringStore {
             msgBody.downloading = false;
             body = JSON.stringify(msgBody);
             const msg = {
-              id: payload.id,
+              id: payload.id + '$' + convJid,
               conversationJid: convJid,
               body,
-              status: 'MESSAGE_STATUS_RECEIVED'
+              status: 'MESSAGE_STATUS_TRANSFER_FAILED'
             }
             this.saveMessagesAndRefresh([msg]);
             ChatActions.updateDownload(msgBody.mediaObjectId);
             return;
           } else if (fs.existsSync(thumbPath)) {
+            msgBody.downloading = false;
+            body = JSON.stringify(msgBody);
+            const msg = {
+              id: payload.id + '$' + convJid,
+              conversationJid: convJid,
+              body,
+              status: 'MESSAGE_STATUS_RECEIVED'
+            }
+            this.saveMessagesAndRefresh([msg]);
             ChatActions.updateDownload(msgBody.mediaObjectId);
           }
         });
@@ -347,9 +377,9 @@ class MessageStore extends MailspringStore {
     let name = payload.from.local;
     // get the room name and whether you are '@'
     const rooms = await RoomStore.getRooms();
-    const body = JSON.parse(payload.body);
+    const body = parseMessageBody(payload.body);
     at = !body.atJids || body.atJids.indexOf(payload.curJid) === -1 ? false : true;
-    if (rooms[payload.from.bare]) {
+    if (rooms[payload.from.bare] && rooms[payload.from.bare].name) {
       name = rooms[payload.from.bare].name;
     } else {
       let roomsInfo = await xmpp.getRoomList(null, payload.curJid);
@@ -392,6 +422,10 @@ class MessageStore extends MailspringStore {
       if (unreadMessages) {
         conv.unreadMessages = convInDb.unreadMessages + 1;
       }
+      // if conversation's curJid is not equal to payload's curJid, skip it.
+      if (convInDb.curJid !== payload.curJid) {
+        return;
+      }
     } else {
       conv.avatarMembers = [];
     }
@@ -421,15 +455,15 @@ class MessageStore extends MailspringStore {
     const contact = ContactStore.findContactByJid(msgFrom);
     const conv = await ConversationStore.getConversationByJid(convjid);
     let title = conv.name;
-    const senderName = payload.appName || memberName || contact && contact.name
-    if (senderName) {
-      title += ': ' + senderName;
-    };
+    const senderName = payload.appName || memberName || contact && contact.name;
     let body = payload.body;
     if (isJsonStr(body)) {
       body = JSON.parse(body);
     }
     body = body.content || payload.body;
+    if (senderName) {
+      body = senderName + ': ' + body;
+    };
     const noti = postNotification(title, body);
     noti.addEventListener('click', (event) => {
       ChatActions.selectConversation(convjid);

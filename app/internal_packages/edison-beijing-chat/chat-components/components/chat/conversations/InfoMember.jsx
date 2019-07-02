@@ -31,7 +31,7 @@ export default class InfoMember extends Component {
   render = () => {
     const { conversation, member } = this.props;
     const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
-    let membername = name(jid);
+    let membername = name(jid) || member.name;
     const email = member.email;
     const moreInfo = [];
     if (member.affiliation === 'owner') {

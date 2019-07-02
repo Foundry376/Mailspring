@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
 import MessagesTopBar from './MessagesTopBar';
+import OnlineStatus from './OnlineStatus';
 import NewConversationTopBar from './NewConversationTopBar';
 import MessagesSendBar from './MessagesSendBar';
 import Messages from './Messages';
@@ -10,22 +11,20 @@ import Divider from '../../common/Divider';
 import { downloadFile, uploadFile } from '../../../../utils/awss3';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
-import { FILE_TYPE } from '../../../../utils/filetypes';
-import registerLoginChatAccounts from '../../../../utils/registerLoginChatAccounts';
+import registerLoginChat from '../../../../utils/register-login-chat';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore } from 'chat-exports';
+import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore, OnlineUserStore, MemberProfileStore } from 'chat-exports';
 import MemberProfile from '../conversations/MemberProfile';
 
 import { xmpplogin } from '../../../../utils/restjs';
 import fs from "fs";
 import https from "https";
 import http from "http";
-import { MESSAGE_STATUS_UPLOAD_FAILED } from '../../../../model/Message';
-import { beginSendingMessage } from '../../../actions/chat';
+import { MESSAGE_STATUS_TRANSFER_FAILED } from '../../../../model/Message';
 import { sendFileMessage } from '../../../../utils/message';
-import { getToken, getMyApps } from '../../../../utils/appmgt';
-import { log } from '../../../../utils/log-util';
+import { getToken } from '../../../../utils/appmgt';
 import { LocalStorage } from 'chat-exports';
+import { alert } from '../../../../utils/electron';
 
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -43,7 +42,7 @@ export default class MessagesPanel extends Component {
     referenceTime: new Date().getTime(),
   }
 
-  apps = []
+  apps = [];
 
   constructor(props) {
     super(props);
@@ -83,8 +82,7 @@ export default class MessagesPanel extends Component {
       this.setState({
         selectedConversation
       });
-    }
-    else if (changedDataName === 'contact') {
+    } else if (changedDataName === 'contact') {
       const contacts = await ContactStore.getContacts();
       this.setState({
         contacts
@@ -93,43 +91,38 @@ export default class MessagesPanel extends Component {
   }
 
   componentDidMount = async () => {
-    window.addEventListener("online", this.onLine);
-    window.addEventListener("offline", this.offLine);
     const contacts = await ContactStore.getContacts();
     const selectedConversation = await ConversationStore.getSelectedConversation();
+    document.body.onclick = this._closePreview;
     this.setState({
       online: navigator.onLine,
       contacts,
       selectedConversation
     });
   }
+
+  _closePreview = (e) => {
+    if (e.target.tagName === "IMG") {
+      return;
+    }
+    const currentWin = AppEnv.getCurrentWindow();
+    currentWin.closeFilePreview();
+  }
+
+  componentWillReceiveProps = async (nextProps, nextContext) => {
+    const selectedConversation = await ConversationStore.getSelectedConversation();
+    this.setState({
+      contacts,
+      selectedConversation
+    });
+  }
+
   componentWillUnmount() {
-    window.removeEventListener("online", this.onLine);
-    window.removeEventListener("offline", this.offLine);
     for (const unsub of this._unsubs) {
       unsub();
     };
+    document.body.onclick = null;
   }
-
-  onLine = () => {
-    log(`MessagePanel: chat online`);
-    // connect to chat server
-    if (!this.props.chat_online) {
-      this.reconnect();
-    }
-    ChatActions.updateProgress({ offline: false });
-    this.setState({
-      online: true
-    })
-  };
-
-  offLine = () => {
-    log(`MessagePanel: chat offline`);
-    ChatActions.updateProgress({ offline: true, failed: true });
-    this.setState({
-      online: false
-    })
-  };
 
   saveRoomMembersForTemp = (members) => {
     this.setState({ membersTemp: members })
@@ -158,44 +151,33 @@ export default class MessagesPanel extends Component {
 
   sendFile(files) {
     const { selectedConversation } = this.state;
-    const onMessageSubmitted = this.props.sendMessage;
     const atIndex = selectedConversation.jid.indexOf('@');
-
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
-
     files.map((file, index) => sendFileMessage(file, index, this, ' '));
   }
 
   createRoom = () => {
-    const members = this.state.membersTemp;
-    if (members && members.length) {
-      if (members.length > 4) {
+    const contacts = this.state.membersTemp;
+    if (contacts && contacts.length) {
+      const curJid = contacts[0].curJid;
+      if (contacts.length === 1) {
+        ConversationStore.createPrivateConversation(contacts[0]);
+      } else if (contacts.some((contact) => contact.jid.match(/@app/))) {
+        alert('Should only create private conversation with single plugin app contact.');
+        return;
+      } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
-        const names = members.map(item => item.name);
-        const chatName = names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others`;
-        ConversationStore.createGroupConversation({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
-      }
-      else if (members.length > 1) {
-        if (members.some((member) => member.jid.match(/@app/))) {
-          window.alert('plugin app should only create private conversation with single member!');
-          return;
-        }
-        const roomId = uuid() + GROUP_CHAT_DOMAIN;
-        const names = members.map(item => item.name);
-        const chatName = names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
-        ConversationStore.createGroupConversation({ contacts: members, roomId, name: chatName, curJid: members[0].curJid });
-      }
-      else if (members.length == 1) {
-        ConversationStore.createPrivateConversation(members[0]);
+        const names = contacts.map(contact => contact.name);
+        const name = (contacts.length > 4 ? names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others` :
+          names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1]);
+        ConversationStore.createGroupConversation({ contacts, roomId, name, curJid });
       }
     }
   }
 
   editProfile = member => {
-    const { profile } = this;
-    profile.clickSame = member && member === profile.state.member;
     setTimeout(() => {
-      this.profile.setMember(member);
+      MemberProfileStore.setMember(member);
     }, 10);
   }
 
@@ -209,13 +191,13 @@ export default class MessagesPanel extends Component {
       nicknames[jid] = member.nickname;
       LocalStorage.saveToLocalStorage();
     }
-    this.profile.setMember(null);
+    MemberProfileStore.setMember(null);
     MessageStore.saveMessagesAndRefresh([]);
     LocalStorage.trigger();
   }
 
   reconnect = () => {
-    registerLoginChatAccounts();
+    registerLoginChat();
   }
 
   queueLoadMessage = (loadConfig) => {
@@ -225,7 +207,7 @@ export default class MessagesPanel extends Component {
     if (loading) {
       loadConfig = progress.loadConfig;
       const loadText = loadConfig.type === 'upload' ? 'An upload' : ' A download';
-      window.alert(`${loadText} is processing, please wait it to be finished!`);
+      alert('${loadText} is processing, please wait it to be finished!');
       return;
     }
     ChatActions.updateProgress({ loadConfig, loading: true, visible: true },
@@ -258,7 +240,6 @@ export default class MessagesPanel extends Component {
         body.isUploading = false;
         body.mediaObjectId = myKey;
         body = JSON.stringify(body);
-        console.log( 'loadCallback: ', err, body, myKey, loadConfig);
         if (err) {
           console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
           const message = {
@@ -267,7 +248,7 @@ export default class MessagesPanel extends Component {
             body,
             sender: conversation.curJid,
             sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
-            status: MESSAGE_STATUS_UPLOAD_FAILED,
+            status: MESSAGE_STATUS_TRANSFER_FAILED,
           };
           MessageStore.saveMessagesAndRefresh([message]);
           return;
@@ -281,14 +262,10 @@ export default class MessagesPanel extends Component {
       const { loaded, total } = progress;
       const percent = Math.floor(+loaded * 100.0 / (+total));
       if (loadConfig.type === 'upload' && +loaded === +total) {
-        const onMessageSubmitted = this.props.sendMessage;
-        const conversation = loadConfig.conversation;
-        const messageId = loadConfig.messageId;
         let body = loadConfig.msgBody;
         body.isUploading = false;
         body = JSON.stringify(body);
         ChatActions.updateProgress({ percent, visible: true });
-        onMessageSubmitted(conversation, body, messageId, false);
       }
       ChatActions.updateProgress({ percent });
     }
@@ -301,7 +278,7 @@ export default class MessagesPanel extends Component {
         loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
       } catch (e) {
         console.error('upload file:', e);
-        window.alert(`failed to send file: ${loadConfig.filepath}: ${e}`);
+        alert('failed to send file: ${loadConfig.filepath}: ${e}');
         this.cancelLoadMessage();
         ChatActions.updateProgress({ failed: true, loading: false, visible: false });
         return;
@@ -311,7 +288,7 @@ export default class MessagesPanel extends Component {
       let imgpath = msgBody.path.replace('file://', '');
       if (imgpath !== filepath) {
         if (!fs.existsSync(imgpath)) {
-          window.alert('The file does not exist, probably it is failed to be received, please try to receive this message again.')
+          alert('The file does not exist, probably it is failed to be received, please try to receive this message again.');
         }
         fs.copyFileSync(imgpath, filepath);
       }
@@ -366,7 +343,7 @@ export default class MessagesPanel extends Component {
       try {
         loadConfig.request.abort();
       } catch (e) {
-        console.log('abort loading:', e);
+        console.log('error on abort loading:', e);
       }
     }
     if (loadConfig && loadConfig.type === 'upload') {
@@ -377,7 +354,6 @@ export default class MessagesPanel extends Component {
       body.path = body.localFile;
       //body.localFile = null;
       body = JSON.stringify(body);
-      chatReduxStore.dispatch(beginSendingMessage(conversation, body, messageId, false, false));
     }
     ChatActions.updateProgress({ loading: false, failed: true });
     clearInterval(this.loadTimer);
@@ -401,7 +377,7 @@ export default class MessagesPanel extends Component {
         if (data.data && data.data.url) {
           exec('open ' + data.data.url);
         } else {
-          window.alert('fail to open the app store page');
+          alert('fail to open the app store page');
         }
       }
     })
@@ -455,9 +431,8 @@ export default class MessagesPanel extends Component {
       className = 'new-conversation-popup'
     }
 
-    const isOffLine = !this.state.online || !this.props.chat_online;
     return (
-      <div className={`panel ${isOffLine ? 'offline' : ''}`}
+      <div className={`panel`}
         onDragOverCapture={this.onDragOver}
         onDragEnd={this.onDragEnd}
         onMouseLeave={this.onDragEnd}
@@ -504,40 +479,8 @@ export default class MessagesPanel extends Component {
             </span>
           </div>
         }
-        {isOffLine && (
-          <div className="network-offline">
-            {this.state.online ? (
-              this.props.isAuthenticating ? (
-                <div>
-                  <RetinaImg name={'no-network.svg'}
-                    style={{ width: 16 }}
-                    isIcon
-                    mode={RetinaImg.Mode.ContentIsMask} />
-                  <span>Your computer appears to be disconnected. Edison Mail is trying to reconnect. </span>
-                </div>
-              ) : (
-                  <div>
-                    <RetinaImg name={'no-network.svg'}
-                      style={{ width: 16 }}
-                      isIcon
-                      mode={RetinaImg.Mode.ContentIsMask} />
-                    <span>There appears to be a problem with your connection. Please click to reconnect: </span>
-                    <span className="reconnect" onClick={this.reconnect}>Reconnect Now</span>
-                  </div>
-                )
-            ) : (<div>
-              <RetinaImg name={'no-network.svg'}
-                style={{ width: 16 }}
-                isIcon
-                mode={RetinaImg.Mode.ContentIsMask} />
-              <span>Your computer appears to be offline. Please check your network connection.</span>
-            </div>)}
-          </div>
-        )}
-        <MemberProfile conversation={selectedConversation}
-          exitProfile={this.exitProfile}
-          panel={this}>
-        </MemberProfile>
+        <OnlineStatus conversation={selectedConversation}></OnlineStatus>
+        <MemberProfile conversation={selectedConversation} exitProfile={this.exitProfile}></MemberProfile>
       </div>
     );
   }

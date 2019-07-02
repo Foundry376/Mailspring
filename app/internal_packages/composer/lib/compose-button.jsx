@@ -54,10 +54,10 @@ export default class ComposeButton extends React.Component {
       this._sendButtonClickedTimer = null;
     }, buttonTimeout);
   };
-  _delayShowLoading=()=>{
-    this._loadingButtonTimer = setTimeout(()=>{
-      if(this._mounted){
-        this.setState({showLoading: true});
+  _delayShowLoading = () => {
+    this._loadingButtonTimer = setTimeout(() => {
+      if (this._mounted) {
+        this.setState({ showLoading: true });
       }
     }, buttonTimeout);
   };
@@ -72,7 +72,7 @@ export default class ComposeButton extends React.Component {
   };
 
   render() {
-    return <div className='sheet-toolbar' style={{position: 'unset', height: 'unset', padddingLeft: 15, paddingTop: 40}}>
+    return <div className='sheet-toolbar' style={{ position: 'unset', height: 'unset', padddingLeft: 15, paddingTop: 40 }}>
       <button
         className={`btn btn-toolbar item-compose ${
           this.state.creatingNewDraft ? 'btn-disabled' : ''
@@ -83,12 +83,12 @@ export default class ComposeButton extends React.Component {
       >
         {this.state.showLoading ?
           <LottieImg name='loading-spinner-blue'
-                     size={{ width: 24, height: 24 }}
-                     style={{ margin: 'none' }}/> :
-          <RetinaImg name='email.svg'
-                     style={{ width: 24 }}
-                     isIcon={true}
-                     mode={RetinaImg.Mode.ContentIsMask}/>
+            size={{ width: 24, height: 24 }}
+            style={{ margin: 'none' }} /> :
+          <RetinaImg name='pencil.svg'
+            style={{ width: 24 }}
+            isIcon={true}
+            mode={RetinaImg.Mode.ContentIsMask} />
         }
         <span>Compose</span>
       </button>

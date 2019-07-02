@@ -12,18 +12,19 @@
     overflow: visible;
     .offline,
     .online {
-        height: 8px;
-        width: 8px;
+        height: 9px;
+        width: 9px;
         border-radius: 50%;
         position: absolute;
-        right: 0;
-        bottom: 0;
+        right: -1px;
+        bottom: -1px;
+        border: 1px solid @white;
     }
     .online {
-        background: #00dc60;
+        background: @green;
     }
     .offline {
-        background: #666;
+        background: @gray-light;
         display: none;
     }
     .avatar-image {

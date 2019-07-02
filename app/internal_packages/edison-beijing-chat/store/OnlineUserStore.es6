@@ -4,6 +4,7 @@ import _ from 'underscore';
 class OnlineUserStore extends MailspringStore {
   constructor() {
     super();
+    this.authingAccounts = {};
     this.onlineUsers = {};
     this.onlineAccounts = {};
     this.allSelfAccounts = {};
@@ -29,12 +30,25 @@ class OnlineUserStore extends MailspringStore {
   }
 
   addOnLineAccount(payload) {
-    this.onlineAccounts[payload.bare] = 1;
+    const jid = payload.from && payload.from.bare || payload.bare;
+    this.onlineAccounts[jid] = 1;
+    this.authingAccounts[jid] = 0;
     this._triggerDebounced();
   }
 
-  removeOnLineAccount() {
-    this.onlineAccounts = {};
+  addAuthingAccount(jid) {
+    this.authingAccounts[jid] = 1;
+    this._triggerDebounced();
+  }
+
+  removeAuthingAccount(jid) {
+    this.authingAccounts[jid] = 0;
+    this._triggerDebounced();
+  }
+
+  removeOnLineAccount(data) {
+    this.authingAccounts[data.curJid] = 0;
+    this.authingAccounts = {};
     this.resetOnlineUsers();
     this._triggerDebounced();
   }

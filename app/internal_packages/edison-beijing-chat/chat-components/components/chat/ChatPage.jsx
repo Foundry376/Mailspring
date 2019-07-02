@@ -37,7 +37,6 @@ export default class ChatPage extends PureComponent {
       currentUserId,
       groupedMessages,
       referenceTime,
-      chat_online: online,
       isAuthenticating
     };
 

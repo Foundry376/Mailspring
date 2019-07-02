@@ -8,7 +8,7 @@ import OpenTrackingComposerExtension from './open-tracking-composer-extension';
 const OpenTrackingButtonWithTutorialTip = HasTutorialTip(OpenTrackingButton, {
   title: 'See when recipients open this email',
   instructions:
-    'When enabled, Mailspring will notify you as soon as someone reads this message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.',
+    'When enabled, Edison Mail will notify you as soon as someone reads this message. Sending to a group? Mailspring shows you which recipients opened your email so you can follow up with precision.',
 });
 
 export function activate() {
@@ -21,7 +21,7 @@ export function activate() {
   ExtensionRegistry.Composer.register(OpenTrackingComposerExtension);
 }
 
-export function serialize() {}
+export function serialize() { }
 
 export function deactivate() {
   ComponentRegistry.unregister(OpenTrackingButtonWithTutorialTip);

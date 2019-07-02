@@ -121,13 +121,22 @@ internals.defineMessage = function (JXT, name, namespace) {
                 get: function getE2ee$() {
                     //yazz debugger;
                     const e2ee = Utils.getElements(this.xml, 'edi-e2ee', 'edi-e2ee');
+                    let result = {};
                     if (e2ee.length) {
                         try {
                             let user = Utils.getElements(e2ee[0], 'edi-e2ee', 'user')[0];
-                            let device = Utils.getElements(user, 'edi-e2ee', 'device')[0];
-                            if (device) {
-                                let key = Utils.getElements(device, 'edi-e2ee', 'key')[0];
-                                return { id: this.xml.getAttribute('id'), user: user.attrs.jid, device: device.attrs.id, key: key.children[0] };
+                            const jid = user.getAttribute('jid');
+                            let devices = Utils.getElements(user, 'edi-e2ee', 'device');
+                            if (devices && devices.length > 0) {
+                                result["jid"] = jid;
+                                result["devices"] = [];
+                                for (let i = 0; i < devices.length; i++) {
+                                    const device = devices[i];
+                                    let key = Utils.getElements(device, 'edi-e2ee', 'key')[0];
+                                    let id = device.attrs.id;
+                                    result["devices"].push({ id, key: key.children[0] });//user: user.attrs.jid, device: device.attrs.id, key: key.children[0] });
+                                }
+                                return result;
                             }
                         } catch (e) {
                             console.log('error', e);
@@ -158,6 +167,9 @@ internals.defineMessage = function (JXT, name, namespace) {
                     if (!type || (type != 'chat' && type != 'groupchat')) { return ''; }
                     const bext = Utils.getElements(this.xml, 'jabber:client', 'bodyext');
                     try {
+                        if (this.xml.children.length == 1) {
+                            return this.xml.children[0].attrs.ts;
+                        }
                         return Utils.getAttribute(bext[0], 'ts');
                     } catch (e) {
                         console.log('error data', e);

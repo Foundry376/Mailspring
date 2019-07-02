@@ -1,13 +1,17 @@
 import keyMannager from '../../../src/key-manager';
 import { register } from './restjs';
-import { SUBMIT_AUTH } from '../chat-components/actions/auth';
+import auth from '../xmpp/auth';
 import { OnlineUserStore } from 'chat-exports';
 
-export default async function registerLoginChatAccounts() {
+export default async function registerLoginChat() {
   let accounts = AppEnv.config.get('accounts');
 
   for (let account of accounts) {
-    await registerLoginEmailAccountForChat(account);
+    try {
+      await registerLoginEmailAccountForChat(account);
+    } catch (e) {
+      console.error('error in login chat account: ', account, e);
+    }
   }
 }
 
@@ -30,7 +34,7 @@ export async function registerLoginEmailAccountForChat(account) {
   if (!chatAccount.password || (leftTime < 2 * 24 * 3600)) {
     account.clone = () => Object.assign({}, account);
     account = await keyMannager.insertAccountSecrets(account);
-    console.log("registerLoginChatAccounts account.settings.refresh_token, account.settings.imap_password, account: ", account.settings.refresh_token, account.settings.imap_password, account);
+    console.log("registerLoginChat account.settings.refresh_token, account.settings.imap_password, account: ", account.settings.refresh_token, account.settings.imap_password, account);
     if (account.settings && !account.settings.imap_password && !account.settings.refresh_token) {
       console.error('email account passwords in keychain lost! ', account);
       return;
@@ -56,21 +60,14 @@ export async function registerLoginEmailAccountForChat(account) {
     chatAccount.refreshTime = (new Date()).getTime();
     let jid = chatAccount.userId + '@im.edison.tech';
     OnlineUserStore.addSelfAccount(jid, chatAccount);
-    chatReduxStore.dispatch({
-      type: SUBMIT_AUTH,
-      payload: { jid, password: chatAccount.password, email: account.emailAddress }
-    });
+    await auth({jid, password: chatAccount.password});
     chatAccount.clone = () => Object.assign({}, chatAccount);
-    keyMannager.extractChatAccountSecrets(chatAccount).then(chatAccount => {
-      chatAccounts[account.emailAddress] = chatAccount;
-      AppEnv.config.set('chatAccounts', chatAccounts);
-    })
+    chatAccount = await keyMannager.extractChatAccountSecrets(chatAccount);
+    chatAccounts[account.emailAddress] = chatAccount;
+    AppEnv.config.set('chatAccounts', chatAccounts);
   } else {
     let jid = chatAccount.userId + '@im.edison.tech';
     OnlineUserStore.addSelfAccount(jid, chatAccount);
-    chatReduxStore.dispatch({
-      type: SUBMIT_AUTH,
-      payload: { jid, password: chatAccount.password, email: chatAccount.email }
-    });
+    await auth({jid, password: chatAccount.password});
   }
- }
+}

@@ -9,7 +9,8 @@ import { FixedPopover } from 'mailspring-component-kit';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import InviteGroupChatList from '../new/InviteGroupChatList';
 import uuid from 'uuid/v4';
-import {name} from '../../../../utils/name';
+import { name } from '../../../../utils/name';
+import { alert } from '../../../../utils/electron';
 
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
@@ -45,12 +46,6 @@ export default class ConversationInfo extends Component {
     }
     const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
     await xmpp.leaveRoom(conversation.jid, jid, conversation.curJid);
-    if (jid == conversation.curJid) {
-      ChatActions.removeConversation(conversation.jid);
-      ChatActions.deselectConversation();
-    } else {
-      this.refreshRoomMembers();
-    }
   };
 
   componentDidMount() {
@@ -105,14 +100,17 @@ export default class ConversationInfo extends Component {
     });
   };
 
-  exitGroup = () => {
+  exitGroup = async () => {
     if (!confirm('Are you sure to exit from this group?')) {
       return;
     }
     const { selectedConversation: conversation } = this.props;
-    xmpp.leaveRoom(conversation.jid, conversation.curJid, conversation.curJid);
-    ChatActions.removeConversation(conversation.jid);
-    ChatActions.deselectConversation();
+    await xmpp.leaveRoom(conversation.jid, conversation.curJid, conversation.curJid);
+    const isNeedRetain = await RoomStore.updateConversationCurJid(conversation.curJid, conversation.jid);
+    if (!isNeedRetain) {
+      ChatActions.removeConversation(conversation.jid);
+      ChatActions.deselectConversation();
+    }
   };
 
   toggleInvite = (moreBtnEl) => {
@@ -123,7 +121,7 @@ export default class ConversationInfo extends Component {
     this.setState({ inviting: false });
     const { selectedConversation } = this.props;
     if (contacts.some(contact => contact.jid.match(/@app/))) {
-      window.alert('plugin app should not be added to any group chat as contact.');
+      alert('plugin app should not be added to any group chat as contact.');
       return;
     }
     if (contacts && contacts.length > 0) {

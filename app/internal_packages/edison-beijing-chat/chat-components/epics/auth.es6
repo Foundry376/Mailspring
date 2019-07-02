@@ -67,8 +67,9 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
       .map(res => {
         // fetch and saveRoom infomation
         setTimeout(() => {
-          xmpp.getRoomList(null, res.bare)
-            .then(rooms => RoomStore.saveRooms(rooms));
+          RoomStore.refreshRoomsFromXmpp(res.bare);
+          // xmpp.getRoomList(null, res.bare)
+          //   .then(rooms => RoomStore.saveRooms(rooms));
         }, 200);
         setTimeout(() => {
           xmpp.getRoster(res.bare)

@@ -1,12 +1,14 @@
 import MailspringStore from 'mailspring-store';
+import { AccountStore } from 'mailspring-exports';
 import RoomModel from '../model/Room';
 import xmpp from '../xmpp';
 import { jidlocal } from '../utils/jid';
 import { MESSAGE_STATUS_RECEIVED } from '../model/Message';
-import { MessageStore, ContactStore, UserCacheStore, ConfigStore } from 'chat-exports';
+import { MessageStore, ContactStore, UserCacheStore, ConfigStore, ConversationStore } from 'chat-exports';
 
 
 const ROOM_MEMBER_VER = 'room_member_ver_';
+const ROOM_LIST_VER = 'room_list_ver_';
 class RoomStore extends MailspringStore {
   constructor() {
     super();
@@ -47,16 +49,31 @@ class RoomStore extends MailspringStore {
     this.trigger();
   }
 
-  saveRooms(rooms) {
+  saveRooms = async (rooms) => {
     if (rooms && rooms.discoItems && rooms.discoItems.items) {
       for (const room of rooms.discoItems.items) {
-        RoomModel.upsert({
+        await RoomModel.upsert({
           jid: room.jid.bare,
           name: room.name
         });
       }
+      if (rooms.discoItems.ver) {
+        const configKey = ROOM_LIST_VER + rooms.curJid;
+        ConfigStore.saveConfig({ key: configKey, value: rooms.discoItems.ver });
+      }
       this.refreshRooms();
     }
+  }
+
+  refreshRoomsFromXmpp = async (jid) => {
+    const configKey = ROOM_LIST_VER + jid;
+    const config = await ConfigStore.findOne(configKey)
+    let ver = '1';
+    if (config) {
+      ver = config.value;
+    }
+    xmpp.getRoomList(ver, jid)
+      .then(rooms => this.saveRooms(rooms));
   }
 
   getRooms = () => {
@@ -68,7 +85,7 @@ class RoomStore extends MailspringStore {
     if (force) {
       members = await this.getRoomMembersFromXmpp(roomId, curJid);
     }
-    console.log( 'refreshRoomMember: ', roomId, curJid, force, members);
+    console.log('refreshRoomMember: ', roomId, curJid, force, members);
     if (!members) {
       members = this.getRoomMembersFromCache(roomId, curJid);
       if (members) {
@@ -146,8 +163,6 @@ class RoomStore extends MailspringStore {
   }
 
   getMemberName = async (data) => {
-    // data: {roomJid, memberJid, curJid}
-
     const roomJid = data.roomJid || data.curJid;
     const curJid = data.curJid || data.memberJid;
     const members = await this.getRoomMembers(roomJid, curJid);
@@ -164,10 +179,11 @@ class RoomStore extends MailspringStore {
 
   onMembersChange = async (payload) => {
     const nicknames = chatLocalStorage.nicknames;
+    const conversationJid = payload.from.bare;
     const fromjid = payload.userJid;
-    const fromcontact = await ContactStore.findContactByJid(fromjid);
+    const fromcontact = await UserCacheStore.getUserInfoByJid(fromjid);
     const byjid = payload.actorJid;
-    const bycontact = await ContactStore.findContactByJid(byjid);
+    const bycontact = await UserCacheStore.getUserInfoByJid(byjid);
     const item = {
       from: {
         jid: fromjid,
@@ -188,9 +204,16 @@ class RoomStore extends MailspringStore {
     const fromName = item.from.nickname || item.from.name || item.from.email;
     const byName = item.by.nickname || item.by.name || item.by.email;
     if (payload.type === 'join') {
-      content = `${fromName} joined by invitation from ${byName}.`
+      content = `${byName} invited ${fromName} to join the group chat.`;
     } else {
-      content = `${fromName} quited by operation from ${byName}.`
+      if (fromName === byName) {
+        content = `${fromName} left the conversation.`;
+      } else {
+        content = `${byName} removed ${fromName} from the conversation.`;
+      }
+      // curJid user is removed, and other self account is still in this group
+      // update curJid to other self use
+      await this.updateConversationCurJid(fromjid, conversationJid);
     }
     const body = {
       content,
@@ -198,7 +221,7 @@ class RoomStore extends MailspringStore {
     }
     const msg = {
       id: payload.id,
-      conversationJid: payload.from.bare,
+      conversationJid: conversationJid,
       sender: fromjid,
       body: JSON.stringify(body),
       sentTime: (new Date()).getTime(),
@@ -206,7 +229,38 @@ class RoomStore extends MailspringStore {
     };
     MessageStore.saveMessagesAndRefresh([msg]);
     this.trigger();
-    return;
+  }
+
+  updateConversationCurJid = async (removedJid, conversationJid) => {
+    // curJid user is removed, and other self account is still in this group
+    // update curJid to other self use
+    const conversation = await ConversationStore.getConversationByJid(conversationJid);
+    if (conversation && removedJid === conversation.curJid) {
+      const members = this.getRoomMembersFromCache(conversationJid);
+      if (members) {
+        for (const member of members) {
+          if (removedJid !== member.jid && this._isMe(member.email)) {
+            await ConversationStore.updateConversationByJid({
+              curJid: member.jid
+            }, conversationJid);
+            await this.refreshRoomMember(conversationJid, member.jid, true);
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  updateRoomName = async (roomId, roomName) => {
+    await RoomModel.upsert({
+      jid: roomId,
+      name: roomName
+    });
+  }
+
+  _isMe(email) {
+    return !!AccountStore.accountForEmail(email);
   }
 }
 

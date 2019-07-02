@@ -6,7 +6,7 @@ import CheckIcon from '../../common/icons/CheckIcon';
 import {
   MESSAGE_STATUS_DELIVERED,
   getStatusWeight,
-  MESSAGE_STATUS_UPLOAD_FAILED,
+  MESSAGE_STATUS_TRANSFER_FAILED,
 } from '../../../../model/Message';
 import { colorForString } from '../../../../utils/colors';
 import { dateFormat } from '../../../../utils/time';
@@ -23,6 +23,7 @@ import MessagePrivateApp from './MessagePrivateApp';
 import { ChatActions } from 'chat-exports';
 import { FILE_TYPE } from '../../../../utils/filetypes';
 import { MessageModel } from 'chat-exports';
+import { name } from '../../../../utils/name';
 
 export default class Msg extends PureComponent {
   static propTypes = {
@@ -123,9 +124,6 @@ export default class Msg extends PureComponent {
 
   componentWillUnmount() {
     this.unlisten();
-    const {
-      groupedMessages
-    } = this.props;
   }
 
   getContactInfoByJid = jid => {
@@ -245,12 +243,15 @@ export default class Msg extends PureComponent {
     }
   }
   onClickImage = (e) => {
-    const { msg } = this.props;
-    // console.log('onClickImage: msg', msg);
-    // ChatActions.updateImagePopup(msg);
+    e.preventDefault();
+    e.stopPropagation();
     if (e.target.src) {
-      shell.openExternal(e.target.src);
+      this._previewAttachment(decodeURI(e.target.src).replace('file://', ''));
     }
+  }
+  _previewAttachment(filePath) {
+    const currentWin = AppEnv.getCurrentWindow();
+    currentWin.previewFile(filePath);
   }
   msgFile = () => {
     const { msg } = this.props;
@@ -303,7 +304,7 @@ export default class Msg extends PureComponent {
   senderName = () => {
     const { msg } = this.props;
     const member = this.senderContact();
-    return msg.senderNickname || member.name;
+    return name(msg.sender) || member.name;
   }
 
   onMessageSubmitted = (conversation, body, messageId, uploading) => {
@@ -323,8 +324,6 @@ export default class Msg extends PureComponent {
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
-
-    console.log( 'msg.render: msg, msgBody:', msg, msgBody);
 
     if (msgBody.deleted) {
       return null;
@@ -364,6 +363,14 @@ export default class Msg extends PureComponent {
             <div className="message-header">
               <span className="username">{senderName}</span>
               <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
+              {
+                // msg.status === 'MESSAGE_STATUS_DELIVERED' || msg.status === 'MESSAGE_STATUS_RECEIVED' ?
+                //   <CheckIcon
+                //     className="messageStatus"
+                //     size={16}
+                //     color="gray"
+                //   /> : null
+              }
             </div>
             {
               (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgImgPath.replace('file://', '')))) ? (
@@ -424,28 +431,6 @@ export default class Msg extends PureComponent {
               </div>
             )}
 
-            <div className="messageMeta">
-              {
-                getStatusWeight(msg.status) >= getStatusWeight(MESSAGE_STATUS_DELIVERED) ?
-                  <CheckIcon
-                    className="messageStatus"
-                    size={8}
-                    color="white"
-                  /> : null
-              }
-            </div>
-            {
-              msg.status === MESSAGE_STATUS_UPLOAD_FAILED &&
-              <div className="upload-error">
-                <span>
-                  <RetinaImg name={'close_1.svg'}
-                    style={{ width: 20, height: 20 }}
-                    isIcon
-                    mode={RetinaImg.Mode.ContentIsMask} />
-                </span>
-                <span> File transfer failed!</span>
-              </div>
-            }
           </div>
         </div>
       );

@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import CancelIcon from './icons/CancelIcon';
 import path from 'path';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions } from 'chat-exports';
+import { ProgressBarStore, MessageStore, ChatActions } from 'chat-exports';
 
 const remote = require('electron').remote;
 const shell = remote.shell;
@@ -14,8 +14,12 @@ export default class ProgressBar extends PureComponent {
 
   hide = () => {
     let loading = ProgressBarStore.progress.loading;
-    if (ProgressBarStore.progress.finished || ProgressBarStore.progress.failed) {
+    const failed = ProgressBarStore.progress.failed;
+    if (ProgressBarStore.progress.finished || failed) {
       loading = false;
+    }
+    if (failed) {
+      const loadConfig = ProgressBarStore.progress.loadConfig;
     }
     ChatActions.updateProgress({ loading, visible: false });
   };

@@ -59,6 +59,7 @@ class ConversationStore extends MailspringStore {
 
   deselectConversation = async () => {
     this.selectedConversation = null;
+    MessageStore.conversationJid = null;
     this._triggerDebounced();
   }
 
@@ -166,6 +167,7 @@ class ConversationStore extends MailspringStore {
       // if exists in db, don't update curJid
       if (convInDb) {
         delete conv.curJid;
+        delete conv.name;
       }
       await ConversationModel.upsert(conv);
     }
@@ -254,6 +256,7 @@ class ConversationStore extends MailspringStore {
     };
     MessageStore.saveMessagesAndRefresh([msg]);
     await this.saveConversationName(convJid, config.name);
+    await RoomStore.updateRoomName(convJid, config.name);
   };
 
   convName = {};

@@ -80,7 +80,7 @@ export const iniApps = (userId, token, cb) => {
             }
             if (cb) {
                 console.log( 'iniApps: ', userId, token, myApps);
-                cb(myApps[userId].apps);
+                myApps[userId] && cb(myApps[userId].apps);
             }
         } else {
 

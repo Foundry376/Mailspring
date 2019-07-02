@@ -24,7 +24,6 @@ var SASL_MECHS = {
     anonymous: require('sasl-anonymous')
 };
 
-
 function timeoutRequest(targetPromise, id, delay) {
     var timeoutRef;
     return Promise.race([
@@ -49,7 +48,7 @@ function timeoutRequest(targetPromise, id, delay) {
 
 function Client(opts) {
     var self = this;
-
+    this.ts = new Date().getTime();
     WildEmitter.call(this);
 
     opts = opts || {};
@@ -240,7 +239,7 @@ Object.defineProperty(Client.prototype, 'stream', {
         return this.transport ? this.transport.stream : undefined;
     }
 });
-
+Client.prototype.ts = 0;
 Client.prototype._initConfig = function (opts) {
     var self = this;
     var currConfig = this.config || {};
