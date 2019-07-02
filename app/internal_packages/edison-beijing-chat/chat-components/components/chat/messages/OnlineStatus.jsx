@@ -31,7 +31,7 @@ const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class OnlineStatus extends Component {
   static propTypes = {
-    conversation: PropTypes.object.isRequired,
+    conversation: PropTypes.object,
   }
 
   apps = []
@@ -93,7 +93,8 @@ export default class OnlineStatus extends Component {
   }
 
   componentWillReceiveProps = async (nextProps, nextContext) => {
-    const {conversation} = this.props;
+    const {conversation} = nextProps;
+    console.log( 'componentWillReceiveProps: ', nextProps, OnlineUserStore.onlineAccounts, OnlineUserStore.authingAccounts);
     let chat_online, isAuthenticating;
     if (conversation) {
       const { curJid } = conversation;

@@ -10,7 +10,7 @@ export default async function registerLoginChat() {
     try {
       await registerLoginEmailAccountForChat(account);
     } catch (e) {
-      console.error('error in login chat account: ', account);
+      console.error('error in login chat account: ', account, e);
     }
   }
 }
@@ -62,7 +62,7 @@ export async function registerLoginEmailAccountForChat(account) {
     OnlineUserStore.addSelfAccount(jid, chatAccount);
     await auth({jid, password: chatAccount.password});
     chatAccount.clone = () => Object.assign({}, chatAccount);
-    const chatAccount = await keyMannager.extractChatAccountSecrets(chatAccount);
+    chatAccount = await keyMannager.extractChatAccountSecrets(chatAccount);
     chatAccounts[account.emailAddress] = chatAccount;
     AppEnv.config.set('chatAccounts', chatAccounts);
   } else {
