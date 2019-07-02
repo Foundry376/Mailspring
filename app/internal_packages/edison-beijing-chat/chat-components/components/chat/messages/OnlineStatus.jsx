@@ -1,33 +1,9 @@
 import React, { Component } from 'react';
-import { CSSTransitionGroup } from 'react-transition-group';
 import PropTypes from 'prop-types';
-import MessagesTopBar from './MessagesTopBar';
-import NewConversationTopBar from './NewConversationTopBar';
-import MessagesSendBar from './MessagesSendBar';
-import Messages from './Messages';
-import ConversationInfo from '../conversations/ConversationInfo';
-import Divider from '../../common/Divider';
-import { downloadFile, uploadFile } from '../../../../utils/awss3';
-import uuid from 'uuid/v4';
-import { NEW_CONVERSATION } from '../../../actions/chat';
 import registerLoginChat from '../../../../utils/register-login-chat';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore, OnlineUserStore, MemberProfileStore } from 'chat-exports';
-import MemberProfile from '../conversations/MemberProfile';
-
-import { xmpplogin } from '../../../../utils/restjs';
-import fs from "fs";
-import https from "https";
-import http from "http";
-import { MESSAGE_STATUS_TRANSFER_FAILED } from '../../../../model/Message';
-import { sendFileMessage } from '../../../../utils/message';
-import { getToken } from '../../../../utils/appmgt';
+import { ChatActions, OnlineUserStore } from 'chat-exports';
 import { log } from '../../../../utils/log-util';
-import { LocalStorage } from 'chat-exports';
-import { alert } from '../../../../utils/electron';
-
-const { exec } = require('child_process');
-const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
 
 export default class OnlineStatus extends Component {
   static propTypes = {
