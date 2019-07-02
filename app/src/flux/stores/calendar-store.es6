@@ -14,7 +14,7 @@ import fs from 'fs';
 
 class CalendarStore extends MailspringStore {
   static replyTemplate = (eventString) => {
-    return `BEGIN:VCALENDAR\r\nCALSCALE:GEORGIAN\r\nVERSION:2.0\r\nMETHOD:REPLY\r\nPRODID:-//EdisonMail\r\n${eventString}\r\nEND:VCALENDAR`;
+    return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nMETHOD:REPLY\r\nPRODID:-//EdisonMail\r\n${eventString}\r\nEND:VCALENDAR`;
   };
 
   constructor() {
@@ -76,12 +76,15 @@ class CalendarStore extends MailspringStore {
       const newCal = Calender.parse(CalendarStore.replyTemplate(e.toString()));
       const replyEvent = newCal.getFirstEvent();
       replyEvent.created = Date.now() / 1000;
+      let statusLabel = 'Accepted';
       if (reply === 1) {
         replyEvent.confirm(email);
       } else if (reply === 2) {
         replyEvent.cancel(email);
+        statusLabel = 'Declined';
       } else if (reply === 3) {
         replyEvent.tentative(email);
+        statusLabel = 'Tentative';
       }
       const organizer = replyEvent.organizer;
       let me = replyEvent.findAttendeeByEmail(email);
@@ -102,7 +105,7 @@ class CalendarStore extends MailspringStore {
         DraftFactory.createReplyForEvent({
           message,
           file: newFile,
-          replyStatus: { label: replyEvent.status, code: reply },
+          replyStatus: { label: statusLabel, code: reply },
           replyEvent,
           tos: [Contact.fromObject(organizer, { accountId: message.accountId })],
           me,

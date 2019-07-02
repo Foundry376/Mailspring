@@ -511,8 +511,6 @@ class VEvent extends ICAL.Event {
   }
 
   tentative(attendeeEmail = '') {
-    this.updatePropertyWithValue('status', 'TENTATIVE');
-    this._status = 'TENTATIVE';
     const attendee = this.findAttendeeByEmail(attendeeEmail);
     if (Array.isArray(attendee)) {
       attendee[0].tentative();
@@ -520,17 +518,13 @@ class VEvent extends ICAL.Event {
   }
 
   confirm(attendeeEmail = '') {
-    this.updatePropertyWithValue('status', 'CONFIRMED');
-    this._status = 'CONFIRMED';
     const attendee = this.findAttendeeByEmail(attendeeEmail);
     if (Array.isArray(attendee)) {
-      attendee[0].confirm();
+      attendee[0].accept();
     }
   }
 
   cancel(attendeeEmail = '') {
-    this.updatePropertyWithValue('status', 'CANCELLED');
-    this._status = 'CANCELLED';
     const attendee = this.findAttendeeByEmail(attendeeEmail);
     if (Array.isArray(attendee)) {
       attendee[0].decline();
