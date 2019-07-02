@@ -73,7 +73,7 @@ export const auth = async ({ jid, password }) => {
     AppsStore.saveMyAppsAndEmailContacts(res);
   } catch (error) {
     if (error && jid.split('@').length > 1) {
-      window.removeItem('sessionId' + jid.split('@')[0]);
+      window.localStorage.removeItem('sessionId' + jid.split('@')[0]);
       OnlineUserStore.removeAuthingAccount(jid);
     }
   };
