@@ -39,6 +39,9 @@ class Attendee {
     this._attendee = prop;
     this._parentType = type;
   }
+  get attendee(){
+    return this._attendee;
+  }
 
   get email() {
     return Attendee._parseEmailTo(this._attendee.getFirstValue());
@@ -268,6 +271,12 @@ class Attendee {
       val = 'REQ-PARTICIPANT';
     }
     this._attendee.setParameter('role', val);
+  }
+  toString(){
+    return this._attendee.toICALString();
+  }
+  getContentString(){
+    return this.toString().replace('ATTENDEE;', '');
   }
 }
 
@@ -511,24 +520,39 @@ class VEvent extends ICAL.Event {
   }
 
   tentative(attendeeEmail = '') {
+    this.updatePropertyWithValue('status', 'TENTATIVE');
+    this._status = 'TENTATIVE';
     const attendee = this.findAttendeeByEmail(attendeeEmail);
     if (Array.isArray(attendee)) {
       attendee[0].tentative();
     }
+    const attendeeStr = attendee[0].getContentString();
+    this.removeAllProperties('attendee');
+    this.updatePropertyWithValue('attendee', attendeeStr);
   }
 
   confirm(attendeeEmail = '') {
+    this.updatePropertyWithValue('status', 'CONFIRMED');
+    this._status = 'CONFIRMED';
     const attendee = this.findAttendeeByEmail(attendeeEmail);
     if (Array.isArray(attendee)) {
       attendee[0].accept();
     }
+    const attendeeStr = attendee[0].getContentString();
+    this.removeAllProperties('attendee');
+    this.updatePropertyWithValue('attendee', attendeeStr);
   }
 
   cancel(attendeeEmail = '') {
+    this.updatePropertyWithValue('status', 'CANCELED');
+    this._status = 'CANCELED';
     const attendee = this.findAttendeeByEmail(attendeeEmail);
     if (Array.isArray(attendee)) {
       attendee[0].decline();
     }
+    const attendeeStr = attendee[0].getContentString();
+    this.removeAllProperties('attendee');
+    this.updatePropertyWithValue('attendee', attendeeStr);
   }
 
   get transparent() {
@@ -629,6 +653,9 @@ class VEvent extends ICAL.Event {
   getFirstPropertyValue(prop) {
     return this.component.getFirstPropertyValue(prop);
   }
+  removeAllProperties(prop){
+    return this.component.removeAllProperties(prop);
+  }
 
   updatePropertyWithValue(prop, val) {
     this._lastMod.fromUnixTime(Date.now() / 1000, true);
@@ -658,7 +685,9 @@ export default class Calendar {
   }
 
   toString() {
-    return this._vCalendar.toString();
+    // For some reason, when setting attendee property value, Component.updatePropertyWithValue uses ":" instead of
+    // ";', we mannually replace
+    return this._vCalendar.toString().replace('ATTENDEE:', 'ATTENDEE;');
   }
 
   static parse(str) {
