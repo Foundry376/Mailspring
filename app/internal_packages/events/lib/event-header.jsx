@@ -40,9 +40,40 @@ class EventHeader extends React.Component {
       this._unlisten();
     }
   }
+  renderWhen(){
+    const recurrence = Object.keys(this.state.event.getRecurrenceTypes());
+    const repeat = recurrence.length > 0 ? ', Repeating event' : '';
+    let duration = '';
+    if(this.state.event.isAllDay()){
+      duration = 'All Day, ';
+    }else if(this.state.event.isAllWeek()){
+      duration = 'All Week, ';
+    }
+    const startDate = moment(this.state.event.startDate.toJSDate())
+      .tz(DateUtils.timeZone)
+      .format('dddd, MMMM Do');
+    let startTime = '';
+    let end = '';
+    if(duration.length === 0){
+      startTime =', ' + moment(this.state.event.startDate.toJSDate())
+        .tz(DateUtils.timeZone)
+        .format(DateUtils.getTimeFormat({ timeZone: false }));
+      if(this.state.event.isLessThanADay()){
+        end = ' - ' + moment(this.state.event.endDate.toJSDate())
+          .tz(DateUtils.timeZone)
+          .format(DateUtils.getTimeFormat({ timeZone: true }));
+      } else{
+        end = ' - ' + moment(this.state.event.endDate.toJSDate())
+          .tz(DateUtils.timeZone)
+          .format('dddd, MMMM Do') + ' ' + moment(this.state.event.endDate.toJSDate())
+          .tz(DateUtils.timeZone)
+          .format(DateUtils.getTimeFormat({ timeZone: true }))
+      }
+    }
+    return `${duration} ${startDate}${startTime} ${end}${repeat}`;
+  }
 
   render() {
-    const timeFormat = DateUtils.getTimeFormat({ timeZone: true });
     if (this.state.event != null) {
       return (
         <div className="event-wrapper">
@@ -56,16 +87,12 @@ class EventHeader extends React.Component {
           </div>
           <div className="event-body">
             <div className="event-date">
-              <div className="event-day">
-                {moment(this.state.event.startDate.toJSDate())
-                  .tz(DateUtils.timeZone)
-                  .format('dddd, MMMM Do')}
-              </div>
+              {/*<div className="event-day">*/}
+              {/*  {}*/}
+              {/*</div>*/}
               <div>
                 <div className="event-time">
-                  {moment(this.state.event.startDate.toJSDate())
-                    .tz(DateUtils.timeZone)
-                    .format(timeFormat)}
+                  {this.renderWhen()}
                 </div>
                 {this._renderEventActions()}
               </div>

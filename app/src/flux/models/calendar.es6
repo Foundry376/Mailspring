@@ -389,24 +389,12 @@ class VEvent extends ICAL.Event {
     // this._rdates = vEvent.getAllProperties('rdate');
   }
 
-  //
-  // get uid() {
-  //   return this._uid;
-  // }
-
   get dtstamp() {
     if (!this._dtstamp) {
       return null;
     }
     return this._dtstamp.toJSDate();
   }
-
-  // get dtstart() {
-  //   if (!this._dtstart) {
-  //     return null;
-  //   }
-  //   return new Date(this._dtstart);
-  // }
 
   get class() {
     return this._class;
@@ -443,10 +431,6 @@ class VEvent extends ICAL.Event {
   set created(unixTimestamp) {
     this._created.fromUnixTime(unixTimestamp, true);
   }
-
-  // get description() {
-  //   return this._description;
-  // }
 
   get geo() {
     if (!this._geo) {
@@ -553,10 +537,6 @@ class VEvent extends ICAL.Event {
     }
   }
 
-  // get summary() {
-  //   return this._summary;
-  // }
-
   get transparent() {
     return this._transp.toUpperCase();
   }
@@ -583,14 +563,16 @@ class VEvent extends ICAL.Event {
     return this._rrule;
   }
 
-  // get dtend() {
-  //   return this._dtend;
-  // }
-  //
-  // get duration() {
-  //   return this._duration;
-  // }
-  //
+  isAllDay(){
+    return this.duration.days === 1 && this.duration.weeks === 0 && this.duration.hours === 0;
+  }
+  isAllWeek(){
+    return this.duration.days === 0 && this.duration.weeks === 1;
+  }
+  isLessThanADay(){
+    return this.duration.weeks === 0 && this.duration.days === 0 && this.duration.hours <= 23;
+  }
+
   get attaches() {
     return this._attaches;
   }
@@ -642,26 +624,6 @@ class VEvent extends ICAL.Event {
     return this.getAllProperties('contact').map(item => item.getFirstValue());
   }
 
-  //
-  // get exdates() {
-  //   return this._exdates;
-  // }
-  //
-  // get rstatuses() {
-  //   return this._rstatuses;
-  // }
-  //
-  // get relatedes() {
-  //   return this._relatedes;
-  // }
-  //
-  // get resources() {
-  //   return this._resources;
-  // }
-  //
-  // get rdates() {
-  //   return this._rdates;
-  // }
   getAllProperties(prop) {
     return this.component.getAllProperties(prop);
   }
