@@ -418,15 +418,15 @@ class AttachmentStore extends MailspringStore {
       );
   }
 
-  createNewFile({ data, inline = false, filename = null, contentType = null }) {
-    const id = Utils.generateTempId();
+  createNewFile({ data, inline = false, filename = null, contentType = null, extension = null }) {
+    const id = extension ? `${Utils.generateTempId()}.${extension}` : Utils.generateTempId();
     const file = new File({
       id: id,
       filename: filename || id,
       contentType: contentType,
       messageId: null,
       contentId: inline ? Utils.generateContentId() : null,
-      isInline: inline
+      isInline: inline,
     });
     return this._writeToInternalPath(data, this.pathForFile(file)).then(stats => {
       file.size = stats.size;

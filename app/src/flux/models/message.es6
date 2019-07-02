@@ -175,8 +175,8 @@ export default class Message extends ModelWithMetadata {
       queryable: true,
     }),
 
-    eventReply: Attributes.Boolean({
-      modelKey: 'eventReply',
+    calendarReply: Attributes.Boolean({
+      modelKey: 'calendarReply',
     }),
 
     pristine: Attributes.Boolean({

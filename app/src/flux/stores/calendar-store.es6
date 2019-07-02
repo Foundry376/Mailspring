@@ -94,9 +94,10 @@ class CalendarStore extends MailspringStore {
         return null;
       }
       AttachmentStore.createNewFile({
+        extension: 'ics',
         data: newCal.toString(),
         inline: true,
-        contentType: 'text/Calendar',
+        contentType: 'text/CALENDAR',
       }).then(newFile => {
         DraftFactory.createReplyForEvent({
           message,

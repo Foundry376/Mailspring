@@ -524,7 +524,7 @@ class VEvent extends ICAL.Event {
     this._status = 'CONFIRMED';
     const attendee = this.findAttendeeByEmail(attendeeEmail);
     if (Array.isArray(attendee)) {
-      attendee[0].tentative();
+      attendee[0].confirm();
     }
   }
 
@@ -533,7 +533,7 @@ class VEvent extends ICAL.Event {
     this._status = 'CANCELLED';
     const attendee = this.findAttendeeByEmail(attendeeEmail);
     if (Array.isArray(attendee)) {
-      attendee[0].tentative();
+      attendee[0].decline();
     }
   }
 
