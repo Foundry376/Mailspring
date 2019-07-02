@@ -35,11 +35,16 @@
 
   .event-body {
     padding: @padding-small-horizontal;
-
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
     .event-date {
-      display: inline-block;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: flex-start;
       width: 100%;
-
       .event-day {
         display: block;
         font-size: @font-size-large;
@@ -47,6 +52,11 @@
       }
 
       .event-time {
+        display: inline-block;
+        font-size: @font-size-h3;
+        font-weight: @font-weight-blond;
+      }
+      .event-location{
         display: inline-block;
         font-size: @font-size-h3;
         font-weight: @font-weight-blond;

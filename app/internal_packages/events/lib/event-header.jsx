@@ -87,16 +87,14 @@ class EventHeader extends React.Component {
           </div>
           <div className="event-body">
             <div className="event-date">
-              {/*<div className="event-day">*/}
-              {/*  {}*/}
-              {/*</div>*/}
-              <div>
                 <div className="event-time">
                   {this.renderWhen()}
                 </div>
-                {this._renderEventActions()}
+              <div className="event-location">
+                {this.state.event.location}
               </div>
             </div>
+            {this._renderEventActions()}
           </div>
         </div>
       );
