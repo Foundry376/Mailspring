@@ -425,6 +425,8 @@ export default class MessagesPanel extends Component {
       editProfile: this.editProfile,
       exitProfile: this.exitProfile,
       contacts,
+      onCloseInfoPanel: () =>
+        this.setState({ showConversationInfo: false }),
     };
     let className = '';
     if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {

@@ -239,7 +239,7 @@ export default class ConversationInfo extends Component {
               {conversation.isGroup ? roomMembers.length + ' People' : ''}
             </div>
           }
-
+          <Button className="close" onClick={this.props.onCloseInfoPanel}></Button>
           <Button className="more" onClick={this.showMenu}></Button>
         </div>
         <div className="members">
