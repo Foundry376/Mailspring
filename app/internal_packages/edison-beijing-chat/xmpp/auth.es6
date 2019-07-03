@@ -7,7 +7,7 @@ export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
   let sessionId = window.localStorage['sessionId' + jid.split('@')[0]];
   if (!sessionId) {
-    sessionId = '1234567890';
+    sessionId = '12345678901';
   }
   console.log('xmpp.init: ', jid, password);
   OnlineUserStore.addAuthingAccount(jid);
@@ -73,9 +73,9 @@ export const auth = async ({ jid, password }) => {
     AppsStore.saveMyAppsAndEmailContacts(res);
   } catch (error) {
     window.console.warn('connect error', error);
-    if (error && jid.split('@').length > 1) {
-      window.localStorage.removeItem('sessionId' + jid.split('@')[0]);
-      OnlineUserStore.removeAuthingAccount(jid);
+    if (error && error.split('@').length > 1) {
+      window.localStorage.removeItem('sessionId' + error.split('@')[0]);
+      OnlineUserStore.removeAuthingAccount(error);
     }
   };
 };
