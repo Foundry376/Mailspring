@@ -21,8 +21,8 @@ class AppsStore extends MailspringStore {
       return;
     }
     const payload = {
-      local:userId,
-      curJid:userId+'@im.edison.tech'
+      local: userId,
+      curJid: userId + '@im.edison.tech'
     }
     await this.saveMyAppsAndEmailContacts(payload);
   }
@@ -53,7 +53,7 @@ class AppsStore extends MailspringStore {
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
     const sqldb = sqlite(dbpath);
-    let stmt = sqldb.prepare('SELECT * FROM contact where sendToCount >= 1 and recvFromCount > 1');
+    let stmt = sqldb.prepare('SELECT * FROM contact where sendToCount >= 1 and recvFromCount >= 1');
     let emailContacts = stmt.all();
     sqldb.close();
     const emails = emailContacts.map(contact => contact.email);
@@ -70,7 +70,7 @@ class AppsStore extends MailspringStore {
       }
       const users = res.data.users;
       const chatAccounts = AppEnv.config.get('chatAccounts') || {};
-      emailContacts = emailContacts.map( (contact, index) => {
+      emailContacts = emailContacts.map((contact, index) => {
         contact = Object.assign(contact, users[index]);
         if (contact.userId) {
           contact.jid = contact.userId + '@im.edison.tech'
