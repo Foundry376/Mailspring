@@ -545,6 +545,42 @@
   &:hover {
 
   }
+
+  .fail-alert-container {
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    left: 20px;
+    bottom: 20px;
+    width: 400px;
+    height: 30px;
+    background-color: @red;
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 0 0 0 20px;
+    z-index:9;
+    .view-btn {
+      position:absolute;
+      right:35px;
+      height: 30px;
+      width: 48px;
+      background-color: @red;
+      color: @white;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.43px;
+      line-height: 17px;
+      text-align: right;
+      border:none;
+    }
+    .hide-btn {
+      position:absolute;
+      right:5px;
+      width:15px;
+      height:15px;
+    }
+  }
   .messageCommand {
     display:inline-block;
     background-color: #e5e5e5;

@@ -41,7 +41,8 @@ export default class OnlineStatus extends Component {
       isAuthenticating = false;
     }
     const str = JSON.stringify(OnlineUserStore.onlineAccounts);
-    log(`OnlineStratus._onDataChanged, chat_online: ${chat_online}: onlineAccounts: ${str}`);
+    const str2 = JSON.stringify(OnlineUserStore.authingAccounts);
+    log(`OnlineStatus._onDataChanged, chat_online: ${chat_online}, isAuthenticating: ${isAuthenticating}: onlineAccounts: ${str}, authingAccounts: ${str2}`);
     this.setState({
       chat_online,
       isAuthenticating
@@ -74,7 +75,6 @@ export default class OnlineStatus extends Component {
 
   componentWillReceiveProps = async (nextProps, nextContext) => {
     const {conversation} = nextProps;
-    console.log( 'componentWillReceiveProps: ', nextProps, OnlineUserStore.onlineAccounts, OnlineUserStore.authingAccounts);
     let chat_online, isAuthenticating;
     if (conversation) {
       const { curJid } = conversation;
@@ -103,7 +103,6 @@ export default class OnlineStatus extends Component {
 
   setPanelClassName = () => {
     const panel = document.querySelector('.panel');
-    console.log( 'setPanelClassName: ', this.state, panel);
     if (!panel) {
       return;
     }

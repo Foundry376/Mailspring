@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import Conversations from './Conversations';
 import ConversationsTopBar from './ConversationsTopBar';
 import ProgressBar from '../../common/ProgressBar';
-import { ProgressBarStore } from 'chat-exports';
+import FailAlert from '../../common/FailAlert';
+import { ProgressBarStore, FailMessageStore } from 'chat-exports';
 
 let key = 0;
 export default class ConversationsPanel extends PureComponent {
@@ -20,6 +21,7 @@ export default class ConversationsPanel extends PureComponent {
   componentDidMount() {
     this.unsubscribers = [];
     this.unsubscribers.push(ProgressBarStore.listen(this.onProgressChange));
+    this.unsubscribers.push(FailMessageStore.listen(this.onFailMessageChange));
   }
 
   componentWillUnmount() {
@@ -33,6 +35,11 @@ export default class ConversationsPanel extends PureComponent {
     this.setState(state);
   }
 
+  onFailMessageChange = () => {
+    let {msg, visible} = FailMessageStore;
+    console.log( 'onFailMessageChange: ', visible, msg);
+    this.setState({msg, alertVisible:visible});
+  }
 
   render() {
     const {
@@ -42,7 +49,7 @@ export default class ConversationsPanel extends PureComponent {
     const conversationsProps = {
       referenceTime,
     };
-    const { progress, onCancel, onRetry } = this.state;
+    const { progress, onCancel, onRetry, msg, alertVisible } = this.state;
 
     return (
       <div className="panel">
@@ -51,6 +58,7 @@ export default class ConversationsPanel extends PureComponent {
           <Conversations {...conversationsProps} />
         </div>
         <ProgressBar progress={progress} onCancel={onCancel} onRetry={onRetry} />
+        <FailAlert msg={msg} visible={alertVisible}/>
       </div>
     );
   }

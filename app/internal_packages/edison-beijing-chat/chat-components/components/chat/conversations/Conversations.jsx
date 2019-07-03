@@ -3,7 +3,6 @@ import { ChatActions, ConversationStore } from 'chat-exports';
 import PropTypes from 'prop-types';
 import ConversationItem from './ConversationItem';
 import { WorkspaceStore, Actions } from 'mailspring-exports';
-import ProgressBar from '../../common/ProgressBar';
 export default class Conversations extends PureComponent {
   static propTypes = {
     referenceTime: PropTypes.number,
