@@ -13,8 +13,13 @@ import Actions from '../actions';
 import fs from 'fs';
 
 class CalendarStore extends MailspringStore {
-  static replyTemplate = (eventString) => {
-    return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nMETHOD:REPLY\r\nPRODID:-//EdisonMail\r\n${eventString}\r\nEND:VCALENDAR`;
+  static replyTemplate = ({
+                            eventString = '',
+                            timezoneString = '',
+                            todoString = '',
+                            journalString = '',
+                          }) => {
+    return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nMETHOD:REPLY\r\nPRODID:-//EdisonMail\r\n${timezoneString}\r\n${eventString}\r\n${todoString}\r\n${journalString}\r\nEND:VCALENDAR`;
   };
 
   constructor() {
@@ -47,6 +52,9 @@ class CalendarStore extends MailspringStore {
     if (!cal) {
       return false;
     }
+    if (cal.method.toLocaleUpperCase() !== 'REQUEST') {
+      return false;
+    }
     const e = cal.getFirstEvent();
     if (!e) {
       return false;
@@ -73,7 +81,12 @@ class CalendarStore extends MailspringStore {
       return null;
     }
     try {
-      const newCal = Calender.parse(CalendarStore.replyTemplate(e.toString()));
+      const newCal = Calender.parse(
+        CalendarStore.replyTemplate({
+          eventString: e.toString(),
+          timezoneString: cal.getTimeZoneString(),
+        }),
+      );
       const replyEvent = newCal.getFirstEvent();
       replyEvent.created = Date.now() / 1000;
       let statusLabel = 'Accepted';
@@ -122,6 +135,7 @@ class CalendarStore extends MailspringStore {
         });
       });
     } catch (e) {
+      AppEnv.reportError(e);
       return null;
     }
   }

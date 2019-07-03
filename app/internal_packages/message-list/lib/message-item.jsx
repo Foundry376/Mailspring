@@ -195,9 +195,13 @@ export default class MessageItem extends React.Component {
   _renderAttachments() {
     const { files = [], body, id } = this.props.message;
     const { filePreviewPaths, downloads } = this.state;
-    const attachedFiles = files.filter(
-      f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`),
-    );
+    const attachedFiles = files.filter(f => {
+      return (
+        !f.contentId ||
+        (!(body || '').includes(`cid:${f.contentId}`) &&
+          !(f.contentType || '').toLocaleLowerCase().includes('calendar'))
+      );
+    });
 
     return (
       <div>

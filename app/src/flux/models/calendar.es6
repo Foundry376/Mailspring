@@ -39,7 +39,8 @@ class Attendee {
     this._attendee = prop;
     this._parentType = type;
   }
-  get attendee(){
+
+  get attendee() {
     return this._attendee;
   }
 
@@ -235,7 +236,7 @@ class Attendee {
   }
 
   static _parseEmailTo(str) {
-    if (typeof str !== 'string' || !str.includes('mailto:')) {
+    if (typeof str !== 'string' || !str.toLocaleLowerCase().includes('mailto:')) {
       return '';
     }
     return str.split(':')[1];
@@ -272,10 +273,12 @@ class Attendee {
     }
     this._attendee.setParameter('role', val);
   }
-  toString(){
+
+  toString() {
     return this._attendee.toICALString();
   }
-  getContentString(){
+
+  getContentString() {
     return this.toString().replace('ATTENDEE;', '');
   }
 }
@@ -325,7 +328,7 @@ class Organizer {
   }
 
   _parseEmailTo(str) {
-    if (typeof str !== 'string' || !str.includes('mailto:')) {
+    if (typeof str !== 'string' || !str.toLocaleLowerCase().includes('mailto:')) {
       return '';
     }
     return str.split(':')[1];
@@ -369,8 +372,9 @@ class Organizer {
 }
 
 class VEvent extends ICAL.Event {
-  constructor(vEvent) {
+  constructor(vEvent, timezones = null) {
     super(vEvent);
+    this._timezones = timezones;
     this._dtstamp = this.getFirstPropertyValue('dtstamp');
     this._class = this.getFirstPropertyValue('class');
     this._created = this.getFirstPropertyValue('created');
@@ -398,10 +402,45 @@ class VEvent extends ICAL.Event {
     // this._rdates = vEvent.getAllProperties('rdate');
   }
 
+  _findTimezonByTZId(TZId) {
+    if (!this._timezones) {
+      return null;
+    }
+    const timezone = this._timezones.filter(tz => tz.tzid === TZId);
+    if (timezone.length > 0) {
+      return timezone[0];
+    } else {
+      return null;
+    }
+  }
+
+  get startDate() {
+    const timezone = this._findTimezonByTZId(super.startDate.timezone);
+    if (!timezone || super.startDate.timezone.toLocaleLowerCase() === 'z') {
+      return super.startDate;
+    }
+    super.startDate.zone = new ICAL.Timezone(timezone);
+    return super.startDate;
+  }
+
+  get endDate() {
+    const timezone = this._findTimezonByTZId(super.endDate.timezone);
+    if (!timezone || super.endDate.timezone.toLocaleLowerCase() === 'z') {
+      return super.endDate;
+    }
+    super.endDate.zone = new ICAL.Timezone(timezone);
+    return super.endDate;
+  }
+
   get dtstamp() {
     if (!this._dtstamp) {
       return null;
     }
+    const timezone = this._findTimezonByTZId(this._dtstamp.timezone);
+    if (!timezone || this._dtstamp.timezone.toLocaleLowerCase() === 'z') {
+      return this._dtstamp.toJSDate();
+    }
+    this._dtstamp.zone = new ICAL.Timezone(timezone);
     return this._dtstamp.toJSDate();
   }
 
@@ -434,11 +473,21 @@ class VEvent extends ICAL.Event {
     if (!this._created) {
       return null;
     }
+    const timezone = this._findTimezonByTZId(this._created.timezone);
+    if (!timezone || this._created.timezone.toLocaleLowerCase() === 'z') {
+      return this._created.toJSDate();
+    }
+    this._created.zone = new ICAL.Timezone(this._timezone);
     return this._created.toJSDate();
   }
 
   set created(unixTimestamp) {
-    this._created.fromUnixTime(unixTimestamp, true);
+    if (!this.created) {
+      const now = ICAL.Time.fromJSDate(new Date(), true);
+      this.updatePropertyWithValue('created', now);
+    } else {
+      this._created.fromUnixTime(unixTimestamp, true);
+    }
   }
 
   get geo() {
@@ -456,6 +505,11 @@ class VEvent extends ICAL.Event {
     if (!this._lastMod) {
       return null;
     }
+    const timezone = this._findTimezonByTZId(this._lastMod.timezone);
+    if (!timezone || this._lastMod.timezone.toLocaleLowerCase() === 'z') {
+      return this._lastMod.toJSDate();
+    }
+    this._lastMod.zone = new ICAL.Timezone(this._timezone);
     return this._lastMod.toJSDate();
   }
 
@@ -581,13 +635,15 @@ class VEvent extends ICAL.Event {
     return this._rrule;
   }
 
-  isAllDay(){
+  isAllDay() {
     return this.duration.days === 1 && this.duration.weeks === 0 && this.duration.hours === 0;
   }
-  isAllWeek(){
+
+  isAllWeek() {
     return this.duration.days === 0 && this.duration.weeks === 1;
   }
-  isLessThanADay(){
+
+  isLessThanADay() {
     return this.duration.weeks === 0 && this.duration.days === 0 && this.duration.hours <= 23;
   }
 
@@ -653,11 +709,17 @@ class VEvent extends ICAL.Event {
   getFirstPropertyValue(prop) {
     return this.component.getFirstPropertyValue(prop);
   }
-  removeAllProperties(prop){
+
+  removeAllProperties(prop) {
     return this.component.removeAllProperties(prop);
   }
 
   updatePropertyWithValue(prop, val) {
+    if (!this._lastMod) {
+      const now = ICAL.Time.fromJSDate(new Date(), true);
+      this.component.updatePropertyWithValue('last-modified', now);
+      this._lastMod = this.getFirstPropertyValue('last-modified');
+    }
     this._lastMod.fromUnixTime(Date.now() / 1000, true);
     this.component.updatePropertyWithValue('last-modified', this._lastMod);
     this.component.updatePropertyWithValue(prop, val);
@@ -667,14 +729,15 @@ class VEvent extends ICAL.Event {
 export default class Calendar {
   constructor(jcalData) {
     this._vCalendar = new ICAL.Component(jcalData);
-    this._VEvents = this._vCalendar.getAllSubcomponents('vevent').map(e => new VEvent(e));
+    this._VTimeZones = this._vCalendar
+      .getAllSubcomponents('vtimezone')
+      .map(timezone => new ICAL.Timezone(timezone, timezone.getFirstPropertyValue('tzid')));
+    this._VEvents = this._vCalendar.getAllSubcomponents('vevent').map(e => new VEvent(e, this._VTimeZones));
     this._VTodos = this._vCalendar.getAllSubcomponents('vtodo').map(todo => new VTodo(todo));
     this._VJournals = this._vCalendar
       .getAllSubcomponents('vjournal')
       .map(journal => new VJournal(journal));
-    this._VTimeZones = this._vCalendar
-      .getAllSubcomponents('vtimezone')
-      .map(timezone => new ICAL.Timezone(timezone, timezone.getFirstPropertyValue('tzid')));
+
     this._VFreeBusys = this._vCalendar
       .getAllSubcomponents('vfreebusy')
       .map(freebusy => new VFreeBusy(freebusy));
@@ -715,6 +778,12 @@ export default class Calendar {
     } else {
       return null;
     }
+  }
+  getTimeZones(){
+    return this._VTimeZones;
+  }
+  getTimeZoneString(){
+    return this._VTimeZones.map(tz => tz.component.toString()).join('\r\n');
   }
 
   get VTodos() {

@@ -204,7 +204,7 @@ class DraftFactory {
       from: [this._fromContactForReply(message)],
       threadId: thread.id,
       accountId: message.accountId,
-      replyToHeaderMessageId: message.headerMessageId,
+      replyToHeaderMessageId: '',
       msgOrigin: type === 'reply' ? Message.ReplyDraft : Message.ReplyAllDraft,
       body: `
         <br/>
