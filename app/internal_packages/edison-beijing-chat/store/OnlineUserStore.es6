@@ -1,5 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import _ from 'underscore';
+import { log } from '../utils/log-util';
 
 class OnlineUserStore extends MailspringStore {
   constructor() {
@@ -31,6 +32,7 @@ class OnlineUserStore extends MailspringStore {
 
   addOnLineAccount(payload) {
     const jid = payload.from && payload.from.bare || payload.bare;
+    log(`addOnLineAccount: ${jid}`);
     this.onlineAccounts[jid] = 1;
     this.authingAccounts[jid] = 0;
     this._triggerDebounced();

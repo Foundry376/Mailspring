@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import registerLoginChat from '../../../../utils/register-login-chat';
 import { RetinaImg } from 'mailspring-component-kit';
 import { ChatActions, OnlineUserStore } from 'chat-exports';
-import { log } from '../../../../utils/log-util';
+import { log, log2 } from '../../../../utils/log-util';
 
 export default class OnlineStatus extends Component {
   static propTypes = {
@@ -40,6 +40,8 @@ export default class OnlineStatus extends Component {
       chat_online = true;
       isAuthenticating = false;
     }
+    const str = JSON.stringify(OnlineUserStore.onlineAccounts);
+    log(`OnlineStratus._onDataChanged, chat_online: ${chat_online}: onlineAccounts: ${str}`);
     this.setState({
       chat_online,
       isAuthenticating
