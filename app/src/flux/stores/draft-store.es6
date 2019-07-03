@@ -77,6 +77,7 @@ class DraftStore extends MailspringStore {
     ipcRenderer.on('draft-close-window', this._onPopoutClosed);
     // ipcRenderer.on('draft-got-new-id', this._onDraftGotNewId);
     ipcRenderer.on('draft-arp', this._onDraftArp);
+    ipcRenderer.on('draft-delete', this._onDraftDeleting);
 
 
     AppEnv.onBeforeUnload(this._onBeforeUnload);
@@ -238,7 +239,10 @@ class DraftStore extends MailspringStore {
       // Only delete pristine drafts if we're in popouts and is not from server, aka remoteUID=0.
       if (draft.pristine && !session.isPopout() && !draft.remoteUID) {
         // console.log(`draft to be destroyed @ ${this._getCurrentWindowLevel()}`);
-        promises.push(Actions.destroyDraft(draft, { canBeUndone: false }));
+        if (!this._draftsDeleting[draft.id]){
+          console.log('sending out destroy draft in onbefore load');
+          promises.push(Actions.destroyDraft(draft, { canBeUndone: false }));
+        }
       } else if (
         AppEnv.isMainWindow() &&
         (session.changes.isDirty() || session.needUpload()) &&
@@ -562,9 +566,14 @@ class DraftStore extends MailspringStore {
   _onDestroyDraft = (message = {}, opts = {}) => {
     // console.log('on destroy draft');
     const { accountId, headerMessageId, id, threadId } = message;
+    let draftDeleting = false;
+    if(id){
+      draftDeleting = !!this._draftsDeleting[id];
+      this._draftsDeleting[id] = headerMessageId;
+    }
     const session = this._draftSessions[headerMessageId];
     // Immediately reset any pending changes so no saves occur
-    if (session) {
+    if (session && !draftDeleting) {
       if (this._draftsSending[headerMessageId]) {
         return;
       }
@@ -589,30 +598,30 @@ class DraftStore extends MailspringStore {
 
     // Stop any pending tasks related to the draft
     this.cancelDraftTasks({ headerMessageId });
-
     // Queue the task to destroy the draft
     if (id) {
-      this._draftsDeleting[id] = headerMessageId;
-      delete this._draftsPopedOut[headerMessageId];
-      this.trigger({ headerMessageId });
-      Actions.queueTask(
-        new DestroyDraftTask({
-          canBeUndone: opts.canBeUndone,
-          accountId,
-          messageIds: [id],
-          headerMessageId,
-          needToBroadcastBeforeSendTask: {
-            channel: 'draft-delete',
-            options: {
-              accountId,
-              messageIds: [id],
-              threadId,
-              headerMessageId: headerMessageId,
-              windowLevel: this._getCurrentWindowLevel(),
+      if (!draftDeleting) {
+        delete this._draftsPopedOut[headerMessageId];
+        this.trigger({ headerMessageId });
+        Actions.queueTask(
+          new DestroyDraftTask({
+            canBeUndone: opts.canBeUndone,
+            accountId,
+            messageIds: [id],
+            headerMessageId,
+            needToBroadcastBeforeSendTask: {
+              channel: 'draft-delete',
+              options: {
+                accountId,
+                messageIds: [id],
+                threadId,
+                headerMessageId: headerMessageId,
+                windowLevel: this._getCurrentWindowLevel(),
+              },
             },
-          },
-        }),
-      );
+          }),
+        );
+      }
     } else {
       AppEnv.reportError(new Error('Tried to delete a draft that had no ID assigned yet.'));
     }
@@ -624,6 +633,11 @@ class DraftStore extends MailspringStore {
         additionalChannelParam: 'draft',
         deleting: true,
       });
+    }
+  };
+  _onDraftDeleting = (event, options) => {
+    if (Array.isArray(options.messageIds) && options.headerMessageId) {
+      this._draftsDeleting[options.messageIds[0]]=options.headerMessageId;
     }
   };
   _onDestroyDraftSuccess = ({ messageIds }) => {
