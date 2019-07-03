@@ -66,6 +66,7 @@ lazyLoad(`ConfigStore`, 'store/ConfigStore');
 lazyLoad(`AppsStore`, 'store/AppsStore');
 lazyLoad(`MemberProfileStore`, 'store/MemberProfileStore');
 lazyLoad(`UserCacheStore`, 'store/UserCacheStore');
+lazyLoad(`FailMessageStore`, 'store/FailMessageStore');
 
 // Models
 lazyLoad(`ConfigModel`, 'model/Config');

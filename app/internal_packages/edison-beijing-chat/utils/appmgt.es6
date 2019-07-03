@@ -79,7 +79,6 @@ export const iniApps = (userId, token, cb) => {
                 myApps[userId].version = json.data.version;
             }
             if (cb) {
-                console.log( 'iniApps: ', userId, token, myApps);
                 myApps[userId] && cb(myApps[userId].apps);
             }
         } else {
