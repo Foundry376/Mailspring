@@ -7,7 +7,7 @@ export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
   let sessionId = window.localStorage['sessionId' + jid.split('@')[0]];
   if (!sessionId) {
-    sessionId = '1234567890';
+    sessionId = '12345678901';
   }
   console.log('xmpp.init: ', jid, password);
   OnlineUserStore.addAuthingAccount(jid);
