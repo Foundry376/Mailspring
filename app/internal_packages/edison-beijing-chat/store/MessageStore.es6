@@ -573,21 +573,21 @@ class MessageStore extends MailspringStore {
         await messageInDb.save();
       } else {
         await MessageModel.upsert(msg);
-        if (msg.status!=='MESSAGE_STATUS_SENDING') {
-          return;
-        }
-        setTimeout(async () => {
-          const messageInDb = await MessageModel.findOne({
-            where: {
-              id: msg.id
-            }
-          });
-          if (messageInDb && messageInDb.status==='MESSAGE_STATUS_SENDING') {
-            messageInDb.status = 'MESSAGE_STATUS_TRANSFER_FAILED';
-            this.saveMessagesAndRefresh([messageInDb.get({plain:true})]);
-          }
-        }, 3000);
       }
+      if (msg.status!=='MESSAGE_STATUS_SENDING') {
+        return;
+      }
+      setTimeout(async () => {
+        const messageInDb = await MessageModel.findOne({
+          where: {
+            id: msg.id
+          }
+        });
+        if (messageInDb && messageInDb.status==='MESSAGE_STATUS_SENDING') {
+          messageInDb.status = 'MESSAGE_STATUS_TRANSFER_FAILED';
+          this.saveMessagesAndRefresh([messageInDb.get({plain:true})]);
+        }
+      }, 3000);
     }
   };
 }

@@ -184,6 +184,10 @@
       color: @gray;
     }
   }
+  .message.message-fail {
+    background-color: rgba(255, 72, 95, 5%);
+  }
+
 
   .message.currentUser,
   .message.otherUser {
@@ -207,9 +211,24 @@
 
   .message.currentUser,
   .message.otherUser {
-    .messageSender {
-      display: block;
-    }
+   .messageIcons{
+     display: block;
+     .messageFailed {
+       width: 32px;
+       height: 32px;
+       position:relative;
+       top:10px;
+       background-image: url(icons/alert-2.svg);
+       display:inline-block;
+       &:hover {
+         border-radius: 16px 16px 16px 16px;
+         background-color: rgba(255, 72, 95, 10%);
+       }
+     }
+     .messageSender {
+       display: inline-block;
+     }
+   }
   }
 
   .messageSender {
@@ -347,8 +366,16 @@
 
   .messageStatus {
     margin-left: 5px;
-    color: red;
+    color: @red;
 
+  }
+  .message-retry {
+    position:absolute;
+    top:30%;
+    right:20px;
+    font-weight: bold;
+    color: @red;
+    text-align: right;
   }
   .message-toolbar {
     display: none;
