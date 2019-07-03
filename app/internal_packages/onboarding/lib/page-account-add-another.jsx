@@ -26,6 +26,7 @@ export default class AddAnotherAccountPage extends React.Component {
 
   render() {
     const accounts = AccountStore.accounts() || [];
+    const lebelText = accounts && accounts.length >= 2 ? 'I’m Done' : 'Maybe Later';
     return (
       <div className={`page add-another`}>
         <div className="add-another-container">
@@ -52,7 +53,7 @@ export default class AddAnotherAccountPage extends React.Component {
         </div>
         <div className="footer">
           <button key="later" className="btn btn-large btn-ghost btn-later" onClick={this._onFinish}>
-            Maybe Later
+            {lebelText}
           </button>
           <button key="now" className="btn btn-large btn-now" onClick={this._onAddNow}>
             Add More!
