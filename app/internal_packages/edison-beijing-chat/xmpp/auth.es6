@@ -1,6 +1,7 @@
 import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { delay } from '../utils/delay';
 import xmpp from './index';
+import uuid from 'uuid/v4';
 import { RoomStore, ContactStore, E2eeStore, AppsStore, OnlineUserStore } from 'chat-exports';
 
 export const auth = async ({ jid, password }) => {
