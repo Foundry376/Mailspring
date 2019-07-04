@@ -46,6 +46,9 @@ export class ArchiveButton extends React.Component {
     if (event) {
       event.stopPropagation();
     }
+    if(this.props.selection){
+      this.props.selection.clear() ;
+    }
     return;
   };
 
@@ -85,6 +88,9 @@ export class TrashButton extends React.Component {
     Actions.popSheet();
     if (event) {
       event.stopPropagation();
+    }
+    if(this.props.selection){
+      this.props.selection.clear() ;
     }
     return;
   };
@@ -252,6 +258,9 @@ export class MarkAsSpamButton extends React.Component {
     if (event) {
       event.stopPropagation();
     }
+    if(this.props.selection){
+      this.props.selection.clear() ;
+    }
     return;
   };
 
@@ -264,6 +273,9 @@ export class MarkAsSpamButton extends React.Component {
     Actions.popSheet();
     if (event) {
       event.stopPropagation();
+    }
+    if(this.props.selection){
+      this.props.selection.clear() ;
     }
     return;
   };
@@ -334,6 +346,9 @@ export class ToggleStarredButton extends React.Component {
     if (event) {
       event.stopPropagation();
     }
+    if(this.props.selection){
+      this.props.selection.clear() ;
+    }
     return;
   };
 
@@ -380,6 +395,9 @@ export class ToggleUnreadButton extends React.Component {
       }),
     );
     Actions.popSheet();
+    if(this.props.selection){
+      this.props.selection.clear() ;
+    }
   };
 
   render() {
