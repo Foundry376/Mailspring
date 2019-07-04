@@ -4,7 +4,8 @@ import { dateFormat } from '../../../../utils/time';
 import { sendCmd2App2, getToken } from '../../../../utils/appmgt';
 import MessageCommand from './MessageCommand';
 const sanitizeHtml = require('sanitize-html');
-import { ContactStore } from 'chat-exports';
+import { RetinaImg } from 'mailspring-component-kit';
+import { ContactStore, UserCacheStore } from 'chat-exports';
 
 export default class MessageApp extends PureComponent {
     static propTypes = {
@@ -19,9 +20,19 @@ export default class MessageApp extends PureComponent {
 
     componentWillMount = async () => {
         const { msg } = this.props;
-        const contact = await ContactStore.findContactByJid(msg.sender);
-        const state = Object.assign({}, this.state, { senderName: contact && contact.name || '' });
-        this.state = state;
+        let contact = await ContactStore.findContactByJid(msg.sender);
+        if (!contact) {
+            contact = UserCacheStore.getUserInfoByJid(msg.sender)
+        }
+        this.setState({senderName: contact && contact.name || ''});
+    }
+    componentWillReceiveProps =  async (nextProps) => {
+        const { msg } = nextProps;
+        let contact = await ContactStore.findContactByJid(msg.sender);
+        if (!contact) {
+            contact = UserCacheStore.getUserInfoByJid(msg.sender)
+        }
+        this.setState({senderName: contact && contact.name || ''});
     }
 
     sendCommand2App(command) {
@@ -46,8 +57,15 @@ export default class MessageApp extends PureComponent {
         })
 
     }
+
+    toggleCommands = ()  => {
+        const commandsVisible = !this.state.commandsVisible;
+        this.setState({commandsVisible});
+    };
+
     render() {
         const { msg, conversation } = this.props;
+        const { commandsVisible } = this.state;
         const msgBody = JSON.parse(msg.body);
         let { appJid, appName, content, htmlBody, ctxCmds } = msgBody;
         const { sentTime } = msg;
@@ -75,7 +93,6 @@ export default class MessageApp extends PureComponent {
         const { getContactAvatar } = this.props;
 
         const member = { jid: appJid, name: appName };
-        let cmds = '';
         let commands = null;
         if (ctxCmds) {
             let arrCmds = JSON.parse(ctxCmds);
@@ -100,7 +117,12 @@ export default class MessageApp extends PureComponent {
                         <div className="text-content">
                             {htmlBody ? <div dangerouslySetInnerHTML={{ __html: htmlBody }} /> : content}
                         </div>
-                        <div>{commands}</div>
+                        {commands && commands.length ? <RetinaImg name={'expand-more.svg'}
+                                   onClick={this.toggleCommands}
+                                   style={{ width: 26, height: 26 }}
+                                   isIcon
+                                   mode={RetinaImg.Mode.ContentIsMask} /> : null }
+                        {commandsVisible ? <div>{commands}</div> : null}
                     </div>
                 </div>
             </div>
