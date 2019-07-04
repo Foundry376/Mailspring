@@ -204,7 +204,7 @@ class DraftFactory {
       from: [this._fromContactForReply(message)],
       threadId: thread.id,
       accountId: message.accountId,
-      replyToHeaderMessageId: '',
+      replyToHeaderMessageId: message.headerMessageId,
       msgOrigin: type === 'reply' ? Message.ReplyDraft : Message.ReplyAllDraft,
       body: `
         <br/>
@@ -227,7 +227,7 @@ class DraftFactory {
       from: [this._fromContactForReply(message)],
       threadId: message.threadId,
       accountId: message.accountId,
-      replyToHeaderMessageId: message.headerMessageId,
+      replyToHeaderMessageId: '',
       body: `${me.name} have replied with a status of ${replyStatus.label}`,
       files: [file],
       calTarStat: replyStatus.code,

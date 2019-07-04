@@ -484,7 +484,7 @@ export default class Message extends ModelWithMetadata {
   }
 
   calendarStatus() {
-    if (this.calendarTargetStatus && this.calendarTargetStatus >= 0) {
+    if (this.calendarTargetStatus >= 0) {
       return this.calendarTargetStatus;
     }
     return this.calendarCurrentStatus;
