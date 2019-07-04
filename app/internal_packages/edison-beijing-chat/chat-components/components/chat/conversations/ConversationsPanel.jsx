@@ -37,7 +37,6 @@ export default class ConversationsPanel extends PureComponent {
 
   onFailMessageChange = () => {
     let {msg, visible} = FailMessageStore;
-    console.log( 'onFailMessageChange: ', visible, msg);
     this.setState({msg, alertVisible:visible});
   }
 

@@ -91,6 +91,13 @@ class ConversationStore extends MailspringStore {
     this._triggerDebounced();
   }
 
+  setSelectedConversationsCurJid = async (curJid) => {
+    if (this.selectedConversation && this.selectedConversation.jid) {
+      await this.updateConversationByJid({ curJid }, this.selectedConversation.jid);
+      this.refreshConversations();
+    }
+  }
+
   _clearUnreadCount = async (jid) => {
     await ConversationModel.update({ unreadMessages: 0 }, { where: { jid } })
     this.refreshConversations();
