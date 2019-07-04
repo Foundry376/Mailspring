@@ -79,7 +79,6 @@ export const iniApps = (userId, token, cb) => {
                 myApps[userId].version = json.data.version;
             }
             if (cb) {
-                console.log( 'iniApps: ', userId, token, myApps);
                 myApps[userId] && cb(myApps[userId].apps);
             }
         } else {
@@ -164,10 +163,31 @@ export const getMyApps = (userId) => {
         return myApps;
     }
 }
+export const getAppByJid = jid => {
+    console.log( 'getAppByJid: ', myApps);
+    const atIndex = jid.indexOf('@');
+    const id = jid.substr(0, atIndex);
+    if (!myApps) {
+        return null;
+    }
+    let userId;
+    for (userId in myApps) {
+        const info = myApps[userId];
+        if (!info){
+            continue;
+        }
+        for (const app of info.apps) {
+            if (app.jid === jid || app.id === id) {
+                return app;
+            }
+        }
+    }
+}
 //--------------for chat platform------------
 
 export default {
     xmpplogin, iniApps, listKeywordApps, sendMsg2App, getApp, getToken,
-    sendMsg2App2, sendCmd2App, sendCmd2App2, getMyAppByShortName, getMyAppById,
+    sendMsg2App2, sendCmd2App, sendCmd2App2, getMyAppByShortName,
+    getMyAppById,getAppByJid,
     getMyApps
 }

@@ -4,7 +4,7 @@ import EditList from 'slate-edit-list';
 import AutoReplace from 'slate-auto-replace';
 
 import { BuildToggleButton } from './toolbar-component-factories';
-
+const TABKey = 9;
 function nodeIsEmpty(node) {
   if (node.text !== '') {
     return false;
@@ -400,6 +400,27 @@ export default [
       event.preventDefault(); // since this inserts a newline
       return change;
     },
+  },
+
+  // Normal Tab
+  {
+    onKeyDown: function onKeyDown(event, change){
+      if(event.keyCode !== TABKey || event.shiftKey || event.metaKey || event.optionKey){
+        return;
+      }
+      const startOffset = change.value.startOffset;
+      if(startOffset === 0){
+        if (isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.ol_list.type)) {
+          return;
+        }
+        if (isBlockTypeOrWithinType(change.value, BLOCK_CONFIG.ul_list.type)) {
+          return;
+        }
+      }
+      event.preventDefault();
+      change.insertText('\t');
+      return change;
+    }
   },
 
   // Tabbing in / out in lists, enter to start new list item

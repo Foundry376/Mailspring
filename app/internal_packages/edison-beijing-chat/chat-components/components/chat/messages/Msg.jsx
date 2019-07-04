@@ -308,12 +308,27 @@ export default class Msg extends PureComponent {
   }
 
   onMessageSubmitted = (conversation, body, messageId, uploading) => {
-    const msgBody = JSON.parse(body);
-    this.props.onMessageSubmitted(conversation, body, messageId, uploading);
+    let id = messageId;
+    let i = id.indexOf('$');
+    if (i < 0) {
+      i = id.length;
+    }
+    id = id.substr(0, i);
+    const { msgBody } = this.state;
+    this.props.onMessageSubmitted(conversation, body, id, uploading);
     this.setState({
       msgBody,
       isEditing: false
     })
+  }
+
+  retrySend = () => {
+    const { msg, conversation } = this.props;
+    let id = msg.id;
+    const i = id.indexOf('$');
+    id = id.substr(0, i);
+    const { msgBody } = this.state;
+    this.props.onMessageSubmitted(conversation, JSON.stringify(msgBody), id, false);
   }
 
   render() {
@@ -324,6 +339,7 @@ export default class Msg extends PureComponent {
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
+    const messageFail = msg.status === 'MESSAGE_STATUS_TRANSFER_FAILED'
 
     if (msgBody.deleted) {
       return null;
@@ -351,26 +367,26 @@ export default class Msg extends PureComponent {
             this.getMessageClasses()
             + (isEditing ? ' editing' : '')
             + (isSystemEvent ? ' system-event' : '')
+            + (messageFail ? ' message-fail' : '')
           }
           style={{ borderColor: color }}
         >
           {!isSystemEvent ? (
-            <div className="messageSender">
-              {this.getContactAvatar(member)}
+            <div className="messageIcons">
+              {messageFail?
+                  <div className="messageFailed"
+                             title="Not Delivered"/>
+                  : null
+              }
+              <div className="messageSender">
+                {this.getContactAvatar(member)}
+              </div>
             </div>
           ) : null}
           <div className="message-content">
             <div className="message-header">
               <span className="username">{senderName}</span>
               <span className="time">{dateFormat(msg.sentTime, 'LT')}</span>
-              {
-                // msg.status === 'MESSAGE_STATUS_DELIVERED' || msg.status === 'MESSAGE_STATUS_RECEIVED' ?
-                //   <CheckIcon
-                //     className="messageStatus"
-                //     size={16}
-                //     color="gray"
-                //   /> : null
-              }
             </div>
             {
               (msgBody && (msgBody.isUploading || msgBody.downloading && !fs.existsSync(msgImgPath.replace('file://', '')))) ? (
@@ -432,6 +448,7 @@ export default class Msg extends PureComponent {
             )}
 
           </div>
+          { messageFail ? <div className="message-retry" onClick={this.retrySend}> Try Again </div> : null }
         </div>
       );
     }

@@ -181,13 +181,19 @@ class RoomStore extends MailspringStore {
     const nicknames = chatLocalStorage.nicknames;
     const conversationJid = payload.from.bare;
     const fromjid = payload.userJid;
-    const fromcontact = await UserCacheStore.getUserInfoByJid(fromjid);
+    let fromcontact = await UserCacheStore.getUserInfoByJid(fromjid);
+    if (!fromcontact) {
+      fromcontact = ContactStore.findContactByJid(fromjid)
+    }
     const byjid = payload.actorJid;
-    const bycontact = await UserCacheStore.getUserInfoByJid(byjid);
+    let bycontact = await UserCacheStore.getUserInfoByJid(byjid);
+    if (!bycontact) {
+      bycontact = ContactStore.findContactByJid(byjid)
+    }
     const item = {
       from: {
         jid: fromjid,
-        email: payload.userEmail,
+        email: payload.userEmail || payload.email,
         name: fromcontact && fromcontact.name,
         nickname: nicknames[fromjid]
       },
@@ -201,7 +207,7 @@ class RoomStore extends MailspringStore {
     }
 
     let content;
-    const fromName = item.from.nickname || item.from.name || item.from.email;
+    const fromName = item.from.nickname || item.from.name || item.from.email || fromcontact && fromcontact.email;
     const byName = item.by.nickname || item.by.name || item.by.email;
     if (payload.type === 'join') {
       content = `${byName} invited ${fromName} to join the group chat.`;

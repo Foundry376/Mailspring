@@ -3,6 +3,7 @@ import ContactAvatar from '../../common/ContactAvatar';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../../utils/colors';
 import { name } from '../../../../utils/name';
+import { getAppByJid } from '../../../../utils/appmgt';
 const { primaryColor } = theme;
 
 
@@ -31,7 +32,14 @@ export default class InfoMember extends Component {
   render = () => {
     const { conversation, member } = this.props;
     const jid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
+    console.log( 'infom.render: ', member);
     let membername = name(jid) || member.name;
+    if (!membername && jid.match(/@app/)) {
+      const app = getAppByJid(jid);
+      if (app) {
+        membername = app.name || app.shortName || app.appName;
+      }
+    }
     const email = member.email;
     const moreInfo = [];
     if (member.affiliation === 'owner') {

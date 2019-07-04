@@ -1,6 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import { Actions, WorkspaceStore } from 'mailspring-exports';
-import { ChatActions, RoomStore, ConversationStore, ContactStore } from 'chat-exports';
+import { ChatActions, RoomStore, ConversationStore, ContactStore, FailMessageStore } from 'chat-exports';
 import { decrypte } from '../utils/rsa';
 import { decryptByAES } from '../utils/aes';
 import { downloadFile } from '../utils/awss3';
@@ -574,6 +574,25 @@ class MessageStore extends MailspringStore {
       } else {
         await MessageModel.upsert(msg);
       }
+      if (msg.status!=='MESSAGE_STATUS_SENDING') {
+        return;
+      }
+      setTimeout(async () => {
+        const messageInDb = await MessageModel.findOne({
+          where: {
+            id: msg.id
+          }
+        });
+        if (messageInDb && messageInDb.status==='MESSAGE_STATUS_SENDING') {
+          messageInDb.status = 'MESSAGE_STATUS_TRANSFER_FAILED';
+          this.saveMessagesAndRefresh([messageInDb.get({plain:true})]);
+          const convJid = msg.conversationJid;
+          const conv = ConversationStore.selectedConversation;
+          if (convJid !== (conv &&conv.jid)) {
+            FailMessageStore.setMsg(msg);
+          }
+        }
+      }, 5000);
     }
   };
 }

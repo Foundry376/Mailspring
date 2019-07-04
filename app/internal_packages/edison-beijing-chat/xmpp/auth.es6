@@ -1,13 +1,14 @@
 import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { delay } from '../utils/delay';
 import xmpp from './index';
+import uuid from 'uuid/v4';
 import { RoomStore, ContactStore, E2eeStore, AppsStore, OnlineUserStore } from 'chat-exports';
 
 export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
   let sessionId = window.localStorage['sessionId' + jid.split('@')[0]];
   if (!sessionId) {
-    sessionId = uuid();
+    sessionId = '12345678901';
   }
   console.log('xmpp.init: ', jid, password);
   OnlineUserStore.addAuthingAccount(jid);
@@ -72,9 +73,10 @@ export const auth = async ({ jid, password }) => {
     await delay(200);
     AppsStore.saveMyAppsAndEmailContacts(res);
   } catch (error) {
-    if (error && jid.split('@').length > 1) {
-      window.localStorage.removeItem('sessionId' + jid.split('@')[0]);
-      OnlineUserStore.removeAuthingAccount(jid);
+    window.console.warn('connect error', error);
+    if (error && error.split('@').length > 1) {
+      window.localStorage.removeItem('sessionId' + error.split('@')[0]);
+      OnlineUserStore.removeAuthingAccount(error);
     }
   };
 };

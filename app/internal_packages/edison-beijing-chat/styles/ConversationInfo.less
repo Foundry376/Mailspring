@@ -8,8 +8,8 @@
     -webkit-mask-position: center;
     background-color: @bgColor;
   }
-  @more-height: 20px;
-  @member-count-height:18px;
+  @more-height: 24px;
+  @member-count-height: 24px;
   .more {
     border:none;
   }
@@ -53,14 +53,27 @@
         .icon-mixin('../static/icons/expand-more.svg', @blue, 24px);
       }
     }
+    .button.close {
+      float: right;
+      width: @more-height;
+      height: @more-height;
+      border: none;
+      box-shadow: none;
+      border-radius: 50%;
+      .icon-mixin('../static/icons/close.svg', @gray, 24px);
+      margin-right: 20px;
+      &:hover {
+        .icon-mixin('../static/icons/close.svg', @blue, 24px);
+      }
+    }
     .member-count {
       float: left;
       width: 63px;
-      height: 18px;
+      height: @member-count-height;
       text-align: left;
       color: @black;
       font-weight: bold;
-      size:15px;
+      size: 15px;
       line-height: @member-count-height;
       white-space: nowrap;
     }

@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import { Actions, AccountStore, FocusedPerspectiveStore } from 'mailspring-exports';
+import { Actions, AccountStore, FocusedPerspectiveStore, WorkspaceStore } from 'mailspring-exports';
 import _ from 'underscore';
 import SearchMailboxPerspective from './search-mailbox-perspective';
 
@@ -15,6 +15,7 @@ class SearchStore extends MailspringStore {
     this._searchQuery = FocusedPerspectiveStore.current().searchQuery || '';
     this._isSearching = false;
 
+    this.listenTo(WorkspaceStore, this._onWorkspaceChange);
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
     this.listenTo(Actions.searchQuerySubmitted, this._onQuerySubmitted);
     this.listenTo(Actions.searchQueryChanged, this._onQueryChanged);
@@ -36,6 +37,13 @@ class SearchStore extends MailspringStore {
   _onSearchCompleted = () => {
     this._isSearching = false;
     this.trigger();
+  };
+  _onWorkspaceChange = () => {
+    const sheetId = WorkspaceStore.topSheet().id;
+    if (sheetId === 'ChatView') {
+      this._searchQuery = '';
+      this.trigger();
+    }
   };
 
   _onPerspectiveChanged = () => {

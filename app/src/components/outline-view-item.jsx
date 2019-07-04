@@ -145,7 +145,6 @@ class OutlineViewItem extends Component {
     this.state = {
       isDropping: false,
       editing: props.item.editing || false,
-      renderMissingBackgroundBox: false,
     };
   }
 
@@ -154,7 +153,6 @@ class OutlineViewItem extends Component {
       ReactDOM.findDOMNode(this).addEventListener('contextmenu', this._onShowContextMenu);
     }
     this.setState({
-      renderMissingBackgroundBox: true,
       targetDiv: ReactDOM.findDOMNode(this.refs[`${this.props.item.id}-span`]),
     });
   }
@@ -299,7 +297,7 @@ class OutlineViewItem extends Component {
   // Renderers
   _renderCount = (item = this.props.item) => {
     if (!item.count || item.iconName === 'sent.svg') {
-      return <span/>;
+      return <span />;
     }
     const className = classnames({
       'item-count-box': true,
@@ -386,20 +384,11 @@ class OutlineViewItem extends Component {
     if (item.children.length > 0 && !item.collapsed) {
       return (
         <section className="item-children" key={`${item.id}-children`}>
-          {item.children.map(child => <OutlineViewItem key={child.id} provider={acc.provider} item={child}/>)}
+          {item.children.map(child => <OutlineViewItem key={child.id} provider={acc.provider} item={child} />)}
         </section>
       );
     }
-    return <span/>;
-  }
-
-  _renderMissingShadowBox() {
-    const style = {
-      top: this.state.targetDiv.offsetTop,
-      height: this.state.targetDiv.clientHeight,
-      width: this.state.targetDiv.offsetLeft,
-    };
-    return <div style={style} className="missing-shadow-patch"/>;
+    return <span />;
   }
 
   render() {
@@ -420,9 +409,6 @@ class OutlineViewItem extends Component {
           />
         </span>
         {this._renderChildren()}
-        {item.selected && this.state.renderMissingBackgroundBox
-          ? this._renderMissingShadowBox()
-          : null}
       </div>
     );
   }

@@ -184,6 +184,10 @@
       color: @gray;
     }
   }
+  .message.message-fail {
+    background-color: rgba(255, 72, 95, 5%);
+  }
+
 
   .message.currentUser,
   .message.otherUser {
@@ -207,9 +211,24 @@
 
   .message.currentUser,
   .message.otherUser {
-    .messageSender {
-      display: block;
-    }
+   .messageIcons{
+     display: block;
+     .messageFailed {
+       width: 32px;
+       height: 32px;
+       position:relative;
+       top:10px;
+       background-image: url(icons/alert-2.svg);
+       display:inline-block;
+       &:hover {
+         border-radius: 16px 16px 16px 16px;
+         background-color: rgba(255, 72, 95, 10%);
+       }
+     }
+     .messageSender {
+       display: inline-block;
+     }
+   }
   }
 
   .messageSender {
@@ -347,7 +366,16 @@
 
   .messageStatus {
     margin-left: 5px;
+    color: @red;
 
+  }
+  .message-retry {
+    position:absolute;
+    top:35%;
+    right:20px;
+    font-weight: bold;
+    color: @red;
+    text-align: right;
   }
   .message-toolbar {
     display: none;
@@ -516,6 +544,42 @@
   }
   &:hover {
 
+  }
+
+  .fail-alert-container {
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    left: 20px;
+    bottom: 20px;
+    width: 400px;
+    height: 30px;
+    background-color: @red;
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 0 0 0 20px;
+    z-index:9;
+    .view-btn {
+      position:absolute;
+      right:35px;
+      height: 30px;
+      width: 48px;
+      background-color: @red;
+      color: @white;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.43px;
+      line-height: 17px;
+      text-align: right;
+      border:none;
+    }
+    .hide-btn {
+      position:absolute;
+      right:5px;
+      width:15px;
+      height:15px;
+    }
   }
   .messageCommand {
     display:inline-block;

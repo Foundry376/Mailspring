@@ -25,6 +25,7 @@ import { sendFileMessage } from '../../../../utils/message';
 import { getToken } from '../../../../utils/appmgt';
 import { LocalStorage } from 'chat-exports';
 import { alert } from '../../../../utils/electron';
+import { log2 } from '../../../../utils/log-util';
 
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -222,7 +223,7 @@ export default class MessagesPanel extends Component {
     let { loadConfig } = progress;
     ChatActions.updateProgress({ loading: true, percent: 0, finished: false, failed: false, visible: true });
     const { msgBody, filepath } = loadConfig;
-
+    log2(`MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`);
     const loadCallback = (...args) => {
       ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
@@ -240,8 +241,11 @@ export default class MessagesPanel extends Component {
         body.isUploading = false;
         body.mediaObjectId = myKey;
         body = JSON.stringify(body);
+        log2(`MessagePanel.loadMessage: mediaObjectId: `, myKey);
         if (err) {
-          console.error(`${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`);
+          const str = `${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`;
+          console.error(str);
+          log2(`MessagePanel.loadMessage: error: `+str);
           const message = {
             id: messageId,
             conversationJid: conversation.jid,
@@ -425,6 +429,8 @@ export default class MessagesPanel extends Component {
       editProfile: this.editProfile,
       exitProfile: this.exitProfile,
       contacts,
+      onCloseInfoPanel: () =>
+        this.setState({ showConversationInfo: false }),
     };
     let className = '';
     if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {
