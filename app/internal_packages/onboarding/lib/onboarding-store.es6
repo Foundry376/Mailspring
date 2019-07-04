@@ -66,7 +66,7 @@ class OnboardingStore extends MailspringStore {
     // clear before the window closes.
     setTimeout(() => {
       ipcRenderer.send('account-setup-successful');
-    }, 100);
+    }, 10);
   };
 
   _onChooseAccountProvider = provider => {
@@ -128,7 +128,7 @@ class OnboardingStore extends MailspringStore {
       else {
         this._onOnboardingComplete();
       }
-    }, 1000);
+    }, 10);
   };
 
   _onFinishAndAddAccount = async account => {
@@ -159,7 +159,7 @@ class OnboardingStore extends MailspringStore {
       // before the window is closed.
       setTimeout(() => {
         this._onOnboardingComplete();
-      }, 2000);
+      }, 10);
     }
   };
 
