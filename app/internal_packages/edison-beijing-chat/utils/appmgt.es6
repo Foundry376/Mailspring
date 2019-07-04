@@ -166,9 +166,14 @@ export const getMyApps = (userId) => {
 export const getAppByJid = jid => {
     const atIndex = jid.indexOf('@');
     const id = jid.substr(0, atIndex);
+    if (otherApps[id]) {
+        return otherApps[id];
+    }
+
     if (!myApps) {
         return null;
     }
+
     let userId;
     for (userId in myApps) {
         const info = myApps[userId];
