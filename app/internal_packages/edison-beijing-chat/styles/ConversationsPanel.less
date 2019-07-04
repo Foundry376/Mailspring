@@ -11,7 +11,19 @@
     flex-grow: 1;
     overflow-y: scroll;
     &::-webkit-scrollbar {
-      display: none;
+      width: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      visibility: hidden;
+      opacity: 0;
+      -webkit-border-radius: 2px;
+      background: rgba(150, 150, 150, 0.33);
+    }
+    &:hover {
+      &::-webkit-scrollbar-thumb {
+        visibility: visible;
+        opacity: 1;
+      }
     }
   }
   
