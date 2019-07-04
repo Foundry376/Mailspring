@@ -172,8 +172,11 @@ export const getAppByJid = jid => {
     }
     let userId;
     for (userId in myApps) {
-        const apps = myApps[userId];
-        for (const app of apps) {
+        const info = myApps[userId];
+        if (!info){
+            continue;
+        }
+        for (const app of info.apps) {
             if (app.jid === jid || app.id === id) {
                 return app;
             }
