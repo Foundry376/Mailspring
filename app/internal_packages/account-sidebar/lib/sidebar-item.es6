@@ -69,8 +69,18 @@ const toggleItemCollapsed = function(item) {
 };
 
 const onDeleteItem = function(item) {
-  // TODO Delete multiple categories at once
   if (item.deleted === true) {
+    return;
+  }
+  if (item.children.length > 0) {
+    _.defer(() => {
+      AppEnv.showErrorDialog({
+        title: `Cannot delete ${(item.contextMenuLabel || item.name).toLocaleLowerCase()}`,
+        message: `Must delete sub-${(
+          item.contextMenuLabel || item.name
+        ).toLocaleLowerCase()} first`,
+      });
+    });
     return;
   }
   const category = item.perspective.category();
