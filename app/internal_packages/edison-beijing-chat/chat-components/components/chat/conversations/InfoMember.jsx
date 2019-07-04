@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { AccountStore } from 'mailspring-exports';
+import { ConversationStore } from 'chat-exports';
 import ContactAvatar from '../../common/ContactAvatar';
 import CancelIcon from '../../common/icons/CancelIcon';
 import { theme } from '../../../../utils/colors';
@@ -24,10 +26,35 @@ export default class InfoMember extends Component {
     this.props.removeMember(member);
   };
 
+  // 避免双击事件触发两次单击事件
+  clickCoordinate(jid) {
+    this._clickTime = (this._clickTime || 0) + 1
+    setTimeout(() => {
+      if (this._clickTime === 1) {
+        // 单击事件
+        this.editProfile()
+      } else if (this._clickTime === 2) {
+        // 双击事件
+        this.changeCurrent(jid)
+      }
+      this._clickTime = 0
+    }, 300)
+  }
+
   editProfile = () => {
     const { member } = this.props;
     this.props.editProfile(member);
   };
+
+  changeCurrent = async (jid) => {
+    const { member, conversation } = this.props
+    if (jid === conversation.curJid) {
+      return
+    }
+    if (AccountStore.isMyEmail(member.email)) {
+      ConversationStore.setSelectedConversationsCurJid(jid)
+    }
+  }
 
   render = () => {
     const { conversation, member } = this.props;
@@ -50,7 +77,11 @@ export default class InfoMember extends Component {
     }
 
     return (
-      <div className="row" key={jid} onClick={this.editProfile}>
+      <div
+        className="row"
+        key={jid}
+        onClick={() => this.clickCoordinate(jid)}
+      >
         <div className="avatar">
           <ContactAvatar
             conversation={conversation}
