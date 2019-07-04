@@ -225,7 +225,7 @@ class DraftFactory {
       subject: replyEvent.summary,
       to: tos,
       from: [this._fromContactForReply(message)],
-      threadId: message.threadId,
+      threadId: '',
       accountId: message.accountId,
       replyToHeaderMessageId: '',
       body: `${me.name} have replied with a status of ${replyStatus.label}`,
