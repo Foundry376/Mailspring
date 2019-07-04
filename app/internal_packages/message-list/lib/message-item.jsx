@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Utils, Actions, AttachmentStore, MessageStore, EmailAvatar } from 'mailspring-exports';
+import { Utils, Actions, AttachmentStore, MessageStore, EmailAvatar, CalendarStore } from 'mailspring-exports';
 import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
@@ -34,6 +34,7 @@ export default class MessageItem extends React.Component {
       filePreviewPaths: AttachmentStore.previewPathsForFiles(fileIds),
       detailedHeaders: false,
       missingFileIds: MessageStore.getMissingFileIds(),
+      calendar: CalendarStore.getCalendarByMessageId(props.message ? props.message.id : 'null')
     };
     this.markAsReadTimer = null;
     this.mounted = false;
@@ -43,6 +44,7 @@ export default class MessageItem extends React.Component {
     this._storeUnlisten = [
       AttachmentStore.listen(this._onDownloadStoreChange),
       MessageStore.listen(this._onDownloadStoreChange),
+      CalendarStore.listen(this._onCalendarStoreChange)
     ];
     this.mounted = true;
   }
@@ -92,6 +94,10 @@ export default class MessageItem extends React.Component {
     }
     Actions.toggleMessageIdExpanded(this.props.message.id);
   };
+
+  _onCalendarStoreChange = () =>{
+    this.setState({calendar: CalendarStore.getCalendarByMessageId(this.props.message.id)});
+  }
 
   _onDownloadStoreChange = () => {
     const fileIds = this.props.message.fileIds();
@@ -189,9 +195,13 @@ export default class MessageItem extends React.Component {
   _renderAttachments() {
     const { files = [], body, id } = this.props.message;
     const { filePreviewPaths, downloads } = this.state;
-    const attachedFiles = files.filter(
-      f => !f.contentId || !(body || '').includes(`cid:${f.contentId}`),
-    );
+    const attachedFiles = files.filter(f => {
+      return (
+        !f.contentId ||
+        (!(body || '').includes(`cid:${f.contentId}`) &&
+          !(f.contentType || '').toLocaleLowerCase().includes('calendar'))
+      );
+    });
 
     return (
       <div>
@@ -383,7 +393,7 @@ export default class MessageItem extends React.Component {
         <div className="message-item-white-wrap">
           <div className="message-item-area">
             {this._renderHeader()}
-            <MessageItemBody message={this.props.message} downloads={this.state.downloads} />
+            <MessageItemBody message={this.props.message} downloads={this.state.downloads} calendar={this.state.calendar} />
             {this._renderAttachments()}
             {this._renderFooterStatus()}
           </div>

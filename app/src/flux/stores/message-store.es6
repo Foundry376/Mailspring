@@ -84,6 +84,9 @@ class MessageStore extends MailspringStore {
       return viewingHiddenCategory ? inHidden || item.draft : !inHidden;
     });
   }
+  getAllItems(){
+    return this._items;
+  }
 
   threadId() {
     return this._thread ? this._thread.id : undefined;
@@ -267,7 +270,7 @@ class MessageStore extends MailspringStore {
       const inDisplayedThread = change.objects.some(obj => obj.threadId === this._thread.id);
       if (!inDisplayedThread) return;
 
-      if (change.objects.length === 1 && change.objects[0].draft === true) {
+      if (change.objects.length === 1 && change.objects[0].draft === true && !change.objects[0].calendarReply) {
         const item = change.objects[0];
         const itemIndex = this._items.findIndex(msg => msg.id === item.id);
 

@@ -68,7 +68,7 @@ const extMapping = {
   go: 'code',
   ics: 'calendar',
   ifb: 'calendar',
-  pkpass: 'pass'
+  pkpass: 'pass',
 };
 
 const PREVIEW_FILE_SIZE_LIMIT = 2000000; // 2mb
@@ -109,7 +109,7 @@ class AttachmentStore extends MailspringStore {
       id.substr(0, 2),
       id.substr(2, 2),
       id,
-      file.safeDisplayName()
+      file.safeDisplayName(),
     );
   }
 
@@ -212,7 +212,7 @@ class AttachmentStore extends MailspringStore {
           this._filePreviewPaths[file.id] = previewPath;
           this.trigger();
           resolve();
-        }
+        },
       );
     });
   }
@@ -224,7 +224,8 @@ class AttachmentStore extends MailspringStore {
       this._prepareAndResolveFilePath(file)
         .catch(this._catchFSErrors)
         // Passively ignore
-        .catch(() => { })
+        .catch(() => {
+        })
     );
   };
 
@@ -412,9 +413,47 @@ class AttachmentStore extends MailspringStore {
       .statAsync(filepath)
       .catch(() =>
         Promise.reject(
-          new Error(`${filepath} could not be found, or has invalid file permissions.`)
-        )
+          new Error(`${filepath} could not be found, or has invalid file permissions.`),
+        ),
       );
+  }
+
+  createNewFile({ data, inline = false, filename = null, contentType = null, extension = null }) {
+    const id = extension ? `${Utils.generateTempId()}.${extension}` : Utils.generateTempId();
+    const file = new File({
+      id: id,
+      filename: filename || id,
+      contentType: contentType,
+      messageId: null,
+      contentId: inline ? Utils.generateContentId() : null,
+      isInline: inline,
+    });
+    return this._writeToInternalPath(data, this.pathForFile(file)).then(stats => {
+      file.size = stats.size;
+      return Promise.resolve(file);
+    });
+  }
+
+  _writeToInternalPath(data, targetPath) {
+    const buffer = new Uint8Array(Buffer.from(data));
+    const parentPath = path.dirname(targetPath);
+    return new Promise((resolve, reject) => {
+      mkdirpAsync(parentPath).then(() => {
+        fs.writeFile(targetPath, buffer, err => {
+          if (err) {
+            reject(err);
+          } else {
+            fs.stat(targetPath, (error, stats) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(stats);
+              }
+            });
+          }
+        });
+      });
+    });
   }
 
   _copyToInternalPath(originPath, targetPath) {
@@ -424,7 +463,7 @@ class AttachmentStore extends MailspringStore {
 
       readStream.on('error', () => reject(new Error(`Could not read file at path: ${originPath}`)));
       writeStream.on('error', () =>
-        reject(new Error(`Could not write ${path.basename(targetPath)} to files directory.`))
+        reject(new Error(`Could not write ${path.basename(targetPath)} to files directory.`)),
       );
       readStream.on('end', () => resolve());
       readStream.pipe(writeStream);
@@ -475,7 +514,10 @@ class AttachmentStore extends MailspringStore {
 
   // Handlers
 
-  _onSelectAttachment = ({ headerMessageId, onCreated = () => { }, type = '*' }) => {
+  _onSelectAttachment = ({
+                           headerMessageId, onCreated = () => {
+    }, type = '*',
+                         }) => {
     this._assertIdPresent(headerMessageId);
 
     // When the dialog closes, it triggers `Actions.addAttachment`
@@ -497,11 +539,12 @@ class AttachmentStore extends MailspringStore {
   };
 
   _onAddAttachment = async ({
-    headerMessageId,
-    filePath,
-    inline = false,
-    onCreated = () => { },
-  }) => {
+                              headerMessageId,
+                              filePath,
+                              inline = false,
+                              onCreated = () => {
+                              },
+                            }) => {
     this._assertIdPresent(headerMessageId);
 
     try {
@@ -543,7 +586,7 @@ class AttachmentStore extends MailspringStore {
     }
 
     await this._applySessionChanges(headerMessageId, files =>
-      files.filter(({ id }) => id !== fileToRemove.id)
+      files.filter(({ id }) => id !== fileToRemove.id),
     );
 
     try {

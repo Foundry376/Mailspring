@@ -112,6 +112,7 @@ lazyLoadAndRegisterTask(`SendFeatureUsageEventTask`, 'send-feature-usage-event-t
 lazyLoadAndRegisterTask(`UndoTask`, 'undo-task');
 lazyLoadAndRegisterTask('AnalyzeDBTask', 'analyze-db-task');
 lazyLoadAndRegisterTask('DeleteThreadsTask', 'delete-threads-task');
+lazyLoadAndRegisterTask('CalendarTask', 'calendar-task');
 
 // Stores
 // These need to be required immediately since some Stores are
@@ -148,6 +149,7 @@ load(`FocusedPerspectiveStore`, 'flux/stores/focused-perspective-store');
 load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
 load('DebugStore', 'flux/stores/debug-store');
 load('SystemInfoStore', 'flux/stores/system-info-store');
+load('CalendarStore', 'flux/stores/calendar-store');
 lazyLoad('ThreadStore', 'flux/stores/thread-store');
 
 lazyLoad(`ServiceRegistry`, `registries/service-registry`);
