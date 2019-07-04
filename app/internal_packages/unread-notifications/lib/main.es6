@@ -149,7 +149,7 @@ export class Notifier {
           AppEnv.showErrorDialog(`Can't find that thread`);
           return;
         }
-        Actions.ensureCategoryIsFocused('inbox', thread.accountId);
+        Actions.ensureCategoryIsFocused('inbox', thread.accountId, true);
         Actions.setFocus({ collection: 'thread', item: thread });
       },
     });

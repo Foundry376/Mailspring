@@ -158,13 +158,13 @@ class FocusedPerspectiveStore extends MailspringStore {
     }
   };
 
-  _onFocusPerspective = perspective => {
+  _onFocusPerspective = (perspective, forceTrigger=false)=> {
     // If looking at unified inbox, don't attempt to change the sidebar accounts
     const sidebarIsUnifiedInbox = this.sidebarAccountIds().length > 1;
     if (sidebarIsUnifiedInbox) {
-      this._setPerspective(perspective);
+      this._setPerspective(perspective, null, forceTrigger);
     } else {
-      this._setPerspective(perspective, perspective.accountIds);
+      this._setPerspective(perspective, perspective.accountIds, forceTrigger);
     }
   };
 
@@ -181,11 +181,11 @@ class FocusedPerspectiveStore extends MailspringStore {
     this._setPerspective(perspective, sidebarAccountIds || perspective.accountIds);
   };
 
-  _onEnsureCategoryIsFocused = (categoryName, accountIds = []) => {
+  _onEnsureCategoryIsFocused = (categoryName, accountIds = [], forceTrigger = false) => {
     const ids = accountIds instanceof Array ? accountIds : [accountIds];
     const categories = ids.map(id => CategoryStore.getCategoryByRole(id, categoryName));
     const perspective = MailboxPerspective.forCategories(categories);
-    this._onFocusPerspective(perspective);
+    this._onFocusPerspective(perspective, forceTrigger);
   };
 
   _defaultPerspective(accountsOrIds = AccountStore.accountIds()) {
@@ -200,8 +200,8 @@ class FocusedPerspectiveStore extends MailspringStore {
     return perspective;
   }
 
-  _setPerspective(perspective, sidebarAccountIds) {
-    let shouldTrigger = false;
+  _setPerspective(perspective, sidebarAccountIds, forceTrigger = false) {
+    let shouldTrigger = forceTrigger;
 
     if (!perspective.isEqual(this._current)) {
       AppEnv.savedState.perspective = perspective.toJSON();
