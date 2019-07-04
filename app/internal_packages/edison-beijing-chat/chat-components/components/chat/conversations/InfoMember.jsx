@@ -51,7 +51,6 @@ export default class InfoMember extends Component {
       return
     }
     if (AccountStore.isMyEmail(member.email)) {
-      console.log('切换current:', member.email)
       ConversationStore.setSelectedConversationsCurJid(jid)
     }
   }
