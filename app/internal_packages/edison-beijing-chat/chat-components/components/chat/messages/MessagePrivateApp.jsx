@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import uuid from 'uuid/v4';
 import { dateFormat } from '../../../../utils/time';
+import { RetinaImg } from 'mailspring-component-kit';
 import MessageCommand from './MessageCommand';
 import { beginSendingMessage } from '../../../actions/chat';
 import { FILE_TYPE } from '../../../../utils/filetypes';
@@ -48,9 +49,14 @@ export default class MessagePrivateApp extends PureComponent {
     MessageStore.saveMessagesAndRefresh([msg]);
     chatReduxStore.dispatch(beginSendingMessage(conversation, JSON.stringify(body), messageId, false));
   }
+  toggleCommands = ()  => {
+    const commandsVisible = !this.state.commandsVisible;
+    this.setState({commandsVisible});
+  };
 
   render() {
     const { msg } = this.props;
+    const { commandsVisible } = this.state;
     const { sentTime } = msg;
     const msgBody = JSON.parse(msg.body);
     if (msgBody.deleted) {
@@ -105,7 +111,12 @@ export default class MessagePrivateApp extends PureComponent {
               <br />
               {contents && contents.length ? <h6>click a image to send it</h6> : null}
             </div>
-            <div>{commands}</div>
+            {commands && commands.length ? <RetinaImg name={'expand-more.svg'}
+                                                      onClick={this.toggleCommands}
+                                                      style={{ width: 26, height: 26 }}
+                                                      isIcon
+                                                      mode={RetinaImg.Mode.ContentIsMask} /> : null }
+            {commandsVisible ? <div>{commands}</div> : null}
           </div>
         </div>
       </div>
