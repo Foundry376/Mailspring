@@ -113,7 +113,7 @@ class ConversationStore extends MailspringStore {
   workspaceChanged = () => {
     const sheet = WorkspaceStore.topSheet();
     if (sheet) {
-      if (sheet.id !== 'ChatView') {
+      if (sheet.id !== 'ChatView' && sheet.id !== 'Preferences') {
         this.deselectConversation();
       }
     }

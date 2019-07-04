@@ -96,11 +96,16 @@ export default class SheetContainer extends React.Component {
     if (!topSheet) {
       return <div />;
     }
-    const sheetComponent = <Sheet depth={this.state.stack.length -1}
-                                  data={this.state.stack[this.state.stack.length - 1]}
-        key="root"
-        onColumnSizeChanged={this._onColumnSizeChanged}
-      />
+    let rootSheet = null;
+    if (!topSheet.id.includes('Preference')) {
+      rootSheet = <Sheet depth={this.state.stack.length - 1}
+                         data={this.state.stack[this.state.stack.length - 1]}
+                         key="root"
+                         onColumnSizeChanged={this._onColumnSizeChanged}/>;
+    } else {
+      rootSheet = <Sheet depth={0} data={this.state.stack[0]} key="root"
+                         onColumnSizeChanged={this._onColumnSizeChanged}/>;
+    }
 
     return (
       <Flexbox
@@ -119,7 +124,11 @@ export default class SheetContainer extends React.Component {
         </div> */}
 
         <div id="Center" name="Center" style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}>
-          {sheetComponent}
+          {rootSheet}
+          {topSheet.id === 'Preferences' ? <Sheet depth={this.state.stack.length - 1}
+                                                 data={this.state.stack[this.state.stack.length - 1]}
+                                                 key="top"
+                                                 onColumnSizeChanged={this._onColumnSizeChanged}/> : null}
         </div>
 
         <div name="Footer" style={{ order: 3, zIndex: 4 }}>
