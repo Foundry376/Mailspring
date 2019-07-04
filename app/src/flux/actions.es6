@@ -456,7 +456,8 @@ class Actions {
 
   *Scope: Window*
   */
-  static RSVPEvent = ActionScopeWindow;
+  static RSVPEvent = ActionScopeMainWindow;
+  static RSVPEventFailed = ActionScopeMainWindow;
 
   // FullContact Sidebar
   static getFullContactDetails = ActionScopeWindow;

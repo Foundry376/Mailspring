@@ -30,6 +30,7 @@ class CalendarStore extends MailspringStore {
 
     this.listenTo(MessageStore, this._onMessageStoreChange);
     this.listenTo(DatabaseStore, this._onMessageDataChange);
+    Actions.RSVPEventFailed.listen(this._rsvpEventFailed, this);
     Actions.RSVPEvent.listen(this.replyToCalendarEventByMessage, this);
   }
 
@@ -60,6 +61,9 @@ class CalendarStore extends MailspringStore {
       return false;
     }
     return e.needToRsvpByEmail(account.emailAddress);
+  }
+  _rsvpEventFailed(task) {
+    AppEnv.showErrorDialog({ title: 'RSVP Event failed', message: `${task.source} failed.` });
   }
 
   replyToCalendarEventByMessage(message, reply) {
@@ -123,9 +127,9 @@ class CalendarStore extends MailspringStore {
           tos: [Contact.fromObject(organizer, { accountId: message.accountId })],
           me,
         }).then(newMessage => {
-
           Actions.queueTask(
             new CalendarTask({
+              source: `Replying to ${replyEvent.summary}`,
               accountId: message.accountId,
               messageId: message.id,
               draft: newMessage,

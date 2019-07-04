@@ -1,6 +1,7 @@
 import Task from './task';
 import Attributes from '../attributes';
 import Message from '../models/message';
+import Actions from '../actions';
 
 export default class CalendarTask extends Task {
   static attributes = Object.assign({}, Task.attributes, {
@@ -25,5 +26,13 @@ export default class CalendarTask extends Task {
 
   label() {
     return `Calendar event`;
+  }
+
+  onError({ key, debuginfo, retryable }) {
+    if (retryable) {
+      console.warn(`retrying task because ${debuginfo}`);
+      return;
+    }
+    Actions.RSVPEventFailed(this);
   }
 }

@@ -308,7 +308,7 @@ class DraftStore extends MailspringStore {
     if (change.objectClass !== Message.name) {
       return;
     }
-    const drafts = change.objects.filter(msg => msg.draft && !msg.eventReply);
+    const drafts = change.objects.filter(msg => msg.draft && !msg.calendarReply);
     if (drafts.length === 0) {
       return;
     }

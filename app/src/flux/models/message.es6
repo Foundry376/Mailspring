@@ -460,6 +460,9 @@ export default class Message extends ModelWithMetadata {
   isDraftSaving() {
     return this.state == Message.messageState.saving && this.draft; // eslint-ignore-line
   }
+  isCalendarReply() {
+    return this.calendarReply;
+  }
 
   isHidden() {
     const isReminder =
@@ -469,7 +472,7 @@ export default class Message extends ModelWithMetadata {
       (this.from[0].name || '').endsWith('via Mailspring');
     const isDraftBeingDeleted = this.id.startsWith('deleted-') || this.isDeleted();
 
-    return isReminder || isDraftBeingDeleted;
+    return isReminder || isDraftBeingDeleted || this.isCalendarReply();
   }
 
   setOrigin(val) {
