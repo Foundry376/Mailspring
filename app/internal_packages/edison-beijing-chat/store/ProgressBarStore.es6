@@ -1,20 +1,29 @@
 import MailspringStore from 'mailspring-store';
-class FailMessageStore extends MailspringStore {
+import {ChatActions} from 'chat-exports';
+class ProgressBarStore extends MailspringStore {
   constructor() {
     super();
-    this.msg = null;
-    this.visible = false;
+    this._registerListeners();
+    const progress = {};
+    this.progress = progress;
+    progress.loadQueue = [];
+    progress.loadIndex = 0;
+    progress.percent = 0;
+    progress.loading = false;
+    progress.visible = false;
+    this.props = {};
     return;
   }
 
-  SetMsg(msg) {
-    this.msg = msg;
-    this.visible = true;
-    this.trigger();
+  _registerListeners() {
+    this.listenTo(ChatActions.updateProgress, this.updateProgress);
   }
-  hidez() {
-    this.visible = false;
+
+  updateProgress(progress, props) {
+    Object.assign(this.progress, progress);
+    Object.assign(this.props, props);
+    this.trigger();
   }
 }
 
-module.exports = new FailMessageStore();
+module.exports = new ProgressBarStore();
