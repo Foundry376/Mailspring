@@ -8,7 +8,6 @@ class FailMessageStore extends MailspringStore {
   }
 
   setMsg(msg) {
-    console.log( 'setMsg: msg: ', msg);
     this.msg = msg;
     this.visible = true;
     this.trigger();

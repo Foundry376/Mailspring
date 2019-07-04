@@ -19,7 +19,6 @@ export default class FailAlert extends PureComponent {
       return;
     }
     const conv = await ConversationStore.getConversationByJid(msg.conversationJid);
-    console.log( 'fa.componentWillReceiveProps: ', msg, conv);
     const msgTo = conv.name;
     this.setState({msgTo});
   }
