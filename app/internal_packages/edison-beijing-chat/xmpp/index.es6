@@ -7,9 +7,7 @@ import { log } from '../utils/log-util';
  * The interval between requests to join rooms
  */
 const JOIN_INTERVAL = 5;
-
 export class Xmpp extends EventEmitter3 {
-  defaultJid;
   xmppMap = {};
   init(credentials) {
     let jid = credentials.jid;
@@ -20,19 +18,18 @@ export class Xmpp extends EventEmitter3 {
     if (!xmpp) {
       xmpp = new XmppEx();
       this.xmppMap[jid] = xmpp;
-      this.defaultJid = jid;
-      // xmpp.on('*', (name, data) => {
-      //   console.log('onrawdata.xmpp', xmpp.getTime(), xmpp.client.ts, xmpp.connectedJid, name, data);
-      //   this.emit(name, data);
-      // })
+      xmpp.on('disconnected', () => {
+        this.emit('disconnected', { curJid: xmpp.connectedJid });
+      })
     }
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
-      if (AppEnv.enabledXmppLog && (name == 'raw:outgoing' || name == 'raw:incoming')) {
+      if (window.localStorage.enabledXmppLog && (name == 'raw:outgoing' || name == 'raw:incoming')) {
         console.log('onrawdata', xmpp.getTime(), xmpp.client.ts, xmpp.connectedJid, name, data);
+        return;
       }
       if (name == 'auth:failed') {
-        console.log('onrawdata1', xmpp.getTime(), xmpp.connectedJid, name, data);
+        this._warn('auth:failed', xmpp);
         this.emit(name, { curJid: xmpp.connectedJid });
         this.removeXmpp(xmpp.connectedJid);
         return;
@@ -40,16 +37,16 @@ export class Xmpp extends EventEmitter3 {
       if (data && typeof data != "string") {
         data.curJid = xmpp.connectedJid;
       }
-      this.emit(name, data);
+      if (name != 'disconnected') {
+        this.emit(name, data);
+      }
     });
-    xmpp.client.on('memberschange', (data) => {
-      this.emit(name, data);
-    });
+    // xmpp.client.on('memberschange', (data) => {
+    //   this.emit(name, data);
+    // });
   }
-
   connect(jid) {
     let xmpp = this.getXmpp(jid);
-    console.log(xmpp);
     return xmpp.connect();
   }
   removeXmpp(jid) {
@@ -60,6 +57,7 @@ export class Xmpp extends EventEmitter3 {
     if (xmpp) {
       if (xmpp.client) {
         xmpp.client.disconnect();
+        xmpp.pingState = false;
         xmpp.connectedJid = null;
       }
       this.xmppMap[jid] = null;
@@ -77,6 +75,10 @@ export class Xmpp extends EventEmitter3 {
       return null;
     }
   }
+  _warn = (msg, xmpp) => {
+    log(`${msg}: jid: ${xmpp.connectedJid},state: ${xmpp.connectState},timeoutConut:${xmpp.timeoutCount},retyTimes: ${xmpp.retryTimes},ts: ${xmpp.client.ts}`);
+    console.warn(msg, `jid: ${xmpp.connectedJid},ts: ${xmpp.client.ts},state: ${xmpp.connectState},timeoutConut:${xmpp.timeoutCount},retyTimes: ${xmpp.retryTimes},time: ${xmpp.getTime()}`);
+  };
   async enableCarbons(curJid) {
     let xmpp = this.getXmpp(curJid);
     return xmpp.enableCarbons();
@@ -178,14 +180,23 @@ export class Xmpp extends EventEmitter3 {
  * @extends EventEmitter3
  */
 export class XmppEx extends EventEmitter3 {
-  isConnected = false;
   client = null;
   credentials = null;
   connectedJid = null;
   retryTimes = 0;
-  retrying = false;
-  correctionTime = 0;
   timeoutCount = 0;
+  /**
+   * 0,未连接
+   * 1,正在连接
+   * 2,成功
+   * -1,失败
+   */
+  connectState = 0;
+  pingState = false;
+  /**
+   * 上次发送数据时间
+   */
+  lastSendTs = 0;
 
   /**
    * Initializes the QuickBlox instance's credentials.
@@ -193,81 +204,86 @@ export class XmppEx extends EventEmitter3 {
    *                             (string), transport (string), wsURL (string), and boshURL (string)
    * @throws {Error}             Throws an error if the credentials are do not pass validation
    */
-  init(credentials) {
+  init = (credentials) => {
     validateCredentials(credentials);
-    if (this.client) {
-      this.client.disconnect();
-    }
     this.credentials = credentials;
     this.connectedJid = credentials.jid;
     this.retryTimes = 0;
-    this.client = Stanza.createClient(credentials);
-    this.client.on('*', (name, data) => {
-      if (name != 'disconnected') {
-        this.emit(name, data)
+    if (!this.client) {
+      this.client = Stanza.createClient(credentials);
+    } else {
+      if (this.connectState < 1) {
+        this._log(`xmpp session:init`);
+        this.connect();
+      } else {
+        this._warn(`xmpp session:init`);
       }
-    });
-    this.client.on('session:started', () => {
-      log(`xmpp session:started: jid: ${this.connectedJid}`);
-      console.warn(`xmpp session1:started: jid: ${this.connectedJid}`);
+      return;
+    }
+    // this.client.on('*', (name, data) => {
+    //   if (name != 'disconnected') {
+    //     this.emit(name, data);
+    //   }
+    // });
+    this.client.on('session:started', (data) => {
+      this._log(`xmpp session:started`);
       this.retryTimes = 0;
-      this.isConnected = true;
+      this.timeoutCount = 0;
+      this.connectState = 2;
+      this.emit('session:started', data);
       this.client.sendPresence();
-      //this.client.enableKeepAlive({ timeout: 300, interval: 300 });
-      // the code below seems to be a more stable replacement:
-      this.ping();
+      // if (!this.pingState) {
+      //   this.pingState = true;
+      //   this.ping();
+      // }
     });
     this.client.on('session:prebind', (bind) => {
       if (!window.edisonChatServerDiffTime) {
         window.edisonChatServerDiffTime = parseInt(bind.serverTimestamp)
           - (new Date().getTime() - parseInt(bind.timestamp)) / 2 - parseInt(bind.timestamp);
+        this._log('xmpp session:difftime:' + edisonChatServerDiffTime, `jid: ${this.connectedJid},state: ${this.connectState},retyTimes: ${this.retryTimes},ts: ${this.getTime()}`);
       }
     });
     this.client.on('disconnected', () => {
-      console.warn('xmpp session2:disconnected', this.connectedJid, this.retrying, this.getTime());
-      this.isConnected = false;
-      log(`xmpp disconnected: jid: ${this.connectedJid}`);
+      if (this.connectState == 1) {
+        this.emit('socket:closed');
+      }
+      this._warn(`xmpp session:disconnected`);
+      this.connectState = -1;
       if (this.connectedJid && this.retryTimes < 10) {
-        if (this.retrying) { return; }
-        this.retrying = true;
         let timespan = 1000 + (this.retryTimes % 5) * 2000;
         setTimeout(() => {
-          console.log('connect trace1', this.retryTimes, timespan, this.connectedJid, this.isConnected, this.getTime());
-          if (!this.isConnected) {
-            this.retrying = false;
-            this.connect();
-          }
+          this._log('xmpp session:retry');
+          this.connect(this);
         }, timespan);
       } else if (this.connectedJid) {
         if (this.retryTimes == 10) {
-          console.warn('xmpp session3:disconnected', this.connectedJid, this.getTime());
-          this.emit('disconnected', this.connectedJid);
+          this._warn('xmpp session:disconnected.emit');
+          this.emit('disconnected');
         }
         setTimeout(() => {
-          console.log('connect trace2', this.connectedJid, this.isConnected, this.getTime());
-          if (!this.isConnected) {
-            this.connect();
-          }
-        }, 300000);
+          this._log('xmpp session:retry.1');
+          this.connect(this);
+        }, 180000);
       }
     });
     this.client.on('request:timeout', () => {
       this.timeoutCount++;
       if (this.timeoutCount == 3) {
-        console.log('connect trace3', this.connectedJid, this.isConnected, this.getTime());
-        if (this.isConnected) {
-          this.client.disconnect();
-        }
+        this._warn('xmpp session:timeout');
+        this.client.disconnect();
       }
     });
   }
-  ping() {
-    if (this.isConnected) {
-      this.client.ping("im.edison.tech");
-      // console.log(`xmpp session3:ping: jid: ${this.connectedJid}, ${this.getTime()}`);
-      setTimeout(() => this.ping(), 25000 + Math.random() * 5000);
-    } else {
-      console.log(`xmpp session3:ping2: jid: ${this.connectedJid}`, this.client ? this.client.ts : 0, this.getTime());
+
+  ping = () => {
+    if (this.connectState == 2) {
+      if ((new Date().getTime() - this.lastSendTs) > 20000) {
+        this.client.ping("im.edison.tech");
+      }
+    }
+    if (this.pingState) {
+      setTimeout(() => this.ping(), 25000 + Math.random() * 10000);
     }
   }
   getTime() {
@@ -278,56 +294,101 @@ export class XmppEx extends EventEmitter3 {
    * @throws  {Error}             Throws an error if the instance has not been initialized
    * @returns {Promise.<Object>}  Returns a promise that resolves a JID object
    */
-  connect() {
-    if (this.client === null) {
+  connect = (xmpp) => {
+    let self = xmpp;
+    if (!self) {
+      self = this;
+    }
+    if (self.client === null) {
+      self._warn('Init this instance by calling init(credentials) before trying to connect');
       throw Error('Init this instance by calling init(credentials) before trying to connect');
     }
-    log(`xmpp connect: jid: ${this.connectedJid}`);
-    console.warn(`xmpp session3:connecting: jid: ${this.connectedJid}, ${this.getTime()}`);
-    this.retryTimes++;
-    const self = this;
+    if (self.connectState > 0) {
+      self._log('xmpp session:connecting');
+      return;
+    }
+    self.connectState = 1;
+    if (!self.pingState) {
+      self.pingState = true;
+      self.ping();
+    }
+    self._log('xmpp session:connecting');
+    self.retryTimes++;
     let isComplete = false;
     return new Promise((resolve, reject) => {
       const success = jid => {
-        console.warn(`xmpp auth:success: jid: ${self.connectedJid}, ${self.getTime()}`);
-        isComplete = true;
-        removeListeners();
-        resolve(jid);
+        if (!isComplete) {
+          self._log('xmpp session:success');
+          self.connectState = 2;
+          self.timeoutCount = 0;
+          isComplete = true;
+          removeListeners();
+          resolve(jid);
+        }
       };
       const failure = () => {
-        console.warn(`xmpp auth:failed: jid: ${self.connectedJid}, ${self.getTime()}`);
-        isComplete = true;
-        removeListeners();
-        reject(self.connectedJid);
+        if (!isComplete) {
+          self._warn('xmpp session:failed');
+          self.connectState = -1;
+          self.timeoutCount = 0;
+          isComplete = true;
+          removeListeners();
+          reject(self.connectedJid);
+        }
+      };
+      const closed = () => {
+        if (!isComplete) {
+          self._warn('xmpp session:closed');
+          self.connectState = -1;
+          self.timeoutCount = 0;
+          isComplete = true;
+          removeListeners();
+          reject('xmpp session:closed');
+        }
       };
       setTimeout(() => {
         if (!isComplete) {
+          self.connectState = -1;
           removeListeners();
-          if (self.isConnected) {
+          if (self.client) {
             self.client.disconnect();
           }
-          //reject('Connection timeout');
-          console.log(`Connection timeout, ${self.isConnected}, ${self.getTime()}`);
+          reject('Connection timeout');
+          self._warn('xmpp session:connection timeout');
         }
-      }, 30000);
+      }, 15000);
       const removeListeners = () => {
         self.removeListener('session:started', success);
         self.removeListener('auth:failed', failure);
+        self.removeListener('socket:closed', closed);
       };
-
+      removeListeners();
       self.on('session:started', success);
       self.on('auth:failed', failure);
-      this.client.connect();
+      self.on('socket:closed', closed);
+      self.client.connect();
     });
   }
 
+  _log = (msg) => {
+    log(`${msg}: jid: ${this.connectedJid},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},ts: ${this.client.ts}`);
+    if (window.localStorage.enabledXmppLog) {
+      console.log(msg, `jid: ${this.connectedJid},ts: ${this.client.ts},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},time: ${this.getTime()}`);
+    }
+  }
+  _warn = (msg) => {
+    log(`${msg}: jid: ${this.connectedJid},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},ts: ${this.client.ts}`);
+    console.warn(msg, `jid: ${this.connectedJid},ts: ${this.client.ts},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},time: ${this.getTime()}`);
+  }
   /**
    * Enables carbons
    * @throws  {Error}             Throws an error if the client is not connected
    * @returns {Promise.<Object>}
    */
   async enableCarbons() {
-    this.requireConnection();
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.enableCarbons();
   }
 
@@ -337,16 +398,22 @@ export class XmppEx extends EventEmitter3 {
    * @returns {Promise.<Object>}
    */
   async getRoster() {
-    this.requireConnection();
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.getRoster();
   }
 
   async getE2ee(user) {//yazzxx
-    this.requireConnection();
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.getE2ee(user);
   }
   async setE2ee(user) {//yazzxx
-    this.requireConnection();
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.setE2ee(user);
   }
 
@@ -357,18 +424,33 @@ export class XmppEx extends EventEmitter3 {
    * @param opts { name:'room name', subject:'subject', description:'description'}
    */
   async setRoomName(room, opts) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.setRoomName(room, opts);
   }
   async setNickName(room, nick) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.setNickName(room, nick);
   }
   async addMember(room, jid) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.addMember(room, jid);
   }
   async leaveRoom(room, jid) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.leaveRoom(room, jid);
   }
   async destroyRoom(room, reason) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.destroyRoom(room, { reason: reason });
   }
   /**
@@ -386,9 +468,15 @@ export class XmppEx extends EventEmitter3 {
    * }
    */
   async createRoom(room, opts) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.createRoom(room, opts);
   }
   async getRoomMembers(room, ver) {
+    if (!this.requireConnection()) {
+      return;
+    }
     try {
       const members = await this.client.getRoomMembers(room, {
         ver: ver,
@@ -410,6 +498,9 @@ export class XmppEx extends EventEmitter3 {
     }
   }
   async getRoomList(ver) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.getRoomList(ver);
   }
 
@@ -417,12 +508,21 @@ export class XmppEx extends EventEmitter3 {
 
   //----------------------block start
   async block(jid) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.block(jid);
   }
   async unblock(jid) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.unblock(jid);
   }
   async getBlocked(ver) {
+    if (!this.requireConnection()) {
+      return;
+    }
     return this.client.getBlocked(ver);
   }
   //----------------------block end
@@ -435,7 +535,9 @@ export class XmppEx extends EventEmitter3 {
    * @returns {Promise.<string[]>}  The array of room jids that were successfully joined
    */
   async joinRooms(...roomJids) {
-    this.requireConnection();
+    if (!this.requireConnection()) {
+      return;
+    }
     if (roomJids.length === 0) {
       console.warn('At least 1 room jid is required');
     }
@@ -468,7 +570,7 @@ export class XmppEx extends EventEmitter3 {
   }
   lastTs = 0;
   async pullMessage(ts, cb) {
-    if (this.lastTs == ts) {
+    if (!this.requireConnection() || this.lastTs == ts) {
       return;
     }
     this.lastTs = ts;
@@ -480,13 +582,7 @@ export class XmppEx extends EventEmitter3 {
    * @throws  {Error}             Throws an error if the client is not connected
    */
   sendMessage(message) {
-    let isConnected = false;
-    try {
-      isConnected = this.requireConnection();
-    } catch (e) {
-      console.warn(e);
-    }
-    if (!isConnected) {
+    if (!this.requireConnection()) {
       return;
     }
     const finalMessage = Object.assign({}, message, {
@@ -497,11 +593,11 @@ export class XmppEx extends EventEmitter3 {
   }
 
   requireConnection() {
-    if (!this.isConnected || !(this.client instanceof Client)) {
-      console.warn('This method requires a connection to the XMPP server, call connect before ' +
-        'using this method.');
+    if (this.connectState != 2 || !(this.client instanceof Client)) {
+      console.warn('Xmpp not connected.', 'connectState:' + this.connectState);
       return false;
     }
+    this.lastSendTs = new Date().getTime();
     return true;
   }
 }
@@ -544,4 +640,5 @@ export const validateCredentials = credentials => {
 
 const xmpp = new Xmpp();
 window.xmpp = xmpp;
+
 export default xmpp;

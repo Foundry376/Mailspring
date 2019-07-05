@@ -66,50 +66,50 @@ export const createXmppConnectionEpic = action$ => action$.ofType(BEGIN_CONNECTI
     return Observable.fromPromise(xmpp.connect(jid))
       .map(res => {
         // fetch and saveRoom infomation
-        setTimeout(() => {
-          RoomStore.refreshRoomsFromXmpp(res.bare);
-          // xmpp.getRoomList(null, res.bare)
-          //   .then(rooms => RoomStore.saveRooms(rooms));
-        }, 200);
-        setTimeout(() => {
-          xmpp.getRoster(res.bare)
-            .then(contacts => {
-              if (contacts && contacts.roster && contacts.roster.items) {
-                ContactStore.saveContacts(contacts.roster.items, res.bare)
-              }
-            });
-        }, 400);
-        setTimeout(() => {
-          getDeviceInfo().then(device => {
-            if (device && (!device.users || device.users.indexOf(res.local) < 0)) {
-              xmpp.setE2ee({
-                jid: res.bare,
-                did: device.deviceId,
-                key: device.pubkey
-              }, res.bare)
-                .then(resp => {
-                  if (resp && resp.type == "result" && resp.e2ee) {
-                    updateFlag(res.local);
-                  }
-                });
-            }
-          });
-        }, 600);
-        setTimeout(() => {
-          xmpp.getE2ee('', res.bare)
-            .then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
-        }, 800);
+        // setTimeout(() => {
+        //   RoomStore.refreshRoomsFromXmpp(res.bare);
+        //   // xmpp.getRoomList(null, res.bare)
+        //   //   .then(rooms => RoomStore.saveRooms(rooms));
+        // }, 200);
+        // setTimeout(() => {
+        //   xmpp.getRoster(res.bare)
+        //     .then(contacts => {
+        //       if (contacts && contacts.roster && contacts.roster.items) {
+        //         ContactStore.saveContacts(contacts.roster.items, res.bare)
+        //       }
+        //     });
+        // }, 400);
+        // setTimeout(() => {
+        //   getDeviceInfo().then(device => {
+        //     if (device && (!device.users || device.users.indexOf(res.local) < 0)) {
+        //       xmpp.setE2ee({
+        //         jid: res.bare,
+        //         did: device.deviceId,
+        //         key: device.pubkey
+        //       }, res.bare)
+        //         .then(resp => {
+        //           if (resp && resp.type == "result" && resp.e2ee) {
+        //             updateFlag(res.local);
+        //           }
+        //         });
+        //     }
+        //   });
+        // }, 600);
+        // setTimeout(() => {
+        //   xmpp.getE2ee('', res.bare)
+        //     .then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
+        // }, 800);
 
-        setTimeout(() => {
-          let ts = AppEnv.config.get(res.local + "_message_ts");
-          if (ts) {
-            pullMessage(ts, res.bare);
-          }
-          //.then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
-        }, 1000);
-        setTimeout(() => {
-          AppsStore.saveMyAppsAndEmailContacts(res);
-        }, 1200);
+        // setTimeout(() => {
+        //   let ts = AppEnv.config.get(res.local + "_message_ts");
+        //   if (ts) {
+        //     pullMessage(ts, res.bare);
+        //   }
+        //   //.then(e2ees => E2eeStore.saveE2ees(e2ees, res.bare));
+        // }, 1000);
+        // setTimeout(() => {
+        //   AppsStore.saveMyAppsAndEmailContacts(res);
+        // }, 1200);
         return successfulConnectionAuth(res);
       })
       .catch(error => {
