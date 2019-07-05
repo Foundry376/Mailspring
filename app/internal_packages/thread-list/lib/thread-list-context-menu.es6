@@ -152,7 +152,7 @@ export default class ThreadListContextMenu {
         return {
           label: 'Expunge',
           click: () => {
-            const tasks = TaskFactory.tasksForExpungingThreads({
+            const tasks = TaskFactory.tasksForExpungingThreadsOrMessages({
               source: 'Context Menu: Thread List',
               threads: this.threads,
             });

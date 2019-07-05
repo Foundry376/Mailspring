@@ -84,7 +84,8 @@ class MessageStore extends MailspringStore {
       return viewingHiddenCategory ? inHidden || item.draft : !inHidden;
     });
   }
-  getAllItems(){
+
+  getAllItems() {
     return this._items;
   }
 
@@ -120,13 +121,6 @@ class MessageStore extends MailspringStore {
 
   itemsLoading() {
     return this._itemsLoading;
-  }
-
-  messageListUnmounting({ threadId }) {
-    console.log(`unmounting is thread window ${AppEnv.isThreadWindow()}`);
-    if (AppEnv.isThreadWindow() && threadId) {
-      // ipcRenderer.send('close-window', { threadId, windowLevel: this._currentWindowLevel });
-    }
   }
 
   isPopedOut = () => {

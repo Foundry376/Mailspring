@@ -121,9 +121,6 @@ class MessageList extends React.Component {
     for (const unsubscribe of this._unsubscribers) {
       unsubscribe();
     }
-    MessageStore.messageListUnmounting({
-      threadId: this.state.currentThread ? this.state.currentThread.id : '',
-    });
     this._mounted = false;
     clearTimeout(this._forwardTimer);
     clearTimeout(this._replyAllTimer);

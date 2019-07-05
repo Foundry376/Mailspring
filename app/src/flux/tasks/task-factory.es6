@@ -137,14 +137,31 @@ const TaskFactory = {
     }
     return tasks;
   },
-  tasksForExpungingThreads({ threads, source }) {
-    return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      return new DeleteThreadsTask({
-        accountId: accountId,
-        threadIds: accountThreads.map(thread => thread.id),
-        source,
-      });
-    });
+  tasksForExpungingThreadsOrMessages({ threads = [], messages = [], source }) {
+    const tasks = [];
+    if (threads.length > 0 && threads[0] instanceof Thread) {
+      tasks.push(
+        ...this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
+          return new DeleteThreadsTask({
+            accountId: accountId,
+            threadIds: accountThreads.map(thread => thread.id),
+            source,
+          });
+        })
+      );
+    }
+    if (messages.length > 0 && messages[0] instanceof Message) {
+      tasks.push(
+        ...this.tasksForMessagesByAccount(messages, ({ accountId, messages }) => {
+          return new DeleteThreadsTask({
+            accountId: accountId,
+            messageIds: messages.map(msg => msg.id),
+            source,
+          });
+        }),
+      );
+    }
+    return tasks;
   },
 
   taskForInvertingUnread({ threads, source, canBeUndone }) {
