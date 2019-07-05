@@ -37,7 +37,7 @@ export default class MessagePrivateApp extends PureComponent {
     const body = {
       "type": fileType,
       "mediaObjectId": url,
-      timeSend: new Date().getTime(),
+      timeSend: new Date().getTime() + edisonChatServerDiffTime,
       path: url,
       content: 'sent'
     };

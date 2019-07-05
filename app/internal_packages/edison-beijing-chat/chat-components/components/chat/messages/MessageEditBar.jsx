@@ -162,7 +162,7 @@ export default class MessageEditBar extends PureComponent {
     if (message) {
       let body = {
         type: FILE_TYPE.TEXT,
-        timeSend: new Date().getTime(),
+        timeSend: new Date().getTime() + edisonChatServerDiffTime,
         content: message,
         email: conversation.email,
         name: conversation.name,
