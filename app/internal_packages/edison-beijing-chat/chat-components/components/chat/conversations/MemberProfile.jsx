@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ContactAvatar from '../../common/ContactAvatar';
 import Button from '../../common/Button';
-import { ContactStore, MemberProfileStore } from 'chat-exports';
+import { ContactStore, MemberProfileStore, BlockStore } from 'chat-exports';
 import { uploadContacts } from '../../../../utils/restjs';
 import { remote } from 'electron';
 import { checkToken, refreshChatAccountTokens, queryProfile } from '../../../../utils/restjs';
@@ -102,7 +102,7 @@ export default class MemberProfile extends Component {
       member.nickname = nickname(member.jid);
       member.name = name(member.jid);
     }
-    this.setState({ member, visible: !!member});
+    this.setState({ member, visible: !!member });
   }
 
   startPrivateChat = (e) => {
@@ -128,7 +128,11 @@ export default class MemberProfile extends Component {
 
   };
 
-  showMenu = (e) => {
+  showMenu = async (e) => {
+    const { member } = this.state;
+    const jid = member.jid.bare || member.jid;
+    const curJid = this.props.conversation.curJid;
+    const isBlocked = await BlockStore.isBlocked(jid, curJid)
     const menus = [
       {
         label: `Add to Contacts`,
@@ -136,20 +140,24 @@ export default class MemberProfile extends Component {
           const moreBtnEl = document.querySelector('.more');
           this.addToContacts();
         },
-      },
-      {
-        label: `Block this Contact`,
-        click: () => {
-          this.blockContact();
-        },
-      },
-      {
+      }]
+
+    if (isBlocked) {
+      menus.push({
         label: `Unblock this Contact`,
         click: () => {
           this.unblockContact();
         },
-      }
-    ]
+      })
+    } else {
+      menus.push({
+        label: `Block this Contact`,
+        click: () => {
+          this.blockContact();
+        },
+      })
+    }
+
     remote.Menu.buildFromTemplate(menus).popup(remote.getCurrentWindow());
   };
 
@@ -157,16 +165,14 @@ export default class MemberProfile extends Component {
     const member = this.state.member;
     const jid = member.jid.bare || member.jid;
     const curJid = this.props.conversation.curJid;
-    const myXmpp = xmpp.getXmpp(curJid);
-    await myXmpp.block(jid);
+    await BlockStore.block(jid, curJid)
     alert(`You have blocked ${member.nickname || member.name}`);
   };
   unblockContact = async () => {
     const member = this.state.member;
     const jid = member.jid.bare || member.jid;
     const curJid = this.props.conversation.curJid;
-    const myXmpp = xmpp.getXmpp(curJid);
-    await myXmpp.unblock(jid);
+    await BlockStore.unblock(jid, curJid)
     alert(`You have unblocked ${member.nickname || member.name}`);
   };
   addToContacts = async () => {

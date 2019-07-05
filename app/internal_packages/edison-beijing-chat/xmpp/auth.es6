@@ -2,7 +2,7 @@ import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { delay } from '../utils/delay';
 import xmpp from './index';
 import uuid from 'uuid/v4';
-import { RoomStore, ContactStore, E2eeStore, AppsStore, OnlineUserStore } from 'chat-exports';
+import { RoomStore, ContactStore, E2eeStore, AppsStore, OnlineUserStore, BlockStore } from 'chat-exports';
 
 export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
@@ -39,6 +39,9 @@ export const auth = async ({ jid, password }) => {
     // fetch and saveRoom infomation
     await delay(200);
     RoomStore.refreshRoomsFromXmpp(res.bare);
+
+    await delay(200);
+    BlockStore.refreshBlocksFromXmpp(jid)
 
     await delay(200);
     const contacts = await xmpp.getRoster(res.bare);

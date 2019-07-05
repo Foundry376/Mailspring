@@ -67,6 +67,7 @@ lazyLoad(`AppsStore`, 'store/AppsStore');
 lazyLoad(`MemberProfileStore`, 'store/MemberProfileStore');
 lazyLoad(`UserCacheStore`, 'store/UserCacheStore');
 lazyLoad(`FailMessageStore`, 'store/FailMessageStore');
+lazyLoad(`BlockStore`, 'store/BlockStore');
 
 // Models
 lazyLoad(`ConfigModel`, 'model/Config');
@@ -76,6 +77,7 @@ lazyLoad(`E2eeModel`, 'model/E2ee');
 lazyLoad(`MessageModel`, 'model/Message');
 lazyLoad(`RoomModel`, 'model/Room');
 lazyLoad(`UserCacheModel`, 'model/UserCache');
+lazyLoad(`BlockModel`, 'model/Block');
 
 process.nextTick(() => {
   let c = 0;
