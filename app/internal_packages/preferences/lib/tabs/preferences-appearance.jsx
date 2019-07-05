@@ -132,20 +132,20 @@ class AppearanceModeSwitch extends React.Component {
     AppEnv.commands.dispatch(`navigation:select-${this.state.value}-mode`);
   };
 
-  _renderModeOptions() {
+  _renderModeOptions = () => {
     return ['list', 'split'].map(mode => (
       <AppearanceModeOption
         mode={mode}
         key={mode}
         active={this.state.value === mode}
-        onClick={() => this.setState({ value: mode })}
+        onClick={() => this.setState({ value: mode }, () => this._onApplyChanges())}
       />
     ));
   }
 
   render() {
     const hasChanges = this.state.value !== this.props.config.get('core.workspace.mode');
-    let applyChangesClass = 'btn';
+    // let applyChangesClass = 'btn';
     if (!hasChanges) applyChangesClass += ' btn-disabled';
 
     return (
@@ -153,9 +153,9 @@ class AppearanceModeSwitch extends React.Component {
         <Flexbox direction="row" style={{ alignItems: 'center' }} className="item">
           {this._renderModeOptions()}
         </Flexbox>
-        <div className={applyChangesClass} onClick={this._onApplyChanges}>
+        {/* <div className={applyChangesClass} onClick={this._onApplyChanges}>
           Apply Layout
-        </div>
+        </div> */}
       </div>
     );
   }
@@ -167,12 +167,12 @@ const AppearanceModeOption = function AppearanceModeOption(props) {
 
   const label = {
     list: 'Single Panel',
-    split: 'Two Panel',
+    split: 'Two Panels',
   }[props.mode];
 
   return (
     <div className={classname} onClick={props.onClick}>
-      <RetinaImg name={`appearance-mode-${props.mode}.png`} mode={RetinaImg.Mode.ContentIsMask} />
+      <RetinaImg name={`appearance-mode-${props.mode}.png`} mode="" active={props.active} />
       <div>{label}</div>
     </div>
   );
