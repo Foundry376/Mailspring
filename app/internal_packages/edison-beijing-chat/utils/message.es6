@@ -121,7 +121,7 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
     type: filetype,
     isUploading: true,
     content: path.basename(filepath) || "file",
-    timeSend: new Date().getTime(),
+    timeSend: new Date().getTime() + edisonChatServerDiffTime,
     localFile: filepath
   };
   if (file !== filepath) {

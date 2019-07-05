@@ -48,7 +48,7 @@ function timeoutRequest(targetPromise, id, delay) {
 
 function Client(opts) {
     var self = this;
-    this.ts = new Date().getTime();
+    // this.ts = new Date().getTime();
     WildEmitter.call(this);
 
     opts = opts || {};
@@ -136,6 +136,10 @@ function Client(opts) {
     this.on('disconnected', function () {
         if (self.transport) {
             self.transport.off('*');
+            // console.log('ws.13', self.transport);
+            if (self.transport.conn) {
+                self.transport.conn.close();
+            }
             delete self.transport;
         }
         self.releaseGroup('connection');
@@ -357,9 +361,11 @@ Client.prototype.getCredentials = function (cb) {
     return cb(null, this._getConfiguredCredentials());
 };
 
+/**
+ * yazz:连接中socket的处理
+ */
 Client.prototype.connect = function (opts, transInfo) {
     var self = this;
-
     this._initConfig(opts);
 
     if (!transInfo && self.config.transports.length === 1) {
@@ -376,6 +382,7 @@ Client.prototype.connect = function (opts, transInfo) {
             this.use(require('./plugins/bosh'));
         }
         var trans = self.transport = new self.transports[transInfo.name](self.sm, self.stanzas);
+        this.ts = trans.ts;
         trans.on('*', function (event, data) {
             // if(event=='stream:start'){
             //   self.emit("streamFeaturesEx", "sasl");
@@ -418,8 +425,11 @@ Client.prototype.connect = function (opts, transInfo) {
         return self.disconnect();
     });
 };
-
+/**
+ * yazz:socket的处理，及向上抛出的事件
+ */
 Client.prototype.disconnect = function () {
+    // console.log('disconnect.client', this.sessionStarted, this.transport, new Error().stack);
     if (this.sessionStarted) {
         this.releaseGroup('session');
         if (!this.sm.started) {
@@ -537,11 +547,12 @@ Client.prototype.sendIq = function (data, cb) {
         if (cb) {
             return cb(err);
         } else {
-            const stackError = new Error();
-            console.warn(self.config.jid.bare);
-            console.warn('stanza.io/lib/client.js: timeoutRequest: err:', err, stackError);
             if (err.error.condition == 'timeout')
                 self.emit('request:timeout', err);
+            else {
+                console.warn(self.config.jid.bare);
+                console.warn('stanza.io/lib/client.js: timeoutRequest: err:', err);
+            }
             // throw err;
         }
     });

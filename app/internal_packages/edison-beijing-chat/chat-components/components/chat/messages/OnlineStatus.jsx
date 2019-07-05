@@ -25,7 +25,7 @@ export default class OnlineStatus extends Component {
 
   _listenToStore = () => {
     this._unsubs = [];
-    this._unsubs.push(this._onDataChanged);
+    this._unsubs.push(OnlineUserStore.listen(this._onDataChanged));
   }
 
   _onDataChanged = async () => {

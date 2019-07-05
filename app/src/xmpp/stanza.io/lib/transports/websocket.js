@@ -9,7 +9,6 @@ var async = require('async');
 //     window.WebSocket;
 
 var WS = window.WebSocket;
-
 var WS_OPEN = 1;
 
 let feature1 = '<stream:features xmlns:stream="http://etherx.jabber.org/streams"><auth xmlns="http://jabber.org/features/iq-auth"/><mechanisms xmlns="urn:ietf:params:xml:ns:xmpp-sasl"><mechanism>PLAIN</mechanism></mechanisms><register xmlns="http://jabber.org/features/iq-register"/><ver xmlns="urn:xmpp:features:rosterver"/><starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls"/><compression xmlns="http://jabber.org/features/compress"><method>zlib</method></compression></stream:features>';
@@ -17,7 +16,7 @@ let feature2 = '<stream:features xmlns:stream="http://etherx.jabber.org/streams"
 
 function WSConnection(sm, stanzas) {
     var self = this;
-
+    self.ts = new Date().getTime();
     WildEmitter.call(this);
 
     self.sm = sm;
@@ -36,12 +35,8 @@ function WSConnection(sm, stanzas) {
             }
 
             data = new Buffer(data, 'utf8').toString();
-
             self.emit('raw:outgoing', data);
-            //debugger;
             if (self.conn.readyState === WS_OPEN) {
-                // commet out by quanzs
-                // console.log('websocket:raw:outgoing', data);
                 self.conn.send(data);
             }
         }
@@ -59,9 +54,6 @@ function WSConnection(sm, stanzas) {
 
     self.on('raw:incoming', function (data) {
         var stanzaObj, err;
-        // commet out by quanzs
-        // console.log('websocket:raw:incoming', data);
-        // debugger;
         data = data.trim();
         if (data === '') {
             return;
@@ -79,14 +71,6 @@ function WSConnection(sm, stanzas) {
         }
 
         if (!stanzaObj) {
-            // let xml=stanzas.parseXml(data);
-            // if(xml&&xml.name=='iq'){
-            //     if(xml.children.length>0&&xml.children[0].name=='edi-e2ee'){
-            //         self.emit('iq:ext-e2ee', xml);
-            //         return;
-            //     }
-            //     //self.emit('iq:ext', xml);
-            // }
             return;
         }
 
@@ -111,14 +95,24 @@ function WSConnection(sm, stanzas) {
 }
 
 util.inherits(WSConnection, WildEmitter);
+// WSConnection.prototype.reconnect = () => {
+//     if (this.conn) {
 
+//     }
+// };
+WSConnection.prototype.ts = 0;
 WSConnection.prototype.connect = function (opts) {
     var self = this;
     self.config = opts;
     self.hasStream = false;
     self.closing = false;
-    self.isCache = true;//opts.wsURL.substring(opts.wsURL.indexOf(":", 10) + 1) == '5290';
+    self.isCache = true;
+    if (self.conn) {
+        // console.log('ws.10', self.conn.readyState, self.conn);
+        self.conn.close();
+    }
     self.conn = new WS(opts.wsURL, 'xmpp', opts.wsOptions);
+    // console.log('ws.11', self.conn, opts.wsOptions);
     self.conn.onerror = function (e) {
         e.preventDefault();
         console.warn(`websocket error:${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()},`, e);
@@ -178,6 +172,7 @@ WSConnection.prototype.closeHeader = function () {
 };
 
 WSConnection.prototype.disconnect = function () {
+    // console.log('disconnect.web', this.conn, this.closing, new Error().stack);
     if (this.conn && !this.closing && this.hasStream) {
         this.closing = true;
         this.send(this.closeHeader());
@@ -185,9 +180,10 @@ WSConnection.prototype.disconnect = function () {
         this.hasStream = false;
         this.stream = undefined;
         if (this.conn && this.conn.readyState === WS_OPEN) {
+            // console.log('ws.12', this.conn.readyState, this.conn);
             this.conn.close();
         }
-        this.conn = undefined;
+        // this.conn = undefined;
     }
 };
 
