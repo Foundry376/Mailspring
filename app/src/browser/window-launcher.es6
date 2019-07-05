@@ -66,7 +66,7 @@ export default class WindowLauncher {
       // Check if the hot window has been deleted. This may happen when we are
       // relaunching the app
       if (!this.hotWindow) {
-        this.createHotWindow();
+        this.createHotWindow(opts);
       }
       win = this.hotWindow;
 
@@ -94,7 +94,7 @@ export default class WindowLauncher {
       setTimeout(() => {
         // We need to regen a hot window, but do it in the next event
         // loop to not hang the opening of the current window.
-        this.createHotWindow();
+        this.createHotWindow(opts);
       }, 0);
     }
 
@@ -109,8 +109,8 @@ export default class WindowLauncher {
     return win;
   }
 
-  createHotWindow() {
-    this.hotWindow = new MailspringWindow(this._hotWindowOpts());
+  createHotWindow(options={}) {
+    this.hotWindow = new MailspringWindow(this._hotWindowOpts(options.title));
     this.onCreatedHotWindow(this.hotWindow);
     if (DEBUG_SHOW_HOT_WINDOW) {
       this.hotWindow.showWhenLoaded();
@@ -141,8 +141,8 @@ export default class WindowLauncher {
     return usesOtherBootstrap || usesOtherFrame || requestsColdStart;
   }
 
-  _hotWindowOpts() {
-    const hotWindowOpts = Object.assign({}, this.defaultWindowOpts);
+  _hotWindowOpts(title=null) {
+    const hotWindowOpts = Object.assign({},{title: title}, this.defaultWindowOpts);
     hotWindowOpts.hidden = DEBUG_SHOW_HOT_WINDOW;
     return hotWindowOpts;
   }

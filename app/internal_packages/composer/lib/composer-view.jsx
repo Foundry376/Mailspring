@@ -96,6 +96,9 @@ export default class ComposerView extends React.Component {
         this.focus();
       });
     }
+    if(AppEnv.isComposerWindow()){
+      Actions.setCurrentWindowTitle(this.props.draft.subject);
+    }
   }
 
   componentDidUpdate() {
