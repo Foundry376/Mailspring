@@ -63,6 +63,7 @@ exports['default'] = function (JXT) {
         namespace: _xmppConstants.Namespace.BLOCKING,
         element: 'blocklist',
         fields: {
+            ver: Utils.attribute('ver'),
             jids: jidList
         }
     });
