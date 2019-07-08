@@ -1,6 +1,14 @@
 import { Xmpp } from '..';
-import { ChatActions, MessageStore, OnlineUserStore, ConversationStore, RoomStore, E2eeStore } from 'chat-exports';
-import { registerLoginEmailAccountForChat } from '../../utils/register-login-chat'
+import {
+  ChatActions,
+  MessageStore,
+  OnlineUserStore,
+  ConversationStore,
+  RoomStore,
+  E2eeStore,
+  BlockStore,
+} from 'chat-exports';
+import { registerLoginEmailAccountForChat } from '../../utils/register-login-chat';
 
 /**
  * Creates a middleware for the XMPP class to dispatch actions to a redux store whenever any events
@@ -21,53 +29,54 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
 
   const map = eventActionMap; // Ensure map is not modified while iterating over keys
   if (map) {
-    Object.entries(map)
-      .forEach(([eventname, action]) => xmpp.on(eventname, data => {
+    Object.entries(map).forEach(([eventname, action]) =>
+      xmpp.on(eventname, data => {
         if (action) {
           store.dispatch(action(data));
         }
-      }));
+      })
+    );
   }
-  let saveLastTs = (data) => {
+  let saveLastTs = data => {
     let jidLocal = data.curJid.split('@')[0];
-    let ts = AppEnv.config.get(jidLocal + "_message_ts");
-    const msgTs = parseInt(data.ts)
+    let ts = AppEnv.config.get(jidLocal + '_message_ts');
+    const msgTs = parseInt(data.ts);
     if (!ts || ts < msgTs) {
       AppEnv.config.set(jidLocal + '_message_ts', msgTs);
     }
-  }
+  };
   // receive group chat
   xmpp.on('groupchat', data => {
     saveLastTs(data);
     MessageStore.reveiveGroupChat(data);
-  })
+  });
   // receive private chat
   xmpp.on('chat', data => {
     saveLastTs(data);
     MessageStore.reveivePrivateChat(data);
-  })
+  });
   // user online
   xmpp.on('available', data => {
     console.log('xmpp:available: ', data);
     OnlineUserStore.addOnlineUser(data);
     ChatActions.userOnlineStatusChanged(data.from.bare);
-  })
+  });
   // user online
   xmpp.on('unavailable', data => {
     console.log('xmpp:unavailable: ', data);
     OnlineUserStore.removeOnlineUser(data);
     ChatActions.userOnlineStatusChanged(data.from.bare);
-  })
+  });
   // Chat account online
   xmpp.on('session:started', data => {
     console.log('xmpp:session:started: ', data);
     OnlineUserStore.addOnLineAccount(data);
-  })
+  });
   // Chat account offline
   xmpp.on('disconnected', data => {
     console.log('xmpp:disconnected: ', data);
     OnlineUserStore.removeOnLineAccount(data);
-  })
+  });
 
   // change conversation name
   xmpp.on('edimucconfig', data => {
@@ -97,7 +106,7 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
       body.type = 'error403';
       body = JSON.stringify(body);
       msg.body = body;
-      MessageStore.saveMessagesAndRefresh([msg])
+      MessageStore.saveMessagesAndRefresh([msg]);
     }
   });
   xmpp.on('message:success', async data => {
@@ -111,7 +120,7 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   });
 
   xmpp.on('message:failed', async message => {
-    console.log( 'message:failed: ', message);
+    console.log('message:failed: ', message);
     // let msgInDb = await MessageStore.getMessageById(data.$received.id + '$' + data.from.bare);
     // if (!msgInDb) {
     //   return;
@@ -135,6 +144,13 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
     delete accounts[account.email];
     AppEnv.config.set('chatAccounts', accounts);
     registerLoginEmailAccountForChat(emailAccount);
+  });
+
+  xmpp.on('block', async ({ curJid }) => {
+    await BlockStore.refreshBlocksFromXmpp(curJid);
+  });
+  xmpp.on('unblock', async ({ curJid }) => {
+    await BlockStore.refreshBlocksFromXmpp(curJid);
   });
 
   return next => action => next(action);
