@@ -27,18 +27,12 @@ class BlockStore extends MailspringStore {
     const block = await xmpp.getBlocked(null, curJid);
     const blockMap = new Map();
     const jidList = [];
-    if (
-      block &&
-      block.curJid &&
-      block.blockList &&
-      block.blockList.jids &&
-      block.blockList.jids.length
-    ) {
+    if (block && block.blockList && block.blockList.jids && block.blockList.jids.length) {
       block.blockList.jids.forEach(jid => {
         jidList.push(typeof jid === 'object' ? jid.bare : jid);
       });
     }
-    blockMap.set(block.curJid, jidList);
+    blockMap.set(curJid, jidList);
     await this.saveBlocks(blockMap);
     await this.refreshBlocks();
   };
@@ -72,14 +66,14 @@ class BlockStore extends MailspringStore {
 
   block = async (jid, curJid) => {
     const myXmpp = xmpp.getXmpp(curJid);
+    // block change started with the events，so refresh block in eventListener
     await myXmpp.block(jid);
-    await this.refreshBlocksFromXmpp(curJid);
   };
 
   unblock = async (jid, curJid) => {
     const myXmpp = xmpp.getXmpp(curJid);
+    // block change started with the events，so refresh block in eventListener
     await myXmpp.unblock(jid);
-    await this.refreshBlocksFromXmpp(curJid);
   };
 
   isBlocked = async (jid, curJid) => {
