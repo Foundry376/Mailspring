@@ -39,7 +39,7 @@ export const auth = async ({ jid, password }) => {
     let resBare = '';
     let resLocal = '';
     if (typeof res == 'string') {
-      //console.log('auth', res, jid);
+      console.log('auth', res, jid);
       resBare = res;
       resLocal = res.split('@')[0];
     }

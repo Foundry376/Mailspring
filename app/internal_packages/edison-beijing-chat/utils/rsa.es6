@@ -6,22 +6,22 @@ const PRI_END = '-----END PRIVATE KEY-----';
 const PUB_START = '-----BEGIN PUBLIC KEY-----';
 const PUB_END = '-----END PUBLIC KEY-----';
 export const generateKey = () => {
-    var key = new NodeRSA({ b: 1024 });//生成128位秘钥
-    var pubkey = key.exportKey('pkcs8-public');//导出公钥
-    var prikey = key.exportKey('pkcs8-private');//导出私钥
-    let pub = pubkey.split('\n');
-    pubkey = '';
-    for (let i = 1; i < pub.length - 1; i++) {
-        pubkey += pub[i];
-    }
-    let pri = prikey.split('\n');
-    prikey = '';
-    for (let i = 1; i < pri.length - 1; i++) {
-        prikey += pri[i];
-    }
-    console.log(pubkey);
-    console.log(prikey);
-    return { pubkey, prikey };
+  var key = new NodeRSA({ b: 1024 });//生成128位秘钥
+  var pubkey = key.exportKey('pkcs8-public');//导出公钥
+  var prikey = key.exportKey('pkcs8-private');//导出私钥
+  let pub = pubkey.split('\n');
+  pubkey = '';
+  for (let i = 1; i < pub.length - 1; i++) {
+    pubkey += pub[i];
+  }
+  let pri = prikey.split('\n');
+  prikey = '';
+  for (let i = 1; i < pri.length - 1; i++) {
+    prikey += pri[i];
+  }
+  console.log(pubkey);
+  console.log(prikey);
+  return { pubkey, prikey };
 }
 
 
@@ -30,15 +30,15 @@ priKey.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码�
 
 // test();
 const test = () => {
-    const { pubkey, prikey } = generateKey();
-    let aeskey = 'HHM3MWsucz6tq71CxeObsg==';
-    let tjia = encrypte(strPubKey, 'hello ya');
-    console.log(decrypte(tjia, strPriKey));
+  const { pubkey, prikey } = generateKey();
+  let aeskey = 'HHM3MWsucz6tq71CxeObsg==';
+  let tjia = encrypte(strPubKey, 'hello ya');
+  console.log(decrypte(tjia, strPriKey));
 
-    let jia = encrypte(strPubKey, aeskey);//=aeskeyjia
-    console.log('公钥加密：', jia);//
-    let jie = decrypte(jia, strPriKey);//=aeskey
-    console.log('私钥解密：', jie);
+  let jia = encrypte(strPubKey, aeskey);//=aeskeyjia
+  console.log('公钥加密：', jia);//
+  let jie = decrypte(jia, strPriKey);//=aeskey
+  console.log('私钥解密：', jie);
 }
 /**
  * 公钥加密
@@ -46,31 +46,31 @@ const test = () => {
  * @param {待加密字符串} buffer
  */
 export const encrypte = (pubStr, data) => {
-    let pub = new NodeRSA(PUB_START + pubStr + PUB_END, 'pkcs8-public');
-    pub.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码。
-    let encrypted = pub.encrypt(data, 'base64');
-    return encrypted;
+  let pub = new NodeRSA(PUB_START + pubStr + PUB_END, 'pkcs8-public');
+  pub.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码。
+  let encrypted = pub.encrypt(data, 'base64');
+  return encrypted;
 }
 /**
  * 私钥解密
  * @param {待解密字符串} buffer
  */
 export const decrypte = (data, priStr) => {
-    if (priStr) {
-        let priTmp = new NodeRSA(PRI_START + priStr + PRI_END, 'pkcs8-private');//导入私钥
-        priTmp.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码。
-        try {
-            return priTmp.decrypt(data, 'utf8');
-        } catch (e) {
-            console.log('decrypte error: e, data, priStr: ', e, data, priStr);
-            return '';
-        }
+  if (priStr) {
+    let priTmp = new NodeRSA(PRI_START + priStr + PRI_END, 'pkcs8-private');//导入私钥
+    priTmp.setOptions({ encryptionScheme: 'pkcs1' });//就是增加这一行代码。
+    try {
+      return priTmp.decrypt(data, 'utf8');
+    } catch (e) {
+      console.log('decrypte error: e, data, priStr: ', e, data, priStr);
+      return '';
     }
-    return priKey.decrypt(data, 'utf8');
+  }
+  return priKey.decrypt(data, 'utf8');
 }
 
 export default {
-    generateKey,
-    encrypte,
-    decrypte
+  generateKey,
+  encrypte,
+  decrypte
 }
