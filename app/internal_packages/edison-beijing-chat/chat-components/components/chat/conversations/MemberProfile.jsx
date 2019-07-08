@@ -224,9 +224,10 @@ export default class MemberProfile extends Component {
   };
 
   onKeyPressEvent = e => {
-    const { nativeEvent } = e;
-    if (this._nicknameInput && nativeEvent.keyCode === 13 && !nativeEvent.shiftKey) {
-      this._nicknameInput.blur();
+    const { nativeEvent, currentTarget } = e;
+    if (nativeEvent.keyCode === 13 && !nativeEvent.shiftKey) {
+      currentTarget.blur();
+      e.preventDefault();
       return false;
     }
     return true;
@@ -289,7 +290,6 @@ export default class MemberProfile extends Component {
           <div className="nickname-label">nickname</div>
           <input
             className="nickname-input"
-            ref={el => (this._nicknameInput = el)}
             type="text"
             placeholder="input nickname here"
             value={member.nickname}
