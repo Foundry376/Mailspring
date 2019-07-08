@@ -128,15 +128,18 @@ export default class MessageControls extends React.Component {
       name: this.props.message.isInTrash() ? 'Expunge' : 'Trash',
       image: 'trash.svg',
       select: this.props.threadPopedOut ? this._onPopoutThread : this._onTrash,
-    }
+    };
 
     if (!this.props.message.canReplyAll()) {
-      return [reply, forward, trash];
+      return this.props.message.draft ? [reply, forward] : [reply, forward, trash];
     }
     const defaultReplyType = AppEnv.config.get('core.sending.defaultReplyType');
-    return defaultReplyType === 'reply-all'
-      ? [replyAll, reply, forward, trash]
-      : [reply, replyAll, forward, trash];
+    const ret =
+      defaultReplyType === 'reply-all' ? [replyAll, reply, forward] : [reply, replyAll, forward];
+    if (!this.props.message.draft) {
+      ret.push(forward);
+    }
+    return ret;
   }
 
   _onPopoutThread = () => {
