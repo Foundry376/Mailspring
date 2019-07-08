@@ -93,6 +93,9 @@ class EventHeader extends React.Component {
               <div className="event-location">
                 {this.state.event.location}
               </div>
+              <div className="event-organizer">
+                Organizer: {this.state.event.organizer.name }
+              </div>
             </div>
             {this._renderEventActions()}
           </div>
