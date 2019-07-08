@@ -1,4 +1,4 @@
-import { React, ReactDOM, PropTypes, Actions, AccountStore } from 'mailspring-exports';
+import { React, ReactDOM, PropTypes, Actions, AccountStore, MessageStore } from 'mailspring-exports';
 import {
   KeyCommandsRegion,
   ParticipantsTextField,
@@ -115,6 +115,9 @@ export default class ComposerHeader extends React.Component {
 
   _onSubjectChange = event => {
     this.props.session.changes.add({ subject: event.target.value });
+    if (AppEnv.isComposerWindow()) {
+      Actions.setCurrentWindowTitle(event.target.value);
+    }
   };
 
   _renderSubject = () => {

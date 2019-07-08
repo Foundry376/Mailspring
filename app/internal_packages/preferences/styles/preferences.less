@@ -127,7 +127,7 @@
     flex: 8;
     background-color: lighten(@background-secondary, 1%);
     & > .scroll-region-content {
-      padding: @padding-large-vertical * 3 @padding-large-horizontal * 3;
+      padding: (@padding-large-vertical * 3 + 20px) (@padding-large-horizontal * 3) (@padding-large-vertical * 3);
     }
     .container-dropdown {
       margin: 5px 0;
@@ -188,7 +188,8 @@
         margin-bottom: 7px;
         margin-top: 0;
         img {
-          background-color: @disabled-bg-color;
+          // background-color: @disabled-bg-color;
+          width: 100%;
         }
         div {
           margin-top: 15px;
@@ -202,9 +203,10 @@
       .appearance-mode.active {
         border: 1px solid @component-active-color;
         color: @component-active-color;
-        img {
-          background-color: @component-active-color;
-        }
+        background: @white;
+        // img {
+        //   background-color: @component-active-color;
+        // }
       }
     }
   }

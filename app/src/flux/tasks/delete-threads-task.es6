@@ -6,6 +6,9 @@ export default class DeleteThreadsTask extends Task {
     threadIds: Attributes.Collection({
       modelKey: 'threadIds',
     }),
+    messageIds: Attributes.Collection({
+      modelKey: 'messageIds',
+    }),
     source: Attributes.String({
       modelKey: 'source',
     }),
@@ -26,7 +29,7 @@ export default class DeleteThreadsTask extends Task {
   }
 
   label() {
-    return 'Expunging thread from mailbox';
+    return `Expunging ${this.threadIds.length > 0 ? 'threads' : 'messages'} from mailbox`;
   }
 
   description() {
@@ -37,6 +40,15 @@ export default class DeleteThreadsTask extends Task {
     if (this.threadIds.length > 1) {
       return `Expunged ${this.threadIds.length} threads`;
     }
-    return `Expunged thread`;
+    if (this.threadIds.length === 1) {
+      return `Expunged thread`;
+    }
+    if (this.messageIds.length > 1) {
+      return `Expunged ${this.messageIds.length} messages`;
+    }
+    if (this.messageIds.length === 1) {
+      return `Expunged message`;
+    }
+    return `Expunged`;
   }
 }

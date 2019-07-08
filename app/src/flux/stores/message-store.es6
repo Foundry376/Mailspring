@@ -10,7 +10,7 @@ import TaskFactory from '../tasks/task-factory';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
-import electron, { ipcRenderer } from 'electron';
+import electron, { ipcRenderer, remote } from 'electron';
 import fs from 'fs';
 
 const FolderNamesHiddenByDefault = ['spam', 'trash'];
@@ -84,7 +84,8 @@ class MessageStore extends MailspringStore {
       return viewingHiddenCategory ? inHidden || item.draft : !inHidden;
     });
   }
-  getAllItems(){
+
+  getAllItems() {
     return this._items;
   }
 
@@ -120,13 +121,6 @@ class MessageStore extends MailspringStore {
 
   itemsLoading() {
     return this._itemsLoading;
-  }
-
-  messageListUnmounting({ threadId }) {
-    console.log(`unmounting is thread window ${AppEnv.isThreadWindow()}`);
-    if (AppEnv.isThreadWindow() && threadId) {
-      // ipcRenderer.send('close-window', { threadId, windowLevel: this._currentWindowLevel });
-    }
   }
 
   isPopedOut = () => {
@@ -194,6 +188,7 @@ class MessageStore extends MailspringStore {
     this.listenTo(Actions.toggleHiddenMessages, this._onToggleHiddenMessages);
     this.listenTo(Actions.popoutThread, this._onPopoutThread);
     this.listenTo(Actions.fetchAttachmentsByMessage, this.fetchMissingAttachmentsByMessage);
+    this.listenTo(Actions.setCurrentWindowTitle, this.setWindowTitle);
     return this.listenTo(Actions.focusThreadMainWindow, this._onFocusThreadMainWindow);
   }
 
@@ -373,8 +368,29 @@ class MessageStore extends MailspringStore {
     this._fetchFromCache();
   }
 
+  setWindowTitle(title) {
+    if (AppEnv.isComposerWindow()) {
+      if(title.length > 0){
+        title = title.trim();
+      }else{
+        title = 'New Message';
+      }
+    } else {
+      title = title.trim();
+    }
+    electron.remote.getCurrentWindow().setTitle(title);
+    AppEnv.setWindowDisplayTitle(title);
+  }
+
   _setWindowTitle() {
-    let title = 'EdisonMail' + (this._thread ? ' · ' + this._thread.subject : '');
+    let title = '';
+    if (AppEnv.isComposerWindow()) {
+      title = 'New Message';
+    } else if (AppEnv.isThreadWindow()){
+      title = 'Thread' + (this._thread ? ' · ' + this._thread.subject : '');
+    } else {
+      title = 'EdisonMail' + (this._thread ? ' · ' + this._thread.subject : '');
+    }
     electron.remote.getCurrentWindow().setTitle(title);
   }
 

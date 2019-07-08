@@ -313,6 +313,7 @@ export default class DraftEditingSession extends MailspringStore {
   }
 
   _registerListeners = () => {
+    console.log('registering listeners');
     DraftStore = DraftStore || require('./draft-store').default;
     this.listenTo(DraftStore, this._onDraftChanged);
     ipcRenderer.on('draft-arp-reply', this._onDraftARPReply);
@@ -547,7 +548,9 @@ export default class DraftEditingSession extends MailspringStore {
     if (options.headerMessageId && this.headerMessageId === options.headerMessageId) {
       this.changes.cancelCommit();
       this._destroyed = true;
+      this._removeListeners();
     }
+    console.log('draft deleted');
   };
 
   _onDraftChanged = change => {

@@ -423,6 +423,13 @@ export default class Message extends ModelWithMetadata {
     return false;
   }
 
+  isInTrash(){
+    if(!this.folder){
+      return false;
+    }
+    return this.folder.role.toLowerCase().includes('trash');
+  }
+
   fromContact() {
     return (this.from || [])[0] || new Contact({ name: 'Unknown', email: 'Unknown' });
   }

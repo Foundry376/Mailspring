@@ -132,6 +132,7 @@ export default class MailsyncBridge {
 
     this._crashTracker = new CrashTracker();
     this._clients = {};
+    this._clientsStartTime = {};
     this._fetchBodiesCacheTTL = 30000;
     this._fetchAttachmentCacheTTL = 60000;
     this._cachedFetchBodies = {};
@@ -302,6 +303,7 @@ export default class MailsyncBridge {
       syncingClient.kill();
       AppEnv.debugLog(`pid @ ${id} mailsync-bridge resetCacheForAccount`);
       delete this._clients[account.id];
+      delete this._clientsStartTime[account.id];
     }
 
     // create a new client that will perform the reset
@@ -349,6 +351,7 @@ export default class MailsyncBridge {
       });
     } finally {
       delete this._clients[account.id];
+      delete this._clientsStartTime[account.id];
       process.nextTick(() => {
         this.ensureClients('resetCacheForAccount');
       });
@@ -374,18 +377,20 @@ export default class MailsyncBridge {
   async _launchClient(account, { force } = {}) {
     const client = new MailsyncProcess(this._getClientConfiguration());
     this._clients[account.id] = client; // set this synchornously so we never spawn two
+    this._clientsStartTime[account.id] = Date.now();
     delete this._setObservableRangeTimer[account.id];
     delete this._cachedObservableThreadIds[account.id];
     delete this._cachedObservableMessageIds[account.id];
     delete this._additionalObservableThreads[account.id];
     delete this._cachedFetchAttachments[account.id];
-    delete this._cachedFetchAttachments[account.id];
+    delete this._cachedFetchBodies[account.id];
     const fullAccountJSON = (await KeyManager.insertAccountSecrets(account)).toJSON();
 
     if (force) {
       this._crashTracker.forgetCrashes(fullAccountJSON);
     } else if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
       delete this._clients[account.id];
+      delete this._clientsStartTime[account.id];
       return;
     }
 
@@ -399,6 +404,7 @@ export default class MailsyncBridge {
       }
 
       delete this._clients[account.id];
+      delete this._clientsStartTime[account.id];
       if (signal === 'SIGTERM') {
         return;
       }
@@ -594,6 +600,7 @@ export default class MailsyncBridge {
       return [];
     }
     const now = Date.now();
+    const clientStartTime = this._clientsStartTime[accountId] || now - 1;
     if (!dataCache[accountId]) {
       dataCache[accountId] = [];
     }
@@ -612,7 +619,7 @@ export default class MailsyncBridge {
         let cacheUpdated = false;
         for (let i = 0; i < missingIdsMap.length; i++) {
           if (missingIdsMap[i].id === cache.id) {
-            if (now - cache.lastSend >= ttl) {
+            if (cache.lastSend < clientStartTime) {
               cache.lastSend = now;
               cache.priority = priority;
               missing.push(cache.id);
@@ -627,7 +634,7 @@ export default class MailsyncBridge {
             break;
           }
         }
-        if (now - cache.lastSend < ttl && !cacheUpdated) {
+        if (cache.lastSend > clientStartTime && !cacheUpdated) {
           newCache.push(cache);
         }
       }

@@ -553,6 +553,7 @@ class Actions {
   static debugFakeNativeMessage = ActionScopeWindow;
   static updateLastSystemInfoCheck = ActionScopeMainWindow;
   static goToMostRecentChat = ActionScopeMainWindow;
+  static setCurrentWindowTitle = ActionScopeWindow;
 }
 
 // Read the actions we declared on the dummy Actions object above

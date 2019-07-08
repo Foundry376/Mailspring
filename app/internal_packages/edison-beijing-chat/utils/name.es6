@@ -20,7 +20,20 @@ export function name(jid) {
   return email && email.split('@')[0] || '';
 }
 
+export async function getName(jid) {
+  let name1 = name(jid);
+  if (name1) {
+    return name1;
+  }
+  let contact = await ContactStore.findContactByJid(jid);
+  if (!contact) {
+    return '';
+  }
+  return contact.name || contact.email && contact.email.split('@')[0] || ''
+}
+
 export default {
   nickname,
   name,
+  getName
 }

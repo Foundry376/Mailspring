@@ -112,6 +112,7 @@ export default class MessagesPanel extends Component {
 
   componentWillReceiveProps = async (nextProps, nextContext) => {
     const selectedConversation = await ConversationStore.getSelectedConversation();
+    const contacts = await ContactStore.getContacts();
     this.setState({
       contacts,
       selectedConversation

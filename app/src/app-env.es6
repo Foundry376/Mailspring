@@ -433,6 +433,12 @@ export default class AppEnvConstructor {
   getLoadSettings() {
     return this.constructor.getLoadSettings();
   }
+  setWindowDisplayTitle(title){
+    const loadSettings = this.getLoadSettings();
+    loadSettings.title = title;
+    this.loadSettings = loadSettings;
+    this.emitter.emit('window-props-received', this.loadSettings.windowProps)
+  }
 
   /*
   Section: Managing The Nylas Window

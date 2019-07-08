@@ -6,6 +6,7 @@ import MessageCommand from './MessageCommand';
 const sanitizeHtml = require('sanitize-html');
 import { RetinaImg } from 'mailspring-component-kit';
 import { ContactStore, UserCacheStore } from 'chat-exports';
+import { getName } from '../../../../utils/name';
 
 export default class MessageApp extends PureComponent {
     static propTypes = {
@@ -20,19 +21,14 @@ export default class MessageApp extends PureComponent {
 
     componentWillMount = async () => {
         const { msg } = this.props;
-        let contact = await ContactStore.findContactByJid(msg.sender);
-        if (!contact) {
-            contact = UserCacheStore.getUserInfoByJid(msg.sender)
-        }
-        this.setState({senderName: contact && contact.name || ''});
+
+        const senderName = await getName(msg.sender);
+        this.setState({ senderName });
     }
     componentWillReceiveProps =  async (nextProps) => {
         const { msg } = nextProps;
-        let contact = await ContactStore.findContactByJid(msg.sender);
-        if (!contact) {
-            contact = UserCacheStore.getUserInfoByJid(msg.sender)
-        }
-        this.setState({senderName: contact && contact.name || ''});
+        const senderName = await getName(msg.sender);
+        this.setState({ senderName });
     }
 
     sendCommand2App(command) {

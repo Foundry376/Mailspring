@@ -1,5 +1,5 @@
 import { RetinaImg } from 'mailspring-component-kit';
-
+import _ from 'underscore';
 const {
   Actions,
   React,
@@ -93,6 +93,9 @@ class EventHeader extends React.Component {
               <div className="event-location">
                 {this.state.event.location}
               </div>
+              <div className="event-organizer">
+                Organizer: {this.state.event.organizer.name }
+              </div>
             </div>
             {this._renderEventActions()}
           </div>
@@ -119,7 +122,7 @@ class EventHeader extends React.Component {
             classes += css;
           }
           return (
-            <div key={status} className={classes} onClick={() => this._rsvp(this.props.message, status)}>
+            <div key={status} className={classes} onClick={_.throttle(this._rsvp.bind(this, this.props.message, status), 200, {trailing: false})}>
               {label}
             </div>
           );
@@ -129,7 +132,9 @@ class EventHeader extends React.Component {
   }
 
   _rsvp = (message, status) => {
-    Actions.RSVPEvent(message, status);
+    if(this.props.message.calendarStatus() !== status){
+      Actions.RSVPEvent(message, status);
+    }
   };
 }
 

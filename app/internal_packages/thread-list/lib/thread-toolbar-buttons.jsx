@@ -95,7 +95,7 @@ export class TrashButton extends React.Component {
     return;
   };
   _onExpunge = event => {
-    const tasks = TaskFactory.tasksForExpungingThreads({
+    const tasks = TaskFactory.tasksForExpungingThreadsOrMessages({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
     });

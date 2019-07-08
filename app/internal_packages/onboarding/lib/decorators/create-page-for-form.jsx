@@ -168,10 +168,17 @@ const CreatePageForForm = FormComponent => {
             if (/smtp/i.test(err.message)) {
               errorFieldNames.push('settings.smtp_username');
               errorFieldNames.push('settings.smtp_password');
+            } else if (/certificate/i.test(err.message)){
+              errorFieldNames.push('settings.imap_allow_insecure_ssl');
+              errorFieldNames.push('settings.smtp_allow_insecure_ssl');
             } else {
               errorFieldNames.push('settings.imap_username');
               errorFieldNames.push('settings.imap_password');
             }
+          }
+          if (this.state.account && this.state.account.settings) {
+            account.settings.imap_allow_insecure_ssl = true;
+            account.settings.smtp_allow_insecure_ssl = true;
           }
 
           this.setState({
@@ -179,6 +186,7 @@ const CreatePageForForm = FormComponent => {
             errorStatusCode: err.statusCode,
             errorLog: err.rawLog,
             errorFieldNames,
+            account,
             submitting: false,
           });
         });

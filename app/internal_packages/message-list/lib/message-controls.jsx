@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import { remote } from 'electron';
-import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task } from 'mailspring-exports';
+import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task, MessageStore, TaskFactory } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 
 const buttonTimeout = 700;
@@ -124,14 +124,19 @@ export default class MessageControls extends React.Component {
       disabled: this.state.isForwarding,
       select: this.props.threadPopedOut ? this._onPopoutThread : this._onForward,
     };
+    const trash = {
+      name: this.props.message.isInTrash() ? 'Expunge' : 'Trash',
+      image: 'trash.svg',
+      select: this.props.threadPopedOut ? this._onPopoutThread : this._onTrash,
+    }
 
     if (!this.props.message.canReplyAll()) {
-      return [reply, forward];
+      return [reply, forward, trash];
     }
     const defaultReplyType = AppEnv.config.get('core.sending.defaultReplyType');
     return defaultReplyType === 'reply-all'
-      ? [replyAll, reply, forward]
-      : [reply, replyAll, forward];
+      ? [replyAll, reply, forward, trash]
+      : [reply, replyAll, forward, trash];
   }
 
   _onPopoutThread = () => {
@@ -199,6 +204,43 @@ export default class MessageControls extends React.Component {
       this._timeoutButton('forward');
       this.setState({ isForwarding: true });
       Actions.composeForward({ thread, message });
+    }
+  };
+
+  _onRemove = event => {
+    const tasks = TaskFactory.tasksForMovingToTrash({
+      messages: [this.props.message],
+      source: 'Toolbar Button: Message List',
+    });
+    Actions.queueTasks(tasks);
+    Actions.popSheet();
+    if (event) {
+      event.stopPropagation();
+    }
+    if(this.props.selection){
+      this.props.selection.clear();
+    }
+    return;
+  };
+  _onExpunge = event => {
+    const tasks = TaskFactory.tasksForExpungingThreadsOrMessages({
+      messages: [this.props.message],
+      source: 'Toolbar Button: Message List',
+    });
+    Actions.queueTasks(tasks);
+    Actions.popSheet();
+    if (event) {
+      event.stopPropagation();
+    }
+    return;
+  };
+
+  _onTrash = () => {
+    const inTrash = this.props.message.isInTrash();
+    if (inTrash) {
+      this._onExpunge();
+    } else {
+      this._onRemove();
     }
   };
 
