@@ -10,6 +10,7 @@
     "rebuild": "node_modules/.bin/electron-rebuild"
   },
   "dependencies": {
+    "a11y-emoji": "^1.0.1",
     "alt-sasl-digest-md5": "^1.0.0",
     "async": "^2.5.0",
     "aws-sdk": "latest",
