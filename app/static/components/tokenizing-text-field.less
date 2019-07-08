@@ -54,7 +54,7 @@
     position: absolute;
     z-index: 3;
     .item span {
-      font-size: 15px;
+      font-size: @font-size-token;
     }
   }
 
@@ -73,11 +73,14 @@
 
   .token-editing-input {
     max-width: 100%;
-    font-size: 15px;
-    line-height: 17px;
+    font-size: @font-size-token;
+    line-height: @line-height-token;
     padding: 2em; //0.5em @spacing-three-quarters 0.5em @spacing-three-quarters;
     padding-right: 1.5em;
     margin: 3px 6px 6px 1px;
+    .hidden-span{
+      font-size: @font-size-token;
+    }
   }
 
   .token {
@@ -209,6 +212,10 @@
         }
         opacity: 0;
       }
+    }
+    .hidden-span {
+      font-size: @font-size-token;
+      line-height: @line-height-token;
     }
 
     input {

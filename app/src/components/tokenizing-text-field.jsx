@@ -60,7 +60,7 @@ class SizeToFitInput extends React.Component {
   render() {
     return (
       <span>
-        <span ref="measure" style={{ visibility: 'hidden', position: 'absolute' }} />
+        <span className='hidden-span' ref="measure" style={{ visibility: 'hidden', position: 'absolute' }} />
         <input ref="input" type="text" style={{ width: 1 }} {...this.props} />
       </span>
     );
