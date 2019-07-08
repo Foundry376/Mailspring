@@ -423,8 +423,8 @@ export default class Message extends ModelWithMetadata {
     return false;
   }
 
-  isInTrash(){
-    if(!this.folder){
+  isInTrash() {
+    if (!this.folder || !this.folder.role) {
       return false;
     }
     return this.folder.role.toLowerCase().includes('trash');
