@@ -65,15 +65,13 @@ class BlockStore extends MailspringStore {
   };
 
   block = async (jid, curJid) => {
-    const myXmpp = xmpp.getXmpp(curJid);
     // block change started with the events，so refresh block in eventListener
-    await myXmpp.block(jid);
+    await xmpp.block(jid, curJid);
   };
 
   unblock = async (jid, curJid) => {
-    const myXmpp = xmpp.getXmpp(curJid);
     // block change started with the events，so refresh block in eventListener
-    await myXmpp.unblock(jid);
+    await xmpp.unblock(jid, curJid);
   };
 
   isBlocked = async (jid, curJid) => {
