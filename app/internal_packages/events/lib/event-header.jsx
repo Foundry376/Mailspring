@@ -88,10 +88,10 @@ class EventHeader extends React.Component {
           <div className="event-body">
             <div className="event-date">
                 <div className="event-time">
-                  {this.renderWhen()}
+                 When: {this.renderWhen()}
                 </div>
               <div className="event-location">
-                {this.state.event.location}
+                Location: {this.state.event.location}
               </div>
               <div className="event-organizer">
                 Organizer: {this.state.event.organizer.name }
