@@ -8,13 +8,13 @@ const CryptoJS = require('crypto-js');
  * @return Buffer
  */
 const fillKey = (key) => {
-    const keys = Buffer.from(key);
-    const filledKey = Buffer.alloc(keys.length > 16 ? 32 : 16);
-    if (keys.length < filledKey.length) {
-        filledKey.map((b, i) => filledKey[i] = keys[i]);
-    }
+  const keys = Buffer.from(key);
+  const filledKey = Buffer.alloc(keys.length > 16 ? 32 : 16);
+  if (keys.length < filledKey.length) {
+    filledKey.map((b, i) => filledKey[i] = keys[i]);
+  }
 
-    return filledKey;
+  return filledKey;
 }
 
 /**
@@ -23,13 +23,13 @@ const fillKey = (key) => {
  * @param {string} key - 加密使用的 key
  */
 const aesEncrypt = (data, key) => {
-    const cipher = CryptoJS.AES.encrypt(data, key, {
-        mode: CryptoJS.mode.ECB,
-        padding: CryptoJS.pad.Pkcs7,
-        iv: '',
-    });
-    const base64Cipher = cipher.ciphertext.toString(CryptoJS.enc.Base64);
-    return base64Cipher;
+  const cipher = CryptoJS.AES.encrypt(data, key, {
+    mode: CryptoJS.mode.ECB,
+    padding: CryptoJS.pad.Pkcs7,
+    iv: '',
+  });
+  const base64Cipher = cipher.ciphertext.toString(CryptoJS.enc.Base64);
+  return base64Cipher;
 }
 /**
  * 定义解密函数
@@ -37,24 +37,24 @@ const aesEncrypt = (data, key) => {
  * @param {string} key - 加密使用的 key
  */
 const aesDecrypt = (encrypted, key) => {
-    const restoreBase64 = encrypted;
-    const decipher = CryptoJS.AES.decrypt(restoreBase64, key, {
-        mode: CryptoJS.mode.ECB,
-        padding: CryptoJS.pad.Pkcs7,
-        iv: '',
-    });
-    const resultDecipher = CryptoJS.enc.Utf8.stringify(decipher);
-    return resultDecipher;
+  const restoreBase64 = encrypted;
+  const decipher = CryptoJS.AES.decrypt(restoreBase64, key, {
+    mode: CryptoJS.mode.ECB,
+    padding: CryptoJS.pad.Pkcs7,
+    iv: '',
+  });
+  const resultDecipher = CryptoJS.enc.Utf8.stringify(decipher);
+  return resultDecipher;
 }
 const aesDecryptFile = (encrypted, key) => {
-    const restoreBase64 = encrypted;
-    const decipher = CryptoJS.AES.decrypt(restoreBase64, key, {
-        mode: CryptoJS.mode.ECB,
-        padding: CryptoJS.pad.Pkcs7,
-        iv: '',
-    });
-    const resultDecipher = CryptoJS.enc.Base64.stringify(decipher);
-    return new Buffer(resultDecipher, 'Base64');
+  const restoreBase64 = encrypted;
+  const decipher = CryptoJS.AES.decrypt(restoreBase64, key, {
+    mode: CryptoJS.mode.ECB,
+    padding: CryptoJS.pad.Pkcs7,
+    iv: '',
+  });
+  const resultDecipher = CryptoJS.enc.Base64.stringify(decipher);
+  return new Buffer(resultDecipher, 'Base64');
 }
 /**
  * 加密
@@ -62,9 +62,9 @@ const aesDecryptFile = (encrypted, key) => {
  * @param {message body} buffer 
  */
 export const encryptByAES = (key, buffer) => {
-    const k = CryptoJS.enc.Base64.parse(key);
-    const encrypted = aesEncrypt(buffer, k);
-    return encrypted;
+  const k = CryptoJS.enc.Base64.parse(key);
+  const encrypted = aesEncrypt(buffer, k);
+  return encrypted;
 }
 /**
  * 加密
@@ -72,40 +72,40 @@ export const encryptByAES = (key, buffer) => {
  * @param {message body} buffer 
  */
 export const decryptByAES = (key, buffer) => {
-    try {
-        const k = CryptoJS.enc.Base64.parse(key);
-        const decrypted = aesDecrypt(buffer, k);
-        return decrypted;
-    }
-    catch (e) {
-        console.warn(key, buffer);
-        throw e;
-    }
+  try {
+    const k = CryptoJS.enc.Base64.parse(key);
+    const decrypted = aesDecrypt(buffer, k);
+    return decrypted;
+  }
+  catch (e) {
+    console.warn(key, buffer);
+    throw e;
+  }
 }
 
 export const encryptByAESFile = (key, buffer) => {
-    const k = CryptoJS.enc.Base64.parse(key);
-    const encrypted
-        = aesEncrypt(CryptoJS.enc.Base64.parse(buffer.toString('base64'))
-            , k);
-    return new Buffer(encrypted, 'base64');
+  const k = CryptoJS.enc.Base64.parse(key);
+  const encrypted
+    = aesEncrypt(CryptoJS.enc.Base64.parse(buffer.toString('base64'))
+      , k);
+  return new Buffer(encrypted, 'base64');
 }
 export const decryptByAESFile = (key, buffer) => {
-    const k = CryptoJS.enc.Base64.parse(key);
-    const b = buffer.toString('base64');
-    const decrypted = aesDecryptFile(b, k);
-    return decrypted;
+  const k = CryptoJS.enc.Base64.parse(key);
+  const b = buffer.toString('base64');
+  const decrypted = aesDecryptFile(b, k);
+  return decrypted;
 }
 export const generateAESKey = () => {
-    return CryptoJS.enc.Base64.stringify(
-        CryptoJS.enc.Utf8.parse(uuid.v4().replace(/-/g, '').substring(0, 16))
-    );
+  return CryptoJS.enc.Base64.stringify(
+    CryptoJS.enc.Utf8.parse(uuid.v4().replace(/-/g, '').substring(0, 16))
+  );
 }
 
 export default {
-    encryptByAES,
-    decryptByAES,
-    encryptByAESFile,
-    decryptByAESFile,
-    generateAESKey
+  encryptByAES,
+  decryptByAES,
+  encryptByAESFile,
+  decryptByAESFile,
+  generateAESKey
 }
