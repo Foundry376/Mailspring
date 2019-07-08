@@ -36,37 +36,48 @@ export const auth = async ({ jid, password }) => {
   };
   try {
     const res = await xmpp.connect(jid);
+    let resBare = '';
+    let resLocal = '';
+    if (typeof res == 'string') {
+      //console.log('auth', res, jid);
+      resBare = res;
+      resLocal = res.split('@')[0];
+    }
+    else {
+      resBare = res.bare;
+      resLocal = res.local;
+    }
     // fetch and saveRoom infomation
     await delay(200);
-    RoomStore.refreshRoomsFromXmpp(res.bare);
+    RoomStore.refreshRoomsFromXmpp(resBare);
 
     await delay(200);
-    const contacts = await xmpp.getRoster(res.bare);
+    const contacts = await xmpp.getRoster(resBare);
     if (contacts && contacts.roster && contacts.roster.items) {
-      ContactStore.saveContacts(contacts.roster.items, res.bare);
+      ContactStore.saveContacts(contacts.roster.items, resBare);
     }
 
     await delay(200);
     const device = await getDeviceInfo();
-    if (device && (!device.users || device.users.indexOf(res.local) < 0)) {
+    if (device && (!device.users || device.users.indexOf(resLocal) < 0)) {
       const resp = await xmpp.setE2ee({
-        jid: res.bare,
+        jid: resBare,
         did: device.deviceId,
         key: device.pubkey,
-      }, res.bare);
+      }, resBare);
       if (resp && resp.type == 'result' && resp.e2ee) {
-        updateFlag(res.local);
+        updateFlag(resLocal);
       }
     }
 
     await delay(200);
-    const e2ees = await xmpp.getE2ee('', res.bare);
-    E2eeStore.saveE2ees(e2ees, res.bare);
+    const e2ees = await xmpp.getE2ee('', resBare);
+    E2eeStore.saveE2ees(e2ees, resBare);
 
     await delay(200);
-    let ts = AppEnv.config.get(res.local + '_message_ts');
+    let ts = AppEnv.config.get(resLocal + '_message_ts');
     if (ts) {
-      pullMessage(ts, res.bare);
+      pullMessage(ts, resBare);
     }
 
     await delay(200);
