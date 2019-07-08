@@ -18,7 +18,9 @@ export const LocalizedErrorStrings = {
     'This account is invalid or EdisonMail could not find the Inbox or All Mail folder. http://support.getmailspring.com/hc/en-us/articles/115001881912',
   ErrorTLSNotAvailable: 'TLS Not Available',
   ErrorParse: 'Parsing Error',
-  ErrorCertificate: 'Certificate Error',
+  ErrorCertificate:
+    "Certificate Error - The mail server's security certificate is invalid and may pose a security" +
+    " risk. If you trust the server, you can continue by checking 'Allowing Insecure SSL'.",
   ErrorAuthentication: 'Authentication Error - Check your username and password.',
   ErrorGmailIMAPNotEnabled: 'Gmail IMAP is not enabled. Visit Gmail settings to turn it on.',
   ErrorGmailExceededBandwidthLimit: 'Gmail bandwidth exceeded. Please try again later.',
