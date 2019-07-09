@@ -18,9 +18,6 @@ export default class ProgressBar extends PureComponent {
     if (ProgressBarStore.progress.finished || failed) {
       loading = false;
     }
-    if (failed) {
-      const loadConfig = ProgressBarStore.progress.loadConfig;
-    }
     ChatActions.updateProgress({ loading, visible: false });
   };
 

@@ -1,4 +1,4 @@
-const storage = require('electron-localstorage');
+const storage = window.localStorage;
 
 import MailspringStore from 'mailspring-store';
 

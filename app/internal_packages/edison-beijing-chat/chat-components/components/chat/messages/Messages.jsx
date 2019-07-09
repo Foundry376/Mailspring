@@ -211,13 +211,13 @@ export default class Messages extends Component {
         }
       }
     }
-    if (scrollTop < 600) {
+    if (scrollTop < window.screen.height * 1.5) {
       const counts = this.state.shouldDisplayMessageCounts + MESSAGE_COUNTS_EACH_PAGE;
       this.setState({
         shouldDisplayMessageCounts: counts > MAX_COUNTS ? MAX_COUNTS : counts
       });
     }
-  }, 30);
+  }, 20);
 
   download = (msgBody) => {
     event.stopPropagation();

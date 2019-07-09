@@ -79,6 +79,9 @@ class ConversationStore extends MailspringStore {
     }
     // the same conversation, skip refresh
     if (this.selectedConversation && (this.selectedConversation.jid === jid)) {
+      if (this.selectedConversation.unreadMessages) {
+        await this._clearUnreadCount(jid);
+      }
       return;
     }
     // refresh message store

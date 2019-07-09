@@ -370,10 +370,10 @@ class MessageStore extends MailspringStore {
 
   setWindowTitle(title) {
     if (AppEnv.isComposerWindow()) {
-      if(title.length > 0){
+      if (title.length > 0) {
         title = title.trim();
-      }else{
-        title = 'New Message';
+      } else {
+        title = '';
       }
     } else {
       title = title.trim();
@@ -386,7 +386,7 @@ class MessageStore extends MailspringStore {
     let title = '';
     if (AppEnv.isComposerWindow()) {
       title = 'New Message';
-    } else if (AppEnv.isThreadWindow()){
+    } else if (AppEnv.isThreadWindow()) {
       title = 'Thread' + (this._thread ? ' · ' + this._thread.subject : '');
     } else {
       title = 'EdisonMail' + (this._thread ? ' · ' + this._thread.subject : '');
