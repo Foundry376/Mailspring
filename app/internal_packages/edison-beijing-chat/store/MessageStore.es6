@@ -117,7 +117,7 @@ class MessageStore extends MailspringStore {
     // if not current conversation, unreadMessages + 1
     let unreadMessages = 0;
     const selectedConversation = await ConversationStore.getSelectedConversation();
-    if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
+    if (!selectedConversation || selectedConversation.jid !== payload.from.bare || !this._isWindowFocused()) {
       unreadMessages = 1;
     }
     let jid;
@@ -401,7 +401,7 @@ class MessageStore extends MailspringStore {
     // if not current conversation, unreadMessages + 1
     let unreadMessages = 0;
     const selectedConversation = await ConversationStore.getSelectedConversation();
-    if (!selectedConversation || selectedConversation.jid !== payload.from.bare) {
+    if (!selectedConversation || selectedConversation.jid !== payload.from.bare || !this._isWindowFocused()) {
       unreadMessages = 1;
     }
     let conv = {
@@ -473,10 +473,14 @@ class MessageStore extends MailspringStore {
     });
   }
 
-  shouldShowNotification = async (payload) => {
+  _isWindowFocused = () => {
     const win = remote.getCurrentWindow();
     const focus = win.isFocused();
-    if (focus) {
+    return focus;
+  }
+
+  shouldShowNotification = async (payload) => {
+    if (this._isWindowFocused()) {
       return false;
     }
     let chatAccounts = AppEnv.config.get('chatAccounts') || {};
@@ -573,7 +577,7 @@ class MessageStore extends MailspringStore {
       } else {
         await MessageModel.upsert(msg);
       }
-      if (msg.status!=='MESSAGE_STATUS_SENDING') {
+      if (msg.status !== 'MESSAGE_STATUS_SENDING') {
         return;
       }
       setTimeout(async () => {
@@ -582,12 +586,12 @@ class MessageStore extends MailspringStore {
             id: msg.id
           }
         });
-        if (messageInDb && messageInDb.status==='MESSAGE_STATUS_SENDING') {
+        if (messageInDb && messageInDb.status === 'MESSAGE_STATUS_SENDING') {
           messageInDb.status = 'MESSAGE_STATUS_TRANSFER_FAILED';
-          this.saveMessagesAndRefresh([messageInDb.get({plain:true})]);
+          this.saveMessagesAndRefresh([messageInDb.get({ plain: true })]);
           const convJid = msg.conversationJid;
           const conv = ConversationStore.selectedConversation;
-          if (convJid !== (conv &&conv.jid)) {
+          if (convJid !== (conv && conv.jid)) {
             FailMessageStore.setMsg(msg);
           }
         }
