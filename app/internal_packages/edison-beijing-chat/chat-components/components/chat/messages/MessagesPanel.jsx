@@ -13,13 +13,23 @@ import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import registerLoginChat from '../../../../utils/register-login-chat';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ProgressBarStore, ChatActions, MessageStore, ConversationStore, ContactStore, RoomStore, UserCacheStore, OnlineUserStore, MemberProfileStore } from 'chat-exports';
+import {
+  ProgressBarStore,
+  ChatActions,
+  MessageStore,
+  ConversationStore,
+  ContactStore,
+  RoomStore,
+  UserCacheStore,
+  OnlineUserStore,
+  MemberProfileStore,
+} from 'chat-exports';
 import MemberProfile from '../conversations/MemberProfile';
 
 import { xmpplogin } from '../../../../utils/restjs';
-import fs from "fs";
-import https from "https";
-import http from "http";
+import fs from 'fs';
+import https from 'https';
+import http from 'http';
 import { MESSAGE_STATUS_TRANSFER_FAILED } from '../../../../model/Message';
 import { sendFileMessage } from '../../../../utils/message';
 import { getToken } from '../../../../utils/appmgt';
@@ -35,13 +45,13 @@ export default class MessagesPanel extends Component {
     sendMessage: PropTypes.func.isRequired,
     currentUserId: PropTypes.string,
     referenceTime: PropTypes.number,
-  }
+  };
 
   static defaultProps = {
     availableUsers: [],
     currentUserId: null,
     referenceTime: new Date().getTime(),
-  }
+  };
 
   apps = [];
 
@@ -54,11 +64,11 @@ export default class MessagesPanel extends Component {
       connecting: false,
       moreBtnEl: null,
       progress: {
-        loadConfig: null
+        loadConfig: null,
       },
       selectedConversation: null,
-      contacts: []
-    }
+      contacts: [],
+    };
     this._listenToStore();
   }
 
@@ -66,13 +76,18 @@ export default class MessagesPanel extends Component {
     this._unsubs = [];
     this._unsubs.push(ConversationStore.listen(() => this._onDataChanged('conversation')));
     this._unsubs.push(ContactStore.listen(() => this._onDataChanged('contact')));
-  }
+  };
 
-  _onDataChanged = async (changedDataName) => {
+  _onDataChanged = async changedDataName => {
     if (changedDataName === 'conversation') {
       const selectedConversation = await ConversationStore.getSelectedConversation();
-      if (selectedConversation && !selectedConversation.isGroup && !selectedConversation.email
-        && selectedConversation.jid.indexOf('@app') == -1 && selectedConversation.jid != 'NEW_CONVERSATION') {
+      if (
+        selectedConversation &&
+        !selectedConversation.isGroup &&
+        !selectedConversation.email &&
+        selectedConversation.jid.indexOf('@app') == -1 &&
+        selectedConversation.jid != 'NEW_CONVERSATION'
+      ) {
         // let user = await ContactStore.findContactByJid(selectedConversation.jid);
         let user = await UserCacheStore.getUserInfoByJid(selectedConversation.jid);
         if (!user) {
@@ -81,15 +96,15 @@ export default class MessagesPanel extends Component {
         selectedConversation.email = user && user.email;
       }
       this.setState({
-        selectedConversation
+        selectedConversation,
       });
     } else if (changedDataName === 'contact') {
       const contacts = await ContactStore.getContacts();
       this.setState({
-        contacts
+        contacts,
       });
     }
-  }
+  };
 
   componentDidMount = async () => {
     const contacts = await ContactStore.getContacts();
@@ -98,49 +113,49 @@ export default class MessagesPanel extends Component {
     this.setState({
       online: navigator.onLine,
       contacts,
-      selectedConversation
+      selectedConversation,
     });
-  }
+  };
 
-  _closePreview = (e) => {
-    if (e.target.tagName === "IMG") {
+  _closePreview = e => {
+    if (e.target.tagName === 'IMG') {
       return;
     }
     const currentWin = AppEnv.getCurrentWindow();
     currentWin.closeFilePreview();
-  }
+  };
 
   componentWillReceiveProps = async (nextProps, nextContext) => {
     const selectedConversation = await ConversationStore.getSelectedConversation();
     const contacts = await ContactStore.getContacts();
     this.setState({
       contacts,
-      selectedConversation
+      selectedConversation,
     });
-  }
+  };
 
   componentWillUnmount() {
     for (const unsub of this._unsubs) {
       unsub();
-    };
+    }
     document.body.onclick = null;
   }
 
-  saveRoomMembersForTemp = (members) => {
-    this.setState({ membersTemp: members })
-  }
+  saveRoomMembersForTemp = members => {
+    this.setState({ membersTemp: members });
+  };
 
-  onDragOver = (event) => {
+  onDragOver = event => {
     const state = Object.assign({}, this.state, { dragover: true });
     this.setState(state);
-  }
+  };
 
-  onDragEnd = (event) => {
+  onDragEnd = event => {
     const state = Object.assign({}, this.state, { dragover: false });
     this.setState(state);
-  }
+  };
 
-  onDrop = (event) => {
+  onDrop = event => {
     let tranFiles = event.dataTransfer.files,
       files = [];
     for (let i = 0; i < tranFiles.length; i++) {
@@ -149,7 +164,7 @@ export default class MessagesPanel extends Component {
     const state = Object.assign({}, this.state, { dragover: false });
     this.setState(state);
     this.sendFile(files);
-  }
+  };
 
   sendFile(files) {
     const { selectedConversation } = this.state;
@@ -164,24 +179,26 @@ export default class MessagesPanel extends Component {
       const curJid = contacts[0].curJid;
       if (contacts.length === 1) {
         ConversationStore.createPrivateConversation(contacts[0]);
-      } else if (contacts.some((contact) => contact.jid.match(/@app/))) {
+      } else if (contacts.some(contact => contact.jid.match(/@app/))) {
         alert('Should only create private conversation with single plugin app contact.');
         return;
       } else {
         const roomId = uuid() + GROUP_CHAT_DOMAIN;
         const names = contacts.map(contact => contact.name);
-        const name = (contacts.length > 4 ? names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others` :
-          names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1]);
+        const name =
+          contacts.length > 4
+            ? names.slice(0, 3).join(', ') + ' & ' + `${names.length - 3} others`
+            : names.slice(0, names.length - 1).join(', ') + ' & ' + names[names.length - 1];
         ConversationStore.createGroupConversation({ contacts, roomId, name, curJid });
       }
     }
-  }
+  };
 
   editProfile = member => {
     setTimeout(() => {
       MemberProfileStore.setMember(member);
     }, 10);
-  }
+  };
 
   exitProfile = async member => {
     if (!member) {
@@ -196,13 +213,13 @@ export default class MessagesPanel extends Component {
     MemberProfileStore.setMember(null);
     MessageStore.saveMessagesAndRefresh([]);
     LocalStorage.trigger();
-  }
+  };
 
   reconnect = () => {
     registerLoginChat();
-  }
+  };
 
-  queueLoadMessage = (loadConfig) => {
+  queueLoadMessage = loadConfig => {
     let { progress } = ProgressBarStore;
     progress = Object.assign({}, progress);
     let { loading } = progress;
@@ -212,8 +229,10 @@ export default class MessagesPanel extends Component {
       alert('${loadText} is processing, please wait it to be finished!');
       return;
     }
-    ChatActions.updateProgress({ loadConfig, loading: true, visible: true },
-      { onCancel: this.cancelLoadMessage, onRetry: this.retryLoadMessage });
+    ChatActions.updateProgress(
+      { loadConfig, loading: true, visible: true },
+      { onCancel: this.cancelLoadMessage, onRetry: this.retryLoadMessage }
+    );
     if (!loading) {
       this.loadMessage();
     }
@@ -222,9 +241,17 @@ export default class MessagesPanel extends Component {
   loadMessage = () => {
     const { progress } = ProgressBarStore;
     let { loadConfig } = progress;
-    ChatActions.updateProgress({ loading: true, percent: 0, finished: false, failed: false, visible: true });
+    ChatActions.updateProgress({
+      loading: true,
+      percent: 0,
+      finished: false,
+      failed: false,
+      visible: true,
+    });
     const { msgBody, filepath } = loadConfig;
-    log2(`MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`);
+    log2(
+      `MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`
+    );
     const loadCallback = (...args) => {
       ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
@@ -246,13 +273,13 @@ export default class MessagesPanel extends Component {
         if (err) {
           const str = `${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`;
           console.error(str);
-          log2(`MessagePanel.loadMessage: error: `+str);
+          log2(`MessagePanel.loadMessage: error: ` + str);
           const message = {
             id: messageId,
             conversationJid: conversation.jid,
             body,
             sender: conversation.curJid,
-            sentTime: (new Date()).getTime() + edisonChatServerDiffTime,
+            sentTime: new Date().getTime() + edisonChatServerDiffTime,
             status: MESSAGE_STATUS_TRANSFER_FAILED,
           };
           MessageStore.saveMessagesAndRefresh([message]);
@@ -261,11 +288,11 @@ export default class MessagesPanel extends Component {
           onMessageSubmitted(conversation, body, messageId, false);
         }
       }
-    }
+    };
 
     const loadProgressCallback = progress => {
       const { loaded, total } = progress;
-      const percent = Math.floor(+loaded * 100.0 / (+total));
+      const percent = Math.floor((+loaded * 100.0) / +total);
       if (loadConfig.type === 'upload' && +loaded === +total) {
         let body = loadConfig.msgBody;
         body.isUploading = false;
@@ -273,14 +300,20 @@ export default class MessagesPanel extends Component {
         ChatActions.updateProgress({ percent, visible: true });
       }
       ChatActions.updateProgress({ percent });
-    }
+    };
 
     if (loadConfig.type === 'upload') {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
       try {
-        loadConfig.request = uploadFile(jidLocal, null, loadConfig.filepath, loadCallback, loadProgressCallback);
+        loadConfig.request = uploadFile(
+          jidLocal,
+          null,
+          loadConfig.filepath,
+          loadCallback,
+          loadProgressCallback
+        );
       } catch (e) {
         console.error('upload file:', e);
         alert('failed to send file: ${loadConfig.filepath}: ${e}');
@@ -293,14 +326,22 @@ export default class MessagesPanel extends Component {
       let imgpath = msgBody.path.replace('file://', '');
       if (imgpath !== filepath) {
         if (!fs.existsSync(imgpath)) {
-          alert('The file does not exist, probably it is failed to be received, please try to receive this message again.');
+          alert(
+            'The file does not exist, probably it is failed to be received, please try to receive this message again.'
+          );
         }
         fs.copyFileSync(imgpath, filepath);
       }
       loadCallback();
     } else if (!msgBody.mediaObjectId.match(/^https?:\/\//)) {
       // the file is on aws
-      loadConfig.request = downloadFile(msgBody.aes, msgBody.mediaObjectId, filepath, loadCallback, loadProgressCallback);
+      loadConfig.request = downloadFile(
+        msgBody.aes,
+        msgBody.mediaObjectId,
+        filepath,
+        loadCallback,
+        loadProgressCallback
+      );
     } else {
       // the file is a link to the web outside aws
       let request;
@@ -309,14 +350,14 @@ export default class MessagesPanel extends Component {
       } else {
         request = http;
       }
-      request.get(msgBody.mediaObjectId, function (res) {
+      request.get(msgBody.mediaObjectId, function(res) {
         var imgData = '';
         res.setEncoding('binary');
-        res.on('data', function (chunk) {
+        res.on('data', function(chunk) {
           imgData += chunk;
         });
-        res.on('end', function () {
-          fs.writeFile(filepath, imgData, 'binary', function (err) {
+        res.on('end', function() {
+          fs.writeFile(filepath, imgData, 'binary', function(err) {
             if (err) {
               console.error('down fail', err);
             } else {
@@ -336,7 +377,7 @@ export default class MessagesPanel extends Component {
         ChatActions.updateProgress({ failed: true });
       }
     }, 10000);
-  }
+  };
 
   cancelLoadMessage = () => {
     const { progress } = ProgressBarStore;
@@ -362,16 +403,16 @@ export default class MessagesPanel extends Component {
     }
     ChatActions.updateProgress({ loading: false, failed: true });
     clearInterval(this.loadTimer);
-  }
+  };
 
   retryLoadMessage = () => {
     ChatActions.updateProgress({ failed: false });
     setTimeout(() => {
       this.loadMessage();
-    })
+    });
   };
 
-  installApp = async (e) => {
+  installApp = async e => {
     const conv = this.state.selectedConversation;
     const { curJid } = conv;
     const userId = curJid.split('@')[0];
@@ -385,17 +426,16 @@ export default class MessagesPanel extends Component {
           alert('fail to open the app store page');
         }
       }
-    })
-  }
+    });
+  };
 
   render() {
     const { showConversationInfo, selectedConversation, contacts } = this.state;
-    const {
-      sendMessage,
-      availableUsers,
-      referenceTime,
-    } = this.props;
-    const currentUserId = selectedConversation && selectedConversation.curJid ? selectedConversation.curJid : NEW_CONVERSATION;
+    const { sendMessage, availableUsers, referenceTime } = this.props;
+    const currentUserId =
+      selectedConversation && selectedConversation.curJid
+        ? selectedConversation.curJid
+        : NEW_CONVERSATION;
     const topBarProps = {
       onBackPressed: () => {
         ChatActions.deselectConversation()();
@@ -421,8 +461,8 @@ export default class MessagesPanel extends Component {
     const newConversationProps = {
       contacts,
       saveRoomMembersForTemp: this.saveRoomMembersForTemp,
-      createRoom: this.createRoom
-    }
+      createRoom: this.createRoom,
+    };
     const infoProps = {
       selectedConversation,
       loadingMembers: this.state.loadingMembers,
@@ -430,42 +470,38 @@ export default class MessagesPanel extends Component {
       editProfile: this.editProfile,
       exitProfile: this.exitProfile,
       contacts,
-      onCloseInfoPanel: () =>
-        this.setState({ showConversationInfo: false }),
+      onCloseInfoPanel: () => this.setState({ showConversationInfo: false }),
     };
     let className = '';
     if (selectedConversation && selectedConversation.jid === NEW_CONVERSATION) {
-      className = 'new-conversation-popup'
+      className = 'new-conversation-popup';
     }
 
     return (
-      <div className={`panel`}
+      <div
+        className={`panel`}
         onDragOverCapture={this.onDragOver}
         onDragEnd={this.onDragEnd}
         onMouseLeave={this.onDragEnd}
         onDrop={this.onDrop}
       >
-        {selectedConversation ?
+        {selectedConversation ? (
           <div className="chat">
             <div className={`split-panel ${className}`}>
-              {
-                selectedConversation.jid === NEW_CONVERSATION ? (
-                  <div className="chatPanel">
-                    <NewConversationTopBar {...newConversationProps} />
+              {selectedConversation.jid === NEW_CONVERSATION ? (
+                <div className="newConversationPanel">
+                  <NewConversationTopBar {...newConversationProps} />
+                </div>
+              ) : (
+                <div className="chatPanel">
+                  <MessagesTopBar {...topBarProps} />
+                  <Messages {...messagesProps} sendBarProps={sendBarProps} />
+                  {this.state.dragover && <div id="message-dragdrop-override"></div>}
+                  <div>
+                    <MessagesSendBar {...sendBarProps} />
                   </div>
-                ) : (
-                    <div className="chatPanel">
-                      <MessagesTopBar {...topBarProps} />
-                      <Messages {...messagesProps} sendBarProps={sendBarProps} />
-                      {this.state.dragover && (
-                        <div id="message-dragdrop-override"></div>
-                      )}
-                      <div>
-                        <MessagesSendBar {...sendBarProps} />
-                      </div>
-                    </div>
-                  )
-              }
+                </div>
+              )}
               <Divider type="vertical" />
               <CSSTransitionGroup
                 transitionName="transition-slide"
@@ -479,15 +515,19 @@ export default class MessagesPanel extends Component {
                 )}
               </CSSTransitionGroup>
             </div>
-          </div> :
+          </div>
+        ) : (
           <div className="unselectedHint">
             <span>
               <RetinaImg name={`EmptyChat.png`} mode={RetinaImg.Mode.ContentPreserve} />
             </span>
           </div>
-        }
+        )}
         <OnlineStatus conversation={selectedConversation}></OnlineStatus>
-        <MemberProfile conversation={selectedConversation} exitProfile={this.exitProfile}></MemberProfile>
+        <MemberProfile
+          conversation={selectedConversation}
+          exitProfile={this.exitProfile}
+        ></MemberProfile>
       </div>
     );
   }
