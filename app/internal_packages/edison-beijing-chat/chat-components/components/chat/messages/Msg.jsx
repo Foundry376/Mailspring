@@ -62,7 +62,12 @@ export default class Msg extends PureComponent {
 
   componentWillReceiveProps = (nextProps) => {
     const newState = this.receiveProps(nextProps);
-    this.setState(newState);
+    this.setState(newState, () => {
+      // if has span tag, that's no need to run emoji process
+      if (this.contentEl && this.contentEl.innerHTML.indexOf('<span role="img"') === -1) {
+        this.contentEl.innerHTML = a11yEmoji(this.contentEl.innerHTML);
+      }
+    });
   }
 
   isImage = (type) => {
