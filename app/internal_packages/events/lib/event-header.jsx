@@ -91,7 +91,7 @@ class EventHeader extends React.Component {
                  When: {this.renderWhen()}
                 </div>
               <div className="event-location">
-                Location: {this.state.event.location}
+                Location: {this.state.event.location ? this.state.event.location : 'Unknown'}
               </div>
               <div className="event-organizer">
                 Organizer: {this.state.event.organizer.name }
