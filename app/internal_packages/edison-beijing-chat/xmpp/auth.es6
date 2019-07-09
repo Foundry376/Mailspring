@@ -26,7 +26,7 @@ export const auth = async ({ jid, password }) => {
     //wsURL: 'ws://192.168.1.103:5290'
     wsURL: 'wss://tigase.stag.easilydo.cc',
     resource: deviceId && deviceId.replace(/-/g, ''),
-    deviceId: deviceId, //'2b92e45c-2fde-48e3-9335-421c8c57777f"',
+    deviceId: deviceId,
     timestamp: new Date().getTime(),
     deviceType: 'desktop',
     deviceModel: process.platform,
@@ -43,6 +43,9 @@ export const auth = async ({ jid, password }) => {
   };
   try {
     const res = await xmpp.connect(jid);
+    if (!res) {
+      return;
+    }
     let resBare = '';
     let resLocal = '';
     if (typeof res == 'string') {
@@ -93,7 +96,7 @@ export const auth = async ({ jid, password }) => {
     }
 
     await delay(200);
-    AppsStore.saveMyAppsAndEmailContacts(res);
+    AppsStore.saveMyAppsAndEmailContacts({ curJid: resBare, local: resLocal });
   } catch (error) {
     window.console.warn('connect error', error);
     if (error && typeof error == 'string' && error.split('@').length > 1) {
