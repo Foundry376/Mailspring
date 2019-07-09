@@ -6,11 +6,12 @@ import { queryProfile } from '../utils/restjs';
 import { isJsonStr } from '../utils/stringUtils';
 const sqlite = require('better-sqlite3');
 import MailspringStore from 'mailspring-store';
-import { NEW_CONVERSATION } from './ConversationStore';
+import { log2 } from '../utils/log-util';
 
 class AppsStore extends MailspringStore {
   refreshAppsEmailContacts = async () => {
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
+    log2('refreshAppsEmailContacts: chatAccounts: ' + JSON.stringify(chatAccounts));
     let acc, userId;
     for (const email in chatAccounts) {
       acc = chatAccounts[email];
@@ -55,15 +56,19 @@ class AppsStore extends MailspringStore {
     const sqldb = sqlite(dbpath);
     const accounts = AppEnv.config.get('accounts');
     let accoundIds = accounts.map(acc => `"${acc.id}"`);
+    log2(`saveEmailContacts: acc.id: `+accoundIds.join(', '));
     const sql = `SELECT * FROM contact where sendToCount >= 1 and recvFromCount >= 1 and accountId in (${accoundIds.join(',')})`
     console.log( 'sql: ', sql);
     let stmt = sqldb.prepare(sql);
     let emailContacts = stmt.all();
     sqldb.close();
     const emails = emailContacts.map(contact => contact.email);
+    console.log( 'saveEmailContacts: emails: ', emails);
+    log2(`saveEmailContacts: emails: `+emails.join(', '));
     queryProfile({ accessToken, emails }, async (err, res) => {
       if (!res) {
         console.log('fail to login to queryProfile');
+        log2(`fail to login to queryProfile: err： `+JSON.stringify(err));
         return;
       }
       if (isJsonStr(res)) {
@@ -85,6 +90,7 @@ class AppsStore extends MailspringStore {
         return contact;
       });
       emailContacts = emailContacts.filter(contact => !!contact.curJid);
+      log2(`saveEmailContacts: emails 2: `+emailContacts.map(contact=> contact.email).join(', '));
       await ContactStore.saveContacts(emailContacts, payload.curJid);
       return;
     })

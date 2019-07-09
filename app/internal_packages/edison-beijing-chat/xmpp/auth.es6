@@ -1,7 +1,7 @@
 import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { delay } from '../utils/delay';
 import xmpp from './index';
-import uuid from 'uuid/v4';
+
 import {
   RoomStore,
   ContactStore,
