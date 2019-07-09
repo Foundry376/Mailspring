@@ -691,7 +691,7 @@ class VEvent extends ICAL.Event {
   }
 
   needToRsvpByEmail(email) {
-    const emails = this.filterAttendeesEmailBy({ criteria: 'rsvp', value: true });
+    const emails = this.getAllAttendeesEmail();
     return emails.includes(email);
   }
 
