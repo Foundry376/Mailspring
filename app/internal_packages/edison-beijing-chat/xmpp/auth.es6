@@ -2,7 +2,14 @@ import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { delay } from '../utils/delay';
 import xmpp from './index';
 import uuid from 'uuid/v4';
-import { RoomStore, ContactStore, E2eeStore, AppsStore, OnlineUserStore } from 'chat-exports';
+import {
+  RoomStore,
+  ContactStore,
+  E2eeStore,
+  AppsStore,
+  OnlineUserStore,
+  BlockStore,
+} from 'chat-exports';
 
 export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
@@ -19,7 +26,7 @@ export const auth = async ({ jid, password }) => {
     //wsURL: 'ws://192.168.1.103:5290'
     wsURL: 'wss://tigase.stag.easilydo.cc',
     resource: deviceId && deviceId.replace(/-/g, ''),
-    deviceId: deviceId,//'2b92e45c-2fde-48e3-9335-421c8c57777f"',
+    deviceId: deviceId, //'2b92e45c-2fde-48e3-9335-421c8c57777f"',
     timestamp: new Date().getTime(),
     deviceType: 'desktop',
     deviceModel: process.platform,
@@ -42,14 +49,16 @@ export const auth = async ({ jid, password }) => {
       console.log('auth', res, jid);
       resBare = res;
       resLocal = res.split('@')[0];
-    }
-    else {
+    } else {
       resBare = res.bare;
       resLocal = res.local;
     }
     // fetch and saveRoom infomation
     await delay(200);
     RoomStore.refreshRoomsFromXmpp(resBare);
+
+    await delay(200);
+    BlockStore.refreshBlocksFromXmpp(resBare);
 
     await delay(200);
     const contacts = await xmpp.getRoster(resBare);
@@ -60,11 +69,14 @@ export const auth = async ({ jid, password }) => {
     await delay(200);
     const device = await getDeviceInfo();
     if (device && (!device.users || device.users.indexOf(resLocal) < 0)) {
-      const resp = await xmpp.setE2ee({
-        jid: resBare,
-        did: device.deviceId,
-        key: device.pubkey,
-      }, resBare);
+      const resp = await xmpp.setE2ee(
+        {
+          jid: resBare,
+          did: device.deviceId,
+          key: device.pubkey,
+        },
+        resBare
+      );
       if (resp && resp.type == 'result' && resp.e2ee) {
         updateFlag(resLocal);
       }
@@ -84,11 +96,11 @@ export const auth = async ({ jid, password }) => {
     AppsStore.saveMyAppsAndEmailContacts(res);
   } catch (error) {
     window.console.warn('connect error', error);
-    if (error && (typeof error == 'string') && error.split('@').length > 1) {
+    if (error && typeof error == 'string' && error.split('@').length > 1) {
       window.localStorage.removeItem('sessionId' + error.split('@')[0]);
       OnlineUserStore.removeAuthingAccount(error);
     }
-  };
+  }
 };
 
 export default auth;

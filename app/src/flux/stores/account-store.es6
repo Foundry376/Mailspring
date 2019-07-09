@@ -10,9 +10,13 @@ import Account from '../models/account';
 import Utils from '../models/utils';
 import { removeMyApps } from '../../../internal_packages/edison-beijing-chat/utils/appmgt';
 import { registerLoginEmailAccountForChat } from '../../../internal_packages/edison-beijing-chat/utils/register-login-chat';
+import path from "path";
 
 const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
+const sqlite = require('better-sqlite3');
+import Sequelize from 'sequelize';
+const Op = Sequelize.Op
 
 /*
 Public: The AccountStore listens to changes to the available accounts in
@@ -187,9 +191,17 @@ class AccountStore extends MailspringStore {
       for (const conv of conversations) {
         ConversationStore.removeConversation(conv.jid);
       }
+      let configDirPath = AppEnv.getConfigDirPath();
+      let dbpath = path.join(configDirPath, 'edisonmail.db');
+      const sqldb = sqlite(dbpath);
+      let stmt = sqldb.prepare(`SELECT * FROM contact where accountId = "${id}"`);
+      let emailContacts = stmt.all();
+      console.log( 'emailContacts: ', emailContacts);
+      const emails = emailContacts.map(contact => contact.email);
+      sqldb.close();
       await ContactModel.destroy({
         where: {
-          curJid: jid
+          email: {[Op.in]: emails}
         }
       });
       ContactStore.refreshContacts();

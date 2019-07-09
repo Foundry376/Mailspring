@@ -2,12 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import CheckIcon from '../../common/icons/CheckIcon';
-import {
-  MESSAGE_STATUS_DELIVERED,
-  getStatusWeight,
-  MESSAGE_STATUS_TRANSFER_FAILED,
-} from '../../../../model/Message';
+const a11yEmoji = require('a11y-emoji');
 import { colorForString } from '../../../../utils/colors';
 import { dateFormat } from '../../../../utils/time';
 import { RetinaImg } from 'mailspring-component-kit';
@@ -111,6 +106,9 @@ export default class Msg extends PureComponent {
     this.menu.append(menuItem);
 
     this.unlisten = ChatActions.updateDownload.listen(this.update, this);
+    if (this.contentEl) {
+      this.contentEl.innerHTML = a11yEmoji(this.contentEl.innerHTML);
+    }
   }
 
   deleteMessage = () => {
@@ -339,8 +337,8 @@ export default class Msg extends PureComponent {
     const member = this.senderContact();
     const senderName = this.senderName();
     const msgFile = this.msgFile();
-    const messageFail = msg.status === 'MESSAGE_STATUS_TRANSFER_FAILED'
-
+    const messageFail = msg.status === 'MESSAGE_STATUS_TRANSFER_FAILED';
+    let textContent = msgBody.path && path.basename(msgBody.path) || msgBody.content || msgBody;
     if (msgBody.deleted) {
       return null;
     } else if (msgBody.isAppprivateCommand) {
@@ -373,10 +371,10 @@ export default class Msg extends PureComponent {
         >
           {!isSystemEvent ? (
             <div className="messageIcons">
-              {messageFail?
-                  <div className="messageFailed"
-                             title="Not Delivered"/>
-                  : null
+              {messageFail ?
+                <div className="messageFailed"
+                  title="Not Delivered" />
+                : null
               }
               <div className="messageSender">
                 {this.getContactAvatar(member)}
@@ -430,7 +428,7 @@ export default class Msg extends PureComponent {
                   ) : (
                       <div className="messageBody">
                         <div className="text-content">
-                          {msgBody.path && path.basename(msgBody.path) || msgBody.content || msgBody}
+                          <div className="text" ref={el => this.contentEl = el}>{textContent}</div>
                           {
                             !msgFile && isCurrentUser && !isEditing && (
                               this.messageToolbar(msg, msgBody, false)
@@ -448,7 +446,7 @@ export default class Msg extends PureComponent {
             )}
 
           </div>
-          { messageFail ? <div className="message-retry" onClick={this.retrySend}> Try Again </div> : null }
+          {messageFail ? <div className="message-retry" onClick={this.retrySend}> Try Again </div> : null}
         </div>
       );
     }

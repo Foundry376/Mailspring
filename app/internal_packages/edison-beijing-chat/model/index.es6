@@ -5,6 +5,7 @@ import e2ees from './E2ee';
 import rooms from './Room';
 import configs from './Config';
 import userCache from './UserCache';
+import block from './Block';
 
 export default {
   contacts,
@@ -13,5 +14,6 @@ export default {
   e2ees,
   rooms,
   configs,
-  userCache
+  userCache,
+  block,
 };
