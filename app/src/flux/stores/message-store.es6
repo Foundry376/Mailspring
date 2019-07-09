@@ -371,15 +371,15 @@ class MessageStore extends MailspringStore {
   setWindowTitle(title) {
     if (AppEnv.isComposerWindow()) {
       if (title.length > 0) {
-        title = title.trim();
+        title = `Draft to: ${title.trim()}`;
       } else {
-        title = '';
+        title = 'New Message';
       }
     } else {
       title = title.trim();
     }
     electron.remote.getCurrentWindow().setTitle(title);
-    AppEnv.setWindowDisplayTitle(title);
+    // AppEnv.setWindowDisplayTitle(title);
   }
 
   _setWindowTitle() {

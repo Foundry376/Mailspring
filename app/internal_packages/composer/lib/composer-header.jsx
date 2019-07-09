@@ -108,16 +108,23 @@ export default class ComposerHeader extends React.Component {
     return true;
   };
 
+  _getToName(participants) {
+    if (!participants || !Array.isArray(participants.to) || participants.to.length === 0) {
+      return '';
+    }
+    return participants.to[0].name;
+  }
+
   _onChangeParticipants = changes => {
     this.props.session.changes.add(changes);
     Actions.draftParticipantsChanged(this.props.draft.id, changes);
+    if (AppEnv.isComposerWindow()) {
+      Actions.setCurrentWindowTitle(this._getToName(changes));
+    }
   };
 
   _onSubjectChange = event => {
     this.props.session.changes.add({ subject: event.target.value });
-    if (AppEnv.isComposerWindow()) {
-      Actions.setCurrentWindowTitle(event.target.value);
-    }
   };
 
   _renderSubject = () => {

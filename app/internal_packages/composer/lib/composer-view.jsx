@@ -96,9 +96,15 @@ export default class ComposerView extends React.Component {
         this.focus();
       });
     }
-    if(AppEnv.isComposerWindow()){
-      Actions.setCurrentWindowTitle(this.props.draft.subject);
+    if (AppEnv.isComposerWindow()) {
+      Actions.setCurrentWindowTitle(this._getToName(this.props.draft));
     }
+  }
+  _getToName(participants){
+    if(!participants || !Array.isArray(participants.to) || participants.to.length === 0){
+      return '';
+    }
+    return participants.to[0].name;
   }
 
   componentDidUpdate() {
