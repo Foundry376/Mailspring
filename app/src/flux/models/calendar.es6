@@ -281,6 +281,10 @@ class Attendee {
   getContentString() {
     return this.toString().replace('ATTENDEE;', '');
   }
+
+  removeParameter(name = '') {
+    this._attendee.removeParameter(name);
+  }
 }
 
 class Organizer {
@@ -368,7 +372,6 @@ class Organizer {
   _parseDir() {
     return this._address.getParameter('dir');
   }
-
 }
 
 class VEvent extends ICAL.Event {
@@ -574,15 +577,21 @@ class VEvent extends ICAL.Event {
   }
 
   tentative(attendeeEmail = '') {
-    this.updatePropertyWithValue('status', 'TENTATIVE');
-    this._status = 'TENTATIVE';
-    const attendee = this.findAttendeeByEmail(attendeeEmail);
-    if (Array.isArray(attendee)) {
-      attendee[0].tentative();
+    if (attendeeEmail.length === 0) {
+      this.updatePropertyWithValue('status', 'TENTATIVE');
+      this._status = 'TENTATIVE';
+    } else {
+      this.updatePropertyWithValue('status', 'CONFIRMED');
+      this._status = 'CONFIRMED';
+      const attendee = this.findAttendeeByEmail(attendeeEmail);
+      if (Array.isArray(attendee)) {
+        attendee[0].tentative();
+        attendee[0].removeParameter('rsvp');
+      }
+      const attendeeStr = attendee[0].getContentString();
+      this.removeAllProperties('attendee');
+      this.updatePropertyWithValue('attendee', attendeeStr);
     }
-    const attendeeStr = attendee[0].getContentString();
-    this.removeAllProperties('attendee');
-    this.updatePropertyWithValue('attendee', attendeeStr);
   }
 
   confirm(attendeeEmail = '') {
@@ -591,6 +600,7 @@ class VEvent extends ICAL.Event {
     const attendee = this.findAttendeeByEmail(attendeeEmail);
     if (Array.isArray(attendee)) {
       attendee[0].accept();
+      attendee[0].removeParameter('rsvp');
     }
     const attendeeStr = attendee[0].getContentString();
     this.removeAllProperties('attendee');
@@ -598,15 +608,21 @@ class VEvent extends ICAL.Event {
   }
 
   cancel(attendeeEmail = '') {
-    this.updatePropertyWithValue('status', 'CANCELED');
-    this._status = 'CANCELED';
-    const attendee = this.findAttendeeByEmail(attendeeEmail);
-    if (Array.isArray(attendee)) {
-      attendee[0].decline();
+    if (attendeeEmail.length === 0) {
+      this.updatePropertyWithValue('status', 'CANCELLED');
+      this._status = 'CANCELLED';
+    } else {
+      this.updatePropertyWithValue('status', 'CONFIRMED');
+      this._status = 'CONFIRMED';
+      const attendee = this.findAttendeeByEmail(attendeeEmail);
+      if (Array.isArray(attendee)) {
+        attendee[0].decline();
+        attendee[0].removeParameter('rsvp');
+      }
+      const attendeeStr = attendee[0].getContentString();
+      this.removeAllProperties('attendee');
+      this.updatePropertyWithValue('attendee', attendeeStr);
     }
-    const attendeeStr = attendee[0].getContentString();
-    this.removeAllProperties('attendee');
-    this.updatePropertyWithValue('attendee', attendeeStr);
   }
 
   get transparent() {
