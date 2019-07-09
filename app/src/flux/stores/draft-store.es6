@@ -136,10 +136,10 @@ class DraftStore extends MailspringStore {
   }
 
   _onDraftAccountChange = async ({
-                                   originalMessageId,
-                                   originalHeaderMessageId,
-                                   newParticipants,
-                                 }) => {
+    originalMessageId,
+    originalHeaderMessageId,
+    newParticipants,
+  }) => {
     const session = this._draftSessions[originalHeaderMessageId];
     await session.changes.commit();
     session.freezeSession();
@@ -160,7 +160,7 @@ class DraftStore extends MailspringStore {
         id: originalMessageId,
         threadId: oldDraft.threadId,
       },
-      { switchingAccount: true, canBeUndone: false},
+      { switchingAccount: true, canBeUndone: false },
     );
   };
 
@@ -239,7 +239,7 @@ class DraftStore extends MailspringStore {
       // Only delete pristine drafts if we're in popouts and is not from server, aka remoteUID=0.
       if (draft.pristine && !session.isPopout() && !draft.remoteUID) {
         // console.log(`draft to be destroyed @ ${this._getCurrentWindowLevel()}`);
-        if (!this._draftsDeleting[draft.id]){
+        if (!this._draftsDeleting[draft.id]) {
           console.log('sending out destroy draft in onbefore load');
           promises.push(Actions.destroyDraft(draft, { canBeUndone: false }));
         }
@@ -567,7 +567,7 @@ class DraftStore extends MailspringStore {
     // console.log('on destroy draft');
     const { accountId, headerMessageId, id, threadId } = message;
     let draftDeleting = false;
-    if(id){
+    if (id) {
       draftDeleting = !!this._draftsDeleting[id];
       this._draftsDeleting[id] = headerMessageId;
     }
@@ -637,7 +637,7 @@ class DraftStore extends MailspringStore {
   };
   _onDraftDeleting = (event, options) => {
     if (Array.isArray(options.messageIds) && options.headerMessageId) {
-      this._draftsDeleting[options.messageIds[0]]=options.headerMessageId;
+      this._draftsDeleting[options.messageIds[0]] = options.headerMessageId;
     }
   };
   _onDestroyDraftSuccess = ({ messageIds }) => {
@@ -664,7 +664,7 @@ class DraftStore extends MailspringStore {
       delete this._draftsSending[headerMessageId];
     } else {
       AppEnv.reportError(
-        new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout/1000} seconds`),
+        new Error(`Sending draft: ${headerMessageId}, took more than ${SendDraftTimeout / 1000} seconds`),
       );
     }
     if (trigger) {
