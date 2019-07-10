@@ -525,6 +525,30 @@ export default class ComposerView extends React.Component {
     }
   };
 
+  _onAttachmentsCreated = fileObjs => {
+    if (!this._mounted) return;
+    if (!Array.isArray(fileObjs) || fileObjs.length === 0) {
+      return;
+    }
+    const { draft, session } = this.props;
+    for (let i = 0; i < fileObjs.length; i++) {
+      const fileObj = fileObjs[i];
+      if (Utils.shouldDisplayAsImage(fileObj)) {
+        const match = draft.files.find(f => f.id === fileObj.id);
+        if (!match) {
+          return;
+        }
+        match.contentId = Utils.generateContentId();
+        match.inline = true;
+        session.changes.add({
+          files: [].concat(draft.files),
+        });
+      }
+    }
+    this._els[Fields.Body].insertInlineAttachments(fileObjs);
+    session.changes.commit();
+  };
+
   _onAttachmentCreated = fileObj => {
     if (!this._mounted) return;
     if (Utils.shouldDisplayAsImage(fileObj)) {
@@ -634,7 +658,13 @@ export default class ComposerView extends React.Component {
     if (type === 'image') {
       Actions.selectAttachment({
         headerMessageId: this.props.draft.headerMessageId,
-        onCreated: this._onAttachmentCreated,
+        onCreated: fileObjs => {
+          if (Array.isArray(fileObjs)) {
+            this._onAttachmentsCreated(fileObjs);
+          } else {
+            this._onAttachmentCreated(fileObjs);
+          }
+        },
         type,
       });
     } else {

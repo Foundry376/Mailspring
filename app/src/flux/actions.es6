@@ -469,6 +469,7 @@ class Actions {
   // File Actions
   // Some file actions only need to be processed in their current window
   static addAttachment = ActionScopeWindow;
+  static addAttachments = ActionScopeWindow;
   static selectAttachment = ActionScopeWindow;
   static removeAttachment = ActionScopeWindow;
 

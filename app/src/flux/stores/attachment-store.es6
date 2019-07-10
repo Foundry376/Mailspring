@@ -87,6 +87,7 @@ class AttachmentStore extends MailspringStore {
 
     // sending
     this.listenTo(Actions.addAttachment, this._onAddAttachment);
+    this.listenTo(Actions.addAttachments, this._onAddAttachments);
     this.listenTo(Actions.selectAttachment, this._onSelectAttachment);
     this.listenTo(Actions.removeAttachment, this._onRemoveAttachment);
 
@@ -529,14 +530,61 @@ class AttachmentStore extends MailspringStore {
       if (typeof pathsToOpen === 'string') {
         pathsToOpen = [pathsToOpen];
       }
-
-      pathsToOpen.forEach(filePath => Actions.addAttachment({ headerMessageId, filePath, onCreated }));
+      if (pathsToOpen.length > 1) {
+        Actions.addAttachments({ headerMessageId, filePaths: pathsToOpen, onCreated });
+      } else {
+        Actions.addAttachment({ headerMessageId, filePath: pathsToOpen[0], onCreated });
+      }
     };
     if (type === 'image') {
       return AppEnv.showImageSelectionDialog(cb);
     }
     return AppEnv.showOpenDialog({ properties: ['openFile', 'multiSelections'] }, cb);
   };
+  _onAddAttachments = async ({ headerMessageId, inline = false, filePaths = [], onCreated = () => {} }) => {
+    if(!Array.isArray(filePaths) || filePaths.length === 0){
+      throw new Error('_onAddAttachments must have an array of filePaths');
+    }
+    this._assertIdPresent(headerMessageId);
+    try {
+      const total = filePaths.length;
+      const createdFiles = [];
+      filePaths.forEach(async filePath => {
+        const filename = path.basename(filePath);
+        const stats = await this._getFileStats(filePath);
+        if (stats.isDirectory()) {
+          throw new Error(`${filename} is a directory. Try compressing it and attaching it again.`);
+        } else if (stats.size > 25 * 1000000) {
+          throw new Error(`${filename} cannot be attached because it is larger than 25MB.`);
+        }
+
+        const file = new File({
+          id: Utils.generateTempId(),
+          filename: filename,
+          size: stats.size,
+          contentType: null,
+          messageId: null,
+          contentId: inline ? Utils.generateContentId() : null,
+        });
+
+        await mkdirpAsync(path.dirname(this.pathForFile(file)));
+        await this._copyToInternalPath(filePath, this.pathForFile(file));
+
+        await this._applySessionChanges(headerMessageId, files => {
+          if (files.reduce((c, f) => c + f.size, 0) >= 25 * 1000000) {
+            throw new Error(`Sorry, you can't attach more than 25MB of attachments`);
+          }
+          createdFiles.push(file);
+          return files.concat([file]);
+        });
+        if (createdFiles.length >= total) {
+          onCreated(createdFiles);
+        }
+      });
+    } catch (err) {
+      AppEnv.showErrorDialog(err.message);
+    }
+  }
 
   _onAddAttachment = async ({
                               headerMessageId,

@@ -86,6 +86,25 @@ export default class ComposerEditor extends React.Component {
     });
   };
 
+  insertInlineAttachments = files => {
+    if (!Array.isArray(files) || files.length === 0) {
+      return;
+    }
+    const { onChange, value } = this.props;
+    let change = value.change();
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      InlineAttachmentChanges.insert(change, file);
+      if(i!==files.length -1){
+        change.collapseToEndOfPreviousText();
+      }
+    }
+    // DC-734 it seems that if we call onChange immediately, more often than not,
+    // it'll effect the next "list" item and make it indent.
+    // For some reason adding a timeout solves this problem.
+    setTimeout(()=>onChange(change), 500);
+  };
+
   insertInlineAttachment = file => {
     const { onChange, value } = this.props;
     onChange(InlineAttachmentChanges.insert(value.change(), file));
