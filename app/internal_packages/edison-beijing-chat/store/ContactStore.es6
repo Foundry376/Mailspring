@@ -32,9 +32,9 @@ class ContactStore extends MailspringStore {
         await ContactModel.update({
           jid,
           curJid,
-          name: contact.oriName || contact.email,
+          name: contactInDb.name || contact.oriName || contact.email,
           email: contact.email,
-          avatar: contact.avatar ? contact.avatar : contactInDb.avatar,
+          avatar: contactInDb.avatar ? contactInDb.avatar : contact.avatar,
           isApp: contact.isApp
         }, {
             where: { jid }
