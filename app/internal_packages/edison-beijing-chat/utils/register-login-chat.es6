@@ -2,6 +2,7 @@ import keyMannager from '../../../src/key-manager';
 import { register } from './restjs';
 import auth from '../xmpp/auth';
 import { OnlineUserStore } from 'chat-exports';
+import { log2 } from './log-util';
 
 export default async function registerLoginChat() {
   let accounts = AppEnv.config.get('accounts');
@@ -18,6 +19,9 @@ export default async function registerLoginChat() {
 export async function registerLoginEmailAccountForChat(account) {
   const chatAccounts = AppEnv.config.get('chatAccounts') || {};
    let chatAccount = chatAccounts[account.emailAddress] || {};
+  log2(
+    `registerLoginEmailAccountForChat: ${JSON.stringify(account)}`
+  );
 
   // get chat password from cache
   if (chatAccount.userId) {
@@ -37,6 +41,7 @@ export async function registerLoginEmailAccountForChat(account) {
     console.log("registerLoginChat account.settings.refresh_token, account.settings.imap_password, account: ", account.settings.refresh_token, account.settings.imap_password, account);
     if (account.settings && !account.settings.imap_password && !account.settings.refresh_token) {
       console.error('email account passwords in keychain lost! ', account);
+      log2(`registerLoginEmailAccountForChat: email account passwords in keychain lost!`);
       return;
     }
     let type;
@@ -50,10 +55,12 @@ export async function registerLoginEmailAccountForChat(account) {
       res = JSON.parse(res);
     } catch (e) {
       console.error('email account fail to register chat: response is not json. response:' + res);
+      log2(`registerLoginEmailAccountForChat: email account fail to register chat: response is not json.`);
       return;
     }
     if (err || !res || res.resultCode !== 1) {
       console.error('email account fail to register chat: ', account, err, res);
+      log2(`registerLoginEmailAccountForChat: email account fail to register chat:`);
       return;
     }
     chatAccount = res.data;
@@ -64,10 +71,12 @@ export async function registerLoginEmailAccountForChat(account) {
     chatAccount.clone = () => Object.assign({}, chatAccount);
     chatAccount = await keyMannager.extractChatAccountSecrets(chatAccount);
     chatAccounts[account.emailAddress] = chatAccount;
+    log2(`registerLoginEmailAccountForChat:add chatAccount: ${JSON.stringify(chatAccount)}`);
     AppEnv.config.set('chatAccounts', chatAccounts);
   } else {
     let jid = chatAccount.userId + '@im.edison.tech';
     OnlineUserStore.addSelfAccount(jid, chatAccount);
+    log2(`registerLoginEmailAccountForChat:add chatAccount: ${JSON.stringify(chatAccount)}`);
     await auth({jid, password: chatAccount.password});
   }
 }

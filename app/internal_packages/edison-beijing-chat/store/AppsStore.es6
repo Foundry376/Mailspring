@@ -30,7 +30,7 @@ class AppsStore extends MailspringStore {
     await this.saveMyAppsAndEmailContacts(payload);
   }
   saveMyAppsAndEmailContacts = async (payload) => {
-    log2(`saveMyAppsAndEmailContacts: ${payload}`);
+    log2(`saveMyAppsAndEmailContacts: ${JSON.stringify(payload)}`);
     if (typeof payload == 'string') {
       const userId = jidlocal(payload);
       payload = {
@@ -113,6 +113,7 @@ class AppsStore extends MailspringStore {
     const chatAcc = acc ? chatAccounts[acc.emailAddress] : null;
     return chatAcc ? chatAcc.userId + '@im.edison.tech' : null;
   }
+
 }
 
 module.exports = new AppsStore();
