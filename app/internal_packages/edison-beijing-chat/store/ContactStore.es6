@@ -10,12 +10,14 @@ class ContactStore extends MailspringStore {
   }
 
   refreshContacts = async () => {
-    let contacts = await ContactModel.findAll();
+    let contacts = await ContactModel.findAll({
+      order: [["isApp"], ["name"]]
+    });
     contacts = _.uniqBy(contacts, 'email');
-    if (contacts.length!==this.contacts.length) {
+    if (contacts.length !== this.contacts.length) {
       this.contacts = contacts;
       this.trigger();
-    } else if (contacts.some(x => !this.contacts.some(y => y.email===x.email))) {
+    } else if (contacts.some(x => !this.contacts.some(y => y.email === x.email))) {
       this.contacts = contacts;
       this.trigger();
     }
@@ -25,16 +27,14 @@ class ContactStore extends MailspringStore {
     for (const contact of contacts) {
       const jid = jidbare(contact.jid);
       const curJid = contact.curJid || forCurJid || jid;
-      const contactInDb = await ContactModel.findOne({
-        where: { jid }
-      });
+      const contactInDb = await this.findContactByJid(jid);
       if (contactInDb) {
         await ContactModel.update({
           jid,
           curJid,
-          name: contact.oriName || contact.email,
+          name: contactInDb.name || contact.oriName || contact.email,
           email: contact.email,
-          avatar: contact.avatar ? contact.avatar : contactInDb.avatar,
+          avatar: contactInDb.avatar ? contactInDb.avatar : contact.avatar,
           isApp: contact.isApp
         }, {
             where: { jid }

@@ -37,10 +37,41 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
       })
     );
   }
+
+  let pullMessage = (ts, jid) => {
+    xmpp.pullMessage(ts, jid).then(data => {
+      const jidLocal = jid.split('@')[0];
+      if (data && data.edipull && data.edipull.more == "true") {
+        saveLastTs2(jidLocal, data.edipull.since);
+        pullMessage(data.edipull.since, jid);
+      } else {
+        window.localStorage.removeItem(jidLocal + '_tmp_message_state');
+      }
+    });
+  };
+  let saveLastTs2 = (jidLocal, ts) => {
+    const msgTs = parseInt(ts);
+    if (msgTs) {
+      AppEnv.config.set(jidLocal + '_message_ts', msgTs);
+    }
+  };
   let saveLastTs = data => {
     let jidLocal = data.curJid.split('@')[0];
-    let ts = AppEnv.config.get(jidLocal + '_message_ts');
     const msgTs = parseInt(data.ts);
+    let tmpTs = window.localStorage[jidLocal + '_tmp_message_ts'];
+    if (window.localStorage[jidLocal + '_tmp_message_state']) {
+      if (!tmpTs || tmpTs < msgTs) {
+        window.localStorage[jidLocal + '_tmp_message_ts'] = msgTs;
+      }
+      return;
+    }
+    if (tmpTs) {
+      if (tmpTs > msgTs) {
+        msgTs = tmpTs;
+      }
+      window.localStorage.removeItem(jidLocal + '_tmp_message_ts');
+    }
+    let ts = AppEnv.config.get(jidLocal + '_message_ts');
     if (!ts || ts < msgTs) {
       AppEnv.config.set(jidLocal + '_message_ts', msgTs);
     }
@@ -71,6 +102,10 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   xmpp.on('session:started', data => {
     console.log('xmpp:session:started: ', data);
     OnlineUserStore.addOnLineAccount(data);
+    let ts = AppEnv.config.get(data.local + '_message_ts');
+    if (ts) {
+      pullMessage(ts, data.bare);
+    }
   });
   // Chat account offline
   xmpp.on('disconnected', data => {

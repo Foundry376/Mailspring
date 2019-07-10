@@ -179,7 +179,7 @@ export class Xmpp extends EventEmitter3 {
  * A class that interfaces with the Quickblox REST API
  * @extends EventEmitter3
  */
-export class XmppEx extends EventEmitter3 {
+class XmppEx extends EventEmitter3 {
   client = null;
   credentials = null;
   connectedJid = null;
@@ -214,7 +214,7 @@ export class XmppEx extends EventEmitter3 {
     } else {
       if (this.connectState < 1) {
         this._log(`xmpp session:init`);
-        this.connect();
+        //this.connect();
       } else {
         this._warn(`xmpp session:init`);
       }
@@ -230,6 +230,7 @@ export class XmppEx extends EventEmitter3 {
       this.retryTimes = 0;
       this.timeoutCount = 0;
       this.connectState = 2;
+      this.lastTs = 0;
       this.emit('session:started', data);
       this.client.sendPresence();
       // if (!this.pingState) {
@@ -308,6 +309,7 @@ export class XmppEx extends EventEmitter3 {
       return;
     }
     self.connectState = 1;
+    window.localStorage[self.connectedJid.split('@')[0] + '_tmp_message_state'] = 1;
     if (!self.pingState) {
       self.pingState = true;
       self.ping();
@@ -571,6 +573,7 @@ export class XmppEx extends EventEmitter3 {
   lastTs = 0;
   async pullMessage(ts, cb) {
     if (!this.requireConnection() || this.lastTs == ts) {
+      this._warn('pullMessage return');
       return;
     }
     this.lastTs = ts;

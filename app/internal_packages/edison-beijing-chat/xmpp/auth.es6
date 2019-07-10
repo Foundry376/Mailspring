@@ -2,7 +2,6 @@ import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { delay } from '../utils/delay';
 import xmpp from './index';
 import { log2 } from '../utils/log-util';
-
 import {
   RoomStore,
   ContactStore,
@@ -14,7 +13,9 @@ import {
 
 export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
-  let sessionId = window.localStorage['sessionId' + jid.split('@')[0]];
+  let resBare = jid;
+  let resLocal = jid.split('@')[0];
+  let sessionId = window.localStorage['sessionId' + resLocal];
   if (!sessionId) {
     sessionId = '12345678901';
   }
@@ -35,27 +36,11 @@ export const auth = async ({ jid, password }) => {
     clientVerName: '1.0.0',
     sessionId,
   });
-  let pullMessage = (ts, jid) => {
-    xmpp.pullMessage(ts, jid).then(data => {
-      if (data && data.edipull && data.edipull.more) {
-        pullMessage(data.edipull.since, jid);
-      }
-    });
-  };
   try {
     const res = await xmpp.connect(jid);
     if (!res) {
+      console.warn('connect.null', jid);
       return;
-    }
-    let resBare = '';
-    let resLocal = '';
-    if (typeof res == 'string') {
-      console.log('auth', res, jid);
-      resBare = res;
-      resLocal = res.split('@')[0];
-    } else {
-      resBare = res.bare;
-      resLocal = res.local;
     }
     // fetch and saveRoom infomation
     await delay(200);
@@ -89,12 +74,6 @@ export const auth = async ({ jid, password }) => {
     await delay(200);
     const e2ees = await xmpp.getE2ee('', resBare);
     E2eeStore.saveE2ees(e2ees, resBare);
-
-    await delay(200);
-    let ts = AppEnv.config.get(resLocal + '_message_ts');
-    if (ts) {
-      pullMessage(ts, resBare);
-    }
 
     await delay(200);
     AppsStore.saveMyAppsAndEmailContacts({ curJid: resBare, local: resLocal });
