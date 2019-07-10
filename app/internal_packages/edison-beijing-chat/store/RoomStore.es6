@@ -159,7 +159,7 @@ class RoomStore extends MailspringStore {
         }
       }
     }
-    return { roomMembers: members, contact: null };;
+    return { roomMembers: members, contact: null };
   }
 
   getMemberName = async (data) => {
