@@ -39,8 +39,21 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   }
   let saveLastTs = data => {
     let jidLocal = data.curJid.split('@')[0];
-    let ts = AppEnv.config.get(jidLocal + '_message_ts');
     const msgTs = parseInt(data.ts);
+    let tmpTs = window.localStorage[jidLocal + '_tmp_message_ts'];
+    if (window.localStorage[jidLocal + '_tmp_message_state']) {
+      if (!tmpTs || tmpTs < msgTs) {
+        window.localStorage[jidLocal + '_tmp_message_ts'] = msgTs;
+      }
+      return;
+    }
+    if (tmpTs) {
+      if (tmpTs > msgTs) {
+        msgTs = tmpTs;
+      }
+      window.localStorage.removeItem(jidLocal + '_tmp_message_ts');
+    }
+    let ts = AppEnv.config.get(jidLocal + '_message_ts');
     if (!ts || ts < msgTs) {
       AppEnv.config.set(jidLocal + '_message_ts', msgTs);
     }

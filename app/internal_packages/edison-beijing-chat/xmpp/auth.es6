@@ -2,7 +2,6 @@ import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { delay } from '../utils/delay';
 import xmpp from './index';
 import { log2 } from '../utils/log-util';
-
 import {
   RoomStore,
   ContactStore,
@@ -14,7 +13,9 @@ import {
 
 export const auth = async ({ jid, password }) => {
   const deviceId = await getDeviceId();
-  let sessionId = window.localStorage['sessionId' + jid.split('@')[0]];
+  let resBare = jid;
+  let resLocal = jid.split('@')[0];
+  let sessionId = window.localStorage['sessionId' + resLocal];
   if (!sessionId) {
     sessionId = '12345678901';
   }
@@ -35,27 +36,29 @@ export const auth = async ({ jid, password }) => {
     clientVerName: '1.0.0',
     sessionId,
   });
+  let saveLastTs = (jidLocal, ts) => {
+    const msgTs = parseInt(ts);
+    if (msgTs) {
+      AppEnv.config.set(jidLocal + '_message_ts', msgTs);
+    }
+  };
   let pullMessage = (ts, jid) => {
     xmpp.pullMessage(ts, jid).then(data => {
-      if (data && data.edipull && data.edipull.more) {
+      // console.log('pullMessage', data);
+      if (data && data.edipull && data.edipull.more == "true") {
+        saveLastTs(resLocal, data.edipull.since);
         pullMessage(data.edipull.since, jid);
+      } else {
+        window.localStorage.removeItem(resLocal + '_tmp_message_state');
       }
     });
   };
   try {
+    window.localStorage[resLocal + '_tmp_message_state'] = 1;
     const res = await xmpp.connect(jid);
     if (!res) {
+      console.warn('connect.null', jid);
       return;
-    }
-    let resBare = '';
-    let resLocal = '';
-    if (typeof res == 'string') {
-      console.log('auth', res, jid);
-      resBare = res;
-      resLocal = res.split('@')[0];
-    } else {
-      resBare = res.bare;
-      resLocal = res.local;
     }
     // fetch and saveRoom infomation
     await delay(200);

@@ -6,7 +6,11 @@ const FILE_TYPE = {
   OTHER_FILE: 9
 }
 
+const MESSAGE_TYPE = {
+  CHAT: 'chat',
+  GROUP: 'groupchat'
+}
 
 export default module.exports = {
-  FILE_TYPE
+  FILE_TYPE, MESSAGE_TYPE
 }
