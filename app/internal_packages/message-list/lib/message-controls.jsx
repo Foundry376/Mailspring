@@ -1,6 +1,6 @@
 /* eslint global-require: 0 */
 import { remote } from 'electron';
-import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task, MessageStore, TaskFactory } from 'mailspring-exports';
+import { React, PropTypes, Actions, TaskQueue, GetMessageRFC2822Task, TaskFactory } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 
 const buttonTimeout = 700;
@@ -9,6 +9,7 @@ export default class MessageControls extends React.Component {
   static propTypes = {
     thread: PropTypes.object.isRequired,
     message: PropTypes.object.isRequired,
+    messages: PropTypes.array,
     threadPopedOut: PropTypes.bool,
   };
 
@@ -222,6 +223,9 @@ export default class MessageControls extends React.Component {
     if(this.props.selection){
       this.props.selection.clear();
     }
+    if(this.props.messages && this.props.messages && this.props.messages.length === 1){
+      Actions.popSheet();
+    }
     return;
   };
   _onExpunge = event => {
@@ -232,6 +236,9 @@ export default class MessageControls extends React.Component {
     Actions.queueTasks(tasks);
     if (event) {
       event.stopPropagation();
+    }
+    if(this.props.messages && this.props.messages && this.props.messages.length === 1){
+      Actions.popSheet();
     }
     return;
   };

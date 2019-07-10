@@ -264,7 +264,7 @@ export default class MessageItem extends React.Component {
               detailedHeaders: this.state.detailedHeaders,
             }}
           />
-          <MessageControls thread={thread} message={message} threadPopedOut={this.props.threadPopedOut} />
+          <MessageControls thread={thread} message={message} messages={messages} threadPopedOut={this.props.threadPopedOut} />
         </div>
         <div className='row'>
           <EmailAvatar
