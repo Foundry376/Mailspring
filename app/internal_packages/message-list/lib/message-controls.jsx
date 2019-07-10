@@ -137,7 +137,7 @@ export default class MessageControls extends React.Component {
     const ret =
       defaultReplyType === 'reply-all' ? [replyAll, reply, forward] : [reply, replyAll, forward];
     if (!this.props.message.draft) {
-      ret.push(forward);
+      ret.push(trash);
     }
     return ret;
   }
