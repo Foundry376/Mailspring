@@ -144,9 +144,9 @@ class AppearanceModeSwitch extends React.Component {
   }
 
   render() {
-    const hasChanges = this.state.value !== this.props.config.get('core.workspace.mode');
+    // const hasChanges = this.state.value !== this.props.config.get('core.workspace.mode');
     // let applyChangesClass = 'btn';
-    if (!hasChanges) applyChangesClass += ' btn-disabled';
+    // if (!hasChanges) applyChangesClass += ' btn-disabled';
 
     return (
       <div id={this.props.id} className="appearance-mode-switch">
