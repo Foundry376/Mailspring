@@ -1,14 +1,17 @@
 import MailspringStore from 'mailspring-store';
 import { Actions, WorkspaceStore } from 'mailspring-exports';
-import { ChatActions, RoomStore, ConversationStore, ContactStore, FailMessageStore } from 'chat-exports';
+import {
+  ChatActions,
+  RoomStore,
+  ConversationStore,
+  ContactStore,
+  FailMessageStore,
+} from 'chat-exports';
 import { decrypte } from '../utils/rsa';
 import { decryptByAES } from '../utils/aes';
 import { downloadFile } from '../utils/awss3';
 import { isJsonStr } from '../utils/stringUtils';
-import {
-  groupMessagesByTime,
-  addMessagesSenderNickname, parseMessageBody,
-} from '../utils/message';
+import { groupMessagesByTime, addMessagesSenderNickname, parseMessageBody } from '../utils/message';
 import ConversationModel from '../model/Conversation';
 import MessageModel, { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 import fs from 'fs';
@@ -27,8 +30,8 @@ export const FILE_TYPE = {
   IMAGE: 2,
   GIF: 5,
   STICKER: 12,
-  OTHER_FILE: 9
-}
+  OTHER_FILE: 9,
+};
 
 class MessageStore extends MailspringStore {
   constructor() {
@@ -39,25 +42,23 @@ class MessageStore extends MailspringStore {
     this._triggerDebounced = _.debounce(() => this.trigger(), 20);
   }
 
-  _registerListeners() {
-  }
-  getMessageById = async (id) => {
+  _registerListeners() {}
+  getMessageById = async id => {
     return await MessageModel.findOne({
       where: {
-        id
-      }
+        id,
+      },
     });
-  }
-
+  };
 
   getGroupedMessages = () => {
     return this.groupedMessages;
-  }
+  };
 
-  reveivePrivateChat = async (message) => {
+  reveivePrivateChat = async message => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
-    if (!message || await this._isExistInDb(message)) {
+    if (!message || (await this._isExistInDb(message))) {
       return;
     }
 
@@ -68,19 +69,19 @@ class MessageStore extends MailspringStore {
       this.retrieveSelectedConversationMessages(conv.jid);
     }
     this.showNotification(message);
-  }
+  };
 
-  removeMessagesByConversationJid = async (jid) => {
+  removeMessagesByConversationJid = async jid => {
     await MessageModel.destroy({
       where: {
-        conversationJid: jid
-      }
+        conversationJid: jid,
+      },
     });
     if (this.conversationJid === jid) {
       this.groupedMessages = [];
       this._triggerDebounced();
     }
-  }
+  };
 
   removeMessageById = async (id, convJid) => {
     const $index = id.lastIndexOf('$');
@@ -96,13 +97,13 @@ class MessageStore extends MailspringStore {
     if (convJid === this.conversationJid) {
       await this.retrieveSelectedConversationMessages(convJid);
     }
-  }
+  };
 
-  processPrivateMessage = async (payload) => {
+  processPrivateMessage = async payload => {
     await this.prepareForSaveMessage(payload, RECEIVE_PRIVATECHAT);
-  }
+  };
 
-  storePrivateConversation = async (payload) => {
+  storePrivateConversation = async payload => {
     let name;
     let timeSend = new Date().getTime();
     if (payload.from.bare === payload.curJid) {
@@ -117,7 +118,11 @@ class MessageStore extends MailspringStore {
     // if not current conversation, unreadMessages + 1
     let unreadMessages = 0;
     const selectedConversation = await ConversationStore.getSelectedConversation();
-    if (!selectedConversation || selectedConversation.jid !== payload.from.bare || !this._isWindowFocused()) {
+    if (
+      !selectedConversation ||
+      selectedConversation.jid !== payload.from.bare ||
+      !this._isWindowFocused()
+    ) {
       unreadMessages = 1;
     }
     let jid;
@@ -137,7 +142,7 @@ class MessageStore extends MailspringStore {
       lastMessageTime,
       lastMessageText,
       lastMessageSender: sender || payload.from.bare,
-      at: false
+      at: false,
     };
     const convInDb = await ConversationStore.getConversationByJid(jid);
     if (convInDb) {
@@ -148,17 +153,16 @@ class MessageStore extends MailspringStore {
 
     await ConversationStore.saveConversations([coversation]);
     return coversation;
-  }
+  };
 
   decrypteBody = async (message, jidLocal) => {
     const { deviceId, prikey } = await getPriKey();
     if (message.payload) {
-      let keys = message.keys;//JSON.parse(msg.body);
-      if (keys && keys[jidLocal]
-        && keys[jidLocal][deviceId]) {
+      let keys = message.keys; //JSON.parse(msg.body);
+      if (keys && keys[jidLocal] && keys[jidLocal][deviceId]) {
         let text = keys[jidLocal][deviceId];
         if (text) {
-          let aes = decrypte(text, prikey);//window.localStorage.priKey);
+          let aes = decrypte(text, prikey); //window.localStorage.priKey);
           const result = this.downloadAndTagImageFileInMessage(RECEIVE_GROUPCHAT, aes, message);
           if (!result) {
             return null;
@@ -175,13 +179,13 @@ class MessageStore extends MailspringStore {
           json.htmlBody = message.htmlBody;
           json.ctxCmds = message.ctxCmds;
           message.body = JSON.stringify(json);
-        } catch (e) { }
+        } catch (e) {}
       }
     }
     return message;
-  }
+  };
 
-  _isExistInDb = async (message) => {
+  _isExistInDb = async message => {
     const messageInDb = await this.getMessageById(message.id);
     if (messageInDb) {
       // if already exist in db, skip it
@@ -190,12 +194,12 @@ class MessageStore extends MailspringStore {
       }
     }
     return false;
-  }
+  };
 
-  reveiveGroupChat = async (message) => {
+  reveiveGroupChat = async message => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
-    if (!message || await this._isExistInDb(message)) {
+    if (!message || (await this._isExistInDb(message))) {
       return;
     }
 
@@ -207,7 +211,7 @@ class MessageStore extends MailspringStore {
       this.retrieveSelectedConversationMessages(conv.jid);
     }
     this.showNotification(message);
-  }
+  };
 
   downloadAndTagImageFileInMessage = (chatType, aes, payload) => {
     let body;
@@ -232,13 +236,18 @@ class MessageStore extends MailspringStore {
       // a link
       msgBody.path = msgBody.mediaObjectId;
       // } else if (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF) {
-    } else if (msgBody.mediaObjectId && (msgBody.type === FILE_TYPE.IMAGE || msgBody.type === FILE_TYPE.GIF || msgBody.type === FILE_TYPE.OTHER_FILE)) {
+    } else if (
+      msgBody.mediaObjectId &&
+      (msgBody.type === FILE_TYPE.IMAGE ||
+        msgBody.type === FILE_TYPE.GIF ||
+        msgBody.type === FILE_TYPE.OTHER_FILE)
+    ) {
       // file on aws
       let name = msgBody.mediaObjectId || '';
       if (name && name.indexOf('/') !== -1) {
         name = name.substr(name.lastIndexOf('/') + 1);
       }
-      name = name && name.replace(/\.encrypted$/, '') || '';
+      name = (name && name.replace(/\.encrypted$/, '')) || '';
       let path = AppEnv.getConfigDirPath();
       let downpath = path + '/download/';
       if (!fs.existsSync(downpath)) {
@@ -248,7 +257,7 @@ class MessageStore extends MailspringStore {
       msgBody.path = 'file://' + thumbPath;
       msgBody.downloading = true;
       if (msgBody.thumbObjectId) {
-        downloadFile(aes, msgBody.thumbObjectId, thumbPath, (err) => {
+        downloadFile(aes, msgBody.thumbObjectId, thumbPath, err => {
           if (err) {
             msgBody.downloading = false;
             msgBody.content = `the file ${name} failed to be downloaded`;
@@ -257,14 +266,14 @@ class MessageStore extends MailspringStore {
               id: payload.id + '$' + convJid,
               conversationJid: convJid,
               body,
-              status: 'MESSAGE_STATUS_TRANSFER_FAILED'
-            }
+              status: 'MESSAGE_STATUS_TRANSFER_FAILED',
+            };
             this.saveMessagesAndRefresh([msg]);
             ChatActions.updateDownload(msgBody.mediaObjectId);
             return;
           } else if (fs.existsSync(thumbPath)) {
             ChatActions.updateDownload(msgBody.thumbObjectId);
-            downloadFile(aes, msgBody.mediaObjectId, thumbPath, (err) => {
+            downloadFile(aes, msgBody.mediaObjectId, thumbPath, err => {
               if (err) {
                 msgBody.content = `the file ${name} failed to be downloaded`;
                 msgBody.downloading = false;
@@ -273,8 +282,8 @@ class MessageStore extends MailspringStore {
                   id: payload.id + '$' + convJid,
                   conversationJid: convJid,
                   body,
-                  status: 'MESSAGE_STATUS_TRANSFER_FAILED'
-                }
+                  status: 'MESSAGE_STATUS_TRANSFER_FAILED',
+                };
                 this.saveMessagesAndRefresh([msg]);
                 ChatActions.updateDownload(msgBody.mediaObjectId);
                 return;
@@ -285,8 +294,8 @@ class MessageStore extends MailspringStore {
                   id: payload.id + '$' + convJid,
                   conversationJid: convJid,
                   body,
-                  status: 'MESSAGE_STATUS_RECEIVED'
-                }
+                  status: 'MESSAGE_STATUS_RECEIVED',
+                };
                 this.saveMessagesAndRefresh([msg]);
                 ChatActions.updateDownload(msgBody.mediaObjectId);
               }
@@ -294,7 +303,7 @@ class MessageStore extends MailspringStore {
           }
         });
       } else {
-        downloadFile(aes, msgBody.mediaObjectId, thumbPath, (err) => {
+        downloadFile(aes, msgBody.mediaObjectId, thumbPath, err => {
           if (err) {
             msgBody.content = `the file ${name} failed to be downloaded`;
             msgBody.downloading = false;
@@ -303,8 +312,8 @@ class MessageStore extends MailspringStore {
               id: payload.id + '$' + convJid,
               conversationJid: convJid,
               body,
-              status: 'MESSAGE_STATUS_TRANSFER_FAILED'
-            }
+              status: 'MESSAGE_STATUS_TRANSFER_FAILED',
+            };
             this.saveMessagesAndRefresh([msg]);
             ChatActions.updateDownload(msgBody.mediaObjectId);
             return;
@@ -315,8 +324,8 @@ class MessageStore extends MailspringStore {
               id: payload.id + '$' + convJid,
               conversationJid: convJid,
               body,
-              status: 'MESSAGE_STATUS_RECEIVED'
-            }
+              status: 'MESSAGE_STATUS_RECEIVED',
+            };
             this.saveMessagesAndRefresh([msg]);
             ChatActions.updateDownload(msgBody.mediaObjectId);
           }
@@ -328,7 +337,7 @@ class MessageStore extends MailspringStore {
     }
     payload.body = JSON.stringify(msgBody);
     return true;
-  }
+  };
 
   // retrievingMessages = (jid) => {
   //   console.log('****retrievingMessages', jid);
@@ -342,17 +351,15 @@ class MessageStore extends MailspringStore {
   retrieveSelectedConversationMessages = async (jid, limit, offset) => {
     const condistion = {
       where: {
-        conversationJid: jid
+        conversationJid: jid,
       },
-      order: [
-        ['sentTime', 'ASC']
-      ],
+      order: [['sentTime', 'ASC']],
     };
     if (limit) {
-      condistion.limit = limit
+      condistion.limit = limit;
     }
     if (offset) {
-      condistion.offset = offset
+      condistion.offset = offset;
     }
     let messages = await MessageModel.findAll(condistion);
     messages = messages.filter(msg => {
@@ -363,14 +370,14 @@ class MessageStore extends MailspringStore {
     let rowNum = messages.length;
     messages.forEach(msg => {
       msg.rowNum = rowNum--;
-    })
+    });
     addMessagesSenderNickname(messages);
     this.groupedMessages = groupMessagesByTime(messages, 'sentTime', 'day');
     this.conversationJid = jid;
     this._triggerDebounced();
-  }
+  };
 
-  processGroupMessage = async (payload) => {
+  processGroupMessage = async payload => {
     await this.prepareForSaveMessage(payload, RECEIVE_GROUPCHAT);
     let at = false;
     let name = payload.from.local;
@@ -387,7 +394,9 @@ class MessageStore extends MailspringStore {
         curJid: payload.curJid,
         discoItems: { items: [] },
       };
-      const { discoItems: { items } } = roomsInfo;
+      const {
+        discoItems: { items },
+      } = roomsInfo;
       if (items) {
         for (const item of items) {
           if (payload.from.local === item.jid.local) {
@@ -401,7 +410,11 @@ class MessageStore extends MailspringStore {
     // if not current conversation, unreadMessages + 1
     let unreadMessages = 0;
     const selectedConversation = await ConversationStore.getSelectedConversation();
-    if (!selectedConversation || selectedConversation.jid !== payload.from.bare || !this._isWindowFocused()) {
+    if (
+      !selectedConversation ||
+      selectedConversation.jid !== payload.from.bare ||
+      !this._isWindowFocused()
+    ) {
       unreadMessages = 1;
     }
     let conv = {
@@ -413,7 +426,7 @@ class MessageStore extends MailspringStore {
       lastMessageTime,
       lastMessageText,
       lastMessageSender: sender || payload.from.resource + '@im.edison.tech',
-      at
+      at,
     };
     const convInDb = await ConversationStore.getConversationByJid(conv.jid);
     if (convInDb) {
@@ -428,19 +441,39 @@ class MessageStore extends MailspringStore {
     } else {
       conv.avatarMembers = [];
     }
-    const { contact, roomMembers } = await RoomStore.getMemeberInfo(conv.jid, conv.curJid, conv.lastMessageSender);
+    const { contact, roomMembers } = await RoomStore.getMemeberInfo(
+      conv.jid,
+      conv.curJid,
+      conv.lastMessageSender
+    );
     // if avatar members is empty, set the value
     if (!conv.avatarMembers || conv.avatarMembers.length === 0) {
       conv.avatarMembers = roomMembers.slice(0, 2);
     }
     // add last sender to avatar
     addToAvatarMembers(conv, contact);
-    conv.name = convInDb && convInDb.name || conv.name // DC-581, DC-519
+    conv.name = (convInDb && convInDb.name) || conv.name; // DC-581, DC-519
+    // fallback
+    if (!conv.name) {
+      const contactNameList = roomMembers
+        .filter(member => {
+          const memberJid = typeof member.jid === 'object' ? member.jid.bare : member.jid;
+          return memberJid !== payload.curJid;
+        })
+        .map(member => member.name || member.email);
+      const fallbackName =
+        contactNameList.length > 4
+          ? contactNameList.slice(0, 3).join(', ') + ' & ' + `${contactNameList.length - 3} others`
+          : contactNameList.slice(0, contactNameList.length - 1).join(', ') +
+            ' & ' +
+            contactNameList[contactNameList.length - 1];
+      conv.name = fallbackName;
+    }
     await ConversationStore.saveConversations([conv]);
     return conv;
-  }
+  };
 
-  showNotification = async (payload) => {
+  showNotification = async payload => {
     const shouldShow = await this.shouldShowNotification(payload);
     if (!shouldShow) {
       return;
@@ -449,12 +482,16 @@ class MessageStore extends MailspringStore {
     let msgFrom = payload.from.resource + '@im.edison.tech';
     let memberName = payload.appName;
     if (!memberName) {
-      memberName = await RoomStore.getMemberName({ roomJid: payload.from.bare, curJid: payload.curJid, memberJid: msgFrom });
+      memberName = await RoomStore.getMemberName({
+        roomJid: payload.from.bare,
+        curJid: payload.curJid,
+        memberJid: msgFrom,
+      });
     }
     const contact = ContactStore.findContactByJid(msgFrom);
     const conv = await ConversationStore.getConversationByJid(convjid);
     let title = conv.name;
-    const senderName = payload.appName || memberName || contact && contact.name;
+    const senderName = payload.appName || memberName || (contact && contact.name);
     let body = payload.body;
     if (isJsonStr(body)) {
       body = JSON.parse(body);
@@ -462,24 +499,24 @@ class MessageStore extends MailspringStore {
     body = body.content || payload.body;
     if (senderName) {
       body = senderName + ': ' + body;
-    };
+    }
     const noti = postNotification(title, body);
-    noti.addEventListener('click', (event) => {
+    noti.addEventListener('click', event => {
       ChatActions.selectConversation(convjid);
       Actions.selectRootSheet(WorkspaceStore.Sheet.ChatView);
       const window = remote.getCurrentWindow();
       window.show();
       ChatActions.selectConversation(conv.jid);
     });
-  }
+  };
 
   _isWindowFocused = () => {
     const win = remote.getCurrentWindow();
     const focus = win.isFocused();
     return focus;
-  }
+  };
 
-  shouldShowNotification = async (payload) => {
+  shouldShowNotification = async payload => {
     if (this._isWindowFocused()) {
       return false;
     }
@@ -495,7 +532,7 @@ class MessageStore extends MailspringStore {
       }
     }
     return conv && !conv.isHiddenNotification && !isme;
-  }
+  };
 
   prepareForSaveMessage = async (payload, type) => {
     let timeSend;
@@ -510,22 +547,22 @@ class MessageStore extends MailspringStore {
     }
     let conversationJid;
     if (payload.curJid === payload.from.bare) {
-      conversationJid = payload.to.bare
+      conversationJid = payload.to.bare;
     } else {
-      conversationJid = payload.from.bare
+      conversationJid = payload.from.bare;
     }
     const message = {
       id: payload.id,
       conversationJid,
       sender: sender,
       body: payload.body,
-      sentTime: (new Date(timeSend)).getTime(),
+      sentTime: new Date(timeSend).getTime(),
       status: MESSAGE_STATUS_RECEIVED,
       ts: payload.ts,
-      curJid: payload.curJid
+      curJid: payload.curJid,
     };
     await this.saveMessages([message]);
-  }
+  };
 
   saveMessagesAndRefresh = async messages => {
     await this.saveMessages(messages);
@@ -533,7 +570,7 @@ class MessageStore extends MailspringStore {
       this.retrieveSelectedConversationMessages(this.conversationJid);
     }
     return messages;
-  }
+  };
 
   saveMessages = async messages => {
     for (const msg of messages) {
@@ -546,8 +583,8 @@ class MessageStore extends MailspringStore {
       }
       const messageInDb = await MessageModel.findOne({
         where: {
-          id: msg.id
-        }
+          id: msg.id,
+        },
       });
       if (messageInDb) {
         // because sending message in group chat will be overrided by the same RECEIVE_GROUPCHAT message overrided
@@ -583,8 +620,8 @@ class MessageStore extends MailspringStore {
       setTimeout(async () => {
         const messageInDb = await MessageModel.findOne({
           where: {
-            id: msg.id
-          }
+            id: msg.id,
+          },
         });
         if (messageInDb && messageInDb.status === 'MESSAGE_STATUS_SENDING') {
           messageInDb.status = 'MESSAGE_STATUS_TRANSFER_FAILED';
@@ -602,7 +639,7 @@ class MessageStore extends MailspringStore {
 
 // TODO
 // 这里为什么要加上阅读时间
-const saveGroupMessages = async (groupedMessages) => {
+const saveGroupMessages = async groupedMessages => {
   const readTime = new Date().getTime();
   if (groupedMessages) {
     groupedMessages.reverse();
@@ -610,16 +647,19 @@ const saveGroupMessages = async (groupedMessages) => {
       messages.reverse();
       for (const msg of messages) {
         if (msg.updateTime && (!msg.readTime || msg.readTime < msg.updateTime)) {
-          ConversationModel.update({ readTime }, {
-            where: {
-              id: msg.id
+          ConversationModel.update(
+            { readTime },
+            {
+              where: {
+                id: msg.id,
+              },
             }
-          });
+          );
         }
       }
     }
   }
-}
+};
 
 const addToAvatarMembers = (conv, contact) => {
   if (!contact) {
@@ -641,10 +681,13 @@ const addToAvatarMembers = (conv, contact) => {
     conv.avatarMembers[0] = contact;
     return conv;
   }
-}
+};
 
-const getLastMessageInfo = async (message) => {
-  let body, lastMessageText, sender = null, lastMessageTime = (new Date()).getTime();
+const getLastMessageInfo = async message => {
+  let body,
+    lastMessageText,
+    sender = null,
+    lastMessageTime = new Date().getTime();
   body = message.body;
   if (!body) {
     return { sender, lastMessageTime, lastMessageText };
@@ -663,11 +706,9 @@ const getLastMessageInfo = async (message) => {
     }
     let lastMessage = await MessageModel.findOne({
       where: {
-        conversationJid: conv.jid
+        conversationJid: conv.jid,
       },
-      order: [
-        ['sentTime', 'DESC']
-      ]
+      order: [['sentTime', 'DESC']],
     });
 
     if (lastMessage) {
@@ -688,7 +729,7 @@ const getLastMessageInfo = async (message) => {
     lastMessageText = body.content;
   }
   return { sender, lastMessageTime, lastMessageText };
-}
+};
 
 const getMessageContent = message => {
   let body = message.body;
@@ -700,6 +741,6 @@ const getMessageContent = message => {
   } else {
     return body.content;
   }
-}
+};
 
 module.exports = new MessageStore();
