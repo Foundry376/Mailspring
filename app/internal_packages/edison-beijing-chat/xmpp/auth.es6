@@ -36,25 +36,7 @@ export const auth = async ({ jid, password }) => {
     clientVerName: '1.0.0',
     sessionId,
   });
-  let saveLastTs = (jidLocal, ts) => {
-    const msgTs = parseInt(ts);
-    if (msgTs) {
-      AppEnv.config.set(jidLocal + '_message_ts', msgTs);
-    }
-  };
-  let pullMessage = (ts, jid) => {
-    xmpp.pullMessage(ts, jid).then(data => {
-      // console.log('pullMessage', data);
-      if (data && data.edipull && data.edipull.more == "true") {
-        saveLastTs(resLocal, data.edipull.since);
-        pullMessage(data.edipull.since, jid);
-      } else {
-        window.localStorage.removeItem(resLocal + '_tmp_message_state');
-      }
-    });
-  };
   try {
-    window.localStorage[resLocal + '_tmp_message_state'] = 1;
     const res = await xmpp.connect(jid);
     if (!res) {
       console.warn('connect.null', jid);
@@ -92,12 +74,6 @@ export const auth = async ({ jid, password }) => {
     await delay(200);
     const e2ees = await xmpp.getE2ee('', resBare);
     E2eeStore.saveE2ees(e2ees, resBare);
-
-    await delay(200);
-    let ts = AppEnv.config.get(resLocal + '_message_ts');
-    if (ts) {
-      pullMessage(ts, resBare);
-    }
 
     await delay(200);
     AppsStore.saveMyAppsAndEmailContacts({ curJid: resBare, local: resLocal });
