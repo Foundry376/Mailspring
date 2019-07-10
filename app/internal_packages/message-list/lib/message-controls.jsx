@@ -216,7 +216,6 @@ export default class MessageControls extends React.Component {
       source: 'Toolbar Button: Message List',
     });
     Actions.queueTasks(tasks);
-    Actions.popSheet();
     if (event) {
       event.stopPropagation();
     }
@@ -231,7 +230,6 @@ export default class MessageControls extends React.Component {
       source: 'Toolbar Button: Message List',
     });
     Actions.queueTasks(tasks);
-    Actions.popSheet();
     if (event) {
       event.stopPropagation();
     }
