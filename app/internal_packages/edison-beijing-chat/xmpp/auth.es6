@@ -1,7 +1,8 @@
 import { getDeviceId, getDeviceInfo, updateFlag } from '../utils/e2ee';
 import { delay } from '../utils/delay';
 import xmpp from './index';
-import uuid from 'uuid/v4';
+import { log2 } from '../utils/log-util';
+
 import {
   RoomStore,
   ContactStore,
@@ -98,6 +99,7 @@ export const auth = async ({ jid, password }) => {
     await delay(200);
     AppsStore.saveMyAppsAndEmailContacts({ curJid: resBare, local: resLocal });
   } catch (error) {
+    log2(`auth connect error: ${JSON.stringify(error)}`);
     window.console.warn('connect error', error);
     if (error && typeof error == 'string' && error.split('@').length > 1) {
       window.localStorage.removeItem('sessionId' + error.split('@')[0]);
