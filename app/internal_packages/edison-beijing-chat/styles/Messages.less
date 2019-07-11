@@ -115,12 +115,12 @@
         }
       }
       .day-label-text {
-        display:inline-block;
-        position:relative;
+        display: inline-block;
+        position: relative;
         padding: 0 11px;
-        height:20px;
+        height: 20px;
         line-height: 20px;
-        margin:-10px auto 0;
+        margin: -10px auto 0;
         font-size: 8px;
         background-color: @gray-lightest;
         border-radius: 20px;
@@ -128,7 +128,7 @@
           color: @gray;
         }
         .weekday {
-          padding:0;
+          padding: 0;
           margin: 0 2px;
           font-size: 10px;
           font-weight: 700;
@@ -138,7 +138,7 @@
           background-color: @gray-lightest;
         }
         .date {
-          padding:0;
+          padding: 0;
           margin: 0 2px;
           font-size: 10px;
           letter-spacing: 0.07px;
@@ -188,7 +188,6 @@
     background-color: rgba(255, 72, 95, 5%);
   }
 
-
   .message.currentUser,
   .message.otherUser {
     align-self: flex-start;
@@ -211,24 +210,24 @@
 
   .message.currentUser,
   .message.otherUser {
-   .messageIcons{
-     display: block;
-     .messageFailed {
-       width: 32px;
-       height: 32px;
-       position:relative;
-       top:10px;
-       background-image: url(icons/alert-2.svg);
-       display:inline-block;
-       &:hover {
-         border-radius: 16px 16px 16px 16px;
-         background-color: rgba(255, 72, 95, 10%);
-       }
-     }
-     .messageSender {
-       display: inline-block;
-     }
-   }
+    .messageIcons {
+      display: block;
+      .messageFailed {
+        width: 32px;
+        height: 32px;
+        position: relative;
+        top: 10px;
+        background-image: url(icons/alert-2.svg);
+        display: inline-block;
+        &:hover {
+          border-radius: 16px 16px 16px 16px;
+          background-color: rgba(255, 72, 95, 10%);
+        }
+      }
+      .messageSender {
+        display: inline-block;
+      }
+    }
   }
 
   .messageSender {
@@ -301,7 +300,7 @@
     position: relative;
     display: flex;
     max-width: 90%;
-    &>div {
+    & > div {
       width: 100%;
       overflow: hidden;
     }
@@ -329,7 +328,7 @@
       .message-toolbar {
         top: 10px;
       }
-      &>img {
+      & > img {
         height: 220px;
         cursor: zoom-in;
       }
@@ -370,27 +369,26 @@
   }
 
   .file-info {
-    overflow:hidden;
+    overflow: hidden;
   }
 
   .messageStatus {
     margin-left: 5px;
     color: @red;
-
   }
   .message-retry {
-    position:absolute;
-    top:35%;
-    right:20px;
+    position: absolute;
+    top: 35%;
+    right: 20px;
     font-weight: bold;
     color: @red;
     text-align: right;
   }
   .message-toolbar {
     display: none;
-    position:absolute;
+    position: absolute;
     z-index: 8;
-    opacity:1;
+    opacity: 1;
     top: -7px;
     right: 0;
   }
@@ -430,8 +428,8 @@
   }
   .cancel-zoomin-button {
     position: absolute;
-    top:0px;
-    left:0px;
+    top: 0px;
+    left: 0px;
   }
   .float-right {
     float: right;
@@ -443,9 +441,9 @@
     width: 100%;
     background: @off-white;
     &:after {
-      display: none!important;
+      display: none !important;
     }
-    .message-content>div{
+    .message-content > div {
       width: 100%;
     }
     textarea {
@@ -458,101 +456,88 @@
     left: 10px;
     bottom: 20px;
     width: 700px;
-    height: auto;
-    overflow: visible;
-    z-index:9;
-  }
+    height: 50px;
+    overflow: hidden;
+    opacity: 0.97;
+    border-radius: 10px;
+    background-color: @blue;
+    box-shadow: 0 2px 7px 0 rgba(0, 0, 0, 0.2);
+    color: @white;
+    z-index: 9;
 
-  .progress-banner {
-    position:relative;
-    display:flex;
-    align-items: center;
-    padding: 5px 5px 10px 0;
-    height: auto;
-    min-height: 40px;
-    width:100%;
-    color:white;
-    background-color: #63a2ff;
-    border-radius: 12px;
-    &:hover {
-      z-index:9;
-    }
-    .download-btn {
-      display: inline-block;
-      width: 34px;
-      height:24px;
-      margin: 0 10px 0 25px;
-      background-color: @white !important;
-      color: @white;
-    }
-    .load-info {
-      display: inline-block;
-      width: 75%;
-    }
-    .progress-prompt {
-      margin-left:5px;
-      height: 17px;
-      width: 247px;
-      color: @white;
-      font-size: 14px;
-      letter-spacing: 0.43px;
-      line-height: 17px;
-    }
-    .msg-progress-bar-wrap {
-      display:inline-block;
-      position:relative;
-      height: 4px;
-      width: 525px;
-      margin-left:5px;
-      .progress-background {
-        position: absolute;
-        top:0;
-        left:0;
-        height: 5px;
-        width:100%;
-        background-color: #96d0ff;
-        opacity: 0.5;
-        z-index:100;
-      }
-      .progress-foreground {
-        position: absolute;
-        top:0;
-        left:0;
-        height: 5px;
-        background-color: @white;
-        z-index:100;
-      }
-    }
-    .progressButtons {
-      position:relative;
+    .progress-banner {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 8px 15px;
       display: flex;
-      align-items: center;
-      width:20%;
-      height:100%;
-      .retryButton {
+      font-size: 14px;
+
+      .download-btn {
+        display: inline-block;
+        flex: 0 0 auto;
+        width: 34px;
+        height: 34px;
+        background-color: @white !important;
       }
-      .cancelButton {
-        position:absolute;
-        right:35px;
-        height: 17px;
-        width: 48px;
-        color: @white;
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: 0.43px;
-        line-height: 17px;
-        text-align: right;
+
+      .load-info {
+        flex: 1;
+        height: 100%;
+        width: 525px;
+        margin: 0 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        .progress-prompt {
+          line-height: 25px;
+          width: 100%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .msg-progress-bar-wrap {
+          position: relative;
+          height: 4px;
+          width: 525px;
+          border-radius: 3px;
+          overflow: hidden;
+          margin-bottom: 5px;
+          flex: 0 0 auto;
+
+          .progress-background,
+          .progress-foreground {
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: @white;
+          }
+
+          .progress-background {
+            width: 100%;
+            opacity: 0.15;
+          }
+        }
       }
-      svg {
-        position:absolute;
-        right:5px;
-        width:15px;
-        height:15px;
+
+      .progressButtons {
+        flex: 0 0 auto;
+        height: 34px;
+        display: flex;
+        flex-direction: row;
+        line-height: 34px;
+        font-weight: bold;
+
+        svg {
+          width: 16px;
+          height: 16px;
+          margin: 9px 0 0 13.5px;
+        }
       }
     }
-  }
-  &:hover {
-
   }
 
   .fail-alert-container {
@@ -568,10 +553,10 @@
     border-radius: 8px;
     overflow: hidden;
     padding: 0 0 0 20px;
-    z-index:9;
+    z-index: 9;
     .view-btn {
-      position:absolute;
-      right:35px;
+      position: absolute;
+      right: 35px;
       height: 30px;
       width: 48px;
       background-color: @red;
@@ -581,17 +566,17 @@
       letter-spacing: 0.43px;
       line-height: 17px;
       text-align: right;
-      border:none;
+      border: none;
     }
     .hide-btn {
-      position:absolute;
-      right:5px;
-      width:15px;
-      height:15px;
+      position: absolute;
+      right: 5px;
+      width: 15px;
+      height: 15px;
     }
   }
   .messageCommand {
-    display:inline-block;
+    display: inline-block;
     background-color: #e5e5e5;
     margin: 0 20px 10px 0;
     padding: 2px;
@@ -603,5 +588,4 @@
     border: solid 1px @gray;
     border-radius: 4px;
   }
-
 }

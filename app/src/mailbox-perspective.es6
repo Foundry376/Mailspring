@@ -728,7 +728,11 @@ class UnreadMailboxPerspective extends CategoryMailboxPerspective {
   }
 
   unreadCount() {
-    return 0;
+    let sum = 0;
+    for (const cat of this._categories) {
+      sum += ThreadCountsStore.unreadCountForCategoryId(cat.id);
+    }
+    return sum;
   }
 
   actionsForReceivingThreads(threads, accountId) {

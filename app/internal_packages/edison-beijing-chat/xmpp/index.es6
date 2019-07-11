@@ -1,13 +1,14 @@
 import Stanza, { Client } from '../../../src/xmpp/stanza.io';
 import EventEmitter3 from 'eventemitter3';
 import { Observable } from 'rxjs/Observable';
-import { log } from '../utils/log-util';
+// import { log } from '../utils/log-util';
 
 /**
  * The interval between requests to join rooms
  */
 const JOIN_INTERVAL = 5;
 export class Xmpp extends EventEmitter3 {
+  tmpData = {};
   xmppMap = {};
   init(credentials) {
     let jid = credentials.jid;
@@ -21,6 +22,16 @@ export class Xmpp extends EventEmitter3 {
       xmpp.on('disconnected', () => {
         this.emit('disconnected', { curJid: xmpp.connectedJid });
       })
+    } else {
+      if (xmpp.client) {
+        if (xmpp.connectState < 1) {
+          xmpp.retryTimes = 0;
+          xmpp._log(`xmpp session:init`);
+        } else {
+          xmpp._warn(`xmpp session:init`);
+        }
+        return;
+      }
     }
     xmpp.init(credentials);
     xmpp.client.on('*', (name, data) => {
@@ -29,7 +40,7 @@ export class Xmpp extends EventEmitter3 {
         return;
       }
       if (name == 'auth:failed') {
-        this._warn('auth:failed', xmpp);
+        xmpp._warn('auth:failed');
         this.emit(name, { curJid: xmpp.connectedJid });
         this.removeXmpp(xmpp.connectedJid);
         return;
@@ -75,10 +86,6 @@ export class Xmpp extends EventEmitter3 {
       return null;
     }
   }
-  _warn = (msg, xmpp) => {
-    log(`${msg}: jid: ${xmpp.connectedJid},state: ${xmpp.connectState},timeoutConut:${xmpp.timeoutCount},retyTimes: ${xmpp.retryTimes},ts: ${xmpp.client.ts}`);
-    console.warn(msg, `jid: ${xmpp.connectedJid},ts: ${xmpp.client.ts},state: ${xmpp.connectState},timeoutConut:${xmpp.timeoutCount},retyTimes: ${xmpp.retryTimes},time: ${xmpp.getTime()}`);
-  };
   async enableCarbons(curJid) {
     let xmpp = this.getXmpp(curJid);
     return xmpp.enableCarbons();
@@ -205,26 +212,17 @@ class XmppEx extends EventEmitter3 {
    * @throws {Error}             Throws an error if the credentials are do not pass validation
    */
   init = (credentials) => {
+    if (this.client) {
+      this._warn(`xmpp session:init.1`);
+      return;
+    }
+
     validateCredentials(credentials);
     this.credentials = credentials;
     this.connectedJid = credentials.jid;
     this.retryTimes = 0;
-    if (!this.client) {
-      this.client = Stanza.createClient(credentials);
-    } else {
-      if (this.connectState < 1) {
-        this._log(`xmpp session:init`);
-        //this.connect();
-      } else {
-        this._warn(`xmpp session:init`);
-      }
-      return;
-    }
-    // this.client.on('*', (name, data) => {
-    //   if (name != 'disconnected') {
-    //     this.emit(name, data);
-    //   }
-    // });
+    this.client = Stanza.createClient(credentials);
+    this._log(`xmpp session:init.0`);
     this.client.on('session:started', (data) => {
       this._log(`xmpp session:started`);
       this.retryTimes = 0;
@@ -233,10 +231,6 @@ class XmppEx extends EventEmitter3 {
       this.lastTs = 0;
       this.emit('session:started', data);
       this.client.sendPresence();
-      // if (!this.pingState) {
-      //   this.pingState = true;
-      //   this.ping();
-      // }
     });
     this.client.on('session:prebind', (bind) => {
       if (!window.edisonChatServerDiffTime) {
@@ -295,8 +289,8 @@ class XmppEx extends EventEmitter3 {
    * @throws  {Error}             Throws an error if the instance has not been initialized
    * @returns {Promise.<Object>}  Returns a promise that resolves a JID object
    */
-  connect = (xmpp) => {
-    let self = xmpp;
+  connect = (xmppEx) => {
+    let self = xmppEx;
     if (!self) {
       self = this;
     }
@@ -309,7 +303,7 @@ class XmppEx extends EventEmitter3 {
       return;
     }
     self.connectState = 1;
-    window.localStorage[self.connectedJid.split('@')[0] + '_tmp_message_state'] = 1;
+    xmpp.tmpData[self.connectedJid.split('@')[0] + '_tmp_message_state'] = true;
     if (!self.pingState) {
       self.pingState = true;
       self.ping();
@@ -372,15 +366,21 @@ class XmppEx extends EventEmitter3 {
     });
   }
 
-  _log = (msg) => {
-    log(`${msg}: jid: ${this.connectedJid},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},ts: ${this.client.ts}`);
+  _debug = (msg) => {
     if (window.localStorage.enabledXmppLog) {
       console.log(msg, `jid: ${this.connectedJid},ts: ${this.client.ts},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},time: ${this.getTime()}`);
     }
   }
+  _log = (msg) => {
+    this._debug(msg);
+    AppEnv.logInfo(`${msg}: jid: ${this.connectedJid},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},ts: ${this.client.ts},time: ${this.getTime()}`);
+    // if (window.localStorage.enabledXmppLog) {
+    //   // console.log(msg, `jid: ${this.connectedJid},ts: ${this.client.ts},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},time: ${this.getTime()}`);
+    // }
+  }
   _warn = (msg) => {
-    log(`${msg}: jid: ${this.connectedJid},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},ts: ${this.client.ts}`);
-    console.warn(msg, `jid: ${this.connectedJid},ts: ${this.client.ts},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},time: ${this.getTime()}`);
+    this._debug(msg);
+    AppEnv.logWarning(`${msg}: jid: ${this.connectedJid},state: ${this.connectState},timeoutConut:${this.timeoutCount},retyTimes: ${this.retryTimes},ts: ${this.client.ts},time: ${this.getTime()}`);
   }
   /**
    * Enables carbons
