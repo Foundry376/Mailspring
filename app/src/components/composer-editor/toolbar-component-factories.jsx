@@ -2,6 +2,8 @@ import React from 'react';
 import { Mark } from 'slate';
 import { CompactPicker } from 'react-color';
 import { RetinaImg } from 'mailspring-component-kit';
+import { Actions } from 'mailspring-exports';
+import FontSizePopover from './font-size-popover';
 
 // Helper Functions
 
@@ -104,8 +106,11 @@ export function applyValueForMark(value, type, markValue) {
 
 // React Component Factories
 
-export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle, svgName = '' } }) {
+export function BuildToggleButton({ type, button: { iconClass, isActive, onToggle, svgName = '', isVisible = ()=>true } }) {
   return ({ value, onChange, className }) => {
+    if(!isVisible()){
+      return null;
+    }
     const active = isActive(value);
     const onMouseDown = e => {
       onChange(onToggle(value, active));
@@ -329,6 +334,45 @@ export function BuildColorPicker(config) {
             </div>
           )}
         </div>
+      );
+    }
+  };
+}
+export function BuildFontSizePicker(config){
+  return class FontPicker extends React.Component {
+    _onSetValue = item => {
+      const { onChange, value } = this.props;
+      let markValue = item !== config.default ? item : null;
+      if (!(typeof config.options[0].value === 'string')) {
+        markValue = markValue / 1;
+      }
+      onChange(applyValueForMark(value, config.type, markValue));
+    };
+
+    shouldComponentUpdate(nextProps) {
+      return (
+        getActiveValueForMark(nextProps.value, config.type) !==
+        getActiveValueForMark(this.props.value, config.type)
+      );
+    }
+    onClick = e => {
+      const value = getActiveValueForMark(this.props.value, config.type) || config.default;
+      Actions.openPopover(<FontSizePopover options={config.options} selectedValue={value} onSelect={this._onSetValue} />, {
+        originRect: e.target.getBoundingClientRect(),
+        direction: 'down',
+        closeOnAppBlur: true
+      });
+    };
+
+    render() {
+      return (
+        <button
+          style={{ padding: 0, paddingRight: 6, width: 40 }}
+          className={`${this.props.className} `}
+          onClick={this.onClick}
+        >
+          <i className={config.iconClass + ' with-popup'} />
+        </button>
       );
     }
   };

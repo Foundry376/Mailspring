@@ -4,6 +4,7 @@ import {
   BuildToggleButton,
   BuildColorPicker,
   BuildFontPicker,
+  BuildFontSizePicker,
   hasMark,
 } from './toolbar-component-factories';
 
@@ -275,7 +276,7 @@ export default [
             return opt ? opt.value : 'sans-serif';
           },
         }),
-        BuildFontPicker({
+        BuildFontSizePicker({
           type: 'size',
           iconClass: 'dt-icon dt-icon-font-size',
           default: DEFAULT_FONT_SIZE,

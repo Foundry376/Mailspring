@@ -8,6 +8,13 @@
 
 @blurred-primary-color: mix(@background-primary, #ffbb00, 96%);
 @blurred-off-primary-color: mix(@background-off-primary, #ffbb00, 96%);
+.icon-mixin(@svg-url, @bgColor: @gray-light, @bgSize: 15px) {
+  -webkit-mask-image: url(@svg-url);
+  -webkit-mask-size: @bgSize;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  background-color: @bgColor;
+}
 
 .sheet-toolbar .btn-toolbar.item-compose {
   position: relative;
@@ -184,6 +191,18 @@
         &:hover {
           color: fadeout(@black, 5%);
         }
+      }
+    }
+    .with-popup {
+      &::after{
+        display: block;
+        margin-top: -23px;
+        padding-right: 55px;
+        height: 20px;
+        position: absolute;
+        width: 20px;
+        content: '';
+        .icon-mixin('../static/icons/arrow-dropdown.svg', @black, 16px);
       }
     }
     img.content-mask{
@@ -891,6 +910,86 @@ body.platform-win32 {
       background-color: @btn-emphasis-bg-color;
       color: #ffffff;
       border-radius: 5px;
+    }
+  }
+}
+
+.font-size-popover {
+  width: 132px;
+  height: 140px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: @spacing-quarter;
+  .option {
+    font-weight: normal;
+    line-height: @dropdown-default-option-height;
+    padding-left: 26px;
+    padding-right: 26px;
+    width: 100%;
+    height: @dropdown-default-option-height;
+    display: flex;
+    align-items: center;
+    &.small {
+      font-size: @font-size-composer-small;
+    }
+    &.small.selected{
+      &::before {
+        display: block;
+        margin-left: -22px;
+        height: 20px;
+        position: absolute;
+        width: 20px;
+        content: '';
+        .icon-mixin('../static/images/menu/osx-checkmark@2x.svg', @black, 16px);
+      }
+    }
+    &.normal {
+      font-size: @font-size-composer-normal;
+    }
+    &.normal.selected{
+      &::before {
+        display: block;
+        margin-left: -22px;
+        height: 20px;
+        position: absolute;
+        width: 20px;
+        content: '';
+        .icon-mixin('../static/images/menu/osx-checkmark@2x.svg', @black, 16px);
+      }
+    }
+    &.large {
+      font-size: @font-size-composer-large;
+    }
+    &.large.selected{
+      &::before {
+        display: block;
+        margin-left: -22px;
+        height: 20px;
+        position: absolute;
+        width: 20px;
+        content: '';
+        .icon-mixin('../static/images/menu/osx-checkmark@2x.svg', @black, 16px);
+      }
+    }
+    &.huge {
+      font-size: @font-size-composer-huge;
+    }
+    &.huge.selected{
+      &::before {
+        display: block;
+        margin-left: -22px;
+        height: 20px;
+        position: absolute;
+        width: 20px;
+        content: '';
+        .icon-mixin('../static/images/menu/osx-checkmark@2x.svg', @black, 16px);
+      }
+    }
+    &:hover {
+      background-color: @dropdown-default-hover-bg-color;
     }
   }
 }
