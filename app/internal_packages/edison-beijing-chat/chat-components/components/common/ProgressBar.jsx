@@ -39,10 +39,10 @@ export default class ProgressBar extends PureComponent {
     const filename = path.basename(loadConfig.filepath);
     if (loadConfig.type === 'download') {
       loadWord = 'Downloading';
-      loadText = 'was saved to your computer'
+      loadText = 'was saved to your computer';
     } else {
       loadWord = 'Uploading';
-      loadText = 'was uploaded to the web'
+      loadText = 'was uploaded to the web';
     }
     let status = '';
     if (failed) {
@@ -51,51 +51,61 @@ export default class ProgressBar extends PureComponent {
     if (offline) {
       status = '(offline)';
     }
-    return (<div className={'progress-container'}>
-      <div className='progress-banner'>
-        {(!finished) ? <RetinaImg className={'download-btn'}
-                                  name={'download.svg'}
-                                  isIcon
-                                  mode={RetinaImg.Mode.ContentIsMask}/> :
-          <RetinaImg className={'download-btn'}
-                     name={'check-alone.svg'}
-                     isIcon={true}
-                     mode={RetinaImg.Mode.ContentIsMask}/>
-        }
+    return (
+      <div className={'progress-container'}>
+        <div className="progress-banner">
+          {!finished ? (
+            <RetinaImg
+              className={'download-btn'}
+              name={'download.svg'}
+              isIcon
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
+          ) : (
+            <RetinaImg
+              className={'download-btn'}
+              name={'check-alone.svg'}
+              isIcon={true}
+              mode={RetinaImg.Mode.ContentIsMask}
+            />
+          )}
 
-        <div className='load-info'>
-          {!finished ? <div className={'progress-prompt'}>
-              <span>{loadWord}:&nbsp;</span>
-              <span>{filename}</span>
-              <span>{status}</span>
-            </div>:
-            <div>{filename} {loadText}</div>
-          }
+          <div className="load-info">
+            <div className="progress-prompt">
+              {!finished ? `${loadWord} "${filename}"${status}` : `"${filename}" ${loadText}`}
+            </div>
 
-          {!finished ? <div className='msg-progress-bar-wrap'>
-            <div className='progress-background'/>
-            <div className='progress-foreground' style={{
-              backGroundColor: '#1b08ff',
-              width: `${Math.min(percent, 100)}%`,
-            }}/>
-          </div>: null
-          }
-        </div>
-        <div className='progressButtons'>
-          {finished ?
-            (loadConfig.type==='download' ?
-              <div className='cancelButton' onClick={this.viewDownload}>View</div> :
-              null) :
-            ((!offline && failed) ? <div className='cancelButton' onClick={onRetry}>Retry</div> :
-              <div className='cancelButton' onClick={onCancel}>Cancel</div>)
-          }
-          <CancelIcon color={'gray'} onClick={this.hide}></CancelIcon>
-        </div>
-        <div>
-
+            {!finished ? (
+              <div className="msg-progress-bar-wrap">
+                <div className="progress-background" />
+                <div
+                  className="progress-foreground"
+                  style={{ width: `${Math.min(percent, 100)}%` }}
+                />
+              </div>
+            ) : null}
+          </div>
+          <div className="progressButtons">
+            {finished ? (
+              loadConfig.type === 'download' ? (
+                <div className="cancelButton" onClick={this.viewDownload}>
+                  View
+                </div>
+              ) : null
+            ) : !offline && failed ? (
+              <div className="cancelButton" onClick={onRetry}>
+                Retry
+              </div>
+            ) : (
+              <div className="cancelButton" onClick={onCancel}>
+                Cancel
+              </div>
+            )}
+            <CancelIcon color="rgba(0,0,0,0.2)" onClick={this.hide}></CancelIcon>
+          </div>
+          <div></div>
         </div>
       </div>
-    </div>);
+    );
   }
 }
-
