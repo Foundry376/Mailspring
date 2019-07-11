@@ -471,10 +471,6 @@
       margin: 0;
       padding: 8px 15px;
       display: flex;
-      flex-direction: row;
-      align-items: center;
-      flex-wrap: nowrap;
-      overflow: hidden;
       font-size: 14px;
 
       .download-btn {
@@ -488,6 +484,7 @@
       .load-info {
         flex: 1;
         height: 100%;
+        width: 525px;
         margin: 0 10px;
         display: flex;
         flex-direction: column;
@@ -495,6 +492,10 @@
 
         .progress-prompt {
           line-height: 25px;
+          width: 100%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .msg-progress-bar-wrap {
