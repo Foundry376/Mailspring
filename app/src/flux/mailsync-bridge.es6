@@ -268,16 +268,31 @@ export default class MailsyncBridge {
     }
   }
 
-  sendMessageToAccount(accountId, json) {
+  async sendMessageToAccount(accountId, json) {
     if (!AccountStore.accountForId(accountId)) {
       return;
     }
     if (!this._clients[accountId]) {
-      const { emailAddress } = AccountStore.accountForId(accountId) || {};
-      return AppEnv.showErrorDialog({
-        title: `EdisonMail is unable to sync ${emailAddress}`,
-        message: `In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.`,
-      });
+      const account = AccountStore.accountForId(accountId) || {};
+      const emailAddress = account.emailAddress;
+      if (emailAddress) {
+        const fullAccountJSON = (await KeyManager.insertAccountSecrets(account)).toJSON();
+        if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
+          delete this._clientsStartTime[account.id];
+          Actions.updateAccount(account.id, {
+            syncState: Account.SYNC_STATE_ERROR,
+            syncError: null,
+          });
+          return;
+        } else {
+          this.ensureClients('sendMessageToAccount');
+        }
+      } else {
+        return AppEnv.showErrorDialog({
+          title: `EdisonMail is unable to sync `,
+          message: `In order to perform actions on this mailbox, you need to resolve the sync issue. Visit Preferences > Accounts for more information.`,
+        });
+      }
     }
     if (!this._clients[accountId].isSyncReadyToReceiveMessage()) {
       const { emailAddress } = AccountStore.accountForId(accountId) || {};
