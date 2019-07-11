@@ -45,7 +45,7 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
         saveLastTs2(jidLocal, data.edipull.since);
         pullMessage(data.edipull.since, jid);
       } else {
-        window.localStorage.removeItem(jidLocal + '_tmp_message_state');
+        xmpp.tmpData[jidLocal + '_tmp_message_state'] = false;
       }
     });
   };
@@ -58,10 +58,10 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
   let saveLastTs = data => {
     let jidLocal = data.curJid.split('@')[0];
     const msgTs = parseInt(data.ts);
-    let tmpTs = window.localStorage[jidLocal + '_tmp_message_ts'];
-    if (window.localStorage[jidLocal + '_tmp_message_state']) {
+    let tmpTs = xmpp.tmpData[jidLocal + '_tmp_message_ts'];
+    if (xmpp.tmpData[jidLocal + '_tmp_message_state']) {
       if (!tmpTs || tmpTs < msgTs) {
-        window.localStorage[jidLocal + '_tmp_message_ts'] = msgTs;
+        xmpp.tmpData[jidLocal + '_tmp_message_ts'] = msgTs;
       }
       return;
     }
@@ -69,7 +69,7 @@ export const createXmppMiddleware = (xmpp, eventActionMap) => store => {
       if (tmpTs > msgTs) {
         msgTs = tmpTs;
       }
-      window.localStorage.removeItem(jidLocal + '_tmp_message_ts');
+      xmpp.tmpData[jidLocal + '_tmp_message_ts'] = 0;
     }
     let ts = AppEnv.config.get(jidLocal + '_message_ts');
     if (!ts || ts < msgTs) {
