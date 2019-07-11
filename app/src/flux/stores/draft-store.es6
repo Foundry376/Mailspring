@@ -499,7 +499,7 @@ class DraftStore extends MailspringStore {
       windowType: 'composer',
       windowKey: `composer-${headerMessageId}`,
       windowProps: Object.assign(options, { headerMessageId, draftJSON }),
-      title: options.newDraft ? 'New Message' : 'Message',
+      title: ' ',
       threadId: session.draft().threadId,
     });
   };

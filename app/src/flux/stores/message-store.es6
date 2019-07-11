@@ -373,7 +373,7 @@ class MessageStore extends MailspringStore {
       if (title.length > 0) {
         title = `Draft to: ${title.trim()}`;
       } else {
-        title = 'New Message';
+        title = 'New Draft';
       }
     } else {
       title = title.trim();
