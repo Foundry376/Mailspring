@@ -207,8 +207,8 @@ class RoomStore extends MailspringStore {
     }
 
     let content;
-    const fromName = item.from.nickname || item.from.name || item.from.email || fromcontact && fromcontact.email;
-    const byName = item.by.nickname || item.by.name || item.by.email;
+    const fromName = item.from.nickname || item.from.name || item.from.email || fromcontact && fromcontact.email || fromjid;
+    const byName = item.by.nickname || item.by.name || item.by.email || byjid;
     if (payload.type === 'join') {
       content = `${byName} invited ${fromName} to join the group chat.`;
     } else {
