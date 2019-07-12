@@ -8,7 +8,6 @@ Contact.init({
   // attributes
   jid: {
     type: Sequelize.STRING,
-    primaryKey: true
   },
   curJid: {
     type: Sequelize.STRING,
@@ -18,7 +17,8 @@ Contact.init({
     allowNull: false
   },
   email: {
-    type: Sequelize.STRING
+    type: Sequelize.STRING,
+    primaryKey: true
   },
   avatar: {
     type: Sequelize.STRING
@@ -28,8 +28,8 @@ Contact.init({
     defaultValue: false
   }
 }, {
-    sequelize:db,
-    modelName: 'contact'
+    sequelize: db,
+    modelName: 'contact_v2'
     // options
   });
 Contact.sync();
