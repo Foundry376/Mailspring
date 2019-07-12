@@ -1,6 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import _ from 'underscore';
-import { log } from '../utils/log-util';
+import { log } from '../utils/log';
 
 class OnlineUserStore extends MailspringStore {
   constructor() {
@@ -33,34 +33,34 @@ class OnlineUserStore extends MailspringStore {
   addOnLineAccount(payload) {
     const jid = payload.from && payload.from.bare || payload.bare;
     this.onlineAccounts[jid] = 1;
-    log(`addOnLineAccount: ${jid}, onlineAccounts: ${JSON.stringify(this.onlineAccounts)}`);
+    log('connect', `addOnLineAccount: ${jid}, onlineAccounts: ${JSON.stringify(this.onlineAccounts)}`);
     this.authingAccounts[jid] = 0;
     this._triggerDebounced();
   }
 
   addAuthingAccount(jid) {
     this.authingAccounts[jid] = 1;
-    log(`addAuthingAccount: ${jid}, authingAccounts: ${JSON.stringify(this.authingAccounts)}`);
+    log('connect', `addAuthingAccount: ${jid}, authingAccounts: ${JSON.stringify(this.authingAccounts)}`);
     this._triggerDebounced();
   }
 
   removeAuthingAccount(jid) {
     this.authingAccounts[jid] = 0;
-    log(`removeAuthingAccount: ${jid}, authingAccounts: ${JSON.stringify(this.authingAccounts)}`);
+    log('connect', `removeAuthingAccount: ${jid}, authingAccounts: ${JSON.stringify(this.authingAccounts)}`);
     this._triggerDebounced();
   }
 
   removeOnLineAccount(payload) {
     if (!payload) {
       const error = new Error();
-      log(`removeOnLineAccount: payload is null: ${error.stack}`);
+      log('connect', `removeOnLineAccount: payload is null: ${error.stack}`);
       console.log(`removeOnLineAccount: payload is null: ${error.stack}`, );
       return;
     }
     const jid = payload.curJid;
     this.onlineAccounts[jid] = 0;
     this.authingAccounts = {};
-    log(`removeOnLineAccount: ${jid}, onlineAccounts: ${JSON.stringify(this.onlineAccounts)}`);
+    log('connect', `removeOnLineAccount: ${jid}, onlineAccounts: ${JSON.stringify(this.onlineAccounts)}`);
     this.resetOnlineUsers();
     this._triggerDebounced();
   }

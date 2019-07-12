@@ -37,7 +37,7 @@ import { sendFileMessage } from '../../../../utils/message';
 import { getToken } from '../../../../utils/appmgt';
 import { LocalStorage } from 'chat-exports';
 import { alert } from '../../../../utils/electron';
-import { log2 } from '../../../../utils/log-util';
+import { log } from '../../../../utils/log';
 
 const { exec } = require('child_process');
 const GROUP_CHAT_DOMAIN = '@muc.im.edison.tech';
@@ -251,9 +251,7 @@ export default class MessagesPanel extends Component {
       visible: true,
     });
     const { msgBody, filepath } = loadConfig;
-    log2(
-      `MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`
-    );
+    log('load', `MessagePanel.loadMessage: type: ${loadConfig.type}, filepath: ${filepath}, mediaObjectId: ${msgBody.mediaObjectId}`);
     const loadCallback = (...args) => {
       ChatActions.updateProgress({ loading: false, finished: true, visible: true });
       clearInterval(this.loadTimer);
@@ -269,11 +267,11 @@ export default class MessagesPanel extends Component {
         let body = loadConfig.msgBody;
         body.isUploading = false;
         body.mediaObjectId = myKey;
-        log2(`MessagePanel.loadMessage: mediaObjectId: `, myKey);
+        log('load', `MessagePanel.loadMessage: mediaObjectId: `, myKey);
         if (err) {
           const str = `${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`;
           console.error(str);
-          log2(`MessagePanel.loadMessage: error: ` + str);
+          log('load', `MessagePanel.loadMessage: error: ` + str);
           body = JSON.stringify(body);
           const message = {
             id: messageId,

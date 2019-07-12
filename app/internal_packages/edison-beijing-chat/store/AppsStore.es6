@@ -6,14 +6,14 @@ import { queryProfile } from '../utils/restjs';
 import { isJsonStr } from '../utils/stringUtils';
 const sqlite = require('better-sqlite3');
 import MailspringStore from 'mailspring-store';
-import { log2 } from '../utils/log-util';
+import { log } from '../utils/log';
 import { jidlocal } from '../utils/jid';
 
 
 class AppsStore extends MailspringStore {
   refreshAppsEmailContacts = async () => {
     const chatAccounts = AppEnv.config.get('chatAccounts') || {};
-    log2('refreshAppsEmailContacts: chatAccounts: ' + JSON.stringify(chatAccounts));
+    log('connect', 'refreshAppsEmailContacts: chatAccounts: ' + JSON.stringify(chatAccounts));
     let acc, userId;
     for (const email in chatAccounts) {
       acc = chatAccounts[email];
@@ -30,7 +30,7 @@ class AppsStore extends MailspringStore {
     await this.saveMyAppsAndEmailContacts(payload);
   }
   saveMyAppsAndEmailContacts = async (payload) => {
-    log2(`saveMyAppsAndEmailContacts: ${JSON.stringify(payload)}`);
+    log('contact', `saveMyAppsAndEmailContacts: ${JSON.stringify(payload)}`);
     if (typeof payload == 'string') {
       const userId = jidlocal(payload);
       payload = {
@@ -61,23 +61,23 @@ class AppsStore extends MailspringStore {
   }
 
   saveEmailContacts = async (payload, accessToken) => {
-    log2(`saveEmailContacts: payload: ${JSON.stringify(payload)} accessToken: ${accessToken}`);
+    log('contact', `saveEmailContacts: payload: ${JSON.stringify(payload)} accessToken: ${accessToken}`);
     let configDirPath = AppEnv.getConfigDirPath();
     let dbpath = path.join(configDirPath, 'edisonmail.db');
     const sqldb = sqlite(dbpath);
     const accounts = AppEnv.config.get('accounts');
     let accoundIds = accounts.map(acc => `"${acc.id}"`);
-    log2(`saveEmailContacts: acc.id: `+accoundIds.join(', '));
+    log('contact', `saveEmailContacts: acc.id: `+accoundIds.join(', '));
     const sql = `SELECT * FROM contact where sendToCount >= 1 and recvFromCount >= 1 and accountId in (${accoundIds.join(',')})`
     let stmt = sqldb.prepare(sql);
     let emailContacts = stmt.all();
     sqldb.close();
     const emails = emailContacts.map(contact => contact.email);
-    log2(`saveEmailContacts: emails: `+emails.join(', '));
+    log('contact', `saveEmailContacts: emails: `+emails.join(', '));
     queryProfile({ accessToken, emails }, async (err, res) => {
       if (!res) {
         console.log('fail to login to queryProfile');
-        log2(`fail to login to queryProfile: err： `+JSON.stringify(err));
+        log('contact', `fail to login to queryProfile: err： `+JSON.stringify(err));
         return;
       }
       if (isJsonStr(res)) {
@@ -100,7 +100,7 @@ class AppsStore extends MailspringStore {
       });
       emailContacts = emailContacts.filter(contact => !!contact.curJid);
       console.log('saveEmailContacts: emailContacts: ', emailContacts);
-      log2(`saveEmailContacts: emails 2: `+emailContacts.map(contact=> contact.email).join(', '));
+      log('contact', `saveEmailContacts: emails 2: `+emailContacts.map(contact=> contact.email).join(', '));
       await ContactStore.saveContacts(emailContacts, payload.curJid);
       return;
     })
