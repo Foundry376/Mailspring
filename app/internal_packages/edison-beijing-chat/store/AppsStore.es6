@@ -69,12 +69,10 @@ class AppsStore extends MailspringStore {
     let accoundIds = accounts.map(acc => `"${acc.id}"`);
     log2(`saveEmailContacts: acc.id: `+accoundIds.join(', '));
     const sql = `SELECT * FROM contact where sendToCount >= 1 and recvFromCount >= 1 and accountId in (${accoundIds.join(',')})`
-    console.log( 'sql: ', sql);
     let stmt = sqldb.prepare(sql);
     let emailContacts = stmt.all();
     sqldb.close();
     const emails = emailContacts.map(contact => contact.email);
-    console.log( 'saveEmailContacts: emails: ', emails);
     log2(`saveEmailContacts: emails: `+emails.join(', '));
     queryProfile({ accessToken, emails }, async (err, res) => {
       if (!res) {

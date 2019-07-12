@@ -17,7 +17,7 @@ import MessageApp from './MessageApp';
 import MessagePrivateApp from './MessagePrivateApp';
 import { ChatActions } from 'chat-exports';
 import { FILE_TYPE } from '../../../../utils/filetypes';
-import { MessageModel } from 'chat-exports';
+import { MessageModel, MessageSend } from 'chat-exports';
 import { name } from '../../../../utils/name';
 
 export default class Msg extends PureComponent {
@@ -91,25 +91,6 @@ export default class Msg extends PureComponent {
   static timer;
 
   componentDidMount() {
-    this.menu = new Menu()
-    let menuItem = new MenuItem({
-      label: 'Edit text',
-      click: () => {
-        const state = Object.assign({}, this.state, { isEditing: true });
-        this.setState(state);
-        this.menu.closePopup();
-      }
-    });
-    this.menu.append(menuItem);
-    menuItem = new MenuItem({
-      label: 'Delete message',
-      click: () => {
-        this.deleteMessage();
-        this.menu.closePopup();
-      }
-    });
-    this.menu.append(menuItem);
-
     this.unlisten = ChatActions.updateDownload.listen(this.update, this);
     if (this.contentEl) {
       this.contentEl.innerHTML = a11yEmoji(this.contentEl.innerHTML);
@@ -117,11 +98,11 @@ export default class Msg extends PureComponent {
   }
 
   deleteMessage = () => {
-    const { msg, conversation, onMessageSubmitted } = this.props;
+    const { msg, conversation } = this.props;
     const body = this.state.msgBody;
     body.updating = true;
     body.deleted = true;
-    onMessageSubmitted(conversation, JSON.stringify(body), msg.id, true);
+    MessageSend.sendMessage(body, conversation, msg.id);
     MessageModel.destroy({ where: { id: msg.id } });
   }
 
@@ -186,9 +167,30 @@ export default class Msg extends PureComponent {
     queueLoadMessage(loadConfig);
   };
 
-  showPopupMenu = () => {
+  showPopupMenu = (isFile) => {
     event.stopPropagation();
     event.preventDefault();
+    this.menu = new Menu();
+    let menuItem;
+    if (!isFile) {
+      menuItem = new MenuItem({
+        label: 'Edit text',
+        click: () => {
+          const state = Object.assign({}, this.state, { isEditing: true });
+          this.setState(state);
+          this.menu.closePopup();
+        }
+      });
+      this.menu.append(menuItem);
+    }
+    menuItem = new MenuItem({
+      label: 'Delete message',
+      click: () => {
+        this.deleteMessage();
+        this.menu.closePopup();
+      }
+    });
+    this.menu.append(menuItem);
     this.menu.popup({ x: event.clientX, y: event.clientY });
   };
 
@@ -213,8 +215,8 @@ export default class Msg extends PureComponent {
         {msg.sender === currentUserJid && !isSystemEvent && (
           <span
             className="inplace-edit-img"
-            onClick={() => this.showPopupMenu()}
-            onContextMenu={() => this.showPopupMenu()}
+            onClick={() => this.showPopupMenu(isFile)}
+            onContextMenu={() => this.showPopupMenu(isFile)}
           >
             <RetinaImg name={'expand-more.svg'}
               style={{ width: 26, height: 26 }}
@@ -310,33 +312,19 @@ export default class Msg extends PureComponent {
     return name(msg.sender) || member.name;
   }
 
-  onMessageSubmitted = (conversation, body, messageId, uploading) => {
-    let id = messageId;
-    let i = id.indexOf('$');
-    if (i < 0) {
-      i = id.length;
-    }
-    id = id.substr(0, i);
-    const { msgBody } = this.state;
-    this.props.onMessageSubmitted(conversation, body, id, uploading);
-    this.setState({
-      msgBody,
-      isEditing: false
-    })
-  }
-
   retrySend = () => {
     const { msg, conversation } = this.props;
     let id = msg.id;
     const i = id.indexOf('$');
     id = id.substr(0, i);
     const { msgBody } = this.state;
-    this.props.onMessageSubmitted(conversation, JSON.stringify(msgBody), id, false);
+    MessageSend.sendMessage(msgBody, conversation, id);
   }
 
   render() {
     const { msg, conversation } = this.props;
     const { isEditing, msgImgPath, msgBody, currentUserJid } = this.state;
+    console.log( 'Msg.render: ', msg, msgBody);
     const isCurrentUser = msg.sender === currentUserJid;
     const color = colorForString(msg.sender);
     const member = this.senderContact();
@@ -427,8 +415,7 @@ export default class Msg extends PureComponent {
                         cancelEdit={this.cancelEdit}
                         value={msgBody.content || msgBody}
                         conversation={conversation}
-                        deleteMessage={this.deleteMessage}
-                        onMessageSubmitted={this.onMessageSubmitted} />
+                        deleteMessage={this.deleteMessage} />
                     </div>
                   ) : (
                       <div className="messageBody">

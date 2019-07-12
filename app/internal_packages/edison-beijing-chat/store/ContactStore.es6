@@ -11,7 +11,7 @@ class ContactStore extends MailspringStore {
 
   refreshContacts = async () => {
     let contacts = await ContactModel.findAll({
-      order: [["isApp"], ["name"]]
+      order: [["isApp"], ["name"], ["createdAt", "desc"]]
     });
     contacts = _.uniqBy(contacts, 'email');
     if (contacts.length !== this.contacts.length) {
@@ -27,23 +27,24 @@ class ContactStore extends MailspringStore {
     for (const contact of contacts) {
       const jid = jidbare(contact.jid);
       const curJid = contact.curJid || forCurJid || jid;
-      const contactInDb = await this.findContactByJid(jid);
+      const contactInDb = await this.findContactByEmail(contact.email);
+      const name = contact.oriName || contact.name || contact.email;
       if (contactInDb) {
         await ContactModel.update({
           jid,
           curJid,
-          name: contactInDb.name || contact.oriName || contact.email,
+          name: contactInDb.name || name,
           email: contact.email,
           avatar: contactInDb.avatar ? contactInDb.avatar : contact.avatar,
           isApp: contact.isApp
         }, {
-            where: { jid }
+            where: { email: contactInDb.email }
           });
       } else {
         await ContactModel.upsert({
           jid,
           curJid,
-          name: contact.oriName || contact.email,
+          name,
           email: contact.email,
           avatar: contact.avatar,
           isApp: contact.isApp
@@ -51,6 +52,22 @@ class ContactStore extends MailspringStore {
       }
     }
     this.refreshContacts();
+  }
+
+  findContactByEmail = async (email) => {
+    if (this.contacts) {
+      for (const contact of this.contacts) {
+        if (contact.email === email) {
+          return contact;
+        }
+      }
+    } else {
+      this.refreshContacts();
+    }
+    return await ContactModel.findOne({
+      where: { email },
+      order: [["createdAt", "desc"]]
+    });
   }
 
   findContactByJid = async (jid) => {

@@ -1,6 +1,6 @@
 var AWS = require('aws-sdk');
 let hls3 = require('s3');
-const { decryptByAESFile } = require('./aes');
+const { decryptByAESFile, encryptByAESFile } = require('./aes');
 import fs from 'fs';
 import uuid from 'uuid';
 
@@ -42,6 +42,7 @@ export const downloadFile = (aes, key, name, callback, progressBack) => {
         } else {
           if (aes) {
             //fs.writeFileSync('./files/src' + name, data.Body);
+            　console.log( 'downloadFile: ', aes, data);
             fs.writeFileSync(name, decryptByAESFile(aes, data.Body));
           } else {
             fs.writeFileSync(name, data.Body);

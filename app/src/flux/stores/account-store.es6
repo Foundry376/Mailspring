@@ -196,7 +196,6 @@ class AccountStore extends MailspringStore {
       const sqldb = sqlite(dbpath);
       let stmt = sqldb.prepare(`SELECT * FROM contact where accountId = "${id}"`);
       let emailContacts = stmt.all();
-      console.log( 'emailContacts: ', emailContacts);
       const emails = emailContacts.map(contact => contact.email);
       sqldb.close();
       await ContactModel.destroy({
@@ -274,7 +273,7 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
-    registerLoginEmailAccountForChat(account);
+    await registerLoginEmailAccountForChat(account);
     await AppStore.refreshAppsEmailContacts();
     await MessageStore.saveMessagesAndRefresh([]);
   };

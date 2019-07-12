@@ -17,11 +17,8 @@ export default async function registerLoginChat() {
 }
 
 export async function registerLoginEmailAccountForChat(account) {
-  const chatAccounts = AppEnv.config.get('chatAccounts') || {};
+   const chatAccounts = AppEnv.config.get('chatAccounts') || {};
    let chatAccount = chatAccounts[account.emailAddress] || {};
-  log2(
-    `registerLoginEmailAccountForChat: ${JSON.stringify(account)}`
-  );
 
   // get chat password from cache
   if (chatAccount.userId) {
@@ -32,9 +29,8 @@ export async function registerLoginEmailAccountForChat(account) {
   chatAccount.clone = () => Object.assign({}, chatAccount);
   chatAccount = await keyMannager.insertChatAccountSecrets(chatAccount);
 
-  let passedTime = ((new Date()).getTime() - chatAccount.refreshTime || 0) / 1000;// seconds
-  const leftTime = chatAccount.expiresIn - passedTime;
-
+  let passedTime = ((new Date()).getTime() - (chatAccount.refreshTime || 0) ) / 1000;// seconds
+  const leftTime = (chatAccount.expiresIn || 604800) - passedTime;
   if (!chatAccount.password || (leftTime < 2 * 24 * 3600)) {
     account.clone = () => Object.assign({}, account);
     account = await keyMannager.insertAccountSecrets(account);
@@ -50,17 +46,23 @@ export async function registerLoginEmailAccountForChat(account) {
     } else {
       type = 0
     }
-    let { err, res } = await register(account.emailAddress, account.settings.refresh_token || account.settings.imap_password, account.name, type, account.provider, account.settings);
+    let err, res;
+
+    try{
+      const result = await register(account.emailAddress, account.settings.refresh_token || account.settings.imap_password, account.name, type, account.provider, account.settings);
+      err = result.err;
+      res = result.res;
+    } catch (e) {
+      console.error(`fail to register：${JSON.stringify(e)}`);
+    }
     try {
       res = JSON.parse(res);
     } catch (e) {
       console.error('email account fail to register chat: response is not json. response:' + res);
-      log2(`registerLoginEmailAccountForChat: email account fail to register chat: response is not json.`);
       return;
     }
     if (err || !res || res.resultCode !== 1) {
       console.error('email account fail to register chat: ', account, err, res);
-      log2(`registerLoginEmailAccountForChat: email account fail to register chat:`);
       return;
     }
     chatAccount = res.data;
@@ -71,12 +73,10 @@ export async function registerLoginEmailAccountForChat(account) {
     chatAccount.clone = () => Object.assign({}, chatAccount);
     chatAccount = await keyMannager.extractChatAccountSecrets(chatAccount);
     chatAccounts[account.emailAddress] = chatAccount;
-    log2(`registerLoginEmailAccountForChat:add chatAccount: ${JSON.stringify(chatAccount)}`);
     AppEnv.config.set('chatAccounts', chatAccounts);
   } else {
     let jid = chatAccount.userId + '@im.edison.tech';
     OnlineUserStore.addSelfAccount(jid, chatAccount);
-    log2(`registerLoginEmailAccountForChat:add chatAccount: ${JSON.stringify(chatAccount)}`);
     await auth({jid, password: chatAccount.password});
   }
 }

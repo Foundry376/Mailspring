@@ -9,6 +9,7 @@ import Messages from './Messages';
 import ConversationInfo from '../conversations/ConversationInfo';
 import Divider from '../../common/Divider';
 import { downloadFile, uploadFile } from '../../../../utils/awss3';
+import { generateAESKey } from '../../../../utils/aes';
 import uuid from 'uuid/v4';
 import { NEW_CONVERSATION } from '../../../actions/chat';
 import registerLoginChat from '../../../../utils/register-login-chat';
@@ -23,6 +24,7 @@ import {
   UserCacheStore,
   OnlineUserStore,
   MemberProfileStore,
+  MessageSend,
 } from 'chat-exports';
 import MemberProfile from '../conversations/MemberProfile';
 
@@ -261,19 +263,18 @@ export default class MessagesPanel extends Component {
         }
       }, 3000);
       if (loadConfig.type === 'upload') {
-        const onMessageSubmitted = this.props.sendMessage;
         const [err, _, myKey, size] = args;
         const conversation = loadConfig.conversation;
         const messageId = loadConfig.messageId;
         let body = loadConfig.msgBody;
         body.isUploading = false;
         body.mediaObjectId = myKey;
-        body = JSON.stringify(body);
         log2(`MessagePanel.loadMessage: mediaObjectId: `, myKey);
         if (err) {
           const str = `${conversation.name}:\nfile(${filepath}) transfer failed because error: ${err}`;
           console.error(str);
           log2(`MessagePanel.loadMessage: error: ` + str);
+          body = JSON.stringify(body);
           const message = {
             id: messageId,
             conversationJid: conversation.jid,
@@ -285,7 +286,7 @@ export default class MessagesPanel extends Component {
           MessageStore.saveMessagesAndRefresh([message]);
           return;
         } else {
-          onMessageSubmitted(conversation, body, messageId, false);
+          MessageSend.sendMessage(body, conversation, messageId, false, loadConfig.aes);
         }
       }
     };
@@ -306,10 +307,12 @@ export default class MessagesPanel extends Component {
       const conversation = loadConfig.conversation;
       const atIndex = conversation.jid.indexOf('@');
       let jidLocal = conversation.jid.slice(0, atIndex);
+      const aes = generateAESKey();
+      loadConfig.aes = aes;
       try {
         loadConfig.request = uploadFile(
           jidLocal,
-          null,
+          aes,
           loadConfig.filepath,
           loadCallback,
           loadProgressCallback
@@ -450,11 +453,9 @@ export default class MessagesPanel extends Component {
       currentUserId,
       referenceTime,
       selectedConversation,
-      onMessageSubmitted: sendMessage,
       queueLoadMessage: this.queueLoadMessage,
     };
     const sendBarProps = {
-      onMessageSubmitted: sendMessage,
       selectedConversation,
       queueLoadMessage: this.queueLoadMessage,
     };

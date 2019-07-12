@@ -17,7 +17,7 @@ import { sendFileMessage } from '../../../../utils/message';
 import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } from '../../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../../utils/restjs';
-import { MessageStore, RoomStore } from 'chat-exports';
+import { MessageStore, RoomStore, MessageSend } from 'chat-exports';
 import { alert } from '../../../../utils/electron';
 const { exec } = require('child_process');
 
@@ -65,7 +65,6 @@ function getClipboardFiles() {
 
 export default class MessagesSendBar extends PureComponent {
   static propTypes = {
-    onMessageSubmitted: PropTypes.func.isRequired,
     selectedConversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
       name: PropTypes.string,
@@ -196,7 +195,7 @@ export default class MessagesSendBar extends PureComponent {
     return atJids;
   }
   sendCommand2App(userId, app, command, peerUserId, roomId) {
-    const { selectedConversation, onMessageSubmitted } = this.props;
+    const { selectedConversation } = this.props;
     let { id, name, commandType } = app;
     let userName = '';
     getToken(userId).then(token => {
@@ -251,7 +250,7 @@ export default class MessagesSendBar extends PureComponent {
 
   sendMessage() {
     let { messageBody } = this.state;
-    const { selectedConversation, onMessageSubmitted } = this.props;
+    const { selectedConversation } = this.props;
     const atIndex = selectedConversation.jid.indexOf('@')
     let jidLocal = selectedConversation.jid.slice(0, atIndex);
 
@@ -302,8 +301,8 @@ export default class MessagesSendBar extends PureComponent {
           // occupants,
           atJids: this.getAtTargetPersons()
         };
-        const messageId = uuid();
-        onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
+
+        MessageSend.sendMessage(body, selectedConversation);
       }
     }
     this.setState({ messageBody: '', files: [] });
