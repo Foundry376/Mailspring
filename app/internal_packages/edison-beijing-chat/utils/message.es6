@@ -80,7 +80,6 @@ export const sendFileMessage = (file, index, reactInstance, messageBody) => {
 
   const props = reactInstance.props;
   const conversation = ConversationStore.selectedConversation;
-  const onMessageSubmitted = props.onMessageSubmitted || props.sendMessage;
   const queueLoadMessage = reactInstance.queueLoadMessage || props.queueLoadMessage;
   let filepath;
   if (typeof file === 'object') {

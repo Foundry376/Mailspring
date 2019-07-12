@@ -57,7 +57,6 @@ export default class Group extends PureComponent {
               conversation={this.props.conversation}
               msg={msg}
               queueLoadMessage={this.props.queueLoadMessage}
-              onMessageSubmitted={this.props.onMessageSubmitted}
               getContactInfoByJid={this.props.getContactInfoByJid}
               key={msg.id}>
             </Msg>

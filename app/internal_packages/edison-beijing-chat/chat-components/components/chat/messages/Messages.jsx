@@ -268,7 +268,6 @@ export default class Messages extends Component {
               conversation={this.props.selectedConversation}
               group={group}
               queueLoadMessage={this.props.queueLoadMessage}
-              onMessageSubmitted={this.props.onMessageSubmitted}
               getContactInfoByJid={this.getContactInfoByJid}
               members={this.state.members}
               shouldDisplayMessageCounts={shouldDisplayMessageCounts}

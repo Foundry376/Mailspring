@@ -10,18 +10,30 @@ import { MessageStore, E2eeStore, RoomStore } from 'chat-exports';
 import { encryptByAES, decryptByAES, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
 import { getDeviceId } from '../utils/e2ee';
+
 class MessageSend {
-  sendMessage = async (body, from, to, isGroup, aes) => {
-    const messageId = uuid();
+  sendMessage = async (body, conversation, messageId, updating, aes) => {
+    const { curJid, jid, isGroup } = conversation;
+    const from = curJid, to = jid;
+    messageId = messageId || uuid();
+    let dbMessageId;
+    if (messageId.indexOf('$') < 0) {
+      dbMessageId = messageId + '$' + from;
+    } else {
+      dbMessageId = messageId;
+    }
     const strBody = JSON.stringify(body);
-    MessageStore.saveMessagesAndRefresh([{
+    const dbMsg = await MessageStore.getMessageById(dbMessageId);
+    const sentTime = updating ? dbMsg && dbMsg.sentTime : new Date().getTime() + window.edisonChatServerDiffTime;
+    const msg = {
       body: strBody,
       conversationJid: to,
       sender: from,
-      sentTime: new Date().getTime() + window.edisonChatServerDiffTime,
+      sentTime,
       status: MESSAGE_STATUS_SENDING,
       id: `${messageId}$${to}`
-    }]);
+    };
+    MessageStore.saveMessagesAndRefresh([msg]);
     let message = {
       id: messageId,
       to,
@@ -41,6 +53,7 @@ class MessageSend {
     console.log('occupants.message', message);
     xmpp.sendMessage(message, from);
   };
+
   getDevices = async (from, to, isGroup) => {
     let devices = [];
     if (isGroup) {
@@ -66,12 +79,12 @@ class MessageSend {
       }
     }
     return devices;
-  }
+
+  };
+
   getEncrypted = (body, devices, deviceId, aes) => {
     let aeskey = aes;
-    if (!aeskey) {
-      aeskey = generateAESKey();
-    }
+    if (!aeskey) { aeskey = generateAESKey(); }
     let keys = this.addKeys(devices, aeskey);
     //对称加密body
     if (keys && keys.length > 0) {
@@ -88,6 +101,7 @@ class MessageSend {
     }
     return false;
   };
+
   addKeys = (dks, aeskey) => {
     let keys = [];
     for (let j in dks) {
