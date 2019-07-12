@@ -16,8 +16,6 @@ import ConversationModel from '../model/Conversation';
 import MessageModel, { MESSAGE_STATUS_RECEIVED } from '../model/Message';
 import fs from 'fs';
 import _ from 'underscore';
-// TODO
-// getPriKey getDeviceId should get data from sqlite
 import { getPriKey, getDeviceId } from '../utils/e2ee';
 const { remote } = require('electron');
 import { postNotification } from '../utils/electron';
@@ -58,7 +56,7 @@ class MessageStore extends MailspringStore {
   reveivePrivateChat = async message => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
-    if (!message || (await this._isExistInDb(message))) {
+    if (!message || (await this._isExistInDb(message, false))) {
       return;
     }
 
@@ -185,8 +183,16 @@ class MessageStore extends MailspringStore {
     return message;
   };
 
-  _isExistInDb = async message => {
+  _isExistInDb = async (message, isGroup) => {
     let convJid = message.from.bare;
+    // if private chat
+    if (!isGroup) {
+      if (message.curJid === message.from.bare) {
+        convJid = message.to.bare;
+      } else {
+        convJid = message.from.bare;
+      }
+    }
     let msgId = message.id + '$' + convJid;
     const messageInDb = await this.getMessageById(msgId);
     if (messageInDb) {
@@ -201,7 +207,7 @@ class MessageStore extends MailspringStore {
   reveiveGroupChat = async message => {
     let jidLocal = message.curJid.split('@')[0];
     message = await this.decrypteBody(message, jidLocal);
-    if (!message || (await this._isExistInDb(message))) {
+    if (!message || (await this._isExistInDb(message, true))) {
       return;
     }
 
