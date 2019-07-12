@@ -50,6 +50,7 @@ export default class ChatViewLeft extends Component {
     if (columnEl) {
       if (leftPanel) {
         leftPanel.style.width = `${columnEl.offsetWidth - 1}px`;
+        leftPanel.style.visibility = 'visible';
       }
       const notifications = document.querySelector('.notifications');
       if (notifications) {
