@@ -274,7 +274,7 @@ class AccountStore extends MailspringStore {
     }
 
     this._save('add account');
-    registerLoginEmailAccountForChat(account);
+    await registerLoginEmailAccountForChat(account);
     await AppStore.refreshAppsEmailContacts();
     await MessageStore.saveMessagesAndRefresh([]);
   };
