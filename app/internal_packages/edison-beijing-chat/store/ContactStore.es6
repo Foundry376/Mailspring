@@ -14,7 +14,6 @@ class ContactStore extends MailspringStore {
       order: [["isApp"], ["name"], ["createdAt", "desc"]]
     });
     contacts = _.uniqBy(contacts, 'email');
-    console.log('***contacts', contacts);
     if (contacts.length !== this.contacts.length) {
       this.contacts = contacts;
       this.trigger();
