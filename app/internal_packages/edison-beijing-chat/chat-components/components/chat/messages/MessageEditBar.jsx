@@ -9,7 +9,7 @@ import { FILE_TYPE } from '../../../../utils/filetypes';
 import emoji from 'node-emoji';
 import { Actions, ReactDOM } from 'mailspring-exports';
 import EmojiPopup from '../../common/EmojiPopup';
-import { RoomStore } from 'chat-exports';
+import { RoomStore, MessageSend } from 'chat-exports';
 
 const FAKE_SPACE = '\u00A0';
 
@@ -53,7 +53,6 @@ function getClipboardFiles() {
 
 export default class MessageEditBar extends PureComponent {
   static propTypes = {
-    onMessageSubmitted: PropTypes.func.isRequired,
     value: PropTypes.string.isRequired,
     conversation: PropTypes.shape({
       jid: PropTypes.string.isRequired,
@@ -150,7 +149,7 @@ export default class MessageEditBar extends PureComponent {
   sendMessage = () => {
     let messageBody = this.textarea.value;
     messageBody = messageBody.replace(/&nbsp;|<br \/>/g, ' ');
-    const { conversation, onMessageSubmitted, msg } = this.props;
+    const { conversation, msg } = this.props;
 
     if (!conversation) {
       return;
@@ -170,8 +169,7 @@ export default class MessageEditBar extends PureComponent {
         atJids: this.getAtTargetPersons(),
         updating
       };
-
-      onMessageSubmitted(conversation, JSON.stringify(body), messageId, false);
+      MessageSend.sendMessage(body, conversation, messageId, updating);
     }
 
     this.setState({ messageBody: '', files: [] });
