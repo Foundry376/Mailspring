@@ -11,7 +11,7 @@ import { encryptByAES, decryptByAES, generateAESKey } from '../utils/aes';
 import { encrypte, decrypte } from '../utils/rsa';
 import { getDeviceId } from '../utils/e2ee';
 class MessageSend {
-  sendMessage = async (body, from, to, isGroup) => {
+  sendMessage = async (body, from, to, isGroup, aes) => {
     const messageId = uuid();
     const strBody = JSON.stringify(body);
     MessageStore.saveMessagesAndRefresh([{
@@ -30,7 +30,7 @@ class MessageSend {
     let devices = await this.getDevices(from, to, isGroup);
     if (devices && devices.length > 0) {
       const deviceId = await getDeviceId();
-      const ediEncrypted = this.getEncrypted(to, strBody, devices, deviceId);
+      const ediEncrypted = this.getEncrypted(strBody, devices, deviceId, aes);
       if (ediEncrypted) {
         message.ediEncrypted = ediEncrypted;
       }
@@ -67,8 +67,11 @@ class MessageSend {
     }
     return devices;
   }
-  getEncrypted = (jid, body, devices, deviceId) => {
-    let aeskey = generateAESKey();
+  getEncrypted = (body, devices, deviceId, aes) => {
+    let aeskey = aes;
+    if (!aeskey) {
+      aeskey = generateAESKey();
+    }
     let keys = this.addKeys(devices, aeskey);
     //对称加密body
     if (keys && keys.length > 0) {
