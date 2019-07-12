@@ -13,18 +13,18 @@ import { getDeviceId } from '../utils/e2ee';
 
 class MessageSend {
   sendMessage = async (body, conversation, messageId, updating, aes) => {
-    const {curJid, jid, isGroup} = conversation;
+    const { curJid, jid, isGroup } = conversation;
     const from = curJid, to = jid;
     messageId = messageId || uuid();
     let dbMessageId;
     if (messageId.indexOf('$') < 0) {
-      dbMessageId = messageId+'$'+from;
+      dbMessageId = messageId + '$' + from;
     } else {
       dbMessageId = messageId;
     }
     const strBody = JSON.stringify(body);
     const dbMsg = await MessageStore.getMessageById(dbMessageId);
-    const sentTime = updating? dbMsg && dbMsg.sentTime : new Date().getTime() + window.edisonChatServerDiffTime;
+    const sentTime = updating ? dbMsg && dbMsg.sentTime : new Date().getTime() + window.edisonChatServerDiffTime;
     const msg = {
       body: strBody,
       conversationJid: to,
@@ -82,8 +82,9 @@ class MessageSend {
 
   };
 
-  getEncrypted = (body, devices, deviceId) => {
-    let aeskey = generateAESKey();
+  getEncrypted = (body, devices, deviceId, aes) => {
+    let aeskey = aes;
+    if (!aeskey) { aeskey = generateAESKey(); }
     let keys = this.addKeys(devices, aeskey);
     //对称加密body
     if (keys && keys.length > 0) {
@@ -105,7 +106,6 @@ class MessageSend {
     let keys = [];
     for (let j in dks) {
       let device = dks[j];
-      console.log( 'addKeys device: ', device);
       let jid = device.jid;
       let uid = jid.split('@')[0];
       let dk = device.dk;
