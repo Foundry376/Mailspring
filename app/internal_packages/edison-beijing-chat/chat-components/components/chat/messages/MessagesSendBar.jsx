@@ -17,7 +17,7 @@ import { sendFileMessage } from '../../../../utils/message';
 import { sendCmd2App2, getMyAppByShortName, getMyApps, getToken, sendMsg2App2 } from '../../../../utils/appmgt';
 import PluginPrompt from './PluginPrompt';
 import { xmpplogin } from '../../../../utils/restjs';
-import { MessageStore, RoomStore } from 'chat-exports';
+import { MessageStore, RoomStore, MessageSend } from 'chat-exports';
 import { alert } from '../../../../utils/electron';
 const { exec } = require('child_process');
 
@@ -302,6 +302,8 @@ export default class MessagesSendBar extends PureComponent {
           // occupants,
           atJids: this.getAtTargetPersons()
         };
+
+        // MessageSend.sendMessage(body, selectedConversation.curJid, selectedConversation.jid, selectedConversation.isGroup);
         const messageId = uuid();
         onMessageSubmitted(selectedConversation, JSON.stringify(body), messageId, false);
       }
