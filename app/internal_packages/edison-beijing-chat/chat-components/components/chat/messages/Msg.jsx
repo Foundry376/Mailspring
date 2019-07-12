@@ -91,25 +91,6 @@ export default class Msg extends PureComponent {
   static timer;
 
   componentDidMount() {
-    this.menu = new Menu()
-    let menuItem = new MenuItem({
-      label: 'Edit text',
-      click: () => {
-        const state = Object.assign({}, this.state, { isEditing: true });
-        this.setState(state);
-        this.menu.closePopup();
-      }
-    });
-    this.menu.append(menuItem);
-    menuItem = new MenuItem({
-      label: 'Delete message',
-      click: () => {
-        this.deleteMessage();
-        this.menu.closePopup();
-      }
-    });
-    this.menu.append(menuItem);
-
     this.unlisten = ChatActions.updateDownload.listen(this.update, this);
     if (this.contentEl) {
       this.contentEl.innerHTML = a11yEmoji(this.contentEl.innerHTML);
@@ -186,9 +167,30 @@ export default class Msg extends PureComponent {
     queueLoadMessage(loadConfig);
   };
 
-  showPopupMenu = () => {
+  showPopupMenu = (isFile) => {
     event.stopPropagation();
     event.preventDefault();
+    this.menu = new Menu();
+    let menuItem;
+    if (!isFile) {
+      menuItem = new MenuItem({
+        label: 'Edit text',
+        click: () => {
+          const state = Object.assign({}, this.state, { isEditing: true });
+          this.setState(state);
+          this.menu.closePopup();
+        }
+      });
+      this.menu.append(menuItem);
+    }
+    menuItem = new MenuItem({
+      label: 'Delete message',
+      click: () => {
+        this.deleteMessage();
+        this.menu.closePopup();
+      }
+    });
+    this.menu.append(menuItem);
     this.menu.popup({ x: event.clientX, y: event.clientY });
   };
 
@@ -213,8 +215,8 @@ export default class Msg extends PureComponent {
         {msg.sender === currentUserJid && !isSystemEvent && (
           <span
             className="inplace-edit-img"
-            onClick={() => this.showPopupMenu()}
-            onContextMenu={() => this.showPopupMenu()}
+            onClick={() => this.showPopupMenu(isFile)}
+            onContextMenu={() => this.showPopupMenu(isFile)}
           >
             <RetinaImg name={'expand-more.svg'}
               style={{ width: 26, height: 26 }}
